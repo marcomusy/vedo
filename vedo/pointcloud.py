@@ -22,6 +22,7 @@ __all__ = ["Points",
            "pointCloudFrom",
            "visiblePoints",
            "delaunay2D",
+           "voronoi",
            "fitLine",
            "fitCircle",
            "fitPlane",
@@ -334,7 +335,7 @@ def delaunay2D(plist, mode='scipy', boundaries=(), tol=None, alpha=0, offset=0, 
 
     pd = vtk.vtkPolyData()
     vpts = vtk.vtkPoints()
-    vpts.SetData(utils.numpy2vtk(plist, dtype=np.float))
+    vpts.SetData(utils.numpy2vtk(plist, dtype=float))
     pd.SetPoints(vpts)
 
     delny = vtk.vtkDelaunay2D()
@@ -364,6 +365,74 @@ def delaunay2D(plist, mode='scipy', boundaries=(), tol=None, alpha=0, offset=0, 
         delny.SetProjectionPlaneMode(vtk.VTK_BEST_FITTING_PLANE)
     delny.Update()
     return vedo.mesh.Mesh(delny.GetOutput()).clean().lighting('off')
+
+
+def voronoi(pts, pad=0, fit=False):
+    """
+    Generate the 2D Voronoi convex tiling of the input points (z is ignored).
+    The points are assumed to lie in a plane. The output is a Mesh. Each output cell is a convex polygon.
+
+    The 2D Voronoi tessellation is a tiling of space, where each Voronoi tile represents the region nearest
+    to one of the input points. Voronoi tessellations are important in computational geometry
+    (and many other fields), and are the dual of Delaunay triangulations.
+
+    Thus the triangulation is constructed in the x-y plane, and the z coordinate is ignored
+    (although carried through to the output).
+    If you desire to triangulate in a different plane, you can use fit=True.
+
+    A brief summary is as follows. Each (generating) input point is associated with
+    an initial Voronoi tile, which is simply the bounding box of the point set.
+    A locator is then used to identify nearby points: each neighbor in turn generates a
+    clipping line positioned halfway between the generating point and the neighboring point,
+    and orthogonal to the line connecting them. Clips are readily performed by evaluationg the
+    vertices of the convex Voronoi tile as being on either side (inside,outside) of the clip line.
+    If two intersections of the Voronoi tile are found, the portion of the tile "outside" the clip
+    line is discarded, resulting in a new convex, Voronoi tile. As each clip occurs,
+    the Voronoi "Flower" error metric (the union of error spheres) is compared to the extent of the region
+    containing the neighboring clip points. The clip region (along with the points contained in it) is grown
+    by careful expansion (e.g., outward spiraling iterator over all candidate clip points).
+    When the Voronoi Flower is contained within the clip region, the algorithm terminates and the Voronoi
+    tile is output. Once complete, it is possible to construct the Delaunay triangulation from the Voronoi
+    tessellation. Note that topological and geometric information is used to generate a valid triangulation
+    (e.g., merging points and validating topology).
+
+    Parameters
+    ----------
+    pts : list
+        list of input points.
+    pad : float, optional
+        padding distance. The default is 0.
+    fit : bool, optional
+        detect automatically the best fitting plane. The default is False.
+    """
+    vor = vtk.vtkVoronoi2D()
+    if isinstance(pts, Points):
+        vor.SetInputData(pts.polydata())
+    else:
+        pts = np.asarray(pts)
+        if pts.shape[1] == 2:
+            pts = np.c_[pts, np.zeros(len(pts))]
+        pd = vtk.vtkPolyData()
+        vpts = vtk.vtkPoints()
+        vpts.SetData(utils.numpy2vtk(pts, dtype=float))
+        pd.SetPoints(vpts)
+        vor.SetInputData(pd)
+    vor.SetPadding(pad)
+    vor.SetGenerateScalarsToPointIds()
+    if fit:
+        vor.SetProjectionPlaneModeToBestFittingPlane()
+    else:
+        vor.SetProjectionPlaneModeToXYPlane()
+    vor.Update()
+    poly = vor.GetOutput()
+    arr = poly.GetCellData().GetArray(0)
+    if arr:
+        arr.SetName("VoronoiID")
+
+    m = vedo.Mesh(poly, c='orange5').lw(2).lighting('off').wireframe()
+    m.name = "Voronoi"
+    m.locator = vor.GetLocator()
+    return m
 
 
 def _rotatePoints(points, n0=None, n1=(0,0,1)):
@@ -854,7 +923,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 vgf.Update()
                 pd = vgf.GetOutput()
 
-                pd.GetPoints().SetData(utils.numpy2vtk(plist, dtype=np.float))
+                pd.GetPoints().SetData(utils.numpy2vtk(plist, dtype=float))
 
                 ucols = vtk.vtkUnsignedCharArray()
                 ucols.SetNumberOfComponents(4)
@@ -987,7 +1056,7 @@ class Points(vtk.vtkFollower, BaseActor):
     #                                 "//VTK::Normal::Impl\n" + icode+" \n"# we still want the default
     #                                 repeat,                 # only do it once
     #         )
-            
+
     #     if "fragment" in stype and dcode:
     #         sp.AddFragmentShaderReplacement("//VTK::System::Dec",
     #                                False, # before the standard replacements
@@ -1002,7 +1071,7 @@ class Points(vtk.vtkFollower, BaseActor):
     #           repeat,  # only do it once
     #         );
     #     return self
-        
+
 
     def vertices(self, pts=None, transformed=True, copy=False):
         """Alias for ``points().``"""
@@ -1060,6 +1129,7 @@ class Points(vtk.vtkFollower, BaseActor):
         cloned.base = np.array(self.base)
         cloned.top =  np.array(self.top)
         cloned.name = str(self.name)
+        cloned.filename = str(self.filename)
         cloned.info = dict(self.info)
         if self.trail:
             n = len(self.trailPoints)
@@ -1128,7 +1198,6 @@ class Points(vtk.vtkFollower, BaseActor):
         if c is not None:
             c = colors.getColor(c)
             act2d.GetProperty().SetColor(c)
-            act2d.GetProperty().SetScalarVisibility(False)
         else:
             act2d.GetProperty().SetColor(cmsh.color())
         if alpha is not None:
@@ -1176,7 +1245,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
             ppoints = vtk.vtkPoints()  # Generate the polyline
             poly = vtk.vtkPolyData()
-            ppoints.SetData(utils.numpy2vtk([pos] * n, dtype=np.float))
+            ppoints.SetData(utils.numpy2vtk([pos] * n, dtype=float))
             poly.SetPoints(ppoints)
             lines = vtk.vtkCellArray()
             lines.InsertNextCell(n)
@@ -1222,7 +1291,7 @@ class Points(vtk.vtkFollower, BaseActor):
         self.trailPoints.pop(0)
 
         tpoly = self.trail.polydata()
-        tpoly.GetPoints().SetData(utils.numpy2vtk(self.trailPoints, dtype=np.float))
+        tpoly.GetPoints().SetData(utils.numpy2vtk(self.trailPoints, dtype=float))
         return self
 
 
@@ -1516,7 +1585,7 @@ class Points(vtk.vtkFollower, BaseActor):
         """Calculate the average size of a mesh.
         This is the mean of the vertex distances from the center of mass."""
         cm = self.centerOfMass()
-        coords = self.points(copy=False)
+        coords = self.points()
         if not len(coords):
             return 0.0
         cc = coords-cm
@@ -1574,7 +1643,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         See also: ``flag()``, ``vignette()``, ``caption()`` and ``legend()``.
 
-        :param list,int,str content: either 'id', array name or array number.
+        :param list,int,str content: either 'id', 'cellid', array name or array number.
             A array can also be passed (must match the nr. of points or cells).
 
         :param bool cells: generate labels for cells instead of points [False]
@@ -1598,6 +1667,11 @@ class Points(vtk.vtkFollower, BaseActor):
 
             |meshquality| |meshquality.py|_
         """
+        if isinstance(content, str):
+            if "cellid" == content:
+                cells=True
+                content="id"
+
         if cells:
             elems = self.cellCenters()
             norms = self.normals(cells=True, compute=False)
@@ -2308,7 +2382,7 @@ class Points(vtk.vtkFollower, BaseActor):
         ):
         poly = self.polydata(False)
         data = poly.GetPointData()
-        
+
         if input_array is None:             # if None try to fetch the active scalars
             arr = data.GetScalars()
             if not arr:
@@ -2524,7 +2598,7 @@ class Points(vtk.vtkFollower, BaseActor):
         self._mapper.SetScalarModeToUseCellData()
         self._mapper.ScalarVisibilityOn()
         if hasattr(self._mapper, 'SetArrayName'):
-            self._mapper.SetArrayName(arrayName)            
+            self._mapper.SetArrayName(arrayName)
         self._mapper.SetScalarRange(lut.GetRange())
         data.SetActiveScalars(arrayName)
         data.Modified()
@@ -2779,7 +2853,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
             if returnPointId:
                 ########
-                return utils.vtk2numpy(vtklist) 
+                return utils.vtk2numpy(vtklist)
                 ########
             else:
                 if not poly:
@@ -3019,9 +3093,9 @@ class Points(vtk.vtkFollower, BaseActor):
         warpTo.Update()
         return self._update(warpTo.GetOutput())
 
-    @deprecated(reason=vedo.colors.red+"Please use points(my_new_pts)"+vedo.colors.reset)
+    @deprecated(reason=vedo.colors.red+"Please use mymesh.points(my_new_pts)"+vedo.colors.reset)
     def warpByVectors(self, vects, factor=1, useCells=False):
-        """Deprecated. Please use points(my_new_pts) """
+        """Deprecated. Please use mymesh.points(my_new_pts) """
         wf = vtk.vtkWarpVector()
         wf.SetInputDataObject(self.polydata())
 
@@ -3043,9 +3117,9 @@ class Points(vtk.vtkFollower, BaseActor):
         wf.Update()
         return self._update(wf.GetOutput())
 
-    @deprecated(reason=vedo.colors.red+"Please use warp()"+vedo.colors.reset)
-    def thinPlateSpline(self, sourcePts, targetPts, sigma=1, mode="3d"):
-        return self.warp(sourcePts, targetPts, sigma, mode)
+    @deprecated(reason=vedo.colors.red+"Please use warp() with same syntax"+vedo.colors.reset)
+    def thinPlateSpline(self, *args, **kwargs):
+        return self.warp(*args, **kwargs)
 
     def warp(self, sourcePts, targetPts, sigma=1, mode="3d"):
         """
@@ -3079,7 +3153,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         nt = len(targetPts)
         if ns != nt:
-            colors.printc("Error in thinPlateSpline(): #source != #target points", ns, nt, c='r')
+            colors.printc("Error in warp(): #source != #target points", ns, nt, c='r')
             raise RuntimeError()
 
         pttar = vtk.vtkPoints()
@@ -3093,9 +3167,9 @@ class Points(vtk.vtkFollower, BaseActor):
         elif mode.lower() == "2d":
             transform.SetBasisToR2LogR()
         else:
-            colors.printc("Error in thinPlateSpline(): unknown mode", mode, c='r')
+            colors.printc("Error in warp(): unknown mode", mode, c='r')
             raise RuntimeError()
-            
+
         transform.SetSigma(sigma)
         transform.SetSourceLandmarks(ptsou)
         transform.SetTargetLandmarks(pttar)
@@ -3627,9 +3701,9 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         Clustering of points in space. The `radius` is the radius of local search.
         An array named "ClusterId" is added to the vertex points.
-    
+
         |clustering| |clustering.py|_
-        """    
+        """
         cluster = vtk.vtkEuclideanClusterExtraction()
         cluster.SetInputData(self._data)
         cluster.SetExtractionModeToAllClusters()
@@ -3638,7 +3712,7 @@ class Points(vtk.vtkFollower, BaseActor):
         cluster.Update()
         idsarr = cluster.GetOutput().GetPointData().GetArray("ClusterId")
         self._data.GetPointData().AddArray(idsarr)
-        return self        
+        return self
 
     def density(self, dims=(40,40,40),
                 bounds=None, radius=None,

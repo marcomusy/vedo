@@ -34,7 +34,7 @@ class _DataArrayHelper(object):
             data = self.actor._data.GetPointData()
         else:
             data = self.actor._data.GetCellData()
-        
+
         if isinstance(key, int):
             key = data.GetArrayName(key)
         arr = data.GetArray(key)
@@ -58,9 +58,9 @@ class _DataArrayHelper(object):
             raise RuntimeError()
 
         input_array = np.ascontiguousarray(input_array)
-        varr = utils.numpy2vtk(input_array, name=key)        
+        varr = utils.numpy2vtk(input_array, name=key)
         data.AddArray(varr)
-        
+
         if len(input_array.shape)==1: # scalars
             data.SetActiveScalars(key)
         elif len(input_array.shape)==2 and input_array.shape[1] == 3: # vectors
@@ -70,7 +70,7 @@ class _DataArrayHelper(object):
                 data.SetActiveVectors(key)
 
         return #####################
-    
+
     def keys(self):
         if self.association == 0:
             data = self.actor._data.GetPointData()
@@ -80,13 +80,13 @@ class _DataArrayHelper(object):
         for i in range(data.GetNumberOfArrays()):
             arrnames.append(data.GetArray(i).GetName())
         return arrnames
-    
+
     def remove(self, key):
         if self.association == 0:
             self.actor._data.GetPointData().RemoveArray(key)
         else:
             self.actor._data.GetCellData().RemoveArray(key)
-    
+
     def rename(self, oldname, newname):
         if self.association == 0:
             varr = self.actor._data.GetPointData().GetArray(oldname)
@@ -96,7 +96,7 @@ class _DataArrayHelper(object):
             varr.SetName(newname)
         else:
             colors.printc("Cannot rename non existing array:", oldname, "to:", newname, c='r')
-    
+
     def select(self, key):
         if self.association == 0:
             data = self.actor._data.GetPointData()
@@ -108,7 +108,7 @@ class _DataArrayHelper(object):
         if isinstance(key, int):
             key = data.GetArrayName(key)
         data.SetActiveScalars(key)
-        
+
         if hasattr(self.actor._mapper, 'SetArrayName'):
             self.actor._mapper.SetArrayName(key)
 
@@ -117,7 +117,7 @@ class _DataArrayHelper(object):
 
     def print(self, **kwargs):
         colors.printc(self.keys(), **kwargs)
-        
+
 
 ###############################################################################
 class Base3DProp(object):
@@ -297,8 +297,7 @@ class Base3DProp(object):
         b, c, d = -axis * np.sin(anglerad / 2)
         aa, bb, cc, dd = a * a, b * b, c * c, d * d
         bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
-        R = np.array(
-            [
+        R = np.array([
                 [aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
                 [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
                 [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc],
@@ -733,7 +732,7 @@ class BaseActor(Base3DProp):
         self.flagText = None
         self._caption = None
         self.property = None
-        
+
 
     def mapper(self, newMapper=None):
         """Return the ``vtkMapper`` data object, or update it with a new one."""
@@ -767,7 +766,7 @@ class BaseActor(Base3DProp):
         return self.inputdata().GetNumberOfCells()
 
 
-    def points(self, pts=None, transformed=True, copy=False):
+    def points(self, pts=None, transformed=True):
         """
         Set/Get the vertex coordinates of a mesh or point cloud.
         Argument can be an index, a set of indices
@@ -775,8 +774,6 @@ class BaseActor(Base3DProp):
 
         :param bool transformed: if `False` ignore any previous transformation
             applied to the mesh.
-        :param bool copy: if `False` return the reference to the points
-            so that they can be modified in place, otherwise a copy is built.
         """
         if pts is None: ### getter
 
@@ -786,10 +783,7 @@ class BaseActor(Base3DProp):
                 vpts = self._data.GetPoints()
 
             if vpts:
-                if copy:
-                    return utils.vtk2numpy(vpts.GetData())
-                else:
-                    return utils.vtk2numpy(vpts.GetData())
+                return utils.vtk2numpy(vpts.GetData())
             else:
                 return np.array([])
 
@@ -803,7 +797,7 @@ class BaseActor(Base3DProp):
                 # assume plist is in the format [all_x, all_y, all_z]
                 pts = np.stack((pts[0], pts[1], pts[2]), axis=1)
             vpts = self._data.GetPoints()
-            vpts.SetData(utils.numpy2vtk(pts, dtype=np.float))
+            vpts.SetData(utils.numpy2vtk(pts, dtype=float))
             vpts.Modified()
             # reset mesh to identity matrix position/rotation:
             self.PokeMatrix(vtk.vtkMatrix4x4())
@@ -1001,19 +995,19 @@ class BaseActor(Base3DProp):
         If None is passed as input, will use colors from current active scalars.
         """
         return self.color(color, alpha)
-    
+
     @property
     def pointdata(self):
         """
         Create and/or return a ``numpy.array`` associated to points (vertices).
         A data array can be indexed either as a string or by an integer number.
         E.g.:  ``myobj.pointdata["arrayname"]``
-        
+
         Use:
 
-            ``myobj.pointdata.keys()`` to return the available data array names           
+            ``myobj.pointdata.keys()`` to return the available data array names
 
-            ``myobj.pointdata.select(name)`` to make this array the active one       
+            ``myobj.pointdata.select(name)`` to make this array the active one
 
             ``myobj.pointdata.remove(name)`` to remove this array
         """
@@ -1025,12 +1019,12 @@ class BaseActor(Base3DProp):
         Create and/or return a ``numpy.array`` associated to cells (faces).
         A data array can be indexed either as a string or by an integer number.
         E.g.:  ``myobj.celldata["arrayname"]``
-        
-        Use:
-            
-            ``myobj.celldata.keys()`` to return the available data array names           
 
-            ``myobj.celldata.select(name)`` to make this array the active one       
+        Use:
+
+            ``myobj.celldata.keys()`` to return the available data array names
+
+            ``myobj.celldata.select(name)`` to make this array the active one
 
             ``myobj.celldata.remove(name)`` to remove this array
         """
@@ -1423,20 +1417,20 @@ class BaseGrid(BaseActor):
         and you want -3 to show red and 1.5 violet and 6 green, then just set:
 
         ``volume.color(['red', 'violet', 'green'])``
-        
+
         :param list alpha: use a list to specify transparencies along the scalar range
         :param float vmin: force the min of the scalar range to be this value
         :param float vmax: force the max of the scalar range to be this value
         """
         # superseeds method in Points, Mesh
-        if vmin is None: 
+        if vmin is None:
             vmin, _ = self._data.GetScalarRange()
-        if vmax is None: 
+        if vmax is None:
             _, vmax = self._data.GetScalarRange()
         ctf = self.GetProperty().GetRGBTransferFunction()
         ctf.RemoveAllPoints()
         self._color = col
-        
+
         if utils.isSequence(col):
             if utils.isSequence(col[0]) and len(col[0])==2:
                 # user passing [(value1, color1), ...]
@@ -1487,9 +1481,9 @@ class BaseGrid(BaseActor):
         Then all cells below -5 will be completely transparent, cells with a scalar value of 35
         will get an opacity of 40% and above 123 alpha is set to 90%.
         """
-        if vmin is None: 
+        if vmin is None:
             vmin, _ = self._data.GetScalarRange()
-        if vmax is None: 
+        if vmax is None:
             _, vmax = self._data.GetScalarRange()
         otf = self.GetProperty().GetScalarOpacity()
         otf.RemoveAllPoints()

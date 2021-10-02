@@ -1393,7 +1393,7 @@ def _addCutterToolVolumeWithBox(vol, invert):
 
 
 #####################################################################
-def addRendererFrame(c=None, alpha=None, lw=None, pad=None):
+def addRendererFrame(plotter_instance, c=None, alpha=None, lw=None, pad=None):
 
     if lw is None:
         lw = settings.rendererFrameWidth
@@ -1405,7 +1405,7 @@ def addRendererFrame(c=None, alpha=None, lw=None, pad=None):
 
     if c is None:  # automatic black or white
         c = (0.9, 0.9, 0.9)
-        if np.sum(settings.plotter_instance.renderer.GetBackground())>1.5:
+        if np.sum(plotter_instance.renderer.GetBackground())>1.5:
             c = (0.1, 0.1, 0.1)
     c = getColor(c)
 
@@ -1439,7 +1439,7 @@ def addRendererFrame(c=None, alpha=None, lw=None, pad=None):
     fractor.GetProperty().SetOpacity(alpha)
     fractor.GetProperty().SetLineWidth(lw)
 
-    settings.plotter_instance.renderer.AddActor(fractor)
+    plotter_instance.renderer.AddActor(fractor)
     return fractor
 
 
@@ -1948,6 +1948,8 @@ def Axes(
 
     if tipSize is None:
         tipSize = 0.005*gscale
+        if not ztitle:
+            tipSize = 0 # switch off in xy 2d
 
     ndiv = 4
     if not ztitle or not ytitle or not xtitle: # make more default ticks if 2D

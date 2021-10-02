@@ -675,7 +675,6 @@ def _plotxy(
         ylim = format.ylim
         aspect = format.aspect
         pad = format.pad
-        axes = 0
         title = ""
         xtitle = ""
         ytitle = ""
@@ -864,7 +863,7 @@ def _plotxy(
         axes["xrange"] = (x0lim, x1lim)
         axes["yrange"] = (y0lim, y1lim)
         axes["zrange"] = (0, 0)
-        axes["c"] = "k"
+        # axes["c"] = "k"
         axes["yUseBounds"] = True
         axs = addons.Axes(**axes)
         axs.name = "axes"
@@ -1981,7 +1980,7 @@ def _histogramHexBin(
     zs = [[0.0]] * len(values)
     values = np.append(values, zs, axis=1)
 
-    pointsPolydata.GetPoints().SetData(utils.numpy2vtk(values, dtype=np.float))
+    pointsPolydata.GetPoints().SetData(utils.numpy2vtk(values, dtype=float))
     cloud = Mesh(pointsPolydata)
 
     col = None
@@ -2346,7 +2345,6 @@ def quiver(
     headLength=0.25,
     headWidth=0.2,
     fill=True,
-    scale=1,
 ):
     """
     Quiver Plot, display `vectors` at `points` locations.
@@ -2358,7 +2356,6 @@ def quiver(
     :param float headLength: fractional head length
     :param float headWidth: fractional head width
     :param bool fill: if False only generate the outline
-    :param float scale: apply a rescaling factor to the length
 
     |quiver| |quiver.py|_
     """
@@ -2380,7 +2377,6 @@ def quiver(
         headLength=headLength,
         headWidth=headWidth,
         fill=fill,
-        scale=scale,
         alpha=alpha,
     )
     arrs2d.pickable(False)
@@ -2831,7 +2827,7 @@ def cornerHistogram(
     The resulting object is a 2D actor.
 
     Use *vrange* to restrict the range of the histogram.
-    
+
     :param int nmax: limit the sampling to this max nr of entries
 
     Use `pos` to assign its position:
@@ -2843,7 +2839,7 @@ def cornerHistogram(
     """
     if hasattr(values, '_data'):
         values = utils.vtk2numpy(values._data.GetPointData().GetScalars())
-    
+
     n = values.shape[0]
     if nmax and nmax < n:
         # subsample:

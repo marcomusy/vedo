@@ -10,7 +10,7 @@
 [![CircleCI](https://circleci.com/gh/marcomusy/vedo.svg?style=svg)](https://circleci.com/gh/marcomusy/vedo)
 
 
-`vedo` is a lightweight and powerful python module
+A lightweight and powerful python module
 for scientific analysis and **v**isualization of **3d** **o**bjects.<br>
 
 

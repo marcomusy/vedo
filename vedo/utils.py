@@ -259,9 +259,9 @@ def numpy2vtk(arr, dtype=None, deep=True, name=""):
     # https://github.com/Kitware/VTK/blob/master/Wrapping/Python/vtkmodules/util/numpy_support.py
     if arr is None:
         return None
-    
+
     arr = np.ascontiguousarray(arr)
-    
+
     if dtype=='id':
         varr = numpy_to_vtkIdTypeArray(arr.astype(np.int64), deep=deep)
     elif dtype:
@@ -340,7 +340,7 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
 
     sourcePoints = vtk.vtkPoints()
     # sourcePoints.SetData(numpy_to_vtk(np.ascontiguousarray(vertices), deep=True))
-    sourcePoints.SetData(numpy2vtk(vertices, dtype=np.float))
+    sourcePoints.SetData(numpy2vtk(vertices, dtype=float))
     poly.SetPoints(sourcePoints)
 
     if lines is not None:
@@ -375,9 +375,8 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
 
     # faces exist
     sourcePolygons = vtk.vtkCellArray()
-    
+
     # try it anyway: in case it's not uniform np.ndim will be 1
-    np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
     faces = np.asarray(faces)
 
     if np.ndim(faces) == 2 and indexOffset==0 and fast:
@@ -697,7 +696,7 @@ def roundToDigit(x, p):
     """Round a real number to the specified number of significant digits."""
     if not x:
         return x
-    k = np.int(np.floor(np.log10(np.abs(x)))) + (p-1)
+    k = int(np.floor(np.log10(np.abs(x)))) + (p-1)
     r = np.around(x, -k)
     if int(r) == r:
         return int(r)
@@ -986,7 +985,7 @@ def printInfo(obj):
         ptdata = poly.GetPointData()
         cldata = poly.GetCellData()
         if ptdata.GetNumberOfArrays() + cldata.GetNumberOfArrays():
-            
+
             arrtypes = dict()
             arrtypes[vtk.VTK_UNSIGNED_CHAR] = ("UNSIGNED_CHAR",  "np.uint8")
             arrtypes[vtk.VTK_UNSIGNED_SHORT]= ("UNSIGNED_SHORT", "np.uint16")
@@ -1792,7 +1791,7 @@ def _vedo2meshlab(vmesh):
         m.vertex_quality_array(parr)
     carr = vmesh.getCellArray()
     if carr is not None:
-        m.face_quality_array(carr)        
+        m.face_quality_array(carr)
     m.update_bounding_box()
     return m
 
@@ -1805,7 +1804,7 @@ def _meshlab2vedo(mmesh):
     mpoints, mcells = mmesh.vertex_matrix(), mmesh.face_matrix()
     pnorms = mmesh.vertex_normal_matrix()
     cnorms = mmesh.face_normal_matrix()
-        
+
     try:
         parr = mmesh.vertex_quality_array()
     except:
@@ -1813,13 +1812,13 @@ def _meshlab2vedo(mmesh):
     try:
         carr = mmesh.face_quality_array()
     except:
-        carr = None  
-    
+        carr = None
+
     if len(mcells):
         polydata = buildPolyData(mpoints, mcells)
     else:
         polydata = buildPolyData(mpoints, None)
-    
+
     if parr is not None:
         parr_vtk = numpy_to_vtk(parr)
         parr_vtk.SetName("MeshLabQuality")
@@ -1827,7 +1826,7 @@ def _meshlab2vedo(mmesh):
         if x1-x0:
             polydata.GetPointData().AddArray(parr_vtk)
             polydata.GetPointData().SetActiveScalars("MeshLabQuality")
-    
+
     if carr is not None:
         carr_vtk = numpy_to_vtk(carr)
         carr_vtk.SetName("MeshLabQuality")
@@ -1835,7 +1834,7 @@ def _meshlab2vedo(mmesh):
         if x1-x0:
             polydata.GetCellData().AddArray(carr_vtk)
             polydata.GetCellData().SetActiveScalars("MeshLabQuality")
-        
+
     if len(pnorms):
         polydata.GetPointData().SetNormals(numpy2vtk(pnorms))
     if len(cnorms):

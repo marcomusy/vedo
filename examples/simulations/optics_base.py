@@ -99,7 +99,7 @@ class Detector(vedo.Mesh, OpticalElement):
         self.name = "Detector"
         self.type = "screen"
         self.normals = self.celldata["Normals"]
-        self.color('red3').lw(2).lighting('off').wireframe(False).alpha(0.2)
+        self.color('k9').lw(2).lighting('off').wireframe(False).alpha(1)
 
     def count(self):
         """Count the hits on the detector cells and store them in cell array 'Counts'."""
@@ -138,7 +138,7 @@ class Ray(object):
         self.dmax = 20
         self.maxiterations = 20
         self.tolerance = None  # will be computed automatically
-        self.OBBTreeTolerance = None   # automatic
+        self.OBBTreeTolerance = 1e-05  # None = automatic
         self.ref_index = n
 
     @property

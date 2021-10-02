@@ -400,6 +400,7 @@ class Plotter:
         self.qtWidget = qtWidget #  QVTKRenderWindowInteractor
         self.wxWidget = wxWidget # wxVTKRenderWindowInteractor
         self.skybox = None
+        self.frames = None      # holds the output of addons.addRendererFrame
 
         # mostly internal stuff:
         self.hoverLegends = []
@@ -786,21 +787,21 @@ class Plotter:
     def __isub__(self, actors):
         self.remove(actors, render=False)
         return self
-    
+
     def load(self, filename, unpack=True, force=False):
         """
         Load objects from file.
         The output will depend on the file extension. See examples below.
-        
+
         :param bool unpack: only for multiblock data,
             if True returns a flat list of objects.
         :param bool force: when downloading a file ignore any previous
             cached downloads and force a new one.
-            
+
         :Example:
-            
+
             .. code-block:: python
-            
+
                 from vedo import *
                 # Return a list of 2 Mesh
                 g = load([dataurl+'250.vtk', dataurl+'290.vtk'])
@@ -818,8 +819,8 @@ class Plotter:
             self.actors += acts
         else:
             self.actors.append(acts)
-        return acts    
-    
+        return acts
+
     def add(self, actors, at=None, render=True, resetcam=False):
         """Append input object to the internal list of actors to be shown.
 
@@ -939,7 +940,6 @@ class Plotter:
                 r.GradientBackgroundOff()
         return self
 
-
     # def addShadows(self, at=0):
     #     """to do"""
     #     smp = vtk.vtkShadowMapPass()
@@ -953,9 +953,9 @@ class Plotter:
     #     cpass.SetDelegatePass(seq)
     #     self.renderers[at].SetPass(cpass)
     #     self.renderers[at].Modified()
-    #     return self        
-        
-        
+    #     return self
+
+
     ####################################################
     def getMeshes(self, at=None, includeNonPickables=False):
         """
@@ -1022,9 +1022,9 @@ class Plotter:
         Takes as input two ``vtkCamera`` objects and set camera at an intermediate position:
 
         fraction=0 -> camstart,  fraction=1 -> camstop.
-        
+
         ``camstart`` and ``camstop`` can also be dictionaries of format:
-            
+
             camstart = dict(pos=..., focalPoint=..., viewup=..., distance=..., clippingRange=...)
 
         Press ``shift-C`` key in interactive mode to dump a python snipplet
@@ -1034,33 +1034,33 @@ class Plotter:
             fraction = 1
         if fraction < 0:
             fraction = 0
-        
+
         if isinstance(camstart, dict):
             p1 = np.asarray(camstart.pop("pos", [0,0,1]))
             f1 = np.asarray(camstart.pop("focalPoint", [0,0,0]))
             v1 = np.asarray(camstart.pop("viewup", [0,1,0]))
             s1 = camstart.pop("distance", None)
-            c1 = np.asarray(camstart.pop("clippingRange", None))     
+            c1 = np.asarray(camstart.pop("clippingRange", None))
         else:
             p1 = np.array(camstart.GetPosition())
             f1 = np.array(camstart.GetFocalPoint())
             v1 = np.array(camstart.GetViewUp())
             c1 = np.array(camstart.GetClippingRange())
             s1 = camstart.GetDistance()
-        
+
         if isinstance(camstop, dict):
             p1 = np.asarray(camstop.pop("pos", [0,0,1]))
             f1 = np.asarray(camstop.pop("focalPoint", [0,0,0]))
             v1 = np.asarray(camstop.pop("viewup", [0,1,0]))
             s1 = camstop.pop("distance", None)
-            c1 = np.asarray(camstop.pop("clippingRange", None))     
+            c1 = np.asarray(camstop.pop("clippingRange", None))
         else:
             p1 = np.array(camstop.GetPosition())
             f1 = np.array(camstop.GetFocalPoint())
             v1 = np.array(camstop.GetViewUp())
             c1 = np.array(camstop.GetClippingRange())
             s1 = camstop.GetDistance()
-            
+
         p2 = np.array(camstop.GetPosition())
         f2 = np.array(camstop.GetFocalPoint())
         v2 = np.array(camstop.GetViewUp())
@@ -1287,7 +1287,7 @@ class Plotter:
         Returns
         -------
         SplineTool object.
-        """    
+        """
         sw = addons.SplineTool(points, pc, ps, lc, ac, lw, closed)
         if self.interactor:
             sw.SetInteractor(self.interactor)
@@ -1416,6 +1416,25 @@ class Plotter:
             vedo.printc("addSkyBox not supported in this VTK version. Skip.", c='r')
         return self
 
+    def addRendererFrame(self, c=None, alpha=None, lw=None, pad=None):
+        """
+        Add a frame to the renderer subwindow
+
+        Parameters
+        ----------
+        c : str, optional
+            color name or index. The default is None.
+        alpha : float, optional
+            opacity. The default is None.
+        lw : int, optional
+            line width in pixels. The default is None.
+        pad : float, optional
+            padding space. The default is None.
+        """
+        self.frames = addons.addRendererFrame(self, c, alpha,lw, pad)
+        return self
+
+
     def addHoverLegend(self,
                        at=0,
                        c=None,
@@ -1494,7 +1513,7 @@ class Plotter:
                         t += "\n             : "
                         sz, created = evt.actor.fileSize, evt.actor.created
                         t += f"{created[4:-5]} ({sz})"
-                        
+
                 if evt.isPoints:
                     indata = evt.actor.polydata(False)
                     if indata.GetNumberOfPoints():
@@ -1510,7 +1529,7 @@ class Plotter:
                         t += f"\nCell  array  : {cdata.GetScalars().GetName()}"
                         if cdata.GetScalars().GetName() == evt.actor.mapper().GetArrayName():
                             t += " *"
-                            
+
                 if evt.isPicture:
                     t = f"{os.path.basename(evt.actor.filename[:maxlength+10])}".ljust(maxlength+10)
                     t += f"\nImage shape: {evt.actor.shape}"
@@ -1621,7 +1640,8 @@ class Plotter:
             elif "mid" in ln:
                 eventName="MiddleButtonPress"
             if "release" in ln:
-                eventName = eventName.replace("Press","Release")
+                # eventName = eventName.replace("Press","Release") # vtk bug
+                eventName="EndInteraction"
         else:
             if "key" in ln:
                 if 'release' in ln:
@@ -1636,6 +1656,8 @@ class Plotter:
 
         if not eventName.endswith('Event'):
             eventName += 'Event'
+
+        # print(eventName)
 
         def _func_wrap(iren, ename):
             x, y = self.interactor.GetEventPosition()
@@ -2074,6 +2096,10 @@ class Plotter:
                     self.renderer.SetBackground2(vedo.getColor(bg2))
 
         if axes is not None:
+            if isinstance(axes, vedo.Assembly): # user passing show(..., axes=myaxes)
+                actors = list(actors)
+                actors.append(axes) # move it into the list of normal things to show
+                axes = 0
             self.axes = axes
 
         if self.offscreen:
@@ -2105,8 +2131,6 @@ class Plotter:
             actors2show = self._scan_input(self.actors)
             self.actors = list(actors2show)
 
-        if axes is not None:
-            self.axes = axes
 
         # Backend ###############################################################
         if settings.notebookBackend:
@@ -2276,7 +2300,7 @@ class Plotter:
             self.renderer.ResetCamera()
 
         if len(self.renderers) > 1:
-            addons.addRendererFrame()
+            self.frames = self.addRendererFrame()
 
         if not self.initializedIren and self.interactor:
             self.interactor.Initialize()
@@ -2381,9 +2405,9 @@ class Plotter:
         elif interactorStyle ==11 or interactorStyle == "Unicam":
             self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleUnicam())
         elif interactorStyle ==12 or interactorStyle == "Image" or interactorStyle == "image":
-            style = vtk.vtkInteractorStyleImage()
-            style.SetInteractionModeToImage3D()
-            self.interactor.SetInteractorStyle(style)
+            astyle = vtk.vtkInteractorStyleImage()
+            astyle.SetInteractionModeToImage3D()
+            self.interactor.SetInteractorStyle(astyle)
 
         if self.interactor and self.interactive:
             self.interactor.Start()
@@ -2990,7 +3014,7 @@ class Plotter:
                                 ia._scals_idx += 1
                                 if ia._scals_idx >= len(arnames):
                                     ia._scals_idx = 0
-                                        
+
         elif key == "5":
             bgc = np.array(self.renderer.GetBackground()).sum() / 3
             if bgc <= 0:

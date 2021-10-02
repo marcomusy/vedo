@@ -42,7 +42,7 @@ class UGrid(vtk.vtkActor, BaseGrid):
                 cells = tets
 
             # This would fill the points and use those to define orientation
-            vpts = utils.numpy2vtk(pts, dtype=np.float)
+            vpts = utils.numpy2vtk(pts, dtype=float)
             points = vtk.vtkPoints()
             points.SetData(vpts)
             self._data.SetPoints(points)

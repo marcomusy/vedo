@@ -16,10 +16,10 @@ __all__ = ["Mesh", "merge"]
 def merge(*meshs, flag=False):
     """
     Build a new mesh formed by the fusion of the input polygonal Meshes (or Points).
-    
+
     Similar to Assembly, but in this case the input objects become a single mesh entity.
-    
-    To keep track of the original identities of the input mesh you can set flag. 
+
+    To keep track of the original identities of the input mesh you can set flag.
     In this case a point array of IDs is added to the merged output mesh.
 
     .. hint:: |thinplate_grid.py|_ |value-iteration.py|_
@@ -44,7 +44,7 @@ def merge(*meshs, flag=False):
             idarr += [i]*poly.GetNumberOfPoints()
     polyapp.Update()
     mpoly = polyapp.GetOutput()
-    
+
     if flag:
         varr = numpy2vtk(idarr, dtype=np.uint16, name="OriginalMeshID")
         mpoly.GetPointData().AddArray(varr)
@@ -579,7 +579,7 @@ class Mesh(Points):
     def renderLinesAsTubes(self, value=True):
         self.property.SetRenderLinesAsTubes(value)
         return self
-            
+
     def frontFaceCulling(self, value=True):
         """Set culling of polygons based on orientation of normal with respect to camera."""
         self.property.SetFrontfaceCulling(value)
@@ -914,8 +914,13 @@ class Mesh(Points):
         boundaryPoly.SetPoints(stripper.GetOutput().GetPoints())
         boundaryPoly.SetPolys(stripper.GetOutput().GetLines())
 
+        rev = vtk.vtkReverseSense()
+        rev.ReverseCellsOn()
+        rev.SetInputData(boundaryPoly)
+        rev.Update()
+
         tf = vtk.vtkTriangleFilter()
-        tf.SetInputData(boundaryPoly)
+        tf.SetInputData(rev.GetOutput())
         tf.Update()
 
         if returnCap:
@@ -931,7 +936,7 @@ class Mesh(Points):
             polyapp.AddInputData(poly)
             polyapp.AddInputData(tf.GetOutput())
             polyapp.Update()
-            return self._update(polyapp.GetOutput()).clean().phong()
+            return self._update(polyapp.GetOutput()).clean()
 
 
     def join(self, polys=True, reset=False):
@@ -1146,7 +1151,7 @@ class Mesh(Points):
         cf.ColorRegionsOn()
         cf.Update()
         return self._update(cf.GetOutput())
-   
+
 
     def addElevationScalars(self, lowPoint=(0,0,0), highPoint=(0,0,1), vrange=(0,1)):
         """
@@ -1305,8 +1310,8 @@ class Mesh(Points):
 
     @deprecated(reason=vedo.colors.red+"Please use smooth()"+vedo.colors.reset)
     def smoothLaplacian(self, niter=15, relaxfact=0.1, edgeAngle=15, featureAngle=60, boundary=False):
-        return self.smooth(niter, passBand=0.1, edgeAngle=edgeAngle, boundary=boundary)  
-    
+        return self.smooth(niter, passBand=0.1, edgeAngle=edgeAngle, boundary=boundary)
+
     def smooth(self, niter=15, passBand=0.1, edgeAngle=15, featureAngle=60, boundary=False):
         """
         Adjust mesh point positions using the `Windowed Sinc` function interpolation kernel.
@@ -1386,7 +1391,7 @@ class Mesh(Points):
         else:
             vpoints = vtk.vtkPoints()
             pts = np.ascontiguousarray(pts)
-            vpoints.SetData(numpy2vtk(pts, dtype=np.float))
+            vpoints.SetData(numpy2vtk(pts, dtype=float))
             pointsPolydata = vtk.vtkPolyData()
             pointsPolydata.SetPoints(vpoints)
 
@@ -1564,7 +1569,7 @@ class Mesh(Points):
             intersectPoints.GetPoint(i, intersection)
             pts.append(intersection)
         pts = np.array(pts)
-        
+
         if returnIds:
             pts_ids = []
             for i in range(idlist.GetNumberOfIds()):
@@ -1573,7 +1578,7 @@ class Mesh(Points):
             return pts_ids
         else:
             return pts
-                
+
 
     def silhouette(self, direction=None, borderEdges=True, featureAngle=False):
         """
@@ -1782,6 +1787,7 @@ class Mesh(Points):
             return self
         else:
             rf = vtk.vtkRotationalExtrusionFilter()
+            # rf = vtk.vtkLinearExtrusionFilter()
             rf.SetInputData(self.polydata(False)) #must not be transformed
             rf.SetResolution(res)
             rf.SetCapping(cap)
@@ -1948,7 +1954,7 @@ class Mesh(Points):
             arr[i] = weights.GetTuple(i)[0]
 
         poly = dijkstra.GetOutput()
-        
+
         vdata = numpy2vtk(arr)
         vdata.SetName("CumulativeWeights")
         poly.GetPointData().AddArray(vdata)
@@ -1957,7 +1963,7 @@ class Mesh(Points):
         vdata2.SetName("VertexIDs")
         poly.GetPointData().AddArray(vdata2)
         poly.GetPointData().Modified()
-        
+
         dmesh = Mesh(poly, c='k')
         prop = vtk.vtkProperty()
         prop.DeepCopy(self.property)

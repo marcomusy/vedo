@@ -126,6 +126,8 @@ Usage example:
     Cube().color('green').show()
 """
 import os, vtk
+import numpy as np
+import warnings
 
 __all__ = ['dataurl', 'embedWindow']
 
@@ -594,7 +596,7 @@ def _init():
         fonts.append(f.split(".")[0])
     fonts = list(sorted(fonts))
 
-    import warnings
     warnings.simplefilter(action="ignore", category=FutureWarning)
+    np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
 
     embedWindow()

@@ -13,14 +13,13 @@ mirror = Mirror(merge(cyls)).color("silver")
 
 # Create a detector surface as a thin cylinder surrounding the mirror
 sd = Cylinder(r=1, height=0.3, cap=False).cutWithPlane([0,-0.95,0], normal='y')
-detector = Detector(sd).color("white").alpha(1.0)
+detector = Detector(sd)
 
 
 def slider(widget, event):        ### callback to shift the beam along x
     dx = widget.GetRepresentation().GetValue()
     ray = Ray([dx,-1.2,-0.1], direction=(0,1,0.02))
-    ray.maxiterations = 100       # max nr of reflections
-    ray.OBBTreeTolerance = 1e-05  # make the hit very precise
+    ray.maxiterations = 1000      # max nr. of reflections
     ray.trace([mirror, detector]) # cumpute trajectory
     detector.count().cmap("Reds", on='cells', vmax=10)
     line = ray.asLine().lineWidth(4)

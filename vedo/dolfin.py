@@ -583,12 +583,12 @@ def plot(*inputobj, **options):
         if warpYfactor:
             scals = actor.pointdata[0]
             if len(scals):
-                pts_act = actor.points(copy=False)
+                pts_act = actor.points()
                 pts_act[:, 1] = scals*warpYfactor*scaleMeshFactors[1]
         if warpZfactor:
             scals = actor.pointdata[0]
             if len(scals):
-                pts_act = actor.points(copy=False)
+                pts_act = actor.points()
                 pts_act[:, 2] = scals*warpZfactor*scaleMeshFactors[2]
         if warpYfactor or warpZfactor:
             actor.points(pts_act)
@@ -752,7 +752,7 @@ class MeshActor(Mesh):
         movedpts = coords + deltas
         if movedpts.shape[1] == 2: #2d
             movedpts = np.c_[movedpts, np.zeros(movedpts.shape[0])]
-        self.polydata(False).GetPoints().SetData(utils.numpy2vtk(movedpts, dtype=np.float))
+        self.polydata(False).GetPoints().SetData(utils.numpy2vtk(movedpts, dtype=float))
         self.polydata(False).GetPoints().Modified()
 
 

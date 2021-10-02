@@ -24,7 +24,7 @@ def delaunay3D(mesh, alphaPar=0, tol=None, boundary=False):
     if utils.isSequence(mesh):
         pd = vtk.vtkPolyData()
         vpts = vtk.vtkPoints()
-        vpts.SetData(utils.numpy2vtk(mesh, dtype=np.float))
+        vpts.SetData(utils.numpy2vtk(mesh, dtype=float))
         pd.SetPoints(vpts)
         deln.SetInputData(pd)
     else:
@@ -176,7 +176,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
             cells = tets
 
         sourcePoints = vtk.vtkPoints()
-        varr = utils.numpy2vtk(points, dtype=np.float)
+        varr = utils.numpy2vtk(points, dtype=float)
         sourcePoints.SetData(varr)
         ug.SetPoints(sourcePoints)
 

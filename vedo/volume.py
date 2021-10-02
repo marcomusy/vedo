@@ -281,12 +281,12 @@ class BaseVolume:
         narray = utils.vtk2numpy(self._data.GetPointData().GetScalars()).reshape(narray_shape)
         narray = np.transpose(narray, axes=[2, 1, 0])
         return narray
-    
+
     def modified(self):
         """Use in conjunction with ``tonumpy()`` to update any modifications to the volume array"""
         self._data.GetPointData().GetScalars().Modified()
         return self
-    
+
     def dimensions(self):
         """Return the nr. of voxels in the 3 dimensions."""
         return np.array(self._data.GetDimensions())
@@ -889,11 +889,11 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         As is the case with the additive intensity projection, the final image will
         always be grayscale i.e. the aggregated values are not passed through the
         color transfer function.
-    
+
     Example:
-        
+
         .. code-block:: python
-        
+
             from vedo import Volume
             vol = Volume("path/to/mydata/rec*.bmp", c='jet', mode=1)
             vol.show(axes=1)
@@ -949,7 +949,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
 
         ###################
         inputtype = str(type(inputobj))
-        
+
         # colors.printc('Volume inputtype', inputtype, c='b')
 
         if inputobj is None:
@@ -982,11 +982,11 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
                     inputobj = np.array(inputobj)
 
                 if len(inputobj.shape)==1:
-                    varr = utils.numpy2vtk(inputobj, dtype=np.float)
+                    varr = utils.numpy2vtk(inputobj, dtype=float)
                 else:
                     if len(inputobj.shape)>2:
                         inputobj = np.transpose(inputobj, axes=[2, 1, 0])
-                    varr = utils.numpy2vtk(inputobj.ravel(order='F'), dtype=np.float)
+                    varr = utils.numpy2vtk(inputobj.ravel(order='F'), dtype=float)
                 varr.SetName('input_scalars')
 
                 img = vtk.vtkImageData()
@@ -1175,9 +1175,9 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
 
         |read_volume2| |read_volume2.py|_
         """
-        if vmin is None: 
+        if vmin is None:
             vmin, _ = self._data.GetScalarRange()
-        if vmax is None: 
+        if vmax is None:
             _, vmax = self._data.GetScalarRange()
         self._alphaGrad = alphaGrad
         volumeProperty = self.GetProperty()
@@ -1348,11 +1348,11 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
                     inputobj = np.array(inputobj)
 
                 if len(inputobj.shape)==1:
-                    varr = utils.numpy2vtk(inputobj, dtype=np.float)
+                    varr = utils.numpy2vtk(inputobj, dtype=float)
                 else:
                     if len(inputobj.shape)>2:
                         inputobj = np.transpose(inputobj, axes=[2, 1, 0])
-                    varr = utils.numpy2vtk(inputobj.ravel(order='F'), dtype=np.float)
+                    varr = utils.numpy2vtk(inputobj.ravel(order='F'), dtype=float)
                 varr.SetName('input_scalars')
 
                 img = vtk.vtkImageData()

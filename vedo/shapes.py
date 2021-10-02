@@ -501,7 +501,7 @@ class Line(Mesh):
                 p0 = np.c_[np.array(p0), np.zeros(len(p0))]
 
             ppoints = vtk.vtkPoints()  # Generate the polyline
-            ppoints.SetData(utils.numpy2vtk(p0, dtype=np.float))
+            ppoints.SetData(utils.numpy2vtk(p0, dtype=float))
             lines = vtk.vtkCellArray()
             npt = len(p0)
             if closed:
@@ -837,7 +837,7 @@ class Lines(Line):
     .. hint:: |fitspheres2.py|_
     """
     def __init__(self, startPoints, endPoints=None,
-                 c='k4', alpha=1, lw=1, dotted=False, scale=1):
+                 c='k4', alpha=1, lw=1, dotted=False, scale=1, res=1):
 
         if isinstance(startPoints, Points):
             startPoints = startPoints.points()
@@ -850,6 +850,7 @@ class Lines(Line):
         polylns = vtk.vtkAppendPolyData()
         for twopts in startPoints:
             lineSource = vtk.vtkLineSource()
+            lineSource.SetResolution(res)
             if len(twopts[0])==2:
                 lineSource.SetPoint1(twopts[0][0], twopts[0][1], 0.0)
             else:
@@ -1267,7 +1268,7 @@ class Tube(Mesh):
             points = points.points()
         else:
             ppoints = vtk.vtkPoints()  # Generate the polyline
-            ppoints.SetData(utils.numpy2vtk(points, dtype=np.float))
+            ppoints.SetData(utils.numpy2vtk(points, dtype=float))
             lines = vtk.vtkCellArray()
             lines.InsertNextCell(len(points))
             for i in range(len(points)):
@@ -1281,7 +1282,7 @@ class Tube(Mesh):
         tuf.SetNumberOfSides(res)
         tuf.SetInputData(polyln)
         if utils.isSequence(r):
-            arr = utils.numpy2vtk(r, dtype=np.float)
+            arr = utils.numpy2vtk(r, dtype=float)
             arr.SetName("TubeRadius")
             polyln.GetPointData().AddArray(arr)
             polyln.GetPointData().SetActiveScalars("TubeRadius")
@@ -1367,7 +1368,7 @@ class Ribbon(Mesh):
             line2 = np.c_[np.asarray(line2), np.zeros(len(line2))]
 
         ppoints1 = vtk.vtkPoints()  # Generate the polyline1
-        ppoints1.SetData(utils.numpy2vtk(line1, dtype=np.float))
+        ppoints1.SetData(utils.numpy2vtk(line1, dtype=float))
         lines1 = vtk.vtkCellArray()
         lines1.InsertNextCell(len(line1))
         for i in range(len(line1)):
@@ -1377,7 +1378,7 @@ class Ribbon(Mesh):
         poly1.SetLines(lines1)
 
         ppoints2 = vtk.vtkPoints()  # Generate the polyline2
-        ppoints2.SetData(utils.numpy2vtk(line2, dtype=np.float))
+        ppoints2.SetData(utils.numpy2vtk(line2, dtype=float))
         lines2 = vtk.vtkCellArray()
         lines2.InsertNextCell(len(line2))
         for i in range(len(line2)):
@@ -1465,7 +1466,7 @@ class Arrow(Mesh):
         t.RotateY(np.rad2deg(theta))
         t.RotateY(-90)  # put it along Z
         if s:
-            sz = 800.0 * s
+            sz = 800 * s
             t.Scale(length, sz, sz)
         else:
             t.Scale(length, length, length)
@@ -1496,7 +1497,7 @@ class Arrow(Mesh):
             return self.points()[self.tipIndex]
 
 
-def Arrows(startPoints, endPoints=None, s=None, scale=1, c=None, alpha=1, res=12):
+def Arrows(startPoints, endPoints=None, s=None, thickness=1, c=None, alpha=1, res=12):
     """
     Build arrows between two lists of points `startPoints` and `endPoints`.
     `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
@@ -1504,7 +1505,6 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c=None, alpha=1, res=12
     Color can be specified as a colormap which maps the size of the arrows.
 
     :param float s: fix aspect-ratio of the arrow and scale its cross section
-    :param float scale: apply a rescaling factor to the length
     :param c: color or color map name.
     :param float alpha: set transparency
     :param int res: set arrow resolution
@@ -1532,11 +1532,13 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c=None, alpha=1, res=12
     if s:
         sz = 0.02 * s
         arr.SetTipRadius(sz*2)
-        arr.SetShaftRadius(sz)
+        arr.SetShaftRadius(sz*thickness)
         arr.SetTipLength(sz*10)
     arr.Update()
-    orients = (endPoints - startPoints) * scale
-    arrg = Glyph(startPoints, arr.GetOutput(),
+    out = arr.GetOutput()
+
+    orients = endPoints - startPoints
+    arrg = Glyph(startPoints, out,
                  orientationArray=orients,
                  scaleByVectorSize=True,
                  colorByVectorSize=True,
@@ -1627,7 +1629,6 @@ def Arrows2D(startPoints, endPoints=None,
              headLength=None,
              headWidth=0.2,
              fill=True,
-             scale=1,
              c=None,
              cmap=None,
              alpha=1):
@@ -1642,8 +1643,6 @@ def Arrows2D(startPoints, endPoints=None,
     :param float headLength: fractional head length
     :param float headWidth: fractional head width
     :param bool fill: if False only generate the outline
-
-    :param float scale: apply a rescaling factor to the length
     :param c: color
     :param float alpha: set transparency
 
@@ -1674,12 +1673,12 @@ def Arrows2D(startPoints, endPoints=None,
     arr = Arrow2D((0,0,0), (1,0,0),
                   shaftLength, shaftWidth,
                   headLength, headWidth, fill)
-    pts = Points(startPoints, r=0.001, c=c, alpha=alpha).off()
 
-    orients = (endPoints - startPoints) * scale
+    orients = endPoints - startPoints
     if orients.shape[1] == 2: # make it 3d
         orients = np.c_[np.array(orients), np.zeros(len(orients))]
 
+    pts = Points(startPoints)
     arrg = Glyph(pts,
                  arr.polydata(False),
                  orientationArray=orients,
@@ -2007,12 +2006,12 @@ class Spheres(Mesh):
             glyph.ScalingOff()
         elif risseq:
             glyph.SetScaleModeToScaleByScalar()
-            urads = utils.numpy2vtk(2*np.ascontiguousarray(r), dtype=np.float)
+            urads = utils.numpy2vtk(2*np.ascontiguousarray(r), dtype=float)
             urads.SetName("Radii")
             pd.GetPointData().AddArray(urads)
             pd.GetPointData().SetActiveScalars("Radii")
 
-        vpts.SetData(utils.numpy2vtk(centers, dtype=np.float))
+        vpts.SetData(utils.numpy2vtk(centers, dtype=float))
 
         glyph.SetInputData(pd)
         glyph.Update()
@@ -3543,7 +3542,7 @@ def VedoLogo(distance=0, c=None, bc='t', version=False, frame=True):
                 c=[0,0,0]
             else:
                 c='linen'
- 
+
     font = 'Comae'
     vlogo = Text3D('vэdo', font=font, s=1350, depth=0.2, c=c, hspacing=0.8)
     vlogo.scale([1,.95,1]).x(-2525).pickable(False).bc(bc)
