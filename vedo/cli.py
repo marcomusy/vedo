@@ -4,15 +4,17 @@
 Command Line Interface module
 -----------------------------
 
-# Type for help
-vedo -h
+.. code-block:: python
 
-# Some useful bash aliases:
-alias v='vedo '
-alias vv='vedo -bg blackboard -bg2 gray3 -z 1.05 -k glossy -c blue9 '
-alias vr='vedo --run '        # to search and run examples by name
-alias vs='vedo -i --search '  # to search for a string in examples
-alias vi='vedo --image -x0 -z 1.2 -n ' # to view multiple images
+    # Type for help
+    vedo -h
+
+    # Some useful bash aliases:
+    alias v='vedo '
+    alias vv='vedo -bg blackboard -bg2 gray3 -z 1.05 -k glossy -c blue9 '
+    alias vr='vedo --run '        # to search and run examples by name
+    alias vs='vedo -i --search '  # to search for a string in examples
+    alias vi='vedo --image -x0 -z 1.2 -n ' # to view multiple images
 """
 
 import sys, argparse, os, glob

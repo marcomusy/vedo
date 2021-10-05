@@ -67,8 +67,8 @@ same for cell/face data: `myobj.celldata["arrayname"]`
 `vedo -r optics_main1`
 `vedo -r optics_main2`
 `vedo -r optics_main3`
-`vedo -r morphomatics_tube`
 `vedo -r warp4`
 `vedo -r voronoi`
-`vedo -r chain`
+`vedo -r drag_chain`
+`vedo -r morphomatics_tube`
 

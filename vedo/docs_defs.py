@@ -3,13 +3,6 @@
 
 _substitutions_defs = """
 
-.. |thinplate_grid.py| replace:: thinplate_grid.py
-.. _thinplate_grid.py: https://github.com/marcomusy/vedo/tree/master/examples/advanced/thinplate_grid.py
-.. |thinplate_grid| image:: https://user-images.githubusercontent.com/32848391/51433540-d188b380-1c4c-11e9-81e7-a1cf4642c54b.png
-    :width: 200 px
-    :target: thinplate_grid.py_
-    :alt: thinplate_grid.py
-
 .. |gyroscope2.py| replace:: gyroscope2.py
 .. _gyroscope2.py: https://github.com/marcomusy/vedo/tree/master/examples/simulations/gyroscope2.py
 .. |gyroscope2| image:: https://user-images.githubusercontent.com/32848391/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif
@@ -318,12 +311,12 @@ _substitutions_defs = """
     :target: clustering.py_
     :alt: clustering.py
 
-.. |thinplate_morphing1.py| replace:: thinplate_morphing1.py
-.. _thinplate_morphing1.py: https://github.com/marcomusy/vedo/tree/master/examples/advanced/thinplate_morphing1.py
-.. |thinplate_morphing1| image:: https://user-images.githubusercontent.com/32848391/51403917-34495480-1b52-11e9-956c-918c7805a9b5.png
+.. |warp1.py| replace:: warp1.py
+.. _warp1.py: https://github.com/marcomusy/vedo/tree/master/examples/advanced/warp1.py
+.. |warp1| image:: https://user-images.githubusercontent.com/32848391/51403917-34495480-1b52-11e9-956c-918c7805a9b5.png
     :width: 200 px
-    :target: thinplate_morphing1.py_
-    :alt: thinplate_morphing1.py
+    :target: warp1.py_
+    :alt: warp1.py
 
 .. |colorcubes.py| replace:: colorcubes.py
 .. _colorcubes.py: https://github.com/marcomusy/vedo/tree/master/examples/basic/colorcubes.py
@@ -492,13 +485,6 @@ _substitutions_defs = """
     :width: 200 px
     :target: splitmesh.py_
     :alt: splitmesh.py
-
-.. |thinplate_morphing2.py| replace:: thinplate_morphing2.py
-.. _thinplate_morphing2.py: https://github.com/marcomusy/vedo/tree/master/examples/advanced/thinplate_morphing2.py
-.. |thinplate_morphing2| image:: https://user-images.githubusercontent.com/32848391/52142303-9927a300-2658-11e9-98db-ebad4883f99f.png
-    :width: 200 px
-    :target: thinplate_morphing2.py_
-    :alt: thinplate_morphing2.py
 
 .. |projectsphere.py| replace:: projectsphere.py
 .. _projectsphere.py: https://github.com/marcomusy/vedo/tree/master/examples/advanced/projectsphere.py
@@ -924,12 +910,12 @@ _substitutions_defs = """
 
 .. |fenics_logo| image:: https://user-images.githubusercontent.com/32848391/58764910-3940fa80-856d-11e9-8160-af89a5ab5d02.gif
 
-.. |thinplate_morphing_2d.py| replace:: thinplate_morphing_2d.py
-.. _thinplate_morphing_2d.py: https://github.com/marcomusy/vedo/tree/master/examples/advanced/thinplate_morphing_2d.py
-.. |thinplate_morphing_2d| image:: https://user-images.githubusercontent.com/32848391/59032715-385ae200-8867-11e9-9b07-7f4f8fbfa5bd.png
+.. |warp3.py| replace:: warp3.py
+.. _warp3.py: https://github.com/marcomusy/vedo/tree/master/examples/advanced/warp3.py
+.. |warp3| image:: https://user-images.githubusercontent.com/32848391/59032715-385ae200-8867-11e9-9b07-7f4f8fbfa5bd.png
     :width: 200 px
-    :target: thinplate_morphing_2d.py_
-    :alt: thinplate_morphing_2d.py
+    :target: warp3.py_
+    :alt: warp3.py
 
 .. |interpolateVolume.py| replace:: interpolateVolume.py
 .. _interpolateVolume.py: https://github.com/marcomusy/vedo/tree/master/examples/volumetric/interpolateVolume.py

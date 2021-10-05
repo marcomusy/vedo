@@ -22,9 +22,9 @@ def merge(*meshs, flag=False):
     To keep track of the original identities of the input mesh you can set flag.
     In this case a point array of IDs is added to the merged output mesh.
 
-    .. hint:: |thinplate_grid.py|_ |value-iteration.py|_
+    .. hint:: |warp1.py|_ |value-iteration.py|_
 
-        |thinplate_grid| |value-iteration|
+        |warp1| |value-iteration|
     """
     acts = [a for a in flatten(meshs) if a]
 

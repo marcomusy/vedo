@@ -852,8 +852,8 @@ def MeshArrows(*inputobj, **options):
     :param float rescale: apply a rescaling factor to the length
     """
     s = options.pop("s", None)
-    scale = options.pop("scale", 1)
     c = options.pop("c", "gray")
+    scale = options.pop("scale", 1)
     alpha = options.pop("alpha", 1)
     res = options.pop("res", 12)
 
@@ -871,14 +871,14 @@ def MeshArrows(*inputobj, **options):
         printc("\times Error: cannot show Arrows for 1D scalar values!", c='r')
         raise RuntimeError()
 
-    endPoints = startPoints + u_values
+    endPoints = startPoints + u_values *scale
     if u_values.shape[1] == 2:  # u_values is 2D
         u_values = np.insert(u_values, 2, 0, axis=1)  # make it 3d
         startPoints = np.insert(startPoints, 2, 0, axis=1)  # make it 3d
         endPoints = np.insert(endPoints, 2, 0, axis=1)  # make it 3d
 
     actor = shapes.Arrows(startPoints, endPoints,
-                          s=s, scale=scale, alpha=alpha, res=res)
+                          s=s, alpha=alpha, res=res)
     actor.color(c)
     actor.mesh = mesh
     actor.u = u

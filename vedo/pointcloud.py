@@ -3135,11 +3135,9 @@ class Points(vtk.vtkFollower, BaseActor):
         :param float sigma: specify the 'stiffness' of the spline.
         :param str mode: set the basis function to either abs(R) (for 3d) or R2LogR (for 2d meshes)
 
-        .. hint:: Examples: |thinplate_morphing1.py|_ |thinplate_morphing2.py|_
-            |thinplate_grid.py|_ |thinplate_morphing_2d.py|_ |interpolateField.py|_
+        .. hint:: Examples: |warp1.py|_ |warp3.py|_ |interpolateField.py|_
 
-            |thinplate_morphing1| |thinplate_morphing2| |thinplate_grid|
-            |interpolateField| |thinplate_morphing_2d|
+            |warp1| |warp3|  |interpolateField|
         """
         if isinstance(sourcePts, Points):
             sourcePts = sourcePts.points()
