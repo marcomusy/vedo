@@ -6,6 +6,7 @@ Axes font: """
 from vedo import *
 
 settings.defaultFont = 'Kanopus'
+settings.useDepthPeeling = True
 
 plt = Plotter(title="Example of projectOnPlane()")
 

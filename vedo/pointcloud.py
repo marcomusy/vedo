@@ -327,11 +327,12 @@ def delaunay2D(plist, mode='scipy', boundaries=(), tol=None, alpha=0, offset=0, 
         if plist.shape[1] == 2: # make it 3d
             plist = np.c_[plist, np.zeros(len(plist))]
 
+    #############################################
     if mode == 'scipy':
         from scipy.spatial import Delaunay as scipy_Delaunay
         tri = scipy_Delaunay(plist[:, 0:2])
         return vedo.mesh.Mesh([plist, tri.simplices])
-        #############################################
+    #############################################
 
     pd = vtk.vtkPolyData()
     vpts = vtk.vtkPoints()

@@ -4,16 +4,16 @@
 echo Running examples in directory other/trimesh/
 
 echo Running first_example.py
-python first_example.py
+python3 first_example.py
 
 echo Running nearest.py
-python nearest.py
+python3 nearest.py
 
 echo Running ray.py
-python ray.py
+python3 ray.py
 
 echo Running section.py
-python section.py
+python3 section.py
 
 echo Running shortest.py
-python shortest.py
+python3 shortest.py

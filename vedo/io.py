@@ -782,7 +782,7 @@ def toNumpy(obj):
             arr = poly.GetPointData().GetArray(iname)
             adict['pointdata'].append([utils.vtk2numpy(arr), iname])
         adict['celldata'] = []
-        for iname in obj.getArrayNames()['CellData']:
+        for iname in obj.celldata.keys():
             if 'Normals' in iname.lower(): continue
             arr = poly.GetCellData().GetArray(iname)
             adict['celldata'].append([utils.vtk2numpy(arr), iname])
@@ -1349,7 +1349,7 @@ def writeTransform(inobj, filename='transform.mat', comment=''):
                       type(inobj), c='r')
     with open(filename,'w') as f:
         if comment:
-            f.write('#'+comment+'\n')
+            f.write('# '+comment+'\n')
         for i in range(4):
             f.write( str(M.GetElement(i,0))+' '+
                      str(M.GetElement(i,1))+' '+
@@ -1701,24 +1701,24 @@ def ask(*question, **kwarg):
     """
     Ask a question from command line. Return the answer as a string.
     See function `printc()` for the description of the options.
-    
+
     :param list options: a python list of possible answers to choose from.
     :param str default: the default answer when just hitting return.
-    
+
     Example:
-        
+
         .. code-block:: python
 
-            import vedo            
+            import vedo
             res = vedo.io.ask("Continue?", options=['Y','n'], default='Y', c='g')
-            print(res)            
+            print(res)
     """
     kwarg.update({'end': ' '})
     if 'invert' not in kwarg.keys():
         kwarg.update({'invert': True})
     if 'box' in kwarg.keys():
         kwarg.update({'box': ''})
-    
+
     options = kwarg.pop("options", [])
     default = kwarg.pop("default", '')
     if options:
@@ -1727,11 +1727,11 @@ def ask(*question, **kwarg):
             opt += o + '/'
         opt = opt[:-1]+']'
         colors.printc(*question, opt, **kwarg)
-    else:   
+    else:
         colors.printc(*question, **kwarg)
-        
+
     resp = input()
-    
+
     if options:
         if resp not in options:
             if default and str(repr(resp))=="''":

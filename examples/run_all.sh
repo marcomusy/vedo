@@ -14,14 +14,14 @@ cd pyplot;      ./run_all.sh; cd ..
 cd other;       ./run_all.sh; cd ..
 
 # other/dolfin
-if python -c 'import pkgutil; exit(not pkgutil.find_loader("dolfin"))'; then
+if python3 -c 'import pkgutil; exit(not pkgutil.find_loader("dolfin"))'; then
     cd other/dolfin; ./run_all.sh; cd ../..
 else
     echo 'dolfin not found, skip.'
 fi
 
 # other/trimesh
-if python -c 'import pkgutil; exit(not pkgutil.find_loader("trimesh"))'; then
+if python3 -c 'import pkgutil; exit(not pkgutil.find_loader("trimesh"))'; then
     cd other/trimesh; ./run_all.sh; cd ../..
 else
     echo 'trimesh not found, skip.'
@@ -61,10 +61,10 @@ echo vedo
 vedo
 
 ##################################### not run/ignored:
-# python basic/closewindow.py
-# python basic/lights.py
-# python basic/multiblocks.py
-# python other/animation1.py
-# python other/animation2.py
-# python other/makeVideo.py
-# python other/spherical_harmonics2.py
+# python3 basic/closewindow.py
+# python3 basic/lights.py
+# python3 basic/multiblocks.py
+# python3 other/animation1.py
+# python3 other/animation2.py
+# python3 other/makeVideo.py
+# python3 other/spherical_harmonics2.py

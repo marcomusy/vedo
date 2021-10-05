@@ -12,6 +12,7 @@ same for cell/face data: `myobj.celldata["arrayname"]`
 ### `addons.py`
 
 - added kword `LegendBox(markers=...)`
+- added kword `Slider2D(delayed=True)` to act upon mouse release
 
 ---
 ### `colors.py`
@@ -67,6 +68,7 @@ same for cell/face data: `myobj.celldata["arrayname"]`
 `vedo -r optics_main2`
 `vedo -r optics_main3`
 `vedo -r morphomatics_tube`
-`vedo -r warp5`
+`vedo -r warp4`
 `vedo -r voronoi`
+`vedo -r chain`
 

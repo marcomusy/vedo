@@ -10,5 +10,5 @@ echo
 for f in *.py
     do
         echo "Processing $f script.."
-        python $f
+        python3 $f
     done

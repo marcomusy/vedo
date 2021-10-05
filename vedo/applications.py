@@ -419,10 +419,13 @@ def RayCastPlotter(volume):
     return vp
 
 
-def IsosurfaceBrowser(volume, c=None, alpha=1, lego=False, cmap='hot', pos=None):
+def IsosurfaceBrowser(volume, c=None, alpha=1, lego=False, cmap='hot', pos=None,
+                      delayed=False):
     """
     Generate a ``Plotter`` window for Volume isosurfacing using a slider.
     Returns the ``Plotter`` object.
+
+    Set delayed=True to delay slider update on mouse release.
 
     :Example:
         .. code-block:: python
@@ -485,7 +488,9 @@ def IsosurfaceBrowser(volume, c=None, alpha=1, lego=False, cmap='hot', pos=None)
                     value=threshold,
                     pos=sliderpos,
                     title=slidertitle,
-                    showValue=showval)
+                    showValue=showval,
+                    delayed=delayed,
+                    )
     return vp
 
 
@@ -496,14 +501,14 @@ def Browser(meshes, sliderpos=((0.55, 0.07),(0.96, 0.07)), c=None, prefix="",
     """
     Generate a ``Plotter`` window to browse a list of objects using a slider.
     Returns the ``Plotter`` object.
-    
+
     """
 
     vp = settings.plotter_instance
     if not vp:
         vp = Plotter(axes=1, bg='white', title="Browser")
     vp.actors = meshes
-    
+
     # define the slider
     def sliderfunc(widget, event=None):
         k = int(widget.GetRepresentation().GetValue())
@@ -528,7 +533,7 @@ def Browser(meshes, sliderpos=((0.55, 0.07),(0.96, 0.07)), c=None, prefix="",
                          pos=sliderpos, font='courier', c=c, showValue=False)
     wid.GetRepresentation().SetTitleHeight(0.020)
     sliderfunc(wid) # init call
-    
+
     # for e in extras:
     #     vp.add(extras, render=False)
 
@@ -539,11 +544,11 @@ class FreeHandCutPlotter(Plotter):
     """
     A Plotter derived class which edits polygonal meshes interactively.
     Can also be invoked from command line. E.g. with
-        
+
     ``vedo --edit https://vedo.embl.es/examples/data/porsche.ply``
 
     Usage:
-            
+
         - Left-click and hold to rotate
         - Right-click and move to draw line
         - Second right-click to stop drawing

@@ -2808,17 +2808,18 @@ class Text3D(Mesh):
             if "\\" in repr(txt):
                 for r in _reps:
                     txt = txt.replace(r[0], r[1])
-            reps2 = [
-                        ("\_", "┭"), # trick to protect ~ _ and ^ chars
-                        ("\^", "┮"), #
-                        ("\~", "┯"), #
-                        ("**", "^"), # order matters
-                        ("e+0", dotsep+"10^"), ("e-0", dotsep+"10^-"),
-                        ("E+0", dotsep+"10^"), ("E-0", dotsep+"10^-"),
-                        ("e+" , dotsep+"10^"), ("e-" , dotsep+"10^-"),
-                        ("E+" , dotsep+"10^"), ("E-" , dotsep+"10^-"),
-            ]
+
             if not literal:
+                reps2 = [
+                            ("\_", "┭"), # trick to protect ~ _ and ^ chars
+                            ("\^", "┮"), #
+                            ("\~", "┯"), #
+                            ("**", "^"), # order matters
+                            ("e+0", dotsep+"10^"), ("e-0", dotsep+"10^-"),
+                            ("E+0", dotsep+"10^"), ("E-0", dotsep+"10^-"),
+                            ("e+" , dotsep+"10^"), ("e-" , dotsep+"10^-"),
+                            ("E+" , dotsep+"10^"), ("E-" , dotsep+"10^-"),
+                ]
                 for r in reps2:
                     txt = txt.replace(r[0], r[1])
 
@@ -2836,13 +2837,13 @@ class Text3D(Mesh):
                     t="^"
                 elif t=='┯':
                     t="~"
-                elif t=='^':
+                elif t=='^' and not literal:
                     if yshift<0:
                         xmax = save_xmax
                     yshift = 0.9*fscale
                     scale = 0.5
                     continue
-                elif t=='_':
+                elif t=='_' and not literal:
                     if yshift>0:
                         xmax = save_xmax
                     yshift = -0.3*fscale

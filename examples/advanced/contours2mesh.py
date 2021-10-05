@@ -6,7 +6,7 @@ cs = []
 for i in range(-10, 10):
     r = 10 / (i * i + 10)
     c = Circle(r=r).rotateY(i*2).z(i/10).x(i/20)
-    c.wireframe().lineWidth(3).lineColor('k')
+    c.lineWidth(3).lineColor('blue5')
     cs.append(c)
 
 # create the mesh by merging the ribbon strips

@@ -5,7 +5,7 @@ Command Line Interface module
 -----------------------------
 
 # Type for help
-vedo -h 
+vedo -h
 
 # Some useful bash aliases:
 alias v='vedo '
@@ -500,7 +500,11 @@ def draw_scene(args):
         vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
         if not args.color:
             args.color = 'gold'
-        vp = applications.IsosurfaceBrowser(vol, lego=args.lego, c=args.color, cmap=args.cmap)
+        vp = applications.IsosurfaceBrowser(vol,
+                                            lego=args.lego,
+                                            c=args.color,
+                                            cmap=args.cmap,
+                                            delayed=args.lego)
         vp.show(zoom=args.zoom, viewup="z")
         return
 
@@ -509,9 +513,9 @@ def draw_scene(args):
     # NORMAL mode for single or multiple files, or multiren mode, or numpy scene
     elif nfiles == 1 or (not args.scrolling_mode):
         # print('DEBUG NORMAL mode for single or multiple files, or multiren mode')
-        
+
         interactor_mode = 0
-        if args.image: 
+        if args.image:
             interactor_mode = 'image'
 
         ##########################################################

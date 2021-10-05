@@ -54,6 +54,7 @@ def merge(*meshs, flag=False):
         cprp = vtk.vtkProperty()
         cprp.DeepCopy(acts[0].GetProperty())
         msh.SetProperty(cprp)
+        msh.property = cprp
     return msh
 
 
@@ -111,6 +112,7 @@ class Mesh(Points):
             pr = vtk.vtkProperty()
             pr.DeepCopy(inputobj.GetProperty())
             self.SetProperty(pr)
+            self.property = pr
 
         elif isinstance(inputobj, vtk.vtkPolyData):
             if inputobj.GetNumberOfCells() == 0:
@@ -633,10 +635,10 @@ class Mesh(Points):
     def lineColor(self, lc=None):
         """Set/get color of mesh edges. Same as `lc()`."""
         if lc is not None:
-            if "ireframe" in self.property.GetRepresentationAsString():
-                self.property.EdgeVisibilityOff()
-                self.color(lc)
-                return self
+#            if "ireframe" in self.property.GetRepresentationAsString():
+#                self.property.EdgeVisibilityOff()
+#                self.color(lc)
+#                return self
             self.property.EdgeVisibilityOn()
             self.property.SetEdgeColor(getColor(lc))
         else:

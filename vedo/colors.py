@@ -56,7 +56,7 @@ colors = {
     "bisque": "#FFE4C4",
     "black": "#000000",
     "blanchedalmond": "#FFEBCD",
-    "blue": "#0000FF",
+    "blue": "#0f00fb", # "0000FF",
     "blueviolet": "#8A2BE2",
     "brown": "#A52A2A",
     "burlywood": "#DEB887",
@@ -98,7 +98,7 @@ colors = {
     "gold": "#FFD700",
     "goldenrod": "#DAA520",
     "gray": "#808080",
-    "green": "#008000",
+    "green": "#047f10", #"#008000",
     "greenyellow": "#ADFF2F",
     "honeydew": "#F0FFF0",
     "hotpink": "#FF69B4",
@@ -159,7 +159,7 @@ colors = {
     "powderblue": "#B0E0E6",
     "purple": "#800080",
     "rebeccapurple": "#663399",
-    "red": "#FF0000",
+    "red": "#fe1e1f", #"#FF0000",
     "rosybrown": "#BC8F8F",
     "royalblue": "#4169E1",
     "saddlebrown": "#8B4513",
@@ -185,7 +185,7 @@ colors = {
     "wheat": "#F5DEB3",
     "white": "#FFFFFF",
     "whitesmoke": "#F5F5F5",
-    "yellow": "#FFFF00",
+    "yellow": "#ffff36", #"#FFFF00",
     "yellowgreen": "#9ACD32",
 
     "blue9": "#a8cbfe",      # bootstrap5 colors
@@ -567,14 +567,14 @@ def getColor(rgb=None, hsv=None):
         for sc in rgb:
             seqcol.append(getColor(sc))
         return seqcol
-    
+
     # because they are most common:
-    if rgb=='r': 
-        return (1, 0, 0)
+    if rgb=='r':
+        return (0.9960784313725, 0.11764705882352, 0.121568627450980)
     elif rgb=='g':
-        return (0, 1, 0)
+        return (0.0156862745098, 0.49803921568627, 0.062745098039215)
     elif rgb=='b':
-        return (0, 0, 1)
+        return (0.0588235294117, 0.0,              0.984313725490196)
 
     if str(rgb).isdigit():
         rgb = int(rgb)
@@ -620,8 +620,7 @@ def getColor(rgb=None, hsv=None):
             namedColors = vtk.vtkNamedColors()
             rgba = [0, 0, 0, 0]
             namedColors.GetColor(c, rgba)
-            return list(np.array(rgba[0:3]) / 255.0)
-
+            return (rgba[0]/255.0, rgba[1]/255.0, rgba[2]/255.0)
 
     elif isinstance(c, int):  # color number
         if c >= 0:
@@ -698,7 +697,7 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
     .. tip:: Can also directly use and customize a matplotlib color map:
 
         :Example:
-            
+
             .. code-block:: python
 
                 from vedo import colorMap
@@ -708,7 +707,7 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
                 (1.0, 0.809016994374948, 0.6173258487801733)
     """
     cut = _isSequence(value) # to speed up later
-        
+
     if cut:
         values = np.asarray(value)
         if vmin is None: vmin = np.min(values)
@@ -716,10 +715,10 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
         values = np.clip(values, vmin, vmax)
         values = (values - vmin) / (vmax - vmin)
     else:
-        if vmin is None: 
+        if vmin is None:
             printc("In colorMap(): must specify vmin! Assume 0.0", c='r')
             vmin = 0
-        if vmax is None: 
+        if vmax is None:
             printc("In colorMap(): must specify vmax! Assume 1.0", c='r')
             vmax = 1
         values = [(value - vmin) / (vmax - vmin)]
@@ -727,12 +726,12 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
     if _has_matplotlib:
         # matplotlib is available, use it! ###########################
         if isinstance(name, str):
-            mp = cm_mpl.get_cmap(name=name)    
+            mp = cm_mpl.get_cmap(name=name)
         else:
             mp = name  # assume matplotlib.colors.LinearSegmentedColormap
         result = mp(values)[:, [0,1,2]]
 
-    else:    
+    else:
         # matplotlib not available ###################################
         invert = False
         if name.endswith('_r'):
@@ -758,7 +757,7 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
         return result
     else:
         return result[0]
-   
+
 
 def buildPalette(color1, color2, N, hsv=True):
     """
@@ -1030,15 +1029,15 @@ def printd(*strings, q=False):
     """
     Print debug information about the evironment where the printd() is called.
     Local variables are printed out with their current values.
-    
+
     :param bool q: quit (exit) python session after the printd call.
     """
     from inspect import currentframe, getframeinfo
     from vedo.utils import isSequence, precision
-    
+
     cf = currentframe().f_back
     cfi = getframeinfo(cf)
-        
+
     fname = os.path.basename(getframeinfo(cf).filename)
     print("\x1b[7m\x1b[3m\x1b[37m"+fname+" line:\x1b[1m"+str(cfi.lineno)+reset, end='')
     print('\x1b[3m\x1b[37m\x1b[2m', "\U00002501"*30, time.ctime(), reset)
