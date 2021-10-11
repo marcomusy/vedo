@@ -14,8 +14,7 @@ from vedo.picture import Picture
 from vedo.settings import font_parameters
 from deprecated import deprecated
 
-__doc__ = ("""Submodule to generate basic geometric shapes.""" +
-           vedo.docs._defs)
+__doc__ = ("""Submodule to generate basic geometric shapes.""" + vedo.docs._defs)
 
 __all__ = [
     "Marker",
@@ -485,6 +484,7 @@ class Line(Mesh):
         self.dataSigma = 0
         self.errorLines = []
         self.errorBand = None
+        self.res=res
 
         # detect if user is passing a 2D list of points as p0=xlist, p1=ylist:
         if len(p0) > 3:
@@ -517,6 +517,7 @@ class Line(Mesh):
             poly.SetLines(lines)
             top = p0[-1]
             base = p0[0]
+            self.res = 2
 
         else:  # or just 2 points to link
 
@@ -539,21 +540,11 @@ class Line(Mesh):
         self.DragableOff()
         self.base = base
         self.top = top
-        #if dotted: # not functional
-        #    self.GetProperty().SetLineStipplePattern(0xF0F0)
-        #    self.GetProperty().SetLineStippleRepeatFactor(1)
         self.name = "Line"
 
-    def length(self):
-        """Calculate length of the line."""
-        distance = 0.
-        pts = self.points()
-        for i in range(1, len(pts)):
-            distance += np.linalg.norm(pts[i]-pts[i-1])
-        return distance
-
     def eval(self, x):
-        """Calculate the position of an intermediate point
+        """
+        Calculate the position of an intermediate point
         as a fraction of the length of the line,
         being x=0 the first point and x=1 the last point.
         This corresponds to an imaginary point that travels along the line
@@ -572,10 +563,72 @@ class Line(Mesh):
             distance0 = distance1
             distance1 += np.linalg.norm(seg)
             w1 = distance1/length
-            if w1 >= x: break
+            if w1 >= x:
+                break
         w0 = distance0/length
         v = p0 + seg*(x-w0)/(w1-w0)
         return v
+
+    def pattern(self, stipple, repeats=10):
+        """
+        Define a stipple pattern for dashing the line.
+        Pass the stipple pattern as a string like '- - -'.
+        Repeats controls the number of times the pattern repeats in a single segment.
+        Examples are: '- -', '--  -  --', etc.
+        The resolution of the line (nr of points) can affect how pattern will show up.
+
+        :Example:
+            .. code-block:: python
+
+                from vedo import Line
+                pts = [[1, 0, 0], [5, 2, 0], [3, 3, 1]]
+                ln = Line(pts, c='r', lw=5).pattern('- -', repeats=10)
+                ln.show(axes=1)
+        """
+        stipple = str(stipple) * int(2*repeats)
+        dimension = len(stipple)
+
+        image = vtk.vtkImageData()
+        image.SetDimensions(dimension, 1, 1)
+        image.AllocateScalars(vtk.VTK_UNSIGNED_CHAR, 4)
+        image.SetExtent(0, dimension-1, 0, 0, 0, 0)
+        i_dim = 0
+        while i_dim < dimension:
+            for i in range(dimension):
+                image.SetScalarComponentFromFloat(i_dim, 0, 0, 0, 255)
+                image.SetScalarComponentFromFloat(i_dim, 0, 0, 1, 255)
+                image.SetScalarComponentFromFloat(i_dim, 0, 0, 2, 255)
+                if stipple[i] == ' ':
+                    image.SetScalarComponentFromFloat(i_dim, 0, 0, 3, 0)
+                else:
+                    image.SetScalarComponentFromFloat(i_dim, 0, 0, 3, 255)
+                i_dim += 1
+
+        polyData = self.polydata(False)
+
+        # Create texture coordinates
+        tcoords = vtk.vtkDoubleArray()
+        tcoords.SetName("TCoordsStippledLine")
+        tcoords.SetNumberOfComponents(1)
+        tcoords.SetNumberOfTuples(polyData.GetNumberOfPoints())
+        for i in range(polyData.GetNumberOfPoints()):
+            tcoords.SetTypedTuple(i, [i/2])
+        polyData.GetPointData().SetTCoords(tcoords)
+        polyData.GetPointData().Modified()
+        texture = vtk.vtkTexture()
+        texture.SetInputData(image)
+        texture.InterpolateOff()
+        texture.RepeatOn()
+        self.SetTexture(texture)
+        return self
+
+    def length(self):
+        """Calculate length of the line."""
+        distance = 0.
+        pts = self.points()
+        for i in range(1, len(pts)):
+            distance += np.linalg.norm(pts[i]-pts[i-1])
+        return distance
 
     def sweep(self, direction=(1,0,0), res=1):
         """
@@ -635,6 +688,7 @@ class Line(Mesh):
         prop = vtk.vtkProperty()
         prop.DeepCopy(self.GetProperty())
         asurface.SetProperty(prop)
+        asurface.property = prop
         asurface.lighting('default')
         self.points(self.points()+direction)
         return asurface
@@ -642,6 +696,8 @@ class Line(Mesh):
 
 class DashedLine(Line):
     """
+    Consider using `Line.pattern()` instead.
+
     Build a dashed line segment between points `p0` and `p1`.
     If `p0` is a list of points returns the line connecting them.
     A 2D set of coords can also be passed as p0=[x..], p1=[y..].
@@ -1242,9 +1298,8 @@ def NormalLines(mesh, ratio=1, atCells=True, scale=1):
     glyphActor = Mesh(glyph.GetOutput())
     glyphActor.mapper().SetScalarModeToUsePointFieldData()
     glyphActor.PickableOff()
-    # prop = vtk.vtkProperty()
-    # prop.DeepCopy(mesh.GetProperty())
     glyphActor.SetProperty(mesh.GetProperty())
+    glyphActor.property = mesh.GetProperty()
     return glyphActor
 
 
@@ -2181,9 +2236,8 @@ class Grid(Mesh):
     :param float,list sx: if a float is provided it is interpreted as the total size along x,
         if a list of coords is provided they are interpreted as the vertices of the grid along x.
         In this case keyword `resx` is ignored (see example below).
-    :param float,list sy: see above.
-    :param float lw: line width.
     :param int resx: resolution along x, e.i. the number of axis subdivisions.
+    :param float lw: line width.
 
     |brownian2D| |brownian2D.py|_
 

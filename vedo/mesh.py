@@ -1577,7 +1577,7 @@ class Mesh(Points):
             for i in range(idlist.GetNumberOfIds()):
                 cid = idlist.GetId(i)
                 pts_ids.append([pts[i], cid])
-            return pts_ids
+            return np.array(pts_ids)
         else:
             return pts
 

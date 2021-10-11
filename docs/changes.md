@@ -1,54 +1,38 @@
 ## Main changes
 
-- various fixes
 
 ---
 ### `base.py`
 
-- introduced new sintax to set/retrieve a mesh point data array: `myobj.pointdata["arrayname"]`
-same for cell/face data: `myobj.celldata["arrayname"]`
-
 ---
 ### `addons.py`
-
-- added kword `LegendBox(markers=...)`
-- added kword `Slider2D(delayed=True)` to act upon mouse release
 
 ---
 ### `colors.py`
 
-- fixed small bug in colorMap (only affecting systems without matplotlib)
-
 ---
 ### `mesh.py`
-
-- fixed problem in `geodesic()`.
-- added tolerance keyword in `intersectWithLine()`. Also, now `returnIds` returns `[[pt,cellid]]`
-- added kword flag to function `merge(..., flag=True)` to optionally keep track of the original meshes ids
 
 ---
 ### `plotter.py`
 
+- added `enableErase()` `enableRenderer()` `useDepthPeeling(at)` methods
+
 ---
 ### `picture.py`
-
-- added `.enhance()` method.
-- method `.tonumpy()` reshape to [nx,ny,nchannels] to match matplotlib standard
-- added `.append()` to stitch images the current to the left or to the top.
-- added `.extent()` to specify physical extention of an image.
 
 ---
 ### `pyplot.py`
 
-
 ---
 ### `pointcloud.py`
 
-- `cluster()` renamed to `pointcloud.addClustering()`
-- added `voronoi()` function
+- added `smoothLloyd()` for smoothing pointclouds in 2D
 
 ---
 ### `shapes.py`
+
+- added `Line().pattern()` to create a dashed line with a user defined pattern.
 
 ---
 ### `volume.py`
@@ -64,11 +48,4 @@ same for cell/face data: `myobj.celldata["arrayname"]`
 
 ## New/Revised examples:
 
-`vedo -r optics_main1`
-`vedo -r optics_main2`
-`vedo -r optics_main3`
-`vedo -r warp4`
-`vedo -r voronoi`
-`vedo -r drag_chain`
-`vedo -r morphomatics_tube`
 

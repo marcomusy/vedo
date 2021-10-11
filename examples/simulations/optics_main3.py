@@ -22,7 +22,7 @@ def slider(widget, event):        ### callback to shift the beam along x
     ray.maxiterations = 1000      # max nr. of reflections
     ray.trace([mirror, detector]) # cumpute trajectory
     detector.count().cmap("Reds", on='cells', vmax=10)
-    line = ray.asLine().lineWidth(4)
+    line = ray.asLine().lineWidth(4).c('green5')
     if plt.actors[-1].name == "Line":
         plt.pop()                 # remove the last Line
     plt.add(line)                 # add the new one
