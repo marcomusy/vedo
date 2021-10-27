@@ -1467,6 +1467,23 @@ def exportWindow(fileoutput, binary=False):
     ####################################################################
     elif fr.endswith(".x3d"):
         from vedo.docs import x3d_html
+
+        obj = list(set(settings.plotter_instance.getMeshes()+
+                       settings.plotter_instance.actors))
+        if len(settings.plotter_instance.axes_instances):
+            obj.append(settings.plotter_instance.axes_instances[0])
+        for a in obj:
+            if isinstance(a, Mesh):
+                newa = a.clone(transformed=True)
+                settings.plotter_instance.remove(a, render=False).add(newa, render=False)
+
+            elif isinstance(a, Assembly):
+                for b in a.unpack():
+                    newb = b.clone(transformed=True)
+                    settings.plotter_instance.add(newb, render=False)
+                settings.plotter_instance.remove(a)
+        settings.plotter_instance.render()
+
         exporter = vtk.vtkX3DExporter()
         exporter.SetBinary(binary)
         exporter.FastestOff()
@@ -1500,7 +1517,7 @@ def exportWindow(fileoutput, binary=False):
     else:
         colors.printc("Export extension", fr.split('.')[-1],
                       "is not supported.", c='r')
-    return
+    return settings.plotter_instance
 
 
 def importWindow(fileinput, mtlFile=None, texturePath=None):

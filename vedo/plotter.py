@@ -749,6 +749,7 @@ class Plotter:
         vsty = vtk.vtkInteractorStyleTrackballCamera()
         self.interactor.SetInteractorStyle(vsty)
 
+        # this is causing crash in clone_viewer if disabled :((
         if settings.enableDefaultMouseCallbacks:
             self.interactor.AddObserver("LeftButtonPressEvent", self._mouseleft)
             self.interactor.AddObserver("RightButtonPressEvent", self._mouseright)
@@ -891,15 +892,25 @@ class Plotter:
         self.remove(self.actors[-1], at=at)
         return self
 
-    def render(self, resetcam=False):
+    def render(self, at=None, resetcam=False):
         """Render the scene."""
         if not self.window:
             return self
+
         if self.wxWidget:
             if resetcam:
                 self.renderer.ResetCamera()
             self.wxWidget.Render()
             return self
+
+        if at is not None: # disable all except i==at
+            self.window.EraseOff()
+            if at < 0:
+                at = at + len(self.renderers) +1
+            for i in range(len(self.renderers)):
+                if i != at:
+                    self.renderers[i].DrawOff()
+
         if settings.vtk_version[0] == 9 and "Darwin" in settings.sys_platform:
             for a in self.actors:
                 if isinstance(a, vtk.vtkVolume):
@@ -907,7 +918,33 @@ class Plotter:
                     break
         if resetcam:
             self.renderer.ResetCamera()
+
         self.window.Render()
+
+        if at is not None: # re-enable all that were disabled
+            for i in range(len(self.renderers)):
+                if i != at:
+                    self.renderers[i].DrawOn()
+            self.window.EraseOn()
+
+        return self
+
+    def enableErase(self, value=True):
+        """Enable erasing the redering window between render() calls."""
+        self.window.SetErase(value)
+        return self
+
+    def enableRenderer(self, at, value=True):
+        """Enable a render() call to refresh this renderer."""
+        self.renderers[at].SetDraw(value)
+        return self
+
+    def useDepthPeeling(self, at, value=True):
+        """
+        Specify whether use depth peeling algorithm at this specific renderer
+        Call this method before the first rendering.
+        """
+        self.renderers[at].SetUseDepthPeeling(value)
         return self
 
     def background(self, c1=None, c2=None, at=None):
@@ -2149,7 +2186,6 @@ class Plotter:
             settings.defaultFont = 'Normografo'
             settings.interactorStyle = None
             settings.immediateRendering = True
-            settings.useParallelProjection = False
             settings.allowInteraction = True
             settings.multiSamples = 8
             settings.xtitle = "x"
@@ -2526,6 +2562,7 @@ class Plotter:
         if hasattr(self, 'window') and self.window:
             self.window.Finalize()
             if hasattr(self, 'interactor') and self.interactor:
+                self.interactor.ExitCallback()
                 self.interactor.TerminateApp()
                 #del self.window
                 #del self.interactor
@@ -2535,7 +2572,9 @@ class Plotter:
 
     def close(self):
         """Close the Plotter instance and release resources."""
-        self.clear()
+        #self.clear()
+        if hasattr(self, 'interactor') and self.interactor:
+            self.interactor.ExitCallback()
         for r in self.renderers:
             r.RemoveAllObservers()
         self.camera.RemoveAllObservers()
@@ -2545,7 +2584,6 @@ class Plotter:
         settings.defaultFont = 'Normografo'
         settings.interactorStyle = None
         settings.immediateRendering = True
-        settings.useParallelProjection = False
         settings.allowInteraction = True
         settings.multiSamples = 8
         settings.xtitle = "x"
@@ -2742,7 +2780,7 @@ class Plotter:
 
         elif key == "F1":
             vedo.printc('\nExecution aborted. Exiting python kernel now.', c='r')
-            #settings.plotter_instance.close()
+            iren.ExitCallback()
             sys.exit(0)
 
         # if ("Control_" in self.keyheld) and key=="c":

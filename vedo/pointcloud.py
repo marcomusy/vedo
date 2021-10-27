@@ -367,8 +367,7 @@ def delaunay2D(plist, mode='scipy', boundaries=(), tol=None, alpha=0, offset=0, 
     delny.Update()
     return vedo.mesh.Mesh(delny.GetOutput()).clean().lighting('off')
 
-
-def voronoi(pts, pad=0, fit=False):
+def voronoi(pts, pad=0, fit=False, method='vtk'):
     """
     Generate the 2D Voronoi convex tiling of the input points (z is ignored).
     The points are assumed to lie in a plane. The output is a Mesh. Each output cell is a convex polygon.
@@ -406,35 +405,58 @@ def voronoi(pts, pad=0, fit=False):
     fit : bool, optional
         detect automatically the best fitting plane. The default is False.
     """
-    vor = vtk.vtkVoronoi2D()
-    if isinstance(pts, Points):
-        vor.SetInputData(pts.polydata())
-    else:
-        pts = np.asarray(pts)
-        if pts.shape[1] == 2:
-            pts = np.c_[pts, np.zeros(len(pts))]
-        pd = vtk.vtkPolyData()
-        vpts = vtk.vtkPoints()
-        vpts.SetData(utils.numpy2vtk(pts, dtype=float))
-        pd.SetPoints(vpts)
-        vor.SetInputData(pd)
-    vor.SetPadding(pad)
-    vor.SetGenerateScalarsToPointIds()
-    if fit:
-        vor.SetProjectionPlaneModeToBestFittingPlane()
-    else:
-        vor.SetProjectionPlaneModeToXYPlane()
-    vor.Update()
-    poly = vor.GetOutput()
-    arr = poly.GetCellData().GetArray(0)
-    if arr:
-        arr.SetName("VoronoiID")
+    if method=='scipy':
+        from scipy.spatial import Voronoi as scipy_voronoi
+        pts = np.asarray(pts)[:,(0,1)]
+        vor = scipy_voronoi(pts)
+        regs = [] # filter out invalid indices
+        for r in vor.regions:
+            flag=True
+            for x in r:
+                if x < 0:
+                    flag=False
+                    break
+            if flag and len(r):
+                regs.append(r)
 
-    m = vedo.Mesh(poly, c='orange5').lw(2).lighting('off').wireframe()
+        m = vedo.Mesh([vor.vertices, regs], c='orange5')
+        m.celldata['VoronoiID'] = np.array(list(range(len(regs)))).astype(int)
+        m.locator = None
+
+    elif method=='vtk':
+        vor = vtk.vtkVoronoi2D()
+        if isinstance(pts, Points):
+            vor.SetInputData(pts.polydata())
+        else:
+            pts = np.asarray(pts)
+            if pts.shape[1] == 2:
+                pts = np.c_[pts, np.zeros(len(pts))]
+            pd = vtk.vtkPolyData()
+            vpts = vtk.vtkPoints()
+            vpts.SetData(utils.numpy2vtk(pts, dtype=float))
+            pd.SetPoints(vpts)
+            vor.SetInputData(pd)
+        vor.SetPadding(pad)
+        vor.SetGenerateScalarsToPointIds()
+        if fit:
+            vor.SetProjectionPlaneModeToBestFittingPlane()
+        else:
+            vor.SetProjectionPlaneModeToXYPlane()
+        vor.Update()
+        poly = vor.GetOutput()
+        arr = poly.GetCellData().GetArray(0)
+        if arr:
+            arr.SetName("VoronoiID")
+        m = vedo.Mesh(poly, c='orange5')
+        m.locator = vor.GetLocator()
+
+    else:
+        colors.printc("Unknown method", method, "in voronoi().", c='r')
+        raise RuntimeError
+
+    m.lw(2).lighting('off').wireframe()
     m.name = "Voronoi"
-    m.locator = vor.GetLocator()
     return m
-
 
 def _rotatePoints(points, n0=None, n1=(0,0,1)):
     """
@@ -1126,6 +1148,8 @@ class Points(vtk.vtkFollower, BaseActor):
         lut = self._mapper.GetLookupTable()
         if lut:
             cloned._mapper.SetLookupTable(lut)
+
+        cloned.SetPickable(self.GetPickable())
 
         cloned.base = np.array(self.base)
         cloned.top =  np.array(self.top)
@@ -3024,6 +3048,68 @@ class Points(vtk.vtkFollower, BaseActor):
         self.info["variances"] = np.array(variances)
         self.info["isvalid"] = np.array(valid)
         return self.points(newpts)
+
+
+    def smoothLloyd2D(self, interations=2, bounds=None, options='Qbb Qc Qx'):
+        """Lloyd relaxation of a 2D pointcloud."""
+        #Credits: https://hatarilabs.com/ih-en/
+        # tutorial-to-create-a-geospatial-voronoi-sh-mesh-with-python-scipy-and-geopandas
+        from scipy.spatial import Voronoi as scipy_voronoi
+
+        def _constrain_points(points):
+            #Update any points that have drifted beyond the boundaries of this space
+            if bounds is not None:
+                for point in points:
+                    if point[0] < bounds[0]: point[0] = bounds[0]
+                    if point[0] > bounds[1]: point[0] = bounds[1]
+                    if point[1] < bounds[2]: point[1] = bounds[2]
+                    if point[1] > bounds[3]: point[1] = bounds[3]
+            return points
+
+        def _find_centroid(vertices):
+            #The equation for the method used here to find the centroid of a
+            #2D polygon is given here: https://en.wikipedia.org/wiki/Centroid#Of_a_polygon
+            area = 0
+            centroid_x = 0
+            centroid_y = 0
+            for i in range(len(vertices)-1):
+              step = (vertices[i  , 0] * vertices[i+1, 1]) - \
+                     (vertices[i+1, 0] * vertices[i  , 1])
+              centroid_x += (vertices[i, 0] + vertices[i+1, 0]) * step
+              centroid_y += (vertices[i, 1] + vertices[i+1, 1]) * step
+              area += step
+            if area:
+                centroid_x = (1.0/(3.0*area)) * centroid_x
+                centroid_y = (1.0/(3.0*area)) * centroid_y
+            # prevent centroids from escaping bounding box
+            return _constrain_points([[centroid_x, centroid_y]])[0]
+
+        def _relax(voronoi):
+            #Moves each point to the centroid of its cell in the voronoi
+            #map to "relax" the points (i.e. jitter the points so as
+            #to spread them out within the space).
+            centroids = []
+            for idx in voronoi.point_region:
+                # the region is a series of indices into voronoi.vertices
+                # remove point at infinity, designated by index -1
+                region = [i for i in voronoi.regions[idx] if i != -1]
+                # enclose the polygon
+                region = region + [region[0]]
+                verts = voronoi.vertices[region]
+                # find the centroid of those vertices
+                centroids.append(_find_centroid(verts))
+            return _constrain_points(centroids)
+
+        if bounds is None:
+            bounds = self.bounds()
+
+        pts = self.points()[:,(0,1)]
+        for i in range(interations):
+            vor = scipy_voronoi(pts, qhull_options=options)
+            _constrain_points(vor.vertices)
+            pts = _relax(vor)
+        # m = vedo.Mesh([pts, self.faces()]) # not yet working properly
+        return Points(pts, c='k')
 
 
     def projectOnPlane(self, plane='z', point=None, direction=None):
