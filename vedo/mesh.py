@@ -679,36 +679,6 @@ class Mesh(Points):
         ne = featureEdges.GetOutput().GetNumberOfCells()
         return not bool(ne)
 
-    def distanceToMesh(self, mesh, signed=False, negate=False):
-        '''
-        Computes the (signed) distance from one mesh to another.
-
-        |distance2mesh| |distance2mesh.py|_
-        '''
-        poly1 = self.polydata()
-        poly2 = mesh.polydata()
-        df = vtk.vtkDistancePolyDataFilter()
-        df.ComputeSecondDistanceOff()
-        df.SetInputData(0, poly1)
-        df.SetInputData(1, poly2)
-        if signed:
-            df.SignedDistanceOn()
-        else:
-            df.SignedDistanceOff()
-        if negate:
-            df.NegateDistanceOn()
-        df.Update()
-
-        scals = df.GetOutput().GetPointData().GetScalars()
-        poly1.GetPointData().AddArray(scals)
-
-        poly1.GetPointData().SetActiveScalars(scals.GetName())
-        rng = scals.GetRange()
-        self._mapper.SetScalarRange(rng[0], rng[1])
-        self._mapper.ScalarVisibilityOn()
-        return self
-
-
     def shrink(self, fraction=0.85):
         """Shrink the triangle polydata in the representation of the input mesh.
 

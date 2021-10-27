@@ -1398,6 +1398,36 @@ class Points(vtk.vtkFollower, BaseActor):
         return self
 
 
+    def distanceToMesh(self, mesh, signed=False, negate=False):
+        '''
+        Computes the (signed) distance from one mesh to another.
+
+        |distance2mesh| |distance2mesh.py|_
+        '''
+        poly1 = self.polydata()
+        poly2 = mesh.polydata()
+        df = vtk.vtkDistancePolyDataFilter()
+        df.ComputeSecondDistanceOff()
+        df.SetInputData(0, poly1)
+        df.SetInputData(1, poly2)
+        if signed:
+            df.SignedDistanceOn()
+        else:
+            df.SignedDistanceOff()
+        if negate:
+            df.NegateDistanceOn()
+        df.Update()
+
+        scals = df.GetOutput().GetPointData().GetScalars()
+        poly1.GetPointData().AddArray(scals)
+
+        poly1.GetPointData().SetActiveScalars(scals.GetName())
+        rng = scals.GetRange()
+        self._mapper.SetScalarRange(rng[0], rng[1])
+        self._mapper.ScalarVisibilityOn()
+        return self._update(poly1)
+
+
     def alpha(self, opacity=None):
         """Set/get mesh's transparency. Same as `mesh.opacity()`."""
         if opacity is None:
