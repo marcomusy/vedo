@@ -1,7 +1,7 @@
 """Select cells inside a point loop"""
 from vedo import *
 
-mesh = Mesh('https://www.dropbox.com/s/bu9otn8mcbtbtll/dolfin_fine.vtk').lw(0.1)
+mesh = Mesh(dataurl+'dolfin_fine.vtk').lw(0.1)
 
 pts = [
          [0.85382618, 0.1909104],

@@ -20,7 +20,7 @@ General settings.
     computeNormals = None
 
     # Allow to continously interact with scene during interactive() execution
-    allowInteraction = True
+    allowInteraction = False
 
     # Set up default mouse and keyboard functionalities
     enableDefaultMouseCallbacks = True
@@ -148,7 +148,7 @@ except:
 xtitle = 'x'
 ytitle = 'y'
 ztitle = 'z'
- 
+
 # Set a default for the font to be used for axes, comments etc.
 defaultFont = 'Normografo'
 
@@ -161,7 +161,7 @@ screeshotLargeImage = False
 computeNormals = None
 
 # Allow to continously interact with scene during interactor.Start() execution
-allowInteraction = True
+allowInteraction = False
 
 # Set up default mouse and keyboard functionalities
 enableDefaultMouseCallbacks = True
@@ -527,7 +527,7 @@ def embedWindow(backend='ipyvtk', verbose=True):
             if k3d._version.version_info != (2, 7, 4):
                 print('Warning: only k3d version 2.7.4 is currently supported')
                 # print('> pip install k3d==2.7.4')
-            
+
         except:
             notebookBackend = None
             if verbose:
@@ -597,6 +597,6 @@ def _init():
     fonts = list(sorted(fonts))
 
     warnings.simplefilter(action="ignore", category=FutureWarning)
-    np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
+    np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
     embedWindow()

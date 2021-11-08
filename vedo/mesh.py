@@ -195,8 +195,14 @@ class Mesh(Points):
                 self._data = dataset.polydata()
 
         else:
-            printc("Error: cannot build mesh from type:\n", inputtype, c='r')
-            raise RuntimeError()
+            try:
+                gf = vtk.vtkGeometryFilter()
+                gf.SetInputData(inputobj)
+                gf.Update()
+                self._data = gf.GetOutput()
+            except:
+                printc("Error: cannot build mesh from type:\n", inputtype, c='r')
+                raise RuntimeError()
 
 
         if vedo.settings.computeNormals is not None:
@@ -679,35 +685,6 @@ class Mesh(Points):
         ne = featureEdges.GetOutput().GetNumberOfCells()
         return not bool(ne)
 
-    def distanceToMesh(self, mesh, signed=False, negate=False):
-        '''
-        Computes the (signed) distance from one mesh to another.
-
-        |distance2mesh| |distance2mesh.py|_
-        '''
-        poly1 = self.polydata()
-        poly2 = mesh.polydata()
-        df = vtk.vtkDistancePolyDataFilter()
-        df.ComputeSecondDistanceOff()
-        df.SetInputData(0, poly1)
-        df.SetInputData(1, poly2)
-        if signed:
-            df.SignedDistanceOn()
-        else:
-            df.SignedDistanceOff()
-        if negate:
-            df.NegateDistanceOn()
-        df.Update()
-
-        scals = df.GetOutput().GetPointData().GetScalars()
-        poly1.GetPointData().AddArray(scals)
-
-        poly1.GetPointData().SetActiveScalars(scals.GetName())
-        rng = scals.GetRange()
-        self._mapper.SetScalarRange(rng[0], rng[1])
-        self._mapper.ScalarVisibilityOn()
-        return self
-
 
     def shrink(self, fraction=0.85):
         """Shrink the triangle polydata in the representation of the input mesh.
@@ -1031,6 +1008,39 @@ class Mesh(Points):
             #printc("Error in triangulate()")
             return self
 
+    @deprecated(reason=vedo.colors.red+"Please use distanceTo()"+vedo.colors.reset)
+    def distanceToMesh(self, mesh, signed=False, negate=False):
+        return self.distanceTo(mesh, signed=signed, negate=negate)
+
+    def distanceTo(self, mesh, signed=False, negate=False):
+        '''
+        Computes the (signed) distance from one mesh to another.
+
+        |distance2mesh| |distance2mesh.py|_
+        '''
+        # overrides pointcloud.distanceToMesh()
+        poly1 = self.polydata()
+        poly2 = mesh.polydata()
+        df = vtk.vtkDistancePolyDataFilter()
+        df.ComputeSecondDistanceOff()
+        df.SetInputData(0, poly1)
+        df.SetInputData(1, poly2)
+        if signed:
+            df.SignedDistanceOn()
+        else:
+            df.SignedDistanceOff()
+        if negate:
+            df.NegateDistanceOn()
+        df.Update()
+
+        scals = df.GetOutput().GetPointData().GetScalars()
+        poly1.GetPointData().AddArray(scals)
+
+        poly1.GetPointData().SetActiveScalars(scals.GetName())
+        rng = scals.GetRange()
+        self._mapper.SetScalarRange(rng[0], rng[1])
+        self._mapper.ScalarVisibilityOn()
+        return self
 
     def addCellArea(self, name="Area"):
         """Add to this mesh a cell data array containing the areas of the polygonal faces"""
@@ -1462,6 +1472,47 @@ class Mesh(Points):
             fe.SetInputData(self.polydata())
             fe.Update()
             return Mesh(fe.GetOutput(), c="p").lw(5).lighting('off')
+
+
+    def imprint(self, loopline, tol=0.01):
+        """
+        Imprint the contact surface of one object onto another surface.
+
+        Parameters
+        ----------
+        loopline : vedo.shapes.Line
+            a Line object to be imprinted onto the mesh.
+        tol : TYPE, optional
+            projection tolerance which controls how close the imprint surface must be to the target.
+            The default is 0.01.
+
+        :Example:
+
+            .. code-block:: python
+
+                from vedo import *
+                grid = Grid()#.triangulate()
+                circle = Circle(r=0.3, res=24).pos(0.11,0.12)
+                line = Line(circle, closed=True, lw=4, c='r4')
+                grid.imprint(line)
+                show(grid, line, axes=1)
+        """
+        loop = vtk.vtkContourLoopExtraction()
+        loop.SetInputData(loopline.polydata())
+        loop.Update()
+
+        cleanLoop = vtk.vtkCleanPolyData()
+        cleanLoop.SetInputData(loop.GetOutput())
+        cleanLoop.Update()
+
+        imp = vtk.vtkImprintFilter()
+        imp.SetTargetData(self.polydata())
+        imp.SetImprintData(cleanLoop.GetOutput())
+        imp.SetTolerance(tol)
+        imp.BoundaryEdgeInsertionOn()
+        imp.TriangulateOutputOn()
+        imp.Update()
+        return self._update(imp.GetOutput())
 
 
     def connectedVertices(self, index, returnIds=False):

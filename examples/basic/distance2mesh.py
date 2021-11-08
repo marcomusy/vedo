@@ -6,7 +6,7 @@ from vedo import Sphere, Cube, show
 s1 = Sphere()
 s2 = Cube(pos=[1,0,0], c='white', alpha=0.4)
 
-s1.distanceToMesh(s2, signed=True, negate=False)
+s1.distanceTo(s2, signed=True, negate=False)
 
 s1.addScalarBar(title='Signed\nDistance')
 

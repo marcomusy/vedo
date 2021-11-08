@@ -1457,14 +1457,6 @@ def exportWindow(fileoutput, binary=False):
             np.save(fileoutput, [sdict])
 
     ####################################################################
-    # elif fr.endswith(".obj"):
-    #     w = vtk.vtkOBJExporter()
-    #     w.SetInputData(settings.plotter_instance.window)
-    #     w.Update()
-    #     colors.printc("\save Saved file:", fileoutput, c="g")
-
-
-    ####################################################################
     elif fr.endswith(".x3d"):
         from vedo.docs import x3d_html
 
@@ -1479,8 +1471,9 @@ def exportWindow(fileoutput, binary=False):
 
             elif isinstance(a, Assembly):
                 for b in a.unpack():
-                    newb = b.clone(transformed=True)
-                    settings.plotter_instance.add(newb, render=False)
+                    if b:
+                        newb = b.clone(transformed=True)
+                        settings.plotter_instance.add(newb, render=False)
                 settings.plotter_instance.remove(a)
         settings.plotter_instance.render()
 
@@ -1489,8 +1482,33 @@ def exportWindow(fileoutput, binary=False):
         exporter.FastestOff()
         exporter.SetInput(settings.plotter_instance.window)
         exporter.SetFileName(fileoutput)
+#        exporter.WriteToOutputStringOn() # see below
         exporter.Update()
         exporter.Write()
+
+# this can reduce the size by more than half...
+#        outstring = exporter.GetOutputString().decode("utf-8") # this fails though
+#        from vedo.utils import isInteger, isNumber, precision
+#        newlines = []
+#        for l in outstring.splitlines(True):
+#            ls = l.lstrip()
+#            content = ls.split()
+#            newls = ""
+#            for c in content:
+#                c2 = c.replace(',','')
+#                if isNumber(c2) and not isInteger(c2):
+#                    newc = precision(float(c2), 4)
+#                    if ',' in c:
+#                        newls += newc + ','
+#                    else:
+#                        newls += newc + ' '
+#                else:
+#                    newls += c + ' '
+#        newlines.append(newls.lstrip()+'\n')
+#        with open("fileoutput", 'w') as f:
+#            l = "".join(newlines)
+#            f.write(l)
+
         x3d_html = x3d_html.replace("~fileoutput", fileoutput)
         wsize = settings.plotter_instance.window.GetSize()
         x3d_html = x3d_html.replace("~width", str(wsize[0]))

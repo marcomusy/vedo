@@ -129,7 +129,7 @@ class Plot(Assembly):
 
         return self
 
-    def plot(self, *args, **kwargs):
+    def overlayPlot(self, *args, **kwargs):
         """Plot on top of an already existing plot."""
         kwargs['format'] = self
         plt = plot(*args, **kwargs)
@@ -138,7 +138,7 @@ class Plot(Assembly):
             self.AddPart(a)
         return self
 
-    def histogram(self, *args, **kwargs):
+    def overlayHistogram(self, *args, **kwargs):
         """Plot histogram on top of an already existing plot."""
         kwargs['format'] = self
         h = histogram(*args, **kwargs)
@@ -872,8 +872,8 @@ def _plotxy(
         asse.SetOrigin(x0lim, y0lim, 0)
 
     else:
-        settings.xtitle = xtitle
-        settings.ytitle = ytitle
+#        settings.xtitle = xtitle
+#        settings.ytitle = ytitle
         asse = Plot(acts)
 
     asse.yscale = yscale
@@ -1490,8 +1490,8 @@ def _barplot(
         asse.axes = axs
         asse.SetOrigin(x0lim, y0lim, 0)
     else:
-        settings.xtitle = xtitle
-        settings.ytitle = ytitle
+#        settings.xtitle = xtitle
+#        settings.ytitle = ytitle
         asse = Plot(rs)
 
     asse.yscale = yscale
@@ -1762,8 +1762,8 @@ def _histogram1D(
         asse.axes = axs
         asse.SetOrigin(x0lim, y0lim, 0)
     else:
-        settings.xtitle = xtitle
-        settings.ytitle = ytitle
+#        settings.xtitle = xtitle
+#        settings.ytitle = ytitle
         asse = Plot(rs)
 
     asse.yscale = yscale
@@ -1912,9 +1912,9 @@ def _histogram2D(
         asse.axes = axs
         asse.SetOrigin(x0lim, y0lim, 0)
     else:
-        settings.xtitle = xtitle
-        settings.ytitle = ytitle
-        settings.ytitle = ztitle
+#        settings.xtitle = xtitle
+#        settings.ytitle = ytitle
+#        settings.ytitle = ztitle
         asse = Plot(acts)
 
     asse.yscale = yscale
@@ -1949,12 +1949,12 @@ def _histogramHexBin(
     cmap="terrain_r",
     alpha=1,
 ):
-    if xtitle:
-        settings.xtitle = xtitle
-    if ytitle:
-        settings.ytitle = ytitle
-    if ztitle:
-        settings.ztitle = ztitle
+#    if xtitle:
+#        settings.xtitle = xtitle
+#    if ytitle:
+#        settings.ytitle = ytitle
+#    if ztitle:
+#        settings.ztitle = ztitle
 
     xmin, xmax = np.min(xvalues), np.max(xvalues)
     ymin, ymax = np.min(yvalues), np.max(yvalues)

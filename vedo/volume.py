@@ -162,7 +162,7 @@ def interpolateToVolume(mesh, kernel='shepard',
     # if radius is None:
     #     radius = min(bounds[1]-bounds[0], bounds[3]-bounds[2], bounds[5]-bounds[4])/3
 
-    locator = vtk.vtkPointLocator()
+    locator = vtk.vtkStaticPointLocator()
     locator.SetDataSet(output)
     locator.BuildLocator()
 
@@ -979,7 +979,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
 
             else:
                 if "ndarray" not in inputtype:
-                    inputobj = np.array(inputobj)
+                    inputobj = np.asarray(inputobj)
 
                 if len(inputobj.shape)==1:
                     varr = utils.numpy2vtk(inputobj, dtype=float)

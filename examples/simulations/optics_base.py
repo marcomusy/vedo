@@ -193,7 +193,7 @@ class Ray(object):
 
                 hit_cids = element.intersectWithLine(self.p, self.p + self.v * self.dmax,
                                                      returnIds=True, tol=self.OBBTreeTolerance)
-                if not hit_cids:
+                if not len(hit_cids):
                     break               # no hits
                 hit, cid = hit_cids[0]  # grab the first hit, point and cell ID of the mesh
                 d = np.linalg.norm(hit - self.p)

@@ -692,6 +692,21 @@ def mag2(v):
         return np.square(v).sum(axis=1)
 
 
+def isInteger(n):
+    try:
+        float(n)
+    except ValueError:
+        return False
+    else:
+        return float(n).is_integer()
+
+def isNumber(n):
+    try:
+        float(n)
+        return True
+    except ValueError:
+        return False
+
 def roundToDigit(x, p):
     """Round a real number to the specified number of significant digits."""
     if not x:

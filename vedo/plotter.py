@@ -361,7 +361,7 @@ class Plotter:
         offscreen=False,
         qtWidget=None,
         wxWidget=None,
-    ):
+        ):
 
         settings.plotter_instance = self
         settings.plotter_instances.append(self)
@@ -397,8 +397,10 @@ class Plotter:
         self.picked3d = None  # 3d coords of a clicked point on an actor
         self.offscreen = offscreen
         self.resetcam = resetcam
+
         self.qtWidget = qtWidget #  QVTKRenderWindowInteractor
         self.wxWidget = wxWidget # wxVTKRenderWindowInteractor
+
         self.skybox = None
         self.frames = None      # holds the output of addons.addRendererFrame
 
@@ -411,8 +413,6 @@ class Plotter:
         self._icol = 0
         self.clock = 0
         self._clockt0 = time.time()
-        self.initializedPlotter = False
-        self.initializedIren = False
         self.sliders = []
         self.buttons = []
         self.widgets = []
@@ -421,10 +421,10 @@ class Plotter:
         self._flagRep = None
         self.scalarbars = []
         self.backgroundRenderer = None
-        self.keyPressFunction = None # obsolete! use plotter.callBack()
-        self.mouseLeftClickFunction = None # obsolete! use plotter.callBack()
+        self.keyPressFunction = None         # obsolete! use plotter.callBack()
+        self.mouseLeftClickFunction = None   # obsolete! use plotter.callBack()
         self.mouseMiddleClickFunction = None # obsolete! use plotter.callBack()
-        self.mouseRightClickFunction = None # obsolete! use plotter.callBack()
+        self.mouseRightClickFunction = None  # obsolete! use plotter.callBack()
         self._first_viewup = True
         self._extralight = None
         self.size = size
@@ -438,6 +438,7 @@ class Plotter:
         self.camera = vtk.vtkCamera()
         self.window = vtk.vtkRenderWindow()
         self.escaped = False
+
         self.window.GlobalWarningDisplayOff()
 
         self._repeating_timer_id = None
@@ -471,18 +472,19 @@ class Plotter:
         self.window.SetLineSmoothing(settings.lineSmoothing)
         self.window.SetPointSmoothing(settings.pointSmoothing)
 
-        self.window.SetWindowName(self.title)
-
         # sort out screen size
         if screensize == "auto":
             screensize = (2160, 1440) # might go wrong, use a default 1.5 ratio
-            if not self.offscreen:
-                aus = self.window.GetScreenSize()
-                if aus and len(aus) == 2 and aus[0] > 100 and aus[1] > 100:  # seems ok
-                    if aus[0] / aus[1] > 2:  # looks like there are 2 or more screens
-                        screensize = (int(aus[0] / 2), aus[1])
-                    else:
-                        screensize = aus
+            ### BUG in GetScreenSize https://discourse.vtk.org/t/vtk9-1-0-problems/7094/3
+            # vtkvers = settings.vtk_version
+            # if not self.offscreen and (vtkvers[0]<9 or vtkvers[0]==9 and vtkvers[1]==0):
+            # if False:
+            #     aus = self.window.GetScreenSize()
+            #     if aus and len(aus) == 2 and aus[0] > 100 and aus[1] > 100:  # seems ok
+            #         if aus[0] / aus[1] > 2:  # looks like there are 2 or more screens
+            #             screensize = (int(aus[0] / 2), aus[1])
+            #         else:
+            #             screensize = aus
         x, y = screensize
 
         if N:  # N = number of renderers. Find out the best
@@ -509,7 +511,7 @@ class Plotter:
                     minl = l
             shape = lm[ind]
 
-
+        ##################################################
         if isinstance(shape, str):
 
             if '|' in shape:
@@ -562,12 +564,13 @@ class Plotter:
                     r.SetOcclusionRatio(settings.occlusionRatio)
                 r.SetUseFXAA(settings.useFXAA)
                 r.SetPreserveDepthBuffer(settings.preserveDepthBuffer)
-                if hasattr(r, "SetUseSSAO"):
-                    r.SetUseSSAO(settings.useSSAO)
-                    r.SetSSAORadius(settings.SSAORadius)
-                    r.SetSSAOBias(settings.SSAOBias)
-                    r.SetSSAOKernelSize(settings.SSAOKernelSize)
-                    r.SetSSAOBlur(settings.SSAOBlur)
+#                if hasattr(r, "SetUseSSAO"):
+#                    r.SetUseSSAO(settings.useSSAO)
+#                    r.SetSSAORadius(settings.SSAORadius)
+#                    r.SetSSAOBias(settings.SSAOBias)
+#                    r.SetSSAOKernelSize(settings.SSAOKernelSize)
+#                    r.SetSSAOBlur(settings.SSAOBlur)
+
 
                 r.SetBackground(vedo.getColor(self.backgrcol))
 
@@ -598,12 +601,12 @@ class Plotter:
                     arenderer.SetOcclusionRatio(settings.occlusionRatio)
                 arenderer.SetUseFXAA(settings.useFXAA)
                 arenderer.SetPreserveDepthBuffer(settings.preserveDepthBuffer)
-                if hasattr(arenderer, "SetUseSSAO"):
-                    arenderer.SetUseSSAO(settings.useSSAO)
-                    arenderer.SetSSAORadius(settings.SSAORadius)
-                    arenderer.SetSSAOBias(settings.SSAOBias)
-                    arenderer.SetSSAOKernelSize(settings.SSAOKernelSize)
-                    arenderer.SetSSAOBlur(settings.SSAOBlur)
+#                if hasattr(arenderer, "SetUseSSAO"):
+#                    arenderer.SetUseSSAO(settings.useSSAO)
+#                    arenderer.SetSSAORadius(settings.SSAORadius)
+#                    arenderer.SetSSAOBias(settings.SSAOBias)
+#                    arenderer.SetSSAOKernelSize(settings.SSAOKernelSize)
+#                    arenderer.SetSSAOBlur(settings.SSAOBlur)
 
                 arenderer.SetViewport(x0, y0, x1, y1)
                 arenderer.SetBackground(vedo.getColor(bg_))
@@ -634,8 +637,6 @@ class Plotter:
             else:
                 self.size = (self.size[0], self.size[1])
 
-            ############################
-
             image_actor=None
             bgname = str(self.backgrcol).lower()
             if ".jpg" in bgname or ".jpeg" in bgname or ".png" in bgname:
@@ -656,18 +657,18 @@ class Plotter:
                     arenderer.SetTwoSidedLighting(settings.twoSidedLighting)
 
                     arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
-                    # arenderer.SetUseDepthPeelingForVolumes(settings.useDepthPeeling)
+                    #arenderer.SetUseDepthPeelingForVolumes(settings.useDepthPeeling)
                     if settings.useDepthPeeling:
                         arenderer.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
                         arenderer.SetOcclusionRatio(settings.occlusionRatio)
                     arenderer.SetUseFXAA(settings.useFXAA)
                     arenderer.SetPreserveDepthBuffer(settings.preserveDepthBuffer)
-                    if hasattr(arenderer, "SetUseSSAO"):
-                        arenderer.SetUseSSAO(settings.useSSAO)
-                        arenderer.SetSSAORadius(settings.SSAORadius)
-                        arenderer.SetSSAOBias(settings.SSAOBias)
-                        arenderer.SetSSAOKernelSize(settings.SSAOKernelSize)
-                        arenderer.SetSSAOBlur(settings.SSAOBlur)
+#                    if hasattr(arenderer, "SetUseSSAO"):
+#                        arenderer.SetUseSSAO(settings.useSSAO)
+#                        arenderer.SetSSAORadius(settings.SSAORadius)
+#                        arenderer.SetSSAOBias(settings.SSAOBias)
+#                        arenderer.SetSSAOKernelSize(settings.SSAOKernelSize)
+#                        arenderer.SetSSAOBlur(settings.SSAOBlur)
 
                     if image_actor:
                         arenderer.SetLayer(1)
@@ -759,7 +760,6 @@ class Plotter:
             self.interactor.AddObserver("KeyReleaseEvent", self._keyrelease)
 
         if settings.allowInteraction:
-
             def win_interact(iren, event):  # flushing interactor events
                 if event == "TimerEvent":
                     iren.ExitCallback()
@@ -773,9 +773,7 @@ class Plotter:
         """Call this method from inside a loop to allow mouse and keyboard interaction."""
         if self.interactor and self._timer_event_id is not None and settings.immediateRendering:
             self._repeatingtimer_id = self.interactor.CreateRepeatingTimer(10)
-            # self.interactor.EnableRenderOff() # or window.ProcessEvents()
             self.interactor.Start()
-            # self.interactor.EnableRenderOn()
             if self.interactor:
                 self.interactor.DestroyTimer(self._repeatingtimer_id)
             self._repeatingtimer_id = None
@@ -902,6 +900,16 @@ class Plotter:
                 self.renderer.ResetCamera()
             self.wxWidget.Render()
             return self
+
+        if self.qtWidget:
+            if resetcam:
+                self.renderer.ResetCamera()
+            self.qtWidget.Render()
+            return self
+
+        if self.interactor:
+            if not self.interactor.GetInitialized():
+                self.interactor.Initialize()
 
         if at is not None: # disable all except i==at
             self.window.EraseOff()
@@ -1086,30 +1094,25 @@ class Plotter:
             s1 = camstart.GetDistance()
 
         if isinstance(camstop, dict):
-            p1 = np.asarray(camstop.pop("pos", [0,0,1]))
-            f1 = np.asarray(camstop.pop("focalPoint", [0,0,0]))
-            v1 = np.asarray(camstop.pop("viewup", [0,1,0]))
-            s1 = camstop.pop("distance", None)
-            c1 = np.asarray(camstop.pop("clippingRange", None))
+            p2 = np.asarray(camstop.pop("pos", [0,0,1]))
+            f2 = np.asarray(camstop.pop("focalPoint", [0,0,0]))
+            v2 = np.asarray(camstop.pop("viewup", [0,1,0]))
+            s2 = camstop.pop("distance", None)
+            c2 = np.asarray(camstop.pop("clippingRange", None))
         else:
-            p1 = np.array(camstop.GetPosition())
-            f1 = np.array(camstop.GetFocalPoint())
-            v1 = np.array(camstop.GetViewUp())
-            c1 = np.array(camstop.GetClippingRange())
-            s1 = camstop.GetDistance()
+            p2 = np.array(camstop.GetPosition())
+            f2 = np.array(camstop.GetFocalPoint())
+            v2 = np.array(camstop.GetViewUp())
+            c2 = np.array(camstop.GetClippingRange())
+            s2 = camstop.GetDistance()
 
-        p2 = np.array(camstop.GetPosition())
-        f2 = np.array(camstop.GetFocalPoint())
-        v2 = np.array(camstop.GetViewUp())
-        c2 = np.array(camstop.GetClippingRange())
-        s2 = camstop.GetDistance()
         ufraction = 1 - fraction
         self.camera.SetPosition(  p2 * fraction + p1 * ufraction)
         self.camera.SetFocalPoint(f2 * fraction + f1 * ufraction)
         self.camera.SetViewUp    (v2 * fraction + v1 * ufraction)
-        if s1 and s2:
+        if s1 is not None and s2 is not None :
             self.camera.SetDistance(s2 * fraction + s1 * ufraction)
-        if c1 and c2:
+        if c1 is not None and c2 is not None:
             self.camera.SetClippingRange(c2 * fraction + c1 * ufraction)
         return self
 
@@ -2186,7 +2189,6 @@ class Plotter:
             settings.defaultFont = 'Normografo'
             settings.interactorStyle = None
             settings.immediateRendering = True
-            settings.allowInteraction = True
             settings.multiSamples = 8
             settings.xtitle = "x"
             settings.ytitle = "y"
@@ -2195,6 +2197,10 @@ class Plotter:
 
         if interactive is not None:
             self.interactive = interactive
+
+        if self.interactor:
+            if not self.interactor.GetInitialized():
+                self.interactor.Initialize()
 
         if at is None and len(self.renderers) > 1:
             # in case of multiple renderers a call to show w/o specifying
@@ -2338,15 +2344,8 @@ class Plotter:
         if len(self.renderers) > 1:
             self.frames = self.addRendererFrame()
 
-        if not self.initializedIren and self.interactor:
-            self.interactor.Initialize()
-            self.initializedIren = True
-            self.interactor.RemoveObservers("CharEvent")
-
         if self.flagWidget:
             self.flagWidget.EnabledOn()
-
-        self.initializedPlotter = True
 
         if zoom:
             self.camera.Zoom(zoom)
@@ -2393,6 +2392,7 @@ class Plotter:
             if cm_parallelScale is not None: self.camera.SetParallelScale(cm_parallelScale)
             if cm_thickness is not None: self.camera.SetThickness(cm_thickness)
             if cm_viewAngle is not None: self.camera.SetViewAngle(cm_viewAngle)
+
 
         self.renderer.ResetCameraClippingRange()
         if settings.immediateRendering:
@@ -2584,7 +2584,6 @@ class Plotter:
         settings.defaultFont = 'Normografo'
         settings.interactorStyle = None
         settings.immediateRendering = True
-        settings.allowInteraction = True
         settings.multiSamples = 8
         settings.xtitle = "x"
         settings.ytitle = "y"
@@ -2625,9 +2624,9 @@ class Plotter:
         w2if.Update()
         return vedo.picture.Picture(w2if.GetOutput())
 
-    def export(self, filename='scene.npz'):
+    def export(self, filename='scene.npz', binary=False):
         """Export scene to file to HTML, X3D or Numpy file."""
-        vedo.io.exportWindow(filename)
+        vedo.io.exportWindow(filename, binary=binary)
         return self
 
 
@@ -2769,7 +2768,7 @@ class Plotter:
             self.keyheld = key
 
         if key in ["q", "space", "Return"]:
-            iren.ExitCallback()
+            #iren.ExitCallback()
             return
 
         elif key == "Escape":
@@ -3255,6 +3254,10 @@ class Plotter:
             vedo.io.exportWindow('scene.npz')
             vedo.printc(". Try:\n> vedo scene.npz", c="blue")
             settings.plotter_instance.interactor.Start()
+
+        elif key == "F12":
+            vedo.io.exportWindow('scene.x3d')
+            vedo.printc("Try: firefox scene.html", c="blue")
 
         elif key == "i":  # print info
             if self.clickedActor:

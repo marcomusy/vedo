@@ -136,5 +136,5 @@ for a in plt.actors:
 ## show the plot
 plt += __doc__
 plt.show(viewup="z", zoom=1.2)
-#exportWindow("page.html") # k3d is the default
+#plt.export("page.html") # k3d is the default
 plt.close()

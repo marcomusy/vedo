@@ -1,15 +1,20 @@
 """Embed a 3D scene
-in a webpage with
-x3dom and vedo"""
-from vedo import *
+in a webpage with x3d"""
+from vedo import dataurl, Plotter, Volume, Text3D
 
-e = load(dataurl+'embryo.tif').isosurface().decimate(0.5)
-ec = e.points()
-e.cmap('jet', ec[:,1]) # add dummy colors along y
+plt = Plotter(size=(800,600), bg='GhostWhite')
 
-t = Text3D(__doc__, pos=[3000., 2000., 4723], s=150, c='k', depth=0.1)
-show(t, e)
+embryo = Volume(dataurl+'embryo.tif').isosurface().decimate(0.5)
+coords = embryo.points()
+embryo.cmap('PRGn', coords[:,1]) # add dummy colors along y
+
+txt = Text3D(__doc__, font='Bongas', s=350, c='red2', depth=0.05)
+txt.pos(2500, 300, 500)
+
+plt.show(embryo, txt, txt.box(pad=250), axes=1, viewup='z', zoom=1.2)
 
 # This exports the scene and generates 2 files:
 # embryo.x3d and an example embryo.html to inspect in the browser
-exportWindow('embryo.x3d')
+plt.export('embryo.x3d', binary=False)
+
+print("Type: \n firefox embryo.html")

@@ -121,8 +121,8 @@ class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
                 if isinstance(marker, vedo.Points):
                     poly = marker.clone(deep=False).normalize().shift(0,1,0).polydata()
                 else: # assume string marker
-                    poly = vedo.shapes.Marker(marker, s=1).shift(0,1,0).polydata()                    
-                
+                    poly = vedo.shapes.Marker(marker, s=1).shift(0,1,0).polydata()
+
             self.SetEntry(n, poly, ti, col)
             n += 1
 
@@ -722,7 +722,7 @@ def addScalarBar3D(
         ticks_pos, ticks_txt = utils.makeTicks(vmin, vmax, nlabels)
 
     scale.lw(0).wireframe(False).lighting('off')
-    
+
     scales = [scale]
 
     xbns = scale.xbounds()
@@ -2079,7 +2079,7 @@ def Axes(
         fryz = shapes.Line([[0,0,dz],[0,dy,dz],[0,dy,0],[0,0,0],[0,0,dz]],
                            c=yzFrameColor, lw=yzFrameLine)
         if yzShift: fryz.shift(yzShift*dx,0,0)
-        frxy.name = 'yzFrameLine'
+        fryz.name = 'yzFrameLine'
         framelines.append(fryz)
     if zxFrameLine and ztitle and xtitle:
         if not zxFrameColor:

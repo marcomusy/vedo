@@ -876,9 +876,10 @@ class Animation(Plotter):
                 self.events.append((tt, self.fadeIn, acts, alpha))
         else:
             for a in self._performers:
-                if a.alpha() >= self._inputvalues:
-                    continue
-                a.alpha(self._inputvalues)
+                if hasattr(a, 'alpha'):
+                    if a.alpha() >= self._inputvalues:
+                        continue
+                    a.alpha(self._inputvalues)
         return self
 
     def fadeOut(self, acts=None, t=None, duration=None):
@@ -1180,18 +1181,17 @@ class Animation(Plotter):
     def play(self):
         """Play the internal list of events and save a video."""
 
-        from vedo import Video
         self.events = sorted(self.events, key=lambda x: x[0])
         self.bookingMode = False
 
-        for a in self.actors: a.alpha(0)
-
-        #if self.showProgressBar:
-        #    pb = ProgressBar(0, len(self.events), c='g')
+        if self.showProgressBar:
+            pb = vedo.ProgressBar(0, len(self.events), c='g')
 
         if self.totalDuration is None:
             self.totalDuration = self.events[-1][0] - self.events[0][0]
-        vd = Video(self.videoFileName, fps=self.videoFPS, duration=self.totalDuration)
+
+        if self.videoFileName:
+            vd = vedo.Video(self.videoFileName, fps=self.videoFPS, duration=self.totalDuration)
 
         ttlast=0
         for e in self.events:
@@ -1202,20 +1202,21 @@ class Animation(Plotter):
             dt = tt-ttlast
             if dt > self.eps:
                 self.show(interactive=False, resetcam=self.resetcam)
-                vd.addFrame()
+                if self.videoFileName: vd.addFrame()
 
                 if dt > self.timeResolution+self.eps:
-                    vd.pause(dt)
+                    if self.videoFileName: vd.pause(dt)
 
             ttlast = tt
 
-            #if self.showProgressBar:
-            #    pb.print('t='+str(int(tt*100)/100)+'s,  '+action.__name__)
+            if self.showProgressBar:
+                pb.print('t='+str(int(tt*100)/100)+'s,  '+action.__name__)
 
         self.show(interactive=False, resetcam=self.resetcam)
-        vd.addFrame()
+        if self.videoFileName:
+            vd.addFrame()
+            vd.close()
 
-        vd.close()
         self.show(interactive=True, resetcam=self.resetcam)
         self.bookingMode = True
 

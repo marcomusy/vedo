@@ -1909,7 +1909,7 @@ def interpolateToStructuredGrid(mesh, kernel=None, radius=None,
     if radius is None:
         radius = min(bounds[1]-bounds[0], bounds[3]-bounds[2], bounds[5]-bounds[4])/3
 
-    locator = vtk.vtkPointLocator()
+    locator = vtk.vtkStaticPointLocator()
     locator.SetDataSet(output)
     locator.BuildLocator()
 

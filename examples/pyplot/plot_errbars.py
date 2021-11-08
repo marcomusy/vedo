@@ -21,7 +21,7 @@ plt = plot(
 )
 
 ################# plot on top of plt
-plt.plot(
+plt.overlayPlot(
     x+3, y,
     "sb--",
     xerrors=errs,    # set error bars on x
@@ -31,7 +31,7 @@ plt.plot(
 )
 
 ################## plot again on top of plt
-plt.plot(x, y/5, "g")
+plt.overlayPlot(x, y/5, "g")
 
 
 ##################

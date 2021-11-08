@@ -1322,14 +1322,21 @@ class Tube(Mesh):
             polyln = points.polydata()
             points = points.points()
         else:
-            ppoints = vtk.vtkPoints()  # Generate the polyline
-            ppoints.SetData(utils.numpy2vtk(points, dtype=float))
+            vpoints = vtk.vtkPoints()
+            idx = len(points)
+            for p in points:
+                if len(p)==3:
+                    vpoints.InsertNextPoint(p[0],p[1],p[2])
+                else:
+                    vpoints.InsertNextPoint(p[0],p[1],0)
+            line = vtk.vtkPolyLine()
+            line.GetPointIds().SetNumberOfIds(idx)
+            for i in range(idx):
+                line.GetPointIds().SetId(i, i)
             lines = vtk.vtkCellArray()
-            lines.InsertNextCell(len(points))
-            for i in range(len(points)):
-                lines.InsertCellPoint(i)
+            lines.InsertNextCell(line)
             polyln = vtk.vtkPolyData()
-            polyln.SetPoints(ppoints)
+            polyln.SetPoints(vpoints)
             polyln.SetLines(lines)
 
         tuf = vtk.vtkTubeFilter()
