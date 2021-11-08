@@ -926,7 +926,7 @@ class BaseActor(Base3DProp):
             elif style=='plastic' : pars = [0.3, 0.4, 0.3,  5, c]
             elif style=='shiny'   : pars = [0.2, 0.6, 0.8, 50, c]
             elif style=='glossy'  : pars = [0.1, 0.7, 0.9, 90, (1,1,0.99)]
-            elif style=='ambient' : pars = [0.8, 0.1, 0.0,  0, (1,1,1)]
+            elif style=='ambient' : pars = [0.8, 0.1, 0.0,  1, (1,1,1)]
             elif style=='default' : pars = [0.1, 1.0, 0.05, 5, c]
             else:
                 colors.printc("Error in lighting(): Available styles are", c='r')
