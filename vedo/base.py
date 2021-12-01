@@ -1574,7 +1574,7 @@ class BaseGrid(BaseActor):
         return a
 
 
-    def legosurface(self, vmin=None, vmax=None, invert=False, cmap='afmhot_r'):
+    def legosurface(self, vmin=None, vmax=None, invert=False, cmap='afmhot_r', boundary=True):
         """
         Represent an object - typically a Volume - as lego blocks (voxels).
         By default colors correspond to the volume's scalar.
@@ -1605,7 +1605,7 @@ class BaseGrid(BaseActor):
         extract.SetInputData(self._data)
         extract.SetImplicitFunction(window)
         extract.SetExtractInside(invert)
-        extract.ExtractBoundaryCellsOff()
+        extract.SetExtractBoundaryCells(boundary)
         extract.Update()
 
         gf = vtk.vtkGeometryFilter()

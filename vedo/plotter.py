@@ -440,6 +440,7 @@ class Plotter:
         self.escaped = False
 
         self.window.GlobalWarningDisplayOff()
+        self.window.SetWindowName(self.title)
 
         self._repeating_timer_id = None
         self._timer_event_id = None
@@ -1212,7 +1213,7 @@ class Plotter:
     ##################################################################
     def addSlider2D(self, sliderfunc, xmin, xmax,
                     value=None, pos=4, title="", font="", titleSize=1, c=None,
-                    showValue=True, delayed=False):
+                    showValue=True, delayed=False, **options):
         """Add a slider widget which can call an external custom function.
 
         :param sliderfunc: external function to be called by the widget
@@ -1227,10 +1228,21 @@ class Plotter:
         :param bool showValue: if true current value is shown
         :param bool delayed: if True the callback is delayed to when the mouse is released
 
+        Additional options:
+
+        :param float alpha: opacity of the scalar bar texts
+        :param float sliderLength: slider length
+        :param float sliderWidth: slider width
+        :param float endCapLength: length of the end cap
+        :param float endCapWidth: width of the end cap
+        :param float tubeWidth: width of the tube
+        :param float titleHeight: width of the title
+        :param float tformat: format of the title
+
         |sliders1| |sliders1.py|_ |sliders2.py|_
         """
         return addons.addSlider2D(sliderfunc, xmin, xmax, value,
-                                  pos, title, font, titleSize, c, showValue, delayed)
+                                  pos, title, font, titleSize, c, showValue, delayed, **options)
 
     def addSlider3D(
         self,
@@ -2201,6 +2213,7 @@ class Plotter:
         if self.interactor:
             if not self.interactor.GetInitialized():
                 self.interactor.Initialize()
+                self.interactor.RemoveObservers("CharEvent")
 
         if at is None and len(self.renderers) > 1:
             # in case of multiple renderers a call to show w/o specifying
@@ -2629,6 +2642,19 @@ class Plotter:
         vedo.io.exportWindow(filename, binary=binary)
         return self
 
+    def colorPicker(self, xy):
+        """Pick color of specific (x,y) pixel on the screen."""
+        w2if = vtk.vtkWindowToImageFilter()
+        w2if.SetInput(self.window)
+        w2if.ReadFrontBufferOff()
+        w2if.Update()
+        nx, ny = self.window.GetSize()
+        varr = w2if.GetOutput().GetPointData().GetScalars()
+        arr = utils.vtk2numpy(varr).reshape(ny,nx,3)
+        if int(xy[1])<ny and int(xy[0])<nx:
+            return arr[int(xy[1]),int(xy[0])]
+        return None
+
 
     #######################################################################
     def _mouseleft(self, iren, event):
@@ -2768,7 +2794,7 @@ class Plotter:
             self.keyheld = key
 
         if key in ["q", "space", "Return"]:
-            #iren.ExitCallback()
+            iren.ExitCallback()
             return
 
         elif key == "Escape":
@@ -3267,7 +3293,7 @@ class Plotter:
 
         elif key == "I":  # print color under the mouse
             x, y = iren.GetEventPosition()
-            rgb = vedo.colors.colorPicker([x,y], self)
+            rgb = self.colorPicker([x,y])
             if rgb is None: return
             vedo.printc('Pixel', [x,y], 'has RGB[',  end='')
             vedo.printc('█', c=[rgb[0],0,0], end='')

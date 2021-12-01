@@ -1,5 +1,4 @@
 import vtk
-from vtk.util.numpy_support import vtk_to_numpy
 import numpy as np
 import sys, os, time
 import vedo.docs as docs
@@ -1076,25 +1075,6 @@ def printd(*strings, q=False):
         print(f"    \x1b[1m\x1b[37mExiting python now (q={bool(q)}).\x1b[0m\x1b[37m")
         exit(0)
     sys.stdout.flush()
-
-
-def colorPicker(xy, plotter=None):
-    """Pick color of specific (x,y) pixel on the screen."""
-    w2if = vtk.vtkWindowToImageFilter()
-    if plotter is None:
-        plotter = settings.plotter_instance
-    w2if.SetInput(plotter.window)
-    w2if.ReadFrontBufferOff()
-    w2if.Update()
-    nx, ny = plotter.window.GetSize()
-    varr = w2if.GetOutput().GetPointData().GetScalars()
-    arr = vtk_to_numpy(varr).reshape(ny,nx,3)
-    if int(xy[1])<ny and int(xy[0])<nx:
-        return arr[int(xy[1]),int(xy[0])]
-    return None
-
-
-
 
 
 

@@ -487,6 +487,7 @@ def addScalarBar(obj,
                  c=None,
                  horizontal=False,
                  useAlpha=True,
+                 tformat='%-#6.3g',
     ):
     """Add a 2D scalar bar for the specified obj.
 
@@ -533,8 +534,8 @@ def addScalarBar(obj,
 
     c = getColor(c)
     sb = vtk.vtkScalarBarActor()
-    #sb.SetLabelFormat('%-#6.3g')
     #print(sb.GetLabelFormat())
+    sb.SetLabelFormat(tformat)
     sb.SetLookupTable(lut)
     sb.SetUseOpacity(useAlpha)
     sb.SetDrawFrame(0)
@@ -846,7 +847,8 @@ def addScalarBar3D(
 
 #####################################################################
 def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
-                title='', font='', titleSize=1, c=None, showValue=True, delayed=False):
+                title='', font='', titleSize=1, c=None, showValue=True, delayed=False,
+                **options):
     """
     Add a slider widget which can call an external custom function.
 
@@ -864,8 +866,36 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
     :param bool showValue: if true current value is shown
     :param bool delayed: if True the callback is delayed to when the mouse is released
 
+    Additional options:
+
+    :param float alpha: opacity of the scalar bar texts
+    :param float sliderLength: slider length
+    :param float sliderWidth: slider width
+    :param float endCapLength: length of the end cap
+    :param float endCapWidth: width of the end cap
+    :param float tubeWidth: width of the tube
+    :param float titleHeight: width of the title
+    :param float tformat: format of the title
+
     |sliders1| |sliders1.py|_ |sliders2.py|_
     """
+    options = dict(options)
+    value = options.pop("value", value)
+    pos = options.pop("pos", pos)
+    title = options.pop("title", title)
+    font = options.pop("font", font)
+    titleSize = options.pop("titleSize", titleSize)
+    c = options.pop("c", c)
+    showValue = options.pop("showValue", showValue)
+    delayed = options.pop("delayed", delayed)
+    alpha = options.pop("alpha", 1)
+    sliderLength = options.pop("sliderLength", 0.015)
+    sliderWidth  = options.pop("sliderWidth", 0.025)
+    endCapLength = options.pop("endCapLength", 0.0015)
+    endCapWidth  = options.pop("endCapWidth", 0.0125)
+    tubeWidth    = options.pop("tubeWidth", 0.0075)
+    titleHeight  = options.pop("titleHeight", 0.022)
+
     plt = settings.plotter_instance
     if c is None:  # automatic black or white
         c = (0.8, 0.8, 0.8)
@@ -880,11 +910,11 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
     sliderRep.SetMinimumValue(xmin)
     sliderRep.SetMaximumValue(xmax)
     sliderRep.SetValue(value)
-    sliderRep.SetSliderLength(0.015)
-    sliderRep.SetSliderWidth(0.025)
-    sliderRep.SetEndCapLength(0.0015)
-    sliderRep.SetEndCapWidth(0.0125)
-    sliderRep.SetTubeWidth(0.0075)
+    sliderRep.SetSliderLength(sliderLength)
+    sliderRep.SetSliderWidth(sliderWidth)
+    sliderRep.SetEndCapLength(endCapLength)
+    sliderRep.SetEndCapWidth(endCapWidth)
+    sliderRep.SetTubeWidth(tubeWidth)
     sliderRep.GetPoint1Coordinate().SetCoordinateSystemToNormalizedDisplay()
     sliderRep.GetPoint2Coordinate().SetCoordinateSystemToNormalizedDisplay()
 
@@ -959,10 +989,13 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
             frm = "%0.0f"
         else:
             frm = "%0.3f"
+
+        frm = options.pop("tformat", frm)
+
         sliderRep.SetLabelFormat(frm)  # default is '%0.3g'
         sliderRep.GetLabelProperty().SetShadow(0)
         sliderRep.GetLabelProperty().SetBold(0)
-        sliderRep.GetLabelProperty().SetOpacity(1)
+        sliderRep.GetLabelProperty().SetOpacity(alpha)
         sliderRep.GetLabelProperty().SetColor(c)
         if isinstance(pos, int) and pos > 10:
             sliderRep.GetLabelProperty().SetOrientation(90)
@@ -974,10 +1007,10 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
     sliderRep.GetSelectedProperty().SetColor(np.sqrt(np.array(c)))
     sliderRep.GetCapProperty().SetColor(c)
 
-    sliderRep.SetTitleHeight(0.022*titleSize)
+    sliderRep.SetTitleHeight(titleHeight * titleSize)
     sliderRep.GetTitleProperty().SetShadow(0)
     sliderRep.GetTitleProperty().SetColor(c)
-    sliderRep.GetTitleProperty().SetOpacity(1)
+    sliderRep.GetTitleProperty().SetOpacity(alpha)
     sliderRep.GetTitleProperty().SetBold(0)
     if font.lower() == 'courier':
         sliderRep.GetTitleProperty().SetFontFamilyToCourier()
