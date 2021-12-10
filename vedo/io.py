@@ -1929,6 +1929,7 @@ class Video:
             cap = cv2.VideoCapture(os.path.join(self.tmp_dir.name, "%1d.png"))
             fourcc = cv2.VideoWriter_fourcc(*"mp4v")
             w,h = settings.plotter_instance.window.GetSize()
+            w,h = w*settings.screeshotScale, h*settings.screeshotScale
             writer = cv2.VideoWriter(self.name, fourcc, self.fps, (w, h), True)
 
             found = False
