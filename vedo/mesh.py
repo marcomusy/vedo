@@ -739,10 +739,7 @@ class Mesh(Points):
         self.SetUserMatrix(T.GetMatrix())
         if self.trail:
             self.updateTrail()
-        if self.shadow:
-            self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
-                           self.shadow.GetProperty().GetColor(),
-                           self.shadow.GetProperty().GetOpacity())
+        self.addShadows()
         return self
 
     def crop(self,
@@ -1193,16 +1190,26 @@ class Mesh(Points):
         return self
 
 
-    def addShadow(self, x=None, y=None, z=None, c=(0.6,0.6,0.6), alpha=1, culling=1):
+    def addShadow(self, plane=None, point=None, direction=None, clip=False, c=(0.6,0.6,0.6), alpha=1, culling=1):
         """
         Generate a shadow out of an ``Mesh`` on one of the three Cartesian planes.
         The output is a new ``Mesh`` representing the shadow.
         This new mesh is accessible through `mesh.shadow`.
         By default the shadow mesh is placed on the bottom wall of the bounding box.
 
-        :param float x,y,z: identify the plane to cast the shadow to ['x', 'y' or 'z'].
-            The shadow will lay on the orthogonal plane to the specified axis at the
-            specified value of either x, y or z.
+        See pointcloud.projectOnPlane.
+
+        :param str,Plane plane: if plane is `str`, plane can be one of ['x', 'y', 'z'],
+            represents x-plane, y-plane and z-plane, respectively.
+            Otherwise, plane should be an instance of `vedo.shapes.Plane`.
+
+        :param float,array point: if plane is `str`, point should be a float represents the intercept.
+            Otherwise, point is the camera point of perspective projection
+
+        :param array direction: direction of oblique projection
+
+        # TODO
+        :param bool clip: if true, remove the outside projection points
 
         :param int culling: choose between front [1] or backface [-1] culling or None.
 
@@ -1210,18 +1217,21 @@ class Mesh(Points):
 
         |airplanes| |airplanes.py|_
         """
-        if x is not None:
-            self.shadowX = x
-            shad = self.clone().projectOnPlane('x').x(x)
-        elif y is not None:
-            self.shadowY = y
-            shad = self.clone().projectOnPlane('y').y(y)
-        elif z is not None:
-            self.shadowZ = z
-            shad = self.clone().projectOnPlane('z').z(z)
+        if   'x' == plane:
+            shad = self.clone().projectOnPlane('x')
+            if point is not None:
+                shad.x(point)
+        elif 'y' == plane:
+            shad = self.clone().projectOnPlane('y')
+            if point is not None:
+                shad.y(point)
+        elif 'z' == plane:
+            shad = self.clone().projectOnPlane('z')
+            if point is not None:
+                shad.z(point)
         else:
-            print('Error in addShadow(): must set x, y or z to a float!')
-            return self
+            shad = self.clone().projectOnPlane(plane, point, direction, clip)
+
         shad.c(c).alpha(alpha).wireframe(False).flat()
         if culling==1:
             shad.frontFaceCulling()
@@ -1230,17 +1240,16 @@ class Mesh(Points):
         shad.GetProperty().LightingOff()
         shad.SetPickable(False)
         shad.SetUseBounds(True)
-        self.shadow = shad
+        if shad not in self.shadows:
+            self.shadows.append(shad)
+            self.shadowsArgs.append(dict(plane=plane, point=point, direction=direction))
         return self
 
     def _updateShadow(self):
         p = self.GetPosition()
-        if self.shadowX is not None:
-            self.shadow.SetPosition(self.shadowX, p[1], p[2])
-        elif self.shadowY is not None:
-            self.shadow.SetPosition(p[0], self.shadowY, p[2])
-        elif self.shadowZ is not None:
-            self.shadow.SetPosition(p[0], p[1], self.shadowZ)
+        for idx, shad in enumerate(self.shadows):
+            args = self.shadowsArgs[idx]
+            shad.SetPosition(*Points([p]).projectOnPlane(**args).GetPosition())
         return self
 
 

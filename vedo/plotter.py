@@ -1906,8 +1906,9 @@ class Plotter:
                 if isinstance(a, vedo.base.BaseActor):
                     if a.trail and a.trail not in self.actors:
                         scannedacts.append(a.trail)
-                    if a.shadow and a.shadow not in self.actors:
-                        scannedacts.append(a.shadow)
+                    for sha in a.shadows:
+                        if sha not in self.actors:
+                            scannedacts.append(sha)
                     if a._caption and a._caption not in self.actors:
                         scannedacts.append(a._caption)
 

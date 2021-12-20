@@ -131,10 +131,8 @@ class Base3DProp(object):
         self.trailPoints = []
         self.trailSegmentSize = 0
         self.trailOffset = None
-        self.shadow = None
-        self.shadowX = None
-        self.shadowY = None
-        self.shadowZ = None
+        self.shadows = []
+        self.shadowsArgs = []
         self.axes = None
         self.picked3d = None
         self.units = None
@@ -210,7 +208,7 @@ class Base3DProp(object):
 
         if self.trail:
             self.updateTrail()
-        if self.shadow:
+        if len(self.shadows) > 0:
             self._updateShadow()
         return self  # return itself to concatenate methods
 
@@ -228,7 +226,7 @@ class Base3DProp(object):
 
         if self.trail:
             self.updateTrail()
-        if self.shadow:
+        if len(self.shadows) > 0:
             self._updateShadow()
         return self
 
@@ -244,7 +242,7 @@ class Base3DProp(object):
         self.SetPosition(position, p[1], p[2])
         if self.trail:
             self.updateTrail()
-        if self.shadow:
+        if len(self.shadows) > 0:
             self._updateShadow()
         return self
 
@@ -256,7 +254,7 @@ class Base3DProp(object):
         self.SetPosition(p[0], position, p[2])
         if self.trail:
             self.updateTrail()
-        if self.shadow:
+        if len(self.shadows) > 0:
             self._updateShadow()
         return self
 
@@ -268,7 +266,7 @@ class Base3DProp(object):
         self.SetPosition(p[0], p[1], position)
         if self.trail:
             self.updateTrail()
-        if self.shadow:
+        if len(self.shadows) > 0:
             self._updateShadow()
         return self
 
@@ -312,10 +310,8 @@ class Base3DProp(object):
         self.SetPosition(rv)
         if self.trail:
             self.updateTrail()
-        if self.shadow:
-            self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
-                           self.shadow.GetProperty().GetColor(),
-                           self.shadow.GetProperty().GetOpacity())
+        if len(self.shadows) > 0:
+            self.addShadows()
         return self
 
     def rotateX(self, angle, rad=False, locally=False):
@@ -335,10 +331,8 @@ class Base3DProp(object):
             self.SetPosition(T.GetPosition())
             if self.trail:
                 self.updateTrail()
-            if self.shadow:
-                self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
-                               self.shadow.GetProperty().GetColor(),
-                               self.shadow.GetProperty().GetOpacity())
+            if len(self.shadows) > 0:
+                self.addShadows()
         else:
             self.RotateX(angle)
         return self
@@ -360,10 +354,8 @@ class Base3DProp(object):
             self.SetPosition(T.GetPosition())
             if self.trail:
                 self.updateTrail()
-            if self.shadow:
-                self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
-                               self.shadow.GetProperty().GetColor(),
-                               self.shadow.GetProperty().GetOpacity())
+            if len(self.shadows) > 0:
+                self.addShadows()
         else:
             self.RotateY(angle)
         return self
@@ -385,10 +377,8 @@ class Base3DProp(object):
             self.SetPosition(T.GetPosition())
             if self.trail:
                 self.updateTrail()
-            if self.shadow:
-                self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
-                               self.shadow.GetProperty().GetColor(),
-                               self.shadow.GetProperty().GetOpacity())
+            if len(self.shadows) > 0:
+                self.addShadows()
         else:
             self.RotateZ(angle)
         return self
@@ -438,12 +428,9 @@ class Base3DProp(object):
         self.SetUserTransform(T)
         if self.trail:
             self.updateTrail()
-        if self.shadow:
-            self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
-                           self.shadow.GetProperty().GetColor(),
-                           self.shadow.GetProperty().GetOpacity())
+        if len(self.shadows) > 0:
+            self.addShadows()
         return self
-
 
     def scale(self, s=None, absolute=False):
         """Set/get object's scaling factor.
@@ -714,6 +701,16 @@ class Base3DProp(object):
                 c.show(at=0, interactive=True)
         """
         return vedo.plotter.show(self, **options)
+
+    def addShadows(self):
+        shadows = self.shadows
+        shadowsArgs = self.shadowsArgs
+        self.shadows = []
+        self.shadowsArgs = []
+        for sha, args in zip(shadows, shadowsArgs):
+            color = sha.GetProperty().GetColor()
+            opacity = sha.GetProperty().GetOpacity()
+            self.addShadow(**args, c=color, alpha=opacity)
 
 
 ########################################################################################
