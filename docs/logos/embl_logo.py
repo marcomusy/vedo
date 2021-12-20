@@ -9,7 +9,7 @@ exah, cmh = [], []
 for h in his:
     cm = h.centerOfMass()
     if exa.isInside(cm):
-        h.c('green').shrink(0.9).addShadow(z=-.4)
+        h.c('green').shrink(0.9).addShadow(plane='z', point=-.4)
         exah.append(h)
         cmh.append(cm)
 

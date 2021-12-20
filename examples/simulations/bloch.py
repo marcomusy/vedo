@@ -1,7 +1,7 @@
 """Animate text and meshes"""
 from vedo import *
 
-v = Arrow([0,0,0],[0,.71,.71]).addTrail(maxlength=0.1, c='k').addShadow(z=-1)
+v = Arrow([0,0,0],[0,.71,.71]).addTrail(maxlength=0.1, c='k').addShadow(plane='z', point=-1)
 s = Sphere().c('red5', 0.1)
 
 cam = dict(pos=(4.14, -4.25, 2.35),
