@@ -2354,6 +2354,25 @@ class Plane(Mesh):
         self.top = np.array(normal)
         self.bottom = np.array([0,0,0])
 
+    def contain_points(self, points):
+        """Check if each point is inside this plane.
+
+        :param array points: points array with shape (*, 3).
+        """
+        points = np.array(points)
+        bounds = self.points()
+
+        mask = np.isclose(np.dot(points - self.center, self.normal), 0)
+
+        for i in [1, 3]:
+            AB = bounds[i] - bounds[0]
+            AP = points - bounds[0]
+            mask_l = np.less_equal(np.dot(AP, AB), np.linalg.norm(AB))
+            mask_g = np.greater_equal(np.dot(AP, AB), 0)
+            mask = np.logical_and(mask, mask_l)
+            mask = np.logical_and(mask, mask_g)
+        return mask
+
 
 def Rectangle(p1=(0, 0), p2=(2, 1), c="gray6", alpha=1):
     """Build a rectangle in the xy plane identified by two corner points."""

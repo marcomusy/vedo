@@ -1162,10 +1162,8 @@ class Points(vtk.vtkFollower, BaseActor):
             n = len(self.trailPoints)
             cloned.addTrail(self.trailOffset, self.trailSegmentSize*n, n,
                             None, None, self.trail.GetProperty().GetLineWidth())
-        if self.shadow:
-            cloned.addShadow(self.shadowX, self.shadowY, self.shadowZ,
-                             self.shadow.GetProperty().GetColor(),
-                             self.shadow.GetProperty().GetOpacity())
+        if len(self.shadows) > 0:
+            cloned.addShadows()
         return cloned
 
 
@@ -3087,16 +3085,21 @@ class Points(vtk.vtkFollower, BaseActor):
         return Points(pts, c='k')
 
 
-    def projectOnPlane(self, plane='z', point=None, direction=None):
+    def projectOnPlane(self, plane='z', point=None, direction=None, clip=False):
         """
         Project the mesh on one of the Cartesian planes.
 
-        :param str,Plane plane: if plane is `str`, plane can be one of x-plane,
-            y-plane and z-plane. Otherwise, plane should be an instance of `vedo.shapes.Plane`.
+        :param str,Plane plane: if plane is `str`, plane can be one of ['x', 'y', 'z'],
+            represents x-plane, y-plane and z-plane, respectively.
+            Otherwise, plane should be an instance of `vedo.shapes.Plane`.
 
-        :param array point: camera point of perspective projection
+        :param float,array point: if plane is `str`, point should be a float represents the intercept.
+            Otherwise, point is the camera point of perspective projection
 
         :param array direction: direction of oblique projection
+
+        # TODO
+        :param bool clip: if true, remove the outside projection points
 
         Note:
             Parameters `point` and `direction` are only used if the given plane
@@ -3114,13 +3117,16 @@ class Points(vtk.vtkFollower, BaseActor):
 
         if   'x' == plane:
             coords[:, 0] = self.GetOrigin()[0]
-            self.x(self.xbounds()[0])
+            intercept = self.xbounds()[0] if point is None else point
+            self.x(intercept)
         elif 'y' == plane:
             coords[:, 1] = self.GetOrigin()[1]
-            self.y(self.ybounds()[0])
+            intercept = self.ybounds()[0] if point is None else point
+            self.y(intercept)
         elif 'z' == plane:
             coords[:, 2] = self.GetOrigin()[2]
-            self.z(self.zbounds()[0])
+            intercept = self.zbounds()[0] if point is None else point
+            self.z(intercept)
 
         elif isinstance(plane, vedo.shapes.Plane):
             normal = plane.normal / np.linalg.norm(plane.normal)

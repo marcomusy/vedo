@@ -24,7 +24,7 @@ from vedo import *
 scene  = Plotter(title="Lorenz attractor", axes=dict(yzGrid=True))
 scene += Point(y, r=10, c="g") # end point
 scene += Points(pts, r=3, c=cols)
-scene += Line(pts).off().addShadow(x=3) # only show shadow, not line
-scene += Line(pts).off().addShadow(z=-30)
+scene += Line(pts).off().addShadow(plane='x', point=3) # only show shadow, not line
+scene += Line(pts).off().addShadow(plane='z', point=-30)
 scene += __doc__
 scene.show(viewup='z').close()
