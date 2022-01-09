@@ -14,7 +14,7 @@ Command Line Interface module
     alias vv='vedo -bg blackboard -bg2 gray3 -z 1.05 -k glossy -c blue9 '
     alias vr='vedo --run '        # to search and run examples by name
     alias vs='vedo -i --search '  # to search for a string in examples
-    alias vi='vedo --image -x0 -z 1.2 -n ' # to view multiple images
+    alias ve='vedo --eog '        # to view single and multiple images (press h for help)
 """
 
 import sys, argparse, os, glob
@@ -30,7 +30,9 @@ from vedo.tetmesh import TetMesh
 from vedo.ugrid import UGrid
 from vedo.volume import Volume
 from vedo.docs import tips
+from vedo.picture import Picture
 import vedo.applications as applications
+
 
 __all__ = []
 
@@ -57,6 +59,9 @@ def execute_cli():
 
     elif args.convert:
         exe_convert(args)
+
+    elif args.eog:
+        exe_eog(args)
 
     elif (len(args.files) == 0 or os.name == "nt"):
         exe_gui(args)
@@ -107,6 +112,7 @@ def get_parser():
     pr.add_argument("--convert", nargs='*',         help="input file(s) to be converted")
     pr.add_argument("--to",               type=str, help="convert to this target format", default='vtk', metavar='')
     pr.add_argument("--image",                      help="image mode for 2d objects", action="store_true")
+    pr.add_argument("--eog",                        help="eog-like image visualizer", action="store_true")
     return pr
 
 
@@ -337,6 +343,116 @@ def exe_search_vtk(args):
         print('\n'.join(examples))
     else:
         print(f'No examples for the VTK Class: {vtk_class} and language: {language}')
+
+
+#################################################################################################################
+def exe_eog(args):
+    # print("EOG emulator")
+    settings.immediateRendering = False
+    settings.useParallelProjection = True
+    settings.enableDefaultMouseCallbacks = False
+    settings.enableDefaultKeyboardCallbacks = False
+
+    if args.background == "":
+        args.background = "white"
+
+    if args.background_grad:
+        args.background_grad = getColor(args.background_grad)
+
+    files = []
+    for s in sys.argv:
+        if '--' in s or s.endswith('.py') or s.endswith('vedo'):
+            continue
+        if s.endswith('.gif'):
+            continue
+        files.append(s)
+
+
+    def vfunc(event):
+        # print(event.keyPressed)
+        for p in pics:
+            if event.keyPressed=="r":
+                    p.window(win).level(lev)
+            elif event.keyPressed=="Up":
+                    p.level(p.level()+10)
+            elif event.keyPressed=="Down":
+                    p.level(p.level()-10)
+            if event.keyPressed=="Right":
+                    p.window(p.window()+10)
+            elif event.keyPressed=="Down":
+                    p.window(p.window()-10)
+            elif event.keyPressed=="m":
+                    p.mirror()
+            elif event.keyPressed=="t":
+                    p.rotate(90)
+            elif event.keyPressed=="k":
+                    p.enhance()
+            elif event.keyPressed=="s":
+                    p.smooth(sigma=1)
+            elif event.keyPressed=="S":
+                    ahl = plt.hoverLegends[-1]
+                    plt.remove(ahl)
+                    plt.screenshot() # writer
+                    printc("Picture saved as screenshot.png")
+                    plt.add(ahl, render=False)
+                    return
+            elif event.keyPressed=="h":
+                printc('---------------------------------------------')
+                printc('Press:')
+                printc('  up/down     to modify level (or drag mouse)')
+                printc('  left/right  to modify window')
+                printc('  m           to mirror image')
+                printc('  t           to rotate image by 90 deg')
+                printc('  k           to enhance b&w image')
+                printc('  s           to apply gaussian smoothing')
+                printc('  S           to save image as png')
+                printc('---------------------------------------------')
+
+            plt.render()
+
+    pics = load(files)
+    if isinstance(pics, Picture):
+        pics = [pics]
+    n = len(pics)
+    pic = pics[0]
+    if pic is None:
+        printc("Could not load image.", c='r')
+        return
+    lev, win = pic.level(), pic.window()
+
+    if n > 1:
+
+        plt = Plotter(N=n, sharecam=True, bg=args.background, bg2=args.background_grad)
+        plt.addCallback('key press', vfunc)
+        for i in range(n):
+            p = pics[i].pickable(True)
+            pos = [-p.shape[0]/2, -p.shape[1]/2, 0]
+            p.pos(pos)
+            plt.addHoverLegend(at=i, c='k8', bg='k2', alpha=0.4)
+            plt.show(p, axes=0, at=i, mode='image')
+        plt.show(interactive=False)
+        plt.resetCamera(xypad=0.05)
+        plt.interactor.Start()
+
+    else:
+
+        shape = pic.shape
+        if shape[0]>1500:
+            shape[1] = shape[1]/shape[0]*1500
+            shape[0]=1500
+
+        if shape[1]>1200:
+            shape[0] = shape[0]/shape[1]*1200
+            shape[1]=1200
+
+        plt = Plotter(title=files[0], size=shape, bg=args.background, bg2=args.background_grad)
+        plt.addCallback('key press', vfunc)
+        plt.addHoverLegend(c='k8', bg='k2', alpha=0.4)
+        plt.show(pic, mode='image',  interactive=False)
+        plt.resetCamera(xypad=0.0)
+        plt.interactor.Start()
+
+    plt.close()
 
 
 #################################################################################################################

@@ -51,14 +51,14 @@ for place, theta, phi, confirmed, deaths, recos in data:
     fl = 'cases: '+str(confirmed) + '\ndeaths: '+str(deaths)
     radius = np.power(confirmed, 1/3)/4000
     sph1 = Sphere(pos, radius, alpha=0.4, res=12).flag(place+fl)
-    if deaths > 10000:
+    if deaths > 20000:
         sph1.flag(fl)
         anchorpt = sph1.pos()*(1+radius)
         vig = sph1.vignette(place, anchorpt, font="Kanopus")
         vig.c('k').scale(1.5*(1+radius)).followCamera()
         vigs.append(vig)
     s1.append(sph1)
-    s2.append(Sphere(pos, np.power(deaths, 1/3)/4000, alpha=0.4, c='k', res=10))
+    s2.append(Sphere(pos, np.power(deaths, 1/3)/10000, alpha=0.4, c='k', res=10))
 
 tx = Text2D('COVID-19 spread on '+date
            +'\n# cases : '+str(allconf)

@@ -134,7 +134,7 @@ class Mesh(Points):
             self._data = gf.GetOutput()
 
         elif "trimesh" in inputtype:
-            tact = vedo.utils.trimesh2vedo(inputobj, alphaPerCell=False)
+            tact = vedo.utils.trimesh2vedo(inputobj)
             self._data = tact.polydata()
 
         elif "meshio" in inputtype: # meshio-4.0.11

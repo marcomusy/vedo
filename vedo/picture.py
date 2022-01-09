@@ -16,7 +16,7 @@ __all__ = ["Picture"]
 
 
 #################################################
-class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):   
+class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
     """
     Derived class of ``vtkImageActor``. Used to represent 2D pictures.
     Can be instantiated with a path file name or with a numpy array.
@@ -24,10 +24,10 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
     Use `Picture.shape` to access the number of pixels in x and y.
 
     |rotateImage| |rotateImage.py|_
-    
+
     :param list channels: only select these specific rgba channels (useful to remove alpha)
     :param bool flip: flip xy axis convention (when input is a numpy array)
-    """    
+    """
     def __init__(self, obj=None, channels=(), flip=False):
         vtk.vtkImageActor.__init__(self)
         vedo.base.Base3DProp.__init__(self)
@@ -120,7 +120,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
     def inputdata(self):
         """Return the underlying ``vtkImagaData`` object."""
         return self._data
-    
+
     def dimensions(self):
         nx, ny, _ = self._data.GetDimensions()
         return np.array([nx, ny])
@@ -156,7 +156,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         self._data.SetExtent(ext[0],ext[1],ext[2],ext[3],0,0)
         self._mapper.Modified()
         return self
-    
+
     def text(self, txt,
                    pos=(0,0,0),
                    s=1,
@@ -283,7 +283,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """
         Add the specified number of pixels at the picture borders.
         Pixels can be a list formatted as [left,right,bottom,top].
-        
+
         Parameters
         ----------
         pixels : int,list , optional
@@ -367,7 +367,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         ima.SetAppendAxis(axis)
         ima.Update()
         return self._update(ima.GetOutput())
-    
+
 
     def resize(self, newsize):
         """Resize the image resolution by specifying the number of pixels in width and height.
@@ -410,7 +410,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             raise RuntimeError()
         ff.Update()
         return self._update(ff.GetOutput())
-    
+
     def rotate(self, angle, center=(), scale=1, mirroring=False, bc='w', alpha=1):
         """
         Rotate an image by an angle (anticlockwise).
@@ -421,7 +421,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             rotation angle in degrees.
         center: list
             center of rotation (x,y) in pixels.
-        """        
+        """
         bounds = self.bounds()
         pc = [0,0,0]
         if center:
@@ -431,7 +431,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             pc[0] = (bounds[1] + bounds[0]) / 2.0
             pc[1] = (bounds[3] + bounds[2]) / 2.0
         pc[2] = (bounds[5] + bounds[4]) / 2.0
-  
+
         transform = vtk.vtkTransform()
         transform.Translate(pc)
         transform.RotateWXYZ(-angle, 0, 0, 1)
@@ -459,10 +459,10 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         ec.SetComponents(component)
         ec.Update()
         return Picture(ec.GetOutput())
-    
+
     def bw(self):
         """Make it black and white"""
-        n = self._data.GetPointData().GetNumberOfComponents()        
+        n = self._data.GetPointData().GetNumberOfComponents()
         if n==4:
             ecr = vtk.vtkImageExtractComponents()
             ecr.SetInputData(self._data)
@@ -471,7 +471,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             img = ecr.GetOutput()
         else:
             img = self._data
-        
+
         ecr = vtk.vtkImageLuminance()
         ecr.SetInputData(img)
         ecr.Update()
@@ -496,7 +496,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
                 gsf.SetRadiusFactors(radius[0],radius[1])
             else:
                 gsf.SetRadiusFactor(radius)
-        
+
         if utils.isSequence(sigma):
             gsf.SetStandardDeviations(sigma[0], sigma[1])
         else:
@@ -505,55 +505,55 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         return self._update(gsf.GetOutput())
 
     def median(self):
-        """Median filter that preserves thin lines and corners. 
-        It operates on a 5x5 pixel neighborhood. It computes two values initially: 
-        the median of the + neighbors and the median of the x neighbors. 
-        It then computes the median of these two values plus the center pixel. 
+        """Median filter that preserves thin lines and corners.
+        It operates on a 5x5 pixel neighborhood. It computes two values initially:
+        the median of the + neighbors and the median of the x neighbors.
+        It then computes the median of these two values plus the center pixel.
         This result of this second median is the output pixel value.
         """
         medf = vtk.vtkImageHybridMedian2D()
         medf.SetInputData(self._data)
-        medf.Update()        
+        medf.Update()
         return self._update(medf.GetOutput())
-    
+
     def enhance(self):
         """
         Enhance a b&w picture using the laplacian, enhancing high-freq edges.
-        
+
         Example:
-            
+
             .. code-block:: python
-            
+
                 import vedo
                 p = vedo.Picture(vedo.dataurl+'images/dog.jpg').bw()
                 vedo.show(p, p.clone().enhance(), N=2, mode='image')
-        """       
+        """
         img = self._data
         scalarRange = img.GetPointData().GetScalars().GetRange()
-        
+
         cast = vtk.vtkImageCast()
         cast.SetInputData(img)
         cast.SetOutputScalarTypeToDouble()
         cast.Update()
-       
+
         laplacian = vtk.vtkImageLaplacian()
         laplacian.SetInputData(cast.GetOutput())
         laplacian.SetDimensionality(2)
         laplacian.Update()
-        
+
         subtr = vtk.vtkImageMathematics()
         subtr.SetInputData(0, cast.GetOutput())
         subtr.SetInputData(1, laplacian.GetOutput())
         subtr.SetOperationToSubtract()
-        subtr.Update()    
-        
+        subtr.Update()
+
         colorWindow = scalarRange[1] - scalarRange[0]
-        colorLevel = colorWindow / 2    
+        colorLevel = colorWindow / 2
         originalColor = vtk.vtkImageMapToWindowLevelColors()
         originalColor.SetWindow(colorWindow)
         originalColor.SetLevel(colorLevel)
         originalColor.SetInputData(subtr.GetOutput())
-        originalColor.Update()        
+        originalColor.Update()
         return self._update(originalColor.GetOutput())
 
     def fft(self, mode='magnitude', logscale=12, center=True):
@@ -689,14 +689,14 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         butterworthReal.SetInputData(butterworthRfft.GetOutput())
         butterworthReal.SetComponents(0)
         butterworthReal.Update()
-        
+
         caster = vtk.vtkImageCast()
         caster. SetOutputScalarTypeToUnsignedChar()
         caster.SetInputData(butterworthReal.GetOutput())
         caster.Update()
         return self._update(caster.GetOutput())
-    
-    
+
+
     def blend(self, pic, alpha1=0.5, alpha2=0.5):
         """Take L, LA, RGB, or RGBA images as input and blends
         them according to the alpha values and/or the opacity setting for each input.
@@ -709,9 +709,9 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         blf.SetBlendModeToNormal()
         blf.Update()
         return self._update(blf.GetOutput())
-    
-    
-    def warp(self, sourcePts=(), targetPts=(), transform=None, sigma=1, 
+
+
+    def warp(self, sourcePts=(), targetPts=(), transform=None, sigma=1,
              mirroring=False, bc='w', alpha=1):
         """
         Warp an image using thin-plate splines.
@@ -719,7 +719,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         Parameters
         ----------
         sourcePts : list, optional
-            source points. 
+            source points.
         targetPts : list, optional
             target points.
         transform : TYPE, optional
@@ -741,19 +741,19 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
                 sourcePts = sourcePts.points()
             if isinstance(targetPts, vedo.Points):
                 targetPts = targetPts.points()
-    
+
             ns = len(sourcePts)
             nt = len(targetPts)
             if ns != nt:
                 colors.printc("Error in picture.warp(): #source != #target points", ns, nt, c='r')
                 raise RuntimeError()
-                
+
             ptsou = vtk.vtkPoints()
-            ptsou.SetNumberOfPoints(ns)   
-    
+            ptsou.SetNumberOfPoints(ns)
+
             pttar = vtk.vtkPoints()
             pttar.SetNumberOfPoints(nt)
-            
+
             for i in range(ns):
                 p = sourcePts[i]
                 ptsou.SetPoint(i, [p[0],p[1],0])
@@ -766,7 +766,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         else:
             # ignore source and target
             pass
-        
+
         reslice = vtk.vtkImageReslice()
         reslice.SetInputData(self._data)
         reslice.SetOutputDimensionality(2)
@@ -778,7 +778,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         reslice.Update()
         self.transform = transform
         return self._update(reslice.GetOutput())
-    
+
 
     def threshold(self, value=None, flip=False):
         """
@@ -859,12 +859,12 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         narray = utils.vtk2numpy(self._data.GetPointData().GetScalars()).reshape(ny,nx,nchan)
         narray = np.flip(narray, axis=0)
         return narray
-    
+
     def modified(self):
         """Use in conjunction with ``tonumpy()`` to update any modifications to the picture array"""
         self._data.GetPointData().GetScalars().Modified()
         return self
-    
+
     def write(self, filename):
         """Write picture to file as png or jpg."""
         vedo.io.write(self._data, filename)

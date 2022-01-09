@@ -31,7 +31,7 @@ from vedo.colors import *
 import vedo.addons as addons
 import vedo.base as base
 import vedo.shapes as shapes
-from vedo.addons import Ruler, Goniometer, buildRulerAxes, Axes, Light, LegendBox
+from vedo.addons import Ruler, Goniometer, RulerAxes, Axes, Light, LegendBox
 
 import vedo.settings as settings
 from vedo.settings import dataurl, embedWindow

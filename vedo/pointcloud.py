@@ -2664,74 +2664,17 @@ class Points(vtk.vtkFollower, BaseActor):
         return self
 
 
-    def cellIndividualColors(self, colorlist, alpha=1, alphaPerCell=False):
+    def cellIndividualColors(self, colorlist):
         """
         Colorize the faces of a mesh one by one
-        passing a 1-to-1 list of colors and optionally a list of transparencies.
+        passing a 1-to-1 list of colors in format [R,G,B] or [R,G,B,A].
+        Colors levels and opacities must be in the range [0,255].
 
-        :param bool alphaPerCell: Only matters if `alpha` is a sequence. If so:
-            if `True` assume that the list of opacities is independent
-            on the colors (same color cells can have different opacity),
-            this can be very slow for large meshes,
-
-            if `False` [default] assume that the alpha matches the color list
-            (same color has the same opacity).
-            This is very fast even for large meshes.
+        A cell array named "CellIndividualColors" is automatically created.
         """
-        uarray = vtk.vtkUnsignedIntArray()
-        uarray.SetName("CellIndividualColors")
-
-        n = self._data.GetNumberOfCells()
-        if len(colorlist) != n or (utils.isSequence(alpha) and len(alpha) != n):
-            colors.printc("Error in cellIndividualColors(): mismatch in input list sizes.",
-                          len(colorlist), n, c='r')
-            return self
-
-        lut = vtk.vtkLookupTable()
-        if alphaPerCell:
-            lut.SetNumberOfTableValues(n)
-            lut.Build()
-            cols = colors.getColor(colorlist)
-            if not utils.isSequence(alpha):
-                alpha = [alpha] * n
-            for i in range(n):
-                uarray.InsertNextValue(i)
-                c = cols[i]
-                lut.SetTableValue(i, c[0], c[1], c[2], alpha[i])
-        else:
-            ucolors, uids, inds = np.unique(colorlist, axis=0,
-                                            return_index=True, return_inverse=True)
-            nc = len(ucolors)
-
-            if nc == 1:
-                self.color(colors.getColor(ucolors[0]))
-                if utils.isSequence(alpha):
-                    self.alpha(alpha[0])
-                else:
-                    self.alpha(alpha)
-                return self
-
-            for i in range(n):
-                uarray.InsertNextValue(int(inds[i]))
-
-            lut.SetNumberOfTableValues(nc)
-            lut.Build()
-
-            cols = colors.getColor(ucolors)
-
-            if not utils.isSequence(alpha):
-                alpha = np.ones(n)
-
-            for i in range(nc):
-                c = cols[i]
-                lut.SetTableValue(i, c[0], c[1], c[2], alpha[uids[i]])
-
-        self._data.GetCellData().AddArray(uarray)
-        self._data.GetCellData().SetActiveScalars("CellIndividualColors")
-        self._mapper.SetScalarRange(0, lut.GetNumberOfTableValues()-1)
-        self._mapper.SetLookupTable(lut)
-        self._mapper.SetScalarModeToUseCellData()
-        self._mapper.ScalarVisibilityOn()
+        colorlist = np.asarray(colorlist).astype(np.uint8)
+        self.celldata["CellIndividualColors"] = colorlist
+        self.celldata.select("CellIndividualColors")
         return self
 
 

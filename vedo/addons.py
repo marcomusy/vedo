@@ -32,7 +32,7 @@ __all__ = [
             "Light",
             "Axes",
             "Ruler",
-            "buildRulerAxes",
+            "RulerAxes",
             "Goniometer",
         ]
 
@@ -426,13 +426,12 @@ def Goniometer(
     asse = Assembly(acts)
     return asse
 
-def Light(
-            pos,
-            focalPoint=(0, 0, 0),
-            angle=180,
-            c='white',
-            intensity=1,
-            removeOthers=False,
+def Light(pos,
+          focalPoint=(0, 0, 0),
+          angle=180,
+          c=None,
+          intensity=1,
+          removeOthers=False,
     ):
     """
     Generate a source of light placed at pos, directed to focal point.
@@ -447,10 +446,17 @@ def Light(
 
     .. hint:: |lights.py|_
     """
+    if hasattr(pos, "color") and c is None:
+        c = pos.color()
+    if c is None:
+        c = 'white'
+
     if isinstance(pos, vedo.Base3DProp):
         pos = pos.pos()
+
     if isinstance(focalPoint, vedo.Base3DProp):
         focalPoint = focalPoint.pos()
+
     light = vtk.vtkLight()
     light.SetLightTypeToSceneLight()
     light.SetPosition(pos)
@@ -1638,7 +1644,7 @@ def Ruler(
     macts.orientation(p2 - p1, rotation=axisRotation).bc('t').pickable(False)
     return macts
 
-def buildRulerAxes(
+def RulerAxes(
     inputobj,
     xtitle="",
     ytitle="",
@@ -1662,7 +1668,7 @@ def buildRulerAxes(
     xycross=True,
 ):
     """
-    Build 3D rulers to indicate the sizes of the input scene or object.
+    A 3D ruler axes to indicate the sizes of the input scene or object.
 
     :param str xtitle: name of the axis or title
     :param str xlabel: alternative fixed label to be shown instead of the distance
@@ -1730,6 +1736,7 @@ def buildRulerAxes(
         return None
     macts.c(c).alpha(alpha).bc('t')
     macts.UseBoundsOff()
+    macts.PickableOff()
     return macts
 
 
@@ -2999,10 +3006,10 @@ def addGlobalAxes(axtype=None, c=None):
 
     elif plt.axes == 7:
         vbb = computeVisibleBounds()[0]
-        rulax = buildRulerAxes(vbb, c=c,
-                               xtitle=plt.xtitle+' - ',
-                               ytitle=plt.ytitle+' - ',
-                               ztitle=plt.ztitle+' - ')
+        rulax = RulerAxes(vbb, c=c,
+                          xtitle=plt.xtitle+' - ',
+                          ytitle=plt.ytitle+' - ',
+                          ztitle=plt.ztitle+' - ')
         plt.axes_instances[r] = rulax
         if not rulax:
             return None
@@ -3117,26 +3124,6 @@ def addGlobalAxes(axtype=None, c=None):
         polaxes.PickableOff()
         plt.renderer.AddActor(polaxes)
         plt.axes_instances[r] = polaxes
-
-    elif plt.axes == 13:
-        # draws a simple ruler at the bottom of the window
-        ls = vtk.vtkLegendScaleActor()
-        ls.RightAxisVisibilityOff()
-        ls.TopAxisVisibilityOff()
-        ls.LegendVisibilityOff()
-        ls.LeftAxisVisibilityOff()
-        ls.GetBottomAxis().SetNumberOfMinorTicks(1)
-        ls.GetBottomAxis().GetProperty().SetColor(c)
-        ls.GetBottomAxis().GetLabelTextProperty().SetColor(c)
-        ls.GetBottomAxis().GetLabelTextProperty().BoldOff()
-        ls.GetBottomAxis().GetLabelTextProperty().ItalicOff()
-        ls.GetBottomAxis().GetLabelTextProperty().ShadowOff()
-        pr = ls.GetBottomAxis().GetLabelTextProperty()
-        pr.SetFontFamily(vtk.VTK_FONT_FILE)
-        pr.SetFontFile(utils.getFontPath(settings.defaultFont))
-        ls.PickableOff()
-        plt.renderer.AddActor(ls)
-        plt.axes_instances[r] = ls
 
     elif plt.axes == 13:
         # draws a simple ruler at the bottom of the window

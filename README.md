@@ -4,7 +4,7 @@
 
 [![lics](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/vedo/badges/version.svg)](https://anaconda.org/conda-forge/vedo)
-[![Ubuntu 20.10](https://repology.org/badge/version-for-repo/ubuntu_20_10/vedo.svg)](https://repology.org/project/vedo/versions)
+[![Ubuntu 20.10](https://repology.org/badge/version-for-repo/ubuntu_22_04/vedo.svg)](https://repology.org/project/vedo/versions)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4609336.svg)](https://doi.org/10.5281/zenodo.4609336)
 [![Downloads](https://pepy.tech/badge/vedo)](https://pepy.tech/project/vedo)
 [![CircleCI](https://circleci.com/gh/marcomusy/vedo.svg?style=svg)](https://circleci.com/gh/marcomusy/vedo)
@@ -42,7 +42,6 @@ to install it use: `pip install vtk==8.1.2` (if available on your system).
 
 - To use in jupyter notebooks use function `vedo.embedWindow()`, you may want to install `k3d` with:<br>
 `pip install k3d==2.7.4`
-
 
 
 </details>
@@ -177,6 +176,20 @@ Check out the example galleries organized by subject here:
 </a>
 <br>
 
+## ✏  Contributing
+
+Any contributions you make are **greatly appreciated**!
+If you have a suggestion that would make this better, please fork the repo and create a pull request.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+You can also simply open an issue with the tag "enhancement".
+
+
 
 ## 📜  References
 
@@ -200,7 +213,8 @@ Development, 5 April 2018, [doi: 10.1242/dev.154856](http://dev.biologists.org/c
 - X. Lu et al., *"3D electromagnetic modeling of graphitic faults in the Athabasca
  Basin using a finite-volume time-domain approach with unstructured grids"*
 [doi: 10.1190](https://doi.org/10.1190/geo2020-0657.1).
-
+- J. Klatzow, G. Dalmasso, N. Martínez-Abadías, J. Sharpe, V. Uhlmann,
+                *"µMatch: 3D shape correspondence for microscopy data"*, in preparation.
 
 **Have you found this software useful for your research? Star ✨ the project and cite it as:**
 

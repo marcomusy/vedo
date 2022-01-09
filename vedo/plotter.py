@@ -822,7 +822,9 @@ class Plotter:
         return acts
 
     def add(self, actors, at=None, render=True, resetcam=False):
-        """Append input object to the internal list of actors to be shown.
+        """
+        Append input object to the internal list of actors to be shown.
+        This method is typically used in loops or callback functions.
 
         :param int at: add the object at the specified renderer
         :param bool render: render the scene after adding the object
@@ -847,7 +849,9 @@ class Plotter:
 
 
     def remove(self, actors, at=None, render=False, resetcam=False):
-        """Remove input object to the internal list of actors to be shown.
+        """
+        Remove input object to the internal list of actors to be shown.
+        This method is typically used in loops or callback functions.
 
         :param int at: remove the object at the specified renderer
         :param bool render: render the scene after removing the object
@@ -887,12 +891,15 @@ class Plotter:
         return self
 
     def pop(self, at=0):
-        """Remove the last added object from the rendering window"""
+        """
+        Remove the last added object from the rendering window.
+        This method is typically used in loops or callback functions.
+        """
         self.remove(self.actors[-1], at=at)
         return self
 
     def render(self, at=None, resetcam=False):
-        """Render the scene."""
+        """Render the scene. This method is typically used in loops or callback functions."""
         if not self.window:
             return self
 
@@ -1058,10 +1065,34 @@ class Plotter:
         return vols
 
 
-    def resetCamera(self):
-        """Reset the camera position and zooming."""
-        self.renderer.ResetCamera()
+    def resetCamera(self, xypad=None):
+        """
+        Reset the camera position and zooming.
+        If xypad is specified the zooming reserves a padding space in the xy-plane
+        expressed in percentof the average size.
+        """
+        if xypad is None:
+            self.renderer.ResetCamera()
+        else:
+            x0, x1, y0, y1, z0, z1 = self.renderer.ComputeVisiblePropBounds()
+
+            cam = self.renderer.GetActiveCamera()
+            cam.SetParallelProjection(True)
+
+            self.renderer.ComputeAspect()
+            aspect = self.renderer.GetAspect()
+            angle = np.pi*cam.GetViewAngle()/180.
+            dx, dy = x1-x0, y1-y0
+            dist = max(dx/aspect[0], dy) / np.sin(angle/2) / 2
+
+            cam.SetViewUp(0, 1, 0)
+            cam.SetPosition(x0 + dx/2, y0 + dy/2, dist*(1+xypad))
+            cam.SetFocalPoint(x0 + dx/2, y0 + dy/2, 0)
+            ps = max(dx/aspect[0], dy) / 2
+            cam.SetParallelScale(ps*(1+xypad))
+            self.renderer.ResetCameraClippingRange(x0, x1, y0, y1, z0, z1)
         return self
+
 
     def moveCamera(self, camstart, camstop, fraction):
         """
@@ -1432,6 +1463,19 @@ class Plotter:
         self.add(lb)
         return self
 
+    def addShadows(self, at=0):
+        """Add shadows at the specified renderer."""
+        shadows = vtk.vtkShadowMapPass()
+        seq = vtk.vtkSequencePass()
+        passes = vtk.vtkRenderPassCollection()
+        passes.AddItem(shadows.GetShadowMapBakerPass())
+        passes.AddItem(shadows)
+        seq.SetPasses(passes)
+        camerapass = vtk.vtkCameraPass()
+        camerapass.SetDelegatePass(seq)
+        self.renderers[at].SetPass(camerapass)
+        return self
+
     def _addSkybox(self, hdrfile):
         # many hdr files are at https://polyhaven.com/all
         if utils.vtkVersionIsAtLeast(9):
@@ -1585,7 +1629,7 @@ class Plotter:
                 if evt.isPicture:
                     t = f"{os.path.basename(evt.actor.filename[:maxlength+10])}".ljust(maxlength+10)
                     t += f"\nImage shape: {evt.actor.shape}"
-                    pcol = vedo.colors.colorPicker(evt.picked2d, plotter=self)
+                    pcol = self.colorPicker(evt.picked2d)
                     t += f"\nPixel color: {vedo.colors.rgb2hex(pcol/255)} {pcol}"
 
 
@@ -2417,61 +2461,64 @@ class Plotter:
             return backends.getNotebookBackend(0, 0, 0)
         #########################################################################
 
-        if settings.allowInteraction and not self.offscreen:
-            self.allowInteraction()
 
-        # Set the style of interaction
-        # see https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html
-        if settings.interactorStyle is not None:
-            interactorStyle = settings.interactorStyle
-        if interactorStyle == 0 or interactorStyle == "TrackballCamera":
-            #csty = self.interactor.GetInteractorStyle().GetCurrentStyle().GetClassName()
-            #if "TrackballCamera" not in csty:
-            # this causes problems (when pressing 3 eg) :
-            if self.qtWidget:
-                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
-            # pass
-        elif interactorStyle == 1 or interactorStyle == "TrackballActor":
-            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballActor())
-        elif interactorStyle == 2 or interactorStyle == "JoystickCamera":
-            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleJoystickCamera())
-        elif interactorStyle == 3 or interactorStyle == "JoystickActor":
-            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleJoystickActor())
-        elif interactorStyle == 4 or interactorStyle == "Flight":
-            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleFlight())
-        elif interactorStyle == 5 or interactorStyle == "RubberBand2D":
-            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBand2D())
-        elif interactorStyle == 6 or interactorStyle == "RubberBand3D":
-            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBand3D())
-        elif interactorStyle == 7 or interactorStyle == "RubberBandZoom":
-            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBandZoom())
-        elif interactorStyle == 8 or interactorStyle == "Context":
-            self.interactor.SetInteractorStyle(vtk.vtkContextInteractorStyle())
-        elif interactorStyle == 9 or interactorStyle == "3D":
-            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyle3D())
-        elif interactorStyle ==10 or interactorStyle == "Terrain":
-            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTerrain())
-        elif interactorStyle ==11 or interactorStyle == "Unicam":
-            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleUnicam())
-        elif interactorStyle ==12 or interactorStyle == "Image" or interactorStyle == "image":
-            astyle = vtk.vtkInteractorStyleImage()
-            astyle.SetInteractionModeToImage3D()
-            self.interactor.SetInteractorStyle(astyle)
+        if self.interactor: # can be offscreen..
 
-        if self.interactor and self.interactive:
-            self.interactor.Start()
+            if settings.allowInteraction:
+                self.allowInteraction()
 
-        if rate:
-            if self.clock is None:  # set clock and limit rate
-                self._clockt0 = time.time()
-                self.clock = 0.0
-            else:
-                t = time.time() - self._clockt0
-                elapsed = t - self.clock
-                mint = 1.0 / rate
-                if elapsed < mint:
-                    time.sleep(mint - elapsed)
-                self.clock = time.time() - self._clockt0
+            # Set the style of interaction
+            # see https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html
+            if settings.interactorStyle is not None:
+                interactorStyle = settings.interactorStyle
+            if interactorStyle == 0 or interactorStyle == "TrackballCamera":
+                #csty = self.interactor.GetInteractorStyle().GetCurrentStyle().GetClassName()
+                #if "TrackballCamera" not in csty:
+                # this causes problems (when pressing 3 eg) :
+                if self.qtWidget:
+                    self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
+                # pass
+            elif interactorStyle == 1 or interactorStyle == "TrackballActor":
+                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballActor())
+            elif interactorStyle == 2 or interactorStyle == "JoystickCamera":
+                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleJoystickCamera())
+            elif interactorStyle == 3 or interactorStyle == "JoystickActor":
+                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleJoystickActor())
+            elif interactorStyle == 4 or interactorStyle == "Flight":
+                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleFlight())
+            elif interactorStyle == 5 or interactorStyle == "RubberBand2D":
+                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBand2D())
+            elif interactorStyle == 6 or interactorStyle == "RubberBand3D":
+                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBand3D())
+            elif interactorStyle == 7 or interactorStyle == "RubberBandZoom":
+                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBandZoom())
+            elif interactorStyle == 8 or interactorStyle == "Context":
+                self.interactor.SetInteractorStyle(vtk.vtkContextInteractorStyle())
+            elif interactorStyle == 9 or interactorStyle == "3D":
+                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyle3D())
+            elif interactorStyle ==10 or interactorStyle == "Terrain":
+                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTerrain())
+            elif interactorStyle ==11 or interactorStyle == "Unicam":
+                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleUnicam())
+            elif interactorStyle ==12 or interactorStyle == "Image" or interactorStyle == "image":
+                astyle = vtk.vtkInteractorStyleImage()
+                astyle.SetInteractionModeToImage3D()
+                self.interactor.SetInteractorStyle(astyle)
+
+            if self.interactive:
+                self.interactor.Start()
+
+            if rate:
+                if self.clock is None:  # set clock and limit rate
+                    self._clockt0 = time.time()
+                    self.clock = 0.0
+                else:
+                    t = time.time() - self._clockt0
+                    elapsed = t - self.clock
+                    mint = 1.0 / rate
+                    if elapsed < mint:
+                        time.sleep(mint - elapsed)
+                    self.clock = time.time() - self._clockt0
 
         if q:  # exit python
             sys.exit(0)

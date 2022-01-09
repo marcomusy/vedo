@@ -3617,12 +3617,12 @@ def VedoLogo(distance=0, c=None, bc='t', version=False, frame=True):
         vr.RotateZ(90)
         vr.pos(2450,50,80).bc(bc).pickable(False)
     elif frame:
-        rul = vedo.buildRulerAxes((-2600,2110, 0,1650, 0,0),
-                                  xlabel='European Molecular Biology Laboratory',
-                                  ylabel=vedo.__version__,
-                                  font=font,
-                                  xpad=0.09, ypad=0.04,
-                                 ).pickable(False)
+        rul = vedo.RulerAxes((-2600,2110, 0,1650, 0,0),
+                             xlabel='European Molecular Biology Laboratory',
+                             ylabel=vedo.__version__,
+                             font=font,
+                             xpad=0.09, ypad=0.04,
+                            )
     fakept = vedo.Point((0,500, distance*1725), alpha=0, c=c, r=1).pickable(0)
     return vedo.Assembly([vlogo, vr, fakept, rul]).scale(1/1725)
 

@@ -1247,7 +1247,7 @@ def printInfo(obj):
 
         printc(" Click mesh and press i for info.", c="c")
 
-    elif isinstance(obj, vedo.Picture):  # dumps Plotter info
+    elif isinstance(obj, vedo.Picture):  # dumps Picture info
         printc("_" * 65, c="y", bold=0)
         printc("Picture", c="y", bold=1, invert=1)
 
@@ -1271,8 +1271,10 @@ def printInfo(obj):
         bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
         printc(" z=(" + bz1 + ", " + bz2 + ")", c="y", bold=0)
 
-        printc("     scalar range: ", c="y", bold=1, end="")
+        printc("  intensity range: ", c="y", bold=1, end="")
         printc(img.GetScalarRange(), c="y", bold=0)
+        printc("   level / window: ", c="y", bold=1, end="")
+        printc(obj.level(), '/', obj.window(), c="y", bold=0)
 
     else:
         printc(type(obj), invert=1)
@@ -1728,7 +1730,7 @@ def vedo2trimesh(mesh):
     return Trimesh(vertices=points, faces=tris,
                    face_colors=ccols, vertex_colors=vcols)
 
-def trimesh2vedo(inputobj, alphaPerCell=False):
+def trimesh2vedo(inputobj):
     """
     Convert ``Trimesh`` object to ``Mesh(vtkActor)`` or ``Assembly`` object.
     """
@@ -1762,9 +1764,7 @@ def trimesh2vedo(inputobj, alphaPerCell=False):
                     tact.c(trim_c[0, [0,1,2]]).alpha(trim_c[0, 3])
                 else:
                     if inputobj.visual.kind == "face":
-                        tact.cellIndividualColors(trim_c[:, [0,1,2]],
-                                                  alpha=trim_c[:,3],
-                                                  alphaPerCell=alphaPerCell)
+                        tact.cellIndividualColors(trim_c)
         return tact
 
     elif "PointCloud" in inputobj_type:
