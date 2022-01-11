@@ -18,6 +18,7 @@ __doc__ = ("""Submodule to generate basic geometric shapes.""" + vedo.docs._defs
 
 __all__ = [
     "Marker",
+    # "Point",
     "Line",
     "DashedLine",
     "RoundedLine",
@@ -134,6 +135,31 @@ _reps = [
     ("\^3", "³"),
     ("\,", "~"),
 ]
+
+
+# ######################################################################
+# class Point(Mesh):
+#    """Create a simple point."""
+#    def __init__(self, pos=(0, 0, 0), r=12, c="red", alpha=1):
+
+#     if isinstance(pos, vtk.vtkActor):
+#         pos = pos.GetPosition()
+
+#     newp = vtk.vtkPoints()
+#     newv = vtk.vtkCellArray()
+#     newp.InsertNextPoint([0,0,0])
+#     newv.InsertNextCell(1)
+#     newv.InsertCellPoint(0)
+#     pd = vtk.vtkPolyData()
+#     pd.SetPoints( newp )
+#     pd.SetVerts( newv )
+
+#     Mesh.__init__(self, pd, c, alpha)
+#     self.ps(r).lighting(ambient=0.7, diffuse=0.3)
+#     if len(pos)==2:
+#         pos = (pos[0], pos[1], 0.)
+#     self.SetPosition(pos)
+#     self.name = "Point"
 
 
 ########################################################################

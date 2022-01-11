@@ -873,6 +873,7 @@ class Points(vtk.vtkFollower, BaseActor):
         self._scals_idx = 0  # index of the active scalar changed from CLI
         self._ligthingnr = 0 # index of the lighting mode changed from CLI
         self._cmap_name = "" # remember the name for self._keypress
+        self.name = "Points"
 
         self.property = self.GetProperty()
         try:
@@ -2872,7 +2873,8 @@ class Points(vtk.vtkFollower, BaseActor):
 
             if not self.cell_locator:
                 poly = self.polydata()
-                self.cell_locator = vtk.vtkCellLocator()
+                self.cell_locator = vtk.vtkStaticCellLocator()
+                # self.cell_locator = vtk.vtkCellLocator() # bugged if only 1 cell exists ? (#558)
                 self.cell_locator.SetDataSet(poly)
                 self.cell_locator.BuildLocator()
             trgp = [0, 0, 0]
@@ -2880,6 +2882,7 @@ class Points(vtk.vtkFollower, BaseActor):
             dist2 = vtk.mutable(0)
             subid = vtk.mutable(0)
             self.cell_locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
+
             if returnCellId:
                 return int(cid)
             else:

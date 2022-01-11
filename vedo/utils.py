@@ -339,7 +339,6 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
             vertices = np.c_[vertices, np.zeros(len(vertices))]
 
     sourcePoints = vtk.vtkPoints()
-    # sourcePoints.SetData(numpy_to_vtk(np.ascontiguousarray(vertices), deep=True))
     sourcePoints.SetData(numpy2vtk(vertices, dtype=float))
     poly.SetPoints(sourcePoints)
 

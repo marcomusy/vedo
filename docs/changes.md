@@ -44,6 +44,8 @@ New CLI mode to emulate `eog` for convenient image visualization:
 ### `pointcloud.py`
 
 - added `smoothLloyd2D()` for smoothing pointclouds in 2D
+- vtkCellLocator seems to have a problem with single cell meshes (#558), fixed using vtkStaticCellLocator
+which behaves normally
 
 ---
 ### `shapes.py`

@@ -12,7 +12,7 @@ def myfnc(evt):
     if not mesh or evt.keyPressed != "c":
         printc("click mesh and press c", c="r")
         return
-    printc("mesh :", mesh.filename, c=mesh.color())
+    #printc("mesh :", mesh.filename, c=mesh.color())
     printc("point:", mesh.picked3d, c="v")
     cpt = Point(pos=mesh.picked3d, r=20, c="v").pickable(False)
     plt.add(cpt)
