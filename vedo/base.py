@@ -1263,7 +1263,7 @@ class BaseActor(Base3DProp):
                         categories=None,
         ):
         """
-        Draw a 3D scalar bar.
+        Associate a 3D scalar bar to the object and add it to the scene.
 
         ``obj`` input can be:
             - a list of numbers,
@@ -1292,32 +1292,40 @@ class BaseActor(Base3DProp):
         :param str belowText: text to show for below scale values
         :param str nanText: text to show for nan values
 
-        |mesh_coloring| |mesh_coloring.py|_
+        .. hint:: |scalarbars| |scalarbars.py|_
         """
-        self.scalarbar = vedo.addons.addScalarBar3D(self,
-                                                    title,
-                                                    pos,
-                                                    sx,
-                                                    sy,
-                                                    titleFont,
-                                                    titleXOffset,
-                                                    titleYOffset,
-                                                    titleSize,
-                                                    titleRotation,
-                                                    nlabels,
-                                                    labelFont,
-                                                    labelSize,
-                                                    labelOffset,
-                                                    labelRotation,
-                                                    italic,
-                                                    c,
-                                                    useAlpha,
-                                                    drawBox,
-                                                    aboveText,
-                                                    belowText,
-                                                    nanText,
-                                                    categories,
-                                                    )
+        plt = vedo.settings.plotter_instance
+        if plt and c is None:  # automatic black or white
+            c = (0.9, 0.9, 0.9)
+            if np.sum(vedo.getColor(plt.backgrcol)) > 1.5:
+                c = (0.1, 0.1, 0.1)
+        if c is None: c = (0,0,0)
+        c = vedo.getColor(c)
+
+        self.scalarbar = vedo.addons.ScalarBar3D(self,
+                                                title,
+                                                pos,
+                                                sx,
+                                                sy,
+                                                titleFont,
+                                                titleXOffset,
+                                                titleYOffset,
+                                                titleSize,
+                                                titleRotation,
+                                                nlabels,
+                                                labelFont,
+                                                labelSize,
+                                                labelOffset,
+                                                labelRotation,
+                                                italic,
+                                                c,
+                                                useAlpha,
+                                                drawBox,
+                                                aboveText,
+                                                belowText,
+                                                nanText,
+                                                categories,
+        )
         return self
 
 

@@ -4,9 +4,6 @@
 ### `base.py`
 
 ---
-### `addons.py`
-
----
 ### `colors.py`
 
 ---
