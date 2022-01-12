@@ -1658,6 +1658,98 @@ class Plotter:
         self.addCallback('MouseMove', _legfunc)
         return self
 
+    #####################################################################
+    def addScaleIndicator(self, pos=(0.7,0.05), s=0.02, length=2,
+                          lw=4, c='k1', alpha=1, units='', gap=0.05):
+        """
+        Add a Scale Indicator.
+
+        Parameters
+        ----------
+        pos : list, optional
+            fractional (x,y) position on the screen. The default is (0.7,0.05).
+        s : float, optional
+            size of the text. The default is 0.02.
+        length : float, optional
+            length of the line. The default is 2.
+        units : str, optional
+            string to show units. The default is ''.
+        gap : float, optional
+            separation of line and text. The default is 0.05
+
+        :Example:
+
+            .. code-block:: python
+
+                from vedo import settings, Cube, Plotter
+                settings.useParallelProjection = True # or else it doesnt make sense!
+                cube = Cube().alpha(0.2)
+                plt = Plotter(size=(900,600), axes=dict(xtitle='x (um)'))
+                plt.addScaleIndicator(units='um', c='blue4')
+                plt.show(cube, "Scale indicator with units")
+        """
+        ppoints = vtk.vtkPoints()  # Generate the polyline
+        psqr = [[0.0,gap], [length/10,gap]]
+        dd = psqr[1][0] - psqr[0][0]
+        for i, pt in enumerate(psqr):
+                ppoints.InsertPoint(i, pt[0], pt[1], 0)
+        lines = vtk.vtkCellArray()
+        lines.InsertNextCell(len(psqr))
+        for i in range(len(psqr)):
+            lines.InsertCellPoint(i)
+        pd = vtk.vtkPolyData()
+        pd.SetPoints(ppoints)
+        pd.SetLines(lines)
+
+        wsx, wsy = self.window.GetSize()
+        if not settings.useParallelProjection:
+            vedo.printc("WARNING! addScaleIndicator called with useParallelProjection OFF. Skip.", c='y')
+            return None
+
+        rlabel = vtk.vtkVectorText()
+        rlabel.SetText('scale')
+        tf = vtk.vtkTransformPolyDataFilter()
+        tf.SetInputConnection(rlabel.GetOutputPort())
+        t = vtk.vtkTransform()
+        t.Scale(s*wsy/wsx, s, 1)
+        tf.SetTransform(t)
+
+        app = vtk.vtkAppendPolyData()
+        app.AddInputConnection(tf.GetOutputPort())
+        app.AddInputData(pd)
+
+        mapper = vtk.vtkPolyDataMapper2D()
+        mapper.SetInputConnection(app.GetOutputPort())
+        cs = vtk.vtkCoordinate()
+        cs.SetCoordinateSystem(1)
+        mapper.SetTransformCoordinate(cs)
+
+        fractor = vtk.vtkActor2D()
+        csys = fractor.GetPositionCoordinate()
+        csys.SetCoordinateSystem(3)
+        fractor.SetPosition(pos)
+        fractor.SetMapper(mapper)
+        fractor.GetProperty().SetColor(vedo.getColor(c))
+        fractor.GetProperty().SetOpacity(alpha)
+        fractor.GetProperty().SetLineWidth(lw)
+        fractor.GetProperty().SetDisplayLocationToForeground()
+
+        def sifunc(iren, ev):
+            wsx, wsy = self.window.GetSize()
+            ps = self.camera.GetParallelScale()
+            newtxt = utils.precision(ps/wsy*wsx*length*dd,3)
+            if units:
+                newtxt += ' '+units
+            if rlabel.GetText() != newtxt:
+                rlabel.SetText(newtxt)
+
+        self.renderer.AddActor(fractor)
+        self.interactor.AddObserver('MouseWheelBackwardEvent', sifunc)
+        self.interactor.AddObserver('MouseWheelForwardEvent', sifunc)
+        self.interactor.AddObserver('InteractionEvent', sifunc)
+        sifunc(0,0)
+        return fractor
+
 
     def addCallback(self, eventName, func, priority=0.0, verbose=False):
         """Add a function to be executed while show() is active.

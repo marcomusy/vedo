@@ -12,18 +12,19 @@
 ---
 ### `cli.py`
 
-New CLI mode to emulate `eog` for convenient image visualization:
+New CLI mode to emulate `eog` for convenient visualization of common images :
 
 `vedo --eog https://corepetfood.com/files/2019/07/kitten-e1568311742288-1440x900.jpg`
 ```
-    printc('Press:')
-    printc('  up/down     to modify level (or drag mouse)')
-    printc('  left/right  to modify window')
-    printc('  m           to mirror image')
-    printc('  t           to rotate image by 90 deg')
-    printc('  k           to enhance b&w image')
-    printc('  s           to apply gaussian smoothing')
-    printc('  S           to save image as png')
+Press:
+  up/down     to modify level (or drag mouse)
+  left/right  to modify window
+  m           to mirror image
+  t           to rotate image by 90 deg
+  k           to enhance b&w image
+  s           to apply gaussian smoothing
+  S           to save image as png
+  h           to print this help banner
 ```
 
 ---
@@ -33,6 +34,8 @@ New CLI mode to emulate `eog` for convenient image visualization:
 ### `plotter.py`
 
 - added `enableErase()` `enableRenderer()` `useDepthPeeling(at)` methods
+- added `addScaleIndicator()` to add to the scene an indicator of absolute size of objects
+(needs `settings.useParallelProjection = True`)
 
 ---
 ### `picture.py`

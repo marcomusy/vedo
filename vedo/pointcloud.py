@@ -2533,6 +2533,8 @@ class Points(vtk.vtkFollower, BaseActor):
                 lut.SetTableValue(i, r, g, b, alpha[idx])
             lut.Build()
 
+        if self._data.GetPointData().GetScalars():
+            self._data.GetPointData().GetScalars().SetLookupTable(lut)
         self._mapper.SetLookupTable(lut)
         self._mapper.SetScalarModeToUsePointData()
         self._mapper.ScalarVisibilityOn()
@@ -2652,6 +2654,8 @@ class Points(vtk.vtkFollower, BaseActor):
                 lut.SetTableValue(i, r, g, b, alpha[idx])
             lut.Build()
 
+        if self._data.GetCellData().GetScalars():
+            self._data.GetCellData().GetScalars().SetLookupTable(lut)
         self._mapper.SetLookupTable(lut)
         self._mapper.SetScalarModeToUseCellData()
         self._mapper.ScalarVisibilityOn()

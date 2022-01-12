@@ -1906,8 +1906,6 @@ class Video:
         else:
             self.fps = int(self.fps)
 
-        self.name = self.name.split('.')[0]+'.mp4'
-
         ########################################
         if self.backend == 'ffmpeg':
             out = os.system(self.command + " " + str(self.fps)

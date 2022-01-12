@@ -413,6 +413,8 @@ def exe_eog(args):
     pics = load(files)
     if isinstance(pics, Picture):
         pics = [pics]
+    if pics is None:
+        return
     n = len(pics)
     pic = pics[0]
     if pic is None:

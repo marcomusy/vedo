@@ -18,7 +18,6 @@ __doc__ = ("""Submodule to generate basic geometric shapes.""" + vedo.docs._defs
 
 __all__ = [
     "Marker",
-    # "Point",
     "Line",
     "DashedLine",
     "RoundedLine",
@@ -135,31 +134,6 @@ _reps = [
     ("\^3", "³"),
     ("\,", "~"),
 ]
-
-
-# ######################################################################
-# class Point(Mesh):
-#    """Create a simple point."""
-#    def __init__(self, pos=(0, 0, 0), r=12, c="red", alpha=1):
-
-#     if isinstance(pos, vtk.vtkActor):
-#         pos = pos.GetPosition()
-
-#     newp = vtk.vtkPoints()
-#     newv = vtk.vtkCellArray()
-#     newp.InsertNextPoint([0,0,0])
-#     newv.InsertNextCell(1)
-#     newv.InsertCellPoint(0)
-#     pd = vtk.vtkPolyData()
-#     pd.SetPoints( newp )
-#     pd.SetVerts( newv )
-
-#     Mesh.__init__(self, pd, c, alpha)
-#     self.ps(r).lighting(ambient=0.7, diffuse=0.3)
-#     if len(pos)==2:
-#         pos = (pos[0], pos[1], 0.)
-#     self.SetPosition(pos)
-#     self.name = "Point"
 
 
 ########################################################################
@@ -3057,7 +3031,7 @@ class Text3D(Mesh):
 
 
 class TextBase:
-    "Do not instantiate this."
+    "Do not instantiate this base class."
     def __init__(self):
 
         self.renderedAt = set()
@@ -3219,7 +3193,7 @@ class Text2D(vtk.vtkActor2D, TextBase):
                  pos="top-left",
                  s=1,
                  c=None,
-                 alpha=0.1,
+                 alpha=0.2,
                  bg=None,
                  font="",
                  justify="",
@@ -3274,15 +3248,18 @@ class Text2D(vtk.vtkActor2D, TextBase):
                     pos = (0.994, 0.008)
                 elif "mid" in pos or "cent" in pos:
                     pos = (0.5, 0.008)
+            elif "mid" in pos or "cent" in pos:
+                if "left" in pos:
+                    pos = (0.008, 0.5)
+                elif "right" in pos:
+                    pos = (0.994, 0.5)
+                else:
+                    pos = (0.5, 0.5)
+
             else:
                 printc("Text2D(): cannot understand pos:", pos, c='r')
                 pos = (0.008, 0.994)
                 ajustify = "top-left"
-
-        elif isinstance(pos, int):
-            printc(f"Text2D(pos={pos}): integer value no more supported. Use string descriptors!", c='r')
-            pos = (0.994, 0.994)
-            ajustify = "top-right"
 
         elif len(pos)!=2:
             print("Error in Text2D.pos(): len(pos) must be 2 or integer value or string.")
@@ -3290,6 +3267,7 @@ class Text2D(vtk.vtkActor2D, TextBase):
 
         if not justify:
             justify = ajustify
+
         self.property.SetJustificationToLeft()
         if "top" in justify:
             self.property.SetVerticalJustificationToTop()

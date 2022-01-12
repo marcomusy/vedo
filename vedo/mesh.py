@@ -1009,13 +1009,12 @@ class Mesh(Points):
     def distanceToMesh(self, mesh, signed=False, negate=False):
         return self.distanceTo(mesh, signed=signed, negate=negate)
 
-    def distanceTo(self, mesh, signed=False, negate=False):
+    def distanceTo(self, mesh, signed=False, negate=False, name="Distance"):
         '''
         Computes the (signed) distance from one mesh to another.
 
         |distance2mesh| |distance2mesh.py|_
         '''
-        # overrides pointcloud.distanceToMesh()
         poly1 = self.polydata()
         poly2 = mesh.polydata()
         df = vtk.vtkDistancePolyDataFilter()
@@ -1031,6 +1030,7 @@ class Mesh(Points):
         df.Update()
 
         scals = df.GetOutput().GetPointData().GetScalars()
+        scals.SetName(name)
         poly1.GetPointData().AddArray(scals)
 
         poly1.GetPointData().SetActiveScalars(scals.GetName())

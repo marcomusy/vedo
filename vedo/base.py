@@ -1208,25 +1208,35 @@ class BaseActor(Base3DProp):
                      c=None,
                      horizontal=False,
                      useAlpha=True,
+                     tformat='%-#6.3g',
     ):
         """
         Add a 2D scalar bar for the specified obj.
 
         .. hint:: |mesh_coloring| |mesh_coloring.py|_ |scalarbars.py|_
         """
-        self.scalarbar = vedo.addons.addScalarBar(self,
-                                                  title,
-                                                  pos,
-                                                  titleYOffset,
-                                                  titleFontSize,
-                                                  size,
-                                                  nlabels,
-                                                  c,
-                                                  horizontal,
-                                                  useAlpha,
-                                                 )
-        return self
+        plt = vedo.settings.plotter_instance
 
+        if not hasattr(self, "mapper"):
+            colors.printc("Error in addScalarBar(): input is invalid,", type(self), c='r')
+            return None
+
+        if plt and plt.renderer:
+            c = (0.9, 0.9, 0.9)
+            if np.sum(plt.renderer.GetBackground()) > 1.5:
+                c = (0.1, 0.1, 0.1)
+            if isinstance(self.scalarbar, vtk.vtkActor):
+                plt.renderer.RemoveActor(self.scalarbar)
+            elif isinstance(self.scalarbar, vedo.Assembly):
+                for a in self.scalarbar.getMeshes():
+                    plt.renderer.RemoveActor(a)
+        if c is None: c = 'gray'
+
+        sb = vedo.addons.ScalarBar(self, title, pos, titleYOffset, titleFontSize,
+                                   size, nlabels, c, horizontal, useAlpha, tformat)
+
+        self.scalarbar = sb
+        return self
 
     def addScalarBar3D( self,
                         title='',

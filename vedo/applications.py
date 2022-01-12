@@ -1,5 +1,5 @@
 import vedo
-from vedo.addons import addScalarBar
+# from vedo.addons import addScalarBar
 from vedo.plotter import Plotter
 from vedo.pyplot import cornerHistogram
 from vedo.utils import mag, precision, linInterpolate, isSequence
@@ -102,7 +102,7 @@ def SlicerPlotter(
     if map2cells: msh.mapPointsToCells()
     vp.renderer.AddActor(msh)
     visibles[2] = msh
-    addScalarBar(msh, pos=(0.04,0.0), horizontal=True, titleFontSize=0)
+    msh.addScalarBar(pos=(0.04,0.0), horizontal=True, titleFontSize=0)
 
     def sliderfunc_x(widget, event):
         i = int(widget.GetRepresentation().GetValue())
@@ -184,11 +184,7 @@ def SlicerPlotter(
                 if map2cells:
                     mesh.mapPointsToCells()
         vp.renderer.RemoveActor(mesh.scalarbar)
-        mesh.scalarbar = addScalarBar(mesh,
-                                      pos=(0.04,0.0),
-                                      horizontal=True,
-                                      titleFontSize=0)
-        vp.renderer.AddActor(mesh.scalarbar)
+        mesh.addScalarBar(pos=(0.04,0.0), horizontal=True, titleFontSize=0)
 
     bu = vp.addButton(buttonfunc,
         pos=(0.27, 0.005),

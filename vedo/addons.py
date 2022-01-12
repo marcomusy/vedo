@@ -21,7 +21,8 @@ Create additional objects like axes, legends, lights, etc..
 )
 
 __all__ = [
-            "addScalarBar",
+            "ScalarBar",
+            # "addScalarBar",
             "addScalarBar3D",
             "addSlider2D",
             "addSlider3D",
@@ -483,19 +484,19 @@ def Light(pos,
 
 
 #####################################################################
-def addScalarBar(obj,
-                 title="",
-                 pos=(0.8,0.05),
-                 titleYOffset=15,
-                 titleFontSize=12,
-                 size=(None,None),
-                 nlabels=None,
-                 c=None,
-                 horizontal=False,
-                 useAlpha=True,
-                 tformat='%-#6.3g',
+def ScalarBar(obj,
+              title="",
+              pos=(0.8,0.05),
+              titleYOffset=15,
+              titleFontSize=12,
+              size=(None,None),
+              nlabels=None,
+              c='k',
+              horizontal=False,
+              useAlpha=True,
+              tformat='%-#6.3g',
     ):
-    """Add a 2D scalar bar for the specified obj.
+    """A 2D scalar bar for the specified obj.
 
         :param list pos: fractional x and y position in the 2D window
         :param list size: size of the scalarbar in pixel units (width, heigth)
@@ -505,38 +506,27 @@ def addScalarBar(obj,
 
     .. hint:: |mesh_coloring| |mesh_coloring.py|_ |scalarbars.py|_
     """
-    plt = settings.plotter_instance
-
     if not hasattr(obj, "mapper"):
         printc("Error in addScalarBar(): input is invalid,", type(obj), c='r')
         return None
 
-    if plt and plt.renderer:
-        c = (0.9, 0.9, 0.9)
-        if np.sum(plt.renderer.GetBackground()) > 1.5:
-            c = (0.1, 0.1, 0.1)
-        if isinstance(obj.scalarbar, vtk.vtkActor):
-            plt.renderer.RemoveActor(obj.scalarbar)
-        elif isinstance(obj.scalarbar, Assembly):
-            for a in obj.scalarbar.getMeshes():
-                plt.renderer.RemoveActor(a)
-    if c is None: c = 'gray'
-
     if isinstance(obj, Points):
-        lut = obj.mapper().GetLookupTable()
-        if not lut:
-            return None
         vtkscalars = obj._data.GetPointData().GetScalars()
         if vtkscalars is None:
             vtkscalars = obj._data.GetCellData().GetScalars()
         if not vtkscalars:
             return None
+        lut = vtkscalars.GetLookupTable()
+        if not lut:
+            lut = obj._mapper.GetLookupTable()
+            if not lut:
+                return None
 
     elif isinstance(obj, (Volume, TetMesh)):
         lut = utils.ctf2lut(obj)
 
     else:
-        return obj
+        return None
 
     c = getColor(c)
     sb = vtk.vtkScalarBarActor()
@@ -606,7 +596,6 @@ def addScalarBar(obj,
     sctxt.SetFontSize(titleFontSize-2)
     sb.SetAnnotationTextProperty(sctxt)
     sb.PickableOff()
-    obj.scalarbar = sb
     return sb
 
 
@@ -1739,6 +1728,85 @@ def RulerAxes(
     macts.PickableOff()
     return macts
 
+
+#####################################################################
+def addScaleIndicator(pos=(0.7,0.05), s=0.02, length=2, lw=4, c='k', units=''):
+    """
+    Add a Scale Indicator.
+
+    Parameters
+    ----------
+    pos : list, optional
+        fractional (x,y) position on the screen. The default is (0.7,0.05).
+    s : float, optional
+        size of the text. The default is 0.02.
+    length : float, optional
+        length of the line. The default is 2.
+    units : str, optional
+        units. The default is ''.
+    """
+    ppoints = vtk.vtkPoints()  # Generate the polyline
+    psqr = [[0.0,0.05], [length/10,0.05]]
+    dd = psqr[1][0] - psqr[0][0]
+    for i, pt in enumerate(psqr):
+            ppoints.InsertPoint(i, pt[0], pt[1], 0)
+    lines = vtk.vtkCellArray()
+    lines.InsertNextCell(len(psqr))
+    for i in range(len(psqr)):
+        lines.InsertCellPoint(i)
+    pd = vtk.vtkPolyData()
+    pd.SetPoints(ppoints)
+    pd.SetLines(lines)
+
+    plt = settings.plotter_instance
+    wsx, wsy = plt.window.GetSize()
+    if not plt.renderer.GetActiveCamera().GetParallelProjection():
+        printc("WARNING! addScaleIndicator called with useParallelProjection OFF. Skip.", c='y')
+
+
+    rlabel = vtk.vtkVectorText()
+    rlabel.SetText('')
+    tf = vtk.vtkTransformPolyDataFilter()
+    tf.SetInputConnection(rlabel.GetOutputPort())
+    t = vtk.vtkTransform()
+    t.Scale(s,s*wsx/wsy,1)
+    tf.SetTransform(t)
+
+    app = vtk.vtkAppendPolyData()
+    app.AddInputConnection(tf.GetOutputPort())
+    app.AddInputData(pd)
+
+    mapper = vtk.vtkPolyDataMapper2D()
+    mapper.SetInputConnection(app.GetOutputPort())
+    cs = vtk.vtkCoordinate()
+    cs.SetCoordinateSystem(1)
+    mapper.SetTransformCoordinate(cs)
+
+    fractor = vtk.vtkActor2D()
+    csys = fractor.GetPositionCoordinate()
+    csys.SetCoordinateSystem(3)
+    fractor.SetPosition(pos)
+    fractor.SetMapper(mapper)
+    fractor.GetProperty().SetColor(getColor(c))
+    fractor.GetProperty().SetOpacity(1)
+    fractor.GetProperty().SetLineWidth(lw)
+    fractor.GetProperty().SetDisplayLocationToForeground()
+
+    def sifunc(iren, ev):
+        wsx, wsy = plt.window.GetSize()
+        ps = plt.camera.GetParallelScale()
+        newtxt = utils.precision(ps/wsy*wsx*length*dd,3)
+        if units:
+            newtxt += ' '+units
+        rlabel.SetText(newtxt)
+
+    plt.renderer.AddActor(fractor)
+    plt.interactor.AddObserver('MouseWheelBackwardEvent', sifunc)
+    plt.interactor.AddObserver('MouseWheelForwardEvent', sifunc)
+    plt.interactor.AddObserver('InteractionEvent', sifunc)
+    sifunc(0,0)
+
+    return fractor
 
 #####################################################################
 def Axes(
