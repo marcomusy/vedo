@@ -2876,8 +2876,10 @@ class Points(vtk.vtkFollower, BaseActor):
 
             if not self.cell_locator:
                 poly = self.polydata()
-                self.cell_locator = vtk.vtkStaticCellLocator()
-                # self.cell_locator = vtk.vtkCellLocator() # bugged if only 1 cell exists ? (#558)
+                try:
+                    self.cell_locator = vtk.vtkStaticCellLocator() # vtk7 doesn't have it
+                except:
+                    self.cell_locator = vtk.vtkCellLocator() # bugged if only 1 cell exists ? (#558)
                 self.cell_locator.SetDataSet(poly)
                 self.cell_locator.BuildLocator()
             trgp = [0, 0, 0]
