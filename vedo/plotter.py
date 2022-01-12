@@ -773,7 +773,7 @@ class Plotter:
     def allowInteraction(self):
         """Call this method from inside a loop to allow mouse and keyboard interaction."""
         if self.interactor and self._timer_event_id is not None and settings.immediateRendering:
-            self._repeatingtimer_id = self.interactor.CreateRepeatingTimer(10)
+            self._repeatingtimer_id = self.interactor.CreateRepeatingTimer(1)
             self.interactor.Start()
             if self.interactor:
                 self.interactor.DestroyTimer(self._repeatingtimer_id)
@@ -2927,7 +2927,8 @@ class Plotter:
         #NB: qt creates and passes a vtkGenericRenderWindowInteractor
 
         key = iren.GetKeySym()
-        #utils.vedo.printc('Pressed key:', self.keyheld, key, c='y', box='-')
+
+        # utils.vedo.printc('Pressed key:', self.keyheld, key, c='y', box='-')
 
         if key in ["Shift_L", "Control_L", "Super_L", "Alt_L",
                    "Shift_R", "Control_R", "Super_R", "Alt_R", "Menu"]:

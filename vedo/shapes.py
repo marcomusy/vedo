@@ -1940,7 +1940,8 @@ class Arc(Mesh):
         self.name = "Arc"
 
 class Sphere(Mesh):
-    """Build a sphere at position `pos` of radius `r`.
+    """
+    Build a sphere at position `pos` of radius `r`.
 
     :param r float: sphere radius
     :param int res: resolution in phi, resolution in theta is 2*res

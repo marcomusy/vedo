@@ -6,11 +6,12 @@ are proportional to their radius**3 (as in 3D)"""
 # Adapted by M. Musy from E. Velasco (2009)
 print(__doc__)
 
-from vedo import Plotter, ProgressBar, dot, Grid, Sphere, Point
+from vedo import Plotter, ProgressBar, dot, Grid, Sphere, Point, settings
 import random, numpy as np
 
 screen_w = 800
 screen_h = 800
+settings.allowInteraction = True
 
 plt = Plotter(size=(screen_w, screen_h), axes=0, interactive=0)
 

@@ -87,7 +87,8 @@ for i in pb.range():
 ####################################################
 # Visualize the result
 ####################################################
-settings.useDepthPeeling = False
+settings.allowInteraction = True
+
 plt = Plotter(interactive=0, axes=2)  # choose axes type nr.2
 plt.ytitle = "u(x,t)"
 plt.ztitle = ""  # will not draw z axis

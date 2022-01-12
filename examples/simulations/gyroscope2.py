@@ -23,7 +23,7 @@ x = vector(theta, phi, psi)  # Lagrangian coordinates
 v = vector(thetadot, phidot, psidot)
 
 # ############################################################ the scene
-settings.useDepthPeeling = False
+settings.allowInteraction = True
 plt = Plotter(axes=0, interactive=0)
 plt += __doc__
 

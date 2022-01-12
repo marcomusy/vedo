@@ -17,7 +17,9 @@ RingRadius = 1
 k = 1.4e-23  # Boltzmann constant
 T = 300  # room temperature
 dt = 1.5e-5
+
 settings.useDepthPeeling = False
+settings.allowInteraction = True
 #############################################################
 
 
@@ -127,7 +129,7 @@ for i in pb.range():
         Atoms[i].pos(pos[i])  ### <--
     outside = np.greater_equal(mag(pos), RingRadius + RingThickness)
 
-    plt.show()  ### <--    
+    plt.show()  ### <--
     if plt.escaped: break # if ESC is hit during the loop
 
     plt.camera.Azimuth(0.5)

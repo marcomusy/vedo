@@ -23,7 +23,7 @@ Lrot = I * omega * gaxis  # angular momentum
 cm = gpos + 0.5 * Ls * gaxis  # center of mass of shaft
 
 # ############################################################ the scene
-settings.useDepthPeeling = False
+settings.allowInteraction = True
 plt = Plotter(axes=0, interactive=0)
 plt += __doc__
 

@@ -9,6 +9,7 @@ import numpy as np
 
 K_COULOMB = 8987551787.3681764  # N*m^2/C^2
 plt = None  # so that it can be also used without visualization
+settings.allowInteraction = True
 
 
 class ParticleSim:
@@ -93,7 +94,6 @@ class Particle:
 
 #####################################################################################################
 if __name__ == "__main__":
-    settings.useDepthPeeling = False
 
     plt = Plotter(title="Particle Simulator", bg="black", axes=0, interactive=False)
 

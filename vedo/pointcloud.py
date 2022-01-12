@@ -849,7 +849,6 @@ class Points(vtk.vtkFollower, BaseActor):
 
             Points(fibonacci_sphere(1000)).show(axes=1)
 
-
     |manypoints.py|_ |lorenz.py|_
     |lorenz|
     """
@@ -873,7 +872,7 @@ class Points(vtk.vtkFollower, BaseActor):
         self._scals_idx = 0  # index of the active scalar changed from CLI
         self._ligthingnr = 0 # index of the lighting mode changed from CLI
         self._cmap_name = "" # remember the name for self._keypress
-        self.name = "Points"
+        #self.name = "Points" # better not to give this a name here
 
         self.property = self.GetProperty()
         try:

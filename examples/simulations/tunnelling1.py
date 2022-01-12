@@ -6,7 +6,7 @@ The animation shows the evolution of a particle of well defined momentum
 The wave function is forced to be zero at the box walls (line 23)."""
 print(__doc__)
 import numpy as np
-from vedo import Plotter, Tube, Line, dataurl, interactive
+from vedo import Plotter, Tube, Line, dataurl, interactive, settings
 
 dt = 0.004  # time step
 x0 = 5      # peak initial position
@@ -39,6 +39,7 @@ def d_dt(psi):  # find Psi(t+dt)-Psi(t) /dt with 4th order Runge-Kutta method
     k4 = f(psi + dt * k3)
     return (k1 + 2 * k2 + 2 * k3 + k4) / 6
 
+settings.allowInteraction = True
 
 plt = Plotter(interactive=False, axes=2, size=(1000,500))
 plt.xtitle = ""

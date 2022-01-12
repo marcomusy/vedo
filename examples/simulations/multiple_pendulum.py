@@ -1,5 +1,4 @@
-from __future__ import division, print_function
-from vedo import Plotter, printc, mag, versor, vector
+from vedo import Plotter, printc, mag, versor, vector, settings
 from vedo import Cylinder, Spring, Box, Sphere
 import numpy as np
 
@@ -17,12 +16,14 @@ bob_y = [0]
 x_dot = np.zeros(N+1)  # velocities
 y_dot = np.zeros(N+1)
 
+# Create the bobs
 for k in range(1, N + 1):
     alpha = np.pi / 5 * k / 10
     bob_x.append(bob_x[k - 1] + np.cos(alpha) + np.random.normal(0, 0.1))
     bob_y.append(bob_y[k - 1] + np.sin(alpha) + np.random.normal(0, 0.1))
 
-# Create the bobs
+settings.allowInteraction = True
+
 plt = Plotter(title="Multiple Pendulum", axes=0, interactive=0, bg2='ly')
 plt += Box(pos=(0, -5, 0), length=12, width=12, height=0.7, c="k").wireframe(1)
 sph = Sphere(pos=(bob_x[0], bob_y[0], 0), r=R / 2, c="gray")

@@ -25,6 +25,7 @@ n = 200 # grid subdivisions
 Du, Dv, F, k, name = 0.16, 0.08, 0.035, 0.060, 'Zebrafish'
 # ---------------------------------------------------------------
 
+settings.allowInteraction = True
 
 Z = np.zeros((n+2, n+2), [('U', np.double), ('V', np.double)])
 U, V = Z['U'], Z['V']
@@ -43,7 +44,7 @@ grd.lineWidth(0).wireframe(False).lighting(ambient=0.5)
 formula = r'(u,v)=(D_u\cdot\Delta u -u v v+F(1-u), D_v\cdot\Delta v +u v v -(F+k)v)'
 ltx = Latex(formula, s=15, pos=(0,-sy/1.9,0))
 print('Du, Dv, F, k, name =', Du, Dv, F, k, name)
-settings.useDepthPeeling = False
+
 
 for step in range(Nsteps):
     for i in range(25):
