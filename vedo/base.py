@@ -1244,14 +1244,14 @@ class BaseActor(Base3DProp):
                         sx=None,
                         sy=None,
                         titleFont="",
-                        titleXOffset = -1.5,
-                        titleYOffset = 0.0,
-                        titleSize =  1.5,
-                        titleRotation = 0.0,
+                        titleXOffset=-1.5,
+                        titleYOffset=0.0,
+                        titleSize=1.5,
+                        titleRotation= 0.0,
                         nlabels=9,
                         labelFont="",
                         labelSize=1,
-                        labelOffset = 0.375,
+                        labelOffset=0.375,
                         labelRotation=0,
                         italic=0,
                         c=None,
@@ -1264,14 +1264,7 @@ class BaseActor(Base3DProp):
         ):
         """
         Associate a 3D scalar bar to the object and add it to the scene.
-
-        ``obj`` input can be:
-            - a list of numbers,
-            - a list of two numbers in the form `(min, max)`,
-            - a ``Mesh`` already containing a set of scalars associated to vertices or cells,
-            - if ``None`` the last object in the list of actors will be used.
-
-        Return an ``Assembly`` object.
+        The new scalarbar object (Assembly) will be accessible as obj.scalarbar
 
         :param str title: scalar bar title
         :param float sx: thickness of scalarbar
@@ -1328,7 +1321,7 @@ class BaseActor(Base3DProp):
         )
         return self
 
-
+    ###################################################################################
     def write(self, filename, binary=True):
         """Write object to file."""
         return vedo.io.write(self, filename, binary)
