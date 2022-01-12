@@ -54,6 +54,7 @@ which behaves normally
 ### `shapes.py`
 
 - added `Line().pattern()` to create a dashed line with a user defined pattern.
+- fixed bug in Text2D()
 
 ---
 ### `volume.py`
