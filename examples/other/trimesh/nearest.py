@@ -1,11 +1,13 @@
 """Find the closest point
 on the mesh to each random point
 """
-import trimesh 
+import trimesh
 import numpy as np
-from vedo import show, Arrows
+from vedo import show, Arrows, download
 
-mesh = trimesh.load_remote('https://github.com/mikedh/trimesh/raw/master/models/cycloidal.ply')
+plyfile = download('https://github.com/mikedh/trimesh/blob/main/models/cycloidal.ply')
+
+mesh = trimesh.load(plyfile)
 points = mesh.bounding_box_oriented.sample_volume(count=30)
 
 # find the closest point on the mesh to each random point

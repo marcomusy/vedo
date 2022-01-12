@@ -16,6 +16,9 @@ python3 flag_labels.py
 echo Running icon.py
 python3 icon.py
 
+echo Running iminuit1.py
+python3 iminuit1.py
+
 echo Running inset.py
 python3 inset.py
 
@@ -30,9 +33,6 @@ python3 pygmsh_cut.py
 
 echo Running nevergrad_opt.py
 python3 nevergrad_opt.py
-
-echo Running non_blocking.py
-python3 non_blocking.py
 
 echo Running qt_window.py # needs qt5
 python3 qt_window1.py

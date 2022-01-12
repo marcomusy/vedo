@@ -22,5 +22,7 @@ vedo.show(mesh) # vedo visualizer (conversion is on the fly)
 vmesh = trimesh2vedo(mesh) # returns a vedo.Mesh(vtkActor) object
 trimsh_reconverted = vmesh.to_trimesh()
 
-trimsh_reconverted.show() # this is the trimesh built-in visualizer
-
+try:
+    trimsh_reconverted.show() # this is the trimesh built-in visualizer
+except:
+    pass

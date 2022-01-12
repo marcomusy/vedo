@@ -3,7 +3,7 @@ import numpy as np
 from vedo import show, Plane, printc, download
 
 # load the mesh from filename, file objects are also supported
-f = download('https://github.com/mikedh/trimesh/raw/master/models/featuretype.STL')
+f = download('https://github.com/mikedh/trimesh/raw/main/models/featuretype.STL')
 mesh = trimesh.load_mesh(f)
 
 # get a single cross section of the mesh

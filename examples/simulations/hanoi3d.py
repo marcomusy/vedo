@@ -56,7 +56,6 @@ for _ in hanoi.moves():
 disks = { hanoi.nr_disks - i : Cylinder(r=0.2*(hanoi.nr_disks-i+1), c=i)
           for i in range(hanoi.nr_disks) }
 
-settings.useDepthPeeling = False
 plt = Plotter(interactive=False, size=(800, 600), bg='wheat', bg2='lb')
 plt.camera.SetPosition( [14.57, -14.772, 6.132] )
 plt.camera.SetFocalPoint( [3.0, 0.6, 2.0] )

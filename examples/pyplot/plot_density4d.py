@@ -2,7 +2,9 @@
 # Credits: https://github.com/edmontz
 import numpy as np
 from scipy.fftpack import fftn, fftshift
-from vedo import Volume, ProgressBar, show, interactive
+from vedo import Volume, ProgressBar, show, interactive, settings
+
+settings.allowInteraction = True
 
 def f(x, y, z, t):
     r = np.sqrt(x*x + y*y + z*z + 2*t*t) + 0.1

@@ -697,7 +697,8 @@ def ScalarBar3D(
             ticks_pos.append((i+0.5)/ncats)
         ticks_pos.append(1.0)
         ticks_txt.append('')
-        scale.cellIndividualColors(cols, alphas)
+        rgba = np.c_[np.array(cols)*255, np.array(alphas)*255]
+        scale.cellIndividualColors(rgba)
 
     else: ########################################################
         # build the color scale part

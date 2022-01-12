@@ -1701,27 +1701,13 @@ def vedo2trimesh(mesh):
 
     from trimesh import Trimesh
 
-    lut = mesh.mapper().GetLookupTable()
-
     tris = mesh.faces()
     carr = mesh.celldata['CellIndividualColors']
-    ccols = None
-    if carr is not None and len(carr)==len(tris):
-        ccols = []
-        for i in range(len(tris)):
-            r,g,b,a = lut.GetTableValue(carr[i])
-            ccols.append((r*255, g*255, b*255, a*255))
-        ccols = np.array(ccols, dtype=np.int16)
+    ccols = carr
 
     points = mesh.points()
     varr = mesh.pointdata['VertexColors']
-    vcols = None
-    if varr is not None and len(varr)==len(points):
-        vcols = []
-        for i in range(len(points)):
-            r,g,b,a = lut.GetTableValue(varr[i])
-            vcols.append((r*255, g*255, b*255, a*255))
-        vcols = np.array(vcols, dtype=np.int16)
+    vcols = varr
 
     if len(tris)==0:
         tris = None
@@ -1739,8 +1725,6 @@ def trimesh2vedo(inputobj):
             vms.append(trimesh2vedo(ob))
         return vms
 
-    # print('trimesh2vedo inputobj', type(inputobj))
-
     inputobj_type = str(type(inputobj))
 
     if "Trimesh" in inputobj_type or "primitives" in inputobj_type:
@@ -1757,7 +1741,6 @@ def trimesh2vedo(inputobj):
         if isSequence(trim_c):
             if isSequence(trim_c[0]):
                 sameColor = len(np.unique(trim_c, axis=0)) < 2 # all vtxs have same color
-                trim_c = trim_c/255
 
                 if sameColor:
                     tact.c(trim_c[0, [0,1,2]]).alpha(trim_c[0, 3])

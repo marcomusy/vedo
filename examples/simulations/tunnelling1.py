@@ -23,7 +23,7 @@ V = Vmax * (np.abs(x - 11) < 0.5) - 0.01  # simple square barrier potential
 Psi = np.sqrt(1 / s0) * np.exp(-1 / 2 * ((x - x0) / s0) ** 2 + 1j * x * k0)  # wave packet
 
 dx2 = ((x[-1] - x[0]) / (N+2)) ** 2 * 400  # dx**2 step, scaled
-nabla2psi = np.zeros(N + 2, dtype=np.complex)
+nabla2psi = np.zeros(N + 2, dtype=complex)
 
 
 def f(psi):

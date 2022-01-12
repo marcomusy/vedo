@@ -10,7 +10,7 @@ plt1 = Plotter(N=3, axes=1)
 
 mesh = Mesh(dataurl+"bunny.obj").normalize().subdivide()
 
-pts = mesh.points(copy=True)  # pts is a copy of the points not a reference
+pts = mesh.points()
 pts += np.random.randn(len(pts), 3)/20  # add noise, will not mess up the original points
 
 

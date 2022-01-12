@@ -657,13 +657,16 @@ def getColorName(c):
 def hsv2rgb(hsv):
     """Convert HSV to RGB color."""
     ma = vtk.vtkMath()
-    return ma.HSVToRGB(hsv)
-
+    rgb = [0,0,0]
+    ma.HSVToRGB(hsv, rgb)
+    return rgb
 
 def rgb2hsv(rgb):
     """Convert RGB to HSV color."""
     ma = vtk.vtkMath()
-    return ma.RGBToHSV(getColor(rgb))
+    hsv = [0,0,0]
+    ma.RGBToHSV(getColor(rgb), hsv)
+    return hsv
 
 def rgb2hex(rgb):
     """Convert RGB to Hex color."""

@@ -18,7 +18,6 @@ k = 1.4e-23  # Boltzmann constant
 T = 300  # room temperature
 dt = 1.5e-5
 
-settings.useDepthPeeling = False
 settings.allowInteraction = True
 #############################################################
 

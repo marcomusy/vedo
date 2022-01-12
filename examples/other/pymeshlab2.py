@@ -9,8 +9,8 @@ m = pymeshlab.Mesh(vertex_matrix=pts)
 
 ms = pymeshlab.MeshSet()
 ms.add_mesh(m)
-              
-ms.surface_reconstruction_ball_pivoting(ballradius=0.15)
+
+ms.surface_reconstruction_ball_pivoting(ballradius=pymeshlab.Percentage(0.15))
 # ms.compute_normals_for_point_sets()
 # ms.surface_reconstruction_screened_poisson()
 

@@ -19,7 +19,7 @@ rul = Ruler((-0.5,2,1.9), (2.5,2,2.9), prefix='L_x =', units="μm",
             axisRotation=90, tickAngle=70)
 
 # make 3d rulers along the bounding box (similar to set axes=7)
-ax3 = buildRulerAxes(mesh, units="μm")
+ax3 = RulerAxes(mesh, units="μm")
 
 show(mesh, vig, gon, rul, ax3, __doc__, bg2='lb', viewup='z').close()
 

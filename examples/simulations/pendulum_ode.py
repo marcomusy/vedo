@@ -4,7 +4,7 @@
 # Adapted for vedo by M. Musy, 2021
 import numpy as np
 import scipy.integrate as integrate
-from vedo import Axes, Line, Points, show, sin, cos, ProgressBar
+from vedo import Axes, Line, Points, show, sin, cos, ProgressBar, settings
 
 G  = 9.81   # acceleration due to gravity, in m/s^2
 L1 = 1.0    # length of pendulum 1 in m
@@ -16,6 +16,8 @@ th2= -20
 w1 = 0      # initial angular velocities (degrees per second)
 w2 = 0
 dt = 0.015
+
+settings.allowInteraction = True
 
 def derivs(state, t):
     dydx = np.zeros_like(state)
