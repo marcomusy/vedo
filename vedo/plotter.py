@@ -1677,7 +1677,8 @@ class Plotter:
         gap : float, optional
             separation of line and text. The default is 0.05
 
-        :Example:
+        Example
+        -------
 
             .. code-block:: python
 

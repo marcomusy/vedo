@@ -5,7 +5,7 @@ _defs = ""
 ####################################################################################
 ####################################################################################
 ##### To generate documentation you must uncomment this line:
-#from vedo.docs_defs import _substitutions_defs as _defs
+# from vedo.docs_defs import _substitutions_defs as _defs
 
 # Then:
     # cd vedo/docs

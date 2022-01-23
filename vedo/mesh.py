@@ -538,11 +538,19 @@ class Mesh(Points):
         Two flags are used to control these operations:
 
         - `cells=True` reverses the order of the indices in the cell connectivity list.
+        If cell is a list of IDs only those cells will be reversed.
 
         - `normals=True` reverses the normals by multiplying the normal vector by -1
             (both point and cell normals, if present).
         """
         poly = self.polydata(False)
+
+        if isSequence(cells):
+            for cell in cells:
+                poly.ReverseCell(cell)
+            poly.GetCellData().Modified()
+            return self ##############
+
         rev = vtk.vtkReverseSense()
         if cells:
             rev.ReverseCellsOn()
@@ -555,6 +563,7 @@ class Mesh(Points):
         rev.SetInputData(poly)
         rev.Update()
         return self._update(rev.GetOutput())
+
 
     def wireframe(self, value=True):
         """Set mesh's representation as wireframe or solid surface.
@@ -1495,7 +1504,8 @@ class Mesh(Points):
             projection tolerance which controls how close the imprint surface must be to the target.
             The default is 0.01.
 
-        :Example:
+        Example
+        -------
 
             .. code-block:: python
 

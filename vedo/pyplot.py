@@ -31,7 +31,6 @@ class Plot(Assembly):
     """
     Derived class of ``Assembly`` to manipulate plots.
     """
-
     def __init__(self, *objs):
 
         Assembly.__init__(self, *objs)

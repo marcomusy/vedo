@@ -529,9 +529,14 @@ def humansort(l):
     return l  # NB: input list is modified
 
 
-def sortByColumn(array, nth):
+def sortByColumn(arr, nth, invert=False):
     '''Sort a numpy array by its `n-th` column'''
-    return array[array[:,nth].argsort()]
+    arr = np.asarray(arr)
+    arr = arr[arr[:,nth].argsort()]
+    if invert:
+        return np.flip(arr, axis=0)
+    else:
+        return arr
 
 
 def pointIsInTriangle(p, p1, p2, p3):

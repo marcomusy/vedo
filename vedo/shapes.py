@@ -693,6 +693,12 @@ class Line(Mesh):
         self.points(self.points()+direction)
         return asurface
 
+    def reverse(self):
+        """Reverse the points sequence order."""
+        pts = np.flip(self.points(), axis=0)
+        self.points(pts)
+        return self
+
 
 class DashedLine(Line):
     """
@@ -2358,7 +2364,7 @@ class Plane(Mesh):
     def contain_points(self, points):
         """Check if each point is inside this plane.
 
-        :param array points: points array with shape (*, 3).
+        :param array points: points array with shape ( , 3).
         """
         points = np.array(points)
         bounds = self.points()
