@@ -48,5 +48,6 @@
 `examples/pyplot/fourier_epicycles.py`
 `examples/other/ellipt_fourier_desc.py`
 `examples/volumetric/probe_image.py`
+`examples/volumetric/probe_mask.py`
 `examples/pyplot/histo_3D.py`
 
