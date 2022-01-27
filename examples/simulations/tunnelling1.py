@@ -6,7 +6,7 @@ The animation shows the evolution of a particle of well defined momentum
 The wave function is forced to be zero at the box walls (line 23)."""
 print(__doc__)
 import numpy as np
-from vedo import Plotter, Tube, Line, dataurl, interactive, settings
+from vedo import Plotter, Tube, Line, dataurl, settings
 
 dt = 0.004  # time step
 x0 = 5      # peak initial position
@@ -59,4 +59,4 @@ for j in range(150):
     lines.append(Aline)
     if plt.escaped: break # if ESC is hit during the loop
 
-interactive().close()
+plt.interactive().close()

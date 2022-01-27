@@ -22,5 +22,4 @@ for i in range(len(custom_shape)):
     plt.show(s, msg, at=i)
 
 plt.add(Text2D(__doc__, pos='bottom-right', font="Quikhand", s=1.5), at=0)
-
-interactive().close()
+plt.interactive().close()

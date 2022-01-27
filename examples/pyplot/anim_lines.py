@@ -36,7 +36,7 @@ for i in range(50):
     # vd.addFrame()
 # vd.close()
 
-interactive()
+plt.interactive()
 
 
 

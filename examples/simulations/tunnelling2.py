@@ -69,4 +69,4 @@ for i in range(Nsteps):
     plt += [box, bck, l.pos(p), barrier.clone().alpha(0.3).pos(p)]
     plt.show()
 
-interactive().close()
+plt.interactive().close()

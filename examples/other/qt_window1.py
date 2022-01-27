@@ -4,7 +4,7 @@ from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from vedo import Plotter, Cone, printc
 
 class MainWindow(Qt.QMainWindow):
-    
+
     def __init__(self, parent=None):
 
         Qt.QMainWindow.__init__(self, parent)
@@ -13,11 +13,11 @@ class MainWindow(Qt.QMainWindow):
         self.vtkWidget = QVTKRenderWindowInteractor(self.frame)
 
         # Create renderer and add the vedo objects and callbacks
-        self.vp = Plotter(qtWidget=self.vtkWidget)
-        self.id1 = self.vp.addCallback("mouse click", self.onMouseClick)
-        self.id2 = self.vp.addCallback("key press",   self.onKeypress)
-        self.vp += Cone().rotateX(20)
-        self.vp.show()                  # <--- show the vedo rendering
+        self.plt = Plotter(qtWidget=self.vtkWidget)
+        self.id1 = self.plt.addCallback("mouse click", self.onMouseClick)
+        self.id2 = self.plt.addCallback("key press",   self.onKeypress)
+        self.plt += Cone().rotateX(20)
+        self.plt.show()                  # <--- show the vedo rendering
 
         # Set-up the rest of the Qt window
         button = Qt.QPushButton("My Button makes the cone red")
@@ -38,8 +38,8 @@ class MainWindow(Qt.QMainWindow):
     @Qt.pyqtSlot()
     def onClick(self):
         printc("..calling onClick")
-        self.vp.actors[0].color('red').rotateZ(40)
-        self.vp.interactor.Render()
+        self.plt.actors[0].color('red').rotateZ(40)
+        self.plt.interactor.Render()
 
     def onClose(self):
         #Disable the interactor before closing to prevent it

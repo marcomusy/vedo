@@ -3042,7 +3042,13 @@ class TextBase:
     def __init__(self):
 
         self.renderedAt = set()
-        self.fontname = settings.defaultFont
+
+        if isinstance(settings.defaultFont, int):
+            lfonts = list(settings.font_parameters.keys())
+            font = settings.defaultFont%len(lfonts)
+            self.fontname = lfonts[font]
+        else:
+            self.fontname = settings.defaultFont
         self.name = "Text"
 
     def angle(self, a):
@@ -3109,18 +3115,10 @@ class TextBase:
             self.property.SetFrameWidth(lw)
         return self
 
-    def font(self, font=None):
-
-        if font is None:
-            return self.fontname
-
-        if isinstance(font, int):
-            lfonts = list(settings.font_parameters.keys())
-            font = font%len(lfonts)
-            font = lfonts[font]
+    def font(self, font):
 
         if not font:                   # use default font
-            font = settings.defaultFont
+            font = self.fontname
             fpath = os.path.join(settings.fonts_path, font +'.ttf')
         elif font.startswith('https'): # user passed URL link, make it a path
             fpath = vedo.io.download(font, verbose=False, force=False)

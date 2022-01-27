@@ -575,6 +575,9 @@ def fitCircle(points):
 
     Returns the center, radius, normal_to_circle.
 
+    Warning: trying to fit s-shaped points will inevitably lead to instabilities and
+    circles of small radius.
+
     Reference: J.F. Crawford, Nucl. Instr. Meth. 211, 1983, 223-225.
     """
     if len(points) == 2:

@@ -54,4 +54,4 @@ for t in pb.range():
     if plt.escaped: break # if ESC is hit during the loop
     pb.print()
 
-interactive().close()
+plt.interactive().close()

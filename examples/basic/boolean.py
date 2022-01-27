@@ -21,4 +21,4 @@ plt.show(b2, "plus", at=2, resetcam=False)
 b3 = s1.boolean("minus", s2).computeNormals().addScalarBar(c='white')
 plt.show(b3, "minus", at=3, resetcam=False)
 
-interactive().close()
+plt.interactive().close()

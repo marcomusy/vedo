@@ -1,19 +1,18 @@
 """Setting illumination properties:
-ambient, diffuse
-specular, specularPower, specularColor.
+ambient, diffuse, specular, specularPower, specularColor.
 """
-#https://lorensen.github.io/VTKExamples/site/Python/Rendering/SpecularSpheres
-from vedo import Plotter, Arrow, Light, dataurl
+from vedo import Plotter, Mesh, dataurl
 
 
-vp = Plotter(axes=1)
+plt = Plotter(axes=1)
 
 ambient, diffuse, specular = 0.1, 0., 0.
 specularPower, specularColor= 20, 'white'
 
+apple = Mesh(dataurl+'apple.ply').normalize().c('gold')
+
 for i in range(8):
-    s = vp.load(dataurl+'apple.ply').c('gold')
-    s.normalize().pos((i%4)*2.2, int(i<4)*3, 0)
+    s = apple.clone().pos((i%4)*2.2, int(i<4)*3, 0)
 
     #s.phong()
     s.flat()
@@ -24,11 +23,7 @@ for i in range(8):
     diffuse += 0.125
     specular += 0.125
 
-vp += __doc__
-vp.show()
+    plt += s
 
-print('Adding a light source..')
-p = (3, 1.5, 3)
-f = (3, 1.5, 0)
-vp += [Arrow(p,f, s=0.01, c='gray', alpha=0.2), Light(pos=p, focalPoint=f)]
-vp.show().close()
+plt += __doc__
+plt.show().close()

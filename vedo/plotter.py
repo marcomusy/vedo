@@ -388,7 +388,7 @@ class Plotter:
         self.renderer = None  # current renderer
         self.renderers = []  # list of renderers
         self.shape = shape  # don't remove this line
-        self.interactive = interactive  # allows to interact with renderer
+        self._interactive = interactive  # allows to interact with renderer
         self.axes = axes  # show axes type nr.
         self.title = title  # window title
         self.sharecam = sharecam  # share the same camera if multiple renderers
@@ -454,7 +454,7 @@ class Plotter:
                     self.size = (900, 700)
 
             elif notebookBackend == "k3d" or "ipygany" in notebookBackend:
-                self.interactive = False
+                self._interactive = False
                 self.interactor = None
                 self.window = None
                 self.camera = None # let the backend choose
@@ -476,16 +476,18 @@ class Plotter:
         # sort out screen size
         if screensize == "auto":
             screensize = (2160, 1440) # might go wrong, use a default 1.5 ratio
-            ### BUG in GetScreenSize https://discourse.vtk.org/t/vtk9-1-0-problems/7094/3
-            # vtkvers = settings.vtk_version
-            # if not self.offscreen and (vtkvers[0]<9 or vtkvers[0]==9 and vtkvers[1]==0):
-            # if False:
-            #     aus = self.window.GetScreenSize()
-            #     if aus and len(aus) == 2 and aus[0] > 100 and aus[1] > 100:  # seems ok
-            #         if aus[0] / aus[1] > 2:  # looks like there are 2 or more screens
-            #             screensize = (int(aus[0] / 2), aus[1])
-            #         else:
-            #             screensize = aus
+
+            ### BUG in GetScreenSize in VTK 9.1.0
+            ### https://discourse.vtk.org/t/vtk9-1-0-problems/7094/3
+            vtkvers = settings.vtk_version
+            if not self.offscreen and (vtkvers[0]<9 or vtkvers[0]==9 and vtkvers[1]==0):
+                 aus = self.window.GetScreenSize()
+                 if aus and len(aus) == 2 and aus[0] > 100 and aus[1] > 100:  # seems ok
+                     if aus[0] / aus[1] > 2:  # looks like there are 2 or more screens
+                         screensize = (int(aus[0] / 2), aus[1])
+                     else:
+                         screensize = aus
+
         x, y = screensize
 
         if N:  # N = number of renderers. Find out the best
@@ -733,7 +735,7 @@ class Plotter:
             if self.axes == 4 or self.axes == 5:
                 self.axes = 0 #doesn't work with those
             self.window.SetOffScreenRendering(True)
-            self.interactive = False
+            self._interactive = False
             self.interactor = None
             ########################
             return #################
@@ -943,6 +945,15 @@ class Plotter:
                     self.renderers[i].DrawOn()
             self.window.EraseOn()
 
+        return self
+
+    def interactive(self):
+        """
+        Start window interaction.
+        Analogous to ``show(..., interactive=True)`` or ``interactive()`` function.
+        """
+        if self.interactor and not self.escaped:
+            self.interactor.Start()
         return self
 
     def enableErase(self, value=True):
@@ -2294,7 +2305,7 @@ class Plotter:
 
         if self.offscreen:
             interactive = False
-            self.interactive = False
+            self._interactive = False
 
         if camera is not None:
             self.resetcam = False
@@ -2335,18 +2346,10 @@ class Plotter:
                 r.RemoveAllObservers()
             self.camera.RemoveAllObservers()
             self.closeWindow()
-            #reset some important defaults in case vedo is not reloaded..
-            settings.defaultFont = 'Normografo'
-            settings.interactorStyle = None
-            settings.immediateRendering = True
-            settings.multiSamples = 8
-            settings.xtitle = "x"
-            settings.ytitle = "y"
-            settings.ztitle = "z"
             return self
 
         if interactive is not None:
-            self.interactive = interactive
+            self._interactive = interactive
 
         if self.interactor:
             if not self.interactor.GetInitialized():
@@ -2358,12 +2361,13 @@ class Plotter:
             # at which renderer will just render the whole thing and return
             if self.interactor:
                 if zoom:
-                    self.camera.Zoom(zoom)
+                    for r in self.renderers:
+                        r.GetActiveCamera().Zoom(zoom)
                 self.window.Render()
                 self.window.SetWindowName(self.title)
-                if self.interactive:
+                if self._interactive:
                     self.interactor.Start()
-                return self ###############
+                return self ##############################
 
         if at is None:
             at = 0
@@ -2380,8 +2384,7 @@ class Plotter:
         if self.qtWidget is not None:
             self.qtWidget.GetRenderWindow().AddRenderer(self.renderer)
 
-        if not self.camera:
-            self.camera = self.renderer.GetActiveCamera()
+        self.camera = self.renderer.GetActiveCamera()
 
         self.camera.SetParallelProjection(settings.useParallelProjection)
 
@@ -2599,7 +2602,7 @@ class Plotter:
                 astyle.SetInteractionModeToImage3D()
                 self.interactor.SetInteractorStyle(astyle)
 
-            if self.interactive:
+            if self._interactive:
                 self.interactor.Start()
 
             if rate:
@@ -2643,9 +2646,9 @@ class Plotter:
 
         if not self.renderer:
             vedo.printc("Use showInset() after first rendering the scene.", c='y')
-            save_int = self.interactive
+            save_int = self._interactive
             self.show(interactive=0)
-            self.interactive = save_int
+            self._interactive = save_int
         widget = vtk.vtkOrientationMarkerWidget()
         r,g,b = vedo.getColor(c)
         widget.SetOutlineColor(r,g,b)
@@ -2713,35 +2716,22 @@ class Plotter:
 
     def closeWindow(self):
         """Close the current or the input rendering window."""
+        for r in self.renderers:
+            r.RemoveAllObservers()
         if hasattr(self, 'window') and self.window:
             self.window.Finalize()
             if hasattr(self, 'interactor') and self.interactor:
                 self.interactor.ExitCallback()
+                self.interactor.SetDone(True)
                 self.interactor.TerminateApp()
-                #del self.window
-                #del self.interactor
-                self.window = None
                 self.interactor = None
+            self.window = None
         return self
 
     def close(self):
         """Close the Plotter instance and release resources."""
-        #self.clear()
-        if hasattr(self, 'interactor') and self.interactor:
-            self.interactor.ExitCallback()
-        for r in self.renderers:
-            r.RemoveAllObservers()
-        self.camera.RemoveAllObservers()
         self.closeWindow()
         self.actors = []
-        #reset some important defaults in case vedo is not reloaded..
-        settings.defaultFont = 'Normografo'
-        settings.interactorStyle = None
-        settings.immediateRendering = True
-        settings.multiSamples = 8
-        settings.xtitle = "x"
-        settings.ytitle = "y"
-        settings.ztitle = "z"
         if settings.plotter_instance in settings.plotter_instances:
              settings.plotter_instances.remove(settings.plotter_instance)
         settings.plotter_instance = None

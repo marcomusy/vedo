@@ -7,37 +7,36 @@ from vedo import *
 
 mesh = Paraboloid()
 
-vp1 = show(mesh, __doc__, title='First Plotter instance')
+plt1 = show(mesh, __doc__, title='First Plotter instance')
 
 # Now press 'q' to exit the window interaction,
 # windows stays open but not reactive anymore.
 
-# You can go back to interavtion mode by simply calling:
-#show()
+# You can go back to interaction mode by simply calling:
+#plt1.interactive()
 
 printc('\nControl returned to terminal shell:', c='tomato', invert=1)
 ask('window is now unresponsive (press Enter here)', c='tomato', invert=1)
 
-vp1.closeWindow()
-
+plt1.closeWindow()
 # window should now close, the Plotter instance becomes unusable
 # but mesh objects still exist in it:
 
-printc("First Plotter actors:", vp1.actors, '\n press enter again')
-# vp1.show()  # error here: window does not exist anymore. Cannot reopen.
+printc("First Plotter actors:", plt1.actors, '\nPress enter again')
+# plt1.show()  # error here: window does not exist anymore. Cannot reopen.
 
 ##################################################################
 # Can now create a brand new Plotter and show the old object in it
-vp2 = Plotter(title='Second Plotter instance', pos=(500,0))
-vp2.show(vp1.actors[0].color('red'))
+plt2 = Plotter(title='Second Plotter instance', pos=(500,0))
+plt2.show(plt1.actors[0].color('red'))
 
 ##################################################################
 # Create a third new Plotter and then close the second
-vp3 = Plotter(title='Third Plotter instance')
+plt3 = Plotter(title='Third Plotter instance')
 
-vp2.closeWindow()
-printc('vp2.closeWindow() called')
+plt2.closeWindow()
+printc('plt2.closeWindow() called')
 
-vp3.show(Hyperboloid()).close()
+plt3.show(Hyperboloid()).close()
 
 printc('done.')

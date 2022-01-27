@@ -9,16 +9,16 @@ from vedo import *
 # settings.screeshotScale = 2           # to get higher resolution
 
 # declare the class instance
-vp = Plotter(bg='beige', axes=10, offscreen=True)
+plt = Plotter(bg='beige', axes=10, offscreen=True)
 
-vp.load(dataurl+"spider.ply").texture("leather").rotateX(-90)
+plt.load(dataurl+"spider.ply").texture("leather").rotateX(-90)
 
 # open a video file and force it to last 3 seconds in total
 video = Video("spider.mp4", duration=6, backend='ffmpeg') # backend='opencv'
 
 # Any rendering loop goes here, e.g.:
 # for i in range(80):
-#     vp.show(elevation=1, azimuth=2)  # render the scene
+#     plt.show(elevation=1, azimuth=2)  # render the scene
 #     video.addFrame()                 # add individual frame
 
 # OR use the automatic video shooting function:

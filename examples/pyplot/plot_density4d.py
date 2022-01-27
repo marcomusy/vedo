@@ -2,7 +2,7 @@
 # Credits: https://github.com/edmontz
 import numpy as np
 from scipy.fftpack import fftn, fftshift
-from vedo import Volume, ProgressBar, show, interactive, settings
+from vedo import Volume, ProgressBar, show, settings
 
 settings.allowInteraction = True
 
@@ -35,4 +35,4 @@ for q in pb.range():
     plt = show(vb, bg="black", axes=1, viewup='z', interactive=False)
     if plt.escaped: break  # ESC button was hit
 
-interactive().close()
+plt.interactive().close()

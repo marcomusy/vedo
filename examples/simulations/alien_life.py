@@ -3,7 +3,7 @@
 #
 import numpy as np
 from noise._simplex import noise4
-from vedo import Plotter, Points, Circle, Text2D, interactive
+from vedo import Plotter, Points, Circle, Text2D
 
 n = 50000
 radius = 200
@@ -47,4 +47,4 @@ plt = Plotter()
 plt.show(pts, cir, txt1, txt2, elevation=-35, zoom=1.2, interactive=False)
 plt.addCallback("timer", update)
 plt.timerCallback("create")
-interactive()
+plt.interactive()

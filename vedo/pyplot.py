@@ -862,7 +862,7 @@ def _plotxy(
         axes["xrange"] = (x0lim, x1lim)
         axes["yrange"] = (y0lim, y1lim)
         axes["zrange"] = (0, 0)
-        # axes["c"] = "k"
+        axes["c"] = c
         axes["yUseBounds"] = True
         axs = addons.Axes(**axes)
         axs.name = "axes"
@@ -871,8 +871,6 @@ def _plotxy(
         asse.SetOrigin(x0lim, y0lim, 0)
 
     else:
-#        settings.xtitle = xtitle
-#        settings.ytitle = ytitle
         asse = Plot(acts)
 
     asse.yscale = yscale

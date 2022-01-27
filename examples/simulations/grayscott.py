@@ -66,4 +66,4 @@ for step in range(Nsteps):
     plt = show(ltx, grd, zoom=1.25, elevation=-.15, bg='linen', interactive=False)
     if plt.escaped: break  # if ESC is hit during loop
 
-# interactive().close()
+plt.interactive().close()

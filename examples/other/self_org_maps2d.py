@@ -28,6 +28,7 @@ class SOM:
         self.samples = self.samples[I]
         pts = Points(self.samples, r=2, c='darkred')
         doc = Text2D(__doc__)
+        settings.allowInteraction = True
 
         pb = ProgressBar(0,n_epoch)
         for i in pb.range():
@@ -57,7 +58,7 @@ class SOM:
                 plt = show(doc, pts, grd, axes=6, azimuth=2, interactive=False)
                 if plt.escaped: break  # hit ESC
 
-        interactive().close()
+        plt.interactive().close()
         return [self.codebook[:,i].reshape(n,n) for i in range(3)]
 
 # -------------------------------------------------------------------------------

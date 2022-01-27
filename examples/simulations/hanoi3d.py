@@ -71,5 +71,5 @@ for t in pb.range():
         for i, disk in enumerate(state[tower_nr]):
             disks[disk].pos([3 * tower_nr, 0, i+0.5])
     plt.show(resetcam=0, rate=10)
-interactive().close()
+plt.interactive().close()
 
