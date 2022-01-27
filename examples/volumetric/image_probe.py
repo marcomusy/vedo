@@ -27,5 +27,5 @@ for i in range(0,36,3):
 show([
       [msh, circle, lines, __doc__],  # show this on the first renderer
       ["...plot the result:", plt],   # show this on the second renderer
-     ], N=2, sharecam=False,          # nr of rendering subwindows, camera is not shared
+     ], N=2, sharecam=False, zoom=1.2 # nr of rendering subwindows, camera is not shared
 )
