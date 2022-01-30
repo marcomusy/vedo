@@ -1,4 +1,4 @@
-# Transform a picture into a mesh 
+# Transform a picture into a mesh
 from vedo import Picture, dataurl, show
 import numpy as np
 
@@ -17,12 +17,12 @@ msh.points(pts)
 
 # more cosmetics
 msh.triangulate().smooth()
-msh.lighting("default").lineWidth(0.1)
+msh.lighting("default").lineWidth(0)
 msh.cmap("bone", "RGBA").addScalarBar()
 
 msht = pic.clone().threshold(100).lineWidth(0)
 
-show([[pic, "A normal jpg image.."], 
+show([[pic, "A normal jpg image.."],
       [msh, "..becomes a polygonal Mesh"],
       [msht, "Thresholding also generates a Mesh"]
-     ], N=3, axes=1, zoom=5, elevation=-20, bg='black').close()
+     ], N=3, axes=1, zoom=1.1, elevation=-20, bg='black').close()

@@ -1,4 +1,4 @@
-"""Interactively cut a set of meshes"""
+"""Interactively cut a set of isosurfaces from a volumetric dataset"""
 from vedo import dataurl, show, Volume
 
 # generate an isosurface the volume for each thresholds

@@ -4,7 +4,7 @@ The animation shows the evolution of a particle of relatively well defined
 momentum (hence undefined position) in a box hitting a potential barrier."""
 print(__doc__)
 import numpy as np
-from vedo import Plotter, Line, dataurl, interactive, settings
+from vedo import Plotter, Line, dataurl, settings
 
 Nsteps = 250  # number of steps in time
 N = 300       # number of points in space
@@ -26,7 +26,7 @@ V = 0.15 * np.sin(1.5 * (x - 7))     # particle hitting a sinusoidal barrier
 Psi = np.sqrt(1/s0) * np.exp(-1/2 * ((x-x0)/s0)**2 + 1j*x*k0)  # wave packet
 
 dx2 = ((x[-1] - x[0]) / (N+2))**2 * 400  # dx**2 step, scaled
-nabla2psi = np.zeros(N+2, dtype=np.complex)
+nabla2psi = np.zeros(N+2, dtype=complex)
 
 def f(psi):
     # a smart numpy way to calculate the second derivative in x:

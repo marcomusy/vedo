@@ -1,6 +1,8 @@
-"""Simulation of a block connected 
+"""Simulation of a block connected
 to a spring in a viscous medium"""
 from vedo import *
+
+settings.allowInteraction = True
 
 plt = Plotter(interactive=0, axes=0)
 

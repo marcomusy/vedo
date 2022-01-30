@@ -16,6 +16,43 @@ __all__ = ["Picture"]
 
 
 #################################################
+def _get_img(obj, flip=False):
+
+    obj = np.asarray(obj)
+
+    if obj.ndim == 3: # has shape (nx,ny, ncolor_alpha_chan)
+        iac = vtk.vtkImageAppendComponents()
+        nchan = obj.shape[2] # get number of channels in inputimage (L/LA/RGB/RGBA)
+        for i in range(nchan):
+            if flip:
+                arr = np.flip(np.flip(obj[:,:,i], 0), 0).ravel()
+            else:
+                arr = np.flip(obj[:,:,i], 0).ravel()
+            varb = numpy_to_vtk(arr, deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
+            varb.SetName("RGBA")
+            imgb = vtk.vtkImageData()
+            imgb.SetDimensions(obj.shape[1], obj.shape[0], 1)
+            imgb.GetPointData().AddArray(varb)
+            imgb.GetPointData().SetActiveScalars("RGBA")
+            iac.AddInputData(imgb)
+        iac.Update()
+        img = iac.GetOutput()
+
+    elif obj.ndim == 2: # black and white
+        if flip:
+            arr = np.flip(obj[:,:], 0).ravel()
+        else:
+            arr = obj.ravel()
+        varb = numpy_to_vtk(arr, deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
+        varb.SetName("RGBA")
+        img = vtk.vtkImageData()
+        img.SetDimensions(obj.shape[1], obj.shape[0], 1)
+        img.GetPointData().AddArray(varb)
+        img.GetPointData().SetActiveScalars("RGBA")
+    return img
+
+
+#################################################
 class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
     """
     Derived class of ``vtkImageActor``. Used to represent 2D pictures.
@@ -34,37 +71,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
 
 
         if utils.isSequence(obj) and len(obj): # passing array
-            obj = np.asarray(obj)
-
-            if len(obj.shape) == 3: # has shape (nx,ny, ncolor_alpha_chan)
-                iac = vtk.vtkImageAppendComponents()
-                nchan = obj.shape[2] # get number of channels in inputimage (L/LA/RGB/RGBA)
-                for i in range(nchan):
-                    if flip:
-                        arr = np.flip(np.flip(obj[:,:,i], 0), 0).ravel()
-                    else:
-                        arr = np.flip(obj[:,:,i], 0).ravel()
-                    varb = numpy_to_vtk(arr, deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
-                    varb.SetName("RGBA")
-                    imgb = vtk.vtkImageData()
-                    imgb.SetDimensions(obj.shape[1], obj.shape[0], 1)
-                    imgb.GetPointData().AddArray(varb)
-                    imgb.GetPointData().SetActiveScalars("RGBA")
-                    iac.AddInputData(imgb)
-                iac.Update()
-                img = iac.GetOutput()
-
-            elif len(obj.shape) == 2: # black and white
-                if flip:
-                    arr = np.flip(obj[:,:], 0).ravel()
-                else:
-                    arr = obj.ravel()
-                varb = numpy_to_vtk(arr, deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
-                varb.SetName("RGBA")
-                img = vtk.vtkImageData()
-                img.SetDimensions(obj.shape[1], obj.shape[0], 1)
-                img.GetPointData().AddArray(varb)
-                img.GetPointData().SetActiveScalars("RGBA")
+            img = _get_img(obj, flip)
 
         elif isinstance(obj, vtk.vtkImageData):
             img = obj
@@ -398,7 +405,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         return self._update(out)
 
     def mirror(self, axis="x"):
-        """Mirror picture along x or y axis."""
+        """Mirror picture along x or y axis. Same as flip()."""
         ff = vtk.vtkImageFlip()
         ff.SetInputData(self.inputdata())
         if axis.lower() == "x":
@@ -411,9 +418,13 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         ff.Update()
         return self._update(ff.GetOutput())
 
+    def flip(self, axis="y"):
+        """Mirror picture along x or y axis. Same as mirror()."""
+        return self.mirror(axis=axis)
+
     def rotate(self, angle, center=(), scale=1, mirroring=False, bc='w', alpha=1):
         """
-        Rotate an image by an angle (anticlockwise).
+        Rotate by the specified angle (anticlockwise).
 
         Parameters
         ----------
@@ -642,7 +653,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
 
         return Picture(out)
 
-    def frequencyPassFilter(self, lowcutoff=None, highcutoff=None, order=3):
+    def filterpass(self, lowcutoff=None, highcutoff=None, order=3):
         """
         Low-pass and high-pass filtering become trivial in the frequency domain.
         A portion of the pixels/voxels are simply masked or attenuated.
@@ -778,6 +789,55 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         reslice.Update()
         self.transform = transform
         return self._update(reslice.GetOutput())
+
+
+    def invert(self):
+        """
+        Return an inverted picture (inverted in each color channel).
+        """
+        rgb = self.tonumpy()
+        data = 255 - np.array(rgb)
+        return self._update(_get_img(data))
+
+
+    def binarize(self, thresh=None, invert=False):
+        """Return a new Picture where pixel above threshold are set to 255
+        and pixels below are set to 0.
+
+        Parameters
+        ----------
+        invert : bool, optional
+            Invert threshold. Default is False.
+
+        Example
+        -------
+        .. code-block:: python
+
+            from vedo import Picture, show
+            pic1 = Picture("https://aws.glamour.es/prod/designs/v1/assets/620x459/547577.jpg")
+            pic2 = pic1.clone().invert()
+            pic3 = pic1.clone().binarize()
+            show(pic1, pic2, pic3, N=3, bg="blue9")
+        """
+        rgb = self.tonumpy()
+        if rgb.ndim == 3:
+            intensity = np.sum(rgb, axis=2)/3
+        else:
+            intensity = rgb
+
+        if thresh is None:
+            vmin, vmax = np.min(intensity), np.max(intensity)
+            thresh = (vmax+vmin)/2
+
+        data = np.zeros_like(intensity).astype(np.uint8)
+        mask = np.where(intensity>thresh)
+        if invert:
+            data += 255
+            data[mask] = 0
+        else:
+            data[mask] = 255
+
+        return self._update(_get_img(data, flip=True))
 
 
     def threshold(self, value=None, flip=False):

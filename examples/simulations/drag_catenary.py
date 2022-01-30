@@ -1,4 +1,5 @@
-"""Find the catenary line connecting two points"""
+"""Find the catenary line connecting two points
+(hover mouse)"""
 # Credits:
 # https://trinket.io/glowscript/f938182b85
 # https://www.youtube.com/watch?v=gkdnS6rISV0

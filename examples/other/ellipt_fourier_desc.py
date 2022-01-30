@@ -1,4 +1,4 @@
-"""Elliptical Fourier Descriptors
+"""Elliptic Fourier Descriptors
 parametrizing a closed countour (in red)"""
 import vedo, pyefd
 

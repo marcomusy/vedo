@@ -542,6 +542,11 @@ class Line(Mesh):
         self.top = top
         self.name = "Line"
 
+    def lineColor(self, c=None):
+        """Assign a color to the line"""
+        # overrides mesh.lineColor which would have no effect here
+        return self.color(c)
+
     def eval(self, x):
         """
         Calculate the position of an intermediate point
@@ -629,6 +634,65 @@ class Line(Mesh):
         for i in range(1, len(pts)):
             distance += np.linalg.norm(pts[i]-pts[i-1])
         return distance
+
+    def tangents(self):
+        """
+        Compute the tangents of a line in space.
+
+        Example
+        -------
+            .. code-block:: python
+
+                from vedo import *
+                shape = load(dataurl+"timecourse1d.npy")[58]
+                pts = shape.rotateX(30).points()
+                tangents = Line(pts).tangents()
+                arrs = Arrows(pts, pts+tangents, c='blue9')
+                show(shape.c('red5').lw(5), arrs, bg='bb', axes=1)
+        """
+        v = np.gradient(self.points())[0]
+        ds_dt = np.linalg.norm(v, axis=1)
+        tangent = np.array([1/ds_dt] * 3).transpose() * v
+        return tangent
+
+    def curvature(self):
+        """
+        Compute the signed curvature of a line in space.
+        The signed is computed assuming the line is about coplanar to the xy plane.
+
+        Example
+        -------
+            .. code-block:: python
+
+                from vedo import *
+                from vedo.pyplot import plot
+                shape = load(dataurl+"timecourse1d.npy")[55]
+                curvs = Line(shape.points()).curvature()
+                shape.cmap('coolwarm', curvs, vmin=-2,vmax=2).addScalarBar3D(c='w')
+                shape.renderLinesAsTubes().lw(12)
+                show(shape, plot(curvs, c='w', lc='y5'), N=2, bg='bb', sharecam=0)
+        """
+        v = np.gradient(self.points())[0]
+        a = np.gradient(v)[0]
+        av = np.cross(a,v)
+        mav = np.linalg.norm(av, axis=1)
+        mv = utils.mag2(v)
+        val = mav * np.sign(av[:,2])/ np.power(mv, 1.5)
+        val[0]  = val[1]
+        val[-1] = val[-2]
+        return val
+
+    def addCurvatureScalars(self):
+        """Add a pointdata array named 'Curvatures' which contains the curvature value at each point."""
+        # overrides mesh.addCurvatureScalars
+        curvs = self.curvature()
+        vmin, vmax = np.min(curvs), np.max(curvs)
+        if vmin<0 and vmax>0:
+            v = max(-vmin, vmax)
+            self.cmap('coolwarm', curvs, vmin=-v, vmax=v, arrayName="Curvature")
+        else:
+            self.cmap('coolwarm', curvs, vmin=vmin, vmax=vmax, arrayName="Curvature")
+        return self
 
     def sweep(self, direction=(1,0,0), res=1):
         """
