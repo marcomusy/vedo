@@ -17,6 +17,9 @@ def getNotebookBackend(actors2show, zoom, viewup):
 
     vp = settings.plotter_instance
 
+    if zoom == 'tight':
+        zoom=1 # disable it
+
     if isinstance(vp.shape, str) or sum(vp.shape) > 2:
         colors.printc("Multirendering is not supported in jupyter.", c=1)
         return
@@ -266,16 +269,16 @@ def getNotebookBackend(actors2show, zoom, viewup):
         from ipyvtklink.viewer import ViewInteractiveWidget
         vp.renderer.ResetCamera()
         settings.notebook_plotter = ViewInteractiveWidget(vp.window)
-        
+
     ####################################################################################
     elif 'ipygany' in settings.notebookBackend:
-        
+
         from ipygany import PolyMesh, Scene, IsoColor, RGB, Component
         from ipygany import Alpha, ColorBar, colormaps, PointCloud
         from ipywidgets import FloatRangeSlider, Dropdown, VBox, AppLayout, jslink
-        
+
         bgcol = colors.rgb2hex(colors.getColor(vp.backgrcol))
-        
+
         actors2show2 = []
         for ia in actors2show:
             if not ia:
@@ -289,12 +292,12 @@ def getNotebookBackend(actors2show, zoom, viewup):
                         actors2show2.append(ja)
             else:
                 actors2show2.append(ia)
-        
+
         pmeshes = []
         colorbar = None
         for obj in actors2show2:
 #            print("ipygany processing:", [obj], obj.name)
-            
+
             if isinstance(obj, vedo.shapes.Line):
                 lg = obj.diagonalSize()/1000 * obj.GetProperty().GetLineWidth()
                 vmesh = vedo.shapes.Tube(obj.points(), r=lg, res=4).triangulate()
@@ -316,7 +319,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
             else:
                 print("ipygany backend: cannot process object type", [obj])
                 continue
-                       
+
             vertices = vmesh.points()
             scals = vmesh.inputdata().GetPointData().GetScalars()
             if scals and not colorbar: # there is an active array, only pick the first
@@ -331,8 +334,8 @@ def getNotebookBackend(actors2show, zoom, viewup):
                 colored_pmesh = IsoColor(pmesh, input=aname, min=rng[0], max=rng[1])
                 if obj.scalarbar:
                     colorbar = ColorBar(colored_pmesh)
-                    colormap_slider_range = FloatRangeSlider(value=rng, 
-                                                             min=rng[0], max=rng[1], 
+                    colormap_slider_range = FloatRangeSlider(value=rng,
+                                                             min=rng[0], max=rng[1],
                                                              step=(rng[1] - rng[0]) / 100.)
                     jslink((colored_pmesh, 'range'), (colormap_slider_range, 'value'))
                     colormap = Dropdown(
@@ -350,24 +353,24 @@ def getNotebookBackend(actors2show, zoom, viewup):
                     colored_pmesh = Alpha(RGB(pmesh, input=tuple(vmesh.color())), input=vmesh.alpha())
                 else:
                     colored_pmesh = RGB(pmesh, input=tuple(vmesh.color()))
-            
+
             pmeshes.append(colored_pmesh)
-        
+
         if colorbar:
             scene = AppLayout(
-                    left_sidebar=Scene(pmeshes, background_color=bgcol), 
+                    left_sidebar=Scene(pmeshes, background_color=bgcol),
                     right_sidebar=VBox((colormap_slider_range, #not working
                                         colorbar,
                                         colormap)),
                     pane_widths=[2, 0, 1],
-            )            
+            )
         else:
             scene = Scene(pmeshes, background_color=bgcol)
-        
+
         settings.notebook_plotter = scene
-        
-        
-    
+
+
+
     ####################################################################################
     elif '2d' in settings.notebookBackend.lower() and hasattr(vp, 'window') and vp.window:
         import PIL.Image

@@ -75,13 +75,6 @@ class Cell:
 ##############################################################################
 plt = Plotter(interactive=False, axes=3)
 
-# place vtkCamera at a specific position
-# (get these numbers by pressing Shift-C)
-plt.camera.SetPosition([2.5, 2.5, 5.5])
-plt.camera.SetFocalPoint([0.4, 0.4, 0.4])
-plt.camera.SetParallelScale(1.8)
-plt.camera.SetViewUp([-0.1, 1, -0.3])
-
 # Let's start with creating 3 colonies of 1 cell each
 # of types: red, green and blue, in different positions in space
 # and with 3 different rates of division (tdiv in hours)
@@ -116,6 +109,6 @@ for t in pb.range():
         msg += str(len(colony.cells)) + ","
 
     pb.print(msg + str(int(t)))
-    plt.show(resetcam=0)
+    plt.show(resetcam=not t)
     if plt.escaped:
         exit(0)  # if ESC is hit during the loop

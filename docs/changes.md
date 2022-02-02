@@ -1,5 +1,8 @@
 ## Main changes
 
+- fixed bug to `distanceTo()` method
+
+
 ---
 ### `base.py`
 
@@ -14,11 +17,12 @@
 ### `mesh.py`
 
 - faces of a mesh can be reversed individually with `reverse(face_list)`.
-
+- fixed bug to `distanceTo()` method
 
 ---
 ### `plotter.py`
 - fix `closeWindow()`
+- add `show(..., zoom="tight")` to automatically zoom in as close as possible when 2D.
 
 ---
 ### `picture.py`
@@ -28,6 +32,8 @@
 
 ---
 ### `pyplot.py`
+- name change `cornerPlot` -> `CornerPlot`
+- name change `cornerHistogram` -> `CornerHistogram`
 
 ---
 ### `pointcloud.py`
@@ -40,11 +46,12 @@
 
 ---
 ### `volume.py`
+- `volume.mesh2Volume()` function moved to `vedo.mesh.binarize()`
+- `volume.signedDistanceFromPointCloud()` function moved to `Points.signedDistance`
 
 ---
 ### `utils.py`
-
--  function has new keyword `sortByColumn(invert=False)`
+- function has new keyword `sortByColumn(invert=False)`
 
 
 -------------------------
@@ -57,22 +64,14 @@
 `examples/volumetric/image_mask.py`
 `examples/pyplot/histo_3D.py`
 `examples/other/napari1.py`
-
+`examples/volumetric/volumeFromMesh.py`
+`examples/volumetric/mesh2volume.py`
 
 ## broken examples
 ```
 cartoony.py
-legendbox.py
 
 makeVideo.py
-pymeshlab1.py
-pymeshlab2.py
-
-explore5d.py
-scatter_large.py
-
-cell_colony.py
-hanoi3d.py
 
 legosurface.py
 slicer1.py

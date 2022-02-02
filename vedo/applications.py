@@ -1,7 +1,6 @@
 import vedo
-# from vedo.addons import addScalarBar
 from vedo.plotter import Plotter
-from vedo.pyplot import cornerHistogram
+from vedo.pyplot import CornerHistogram
 from vedo.utils import mag, precision, linInterpolate, isSequence
 from vedo.colors import printc, colorMap, getColor
 from vedo.shapes import Text2D, Line, Ribbon, Spline
@@ -198,7 +197,7 @@ def SlicerPlotter(
     #################
     hist = None
     if showHisto:
-        hist = cornerHistogram(data, s=0.2,
+        hist = CornerHistogram(data, s=0.2,
                                bins=25, logscale=1, pos=(0.02, 0.02),
                                c=ch, bg=ch, alpha=0.7)
 
@@ -248,7 +247,7 @@ def Slicer2d(volume, levels=(None, None), size=(900,900), bg='k9', zoom=1.2):
     if settings.vtk_version[0] == 9:
         axes=0
 
-    hist = cornerHistogram(volume.pointdata[0],
+    hist = CornerHistogram(volume.pointdata[0],
                            bins=25, logscale=1, pos=(0.02, 0.02), s=0.175,
                            c='dg', bg='k', alpha=1)
 
@@ -395,7 +394,7 @@ def RayCastPlotter(volume):
     # vp.window.AddObserver("AbortCheckEvent", CheckAbort)
 
     # add histogram of scalar
-    plot = cornerHistogram(volume,
+    plot = CornerHistogram(volume,
         bins=25, logscale=1, c=(.7,.7,.7), bg=(.7,.7,.7), pos=(0.78, 0.065),
         lines=True, dots=False,
         nmax=3.1415e+06, # subsample otherwise is too slow
@@ -403,7 +402,7 @@ def RayCastPlotter(volume):
 
     # xbins = np.linspace(smin, smax, 25)
     # yvals = volume.histogram(bins=25, logscale=1)
-    # plot = cornerPlot(np.c_[xbins, yvals],
+    # plot = CornerPlot(np.c_[xbins, yvals],
     #     c=(.7,.7,.7), bg=(.7,.7,.7), pos=(0.78, 0.065), s=0.4,
     #     lines=True, dots=False,
     # )

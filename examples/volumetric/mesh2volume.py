@@ -1,15 +1,13 @@
-"""Left: build a volume (grey) from a mesh where the
-foreground voxels are 1 and the background voxels are 0.
+"""Build a volume from a mesh where the
+foreground voxels are set to 255 and the background voxels are 0"""
+from vedo import Mesh, dataurl, show
 
-Right: the Volume is isosurfaced."""
-from vedo import *
+surf = Mesh(dataurl+"bunny.obj").normalize().wireframe()
 
-s = Mesh(dataurl+"bunny.obj").normalize().wireframe()
+vol = surf.binarize(spacing=(0.02,0.02,0.02))
+vol.alpha([0,0.6]).c('blue')
 
-v = mesh2Volume(s, spacing=(0.02, 0.02, 0.02)).alpha([0,0.5]).c('blue')
+iso = vol.isosurface().color("blue5")
 
-iso = v.isosurface().color("b")
-
-show(v, s.scale(1.05), __doc__, at=0, N=2)
-
-show(iso, at=1, interactive=1).close()
+show(vol, surf, __doc__, at=0, N=2, axes=9)
+show("..the volume is isosurfaced:", iso, at=1).interactive().close()

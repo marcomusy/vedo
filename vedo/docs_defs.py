@@ -796,12 +796,12 @@ _substitutions_defs = """
     :target: office.py_
     :alt: office.py
 
-.. |value-iteration.py| replace:: value-iteration.py
-.. _value-iteration.py: https://github.com/marcomusy/vedo/tree/master/examples/other/value-iteration.py
-.. |value-iteration| image:: https://user-images.githubusercontent.com/32848391/56964055-afaba080-6b5a-11e9-99cf-3fac99df9878.jpg
+.. |value_iteration.py| replace:: value_iteration.py
+.. _value_iteration.py: https://github.com/marcomusy/vedo/tree/master/examples/other/value_iteration.py
+.. |value_iteration| image:: https://user-images.githubusercontent.com/32848391/56964055-afaba080-6b5a-11e9-99cf-3fac99df9878.jpg
     :width: 200 px
-    :target: value-iteration.py_
-    :alt: value-iteration.py
+    :target: value_iteration.py_
+    :alt: value_iteration.py
 
 .. |magnetostatics.py| replace:: magnetostatics.py
 .. _magnetostatics.py: https://github.com/marcomusy/vedo/tree/master/examples/other/dolfin/magnetostatics.py
@@ -1159,7 +1159,7 @@ _substitutions_defs = """
     :alt: goniometer.py
 
 .. |intersect2d.py| replace:: intersect2d.py
-.. _intersect2d.py: https://github.com/marcomusy/vedo/tree/master/examples/advanced/intersect2d.py
+.. _intersect2d.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/intersect2d.py
 .. |intersect2d| image:: https://user-images.githubusercontent.com/32848391/90437548-de90b180-e0d2-11ea-8e0c-d821db4da8a9.png
     :width: 200 px
     :target: intersect2d.py_

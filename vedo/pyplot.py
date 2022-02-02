@@ -2728,7 +2728,7 @@ def matrix(M,
     return asse
 
 
-def cornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True, dots=True):
+def CornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True, dots=True):
     """
     Return a ``vtkXYPlotActor`` that is a plot of `x` versus `y`,
     where `points` is a list of `(x,y)` points.
@@ -2803,7 +2803,7 @@ def cornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True, dots=T
     return plot
 
 
-def cornerHistogram(
+def CornerHistogram(
     values,
     bins=20,
     vrange=None,
@@ -2853,7 +2853,7 @@ def cornerHistogram(
     for i in range(len(fs)):
         pts.append([(edges[i] + edges[i + 1]) / 2, fs[i]])
 
-    plot = cornerPlot(pts, pos, s, title, c, bg, lines, dots)
+    plot = CornerPlot(pts, pos, s, title, c, bg, lines, dots)
     plot.SetNumberOfYLabels(2)
     plot.SetNumberOfXLabels(3)
     tprop = vtk.vtkTextProperty()

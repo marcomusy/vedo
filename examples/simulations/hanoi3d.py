@@ -1,15 +1,13 @@
 """Demo to show how to solve the Tower of Hanoi"""
+# Credits:
+# https://github.com/gjbex/training-material/blob/master/Misc/Notebooks/hanoi.ipynb
+# Creative Commons Zero v1.0 Universal licence
 
 from vedo import Plotter, Cylinder, Box, ProgressBar, settings, interactive
 from copy import deepcopy
 
 
 class Hanoi:
-    """
-    Class to solve the Hanoi problem. It is taken from Geert Jan Bex's website:
-    https://github.com/gjbex/training-material/blob/master/Misc/Notebooks/hanoi.ipynb
-    Creative Commons Zero v1.0 Universal licence
-    """
     def __init__(self, nr_disks):
         self._nr_disks = nr_disks
         self._towers = [list(range(nr_disks, 0, -1)), list(), list()]
@@ -47,21 +45,25 @@ class Hanoi:
         yield from self.move_disks(self.nr_disks, 0, 1)
 
 
-nr_disks=5
+nr_disks = 5
 hanoi = Hanoi(nr_disks)
 
 tower_states = list([hanoi.towers])
 for _ in hanoi.moves():
     tower_states.append(hanoi.towers)
+
 disks = { hanoi.nr_disks - i : Cylinder(r=0.2*(hanoi.nr_disks-i+1), c=i)
           for i in range(hanoi.nr_disks) }
 
 plt = Plotter(interactive=False, size=(800, 600), bg='wheat', bg2='lb')
-plt.camera.SetPosition( [14.57, -14.772, 6.132] )
-plt.camera.SetFocalPoint( [3.0, 0.6, 2.0] )
-plt.camera.SetViewUp( [-0.098, 0.167, 0.981] )
 plt += disks.values()
 plt += Box(pos=(3,0,-0.5), size=(12,4,0.1))
+cam = dict(
+    pos=(14.60, -20.56, 7.680),
+    focalPoint=(3.067, 0.5583, 1.910),
+    viewup=(-0.1043, 0.2088, 0.9724),
+)
+plt.show(camera=cam)
 
 pb = ProgressBar(0, len(tower_states), 1, c="y")
 for t in pb.range():
@@ -70,6 +72,6 @@ for t in pb.range():
     for tower_nr in range(3):
         for i, disk in enumerate(state[tower_nr]):
             disks[disk].pos([3 * tower_nr, 0, i+0.5])
-    plt.show(resetcam=0, rate=10)
+    plt.render()
 plt.interactive().close()
 

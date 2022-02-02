@@ -41,7 +41,7 @@ def merge(*meshs, flag=False):
             poly = a
         polyapp.AddInputData(poly)
         if flag:
-            idarr += [i]*poly.GetNumberOfPoints()
+            idarr += [i] * poly.GetNumberOfPoints()
     polyapp.Update()
     mpoly = polyapp.GetOutput()
 
@@ -165,7 +165,7 @@ class Mesh(Points):
                 print("Could not add meshio cell data, skip.")
 
         elif "meshlab" in inputtype:
-            self._data = vedo.utils._meshlab2vedo(inputobj)
+            self._data = vedo.utils.meshlab2vedo(inputobj)
 
         elif isSequence(inputobj):
             ninp = len(inputobj)
@@ -1026,12 +1026,15 @@ class Mesh(Points):
         '''
         poly1 = self.polydata()
         poly2 = mesh.polydata()
+
         df = vtk.vtkDistancePolyDataFilter()
         df.ComputeSecondDistanceOff()
         df.SetInputData(0, poly1)
         df.SetInputData(1, poly2)
         if signed:
             df.SignedDistanceOn()
+            if negate:
+                df.NegateDistanceOn()
         else:
             df.SignedDistanceOff()
         if negate:
@@ -1040,9 +1043,8 @@ class Mesh(Points):
 
         scals = df.GetOutput().GetPointData().GetScalars()
         scals.SetName(name)
-        poly1.GetPointData().AddArray(scals)
-
-        poly1.GetPointData().SetActiveScalars(scals.GetName())
+        self._data.GetPointData().AddArray(scals)
+        self._data.GetPointData().SetActiveScalars(scals.GetName())
         rng = scals.GetRange()
         self._mapper.SetScalarRange(rng[0], rng[1])
         self._mapper.ScalarVisibilityOn()
@@ -2043,8 +2045,111 @@ class Mesh(Points):
         prop.SetOpacity(1)
         dmesh.SetProperty(prop)
         dmesh.property = prop
-        dmesh.name = "geodesicLine"
+        dmesh.name = "GeodesicLine"
         return dmesh
 
+    #####################################################################
+    ### Stuff returning a Volume
+    ###
+    def binarize(self, spacing=(1,1,1), invert=False):
+        """
+        Convert a ``Mesh`` into a ``Volume``
+        where the foreground (exterior) voxels value is 255 and the background
+        (interior) voxels value is 0.
 
+        |mesh2volume| |mesh2volume.py|_
+        """
+        # https://vtk.org/Wiki/VTK/Examples/Cxx/PolyData/PolyDataToImageData
+        pd = self.polydata()
 
+        whiteImage = vtk.vtkImageData()
+        bounds = pd.GetBounds()
+
+        whiteImage.SetSpacing(spacing)
+
+        # compute dimensions
+        dim = [0, 0, 0]
+        for i in [0, 1, 2]:
+            dim[i] = int(np.ceil((bounds[i * 2 + 1] - bounds[i * 2]) / spacing[i]))
+        whiteImage.SetDimensions(dim)
+        whiteImage.SetExtent(0, dim[0] - 1, 0, dim[1] - 1, 0, dim[2] - 1)
+
+        origin = [0, 0, 0]
+        origin[0] = bounds[0] + spacing[0] / 2
+        origin[1] = bounds[2] + spacing[1] / 2
+        origin[2] = bounds[4] + spacing[2] / 2
+        whiteImage.SetOrigin(origin)
+        whiteImage.AllocateScalars(vtk.VTK_UNSIGNED_CHAR, 1)
+
+        # fill the image with foreground voxels:
+        if invert:
+            inval = 0
+        else:
+            inval = 255
+        count = whiteImage.GetNumberOfPoints()
+        for i in range(count):
+            whiteImage.GetPointData().GetScalars().SetTuple1(i, inval)
+
+        # polygonal data --> image stencil:
+        pol2stenc = vtk.vtkPolyDataToImageStencil()
+        pol2stenc.SetInputData(pd)
+        pol2stenc.SetOutputOrigin(origin)
+        pol2stenc.SetOutputSpacing(spacing)
+        pol2stenc.SetOutputWholeExtent(whiteImage.GetExtent())
+        pol2stenc.Update()
+
+        # cut the corresponding white image and set the background:
+        if invert:
+            outval = 255
+        else:
+            outval = 0
+        imgstenc = vtk.vtkImageStencil()
+        imgstenc.SetInputData(whiteImage)
+        imgstenc.SetStencilConnection(pol2stenc.GetOutputPort())
+        imgstenc.SetReverseStencil(invert)
+        imgstenc.SetBackgroundValue(outval)
+        imgstenc.Update()
+        return vedo.Volume(imgstenc.GetOutput())
+
+    def signedDistance(self, bounds=None, dims=(20,20,20), invert=False):
+        """
+        Compute the ``Volume`` object whose voxels contains the signed distance from
+        the mesh.
+
+        :param list bounds: bounds of the output volume.
+        :param list dims: dimensions (nr. of voxels) of the output volume.
+        :param bool invert: flip the sign.
+
+        See example script: |volumeFromMesh.py|_
+        """
+        if bounds is None:
+            bounds = self.GetBounds()
+        sx = (bounds[1]-bounds[0])/dims[0]
+        sy = (bounds[3]-bounds[2])/dims[1]
+        sz = (bounds[5]-bounds[4])/dims[2]
+
+        img = vtk.vtkImageData()
+        img.SetDimensions(dims)
+        img.SetSpacing(sx, sy, sz)
+        img.SetOrigin(bounds[0], bounds[2], bounds[4])
+        img.AllocateScalars(vtk.VTK_FLOAT, 1)
+
+        imp = vtk.vtkImplicitPolyDataDistance()
+        imp.SetInput(self.polydata())
+        b2 = bounds[2]
+        b4 = bounds[4]
+        d0, d1, d2 = dims
+
+        for i in range(d0):
+            x = i*sx+bounds[0]
+            for j in range(d1):
+                y = j*sy+b2
+                for k in range(d2):
+                    v = imp.EvaluateFunction((x, y, k*sz+b4))
+                    if invert:
+                        v = -v
+                    img.SetScalarComponentFromFloat(i,j,k, 0, v)
+
+        vol = vedo.Volume(img)
+        vol.name = "SignedVolume"
+        return vol

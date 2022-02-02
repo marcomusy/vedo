@@ -52,7 +52,8 @@ The webpage of the library with documentation is available [**here**](https://ve
 
 📌 **Need help? Have a question, or wish to ask for a missing feature?**
 
-Do not hesitate to open a [**issue**](https://github.com/marcomusy/vedo/issues)
+Do not hesitate to ask any questions on the [**image.sc** forum](https://forum.image.sc/)
+or by opening a [**github issue**](https://github.com/marcomusy/vedo/issues).
 
 
 ## 🎨  Features

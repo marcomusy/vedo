@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
+from deprecated import deprecated
 import vtk
 # from vtk.util.numpy_support import get_vtk_to_numpy_typemap
 import vedo
@@ -9,7 +10,6 @@ import vedo.docs as docs
 import vedo.settings as settings
 import vedo.utils as utils
 from vedo.base import BaseActor
-from deprecated import deprecated
 
 
 __doc__ = ("""Submodule to manage point clouds."""
@@ -21,7 +21,6 @@ __all__ = ["Points",
            "removeOutliers",
            "connectedPoints",
            "smoothMLS3D",
-           "pointCloudFrom",
            "visiblePoints",
            "delaunay2D",
            "voronoi",
@@ -71,7 +70,7 @@ def removeOutliers(points, radius, neighbors=5):
     return Points(outpts)
 
 
-def smoothMLS3D(meshs, neighbours=10):
+def smoothMLS3D(pcls, neighbours=10):
     """
     A time sequence of point clouds (Mesh) is being smoothed in 4D (3D + time)
     using a `MLS (Moving Least Squares)` algorithm variant.
@@ -86,13 +85,13 @@ def smoothMLS3D(meshs, neighbours=10):
     from scipy.spatial import KDTree
 
     coords4d = []
-    for a in meshs:  # build the list of 4d coordinates
+    for a in pcls:  # build the list of 4d coordinates
         coords3d = a.points()
         n = len(coords3d)
         pttimes = [[a.time()]] * n
         coords4d += np.append(coords3d, pttimes, axis=1).tolist()
 
-    avedt = float(meshs[-1].time() - meshs[0].time()) / len(meshs)
+    avedt = float(pcls[-1].time() - pcls[0].time()) / len(pcls)
     print("Average time separation between meshes dt =", round(avedt, 3))
 
     coords4d = np.array(coords4d)
@@ -215,34 +214,6 @@ def connectedPoints(mesh, radius, mode=0, regions=(), vrange=(0,1), seeds=(), an
     cpf.Update()
     m = Points(cpf.GetOutput())
     m.name = "connectedPoints"
-    return m
-
-
-def pointCloudFrom(obj, interpolateCellData=False):
-    """Build a `Mesh` object (as a point cloud) from any VTK dataset.
-
-    :param bool interpolateCellData: if True cell data is interpolated at point positions.
-    """
-    from vtk.numpy_interface import dataset_adapter
-    if interpolateCellData:
-        c2p = vtk.vtkCellDataToPointData()
-        c2p.SetInputData(obj)
-        c2p.Update()
-        obj = c2p.GetOutput()
-
-    wrapped = dataset_adapter.WrapDataObject(obj)
-    ptdatanames = wrapped.PointData.keys()
-
-    vpts = obj.GetPoints()
-    poly = vtk.vtkPolyData()
-    poly.SetPoints(vpts)
-
-    for name in ptdatanames:
-        arr = obj.GetPointData().GetArray(name)
-        poly.GetPointData().AddArray(arr)
-
-    m = Points(poly, c=None)
-    m.name = "pointCloud"
     return m
 
 
@@ -580,10 +551,7 @@ def fitCircle(points):
 
     Reference: J.F. Crawford, Nucl. Instr. Meth. 211, 1983, 223-225.
     """
-    if len(points) == 2:
-        data = np.c_[points[0], points[1]]
-    else:
-        data = np.asarray(points)
+    data = np.asarray(points)
 
     offs = data.mean(axis=0)
     data, n0 = _rotatePoints(data-offs)
@@ -875,7 +843,7 @@ class Points(vtk.vtkFollower, BaseActor):
         self._scals_idx = 0  # index of the active scalar changed from CLI
         self._ligthingnr = 0 # index of the lighting mode changed from CLI
         self._cmap_name = "" # remember the name for self._keypress
-        #self.name = "Points" # better not to give this a name here
+        #self.name = "Points" # better not to give it a name here
 
         self.property = self.GetProperty()
         try:
@@ -890,7 +858,8 @@ class Points(vtk.vtkFollower, BaseActor):
 
         self.property.SetRepresentationToPoints()
         self.property.SetPointSize(r)
-        self.lighting(ambient=0.7, diffuse=0.3)
+        # self.lighting(ambient=0.7, diffuse=0.3)
+        self.property.LightingOff()
 
         if isinstance(inputobj, vtk.vtkActor):
             polyCopy = vtk.vtkPolyData()
@@ -3802,7 +3771,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
     def to_meshlab(self):
         """Return the ``pymeshlab.Mesh`` object."""
-        return utils._vedo2meshlab(self)
+        return utils.vedo2meshlab(self)
 
     def addClustering(self, radius):
         """
@@ -3880,7 +3849,7 @@ class Points(vtk.vtkFollower, BaseActor):
         return vol
 
 
-    def densify(self, targetDistance=0.1, closest=6, radius=None, niter=1, maxN=None):
+    def densify(self, targetDistance=0.1, nclosest=6, radius=None, niter=1, maxN=None):
         """
         Return a copy of the cloud with new added points.
         The new points are created in such a way that all points in any local neighborhood are
@@ -3917,7 +3886,6 @@ class Points(vtk.vtkFollower, BaseActor):
         src.SetExecuteMethod(_readPoints)
 
         dens = vtk.vtkDensifyPointCloudFilter()
-        # dens.SetInputData(self.polydata()) # this doesnt work (?)
         dens.SetInputConnection(src.GetOutputPort())
         dens.InterpolateAttributeDataOn()
         dens.SetTargetDistance(targetDistance)
@@ -3927,17 +3895,128 @@ class Points(vtk.vtkFollower, BaseActor):
         if radius:
             dens.SetNeighborhoodTypeToRadius()
             dens.SetRadius(radius)
-        elif closest:
+        elif nclosest:
             dens.SetNeighborhoodTypeToNClosest()
-            dens.SetNumberOfClosestPoints(closest)
+            dens.SetNumberOfClosestPoints(nclosest)
         else:
-            colors.printc("Error in densifyCloud: set either radius or closestN", c='r')
+            colors.printc("Error in densifyCloud: set either radius or nclosest", c='r')
             raise RuntimeError()
         dens.Update()
         pts = utils.vtk2numpy(dens.GetOutput().GetPoints().GetData())
         cld = Points(pts, c=None).pointSize(self.GetProperty().GetPointSize())
-        cld.interpolateDataFrom(self, N=closest, radius=radius)
+        cld.interpolateDataFrom(self, N=nclosest, radius=radius)
         cld.name = "densifiedCloud"
         return cld
+
+    ###############################################################################
+    ## stuff returning Volume
+    def signedDistance(self, bounds=None, dims=(20,20,20), invert=False, maxradius=None):
+        """
+        Compute the ``Volume`` object whose voxels contains the signed distance from
+        the point cloud. The point cloud must have Normals.
+
+        :param list bounds: volume bounds.
+        :param list dims: dimensions (nr. of voxels) of the output volume.
+        :param bool invert: flip the sign.
+        :param float maxradius: how far out to propagate distance calculation
+        """
+        if bounds is None:
+            bounds = self.GetBounds()
+        if maxradius is None:
+            maxradius = self.diagonalSize()/2
+        dist = vtk.vtkSignedDistance()
+        dist.SetInputData(self.polydata())
+        dist.SetRadius(maxradius)
+        dist.SetBounds(bounds)
+        dist.SetDimensions(dims)
+        dist.Update()
+        img = dist.GetOutput()
+        if invert:
+            mat = vtk.vtkImageMathematics()
+            mat.SetInput1Data(img)
+            mat.SetOperationToMultiplyByK()
+            mat.SetConstantK(-1)
+            mat.Update()
+            img = mat.GetOutput()
+
+        vol = vedo.Volume(img)
+        vol.name = "SignedDistanceVolume"
+        return vol
+
+    def tovolume(self,
+                 kernel='shepard',
+                 radius=None,
+                 N=None,
+                 bounds=None,
+                 nullValue=None,
+                 dims=(25,25,25),
+        ):
+        """
+        Generate a ``Volume`` by interpolating a scalar
+        or vector field which is only known on a scattered set of points or mesh.
+        Available interpolation kernels are: shepard, gaussian, or linear.
+
+        :param str kernel: interpolation kernel type [shepard]
+        :param float radius: radius of the local search
+        :param list bounds: bounding box of the output Volume object
+        :param list dims: dimensions of the output Volume object
+        :param float nullValue: value to be assigned to invalid points
+
+        |interpolateVolume| |interpolateVolume.py|_
+        """
+        if radius is None and not N:
+            colors.printc("Error in tovolume(): please set either radius or N", c='r')
+            raise RuntimeError
+
+        poly = self.polydata()
+
+        # Create a probe volume
+        probe = vtk.vtkImageData()
+        probe.SetDimensions(dims)
+        if bounds is None:
+            bounds = poly.GetBounds()
+        probe.SetOrigin(bounds[0],bounds[2],bounds[4])
+        probe.SetSpacing((bounds[1]-bounds[0])/dims[0],
+                         (bounds[3]-bounds[2])/dims[1],
+                         (bounds[5]-bounds[4])/dims[2])
+
+        self.point_locator = vtk.vtkStaticPointLocator()
+        self.point_locator.SetDataSet(poly)
+        self.point_locator.BuildLocator()
+
+        if kernel == 'shepard':
+            kern = vtk.vtkShepardKernel()
+            kern.SetPowerParameter(2)
+        elif kernel == 'gaussian':
+            kern = vtk.vtkGaussianKernel()
+        elif kernel == 'linear':
+            kern = vtk.vtkLinearKernel()
+        else:
+            print('Error in tovolume, available kernels are:')
+            print(' [shepard, gaussian, linear]')
+            raise RuntimeError()
+
+        if radius:
+            kern.SetRadius(radius)
+
+        interpolator = vtk.vtkPointInterpolator()
+        interpolator.SetInputData(probe)
+        interpolator.SetSourceData(poly)
+        interpolator.SetKernel(kern)
+        interpolator.SetLocator(self.point_locator)
+
+        if N:
+            kern.SetNumberOfPoints(N)
+            kern.SetKernelFootprintToNClosest()
+        else:
+            kern.SetRadius(radius)
+
+        if nullValue is not None:
+            interpolator.SetNullValue(nullValue)
+        else:
+            interpolator.SetNullPointsStrategyToClosestPoint()
+        interpolator.Update()
+        return vedo.Volume(interpolator.GetOutput())
+
 
 

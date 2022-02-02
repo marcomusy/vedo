@@ -882,7 +882,7 @@ def toNumpy(obj):
         _fillcommon(obj, adict)
         adict['array'] = utils.vtk2numpy(obj.inputdata().GetPointData().GetScalars())
         adict['shape'] = obj.inputdata().GetDimensions()
-        print('toNumpy(): vedo.Picture', obj.shape, obj.GetPosition())
+        #print('toNumpy(): vedo.Picture', obj.shape, obj.GetPosition())
 
     ######################################################## Text2D
     elif isinstance(obj, vedo.Text2D):
@@ -891,7 +891,7 @@ def toNumpy(obj):
         adict['text'] = obj.text()
         adict['position'] = obj.GetPosition()
         adict['color'] = obj.property.GetColor()
-        adict['font'] =  obj.font()
+        adict['font']  = obj.fontname
         adict['size']  = obj.property.GetFontSize()/22.5
         adict['bgcol'] = obj.property.GetBackgroundColor()
         adict['alpha'] = obj.property.GetBackgroundOpacity()

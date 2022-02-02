@@ -1777,32 +1777,76 @@ def trimesh2vedo(inputobj):
     return None
 
 
-def _vedo2meshlab(vmesh):
+def vedo2meshlab(vmesh):
     try:
         import pymeshlab as mlab
     except RuntimeError:
-        printc("Need pymeshlab to run: pip install pymeshlab", c='r')
+        printc("Need pymeshlab to run:\npip install pymeshlab", c='r')
 
-    m = mlab.Mesh(vertex_matrix=vmesh.points(),
-                  face_matrix=vmesh.faces(),
-                  v_normals_matrix=vmesh.normals(cells=False, compute=False),
-                  f_normals_matrix=vmesh.normals(cells=True, compute=False),
+    vertex_matrix = vmesh.points().astype(np.float64)
+
+    try:
+        face_matrix = np.asarray(vmesh.faces(), dtype=np.float64)
+    except:
+        print("In vedo2meshlab, need to triangulate mesh first!")
+        face_matrix = np.array(vmesh.clone().triangulate().faces(), dtype=np.float64)
+
+    v_normals_matrix = vmesh.normals(cells=False, compute=False)
+    if not len(v_normals_matrix):
+        v_normals_matrix = np.empty((0,3), dtype=np.float64)
+
+    f_normals_matrix = vmesh.normals(cells=True, compute=False)
+    if not len(f_normals_matrix):
+        f_normals_matrix = np.empty((0,3), dtype=np.float64)
+
+    v_color_matrix = vmesh.pointdata["RGBA"]
+    if v_color_matrix is None:
+        v_color_matrix = np.empty((0,4), dtype=np.float64)
+    else:
+        v_color_matrix = v_color_matrix.astype(np.float64) / 255
+        if v_color_matrix.shape[1] == 3:
+            v_color_matrix = np.c_[v_color_matrix,
+                                   np.ones(v_color_matrix.shape[0], dtype=np.float64)]
+
+    f_color_matrix = vmesh.celldata["RGBA"]
+    if f_color_matrix is None:
+        f_color_matrix = np.empty((0,4), dtype=np.float64)
+    else:
+        f_color_matrix = f_color_matrix.astype(np.float64) / 255
+        if f_color_matrix.shape[1] == 3:
+            f_color_matrix = np.c_[f_color_matrix,
+                                   np.ones(f_color_matrix.shape[0], dtype=np.float64)]
+
+    if len(vmesh.pointdata.keys()) and vmesh.pointdata[0] is not None:
+        v_quality_array = vmesh.pointdata[0].astype(np.float64)
+    else:
+        v_quality_array = np.array([], dtype=np.float64)
+
+    if len(vmesh.celldata.keys()) and vmesh.celldata[0] is not None:
+        f_quality_array = vmesh.celldata[0].astype(np.float64)
+    else:
+        f_quality_array = np.array([], dtype=np.float64)
+
+    m = mlab.Mesh(vertex_matrix=vertex_matrix,
+                  face_matrix=face_matrix,
+                  v_normals_matrix=v_normals_matrix,
+                  f_normals_matrix=f_normals_matrix,
+                  v_color_matrix=v_color_matrix,
+                  f_color_matrix=f_color_matrix,
+                  v_quality_array=v_quality_array,
+                  f_quality_array=f_quality_array,
     )
-    parr = vmesh.pointdata[0]
-    if parr is not None:
-        m.vertex_quality_array(parr)
-    carr = vmesh.getCellArray()
-    if carr is not None:
-        m.face_quality_array(carr)
+
     m.update_bounding_box()
     return m
 
 
-def _meshlab2vedo(mmesh):
+def meshlab2vedo(mmesh):
     inputtype = str(type(mmesh))
 
     if "MeshSet" in inputtype:
         mmesh = mmesh.current_mesh()
+
     mpoints, mcells = mmesh.vertex_matrix(), mmesh.face_matrix()
     pnorms = mmesh.vertex_normal_matrix()
     cnorms = mmesh.face_normal_matrix()

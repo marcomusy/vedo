@@ -1,7 +1,6 @@
 """pymeshlab interoperability example:
-    Surface reconstruction by ball pivoting"""
-import pymeshlab
-import vedo
+Surface reconstruction by ball pivoting"""
+import pymeshlab, vedo
 
 pts = vedo.Mesh(vedo.dataurl+'cow.vtk').points() # numpy array of vertices
 
@@ -10,15 +9,16 @@ m = pymeshlab.Mesh(vertex_matrix=pts)
 ms = pymeshlab.MeshSet()
 ms.add_mesh(m)
 
-ms.surface_reconstruction_ball_pivoting(ballradius=pymeshlab.Percentage(0.15))
+p = pymeshlab.Percentage(2)
+ms.surface_reconstruction_ball_pivoting(ballradius=p)
 # ms.compute_normals_for_point_sets()
-# ms.surface_reconstruction_screened_poisson()
 
 mlab_mesh = ms.current_mesh()
+reco_mesh = vedo.Mesh(mlab_mesh).computeNormals().flat().backColor('t')
 
-reco_mesh = vedo.Mesh(mlab_mesh).computeNormals().flat()
-
-vedo.show(__doc__, reco_mesh, axes=True, bg2='blue9', title="vedo + pymeshlab")
+vedo.show(__doc__, vedo.Points(pts), reco_mesh,
+          axes=True, bg2='blue9', title="vedo + pymeshlab",
+)
 
 
 ################################################################################

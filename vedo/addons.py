@@ -65,8 +65,10 @@ class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
                  pos="top-right",
                  markers=None,
         ):
+        shapes.TextBase.__init__(self)
         vtk.vtkLegendBoxActor.__init__(self)
 
+        self.name = "LegendBox"
         self.entries = entries[:nmax]
 
         n = 0
@@ -1860,7 +1862,7 @@ def Axes(
         xShiftAlongY=0, xShiftAlongZ=0,
         yShiftAlongX=0, yShiftAlongZ=0,
         zShiftAlongX=0, zShiftAlongY=0,
-        xUseBounds=True, yUseBounds=False, zUseBounds=False,
+        xUseBounds=True, yUseBounds=True, zUseBounds=False,
         xInverted=False, yInverted=False, zInverted=False,
         useGlobal=False,
         tol=0.0001,

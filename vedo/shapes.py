@@ -3181,6 +3181,12 @@ class TextBase:
 
     def font(self, font):
 
+        if isinstance(font, int):
+            lfonts = list(settings.font_parameters.keys())
+            n = font%len(lfonts)
+            font = lfonts[n]
+            self.fontname = font
+
         if not font:                   # use default font
             font = self.fontname
             fpath = os.path.join(settings.fonts_path, font +'.ttf')

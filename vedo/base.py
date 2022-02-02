@@ -749,6 +749,13 @@ class BaseActor(Base3DProp):
             return self._mapper.GetInput()
         return self.GetMapper().GetInput()
 
+    def modified(self):
+        """Use in conjunction with ``tonumpy()`` to update any modifications to the volume array"""
+        sc = self.inputdata().GetPointData().GetScalars()
+        if sc:
+            sc.Modified()
+        self.inputdata().GetPointData().Modified()
+        return self
 
     def N(self):
         """Retrieve number of points. Shortcut for `NPoints()`."""

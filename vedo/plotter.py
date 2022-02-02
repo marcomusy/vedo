@@ -1080,7 +1080,7 @@ class Plotter:
         """
         Reset the camera position and zooming.
         If xypad is specified the zooming reserves a padding space in the xy-plane
-        expressed in percentof the average size.
+        expressed in percent of the average size.
         """
         if xypad is None:
             self.renderer.ResetCamera()
@@ -2147,9 +2147,9 @@ class Plotter:
                 if "MeshSet" in str(type(a)):
                     for i in range(a.number_meshes()):
                         if a.mesh_id_exists(i):
-                            scannedacts.append(vedo.Mesh(utils._meshlab2vedo(a.mesh(i))))
+                            scannedacts.append(vedo.Mesh(utils.meshlab2vedo(a.mesh(i))))
                 else:
-                    scannedacts.append(vedo.Mesh(utils._meshlab2vedo(a)))
+                    scannedacts.append(vedo.Mesh(utils.meshlab2vedo(a)))
 
             else:
                 vedo.printc("Error: cannot understand input in show():", type(a), c='r')
@@ -2211,6 +2211,7 @@ class Plotter:
             - 12, show polar axes
             - 13, draw a simple ruler at the bottom of the window
 
+        :param float,str zoom: zooming factor, if "tight" is passed zoom in as close as possible.
         :param float azimuth/elevation/roll:  move camera accordingly
         :param str viewup:  either ['x', 'y', 'z'] to set vertical direction
         :param bool resetcam:  re-adjust camera position to fit objects
@@ -2362,7 +2363,10 @@ class Plotter:
             if self.interactor:
                 if zoom:
                     for r in self.renderers:
-                        r.GetActiveCamera().Zoom(zoom)
+                        if zoom == 'tight':
+                            self.resetCamera(xypad=0.01)
+                        else:
+                            r.GetActiveCamera().Zoom(zoom)
                 self.window.Render()
                 self.window.SetWindowName(self.title)
                 if self._interactive:
@@ -2502,7 +2506,10 @@ class Plotter:
             self.flagWidget.EnabledOn()
 
         if zoom:
-            self.camera.Zoom(zoom)
+            if zoom == "tight":
+                self.resetCamera(xypad=0.01)
+            else:
+                self.camera.Zoom(zoom)
         if elevation:
             self.camera.Elevation(elevation)
         if azimuth:

@@ -5,9 +5,9 @@ filepath = vedo.download(vedo.dataurl+'bunny.obj')
 
 ms = pymeshlab.MeshSet()
 ms.load_new_mesh(filepath)
-# vedo.show(ms, axes=True) # this already works!
+#vedo.show(ms, axes=True) # this already works!
 
-pt = [0.02343884, 0.0484675, 0.03972297]
+pt = [0.0234, 0.0484, 0.0400]
 ms.colorize_by_geodesic_distance_from_a_given_point(startpoint=pt)
 
 mlab_mesh = ms.current_mesh()
@@ -16,12 +16,9 @@ vedo_mesh = vedo.Mesh(mlab_mesh).cmap('Paired').addScalarBar("distance")
 
 print("Can convert back to pymeshlab.MeshSet:", type(vedo_mesh.to_meshlab()))
 
-vedo.show("pymeshlab interoperability example",
-          vedo_mesh,
-          vedo.Point(pt),
+vedo.show(__doc__, vedo_mesh, vedo.Point(pt),
           axes=True, bg='green9', bg2='blue9', title="vedo + pymeshlab",
 )
-
 
 ################################################################################
 # Full list of filters, https://pymeshlab.readthedocs.io/en/latest/filter_list.html
