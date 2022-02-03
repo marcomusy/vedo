@@ -1827,24 +1827,24 @@ class Video:
         return self
 
 
-    def action(self, elevation_range=(0,80),
-               azimuth_range=(0,359),
-               zoom=None,
-               cam1=None, cam2=None,
+    def action(self,
+               elevation=(0,80),
+               azimuth=(0,359),
+               cameras=(),
                resetcam=False,
-               ):
+        ):
         """
         Automatic shooting of a static scene by specifying rotation and elevation ranges.
 
-        :param list elevation_range: initial and final elevation angles
+        :param list elevation: initial and final elevation angles
         :param list azimuth_range: initial and final azimuth angles
-        :param float zoom: initial zooming
-        :param cam1 cam2: initial and final camera position, can be dictionary or a vtkCamera
+        :param list cameras: list of cameras to go through, each camera can be dictionary or a vtkCamera
         """
         if not self.duration:
             self.duration = 5
 
-        def buildcam(cm):
+        def build_vtk_cam(cm_input):
+            cm = dict(cm_input)
             cm_pos = cm.pop("pos", None)
             cm_focalPoint = cm.pop("focalPoint", None)
             cm_viewup = cm.pop("viewup", None)
@@ -1866,34 +1866,36 @@ class Video:
 
         plt = settings.plotter_instance
 
-        if zoom:
-            plt.camera.Zoom(zoom)
-
-        if isinstance(cam1, dict):
-            cam1 = buildcam(cam1)
-        if isinstance(cam2, dict):
-            cam2 = buildcam(cam2)
-
-        if len(elevation_range)==2:
-            plt.camera.Elevation(elevation_range[0])
-        if len(azimuth_range)==2:
-            plt.camera.Azimuth(azimuth_range[0])
+        cams = []
+        for cm in cameras:
+            cams.append(build_vtk_cam(cm))
+        nc = len(cams)
 
         plt.show(resetcam=resetcam, interactive=False)
-        # if resetcam: plt.renderer.ResetCamera()
 
-        n = self.fps * self.duration
-        for i in range(int(n)):
-            if cam1 and cam2:
-                plt.moveCamera(cam1, cam2, i/n)
-            else:
-                if len(elevation_range)==2:
-                    plt.camera.Elevation((elevation_range[1]-elevation_range[0])/n)
-                if len(azimuth_range)==2:
-                    plt.camera.Azimuth((azimuth_range[1]-azimuth_range[0])/n)
-            plt.show()
-            self.addFrame()
+        n = int(self.fps * self.duration)
+
+        if nc:
+            for icam, cam in enumerate(cams):
+                if cam==cams[-1]:
+                    break
+                for i in range(n):
+                    plt.moveCamera(cams[icam], cams[icam+1], i/n)
+                    plt.show()
+                    self.addFrame()
+
+        else: ########################################
+
+            for i in range(int(n)):
+                if len(elevation)==2:
+                    plt.camera.Elevation((elevation[1]-elevation[0])/n)
+                if len(azimuth)==2:
+                    plt.camera.Azimuth((azimuth[1]-azimuth[0])/n)
+                plt.show()
+                self.addFrame()
+
         return self
+
 
     def close(self):
         """
@@ -1912,7 +1914,7 @@ class Video:
                             + " -i " + self.tmp_dir.name + os.sep
                             + "%01d.png " + self.options + " " + self.name)
             if out:
-                colors.printc("ffmpeg returning error", c='r')
+                colors.printc(f"backend {self.backend} returning error", c='r')
             else:
                 colors.printc("\save Video saved as", self.name, c="m")
 

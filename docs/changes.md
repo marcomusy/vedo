@@ -12,6 +12,11 @@
 ---
 ### `cli.py`
 
+---
+### `io.py`
+
+- improved `Video.action(cameras=[...])` to interpolate cameras positions
+
 
 ---
 ### `mesh.py`
@@ -64,13 +69,12 @@
 `examples/volumetric/image_mask.py`
 `examples/pyplot/histo_3D.py`
 `examples/other/napari1.py`
+`examples/other/makeVideo.py`
 `examples/volumetric/volumeFromMesh.py`
 `examples/volumetric/mesh2volume.py`
 
 ## broken examples
 ```
-cartoony.py
-
 makeVideo.py
 
 legosurface.py
