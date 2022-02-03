@@ -1201,14 +1201,15 @@ class Mesh(Points):
         return self
 
 
-    def addShadow(self, plane=None, point=None, direction=None, clip=False, c=(0.6,0.6,0.6), alpha=1, culling=1):
+    def addShadow(self, plane=None, point=None, direction=None, clip=False,
+                  c=(0.6,0.6,0.6), alpha=1, culling=1):
         """
         Generate a shadow out of an ``Mesh`` on one of the three Cartesian planes.
         The output is a new ``Mesh`` representing the shadow.
         This new mesh is accessible through `mesh.shadow`.
         By default the shadow mesh is placed on the bottom wall of the bounding box.
 
-        See pointcloud.projectOnPlane.
+        See also pointcloud.projectOnPlane.
 
         :param str,Plane plane: if plane is `str`, plane can be one of ['x', 'y', 'z'],
             represents x-plane, y-plane and z-plane, respectively.
@@ -1228,26 +1229,41 @@ class Mesh(Points):
 
         |airplanes| |airplanes.py|_
         """
+        shad = self.clone()
+        pts = shad.points()
         if   'x' == plane:
-            shad = self.clone().projectOnPlane('x')
+            # shad = shad.projectOnPlane('x')
+            # instead do it manually so in case of alpha<1 we dont see glitches due to coplanar points
+            # we leave a small tolerance of 0.1% in thickness
+            x0,x1 = self.xbounds()
+            pts[:,0] = (pts[:,0]-(x0+x1)/2)/1000 + self.GetOrigin()[0]
+            shad.points(pts)
             if point is not None:
                 shad.x(point)
         elif 'y' == plane:
-            shad = self.clone().projectOnPlane('y')
+            # shad = shad.projectOnPlane('y')
+            x0,x1 = self.ybounds()
+            pts[:,1] = (pts[:,1]-(x0+x1)/2)/1000 + self.GetOrigin()[1]
+            shad.points(pts)
             if point is not None:
                 shad.y(point)
         elif 'z' == plane:
-            shad = self.clone().projectOnPlane('z')
+            # shad = shad.projectOnPlane('z')
+            x0,x1 = self.zbounds()
+            pts[:,2] = (pts[:,2]-(x0+x1)/2)/1000 + self.GetOrigin()[2]
+            shad.points(pts)
             if point is not None:
                 shad.z(point)
         else:
-            shad = self.clone().projectOnPlane(plane, point, direction, clip)
+            shad = shad.projectOnPlane(plane, point, direction, clip)
 
-        shad.c(c).alpha(alpha).wireframe(False).flat()
-        if culling==1:
+        shad.c(c).alpha(alpha).flat()
+
+        if culling==1 or culling==True:
             shad.frontFaceCulling()
         elif culling==-1:
             shad.backFaceCulling()
+
         shad.GetProperty().LightingOff()
         shad.SetPickable(False)
         shad.SetUseBounds(True)

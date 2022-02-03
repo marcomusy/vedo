@@ -385,6 +385,10 @@ def exe_eog(args):
                     p.mirror()
             elif event.keyPressed=="t":
                     p.rotate(90)
+            elif event.keyPressed=="f":
+                    p.flip()
+            elif event.keyPressed=="i":
+                    p.invert()
             elif event.keyPressed=="k":
                     p.enhance()
             elif event.keyPressed=="s":
@@ -401,8 +405,10 @@ def exe_eog(args):
                 printc('Press:')
                 printc('  up/down     to modify level (or drag mouse)')
                 printc('  left/right  to modify window')
-                printc('  m           to mirror image')
+                printc('  m           to mirror image horizontally')
+                printc('  f           to flip image vertically')
                 printc('  t           to rotate image by 90 deg')
+                printc('  i           to invert colors')
                 printc('  k           to enhance b&w image')
                 printc('  s           to apply gaussian smoothing')
                 printc('  S           to save image as png')
@@ -410,16 +416,23 @@ def exe_eog(args):
 
             plt.render()
 
-    pics = load(files)
-    if isinstance(pics, Picture):
-        pics = [pics]
-    if pics is None:
-        return
+    pics =[]
+    for f in files:
+        if os.path.isfile(f):
+            try:
+                pic = Picture(f)
+                if pic:
+                    pics.append(pic)
+            except:
+                printc("Could not load image", f, c='r')
+        else:
+            printc("Could not load image", f, c='r')
+
     n = len(pics)
-    pic = pics[0]
-    if pic is None:
-        printc("Could not load image.", c='r')
+    if not n:
         return
+
+    pic = pics[0]
     lev, win = pic.level(), pic.window()
 
     if n > 1:
