@@ -312,7 +312,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         return self._update(img)
 
 
-    def tiling(self, nx=4, ny=4, shift=(0,0)):
+    def tile(self, nx=4, ny=4, shift=(0,0)):
         """
         Generate a tiling from the current picture by mirroring and repeating it.
 

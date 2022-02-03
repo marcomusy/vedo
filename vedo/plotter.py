@@ -429,23 +429,13 @@ class Plotter:
         self._extralight = None
         self.size = size
         self.interactor = None
+        self.camera = None
         self.keyheld = ''
         self.xtitle = settings.xtitle  # x axis label and units
         self.ytitle = settings.ytitle  # y axis label and units
         self.ztitle = settings.ztitle  # z axis label and units
 
-        # build the rendering window:
-        self.camera = vtk.vtkCamera()
-        self.window = vtk.vtkRenderWindow()
-        self.escaped = False
-
-        self.window.GlobalWarningDisplayOff()
-        self.window.SetWindowName(self.title)
-
-        self._repeating_timer_id = None
-        self._timer_event_id = None
-
-        ############################################################
+        #####################################################################
         notebookBackend = settings.notebookBackend
         if notebookBackend:
             if notebookBackend == '2d':
@@ -460,9 +450,20 @@ class Plotter:
                 self.camera = None # let the backend choose
                 if self.size == "auto":
                     self.size = (1000, 1000)
-                ############################
-                return #####################
-                ############################
+                #############################################################
+                return ######################################################
+                #############################################################
+        #####################################################################
+
+        # build the rendering window:
+        self.window = vtk.vtkRenderWindow()
+        self.escaped = False
+
+        self.window.GlobalWarningDisplayOff()
+        self.window.SetWindowName(self.title)
+
+        self._repeating_timer_id = None
+        self._timer_event_id = None
 
         # more settings
         if settings.useDepthPeeling:
@@ -692,6 +693,7 @@ class Plotter:
 
         if len(self.renderers):
             self.renderer = self.renderers[0]
+            self.camera = self.renderer.GetActiveCamera()
 
         if self.size[0] == 'f':  # full screen
             self.size = 'fullscreen'
@@ -934,6 +936,8 @@ class Plotter:
                 if isinstance(a, vtk.vtkVolume):
                     self.window.SetMultiSamples(0) # to fix mac OSX BUG vtk9
                     break
+
+        self.camera = self.renderer.GetActiveCamera()
         if resetcam:
             self.renderer.ResetCamera()
 
