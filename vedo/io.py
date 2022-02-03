@@ -1865,6 +1865,7 @@ class Video:
             return cm
 
         plt = settings.plotter_instance
+        n = int(self.fps * self.duration)
 
         cams = []
         for cm in cameras:
@@ -1872,8 +1873,6 @@ class Video:
         nc = len(cams)
 
         plt.show(resetcam=resetcam, interactive=False)
-
-        n = int(self.fps * self.duration)
 
         if nc:
             for icam, cam in enumerate(cams):
@@ -1886,11 +1885,9 @@ class Video:
 
         else: ########################################
 
-            for i in range(int(n)):
-                if len(elevation)==2:
-                    plt.camera.Elevation((elevation[1]-elevation[0])/n)
-                if len(azimuth)==2:
-                    plt.camera.Azimuth((azimuth[1]-azimuth[0])/n)
+            for i in range(n):
+                plt.camera.Elevation((elevation[1]-elevation[0])/n)
+                plt.camera.Azimuth((azimuth[1]-azimuth[0])/n)
                 plt.show()
                 self.addFrame()
 

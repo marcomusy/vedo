@@ -75,8 +75,6 @@
 
 ## broken examples
 ```
-makeVideo.py
-
 legosurface.py
 slicer1.py
 vedo https://vedo.embl.es/examples/geo_scene.npz
