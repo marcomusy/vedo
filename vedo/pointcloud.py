@@ -2387,6 +2387,11 @@ class Points(vtk.vtkFollower, BaseActor):
              |mesh_coloring| |mesh_alphas| |mesh_custom|
         """
         self._cmap_name = cname
+
+        if input_array is None:
+            if len(self.pointdata.keys()) == 0 and len(self.celldata.keys()):
+                on = 'cells'
+
         if on.startswith('p'):
             if not arrayName: arrayName="PointScalars"
             self._pointColors(input_array, cname, alpha, vmin, vmax, arrayName, n)

@@ -662,7 +662,8 @@ def ScalarBar3D(
     if isinstance(obj, Points):
         lut = obj.mapper().GetLookupTable()
         if not lut or lut.GetTable().GetNumberOfTuples() == 0:
-            obj.cmap('jet_r') # create the most similar to the default
+            # create the most similar to the default
+            obj.cmap('jet_r')
             # todo: grab the auto created default LUT (but where is it?)
             #       cells or points?
             lut = obj.mapper().GetLookupTable()
@@ -703,6 +704,7 @@ def ScalarBar3D(
         scale.cellIndividualColors(rgba)
 
     else: ########################################################
+
         # build the color scale part
         scale = shapes.Grid([-sx * labelOffset, 0, 0], c=c, alpha=1, sx=sx, sy=sy,
                             resx=1, resy=lut.GetTable().GetNumberOfTuples())

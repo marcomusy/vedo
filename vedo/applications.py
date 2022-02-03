@@ -442,7 +442,9 @@ def IsosurfaceBrowser(volume, c=None, alpha=1, lego=False, cmap='hot', pos=None,
         sliderpos = ((0.79, 0.035), (0.975, 0.035))
         slidertitle = ""
         showval = False
-        mesh = volume.legosurface(vmin=threshold, cmap=cmap).alpha(alpha)
+        mesh = volume.legosurface(vmin=threshold)
+        mesh.cmap(cmap, vmin=scrange[0], vmax=scrange[1], on='cells')
+        mesh.alpha(alpha)
         mesh.addScalarBar(horizontal=True)
     else:
         sliderpos = 4
@@ -467,7 +469,9 @@ def IsosurfaceBrowser(volume, c=None, alpha=1, lego=False, cmap='hot', pos=None,
             mesh = bacts[wval_2]
         else:                       # else generate it
             if lego:
-                mesh = volume.legosurface(vmin=wval, cmap=cmap)
+                mesh = volume.legosurface(vmin=wval)
+                if mesh.NCells():
+                    mesh.cmap(cmap, vmin=scrange[0], vmax=scrange[1], on='cells')
             else:
                 mesh = volume.isosurface(threshold=wval).color(c).alpha(alpha)
             bacts.update({wval_2: mesh}) # store it

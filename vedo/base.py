@@ -1589,7 +1589,7 @@ class BaseGrid(BaseActor):
         return a
 
 
-    def legosurface(self, vmin=None, vmax=None, invert=False, cmap='afmhot_r', boundary=True):
+    def legosurface(self, vmin=None, vmax=None, invert=False, boundary=False):
         """
         Represent an object - typically a Volume - as lego blocks (voxels).
         By default colors correspond to the volume's scalar.
@@ -1597,7 +1597,7 @@ class BaseGrid(BaseActor):
 
         :param float vmin: the lower threshold, voxels below this value are not shown.
         :param float vmax: the upper threshold, voxels above this value are not shown.
-        :param str cmap: color mapping of the scalar associated to the voxels.
+        :param bool boundary: controls whether to include cells that are partially inside
 
         |legosurface| |legosurface.py|_
         """
@@ -1627,12 +1627,11 @@ class BaseGrid(BaseActor):
         gf.SetInputData(extract.GetOutput())
         gf.Update()
 
-        a = vedo.mesh.Mesh(gf.GetOutput()).lw(0.1).flat().lighting('ambient')
+        a = vedo.mesh.Mesh(gf.GetOutput()).lw(0.1).flat()#.lighting('ambient')
         scalars = a.pointdata[0]
         if scalars is None:
-            print("Error in legosurface(): no scalars found!")
+            #print("Error in legosurface(): no scalars found!")
             return a
-        a.cmap(cmap, scalars, vmin=srng[0], vmax=srng[1])
         a.mapPointsToCells()
         return a
 

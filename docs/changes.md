@@ -53,6 +53,7 @@
 ### `volume.py`
 - `volume.mesh2Volume()` function moved to `vedo.mesh.binarize()`
 - `volume.signedDistanceFromPointCloud()` function moved to `Points.signedDistance`
+- `legosurface()` changed interface
 
 ---
 ### `utils.py`
