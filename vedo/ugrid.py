@@ -1,9 +1,9 @@
 import numpy as np
 import vtk
-from vedo.base import BaseGrid
 import vedo.colors as colors
-import vedo.settings as settings
 import vedo.utils as utils
+from vedo import settings
+from vedo.base import BaseGrid
 
 __all__ = ["UGrid"]
 
@@ -96,7 +96,6 @@ class UGrid(vtk.vtkActor, BaseGrid):
 
         # self._mapper = vtk.vtkDataSetMapper()
         self._mapper = vtk.vtkPolyDataMapper()
-
         self._mapper.SetInterpolateScalarsBeforeMapping(settings.interpolateScalarsBeforeMapping)
 
         if settings.usePolygonOffset:

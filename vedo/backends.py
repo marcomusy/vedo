@@ -6,7 +6,8 @@ import vedo.colors as colors
 from vedo.mesh import Mesh
 from vedo.pointcloud import Points
 from vedo.volume import Volume
-import vedo.settings as settings
+from vedo import settings
+
 import vedo.shapes as shapes
 import vedo.utils as utils
 
@@ -15,28 +16,28 @@ __all__ = []
 
 def getNotebookBackend(actors2show, zoom, viewup):
 
-    vp = settings.plotter_instance
+    plt = vedo.plotter_instance
 
     if zoom == 'tight':
         zoom=1 # disable it
 
-    if isinstance(vp.shape, str) or sum(vp.shape) > 2:
+    if isinstance(plt.shape, str) or sum(plt.shape) > 2:
         colors.printc("Multirendering is not supported in jupyter.", c=1)
         return
 
     ####################################################################################
     # https://github.com/InsightSoftwareConsortium/itkwidgets
     #  /blob/master/itkwidgets/widget_viewer.py
-    if 'itk' in settings.notebookBackend:
+    if 'itk' in vedo.notebookBackend:
         from itkwidgets import view
 
-        settings.notebook_plotter = view(actors=actors2show,
+        vedo.notebook_plotter = view(actors=actors2show,
                                          cmap='jet', ui_collapsed=True,
                                          gradient_opacity=False)
 
 
     ####################################################################################
-    elif settings.notebookBackend == 'k3d':
+    elif vedo.notebookBackend == 'k3d':
         try:
             import k3d # https://github.com/K3D-tools/K3D-jupyter
         except:
@@ -56,27 +57,27 @@ def getNotebookBackend(actors2show, zoom, viewup):
         # vbb, sizes, _, _ = addons.computeVisibleBounds()
         # kgrid = vbb[0], vbb[2], vbb[4], vbb[1], vbb[3], vbb[5]
 
-        settings.notebook_plotter = k3d.plot(axes=[vp.xtitle, vp.ytitle, vp.ztitle],
+        vedo.notebook_plotter = k3d.plot(axes=['x', 'y', 'z'],
                                              menu_visibility=settings.k3dMenuVisibility,
                                              height=settings.k3dPlotHeight,
                                              antialias=settings.k3dAntialias,
-                                             )
-        # settings.notebook_plotter.grid = kgrid
-        settings.notebook_plotter.lighting = settings.k3dLighting
+        )
+        # vedo.notebook_plotter.grid = kgrid
+        vedo.notebook_plotter.lighting = settings.k3dLighting
 
         # set k3d camera
-        settings.notebook_plotter.camera_auto_fit = settings.k3dCameraAutoFit
-        settings.notebook_plotter.grid_auto_fit = settings.k3dGridAutoFit
+        vedo.notebook_plotter.camera_auto_fit = settings.k3dCameraAutoFit
+        vedo.notebook_plotter.grid_auto_fit = settings.k3dGridAutoFit
 
-        settings.notebook_plotter.axes_helper = settings.k3dAxesHelper
+        vedo.notebook_plotter.axes_helper = settings.k3dAxesHelper
 
-        if settings.plotter_instance and settings.plotter_instance.camera:
-            k3dc =  utils.vtkCameraToK3D(settings.plotter_instance.camera)
+        if vedo.plotter_instance and vedo.plotter_instance.camera:
+            k3dc =  utils.vtkCameraToK3D(vedo.plotter_instance.camera)
             if zoom:
                 k3dc[0] /= zoom
                 k3dc[1] /= zoom
                 k3dc[2] /= zoom
-            settings.notebook_plotter.camera = k3dc
+            vedo.notebook_plotter.camera = k3dc
         # else:
         #     vsx, vsy, vsz = vbb[0]-vbb[1], vbb[2]-vbb[3], vbb[4]-vbb[5]
         #     vss = numpy.linalg.norm([vsx, vsy, vsz])
@@ -92,11 +93,11 @@ def getNotebookBackend(actors2show, zoom, viewup):
         #     else:
         #         vup = (0,1,0)
         #         vpos= vfp[0]+vss*0.01, vfp[1]+vss*0.01, vfp[2] + vss/1.5  # camera position
-        #     settings.notebook_plotter.camera = [vpos[0], vpos[1], vpos[2],
+        #     vedo.notebook_plotter.camera = [vpos[0], vpos[1], vpos[2],
         #                                           vfp[0],  vfp[1],  vfp[2],
         #                                           vup[0],  vup[1],  vup[2] ]
-        if not vp.axes:
-            settings.notebook_plotter.grid_visible = False
+        if not plt.axes:
+            vedo.notebook_plotter.grid_visible = False
 
         for ia in actors2show2:
 
@@ -178,13 +179,13 @@ def getNotebookBackend(actors2show, zoom, viewup):
                                   bounds=kbounds,
                                   name=name,
                                   )
-                settings.notebook_plotter += kobj
+                vedo.notebook_plotter += kobj
 
             #####################################################################text
             elif hasattr(ia, 'info') and 'formula' in ia.info.keys():
                 pos = (ia.GetPosition()[0],ia.GetPosition()[1])
                 kobj = k3d.text2d(ia.info['formula'], position=pos)
-                settings.notebook_plotter += kobj
+                vedo.notebook_plotter += kobj
 
 
             #####################################################################Mesh
@@ -200,7 +201,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
 
                 if iap.GetInterpolation() == 0:
                     kobj.flat_shading = True
-                settings.notebook_plotter += kobj
+                vedo.notebook_plotter += kobj
 
             #####################################################################Points
             elif isinstance(ia, Points):
@@ -220,7 +221,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
                                   point_size=iap.GetPointSize(),
                                   name=name,
                                   )
-                settings.notebook_plotter += kobj
+                vedo.notebook_plotter += kobj
 
 
             #####################################################################Lines
@@ -250,34 +251,34 @@ def getNotebookBackend(actors2show, zoom, viewup):
                                     name=name,
                                     )
 
-                    settings.notebook_plotter += kobj
+                    vedo.notebook_plotter += kobj
 
 
     ####################################################################################
-    elif settings.notebookBackend == 'panel' and hasattr(vp, 'window') and vp.window:
+    elif vedo.notebookBackend == 'panel' and hasattr(plt, 'window') and plt.window:
 
         import panel # https://panel.pyviz.org/reference/panes/VTK.html
-        vp.renderer.ResetCamera()
-        settings.notebook_plotter = panel.pane.VTK(vp.window,
-                                                   width=int(vp.size[0]/1.5),
-                                                   height=int(vp.size[1]/2))
-
+        plt.renderer.ResetCamera()
+        vedo.notebook_plotter = panel.pane.VTK(plt.window,
+                                               width=int(plt.size[0]/1.5),
+                                               height=int(plt.size[1]/2),
+        )
 
     ####################################################################################
-    elif 'ipyvtk' in settings.notebookBackend and hasattr(vp, 'window') and vp.window:
+    elif 'ipyvtk' in vedo.notebookBackend and hasattr(plt, 'window') and plt.window:
 
         from ipyvtklink.viewer import ViewInteractiveWidget
-        vp.renderer.ResetCamera()
-        settings.notebook_plotter = ViewInteractiveWidget(vp.window)
+        plt.renderer.ResetCamera()
+        vedo.notebook_plotter = ViewInteractiveWidget(plt.window)
 
     ####################################################################################
-    elif 'ipygany' in settings.notebookBackend:
+    elif 'ipygany' in vedo.notebookBackend:
 
         from ipygany import PolyMesh, Scene, IsoColor, RGB, Component
         from ipygany import Alpha, ColorBar, colormaps, PointCloud
         from ipywidgets import FloatRangeSlider, Dropdown, VBox, AppLayout, jslink
 
-        bgcol = colors.rgb2hex(colors.getColor(vp.backgrcol))
+        bgcol = colors.rgb2hex(colors.getColor(plt.backgrcol))
 
         actors2show2 = []
         for ia in actors2show:
@@ -367,12 +368,11 @@ def getNotebookBackend(actors2show, zoom, viewup):
         else:
             scene = Scene(pmeshes, background_color=bgcol)
 
-        settings.notebook_plotter = scene
-
+        vedo.notebook_plotter = scene
 
 
     ####################################################################################
-    elif '2d' in settings.notebookBackend.lower() and hasattr(vp, 'window') and vp.window:
+    elif '2d' in vedo.notebookBackend.lower() and hasattr(plt, 'window') and plt.window:
         import PIL.Image
         try:
             import IPython
@@ -383,9 +383,9 @@ def getNotebookBackend(actors2show, zoom, viewup):
         settings.screeshotLargeImage = True
         nn = screenshot(returnNumpy=True, scale=settings.screeshotScale+2)
         pil_img = PIL.Image.fromarray(nn)
-        settings.notebook_plotter = IPython.display.display(pil_img)
+        vedo.notebook_plotter = IPython.display.display(pil_img)
 
-    return settings.notebook_plotter
+    return vedo.notebook_plotter
 
 
 def _rgb2int(rgb_tuple):

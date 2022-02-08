@@ -1222,7 +1222,7 @@ class BaseActor(Base3DProp):
 
         .. hint:: |mesh_coloring| |mesh_coloring.py|_ |scalarbars.py|_
         """
-        plt = vedo.settings.plotter_instance
+        plt = vedo.plotter_instance
 
         if not hasattr(self, "mapper"):
             colors.printc("Error in addScalarBar(): input is invalid,", type(self), c='r')
@@ -1294,7 +1294,7 @@ class BaseActor(Base3DProp):
 
         .. hint:: |scalarbars| |scalarbars.py|_
         """
-        plt = vedo.settings.plotter_instance
+        plt = vedo.plotter_instance
         if plt and c is None:  # automatic black or white
             c = (0.9, 0.9, 0.9)
             if np.sum(vedo.getColor(plt.backgrcol)) > 1.5:

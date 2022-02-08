@@ -1,11 +1,11 @@
 import numpy as np
 import os
+from deprecated import deprecated
 import vtk
 import vedo
 from vedo.colors import printc, getColor, colorMap
 from vedo.utils import isSequence, flatten, mag, buildPolyData, numpy2vtk, vtk2numpy
 from vedo.pointcloud import Points
-from deprecated import deprecated
 
 __doc__ = ("""Submodule to manage polygonal meshes.""" + vedo.docs._defs)
 
@@ -203,10 +203,6 @@ class Mesh(Points):
             except:
                 printc("Error: cannot build mesh from type:\n", inputtype, c='r')
                 raise RuntimeError()
-
-
-        if vedo.settings.computeNormals is not None:
-            computeNormals = vedo.settings.computeNormals
 
         if self._data:
             if computeNormals:
@@ -434,14 +430,14 @@ class Mesh(Points):
                     pd.GetPointData().SetTCoords(tc)
                     pd.GetPointData().Modified()
 
-            fn = vedo.settings.textures_path + tname + ".jpg"
+            fn = vedo.textures_path + tname + ".jpg"
             if os.path.exists(tname):
                 fn = tname
             elif not os.path.exists(fn):
                 printc("File does not exist or texture", tname,
-                       "not found in", vedo.settings.textures_path, c="r")
+                       "not found in", vedo.textures_path, c="r")
                 printc("\tin Available built-in textures:", c="m", end=" ")
-                for ff in os.listdir(vedo.settings.textures_path):
+                for ff in os.listdir(vedo.textures_path):
                     printc(ff.split(".")[0], end=" ", c="m")
                 print()
                 return self
@@ -1695,9 +1691,9 @@ class Mesh(Points):
             sil.SetFeatureAngle(featureAngle)
 
         if (direction is None
-            and vedo.settings.plotter_instance
-            and vedo.settings.plotter_instance.camera):
-            sil.SetCamera(vedo.settings.plotter_instance.camera)
+            and vedo.plotter_instance
+            and vedo.plotter_instance.camera):
+            sil.SetCamera(vedo.plotter_instance.camera)
             m = Mesh()
             m._mapper.SetInputConnection(sil.GetOutputPort())
 
@@ -1741,7 +1737,7 @@ class Mesh(Points):
         if isinstance(cam, vtk.vtkCamera):
             self.SetCamera(cam)
         else:
-            plt = vedo.settings.plotter_instance
+            plt = vedo.plotter_instance
             if plt and plt.camera:
                 self.SetCamera(plt.camera)
             else:
@@ -1792,8 +1788,8 @@ class Mesh(Points):
         bcf = vtk.vtkBandedPolyDataContourFilter()
         bcf.SetInputData(self.polydata())
         # Use either the minimum or maximum value for each band.
-        for i in range(len(bands)):
-            bcf.SetValue(i, bands[i][2])
+        for i, band in enumerate(bands):
+            bcf.SetValue(i, band[2])
         # We will use an indexed lookup table.
         bcf.SetScalarModeToIndex()
         bcf.GenerateContourEdgesOff()

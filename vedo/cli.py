@@ -21,6 +21,7 @@ import sys, argparse, os, glob
 import numpy as np
 import vtk
 
+import vedo
 from vedo import io, load, settings, __version__
 from vedo.plotter import Plotter
 from vedo.utils import printInfo, isSequence, humansort
@@ -42,8 +43,8 @@ def execute_cli():
     parser = get_parser()
     args = parser.parse_args()
 
-    if "/vedo/vedo" in settings.installdir:
-        settings.installdir = settings.installdir.replace('vedo/','').replace('vedo\\','')
+    if "/vedo/vedo" in vedo.installdir:
+        vedo.installdir = vedo.installdir.replace('vedo/','').replace('vedo\\','')
 
     if args.info is not None:
         exe_info(args)
@@ -138,7 +139,7 @@ def exe_info(args):
     printc("vtk version       :", vtk.vtkVersion().GetVTKVersion())
     printc("python version    :", sys.version.replace("\n", ""))
     printc("python interpreter:", sys.executable)
-    printc("vedo installation :", settings.installdir)
+    printc("vedo installation :", vedo.installdir)
     try:
         import platform
         printc("system            :", platform.system(),
@@ -169,7 +170,7 @@ def exe_info(args):
 
 #################################################################################################
 def exe_run(args):
-    expath = os.path.join(settings.installdir, "examples", "**", "*.py")
+    expath = os.path.join(vedo.installdir, "examples", "**", "*.py")
     exfiles = [f for f in glob.glob(expath, recursive=True)]
     f2search = os.path.basename(args.run).lower()
     matching = [s for s in exfiles if (f2search in os.path.basename(s).lower() and "__" not in s)]
@@ -177,7 +178,7 @@ def exe_run(args):
     nmat = len(matching)
     if nmat == 0:
         printc("No matching example found containing string:", args.run, c=1)
-        printc(" Current installation directory is:", settings.installdir, c=1)
+        printc(" Current installation directory is:", vedo.installdir, c=1)
         exit(1)
 
     if nmat > 1:
@@ -257,7 +258,7 @@ def exe_convert(args):
 
 ##############################################################################################
 def exe_search(args):
-    expath = os.path.join(settings.installdir, "examples", "**", "*.py")
+    expath = os.path.join(vedo.installdir, "examples", "**", "*.py")
     exfiles = [f for f in sorted(glob.glob(expath, recursive=True))]
     pattern = args.search
     if args.no_camera_share:
@@ -569,7 +570,7 @@ def draw_scene(args):
         sp = vol.spacing()
         vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
 
-        settings.plotter_instance = None # reset
+        vedo.plotter_instance = None # reset
 
         plt = applications.SlicerPlotter(
                      vol,
@@ -587,7 +588,7 @@ def draw_scene(args):
     ########################################################################
     elif args.edit:
         # print('edit mode for meshes and pointclouds')
-        settings.plotter_instance = None # reset
+        vedo.plotter_instance = None # reset
         settings.useParallelProjection = True
 
         try:
@@ -611,7 +612,7 @@ def draw_scene(args):
         vol.cmap('bone_r')
         sp = vol.spacing()
         vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
-        settings.plotter_instance = None # reset
+        vedo.plotter_instance = None # reset
         plt = applications.Slicer2d(vol)
         plt.interactor.Start()
         return
@@ -1004,8 +1005,8 @@ def exe_gui(args):
             draw_scene(args)
             if os.name == "nt":
                 exit()
-            if settings.plotter_instance:
-                settings.plotter_instance.close()
+            if vedo.plotter_instance:
+                vedo.plotter_instance.close()
 
     root = Tk()
     root.geometry("360x500")

@@ -4,15 +4,14 @@ from functools import lru_cache
 import os
 import vtk
 import numpy as np
+from deprecated import deprecated
 import vedo
-from vedo import settings
 import vedo.utils as utils
+from vedo import settings
 from vedo.colors import printc, getColor, colorMap, cmaps_names
 from vedo.mesh import Mesh, merge
 from vedo.pointcloud import Points
 from vedo.picture import Picture
-from vedo.settings import font_parameters
-from deprecated import deprecated
 
 __doc__ = ("""Submodule to generate basic geometric shapes.""" + vedo.docs._defs)
 
@@ -2172,7 +2171,7 @@ class Earth(Mesh):
         Mesh.__init__(self, tss, c="w")
         atext = vtk.vtkTexture()
         pnmReader = vtk.vtkJPEGReader()
-        fn = os.path.join(settings.textures_path, "earth"+ str(style) +".jpg")
+        fn = os.path.join(vedo.textures_path, "earth"+ str(style) +".jpg")
         pnmReader.SetFileName(fn)
         atext.SetInputConnection(pnmReader.GetOutputPort())
         atext.InterpolateOn()
@@ -2807,9 +2806,9 @@ def Text(*args, **kwargs):
 def _load_font(font):
     # print('_load_font', font)
 
-    if font not in font_parameters.keys():
+    if font not in settings.font_parameters.keys():
         printc("Unknown font:", font, c='r')
-        printc("Avaliable 3D fonts are:", list(font_parameters.keys()), c='y')
+        printc("Avaliable 3D fonts are:", list(settings.font_parameters.keys()), c='y')
         printc("Using font Normografo instead.", c='y')
         font = "Normografo"
 
@@ -2828,7 +2827,7 @@ def _load_font(font):
         fontfile = font
         font = os.path.basename(font).split('.')[0]
     else:                        # user passed font by its name
-        fontfile = os.path.join(settings.fonts_path, font + '.npz')
+        fontfile = os.path.join(vedo.fonts_path, font + '.npz')
 
     try:
         #printc('loading', font, fontfile)
@@ -2905,7 +2904,7 @@ class Text3D(Mesh):
             pos = (pos[0], pos[1], 0)
 
         if c is None: # automatic black or white
-            pli = settings.plotter_instance
+            pli = vedo.plotter_instance
             if pli and pli.renderer:
                 c = (0.9, 0.9, 0.9)
                 if pli.renderer.GetGradientBackground():
@@ -2943,10 +2942,10 @@ class Text3D(Mesh):
                 font = font%len(lfonts)
                 font = lfonts[font]
 
-            if font not in font_parameters.keys():
-                fpars = font_parameters["Normografo"]
+            if font not in settings.font_parameters.keys():
+                fpars = settings.font_parameters["Normografo"]
             else:
-                fpars = font_parameters[font]
+                fpars = settings.font_parameters[font]
 
             # ad hoc adjustments
             mono = fpars['mono']
@@ -3189,13 +3188,13 @@ class TextBase:
 
         if not font:                   # use default font
             font = self.fontname
-            fpath = os.path.join(settings.fonts_path, font +'.ttf')
+            fpath = os.path.join(vedo.fonts_path, font +'.ttf')
         elif font.startswith('https'): # user passed URL link, make it a path
             fpath = vedo.io.download(font, verbose=False, force=False)
         elif font.endswith('.ttf'):    # user passing a local path to font file
             fpath = font
         else:                          # user passing name of preset font
-            fpath = os.path.join(settings.fonts_path, font +'.ttf')
+            fpath = os.path.join(vedo.fonts_path, font +'.ttf')
 
         if   font == "Courier": self.property.SetFontFamilyToCourier()
         elif font == "Times":   self.property.SetFontFamilyToTimes()
@@ -3289,11 +3288,11 @@ class Text2D(vtk.vtkActor2D, TextBase):
         # automatic black or white
         if c is None:
             c = (0.1, 0.1, 0.1)
-            if settings.plotter_instance and settings.plotter_instance.renderer:
-                if settings.plotter_instance.renderer.GetGradientBackground():
-                    bgcol = settings.plotter_instance.renderer.GetBackground2()
+            if vedo.plotter_instance and vedo.plotter_instance.renderer:
+                if vedo.plotter_instance.renderer.GetGradientBackground():
+                    bgcol = vedo.plotter_instance.renderer.GetBackground2()
                 else:
-                    bgcol = settings.plotter_instance.renderer.GetBackground()
+                    bgcol = vedo.plotter_instance.renderer.GetBackground()
                 c = (0.9, 0.9, 0.9)
                 if np.sum(bgcol) > 1.5:
                     c = (0.1, 0.1, 0.1)
@@ -3407,12 +3406,12 @@ class CornerAnnotation(vtk.vtkCornerAnnotation, TextBase):
 
         # automatic black or white
         if c is None:
-            if settings.plotter_instance and settings.plotter_instance.renderer:
+            if vedo.plotter_instance and vedo.plotter_instance.renderer:
                 c = (0.9, 0.9, 0.9)
-                if settings.plotter_instance.renderer.GetGradientBackground():
-                    bgcol = settings.plotter_instance.renderer.GetBackground2()
+                if vedo.plotter_instance.renderer.GetGradientBackground():
+                    bgcol = vedo.plotter_instance.renderer.GetBackground2()
                 else:
-                    bgcol = settings.plotter_instance.renderer.GetBackground()
+                    bgcol = vedo.plotter_instance.renderer.GetBackground()
                 if np.sum(bgcol) > 1.5:
                     c = (0.1, 0.1, 0.1)
             else:
@@ -3697,8 +3696,8 @@ def VedoLogo(distance=0, c=None, bc='t', version=False, frame=True):
     """
     if c is None:
         c = (0,0,0)
-        if settings.plotter_instance:
-            if sum(getColor(settings.plotter_instance.backgrcol))>1.5:
+        if vedo.plotter_instance:
+            if sum(getColor(vedo.plotter_instance.backgrcol))>1.5:
                 c=[0,0,0]
             else:
                 c='linen'

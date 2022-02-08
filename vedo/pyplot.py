@@ -1,7 +1,6 @@
 import vtk
 import numpy as np
 import vedo
-import vedo.settings as settings
 import vedo.utils as utils
 import vedo.colors as colors
 import vedo.shapes as shapes
@@ -1487,8 +1486,6 @@ def _barplot(
         asse.axes = axs
         asse.SetOrigin(x0lim, y0lim, 0)
     else:
-#        settings.xtitle = xtitle
-#        settings.ytitle = ytitle
         asse = Plot(rs)
 
     asse.yscale = yscale
@@ -1759,8 +1756,6 @@ def _histogram1D(
         asse.axes = axs
         asse.SetOrigin(x0lim, y0lim, 0)
     else:
-#        settings.xtitle = xtitle
-#        settings.ytitle = ytitle
         asse = Plot(rs)
 
     asse.yscale = yscale
@@ -1909,9 +1904,6 @@ def _histogram2D(
         asse.axes = axs
         asse.SetOrigin(x0lim, y0lim, 0)
     else:
-#        settings.xtitle = xtitle
-#        settings.ytitle = ytitle
-#        settings.ytitle = ztitle
         asse = Plot(acts)
 
     asse.yscale = yscale
@@ -1933,26 +1925,19 @@ def _histogram2D(
 
 
 def _histogramHexBin(
-    xvalues,
-    yvalues,
-    xtitle="",
-    ytitle="",
-    ztitle="",
-    bins=12,
-    vrange=None,
-    norm=1,
-    fill=True,
-    c=None,
-    cmap="terrain_r",
-    alpha=1,
-):
-#    if xtitle:
-#        settings.xtitle = xtitle
-#    if ytitle:
-#        settings.ytitle = ytitle
-#    if ztitle:
-#        settings.ztitle = ztitle
-
+        xvalues,
+        yvalues,
+        xtitle="",
+        ytitle="",
+        ztitle="",
+        bins=12,
+        vrange=None,
+        norm=1,
+        fill=True,
+        c=None,
+        cmap="terrain_r",
+        alpha=1,
+    ):
     xmin, xmax = np.min(xvalues), np.max(xvalues)
     ymin, ymax = np.min(yvalues), np.max(yvalues)
     dx, dy = xmax - xmin, ymax - ymin
@@ -2859,7 +2844,7 @@ def CornerHistogram(
     tprop = vtk.vtkTextProperty()
     tprop.SetColor(colors.getColor(bg))
     tprop.SetFontFamily(vtk.VTK_FONT_FILE)
-    tprop.SetFontFile(utils.getFontPath(settings.defaultFont))
+    tprop.SetFontFile(utils.getFontPath(vedo.settings.defaultFont))
     tprop.SetOpacity(alpha)
     plot.SetAxisTitleTextProperty(tprop)
     plot.GetProperty().SetOpacity(alpha)

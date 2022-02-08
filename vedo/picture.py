@@ -177,9 +177,9 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """Build an image from a string."""
 
         if c is None: # automatic black or white
-            if vedo.settings.plotter_instance and vedo.settings.plotter_instance.renderer:
+            if vedo.plotter_instance and vedo.plotter_instance.renderer:
                 c = (0.9, 0.9, 0.9)
-                if np.sum(vedo.settings.plotter_instance.renderer.GetBackground()) > 1.5:
+                if np.sum(vedo.plotter_instance.renderer.GetBackground()) > 1.5:
                     c = (0.1, 0.1, 0.1)
             else:
                 c = (0.3, 0.3, 0.3)

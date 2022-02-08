@@ -1,26 +1,15 @@
 import vtk
 import numpy as np
 
+import vedo
 import vedo.utils as utils
 from vedo.utils import printHistogram, ProgressBar
-
-import vedo.docs as docs
-
 from vedo.colors import printc
-
-import vedo.settings as settings
-from vedo.settings import dataurl, embedWindow
-
 from vedo.mesh import Mesh
-
 from vedo.io import load, screenshot, Video, exportWindow, download
-
 import vedo.shapes as shapes
 from vedo.shapes import Text3D, Text2D, Latex
-
-from vedo.plotter import show, clear, Plotter
-from vedo.plotter import interactive
-
+from vedo.plotter import show, clear, Plotter, interactive
 from vedo.pyplot import histogram
 
 # Install fenics with commands (e.g. in Anaconda3):
@@ -95,7 +84,7 @@ Image Gallery
 | Customizing axes style and appearance           |The wave equation in arbitrary nr. of dimensions |
 +-------------------------------------------------+-------------------------------------------------+
 """
-    + docs._defs
+    + vedo.docs._defs
 )
 
 __all__ = [
@@ -112,12 +101,10 @@ __all__ = [
     "Text3D",
     "Text2D",
     "Latex",
-    "dataurl",
     "screenshot",
     "Video",
     "exportWindow",
     "interactive",
-    "embedWindow",
 ]
 
 
@@ -428,34 +415,34 @@ def plot(*inputobj, **options):
     returnActorsNoShow = options.pop("returnActorsNoShow", False)
 
     # refresh axes titles for axes type = 8 (vtkCubeAxesActor)
-    settings.xtitle = options.pop("xtitle", 'x')
-    settings.ytitle = options.pop("ytitle", 'y')
-    settings.ztitle = options.pop("ztitle", 'z')
-    if settings.plotter_instance:
-        if settings.ytitle!='x':
+    xtitle = options.pop("xtitle", 'x')
+    ytitle = options.pop("ytitle", 'y')
+    ztitle = options.pop("ztitle", 'z')
+    if vedo.plotter_instance:
+        if xtitle!='x':
             if 'at' in options.keys():
                 at = options['at']
             else:
                 at = 0
-            aet = settings.plotter_instance.axes_instances
+            aet = vedo.plotter_instance.axes_instances
             if len(aet)>at and isinstance(aet[at], vtk.vtkCubeAxesActor):
-                aet[at].SetXTitle(settings.xtitle)
-        if settings.ytitle!='y':
+                aet[at].SetXTitle(xtitle)
+        if ytitle!='y':
             if 'at' in options.keys():
                 at = options['at']
             else:
                 at = 0
-            aet = settings.plotter_instance.axes_instances
+            aet = vedo.plotter_instance.axes_instances
             if len(aet)>at and isinstance(aet[at], vtk.vtkCubeAxesActor):
-                aet[at].SetYTitle(settings.ytitle)
-        if settings.ytitle!='z':
+                aet[at].SetYTitle(ytitle)
+        if ztitle!='z':
             if 'at' in options.keys():
                 at = options['at']
             else:
                 at = 0
-            aet = settings.plotter_instance.axes_instances
+            aet = vedo.plotter_instance.axes_instances
             if len(aet)>at and isinstance(aet[at], vtk.vtkCubeAxesActor):
-                aet[at].SetZTitle(settings.ztitle)
+                aet[at].SetZTitle(ztitle)
 
 
     # change some default to emulate standard behaviours
@@ -531,12 +518,12 @@ def plot(*inputobj, **options):
 
     #################################################################
     actors = []
-    if settings.plotter_instance:
+    if vedo.plotter_instance:
         if add:
-            actors = settings.plotter_instance.actors
+            actors = vedo.plotter_instance.actors
         elif at==0: # just remove scalarbars
-            for sb in settings.plotter_instance.scalarbars:
-                settings.plotter_instance.renderer.RemoveActor(sb)
+            for sb in vedo.plotter_instance.scalarbars:
+                vedo.plotter_instance.renderer.RemoveActor(sb)
 
     if mesh and ('mesh' in mode or 'color' in mode or 'displace' in mode):
 
@@ -661,16 +648,16 @@ def plot(*inputobj, **options):
         actors.append(text)
 
     if 'at' in options.keys() and 'interactive' not in options.keys():
-        if settings.plotter_instance:
-            N = settings.plotter_instance.shape[0]*settings.plotter_instance.shape[1]
+        if vedo.plotter_instance:
+            N = vedo.plotter_instance.shape[0]*vedo.plotter_instance.shape[1]
             if options['at'] == N-1:
                 options['interactive'] = True
 
-    # if settings.plotter_instance:
-    #     for a2 in settings.collectable_actors:
+    # if vedo.plotter_instance:
+    #     for a2 in vedo.collectable_actors:
     #         if isinstance(a2, vtk.vtkCornerAnnotation):
     #             if 0 in a2.renderedAt: # remove old message
-    #                 settings.plotter_instance.remove(a2)
+    #                 vedo.plotter_instance.remove(a2)
     #                 break
 
     if len(actors)==0:

@@ -1,5 +1,9 @@
 ## Main changes
 
+- Internal global variable `settings.plotter_instance` must become `vedo.plotter_instance`.
+
+- `vedo.settings` is now a dotted dictionary
+
 - fixed bug to `distanceTo()` method
 
 
@@ -76,7 +80,6 @@
 
 ## broken examples
 ```
-legosurface.py
 slicer1.py
 vedo https://vedo.embl.es/examples/geo_scene.npz
 ```

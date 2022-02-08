@@ -5,27 +5,98 @@ import sys
 import vtk
 import os.path
 import numpy as np
-
+import logging
 import vedo
 import vedo.utils as utils
-import vedo.settings as settings
 import vedo.addons as addons
 import vedo.backends as backends
+from vedo import settings
 
-__doc__ = (
-    """
-Defines main class ``Plotter`` to manage actors and 3D rendering.
-"""
-    + vedo.docs._defs
-)
+__doc__ = ("Defines main class ``Plotter`` to manage actors and 3D rendering." + vedo.docs._defs)
 
-__all__ = ["show",
-           "clear",
-           "Plotter",
-           "interactive",
+__all__ = [
+        "Plotter",
+        "show",
+        "clear",
+        "interactive",
 ]
 
-########################################################################
+
+##################################################################################
+def _embedWindow(backend='ipyvtk'):
+    # check availability of backend by just returning its name
+
+    if not backend:
+        return None ####################
+
+    else:
+
+        if any(['SPYDER' in name for name in os.environ]):
+            return None
+
+        try:
+            get_ipython()
+        except NameError:
+            return None
+
+    backend = backend.lower()
+
+    if backend=='k3d':
+        try:
+            import k3d
+            return backend
+            if k3d._version.version_info != (2, 7, 4):
+                print('Warning: only k3d version 2.7.4 is currently supported')
+                # print('> pip install k3d==2.7.4')
+
+        except ModuleNotFoundError:
+            print('Could not load k3d module, try:')
+            print('> pip install k3d==2.7.4')
+
+    elif 'ipygany' in backend: # ipygany
+        try:
+            import ipygany
+            return backend
+        except ModuleNotFoundError:
+            print('Could not load ipygany module, try:')
+            print('> pip install ipygany')
+
+    elif 'itk' in backend: # itkwidgets
+        try:
+            import itkwidgets
+            return backend
+        except ModuleNotFoundError:
+            print('Could not load itkwidgets module, try:')
+            print('> pip install itkwidgets')
+
+    elif backend.lower() == '2d':
+        pass
+
+    elif backend =='panel':
+        try:
+            import panel
+            panel.extension('vtk')
+            return backend
+        except:
+            vedo.logger.error('Could not load panel try:\n> pip install panel')
+            print(flush=True)
+
+    elif 'ipyvtk' in backend:
+        try:
+            from ipyvtklink.viewer import ViewInteractiveWidget
+            return backend
+        except ModuleNotFoundError:
+            print('Could not load ipyvtklink try:')
+            print('> pip install ipyvtklink')
+
+    else:
+        print("Unknown backend", backend)
+        raise RuntimeError()
+
+    return None
+
+
+########################################################################################################
 def show(*actors,
         at=None,
         shape=(1, 1),
@@ -51,6 +122,7 @@ def show(*actors,
         mode=None,
         q=False,
         new=False,
+        backend=None,
     ):
     """
     Create on the fly an instance of class ``Plotter`` and show the object(s) provided.
@@ -176,6 +248,8 @@ def show(*actors,
             plt.show(p, at=1)
             plt.show(c, at=2, interactive=True)
     """
+    backend = _embedWindow(backend)
+
     if len(actors) == 0:
         actors = None
     elif len(actors) == 1:
@@ -183,8 +257,8 @@ def show(*actors,
     else:
         actors = utils.flatten(actors)
 
-    if settings.plotter_instance and not new: # Plotter exists
-        plt = settings.plotter_instance
+    if vedo.plotter_instance and not new: # Plotter exists
+        plt = vedo.plotter_instance
 
     else:                                            # Plotter must be created
 
@@ -206,42 +280,44 @@ def show(*actors,
             at = list(range(len(actors)))
 
         plt = Plotter(
-                        shape=shape,
-                        N=N,
-                        pos=pos,
-                        size=size,
-                        screensize=screensize,
-                        title=title,
-                        axes=axes,
-                        sharecam=sharecam,
-                        resetcam=resetcam,
-                        interactive=interactive,
-                        offscreen=offscreen,
-                        bg=bg,
-                        bg2=bg2,
+                    shape=shape,
+                    N=N,
+                    pos=pos,
+                    size=size,
+                    screensize=screensize,
+                    title=title,
+                    axes=axes,
+                    sharecam=sharecam,
+                    resetcam=resetcam,
+                    interactive=interactive,
+                    offscreen=offscreen,
+                    bg=bg,
+                    bg2=bg2,
+                    backend=backend,
         )
 
     # use _plt_to_return because plt.show() can return a k3d/panel plot
     _plt_to_return = None
 
     if utils.isSequence(at):
-        for i, a in enumerate(actors):
-            _plt_to_return = plt.show(  a,
-                                        at=i,
-                                        zoom=zoom,
-                                        resetcam=resetcam,
-                                        viewup=viewup,
-                                        azimuth=azimuth,
-                                        elevation=elevation,
-                                        roll=roll,
-                                        camera=camera,
-                                        interactive=False,
-                                        interactorStyle=interactorStyle,
-                                        mode=mode,
-                                        bg=bg,
-                                        bg2=bg2,
-                                        axes=axes,
-                                        q=q,
+        for i, act in enumerate(actors):
+            _plt_to_return = plt.show(
+                    act,
+                    at=i,
+                    zoom=zoom,
+                    resetcam=resetcam,
+                    viewup=viewup,
+                    azimuth=azimuth,
+                    elevation=elevation,
+                    roll=roll,
+                    camera=camera,
+                    interactive=False,
+                    interactorStyle=interactorStyle,
+                    mode=mode,
+                    bg=bg,
+                    bg2=bg2,
+                    axes=axes,
+                    q=q,
             )
         plt.interactive = interactive
 
@@ -255,35 +331,35 @@ def show(*actors,
     else:
 
         _plt_to_return = plt.show(
-                                    actors,
-                                    at=at,
-                                    zoom=zoom,
-                                    resetcam=resetcam,
-                                    viewup=viewup,
-                                    azimuth=azimuth,
-                                    elevation=elevation,
-                                    roll=roll,
-                                    camera=camera,
-                                    interactive=interactive,
-                                    interactorStyle=interactorStyle,
-                                    mode=mode,
-                                    bg=bg,
-                                    bg2=bg2,
-                                    axes=axes,
-                                    q=q,
+                    actors,
+                    at=at,
+                    zoom=zoom,
+                    resetcam=resetcam,
+                    viewup=viewup,
+                    azimuth=azimuth,
+                    elevation=elevation,
+                    roll=roll,
+                    camera=camera,
+                    interactive=interactive,
+                    interactorStyle=interactorStyle,
+                    mode=mode,
+                    bg=bg,
+                    bg2=bg2,
+                    axes=axes,
+                    q=q,
         )
     return _plt_to_return
 
 
 def interactive():
     """Start the rendering window interaction mode."""
-    if settings.plotter_instance:
-        if settings.plotter_instance.escaped: # just return
-            return settings.plotter_instance
-        if hasattr(settings.plotter_instance, 'interactor'):
-            if settings.plotter_instance.interactor:
-                settings.plotter_instance.interactor.Start()
-    return settings.plotter_instance
+    if vedo.plotter_instance:
+        if vedo.plotter_instance.escaped: # just return
+            return vedo.plotter_instance
+        if hasattr(vedo.plotter_instance, 'interactor'):
+            if vedo.plotter_instance.interactor:
+                vedo.plotter_instance.interactor.Start()
+    return vedo.plotter_instance
 
 
 def clear(actor=None, at=None):
@@ -291,10 +367,10 @@ def clear(actor=None, at=None):
     Clear specific actor or list of actors from the current rendering window.
     Keyword ``at`` specify the reneder to be cleared.
     """
-    if not settings.plotter_instance:
+    if not vedo.plotter_instance:
         return
-    settings.plotter_instance.clear(actor, at)
-    return settings.plotter_instance
+    vedo.plotter_instance.clear(actor, at)
+    return vedo.plotter_instance
 
 
 ########################################################################
@@ -345,26 +421,28 @@ class Plotter:
     """
 
     def __init__(
-        self,
-        shape=(1, 1),
-        N=None,
-        pos=(0, 0),
-        size="auto",
-        screensize="auto",
-        title="vedo",
-        bg="white",
-        bg2=None,
-        axes=None,
-        sharecam=True,
-        resetcam=True,
-        interactive=None,
-        offscreen=False,
-        qtWidget=None,
-        wxWidget=None,
+            self,
+            shape=(1, 1),
+            N=None,
+            pos=(0, 0),
+            size="auto",
+            screensize="auto",
+            title="vedo",
+            bg="white",
+            bg2=None,
+            axes=None,
+            sharecam=True,
+            resetcam=True,
+            interactive=None,
+            offscreen=False,
+            qtWidget=None,
+            wxWidget=None,
+            backend=None,
         ):
 
-        settings.plotter_instance = self
-        settings.plotter_instances.append(self)
+        vedo.notebookBackend = _embedWindow(backend)
+
+        vedo.plotter_instance = self
 
         if qtWidget is not None:
             # overrides the interactive and offscreen properties
@@ -431,12 +509,9 @@ class Plotter:
         self.interactor = None
         self.camera = None
         self.keyheld = ''
-        self.xtitle = settings.xtitle  # x axis label and units
-        self.ytitle = settings.ytitle  # y axis label and units
-        self.ztitle = settings.ztitle  # z axis label and units
 
         #####################################################################
-        notebookBackend = settings.notebookBackend
+        notebookBackend = vedo.notebookBackend
         if notebookBackend:
             if notebookBackend == '2d':
                 self.offscreen = True
@@ -480,7 +555,7 @@ class Plotter:
 
             ### BUG in GetScreenSize in VTK 9.1.0
             ### https://discourse.vtk.org/t/vtk9-1-0-problems/7094/3
-            vtkvers = settings.vtk_version
+            vtkvers = vedo.vtk_version
             if not self.offscreen and (vtkvers[0]<9 or vtkvers[0]==9 and vtkvers[1]==0):
                  aus = self.window.GetScreenSize()
                  if aus and len(aus) == 2 and aus[0] > 100 and aus[1] > 100:  # seems ok
@@ -743,7 +818,7 @@ class Plotter:
             return #################
             ########################
 
-        if settings.notebookBackend == "panel":
+        if vedo.notebookBackend == "panel":
             ########################
             return #################
             ########################
@@ -927,11 +1002,11 @@ class Plotter:
             self.window.EraseOff()
             if at < 0:
                 at = at + len(self.renderers) +1
-            for i in range(len(self.renderers)):
+            for i, ren in enumerate(self.renderers):
                 if i != at:
-                    self.renderers[i].DrawOff()
+                    ren.DrawOff()
 
-        if settings.vtk_version[0] == 9 and "Darwin" in settings.sys_platform:
+        if vedo.vtk_version[0] == 9 and "Darwin" in vedo.sys_platform:
             for a in self.actors:
                 if isinstance(a, vtk.vtkVolume):
                     self.window.SetMultiSamples(0) # to fix mac OSX BUG vtk9
@@ -944,9 +1019,9 @@ class Plotter:
         self.window.Render()
 
         if at is not None: # re-enable all that were disabled
-            for i in range(len(self.renderers)):
+            for i, ren in enumerate(self.renderers):
                 if i != at:
-                    self.renderers[i].DrawOn()
+                    ren.DrawOn()
             self.window.EraseOn()
 
         return self
@@ -2290,7 +2365,7 @@ class Plotter:
         if at is not None and len(self.renderers)>at:
             self.renderer = self.renderers[at]
 
-        if not settings.notebookBackend:
+        if not vedo.notebookBackend:
             if str(bg).endswith(".hdr"):
                 self._addSkybox(bg)
             else:
@@ -2339,8 +2414,8 @@ class Plotter:
 
 
         # Backend ###############################################################
-        if settings.notebookBackend:
-            if settings.notebookBackend not in ['panel', '2d', 'ipyvtk']:
+        if vedo.notebookBackend:
+            if vedo.notebookBackend not in ['panel', '2d', 'ipyvtk']:
                 return backends.getNotebookBackend(actors2show, zoom, viewup)
         #########################################################################
         # check if the widow needs to be closed (ESC button was hit)
@@ -2383,7 +2458,7 @@ class Plotter:
         if at < len(self.renderers):
             self.renderer = self.renderers[at]
         else:
-            if settings.notebookBackend:
+            if vedo.notebookBackend:
                 vedo.printc("Error in show(): multiple renderings not supported in notebooks.", c='r')
             else:
                 vedo.printc("Error in show(): wrong renderer index", at, c='r')
@@ -2403,7 +2478,7 @@ class Plotter:
         if len(self.renderers) == 1:
             self.renderer.SetActiveCamera(self.camera)
 
-        if settings.vtk_version[0] == 9 and "Darwin" in settings.sys_platform:
+        if vedo.vtk_version[0] == 9 and "Darwin" in vedo.sys_platform:
             for a in self.actors:
                 if isinstance(a, vtk.vtkVolume):
                     self.window.SetMultiSamples(0) # to fix mac OSX BUG vtk9
@@ -2440,7 +2515,7 @@ class Plotter:
                 if (hasattr(ia, 'flagText')
                     and self.interactor
                     and not self.offscreen
-                    and not (settings.vtk_version[0] == 9 and "Linux" in settings.sys_platform)
+                    and not (vedo.vtk_version[0] == 9 and "Linux" in vedo.sys_platform)
                     ):
                     #check balloons
                     # Linux vtk9 is bugged
@@ -2496,7 +2571,7 @@ class Plotter:
                 addons.addGlobalAxes(self.axes)
 
         # panel #################################################################
-        if settings.notebookBackend in ["panel","ipyvtk"]:
+        if vedo.notebookBackend in ["panel","ipyvtk"]:
             return backends.getNotebookBackend(0, 0, 0)
         #########################################################################
 
@@ -2565,7 +2640,7 @@ class Plotter:
         self.window.SetWindowName(self.title)
 
         # 2d ####################################################################
-        if settings.notebookBackend == "2d":
+        if vedo.notebookBackend == "2d":
             return backends.getNotebookBackend(0, 0, 0)
         #########################################################################
 
@@ -2577,8 +2652,8 @@ class Plotter:
 
             # Set the style of interaction
             # see https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html
-            if settings.interactorStyle is not None:
-                interactorStyle = settings.interactorStyle
+            if vedo.interactorStyle is not None:
+                interactorStyle = vedo.interactorStyle
             if interactorStyle == 0 or interactorStyle == "TrackballCamera":
                 #csty = self.interactor.GetInteractorStyle().GetCurrentStyle().GetClassName()
                 #if "TrackballCamera" not in csty:
@@ -2743,9 +2818,7 @@ class Plotter:
         """Close the Plotter instance and release resources."""
         self.closeWindow()
         self.actors = []
-        if settings.plotter_instance in settings.plotter_instances:
-             settings.plotter_instances.remove(settings.plotter_instance)
-        settings.plotter_instance = None
+        vedo.plotter_instance = None
 
     def screenshot(self, filename='screenshot.png', scale=None, returnNumpy=False):
         """Take a screenshot of the Plotter window.
@@ -2766,11 +2839,11 @@ class Plotter:
 
         if settings.screeshotLargeImage:
            w2if = vtk.vtkRenderLargeImage()
-           w2if.SetInput(settings.plotter_instance.renderer)
+           w2if.SetInput(self.renderer)
            w2if.SetMagnification(scale)
         else:
             w2if = vtk.vtkWindowToImageFilter()
-            w2if.SetInput(settings.plotter_instance.window)
+            w2if.SetInput(self.window)
             if hasattr(w2if, 'SetScale'):
                 w2if.SetScale(scale, scale)
             if settings.screenshotTransparentBackground:
@@ -3093,29 +3166,29 @@ class Plotter:
             return
 
         elif key == "A": # toggle antialiasing
-            msam = settings.plotter_instance.window.GetMultiSamples()
+            msam = self.window.GetMultiSamples()
             if not msam:
-                settings.plotter_instance.window.SetMultiSamples(8)
+                self.window.SetMultiSamples(8)
             else:
-                settings.plotter_instance.window.SetMultiSamples(0)
-            msam = settings.plotter_instance.window.GetMultiSamples()
+                self.window.SetMultiSamples(0)
+            msam = self.window.GetMultiSamples()
             if msam:
                 vedo.printc(f'Antialiasing is now set to {msam} samples', c=bool(msam))
             else:
                 vedo.printc('Antialiasing is now disabled', c=bool(msam))
 
         elif key == "D": # toggle depthpeeling
-            udp = not settings.plotter_instance.renderer.GetUseDepthPeeling()
-            settings.plotter_instance.renderer.SetUseDepthPeeling(udp)
-            #settings.plotter_instance.renderer.SetUseDepthPeelingForVolumes(udp)
-            # print(settings.plotter_instance.window.GetAlphaBitPlanes())
+            udp = not self.renderer.GetUseDepthPeeling()
+            self.renderer.SetUseDepthPeeling(udp)
+            #self.renderer.SetUseDepthPeelingForVolumes(udp)
+            # print(self.window.GetAlphaBitPlanes())
             if udp:
-                settings.plotter_instance.window.SetAlphaBitPlanes(1)
-                settings.plotter_instance.renderer.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
-                settings.plotter_instance.renderer.SetOcclusionRatio(settings.occlusionRatio)
-            settings.plotter_instance.interactor.Render()
-            wasUsed = settings.plotter_instance.renderer.GetLastRenderingUsedDepthPeeling()
-            rnr = self.renderers.index(settings.plotter_instance.renderer)
+                self.window.SetAlphaBitPlanes(1)
+                self.renderer.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
+                self.renderer.SetOcclusionRatio(settings.occlusionRatio)
+            self.interactor.Render()
+            wasUsed = self.renderer.GetLastRenderingUsedDepthPeeling()
+            rnr = self.renderers.index(self.renderer)
             vedo.printc(f'Depth peeling is now set to {udp} for renderer nr.{rnr}', c=udp)
             if not wasUsed and udp:
                 vedo.printc('\t...but last rendering did not actually used it!', c=udp, invert=True)
@@ -3182,14 +3255,14 @@ class Plotter:
 
         elif key == "3":
             if isinstance(self.clickedActor, vedo.Mesh):
-                if self.clickedActor._current_texture_name in settings.textures:
-                    i = settings.textures.index(self.clickedActor._current_texture_name)
-                    i = (i+1) % len(settings.textures)
-                    self.clickedActor.texture(settings.textures[i])
-                    self.clickedActor._current_texture_name = settings.textures[i]
+                if self.clickedActor._current_texture_name in vedo.textures:
+                    i = vedo.textures.index(self.clickedActor._current_texture_name)
+                    i = (i+1) % len(vedo.textures)
+                    self.clickedActor.texture(vedo.textures[i])
+                    self.clickedActor._current_texture_name = vedo.textures[i]
                 elif not self.clickedActor._current_texture_name:
-                    self.clickedActor.texture(settings.textures[0])
-                    self.clickedActor._current_texture_name = settings.textures[0]
+                    self.clickedActor.texture(vedo.textures[0])
+                    self.clickedActor._current_texture_name = vedo.textures[0]
 
         elif key == "4":
             if self.clickedActor:
@@ -3422,7 +3495,7 @@ class Plotter:
             vedo.printc("\camera Exporting 3D window to file", c="blue", end="")
             vedo.io.exportWindow('scene.npz')
             vedo.printc(". Try:\n> vedo scene.npz", c="blue")
-            settings.plotter_instance.interactor.Start()
+            self.interactor.Start()
 
         elif key == "F12":
             vedo.io.exportWindow('scene.x3d')

@@ -1,24 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import numpy as np
+import vtk
 import vedo
+import vedo.utils as utils
+import vedo.shapes as shapes
 from vedo.colors import printc, getColor
 from vedo.assembly import Assembly
 from vedo.mesh import Mesh, merge
 from vedo.pointcloud import Points
-import vedo.utils as utils
-import vedo.shapes as shapes
-import vedo.settings as settings
+from vedo import settings
 from vedo.volume import Volume
 from vedo.tetmesh import TetMesh
-import numpy as np
-import vtk
 
-__doc__ = (
-    """
-Create additional objects like axes, legends, lights, etc..
-"""
-    + vedo.docs._defs
-)
+__doc__ = ("Create additional objects like axes, legends, lights, etc..""" + vedo.docs._defs)
 
 __all__ = [
             "ScalarBar",
@@ -34,8 +29,7 @@ __all__ = [
             "Ruler",
             "RulerAxes",
             "Goniometer",
-        ]
-
+]
 
 
 ###########################################################################################
@@ -159,8 +153,19 @@ class Button:
     |buttons| |buttons.py|_
     """
 
-    def __init__(self, fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle):
-
+    def __init__(self,
+                 fnc,
+                 states,
+                 c,
+                 bc,
+                 pos,
+                 size,
+                 font,
+                 bold,
+                 italic,
+                 alpha,
+                 angle,
+        ):
         self.statusIdx = 0
         self.states = states
         self.colors = c
@@ -476,8 +481,8 @@ def Light(pos,
     #     light.SetSpecularColor(getColor(specularColor))
 
     if removeOthers:
-        if settings.plotter_instance and settings.plotter_instance.renderer:
-            settings.plotter_instance.renderer.RemoveAllLights()
+        if vedo.plotter_instance and vedo.plotter_instance.renderer:
+            vedo.plotter_instance.renderer.RemoveAllLights()
         else:
             printc("Warning in Light(removeOthers=True): scene does not exist.", c='r')
 
@@ -857,8 +862,6 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
     :param bool showValue: if true current value is shown
     :param bool delayed: if True the callback is delayed to when the mouse is released
 
-    Additional options:
-
     :param float alpha: opacity of the scalar bar texts
     :param float sliderLength: slider length
     :param float sliderWidth: slider width
@@ -887,7 +890,7 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
     tubeWidth    = options.pop("tubeWidth", 0.0075)
     titleHeight  = options.pop("titleHeight", 0.022)
 
-    plt = settings.plotter_instance
+    plt = vedo.plotter_instance
     if c is None:  # automatic black or white
         c = (0.8, 0.8, 0.8)
         if np.sum(getColor(plt.backgrcol)) > 1.5:
@@ -1074,7 +1077,7 @@ def addSlider3D(
 
     |sliders3d| |sliders3d.py|_
     """
-    plt = settings.plotter_instance
+    plt = vedo.plotter_instance
     if c is None:  # automatic black or white
         c = (0.8, 0.8, 0.8)
         if np.sum(getColor(plt.backgrcol)) > 1.5:
@@ -1154,7 +1157,7 @@ def addButton(
 
     |buttons| |buttons.py|_
     """
-    plt = settings.plotter_instance
+    plt = vedo.plotter_instance
     if not plt.renderer:
         printc("Error: Use addButton() after rendering the scene.", c='r')
         return
@@ -1174,7 +1177,7 @@ def addCutterTool(obj=None, mode="box", invert=False):
         |cutter| |cutter.py|_
     """
     if obj is None:
-        obj = settings.plotter_instance.actors[0]
+        obj = vedo.plotter_instance.actors[0]
     try:
         if isinstance(obj, vedo.Volume):
             return _addCutterToolVolumeWithBox(obj, invert)
@@ -1191,7 +1194,7 @@ def addCutterTool(obj=None, mode="box", invert=False):
         return None
 
 def _addCutterToolMeshWithSphere(mesh, invert):
-    plt = settings.plotter_instance
+    plt = vedo.plotter_instance
 
     sph = vtk.vtkSphere()
     cm = mesh.centerOfMass()
@@ -1254,7 +1257,7 @@ def _addCutterToolMeshWithSphere(mesh, invert):
     return act0
 
 def _addCutterToolMeshWithBox(mesh, invert):
-    plt = settings.plotter_instance
+    plt = vedo.plotter_instance
     if not plt:
         printc("addCutterTool(): scene must be first rendered.", c='r')
         raise RuntimeError()
@@ -1318,7 +1321,7 @@ def _addCutterToolMeshWithBox(mesh, invert):
     return act0
 
 def _addCutterToolMeshWithPlane(mesh, invert):
-    plt = settings.plotter_instance
+    plt = vedo.plotter_instance
 
     plane = vtk.vtkPlane()
     plane.SetNormal(mesh.centerOfMass())
@@ -1380,7 +1383,7 @@ def _addCutterToolMeshWithPlane(mesh, invert):
     return act0
 
 def _addCutterToolVolumeWithBox(vol, invert):
-    plt = settings.plotter_instance
+    plt = vedo.plotter_instance
 
     boxWidget = vtk.vtkBoxWidget()
     boxWidget.SetInteractor(plt.interactor)
@@ -1477,7 +1480,7 @@ def addIcon(mesh, pos=3, size=0.08):
 
     |icon| |icon.py|_
     """
-    plt = settings.plotter_instance
+    plt = vedo.plotter_instance
     if not plt.renderer:
         printc("\lightningWarning: Use addIcon() after first rendering the scene.", c='y')
         save_int = plt.interactive
@@ -1510,7 +1513,7 @@ def computeVisibleBounds(actors=None):
     bns = []
 
     if actors is None:
-        actors = settings.plotter_instance.actors
+        actors = vedo.plotter_instance.actors
     elif not utils.isSequence(actors):
         actors = [actors]
 
@@ -1527,7 +1530,7 @@ def computeVisibleBounds(actors=None):
             min_bns = np.min(bns, axis=0)
             vbb = [min_bns[0], max_bns[1], min_bns[2], max_bns[3], min_bns[4], max_bns[5]]
         else:
-            vbb = settings.plotter_instance.renderer.ComputeVisiblePropBounds()
+            vbb = vedo.plotter_instance.renderer.ComputeVisiblePropBounds()
             max_bns = vbb
             min_bns = vbb
         sizes = np.array([max_bns[1]-min_bns[0], max_bns[3]-min_bns[2], max_bns[5]-min_bns[4]])
@@ -1754,7 +1757,7 @@ def addScaleIndicator(pos=(0.7,0.05), s=0.02, length=2, lw=4, c='k', units=''):
     pd.SetPoints(ppoints)
     pd.SetLines(lines)
 
-    plt = settings.plotter_instance
+    plt = vedo.plotter_instance
     wsx, wsy = plt.window.GetSize()
     if not plt.renderer.GetActiveCamera().GetParallelProjection():
         printc("WARNING! addScaleIndicator called with useParallelProjection OFF. Skip.", c='y')
@@ -1807,7 +1810,7 @@ def addScaleIndicator(pos=(0.7,0.05), s=0.02, length=2, lw=4, c='k', units=''):
 #####################################################################
 def Axes(
         obj=None,
-        xtitle=None, ytitle=None, ztitle=None,
+        xtitle='x', ytitle='y', ztitle='z',
         xrange=None, yrange=None, zrange=None,
         c=None,
         numberOfDivisions=None,
@@ -1953,7 +1956,7 @@ def Axes(
 
     if c is None:  # automatic black or white
         c = (0.1, 0.1, 0.1)
-        plt = settings.plotter_instance
+        plt = vedo.plotter_instance
         if plt and plt.renderer:
             bgcol = plt.renderer.GetBackground()
         else:
@@ -2001,10 +2004,6 @@ def Axes(
         drange[2] = vbb[5] - vbb[4]
         min_bns = vbb
         max_bns = vbb
-
-    if xtitle is None: xtitle = settings.xtitle
-    if ytitle is None: ytitle = settings.ytitle
-    if ztitle is None: ztitle = settings.ztitle
 
     drangemax = max(drange)
     if not drangemax:
@@ -2867,7 +2866,7 @@ def addGlobalAxes(axtype=None, c=None):
 
     |customAxes| |customAxes.py|_
     """
-    plt = settings.plotter_instance
+    plt = vedo.plotter_instance
     if axtype is not None:
         plt.axes = axtype  # override
 
@@ -2929,35 +2928,35 @@ def addGlobalAxes(axtype=None, c=None):
             zero = shapes.Sphere(r=aves / 120 * s, c="k", alpha=alpha, res=10)
             acts += [zero]
 
-        if len(plt.xtitle) and dx > aves/100:
+        if dx > aves/100:
             xl = shapes.Cylinder([[x0, 0, 0], [x1, 0, 0]], r=aves/250*s, c=xcol, alpha=alpha)
             xc = shapes.Cone(pos=[x1, 0, 0], c=xcol, alpha=alpha,
                              r=aves/100*s, height=aves/25*s, axis=[1, 0, 0], res=10)
-            wpos = [x1-(len(plt.xtitle)+1)*aves/40*s, -aves/25*s, 0]  # aligned to arrow tip
+            wpos = [x1, -aves/25*s, 0]  # aligned to arrow tip
             if centered:
-                wpos = [(x0 + x1) / 2 - len(plt.xtitle) / 2 * aves / 40 * s, -aves / 25 * s, 0]
-            xt = shapes.Text3D(plt.xtitle, pos=wpos, s=aves / 40 * s, c=xcol)
+                wpos = [(x0 + x1) / 2, -aves / 25 * s, 0]
+            xt = shapes.Text3D('x', pos=wpos, s=aves / 40 * s, c=xcol)
             acts += [xl, xc, xt]
 
-        if len(plt.ytitle) and dy > aves/100:
+        if dy > aves/100:
             yl = shapes.Cylinder([[0, y0, 0], [0, y1, 0]], r=aves/250*s, c=ycol, alpha=alpha)
             yc = shapes.Cone(pos=[0, y1, 0], c=ycol, alpha=alpha,
                              r=aves/100*s, height=aves/25*s, axis=[0, 1, 0], res=10)
-            wpos = [-aves/40*s, y1-(len(plt.ytitle)+1)*aves/40*s, 0]
+            wpos = [-aves/40*s, y1, 0]
             if centered:
-                wpos = [-aves / 40 * s, (y0 + y1) / 2 - len(plt.ytitle) / 2 * aves / 40 * s, 0]
-            yt = shapes.Text3D(plt.ytitle, pos=(0, 0, 0), s=aves / 40 * s, c=ycol)
+                wpos = [-aves / 40 * s, (y0 + y1) / 2, 0]
+            yt = shapes.Text3D('y', pos=(0, 0, 0), s=aves / 40 * s, c=ycol)
             yt.pos(wpos).RotateZ(90)
             acts += [yl, yc, yt]
 
-        if len(plt.ztitle) and dz > aves/100:
+        if dz > aves/100:
             zl = shapes.Cylinder([[0, 0, z0], [0, 0, z1]], r=aves/250*s, c=zcol, alpha=alpha)
             zc = shapes.Cone(pos=[0, 0, z1], c=zcol, alpha=alpha,
                              r=aves/100*s, height=aves/25*s, axis=[0, 0, 1], res=10)
-            wpos = [-aves/50*s, -aves/50*s, z1 - (len(plt.ztitle)+1)*aves/40*s]
+            wpos = [-aves/50*s, -aves/50*s, z1]
             if centered:
-                wpos = [-aves/50*s, -aves/50*s, (z0+z1)/2-len(plt.ztitle)/2*aves/40*s]
-            zt = shapes.Text3D(plt.ztitle, pos=(0,0,0), s=aves/40*s, c=zcol)
+                wpos = [-aves/50*s, -aves/50*s, (z0+z1)/2]
+            zt = shapes.Text3D('z', pos=(0,0,0), s=aves/40*s, c=zcol)
             zt.pos(wpos).RotateZ(45)
             zt.RotateX(90)
             acts += [zl, zc, zt]
@@ -2972,9 +2971,9 @@ def addGlobalAxes(axtype=None, c=None):
         axact = vtk.vtkAxesActor()
         axact.SetShaftTypeToCylinder()
         axact.SetCylinderRadius(0.03)
-        axact.SetXAxisLabelText(plt.xtitle)
-        axact.SetYAxisLabelText(plt.ytitle)
-        axact.SetZAxisLabelText(plt.ztitle)
+        axact.SetXAxisLabelText('x')
+        axact.SetYAxisLabelText('y')
+        axact.SetZAxisLabelText('z')
         axact.GetXAxisShaftProperty().SetColor(1, 0, 0)
         axact.GetYAxisShaftProperty().SetColor(0, 1, 0)
         axact.GetZAxisShaftProperty().SetColor(0, 0, 1)
@@ -3071,9 +3070,9 @@ def addGlobalAxes(axtype=None, c=None):
     elif plt.axes == 7:
         vbb = computeVisibleBounds()[0]
         rulax = RulerAxes(vbb, c=c,
-                          xtitle=plt.xtitle+' - ',
-                          ytitle=plt.ytitle+' - ',
-                          ztitle=plt.ztitle+' - ')
+                          xtitle='x - ',
+                          ytitle='y - ',
+                          ztitle='z - ')
         plt.axes_instances[r] = rulax
         if not rulax:
             return None
@@ -3094,18 +3093,18 @@ def addGlobalAxes(axtype=None, c=None):
             ca.GetTitleTextProperty(i).SetColor(c)
         ca.SetTitleOffset(5)
         ca.SetFlyMode(3)
-        ca.SetXTitle(plt.xtitle)
-        ca.SetYTitle(plt.ytitle)
-        ca.SetZTitle(plt.ztitle)
-        if plt.xtitle == "":
-            ca.SetXAxisVisibility(0)
-            ca.XAxisLabelVisibilityOff()
-        if plt.ytitle == "":
-            ca.SetYAxisVisibility(0)
-            ca.YAxisLabelVisibilityOff()
-        if plt.ztitle == "":
-            ca.SetZAxisVisibility(0)
-            ca.ZAxisLabelVisibilityOff()
+        ca.SetXTitle('x')
+        ca.SetYTitle('y')
+        ca.SetZTitle('z')
+#        if plt.xtitle == "":
+#            ca.SetXAxisVisibility(0)
+#            ca.XAxisLabelVisibilityOff()
+#        if plt.ytitle == "":
+#            ca.SetYAxisVisibility(0)
+#            ca.YAxisLabelVisibilityOff()
+#        if plt.ztitle == "":
+#            ca.SetZAxisVisibility(0)
+#            ca.ZAxisLabelVisibilityOff()
         ca.PickableOff()
         ca.UseBoundsOff()
         plt.renderer.AddActor(ca)
@@ -3159,10 +3158,11 @@ def addGlobalAxes(axtype=None, c=None):
         polaxes = vtk.vtkPolarAxesActor()
         vbb = computeVisibleBounds()[0]
 
-        if plt.xtitle == 'x':
-            polaxes.SetPolarAxisTitle('radial distance')
-        else:
-            polaxes.SetPolarAxisTitle(plt.xtitle)
+        polaxes.SetPolarAxisTitle('radial distance')
+#        if plt.xtitle == 'x':
+#            polaxes.SetPolarAxisTitle('radial distance')
+#        else:
+#            polaxes.SetPolarAxisTitle(plt.xtitle)
         polaxes.SetPole(0,0, vbb[4])
         rd = max(abs(vbb[0]), abs(vbb[2]), abs(vbb[1]), abs(vbb[3]))
         polaxes.SetMaximumRadius(rd)

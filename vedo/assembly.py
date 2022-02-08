@@ -4,12 +4,7 @@ from vedo.base import Base3DProp
 import vedo.utils as utils
 import vedo.colors as colors
 
-__doc__ = (
-    """
-Submodule extending the ``vtkAssembly`` object functionality.
-"""
-    + docs._defs
-)
+__doc__ = ("Submodule for grouping objects." + docs._defs)
 
 __all__ = ["Assembly", "procrustesAlignment"]
 

@@ -1,8 +1,8 @@
 # Jupyter Notebooks
 
 Here you will find a set of notebooks.
-It allows to embed a redering window into your jupyter notebook via
-[K3D](https://github.com/K3D-tools/K3D-jupyter), 
+You can embed a rendering window into your jupyter notebook via
+[K3D](https://github.com/K3D-tools/K3D-jupyter),
 `itkwidgets`, `ipygany`, `ipyvtk` or [panel](https://github.com/pyviz/panel)).
 
 Moreover `K3D` allows to export an interactive

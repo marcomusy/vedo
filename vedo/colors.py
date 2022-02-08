@@ -1,15 +1,11 @@
 import vtk
 import numpy as np
-import sys, os, time
-import vedo.docs as docs
-import vedo.settings as settings
+import sys
+import os
+import time
+import vedo
 
-__doc__ = (
-    """
-Colors definitions and printing methods.
-"""
-    + docs._defs
-)
+__doc__ = ("Colors definitions and printing methods." )
 
 __all__ = [
     "printc",
@@ -21,7 +17,6 @@ __all__ = [
     "buildLUT",
 ]
 
-_global_start_time = time.time()
 
 try:
     import matplotlib.cm as cm_mpl
@@ -917,11 +912,11 @@ def printc(*strings,
 
     |colorprint| |colorprint.py|_
     """
-    if not settings.enablePrintColor:
+    if not vedo.settings.enablePrintColor:
         print(*strings, end=end, flush=flush)
         return
 
-    if not settings.notebookBackend:
+    if not vedo.notebookBackend:
         if not _terminal_has_colors:
             print(*strings, end=end, flush=flush)
             return
@@ -1072,8 +1067,6 @@ def printd(*strings, q=False):
             except:
                 pass
 
-    print("    \x1b[1m\x1b[37mElapsed time:\x1b[0m\x1b[37m",
-          str(time.time()-_global_start_time)[:6], 's'+reset)
     if q:
         print(f"    \x1b[1m\x1b[37mExiting python now (q={bool(q)}).\x1b[0m\x1b[37m")
         exit(0)

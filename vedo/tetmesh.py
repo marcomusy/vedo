@@ -5,7 +5,6 @@ import vedo.utils as utils
 from vedo.base import BaseGrid
 from vedo.mesh import Mesh
 from vedo.colors import printc
-import numpy as np
 
 __doc__ = (
     """
@@ -242,7 +241,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
 
         if above is not None and below is not None:
             if above > below:
-                if vedo.settings.vtk_version[0] >= 9:
+                if vedo.vtk_version[0] >= 9:
                     th.SetInvert(True)
                     th.ThresholdBetween(below, above)
                 else:

@@ -7,7 +7,8 @@ import vtk
 import vedo
 import vedo.colors as colors
 import vedo.docs as docs
-import vedo.settings as settings
+#import vedo.settings as settings
+from vedo import settings
 import vedo.utils as utils
 from vedo.base import BaseActor
 
@@ -253,7 +254,7 @@ def visiblePoints(mesh, area=(), tol=None, invert=False):
     # specify a rectangular region
     svp = vtk.vtkSelectVisiblePoints()
     svp.SetInputData(mesh.polydata())
-    svp.SetRenderer(settings.plotter_instance.renderer)
+    svp.SetRenderer(vedo.plotter_instance.renderer)
 
     if len(area)==4:
         svp.SetSelection(area[0],area[1],area[2],area[3])
@@ -1167,8 +1168,8 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         msiz = self.diagonalSize()
         if scale is None:
-            if settings.plotter_instance:
-                sz = settings.plotter_instance.window.GetSize()
+            if vedo.plotter_instance:
+                sz = vedo.plotter_instance.window.GetSize()
                 dsiz = utils.mag(sz)
                 scale = dsiz/msiz/9
             else:
