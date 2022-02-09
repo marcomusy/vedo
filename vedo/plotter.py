@@ -49,7 +49,7 @@ def _embedWindow(backend='ipyvtk'):
 
         except ModuleNotFoundError:
             vedo.logger.error('Could not load k3d try:\n> pip install k3d==2.7.4')
-            vedo.logger.flush()
+            print(flush=True)
 
     elif 'ipygany' in backend: # ipygany
         try:
@@ -57,7 +57,7 @@ def _embedWindow(backend='ipyvtk'):
             return backend
         except ModuleNotFoundError:
             vedo.logger.error('Could not load ipygany try:\n> pip install ipygany')
-            vedo.logger.flush()
+            print(flush=True)
 
     elif 'itk' in backend: # itkwidgets
         try:
@@ -65,7 +65,7 @@ def _embedWindow(backend='ipyvtk'):
             return backend
         except ModuleNotFoundError:
             vedo.logger.error('Could not load itkwidgets try:\n> pip install itkwidgets')
-            vedo.logger.flush()
+            print(flush=True)
 
     elif backend.lower() == '2d':
         return backend
@@ -77,7 +77,6 @@ def _embedWindow(backend='ipyvtk'):
             return backend
         except:
             vedo.logger.error('Could not load panel try:\n> pip install panel')
-            vedo.logger.flush()
 
     elif 'ipyvtk' in backend:
         try:
@@ -85,7 +84,7 @@ def _embedWindow(backend='ipyvtk'):
             return backend
         except ModuleNotFoundError:
             vedo.logger.error('Could not load ipyvtklink try:\n> pip install ipyvtklink')
-            vedo.logger.flush()
+            print(flush=True)
 
     else:
         vedo.logger.error("Unknown backend" + str(backend))
@@ -1465,7 +1464,7 @@ class Plotter:
         if self.interactor:
             sw.SetInteractor(self.interactor)
         else:
-            vedo.logger.error("No interactor found.")
+            vedo.logger.error("in addSplineTool(), No interactor found.")
             raise RuntimeError
         sw.On()
         sw.Initialize(sw.points.polydata())
@@ -1480,8 +1479,6 @@ class Plotter:
             self.interactor.Render()
         return sw
 
-
-        return addons.addSplineTool(self, points, pc, ps, lc, ac, lw, closed, interactive)
 
     def addCutterTool(self, obj=None, mode='box', invert=False):
         """Create an interactive tool to cut away parts of a mesh or volume.

@@ -433,7 +433,7 @@ class Mesh(Points):
             if os.path.exists(tname):
                 fn = tname
             elif not os.path.exists(fn):
-                vedo.logger.error("File does not exist or texture {tname} not found in {vedo.textures_path}")
+                vedo.logger.error(f"File does not exist or texture {tname} not found in {vedo.textures_path}")
                 return self
 
             fnl = fn.lower()

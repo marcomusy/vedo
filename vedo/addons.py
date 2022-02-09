@@ -985,7 +985,7 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
         if isinstance(xmin, int) and isinstance(xmax, int) and isinstance(value, int):
             frm = "%0.0f"
         else:
-            frm = "%0.3f"
+            frm = "%0.2f"
 
         frm = options.pop("tformat", frm)
 

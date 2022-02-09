@@ -8,408 +8,427 @@ from vedo.pointcloud import Points, fitPlane
 import numpy as np
 import os
 
-__all__ = ["SlicerPlotter",
-           "Slicer2d",
-           'RayCastPlotter',
-           'IsosurfaceBrowser',
-           'Browser',
-           'FreeHandCutPlotter',
+__all__ = [
+    'Browser',
+    'IsosurfaceBrowser',
+    'FreeHandCutPlotter',
+    'RayCastPlotter',
+    "Slicer3DPlotter",
+    "Slicer2DPlotter",
 ]
 
-# globals
-_cmap_slicer='gist_ncar_r'
-_alphaslider0, _alphaslider1, _alphaslider2 = 0.33, 0.66, 1  # defaults
-_kact=0
 
-##########################################################################
-def SlicerPlotter(
-           volume,
-           alpha=1,
-           cmaps=('gist_ncar_r', "hot_r", "bone_r", "jet", "Spectral_r"),
-           map2cells=False,  # buggy
-           clamp=True,
-           useSlider3D=False,
-           size=(1200,1000),
-           screensize="auto",
-           title="",
-           bg="white",
-           bg2="lightblue",
-           axes=7,
-           showHisto=True,
-           showIcon=True,
-           draggable=False,
-           ):
-    """
-    Generate a ``Plotter`` window with slicing planes for the input Volume.
-    Returns the ``Plotter`` object.
+#################################
+class Slicer3DPlotter(Plotter):
 
-    :param float alpha: transparency of the slicing planes
-    :param list cmaps: list of color maps names to cycle when clicking button
-    :param bool map2cells: scalars are mapped to cells, not intepolated.
-    :param bool clamp: clamp scalar to reduce the effect of tails in color mapping
-    :param bool useSlider3D: show sliders attached along the axes
-    :param list size: rendering window size in pixels
-    :param list screensize: size of the screen can be specified
-    :param str title: window title
-    :param bg: background color
-    :param bg2: background gradient color
-    :param int axes: axis type number
-    :param bool showHisto: show histogram on bottom left
-    :param bool showIcon: show a small 3D rendering icon of the volume
-    :param bool draggable: make the icon draggable
-    """
-    global _cmap_slicer
+    def __init__(self,
+               volume,
+               alpha=1,
+               cmaps=('gist_ncar_r', "hot_r", "bone_r", "jet", "Spectral_r"),
+               map2cells=False,  # buggy
+               clamp=True,
+               useSlider3D=False,
+               showHisto=True,
+               showIcon=True,
+               draggable=False,
+               pos=(0, 0),
+               size="auto",
+               screensize="auto",
+               title="",
+               bg="white",
+               bg2="lightblue",
+               axes=7,
+               resetcam=True,
+               interactive=True,
+        ):
+        """
+        Generate a ``Plotter`` window with slicing planes for the input Volume.
+        Returns the ``Plotter`` object.
 
-    ################################
-    plt = Plotter(bg=bg, bg2=bg2,
-                 size=size,
-                 screensize=screensize,
-                 title=title,
-                 interactive=False,
-                )
+        :param float alpha: transparency of the slicing planes
+        :param list cmaps: list of color maps names to cycle when clicking button
+        :param bool map2cells: scalars are mapped to cells, not intepolated.
+        :param bool clamp: clamp scalar to reduce the effect of tails in color mapping
+        :param bool useSlider3D: show sliders attached along the axes
+        :param bool showHisto: show histogram on bottom left
+        :param bool showIcon: show a small 3D rendering icon of the volume
+        :param bool draggable: make the icon draggable
+        """
+        self._cmap_slicer= 'gist_ncar_r'
 
-    ################################
-    box = volume.box().wireframe().alpha(0)
+        if not title:
+            if volume.filename:
+                title = volume.filename
+            else:
+                title = "Volume Slicer"
 
-    plt.show(box, viewup="z", axes=axes)
-    if showIcon:
-        plt.addInset(volume, pos=(.85,.85), size=0.15, c='w', draggable=draggable)
+        ################################
+        Plotter.__init__(self,
+                         pos=pos,
+                         bg=bg,
+                         bg2=bg2,
+                         size=size,
+                         screensize=screensize,
+                         title=title,
+                         interactive=interactive,
+                         axes=axes,
+        )
+        ################################
+        box = volume.box().wireframe().alpha(0.1)
 
-    # inits
-    la, ld = 0.7, 0.3 #ambient, diffuse
-    dims = volume.dimensions()
-    data = volume.pointdata[0]
-    rmin, rmax = volume.imagedata().GetScalarRange()
-    if clamp:
-        hdata, edg = np.histogram(data, bins=50)
-        logdata = np.log(hdata+1)
-        # mean  of the logscale plot
-        meanlog = np.sum(np.multiply(edg[:-1], logdata))/np.sum(logdata)
-        rmax = min(rmax, meanlog+(meanlog-rmin)*0.9)
-        rmin = max(rmin, meanlog-(rmax-meanlog)*0.9)
-        vedo.logger.debug('scalar range clamped to range: (' + precision(rmin, 3) +', '+  precision(rmax, 3)+')')
-    _cmap_slicer = cmaps[0]
-    visibles = [None, None, None]
-    msh = volume.zSlice(int(dims[2]/2))
-    msh.alpha(alpha).lighting('', la, ld, 0)
-    msh.cmap(_cmap_slicer, vmin=rmin, vmax=rmax)
-    if map2cells: msh.mapPointsToCells()
-    plt.renderer.AddActor(msh)
-    visibles[2] = msh
-    msh.addScalarBar(pos=(0.04,0.0), horizontal=True, titleFontSize=0)
+        self.show(box, viewup="z", resetcam=resetcam, interactive=False)
+        if showIcon:
+            self.addInset(volume, pos=(.85,.85), size=0.15, c='w', draggable=draggable)
 
-    def sliderfunc_x(widget, event):
-        i = int(widget.GetRepresentation().GetValue())
-        msh = volume.xSlice(i).alpha(alpha).lighting('', la, ld, 0)
-        msh.cmap(_cmap_slicer, vmin=rmin, vmax=rmax)
+        # inits
+        la, ld = 0.7, 0.3 #ambient, diffuse
+        dims = volume.dimensions()
+        data = volume.pointdata[0]
+        rmin, rmax = volume.imagedata().GetScalarRange()
+        if clamp:
+            hdata, edg = np.histogram(data, bins=50)
+            logdata = np.log(hdata+1)
+            # mean  of the logscale plot
+            meanlog = np.sum(np.multiply(edg[:-1], logdata))/np.sum(logdata)
+            rmax = min(rmax, meanlog+(meanlog-rmin)*0.9)
+            rmin = max(rmin, meanlog-(rmax-meanlog)*0.9)
+            vedo.logger.debug('scalar range clamped to range: (' + precision(rmin, 3) +', '+  precision(rmax, 3)+')')
+        self._cmap_slicer = cmaps[0]
+        visibles = [None, None, None]
+        msh = volume.zSlice(int(dims[2]/2))
+        msh.alpha(alpha).lighting('', la, ld, 0)
+        msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
         if map2cells: msh.mapPointsToCells()
-        plt.renderer.RemoveActor(visibles[0])
-        if i and i<dims[0]: plt.renderer.AddActor(msh)
-        visibles[0] = msh
-
-    def sliderfunc_y(widget, event):
-        i = int(widget.GetRepresentation().GetValue())
-        msh = volume.ySlice(i).alpha(alpha).lighting('', la, ld, 0)
-        msh.cmap(_cmap_slicer, vmin=rmin, vmax=rmax)
-        if map2cells: msh.mapPointsToCells()
-        plt.renderer.RemoveActor(visibles[1])
-        if i and i<dims[1]: plt.renderer.AddActor(msh)
-        visibles[1] = msh
-
-    def sliderfunc_z(widget, event):
-        i = int(widget.GetRepresentation().GetValue())
-        msh = volume.zSlice(i).alpha(alpha).lighting('', la, ld, 0)
-        msh.cmap(_cmap_slicer, vmin=rmin, vmax=rmax)
-        if map2cells: msh.mapPointsToCells()
-        plt.renderer.RemoveActor(visibles[2])
-        if i and i<dims[2]: plt.renderer.AddActor(msh)
+        self.renderer.AddActor(msh)
         visibles[2] = msh
+        msh.addScalarBar(pos=(0.04,0.0), horizontal=True, titleFontSize=0)
 
-    cx, cy, cz, ch = 'dr', 'dg', 'db', (0.3,0.3,0.3)
-    if np.sum(plt.renderer.GetBackground()) < 1.5:
-        cx, cy, cz = 'lr', 'lg', 'lb'
-        ch = (0.8,0.8,0.8)
+        def sliderfunc_x(widget, event):
+            i = int(widget.GetRepresentation().GetValue())
+            msh = volume.xSlice(i).alpha(alpha).lighting('', la, ld, 0)
+            msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
+            if map2cells: msh.mapPointsToCells()
+            self.renderer.RemoveActor(visibles[0])
+            if i and i<dims[0]:
+                self.renderer.AddActor(msh)
+            visibles[0] = msh
 
-    if not useSlider3D:
-        plt.addSlider2D(sliderfunc_x, 0, dims[0], title='X', titleSize=0.5,
-                       pos=[(0.8,0.12), (0.95,0.12)], showValue=False, c=cx)
-        plt.addSlider2D(sliderfunc_y, 0, dims[1], title='Y', titleSize=0.5,
-                       pos=[(0.8,0.08), (0.95,0.08)], showValue=False, c=cy)
-        plt.addSlider2D(sliderfunc_z, 0, dims[2], title='Z', titleSize=0.6,
-                       value=int(dims[2]/2),
-                       pos=[(0.8,0.04), (0.95,0.04)], showValue=False, c=cz)
-    else: # 3d sliders attached to the axes bounds
-        bs = box.bounds()
-        plt.addSlider3D(sliderfunc_x,
-            pos1=(bs[0], bs[2], bs[4]),
-            pos2=(bs[1], bs[2], bs[4]),
-            xmin=0, xmax=dims[0],
-            t=box.diagonalSize()/mag(box.xbounds())*0.6,
-            c=cx,
-            showValue=False,
+        def sliderfunc_y(widget, event):
+            i = int(widget.GetRepresentation().GetValue())
+            msh = volume.ySlice(i).alpha(alpha).lighting('', la, ld, 0)
+            msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
+            if map2cells: msh.mapPointsToCells()
+            self.renderer.RemoveActor(visibles[1])
+            if i and i<dims[1]:
+                self.renderer.AddActor(msh)
+            visibles[1] = msh
+
+        def sliderfunc_z(widget, event):
+            i = int(widget.GetRepresentation().GetValue())
+            msh = volume.zSlice(i).alpha(alpha).lighting('', la, ld, 0)
+            msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
+            if map2cells: msh.mapPointsToCells()
+            self.renderer.RemoveActor(visibles[2])
+            if i and i<dims[2]:
+                self.renderer.AddActor(msh)
+            visibles[2] = msh
+
+        cx, cy, cz, ch = 'dr', 'dg', 'db', (0.3,0.3,0.3)
+        if np.sum(self.renderer.GetBackground()) < 1.5:
+            cx, cy, cz = 'lr', 'lg', 'lb'
+            ch = (0.8,0.8,0.8)
+
+        if not useSlider3D:
+            self.addSlider2D(sliderfunc_x, 0, dims[0], title='X', titleSize=0.5,
+                           pos=[(0.8,0.12), (0.95,0.12)], showValue=False, c=cx)
+            self.addSlider2D(sliderfunc_y, 0, dims[1], title='Y', titleSize=0.5,
+                           pos=[(0.8,0.08), (0.95,0.08)], showValue=False, c=cy)
+            self.addSlider2D(sliderfunc_z, 0, dims[2], title='Z', titleSize=0.6,
+                           value=int(dims[2]/2),
+                           pos=[(0.8,0.04), (0.95,0.04)], showValue=False, c=cz)
+        else: # 3d sliders attached to the axes bounds
+            bs = box.bounds()
+            self.addSlider3D(
+                    sliderfunc_x,
+                    pos1=(bs[0], bs[2], bs[4]),
+                    pos2=(bs[1], bs[2], bs[4]),
+                    xmin=0, xmax=dims[0],
+                    t=box.diagonalSize()/mag(box.xbounds())*0.6,
+                    c=cx,
+                    showValue=False,
+            )
+            self.addSlider3D(
+                    sliderfunc_y,
+                    pos1=(bs[1], bs[2], bs[4]),
+                    pos2=(bs[1], bs[3], bs[4]),
+                    xmin=0, xmax=dims[1],
+                    t=box.diagonalSize()/mag(box.ybounds())*0.6,
+                    c=cy,
+                    showValue=False,
+            )
+            self.addSlider3D(
+                    sliderfunc_z,
+                    pos1=(bs[0], bs[2], bs[4]),
+                    pos2=(bs[0], bs[2], bs[5]),
+                    xmin=0, xmax=dims[2],
+                    value=int(dims[2]/2),
+                    t=box.diagonalSize()/mag(box.zbounds())*0.6,
+                    c=cz,
+                    showValue=False,
+            )
+
+
+        #################
+        def buttonfunc():
+            bu.switch()
+            self._cmap_slicer = bu.status()
+            for mesh in visibles:
+                if mesh:
+                    mesh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
+                    if map2cells:
+                        mesh.mapPointsToCells()
+            self.renderer.RemoveActor(mesh.scalarbar)
+            mesh.addScalarBar(pos=(0.04,0.0), horizontal=True, titleFontSize=0)
+
+        bu = self.addButton(buttonfunc,
+            pos=(0.27, 0.005),
+            states=cmaps,
+            c=["db"]*len(cmaps),
+            bc=["lb"]*len(cmaps),  # colors of states
+            size=14,
+            bold=True,
         )
-        plt.addSlider3D(sliderfunc_y,
-            pos1=(bs[1], bs[2], bs[4]),
-            pos2=(bs[1], bs[3], bs[4]),
-            xmin=0, xmax=dims[1],
-            t=box.diagonalSize()/mag(box.ybounds())*0.6,
-            c=cy,
-            showValue=False,
-        )
-        plt.addSlider3D(sliderfunc_z,
-            pos1=(bs[0], bs[2], bs[4]),
-            pos2=(bs[0], bs[2], bs[5]),
-            xmin=0, xmax=dims[2],
-            value=int(dims[2]/2),
-            t=box.diagonalSize()/mag(box.zbounds())*0.6,
-            c=cz,
-            showValue=False,
-        )
 
+        #################
+        hist = None
+        if showHisto:
+            hist = CornerHistogram(data, s=0.2,
+                                   bins=25, logscale=1, pos=(0.02, 0.02),
+                                   c=ch, bg=ch, alpha=0.7,
+            )
 
-    #################
-    def buttonfunc():
-        global _cmap_slicer
-        bu.switch()
-        _cmap_slicer = bu.status()
-        for mesh in visibles:
-            if mesh:
-                mesh.cmap(_cmap_slicer, vmin=rmin, vmax=rmax)
-                if map2cells:
-                    mesh.mapPointsToCells()
-        plt.renderer.RemoveActor(mesh.scalarbar)
-        mesh.addScalarBar(pos=(0.04,0.0), horizontal=True, titleFontSize=0)
-
-    bu = plt.addButton(buttonfunc,
-        pos=(0.27, 0.005),
-        states=cmaps,
-        c=["db"]*len(cmaps),
-        bc=["lb"]*len(cmaps),  # colors of states
-        size=14,
-        bold=True,
-    )
-
-    #################
-    hist = None
-    if showHisto:
-        hist = CornerHistogram(data, s=0.2,
-                               bins=25, logscale=1, pos=(0.02, 0.02),
-                               c=ch, bg=ch, alpha=0.7)
-
-    plt.add(msh, hist, resetcam=1)
-    plt.interactive = True
-    return plt
+        self.add([msh, hist], resetcam=False)
+        if interactive:
+            self.interactive()
 
 
 ########################################################################################
-def Slicer2d(volume, levels=(None, None), size=(900,900), bg='k9', zoom=1.2):
+class Slicer2DPlotter(Plotter):
     """
-    Create a 2D window with a single slice of a Volume,
-    wich can be oriented arbitrarily in space.
+    Create a Plotter with a single slice of a Volume which always faces the camera,
+    but at the same time can be oriented arbitrarily in space.
 
     :param list wl: window and color levels
     """
-    vsl = vedo.volume.VolumeSlice(volume) # reuse the same underlying data as in vol
+    def __init__(self,
+                 volume,
+                 levels=(None, None),
+                 axes=None,
+                 zoom=1.2,
+                 pos=(0, 0),
+                 size="auto",
+                 screensize="auto",
+                 title="",
+                 bg="white",
+                 bg2=None,
+                 interactive=True,
+        ):
+        custom_shape = [ # define here the 2 rendering rectangle spaces
+            dict(bottomleft=(0.0,0.0), topright=(1,1), bg='k9'), # the full window
+            dict(bottomleft=(0.8,0.8), topright=(1,1), bg='k8', bg2='lb'),
+        ]
 
-    # no argument will grab the existing cmap in vol (or use buildLUT())
-    vsl.colorize()
+        if not title:
+            if volume.filename:
+                title = volume.filename[:80]
+            else:
+                title = "Volume Slicer2D"
 
-    if levels[0] and levels[1]:
-        vsl.lighting(window=levels[0], level=levels[1])
+        Plotter.__init__(self, shape=custom_shape, title=title, pos=pos,
+                         screensize=screensize, size=size, bg=bg, bg2=bg2, axes=0,
+                         interactive=False)
 
-    usage = Text2D(
-        f"SHIFT+Left click   \rightarrow rotate camera for oblique slicing\n"
-        f"SHIFT+Middle click \rightarrow slice perpendicularly through image\n"
-        f"Left click & drag  \rightarrow modify luminosity and contrast\n"
-        f"R                  \rightarrow Reset the Window/Color levels\n"
-        f"X                  \rightarrow Reset to sagittal view\n"
-        f"Y                  \rightarrow Reset to coronal view\n"
-        f"Z                  \rightarrow Reset to axial view",
-        font="Calco", pos="top-left", s=0.8, bg='yellow', alpha=0.25
-    )
+        vsl = vedo.volume.VolumeSlice(volume)  # reuse the same underlying data as in vol
 
-    custom_shape = [ # define here the 2 rendering rectangle spaces
-        dict(bottomleft=(0.0,0.0), topright=(1,1), bg='k9'), # the full window
-        dict(bottomleft=(0.8,0.8), topright=(1,1), bg='k8', bg2='lb'),
-    ]
+        # no argument will grab the existing cmap in vol (or use buildLUT())
+        vsl.colorize()
 
-    axes=11
-    if vedo.vtk_version[0] == 9:
-        axes=0
+        if levels[0] and levels[1]:
+            vsl.lighting(window=levels[0], level=levels[1])
 
-    hist = CornerHistogram(volume.pointdata[0],
-                           bins=25, logscale=1, pos=(0.02, 0.02), s=0.175,
-                           c='dg', bg='k', alpha=1)
+        usage = Text2D(
+            f"SHIFT+Left click   \rightarrow rotate camera for oblique slicing\n"
+            f"SHIFT+Middle click \rightarrow slice perpendicularly through image\n"
+            f"Left click & drag  \rightarrow modify luminosity and contrast\n"
+            f"R                  \rightarrow Reset the Window/Color levels\n"
+            f"X                  \rightarrow Reset to sagittal view\n"
+            f"Y                  \rightarrow Reset to coronal view\n"
+            f"Z                  \rightarrow Reset to axial view",
+            font="Calco", pos="top-left", s=0.8, bg='yellow', alpha=0.25
+        )
 
-    plt = vedo.show([ (vsl,usage,hist), volume ],
-                   shape=custom_shape, mode="image",
-                   title=volume.filename[:80],
-                   size=size, bg=bg, zoom=zoom, axes=axes, interactive=0)
-    return plt
+        hist = CornerHistogram(volume.pointdata[0],
+                               bins=25, logscale=1, pos=(0.02, 0.02), s=0.175,
+                               c='dg', bg='k', alpha=1)
+        ax = None
+        if axes == 7:
+            ax = vedo.addons.RulerAxes(vsl, xtitle='x - ', ytitle='y - ', ztitle='z - ')
+
+        box = vsl.box().alpha(0.1)
+        self.show(vsl, box, ax, usage, hist, at=0, mode="image", zoom=zoom)
+        self.show(volume, at=1, interactive=interactive)
 
 
 ########################################################################
-def RayCastPlotter(volume):
+class RayCastPlotter(Plotter):
     """
     Generate a ``Plotter`` window for Volume rendering using ray casting.
     Returns the ``Plotter`` object.
     """
-    plt = vedo.plotter_instance
-    if not plt:
-        plt = Plotter(axes=4, bg='bb')
+    def __init__(self, volume, **kwargs):
 
-    volumeProperty = volume.GetProperty()
-    img = volume.imagedata()
+        Plotter.__init__(self, **kwargs)
 
-    if volume.dimensions()[2]<3:
-        vedo.logger.error("not enough z slices, skip.")
-        return plt
+        self.alphaslider0 = 0.33
+        self.alphaslider1 = 0.66
+        self.alphaslider2 = 1
 
-    smin, smax = img.GetScalarRange()
+        volumeProperty = volume.GetProperty()
+        img = volume.imagedata()
 
-    x0alpha = smin + (smax - smin) * 0.25
-    x1alpha = smin + (smax - smin) * 0.5
-    x2alpha = smin + (smax - smin) * 1.0
+        if volume.dimensions()[2]<3:
+            vedo.logger.error("RayCastPlotter: not enough z slices.")
+            raise RuntimeError
 
-    ############################## color map slider
-    # Create transfer mapping scalar value to color
-    cmaps = ["jet",
-            "viridis",
-            "bone",
-            "hot",
-            "plasma",
-            "winter",
-            "cool",
-            "gist_earth",
-            "coolwarm",
-            "tab10",
-    ]
-    cols_cmaps = []
-    for cm in cmaps:
-        cols = colorMap(range(0, 21), cm, 0, 20)  # sample 20 colors
-        cols_cmaps.append(cols)
-    Ncols = len(cmaps)
-    csl = (0.9, 0.9, 0.9)
-    if sum(getColor(plt.renderer.GetBackground())) > 1.5:
-        csl = (0.1, 0.1, 0.1)
+        smin, smax = img.GetScalarRange()
+        x0alpha = smin + (smax - smin) * 0.25
+        x1alpha = smin + (smax - smin) * 0.5
+        x2alpha = smin + (smax - smin) * 1.0
 
-    def sliderColorMap(widget, event):
-        sliderRep = widget.GetRepresentation()
-        k = int(sliderRep.GetValue())
-        sliderRep.SetTitleText(cmaps[k])
-        volume.color(cmaps[k])
+        ############################## color map slider
+        # Create transfer mapping scalar value to color
+        cmaps = ["jet",
+                 "viridis",
+                 "bone",
+                 "hot",
+                 "plasma",
+                 "winter",
+                 "cool",
+                 "gist_earth",
+                 "coolwarm",
+                 "tab10",
+        ]
+        cols_cmaps = []
+        for cm in cmaps:
+            cols = colorMap(range(0, 21), cm, 0, 20)  # sample 20 colors
+            cols_cmaps.append(cols)
+        Ncols = len(cmaps)
+        csl = (0.9, 0.9, 0.9)
+        if sum(getColor(self.renderer.GetBackground())) > 1.5:
+            csl = (0.1, 0.1, 0.1)
 
-    w1 = plt.addSlider2D(
-        sliderColorMap,
-        0,
-        Ncols - 1,
-        value=0,
-        showValue=0,
-        title=cmaps[0],
-        c=csl,
-        pos=[(0.8, 0.05), (0.965, 0.05)],
-    )
-    w1.GetRepresentation().SetTitleHeight(0.018)
+        def sliderColorMap(widget, event):
+            sliderRep = widget.GetRepresentation()
+            k = int(sliderRep.GetValue())
+            sliderRep.SetTitleText(cmaps[k])
+            volume.color(cmaps[k])
 
-    ############################## alpha sliders
-    # Create transfer mapping scalar value to opacity
-    opacityTransferFunction = volumeProperty.GetScalarOpacity()
+        w1 = self.addSlider2D(
+            sliderColorMap,
+            0,
+            Ncols - 1,
+            value=0,
+            showValue=0,
+            title=cmaps[0],
+            c=csl,
+            pos=[(0.8, 0.05), (0.965, 0.05)],
+        )
+        w1.GetRepresentation().SetTitleHeight(0.018)
 
-    def setOTF():
-        opacityTransferFunction.RemoveAllPoints()
-        opacityTransferFunction.AddPoint(smin, 0.0)
-        opacityTransferFunction.AddPoint(smin + (smax - smin) * 0.1, 0.0)
-        opacityTransferFunction.AddPoint(x0alpha, _alphaslider0)
-        opacityTransferFunction.AddPoint(x1alpha, _alphaslider1)
-        opacityTransferFunction.AddPoint(x2alpha, _alphaslider2)
+        ############################## alpha sliders
+        # Create transfer mapping scalar value to opacity
+        opacityTransferFunction = volumeProperty.GetScalarOpacity()
 
-    setOTF()
+        def setOTF():
+            opacityTransferFunction.RemoveAllPoints()
+            opacityTransferFunction.AddPoint(smin, 0.0)
+            opacityTransferFunction.AddPoint(smin + (smax - smin) * 0.1, 0.0)
+            opacityTransferFunction.AddPoint(x0alpha, self.alphaslider0)
+            opacityTransferFunction.AddPoint(x1alpha, self.alphaslider1)
+            opacityTransferFunction.AddPoint(x2alpha, self.alphaslider2)
 
-    def sliderA0(widget, event):
-        global _alphaslider0
-        _alphaslider0 = widget.GetRepresentation().GetValue()
         setOTF()
 
-    plt.addSlider2D(sliderA0, 0, 1,
-                    value=_alphaslider0,
-                    pos=[(0.84, 0.1), (0.84, 0.26)],
-                    c=csl, showValue=0)
+        def sliderA0(widget, event):
+            self.alphaslider0 = widget.GetRepresentation().GetValue()
+            setOTF()
 
-    def sliderA1(widget, event):
-        global _alphaslider1
-        _alphaslider1 = widget.GetRepresentation().GetValue()
-        setOTF()
+        self.addSlider2D(sliderA0, 0, 1,
+                        value=self.alphaslider0,
+                        pos=[(0.84, 0.1), (0.84, 0.26)],
+                        c=csl, showValue=0)
 
-    plt.addSlider2D(sliderA1, 0, 1,
-                    value=_alphaslider1,
-                    pos=[(0.89, 0.1), (0.89, 0.26)],
-                    c=csl, showValue=0)
+        def sliderA1(widget, event):
+            self.alphaslider1 = widget.GetRepresentation().GetValue()
+            setOTF()
 
-    def sliderA2(widget, event):
-        global _alphaslider2
-        _alphaslider2 = widget.GetRepresentation().GetValue()
-        setOTF()
+        self.addSlider2D(sliderA1, 0, 1,
+                        value=self.alphaslider1,
+                        pos=[(0.89, 0.1), (0.89, 0.26)],
+                        c=csl, showValue=0)
 
-    w2 = plt.addSlider2D(sliderA2, 0, 1,
-                        value=_alphaslider2,
-                        pos=[(0.96, 0.1), (0.96, 0.26)],
-                        c=csl, showValue=0,
-                        title="Opacity levels")
-    w2.GetRepresentation().SetTitleHeight(0.016)
+        def sliderA2(widget, event):
+            self.alphaslider2 = widget.GetRepresentation().GetValue()
+            setOTF()
 
-    # add a button
-    def buttonfuncMode():
-        s = volume.mode()
-        snew = (s + 1) % 2
-        volume.mode(snew)
-        bum.switch()
+        w2 = self.addSlider2D(sliderA2, 0, 1,
+                            value=self.alphaslider2,
+                            pos=[(0.96, 0.1), (0.96, 0.26)],
+                            c=csl, showValue=0,
+                            title="Opacity levels")
+        w2.GetRepresentation().SetTitleHeight(0.016)
 
-    bum = plt.addButton(
-        buttonfuncMode,
-        pos=(0.7, 0.035),
-        states=["composite", "max proj."],
-        c=["bb", "gray"],
-        bc=["gray", "bb"],  # colors of states
-        font="",
-        size=16,
-        bold=0,
-        italic=False,
-    )
-    bum.status(volume.mode())
+        # add a button
+        def buttonfuncMode():
+            s = volume.mode()
+            snew = (s + 1) % 2
+            volume.mode(snew)
+            bum.switch()
 
-    # def CheckAbort(obj, event):
-    #     if obj.GetEventPending() != 0:
-    #         obj.SetAbortRender(1)
-    # plt.window.AddObserver("AbortCheckEvent", CheckAbort)
+        bum = self.addButton(
+            buttonfuncMode,
+            pos=(0.7, 0.035),
+            states=["composite", "max proj."],
+            c=["bb", "gray"],
+            bc=["gray", "bb"],  # colors of states
+            font="",
+            size=16,
+            bold=0,
+            italic=False,
+        )
+        bum.status(volume.mode())
 
-    # add histogram of scalar
-    plot = CornerHistogram(volume,
-        bins=25, logscale=1, c=(.7,.7,.7), bg=(.7,.7,.7), pos=(0.78, 0.065),
-        lines=True, dots=False,
-        nmax=3.1415e+06, # subsample otherwise is too slow
-    )
+        # add histogram of scalar
+        plot = CornerHistogram(volume,
+            bins=25, logscale=1, c=(.7,.7,.7), bg=(.7,.7,.7), pos=(0.78, 0.065),
+            lines=True, dots=False,
+            nmax=3.1415e+06, # subsample otherwise is too slow
+        )
 
-    # xbins = np.linspace(smin, smax, 25)
-    # yvals = volume.histogram(bins=25, logscale=1)
-    # plot = CornerPlot(np.c_[xbins, yvals],
-    #     c=(.7,.7,.7), bg=(.7,.7,.7), pos=(0.78, 0.065), s=0.4,
-    #     lines=True, dots=False,
-    # )
-
-    plot.GetPosition2Coordinate().SetValue(0.197, 0.20, 0)
-    plot.GetXAxisActor2D().SetFontFactor(0.7)
-    plot.GetProperty().SetOpacity(0.5)
-    plt.add([plot, volume])
-    return plt
+        plot.GetPosition2Coordinate().SetValue(0.197, 0.20, 0)
+        plot.GetXAxisActor2D().SetFontFactor(0.7)
+        plot.GetProperty().SetOpacity(0.5)
+        self.add([plot, volume])
 
 
-def IsosurfaceBrowser(volume, c=None, alpha=1, lego=False, cmap='hot', pos=None,
-                      delayed=False):
+#####################################################################################
+class IsosurfaceBrowser(Plotter):
     """
-    Generate a ``Plotter`` window for Volume isosurfacing using a slider.
-    Returns the ``Plotter`` object.
+    Generate a ``Plotter`` for Volume isosurfacing using a slider.
 
-    Set delayed=True to delay slider update on mouse release.
+    Set `delayed=True` to delay slider update on mouse release.
+    Set `res` to set the resolution, e.g. the number of desired isosurfaces to be generated on the fly.
+    Set `precompute=True` to precompute the isosurfaces (so slider browsing will be smoother).
 
     :Example:
         .. code-block:: python
@@ -420,109 +439,199 @@ def IsosurfaceBrowser(volume, c=None, alpha=1, lego=False, cmap='hot', pos=None,
             plt = IsosurfaceBrowser(vol, c='gold')
             plt.show(axes=7, bg2='lb')
     """
-    plt = vedo.plotter_instance
-    if not plt:
-        plt = Plotter(axes=4, bg='w', title="Isosurface Browser")
+    def __init__(self,
+                 volume,
+                 threshold=None,
+                 c=None,
+                 alpha=1,
+                 lego=False,
+                 res=50,
+                 precompute=False,
+                 progress=False,
+                 cmap='hot',
+                 delayed=False,
+                 sliderpos=4,
+                 pos=(0,0),
+                 size="auto",
+                 screensize="auto",
+                 title="",
+                 bg="white",
+                 bg2=None,
+                 axes=1,
+                 interactive=True,
+        ):
 
-    scrange = volume.scalarRange()
-    threshold = (scrange[1] - scrange[0]) / 3.0 + scrange[0]
+        Plotter.__init__(self,
+                         pos=pos,
+                         bg=bg,
+                         bg2=bg2,
+                         size=size,
+                         screensize=screensize,
+                         title=title,
+                         interactive=interactive,
+                         axes=axes,
+        )
 
-    if lego:
-        sliderpos = ((0.79, 0.035), (0.975, 0.035))
-        slidertitle = ""
-        showval = False
-        mesh = volume.legosurface(vmin=threshold)
-        mesh.cmap(cmap, vmin=scrange[0], vmax=scrange[1], on='cells')
-        mesh.alpha(alpha)
-        mesh.addScalarBar(horizontal=True)
-    else:
-        sliderpos = 4
-        slidertitle = "threshold"
-        showval = True
-        mesh = volume.isosurface(threshold)
-        mesh.color(c).alpha(alpha)
+        self._prev_value = 1e30
 
-    if pos is not None:
-        sliderpos = pos
+        scrange = volume.scalarRange()
+        delta = scrange[1] - scrange[0]
+        if not delta:
+            return
 
-    plt.actors = [mesh] + plt.actors
+        if lego:
+            res = int(res/2)  # because lego is much slower
+            slidertitle = ""
+        else:
+            slidertitle = "threshold"
 
-    ############################## threshold slider
-    bacts = dict()
-    def sliderThres(widget, event):
+        allowed_vals = np.linspace(scrange[0], scrange[1], num=res)
 
-        prevact = plt.actors[0]
-        wval =  widget.GetRepresentation().GetValue()
-        wval_2 = precision(wval, 2)
-        if wval_2 in bacts.keys():  # reusing the already available mesh
-            mesh = bacts[wval_2]
-        else:                       # else generate it
-            if lego:
-                mesh = volume.legosurface(vmin=wval)
-                if mesh.NCells():
-                    mesh.cmap(cmap, vmin=scrange[0], vmax=scrange[1], on='cells')
+        bacts = dict()  # cache the meshes so we dont need to recompute
+        if precompute:
+            delayed = False  # no need to delay the slider in this case
+            if progress:
+                pb = vedo.ProgressBar(0,len(allowed_vals))
+
+            for value in allowed_vals:
+                value_name = precision(value, 2)
+                if lego:
+                    mesh = volume.legosurface(vmin=value)
+                    if mesh.NCells():
+                        mesh.cmap(cmap, vmin=scrange[0], vmax=scrange[1], on='cells')
+                else:
+                    mesh = volume.isosurface(threshold=value).color(c).alpha(alpha)
+                bacts.update({value_name: mesh}) # store it
+                if progress:
+                    pb.print("isosurfacing volume..")
+
+        ############################## threshold slider callback
+        def sliderThres(widget, event):
+
+            prevact = self.actors[0]
+            if isinstance(widget, float):
+                value = widget
             else:
-                mesh = volume.isosurface(threshold=wval).color(c).alpha(alpha)
-            bacts.update({wval_2: mesh}) # store it
+                value =  widget.GetRepresentation().GetValue()
 
-        plt.renderer.RemoveActor(prevact)
-        plt.renderer.AddActor(mesh)
-        plt.actors[0] = mesh
+            # snap to the closest
+            idx = (np.abs(allowed_vals - value)).argmin()
+            value = allowed_vals[idx]
 
-    dr = scrange[1] - scrange[0]
-    plt.addSlider2D(sliderThres,
-                    scrange[0] + 0.02 * dr,
-                    scrange[1] - 0.02 * dr,
-                    value=threshold,
-                    pos=sliderpos,
-                    title=slidertitle,
-                    showValue=showval,
-                    delayed=delayed,
-    )
-    return plt
+            if abs(value - self._prev_value)/delta < 0.001:
+                return
+            self._prev_value = value
+
+            value_name = precision(value, 2)
+            if value_name in bacts.keys():  # reusing the already existing mesh
+                #print('reusing')
+                mesh = bacts[value_name]
+            else:                        # else generate it
+                #print('generating', value)
+                if lego:
+                    mesh = volume.legosurface(vmin=value)
+                    if mesh.NCells():
+                        mesh.cmap(cmap, vmin=scrange[0], vmax=scrange[1], on='cells')
+                else:
+                    mesh = volume.isosurface(threshold=value).color(c).alpha(alpha)
+                bacts.update({value_name: mesh}) # store it
+
+            self.renderer.RemoveActor(prevact)
+            self.renderer.AddActor(mesh)
+            self.actors[0] = mesh
+        ################################################
+
+        if threshold is None:
+            threshold = delta / 3.0 + scrange[0]
+
+        self.actors = [None]
+        sliderThres(threshold, "")  # init call
+        if lego:
+            self.actors[0].addScalarBar(pos=(0.8,0.12))
+
+        self.addSlider2D(sliderThres,
+                         scrange[0] + 0.02 * delta,
+                         scrange[1] - 0.02 * delta,
+                         value=threshold,
+                         pos=sliderpos,
+                         title=slidertitle,
+                         showValue=True,
+                         delayed=delayed,
+        )
 
 
 ##############################################################################
-def Browser(meshes, sliderpos=((0.55, 0.07),(0.96, 0.07)), c=None, prefix="",
-            # extras=(), #Not working
-    ):
+class Browser(Plotter):
     """
-    Generate a ``Plotter`` window to browse a list of objects using a slider.
-    Returns the ``Plotter`` object.
+    Browse a serie of vedo objects by using a simple slider.
+
+    :Example:
+        .. code-block:: python
+
+            import vedo
+            from vedo.applications import Browser
+            meshes = vedo.load("data/2*0.vtk") # a python list
+            plt = Browser(meshes, resetcam=1, axes=4) # a vedo.Plotter
+            plt.show()
     """
-    plt = vedo.plotter_instance
-    if not plt:
-        plt = Plotter(axes=1, bg='white', title="Browser")
-    plt.actors = meshes
+    def __init__(self,
+                 objects=(),
+                 sliderpos=((0.55, 0.07),(0.96, 0.07)),
+                 c=None,  # slider color
+                 prefix="",
+                 pos=(0, 0),
+                 size="auto",
+                 screensize="auto",
+                 title="Browser",
+                 bg="white",
+                 bg2=None,
+                 axes=4,
+                 resetcam=False,
+                 interactive=True,
+        ):
+        """
+        Generate a ``Plotter`` window to browse a list of objects using a slider.
+        Returns the ``Plotter`` object.
+        """
+        Plotter.__init__(self,
+                         pos=pos,
+                         size=size,
+                         screensize=screensize,
+                         title=title,
+                         bg=bg,
+                         bg2=bg2,
+                         axes=axes,
+                         interactive=interactive,
+        )
+        self.actors = objects
+        self.slider = None
 
-    # define the slider
-    def sliderfunc(widget, event=None):
-        k = int(widget.GetRepresentation().GetValue())
-        ak = plt.actors[k]
-        for a in plt.actors:
-            if a == ak:
-                a.on()
-            else:
-                a.off()
-        tx = str(k)
-        if ak.filename:
-            tx = ak.filename.split("/")[-1]
-            tx = tx.split("\\")[-1] # windows os
-        elif ak.name:
-            tx = ak.name
-        widget.GetRepresentation().SetTitleText(prefix+tx)
+        # define the slider
+        def sliderfunc(widget, event=None):
+            k = int(widget.GetRepresentation().GetValue())
+            ak = self.actors[k]
+            for a in self.actors:
+                if a == ak:
+                    a.on()
+                else:
+                    a.off()
+            if resetcam:
+                self.resetCamera()
+            tx = str(k)
+            if ak.filename:
+                tx = ak.filename.split("/")[-1]
+                tx = tx.split("\\")[-1] # windows os
+            elif ak.name:
+                tx = ak.name
+            widget.GetRepresentation().SetTitleText(prefix+tx)
 
-    wid = plt.addSlider2D(sliderfunc, 0.5, len(meshes)-0.5,
-                         pos=sliderpos, font='courier', c=c, showValue=False)
-    wid.GetRepresentation().SetTitleHeight(0.020)
-    sliderfunc(wid) # init call
-
-    # for e in extras:
-    #     plt.add(extras, render=False)
-
-    return plt
+        self.slider = self.addSlider2D(sliderfunc, 0.5, len(objects)-0.5,
+                                       pos=sliderpos, font='courier', c=c, showValue=False)
+        self.slider.GetRepresentation().SetTitleHeight(0.020)
+        sliderfunc(self.slider) # init call
 
 
+#############################################################################################
 class FreeHandCutPlotter(Plotter):
     """
     A Plotter derived class which edits polygonal meshes interactively.

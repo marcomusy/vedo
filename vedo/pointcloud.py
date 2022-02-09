@@ -909,7 +909,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
                 n = len(plist)
                 if n != len(cols):
-                    vedo.logger.error("mismatch in Points() colors array lengths {n} and {len(cols)}")
+                    vedo.logger.error(f"mismatch in Points() colors array lengths {n} and {len(cols)}")
                     raise RuntimeError()
 
                 src = vtk.vtkPointSource()
@@ -928,7 +928,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 ucols.SetName("Points_RGBA")
                 if utils.isSequence(alpha):
                     if len(alpha) != n:
-                        vedo.logger.error("mismatch in Points() alpha array lengths {n} and {len(cols)}")
+                        vedo.logger.error(f"mismatch in Points() alpha array lengths {n} and {len(cols)}")
                         raise RuntimeError()
                     alphas = alpha
                     alpha = 1
@@ -2449,7 +2449,7 @@ class Points(vtk.vtkFollower, BaseActor):
             data.AddArray(arr)
 
         else:
-            vedo.logger.error("in cmap(), cannot understand input type {type(input_array)}")
+            vedo.logger.error(f"in cmap(), cannot understand input type {type(input_array)}")
             raise RuntimeError()
 
         ##########################
@@ -3135,7 +3135,7 @@ class Points(vtk.vtkFollower, BaseActor):
             coords = coords[:, :3] / coords[:, 3:]
 
         else:
-            vedo.logger.error("unknown plane {plane}")
+            vedo.logger.error(f"unknown plane {plane}")
             raise RuntimeError()
 
         self.alpha(0.1)

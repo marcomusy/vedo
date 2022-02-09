@@ -10,6 +10,11 @@
 
 
 ---
+### `applications.py`
+- `Brower`, `IsosurfaceBrowser`, `Slicer2DPlotter` and `RayCastPlotter` are now `Plotter` derived classes (not functions)
+- improved `IsosurfaceBrowser` for speed
+
+---
 ### `base.py`
 
 ---

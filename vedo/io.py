@@ -142,11 +142,11 @@ def load(inputobj, unpack=True, force=False):
         if "numpy" in str(type(acts[0])):
             return acts[0]
         if not acts[0]:
-            vedo.logger.error("in load(), cannot load {inputobj}")
+            vedo.logger.error(f"in load(), cannot load {inputobj}")
         return acts[0]
 
     elif len(acts) == 0:
-        vedo.logger.error("in load(), cannot load {inputobj}")
+        vedo.logger.error(f"in load(), cannot load {inputobj}")
         return None
 
     else:
@@ -185,7 +185,7 @@ def _load_file(filename, unpack):
         actor = Assembly(wacts)
 
         ################################################################# volumetric:
-    elif fl.endswith(".tif") or fl.endswith(".slc") or fl.endswith(".vti") \
+    elif fl.endswith(".tif") or fl.endswith(".tiff") or fl.endswith(".slc") or fl.endswith(".vti") \
         or fl.endswith(".mhd") or fl.endswith(".nrrd") or fl.endswith(".nii") \
         or fl.endswith(".dem"):
         img = loadImageData(filename)
@@ -1308,7 +1308,7 @@ def write(objct, fileoutput, binary=True):
         return objct
 
     else:
-        vedo.logger.error("Unknown format {fileoutput}, file not saved")
+        vedo.logger.error(f"Unknown format {fileoutput}, file not saved")
         return objct
 
     try:
@@ -1347,7 +1347,7 @@ def writeTransform(inobj, filename='transform.mat', comment=''):
     elif isinstance(inobj, vtk.vtkMatrix4x4):
         M = inobj
     else:
-        vedo.logger.error("in writeTransform(), cannot understand input type {type(inobj)}")
+        vedo.logger.error(f"in writeTransform(), cannot understand input type {type(inobj)}")
 
     with open(filename,'w') as f:
         if comment:
@@ -1533,7 +1533,7 @@ def exportWindow(fileoutput, binary=False):
         vedo.notebookBackend = savebk
 
     else:
-        vedo.logger.error("export extension {fr.split('.')[-1]} is not supported")
+        vedo.logger.error(f"export extension {fr.split('.')[-1]} is not supported")
     return vedo.plotter_instance
 
 

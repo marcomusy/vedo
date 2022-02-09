@@ -18,4 +18,5 @@ plt = SlicerPlotter( vol,
 #Can now add any other object to the Plotter scene:
 #plt += Text2D('some message', font='arial')
 
-plt.show().close()
+plt.interactive().close()
+#plt.show(interactive=1).close()

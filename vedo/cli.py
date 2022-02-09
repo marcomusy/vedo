@@ -102,8 +102,8 @@ def get_parser():
     pr.add_argument("--mode",                       help="volume rendering style (composite/maxproj/...)", default=0, metavar='')
     pr.add_argument("--cmap",                       help="volume rendering color map name", default='jet', metavar='')
     pr.add_argument("-e", "--edit",                 help="free-hand edit the input Mesh", action="store_true")
-    pr.add_argument("--slicer",                     help="slicer Mode for volumetric data", action="store_true")
     pr.add_argument("--slicer2d",                   help="2D Slicer Mode for volumetric data", action="store_true")
+    pr.add_argument("--slicer3d",                   help="3D Slicer Mode for volumetric data", action="store_true")
     pr.add_argument("--lego",                       help="voxel rendering for 3D image files", action="store_true")
     pr.add_argument("-r", "--run",                  help="run example from vedo/examples", metavar='')
     pr.add_argument("--search",           type=str, help="search/grep for word in vedo examples", default='', metavar='')
@@ -537,7 +537,7 @@ def draw_scene(args):
         vol = io.load(args.files[0], force=args.reload)
 
         if not isinstance(vol, Volume):
-            vedo.logger.error("expected a Volume but loaded a {type(vol)} object")
+            vedo.logger.error(f"expected a Volume but loaded a {type(vol)} object")
             return
 
         sp = vol.spacing()
@@ -553,9 +553,9 @@ def draw_scene(args):
         return
 
     ##########################################################
-    # special case of SLC/TIFF/DICOM volumes with --slicer option
-    elif args.slicer:
-        # print('DEBUG special case of SLC/TIFF/DICOM volumes with --slicer option')
+    # special case of SLC/TIFF/DICOM volumes with --slicer3d option
+    elif args.slicer3d:
+        # print('DEBUG special case of SLC/TIFF/DICOM volumes with --slicer3d option')
 
         useSlider3D = False
         if args.axes_type == 4:
@@ -571,7 +571,7 @@ def draw_scene(args):
 
         vedo.plotter_instance = None # reset
 
-        plt = applications.SlicerPlotter(
+        plt = applications.Slicer3DPlotter(
                      vol,
                      bg='white', bg2='lb',
                      useSlider3D=useSlider3D,
@@ -581,7 +581,7 @@ def draw_scene(args):
                      clamp=True,
                      size=(1000,800),
         )
-        plt.show()
+        plt.interactive()
         return
 
     ########################################################################
@@ -612,8 +612,9 @@ def draw_scene(args):
         sp = vol.spacing()
         vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
         vedo.plotter_instance = None # reset
-        plt = applications.Slicer2d(vol)
-        plt.interactor.Start()
+
+        plt = applications.Slicer2DPlotter(vol, axes=7)
+        plt.close()
         return
 
 
@@ -637,7 +638,10 @@ def draw_scene(args):
                                             lego=args.lego,
                                             c=args.color,
                                             cmap=args.cmap,
-                                            delayed=args.lego)
+                                            delayed=args.lego,
+                                            precompute=True,
+                                            progress=True,
+        )
         vp.show(zoom=args.zoom, viewup="z")
         return
 
@@ -743,8 +747,9 @@ def draw_scene(args):
                 a.c(args.color)
             a.alpha(args.alpha)
 
-        applications.Browser(acts)
-        vp.show(interactive=True, zoom=args.zoom)
+        plt = applications.Browser(acts, axes=1)
+        plt.show(zoom=args.zoom).close()
+
 
 ########################################################################
 def exe_gui(args):
@@ -848,8 +853,8 @@ def exe_gui(args):
                 "composite",
                 "maximum proj",
                 "lego",
-                "slicer",
                 "slicer2d",
+                "slicer3d",
             )
             self.modeCB = Combobox(self, state="readonly", values=modevalues, width=20)
             self.modeCB.current(0)
@@ -977,7 +982,7 @@ def exe_gui(args):
 
             args.ray_cast_mode = False
             args.lego = False
-            args.slicer = False
+            args.slicer3d = False
             args.slicer2d = False
             args.lego = False
             args.mode = 0
@@ -987,8 +992,8 @@ def exe_gui(args):
             elif self.modeCB.get() == "maximum proj":
                 args.ray_cast_mode = True
                 args.mode = 1
-            elif self.modeCB.get() == "slicer":
-                args.slicer = True
+            elif self.modeCB.get() == "slicer3d":
+                args.slicer3d = True
             elif self.modeCB.get() == "slicer2d":
                 args.slicer2d = True
             elif self.modeCB.get() == "lego":

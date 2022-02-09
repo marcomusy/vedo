@@ -98,7 +98,6 @@ class ProgressBar:
         self.char = char
         self.bar = ""
         self.percent = 0
-        self.clock0 = 0
         self.ETA = ETA
         self.clock0 = time.time()
         self._remt = 1e10
