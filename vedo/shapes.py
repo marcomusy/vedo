@@ -1085,7 +1085,7 @@ class Spline(Line):
             elif easing=="OutCirc":
                 x = np.sqrt(1 - np.power(x - 1, 2))
             else:
-                printc("Unkown ease mode", easing, c='r')
+                vedo.logger.error(f"unkown ease mode {easing}")
 
         # find the knots
         tckp, _ = splprep(points.T, task=0, s=smooth, k=degree, per=per)
@@ -1287,7 +1287,7 @@ def Brace(q1, q2, style='}', pad=0.2, thickness=1,
     q2[2] = q1[2]
 
     if style not in '{}[]()<>|I':
-        printc("Warning in Brace(): unknown style", style, c='y')
+        vedo.logger.error(f"unknown style {style}")
 
     br = Text3D(style, c=c, alpha=alpha, font=font)
     x0,x1, y0,y1, _,_ = br.bounds()
@@ -1999,7 +1999,7 @@ class Arc(Mesh):
             ar.SetPolarVector(point1)
             ar.SetNormal(normal)
         else:
-            printc("Error in Arc(): incorrect input.", c='r')
+            vedo.logger.error("incorrect input combination")
             return None
         ar.SetNegative(invert)
         ar.SetResolution(res)
@@ -2084,24 +2084,20 @@ class Spheres(Mesh):
             cisseq = True
 
         if cisseq:
-            if len(centers) > len(c):
-                printc("Mismatch in Spheres() colors", len(centers), len(c), c='r')
-                raise RuntimeError()
             if len(centers) != len(c):
-                printc("\lightningWarning: mismatch in Spheres() colors", len(centers), len(c))
+                vedo.logger.error(f"mismatch #centers {len(centers)} != {len(c)} #colors")
+                raise RuntimeError()
 
         risseq = False
         if utils.isSequence(r):
             risseq = True
 
         if risseq:
-            if len(centers) > len(r):
-                printc("Mismatch in Spheres() radius", len(centers), len(r), c='r')
-                raise RuntimeError()
             if len(centers) != len(r):
-                printc("\lightning Warning: mismatch in Spheres() radius", len(centers), len(r))
+                vedo.logger.error(f"mismatch #centers {len(centers)} != {len(r)} #radii")
+                raise RuntimeError()
         if cisseq and risseq:
-            printc("\noentry Limitation: c and r cannot be both sequences.", c='r')
+            vedo.logger.error("Limitation: c and r cannot be both sequences.")
             raise RuntimeError()
 
         src = vtk.vtkSphereSource()
@@ -2535,9 +2531,6 @@ def Cube(pos=(0, 0, 0), side=1, c="g4", alpha=1):
     mesh.name = "Cube"
     return mesh
 
-def CubicGrid(*args, **kwargs):
-    printc("CubicGrid obsolete: use TessellatedBox.")
-    return TessellatedBox(*args, **kwargs)
 
 def TessellatedBox(pos=(0, 0, 0), n=10, spacing=(1,1,1), c="k5", alpha=0.5):
     """Build a cubic Mesh made o `n` small quads in the 3 axis directions.
@@ -2820,7 +2813,7 @@ def _load_font(font):
         try:
             font = vedo.io.download(font, verbose=False, force=False)
         except:
-            printc('Font not found. Check URL', font, c='r')
+            vedo.logger.warning(f"font {font} not found")
             font = "Normografo"
 
     if font.endswith('.npz'):    # user passed font as a local path
@@ -2833,7 +2826,7 @@ def _load_font(font):
         #printc('loading', font, fontfile)
         font_meshes = np.load(fontfile, allow_pickle=True)['font'][0]
     except:
-        printc("Text3D() error: font name", font, "not found.", c='r')
+        vedo.logger.error(f"font name {font} not found.")
         raise RuntimeError
     return font_meshes
 
@@ -3331,12 +3324,12 @@ class Text2D(vtk.vtkActor2D, TextBase):
                     pos = (0.5, 0.5)
 
             else:
-                printc("Text2D(): cannot understand pos:", pos, c='r')
+                vedo.logger.warning(f"cannot understand text position {pos}")
                 pos = (0.008, 0.994)
                 ajustify = "top-left"
 
         elif len(pos)!=2:
-            print("Error in Text2D.pos(): len(pos) must be 2 or integer value or string.")
+            vedo.logger.error("pos must be of length 2 or integer value or string")
             raise RuntimeError()
 
         if not justify:
@@ -3636,8 +3629,7 @@ class ParametricShape(Mesh):
         elif name == 'Pseudosphere':
             ps = vtk.vtkParametricPseudosphere()
         else:
-            printc("Error in ParametricShape: unknown name", name, c='r')
-            printc("Available shape names:\n", shapes)
+            vedo.logger.error(f"unknown ParametricShape {name}")
             return None
 
         pfs = vtk.vtkParametricFunctionSource()

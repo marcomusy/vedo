@@ -2,7 +2,7 @@ import vedo
 from vedo.plotter import Plotter
 from vedo.pyplot import CornerHistogram
 from vedo.utils import mag, precision, linInterpolate, isSequence
-from vedo.colors import printc, colorMap, getColor
+from vedo.colors import colorMap, getColor
 from vedo.shapes import Text2D, Line, Ribbon, Spline
 from vedo.pointcloud import Points, fitPlane
 import numpy as np
@@ -38,7 +38,6 @@ def SlicerPlotter(
            showHisto=True,
            showIcon=True,
            draggable=False,
-           verbose=True,
            ):
     """
     Generate a ``Plotter`` window with slicing planes for the input Volume.
@@ -61,7 +60,6 @@ def SlicerPlotter(
     """
     global _cmap_slicer
 
-    # if verbose: printc("Slicer tool", invert=1, c="m")
     ################################
     plt = Plotter(bg=bg, bg2=bg2,
                  size=size,
@@ -89,9 +87,7 @@ def SlicerPlotter(
         meanlog = np.sum(np.multiply(edg[:-1], logdata))/np.sum(logdata)
         rmax = min(rmax, meanlog+(meanlog-rmin)*0.9)
         rmin = max(rmin, meanlog-(rmax-meanlog)*0.9)
-        if verbose:
-            printc('scalar range clamped to range: (' +
-                    precision(rmin, 3) +', '+  precision(rmax, 3)+')', c='m', bold=0)
+        vedo.logger.debug('scalar range clamped to range: (' + precision(rmin, 3) +', '+  precision(rmax, 3)+')')
     _cmap_slicer = cmaps[0]
     visibles = [None, None, None]
     msh = volume.zSlice(int(dims[2]/2))
@@ -200,12 +196,7 @@ def SlicerPlotter(
                                bins=25, logscale=1, pos=(0.02, 0.02),
                                c=ch, bg=ch, alpha=0.7)
 
-    comment = None
-    if verbose:
-        comment = Text2D("Use sliders to slice volume\nClick button to change colormap",
-                         font='', s=0.8)
-
-    plt.show(msh, hist, comment, interactive=False)
+    plt.add(msh, hist, resetcam=1)
     plt.interactive = True
     return plt
 
@@ -271,9 +262,8 @@ def RayCastPlotter(volume):
     img = volume.imagedata()
 
     if volume.dimensions()[2]<3:
-        print("Error in raycaster: not enough depth", volume.dimensions())
+        vedo.logger.error("not enough z slices, skip.")
         return plt
-    # printc("GPU Ray-casting tool", c="b", invert=1)
 
     smin, smax = img.GetScalarRange()
 
@@ -293,7 +283,7 @@ def RayCastPlotter(volume):
             "gist_earth",
             "coolwarm",
             "tab10",
-            ]
+    ]
     cols_cmaps = []
     for cm in cmaps:
         cols = colorMap(range(0, 21), cm, 0, 20)  # sample 20 colors
@@ -522,9 +512,6 @@ def Browser(meshes, sliderpos=((0.55, 0.07),(0.96, 0.07)), c=None, prefix="",
             tx = ak.name
         widget.GetRepresentation().SetTitleText(prefix+tx)
 
-    # printc("Browser", c="y", invert=1, end="")
-    # printc(" loaded", len(meshes), "objects", c="y", bold=False)
-
     wid = plt.addSlider2D(sliderfunc, 0.5, len(meshes)-0.5,
                          pos=sliderpos, font='courier', c=c, showValue=False)
     wid.GetRepresentation().SetTitleHeight(0.020)
@@ -593,7 +580,7 @@ class FreeHandCutPlotter(Plotter):
         ):
 
         if not isinstance(mesh, Points):
-            printc("FreeHandCutPlotter input must be Points or Mesh.", c='r')
+            vedo.logger.error("FreeHandCutPlotter input must be Points or Mesh")
             raise RuntimeError()
 
         Plotter.__init__(self, title="Free-hand mesh cutter")
@@ -759,7 +746,7 @@ class FreeHandCutPlotter(Plotter):
 
     def write(self, filename="mesh_edited.vtk"):
         self.mesh.write(filename)
-        printc("\save saved to file:", filename, c='lb', invert=True)
+        vedo.logger.info(f"\save saved to file {filename}")
         return self
 
     def start(self, *args, **kwargs):
@@ -826,7 +813,7 @@ class Animation(Plotter):
             if self._lastActs:
                 objs = self._lastActs
             else:
-                printc('Need to specify actors!', c='r')
+                vedo.logger.error("Need to specify actors!")
                 raise RuntimeError
 
         objs2 = objs
@@ -1024,7 +1011,7 @@ class Animation(Plotter):
             elif style=='glossy'  : pars = [0.1, 0.7, 0.9, 90, c]
             elif style=='default' : pars = [0.1, 1.0, 0.05, 5, c]
             else:
-                printc('Unknown lighting style:', [style], c='r')
+                vedo.logger.error(f"Unknown lighting style {style}")
 
             for tt in rng:
                 inputvalues = []
@@ -1056,7 +1043,7 @@ class Animation(Plotter):
         if self.bookingMode:
             acts, t, duration, rng = self._parse(act, t, duration)
             if len(acts) != 1:
-                printc('Error in move(), can move only one object.', c='r')
+                vedo.logger.error("in move(), can move only one object.")
             cpos = acts[0].pos()
             pt = np.array(pt)
             dv = (pt - cpos)/len(rng)
@@ -1065,7 +1052,6 @@ class Animation(Plotter):
                 if 'quad' in style:
                     x = i/len(rng)
                     y = x*x
-                    #print(x,y)
                     self.events.append((tt, self.move, acts, cpos+dv*i*y))
                 else:
                     self.events.append((tt, self.move, acts, cpos+dv*i))
@@ -1079,7 +1065,7 @@ class Animation(Plotter):
         if self.bookingMode:
             acts, t, duration, rng = self._parse(act, t, duration)
             if len(acts) != 1:
-                printc('Error in rotate(), can move only one object.', c='r')
+                vedo.logger.error("in rotate(), can move only one object.")
             for tt in rng:
                 ang = angle/len(rng)
                 self.events.append((tt, self.rotate, acts, (axis, ang)))
@@ -1114,7 +1100,7 @@ class Animation(Plotter):
         if self.bookingMode:
             acts, t, duration, rng = self._parse(act, t, duration)
             if len(acts) != 1:
-                printc('Error in meshErode(), can erode only one object.', c='r')
+                vedo.logger.error("in meshErode(), can erode only one object.")
             diag = acts[0].diagonalSize()
             x0,x1, y0,y1, z0,z1 = acts[0].GetBounds()
             corners = [ (x0,y0,z0), (x1,y0,z0), (x1,y1,z0), (x0,y1,z0),
@@ -1140,8 +1126,8 @@ class Animation(Plotter):
         if self.bookingMode:
             if camstart is None:
                 if not self.camera:
-                    printc("Error in moveCamera(), no camera exists.")
-                    return
+                    vedo.logger.error("in moveCamera(), no camera exist, skip.")
+                    return self
                 camstart = self.camera
             acts, t, duration, rng = self._parse(None, t, duration)
             p1 = np.array(camstart.GetPosition())
@@ -1165,13 +1151,14 @@ class Animation(Plotter):
                 self.events.append((tt, self.moveCamera, acts, inps))
         else:
             if not self.camera:
-                return
+                return self
             np1, nf1, nv1, nc1, ns1 = self._inputvalues
             self.camera.SetPosition(np1)
             self.camera.SetFocalPoint(nf1)
             self.camera.SetViewUp(nv1)
             self.camera.SetClippingRange(nc1)
             self.camera.SetDistance(ns1)
+        return self
 
 
     def play(self):

@@ -12,17 +12,17 @@ __email__      = "marco.musy@embl.es"
 __status__     = "dev"
 __website__    = "https://github.com/marcomusy/vedo"
 
-#######################################################################################
+######################################################################## imports
 import os
 import sys
 import vtk
 import warnings
 import logging
-import numpy as np
 from deprecated import deprecated
-from numpy import sin, cos, sqrt, exp, log, dot, cross  # just because are useful
+import numpy as np
+from numpy import sin, cos, sqrt, exp, log, dot, cross  # just because useful
 
-#######################################################################################
+#################################################
 from vedo.version import _version as __version__
 from vedo.utils import *
 from vedo.settings import _setts as settings
@@ -44,7 +44,7 @@ from vedo.plotter import *
 # HACK: need to uncomment this to generate html documentation
 #from vedo.dolfin import _inputsort
 #import vedo.base as base
-#import vedo.docs as docs  # needed by spyder console, otherwise complains
+import vedo.docs as docs  # needed by spyder console, otherwise complains
 
 
 ##################################################################################
@@ -63,16 +63,43 @@ if vtk_version[0] >= 9:
     if "Windows" in sys_platform:
         settings.useDepthPeeling = True
 
+
+######################################################################### logging
+class _LoggingCustomFormatter(logging.Formatter):
+
+    logformat = "[%(filename)s: %(lineno)d] %(levelname)s: %(message)s"
+
+    white = "\x1b[1m"
+    grey = "\x1b[2m\x1b[1m\x1b[38;20m"
+    yellow = "\x1b[1m\x1b[33;20m"
+    red = "\x1b[1m\x1b[31;20m"
+    inv_red = "\x1b[7m\x1b[1m\x1b[31;1m"
+    reset = "\x1b[0m"
+
+    FORMATS = {
+        logging.DEBUG: grey  + logformat + reset,
+        logging.INFO: white + logformat + reset,
+        logging.WARNING: yellow + logformat + reset,
+        logging.ERROR: red + logformat + reset,
+        logging.CRITICAL: inv_red + logformat + reset,
+    }
+
+    def format(self, record):
+         log_fmt = self.FORMATS.get(record.levelno)
+         formatter = logging.Formatter(log_fmt)
+         return formatter.format(record)
+
+logger = logging.getLogger("vedo")
+_chsh = logging.StreamHandler()
+_chsh.flush = sys.stdout.flush
+_chsh.setLevel(logging.DEBUG)
+_chsh.setFormatter(_LoggingCustomFormatter())
+logger.addHandler(_chsh)
+logger.setLevel(logging.INFO)
+
+# silence annoying messages
 warnings.simplefilter(action="ignore", category=FutureWarning)
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
-
-logging.basicConfig(
-    format="[%(filename)s:%(lineno)d] %(levelname)s: %(message)s", level=logging.DEBUG,
-)
-logger = logging.getLogger("vedo")
-#_lsthdr = logging.StreamHandler(sys.stdout)
-#_lsthdr.flush = sys.stdout.flush
-#logger.addHandler(_lsthdr)
 
 
 ################################################################################
@@ -101,8 +128,9 @@ for f in os.listdir(fonts_path):
     fonts.append(f.split(".")[0])
 fonts = list(sorted(fonts))
 
-################################################################################## deprecated
-@deprecated(reason="Please use Plotter(backend='...')")
+
+################################################################## deprecated
+@deprecated(reason="\x1b[7m\x1b[1m\x1b[31;1mPlease use Plotter(backend='...')\x1b[0m")
 def embedWindow(backend='ipyvtk', verbose=True):
     """Use this function to control whether the rendering window is inside
     the jupyter notebook or as an independent external window"""

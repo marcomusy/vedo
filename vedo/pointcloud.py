@@ -425,7 +425,7 @@ def voronoi(pts, pad=0, fit=False, method='vtk'):
         m.locator = vor.GetLocator()
 
     else:
-        colors.printc("Unknown method", method, "in voronoi().", c='r')
+        vedo.logger.error(f"Unknown method {method} in voronoi()")
         raise RuntimeError
 
     m.lw(2).lighting('off').wireframe()
@@ -662,7 +662,7 @@ def pcaEllipsoid(points, pvalue=0.95):
     else:
         coords = points
     if len(coords) < 4:
-        colors.printc("Warning in fitEllipsoid(): not enough points!", c='y')
+        vedo.logger.warning("in fitEllipsoid(), there are not enough points!")
         return None
 
     P = np.array(coords, ndmin=2, dtype=float)
@@ -909,7 +909,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
                 n = len(plist)
                 if n != len(cols):
-                    colors.printc("Mismatch in Points() colors", n, len(cols), c='r')
+                    vedo.logger.error("mismatch in Points() colors array lengths {n} and {len(cols)}")
                     raise RuntimeError()
 
                 src = vtk.vtkPointSource()
@@ -928,7 +928,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 ucols.SetName("Points_RGBA")
                 if utils.isSequence(alpha):
                     if len(alpha) != n:
-                        colors.printc("Mismatch in Points() alphas", n, len(alpha), c='r')
+                        vedo.logger.error("mismatch in Points() alpha array lengths {n} and {len(cols)}")
                         raise RuntimeError()
                     alphas = alpha
                     alpha = 1
@@ -972,7 +972,7 @@ class Points(vtk.vtkFollower, BaseActor):
             self._data = verts.polydata()
 
         else:
-            colors.printc("Error: cannot build Points from type:\n", [inputobj], c='r')
+            vedo.logger.error(f"cannot build Points from type {type(inputobj)}")
             raise RuntimeError()
 
         c = colors.getColor(c)
@@ -1552,7 +1552,7 @@ class Points(vtk.vtkFollower, BaseActor):
             else:
                 arr = self.pointdata[scalars]
             if arr is None:
-                colors.printc("No scalars found with name/nr:", scalars, c='r')
+                vedo.logger.error(f"no scalars found with name/nr: {scalars}")
                 raise RuntimeError()
 
         thres = vtk.vtkThreshold()
@@ -1745,7 +1745,7 @@ class Points(vtk.vtkFollower, BaseActor):
             # exit()
 
         if arr is None and mode == 0:
-            colors.printc('Error in labels(): array not found for points/cells', c='r')
+            vedo.logger.error("in labels(), array not found for points or cells")
             return None
 
         tapp = vtk.vtkAppendPolyData()
@@ -2209,9 +2209,7 @@ class Points(vtk.vtkFollower, BaseActor):
             st = targetLandmarks.polydata().GetPoints()
 
         if ss.GetNumberOfPoints() != st.GetNumberOfPoints():
-            colors.printc('Error in transformWithLandmarks():', c='r')
-            colors.printc('Source and Target have != nr of points',
-                          ss.GetNumberOfPoints(), st.GetNumberOfPoints(), c='r')
+            vedo.logger.error("source and target have different nr of points")
             raise RuntimeError()
 
         lmt.SetSourceLandmarks(ss)
@@ -2400,7 +2398,7 @@ class Points(vtk.vtkFollower, BaseActor):
             if not arrayName: arrayName="CellScalars"
             self._cellColors(input_array, cname, alpha, vmin, vmax, arrayName, n)
         else:
-            colors.printc('Must specify mode in cmap(on="either cells or points")!', c='r')
+            vedo.logger.error("Must specify in cmap(on=...) either cells or points")
             raise RuntimeError()
         return self
 
@@ -2421,29 +2419,27 @@ class Points(vtk.vtkFollower, BaseActor):
         if input_array is None:             # if None try to fetch the active scalars
             arr = data.GetScalars()
             if not arr:
-                colors.printc('In cmap(): cannot find any active Point array ...skip coloring.', c='r')
+                vedo.logger.error("cannot find any active Point array ...skip coloring.")
                 return self
 
         elif isinstance(input_array, str):  # if a name string is passed
             arr = data.GetArray(input_array)
             if not arr:
-                colors.printc('In cmap(): cannot find Point array with name:',
-                              input_array, '...skip coloring.', c='r')
+                vedo.logger.error(f"cannot find point array {input_array} ...skip coloring.")
                 return self
 
         elif isinstance(input_array, int):  # if an int is passed
             if input_array < data.GetNumberOfArrays():
                 arr = data.GetArray(input_array)
             else:
-                colors.printc('In cmap(): cannot find Point array at position:', input_array,
-                              '...skip coloring.', c='r')
+                vedo.logger.error(f"cannot find point array at {input_array} ...skip coloring.")
                 return self
 
         elif utils.isSequence(input_array): # if a numpy array is passed
             npts = len(input_array)
             if npts != poly.GetNumberOfPoints():
-                colors.printc('In cmap(): nr. of scalars != nr. of points',
-                              n, poly.GetNumberOfPoints(), '...skip coloring.', c='r')
+                n1 = poly.GetNumberOfPoints()
+                vedo.logger.error(f"nr. of scalars {npts} != {n1} nr. of points ...skip coloring.")
                 return self
             arr = utils.numpy2vtk(input_array, name=arrayName)
             data.AddArray(arr)
@@ -2453,7 +2449,7 @@ class Points(vtk.vtkFollower, BaseActor):
             data.AddArray(arr)
 
         else:
-            colors.printc('In cmap(): cannot understand input:', input_array, c='r')
+            vedo.logger.error("in cmap(), cannot understand input type {type(input_array)}")
             raise RuntimeError()
 
         ##########################
@@ -2542,29 +2538,27 @@ class Points(vtk.vtkFollower, BaseActor):
         if input_array is None:             # if None try to fetch the active scalars
             arr = data.GetScalars()
             if not arr:
-                colors.printc('In cmap(): Cannot find any active Cell array ...skip coloring.', c='r')
+                vedo.logger.error("cannot find any active cell array ...skip coloring.")
                 return self
 
         elif isinstance(input_array, str):  # if a name string is passed
             arr = data.GetArray(input_array)
             if not arr:
-                colors.printc('In cmap(): Cannot find Cell array with name:', input_array,
-                              '...skip coloring.', c='r')
+                vedo.logger.error(f"cannot find cell array {input_array} ...skip coloring.")
                 return self
 
         elif isinstance(input_array, int):  # if a int is passed
             if input_array < data.GetNumberOfArrays():
                 arr = data.GetArray(input_array)
             else:
-                colors.printc('In cmap(): Cannot find Cell array at position:', input_array,
-                              '...skip coloring.', c='r')
+                vedo.logger.error(f"cannot find cell array at {input_array} ...skip coloring.")
                 return self
 
         elif utils.isSequence(input_array): # if a numpy array is passed
             n = len(input_array)
             if n != poly.GetNumberOfCells():
-                colors.printc('In cmap(): nr. of scalars != nr. of cells',
-                              n, poly.GetNumberOfCells(), '...skip coloring.', c='r')
+                n1 = poly.GetNumberOfCells()
+                vedo.logger.error(f"nr. of scalars {n} != {n1} nr. of cells ...skip coloring.")
                 return self
             arr = utils.numpy2vtk(input_array, name=arrayName)
             data.AddArray(arr)
@@ -2574,7 +2568,7 @@ class Points(vtk.vtkFollower, BaseActor):
             data.AddArray(arr)
 
         else:
-            colors.printc('In cmap(): cannot understand input:', input_array, c='r')
+            vedo.logger.error(f"in cmap(): cannot understand input type {type(input_array)}")
             raise RuntimeError()
 
         ##########################
@@ -2659,7 +2653,8 @@ class Points(vtk.vtkFollower, BaseActor):
 
 
     def interpolateDataFrom(self, source,
-                            radius=None, N=None,
+                            radius=None,
+                            N=None,
                             kernel='shepard',
                             exclude=('Normals',),
                             on="points",
@@ -2684,7 +2679,7 @@ class Points(vtk.vtkFollower, BaseActor):
         :param float nullValue: see above.
         """
         if radius is None and not N:
-            colors.printc("Error in interpolateDataFrom(): please set either radius or N", c='r')
+            vedo.logger.error("in interpolateDataFrom(): please set either radius or N")
             raise RuntimeError
 
         if on == "points":
@@ -2697,7 +2692,7 @@ class Points(vtk.vtkFollower, BaseActor):
             c2p.Update()
             points = c2p.GetOutput()
         else:
-            colors.printc("Error in interpolateDataFrom(): must be on 'points' or 'cells'", c='r')
+            vedo.logger.error("in interpolateDataFrom(), on must be on points or cells")
             raise RuntimeError()
 
         locator = vtk.vtkStaticPointLocator()
@@ -2713,8 +2708,7 @@ class Points(vtk.vtkFollower, BaseActor):
         elif kernel.lower() == 'linear':
             kern = vtk.vtkLinearKernel()
         else:
-            colors.printc('Error in interpolateDataFrom(), available kernels are:', c='r')
-            colors.printc(' [shepard, gaussian, linear]', c='r')
+            vedo.logger.error("available kernels are: [shepard, gaussian, linear]")
             raise RuntimeError()
 
         if N:
@@ -2788,8 +2782,12 @@ class Points(vtk.vtkFollower, BaseActor):
         return self
 
 
-    def closestPoint(self, pt, N=1, radius=None,
-                     returnPointId=False, returnCellId=False, returnIds=None
+    def closestPoint(self,
+                     pt,
+                     N=1,
+                     radius=None,
+                     returnPointId=False,
+                     returnCellId=False,
         ):
         """
         Find the closest point(s) on a mesh given from the input point `pt`.
@@ -2810,10 +2808,6 @@ class Points(vtk.vtkFollower, BaseActor):
             ``obj.point_locator=None`` or
             ``obj.cell_locator=None``.
         """
-        if returnIds is not None:
-            colors.printc("ERROR returnIds is now obsolete. Use either returnPointId or returnCellId", c='r')
-            raise RuntimeError
-
         if (N > 1 or radius) or (N==1 and returnPointId):
             poly = None
             if not self.point_locator:
@@ -2931,7 +2925,7 @@ class Points(vtk.vtkFollower, BaseActor):
         else:
             Ncp = int(ncoords * f / 10)
             if Ncp < 5:
-                colors.printc("Please choose a fraction higher than " + str(f), c='r')
+                vedo.logger.warning(f"Please choose a fraction higher than {f}")
                 Ncp = 5
 
         variances, newline = [], []
@@ -2977,7 +2971,7 @@ class Points(vtk.vtkFollower, BaseActor):
         else:
             Ncp = int(ncoords * f / 100)
             if Ncp < 4:
-                colors.printc(f"MLS2D: Please choose a fraction higher than {f}", c='r')
+                vedo.logger.error(f"MLS2D: Please choose a fraction higher than {f}")
                 Ncp = 4
 
         variances, newpts, valid = [], [], []
@@ -3141,7 +3135,7 @@ class Points(vtk.vtkFollower, BaseActor):
             coords = coords[:, :3] / coords[:, 3:]
 
         else:
-            colors.printc("Error in projectOnPlane(): unknown plane", plane, c='r')
+            vedo.logger.error("unknown plane {plane}")
             raise RuntimeError()
 
         self.alpha(0.1)
@@ -3235,7 +3229,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         nt = len(targetPts)
         if ns != nt:
-            colors.printc("Error in warp(): #source != #target points", ns, nt, c='r')
+            vedo.logger.error(f"#source {ns} != {nt} #target points")
             raise RuntimeError()
 
         pttar = vtk.vtkPoints()
@@ -3249,7 +3243,7 @@ class Points(vtk.vtkFollower, BaseActor):
         elif mode.lower() == "2d":
             transform.SetBasisToR2LogR()
         else:
-            colors.printc("Error in warp(): unknown mode", mode, c='r')
+            vedo.logger.error(f"unknown mode {mode}")
             raise RuntimeError()
 
         transform.SetSigma(sigma)
@@ -3654,7 +3648,6 @@ class Points(vtk.vtkFollower, BaseActor):
                 grid=None,
                 quads=False,
                 invert=False,
-                verbose=False,
         ):
         """
         Generate a polygonal Mesh from a closed contour line.
@@ -3690,9 +3683,8 @@ class Points(vtk.vtkFollower, BaseActor):
 
         length = contour.length()
         density= length/contour.N()
-        if verbose:
-            utils.printc('tomesh():\n\tline length =', length)
-            utils.printc('\tdensity =', density, 'length/pt_separation')
+        vedo.logger.debug(f"tomesh():\n\tline length = {length}")
+        vedo.logger.debug(f"\tdensity = {density} length/pt_separation")
 
         x0,x1 = contour.xbounds()
         y0,y1 = contour.ybounds()
@@ -3701,8 +3693,7 @@ class Points(vtk.vtkFollower, BaseActor):
             if resMesh is None:
                 resx = int((x1-x0)/density+0.5)
                 resy = int((y1-y0)/density+0.5)
-                if verbose:
-                    utils.printc('\tresMesh =', [resx, resy])
+                vedo.logger.debug(f"tresMesh = {[resx, resy]}")
             else:
                 if utils.isSequence(resMesh):
                     resx, resy = resMesh
@@ -3710,7 +3701,8 @@ class Points(vtk.vtkFollower, BaseActor):
                     resx, resy = resMesh, resMesh
             grid = vedo.shapes.Grid([(x0+x1)/2, (y0+y1)/2, 0],
                                     sx=(x1-x0)*1.025, sy=(y1-y0)*1.025,
-                                    resx=resx, resy=resy)
+                                    resx=resx, resy=resy,
+            )
         else:
             grid = grid.clone()
 
@@ -3734,8 +3726,7 @@ class Points(vtk.vtkFollower, BaseActor):
         if jitter:
             np.random.seed(0)
             sigma = 1.0/np.sqrt(grid.N())*grid.diagonalSize()*jitter
-            if verbose:
-                utils.printc('\tsigma jittering =', sigma)
+            vedo.logger.debug(f"\tsigma jittering = {sigma}")
             grid_tmp += np.random.rand(grid.N(),3) * sigma
             grid_tmp[:,2] = 0.0
 
@@ -3763,8 +3754,7 @@ class Points(vtk.vtkFollower, BaseActor):
             boundary = reversed(range(contour.N()))
         else:
             boundary = range(contour.N())
-        if verbose:
-            utils.printc('\tperforming Delaunay triangulation..')
+
         dln = delaunay2D(points, mode='xy', boundaries=[boundary])
         dln.computeNormals(points=False)  # fixes reversd faces
         dln.lw(0.5)
@@ -3905,7 +3895,7 @@ class Points(vtk.vtkFollower, BaseActor):
             dens.SetNeighborhoodTypeToNClosest()
             dens.SetNumberOfClosestPoints(nclosest)
         else:
-            colors.printc("Error in densifyCloud: set either radius or nclosest", c='r')
+            vedo.logger.error("set either radius or nclosest")
             raise RuntimeError()
         dens.Update()
         pts = utils.vtk2numpy(dens.GetOutput().GetPoints().GetData())
@@ -3971,7 +3961,7 @@ class Points(vtk.vtkFollower, BaseActor):
         |interpolateVolume| |interpolateVolume.py|_
         """
         if radius is None and not N:
-            colors.printc("Error in tovolume(): please set either radius or N", c='r')
+            vedo.logger.error("please set either radius or N")
             raise RuntimeError
 
         poly = self.polydata()

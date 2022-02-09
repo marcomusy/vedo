@@ -3,7 +3,7 @@ import os
 from deprecated import deprecated
 import vtk
 import vedo
-from vedo.colors import printc, getColor, colorMap
+from vedo.colors import getColor, colorMap
 from vedo.utils import isSequence, flatten, mag, buildPolyData, numpy2vtk, vtk2numpy
 from vedo.pointcloud import Points
 
@@ -201,7 +201,7 @@ class Mesh(Points):
                 gf.Update()
                 self._data = gf.GetOutput()
             except:
-                printc("Error: cannot build mesh from type:\n", inputtype, c='r')
+                vedo.logger.error(f"cannot build mesh from type {inputtype}")
                 raise RuntimeError()
 
         if self._data:
@@ -392,8 +392,7 @@ class Mesh(Points):
             if not os.path.isfile(tname):
                 tname = str(self.filename).replace('.'+ext, '.jpg')
             if not os.path.isfile(tname):
-                printc("Error in texture(): default texture file must be png or jpg",
-                       "\n e.g.", tname, c='r')
+                vedo.logger.error("in texture() default texture file must be png or jpg")
                 raise RuntimeError()
 
         if isinstance(tname, vtk.vtkTexture):
@@ -403,13 +402,13 @@ class Mesh(Points):
                 if not isinstance(tcoords, np.ndarray):
                     tcoords = np.array(tcoords)
                 if tcoords.ndim != 2:
-                    printc('tcoords must be a 2-dimensional array', c='r')
+                    vedo.logger.error("tcoords must be a 2-dimensional array")
                     return self
                 if tcoords.shape[0] != pd.GetNumberOfPoints():
-                    printc('Error in texture(): nr of texture coords must match nr of points', c='r')
+                    vedo.logger.error("nr of texture coords must match nr of points")
                     return self
                 if tcoords.shape[1] != 2:
-                    printc('Error in texture(): vector must have 2 components', c='r')
+                    vedo.logger.error("vector must have 2 components")
                 tarr = numpy2vtk(tcoords)
                 tarr.SetName('TCoordinates')
                 pd.GetPointData().SetTCoords(tarr)
@@ -434,12 +433,7 @@ class Mesh(Points):
             if os.path.exists(tname):
                 fn = tname
             elif not os.path.exists(fn):
-                printc("File does not exist or texture", tname,
-                       "not found in", vedo.textures_path, c="r")
-                printc("\tin Available built-in textures:", c="m", end=" ")
-                for ff in os.listdir(vedo.textures_path):
-                    printc(ff.split(".")[0], end=" ", c="m")
-                print()
+                vedo.logger.error("File does not exist or texture {tname} not found in {vedo.textures_path}")
                 return self
 
             fnl = fn.lower()
@@ -450,7 +444,7 @@ class Mesh(Points):
             elif ".bmp" in fnl:
                 reader = vtk.vtkBMPReader()
             else:
-                printc("Error in texture(): supported files, PNG, BMP or JPG", c="r")
+                vedo.logger.error("in texture(): supported files are only PNG, BMP or JPG")
                 return self
             reader.SetFileName(fn)
             reader.Update()
@@ -610,7 +604,6 @@ class Mesh(Points):
             return self
 
         if self.property.GetOpacity() < 1:
-            # printc("In backColor(): only active for alpha=1", c="y")
             return self
 
         if not backProp:
@@ -720,8 +713,7 @@ class Mesh(Points):
             two attributes ``mesh.base``, and ``mesh.top`` are already defined.
         """
         if self.base is None:
-            printc('Error in stretch(): Please define vectors', c='r')
-            printc('   mesh.base and mesh.top at creation.', c='r')
+            vedo.logger.error("in stretch() must define vectors mesh.base and mesh.top at creation")
             raise RuntimeError()
 
         p1, p2 = self.base, self.top
@@ -1007,7 +999,7 @@ class Mesh(Points):
             return self._update(vct.GetOutput())
 
         else:
-            #printc("Error in triangulate()")
+            vedo.logger.debug("input in triangulate() seems to be void")
             return self
 
     @deprecated(reason=vedo.colors.red+"Please use distanceTo()"+vedo.colors.reset)
@@ -1299,8 +1291,9 @@ class Mesh(Points):
         elif method == 3:
             sdf = vtk.vtkButterflySubdivisionFilter()
         else:
-            printc("Error in subdivide: unknown method.", c="r")
+            vedo.logger.error(f"in subdivide() unknown method {method}")
             raise RuntimeError()
+
         if method != 2:
             sdf.SetNumberOfSubdivisions(N)
         sdf.SetInputData(originalMesh)
@@ -1714,8 +1707,8 @@ class Mesh(Points):
             sil.Update()
             m = Mesh(sil.GetOutput())
         else:
-            printc('Error in silhouette(): direction is', [direction], c='r')
-            printc(' render the scene with show() or specify camera/direction', c='r')
+            vedo.logger.error(f"in silhouette() unknown direction type {type(direction)}")
+            vedo.logger.error("first render the scene with show() or specify camera/direction")
             return self
 
         m.lw(2).c((0,0,0)).lighting('off')

@@ -1,5 +1,6 @@
 import numpy as np
 import vtk
+import vedo
 import vedo.colors as colors
 import vedo.utils as utils
 from vedo import settings
@@ -91,7 +92,7 @@ class UGrid(vtk.vtkActor, BaseGrid):
             self.filename = inputobj
 
         else:
-            colors.printc("UGrid(): cannot understand input type:\n", inputtype, c='r')
+            vedo.logger.error(f"cannot understand input type {inputtype}")
             return
 
         # self._mapper = vtk.vtkDataSetMapper()

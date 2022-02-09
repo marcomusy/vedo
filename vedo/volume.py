@@ -2,6 +2,7 @@ import glob, os
 import numpy as np
 from deprecated import deprecated
 import vtk
+import vedo
 import vedo.colors as colors
 import vedo.docs as docs
 import vedo.utils as utils
@@ -13,11 +14,11 @@ __doc__ = ("""Submodule extending the ``vtkVolume`` object functionality."""
 )
 
 __all__ = [
-           "Volume",
-           "VolumeSlice",
-           "volumeFromMesh",      #deprecated
-           "interpolateToVolume", #deprecated
-          ]
+   "Volume",
+   "VolumeSlice",
+   "volumeFromMesh",      #deprecated
+   "interpolateToVolume", #deprecated
+]
 
 
 ##########################################################################
@@ -179,7 +180,7 @@ class BaseVolume:
             if above==below:
                 return self
             if above > below:
-                colors.printc("Warning in volume.threshold(): above > below, skip.", c='y')
+                vedo.logger.warning("in volume.threshold(), above > below, skip.")
                 return self
 
         ## cases
@@ -335,7 +336,7 @@ class BaseVolume:
         elif axis.lower() == "z":
             ff.SetFilteredAxis(2)
         else:
-            colors.printc("Error in mirror(): mirror must be set to x, y, z or n.", c='r')
+            vedo.logger.error("mirror must be set to either x, y, z or n")
             raise RuntimeError()
         ff.Update()
         return self._update(ff.GetOutput())
@@ -453,7 +454,7 @@ class BaseVolume:
         elif op in ["atan2"]:
             mat.SetOperationToATAN2()
         else:
-            colors.printc("Error in volume.operation(): unknown operation", operation, c='r')
+            vedo.logger.error(f"unknown operation {operation}")
             raise RuntimeError()
         mat.Update()
         return self._update(mat.GetOutput())
@@ -749,7 +750,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         ###################
         inputtype = str(type(inputobj))
 
-        # colors.printc('Volume inputtype', inputtype, c='b')
+        # print('Volume inputtype', inputtype, c='b')
 
         if inputobj is None:
             img = vtk.vtkImageData()
@@ -793,7 +794,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
                     img.SetDimensions(dims)
                 else:
                     if len(inputobj.shape)==1:
-                        colors.printc("Error: must set dimensions (dims keyword) in Volume.", c='r')
+                        vedo.logger.error("must set dimensions (dims keyword) in Volume")
                         raise RuntimeError()
                     img.SetDimensions(inputobj.shape)
                 img.GetPointData().AddArray(varr)
@@ -829,7 +830,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
             img = loadImageData(inputobj)
 
         else:
-            colors.printc("Volume(): cannot understand input type:\n", inputtype, c='r')
+            vedo.logger.error(f"cannot understand input type {inputtype}")
             return
 
 
@@ -915,12 +916,12 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
                 elif 'ave' in mode:
                     mode = 3
                 else:
-                    colors.printc("Error in volume.mode(): unknown mode", mode, c='r')
+                    vedo.logger.warning(f"unknown mode {mode}")
                     mode = 0
             elif 'add' in mode:
                 mode = 4
             else:
-                colors.printc("Error in volume.mode(): unknown mode", mode, c='r')
+                vedo.logger.warning(f"unknown mode {mode}")
                 mode = 0
 
         self._mapper.SetBlendMode(mode)
@@ -1000,7 +1001,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
                     # Create transfer mapping scalar value to opacity
                     gotf.AddPoint(xalpha, al)
                 gotf.AddPoint(vmax, alphaGrad[-1][1])
-            #colors.printc("alphaGrad at", round(xalpha, 1), "\tset to", al, c="b", bold=0)
+            #print("alphaGrad at", round(xalpha, 1), "\tset to", al)
         else:
             gotf.AddPoint(vmin, alphaGrad) # constant alphaGrad
             gotf.AddPoint(vmax, alphaGrad)
@@ -1180,7 +1181,7 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
             img = loadImageData(inputobj)
 
         else:
-            colors.printc("VolumeSlice: cannot understand input type:\n", inputtype, c='r')
+            vedo.logger.error(f"cannot understand input type {inputtype}")
             return
 
         self._data = img

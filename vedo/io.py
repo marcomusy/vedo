@@ -136,17 +136,19 @@ def load(inputobj, unpack=True, force=False):
                     a = _load_file(fod+'/'+ifile, unpack)
                     acts.append(a)
         else:
-            colors.printc("Error in load(): cannot find", fod, c='r')
+            vedo.logger.error(f"in load(), cannot find {fod}")
 
     if len(acts) == 1:
         if "numpy" in str(type(acts[0])):
             return acts[0]
         if not acts[0]:
-            colors.printc("Error in load(): cannot load", inputobj, c='r')
+            vedo.logger.error("in load(), cannot load {inputobj}")
         return acts[0]
+
     elif len(acts) == 0:
-        colors.printc("Error in load(): cannot load", inputobj, c='r')
+        vedo.logger.error("in load(), cannot load {inputobj}")
         return None
+
     else:
         return acts
 
@@ -304,7 +306,7 @@ def _load_file(filename, unpack):
         routput = reader.GetOutput()
 
         if not routput:
-            colors.printc("\noentry Unable to load", filename, c='r')
+            vedo.logger.error(f"unable to load {filename}")
             return None
 
         if isinstance(routput, vtk.vtkUnstructuredGrid):
@@ -324,7 +326,7 @@ def download(url, force=False, verbose=True):
     """Retrieve a file from a url, save it locally and return its path."""
 
     if not url.startswith('https://'):
-        colors.printc('Invalid URL (must start with https):\n', url, c='r')
+        vedo.logger.error(f"Invalid URL (must start with https):\n{url}")
         return url
     url = url.replace('www.dropbox', 'dl.dropbox')
 
@@ -343,7 +345,7 @@ def download(url, force=False, verbose=True):
 
     if force==False and os.path.exists(tmp_file.name):
         if verbose:
-            colors.printc("using cached file:", tmp_file.name)
+            colors.printc("reusing cached file:", tmp_file.name)
             #colors.printc("     (use force=True to force a new download)")
         return tmp_file.name
 
@@ -721,7 +723,7 @@ def loadPCD(filename):
         if not start and "DATA ascii" in text:
             start = True
     if expN != N:
-        colors.printc("Mismatch in pcd file", expN, len(pts), c="red")
+        vedo.logger.warning(f"Mismatch in PCD file {expN} != {len(pts)}")
     poly = utils.buildPolyData(pts)
     return Points(poly).pointSize(4)
 
@@ -773,12 +775,19 @@ def toNumpy(obj):
 
         adict['pointdata'] = []
         for iname in obj.pointdata.keys():
-            if 'Normals' in iname.lower(): continue
+            if not iname:
+                continue
+            if 'Normals' in iname.lower():
+                continue
             arr = poly.GetPointData().GetArray(iname)
             adict['pointdata'].append([utils.vtk2numpy(arr), iname])
+
         adict['celldata'] = []
         for iname in obj.celldata.keys():
-            if 'Normals' in iname.lower(): continue
+            if not iname:
+                continue
+            if 'Normals' in iname.lower():
+                continue
             arr = poly.GetCellData().GetArray(iname)
             adict['celldata'].append([utils.vtk2numpy(arr), iname])
 
@@ -1115,7 +1124,7 @@ def loadImageData(filename):
     elif ".slc" in filename.lower():
         reader = vtk.vtkSLCReader()
         if not reader.CanReadFile(filename):
-            colors.printc("\prohibited Sorry bad slc file " + filename, c='r')
+            vedo.logger.error(f"sorry, bad SLC file {filename}")
             return None
     elif ".vti" in filename.lower():
         reader = vtk.vtkXMLImageDataReader()
@@ -1128,7 +1137,7 @@ def loadImageData(filename):
     elif ".nrrd" in filename.lower():
         reader = vtk.vtkNrrdReader()
         if not reader.CanReadFile(filename):
-            colors.printc("\prohibited Sorry bad nrrd file " + filename, c='r')
+            vedo.logger.error(f"sorry, bad NRRD file {filename}")
             return None
     reader.SetFileName(filename)
     reader.Update()
@@ -1299,7 +1308,7 @@ def write(objct, fileoutput, binary=True):
         return objct
 
     else:
-        colors.printc("\noentry Unknown format", fileoutput, "file not saved.", c="r")
+        vedo.logger.error("Unknown format {fileoutput}, file not saved")
         return objct
 
     try:
@@ -1311,8 +1320,8 @@ def write(objct, fileoutput, binary=True):
         writer.SetInputData(obj)
         writer.SetFileName(fileoutput)
         writer.Write()
-    except Exception as e:
-        colors.printc("\noentry Error saving: " + fileoutput, "\n", e, c="r")
+    except:
+        vedo.logger.error(f"could not save {fileoutput}")
     return objct
 
 
@@ -1338,8 +1347,8 @@ def writeTransform(inobj, filename='transform.mat', comment=''):
     elif isinstance(inobj, vtk.vtkMatrix4x4):
         M = inobj
     else:
-        colors.printc("Error in io.writeTransform: cannot understand input type",
-                      type(inobj), c='r')
+        vedo.logger.error("in writeTransform(), cannot understand input type {type(inobj)}")
+
     with open(filename,'w') as f:
         if comment:
             f.write('# '+comment+'\n')
@@ -1415,9 +1424,9 @@ def exportWindow(fileoutput, binary=False):
         sdict['size'] = plt.size
         sdict['axes'] = plt.axes
         sdict['title'] = plt.title
-        sdict['xtitle'] = plt.xtitle
-        sdict['ytitle'] = plt.ytitle
-        sdict['ztitle'] = plt.ztitle
+        sdict['xtitle'] = 'x'
+        sdict['ytitle'] = 'y'
+        sdict['ztitle'] = 'z'
         sdict['backgrcol'] = colors.getColor(plt.backgrcol)
         sdict['backgrcol2'] = None
         if plt.renderer.GetGradientBackground():
@@ -1508,9 +1517,7 @@ def exportWindow(fileoutput, binary=False):
         x3d_html = x3d_html.replace("~height", str(wsize[1]))
         with open(fileoutput.replace('.x3d', '.html'), "w") as outF:
             outF.write(x3d_html)
-
-        colors.printc("\save Saved files:", fileoutput,
-                      fileoutput.replace('.x3d', '.html'), c="g")
+            vedo.logger.info(f"Saved files {fileoutput} and {fileoutput.replace('.x3d','.html')}")
 
     ####################################################################
     elif fr.endswith(".html"):
@@ -1526,8 +1533,7 @@ def exportWindow(fileoutput, binary=False):
         vedo.notebookBackend = savebk
 
     else:
-        colors.printc("Export extension", fr.split('.')[-1],
-                      "is not supported.", c='r')
+        vedo.logger.error("export extension {fr.split('.')[-1]} is not supported")
     return vedo.plotter_instance
 
 
@@ -1585,9 +1591,9 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
                      bg=backgrcol,
                      bg2=backgrcol2,
         )
-        plt.xtitle = data.pop('xtitle', 'x')
-        plt.ytitle = data.pop('ytitle', 'y')
-        plt.ztitle = data.pop('ztitle', 'z')
+#        plt.xtitle = data.pop('xtitle', 'x')
+#        plt.ytitle = data.pop('ytitle', 'y')
+#        plt.ztitle = data.pop('ztitle', 'z')
 
         if cam:
             if 'pos' in cam.keys(): plt.camera.SetPosition( cam['pos'] )
@@ -1648,7 +1654,7 @@ def screenshot(filename="screenshot.png", scale=None, returnNumpy=False):
     :param bool returnNumpy: return a numpy array of the image
     """
     if not vedo.plotter_instance or not vedo.plotter_instance.window:
-        colors.printc('\bomb screenshot(): Rendering window is not present, skip.', c='r')
+        vedo.logger.error("in screenshot(), rendering window is not present, skip.")
         return vedo.plotter_instance
 
     if filename.endswith('.pdf'):
@@ -1904,16 +1910,16 @@ class Video:
                             + " -i " + self.tmp_dir.name + os.sep
                             + "%01d.png " + self.options + " " + self.name)
             if out:
-                colors.printc(f"backend {self.backend} returning error", c='r')
+                vedo.logger.error(f"backend {self.backend} returning error")
             else:
-                colors.printc("\save Video saved as", self.name, c="m")
+                vedo.logger.info(f"video saved as {self.name}")
 
         ########################################
         elif 'cv' in self.backend:
             try:
                 import cv2
             except:
-                colors.printc("Error in Video backend: opencv not installed!", c='r')
+                vedo.logger.error("opencv is not installed")
                 return
 
             cap = cv2.VideoCapture(os.path.join(self.tmp_dir.name, "%1d.png"))
@@ -1932,9 +1938,9 @@ class Video:
             cap.release()
             writer.release()
             if found:
-                colors.printc("\save Video saved as", self.name, c="m")
+                vedo.logger.info("video saved as {self.name}")
             else:
-                colors.printc("could not find snapshots", c='r')
+                vedo.logger.error("could not find snapshots")
 
         self.tmp_dir.cleanup()
         return vedo.plotter_instance

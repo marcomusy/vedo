@@ -310,7 +310,7 @@ def plot(*args, **kwargs):
                 kwargs["mc"] = cc
                 break
         if opts:
-            colors.printc("Could not understand option(s):", opts, c="y")
+            vedo.logger.error(f"Could not understand options {opts}")
 
     if optidx == 1 or optidx is None:
         if utils.isSequence(args[0][0]):
@@ -782,7 +782,7 @@ def _plotxy(
 
     if xerrors is not None and not errorBand:
         if len(xerrors) != len(data):
-            colors.printc("Error in plotxy(xerrors=...): mismatched array length.", c='r')
+            vedo.logger.error("in plotxy(xerrors=...): mismatch in array length")
             return None
         errs = []
         for i, dta in enumerate(data):
@@ -795,7 +795,7 @@ def _plotxy(
 
     if yerrors is not None and not errorBand:
         if len(yerrors) != len(data):
-            colors.printc("Error in plotxy(yerrors=...): mismatched array length.", c='r')
+            vedo.logger.error("in plotxy(yerrors=...): mismatch in array length")
             return None
         errs = []
         for i in range(len(data)):
@@ -911,7 +911,7 @@ def _plotFxy(
             exec(code, namespace)
             z = namespace["zfunc"]
         except:
-            colors.printc("Syntax Error in _plotFxy()", c='r')
+            vedo.logger.error("Syntax Error in _plotFxy")
             return None
 
     if c is not None:
@@ -952,7 +952,7 @@ def _plotFxy(
         poly = cl.GetOutput()
 
     if not poly.GetNumberOfPoints():
-        colors.printc("Function is not real in the domain", c='r')
+        vedo.logger.error("function is not real in the domain")
         return None
 
     if zlim[0]:
@@ -1038,7 +1038,7 @@ def _plotFz(
             exec(code, namespace)
             z = namespace["zfunc"]
         except:
-            colors.printc("Syntax Error in complex plotFz()", c='r')
+            vedo.logger.error("Syntax Error in complex plotFz")
             return None
 
     ps = vtk.vtkPlaneSource()
@@ -1309,8 +1309,7 @@ def _barplot(
         cols = [c] * len(counts)
     else:
         m = "barplot error: data must be given as [counts, labels, colors, edges] not\n"
-        colors.printc(m, data, c='r')
-        colors.printc("     bin edges and colors are optional. Abort.", c='r')
+        vedo.logger.error(m + f" {data}\n     bin edges and colors are optional.")
         raise RuntimeError()
     counts = np.asarray(counts)
     edges  = np.asarray(edges)
@@ -3014,15 +3013,14 @@ class DirectedGraph(Assembly):
             self.rotX = 180
 
         else:
-            colors.printc("Cannot understand layout:", s, c='r')
-            colors.printc("Available layouts:", c='r')
-            colors.printc("[2d,fast2d,clustering2d,circular,circular3d,cone,force,tree]", c='r')
+            vedo.logger.error(f"Cannot understand layout {s}. Available layouts:")
+            vedo.logger.error("[2d,fast2d,clustering2d,circular,circular3d,cone,force,tree]")
             raise RuntimeError()
 
         self.gl.SetLayoutStrategy(self.strategy)
 
         if len(kargs):
-            colors.printc("Cannot understand options:", kargs, c='r')
+            vedo.logger.error(f"Cannot understand options: {kargs}")
         return
 
 

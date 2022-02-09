@@ -593,8 +593,7 @@ def getColor(rgb=None, hsv=None):
             if c.lower() in color_nicks.keys():
                 c = color_nicks[c.lower()]
             else:
-                print("Unknown color nickname:", c)
-                print("Available abbreviations:", color_nicks)
+                vedo.logger.warning("Unknown color nickname {c}\nAvailable abbreviations: {color_nicks}")
                 return (0.5, 0.5, 0.5)
 
         if c.lower() in colors.keys():  # matplotlib name color
@@ -606,7 +605,7 @@ def getColor(rgb=None, hsv=None):
             rgb255 = list(int(h[i : i + 2], 16) for i in (0, 2, 4))
             rgbh = np.array(rgb255) / 255.0
             if np.sum(rgbh) > 3:
-                print("Error in getColor(): Wrong hex color", c)
+                vedo.logger.error(f"in getColor(): Wrong hex color {c}")
                 return (0.5, 0.5, 0.5)
             return tuple(rgbh)
 
@@ -713,10 +712,10 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
         values = (values - vmin) / (vmax - vmin)
     else:
         if vmin is None:
-            printc("In colorMap(): must specify vmin! Assume 0.0", c='r')
+            vedo.logger.warning("in colorMap() you must specify vmin! Assume 0.")
             vmin = 0
         if vmax is None:
-            printc("In colorMap(): must specify vmax! Assume 1.0", c='r')
+            vedo.logger.warning("in colorMap() you must specify vmax! Assume 1.")
             vmax = 1
         values = [(value - vmin) / (vmax - vmin)]
 
@@ -737,8 +736,8 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
         try:
             cmap = cmaps[name]
         except KeyError:
-            printc("In colorMap(): no color map with name:", name, 'or', name+'_r', c='r')
-            printc("Available color maps are:\n", cmaps.keys(), c='y', bold=False)
+            vedo.logger.error(f"in colorMap(), no color map with name {name} or {name}_r")
+            vedo.logger.error(f"Available color maps are:\n{cmaps.keys()}")
             return np.array([0.5,0.5,0.5])
 
         result = []

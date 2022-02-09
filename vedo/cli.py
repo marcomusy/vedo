@@ -131,7 +131,7 @@ def exe_info(args):
             else:
                 printInfo(A)
         except:
-            printc("Could not load:", file, "skip.", c="r")
+            vedo.logger.error(f"Could not load {file}, skip.")
 
     printc("_" * 65, bold=0)
     printc("vedo version      :", __version__, invert=1, end='   ')
@@ -425,9 +425,9 @@ def exe_eog(args):
                 if pic:
                     pics.append(pic)
             except:
-                printc("Could not load image", f, c='r')
+                vedo.logger.error(f"Could not load image {f}")
         else:
-            printc("Could not load image", f, c='r')
+            vedo.logger.error(f"Could not load image {f}")
 
     n = len(pics)
     if not n:
@@ -537,8 +537,7 @@ def draw_scene(args):
         vol = io.load(args.files[0], force=args.reload)
 
         if not isinstance(vol, Volume):
-            printc("Type Error: expected a Volume but loaded", type(vol),
-                   'object.', c=1)
+            vedo.logger.error("expected a Volume but loaded a {type(vol)} object")
             return
 
         sp = vol.spacing()
@@ -594,7 +593,7 @@ def draw_scene(args):
         try:
             m = Mesh(args.files[0], alpha=args.alpha/2, c=args.color)
         except AttributeError:
-            printc("In edit mode, input file must be a point cloud or polygonal mesh. Exit.", c='r')
+            vedo.logger.critical("In edit mode, input file must be a point cloud or polygonal mesh.")
             return
 
         vp = applications.FreeHandCutPlotter(m, splined=True)
@@ -716,7 +715,7 @@ def draw_scene(args):
                     vp.actors = actors
                 except AttributeError:
                     # wildcards in quotes make glob return actor as a list :(
-                    printc("Please do not use wildcards within single or double quotes!", c='r')
+                    vedo.logger.error("Please do not use wildcards within single or double quotes")
 
         if args.multirenderer_mode:
             vp.interactor.Start()
@@ -725,7 +724,7 @@ def draw_scene(args):
 
             # scene is empty
             if all(a is None for a in actors):
-                printc("..could not load file(s). Quit.", c='r')
+                vedo.logger.error("Could not load file(s). Quit.")
                 return
 
             vp.show(actors, interactive=True, zoom=args.zoom, mode=interactor_mode)

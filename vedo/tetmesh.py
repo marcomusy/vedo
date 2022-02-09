@@ -4,7 +4,6 @@ import vedo.docs as docs
 import vedo.utils as utils
 from vedo.base import BaseGrid
 from vedo.mesh import Mesh
-from vedo.colors import printc
 
 __doc__ = (
     """
@@ -80,7 +79,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         self.useArray = 0
 
         #inputtype = str(type(inputobj))
-        #printc('TetMesh inputtype', inputtype)
+        #print('TetMesh inputtype', inputtype)
 
         ###################
         if inputobj is None:
@@ -130,7 +129,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         elif isinstance(mapper, vtk.vtkMapper):
             self._mapper = mapper
         else:
-            printc('Unknown mapper type', [mapper], c='r')
+            vedo.logger.error(f"Unknown mapper type {type(mapper)}")
             raise RuntimeError()
 
         self._mapper.SetInputData(self._data)
@@ -231,7 +230,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
                 name = self.pointdata.keys()[0]
                 th.SetInputArrayToProcess(0,0,0, 0, name)
             if name is None:
-                printc("threshold(): Cannot find active array. Skip.", c='r')
+                vedo.logger.warning("cannot find active array. Skip.")
                 return self
         else:
             if on.startswith('c'):
@@ -245,7 +244,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
                     th.SetInvert(True)
                     th.ThresholdBetween(below, above)
                 else:
-                    printc("threshold(): in vtk<9, above cannot be larger than below. Skip.", c='r')
+                    vedo.logger.error("in vtk<9, above cannot be larger than below. Skip")
                     return self
             else:
                 th.ThresholdBetween(above, below)

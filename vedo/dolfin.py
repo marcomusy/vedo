@@ -217,7 +217,7 @@ def _compute_uvalues(u, mesh):
         coords = mesh.geometry.points
 
     if u_values.shape[0] != coords.shape[0]:
-        printc('Warning: mismatch in vedo.dolfin._compute_uvalues()', c='r')
+        vedo.logger.warning("mismatch in vedo.dolfin._compute_uvalues")
         u_values = np.array([u(p) for p in coords])
     return u_values
 
@@ -731,9 +731,8 @@ class MeshActor(Mesh):
             coords = self.mesh.geometry.points
 
         if coords.shape != deltas.shape:
-            printc("ERROR: Try to move mesh with wrong solution type shape:",
-                  coords.shape, 'vs', deltas.shape, c='r')
-            printc("Mesh is not moved. Try mode='color' in plot().", c='r')
+            vedo.logger.error(f"Try to move mesh with wrong solution type shape {coords.shape} vs {deltas.shape}")
+            vedo.logger.error("Mesh is not moved. Try mode='color' in plot().")
             return
 
         movedpts = coords + deltas
@@ -814,7 +813,7 @@ def MeshLines(*inputobj, **options):
 
     u_values = _compute_uvalues(u,mesh)
     if not utils.isSequence(u_values[0]):
-        printc("\times Error: cannot show Lines for 1D scalar values!", c='r')
+        vedo.logger.error("cannot show Lines for 1D scalar values")
         raise RuntimeError()
 
     endPoints = startPoints + u_values
@@ -855,7 +854,7 @@ def MeshArrows(*inputobj, **options):
 
     u_values = _compute_uvalues(u,mesh)
     if not utils.isSequence(u_values[0]):
-        printc("\times Error: cannot show Arrows for 1D scalar values!", c='r')
+        vedo.logger.error("cannot show Arrows for 1D scalar values")
         raise RuntimeError()
 
     endPoints = startPoints + u_values *scale
@@ -898,7 +897,7 @@ def MeshStreamLines(*inputobj, **options):
 
     u_values = _compute_uvalues(u, mesh)
     if not utils.isSequence(u_values[0]):
-        printc("\times Error: cannot show Arrows for 1D scalar values!", c='r')
+        vedo.logger.error("cannot show Arrows for 1D scalar values")
         raise RuntimeError()
     if u_values.shape[1] == 2:  # u_values is 2D
         u_values = np.insert(u_values, 2, 0, axis=1)  # make it 3d

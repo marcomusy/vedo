@@ -630,7 +630,7 @@ def linInterpolate(x, rangeX, rangeY):
         x0, x1 = np.asarray(rangeX)
         y0, y1 = np.asarray(rangeY)
         # if len(np.unique([x.shape, x0.shape, x1.shape, y1.shape]))>1:
-        #     vedo.printc("Error in linInterpolate(): mismatch in input shapes.", c='r')
+        #     print("Error in linInterpolate(): mismatch in input shapes.")
         #     raise RuntimeError()
         dx = x1 - x0
         dxn = np.linalg.norm(dx)
@@ -1189,6 +1189,7 @@ def printInfo(obj):
             11: "(show a large grid on the x-y plane)",
             12: "(show polar axes)",
             13: "(simple ruler at the bottom of the window)",
+            14: "(the default vtkCameraOrientationWidget object)",
         }
         bns, totpt = [], 0
         for a in obj.actors:
@@ -1769,7 +1770,7 @@ def vedo2meshlab(vmesh):
     try:
         import pymeshlab as mlab
     except RuntimeError:
-        vedo.printc("Need pymeshlab to run:\npip install pymeshlab", c='r')
+        vedo.logger.error("Need pymeshlab to run:\npip install pymeshlab")
 
     vertex_matrix = vmesh.points().astype(np.float64)
 

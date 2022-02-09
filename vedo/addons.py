@@ -484,7 +484,7 @@ def Light(pos,
         if vedo.plotter_instance and vedo.plotter_instance.renderer:
             vedo.plotter_instance.renderer.RemoveAllLights()
         else:
-            printc("Warning in Light(removeOthers=True): scene does not exist.", c='r')
+            vedo.logger.error("in Light(removeOthers=True): scene does not exist.")
 
     return light
 
@@ -513,7 +513,7 @@ def ScalarBar(obj,
     .. hint:: |mesh_coloring| |mesh_coloring.py|_ |scalarbars.py|_
     """
     if not hasattr(obj, "mapper"):
-        printc("Error in addScalarBar(): input is invalid,", type(obj), c='r')
+        vedo.logger.error(f"in addScalarBar(): input is invalid {type(obj)}. Skip.")
         return None
 
     if isinstance(obj, Points):
@@ -658,11 +658,6 @@ def ScalarBar3D(
 
     .. hint:: |scalarbars| |scalarbars.py|_
     """
-    bns = obj.GetBounds()
-    if sy is None:
-        sy = (bns[3]-bns[2])
-    if sx is None:
-        sx = sy/18
 
     if isinstance(obj, Points):
         lut = obj.mapper().GetLookupTable()
@@ -682,8 +677,16 @@ def ScalarBar3D(
         vmin, vmax = np.min(obj), np.max(obj)
 
     else:
-        print("Error in ScalarBar3D(): input must be Mesh or list.", type(obj))
+        vedo.logger.error("in ScalarBar3D(): input must be a vedo object with bounds.")
         return obj
+
+
+    bns = obj.GetBounds()
+    if sy is None:
+        sy = (bns[3]-bns[2])
+    if sx is None:
+        sx = sy/18
+
 
     if categories is not None: ################################
         ncats = len(categories)
@@ -1159,8 +1162,8 @@ def addButton(
     """
     plt = vedo.plotter_instance
     if not plt.renderer:
-        printc("Error: Use addButton() after rendering the scene.", c='r')
-        return
+        vedo.logger.error("Use addButton() only after rendering the scene.")
+        return None
     bu = Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
     plt.renderer.AddActor2D(bu.actor)
     plt.window.Render()
@@ -1259,7 +1262,7 @@ def _addCutterToolMeshWithSphere(mesh, invert):
 def _addCutterToolMeshWithBox(mesh, invert):
     plt = vedo.plotter_instance
     if not plt:
-        printc("addCutterTool(): scene must be first rendered.", c='r')
+        vedo.logger.error("in addCutterTool() scene must be first rendered.")
         raise RuntimeError()
 
     plt.clickedActor = mesh
@@ -1482,7 +1485,8 @@ def addIcon(mesh, pos=3, size=0.08):
     """
     plt = vedo.plotter_instance
     if not plt.renderer:
-        printc("\lightningWarning: Use addIcon() after first rendering the scene.", c='y')
+        vedo.logger.warning("Use addIcon() after first rendering the scene.")
+
         save_int = plt.interactive
         plt.show(interactive=0)
         plt.interactive = save_int
@@ -1760,8 +1764,7 @@ def addScaleIndicator(pos=(0.7,0.05), s=0.02, length=2, lw=4, c='k', units=''):
     plt = vedo.plotter_instance
     wsx, wsy = plt.window.GetSize()
     if not plt.renderer.GetActiveCamera().GetParallelProjection():
-        printc("WARNING! addScaleIndicator called with useParallelProjection OFF. Skip.", c='y')
-
+        vedo.logger.warning("addScaleIndicator is called with useParallelProjection OFF.")
 
     rlabel = vtk.vtkVectorText()
     rlabel.SetText('')
@@ -1977,7 +1980,7 @@ def Axes(
             if zrange is None:
                 zrange=(0,0)
             if xrange is None or yrange is None:
-                printc("ERROR in Axes(): no mesh given, so you must specify ranges!", c='r')
+                vedo.logger.error("in Axes() no input is given, so you must specify axes ranges!")
                 raise RuntimeError()
 
     if xrange is not None:
@@ -2067,7 +2070,6 @@ def Axes(
         numberOfDivisions = ndiv
 
     rx, ry, rz = np.ceil(drange/drangemax * numberOfDivisions).astype(int)
-    #printc('numberOfDivisions', numberOfDivisions, '\t r=', rx, ry, rz)
 
     if xtitle:
         xticks_float, xticks_str = utils.makeTicks(x0,x1, rx, xValuesAndLabels, digits)
@@ -2848,6 +2850,7 @@ def addGlobalAxes(axtype=None, c=None):
         - 11, show a large grid on the x-y plane (use with zoom=8)
         - 12, show polar axes
         - 13, draw a simple ruler at the bottom of the window
+        - 14, show the vtk default vtkCameraOrientationWidget object
 
     Axis type-1 can be fully customized by passing a dictionary ``axes=dict()``,
     see ``Axes`` for the complete list of options.
@@ -3216,56 +3219,27 @@ def addGlobalAxes(axtype=None, c=None):
             cow.On()
             plt.axes_instances[r] = cow
         except AttributeError:
-            pass
-
-
-    # elif plt.axes == 123:
-    #     # draws a simple ruler at the bottom of the window
-    #     ls = vtk.vtkLegendScaleActor()
-    #     # ls.SetLabelModeToDistance()
-    #     ls.AllAnnotationsOff ()
-    #     #ls.LegendVisibilityOff ()
-
-    #     ls.BottomAxisVisibilityOn()
-    #     # ls.GetBottomAxis().SetNumberOfMinorTicks(0)
-    #     ls.GetBottomAxis().RulerModeOn()
-    #     ls.GetBottomAxis().SetRulerDistance (.1)
-    #     ls.GetBottomAxis().AdjustLabelsOn ()
-    #     ls.GetBottomAxis().SetRange([0,1])
-    #     #print(ls.GetBottomAxis().GetLabelFormat ())
-
-    #     ls.GetBottomAxis().GetProperty().SetColor(c)
-    #     ls.GetBottomAxis().GetLabelTextProperty().SetColor(c)
-    #     ls.GetBottomAxis().GetLabelTextProperty().BoldOff()
-    #     ls.GetBottomAxis().GetLabelTextProperty().ItalicOff()
-    #     ls.GetBottomAxis().GetLabelTextProperty().ShadowOff()
-    #     pr = ls.GetBottomAxis().GetLabelTextProperty()
-    #     pr.SetFontFamily(vtk.VTK_FONT_FILE)
-    #     pr.SetFontFile(utils.getFontPath(settings.defaultFont))
-    #     ls.PickableOff()
-    #     plt.renderer.AddActor(ls)
-    #     plt.axes_instances[r] = ls
+            vedo.logger.warning("axes mode 14 is unavailable in this vtk version")
 
     else:
-        printc('\bomb Keyword axes type must be in range [0-13].', c='r')
-        printc('''
-  Available axes types are:
-
-  0 = no axes,
-  1 = draw three customizable gray grid walls
-  2 = show cartesian axes from (0,0,0)
-  3 = show positive range of cartesian axes from (0,0,0)
-  4 = show a triad at bottom left
-  5 = show a cube at bottom left
-  6 = mark the corners of the bounding box
-  7 = draw a 3D ruler at each side of the cartesian axes
-  8 = show the vtkCubeAxesActor object
-  9 = show the bounding box outline
-  10 = show three circles representing the maximum bounding box
-  11 = show a large grid on the x-y plane (use with zoom=8)
-  12 = show polar axes.
-  13 = draw a simple ruler at the bottom of the window
-  ''', c='r', bold=0)
+        e = '\bomb Keyword axes type must be in range [0-13].'
+        e+= 'Available axes types are:\n\n'
+        e+= '0 = no axes\n'
+        e+= '1 = draw three customizable gray grid walls\n'
+        e+= '2 = show cartesian axes from (0,0,0)\n'
+        e+= '3 = show positive range of cartesian axes from (0,0,0)\n'
+        e+= '4 = show a triad at bottom left\n'
+        e+= '5 = show a cube at bottom left\n'
+        e+= '6 = mark the corners of the bounding box\n'
+        e+= '7 = draw a 3D ruler at each side of the cartesian axes\n'
+        e+= '8 = show the vtk default vtkCubeAxesActor object\n'
+        e+= '9 = show the bounding box outline\n'
+        e+= '10 = show three circles representing the maximum bounding box\n'
+        e+= '11 = show a large grid on the x-y plane (use with zoom=8)\n'
+        e+= '12 = show polar axes\n'
+        e+= '13 = draw a simple ruler at the bottom of the window\n'
+        e+= '14 = show the vtk default vtkCameraOrientationWidget object'
+        vedo.logger.warning(e)
 
     if not plt.axes_instances[r]:
         plt.axes_instances[r] = True

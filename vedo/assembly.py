@@ -1,8 +1,8 @@
 import vtk
+import vedo
 import vedo.docs as docs
 from vedo.base import Base3DProp
 import vedo.utils as utils
-import vedo.colors as colors
 
 __doc__ = ("Submodule for grouping objects." + docs._defs)
 
@@ -30,8 +30,7 @@ def procrustesAlignment(sources, rigid=False):
     group = vtk.vtkMultiBlockDataGroupFilter()
     for source in sources:
         if sources[0].N() != source.N():
-            colors.printc("Error in procrustesAlignment():", c='r')
-            colors.printc(" sources have different nr of points", c='r')
+            vedo.logger.error("in procrustesAlignment() sources have different nr of points")
             raise RuntimeError()
         group.AddInputData(source.polydata())
     procrustes = vtk.vtkProcrustesAlignmentFilter()

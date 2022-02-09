@@ -22,7 +22,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
         zoom=1 # disable it
 
     if isinstance(plt.shape, str) or sum(plt.shape) > 2:
-        colors.printc("Multirendering is not supported in jupyter.", c=1)
+        vedo.logger.error("Multirendering is not supported in jupyter")
         return
 
     ####################################################################################

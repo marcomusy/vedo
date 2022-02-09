@@ -5,7 +5,6 @@ import sys
 import vtk
 import os.path
 import numpy as np
-import logging
 import vedo
 import vedo.utils as utils
 import vedo.addons as addons
@@ -46,31 +45,30 @@ def _embedWindow(backend='ipyvtk'):
             import k3d
             return backend
             if k3d._version.version_info != (2, 7, 4):
-                print('Warning: only k3d version 2.7.4 is currently supported')
-                # print('> pip install k3d==2.7.4')
+                vedo.logger.warning('Only k3d version 2.7.4 is currently supported')
 
         except ModuleNotFoundError:
-            print('Could not load k3d module, try:')
-            print('> pip install k3d==2.7.4')
+            vedo.logger.error('Could not load k3d try:\n> pip install k3d==2.7.4')
+            vedo.logger.flush()
 
     elif 'ipygany' in backend: # ipygany
         try:
             import ipygany
             return backend
         except ModuleNotFoundError:
-            print('Could not load ipygany module, try:')
-            print('> pip install ipygany')
+            vedo.logger.error('Could not load ipygany try:\n> pip install ipygany')
+            vedo.logger.flush()
 
     elif 'itk' in backend: # itkwidgets
         try:
             import itkwidgets
             return backend
         except ModuleNotFoundError:
-            print('Could not load itkwidgets module, try:')
-            print('> pip install itkwidgets')
+            vedo.logger.error('Could not load itkwidgets try:\n> pip install itkwidgets')
+            vedo.logger.flush()
 
     elif backend.lower() == '2d':
-        pass
+        return backend
 
     elif backend =='panel':
         try:
@@ -79,18 +77,18 @@ def _embedWindow(backend='ipyvtk'):
             return backend
         except:
             vedo.logger.error('Could not load panel try:\n> pip install panel')
-            print(flush=True)
+            vedo.logger.flush()
 
     elif 'ipyvtk' in backend:
         try:
             from ipyvtklink.viewer import ViewInteractiveWidget
             return backend
         except ModuleNotFoundError:
-            print('Could not load ipyvtklink try:')
-            print('> pip install ipyvtklink')
+            vedo.logger.error('Could not load ipyvtklink try:\n> pip install ipyvtklink')
+            vedo.logger.flush()
 
     else:
-        print("Unknown backend", backend)
+        vedo.logger.error("Unknown backend" + str(backend))
         raise RuntimeError()
 
     return None
@@ -264,18 +262,19 @@ def show(*actors,
 
         if utils.isSequence(at):                     # user passed a sequence for "at"
             if not utils.isSequence(actors):
-                vedo.printc("show() Error: input must be a list.", c='r')
+                vedo.logger.error("in show() input must be a list.")
                 raise RuntimeError()
             if len(at) != len(actors):
-                vedo.printc("show() Error: lists 'input' and 'at', must have equal lengths.", c='r')
+                vedo.logger.error("in show() lists 'input' and 'at' must have equal lengths")
                 raise RuntimeError()
             if len(at) > 1 and (shape == (1, 1) and N is None):
                 N = max(at) + 1
 
         elif at is None and (N or shape != (1, 1)):
             if not utils.isSequence(actors):
-                vedo.printc('show() Error: N or shape is set, but input is not a sequence.', c='r')
-                vedo.printc('              you may need to specify e.g. at=0', c='r')
+                e = "in show(), N or shape is set, but input is not a sequence\n"
+                e+= "              you may need to specify e.g. at=0"
+                vedo.logger.error(e)
                 raise RuntimeError()
             at = list(range(len(actors)))
 
@@ -324,7 +323,6 @@ def show(*actors,
         if interactive or len(at)==N \
             or (isinstance(shape[0],int) and len(at)==shape[0]*shape[1]):
             # note that shape can be a string
-            # print(interactive)
             if not offscreen and (interactive is None or interactive):
                 plt.interactor.Start()
 
@@ -567,8 +565,10 @@ class Plotter:
         x, y = screensize
 
         if N:  # N = number of renderers. Find out the best
+
             if shape != (1, 1):  # arrangement based on minimum nr. of empty renderers
-                vedo.printc("Warning: having set N, shape is ignored.", c='r')
+                vedo.logger.warning("having set N, shape is ignored.")
+
             nx = int(np.sqrt(int(N * y / x) + 1))
             ny = int(np.sqrt(int(N * x / y) + 1))
             lm = [
@@ -1465,7 +1465,7 @@ class Plotter:
         if self.interactor:
             sw.SetInteractor(self.interactor)
         else:
-            vedo.printc("Error in addSplineTool: no interactor found.", c='r')
+            vedo.logger.error("No interactor found.")
             raise RuntimeError
         sw.On()
         sw.Initialize(sw.points.polydata())
@@ -1568,16 +1568,12 @@ class Plotter:
 
     def _addSkybox(self, hdrfile):
         # many hdr files are at https://polyhaven.com/all
+
         if utils.vtkVersionIsAtLeast(9):
-
-#            if self.skybox:
-#                #already exists, skip.
-#                return self
-
             reader = vtk.vtkHDRReader()
             # Check the image can be read.
             if not reader.CanReadFile(hdrfile):
-                vedo.printc('Cannot read HDR file', hdrfile, c='r')
+                vedo.logger.error(f"Cannot read HDR file {hdrfile}")
                 return self
             reader.SetFileName(hdrfile)
             reader.Update()
@@ -1598,8 +1594,10 @@ class Plotter:
             self.skybox = vtk.vtkSkybox()
             self.skybox.SetTexture(tcm)
             self.renderer.AddActor(self.skybox)
+
         else:
-            vedo.printc("addSkyBox not supported in this VTK version. Skip.", c='r')
+            vedo.logger.error("addSkyBox not supported in this VTK version. Skip.")
+
         return self
 
     def addRendererFrame(self, c=None, alpha=None, lw=None, pad=None):
@@ -1794,7 +1792,7 @@ class Plotter:
 
         wsx, wsy = self.window.GetSize()
         if not settings.useParallelProjection:
-            vedo.printc("WARNING! addScaleIndicator called with useParallelProjection OFF. Skip.", c='y')
+            vedo.logger.warning("addScaleIndicator called with useParallelProjection OFF. Skip.")
             return None
 
         rlabel = vtk.vtkVectorText()
@@ -1842,7 +1840,7 @@ class Plotter:
         return fractor
 
 
-    def addCallback(self, eventName, func, priority=0.0, verbose=False):
+    def addCallback(self, eventName, func, priority=0.0):
         """Add a function to be executed while show() is active.
         Information about the event can be acquired with method ``getEvent()``.
 
@@ -1936,7 +1934,6 @@ class Plotter:
         if not eventName.endswith('Event'):
             eventName += 'Event'
 
-        # print(eventName)
 
         def _func_wrap(iren, ename):
             x, y = self.interactor.GetEventPosition()
@@ -1994,8 +1991,7 @@ class Plotter:
             self._timer_event_id = None
 
         cid = self.interactor.AddObserver(eventName, _func_wrap, priority)
-        if verbose:
-            vedo.printc('addCallback(): registering event:', eventName, 'with id =', cid)
+        vedo.logger.debug(f'registering event: {eventName} with id={cid}')
         return cid
 
     def removeCallback(self, cid):
@@ -2059,8 +2055,9 @@ class Plotter:
             if timerId is not None:
                 self.interactor.DestroyTimer(timerId)
         else:
-            vedo.printc("Error in plotter.timer(). Cannot understand action:", action, c='r')
-            vedo.printc("                          allowed actions: [create, destroy]", action, c='r')
+            e = "in plotter.timer(). Cannot understand action:\n"
+            e+= "                          allowed actions: [create, destroy]"
+            vedo.logger.error(e)
         return self
 
 
@@ -2113,7 +2110,6 @@ class Plotter:
         pp.ComputeWorldPosition(renderer, pos2d, worldPos, worldOrient)
         # validw = pp.ValidateWorldPosition(worldPos, worldOrient)
         # validd = pp.ValidateDisplayPosition(renderer, pos2d)
-        # print(validd, validw, worldOrient)
         return np.array(worldPos)
 
 
@@ -2231,7 +2227,7 @@ class Plotter:
                     scannedacts.append(vedo.Mesh(utils.meshlab2vedo(a)))
 
             else:
-                vedo.printc("Error: cannot understand input in show():", type(a), c='r')
+                vedo.logger.error(f"cannot understand input in show(): {type(a)}")
         return scannedacts
 
 
@@ -2459,9 +2455,9 @@ class Plotter:
             self.renderer = self.renderers[at]
         else:
             if vedo.notebookBackend:
-                vedo.printc("Error in show(): multiple renderings not supported in notebooks.", c='r')
+                vedo.logger.error("in show(), multiple renderings not supported in notebooks.")
             else:
-                vedo.printc("Error in show(): wrong renderer index", at, c='r')
+                vedo.logger.error(f"in show(), wrong renderer index {at}")
             return self
 
         if self.qtWidget is not None:
@@ -2622,8 +2618,7 @@ class Plotter:
             cm_thickness = camera.pop("thickness", None)
             cm_viewAngle = camera.pop("viewAngle", None)
             if len(camera.keys()):
-                vedo.printc("Warning in show(cam=...), key(s) not recognized:",
-                       *(camera.keys()), c='y')
+                vedo.logger.warning(f"in show(cam=...), key(s) not recognized: {camera.keys()}")
             if cm_pos is not None: self.camera.SetPosition(cm_pos)
             if cm_focalPoint is not None: self.camera.SetFocalPoint(cm_focalPoint)
             if cm_viewup is not None: self.camera.SetViewUp(cm_viewup)
@@ -2731,7 +2726,7 @@ class Plotter:
         draggable = options.pop("draggable", True)
 
         if not self.renderer:
-            vedo.printc("Use showInset() after first rendering the scene.", c='y')
+            vedo.logger.warning("call addInset() only after first rendering of the scene.")
             save_int = self._interactive
             self.show(interactive=0)
             self._interactive = save_int
@@ -3014,13 +3009,13 @@ class Plotter:
             return
 
         elif key == "Escape":
-            vedo.printc('\nClosing window. Plotter.escaped is set to True.', c='r')
+            vedo.logger.info("Closing window now. Plotter.escaped is set to True.")
             self.escaped = True # window will be escaped ASAP
             iren.ExitCallback()
             return
 
         elif key == "F1":
-            vedo.printc('\nExecution aborted. Exiting python kernel now.', c='r')
+            vedo.logger.info("\nExecution aborted. Exiting python kernel now.")
             iren.ExitCallback()
             sys.exit(0)
 
@@ -3155,10 +3150,11 @@ class Plotter:
             iren.ExitCallback()
             cur = iren.GetInteractorStyle()
             if isinstance(cur, vtk.vtkInteractorStyleTrackballCamera):
-                vedo.printc("\nInteractor style changed to TrackballActor")
-                vedo.printc("  you can now move and rotate individual meshes:")
-                vedo.printc("  press X twice to save the repositioned mesh,")
-                vedo.printc("  press 'a' to go back to normal style.")
+                msg = "\nInteractor style changed to TrackballActor"
+                msg +="  you can now move and rotate individual meshes:"
+                msg +="  press X twice to save the repositioned mesh,"
+                msg +="  press 'a' to go back to normal style."
+                vedo.logger.info("msg")
                 iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballActor())
             else:
                 iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())

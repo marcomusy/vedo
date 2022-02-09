@@ -53,8 +53,8 @@ class _DataArrayHelper(object):
             self.actor._mapper.SetScalarModeToUseCellData()
 
         if len(input_array) != n:
-            colors.printc(f'Error in point/cell data: length of input {len(input_array)}'
-                          f' !=  {n} nr. of elements', c='r')
+            vedo.logger.error(f'Error in point/cell data: length of input {len(input_array)}'
+                              f' !=  {n} nr. of elements')
             raise RuntimeError()
 
         input_array = np.ascontiguousarray(input_array)
@@ -95,7 +95,7 @@ class _DataArrayHelper(object):
         if varr:
             varr.SetName(newname)
         else:
-            colors.printc("Cannot rename non existing array:", oldname, "to:", newname, c='r')
+            vedo.logger.warning(f"Cannot rename non existing array {oldname} to {newname}")
 
     def select(self, key):
         if self.association == 0:
@@ -933,8 +933,8 @@ class BaseActor(Base3DProp):
             elif style=='ambient' : pars = [0.8, 0.1, 0.0,  1, (1,1,1)]
             elif style=='default' : pars = [0.1, 1.0, 0.05, 5, c]
             else:
-                colors.printc("Error in lighting(): Available styles are", c='r')
-                colors.printc("[default,metallic,plastic,shiny,glossy,ambient,off]", c='r')
+                vedo.logger.error("in lighting(): Available styles are")
+                vedo.logger.error("[default, metallic, plastic, shiny, glossy, ambient, off]")
                 raise RuntimeError()
             pr.SetAmbient(pars[0])
             pr.SetDiffuse(pars[1])
@@ -1117,7 +1117,7 @@ class BaseActor(Base3DProp):
             if self.GetScalars():
                 arrname = varr.GetScalars().GetName()
             else:
-                colors.printc('Error in gradient: no scalars found for', on, c='r')
+                vedo.logger.error(f"in gradient: no scalars found for {on}")
                 raise RuntimeError
         gra.SetInputData(self.inputdata())
         gra.SetInputScalars(tp, arrname)
@@ -1153,7 +1153,7 @@ class BaseActor(Base3DProp):
             if self.GetVectors():
                 arrname = varr.GetVectors().GetName()
             else:
-                colors.printc('Error in divergence: no scalars found for', on, c='r')
+                vedo.logger.error(f"in divergence(): no scalars found for {on}")
                 raise RuntimeError
         div.SetInputData(self.inputdata())
         div.SetInputScalars(tp, arrname)
@@ -1189,7 +1189,7 @@ class BaseActor(Base3DProp):
             if self.GetVectors():
                 arrname = varr.GetVectors().GetName()
             else:
-                colors.printc('Error in vortergence: no scalars found for', on, c='r')
+                vedo.logger.error(f"in vorticity(): no scalars found for {on}")
                 raise RuntimeError
         vort.SetInputData(self.inputdata())
         vort.SetInputScalars(tp, arrname)
@@ -1216,17 +1216,13 @@ class BaseActor(Base3DProp):
                      horizontal=False,
                      useAlpha=True,
                      tformat='%-#6.3g',
-    ):
+        ):
         """
         Add a 2D scalar bar for the specified obj.
 
         .. hint:: |mesh_coloring| |mesh_coloring.py|_ |scalarbars.py|_
         """
         plt = vedo.plotter_instance
-
-        if not hasattr(self, "mapper"):
-            colors.printc("Error in addScalarBar(): input is invalid,", type(self), c='r')
-            return None
 
         if plt and plt.renderer:
             c = (0.9, 0.9, 0.9)
@@ -1475,7 +1471,7 @@ class BaseGrid(BaseActor):
             ctf.AddRGBPoint(vmin, r,g,b) # constant color
             ctf.AddRGBPoint(vmax, r,g,b)
         else:
-            colors.printc("color(): unknown input type:", col, c='r')
+            vedo.logger.warning(f"in color() unknown input type {type(col)}")
 
         if alpha is not None:
             self.alpha(alpha, vmin=vmin, vmax=vmax)
@@ -2080,7 +2076,7 @@ def streamLines(domain, probe,
     elif integrator == 'rk45':
         st.SetIntegratorTypeToRungeKutta45()
     else:
-        colors.printc("Error in streamlines, unknown integrator", integrator, c='r')
+        vedo.logger.error(f"in streamlines, unknown integrator {integrator}")
 
     st.Update()
     output = st.GetOutput()
