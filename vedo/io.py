@@ -1,19 +1,19 @@
-import vtk
-import os
 import glob
-import numpy as np
+import os
 import time
 
+import numpy as np
 import vedo
-import vedo.utils as utils
 import vedo.colors as colors
 import vedo.docs as docs
+import vedo.utils as utils
+import vtk
+from vedo import settings
 from vedo.assembly import Assembly
 from vedo.mesh import Mesh
-from vedo.pointcloud import Points
 from vedo.picture import Picture
+from vedo.pointcloud import Points
 from vedo.volume import Volume
-from vedo import settings
 
 __doc__ = (
     """
@@ -1944,5 +1944,3 @@ class Video:
 
         self.tmp_dir.cleanup()
         return vedo.plotter_instance
-
-

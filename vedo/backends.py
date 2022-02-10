@@ -1,15 +1,15 @@
-import vtk
-import numpy
 import os
+
+import numpy
 import vedo
 import vedo.colors as colors
+import vedo.shapes as shapes
+import vedo.utils as utils
+import vtk
+from vedo import settings
 from vedo.mesh import Mesh
 from vedo.pointcloud import Points
 from vedo.volume import Volume
-from vedo import settings
-
-import vedo.shapes as shapes
-import vedo.utils as utils
 
 __all__ = []
 

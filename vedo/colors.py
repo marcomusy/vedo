@@ -1,9 +1,10 @@
-import vtk
-import numpy as np
-import sys
 import os
+import sys
 import time
+
+import numpy as np
 import vedo
+import vtk
 
 __doc__ = ("Colors definitions and printing methods." )
 
@@ -1070,11 +1071,3 @@ def printd(*strings, q=False):
         print(f"    \x1b[1m\x1b[37mExiting python now (q={bool(q)}).\x1b[0m\x1b[37m")
         exit(0)
     sys.stdout.flush()
-
-
-
-
-
-
-
-

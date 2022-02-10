@@ -1,12 +1,21 @@
-import vedo
-from vedo.plotter import Plotter
-from vedo.pyplot import CornerHistogram
-from vedo.utils import mag, precision, linInterpolate, isSequence
-from vedo.colors import colorMap, getColor
-from vedo.shapes import Text2D, Line, Ribbon, Spline
-from vedo.pointcloud import Points, fitPlane
-import numpy as np
 import os
+
+import numpy as np
+import vedo
+from vedo.colors import colorMap
+from vedo.colors import getColor
+from vedo.plotter import Plotter
+from vedo.pointcloud import fitPlane
+from vedo.pointcloud import Points
+from vedo.pyplot import CornerHistogram
+from vedo.shapes import Line
+from vedo.shapes import Ribbon
+from vedo.shapes import Spline
+from vedo.shapes import Text2D
+from vedo.utils import isSequence
+from vedo.utils import linInterpolate
+from vedo.utils import mag
+from vedo.utils import precision
 
 __all__ = [
     'Browser',
@@ -1311,7 +1320,3 @@ class Animation(Plotter):
 
         self.show(interactive=True, resetcam=self.resetcam)
         self.bookingMode = True
-
-
-
-

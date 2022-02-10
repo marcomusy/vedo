@@ -1,7 +1,7 @@
-import vtk
 import vedo
 import vedo.docs as docs
 import vedo.utils as utils
+import vtk
 from vedo.base import BaseGrid
 from vedo.mesh import Mesh
 
@@ -342,28 +342,3 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         msh = Mesh(cc.GetOutput()).flat().lighting('ambient')
         msh._mapper.SetLookupTable(utils.ctf2lut(self))
         return msh
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

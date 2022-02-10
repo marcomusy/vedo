@@ -1,8 +1,8 @@
 import numpy as np
-import vtk
 import vedo
 import vedo.colors as colors
 import vedo.utils as utils
+import vtk
 from vedo import settings
 from vedo.base import BaseGrid
 

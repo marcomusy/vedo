@@ -16,23 +16,31 @@ Command Line Interface module
     alias vs='vedo -i --search '  # to search for a string in examples
     alias ve='vedo --eog '        # to view single and multiple images (press h for help)
 """
+import argparse
+import glob
+import os
+import sys
 
-import sys, argparse, os, glob
 import numpy as np
-import vtk
-
 import vedo
-from vedo import io, load, settings, __version__
-from vedo.plotter import Plotter
-from vedo.utils import printInfo, isSequence, humansort
-from vedo.colors import printc, getColor
+import vedo.applications as applications
+import vtk
+from vedo import __version__
+from vedo import io
+from vedo import load
+from vedo import settings
+from vedo.colors import getColor
+from vedo.colors import printc
+from vedo.docs import tips
 from vedo.mesh import Mesh
+from vedo.picture import Picture
+from vedo.plotter import Plotter
 from vedo.tetmesh import TetMesh
 from vedo.ugrid import UGrid
+from vedo.utils import humansort
+from vedo.utils import isSequence
+from vedo.utils import printInfo
 from vedo.volume import Volume
-from vedo.docs import tips
-from vedo.picture import Picture
-import vedo.applications as applications
 
 
 __all__ = []
@@ -1030,6 +1038,3 @@ def exe_gui(args):
         print("Already", len(app.filenames), "files loaded.")
 
     root.mainloop()
-
-
-

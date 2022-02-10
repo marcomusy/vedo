@@ -214,4 +214,3 @@ def embedWindow(backend='ipyvtk', verbose=True):
     else:
         print("Unknown backend", backend)
         raise RuntimeError()
-

@@ -1,4 +1,6 @@
-import vtk, sys
+import sys
+
+import vtk
 
 __all__ = []
 _defs = ""

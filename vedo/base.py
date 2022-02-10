@@ -1,8 +1,8 @@
 import numpy as np
-import vtk
 import vedo
 import vedo.colors as colors
 import vedo.utils as utils
+import vtk
 from deprecated import deprecated
 
 __doc__ = (
@@ -2153,7 +2153,3 @@ def streamLines(domain, probe,
 #         ef.AddCellType(ct)
 #     ef.Update()
 #     return Mesh(ef.GetOutput())
-
-
-
-

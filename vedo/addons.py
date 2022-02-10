@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
-import vtk
 import vedo
-import vedo.utils as utils
 import vedo.shapes as shapes
-from vedo.colors import printc, getColor
-from vedo.assembly import Assembly
-from vedo.mesh import Mesh, merge
-from vedo.pointcloud import Points
+import vedo.utils as utils
+import vtk
 from vedo import settings
-from vedo.volume import Volume
+from vedo.assembly import Assembly
+from vedo.colors import getColor
+from vedo.colors import printc
+from vedo.mesh import merge
+from vedo.mesh import Mesh
+from vedo.pointcloud import Points
 from vedo.tetmesh import TetMesh
+from vedo.volume import Volume
 
 __doc__ = ("Create additional objects like axes, legends, lights, etc..""" + vedo.docs._defs)
 
@@ -3244,5 +3246,3 @@ def addGlobalAxes(axtype=None, c=None):
     if not plt.axes_instances[r]:
         plt.axes_instances[r] = True
     return
-
-

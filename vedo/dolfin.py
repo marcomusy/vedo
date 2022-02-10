@@ -1,16 +1,25 @@
-import vtk
 import numpy as np
-
 import vedo
-import vedo.utils as utils
-from vedo.utils import printHistogram, ProgressBar
-from vedo.colors import printc
-from vedo.mesh import Mesh
-from vedo.io import load, screenshot, Video, exportWindow, download
 import vedo.shapes as shapes
-from vedo.shapes import Text3D, Text2D, Latex
-from vedo.plotter import show, clear, Plotter, interactive
+import vedo.utils as utils
+import vtk
+from vedo.colors import printc
+from vedo.io import download
+from vedo.io import exportWindow
+from vedo.io import load
+from vedo.io import screenshot
+from vedo.io import Video
+from vedo.mesh import Mesh
+from vedo.plotter import clear
+from vedo.plotter import interactive
+from vedo.plotter import Plotter
+from vedo.plotter import show
 from vedo.pyplot import histogram
+from vedo.shapes import Latex
+from vedo.shapes import Text2D
+from vedo.shapes import Text3D
+from vedo.utils import printHistogram
+from vedo.utils import ProgressBar
 
 # Install fenics with commands (e.g. in Anaconda3):
 #         conda install -c conda-forge fenics
@@ -933,7 +942,3 @@ def MeshStreamLines(*inputobj, **options):
         str_lns.lw(lw)
 
     return str_lns
-
-
-
-

@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import time
-import sys
-import vtk
 import os.path
+import sys
+import time
+
 import numpy as np
 import vedo
-import vedo.utils as utils
 import vedo.addons as addons
 import vedo.backends as backends
+import vedo.utils as utils
 from vedo import settings
+import vtk
 
 __doc__ = ("Defines main class ``Plotter`` to manage actors and 3D rendering." + vedo.docs._defs)
 
@@ -3531,4 +3532,3 @@ class Plotter:
                    "Shift_R", "Control_R", "Super_R", "Alt_R", "Menu"]:
             self.keyheld = ''
         return
-

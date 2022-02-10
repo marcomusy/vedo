@@ -117,7 +117,6 @@ Usage example:
 
     Cube().color('green').show()
 """
-
 from vedo.utils import dotdict
 
 

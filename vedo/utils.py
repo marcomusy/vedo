@@ -1,11 +1,14 @@
-import numpy as np
-import time
 import math
-import sys
 import os
-import vtk
-from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy, numpy_to_vtkIdTypeArray
+import sys
+import time
+
+import numpy as np
 import vedo
+import vtk
+from vtk.util.numpy_support import numpy_to_vtk
+from vtk.util.numpy_support import numpy_to_vtkIdTypeArray
+from vtk.util.numpy_support import vtk_to_numpy
 
 __doc__ = ("Utilities submodule.")
 
@@ -1943,4 +1946,3 @@ def resampleArrays(source, target, tol=None):
         rs.SetTolerance(tol)
     rs.Update()
     return rs.GetOutput()
-

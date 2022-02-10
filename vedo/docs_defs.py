@@ -1213,4 +1213,3 @@ _substitutions_defs = """
     :target: whiskers.py_
     :alt: whiskers.py
 """
-

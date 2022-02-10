@@ -1,8 +1,8 @@
 import numpy as np
-import vtk
 import vedo
 import vedo.colors as colors
 import vedo.utils as utils
+import vtk
 from vtk.util.numpy_support import numpy_to_vtk
 
 __doc__ = ("Submodule to work with common format images." + vedo.docs._defs)
@@ -1091,6 +1091,3 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """Write picture to file as png or jpg."""
         vedo.io.write(self._data, filename)
         return self
-
-
-

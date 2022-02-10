@@ -1,12 +1,13 @@
-import vtk
 import numpy as np
 import vedo
-import vedo.utils as utils
+import vedo.addons as addons
 import vedo.colors as colors
 import vedo.shapes as shapes
-import vedo.addons as addons
+import vedo.utils as utils
+import vtk
 from vedo.assembly import Assembly
-from vedo.mesh import Mesh, merge
+from vedo.mesh import merge
+from vedo.mesh import Mesh
 from vedo.plotter import show # not used, but useful to import this
 
 __doc__ = """Plotting utility functions.""" + vedo.docs._defs

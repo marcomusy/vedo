@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from functools import lru_cache
 import os
-import vtk
+from functools import lru_cache
+
 import numpy as np
-from deprecated import deprecated
 import vedo
 import vedo.utils as utils
+import vtk
+from deprecated import deprecated
 from vedo import settings
-from vedo.colors import printc, getColor, colorMap, cmaps_names
-from vedo.mesh import Mesh, merge
-from vedo.pointcloud import Points
+from vedo.colors import cmaps_names
+from vedo.colors import colorMap
+from vedo.colors import getColor
+from vedo.colors import printc
+from vedo.mesh import merge
+from vedo.mesh import Mesh
 from vedo.picture import Picture
+from vedo.pointcloud import Points
 
 __doc__ = ("""Submodule to generate basic geometric shapes.""" + vedo.docs._defs)
 
@@ -3714,5 +3719,3 @@ def VedoLogo(distance=0, c=None, bc='t', version=False, frame=True):
                             )
     fakept = vedo.Point((0,500, distance*1725), alpha=0, c=c, r=1).pickable(0)
     return vedo.Assembly([vlogo, vr, fakept, rul]).scale(1/1725)
-
-

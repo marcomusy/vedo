@@ -1,13 +1,16 @@
-import glob, os
+import glob
+import os
+
 import numpy as np
-from deprecated import deprecated
-import vtk
 import vedo
 import vedo.colors as colors
 import vedo.docs as docs
 import vedo.utils as utils
+import vtk
+from deprecated import deprecated
+from vedo.base import Base3DProp
+from vedo.base import BaseGrid
 from vedo.mesh import Mesh
-from vedo.base import BaseGrid, Base3DProp
 
 __doc__ = ("""Submodule extending the ``vtkVolume`` object functionality."""
     + docs._defs
@@ -1270,6 +1273,3 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
         self.property.SetAmbient(ambient)
         self.property.SetDiffuse(diffuse)
         return self
-
-
-

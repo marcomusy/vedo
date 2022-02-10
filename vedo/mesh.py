@@ -1,11 +1,18 @@
-import numpy as np
 import os
-from deprecated import deprecated
-import vtk
+
+import numpy as np
 import vedo
-from vedo.colors import getColor, colorMap
-from vedo.utils import isSequence, flatten, mag, buildPolyData, numpy2vtk, vtk2numpy
+import vtk
+from deprecated import deprecated
+from vedo.colors import colorMap
+from vedo.colors import getColor
 from vedo.pointcloud import Points
+from vedo.utils import buildPolyData
+from vedo.utils import flatten
+from vedo.utils import isSequence
+from vedo.utils import mag
+from vedo.utils import numpy2vtk
+from vedo.utils import vtk2numpy
 
 __doc__ = ("""Submodule to manage polygonal meshes.""" + vedo.docs._defs)
 

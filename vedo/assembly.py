@@ -1,8 +1,8 @@
-import vtk
 import vedo
 import vedo.docs as docs
-from vedo.base import Base3DProp
 import vedo.utils as utils
+import vtk
+from vedo.base import Base3DProp
 
 __doc__ = ("Submodule for grouping objects." + docs._defs)
 
@@ -142,4 +142,3 @@ class Assembly(vtk.vtkAssembly, Base3DProp):
             a.lighting(style, ambient, diffuse,
                        specular, specularPower, specularColor)
         return self
-

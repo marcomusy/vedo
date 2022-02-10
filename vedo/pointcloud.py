@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
-from deprecated import deprecated
-import vtk
-# from vtk.util.numpy_support import get_vtk_to_numpy_typemap
 import vedo
 import vedo.colors as colors
 import vedo.docs as docs
-#import vedo.settings as settings
-from vedo import settings
 import vedo.utils as utils
+import vtk
+from deprecated import deprecated
+from vedo import settings
 from vedo.base import BaseActor
+# from vtk.util.numpy_support import get_vtk_to_numpy_typemap
+#import vedo.settings as settings
 
 
 __doc__ = ("""Submodule to manage point clouds."""
@@ -4013,6 +4013,3 @@ class Points(vtk.vtkFollower, BaseActor):
             interpolator.SetNullPointsStrategyToClosestPoint()
         interpolator.Update()
         return vedo.Volume(interpolator.GetOutput())
-
-
-
