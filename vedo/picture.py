@@ -5,19 +5,13 @@ import vedo.colors as colors
 import vedo.utils as utils
 from vtk.util.numpy_support import numpy_to_vtk
 
-__doc__ = (
-    """
-Submodule extending the ``vtkImageActor`` object functionality.
-"""
-    + vedo.docs._defs
-)
-
+__doc__ = ("Submodule to work with common format images." + vedo.docs._defs)
 __all__ = ["Picture"]
 
 
 #################################################
 def _get_img(obj, flip=False):
-
+    # get vtkImageData from numpy array
     obj = np.asarray(obj)
 
     if obj.ndim == 3: # has shape (nx,ny, ncolor_alpha_chan)
@@ -28,6 +22,7 @@ def _get_img(obj, flip=False):
                 arr = np.flip(np.flip(obj[:,:,i], 0), 0).ravel()
             else:
                 arr = np.flip(obj[:,:,i], 0).ravel()
+            arr = np.clip(arr, 0, 255)
             varb = numpy_to_vtk(arr, deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
             varb.SetName("RGBA")
             imgb = vtk.vtkImageData()
@@ -43,12 +38,14 @@ def _get_img(obj, flip=False):
             arr = np.flip(obj[:,:], 0).ravel()
         else:
             arr = obj.ravel()
+        arr = np.clip(arr, 0, 255)
         varb = numpy_to_vtk(arr, deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
         varb.SetName("RGBA")
         img = vtk.vtkImageData()
         img.SetDimensions(obj.shape[1], obj.shape[0], 1)
         img.GetPointData().AddArray(varb)
         img.GetPointData().SetActiveScalars("RGBA")
+
     return img
 
 
@@ -132,6 +129,9 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         nx, ny, _ = self._data.GetDimensions()
         return np.array([nx, ny])
 
+    def channels(self):
+        return self._data.GetPointData().GetScalars().GetNumberOfComponents()
+
     def _update(self, data):
         """Overwrite the Picture data mesh with a new data."""
         self._data = data
@@ -160,85 +160,13 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """
         if ext is None:
             return self._data.GetExtent()
-        self._data.SetExtent(ext[0],ext[1],ext[2],ext[3],0,0)
-        self._mapper.Modified()
-        return self
-
-    def text(self, txt,
-                   pos=(0,0,0),
-                   s=1,
-                   c=None,
-                   alpha=1,
-                   bg=None,
-                   font="Theemim",
-                   dpi=500,
-                   justify="bottom-left",
-        ):
-        """Build an image from a string."""
-
-        if c is None: # automatic black or white
-            if vedo.plotter_instance and vedo.plotter_instance.renderer:
-                c = (0.9, 0.9, 0.9)
-                if np.sum(vedo.plotter_instance.renderer.GetBackground()) > 1.5:
-                    c = (0.1, 0.1, 0.1)
-            else:
-                c = (0.3, 0.3, 0.3)
-
-        r = vtk.vtkTextRenderer()
-        img = vtk.vtkImageData()
-
-        tp = vtk.vtkTextProperty()
-        tp.BoldOff()
-        tp.SetColor(colors.getColor(c))
-        tp.SetJustificationToLeft()
-        if "top" in justify:
-            tp.SetVerticalJustificationToTop()
-        if "bottom" in justify:
-            tp.SetVerticalJustificationToBottom()
-        if "cent" in justify:
-            tp.SetVerticalJustificationToCentered()
-            tp.SetJustificationToCentered()
-        if "left" in justify:
-            tp.SetJustificationToLeft()
-        if "right" in justify:
-            tp.SetJustificationToRight()
-
-        if font.lower() == "courier": tp.SetFontFamilyToCourier()
-        elif font.lower() == "times": tp.SetFontFamilyToTimes()
-        elif font.lower() == "arial": tp.SetFontFamilyToArial()
         else:
-            tp.SetFontFamily(vtk.VTK_FONT_FILE)
-            tp.SetFontFile(utils.getFontPath(font))
-
-        if bg:
-            bgcol = colors.getColor(bg)
-            tp.SetBackgroundColor(bgcol)
-            tp.SetBackgroundOpacity(alpha * 0.5)
-            tp.SetFrameColor(bgcol)
-            tp.FrameOn()
-
-        #GetConstrainedFontSize (const vtkUnicodeString &str,
-        # vtkTextProperty *tprop, int targetWidth, int targetHeight, int dpi)
-        fs = r.GetConstrainedFontSize(txt, tp, 900, 1000, dpi)
-        tp.SetFontSize(fs)
-
-        r.RenderString(tp, txt, img, [1,1], dpi)
-        # RenderString (vtkTextProperty *tprop, const vtkStdString &str,
-        #   vtkImageData *data, int textDims[2], int dpi, int backend=Default)
-
-        self.SetInputData(img)
-        self.GetMapper().Modified()
-
-        self.SetPosition(pos)
-        x0, x1 = self.xbounds()
-        if x1 != x0:
-            sc = s/(x1-x0)
-            self.SetScale(sc,sc,sc)
-        return self
-
+            self._data.SetExtent(ext[0],ext[1],ext[2],ext[3],0,0)
+            self._mapper.Modified()
+            return self
 
     def alpha(self, a=None):
-        """Set/get picture's transparency."""
+        """Set/get picture's transparency in the rendering scene."""
         if a is not None:
             self.GetProperty().SetOpacity(a)
             return self
@@ -246,14 +174,14 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             return self.GetProperty().GetOpacity()
 
     def level(self, value=None):
-        """Get/Set the image color level (brightness)."""
+        """Get/Set the image color level (brightness) in the rendering scene."""
         if value is None:
             return self.GetProperty().GetColorLevel()
         self.GetProperty().SetColorLevel(value)
         return self
 
     def window(self, value=None):
-        """Get/Set the image color window (contrast)."""
+        """Get/Set the image color window (contrast) in the rendering scene."""
         if value is None:
             return self.GetProperty().GetColorWindow()
         self.GetProperty().SetColorWindow(value)
@@ -472,7 +400,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         return Picture(ec.GetOutput())
 
     def bw(self):
-        """Make it black and white"""
+        """Make it black and white using luminance calibration"""
         n = self._data.GetPointData().GetNumberOfComponents()
         if n==4:
             ecr = vtk.vtkImageExtractComponents()
@@ -919,6 +847,240 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         narray = utils.vtk2numpy(self._data.GetPointData().GetScalars()).reshape(ny,nx,nchan)
         narray = np.flip(narray, axis=0)
         return narray
+
+    def box(self, xspan, yspan, c='green5', alpha=1):
+        """Draw a box on top of current image. Units are pixels.
+
+
+        .. code-block:: python
+
+                import vedo
+                pic = vedo.Picture("dog.jpg")
+                pic.box([100,300], [100,200], c='green4', alpha=0.7)
+                pic.line([100,100],[400,500], lw=2, alpha=1)
+                pic.triangle([250,300], [100,300], [200,400])
+                vedo.show(pic, axes=1)
+        """
+        x1, x2 = xspan
+        y1, y2 = yspan
+
+        r,g,b = vedo.colors.getColor(c)
+        c = np.array([r,g,b]) * 255
+        c = c.astype(np.uint8)
+        if alpha>1:
+            alpha=1
+        if alpha<=0:
+            return self
+        alpha2 = alpha
+        alpha1 = 1-alpha
+
+        nx, ny = self.dimensions()
+        if x2>nx : x2=nx-1
+        if y2>ny : y2=ny-1
+
+        nchan = self.channels()
+        narrayA = self.tonumpy()
+
+        canvas_source = vtk.vtkImageCanvasSource2D()
+        canvas_source.SetExtent(0, nx-1, 0, ny-1, 0, 0)
+        canvas_source.SetScalarTypeToUnsignedChar()
+        canvas_source.SetNumberOfScalarComponents(nchan)
+        canvas_source.SetDrawColor(255,255,255)
+        canvas_source.FillBox(x1, x2, y1, y2)
+        canvas_source.Update()
+        image_data = canvas_source.GetOutput()
+
+        vscals = image_data.GetPointData().GetScalars()
+        narrayB = vedo.utils.vtk2numpy(vscals).reshape(ny,nx,nchan)
+        narrayB = np.flip(narrayB, axis=0)
+        narrayC = np.where(narrayB < 255, narrayA, alpha1*narrayA+alpha2*c)
+        return self._update(_get_img(narrayC))
+
+    def line(self, p1, p2, lw=2, c='k2', alpha=1):
+        """Draw a line on top of current image. Units are pixels."""
+        x1, x2 = p1
+        y1, y2 = p2
+
+        r,g,b = vedo.colors.getColor(c)
+        c = np.array([r,g,b]) * 255
+        c = c.astype(np.uint8)
+        if alpha>1:
+            alpha=1
+        if alpha<=0:
+            return self
+        alpha2 = alpha
+        alpha1 = 1-alpha
+
+        nx, ny = self.dimensions()
+        if x2>nx : x2=nx-1
+        if y2>ny : y2=ny-1
+
+        nchan = self.channels()
+        narrayA = self.tonumpy()
+
+        canvas_source = vtk.vtkImageCanvasSource2D()
+        canvas_source.SetExtent(0, nx-1, 0, ny-1, 0, 0)
+        canvas_source.SetScalarTypeToUnsignedChar()
+        canvas_source.SetNumberOfScalarComponents(nchan)
+        canvas_source.SetDrawColor(255,255,255)
+        canvas_source.FillTube(x1, x2, y1, y2, lw)
+        canvas_source.Update()
+        image_data = canvas_source.GetOutput()
+
+        vscals = image_data.GetPointData().GetScalars()
+        narrayB = vedo.utils.vtk2numpy(vscals).reshape(ny,nx,nchan)
+        narrayB = np.flip(narrayB, axis=0)
+        narrayC = np.where(narrayB < 255, narrayA, alpha1*narrayA+alpha2*c)
+        return self._update(_get_img(narrayC))
+
+    def triangle(self, p1, p2, p3, c='red3', alpha=1):
+        """Draw a triangle on top of current image. Units are pixels."""
+        x1, y1 = p1
+        x2, y2 = p2
+        x3, y3 = p3
+
+        r,g,b = vedo.colors.getColor(c)
+        c = np.array([r,g,b]) * 255
+        c = c.astype(np.uint8)
+
+        if alpha>1:
+            alpha=1
+        if alpha<=0:
+            return self
+        alpha2 = alpha
+        alpha1 = 1-alpha
+
+        nx, ny = self.dimensions()
+        if x1>nx : x1=nx
+        if x2>nx : x2=nx
+        if x3>nx : x3=nx
+        if y1>ny : y1=ny
+        if y2>ny : y2=ny
+        if y3>ny : y3=ny
+
+        nchan = self.channels()
+        narrayA = self.tonumpy()
+
+        canvas_source = vtk.vtkImageCanvasSource2D()
+        canvas_source.SetExtent(0, nx-1, 0, ny-1, 0, 0)
+        canvas_source.SetScalarTypeToUnsignedChar()
+        canvas_source.SetNumberOfScalarComponents(nchan)
+        canvas_source.SetDrawColor(255,255,255)
+        canvas_source.FillTriangle(x1, y1, x2, y2, x3, y3)
+        canvas_source.Update()
+        image_data = canvas_source.GetOutput()
+
+        vscals = image_data.GetPointData().GetScalars()
+        narrayB = vedo.utils.vtk2numpy(vscals).reshape(ny,nx,nchan)
+        narrayB = np.flip(narrayB, axis=0)
+        narrayC = np.where(narrayB < 255, narrayA, alpha1*narrayA+alpha2*c)
+        return self._update(_get_img(narrayC))
+
+#    def circle(self, center, radius, c='k3', alpha=1): # not working
+#        """Draw a box."""
+#        x1, y1 = center
+#
+#        r,g,b = vedo.colors.getColor(c)
+#        c = np.array([r,g,b]) * 255
+#        c = c.astype(np.uint8)
+#
+#        if alpha>1:
+#            alpha=1
+#        if alpha<=0:
+#            return self
+#        alpha2 = alpha
+#        alpha1 = 1-alpha
+#
+#        nx, ny = self.dimensions()
+#        nchan = self.channels()
+#        narrayA = self.tonumpy()
+#
+#        canvas_source = vtk.vtkImageCanvasSource2D()
+#        canvas_source.SetExtent(0, nx-1, 0, ny-1, 0, 0)
+#        canvas_source.SetScalarTypeToUnsignedChar()
+#        canvas_source.SetNumberOfScalarComponents(nchan)
+#        canvas_source.SetDrawColor(255,255,255)
+#        canvas_source.DrawCircle(x1, y1, radius)
+#        canvas_source.Update()
+#        image_data = canvas_source.GetOutput()
+#
+#        vscals = image_data.GetPointData().GetScalars()
+#        narrayB = vedo.utils.vtk2numpy(vscals).reshape(ny,nx,nchan)
+#        narrayB = np.flip(narrayB, axis=0)
+#        narrayC = np.where(narrayB < 255, narrayA, alpha1*narrayA+alpha2*c)
+#        return self._update(_get_img(narrayC))
+
+    def text(self, txt,
+                   pos=(0,0,0),
+                   s=1,
+                   c=None,
+                   alpha=1,
+                   bg=None,
+                   font="Theemim",
+                   dpi=500,
+                   justify="bottom-left",
+        ):
+        """Build an image from a string."""
+
+        if c is None: # automatic black or white
+            if vedo.plotter_instance and vedo.plotter_instance.renderer:
+                c = (0.9, 0.9, 0.9)
+                if np.sum(vedo.plotter_instance.renderer.GetBackground()) > 1.5:
+                    c = (0.1, 0.1, 0.1)
+            else:
+                c = (0.3, 0.3, 0.3)
+
+        r = vtk.vtkTextRenderer()
+        img = vtk.vtkImageData()
+
+        tp = vtk.vtkTextProperty()
+        tp.BoldOff()
+        tp.SetColor(colors.getColor(c))
+        tp.SetJustificationToLeft()
+        if "top" in justify:
+            tp.SetVerticalJustificationToTop()
+        if "bottom" in justify:
+            tp.SetVerticalJustificationToBottom()
+        if "cent" in justify:
+            tp.SetVerticalJustificationToCentered()
+            tp.SetJustificationToCentered()
+        if "left" in justify:
+            tp.SetJustificationToLeft()
+        if "right" in justify:
+            tp.SetJustificationToRight()
+
+        if font.lower() == "courier": tp.SetFontFamilyToCourier()
+        elif font.lower() == "times": tp.SetFontFamilyToTimes()
+        elif font.lower() == "arial": tp.SetFontFamilyToArial()
+        else:
+            tp.SetFontFamily(vtk.VTK_FONT_FILE)
+            tp.SetFontFile(utils.getFontPath(font))
+
+        if bg:
+            bgcol = colors.getColor(bg)
+            tp.SetBackgroundColor(bgcol)
+            tp.SetBackgroundOpacity(alpha * 0.5)
+            tp.SetFrameColor(bgcol)
+            tp.FrameOn()
+
+        #GetConstrainedFontSize (const vtkUnicodeString &str,
+        # vtkTextProperty *tprop, int targetWidth, int targetHeight, int dpi)
+        fs = r.GetConstrainedFontSize(txt, tp, 900, 1000, dpi)
+        tp.SetFontSize(fs)
+
+        r.RenderString(tp, txt, img, [1,1], dpi)
+        # RenderString (vtkTextProperty *tprop, const vtkStdString &str,
+        #   vtkImageData *data, int textDims[2], int dpi, int backend=Default)
+
+        self.SetInputData(img)
+        self.GetMapper().Modified()
+
+        self.SetPosition(pos)
+        x0, x1 = self.xbounds()
+        if x1 != x0:
+            sc = s/(x1-x0)
+            self.SetScale(sc,sc,sc)
+        return self
 
     def modified(self):
         """Use in conjunction with ``tonumpy()`` to update any modifications to the picture array"""

@@ -49,10 +49,12 @@ import vedo.docs as docs  # needed by spyder console, otherwise complains
 
 ##################################################################################
 ########################################################################## GLOBALS
-vtk_version = [ int(vtk.vtkVersion().GetVTKMajorVersion()),
-                int(vtk.vtkVersion().GetVTKMinorVersion()),
-                int(vtk.vtkVersion().GetVTKBuildVersion()),
+vtk_version = [
+    int(vtk.vtkVersion().GetVTKMajorVersion()),
+    int(vtk.vtkVersion().GetVTKMinorVersion()),
+    int(vtk.vtkVersion().GetVTKBuildVersion()),
 ]
+
 try:
     import platform
     sys_platform = platform.system()
