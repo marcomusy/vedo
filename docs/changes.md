@@ -87,6 +87,5 @@
 
 ## broken examples
 ```
-vedo https://vedo.embl.es/examples/geo_scene.npz
 interpolateMeshArray.py export cannot pickle 'Spline' object, phong is not preserved
 ```

@@ -645,16 +645,16 @@ class Mesh(Points):
 
     def lineColor(self, lc=None):
         """Set/get color of mesh edges. Same as `lc()`."""
-        if lc is not None:
+        if lc is None:
+            return self.property.GetEdgeColor()
+        else:
 #            if "ireframe" in self.property.GetRepresentationAsString():
 #                self.property.EdgeVisibilityOff()
 #                self.color(lc)
 #                return self
             self.property.EdgeVisibilityOn()
             self.property.SetEdgeColor(getColor(lc))
-        else:
-            return self.property.GetEdgeColor()
-        return self
+            return self
 
     def lc(self, lineColor=None):
         """Set/get color of mesh edges. Same as `lineColor()`."""
