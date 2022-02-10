@@ -818,7 +818,7 @@ def toNumpy(obj):
         adict['linewidth'] = None
         if prp.GetEdgeVisibility():
             adict['linewidth'] = obj.lineWidth()
-            adict['linecolor'] = obj.lineColor()
+            adict['linecolor'] = prp.GetEdgeColor()
 
         adict['ambient'] = prp.GetAmbient()
         adict['diffuse'] = prp.GetDiffuse()
@@ -833,17 +833,11 @@ def toNumpy(obj):
             adict['backColor'] = obj.GetBackfaceProperty().GetColor()
 
         adict['scalarvisibility'] = obj.mapper().GetScalarVisibility()
-
         adict['texture'] = None
 
-    ######################################################## Mesh
-    if isinstance(obj, Points):
-        adict['type'] = 'Mesh'
-        _fillcommon(obj, adict)
-        _fillmesh(obj, adict)
 
     ######################################################## Assembly
-    elif isinstance(obj, Assembly):
+    if isinstance(obj, Assembly):
         pass
         # adict['type'] = 'Assembly'
         # _fillcommon(obj, adict)
@@ -853,6 +847,12 @@ def toNumpy(obj):
         #     if isinstance(a, Mesh):
         #         _fillmesh(a, assdict)
         #         adict['actors'].append(assdict)
+
+    ######################################################## Points/Mesh
+    elif isinstance(obj, Points):
+        adict['type'] = 'Mesh'
+        _fillcommon(obj, adict)
+        _fillmesh(obj, adict)
 
     ######################################################## Volume
     elif isinstance(obj, Volume):
@@ -1424,9 +1424,6 @@ def exportWindow(fileoutput, binary=False):
         sdict['size'] = plt.size
         sdict['axes'] = plt.axes
         sdict['title'] = plt.title
-        sdict['xtitle'] = 'x'
-        sdict['ytitle'] = 'y'
-        sdict['ztitle'] = 'z'
         sdict['backgrcol'] = colors.getColor(plt.backgrcol)
         sdict['backgrcol2'] = None
         if plt.renderer.GetGradientBackground():
@@ -1575,6 +1572,8 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
             settings.interpolateScalarsBeforeMapping = data['interpolateScalarsBeforeMapping']
         if 'defaultFont' in data.keys():
             settings.defaultFont = data['defaultFont']
+        if 'useDepthPeeling' in data.keys():
+            settings.useDepthPeeling = data['useDepthPeeling']
 
         axes = data.pop('axes', 4)
         title = data.pop('title', '')
