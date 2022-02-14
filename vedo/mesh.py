@@ -648,10 +648,6 @@ class Mesh(Points):
         if lc is None:
             return self.property.GetEdgeColor()
         else:
-#            if "ireframe" in self.property.GetRepresentationAsString():
-#                self.property.EdgeVisibilityOff()
-#                self.color(lc)
-#                return self
             self.property.EdgeVisibilityOn()
             self.property.SetEdgeColor(getColor(lc))
             return self

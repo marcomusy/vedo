@@ -1494,7 +1494,7 @@ class Points(vtk.vtkFollower, BaseActor):
             return np.array(self.GetProperty().GetColor())
         elif c is None:
             self._mapper.ScalarVisibilityOn()
-            return None
+            return self
         self._mapper.ScalarVisibilityOff()
         cc = colors.getColor(c)
         self.GetProperty().SetColor(cc)

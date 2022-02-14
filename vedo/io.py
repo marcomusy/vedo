@@ -239,7 +239,7 @@ def _load_file(filename, unpack):
 
         ################################################################# numpy:
     elif fl.endswith(".npy") or fl.endswith(".npz"):
-        acts = loadNumpy(filename)
+        acts = loadnumpy(filename)
 
         if unpack is False:
             return Assembly(acts)
@@ -728,7 +728,7 @@ def loadPCD(filename):
     return Points(poly).pointSize(4)
 
 
-def toNumpy(obj):
+def tonumpy(obj):
     '''Dump a vedo object to numpy format.'''
 
     adict = dict()
@@ -825,7 +825,7 @@ def toNumpy(obj):
         adict['specular'] = prp.GetSpecular()
         adict['specularpower'] = prp.GetSpecularPower()
         adict['specularcolor'] = prp.GetSpecularColor()
-        adict['shading'] = prp.GetInterpolation()
+        adict['shading'] = prp.GetInterpolation() # flat phong..:
         adict['color'] = prp.GetColor()
         adict['lightingIsOn'] = prp.GetLighting()
         adict['backColor'] = None
@@ -884,9 +884,7 @@ def toNumpy(obj):
     elif isinstance(obj, Picture):
         adict['type'] = 'Picture'
         _fillcommon(obj, adict)
-        adict['array'] = utils.vtk2numpy(obj.inputdata().GetPointData().GetScalars())
-        adict['shape'] = obj.inputdata().GetDimensions()
-        #print('toNumpy(): vedo.Picture', obj.shape, obj.GetPosition())
+        adict['array'] = obj.tonumpy()
 
     ######################################################## Text2D
     elif isinstance(obj, vedo.Text2D):
@@ -900,16 +898,16 @@ def toNumpy(obj):
         adict['bgcol'] = obj.property.GetBackgroundColor()
         adict['alpha'] = obj.property.GetBackgroundOpacity()
         adict['frame'] = obj.property.GetFrame()
-        # print('toNumpy(): vedo.Text2D', obj.text()[:10], obj.font(), obj.GetPosition())
+        # print('tonumpy(): vedo.Text2D', obj.text()[:10], obj.font(), obj.GetPosition())
 
     else:
         pass
-        #colors.printc('Unknown object type in toNumpy()', [obj], c='r')
+        #colors.printc('Unknown object type in tonumpy()', [obj], c='r')
 
     return adict
 
 
-def loadNumpy(inobj):
+def loadnumpy(inobj):
     """Load a vedo format file or scene."""
 
     # make sure the numpy file is not containing a scene
@@ -1001,6 +999,7 @@ def loadNumpy(inobj):
         if 'pointdata' in keys:
             for psc, pscname in d['pointdata']:
                 msh.addPointArray(psc, pscname)
+
         msh.mapper().ScalarVisibilityOff()     # deactivate scalars
 
         if 'LUT' in keys and 'activedata' in keys and d['activedata']:
@@ -1039,7 +1038,7 @@ def loadNumpy(inobj):
 
     objs = []
     for d in data:
-        #print('loadNumpy:', d)
+        #print('loadnumpy:', d['type'], d)
 
         ### Mesh
         if 'mesh' == d['type'].lower():
@@ -1069,18 +1068,7 @@ def loadNumpy(inobj):
 
         ### Picture
         elif 'picture' == d['type'].lower():
-            shp = d['shape'][1], d['shape'][0]
-            arr0 = d['array']
-            rcv = arr0[:,0].reshape(shp)
-            rcv = np.flip(rcv, 0)
-            gcv = arr0[:,1].reshape(shp)
-            gcv = np.flip(gcv, 0)
-            bcv = arr0[:,2].reshape(shp)
-            bcv = np.flip(bcv, 0)
-            arr = np.array([rcv, gcv, bcv])
-            arr = np.swapaxes(arr, 0, 2)
-            arr = np.swapaxes(arr, 0, 1)
-            vimg = Picture(arr)
+            vimg = Picture(d['array'])
             _loadcommon(vimg, d)
             objs.append(vimg)
 
@@ -1228,7 +1216,7 @@ def write(objct, fileoutput, binary=True):
             objslist = [objct]
         dicts2save = []
         for obj in objslist:
-            dicts2save.append( toNumpy(obj) )
+            dicts2save.append( tonumpy(obj) )
         np.save(fileoutput, dicts2save)
         return dicts2save
 
@@ -1444,11 +1432,12 @@ def exportWindow(fileoutput, binary=False):
             a = acts2d.GetNextItem()
             if isinstance(a, vedo.Text2D):
                 allobjs.append(a)
+        allobjs += plt.actors
 
         allobjs = list(set(allobjs)) # make sure its unique
 
         for a in allobjs:
-            sdict['objects'].append(toNumpy(a))
+            sdict['objects'].append(tonumpy(a))
 
         if fr.endswith(".npz"):
             np.savez_compressed(fileoutput, vedo_scenes=[sdict])
@@ -1590,9 +1579,6 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
                      bg=backgrcol,
                      bg2=backgrcol2,
         )
-#        plt.xtitle = data.pop('xtitle', 'x')
-#        plt.ytitle = data.pop('ytitle', 'y')
-#        plt.ztitle = data.pop('ztitle', 'z')
 
         if cam:
             if 'pos' in cam.keys(): plt.camera.SetPosition( cam['pos'] )
@@ -1603,13 +1589,13 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
             plt.resetcam = False
 
         if 'objects' in data.keys():
-            objs = loadNumpy(data['objects'])
+            objs = loadnumpy(data['objects'])
             if not utils.isSequence(objs):
                objs = [objs]
         else:
             #colors.printc("Trying to import a single mesh.. use load() instead.", c='r')
             #colors.printc(" -> try to load a single object with load().", c='r')
-            objs = [loadNumpy(fileinput)]
+            objs = [loadnumpy(fileinput)]
 
         plt.actors = objs
         return plt
