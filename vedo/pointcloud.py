@@ -1395,9 +1395,36 @@ class Points(vtk.vtkFollower, BaseActor):
         return self
 
 
+    def distanceTo(self, pcloud):
+        """Computes the distance from one point cloud to another."""
+        if not pcloud.point_locator:
+            pcloud.point_locator = vtk.vtkStaticPointLocator()
+            pcloud.point_locator.SetDataSet(pcloud.polydata())
+            pcloud.point_locator.BuildLocator()
+
+        ids = []
+        ps1 = self.points()
+        ps2 = pcloud.points()
+        for p in ps1:
+            pid = pcloud.point_locator.FindClosestPoint(p)
+            ids.append(pid)
+
+        deltas = ps2[ids] - ps1
+        d = np.linalg.norm(deltas, axis=1).astype(np.float32)
+
+        poly1 = self.polydata()
+        scals = utils.numpy2vtk(d, name="Distance")
+        poly1.GetPointData().AddArray(scals)
+
+        poly1.GetPointData().SetActiveScalars(scals.GetName())
+        rng = scals.GetRange()
+        self._mapper.SetScalarRange(rng[0], rng[1])
+        self._mapper.ScalarVisibilityOn()
+        return self
+
     def distanceToMesh(self, mesh, signed=False, negate=False):
         '''
-        Computes the (signed) distance from one mesh to another.
+        Computes the (signed) distance from one mesh or pointcloud to a Mesh.
 
         |distance2mesh| |distance2mesh.py|_
         '''
@@ -2873,34 +2900,6 @@ class Points(vtk.vtkFollower, BaseActor):
         hp.SetTargetDistanceMethodToPointToCell()
         hp.Update()
         return hp.GetHausdorffDistance()
-
-
-    def distanceTo(self, pcloud):
-        """Computes the distance from one point cloud to another."""
-        if not pcloud.point_locator:
-            pcloud.point_locator = vtk.vtkStaticPointLocator()
-            pcloud.point_locator.SetDataSet(pcloud.polydata())
-            pcloud.point_locator.BuildLocator()
-
-        ids = []
-        ps1 = self.points()
-        ps2 = pcloud.points()
-        for p in ps1:
-            pid = pcloud.point_locator.FindClosestPoint(p)
-            ids.append(pid)
-
-        deltas = ps2[ids] - ps1
-        d = np.linalg.norm(deltas, axis=1).astype(np.float32)
-
-        poly1 = self.polydata()
-        scals = utils.numpy2vtk(d, name="Distance")
-        poly1.GetPointData().AddArray(scals)
-
-        poly1.GetPointData().SetActiveScalars(scals.GetName())
-        rng = scals.GetRange()
-        self._mapper.SetScalarRange(rng[0], rng[1])
-        self._mapper.ScalarVisibilityOn()
-        return self
 
 
     def smoothMLS1D(self, f=0.2, radius=None):

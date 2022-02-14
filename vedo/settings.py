@@ -132,6 +132,10 @@ _setts.screeshotLargeImage = False
 # Allow to continously interact with scene during interactor.Start() execution
 _setts.allowInteraction = False
 
+# BUG in vtk9.0 (if true close works but sometimes vtk crashes, if false doesnt crash but cannot close)
+# see plotter.py line 555
+_setts.hackCallScreenSize = True
+
 # Set up default mouse and keyboard functionalities
 _setts.enableDefaultMouseCallbacks = True
 _setts.enableDefaultKeyboardCallbacks = True

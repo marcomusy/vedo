@@ -553,14 +553,16 @@ class Plotter:
 
             ### BUG in GetScreenSize in VTK 9.1.0
             ### https://discourse.vtk.org/t/vtk9-1-0-problems/7094/3
-            vtkvers = vedo.vtk_version
-            if not self.offscreen and (vtkvers[0]<9 or vtkvers[0]==9 and vtkvers[1]==0):
-                 aus = self.window.GetScreenSize()
-                 if aus and len(aus) == 2 and aus[0] > 100 and aus[1] > 100:  # seems ok
-                     if aus[0] / aus[1] > 2:  # looks like there are 2 or more screens
-                         screensize = (int(aus[0] / 2), aus[1])
-                     else:
-                         screensize = aus
+            if settings.hackCallScreenSize: # True
+
+                vtkvers = vedo.vtk_version
+                if not self.offscreen and (vtkvers[0]<9 or vtkvers[0]==9 and vtkvers[1]==0):
+                     aus = self.window.GetScreenSize()
+                     if aus and len(aus) == 2 and aus[0] > 100 and aus[1] > 100:  # seems ok
+                         if aus[0] / aus[1] > 2:  # looks like there are 2 or more screens
+                             screensize = (int(aus[0] / 2), aus[1])
+                         else:
+                             screensize = aus
 
         x, y = screensize
 
