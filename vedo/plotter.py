@@ -3015,7 +3015,7 @@ class Plotter:
             return
 
         elif key == "F1":
-            vedo.logger.info("\nExecution aborted. Exiting python kernel now.")
+            vedo.logger.info("Execution aborted. Exiting python kernel now.")
             iren.ExitCallback()
             sys.exit(0)
 

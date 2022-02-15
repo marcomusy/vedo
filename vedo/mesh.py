@@ -1005,42 +1005,6 @@ class Mesh(Points):
             vedo.logger.debug("input in triangulate() seems to be void")
             return self
 
-    @deprecated(reason=vedo.colors.red+"Please use distanceTo()"+vedo.colors.reset)
-    def distanceToMesh(self, mesh, signed=False, negate=False):
-        return self.distanceTo(mesh, signed=signed, negate=negate)
-
-    def distanceTo(self, mesh, signed=False, negate=False, name="Distance"):
-        '''
-        Computes the (signed) distance from one mesh to another.
-
-        |distance2mesh| |distance2mesh.py|_
-        '''
-        poly1 = self.polydata()
-        poly2 = mesh.polydata()
-
-        df = vtk.vtkDistancePolyDataFilter()
-        df.ComputeSecondDistanceOff()
-        df.SetInputData(0, poly1)
-        df.SetInputData(1, poly2)
-        if signed:
-            df.SignedDistanceOn()
-            if negate:
-                df.NegateDistanceOn()
-        else:
-            df.SignedDistanceOff()
-        if negate:
-            df.NegateDistanceOn()
-        df.Update()
-
-        scals = df.GetOutput().GetPointData().GetScalars()
-        scals.SetName(name)
-        self._data.GetPointData().AddArray(scals)
-        self._data.GetPointData().SetActiveScalars(scals.GetName())
-        rng = scals.GetRange()
-        self._mapper.SetScalarRange(rng[0], rng[1])
-        self._mapper.ScalarVisibilityOn()
-        return self
-
     def addCellArea(self, name="Area"):
         """Add to this mesh a cell data array containing the areas of the polygonal faces"""
         csf = vtk.vtkCellSizeFilter()

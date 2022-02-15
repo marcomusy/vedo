@@ -859,8 +859,11 @@ class Points(vtk.vtkFollower, BaseActor):
 
         self.property.SetRepresentationToPoints()
         self.property.SetPointSize(r)
-        # self.lighting(ambient=0.7, diffuse=0.3)
         self.property.LightingOff()
+
+        if isinstance(inputobj, vedo.BaseActor):
+            inputobj = inputobj.points()  # numpy
+
 
         if isinstance(inputobj, vtk.vtkActor):
             polyCopy = vtk.vtkPolyData()
@@ -1017,15 +1020,16 @@ class Points(vtk.vtkFollower, BaseActor):
             self._data = self._mapper.GetInput()
             return self._data
 
+
         if transformed:
-            if self.GetIsIdentity() or self._data.GetNumberOfPoints()==0:
+            #if self.GetIsIdentity() or self._data.GetNumberOfPoints()==0: # commmentd out on 15th feb 2020
+            if self._data.GetNumberOfPoints() == 0:
                 # no need to do much
                 return self._data
             else:
                 # otherwise make a copy that corresponds to
                 # the actual position in space of the mesh
                 M = self.GetMatrix()
-                # print(M, self.GetIsIdentity() )
                 transform = vtk.vtkTransform()
                 transform.SetMatrix(M)
                 tp = vtk.vtkTransformPolyDataFilter()
@@ -1035,6 +1039,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 return tp.GetOutput()
         else:
             return self._data
+
 
     # def shader(stype="vertex", block="Normal", dcode="", icode="", before=True, repeat=False):
     #     """todo"""
@@ -1336,12 +1341,12 @@ class Points(vtk.vtkFollower, BaseActor):
         rp = vtk.vtkRemovePolyData()
 
         if isinstance(points, Points):
-            rp.SetInputData(self.polydata(False))
-            poly = points.polydata(False)
+            rp.SetInputData(self._data)
+            poly = points._data
             rp.RemoveInputData(poly)
             rp.Update()
             out = rp.GetOutput()
-            return self._update(out)
+            return self._update(out) ####
 
         if points:
             idarr = utils.numpy2vtk(points, dtype='id')
@@ -1356,7 +1361,7 @@ class Points(vtk.vtkFollower, BaseActor):
         return self._update(out)
 
 
-    def computeNormalsWithPCA(self, n=20, orientationPoint=None, flip=False):
+    def computeNormalsWithPCA(self, n=20, orientationPoint=None, invert=False):
         """
         Generate point normals using PCA (principal component analysis).
         Basically this estimates a local tangent plane around each sample point p
@@ -1369,7 +1374,7 @@ class Points(vtk.vtkFollower, BaseActor):
             the normals all point towards a specified point. If None, perform a traversal
             of the point cloud and flip neighboring normals so that they are mutually consistent.
 
-        :param bool flip: flip all normals
+        :param bool invert: flip all normals
         """
         poly = self.polydata()
         pcan = vtk.vtkPCANormalEstimation()
@@ -1382,74 +1387,84 @@ class Points(vtk.vtkFollower, BaseActor):
         else:
             pcan.SetNormalOrientationToGraphTraversal()
 
-        if flip:
+        if invert:
             pcan.FlipNormalsOn()
-
         pcan.Update()
-        out = pcan.GetOutput()
-        varr = out.GetPointData().GetNormals()
+
+        varr = pcan.GetOutput().GetPointData().GetNormals()
         varr.SetName("Normals")
-        pdt = self.polydata(False).GetPointData()
-        pdt.SetNormals(varr)
-        pdt.Modified()
+        self._data.GetPointData().SetNormals(varr)
+        self._data.GetPointData().Modified()
         return self
 
 
-    def distanceTo(self, pcloud):
-        """Computes the distance from one point cloud to another."""
-        if not pcloud.point_locator:
-            pcloud.point_locator = vtk.vtkStaticPointLocator()
-            pcloud.point_locator.SetDataSet(pcloud.polydata())
-            pcloud.point_locator.BuildLocator()
+    def distanceTo(self, pcloud, signed=False, invert=False, name="Distance"):
+        """
+        Computes the distance from one point cloud or mesh to another point cloud or mesh.
+        This new `pointdata` array is saved with default name "Distance".
 
-        ids = []
-        ps1 = self.points()
-        ps2 = pcloud.points()
-        for p in ps1:
-            pid = pcloud.point_locator.FindClosestPoint(p)
-            ids.append(pid)
-
-        deltas = ps2[ids] - ps1
-        d = np.linalg.norm(deltas, axis=1).astype(np.float32)
-
-        poly1 = self.polydata()
-        scals = utils.numpy2vtk(d, name="Distance")
-        poly1.GetPointData().AddArray(scals)
-
-        poly1.GetPointData().SetActiveScalars(scals.GetName())
-        rng = scals.GetRange()
-        self._mapper.SetScalarRange(rng[0], rng[1])
-        self._mapper.ScalarVisibilityOn()
-        return self
-
-    def distanceToMesh(self, mesh, signed=False, negate=False):
-        '''
-        Computes the (signed) distance from one mesh or pointcloud to a Mesh.
+        Keywords ``signed`` and ``invert`` are used to compute signed distance,
+        but the mesh in that case must have polygonal faces (not a simple point cloud),
+        and normals must also be computed.
 
         |distance2mesh| |distance2mesh.py|_
-        '''
-        poly1 = self.polydata()
-        poly2 = mesh.polydata()
-        df = vtk.vtkDistancePolyDataFilter()
-        df.ComputeSecondDistanceOff()
-        df.SetInputData(0, poly1)
-        df.SetInputData(1, poly2)
-        if signed:
-            df.SignedDistanceOn()
-        else:
-            df.SignedDistanceOff()
-        if negate:
-            df.NegateDistanceOn()
-        df.Update()
 
-        scals = df.GetOutput().GetPointData().GetScalars()
-        poly1.GetPointData().AddArray(scals)
 
-        poly1.GetPointData().SetActiveScalars(scals.GetName())
+        Example:
+            .. code-block:: python
+
+            from vedo import *
+            b1 = Sphere().pos(10,0,0)
+            b2 = Sphere().pos(15,0,0)
+            b1.distanceToMesh(b2, signed=True, invert=False).addScalarBar()
+            print(b1.pointdata["Distance"])
+            show(b1, b2, axes=1).close()
+        """
+        if pcloud._data.GetNumberOfPolys():
+
+            poly1 = self.polydata()
+            poly2 = pcloud.polydata()
+            df = vtk.vtkDistancePolyDataFilter()
+            df.ComputeSecondDistanceOff()
+            df.SetInputData(0, poly1)
+            df.SetInputData(1, poly2)
+            df.SetSignedDistance(signed)
+            df.SetNegateDistance(invert)
+            df.Update()
+            scals = df.GetOutput().GetPointData().GetScalars()
+
+        else: # has no polygons and vtkDistancePolyDataFilter wants them (dont know why)
+
+            if signed:
+                vedo.logger.warning("distanceTo() called with signed=True but input object has no polygons")
+
+            if not pcloud.point_locator:
+                pcloud.point_locator = vtk.vtkStaticPointLocator()
+                pcloud.point_locator.SetDataSet(pcloud.polydata())
+                pcloud.point_locator.BuildLocator()
+
+            ids = []
+            ps1 = self.points()
+            ps2 = pcloud.points()
+            for p in ps1:
+                pid = pcloud.point_locator.FindClosestPoint(p)
+                ids.append(pid)
+
+            deltas = ps2[ids] - ps1
+            d = np.linalg.norm(deltas, axis=1).astype(np.float32)
+            scals = utils.numpy2vtk(d)
+
+        scals.SetName(name)
+        self._data.GetPointData().AddArray(scals) # must be self._data !
+        self._data.GetPointData().SetActiveScalars(scals.GetName())
         rng = scals.GetRange()
         self._mapper.SetScalarRange(rng[0], rng[1])
         self._mapper.ScalarVisibilityOn()
-        return self._update(poly1)
+        return self
+
+    @deprecated(reason=vedo.colors.red+"Please use distanceTo()"+vedo.colors.reset)
+    def distanceToMesh(self, pcloud, signed=False, invert=False):
+        return self.distanceTo(pcloud, signed, invert)
 
 
     def alpha(self, opacity=None):
@@ -1543,7 +1558,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
             |recosurface| |recosurface.py|_
         """
-        poly = self.polydata(False)
+        poly = self._data
         cleanPolyData = vtk.vtkCleanPolyData()
         cleanPolyData.PointMergingOn()
         cleanPolyData.ConvertLinesToPointsOn()
@@ -1628,7 +1643,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 from vedo import Paraboloid
                 Paraboloid().lw(0.1).quantize(0.1).show()
         """
-        poly = self.polydata(False)
+        poly = self._data
         qp = vtk.vtkQuantizePolyDataPoints()
         qp.SetInputData(poly)
         qp.SetQFactor(binSize)
@@ -1799,7 +1814,8 @@ class Points(vtk.vtkFollower, BaseActor):
                 tx.Update()
                 tx_poly = tx.GetOutput()
             else:
-                tx_poly = vedo.shapes.Text3D(txt_lab, font=font, justify=justify).polydata(False)
+                tx_poly = vedo.shapes.Text3D(txt_lab, font=font, justify=justify)
+                tx_poly = tx_poly._data
 
             if tx_poly.GetNumberOfPoints() == 0:
                 continue #######################
@@ -2440,7 +2456,7 @@ class Points(vtk.vtkFollower, BaseActor):
                      arrayName="",
                      n=256,
         ):
-        poly = self.polydata(False)
+        poly = self._data
         data = poly.GetPointData()
 
         if input_array is None:             # if None try to fetch the active scalars
@@ -2559,7 +2575,7 @@ class Points(vtk.vtkFollower, BaseActor):
                    arrayName="CellScalars",
                    n=256,
         ):
-        poly = self.polydata(False)
+        poly = self._data
         data = poly.GetCellData()
 
         if input_array is None:             # if None try to fetch the active scalars
