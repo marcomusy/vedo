@@ -835,8 +835,6 @@ class Points(vtk.vtkFollower, BaseActor):
         BaseActor.__init__(self)
 
         self._data = None
-        self.point_locator = None
-        self.cell_locator = None
 
         self._mapper = vtk.vtkPolyDataMapper()
         self.SetMapper(self._mapper)
@@ -1142,6 +1140,13 @@ class Points(vtk.vtkFollower, BaseActor):
                             None, None, self.trail.GetProperty().GetLineWidth())
         if len(self.shadows) > 0:
             cloned.addShadows()
+
+        cloned.point_locator = self.point_locator
+        cloned.cell_locator = self.cell_locator
+        if transformed:
+            cloned.point_locator = None
+            cloned.cell_locator = None
+
         return cloned
 
 
@@ -1439,7 +1444,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 vedo.logger.warning("distanceTo() called with signed=True but input object has no polygons")
 
             if not pcloud.point_locator:
-                pcloud.point_locator = vtk.vtkStaticPointLocator()
+                pcloud.point_locator = vtk.vtkPointLocator()
                 pcloud.point_locator.SetDataSet(pcloud.polydata())
                 pcloud.point_locator.BuildLocator()
 
@@ -2226,6 +2231,8 @@ class Points(vtk.vtkFollower, BaseActor):
             self.applyTransform(icp)
             self.transform = icp
 
+        self.point_locator = None
+        self.cell_locator = None
         return self
 
 
@@ -2262,6 +2269,9 @@ class Points(vtk.vtkFollower, BaseActor):
         lmt.Update()
         self.applyTransform(lmt)
         self.transform = lmt
+
+        self.point_locator = None
+        self.cell_locator = None
         return self
 
 
@@ -2278,6 +2288,10 @@ class Points(vtk.vtkFollower, BaseActor):
             It the input transformation has no internal defined matrix (ie. non linear)
             then reset will be assumed as True.
         """
+
+        self.point_locator = None
+        self.cell_locator = None
+
         if isinstance(transformation, vtk.vtkMatrix4x4):
             tr = vtk.vtkTransform()
             tr.SetMatrix(transformation)
@@ -2324,6 +2338,8 @@ class Points(vtk.vtkFollower, BaseActor):
         tf.SetInputData(self._data)
         tf.SetTransform(t)
         tf.Update()
+        self.point_locator = None
+        self.cell_locator = None
         return self._update(tf.GetOutput())
 
 
@@ -2364,6 +2380,9 @@ class Points(vtk.vtkFollower, BaseActor):
             rs.ReverseNormalsOff()
             rs.Update()
             outpoly = rs.GetOutput()
+
+        self.point_locator = None
+        self.cell_locator = None
         return self._update(outpoly)
 
 
@@ -2738,7 +2757,7 @@ class Points(vtk.vtkFollower, BaseActor):
             vedo.logger.error("in interpolateDataFrom(), on must be on points or cells")
             raise RuntimeError()
 
-        locator = vtk.vtkStaticPointLocator()
+        locator = vtk.vtkPointLocator()
         locator.SetDataSet(points)
         locator.BuildLocator()
 
@@ -2851,14 +2870,17 @@ class Points(vtk.vtkFollower, BaseActor):
             ``obj.point_locator=None`` or
             ``obj.cell_locator=None``.
         """
+        #NB: every time the mesh moves or is warped the locateors are set to None
         if (N > 1 or radius) or (N==1 and returnPointId):
+
             poly = None
             if not self.point_locator:
                 poly = self.polydata()
-                self.point_locator = vtk.vtkStaticPointLocator()
+                self.point_locator = vtk.vtkPointLocator()
                 self.point_locator.SetDataSet(poly)
                 self.point_locator.BuildLocator()
 
+            ##########
             if radius:
                 vtklist = vtk.vtkIdList()
                 self.point_locator.FindPointsWithinRadius(radius, pt, vtklist)
@@ -2891,12 +2913,19 @@ class Points(vtk.vtkFollower, BaseActor):
 
             if not self.cell_locator:
                 poly = self.polydata()
-                try:
-                    self.cell_locator = vtk.vtkStaticCellLocator() # vtk7 doesn't have it
-                except:
-                    self.cell_locator = vtk.vtkCellLocator() # bugged if only 1 cell exists ? (#558)
+
+                # As per Miquel example with limbs the vtkStaticCellLocator doesnt work !!
+                # https://discourse.vtk.org/t/vtkstaticcelllocator-problem-vtk9-0-3/7854/4
+                self.cell_locator = vtk.vtkCellLocator()
+
+#                try:
+#                    self.cell_locator = vtk.vtkStaticCellLocator() # vtk7 doesn't have it
+#                except:
+#                    self.cell_locator = vtk.vtkCellLocator() # bugged if only 1 cell exists ? (#558)
+
                 self.cell_locator.SetDataSet(poly)
                 self.cell_locator.BuildLocator()
+
             trgp = [0, 0, 0]
             cid = vtk.mutable(0)
             dist2 = vtk.mutable(0)
@@ -2907,6 +2936,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 return int(cid)
             else:
                 return np.array(trgp)
+
 
     def hausdorffDistance(self, points):
         """Compute the Hausdorff distance of two point sets."""
@@ -3184,6 +3214,8 @@ class Points(vtk.vtkFollower, BaseActor):
         warpTo.SetScaleFactor(factor)
         warpTo.SetAbsolute(absolute)
         warpTo.Update()
+        self.point_locator = None
+        self.cell_locator = None
         return self._update(warpTo.GetOutput())
 
     @deprecated(reason=vedo.colors.red+"Please use mymesh.points(my_new_pts)"+vedo.colors.reset)
@@ -3208,6 +3240,8 @@ class Points(vtk.vtkFollower, BaseActor):
         wf.SetInputArrayToProcess(0, 0, 0, asso, vname)
         wf.SetScaleFactor(factor)
         wf.Update()
+        self.point_locator = None
+        self.cell_locator = None
         return self._update(wf.GetOutput())
 
     @deprecated(reason=vedo.colors.red+"Please use warp() with same syntax"+vedo.colors.reset)
@@ -3818,7 +3852,8 @@ class Points(vtk.vtkFollower, BaseActor):
             and the size of the output. (The names of these point data arrays are:
             "Gradient", "Gradient Magnitude", and "Classification".)
 
-        :param vtkStaticPointLocator locator: can be assigned from a previous call for speed.
+        :param vtkPointLocator locator: can be assigned from a previous call for speed.
+            (access it via `object.point_locator`).
 
         See example script:
 
@@ -3991,9 +4026,10 @@ class Points(vtk.vtkFollower, BaseActor):
                          (bounds[3]-bounds[2])/dims[1],
                          (bounds[5]-bounds[4])/dims[2])
 
-        self.point_locator = vtk.vtkStaticPointLocator()
-        self.point_locator.SetDataSet(poly)
-        self.point_locator.BuildLocator()
+        if not self.point_locator:
+            self.point_locator = vtk.vtkPointLocator()
+            self.point_locator.SetDataSet(poly)
+            self.point_locator.BuildLocator()
 
         if kernel == 'shepard':
             kern = vtk.vtkShepardKernel()

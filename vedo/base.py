@@ -144,6 +144,9 @@ class Base3DProp(object):
         self.transform = None
         self._set2actcam = False # used by mesh.followCamera()
 
+        self.point_locator = None
+        self.cell_locator = None
+
 
     def address(self):
         """
@@ -206,6 +209,9 @@ class Base3DProp(object):
             z=0
         self.SetPosition(x, y, z)
 
+        self.point_locator = None
+        self.cell_locator = None
+
         if self.trail:
             self.updateTrail()
         if len(self.shadows) > 0:
@@ -224,6 +230,9 @@ class Base3DProp(object):
         else:
             self.SetPosition(p + [dx,dy,dz])
 
+        self.point_locator = None
+        self.cell_locator = None
+
         if self.trail:
             self.updateTrail()
         if len(self.shadows) > 0:
@@ -239,7 +248,7 @@ class Base3DProp(object):
         p = self.GetPosition()
         if position is None:
             return p[0]
-        self.SetPosition(position, p[1], p[2])
+        self.pos(position, p[1], p[2])
         if self.trail:
             self.updateTrail()
         if len(self.shadows) > 0:
@@ -251,7 +260,7 @@ class Base3DProp(object):
         p = self.GetPosition()
         if position is None:
             return p[1]
-        self.SetPosition(p[0], position, p[2])
+        self.pos(p[0], position, p[2])
         if self.trail:
             self.updateTrail()
         if len(self.shadows) > 0:
@@ -263,7 +272,7 @@ class Base3DProp(object):
         p = self.GetPosition()
         if position is None:
             return p[2]
-        self.SetPosition(p[0], p[1], position)
+        self.pos(p[0], p[1], position)
         if self.trail:
             self.updateTrail()
         if len(self.shadows) > 0:
@@ -307,7 +316,8 @@ class Base3DProp(object):
             angle *= 180.0 / np.pi
         # this vtk method only rotates in the origin of the object:
         self.RotateWXYZ(angle, axis[0], axis[1], axis[2])
-        self.SetPosition(rv)
+        self.pos(rv)
+
         if self.trail:
             self.updateTrail()
         if len(self.shadows) > 0:
@@ -335,6 +345,9 @@ class Base3DProp(object):
                 self.addShadows()
         else:
             self.RotateX(angle)
+
+        self.point_locator = None
+        self.cell_locator = None
         return self
 
     def rotateY(self, angle, rad=False, locally=False):
@@ -358,6 +371,9 @@ class Base3DProp(object):
                 self.addShadows()
         else:
             self.RotateY(angle)
+
+        self.point_locator = None
+        self.cell_locator = None
         return self
 
     def rotateZ(self, angle, rad=False, locally=False):
@@ -381,6 +397,9 @@ class Base3DProp(object):
                 self.addShadows()
         else:
             self.RotateZ(angle)
+
+        self.point_locator = None
+        self.cell_locator = None
         return self
 
 
@@ -426,6 +445,10 @@ class Base3DProp(object):
         T.RotateWXYZ(np.rad2deg(angle), crossvec)
         T.Translate(pos)
         self.SetUserTransform(T)
+
+        self.point_locator = None
+        self.cell_locator = None
+
         if self.trail:
             self.updateTrail()
         if len(self.shadows) > 0:
@@ -445,6 +468,9 @@ class Base3DProp(object):
             self.SetScale(s)
         else:
             self.SetScale(np.multiply(self.GetScale(), s))
+
+        self.point_locator = None
+        self.cell_locator = None
         return self
 
 
@@ -499,6 +525,9 @@ class Base3DProp(object):
         else:
             self.SetUserTransform(T)
         self.transform = T
+
+        self.point_locator = None
+        self.cell_locator = None
         return self
 
     def alignToBoundingBox(self, msh, rigid=False):
@@ -553,6 +582,9 @@ class Base3DProp(object):
         lmt.Update()
         self.applyTransform(lmt)
         self.transform = lmt
+
+        self.point_locator = None
+        self.cell_locator = None
         return self
 
 
@@ -805,6 +837,8 @@ class BaseActor(Base3DProp):
             vpts.Modified()
             # reset mesh to identity matrix position/rotation:
             self.PokeMatrix(vtk.vtkMatrix4x4())
+            self.point_locator = None
+            self.cell_locator = None
             return self
 
     def cellCenters(self):

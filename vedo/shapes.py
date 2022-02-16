@@ -1576,7 +1576,7 @@ class Arrow(Mesh):
                  c="r4",
                  alpha=1,
                  res=12
-                 ):
+        ):
         # in case user is passing meshs
         if isinstance(startPoint, vtk.vtkActor): startPoint = startPoint.GetPosition()
         if isinstance(endPoint,   vtk.vtkActor): endPoint   = endPoint.GetPosition()

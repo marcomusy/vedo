@@ -657,6 +657,7 @@ def _plotxy(
     pad=0.05,
     axes={},
 ):
+
     line=False
     if lw>0:
         line=True
@@ -844,6 +845,7 @@ def _plotxy(
         tit.pickable(False).z(3 * offs)
         acts.append(tit)
 
+
     if axes == 1 or axes == True:
         axes = {}
     if isinstance(axes, dict):  #####################
@@ -856,8 +858,8 @@ def _plotxy(
             ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
             # print(i, tp[i], ynew, ts[i])
             labs.append([ynew, ts[i]])
-        if "xtitle" not in axes: axes["xtitle"] = xtitle
-        if "ytitle" not in axes: axes["ytitle"] = ytitle
+        axes["xtitle"] = xtitle
+        axes["ytitle"] = ytitle
         axes["yValuesAndLabels"] = labs
         axes["xrange"] = (x0lim, x1lim)
         axes["yrange"] = (y0lim, y1lim)
@@ -1474,8 +1476,8 @@ def _barplot(
         for i in range(len(centers)):
             _xlabs.append([centers[i], str(xlabs[i])])
         axes["xValuesAndLabels"] = _xlabs
-        if "xtitle" not in axes: axes["xtitle"] = xtitle
-        if "ytitle" not in axes: axes["ytitle"] = ytitle
+        axes["xtitle"] = xtitle
+        axes["ytitle"] = ytitle
         axes["xrange"] = (x0lim, x1lim)
         axes["yrange"] = (y0lim, y1lim)
         axes["zrange"] = (0, 0)
@@ -1643,7 +1645,7 @@ def _histogram1D(
                 col = c
             r.color(col).alpha(alpha).lighting('off').z(offs)
             rs.append(r)
-#            print('rectangles', r.z())
+            #print('rectangles', r.z())
 
     if outline:  #####################
         lns = [[myedges[0], 0, 0]]
@@ -1743,8 +1745,8 @@ def _histogram1D(
         for i in range(1, len(tp) - 1):
             ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
             labs.append([ynew, ts[i]])
-        if "xtitle" not in axes:  axes["xtitle"] = xtitle
-        if "ytitle" not in axes:  axes["ytitle"] = ytitle
+        axes["xtitle"] = xtitle
+        axes["ytitle"] = ytitle
         axes["yValuesAndLabels"] = labs
         axes["xrange"] = (x0lim, x1lim)
         axes["yrange"] = (y0lim, y1lim)
@@ -1890,9 +1892,9 @@ def _histogram2D(
         for i in range(1, len(tp) - 1):
             ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
             labs.append([ynew, ts[i]])
-        if "xtitle" not in axes:  axes["xtitle"] = xtitle
-        if "ytitle" not in axes:  axes["ytitle"] = ytitle
-        if "ztitle" not in axes:  axes["ztitle"] = ztitle
+        axes["xtitle"] = xtitle
+        axes["ytitle"] = ytitle
+        axes["ztitle"] = ztitle
         axes["yValuesAndLabels"] = labs
         axes["xrange"] = (x0lim, x1lim)
         axes["yrange"] = (y0lim, y1lim)

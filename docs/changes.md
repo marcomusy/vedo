@@ -8,6 +8,9 @@
 
 - fixed bug to `distanceTo()` method
 
+- fixed quite problematic bug in `closestPoint()`
+(https://discourse.vtk.org/t/vtkstaticcelllocator-problem-vtk9-0-3/7854/4)
+
 
 ---
 ### `applications.py`

@@ -1791,7 +1791,7 @@ class Video:
         self.frames = []
         self.tmp_dir = TemporaryDirectory()
         self.get_filename = lambda x: os.path.join(self.tmp_dir.name, x)
-        colors.printc("\video Video", self.name, "is open...", c="m")
+        colors.printc("\video Video", self.name, "is open... ", c="m", end='')
 
     def addFrame(self):
         """Add frame to current video."""
@@ -1897,7 +1897,7 @@ class Video:
             if out:
                 vedo.logger.error(f"backend {self.backend} returning error")
             else:
-                vedo.logger.info(f"video saved as {self.name}")
+                colors.printc(f" \save video saved as {self.name}", c="m")
 
         ########################################
         elif 'cv' in self.backend:

@@ -704,6 +704,8 @@ class Mesh(Points):
         shrink.SetInputData(self._data)
         shrink.SetShrinkFactor(fraction)
         shrink.Update()
+        self.point_locator = None
+        self.cell_locator = None
         return self._update(shrink.GetOutput())
 
 
