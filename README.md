@@ -217,7 +217,8 @@ Development, 5 April 2018, [doi: 10.1242/dev.154856](http://dev.biologists.org/c
 Front. Netw. Physiol. 1:802881, [doi: 10.3389/fnetp.2021.802881](https://www.frontiersin.org/articles/10.3389/fnetp.2021.802881/full).
 - J. Klatzow, G. Dalmasso, N. Martínez-Abadías, J. Sharpe, V. Uhlmann,
                 *"µMatch: 3D shape correspondence for microscopy data"*, in preparation.
-- G. Dalmasso *et al.*, *"4D reconstruction of developmental trajectories using spherical harmonics"*, bioRxiv 2021.12.16.472948: [](https://doi.org/10.1101/2021.12.16.472948).
+- G. Dalmasso *et al.*, *"4D reconstruction of developmental trajectories using spherical harmonics"*,
+bioRxiv 2021.12.16.472948: [doi](https://doi.org/10.1101/2021.12.16.472948).
 
 **Have you found this software useful for your research? Star ✨ the project and cite it as:**
 

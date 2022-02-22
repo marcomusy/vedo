@@ -212,16 +212,21 @@ assert np.allclose(ss.zbounds(), [-3,3], atol=0.01)
 
 
 ###################################### averageSize
-print('averageSize',sphere.averageSize())
-assert 0.9 < sphere.averageSize() < 1.0
+print('averageSize', Sphere().scale(10).pos(1,3,7).averageSize())
+assert 9.9 < Sphere().scale(10).pos(1,3,7).averageSize() < 10.1
+
 print('diagonalSize',sphere.diagonalSize())
 assert 3.3 < sphere.diagonalSize() < 3.5
+
 print('maxBoundSize',sphere.maxBoundSize())
 assert 1.9 < sphere.maxBoundSize() < 2.1
+
 print('centerOfMass',sphere.centerOfMass())
 assert np.allclose(sphere.centerOfMass(), [0,0,0])
+
 print('volume',sphere.volume())
 assert 4.1 < sphere.volume() < 4.2
+
 print('area',sphere.area())
 assert 12.5 < sphere.area() < 12.6
 
