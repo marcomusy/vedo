@@ -381,7 +381,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
 
         from vedo.io import screenshot
         settings.screeshotLargeImage = True
-        nn = screenshot(returnNumpy=True, scale=settings.screeshotScale+2)
+        nn = screenshot(asarray=True, scale=settings.screeshotScale+2)
         pil_img = PIL.Image.fromarray(nn)
         vedo.notebook_plotter = IPython.display.display(pil_img)
 

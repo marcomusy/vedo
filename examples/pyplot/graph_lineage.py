@@ -1,11 +1,8 @@
 """Generate a lineage graph
-of cell divisions
-"""
+of cell divisions"""
 # N.B.: no positions are specified here, only connectivity!
-from vedo import show, settings
+from vedo import show
 from vedo.pyplot import DirectedGraph
-
-settings.allowSubScripts=0
 
 # Layouts: [2d, fast2d, clustering2d, circular, circular3d, cone, force, tree]
 #g = Graph(layout='2d', zrange=7)

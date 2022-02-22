@@ -848,15 +848,14 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         narray = np.flip(narray, axis=0).astype(np.uint8)
         return narray
 
-    def box(self, xspan, yspan, c='green5', alpha=1):
-        """Draw a box on top of current image. Units are pixels.
-
+    def rectangle(self, xspan, yspan, c='green5', alpha=1):
+        """Draw a rectangle box on top of current image. Units are pixels.
 
         .. code-block:: python
 
                 import vedo
                 pic = vedo.Picture("dog.jpg")
-                pic.box([100,300], [100,200], c='green4', alpha=0.7)
+                pic.rectangle([100,300], [100,200], c='green4', alpha=0.7)
                 pic.line([100,100],[400,500], lw=2, alpha=1)
                 pic.triangle([250,300], [100,300], [200,400])
                 vedo.show(pic, axes=1)

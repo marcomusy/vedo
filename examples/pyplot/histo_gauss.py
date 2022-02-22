@@ -1,6 +1,7 @@
 """Superimpose histograms and curves"""
 import numpy as np
-from vedo.pyplot import histogram, plot, settings
+from vedo.pyplot import histogram, plot
+from vedo import settings
 
 settings.defaultFont = "Bongas"
 

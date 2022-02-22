@@ -1631,12 +1631,12 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
 
 
 ##########################################################
-def screenshot(filename="screenshot.png", scale=None, returnNumpy=False):
+def screenshot(filename="screenshot.png", scale=None, asarray=False):
     """
     Save a screenshot of the current rendering window.
 
     :param int scale: set image magnification
-    :param bool returnNumpy: return a numpy array of the image
+    :param bool asarray: return a numpy array of the image
     """
     if not vedo.plotter_instance or not vedo.plotter_instance.window:
         vedo.logger.error("in screenshot(), rendering window is not present, skip.")
@@ -1690,7 +1690,7 @@ def screenshot(filename="screenshot.png", scale=None, returnNumpy=False):
         w2if.ReadFrontBufferOff()  # read from the back buffer
     w2if.Update()
 
-    if returnNumpy:
+    if asarray:
         w2ifout = w2if.GetOutput()
         npdata = utils.vtk2numpy(w2ifout.GetPointData().GetArray("ImageScalars"))
         npdata = npdata[:,[0,1,2]]

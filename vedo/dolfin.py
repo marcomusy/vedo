@@ -422,6 +422,7 @@ def plot(*inputobj, **options):
     exterior = options.pop("exterior", False)
     fast = options.pop("fast", False)
     returnActorsNoShow = options.pop("returnActorsNoShow", False)
+    at = options.pop("at", 0)
 
     # refresh axes titles for axes type = 8 (vtkCubeAxesActor)
     xtitle = options.pop("xtitle", 'x')
@@ -429,26 +430,14 @@ def plot(*inputobj, **options):
     ztitle = options.pop("ztitle", 'z')
     if vedo.plotter_instance:
         if xtitle!='x':
-            if 'at' in options.keys():
-                at = options['at']
-            else:
-                at = 0
             aet = vedo.plotter_instance.axes_instances
             if len(aet)>at and isinstance(aet[at], vtk.vtkCubeAxesActor):
                 aet[at].SetXTitle(xtitle)
         if ytitle!='y':
-            if 'at' in options.keys():
-                at = options['at']
-            else:
-                at = 0
             aet = vedo.plotter_instance.axes_instances
             if len(aet)>at and isinstance(aet[at], vtk.vtkCubeAxesActor):
                 aet[at].SetYTitle(ytitle)
         if ztitle!='z':
-            if 'at' in options.keys():
-                at = options['at']
-            else:
-                at = 0
             aet = vedo.plotter_instance.axes_instances
             if len(aet)>at and isinstance(aet[at], vtk.vtkCubeAxesActor):
                 aet[at].SetZTitle(ztitle)

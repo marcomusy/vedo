@@ -518,20 +518,20 @@ def draw_scene(args):
             printc("Warning: option '-n' allows a maximum of 200 files", c=1)
             printc("         you are trying to load ", nfiles, " files.\n", c=1)
             N = 200
-        vp = Plotter(size=wsize, N=N, bg=args.background, bg2=args.background_grad)
+        plt = Plotter(size=wsize, N=N, bg=args.background, bg2=args.background_grad)
         settings.immediateRendering=False
-        vp.axes = args.axes_type
+        plt.axes = args.axes_type
         for i in range(N):
-            vp.addHoverLegend(at=i)
+            plt.addHoverLegend(at=i)
         if args.axes_type == 4 or args.axes_type == 5:
-            vp.axes = 0
+            plt.axes = 0
     else:
         N = nfiles
-        vp = Plotter(size=wsize, bg=args.background, bg2=args.background_grad)
-        vp.axes = args.axes_type
-        vp.addHoverLegend()
+        plt = Plotter(size=wsize, bg=args.background, bg2=args.background_grad)
+        plt.axes = args.axes_type
+        plt.addHoverLegend()
 
-    vp.sharecam = not args.no_camera_share
+    plt.sharecam = not args.no_camera_share
 
     wire = False
     if args.wireframe:
@@ -553,11 +553,11 @@ def draw_scene(args):
         vol.mode(int(args.mode)).color(args.cmap).jittering(True)
         # if args.lighting !='default':
         vol.lighting(args.lighting).jittering(True)
-        vp = applications.RayCastPlotter(vol)
-        vp.show(viewup="z", interactive=True)
-        vp.sliders[0][0].SetEnabled(False)
-        vp.sliders[1][0].SetEnabled(False)
-        vp.sliders[2][0].SetEnabled(False)
+        plt = applications.RayCastPlotter(vol)
+        plt.show(viewup="z", interactive=True)
+        plt.sliders[0][0].SetEnabled(False)
+        plt.sliders[1][0].SetEnabled(False)
+        plt.sliders[2][0].SetEnabled(False)
         return
 
     ##########################################################
@@ -589,7 +589,6 @@ def draw_scene(args):
                      clamp=True,
                      size=(1000,800),
         )
-        plt.interactive()
         return
 
     ########################################################################
@@ -604,11 +603,11 @@ def draw_scene(args):
             vedo.logger.critical("In edit mode, input file must be a point cloud or polygonal mesh.")
             return
 
-        vp = applications.FreeHandCutPlotter(m, splined=True)
-        vp.addHoverLegend()
+        plt = applications.FreeHandCutPlotter(m, splined=True)
+        plt.addHoverLegend()
         if not args.background_grad:
             args.background_grad = None
-        vp.start(axes=1, bg=args.background, bg2=args.background_grad)
+        plt.start(axes=1, bg=args.background, bg2=args.background_grad)
 
     ########################################################################
     elif args.slicer2d:
@@ -642,7 +641,7 @@ def draw_scene(args):
         vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
         if not args.color:
             args.color = 'gold'
-        vp = applications.IsosurfaceBrowser(vol,
+        plt = applications.IsosurfaceBrowser(vol,
                                             lego=args.lego,
                                             c=args.color,
                                             cmap=args.cmap,
@@ -650,7 +649,7 @@ def draw_scene(args):
                                             precompute=True,
                                             progress=True,
         )
-        vp.show(zoom=args.zoom, viewup="z")
+        plt.show(zoom=args.zoom, viewup="z")
         return
 
 
@@ -673,7 +672,7 @@ def draw_scene(args):
                 objct.show(mode=interactor_mode)
                 return
             else:                             # loading a set of meshes
-                vp.show(objct, mode=interactor_mode)
+                plt.show(objct, mode=interactor_mode)
                 return
         #########################################################
 
@@ -722,15 +721,15 @@ def draw_scene(args):
             if args.multirenderer_mode:
                 try:
                     ds = actor.diagonalSize() * 3
-                    vp.camera.SetClippingRange(0, ds)
-                    vp.show(actor, at=i, interactive=False, zoom=args.zoom, mode=interactor_mode)
-                    vp.actors = actors
+                    plt.camera.SetClippingRange(0, ds)
+                    plt.show(actor, at=i, interactive=False, zoom=args.zoom, mode=interactor_mode)
+                    plt.actors = actors
                 except AttributeError:
                     # wildcards in quotes make glob return actor as a list :(
                     vedo.logger.error("Please do not use wildcards within single or double quotes")
 
         if args.multirenderer_mode:
-            vp.interactor.Start()
+            plt.interactor.Start()
 
         else:
 
@@ -739,17 +738,17 @@ def draw_scene(args):
                 vedo.logger.error("Could not load file(s). Quit.")
                 return
 
-            vp.show(actors, interactive=True, zoom=args.zoom, mode=interactor_mode)
+            plt.show(actors, interactive=True, zoom=args.zoom, mode=interactor_mode)
         return
 
     ########################################################################
     # scrolling mode  -s
     else:
         #print("DEBUG simple browser mode  -s")
-        if vp.axes==4:
-            vp.axes=1
+        if plt.axes==4:
+            plt.axes=1
 
-        acts = vp.load(args.files, force=args.reload)
+        acts = plt.load(args.files, force=args.reload)
         for a in acts:
             if hasattr(a, 'c'): #Picture doesnt have it
                 a.c(args.color)

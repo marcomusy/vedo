@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from vedo import printc, Text2D, Text3D, show, settings, Line, Plotter, shapes
-from vedo.settings import fonts
+from vedo import fonts, fonts_path
 import numpy as np
 import os
 
@@ -59,7 +59,7 @@ for i,fnt in enumerate(["Kanopus", "Normografo", "Theemim", "VictorMono"]):
 ################################################################################ printout
 for font in fonts:
     printc(font + " - available characters are:", " "*25, bold=1, invert=1)
-    fontfile = os.path.join(settings.fonts_path, font + '.npz')
+    fontfile = os.path.join(fonts_path, font + '.npz')
     font_meshes = np.load(fontfile, allow_pickle=True)['font'][0]
     for k in font_meshes.keys():
         printc(k, end=' ')

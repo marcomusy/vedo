@@ -29,41 +29,46 @@ fi
 
 #################################  command line tests
 echo '---------------------------- command line tests'
-echo vedo  /home/musy/Dropbox/Public/vtk_work/vedo_data/2*.vtk
-vedo       /home/musy/Dropbox/Public/vtk_work/vedo_data/2*.vtk
+echo vedo  data/2*.vtk
+vedo       data/2*.vtk
 
 echo '----------------------------'
-echo vedo  /home/musy/Dropbox/Public/vtk_work/vedo_data/2*.vtk
-vedo  -ni -k glossy /home/musy/Dropbox/Public/vtk_work/vedo_data/2*.vtk
+echo vedo  data/2*.vtk
+vedo  -ni -k glossy data/2*.vtk
 
 echo '----------------------------'
-echo vedo  /home/musy/Dropbox/Public/vtk_work/vedo_data/embryo.tif
-vedo       /home/musy/Dropbox/Public/vtk_work/vedo_data/embryo.tif
+echo vedo -s  "data/2??.vtk"
+vedo      -s   data/2??.vtk
 
 echo '----------------------------'
-echo vedo --lego --cmap afmhot_r /home/musy/Dropbox/Public/vtk_work/vedo_data/embryo.tif
-vedo      --lego --cmap afmhot_r /home/musy/Dropbox/Public/vtk_work/vedo_data/embryo.tif
+echo vedo  data/embryo.tif
+vedo       data/embryo.tif
 
 echo '----------------------------'
-echo vedo -g -c blue /home/musy/Dropbox/Public/vtk_work/vedo_data/embryo.slc
-vedo      -g -c blue /home/musy/Dropbox/Public/vtk_work/vedo_data/embryo.slc
+echo vedo --lego --cmap afmhot_r data/embryo.tif
+vedo      --lego --cmap afmhot_r data/embryo.tif
 
 echo '----------------------------'
-echo vedo --slicer /home/musy/Dropbox/Public/vtk_work/vedo_data/embryo.tif
-vedo      --slicer /home/musy/Dropbox/Public/vtk_work/vedo_data/embryo.tif
+echo vedo -g -c blue data/embryo.slc
+vedo      -g -c blue data/embryo.slc
 
 echo '----------------------------'
-echo vedo -s  "/home/musy/Dropbox/Public/vtk_work/vedo_data/2??.vtk"
-vedo      -s   /home/musy/Dropbox/Public/vtk_work/vedo_data/2??.vtk
+echo vedo --slicer2d data/embryo.tif
+vedo      --slicer2d data/embryo.tif
+
+echo '----------------------------'
+echo vedo --slicer3d data/embryo.tif
+vedo      --slicer3d data/embryo.tif
+
+echo '----------------------------'
+echo vedo --eog data/Wnt5a.jpg
+vedo      --eog data/Wnt5a.jpg
 
 echo '---------------------------- should open a GUI'
 echo vedo
 vedo
 
 ##################################### not run/ignored:
-# python3 basic/closewindow.py
-# python3 basic/lights.py
-# python3 basic/multiblocks.py
 # python3 other/animation1.py
 # python3 other/animation2.py
 # python3 other/makeVideo.py

@@ -1,6 +1,6 @@
 """Picture in picture plotting"""
-from vedo import show
-from vedo.pyplot import plot, settings
+from vedo import settings, show
+from vedo.pyplot import plot
 import numpy as np
 
 settings.defaultFont = 'Theemim'

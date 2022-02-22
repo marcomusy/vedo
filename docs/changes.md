@@ -1,6 +1,9 @@
 ## Main changes
 
-- Internal global variable `settings.plotter_instance` must become `vedo.plotter_instance`.
+- quite serious bug fixed in `closestPoint()` method due to a problem in vtkStaticCellLocator class.
+(https://discourse.vtk.org/t/vtkstaticcelllocator-problem-vtk9-0-3/7854/4)
+
+- internal global variable `settings.plotter_instance` must become `vedo.plotter_instance`.
 
 - `vedo.settings` is now a dotted dictionary
 
@@ -8,23 +11,11 @@
 
 - fixed bug to `distanceTo()` method
 
-- fixed quite problematic bug in `closestPoint()`
-(https://discourse.vtk.org/t/vtkstaticcelllocator-problem-vtk9-0-3/7854/4)
-
 
 ---
 ### `applications.py`
 - `Brower`, `IsosurfaceBrowser`, `Slicer2DPlotter` and `RayCastPlotter` are now `Plotter` derived classes (not functions)
 - improved `IsosurfaceBrowser` for speed
-
----
-### `base.py`
-
----
-### `colors.py`
-
----
-### `cli.py`
 
 ---
 ### `io.py`
@@ -55,9 +46,6 @@
 - name change `cornerHistogram` -> `CornerHistogram`
 
 ---
-### `pointcloud.py`
-
----
 ### `shapes.py`
 - `Line.lineColor()` overrides `mesh.lineColor()` to avoid ambiguities.
 - added `line.curvature()` method and example in docs.
@@ -77,7 +65,8 @@
 -------------------------
 
 ## New/Revised examples:
-
+`examples/basic/align5.py`
+`examples/basic/distance2mesh.py`
 `examples/pyplot/fourier_epicycles.py`
 `examples/other/ellipt_fourier_desc.py`
 `examples/volumetric/image_probe.py`
@@ -88,7 +77,13 @@
 `examples/volumetric/volumeFromMesh.py`
 `examples/volumetric/mesh2volume.py`
 
-## broken examples
-```
-interpolateMeshArray.py export cannot pickle 'Spline' object, phong is not preserved
-```
+
+
+
+
+
+
+
+
+
+

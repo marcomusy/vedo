@@ -500,15 +500,22 @@ class Base3DProp(object):
                 l = Line(p-v, p+v).lw(3).c('red')
                 show(c1.wireframe().lw(3), l, c2, axes=1)
         """
-        if self.transform:
-            tr = self.transform
-        else:
-            T = self.GetMatrix()
-            tr = vtk.vtkTransform()
-            tr.SetMatrix(T)
+        # if self.transform:
+        #     tr = self.transform
+        # else:
+        #     T = self.GetMatrix()
+        #     tr = vtk.vtkTransform()
+        #     tr.SetMatrix(T)
+        # if invert:
+        #     tr = tr.GetInverse()
+        # return tr if self.transform:
+        T = self.GetMatrix()
+        tr = vtk.vtkTransform()
+        tr.SetMatrix(T)
         if invert:
             tr = tr.GetInverse()
         return tr
+
 
     def applyTransform(self, T):
         """

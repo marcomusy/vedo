@@ -2,6 +2,8 @@
 from vedo import *
 import numpy as np
 
+settings.useDepthPeeling = True
+
 pts = (np.random.rand(10000, 3)-0.5)*2
 
 s = Sphere().alpha(0.1)

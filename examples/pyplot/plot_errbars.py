@@ -1,5 +1,6 @@
 """Superpose plots of different styles"""
-from vedo.pyplot import plot, settings
+from vedo.pyplot import plot
+from vedo import settings
 import numpy as np
 
 settings.defaultFont= 'Kanopus'

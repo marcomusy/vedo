@@ -47,7 +47,7 @@ echo Running self_org_maps2d.py
 python3 self_org_maps2d.py
 
 echo Running value-iteration.py
-python3 value-iteration.py
+python3 value_iteration.py
 
 echo Running remesh_meshfix.py
 python3 remesh_meshfix.py

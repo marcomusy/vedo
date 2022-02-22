@@ -6,7 +6,7 @@ mesh = Mesh(dataurl+"beethoven.ply").subdivide()
 mesh.color('k').pointSize(3) # render mesh as points
 
 # Generate signed distance volume
-vol = mesh.signedVolume(dims=(40,40,40))
+vol = mesh.signedDistance(dims=(40,40,40))
 
 # Generate an isosurface at distance -0.5
 iso = vol.isosurface(threshold=-0.5)

@@ -7,7 +7,7 @@ It injects a point source with a time-dependent source time function.
 #
 from __future__ import print_function, division
 from dolfin import *
-from vedo.dolfin import plot, interactive, ProgressBar, printc, download, settings
+from vedo.dolfin import plot, interactive, ProgressBar, printc, download
 import numpy as np
 set_log_level(30)
 

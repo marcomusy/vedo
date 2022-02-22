@@ -5,7 +5,7 @@
 [![lics](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/vedo/badges/version.svg)](https://anaconda.org/conda-forge/vedo)
 [![Ubuntu 20.10](https://repology.org/badge/version-for-repo/ubuntu_22_04/vedo.svg)](https://repology.org/project/vedo/versions)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4609336.svg)](https://doi.org/10.5281/zenodo.4609336)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5842090.svg)](https://doi.org/10.5281/zenodo.5842090)
 [![Downloads](https://pepy.tech/badge/vedo)](https://pepy.tech/project/vedo)
 [![CircleCI](https://circleci.com/gh/marcomusy/vedo.svg?style=svg)](https://circleci.com/gh/marcomusy/vedo)
 
@@ -217,13 +217,13 @@ Development, 5 April 2018, [doi: 10.1242/dev.154856](http://dev.biologists.org/c
 Front. Netw. Physiol. 1:802881, [doi: 10.3389/fnetp.2021.802881](https://www.frontiersin.org/articles/10.3389/fnetp.2021.802881/full).
 - J. Klatzow, G. Dalmasso, N. Martínez-Abadías, J. Sharpe, V. Uhlmann,
                 *"µMatch: 3D shape correspondence for microscopy data"*, in preparation.
-- G. Dalmasso *et al.*, *"Evolution in space and time of 3D volumetric images"*, in preparation.
+- G. Dalmasso *et al.*, *"4D reconstruction of developmental trajectories using spherical harmonics"*, bioRxiv 2021.12.16.472948: [](https://doi.org/10.1101/2021.12.16.472948).
 
 **Have you found this software useful for your research? Star ✨ the project and cite it as:**
 
 M. Musy  <em>et al.</em>,
 "<code>vedo</code>, a python module for scientific analysis and visualization of 3D objects and point clouds",
-Zenodo, 2021, <a href="https://doi.org/10.5281/zenodo.5655358">doi: 10.5281/zenodo.5655358</a>.
+Zenodo, 2021, <a href="https://doi.org/10.5281/zenodo.5842090">doi: 10.5281/zenodo.5842090</a>.
 
 
 [![embl_logo](https://user-images.githubusercontent.com/32848391/58046204-e9157180-7b44-11e9-81c9-e916cdf9ba84.gif)](https://www.embl.es)

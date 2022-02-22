@@ -2815,13 +2815,13 @@ class Plotter:
         self.actors = []
         vedo.plotter_instance = None
 
-    def screenshot(self, filename='screenshot.png', scale=None, returnNumpy=False):
+    def screenshot(self, filename='screenshot.png', scale=None, asarray=False):
         """Take a screenshot of the Plotter window.
 
         :param int scale: set image magnification
-        :param bool returnNumpy: return a numpy array of the image
+        :param bool asarray: return a numpy array of the image
         """
-        retval = vedo.io.screenshot(filename, scale, returnNumpy)
+        retval = vedo.io.screenshot(filename, scale, asarray)
         return retval
 
     def topicture(self, scale=None):

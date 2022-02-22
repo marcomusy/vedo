@@ -31,6 +31,7 @@ __all__ = ["Points",
            "fitSphere",
            "pcaEllipsoid",
            "recoSurface",
+           "pointCloudFrom",
 ]
 
 
@@ -778,6 +779,34 @@ def recoSurface(pts, dims=(100,100,100), radius=None,
     return vedo.mesh.Mesh(surface.GetOutput())
 
 
+def pointCloudFrom(obj, interpolateCellData=False):
+    """Build a `Points` object (as a point cloud) from any VTK dataset.
+
+    :param bool interpolateCellData: if True cell data is interpolated at point positions.
+    """
+    from vtk.numpy_interface import dataset_adapter
+    if interpolateCellData:
+        c2p = vtk.vtkCellDataToPointData()
+        c2p.SetInputData(obj)
+        c2p.Update()
+        obj = c2p.GetOutput()
+
+    wrapped = dataset_adapter.WrapDataObject(obj)
+    ptdatanames = wrapped.PointData.keys()
+
+    vpts = obj.GetPoints()
+    poly = vtk.vtkPolyData()
+    poly.SetPoints(vpts)
+
+    for name in ptdatanames:
+        arr = obj.GetPointData().GetArray(name)
+        poly.GetPointData().AddArray(arr)
+
+    m = Points(poly, c=None)
+    m.name = "pointCloud"
+    return m
+
+
 ###################################################
 def Point(pos=(0, 0, 0), r=12, c="red", alpha=1):
     """Create a simple point."""
@@ -1141,11 +1170,8 @@ class Points(vtk.vtkFollower, BaseActor):
         if len(self.shadows) > 0:
             cloned.addShadows()
 
-        cloned.point_locator = self.point_locator
-        cloned.cell_locator = self.cell_locator
-        if transformed:
-            cloned.point_locator = None
-            cloned.cell_locator = None
+        cloned.point_locator = None # better not to share the same locators with original obj
+        cloned.cell_locator = None
 
         return cloned
 
@@ -1251,17 +1277,6 @@ class Points(vtk.vtkFollower, BaseActor):
             self.trailSegmentSize = maxlength / n
             self.trailOffset = offset
 
-            ppoints = vtk.vtkPoints()  # Generate the polyline
-            poly = vtk.vtkPolyData()
-            ppoints.SetData(utils.numpy2vtk([pos] * n, dtype=float))
-            poly.SetPoints(ppoints)
-            lines = vtk.vtkCellArray()
-            lines.InsertNextCell(n)
-            for i in range(n):
-                lines.InsertCellPoint(i)
-            poly.SetPoints(ppoints)
-            poly.SetLines(lines)
-
             if c is None:
                 if hasattr(self, "GetProperty"):
                     col = self.GetProperty().GetColor()
@@ -1275,9 +1290,8 @@ class Points(vtk.vtkFollower, BaseActor):
                 if hasattr(self, "GetProperty"):
                     alpha = self.GetProperty().GetOpacity()
 
-            tline = vedo.mesh.Mesh(poly, c=col, alpha=alpha)
-            tline.GetProperty().SetLineWidth(lw)
-            self.trail = tline  # holds the vtkActor
+            tline = vedo.shapes.Line(pos, pos, res=n, c=col, alpha=alpha, lw=lw)
+            self.trail = tline  # holds the Line
         return self
 
     def updateTrail(self):
@@ -1288,6 +1302,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         if self.trailOffset:
             currentpos += self.trailOffset
+
         lastpos = self.trailPoints[-1]
         if lastpos is None:  # reset list
             self.trailPoints = [currentpos] * len(self.trailPoints)
@@ -1298,7 +1313,7 @@ class Points(vtk.vtkFollower, BaseActor):
         self.trailPoints.append(currentpos)  # cycle
         self.trailPoints.pop(0)
 
-        tpoly = self.trail.polydata()
+        tpoly = self.trail.polydata(False)
         tpoly.GetPoints().SetData(utils.numpy2vtk(self.trailPoints, dtype=float))
         return self
 
@@ -1659,12 +1674,14 @@ class Points(vtk.vtkFollower, BaseActor):
     def averageSize(self):
         """Calculate the average size of a mesh.
         This is the mean of the vertex distances from the center of mass."""
-        cm = self.centerOfMass()
+        # cm = self.centerOfMass()
         coords = self.points()
+        cm = np.mean(coords, axis=0)
         if not len(coords):
             return 0.0
         cc = coords-cm
         return np.mean(np.linalg.norm(cc, axis=1))
+
 
     def centerOfMass(self):
         """Get the center of mass of mesh.
@@ -1676,7 +1693,6 @@ class Points(vtk.vtkFollower, BaseActor):
         cmf.Update()
         c = cmf.GetCenter()
         return np.array(c)
-
 
     def normalAt(self, i):
         """Return the normal vector at vertex point `i`."""
@@ -2189,8 +2205,13 @@ class Points(vtk.vtkFollower, BaseActor):
         settings.flagBackgroundColor = bg
         return self
 
-    def alignTo(self, target, iters=100, rigid=False,
-                invert=False, useCentroids=False):
+    def alignTo(self,
+                target,
+                iters=100,
+                rigid=False,
+                invert=False,
+                useCentroids=False,
+        ):
         """
         Aligned to target mesh through the `Iterative Closest Point` algorithm.
 
@@ -2222,14 +2243,11 @@ class Points(vtk.vtkFollower, BaseActor):
         icp.SetStartByMatchingCentroids(useCentroids)
         icp.Update()
 
+        M = icp.GetMatrix()
         if invert:
-            T = icp.GetMatrix() # icp.GetInverse() doesnt work!
-            T.Invert()
-            self.applyTransform(T)
-            self.transform = T
-        else:
-            self.applyTransform(icp)
-            self.transform = icp
+            M.Invert() # icp.GetInverse() doesnt work!
+        # self.applyTransform(M)
+        self.SetUserMatrix(M)
 
         self.point_locator = None
         self.cell_locator = None
@@ -2267,7 +2285,8 @@ class Points(vtk.vtkFollower, BaseActor):
         if rigid:
             lmt.SetModeToRigidBody()
         lmt.Update()
-        self.applyTransform(lmt)
+        # self.applyTransform(lmt)
+        self.SetUserTransform(lmt)
         self.transform = lmt
 
         self.point_locator = None
@@ -2275,7 +2294,7 @@ class Points(vtk.vtkFollower, BaseActor):
         return self
 
 
-    def applyTransform(self, transformation, reset=False):
+    def applyTransform(self, transformation, reset=False, concatenate=False):
         """
         Apply a linear or non-linear transformation to the mesh polygonal data.
 
@@ -2287,8 +2306,23 @@ class Points(vtk.vtkFollower, BaseActor):
             matrix will stay the same (to only affect visualization).
             It the input transformation has no internal defined matrix (ie. non linear)
             then reset will be assumed as True.
-        """
 
+        :param bool concatenate: concatenate the transformation with the current existing one
+
+        :Example:
+            .. code-block:: python
+
+                from vedo import Cube, show
+                c1 = Cube().rotateZ(5).x(2).y(1)
+                print("cube1 position", c1.pos())
+                T = c1.getTransform()  # rotate by 5 degrees, sum 2 to x and 1 to y
+                c2 = Cube().c('r4')
+                c2.applyTransform(T)   # ignore previous movements
+                c2.applyTransform(T, concatenate=True)
+                c2.applyTransform(T, concatenate=True)
+                print("cube2 position", c2.pos())
+                show(c1, c2, axes=1).close()
+        """
         self.point_locator = None
         self.cell_locator = None
 
@@ -2306,15 +2340,48 @@ class Points(vtk.vtkFollower, BaseActor):
             tr.SetMatrix(M)
             transformation = tr
 
-        if reset or not hasattr(transformation, 'GetMatrix'):
+        if reset:# or not hasattr(transformation, 'GetMatrix'): # might be non-linear?
+
             tf = vtk.vtkTransformPolyDataFilter()
             tf.SetTransform(transformation)
             tf.SetInputData(self.polydata())
             tf.Update()
-            self.PokeMatrix(vtk.vtkMatrix4x4())  # reset to identity
+            I = vtk.vtkMatrix4x4()
+            ID = vtk.vtkTransform()
+            ID.SetMatrix(I)
+            self.transform = ID
+            self.PokeMatrix(I)  # reset to identity
+            self.SetUserTransform(None)
             return self._update(tf.GetOutput())
+
         else:
-            self.SetUserMatrix(transformation.GetMatrix())
+
+            if concatenate:
+
+                M = vtk.vtkTransform()
+                M.PostMultiply()
+                M.SetMatrix(self.GetMatrix())
+
+                M.Concatenate(transformation)
+
+                self.SetScale(M.GetScale())
+                self.SetOrientation(M.GetOrientation())
+                self.SetPosition(M.GetPosition())
+                self.transform = M
+                self.SetUserTransform(None)
+
+            else:
+
+                try:
+                    self.SetScale(transformation.GetScale())
+                    self.SetOrientation(transformation.GetOrientation())
+                    self.SetPosition(transformation.GetPosition())
+                    self.SetUserTransform(None)
+                except AttributeError: #GetScale might be missing for non linear an shear transf
+                     self.SetUserTransform(transformation)
+
+                self.transform = transformation
+
             return self
 
 
@@ -2828,7 +2895,6 @@ class Points(vtk.vtkFollower, BaseActor):
             .. code-block:: python
 
                 from vedo import Sphere
-
                 Sphere().pointGaussNoise(1.0).show()
         """
         sz = self.diagonalSize()

@@ -220,18 +220,28 @@ class dotdict(dict):
     # Credits: https://stackoverflow.com/users/89391/miku
     #  https://gist.github.com/miku/dc6d06ed894bc23dfd5a364b7def5ed8
 
-#    __getattr__ = dict.get
-    __setattr__ = dict.__setitem__
+    # __getattr__ = dict.get
+    # __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
 
     def __init__(self, *args, **kwargs):
+
         super().__init__(*args, **kwargs)
+
+        self['warn_on_setting'] = True
+
         for k, v in self.items():
             if isinstance(v, dict):
                 self[k] = dotdict(v)
 
     def __getattr__(self, k):
         return self[k]
+
+    def __setattr__(self, k, v):
+        if self.warn_on_setting:
+            if k not in self:
+                vedo.logger.warning(f'you are setting non-existing {k} to {v}')
+        self[k] = v
 
     def lookup(self, dotkey):
         """

@@ -9,17 +9,12 @@ from vedo import *
 import numpy as np
 import time
 
-settings.renderPointsAsSpheres = False
-settings.xtitle = 'red axis'
-settings.ytitle = 'green*alpha axis'
-
 N = 1000000
 
 x = np.random.rand(N)
 y = np.random.rand(N)
 RGBA = np.c_[x*255, y*255, np.zeros(N), y*255]
 
-print("clock starts")
 t0 = time.time()
 
 pts = Points([x,y], r=1, c=RGBA)
