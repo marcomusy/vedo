@@ -10,7 +10,7 @@ fpath = download('https://vedo.embl.es/examples/data/office.binary.vtk')
 sgrid = loadStructuredGrid(fpath)
 
 # Create a grid of points and use those as integration seeds
-seeds = Grid(pos=[2,2,1], normal=[1,0,0], resx=2, resy=3, c="gray")
+seeds = Grid(pos=[2,2,1], normal=[1,0,0], res=[2,3], c="gray")
 
 # Now we will generate multiple streamlines in the data.
 # We select the integration order to use (RungeKutta order 4) and

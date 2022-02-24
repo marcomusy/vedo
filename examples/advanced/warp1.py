@@ -9,7 +9,7 @@ import numpy as np
 
 grids = []
 for i in range(5):
-    gr = Grid([0, 0, i/8], resx=12, resy=12)
+    gr = Grid([0,0,i/8], res=[12,12])
     grids.append(gr)
 mesh = merge(grids)  # merge grids into a single object
 

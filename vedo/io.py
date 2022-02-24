@@ -1716,6 +1716,7 @@ def screenshot(filename="screenshot.png", scale=None, asarray=False):
         writer.Write()
     return vedo.plotter_instance
 
+
 def ask(*question, **kwarg):
     """
     Ask a question from command line. Return the answer as a string.
@@ -1760,6 +1761,8 @@ def ask(*question, **kwarg):
             return ask(*question, **kwarg) # ask again
     return resp
 
+
+##############################################################################################
 class Video:
     """
     Class to generate a video from the specified rendering window.

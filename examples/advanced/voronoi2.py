@@ -4,7 +4,7 @@ from vedo import dataurl, Points, Grid, voronoi, show
 pts0 = Points(dataurl+'rios.xyz').color('k')
 pts1 = pts0.clone().smoothLloyd2D()
 
-grid = Grid([14500, 61700], sx=22000, sy=24000, resx=30, resy=30).ps(1)
+grid = Grid([14500,61700], s=[22000,24000], res=[30,30]).ps(1)
 allpts = pts1.points().tolist() + grid.points().tolist()
 
 msh = voronoi(allpts, method='scipy')

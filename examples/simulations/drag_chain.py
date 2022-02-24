@@ -19,7 +19,7 @@ def move(evt):
 plt = Plotter()
 plt.addCallback("mouse move", move)
 
-surf = Plane(sx=60, sy=60)
+surf = Plane(s=[60, 60])
 line = Line([l*n/2, 0], [-l*n/2, 0], res=n, lw=12)
 nodes= line.clone().c('red3').pointSize(15)
 

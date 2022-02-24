@@ -39,7 +39,7 @@ u += 0.05*np.random.uniform(-1, 1, (n, n))
 v += 0.05*np.random.uniform(-1, 1, (n, n))
 
 sy, sx = V.shape
-grd = Grid(sx=sx, sy=sy, resx=sx, resy=sy)
+grd = Grid(s=[sx,sy], res=[sx,sy])
 grd.lineWidth(0).wireframe(False).lighting(ambient=0.5)
 formula = r'(u,v)=(D_u\cdot\Delta u -u v v+F(1-u), D_v\cdot\Delta v +u v v -(F+k)v)'
 ltx = Latex(formula, s=15, pos=(0,-sy/1.9,0))

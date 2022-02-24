@@ -48,7 +48,7 @@ class SOM:
             # Draw network
             if i>500 and not i%20 or i==n_epoch-1:
                 x, y, z = [self.codebook[:,i].reshape(n,n) for i in range(3)]
-                grd = Grid(resx=n-1, resy=n-1, c='green2')
+                grd = Grid(res=[n-1,n-1], c='green2')
                 grd.wireframe(False).lw(0.5).bc('blue9').flat()
                 grdpts = grd.points()
                 for i in range(n):

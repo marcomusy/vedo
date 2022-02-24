@@ -1285,8 +1285,7 @@ class BaseActor(Base3DProp):
     def addScalarBar3D( self,
                         title='',
                         pos=None,
-                        sx=None,
-                        sy=None,
+                        s=(None,None),
                         titleFont="",
                         titleXOffset=-1.5,
                         titleYOffset=0.0,
@@ -1311,8 +1310,7 @@ class BaseActor(Base3DProp):
         The new scalarbar object (Assembly) will be accessible as obj.scalarbar
 
         :param str title: scalar bar title
-        :param float sx: thickness of scalarbar
-        :param float sy: length of scalarbar
+        :param float s: (thickness, length) of scalarbar
         :param float titleXOffset: horizontal space btw title and color scalarbar
         :param float titleYOffset: vertical space offset
         :param float titleSize: size of title wrt numeric labels
@@ -1342,8 +1340,7 @@ class BaseActor(Base3DProp):
         self.scalarbar = vedo.addons.ScalarBar3D(self,
                                                 title,
                                                 pos,
-                                                sx,
-                                                sy,
+                                                s,
                                                 titleFont,
                                                 titleXOffset,
                                                 titleYOffset,

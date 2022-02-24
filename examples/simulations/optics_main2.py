@@ -12,7 +12,7 @@ shape2 = Cube(side=2).triangulate().boolean('-', sm).boolean("-", sp).z(3)
 shape3 = Cone().rotateY(-90).z(6)
 shape4 = Cube().scale([1.7,1,0.2]).rotateY(70).pos(-0.3,0,8)
 shape5 = Sphere(r=2).boolean("intersect", Sphere(r=2).z(3.5)).rotateX(10).pos(0.8,0,7.5)
-shape6 = Grid(resx=1, resy=1).rotateY(-60).rotateX(30).pos(0,-1,11)
+shape6 = Grid(res=[1,1]).rotateY(-60).rotateX(30).pos(0,-1,11)
 
 # Build lenses (with their refractive indices), and mirrors, using those meshes
 lens1 = Lens(shape1, ref_index=1.35).c("blue9") # constant refr. index
@@ -26,7 +26,7 @@ elements = [lens1, lens2, lens3, lens4, lens5, mirror, screen]
 
 # Generate photons and trace them through the optical elements
 lines = []
-source = Grid(resx=20, resy=20).points() # a numpy array
+source = Grid(res=[20,20]).points() # a numpy array
 for pt in source:
     λ = np.random.uniform(low=450, high=750)*1e-09  # nanometers
     ray = Ray(pt, direction=(0,0,1), wave_length=λ)

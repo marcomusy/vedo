@@ -61,7 +61,7 @@ mirror = Mirror(shape).color("silver")
 sd = vedo.Sphere(quads=1, res=12).cutWithPlane([0,-0.8,0], normal='y')
 detector = Detector(sd).color("white").alpha(1).lw(1)
 
-source = vedo.Grid(resx=30, resy=30).rotateX(90).y(-1)
+source = vedo.Grid(res=[30,30]).rotateX(90).y(-1)
 lines=[]
 for pt in source.points():
     ray = Ray(pt, direction=(0,1,0)).trace([mirror, detector])
@@ -70,7 +70,7 @@ for pt in source.points():
 
 detector.count().cmap("Reds", on='cells', vmax=10).addScalarBar("Counts")
 
-vedo.show(mirror, detector, lines, "A Mesh mirror and a spherical detector", 
+vedo.show(mirror, detector, lines, "A Mesh mirror and a spherical detector",
           elevation=-90, axes=1, bg='bb', bg2='blue9').close()
 
 
@@ -81,7 +81,7 @@ src = vedo.merge(s1,s2).clean().computeNormals()
 dirs = src.pointdata["Normals"]
 screen= Screen(3,3).z(4)
 
-grid = vedo.Grid(normal=[0,0,1], resx=40, resy=40, sx=4,sy=4)
+grid = vedo.Grid(normal=[0,0,1], res=[40,40], s=[4,4])
 detector = Detector(grid).z(3.5)
 
 elements = [detector]

@@ -817,7 +817,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         with each polygon vertex assigned a RGBA value.
         """
         dims = self._data.GetDimensions()
-        gr = vedo.shapes.Grid(sx=dims[0], sy=dims[1], resx=dims[0]-1, resy=dims[1]-1)
+        gr = vedo.shapes.Grid(s=dims[:2], res=(dims[0]-1, dims[1]))
         gr.pos(int(dims[0]/2), int(dims[1]/2)).pickable(True).wireframe(False).lw(0)
         self._data.GetPointData().GetScalars().SetName("RGBA")
         gr.inputdata().GetPointData().AddArray(self._data.GetPointData().GetScalars())

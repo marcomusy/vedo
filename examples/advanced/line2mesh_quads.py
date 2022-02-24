@@ -21,7 +21,7 @@ ycoords = np.arange(-0.5, 5.5, 0.075)
 xcoords += np.cos(xcoords+0.6)*0.75 # make quads shrink and stretch
 ycoords += np.sin(ycoords+0.5)*0.75 # to refine mesh resolution
 
-grd = Grid(sx=xcoords, sy=ycoords)  # create a gridded plane
+grd = Grid(s=[xcoords, ycoords])  # create a gridded plane
 
 msh = shape.tomesh(grid=grd, quads=True)
 

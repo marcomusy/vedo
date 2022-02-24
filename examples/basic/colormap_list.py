@@ -9,7 +9,7 @@ for name in colors.cmaps_names:
     cols = colorMap(range(n), name)
 
     # make a strip of n cells and assing them individual colors
-    gr = Grid(sx=50, resx=n, sy=1, resy=1).cellIndividualColors(cols*255)
+    gr = Grid(s=[50,1], res=[n,1]).cellIndividualColors(cols*255)
     gr.lineWidth(0).wireframe(False).y(-i*1.2)
     grids.append([gr, gr.box().c('grey')])
 

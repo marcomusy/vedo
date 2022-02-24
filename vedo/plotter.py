@@ -869,6 +869,16 @@ class Plotter:
         self.remove(actors, render=False)
         return self
 
+    def __enter__(self):
+        # context manager like in "with Plotter() as plt:"
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        # context manager like in "with Plotter() as plt:"
+        self.close()
+        return None
+
+
     def load(self, filename, unpack=True, force=False):
         """
         Load objects from file.
@@ -2065,6 +2075,7 @@ class Plotter:
                              offset=None, pixeltol=None, worldtol=None):
         """
         Transform a 2D point on the screen into a 3D point inside the rendering scene.
+        If a set of meshes is passed then points are placed onto these.
 
         Parameters
         ----------

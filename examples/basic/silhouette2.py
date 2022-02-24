@@ -17,19 +17,19 @@ n = len(pts)
 plt += [s, __doc__+settings.defaultFont]
 
 # orthogonal projection ###############################
-plane1 = Plane(pos=(2,0,2), normal=(1,0,1), sx=5).alpha(0.1)
+plane1 = Plane(pos=(2,0,2), normal=(1,0,1), s=[5,5]).alpha(0.1)
 so = s.clone().projectOnPlane(plane1).c('y')
 plt += [plane1, so, so.silhouette('2d')]
 pts1 = so.silhouette('2d').points()
 
 # perspective projection ##############################
-plane2 = Plane(pos=(3,3,3), normal=(1,1,1), sx=5).alpha(0.1)
+plane2 = Plane(pos=(3,3,3), normal=(1,1,1), s=[5,5]).alpha(0.1)
 point = [6, 6, 6]
 sp = s.clone().projectOnPlane(plane2, point=point).c('m')
 plt += [plane2, sp, sp.silhouette('2d')]
 
 # oblique projection ##################################
-plane3 = Plane(pos=(4,8,-4), normal=(-1,0,1), sx=5).alpha(0.1)
+plane3 = Plane(pos=(4,8,-4), normal=(-1,0,1), s=[5,5]).alpha(0.1)
 sob = s.clone().projectOnPlane(plane3, direction=(1,2,-1)).c('g')
 plt += [plane3, sob, sob.silhouette('2d')]
 pts2 = sob.silhouette('2d').points()

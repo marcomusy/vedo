@@ -1786,8 +1786,8 @@ def Arrows2D(startPoints, endPoints=None,
         .. code-block:: python
 
             from vedo import Grid, Arrows2D
-            g1 = Grid(sx=1, sy=1)
-            g2 = Grid(sx=1.2, sy=1.2).rotateZ(4)
+            g1 = Grid()
+            g2 = Grid(s=(1.2,1.2)).rotateZ(4)
             arrs2d = Arrows2D(g1, g2, c='jet')
             arrs2d.show(axes=1, bg='white')
 
@@ -2311,10 +2311,12 @@ class Ellipsoid(Mesh):
 class Grid(Mesh):
     """Return an even or uneven 2D grid at `z=0`.
 
-    :param float,list sx: if a float is provided it is interpreted as the total size along x,
-        if a list of coords is provided they are interpreted as the vertices of the grid along x.
-        In this case keyword `resx` is ignored (see example below).
-    :param int resx: resolution along x, e.i. the number of axis subdivisions.
+    :param float,list s: if a float is provided it is interpreted as the total size along x and y,
+        if a list of coords is provided they are interpreted as the vertices of the grid along x and y.
+        In this case keyword `res` is ignored (see example below).
+    :param float,list sx: deprecated, please use s.
+    :param list res: resolutions along x and y, e.i. the number of subdivisions.
+    :param int resx: deprecated, please use res.
     :param float lw: line width.
 
     |brownian2D| |brownian2D.py|_
@@ -2327,21 +2329,27 @@ class Grid(Mesh):
             xcoords = np.arange(0, 2, 0.2)
             ycoords = np.arange(0, 1, 0.2)
             sqrtx = sqrt(xcoords)
-            grid = Grid(sx=sqrtx, sy=ycoords)
+            grid = Grid(s=(sqrtx, ycoords))
             grid.show(axes=8)
     """
     def __init__(self,
                 pos=(0, 0, 0),
                 normal=(0, 0, 1),
-                sx=1,
-                sy=1,
-                sz=(0,),
+                sx=1, # softly deprecated
+                sy=1, # softly deprecated
+                s=(),
                 c="k3",
                 alpha=1,
                 lw=1,
-                resx=10,
-                resy=10,
-                ):
+                resx=10, # softly deprecated
+                resy=10, # softly deprecated
+                res=(),
+        ):
+
+        if len(res)==2:
+            resx, resy = res
+        if len(s)==2:
+            sx, sy = s
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
@@ -2384,12 +2392,12 @@ class Grid(Mesh):
 
 class Plane(Mesh):
     """
-    Draw a plane of size `sx` and `sy` oriented perpendicular to vector `normal`
+    Draw a plane of size `s=(xsize, ysize)` oriented perpendicular to vector `normal`
     and so that it passes through point `pos`.
 
     |Plane|
     """
-    def __init__(self, pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=None, c="gray6", alpha=1):
+    def __init__(self, pos=(0, 0, 0), normal=(0, 0, 1), s=(1,1), c="gray6", alpha=1):
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
@@ -2398,8 +2406,6 @@ class Plane(Mesh):
         self.center = np.array(pos)
         self.variance = 0
 
-        if sy is None:
-            sy = sx
         ps = vtk.vtkPlaneSource()
         ps.SetResolution(1, 1)
         tri = vtk.vtkTriangleFilter()
@@ -2411,7 +2417,7 @@ class Plane(Mesh):
         phi = np.arctan2(axis[1], axis[0])
         t = vtk.vtkTransform()
         t.PostMultiply()
-        t.Scale(sx, sy, 1)
+        t.Scale(s[0], s[1], 1)
         t.RotateY(np.rad2deg(theta))
         t.RotateZ(np.rad2deg(phi))
         tf = vtk.vtkTransformPolyDataFilter()
@@ -3646,9 +3652,11 @@ class ParametricShape(Mesh):
         pfs.Update()
 
         Mesh.__init__(self, pfs.GetOutput())
+
         if name != 'Kuen': self.normalize()
         if name == 'Dini': self.scale(0.4)
         if name == 'Enneper': self.scale(0.4)
+        if name == 'ConicSpiral': self.bc('tomato')
         self.name = name
 
 

@@ -1265,7 +1265,7 @@ def _plotSpheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=
         xm = np.max([np.max(pts[0]), 1])
         ym = np.max([np.abs(np.max(pts[1])), 1])
         ssurf.mapper().SetScalarRange(np.min(newr), np.max(newr))
-        sb3d = ssurf.addScalarBar3D(sx=xm * 0.07, sy=ym, c='k').scalarbar
+        sb3d = ssurf.addScalarBar3D(s=(xm * 0.07, ym), c='k').scalarbar
         sb3d.rotateX(90).pos(xm * 1.1, 0, -0.5)
     else:
         sb3d = None
@@ -1845,10 +1845,8 @@ def _histogram2D(
     #####################
     g = shapes.Grid(
         pos=[(x0lim + x1lim) / 2, (y0lim + y1lim) / 2, 0],
-        sx=dx,
-        sy=dy * yscale,
-        resx=bins[0],
-        resy=bins[1],
+        s=(dx, dy*yscale),
+        res=bins[:2],
     )
     g.alpha(alpha).lw(lw).wireframe(0).flat().lighting('off')
     g.cmap(cmap, np.ravel(H.T), on='cells')
@@ -2555,7 +2553,7 @@ def streamplot(X, Y, U, V, direction="both",
     vol.addPointArray(vects, "vects")
 
     if len(probes) == 0:
-        probe = shapes.Grid(pos=((n-1)/2,(n-1)/2,0), sx=n-1, sy=n-1, resx=n-1, resy=n-1)
+        probe = shapes.Grid(pos=((n-1)/2,(n-1)/2,0), s=(n-1, n-1), res=(n-1,n-1))
     else:
         if isinstance(probes, vedo.Points):
             probes = probes.points()
@@ -2651,7 +2649,7 @@ def matrix(M,
     """
     M = np.asarray(M)
     n,m = M.shape
-    gr = shapes.Grid(resx=m, resy=n, sx=m/(m+n)*2, sy=n/(m+n)*2, c=c, alpha=alpha)
+    gr = shapes.Grid(res=(m,n), s=(m/(m+n)*2,n/(m+n)*2), c=c, alpha=alpha)
     gr.wireframe(False).lc(lc).lw(lw)
 
     matr = np.flip( np.flip(M), axis=1).ravel(order='C')

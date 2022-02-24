@@ -35,7 +35,7 @@ msh.addScalarBar3D(
                 title='Units',
                 titleSize=1.25,
                 labelSize=1.5,
-                sx=100, sy=2200,
+                s=[100, 2200],
 )
 # put scalarbar vertical, tell camera to keep bounds into account
 msh.scalarbar.rotateX(90, locally=True).rotateY(55, locally=True).useBounds()

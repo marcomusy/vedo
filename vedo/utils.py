@@ -471,7 +471,11 @@ def getFontPath(font):
         if vedo.settings.font_parameters[font]["islocal"]:
             fl = os.path.join(vedo.fonts_path, f'{font}.ttf')
         else:
-            fl = vedo.io.download(f"https://vedo.embl.es/fonts/{font}.ttf", verbose=False)
+            try:
+                fl = vedo.io.download(f"https://vedo.embl.es/fonts/{font}.ttf", verbose=False)
+            except:
+                vedo.logger.warning(f"Could not download https://vedo.embl.es/fonts/{font}.ttf")
+                fl = os.path.join(vedo.fonts_path, 'Normografo.ttf')
     else:
         if font.startswith("https://"):
             fl = vedo.io.download(font, verbose=False)
@@ -482,8 +486,9 @@ def getFontPath(font):
                 vedo.printc("Could not set font file", font,
                        "-> Using default:", vedo.settings.defaultFont, c='r')
             else:
+                vedo.settings.defaultFont = 'Normografo'
                 vedo.printc("Could set font name", font,
-                       "-> Using default:", vedo.settings.defaultFont, c='r')
+                       "-> Using default: Normografo", c='r')
                 vedo.printc("Check https://vedo.embl.es/fonts for additional fonts", c='r')
                 vedo.printc("Type 'vedo -r fonts' to see available fonts", c='g')
             fl = getFontPath(vedo.settings.defaultFont)

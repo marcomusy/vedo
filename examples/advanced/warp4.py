@@ -28,7 +28,7 @@ class Morpher:
         self.msg2 = Text2D('[output will show here]', pos='top-left', font="VictorMono")
 
         sz = self.merged_meshes.diagonalSize()
-        self.plane1 = Grid(sx=sz, sy=sz, resx=50, resy=50).pos(self.merged_meshes.centerOfMass())
+        self.plane1 = Grid(s=[sz,sz], res=[50,50]).pos(self.merged_meshes.centerOfMass())
         self.plane1.wireframe(False).alpha(1).lineWidth(0.1).c('white').lc('grey5')
         self.plane2 = self.plane1.clone().pickable(False)
 

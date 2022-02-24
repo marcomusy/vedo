@@ -3199,7 +3199,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         Example:
             >>> s.projectOnPlane(plane='z') # project to z-plane
-            >>> plane = Plane(pos=(4, 8, -4), normal=(-1, 0, 1), sx=5)
+            >>> plane = Plane(pos=(4, 8, -4), normal=(-1, 0, 1), s=(5,5))
             >>> s.projectOnPlane(plane=plane)                       # orthogonal projection
             >>> s.projectOnPlane(plane=plane, point=(6, 6, 6))      # perspective projection
             >>> s.projectOnPlane(plane=plane, direction=(1, 2, -1)) # oblique projection
@@ -3815,8 +3815,8 @@ class Points(vtk.vtkFollower, BaseActor):
                 else:
                     resx, resy = resMesh, resMesh
             grid = vedo.shapes.Grid([(x0+x1)/2, (y0+y1)/2, 0],
-                                    sx=(x1-x0)*1.025, sy=(y1-y0)*1.025,
-                                    resx=resx, resy=resy,
+                                    s=((x1-x0)*1.025, (y1-y0)*1.025),
+                                    res=(resx, resy),
             )
         else:
             grid = grid.clone()

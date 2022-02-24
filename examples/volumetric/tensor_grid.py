@@ -1,7 +1,7 @@
 import vtk
 from vedo import Grid, Tensors, show
 
-domain = Grid(resx=5, resy=5, c='gray')
+domain = Grid(res=[5,5], c='gray')
 
 # Generate random attributes on a plane
 ag = vtk.vtkRandomAttributeGenerator()

@@ -65,7 +65,7 @@ for s in range(1, Nsp):
     Spheres.append(a)
 #    plt += a
 plt += Spheres
-plt += Grid(sx=screen_w, sy=screen_w)
+plt += Grid(s=[screen_w,screen_w])
 
 # Auxiliary variables
 Id = np.identity(Nsp)

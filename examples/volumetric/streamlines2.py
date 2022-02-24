@@ -17,7 +17,7 @@ pl3d.Update()
 domain = pl3d.GetOutput().GetBlock(0)
 
 ######################## vedo
-probe= Grid(pos=[9,0,30], normal=[1,0,0], sx=5, sy=5, resx=6, resy=6)
+probe= Grid(pos=[9,0,30], normal=[1,0,0], s=[5,5], res=[6,6])
 
 stream = streamLines(domain, probe, direction='backwards')
 

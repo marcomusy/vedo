@@ -611,8 +611,7 @@ def ScalarBar3D(
         obj,
         title='',
         pos=None,
-        sx=None,
-        sy=None,
+        s=(None, None),
         titleFont="",
         titleXOffset=-1.5,
         titleYOffset=0.0,
@@ -641,8 +640,7 @@ def ScalarBar3D(
         - a ``Mesh`` already containing a set of scalars associated to vertices or cells,
         - if ``None`` the last object in the list of actors will be used.
 
-    :param float sx: thickness of scalarbar
-    :param float sy: length of scalarbar
+    :param float s: (thickness, length) of scalarbar
     :param str title: scalar bar title
     :param float titleXOffset: horizontal space btw title and color scalarbar
     :param float titleYOffset: vertical space offset
@@ -684,6 +682,7 @@ def ScalarBar3D(
 
 
     bns = obj.GetBounds()
+    sx, sy = s
     if sy is None:
         sy = (bns[3]-bns[2])
     if sx is None:
@@ -692,8 +691,7 @@ def ScalarBar3D(
 
     if categories is not None: ################################
         ncats = len(categories)
-        scale = shapes.Grid([-sx * labelOffset, 0, 0], c=c, alpha=1,
-                            sx=sx, sy=sy, resx=1, resy=ncats)
+        scale = shapes.Grid([-sx * labelOffset, 0, 0], c=c, alpha=1, s=(sx,sy), res=(1,ncats))
         cols, alphas= [], []
         ticks_pos, ticks_txt = [0.0], ['']
         for i, cat in enumerate(categories):
@@ -716,8 +714,8 @@ def ScalarBar3D(
     else: ########################################################
 
         # build the color scale part
-        scale = shapes.Grid([-sx * labelOffset, 0, 0], c=c, alpha=1, sx=sx, sy=sy,
-                            resx=1, resy=lut.GetTable().GetNumberOfTuples())
+        scale = shapes.Grid([-sx * labelOffset, 0, 0], c=c, alpha=1, s=(sx,sy),
+                            res=(1, lut.GetTable().GetNumberOfTuples()))
         cscals = np.linspace(vmin, vmax, lut.GetTable().GetNumberOfTuples())
         scale.cmap(lut, cscals, on='cells')
         ticks_pos, ticks_txt = utils.makeTicks(vmin, vmax, nlabels)
@@ -1940,7 +1938,8 @@ def Axes(
     - `xInverted`,           [False], invert labels order and direction (only visually!)
     - `useGlobal`,           [False], try to compute the global bounding box of visible actors
 
-    :Example:
+    Example
+    -------
 
         .. code-block:: python
 
@@ -2130,21 +2129,21 @@ def Axes(
     # if user wants to unpack it
     grids = []
     if xyGrid and xtitle and ytitle:
-        gxy = shapes.Grid(sx=xticks_float, sy=yticks_float)
+        gxy = shapes.Grid(s=(xticks_float, yticks_float))
         gxy.alpha(xyAlpha).wireframe(xyGridTransparent).c(xyPlaneColor)
         gxy.lw(gridLineWidth).lc(xyGridColor)
         if xyShift: gxy.shift(0,0,xyShift*dz)
         gxy.name = "xyGrid"
         grids.append(gxy)
     if yzGrid and ytitle and ztitle:
-        gyz = shapes.Grid(sx=zticks_float, sy=yticks_float)
+        gyz = shapes.Grid(s=(zticks_float, yticks_float))
         gyz.alpha(yzAlpha).wireframe(yzGridTransparent).c(yzPlaneColor)
         gyz.lw(gridLineWidth).lc(yzGridColor).RotateY(-90)
         if yzShift: gyz.shift(yzShift*dx,0,0)
         gyz.name = "yzGrid"
         grids.append(gyz)
     if zxGrid and ztitle and xtitle:
-        gzx = shapes.Grid(sx=xticks_float, sy=zticks_float)
+        gzx = shapes.Grid(s=(xticks_float, zticks_float))
         gzx.alpha(zxAlpha).wireframe(zxGridTransparent).c(zxPlaneColor)
         gzx.lw(gridLineWidth).lc(zxGridColor).RotateX(90)
         if zxShift: gzx.shift(0,zxShift*dy,0)
@@ -2152,19 +2151,19 @@ def Axes(
         grids.append(gzx)
     #Grid2
     if xyGrid2 and xtitle and ytitle:
-        gxy2 = shapes.Grid(sx=xticks_float, sy=yticks_float).z(dz)
+        gxy2 = shapes.Grid(s=(xticks_float, yticks_float)).z(dz)
         gxy2.alpha(xyAlpha).wireframe(xyGrid2Transparent).c(xyPlaneColor)
         gxy2.lw(gridLineWidth).lc(xyGridColor)
         gxy2.name = "xyGrid2"
         grids.append(gxy2)
     if yzGrid2 and ytitle and ztitle:
-        gyz2 = shapes.Grid(sx=zticks_float, sy=yticks_float).x(dx)
+        gyz2 = shapes.Grid(s=(zticks_float, yticks_float)).x(dx)
         gyz2.alpha(yzAlpha).wireframe(yzGrid2Transparent).c(yzPlaneColor)
         gyz2.lw(gridLineWidth).lc(yzGridColor).RotateY(-90)
         gyz2.name = "yzGrid2"
         grids.append(gyz2)
     if zxGrid2 and ztitle and xtitle:
-        gzx2 = shapes.Grid(sx=xticks_float, sy=zticks_float).y(dy)
+        gzx2 = shapes.Grid(s=(xticks_float, zticks_float)).y(dy)
         gzx2.alpha(zxAlpha).wireframe(zxGrid2Transparent).c(zxPlaneColor)
         gzx2.lw(gridLineWidth).lc(zxGridColor).RotateX(90)
         gzx2.name = "zxGrid2"
@@ -3152,8 +3151,7 @@ def addGlobalAxes(axtype=None, c=None):
         vbb, ss = computeVisibleBounds()[0:2]
         xpos, ypos = (vbb[1] + vbb[0]) /2, (vbb[3] + vbb[2]) /2
         gs = sum(ss)*3
-        gr = shapes.Grid((xpos, ypos, vbb[4]), sx=gs, sy=gs,
-                          resx=11, resy=11, c=c, alpha=0.1)
+        gr = shapes.Grid((xpos, ypos, vbb[4]), s=(gs,gs), res=(11,11), c=c, alpha=0.1)
         gr.lighting('off').PickableOff()
         gr.UseBoundsOff()
         plt.renderer.AddActor(gr)
@@ -3164,10 +3162,6 @@ def addGlobalAxes(axtype=None, c=None):
         vbb = computeVisibleBounds()[0]
 
         polaxes.SetPolarAxisTitle('radial distance')
-#        if plt.xtitle == 'x':
-#            polaxes.SetPolarAxisTitle('radial distance')
-#        else:
-#            polaxes.SetPolarAxisTitle(plt.xtitle)
         polaxes.SetPole(0,0, vbb[4])
         rd = max(abs(vbb[0]), abs(vbb[2]), abs(vbb[1]), abs(vbb[3]))
         polaxes.SetMaximumRadius(rd)

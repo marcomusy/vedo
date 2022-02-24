@@ -48,7 +48,7 @@ def move(evt):
     nodes.points(coords).z(.01)
     plt.render()
 
-surf = vedo.Plane(sx=1, sy=1).shift(0.51,0,0)
+surf = vedo.Plane().shift(0.51,0,0)
 line = vedo.Line(P1, P2, res=n, lw=10)
 nodes= line.clone().c('red3').pointSize(8).z(.01)
 

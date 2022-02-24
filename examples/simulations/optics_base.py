@@ -71,7 +71,7 @@ class Mirror(vedo.Mesh, OpticalElement):
 class Screen(vedo.Grid, OpticalElement):
     """A simple read out screen plane"""
     def __init__(self, sizex, sizey):
-        vedo.Grid.__init__(self, resx=1, resy=1, sx=sizex, sy=sizey)
+        vedo.Grid.__init__(self, res=[1,1], s=[sizex,sizey])
         OpticalElement.__init__(self)
         self.computeNormals(cells=True, points=False)
         self.name = "Screen"
@@ -82,7 +82,7 @@ class Screen(vedo.Grid, OpticalElement):
 class Absorber(vedo.Grid, OpticalElement):
     """A simple non detecting absorber, not generating a hit."""
     def __init__(self, sizex, sizey):
-        vedo.Grid.__init__(self, resx=100, resy=100, sx=sizex, sy=sizey)
+        vedo.Grid.__init__(self, res=[100,100], s=[sizex,sizey])
         OpticalElement.__init__(self)
         self.computeNormals()
         self.name = "Absorber"
