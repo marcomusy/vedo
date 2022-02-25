@@ -17,6 +17,8 @@
 ---
 ### `picture.py`
 
+- remove by default alpha channel so that images are pickable
+
 ---
 ### `pyplot.py`
 

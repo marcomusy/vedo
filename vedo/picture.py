@@ -3,7 +3,6 @@ import vedo
 import vedo.colors as colors
 import vedo.utils as utils
 import vtk
-from vtk.util.numpy_support import numpy_to_vtk
 
 __doc__ = ("Submodule to work with common format images." + vedo.docs._defs)
 __all__ = ["Picture"]
@@ -23,8 +22,7 @@ def _get_img(obj, flip=False):
             else:
                 arr = np.flip(obj[:,:,i], 0).ravel()
             arr = np.clip(arr, 0, 255)
-            varb = numpy_to_vtk(arr, deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
-            varb.SetName("RGBA")
+            varb = utils.numpy2vtk(arr, dtype=np.uint8, name="RGBA")
             imgb = vtk.vtkImageData()
             imgb.SetDimensions(obj.shape[1], obj.shape[0], 1)
             imgb.GetPointData().AddArray(varb)
@@ -39,8 +37,7 @@ def _get_img(obj, flip=False):
         else:
             arr = obj.ravel()
         arr = np.clip(arr, 0, 255)
-        varb = numpy_to_vtk(arr, deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
-        varb.SetName("RGBA")
+        varb = utils.numpy2vtk(arr, dtype=np.uint8, name="RGBA")
         img = vtk.vtkImageData()
         img.SetDimensions(obj.shape[1], obj.shape[0], 1)
         img.GetPointData().AddArray(varb)
@@ -55,17 +52,20 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
     Derived class of ``vtkImageActor``. Used to represent 2D pictures.
     Can be instantiated with a path file name or with a numpy array.
 
+    By default the transparency channel is disabled.
+    To enable it set channels=4.
+
     Use `Picture.shape` to access the number of pixels in x and y.
 
     |rotateImage| |rotateImage.py|_
 
-    :param list channels: only select these specific rgba channels (useful to remove alpha)
+    :param int,list channels: only select these specific rgba channels (useful to remove alpha)
     :param bool flip: flip xy axis convention (when input is a numpy array)
     """
-    def __init__(self, obj=None, channels=(), flip=False):
+    def __init__(self, obj=None, channels=3, flip=False):
+
         vtk.vtkImageActor.__init__(self)
         vedo.base.Base3DProp.__init__(self)
-
 
         if utils.isSequence(obj) and len(obj): # passing array
             img = _get_img(obj, flip)
@@ -99,8 +99,12 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             img = vtk.vtkImageData()
 
         # select channels
+        if isinstance(channels, int):
+            channels = list(range(channels))
+
         nchans = len(channels)
-        if nchans and img.GetPointData().GetScalars().GetNumberOfComponents() > nchans:
+        n = img.GetPointData().GetScalars().GetNumberOfComponents()
+        if nchans and n > nchans:
             pec = vtk.vtkImageExtractComponents()
             pec.SetInputData(img)
             if nchans == 3:
@@ -137,6 +141,8 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         self._data = data
         self._mapper.SetInputData(data)
         self._mapper.Modified()
+        nx, ny, _ = self._data.GetDimensions()
+        self.shape = np.array([nx,ny])
         return self
 
     def clone(self, transform=False):

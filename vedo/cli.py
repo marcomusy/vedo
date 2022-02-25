@@ -396,8 +396,12 @@ def exe_eog(args):
                     p.rotate(90)
             elif event.keyPressed=="f":
                     p.flip()
+            elif event.keyPressed=="b":
+                    p.binarize()
             elif event.keyPressed=="i":
                     p.invert()
+            elif event.keyPressed=="I":
+                    plt.colorPicker(event.picked2d, verbose=True)
             elif event.keyPressed=="k":
                     p.enhance()
             elif event.keyPressed=="s":
@@ -418,6 +422,8 @@ def exe_eog(args):
                 printc('  f           to flip image vertically')
                 printc('  t           to rotate image by 90 deg')
                 printc('  i           to invert colors')
+                printc('  I           to pick the color under mouse')
+                printc('  b           to binarize the image')
                 printc('  k           to enhance b&w image')
                 printc('  s           to apply gaussian smoothing')
                 printc('  S           to save image as png')

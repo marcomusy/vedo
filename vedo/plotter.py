@@ -2863,7 +2863,7 @@ class Plotter:
         vedo.io.exportWindow(filename, binary=binary)
         return self
 
-    def colorPicker(self, xy):
+    def colorPicker(self, xy, verbose=False):
         """Pick color of specific (x,y) pixel on the screen."""
         w2if = vtk.vtkWindowToImageFilter()
         w2if.SetInput(self.window)
@@ -2871,9 +2871,30 @@ class Plotter:
         w2if.Update()
         nx, ny = self.window.GetSize()
         varr = w2if.GetOutput().GetPointData().GetScalars()
+
         arr = utils.vtk2numpy(varr).reshape(ny,nx,3)
-        if int(xy[1])<ny and int(xy[0])<nx:
-            return arr[int(xy[1]),int(xy[0])]
+        x,y = int(xy[0]), int(xy[1])
+        if y < ny and  x < nx:
+
+            rgb = arr[y,x]
+
+            if verbose:
+                vedo.printc('Pixel', [x,y], 'has RGB[',  end='')
+                vedo.printc('█', c=[rgb[0],0,0], end='')
+                vedo.printc('█', c=[0,rgb[1],0], end='')
+                vedo.printc('█', c=[0,0,rgb[2]], end='')
+                vedo.printc('] = ', end='')
+                cnm = vedo.getColorName(rgb)
+                if np.sum(rgb) < 150:
+                    vedo.printc(rgb.tolist(), vedo.colors.rgb2hex(np.array(rgb)/255), c='w',
+                           bc=rgb, invert=1, end='')
+                    vedo.printc('  -> '+cnm, invert=1, c='w')
+                else:
+                    vedo.printc(rgb.tolist(), vedo.colors.rgb2hex(np.array(rgb)/255), c=rgb, end='')
+                    vedo.printc('  -> '+cnm, c=cnm)
+
+            return rgb
+
         return None
 
 
@@ -3516,21 +3537,7 @@ class Plotter:
 
         elif key == "I":  # print color under the mouse
             x, y = iren.GetEventPosition()
-            rgb = self.colorPicker([x,y])
-            if rgb is None: return
-            vedo.printc('Pixel', [x,y], 'has RGB[',  end='')
-            vedo.printc('█', c=[rgb[0],0,0], end='')
-            vedo.printc('█', c=[0,rgb[1],0], end='')
-            vedo.printc('█', c=[0,0,rgb[2]], end='')
-            vedo.printc('] = ', end='')
-            cnm = vedo.getColorName(rgb)
-            if np.sum(rgb) < 150:
-                vedo.printc(rgb.tolist(), vedo.colors.rgb2hex(np.array(rgb)/255), c='w',
-                       bc=rgb, invert=1, end='')
-                vedo.printc('  ~ '+cnm, invert=1, c='w')
-            else:
-                vedo.printc(rgb.tolist(), vedo.colors.rgb2hex(np.array(rgb)/255), c=rgb, end='')
-                vedo.printc('  ~ '+cnm, c=cnm)
+            self.colorPicker([x,y], verbose=True)
 
         if iren:
             iren.Render()
