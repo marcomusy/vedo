@@ -1,7 +1,7 @@
 """Metrics of quality for
 the cells of a triangular mesh
 (zoom to see cell label values)"""
-from vedo import *
+from vedo import dataurl, Mesh, show
 from vedo.pyplot import histogram
 
 mesh = Mesh(dataurl+"panther.stl").computeNormals().lineWidth(0.1).flat()

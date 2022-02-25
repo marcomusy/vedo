@@ -1,5 +1,5 @@
 """Manually build a mesh from points and faces"""
-from vedo import Mesh, printc, show
+from vedo import Mesh, show
 
 verts = [(50,50,50), (70,40,50), (50,40,80), (80,70,50)]
 faces = [(0,1,2), (2,1,3), (1,0,3)]
@@ -11,7 +11,7 @@ mesh.backColor('violet').lineColor('tomato').lineWidth(2)
 labs = mesh.labels('id').c('black')
 
 # retrieve them as numpy arrays
-printc('points():\n', mesh.points(), c=3)
-printc('faces(): \n', mesh.faces(),  c=3)
+print('points():', mesh.points())
+print('faces() :', mesh.faces())
 
 show(mesh, labs, __doc__, viewup='z', axes=1).close()

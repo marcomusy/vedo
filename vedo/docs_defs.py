@@ -81,13 +81,6 @@ _substitutions_defs = """
     :target: recosurface.py_
     :alt: recosurface.py
 
-.. |fatlimb.py| replace:: fatlimb.py
-.. _fatlimb.py: https://github.com/marcomusy/vedo/tree/master/examples/advanced/fatlimb.py
-.. |fatlimb| image:: https://user-images.githubusercontent.com/32848391/50738945-7335ec80-11d9-11e9-9d3f-c6c19df8f10d.jpg
-    :width: 200 px
-    :target: fatlimb.py_
-    :alt: fatlimb.py
-
 .. |largestregion.py| replace:: largestregion.py
 .. _largestregion.py: https://github.com/marcomusy/vedo/tree/master/examples/basic/largestregion.py
 

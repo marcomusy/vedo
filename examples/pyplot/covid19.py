@@ -45,11 +45,11 @@ def load_data():
 from vedo import spher2cart, Sphere, Text2D, Earth, merge, show
 
 date, data, allconf, alldeat, allreco = load_data()
-s1, s2, vigs = [], [], []
+s1, vigs = [], []
 for place, theta, phi, confirmed, deaths, recos in data:
     pos = spher2cart(1, theta, phi)
     fl = 'cases: '+str(confirmed) + '\ndeaths: '+str(deaths)
-    radius = np.power(confirmed, 1/3)/4000
+    radius = np.power(confirmed, 1/3)/5000
     sph1 = Sphere(pos, radius, alpha=0.4, res=12).flag(place+fl)
     if deaths > 20000:
         sph1.flag(fl)
@@ -58,7 +58,6 @@ for place, theta, phi, confirmed, deaths, recos in data:
         vig.c('k').scale(1.5*(1+radius)).followCamera()
         vigs.append(vig)
     s1.append(sph1)
-    s2.append(Sphere(pos, np.power(deaths, 1/3)/10000, alpha=0.4, c='k', res=10))
 
 tx = Text2D('COVID-19 spread on '+date
            +'\n# cases : '+str(allconf)
@@ -67,6 +66,6 @@ tx = Text2D('COVID-19 spread on '+date
            +'\n(hover mouse for local info)',
            font="VictorMono")
 
-show(Earth(), s1, merge(s2), vigs, tx,
-     axes=11, bg2='lb', zoom=1.7, elevation=-70, size='fullscreen')
+show(Earth(), s1, vigs, tx,
+     axes=11, bg2='lb', zoom=1.7, elevation=-70, size='fullscreen').close()
 

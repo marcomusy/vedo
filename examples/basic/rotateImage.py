@@ -14,5 +14,4 @@ for i in range(5):
     plt += p
 
 plt += __doc__
-plt.show()
-plt.close()
+plt.show().close()

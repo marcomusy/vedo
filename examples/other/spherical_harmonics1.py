@@ -4,10 +4,10 @@
 # using SHTOOLS (https://shtools.oca.eu/shtools/)
 # and then truncate the expansion to a specific lmax and
 # reconstruct the projected points in red
-from vedo import *
 import numpy as np
 from scipy.interpolate import griddata
 import pyshtools
+from vedo import spher2cart, mag, Box, Point, Points, show
 
 ###########################################################################
 lmax = 8              # maximum degree of the spherical harm. expansion
@@ -32,7 +32,7 @@ for th in np.linspace(0, np.pi, N, endpoint=True):
             longs.append(value)
             pts.append(intersections[0])
         else:
-            printc('No hit for theta, phi =', th, ph, c='r')
+            print('No hit for theta, phi =', th, ph, c='r')
             longs.append(rmax)
             pts.append(p)
     agrid.append(longs)
@@ -71,6 +71,9 @@ for i, long in enumerate(np.linspace(0, 360, num=grid_reco_finer.shape[1], endpo
         p = spher2cart(grid_reco_finer[j][i], th, ph)
         pts2.append(p+x0)
 
-show(Points(pts2, c="r", alpha=0.5), surface,
-     'Spherical harmonics\nexpansion of order '+str(lmax),
-     at=1, interactive=True)
+show(f'Spherical harmonics expansion of order {lmax}',
+     Points(pts2, c="r", alpha=0.5),
+     surface,
+     at=1,
+).interactive().close()
+

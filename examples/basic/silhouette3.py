@@ -9,4 +9,4 @@ show(s, bg='db', bg2='lb', interactive=False)
 
 sil = s.silhouette().c('darkred',0.9).lw(3)
 
-show(s, sil, __doc__, interactive=True)
+show(s, sil, __doc__).interactive().close()

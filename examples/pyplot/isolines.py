@@ -30,4 +30,4 @@ show(mesh1, isol, ars, "Arrows=\nablaH", at=2)
 mesh2 = mesh1.clone(deep=False).lw(0.1).cmap('jet', mag(gvecs), on='cells')
 mesh2.addScalarBar3D(title='|\nablaH| [arb.units]')
 
-show(mesh2, "Color=|\nablaH|", at=3, interactive=True).close()
+show(mesh2, "Color=|\nablaH|", at=3).interactive().close()

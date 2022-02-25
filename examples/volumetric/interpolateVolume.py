@@ -2,7 +2,7 @@
 which is only known on a scattered set of points or mesh.
 The blue layer is the result of thresholding the volume
 between 0.3 and 0.4 and assigning it the new value 0.9 (blue)"""
-from vedo import *
+from vedo import Points, show
 from vedo.pyplot import CornerHistogram
 import numpy as np
 
@@ -28,7 +28,7 @@ vol.threshold(above=0.3, below=0.4, replace=0.9)
 
 ch = CornerHistogram(vol, pos="bottom-left")
 
-vol.addScalarBar3D(sy=1, title='Height is the voxel scalar')
+vol.addScalarBar3D(s=[None,1], title='Height is the voxel scalar')
 vol.scalarbar.rotateX(90).pos(1.15,1,0.5)
 
 show(pts, vol, ch, __doc__, axes=1, elevation=-90).close()

@@ -135,4 +135,4 @@ for i in pb.range():
     plt.camera.Elevation(0.1)
     pb.print()
 
-plt.show(interactive=1).close()
+plt.interactive().close()

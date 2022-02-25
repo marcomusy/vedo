@@ -28,7 +28,6 @@ class SOM:
         self.samples = self.samples[I]
         pts = Points(self.samples, r=2, c='darkred')
         doc = Text2D(__doc__)
-        settings.allowInteraction = True
 
         pb = ProgressBar(0,n_epoch)
         for i in pb.range():
@@ -64,12 +63,14 @@ class SOM:
 # -------------------------------------------------------------------------------
 if __name__ == "__main__":
 
+    settings.allowInteraction = True
+
     n = 25
     X, Y = np.meshgrid(np.linspace(0, 1, n), np.linspace(0, 1, n))
     P = np.c_[X.ravel(), Y.ravel()]
     D = scipy.spatial.distance.cdist(P, P)
 
-    s = Sphere(res=90).cutWithPlane(origin=(0,-.3,0), normal='y').clean(0.01)
+    s = Sphere(res=90).cutWithPlane(origin=(0,-.3,0), normal='y').subsample(0.01)
 
     som = SOM((len(P), 3), D)
     som.samples = s.points()

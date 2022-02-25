@@ -4,7 +4,7 @@ import numpy as np
 
 n, m = (6, 5)
 M = np.eye(n, m)/2 + np.random.randn(n, m)*0.1
-print(M)
+# print(M)
 
 mat = matrix(M,
              cmap='Reds',

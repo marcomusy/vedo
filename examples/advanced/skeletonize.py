@@ -5,7 +5,7 @@ from vedo import *
 N = 9    # nr of iterations
 f = 0.2  # fraction of neighbours
 
-pts = Mesh(dataurl+"man.vtk").clean(tol=0.02).points()
+pts = Mesh(dataurl+"man.vtk").subsample(0.02).points()
 
 pc = Points(pts)
 

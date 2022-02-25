@@ -1,9 +1,7 @@
 # Available modifiers:
 #  c (foreground color), bc (background color)
 #  bold, blink, underLine, dim, invert, box
-
-from vedo import printc, printHistogram
-import numpy as np
+from vedo import printc
 
 printc(" 1- Change the world by being yourself - Amy Poehler\world", c=1)
 printc(" 2- Never regret anything that made you smile - Mark Twain\smile", c="r", bold=0)
@@ -16,19 +14,12 @@ printc(" 8- Whatever you do, do it well - Walt Disney\erainbow", c=3, bc=1)
 printc(" 9- What we think, we become - Buddha \etarget", c=6, invert=1)
 printc("10- All limitations are self-imposed - Oliver Wendell Holmes\sparks", c=7, dim=1)
 printc("11- If you tell the truth you dont have to remember anything - Mark Twain\checked",
-        underline=1,
-        invert=1,
+        underline=True,
+        invert=True,
+        dim=True,
         c=6,
-        dim=1,
-      )
+)
 
 from vedo.colors import emoji
 for k in sorted(emoji.keys()):
     print(emoji[k] + " \t" + repr(k))
-print()
-
-
-## Print histograms
-# d = np.random.normal(size=1000)
-# printHistogram(d, c='blue', logscale=True, title='my scalars')
-# printHistogram(d, c=1, horizontal=1)

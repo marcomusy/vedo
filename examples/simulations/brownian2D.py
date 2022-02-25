@@ -139,4 +139,4 @@ for i in pb.range():
         if plt.escaped: break
     pb.print()
 
-plt.show(interactive=1).close()
+plt.interactive().close()

@@ -17,11 +17,11 @@ for i in range(3):
 ms[0].addScalarBar(title="my scalarbar\nnumber #0") #2D
 
 # add 3D scalar bars
-ms[1].addScalarBar3D(c="k", title="scalarbar #1", sy=3)
+ms[1].addScalarBar3D(c="k", title="scalarbar #1", s=[None,3])
 
 sc = ms[2].addScalarBar3D(pos=(1,0,-5),
                           c="k",
-                          sy=2.8,                    # change y-size
+                          s=[None, 2.8],             # change y-size only
                           title="A viridis 3D\nscalarbar to play with",
                           titleFont='Quikhand',
                           titleXOffset=-2,           # offset of labels

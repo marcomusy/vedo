@@ -89,9 +89,7 @@ for i in pb.range():
 ####################################################
 settings.allowInteraction = True
 
-plt = Plotter(interactive=0, axes=2)  # choose axes type nr.2
-plt.ytitle = "u(x,t)"
-plt.ztitle = ""  # will not draw z axis
+plt = Plotter(interactive=False, axes=2)  # choose axes type nr.2
 
 for i in x:
     plt += Point([i, 0, 0], c="green", r=6)
@@ -125,4 +123,4 @@ for i in pb.range():
     if plt.escaped: break  # if ESC is hit during the loop
     pb.print("Moving actors loop")
 
-plt.show(interactive=1).close()
+plt.interactive().close()

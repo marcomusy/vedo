@@ -50,4 +50,4 @@ button = plt.addButton(buttonfunc,
     size=35,
 )
 
-plt.show(interactive=1).close()
+plt.show().interactive().close()

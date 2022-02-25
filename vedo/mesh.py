@@ -1856,7 +1856,7 @@ class Mesh(Points):
             return m.computeNormals(cells=False).phong()
 
 
-    def splitByConnectivity(self, maxdepth=1000):
+    def split(self, maxdepth=1000):
         """
         Split a mesh by connectivity and order the pieces by increasing area.
 

@@ -19,4 +19,4 @@ for order in range(5,30, 5):
     rlines.append(rline)
 
 sm.z(0.1) # move it on top so it's visible
-vedo.show(sm, *rlines, __doc__, axes=1, bg='k', size=(1190, 630), zoom=1.8)
+vedo.show(sm, *rlines, __doc__, axes=1, bg='k', size=(1190, 630), zoom=1.8).close()

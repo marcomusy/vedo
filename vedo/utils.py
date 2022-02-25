@@ -816,8 +816,8 @@ def precision(x, p, vrange=None, delimiter='e'):
         out.append(m)
     return "".join(out)
 
-
-# 2d
+##################################################################################
+# 2d ######
 def cart2pol(x, y):
     """2D Cartesian to Polar coordinates conversion."""
     theta = np.arctan2(y, x)
@@ -830,13 +830,11 @@ def pol2cart(rho, theta):
     y = rho * np.sin(theta)
     return x, y
 
-# 3d
+# 3d ######
 def cart2spher(x, y, z):
     """3D Cartesian to Spherical coordinate conversion."""
     hxy = np.hypot(x, y)
     rho = np.hypot(hxy, z)
-    #if not rho:
-    #    return np.array([0,0,0])
     theta = np.arctan2(hxy, z)
     phi = np.arctan2(y, x)
     return rho, theta, phi
@@ -878,6 +876,7 @@ def spher2cyl(rho, theta, phi):
     return rhoc, theta, z
 
 
+##################################################################################
 def grep(filename, tag, firstOccurrence=False):
     """Greps the line that starts with a specific `tag` string inside the file."""
     import re

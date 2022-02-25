@@ -2,15 +2,15 @@
 to a rendering window that calls an external function"""
 from vedo import Plotter, Mesh, dataurl, printc
 
-plt = Plotter(axes=11)
-
-mesh = Mesh(dataurl+"magnolia.vtk").c("v").flat()
-
 # add a button to the current renderer (e.i. nr1)
 def buttonfunc():
     mesh.alpha(1 - mesh.alpha())  # toggle mesh transparency
     bu.switch()                 # change to next status
     printc(bu.status(), box="_", dim=True)
+
+mesh = Mesh(dataurl+"magnolia.vtk").c("v").flat()
+
+plt = Plotter(axes=11)
 
 bu = plt.addButton(
     buttonfunc,

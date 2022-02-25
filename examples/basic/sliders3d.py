@@ -24,5 +24,4 @@ plt.addSlider3D(
     title="y position",
 )
 
-
 plt.show(viewup="z", axes=11, bg='bb', bg2='navy').close()

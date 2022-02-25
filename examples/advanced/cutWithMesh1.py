@@ -1,5 +1,5 @@
 """Cut a mesh with another mesh"""
-from vedo import *
+from vedo import dataurl, settings, Volume, Ellipsoid, show
 
 settings.tiffOrientationType = 4 # data origin is bottom-left
 
@@ -12,4 +12,4 @@ msh = Ellipsoid().scale(0.4).pos(2.8, 1.5, 1.5).wireframe()
 cutembryo = embryo.clone().cutWithMesh(msh).c("gold").bc("t")
 
 show(embryo, msh,    at=0, N=2, axes=1, viewup="z")
-show(cutembryo, __doc__, at=1, interactive=True).close()
+show(cutembryo, __doc__, at=1).interactive().close()

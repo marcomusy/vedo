@@ -16,7 +16,7 @@ np.random.shuffle(pts)  # make sure points are not ordered
 
 pts = Points(pts, r=5)
 
-show(pts, __doc__, at=0, N=N, axes=1)
+plt = show(pts, __doc__, at=0, N=N, axes=1)
 
 for i in range(1, N):
     pts = pts.clone().smoothMLS1D(f=0.4).color(i)
@@ -24,8 +24,8 @@ for i in range(1, N):
     if i == N-1:
         # at the last iteration make sure points
         # are separated by tol (in % of bbox)
-        pts.clean(tol=0.02)
+        pts.subsample(0.02)
 
-    show(pts, f"Iteration {i}, #points: {pts.N()}", at=i)
+    plt.show(pts, f"Iteration {i}, #points: {pts.N()}", at=i)
 
-interactive().close()
+plt.interactive().close()

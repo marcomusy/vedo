@@ -4,11 +4,11 @@ from vedo import *
 settings.useDepthPeeling = True
 
 # declare the instance of the class
-plt = Plotter(shape=(2, 2), interactive=0, axes=3)
+plt = Plotter(shape=(2, 2), interactive=False, axes=3)
 
 # build to sphere meshes
-s1 = Sphere(pos=[-0.7, 0, 0], c="red", alpha=0.5)
-s2 = Sphere(pos=[0.7, 0, 0], c="green", alpha=0.5)
+s1 = Sphere(pos=[-0.7, 0, 0], c="red5", alpha=0.5)
+s2 = Sphere(pos=[0.7, 0, 0], c="green5", alpha=0.5)
 plt.show(s1, s2, __doc__, at=0)
 
 # make 3 different possible operations:

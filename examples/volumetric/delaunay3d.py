@@ -8,7 +8,7 @@ pts = (np.random.rand(10000, 3)-0.5)*2
 
 s = Sphere().alpha(0.1)
 pin = s.insidePoints(pts)
-pin.clean(tol=0.05) # impose min separation (5% of bounding box)
+pin.subsample(0.05)  # impose min separation (5% of bounding box)
 printc("# of points inside the sphere:", pin.N())
 
 tmesh = delaunay3D(pin).shrink(0.95)

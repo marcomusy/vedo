@@ -1,9 +1,8 @@
-"""Animated plot showing
-multiple temporal data lines"""
+"""Animated plot showing multiple temporal data lines"""
 # Copyright (c) 2021, Nicolas P. Rougier. License: BSD 2-Clause*
 # Adapted for vedo by M. Musy, February 2021
 import numpy as np
-from vedo import settings, Line, show, interactive
+from vedo import settings, Line, show
 
 settings.defaultFont = "Theemim"
 
@@ -31,12 +30,12 @@ for i in range(50):
         newpts = lines[i].points()
         newpts[:,2] = G * data[i]
         lines[i].points(newpts).cmap('gist_heat_r', newpts[:,2])
-    plt.show()
+    plt.render()
     if plt.escaped: break # if ESC is hit during the loop
     # vd.addFrame()
 # vd.close()
 
-plt.interactive()
+plt.interactive().close()
 
 
 

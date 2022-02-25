@@ -907,7 +907,7 @@ def MeshStreamLines(*inputobj, **options):
         pass # it's already it
     elif tol:
         print('decimating mesh points to use them as seeds...')
-        probes = meshact.clone().clean(tol).points()
+        probes = meshact.clone().subsample(tol).points()
     else:
         probes = meshact.points()
     if len(probes)>500:

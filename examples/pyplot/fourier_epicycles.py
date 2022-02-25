@@ -57,6 +57,8 @@ fourierX = DFT(x)
 fourierY = DFT(y)
 
 vedo.settings.defaultFont = 'Glasgo'
+vedo.settings.allowInteraction = True
+
 plt = vedo.Plotter(size=(1500,750), bg='black', axes=1, interactive=False)
 txt = vedo.Text2D(f"{__doc__} (order={order})", c='red9', bg='white', pos='bottom-center')
 plt.show(shape, txt, mode='image', zoom=1.9)
@@ -68,5 +70,5 @@ for time in times:
     _, y = epicycles(time, np.pi/2, fourierY, order)
     points.append([x, y])
 
-plt.interactive()
+plt.interactive().close()
 

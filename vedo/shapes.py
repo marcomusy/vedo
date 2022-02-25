@@ -43,6 +43,7 @@ __all__ = [
     "Rectangle",
     "Disc",
     "Circle",
+    "GeoCircle",
     "Arc",
     "Star",
     "Star3D",
@@ -1889,6 +1890,26 @@ class Circle(Polygon):
         self.alpha(alpha).c(c)
         self.name = "Circle"
 
+class GeoCircle(Polygon):
+    """
+    Build a Circle of radius `r` as projected on a geographic map.
+    Circles near the poles will look very squashed.
+
+    See example ``vedo -r earthquake``
+    """
+    def __init__(self, lat, lon, r=1, c="red4", alpha=1, res=60):
+        coords = []
+        sinr, cosr = np.sin(r), np.cos(r)
+        sinlat, coslat = np.sin(lat), np.cos(lat)
+        for phi in np.linspace(0, 2*np.pi, num=res, endpoint=False):
+            clat = np.arcsin(sinlat * cosr + coslat * sinr * np.cos(phi))
+            clng = lon + np.arctan2(np.sin(phi) * sinr * coslat, cosr - sinlat * np.sin(clat))
+            coords.append([clng/np.pi + 1, clat*2/np.pi + 1, 0])
+
+        Polygon.__init__(self, nsides=res, c=c, alpha=alpha)
+        self.points(coords)  # warp polygon points to match geo projection
+        self.name = "Circle"
+
 
 class Star(Mesh):
     """
@@ -2882,6 +2903,8 @@ class Text3D(Mesh):
     :param float hspacing: horizontal spacing of the font.
     :param float vspacing: vertical spacing of the font for multiple lines text.
     :param bool literal: if set to True will ignore modifiers like _ or ^
+
+    Type ``vedo -r fonts`` for a demo.
 
     |markpoint| |markpoint.py|_ |fonts.py|_ |caption.py|_
 

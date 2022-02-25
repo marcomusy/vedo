@@ -1,7 +1,6 @@
 """The Lotka-Volterra model where:
 x is the number of preys
-y is the number of predators
-"""
+y is the number of predators"""
 #Credits:
 #http://visual.icse.us.edu.pl/NPB/notebooks/Lotka_Volterra_with_SAGE.html
 #as implemented in K3D_Animations/Lotka-Volterra.ipynb
@@ -37,7 +36,7 @@ curve_points2 = np.vstack([np.zeros(sol2[:,0].shape), sol2[:,0], sol2[:,1]]).T
 curve_points3 = np.vstack([np.zeros(sol3[:,0].shape), sol3[:,0], sol3[:,1]]).T
 
 ########################################################################
-from vedo import *
+from vedo import Plotter, Arrows, Points, Line, Latex
 
 plt = Plotter(bg="blackboard")
 plt += Arrows(origins, origins+vectors, c='lr')
@@ -62,6 +61,8 @@ plt += __doc__
 plt.show(axes={'xtitle':'time',
                'ytitle':'x',
                'ztitle':'y',
-               'zxGrid':True, 'yzGrid':False},
+               'zxGrid':True,
+               'yzGrid':False},
          viewup='x',
-).close()
+)
+plt.close()

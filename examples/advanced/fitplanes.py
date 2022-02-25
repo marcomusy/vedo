@@ -3,7 +3,7 @@ N points that are closest to a given point of the surface."""
 from vedo import *
 
 
-apple = Mesh(dataurl+"apple.ply").subdivide().pointGaussNoise(0.5)
+apple = Mesh(dataurl+"apple.ply").subdivide().addGaussNoise(0.5)
 
 plt = Plotter()
 plt += apple.alpha(0.1)

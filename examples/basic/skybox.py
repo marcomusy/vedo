@@ -11,4 +11,5 @@ msh.c("white").lighting(metallicity=1, roughness=0.05)
 # (more skybox example HDR files at https://polyhaven.com/hdris)
 cubemap_path = download(dataurl+"kloppenheim_06_4k.hdr")
 
-show(msh, __doc__, bg=cubemap_path)
+show(msh, __doc__, bg=cubemap_path).close()
+

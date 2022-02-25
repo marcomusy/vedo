@@ -3,7 +3,7 @@
 # https://github.com/gjbex/training-material/blob/master/Misc/Notebooks/hanoi.ipynb
 # Creative Commons Zero v1.0 Universal licence
 
-from vedo import Plotter, Cylinder, Box, ProgressBar, settings, interactive
+from vedo import Plotter, Cylinder, Box, ProgressBar
 from copy import deepcopy
 
 

@@ -1,4 +1,4 @@
-from vedo import *
+from vedo import Points, Axes, show
 import numpy as np
 
 pts = np.random.randn(2000,3)*[3,2,4]-[1,2,3]
@@ -29,6 +29,6 @@ axs = Axes([vpts1, vpts2],  # build axes for this set of objects
            yLabelRotation=90,
            zInverted=True,
            tipSize=0.25,
-          )
+)
 
 show(vpts1, vpts2, axs, "Customizing Axes", viewup='z').close()

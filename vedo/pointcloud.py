@@ -534,7 +534,7 @@ def fitPlane(points, signed=False):
     xyz_min = points.min(axis=0)
     xyz_max = points.max(axis=0)
     s = np.linalg.norm(xyz_max - xyz_min)
-    pla = vedo.shapes.Plane(datamean, n, s, s)
+    pla = vedo.shapes.Plane(datamean, n, s=[s,s])
     pla.normal = n
     pla.center = datamean
     pla.variance = dd[2]
@@ -1566,29 +1566,50 @@ class Points(vtk.vtkFollower, BaseActor):
             self.alpha(alpha)
         return self
 
+
     def clean(self, tol=None):
         """
-        Clean mesh polydata. Can also be used to decimate a mesh if ``tol`` is large.
-        If ``tol=None`` only removes coincident points.
-
-        :param tol: defines how far should be the points from each other
-            in terms of fraction of the bounding box length.
-
-        |moving_least_squares1D| |moving_least_squares1D.py|_
-
-            |recosurface| |recosurface.py|_
+        Clean pointcloud or mesh by removing coincident points.
         """
-        poly = self._data
         cleanPolyData = vtk.vtkCleanPolyData()
         cleanPolyData.PointMergingOn()
         cleanPolyData.ConvertLinesToPointsOn()
         cleanPolyData.ConvertPolysToLinesOn()
         cleanPolyData.ConvertStripsToPolysOn()
-        cleanPolyData.SetInputData(poly)
-        if tol:
+        cleanPolyData.SetInputData(self._data)
+        if tol: #deprecation message
+            vedo.logger.warning("clean(tol=...), please use subsample(fraction=...)")
             cleanPolyData.SetTolerance(tol)
         cleanPolyData.Update()
         return self._update(cleanPolyData.GetOutput())
+
+    def subsample(self, fraction=0.01):
+        """
+        Subsample a point cloud by requiring that the points
+        or vertices are far apart at least by the specified fraction of the object size.
+        If a Mesh is passed the polygonal faces are not removed
+        but holes can appear where vertices are removed.
+
+        |moving_least_squares1D| |moving_least_squares1D.py|_
+        |recosurface| |recosurface.py|_
+        """
+        if fraction > 1:
+            fraction = 0.99
+        if fraction <= 0:
+            return self
+        cleanPolyData = vtk.vtkCleanPolyData()
+        cleanPolyData.PointMergingOn()
+        cleanPolyData.ConvertLinesToPointsOn()
+        cleanPolyData.ConvertPolysToLinesOn()
+        cleanPolyData.ConvertStripsToPolysOn()
+        cleanPolyData.SetInputData(self._data)
+        if fraction:
+            cleanPolyData.SetTolerance(fraction)
+        cleanPolyData.Update()
+        ps = 2
+        if self.GetProperty().GetRepresentation() == 0:
+            ps = self.GetProperty().GetPointSize()
+        return self._update(cleanPolyData.GetOutput()).ps(ps)
 
 
     def threshold(self, scalars, above=None, below=None, on='points'):
@@ -1670,7 +1691,6 @@ class Points(vtk.vtkFollower, BaseActor):
         qp.Update()
         return self._update(qp.GetOutput()).flat()
 
-
     def averageSize(self):
         """Calculate the average size of a mesh.
         This is the mean of the vertex distances from the center of mass."""
@@ -1682,12 +1702,8 @@ class Points(vtk.vtkFollower, BaseActor):
         cc = coords-cm
         return np.mean(np.linalg.norm(cc, axis=1))
 
-
     def centerOfMass(self):
-        """Get the center of mass of mesh.
-
-        |fatlimb| |fatlimb.py|_
-        """
+        """Get the center of mass of mesh."""
         cmf = vtk.vtkCenterOfMass()
         cmf.SetInputData(self.polydata())
         cmf.Update()
@@ -2884,12 +2900,13 @@ class Points(vtk.vtkFollower, BaseActor):
 
         return self
 
-    def pointGaussNoise(self, sigma):
+    def addGaussNoise(self, sigma=1):
         """
         Add gaussian noise to point positions.
+        An extra array is added named "GaussNoise" with the shifts.
 
         :param float sigma: sigma is expressed in percent of the diagonal size of mesh.
-            Can be a list [sigma_x, sigma_y, sigma_z].
+            Can also be a list [sigma_x, sigma_y, sigma_z].
 
         :Example:
             .. code-block:: python
@@ -3828,7 +3845,7 @@ class Points(vtk.vtkFollower, BaseActor):
         p0,p1 = cpts[0], cpts[-1]
         nj = max(2, int(utils.mag(p1-p0)/density+0.5))
         joinline = vedo.shapes.Line(p1, p0, res=nj)
-        contour = vedo.merge(contour, joinline).clean(0.0001)
+        contour = vedo.merge(contour, joinline).subsample(0.0001)
 
         ####################################### quads
         if quads:

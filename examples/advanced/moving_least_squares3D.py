@@ -14,14 +14,14 @@ a, b, noise = 0.2, 0.4, 1.0  # some random warping parameters and noise level
 
 # generate uniform points on sphere
 # (tol separates points by 1.5% of mesh size)
-ss = Sphere(res=200).clean(tol=0.015)
+ss = Sphere(res=200).subsample(0.015)
 cc = ss.points()
 
 sets, warps = [], []
 for i in range(5):  # generate a time sequence of 5 shapes
     cs = cc + a * i * cc**2 + b * i * cc**3  # warp sphere in weird ways
     # set absolute time of points, and add noise to positions
-    ap = Points(cs).c(i).pointGaussNoise(noise).time(dt*i)
+    ap = Points(cs).c(i).addGaussNoise(noise).time(dt*i)
     sets.append(ap)
     ssc = ss.clone().points(cs).wireframe().c('gray').alpha(.01)
     warps.append(ssc)

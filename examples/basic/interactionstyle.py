@@ -11,7 +11,7 @@ Scene interaction styles. Available styles are:
 print(__doc__)
 from vedo import *
 
-show(Spring(), Cube(), at=[0, 1], shape=(3, 1), interactive=True)
+show(Spring(), Cube(), at=[0, 1], shape=(1, 3)).interactive()
 
 t = Text2D(
     """TrackballCamera is the default
@@ -20,4 +20,4 @@ t = Text2D(
 )
 
 print("..change it to JoystickCamera")
-show(Paraboloid(), t, at=2, mode="JoystickCamera", interactive=True)
+show(Paraboloid(), t, at=2, mode="JoystickCamera").interactive()

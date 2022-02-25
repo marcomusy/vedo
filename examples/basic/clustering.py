@@ -24,4 +24,4 @@ clpts = pts.addClustering(radius=0.1).print()
 clpts.cmap("jet", "ClusterId")
 #print(pts.pointdata["ClusterId"])
 
-show(clpts, __doc__, axes=1, viewup='z', bg='bb').close()
+show(clpts, __doc__, axes=1, viewup='z', bg='blackboard').close()

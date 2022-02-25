@@ -20,4 +20,4 @@ for t in np.arange(0, 3.2, 0.01):
     if plotter.escaped:
         break  # if ESC button is hit during the loop
 
-interactive().close()
+plotter.interactive().close()

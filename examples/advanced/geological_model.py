@@ -1,6 +1,6 @@
 """Recreate a model of a geothermal reservoir, Utah
 (Credits: A. Pollack, SCRF)"""
-from vedo import *
+from vedo import printc, settings, delaunay2D, Line, Lines, Points, Plotter
 import pandas as pd
 
 settings.useDepthPeeling = True

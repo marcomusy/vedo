@@ -7,7 +7,7 @@
 # Adapted for vedo by Marco Musy (2020)
 # -----------------------------------------------------------------------------
 import numpy as np
-from vedo import Grid, Latex, show, interactive, settings
+from vedo import Grid, Latex, show, settings
 
 # ---------------------------------------------------------------
 Nsteps = 300

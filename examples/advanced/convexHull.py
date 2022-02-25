@@ -1,8 +1,8 @@
-"""Create the Convex Hull of
-a Mesh or a set of input points"""
+"""Create the Convex Hull of a Mesh or a set of input points"""
 from vedo import *
 
 settings.defaultFont = 'Bongas'
+settings.useDepthPeeling = True
 
 spid = Mesh(dataurl+"spider.ply").c("brown")
 

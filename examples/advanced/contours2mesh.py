@@ -1,6 +1,5 @@
-"""Form a surface mesh
-by joining countour lines"""
-from vedo import *
+"""Form a surface mesh by joining countour lines"""
+from vedo import Circle, Ribbon, merge, show
 
 cs = []
 for i in range(-10, 10):

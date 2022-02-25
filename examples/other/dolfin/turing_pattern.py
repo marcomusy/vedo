@@ -72,12 +72,13 @@ while t < T:
     t += dt
     w0.vector()[:] = w.vector()
     solver.solve(problem, w.vector())
-    
+
     plot(w.split()[0],
          style=4,
          lw=0,
          scalarbar='h',
-         text='time: '+str(t),
-         interactive=0 )
+         interactive=False,
+    )
+    printc(f'time: {t}')
 
 plot()

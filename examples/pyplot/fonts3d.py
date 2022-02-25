@@ -1,20 +1,44 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from vedo import printc, Text2D, Text3D, show, settings, Line, Plotter, shapes
-from vedo import fonts, fonts_path
+from vedo import printc, Text2D, Text3D, show, Line, Plotter, shapes
+from vedo import fonts, fonts_path, settings
 import numpy as np
 import os
 
+settings.allowInteraction = True
 
 ################################################################################## 2D
-acts2d = []
+inred = Text2D("°monospaced fonts are marked in red", c='r5', pos='bottom-center', font='VictorMono')
+acts2d = [inred]
+
+txt = 'The quick fox jumps over the lazy dog. 1234567890 αβγδεθλμνπστφψω'
 for i, f in enumerate(fonts):
-    t = Text2D(f+': The quick fox jumps over the lazy dog. 1234567890 αβγδεθλμνπστφψω',
-               pos=(.015, 1-(i+3)*.06), font=f, s=1.3, c='k')
+    bg = None
+    if f in ['Calco', 'Glasgo', 'SmartCouric', 'VictorMono']:
+        bg = 'red5'
+    t = Text2D(f'{f}: {txt}', pos=(.015, 1-(i+3)*.06), font=f, s=1.3, c='k', bg=bg)
     acts2d.append(t)
 
-acts2d.append(Text2D("List of Available Fonts", pos='top-center', bg='k', s=1.1))
-plt0 = show(acts2d, bg2='cornsilk', axes=False, zoom=1.2, size=(1200,700), interactive=False)
+acts2d.append(Text2D("List of built-in fonts", pos='top-center', bg='k', s=1.3))
+plt0a = show(acts2d, bg2='cornsilk', size=(1300,800), interactive=False)
+
+## online fonts:
+acts2d = []
+i = 0
+for key, props in sorted(settings.font_parameters.items()):
+    if props['islocal']:
+        continue
+    if key=='Justino2' or key=='Justino3':
+        continue
+    bg = None
+    if props['mono']:
+        bg = 'red5'
+    t = Text2D(f'{key}: {txt}', pos=(.015, 1-(i+1)*.06), font=key, s=1.3, c='k', bg=bg)
+    acts2d.append(t)
+    i+=1
+plt0b = show(acts2d,
+             Text2D("Additional fonts (https://vedo.embl.es/fonts)", pos='top-center', bg='k', s=1.3),
+             bg2='lb', size=(1300,900), pos=(1200,200), new=True,q=1)
 
 
 ################################################################################## 3D
@@ -58,7 +82,7 @@ for i,fnt in enumerate(["Kanopus", "Normografo", "Theemim", "VictorMono"]):
 
 ################################################################################ printout
 for font in fonts:
-    printc(font + " - available characters are:", " "*25, bold=1, invert=1)
+    printc(font + " - available characters:", " "*25, bold=1, invert=1)
     fontfile = os.path.join(fonts_path, font + '.npz')
     font_meshes = np.load(fontfile, allow_pickle=True)['font'][0]
     for k in font_meshes.keys():
@@ -110,4 +134,5 @@ show(fn3d,
     ).close()
 
 plt.close()
-plt0.close()
+plt0b.close()
+plt0a.close()

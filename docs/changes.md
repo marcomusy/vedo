@@ -1,5 +1,6 @@
 ## Main changes
 
+- general cleanup of the examples
 
 ---
 ### `applications.py`

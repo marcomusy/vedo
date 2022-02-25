@@ -41,4 +41,4 @@ for index, data in enumerate(volumes):
                     pos=(sliderstart, sliderstop))
 
 printc("Right click to rotate, use slider to slice along z.", box='-')
-plt.show(interactive=True).close()
+plt.interactive().close()

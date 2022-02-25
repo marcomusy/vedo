@@ -1,6 +1,6 @@
 """Create a Volume from a numpy.mgrid"""
 import numpy as np
-from vedo import *
+from vedo import Volume, Text2D, show
 
 X, Y, Z = np.mgrid[:30, :30, :30]
 # Distance from the center at (15, 15, 15)
