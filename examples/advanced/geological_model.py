@@ -1,6 +1,6 @@
 """Recreate a model of a geothermal reservoir, Utah
 (Credits: A. Pollack, SCRF)"""
-from vedo import printc, settings, delaunay2D, Line, Lines, Points, Plotter
+from vedo import printc, dataurl, settings, delaunay2D, Line, Lines, Points, Plotter
 import pandas as pd
 
 settings.useDepthPeeling = True
@@ -73,7 +73,7 @@ plt += Opal_Mound_Fault_vertices.c("g").opacity(0.6).flag()
 
 # Top Granite, (shift it a bit to avoid overlapping)
 xyz = top_granitoid_verticesPD.values - [0,0,20]
-top_granitoid_vertices = delaunay2D(xyz).texture('paper2')
+top_granitoid_vertices = delaunay2D(xyz).texture(dataurl+'textures/paper2.jpg')
 top_granitoid_vertices.name = "Top of granite surface"
 plt += top_granitoid_vertices.flag()
 
@@ -91,7 +91,8 @@ plt += microseismicPts.flag()
 # I assigned a Z value for where I wanted it to appear
 border["zcoord"] = 1650
 borderxyz = border[["xcoord", "ycoord", "zcoord"]]
-boundary = Line(borderxyz.values).extrude(zshift=120, cap=False).lw(0).texture('wood1')
+boundary = Line(borderxyz.values).extrude(zshift=120, cap=False)
+boundary.lw(0).texture(dataurl+'textures/wood1,jpg')
 boundary.name = "FORGE area boundary"
 plt += boundary.flag()
 

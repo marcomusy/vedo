@@ -164,7 +164,7 @@ Type `vedo -h` for the complete list of options.<br>
 ||||
 |:--------|:--------|:--------|
 | ![bunny](https://user-images.githubusercontent.com/32848391/133623000-8ed0457c-0725-441c-93e1-ea08829e98fb.jpg)  | [![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif)](https://vedo.embl.es/content/vedo/dolfin.html)  | [![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/grayscott.py)  |
-| *Work with volumes, tetrahedral and polygonal meshes.* |   *Interoperability with external libraries like [FEniCs](https://fenicsproject.org/), [trimesh](https://trimsh.org/), [meshio](https://github.com/nschloe/meshio), [pyvista](https://github.com/pyvista/pyvista), and [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab).*   |  *Animations of physical systems (above, a system of reaction-diffusion).* |
+| *Work with volumes, tetrahedral and polygonal meshes.* |   *Interoperability with external libraries like [FEniCs](https://fenicsproject.org/), [trimesh](https://trimsh.org/), and [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab).*   |  *Animations of physical systems (above, a system of reaction-diffusion).* |
 
 Run any of the built-in examples. In a terminal type: `vedo -r earthquake_browser`
 

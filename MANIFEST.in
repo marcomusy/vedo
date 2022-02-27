@@ -1,5 +1,7 @@
+LICENSE
+FONT.LICENSE
+
 include vedo/*
-include vedo/textures/*
 include vedo/fonts/*
 
 include examples/advanced/*

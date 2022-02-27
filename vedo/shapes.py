@@ -2193,7 +2193,7 @@ class Earth(Mesh):
         Mesh.__init__(self, tss, c="w")
         atext = vtk.vtkTexture()
         pnmReader = vtk.vtkJPEGReader()
-        fn = os.path.join(vedo.textures_path, "earth"+ str(style) +".jpg")
+        fn = vedo.io.download(vedo.dataurl + f"textures/earth{style}.jpg", verbose=False)
         pnmReader.SetFileName(fn)
         atext.SetInputConnection(pnmReader.GetOutputPort())
         atext.InterpolateOn()

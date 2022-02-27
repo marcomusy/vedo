@@ -96,7 +96,6 @@ class Mesh(Points):
         Points.__init__(self)
 
         self.line_locator = None
-        self._current_texture_name = ''  # used by plotter._keypress
 
         self._mapper.SetInterpolateScalarsBeforeMapping(vedo.settings.interpolateScalarsBeforeMapping)
 
@@ -436,11 +435,13 @@ class Mesh(Points):
                     pd.GetPointData().SetTCoords(tc)
                     pd.GetPointData().Modified()
 
-            fn = vedo.textures_path + tname + ".jpg"
+            fn = tname + ".jpg"
             if os.path.exists(tname):
                 fn = tname
-            elif not os.path.exists(fn):
-                vedo.logger.error(f"File does not exist or texture {tname} not found in {vedo.textures_path}")
+            elif 'https' in fn:
+                fn = vedo.io.download(tname)
+            else:
+                vedo.logger.error(f"Texture file {tname} does not exist")
                 return self
 
             fnl = fn.lower()

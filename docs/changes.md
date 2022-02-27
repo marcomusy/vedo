@@ -1,6 +1,8 @@
 ## Main changes
 
 - general cleanup of the examples
+- simplified licence file by splitting fonts and general MIT licence
+- `vedo/texture/*` files removed
 
 ---
 ### `applications.py`
@@ -13,6 +15,8 @@
 
 ---
 ### `plotter.py`
+
+- keyword change `show(interactorStyle=...)` -> `show(mode=...)`
 
 ---
 ### `picture.py`

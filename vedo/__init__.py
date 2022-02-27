@@ -112,22 +112,9 @@ plotter_instance = None
 notebook_plotter = None
 notebookBackend  = None
 
-interactorStyle = None  # internal use only
-
-## textures
-textures_path = os.path.join(installdir, "textures/")
-textures = []
-for f in os.listdir(textures_path):
-    tfn = f.split(".")[0]
-    if 'earth' in tfn: continue
-    textures.append(tfn)
-
 ## fonts
 fonts_path = os.path.join(installdir, "fonts/")
-fonts = []
-for f in os.listdir(fonts_path):
-    if '.npz' in f: continue
-    fonts.append(f.split(".")[0])
+fonts = [_f.split(".")[0] for _f in os.listdir(fonts_path) if '.npz' not in _f]
 fonts = list(sorted(fonts))
 
 

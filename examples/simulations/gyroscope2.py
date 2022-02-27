@@ -24,20 +24,20 @@ v = vector(thetadot, phidot, psidot)
 
 # ############################################################ the scene
 settings.allowInteraction = True
-plt = Plotter(axes=0, interactive=0)
+plt = Plotter(interactive=False)
 plt += __doc__
 
 shaft = Cylinder([[0, 0, 0], [Lshaft, 0, 0]], r=0.03, c="dg")
-rotor = Cylinder([[Lshaft / 2.2, 0, 0], [Lshaft / 1.8, 0, 0]], r=R).texture("white").c("ly")
+rotor = Cylinder([[Lshaft / 2.2, 0, 0], [Lshaft / 1.8, 0, 0]], r=R).texture(dataurl+'textures/white.jpg')
 base  = Sphere([0, 0, 0], c="dg", r=0.03)
 tip   = Sphere([Lshaft, 0, 0], c="dg", r=0.03)
 gyro = shaft + rotor + base + tip  # group relevant meshes into single one of type Assembly
 plt += gyro  # add it to Plotter list
 
-pedestal = Box([0, -0.63, 0], height=0.1, length=0.1, width=1).texture("wood1")
-pedbase = Box([0, -1.13, 0], height=0.5, length=0.5, width=0.05).texture("wood1")
-pedpin = Pyramid([0, -0.08, 0], axis=[0, 1, 0], s=0.05, height=0.12).texture("wood1")
-formulas = load(dataurl+"images/gyro_formulas.png").alpha(0.9)
+pedestal = Box([0, -0.63, 0], height=0.1, length=0.1, width=1).texture(dataurl+'textures/wood1.jpg')
+pedbase = Box([0, -1.13, 0], height=0.5, length=0.5, width=0.05).texture(dataurl+'textures/wood1.jpg')
+pedpin = Pyramid([0, -0.08, 0], axis=[0, 1, 0], s=0.05, height=0.12).texture(dataurl+'textures/wood1.jpg')
+formulas = Picture(dataurl+"images/gyro_formulas.png").alpha(0.9)
 formulas.scale(0.0035).pos(-1.4, -1.1, -1.1)
 plt += [pedestal + pedbase + pedpin + formulas]
 

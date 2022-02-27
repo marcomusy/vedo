@@ -8,7 +8,7 @@ from vedo import dataurl, Plotter, Mesh, Video
 # declare the class instance
 plt = Plotter(bg='beige', bg2='lb', axes=10, offscreen=False, interactive=1)
 
-plt += Mesh(dataurl+"spider.ply").texture("leather").rotateX(-90)
+plt += Mesh(dataurl+"spider.ply").rotateX(-90).texture(dataurl+'textures/leather.jpg')
 plt += __doc__
 
 # Open a video file and force it to last 3 seconds in total

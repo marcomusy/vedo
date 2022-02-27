@@ -116,8 +116,7 @@ def show(*actors,
         elevation=0,
         roll=0,
         camera=None,
-        interactorStyle=0,
-        mode=None,
+        mode=0,
         q=False,
         new=False,
         backend=None,
@@ -311,14 +310,12 @@ def show(*actors,
                     roll=roll,
                     camera=camera,
                     interactive=False,
-                    interactorStyle=interactorStyle,
                     mode=mode,
                     bg=bg,
                     bg2=bg2,
                     axes=axes,
                     q=q,
             )
-        plt.interactive = interactive
 
         if interactive or len(at)==N \
             or (isinstance(shape[0],int) and len(at)==shape[0]*shape[1]):
@@ -339,13 +336,13 @@ def show(*actors,
                     roll=roll,
                     camera=camera,
                     interactive=interactive,
-                    interactorStyle=interactorStyle,
                     mode=mode,
                     bg=bg,
                     bg2=bg2,
                     axes=axes,
                     q=q,
         )
+
     return _plt_to_return
 
 
@@ -2253,8 +2250,7 @@ class Plotter:
                     elevation=0,
                     roll=0,
                     camera=None,
-                    interactorStyle=0,
-                    mode=None,
+                    mode=0,
                     rate=None,
                     bg=None,
                     bg2=None,
@@ -2356,9 +2352,6 @@ class Plotter:
 
         if title is not None:
             self.title = title
-
-        if mode is not None: ### interactorStyle will disappear in later releases!
-            interactorStyle = mode
 
         if size is not None:
             self.size = size
@@ -2616,7 +2609,7 @@ class Plotter:
                 sz = np.array([(b[1]-b[0])*0.7, -(b[3]-b[2])*1.0, (b[5]-b[4])*1.2])
                 self.camera.SetPosition(cm+2*sz)
             elif viewup == "2d":
-                interactorStyle = 12
+                mode = 12
 
         if isinstance(camera, dict):
             camera = dict(camera) # make a copy so input is not emptied by pop()
@@ -2658,38 +2651,36 @@ class Plotter:
 
             # Set the style of interaction
             # see https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html
-            if vedo.interactorStyle is not None:
-                interactorStyle = vedo.interactorStyle
-            if interactorStyle == 0 or interactorStyle == "TrackballCamera":
+            if mode == 0 or mode == "TrackballCamera":
                 #csty = self.interactor.GetInteractorStyle().GetCurrentStyle().GetClassName()
                 #if "TrackballCamera" not in csty:
                 # this causes problems (when pressing 3 eg) :
                 if self.qtWidget:
                     self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
                 # pass
-            elif interactorStyle == 1 or interactorStyle == "TrackballActor":
+            elif mode == 1 or mode == "TrackballActor":
                 self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballActor())
-            elif interactorStyle == 2 or interactorStyle == "JoystickCamera":
+            elif mode == 2 or mode == "JoystickCamera":
                 self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleJoystickCamera())
-            elif interactorStyle == 3 or interactorStyle == "JoystickActor":
+            elif mode == 3 or mode == "JoystickActor":
                 self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleJoystickActor())
-            elif interactorStyle == 4 or interactorStyle == "Flight":
+            elif mode == 4 or mode == "Flight":
                 self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleFlight())
-            elif interactorStyle == 5 or interactorStyle == "RubberBand2D":
+            elif mode == 5 or mode == "RubberBand2D":
                 self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBand2D())
-            elif interactorStyle == 6 or interactorStyle == "RubberBand3D":
+            elif mode == 6 or mode == "RubberBand3D":
                 self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBand3D())
-            elif interactorStyle == 7 or interactorStyle == "RubberBandZoom":
+            elif mode == 7 or mode == "RubberBandZoom":
                 self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBandZoom())
-            elif interactorStyle == 8 or interactorStyle == "Context":
+            elif mode == 8 or mode == "Context":
                 self.interactor.SetInteractorStyle(vtk.vtkContextInteractorStyle())
-            elif interactorStyle == 9 or interactorStyle == "3D":
+            elif mode == 9 or mode == "3D":
                 self.interactor.SetInteractorStyle(vtk.vtkInteractorStyle3D())
-            elif interactorStyle ==10 or interactorStyle == "Terrain":
+            elif mode ==10 or mode == "Terrain":
                 self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTerrain())
-            elif interactorStyle ==11 or interactorStyle == "Unicam":
+            elif mode ==11 or mode == "Unicam":
                 self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleUnicam())
-            elif interactorStyle ==12 or interactorStyle == "Image" or interactorStyle == "image":
+            elif mode ==12 or mode == "Image" or mode == "image":
                 astyle = vtk.vtkInteractorStyleImage()
                 astyle.SetInteractionModeToImage3D()
                 self.interactor.SetInteractorStyle(astyle)
@@ -3282,15 +3273,11 @@ class Plotter:
                 self.clickedActor.GetProperty().SetColor(vedo.colors.colors2[(self._icol) % 10])
 
         elif key == "3":
-            if isinstance(self.clickedActor, vedo.Mesh):
-                if self.clickedActor._current_texture_name in vedo.textures:
-                    i = vedo.textures.index(self.clickedActor._current_texture_name)
-                    i = (i+1) % len(vedo.textures)
-                    self.clickedActor.texture(vedo.textures[i])
-                    self.clickedActor._current_texture_name = vedo.textures[i]
-                elif not self.clickedActor._current_texture_name:
-                    self.clickedActor.texture(vedo.textures[0])
-                    self.clickedActor._current_texture_name = vedo.textures[0]
+            bsc = ['b5','cyan5', 'g4', 'o5', 'p5', 'r4', 'teal4', 'yellow4']
+            self._icol += 1
+            if isinstance(self.clickedActor, vedo.Points):
+                self.clickedActor.GetMapper().ScalarVisibilityOff()
+                self.clickedActor.GetProperty().SetColor(vedo.getColor(bsc[(self._icol) % len(bsc)]))
 
         elif key == "4":
             if self.clickedActor:
