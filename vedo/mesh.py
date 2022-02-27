@@ -346,7 +346,7 @@ class Mesh(Points):
 
         return conn # cannot always make a numpy array of it!
 
-    def texture(self, tname='',
+    def texture(self, tname,
                 tcoords=None,
                 interpolate=True,
                 repeat=True,
@@ -355,12 +355,11 @@ class Mesh(Points):
                 ushift=None,
                 vshift=None,
                 seamThreshold=None,
-                ):
+        ):
         """
         Assign a texture to mesh from image file or predefined texture `tname`.
         If tname is set to ``None`` texture is disabled.
-        If tname is set to '' then a png or jpg file is looked for with same name and path.
-        Input tname can also be an array of shape (n,m,3).
+        Input tname can also be an array.
 
         :param bool interpolate: turn on/off linear interpolation of the texture map when rendering.
         :param bool repeat: repeat of the texture when tcoords extend beyond the [0,1] range.
@@ -375,73 +374,39 @@ class Mesh(Points):
             (test values around 1.0, lower values = stronger collapse)
         """
         pd = self.polydata(False)
-        if tname is None:
+
+        if not tname:        # disable texture
             pd.GetPointData().SetTCoords(None)
             pd.GetPointData().Modified()
             return self
-            ###########
-
-        if isinstance(tname, str) and 'https' in tname:
-            tname = vedo.io.download(tname, verbose=False)
-
-        if isSequence(tname):
-            from PIL import Image
-            from tempfile import NamedTemporaryFile
-            tmp_file = NamedTemporaryFile()
-            im = Image.fromarray(tname)
-            im.save(tmp_file.name+".bmp")
-            tname = tmp_file.name+".bmp"
-
-        if tname == '':
-            ext = os.path.basename(str(self.filename)).split('.')[-1]
-            tname = str(self.filename).replace('.'+ext, '.png')
-            if not os.path.isfile(tname):
-                tname = str(self.filename).replace('.'+ext, '.jpg')
-            if not os.path.isfile(tname):
-                vedo.logger.error("in texture() default texture file must be png or jpg")
-                raise RuntimeError()
+        ######################################
 
         if isinstance(tname, vtk.vtkTexture):
             tu = tname
-        else:
-            if tcoords is not None:
-                if not isinstance(tcoords, np.ndarray):
-                    tcoords = np.array(tcoords)
-                if tcoords.ndim != 2:
-                    vedo.logger.error("tcoords must be a 2-dimensional array")
+
+        elif isinstance(tname, vedo.Picture):
+            tu = vtk.vtkTexture()
+            outimg = tname.inputdata()
+
+        elif isSequence(tname):
+            tu = vtk.vtkTexture()
+            outimg = vedo.Picture(tname).inputdata()
+
+        elif isinstance(tname, str):
+            tu = vtk.vtkTexture()
+
+            if 'https://' in tname:
+                try:
+                    tname = vedo.io.download(tname, verbose=False)
+                except:
+                    vedo.logger.error(f"texture {tname} could not be downloaded")
                     return self
-                if tcoords.shape[0] != pd.GetNumberOfPoints():
-                    vedo.logger.error("nr of texture coords must match nr of points")
-                    return self
-                if tcoords.shape[1] != 2:
-                    vedo.logger.error("vector must have 2 components")
-                tarr = numpy2vtk(tcoords)
-                tarr.SetName('TCoordinates')
-                pd.GetPointData().SetTCoords(tarr)
-                pd.GetPointData().Modified()
-            else:
-                if not pd.GetPointData().GetTCoords():
-                    tmapper = vtk.vtkTextureMapToPlane()
-                    tmapper.AutomaticPlaneGenerationOn()
-                    tmapper.SetInputData(pd)
-                    tmapper.Update()
-                    tc = tmapper.GetOutput().GetPointData().GetTCoords()
-                    if scale or ushift or vshift:
-                        ntc = vtk2numpy(tc)
-                        if scale:  ntc *= scale
-                        if ushift: ntc[:,0] += ushift
-                        if vshift: ntc[:,1] += vshift
-                        tc = numpy2vtk(tc)
-                    pd.GetPointData().SetTCoords(tc)
-                    pd.GetPointData().Modified()
 
             fn = tname + ".jpg"
             if os.path.exists(tname):
                 fn = tname
-            elif 'https' in fn:
-                fn = vedo.io.download(tname)
             else:
-                vedo.logger.error(f"Texture file {tname} does not exist")
+                vedo.logger.error(f"texture file {tname} does not exist")
                 return self
 
             fnl = fn.lower()
@@ -452,16 +417,50 @@ class Mesh(Points):
             elif ".bmp" in fnl:
                 reader = vtk.vtkBMPReader()
             else:
-                vedo.logger.error("in texture(): supported files are only PNG, BMP or JPG")
+                vedo.logger.error("in texture() supported files are only PNG, BMP or JPG")
                 return self
             reader.SetFileName(fn)
             reader.Update()
+            outimg = reader.GetOutput()
 
-            tu = vtk.vtkTexture()
-            tu.SetInputData(reader.GetOutput())
-            tu.SetInterpolate(interpolate)
-            tu.SetRepeat(repeat)
-            tu.SetEdgeClamp(edgeClamp)
+        else:
+            vedo.logger.error(f"in texture() cannot understand input {type(tname)}")
+            return self
+
+        if tcoords is not None:
+            tcoords = np.asarray(tcoords)
+            if tcoords.ndim != 2:
+                vedo.logger.error("tcoords must be a 2-dimensional array")
+                return self
+            if tcoords.shape[0] != pd.GetNumberOfPoints():
+                vedo.logger.error("nr of texture coords must match nr of points")
+                return self
+            if tcoords.shape[1] != 2:
+                vedo.logger.error("tcoords texture vector must have 2 components")
+            tarr = numpy2vtk(tcoords)
+            tarr.SetName('TCoordinates')
+            pd.GetPointData().SetTCoords(tarr)
+            pd.GetPointData().Modified()
+
+        elif not pd.GetPointData().GetTCoords():
+            tmapper = vtk.vtkTextureMapToPlane()
+            tmapper.AutomaticPlaneGenerationOn()
+            tmapper.SetInputData(pd)
+            tmapper.Update()
+            tc = tmapper.GetOutput().GetPointData().GetTCoords()
+            if scale or ushift or vshift:
+                ntc = vtk2numpy(tc)
+                if scale:  ntc *= scale
+                if ushift: ntc[:,0] += ushift
+                if vshift: ntc[:,1] += vshift
+                tc = numpy2vtk(tc)
+            pd.GetPointData().SetTCoords(tc)
+            pd.GetPointData().Modified()
+
+        tu.SetInputData(outimg)
+        tu.SetInterpolate(interpolate)
+        tu.SetRepeat(repeat)
+        tu.SetEdgeClamp(edgeClamp)
 
         self.property.SetColor(1, 1, 1)
         self._mapper.ScalarVisibilityOff()

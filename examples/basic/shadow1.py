@@ -1,9 +1,11 @@
 """Make a shadow of 2 meshes on the wall"""
-from vedo import *
+from vedo import dataurl, Mesh, Sphere, show
 
-a = Mesh(dataurl+"spider.ply").texture(dataurl+'textures/leather.jpg')
-a.normalize().rotateZ(-90).addShadow(plane='x', point=-3, alpha=0.5)
+spider = Mesh(dataurl+"spider.ply")
+spider.texture(dataurl+'textures/leather.jpg')
 
-s = Sphere(r=0.3).pos(0.4,0,0.6).addShadow(plane='x', point=-3)
+spider.normalize().rotateZ(-90).addShadow(plane='x', point=-3, alpha=0.5)
 
-show(a, s, __doc__, axes=1, viewup="z").close()
+sphere = Sphere(r=0.3).pos(0.4,0,0.6).addShadow(plane='x', point=-3)
+
+show(spider, sphere, __doc__, axes=1, viewup="z").close()

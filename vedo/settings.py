@@ -420,14 +420,6 @@ _setts.font_parameters = dict(
                         dotsep = "·",
                         islocal = False,
                         ),
-        PlanetBenson = dict(
-                        mono = False,
-                        fscale = 0.8,
-                        hspacing = 0.8,
-                        lspacing = 0.11,
-                        dotsep = "·",
-                        islocal = False,
-                        ),
         Meson = dict(
                         mono = False,
                         fscale = 0.8,

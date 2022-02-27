@@ -33,7 +33,7 @@ for key, props in sorted(settings.font_parameters.items()):
     bg = None
     if props['mono']:
         bg = 'red5'
-    t = Text2D(f'{key}: {txt}', pos=(.015, 1-(i+1)*.06), font=key, s=1.3, c='k', bg=bg)
+    t = Text2D(f'{key}: {txt}', pos=(.015, 1-(i+2)*.06), font=key, s=1.3, c='k', bg=bg)
     acts2d.append(t)
     i+=1
 plt0b = show(acts2d,
