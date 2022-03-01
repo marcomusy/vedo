@@ -1,6 +1,3 @@
-LICENSE
-FONT.LICENSE
-
 include vedo/*
 include vedo/fonts/*
 

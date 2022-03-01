@@ -164,7 +164,7 @@ Type `vedo -h` for the complete list of options.<br>
 ||||
 |:--------|:--------|:--------|
 | ![bunny](https://user-images.githubusercontent.com/32848391/133623000-8ed0457c-0725-441c-93e1-ea08829e98fb.jpg)  | [![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif)](https://vedo.embl.es/content/vedo/dolfin.html)  | [![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/grayscott.py)  |
-| *Work with volumes, tetrahedral and polygonal meshes.* |   *Interoperability with external libraries like [FEniCs](https://fenicsproject.org/), [trimesh](https://trimsh.org/), [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab).*  |  *Animations of physical systems (above, a system of reaction-diffusion).* |
+| *Work with volumes, tetrahedral and polygonal meshes.* |   *Interoperability with many external libraries* |  *Animations of physical systems* |
 
 Run any of the built-in examples. In a terminal type: `vedo -r earthquake_browser`
 
@@ -198,29 +198,50 @@ You can also simply open an issue with the tag "enhancement".
 
 - X. Diego *et al.*:
 *"Key features of Turing systems are determined purely by network topology"*,
-[Physical Review X, 20 June 2018](https://journals.aps.org/prx/abstract/10.1103/PhysRevX.8.021071).
+Phys. Rev. X 8, 021071,
+[DOI](https://journals.aps.org/prx/abstract/10.1103/PhysRevX.8.021071).
 - M. Musy, K. Flaherty *et al.*:
 *"A Quantitative Method for Staging Mouse Limb Embryos based on Limb Morphometry"*,
-Development, 5 April 2018, [doi: 10.1242/dev.154856](http://dev.biologists.org/content/145/7/dev154856).
-- F. Claudi, A. L. Tyson, T. Branco, *"Brainrender. A python based software for visualisation of neuroanatomical and morphological data."*,
- [DOI](https://doi.org/10.1101/2020.02.23.961748).
-- J. S. Bennett, D. Sijacki, *"Resolving shocks and filaments in galaxy formation
-                simulations: effects on gas properties and star formation in the circumgalactic medium"*,
-                Monthly Notices of the Royal Astronomical Society, Vol. 499, Issue 1, Nov. 2020, <a href="https://doi.org/10.1093/mnras/staa2835">DOI</a>.
-- J.D.P. Deshapriya et al., *"Spectral analysis of craters on (101955) Bennu"*. (DOI: 10.1016/j.icarus.2020.114252)
-- A. Pollack et al., *"Stochastic inversion of gravity, magnetic, tracer, lithology, and fault data for geologically realistic structural models: Patua Geothermal Field case study"</i>
-                Geothermics Volume 95, September 2021, [doi: 10.1016/j.geothermics.2021.102129](https://doi.org/10.1016/j.geothermics.2021.102129).
-- X. Lu et al., *"3D electromagnetic modeling of graphitic faults in the Athabasca
- Basin using a finite-volume time-domain approach with unstructured grids"*
-[doi: 10.1190](https://doi.org/10.1190/geo2020-0657.1).
-- M. Deepa Maheshvare *et al.*, *"A Graph-Based Framework for Multiscale Modeling of Physiological Transport"*,
-Front. Netw. Physiol. 1:802881, [doi: 10.3389/fnetp.2021.802881](https://www.frontiersin.org/articles/10.3389/fnetp.2021.802881/full).
-- F. Claudi, T. Branco, *"Differential geometry methods for constructing manifold-targeted recurrent neural networks"*,
- bioRxiv 2021.10.07.463479: [doi](https://doi.org/10.1101/2021.10.07.463479).
+Development (2018) 145 (7): dev154856,
+[DOI](http://dev.biologists.org/content/145/7/dev154856).
+- F. Claudi, A. L. Tyson, T. Branco, *"Brainrender. A python based software for visualisation
+of neuroanatomical and morphological data."*,
+eLife 2021;10:e65751,
+[DOI](https://doi.org/10.7554/eLife.65751).
+- J. S. Bennett, D. Sijacki,
+*"Resolving shocks and filaments in galaxy formation simulations: effects on gas properties and
+star formation in the circumgalactic medium"*,
+Monthly Notices of the Royal Astronomical Society, Volume 499, Issue 1,
+[DOI](https://doi.org/10.1093/mnras/staa2835).
+- J.D.P. Deshapriya *et al.*,
+*"Spectral analysis of craters on (101955) Bennu"*.
+Icarus 2020,
+[DOI](https://doi.org/10.1016/j.icarus.2020.114252).
+- A. Pollack *et al.*,
+*"Stochastic inversion of gravity, magnetic, tracer, lithology, and fault data
+for geologically realistic structural models: Patua Geothermal Field case study"*,
+Geothermics, Volume 95, September 2021,
+[DOI](https://doi.org/10.1016/j.geothermics.2021.102129).
+- X. Lu *et al.*,
+*"3D electromagnetic modeling of graphitic faults in the Athabasca
+ Basin using a finite-volume time-domain approach with unstructured grids"*,
+Geophysics,
+[DOI](https://doi.org/10.1190/geo2020-0657.1).
+- M. Deepa Maheshvare *et al.*,
+*"A Graph-Based Framework for Multiscale Modeling of Physiological Transport"*,
+Front. Netw. Physiol. 1:802881,
+[DOI](https://www.frontiersin.org/articles/10.3389/fnetp.2021.802881/full).
+- F. Claudi, T. Branco,
+*"Differential geometry methods for constructing manifold-targeted recurrent neural networks"*,
+bioRxiv 2021.10.07.463479,
+[DOI](https://doi.org/10.1101/2021.10.07.463479).
 - J. Klatzow, G. Dalmasso, N. Martínez-Abadías, J. Sharpe, V. Uhlmann,
-                *"µMatch: 3D shape correspondence for microscopy data"*, in preparation.
+*"µMatch: 3D shape correspondence for microscopy data"*,
+Front. Comput. Sci., 15 February 2022.
+[DOI](https://doi.org/10.3389/fcomp.2022.777615)
 - G. Dalmasso *et al.*, *"4D reconstruction of developmental trajectories using spherical harmonics"*,
-bioRxiv 2021.12.16.472948: [doi](https://doi.org/10.1101/2021.12.16.472948).
+bioRxiv 2021.12.16.472948,
+[DOI](https://doi.org/10.1101/2021.12.16.472948).
 
 **Have you found this software useful for your research? Star ✨ the project and cite it as:**
 
