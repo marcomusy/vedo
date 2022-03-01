@@ -6,13 +6,14 @@ from vedo import Grid, Text2D, show
 
 N = 400      # grid resolution
 A, B = 5, 4  # box sides
-end = 5
+end = 5      # end time
 nframes = 150
 
 X, Y = np.mgrid[-A:A:N*1j, -B:B:N*1j]
 dx = X[1,0] - X[0,0]
 dt = 0.1 * dx
 time = np.arange(0, end, dt)
+m = int(len(time)/nframes)
 
 # initial condition (a ring-like wave)
 Z0 = np.ones_like(X)
@@ -31,13 +32,12 @@ cam = dict(
     distance=17.40,
 )
 plt = show(grid, txt, __doc__,
-           camera=cam, axes=1, size=(1000,700), interactive=False
+           camera=cam, axes=1, size=(1000,700), interactive=False,
 )
 
 for i in range(nframes):
-
-    n = int(len(time)/nframes)
-    for _ in range(n):
+    # iterate m times before showing the frame
+    for _ in range(m):
         ZC = Z1.copy()
         Z1[1:N-1, 1:N-1] = (
             2*Z1[1:N-1, 1:N-1]
@@ -53,7 +53,7 @@ for i in range(nframes):
 
     wave = Z1.ravel()
     txt.text(f"frame: {i}/{nframes}, higth_max = {wave.max()}")
-    grid.cmap("Blues", wave, vmin=-1.5, vmax=1.5)
+    grid.cmap("Blues", wave, vmin=-2, vmax=2)
     newpts = grid.points()
     newpts[:,2] = wave
     grid.points(newpts)  # update the z component
