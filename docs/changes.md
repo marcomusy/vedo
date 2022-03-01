@@ -46,7 +46,7 @@
 
 ## New/Revised examples:
 `examples/basic/mousehover2.py`
-
+`examples/simulations/wave_equation2d.py`
 
 
 
