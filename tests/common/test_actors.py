@@ -1,4 +1,4 @@
-from vedo import Cone, Sphere, merge, Volume
+from vedo import Cone, Sphere, merge, Volume, dataurl
 import numpy as np
 import vtk
 
@@ -168,7 +168,7 @@ assert np.array(sphere.faces()).shape == (2112, 3)
 
 
 ###################################### texture
-st = sphere.clone().texture('wood2')
+st = sphere.clone().texture(dataurl+'textures/wood2.jpg')
 print('texture test')
 assert isinstance(st.GetTexture(), vtk.vtkTexture)
 

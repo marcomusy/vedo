@@ -216,7 +216,7 @@ Development, 5 April 2018, [doi: 10.1242/dev.154856](http://dev.biologists.org/c
 - M. Deepa Maheshvare *et al.*, *"A Graph-Based Framework for Multiscale Modeling of Physiological Transport"*,
 Front. Netw. Physiol. 1:802881, [doi: 10.3389/fnetp.2021.802881](https://www.frontiersin.org/articles/10.3389/fnetp.2021.802881/full).
 - F. Claudi, T. Branco, *"Differential geometry methods for constructing manifold-targeted recurrent neural networks"*,
- bioRxiv 2021.10.07.463479: [doi](doi: https://doi.org/10.1101/2021.10.07.463479).
+ bioRxiv 2021.10.07.463479: [doi](https://doi.org/10.1101/2021.10.07.463479).
 - J. Klatzow, G. Dalmasso, N. Martínez-Abadías, J. Sharpe, V. Uhlmann,
                 *"µMatch: 3D shape correspondence for microscopy data"*, in preparation.
 - G. Dalmasso *et al.*, *"4D reconstruction of developmental trajectories using spherical harmonics"*,
