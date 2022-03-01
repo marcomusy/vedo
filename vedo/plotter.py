@@ -1025,6 +1025,9 @@ class Plotter:
         if resetcam:
             self.renderer.ResetCamera()
 
+        if settings.allowInteraction:
+            self.allowInteraction()
+
         self.window.Render()
 
         if at is not None: # re-enable all that were disabled

@@ -2352,6 +2352,11 @@ class Grid(Mesh):
             sqrtx = sqrt(xcoords)
             grid = Grid(s=(sqrtx, ycoords))
             grid.show(axes=8)
+
+            # can also create a grid from np.mgrid:
+            X, Y = np.mgrid[-12:12:1000*1j, 0:15:1000*1j]
+            vgrid = Grid(s=(X[:,0], Y[0]))
+            vgrid.show(axes=8)
     """
     def __init__(self,
                 pos=(0, 0, 0),

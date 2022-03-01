@@ -73,7 +73,7 @@ class ProgressBar:
                  width=25,
                  char=u"\U00002501",
                  char_back=u"\U00002500",
-                 ):
+        ):
 
         char_arrow = ""
         if sys.version_info[0]<3:
