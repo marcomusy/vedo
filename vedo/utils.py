@@ -100,7 +100,8 @@ class ProgressBar:
         self.width = width
         self.char = char
         self.bar = ""
-        self.percent = 0
+        self.percent = 0.stop
+        self.percent_int = 0
         self.ETA = ETA
         self.clock0 = time.time()
         self._remt = 1e10
@@ -160,7 +161,7 @@ class ProgressBar:
             vedo.printc(s, c=c, bold=self.bold, italic=self.italic, end="")
             sys.stdout.flush()
 
-            if self.percent == 100:
+            if self.percent == 100.:
                 print("")
             self._lentxt = len(txt)
 
@@ -178,20 +179,20 @@ class ProgressBar:
         elif counts > self.stop:
             counts = self.stop
         self._counts = counts
-        self.percent = (self._counts - self.start) * 100
+        self.percent = (self._counts - self.start) * 100.
         dd = self.stop - self.start
         if dd:
             self.percent /= self.stop - self.start
         else:
-            self.percent = 0
-        self.percent = int(round(self.percent))
+            self.percent = 0.
+        self.percent_int = int(round(self.percent))
         af = self.width - 2
-        nh = int(round(self.percent / 100 * af))
+        nh = int(round(self.percent_int / 100 * af))
         br_bk = "\x1b[2m"+self.char_back*(af-nh)
         br = "%s%s%s" % (self.char*(nh-1), self.char_arrow, br_bk)
         self.bar = self.title + self.char0 + br + self.char1
-        if self.percent < 100:
-            ps = " " + str(self.percent) + "%"
+        if self.percent < 100.:
+            ps = " " + str(self.percent_int) + "%"
         else:
             ps = ""
         self.bar += ps
