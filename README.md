@@ -164,7 +164,7 @@ Type `vedo -h` for the complete list of options.<br>
 ||||
 |:--------|:--------|:--------|
 | ![bunny](https://user-images.githubusercontent.com/32848391/133623000-8ed0457c-0725-441c-93e1-ea08829e98fb.jpg)  | [![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif)](https://vedo.embl.es/content/vedo/dolfin.html)  | [![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/grayscott.py)  |
-| *Work with volumes, tetrahedral and polygonal meshes.* |   *Interoperability with external libraries like [FEniCs](https://fenicsproject.org/), [trimesh](https://trimsh.org/), and [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab).*   |  *Animations of physical systems (above, a system of reaction-diffusion).* |
+| *Work with volumes, tetrahedral and polygonal meshes.* |   *Interoperability with external libraries like [FEniCs](https://fenicsproject.org/), [trimesh](https://trimsh.org/), [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab).*  |  *Animations of physical systems (above, a system of reaction-diffusion).* |
 
 Run any of the built-in examples. In a terminal type: `vedo -r earthquake_browser`
 
@@ -215,6 +215,8 @@ Development, 5 April 2018, [doi: 10.1242/dev.154856](http://dev.biologists.org/c
 [doi: 10.1190](https://doi.org/10.1190/geo2020-0657.1).
 - M. Deepa Maheshvare *et al.*, *"A Graph-Based Framework for Multiscale Modeling of Physiological Transport"*,
 Front. Netw. Physiol. 1:802881, [doi: 10.3389/fnetp.2021.802881](https://www.frontiersin.org/articles/10.3389/fnetp.2021.802881/full).
+- F. Claudi, T. Branco, *"Differential geometry methods for constructing manifold-targeted recurrent neural networks"*,
+ bioRxiv 2021.10.07.463479: [doi](doi: https://doi.org/10.1101/2021.10.07.463479).
 - J. Klatzow, G. Dalmasso, N. Martínez-Abadías, J. Sharpe, V. Uhlmann,
                 *"µMatch: 3D shape correspondence for microscopy data"*, in preparation.
 - G. Dalmasso *et al.*, *"4D reconstruction of developmental trajectories using spherical harmonics"*,

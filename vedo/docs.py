@@ -42,6 +42,7 @@ def tips():
     msg += "|        n     show surface mesh normals                   |\n"
     msg += "|        a     toggle interaction to Actor Mode            |\n"
     msg += "|        j     toggle interaction to Joystick Mode         |\n"
+    msg += "|        u     toggle perspective/parallel projection      |\n"
     msg += "|        r     reset camera position                       |\n"
     msg += "|        C     print current camera settings               |\n"
     msg += "|        S     save a screenshot                           |\n"

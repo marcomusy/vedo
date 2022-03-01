@@ -169,6 +169,7 @@ def plot(*args, **kwargs):
     :param str ytitle: title label along y-axis.
     :param str title: histogram title on top.
     :param float titleSize: size of title
+    :param float titleColor: color of title
     :param str ec: color of error bar, by default the same as marker color
     :param str lc: color of line
     :param float la: transparency of line
@@ -641,6 +642,7 @@ def _plotxy(
     xtitle="x",
     ytitle="y",
     titleSize=None,
+    titleColor=None,
     c="k",
     alpha=1,
     ec=None,
@@ -833,10 +835,12 @@ def _plotxy(
     if title:
         if titleSize is None:
             titleSize = dx / 40.0
+        if titleColor is None:
+            titleColor = c
         tit = shapes.Text3D(
             title,
             s=titleSize,
-            c=c,
+            c=titleColor,
             depth=0,
             alpha=alpha,
             pos=((x0lim + x1lim) / 2, y1lim + (y1lim-y0lim) / 80, 0),

@@ -3136,6 +3136,12 @@ class Plotter:
                     except AttributeError:
                         pass
 
+        elif key == "u":
+            pval = self.renderer.GetActiveCamera().GetParallelProjection()
+            self.renderer.GetActiveCamera().SetParallelProjection(not pval)
+            if pval:
+                self.renderer.ResetCamera()
+
         elif key == "p":
             if self.clickedActor in self.getMeshes():
                 acts = [self.clickedActor]

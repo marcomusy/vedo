@@ -1004,8 +1004,11 @@ def printInfo(obj):
         vedo.printc(" z=(" + bz1 + ", " + bz2 + ")", c="g", bold=0)
 
         if hasattr(actor, "picked3d") and actor.picked3d is not None:
+            idpt   = actor.closestPoint(actor.picked3d, returnPointId=True)
+            idcell = actor.closestPoint(actor.picked3d, returnCellId=True)
             vedo.printc(tab + "  clicked point: ", c="g", bold=1, end="")
-            vedo.printc(vector(actor.picked3d), c="g", bold=0)
+            vedo.printc(precision(actor.picked3d, 6),
+                        f'pointID = {idpt}, cellID = {idcell}', c="g", bold=0)
 
         ptdata = poly.GetPointData()
         cldata = poly.GetCellData()
