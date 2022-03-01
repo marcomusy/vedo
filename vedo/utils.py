@@ -100,7 +100,7 @@ class ProgressBar:
         self.width = width
         self.char = char
         self.bar = ""
-        self.percent = 0.stop
+        self.percent = 0.
         self.percent_int = 0
         self.ETA = ETA
         self.clock0 = time.time()
