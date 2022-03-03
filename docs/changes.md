@@ -20,11 +20,13 @@
 
 ---
 ### `mesh.py`
+- can now recover the edges of a mesh with `mymesh.edges()`
 
 ---
 ### `plotter.py`
 
 - keyword change `show(interactorStyle=...)` -> `show(mode=...)`
+- added function `vedo.close()` to close the latest Plotter
 
 ---
 ### `picture.py`

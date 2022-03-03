@@ -19,6 +19,7 @@ __all__ = [
         "show",
         "clear",
         "interactive",
+        "close",
 ]
 
 
@@ -356,7 +357,6 @@ def interactive():
                 vedo.plotter_instance.interactor.Start()
     return vedo.plotter_instance
 
-
 def clear(actor=None, at=None):
     """
     Clear specific actor or list of actors from the current rendering window.
@@ -366,6 +366,13 @@ def clear(actor=None, at=None):
         return
     vedo.plotter_instance.clear(actor, at)
     return vedo.plotter_instance
+
+def close():
+    """Close the last created Plotter instance if it exists."""
+    if not vedo.plotter_instance:
+        return
+    vedo.plotter_instance.close()
+    return
 
 
 ########################################################################
@@ -2481,34 +2488,6 @@ class Plotter:
             for r in self.renderers:
                 r.SetActiveCamera(self.camera)
 
-        # if at is None and len(self.renderers) > 1:
-        #     # in case of multiple renderers a call to show w/o specifying
-        #     # at which renderer will just render the whole thing and return
-        #     if self.interactor:
-        #         if zoom:
-        #             for r in self.renderers:
-        #                 if zoom == 'tight':
-        #                     self.resetCamera(xypad=0.01)
-        #                 else:
-        #                     r.GetActiveCamera().Zoom(zoom)
-        #         self.window.Render()
-        #         self.window.SetWindowName(self.title)
-        #         if self._interactive:
-        #             self.interactor.Start()
-        #         return self ##############################
-
-        # if at is None:
-        #     at = 0
-
-        # if at < len(self.renderers):
-        #     self.renderer = self.renderers[at]
-        # else:
-        #     if vedo.notebookBackend:
-        #         vedo.logger.error("in show(), multiple renderings not supported in notebooks.")
-        #     else:
-        #         vedo.logger.error(f"in show(), wrong renderer index {at}")
-        #     return self
-
         if self.qtWidget is not None:
             self.qtWidget.GetRenderWindow().AddRenderer(self.renderer)
 
@@ -2552,10 +2531,9 @@ class Plotter:
                 if (hasattr(ia, 'flagText')
                     and self.interactor
                     and not self.offscreen
-                    and not (vedo.vtk_version[0] == 9 and "Linux" in vedo.sys_platform)
+                    and not (vedo.vtk_version[0] == 9 and "Linux" in vedo.sys_platform)  # Linux vtk9 is bugged
                     ):
                     #check balloons
-                    # Linux vtk9 is bugged
                     if ia.flagText:
                         if not self.flagWidget: # Create widget on the fly
                             self._flagRep = vtk.vtkBalloonRepresentation()
@@ -2694,7 +2672,6 @@ class Plotter:
                 # this causes problems (when pressing 3 eg) :
                 if self.qtWidget:
                     self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
-                # pass
             elif mode == 1 or mode == "TrackballActor":
                 self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballActor())
             elif mode == 2 or mode == "JoystickCamera":
