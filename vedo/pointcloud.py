@@ -826,14 +826,22 @@ class Points(vtk.vtkFollower, BaseActor):
     Build a ``Mesh`` made of only vertex points for a list of 2D/3D points.
     Both shapes (N, 3) or (3, N) are accepted as input, if N>3.
     For very large point clouds a list of colors and alpha can be assigned to each
-    point in the form `c=[(R,G,B,A), ... ]` where `0 <= R < 256, ... 0 <= A < 256`.
+    point in the form c=[(R,G,B,A), ... ] where 0<=R<256, ... 0<=A<256.
 
-    :param float r: point radius.
-    :param c: color name, number, or list of [R,G,B] colors of same length as plist.
-    :type c: int, str, list
-    :param float alpha: transparency in range [0,1].
+    Parameters
+    ----------
+    inputobj : list, tuple, optional
+        The default is None.
+    c : str, list, optional
+        Color. The default is (0.2,0.2,0.2).
+    alpha : float, optional
+        Transparency in range [0,1]. The default is 1.
+    r : int, optional
+        Point radius in units of pixels. The default is 4.
 
-    Example:
+    Example
+    -------
+
         .. code-block:: python
 
             import numpy as np
@@ -850,16 +858,18 @@ class Points(vtk.vtkFollower, BaseActor):
 
             Points(fibonacci_sphere(1000)).show(axes=1)
 
-    |manypoints.py|_ |lorenz.py|_
-    |lorenz|
+    More Examples
+    -------------
+        manypoints.py, lorenz.py
     """
-    def __init__(
-        self,
-        inputobj=None,
-        c=(0.2,0.2,0.2),
-        alpha=1,
-        r=4,
-    ):
+    # .. note:: add some note here
+    #   and on other line
+    def __init__(self,
+                 inputobj=None,
+                 c=(0.2,0.2,0.2),
+                 alpha=1,
+                 r=4,
+        ):
         vtk.vtkActor.__init__(self)
         BaseActor.__init__(self)
 
@@ -1015,7 +1025,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
     ##################################################################################
     def _update(self, polydata):
-        """Overwrite the polygonal mesh with a new vtkPolyData."""
+        # Overwrite the polygonal mesh with a new vtkPolyData
         self._data = polydata
         self._mapper.SetInputData(polydata)
         self._mapper.Modified()
@@ -1040,8 +1050,8 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         Returns the ``vtkPolyData`` object of a ``Mesh``.
 
-        .. note:: If ``transformed=True`` returns a copy of polydata that corresponds
-            to the current mesh's position in space.
+        .. note:: If ``transformed=True`` return a copy of polydata that corresponds
+            to the current mesh position in space.
         """
         if not self._data:
             self._data = self._mapper.GetInput()
@@ -1583,7 +1593,7 @@ class Points(vtk.vtkFollower, BaseActor):
         cleanPolyData.Update()
         return self._update(cleanPolyData.GetOutput())
 
-    def subsample(self, fraction=0.01):
+    def subsample(self, fraction):
         """
         Subsample a point cloud by requiring that the points
         or vertices are far apart at least by the specified fraction of the object size.
@@ -1594,7 +1604,7 @@ class Points(vtk.vtkFollower, BaseActor):
         |recosurface| |recosurface.py|_
         """
         if fraction > 1:
-            fraction = 0.99
+            vedo.logger.warning(f"subsample(fraction=...), fraction must be < 1, but is {fraction}")
         if fraction <= 0:
             return self
         cleanPolyData = vtk.vtkCleanPolyData()
@@ -1603,8 +1613,7 @@ class Points(vtk.vtkFollower, BaseActor):
         cleanPolyData.ConvertPolysToLinesOn()
         cleanPolyData.ConvertStripsToPolysOn()
         cleanPolyData.SetInputData(self._data)
-        if fraction:
-            cleanPolyData.SetTolerance(fraction)
+        cleanPolyData.SetTolerance(fraction)
         cleanPolyData.Update()
         ps = 2
         if self.GetProperty().GetRepresentation() == 0:
@@ -1673,9 +1682,9 @@ class Points(vtk.vtkFollower, BaseActor):
         return self._update(gf.GetOutput())
 
 
-    def quantize(self, binSize):
+    def quantize(self, value):
         """
-        The user should input binSize and all {x,y,z} coordinates
+        The user should input a value and all {x,y,z} coordinates
         will be quantized to that absolute grain size.
 
         Example:
@@ -1687,14 +1696,15 @@ class Points(vtk.vtkFollower, BaseActor):
         poly = self._data
         qp = vtk.vtkQuantizePolyDataPoints()
         qp.SetInputData(poly)
-        qp.SetQFactor(binSize)
+        qp.SetQFactor(value)
         qp.Update()
         return self._update(qp.GetOutput()).flat()
 
     def averageSize(self):
-        """Calculate the average size of a mesh.
-        This is the mean of the vertex distances from the center of mass."""
-        # cm = self.centerOfMass()
+        """
+        Calculate the average size of a mesh.
+        This is the mean of the vertex distances from the center of mass.
+        """
         coords = self.points()
         cm = np.mean(coords, axis=0)
         if not len(coords):
@@ -1903,7 +1913,7 @@ class Points(vtk.vtkFollower, BaseActor):
         return ids
 
     def legend(self, txt):
-        """Generate legend text.
+        """Book a legend text.
 
         :param str txt: legend text.
 
@@ -1913,17 +1923,17 @@ class Points(vtk.vtkFollower, BaseActor):
         return self
 
     def vignette(self,
-        txt=None,
-        point=None,
-        offset=None,
-        s=None,
-        font="",
-        rounded=True,
-        c=None,
-        alpha=1,
-        lw=2,
-        italic=0,
-    ):
+                 txt=None,
+                 point=None,
+                 offset=None,
+                 s=None,
+                 font="",
+                 rounded=True,
+                 c=None,
+                 alpha=1,
+                 lw=2,
+                 italic=0,
+        ):
         """
         Generate and return a vignette to describe an object.
         Returns a ``Mesh`` object.
@@ -2402,9 +2412,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
 
     def normalize(self):
-        """
-        Scale Mesh average size to unit.
-        """
+        """Scale Mesh average size to unit."""
         coords = self.points()
         if not len(coords):
             return self
@@ -2470,9 +2478,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
 
     def shear(self, x=0, y=0, z=0):
-        """
-        Apply a shear deformation to the Mesh along one of the main axes.
-        """
+        """Apply a shear deformation along one of the main axes"""
         t = vtk.vtkTransform()
         sx, sy, sz = self.GetScale()
         t.SetMatrix([sx, x, 0, 0,
@@ -2484,9 +2490,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
 
     def flipNormals(self):
-        """
-        Flip all mesh normals. Same as `mesh.mirror('n')`.
-        """
+        """Flip all mesh normals. Same as `mesh.mirror('n')`."""
         rs = vtk.vtkReverseSense()
         rs.SetInputData(self._data)
         rs.ReverseCellsOff()
@@ -2817,9 +2821,12 @@ class Points(vtk.vtkFollower, BaseActor):
         :param int nullStrategy: specify a strategy to use when encountering a "null" point
             during the interpolation process. Null points occur when the local neighborhood
             (of nearby points to interpolate from) is empty.
+
             Case 0: an output array is created that marks points
             as being valid (=1) or null (invalid =0), and the nullValue is set as well
+
             Case 1: the output data value(s) are set to the provided nullValue
+
             Case 2: simply use the closest point to perform the interpolation.
 
         :param float nullValue: see above.
@@ -2949,10 +2956,7 @@ class Points(vtk.vtkFollower, BaseActor):
             |align1| |quadratic_morphing|
 
         .. note:: The appropriate tree search locator is built on the
-            fly and cached for speed. If the object is displaced/rotated you must
-            trigger a rebuild by setting
-            ``obj.point_locator=None`` or
-            ``obj.cell_locator=None``.
+            fly and cached for speed.
         """
         #NB: every time the mesh moves or is warped the locateors are set to None
         if (N > 1 or radius) or (N==1 and returnPointId):
@@ -3509,9 +3513,9 @@ class Points(vtk.vtkFollower, BaseActor):
 
         return self
 
-    def cutWithLine(self, points, invert=False):
+    def cutWithLine(self, points, invert=False, closed=True):
         """
-        Cut the current mesh with a line vertically in the z-axis direction.
+        Cut the current mesh with a line vertically in the z-axis direction like a cookie cutter.
         The polyline is defined by a set of points (z-coordinates are ignored).
         This is much faster than ``cutWithMesh()``.
 
@@ -3520,7 +3524,12 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         pplane = vtk.vtkPolyPlane()
         if isinstance(points, Points):
-            points = points.points()
+            points = points.points().tolist()
+
+        if closed:
+            if isinstance(points, np.ndarray):
+                points = points.tolist()
+            points.append(points[0])
 
         vpoints = vtk.vtkPoints()
         for p in points:

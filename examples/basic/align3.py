@@ -21,5 +21,6 @@ aligned = procrustesAlignment([vpts1, vpts2, vpts3])
 #print([aligned.transform])
 
 plt = Plotter(shape=[1,2], axes=2, sharecam=False)
-plt.show(vpts1, vpts2, vpts3, __doc__, at=0)
-plt.show(aligned, at=1).interactive().close()
+plt.at(0).show(vpts1, vpts2, vpts3, __doc__)
+plt.at(1).show(aligned)
+plt.interactive().close()

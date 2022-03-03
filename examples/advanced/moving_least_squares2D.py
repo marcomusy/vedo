@@ -17,16 +17,16 @@ pts += np.random.randn(len(pts), 3)/20  # add noise, will not mess up the origin
 #################################### smooth cloud with MLS
 # build the mesh points
 s0 = Points(pts, r=3).color("blue")
-plt1.show(s0, "original point cloud + noise", at=0)
+plt1.at(0).show(s0, "original point cloud + noise")
 
 # project s1 points into a smooth surface of points
 # The parameter f controls the size of the local regression.
 mls1 = s0.clone().smoothMLS2D(f=0.5)
-plt1.show(mls1, "MLS first pass, f=0.5", at=1)
+plt1.at(1).show(mls1, "MLS first pass, f=0.5")
 
 # mls1 is an Assembly so unpack it to get the first object it contains
 mls2 = mls1.clone().smoothMLS2D(radius=0.1)
-plt1.show(mls2, "MLS second pass, radius=0.1", at=2)
+plt1.at(2).show(mls2, "MLS second pass, radius=0.1")
 
 
 #################################### draw errors
@@ -42,6 +42,7 @@ sp1 = Spheres(mls2.points(), c="red", r=variances/4) # error as point size
 
 mesh.color("k").alpha(0.05).wireframe()
 
-plt2.show(sp0, "Use color to represent variance", at=0)
-plt2.show(sp1, "point size to represent variance", at=1, zoom=1.3, interactive=1).close()
+plt2.at(0).show(sp0, "Use color to represent variance")
+plt2.at(1).show(sp1, "point size to represent variance", zoom=1.3, interactive=True)
+plt2.close()
 plt1.close()

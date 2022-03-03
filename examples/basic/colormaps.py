@@ -28,6 +28,6 @@ plt = Plotter(N=len(maps))
 
 for i, key in enumerate(maps):  # for each available color map name
     imug = mug.clone(deep=False).cmap(key, scalars, n=5)
-    plt.show(imug, key, at=i)
+    plt.at(i).show(imug, key)
 
-plt.show().interactive().close()
+plt.interactive().close()

@@ -1,6 +1,6 @@
 # Scatter plot of a gaussian distribution
 # with varying color and point sizes
-from vedo import Text2D, show
+from vedo import Text2D, Plotter
 from vedo.pyplot import plot
 import numpy as np
 
@@ -36,6 +36,8 @@ plt2 = plot(x, y, ma=0.3, lw=0,
             mc=marker_cols,            # VARIABLE marker colors
 )
 
-show(plt0, txt0, at=0, N=3, size=(1800,500))
-show(plt1, txt1, at=1)
-show(plt2, txt2, at=2).interactive().close()
+plotter = Plotter(N=3, size=(1800,500))
+plotter.at(0).show(plt0, txt0)
+plotter.at(1).show(plt1, txt1)
+plotter.at(2).show(plt2, txt2, zoom=1.2)
+plotter.interactive().close()

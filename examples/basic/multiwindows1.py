@@ -22,11 +22,11 @@ c = plt1.load(dataurl+"porsche.ply")
 
 # show a Text2D in each renderer
 for i in range(25):
-    plt1.show("renderer\nnr."+str(i), at=i)
+    plt1.at(i).show(f"renderer\nnr.{i}")
 
-plt1.show(a, at= 6)
-plt1.show(b, at=23)
-plt1.show(c, at=24)
+plt1.at( 6).show(a)
+plt1.at(23).show(b)
+plt1.at(24).show(c)
 
 
 ##########################################################################
@@ -44,7 +44,7 @@ plt2 = Plotter(pos=(500, 250), shape='2/6')
 
 for i in range(len(plt2.renderers)):
     s2 = s.clone(deep=False).color(i)
-    plt2.show(s2, 'renderer #'+str(i), at=i)
+    plt2.at(i).show(s2, f'renderer #{i}')
 
 plt2.interactive()
 plt2.close()

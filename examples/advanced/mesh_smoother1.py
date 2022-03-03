@@ -9,8 +9,10 @@ m0 = vol.isosurface().normalize().lw(0.1).c("violet")
 # Smooth the mesh
 m1 = m0.clone().smooth(niter=20).color("lg")
 
-plt.show(m0, "Original Mesh:", at=0)
-plt.background('light blue', at=0)  # set first renderer color
+plt.at(0).show(m0, "Original Mesh:")
+plt.background('light blue')  # set first renderer color
 
-plt.show("Mesh polygons are smoothed:", m1,
-         at=1, viewup='z', zoom=1.5).interactive().close()
+plt.at(1).show(
+    "Mesh polygons are smoothed:", m1,
+    viewup='z', zoom=1.5)
+plt.interactive().close()

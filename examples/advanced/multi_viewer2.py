@@ -1,4 +1,4 @@
-from vedo import *
+from vedo import settings, Plotter, ParametricShape, VedoLogo, Text2D
 
 settings.rendererFrameWidth = 1
 
@@ -6,7 +6,7 @@ settings.rendererFrameWidth = 1
 def onLeftClick(evt):
     if not evt.actor: return
     shapename.text(f'This is called: {evt.actor.name}, on renderer nr.{evt.at}')
-    plt.remove(actsonshow, at=1).add(evt.actor, at=1, resetcam=True)
+    plt.at(1).remove(actsonshow).add(evt.actor, resetcam=True)
     actsonshow.clear()
     actsonshow.append(evt.actor)
 
@@ -32,7 +32,7 @@ plt.addCallback("when i click my mouse button please call", onLeftClick)
 for i in range(2,9):
     ps = ParametricShape(i).color(i)
     pname = Text2D(ps.name, c='k', bg='blue', s=0.7, font='Calco')
-    plt.show(ps, pname, at=i)
+    plt.at(i).show(ps, pname)
 
 shapename = Text2D(pos='top-center', c='r', bg='y', font='Calco') # empty text
 
@@ -43,8 +43,9 @@ title = "My Multi Viewer 1.0"
 instr = "Click on the left panel to select a shape\n"
 instr+= "Press h to print the full list of options"
 
-plt.show(vlogo, shapename,
-         Text2D(title, pos=(0.5,0.85), s=2.5, c='dg', font='Kanopus', justify='center'),
-         Text2D(instr, bg='g', pos=(0.5,0.05), s=1.2, font='Quikhand', justify='center'),
-         at=1, interactive=True,
-).close()
+plt.at(1).show(
+    vlogo, shapename,
+    Text2D(title, pos=(0.5,0.85), s=2.5, c='dg', font='Kanopus', justify='center'),
+    Text2D(instr, bg='g', pos=(0.5,0.05), s=1.2, font='Quikhand', justify='center'),
+)
+plt.interactive().close()

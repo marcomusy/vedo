@@ -1873,7 +1873,7 @@ def Axes(
         xUseBounds=True, yUseBounds=True, zUseBounds=False,
         xInverted=False, yInverted=False, zInverted=False,
         useGlobal=False,
-        tol=0.0001,
+        tol=0.001,
     ):
     """
     Draw axes for the input object. Returns an ``Assembly`` object.

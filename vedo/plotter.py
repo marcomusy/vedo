@@ -909,6 +909,10 @@ class Plotter:
             self.actors.append(acts)
         return acts
 
+    def at(self, nren):
+        self.renderer = self.renderers[nren]
+        return self
+
     def add(self, actors, at=None, render=True, resetcam=False):
         """
         Append input object to the internal list of actors to be shown.
@@ -978,15 +982,17 @@ class Plotter:
             self.render(resetcam=resetcam)
         return self
 
-    def pop(self, at=0):
+    def pop(self, at=None):
         """
         Remove the last added object from the rendering window.
         This method is typically used in loops or callback functions.
         """
+        if at is None:
+            at = self.renderers.index(self.renderer)
         self.remove(self.actors[-1], at=at)
         return self
 
-    def render(self, at=None, resetcam=False):
+    def render(self, resetcam=False):
         """Render the scene. This method is typically used in loops or callback functions."""
         if not self.window:
             return self
@@ -1007,13 +1013,13 @@ class Plotter:
             if not self.interactor.GetInitialized():
                 self.interactor.Initialize()
 
-        if at is not None: # disable all except i==at
-            self.window.EraseOff()
-            if at < 0:
-                at = at + len(self.renderers) +1
-            for i, ren in enumerate(self.renderers):
-                if i != at:
-                    ren.DrawOff()
+        # if at is not None: # disable all except i==at
+        #     self.window.EraseOff()
+        #     if at < 0:
+        #         at = at + len(self.renderers) +1
+        #     for i, ren in enumerate(self.renderers):
+        #         if i != at:
+        #             ren.DrawOff()
 
         if vedo.vtk_version[0] == 9 and "Darwin" in vedo.sys_platform:
             for a in self.actors:
@@ -1030,11 +1036,11 @@ class Plotter:
 
         self.window.Render()
 
-        if at is not None: # re-enable all that were disabled
-            for i, ren in enumerate(self.renderers):
-                if i != at:
-                    ren.DrawOn()
-            self.window.EraseOn()
+        # if at is not None: # re-enable all that were disabled
+        #     for i, ren in enumerate(self.renderers):
+        #         if i != at:
+        #             ren.DrawOn()
+        #     self.window.EraseOn()
 
         return self
 
@@ -1121,7 +1127,7 @@ class Plotter:
         """
         if at is None:
             renderer = self.renderer
-            at=0
+            at = self.renderers.index(renderer)
         elif isinstance(at, int):
             renderer = self.renderers[at]
 
@@ -1153,7 +1159,7 @@ class Plotter:
         """
         if at is None:
             renderer = self.renderer
-            at=0
+            at = self.renderers.index(renderer)
         elif isinstance(at, int):
             renderer = self.renderers[at]
 
@@ -1344,10 +1350,21 @@ class Plotter:
 
 
     ##################################################################
-    def addSlider2D(self, sliderfunc, xmin, xmax,
-                    value=None, pos=4, title="", font="", titleSize=1, c=None,
-                    showValue=True, delayed=False, **options):
-        """Add a slider widget which can call an external custom function.
+    def addSlider2D(self,
+                    sliderfunc,
+                    xmin, xmax,
+                    value=None,
+                    pos=4,
+                    title="",
+                    font="",
+                    titleSize=1,
+                    c=None,
+                    showValue=True,
+                    delayed=False,
+                    **options,
+        ):
+        """
+        Add a slider widget which can call an external custom function.
 
         :param sliderfunc: external function to be called by the widget
         :param float xmin:  lower value
@@ -1378,20 +1395,20 @@ class Plotter:
                                   pos, title, font, titleSize, c, showValue, delayed, **options)
 
     def addSlider3D(
-        self,
-        sliderfunc,
-        pos1,
-        pos2,
-        xmin,
-        xmax,
-        value=None,
-        s=0.03,
-        t=1,
-        title="",
-        rotation=0,
-        c=None,
-        showValue=True,
-    ):
+            self,
+            sliderfunc,
+            pos1,
+            pos2,
+            xmin,
+            xmax,
+            value=None,
+            s=0.03,
+            t=1,
+            title="",
+            rotation=0,
+            c=None,
+            showValue=True,
+        ):
         """Add a 3D slider widget which can call an external custom function.
 
         :param sliderfunc: external function to be called by the widget
@@ -1414,19 +1431,19 @@ class Plotter:
         )
 
     def addButton(
-        self,
-        fnc,
-        states=("On", "Off"),
-        c=("w", "w"),
-        bc=("dg", "dr"),
-        pos=(0.7, 0.05),
-        size=24,
-        font="Normografo",
-        bold=False,
-        italic=False,
-        alpha=1,
-        angle=0,
-    ):
+            self,
+            fnc,
+            states=("On", "Off"),
+            c=("w", "w"),
+            bc=("dg", "dr"),
+            pos=(0.7, 0.05),
+            size=24,
+            font="Normografo",
+            bold=False,
+            italic=False,
+            alpha=1,
+            angle=0,
+        ):
         """Add a button to the renderer window.
 
         :param list states: a list of possible states, e.g. ['On', 'Off']
@@ -1630,7 +1647,7 @@ class Plotter:
 
 
     def addHoverLegend(self,
-                       at=0,
+                       at=None,
                        c=None,
                        pos='bottom-left',
                        font="Calco",
@@ -1656,6 +1673,9 @@ class Plotter:
         :param bool useInfo: visualize the content of the ``obj.info`` attribute
         """
         hoverLegend = vedo.shapes.Text2D('', pos=pos, font=font, c=c, s=s, alpha=alpha, bg=bg)
+
+        if at is None:
+            at = self.renderers.index(self.renderer)
 
         def _legfunc(evt):
             # helper function (png not pickable because of alpha channel in vtk9 ??)
@@ -2071,7 +2091,7 @@ class Plotter:
         return self
 
 
-    def computeWorldPosition(self, pos2d, at=0, objs=(), bounds=(),
+    def computeWorldPosition(self, pos2d, at=None, objs=(), bounds=(),
                              offset=None, pixeltol=None, worldtol=None):
         """
         Transform a 2D point on the screen into a 3D point inside the rendering scene.
@@ -2099,7 +2119,10 @@ class Plotter:
         numpy array
             the point in 3D world coordinates.
         """
-        renderer = self.renderers[at]
+        if at is not None:
+            renderer = self.renderers[at]
+        else:
+            renderer = self.renderer
         if not objs:
             pp = vtk.vtkFocalPlanePointPlacer()
         else:
@@ -2353,6 +2376,22 @@ class Plotter:
         if self.wxWidget:
             return self
 
+        if at is None:
+            at = self.renderers.index(self.renderer)
+
+        else:
+
+            if at >= len(self.renderers):
+                vedo.logger.error(f"trying to show(at={at}) but only {len(self.renderers)} renderers exist")
+                return self
+
+            if vedo.notebookBackend and at>0:
+                vedo.logger.error(f"in show(at={at}), multiple renderings not supported in notebooks.")
+                return self
+
+            self.renderer = self.renderers[at]
+
+
         if title is not None:
             self.title = title
 
@@ -2364,9 +2403,6 @@ class Plotter:
                 self.window.BordersOn()
             else:
                 self.window.SetSize(int(self.size[0]), int(self.size[1]))
-
-        if at is not None and len(self.renderers)>at:
-            self.renderer = self.renderers[at]
 
         if not vedo.notebookBackend:
             if str(bg).endswith(".hdr"):
@@ -2439,44 +2475,42 @@ class Plotter:
                 self.interactor.Initialize()
                 self.interactor.RemoveObservers("CharEvent")
 
-        if at is None and len(self.renderers) > 1:
-            # in case of multiple renderers a call to show w/o specifying
-            # at which renderer will just render the whole thing and return
-            if self.interactor:
-                if zoom:
-                    for r in self.renderers:
-                        if zoom == 'tight':
-                            self.resetCamera(xypad=0.01)
-                        else:
-                            r.GetActiveCamera().Zoom(zoom)
-                self.window.Render()
-                self.window.SetWindowName(self.title)
-                if self._interactive:
-                    self.interactor.Start()
-                return self ##############################
-
-        if at is None:
-            at = 0
-
-        if at < len(self.renderers):
-            self.renderer = self.renderers[at]
-        else:
-            if vedo.notebookBackend:
-                vedo.logger.error("in show(), multiple renderings not supported in notebooks.")
-            else:
-                vedo.logger.error(f"in show(), wrong renderer index {at}")
-            return self
-
-        if self.qtWidget is not None:
-            self.qtWidget.GetRenderWindow().AddRenderer(self.renderer)
-
         self.camera = self.renderer.GetActiveCamera()
-
         self.camera.SetParallelProjection(settings.useParallelProjection)
-
         if self.sharecam:
             for r in self.renderers:
                 r.SetActiveCamera(self.camera)
+
+        # if at is None and len(self.renderers) > 1:
+        #     # in case of multiple renderers a call to show w/o specifying
+        #     # at which renderer will just render the whole thing and return
+        #     if self.interactor:
+        #         if zoom:
+        #             for r in self.renderers:
+        #                 if zoom == 'tight':
+        #                     self.resetCamera(xypad=0.01)
+        #                 else:
+        #                     r.GetActiveCamera().Zoom(zoom)
+        #         self.window.Render()
+        #         self.window.SetWindowName(self.title)
+        #         if self._interactive:
+        #             self.interactor.Start()
+        #         return self ##############################
+
+        # if at is None:
+        #     at = 0
+
+        # if at < len(self.renderers):
+        #     self.renderer = self.renderers[at]
+        # else:
+        #     if vedo.notebookBackend:
+        #         vedo.logger.error("in show(), multiple renderings not supported in notebooks.")
+        #     else:
+        #         vedo.logger.error(f"in show(), wrong renderer index {at}")
+        #     return self
+
+        if self.qtWidget is not None:
+            self.qtWidget.GetRenderWindow().AddRenderer(self.renderer)
 
         if len(self.renderers) == 1:
             self.renderer.SetActiveCamera(self.camera)

@@ -61,6 +61,10 @@ arr = Arrows(sources, sources + deltas)
 
 plt2 = Plotter(N=2, pos=(200, 300), bg='bb')
 plt2.camera = plt1.camera  # share the same camera with previous Plotter
-plt2.show(apos, warped_rbf, src, trs, arr, "Radial Basis Function", at=0)
-plt2.show(allarr_rbf, at=1, interactive=1).close()
+
+plt2.at(0).show("Radial Basis Function", apos, warped_rbf, src, trs, arr)
+plt2.at(1).show(allarr_rbf)
+
+plt2.interactive().close()
 plt1.close()
+

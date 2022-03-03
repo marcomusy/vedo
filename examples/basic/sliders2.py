@@ -1,6 +1,7 @@
 """Sliders and buttons controlling objects"""
 from vedo import *
 
+settings.useDepthPeeling = True
 
 def slider0(widget, event):
     value = widget.GetRepresentation().GetValue()+0.5
@@ -22,7 +23,7 @@ plt = Plotter(N=2, axes=True)
 
 ######
 sphere = Sphere(r=0.6).alpha(0.9).color(0)
-plt.show(sphere, __doc__, at=0)  # show the sphere on the first renderer
+plt.at(0).show(sphere, __doc__)  # show the sphere on the first renderer
 plt.addSlider2D(slider0,
                -9, 9,           # slider range
                value=0,         # initial value
@@ -32,7 +33,7 @@ plt.addSlider2D(slider0,
 
 ######
 cube = Cube().alpha(0.9).color(0)
-plt.show(cube, at=1)
+plt.at(1).show(cube)
 plt.addSlider2D(slider1,
                -9, 9,
                value=0,
@@ -41,7 +42,8 @@ plt.addSlider2D(slider1,
                title="slider 1, color number")
 
 ######
-button = plt.addButton(buttonfunc,
+button = plt.at(1).addButton(
+    buttonfunc,
     pos=(0.5, 0.9),       # x,y fraction from bottom left corner
     states=["HIGH alpha (click here!)", "LOW alpha (click here!)"],
     c = ["w", "k"],       # colors of states (foreground)

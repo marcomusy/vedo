@@ -9,6 +9,7 @@ sliderstart, sliderstop = [0.025,0.04], [0.025,0.4] # slider positioning
 
 ######################################################################
 def slicerfunc(index, data):
+
     vol = data.mode(1).c('k',alphas)
     dims = vol.dimensions()
     box = vol.box().alpha(0.5)
@@ -18,7 +19,8 @@ def slicerfunc(index, data):
     zb = vol.zbounds()
     visibles = [msh]
     txt = Text2D('..'+data.filename[-30:], font='Calco')
-    plt.show(vol, msh, sb, box, txt, at=index)
+    plt.at(index).show(vol, msh, sb, box, txt)
+
     def func(widget, event):
         i = int(widget.GetRepresentation().GetValue())
         plt.renderer = widget.GetCurrentRenderer()

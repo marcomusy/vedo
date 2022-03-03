@@ -10,7 +10,7 @@ from vedo.pointcloud import Points
 from vedo.utils import buildPolyData
 from vedo.utils import flatten
 from vedo.utils import isSequence
-from vedo.utils import mag
+from vedo.utils import mag, mag2
 from vedo.utils import numpy2vtk
 from vedo.utils import vtk2numpy
 
@@ -353,6 +353,29 @@ class Mesh(Points):
                 break
 
         return conn # cannot always make a numpy array of it!
+
+    def edges(self):
+
+        extractEdges = vtk.vtkExtractEdges()
+        extractEdges.SetInputData(self._data)
+        # eed.UseAllPointsOn()
+        extractEdges.Update()
+        lpoly = extractEdges.GetOutput()
+
+        arr1d = vtk2numpy(lpoly.GetLines().GetData())
+        # [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
+
+        i = 0
+        conn = []
+        n = len(arr1d)
+        for _ in range(n):
+            cell = [arr1d[i+k+1] for k in range(arr1d[i])]
+            conn.append(cell)
+            i += arr1d[i]+1
+            if i >= n:
+                break
+        return conn # cannot always make a numpy array of it!
+
 
     def texture(self, tname,
                 tcoords=None,
@@ -1322,6 +1345,36 @@ class Mesh(Points):
         decimate.Update()
         return self._update(decimate.GetOutput())
 
+    def collapseEdges(self, distance, iterations=1):
+        self.clean()
+        x0,x1,y0,y1,z0,z1 = self.GetBounds()
+        fs = min(x1-x0, y1-y0, z1-z0)/10
+        d2 = distance * distance
+        if distance > fs:
+            vedo.logger.error(f"distance parameter is too large, should be < {fs}, skip!")
+            # print(f"distance parameter is too large, should be < {fs}, skipped!")
+            return self
+        for i in range(iterations):
+            medges = self.edges()
+            pts = self.points()
+            newpts = np.array(pts)
+            moved=[]
+            for e in medges:
+                if len(e) == 2:
+                    id0, id1 = e
+                    p0, p1 = pts[id0], pts[id1]
+                    d = mag2(p1-p0)
+                    if d < d2 and id0 not in moved and id1 not in moved:
+                        p = (p0+p1)/2
+                        newpts[id0] = p
+                        newpts[id1] = p
+                        moved += [id0,id1]
+
+            self.points(newpts)
+            self.clean()
+        self.computeNormals()#.flat()
+        return self
+
     @deprecated(reason=vedo.colors.red+"Please use smooth()"+vedo.colors.reset)
     def smoothLaplacian(self, niter=15, relaxfact=0.1, edgeAngle=15, featureAngle=60, boundary=False):
         return self.smooth(niter, passBand=0.1, edgeAngle=edgeAngle, boundary=boundary)
@@ -1357,13 +1410,19 @@ class Mesh(Points):
 
 
     def fillHoles(self, size=None):
-        """Identifies and fills holes in input mesh.
+        """
+        Identifies and fills holes in input mesh.
         Holes are identified by locating boundary edges, linking them together into loops,
         and then triangulating the resulting loops.
 
-        :param float size: approximate limit to the size of the hole that can be filled.
+        Parameters
+        ----------
+        size : float, optional
+            Approximate limit to the size of the hole that can be filled. The default is None.
 
-        Example: |fillholes.py|_
+        Examples
+        --------
+        fillholes.py
         """
         fh = vtk.vtkFillHolesFilter()
         if not size:

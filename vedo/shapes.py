@@ -2421,12 +2421,17 @@ class Plane(Mesh):
     Draw a plane of size `s=(xsize, ysize)` oriented perpendicular to vector `normal`
     and so that it passes through point `pos`.
 
+    :param int sx: deprecated, please use s to set the size.
+
     |Plane|
     """
-    def __init__(self, pos=(0, 0, 0), normal=(0, 0, 1), s=(1,1), c="gray6", alpha=1):
+    def __init__(self, pos=(0, 0, 0), normal=(0, 0, 1), s=(), sx=1, sy=1, c="gray6", alpha=1):
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
+
+        if len(s)==2:
+            sx, sy = s
 
         self.normal = np.array(normal)
         self.center = np.array(pos)
@@ -2443,7 +2448,7 @@ class Plane(Mesh):
         phi = np.arctan2(axis[1], axis[0])
         t = vtk.vtkTransform()
         t.PostMultiply()
-        t.Scale(s[0], s[1], 1)
+        t.Scale(sx, sy, 1)
         t.RotateY(np.rad2deg(theta))
         t.RotateZ(np.rad2deg(phi))
         tf = vtk.vtkTransformPolyDataFilter()

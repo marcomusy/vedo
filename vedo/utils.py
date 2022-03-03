@@ -198,6 +198,7 @@ class ProgressBar:
         self.bar += ps
 
 
+###########################################################
 class dotdict(dict):
     """
     A dictionary supporting dot notation.
@@ -236,12 +237,16 @@ class dotdict(dict):
                 self[k] = dotdict(v)
 
     def __getattr__(self, k):
+        if '__getstate__' in k: # a trick to make spyder happy when inspecting dotdict
+            def _dummy():
+                pass
+            return _dummy
         return self[k]
 
     def __setattr__(self, k, v):
         if self.warn_on_setting:
-            if k not in self:
-                vedo.logger.warning(f'you are setting non-existing {k} to {v}')
+            if k not in self and not k.startswith('__'):
+                vedo.logger.warning(f'you are setting non-existing key {k} to {v}')
         self[k] = v
 
     def lookup(self, dotkey):

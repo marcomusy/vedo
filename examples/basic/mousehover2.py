@@ -10,13 +10,13 @@ def func(evt):                 # this is the callback function
     i = evt.at                 # the renderer nr. which is being hit
     pt2d = evt.picked2d        # 2D screen coordinate
     # passing a list of meshes will force the points to be placed on any of them
-    pt3d = plt.computeWorldPosition(pt2d, at=i, objs=[objs[i]])
+    pt3d = plt.at(i).computeWorldPosition(pt2d, objs=[objs[i]])
     if mag(pt3d) < 0.01:
         return
     newpt = Point(pt3d).color(i)
     txt.text(f'2D coords: {pt2d}\n3D coords: {pt3d}\nNpt = {len(plt.actors)}')
     txt.color(i)               # update text and color on the fly
-    plt.add(newpt, at=i)       # add new point and render
+    plt.at(i).add(newpt)       # add new point and render
 
 
 # create an empty text (to be updated in the callback)
@@ -31,7 +31,7 @@ objs = [mesh1, mesh2]
 plt = Plotter(N=2, bg='blackboard', axes=1, sharecam=False)
 plt.addCallback('mouse move', func)
 
-plt.show(mesh1, __doc__, at=0, viewup='z')
-plt.show(mesh2, txt,     at=1, zoom=1.4)
+plt.at(0).show(mesh1, __doc__, viewup='z')
+plt.at(1).show(mesh2, txt,     zoom=1.4)
 plt.interactive().close()
 
