@@ -11,6 +11,10 @@
 ### `io.py`
 
 ---
+### `pointcloud.py`
+- `cmap(arrayName=...)` -> `cmap(name=...)`
+
+---
 ### `mesh.py`
 
 ---

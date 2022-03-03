@@ -694,9 +694,9 @@ class Line(Mesh):
         vmin, vmax = np.min(curvs), np.max(curvs)
         if vmin<0 and vmax>0:
             v = max(-vmin, vmax)
-            self.cmap('coolwarm', curvs, vmin=-v, vmax=v, arrayName="Curvature")
+            self.cmap('coolwarm', curvs, vmin=-v, vmax=v, name="Curvature")
         else:
-            self.cmap('coolwarm', curvs, vmin=vmin, vmax=vmax, arrayName="Curvature")
+            self.cmap('coolwarm', curvs, vmin=vmin, vmax=vmax, name="Curvature")
         return self
 
     def sweep(self, direction=(1,0,0), res=1):

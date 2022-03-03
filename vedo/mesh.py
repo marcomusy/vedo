@@ -103,6 +103,14 @@ class Mesh(Points):
             self._mapper.SetResolveCoincidentTopologyToPolygonOffset()
             pof, pou = vedo.settings.polygonOffsetFactor, vedo.settings.polygonOffsetUnits
             self._mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
+            # self._mapper.SetRelativeCoincidentTopologyPolygonOffsetParameters(pof, pou)
+            # self._mapper.SetRelativeCoincidentTopologyLineOffsetParameters(pof, pou)
+
+            #a = vtk.reference(0)
+            #b = vtk.reference(0)
+            #mapper.GetResolveCoincidentTopologyPolygonOffsetParameters(a,b)
+            #mapper.GetRelativeCoincidentTopologyPolygonOffsetParameters(a,b)
+            #print(a,b)
 
         inputtype = str(type(inputobj))
 

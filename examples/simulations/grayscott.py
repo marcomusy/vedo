@@ -58,12 +58,14 @@ for step in range(Nsteps):
         u += Du*Lu - uvv + F*(1-u)
         v += Dv*Lv + uvv - (F+k)*v
 
-    grd.cmap('ocean_r', V.ravel(), on='cells', arrayName="escals")
+    grd.cmap('ocean_r', V.ravel(), on='cells', name="escals")
     grd.mapCellsToPoints()                   # interpolate cell data to point data
     newpts = grd.points()
     newpts[:,2] = grd.pointdata['escals']*25 # assign z elevation
     grd.points(newpts)                       # set the new points
+
     plt = show(ltx, grd, zoom=1.25, elevation=-.15, bg='linen', interactive=False)
-    if plt.escaped: break  # if ESC is hit during loop
+    if plt.escaped:
+        break  # if ESC is hit during loop
 
 plt.interactive().close()

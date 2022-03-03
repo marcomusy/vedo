@@ -2500,8 +2500,9 @@ class Points(vtk.vtkFollower, BaseActor):
              cname,
              input_array=None,
              on="points",
-             arrayName="",
-             vmin=None, vmax=None,
+             name="",
+             vmin=None,
+             vmax=None,
              alpha=1,
              n=256,
         ):
@@ -2515,7 +2516,7 @@ class Points(vtk.vtkFollower, BaseActor):
         :param str on: either 'points' or 'cells'.
             Apply the color map as defined on either point or cell data.
 
-        :param str arrayName: give a name to the numpy array
+        :param str name: give a name to the numpy array
 
         :param float vmin: clip scalars to this minimum value
 
@@ -2537,11 +2538,11 @@ class Points(vtk.vtkFollower, BaseActor):
                 on = 'cells'
 
         if on.startswith('p'):
-            if not arrayName: arrayName="PointScalars"
-            self._pointColors(input_array, cname, alpha, vmin, vmax, arrayName, n)
+            if not name: name="PointScalars"
+            self._pointColors(input_array, cname, alpha, vmin, vmax, name, n)
         elif on.startswith('c'):
-            if not arrayName: arrayName="CellScalars"
-            self._cellColors(input_array, cname, alpha, vmin, vmax, arrayName, n)
+            if not name: name="CellScalars"
+            self._cellColors(input_array, cname, alpha, vmin, vmax, name, n)
         else:
             vedo.logger.error("Must specify in cmap(on=...) either cells or points")
             raise RuntimeError()
@@ -2551,11 +2552,11 @@ class Points(vtk.vtkFollower, BaseActor):
     def pointColors(self, *args, **kwargs): return self
 
     def _pointColors(self,
-                     input_array=None,
-                     cmap="rainbow",
-                     alpha=1,
-                     vmin=None, vmax=None,
-                     arrayName="",
+                     input_array,
+                     cmap,
+                     alpha,
+                     vmin, vmax,
+                     arrayName,
                      n=256,
         ):
         poly = self._data
@@ -2670,12 +2671,12 @@ class Points(vtk.vtkFollower, BaseActor):
     def cellColors(self, *args, **kwargs): return self
 
     def _cellColors(self,
-                   input_array=None,
-                   cmap="jet",
-                   alpha=1,
-                   vmin=None, vmax=None,
-                   arrayName="CellScalars",
-                   n=256,
+                   input_array,
+                   cmap,
+                   alpha,
+                   vmin, vmax,
+                   arrayName,
+                   n,
         ):
         poly = self._data
         data = poly.GetCellData()

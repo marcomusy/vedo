@@ -197,7 +197,7 @@ _setts.SSAOKernelSize = 32      # define the number of samples
 _setts.SSAOBlur       = False   # define blurring of the ambient occlusion (helps for low samples)
 
 # Use a polygon/edges offset to possibly resolve conflicts in rendering
-_setts.usePolygonOffset = False
+_setts.usePolygonOffset = True
 _setts.polygonOffsetFactor = 0.1
 _setts.polygonOffsetUnits  = 0.1
 
