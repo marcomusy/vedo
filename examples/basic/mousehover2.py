@@ -1,37 +1,25 @@
-"""Compute 3D world coordinates from 2D screen pixel coordinates
-(hover mouse to place the points)"""
+"""Hover mouse to interactively fit a sphere to a region of the mesh"""
 from vedo import *
 
-settings.defaultFont = "Ubuntu"
-settings.useDepthPeeling = True
 
-
-def func(evt):                 # this is the callback function
-    i = evt.at                 # the renderer nr. which is being hit
-    pt2d = evt.picked2d        # 2D screen coordinate
-    # passing a list of meshes will force the points to be placed on any of them
-    pt3d = plt.at(i).computeWorldPosition(pt2d, objs=[objs[i]])
-    if mag(pt3d) < 0.01:
+def func(event):  # callback function
+    global objs
+    p = event.picked3d
+    if p is None:
         return
-    newpt = Point(pt3d).color(i)
-    txt.text(f'2D coords: {pt2d}\n3D coords: {pt3d}\nNpt = {len(plt.actors)}')
-    txt.color(i)               # update text and color on the fly
-    plt.at(i).add(newpt)       # add new point and render
+    pts = Points(msh.closestPoint(p, N=50), r=6)
+    sph = fitSphere(pts).alpha(0.1)
+    txt.text(f'Radius : {sph.radius}\nResidue: {sph.residue}')
+    plt.remove(objs).add([sph, pts])
+    objs = [sph, pts]
 
+msh = Mesh(dataurl+'290.vtk').subdivide()
+msh.addCurvatureScalars(method=2)
+msh.cmap('PRGn', vmin=-0.02).addScalarBar()
 
-# create an empty text (to be updated in the callback)
-txt = Text2D("", s=1.4, font='Brachium', c='white', bg='green8')
+objs = [None, None]  # placeholders for the callback
+txt = Text2D(__doc__, bg='yellow', font='Calco')
 
-# create two polygonal meshes
-mesh1 = TessellatedBox()
-mesh2 = ParametricShape('ConicSpiral')
-mesh2.c('indigo1').lc('grey9').lw(0.1)
-objs = [mesh1, mesh2]
-
-plt = Plotter(N=2, bg='blackboard', axes=1, sharecam=False)
-plt.addCallback('mouse move', func)
-
-plt.at(0).show(mesh1, __doc__, viewup='z')
-plt.at(1).show(mesh2, txt,     zoom=1.4)
-plt.interactive().close()
-
+plt = Plotter(axes=1)
+plt.addCallback('mouse hover', func)
+plt.show(msh, txt, viewup='z').close()
