@@ -16,7 +16,7 @@ def func(evt):                 # this is the callback function
     newpt = Point(pt3d).color(i)
     txt.text(f'2D coords: {pt2d}\n3D coords: {pt3d}\nNpt = {len(plt.actors)}')
     txt.color(i)               # update text and color on the fly
-    plt.at(i).add(newpt)       # add new point and render
+    plt.at(i).add(newpt)       # add new point and render i
 
 
 # create an empty text (to be updated in the callback)

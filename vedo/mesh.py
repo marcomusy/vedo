@@ -75,23 +75,19 @@ class Mesh(Points):
 
     E.g.: `Mesh( [ [[x1,y1,z1],[x2,y2,z2], ...],  [[0,1,2], [1,2,3], ...] ] )`
 
-    :param c: color in RGB format, hex, symbol or name
-    :param float alpha: opacity value
-    :param bool wire:  show surface as wireframe
-    :param bc: backface color of internal surface
-    :param str texture: jpg file name or surface texture name
-    :param bool computeNormals: compute point and cell normals at creation
+    c : color
+        color in RGB format, hex, symbol or name
 
-    .. hint:: A mesh can be built from vertices and their connectivity. See e.g.:
+    alpha : float, opacity value
+        mesh opacity [0,1]
 
-        |buildmesh| |buildmesh.py|_
+    :Examples: buildmesh.py and many others
     """
     def __init__(
         self,
         inputobj=None,
         c=None,
         alpha=1,
-        computeNormals=False,
     ):
         Points.__init__(self)
 
@@ -218,17 +214,6 @@ class Mesh(Points):
                 vedo.logger.error(f"cannot build mesh from type {inputtype}")
                 raise RuntimeError()
 
-        if self._data:
-            if computeNormals:
-                pdnorm = vtk.vtkPolyDataNormals()
-                pdnorm.SetInputData(self._data)
-                pdnorm.ComputePointNormalsOn()
-                pdnorm.ComputeCellNormalsOn()
-                pdnorm.FlipNormalsOff()
-                pdnorm.ConsistencyOn()
-                pdnorm.Update()
-                self._data = pdnorm.GetOutput()
-
         self._mapper.SetInputData(self._data)
 
         self._bfprop = None  # backface property holder
@@ -327,10 +312,12 @@ class Mesh(Points):
 
 
     def lines(self, flat=False):
-        """Get lines connectivity ids as a numpy array.
+        """
+        Get lines connectivity ids as a numpy array.
         Default format is [[id0,id1], [id3,id4], ...]
 
-        :param bool flat: 1D numpy array as [2, 10,20, 3, 10,11,12, 2, 70,80, ...]
+        flat : bool
+            return a 1D numpy array as e.g. [2, 10,20, 3, 10,11,12, 2, 70,80, ...]
         """
         #Get cell connettivity ids as a 1D array. The vtk format is:
         #    [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
@@ -355,7 +342,7 @@ class Mesh(Points):
         return conn # cannot always make a numpy array of it!
 
     def edges(self):
-
+        """Return an array containing the edges connectivity."""
         extractEdges = vtk.vtkExtractEdges()
         extractEdges.SetInputData(self._data)
         # eed.UseAllPointsOn()
@@ -377,7 +364,8 @@ class Mesh(Points):
         return conn # cannot always make a numpy array of it!
 
 
-    def texture(self, tname,
+    def texture(self,
+                tname,
                 tcoords=None,
                 interpolate=True,
                 repeat=True,
@@ -392,16 +380,28 @@ class Mesh(Points):
         If tname is set to ``None`` texture is disabled.
         Input tname can also be an array.
 
-        :param bool interpolate: turn on/off linear interpolation of the texture map when rendering.
-        :param bool repeat: repeat of the texture when tcoords extend beyond the [0,1] range.
-        :param bool edgeClamp: turn on/off the clamping of the texture map when
+        interpolate : bool, optional
+            turn on/off linear interpolation of the texture map when rendering.
+
+        repeat : bool, optional
+            repeat of the texture when tcoords extend beyond the [0,1] range.
+
+        edgeClamp : bool, optional
+            turn on/off the clamping of the texture map when
             the texture coords extend beyond the [0,1] range.
             Only used when repeat is False, and edge clamping is supported by the graphics card.
 
-        :param bool scale: scale the texture image by this factor
-        :param bool ushift: shift u-coordinates of texture by this amaount
-        :param bool vshift: shift v-coordinates of texture by this amaount
-        :param float seamThreshold: try to seal seams in texture by collapsing triangles
+        scale : bool, optional
+            scale the texture image by this factor
+
+        ushift : bool, optional
+            shift u-coordinates of texture by this amaount
+
+        vshift : bool, optional
+            shift v-coordinates of texture by this amaount
+
+        seamThreshold : float, optional
+            try to seal seams in texture by collapsing triangles
             (test values around 1.0, lower values = stronger collapse)
         """
         pd = self.polydata(False)
@@ -1420,9 +1420,7 @@ class Mesh(Points):
         size : float, optional
             Approximate limit to the size of the hole that can be filled. The default is None.
 
-        Examples
-        --------
-        fillholes.py
+        :Examples: fillholes.py
         """
         fh = vtk.vtkFillHolesFilter()
         if not size:

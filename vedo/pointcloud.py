@@ -40,7 +40,7 @@ def removeOutliers(points, radius, neighbors=5):
     """
     Remove outliers from a cloud of points within the specified `radius` search.
 
-    |clustering| |clustering.py|_
+    :Examples: clustering.py
     """
     isactor = False
     if isinstance(points, vtk.vtkActor):
@@ -80,9 +80,12 @@ def smoothMLS3D(pcls, neighbours=10):
     Data itself can suggest a meaningful time separation based on the spatial
     distribution of points.
 
-    :param int neighbours: fixed nr. of neighbours in space-time to take into account in the fit.
+    Parameters
+    ----------
+    neighbours : int, optional
+        fixed nr. of neighbours in space-time to take into account in the fit.
 
-    |moving_least_squares3D| |moving_least_squares3D.py|_
+    :Examples: moving_least_squares3D.py
     """
     from scipy.spatial import KDTree
 
@@ -161,10 +164,12 @@ def connectedPoints(mesh, radius, mode=0, regions=(), vrange=(0,1), seeds=(), an
     However note that the number of input and output points may not be the same:
     if not extracting all regions then the output size may be less than the input size.
 
-    :param float radius: radius variable specifying a local sphere used to define local point neighborhood
+    Parameters
+    ----------
+    radius : float
+        variable specifying a local sphere used to define local point neighborhood
 
-    :param int mode:
-
+    mode : int, optional
         - 0,  Extract all regions
         - 1,  Extract point seeded regions
         - 2,  Extract largest region
@@ -172,13 +177,17 @@ def connectedPoints(mesh, radius, mode=0, regions=(), vrange=(0,1), seeds=(), an
         - 4,  Extract all regions with scalar connectivity
         - 5,  Extract point seeded regions
 
-    :param list regions: a list of non-negative regions id to extract
+    regions : list, optional
+        a list of non-negative regions id to extract
 
-    :param list vrange: scalar range to use to extract points based on scalar connectivity
+    vrange : list, optional
+        scalar range to use to extract points based on scalar connectivity
 
-    :param list seeds: a list of non-negative point seed ids
+    seeds : list, optional
+        a list of non-negative point seed ids
 
-    :param list angle: points are connected if the angle between their normals is
+    angle : list, optional
+        points are connected if the angle between their normals is
         within this angle threshold (expressed in degrees).
     """
     # https://vtk.org/doc/nightly/html/classvtkConnectedPointsFilter.html
@@ -220,7 +229,8 @@ def connectedPoints(mesh, radius, mode=0, regions=(), vrange=(0,1), seeds=(), an
 
 
 def visiblePoints(mesh, area=(), tol=None, invert=False):
-    """Extract points based on whether they are visible or not.
+    """
+    Extract points based on whether they are visible or not.
     Visibility is determined by accessing the z-buffer of a rendering window.
     The position of each input point is converted into display coordinates,
     and then the z-value at that point is obtained.
@@ -230,11 +240,16 @@ def visiblePoints(mesh, area=(), tol=None, invert=False):
     This filter also allows you to specify a rectangular window in display (pixel)
     coordinates in which the visible points must lie.
 
-    :param list area: specify a rectangular region as (xmin,xmax,ymin,ymax)
+    Parameters
+    ----------
+    area : list, optional
+        specify a rectangular region as (xmin,xmax,ymin,ymax)
 
-    :param float tol: a tolerance in normalized display coordinate system
+    tol : float, optional
+        a tolerance in normalized display coordinate system
 
-    :param bool invert: select invisible points instead.
+    invert : bool, optional
+        select invisible points instead.
 
     :Example:
         .. code-block:: python
@@ -279,21 +294,28 @@ def delaunay2D(plist, mode='scipy', boundaries=(), tol=None, alpha=0, offset=0, 
 
     When mode=='fit' or 'xy'
 
-    :param float tol: specify a tolerance to control discarding of closely spaced points.
+    Parameters
+    ----------
+    tol : float, optional
+        specify a tolerance to control discarding of closely spaced points.
         This tolerance is specified as a fraction of the diagonal length of the bounding box of the points.
 
-    :param float alpha: for a non-zero alpha value, only edges or triangles contained
+    alpha : float, optional
+        for a non-zero alpha value, only edges or triangles contained
         within a sphere centered at mesh vertices will be output.
         Otherwise, only triangles will be output.
 
-    :param float offset: multiplier to control the size of the initial, bounding Delaunay triangulation.
-    :param transform: a vtk transformation (eg. a thinplate spline)
+    offset : float, optional
+        multiplier to control the size of the initial, bounding Delaunay triangulation.
+
+    transform: vtkTransform, optional
+        a VTK transformation (eg. a thinplate spline)
         which is applied to points to generate a 2D problem.
         This maps a 3D dataset into a 2D dataset where triangulation can be done on the XY plane.
         The points are transformed and triangulated.
         The topology of triangulated points is used as the output topology.
 
-    |delaunay2d| |delaunay2d.py|_
+    :Examples: delaunay2d.py
     """
     if isinstance(plist, Points):
         plist = plist.points()
@@ -375,10 +397,14 @@ def voronoi(pts, pad=0, fit=False, method='vtk'):
     ----------
     pts : list
         list of input points.
+
     pad : float, optional
         padding distance. The default is 0.
+
     fit : bool, optional
         detect automatically the best fitting plane. The default is False.
+
+    :Examples: voronoi1.py, voronoy2.py
     """
     if method=='scipy':
         from scipy.spatial import Voronoi as scipy_voronoi
@@ -434,12 +460,9 @@ def voronoi(pts, pad=0, fit=False, method='vtk'):
     return m
 
 def _rotatePoints(points, n0=None, n1=(0,0,1)):
-    """
-    Rotate a set of 3D points from direction n0 to direction n1.
-
-    Return the rotated points and the normal to the fitting plane (if n0 is None).
-    The pointing direction of the normal in this case is arbitrary.
-    """
+    # Rotate a set of 3D points from direction n0 to direction n1.
+    # Return the rotated points and the normal to the fitting plane (if n0 is None).
+    # The pointing direction of the normal in this case is arbitrary.
     points = np.asarray(points)
 
     if points.ndim == 1:
@@ -482,7 +505,7 @@ def fitLine(points):
 
     Extra info is stored in ``Line.slope``, ``Line.center``, ``Line.variances``.
 
-    |fitline| |fitline.py|_
+    :Examples: fitline.py
     """
     if isinstance(points, Points):
         points = points.points()
@@ -511,9 +534,10 @@ def fitPlane(points, signed=False):
 
     Extra info is stored in ``Plane.normal``, ``Plane.center``, ``Plane.variance``.
 
-    :param bool signed: if True flip sign of the normal based on the ordering of the points
+    signed : bool, optional
+        if True flip sign of the normal based on the ordering of the points
 
-    .. hint:: Example: |fitplanes.py|_
+    :Examples: fitline.py
     """
     if isinstance(points, Points):
         points = points.points()
@@ -548,10 +572,11 @@ def fitCircle(points):
 
     Returns the center, radius, normal_to_circle.
 
-    Warning: trying to fit s-shaped points will inevitably lead to instabilities and
-    circles of small radius.
+    :Warning:
+        trying to fit s-shaped points will inevitably lead to instabilities and
+        circles of small radius.
 
-    Reference: J.F. Crawford, Nucl. Instr. Meth. 211, 1983, 223-225.
+    :References: J.F. Crawford, Nucl. Instr. Meth. 211, 1983, 223-225.
     """
     data = np.asarray(points)
 
@@ -606,9 +631,7 @@ def fitSphere(coords):
 
     Extra info is stored in ``Sphere.radius``, ``Sphere.center``, ``Sphere.residue``.
 
-    .. hint:: Example: |fitspheres1.py|_
-
-        |fitspheres2| |fitspheres2.py|_
+    :Examples: fitspheres1.py, fitspheres2.py
     """
     if isinstance(coords, Points):
         coords = coords.points()
@@ -644,17 +667,16 @@ def pcaEllipsoid(points, pvalue=0.95):
     """
     Show the oriented PCA ellipsoid that contains fraction `pvalue` of points.
 
-    :param float pvalue: ellypsoid will contain the specified fraction of points.
-
     Extra can be calculated with ``mesh.asphericity()``, ``mesh.asphericity_error()``
     (asphericity is equal to 0 for a perfect sphere).
 
     Axes can be accessed in ``mesh.va``, ``mesh.vb``, ``mesh.vc``.
     End point of the axes are stored in ``mesh.axis1``, ``mesh.axis12`` and ``mesh.axis3``.
 
-    .. hint:: Examples: |pca.py|_  |cell_colony.py|_
+    pvalue : float, optional
+        ellypsoid will contain the specified fraction of points.
 
-         |pca| |cell_colony|
+    :Examples: pca.py,  cell_colony.py
     """
     from scipy.stats import f
 
@@ -708,26 +730,34 @@ def recoSurface(pts, dims=(100,100,100), radius=None,
     """
     Surface reconstruction from a scattered cloud of points.
 
-    :param int dims: number of voxels in x, y and z to control precision.
+    Parameters
+    ----------
+    dims : int, optional
+        number of voxels in x, y and z to control precision.
 
-    :param float radius: radius of influence of each point.
+    radius : float, optiona
+        radius of influence of each point.
         Smaller values generally improve performance markedly.
         Note that after the signed distance function is computed,
         any voxel taking on the value >= radius
         is presumed to be "unseen" or uninitialized.
 
-    :param int sampleSize: if normals are not present
+    sampleSize : int, optional
+        if normals are not present
         they will be calculated using this sample size per point.
 
-    :param bool holeFilling: enables hole filling, this generates
+    holeFilling : bool, optional
+        enables hole filling, this generates
         separating surfaces between the empty and unseen portions of the volume.
 
-    :param list bounds: region in space in which to perform the sampling
+    bounds : list, optional
+        region in space in which to perform the sampling
         in format (xmin,xmax, ymin,ymax, zim, zmax)
 
-    :param float pad: increase by this fraction the bounding box
+    pad : float, optional
+        increase by this fraction the bounding box
 
-    |recosurface| |recosurface.py|_
+    :Examples: recosurface.py
     """
     if not utils.isSequence(dims):
         dims = (dims,dims,dims)
@@ -780,9 +810,10 @@ def recoSurface(pts, dims=(100,100,100), radius=None,
 
 
 def pointCloudFrom(obj, interpolateCellData=False):
-    """Build a `Points` object (as a point cloud) from any VTK dataset.
+    """Build a ``Points`` object (as a point cloud) from any VTK dataset.
 
-    :param bool interpolateCellData: if True cell data is interpolated at point positions.
+    interpolateCellData : bool, optional
+        if True cell data is interpolated at point positions.
     """
     from vtk.numpy_interface import dataset_adapter
     if interpolateCellData:
@@ -809,7 +840,7 @@ def pointCloudFrom(obj, interpolateCellData=False):
 
 ###################################################
 def Point(pos=(0, 0, 0), r=12, c="red", alpha=1):
-    """Create a simple point."""
+    """Create a simple point in space."""
     if isinstance(pos, vtk.vtkActor):
         pos = pos.GetPosition()
     pd = utils.buildPolyData([[0,0,0]])
@@ -832,16 +863,18 @@ class Points(vtk.vtkFollower, BaseActor):
     ----------
     inputobj : list, tuple, optional
         The default is None.
+
     c : str, list, optional
         Color. The default is (0.2,0.2,0.2).
+
     alpha : float, optional
         Transparency in range [0,1]. The default is 1.
+
     r : int, optional
         Point radius in units of pixels. The default is 4.
 
     Example
     -------
-
         .. code-block:: python
 
             import numpy as np
@@ -858,9 +891,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
             Points(fibonacci_sphere(1000)).show(axes=1)
 
-    More Examples
-    -------------
-        manypoints.py, lorenz.py
+    :More Examples: manypoints.py, lorenz.py
     """
     # .. note:: add some note here
     #   and on other line
@@ -1048,7 +1079,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
     def polydata(self, transformed=True):
         """
-        Returns the ``vtkPolyData`` object of a ``Mesh``.
+        Returns the ``vtkPolyData`` object associated to a ``Mesh``.
 
         .. note:: If ``transformed=True`` return a copy of polydata that corresponds
             to the current mesh position in space.
@@ -1114,7 +1145,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
 
     def vertices(self, pts=None, transformed=True, copy=False):
-        """Alias for ``points().``"""
+        """Alias for ``points()``."""
         return self.points(pts, transformed, copy)
 
 
@@ -1122,10 +1153,13 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         Clone a ``PointCloud`` or ``Mesh`` object to make an exact copy of it.
 
-        :param bool deep: if False only build a shallow copy of the object (faster copy).
-        :param bool transformed: if True reset the current transformation of the copy to unit.
+        deep : bool, optional
+            if False only build a shallow copy of the object (faster copy).
 
-        |mirror| |mirror.py|_
+        transformed : bool, optional
+            if True reset the current transformation of the copy to unit.
+
+        :Examples: mirror.py
         """
         poly = self.polydata(transformed)
         polyCopy = vtk.vtkPolyData()
@@ -1192,25 +1226,26 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         Copy a 3D Mesh into a static 2D image. Returns a ``vtkActor2D``.
 
-            :param int coordsys: the coordinate system, options are
+        Parameters
+        ----------
+        coordsys : int, optional
+            the coordinate system, options are
 
-                0. Displays
+            - 0 = Displays
+            - 1 = Normalized Display
+            - 2 = Viewport (origin is the bottom-left corner of the window)
+            - 3 = Normalized Viewport
+            - 4 = View (origin is the center of the window)
+            - 5 = World (anchor the 2d image to mesh)
 
-                1. Normalized Display
+        ps : int, optional
+            point size in pixel units
 
-                2. Viewport (origin is the bottom-left corner of the window)
+        lw : int, optional
+            line width in pixel units
 
-                3. Normalized Viewport
-
-                4. View (origin is the center of the window)
-
-                5. World (anchor the 2d image to mesh)
-
-            :param int ps: point size in pixel units
-
-            :param int lw: line width in pixel units
-
-            :param bool sendback: put it behind any other 3D object
+        sendback : bool, optional
+            put it behind any other 3D object
         """
         msiz = self.diagonalSize()
         if scale is None:
@@ -1225,10 +1260,6 @@ class Points(vtk.vtkFollower, BaseActor):
             scale *= 300
 
         cmsh = self.clone()
-
-        # if self.color() is not None or c is not None:
-        #     cmsh._data.GetPointData().SetScalars(None)
-        #     cmsh._data.GetCellData().SetScalars(None)
         poly = cmsh.pos(0,0,0).scale(scale).polydata()
 
         mapper2d = vtk.vtkPolyDataMapper2D()
@@ -1264,17 +1295,21 @@ class Points(vtk.vtkFollower, BaseActor):
         Add a trailing line to mesh.
         This new mesh is accessible through `mesh.trail`.
 
-        :param float offset: set an offset vector from the object center.
+        Parameters
+        ----------
+        offset : float, optional
+            set an offset vector from the object center.
 
-        :param float maxlength: length of trailing line in absolute units
+        maxlength : float, optional
+            length of trailing line in absolute units
 
-        :param int n: number of segments to control precision
+        n : int, optional
+            number of segments to control precision
 
-        :param float lw: line width of the trail
+        lw : float, optional
+            line width of the trail
 
-        .. hint:: See examples: |trail.py|_  |airplanes.py|_
-
-            |trail|
+        :Examples: trail.py, airplanes.py
         """
         if maxlength is None:
             maxlength = self.diagonalSize() * 20
@@ -1331,11 +1366,12 @@ class Points(vtk.vtkFollower, BaseActor):
     def deletePoints(self, indices, renamePoints=False):
         """Delete a list of vertices identified by their index.
 
-        :param bool renamePoints: if True, point indices and faces are renamed.
+        renamePoints : bool, optional
+            if True, point indices and faces are renamed.
             If False, vertices are not really deleted and faces indices will
             stay unchanged (default, faster).
 
-        |deleteMeshPoints| |deleteMeshPoints.py|_
+        :Examples: deleteMeshPoints.py
         """
         cellIds = vtk.vtkIdList()
         self._data.BuildLinks()
@@ -1398,13 +1434,16 @@ class Points(vtk.vtkFollower, BaseActor):
         by considering a small neighborhood of points around p, and fitting a plane
         to the neighborhood (via PCA).
 
-        :param int n: neighborhood size to calculate the normal
+        n : int, optional
+            neighborhood size to calculate the normal
 
-        :param list orientationPoint: adjust the +/- sign of the normals so that
+        orientationPoint : list, optional
+            adjust the +/- sign of the normals so that
             the normals all point towards a specified point. If None, perform a traversal
             of the point cloud and flip neighboring normals so that they are mutually consistent.
 
-        :param bool invert: flip all normals
+        invert : bool, optional
+            flip all normals
         """
         poly = self.polydata()
         pcan = vtk.vtkPCANormalEstimation()
@@ -1600,8 +1639,7 @@ class Points(vtk.vtkFollower, BaseActor):
         If a Mesh is passed the polygonal faces are not removed
         but holes can appear where vertices are removed.
 
-        |moving_least_squares1D| |moving_least_squares1D.py|_
-        |recosurface| |recosurface.py|_
+        :Examples: moving_least_squares1D.py, recosurface.py
         """
         if fraction > 1:
             vedo.logger.warning(f"subsample(fraction=...), fraction must be < 1, but is {fraction}")
@@ -1625,12 +1663,19 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         Extracts cells where scalar value satisfies threshold criterion.
 
-        :param str,list scalars: name of the scalars array.
-        :param float above: minimum value of the scalar
-        :param float below: maximum value of the scalar
-        :param str on: if 'cells' assume array of scalars refers to cell data.
+        scalars : str,list
+            name of the scalars array.
 
-        |mesh_threshold| |mesh_threshold.py|_
+        above : float, optional
+            minimum value of the scalar
+
+        below : float, optional
+            maximum value of the scalar
+
+        on : str, optional
+            if 'cells' assume array of scalars refers to cell data.
+
+        :Examples: mesh_threshold.py
         """
         if utils.isSequence(scalars):
             if on.startswith('c'):
@@ -1728,9 +1773,11 @@ class Points(vtk.vtkFollower, BaseActor):
     def normals(self, cells=False, compute=True):
         """Retrieve vertex normals as a numpy array.
 
-        :params bool cells: if `True` return cell normals.
+        cells : bool, optional
+            if `True` return cell normals.
 
-        :params bool compute: if `True` normals are recalculated if not already present.
+        compute : bool, optional
+            if `True` normals are recalculated if not already present.
             Note that this might modify the number of mesh points.
         """
         if cells:
@@ -1760,20 +1807,28 @@ class Points(vtk.vtkFollower, BaseActor):
 
         See also: ``flag()``, ``vignette()``, ``caption()`` and ``legend()``.
 
-        :param list,int,str content: either 'id', 'cellid', array name or array number.
-            A array can also be passed (must match the nr. of points or cells).
+        Parameters
+        ----------
+        content : list,int,str, optional
+             either 'id', 'cellid', array name or array number.
+             A array can also be passed (must match the nr. of points or cells).
 
-        :param bool cells: generate labels for cells instead of points [False]
+        cells : bool, optional
+            generate labels for cells instead of points [False]
 
-        :param float scale: absolute size of labels, if left as None it is automatic
+        scale : float, optional
+            absolute size of labels, if left as None it is automatic
 
-        :param float rotZ: local rotation angle of label in degrees
+        rotZ : float, optional
+            local rotation angle of label in degrees
 
-        :param int ratio: skipping ratio, to reduce nr of labels for large meshes
+        ratio : int, optional
+            skipping ratio, to reduce nr of labels for large meshes
 
-        :param int precision: numeric precision of labels
+        precision : int, optional
+            numeric precision of labels
 
-        :Example:
+        Example:
             .. code-block:: python
 
                 from vedo import *
@@ -1782,7 +1837,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 cell_ids  = s.labels('id', cells=True ).c('black')
                 show(s, point_ids, cell_ids)
 
-            |meshquality| |meshquality.py|_
+        :More examples: meshquality.py
         """
         if isinstance(content, str):
             if "cellid" == content:
@@ -1913,12 +1968,7 @@ class Points(vtk.vtkFollower, BaseActor):
         return ids
 
     def legend(self, txt):
-        """Book a legend text.
-
-        :param str txt: legend text.
-
-        |flag_labels|  |flag_labels.py|_
-        """
+        """Book a legend text."""
         self.info['legend'] = txt
         return self
 
@@ -1942,33 +1992,35 @@ class Points(vtk.vtkFollower, BaseActor):
         ----------
         txt : str, optional
             Text to display. The default is the filename or the object name.
+
         point : list, optional
             position of the vignette pointer. The default is None.
+
         offset : list, optional
             text offset wrt the application point. The default is None.
+
         s : float, optional
             size of the vignette. The default is None.
+
         font : str, optional
             text font. The default is "".
+
         rounded : bool, optional
             draw a rounded or squared box around the text. The default is True.
+
         c : list, optional
             text and box color. The default is None.
+
         alpha : float, optional
             transparency of text and box. The default is 1.
+
         lw : float, optional
             line with of box frame. The default is 2.
+
         italic : float, optional
             italicness of text. The default is 0.
 
-
-        |intersect2d| |intersect2d.py|_
-
-        |goniometer| |goniometer.py|_
-
-        |flag_labels| |flag_labels.py|_
-
-        |intersect2d| |intersect2d.py|_
+        :Examples: intersect2d.py, goniometer.py, flag_labels.py, intersect2d.py
         """
         acts = []
 
@@ -2072,33 +2124,40 @@ class Points(vtk.vtkFollower, BaseActor):
         ----------
         txt : str, optional
             text to be rendered. The default is the file name.
+
         point : list, optional
             anchoring point. The default is None.
+
         size : list, optional
             (width, height) of the caption box. The default is (0.30, 0.15).
+
         pad : float, optional
             padding space of the caption box in pixels. The default is 5.
+
         font : str, optional
             font name. Font "LogoType" allows for Japanese and Chinese characters.
             Use a monospace font for better rendering. The default is "VictorMono".
             Type ``vedo -r fonts`` for a font demo.
+
         justify : str, optional
             internal text justification. The default is "center-right".
+
         vspacing : float, optional
             vertical spacing between lines. The default is 1.
+
         c : str, optional
             text and box color. The default is 'lb'.
+
         alpha : float, optional
             text and box transparency. The default is 1.
+
         lw : int, optional,
             line width in pixels. The default is 1.
+
         ontop : bool, optional
             keep the 2d caption always on top. The default is True.
 
-
-        |caption| |caption.py|_
-
-        |flag_labels|  |flag_labels.py|_
+        :Examples: caption.py, flag_labels.py
         """
         if txt is None:
             if self.filename:
@@ -2191,24 +2250,32 @@ class Points(vtk.vtkFollower, BaseActor):
         ----------
         text : str, optional
             text string to be rendered. The default is the filename without extension.
+
         font : str, optional
             name of font to use. The default is "Courier".
+
         size : int, optional
             size of font. The default is 18. Fonts are: "Arial", "Courier", "Times".
+
         angle : float, optional
             rotation angle. The default is 0.
+
         shadow : bool, optional
             add a shadow to the font. The default is False.
+
         c : str, optional
             color name or index. The default is 'k'.
+
         bg : str, optional
             color name of the background. The default is 'w'.
+
         justify : TYPE, optional
             justification code. The default is 0.
+
         delay : float, optional
             pop up delay in milliseconds. The default is 150.
 
-        |flag_labels| |flag_labels.py|_
+        :Examples: flag_labels.py
         """
         if text is None:
             if self.filename:
@@ -2245,18 +2312,18 @@ class Points(vtk.vtkFollower, BaseActor):
         the closest surface point on the other, then apply the transformation
         that modify one surface to best match the other (in the least-square sense).
 
-        :param bool rigid: if True do not allow scaling
+        rigid : bool, optional
+            if True do not allow scaling
 
-        :param bool invert: if True start by aligning the target to the source but
+        invert : bool, optional
+            if True start by aligning the target to the source but
              invert the transformation finally. Useful when the target is smaller
              than the source.
 
+        useCentroids : bool, optional
+            start by matching the centroids of the two objects.
 
-        :param bool useCentroids: start by matching the centroids of the two objects.
-
-        .. hint:: |align1.py|_ |align2.py|_
-
-             |align1| |align2|
+        :Examples: align1.py, align2.py
         """
         icp = vtk.vtkIterativeClosestPointTransform()
         icp.SetSource(self.polydata())
@@ -2324,18 +2391,22 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         Apply a linear or non-linear transformation to the mesh polygonal data.
 
-        :param transformation: a ``vtkTransform``, ``vtkMatrix4x4``
+        transformation :
+            a ``vtkTransform``, ``vtkMatrix4x4``
             or a 4x4 or 3x3 python or numpy matrix.
 
-        :param bool reset: if True reset the current transformation matrix
+        reset : bool, optional
+            if True reset the current transformation matrix
             to identity after having moved the object, otherwise the internal
             matrix will stay the same (to only affect visualization).
+
             It the input transformation has no internal defined matrix (ie. non linear)
             then reset will be assumed as True.
 
-        :param bool concatenate: concatenate the transformation with the current existing one
+        concatenate : bool, optional
+            concatenate the transformation with the current existing one
 
-        :Example:
+        Example:
             .. code-block:: python
 
                 from vedo import Cube, show
@@ -2438,15 +2509,18 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         Mirror the mesh  along one of the cartesian axes
 
-        :param str axis: axis to use for mirroring, must be set to x, y, z or n.
+        axis : str, optional
+            axis to use for mirroring, must be set to x, y, z or n.
             Or any combination of those. Adding 'n' reverses mesh faces (hence normals).
 
-        :param list origin: use this point as the origin of the mirroring transformation.
+        origin : list, optional
+            use this point as the origin of the mirroring transformation.
 
-        :param bool reset: if True keep into account the current position of the object,
+        reset : bool, optional
+            if True keep into account the current position of the object,
             and then reset its internal transformation matrix to Identity.
 
-        |mirror| |mirror.py|_
+        :Examples: mirror.py
         """
         sx, sy, sz = 1, 1, 1
         if "x" in axis.lower(): sx = -1
@@ -2514,26 +2588,33 @@ class Points(vtk.vtkFollower, BaseActor):
         Set individual point/cell colors by providing a list of scalar values and a color map.
         `scalars` can be the string name of a ``vtkArray``.
 
-        :param cname: color map scheme to transform a real number into a color.
-        :type cname: str, list, vtkLookupTable, matplotlib.colors.LinearSegmentedColormap
+        Parameters
+        ----------
 
-        :param str on: either 'points' or 'cells'.
+        cname
+            :allowed types: str, list, vtkLookupTable, matplotlib.colors.LinearSegmentedColormap
+            color map scheme to transform a real number into a color.
+
+        on : str, optional
+            either 'points' or 'cells'.
             Apply the color map as defined on either point or cell data.
 
-        :param str name: give a name to the numpy array
+        name : str, optional
+            give a name to the numpy array
 
-        :param float vmin: clip scalars to this minimum value
+        vmin : float, optional
+            clip scalars to this minimum value
 
-        :param float vmax: clip scalars to this maximum value
+        vmax : float, optional
+            clip scalars to this maximum value
 
-        :param float,list alpha: mesh transparency.
-            Can be a ``list`` of values one for each vertex.
+        alpha : float,list, optional
+            Mesh transparency. Can be a ``list`` of values one for each vertex.
 
-        :param int n: number of distinct colors to be used.
+        n : int, optional
+            number of distinct colors to be used.
 
-        .. hint::|mesh_coloring.py|_ |mesh_alphas.py|_ |mesh_custom.py|_
-
-             |mesh_coloring| |mesh_alphas| |mesh_custom|
+        :Examples: mesh_coloring.py, mesh_alphas.py, mesh_custom.py and many others
         """
         self._cmap_name = cname
 
@@ -2816,9 +2897,11 @@ class Points(vtk.vtkFollower, BaseActor):
 
         If N (number of closest points to use) is set then radius value is ignored.
 
-        :param str kernel: available kernels are [shepard, gaussian, linear]
+        kernel : str, optional
+            available kernels are [shepard, gaussian, linear]
 
-        :param int nullStrategy: specify a strategy to use when encountering a "null" point
+        nullStrategy : int, optional
+            specify a strategy to use when encountering a "null" point
             during the interpolation process. Null points occur when the local neighborhood
             (of nearby points to interpolate from) is empty.
 
@@ -2829,7 +2912,8 @@ class Points(vtk.vtkFollower, BaseActor):
 
             Case 2: simply use the closest point to perform the interpolation.
 
-        :param float nullValue: see above.
+        nullValue : float, optional
+            see above.
         """
         if radius is None and not N:
             vedo.logger.error("in interpolateDataFrom(): please set either radius or N")
@@ -2913,10 +2997,11 @@ class Points(vtk.vtkFollower, BaseActor):
         Add gaussian noise to point positions.
         An extra array is added named "GaussNoise" with the shifts.
 
-        :param float sigma: sigma is expressed in percent of the diagonal size of mesh.
+        sigma : float
+            nr. of standard deviations, expressed in percent of the diagonal size of mesh.
             Can also be a list [sigma_x, sigma_y, sigma_z].
 
-        :Example:
+        Example:
             .. code-block:: python
 
                 from vedo import Sphere
@@ -2945,18 +3030,25 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         Find the closest point(s) on a mesh given from the input point `pt`.
 
-        :param int N: if greater than 1, return a list of N ordered closest points
-        :param float radius: if given, get all points within that radius.
-        :param bool returnPointId: return point ID instead of coordinates
-        :param bool returnCellId: return cell ID in which the closest point sits
-        :param bool returnIds: obsolete, do not use.
+        Parameters
+        ----------
+        N : int, optional
+            if greater than 1, return a list of N ordered closest points
 
-        .. hint:: |align1.py|_ |fitplanes.py|_  |quadratic_morphing.py|_
+        radius : float, optional
+            if given, get all points within that radius. Then N is ignored.
 
-            |align1| |quadratic_morphing|
+        returnPointId : bool, optional
+            return point ID instead of coordinates
+
+        returnCellId : bool, optional
+            return cell ID in which the closest point sits
 
         .. note:: The appropriate tree search locator is built on the
             fly and cached for speed.
+            If you want to reset it use ``mymesh.point_locator=None``
+
+        :Examples: align1.py, fitplanes.py, quadratic_morphing.py
         """
         #NB: every time the mesh moves or is warped the locateors are set to None
         if (N > 1 or radius) or (N==1 and returnPointId):
@@ -3042,13 +3134,13 @@ class Points(vtk.vtkFollower, BaseActor):
         The point data array "Variances" will contain the residue calculated for each point.
         Input mesh's polydata is modified.
 
-        :param float f: smoothing factor - typical range is [0,2].
+        f : float, optional
+            smoothing factor - typical range is [0,2].
 
-        :param float radius: radius search in absolute units. If set then ``f`` is ignored.
+        radius : float, optional
+            radius search in absolute units. If set then ``f`` is ignored.
 
-        .. hint:: |moving_least_squares1D.py|_  |skeletonize.py|_
-
-            |moving_least_squares1D| |skeletonize|
+        :Examples: moving_least_squares1D.py, skeletonize.py
         """
         coords = self.points()
         ncoords = len(coords)
@@ -3088,13 +3180,13 @@ class Points(vtk.vtkFollower, BaseActor):
         When a radius is specified points that are isolated will not be moved and will get
         a False entry in array ``mesh.info['isvalid']``.
 
-        :param float f: smoothing factor - typical range is [0,2].
+        f : float, optional
+            smoothing factor - typical range is [0,2].
 
-        :param float radius: radius search in absolute units. If set then ``f`` is ignored.
+        radius : float, optional
+            radius search in absolute units. If set then ``f`` is ignored.
 
-        .. hint:: |moving_least_squares2D.py|_  |recosurface.py|_
-
-            |moving_least_squares2D| |recosurface|
+        :Examples: moving_least_squares2D.py, recosurface.py
         """
         coords = self.points()
         ncoords = len(coords)
@@ -3198,21 +3290,21 @@ class Points(vtk.vtkFollower, BaseActor):
         return Points(pts, c='k')
 
 
-    def projectOnPlane(self, plane='z', point=None, direction=None, clip=False):
+    def projectOnPlane(self, plane='z', point=None, direction=None):
         """
         Project the mesh on one of the Cartesian planes.
 
-        :param str,Plane plane: if plane is `str`, plane can be one of ['x', 'y', 'z'],
+        plane : str,Plane, optional
+            if plane is `str`, plane can be one of ['x', 'y', 'z'],
             represents x-plane, y-plane and z-plane, respectively.
             Otherwise, plane should be an instance of `vedo.shapes.Plane`.
 
-        :param float,array point: if plane is `str`, point should be a float represents the intercept.
+         point : float,array, optional
+             if plane is `str`, point should be a float represents the intercept.
             Otherwise, point is the camera point of perspective projection
 
-        :param array direction: direction of oblique projection
-
-        # TODO
-        :param bool clip: if true, remove the outside projection points
+        direction : array, optional
+            direction of oblique projection
 
         Note:
             Parameters `point` and `direction` are only used if the given plane
@@ -3220,11 +3312,13 @@ class Points(vtk.vtkFollower, BaseActor):
             should be left as `None` to specify the projection type.
 
         Example:
-            >>> s.projectOnPlane(plane='z') # project to z-plane
-            >>> plane = Plane(pos=(4, 8, -4), normal=(-1, 0, 1), s=(5,5))
-            >>> s.projectOnPlane(plane=plane)                       # orthogonal projection
-            >>> s.projectOnPlane(plane=plane, point=(6, 6, 6))      # perspective projection
-            >>> s.projectOnPlane(plane=plane, direction=(1, 2, -1)) # oblique projection
+            .. code-block:: python
+
+                s.projectOnPlane(plane='z') # project to z-plane
+                plane = Plane(pos=(4, 8, -4), normal=(-1, 0, 1), s=(5,5))
+                s.projectOnPlane(plane=plane)                       # orthogonal projection
+                s.projectOnPlane(plane=plane, point=(6, 6, 6))      # perspective projection
+                s.projectOnPlane(plane=plane, direction=(1, 2, -1)) # oblique projection
         """
         coords = self.points()
 
@@ -3280,10 +3374,12 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         Modify the mesh coordinates by moving the vertices towards a specified point.
 
-        :param float factor: value to scale displacement.
-        :param list point: the position to warp towards.
-        :param bool absolute: turning on causes scale factor of the new position
-            to be one unit away from point.
+        factor : float, optional
+            value to scale displacement.
+        point : array
+            the position to warp towards.
+        absolute : bool, optional
+            turning on causes scale factor of the new position to be one unit away from point.
 
         :Example:
             .. code-block:: python
@@ -3293,8 +3389,6 @@ class Points(vtk.vtkFollower, BaseActor):
                 pt = [4,0,0]
                 w = s.clone().warpToPoint(pt, factor=0.5).wireframe(False)
                 show(w,s, Point(pt), axes=1)
-
-            |warpto|
         """
         warpTo = vtk.vtkWarpTo()
         warpTo.SetInputData(self._data)
@@ -3346,12 +3440,13 @@ class Points(vtk.vtkFollower, BaseActor):
 
         Transformation object can be accessed with ``mesh.transform``.
 
-        :param float sigma: specify the 'stiffness' of the spline.
-        :param str mode: set the basis function to either abs(R) (for 3d) or R2LogR (for 2d meshes)
+        sigma : float, optional
+            specify the 'stiffness' of the spline.
 
-        .. hint:: Examples: |warp1.py|_ |warp3.py|_ |interpolateField.py|_
+        mode : str, optional
+            set the basis function to either abs(R) (for 3d) or R2LogR (for 2d meshes)
 
-            |warp1| |warp3|  |interpolateField|
+        :Examples: warp1.py, warp3.py, interpolateField.py
         """
         if isinstance(sourcePts, Points):
             sourcePts = sourcePts.points()
@@ -3395,8 +3490,11 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         Cut the mesh with the plane defined by a point and a normal.
 
-        :param origin: the cutting plane goes through this point
-        :param normal: normal of the cutting plane
+        origin : array, optional
+            the cutting plane goes through this point
+
+        normal : array, optional
+            normal of the cutting plane
 
         :Example:
             .. code-block:: python
@@ -3405,9 +3503,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 cube = Cube().cutWithPlane(normal=(1,1,1))
                 cube.bc('pink').show()
 
-            |cutcube|
-
-        |trail| |trail.py|_
+        :Examples: trail.py
 
         Check out also:
             ``crop()``, ``cutWithBox()``, ``cutWithCylinder()``, ``cutWithSphere()``
@@ -3456,8 +3552,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
     def cutWithBox(self, bounds, invert=False):
         """
-        Cut the current mesh with a box.
-        This is much faster than ``cutWithMesh()``.
+        Cut the current mesh with a box. This is much faster than ``cutWithMesh()``.
 
         Input ``bounds`` can be either:
             - a Mesh or Points object
@@ -3575,9 +3670,12 @@ class Points(vtk.vtkFollower, BaseActor):
         Cut the current mesh with an infinite cylinder.
         This is much faster than ``cutWithMesh()``.
 
-        :param list center: the center of the cylinder
-        :param list normal: direction of the cylinder axis
-        :param float r: radius of the cylinder
+        center : array, optional
+            the center of the cylinder
+        normal : array
+            direction of the cylinder axis
+        r : float, optional
+            radius of the cylinder
 
         :Example:
             .. code-block:: python
@@ -3635,8 +3733,11 @@ class Points(vtk.vtkFollower, BaseActor):
         Cut the current mesh with an sphere.
         This is much faster than ``cutWithMesh()``.
 
-        :param list center: the center of the sphere
-        :param float r: radius of the sphere
+        center : array, optional
+            the center of the sphere
+
+        r : float, optional
+            radius of the sphere
 
         :Example:
             .. code-block:: python
@@ -3686,7 +3787,8 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         Cut an ``Mesh`` mesh with another ``Mesh``.
 
-        :param bool invert: if True return cut off part of Mesh.
+        invert : bool, optional
+            if True return cut off part of Mesh.
 
         .. code-block:: python
 
@@ -3699,9 +3801,7 @@ class Points(vtk.vtkFollower, BaseActor):
             cube.cutWithMesh(iso).c('silver').alpha(1)
             show(iso, cube)
 
-        .. hint:: |cutWithMesh1.py|_ |cutAndCap.py|_
-
-            |cutWithMesh1| |cutAndCap|
+       :Examples: cutWithMesh1.py, cutAndCap.py
 
        Check out also:
            ``crop()``, ``cutWithBox()``, ``cutWithPlane()``, ``cutWithCylinder()``
@@ -3800,22 +3900,25 @@ class Points(vtk.vtkFollower, BaseActor):
         resLine : int, optional
             resolution of the contour line. The default is None, in this case
             the contour is not resampled.
+
         resMesh : int, optional
             resolution of the intenal triangles not touching the boundary.
             The default is None.
+
         smooth : float, optional
             smoothing of the contour before meshing. The default is 0.
+
         jitter : float, optional
             add a small noise to the internal points. The default is 0.01.
+
         grid : Grid, optional
-            manually pass a Grid object.
-            The default is True.
+            manually pass a Grid object. The default is True.
+
         quads : bool, optional
             generate a mesh of quads instead of triangles.
+
         invert : bool, optional
             flip the line orientation. The default is False.
-        verbose : bool, optional
-            printout info during the process. The default is False.
         """
         if resLine is None:
             contour = vedo.shapes.Line(self.points())
@@ -3916,7 +4019,7 @@ class Points(vtk.vtkFollower, BaseActor):
         Clustering of points in space. The `radius` is the radius of local search.
         An array named "ClusterId" is added to the vertex points.
 
-        |clustering| |clustering.py|_
+        :Examples:  clustering.py
         """
         cluster = vtk.vtkEuclideanClusterExtraction()
         cluster.SetInputData(self._data)
@@ -3937,20 +4040,20 @@ class Points(vtk.vtkFollower, BaseActor):
         The local neighborhood is specified as the `radius` around each sample position (each voxel).
         The density is expressed as the number of counts in the radius search.
 
-        :param int,list dims: numer of voxels in x, y and z of the output Volume.
+        dims : int,list, optional
+            numer of voxels in x, y and z of the output Volume.
 
-        :param bool computeGradient: Turn on/off the generation of the gradient vector,
+        computeGradient : bool, optional
+            Turn on/off the generation of the gradient vector,
             gradient magnitude scalar, and function classification scalar.
             By default this is off. Note that this will increase execution time
             and the size of the output. (The names of these point data arrays are:
             "Gradient", "Gradient Magnitude", and "Classification".)
 
-        :param vtkPointLocator locator: can be assigned from a previous call for speed.
-            (access it via `object.point_locator`).
+        locator : vtkPointLocator, optional
+            can be assigned from a previous call for speed (access it via `object.point_locator`).
 
-        See example script:
-
-        |plot_density3d| |plot_density3d.py|_
+        :Examples: plot_density3d.py
         """
         pdf = vtk.vtkPointDensityFilter()
 
@@ -4008,7 +4111,8 @@ class Points(vtk.vtkFollower, BaseActor):
             Note that the targetDistance should be less than the radius
             or nothing will change on output.
 
-        .. warning:: This class can generate a lot of points very quickly.
+        Warning:
+            This class can generate a lot of points very quickly.
             The maximum number of iterations is by default set to =1.0 for this reason.
             Increase the number of iterations very carefully.
             Also, `maxN` can be set to limit the explosion of points.
@@ -4054,10 +4158,17 @@ class Points(vtk.vtkFollower, BaseActor):
         Compute the ``Volume`` object whose voxels contains the signed distance from
         the point cloud. The point cloud must have Normals.
 
-        :param list bounds: volume bounds.
-        :param list dims: dimensions (nr. of voxels) of the output volume.
-        :param bool invert: flip the sign.
-        :param float maxradius: how far out to propagate distance calculation
+        bounds : list, actor, optional
+            bounding box sizes
+
+        dims : list, optional
+            dimensions (nr. of voxels) of the output volume.
+
+        invert : bool, optional
+            flip the sign
+
+        maxradius : float, optional
+            specify how far out to propagate distance calculation
         """
         if bounds is None:
             bounds = self.GetBounds()
@@ -4095,13 +4206,22 @@ class Points(vtk.vtkFollower, BaseActor):
         or vector field which is only known on a scattered set of points or mesh.
         Available interpolation kernels are: shepard, gaussian, or linear.
 
-        :param str kernel: interpolation kernel type [shepard]
-        :param float radius: radius of the local search
-        :param list bounds: bounding box of the output Volume object
-        :param list dims: dimensions of the output Volume object
-        :param float nullValue: value to be assigned to invalid points
+        kernel : str, optional
+            interpolation kernel type [shepard]
 
-        |interpolateVolume| |interpolateVolume.py|_
+        radius : float, optional
+            radius of the local search
+
+        bounds : list, optional
+            bounding box of the output Volume object
+
+        dims : list, optional
+            dimensions of the output Volume object
+
+        nullValue : float, optional
+            value to be assigned to invalid points
+
+        :Examples: interpolateVolume.py
         """
         if radius is None and not N:
             vedo.logger.error("please set either radius or N")
@@ -4132,8 +4252,8 @@ class Points(vtk.vtkFollower, BaseActor):
         elif kernel == 'linear':
             kern = vtk.vtkLinearKernel()
         else:
-            print('Error in tovolume, available kernels are:')
-            print(' [shepard, gaussian, linear]')
+            vedo.logger.error('Error in tovolume, available kernels are:')
+            vedo.logger.error(' [shepard, gaussian, linear]')
             raise RuntimeError()
 
         if radius:
