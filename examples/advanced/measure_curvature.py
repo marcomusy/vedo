@@ -11,8 +11,9 @@ plt = Plotter(N=4, axes=1)
 plt.show(msh, at=0)
 
 # Use built-in curvature method
-msh1 = msh.clone().addCurvatureScalars(method=0).cmap('viridis').addScalarBar(title='Local curvature', horizontal=True, size=(100, None))
-msh1.show(at=1, azimuth=30, elevation=30)
+msh1 = msh.clone().addCurvatureScalars(method=0).cmap('viridis').addScalarBar()
+msh1.name = 'Local curvature'
+msh1.show(at=1, azimuth=30, elevation=30).addLegendBox(width=0.3)
 
 # Use sphere-fit curvature
 msh2 = msh.clone()
@@ -33,14 +34,15 @@ for idx in range(msh2.N()):
     
 msh2.pointdata['Spherefit_Curvature'] = curvature
 msh2.pointdata['Spherefit_Curvature_residue'] = residues
-msh2.show(at=2)
 
-msh2.cmap('viridis', msh2.pointdata['Spherefit_Curvature']).addScalarBar(title='Sphere-fitted curvature', horizontal=True, size=(100, None))
-msh2.show(at=2)
+msh2.name = 'Sphere-fitted curvature'
+msh2.cmap('viridis', msh2.pointdata['Spherefit_Curvature']).addScalarBar()
+msh2.show(at=2).addLegendBox(width=0.4)
 
 # Show fit residues
 msh3 = msh2.clone()
-msh3.cmap('jet', msh2.pointdata['Spherefit_Curvature_residue']).addScalarBar(title='Fit residues', horizontal=True, size=(100, None))
-msh3.show(at=3)
+msh3.cmap('jet', msh2.pointdata['Spherefit_Curvature_residue']).addScalarBar()
+msh3.name = 'Fit residues'
+msh3.show(at=3).addLegendBox(width=0.25)
     
     
