@@ -1,4 +1,4 @@
-"""Calculate the surface curvature of an opject 
+"""Calculate the surface curvature of an object 
 by fitting a sphere to each vertex."""
 from vedo import printc, Ellipsoid, Plotter,fitSphere
 import numpy as np
