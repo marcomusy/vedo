@@ -717,8 +717,9 @@ class MeshActor(Mesh):
             poly,
             c=c,
             alpha=alpha,
-            computeNormals=computeNormals,
         )
+        if computeNormals:
+            self.computeNormals()
 
         self.mesh = mesh  # holds a dolfin Mesh obj
         self.u = u  # holds a dolfin function_data
