@@ -1,5 +1,4 @@
 import os
-
 import numpy as np
 import vedo
 from vedo.colors import colorMap
@@ -17,6 +16,12 @@ from vedo.utils import linInterpolate
 from vedo.utils import mag
 from vedo.utils import precision
 
+__doc__ = """
+This module contains vedo applications which provide some *ready-to-use* funcionalities
+.. image:: https://vedo.embl.es/images/advanced/app_raycaster.gif
+"""
+
+
 __all__ = [
     'Browser',
     'IsosurfaceBrowser',
@@ -24,45 +29,67 @@ __all__ = [
     'RayCastPlotter',
     "Slicer3DPlotter",
     "Slicer2DPlotter",
+    "Animation",
 ]
 
 
 #################################
 class Slicer3DPlotter(Plotter):
+    """
+    Generate a ``Plotter`` window with slicing planes for the input Volume.
 
-    def __init__(self,
-               volume,
-               alpha=1,
-               cmaps=('gist_ncar_r', "hot_r", "bone_r", "jet", "Spectral_r"),
-               map2cells=False,  # buggy
-               clamp=True,
-               useSlider3D=False,
-               showHisto=True,
-               showIcon=True,
-               draggable=False,
-               pos=(0, 0),
-               size="auto",
-               screensize="auto",
-               title="",
-               bg="white",
-               bg2="lightblue",
-               axes=7,
-               resetcam=True,
-               interactive=True,
+    Returns the ``Plotter`` object.
+
+    Parameters
+    ----------
+    alpha : float
+        transparency of the slicing planes
+
+    cmaps : list
+        list of color maps names to cycle when clicking button
+
+    map2cells : bool
+        scalars are mapped to cells, not interpolated
+
+    clamp : bool
+        clamp scalar to reduce the effect of tails in color mapping
+
+    useSlider3D : bool
+        show sliders attached along the axes
+
+    showHisto : bool
+        show histogram on bottom left
+
+    showIcon : bool
+        show a small 3D rendering icon of the volume
+
+    draggable : bool
+        make the icon draggable
+
+    .. hint:: examples/volumetric/slicer1.py
+        .. image:: https://vedo.embl.es/images/volumetric/slicer1.jpg
+    """
+    def __init__(
+            self,
+            volume,
+            alpha=1,
+            cmaps=('gist_ncar_r', "hot_r", "bone_r", "jet", "Spectral_r"),
+            map2cells=False,  # buggy
+            clamp=True,
+            useSlider3D=False,
+            showHisto=True,
+            showIcon=True,
+            draggable=False,
+            pos=(0, 0),
+            size="auto",
+            screensize="auto",
+            title="",
+            bg="white",
+            bg2="lightblue",
+            axes=7,
+            resetcam=True,
+            interactive=True,
         ):
-        """
-        Generate a ``Plotter`` window with slicing planes for the input Volume.
-        Returns the ``Plotter`` object.
-
-        :param float alpha: transparency of the slicing planes
-        :param list cmaps: list of color maps names to cycle when clicking button
-        :param bool map2cells: scalars are mapped to cells, not intepolated.
-        :param bool clamp: clamp scalar to reduce the effect of tails in color mapping
-        :param bool useSlider3D: show sliders attached along the axes
-        :param bool showHisto: show histogram on bottom left
-        :param bool showIcon: show a small 3D rendering icon of the volume
-        :param bool draggable: make the icon draggable
-        """
         self._cmap_slicer= 'gist_ncar_r'
 
         if not title:
@@ -224,10 +251,15 @@ class Slicer3DPlotter(Plotter):
 ########################################################################################
 class Slicer2DPlotter(Plotter):
     """
-    Create a Plotter with a single slice of a Volume which always faces the camera,
+    Create a ``Plotter`` with a single slice of a Volume which always faces the camera,
     but at the same time can be oriented arbitrarily in space.
 
-    :param list wl: window and color levels
+    Parameters
+    ----------
+    levels : list
+        window and color level
+
+    .. image:: https://vedo.embl.es/images/volumetric/read_volume3.jpg
     """
     def __init__(self,
                  volume,
@@ -292,7 +324,11 @@ class Slicer2DPlotter(Plotter):
 class RayCastPlotter(Plotter):
     """
     Generate a ``Plotter`` window for Volume rendering using ray casting.
+
     Returns the ``Plotter`` object.
+
+    .. hint:: examples/volumetric/app_raycaster.py
+        .. image:: https://vedo.embl.es/images/advanced/app_raycaster.gif
     """
     def __init__(self, volume, **kwargs):
 
@@ -435,11 +471,14 @@ class IsosurfaceBrowser(Plotter):
     """
     Generate a ``Plotter`` for Volume isosurfacing using a slider.
 
-    Set `delayed=True` to delay slider update on mouse release.
-    Set `res` to set the resolution, e.g. the number of desired isosurfaces to be generated on the fly.
-    Set `precompute=True` to precompute the isosurfaces (so slider browsing will be smoother).
+    Set ``delayed=True`` to delay slider update on mouse release.
 
-    :Example:
+    Set ``res`` to set the resolution, e.g. the number of desired isosurfaces to be
+    generated on the fly.
+
+    Set ``precompute=True`` to precompute the isosurfaces (so slider browsing will be smoother).
+
+    Example:
         .. code-block:: python
 
             from vedo import dataurl, Volume
@@ -447,27 +486,31 @@ class IsosurfaceBrowser(Plotter):
             vol = Volume(dataurl+'head.vti')
             plt = IsosurfaceBrowser(vol, c='gold')
             plt.show(axes=7, bg2='lb')
+
+    .. hint:: examples/volumetric/app_isobrowser.py
+        .. image:: https://vedo.embl.es/images/advanced/app_isobrowser.gif
     """
-    def __init__(self,
-                 volume,
-                 threshold=None,
-                 c=None,
-                 alpha=1,
-                 lego=False,
-                 res=50,
-                 precompute=False,
-                 progress=False,
-                 cmap='hot',
-                 delayed=False,
-                 sliderpos=4,
-                 pos=(0,0),
-                 size="auto",
-                 screensize="auto",
-                 title="",
-                 bg="white",
-                 bg2=None,
-                 axes=1,
-                 interactive=True,
+    def __init__(
+            self,
+            volume,
+            threshold=None,
+            c=None,
+            alpha=1,
+            lego=False,
+            res=50,
+            precompute=False,
+            progress=False,
+            cmap='hot',
+            delayed=False,
+            sliderpos=4,
+            pos=(0,0),
+            size="auto",
+            screensize="auto",
+            title="",
+            bg="white",
+            bg2=None,
+            axes=1,
+            interactive=True,
         ):
 
         Plotter.__init__(self,
@@ -558,14 +601,15 @@ class IsosurfaceBrowser(Plotter):
         if lego:
             self.actors[0].addScalarBar(pos=(0.8,0.12))
 
-        self.addSlider2D(sliderThres,
-                         scrange[0] + 0.02 * delta,
-                         scrange[1] - 0.02 * delta,
-                         value=threshold,
-                         pos=sliderpos,
-                         title=slidertitle,
-                         showValue=True,
-                         delayed=delayed,
+        self.addSlider2D(
+            sliderThres,
+            scrange[0] + 0.02 * delta,
+            scrange[1] - 0.02 * delta,
+            value=threshold,
+            pos=sliderpos,
+            title=slidertitle,
+            showValue=True,
+            delayed=delayed,
         )
 
 
@@ -574,7 +618,7 @@ class Browser(Plotter):
     """
     Browse a serie of vedo objects by using a simple slider.
 
-    :Example:
+    Example:
         .. code-block:: python
 
             import vedo
@@ -582,35 +626,35 @@ class Browser(Plotter):
             meshes = vedo.load("data/2*0.vtk") # a python list
             plt = Browser(meshes, resetcam=1, axes=4) # a vedo.Plotter
             plt.show()
+
+    .. hint:: examples/other/morphomatics_tube.py
     """
-    def __init__(self,
-                 objects=(),
-                 sliderpos=((0.55, 0.07),(0.96, 0.07)),
-                 c=None,  # slider color
-                 prefix="",
-                 pos=(0, 0),
-                 size="auto",
-                 screensize="auto",
-                 title="Browser",
-                 bg="white",
-                 bg2=None,
-                 axes=4,
-                 resetcam=False,
-                 interactive=True,
+    def __init__(
+            self,
+            objects=(),
+            sliderpos=((0.55, 0.07),(0.96, 0.07)),
+            c=None,  # slider color
+            prefix="",
+            pos=(0, 0),
+            size="auto",
+            screensize="auto",
+            title="Browser",
+            bg="white",
+            bg2=None,
+            axes=4,
+            resetcam=False,
+            interactive=True,
         ):
-        """
-        Generate a ``Plotter`` window to browse a list of objects using a slider.
-        Returns the ``Plotter`` object.
-        """
-        Plotter.__init__(self,
-                         pos=pos,
-                         size=size,
-                         screensize=screensize,
-                         title=title,
-                         bg=bg,
-                         bg2=bg2,
-                         axes=axes,
-                         interactive=interactive,
+        Plotter.__init__(
+            self,
+            pos=pos,
+            size=size,
+            screensize=screensize,
+            title=title,
+            bg=bg,
+            bg2=bg2,
+            axes=axes,
+            interactive=interactive,
         )
         self.actors = objects
         self.slider = None
@@ -643,13 +687,13 @@ class Browser(Plotter):
 #############################################################################################
 class FreeHandCutPlotter(Plotter):
     """
-    A Plotter derived class which edits polygonal meshes interactively.
-    Can also be invoked from command line. E.g. with
+    A ``Plotter`` derived class which edits polygonal meshes interactively.
+    Can also be invoked from command line. E.g. with:
 
     ``vedo --edit https://vedo.embl.es/examples/data/porsche.ply``
 
-    Usage:
-
+    Usage
+    -----
         - Left-click and hold to rotate
         - Right-click and move to draw line
         - Second right-click to stop drawing
@@ -664,37 +708,50 @@ class FreeHandCutPlotter(Plotter):
     ----------
     mesh : Mesh, Points
         The input Mesh or pointcloud.
-    splined : bool, optional
-        join points with a spline or a simple line. The default is True.
-    font : str, optional
-        Font name for the instructions. The default is "Bongas".
-    alpha : float, optional
-        transparency of the instruction message panel. The default is 0.9.
-    lw : str, optional
-        selection line width. The default is 3.
-    lc : str, optional
-        selection line color. The default is "red5".
-    pc : str, optional
-        selection points color. The default is "black".
-    c : str, optional
-        backgound color of instructions. The default is "green3".
-    tc : str, optional
-        text color of instructions. The default is "white".
-    tol : int, optional
-        tolerance of the point proximity. Default is 5.
+
+    splined : bool
+        join points with a spline or a simple line.
+
+    font : str
+        Font name for the instructions.
+
+    alpha : float
+        transparency of the instruction message panel.
+
+    lw : str
+        selection line width.
+
+    lc : str
+        selection line color.
+
+    pc : str
+        selection points color.
+
+    c : str
+        backgound color of instructions.
+
+    tc : str
+        text color of instructions.
+
+    tol : int
+        tolerance of the point proximity.
+
+    .. hint:: examples/basic/cutFreeHand.py
+        .. image:: https://vedo.embl.es/images/basic/cutFreeHand.gif
     """
     # thanks to Jakub Kaminski for the original version of this script
-    def __init__(self,
-                 mesh,
-                 splined=True,
-                 font="Bongas",
-                 alpha=0.9,
-                 lw=4,
-                 lc="red5",
-                 pc="red4",
-                 c="green3",
-                 tc="k9",
-                 tol=0.008,
+    def __init__(
+            self,
+            mesh,
+            splined=True,
+            font="Bongas",
+            alpha=0.9,
+            lw=4,
+            lc="red5",
+            pc="red4",
+            c="green3",
+            tc="k9",
+            tol=0.008,
         ):
 
         if not isinstance(mesh, Points):
@@ -863,11 +920,13 @@ class FreeHandCutPlotter(Plotter):
             self.write(fname)
 
     def write(self, filename="mesh_edited.vtk"):
+        """Save the resulting mesh to file"""
         self.mesh.write(filename)
         vedo.logger.info(f"\save saved to file {filename}")
         return self
 
     def start(self, *args, **kwargs):
+        """Start window interaction (with mouse and keyboard)"""
         acts = [self.txt2d, self.mesh, self.points, self.spline, self.jline]
         self.show(acts + list(args), **kwargs)
         return self
@@ -876,26 +935,28 @@ class FreeHandCutPlotter(Plotter):
 ########################################################################
 class Animation(Plotter):
     """
-    Animate simultaneously various objects
-    by specifying event times and durations of different visual effects.
-
-    See examples
-    `here <https://github.com/marcomusy/vedo/blob/master/vedo/examples/other>`_.
-
-    |animation1| |animation2|
-
-    N.B.: this is still an experimental feature at the moment.
-
     A ``Plotter`` derived class that allows to animate simultaneously various objects
     by specifying event times and durations of different visual effects.
 
-    :param float totalDuration: expand or shrink the total duration of video to this value
-    :param float timeResolution: in seconds, save a frame at this rate
-    :param bool showProgressBar: show the progressbar
-    :param str videoFileName: output file name of the video
-    :param int videoFPS: desired value of the nr of frames per second.
-    """
+    Parameters
+    ----------
+    totalDuration : float
+        expand or shrink the total duration of video to this value
 
+    timeResolution : float
+        in seconds, save a frame at this rate
+
+    showProgressBar : bool
+        whether to show a progress bar or not
+
+    videoFileName : str
+        output file name of the video
+
+    videoFPS : int
+        desired value of the nr of frames per second
+
+    .. warning:: this is still an experimental feature at the moment.
+    """
     def __init__(self, totalDuration=None, timeResolution=0.02, showProgressBar=True,
                  videoFileName='animation.mp4', videoFPS=12):
         Plotter.__init__(self)

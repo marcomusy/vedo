@@ -1,7 +1,18 @@
 """
-General settings.
+General settings to modify the global behavior
 
+
+Usage example
+-------------
 .. code-block:: python
+
+    from vedo import *
+    settings.useParallelProjection = True
+    Cube().color('g').show()
+
+
+Parameters
+----------
 
     # Set a default for the font to be used for axes, comments etc.
     defaultFont = 'Normografo' # check font options in shapes.Text
@@ -106,149 +117,133 @@ General settings.
     k3dAxesHelper = True    # size of the small triad of axes on the bottom right
     k3dPointShader= "mesh"  # others are '3d', '3dSpecular', 'dot', 'flat'
     k3dLineShader = "thick" # others are 'flat', 'mesh'
-
-Usage example:
-
-.. code-block:: python
-
-    from vedo import *
-
-    settings.useParallelProjection = True
-
-    Cube().color('green').show()
 """
 
-from vedo.utils import dotdict
-
-_setts = dotdict()
-_setts.warn_on_setting = False  # we are now initializing so disable warning
-
-
-_setts.defaultFont = 'Normografo'
+defaultFont = 'Normografo'
 
 # Scale magnification of the screenshot (must be an integer)
-_setts.screeshotScale = 1
-_setts.screenshotTransparentBackground = False
-_setts.screeshotLargeImage = False
+screeshotScale = 1
+screenshotTransparentBackground = False
+screeshotLargeImage = False
 
 # Allow to continously interact with scene during interactor.Start() execution
-_setts.allowInteraction = False
+allowInteraction = False
 
 # BUG in vtk9.0 (if true close works but sometimes vtk crashes, if false doesnt crash but cannot close)
 # see plotter.py line 555
-_setts.hackCallScreenSize = True
+hackCallScreenSize = True
 
 # Set up default mouse and keyboard functionalities
-_setts.enableDefaultMouseCallbacks = True
-_setts.enableDefaultKeyboardCallbacks = True
+enableDefaultMouseCallbacks = True
+enableDefaultKeyboardCallbacks = True
 
 # When multiple renderers are present do not render each one for separate.
 # but do it just once at the end (when interactive() is called)
-_setts.immediateRendering = True
+immediateRendering = True
 
 # Show a gray frame margin in multirendering windows
-_setts.rendererFrameColor = None
-_setts.rendererFrameAlpha = 0.5
-_setts.rendererFrameWidth = 0.5
-_setts.rendererFramePadding = 0.001
+rendererFrameColor = None
+rendererFrameAlpha = 0.5
+rendererFrameWidth = 0.5
+rendererFramePadding = 0.001
 
 # Wrap lines in tubes
 # renderPointsAsSpheres has become mesh.renderPointsAsSpheres(True)
-_setts.renderLinesAsTubes = False
+renderLinesAsTubes = False
 
 # Remove hidden lines when in wireframe mode
-_setts.hiddenLineRemoval = False
+hiddenLineRemoval = False
 
 # Smoothing options
-_setts.pointSmoothing = False
-_setts.lineSmoothing = False
-_setts.polygonSmoothing = False
+pointSmoothing = False
+lineSmoothing = False
+polygonSmoothing = False
 
 # For Structured and RectilinearGrid: show internal edges not only outline
-_setts.visibleGridEdges = False
+visibleGridEdges = False
 
 # Turn on/off the automatic repositioning of lights as the camera moves.
-_setts.lightFollowsCamera = False
-_setts.twoSidedLighting = True
+lightFollowsCamera = False
+twoSidedLighting = True
 
 # Turn on/off rendering of translucent material with depth peeling technique.
 #print("vtk_version sys_platform", vtk_version, sys_platform)
-_setts.useDepthPeeling = False
-_setts.multiSamples = 8
+useDepthPeeling = False
+multiSamples = 8
 #if vtk_version[0] >= 9: # moved to __init__
 #    if "Windows" in sys_platform:
 #        useDepthPeeling = True
 # only relevant if depthpeeling is on
-_setts.alphaBitPlanes   = 1
-_setts.maxNumberOfPeels = 4
-_setts.occlusionRatio   = 0.1
+alphaBitPlanes   = 1
+maxNumberOfPeels = 4
+occlusionRatio   = 0.1
 
 # Turn on/off nvidia FXAA anti-aliasing, if supported.
-_setts.useFXAA = False  # either True or False
+useFXAA = False  # either True or False
 
 # By default, the depth buffer is reset for each renderer. If true, use the existing depth buffer
-_setts.preserveDepthBuffer = False
+preserveDepthBuffer = False
 
 #Enable or disable Screen Space Ambient Occlusion: SSAO darkens some pixels to improve depth perception.
-_setts.useSSAO        = False
-_setts.SSAORadius     = 0.5     # define the SSAO hemisphere radius
-_setts.SSAOBias       = 0.01    # define the bias when comparing samples
-_setts.SSAOKernelSize = 32      # define the number of samples
-_setts.SSAOBlur       = False   # define blurring of the ambient occlusion (helps for low samples)
+useSSAO        = False
+SSAORadius     = 0.5     # define the SSAO hemisphere radius
+SSAOBias       = 0.01    # define the bias when comparing samples
+SSAOKernelSize = 32      # define the number of samples
+SSAOBlur       = False   # define blurring of the ambient occlusion (helps for low samples)
 
 # Use a polygon/edges offset to possibly resolve conflicts in rendering
-_setts.usePolygonOffset = True
-_setts.polygonOffsetFactor = 0.1
-_setts.polygonOffsetUnits  = 0.1
+usePolygonOffset = True
+polygonOffsetFactor = 0.1
+polygonOffsetUnits  = 0.1
 
 # Interpolate scalars to render them smoothly
-_setts.interpolateScalarsBeforeMapping = True
+interpolateScalarsBeforeMapping = True
 
 # Set parallel projection On or Off (place camera to infinity, no perspective effects)
-_setts.useParallelProjection = False
+useParallelProjection = False
 
 # In multirendering mode set the position of the horizontal of vertical splitting [0,1]
-_setts.windowSplittingPosition = None
+windowSplittingPosition = None
 
 # Set orientation type when reading TIFF files (volumes):
 # TOPLEFT  1 (row 0 top, col 0 lhs)    TOPRIGHT 2 (row 0 top, col 0 rhs)
 # BOTRIGHT 3 (row 0 bottom, col 0 rhs) BOTLEFT  4 (row 0 bottom, col 0 lhs)
 # LEFTTOP  5 (row 0 lhs, col 0 top)    RIGHTTOP 6 (row 0 rhs, col 0 top)
 # RIGHTBOT 7 (row 0 rhs, col 0 bottom) LEFTBOT  8 (row 0 lhs, col 0 bottom)
-_setts.tiffOrientationType = 1
+tiffOrientationType = 1
 
 # AnnotatedCube axis (type 5) customization:
-_setts.annotatedCubeColor      = (0.75, 0.75, 0.75)
-_setts.annotatedCubeTextColor  = None # use default, otherwise specify a single color
-_setts.annotatedCubeTextScale  = 0.2
-_setts.annotatedCubeTexts      = ["right","left ", "front","back ", " top ", "bttom"]
+annotatedCubeColor      = (0.75, 0.75, 0.75)
+annotatedCubeTextColor  = None # use default, otherwise specify a single color
+annotatedCubeTextScale  = 0.2
+annotatedCubeTexts      = ["right","left ", "front","back ", " top ", "bttom"]
 
 # enable / disable color printing
-_setts.enablePrintColor = True
+enablePrintColor = True
 
 ####################################################################################
 # k3d settings for jupyter notebooks
-_setts.k3dMenuVisibility = True
-_setts.k3dPlotHeight = 512
-_setts.k3dAntialias  = True
-_setts.k3dLighting   = 1.2
-_setts.k3dCameraAutoFit = True
-_setts.k3dGridAutoFit= True
-_setts.k3dAxesHelper = True    # size of the small triad of axes on the bottom right
-_setts.k3dPointShader= "mesh"  # others are '3d', '3dSpecular', 'dot', 'flat'
-_setts.k3dLineShader = "thick" # others are 'flat', 'mesh'
+k3dMenuVisibility = True
+k3dPlotHeight = 512
+k3dAntialias  = True
+k3dLighting   = 1.2
+k3dCameraAutoFit = True
+k3dGridAutoFit= True
+k3dAxesHelper = True    # size of the small triad of axes on the bottom right
+k3dPointShader= "mesh"  # others are '3d', '3dSpecular', 'dot', 'flat'
+k3dLineShader = "thick" # others are 'flat', 'mesh'
 
 ####################################################################################
-_setts.flagDelay = 150 # values will be superseded
-_setts.flagFont = "Courier"
-_setts.flagFontSize = 18
-_setts.flagJustification = 0
-_setts.flagAngle = 0
-_setts.flagBold = False
-_setts.flagItalic = False
-_setts.flagShadow = False
-_setts.flagColor = 'k'
-_setts.flagBackgroundColor = 'w'
+flagDelay = 150 # values will be superseded
+flagFont = "Courier"
+flagFontSize = 18
+flagJustification = 0
+flagAngle = 0
+flagBold = False
+flagItalic = False
+flagShadow = False
+flagColor = 'k'
+flagBackgroundColor = 'w'
 
 
 ####################################################################################
@@ -258,7 +253,7 @@ _setts.flagBackgroundColor = 'w'
 # lspacing   # horizontal spacing inbetween letters (not words)
 # islocal    # is locally stored in /fonts, otherwise it's on vedo.embl.es/fonts
 
-_setts.font_parameters = dict(
+font_parameters = dict(
 
         Normografo = dict(
                         mono = False,
@@ -477,10 +472,5 @@ _setts.font_parameters = dict(
                         islocal = False,
                         ),
 )
-
-###########################################################################
-# end of init so re-enable warning if trying to set a non existing setting
-_setts.warn_on_setting = True
-###########################################################################
 
 

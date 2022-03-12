@@ -6,6 +6,10 @@ import vtk
 from vedo import settings
 from vedo.base import BaseGrid
 
+__doc__ = """
+Work with unstructured grid datasets
+"""
+
 __all__ = ["UGrid"]
 
 #########################################################################

@@ -4,7 +4,10 @@ import vedo.colors as colors
 import vedo.utils as utils
 import vtk
 
-__doc__ = ("Submodule to work with common format images." + vedo.docs._defs)
+__doc__ = """
+Submodule to work with common format images
+.. image:: https://vedo.embl.es/images/basic/rotateImage.png
+"""
 __all__ = ["Picture"]
 
 
@@ -55,7 +58,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
     By default the transparency channel is disabled.
     To enable it set channels=4.
 
-    Use `Picture.shape` to access the number of pixels in x and y.
+    Use `Picture.dimensions()` to access the number of pixels in x and y.
 
     |rotateImage| |rotateImage.py|_
 

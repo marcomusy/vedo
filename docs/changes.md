@@ -1,5 +1,6 @@
 ## Main changes
 
+- New documentation pages based on `pdoc3`.
 - general cleanup of the examples
 - simplified licence file by splitting fonts and general MIT licence
 - `vedo/texture/*` files removed
@@ -7,6 +8,7 @@
   `plotter.at(ren_number).show(mymesh)`
    instead of the (still valid):
   `plotter.show(mymesh, at=ren_number)`
+- reverted `settings` to be a simple import instead of a dictionary (because of pdoc3).
 
 ---
 ### `applications.py`
@@ -59,10 +61,10 @@
 `examples/simulations/wave_equation2d.py`
 `examples/advanced/interpolateScalar4.py`
 `examples/basic/multirenderers.py`
-
-
-
-
+`examples/advanced/spline_draw.py`
+`examples/simulations/museum_problem.py`
+`examples/volumetric/tet_explode.py`
+`examples/other/remesh_tetgen.py`
 
 
 

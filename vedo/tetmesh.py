@@ -1,16 +1,13 @@
 import vedo
-import vedo.docs as docs
 import vedo.utils as utils
 import vtk
 from vedo.base import BaseGrid
 from vedo.mesh import Mesh
 
-__doc__ = (
-    """
-Support for tetrahedral meshes.
+__doc__ = """
+Work with tetrahedral meshes <br>
+.. image:: https://vedo.embl.es/images/volumetric/82767107-2631d500-9e25-11ea-967c-42558f98f721.jpg
 """
-    + docs._defs
-)
 
 __all__ = ["TetMesh", "delaunay3D", "tetralize"]
 
@@ -47,7 +44,6 @@ def tetralize(dataset, tetsOnly=True):
     Return a TetMesh.
 
     Example:
-
         .. code-block:: python
 
             from vedo import *
@@ -217,7 +213,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         If ``above==below`` will only select tets with that specific value.
         If ``above > below`` selection range is "flipped" (vtk_version>8).
 
-        :param str on: either name refers to a "cells or "points" array.
+        Set keyword `on` either to a "cells" or "points".
         """
         th = vtk.vtkThreshold()
         th.SetInputData(self._data)
@@ -263,8 +259,13 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         """
         Downsample the number of tets in a TetMesh to a specified fraction.
 
-        :param float fraction: the desired final fraction of the total.
-        :param int N: the desired number of final tets
+        Parameters
+        ----------
+        fraction : float
+            the desired final fraction of the total.
+
+        N : int
+            the desired number of final tets
 
         .. note:: Setting ``fraction=0.1`` leaves 10% of the original nr of tets.
         """
@@ -281,8 +282,10 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
 
 
     def subdvide(self):
-        """Increase the number of tets of a TetMesh.
-        Subdivide one tetrahedron into twelve for every tetra."""
+        """
+        Increase the number of tets of a TetMesh.
+        Subdivide one tetrahedron into twelve for every tetra.
+        """
         sd = vtk.vtkSubdivideTetra()
         sd.SetInputData(self._data)
         sd.Update()
@@ -290,9 +293,10 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
 
 
     def isosurface(self, threshold=True):
-        """Return a ``Mesh`` isosurface.
+        """
+        Return a ``Mesh`` isosurface.
 
-        :param float,list threshold: value or list of values to draw the isosurface(s)
+        Set `threshold` to a single value or list of values to compute the isosurface(s)
         """
         if not self._data.GetPointData().GetScalars():
             self.mapCellsToPoints()
@@ -322,8 +326,8 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
 
 
     def slice(self, origin=(0,0,0), normal=(1,0,0)):
-        """Return a 2D slice of the mesh by a plane passing through origin and
-        assigned normal."""
+        """
+        Return a 2D slice of the mesh by a plane passing through origin and assigned normal."""
         strn = str(normal)
         if strn   ==  "x": normal = (1, 0, 0)
         elif strn ==  "y": normal = (0, 1, 0)

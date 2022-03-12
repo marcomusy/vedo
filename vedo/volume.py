@@ -4,7 +4,6 @@ import os
 import numpy as np
 import vedo
 import vedo.colors as colors
-import vedo.docs as docs
 import vedo.utils as utils
 import vtk
 from deprecated import deprecated
@@ -12,15 +11,17 @@ from vedo.base import Base3DProp
 from vedo.base import BaseGrid
 from vedo.mesh import Mesh
 
-__doc__ = ("""Submodule extending the ``vtkVolume`` object functionality."""
-    + docs._defs
-)
+__doc__ = """
+Work with volumetric datasets (voxel data) <br>
+.. image:: https://vedo.embl.es/images/volumetric/slicePlane2.png
+"""
 
 __all__ = [
-   "Volume",
-   "VolumeSlice",
-   "volumeFromMesh",      #deprecated
-   "interpolateToVolume", #deprecated
+    "BaseVolume",          # include to generate documentation
+    "Volume",
+    "VolumeSlice",
+    "volumeFromMesh",      #deprecated
+    "interpolateToVolume", #deprecated
 ]
 
 
@@ -33,11 +34,13 @@ def volumeFromMesh(mesh, **kwargs):
 
 @deprecated(reason=colors.red+"Please use Points.tovolume()"+colors.reset)
 def interpolateToVolume(mesh, **kwargs):
+    """Deprecated. Please use Points.tovolume()"""
     return mesh.tovolume(**kwargs)
 
 
 ##########################################################################
 class BaseVolume:
+    """Base class. Do not instantiate."""
     def __init__(self, inputobj=None):
         self._data = None
         self._mapper = None
@@ -66,11 +69,12 @@ class BaseVolume:
         return newvol
 
     def imagedata(self):
-        """Return the underlying vtkImagaData object."""
+        """Return the underlying `vtkImagaData` object."""
         return self._data
 
     @deprecated(reason=colors.red+"Please use tonumpy()"+colors.reset)
     def getDataArray(self):
+        """Deprecated. Please use tonumpy()"""
         return self.tonumpy()
 
     def tonumpy(self):
@@ -79,10 +83,13 @@ class BaseVolume:
 
         When you set values in the output image, you don't want numpy to reallocate the array
         but instead set values in the existing array, so use the [:] operator.
-        Example: arr[:] = arr*2 + 15
+
+        Example: `arr[:] = arr*2 + 15`
 
         If the array is modified call:
-        ``volume.imagedata().GetPointData().GetScalars().Modified()``
+
+        *volume.imagedata().GetPointData().GetScalars().Modified()*
+
         when all your modifications are completed.
         """
         narray_shape = tuple(reversed(self._data.GetDimensions()))
@@ -144,8 +151,13 @@ class BaseVolume:
         This method modifies the spacing of the input.
         Linear interpolation is used to resample the data.
 
-        :param list newSpacing: a list of 3 new spacings for the 3 axes.
-        :param int interpolation: 0=nearest_neighbor, 1=linear, 2=cubic
+        Parameters
+        ----------
+        newSpacing : list
+            a list of 3 new spacings for the 3 axes
+
+        interpolation : int
+            0=nearest_neighbor, 1=linear, 2=cubic
         """
         rsp = vtk.vtkImageResample()
         oldsp = self.spacing()
@@ -163,8 +175,7 @@ class BaseVolume:
         """
         Set interpolation type.
 
-        0 = nearest neighbour
-        1 = linear
+        0 = nearest neighbour, 1 = linear
         """
         self.property.SetInterpolationType(itype)
         return self
@@ -214,23 +225,41 @@ class BaseVolume:
         return self._update(out)
 
 
-    def crop(self,
-             left=None, right=None,
-             back=None, front=None,
-             bottom=None, top=None,
-             VOI=()
-            ):
-        """Crop a ``Volume`` object.
+    def crop(
+            self,
+            left=None, right=None,
+            back=None, front=None,
+            bottom=None, top=None,
+            VOI=()
+        ):
+        """
+        Crop a ``Volume`` object.
 
-        :param float left:   fraction to crop from the left plane (negative x)
-        :param float right:  fraction to crop from the right plane (positive x)
-        :param float back:   fraction to crop from the back plane (negative y)
-        :param float front:  fraction to crop from the front plane (positive y)
-        :param float bottom: fraction to crop from the bottom plane (negative z)
-        :param float top:    fraction to crop from the top plane (positive z)
-        :param list VOI:     extract Volume Of Interest expressed in voxel numbers
+        Parameters
+        ----------
+        left : float
+            fraction to crop from the left plane (negative x)
 
-            Eg.: vol.crop(VOI=(xmin, xmax, ymin, ymax, zmin, zmax)) # all integers nrs
+        right : float
+            fraction to crop from the right plane (positive x)
+
+        back : float
+            fraction to crop from the back plane (negative y)
+
+        front : float
+            fraction to crop from the front plane (positive y)
+
+        bottom : float
+            fraction to crop from the bottom plane (negative z)
+
+        top : float
+            fraction to crop from the top plane (positive z)
+
+        VOI : list
+            extract Volume Of Interest expressed in voxel numbers
+
+        Example:
+            `vol.crop(VOI=(xmin, xmax, ymin, ymax, zmin, zmax)) # all integers nrs`
         """
         extractVOI = vtk.vtkExtractVOI()
         extractVOI.SetInputData(self.imagedata())
@@ -259,17 +288,23 @@ class BaseVolume:
         The origin and spacing of all other inputs are ignored.
         All inputs must have the same scalar type.
 
-        :param int,str axis: axis expanded to hold the multiple images.
-        :param bool preserveExtents: if True, the extent of the inputs is used to place
+        Parameters
+        ----------
+        axis : int, str
+            axis expanded to hold the multiple images
+
+        preserveExtents : bool
+            if True, the extent of the inputs is used to place
             the image in the output. The whole extent of the output is the union of the input
             whole extents. Any portion of the output not covered by the inputs is set to zero.
             The origin and spacing is taken from the first input.
 
-        .. code-block:: python
+        Example:
+            .. code-block:: python
 
-            from vedo import Volume, dataurl
-            vol = Volume(dataurl+'embryo.tif')
-            vol.append(vol, axis='x').show()
+                from vedo import Volume, dataurl
+                vol = Volume(dataurl+'embryo.tif')
+                vol.append(vol, axis='x').show()
         """
         ima = vtk.vtkImageAppend()
         ima.SetInputData(self.imagedata())
@@ -279,7 +314,7 @@ class BaseVolume:
             if isinstance(volume, vtk.vtkImageData):
                 ima.AddInputData(volume)
             else:
-                ima.AddInputData(volume.imagedata())
+                ima.AddInputData(volume._data)
         ima.SetPreserveExtents(preserveExtents)
         if axis   == "x":
             axis = 0
@@ -325,8 +360,6 @@ class BaseVolume:
         Mirror flip along one of the cartesian axes.
 
         .. note::  ``axis='n'``, will flip only mesh normals.
-
-        |mirror| |mirror.py|_
         """
         img = self.imagedata()
 
@@ -347,15 +380,13 @@ class BaseVolume:
 
     def operation(self, operation, volume2=None):
         """
-        Perform operations with ``Volume`` objects.
-
-        `volume2` can be a constant value.
+        Perform operations with ``Volume`` objects. Keyword `volume2` can be a constant float.
 
         Possible operations are: ``+``, ``-``, ``/``, ``1/x``, ``sin``, ``cos``, ``exp``, ``log``,
         ``abs``, ``**2``, ``sqrt``, ``min``, ``max``, ``atan``, ``atan2``, ``median``,
         ``mag``, ``dot``, ``gradient``, ``divergence``, ``laplacian``.
 
-        |volumeOperations| |volumeOperations.py|_
+        .. hint:: examples/volumetric/volumeOperations.py
         """
         op = operation.lower()
         image1 = self._data
@@ -468,21 +499,22 @@ class BaseVolume:
         Low-pass and high-pass filtering become trivial in the frequency domain.
         A portion of the pixels/voxels are simply masked or attenuated.
         This function applies a high pass Butterworth filter that attenuates the
-        frequency domain image with the function
-
-        |G_Of_Omega|
+        frequency domain image.
 
         The gradual attenuation of the filter is important.
         A simple high-pass filter would simply mask a set of pixels in the frequency domain,
         but the abrupt transition would cause a ringing effect in the spatial domain.
 
-        :param list lowcutoff:  the cutoff frequencies for x, y and z
-        :param list highcutoff: the cutoff frequencies for x, y and z
-        :param int order: order determines sharpness of the cutoff curve
+        Parameters
+        ----------
+        lowcutoff : list
+            the cutoff frequencies for x, y and z
 
-        Check out also this example:
+        highcutoff : list
+            the cutoff frequencies for x, y and z
 
-        |idealpass|
+        order : int
+            order determines sharpness of the cutoff curve
         """
         #https://lorensen.github.io/VTKExamples/site/Cxx/ImageProcessing/IdealHighPass
         fft = vtk.vtkImageFFT()
@@ -517,11 +549,17 @@ class BaseVolume:
         return self._update(butterworthReal.GetOutput())
 
     def gaussianSmooth(self, sigma=(2,2,2), radius=None):
-        """Performs a convolution of the input Volume with a gaussian.
+        """
+        Performs a convolution of the input Volume with a gaussian.
 
-        :param float,list sigma: standard deviation(s) in voxel units.
+        Parameters
+        ----------
+        sigma : float, list
+            standard deviation(s) in voxel units.
             A list can be given to smooth in the three direction differently.
-        :param float,list radius: radius factor(s) determine how far out the gaussian
+
+        radius : float, list
+            radius factor(s) determine how far out the gaussian
             kernel will go before being clamped to zero. A list can be given too.
         """
         gsf = vtk.vtkImageGaussianSmooth()
@@ -540,7 +578,8 @@ class BaseVolume:
         return self._update(gsf.GetOutput())
 
     def medianSmooth(self, neighbours=(2,2,2)):
-        """Median filter that replaces each pixel with the median value
+        """
+        Median filter that replaces each pixel with the median value
         from a rectangular neighborhood around that pixel.
         """
         imgm = vtk.vtkImageMedian3D()
@@ -553,10 +592,11 @@ class BaseVolume:
         return self._update(imgm.GetOutput())
 
     def erode(self, neighbours=(2,2,2)):
-        """Replace a voxel with the minimum over an ellipsoidal neighborhood of voxels.
+        """
+        Replace a voxel with the minimum over an ellipsoidal neighborhood of voxels.
         If `neighbours` of an axis is 1, no processing is done on that axis.
 
-        See example script: |erode_dilate.py|_
+        .. hint:: examples/volumetric/erode_dilate.py
         """
         ver = vtk.vtkImageContinuousErode3D()
         ver.SetInputData(self._data)
@@ -566,10 +606,11 @@ class BaseVolume:
 
 
     def dilate(self, neighbours=(2,2,2)):
-        """Replace a voxel with the maximum over an ellipsoidal neighborhood of voxels.
+        """
+        Replace a voxel with the maximum over an ellipsoidal neighborhood of voxels.
         If `neighbours` of an axis is 1, no processing is done on that axis.
 
-        See example script: |erode_dilate.py|_
+        .. hint:: examples/volumetric/erode_dilate.py
         """
         ver = vtk.vtkImageContinuousDilate3D()
         ver.SetInputData(self._data)
@@ -587,11 +628,12 @@ class BaseVolume:
 
 
     def topoints(self):
-        """Extract all image voxels as points.
+        """
+        Extract all image voxels as points.
         This function takes an input ``Volume`` and creates an ``Mesh``
         that contains the points and the point attributes.
 
-        See example script: |vol2points.py|_
+        .. hint:: examples/volumetric/vol2points.py
         """
         v2p = vtk.vtkImageToPoints()
         v2p.SetInputData(self.imagedata())
@@ -601,18 +643,23 @@ class BaseVolume:
 
 
     def euclideanDistance(self, anisotropy=False, maxDistance=None):
-        """Implementation of the Euclidean DT (Distance Transform) using Saito's algorithm.
+        """
+        Implementation of the Euclidean DT (Distance Transform) using Saito's algorithm.
         The distance map produced contains the square of the Euclidean distance values.
-        The algorithm has a O(n^(D+1)) complexity over nxnx...xn images in D dimensions.
+        The algorithm has a O(n^(D+1)) complexity over n x n x...x n images in D dimensions.
 
         Check out also: https://en.wikipedia.org/wiki/Distance_transform
 
-        :param bool anisotropy: used to define whether Spacing should be used
-            in the computation of the distances.
-        :param float maxDistance: any distance bigger than maxDistance will not be
+        Parameters
+        ----------
+        anisotropy : bool
+            used to define whether Spacing should be used in the computation of the distances.
+
+        maxDistance : bool
+            any distance bigger than maxDistance will not be
             computed but set to this specified value instead.
 
-        See example script: |euclDist.py|_
+        .. hint:: examples/volumetric/euclDist.py
         """
         euv = vtk.vtkImageEuclideanDistance()
         euv.SetInputData(self._data)
@@ -626,9 +673,11 @@ class BaseVolume:
 
 
     def correlationWith(self, vol2, dim=2):
-        """Find the correlation between two volumetric data sets.
+        """
+        Find the correlation between two volumetric data sets.
         Keyword `dim` determines whether the correlation will be 3D, 2D or 1D.
         The default is a 2D Correlation.
+
         The output size will match the size of the first input.
         The second input is considered the correlation kernel.
         """
@@ -643,27 +692,42 @@ class BaseVolume:
 
 ##########################################################################
 class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
-    """Derived class of ``vtkVolume``.
+    """
+    Derived class of ``vtkVolume``.
     Can be initialized with a numpy object, a ``vtkImageData``
     or a list of 2D bmp files.
 
-    See e.g.: |numpy2volume1.py|_
+    Parameters
+    ----------
+    c : list, str
+        sets colors along the scalar range, or a matplotlib color map name
 
-    :param list,str c: sets colors along the scalar range, or a matplotlib color map name
-    :param float,list alphas: sets transparencies along the scalar range
-    :param float alphaUnit: low values make composite rendering look brighter and denser
-    :param list origin: set volume origin coordinates
-    :param list spacing: voxel dimensions in x, y and z.
-    :param list dims: specify the dimensions of the volume.
-    :param str mapper: either 'gpu', 'opengl_gpu', 'fixed' or 'smart'
+    alphas : float, list
+         sets transparencies along the scalar range
 
-    :param int mode: define the volumetric rendering style:
+    alphaUnit : float
+        low values make composite rendering look brighter and denser
 
-        - 0, composite rendering
-        - 1, maximum projection rendering
-        - 2, minimum projection
-        - 3, average projection
-        - 4, additive mode
+    origin : list
+        set volume origin coordinates
+
+    spacing : list
+        voxel dimensions in x, y and z.
+
+    dims : list
+        specify the dimensions of the volume.
+
+    mapper : str
+        either 'gpu', 'opengl_gpu', 'fixed' or 'smart'
+
+    mode : int
+        define the volumetric rendering style:
+
+            - 0, composite rendering
+            - 1, maximum projection
+            - 2, minimum projection
+            - 3, average projection
+            - 4, additive mode
 
         The default mode is "composite" where the scalar values are sampled through
         the volume and composited in a front-to-back scheme through alpha blending.
@@ -694,17 +758,20 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         color transfer function.
 
     Example:
-
         .. code-block:: python
 
             from vedo import Volume
             vol = Volume("path/to/mydata/rec*.bmp", c='jet', mode=1)
             vol.show(axes=1)
 
-    .. hint:: if a `list` of values is used for `alphas` this is interpreted
+    .. note:: if a `list` of values is used for `alphas` this is interpreted
         as a transfer function along the range of the scalar.
 
-        |read_volume2| |read_volume2.py|_
+    .. hint:: examples/volumetric/numpy2volume1.py
+        .. image:: https://vedo.embl.es/images/volumetric/numpy2volume1.png
+
+    .. hint:: examples/volumetric/read_volume2.py
+        .. image:: https://vedo.embl.es/images/volumetric/read_volume2.png
     """
     def __init__(self, inputobj=None,
                  c='RdBu_r',
@@ -869,7 +936,8 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         return self
 
     def mode(self, mode=None):
-        """Define the volumetric rendering style.
+        """
+        Define the volumetric rendering style.
 
             - 0, composite rendering
             - 1, maximum projection rendering
@@ -948,14 +1016,22 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
     def cmap(self, c, alpha=None, vmin=None, vmax=None):
         """Same as color().
 
-        :param list alpha: use a list to specify transparencies along the scalar range
-        :param float vmin: force the min of the scalar range to be this value
-        :param float vmax: force the max of the scalar range to be this value
+        Parameters
+        ----------
+        alpha : list
+            use a list to specify transparencies along the scalar range
+
+        vmin : float
+            force the min of the scalar range to be this value
+
+        vmax : float
+            force the max of the scalar range to be this value
         """
         return self.color(c, alpha, vmin, vmax)
 
     def jittering(self, status=None):
-        """If `jittering` is `True`, each ray traversal direction will be perturbed slightly
+        """
+        If `jittering` is `True`, each ray traversal direction will be perturbed slightly
         using a noise-texture to get rid of wood-grain effects.
         """
         if hasattr(self._mapper, 'SetUseJittering'): # tetmesh doesnt have it
@@ -974,9 +1050,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         at the boundaries between material types.  The gradient is measured
         as the amount by which the intensity changes over unit distance.
 
-        The format for alphaGrad is the same as for method ``volume.alpha()``.
-
-        |read_volume2| |read_volume2.py|_
+        The format for alphaGrad is the same as for method `volume.alpha()`.
         """
         if vmin is None:
             vmin, _ = self._data.GetScalarRange()
@@ -1011,9 +1085,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         return self
 
     def componentWeight(self, i, weight):
-        """
-        Set the scalar component weight in range [0,1].
-        """
+        """Set the scalar component weight in range [0,1]."""
         self.GetProperty().SetComponentWeight(i, weight)
         return self
 
@@ -1053,7 +1125,8 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
     def slicePlane(self, origin=(0,0,0), normal=(1,1,1)):
         """Extract the slice along a given plane position and normal.
 
-        |slicePlane1| |slicePlane1.py|_
+        .. hint:: examples/volumetric/slicePlane1.py
+            .. image:: https://vedo.embl.es/images/volumetric/slicePlane1.gif
         """
         reslice = vtk.vtkImageReslice()
         reslice.SetInputData(self._data)
@@ -1084,10 +1157,10 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
 ##########################################################################
 class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
     """
-    Derived class of ``vtkImageSlice``.
+    Derived class of `vtkImageSlice`.
     This class is equivalent to ``Volume`` except for its representation.
-    The main purpose of this class is to be used in conjunction with ``Volume``
-    for visualization using ``mode="image"``.
+    The main purpose of this class is to be used in conjunction with `Volume`
+    for visualization using `mode="image"`.
     """
     def __init__(self, inputobj=None):
 
@@ -1228,15 +1301,17 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
 
         Parameters
         ----------
-        thickness : float, optional
+        thickness : float
             set the slab thickness, for thick slicing
-        mode : int, optional
+
+        mode : int
             The slab type:
-                0 = min
-                1 = max
-                2 = mean
-                3 = sum
-        sampleFactor : float, optional
+            0 = min
+            1 = max
+            2 = mean
+            3 = sum
+
+        sampleFactor : float
             Set the number of slab samples to use as a factor of the number of input slices
             within the slab thickness. The default value is 2, but 1 will increase speed
             with very little loss of quality.

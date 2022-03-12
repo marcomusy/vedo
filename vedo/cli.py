@@ -31,7 +31,6 @@ from vedo import load
 from vedo import settings
 from vedo.colors import getColor
 from vedo.colors import printc
-from vedo.docs import tips
 from vedo.mesh import Mesh
 from vedo.picture import Picture
 from vedo.plotter import Plotter
@@ -945,8 +944,6 @@ def exe_gui(args):
 
 
         def _run(self):
-
-            tips()
 
             args.files = list(self.filenames)
             if self.colorCB.get() == "by scalar":

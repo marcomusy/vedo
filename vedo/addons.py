@@ -15,7 +15,10 @@ from vedo.pointcloud import Points
 from vedo.tetmesh import TetMesh
 from vedo.volume import Volume
 
-__doc__ = ("Create additional objects like axes, legends, lights, etc..""" + vedo.docs._defs)
+__doc__ = """
+Create additional objects like axes, legends, lights, etc.
+.. image:: https://vedo.embl.es/images/pyplot/customAxes2.png
+"""
 
 __all__ = [
             "ScalarBar",
@@ -39,14 +42,34 @@ class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
     """
     Create a 2D legend box for the list of specified objects
 
-    :param int nmax: max number of legend entries
-    :param c: text color, leave as None to pick the mesh color
-    :param float width: width of the box as fraction of the window width
-    :param float height: height of the box as fraction of the window height
-    :param int pad: padding space in number of pixels
-    :param bg: background color of the box
-    :param float alpha: opacity of the box
-    :param str pos: position of the box, can be either a string or a (x,y) screen position in range [0,1]
+    Parameters
+    ----------
+    nmax : int
+        max number of legend entries
+
+    c : color
+        text color, leave as None to pick the mesh color automatically
+
+    width : float
+        width of the box as fraction of the window width
+
+    height : float
+        height of the box as fraction of the window height
+
+    pad : int
+        padding space in units of pixels
+
+    bg : color
+        background color of the box
+
+    alpha: float
+        opacity of the box
+
+    pos : str, list
+        position of the box, can be either a string or a (x,y) screen position in range [0,1]
+
+    .. hint:: examples/basic/legendbox.py, examples/other/flag_labels.py
+        .. image:: https://vedo.embl.es/images/other/flag_labels.png
     """
     def __init__( self,
                  entries=(),
@@ -152,7 +175,8 @@ class Button:
     """
     Build a Button object to be shown in the rendering window.
 
-    |buttons| |buttons.py|_
+    .. hint:: examples/basic/buttons.py, examples/advanced/timer_callback2.py
+        .. image:: https://vedo.embl.es/images/advanced/timer_callback1.jpg
     """
 
     def __init__(self,
@@ -250,20 +274,30 @@ class SplineTool(vtk.vtkContourWidget):
         ----------
         points : list, Points
             initial set of points.
-        pc : str, optional
-            point color. The default is 'k'.
-        ps : int, optional
-            point size. The default is 8.
-        lc : str, optional
-            line color. The default is 'r4'.
-        ac : str, optional
-            active point color. The default is 'g5'.
-        lw : int, optional
-            line width. The default is 2.
-        closed : bool, optional
-            spline is closed or open. The default is False.
-        ontop : bool, optional
-            show it always on top of other objects. The default is True.
+
+        pc : str
+            point color.
+
+        ps : int
+            point size.
+
+        lc : str
+            line color.
+
+        ac : str
+            active point color.
+
+        lw : int
+            line width.
+
+        closed : bool
+            spline is closed or open.
+
+        ontop : bool
+            show it always on top of other objects.
+
+        .. hint:: examples/basic/spline_tool.py
+            .. image:: https://vedo.embl.es/images/basic/spline_tool.png
         """
         vtk.vtkContourWidget.__init__(self)
 
@@ -290,7 +324,10 @@ class SplineTool(vtk.vtkContourWidget):
         self.closed = closed
 
     def add(self, pt):
-        """Add one point at a specified position in space if 3D, or 2D screen-display position if 2D."""
+        """
+        Add one point at a specified position in space if 3D,
+        or 2D screen-display position if 2D.
+        """
         if len(pt)==2:
             self.representation.AddNodeAtDisplayPosition(int(pt[0]), int(pt[1]))
         else:
@@ -341,7 +378,6 @@ class SplineTool(vtk.vtkContourWidget):
 
 
 #####################################################################
-
 def Goniometer(
         p1,p2,p3,
         font="",
@@ -362,35 +398,49 @@ def Goniometer(
     Parameters
     ----------
     p1 : list
-        first point.
+        first point 3D coordinates.
+
     p2 : list
         the vertex point.
+
     p3 : list
         the last point defining the angle.
-    font : str, optional
-        Font name to be used. The default is "".
-    arcSize : float, optional
-        dimension of the arc wrt the smallest axis. The default is 0.4.
-    fill : bool, optional
-        fill the arc area. The default is 0.1.
-    s : float, optional
-        size of the text. The default is 1.
-    italic : float, bool, optional
-        italic text. The default is 0.
-    rotation : float, optional
-        rotation of text in degrees. The default is 0.
-    prefix : str, optional
-        append this string to the numeric value of the angle. The default is "".
-    c : list, optional
-        color of the goniometer. The default is (0.2, 0, 0).
-    alpha : float, optional
-        transparency level. The default is 1.
-    lw : float, optional
-        line width. The default is 1.
-    precision : int, optional
-        number of significant digits. The default is 3.
 
-    |goniometer| |goniometer.py|_
+    font : str
+        Font name to be used.
+
+    arcSize : float
+        dimension of the arc wrt the smallest axis.
+
+    fill : bool
+        fill the arc area.
+
+    s : float
+        size of the text.
+
+    italic : float, bool
+        italic text.
+
+    rotation : float
+        rotation of text in degrees.
+
+    prefix : str
+        append this string to the numeric value of the angle.
+
+    c : list
+        color of the goniometer.
+
+    alpha : float
+        transparency level.
+
+    lw : float
+        line width.
+
+    precision : int
+        number of significant digits.
+
+    .. hint:: examples/pyplot/goniometer.py
+        .. image:: https://vedo.embl.es/images/pyplot/goniometer.png
     """
     if isinstance(p1, Points): p1 = p1.GetPosition()
     if isinstance(p2, Points): p2 = p2.GetPosition()
@@ -435,25 +485,38 @@ def Goniometer(
     asse = Assembly(acts)
     return asse
 
-def Light(pos,
-          focalPoint=(0, 0, 0),
-          angle=180,
-          c=None,
-          intensity=1,
-          removeOthers=False,
+def Light(
+        pos,
+        focalPoint=(0, 0, 0),
+        angle=180,
+        c=None,
+        intensity=1,
+        removeOthers=False,
     ):
     """
     Generate a source of light placed at pos, directed to focal point.
     Returns a ``vtkLight`` object.
 
-    :param focalPoint: focal point, if this is a vedo object use its position.
-    :param angle: aperture angle of the light source
-    :param c: set the light color
-    :param float intensity: intensity value between 0 and 1.
-    :param bool removeOthers: remove all other lights in the scene
+    Parameters
+    ----------
+    focalPoint : list
+        focal point, if this is a vedo object use its position.
+
+    angle : float
+        aperture angle of the light source, in degrees
+
+    c : color
+        set the light color
+
+    intensity : float
+        intensity value between 0 and 1.
+
+    removeOthers : bool
+        remove all other lights in the scene
         (in this case a Plotter object must already exist)
 
-    .. hint:: |lights.py|_
+    .. hint:: examples/basic/lights.py
+        .. image:: https://vedo.embl.es/images/basic/lights.png
     """
     if hasattr(pos, "color") and c is None:
         c = pos.color()
@@ -492,27 +555,41 @@ def Light(pos,
 
 
 #####################################################################
-def ScalarBar(obj,
-              title="",
-              pos=(0.8,0.05),
-              titleYOffset=15,
-              titleFontSize=12,
-              size=(None,None),
-              nlabels=None,
-              c='k',
-              horizontal=False,
-              useAlpha=True,
-              tformat='%-#6.3g',
+def ScalarBar(
+        obj,
+        title="",
+        pos=(0.8,0.05),
+        titleYOffset=15,
+        titleFontSize=12,
+        size=(None,None),
+        nlabels=None,
+        c='k',
+        horizontal=False,
+        useAlpha=True,
+        tformat='%-#6.3g',
     ):
-    """A 2D scalar bar for the specified obj.
+    """
+    A 2D scalar bar for the specified obj.
 
-        :param list pos: fractional x and y position in the 2D window
-        :param list size: size of the scalarbar in pixel units (width, heigth)
-        :param int nlabels: number of numeric labels to be shown
-        :param bool useAlpha: retain trasparency in scalarbar
-        :param bool horizontal: show in horizontal layout
+    Parameters
+    ----------
+    pos : list
+        fractional x and y position in the 2D window
 
-    .. hint:: |mesh_coloring| |mesh_coloring.py|_ |scalarbars.py|_
+    size : list
+        size of the scalarbar in pixel units (width, heigth)
+
+    nlabels : int
+        number of numeric labels to be shown
+
+    useAlpha : bool
+        retain trasparency in scalarbar
+
+    horizontal : bool
+        show in horizontal layout
+
+    .. hint:: examples/basic/scalarbars.py
+        .. image:: https://user-images.githubusercontent.com/32848391/62940174-4bdc7900-bdd3-11e9-9713-e4f3e2fdab63.png
     """
     if not hasattr(obj, "mapper"):
         vedo.logger.error(f"in addScalarBar(): input is invalid {type(obj)}. Skip.")
@@ -634,29 +711,60 @@ def ScalarBar3D(
     """
     Create a 3D scalar bar for the specified object.
 
+    Arguments
+    ---------
     ``obj`` input can be:
         - a list of numbers,
         - a list of two numbers in the form `(min, max)`,
         - a ``Mesh`` already containing a set of scalars associated to vertices or cells,
         - if ``None`` the last object in the list of actors will be used.
 
-    :param float s: (thickness, length) of scalarbar
-    :param str title: scalar bar title
-    :param float titleXOffset: horizontal space btw title and color scalarbar
-    :param float titleYOffset: vertical space offset
-    :param float titleSize: size of title wrt numeric labels
-    :param float titleRotation: title rotation in degrees
-    :param int nlabels: number of numeric labels
-    :param str labelFont: font type for labels
-    :param float labelSize: label scale factor
-    :param float labelOffset: space btw numeric labels and scale
-    :param float labelRotation: label rotation in degrees
-    :param bool useAlpha: render transparency of the color bar, otherwise ignore
-    :param bool drawBox: draw a box around the colorbar (useful with useAlpha=True)
-    :param list categories: make a categorical scalarbar:
+    Parameters
+    ----------
+    s : list
+        (thickness, length) of scalarbar
+
+    title : str
+        scalar bar title
+
+    titleXOffset : float
+        horizontal space btw title and color scalarbar
+
+    titleYOffset : float
+        vertical space offset
+
+    titleSize : float
+        size of title wrt numeric labels
+
+    titleRotation : float
+        title rotation in degrees
+
+    nlabels : int
+        number of numeric labels
+
+    labelFont : str
+        font type for labels
+
+    labelSize : float
+        label scale factor
+
+    labelOffset : float
+        space btw numeric labels and scale
+
+    labelRotation : float
+        label rotation in degrees
+
+    useAlpha : bool
+        render transparency of the color bar, otherwise ignore
+
+    drawBox : bool
+        draw a box around the colorbar (useful with useAlpha=True)
+
+    categories : list
+        make a categorical scalarbar,
         the input list will have the format [value, color, alpha, textlabel]
 
-    .. hint:: |scalarbars| |scalarbars.py|_
+    .. hint:: examples/basic/scalarbars.py
     """
 
     if isinstance(obj, Points):
@@ -845,36 +953,77 @@ def ScalarBar3D(
 
 
 #####################################################################
-def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
-                title='', font='', titleSize=1, c=None, showValue=True, delayed=False,
-                **options):
+def addSlider2D(
+        sliderfunc, xmin, xmax, value=None, pos=4,
+        title='', font='', titleSize=1, c=None,
+        showValue=True, delayed=False,
+        **options
+    ):
     """
     Add a slider widget which can call an external custom function.
 
     Set any value as float to increase the number of significant digits above the slider.
 
-    :param sliderfunc: external function to be called by the widget
-    :param float xmin:  lower value
-    :param float xmax:  upper value
-    :param float value: current value
-    :param list pos: position corner number: horizontal [1-5] or vertical [11-15]
-          it can also be specified by corners coordinates [(x1,y1), (x2,y2)]
-    :param str title: title text
-    :param str font: title font
-    :param float titleSize: title text scale [1.0]
-    :param bool showValue: if true current value is shown
-    :param bool delayed: if True the callback is delayed to when the mouse is released
+    Parameters
+    ----------
+    sliderfunc : function
+        external function to be called by the widget
 
-    :param float alpha: opacity of the scalar bar texts
-    :param float sliderLength: slider length
-    :param float sliderWidth: slider width
-    :param float endCapLength: length of the end cap
-    :param float endCapWidth: width of the end cap
-    :param float tubeWidth: width of the tube
-    :param float titleHeight: width of the title
-    :param float tformat: format of the title
+    xmin : float
+        lower value of the slider
 
-    |sliders1| |sliders1.py|_ |sliders2.py|_
+    xmax : float
+        upper value
+
+    value : float
+        current value
+
+    pos : list, str
+        position corner number: horizontal [1-5] or vertical [11-15]
+        it can also be specified by corners coordinates [(x1,y1), (x2,y2)]
+        and also by a string descriptor (eg. "bottom-left")
+
+    title : str
+        title text
+
+    font : str
+        title font face
+
+    titleSize : float
+        title text scale [1.0]
+
+    showValue : bool
+        if true current value is shown
+
+    delayed : bool
+        if True the callback is delayed until when the mouse button is released
+
+    alpha : float
+        opacity of the scalar bar texts
+
+    sliderLength : float
+        slider length
+
+    sliderWidth : float
+        slider width
+
+    endCapLength : float
+        length of the end cap
+
+    endCapWidth : float
+        width of the end cap
+
+    tubeWidth : float
+        width of the tube
+
+    titleHeight : float
+        width of the title
+
+    tformat : str
+        format of the title
+
+    .. hint:: examples/basic/sliders1.py, sliders2.py
+        ..image:: https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg
     """
     options = dict(options)
     value = options.pop("value", value)
@@ -1050,35 +1199,61 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
 
 #####################################################################
 def addSlider3D(
-    sliderfunc,
-    pos1,
-    pos2,
-    xmin,
-    xmax,
-    value=None,
-    s=0.03,
-    t=1,
-    title="",
-    rotation=0,
-    c=None,
-    showValue=True,
-):
-    """Add a 3D slider widget which can call an external custom function.
+        sliderfunc,
+        pos1,
+        pos2,
+        xmin,
+        xmax,
+        value=None,
+        s=0.03,
+        t=1,
+        title="",
+        rotation=0,
+        c=None,
+        showValue=True,
+    ):
+    """
+    Add a 3D slider widget which can call an external custom function.
 
-    :param sliderfunc: external function to be called by the widget
-    :param list pos1: first position coordinates
-    :param list pos2: second position coordinates
-    :param float xmin:  lower value
-    :param float xmax:  upper value
-    :param float value: initial value
-    :param float s: label scaling factor
-    :param float t: tube scaling factor
-    :param str title: title text
-    :param c: slider color
-    :param float rotation: title rotation around slider axis
-    :param bool showValue: if True current value is shown
+    Parameters
+    ----------
+    sliderfunc : function
+        external function to be called by the widget
 
-    |sliders3d| |sliders3d.py|_
+    pos1 : list
+        first position 3D coordinates
+
+    pos2 : list
+        second position 3D coordinates
+
+    xmin : float
+        lower value
+
+    xmax : float
+        upper value
+
+    value : float
+        initial value
+
+    s : float
+        label scaling factor
+
+    t : float
+        tube scaling factor
+
+    title : str
+        title text
+
+    c : color
+        slider color
+
+    rotation : float
+        title rotation around slider axis
+
+    showValue : bool
+        if True current value is shown on top of the slider
+
+    .. hint:: examples/basic/sliders3d.py
     """
     plt = vedo.plotter_instance
     if c is None:  # automatic black or white
@@ -1133,32 +1308,58 @@ def addSlider3D(
 
 #####################################################################
 def addButton(
-    fnc,
-    states=("On", "Off"),
-    c=("w", "w"),
-    bc=("dg", "dr"),
-    pos=(0.7, 0.05),
-    size=24,
-    font="Normografo",
-    bold=False,
-    italic=False,
-    alpha=1,
-    angle=0,
-):
-    """Add a button to the renderer window.
+        fnc,
+        states=("On", "Off"),
+        c=("w", "w"),
+        bc=("dg", "dr"),
+        pos=(0.7, 0.05),
+        size=24,
+        font="Normografo",
+        bold=False,
+        italic=False,
+        alpha=1,
+        angle=0,
+    ):
+    """
+    Add a button to the renderer window.
 
-    :param list states: a list of possible states ['On', 'Off']
-    :param c:      a list of colors for each state
-    :param bc:     a list of background colors for each state
-    :param pos:    2D position in pixels from left-bottom corner
-    :param size:   size of button font
-    :param str font:   font type (arial, courier, times)
-    :param bool bold:   bold face (False)
-    :param bool italic: italic face (False)
-    :param float alpha:  opacity level
-    :param float angle:  anticlockwise rotation in degrees
+    Parameters
+    ----------
+    fnc : function
+        external function to be called by the widget
 
-    |buttons| |buttons.py|_
+    states : list
+        the list of possible states, eg. ['On', 'Off']
+
+    c : list
+        the list of colors for each state eg. ['red3', 'green5']
+
+    bc : list
+        the list of background colors for each state
+
+    pos : list, str
+        2D position in pixels from left-bottom corner
+
+    size : int
+        size of button font
+
+    font : str
+        font type (arial, courier, times)
+
+    bold : bool
+        set bold font face
+
+    italic :
+        italic font face
+
+    alpha : float
+        opacity level
+
+    angle : float
+        anticlockwise rotation in degrees
+
+    .. hint:: examples/basic/buttons.py
+        .. image:: https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg
     """
     plt = vedo.plotter_instance
     if not plt.renderer:
@@ -1172,12 +1373,20 @@ def addButton(
 
 
 def addCutterTool(obj=None, mode="box", invert=False):
-    """Create an interactive tool to cut away parts of a mesh or volume.
+    """
+    Create an interactive tool to cut away parts of a mesh or volume.
 
-        :param str mode: either "box", "plane" or "sphere"
-        :param bool invert: invert selection (inside-out)
+    Parameters
+    ----------
+    mode : str
+        either "box", "plane" or "sphere"
 
-        |cutter| |cutter.py|_
+    invert : bool
+        invert selection (inside-out)
+
+
+    .. hint:: examples/basic/cutter.py
+        .. image:: https://user-images.githubusercontent.com/32848391/50738866-c0658e80-11d8-11e9-955b-551d4d8b0db5.jpg
     """
     if obj is None:
         obj = vedo.plotter_instance.actors[0]
@@ -1424,6 +1633,20 @@ def _addCutterToolVolumeWithBox(vol, invert):
 
 #####################################################################
 def addRendererFrame(plotter_instance, c=None, alpha=None, lw=None, pad=None):
+    """
+    Add a line around the renderer subwindow.
+
+    Parameters
+    ----------
+    c : color
+        color of the line.
+    alpha : float
+        opacity.
+    lw : int
+        line width in pixels.
+    pad : int
+        padding in pixel units.
+    """
 
     if lw is None:
         lw = settings.rendererFrameWidth
@@ -1475,13 +1698,19 @@ def addRendererFrame(plotter_instance, c=None, alpha=None, lw=None, pad=None):
 
 #####################################################################
 def addIcon(mesh, pos=3, size=0.08):
-    """Add an inset icon mesh into the renderer.
+    """
+    Add an inset icon mesh into the renderer.
 
-    :param pos: icon position in the range [1-4] indicating one of the 4 corners,
-                or it can be a tuple (x,y) as a fraction of the renderer size.
-    :param float size: size of the icon space.
+    Parameters
+    ----------
+    pos : list, int
+        icon position in the range [1-4] indicating one of the 4 corners,
+        or it can be a tuple (x,y) as a fraction of the renderer size.
 
-    |icon| |icon.py|_
+    size : float
+        size of the icon space as fraction of the window size.
+
+    .. hint:: examples/other/icon.py
     """
     plt = vedo.plotter_instance
     if not plt.renderer:
@@ -1545,38 +1774,62 @@ def computeVisibleBounds(actors=None):
 
 #####################################################################
 def Ruler(
-    p1, p2,
-    unitScale=1,
-    label="",
-    s=None,
-    font="",
-    italic=0,
-    prefix="",
-    units="",  #eg.'μm'
-    c=(0.2, 0.1, 0.1),
-    alpha=1,
-    lw=1,
-    precision=3,
-    labelRotation=0,
-    axisRotation=0,
-    tickAngle=90,
-):
+        p1, p2,
+        unitScale=1,
+        label="",
+        s=None,
+        font="",
+        italic=0,
+        prefix="",
+        units="",  #eg.'μm'
+        c=(0.2, 0.1, 0.1),
+        alpha=1,
+        lw=1,
+        precision=3,
+        labelRotation=0,
+        axisRotation=0,
+        tickAngle=90,
+    ):
     """
     Build a 3D ruler to indicate the distance of two points p1 and p2.
 
-    :param str label: alternative fixed label to be shown
-    :param float unitScale: factor to scale units (e.g. μm to mm)
-    :param float s: size of the label
-    :param str font: font name
-    :param float italic: italicness of the font [0,1]
-    :param str units: string to be appended to the numeric value
-    :param float lw: line width in pixel units
-    :param int precision: nr of significant digits to be shown
-    :param float labelRotation: initial rotation of the label around the z-axis
-    :param float axisRotation: initial rotation of the line around the main axis
-    :param float tickAngle: initial rotation of the line around the main axis
+    Parameters
+    ----------
+    label : str
+        alternative fixed label to be shown
 
-    |goniometer| |goniometer.py|_
+    unitScale : float
+        factor to scale units (e.g. μm to mm)
+
+    s : float
+        size of the label
+
+    font : str
+        font face
+
+    italic : float
+        italicness of the font in the range [0,1]
+
+    units : str
+        string to be appended to the numeric value
+
+    lw : int
+        line width in pixel units
+
+    precision : int
+        nr of significant digits to be shown
+
+    labelRotation : float
+        initial rotation of the label around the z-axis
+
+    axisRotation : float
+        initial rotation of the line around the main axis
+
+    tickAngle : float
+        initial rotation of the line around the main axis
+
+    .. hint:: examples/pyplot/goniometer.py
+        .. image:: https://vedo.embl.es/images/pyplot/goniometer.png
     """
     if unitScale != 1.0 and units == "":
         raise ValueError("When setting 'unitScale' to a value other than 1, " +
@@ -1637,45 +1890,67 @@ def Ruler(
     return macts
 
 def RulerAxes(
-    inputobj,
-    xtitle="",
-    ytitle="",
-    ztitle="",
-    xlabel="",
-    ylabel="",
-    zlabel="",
-    xpad=0.05,
-    ypad=0.04,
-    zpad=0,
-    font="Normografo",
-    s=None,
-    italic=0,
-    units="",
-    c=(0.2, 0, 0),
-    alpha=1,
-    lw=1,
-    precision=3,
-    labelRotation=0,
-    axisRotation=0,
-    xycross=True,
-):
+        inputobj,
+        xtitle="",
+        ytitle="",
+        ztitle="",
+        xlabel="",
+        ylabel="",
+        zlabel="",
+        xpad=0.05,
+        ypad=0.04,
+        zpad=0,
+        font="Normografo",
+        s=None,
+        italic=0,
+        units="",
+        c=(0.2, 0, 0),
+        alpha=1,
+        lw=1,
+        precision=3,
+        labelRotation=0,
+        axisRotation=0,
+        xycross=True,
+    ):
     """
     A 3D ruler axes to indicate the sizes of the input scene or object.
 
-    :param str xtitle: name of the axis or title
-    :param str xlabel: alternative fixed label to be shown instead of the distance
-    :param float xpad: gap distance from the x-axis
-    :param float s: size of the label
-    :param str font: font name
-    :param float italic: italicness of the font [0,1]
-    :param str units: string to be appended to the numeric value
-    :param float lw: line width in pixel units
-    :param int precision: nr of significant digits to be shown
-    :param float labelRotation: initial rotation of the label around the z-axis
-    :param float axisRotation: initial rotation of the line around the main axis
-    :param bool xycross: show two back crossing lines in the xy plane
+    Parameters
+    ----------
+    xtitle : str
+        name of the axis or title
 
-    |goniometer| |goniometer.py|_
+    xlabel : str
+        alternative fixed label to be shown instead of the distance
+
+    s : float
+        size of the label
+
+    font : str
+        font face
+
+    italic : float
+        italicness of the font in the range [0,1]
+
+    units : str
+        string to be appended to the numeric value
+
+    lw : int
+        line width in pixel units
+
+    precision : int
+        nr of significant digits to be shown
+
+    labelRotation : float
+        initial rotation of the label around the z-axis
+
+    axisRotation : float
+        initial rotation of the line around the main axis
+
+    xycross : bool
+        show two back crossing lines in the xy plane
+
+    .. hint:: examples/pyplot/goniometer.py
     """
     if utils.isSequence(inputobj):
         x0,x1,y0,y1,z0,z1 = inputobj
@@ -1739,13 +2014,16 @@ def addScaleIndicator(pos=(0.7,0.05), s=0.02, length=2, lw=4, c='k', units=''):
 
     Parameters
     ----------
-    pos : list, optional
-        fractional (x,y) position on the screen. The default is (0.7,0.05).
-    s : float, optional
-        size of the text. The default is 0.02.
-    length : float, optional
-        length of the line. The default is 2.
-    units : str, optional
+    pos : list
+        fractional (x,y) position on the screen.
+
+    s : float
+        size of the text.
+
+    length : float
+        length of the line.
+
+    units : str
         units. The default is ''.
     """
     ppoints = vtk.vtkPoints()  # Generate the polyline
@@ -1876,7 +2154,12 @@ def Axes(
         tol=0.001,
     ):
     """
-    Draw axes for the input object. Returns an ``Assembly`` object.
+    Draw axes for the input object.
+
+    Returns an `Assembly` object.
+
+    Parameters
+    ----------
 
     - `xtitle`,                ['x'], x-axis title text
     - `xrange`,               [None], x-axis range in format (xmin, ymin), default is automatic.
@@ -1938,9 +2221,7 @@ def Axes(
     - `xInverted`,           [False], invert labels order and direction (only visually!)
     - `useGlobal`,           [False], try to compute the global bounding box of visible actors
 
-    Example
-    -------
-
+    Example:
         .. code-block:: python
 
             from vedo import Axes, Box, show
@@ -1949,9 +2230,10 @@ def Axes(
             #for a in axs.unpack(): print(a.name)
             show(axs)
 
-    |customAxes1| |customAxes1.py|_ |customAxes2.py|_ |customAxes3.py|_
+    .. hint::
+        examples/pyplot/customAxes1.py, customAxes2.py customAxes3.py, customIndividualAxes.py
 
-    |customIndividualAxes| |customIndividualAxes.py|_
+        .. image:: https://vedo.embl.es/images/pyplot/customAxes3.png
     """
     if not titleFont:
         titleFont = settings.defaultFont
@@ -2833,10 +3115,12 @@ def Axes(
 
 
 def addGlobalAxes(axtype=None, c=None):
-    """Draw axes on scene. Available axes types:
+    """
+    Draw axes on scene. Available axes types are
 
-    :param int axtype:
-
+    Parameters
+    ----------
+    axtype : int
         - 0,  no axes,
         - 1,  draw three gray grid walls
         - 2,  show cartesian axes from (0,0,0)
@@ -2856,19 +3140,17 @@ def addGlobalAxes(axtype=None, c=None):
     Axis type-1 can be fully customized by passing a dictionary ``axes=dict()``,
     see ``Axes`` for the complete list of options.
 
-        :Example:
+    Example
+    -------
+        .. code-block:: python
 
-            .. code-block:: python
-
-                from vedo import Box, show
-                b = Box(pos=(0,0,0), length=80, width=90, height=70).alpha(0.1)
-                show(b, axes={ 'xtitle':'Some long variable [a.u.]',
-                               'numberOfDivisions':4,
-                               # ...
-                             }
-                )
-
-    |customAxes| |customAxes.py|_
+            from vedo import Box, show
+            b = Box(pos=(0,0,0), length=80, width=90, height=70).alpha(0.1)
+            show(b, axes={ 'xtitle':'Some long variable [a.u.]',
+                           'numberOfDivisions':4,
+                           # ...
+                         }
+            )
     """
     plt = vedo.plotter_instance
     if axtype is not None:

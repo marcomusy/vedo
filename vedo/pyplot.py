@@ -10,11 +10,15 @@ from vedo.mesh import merge
 from vedo.mesh import Mesh
 from vedo.plotter import show # not used, but useful to import this
 
-__doc__ = """Plotting utility functions.""" + vedo.docs._defs
+__doc__ = """
+.. image:: https://vedo.embl.es/images/pyplot/fitPolynomial2.png
+Advanced plotting utility functions
+"""
 
 __all__ = [
     "plot",
     "histogram",
+    "fit",
     "donut",
     "quiver",
     "violin",
@@ -28,9 +32,7 @@ __all__ = [
 
 ##########################################################################
 class Plot(Assembly):
-    """
-    Derived class of ``Assembly`` to manipulate plots.
-    """
+    """Derived class of ``Assembly`` to manipulate plots."""
     def __init__(self, *objs):
 
         Assembly.__init__(self, *objs)
@@ -150,126 +152,248 @@ class Plot(Assembly):
 def plot(*args, **kwargs):
     """
     Draw a 2D line plot, or scatter plot, of variable x vs variable y.
-    Input format can be either [allx], [allx, ally] or [(x1,y1), (x2,y2), ...]
+    Input format can be either `[allx], [allx, ally] or [(x1,y1), (x2,y2), ...]`
 
-    :param list xerrors: set uncertainties for the x variable, shown as error bars.
-    :param list yerrors: set uncertainties for the y variable, shown as error bars.
-    :param bool errorBand: represent errors on y as a filled error band.
-        Use ``ec`` keyword to modify its color.
+    Parameters
+    ----------
+    xerrors : list
+        set uncertainties for the x variable, shown as error bars
 
-    :param list xlim: set limits to the range for the x variable
-    :param list ylim: set limits to the range for the y variable
-    :param float, aspect: desired aspect ratio.
+    yerrors : list
+        set uncertainties for the y variable, shown as error bars
+
+    errorBand : bool
+        represent errors on y as a filled error band. Use ``ec`` keyword to modify its color.
+
+    xlim : list
+        set limits to the range for the x variable
+
+    ylim : list
+        set limits to the range for the y variable
+
+    aspect : float
+        Desired aspect ratio.
         If None, it is automatically calculated to get a reasonable aspect ratio.
-        Scaling factor is saved in ``Plot.yscale``.
+        Scaling factor is saved in ``Plot.yscale``
 
-    :param str c: color of frame and text.
-    :param float alpha: opacity of frame and text.
-    :param str xtitle: title label along x-axis.
-    :param str ytitle: title label along y-axis.
-    :param str title: histogram title on top.
-    :param float titleSize: size of title
-    :param float titleColor: color of title
-    :param str ec: color of error bar, by default the same as marker color
-    :param str lc: color of line
-    :param float la: transparency of line
-    :param float lw: width of line
-    :param bool dashed: use a dashed line style
-    :param bool splined: spline the line joining the point as a countinous curve
-    :param str,int marker: use a marker shape for the data points
-    :param float ms: marker size.
-    :param str mc: color of marker
-    :param float ma: opacity of marker
+    c : color
+        color of frame and text
 
-    :Example:
+    alpha : float
+        opacity of frame and text
+
+    xtitle : str
+        title label along x-axis
+
+    title : str
+        histogram title on top
+
+    titleSize : float
+        size of title
+
+    titleColor : color
+        color of title
+
+    ec : color
+        color of error bar, by default the same as marker color
+
+    lc : color
+        color of the line
+
+    la : float
+        transparency of the line
+
+    lw : int
+        width of line in units of pixels
+
+    dashed : bool
+        use a dashed line style
+
+    splined : bool
+        spline the line joining the point as a countinous curve
+
+    marker : str, int
+        use a marker for the data points
+
+    ms : float
+        marker size
+
+    mc : color
+        color of the marker
+
+    ma : float
+        opacity of the marker
+
+    Example:
         .. code-block:: python
 
             from vedo.pyplot import plot
             import numpy as np
-
             x = np.linspace(0, 6.28, num=50)
-
             plot(np.sin(x), 'r').plot(np.cos(x), 'bo-').show()
 
-        |simpleplot|
-
-    More examples:
-
-    |plot_errbars| |plot_errbars.py|_
-
-    |plot_errband| |plot_errband.py|_
-
-    |plot_pip| |plot_pip.py|_
-
-    |scatter1| |scatter1.py|_
-
-    |scatter2| |scatter2.py|_
+        .. image:: https://user-images.githubusercontent.com/32848391/74363882-c3638300-4dcb-11ea-8a78-eb492ad9711f.png
 
 
-    If input is an external function or a forumula, draw the surface
-    representing the function :math:`f(x,y)`.
+    .. hint::
+        examples/pyplot/plot_errbars.py, plot_errband.py, plot_pip.py, scatter1.py, scatter2.py
 
-    :param float x: x range of values.
-    :param float y: y range of values.
-    :param float zlimits: limit the z range of the independent variable.
-    :param int zlevels: will draw the specified number of z-levels contour lines.
-    :param bool showNan: show where the function does not exist as red points.
-    :param list bins: number of bins in x and y.
+        .. image:: https://vedo.embl.es/images/pyplot/plot_pip.png
 
-    |plot_fxy| |plot_fxy.py|_
 
-    Function is: :math:`f(x,y)=\sin(3x) \cdot \log(x-y)/3` in range :math:`x=[0,3], y=[0,3]`.
+    ----------------------------------------------------------------------
+    .. note:: 2D functions
 
+    If input is an external function or a formula, draw the surface
+    representing the function `f(x,y)`.
+
+    Parameters
+    ----------
+    x : float
+        x range of values
+
+    y : float
+        y range of values
+
+    zlimits : float
+        limit the z range of the independent variable
+
+    zlevels : int
+        will draw the specified number of z-levels contour lines
+
+    showNan : bool
+        show where the function does not exist as red points
+
+    bins : list
+        number of bins in x and y
+
+    .. hint:: plot_fxy.py
+        .. image:: https://vedo.embl.es/images/pyplot/plot_fxy.png
+
+
+    --------------------------------------------------------------------
+    .. note:: mode="complex"
 
     If ``mode='complex'`` draw the real value of the function and color map the imaginary part.
 
-    :param str cmap: diverging color map (white means imag(z)=0).
-    :param float lw: line with of the binning
-    :param list bins: binning in x and y
+    Parameters
+    ----------
+    cmap : str
+        diverging color map (white means imag(z)=0)
 
-    |fcomplex| |plot_fxy.py|_
+    lw : float
+        line with of the binning
 
+    bins : list
+        binning in x and y
+
+    .. hint:: examples/pyplot/plot_fxy.py
+        ..image:: https://user-images.githubusercontent.com/32848391/73392962-1709a300-42db-11ea-9278-30c9d6e5eeaa.png
+
+
+    --------------------------------------------------------------------
+    .. note:: mode="polar"
 
     If ``mode='polar'`` input arrays are interpreted as a list of polar angles and radii.
     Build a polar (radar) plot by joining the set of points in polar coordinates.
 
-    :param str title: plot title
-    :param float tsize: title size
-    :param int bins: number of bins in phi
-    :param float r1: inner radius
-    :param float r2: outer radius
-    :param float lsize: label size
-    :param c: color of the line
-    :param bc: color of the frame and labels
-    :param alpha: alpha of the frame
-    :param int ps: point size in pixels, if ps=0 no point is drawn
-    :param int lw: line width in pixels, if lw=0 no line is drawn
-    :param bool deg: input array is in degrees
-    :param float vmax: normalize radius to this maximum value
-    :param bool fill: fill convex area with solid color
-    :param bool spline: interpolate the set of input points
-    :param bool showDisc: draw the outer ring axis
-    :param int nrays: draw this number of axis rays (continuous and dashed)
-    :param bool showLines: draw lines to the origin
-    :param bool showAngles: draw angle values
+    Parameters
+    ----------
+    title : str
+        plot title
 
-    |histo_polar| |histo_polar.py|_
+    tsize : float
+        title size
+
+    bins : int
+        number of bins in phi
+
+    r1 : float
+        inner radius
+
+    r2 : float
+        outer radius
+
+    lsize : float
+        label size
+
+    c : color
+        color of the line
+
+    bc : color
+        color of the frame and labels
+
+    alpha : float
+        opacity of the frame
+
+    ps : int
+        point size in pixels, if ps=0 no point is drawn
+
+    lw : int
+        line width in pixels, if lw=0 no line is drawn
+
+    deg : bool
+        input array is in degrees
+
+    vmax : float
+        normalize radius to this maximum value
+
+    fill : bool
+        fill convex area with solid color
+
+    spline : bool
+        interpolate the set of input points
+
+    showDisc : bool
+        draw the outer ring axis
+
+    nrays : int
+        draw this number of axis rays (continuous and dashed)
+
+    showLines : bool
+        draw lines to the origin
+
+    showAngles : bool
+        draw angle values
+
+    .. hint:: examples/pyplot/histo_polar.py
+        .. image:: https://user-images.githubusercontent.com/32848391/64992590-7fc82400-d8d4-11e9-9c10-795f4756a73f.png
 
 
-    If ``mode='spheric'`` input input is an external function rho(theta, phi).
+    --------------------------------------------------------------------
+    .. note:: mode="spheric"
+
+    If ``mode='spheric'`` input must be an external function rho(theta, phi).
     A surface is created in spherical coordinates.
-    Return an ``Plot(Assembly)`` of 2 objects, the unit grid
+
+    Return an ``Plot(Assembly)`` of 2 objects: the unit
     sphere (in wireframe representation) and the surface `rho(theta, phi)`.
 
-    :param function rfunc: handle to a user defined function.
-    :param bool normalize: scale surface to fit inside the unit sphere
-    :param int res: grid resolution
-    :param bool scalarbar: add a 3D scalarbar to the plot for radius
-    :param c: color of the unit grid
-    :param alpha: transparency of the unit grid
-    :param str cmap: color map of the surface
+    Parameters
+    ----------
+    rfunc : function
+        handle to a user defined function `rho(theta, phi)`.
 
-    |plot_spheric| |plot_spheric.py|_
+    normalize : bool
+        scale surface to fit inside the unit sphere
+
+    res : int
+        grid resolution of the unit sphere
+
+    scalarbar : bool
+        add a 3D scalarbar to the plot for radius
+
+    c : color
+        color of the unit sphere
+
+    alpha : float
+        opacity of the unit sphere
+
+    cmap : str
+        color map for the surface
+
+    .. hint:: examples/pyplot/plot_spheric.py
+        .. image:: https://vedo.embl.es/images/pyplot/plot_spheric.png
     """
     mode = kwargs.pop("mode", "")
     if "spher" in mode:
@@ -352,88 +476,203 @@ def histogram(*args, **kwargs):
     """
     Histogramming for 1D and 2D data arrays.
 
-    For 1D arrays:
+    -------------------------------------------------------------------------
+    .. note:: default mode, for 1D arrays
 
-    :param int bins: number of bins.
-    :param list vrange: restrict the range of the histogram.
-    :param bool density: normalize the area to 1 by dividing by the nr of entries and bin size.
-    :param bool logscale: use logscale on y-axis.
-    :param bool fill: fill bars woth solid color `c`.
-    :param float gap: leave a small space btw bars.
-    :param bool outline: show outline of the bins.
-    :param bool errors: show error bars.
+    Parameters
+    ----------
+    bins : int
+        number of bins
 
-    |histo_1D| |histo_1D.py|_
+    vrange : list
+        restrict the range of the histogram
 
+    density : bool
+        normalize the area to 1 by dividing by the nr of entries and bin size
 
-    If ``mode='polar'`` assume input is polar coordinate system (rho, theta):
+    logscale : bool
+        use logscale on y-axis
 
-    :param list weights: array of weights, of the same shape as the input.
-        Each value only contributes its associated weight towards the bin count (instead of 1).
+    fill : bool
+        fill bars woth solid color `c`
 
-    :param str title: histogram title
-    :param float tsize: title size
-    :param int bins: number of bins in phi
-    :param float r1: inner radius
-    :param float r2: outer radius
-    :param float phigap: gap angle btw 2 radial bars, in degrees
-    :param float rgap: gap factor along radius of numeric angle labels
-    :param float lpos: label gap factor along radius
-    :param float lsize: label size
-    :param c: color of the histogram bars, can be a list of length `bins`.
-    :param bc: color of the frame and labels
-    :param alpha: alpha of the frame
-    :param str cmap: color map name
-    :param bool deg: input array is in degrees
-    :param float vmin: minimum value of the radial axis
-    :param float vmax: maximum value of the radial axis
-    :param list labels: list of labels, must be of length `bins`
-    :param bool showDisc: show the outer ring axis
-    :param int nrays: draw this number of axis rays (continuous and dashed)
-    :param bool showLines: show lines to the origin
-    :param bool showAngles: show angular values
-    :param bool showErrors: show error bars
+    gap : float
+        leave a small space btw bars
 
-    |histo_polar| |histo_polar.py|_
+    outline : bool
+        show outline of the bins
+
+    errors : bool
+        show error bars
+
+    .. hint:: examples/pyplot/histo_1D.py
+        .. image:: https://vedo.embl.es/images/pyplot/histo_1D.png
 
 
-    For 2D arrays:
+    -------------------------------------------------------------------------
+    .. note:: default mode, for 2D arrays
 
-    Input data formats [(x1,x2,..), (y1,y2,..)] or [(x1,y1), (x2,y2),..] are both valid.
+    Input data formats `[(x1,x2,..), (y1,y2,..)] or [(x1,y1), (x2,y2),..]`
+    are both valid.
 
-    :param str xtitle: x axis title
-    :param str ytitle: y axis title
-    :param list bins: binning as (nx, ny)
-    :param list vrange: range in x and y in format [(xmin,xmax), (ymin,ymax)]
-    :param str cmap: color map name
-    :param float lw: line width of the binning
-    :param bool scalarbar: add a scalarbar
+    Parameters
+    ----------
+    xtitle : str
+        x axis title
 
-    |histo_2D| |histo_2D.py|_
+    bins : list
+        binning as (nx, ny)
 
+    vrange : list
+        range in x and y in format `[(xmin,xmax), (ymin,ymax)]`
+
+    cmap : str
+        color map name
+
+    lw : int
+        line width of the binning outline
+
+    scalarbar : bool
+        add a scalarbar
+
+    .. hint:: examples/pyplot/histo_2D.py
+        .. image:: https://vedo.embl.es/images/pyplot/histo_2D.png
+
+
+    -------------------------------------------------------------------------
+    .. note:: mode="hexbin"
 
     If ``mode='hexbin'``, build a hexagonal histogram from a list of x and y values.
 
-    :param str xtitle: x axis title
-    :param str ytitle: y axis title
-    :param bool bins: nr of bins for the smaller range in x or y.
-    :param list vrange: range in x and y in format [(xmin,xmax), (ymin,ymax)]
-    :param float norm: sets a scaling factor for the z axis (freq. axis).
-    :param bool fill: draw solid hexagons.
-    :param str cmap: color map name for elevation.
+    Parameters
+    ----------
+    xtitle : str
+        x axis title
 
-    |histo_hexagonal| |histo_hexagonal.py|_
+    bins : int
+        nr of bins for the smaller range in x or y
 
+    vrange : list
+        range in x and y in format `[(xmin,xmax), (ymin,ymax)]`
+
+    norm : float
+        sets a scaling factor for the z axis (frequency axis)
+
+    fill : bool
+        draw solid hexagons
+
+    cmap : str
+        color map name for elevation
+
+    .. hint:: examples/pyplot/histo_hexagonal.py
+        .. image:: https://vedo.embl.es/images/pyplot/histo_hexagonal.png
+
+
+    -------------------------------------------------------------------------
+    .. note:: mode="polar"
+
+    If ``mode='polar'`` assume input is polar coordinate system (rho, theta):
+
+    Parameters
+    ----------
+    weights : list
+        Array of weights, of the same shape as the input.
+        Each value only contributes its associated weight towards the bin count (instead of 1).
+
+    title : str
+        histogram title
+
+    tsize : float
+        title size
+
+    bins : int
+        number of bins in phi
+
+    r1 : float
+        inner radius
+
+    r2 : float
+        outer radius
+
+    phigap : float
+        gap angle btw 2 radial bars, in degrees
+
+    rgap : float
+        gap factor along radius of numeric angle labels
+
+    lpos : float
+        label gap factor along radius
+
+    lsize : float
+        label size
+
+    c : color
+        color of the histogram bars, can be a list of length `bins`
+
+    bc : color
+        color of the frame and labels
+
+    alpha : float
+        opacity of the frame
+
+    cmap : str
+        color map name
+
+    deg : bool
+        input array is in degrees
+
+    vmin : float
+        minimum value of the radial axis
+
+    vmax : float
+        maximum value of the radial axis
+
+    labels : list
+        list of labels, must be of length `bins`
+
+    showDisc : bool
+        show the outer ring axis
+
+    nrays : int
+        draw this number of axis rays (continuous and dashed)
+
+    showLines : bool
+        show lines to the origin
+
+    showAngles : bool
+        show angular values
+
+    showErrors : bool
+        show error bars
+
+    .. hint:: examples/pyplot/histo_polar.py
+        .. image:: https://vedo.embl.es/images/pyplot/histo_polar.png
+
+
+    -------------------------------------------------------------------------
+    .. note:: mode="spheric"
 
     If ``mode='spheric'``, build a histogram from list of theta and phi values.
 
-    :param float rmax: maximum radial elevation of bin
-    :param int res: sphere resolution
-    :param cmap: color map name
-    :param float lw: line width of the bin edges
-    :param bool scalarbar: add a scalarbar to plot
+    Parameters
+    ----------
+    rmax : float
+        maximum radial elevation of bin
 
-    |histo_spheric| |histo_spheric.py|_
+    res : int
+        sphere resolution
+
+    cmap : str
+        color map name
+
+    lw : int
+        line width of the bin edges
+
+    scalarbar : bool
+        add a scalarbar to plot
+
+    .. hint:: examples/pyplot/histo_spheric.py
+        .. image:: https://vedo.embl.es/images/pyplot/histo_spheric.png
     """
     mode = kwargs.pop("mode", "")
     if len(args) == 2:  # x, y
@@ -472,7 +711,8 @@ def histogram(*args, **kwargs):
     return None
 
 
-def fit(points,
+def fit(
+        points,
         deg=1,
         niter=0,
         nstd=3,
@@ -484,47 +724,57 @@ def fit(points,
         c='red4',
     ):
     """
-    Polynomial fitting in 2D with parameter error and error bands calculation.
+    Polynomial fitting with parameter error and error bands calculation.
 
     Errors bars in both x and y are supported.
 
     Additional information about the fitting output can be accessed. E.g.:
 
-        ``fit = fitPolynomial(pts)``
+    ``fit = fitPolynomial(pts)``
 
-        - ``fit.coefficients``: contains the coefficient of the polynomial fit
-        - ``fit.coefficientErrors``: errors on the fitting coefficients,
-            these numbers only make sense if parameters are not correlated
+    - *fit.coefficients* will contain the coefficient of the polynomial fit
+    - *fit.coefficientErrors*, errors on the fitting coefficients
+    - *fit.MonteCarloCoefficients*, fitting coefficient set from MC generation
+    - *fit.covarianceMatrix*, covariance matrix as a numpy array
+    - *fit.reducedChi2*, reduced chi-square of the fitting
+    - *fit.ndof*, number of degrees of freedom
+    - *fit.dataSigma*, mean data dispersion from the central fit assuming Chi2=1
+    - *fit.errorLines*, a ``vedo.shapes.Line`` object for the upper and lower error band
+    - *fit.errorBand*, the ``vedo.mesh.Mesh`` object representing the error band
 
-        - ``fit.MonteCarloCoefficients``: fitting coefficient set from MC generation
-        - ``fit.covarianceMatrix``: covariance matrix as a numpy array
-        - ``fit.reducedChi2``: reduced chi-square of the fitting
-        - ``fit.ndof``: number of degrees of freedom
-        - ``fit.dataSigma``: mean data dispersion from the central fit assuming Chi2=1
-        - ``fit.errorLines``: a ``vedo.Line`` object for the upper and lower error band
-        - ``fit.errorBand``: the ``vedo.Mesh`` object representing the error band
-
-    Errors on x and y can be specified. If left `None` an estimate is made from
+    Errors on x and y can be specified. If left to `None` an estimate is made from
     the statistical spread of the dataset itself. Errors are always assumed gaussian.
 
-    :param int deg: degree of the polynomial to be fitted
-    :param int niter: number of monte-carlo iterations to compute error bands.
+    Parameters
+    ----------
+    deg : int
+        degree of the polynomial to be fitted
+
+    niter : int
+        number of monte-carlo iterations to compute error bands.
         If set to 0, return the simple least-squares fit with naive error estimation
         on coefficients only. A reasonable non-zero value to set is about 500, in
-        this case ``errorLines``, ``errorBand`` and the other class attributes are filled
+        this case *errorLines*, *errorBand* and the other class attributes are filled
 
-    :param int nstd: nr. of standard deviation to use for error calculation
-    :param list xerrors: array of the same length of points with the errors on x
-    :param list yerrors: array of the same length of points with the errors on y
-    :param list vrange: specify the domain range of the fitting line
+    nstd : float
+        nr. of standard deviation to use for error calculation
+
+    xerrors : list
+        array of the same length of points with the errors on x
+
+    yerrors : list
+        array of the same length of points with the errors on y
+
+    vrange : list
+        specify the domain range of the fitting line
         (only affects visualization, but can be used to extrapolate the fit
          outside the data range)
 
-    :param int res: resolution of the output fitted line and error lines
+    res : int
+        resolution of the output fitted line and error lines
 
-    |fitPolynomial1| |fitPolynomial1.py|_
-
-    |fitPolynomial2| |fitPolynomial2.py|_
+    .. hint:: examples/pyplot/fitPolynomial1.py
+        .. image:: https://vedo.embl.es/images/pyplot/fitPolynomial1.png
     """
     if isinstance(points, vedo.pointcloud.Points):
         points = points.points()
@@ -2241,37 +2491,62 @@ def _histogramSpheric(
 
 
 def donut(
-    fractions,
-    title="",
-    tsize=0.3,
-    r1=1.7,
-    r2=1,
-    phigap=0,
-    lpos=0.8,
-    lsize=0.15,
-    c=None,
-    bc="k",
-    alpha=1,
-    labels=(),
-    showDisc=False,
-):
+        fractions,
+        title="",
+        tsize=0.3,
+        r1=1.7,
+        r2=1,
+        phigap=0,
+        lpos=0.8,
+        lsize=0.15,
+        c=None,
+        bc="k",
+        alpha=1,
+        labels=(),
+        showDisc=False,
+    ):
     """
     Donut plot or pie chart.
 
-    :param str title: plot title
-    :param float tsize: title size
-    :param float r1: inner radius
-    :param float r2: outer radius, starting from r1
-    :param float phigap: gap angle btw 2 radial bars, in degrees
-    :param float lpos: label gap factor along radius
-    :param float lsize: label size
-    :param c: color of the plot slices
-    :param bc: color of the disc frame
-    :param alpha: alpha of the disc frame
-    :param list labels: list of labels
-    :param bool showDisc: show the outer ring axis
+    Parameters
+    ----------
+    title : str
+        plot title
 
-    |donut| |donut.py|_
+    tsize : float
+        title size
+
+    r1 : float inner radius
+
+    r2 : float
+        outer radius, starting from r1
+
+    phigap : float
+        gap angle btw 2 radial bars, in degrees
+
+    lpos : float
+        label gap factor along radius
+
+    lsize : float
+        label size
+
+    c : color
+        color of the plot slices
+
+    bc : color
+        color of the disc frame
+
+    alpha : float
+        opacity of the disc frame
+
+    labels : list
+        list of labels
+
+    showDisc : bool
+        show the outer ring axis
+
+    .. hist:: examples/pyplot/donut.py
+        .. image:: https://vedo.embl.es/images/pyplot/donut.png
     """
     fractions = np.array(fractions)
     angles = np.add.accumulate(2 * np.pi * fractions)
@@ -2322,28 +2597,40 @@ def donut(
 
 
 def quiver(
-    points,
-    vectors,
-    c="k",
-    alpha=1,
-    shaftLength=0.8,
-    shaftWidth=0.05,
-    headLength=0.25,
-    headWidth=0.2,
-    fill=True,
-):
+        points,
+        vectors,
+        c="k",
+        alpha=1,
+        shaftLength=0.8,
+        shaftWidth=0.05,
+        headLength=0.25,
+        headWidth=0.2,
+        fill=True,
+    ):
     """
     Quiver Plot, display `vectors` at `points` locations.
 
     Color can be specified as a colormap which maps the size of the arrows.
 
-    :param float shaftLength: fractional shaft length
-    :param float shaftWidth: fractional shaft width
-    :param float headLength: fractional head length
-    :param float headWidth: fractional head width
-    :param bool fill: if False only generate the outline
+    Parameters
+    ----------
+    shaftLength : float
+        fractional shaft length
 
-    |quiver| |quiver.py|_
+    shaftWidth : float
+        fractional shaft width
+
+    headLength : float
+        fractional head length
+
+    headWidth : float
+        fractional head width
+
+    fill : bool
+        if False only generate the outline
+
+    .. hint:: examples/pyplot/quiver.py
+        .. image:: https://vedo.embl.es/images/pyplot/quiver.png
     """
     if isinstance(points, vedo.Points):
         points = points.points()
@@ -2371,34 +2658,54 @@ def quiver(
 
 
 def violin(
-    values,
-    bins=10,
-    vlim=None,
-    x=0,
-    width=3,
-    spline=True,
-    fill=True,
-    c="violet",
-    alpha=1,
-    outline=True,
-    centerline=True,
-    lc="darkorchid",
-    lw=3,
-):
+        values,
+        bins=10,
+        vlim=None,
+        x=0,
+        width=3,
+        spline=True,
+        fill=True,
+        c="violet",
+        alpha=1,
+        outline=True,
+        centerline=True,
+        lc="darkorchid",
+        lw=3,
+    ):
     """
     Violin style histogram.
 
-    :param int bins: number of bins
-    :param list vlim: input value limits. Crop values outside range.
-    :param list x: x-position of the violin axis
-    :param float width: width factor of the normalized distribution
-    :param bool spline: spline points
-    :param bool fill: fill violin with solid color
-    :param bool outline: add the distribution outline
-    :param bool centerline: add the vertical centerline at x
-    :param lc: line color
+    Parameters
+    ----------
+    bins : int
+        number of bins
 
-    |histo_violin| |histo_violin.py|_
+    vlim : list
+        input value limits. Crop values outside range
+
+    x : float
+        x-position of the violin axis
+
+    width : float
+        width factor of the normalized distribution
+
+    spline : bool
+        spline the outline
+
+    fill : bool
+        fill violin with solid color
+
+    outline : bool
+        add the distribution outline
+
+    centerline : bool
+        add the vertical centerline at x
+
+    lc : color
+        line color
+
+    .. hint:: examples/pyplot/histo_violin.py
+        .. image:: https://vedo.embl.es/images/pyplot/histo_violin.png
     """
     fs, edges = np.histogram(values, bins=bins, range=vlim)
     mine, maxe = np.min(edges), np.max(edges)
@@ -2462,29 +2769,48 @@ def violin(
     return asse
 
 
-def whisker(data,
-            s=0.25,
-            c='k',
-            lw=2,
-            bc='blue',
-            alpha=0.25,
-            r=5,
-            jitter=True,
-            horizontal=False,
-):
+def whisker(
+        data,
+        s=0.25,
+        c='k',
+        lw=2,
+        bc='blue',
+        alpha=0.25,
+        r=5,
+        jitter=True,
+        horizontal=False,
+    ):
     """
     Generate a "whisker" bar from a 1-dimensional dataset.
 
-    :param float s: size of the box
-    :param c: color of the lines
-    :param float lw: line width
-    :param bc: color of the box
-    :param float alpha: transparency of the box
-    :param float r: point radius in pixels (use value 0 to disable)
-    :param bool jitter: add some randomness to points to avoid overlap
-    :param bool horizontal: set horizontal layout
+    Parameters
+    ----------
+    s : float
+        size of the box
 
-    |whiskers| |whiskers.py|_
+    c : color
+        color of the lines
+
+    lw : float
+        line width
+
+    bc : color
+        color of the box
+
+    alpha : float
+        transparency of the box
+
+    r : float
+        point radius in pixels (use value 0 to disable)
+
+    jitter : bool
+        add some randomness to points to avoid overlap
+
+    horizontal : bool
+        set horizontal layout
+
+    .. hint:: examples/pyplot/whiskers.py
+        .. image:: https://vedo.embl.es/images/pyplot/whiskers.png
     """
     xvals = np.zeros_like(np.array(data))
     if jitter:
@@ -2526,17 +2852,27 @@ def streamplot(X, Y, U, V, direction="both",
     Generate a streamline plot of a vectorial field (U,V) defined at positions (X,Y).
     Returns a ``Mesh`` object.
 
-    :param str direction: either "forward", "backward" or "both"
-    :param float maxPropagation: maximum physical length of the streamline
-    :param float lw: line width in absolute units
-    :param int mode: vary line width
+    Parameters
+    ----------
+    direction : str
+        either "forward", "backward" or "both"
+
+    maxPropagation : float
+        maximum physical length of the streamline
+
+    lw : float
+        line width in absolute units
+
+    mode : int
+        mode of varying the line width
 
         - 0 - do not vary line width
         - 1 - vary line width by first vector component
         - 2 - vary line width vector magnitude
         - 3 - vary line width by absolute value of first vector component
 
-    |plot_stream| |plot_stream.py|_
+    .. hint:: examples/pyplot/plot_stream.py
+        .. image:: https://vedo.embl.es/images/pyplot/plot_stream.png
     """
     n = len(X)
     m = len(Y[0])
@@ -2588,24 +2924,25 @@ def streamplot(X, Y, U, V, direction="both",
     return stream
 
 
-def matrix(M,
-           title='Matrix',
-           xtitle='',
-           ytitle='',
-           xlabels=[],
-           ylabels=[],
-           xrotation=0,
-           cmap='Reds',
-           vmin=None,
-           vmax=None,
-           precision=2,
-           font='Theemim',
-           scale=0,
-           scalarbar=True,
-           lc='white',
-           lw=0,
-           c='black',
-           alpha=1,
+def matrix(
+        M,
+        title='Matrix',
+        xtitle='',
+        ytitle='',
+        xlabels=[],
+        ylabels=[],
+        xrotation=0,
+        cmap='Reds',
+        vmin=None,
+        vmax=None,
+        precision=2,
+        font='Theemim',
+        scale=0,
+        scalarbar=True,
+        lc='white',
+        lw=0,
+        c='black',
+        alpha=1,
     ):
     """
     Generate a matrix, or a 2D color-coded plot with bin labels.
@@ -2615,41 +2952,61 @@ def matrix(M,
     Parameters
     ----------
     M : list or numpy array
-        the input array to visualize.
-    title : str, optional
-        title of the plot. The default is 'Matrix'.
-    xtitle : str, optional
-        title of the horizontal colmuns. The default is ''.
-    ytitle : str, optional
-        title of the vertical rows. The default is ''.
-    xlabels : list, optional
-        individual string labels for each column. Must be of length m. The default is [].
-    ylabels : list, optional
-        individual string labels for each row. Must be of length n. The default is [].
-    xrotation : float, optional
-        rotation of the horizontal labels. The default is 0.
-    cmap : str, optional
-        color map name. The default is 'Reds'.
-    vmin : float, optional
-        minimum value of the colormap range. The default is None.
-    vmax : float, optional
-        maximum value of the colormap range. The default is None.
-    precision : int, optional
-        number of digits for the matrix entries or bins. The default is 2.
-    font : str, optional
-        font name. The default is ''.
-    scale : float, optional
-        size of the numeric entries or bin values. The default is 0.
-    scalarbar : bool, optional
-        add a scalar bar to the right of the plot. The default is True.
-    lc : str, optional
-        color of the line separating the bins. The default is 'white'.
-    lw : float, optional
-        Width of the line separating the bins. The default is 0.
-    c : str, optional
-        text color. The default is 'k'.
-    alpha : float, optional
-        plot transparency. The default is 1.
+        the input array to visualize
+
+    title : str
+        title of the plot
+
+    xtitle : str
+        title of the horizontal colmuns
+
+    ytitle : str
+        title of the vertical rows
+
+    xlabels : list
+        individual string labels for each column. Must be of length m
+
+    ylabels : list
+        individual string labels for each row. Must be of length n
+
+    xrotation : float
+        rotation of the horizontal labels
+
+    cmap : str
+        color map name
+
+    vmin : float
+        minimum value of the colormap range
+
+    vmax : float
+        maximum value of the colormap range
+
+    precision : int
+        number of digits for the matrix entries or bins
+
+    font : str
+        font name
+
+    scale : float
+        size of the numeric entries or bin values
+
+    scalarbar : bool
+        add a scalar bar to the right of the plot
+
+    lc : str
+        color of the line separating the bins
+
+    lw : float
+        Width of the line separating the bins
+
+    c : str
+        text color
+
+    alpha : float
+        plot transparency
+
+    .. hint:: examples/pyplot/np_matrix.py
+        .. image:: https://vedo.embl.es/images/pyplot/np_matrix.png
     """
     M = np.asarray(M)
     n,m = M.shape
@@ -2722,7 +3079,7 @@ def CornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True, dots=T
     Return a ``vtkXYPlotActor`` that is a plot of `x` versus `y`,
     where `points` is a list of `(x,y)` points.
 
-    :param int pos: assign position:
+    Assign position following this convention:
 
         - 1, topleft,
         - 2, topright,
@@ -2793,28 +3150,28 @@ def CornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True, dots=T
 
 
 def CornerHistogram(
-    values,
-    bins=20,
-    vrange=None,
-    minbin=0,
-    logscale=False,
-    title="",
-    c="g",
-    bg="k",
-    alpha=1,
-    pos="bottom-left",
-    s=0.175,
-    lines=True,
-    dots=False,
-    nmax=None,
-):
+        values,
+        bins=20,
+        vrange=None,
+        minbin=0,
+        logscale=False,
+        title="",
+        c="g",
+        bg="k",
+        alpha=1,
+        pos="bottom-left",
+        s=0.175,
+        lines=True,
+        dots=False,
+        nmax=None,
+    ):
     """
     Build a histogram from a list of values in n bins.
     The resulting object is a 2D actor.
 
-    Use *vrange* to restrict the range of the histogram.
+    Use ``vrange`` to restrict the range of the histogram.
 
-    :param int nmax: limit the sampling to this max nr of entries
+    Use ``nmax`` to limit the sampling to this max nr of entries
 
     Use `pos` to assign its position:
         - 1, topleft,
@@ -2861,56 +3218,101 @@ def CornerHistogram(
 
 
 class DirectedGraph(Assembly):
-    """A graph consists of a collection of nodes (without postional information)
+    """
+    A graph consists of a collection of nodes (without postional information)
     and a collection of edges connecting pairs of nodes.
     The task is to determine the node positions only based on their connections.
 
     This class is derived from class ``Assembly``, and it assembles 4 Mesh objects
     representing the graph, the node labels, edge labels and edge arrows.
 
-    :param c: color of the Graph
-    :param int n: number of the initial set of nodes
-    :param int,str layout: layout in ['2d', 'fast2d', 'clustering2d', 'circular',
-                                      'circular3d', 'cone', 'force', 'tree']
+    Parameters
+    ----------
+    c : color
+        Color of the Graph
 
-    Each of these layouts has diferent available options.
+    n : int
+        number of the initial set of nodes
 
-    Options for layouts '2d', 'fast2d' and 'clustering2d':
+    layout : int, str
+        layout in ['2d', 'fast2d', 'clustering2d', 'circular',
+                   'circular3d', 'cone', 'force', 'tree']
 
-        :param int seed: seed of the random number generator used to jitter point positions
-        :param float restDistance: manually set the resting distance
-        :param int maxNumberOfIterations: the maximum number of iterations to be used
-        :param float zrange: expand 2d graph along z axis.
+        Each of these layouts has diferent available options.
 
-    Options for layouts 'circular', and 'circular3d':
 
-        :param float radius: set the radius of the circles.
-        :param float height: set the vertical (local z) distance between the circles
-        :param float zrange: expand 2d graph along z axis.
+    ---------------------------------------------------------------
+    .. note:: Options for layouts '2d', 'fast2d' and 'clustering2d'
 
-    Options for layout 'cone':
+    Parameters
+    ----------
+    seed : int
+        seed of the random number generator used to jitter point positions
 
-        :param float compactness: ratio between the average width of a cone in the tree,
-            and the height of the cone. The default setting is 0.75.
+    restDistance : float
+        manually set the resting distance
 
-        :param bool compression: put children closer together, possibly allowing sub-trees to overlap.
-            This is useful if the tree is actually the spanning tree of a graph.
+    maxNumberOfIterations : int
+        the maximum number of iterations to be used
 
-        :param float spacing: space between layers of the tree
+    zrange : list
+        expand 2d graph along z axis.
 
-    Options for layout 'force':
 
-        :param int seed: seed the random number generator used to jitter point positions
-        :param list bounds: set the region in space in which to place the final graph
-        :param int maxNumberOfIterations: the maximum number of iterations to be used
-        :param bool threeDimensional: allow optimization in the 3rd dimension too
-        :param bool randomInitialPoints: use random positions within the graph bounds as initial points
+    ---------------------------------------------------------------
+    .. note:: Options for layouts 'circular', and 'circular3d':
 
-    Example:
+    Parameters
+    ----------
+    radius : float
+        set the radius of the circles
 
-        |lineage_graph| |lineage_graph.py|_
+    height : float
+        set the vertical (local z) distance between the circles
 
-        |graph_network| |graph_network.py|_
+    zrange : float
+        expand 2d graph along z axis
+
+
+    ---------------------------------------------------------------
+    .. note:: Options for layout 'cone'
+
+    Parameters
+    ----------
+    compactness : float
+        ratio between the average width of a cone in the tree,
+        and the height of the cone.
+
+    compression : bool
+        put children closer together, possibly allowing sub-trees to overlap.
+        This is useful if the tree is actually the spanning tree of a graph.
+
+    spacing : float
+        space between layers of the tree
+
+
+    ---------------------------------------------------------------
+    .. note:: Options for layout 'force'
+
+    Parameters
+    ----------
+    seed : int
+        seed the random number generator used to jitter point positions
+
+    bounds : list
+        set the region in space in which to place the final graph
+
+    maxNumberOfIterations : int
+        the maximum number of iterations to be used
+
+    threeDimensional : bool
+        allow optimization in the 3rd dimension too
+
+    randomInitialPoints : bool
+        use random positions within the graph bounds as initial points
+
+    .. hint:: examples/pyplot/lineage_graph.py, graph_network.py
+        .. image:: https://vedo.embl.es/images/pyplot/graph_network.png
     """
     def __init__(self, **kargs):
         vedo.base.BaseActor.__init__(self)
@@ -3030,7 +3432,7 @@ class DirectedGraph(Assembly):
 
 
     def addNode(self, label="id"):
-        """Add a new node to the Graph."""
+        """Add a new node to the ``Graph``."""
         v = self.mdg.AddVertex() # vtk calls it vertex..
         self.nodes.append(v)
         if label == 'id': label=int(v)
@@ -3070,7 +3472,7 @@ class DirectedGraph(Assembly):
 
     def build(self):
         """
-        Build the DirectedGraph(Assembly).
+        Build the ``DirectedGraph(Assembly)``.
         Accessory objects are also created for labels and arrows.
         """
         self.gl.SetZRange(self.zrange)

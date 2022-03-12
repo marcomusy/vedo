@@ -18,7 +18,10 @@ from vedo.mesh import Mesh
 from vedo.picture import Picture
 from vedo.pointcloud import Points
 
-__doc__ = ("""Submodule to generate basic geometric shapes.""" + vedo.docs._defs)
+__doc__ = """
+Submodule to generate simple and complex geometric shapes
+.. image:: https://vedo.embl.es/images/basic/extrude.png
+"""
 
 __all__ = [
     "Marker",
@@ -230,42 +233,54 @@ def Cross3D(pos=(0,0,0), s=1.0, thickness=0.3, c="b", alpha=1):
 
 class Glyph(Mesh):
     """
-    At each vertex of a mesh, another mesh - a `'glyph'` - is shown with
+    At each vertex of a mesh, another mesh, i.e. a "glyph", is shown with
     various orientation options and coloring.
-    The input ``mesh`` can also be a simple list of 2D or 3D coordinates.
+
+    The input can also be a simple list of 2D or 3D coordinates.
     Color can be specified as a colormap which maps the size of the orientation
     vectors in `orientationArray`.
 
-    :param orientationArray: list of vectors, ``vtkAbstractArray``
-        or the name of an already existing points array.
-    :type orientationArray: list, str, vtkAbstractArray
+    Parameters
+    ----------
+    orientationArray: list, str, vtkArray
+        list of vectors, `vtkArray` or name of an already existing pointdata array
 
-    :param bool scaleByScalar: glyph mesh is scaled by the active scalars.
-    :param bool scaleByVectorSize: glyph mesh is scaled by the size of the vectors.
-    :param bool scaleByVectorComponents: glyph mesh is scaled by the 3 vectors components.
-    :param bool colorByScalar: glyph mesh is colored based on the scalar value.
-    :param bool colorByVectorSize: glyph mesh is colored based on the vector size.
+    scaleByScalar : bool
+        glyph mesh is scaled by the active scalars
 
-    :param float tol: set a minimum separation between two close glyphs
+    scaleByVectorSize : bool
+        glyph mesh is scaled by the size of the vectors
+
+    scaleByVectorComponents : bool
+        glyph mesh is scaled by the 3 vectors components
+
+    colorByScalar : bool
+        glyph mesh is colored based on the scalar value
+
+    colorByVectorSize : bool
+        glyph mesh is colored based on the vector size
+
+    tol : float
+        set a minimum separation between two close glyphs
         (not compatible with `orientationArray` being a list).
 
-    |glyphs.py|_ |glyphs_arrows.py|_
-    |glyphs| |glyphs_arrows|
+    .. hint:: examples/basic/glyphs.py, glyphs_arrows.py
+        .. image:: https://vedo.embl.es/images/basic/glyphs.png
     """
-    def __init__(self,
-                 mesh,
-                 glyphObj,
-                 orientationArray=None,
-                 scaleByScalar=False,
-                 scaleByVectorSize=False,
-                 scaleByVectorComponents=False,
-                 colorByScalar=False,
-                 colorByVectorSize=False,
-                 tol=0,
-                 c='k8',
-                 alpha=1,
+    def __init__(
+            self,
+            mesh,
+            glyphObj,
+            orientationArray=None,
+            scaleByScalar=False,
+            scaleByVectorSize=False,
+            scaleByVectorComponents=False,
+            colorByScalar=False,
+            colorByVectorSize=False,
+            tol=0,
+            c='k8',
+            alpha=1,
         ):
-
         if utils.isSequence(mesh):
             # create a cloud of points
             poly = Points(mesh).polydata()
@@ -363,7 +378,8 @@ class Glyph(Mesh):
 
 
 class Tensors(Mesh):
-    """Geometric representation of tensors defined on a domain or set of points.
+    """
+    Geometric representation of tensors defined on a domain or set of points.
     Tensors can be scaled and/or rotated according to the source at eache input point.
     Scaling and rotation is controlled by the eigenvalues/eigenvectors of the symmetrical part
     of the tensor as follows:
@@ -372,30 +388,42 @@ class Tensors(Mesh):
     to determine the major, medium, and minor eigenvalues/eigenvectors.
     The eigenvalue decomposition only makes sense for symmetric tensors,
     hence the need to only consider the symmetric part of the tensor,
-    which is 1/2*(T+T.transposed()).
+    which is `1/2*(T+T.transposed())`.
 
-    :param str source: preset type of source shape
+    Parameters
+    ----------
+    source : str, Mesh
+        preset type of source shape
         ['ellipsoid', 'cylinder', 'cube' or any specified ``Mesh``]
 
-    :param bool useEigenValues: color source glyph using the eigenvalues or by scalars.
+    useEigenValues : bool
+        color source glyph using the eigenvalues or by scalars
 
-    :param bool threeAxes: if `False` scale the source in the x-direction,
+    threeAxes : bool
+        if `False` scale the source in the x-direction,
         the medium in the y-direction, and the minor in the z-direction.
         Then, the source is rotated so that the glyph's local x-axis lies
-        along the major eigenvector, y-axis along the medium eigenvector, and z-axis along the minor.
+        along the major eigenvector, y-axis along the medium eigenvector,
+        and z-axis along the minor.
 
         If `True` three sources are produced, each of them oriented along an eigenvector
         and scaled according to the corresponding eigenvector.
 
-    :param bool isSymmetric: If `True` each source glyph is mirrored (2 or 6 glyphs will be produced).
+    isSymmetric : bool
+        If `True` each source glyph is mirrored (2 or 6 glyphs will be produced).
         The x-axis of the source glyph will correspond to the eigenvector on output.
 
-    :param float length: distance from the origin to the tip of the source glyph along the x-axis
+    length : float
+        distance from the origin to the tip of the source glyph along the x-axis
 
-    :param float scale: scaling factor of the source glyph.
-    :param float maxScale: clamp scaling at this factor.
+    scale : float
+        scaling factor of the source glyph.
 
-    |tensors| |tensors.py|_ |tensor_grid.py|_
+    maxScale : float
+        clamp scaling at this factor.
+
+    .. hint:: examples/volumetric/tensors.py, tensor_grid.py
+        .. image:: https://vedo.embl.es/images/volumetric/tensor_grid.png
     """
 
     def __init__(self, domain, source='ellipsoid', useEigenValues=True, isSymmetric=True,
@@ -455,15 +483,27 @@ class Tensors(Mesh):
 class Line(Mesh):
     """
     Build the line segment between points `p0` and `p1`.
-    If `p0` is a list of points returns the line connecting them.
-    A 2D set of coords can also be passed as p0=[x..], p1=[y..].
 
-    :param bool closed: join last to first point
-    :param c: color name, number, or list of [R,G,B] colors.
-    :type c: int, str, list
-    :param float alpha: transparency in range [0,1].
-    :param lw: line width.
-    :param int res: resolution, number of points along the line
+    If `p0` is already a list of points, return the line connecting them.
+
+    A 2D set of coords can also be passed as `p0=[x..], p1=[y..]`.
+
+    Parameters
+    ----------
+    closed : bool
+        join last to first point
+
+    c : color, int, str, list
+        color name, number, or list of [R,G,B] colors
+
+    alpha : float
+        opacity in range [0,1]
+
+    lw : int
+        line width in pixel units
+
+    res : int
+        resolution, number of points along the line
         (only relevant if only 2 points are specified)
     """
     def __init__(self, p0, p1=None, closed=False, c="k4", alpha=1, lw=1, res=2):
@@ -582,18 +622,20 @@ class Line(Mesh):
     def pattern(self, stipple, repeats=10):
         """
         Define a stipple pattern for dashing the line.
-        Pass the stipple pattern as a string like '- - -'.
+        Pass the stipple pattern as a string like `'- - -'`.
         Repeats controls the number of times the pattern repeats in a single segment.
-        Examples are: '- -', '--  -  --', etc.
+
+        Examples are: `'- -', '--  -  --'`, etc.
+
         The resolution of the line (nr of points) can affect how pattern will show up.
 
-        :Example:
+        Example:
             .. code-block:: python
 
                 from vedo import Line
                 pts = [[1, 0, 0], [5, 2, 0], [3, 3, 1]]
                 ln = Line(pts, c='r', lw=5).pattern('- -', repeats=10)
-                ln.show(axes=1)
+                ln.show(axes=1).close()
         """
         stipple = str(stipple) * int(2*repeats)
         dimension = len(stipple)
@@ -644,8 +686,7 @@ class Line(Mesh):
         """
         Compute the tangents of a line in space.
 
-        Example
-        -------
+        Example:
             .. code-block:: python
 
                 from vedo import *
@@ -653,7 +694,7 @@ class Line(Mesh):
                 pts = shape.rotateX(30).points()
                 tangents = Line(pts).tangents()
                 arrs = Arrows(pts, pts+tangents, c='blue9')
-                show(shape.c('red5').lw(5), arrs, bg='bb', axes=1)
+                show(shape.c('red5').lw(5), arrs, bg='bb', axes=1).close()
         """
         v = np.gradient(self.points())[0]
         ds_dt = np.linalg.norm(v, axis=1)
@@ -665,8 +706,7 @@ class Line(Mesh):
         Compute the signed curvature of a line in space.
         The signed is computed assuming the line is about coplanar to the xy plane.
 
-        Example
-        -------
+        Example:
             .. code-block:: python
 
                 from vedo import *
@@ -675,7 +715,8 @@ class Line(Mesh):
                 curvs = Line(shape.points()).curvature()
                 shape.cmap('coolwarm', curvs, vmin=-2,vmax=2).addScalarBar3D(c='w')
                 shape.renderLinesAsTubes().lw(12)
-                show(shape, plot(curvs, c='w', lc='y5'), N=2, bg='bb', sharecam=0)
+                pp = plot(curvs, c='white', lc='yellow5')
+                show(shape, pp, N=2, bg='bb', sharecam=False).close()
         """
         v = np.gradient(self.points())[0]
         a = np.gradient(v)[0]
@@ -701,12 +742,12 @@ class Line(Mesh):
 
     def sweep(self, direction=(1,0,0), res=1):
         """
-        Sweep the Line along the specified vector direction.
+        Sweep the `Line` along the specified vector direction.
 
-        Returns a Mesh surface.
+        Returns a `Mesh` surface.
         Line position is updated to allow for additional sweepings.
 
-        :Example:
+        Example:
             .. code-block:: python
 
                 from vedo import Line, show
@@ -714,7 +755,7 @@ class Line(Mesh):
                 surf1 = aline.sweep((1,0.2,0), res=3)
                 surf2 = aline.sweep((0.2,0,1))
                 aline.color('r').lineWidth(4)
-                show(surf1, surf2, aline, axes=1)
+                show(surf1, surf2, aline, axes=1).close()
         """
         line = self.polydata()
         rows = line.GetNumberOfPoints()
@@ -775,14 +816,24 @@ class DashedLine(Line):
 
     Build a dashed line segment between points `p0` and `p1`.
     If `p0` is a list of points returns the line connecting them.
-    A 2D set of coords can also be passed as p0=[x..], p1=[y..].
+    A 2D set of coords can also be passed as `p0=[x..], p1=[y..]`.
 
-    :param bool closed: join last to first point
-    :param float spacing: relative size of the dash.
-    :param c: color name, number, or list of [R,G,B] colors.
-    :type c: int, str, list
-    :param float alpha: transparency in range [0,1].
-    :param lw: line width.
+    Parameters
+    ----------
+    closed : bool
+        join last to first point
+
+    spacing : float
+        relative size of the dash
+
+    c : color
+        color name, number, or list of [R,G,B] colors
+
+    alpha : float
+        opacity in range [0,1]
+
+    lw : int
+        line width in pixels
     """
     def __init__(self, p0, p1=None, spacing=0.1, closed=False, c="k5", alpha=1, lw=2):
 
@@ -877,19 +928,16 @@ def RoundedLine(pts, lw, c='gray4', alpha=1, res=10):
 
     Parameters
     ----------
-
     pts : list
         a list of points in 2D or 3D (z will be ignored).
 
     lw : float
         thickness of the line.
 
-    res : int, optional
+    res : int
         resolution of the rounded regions. The default is 10.
 
-    Example
-    -------
-
+    Example:
         .. code-block:: python
 
             from vedo import *
@@ -959,13 +1007,28 @@ def RoundedLine(pts, lw, c='gray4', alpha=1, res=10):
 class Lines(Line):
     """
     Build the line segments between two lists of points `startPoints` and `endPoints`.
-    `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
+    `startPoints` can be also passed in the form `[[point1, point2], ...]`.
 
-    :param float scale: apply a rescaling factor to the lengths.
+    Parameters
+    ----------
+    scale : float
+        apply a rescaling factor to the lengths.
 
-    |lines|
+    c : color, int, str, list
+        color name, number, or list of [R,G,B] colors
 
-    .. hint:: |fitspheres2.py|_
+    alpha : float
+        opacity in range [0,1]
+
+    lw : int
+        line width in pixel units
+
+    res : int
+        resolution, number of points along the line
+        (only relevant if only 2 points are specified)
+
+    .. hint:: examples/advanced/fitspheres2.py
+        .. image:: https://user-images.githubusercontent.com/32848391/52503049-ac9cb600-2be4-11e9-86af-72a538af14ef.png
     """
     def __init__(self, startPoints, endPoints=None,
                  c='k4', alpha=1, lw=1, dotted=False, scale=1, res=1):
@@ -1014,35 +1077,41 @@ class Spline(Line):
     Find the B-Spline curve through a set of points. This curve does not necessarly
     pass exactly through all the input points. Needs to import `scipy`.
 
-    Return an ``Mesh`` object.
-
-    :param float smooth: smoothing factor.
-
+    Parameters
+    ----------
+    smooth : float
+        smoothing factor.
         - 0 = interpolate points exactly [default].
         - 1 = average point positions.
 
-    :param int degree: degree of the spline (1<degree<5)
-    :param str easing: control sensity of points along the spline.
+    degree : int
+        degree of the spline (1<degree<5)
 
+    easing : str
+        control sensity of points along the spline.
         Available options are
-        [InSine, OutSine, Sine, InQuad, OutQuad, InCubic, OutCubic,
-        InQuart, OutQuart, InCirc, OutCirc].
+        `[InSine, OutSine, Sine, InQuad, OutQuad, InCubic, OutCubic, InQuart, OutQuart, InCirc, OutCirc].`
         Can be used to create animations (move objects at varying speed).
         See e.g.: https://easings.net
 
-    :param int res: number of points on the spline
+    res : int
+        number of points on the spline
 
     See also: ``CSpline`` and ``KSpline``.
-    """
-    def __init__(self, points,
-                 smooth=0,
-                 degree=2,
-                 closed=False,
-                 s=2,
-                 res=None,
-                 easing="",
-                 ):
 
+    .. hint:: examples/simulations/spline_ease.py
+        .. image:: https://vedo.embl.es/images/simulations/spline_ease.gif
+    """
+    def __init__(
+            self,
+            points,
+            smooth=0,
+            degree=2,
+            closed=False,
+            s=2,
+            res=None,
+            easing="",
+        ):
         from scipy.interpolate import splprep, splev
 
         if isinstance(points, Points):
@@ -1105,20 +1174,30 @@ class Spline(Line):
 
 class KSpline(Line):
     """
-    Return a Kochanek spline which runs exactly through all the input points.
+    Return a [Kochanek spline](https://en.wikipedia.org/wiki/Kochanek%E2%80%93Bartels_spline)
+    which runs exactly through all the input points.
 
-    See: https://en.wikipedia.org/wiki/Kochanek%E2%80%93Bartels_spline
+    Parameters
+    ----------
+    continuity : float
+        changes the sharpness in change between tangents
 
-    :param float continuity: changes the sharpness in change between tangents
-    :param float tension: changes the length of the tangent vector
-    :param float bias: changes the direction of the tangent vector
-    :param bool closed: join last to first point to produce a closed curve
-    :param int res: approximate resolution of the output line.
+    tension : float
+        changes the length of the tangent vector
+
+    bias : float
+        changes the direction of the tangent vector
+
+    closed : bool
+        join last to first point to produce a closed curve
+
+    res : int
+        approximate resolution of the output line.
         Default is 20 times the number of input points.
 
-    See also: ``Spline`` and ``CSpline``.
+    .. image:: https://user-images.githubusercontent.com/32848391/65975805-73fd6580-e46f-11e9-8957-75eddb28fa72.png
 
-    |kspline|
+    See also: ``Spline`` and ``CSpline``.
     """
     def __init__(self, points,
                  continuity=0, tension=0, bias=0,
@@ -1167,8 +1246,13 @@ class CSpline(Line):
     """
     Return a Cardinal spline which runs exactly through all the input points.
 
-    :param bool closed: join last to first point to produce a closed curve
-    :param int res: approximateresolution of the output line.
+    Parameters
+    ----------
+    closed : bool
+        join last to first point to produce a closed curve
+
+    res : int
+        approximateresolution of the output line.
         Default is 20 times the number of input points.
 
     See also: ``Spline`` and ``KSpline``.
@@ -1213,9 +1297,10 @@ class CSpline(Line):
 
 
 def Bezier(points, res=None):
-    """Generate the Bezier line that links the first to the last point.
+    """
+    Generate the Bezier line that links the first to the last point.
 
-    :Example:
+    Example:
         .. code-block:: python
 
             from vedo import *
@@ -1225,7 +1310,7 @@ def Bezier(points, res=None):
                 p += [5*i, 15*sin(i/2), i*i*i/200]
             show(Points(pts), Bezier(pts), axes=1)
 
-        |bezier|
+        .. image:: https://user-images.githubusercontent.com/32848391/90437534-dafd2a80-e0d2-11ea-9b93-9ecb3f48a3ff.png
     """
     N = len(points)
     if res is None:
@@ -1263,22 +1348,30 @@ def Brace(q1, q2, style='}', pad=0.2, thickness=1,
     ----------
     q1 : list
         point 1.
+
     q2 : list
         point 2.
-    style : str, optional
-        style of the bracket, eg. {}, [], (), <>. The default is '{'.
-    pad : float, optional
-        padding space in percent. The default is 0.2.
-    thickness : float, optional
-        thickness factor for the bracket. The default is 1.
-    font : str, optional
-        font type. The default is 'Kanopus'.
-    comment : str, optional
-        additional text to appear next to the bracket. The default is ''.
-    s : float, optional
+
+    style : str
+        style of the bracket, eg. `{}, [], (), <>`.
+
+    pad : float
+        padding space in percent.
+
+    thickness : float
+        thickness factor for the bracket.
+
+    font : str
+        font type.
+
+    comment : str
+        additional text to appear next to the bracket.
+
+    s : float
         scale factor for the comment
 
-    |scatter3| |scatter3.py|_
+    .. hint:: examples/pyplot/scatter3.py
+        .. image:: https://vedo.embl.es/images/pyplot/scatter3.png
     """
     if isinstance(q1, vtk.vtkActor):
         q1 = q1.GetPosition()
@@ -1336,15 +1429,15 @@ def Brace(q1, q2, style='}', pad=0.2, thickness=1,
     return br
 
 
-def NormalLines(mesh, ratio=1, atCells=True, scale=1):
+def NormalLines(mesh, ratio=1, on='cells', scale=1):
     """
-    Build an ``Mesh`` made of the normals at cells shown as lines.
+    Build an ``Glyph`` made of the normals at cells shown as lines.
 
-    if `atCells` is `False` normals are shown at vertices.
+    if `on="points"` normals are shown at mesh vertices.
     """
     poly = mesh.clone().computeNormals().polydata()
 
-    if atCells:
+    if 'cell' in on:
         centers = vtk.vtkCellCenters()
         centers.SetInputData(poly)
         centers.Update()
@@ -1379,17 +1472,22 @@ def NormalLines(mesh, ratio=1, atCells=True, scale=1):
 
 
 class Tube(Mesh):
-    """Build a tube along the line defined by a set of points.
+    """
+    Build a tube along the line defined by a set of points.
 
-    :param r: constant radius or list of radii.
-    :type r: float, list
-    :param c: constant color or list of colors for each point.
-    :type c: float, list
-    :para int res: resolution, number of sides of the tube
+    Parameters
+    ----------
+    r :  float, list
+        constant radius or list of radii.
 
-    |ribbon.py|_ |tube.py|_
+    c : color
+        constant color or list of colors for each point.
 
-        |ribbon| |tube|
+    res : int
+        resolution, number of the sides of the tube
+
+    .. hint:: examples/basic/ribbon.py, tube.py
+        .. image:: https://vedo.embl.es/images/basic/tube.png
     """
     def __init__(self, points, r=1, cap=True, c=None, alpha=1, res=12):
 
@@ -1455,22 +1553,28 @@ class Tube(Mesh):
 
 
 class Ribbon(Mesh):
-    """Connect two lines to generate the surface inbetween.
+    """
+    Connect two lines to generate the surface inbetween.
     Set the mode by which to create the ruled surface.
 
     It also works with a single line in input. In this case the ribbon
     is formed by following the local plane of the line in space.
 
-    :param int mode: If mode=0, resample evenly the input lines (based on length)
-        and generates triangle strips.
+    Parameters
+    ----------
+    mode : int
+        If mode=0, resample evenly the input lines (based on length) and generates triangle strips.
+
         If mode=1, use the existing points and walks around the polyline using existing points.
 
-    :param bool closed: if True, join the last point with the first to form
-        a closed surface
+    closed : bool
+        if True, join the last point with the first to form a closed surface
 
-    :param list res: ribbon resolutions along the line and perpendicularly to it.
+    res : list
+        ribbon resolutions along the line and perpendicularly to it.
 
-    |ribbon| |ribbon.py|_
+    .. hint:: examples/basic/ribbon.py
+        .. image:: https://vedo.embl.es/images/basic/ribbon.png
     """
     def __init__(self, line1, line2=None, mode=0, closed=False, width=None,
                  c="indigo3", alpha=1, res=(200,5)):
@@ -1568,15 +1672,16 @@ class Arrow(Mesh):
 
     .. note:: If ``s=None`` the arrow is scaled proportionally to its length
 
-    |OrientedArrow|
+    .. image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestOrientedArrow.png
     """
-    def __init__(self,
-                 startPoint=(0,0,0),
-                 endPoint=(1,0,0),
-                 s=None,
-                 c="r4",
-                 alpha=1,
-                 res=12
+    def __init__(
+            self,
+            startPoint=(0,0,0),
+            endPoint=(1,0,0),
+            s=None,
+            c="r4",
+            alpha=1,
+            res=12
         ):
         # in case user is passing meshs
         if isinstance(startPoint, vtk.vtkActor): startPoint = startPoint.GetPosition()
@@ -1637,16 +1742,26 @@ class Arrow(Mesh):
 def Arrows(startPoints, endPoints=None, s=None, thickness=1, c=None, alpha=1, res=12):
     """
     Build arrows between two lists of points `startPoints` and `endPoints`.
-    `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
+    `startPoints` can be also passed in the form `[[point1, point2], ...]`.
 
     Color can be specified as a colormap which maps the size of the arrows.
 
-    :param float s: fix aspect-ratio of the arrow and scale its cross section
-    :param c: color or color map name.
-    :param float alpha: set transparency
-    :param int res: set arrow resolution
+    Parameters
+    ----------
+    s : float
+        fix aspect-ratio of the arrow and scale its cross section
 
-    |glyphs_arrows| |glyphs_arrows.py|_
+    c : color
+        color or color map name
+
+    alpha : float
+        set object opacity
+
+    res : int
+        set arrow resolution
+
+    .. hint:: examples/basic/glyphs_arrows.py
+        .. image:: https://user-images.githubusercontent.com/32848391/55897850-a1a0da80-5bc1-11e9-81e0-004c8f396b43.jpg
     """
     if isinstance(startPoints, Points): startPoints = startPoints.points()
     if isinstance(endPoints,   Points): endPoints   = endPoints.points()
@@ -1689,11 +1804,22 @@ class Arrow2D(Mesh):
     """
     Build a 2D arrow from `startPoint` to `endPoint`.
 
-    :param float shaftLength: fractional shaft length
-    :param float shaftWidth: fractional shaft width
-    :param float headLength: fractional head length
-    :param float headWidth: fractional head width
-    :param bool fill: if False only generate the outline
+    Parameters
+    ----------
+    shaftLength : float
+        fractional shaft length
+
+    shaftWidth : float
+        fractional shaft width
+
+    headLength : float
+        fractional head length
+
+    headWidth : float
+        fractional head width
+
+    fill : bool
+        if False only generate the outline
     """
     def __init__(self,
                  startPoint=(0,0,0),
@@ -1760,30 +1886,42 @@ class Arrow2D(Mesh):
         self.top = np.array(endPoint)
         self.name = "Arrow2D"
 
-def Arrows2D(startPoints, endPoints=None,
-             shaftLength=0.8,
-             shaftWidth=0.09,
-             headLength=None,
-             headWidth=0.2,
-             fill=True,
-             c=None,
-             cmap=None,
-             alpha=1):
+def Arrows2D(
+        startPoints,
+        endPoints=None,
+        shaftLength=0.8,
+        shaftWidth=0.09,
+        headLength=None,
+        headWidth=0.2,
+        fill=True,
+        c=None,
+        cmap=None,
+        alpha=1
+    ):
     """
     Build 2D arrows between two lists of points `startPoints` and `endPoints`.
-    `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
+    `startPoints` can be also passed in the form `[[point1, point2], ...]`.
 
     Color can be specified as a colormap which maps the size of the arrows.
 
-    :param float shaftLength: fractional shaft length
-    :param float shaftWidth: fractional shaft width
-    :param float headLength: fractional head length
-    :param float headWidth: fractional head width
-    :param bool fill: if False only generate the outline
-    :param c: color
-    :param float alpha: set transparency
+    Parameters
+    ----------
+    shaftLength : float
+        fractional shaft length
 
-    :Example:
+    shaftWidth : float
+        fractional shaft width
+
+    headLength : float
+        fractional head length
+
+    headWidth : float
+        fractional head width
+
+    fill : bool
+        if False only generate the outline
+
+    Example:
         .. code-block:: python
 
             from vedo import Grid, Arrows2D
@@ -1791,8 +1929,6 @@ def Arrows2D(startPoints, endPoints=None,
             g2 = Grid(s=(1.2,1.2)).rotateZ(4)
             arrs2d = Arrows2D(g1, g2, c='jet')
             arrs2d.show(axes=1, bg='white')
-
-        |quiver|
     """
     if isinstance(startPoints, Points): startPoints = startPoints.points()
     if isinstance(endPoints,   Points): endPoints   = endPoints.points()
@@ -1830,7 +1966,8 @@ def Arrows2D(startPoints, endPoints=None,
 def FlatArrow(line1, line2, c="r4", alpha=1, tipSize=1, tipWidth=1):
     """Build a 2D arrow in 3D space by joining two close lines.
 
-    |flatarrow| |flatarrow.py|_
+    .. hint:: examples/basic/flatarrow.py
+        .. image:: https://vedo.embl.es/images/basic/flatarrow.png
     """
     if isinstance(line1, Points): line1 = line1.points()
     if isinstance(line2, Points): line2 = line2.points()
@@ -1862,7 +1999,7 @@ class Polygon(Mesh):
     """
     Build a polygon in the `xy` plane of `nsides` of radius `r`.
 
-    |Polygon|
+    .. image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestRegularPolygonSource.png
     """
     def __init__(self, pos=(0, 0, 0), nsides=6, r=1, c="coral", alpha=1):
 
@@ -1895,7 +2032,7 @@ class GeoCircle(Polygon):
     Build a Circle of radius `r` as projected on a geographic map.
     Circles near the poles will look very squashed.
 
-    See example ``vedo -r earthquake``
+    See example `vedo -r earthquake`
     """
     def __init__(self, lat, lon, r=1, c="red4", alpha=1, res=60):
         coords = []
@@ -1917,7 +2054,7 @@ class Star(Mesh):
 
     :param bool line: only build the outer line (no internal surface meshing).
 
-    |extrude| |extrude.py|_
+    .. hint:: examples/basic/extrude.py
     """
     def __init__(self, pos=(0,0,0), n=5, r1=0.7, r2=1.0, line=False, c="blue6", alpha=1):
 
@@ -1957,18 +2094,18 @@ class Disc(Mesh):
     """
     Build a 2D disc of inner radius `r1` and outer radius `r2`.
 
-    :param list res: resolution in R and Phi
+    Set `res` as the resolution in R and Phi (can be a list).
 
-    |Disk|
+    .. image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestDisk.png
     """
     def __init__(self,
-        pos=(0, 0, 0),
-        r1=0.5,
-        r2=1,
-        c="gray4",
-        alpha=1,
-        res=12,
-    ):
+            pos=(0, 0, 0),
+            r1=0.5,
+            r2=1,
+            c="gray4",
+            alpha=1,
+            res=12,
+        ):
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
         if utils.isSequence(res):
@@ -1995,19 +2132,19 @@ class Arc(Mesh):
     and an angle defining the arc length need to be assigned.
 
     Arc spans the shortest angular sector point1 and point2,
-    if invert=True, then the opposite happens.
+    if `invert=True`, then the opposite happens.
     """
     def __init__(self,
-        center,
-        point1,
-        point2=None,
-        normal=None,
-        angle=None,
-        invert=False,
-        c="gray4",
-        alpha=1,
-        res=48,
-    ):
+            center,
+            point1,
+            point2=None,
+            normal=None,
+            angle=None,
+            invert=False,
+            c="gray4",
+            alpha=1,
+            res=48,
+        ):
         if len(point1) == 2:
             point1 = (point1[0], point1[1], 0)
         if point2 is not None and len(point2) == 2:
@@ -2038,11 +2175,18 @@ class Sphere(Mesh):
     """
     Build a sphere at position `pos` of radius `r`.
 
-    :param r float: sphere radius
-    :param int res: resolution in phi, resolution in theta is 2*res
-    :param bool quads: sphere mesh will be made of quads instead of triangles
+    Parameters
+    ----------
+    r : float
+        sphere radius
 
-    |Sphere| |sphericgrid|
+    res : int, list
+        resolution in phi, resolution in theta is 2*res
+
+    quads : bool
+        sphere mesh will be made of quads instead of triangles
+
+    .. image:: https://user-images.githubusercontent.com/32848391/72433092-f0a31e00-3798-11ea-85f7-b2f5fcc31568.png
     """
     def __init__(self, pos=(0, 0, 0), r=1, c="r5", alpha=1, res=24, quads=False):
 
@@ -2098,7 +2242,8 @@ class Spheres(Mesh):
 
     Either `c` or `r` can be a list of RGB colors or radii.
 
-    |manyspheres| |manyspheres.py|_
+    .. hint:: examples/basic/manyspheres.py
+        .. image:: https://vedo.embl.es/images/basic/manyspheres.jpg
     """
     def __init__(self, centers, r=1, c="r5", alpha=1, res=8):
 
@@ -2181,9 +2326,11 @@ class Spheres(Mesh):
 
 
 class Earth(Mesh):
-    """Build a textured mesh representing the Earth.
+    """
+    Build a textured mesh representing the Earth.
 
-    |geodesic| |geodesic.py|_
+    .. hint:: examples/advanced/geodesic.py
+        .. image:: https://vedo.embl.es/images/advanced/geodesic.png
     """
     def __init__(self, style=1, r=1):
         tss = vtk.vtkTexturedSphereSource()
@@ -2207,9 +2354,16 @@ class Ellipsoid(Mesh):
 
     .. note:: `axis1` and `axis2` are only used to define sizes and one azimuth angle.
 
-    |projectsphere|
+    Parameters
+    ----------
+    axis1 : list
+        First axis
 
-    |pca| |pca.py|_
+    axis2 : list
+        Second axis
+
+    axis3 : list
+        Third axis
     """
     def __init__(self, pos=(0, 0, 0), axis1=(1, 0, 0), axis2=(0, 2, 0), axis3=(0, 0, 3),
                  c="cyan4", alpha=1, res=24):
@@ -2267,7 +2421,8 @@ class Ellipsoid(Mesh):
         self.name = "Ellipsoid"
 
     def asphericity(self):
-        """Return a measure of how different an ellipsoid is froma sphere.
+        """
+        Return a measure of how different an ellipsoid is froma sphere.
         Values close to zero correspond to a spheric object.
         """
         a,b,c = self.va, self.vb, self.vc
@@ -2277,12 +2432,11 @@ class Ellipsoid(Mesh):
         return asp
 
     def asphericity_error(self):
-        """Calculate statistical error on the asphericity value.
+        """
+        Calculate statistical error on the asphericity value.
 
         Errors on the main axes are stored in
-        `Ellipsoid.va_error`
-        `Ellipsoid.vb_error`
-        `Ellipsoid.vc_error`
+        *Ellipsoid.va_error, Ellipsoid.vb_error and Ellipsoid.vc_error*.
         """
         a,b,c = self.va, self.vb, self.vc
         sqrtn = np.sqrt(self.nr_of_points)
@@ -2330,19 +2484,29 @@ class Ellipsoid(Mesh):
 
 
 class Grid(Mesh):
-    """Return an even or uneven 2D grid at `z=0`.
+    """
+    Return an even or uneven 2D grid.
 
-    :param float,list s: if a float is provided it is interpreted as the total size along x and y,
+    Parameters
+    ----------
+    s : float, list
+        if a float is provided it is interpreted as the total size along x and y,
         if a list of coords is provided they are interpreted as the vertices of the grid along x and y.
         In this case keyword `res` is ignored (see example below).
-    :param float,list sx: deprecated, please use s.
-    :param list res: resolutions along x and y, e.i. the number of subdivisions.
-    :param int resx: deprecated, please use res.
-    :param float lw: line width.
 
-    |brownian2D| |brownian2D.py|_
+    sx : float, list
+        deprecated, please use s
 
-    :Example:
+    res : list
+        resolutions along x and y, e.i. the number of subdivisions
+
+    resx : int
+        deprecated, please use res
+
+    lw : int
+        line width
+
+    Example:
         .. code-block:: python
 
             from vedo import *
@@ -2421,9 +2585,15 @@ class Plane(Mesh):
     Draw a plane of size `s=(xsize, ysize)` oriented perpendicular to vector `normal`
     and so that it passes through point `pos`.
 
-    :param int sx: deprecated, please use s to set the size.
+    Parameters
+    ----------
+    normal : list
+        normal vector to the plane
 
-    |Plane|
+    sx : int
+        deprecated, please use s to set the size.
+
+    .. image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestPlane.png
     """
     def __init__(self, pos=(0, 0, 0), normal=(0, 0, 1), s=(), sx=1, sy=1, c="gray6", alpha=1):
 
@@ -2462,10 +2632,11 @@ class Plane(Mesh):
         self.top = np.array(normal)
         self.bottom = np.array([0,0,0])
 
-    def contain_points(self, points):
-        """Check if each point is inside this plane.
+    def contains(self, points):
+        """
+        Check if each of the provided point lies on this plane.
 
-        :param array points: points array with shape ( , 3).
+        points is an array with shape ( , 3).
         """
         points = np.array(points)
         bounds = self.points()
@@ -2483,7 +2654,7 @@ class Plane(Mesh):
 
 
 def Rectangle(p1=(0, 0), p2=(2, 1), c="gray6", alpha=1):
-    """Build a rectangle in the xy plane identified by two corner points."""
+    """Build a rectangle in the xy plane identified by its two corner points."""
     if len(p1) == 2:
         p1 = np.array([p1[0], p1[1], 0.])
     else:
@@ -2506,10 +2677,11 @@ class Box(Mesh):
     """
     Build a box of dimensions `x=length, y=width and z=height`.
     Alternatively dimensions can be defined by setting `size` keyword with a tuple.
-    If ``size`` is a list of 6 numbers, this will be interpreted as the bounding box:
-    [xmin,xmax, ymin,ymax, zmin,zmax]
+    If `size` is a list of 6 numbers, this will be interpreted as the bounding box:
+    `[xmin,xmax, ymin,ymax, zmin,zmax]`
 
-    |aspring| |aspring.py|_
+    .. hint:: examples/simulations/aspring.py
+        .. image:: https://vedo.embl.es/images/simulations/50738955-7e891800-11d9-11e9-85cd-02bd4f3f13ea.gif
     """
     def __init__(self, pos=(0,0,0), length=1, width=2, height=3, size=(), c="g4", alpha=1):
 
@@ -2565,21 +2737,26 @@ class Box(Mesh):
         self.name = "Box"
 
 def Cube(pos=(0, 0, 0), side=1, c="g4", alpha=1):
-    """Build a cube of size `side`.
-
-    |colorcubes| |colorcubes.py|_
-    """
+    """Build a cube of size `side`."""
     mesh = Box(pos, side, side, side, (), c, alpha)
     mesh.name = "Cube"
     return mesh
 
 
 def TessellatedBox(pos=(0, 0, 0), n=10, spacing=(1,1,1), c="k5", alpha=0.5):
-    """Build a cubic Mesh made o `n` small quads in the 3 axis directions.
+    """
+    Build a cubic `Mesh` made o `n` small quads in the 3 axis directions.
 
-    :param list pos: position of the left bottom corner
-    :param int n: number of subdivisions
-    :parameter list spacing: size of the side of the single quad in the 3 directions
+    Parameters
+    ----------
+    pos : list
+        position of the left bottom corner
+
+    n : int
+        number of subdivisions along each side
+
+    spacing : float
+        size of the side of the single quad in the 3 directions
     """
     if utils.isSequence(n): # slow
         img = vtk.vtkImageData()
@@ -2606,23 +2783,31 @@ class Spring(Mesh):
     """
     Build a spring of specified nr of `coils` between `startPoint` and `endPoint`.
 
-    :param int coils: number of coils
-    :param float r: radius at start point
-    :param float r2: radius at end point
-    :param float thickness: thickness of the coil section
+    Parameters
+    ----------
+    coils : int
+        number of coils
 
-    |aspring| |aspring.py|_
+    r : float
+        radius at start point
+
+    r2 : float
+        radius at end point
+
+    thickness : float
+        thickness of the coil section
     """
-    def __init__(self,
-                startPoint=(0, 0, 0),
-                endPoint=(1, 0, 0),
-                coils=20,
-                r=0.1,
-                r2=None,
-                thickness=None,
-                c="gray5",
-                alpha=1,
-    ):
+    def __init__(
+            self,
+            startPoint=(0, 0, 0),
+            endPoint=(1, 0, 0),
+            coils=20,
+            r=0.1,
+            r2=None,
+            thickness=None,
+            c="gray5",
+            alpha=1,
+        ):
         diff = endPoint - np.array(startPoint)
         length = np.linalg.norm(diff)
         if not length:
@@ -2671,10 +2856,10 @@ class Cylinder(Mesh):
     """
     Build a cylinder of specified height and radius `r`, centered at `pos`.
 
-    If `pos` is a list of 2 Points, e.g. `pos=[v1,v2]`, build a cylinder with base
+    If `pos` is a list of 2 points, e.g. `pos=[v1,v2]`, build a cylinder with base
     centered at `v1` and top at `v2`.
 
-    |Cylinder|
+    .. image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestCylinder.png
     """
     def __init__(self, pos=(0,0,0), r=1, height=2, axis=(0,0,1),
                  c="teal3", alpha=1, cap=True, res=24):
@@ -2720,11 +2905,7 @@ class Cylinder(Mesh):
 
 
 class Cone(Mesh):
-    """
-    Build a cone of specified radius `r` and `height`, centered at `pos`.
-
-    |Cone|
-    """
+    """Build a cone of specified radius `r` and `height`, centered at `pos`."""
     def __init__(self, pos=(0,0,0), r=1, height=3, axis=(0,0,1), c="green3", alpha=1, res=48):
         con = vtk.vtkConeSource()
         con.SetResolution(res)
@@ -2741,20 +2922,14 @@ class Cone(Mesh):
         self.name = "Cone"
 
 class Pyramid(Cone):
-    """
-    Build a pyramid of specified base size `s` and `height`, centered at `pos`.
-    """
+    """Build a pyramid of specified base size `s` and `height`, centered at `pos`."""
     def __init__(self, pos=(0,0,0), s=1, height=1, axis=(0,0,1), c="green3", alpha=1):
         Cone.__init__(self, pos, s, height, axis, c, alpha, 4)
         self.name = "Pyramid"
 
 
 class Torus(Mesh):
-    """
-    Build a torus of specified outer radius `r` internal radius `thickness`, centered at `pos`.
-
-    |gas| |gas.py|_
-    """
+    """Build a torus of specified outer radius `r` internal radius `thickness`, centered at `pos`."""
     def __init__(self, pos=(0, 0, 0), r=1, thickness=0.2, c="yellow3", alpha=1, res=30):
         rs = vtk.vtkParametricTorus()
         rs.SetRingRadius(r)
@@ -2777,11 +2952,10 @@ class Paraboloid(Mesh):
     """
     Build a paraboloid of specified height and radius `r`, centered at `pos`.
 
-    .. note::
-        Full volumetric expression is:
-            :math:`F(x,y,z)=a_0x^2+a_1y^2+a_2z^2+a_3xy+a_4yz+a_5xz+ a_6x+a_7y+a_8z+a_9`
+    Full volumetric expression is:
+        `F(x,y,z)=a_0x^2+a_1y^2+a_2z^2+a_3xy+a_4yz+a_5xz+ a_6x+a_7y+a_8z+a_9`
 
-            |paraboloid|
+    .. image:: https://user-images.githubusercontent.com/32848391/51211547-260ef480-1916-11e9-95f6-4a677e37e355.png
     """
 
     def __init__(self, pos=(0,0,0), r=1, height=1, c="cyan5", alpha=1, res=50):
@@ -2810,7 +2984,7 @@ class Hyperboloid(Mesh):
     Build a hyperboloid of specified aperture `a2` and `height`, centered at `pos`.
 
     Full volumetric expression is:
-        :math:`F(x,y,z)=a_0x^2+a_1y^2+a_2z^2+a_3xy+a_4yz+a_5xz+ a_6x+a_7y+a_8z+a_9`
+        `F(x,y,z)=a_0x^2+a_1y^2+a_2z^2+a_3xy+a_4yz+a_5xz+ a_6x+a_7y+a_8z+a_9`
     """
     def __init__(self, pos=(0,0,0), a2=1, value=0.5, height=1, c="pink4", alpha=1, res=100):
         q = vtk.vtkQuadric()
@@ -2835,6 +3009,7 @@ class Hyperboloid(Mesh):
 
 @deprecated(reason=vedo.colors.red+"Please use Text3D() instead."+vedo.colors.reset)
 def Text(*args, **kwargs):
+    "Deprecated. Please use Text3D() instead."
     return Text3D(*args, **kwargs)
 
 @lru_cache(None)
@@ -2887,52 +3062,73 @@ class Text3D(Mesh):
     """
     Generate a 3D polygonal ``Mesh`` representing a text string.
 
-    Can render strings like 3.7 10^9 or H_2 O with subscripts and superscripts.
-    Most Latex symbols are also supported (e.g. \mu_\lambda).
+    Can render strings like `3.7 10^9` or `H_2 O` with subscripts and superscripts.
+    Most Latex symbols are also supported.
+
     Symbols ~ ^ _ are reserved modifiers:
 
         use ~ to add a short space, 1/4 of the default empty space,
+
         use ^ and _ to start up/sub scripting, a space terminates their effect.
 
-    Monospaced fonts are: Calco, Glasgo, SmartCouric, VictorMono, Justino.
+    Monospaced fonts are: `Calco, Glasgo, SmartCouric, VictorMono, Justino`.
+
     More fonts at: https://vedo.embl.es/fonts/
 
-    :param list pos: position coordinates in 3D space
-    :param float s: size of text.
-    :param float depth: text thickness.
-    :param bool,float italic: italic font type (can be a signed float too).
-    :param str justify: text justification as centering of the bounding box
-        (bottom-left, bottom-right, top-left, top-right, centered).
+    Parameters
+    ----------
+    pos : list
+        position coordinates in 3D space
 
-    :param str font: available 3D-polygonized fonts are
+    s : float
+        size of the text
+
+    depth : float
+        text thickness (along z)
+
+    italic : bool, float
+        italic font type (can be a signed float too)
+
+    justify : str
+        text justification as centering of the bounding box
+        (bottom-left, bottom-right, top-left, top-right, centered)
+
+    font : str, int
+        available 3D-polygonized fonts are:
         Bongas, Calco, Comae, Kanopus, Glasgo, LionelOfParis,
         LogoType, Normografo, Quikhand, SmartCouric, Theemim, VictorMono, VTK,
         Capsmall, Cartoons123, PlanetBenson, Vega, Justino, Spears, Meson.
-        Default is Normografo, which can be changed using ``settings.defaultFont``
 
-    :param float hspacing: horizontal spacing of the font.
-    :param float vspacing: vertical spacing of the font for multiple lines text.
-    :param bool literal: if set to True will ignore modifiers like _ or ^
+        Default is Normografo, which can be changed using `settings.defaultFont`
 
-    Type ``vedo -r fonts`` for a demo.
+    hspacing : float
+        horizontal spacing of the font
 
-    |markpoint| |markpoint.py|_ |fonts.py|_ |caption.py|_
+    vspacing : float
+        vertical spacing of the font for multiple lines text
 
-    |fontlist| |fonts3d| |caption|
+    literal : bool
+        if set to True will ignore modifiers like _ or ^
+
+    .. note:: Type ``vedo -r fonts`` for a demo.
+
+    .. hint:: examples/pyplot/markpoint.py, fonts.py, caption.py
+        .. image:: https://vedo.embl.es/images/pyplot/fonts3d.png
     """
-    def __init__(self,
-                 txt,
-                 pos=(0,0,0),
-                 s=1,
-                 font='',
-                 hspacing=1.15,
-                 vspacing=2.15,
-                 depth=0,
-                 italic=False,
-                 justify="bottom-left",
-                 c=None,
-                 alpha=1,
-                 literal=False,
+    def __init__(
+            self,
+            txt,
+            pos=(0,0,0),
+            s=1,
+            font='',
+            hspacing=1.15,
+            vspacing=2.15,
+            depth=0,
+            italic=False,
+            justify="bottom-left",
+            c=None,
+            alpha=1,
+            literal=False,
         ):
         if not font:
             font = settings.defaultFont
@@ -3248,29 +3444,42 @@ class TextBase:
 class Text2D(vtk.vtkActor2D, TextBase):
     """
     Returns a 2D text object.
+
     All properties of the text, and the text itself, can be changed after creation
     (which is expecially useful in loops).
 
-    :param pos: text is placed in one of the 8 positions:
+    Parameters
+    ----------
+    pos : str
+        text is placed in one of the 8 positions
 
-            bottom-left
-            bottom-right
-            top-left
-            top-right
-            bottom-middle
-            middle-right
-            middle-left
-            top-middle
+        bottom-left
+        bottom-right
+        top-left
+        top-right
+        bottom-middle
+        middle-right
+        middle-left
+        top-middle
 
         If a pair (x,y) is passed as input the 2D text is place at that
         position in the coordinate system of the 2D screen (with the
         origin sitting at the bottom left).
 
-    :param float s: size of text.
-    :param bg: background color
-    :param float alpha: background opacity
-    :param str justify: text justification
-    :param str font: predefined available fonts are
+    s : float
+        size of text
+
+    bg : color
+        background color
+
+    alpha : float
+        background opacity
+
+    justify : str
+        text justification
+
+    font : str
+        predefined available fonts are
 
         - Arial
         - Bongas
@@ -3279,7 +3488,6 @@ class Text2D(vtk.vtkActor2D, TextBase):
         - Courier
         - Glasgo
         - Kanopus
-        - LionelOfParis
         - LogoType
         - Normografo
         - Quikhand
@@ -3291,27 +3499,22 @@ class Text2D(vtk.vtkActor2D, TextBase):
 
         A path to a `.otf` or `.ttf` font-file can also be supplied as input.
 
-    .. hint:: Examples, |fonts.py|_ |colorcubes.py|_ |caption.py|_
-
-        |colorcubes|
-
-        |fontlist|
-
-        |caption|
+    .. hint:: examples/pyplot/fonts.py, caption.py, examples/basic/colorcubes.py
+        .. image:: https://vedo.embl.es/images/basic/colorcubes.png
     """
-    def __init__(self,
-                 txt="",
-                 pos="top-left",
-                 s=1,
-                 c=None,
-                 alpha=0.2,
-                 bg=None,
-                 font="",
-                 justify="",
-                 bold=False,
-                 italic=False,
+    def __init__(
+            self,
+            txt="",
+            pos="top-left",
+            s=1,
+            c=None,
+            alpha=0.2,
+            bg=None,
+            font="",
+            justify="",
+            bold=False,
+            italic=False,
         ):
-
         vtk.vtkActor2D.__init__(self)
         TextBase.__init__(self)
 
@@ -3339,9 +3542,10 @@ class Text2D(vtk.vtkActor2D, TextBase):
         self.PickableOff()
 
     def pos(self, pos="top-left", justify=""):
-        """Set position of the text to draw. Keyword ``pos`` can be a string
-        or 2D coordinates in the range [0,1], being (0,0) the bottom left corner."""
-
+        """
+        Set position of the text to draw. Keyword ``pos`` can be a string
+        or 2D coordinates in the range [0,1], being (0,0) the bottom left corner.
+        """
         ajustify="top-left" # autojustify
         if isinstance(pos, str): # corners
             ajustify = pos
@@ -3416,7 +3620,7 @@ class Text2D(vtk.vtkActor2D, TextBase):
 
 
 class CornerAnnotation(vtk.vtkCornerAnnotation, TextBase):
-# PROBABLY USELEES given that Text2D does pretty much the same ...
+    # PROBABLY USELEES given that Text2D does pretty much the same ...
     """
     Annotate the window corner with 2D text.
 
@@ -3425,14 +3629,15 @@ class CornerAnnotation(vtk.vtkCornerAnnotation, TextBase):
     The added value of this class is the possibility to manage with one single
     object the all corner annotations (instead of creating 4 ``Text2D`` instances).
 
-    See example: ``advanced/timer_callback2.py``
+    .. hint:: examples/advanced/timer_callback2.py
     """
-    def __init__( self,
-                  s=1,
-                  c=None,
-                  alpha=0.15,
-                  bg=None,
-                  font="",
+    def __init__(
+            self,
+            s=1,
+            c=None,
+            alpha=0.15,
+            bg=None,
+            font="",
         ):
         vtk.vtkCornerAnnotation.__init__(self)
         TextBase.__init__(self)
@@ -3505,40 +3710,47 @@ class CornerAnnotation(vtk.vtkCornerAnnotation, TextBase):
         self.ClearAllTexts()
         return self
 
-    def icon(self, pict): #does not work
-        if pict:
-            self.SetImageActor(pict)
-            self.ShowSliceAndImageOn()
-        else:
-            self.ShowSliceAndImageOff()
-        return self
-
 
 class Latex(Picture):
     """
     Render Latex formulas.
 
-    :param str formula: latex text string
-    :param list pos: position coordinates in space
-    :param c: face color
-    :param bg: background color box
-    :param int res: dpi resolution
-    :param bool usetex: use latex compiler of matplotlib
+    Parameters
+    ----------
+    formula : str
+        latex text string
 
-    You can access the latex formula in `Latex.formula'`.
+    pos : list
+        position coordinates in space
 
-    |latex| |latex.py|_
+    c : color
+        face color
+
+    bg : color
+        background color box
+
+    res : int
+        dpi resolution
+
+    usetex : bool
+        use latex compiler of matplotlib if available
+
+    You can access the latex formula in *Latex.formula*.
+
+    .. hint:: examples/pyplot/latex.py
+        .. image:: https://vedo.embl.es/images/pyplot/latex.png
     """
-    def __init__(self,
-        formula,
-        pos=(0, 0, 0),
-        c='k',
-        s=1,
-        bg=None,
-        alpha=1,
-        res=30,
-        usetex=False,
-    ):
+    def __init__(
+            self,
+            formula,
+            pos=(0, 0, 0),
+            c='k',
+            s=1,
+            bg=None,
+            alpha=1,
+            res=30,
+            usetex=False,
+        ):
         self.formula = formula
 
         try:
@@ -3597,13 +3809,12 @@ class ParametricShape(Mesh):
     A set of built-in shapes mainly for illustration purposes.
 
     Name can be an integer or a string in this list:
-
         `['Boy', 'ConicSpiral', 'CrossCap', 'Dini', 'Enneper',
         'Figure8Klein', 'Klein', 'Mobius', 'RandomHills', 'Roman',
         'SuperEllipsoid', 'BohemianDome', 'Bour', 'CatalanMinimal',
-        'Henneberg', 'Kuen', 'PluckerConoid', 'Pseudosphere'].`
+        'Henneberg', 'Kuen', 'PluckerConoid', 'Pseudosphere']`.
 
-    :Example:
+    Example:
         .. code-block:: python
 
             from vedo import *
@@ -3612,7 +3823,7 @@ class ParametricShape(Mesh):
                 show([ps, ps.name], at=i, N=18)
             interactive()
 
-        |paramshapes|
+        .. image:: https://user-images.githubusercontent.com/32848391/69181075-bb6aae80-0b0e-11ea-92f7-d0cd3b9087bf.png
     """
     def __init__(self, name, res=51, n=25, seed=1):
         shapes = ['Boy', 'ConicSpiral', 'CrossCap', 'Enneper',
@@ -3697,7 +3908,8 @@ def ConvexHull(pts):
     """
     Create the 2D/3D convex hull of a set of input points or input Mesh.
 
-    |convexHull| |convexHull.py|_
+    .. hint:: examples/advanced/convexHull.py
+        .. image:: https://vedo.embl.es/images/advanced/convexHull.png
     """
     if utils.isSequence(pts):
         if len(pts[0]) == 2: # make it 3d
@@ -3728,9 +3940,16 @@ def VedoLogo(distance=0, c=None, bc='t', version=False, frame=True):
     """
     Create the 3D vedo logo.
 
-    :param float distance: send back logo by this distance from camera
-    :param bool version: add version text to the right end of the logo
-    :param bc: text back face color
+    Parameters
+    ----------
+    distance : float
+        send back logo by this distance from camera
+
+    version : bool
+        add version text to the right end of the logo
+
+    bc : color
+        text back face color
     """
     if c is None:
         c = (0,0,0)

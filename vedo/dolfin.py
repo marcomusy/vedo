@@ -14,24 +14,14 @@ from vedo.plotter import clear
 from vedo.plotter import interactive
 from vedo.plotter import Plotter
 from vedo.plotter import show
-from vedo.pyplot import histogram
-from vedo.shapes import Latex
 from vedo.shapes import Text2D
 from vedo.shapes import Text3D
-from vedo.utils import printHistogram
 from vedo.utils import ProgressBar
 
-# Install fenics with commands (e.g. in Anaconda3):
-#         conda install -c conda-forge fenics
-#         pip install vedo
-# Or follow instructions `here. <https://fenicsproject.org/download/>`_
+__doc__ = """
+Submodule for support of the [FEniCS/Dolfin](https://fenicsproject.org) library.
 
-__doc__ = (
-    """
-`FEniCS/Dolfin <https://fenicsproject.org>`_ support submodule.
-
-Basic example:
-
+Example:
     .. code-block:: python
 
         import dolfin
@@ -40,76 +30,26 @@ Basic example:
         mesh = dolfin.Mesh(fname)
         plot(mesh)
 
-    |dolfinmesh|
+    .. image:: https://user-images.githubusercontent.com/32848391/53026243-d2d31900-3462-11e9-9dde-518218c241b6.jpg
 
 Find many more examples in
-`vedo/examples/dolfin <https://github.com/marcomusy/vedo/blob/master/vedo/examples/other/dolfin>`_
+[vedo/examples/dolfin](https://github.com/marcomusy/vedo/blob/master/vedo/examples/other/dolfin).
 
-
-Image Gallery
-=============
-
-+-------------------------------------------------+-------------------------------------------------+
-|                                                 | *(click on the figure to get to the script)*    |
-+-------------------------------------------------+-------------------------------------------------+
-| |ex03_poisson|                                  |   |ex02_tetralize-mesh|                         |
-+-------------------------------------------------+-------------------------------------------------+
-| Poisson equation with Dirichlet conditions      | Generate a tet-mesh from a polygonal surface    |
-+-------------------------------------------------+-------------------------------------------------+
-| |demo_submesh|                                  |   |pi_estimate|                                 |
-+-------------------------------------------------+-------------------------------------------------+
-| Extract submesh boundaries                      | Get pi from the integral of a circle            |
-+-------------------------------------------------+-------------------------------------------------+
-| |ex06_elasticity1|                              |   |ex06_elasticity2|                            |
-+-------------------------------------------------+-------------------------------------------------+
-| Solve a hyperelasticity problem...              | ...with different types of visulizations.       |
-+-------------------------------------------------+-------------------------------------------------+
-| |ft04_heat_gaussian|                            |   |demo_cahn-hilliard|                          |
-+-------------------------------------------------+-------------------------------------------------+
-| Diffusion of a Gaussian hill                    | Solve the Cahn-Hilliard equation                |
-+-------------------------------------------------+-------------------------------------------------+
-| |navier-stokes_lshape|                          |   |stokes1|                                     |
-+-------------------------------------------------+-------------------------------------------------+
-| The Navier-Stokes equations on L-shaped domain  | Stokes equations with Taylor-Hood elements      |
-+-------------------------------------------------+-------------------------------------------------+
-| |elastodynamics|                                |   |ft02_poisson_membrane|                       |
-+-------------------------------------------------+-------------------------------------------------+
-| Time-integration of the elastodynamics equation | Deflection of a membrane under a point load     |
-+-------------------------------------------------+-------------------------------------------------+
-| |magnetostatics|                                |   |turing_pattern|                              |
-+-------------------------------------------------+-------------------------------------------------+
-| Magnetic field of a solenoid                    | Patterns of Turing type reaction-diffusion      |
-+-------------------------------------------------+-------------------------------------------------+
-| |scalemesh|                                     |   |heatconv|                                    |
-+-------------------------------------------------+-------------------------------------------------+
-| Scale and elevate a mesh along one coordinate   | Heat equation in a moving media                 |
-+-------------------------------------------------+-------------------------------------------------+
-| |elasticbeam|                                   |   |wavy_1d|                                     |
-+-------------------------------------------------+-------------------------------------------------+
-| A soft beam deforming under its own weight      | The 1D wave eq. with the Crank Nicolson method  |
-+-------------------------------------------------+-------------------------------------------------+
-| |customAxes1|                                   | |awefem|                                        |
-+-------------------------------------------------+-------------------------------------------------+
-| Customizing axes style and appearance           |The wave equation in arbitrary nr. of dimensions |
-+-------------------------------------------------+-------------------------------------------------+
+.. image:: https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif
 """
-    + vedo.docs._defs
-)
+
 
 __all__ = [
     "plot",
-    "histogram",
     "load",
     "download",
     "show",
     "clear",
     "printc",
-    "printHistogram",
     "Plotter",
     "ProgressBar",
     "Text3D",
     "Text2D",
-    "Latex",
     "screenshot",
     "Video",
     "exportWindow",
@@ -238,9 +178,12 @@ def plot(*inputobj, **options):
     Input can be any combination of: ``Mesh``, ``Volume``, ``dolfin.Mesh``,
     ``dolfin.MeshFunction``, ``dolfin.Expression`` or ``dolfin.Function``.
 
-    :return: the current ``Plotter`` class instance.
+    Return the current ``Plotter`` class instance.
 
-    :param str mode: one or more of the following can be combined in any order
+    Parameters
+    ----------
+    mode : str
+        one or more of the following can be combined in any order
 
         - `mesh`/`color`, will plot the mesh, by default colored with a scalar if available
         - `displacement` show displaced mesh by solution
@@ -248,25 +191,59 @@ def plot(*inputobj, **options):
         - `lines`, mesh displacements are plotted as scaled lines.
         - `tensors`, to be implemented
 
-    :param bool add: add the input objects without clearing the already plotted ones
-    :param float density: show only a subset of lines or arrows [0-1]
-    :param bool wire[frame]: visualize mesh as wireframe [False]
-    :param c[olor]: set mesh color [None]
-    :param bool exterior: only show the outer surface of the mesh [False]
-    :param float alpha: set object's transparency [1]
-    :param float lw: line width of the mesh (set to zero to hide mesh) [0.5]
-    :param float ps: set point size of mesh vertices [None]
-    :param float z: add a constant to z-coordinate (useful to show 2D slices as function of time)
-    :param str legend: add a legend to the top-right of window [None]
-    :param bool scalarbar: add a scalarbar to the window ['vertical']
-    :param float vmin: set the minimum for the range of the scalar [None]
-    :param float vmax: set the maximum for the range of the scalar [None]
-    :param float scale: add a scaling factor to arrows and lines sizes [1]
-    :param str cmap: choose a color map for scalars
-    :param str shading: mesh shading ['flat', 'phong', 'gouraud']
-    :param str text: add a gray text comment to the top-left of the window [None]
+    add : bool
+        add the input objects without clearing the already plotted ones
 
-    :param dict isolines: dictionary of isolines properties
+    density : float
+        show only a subset of lines or arrows [0-1]
+
+    wire[frame] : bool
+        visualize mesh as wireframe [False]
+
+    c[olor] : color
+        set mesh color [None]
+
+    exterior : bool
+        only show the outer surface of the mesh [False]
+
+    alpha : float
+        set object's transparency [1]
+
+    lw : int
+        line width of the mesh (set to zero to hide mesh) [0.1]
+
+    ps :  int
+        set point size of mesh vertices [None]
+
+    z : float
+        add a constant to z-coordinate (useful to show 2D slices as function of time)
+
+    legend : str
+        add a legend to the top-right of window [None]
+
+    scalarbar : bool
+        add a scalarbar to the window ['vertical']
+
+    vmin : float
+        set the minimum for the range of the scalar [None]
+
+    vmax : float
+        set the maximum for the range of the scalar [None]
+
+    scale : float
+        add a scaling factor to arrows and lines sizes [1]
+
+    cmap : str
+        choose a color map for scalars
+
+    shading : str
+        mesh shading ['flat', 'phong']
+
+    text : str
+        add a gray text comment to the top-left of the window [None]
+
+    isolines : dict
+        dictionary of isolines properties
 
         - n, (int) - add this number of isolines to the mesh
         - c, - isoline color
@@ -274,7 +251,8 @@ def plot(*inputobj, **options):
         - z, (float) - add to the isoline z coordinate to make them more visible
 
 
-    :param dict streamlines: dictionary of streamlines properties
+    streamlines : dict
+        dictionary of streamlines properties
 
         - probes, (list, None) - custom list of points to use as seeds
         - tol, (float) - tolerance to reduce the number of seed points used in mesh
@@ -284,59 +262,98 @@ def plot(*inputobj, **options):
         - scalarRange, (list) - scalar range of coloring
 
 
-    :param float warpZfactor: elevate z-axis by scalar value (useful for 2D geometries)
-    :param float warpYfactor: elevate z-axis by scalar value (useful for 1D geometries)
+    warpZfactor : float
+        elevate z-axis by scalar value (useful for 2D geometries)
 
-    :param list scaleMeshFactors: rescale mesh by these factors [1,1,1]
+    warpYfactor : float
+        elevate z-axis by scalar value (useful for 1D geometries)
 
-    :param bool new: spawn a new instance of Plotter class, pops up a new window
-    :param int at: renderer number to plot to
-    :param list shape: subdvide window in (n,m) rows and columns
-    :param int N: automatically subdvide window in N renderers
-    :param list pos: (x,y) coordinates of the window position on screen
-    :param size: window size (x,y)
+    scaleMeshFactors : list
+        rescale mesh by these factors [1,1,1]
 
-    :param str title: window title
-    :param bg: background color name of window
-    :param bg2: second background color name to create a color gradient
-    :param int style: choose a predefined style [0-4]
+    new : bool
+        spawn a new instance of Plotter class, pops up a new window
 
-      - 0, `vedo`, style (blackboard background, rainbow color map)
-      - 1, `matplotlib`, style (white background, viridis color map)
-      - 2, `paraview`, style
-      - 3, `meshlab`, style
-      - 4, `bw`, black and white style.
+    at : int
+        renderer number to plot to
 
-    :param int axes: axes type number
+    shape : list
+        subdvide window in (n,m) rows and columns
 
-       - 0,  no axes,
-       - 1,  draw customizable grid axes (see below).
-       - 2,  show cartesian axes from (0,0,0)
-       - 3,  show positive range of cartesian axes from (0,0,0)
-       - 4,  show a triad at bottom left
-       - 5,  show a cube at bottom left
-       - 6,  mark the corners of the bounding box
-       - 7,  draw a simple ruler at the bottom of the window
-       - 8,  show the `vtkCubeAxesActor` object,
-       - 9,  show the bounding box outLine,
-       - 10, show three circles representing the maximum bounding box,
-       - 11, show a large grid on the x-y plane (use with zoom=8)
-       - 12, show polar axes.
+    N : int
+        automatically subdvide window in N renderers
 
-    Axes type-1 can be fully customized by passing a dictionary ``axes=dict()``.
+    pos : list
+        (x,y) coordinates of the window position on screen
 
-    :param bool infinity: if True fugue point is set at infinity (no perspective effects)
-    :param bool sharecam: if False each renderer will have an independent vtkCamera
-    :param bool interactive: if True will stop after show() to allow interaction w/ window
-    :param bool offscreen: if True will not show the rendering window
+    size : list
+        window size (x,y)
 
-    :param float zoom: camera zooming factor
-    :param viewup: camera view-up direction ['x','y','z', or a vector direction]
-    :param float azimuth: add azimuth rotation of the scene, in degrees
-    :param float elevation: add elevation rotation of the scene, in degrees
-    :param float roll: add roll-type rotation of the scene, in degrees
+    title : str
+        window title
 
-    :param dict camera: Camera parameters can further be specified with a dictionary
+    bg : color
+        background color name of window
+
+    bg2 : color
+        second background color name to create a color gradient
+
+    style : int
+        choose a predefined style [0-4]
+
+          - 0, `vedo`, style (blackboard background, rainbow color map)
+          - 1, `matplotlib`, style (white background, viridis color map)
+          - 2, `paraview`, style
+          - 3, `meshlab`, style
+          - 4, `bw`, black and white style.
+
+    axes : int
+        Axes type number.
+        Axes type-1 can be fully customized by passing a dictionary ``axes=dict()``.
+
+           - 0,  no axes,
+           - 1,  draw customizable grid axes (see below).
+           - 2,  show cartesian axes from (0,0,0)
+           - 3,  show positive range of cartesian axes from (0,0,0)
+           - 4,  show a triad at bottom left
+           - 5,  show a cube at bottom left
+           - 6,  mark the corners of the bounding box
+           - 7,  draw a simple ruler at the bottom of the window
+           - 8,  show the `vtkCubeAxesActor` object,
+           - 9,  show the bounding box outLine,
+           - 10, show three circles representing the maximum bounding box,
+           - 11, show a large grid on the x-y plane (use with zoom=8)
+           - 12, show polar axes.
+
+    infinity : bool
+        if True fugue point is set at infinity (no perspective effects)
+
+    sharecam : bool
+        if False each renderer will have an independent vtkCamera
+
+    interactive : bool
+        if True will stop after show() to allow interaction w/ window
+
+    offscreen : bool
+        if True will not show the rendering window
+
+    zoom : float
+        camera zooming factor
+
+    viewup : list, str
+        camera view-up direction ['x','y','z', or a vector direction]
+
+    azimuth : float
+        add azimuth rotation of the scene, in degrees
+
+    elevation : float
+        add elevation rotation of the scene, in degrees
+
+    roll : float
+        add roll-type rotation of the scene, in degrees
+
+    camera : dict
+        Camera parameters can further be specified with a dictionary
         assigned to the ``camera`` keyword:
         (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`)
 
@@ -374,8 +391,8 @@ def plot(*inputobj, **options):
             (measured by holding a ruler up to your screen) and d is the distance
             from your eyes to the screen.
 
-    :param int interactorStyle: change the style of muose interaction of the scene
-    :param bool q: exit python session after returning.
+    interactorStyle : int
+        change the style of muose interaction of the scene
     """
     if len(inputobj)==0:
         interactive()
@@ -711,9 +728,7 @@ class MeshActor(Mesh):
 
 
     def move(self, u=None, deltas=None):
-        """Move mesh according to solution `u`
-        or from calculated vertex displacements `deltas`.
-        """
+        """Move mesh according to solution `u` or from calculated vertex displacements `deltas`."""
         if u is None:
             u = self.u
         if deltas is None:
@@ -741,14 +756,7 @@ class MeshActor(Mesh):
 
 
 def MeshPoints(*inputobj, **options):
-    """
-    Build a point object of type ``Mesh`` for a list of points.
-
-    :param float r: point radius.
-    :param c: color name, number, or list of [R,G,B] colors of same length as plist.
-    :type c: int, str, list
-    :param float alpha: transparency in range [0,1].
-    """
+    """Build a point object of type ``Mesh`` for a list of points."""
     r = options.pop("r", 5)
     c = options.pop("c", "gray")
     alpha = options.pop("alpha", 1)
@@ -793,7 +801,7 @@ def MeshLines(*inputobj, **options):
     A dolfin ``Mesh`` that was deformed/modified by a function can be
     passed together as inputs.
 
-    :param float scale: apply a rescaling factor to the length
+    Use ``scale`` to apply a rescaling factor to the length
     """
     scale = options.pop("scale", 1)
     lw = options.pop("lw", 1)
@@ -829,12 +837,7 @@ def MeshLines(*inputobj, **options):
 
 
 def MeshArrows(*inputobj, **options):
-    """
-    Build arrows representing displacements.
-
-    :param float s: cross-section size of the arrow
-    :param float rescale: apply a rescaling factor to the length
-    """
+    """Build arrows representing displacements."""
     s = options.pop("s", None)
     c = options.pop("c", "gray")
     scale = options.pop("scale", 1)
@@ -871,9 +874,7 @@ def MeshArrows(*inputobj, **options):
 
 
 def MeshStreamLines(*inputobj, **options):
-    """
-    Build streamplot.
-    """
+    """Build a streamplot."""
     from vedo.base import streamLines
 
     print('Building streamlines...')
