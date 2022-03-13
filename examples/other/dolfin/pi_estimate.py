@@ -1,12 +1,13 @@
 from dolfin import *
 from mshr   import Circle, generate_mesh
-from vedo.dolfin import plot, printc, Latex
+from vedo.dolfin import plot, printc
+from vedo import Latex
 # Credits:
 # https://github.com/pf4d/fenics_scripts/blob/master/pi_estimate.py
 
 domain = Circle(Point(0.0,0.0), 1.0)
-   
-    
+
+
 for res in [2**k for k in range(7)]:
 	mesh = generate_mesh(domain, res)
 	A    = assemble(Constant(1) * dx(domain=mesh))

@@ -10,7 +10,6 @@ FEniCS tutorial demo program: Diffusion of a Gaussian hill.
 The initial condition u_0 is chosen as a Gaussian hill.
 """
 # https://fenicsproject.org/pub/tutorial/html/._ftut1006.html
-from __future__ import print_function
 from fenics import *
 set_log_level(30)
 
@@ -42,7 +41,8 @@ F = u*v*dx + dt*dot(grad(u), grad(v))*dx - (u_n + dt*f)*v*dx
 a, L = lhs(F), rhs(F)
 
 ############################################################# vedo
-from vedo.dolfin import plot, Latex
+from vedo.dolfin import plot
+from vedo import Latex
 
 f = r'\frac{\partial u}{\partial t}=\nabla^2 u+f~\mathrm{in}~\Omega\times(0,T]'
 formula = Latex(f, pos=(-.4,-.8, .1), s=0.6, c='w')
