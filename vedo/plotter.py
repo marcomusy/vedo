@@ -273,19 +273,21 @@ def show(*actors,
     if vedo.plotter_instance and not new: # Plotter exists
         plt = vedo.plotter_instance
 
-    else:                                            # Plotter must be created
+    else:                                 # Plotter must be created
 
-        if utils.isSequence(at):                     # user passed a sequence for "at"
+        if utils.isSequence(at):          # user passed a sequence for "at"
+
             if not utils.isSequence(actors):
                 vedo.logger.error("in show() input must be a list.")
                 raise RuntimeError()
             if len(at) != len(actors):
                 vedo.logger.error("in show() lists 'input' and 'at' must have equal lengths")
                 raise RuntimeError()
-            if len(at) > 1 and (shape == (1, 1) and N is None):
+            if shape==(1, 1) and N is None:
                 N = max(at) + 1
 
         elif at is None and (N or shape != (1, 1)):
+
             if not utils.isSequence(actors):
                 e = "in show(), N or shape is set, but input is not a sequence\n"
                 e+= "              you may need to specify e.g. at=0"
@@ -294,20 +296,20 @@ def show(*actors,
             at = list(range(len(actors)))
 
         plt = Plotter(
-                    shape=shape,
-                    N=N,
-                    pos=pos,
-                    size=size,
-                    screensize=screensize,
-                    title=title,
-                    axes=axes,
-                    sharecam=sharecam,
-                    resetcam=resetcam,
-                    interactive=interactive,
-                    offscreen=offscreen,
-                    bg=bg,
-                    bg2=bg2,
-                    backend=backend,
+            shape=shape,
+            N=N,
+            pos=pos,
+            size=size,
+            screensize=screensize,
+            title=title,
+            axes=axes,
+            sharecam=sharecam,
+            resetcam=resetcam,
+            interactive=interactive,
+            offscreen=offscreen,
+            bg=bg,
+            bg2=bg2,
+            backend=backend,
         )
 
     # use _plt_to_return because plt.show() can return a k3d/panel plot
@@ -315,23 +317,28 @@ def show(*actors,
 
     if utils.isSequence(at):
         for i, act in enumerate(actors):
-            _plt_to_return = plt.show(
-                    act,
-                    at=i,
-                    zoom=zoom,
-                    resetcam=resetcam,
-                    viewup=viewup,
-                    azimuth=azimuth,
-                    elevation=elevation,
-                    roll=roll,
-                    camera=camera,
-                    interactive=False,
-                    mode=mode,
-                    bg=bg,
-                    bg2=bg2,
-                    axes=axes,
-                    q=q,
-            )
+            #print(N,i,[act]) #bug_at.py
+            if  i < len(actors)-1:
+                plt.add(act, at=at[i])
+                # plt.show(interactive=0)
+            else:
+                _plt_to_return = plt.show(
+                        act,
+                        at=at[i],
+                        zoom=zoom,
+                        resetcam=resetcam,
+                        viewup=viewup,
+                        azimuth=azimuth,
+                        elevation=elevation,
+                        roll=roll,
+                        camera=camera,
+                        interactive=interactive,
+                        mode=mode,
+                        bg=bg,
+                        bg2=bg2,
+                        axes=axes,
+                        q=q,
+                )
 
         if interactive or len(at)==N \
             or (isinstance(shape[0],int) and len(at)==shape[0]*shape[1]):
@@ -3468,7 +3475,7 @@ class Plotter:
             msg += "|        r     reset camera position                       |\n"
             msg += "|        C     print current camera settings               |\n"
             msg += "|        S     save a screenshot                           |\n"
-            msg += "|        E     export rendering window to numpy file       |\n"
+            msg += "|        E/F   export 3D scene to numpy file or X3D        |\n"
             msg += "|        q     return control to python script             |\n"
             msg += "|        Esc   abort execution and exit python kernel      |\n"
             msg += "|----------------------------------------------------------|\n"
@@ -3493,11 +3500,11 @@ class Plotter:
             iren.ExitCallback()
             cur = iren.GetInteractorStyle()
             if isinstance(cur, vtk.vtkInteractorStyleTrackballCamera):
-                msg = "\nInteractor style changed to TrackballActor"
-                msg +="  you can now move and rotate individual meshes:"
-                msg +="  press X twice to save the repositioned mesh,"
-                msg +="  press 'a' to go back to normal style."
-                vedo.logger.info(msg)
+                msg = "\nInteractor style changed to TrackballActor\n"
+                msg +="  you can now move and rotate individual meshes:\n"
+                msg +="  press X twice to save the repositioned mesh\n"
+                msg +="  press 'a' to go back to normal style"
+                vedo.printc(msg)
                 iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballActor())
             else:
                 iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
@@ -3832,7 +3839,7 @@ class Plotter:
             vedo.printc(". Try:\n> vedo scene.npz", c="blue")
             self.interactor.Start()
 
-        elif key == "F12":
+        elif key == "F":
             vedo.io.exportWindow('scene.x3d')
             vedo.printc("Try: firefox scene.html", c="blue")
 

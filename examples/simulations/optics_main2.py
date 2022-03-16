@@ -1,5 +1,5 @@
 """Simulation of an optical system with lenses and mirrors of arbitrary shapes and orientations
-(points mark the exit locations of photons, many from total internal reflections)"""
+(points mark the exit locations of photons, many from total internal total reflection)"""
 from vedo import Grid, Sphere, Cube, Cone, Points, show
 from optics_base import Lens, Ray, Mirror, Screen  # see file ./optics_base.py
 import numpy as np
@@ -40,16 +40,5 @@ cone_hits = Points(lens3.hits[lens3.hits_type==-1], r=8, c="green1")
 
 # Show everything
 show(__doc__, elements, lines, lens5.boundaries().lw(2), cone_hits,
-      azimuth=-90, elevation=-89, zoom=2, size=(1500,700), bg='k2', bg2='k9',
-      axes=dict(zShiftAlongY=1,
-                zAxisRotation=-45,
-                xLabelRotation=90,
-                yLabelRotation=90,
-                zLabelRotation=90,
-                numberOfDivisions=10,
-                textScale=0.6,
-                ytitle=" ",
-                ztitle="z (m)",
-                c='grey1',
-              ),
+     size=(1500,700), bg='k2', bg2='k9', zoom=2, azimuth=-90,
 )

@@ -4,17 +4,15 @@
 Command Line Interface module
 -----------------------------
 
-.. code-block:: python
-
     # Type for help
     vedo -h
 
     # Some useful bash aliases:
     alias v='vedo '
-    alias vv='vedo -bg blackboard -bg2 gray3 -z 1.05 -k glossy -c blue9 '
     alias vr='vedo --run '        # to search and run examples by name
     alias vs='vedo -i --search '  # to search for a string in examples
     alias ve='vedo --eog '        # to view single and multiple images (press h for help)
+    alias vv='vedo -bg blackboard -bg2 gray3 -z 1.05 -k glossy -c blue9 '
 """
 import argparse
 import glob
@@ -54,7 +52,7 @@ def execute_cli():
         vedo.installdir = vedo.installdir.replace('vedo/','').replace('vedo\\','')
 
     if args.info is not None:
-        exe_info(args)
+        system_info()
 
     elif args.run:
         exe_run(args)
@@ -125,7 +123,7 @@ def get_parser():
 
 
 #################################################################################################
-def exe_info(args):
+def system_info():
     for i in range(2, len(sys.argv)):
         file = sys.argv[i]
         try:
@@ -153,6 +151,17 @@ def exe_info(args):
                platform.release(), os.name, platform.machine())
     except:
         pass
+
+    try:
+        from screeninfo import get_monitors
+        for m in get_monitors():
+            pr = '         '
+            if m.is_primary:
+                pr = '(primary)'
+            printc(f"monitor {pr} : {m.name}, resolution=({m.width}, {m.height}), x={m.x}, y={m.y}")
+    except:
+        printc('monitor           : info is unavailable. Try "pip install screeninfo".')
+
     try:
         import k3d
         printc("k3d version       :", k3d.__version__, bold=0, dim=1)

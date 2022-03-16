@@ -19,6 +19,8 @@
 ---
 ### `pointcloud.py`
 - `cmap(arrayName=...)` -> `cmap(name=...)`
+- added `chamferDistance()` of pointclouds
+- added `cutWithMesh(self, keep=True)` to return an Assembly of the cut & discarded parts.
 
 ---
 ### `mesh.py`
@@ -29,6 +31,7 @@
 
 - keyword change `show(interactorStyle=...)` -> `show(mode=...)`
 - added function `vedo.close()` to close the latest Plotter
+- added `chamferDistance()` metric
 
 ---
 ### `picture.py`

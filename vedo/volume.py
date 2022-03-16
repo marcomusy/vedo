@@ -17,7 +17,7 @@ Work with volumetric datasets (voxel data) <br>
 """
 
 __all__ = [
-    "BaseVolume",          # include to generate documentation
+    "BaseVolume",          # included to generate documentation in pydoc
     "Volume",
     "VolumeSlice",
     "volumeFromMesh",      #deprecated
@@ -26,15 +26,15 @@ __all__ = [
 
 
 ##########################################################################
-@deprecated(reason=colors.red+"Please use mesh.signedDistance()"+colors.reset)
+@deprecated(reason=colors.red+"Please use mesh.signedVolume()"+colors.reset)
 def volumeFromMesh(mesh, **kwargs):
-    """Deprecated. Please use mesh.signedDistance()"""
+    """Deprecated. Please use ``mesh.signedVolume()``"""
     return mesh.signedVolume(bounds=kwargs['bounds'], dims=kwargs['dims'],
                              invert=kwargs['negate'])
 
 @deprecated(reason=colors.red+"Please use Points.tovolume()"+colors.reset)
 def interpolateToVolume(mesh, **kwargs):
-    """Deprecated. Please use Points.tovolume()"""
+    """Deprecated. Please use ``Points.tovolume()``"""
     return mesh.tovolume(**kwargs)
 
 

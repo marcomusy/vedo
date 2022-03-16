@@ -5,7 +5,6 @@ from vedo.base import Base3DProp
 
 __doc__ = """
 Submodule for managing groups of vedo objects
-.. image:: https://vedo.embl.es/images/simulations/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif
 """
 
 __all__ = [

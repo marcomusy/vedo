@@ -752,13 +752,14 @@ class FreeHandCutPlotter(Plotter):
             c="green3",
             tc="k9",
             tol=0.008,
+            **options
         ):
 
         if not isinstance(mesh, Points):
             vedo.logger.error("FreeHandCutPlotter input must be Points or Mesh")
             raise RuntimeError()
 
-        Plotter.__init__(self, title="Free-hand mesh cutter")
+        super().__init__(**options)
 
         self.mesh = mesh
         self.mesh_prev = mesh

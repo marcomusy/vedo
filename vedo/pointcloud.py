@@ -3192,6 +3192,38 @@ class Points(vtk.vtkFollower, BaseActor):
         hp.Update()
         return hp.GetHausdorffDistance()
 
+    def chamferDistance(self, pcloud):
+        """
+        Compute the Chamfer distance of two point sets.
+        Returns a `float`.
+        """
+        if not pcloud.point_locator:
+            pcloud.point_locator = vtk.vtkPointLocator()
+            pcloud.point_locator.SetDataSet(pcloud.polydata())
+            pcloud.point_locator.BuildLocator()
+        if not self.point_locator:
+            self.point_locator = vtk.vtkPointLocator()
+            self.point_locator.SetDataSet(self.polydata())
+            self.point_locator.BuildLocator()
+
+        ps1 = self.points()
+        ps2 = pcloud.points()
+
+        ids12 = []
+        for p in ps1:
+            pid12 = pcloud.point_locator.FindClosestPoint(p)
+            ids12.append(pid12)
+        deltav = ps2[ids12] - ps1
+        da = np.mean(np.linalg.norm(deltav, axis=1))
+
+        ids21 = []
+        for p in ps2:
+            pid21 = self.point_locator.FindClosestPoint(p)
+            ids21.append(pid21)
+        deltav = ps1[ids21] - ps2
+        db = np.mean(np.linalg.norm(deltav, axis=1))
+        return (da + db)/2
+
 
     def smoothMLS1D(self, f=0.2, radius=None):
         """
@@ -3686,7 +3718,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         return self
 
-    def cutWithLine(self, points, invert=False, closed=True):
+    def cutWith2DLine(self, points, invert=False, closed=True):
         """
         Cut the current mesh with a line vertically in the z-axis direction like a cookie cutter.
         The polyline is defined by a set of points (z-coordinates are ignored).
@@ -3706,6 +3738,8 @@ class Points(vtk.vtkFollower, BaseActor):
 
         vpoints = vtk.vtkPoints()
         for p in points:
+            if len(p) == 2:
+                p = [p[0], p[1], 0.0]
             vpoints.InsertNextPoint(p)
 
         n = len(points)
@@ -3867,22 +3901,38 @@ class Points(vtk.vtkFollower, BaseActor):
         return self
 
 
-    def cutWithMesh(self, mesh, invert=False):
+    def cutWithMesh(self, mesh, invert=False, keep=False):
         """
         Cut an ``Mesh`` mesh with another ``Mesh``.
 
-        Use ``invert`` toreturn cut off part of the Mesh.
+        Use ``invert`` to invert the selection.
 
-        .. code-block:: python
+        Use `keep` to keep the cutoff part, in this case an `Assembly` is returned:
+        the "cut" object and the "discarded" part of the original object.
+        You can access the via `assembly.unpack()` method.
 
-            from vedo import *
-            import numpy as np
-            x, y, z = np.mgrid[:30, :30, :30] / 15
-            U = sin(6*x)*cos(6*y) + sin(6*y)*cos(6*z) + sin(6*z)*cos(6*x)
-            iso = Volume(U).isosurface(0).smooth().c('silver').lw(1)
-            cube = CubicGrid(n=(29,29,29), spacing=(1,1,1))
-            cube.cutWithMesh(iso).c('silver').alpha(1)
-            show(iso, cube)
+        Example:
+            .. code-block:: python
+
+                from vedo import *
+                import numpy as np
+                x, y, z = np.mgrid[:30, :30, :30] / 15
+                U = sin(6*x)*cos(6*y) + sin(6*y)*cos(6*z) + sin(6*z)*cos(6*x)
+                iso = Volume(U).isosurface(0).smooth().c('silver').lw(1)
+                cube = TessellatedBox(n=(29,29,29), spacing=(1,1,1))
+                cube.cutWithMesh(iso).c('silver').alpha(1)
+                show(iso, cube).close()
+
+        Example:
+            .. code-block:: python
+
+                from vedo import *
+                import numpy as np
+                arr = np.random.randn(100000, 3)/2
+                pts = Points(arr).c('red3').pos(5,0,0)
+                cube = Cube().pos(4,0.5,0)
+                assem = pts.cutWithMesh(cube, keep=True)
+                show(assem.unpack(), axes=1).close()
 
        .. hint:: examples/advanced/cutWithMesh1.py, cutAndCap.py
            .. image:: https://vedo.embl.es/images/advanced/cutWithMesh1.jpg
@@ -3918,9 +3968,12 @@ class Points(vtk.vtkFollower, BaseActor):
         clipper = vtk.vtkClipPolyData()
         clipper.SetInputData(poly)
         clipper.SetInsideOut(not invert)
+        clipper.SetGenerateClippedOutput(keep)
         clipper.SetValue(0.0)
         clipper.Update()
         cpoly = clipper.GetOutput()
+        if keep:
+            kpoly = clipper.GetOutput(1)
 
         vis = False
         if currentscals:
@@ -3938,13 +3991,24 @@ class Points(vtk.vtkFollower, BaseActor):
             tr.SetMatrix(M)
             tf = vtk.vtkTransformPolyDataFilter()
             tf.SetTransform(tr)
-            tf.SetInputData(clipper.GetOutput())
+            tf.SetInputData(cpoly)
             tf.Update()
             self._update(tf.GetOutput())
 
         self.pointdata.remove("SignedDistances")
         self._mapper.SetScalarVisibility(vis)
-        return self
+        if keep:
+            if isinstance(self, vedo.Mesh):
+                cutoff = vedo.Mesh(kpoly)
+            else:
+                cutoff = vedo.Points(kpoly)
+            cutoff.property = vtk.vtkProperty()
+            cutoff.property.DeepCopy(self.property)
+            cutoff.SetProperty(cutoff.property)
+            cutoff.c('k5').alpha(0.2)
+            return vedo.Assembly([self, cutoff])
+        else:
+            return self
 
     def implicitModeller(self, distance=0.05, res=(50,50,50), bounds=(), maxdist=None):
         """Find the surface which sits at the specified distance from the input one."""

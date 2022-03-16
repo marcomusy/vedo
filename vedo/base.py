@@ -1087,23 +1087,23 @@ class BaseActor(Base3DProp):
 
     @deprecated(reason=colors.red+"Please use myobj.pointdata[name] instead."+colors.reset)
     def getPointArray(self, name=0):
-        """Deprecated. Use myobj.pointdata[name]` instead."""
+        """Deprecated. Use `myobj.pointdata[name]` instead."""
         return self.pointdata[name]
 
     @deprecated(reason=colors.red+"Please use myobj.celldata[name] instead."+colors.reset)
     def getCellArray(self, name=0):
-        """Deprecated. Use myobj.celldata[name]` instead."""
+        """Deprecated. Use `myobj.celldata[name]` instead."""
         return self.celldata[name]
 
     @deprecated(reason=colors.red+"Please use myobj.pointdata[name] = myarr instead."+colors.reset)
     def addPointArray(self, input_array, name):
-        """Deprecated. Use myobj.pointdata[name] = input_array` instead."""
+        """Deprecated. Use `myobj.pointdata[name] = input_array` instead."""
         self.pointdata[name] = input_array
         return self
 
     @deprecated(reason=colors.red+"Please use myobj.celldata[name] = myarr instead."+colors.reset)
     def addCellArray(self, input_array, name):
-        """Deprecated. Use myobj.celldata[name] = input_array` instead."""
+        """Deprecated. Use `myobj.celldata[name] = input_array` instead."""
         self.celldata[name] = input_array
         return self
 

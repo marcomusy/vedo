@@ -40,9 +40,6 @@ pip install vedo
 - Sometimes an older version of VTK can yield better visualizations with transparent objects,
 to install it use: `pip install vtk==8.1.2` (if available on your system).
 
-- To use in jupyter notebooks use function `vedo.embedWindow()`, you may want to install `k3d` with:<br>
-`pip install k3d==2.7.4`
-
 
 </details>
 

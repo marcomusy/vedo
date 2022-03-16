@@ -3,20 +3,18 @@
 .vedo_recorded_events.log
 docs/web_page
 
+vedo.egg-info
+build
+
 .ipynb
+*.ipynb
 .ipynb_checkpoints
-examples/notebooks/*/.ipynb_checkpoints
-Untitled.ipynb
-untitled*.py
+examples/notebooks/.ipynb_checkpoints
 *png
 *jpg
 *tiff
 *tif
 *npz
-
-docs/build
-docs/source/content
-docs/source/index.rst
 
 untitled*.py
 bug_*.py

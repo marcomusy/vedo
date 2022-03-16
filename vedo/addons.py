@@ -2199,7 +2199,7 @@ def Axes(
     - `xTitleColor`,     [automatic], color of the axis title
     - `xTitleBackfaceColor`,  [None], color of axis title on its backface
     - `xTitleSize`,          [0.025], size of the axis title
-    - 'xTitleItalic',            [0], a bool or float to make the font italic
+    - `xTitleItalic`,            [0], a bool or float to make the font italic
     - `xHighlightZero`,       [True], draw a line highlighting zero position if in range
     - `xHighlightZeroColor`, [autom], color of the line highlighting the zero position
     - `xTickLength`,         [0.005], radius of the major ticks
@@ -2208,10 +2208,10 @@ def Axes(
     - `xLabelColor`,     [automatic], color of numeric labels and ticks
     - `xLabelPrecision`,         [2], nr. of significative digits to be shown
     - `xLabelSize`,          [0.015], size of the numeric labels along axis
-    - 'xLabelRotation',          [0], numeric labels rotation (can be a list of 3 rotations)
+    - `xLabelRotation`,          [0], numeric labels rotation (can be a list of 3 rotations)
     - `xLabelOffset`,          [0.8], offset of the numeric labels (can be a list of 3 offsets)
     - `xLabelJustify`,        [None], choose the origin of the bounding box of labels
-    - 'xAxisRotation',           [0], rotate the X axis elements (ticks and labels) around this same axis
+    - `xAxisRotation`,           [0], rotate the X axis elements (ticks and labels) around this same axis
     - `xValuesAndLabels`          [], assign custom tick positions and labels [(pos1, label1), ...]
     - `xyShift`                [0.0], slide the xy-plane along z (the range is [0,1])
     - `xShiftAlongY`           [0.0], slide x-axis along the y-axis (the range is [0,1])
