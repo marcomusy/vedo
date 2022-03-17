@@ -13,10 +13,13 @@ f1 = plot(my_z, c='summer') # use a colormap
 # f1 = plot(my_z, c='lightblue', bc='tomato')
 
 # red dots are shown where the function does not exist (y>x):
-f2 = plot("sin(3*x)*log(x-y)/3")
+f2 = plot("sin(3*x)*log(x-y)/3", texture=dataurl+'textures/paper3.jpg')
 
 # specify x and y ranges and z vertical limits:
-f3 = plot("log(x**2+y**2-1)", xlim=[-2,2], ylim=[-1,8], zlim=[-1,None])
+f3 = plot("log(x**2+y**2-1)",
+          xlim=[-2,2], ylim=[-1,8], zlim=[-1,None],
+          texture=dataurl+'textures/paper1.jpg',
+)
 
 show([(f1, 'y = sin(2*x*y) * cos(3*y) /2', doc),
       (f2, 'y = sin(3*x)*log(x-y)/3'),

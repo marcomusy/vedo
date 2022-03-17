@@ -1169,11 +1169,13 @@ class BaseActor(Base3DProp):
         else:
             varr = self.inputdata().GetCellData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
-        if self.GetScalars():
+
+        if varr.GetScalars():
             arrname = varr.GetScalars().GetName()
         else:
             vedo.logger.error(f"in gradient: no scalars found for {on}")
             raise RuntimeError
+
         gra.SetInputData(self.inputdata())
         gra.SetInputScalars(tp, arrname)
         gra.SetResultArrayName('Gradient')
@@ -1208,11 +1210,13 @@ class BaseActor(Base3DProp):
         else:
             varr = self.inputdata().GetCellData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
-        if self.GetVectors():
+
+        if varr.GetVectors():
             arrname = varr.GetVectors().GetName()
         else:
             vedo.logger.error(f"in divergence(): no vectors found for {on}")
             raise RuntimeError
+
         div.SetInputData(self.inputdata())
         div.SetInputScalars(tp, arrname)
         div.ComputeDivergenceOn()
@@ -1247,11 +1251,13 @@ class BaseActor(Base3DProp):
         else:
             varr = self.inputdata().GetCellData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
-        if self.GetVectors():
+
+        if varr.GetVectors():
             arrname = varr.GetVectors().GetName()
         else:
             vedo.logger.error(f"in vorticity(): no vectors found for {on}")
             raise RuntimeError
+
         vort.SetInputData(self.inputdata())
         vort.SetInputScalars(tp, arrname)
         vort.ComputeDivergenceOff()

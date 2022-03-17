@@ -1162,7 +1162,7 @@ def _plotFxy(
     c=None,
     bc="aqua",
     alpha=1,
-    texture="paper4",
+    texture="",
     bins=(100, 100),
     axes=True,
 ):

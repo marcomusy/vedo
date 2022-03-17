@@ -4,6 +4,7 @@ from vedo.pyplot import plot
 import numpy as np
 
 settings.defaultFont = 'Theemim'
+settings.useParallelProjection = True
 
 x = np.arange(0, 4, 0.1)
 y1 = 3*np.exp(-x)
@@ -30,7 +31,7 @@ plt2 = plot(x, y2,
 
 # Scale the plot2 to make it small
 #  and position it anywhere in the scene:
-plt2.scale(0.5).pos(2, 1.4, 0.01)
+plt2.scale(0.5).pos(2, 1.4, 0.1)
 
-show(plt1, plt2, zoom=1.1).close()
+show(plt1, plt2, zoom='tight', mode='image').close()
 

@@ -9,6 +9,7 @@ surf = Sphere(quads=True, res=15)
 # surf = Mesh(dataurl+'bunny.obj', c='g3').fillHoles().cap().smooth()
 
 tmesh = surf.tetralize(side=0.015, debug=True)
+#tmesh.write('mytetmesh.vtk')  # save to disk!
 
 # Assign an id to each tetrahedron to visualize regions
 seeds = surf.clone().subsample(0.3)

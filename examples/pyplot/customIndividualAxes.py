@@ -12,9 +12,9 @@ pt = Point([-4,-4,-4], c='k')
 
 # Build individual axes for each object.
 #  A new Assembly object is returned:
-axes1 = s1.buildAxes(c='r')
-axes2 = s2.buildAxes(c='g')
-axes3 = s3.buildAxes(c='b', numberOfDivisions=10)
+axes1 = Axes(s1, c='r')
+axes2 = Axes(s2, c='g')
+axes3 = Axes(s3, c='b', numberOfDivisions=10)
 
 # axes3 is an Assembly (group of Meshes).
 # Unpack it and scale the 7th label getting it by its name,
@@ -26,7 +26,7 @@ axes3.unpack('xNumericLabel7').scale(5).c('fuchsia')
 # By specifiyng axes in show(), new axes are
 #  created which span the whole bounding box.
 #  Options are passed through a dictionary
-show(pt, s1,axes1, s2,axes2, s3,axes3, __doc__,
+show(pt, s1, s2, s3, axes1, axes2, axes3, __doc__,
      viewup='z',
      axes=dict(c='black',
                numberOfDivisions=10,

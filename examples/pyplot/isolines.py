@@ -20,7 +20,7 @@ show(isob, at=1)
 mesh1 = mesh0.clone(deep=False).mapPointsToCells()
 printc('Mesh cell arrays :', mesh1.celldata.keys())
 
-gvecs = mesh1.gradient('Scalars', on='cells')
+gvecs = mesh1.gradient(on='cells')
 cc = mesh1.cellCenters()
 ars = Arrows(cc, cc + gvecs*0.01, c='bone_r').lighting('off')
 ars.addScalarBar3D(title='|\nablaH|~\dot~0.01 [arb.units]')

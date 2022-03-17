@@ -56,7 +56,7 @@ disks = { hanoi.nr_disks - i : Cylinder(r=0.2*(hanoi.nr_disks-i+1), c=i)
           for i in range(hanoi.nr_disks) }
 
 plt = Plotter(interactive=False, size=(800, 600), bg='wheat', bg2='lb')
-plt += disks.values()
+plt += list(disks.values())
 plt += Box(pos=(3,0,-0.5), size=(12,4,0.1))
 cam = dict(
     pos=(14.60, -20.56, 7.680),

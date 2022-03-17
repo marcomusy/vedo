@@ -1,7 +1,7 @@
 """Read a data from ascii file and make a simple analysis
 visualizing 3 of the 5 dimensions of the dataset"""
 import numpy as np
-from vedo import download, Points, show
+from vedo import download, Points, Axes, show
 from vedo.pyplot import histogram
 
 
@@ -46,7 +46,7 @@ print("after selection nr. of points is", len(pts_1))
 pts_2 = pts[(g0<0) & (g1>.5)]       # select excluded points that have g1>0.5
 p2 = Points(pts_2, r=8, c='green')  # create the vedo object
 
-axes = (p1+p2).buildAxes(xtitle='gene4', ytitle='gene2', ztitle='gene3', c='k')
+axes = Axes(p1+p2, xtitle='gene4', ytitle='gene2', ztitle='gene3', c='k')
 
 # Show the two clouds superposed on a new plotter window:
 show([h0, h1, h2, h3, h4, (p1,p2, axes, __doc__)],

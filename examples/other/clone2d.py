@@ -2,7 +2,8 @@
 and place it in the rendering window"""
 from vedo import Mesh, dataurl, show
 
-s = Mesh(dataurl+'man.vtk').rotateZ(20).rotateX(-70).scale(0.2).c('darkgreen')
+man3d = Mesh(dataurl+'man.vtk').rotateZ(20).rotateX(-70).scale(0.2)
+man3d.c('darkgreen').lighting('glossy')
 
 # Make a 2D snapshot of a 3D mesh
 # The coordinate system options are
@@ -14,7 +15,7 @@ s = Mesh(dataurl+'man.vtk').rotateZ(20).rotateX(-70).scale(0.2).c('darkgreen')
 #     5. World (anchor the 2d image to mesh)
 # (returns a vtkActor2D)
 
-s2d = s.clone2D(pos=[0.4,0.4], coordsys=4, c='r', alpha=1)
+man2d = man3d.clone2D(pos=[0.4,0.4], coordsys=4, c='r', alpha=1)
 
-show(s, s2d, __doc__, axes=1).close()
+show(man3d, man2d, __doc__, axes=1).close()
 

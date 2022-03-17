@@ -92,7 +92,7 @@ plt += microseismicPts.flag()
 border["zcoord"] = 1650
 borderxyz = border[["xcoord", "ycoord", "zcoord"]]
 boundary = Line(borderxyz.values).extrude(zshift=120, cap=False)
-boundary.lw(0).texture(dataurl+'textures/wood1,jpg')
+boundary.lw(0).texture(dataurl+'textures/wood1.jpg')
 boundary.name = "FORGE area boundary"
 plt += boundary.flag()
 

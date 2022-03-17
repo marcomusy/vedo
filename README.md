@@ -37,9 +37,6 @@ pip install vedo
 - To install from the conda-forge channel: <br>
 `conda install -c conda-forge vedo`
 
-- Sometimes an older version of VTK can yield better visualizations with transparent objects,
-to install it use: `pip install vtk==8.1.2` (if available on your system).
-
 
 </details>
 
@@ -160,7 +157,7 @@ Type `vedo -h` for the complete list of options.<br>
 `vedo` currently includes 300+ working [examples](https://github.com/marcomusy/vedo/tree/master/examples) and [notebooks](https://github.com/marcomusy/vedo/tree/master/examples/notebooks). <br>
 ||||
 |:--------|:--------|:--------|
-| ![bunny](https://user-images.githubusercontent.com/32848391/133623000-8ed0457c-0725-441c-93e1-ea08829e98fb.jpg)  | [![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif)](https://vedo.embl.es/content/vedo/dolfin.html)  | [![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/grayscott.py)  |
+| ![bunny](https://vedo.embl.es/images/volumetric/tetralize_surface.jpg)  | [![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif)](https://vedo.embl.es/content/vedo/dolfin.html)  | [![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/grayscott.py)  |
 | *Work with volumes, tetrahedral and polygonal meshes.* |   *Interoperability with many external libraries* |  *Animations of physical systems* |
 
 Run any of the built-in examples. In a terminal type: `vedo -r earthquake_browser`

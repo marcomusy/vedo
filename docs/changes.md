@@ -25,6 +25,7 @@
 ---
 ### `mesh.py`
 - can now recover the edges of a mesh with `mymesh.edges()`
+- added `tetralize()` to tetralize any closed surface mesh
 
 ---
 ### `plotter.py`
@@ -74,5 +75,12 @@
 `examples/volumetric/tet_explode.py`
 `examples/other/remesh_tetgen.py`
 `examples/volumetric/tetralize_surface.py`
+
+
+### Broken
+
+shadow2.py
+image_to_mesh.py
+plot_errband.py
 
 

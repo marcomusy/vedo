@@ -36,7 +36,7 @@ curve_points2 = np.vstack([np.zeros(sol2[:,0].shape), sol2[:,0], sol2[:,1]]).T
 curve_points3 = np.vstack([np.zeros(sol3[:,0].shape), sol3[:,0], sol3[:,1]]).T
 
 ########################################################################
-from vedo import Plotter, Arrows, Points, Line, Latex
+from vedo import Plotter, Arrows, Points, Line
 
 plt = Plotter(bg="blackboard")
 plt += Arrows(origins, origins+vectors, c='lr')
@@ -52,9 +52,6 @@ plt += Line(np.vstack([T, sol2[:,0], sol2[:,1]]).T, c='g')
 plt += Points(curve_points3, c='lb')
 plt += Line(curve_points3, c='lb')
 plt += Line(np.vstack([T, sol3[:,0], sol3[:,1]]).T, c='lb')
-
-plt += Latex(r'\dot{x}=x-x y',        c='white').rotateZ(-90).pos(4,6.5,0)
-plt += Latex(r'\dot{y}=\alpha(xy-y)', c='white').rotateZ(-90).pos(3,6.5,0)
 
 plt += __doc__
 
