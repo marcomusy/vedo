@@ -317,28 +317,23 @@ def show(*actors,
 
     if utils.isSequence(at):
         for i, act in enumerate(actors):
-            #print(N,i,[act]) #bug_at.py
-            if  i < len(actors)-1:
-                plt.add(act, at=at[i])
-                # plt.show(interactive=0)
-            else:
-                _plt_to_return = plt.show(
-                        act,
-                        at=at[i],
-                        zoom=zoom,
-                        resetcam=resetcam,
-                        viewup=viewup,
-                        azimuth=azimuth,
-                        elevation=elevation,
-                        roll=roll,
-                        camera=camera,
-                        interactive=interactive,
-                        mode=mode,
-                        bg=bg,
-                        bg2=bg2,
-                        axes=axes,
-                        q=q,
-                )
+            _plt_to_return = plt.show(
+                    act,
+                    at=i,
+                    zoom=zoom,
+                    resetcam=resetcam,
+                    viewup=viewup,
+                    azimuth=azimuth,
+                    elevation=elevation,
+                    roll=roll,
+                    camera=camera,
+                    interactive=False,
+                    mode=mode,
+                    bg=bg,
+                    bg2=bg2,
+                    axes=axes,
+                    q=q,
+            )
 
         if interactive or len(at)==N \
             or (isinstance(shape[0],int) and len(at)==shape[0]*shape[1]):
