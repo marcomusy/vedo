@@ -3102,7 +3102,7 @@ def Axes(
     acts = titles + lines + labels + grids + framelines + highlights \
            + majorticks + minorticks + cones
 
-    orig = np.array([min_bns[0], min_bns[2], min_bns[4] - tol*dz])
+    orig = np.array([min_bns[0], min_bns[2], min_bns[4]]) - tol*gscale
     for a in acts:
         a.PickableOff()
         a.AddPosition(orig)

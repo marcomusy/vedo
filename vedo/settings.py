@@ -192,7 +192,7 @@ SSAOKernelSize = 32      # define the number of samples
 SSAOBlur       = False   # define blurring of the ambient occlusion (helps for low samples)
 
 # Use a polygon/edges offset to possibly resolve conflicts in rendering
-usePolygonOffset = False
+usePolygonOffset = True
 polygonOffsetFactor = 0.1
 polygonOffsetUnits  = 0.1
 
