@@ -130,6 +130,12 @@ class Plot(Assembly):
 
         return self
 
+    def add(self, obj, preserve=True):
+        if preserve:
+            obj.scale([1,self.yscale,1])
+        self.__iadd__(obj)
+
+
     def overlayPlot(self, *args, **kwargs):
         """Plot on top of an already existing plot."""
         kwargs['format'] = self

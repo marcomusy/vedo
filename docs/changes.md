@@ -45,6 +45,10 @@
 ### `shapes.py`
 
 ---
+### `tetmesh.py`
+- added `tetralize()` to tetralize any closed surface mesh
+
+---
 ### `volume.py`
 
 
@@ -63,11 +67,12 @@
 `examples/basic/mousehover2.py`
 `examples/simulations/wave_equation2d.py`
 `examples/advanced/interpolateScalar4.py`
+`examples/advanced/timer_callback1.py`
 `examples/basic/multirenderers.py`
 `examples/advanced/spline_draw.py`
 `examples/simulations/museum_problem.py`
 `examples/volumetric/tet_explode.py`
 `examples/other/remesh_tetgen.py`
-
+`examples/volumetric/tetralize_surface.py`
 
 

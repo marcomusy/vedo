@@ -1562,7 +1562,7 @@ class Mesh(Points):
         sep.SetInsideOut(invert)
         sep.Update()
 
-        mask = Mesh(sep.GetOutput()).pointdata[0].astype(np.bool)
+        mask = vtk2numpy(sep.GetOutput().GetPointData().GetArray(0)).astype(np.bool)
         ids = np.array(range(len(pts)))[mask]
 
         if returnIds:
@@ -2344,3 +2344,77 @@ class Mesh(Points):
         vol = vedo.Volume(img)
         vol.name = "SignedVolume"
         return vol
+
+
+    def tetralize(self, side=0.02, nmax=300_000, gap=None, seed=0, debug=False):
+        """
+        Tetralize a closed polygonal mesh. Return a `TetMesh`.
+
+        Parameters
+        ----------
+        side : float
+            desired side of the single tetras as fraction of the bounding box diagonal.
+            Typical values are in the range (0.01 - 0.03)
+
+        nmax : int
+            maximum random numbers to be sampled in the bounding box
+
+        gap : float
+            keep this minimum distance from the surface,
+            if None an automatic choice is made.
+
+        seed : int
+            random number generator seed
+
+        debug : bool
+            show an intermediate plot with sampled points
+
+        .. hint:: examples/volumetric/tetralize_surface.py
+        """
+        surf = self.clone().clean().computeNormals()
+        d = surf.diagonalSize()
+        if gap is None:
+            gap = side  * d * np.sqrt(2/3)
+        n = int(min((1/side)**3, nmax))
+
+        # fill the space w/ points
+        x0,x1, y0,y1, z0,z1 = surf.bounds()
+        disp = np.array([x0+x1, y0+y1, z0+z1])/2
+        np.random.seed(seed)
+        pts = (np.random.rand(n,3)-0.5) * [x1-x0, y1-y0, z1-z0] + disp
+
+        if debug:
+            print(".. tetralize(): subsampling and cleaning")
+        fillpts = surf.insidePoints(pts).subsample(side)
+        if gap:
+            fillpts.distanceTo(surf)
+            fillpts.threshold("Distance", above=gap)
+
+        tmesh = vedo.tetmesh.delaunay3D(vedo.merge(fillpts, surf))
+        tcenters = tmesh.cellCenters()
+
+        ids = surf.insidePoints(tcenters, returnIds=True)
+        ins = np.zeros(tmesh.NCells())
+        ins[ids] = 1
+        if debug:
+            from vedo.pyplot import histogram
+            edges = surf.edges()
+            points = surf.points()
+            elen = mag(points[edges][:,0,:] - points[edges][:,1,:])
+            histo = histogram(elen, xtitle='edge length')
+            fillpts.cmap('bone')
+            vedo.show([
+                        [f"Debug plot.\nGenerated points: {n}\ngap: {gap}",
+                        surf.wireframe().alpha(0.2), vedo.addons.Axes(surf), fillpts],
+                       [histo, f"Edges mean length: {np.mean(elen)}"],
+                      ], N=2, sharecam=False, new=True).close()
+            print(".. thresholding")
+
+        tmesh.celldata["inside"] = ins.astype(np.uint8)
+        tmesh.threshold("inside", above=0.9)
+        tmesh.celldata.remove("inside")
+
+        if debug:
+            print(f".. tetralize() completed, ntets = {tmesh.NCells()}")
+        return tmesh
+

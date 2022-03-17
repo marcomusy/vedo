@@ -1,10 +1,13 @@
 """Create a simple Play/Pause app with a timer event
 You can interact with the scene during the loop!
 ..press q to quit"""
-import vedo
+import time
+import numpy as np
+from vedo import Plotter
+from vedo.pyplot import plot
 
 
-def buttonfunc():
+def bfunc():
     global timerId
     plotter.timerCallback("destroy", timerId)
     if "Play" in button.status():
@@ -13,17 +16,25 @@ def buttonfunc():
     button.switch()
 
 def handle_timer(event):
-    ### Animate your stuff here ######################################
-    earth.rotateZ(1)            # rotate the Earth by 1 deg
-    plotter.render()
+    t = time.time() - t0
+    x = np.linspace(t, t + 4*np.pi, 50)
+    y = np.sin(x) * np.sin(x/12)
+    pl = plot(x, y, '-o', ylim=(-1.2, 1.2), aspect=3, ms=0.1,
+        xtitle="time window [s]", ytitle="intensity [a.u.]",
+    )
+    pl.shift(-x[0]) # put the whole plot object back at (0,0)
+    # pop (remove) the old plot and add the new one
+    plotter.pop().add(pl)
 
-
-plotter = vedo.Plotter()
 
 timerId = None
-button = plotter.addButton(buttonfunc, states=[" Play ","Pause"], size=40)
+t0 = time.time()
+plotter= Plotter(size=(1200,600))
+button = plotter.addButton(bfunc, states=[" Play ","Pause"], size=40)
 evntId = plotter.addCallback("timer", handle_timer)
 
-earth = vedo.Earth()
+x = np.linspace(0, 4*np.pi, 50)
+y = np.sin(x) * np.sin(x/12)
+pl = plot(x, y, ylim=(-1.2, 1.2), xtitle="time", aspect=3, lc='grey5')
 
-plotter.show(earth, __doc__, axes=1, bg2='b9', viewup='z').close()
+plotter.show(__doc__, pl, zoom=2)

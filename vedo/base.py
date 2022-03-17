@@ -1839,16 +1839,6 @@ class BaseGrid(BaseActor):
         return self
 
 
-    def tetralize(self, tetsOnly=True):
-        """
-        Tetralize the grid.
-        If tetsOnly=True will cull all 1D and 2D cells from the output.
-
-        Return a TetMesh.
-        """
-        return vedo.tetmesh.tetralize(self._data, tetsOnly)
-
-
     def extractCellsByID(self, idlist, usePointIDs=False):
         """Return a new UGrid composed of the specified subset of indices."""
         selectionNode = vtk.vtkSelectionNode()

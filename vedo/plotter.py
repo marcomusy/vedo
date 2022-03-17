@@ -3565,18 +3565,9 @@ class Plotter:
             vedo.printc('           focalPoint='   +utils.precision(cam.GetFocalPoint(),4)+',', c='y')
             vedo.printc('           viewup='       +utils.precision(cam.GetViewUp(),4)+',', c='y')
             vedo.printc('           distance='     +utils.precision(cam.GetDistance(),4)+',', c='y')
-            vedo.printc('           clippingRange='+utils.precision(cam.GetClippingRange(),4)+')', c='y')
+            vedo.printc('           clippingRange='+utils.precision(cam.GetClippingRange(),4)+',', c='y')
+            vedo.printc(')', c='y')
             vedo.printc('show(mymeshes, camera=cam)', c='y')
-            vedo.printc('\n### OR equivalently: ##############################', c='y')
-            vedo.printc('plt = vedo.Plotter()\n...', c='y')
-            vedo.printc('plt.camera.SetPosition(',   [round(e, 3) for e in cam.GetPosition()],  ')', c='y')
-            vedo.printc('plt.camera.SetFocalPoint(', [round(e, 3) for e in cam.GetFocalPoint()], ')', c='y')
-            vedo.printc('plt.camera.SetViewUp(',     [round(e, 3) for e in cam.GetViewUp()], ')', c='y')
-            vedo.printc('plt.camera.SetDistance(',   round(cam.GetDistance(), 3), ')', c='y')
-            vedo.printc('plt.camera.SetClippingRange(',
-                                    [round(e, 3) for e in cam.GetClippingRange()], ')', c='y')
-            vedo.printc('plt.show(mymeshes, resetcamera=False)', c='y')
-            vedo.printc('###################################################', c='y')
             return
 
         elif key == "s":

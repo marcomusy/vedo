@@ -1661,12 +1661,12 @@ class Points(vtk.vtkFollower, BaseActor):
         cleanPolyData.Update()
         return self._update(cleanPolyData.GetOutput())
 
-    def subsample(self, fraction):
+    def subsample(self, fraction, absolute=False):
         """
         Subsample a point cloud by requiring that the points
         or vertices are far apart at least by the specified fraction of the object size.
         If a Mesh is passed the polygonal faces are not removed
-        but holes can appear where vertices are removed.
+        but holes can appear as vertices are removed.
 
         .. hint:: examples/advanced/moving_least_squares1D.py, recosurface.py
             .. image:: https://vedo.embl.es/images/advanced/moving_least_squares1D.png
@@ -1675,18 +1675,19 @@ class Points(vtk.vtkFollower, BaseActor):
             vedo.logger.warning(f"subsample(fraction=...), fraction must be < 1, but is {fraction}")
         if fraction <= 0:
             return self
-        cleanPolyData = vtk.vtkCleanPolyData()
-        cleanPolyData.PointMergingOn()
-        cleanPolyData.ConvertLinesToPointsOn()
-        cleanPolyData.ConvertPolysToLinesOn()
-        cleanPolyData.ConvertStripsToPolysOn()
-        cleanPolyData.SetInputData(self._data)
-        cleanPolyData.SetTolerance(fraction)
-        cleanPolyData.Update()
+        cpd = vtk.vtkCleanPolyData()
+        cpd.PointMergingOn()
+        cpd.ConvertLinesToPointsOn()
+        cpd.ConvertPolysToLinesOn()
+        cpd.ConvertStripsToPolysOn()
+        cpd.SetInputData(self._data)
+        cpd.SetTolerance(fraction)
+        cpd.SetToleranceIsAbsolute(absolute)
+        cpd.Update()
         ps = 2
         if self.GetProperty().GetRepresentation() == 0:
             ps = self.GetProperty().GetPointSize()
-        return self._update(cleanPolyData.GetOutput()).ps(ps)
+        return self._update(cpd.GetOutput()).ps(ps)
 
 
     def threshold(self, scalars, above=None, below=None, on='points'):

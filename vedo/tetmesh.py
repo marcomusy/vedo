@@ -1,3 +1,4 @@
+import numpy as np
 import vedo
 import vedo.utils as utils
 import vtk
@@ -9,7 +10,7 @@ Work with tetrahedral meshes <br>
 .. image:: https://vedo.embl.es/images/volumetric/82767107-2631d500-9e25-11ea-967c-42558f98f721.jpg
 """
 
-__all__ = ["TetMesh", "delaunay3D", "tetralize"]
+__all__ = ["TetMesh", "delaunay3D"]
 
 
 ##########################################################################
@@ -34,28 +35,6 @@ def delaunay3D(mesh, alphaPar=0, tol=None, boundary=False):
     deln.SetBoundingTriangulation(boundary)
     deln.Update()
     m = TetMesh(deln.GetOutput())
-    return m
-
-
-def tetralize(dataset, tetsOnly=True):
-    """Tetralize any type of dataset.
-    If tetsOnly is True will cull all 1D and 2D cells from the output.
-
-    Return a TetMesh.
-
-    Example:
-        .. code-block:: python
-
-            from vedo import *
-            ug = loadUnStructuredGrid(dataurl+'ugrid.vtk')
-            tmesh = tetralize(ug)
-            tmesh.write('ugrid.vtu').show(axes=1)
-    """
-    tt = vtk.vtkDataSetTriangleFilter()
-    tt.SetInputData(dataset)
-    tt.SetTetrahedraOnly(tetsOnly)
-    tt.Update()
-    m = TetMesh(tt.GetOutput())
     return m
 
 
