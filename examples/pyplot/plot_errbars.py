@@ -16,13 +16,12 @@ plt = plot(
 	title=__doc__,
     xtitle="t variable (\mus)",
     ytitle="y(x) = \pmK_i \dot\sqrtsin^2 t",
-    aspect=16 / 9,   # aspect ratio x/y of plot
+    aspect=16/9,     # aspect ratio x/y of plot
     # xlim=(-1, 14), # specify x range
-    # ylim=(-4, 5),  # specify y range
 )
 
 ################# plot on top of plt
-plt.overlayPlot(
+plt += plot(
     x+3, y,
     "sb--",
     xerrors=errs,    # set error bars on x
@@ -32,8 +31,7 @@ plt.overlayPlot(
 )
 
 ################## plot again on top of plt
-plt.overlayPlot(x, y/5, "g")
-
+plt += plot(x, y/5, "g")
 
 ##################
-plt.show(mode="image").close()
+plt.show(mode="image", size=(800,450), zoom='tight').close()

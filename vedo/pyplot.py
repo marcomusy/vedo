@@ -33,40 +33,34 @@ __all__ = [
 ##########################################################################
 class Plot(Assembly):
     """Derived class of ``Assembly`` to manipulate plots."""
-    def __init__(self, *objs):
-
-        Assembly.__init__(self, *objs)
+    def __init__(self, *objs, **kwargs):
 
         self.yscale = 1
-        self.aspect = 4 / 3.0
+        self.aspect = 4/3
         self.cut = True  # todo
         self.xlim = None
         self.ylim = None
         self.pad = 0.05
 
+        self.axes = None
+        self.title = ''
+        self.xtitle = 'x'
+        self.ytitle = 'y'
+        self.zmax = 0
+
         self._x0lim = None
         self._y0lim = None
         self._x1lim = None
         self._y1lim = None
-        self.zmax = 0  # z-order
         self.fixed_scale = 1
 
         self.bins = []
         self.freqs = []
 
+        self.format = None
 
-    def ybounds(self, scaled=True):
-        if scaled:
-            return (self._y0lim/self.yscale, self._y1lim/self.yscale)
-        else:
-            return (self._y0lim, self._y1lim)
-
-    def __iadd__(self, *objs):
-        """
-        Add object to plot with taking automatically into account the correct aspect ratio.
-        """
-        # these types will scale proportionally to keep their native shape aspect ratio intact
-        typs = (
+        # these are scaled by default when added to a Plot
+        self.invariable_types = (
             shapes.Text3D,
             shapes.Polygon,
             shapes.Star,
@@ -78,6 +72,85 @@ class Plot(Assembly):
             Assembly,
             vedo.Picture,
         )
+
+        # deal with creating an empty plot:
+        if 'xlim' in kwargs and 'ylim' in kwargs:
+            self.format = kwargs
+            self.xlim = kwargs['xlim']
+            self.ylim = kwargs['ylim']
+            if 'pad' in kwargs: self.pad = kwargs['pad']
+            if 'aspect' in kwargs: self.aspect = kwargs['aspect']
+            if 'zmax'   in kwargs: self.zmax = kwargs['zmax']
+            if 'axes' in kwargs:
+                axes = kwargs['axes']
+                if 'htitle'  in axes: self.title = axes['htitle']
+                if 'xtitle' in axes: self.xtitle = axes['xtitle']
+                if 'ytitle' in axes: self.ytitle = axes['ytitle']
+
+            self.yscale = (self.xlim[1]-self.xlim[0]) / (self.ylim[1]-self.ylim[0]) / self.aspect
+
+            if 'axes' in kwargs:
+                if bool(axes) :
+                    if axes == True or axes==1:
+                        axes = {}
+
+                    ndiv = 6
+                    if "numberOfDivisions" in axes.keys():
+                        ndiv = axes["numberOfDivisions"]
+
+                    x0, x1 = self.xlim
+                    y0, y1 = self.ylim
+                    y0lim, y1lim = y0 - self.pad * (y1 - y0), y1 + self.pad * (y1 - y0)
+                    dx = x1 - x0
+                    dy = y1lim - y0lim
+                    self.yscale = dx / dy / self.aspect
+                    y0lim, y1lim = y0lim * self.yscale, y1lim * self.yscale
+
+                    tp, ts = utils.makeTicks(y0lim / self.yscale, y1lim / self.yscale, ndiv)
+                    labs = []
+                    for i in range(1, len(tp) - 1):
+                        ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
+                        # print(i, tp[i], ynew, ts[i])
+                        labs.append([ynew, ts[i]])
+
+                    axes["htitle"] = self.title
+                    axes["xtitle"] = self.xtitle
+                    axes["ytitle"] = self.ytitle
+                    axes["yValuesAndLabels"] = labs
+                    axes["xrange"] = (x0, x1)
+                    axes["yrange"] = [y0lim, y1lim]
+                    axes["zrange"] = (0, 0)
+                    axes["yUseBounds"] = True
+                    axs = addons.Axes(**axes)
+
+                    objs = [[axs]]
+
+                    self.axes = axs
+                    self.SetOrigin(x0, y0lim, 0)
+
+                    self._x0lim = x0
+                    self._x1lim = x1
+                    self._y0lim = y0lim
+                    self._y1lim = y1lim
+                    self.name = "EmptyPlot"
+
+        Assembly.__init__(self, *objs)
+        return
+
+
+    def ybounds(self, scaled=True):
+        if scaled:
+            return (self._y0lim/self.yscale, self._y1lim/self.yscale)
+        else:
+            return (self._y0lim, self._y1lim)
+
+    def __iadd__(self, *objs):
+        """
+        Add object to plot with taking automatically into account the correct aspect ratio.
+
+        .. warning:: Do not add multiple times the same object to avoid wrong rescalings!
+        """
+        # these types will scale proportionally to keep their native shape aspect ratio intact
         self.fixed_scale = np.min([1, self.yscale])
 
         objs = objs[0]  # make a list anyway
@@ -104,7 +177,7 @@ class Plot(Assembly):
         else:
             # print('adding individual objects', len(objs))
             for a in objs:
-                if isinstance(a, typs):
+                if isinstance(a, self.invariable_types):
                     # special scaling to preserve the aspect ratio
                     # print('adding', a.name, 'fixed scale', self.fixed_scale)
                     a.scale(self.fixed_scale)
@@ -130,29 +203,20 @@ class Plot(Assembly):
 
         return self
 
-    def add(self, obj, preserve=True):
-        if preserve:
-            obj.scale([1,self.yscale,1])
-        self.__iadd__(obj)
+    def add(self, *objs, as3d=True):
+        """
+        Add an object which lives in the 3D "world-coordinate" system to a 2D scaled `Plot`.
+        The scaling factor will be taken into account automatically to maintain the
+        correct aspect ratio of the plot.
 
+        .. warning:: Do not add multiple times the same object to avoid wrong rescalings!
+        """
+        for obj in objs:
+            if as3d:
+                if not isinstance(obj, self.invariable_types):
+                    obj.scale([1, 1/self.yscale, 1])
+            self.__iadd__(obj)
 
-    def overlayPlot(self, *args, **kwargs):
-        """Plot on top of an already existing plot."""
-        kwargs['format'] = self
-        plt = plot(*args, **kwargs)
-        plt.format = self
-        for a in plt.unpack():
-            self.AddPart(a)
-        return self
-
-    def overlayHistogram(self, *args, **kwargs):
-        """Plot histogram on top of an already existing plot."""
-        kwargs['format'] = self
-        h = histogram(*args, **kwargs)
-        h.format = self
-        for a in h.unpack():
-            self.AddPart(a)
-        return self
 
 
 def plot(*args, **kwargs):
@@ -887,35 +951,34 @@ def fit(
 
 #########################################################################################
 def _plotxy(
-    data,
-    format=None,
-    aspect=4/3,
-    xlim=None,
-    ylim=None,
-    xerrors=None,
-    yerrors=None,
-    title="",
-    xtitle="x",
-    ytitle="y",
-    titleSize=None,
-    titleColor=None,
-    c="k",
-    alpha=1,
-    ec=None,
-    lc="k",
-    la=1,
-    lw=3,
-    dashed=False,
-    spline=False,
-    errorBand=False,
-    marker="",
-    ms=None,
-    mc=None,
-    ma=None,
-    pad=0.05,
-    axes={},
-):
-
+        data,
+        format=None,
+        aspect=4/3,
+        xlim=None,
+        ylim=None,
+        xerrors=None,
+        yerrors=None,
+        title="",
+        xtitle="x",
+        ytitle="y",
+        titleSize=None,
+        titleColor=None,
+        c="k",
+        alpha=1,
+        ec=None,
+        lc="k",
+        la=1,
+        lw=3,
+        dashed=False,
+        spline=False,
+        errorBand=False,
+        marker="",
+        ms=None,
+        mc=None,
+        ma=None,
+        pad=0.05,
+        axes={},
+    ):
     line=False
     if lw>0:
         line=True
@@ -1153,19 +1216,19 @@ def _plotxy(
 
 
 def _plotFxy(
-    z,
-    xlim=(0, 3),
-    ylim=(0, 3),
-    zlim=(None, None),
-    showNan=True,
-    zlevels=10,
-    c=None,
-    bc="aqua",
-    alpha=1,
-    texture="",
-    bins=(100, 100),
-    axes=True,
-):
+        z,
+        xlim=(0, 3),
+        ylim=(0, 3),
+        zlim=(None, None),
+        showNan=True,
+        zlevels=10,
+        c=None,
+        bc="aqua",
+        alpha=1,
+        texture="",
+        bins=(100, 100),
+        axes=True,
+    ):
     if isinstance(z, str):
         try:
             z = z.replace("math.", "").replace("np.", "")
@@ -1283,16 +1346,16 @@ def _plotFxy(
 
 
 def _plotFz(
-    z,
-    x=(-1, 1),
-    y=(-1, 1),
-    zlimits=(None, None),
-    cmap="PiYG",
-    alpha=1,
-    lw=0.1,
-    bins=(75, 75),
-    axes=True,
-):
+        z,
+        x=(-1, 1),
+        y=(-1, 1),
+        zlimits=(None, None),
+        cmap="PiYG",
+        alpha=1,
+        lw=0.1,
+        bins=(75, 75),
+        axes=True,
+    ):
     if isinstance(z, str):
         try:
             z = z.replace("np.", "")
@@ -1346,27 +1409,27 @@ def _plotFz(
 
 
 def _plotPolar(
-    rphi,
-    title="",
-    tsize=0.1,
-    lsize=0.05,
-    r1=0,
-    r2=1,
-    c="blue",
-    bc="k",
-    alpha=1,
-    ps=5,
-    lw=3,
-    deg=False,
-    vmax=None,
-    fill=False,
-    spline=False,
-    smooth=0,
-    showDisc=True,
-    nrays=8,
-    showLines=True,
-    showAngles=True,
-):
+        rphi,
+        title="",
+        tsize=0.1,
+        lsize=0.05,
+        r1=0,
+        r2=1,
+        c="blue",
+        bc="k",
+        alpha=1,
+        ps=5,
+        lw=3,
+        deg=False,
+        vmax=None,
+        fill=False,
+        spline=False,
+        smooth=0,
+        showDisc=True,
+        nrays=8,
+        showLines=True,
+        showAngles=True,
+    ):
     if len(rphi) == 2:
         rphi = np.stack((rphi[0], rphi[1]), axis=1)
 
@@ -1537,29 +1600,29 @@ def _plotSpheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=
 
 #########################################################################################
 def _barplot(
-    data,
-    format=None,
-    errors=False,
-    aspect=4/3,
-    xlim=None,
-    ylim=(0,None),
-    xtitle=" ",
-    ytitle="counts",
-    title="",
-    titleSize=None,
-    titleColor=None,
-    logscale=False,
-    fill=True,
-    c="olivedrab",
-    gap=0.02,
-    alpha=1,
-    outline=False,
-    lw=2,
-    lc="k",
-    pad=0.05,
-    axes={},
-    bc="k",
-):
+        data,
+        format=None,
+        errors=False,
+        aspect=4/3,
+        xlim=None,
+        ylim=(0,None),
+        xtitle=" ",
+        ytitle="counts",
+        title="",
+        titleSize=None,
+        titleColor=None,
+        logscale=False,
+        fill=True,
+        c="olivedrab",
+        gap=0.02,
+        alpha=1,
+        outline=False,
+        lw=2,
+        lc="k",
+        pad=0.05,
+        axes={},
+        bc="k",
+    ):
     offs = 0  # z offset
     if len(data) == 4:
         counts, xlabs, cols, edges = data
@@ -1771,35 +1834,35 @@ def _barplot(
 
 #########################################################################################
 def _histogram1D(
-    data,
-    format=None,
-    bins=25,
-    aspect=4/3,
-    xlim=None,
-    ylim=(0,None),
-    errors=False,
-    title="",
-    xtitle=" ",
-    ytitle="counts",
-    titleSize=None,
-    titleColor=None,
-    density=False,
-    logscale=False,
-    fill=True,
-    c="olivedrab",
-    gap=0.02,
-    alpha=1,
-    outline=False,
-    lw=2,
-    lc="k",
-    marker="",
-    ms=None,
-    mc=None,
-    ma=None,
-    pad=0.05,
-    axes={},
-    bc="k",
-):
+        data,
+        format=None,
+        bins=25,
+        aspect=4/3,
+        xlim=None,
+        ylim=(0,None),
+        errors=False,
+        title="",
+        xtitle=" ",
+        ytitle="counts",
+        titleSize=None,
+        titleColor=None,
+        density=False,
+        logscale=False,
+        fill=True,
+        c="olivedrab",
+        gap=0.02,
+        alpha=1,
+        outline=False,
+        lw=2,
+        lc="k",
+        marker="",
+        ms=None,
+        mc=None,
+        ma=None,
+        pad=0.05,
+        axes={},
+        bc="k",
+    ):
     # purge NaN from data
     validIds = np.all(np.logical_not(np.isnan(data)))
     data = data[validIds]
@@ -2040,28 +2103,28 @@ def _histogram1D(
     return asse
 
 def _histogram2D(
-    xvalues,
-    yvalues=None,
-    format=None,
-    bins=25,
-    aspect=1,
-    xlim=None,
-    ylim=None,
-    weights=None,
-    cmap="cividis",
-    alpha=1,
-    title="",
-    xtitle="x",
-    ytitle="y",
-    ztitle="z",
-    titleSize=None,
-    titleColor=None,
-    # logscale=False,
-    lw=0,
-    scalarbar=True,
-    axes=True,
-    bc="k",
-):
+        xvalues,
+        yvalues=None,
+        format=None,
+        bins=25,
+        aspect=1,
+        xlim=None,
+        ylim=None,
+        weights=None,
+        cmap="cividis",
+        alpha=1,
+        title="",
+        xtitle="x",
+        ytitle="y",
+        ztitle="z",
+        titleSize=None,
+        titleColor=None,
+        # logscale=False,
+        lw=0,
+        scalarbar=True,
+        axes=True,
+        bc="k",
+    ):
     offs = 0  # z offset
 
     if format is not None:  # reset to allow meaningful overlap
@@ -2283,31 +2346,31 @@ def _histogramHexBin(
 
 
 def _histogramPolar(
-    values,
-    weights=None,
-    title="",
-    tsize=0.1,
-    bins=16,
-    r1=0.25,
-    r2=1,
-    phigap=0.5,
-    rgap=0.05,
-    lpos=1,
-    lsize=0.04,
-    c='grey',
-    bc="k",
-    alpha=1,
-    cmap=None,
-    deg=False,
-    vmin=None,
-    vmax=None,
-    labels=(),
-    showDisc=True,
-    nrays=8,
-    showLines=True,
-    showAngles=True,
-    showErrors=False,
-):
+        values,
+        weights=None,
+        title="",
+        tsize=0.1,
+        bins=16,
+        r1=0.25,
+        r2=1,
+        phigap=0.5,
+        rgap=0.05,
+        lpos=1,
+        lsize=0.04,
+        c='grey',
+        bc="k",
+        alpha=1,
+        cmap=None,
+        deg=False,
+        vmin=None,
+        vmax=None,
+        labels=(),
+        showDisc=True,
+        nrays=8,
+        showLines=True,
+        showAngles=True,
+        showErrors=False,
+    ):
     k = 180 / np.pi
     if deg:
         values = np.array(values) / k
@@ -2449,9 +2512,8 @@ def _histogramPolar(
 
 
 def _histogramSpheric(
-    thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", lw=0.1, scalarbar=True,
-):
-
+        thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", lw=0.1, scalarbar=True,
+    ):
     x, y, z = utils.spher2cart(np.ones_like(thetavalues) * 1.1, thetavalues, phivalues)
     ptsvals = np.c_[x, y, z]
 

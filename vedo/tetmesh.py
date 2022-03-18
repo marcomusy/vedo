@@ -1,4 +1,3 @@
-import numpy as np
 import vedo
 import vedo.utils as utils
 import vtk
@@ -183,6 +182,39 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         cloned._mapper.SetScalarMode(self._mapper.GetScalarMode())
         cloned.name = self.name
         return cloned
+
+
+    def addQuality(self, measure=7):
+        """
+        Calculate functions of quality for the elements of a triangular mesh.
+        This method adds to the mesh a cell array named "Quality".
+
+        Parameters
+        ----------
+        measure : int
+            type of estimator
+
+                - EDGE RATIO, 0
+                - ASPECT RATIO, 1
+                - RADIUS RATIO, 2
+                - ASPECT FROBENIUS, 3
+                - MIN_ANGLE, 4
+                - COLLAPSE RATIO, 5
+                - ASPECT GAMMA, 6
+                - VOLUME, 7
+                - ...
+                See class [vtkMeshQuality](https://vtk.org/doc/nightly/html/classvtkMeshQuality.html)
+                for explanation.
+
+        .. hint:: meshquality.py
+            .. image:: https://vedo.embl.es/images/advanced/meshquality.png
+        """
+        qf = vtk.vtkMeshQuality()
+        qf.SetInputData(self._data)
+        qf.SetTetQualityMeasure(measure)
+        qf.SaveCellQualityOn()
+        qf.Update()
+        return self._update(qf.GetOutput())
 
 
     def threshold(self, name=None, above=None, below=None, on='cells'):

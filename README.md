@@ -157,7 +157,7 @@ Type `vedo -h` for the complete list of options.<br>
 `vedo` currently includes 300+ working [examples](https://github.com/marcomusy/vedo/tree/master/examples) and [notebooks](https://github.com/marcomusy/vedo/tree/master/examples/notebooks). <br>
 ||||
 |:--------|:--------|:--------|
-| ![bunny](https://vedo.embl.es/images/volumetric/tetralize_surface.jpg)  | [![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif)](https://vedo.embl.es/content/vedo/dolfin.html)  | [![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/grayscott.py)  |
+| [![bunny](https://vedo.embl.es/images/volumetric/tetralize_surface.jpg)](https://github.com/marcomusy/vedo/blob/master/examples/volumetric/tetralize_surface.py)  | [![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif)](https://vedo.embl.es/content/vedo/dolfin.html)  | [![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/grayscott.py)  |
 | *Work with volumes, tetrahedral and polygonal meshes.* |   *Interoperability with many external libraries* |  *Animations of physical systems* |
 
 Run any of the built-in examples. In a terminal type: `vedo -r earthquake_browser`

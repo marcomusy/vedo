@@ -1,10 +1,13 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """Tetralize a closed surface mesh
 Click on the mesh and press ↓ or x to toggle a piece"""
-from vedo import dataurl, Sphere, settings, Mesh, show
+from vedo import dataurl, Sphere, settings, Mesh, TessellatedBox, show
 
 settings.useDepthPeeling = True
 
 surf = Sphere(quads=True, res=15)
+# surf = TessellatedBox()
 # surf = Mesh(dataurl+'290_closed.vtk')
 # surf = Mesh(dataurl+'bunny.obj', c='g3').fillHoles().cap().smooth()
 

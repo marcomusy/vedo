@@ -41,6 +41,7 @@
 
 ---
 ### `pyplot.py`
+- can create an empty `Plot` object to be later filled.
 
 ---
 ### `shapes.py`
@@ -48,6 +49,7 @@
 ---
 ### `tetmesh.py`
 - added `tetralize()` to tetralize any closed surface mesh
+- added `addQuality()` of tets
 
 ---
 ### `volume.py`
@@ -75,7 +77,7 @@
 `examples/volumetric/tet_explode.py`
 `examples/other/remesh_tetgen.py`
 `examples/volumetric/tetralize_surface.py`
-
+`examples/pyplot/plot_empty.py`
 
 ### Broken
 

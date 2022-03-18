@@ -469,7 +469,7 @@ colors1 = [
 ]
 # negative integer color number get this:
 colors2 = [
-    (0.99, 0.83, 0),    # gold
+    (1.0, 0.832, 0),    # gold
     (0.59, 0.0, 0.09),  # dark red
     (0.5, 1.0, 0.0),    # green
     (0.5, 0.5, 0),      # yellow-green
