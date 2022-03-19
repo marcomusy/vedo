@@ -17,6 +17,9 @@ Parameters
     # Set a default for the font to be used for axes, comments etc.
     defaultFont = 'Normografo' # check font options in shapes.Text
 
+    # Palette number when using an integer to choose a color
+    palette = 0
+
     # Scale magnification of the screenshot (must be an integer)
     screeshotScale = 1
     screenshotTransparentBackground = False
@@ -121,6 +124,7 @@ Parameters
 
 defaultFont = 'Normografo'
 
+# Palette number when using an integer to choose a color
 palette = 0
 
 # Scale magnification of the screenshot (must be an integer)

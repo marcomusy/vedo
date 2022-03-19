@@ -3,7 +3,7 @@
 - New documentation pages based on `pdoc3`.
 - general cleanup of the examples
 - simplified licence file by splitting fonts and general MIT licence
-- `vedo/texture/*` files removed
+- all `vedo/texture/*` files removed
 - a new syntax is allowed for swapping or indicating the renderer:
   `plotter.at(ren_number).show(mymesh)`
    instead of the (still valid):
@@ -57,7 +57,6 @@
 
 ---
 ### `settings.py`
-
 - new polygonal fonts added: 'Vogue', 'Brachium', 'Dalim', 'Miro', 'Ubuntu'
 
 ---
@@ -83,6 +82,5 @@
 
 shadow2.py
 image_to_mesh.py
-plot_errband.py
-
+multi_viewer1.py
 

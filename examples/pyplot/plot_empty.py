@@ -1,5 +1,5 @@
-"""Create an empty Plot to be filled in a loop.
-Any 3D Mesh object can be added to the plot as well."""
+"""Create an empty Plot to be filled in a loop
+Any 3D Mesh object can be added to the plot as well"""
 from vedo import *
 from vedo.pyplot import plot, Plot
 import numpy as np
@@ -12,7 +12,7 @@ x = np.linspace(0, 4*np.pi, 200)
 y = np.sin(x) * np.sin(x/12)
 
 # dictionary of options for the axes
-ax_opts = dict(xtitle="distance", xyPlaneColor='blue7', xyGridColor='red4')
+ax_opts = dict(xtitle="distance", xyGrid=False, axesLineWidth=3, xyFrameLine=3)
 
 # Create an empty Plot and fill it
 pl = Plot(xlim=(0, 12), ylim=(-1.2, 1.2), aspect=16/9, axes=ax_opts)
