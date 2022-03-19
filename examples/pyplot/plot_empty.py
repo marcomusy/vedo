@@ -6,6 +6,7 @@ import numpy as np
 
 
 settings.defaultFont = "Cartoons123"
+settings.palette = 2
 
 x = np.linspace(0, 4*np.pi, 200)
 y = np.sin(x) * np.sin(x/12)
@@ -16,7 +17,7 @@ ax_opts = dict(xtitle="distance", xyPlaneColor='blue7', xyGridColor='red4')
 # Create an empty Plot and fill it
 pl = Plot(xlim=(0, 12), ylim=(-1.2, 1.2), aspect=16/9, axes=ax_opts)
 for i in range(10):
-    pl += plot(x, y * i/5, lc=-i)  # lc= line color
+    pl += plot(x, y * i/5, lc=i)  # lc= line color (10-colors palette index)
 
 # Add any number of polygonal Meshes.
 # Use add() to keep the object aspect ratio inside the Plot coord system:
