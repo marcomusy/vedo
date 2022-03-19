@@ -3577,13 +3577,17 @@ class Plotter:
             self._icol += 1
             if isinstance(self.clickedActor, vedo.Points):
                 self.clickedActor.GetMapper().ScalarVisibilityOff()
-                self.clickedActor.GetProperty().SetColor(vedo.colors.colors1[(self._icol) % 10])
+                pal = vedo.colors.palettes[settings.palette % len(vedo.colors.palettes)]
+                self.clickedActor.GetProperty().SetColor(pal[(self._icol) % 10])
 
         elif key == "2":
             self._icol += 1
+            settings.palette += 1
+            settings.palette = settings.palette % len(vedo.colors.palettes)
             if isinstance(self.clickedActor, vedo.Points):
                 self.clickedActor.GetMapper().ScalarVisibilityOff()
-                self.clickedActor.GetProperty().SetColor(vedo.colors.colors2[(self._icol) % 10])
+                pal = vedo.colors.palettes[settings.palette % len(vedo.colors.palettes)]
+                self.clickedActor.GetProperty().SetColor(pal[(self._icol) % 10])
 
         elif key == "3":
             bsc = ['b5','cyan5', 'g4', 'o5', 'p5', 'r4', 'teal4', 'yellow4']

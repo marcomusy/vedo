@@ -121,6 +121,8 @@ Parameters
 
 defaultFont = 'Normografo'
 
+palette = 0
+
 # Scale magnification of the screenshot (must be an integer)
 screeshotScale = 1
 screenshotTransparentBackground = False
