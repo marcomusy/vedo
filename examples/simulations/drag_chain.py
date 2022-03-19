@@ -4,7 +4,7 @@ from vedo import Plotter, versor, Plane, Line
 n = 15  # number of points
 l =  3  # length of one segment
 
-def move(evt):
+def func(evt):
     if not evt.actor:
         return
     coords = line.points()
@@ -16,11 +16,11 @@ def move(evt):
     nodes.points(coords)
     plt.render()
 
-plt = Plotter()
-plt.addCallback("mouse move", move)
-
 surf = Plane(s=[60, 60])
 line = Line([l*n/2, 0], [-l*n/2, 0], res=n, lw=12)
 nodes= line.clone().c('red3').pointSize(15)
 
-plt.show(surf, line, nodes, __doc__, zoom=1.3).close()
+plt = Plotter()
+plt.addCallback("on mouse move please call", func)
+plt.show(surf, line, nodes, __doc__, zoom=1.3)
+plt.close()

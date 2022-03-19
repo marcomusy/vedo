@@ -20,7 +20,7 @@ def func(evt):                       ### called every time mouse moves!
     vig.followCamera()               # make it always face the camera
     if len(plt.actors) > 3:
         plt.pop()                    # remove the old vignette
-    plt.add([arw, vig])              # add Arrow and the new vignette
+    plt.add(arw, vig)                # add Arrow and the new vignette
 
 msg = Text2D(pos='bottom-left', font="VictorMono") # an empty text
 hil = ParametricShape('RandomHills').cmap('terrain').addScalarBar()
@@ -28,6 +28,9 @@ arr = hil.pointdata["Scalars"]       # numpy array with heights
 
 plt = Plotter(axes=1, bg2='lightblue')
 plt.addCallback('mouse move', func)  # add the callback function
-plt.addCallback('keyboard', lambda e: plt.remove(plt.actors[3:]).render())
+plt.addCallback('keyboard', lambda evt:
+                    plt.remove(plt.actors[3:]).render()
+)
 plt.show(hil, msg, __doc__, viewup='z')
+plt.close()
 

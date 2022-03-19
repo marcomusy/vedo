@@ -18,9 +18,6 @@ def keyfunc(evt):
         plt1.render()
         plt2.render()
         onLeftClick(None)
-    elif evt.keyPressed=='b':
-        for r in plt1.renderers: r.SetBackground(1,1,1) # white
-        plt1.render()
     elif evt.keyPressed=='h':
         plt2.add(Text2D(instr, pos='bottom-right', c='dg', bg='g', font='Quikhand'))
 
@@ -64,7 +61,6 @@ for i in range(15):
 ####################################################################################
 instr  = "Click on the left panel to select a shape\n"
 instr += "Press c to make the shape red\n"
-instr += "Press b to reset to white the panel background"
 plt2.addCallback('KeyPress', keyfunc)
 plt2.show(
     __doc__,

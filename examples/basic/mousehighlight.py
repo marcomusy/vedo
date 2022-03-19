@@ -10,15 +10,16 @@ for i in range(25):
     spheres.append(s)
 
 def func(evt):
-    if not evt.actor: return
+    if not evt.actor:
+        return
     sil = evt.actor.silhouette().lineWidth(6).c('red5')
+    sil.name = "silu" # give it a name so we can remove the old one
     msg.text("You clicked: "+evt.actor.name)
-    plt.remove(silcont.pop()).add(sil)
-    silcont.append(sil)
+    plt.remove('silu').add(sil)
 
-silcont = [None]
 msg = Text2D("", pos="bottom-center", c='k', bg='r9', alpha=0.8)
 
 plt = Plotter(axes=1, bg='black')
 plt.addCallback('mouse click', func)
-plt.show(spheres, msg, __doc__, zoom=1.2).close()
+plt.show(spheres, msg, __doc__, zoom=1.2)
+plt.close()

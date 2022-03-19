@@ -454,7 +454,7 @@ cmaps_names = (
 )
 
 
-# default color palettes
+# default color palettes when using an index
 palettes = (
     (
         (1.0, 0.832, 0.000),  # gold
@@ -529,7 +529,6 @@ palettes = (
         (0.035, 0.231, 0.294),  #  -> cyan1
     ),
 )
-
 
 
 emoji = {
