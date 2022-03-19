@@ -39,8 +39,8 @@ class Morpher:
 
     def start(self):  ################################################ show stuff
         paxes = Axes(self.plane1, xyGrid=0, textScale=0.6)
-        self.plotter.show(self.plane1, paxes, self.msg1, self.mesh1, self.mesh2, at=0)
-        self.plotter.show(self.plane2, self.msg2, at=1, mode='image')
+        self.plotter.at(0).show(self.plane1, paxes, self.msg1, self.mesh1, self.mesh2)
+        self.plotter.at(1).show(self.plane2, self.msg2, mode='image')
         if len(self.arrow_starts):
             self.draw(True)
             self.draw(False)
@@ -52,17 +52,17 @@ class Morpher:
             toggle = self.toggle
         if toggle:
             self.msg1.text("Choose start point or press:\nm to morph the shapes\ng to interpolate")
-            self.plotter.remove("displacementArrows", at=0)
+            self.plotter.at(0).remove("displacementArrows")
             if not len(self.arrow_starts): return
             arrows = Arrows2D(self.arrow_starts, self.arrow_stops, c='red4')
             arrows.name = "displacementArrows"
-            self.plotter.add(arrows, at=0)
+            self.plotter.add(arrows)
         else:
             self.msg1.text("Click to choose an end point")
-            self.plotter.remove("displacementPoints", at=0)
+            self.plotter.at(0).remove("displacementPoints")
             points = Points(self.arrow_starts, r=15, c='green3', alpha=0.5)
             points.name = "displacementPoints"
-            self.plotter.add(points, at=0)
+            self.plotter.add(points)
 
     def onleftclick(self, evt):  ############################################ add points
         msh = evt.actor
@@ -77,8 +77,8 @@ class Morpher:
         self.arrow_starts.pop()
         if not self.toggle:
             self.arrow_stops.pop()
-        self.plotter.clear(at=0).addRendererFrame()
-        self.plotter.add([self.plane1, self.msg1, self.mesh1, self.mesh2], at=0, render=False)
+        self.plotter.at(0).clear().addRendererFrame()
+        self.plotter.add([self.plane1, self.msg1, self.mesh1, self.mesh2], render=False)
         self.draw(False)
         self.draw(True)
 
@@ -104,7 +104,7 @@ class Morpher:
 
             self.msg1.text(self.instructions)
             self.msg2.text("Morphed output:")
-            self.plotter.clear(at=1).addRendererFrame().add(output, at=1)
+            self.plotter.at(1).clear().addRendererFrame().add(output)
 
         elif evt.keyPressed == 'g':  ##------- generate intermediate shapes
             if not self.dottedln:
@@ -117,7 +117,7 @@ class Morpher:
                 m_nterp = self.mesh1.clone().warp(self.arrow_starts, pi, mode=self.mode).c('b3').lw(1)
                 intermediates.append(m_nterp)
             self.msg2.text("Morphed output + Interpolation:")
-            self.plotter.add(intermediates, at=1)
+            self.plotter.at(1).add(intermediates)
             self.dottedln = None
 
         elif evt.keyPressed == 'c':  ##------- clear all
@@ -127,9 +127,10 @@ class Morpher:
             self.dottedln = None
             self.msg1.text(self.instructions)
             self.msg2.text("[output will show here]")
-            self.plotter.clear(at=0).clear(at=1).addRendererFrame()
-            self.plotter.add([self.plane1, self.msg1, self.mesh1, self.mesh2], at=0)
-            self.plotter.add([self.plane2, self.msg2], at=1)
+            self.plotter.at(0).clear()
+            self.plotter.add([self.plane1, self.msg1, self.mesh1, self.mesh2])
+            self.plotter.at(1).clear().addRendererFrame()
+            self.plotter.add([self.plane2, self.msg2])
 
 
 ######################################################################################## MAIN

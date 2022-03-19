@@ -30,8 +30,8 @@ tmesh = vedo.TetMesh(tet.grid)
 #tmesh.write("my_tetmesh.vtk")
 
 plt = vedo.Plotter(N=3, axes=1)
-plt.show("Original mesh",amesh, at=0)
-plt.show("Repaired mesh", repaired, at=1)
-plt.show("Tetrahedral mesh\n(click & press shift-X)", tmesh.tomesh().shrink(), at=2)
+plt.at(0).show("Original mesh", amesh)
+plt.at(1).show("Repaired mesh", repaired)
+plt.at(2).show("Tetrahedral mesh\n(click & press shift-X)", tmesh.tomesh().shrink())
 plt.interactive().close()
 

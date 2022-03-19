@@ -26,8 +26,9 @@ for i in range(5):  # generate a time sequence of 5 shapes
     ssc = ss.clone().points(cs).wireframe().c('gray').alpha(.01)
     warps.append(ssc)
 
-show(warps, Text2D(__doc__,s=0.75), at=0, N=3, size=(1600,700))
-show(sets, "add noise to vertices:", at=1, zoom=1.4)
+plt = Plotter(N=3, size=(1600,700))
+plt.at(0).show(warps, Text2D(__doc__, s=0.75))
+plt.at(1).show(sets, "add noise to vertices:", zoom=1.4)
 
 #The nr neighbours in the local 4D search must be specified
 sm3d = smoothMLS3D(sets, neighbours)
@@ -35,28 +36,32 @@ sm3d = smoothMLS3D(sets, neighbours)
 #color indicates fitted time
 sm3d.addScalarBar(title='time [a.u.]')
 
-show(sm3d, "4D-smoothed", at=2, zoom=1.4)
+plt.at(2).show(sm3d, "4D-smoothed", zoom=1.4)
+plt.interactive().close()
 
 ############################### compare generated+noise to smoothed
+plt3 = Plotter(shape=(2,5))
 for i in range(5):
-    show(warps, sets[i], "t="+str(i), at=i, shape=(2,5), new=not i)
+    plt3.at(i).show(warps, sets[i], "t="+str(i))
     t0, t1 = (i-0.5)*dt, (i+0.5)*dt
     sm3d1 = sm3d.clone().threshold("PointScalars", t0, t1).alpha(1)
     msg = "time range = ["+precision(t0, 2)+","+precision(t1, 2)+"]"
-    show(warps, sm3d1, msg, at=i+5)
+    plt3.at(i+5).show(warps, sm3d1, msg)
+plt3.interactive().close()
 
 ############################### make a video
 # vd = Video('mls3d.mp4')
-plt = show(warps, zoom=1.7, new=True, interactive=0)
+plt2 = Plotter(interactive=False)
+plt2.show(warps, zoom=1.7)
 for j in range(100):
     i = j/20
     t0, t1 = (i-0.5)*dt, (i+0.5)*dt
     sm3d1 = sm3d.clone().threshold("PointScalars", t0, t1).alpha(1)
     msg = "time range = ["+precision(t0, 2)+","+precision(t1, 2)+"]"
-    plt.show(warps, sm3d1, msg, resetcam=0)
+    plt2.show(warps, sm3d1, msg, resetcam=0)
     # vd.addFrame()
-    plt.clear()
+    plt2.clear()
 # vd.close()
 
-interactive().close()
+plt2.interactive().close()
 

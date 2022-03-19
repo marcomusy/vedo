@@ -20,6 +20,9 @@ cols = [i for i in range(N)]
 cols = makeBands(cols, 5)  # make color bins
 t3 = Tube(ln, r=rads, c=cols, res=24)
 
-show(t1, __doc__, at=0, N=3, axes=dict(textScale=4), viewup="z")
-show(t2, at=1)
-show(t3, at=2).interactive().close()
+############################### visualize
+plt = Plotter(N=3, axes=dict(textScale=4))
+plt.at(0).show(t1, __doc__)
+plt.at(1).show(t2)
+plt.at(2).show(t3, viewup="z")
+plt.interactive().close()

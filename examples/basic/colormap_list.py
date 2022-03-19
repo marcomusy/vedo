@@ -22,8 +22,7 @@ for name in colors.cmaps_names:
 
 printc("Try picking a color by pressing Shift-i", invert=True)
 
-show(grids, vnames1,
-     at=0, N=2, size=(1300,1000), bg='blackboard',
-     title="Color Maps with n="+str(n)+" colors")
-show(grids, vnames2,
-     at=1, bg='white', zoom=1.75, interactive=True, mode='image').close()
+plt = Plotter(N=2, size=(1300,1000))
+plt.at(0).show(grids, vnames1, bg='blackboard')
+plt.at(1).show(grids, vnames2, bg='white', mode='image', zoom='tight')
+plt.interactive().close()

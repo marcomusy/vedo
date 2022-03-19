@@ -1,13 +1,16 @@
 """Take 2 clouds of points, source and target, and morph
 the plane using thin plate splines as a model.
 The fitting minimizes the distance to a subset of the target cloud"""
-from vedo import printc, Points, Grid, Arrows, Lines, show
+from vedo import printc, Points, Grid, Arrows, Lines, Plotter
 import scipy.optimize as opt
 import numpy as np
 np.random.seed(2)
 
-class Morpher:
-    def __init__(self):
+class Morpher(Plotter):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
         self.source = None
         self.morphed_source = None
         self.target = None
@@ -20,6 +23,7 @@ class Morpher:
         self.npts = None
         self.ptsource = []
         self.pttarget = []
+
 
     def _func(self, pars):
         shift = np.array(np.split(pars,2)).T # recreate the shift vectors
@@ -63,10 +67,10 @@ class Morpher:
         arrows = Arrows(self.ptsource, self.pttarget, alpha=0.5, s=3).c("k")
         lines = Lines(self.source, self.target).c('db')
         mlines = Lines(self.morphed_source, self.target).c('db')
-        show(grid0, self.source, self.target, lines, arrows, __doc__, at=0, N=2)
-        show(grid1, self.morphed_source, self.target, mlines,
-             f"morphed source (green) vs target (red)\nNDF = {2*self.npts}",
-             at=1, interactive=True).close()
+
+        self.at(0).show(grid0, self.source, self.target, lines, arrows, __doc__)
+        self.at(1).show(grid1, self.morphed_source, self.target, mlines,
+                        f"morphed source (green) vs target (red)\nNDF = {2*self.npts}")
 
 
 #################################
@@ -76,7 +80,7 @@ if __name__ == "__main__":
     pts_s = np.random.randn(25, 2)
     pts_t = pts_s + np.sin(2*pts_s)/5 # and distort it
 
-    mr = Morpher()
+    mr = Morpher(N=2)
     mr.source = Points(pts_s, r=20, c="g", alpha=0.5)
     mr.target = Points(pts_t, r=10, c="r", alpha=1.0)
 
@@ -88,3 +92,4 @@ if __name__ == "__main__":
 
     #now mr.msource contains the modified/morphed source.
     mr.draw_shapes()
+    mr.interactive().close()

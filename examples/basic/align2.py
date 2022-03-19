@@ -1,7 +1,7 @@
 """Generate two random sets of points and align
 them using the Iterative Closest Point algorithm"""
 from random import uniform as u
-from vedo import *
+from vedo import Points, Arrows, Plotter
 
 N1 = 25  # number of points of first set
 N2 = 35  # number of points of second set
@@ -20,10 +20,8 @@ aligned_pts1 = vpts1.clone().alignTo(vpts2, invert=False)
 # draw arrows to see where points end up
 arrows = Arrows(pts1, aligned_pts1, s=0.7, c='black', alpha=0.2)
 
-show(vpts1, vpts2, __doc__, at=0, N=2, axes=1)
-show(aligned_pts1, arrows, vpts2, at=1).interactive().close()
-
-
-
-
+plt = Plotter(N=2, axes=1)
+plt.at(0).show(vpts1, vpts2, __doc__, viewup="z")
+plt.at(1).show(aligned_pts1, arrows, vpts2)
+plt.interactive().close()
 

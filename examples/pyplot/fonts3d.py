@@ -84,6 +84,7 @@ cam = dict(pos=(3.99e+5, 8.51e+3, 6.47e+5),
 
 for i,fnt in enumerate(["Kanopus", "Normografo", "Theemim", "VictorMono"]):
     t = Text3D(txt, font=fnt, italic=0).c('darkblue').scale(12300)
+    plt.at(i)
     plt.show(t,
              Text2D("Font: "+fnt, font=fnt, bg='r'),
              axes=dict(xtitle='my units for L_x  (\mum)',
@@ -92,7 +93,6 @@ for i,fnt in enumerate(["Kanopus", "Normografo", "Theemim", "VictorMono"]):
                        labelFont=fnt,
                        digits=2,
                       ),
-             at=i,
              camera=cam,
              resetcam=not bool(i),
     )

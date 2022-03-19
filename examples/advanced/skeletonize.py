@@ -1,16 +1,14 @@
 """Using 1D Moving Least Squares to skeletonize a surface"""
-print(__doc__)
-from vedo import *
+from vedo import dataurl, Points, Plotter
 
 N = 9    # nr of iterations
 f = 0.2  # fraction of neighbours
 
-pts = Mesh(dataurl+"man.vtk").subsample(0.02).points()
+pcl = Points(dataurl+"man.vtk").subsample(0.02)
 
-pc = Points(pts)
-
+plt = Plotter(N=N, axes=1)
 for i in range(N):
-    pc = pc.clone().smoothMLS1D(f=f).color(i)
-    show(pc, at=i, N=N, elevation=-5)
+    pcl = pcl.clone().smoothMLS1D(f=f).color(i)
+    plt.at(i).show(f"iteration {i}", pcl, elevation=-5)
 
-interactive().close()
+plt.interactive().close()
