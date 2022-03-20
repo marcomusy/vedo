@@ -15,11 +15,12 @@ V =  1 + X    - Y**2
 # optionally, pick some random points as seeds:
 prob_pts = np.random.rand(200, 2)*8 - [4,4]
 
-sp = streamplot(X,Y, U,V,
-                lw=0.001,            # line width in abs. units
-                direction='forward', # 'both' or 'backward'
-                probes=prob_pts,
-               )
+sp = streamplot(
+    X,Y, U,V,
+    lw=0.001,            # line width in abs. units
+    direction='forward', # 'both' or 'backward'
+    probes=prob_pts,
+)
 
 pts = Points(prob_pts, r=5, c='white')
 

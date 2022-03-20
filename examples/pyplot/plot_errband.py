@@ -11,7 +11,7 @@ miny = np.min(y-ye)
 idx = np.argmax(y)
 
 # Plot the two variables, return a Plot(Assembly) object:
-pl = plot(
+fig = plot(
     x,y,
     yerrors=ye,
     xtitle='time in \museconds',
@@ -26,15 +26,15 @@ pl = plot(
 )
 
 # Add a grey transparent rectangle to represent an exclusion region:
-pl += Rectangle([1,0.5], [2.7,5], c='grey5').lighting('off')
+fig += Rectangle([1,0.5], [2.7,5], c='grey5').lighting('off')
 
 # Add some text (set z=2 so it stays on top):
-pl += Text3D("Excluded\ntime range!", s=.2, c='k', font="Quikhand").rotateZ(20).pos(1.3,3.6,1)
+fig += Text3D("Excluded\ntime range!", s=.2, c='k', font="Quikhand").rotateZ(20).pos(1.3,3.6,1)
 
 # Add a star marker at maximum of function (set z=0.1, so it stays on top):
-pl += Marker('*', pos=(x[idx], y[idx], 0.1), c='blue')
+fig += Marker('*', pos=(x[idx], y[idx], 0.1), c='blue')
 
 # Add a dashed line to indicate the minimum
-pl += Line((x[0], miny), (x[-1], miny)).pattern('- . -').lw(3)
+fig += Line((x[0], miny), (x[-1], miny)).pattern('- . -').lw(3)
 
-pl.show(zoom='tight', mode="image", size=(900,600)).close()
+fig.show(zoom='tight', mode="image", size=(900,600)).close()

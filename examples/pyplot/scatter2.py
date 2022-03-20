@@ -16,28 +16,31 @@ marker_cols = np.c_[np.cos(2*x), np.zeros(n), np.zeros(n)]
 
 
 txt0 = Text2D("A scatter plot of a\n2D gaussian distribution")
-plt0 = plot(x, y, ma=0.3, lw=0,        # ma = marker alpha
-            marker="*",                # marker style
-            xtitle="variable A",
-            ytitle="variable B",
+fig0 = plot(
+    x, y, ma=0.3, lw=0,        # ma = marker alpha
+    marker="*",                # marker style
+    xtitle="variable A",
+    ytitle="variable B",
 )
 
 txt1 = Text2D("marker size proportional to sin(2x) ")
-plt1 = plot(x, y, ma=0.3, lw=0,
-            marker="*",                # marker style
-            ms=marker_sizes,           # VARIABLE marker sizes
-            mc='red',                  # same fixed color for markers
+fig1 = plot(
+    x, y, ma=0.3, lw=0,
+    marker="*",                # marker style
+    ms=marker_sizes,           # VARIABLE marker sizes
+    mc='red',                  # same fixed color for markers
 )
 
 txt2 = Text2D("marker size proportional to sin(2x)\nred level   proportional to cos(2x)")
-plt2 = plot(x, y, ma=0.3, lw=0,
-            marker=">",                # marker style
-            ms=marker_sizes,           # VARIABLE marker sizes
-            mc=marker_cols,            # VARIABLE marker colors
+fig2 = plot(
+    x, y, ma=0.3, lw=0,
+    marker=">",                # marker style
+    ms=marker_sizes,           # VARIABLE marker sizes
+    mc=marker_cols,            # VARIABLE marker colors
 )
 
-plotter = Plotter(N=3, size=(1800,500))
-plotter.at(0).show(plt0, txt0)
-plotter.at(1).show(plt1, txt1)
-plotter.at(2).show(plt2, txt2, zoom=1.2)
-plotter.interactive().close()
+plt = Plotter(N=3, size=(1800,500))
+plt.at(0).show(fig0, txt0)
+plt.at(1).show(fig1, txt1)
+plt.at(2).show(fig2, txt2, zoom=1.2)
+plt.interactive().close()

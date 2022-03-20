@@ -10,7 +10,7 @@ y = 3 * np.sin(x)
 errs = np.ones_like(x) / 2
 
 ################# first plot
-plt = plot(
+fig = plot(
     x, y,
     "*r-",           # markers: *,o,p,h,D,d,v,^,s,x,a
 	title=__doc__,
@@ -20,8 +20,8 @@ plt = plot(
     # xlim=(-1, 14), # specify x range
 )
 
-################# plot on top of plt
-plt += plot(
+################# plot on top of fig
+fig += plot(
     x+3, y,
     "sb--",
     xerrors=errs,    # set error bars on x
@@ -30,8 +30,8 @@ plt += plot(
     lw=3,
 )
 
-################## plot again on top of plt
-plt += plot(x, y/5, "g")
+################## plot again on top of fig
+fig += plot(x, y/5, "g")
 
 ##################
-plt.show(mode="image", size=(800,450), zoom='tight').close()
+fig.show(mode="image", size=(800,450), zoom='tight').close()

@@ -9,7 +9,7 @@ percent = [11.68909178, 54.01850072, 18.27246516,  7.14800577,  8.87193657, 0, 0
 labels  = ['<100', '100-250', '250-500', '500-750', '750-1000', '1000-2000', '>2000']
 colors  = colorMap(range(len(counts)), "hot")
 
-plt = plot([counts, labels, colors],
+fig = plot([counts, labels, colors],
             mode="bars",
             ylim=(0,10500),
             aspect=4/3,
@@ -23,7 +23,7 @@ plt = plot([counts, labels, colors],
 
 for i in range(len(percent)):
     val = precision(percent[i], 3)+'%'
-    txt = Text3D(val, pos=(plt.centers[i], counts[i]), justify="bottom-center", c="blue2")
-    plt += txt.scale(200).shift(0,150,0)
+    txt = Text3D(val, pos=(fig.centers[i], counts[i]), justify="bottom-center", c="blue2")
+    fig += txt.scale(200).shift(0,150,0)
 
-plt.show(size=(1000,750), zoom=1.3, viewup='2d').close()
+fig.show(size=(1000,750), zoom=1.4, mode='image').close()

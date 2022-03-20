@@ -854,7 +854,11 @@ def pointCloudFrom(obj, interpolateCellData=False):
 
 ###################################################
 def Point(pos=(0, 0, 0), r=12, c="red", alpha=1):
-    """Create a simple point in space."""
+    """
+    Create a simple point in space.
+
+    .. note:: if you are creating many points you should definitely use class `Points` instead.
+    """
     if isinstance(pos, vtk.vtkActor):
         pos = pos.GetPosition()
     pd = utils.buildPolyData([[0,0,0]])

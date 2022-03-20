@@ -16,6 +16,7 @@ Advanced plotting utility functions
 """
 
 __all__ = [
+    "Figure",
     "plot",
     "histogram",
     "fit",
@@ -31,16 +32,30 @@ __all__ = [
 
 
 ##########################################################################
-class Plot(Assembly):
-    """Derived class of ``Assembly`` to manipulate plots."""
+class Figure(Assembly):
+    """
+    Derived class of ``Assembly`` to hold plots and histograms
+    with a vertical scaling to keep the prescribed aspect ratio.
+
+    """
     def __init__(self, *objs, **kwargs):
 
-        self.yscale = 1
+        lims = False
+        if 'xlim' in kwargs and 'ylim' in kwargs:
+            lims=True
+
+        self.pad = 0.05
         self.aspect = 4/3
+        if 'aspect' in kwargs and not lims:
+            asp = utils.precision(kwargs['aspect'], 3)
+            colors.printc(f"You set aspect ratio as {asp} but xlim or ylim are not set!", c='y')
+            self.aspect = 1
+
+        self.yscale = 1
+        self.fixed_scale = 1
         self.cut = True  # todo
         self.xlim = None
         self.ylim = None
-        self.pad = 0.05
 
         self.axes = None
         self.title = ''
@@ -52,14 +67,13 @@ class Plot(Assembly):
         self._y0lim = None
         self._x1lim = None
         self._y1lim = None
-        self.fixed_scale = 1
 
         self.bins = []
         self.freqs = []
 
         self.format = None
 
-        # these are scaled by default when added to a Plot
+        # these are scaled by default when added to a Figure
         self.invariable_types = (
             shapes.Text3D,
             shapes.Polygon,
@@ -73,17 +87,18 @@ class Plot(Assembly):
             vedo.Picture,
         )
 
-        # deal with creating an empty plot:
-        if 'xlim' in kwargs and 'ylim' in kwargs:
+        # deal with creating an empty figure:
+        if lims:
             self.format = kwargs
             self.xlim = kwargs['xlim']
             self.ylim = kwargs['ylim']
+            self.pad = 0
             if 'pad' in kwargs: self.pad = kwargs['pad']
             if 'aspect' in kwargs: self.aspect = kwargs['aspect']
             if 'zmax'   in kwargs: self.zmax = kwargs['zmax']
             if 'axes' in kwargs:
                 axes = kwargs['axes']
-                if 'htitle'  in axes: self.title = axes['htitle']
+                if 'htitle' in axes: self.title  = axes['htitle']
                 if 'xtitle' in axes: self.xtitle = axes['xtitle']
                 if 'ytitle' in axes: self.ytitle = axes['ytitle']
 
@@ -132,11 +147,10 @@ class Plot(Assembly):
                     self._x1lim = x1
                     self._y0lim = y0lim
                     self._y1lim = y1lim
-                    self.name = "EmptyPlot"
 
         Assembly.__init__(self, *objs)
+        self.name = "Figure"
         return
-
 
     def ybounds(self, scaled=True):
         if scaled:
@@ -145,11 +159,6 @@ class Plot(Assembly):
             return (self._y0lim, self._y1lim)
 
     def __iadd__(self, *objs):
-        """
-        Add object to plot with taking automatically into account the correct aspect ratio.
-
-        .. warning:: Do not add multiple times the same object to avoid wrong rescalings!
-        """
         # these types will scale proportionally to keep their native shape aspect ratio intact
         self.fixed_scale = np.min([1, self.yscale])
 
@@ -157,8 +166,8 @@ class Plot(Assembly):
         if not utils.isSequence(objs):
             objs = [objs]
 
-        if not utils.isSequence(objs[0]) and isinstance(objs[0], Plot):
-            # is adding another whole Plot # TO BE REVISED
+        if not utils.isSequence(objs[0]) and isinstance(objs[0], Figure):
+            # is adding another whole Figure # TO BE REVISED
             plot2 = objs[0]
             plot_z = plot2.z() + (plot2._x1lim - plot2._x0lim)/1000 # add a small shift in z
             # print(plot2.yscale, self.yscale)
@@ -177,7 +186,8 @@ class Plot(Assembly):
         else:
             # print('adding individual objects', len(objs))
             for a in objs:
-                if isinstance(a, self.invariable_types):
+                if isinstance(a, self.invariable_types) or "Marker" in a.name:
+                    pass
                     # special scaling to preserve the aspect ratio
                     # print('adding', a.name, 'fixed scale', self.fixed_scale)
                     a.scale(self.fixed_scale)
@@ -205,7 +215,7 @@ class Plot(Assembly):
 
     def add(self, *objs, as3d=True):
         """
-        Add an object which lives in the 3D "world-coordinate" system to a 2D scaled `Plot`.
+        Add an object which lives in the 3D "world-coordinate" system to a 2D scaled `Figure`.
         The scaling factor will be taken into account automatically to maintain the
         correct aspect ratio of the plot.
 
@@ -213,7 +223,7 @@ class Plot(Assembly):
         """
         for obj in objs:
             if as3d:
-                if not isinstance(obj, self.invariable_types):
+                if not isinstance(obj, self.invariable_types) or "Marker" in obj.name:
                     obj.scale([1, 1/self.yscale, 1])
             self.__iadd__(obj)
 
@@ -244,7 +254,7 @@ def plot(*args, **kwargs):
     aspect : float
         Desired aspect ratio.
         If None, it is automatically calculated to get a reasonable aspect ratio.
-        Scaling factor is saved in ``Plot.yscale``
+        Scaling factor is saved in ``Figure.yscale``
 
     c : color
         color of frame and text
@@ -436,7 +446,7 @@ def plot(*args, **kwargs):
     If ``mode='spheric'`` input must be an external function rho(theta, phi).
     A surface is created in spherical coordinates.
 
-    Return an ``Plot(Assembly)`` of 2 objects: the unit
+    Return an ``Figure(Assembly)`` of 2 objects: the unit
     sphere (in wireframe representation) and the surface `rho(theta, phi)`.
 
     Parameters
@@ -1191,12 +1201,12 @@ def _plotxy(
         axes["yUseBounds"] = True
         axs = addons.Axes(**axes)
         axs.name = "axes"
-        asse = Plot(acts, axs)
+        asse = Figure(acts, axs)
         asse.axes = axs
         asse.SetOrigin(x0lim, y0lim, 0)
 
     else:
-        asse = Plot(acts)
+        asse = Figure(acts)
 
     asse.yscale = yscale
     asse.xlim = xlim
@@ -1807,11 +1817,11 @@ def _barplot(
         axes["c"] = bc
         axs = addons.Axes(**axes)
         axs.name = "axes"
-        asse = Plot(rs, axs)
+        asse = Figure(rs, axs)
         asse.axes = axs
         asse.SetOrigin(x0lim, y0lim, 0)
     else:
-        asse = Plot(rs)
+        asse = Figure(rs)
 
     asse.yscale = yscale
     asse.xlim = xlim
@@ -2077,11 +2087,11 @@ def _histogram1D(
         axes["c"] = bc
         axs = addons.Axes(**axes)
         axs.name = "axes"
-        asse = Plot(rs, axs)
+        asse = Figure(rs, axs)
         asse.axes = axs
         asse.SetOrigin(x0lim, y0lim, 0)
     else:
-        asse = Plot(rs)
+        asse = Figure(rs)
 
     asse.yscale = yscale
     asse.xlim = xlim
@@ -2223,11 +2233,11 @@ def _histogram2D(
         axes["c"] = bc
         axs = addons.Axes(**axes)
         axs.name = "axes"
-        asse = Plot(acts, axs)
+        asse = Figure(acts, axs)
         asse.axes = axs
         asse.SetOrigin(x0lim, y0lim, 0)
     else:
-        asse = Plot(acts)
+        asse = Figure(acts)
 
     asse.yscale = yscale
     asse.xlim = xlim
@@ -2502,7 +2512,7 @@ def _histogramPolar(
     if mrg:
         mrg.color(bc).lighting('off')
 
-    rh = Plot(slices + errbars + [mrg])
+    rh = Figure(slices + errbars + [mrg])
     rh.freqs = histodata
     rh.bins = edges
     rh.base = np.array([0, 0, 0])

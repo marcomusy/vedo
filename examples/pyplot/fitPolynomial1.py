@@ -11,8 +11,8 @@ y = a*x + b
 noise = np.random.randn(len(x)) * 5 # create gaussian noise
 
 # Plot the points and the "true" line without noise
-plt = plot(x, y+noise, '*k', title=__doc__)
-plt += DashedLine(x, y)
+fig = plot(x, y+noise, '*k', title=__doc__)
+fig += DashedLine(x, y)
 
 # Fit points and evaluate, with a boostrap and Monte-Carlo technique,
 # the correct error coeffs and error bands. Return a Line object:
@@ -22,7 +22,7 @@ pfit = fit([x, y+noise],
            nstd=2,         # nr. of std deviations to display
 )
 
-plt += [pfit, pfit.errorBand, *pfit.errorLines] # add these objects to Plot
+fig += [pfit, pfit.errorBand, *pfit.errorLines] # add these objects to Plot
 
 msg = f"Generated a, b  : {np.array([a,b])}"\
       f"\nFitted    a, b  : {pfit.coefficients}"\
@@ -30,4 +30,4 @@ msg = f"Generated a, b  : {np.array([a,b])}"\
       f"\nave point spread: \sigma \approx {pfit.dataSigma:.3f} in y units"
 msg = Text2D(msg, font='VictorMono', pos='bottom-left', c='red3')
 
-show(plt, msg, mode="image").close()
+show(fig, msg, mode="image").close()

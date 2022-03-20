@@ -5,12 +5,12 @@ from vedo.pyplot import plot
 
 x = np.linspace(0, 5, 10)
 
-plt1 = plot(x, x*x,    'sg-',  title='Plot1: y=x*x')
-plt2 = plot(x, cos(x), 'pr--', title='Plot2: y=cos(x)')
-plt3 = plot(x, sqrt(x),'Db-',  title='Plot3: y=sqrt(x)')
-plt4 = plot(x, sin(x), '*t--', title='Plot4: y=sin(x)')
+fig1 = plot(x, x*x,    'sg-',  title='Plot1: y=x*x')
+fig2 = plot(x, cos(x), 'pr--', title='Plot2: y=cos(x)')
+fig3 = plot(x, sqrt(x),'Db-',  title='Plot3: y=sqrt(x)')
+fig4 = plot(x, sin(x), '*t--', title='Plot4: y=sin(x)')
 
 # window shape can be expressed as "n/m" or "n|m"
-show(plt1, plt2, plt3, plt4,
+show(fig1, fig2, fig3, fig4,
      shape="3|1", sharecam=False, size=(1300,900)).interactive().close()
 

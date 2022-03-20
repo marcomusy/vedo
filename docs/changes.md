@@ -41,7 +41,7 @@
 
 ---
 ### `pyplot.py`
-- can create an empty `Plot` object to be later filled.
+- can create an empty `Figure` object to be later filled.
 
 ---
 ### `shapes.py`
@@ -77,6 +77,8 @@
 `examples/other/remesh_tetgen.py`
 `examples/volumetric/tetralize_surface.py`
 `examples/pyplot/plot_empty.py`
+`examples/pyplot/plot_errband.py`
+
 
 ### Broken
 

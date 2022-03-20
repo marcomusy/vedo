@@ -2415,6 +2415,7 @@ def Axes(
         gxy.alpha(xyAlpha).wireframe(xyGridTransparent).c(xyPlaneColor)
         gxy.lw(gridLineWidth).lc(xyGridColor)
         if xyShift: gxy.shift(0,0,xyShift*dz)
+        elif tol: gxy.shift(0,0,-tol*gscale)
         gxy.name = "xyGrid"
         grids.append(gxy)
     if yzGrid and ytitle and ztitle:
@@ -2422,6 +2423,7 @@ def Axes(
         gyz.alpha(yzAlpha).wireframe(yzGridTransparent).c(yzPlaneColor)
         gyz.lw(gridLineWidth).lc(yzGridColor).RotateY(-90)
         if yzShift: gyz.shift(yzShift*dx,0,0)
+        elif tol: gyz.shift(-tol*gscale,0,0)
         gyz.name = "yzGrid"
         grids.append(gyz)
     if zxGrid and ztitle and xtitle:
@@ -2429,6 +2431,7 @@ def Axes(
         gzx.alpha(zxAlpha).wireframe(zxGridTransparent).c(zxPlaneColor)
         gzx.lw(gridLineWidth).lc(zxGridColor).RotateX(90)
         if zxShift: gzx.shift(0,zxShift*dy,0)
+        elif tol: gzx.shift(0,-tol*gscale,0)
         gzx.name = "zxGrid"
         grids.append(gzx)
     #Grid2
@@ -2436,18 +2439,21 @@ def Axes(
         gxy2 = shapes.Grid(s=(xticks_float, yticks_float)).z(dz)
         gxy2.alpha(xyAlpha).wireframe(xyGrid2Transparent).c(xyPlaneColor)
         gxy2.lw(gridLineWidth).lc(xyGridColor)
+        if tol: gxy2.shift(0,tol*gscale,0)
         gxy2.name = "xyGrid2"
         grids.append(gxy2)
     if yzGrid2 and ytitle and ztitle:
         gyz2 = shapes.Grid(s=(zticks_float, yticks_float)).x(dx)
         gyz2.alpha(yzAlpha).wireframe(yzGrid2Transparent).c(yzPlaneColor)
         gyz2.lw(gridLineWidth).lc(yzGridColor).RotateY(-90)
+        if tol: gyz2.shift(tol*gscale,0,0)
         gyz2.name = "yzGrid2"
         grids.append(gyz2)
     if zxGrid2 and ztitle and xtitle:
         gzx2 = shapes.Grid(s=(xticks_float, zticks_float)).y(dy)
         gzx2.alpha(zxAlpha).wireframe(zxGrid2Transparent).c(zxPlaneColor)
         gzx2.lw(gridLineWidth).lc(zxGridColor).RotateX(90)
+        if tol: gzx2.shift(0,tol*gscale,0)
         gzx2.name = "zxGrid2"
         grids.append(gzx2)
 
@@ -3099,10 +3105,8 @@ def Axes(
         titles.append(htit)
 
     ######
-    acts = titles + lines + labels + grids + framelines + highlights \
-           + majorticks + minorticks + cones
-
-    orig = np.array([min_bns[0], min_bns[2], min_bns[4]]) - tol*gscale
+    acts = titles + lines + labels + grids + framelines + highlights + majorticks + minorticks + cones
+    orig = (min_bns[0], min_bns[2], min_bns[4])
     for a in acts:
         a.PickableOff()
         a.AddPosition(orig)
