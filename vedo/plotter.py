@@ -240,26 +240,6 @@ def show(*actors,
     new : bool
         if set to `True`, a call to show will instantiate
         a new Plotter object (a new window) instead of reusing the first created.
-
-    .. note:: With multiple renderers, keyword ``at`` can become a `list`, e.g.
-
-        .. code-block:: python
-
-            from vedo import *
-            s = Sphere()
-            c = Cube()
-            p = Paraboloid()
-            show(s, c, p, at=[0, 2, 1], shape=(3,1))
-            #
-            # is equivalent to:
-            plt = Plotter(shape=(3,1))
-            s = Sphere()
-            c = Cube()
-            p = Paraboloid()
-            plt.show(s, at=0)
-            plt.show(p, at=2)
-            plt.show(c, at=1)
-            plt.interactive().close()
     """
     backend = _embedWindow(backend)
 
@@ -2593,26 +2573,6 @@ class Plotter:
 
         q : bool
             force program to quit after `show()` command returns.
-
-        .. note:: With multiple renderers, keyword ``at`` can become a `list`, e.g.
-
-            .. code-block:: python
-
-                from vedo import *
-                s = Sphere()
-                c = Cube()
-                p = Paraboloid()
-                show(s, c, p, at=[0, 2, 1], shape=(3,1))
-                #
-                # is equivalent to:
-                plt = Plotter(shape=(3,1))
-                s = Sphere()
-                c = Cube()
-                p = Paraboloid()
-                plt.show(s, at=0)
-                plt.show(p, at=2)
-                plt.show(c, at=1)
-                plt.interactive().close()
         """
         if self.wxWidget:
             return self

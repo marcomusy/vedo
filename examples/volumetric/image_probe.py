@@ -19,10 +19,10 @@ intensities_ray = np.split(intensities, 36)  # split array so we can index any r
 mean_intensity = np.mean(intensities_ray, axis=0)  # compute the average intensity
 
 # add some optional plotting here:
-plt = plot(mean_intensity, lc='black', lw=5, spline=True,
+fig = plot(mean_intensity, lc='black', lw=5, spline=True,
            xtitle='radial distance', ytitle='intensity', aspect=16/9)
 for i in range(0,36, 3):
-    plt += plot(intensities_ray[i], lc=i, lw=1)
-plt.scale(21).shift(10,-750)          # scale up and move plot below the image
+    fig += plot(intensities_ray[i], lc=i, lw=1)
+fig.scale(21).shift(10,-750)          # scale up and move plot below the image
 
-show(msh, circle, lines, plt, __doc__, size=(625,1000), zoom='tight')
+show(msh, circle, lines, fig, __doc__, size=(625,1000), zoom='tight')

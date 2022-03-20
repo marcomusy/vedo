@@ -35,9 +35,30 @@ __all__ = [
 class Figure(Assembly):
     """
     Derived class of ``Assembly`` to hold plots and histograms
-    with a vertical scaling to keep the prescribed aspect ratio.
+    with a vertical scaling to keep the implicit aspect ratio.
 
+    `xlim` and `ylim` must be set.
+
+    `Figure.yscale` can be used to access the vertical scaling factor.
+
+    Parameters
+    ----------
+    cutframe : bool
+        cut off anything that goes out of the axes frames (True by default).
+
+    xtitle : str
+        x axis title
+
+    ytitle : str
+        y axis title
+
+    title : str
+        figure title (to appear on top of the 2D frame)
+
+    .. hint:: examples/pyplot/plot_empty.py
     """
+    # This class can be instatiated to create an empty frame with axes, but it's normally called by
+    # plot() and histogram()
     def __init__(self, *objs, **kwargs):
 
         lims = False
@@ -52,8 +73,8 @@ class Figure(Assembly):
             self.aspect = 1
 
         self.yscale = 1
-        self.fixed_scale = 1
-        self.cut = True  # todo
+        self.cutframe = True
+
         self.xlim = None
         self.ylim = None
 
@@ -87,7 +108,7 @@ class Figure(Assembly):
             vedo.Picture,
         )
 
-        # deal with creating an empty figure:
+        # deal with initializing an empty figure:
         if lims:
             self.format = kwargs
             self.xlim = kwargs['xlim']
@@ -152,15 +173,7 @@ class Figure(Assembly):
         self.name = "Figure"
         return
 
-    def ybounds(self, scaled=True):
-        if scaled:
-            return (self._y0lim/self.yscale, self._y1lim/self.yscale)
-        else:
-            return (self._y0lim, self._y1lim)
-
     def __iadd__(self, *objs):
-        # these types will scale proportionally to keep their native shape aspect ratio intact
-        self.fixed_scale = np.min([1, self.yscale])
 
         objs = objs[0]  # make a list anyway
         if not utils.isSequence(objs):
@@ -185,20 +198,35 @@ class Figure(Assembly):
 
         else:
             # print('adding individual objects', len(objs))
-            for a in objs:
-                if isinstance(a, self.invariable_types) or "Marker" in a.name:
-                    pass
-                    # special scaling to preserve the aspect ratio
-                    # print('adding', a.name, 'fixed scale', self.fixed_scale)
-                    a.scale(self.fixed_scale)
+            for i, a in enumerate(objs):
+
+                # discard input Arrow and substitute it with a brand new one
+                if isinstance(a, (shapes.Arrow, shapes.Arrow2D)):
+                    py = a.base[1]
+                    prop = a.GetProperty()
+                    prop.LightingOff()
+                    a.top[1] = (a.top[1]-py) * self.yscale + py
+                    b = vedo.shapes.Arrow2D(a.base, a.top, s=a.s, fill=a.fill)
+                    b.SetProperty(prop)
+                    b.y(py * self.yscale)
+                    objs[i] = b
+                    a = b
+
                 else:
-                    # print('adding', a.name, 'yscale', self.yscale)
-                    a.scale([1, self.yscale, 1])
-                py = a.y()
-                a.y(py * self.yscale)
+
+                    if isinstance(a, self.invariable_types) or "Marker" in a.name:
+                        # special scaling to preserve the aspect ratio
+                        # (and if the aspect ratio is smaller in y then y rules)
+                        scl = np.min([1, self.yscale])
+                        a.scale(scl)
+                    else:
+                        a.scale([1, self.yscale, 1])
+                    py = a.y()
+                    a.y(py * self.yscale)
+
                 self.AddPart(a)
 
-        if self.cut:  # todo
+        if self.cutframe:  # todo
             for a in objs:
                 if not a or a.name == "axes":
                     continue
@@ -226,6 +254,7 @@ class Figure(Assembly):
                 if not isinstance(obj, self.invariable_types) or "Marker" in obj.name:
                     obj.scale([1, 1/self.yscale, 1])
             self.__iadd__(obj)
+        return self
 
 
 
@@ -1054,7 +1083,7 @@ def _plotxy(
     dy = y1lim - y0lim
     offs += np.sqrt(dx * dx + dy * dy) / 10000
 
-    scale = np.array([[1, yscale]])
+    scale = np.array([[1., yscale]])
     data = np.multiply(data, scale)
 
     acts = []
@@ -1443,13 +1472,13 @@ def _plotPolar(
     if len(rphi) == 2:
         rphi = np.stack((rphi[0], rphi[1]), axis=1)
 
-    rphi = np.array(rphi)
+    rphi = np.array(rphi, dtype=float)
     thetas = rphi[:, 0]
     radii = rphi[:, 1]
 
     k = 180 / np.pi
     if deg:
-        thetas = np.array(thetas) / k
+        thetas = np.array(thetas, dtype=float) / k
 
     vals = []
     for v in thetas:  # normalize range
@@ -1457,7 +1486,7 @@ def _plotPolar(
         if t < 0:
             t += 2 * np.pi
         vals.append(t)
-    thetas = np.array(vals)
+    thetas = np.array(vals, dtype=float)
 
     if vmax is None:
         vmax = np.max(radii)
@@ -1547,8 +1576,8 @@ def _plotPolar(
     if mrg:
         mrg.color(bc).alpha(alpha).lighting('off')
     rh = Assembly([lines, ptsact, filling] + [mrg])
-    rh.base = np.array([0, 0, 0])
-    rh.top = np.array([0, 0, 1])
+    rh.base = np.array([0, 0, 0], dtype=float)
+    rh.top = np.array([0, 0, 1], dtype=float)
     rh.name = "plotPolar"
     return rh
 
@@ -1573,7 +1602,7 @@ def _plotSpheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=
             inans.append(i)
             newr.append(1)
 
-    newr = np.array(newr)
+    newr = np.array(newr, dtype=float)
     if normalize:
         newr = newr / np.max(newr)
         newr[inans] = 1
@@ -2190,8 +2219,8 @@ def _histogram2D(
         sc_scale = (y1lim-y0lim)/(scy1-scy0)
         sc.scale(sc_scale)
         acts.append(sc)
-    g.base = np.array([0, 0, 0])
-    g.top = np.array([0, 0, 1])
+    g.base = np.array([0, 0, 0], dtype=float)
+    g.top = np.array([0, 0, 1], dtype=float)
     acts.append(g)
 
     if title:  #####################
@@ -2349,8 +2378,8 @@ def _histogramHexBin(
     asse = Assembly(hexs)
     asse.SetScale(1.2 / n * dx, 1 / m * dy, norm / binmax * (dx + dy) / 4)
     asse.SetPosition(xmin, ymin, 0)
-    asse.base = np.array([0, 0, 0])
-    asse.top = np.array([0, 0, 1])
+    asse.base = np.array([0, 0, 0], dtype=float)
+    asse.top = np.array([0, 0, 1], dtype=float)
     asse.name = "histogramHexBin"
     return asse
 
@@ -2383,9 +2412,9 @@ def _histogramPolar(
     ):
     k = 180 / np.pi
     if deg:
-        values = np.array(values) / k
+        values = np.array(values, dtype=float) / k
     else:
-        values = np.array(values)
+        values = np.array(values, dtype=float)
 
     vals = []
     for v in values:  # normalize range
@@ -2515,8 +2544,8 @@ def _histogramPolar(
     rh = Figure(slices + errbars + [mrg])
     rh.freqs = histodata
     rh.bins = edges
-    rh.base = np.array([0, 0, 0])
-    rh.top = np.array([0, 0, 1])
+    rh.base = np.array([0, 0, 0], dtype=float)
+    rh.top = np.array([0, 0, 1], dtype=float)
     rh.name = "histogramPolar"
     return rh
 
@@ -2547,7 +2576,7 @@ def _histogramSpheric(
     for p in ptsvals:
         cell = sg.closestPoint(p, returnCellId=True)
         counts[cell] += 1
-    acounts = np.array(counts)
+    acounts = np.array(counts, dtype=float)
     counts *= (rmax - 1) / np.max(counts)
 
     for cell, cn in enumerate(counts):
@@ -2626,7 +2655,7 @@ def donut(
     .. hist:: examples/pyplot/donut.py
         .. image:: https://vedo.embl.es/images/pyplot/donut.png
     """
-    fractions = np.array(fractions)
+    fractions = np.array(fractions, dtype=float)
     angles = np.add.accumulate(2 * np.pi * fractions)
     angles[-1] = 2 * np.pi
     if angles[-2] > 2 * np.pi:
@@ -2713,8 +2742,8 @@ def quiver(
     if isinstance(points, vedo.Points):
         points = points.points()
     else:
-        points = np.array(points)
-    vectors = np.array(vectors) / 2
+        points = np.array(points, dtype=float)
+    vectors = np.array(vectors, dtype=float) / 2
 
     spts = points - vectors
     epts = points + vectors
@@ -2841,8 +2870,8 @@ def violin(
         rs.append(cl)
 
     asse = Assembly(rs)
-    asse.base = np.array([0, 0, 0])
-    asse.top = np.array([0, 1, 0])
+    asse.base = np.array([0, 0, 0], dtype=float)
+    asse.top = np.array([0, 1, 0], dtype=float)
     asse.name = "violin"
     return asse
 
@@ -2976,7 +3005,7 @@ def streamplot(X, Y, U, V, direction="both",
         if isinstance(probes, vedo.Points):
             probes = probes.points()
         else:
-            probes = np.array(probes)
+            probes = np.array(probes, dtype=float)
             if len(probes[0]) == 2:
                 probes = np.c_[probes[:, 0], probes[:, 1], np.zeros(len(probes))]
         sv = [(n - 1) / (xmax - xmin), (n - 1) / (ymax - ymin), 1]
@@ -2984,12 +3013,13 @@ def streamplot(X, Y, U, V, direction="both",
         probes = np.multiply(probes, sv)
         probe = vedo.Points(probes)
 
-    stream = vedo.base.streamLines( vol.imagedata(),
-                                    probe,
-                                    tubes={"radius": lw, "varyRadius": mode,},
-                                    lw=lw,
-                                    maxPropagation=maxPropagation,
-                                    direction=direction,
+    stream = vedo.base.streamLines(
+        vol.imagedata(),
+        probe,
+        tubes={"radius": lw, "varyRadius": mode,},
+        lw=lw,
+        maxPropagation=maxPropagation,
+        direction=direction,
     )
     if c is not None:
         stream.color(c)

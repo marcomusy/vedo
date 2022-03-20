@@ -538,12 +538,12 @@ class Line(Mesh):
                 p0 = np.stack((p0, p1), axis=1)
                 p1 = None
             if len(p0[0]) == 2: # make it 3d
-                p0 = np.c_[np.array(p0), np.zeros(len(p0))]
+                p0 = np.c_[np.array(p0, dtype=float), np.zeros(len(p0), dtype=float)]
 
         # detect if user is passing a list of points:
         if utils.isSequence(p0[0]):
             if len(p0[0]) == 2: # make it 3d
-                p0 = np.c_[np.array(p0), np.zeros(len(p0))]
+                p0 = np.c_[np.array(p0, dtype=float), np.zeros(len(p0), dtype=float)]
 
             ppoints = vtk.vtkPoints()  # Generate the polyline
             ppoints.SetData(utils.numpy2vtk(p0, dtype=float))
@@ -576,8 +576,8 @@ class Line(Mesh):
             lineSource.SetResolution(res-1)
             lineSource.Update()
             poly = lineSource.GetOutput()
-            top = np.array(p1)
-            base = np.array(p0)
+            top = np.array(p1, dtype=float)
+            base = np.array(p0, dtype=float)
 
         Mesh.__init__(self, poly, c, alpha)
         self.lw(lw).lighting('off')
@@ -851,7 +851,7 @@ class DashedLine(Line):
                 p0 = np.stack((p0, p1), axis=1)
                 p1 = None
             if len(p0[0]) == 2: # make it 3d
-                p0 = np.c_[np.array(p0), np.zeros(len(p0))]
+                p0 = np.c_[np.array(p0, dtype=float), np.zeros(len(p0), dtype=float)]
             if closed:
                 p0 = np.append(p0, [p0[0]], axis=0)
 
@@ -946,7 +946,7 @@ def RoundedLine(pts, lw, c='gray4', alpha=1, res=10):
             rl = RoundedLine(pts, 0.6)
             show(Points(pts), ln, rl, axes=1)
     """
-    pts = np.asarray(pts)
+    pts = np.asarray(pts, dtype=float)
     if len(pts[0]) == 2: # make it 3d
         pts = np.c_[pts, np.zeros(len(pts))]
 
@@ -1118,7 +1118,7 @@ class Spline(Line):
             points = points.points()
 
         if len(points[0]) == 2: # make it 3d
-            points = np.c_[np.array(points), np.zeros(len(points))]
+            points = np.c_[np.array(points, dtype=float), np.zeros(len(points), dtype=float)]
 
         per = 0
         if closed:
@@ -1128,7 +1128,7 @@ class Spline(Line):
         if res is None:
             res = len(points)*10
 
-        points = np.array(points)
+        points = np.array(points, dtype=float)
 
         minx, miny, minz = np.min(points, axis=0)
         maxx, maxy, maxz = np.max(points, axis=0)
@@ -1209,7 +1209,7 @@ class KSpline(Line):
         if not res: res = len(points)*20
 
         if len(points[0]) == 2: # make it 3d
-            points = np.c_[np.array(points), np.zeros(len(points))]
+            points = np.c_[np.array(points, dtype=float), np.zeros(len(points), dtype=float)]
 
         xspline = vtk.vtkKochanekSpline()
         yspline = vtk.vtkKochanekSpline()
@@ -1239,8 +1239,8 @@ class KSpline(Line):
         self.clean()
         self.lighting('off')
         self.name = "KSpline"
-        self.base = np.array(points[0])
-        self.top = np.array(points[-1])
+        self.base = np.array(points[0], dtype=float)
+        self.top = np.array(points[-1], dtype=float)
 
 class CSpline(Line):
     """
@@ -1265,7 +1265,7 @@ class CSpline(Line):
         if not res: res = len(points)*20
 
         if len(points[0]) == 2: # make it 3d
-            points = np.c_[np.array(points), np.zeros(len(points))]
+            points = np.c_[np.array(points, dtype=float), np.zeros(len(points), dtype=float)]
 
         xspline = vtk.vtkCardinalSpline()
         yspline = vtk.vtkCardinalSpline()
@@ -1292,8 +1292,8 @@ class CSpline(Line):
         self.clean()
         self.lighting('off')
         self.name = "CSpline"
-        self.base = np.array(points[0])
-        self.top = np.array(points[-1])
+        self.base = np.array(points[0], dtype=float)
+        self.top = np.array(points[-1], dtype=float)
 
 
 def Bezier(points, res=None):
@@ -1381,8 +1381,8 @@ def Brace(q1, q2, style='}', pad=0.2, thickness=1,
         q1 = [q1[0],q1[1],0.0]
     if len(q2)==2:
         q2 = [q2[0],q2[1],0.0]
-    q1 = np.array(q1)
-    q2 = np.array(q2)
+    q1 = np.array(q1, dtype=float)
+    q2 = np.array(q2, dtype=float)
     q2[2] = q1[2]
 
     if style not in '{}[]()<>|I':
@@ -1547,8 +1547,8 @@ class Tube(Mesh):
             self.mapper().SelectColorArray("TubeColors")
             self.mapper().Modified()
 
-        self.base = np.array(points[0])
-        self.top = np.array(points[-1])
+        self.base = np.array(points[0], dtype=float)
+        self.top = np.array(points[-1], dtype=float)
         self.name = "Tube"
 
 
@@ -1683,6 +1683,9 @@ class Arrow(Mesh):
             alpha=1,
             res=12
         ):
+        self.s = s if s is not None else 1 ## only needed by pyplot.__iadd()
+        self.fill = True
+
         # in case user is passing meshs
         if isinstance(startPoint, vtk.vtkActor): startPoint = startPoint.GetPosition()
         if isinstance(endPoint,   vtk.vtkActor): endPoint   = endPoint.GetPosition()
@@ -1691,7 +1694,12 @@ class Arrow(Mesh):
         length = np.linalg.norm(axis)
         if length:
             axis = axis / length
-        theta = np.arccos(axis[2])
+        if len(axis)<3: # its 2d
+            theta = np.pi/2
+            startPoint = [startPoint[0], startPoint[1], 0.]
+            endPoint = [endPoint[0], endPoint[1], 0.]
+        else:
+            theta = np.arccos(axis[2])
         phi = np.arctan2(axis[1], axis[0])
         self.arr = vtk.vtkArrowSource()
         self.arr.SetShaftResolution(res)
@@ -1723,9 +1731,10 @@ class Arrow(Mesh):
         self.SetPosition(startPoint)
         self.PickableOff()
         self.DragableOff()
-        self.base = np.array(startPoint)
-        self.top = np.array(endPoint)
+        self.base = np.array(startPoint, dtype=float)
+        self.top = np.array(endPoint, dtype=float)
         self.tipIndex = None
+        self.fill = True # used by pyplot.__iadd__()
         self.name = "Arrow"
 
     def tipPoint(self, returnIndex=False):
@@ -1776,7 +1785,7 @@ def Arrows(startPoints, endPoints=None, s=None, thickness=1, c=None, alpha=1, re
     if startPoints.shape[1] == 2: # make it 3d
         startPoints = np.c_[startPoints, np.zeros(len(startPoints))]
     if endPoints.shape[1] == 2: # make it 3d
-        endPoints = np.c_[np.array(endPoints), np.zeros(len(endPoints))]
+        endPoints = np.c_[np.array(endPoints, dtype=float), np.zeros(len(endPoints), dtype=float)]
 
     arr = vtk.vtkArrowSource()
     arr.SetShaftResolution(res)
@@ -1806,6 +1815,9 @@ class Arrow2D(Mesh):
 
     Parameters
     ----------
+    s : float
+        a global multiplicative convenience factor controlling the arrow size
+
     shaftLength : float
         fractional shaft length
 
@@ -1821,16 +1833,25 @@ class Arrow2D(Mesh):
     fill : bool
         if False only generate the outline
     """
-    def __init__(self,
-                 startPoint=(0,0,0),
-                 endPoint=(1,0,0),
-                 shaftLength=0.8,
-                 shaftWidth=0.05,
-                 headLength=0.25,
-                 headWidth=0.2,
-                 fill=True,
-                 c="r4",
-                 alpha=1):
+    def __init__(
+            self,
+            startPoint=(0,0,0),
+            endPoint=(1,0,0),
+            s=1,
+            shaftLength=0.8,
+            shaftWidth=0.05,
+            headLength=0.225,
+            headWidth=0.175,
+            fill=True,
+            c="r4",
+            alpha=1
+        ):
+        self.fill = fill  ## needed by pyplot.__iadd()
+        self.s = s#  # needed by pyplot.__iadd()
+
+        if s != 1:
+            shaftWidth *= s
+            headWidth *= np.sqrt(s)
 
         # in case user is passing meshs
         if isinstance(startPoint, vtk.vtkActor): startPoint = startPoint.GetPosition()
@@ -1882,8 +1903,8 @@ class Arrow2D(Mesh):
         self.lighting('off')
         self.DragableOff()
         self.PickableOff()
-        self.base = np.array(startPoint)
-        self.top = np.array(endPoint)
+        self.base = np.array(startPoint, dtype=float)
+        self.top = np.array(endPoint, dtype=float)
         self.name = "Arrow2D"
 
 def Arrows2D(
@@ -1932,13 +1953,13 @@ def Arrows2D(
     """
     if isinstance(startPoints, Points): startPoints = startPoints.points()
     if isinstance(endPoints,   Points): endPoints   = endPoints.points()
-    startPoints = np.array(startPoints)
+    startPoints = np.array(startPoints, dtype=float)
     if endPoints is None:
         strt = startPoints[:,0]
         endPoints = startPoints[:,1]
         startPoints = strt
     else:
-        endPoints = np.array(endPoints)
+        endPoints = np.array(endPoints, dtype=float)
 
     if headLength is None:
         headLength = 1 - shaftLength
@@ -1949,7 +1970,7 @@ def Arrows2D(
 
     orients = endPoints - startPoints
     if orients.shape[1] == 2: # make it 3d
-        orients = np.c_[np.array(orients), np.zeros(len(orients))]
+        orients = np.c_[np.array(orients, dtype=float), np.zeros(len(orients), dtype=float)]
 
     pts = Points(startPoints)
     arrg = Glyph(pts,
@@ -1972,7 +1993,7 @@ def FlatArrow(line1, line2, c="r4", alpha=1, tipSize=1, tipWidth=1):
     if isinstance(line1, Points): line1 = line1.points()
     if isinstance(line2, Points): line2 = line2.points()
 
-    sm1, sm2 = np.array(line1[-1]), np.array(line2[-1])
+    sm1, sm2 = np.array(line1[-1], dtype=float), np.array(line2[-1], dtype=float)
 
     v = (sm1-sm2)/3*tipWidth
     p1 = sm1+v
@@ -2416,8 +2437,8 @@ class Ellipsoid(Mesh):
         self.phong()
         self.GetProperty().BackfaceCullingOn()
         self.SetPosition(pos)
-        self.Length = -np.array(axis1) / 2 + pos
-        self.top = np.array(axis1) / 2 + pos
+        self.Length = -np.array(axis1, dtype=float) / 2 + pos
+        self.top = np.array(axis1, dtype=float) / 2 + pos
         self.name = "Ellipsoid"
 
     def asphericity(self):
@@ -2495,13 +2516,13 @@ class Grid(Mesh):
         In this case keyword `res` is ignored (see example below).
 
     sx : float, list
-        deprecated, please use s
+        deprecated, please use s=(sx, sy)
 
     res : list
         resolutions along x and y, e.i. the number of subdivisions
 
     resx : int
-        deprecated, please use res
+        deprecated, please use res=(n,m)
 
     lw : int
         line width
@@ -2603,8 +2624,8 @@ class Plane(Mesh):
         if len(s)==2:
             sx, sy = s
 
-        self.normal = np.array(normal)
-        self.center = np.array(pos)
+        self.normal = np.array(normal, dtype=float)
+        self.center = np.array(pos, dtype=float)
         self.variance = 0
 
         ps = vtk.vtkPlaneSource()
@@ -2613,7 +2634,7 @@ class Plane(Mesh):
         tri.SetInputConnection(ps.GetOutputPort())
         tri.Update()
         poly = tri.GetOutput()
-        axis = np.array(normal) / np.linalg.norm(normal)
+        axis = self.normal / np.linalg.norm(normal)
         theta = np.arccos(axis[2])
         phi = np.arctan2(axis[1], axis[0])
         t = vtk.vtkTransform()
@@ -2629,8 +2650,8 @@ class Plane(Mesh):
         self.lighting('ambient')
         self.SetPosition(pos)
         self.name = "Plane"
-        self.top = np.array(normal)
-        self.bottom = np.array([0,0,0])
+        self.top = self.normal
+        self.bottom = np.array([0.,0.,0.])
 
     def contains(self, points):
         """
@@ -2638,7 +2659,7 @@ class Plane(Mesh):
 
         points is an array with shape ( , 3).
         """
-        points = np.array(points)
+        points = np.array(points, dtype=float)
         bounds = self.points()
 
         mask = np.isclose(np.dot(points - self.center, self.normal), 0)
@@ -2658,7 +2679,7 @@ def Rectangle(p1=(0, 0), p2=(2, 1), c="gray6", alpha=1):
     if len(p1) == 2:
         p1 = np.array([p1[0], p1[1], 0.])
     else:
-        p1 = np.array(p1)
+        p1 = np.array(p1, dtype=float)
     if len(p2) == 2:
         p2 = np.array([p2[0], p2[1], 0.])
     else:
@@ -2773,8 +2794,8 @@ def TessellatedBox(pos=(0, 0, 0), n=10, spacing=(1,1,1), c="k5", alpha=0.5):
         boxSource.Update()
         mesh = Mesh(boxSource.GetOutput(), c=c, alpha=alpha).lw(1)
     mesh.SetPosition(pos)
-    mesh.base = np.array([0.5,0.5,0])
-    mesh.top  = np.array([0.5,0.5,1])
+    mesh.base = np.array([0.5,0.5,0.0])
+    mesh.top  = np.array([0.5,0.5,1.0])
     mesh.name = "TessellatedBox"
     return mesh
 
@@ -2808,7 +2829,7 @@ class Spring(Mesh):
             c="gray5",
             alpha=1,
         ):
-        diff = endPoint - np.array(startPoint)
+        diff = endPoint - np.array(startPoint, dtype=float)
         length = np.linalg.norm(diff)
         if not length:
             return None
@@ -2847,8 +2868,8 @@ class Spring(Mesh):
         Mesh.__init__(self, tuf.GetOutput(), c, alpha)
         self.phong()
         self.SetPosition(startPoint)
-        self.base = np.array(startPoint)
-        self.top = np.array(endPoint)
+        self.base = np.array(startPoint, dtype=float)
+        self.top = np.array(endPoint, dtype=float)
         self.name = "Spring"
 
 
@@ -2865,8 +2886,8 @@ class Cylinder(Mesh):
                  c="teal3", alpha=1, cap=True, res=24):
 
         if utils.isSequence(pos[0]):  # assume user is passing pos=[base, top]
-            base = np.array(pos[0])
-            top = np.array(pos[1])
+            base = np.array(pos[0], dtype=float)
+            top = np.array(pos[1], dtype=float)
             pos = (base + top) / 2
             height = np.linalg.norm(top - base)
             axis = top - base
@@ -3300,10 +3321,10 @@ class Text3D(Mesh):
         bb = tpoly.GetBounds()
         dx, dy = (bb[1] - bb[0]) / 2 * s, (bb[3] - bb[2]) / 2 * s
         shift = -np.array([(bb[1] + bb[0]), (bb[3] + bb[2]), (bb[5] + bb[4])]) * s /2
-        if "bottom" in justify: shift += np.array([  0, dy, 0])
-        if "top"    in justify: shift += np.array([  0,-dy, 0])
-        if "left"   in justify: shift += np.array([ dx,  0, 0])
-        if "right"  in justify: shift += np.array([-dx,  0, 0])
+        if "bottom" in justify: shift += np.array([  0, dy, 0.])
+        if "top"    in justify: shift += np.array([  0,-dy, 0.])
+        if "left"   in justify: shift += np.array([ dx,  0, 0.])
+        if "right"  in justify: shift += np.array([-dx,  0, 0.])
 
         t = vtk.vtkTransform()
         t.PostMultiply()
@@ -3913,7 +3934,7 @@ def ConvexHull(pts):
     """
     if utils.isSequence(pts):
         if len(pts[0]) == 2: # make it 3d
-            pts = np.c_[np.array(pts), np.zeros(len(pts))]
+            pts = np.c_[np.array(pts, dtype=float), np.zeros(len(pts), dtype=float)]
         mesh = Points(pts)
     else:
         mesh = pts
