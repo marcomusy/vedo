@@ -44,7 +44,7 @@ class Figure(Assembly):
     Parameters
     ----------
     cutframe : bool
-        cut off anything that goes out of the axes frames (True by default).
+        cut off anything that goes out of the axes frame (True by default).
 
     xtitle : str
         x axis title
@@ -74,6 +74,7 @@ class Figure(Assembly):
 
         self.yscale = 1
         self.cutframe = True
+        if 'cutframe' in kwargs: self.cutframe = kwargs['cutframe']
 
         self.xlim = None
         self.ylim = None
@@ -103,7 +104,6 @@ class Figure(Assembly):
             shapes.Ellipsoid,
             shapes.Latex,
             shapes.Sphere,
-            # shapes.Arrow2D,
             Assembly,
             vedo.Picture,
         )
@@ -146,7 +146,6 @@ class Figure(Assembly):
                     labs = []
                     for i in range(1, len(tp) - 1):
                         ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
-                        # print(i, tp[i], ynew, ts[i])
                         labs.append([ynew, ts[i]])
 
                     axes["htitle"] = self.title
@@ -226,9 +225,9 @@ class Figure(Assembly):
 
                 self.AddPart(a)
 
-        if self.cutframe:  # todo
+        if self.cutframe:
             for a in objs:
-                if not a or a.name == "axes":
+                if not a or a.name == "Axes":
                     continue
                 try:
                     a.cutWith2DLine([
@@ -239,7 +238,8 @@ class Figure(Assembly):
                         ], invert=False, closed=True,
                     )
                 except:
-                    print("Error could not cut plot in figure.")
+                    pass
+                    vedo.logger.error("Error could not cut plot in figure.")
 
         return self
 
