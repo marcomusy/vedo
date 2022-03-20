@@ -247,7 +247,7 @@ class Figure(Assembly):
                     # )
                 except:
                     pass
-                    vedo.logger.error("Error could not cut plot in figure.")
+                    # vedo.logger.error("Error could not cut plot in figure.")
 
         return self
 
