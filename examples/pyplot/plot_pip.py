@@ -6,11 +6,10 @@ import numpy as np
 settings.defaultFont = 'Theemim'
 settings.useParallelProjection = True
 
-x = np.arange(0, 4, 0.1)
+x = np.arange(0, 4, 0.01)
 y1 = 3*np.exp(-x)
 y2 = 3*np.exp(-x)*np.cos(2*x)**2
 
-axes_opts = dict(numberOfDivisions=3, xyPlaneColor='lavender', xyAlpha=1)
 
 # Build first plot and its axes:
 fig1 = plot(x, y1,
@@ -20,11 +19,16 @@ fig1 = plot(x, y1,
 )
 
 # Build second plot and its axes:
+axes_opts = dict(numberOfDivisions=3,
+                 gridLineWidth=0,
+                 xyPlaneColor='lightblue',
+                 xyAlpha=1,
+                 textScale=1.8,
+)
 fig2 = plot(x, y2,
-            title='my second plot',
-            xtitle='time in seconds',
+            xtitle=' ',
             ytitle='some other function',
-            lc='red',
+            lc='red5',
             pad=0,          # no margins
             axes=axes_opts,
 )

@@ -21,7 +21,6 @@ __all__ = [
     "histogram",
     "fit",
     "donut",
-    "quiver",
     "violin",
     "whisker",
     "streamplot",
@@ -238,7 +237,7 @@ class Figure(Assembly):
                         a.cutWithPlane([self._x0lim, 0, 0], [1, 0, 0])
                     if self._x1lim is not None:
                         a.cutWithPlane([self._x1lim, 0, 0], [-1,0, 0])
-                    # a.cutWith2DLine([ # unfortunately doesnt work well with Line
+                    # a.cutWith2DLine([ # a bit faster but unfortunately doesnt work well with Line
                     #         [self._x0lim-0.001, self._y0lim-0.001],
                     #         [self._x1lim+0.001, self._y0lim-0.001],
                     #         [self._x1lim+0.001, self._y1lim+0.001],
@@ -247,7 +246,7 @@ class Figure(Assembly):
                     # )
                 except:
                     pass
-                    # vedo.logger.error("Error could not cut plot in figure.")
+                    # vedo.logger.error("Error could not cut plot object in figure.")
 
         return self
 
@@ -2711,67 +2710,6 @@ def donut(
     )
     dn.name = "donut"
     return dn
-
-
-def quiver(
-        points,
-        vectors,
-        c="k",
-        alpha=1,
-        shaftLength=0.8,
-        shaftWidth=0.05,
-        headLength=0.25,
-        headWidth=0.2,
-        fill=True,
-    ):
-    """
-    Quiver Plot, display `vectors` at `points` locations.
-
-    Color can be specified as a colormap which maps the size of the arrows.
-
-    Parameters
-    ----------
-    shaftLength : float
-        fractional shaft length
-
-    shaftWidth : float
-        fractional shaft width
-
-    headLength : float
-        fractional head length
-
-    headWidth : float
-        fractional head width
-
-    fill : bool
-        if False only generate the outline
-
-    .. hint:: examples/pyplot/quiver.py
-        .. image:: https://vedo.embl.es/images/pyplot/quiver.png
-    """
-    if isinstance(points, vedo.Points):
-        points = points.points()
-    else:
-        points = np.array(points, dtype=float)
-    vectors = np.array(vectors, dtype=float) / 2
-
-    spts = points - vectors
-    epts = points + vectors
-
-    arrs2d = shapes.Arrows2D(
-        spts,
-        epts,
-        c=c,
-        shaftLength=shaftLength,
-        shaftWidth=shaftWidth,
-        headLength=headLength,
-        headWidth=headWidth,
-        fill=fill,
-        alpha=alpha,
-    )
-    arrs2d.pickable(False)
-    arrs2d.name = "quiver"
-    return arrs2d
 
 
 def violin(

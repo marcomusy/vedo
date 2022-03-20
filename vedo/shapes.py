@@ -1910,13 +1910,13 @@ class Arrow2D(Mesh):
 def Arrows2D(
         startPoints,
         endPoints=None,
+        s=1,
         shaftLength=0.8,
-        shaftWidth=0.09,
-        headLength=None,
-        headWidth=0.2,
+        shaftWidth=0.05,
+        headLength=0.225,
+        headWidth=0.175,
         fill=True,
         c=None,
-        cmap=None,
         alpha=1
     ):
     """
@@ -1965,8 +1965,9 @@ def Arrows2D(
         headLength = 1 - shaftLength
 
     arr = Arrow2D((0,0,0), (1,0,0),
-                  shaftLength, shaftWidth,
-                  headLength, headWidth, fill)
+                  s=s,
+                  shaftLength=shaftLength, shaftWidth=shaftWidth,
+                  headLength=headLength, headWidth=headWidth, fill=fill)
 
     orients = endPoints - startPoints
     if orients.shape[1] == 2: # make it 3d
@@ -2108,6 +2109,7 @@ class Star(Mesh):
             Mesh.__init__(self, [apts, cells], c, alpha)
 
         self.SetPosition(pos)
+        self.property.LightingOff()
         self.name = "Star"
 
 
@@ -2543,20 +2545,20 @@ class Grid(Mesh):
             vgrid = Grid(s=(X[:,0], Y[0]))
             vgrid.show(axes=8)
     """
-    def __init__(self,
-                pos=(0, 0, 0),
-                normal=(0, 0, 1),
-                sx=1, # softly deprecated
-                sy=1, # softly deprecated
-                s=(),
-                c="k3",
-                alpha=1,
-                lw=1,
-                resx=10, # softly deprecated
-                resy=10, # softly deprecated
-                res=(),
+    def __init__(
+            self,
+            pos=(0, 0, 0),
+            normal=(0, 0, 1),
+            sx=1, # softly deprecated
+            sy=1, # softly deprecated
+            s=(),
+            c="k3",
+            alpha=1,
+            lw=1,
+            resx=10, # softly deprecated
+            resy=10, # softly deprecated
+            res=(),
         ):
-
         if len(res)==2:
             resx, resy = res
         if len(s)==2:
@@ -2597,7 +2599,8 @@ class Grid(Mesh):
 
         self.orientation(normal)
 
-        self.wireframe().lw(lw).lighting('off')
+        self.wireframe().lw(lw)
+        self.GetProperty().LightingOff()
         self.name = "Grid"
 
 

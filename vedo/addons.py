@@ -2097,8 +2097,6 @@ def Axes(
         numberOfDivisions=None,
         digits=None,
         limitRatio=0.04,
-        axesLineWidth=1,
-        gridLineWidth=1,
         htitle="",
         hTitleSize=0.03,
         hTitleFont=None,
@@ -2119,6 +2117,7 @@ def Axes(
         xTitleColor=None, yTitleColor=None, zTitleColor=None,
         xTitleBackfaceColor=None, yTitleBackfaceColor=None, zTitleBackfaceColor=None,
         xTitleItalic=0, yTitleItalic=0, zTitleItalic=0,
+        gridLineWidth=1,
         xyGrid=True, yzGrid=False, zxGrid=False,
         xyGrid2=False, yzGrid2=False, zxGrid2=False,
         xyGridTransparent=False, yzGridTransparent=False, zxGridTransparent=False,
@@ -2128,6 +2127,7 @@ def Axes(
         xyAlpha=0.075, yzAlpha=0.075, zxAlpha=0.075,
         xyFrameLine=None, yzFrameLine=None, zxFrameLine=None,
         xyFrameColor=None, yzFrameColor=None, zxFrameColor=None,
+        axesLineWidth=1,
         xLineColor=None, yLineColor=None, zLineColor=None,
         xHighlightZero=False, yHighlightZero=False, zHighlightZero=False,
         xHighlightZeroColor='r', yHighlightZeroColor='g', zHighlightZeroColor='b',
@@ -2413,7 +2413,7 @@ def Axes(
     if xyGrid and xtitle and ytitle:
         gxy = shapes.Grid(s=(xticks_float, yticks_float))
         gxy.alpha(xyAlpha).wireframe(xyGridTransparent).c(xyPlaneColor)
-        gxy.lw(gridLineWidth).lc(xyGridColor)
+        gxy.lc(xyGridColor).lw(gridLineWidth)
         if xyShift: gxy.shift(0,0,xyShift*dz)
         elif tol: gxy.shift(0,0,-tol*gscale)
         gxy.name = "xyGrid"
@@ -2421,7 +2421,7 @@ def Axes(
     if yzGrid and ytitle and ztitle:
         gyz = shapes.Grid(s=(zticks_float, yticks_float))
         gyz.alpha(yzAlpha).wireframe(yzGridTransparent).c(yzPlaneColor)
-        gyz.lw(gridLineWidth).lc(yzGridColor).RotateY(-90)
+        gyz.lc(yzGridColor).lw(gridLineWidth).RotateY(-90)
         if yzShift: gyz.shift(yzShift*dx,0,0)
         elif tol: gyz.shift(-tol*gscale,0,0)
         gyz.name = "yzGrid"
@@ -2429,7 +2429,7 @@ def Axes(
     if zxGrid and ztitle and xtitle:
         gzx = shapes.Grid(s=(xticks_float, zticks_float))
         gzx.alpha(zxAlpha).wireframe(zxGridTransparent).c(zxPlaneColor)
-        gzx.lw(gridLineWidth).lc(zxGridColor).RotateX(90)
+        gzx.lc(zxGridColor).lw(gridLineWidth).RotateX(90)
         if zxShift: gzx.shift(0,zxShift*dy,0)
         elif tol: gzx.shift(0,-tol*gscale,0)
         gzx.name = "zxGrid"
@@ -2438,21 +2438,21 @@ def Axes(
     if xyGrid2 and xtitle and ytitle:
         gxy2 = shapes.Grid(s=(xticks_float, yticks_float)).z(dz)
         gxy2.alpha(xyAlpha).wireframe(xyGrid2Transparent).c(xyPlaneColor)
-        gxy2.lw(gridLineWidth).lc(xyGridColor)
+        gxy2.lc(xyGridColor).lw(gridLineWidth)
         if tol: gxy2.shift(0,tol*gscale,0)
         gxy2.name = "xyGrid2"
         grids.append(gxy2)
     if yzGrid2 and ytitle and ztitle:
         gyz2 = shapes.Grid(s=(zticks_float, yticks_float)).x(dx)
         gyz2.alpha(yzAlpha).wireframe(yzGrid2Transparent).c(yzPlaneColor)
-        gyz2.lw(gridLineWidth).lc(yzGridColor).RotateY(-90)
+        gyz2.lc(yzGridColor).lw(gridLineWidth).RotateY(-90)
         if tol: gyz2.shift(tol*gscale,0,0)
         gyz2.name = "yzGrid2"
         grids.append(gyz2)
     if zxGrid2 and ztitle and xtitle:
         gzx2 = shapes.Grid(s=(xticks_float, zticks_float)).y(dy)
         gzx2.alpha(zxAlpha).wireframe(zxGrid2Transparent).c(zxPlaneColor)
-        gzx2.lw(gridLineWidth).lc(zxGridColor).RotateX(90)
+        gzx2.lc(zxGridColor).lw(gridLineWidth).RotateX(90)
         if tol: gzx2.shift(0,tol*gscale,0)
         gzx2.name = "zxGrid2"
         grids.append(gzx2)
@@ -3093,7 +3093,7 @@ def Axes(
             hTitleFont = titleFont
         if hTitleColor is None:
             hTitleColor = xTitleColor
-        htit = shapes.Text3D(htitle, s=hTitleSize*gscale, font=hTitleFont,
+        htit = shapes.Text3D(htitle, s=hTitleSize*gscale*textScale, font=hTitleFont,
                              c=hTitleColor, justify=hTitleJustify, depth=titleDepth,
                              italic=hTitleItalic)
         if hTitleRotation:

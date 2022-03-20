@@ -85,4 +85,4 @@
 shadow2.py
 image_to_mesh.py
 multi_viewer1.py
-
+.transformation is empty

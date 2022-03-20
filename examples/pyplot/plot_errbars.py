@@ -3,7 +3,7 @@ from vedo.pyplot import plot
 from vedo import settings
 import numpy as np
 
-settings.defaultFont= 'Kanopus'
+settings.defaultFont= 'Theemim'
 
 x = np.linspace(0, 10, num=21)
 y = 3 * np.sin(x)
@@ -18,6 +18,7 @@ fig = plot(
     ytitle="y(x) = \pmK_i \dot\sqrtsin^2 t",
     aspect=16/9,     # aspect ratio x/y of plot
     # xlim=(-1, 14), # specify x range
+    axes=dict(textScale=1.5)
 )
 
 ################# plot on top of fig
