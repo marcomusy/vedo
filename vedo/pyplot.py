@@ -230,13 +230,21 @@ class Figure(Assembly):
                 if not a or a.name == "Axes":
                     continue
                 try:
-                    a.cutWith2DLine([
-                            [self._x0lim, self._y0lim],
-                            [self._x1lim, self._y0lim],
-                            [self._x1lim, self._y1lim],
-                            [self._x0lim, self._y1lim],
-                        ], invert=False, closed=True,
-                    )
+                    if self._y0lim is not None:
+                        a.cutWithPlane([0, self._y0lim, 0], [0, 1, 0])
+                    if self._y1lim is not None:
+                        a.cutWithPlane([0, self._y1lim, 0], [0,-1, 0])
+                    if self._x0lim is not None:
+                        a.cutWithPlane([self._x0lim, 0, 0], [1, 0, 0])
+                    if self._x1lim is not None:
+                        a.cutWithPlane([self._x1lim, 0, 0], [-1,0, 0])
+                    # a.cutWith2DLine([ # unfortunately doesnt work well with Line
+                    #         [self._x0lim-0.001, self._y0lim-0.001],
+                    #         [self._x1lim+0.001, self._y0lim-0.001],
+                    #         [self._x1lim+0.001, self._y1lim+0.001],
+                    #         [self._x0lim-0.001, self._y1lim+0.001],
+                    #     ], invert=False, closed=True,
+                    # )
                 except:
                     pass
                     vedo.logger.error("Error could not cut plot in figure.")
