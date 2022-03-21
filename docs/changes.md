@@ -78,6 +78,7 @@
 `examples/volumetric/tetralize_surface.py`
 `examples/pyplot/plot_empty.py`
 `examples/pyplot/plot_errband.py`
+`examples/pyplot/quiver.py`
 
 
 ### Broken

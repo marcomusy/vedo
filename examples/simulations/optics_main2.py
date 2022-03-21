@@ -1,5 +1,5 @@
 """Simulation of an optical system with lenses and mirrors of arbitrary shapes and orientations
-(points mark the exit locations of photons, many from total internal total reflection)"""
+(points mark the exit locations of photons, many from internal total reflection)"""
 from vedo import Grid, Sphere, Cube, Cone, Points, show
 from optics_base import Lens, Ray, Mirror, Screen  # see file ./optics_base.py
 import numpy as np

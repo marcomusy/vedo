@@ -27,7 +27,7 @@ fig += plot(
     "sb--",
     xerrors=errs,    # set error bars on x
     yerrors=errs,    # set error bars on y
-    spline=True,     # continous line through points
+    splined=True,    # continous line through points
     lw=3,
 )
 

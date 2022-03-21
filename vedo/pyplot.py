@@ -55,6 +55,8 @@ class Figure(Assembly):
         figure title (to appear on top of the 2D frame)
 
     .. hint:: examples/pyplot/plot_empty.py
+
+        .. image:: https://vedo.embl.es/images/pyplot/plot_empty.png
     """
     # This class can be instatiated to create an empty frame with axes, but it's normally called by
     # plot() and histogram()
@@ -197,6 +199,7 @@ class Figure(Assembly):
         else:
             # print('adding individual objects', len(objs))
             for i, a in enumerate(objs):
+                # print( ' xx adding',i, a.name)
 
                 # discard input Arrow and substitute it with a brand new one
                 if isinstance(a, (shapes.Arrow, shapes.Arrow2D)):
@@ -459,7 +462,7 @@ def plot(*args, **kwargs):
     fill : bool
         fill convex area with solid color
 
-    spline : bool
+    splined : bool
         interpolate the set of input points
 
     showDisc : bool
@@ -1018,7 +1021,7 @@ def _plotxy(
         la=1,
         lw=3,
         dashed=False,
-        spline=False,
+        splined=False,
         errorBand=False,
         marker="",
         ms=None,
@@ -1027,16 +1030,17 @@ def _plotxy(
         pad=0.05,
         axes={},
     ):
+
     line=False
     if lw>0:
         line=True
 
-    if marker == "" and not line and not spline:
+    if marker == "" and not line and not splined:
         line = True
 
     # purge NaN from data
     validIds = np.all(np.logical_not(np.isnan(data)), axis=1)
-    data = data[validIds]
+    data = np.array(data[validIds])
     offs = 0  # z offset
 
     if format is not None:  # reset to allow meaningful overlap
@@ -1090,24 +1094,25 @@ def _plotxy(
 
     dx = x1lim - x0lim
     dy = y1lim - y0lim
-    offs += np.sqrt(dx * dx + dy * dy) / 10000
+    offs += np.sqrt(dx * dx + dy * dy) / 1000
 
     scale = np.array([[1., yscale]])
     data = np.multiply(data, scale)
 
     acts = []
 
-    # the line or spline
+    ######### the line or spline
     if dashed:
         l = shapes.DashedLine(data, c=lc, alpha=la, lw=lw)
         acts.append(l)
-    elif spline:
+    elif splined:
         l = shapes.KSpline(data).lw(lw).c(lc).alpha(la)
         acts.append(l)
     elif line:
         l = shapes.Line(data, c=lc, alpha=la).lw(lw)
         acts.append(l)
 
+    ######### the marker
     if marker:
 
         pts = shapes.Points(data)
@@ -1138,10 +1143,13 @@ def _plotxy(
                     pts, glyphObj=mk, c=mc, orientationArray=msv, scaleByVectorSize=True
                 )
             else:
-                # print('mc is fixed color')
+                # print('mc is fixed color', yscale)
                 mk = shapes.Marker(marker, s=ms).triangulate()
+                # print(dx,dy,yscale, x1-x0,y1-y0)
+                # mk.SetScale([1,yscale/aspect/aspect/2,1]) ## BUG
                 marked = shapes.Glyph(pts, glyphObj=mk, c=mc)
 
+        marked.name = "Marker"
         marked.alpha(ma).z(offs)
         acts.append(marked)
 
@@ -1192,13 +1200,6 @@ def _plotxy(
         band.alpha(la).z(2 * offs)
         acts.append(band)
 
-    for a in acts:
-        a.cutWithPlane([0, y0lim, 0], [0, 1, 0])
-        a.cutWithPlane([0, y1lim, 0], [0, -1, 0])
-        a.cutWithPlane([x0lim, 0, 0], [1, 0, 0])
-        a.cutWithPlane([x1lim, 0, 0], [-1, 0, 0])
-        a.lighting('off')
-
     if title:
         if titleSize is None:
             titleSize = dx / 40.0
@@ -1215,6 +1216,9 @@ def _plotxy(
         )
         tit.pickable(False).z(3 * offs)
         acts.append(tit)
+
+    for a in acts:
+        a.lighting('off')
 
 
     if axes == 1 or axes == True:
@@ -1471,7 +1475,7 @@ def _plotPolar(
         deg=False,
         vmax=None,
         fill=False,
-        spline=False,
+        splined=False,
         smooth=0,
         showDisc=True,
         nrays=8,
@@ -1512,7 +1516,7 @@ def _plotPolar(
 
     r2e = r1 + r2
     lines = None
-    if spline:
+    if splined:
         lines = shapes.KSpline(points, closed=True)
         lines.c(c).lw(lw).alpha(alpha)
     elif lw:
@@ -1913,7 +1917,7 @@ def _histogram1D(
     ):
     # purge NaN from data
     validIds = np.all(np.logical_not(np.isnan(data)))
-    data = data[validIds]
+    data = np.array(data[validIds])
     offs = 0  # z offset
 
     if format is not None:  # reset to allow meaningful overlap
@@ -2080,12 +2084,12 @@ def _histogram1D(
             rs.append(el)
         # print('errors', el.z())
 
-    for a in rs:  #####################
-        a.cutWithPlane([0, y0lim, 0], [0, 1, 0])
-        a.cutWithPlane([0, y1lim, 0], [0, -1, 0])
-        a.cutWithPlane([x0lim, 0, 0], [1, 0, 0])
-        a.cutWithPlane([x1lim, 0, 0], [-1, 0, 0])
-        a.lighting('off').phong()
+    # for a in rs:  #####################
+    #     a.cutWithPlane([0, y0lim, 0], [0, 1, 0])
+    #     a.cutWithPlane([0, y1lim, 0], [0, -1, 0])
+    #     a.cutWithPlane([x0lim, 0, 0], [1, 0, 0])
+    #     a.cutWithPlane([x1lim, 0, 0], [-1, 0, 0])
+    #     a.lighting('off').phong()
 
     if title:  #####################
         if titleColor is None:
@@ -2718,7 +2722,7 @@ def violin(
         vlim=None,
         x=0,
         width=3,
-        spline=True,
+        splined=True,
         fill=True,
         c="violet",
         alpha=1,
@@ -2744,7 +2748,7 @@ def violin(
     width : float
         width factor of the normalized distribution
 
-    spline : bool
+    splined : bool
         spline the outline
 
     fill : bool
@@ -2768,7 +2772,7 @@ def violin(
 
     rs = []
 
-    if spline:
+    if splined:
         lnl, lnr = [(0, edges[0], 0)], [(0, edges[0], 0)]
         for i in range(bins):
             xc = (edges[i] + edges[i + 1]) / 2
