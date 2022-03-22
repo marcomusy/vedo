@@ -623,6 +623,10 @@ def histogram(*args, **kwargs):
     gap : float
         leave a small space btw bars
 
+    radius : float
+        border radius of the top of the histogram bar.
+        Default value is (0, 0, 0.125, 0.125).
+
     outline : bool
         show outline of the bins
 
@@ -1908,7 +1912,7 @@ def _histogram1D(
         density=False,
         logscale=False,
         fill=True,
-        radius=None,
+        radius=(0,0,0.125,0.125),
         c="olivedrab",
         gap=0.02,
         alpha=1,
@@ -2019,8 +2023,10 @@ def _histogram1D(
         for i in range(bins):
             p0 = (myedges[i] + gap * binsize, 0, 0)
             p1 = (myedges[i + 1] - gap * binsize, fs[i], 0)
-            r = shapes.Rectangle(p0, p1, radius=np.array(radius)*binsize)
-            # print(i, p0, p1, binsize)
+            if radius is None:
+                r = shapes.Rectangle(p0, p1)
+            else:
+                r = shapes.Rectangle(p0, p1, radius=np.array(radius)*binsize, res=6)
             r.PickableOff()
             maxheigth = max(maxheigth, p1[1])
             if c in colors.cmaps_names:

@@ -2677,9 +2677,9 @@ class Plane(Mesh):
         return mask
 
 
-def Rectangle(p1=(0, 0), p2=(2, 1), radius=0, res=12, c="gray6", alpha=1):
+def Rectangle(p1=(0, 0), p2=(1, 1), radius=0, res=12, c="gray5", alpha=1):
     """
-    Build a rectangle in the xy plane identified by its two corner points.
+    Build a rectangle in the xy plane identified by two corner points.
 
     Parameters
     ----------
@@ -2690,7 +2690,7 @@ def Rectangle(p1=(0, 0), p2=(2, 1), radius=0, res=12, c="gray6", alpha=1):
         top-right position of the corner
 
     radius : float, list
-        radius of the corner in world units.
+        smoothing radius of the corner in world units.
         A list can be passed with 4 individual values.
     """
     if len(p1) == 2:
@@ -2701,16 +2701,33 @@ def Rectangle(p1=(0, 0), p2=(2, 1), radius=0, res=12, c="gray6", alpha=1):
         p2 = np.array([p2[0], p2[1], 0.])
     else:
         p2 = np.array(p2)
-    color = c
 
-    if radius is not None:
-        p1x, p1y, _ = p1
-        p2x, p2y, _ = p2- p1
+    color = c
+    smoothr = False
+    risseq = False
+    if utils.isSequence(radius):
+        risseq = True
+        smoothr= True
+    elif radius:
+        smoothr = True
+
+    if smoothr:
         r = radius
-        if not utils.isSequence(r):
+        if not risseq:
             r = [r,r,r,r]
         rd, ra, rb, rc = r
-        k = min(abs(p2x-p1x)/2, abs(p2y-p1y)/2)
+
+        if p1[0] > p2[0]: # flip p1 - p2
+            ptmp = p1
+            p1 = p2
+            p2 = ptmp
+        if p1[1] > p2[1]: # flip p1y - p2y
+            ptmp = p1[1]
+            p1[1] = p2[1]
+            p2[1] = ptmp
+
+        px, py, _ = p2 - p1
+        k = min(px/2, py/2)
         ra = min(abs(ra), k)
         rb = min(abs(rb), k)
         rc = min(abs(rc), k)
@@ -2720,16 +2737,15 @@ def Rectangle(p1=(0, 0), p2=(2, 1), radius=0, res=12, c="gray6", alpha=1):
         rrx = np.cos(betas)
         rry = np.sin(betas)
         q1 = (rd, 0)
-        q2 = (p2x-ra, 0)
-        a = np.c_[rrx[3], rry[3]]*ra + [p2x-ra, ra]
-        b = np.c_[rrx[0], rry[0]]*rb + [p2x-rb, p2y-rb]
-        q5 = (p2x-rb, p2y)
-        q6 = (rc, p2y)
-        c = np.c_[rrx[1], rry[1]]*rc + [rc, p2y-rc]
-        q7 = (0, p2y-rc)
-        q8 = (0, rd)
-        d = np.c_[rrx[2], rry[2]]*rd + [rd, rd]
-        pts = [q1, q2, *a.tolist(), *b.tolist(), q5, q6, *c.tolist(), q7, q8, *d.tolist()]
+        q2 = (px-ra, 0)
+        q6 = (rc, py)
+        q7 = [(0, py-rc)] if rc else []
+        q8 = [(0, rd)] if rd else []
+        a = np.c_[rrx[3], rry[3]]*ra + [px-ra, ra] if ra else np.array([])
+        b = np.c_[rrx[0], rry[0]]*rb + [px-rb, py-rb] if rb else np.array([])
+        c = np.c_[rrx[1], rry[1]]*rc + [rc, py-rc] if rc else np.array([])
+        d = np.c_[rrx[2], rry[2]]*rd + [rd, rd] if rd else np.array([])
+        pts = [q1, q2, *a.tolist(), *b.tolist(), q6, *c.tolist(), *q7, *q8, *d.tolist()]
         faces = [list(range(len(pts)))]
     else:
         p1r = np.array([p2[0], p1[1], 0.])
@@ -2739,10 +2755,8 @@ def Rectangle(p1=(0, 0), p2=(2, 1), radius=0, res=12, c="gray6", alpha=1):
 
     mesh = Mesh([pts, faces], color, alpha)
     mesh.SetPosition(p1)
-    # if centered:
-    #     mesh.SetOrigin((p1[0]+p2[0])/2, (p1[1]+p2[1])/2, 0)
-    # else:
-    mesh.SetOrigin(p1)
+    # mesh.SetOrigin(p1)
+    mesh.property.LightingOff()
     mesh.name = "Rectangle"
     return mesh
 
