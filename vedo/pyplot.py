@@ -623,9 +623,9 @@ def histogram(*args, **kwargs):
     gap : float
         leave a small space btw bars
 
-    radius : float
+    radius : float, list
         border radius of the top of the histogram bar.
-        Default value is (0, 0, 0.125, 0.125).
+        Default value is 0.1, can be fixed as e.g. (0, 0, 0.1, 0.1).
 
     outline : bool
         show outline of the bins
@@ -1899,7 +1899,7 @@ def _barplot(
 def _histogram1D(
         data,
         format=None,
-        bins=25,
+        bins=20,
         aspect=4/3,
         xlim=None,
         ylim=(0,None),
@@ -1912,7 +1912,7 @@ def _histogram1D(
         density=False,
         logscale=False,
         fill=True,
-        radius=(0,0,0.125,0.125),
+        radius=0.1,
         c="olivedrab",
         gap=0.02,
         alpha=1,
@@ -1929,8 +1929,16 @@ def _histogram1D(
     ):
     # purge NaN from data
     validIds = np.all(np.logical_not(np.isnan(data)))
-    data = np.array(data[validIds])
+    data = np.array(data[validIds])[0]
     offs = 0  # z offset
+
+    justify="bottom-center"
+    if title=="":
+        mean_str = utils.precision(data.mean(), 4)
+        std = utils.precision(data.std(), 4)
+        title = f"Entries: {len(data)}  Mean: {mean_str}  STD: {std}"
+        justify="bottom-left"
+
 
     if format is not None:  # reset to allow meaningful overlap
         xlim = format.xlim
@@ -1952,7 +1960,7 @@ def _histogram1D(
         binsize = edges[1]-edges[0]
         fs = fs/(ntot*binsize)
         if ytitle=='counts':
-            ytitle=f"counts/({ntot}~\dot~{utils.precision(binsize,3)})"
+            ytitle=f"counts / ( {ntot}~x~{utils.precision(binsize,3)} )"
     elif logscale:
         fs = np.log10(fs + 1)
         if ytitle=='counts':
@@ -2019,14 +2027,32 @@ def _histogram1D(
     if fill:  #####################
         if outline:
             gap = 0
+            radius = 0
 
         for i in range(bins):
+            F = fs[i]
             p0 = (myedges[i] + gap * binsize, 0, 0)
-            p1 = (myedges[i + 1] - gap * binsize, fs[i], 0)
+            p1 = (myedges[i + 1] - gap * binsize, F, 0)
+
             if radius is None:
                 r = shapes.Rectangle(p0, p1)
             else:
-                r = shapes.Rectangle(p0, p1, radius=np.array(radius)*binsize, res=6)
+
+                if utils.isSequence(radius):
+                    radii = radius
+                else:
+                    radii = [0,0,0,0]
+                    if i>0 and fs[i-1] < F:
+                        radii[3] = radius
+                    if i<bins-1 and fs[i+1] < F:
+                        radii[2] = radius
+                    if i == 0:
+                        radii[3] = radius
+                    elif i==bins-1:
+                        radii[2] = radius
+
+                r = shapes.Rectangle(p0, p1, radius=np.array(radii)*binsize, res=6)
+
             r.PickableOff()
             maxheigth = max(maxheigth, p1[1])
             if c in colors.cmaps_names:
@@ -2099,12 +2125,12 @@ def _histogram1D(
             rs.append(el)
         # print('errors', el.z())
 
-    # for a in rs:  #####################
-    #     a.cutWithPlane([0, y0lim, 0], [0, 1, 0])
-    #     a.cutWithPlane([0, y1lim, 0], [0, -1, 0])
-    #     a.cutWithPlane([x0lim, 0, 0], [1, 0, 0])
-    #     a.cutWithPlane([x1lim, 0, 0], [-1, 0, 0])
-    #     a.lighting('off').phong()
+    for a in rs:  #####################
+        a.cutWithPlane([0, y0lim, 0], [0, 1, 0])
+        a.cutWithPlane([0, y1lim, 0], [0, -1, 0])
+        a.cutWithPlane([x0lim, 0, 0], [1, 0, 0])
+        a.cutWithPlane([x1lim, 0, 0], [-1, 0, 0])
+        a.lighting('off').phong()
 
     if title:  #####################
         if titleColor is None:
@@ -2112,14 +2138,20 @@ def _histogram1D(
 
         if titleSize is None:
             titleSize = dx / 40.0
+
+        if "cent" in justify:
+            pos = (x0lim + x1lim) / 2,  y1lim + (y1lim-y0lim) / 60
+        else:
+            pos = x0lim, y1lim + (y1lim-y0lim) / 60
+
         tit = shapes.Text3D(
             title,
             s=titleSize,
             c=titleColor,
             depth=0,
             alpha=alpha,
-            pos=((x0lim + x1lim) / 2, y1lim + (y1lim-y0lim) / 80, 0),
-            justify="bottom-center",
+            pos=pos,
+            justify=justify,
         )
         tit.pickable(False).z(2.5 * offs)
         rs.append(tit)

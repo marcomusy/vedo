@@ -2679,7 +2679,7 @@ class Plane(Mesh):
 
 def Rectangle(p1=(0, 0), p2=(1, 1), radius=0, res=12, c="gray5", alpha=1):
     """
-    Build a rectangle in the xy plane identified by two corner points.
+    Build a rectangle in the xy plane identified by any two corner points.
 
     Parameters
     ----------
@@ -2700,7 +2700,7 @@ def Rectangle(p1=(0, 0), p2=(1, 1), radius=0, res=12, c="gray5", alpha=1):
     if len(p2) == 2:
         p2 = np.array([p2[0], p2[1], 0.])
     else:
-        p2 = np.array(p2)
+        p2 = np.array(p2, dtype=float)
 
     color = c
     smoothr = False
@@ -2708,6 +2708,8 @@ def Rectangle(p1=(0, 0), p2=(1, 1), radius=0, res=12, c="gray5", alpha=1):
     if utils.isSequence(radius):
         risseq = True
         smoothr= True
+        if max(radius) == 0:
+            smoothr = False
     elif radius:
         smoothr = True
 
@@ -2732,20 +2734,25 @@ def Rectangle(p1=(0, 0), p2=(1, 1), radius=0, res=12, c="gray5", alpha=1):
         rb = min(abs(rb), k)
         rc = min(abs(rc), k)
         rd = min(abs(rd), k)
-        beta = np.linspace(0, 2*np.pi, num=res*4, endpoint=True)
+        beta = np.linspace(0, 2*np.pi, num=res*4, endpoint=False)
         betas = np.split(beta, 4)
         rrx = np.cos(betas)
         rry = np.sin(betas)
+
         q1 = (rd, 0)
-        q2 = (px-ra, 0)
-        q6 = (rc, py)
-        q7 = [(0, py-rc)] if rc else []
-        q8 = [(0, rd)] if rd else []
-        a = np.c_[rrx[3], rry[3]]*ra + [px-ra, ra] if ra else np.array([])
+        # q2 = (px-ra, 0)
+        q3 = (px, ra)
+        # q4 = (px, py-rb)
+        q5 = (px-rb, py)
+        # q6 = (rc, py)
+        q7 = (0, py-rc)
+        # q8 = (0, rd)
+        a = np.c_[rrx[3], rry[3]]*ra + [px-ra, ra]    if ra else np.array([])
         b = np.c_[rrx[0], rry[0]]*rb + [px-rb, py-rb] if rb else np.array([])
-        c = np.c_[rrx[1], rry[1]]*rc + [rc, py-rc] if rc else np.array([])
-        d = np.c_[rrx[2], rry[2]]*rd + [rd, rd] if rd else np.array([])
-        pts = [q1, q2, *a.tolist(), *b.tolist(), q6, *c.tolist(), *q7, *q8, *d.tolist()]
+        c = np.c_[rrx[1], rry[1]]*rc + [rc, py-rc]    if rc else np.array([])
+        d = np.c_[rrx[2], rry[2]]*rd + [rd, rd]       if rd else np.array([])
+
+        pts = [q1, *a.tolist(), q3, *b.tolist(), q5, *c.tolist(), q7, *d.tolist()]
         faces = [list(range(len(pts)))]
     else:
         p1r = np.array([p2[0], p1[1], 0.])
