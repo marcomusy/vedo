@@ -16,40 +16,46 @@ yerrs = np.linspace(1.0, 0.4, n)  # make first points less precise
 noise = np.random.randn(n)
 
 # Plot the noisy points with their error bars
-fig = plot(x, y+noise, '.k',
-           title=__doc__+str(deg),
-           xerrors=xerrs,
-           yerrors=yerrs,
-           aspect=8/9,
-           xlim=(-3,15),
-           ylim=(-3,15),
-          )
+fig = plot(
+    x, y+noise, '.k',
+    title=__doc__+str(deg),
+    xerrors=xerrs,
+    yerrors=yerrs,
+    aspect=8/9,
+    xlim=(-3,15),
+    ylim=(-3,15),
+)
 fig += DashedLine(x, y)
 
 # Fit points and evaluate, with a boostrap and Monte-Carlo technique,
 # the correct errors and error bands. Return a Line object:
-pfit = fit([x, y+noise],
-           deg=deg,        # degree of the polynomial
-           niter=500,      # nr. of MC iterations to compute error bands
-           nstd=2,         # nr. of std deviations to display
-           xerrors=xerrs,  # optional array of errors on x
-           yerrors=yerrs,  # optional array of errors on y
-           vrange=(-3,15), # specify the domain of fit
-          )
+pfit = fit(
+    [x, y+noise],
+    deg=deg,        # degree of the polynomial
+    niter=500,      # nr. of MC iterations to compute error bands
+    nstd=2,         # nr. of std deviations to display
+    xerrors=xerrs,  # optional array of errors on x
+    yerrors=yerrs,  # optional array of errors on y
+    vrange=(-3,15), # specify the domain of fit
+)
 
-fig += [pfit, pfit.errorBand, *pfit.errorLines] # add these objects to Plot
+fig += [pfit, pfit.errorBand, *pfit.errorLines] # add these objects to Figure
 
+# Add some text too
 txt = "fit coefficients:\n " + precision(pfit.coefficients, 2) \
     + "\n\pm" + precision(pfit.coefficientErrors, 2) \
     + "\n\Chi^2_\nu  = " + precision(pfit.reducedChi2, 3)
 fig += Text3D(txt, s=0.42, font='VictorMono').pos(2,-2).c('k')
 
 # Create an histo to show the correlation of fit parameters
-h = histogram(pfit.MonteCarloCoefficients[:,0],
-              pfit.MonteCarloCoefficients[:,1],
-              title="parameters correlation",
-              xtitle='coeff_0', ytitle='coeff_1',
-              cmap='bone_r', scalarbar=True)
+h = histogram(
+    pfit.MonteCarloCoefficients[:,0],
+    pfit.MonteCarloCoefficients[:,1],
+    title="parameters correlation",
+    xtitle='coeff_0', ytitle='coeff_1',
+    cmap='bone_r',
+    scalarbar=True,
+)
 h.scale(150).shift(-1,11) # make it a lot bigger and move it
 
 show(fig, h, zoom=1.3, mode="image").close()

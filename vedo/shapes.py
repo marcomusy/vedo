@@ -2677,8 +2677,22 @@ class Plane(Mesh):
         return mask
 
 
-def Rectangle(p1=(0, 0), p2=(2, 1), c="gray6", alpha=1):
-    """Build a rectangle in the xy plane identified by its two corner points."""
+def Rectangle(p1=(0, 0), p2=(2, 1), radius=0, res=12, c="gray6", alpha=1):
+    """
+    Build a rectangle in the xy plane identified by its two corner points.
+
+    Parameters
+    ----------
+    p1 : list
+        bottom-left position of the corner
+
+    p2 : list
+        top-right position of the corner
+
+    radius : float, list
+        radius of the corner in world units.
+        A list can be passed with 4 individual values.
+    """
     if len(p1) == 2:
         p1 = np.array([p1[0], p1[1], 0.])
     else:
@@ -2687,12 +2701,48 @@ def Rectangle(p1=(0, 0), p2=(2, 1), c="gray6", alpha=1):
         p2 = np.array([p2[0], p2[1], 0.])
     else:
         p2 = np.array(p2)
-    p1r = np.array([p2[0], p1[1], 0.])
-    p2l = np.array([p1[0], p2[1], 0.])
-    pts = ([0,0,0], p1r-p1 , p2-p1, p2l-p1)
-    faces = [(0,1,2,3)]
-    mesh = Mesh([pts, faces], c, alpha)
+    color = c
+
+    if radius is not None:
+        p1x, p1y, _ = p1
+        p2x, p2y, _ = p2- p1
+        r = radius
+        if not utils.isSequence(r):
+            r = [r,r,r,r]
+        rd, ra, rb, rc = r
+        k = min(abs(p2x-p1x)/2, abs(p2y-p1y)/2)
+        ra = min(abs(ra), k)
+        rb = min(abs(rb), k)
+        rc = min(abs(rc), k)
+        rd = min(abs(rd), k)
+        beta = np.linspace(0, 2*np.pi, num=res*4, endpoint=True)
+        betas = np.split(beta, 4)
+        rrx = np.cos(betas)
+        rry = np.sin(betas)
+        q1 = (rd, 0)
+        q2 = (p2x-ra, 0)
+        a = np.c_[rrx[3], rry[3]]*ra + [p2x-ra, ra]
+        b = np.c_[rrx[0], rry[0]]*rb + [p2x-rb, p2y-rb]
+        q5 = (p2x-rb, p2y)
+        q6 = (rc, p2y)
+        c = np.c_[rrx[1], rry[1]]*rc + [rc, p2y-rc]
+        q7 = (0, p2y-rc)
+        q8 = (0, rd)
+        d = np.c_[rrx[2], rry[2]]*rd + [rd, rd]
+        pts = [q1, q2, *a.tolist(), *b.tolist(), q5, q6, *c.tolist(), q7, q8, *d.tolist()]
+        faces = [list(range(len(pts)))]
+    else:
+        p1r = np.array([p2[0], p1[1], 0.])
+        p2l = np.array([p1[0], p2[1], 0.])
+        pts = ([0,0,0], p1r-p1 , p2-p1, p2l-p1)
+        faces = [(0,1,2,3)]
+
+    mesh = Mesh([pts, faces], color, alpha)
     mesh.SetPosition(p1)
+    # if centered:
+    #     mesh.SetOrigin((p1[0]+p2[0])/2, (p1[1]+p2[1])/2, 0)
+    # else:
+    mesh.SetOrigin(p1)
     mesh.name = "Rectangle"
     return mesh
 

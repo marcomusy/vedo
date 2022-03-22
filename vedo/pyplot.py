@@ -327,6 +327,9 @@ def plot(*args, **kwargs):
     lw : int
         width of line in units of pixels
 
+    lwe : int
+        width of error bar lines in units of pixels
+
     dashed : bool
         use a dashed line style
 
@@ -1020,6 +1023,7 @@ def _plotxy(
         lc="k",
         la=1,
         lw=3,
+        lwe=3,
         dashed=False,
         splined=False,
         errorBand=False,
@@ -1030,7 +1034,6 @@ def _plotxy(
         pad=0.05,
         axes={},
     ):
-
     line=False
     if lw>0:
         line=True
@@ -1167,7 +1170,7 @@ def _plotxy(
         for i, dta in enumerate(data):
             xval, yval = dta
             xerr = xerrors[i] / 2
-            el = shapes.Line((xval - xerr, yval, offs), (xval + xerr, yval, offs))
+            el = shapes.Line((xval - xerr, yval, offs), (xval + xerr, yval, offs)).lw(lwe)
             errs.append(el)
         mxerrs = merge(errs).c(ec).lw(lw).alpha(alpha).z(2 * offs)
         acts.append(mxerrs)
@@ -1180,7 +1183,7 @@ def _plotxy(
         for i in range(len(data)):
             xval, yval = data[i]
             yerr = yerrors[i] * yscale
-            el = shapes.Line((xval, yval - yerr, offs), (xval, yval + yerr, offs))
+            el = shapes.Line((xval, yval - yerr, offs), (xval, yval + yerr, offs)).lw(lwe)
             errs.append(el)
         myerrs = merge(errs).c(ec).lw(lw).alpha(alpha).z(3 * offs)
         acts.append(myerrs)
@@ -1200,6 +1203,13 @@ def _plotxy(
         band.alpha(la).z(2 * offs)
         acts.append(band)
 
+    for a in acts:
+        a.cutWithPlane([0, y0lim, 0], [0, 1, 0])
+        a.cutWithPlane([0, y1lim, 0], [0, -1, 0])
+        a.cutWithPlane([x0lim, 0, 0], [1, 0, 0])
+        a.cutWithPlane([x1lim, 0, 0], [-1, 0, 0])
+        a.lighting('off')
+
     if title:
         if titleSize is None:
             titleSize = dx / 40.0
@@ -1216,9 +1226,6 @@ def _plotxy(
         )
         tit.pickable(False).z(3 * offs)
         acts.append(tit)
-
-    for a in acts:
-        a.lighting('off')
 
 
     if axes == 1 or axes == True:
@@ -1901,6 +1908,7 @@ def _histogram1D(
         density=False,
         logscale=False,
         fill=True,
+        radius=None,
         c="olivedrab",
         gap=0.02,
         alpha=1,
@@ -2011,8 +2019,9 @@ def _histogram1D(
         for i in range(bins):
             p0 = (myedges[i] + gap * binsize, 0, 0)
             p1 = (myedges[i + 1] - gap * binsize, fs[i], 0)
-            r = shapes.Rectangle(p0, p1)
-            r.origin(p0).PickableOff()
+            r = shapes.Rectangle(p0, p1, radius=np.array(radius)*binsize)
+            # print(i, p0, p1, binsize)
+            r.PickableOff()
             maxheigth = max(maxheigth, p1[1])
             if c in colors.cmaps_names:
                 col = colors.colorMap((p0[0]+p1[0])/2, c, myedges[0], myedges[-1])

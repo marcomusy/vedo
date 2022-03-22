@@ -45,6 +45,7 @@
 
 ---
 ### `shapes.py`
+- added `Rectangle(radius=...)` to have a border radius
 
 ---
 ### `tetmesh.py`
