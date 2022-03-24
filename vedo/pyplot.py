@@ -1932,12 +1932,14 @@ def _histogram1D(
     data = np.array(data[validIds])[0]
     offs = 0  # z offset
 
+    reduced_htitle = 1
     justify="bottom-center"
     if title=="":
         mean_str = utils.precision(data.mean(), 4)
         std = utils.precision(data.std(), 4)
         title = f"Entries: {len(data)}  Mean: {mean_str}  STD: {std}"
         justify="bottom-left"
+        reduced_htitle = 0.85
 
 
     if format is not None:  # reset to allow meaningful overlap
@@ -2146,7 +2148,7 @@ def _histogram1D(
 
         tit = shapes.Text3D(
             title,
-            s=titleSize,
+            s=titleSize * reduced_htitle,
             c=titleColor,
             depth=0,
             alpha=alpha,

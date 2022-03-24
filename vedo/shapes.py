@@ -546,7 +546,7 @@ class Line(Mesh):
                 p0 = np.c_[np.array(p0, dtype=float), np.zeros(len(p0), dtype=float)]
 
             ppoints = vtk.vtkPoints()  # Generate the polyline
-            ppoints.SetData(utils.numpy2vtk(p0, dtype=float))
+            ppoints.SetData(utils.numpy2vtk(np.asarray(p0, dtype=float)-p0[0], dtype=float))
             lines = vtk.vtkCellArray()
             npt = len(p0)
             if closed:
@@ -560,7 +560,7 @@ class Line(Mesh):
             poly = vtk.vtkPolyData()
             poly.SetPoints(ppoints)
             poly.SetLines(lines)
-            top = p0[-1]
+            top  = p0[-1]
             base = p0[0]
             self.res = 2
 
@@ -571,16 +571,18 @@ class Line(Mesh):
                 p0 = [p0[0],p0[1],0]
             if len(p1) == 2:
                 p1 = [p1[0],p1[1],0]
-            lineSource.SetPoint1(p0)
-            lineSource.SetPoint2(p1)
+            lineSource.SetPoint1([0,0,0])
+            lineSource.SetPoint2(np.asarray(p1)-p0)
             lineSource.SetResolution(res-1)
             lineSource.Update()
             poly = lineSource.GetOutput()
-            top = np.array(p1, dtype=float)
+            top  = np.array(p1, dtype=float)
             base = np.array(p0, dtype=float)
 
         Mesh.__init__(self, poly, c, alpha)
-        self.lw(lw).lighting('off')
+        self.SetPosition(base)
+        self.lw(lw)
+        self.property.LightingOff()
         self.PickableOff()
         self.DragableOff()
         self.base = base
@@ -810,7 +812,7 @@ class Line(Mesh):
         return self
 
 
-class DashedLine(Line):
+class DashedLine(Mesh):
     """
     Consider using `Line.pattern()` instead.
 
@@ -905,13 +907,14 @@ class DashedLine(Line):
             if not i%2: continue
             q0 = qs[i-1]
             lineSource = vtk.vtkLineSource()
-            lineSource.SetPoint1(q0)
-            lineSource.SetPoint2(q1)
+            lineSource.SetPoint1(q0-listp[0])
+            lineSource.SetPoint2(q1-listp[0])
             lineSource.Update()
             polylns.AddInputData(lineSource.GetOutput())
         polylns.Update()
 
         Mesh.__init__(self, polylns.GetOutput(), c, alpha)
+        self.SetPosition(listp[0])
         self.lw(lw).lighting('off')
         self.base = listp[0]
         if closed:
@@ -1491,26 +1494,22 @@ class Tube(Mesh):
     """
     def __init__(self, points, r=1, cap=True, c=None, alpha=1, res=12):
 
-        if isinstance(points, Mesh):
-            polyln = points.polydata()
-            points = points.points()
-        else:
-            vpoints = vtk.vtkPoints()
-            idx = len(points)
-            for p in points:
-                if len(p)==3:
-                    vpoints.InsertNextPoint(p[0],p[1],p[2])
-                else:
-                    vpoints.InsertNextPoint(p[0],p[1],0)
-            line = vtk.vtkPolyLine()
-            line.GetPointIds().SetNumberOfIds(idx)
-            for i in range(idx):
-                line.GetPointIds().SetId(i, i)
-            lines = vtk.vtkCellArray()
-            lines.InsertNextCell(line)
-            polyln = vtk.vtkPolyData()
-            polyln.SetPoints(vpoints)
-            polyln.SetLines(lines)
+        base = np.asarray(points[0], dtype=float)
+        top = np.asarray(points[-1], dtype=float)
+
+        vpoints = vtk.vtkPoints()
+        idx = len(points)
+        for p in points:
+            vpoints.InsertNextPoint(p-base)
+        line = vtk.vtkPolyLine()
+        line.GetPointIds().SetNumberOfIds(idx)
+        for i in range(idx):
+            line.GetPointIds().SetId(i, i)
+        lines = vtk.vtkCellArray()
+        lines.InsertNextCell(line)
+        polyln = vtk.vtkPolyData()
+        polyln.SetPoints(vpoints)
+        polyln.SetLines(lines)
 
         tuf = vtk.vtkTubeFilter()
         tuf.SetCapping(cap)
@@ -1540,6 +1539,7 @@ class Tube(Mesh):
         tuf.Update()
 
         Mesh.__init__(self, tuf.GetOutput(), c, alpha)
+        self.SetPosition(base)
         self.phong()
         if usingColScals:
             self.mapper().SetScalarModeToUsePointFieldData()
@@ -1547,8 +1547,8 @@ class Tube(Mesh):
             self.mapper().SelectColorArray("TubeColors")
             self.mapper().Modified()
 
-        self.base = np.array(points[0], dtype=float)
-        self.top = np.array(points[-1], dtype=float)
+        self.base = base
+        self.top = top
         self.name = "Tube"
 
 
@@ -2173,10 +2173,15 @@ class Arc(Mesh):
         if point2 is not None and len(point2) == 2:
             point2 = (point2[0], point2[1], 0)
 
+        self.base = point1
+        self.top = point1
+
         ar = vtk.vtkArcSource()
         if point2 is not None:
+            self.top = point2
+            point2 = point2 - np.asarray(point1)
             ar.UseNormalAndAngleOff()
-            ar.SetPoint1(point1)
+            ar.SetPoint1([0,0,0])
             ar.SetPoint2(point2)
             ar.SetCenter(center)
         elif normal is not None and angle is not None:
@@ -2191,8 +2196,10 @@ class Arc(Mesh):
         ar.SetResolution(res)
         ar.Update()
         Mesh.__init__(self, ar.GetOutput(), c, alpha)
+        self.SetPosition(self.base)
         self.lw(2).lighting('off')
         self.name = "Arc"
+
 
 class Sphere(Mesh):
     """
@@ -2272,6 +2279,8 @@ class Spheres(Mesh):
 
         if isinstance(centers, Points):
             centers = centers.points()
+        centers = np.asarray(centers, dtype=float)
+        base = centers[0]
 
         cisseq = False
         if utils.isSequence(c):
@@ -2333,12 +2342,15 @@ class Spheres(Mesh):
             pd.GetPointData().AddArray(urads)
             pd.GetPointData().SetActiveScalars("Radii")
 
-        vpts.SetData(utils.numpy2vtk(centers, dtype=float))
+        vpts.SetData(utils.numpy2vtk(centers-base, dtype=float))
 
         glyph.SetInputData(pd)
         glyph.Update()
 
         Mesh.__init__(self, glyph.GetOutput(), alpha=alpha)
+        self.SetPosition(base)
+        self.base = base
+        self.top = centers[-1]
         self.phong()
         if cisseq:
             self.mapper().ScalarVisibilityOn()
@@ -2580,7 +2592,9 @@ class Grid(Mesh):
                 for i in range(n-1):
                     faces.append([i+j*n, i+1+j*n, i+1+j1n, i+j1n])
 
-            Mesh.__init__(self, [verts, faces], c, alpha)
+            verts = np.array(verts)
+            Mesh.__init__(self, [verts-verts[0], faces], c, alpha)
+            self.SetPosition(verts[0])
 
         else:
             ps = vtk.vtkPlaneSource()
@@ -2762,7 +2776,6 @@ def Rectangle(p1=(0, 0), p2=(1, 1), radius=0, res=12, c="gray5", alpha=1):
 
     mesh = Mesh([pts, faces], color, alpha)
     mesh.SetPosition(p1)
-    # mesh.SetOrigin(p1)
     mesh.property.LightingOff()
     mesh.name = "Rectangle"
     return mesh
@@ -3843,7 +3856,7 @@ class Latex(Picture):
             s=1,
             bg=None,
             alpha=1,
-            res=30,
+            res=90,
             usetex=False,
         ):
         self.formula = formula
@@ -3882,11 +3895,11 @@ class Latex(Picture):
 
             build_img_plt(formula, tmp_file.name)
 
-            Picture.__init__(self, tmp_file.name)
+            Picture.__init__(self, tmp_file.name, channels=4)
             self.alpha(alpha)
-            b = self.GetBounds()
-            xm, ym = (b[1]+b[0])/200*s, (b[3]+b[2])/200*s
-            self.SetOrigin(-xm, -ym, 0)
+            # b = self.GetBounds()
+            # xm, ym = (b[1]+b[0])/200*s, (b[3]+b[2])/200*s
+            # self.SetOrigin(-xm, -ym, 0)
             self.SetScale(0.25/res*s, 0.25/res*s, 0.25/res*s)
             self.SetPosition(pos)
             self.name = "Latex"

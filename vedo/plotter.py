@@ -3027,7 +3027,10 @@ class Plotter:
             self.window.Finalize()
             if hasattr(self, 'interactor') and self.interactor:
                 self.interactor.ExitCallback()
-                self.interactor.SetDone(True)
+                try:
+                    self.interactor.SetDone(True)
+                except AttributeError:
+                    pass
                 self.interactor.TerminateApp()
                 self.interactor = None
             self.window = None

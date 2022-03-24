@@ -110,7 +110,9 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         if nchans and n > nchans:
             pec = vtk.vtkImageExtractComponents()
             pec.SetInputData(img)
-            if nchans == 3:
+            if nchans == 4:
+                pec.SetComponents(channels[0], channels[1], channels[2], channels[3])
+            elif nchans == 3:
                 pec.SetComponents(channels[0], channels[1], channels[2])
             elif nchans == 2:
                 pec.SetComponents(channels[0], channels[1])
