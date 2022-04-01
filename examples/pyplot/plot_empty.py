@@ -18,8 +18,8 @@ fig = Figure(
 )
 
 for i in range(2,11,2):
-    x = np.linspace(0, 4*np.pi, 20) +2
-    y = np.sin(x) * np.sin(x/12) * i/5 -1
+    x = np.linspace(0, 4*np.pi, 20)
+    y = np.sin(x) * np.sin(x/12) * i/5
 
     fig += plot(x, y, '-0', lc=i, splined=True, like=fig)
 
