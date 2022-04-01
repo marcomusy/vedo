@@ -95,15 +95,15 @@ class Assembly(vtk.vtkAssembly, Base3DProp):
             if a: #and a.GetNumberOfPoints():
                 self.AddPart(a)
 
-    # def __add__(self, obj):
-    #     # if isinstance(meshs, list):
-    #     #     for a in meshs:
-    #     #         self.AddPart(a)
-    #     # else:  # meshs=one mesh
-    #     #     self.AddPart(meshs)
-    #     self.AddPart(obj)
-    #     self.actors.append(obj)
-    #     return self
+    def __add__(self, obj):
+        # if isinstance(meshs, list):
+        #     for a in meshs:
+        #         self.AddPart(a)
+        # else:  # meshs=one mesh
+        #     self.AddPart(meshs)
+        self.AddPart(obj)
+        self.actors.append(obj)
+        return self
 
 
     def __contains__(self, obj):

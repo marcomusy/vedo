@@ -9,21 +9,22 @@ percent = [11.68909178, 54.01850072, 18.27246516,  7.14800577,  8.87193657, 0, 0
 labels  = ['<100', '100-250', '250-500', '500-750', '750-1000', '1000-2000', '>2000']
 colors  = colorMap(range(len(counts)), "hot")
 
-fig = plot([counts, labels, colors],
-            mode="bars",
-            ylim=(0,10500),
-            aspect=4/3,
-            axes=dict(htitle="Clusters in lux range",
-                      hTitleItalic=False,
-                      xLabelRotation=35,
-                      xLabelSize=0.02,
-                      tipSize=0, # axes arrow tip size
-                     ),
+# plot() will return a PlotBars object
+fig = plot(
+    [counts, labels, colors],
+    mode="bars",
+    ylim=(0,10_000),
+    aspect=16/9,
+    title='Clusters in lux range',
+    axes=dict(
+        xLabelRotation=30,
+        xLabelSize=0.02,
+    ),
 )
 
 for i in range(len(percent)):
     val = precision(percent[i], 3)+'%'
     txt = Text3D(val, pos=(fig.centers[i], counts[i]), justify="bottom-center", c="blue2")
-    fig += txt.scale(200).shift(0,150,0)
+    fig += txt.scale(200).shift(0,170,0)
 
-fig.show(size=(1000,750), zoom=1.4, mode='image').close()
+fig.show(size=(1000,750), zoom='tight').close()

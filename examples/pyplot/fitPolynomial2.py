@@ -1,7 +1,6 @@
 """A polynomial fit of degree="""
-from vedo import precision, Text3D, DashedLine
+from vedo import np, precision, Text3D, DashedLine
 from vedo.pyplot import plot, fit, histogram, show
-import numpy as np
 # np.random.seed(0)
 
 n   = 25 # nr of data points to generate
@@ -9,23 +8,24 @@ deg = 3  # degree of the fitting polynomial
 
 # Generate some noisy data points
 x = np.linspace(0, 12, n)
-y = (x-6)**3 /50 + 6              # the "truth" is a cubic fuction!
+y = (x-6)**3 /50 + 6              # the "truth" is a cubic function!
 xerrs = np.linspace(0.4, 1.0, n)  # make last points less precise
 yerrs = np.linspace(1.0, 0.4, n)  # make first points less precise
-# xerrs = yerrs = None #assume errors are all the same (but unknown)
 noise = np.random.randn(n)
 
 # Plot the noisy points with their error bars
-fig = plot(
-    x, y+noise, '.k',
+fig1 = plot(
+    x, y+noise,
+    ".k",
     title=__doc__+str(deg),
     xerrors=xerrs,
     yerrors=yerrs,
-    aspect=8/9,
+    aspect=4/5,
     xlim=(-3,15),
     ylim=(-3,15),
+    padding=0,
 )
-fig += DashedLine(x, y)
+fig1 += DashedLine(x, y, c='r')
 
 # Fit points and evaluate, with a boostrap and Monte-Carlo technique,
 # the correct errors and error bands. Return a Line object:
@@ -39,23 +39,22 @@ pfit = fit(
     vrange=(-3,15), # specify the domain of fit
 )
 
-fig += [pfit, pfit.errorBand, *pfit.errorLines] # add these objects to Figure
+fig1 += [pfit, pfit.errorBand, pfit.errorLines] # add these objects to Figure
 
 # Add some text too
 txt = "fit coefficients:\n " + precision(pfit.coefficients, 2) \
     + "\n\pm" + precision(pfit.coefficientErrors, 2) \
     + "\n\Chi^2_\nu  = " + precision(pfit.reducedChi2, 3)
-fig += Text3D(txt, s=0.42, font='VictorMono').pos(2,-2).c('k')
+fig1 += Text3D(txt, s=0.42, font='VictorMono').pos(4,-2).c('k')
 
-# Create an histo to show the correlation of fit parameters
-h = histogram(
+# Create a 2D histo to show the correlation of fit parameters
+fig2 = histogram(
     pfit.MonteCarloCoefficients[:,0],
     pfit.MonteCarloCoefficients[:,1],
     title="parameters correlation",
     xtitle='coeff_0', ytitle='coeff_1',
-    cmap='bone_r',
+    cmap='ocean_r',
     scalarbar=True,
 )
-h.scale(150).shift(-1,11) # make it a lot bigger and move it
 
-show(fig, h, zoom=1.3, mode="image").close()
+show(fig1, fig2, N=2, sharecam=False, zoom='tight').close()

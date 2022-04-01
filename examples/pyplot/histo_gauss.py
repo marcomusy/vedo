@@ -20,8 +20,8 @@ fig = histogram(
     aspect=9/7,
 )
 
-fig += plot(x, y, "-", lc='orange5')
-fig += plot(x, y*(1+dy), "--", lc='orange5', lw=2)
-fig += plot(x, y*(1-dy), "--", lc='orange5', lw=2)
+fig += plot(x, y, "-", lc='orange5', like=fig)
+fig += plot(x, y*(1+dy), "--", lc='orange5', lw=2, like=fig)
+fig += plot(x, y*(1-dy), "--", lc='orange5', lw=2, like=fig)
 
 fig.show(size=(800,700), zoom=1.3, mode="image").close()

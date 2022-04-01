@@ -382,12 +382,12 @@ def Goniometer(
         p1,p2,p3,
         font="",
         arcSize=0.4,
-        fill=0.1,
         s=1,
         italic=0,
         rotation=0,
         prefix="",
-        c=(0.2, 0, 0),
+        lc='k2',
+        c='white',
         alpha=1,
         lw=1,
         precision=3,
@@ -412,9 +412,6 @@ def Goniometer(
     arcSize : float
         dimension of the arc wrt the smallest axis.
 
-    fill : bool
-        fill the arc area.
-
     s : float
         size of the text.
 
@@ -427,8 +424,11 @@ def Goniometer(
     prefix : str
         append this string to the numeric value of the angle.
 
-    c : list
-        color of the goniometer.
+    lc : list
+        color of the goniometer lines.
+
+    c : str
+        color of the goniometer angle filling. Set alpha=0 to remove it.
 
     alpha : float
         transparency level.
@@ -451,7 +451,7 @@ def Goniometer(
     p1, p2, p3 = np.array(p1), np.array(p2), np.array(p3)
 
     acts=[]
-    ln = shapes.Line([p1,p2,p3], lw=lw, c=c).alpha(alpha).lighting('off')
+    ln = shapes.Line([p1,p2,p3], lw=lw, c=lc)
     acts.append(ln)
 
     va = utils.versor(p1-p2)
@@ -464,7 +464,7 @@ def Goniometer(
         vi = utils.versor(vb*i/res + va*(res-i)/res)
         if i==imed: vc = np.array(vi)
         ptsarc.append(p2+vi*r)
-    arc = shapes.Line(ptsarc).lw(lw).c(c).alpha(alpha).lighting('off')
+    arc = shapes.Line(ptsarc).lw(lw).c(lc)
     acts.append(arc)
 
     angle = np.arccos(np.dot(va,vb))*180/np.pi
@@ -473,13 +473,15 @@ def Goniometer(
                        font=font, italic=italic, justify="center")
     cr = np.cross(va,vb)
     lb.pos(p2+vc*r/1.75).orientation(cr*np.sign(cr[2]), rotation=rotation)
-    lb.c(c).alpha(alpha).bc('tomato').lighting('off')
+    lb.c(c).bc('tomato').lighting('off')
     acts.append(lb)
 
-    if fill:
+    if alpha>0:
         pts = [p2] + arc.points().tolist() + [p2]
-        msh = Mesh([pts, [list(range(arc.N()+2))]], c=c, alpha=fill).triangulate()
-        msh.shift(0,0,r/10000) # to resolve 2d conflicts..
+        msh = Mesh([pts, [list(range(arc.N()+2))]], c=lc, alpha=alpha)
+        msh.lighting('off')
+        msh.triangulate()
+        msh.shift(0,0,-r/10000) # to resolve 2d conflicts..
         acts.append(msh)
 
     asse = Assembly(acts)
@@ -2100,7 +2102,7 @@ def Axes(
         htitle="",
         hTitleSize=0.03,
         hTitleFont=None,
-        hTitleItalic=True,
+        hTitleItalic=False,
         hTitleColor=None,
         hTitleJustify='bottom-center',
         hTitleRotation=0,
@@ -2349,8 +2351,11 @@ def Axes(
             if tipSize is None:
                 tipSize = False
 
-    if not numberOfDivisions:
-        numberOfDivisions = ndiv
+    if utils.isSequence(numberOfDivisions):
+        rx, ry, rz = numberOfDivisions
+    else:
+        if not numberOfDivisions:
+            numberOfDivisions = ndiv
 
     rx, ry, rz = np.ceil(drange/drangemax * numberOfDivisions).astype(int)
 

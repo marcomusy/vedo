@@ -1,15 +1,14 @@
-import warnings
 import numpy as np
-import vtk
 import vedo
 import vedo.addons as addons
 import vedo.colors as colors
 import vedo.shapes as shapes
 import vedo.utils as utils
+import vtk
 from vedo.assembly import Assembly
 from vedo.mesh import merge
 from vedo.mesh import Mesh
-from vedo.plotter import show  # not used, but useful to import this
+from vedo.plotter import show # not used, but useful to import this
 
 __doc__ = """
 .. image:: https://vedo.embl.es/images/pyplot/fitPolynomial2.png
@@ -34,706 +33,17 @@ __all__ = [
 ##########################################################################
 class Figure(Assembly):
     """
-    Parameters
-    ----------
-    xlim : list
-        range of the x-axis as [x0, x1]
+    Derived class of ``Assembly`` to hold plots and histograms
+    with a vertical scaling to keep the implicit aspect ratio.
 
-    ylim : list
-        range of the y-axis as [y0, y1]
+    `xlim` and `ylim` must be set.
 
-    aspect : float
-        the desired aspect ratio of the histogram. Default is 4/3.
-
-    padding : float, list
-        keep a padding space from the axes (as a fraction of the axis size).
-        This can be a list of four numbers.
-
-    xtitle : str
-        title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
-
-    ytitle : str
-        title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-
-    grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xyGrid=True)`
-
-    axes : dict
-        an extra dictionary of options for the axes
-    """
-    def __init__(
-            self,
-            xlim,
-            ylim,
-            aspect=4/3,
-            padding=[0.05, 0.05, 0.05, 0.05],
-            **kwargs,
-        ):
-
-        assert aspect > 0
-
-        self.xlim = xlim
-        self.ylim = ylim
-        self.aspect = aspect
-        self.padding = padding
-        if not utils.isSequence(self.padding):
-            self.padding = [self.padding, self.padding,self.padding, self.padding]
-
-        self.force_scaling_types = (
-            shapes.Glyph,
-            shapes.Line,
-            shapes.Rectangle,
-            shapes.DashedLine,
-            shapes.Tube,
-            shapes.Ribbon,
-            shapes.GeoCircle,
-            shapes.Arc,
-            shapes.Grid,
-            # shapes.Arrows, # todo
-            # shapes.Arrows2D, # todo
-            shapes.Brace, # todo
-        )
-
-        options = dict(kwargs)
-
-        self.title  = options.pop("title", "")
-        self.xtitle = options.pop("xtitle", " ")
-        self.ytitle = options.pop("ytitle", " ")
-        usegrid = options.pop("grid", False)
-        numberOfDivisions = 6
-
-        self.axopts = options.pop("axes", {})
-        if isinstance(self.axopts, (bool,int,float)):
-            if self.axopts:
-                self.axopts = {}
-        if self.axopts or isinstance(self.axopts, dict):
-            numberOfDivisions = self.axopts.pop('numberOfDivisions', numberOfDivisions)
-
-            self.axopts['xtitle'] = self.xtitle
-            self.axopts['ytitle'] = self.ytitle
-
-            if 'xyGrid' not in self.axopts:  ## modify the default
-                self.axopts['xyGrid'] = usegrid
-
-            if 'xyGridTransparent' not in self.axopts:  ## modify the default
-                self.axopts['xyGridTransparent'] = True
-
-            if 'xTitlePosition' not in self.axopts:  ## modify the default
-                self.axopts['xTitlePosition'] = 0.5
-                self.axopts['xTitleJustify'] = "top-center"
-
-            if 'yTitlePosition' not in self.axopts:  ## modify the default
-                self.axopts['yTitlePosition'] = 0.5
-                self.axopts['yTitleJustify'] = "bottom-center"
-                self.axopts['yTitleOffset'] = 0.05
-
-        x0, x1 = self.xlim
-        y0, y1 = self.ylim
-        dx = x1 - x0
-        dy = y1 - y0
-        x0lim, x1lim = (x0-self.padding[0]*dx, x1+self.padding[1]*dx)
-        y0lim, y1lim = (y0-self.padding[2]*dy, y1+self.padding[3]*dy)
-        dy = y1lim - y0lim
-
-        self.axes = None
-        if xlim[0] >= xlim[1] or ylim[0] >= ylim[1]:
-            vedo.logger.warning(f"Null range for Figure {self.title}... returning an empty Assembly.")
-            Assembly.__init__(self)
-            self.yscale = 0
-            return
-
-        self.yscale = dx / dy / self.aspect
-
-        y0lim, y1lim = (y0lim * self.yscale, y1lim * self.yscale)
-
-        self.x0lim = x0lim
-        self.x1lim = x1lim
-        self.y0lim = y0lim
-        self.y1lim = y1lim
-
-        self.ztolerance = options.pop("ztolerance", None)
-        if self.ztolerance is None:
-            self.ztolerance = dx / 5000
-
-        ############## create axes
-        if self.axopts:
-            # print(self.axopts)
-            axesopts = self.axopts
-            if self.axopts is True or self.axopts == 1:
-                axesopts = {}
-
-            tp, ts = utils.makeTicks(
-                y0lim / self.yscale,
-                y1lim / self.yscale,
-                numberOfDivisions,
-            )
-            labs = []
-            for i in range(1, len(tp) - 1):
-                ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
-                labs.append([ynew, ts[i]])
-
-            if self.title:
-                axesopts["htitle"] = self.title
-            axesopts["yValuesAndLabels"] = labs
-            axesopts["xrange"] = (x0lim, x1lim)
-            axesopts["yrange"] = (y0lim, y1lim)
-            axesopts["zrange"] = (0, 0)
-            axesopts["yUseBounds"] = True
-
-            if 'c' not in axesopts and 'ac' in options:
-                axesopts["c"] = options['ac']
-
-            self.axes = addons.Axes(**axesopts)
-            # for a in self.axes.unpack():  # to make the frame move on top
-            #     # print(a.name)
-            #     if "Grid" in a.name:
-            #         a.shift(0, 0, 5*self.ztolerance)
-
-        Assembly.__init__(self, [self.axes])
-        self.SetOrigin(x0lim, y0lim, 0)
-        self.name = "Figure"
-        return
-
-    def __add__(self, *obj):
-        # just to avoid confusion, superseed Assembly.__add__
-        return self.__iadd__(*obj)
-
-    def __iadd__(self, *obj):
-        if len(obj) == 1 and isinstance(obj[0], Figure):
-            return self._check_unpack_and_insert(obj[0])
-        else:
-            obj = utils.flatten(obj)
-            return self.insert(*obj)
-
-    def _check_unpack_and_insert(self, fig):
-
-        if abs(self.yscale - fig.yscale) > 0.0001:
-            colors.printc("ERROR: adding incompatible Figure. Y-scales are different:",
-                          c='r', invert=True)
-            colors.printc("  first  figure:", self.yscale, c='r')
-            colors.printc("  second figure:", fig.yscale, c='r')
-
-            colors.printc("One or more of these parameters can be the cause:", c='r')
-            if list(self.xlim) != list(fig.xlim):
-                colors.printc("xlim --------------------------------------------\n",
-                              " first  figure:", self.xlim, "\n",
-                              " second figure:", fig.xlim, c='r')
-            if list(self.ylim) != list(fig.ylim):
-                colors.printc("ylim --------------------------------------------\n",
-                              " first  figure:", self.ylim, "\n",
-                              " second figure:", fig.ylim, c='r')
-            if list(self.padding) != list(fig.padding):
-                colors.printc("padding -----------------------------------------\n",
-                              " first  figure:", self.padding,
-                              " second figure:", fig.padding, c='r')
-            if self.aspect != fig.aspect:
-                colors.printc("aspect ------------------------------------------\n",
-                              " first  figure:", self.aspect,
-                              " second figure:", fig.aspect, c='r')
-
-            colors.printc("\n*Consider using fig2 = histogram(..., like=fig1)", c='r')
-            colors.printc(" Or fig += histogram(..., like=fig)\n", c='r')
-            return self
-
-        offset = self.zbounds()[1] + self.ztolerance
-
-        for ele in fig.unpack():
-            if "Axes" in ele.name:
-                continue
-            ele.z(offset)
-            self.insert(ele, rescale=False)
-
-        return self
-
-    def insert(self, *objs, rescale=True, as3d=True, adjusted=True, cut=True):
-        """
-        Insert objects into a Figure.
-
-        The reccomended syntax is to use "+=", which calls `insert()` under the hood.
-        If a whole Figure is added with "+=", it is unpacked and its objects are added
-        one by one.
-
-        Parameters
-        ----------
-        rescale : bool
-            rescale the y axis position while inserting the object.
-
-        as3d : bool
-            if True keep the aspect ratio of the 3d obect, otherwise stretch it in y.
-
-        adjusted : bool
-            adjust the scaling according to the shortest axis
-
-        cut : bool
-            cut off the parts of the object which go beyond the axes frame.
-        """
-        for a in objs:
-
-            if a in self.actors:
-                # should not add twice the same object in plot
-                continue
-
-            if isinstance(a, vedo.Points): # hacky way to identify Points
-                if a.NCells()==a.NPoints():
-                    poly = a.polydata(False)
-                    if poly.GetNumberOfPolys()==0 and poly.GetNumberOfLines()==0:
-                        as3d = False
-                        rescale = True
-
-            if isinstance(a, (shapes.Arrow, shapes.Arrow2D)):
-                # discard input Arrow and substitute it with a brand new one
-                # (because scaling would fatally distort the shape)
-                prop = a.GetProperty()
-                prop.LightingOff()
-                py = a.base[1]
-                a.top[1] = (a.top[1]-py) * self.yscale + py
-                b = shapes.Arrow2D(a.base, a.top, s=a.s, fill=a.fill).z(a.z())
-                b.SetProperty(prop)
-                b.y(py * self.yscale)
-                a = b
-
-            # elif isinstance(a, shapes.Rectangle) and a.radius is not None:
-            #     # discard input Rectangle and substitute it with a brand new one
-            #     # (because scaling would fatally distort the shape of the corners)
-            #     py = a.corner1[1]
-            #     rx1,ry1,rz1 = a.corner1
-            #     rx2,ry2,rz2 = a.corner2
-            #     ry2 = (ry2-py) * self.yscale + py
-            #     b = shapes.Rectangle([rx1,0,rz1], [rx2,ry2,rz2], radius=a.radius).z(a.z())
-            #     b.SetProperty(a.GetProperty())
-            #     b.y(py / self.yscale)
-            #     a = b
-
-            else:
-
-                if rescale:
-
-                    if not isinstance(a, Figure):
-
-                        if as3d and not isinstance(a, self.force_scaling_types):
-                            if adjusted:
-                                scl = np.min([1, self.yscale])
-                            else:
-                                scl = self.yscale
-
-                            a.scale(scl)
-
-                        else:
-                            a.scale([1, self.yscale, 1])
-
-                    # shift it in y
-                    a.y(a.y() * self.yscale)
-
-
-            if cut:
-                try:
-                    bx0, bx1, by0, by1, _, _ = a.GetBounds()
-                    if self.y0lim > by0:
-                        a.cutWithPlane([0, self.y0lim, 0], [ 0, 1, 0])
-                    if self.y1lim < by1:
-                        a.cutWithPlane([0, self.y1lim, 0], [ 0,-1, 0])
-                    if self.x0lim > bx0:
-                        a.cutWithPlane([self.x0lim, 0, 0], [ 1, 0, 0])
-                    if self.x1lim < bx1:
-                        a.cutWithPlane([self.x1lim, 0, 0], [-1, 0, 0])
-                except:
-                    # print("insert(): cannot cut", [a])
-                    pass
-
-            self.AddPart(a)
-            self.actors.append(a)
-
-        return self
-
-#########################################################################################
-class Histogram1D(Figure):
-    """
-    Creates a `Histogram1D(Figure)` object.
+    `Figure.yscale` can be used to access the vertical scaling factor.
 
     Parameters
     ----------
-    weights : list
-        An array of weights, of the same shape as `data`. Each value in `data`
-        only contributes its associated weight towards the bin count (instead of 1).
-
-    bins : int
-        number of bins
-
-    density : bool
-        normalize the area to 1 by dividing by the nr of entries and bin size
-
-    logscale : bool
-        use logscale on y-axis
-
-    fill : bool
-        fill bars woth solid color `c`
-
-    gap : float
-        leave a small space btw bars
-
-    radius : float
-        border radius of the top of the histogram bar. Default value is 0.1.
-
-    texture : str
-        url or path to an image to be used as texture for the bin
-
-    outline : bool
-        show outline of the bins
-
-    errors : bool
-        show error bars
-
-    xtitle : str
-        title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
-
-    ytitle : str
-        title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-
-    padding : float, list
-        keep a padding space from the axes (as a fraction of the axis size).
-        This can be a list of four numbers.
-
-    aspect : float
-        the desired aspect ratio of the histogram. Default is 4/3.
-
-    grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xyGrid=True)`
-
-    ztolerance : float
-        a tolerance factor to superimpose objects (along the z-axis).
-
-
-    .. hint:: examples/pyplot/histo_1d_a.py histo_1d_b.py histo_1d_c.py histo_1d_d.py
-        .. image:: https://vedo.embl.es/images/pyplot/histo_1D.png
-    """
-    def __init__(
-            self,
-            data,
-            weights=None,
-            bins=None,
-            errors=False,
-            density=False,
-            logscale=False,
-            fill=True,
-            radius=0.1,
-            c="olivedrab",
-            gap=0.02,
-            alpha=1,
-            outline=False,
-            lw=2,
-            lc="k",
-            texture="",
-            marker="",
-            ms=None,
-            mc=None,
-            ma=None,
-
-            # Figure and axes options:
-            like=None,
-            xlim=None,
-            ylim=(0, None),
-            aspect=4/3,
-            padding=[0.025, 0.025, 0, 0.05],
-
-            title="",
-            xtitle=" ",
-            ytitle=" ",
-            ac="k",
-            grid=False,
-            ztolerance=None,
-            **fig_kwargs,
-        ):
-
-        if like is not None:
-            xlim = like.xlim
-            ylim = like.ylim
-            aspect = like.aspect
-            padding = like.padding
-            if bins is None:
-                bins = like.bins
-        if bins is None:
-            bins = 20
-
-        if utils.isSequence(xlim):
-            # deal with user passing eg [x0, None]
-            _x0, _x1 = xlim
-            if _x0 is None:
-                _x0 = data.min()
-            if _x1 is None:
-                _x1 = data.max()
-            xlim = [_x0, _x1]
-
-        # purge NaN from data
-        validIds = np.all(np.logical_not(np.isnan(data)))
-        data = np.array(data[validIds]).ravel()
-
-        fs, edges = np.histogram(data, bins=bins, weights=weights, range=xlim)
-        binsize = edges[1] - edges[0]
-        ntot = data.shape[0]
-
-        fig_kwargs['title'] = title
-        fig_kwargs['xtitle'] = xtitle
-        fig_kwargs['ytitle'] = ytitle
-        fig_kwargs['ac'] = ac
-        fig_kwargs['ztolerance'] = ztolerance
-        fig_kwargs['grid'] = grid
-
-        unscaled_errors = np.sqrt(fs)
-        if density:
-            scaled_errors = unscaled_errors / (ntot*binsize)
-            fs = fs / (ntot*binsize)
-            if ytitle == ' ':
-                ytitle = f"counts / ( {ntot}~x~{utils.precision(binsize,3)} )"
-                fig_kwargs['ytitle'] = ytitle
-        elif logscale:
-            se_up = np.log10(fs + unscaled_errors/2 + 1)
-            se_dw = np.log10(fs - unscaled_errors/2 + 1)
-            scaled_errors = np.c_[se_up, se_dw]
-            fs = np.log10(fs + 1)
-            if ytitle == ' ':
-                ytitle = 'log_10 (counts+1)'
-                fig_kwargs['ytitle'] = ytitle
-
-        x0, x1 = np.min(edges), np.max(edges)
-        y0, y1 = ylim[0], np.max(fs)
-
-        _errors = []
-        if errors:
-            if density:
-                y1 += max(scaled_errors) / 2
-                _errors = scaled_errors
-            elif logscale:
-                y1 = max(scaled_errors[:, 0])
-                _errors = scaled_errors
-            else:
-                y1 += max(unscaled_errors) / 2
-                _errors = unscaled_errors
-
-        if like is None:
-            ylim = list(ylim)
-            if xlim is None:
-                xlim = [x0, x1]
-            if ylim[1] is None:
-                ylim[1] = y1
-            if ylim[0] != 0:
-                ylim[0] = y0
-
-        self.entries = ntot
-        self.frequencies = fs
-        self.errors = _errors
-        self.edges = edges
-        self.centers = (edges[0:-1] + edges[1:]) / 2
-        self.mean = data.mean()
-        self.std = data.std()
-        self.bins = edges  # internally used by "like"
-
-        ############################### stats legend as htitle
-        addstats = False
-        if not title:
-            if 'axes' not in fig_kwargs:
-                addstats = True
-                axesopts = dict()
-                fig_kwargs['axes'] = axesopts
-            elif fig_kwargs['axes'] is False:
-                pass
-            else:
-                axesopts = fig_kwargs['axes']
-                if "htitle" not in axesopts:
-                    addstats = True
-
-        if addstats:
-            htitle = f"Entries:~~{int(self.entries)}  "
-            htitle += f"Mean:~~{utils.precision(self.mean, 4)}  "
-            htitle += f"STD:~~{utils.precision(self.std, 4)}  "
-            axesopts["htitle"] = htitle
-            axesopts["hTitleJustify"] = "bottom-left"
-            axesopts["hTitleSize"] = 0.016
-            axesopts["hTitleOffset"] = [-0.49, 0.01, 0]
-
-        ############################################### Figure init
-        Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
-        if not self.yscale:
-            return None
-
-        if utils.isSequence(bins):
-            myedges = np.array(bins)
-            bins = len(bins) - 1
-        else:
-            myedges = edges
-
-        bin_centers = []
-        for i in range(bins):
-            x = (myedges[i] + myedges[i + 1]) / 2
-            bin_centers.append([x, fs[i], 0])
-
-        rs = []
-        maxheigth = 0
-        if not fill and not outline and not errors and not marker:
-            outline = True  # otherwise it's empty..
-
-        if fill:  #####################
-            if outline:
-                gap = 0
-
-            for i in range(bins):
-                F = fs[i]
-                if not F:
-                    continue
-                p0 = (myedges[i] + gap * binsize, 0, 0)
-                p1 = (myedges[i + 1] - gap * binsize, F, 0)
-
-                if radius:
-                    if gap:
-                        rds = np.array([0, 0, radius, radius])
-                    else:
-                        rd1 = 0 if i < bins-1 and fs[i+1] >= F else radius/2
-                        rd2 = 0 if i > 0      and fs[i-1] >= F else radius/2
-                        rds = np.array([0, 0, rd1, rd2])
-                    p1_yscaled = [p1[0], p1[1]*self.yscale, 0]
-                    r = shapes.Rectangle(p0, p1_yscaled, radius=rds*binsize, res=6)
-                    r.scale([1, 1/self.yscale, 1])
-                    r.radius = None  # so it doesnt get recreated and rescaled by insert()
-                else:
-                    r = shapes.Rectangle(p0, p1)
-
-                if texture:
-                    r.texture(texture)
-                    c = 'w'
-
-                r.PickableOff()
-                maxheigth = max(maxheigth, p1[1])
-                if c in colors.cmaps_names:
-                    col = colors.colorMap((p0[0]+p1[0])/2, c, myedges[0], myedges[-1])
-                else:
-                    col = c
-                r.color(col).alpha(alpha).lighting('off')
-                r.z(self.ztolerance)
-                rs.append(r)
-
-        if outline:  #####################
-            lns = [[myedges[0], 0, 0]]
-            for i in range(bins):
-                lns.append([myedges[i], fs[i], 0])
-                lns.append([myedges[i + 1], fs[i], 0])
-                maxheigth = max(maxheigth, fs[i])
-            lns.append([myedges[-1], 0, 0])
-            outl = shapes.Line(lns, c=lc, alpha=alpha, lw=lw)
-            outl.z(self.ztolerance*2)
-            rs.append(outl)
-
-        if errors:  #####################
-            for i in range(bins):
-                x = self.centers[i]
-                f = fs[i]
-                if not f:
-                    continue
-                err = _errors[i]
-                if utils.isSequence(err):
-                    el = shapes.Line([x, err[0], 0], [x, err[1], 0], c=lc, alpha=alpha, lw=lw)
-                else:
-                    el = shapes.Line([x, f-err/2, 0], [x, f+err/2, 0], c=lc, alpha=alpha, lw=lw)
-                el.z(self.ztolerance*3)
-                rs.append(el)
-
-        if marker:  #####################
-
-            if mc is None:
-                mc = lc
-            if ma is None:
-                ma = alpha
-
-            # remove empty bins (we dont want a marker there)
-            bin_centers = np.array(bin_centers)
-            bin_centers = bin_centers[bin_centers[:, 1] > 0]
-
-            if utils.isSequence(ms):  ### variable point size
-                mk = shapes.Marker(marker, s=1)
-                mk.scale([1, 1/self.yscale, 1])
-                msv = np.zeros_like(bin_centers)
-                msv[:, 0] = ms
-                marked = shapes.Glyph(
-                    bin_centers, glyphObj=mk, c=mc,
-                    orientationArray=msv, scaleByVectorSize=True
-                )
-            else:  ### fixed point size
-
-                if ms is None:
-                    ms = (xlim[1]-xlim[0]) / 100.0
-                else:
-                    ms = (xlim[1]-xlim[0]) / 100.0 * ms
-
-                if utils.isSequence(mc):
-                    mk = shapes.Marker(marker, s=ms)
-                    mk.scale([1, 1/self.yscale, 1])
-                    msv = np.zeros_like(bin_centers)
-                    msv[:, 0] = 1
-                    marked = shapes.Glyph(
-                        bin_centers, glyphObj=mk, c=mc,
-                        orientationArray=msv, scaleByVectorSize=True
-                    )
-                else:
-                    mk = shapes.Marker(marker, s=ms)
-                    mk.scale([1, 1/self.yscale, 1])
-                    marked = shapes.Glyph(bin_centers, glyphObj=mk, c=mc)
-
-            marked.alpha(ma)
-            marked.z(self.ztolerance*4)
-            rs.append(marked)
-
-        self.insert(*rs, as3d=False)
-        self.name = "Histogram1D"
-
-
-#########################################################################################
-class Histogram2D(Figure):
-    """
-    Input data formats `[(x1,x2,..), (y1,y2,..)] or [(x1,y1), (x2,y2),..]`
-    are both valid.
-
-    Use keyword `like=...` if you want to use the same format of a previously
-    created Figure (useful when superimposing Figures) to make sure
-    they are compatible and comparable. If they are not compatible
-    you will receive an error message.
-
-    Parameters
-    ----------
-    bins : list
-        binning as (nx, ny)
-
-    weights : list
-        array of weights to assign to each entry
-
-    cmap : str, lookuptable
-        color map name or look up table
-
-    alpha : float
-        opacity of the histogram
-
-    gap : float
-        separation between adjacent bins as a fraction for their size
-
-    scalarbar : bool
-        add a scalarbar to right of the histogram
-
-    like : Figure
-        grab and use the same format of the given Figure (for superimposing)
-
-    xlim : list
-        [x0, x1] range of interest. If left to None will automatically
-        choose the minimum or the maximum of the data range.
-        Data outside the range are completely ignored.
-
-    ylim : list
-        [y0, y1] range of interest. If left to None will automatically
-        choose the minimum or the maximum of the data range.
-        Data outside the range are completely ignored.
-
-    aspect : float
-        the desired aspect ratio of the figure.
-
-    title : str
-        title of the plot to appear on top.
-        If left blank some statistics will be shown.
+    cutframe : bool
+        cut off anything that goes out of the axes frame (True by default).
 
     xtitle : str
         x axis title
@@ -741,702 +51,223 @@ class Histogram2D(Figure):
     ytitle : str
         y axis title
 
-    ztitle : str
-        title for the scalar bar
-
-    ac : str
-        axes color, additional keyword for Axes can also be added
-        using e.g. `axes=dict(xyGrid=True)`
-
-    .. hint:: examples/pyplot/histo_2d.py
-        .. image:: https://vedo.embl.es/images/pyplot/histo_2D.png
-    """
-    def __init__(
-            self,
-            xvalues,
-            yvalues=None,
-            bins=25,
-            weights=None,
-            cmap="cividis",
-            alpha=1,
-            gap=0,
-            scalarbar=True,
-
-            # Figure and axes options:
-            like=None,
-            xlim=None,
-            ylim=(None, None),
-            zlim=(None, None),
-            aspect=1,
-
-            title="",
-            xtitle=" ",
-            ytitle=" ",
-            ztitle="",
-            ac="k",
-            **fig_kwargs,
-        ):
-
-        if yvalues is None:
-            # assume [(x1,y1), (x2,y2) ...] format
-            yvalues = xvalues[:, 1]
-            xvalues = xvalues[:, 0]
-
-        padding=[0,0,0,0]
-
-        if like is not None:
-            xlim = like.xlim
-            ylim = like.ylim
-            aspect = like.aspect
-            padding = like.padding
-            if bins is None:
-                bins = like.bins
-        if bins is None:
-            bins = 20
-
-        if isinstance(bins, int):
-            bins = (bins, bins)
-
-        if utils.isSequence(xlim):
-            # deal with user passing eg [x0, None]
-            _x0, _x1 = xlim
-            if _x0 is None:
-                _x0 = xvalues.min()
-            if _x1 is None:
-                _x1 = xvalues.max()
-            xlim = [_x0, _x1]
-
-        if utils.isSequence(ylim):
-            # deal with user passing eg [x0, None]
-            _y0, _y1 = ylim
-            if _y0 is None:
-                _y0 = yvalues.min()
-            if _y1 is None:
-                _y1 = yvalues.max()
-            ylim = [_y0, _y1]
-
-        H, xedges, yedges = np.histogram2d(
-            xvalues, yvalues, weights=weights,
-            bins=bins, range=(xlim, ylim),
-        )
-
-        xlim = np.min(xedges), np.max(xedges)
-        ylim = np.min(yedges), np.max(yedges)
-        dx, dy = xlim[1] - xlim[0], ylim[1] - ylim[0]
-
-        fig_kwargs['title'] = title
-        fig_kwargs['xtitle'] = xtitle
-        fig_kwargs['ytitle'] = ytitle
-        fig_kwargs['ac'] = ac
-
-        self.entries = len(xvalues)
-        self.frequencies = H
-        self.edges = (xedges, yedges)
-        self.mean = (xvalues.mean(), yvalues.mean())
-        self.std = (xvalues.std(), yvalues.std())
-        self.bins = bins  # internally used by "like"
-
-        ############################### stats legend as htitle
-        addstats = False
-        if not title:
-            if 'axes' not in fig_kwargs:
-                addstats = True
-                axesopts = dict()
-                fig_kwargs['axes'] = axesopts
-            elif fig_kwargs['axes'] is False:
-                pass
-            else:
-                axesopts = fig_kwargs['axes']
-                if "htitle" not in fig_kwargs['axes']:
-                    addstats = True
-
-        if addstats:
-            htitle = f"Entries:~~{int(self.entries)}  "
-            htitle += f"Mean:~~{utils.precision(self.mean, 3)}  "
-            htitle += f"STD:~~{utils.precision(self.std, 3)}  "
-            axesopts["htitle"] = htitle
-            axesopts["hTitleJustify"] = "bottom-left"
-            axesopts["hTitleSize"] = 0.0175
-            axesopts["hTitleOffset"] = [-0.49, 0.01, 0]
-
-        ############################################### Figure init
-        Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
-        if not self.yscale:
-            return None
-
-        ##################### the grid
-        acts = []
-        g = shapes.Grid(
-            pos=[(xlim[0] + xlim[1]) / 2, (ylim[0] + ylim[1]) / 2, 0],
-            s=(dx, dy),
-            res=bins[:2],
-        )
-        g.alpha(alpha).lw(0).wireframe(False).flat().lighting('off')
-        g.cmap(cmap, np.ravel(H.T), on='cells', vmin=zlim[0], vmax=zlim[1])
-        if gap:
-            g.shrink(abs(1-gap))
-
-        if scalarbar:
-            sc = g.addScalarBar3D(ztitle, c=ac).scalarbar
-            sc.scale([self.yscale,1,1]) ## prescale trick
-            sbnds = sc.xbounds()
-            sc.x(self.x1lim + (sbnds[1]-sbnds[0])*0.75)
-            acts.append(sc)
-        acts.append(g)
-
-        self.insert(*acts, as3d=False)
-        self.name = "Histogram2D"
-
-
-#########################################################################################
-class PlotBars(Figure):
-    """
-    Creates a `PlotBars(Figure)` object.
-
-    Input must be in format `[counts, labels, colors, edges]`.
-    Either or both `edges` and `colors` are optional and can be omitted.
-
-    Use keyword `like=...` if you want to use the same format of a previously
-    created Figure (useful when superimposing Figures) to make sure
-    they are compatible and comparable. If they are not compatible
-    you will receive an error message.
-
-
-    Parameters
-    ----------
-
-    errors : bool
-        show error bars
-
-    logscale : bool
-        use logscale on y-axis
-
-    fill : bool
-        fill bars woth solid color `c`
-
-    gap : float
-        leave a small space btw bars
-
-    radius : float
-        border radius of the top of the histogram bar. Default value is 0.1.
-
-    texture : str
-        url or path to an image to be used as texture for the bin
-
-    outline : bool
-        show outline of the bins
-
-    xtitle : str
-        title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
-
-    ytitle : str
-        title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-
-    ac : str
-        axes color
-
-    padding : float, list
-        keep a padding space from the axes (as a fraction of the axis size).
-        This can be a list of four numbers.
-
-    aspect : float
-        the desired aspect ratio of the figure. Default is 4/3.
-
-    grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xyGrid=True)`
-
-    .. hint:: examples/pyplot/histo_1d_a.py histo_1d_b.py histo_1d_c.py histo_1d_d.py
-        .. image:: https://vedo.embl.es/images/pyplot/histo_1D.png
-    """
-    def __init__(
-            self,
-            data,
-            errors=False,
-            logscale=False,
-            fill=True,
-            gap=0.02,
-            radius=0.05,
-            c="olivedrab",
-            alpha=1,
-            texture="",
-            outline=False,
-            lw=2,
-            lc="k",
-            # Figure and axes options:
-            like=None,
-            xlim=(None, None),
-            ylim=(0, None),
-            aspect=4/3,
-            padding=[0.025, 0.025, 0, 0.05],
-            #
-            title="",
-            xtitle=" ",
-            ytitle=" ",
-            ac="k",
-            grid=False,
-            ztolerance=None,
-            **fig_kwargs,
-        ):
-        ndata = len(data)
-        if ndata == 4:
-            counts, xlabs, cols, edges = data
-        elif ndata == 3:
-            counts, xlabs, cols = data
-            edges = np.array(range(len(counts)+1))+0.5
-        elif ndata == 2:
-            counts, xlabs = data
-            edges = np.array(range(len(counts)+1))+0.5
-            cols = [c] * len(counts)
-        else:
-            m = "barplot error: data must be given as [counts, labels, colors, edges] not\n"
-            vedo.logger.error(m + f" {data}\n     bin edges and colors are optional.")
-            raise RuntimeError()
-
-        # sanity checks
-        assert len(counts) == len(xlabs)
-        assert len(counts) == len(cols)
-        assert len(counts) == len(edges)-1
-
-        counts = np.asarray(counts)
-        edges  = np.asarray(edges)
-
-        if logscale:
-            counts = np.log10(counts + 1)
-            if ytitle == ' ':
-                ytitle = 'log_10 (counts+1)'
-
-        if like is not None:
-            xlim = like.xlim
-            ylim = like.ylim
-            aspect = like.aspect
-            padding = like.padding
-
-        if utils.isSequence(xlim):
-            # deal with user passing eg [x0, None]
-            _x0, _x1 = xlim
-            if _x0 is None:
-                _x0 = np.min(edges)
-            if _x1 is None:
-                _x1 = np.max(edges)
-            xlim = [_x0, _x1]
-
-        x0, x1 = np.min(edges), np.max(edges)
-        y0, y1 = ylim[0], np.max(counts)
-
-        if like is None:
-            ylim = list(ylim)
-            if xlim is None:
-                xlim = [x0, x1]
-            if ylim[1] is None:
-                ylim[1] = y1
-            if ylim[0] != 0:
-                ylim[0] = y0
-
-        fig_kwargs['title'] = title
-        fig_kwargs['xtitle'] = xtitle
-        fig_kwargs['ytitle'] = ytitle
-        fig_kwargs['ac'] = ac
-        fig_kwargs['ztolerance'] = ztolerance
-        fig_kwargs['grid'] = grid
-
-        centers = (edges[0:-1] + edges[1:]) / 2
-        binsizes = (centers - edges[0:-1]) * 2
-
-        if 'axes' not in fig_kwargs:
-            fig_kwargs['axes'] = dict()
-        _xlabs = []
-        for i in range(len(centers)):
-            _xlabs.append([centers[i], str(xlabs[i])])
-        fig_kwargs['axes']["xValuesAndLabels"] = _xlabs
-
-        ############################################### Figure
-        self.statslegend = ""
-        self.edges = edges
-        self.centers = centers
-        self.bins = edges  # internal used by "like"
-        Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
-        if not self.yscale:
-            return None
-
-        rs = []
-        maxheigth = 0
-        if fill:  #####################
-            if outline:
-                gap = 0
-
-            for i in range(len(centers)):
-                binsize = binsizes[i]
-                p0 = (edges[i] + gap * binsize, 0, 0)
-                p1 = (edges[i+1] - gap * binsize, counts[i], 0)
-
-                if radius:
-                    rds = np.array([0, 0, radius, radius])
-                    p1_yscaled = [p1[0], p1[1]*self.yscale, 0]
-                    r = shapes.Rectangle(p0, p1_yscaled, radius=rds*binsize, res=6)
-                    r.scale([1, 1/self.yscale, 1])
-                    r.radius = None  # so it doesnt get recreated and rescaled by insert()
-                else:
-                    r = shapes.Rectangle(p0, p1)
-
-                if texture:
-                    r.texture(texture)
-                    c = 'w'
-
-                r.PickableOff()
-                maxheigth = max(maxheigth, p1[1])
-                if c in colors.cmaps_names:
-                    col = colors.colorMap((p0[0]+p1[0])/2, c, edges[0], edges[-1])
-                else:
-                    col = cols[i]
-                r.color(col).alpha(alpha).lighting('off')
-                r.name = f'bar_{i}'
-                r.z(self.ztolerance)
-                rs.append(r)
-
-        elif outline:  #####################
-            lns = [[edges[0], 0, 0]]
-            for i in range(len(centers)):
-                lns.append([edges[i], counts[i], 0])
-                lns.append([edges[i + 1], counts[i], 0])
-                maxheigth = max(maxheigth, counts[i])
-            lns.append([edges[-1], 0, 0])
-            outl = shapes.Line(lns, c=lc, alpha=alpha, lw=lw).z(self.ztolerance)
-            outl.name = f'bar_outline_{i}'
-            rs.append(outl)
-
-        if errors:  #####################
-            for x, f in centers:
-                err = np.sqrt(f)
-                el = shapes.Line([x, f-err/2, 0], [x, f+err/2, 0], c=lc, alpha=alpha, lw=lw)
-                el.z(self.ztolerance * 2)
-                rs.append(el)
-
-        self.insert(*rs, as3d=False)
-        self.name = "PlotBars"
-
-
-#########################################################################################
-class PlotXY(Figure):
-    """
-    Creates a `PlotXY(Figure)` object.
-
-    Parameters
-    ----------
-
-    xerrors : bool
-        show error bars associated to each point in x
-
-    yerrors : bool
-        show error bars associated to each point in y
-
-    lw : int
-        width of the line connecting points in pixel units.
-        Set it to 0 to remove the line.
-
-    lc : str
-        line color
-
-    la : float
-        line "alpha", opacity of the line
-
-    dashed : bool
-        draw a dashed line instead of a continous line
-
-    splined : bool
-        spline the line joining the point as a countinous curve
-
-    elw : int
-        width of error bar lines in units of pixels
-
-    ec : color
-        color of error bar, by default the same as marker color
-
-    errorBand : bool
-        represent errors on y as a filled error band.
-        Use ``ec`` keyword to modify its color.
-
-    marker : str, int
-        use a marker for the data points
-
-    ms : float
-        marker size
-
-    mc : color
-        color of the marker
-
-    ma : float
-        opacity of the marker
-
-    xlim : list
-        set limits to the range for the x variable
-
-    ylim : list
-        set limits to the range for the y variable
-
-    aspect : float
-        Desired aspect ratio.
-        If None, it is automatically calculated to get a reasonable aspect ratio.
-        Scaling factor is saved in ``Figure.yscale``
-
-    padding : float, list
-        keep a padding space from the axes (as a fraction of the axis size).
-        This can be a list of four numbers.
-
     title : str
-        title to appear on the top of the frame, like a header.
+        figure title (to appear on top of the 2D frame)
 
-    xtitle : str
-        title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
+    .. hint:: examples/pyplot/plot_empty.py
 
-    ytitle : str
-        title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-
-    ac : str
-        axes color
-
-    grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xyGrid=True)`
-
-    ztolerance : float
-        a tolerance factor to superimpose objects (along the z-axis).
-
-
-    Example:
-        .. code-block:: python
-
-            from vedo.pyplot import plot
-            import numpy as np
-            x = np.linspace(0, 6.28, num=50)
-            plot(np.sin(x), 'r').plot(np.cos(x), 'bo-').show()
-
-        .. image:: https://user-images.githubusercontent.com/32848391/74363882-c3638300-4dcb-11ea-8a78-eb492ad9711f.png
-
-    .. hint::
-        examples/pyplot/plot_errbars.py, plot_errband.py, plot_pip.py, scatter1.py, scatter2.py
-
-        .. image:: https://vedo.embl.es/images/pyplot/plot_pip.png
+        .. image:: https://vedo.embl.es/images/pyplot/plot_empty.png
     """
-    def __init__(
-            self,
-            #
-            data,
-            xerrors=None,
-            yerrors=None,
-            #
-            lw=2,
-            lc="k",
-            la=1,
-            dashed=False,
-            splined=False,
-            #
-            elw=2,  # error line width
-            ec=None,  # error line or band color
-            errorBand=False, # errors in x are ignored
-            #
-            marker="",
-            ms=None,
-            mc=None,
-            ma=None,
-            # Figure and axes options:
-            like=None,
-            xlim=None,
-            ylim=(None, None),
-            aspect=4/3,
-            padding=0.05,
-            #
-            title="",
-            xtitle=" ",
-            ytitle=" ",
-            ac="k",
-            grid=True,
-            ztolerance=None,
-            **fig_kwargs,
-        ):
+    # This class can be instatiated to create an empty frame with axes, but it's normally called by
+    # plot() and histogram()
+    def __init__(self, *objs, **kwargs):
 
-        line = False
-        if lw>0:
-            line = True
-        if marker == "" and not line and not splined:
-            line = True
+        lims = False
+        if 'xlim' in kwargs and 'ylim' in kwargs:
+            lims=True
 
-        if like is not None:
-            xlim = like.xlim
-            ylim = like.ylim
-            aspect = like.aspect
-            padding = like.padding
+        self.pad = 0.05
+        self.aspect = 4/3
+        if 'aspect' in kwargs and not lims:
+            asp = utils.precision(kwargs['aspect'], 3)
+            colors.printc(f"You set aspect ratio as {asp} but xlim or ylim are not set!", c='y')
+            self.aspect = 1
 
-        if utils.isSequence(xlim):
-            # deal with user passing eg [x0, None]
-            _x0, _x1 = xlim
-            if _x0 is None:
-                _x0 = data.min()
-            if _x1 is None:
-                _x1 = data.max()
-            xlim = [_x0, _x1]
+        self.yscale = 1
+        self.cutframe = True
+        if 'cutframe' in kwargs: self.cutframe = kwargs['cutframe']
 
-        # purge NaN from data
-        validIds = np.all(np.logical_not(np.isnan(data)))
-        data = np.array(data[validIds])[0]
+        self.xlim = None
+        self.ylim = None
 
-        fig_kwargs['title'] = title
-        fig_kwargs['xtitle'] = xtitle
-        fig_kwargs['ytitle'] = ytitle
-        fig_kwargs['ac'] = ac
-        fig_kwargs['ztolerance'] = ztolerance
-        fig_kwargs['grid'] = grid
+        self.axes = None
+        self.title = ''
+        self.xtitle = 'x'
+        self.ytitle = 'y'
+        self.zmax = 0
 
-        x0, y0 = np.min(data, axis=0)
-        x1, y1 = np.max(data, axis=0)
-        if xerrors is not None and not errorBand:
-            x0 = min(data[:,0] - xerrors)
-            x1 = max(data[:,0] + xerrors)
-        if yerrors is not None:
-            y0 = min(data[:,1] - yerrors)
-            y1 = max(data[:,1] + yerrors)
+        self._x0lim = None
+        self._y0lim = None
+        self._x1lim = None
+        self._y1lim = None
 
-        if like is None:
-            if xlim is None:
-                xlim = (None, None)
-            xlim = list(xlim)
-            if xlim[0] is None:
-                xlim[0] = x0
-            if xlim[1] is None:
-                xlim[1] = x1
-            ylim = list(ylim)
-            if ylim[0] is None:
-                ylim[0] = y0
-            if ylim[1] is None:
-                ylim[1] = y1
+        self.bins = []
+        self.freqs = []
 
-        self.entries = len(data)
-        self.mean = data.mean()
-        self.std = data.std()
+        self.format = None
 
-        ############################################### Figure init
-        Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
-        if not self.yscale:
-            return None
-        acts = []
+        # these are scaled by default when added to a Figure
+        self.invariable_types = (
+            shapes.Text3D,
+            shapes.Polygon,
+            shapes.Star,
+            shapes.Disc,
+            shapes.Ellipsoid,
+            shapes.Latex,
+            shapes.Sphere,
+            Assembly,
+            vedo.Picture,
+        )
 
-        ######### the PlotXY Line or Spline
-        if dashed:
-            l = shapes.DashedLine(data, c=lc, alpha=la, lw=lw)
-            acts.append(l)
-        elif splined:
-            l = shapes.KSpline(data).lw(lw).c(lc).alpha(la)
-            acts.append(l)
-        elif line:
-            l = shapes.Line(data, c=lc, alpha=la).lw(lw)
-            acts.append(l)
+        # deal with initializing an empty figure:
+        if lims:
+            self.format = kwargs
+            self.xlim = kwargs['xlim']
+            self.ylim = kwargs['ylim']
+            self.pad = 0
+            if 'pad' in kwargs: self.pad = kwargs['pad']
+            if 'aspect' in kwargs: self.aspect = kwargs['aspect']
+            if 'zmax'   in kwargs: self.zmax = kwargs['zmax']
+            if 'axes' in kwargs:
+                axes = kwargs['axes']
+                if 'htitle' in axes: self.title  = axes['htitle']
+                if 'xtitle' in axes: self.xtitle = axes['xtitle']
+                if 'ytitle' in axes: self.ytitle = axes['ytitle']
 
-        ######### the PlotXY marker
-        if mc is None:
-            mc = lc
-        if ma is None:
-            ma = la
+            self.yscale = (self.xlim[1]-self.xlim[0]) / (self.ylim[1]-self.ylim[0]) / self.aspect
 
-        if marker:
+            if 'axes' in kwargs:
+                if bool(axes) :
+                    if axes == True or axes==1:
+                        axes = {}
 
-            pts = np.c_[data, np.zeros(len(data))]
+                    ndiv = 6
+                    if "numberOfDivisions" in axes.keys():
+                        ndiv = axes["numberOfDivisions"]
 
-            if utils.isSequence(ms):
-                ### variable point size
-                mk = shapes.Marker(marker, s=1)
-                mk.scale([1, 1/self.yscale, 1])
-                msv = np.zeros_like(pts)
-                msv[:, 0] = ms
-                marked = shapes.Glyph(
-                    pts, glyphObj=mk, c=mc,
-                    orientationArray=msv, scaleByVectorSize=True
-                )
-            else:
-                ### fixed point size
-                if ms is None:
-                    ms = (xlim[1] - xlim[0]) / 100.0
+                    x0, x1 = self.xlim
+                    y0, y1 = self.ylim
+                    y0lim, y1lim = y0 - self.pad * (y1 - y0), y1 + self.pad * (y1 - y0)
+                    dx = x1 - x0
+                    dy = y1lim - y0lim
+                    self.yscale = dx / dy / self.aspect
+                    y0lim, y1lim = y0lim * self.yscale, y1lim * self.yscale
 
-                if utils.isSequence(mc):
-                    mk = shapes.Marker(marker, s=ms)
-                    mk.scale([1, 1/self.yscale, 1])
-                    msv = np.zeros_like(pts)
-                    msv[:, 0] = 1
-                    marked = shapes.Glyph(
-                        pts, glyphObj=mk, c=mc,
-                        orientationArray=msv, scaleByVectorSize=True
-                    )
-                else:
-                    mk = shapes.Marker(marker, s=ms)
-                    mk.scale([1, 1/self.yscale, 1])
-                    marked = shapes.Glyph(pts, glyphObj=mk, c=mc)
+                    tp, ts = utils.makeTicks(y0lim / self.yscale, y1lim / self.yscale, ndiv)
+                    labs = []
+                    for i in range(1, len(tp) - 1):
+                        ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
+                        labs.append([ynew, ts[i]])
 
-            marked.name = "Marker"
-            marked.alpha(ma)
-            marked.z(3*self.ztolerance)
-            acts.append(marked)
+                    axes["htitle"] = self.title
+                    axes["xtitle"] = self.xtitle
+                    axes["ytitle"] = self.ytitle
+                    axes["yValuesAndLabels"] = labs
+                    axes["xrange"] = (x0, x1)
+                    axes["yrange"] = [y0lim, y1lim]
+                    axes["zrange"] = (0, 0)
+                    axes["yUseBounds"] = True
+                    axs = addons.Axes(**axes)
 
-        ######### the PlotXY marker errors
-        if ec is None:
-            if mc is None:
-                ec = lc
-            else:
-                ec = mc
-        ztol = self.ztolerance
+                    objs = [[axs]]
 
-        if errorBand:
-            yerrors = np.abs(yerrors)
-            du = np.array(data)
-            dd = np.array(data)
-            du[:,1] += yerrors
-            dd[:,1] -= yerrors
-            if splined:
-                res = len(data) * 20
-                band1 = shapes.KSpline(du, res=res)
-                band2 = shapes.KSpline(dd, res=res)
-                band = shapes.Ribbon(band1, band2, res=(res,2))
-            else:
-                dd = list(reversed(dd.tolist()))
-                band = shapes.Line(du.tolist() + dd, closed=True)
-                band.triangulate().lw(0)
-            if ec is None:
-                band.c(lc)
-            else:
-                band.c(ec)
-            band.lighting('off').alpha(la).z(ztol)
-            acts.append(band)
+                    self.axes = axs
+                    self.SetOrigin(x0, y0lim, 0)
+
+                    self._x0lim = x0
+                    self._x1lim = x1
+                    self._y0lim = y0lim
+                    self._y1lim = y1lim
+
+        Assembly.__init__(self, *objs)
+        self.name = "Figure"
+        return
+
+    def __iadd__(self, *objs):
+
+        objs = objs[0]  # make a list anyway
+        if not utils.isSequence(objs):
+            objs = [objs]
+
+        if not utils.isSequence(objs[0]) and isinstance(objs[0], Figure):
+            # is adding another whole Figure # TO BE REVISED
+            plot2 = objs[0]
+            plot_z = plot2.z() + (plot2._x1lim - plot2._x0lim)/1000 # add a small shift in z
+            # print(plot2.yscale, self.yscale)
+            elems = plot2.unpack()
+            objs2 = []
+            for e in elems:
+                if e.name == "axes":
+                    continue
+                ec = e.clone()
+                # remove plot2.yscale and apply self.yscale:
+                ec.SetScale(1, self.yscale/plot2.yscale, 1)
+                self.AddPart(ec.z(plot_z))
+                objs2.append(ec)
+            objs = objs2
 
         else:
+            # print('adding individual objects', len(objs))
+            for i, a in enumerate(objs):
+                # print( ' xx adding',i, a.name)
 
-            ## xerrors
-            if xerrors is not None:
-                if len(xerrors) == len(data):
-                    errs = []
-                    for i, val in enumerate(data):
-                        xval, yval = val
-                        xerr = xerrors[i] / 2
-                        el = shapes.Line((xval-xerr, yval, ztol), (xval+xerr, yval, ztol))
-                        el.lw(elw)
-                        errs.append(el)
-                    mxerrs = merge(errs).c(ec).lw(lw).alpha(ma).z(2 * ztol)
-                    acts.append(mxerrs)
+                # discard input Arrow and substitute it with a brand new one
+                if isinstance(a, (shapes.Arrow, shapes.Arrow2D)):
+                    py = a.base[1]
+                    prop = a.GetProperty()
+                    prop.LightingOff()
+                    a.top[1] = (a.top[1]-py) * self.yscale + py
+                    b = vedo.shapes.Arrow2D(a.base, a.top, s=a.s, fill=a.fill)
+                    b.SetProperty(prop)
+                    b.y(py * self.yscale)
+                    objs[i] = b
+                    a = b
+
                 else:
-                    vedo.logger.error("in PlotXY(xerrors=...): mismatch in array length")
 
-            ## yerrors
-            if yerrors is not None:
-                if len(yerrors) == len(data):
-                    errs = []
-                    for i, val in enumerate(data):
-                        xval, yval = val
-                        yerr = yerrors[i]
-                        el = shapes.Line((xval, yval-yerr, ztol), (xval, yval+yerr, ztol))
-                        el.lw(elw)
-                        errs.append(el)
-                    myerrs = merge(errs).c(ec).lw(lw).alpha(ma).z(2 * ztol)
-                    acts.append(myerrs)
-                else:
-                    vedo.logger.error("in PlotXY(yerrors=...): mismatch in array length")
+                    if isinstance(a, self.invariable_types) or "Marker" in a.name:
+                        # special scaling to preserve the aspect ratio
+                        # (and if the aspect ratio is smaller in y then y rules)
+                        scl = np.min([1, self.yscale])
+                        a.scale(scl)
+                    else:
+                        a.scale([1, self.yscale, 1])
+                    py = a.y()
+                    a.y(py * self.yscale)
 
-        self.insert(*acts, as3d=False)
-        self.name = "PlotXY"
+                self.AddPart(a)
+
+        if self.cutframe:
+            for a in objs:
+                if not a or a.name == "Axes":
+                    continue
+                try:
+                    if self._y0lim is not None:
+                        a.cutWithPlane([0, self._y0lim, 0], [0, 1, 0])
+                    if self._y1lim is not None:
+                        a.cutWithPlane([0, self._y1lim, 0], [0,-1, 0])
+                    if self._x0lim is not None:
+                        a.cutWithPlane([self._x0lim, 0, 0], [1, 0, 0])
+                    if self._x1lim is not None:
+                        a.cutWithPlane([self._x1lim, 0, 0], [-1,0, 0])
+                    # a.cutWith2DLine([ # a bit faster but unfortunately doesnt work well with Line
+                    #         [self._x0lim-0.001, self._y0lim-0.001],
+                    #         [self._x1lim+0.001, self._y0lim-0.001],
+                    #         [self._x1lim+0.001, self._y1lim+0.001],
+                    #         [self._x0lim-0.001, self._y1lim+0.001],
+                    #     ], invert=False, closed=True,
+                    # )
+                except:
+                    pass
+                    # vedo.logger.error("Error could not cut plot object in figure.")
+
+        return self
+
+    def add(self, *objs, as3d=True):
+        """
+        Add an object which lives in the 3D "world-coordinate" system to a 2D scaled `Figure`.
+        The scaling factor will be taken into account automatically to maintain the
+        correct aspect ratio of the plot.
+
+        .. warning:: Do not add multiple times the same object to avoid wrong rescalings!
+        """
+        for obj in objs:
+            if as3d:
+                if not isinstance(obj, self.invariable_types) or "Marker" in obj.name:
+                    obj.scale([1, 1/self.yscale, 1])
+            self.__iadd__(obj)
+        return self
+
 
 
 def plot(*args, **kwargs):
@@ -1444,44 +275,66 @@ def plot(*args, **kwargs):
     Draw a 2D line plot, or scatter plot, of variable x vs variable y.
     Input format can be either `[allx], [allx, ally] or [(x1,y1), (x2,y2), ...]`
 
-    Use `like=...` if you want to use the same format of a previously
-    created Figure (useful when superimposing Figures) to make sure
-    they are compatible and comparable. If they are not compatible
-    you will receive an error message.
-
     Parameters
     ----------
-    xerrors : bool
-        show error bars associated to each point in x
+    xerrors : list
+        set uncertainties for the x variable, shown as error bars
 
-    yerrors : bool
-        show error bars associated to each point in y
+    yerrors : list
+        set uncertainties for the y variable, shown as error bars
 
-    lw : int
-        width of the line connecting points in pixel units.
-        Set it to 0 to remove the line.
+    errorBand : bool
+        represent errors on y as a filled error band. Use ``ec`` keyword to modify its color.
 
-    lc : str
-        line color
+    xlim : list
+        set limits to the range for the x variable
 
-    la : float
-        line "alpha", opacity of the line
+    ylim : list
+        set limits to the range for the y variable
 
-    dashed : bool
-        draw a dashed line instead of a continous line
+    aspect : float
+        Desired aspect ratio.
+        If None, it is automatically calculated to get a reasonable aspect ratio.
+        Scaling factor is saved in ``Figure.yscale``
 
-    splined : bool
-        spline the line joining the point as a countinous curve
+    c : color
+        color of frame and text
 
-    elw : int
-        width of error bar lines in units of pixels
+    alpha : float
+        opacity of frame and text
+
+    xtitle : str
+        title label along x-axis
+
+    title : str
+        histogram title on top
+
+    titleSize : float
+        size of title
+
+    titleColor : color
+        color of title
 
     ec : color
         color of error bar, by default the same as marker color
 
-    errorBand : bool
-        represent errors on y as a filled error band.
-        Use ``ec`` keyword to modify its color.
+    lc : color
+        color of the line
+
+    la : float
+        transparency of the line
+
+    lw : int
+        width of line in units of pixels
+
+    lwe : int
+        width of error bar lines in units of pixels
+
+    dashed : bool
+        use a dashed line style
+
+    splined : bool
+        spline the line joining the point as a countinous curve
 
     marker : str, int
         use a marker for the data points
@@ -1495,40 +348,6 @@ def plot(*args, **kwargs):
     ma : float
         opacity of the marker
 
-    xlim : list
-        set limits to the range for the x variable
-
-    ylim : list
-        set limits to the range for the y variable
-
-    aspect : float
-        Desired aspect ratio.
-        If None, it is automatically calculated to get a reasonable aspect ratio.
-        Scaling factor is saved in ``Figure.yscale``
-
-    padding : float, list
-        keep a padding space from the axes (as a fraction of the axis size).
-        This can be a list of four numbers.
-
-    title : str
-        title to appear on the top of the frame, like a header.
-
-    xtitle : str
-        title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
-
-    ytitle : str
-        title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-
-    ac : str
-        axes color
-
-    grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xyGrid=True)`
-
-    ztolerance : float
-        a tolerance factor to superimpose objects (along the z-axis).
-
-
     Example:
         .. code-block:: python
 
@@ -1539,66 +358,11 @@ def plot(*args, **kwargs):
 
         .. image:: https://user-images.githubusercontent.com/32848391/74363882-c3638300-4dcb-11ea-8a78-eb492ad9711f.png
 
+
     .. hint::
         examples/pyplot/plot_errbars.py, plot_errband.py, plot_pip.py, scatter1.py, scatter2.py
 
         .. image:: https://vedo.embl.es/images/pyplot/plot_pip.png
-
-
-    -------------------------------------------------------------------------
-    .. note:: mode="bar"
-
-    Creates a `PlotBars(Figure)` object.
-
-    Input must be in format `[counts, labels, colors, edges]`.
-    Either or both `edges` and `colors` are optional and can be omitted.
-
-
-    Parameters
-    ----------
-
-    errors : bool
-        show error bars
-
-    logscale : bool
-        use logscale on y-axis
-
-    fill : bool
-        fill bars woth solid color `c`
-
-    gap : float
-        leave a small space btw bars
-
-    radius : float
-        border radius of the top of the histogram bar. Default value is 0.1.
-
-    texture : str
-        url or path to an image to be used as texture for the bin
-
-    outline : bool
-        show outline of the bins
-
-    xtitle : str
-        title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
-
-    ytitle : str
-        title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-
-    ac : str
-        axes color
-
-    padding : float, list
-        keep a padding space from the axes (as a fraction of the axis size).
-        This can be a list of four numbers.
-
-    aspect : float
-        the desired aspect ratio of the figure. Default is 4/3.
-
-    grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xyGrid=True)`
-
-    .. hint:: examples/pyplot/histo_1d_a.py histo_1d_b.py histo_1d_c.py histo_1d_d.py
-        .. image:: https://vedo.embl.es/images/pyplot/histo_1D.png
 
 
     ----------------------------------------------------------------------
@@ -1680,7 +444,7 @@ def plot(*args, **kwargs):
     c : color
         color of the line
 
-    ac : color
+    bc : color
         color of the frame and labels
 
     alpha : float
@@ -1760,7 +524,7 @@ def plot(*args, **kwargs):
         return _plotSpheric(args[0], **kwargs)
 
     if "bar" in mode:
-        return PlotBars(args[0], **kwargs)
+        return _barplot(args[0], **kwargs)
 
     if isinstance(args[0], str) or "function" in str(type(args[0])):
         if "complex" in mode:
@@ -1782,8 +546,7 @@ def plot(*args, **kwargs):
             opts = opts.replace("-", "")
         else:
             kwargs["lw"] = 0
-
-        symbs = ['.','o','O', '0', 'p','*','h','D','d','v','^','>','<','s', 'x', 'a']
+        symbs = [".", "p", "*", "h", "D", "d", "o", "v", "^", ">", "<", "s", "x", "+", "a"]
         for ss in symbs:
             if ss in opts:
                 opts = opts.replace(ss, "", 1)
@@ -1824,38 +587,24 @@ def plot(*args, **kwargs):
         y = np.array(args[1])
 
     else:
-        vedo.logger.error(f"plot(): Could not understand input arguments {args}")
+        print("plot(): Could not understand input arguments", args)
         return None
 
     if "polar" in mode:
         return _plotPolar(np.c_[x, y], **kwargs)
 
-    return PlotXY(np.c_[x, y], **kwargs)
+    return _plotxy(np.c_[x, y], **kwargs)
 
 
 def histogram(*args, **kwargs):
     """
     Histogramming for 1D and 2D data arrays.
 
-    This is meant as a convenience function that creates the appropriate object
-    based on the shape of the provided input data.
-
-    Use keyword `like=...` if you want to use the same format of a previously
-    created Figure (useful when superimposing Figures) to make sure
-    they are compatible and comparable. If they are not compatible
-    you will receive an error message.
-
     -------------------------------------------------------------------------
     .. note:: default mode, for 1D arrays
 
-    Creates a `Histogram1D(Figure)` object.
-
     Parameters
     ----------
-    weights : list
-        An array of weights, of the same shape as `data`. Each value in `data`
-        only contributes its associated weight towards the bin count (instead of 1).
-
     bins : int
         number of bins
 
@@ -1874,11 +623,9 @@ def histogram(*args, **kwargs):
     gap : float
         leave a small space btw bars
 
-    radius : float
-        border radius of the top of the histogram bar. Default value is 0.1.
-
-    texture : str
-        url or path to an image to be used as texture for the bin
+    radius : float, list
+        border radius of the top of the histogram bar.
+        Default value is 0.1, can be fixed as e.g. (0, 0, 0.1, 0.1).
 
     outline : bool
         show outline of the bins
@@ -1886,28 +633,9 @@ def histogram(*args, **kwargs):
     errors : bool
         show error bars
 
-    xtitle : str
-        title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
-
-    ytitle : str
-        title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-
-    padding : float, list
-        keep a padding space from the axes (as a fraction of the axis size).
-        This can be a list of four numbers.
-
-    aspect : float
-        the desired aspect ratio of the histogram. Default is 4/3.
-
-    grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xyGrid=True)`
-
-    ztolerance : float
-        a tolerance factor to superimpose objects (along the z-axis).
-
-
-    .. hint:: examples/pyplot/histo_1d_a.py histo_1d_b.py histo_1d_c.py histo_1d_d.py
+    .. hint:: examples/pyplot/histo_1D.py
         .. image:: https://vedo.embl.es/images/pyplot/histo_1D.png
+
 
     -------------------------------------------------------------------------
     .. note:: default mode, for 2D arrays
@@ -1917,58 +645,25 @@ def histogram(*args, **kwargs):
 
     Parameters
     ----------
-    bins : list
-        binning as (nx, ny)
-
-    weights : list
-        array of weights to assign to each entry
-
-    cmap : str, lookuptable
-        color map name or look up table
-
-    alpha : float
-        opacity of the histogram
-
-    gap : float
-        separation between adjacent bins as a fraction for their size
-
-    scalarbar : bool
-        add a scalarbar to right of the histogram
-
-    like : Figure
-        grab and use the same format of the given Figure (for superimposing)
-
-    xlim : list
-        [x0, x1] range of interest. If left to None will automatically
-        choose the minimum or the maximum of the data range.
-        Data outside the range are completely ignored.
-
-    ylim : list
-        [y0, y1] range of interest. If left to None will automatically
-        choose the minimum or the maximum of the data range.
-        Data outside the range are completely ignored.
-
-    aspect : float
-        the desired aspect ratio of the figure.
-
-    title : str
-        title of the plot to appear on top.
-        If left blank some statistics will be shown.
-
     xtitle : str
         x axis title
 
-    ytitle : str
-        y axis title
+    bins : list
+        binning as (nx, ny)
 
-    ztitle : str
-        title for the scalar bar
+    vrange : list
+        range in x and y in format `[(xmin,xmax), (ymin,ymax)]`
 
-    ac : str
-        axes color, additional keyword for Axes can also be added
-        using e.g. `axes=dict(xyGrid=True)`
+    cmap : str
+        color map name
 
-    .. hint:: examples/pyplot/histo_2d.py
+    lw : int
+        line width of the binning outline
+
+    scalarbar : bool
+        add a scalarbar
+
+    .. hint:: examples/pyplot/histo_2D.py
         .. image:: https://vedo.embl.es/images/pyplot/histo_2D.png
 
 
@@ -2113,7 +808,7 @@ def histogram(*args, **kwargs):
             return _histogramSpheric(args[0], args[1], **kwargs)
         if "hex" in mode:
             return _histogramHexBin(args[0], args[1], **kwargs)
-        return Histogram2D(args[0], args[1], **kwargs)
+        return _histogram2D(args[0], args[1], **kwargs)
 
     elif len(args) == 1:
 
@@ -2134,11 +829,11 @@ def histogram(*args, **kwargs):
         if len(data.shape) == 1:
             if "polar" in mode:
                 return _histogramPolar(data, **kwargs)
-            return Histogram1D(data, **kwargs)
+            return _histogram1D(data, **kwargs)
         else:
             if "hex" in mode:
                 return _histogramHexBin(args[0][:, 0], args[0][:, 1], **kwargs)
-            return Histogram2D(args[0], **kwargs)
+            return _histogram2D(args[0], **kwargs)
 
     print("histogram(): Could not understand input", args[0])
     return None
@@ -2159,22 +854,19 @@ def fit(
     """
     Polynomial fitting with parameter error and error bands calculation.
 
-    Returns a ``vedo.shapes.Line`` object.
-
     Errors bars in both x and y are supported.
 
-    Additional information about the fitting output can be accessed with:
+    Additional information about the fitting output can be accessed. E.g.:
 
     ``fit = fitPolynomial(pts)``
 
-    - *fit.coefficients* will contain the coefficients of the polynomial fit
+    - *fit.coefficients* will contain the coefficient of the polynomial fit
     - *fit.coefficientErrors*, errors on the fitting coefficients
     - *fit.MonteCarloCoefficients*, fitting coefficient set from MC generation
     - *fit.covarianceMatrix*, covariance matrix as a numpy array
     - *fit.reducedChi2*, reduced chi-square of the fitting
     - *fit.ndof*, number of degrees of freedom
     - *fit.dataSigma*, mean data dispersion from the central fit assuming Chi2=1
-
     - *fit.errorLines*, a ``vedo.shapes.Line`` object for the upper and lower error band
     - *fit.errorBand*, the ``vedo.mesh.Mesh`` object representing the error band
 
@@ -2230,7 +922,7 @@ def fit(
             x0 -= xerrors[0]/2
             x1 += xerrors[-1]/2
 
-    tol = (x1-x0)/10000
+    tol = (x1-x0)/1000
     xr = np.linspace(x0,x1, res)
 
     # project x errs on y
@@ -2257,25 +949,25 @@ def fit(
 
     p1d = np.poly1d(coeffs)
     theor = p1d(xr)
-    fitl = shapes.Line(xr, theor, lw=lw, c=c).z(tol*2)
-    fitl.coefficients = coeffs
-    fitl.covarianceMatrix = V
+    l = shapes.Line(xr, theor, lw=lw, c=c).z(tol*2)
+    l.coefficients = coeffs
+    l.covarianceMatrix = V
     residuals2_sum = np.sum(np.power(p1d(x)-y, 2))/ndof
     sigma = np.sqrt(residuals2_sum)
-    fitl.reducedChi2 = np.sum(np.power((p1d(x)-y)*w, 2))/ndof
-    fitl.ndof = ndof
-    fitl.dataSigma = sigma # worked out from data using chi2=1 hypo
-    fitl.name = "LinePolynomialFit"
+    l.reducedChi2 = np.sum(np.power((p1d(x)-y)*w, 2))/ndof
+    l.ndof = ndof
+    l.dataSigma = sigma # worked out from data using chi2=1 hypo
+    l.name = "LinePolynomialFit"
 
     if not niter:
-        fitl.coefficientErrors = np.sqrt(np.diag(V))
-        return fitl ################################
+        l.coefficientErrors = np.sqrt(np.diag(V))
+        return l ################################
 
     if yerrors is not None:
         sigma = yerrors
     else:
         w = None
-        fitl.reducedChi2 = 1
+        l.reducedChi2 = 1
 
     Theors, all_coeffs = [], []
     for i in range(niter):
@@ -2286,20 +978,20 @@ def fit(
         Theor = P1d(xr)
         Theors.append(Theor)
     all_coeffs = np.array(all_coeffs)
-    fitl.MonteCarloCoefficients = all_coeffs
+    l.MonteCarloCoefficients = all_coeffs
 
     stds = np.std(Theors, axis=0)
-    fitl.coefficientErrors = np.std(all_coeffs, axis=0)
+    l.coefficientErrors = np.std(all_coeffs, axis=0)
 
     # check distributions on the fly
     # for i in range(deg+1):
-    #     histogram(all_coeffs[:,i],title='par'+str(i)).show(new=1)
-    # histogram(all_coeffs[:,0], all_coeffs[:,1],
-    #           xtitle='param0', ytitle='param1',scalarbar=1).show(new=1)
-    # histogram(all_coeffs[:,1], all_coeffs[:,2],
-    #           xtitle='param1', ytitle='param2').show(new=1)
-    # histogram(all_coeffs[:,0], all_coeffs[:,2],
-    #           xtitle='param0', ytitle='param2').show(new=1)
+    #     vedo.pyplot.histogram(all_coeffs[:,i],title='par'+str(i)).show(new=1)
+    # vedo.pyplot.histogram(all_coeffs[:,0], all_coeffs[:,1],
+    #                       xtitle='param0', ytitle='param1',scalarbar=1).show(new=1)
+    # vedo.pyplot.histogram(all_coeffs[:,1], all_coeffs[:,2],
+    #                       xtitle='param1', ytitle='param2').show(new=1)
+    # vedo.pyplot.histogram(all_coeffs[:,0], all_coeffs[:,2],
+    #                       xtitle='param0', ytitle='param2').show(new=1)
 
     error_lines = []
     for i in [nstd, -nstd]:
@@ -2307,12 +999,283 @@ def fit(
         error_lines.append(el)
         el.name = "ErrorLine for sigma="+str(i)
 
-    fitl.errorLines = error_lines
+    l.errorLines = error_lines
     l1 = error_lines[0].points().tolist()
     cband = l1 + list(reversed(error_lines[1].points().tolist())) + [l1[0]]
-    fitl.errorBand = shapes.Line(cband).triangulate().lw(0).c('k', 0.15)
-    fitl.errorBand.name = "PolynomialFitErrorBand"
-    return fitl
+    l.errorBand = shapes.Line(cband).triangulate().lw(0).c('k', 0.15)
+    l.errorBand.name = "PolynomialFitErrorBand"
+    return l
+
+
+#########################################################################################
+def _plotxy(
+        data,
+        format=None,
+        aspect=4/3,
+        xlim=None,
+        ylim=None,
+        xerrors=None,
+        yerrors=None,
+        title="",
+        xtitle="x",
+        ytitle="y",
+        titleSize=None,
+        titleColor=None,
+        c="k",
+        alpha=1,
+        ec=None,
+        lc="k",
+        la=1,
+        lw=3,
+        lwe=3,
+        dashed=False,
+        splined=False,
+        errorBand=False,
+        marker="",
+        ms=None,
+        mc=None,
+        ma=None,
+        pad=0.05,
+        axes={},
+    ):
+    line=False
+    if lw>0:
+        line=True
+
+    if marker == "" and not line and not splined:
+        line = True
+
+    # purge NaN from data
+    validIds = np.all(np.logical_not(np.isnan(data)), axis=1)
+    data = np.array(data[validIds])
+    offs = 0  # z offset
+
+    if format is not None:  # reset to allow meaningful overlap
+        xlim = format.xlim
+        ylim = format.ylim
+        aspect = format.aspect
+        pad = format.pad
+        title = ""
+        xtitle = ""
+        ytitle = ""
+        offs = format.zmax
+
+    x0, y0 = np.min(data, axis=0)
+    x1, y1 = np.max(data, axis=0)
+    x0lim, x1lim = x0 - pad * (x1 - x0), x1 + pad * (x1 - x0)
+    y0lim, y1lim = y0 - pad * (y1 - y0), y1 + pad * (y1 - y0)
+    if y0lim == y1lim:  # in case y is constant
+        y0lim = y0lim - (x1lim - x0lim) / 2
+        y1lim = y1lim + (x1lim - x0lim) / 2
+    elif x0lim == x1lim:  # in case x is constant
+        x0lim = x0lim - (y1lim - y0lim) / 2
+        x1lim = x1lim + (y1lim - y0lim) / 2
+
+    if xlim is not None and xlim[0] is not None:
+        x0lim = xlim[0]
+    if xlim is not None and xlim[1] is not None:
+        x1lim = xlim[1]
+    if ylim is not None and ylim[0] is not None:
+        y0lim = ylim[0]
+    if ylim is not None and ylim[1] is not None:
+        y1lim = ylim[1]
+
+    dx = x1lim - x0lim
+    dy = y1lim - y0lim
+    if dx == 0 and dy == 0:  # in case x and y are all constant
+        x0lim = x0lim - 1
+        x1lim = x1lim + 1
+        y0lim = y0lim - 1
+        y1lim = y1lim + 1
+        dx, dy = 1, 1
+
+    yscale = dx / dy / aspect
+    y0lim, y1lim = y0lim * yscale, y1lim * yscale
+
+    if format is not None:
+        x0lim = format._x0lim
+        y0lim = format._y0lim
+        x1lim = format._x1lim
+        y1lim = format._y1lim
+        yscale = format.yscale
+
+    dx = x1lim - x0lim
+    dy = y1lim - y0lim
+    offs += np.sqrt(dx * dx + dy * dy) / 1000
+
+    scale = np.array([[1., yscale]])
+    data = np.multiply(data, scale)
+
+    acts = []
+
+    ######### the line or spline
+    if dashed:
+        l = shapes.DashedLine(data, c=lc, alpha=la, lw=lw)
+        acts.append(l)
+    elif splined:
+        l = shapes.KSpline(data).lw(lw).c(lc).alpha(la)
+        acts.append(l)
+    elif line:
+        l = shapes.Line(data, c=lc, alpha=la).lw(lw)
+        acts.append(l)
+
+    ######### the marker
+    if marker:
+
+        pts = shapes.Points(data)
+        if mc is None:
+            mc = lc
+        if ma is None:
+            ma = la
+
+        if utils.isSequence(ms):  ### variable point size
+            mk = shapes.Marker(marker, s=1)
+            msv = np.zeros_like(pts.points())
+            msv[:, 0] = ms
+            marked = shapes.Glyph(
+                pts, glyphObj=mk, c=mc, orientationArray=msv, scaleByVectorSize=True
+            )
+        else:  ### fixed point size
+
+            if ms is None:
+                ms = dx / 100.0
+                # print('automatic ms =', ms)
+
+            if utils.isSequence(mc):
+                # print('mc is sequence')
+                mk = shapes.Marker(marker, s=ms).triangulate()
+                msv = np.zeros_like(pts.points())
+                msv[:, 0] = 1
+                marked = shapes.Glyph(
+                    pts, glyphObj=mk, c=mc, orientationArray=msv, scaleByVectorSize=True
+                )
+            else:
+                # print('mc is fixed color', yscale)
+                mk = shapes.Marker(marker, s=ms).triangulate()
+                # print(dx,dy,yscale, x1-x0,y1-y0)
+                # mk.SetScale([1,yscale/aspect/aspect/2,1]) ## BUG
+                marked = shapes.Glyph(pts, glyphObj=mk, c=mc)
+
+        marked.name = "Marker"
+        marked.alpha(ma).z(offs)
+        acts.append(marked)
+
+    if ec is None:
+        if mc is not None:
+            ec = mc
+        else:
+            ec = lc
+
+    if xerrors is not None and not errorBand:
+        if len(xerrors) != len(data):
+            vedo.logger.error("in plotxy(xerrors=...): mismatch in array length")
+            return None
+        errs = []
+        for i, dta in enumerate(data):
+            xval, yval = dta
+            xerr = xerrors[i] / 2
+            el = shapes.Line((xval - xerr, yval, offs), (xval + xerr, yval, offs)).lw(lwe)
+            errs.append(el)
+        mxerrs = merge(errs).c(ec).lw(lw).alpha(alpha).z(2 * offs)
+        acts.append(mxerrs)
+
+    if yerrors is not None and not errorBand:
+        if len(yerrors) != len(data):
+            vedo.logger.error("in plotxy(yerrors=...): mismatch in array length")
+            return None
+        errs = []
+        for i in range(len(data)):
+            xval, yval = data[i]
+            yerr = yerrors[i] * yscale
+            el = shapes.Line((xval, yval - yerr, offs), (xval, yval + yerr, offs)).lw(lwe)
+            errs.append(el)
+        myerrs = merge(errs).c(ec).lw(lw).alpha(alpha).z(3 * offs)
+        acts.append(myerrs)
+
+    if errorBand:
+        epsy = np.zeros_like(data)
+        epsy[:, 1] = yerrors * yscale
+        data3dup = data + epsy
+        data3dup = np.c_[data3dup, np.zeros_like(yerrors)]
+        data3d_down = data - epsy
+        data3d_down = np.c_[data3d_down, np.zeros_like(yerrors)]
+        band = shapes.Ribbon(data3dup, data3d_down).z(-offs)
+        if ec is None:
+            band.c(lc)
+        else:
+            band.c(ec)
+        band.alpha(la).z(2 * offs)
+        acts.append(band)
+
+    for a in acts:
+        a.cutWithPlane([0, y0lim, 0], [0, 1, 0])
+        a.cutWithPlane([0, y1lim, 0], [0, -1, 0])
+        a.cutWithPlane([x0lim, 0, 0], [1, 0, 0])
+        a.cutWithPlane([x1lim, 0, 0], [-1, 0, 0])
+        a.lighting('off')
+
+    if title:
+        if titleSize is None:
+            titleSize = dx / 40.0
+        if titleColor is None:
+            titleColor = c
+        tit = shapes.Text3D(
+            title,
+            s=titleSize,
+            c=titleColor,
+            depth=0,
+            alpha=alpha,
+            pos=((x0lim + x1lim) / 2, y1lim + (y1lim-y0lim) / 80, 0),
+            justify="bottom-center",
+        )
+        tit.pickable(False).z(3 * offs)
+        acts.append(tit)
+
+
+    if axes == 1 or axes == True:
+        axes = {}
+    if isinstance(axes, dict):  #####################
+        ndiv = 6
+        if "numberOfDivisions" in axes.keys():
+            ndiv = axes["numberOfDivisions"]
+        tp, ts = utils.makeTicks(y0lim / yscale, y1lim / yscale, ndiv / aspect)
+        labs = []
+        for i in range(1, len(tp) - 1):
+            ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
+            # print(i, tp[i], ynew, ts[i])
+            labs.append([ynew, ts[i]])
+        axes["xtitle"] = xtitle
+        axes["ytitle"] = ytitle
+        axes["yValuesAndLabels"] = labs
+        axes["xrange"] = (x0lim, x1lim)
+        axes["yrange"] = (y0lim, y1lim)
+        axes["zrange"] = (0, 0)
+        axes["c"] = c
+        axes["yUseBounds"] = True
+        axs = addons.Axes(**axes)
+        axs.name = "axes"
+        asse = Figure(acts, axs)
+        asse.axes = axs
+        asse.SetOrigin(x0lim, y0lim, 0)
+
+    else:
+        asse = Figure(acts)
+
+    asse.yscale = yscale
+    asse.xlim = xlim
+    asse.ylim = ylim
+    asse.aspect = aspect
+    asse.pad = pad
+    asse.title = title
+    asse.xtitle = xtitle
+    asse.ytitle = ytitle
+    asse._x0lim = x0lim
+    asse._y0lim = y0lim
+    asse._x1lim = x1lim
+    asse._y1lim = y1lim
+    asse.zmax = offs * 3  # z-order
+    asse.name = "plotxy"
+    return asse
 
 
 def _plotFxy(
@@ -2329,6 +1292,17 @@ def _plotFxy(
         bins=(100, 100),
         axes=True,
     ):
+    if isinstance(z, str):
+        try:
+            z = z.replace("math.", "").replace("np.", "")
+            namespace = locals()
+            code = "from math import*\ndef zfunc(x,y): return " + z
+            exec(code, namespace)
+            z = namespace["zfunc"]
+        except:
+            vedo.logger.error("Syntax Error in _plotFxy")
+            return None
+
     if c is not None:
         texture = None # disable
 
@@ -2346,13 +1320,7 @@ def _plotFxy(
         xv = (px + 0.5) * dx + xlim[0]
         yv = (py + 0.5) * dy + ylim[0]
         try:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                zv = z(xv, yv)
-                if np.isnan(zv) or np.isinf(zv) or np.iscomplex(zv):
-                    zv = 0
-                    todel.append(i)
-                    nans.append([xv, yv, 0])
+            zv = z(xv, yv)
         except:
             zv = 0
             todel.append(i)
@@ -2426,20 +1394,18 @@ def _plotFxy(
         else:
             zm = (bb[4] + bb[5]) / 2
         nans = np.array(nans) + [0, 0, zm]
-        nansact = shapes.Points(nans, r=2, c="red5", alpha=alpha)
+        nansact = shapes.Points(nans, r=2, c="red", alpha=alpha)
         nansact.GetProperty().RenderPointsAsSpheresOff()
         acts.append(nansact)
 
-    if isinstance(axes, dict):
-        axs = addons.Axes(mesh, **axes)
-        acts.append(axs)
-    elif axes:
+    if axes:
         axs = addons.Axes(mesh)
         acts.append(axs)
-
-    assem = Assembly(acts)
-    assem.name = "plotFxy"
-    return assem
+    asse = Assembly(acts)
+    asse.name = "plotFxy"
+    if isinstance(z, str):
+        asse.name += " " + z
+    return asse
 
 
 def _plotFz(
@@ -2453,6 +1419,17 @@ def _plotFz(
         bins=(75, 75),
         axes=True,
     ):
+    if isinstance(z, str):
+        try:
+            z = z.replace("np.", "")
+            namespace = locals()
+            code = "from math import*\ndef zfunc(x,y): return " + z
+            exec(code, namespace)
+            z = namespace["zfunc"]
+        except:
+            vedo.logger.error("Syntax Error in complex plotFz")
+            return None
+
     ps = vtk.vtkPlaneSource()
     ps.SetResolution(bins[0], bins[1])
     ps.SetNormal([0, 0, 1])
@@ -2684,12 +1661,698 @@ def _plotSpheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=
     asse.name = "plotSpheric"
     return asse
 
+#########################################################################################
+def _barplot(
+        data,
+        format=None,
+        errors=False,
+        aspect=4/3,
+        xlim=None,
+        ylim=(0,None),
+        xtitle=" ",
+        ytitle="counts",
+        title="",
+        titleSize=None,
+        titleColor=None,
+        logscale=False,
+        fill=True,
+        c="olivedrab",
+        gap=0.02,
+        alpha=1,
+        outline=False,
+        lw=2,
+        lc="k",
+        pad=0.05,
+        axes={},
+        bc="k",
+    ):
+    offs = 0  # z offset
+    if len(data) == 4:
+        counts, xlabs, cols, edges = data
+    elif len(data) == 3:
+        counts, xlabs, cols = data
+        edges = np.array(range(len(counts)+1))+0.5
+    elif len(data) == 2:
+        counts, xlabs = data
+        edges = np.array(range(len(counts)+1))+0.5
+        cols = [c] * len(counts)
+    else:
+        m = "barplot error: data must be given as [counts, labels, colors, edges] not\n"
+        vedo.logger.error(m + f" {data}\n     bin edges and colors are optional.")
+        raise RuntimeError()
+    counts = np.asarray(counts)
+    edges  = np.asarray(edges)
+
+    # sanity checks
+    assert len(counts) == len(xlabs)
+    assert len(counts) == len(cols)
+    assert len(counts) == len(edges)-1
+
+    if format is not None:  # reset to allow meaningful overlap
+        xlim = format.xlim
+        ylim = format.ylim
+        aspect = format.aspect
+        pad = format.pad
+        axes = 0
+        title = ""
+        xtitle = ""
+        ytitle = ""
+        offs = format.zmax
+
+    if logscale:
+        counts = np.log10(counts + 1)
+        if ytitle=='counts':
+            ytitle='log_10 (counts+1)'
+
+    x0, x1 = np.min(edges), np.max(edges)
+    y0, y1 = 0, np.max(counts)
+    binsize = edges[1] - edges[0]
+
+    x0lim, x1lim = x0 - pad * (x1 - x0), x1 + pad * (x1 - x0)
+    y0lim, y1lim = y0 - pad * (y1 - y0) / 100, y1 + pad * (y1 - y0)
+    if errors:
+        y1lim += np.sqrt(y1) / 2
+
+    if y0lim == y1lim:  # in case y is constant
+        y0lim = y0lim - (x1lim - x0lim) / 2
+        y1lim = y1lim + (x1lim - x0lim) / 2
+    elif x0lim == x1lim:  # in case x is constant
+        x0lim = x0lim - (y1lim - y0lim) / 2
+        x1lim = x1lim + (y1lim - y0lim) / 2
+
+    if xlim is not None and xlim[0] is not None:
+        x0lim = xlim[0]
+    if xlim is not None and xlim[1] is not None:
+        x1lim = xlim[1]
+    if ylim is not None and ylim[0] is not None:
+        y0lim = ylim[0]
+    if ylim is not None and ylim[1] is not None:
+        y1lim = ylim[1]
+
+    dx = x1lim - x0lim
+    dy = y1lim - y0lim
+    if dx == 0 and dy == 0:  # in case x and y are all constant
+        x0lim = x0lim - 1
+        x1lim = x1lim + 1
+        y0lim = y0lim - 1
+        y1lim = y1lim + 1
+        dx, dy = 1, 1
+
+    yscale = dx / dy / aspect
+    y0lim, y1lim = y0lim * yscale, y1lim * yscale
+
+    if format is not None:
+        x0lim = format._x0lim
+        y0lim = format._y0lim
+        x1lim = format._x1lim
+        y1lim = format._y1lim
+        yscale = format.yscale
+
+    dx = x1lim - x0lim
+    dy = y1lim - y0lim
+    offs += np.sqrt(dx * dx + dy * dy) / 10000
+
+    counts = counts * yscale
+    centers = (edges[0:-1] + edges[1:]) / 2
+
+    rs = []
+    maxheigth = 0
+    if fill:  #####################
+        if outline:
+            gap = 0
+
+        for i in range(len(centers)):
+            p0 = (edges[i] + gap * binsize, 0, 0)
+            p1 = (edges[i + 1] - gap * binsize, counts[i], 0)
+            r = shapes.Rectangle(p0, p1)
+            r.origin(p0).PickableOff()
+            maxheigth = max(maxheigth, p1[1])
+            if c in colors.cmaps_names:
+                col = colors.colorMap((p0[0]+p1[0])/2, c, edges[0], edges[-1])
+            else:
+                col = cols[i]
+            r.color(col).alpha(alpha).lighting('off').z(offs)
+            r.name = f'bar_{i}'
+            rs.append(r)
+
+    if outline or not fill:  #####################
+        lns = [[edges[0], 0, 0]]
+        for i in range(len(centers)):
+            lns.append([edges[i], counts[i], 0])
+            lns.append([edges[i + 1], counts[i], 0])
+            maxheigth = max(maxheigth, counts[i])
+        lns.append([edges[-1], 0, 0])
+        outl = shapes.Line(lns, c=lc, alpha=alpha, lw=lw).z(offs)
+        outl.name = f'bar_outline_{i}'
+        rs.append(outl)
+
+    bin_centers_pos = []
+    for i in range(len(centers)):
+        if counts[i]:
+            bin_centers_pos.append([centers[i], counts[i], 0])
+
+    if errors:  #####################
+        for bcp in bin_centers_pos:
+            x = bcp[0]
+            f = bcp[1]
+            err = np.sqrt(f / yscale) * yscale
+            el = shapes.Line([x, f-err/2, 0], [x, f+err/2, 0], c=lc, alpha=alpha, lw=lw)
+            el.z(offs * 1.9)
+            rs.append(el)
+        # print('errors', el.z())
+
+    for a in rs:  #####################
+        a.cutWithPlane([0, y0lim, 0], [0,  1, 0])
+        a.cutWithPlane([0, y1lim, 0], [0, -1, 0])
+        a.cutWithPlane([x0lim, 0, 0], [1,  0, 0])
+        a.cutWithPlane([x1lim, 0, 0], [-1, 0, 0])
+        a.lighting('off')
+
+    if title:  #####################
+        if titleColor is None:
+            titleColor = bc
+
+        if titleSize is None:
+            titleSize = dx / 40.0
+        tit = shapes.Text3D(
+            title,
+            s=titleSize,
+            c=titleColor,
+            depth=0,
+            alpha=alpha,
+            pos=((x0lim + x1lim) / 2, y1lim + (y1lim-y0lim) / 80, 0),
+            justify="bottom-center",
+        )
+        tit.pickable(False).z(2.5 * offs)
+        rs.append(tit)
+
+    if axes == 1 or axes == True: #####################
+        axes = {}
+    if isinstance(axes, dict):
+        ndiv = 6
+        if "numberOfDivisions" in axes:
+            ndiv = axes["numberOfDivisions"]
+        tp, ts = utils.makeTicks(y0lim / yscale, y1lim / yscale, ndiv / aspect)
+        ylabs = []
+        for i in range(1, len(tp) - 1):
+            ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
+            ylabs.append([ynew, ts[i]])
+        axes["yValuesAndLabels"] = ylabs
+        _xlabs = []
+        for i in range(len(centers)):
+            _xlabs.append([centers[i], str(xlabs[i])])
+        axes["xValuesAndLabels"] = _xlabs
+        axes["xtitle"] = xtitle
+        axes["ytitle"] = ytitle
+        axes["xrange"] = (x0lim, x1lim)
+        axes["yrange"] = (y0lim, y1lim)
+        axes["zrange"] = (0, 0)
+        axes["c"] = bc
+        axs = addons.Axes(**axes)
+        axs.name = "axes"
+        asse = Figure(rs, axs)
+        asse.axes = axs
+        asse.SetOrigin(x0lim, y0lim, 0)
+    else:
+        asse = Figure(rs)
+
+    asse.yscale = yscale
+    asse.xlim = xlim
+    asse.ylim = ylim
+    asse.aspect = aspect
+    asse.pad = pad
+    asse.title = title
+    asse.xtitle = xtitle
+    asse.ytitle = ytitle
+    asse._x0lim = x0lim
+    asse._y0lim = y0lim
+    asse._x1lim = x1lim
+    asse._y1lim = y1lim
+    asse.zmax = offs * 3  # z-order
+    asse.bins = edges
+    asse.centers = centers
+    asse.freqs = counts / yscale
+    asse.name = "BarPlot"
+    return asse
+
+#########################################################################################
+def _histogram1D(
+        data,
+        format=None,
+        bins=20,
+        aspect=4/3,
+        xlim=None,
+        ylim=(0,None),
+        errors=False,
+        title="",
+        xtitle=" ",
+        ytitle="counts",
+        titleSize=None,
+        titleColor=None,
+        density=False,
+        logscale=False,
+        fill=True,
+        radius=0.1,
+        c="olivedrab",
+        gap=0.02,
+        alpha=1,
+        outline=False,
+        lw=2,
+        lc="k",
+        marker="",
+        ms=None,
+        mc=None,
+        ma=None,
+        pad=0.05,
+        axes={},
+        bc="k",
+    ):
+    # purge NaN from data
+    validIds = np.all(np.logical_not(np.isnan(data)))
+    data = np.array(data[validIds])[0]
+    offs = 0  # z offset
+
+    reduced_htitle = 1
+    justify="bottom-center"
+    if title=="":
+        mean_str = utils.precision(data.mean(), 4)
+        std = utils.precision(data.std(), 4)
+        title = f"Entries: {len(data)}  Mean: {mean_str}  STD: {std}"
+        justify="bottom-left"
+        reduced_htitle = 0.85
+
+
+    if format is not None:  # reset to allow meaningful overlap
+        xlim = format.xlim
+        ylim = format.ylim
+        aspect = format.aspect
+        pad = format.pad
+        bins = format.bins
+        axes = 0
+        title = ""
+        xtitle = ""
+        ytitle = ""
+        offs = format.zmax
+
+    fs, edges = np.histogram(data, bins=bins, range=xlim)
+    # print('frequencies', fs)
+    # print('edges', edges)
+    if density:
+        ntot = len(data.ravel())
+        binsize = edges[1]-edges[0]
+        fs = fs/(ntot*binsize)
+        if ytitle=='counts':
+            ytitle=f"counts / ( {ntot}~x~{utils.precision(binsize,3)} )"
+    elif logscale:
+        fs = np.log10(fs + 1)
+        if ytitle=='counts':
+            ytitle='log_10 (counts+1)'
+
+    x0, x1 = np.min(edges), np.max(edges)
+    y0, y1 = 0, np.max(fs)
+    binsize = edges[1] - edges[0]
+
+    x0lim, x1lim = x0 - pad * (x1 - x0), x1 + pad * (x1 - x0)
+    y0lim, y1lim = y0 - pad * (y1 - y0) / 100, y1 + pad * (y1 - y0)
+    if errors:
+        y1lim += np.sqrt(y1) / 2
+
+    if y0lim == y1lim:  # in case y is constant
+        y0lim = y0lim - (x1lim - x0lim) / 2
+        y1lim = y1lim + (x1lim - x0lim) / 2
+    elif x0lim == x1lim:  # in case x is constant
+        x0lim = x0lim - (y1lim - y0lim) / 2
+        x1lim = x1lim + (y1lim - y0lim) / 2
+
+    if xlim is not None and xlim[0] is not None:
+        x0lim = xlim[0]
+    if xlim is not None and xlim[1] is not None:
+        x1lim = xlim[1]
+    if ylim is not None and ylim[0] is not None:
+        y0lim = ylim[0]
+    if ylim is not None and ylim[1] is not None:
+        y1lim = ylim[1]
+
+    dx = x1lim - x0lim
+    dy = y1lim - y0lim
+    if dx == 0 and dy == 0:  # in case x and y are all constant
+        x0lim = x0lim - 1
+        x1lim = x1lim + 1
+        y0lim = y0lim - 1
+        y1lim = y1lim + 1
+        dx, dy = 1, 1
+
+    yscale = dx / dy / aspect
+    y0lim, y1lim = y0lim * yscale, y1lim * yscale
+
+    if format is not None:
+        x0lim = format._x0lim
+        y0lim = format._y0lim
+        x1lim = format._x1lim
+        y1lim = format._y1lim
+        yscale = format.yscale
+
+    dx = x1lim - x0lim
+    dy = y1lim - y0lim
+    offs += np.sqrt(dx * dx + dy * dy) / 10000
+
+    fs = fs * yscale
+
+    if utils.isSequence(bins):
+        myedges = np.array(bins)
+        bins = len(bins) - 1
+    else:
+        myedges = edges
+
+    rs = []
+    maxheigth = 0
+    if fill:  #####################
+        if outline:
+            gap = 0
+            radius = 0
+
+        for i in range(bins):
+            F = fs[i]
+            p0 = (myedges[i] + gap * binsize, 0, 0)
+            p1 = (myedges[i + 1] - gap * binsize, F, 0)
+
+            if radius is None:
+                r = shapes.Rectangle(p0, p1)
+            else:
+
+                if utils.isSequence(radius):
+                    radii = radius
+                else:
+                    radii = [0,0,0,0]
+                    if i>0 and fs[i-1] < F:
+                        radii[3] = radius
+                    if i<bins-1 and fs[i+1] < F:
+                        radii[2] = radius
+                    if i == 0:
+                        radii[3] = radius
+                    elif i==bins-1:
+                        radii[2] = radius
+
+                r = shapes.Rectangle(p0, p1, radius=np.array(radii)*binsize, res=6)
+
+            r.PickableOff()
+            maxheigth = max(maxheigth, p1[1])
+            if c in colors.cmaps_names:
+                col = colors.colorMap((p0[0]+p1[0])/2, c, myedges[0], myedges[-1])
+            else:
+                col = c
+            r.color(col).alpha(alpha).lighting('off').z(offs)
+            rs.append(r)
+            #print('rectangles', r.z())
+
+    if outline:  #####################
+        lns = [[myedges[0], 0, 0]]
+        for i in range(bins):
+            lns.append([myedges[i], fs[i], 0])
+            lns.append([myedges[i + 1], fs[i], 0])
+            maxheigth = max(maxheigth, fs[i])
+        lns.append([myedges[-1], 0, 0])
+        outl = shapes.Line(lns, c=lc, alpha=alpha, lw=lw).z(offs)
+        rs.append(outl)
+        # print('histo outline', outl.z())
+
+    bin_centers_pos = []
+    for i in range(bins):
+        x = (myedges[i] + myedges[i + 1]) / 2
+        if fs[i]:
+            bin_centers_pos.append([x, fs[i], 0])
+
+    if marker:  #####################
+
+        pts = shapes.Points(bin_centers_pos)
+        if mc is None:
+            mc = lc
+        if ma is None:
+            ma = alpha
+
+        if utils.isSequence(ms):  ### variable point size
+            mk = shapes.Marker(marker, s=1)
+            msv = np.zeros_like(pts.points())
+            msv[:, 0] = ms
+            marked = shapes.Glyph(
+                pts, glyphObj=mk, c=mc, orientationArray=msv, scaleByVectorSize=True
+            )
+        else:  ### fixed point size
+
+            if ms is None:
+                ms = dx / 100.0
+
+            if utils.isSequence(mc):
+                mk = shapes.Marker(marker, s=ms)
+                msv = np.zeros_like(pts.points())
+                msv[:, 0] = 1
+                marked = shapes.Glyph(
+                    pts, glyphObj=mk, c=mc, orientationArray=msv, scaleByVectorSize=True
+                )
+            else:
+                mk = shapes.Marker(marker, s=ms)
+                marked = shapes.Glyph(pts, glyphObj=mk, c=mc)
+
+        marked.alpha(ma).z(offs * 2)
+        # print('marker', marked.z())
+        rs.append(marked)
+
+    if errors:  #####################
+        for bcp in bin_centers_pos:
+            x = bcp[0]
+            f = bcp[1]
+            err = np.sqrt(f / yscale) * yscale
+            el = shapes.Line([x, f-err/2, 0], [x, f+err/2, 0], c=lc, alpha=alpha, lw=lw)
+            el.z(offs * 1.9)
+            rs.append(el)
+        # print('errors', el.z())
+
+    for a in rs:  #####################
+        a.cutWithPlane([0, y0lim, 0], [0, 1, 0])
+        a.cutWithPlane([0, y1lim, 0], [0, -1, 0])
+        a.cutWithPlane([x0lim, 0, 0], [1, 0, 0])
+        a.cutWithPlane([x1lim, 0, 0], [-1, 0, 0])
+        a.lighting('off').phong()
+
+    if title:  #####################
+        if titleColor is None:
+            titleColor = bc
+
+        if titleSize is None:
+            titleSize = dx / 40.0
+
+        if "cent" in justify:
+            pos = (x0lim + x1lim) / 2,  y1lim + (y1lim-y0lim) / 60
+        else:
+            pos = x0lim, y1lim + (y1lim-y0lim) / 60
+
+        tit = shapes.Text3D(
+            title,
+            s=titleSize * reduced_htitle,
+            c=titleColor,
+            depth=0,
+            alpha=alpha,
+            pos=pos,
+            justify=justify,
+        )
+        tit.pickable(False).z(2.5 * offs)
+        rs.append(tit)
+
+    if axes == 1 or axes == True:
+        axes = {}
+    if isinstance(axes, dict):  #####################
+        ndiv = 6
+        if "numberOfDivisions" in axes.keys():
+            ndiv = axes["numberOfDivisions"]
+        tp, ts = utils.makeTicks(y0lim / yscale, y1lim / yscale, ndiv / aspect)
+        labs = []
+        for i in range(1, len(tp) - 1):
+            ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
+            labs.append([ynew, ts[i]])
+        axes["xtitle"] = xtitle
+        axes["ytitle"] = ytitle
+        axes["yValuesAndLabels"] = labs
+        axes["xrange"] = (x0lim, x1lim)
+        axes["yrange"] = (y0lim, y1lim)
+        axes["zrange"] = (0, 0)
+        axes["c"] = bc
+        axs = addons.Axes(**axes)
+        axs.name = "axes"
+        asse = Figure(rs, axs)
+        asse.axes = axs
+        asse.SetOrigin(x0lim, y0lim, 0)
+    else:
+        asse = Figure(rs)
+
+    asse.yscale = yscale
+    asse.xlim = xlim
+    asse.ylim = ylim
+    asse.aspect = aspect
+    asse.pad = pad
+    asse.title = title
+    asse.xtitle = xtitle
+    asse.ytitle = ytitle
+    asse._x0lim = x0lim
+    asse._y0lim = y0lim
+    asse._x1lim = x1lim
+    asse._y1lim = y1lim
+    asse.zmax = offs * 3  # z-order
+    asse.bins = edges
+    asse.centers = (edges[0:-1] + edges[1:]) / 2
+    asse.freqs = fs / yscale
+    asse.name = "histogram1D"
+    return asse
+
+def _histogram2D(
+        xvalues,
+        yvalues=None,
+        format=None,
+        bins=25,
+        aspect=1,
+        xlim=None,
+        ylim=None,
+        weights=None,
+        cmap="cividis",
+        alpha=1,
+        title="",
+        xtitle="x",
+        ytitle="y",
+        ztitle="z",
+        titleSize=None,
+        titleColor=None,
+        # logscale=False,
+        lw=0,
+        scalarbar=True,
+        axes=True,
+        bc="k",
+    ):
+    offs = 0  # z offset
+
+    if format is not None:  # reset to allow meaningful overlap
+        xlim = format.xlim
+        ylim = format.ylim
+        aspect = format.aspect
+        bins = format.bins
+        axes = 0
+        title = ""
+        xtitle = ""
+        ytitle = ""
+        ztitle = ""
+        offs = format.zmax
+
+    if yvalues is None:
+        # assume [(x1,y1), (x2,y2) ...] format
+        yvalues = xvalues[:, 1]
+        xvalues = xvalues[:, 0]
+
+    if isinstance(bins, int):
+        bins = (bins, bins)
+    H, xedges, yedges = np.histogram2d(xvalues, yvalues, weights=weights,
+                                       bins=bins, range=(xlim, ylim))
+
+    x0lim, x1lim = np.min(xedges), np.max(xedges)
+    y0lim, y1lim = np.min(yedges), np.max(yedges)
+    dx, dy = x1lim - x0lim, y1lim - y0lim
+
+    if dx == 0 and dy == 0:  # in case x and y are all constant
+        x0lim = x0lim - 1
+        x1lim = x1lim + 1
+        y0lim = y0lim - 1
+        y1lim = y1lim + 1
+        dx, dy = 1, 1
+
+    yscale = dx / dy / aspect
+    y0lim, y1lim = y0lim * yscale, y1lim * yscale
+
+    acts = []
+
+    #####################
+    g = shapes.Grid(
+        pos=[(x0lim + x1lim) / 2, (y0lim + y1lim) / 2, 0],
+        s=(dx, dy*yscale),
+        res=bins[:2],
+    )
+    g.alpha(alpha).lw(lw).wireframe(0).flat().lighting('off')
+    g.cmap(cmap, np.ravel(H.T), on='cells')
+    g.SetOrigin(x0lim, y0lim, 0)
+    if scalarbar:
+        sc = g.addScalarBar3D(c=bc).scalarbar
+        scy0, scy1 = sc.ybounds()
+        sc_scale = (y1lim-y0lim)/(scy1-scy0)
+        sc.scale(sc_scale)
+        acts.append(sc)
+    g.base = np.array([0, 0, 0], dtype=float)
+    g.top = np.array([0, 0, 1], dtype=float)
+    acts.append(g)
+
+    if title:  #####################
+        if titleColor is None:
+            titleColor = bc
+
+        if titleSize is None:
+            titleSize = dx / 40.0
+        tit = shapes.Text3D(
+            title,
+            s=titleSize,
+            c=titleColor,
+            depth=0,
+            alpha=alpha,
+            pos=((x0lim + x1lim) / 2, y1lim + (y1lim-y0lim) / 80, 0),
+            justify="bottom-center",
+        )
+        tit.pickable(False).z(2.5 * offs)
+        acts.append(tit)
+
+    if axes == 1 or axes == True:  #####################
+        axes = {"xyGridTransparent": True, "xyAlpha": 0}
+    if isinstance(axes, dict):
+        ndiv = 6
+        if "numberOfDivisions" in axes.keys():
+            ndiv = axes["numberOfDivisions"]
+        tp, ts = utils.makeTicks(y0lim / yscale, y1lim / yscale, ndiv / aspect)
+        labs = []
+        for i in range(1, len(tp) - 1):
+            ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
+            labs.append([ynew, ts[i]])
+        axes["xtitle"] = xtitle
+        axes["ytitle"] = ytitle
+        axes["ztitle"] = ztitle
+        axes["yValuesAndLabels"] = labs
+        axes["xrange"] = (x0lim, x1lim)
+        axes["yrange"] = (y0lim, y1lim)
+        axes["zrange"] = (0, 0) # todo
+        axes["c"] = bc
+        axs = addons.Axes(**axes)
+        axs.name = "axes"
+        asse = Figure(acts, axs)
+        asse.axes = axs
+        asse.SetOrigin(x0lim, y0lim, 0)
+    else:
+        asse = Figure(acts)
+
+    asse.yscale = yscale
+    asse.xlim = xlim
+    asse.ylim = ylim
+    asse.aspect = aspect
+    asse.title = title
+    asse.xtitle = xtitle
+    asse.ytitle = ytitle
+    asse._x0lim = x0lim
+    asse._y0lim = y0lim
+    asse._x1lim = x1lim
+    asse._y1lim = y1lim
+    asse.freqs = H
+    asse.bins = (xedges, yedges)
+    asse.zmax = offs * 3  # z-order
+    asse.name = "histogram2D"
+    return asse
+
 
 def _histogramHexBin(
         xvalues,
         yvalues,
-        xtitle=" ",
-        ytitle=" ",
+        xtitle="",
+        ytitle="",
         ztitle="",
         bins=12,
         vrange=None,
@@ -2940,12 +2603,13 @@ def _histogramPolar(
     if mrg:
         mrg.color(bc).lighting('off')
 
-    acts = slices + errbars + [mrg]
-    asse = Assembly(acts)
-    asse.frequencies = histodata
-    asse.bins = edges
-    asse.name = "histogramPolar"
-    return asse
+    rh = Figure(slices + errbars + [mrg])
+    rh.freqs = histodata
+    rh.bins = edges
+    rh.base = np.array([0, 0, 0], dtype=float)
+    rh.top = np.array([0, 0, 1], dtype=float)
+    rh.name = "histogramPolar"
+    return rh
 
 
 def _histogramSpheric(
@@ -3207,6 +2871,8 @@ def violin(
         rs.append(cl)
 
     asse = Assembly(rs)
+    asse.base = np.array([0, 0, 0], dtype=float)
+    asse.top = np.array([0, 1, 0], dtype=float)
     asse.name = "violin"
     return asse
 

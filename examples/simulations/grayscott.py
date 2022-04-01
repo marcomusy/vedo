@@ -6,8 +6,9 @@
 # Parameters from http://www.aliensaint.com/uo/java/rd
 # Adapted for vedo by Marco Musy (2020)
 # -----------------------------------------------------------------------------
+"""Grey-Scott reaction-diffusion system"""
 import numpy as np
-from vedo import Grid, Latex, show, settings
+from vedo import Plotter, Grid, settings
 
 # ---------------------------------------------------------------
 Nsteps = 300
@@ -42,9 +43,10 @@ sy, sx = V.shape
 grd = Grid(s=[sx,sy], res=[sx,sy])
 grd.lineWidth(0).wireframe(False).lighting(ambient=0.5)
 formula = r'(u,v)=(D_u\cdot\Delta u -u v v+F(1-u), D_v\cdot\Delta v +u v v -(F+k)v)'
-ltx = Latex(formula, s=15, pos=(0,-sy/1.9,0))
 print('Du, Dv, F, k, name =', Du, Dv, F, k, name)
 
+plt = Plotter(bg='linen', interactive=False)
+plt.show(grd, __doc__, zoom=1.25, elevation=-30)
 
 for step in range(Nsteps):
     for i in range(25):
@@ -64,7 +66,7 @@ for step in range(Nsteps):
     newpts[:,2] = grd.pointdata['escals']*25 # assign z elevation
     grd.points(newpts)                       # set the new points
 
-    plt = show(ltx, grd, zoom=1.25, elevation=-.15, bg='linen', interactive=False)
+    plt.render()
     if plt.escaped:
         break  # if ESC is hit during loop
 

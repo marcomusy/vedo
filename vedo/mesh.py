@@ -1282,7 +1282,7 @@ class Mesh(Points):
         culling : int
             choose between front [1] or backface [-1] culling or None.
 
-        .. hint:: shadow.py, airplanes.py
+        .. hint:: shadow.py, airplane1.py, airplane2.py
             .. image:: https://vedo.embl.es/images/simulations/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif
         """
         shad = self.clone()
@@ -2345,7 +2345,16 @@ class Mesh(Points):
         vol.name = "SignedVolume"
         return vol
 
-    def tetralize(self, side=0.02, nmax=300_000, gap=None, seed=0, debug=False):
+    def tetralize(
+            self,
+            side=0.02,
+            nmax=300_000,
+            gap=None,
+            subsample=False,
+            uniform=True,
+            seed=0,
+            debug=False,
+        ):
         """
         Tetralize a closed polygonal mesh. Return a `TetMesh`.
 
@@ -2361,6 +2370,13 @@ class Mesh(Points):
         gap : float
             keep this minimum distance from the surface,
             if None an automatic choice is made.
+
+        subsample : bool
+            subsample input surface, the geometry might be affected
+            (the number of original faces reduceed), but higher tet quality might be obtained.
+
+        uniform : bool
+            generate tets more uniformly packed in the interior of the mesh
 
         seed : int
             random number generator seed
@@ -2378,9 +2394,14 @@ class Mesh(Points):
 
         # fill the space w/ points
         x0,x1, y0,y1, z0,z1 = surf.bounds()
-        disp = np.array([x0+x1, y0+y1, z0+z1])/2
-        np.random.seed(seed)
-        pts = (np.random.rand(n,3)-0.5) * np.array([x1-x0, y1-y0, z1-z0]) + disp
+
+        if uniform:
+            pts = vedo.utils.packSpheres([x0,x1, y0,y1, z0,z1], side*d*1.42)
+            pts += np.random.randn(len(pts),3) * side*d*1.42/100 # some small jitter
+        else:
+            disp = np.array([x0+x1, y0+y1, z0+z1])/2
+            np.random.seed(seed)
+            pts = (np.random.rand(n,3)-0.5) * np.array([x1-x0, y1-y0, z1-z0]) + disp
 
         normals = surf.celldata["Normals"]
         cc = surf.cellCenters()
@@ -2395,6 +2416,9 @@ class Mesh(Points):
             fillpts.distanceTo(surf)
             fillpts.threshold("Distance", above=gap)
 
+        if subsample:
+            surf.subsample(side)
+
         tmesh = vedo.tetmesh.delaunay3D(vedo.merge(fillpts, surf))
         tcenters = tmesh.cellCenters()
 
@@ -2403,16 +2427,20 @@ class Mesh(Points):
         ins[ids] = 1
         if debug:
             from vedo.pyplot import histogram
+
+            #histogram(fillpts.pointdata["Distance"], xtitle=f"gap={gap}").show().close()
+
             edges = surf.edges()
             points = surf.points()
             elen = mag(points[edges][:,0,:] - points[edges][:,1,:])
-            histo = histogram(elen, xtitle='edge length')
+            histo = histogram(elen, xtitle='edge length', xlim=(0,3*side*d))
             print(".. edges min, max", elen.min(), elen.max())
             fillpts.cmap('bone')
             vedo.show([
-                        [f"Debug plot.\nGenerated points: {n}\ngap: {gap}",
+                        [f"This is a debug plot.\n\nGenerated points: {n}\ngap: {gap}",
                         surf.wireframe().alpha(0.2), vedo.addons.Axes(surf),
-                        fillpts, Points(subpts).c('r4').ps(3)],
+                        fillpts, Points(subpts).c('r4').ps(3)
+                        ],
                        [histo, f"Edges mean length: {np.mean(elen)}\n\nPress q to continue"],
                       ], N=2, sharecam=False, new=True).close()
             print(".. thresholding")

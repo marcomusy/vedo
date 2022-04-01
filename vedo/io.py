@@ -1581,7 +1581,7 @@ def exportWindow(fileoutput, binary=False):
             elif isinstance(a, Assembly):
                 for b in a.unpack():
                     if b:
-                        newb = b.clone(transformed=True)
+                        newb = b.clone()
                         vedo.plotter_instance.add(newb, render=False)
                 vedo.plotter_instance.remove(a)
         vedo.plotter_instance.render()

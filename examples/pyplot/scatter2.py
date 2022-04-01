@@ -17,26 +17,33 @@ marker_cols = np.c_[np.cos(2*x), np.zeros(n), np.zeros(n)]
 
 txt0 = Text2D("A scatter plot of a\n2D gaussian distribution")
 fig0 = plot(
-    x, y, ma=0.3, lw=0,        # ma = marker alpha
+    x, y,
+    lw=0,                      # no joining lines
+    ma=0.3,                    # ma = marker alpha
     marker="*",                # marker style
     xtitle="variable A",
     ytitle="variable B",
+    grid=False,
 )
 
 txt1 = Text2D("marker size proportional to sin(2x) ")
 fig1 = plot(
-    x, y, ma=0.3, lw=0,
-    marker="*",                # marker style
+    x, y,
+    ma=0.3,
+    lw=0,
+    marker="*",
     ms=marker_sizes,           # VARIABLE marker sizes
     mc='red',                  # same fixed color for markers
+    grid=False,
 )
 
 txt2 = Text2D("marker size proportional to sin(2x)\nred level   proportional to cos(2x)")
 fig2 = plot(
     x, y, ma=0.3, lw=0,
-    marker=">",                # marker style
+    marker=">",
     ms=marker_sizes,           # VARIABLE marker sizes
     mc=marker_cols,            # VARIABLE marker colors
+    grid=False,
 )
 
 plt = Plotter(N=3, size=(1800,500))

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from deprecated import deprecated
 import numpy as np
+import vtk
 import vedo
 import vedo.colors as colors
 import vedo.utils as utils
-import vtk
-from deprecated import deprecated
 from vedo import settings
 from vedo.base import BaseActor
 # from vtk.util.numpy_support import get_vtk_to_numpy_typemap
@@ -19,9 +19,6 @@ Submodule to work with point clouds <br>
 __all__ = [
     "Points",
     "Point",
-    "removeOutliers",
-    "connectedPoints",
-    "smoothMLS3D",
     "visiblePoints",
     "delaunay2D",
     "voronoi",
@@ -31,203 +28,14 @@ __all__ = [
     "fitSphere",
     "pcaEllipsoid",
     "recoSurface",
-    "pointCloudFrom",
 ]
 
 
-###################################################
-def removeOutliers(points, radius, neighbors=5):
-    """
-    Remove outliers from a cloud of points within the specified `radius` search.
-
-    .. hint:: examples/basic/clustering.py
-        .. image:: https://vedo.embl.es/images/basic/clustering.png
-    """
-    isactor = False
-    if isinstance(points, vtk.vtkActor):
-        isactor = True
-        poly = points.GetMapper().GetInput()
-    else:
-        src = vtk.vtkPointSource()
-        src.SetNumberOfPoints(len(points))
-        src.Update()
-        vpts = src.GetOutput().GetPoints()
-        for i, p in enumerate(points):
-            vpts.SetPoint(i, p)
-        poly = src.GetOutput()
-
-    removal = vtk.vtkRadiusOutlierRemoval()
-    removal.SetInputData(poly)
-    removal.SetRadius(radius)
-    removal.SetNumberOfNeighbors(neighbors)
-    removal.GenerateOutliersOff()
-    removal.Update()
-    rpoly = removal.GetOutput()
-    outpts = []
-    for i in range(rpoly.GetNumberOfPoints()):
-        outpts.append(list(rpoly.GetPoint(i)))
-    outpts = np.array(outpts)
-    if not isactor:
-        return outpts
-
-    return Points(outpts)
-
-
-def smoothMLS3D(pcls, neighbours=10):
-    """
-    A time sequence of point clouds (Mesh) is being smoothed in 4D (3D + time)
-    using a `MLS (Moving Least Squares)` algorithm variant.
-    The time associated to an mesh must be specified in advance with ``mesh.time()`` method.
-    Data itself can suggest a meaningful time separation based on the spatial
-    distribution of points.
-
-    Parameters
-    ----------
-    neighbours : int
-        fixed nr. of neighbours in space-time to take into account in the fit.
-
-    .. hint:: examples/advanced/moving_least_squares3D.py
-        .. image:: https://user-images.githubusercontent.com/32848391/50738935-61544980-11d9-11e9-9c20-f2ce944d2238.jpg
-    """
-    from scipy.spatial import KDTree
-
-    coords4d = []
-    for a in pcls:  # build the list of 4d coordinates
-        coords3d = a.points()
-        n = len(coords3d)
-        pttimes = [[a.time()]] * n
-        coords4d += np.append(coords3d, pttimes, axis=1).tolist()
-
-    avedt = float(pcls[-1].time() - pcls[0].time()) / len(pcls)
-    print("Average time separation between meshes dt =", round(avedt, 3))
-
-    coords4d = np.array(coords4d)
-    newcoords4d = []
-    kd = KDTree(coords4d, leafsize=neighbours)
-    suggest = ""
-
-    pb = utils.ProgressBar(0, len(coords4d))
-    for i in pb.range():
-        mypt = coords4d[i]
-
-        # dr = np.sqrt(3*dx**2+dt**2)
-        # iclosest = kd.query_ball_Point(mypt, r=dr)
-        # dists, iclosest = kd.query(mypt, k=None, distance_upper_bound=dr)
-        dists, iclosest = kd.query(mypt, k=neighbours)
-        closest = coords4d[iclosest]
-
-        nc = len(closest)
-        if nc >= neighbours and nc > 5:
-            m = np.linalg.lstsq(closest, [1.0] * nc)[0]  # needs python3
-            vers = m / np.linalg.norm(m)
-            hpcenter = np.mean(closest, axis=0)  # hyperplane center
-            dist = np.dot(mypt - hpcenter, vers)
-            projpt = mypt - dist * vers
-            newcoords4d.append(projpt)
-
-            if not i % 1000:  # work out some stats
-                v = np.std(closest, axis=0)
-                vx = round((v[0] + v[1] + v[2]) / 3, 3)
-                suggest = "data suggest dt=" + str(vx)
-
-        pb.print(suggest)
-    newcoords4d = np.array(newcoords4d)
-
-    ctimes = newcoords4d[:, 3]
-    ccoords3d = np.delete(newcoords4d, 3, axis=1)  # get rid of time
-    act = Points(ccoords3d)
-    act.cmap('jet', ctimes)  # use a colormap to associate a color to time
-    return act
-
-
-def connectedPoints(mesh, radius, mode=0, regions=(), vrange=(0,1), seeds=(), angle=0):
-    """
-    Extracts and/or segments points from a point cloud based on geometric distance measures
-    (e.g., proximity, normal alignments, etc.) and optional measures such as scalar range.
-    The default operation is to segment the points into "connected" regions where the connection
-    is determined by an appropriate distance measure. Each region is given a region id.
-
-    Optionally, the filter can output the largest connected region of points; a particular region
-    (via id specification); those regions that are seeded using a list of input point ids;
-    or the region of points closest to a specified position.
-
-    The key parameter of this filter is the radius defining a sphere around each point which defines
-    a local neighborhood: any other points in the local neighborhood are assumed connected to the point.
-    Note that the radius is defined in absolute terms.
-
-    Other parameters are used to further qualify what it means to be a neighboring point.
-    For example, scalar range and/or point normals can be used to further constrain the neighborhood.
-    Also the extraction mode defines how the filter operates.
-    By default, all regions are extracted but it is possible to extract particular regions;
-    the region closest to a seed point; seeded regions; or the largest region found while processing.
-    By default, all regions are extracted.
-
-    On output, all points are labeled with a region number.
-    However note that the number of input and output points may not be the same:
-    if not extracting all regions then the output size may be less than the input size.
-
-    Parameters
-    ----------
-    radius : float
-        variable specifying a local sphere used to define local point neighborhood
-
-    mode : int
-        - 0,  Extract all regions
-        - 1,  Extract point seeded regions
-        - 2,  Extract largest region
-        - 3,  Test specified regions
-        - 4,  Extract all regions with scalar connectivity
-        - 5,  Extract point seeded regions
-
-    regions : list
-        a list of non-negative regions id to extract
-
-    vrange : list
-        scalar range to use to extract points based on scalar connectivity
-
-    seeds : list
-        a list of non-negative point seed ids
-
-    angle : list
-        points are connected if the angle between their normals is
-        within this angle threshold (expressed in degrees).
-    """
-    # https://vtk.org/doc/nightly/html/classvtkConnectedPointsFilter.html
-    cpf = vtk.vtkConnectedPointsFilter()
-    cpf.SetInputData(mesh.polydata())
-    cpf.SetRadius(radius)
-    if   mode == 0: # Extract all regions
-        pass
-
-    elif mode == 1: # Extract point seeded regions
-        cpf.SetExtractionModeToPointSeededRegions()
-        for s in seeds:
-            cpf.AddSeed(s)
-
-    elif mode == 2: # Test largest region
-        cpf.SetExtractionModeToLargestRegion()
-
-    elif mode == 3: # Test specified regions
-        cpf.SetExtractionModeToSpecifiedRegions()
-        for r in regions:
-            cpf.AddSpecifiedRegion(r)
-
-    elif mode == 4: # Extract all regions with scalar connectivity
-        cpf.SetExtractionModeToLargestRegion()
-        cpf.ScalarConnectivityOn()
-        cpf.SetScalarRange(vrange[0], vrange[1])
-
-    elif mode == 5: # Extract point seeded regions
-        cpf.SetExtractionModeToLargestRegion()
-        cpf.ScalarConnectivityOn()
-        cpf.SetScalarRange(vrange[0], vrange[1])
-        cpf.AlignedNormalsOn()
-        cpf.SetNormalAngle(angle)
-
-    cpf.Update()
-    m = Points(cpf.GetOutput())
-    m.name = "connectedPoints"
-    return m
+def recoSurface(pts, dims=(100,100,100), radius=None,
+                sampleSize=None, holeFilling=True, bounds=(), pad=0.1):
+    """Please use `points.reconstructSurface()` instead."""
+    colors.printc("Please use `points.reconstructSurface()` instead. Abort.", c='r')
+    raise RuntimeError
 
 
 def visiblePoints(mesh, area=(), tol=None, invert=False):
@@ -736,122 +544,6 @@ def pcaEllipsoid(points, pvalue=0.95):
     return elli
 
 
-def recoSurface(pts, dims=(100,100,100), radius=None,
-                sampleSize=None, holeFilling=True, bounds=(), pad=0.1):
-    """
-    Surface reconstruction from a scattered cloud of points.
-
-    Parameters
-    ----------
-    dims : int
-        number of voxels in x, y and z to control precision.
-
-    radius : float, optiona
-        radius of influence of each point.
-        Smaller values generally improve performance markedly.
-        Note that after the signed distance function is computed,
-        any voxel taking on the value >= radius
-        is presumed to be "unseen" or uninitialized.
-
-    sampleSize : int
-        if normals are not present
-        they will be calculated using this sample size per point.
-
-    holeFilling : bool
-        enables hole filling, this generates
-        separating surfaces between the empty and unseen portions of the volume.
-
-    bounds : list
-        region in space in which to perform the sampling
-        in format (xmin,xmax, ymin,ymax, zim, zmax)
-
-    pad : float
-        increase by this fraction the bounding box
-
-    .. hint:: examples/advanced/recosurface.py
-        .. image:: https://vedo.embl.es/images/advanced/recosurface.png
-    """
-    if not utils.isSequence(dims):
-        dims = (dims,dims,dims)
-
-    if isinstance(pts, Points):
-        polyData = pts.polydata()
-    else:
-        polyData = vedo.pointcloud.Points(pts).polydata()
-
-    sdf = vtk.vtkSignedDistance()
-
-    if len(bounds)==6:
-        sdf.SetBounds(bounds)
-    else:
-        x0, x1, y0, y1, z0, z1 = polyData.GetBounds()
-        sdf.SetBounds(x0-(x1-x0)*pad, x1+(x1-x0)*pad,
-                      y0-(y1-y0)*pad, y1+(y1-y0)*pad,
-                      z0-(z1-z0)*pad, z1+(z1-z0)*pad)
-
-    if polyData.GetPointData().GetNormals():
-        sdf.SetInputData(polyData)
-    else:
-        normals = vtk.vtkPCANormalEstimation()
-        normals.SetInputData(polyData)
-        if not sampleSize:
-            sampleSize = int(polyData.GetNumberOfPoints()/50)
-        normals.SetSampleSize(sampleSize)
-        normals.SetNormalOrientationToGraphTraversal()
-        sdf.SetInputConnection(normals.GetOutputPort())
-        #print("Recalculating normals with sample size =", sampleSize)
-
-    if radius is None:
-        b = polyData.GetBounds()
-        diagsize = np.sqrt((b[1]-b[0])**2 + (b[3]-b[2])**2 + (b[5]-b[4])**2)
-        radius = diagsize / (sum(dims)/3) * 5
-        #print("Calculating mesh from points with radius =", radius)
-
-    sdf.SetRadius(radius)
-    sdf.SetDimensions(dims)
-    sdf.Update()
-
-    surface = vtk.vtkExtractSurface()
-    surface.SetRadius(radius * 0.99)
-    surface.SetHoleFilling(holeFilling)
-    surface.ComputeNormalsOff()
-    surface.ComputeGradientsOff()
-    surface.SetInputConnection(sdf.GetOutputPort())
-    surface.Update()
-    return vedo.mesh.Mesh(surface.GetOutput())
-
-
-def pointCloudFrom(obj, interpolateCellData=False):
-    """Build a ``Points`` object (as a point cloud) from any VTK dataset.
-
-    Parameters
-    ----------
-    interpolateCellData : bool
-        if True cell data is interpolated at point positions.
-    """
-    from vtk.numpy_interface import dataset_adapter
-    if interpolateCellData:
-        c2p = vtk.vtkCellDataToPointData()
-        c2p.SetInputData(obj)
-        c2p.Update()
-        obj = c2p.GetOutput()
-
-    wrapped = dataset_adapter.WrapDataObject(obj)
-    ptdatanames = wrapped.PointData.keys()
-
-    vpts = obj.GetPoints()
-    poly = vtk.vtkPolyData()
-    poly.SetPoints(vpts)
-
-    for name in ptdatanames:
-        arr = obj.GetPointData().GetArray(name)
-        poly.GetPointData().AddArray(arr)
-
-    m = Points(poly, c=None)
-    m.name = "pointCloud"
-    return m
-
-
 ###################################################
 def Point(pos=(0, 0, 0), r=12, c="red", alpha=1):
     """
@@ -1051,6 +743,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 self.property.SetOpacity(alpha)
                 self._data = pd
 
+            ##########
             return
             ##########
 
@@ -1060,8 +753,24 @@ class Points(vtk.vtkFollower, BaseActor):
             self._data = verts.polydata()
 
         else:
-            vedo.logger.error(f"cannot build Points from type {type(inputobj)}")
-            raise RuntimeError()
+
+            # try to extract the points from the VTK input data object
+            try:
+                vvpts = inputobj.GetPoints()
+                pd = vtk.vtkPolyData()
+                pd.SetPoints(vvpts)
+                for i in range(inputobj.GetPointData().GetNumberOfArrays()):
+                    arr = inputobj.GetPointData().GetArray(i)
+                    pd.GetPointData().AddArray(arr)
+
+                self._mapper.SetInputData(pd)
+                c = colors.getColor(c)
+                self.property.SetColor(c)
+                self.property.SetOpacity(alpha)
+                self._data = pd
+            except:
+                vedo.logger.error(f"cannot build Points from type {type(inputobj)}")
+                raise RuntimeError()
 
         c = colors.getColor(c)
         self.property.SetColor(c)
@@ -1333,7 +1042,7 @@ class Points(vtk.vtkFollower, BaseActor):
         lw : float
             line width of the trail
 
-        .. hint:: examples/simulations/trail.py, airplanes.py
+        .. hint:: examples/simulations/trail.py, airplane1.py, airplane2.py
             .. image:: https://vedo.embl.es/images/simulations/trail.gif
         """
         if maxlength is None:
@@ -1378,6 +1087,7 @@ class Points(vtk.vtkFollower, BaseActor):
         if lastpos is None:  # reset list
             self.trailPoints = [currentpos] * len(self.trailPoints)
             return
+
         if np.linalg.norm(currentpos - lastpos) < self.trailSegmentSize:
             return
 
@@ -1385,7 +1095,10 @@ class Points(vtk.vtkFollower, BaseActor):
         self.trailPoints.pop(0)
 
         tpoly = self.trail.polydata(False)
-        tpoly.GetPoints().SetData(utils.numpy2vtk(self.trailPoints, dtype=float))
+        tpoly.GetPoints().SetData(
+            utils.numpy2vtk(self.trailPoints-currentpos, dtype=float)
+        )
+        self.trail.SetPosition(currentpos)
         return self
 
 
@@ -1514,7 +1227,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 from vedo import *
                 b1 = Sphere().pos(10,0,0)
                 b2 = Sphere().pos(15,0,0)
-                b1.distanceToMesh(b2, signed=True, invert=False).addScalarBar()
+                b1.distanceTo(b2, signed=True, invert=False).addScalarBar()
                 print(b1.pointdata["Distance"])
                 show(b1, b2, axes=1).close()
 
@@ -2098,7 +1811,8 @@ class Points(vtk.vtkFollower, BaseActor):
             point = [point[0], point[1], 0.0]
         pt = np.asarray(point)
 
-        lb = vedo.shapes.Text3D(txt, pos=pt+offset, s=s, font=font, italic=italic, justify="bottom-left")
+        lb = vedo.shapes.Text3D(txt, pos=pt+offset, s=s, font=font,
+                                italic=italic, justify="center-left")
         acts.append(lb)
 
         if d and not sph:
@@ -2109,12 +1823,13 @@ class Points(vtk.vtkFollower, BaseActor):
         if rounded:
             box = vedo.shapes.KSpline(
                 [(x0,y0,z0), (x1,y0,z0), (x1,y1,z0), (x0,y1,z0)], closed=True
-            ).scale(0.91)
+            )
         else:
             box = vedo.shapes.Line(
                 [(x0,y0,z0), (x1,y0,z0), (x1,y1,z0), (x0,y1,z0), (x0,y0,z0)]
             )
-        box.origin([(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2]).scale(1.2)
+        box.origin([(x0+x1) / 2, (y0+y1) / 2, (z0+z1) / 2])
+        box.scale([1.1,1.2,1])
         acts.append(box)
 
         x0, x1, y0, y1, z0, z1 = box.bounds()
@@ -2388,6 +2103,7 @@ class Points(vtk.vtkFollower, BaseActor):
         # self.applyTransform(M)
         self.SetUserMatrix(M)
 
+        self.transform = self.GetUserTransform()
         self.point_locator = None
         self.cell_locator = None
         return self
@@ -3230,6 +2946,31 @@ class Points(vtk.vtkFollower, BaseActor):
         return (da + db)/2
 
 
+
+    def removeOutliers(self, radius, neighbors=5):
+        """
+        Remove outliers from a cloud of points within the specified `radius` search.
+
+        Parameters
+        ----------
+        radius : float
+            Specify the local search radius.
+
+        neighbors : int
+            Specify the number of neighbors that a point must have,
+            within the specified radius, for the point to not be considered isolated.
+
+        .. hint:: examples/basic/clustering.py
+            .. image:: https://vedo.embl.es/images/basic/clustering.png
+        """
+        removal = vtk.vtkRadiusOutlierRemoval()
+        removal.SetInputData(self.polydata())
+        removal.SetRadius(radius)
+        removal.SetNumberOfNeighbors(neighbors)
+        removal.GenerateOutliersOff()
+        removal.Update()
+        return self._update(removal.GetOutput())
+
     def smoothMLS1D(self, f=0.2, radius=None):
         """
         Smooth mesh or points with a `Moving Least Squares` variant.
@@ -3275,7 +3016,6 @@ class Points(vtk.vtkFollower, BaseActor):
         self._data.GetPointData().AddArray(vdata)
         self._data.GetPointData().Modified()
         return self.points(newline)
-
 
     def smoothMLS2D(self, f=0.2, radius=None):
         """
@@ -4163,6 +3903,95 @@ class Points(vtk.vtkFollower, BaseActor):
         return dln
 
 
+    def reconstructSurface(
+            self,
+            dims=(100,100,100),
+            radius=None,
+            sampleSize=None,
+            holeFilling=True,
+            bounds=(),
+            pad=0.1,
+        ):
+        """
+        Surface reconstruction from a scattered cloud of points.
+
+        Parameters
+        ----------
+        dims : int
+            number of voxels in x, y and z to control precision.
+
+        radius : float, optiona
+            radius of influence of each point.
+            Smaller values generally improve performance markedly.
+            Note that after the signed distance function is computed,
+            any voxel taking on the value >= radius
+            is presumed to be "unseen" or uninitialized.
+
+        sampleSize : int
+            if normals are not present
+            they will be calculated using this sample size per point.
+
+        holeFilling : bool
+            enables hole filling, this generates
+            separating surfaces between the empty and unseen portions of the volume.
+
+        bounds : list
+            region in space in which to perform the sampling
+            in format (xmin,xmax, ymin,ymax, zim, zmax)
+
+        pad : float
+            increase by this fraction the bounding box
+
+        .. hint:: examples/advanced/recosurface.py
+            .. image:: https://vedo.embl.es/images/advanced/recosurface.png
+        """
+        if not utils.isSequence(dims):
+            dims = (dims,dims,dims)
+
+        polyData = self.polydata()
+
+        sdf = vtk.vtkSignedDistance()
+
+        if len(bounds)==6:
+            sdf.SetBounds(bounds)
+        else:
+            x0, x1, y0, y1, z0, z1 = polyData.GetBounds()
+            sdf.SetBounds(x0-(x1-x0)*pad, x1+(x1-x0)*pad,
+                          y0-(y1-y0)*pad, y1+(y1-y0)*pad,
+                          z0-(z1-z0)*pad, z1+(z1-z0)*pad)
+
+        if polyData.GetPointData().GetNormals():
+            sdf.SetInputData(polyData)
+        else:
+            normals = vtk.vtkPCANormalEstimation()
+            normals.SetInputData(polyData)
+            if not sampleSize:
+                sampleSize = int(polyData.GetNumberOfPoints()/50)
+            normals.SetSampleSize(sampleSize)
+            normals.SetNormalOrientationToGraphTraversal()
+            sdf.SetInputConnection(normals.GetOutputPort())
+            #print("Recalculating normals with sample size =", sampleSize)
+
+        if radius is None:
+            b = polyData.GetBounds()
+            diagsize = np.sqrt((b[1]-b[0])**2 + (b[3]-b[2])**2 + (b[5]-b[4])**2)
+            radius = diagsize / (sum(dims)/3) * 5
+            #print("Calculating mesh from points with radius =", radius)
+
+        sdf.SetRadius(radius)
+        sdf.SetDimensions(dims)
+        sdf.Update()
+
+        surface = vtk.vtkExtractSurface()
+        surface.SetRadius(radius * 0.99)
+        surface.SetHoleFilling(holeFilling)
+        surface.ComputeNormalsOff()
+        surface.ComputeGradientsOff()
+        surface.SetInputConnection(sdf.GetOutputPort())
+        surface.Update()
+        return vedo.mesh.Mesh(surface.GetOutput())
+
+
     def to_trimesh(self):
         """Return the ``trimesh`` equivalent object."""
         return utils.vedo2trimesh(self)
@@ -4188,6 +4017,93 @@ class Points(vtk.vtkFollower, BaseActor):
         idsarr = cluster.GetOutput().GetPointData().GetArray("ClusterId")
         self._data.GetPointData().AddArray(idsarr)
         return self
+
+    def addConnection(self, radius, mode=0, regions=(), vrange=(0,1), seeds=(), angle=0):
+        """
+        Extracts and/or segments points from a point cloud based on geometric distance measures
+        (e.g., proximity, normal alignments, etc.) and optional measures such as scalar range.
+        The default operation is to segment the points into "connected" regions where the connection
+        is determined by an appropriate distance measure. Each region is given a region id.
+
+        Optionally, the filter can output the largest connected region of points; a particular region
+        (via id specification); those regions that are seeded using a list of input point ids;
+        or the region of points closest to a specified position.
+
+        The key parameter of this filter is the radius defining a sphere around each point which defines
+        a local neighborhood: any other points in the local neighborhood are assumed connected to the point.
+        Note that the radius is defined in absolute terms.
+
+        Other parameters are used to further qualify what it means to be a neighboring point.
+        For example, scalar range and/or point normals can be used to further constrain the neighborhood.
+        Also the extraction mode defines how the filter operates.
+        By default, all regions are extracted but it is possible to extract particular regions;
+        the region closest to a seed point; seeded regions; or the largest region found while processing.
+        By default, all regions are extracted.
+
+        On output, all points are labeled with a region number.
+        However note that the number of input and output points may not be the same:
+        if not extracting all regions then the output size may be less than the input size.
+
+        Parameters
+        ----------
+        radius : float
+            variable specifying a local sphere used to define local point neighborhood
+
+        mode : int
+            - 0,  Extract all regions
+            - 1,  Extract point seeded regions
+            - 2,  Extract largest region
+            - 3,  Test specified regions
+            - 4,  Extract all regions with scalar connectivity
+            - 5,  Extract point seeded regions
+
+        regions : list
+            a list of non-negative regions id to extract
+
+        vrange : list
+            scalar range to use to extract points based on scalar connectivity
+
+        seeds : list
+            a list of non-negative point seed ids
+
+        angle : list
+            points are connected if the angle between their normals is
+            within this angle threshold (expressed in degrees).
+        """
+        # https://vtk.org/doc/nightly/html/classvtkConnectedPointsFilter.html
+        cpf = vtk.vtkConnectedPointsFilter()
+        cpf.SetInputData(self.polydata())
+        cpf.SetRadius(radius)
+        if   mode == 0: # Extract all regions
+            pass
+
+        elif mode == 1: # Extract point seeded regions
+            cpf.SetExtractionModeToPointSeededRegions()
+            for s in seeds:
+                cpf.AddSeed(s)
+
+        elif mode == 2: # Test largest region
+            cpf.SetExtractionModeToLargestRegion()
+
+        elif mode == 3: # Test specified regions
+            cpf.SetExtractionModeToSpecifiedRegions()
+            for r in regions:
+                cpf.AddSpecifiedRegion(r)
+
+        elif mode == 4: # Extract all regions with scalar connectivity
+            cpf.SetExtractionModeToLargestRegion()
+            cpf.ScalarConnectivityOn()
+            cpf.SetScalarRange(vrange[0], vrange[1])
+
+        elif mode == 5: # Extract point seeded regions
+            cpf.SetExtractionModeToLargestRegion()
+            cpf.ScalarConnectivityOn()
+            cpf.SetScalarRange(vrange[0], vrange[1])
+            cpf.AlignedNormalsOn()
+            cpf.SetNormalAngle(angle)
+
+        cpf.Update()
+        return self._update(cpf.GetOutput())
 
     def density(self, dims=(40,40,40),
                 bounds=None, radius=None,

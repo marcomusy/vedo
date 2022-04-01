@@ -7,14 +7,15 @@ from numpy.random import randn
 x = randn(2000) * 3
 y = randn(2000) * 2
 pts1 = Points([x,y], c="blue", alpha=0.5).z(0.0)
-bra1 = Brace([-7,-7], [7,-7], thickness=0.75,
-             comment='whole population', s=0.5, c='b')
+bra1 = Brace([-7,-8], [7,-8],
+             comment='whole population', s=0.4, c='b')
 
 ### second cloud in red
 x = randn(1200) + 4
 y = randn(1200) + 2
 pts2 = Points([x,y], c="red", alpha=0.5).z(0.1)
-bra2 = Brace([8,2], [6,5], comment='red zone', c='r').z(0.3)
+bra2 = Brace([8,2,0.3], [6,5,0.3], comment='red zone',
+             angle=180, justify='bottom-center', c='r')
 
 ### third cloud with a black marker
 x = randn(20) + 4

@@ -40,7 +40,7 @@ Parameters
     rendererFrameColor = None
     rendererFrameAlpha = 0.5
     rendererFrameWidth = 0.5
-    rendererFramePadding = 0.001
+    rendererFramePadding = 0.0001
 
     # In multirendering mode set the position of the horizontal of vertical splitting [0,1]
     windowSplittingPosition = None
@@ -151,7 +151,7 @@ immediateRendering = True
 rendererFrameColor = None
 rendererFrameAlpha = 0.5
 rendererFrameWidth = 0.5
-rendererFramePadding = 0.001
+rendererFramePadding = 0.0001
 
 # Wrap lines in tubes
 # renderPointsAsSpheres has become mesh.renderPointsAsSpheres(True)

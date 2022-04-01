@@ -1,31 +1,36 @@
 """Create an empty Figure to be filled in a loop
 Any 3D Mesh object can be added to the figure!"""
-from vedo import settings, dataurl, Mesh, Circle, Arrow, show
+from vedo import *
 from vedo.pyplot import plot, Figure
-import numpy as np
-
 
 settings.defaultFont = "Cartoons123"
 settings.palette = 2
 
-# dictionary of options for the axes
-ax_opts = dict(xtitle="distance", xyGridTransparent=True, axesLineWidth=3, xyFrameLine=3)
-
 # Create an empty Figure and plot on it
-fig = Figure(xlim=(0,12), ylim=(-1.2, 1.1), aspect=16/9, axes=ax_opts)
+fig = Figure(
+    xlim=(0,12),
+    ylim=(-1.5, 1.5),
+    padding=0,    # no extra space
+    aspect=16/9,  # desired aspect ratio
+    xtitle="speed [mph]",
+    grid=True,
+    axes=dict(axesLineWidth=3, xyFrameLine=3),
+)
 
-for i in range(10):
-    x = np.linspace(0, 4*np.pi, 200)
-    y = np.sin(x) * np.sin(x/12) * i/5
-    fig += plot(x, y, lc=i)  # lc= line color (as per settings.palette)
-fig += Arrow([5,-0.7], [8,-0.7], s=0.5, c='green3')
+for i in range(2,11,2):
+    x = np.linspace(0, 4*np.pi, 20) +2
+    y = np.sin(x) * np.sin(x/12) * i/5 -1
+
+    fig += plot(x, y, '-0', lc=i, splined=True, like=fig)
+
+fig += Arrow([5,-1], [8,-1], s=0.5, c='green3')
 
 # Add any number of polygonal Meshes.
-# Use add() to preserve the object aspect ratio inside the Figure coord system:
-mesh = Mesh(dataurl+'cessna.vtk').c('blue5').scale(0.4).pos(4, 0.5, 0.5)
-circle = Circle([5,0.5], c='orange5')
-fig.add(mesh, circle)
+# Use insert() to preserve the object aspect ratio inside the Figure coord system:
+mesh = Mesh(dataurl+'cessna.vtk').c('blue5').scale(0.5).pos(4, 0.5, 0.5)
+circle = Circle([5,0.5,-0.1], c='orange5')
+fig.insert(mesh, circle)
 
-show(fig, __doc__, size=(1000,700), zoom=1.5).close()
+show(fig, __doc__, size=(800,700), zoom='tight').close()
 
 

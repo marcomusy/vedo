@@ -36,12 +36,12 @@
 
 ---
 ### `picture.py`
-
-- remove by default alpha channel so that images are pickable
+- remove by default alpha channel so that images become pickable
 
 ---
 ### `pyplot.py`
-- can create an empty `Figure` object to be later filled.
+- Full revision of the existing code.
+- can now create an empty `Figure` object to be later filled.
 
 ---
 ### `shapes.py`
@@ -65,8 +65,9 @@
 
 
 -------------------------
+## Examples:
 
-## New/Revised examples:
+### New/Revised
 `examples/basic/mousehover2.py`
 `examples/simulations/wave_equation2d.py`
 `examples/advanced/interpolateScalar4.py`
@@ -75,16 +76,61 @@
 `examples/advanced/spline_draw.py`
 `examples/simulations/museum_problem.py`
 `examples/volumetric/tet_explode.py`
-`examples/other/remesh_tetgen.py`
 `examples/volumetric/tetralize_surface.py`
+`examples/other/remesh_tetgen.py`
+
+`examples/pyplot/histo_1d_a.py`
+`examples/pyplot/histo_1d_b.py`
+`examples/pyplot/histo_1d_c.py`
+`examples/pyplot/histo_1d_d.py`
+`examples/pyplot/histo_2d.py`
+`tests/common/test_pyplot.py`
+
 `examples/pyplot/plot_empty.py`
 `examples/pyplot/plot_errband.py`
 `examples/pyplot/quiver.py`
 
 
+### Deleted
+`examples/pyplot/covid19.py`
+`examples/pyplot/histo_1D.py`
+`examples/pyplot/histo_2D.py`
+`moving_least_squares3D.py`
+
+
 ### Broken
 
 shadow2.py
-image_to_mesh.py
 multi_viewer1.py
-.transformation is empty
+
+
+histo_hexagonal.py
+latex.py
+
+pygmsh_cut.py
+
+
+histogram(vol)
+
+
+
+mesh_modify.py on MACOSX
+remove depthpeeling on mac and put in linux
+
+strane unita di misura in welsh_ss
+
+reinstall spyder
+fix webpage
+test examples
+release
+
+
+
+
+
+
+
+
+
+
+

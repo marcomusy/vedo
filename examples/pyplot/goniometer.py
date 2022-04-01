@@ -2,6 +2,8 @@
 a vignette and a goniometer"""
 from vedo import *
 
+settings.useParallelProjection = True # avoid parallax effects
+
 mesh = Cone().c('steelblue').rotateY(90).pos(1,2,3)
 
 # add a vignette-style comment

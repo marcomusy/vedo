@@ -469,7 +469,7 @@ def exe_eog(args):
             plt.addHoverLegend(at=i, c='k8', bg='k2', alpha=0.4)
             plt.show(p, axes=0, at=i, mode='image')
         plt.show(interactive=False)
-        plt.resetCamera(xypad=0.05)
+        plt.resetCamera(tight=0.05)
         plt.interactor.Start()
 
     else:
@@ -487,7 +487,7 @@ def exe_eog(args):
         plt.addCallback('key press', vfunc)
         plt.addHoverLegend(c='k8', bg='k2', alpha=0.4)
         plt.show(pic, mode='image',  interactive=False)
-        plt.resetCamera(xypad=0.0)
+        plt.resetCamera(tight=0.0)
         plt.interactor.Start()
 
     plt.close()

@@ -8,9 +8,9 @@ def func(event):  # callback function
     pts = Points(msh.closestPoint(p, N=50), r=6)
     sph = fitSphere(pts).alpha(0.1)
     pts.name = "mypoints"   # we give it a name to make it easy to
-    sph.name = "fitsphere"  # remove the old and add the new ones
+    sph.name = "mysphere"   # remove the old and add the new ones
     txt.text(f'Radius : {sph.radius}\nResidue: {sph.residue}')
-    plt.remove("mypoints", "fitsphere").add(sph, pts)
+    plt.remove("mypoints", "mysphere").add(pts, sph)
 
 txt = Text2D(__doc__, bg='yellow', font='Calco')
 

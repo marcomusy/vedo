@@ -950,7 +950,9 @@ class Plotter:
             render the scene after adding the objects (True by default)
         """
         if at is not None:
-            self.renderer = self.renderers[at]
+            ren = self.renderers[at]
+        else:
+            ren = self.renderer
 
         actors = utils.flatten(actors)
         actors = self._scan_input(actors)
@@ -958,8 +960,8 @@ class Plotter:
         for a in actors:
             if a not in self.actors:
                 self.actors.append(a)
-            if self.renderer:
-                self.renderer.AddActor(a)
+            if ren:
+                ren.AddActor(a)
         if render:
             self.render(resetcam=resetcam)
         return self
@@ -1016,10 +1018,8 @@ class Plotter:
         Remove the last added object from the rendering window.
         This method is typically used in loops or callback functions.
         """
-        if at is None:
-            at = self.renderers.index(self.renderer)
         if len(self.actors):
-            self.remove(self.actors[-1], at=at)
+            self.remove(self.actors[-1], at)
         return self
 
     def render(self, resetcam=False):
@@ -1088,17 +1088,25 @@ class Plotter:
         self.window.SetErase(value)
         return self
 
-    def enableRenderer(self, at, value=True):
+    def enableRenderer(self, at=None, value=True):
         """Enable a render() call to refresh this renderer."""
-        self.renderers[at].SetDraw(value)
+        if at is None:
+            ren = self.renderer
+        else:
+            ren = self.renderers[at]
+        ren.SetDraw(value)
         return self
 
-    def useDepthPeeling(self, at, value=True):
+    def useDepthPeeling(self, at=None, value=True):
         """
         Specify whether use depth peeling algorithm at this specific renderer
         Call this method before the first rendering.
         """
-        self.renderers[at].SetUseDepthPeeling(value)
+        if at is None:
+            ren = self.renderer
+        else:
+            ren = self.renderers[at]
+        ren.SetUseDepthPeeling(value)
         return self
 
     def background(self, c1=None, c2=None, at=None):
@@ -1199,13 +1207,13 @@ class Plotter:
         return vols
 
 
-    def resetCamera(self, xypad=None):
+    def resetCamera(self, tight=None):
         """
         Reset the camera position and zooming.
-        If xypad is specified the zooming reserves a padding space in the xy-plane
+        If tight is specified the zooming reserves a padding space in the xy-plane
         expressed in percent of the average size.
         """
-        if xypad is None:
+        if tight is None:
             self.renderer.ResetCamera()
         else:
             x0, x1, y0, y1, z0, z1 = self.renderer.ComputeVisiblePropBounds()
@@ -1220,10 +1228,10 @@ class Plotter:
             dist = max(dx/aspect[0], dy) / np.sin(angle/2) / 2
 
             cam.SetViewUp(0, 1, 0)
-            cam.SetPosition(x0 + dx/2, y0 + dy/2, dist*(1+xypad))
+            cam.SetPosition(x0 + dx/2, y0 + dy/2, dist*(1+tight))
             cam.SetFocalPoint(x0 + dx/2, y0 + dy/2, 0)
             ps = max(dx/aspect[0], dy) / 2
-            cam.SetParallelScale(ps*(1+xypad))
+            cam.SetParallelScale(ps*(1+tight))
             self.renderer.ResetCameraClippingRange(x0, x1, y0, y1, z0, z1)
         return self
 
@@ -1369,12 +1377,19 @@ class Plotter:
         return self
 
 
-    def parallelProjection(self, value=True, at=0):
+    def parallelProjection(self, value=True, at=None):
         """
         Use parallel projection ``at`` a specified renderer.
         Object is seen from "infinite" distance, e.i. remove any perspective effects.
+        An input value equal to -1 will toggle it on/off.
         """
-        r = self.renderers[at]
+        if at is not None:
+            r = self.renderers[at]
+        else:
+            r = self.renderer
+        if value == -1:
+            val = r.GetActiveCamera().GetParallelProjection()
+            value = not val
         r.GetActiveCamera().SetParallelProjection(value)
         r.Modified()
         return self
@@ -1718,8 +1733,8 @@ class Plotter:
         self.add(lb)
         return self
 
-    def addShadows(self, at=0):
-        """Add shadows at the specified renderer."""
+    def addShadows(self):
+        """Add shadows at the current renderer."""
         shadows = vtk.vtkShadowMapPass()
         seq = vtk.vtkSequencePass()
         passes = vtk.vtkRenderPassCollection()
@@ -1728,7 +1743,7 @@ class Plotter:
         seq.SetPasses(passes)
         camerapass = vtk.vtkCameraPass()
         camerapass.SetDelegatePass(seq)
-        self.renderers[at].SetPass(camerapass)
+        self.renderer.SetPass(camerapass)
         return self
 
     def _addSkybox(self, hdrfile):
@@ -2795,7 +2810,9 @@ class Plotter:
 
         if zoom:
             if zoom == "tight":
-                self.resetCamera(xypad=0.01)
+                self.resetCamera(tight=0.04)
+            elif zoom == "tightest":
+                self.resetCamera(tight=0.0001)
             else:
                 self.camera.Zoom(zoom)
         if elevation:
@@ -2983,9 +3000,14 @@ class Plotter:
     def clear(self, actors=None, at=None):
         """Delete specified list of actors, by default delete all."""
         if at is not None:
-            self.renderer = self.renderers[at]
+            renderer = self.renderers[at]
+        else:
+            renderer = self.renderer
+        if not renderer:
+            return self
+
         if actors is None:
-            self.renderer.RemoveAllViewProps()
+            renderer.RemoveAllViewProps()
             self.actors = []
             self.scalarbars = []
             self.sliders = []
@@ -3014,6 +3036,7 @@ class Plotter:
             for a in self.scalarbars:
                 self.renderer.RemoveActor(a)
             self.scalarbars = []
+        return self
 
 
     def closeWindow(self):
@@ -3263,7 +3286,7 @@ class Plotter:
                    "Shift_R", "Control_R", "Super_R", "Alt_R", "Menu"]:
             self.keyheld = key
 
-        if key in ["q", "space", "Return"]:
+        if key in ["q", "space", "Return", "F12"]:
             iren.ExitCallback()
             return
 

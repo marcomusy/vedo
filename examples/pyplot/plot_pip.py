@@ -1,44 +1,39 @@
 """Picture in picture plotting"""
-from vedo import settings, show
+from vedo import np, settings, show
 from vedo.pyplot import plot
-import numpy as np
 
 settings.defaultFont = 'Theemim'
-settings.useParallelProjection = True
 
-x = np.arange(0, 4, 0.01)
-y1 = 3*np.exp(-x)
-y2 = 3*np.exp(-x)*np.cos(2*x)**2
+def f(x):
+    return 3*np.exp(-x)*np.cos(2*x)**2
+xa = np.arange(0, 0.5, 0.01)
+xb = np.arange(0, 4.0, 0.01)
 
-
-# Build first plot and its axes:
+# Build first figure:
 fig1 = plot(
-    x, y1,
+    xa, f(xa),
     title=__doc__,
     xtitle='time in seconds',
-    ytitle='some function [a.u.]',
+    ytitle='Intensity [a.u.]',
 )
 
-# Build second plot and its axes:
-axes_opts = dict(
-    numberOfDivisions=3,
-    gridLineWidth=0,
-    xyPlaneColor='lightblue',
-    xyAlpha=1,
-    textScale=1.8,
-)
+# Build second figure w/ options for axes:
 fig2 = plot(
-    x, y2,
-    xtitle=' ',
-    ytitle='some other function',
+    xb, f(xb),
+    title='3 e^-x cos 2x**2  (wider range)',
+    xtitle=' ', ytitle=' ',  # leave empty
     lc='red5',
-    pad=0,          # no padding
-    axes=axes_opts,
+    axes=dict(
+        xyPlaneColor='#dae3f0',
+        gridLineWidth=0, # make it solid
+        xyAlpha=1,       # make it opaque
+        textScale=2,     # make text bigger
+    )
 )
+# Scale fig to make it smaller
+fig2.scale(0.04).pos(0.25, 1.75, 0.1)
 
-# Scale the fig2 to make it small
-#  and position it anywhere in the scene:
-fig2.scale(0.5).pos(2, 1.4, 0.1)
+fig1.insert(fig2)  ############# insert
 
-show(fig1, fig2, zoom='tight', mode='image').close()
+show(fig1, zoom='tight').close()
 

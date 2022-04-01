@@ -1,6 +1,6 @@
 """
-Example to show how to use recoSurface()
-to reconstruct a surface from points.
+Reconstruct a polygonal surface
+from a point cloud:
 
  1. An object is loaded and
     noise is added to its vertices.
@@ -10,7 +10,7 @@ to reconstruct a surface from points.
  4. A triangular mesh is extracted from
     this set of sparse Points.
 """
-from vedo import *
+from vedo import dataurl, printc, Plotter, Points, Mesh, Text2D
 
 
 plt = Plotter(shape=(1,5))
@@ -31,7 +31,7 @@ printc("             after  cleaning nr. points:", pts1.N())
 plt.at(3).show(pts1)
 
 # reconstructed surface from point cloud
-reco = recoSurface(pts1, dims=100, radius=0.2)
+reco = pts1.reconstructSurface(dims=100, radius=0.2)
 plt.at(4).show(reco, axes=7, zoom=1.2)
 
 plt.interactive().close()

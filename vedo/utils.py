@@ -743,6 +743,44 @@ def roundToDigit(x, p):
     else:
         return r
 
+def packSpheres(bounds, radius):
+    """
+    Packing spheres into a bounding box.
+    Returns a numpy array of sphere centers.
+    """
+    h = 0.8164965/2
+    d = 0.8660254
+    a = 0.288675135
+
+    if isSequence(bounds):
+        x0, x1, y0, y1, z0, z1 = bounds
+    else:
+        x0, x1, y0, y1, z0, z1 = bounds.GetBounds()
+
+    x = np.arange(x0, x1, radius)
+    nul = np.zeros_like(x)
+    nz = int((z1-z0)/radius/h/2 +1.5)
+    ny = int((y1-y0)/radius/d +1.5)
+
+    pts = []
+    for iz in range(nz):
+        z = z0 + nul + iz*h*radius
+        dx, dy, dz = [radius*0.5, radius*a, iz*h*radius]
+        for iy in range(ny):
+            y = y0 + nul + iy*d*radius
+            if iy % 2:
+                xs = x
+            else:
+                xs = x + radius*0.5
+            if iz % 2:
+                p = np.c_[xs, y, z] + [dx,dy,dz]
+            else:
+                p = np.c_[xs, y, z] + [ 0, 0,dz]
+            pts += p.tolist()
+    return np.array(pts)
+
+
+
 def precision(x, p, vrange=None, delimiter='e'):
     """
     Returns a string representation of `x` formatted with precision `p`.
@@ -1302,7 +1340,7 @@ def printInfo(obj):
             width, height = obj.dimensions()
             w = 65
             h = int(height/width * (w-1) * 0.5 + 0.5)
-            img_arr = obj.resize([w,h]).tonumpy()
+            img_arr = obj.clone().resize([w,h]).tonumpy()
             h, w = img_arr.shape[:2]
             for x in range(h):
                 for y in range(w):

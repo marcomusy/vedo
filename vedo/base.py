@@ -198,7 +198,8 @@ class Base3DProp(object):
                 z=0
             else: # assume o_x is of the form (x,y,z)
                 x, y, z = x
-        self.SetOrigin(x, y, z)
+        # self.SetOrigin(x, y, z)
+        self.SetOrigin([x, y, z] - np.array(self.GetPosition()))
         return self
 
     def pos(self, x=None, y=None, z=None):

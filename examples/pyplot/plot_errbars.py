@@ -17,14 +17,15 @@ fig = plot(
     xtitle="t variable (\mus)",
     ytitle="y(x) = \pmK_i \dot\sqrtsin^2 t",
     aspect=16/9,     # aspect ratio x/y of plot
-    # xlim=(-1, 14), # specify x range
-    axes=dict(textScale=1.5)
+    xlim=(-1, 14),   # specify x range
+    axes=dict(textScale=1.2)
 )
 
 ################# plot on top of fig
 fig += plot(
     x+3, y,
     "sb--",
+    like=fig,        # format like fig
     xerrors=errs,    # set error bars on x
     yerrors=errs,    # set error bars on y
     splined=True,    # continous line through points
@@ -32,7 +33,7 @@ fig += plot(
 )
 
 ################## plot again on top of fig
-fig += plot(x, y/5, "g")
+fig += plot(x, y/5, "g", like=fig)
 
 ##################
-fig.show(mode="image", size=(800,450), zoom='tight').close()
+fig.show(size=(800,500), zoom='tight').close()
