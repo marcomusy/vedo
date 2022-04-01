@@ -84,6 +84,8 @@
 `examples/pyplot/histo_1d_c.py`
 `examples/pyplot/histo_1d_d.py`
 `examples/pyplot/histo_2d.py`
+`examples/pyplot/histo_pca.py`
+`examples/pyplot/histo_manual.py`
 `tests/common/test_pyplot.py`
 
 `examples/pyplot/plot_empty.py`

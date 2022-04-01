@@ -34,10 +34,9 @@ fig += shapes.Circle([11,12], r=3).c("p5")
 fig += shapes.Circle([11,0], r=3).c("o5")
 
 fig += shapes.Arrow([2,3], [4,5]).z(.05)
-fig += shapes.Line([2,3], [4,5]).z(.1).lw(2)
+fig += shapes.Line( [2,3], [4,5]).z(.1).lw(2)
 
-ln = shapes.Line([2,2], [4,4], c='k', lw=6).z(.1)
-fig += ln
+fig += shapes.Line([2,2], [4,4], c='k', lw=6).z(.1)
 
 fig += shapes.DashedLine([8,3],[10,5], spacing=0.5, c='r')
 fig += shapes.Tube([[8,2,0],[10,4,0]], r=.1).lighting('ambient')
@@ -53,7 +52,7 @@ fig += shapes.CSpline([[4,0],[5,2],[6,0],[7,0.5]]).c('r6')
 fig += shapes.KSpline([[4,0],[5,2],[6,0],[7,0.5]]).c('r8')
 fig += shapes.Bezier([[4,-1],[5,1],[6,-1],[7,-1.5]])
 
-fig += shapes.Brace([4,2],[2,0], comment='Brace').z(0.1) ## BUGGED
+fig += shapes.Brace([2,1], [4,3],comment='Brace', pad1=0, italic=3).z(0.1) ## BUGGED
 
 fig+= shapes.Ribbon(shapes.Spline([[4,0],[5,2],[6,0],[7,0.5]]),
                     shapes.Bezier([[4,-1],[5,1],[6,-1],[7,-1.5]]))
@@ -76,7 +75,7 @@ fig += shapes.Latex('sin(x^2)', res=150).scale(3).pos(10,0)
 fig2 = Figure([-2.5, 14],[-5,14], padding=0, title='Test Embedding Figure')
 fig2.insert(fig)
 
-show(fig2, size=(1600, 1100), zoom='tight').close()
+#show(fig2, size=(1600, 1100), zoom='tight').close()
 
 
 
