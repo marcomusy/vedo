@@ -167,7 +167,7 @@ workflows:
   build-stuff:
     jobs:
       - test-vedo-vtk7
-      - test-vedo-vtk9
+      #- test-vedo-vtk9
       #- build-dolfin-stable
       #- build-dolfinx
 
