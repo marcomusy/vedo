@@ -9,6 +9,11 @@ jobs:
   ##############################################################
   test-vedo-vtk9:
 
+    machine:
+      image: ubuntu-2004:current
+
+    resource_class: medium
+
     environment:
       MPLBACKEND: "agg"
       DEBIAN_FRONTEND: "noninteractive"
