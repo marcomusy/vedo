@@ -29,47 +29,42 @@ fi
 
 #################################  command line tests
 echo '---------------------------- command line tests'
-echo vedo  data/2*.vtk
-vedo       data/2*.vtk
+echo vedo  ../data/2*.vtk
+vedo       ../data/2*.vtk
 
 echo '----------------------------'
-echo vedo  data/2*.vtk
+echo vedo  ../data/2*.vtk
 vedo  -ni -k glossy data/2*.vtk
 
 echo '----------------------------'
-echo vedo -s  "data/2??.vtk"
-vedo      -s   data/2??.vtk
+echo vedo -s  "../data/2??.vtk"
+vedo      -s   ../data/2??.vtk
 
 echo '----------------------------'
-echo vedo  data/embryo.tif
-vedo       data/embryo.tif
+echo vedo  ../data/embryo.tif
+vedo       ../data/embryo.tif
 
 echo '----------------------------'
-echo vedo --lego --cmap afmhot_r data/embryo.tif
-vedo      --lego --cmap afmhot_r data/embryo.tif
+echo vedo --lego --cmap afmhot_r ../data/embryo.tif
+vedo      --lego --cmap afmhot_r ../data/embryo.tif
 
 echo '----------------------------'
-echo vedo -g -c blue data/embryo.slc
-vedo      -g -c blue data/embryo.slc
+echo vedo -g -c blue ../data/embryo.slc
+vedo      -g -c blue ../data/embryo.slc
 
 echo '----------------------------'
-echo vedo --slicer2d data/embryo.tif
-vedo      --slicer2d data/embryo.tif
+echo vedo --slicer2d ../data/embryo.tif
+vedo      --slicer2d ../data/embryo.tif
 
 echo '----------------------------'
-echo vedo --slicer3d data/embryo.tif
-vedo      --slicer3d data/embryo.tif
+echo vedo --slicer3d ../data/embryo.tif
+vedo      --slicer3d ../data/embryo.tif
 
 echo '----------------------------'
-echo vedo --eog data/Wnt5a.jpg
-vedo      --eog data/Wnt5a.jpg
+echo vedo --eog ../data/Wnt5a.jpg
+vedo      --eog ../data/Wnt5a.jpg
 
 echo '---------------------------- should open a GUI'
 echo vedo
 vedo
 
-##################################### not run/ignored:
-# python3 other/animation1.py
-# python3 other/animation2.py
-# python3 other/makeVideo.py
-# python3 other/spherical_harmonics2.py

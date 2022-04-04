@@ -15,13 +15,13 @@ fig1 = histogram(
     xtitle=__doc__,       # x-axis title
     padding=[0,0,0,0.1],  # allow 10% padding space only on the top
     gap=0,                # no gap between bins
-    ac='white',           # axes color
-    texture="https://vedo.embl.es/examples/data/textures/marble.jpg",
+    ac='k7',              # axes color
+    c='yellow9',
 )
 
 x = np.linspace(0,1, 200)
 y = 200*np.sin(12*x)**2 + 100
-fig1 += Line(x, y, c='red4', lw=3)
+fig1 += Line(x, y, c='red5', lw=3)
 
-fig1.show(size=(1000,700), bg='blackboard', zoom='tight').close()
+fig1.show(size=(1000,700), bg='black', zoom='tight').close()
 

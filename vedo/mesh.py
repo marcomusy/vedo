@@ -388,7 +388,7 @@ class Mesh(Points):
         """
         Assign a texture to mesh from image file or predefined texture `tname`.
         If tname is set to ``None`` texture is disabled.
-        Input tname can also be an array.
+        Input tname can also be an array or a `vtkTexture`.
 
         Parameters
         ----------
@@ -429,6 +429,7 @@ class Mesh(Points):
 
         if isinstance(tname, vtk.vtkTexture):
             tu = tname
+            outimg = self._data
 
         elif isinstance(tname, vedo.Picture):
             tu = vtk.vtkTexture()
@@ -1514,7 +1515,7 @@ class Mesh(Points):
         """
         fh = vtk.vtkFillHolesFilter()
         if not size:
-            mb = self.maxBoundSize()
+            mb = self.diagonalSize()
             size = mb / 10
         fh.SetHoleSize(size)
         fh.SetInputData(self._data)
@@ -1549,13 +1550,14 @@ class Mesh(Points):
             pointsPolydata = pts.polydata()
             pts = pts.points()
         else:
+            pts = np.asarray(pts, dtype=float)
             vpoints = vtk.vtkPoints()
-            pts = np.ascontiguousarray(pts)
             vpoints.SetData(numpy2vtk(pts, dtype=float))
             pointsPolydata = vtk.vtkPolyData()
             pointsPolydata.SetPoints(vpoints)
 
         sep = vtk.vtkSelectEnclosedPoints()
+        # sep = vtk.vtkExtractEnclosedPoints()
         sep.SetTolerance(tol)
         sep.SetInputData(pointsPolydata)
         sep.SetSurfaceData(self.polydata())
@@ -1566,6 +1568,7 @@ class Mesh(Points):
         ids = np.array(range(len(pts)))[mask]
 
         if returnIds:
+            self._update(sep.GetOutput())
             return ids
         else:
             pcl = Points(pts[ids])
@@ -2410,7 +2413,9 @@ class Mesh(Points):
 
         if debug:
             print(".. tetralize(): subsampling and cleaning")
-        fillpts = surf.insidePoints(pts).subsample(side)
+
+        fillpts = surf.insidePoints(pts)
+        fillpts.subsample(side)
 
         if gap:
             fillpts.distanceTo(surf)
@@ -2430,8 +2435,8 @@ class Mesh(Points):
 
             #histogram(fillpts.pointdata["Distance"], xtitle=f"gap={gap}").show().close()
 
-            edges = surf.edges()
-            points = surf.points()
+            edges = self.edges()
+            points = self.points()
             elen = mag(points[edges][:,0,:] - points[edges][:,1,:])
             histo = histogram(elen, xtitle='edge length', xlim=(0,3*side*d))
             print(".. edges min, max", elen.min(), elen.max())

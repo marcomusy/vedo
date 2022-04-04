@@ -389,7 +389,7 @@ def Goniometer(
         lc='k2',
         c='white',
         alpha=1,
-        lw=1,
+        lw=2,
         precision=3,
     ):
     """
@@ -2265,7 +2265,7 @@ def Axes(
             if zrange is None:
                 zrange=(0,0)
             if xrange is None or yrange is None:
-                vedo.logger.error("in Axes() no input is given, so you must specify axes ranges!")
+                vedo.logger.error("in Axes() must specify axes ranges!")
                 raise RuntimeError()
 
     if xrange is not None:
@@ -2813,13 +2813,14 @@ def Axes(
                 xoffs, yoffs, zoffs = xLabelOffset
             else:
                 xoffs, yoffs, zoffs = 0, xLabelOffset, 0
-            xlab = shapes.Text3D(t, s=xLabelSize*textScale*gscale, font=labelFont, justify=jus)
+            xlab = shapes.Text3D(t, s=xLabelSize*textScale*gscale,
+                                 font=labelFont, justify=jus)
             tb = xlab.ybounds() # must be ybounds: height of char
             v = (xticks_float[i], 0, 0)
             offs = -np.array([xoffs, yoffs, zoffs])*(tb[1]-tb[0])
             xlab.pos(v+offs)
             if xAxisRotation:
-                xlab.rotateX(xAxisRotation, locally=False)
+                xlab.rotateX(xAxisRotation)
             if zRot: xlab.RotateZ(zRot)
             if xRot: xlab.RotateX(xRot)
             if yRot: xlab.RotateY(yRot)
@@ -2861,13 +2862,14 @@ def Axes(
                 xoffs, yoffs, zoffs = yLabelOffset
             else:
                 xoffs, yoffs, zoffs = yLabelOffset, 0, 0
-            ylab = shapes.Text3D(t, s=yLabelSize*textScale*gscale, font=labelFont, justify=jus)
+            ylab = shapes.Text3D(t, s=yLabelSize*textScale*gscale,
+                                 font=labelFont, justify=jus)
             tb = ylab.ybounds() # must be ybounds: height of char
             v = (0, yticks_float[i], 0)
             offs = -np.array([xoffs, yoffs, zoffs])*(tb[1]-tb[0])
             ylab.pos(v+offs)
             if yAxisRotation:
-                ylab.rotateY(yAxisRotation, locally=False)
+                ylab.rotateY(yAxisRotation)
             if zRot: ylab.RotateZ(zRot)
             if yRot: ylab.RotateY(yRot)
             if xRot: ylab.RotateX(xRot)
@@ -2909,7 +2911,8 @@ def Axes(
                 xoffs, yoffs, zoffs = zLabelOffset
             else:
                 xoffs, yoffs, zoffs = zLabelOffset, zLabelOffset, 0
-            zlab = shapes.Text3D(t, s=zLabelSize*textScale*gscale, font=labelFont, justify=jus)
+            zlab = shapes.Text3D(t, s=zLabelSize*textScale*gscale,
+                                 font=labelFont, justify=jus)
             tb = zlab.ybounds() # must be ybounds: height of char
             v = (0, 0, zticks_float[i])
             offs = -np.array([xoffs, yoffs, zoffs])*(tb[1]-tb[0])/1.5
@@ -2920,7 +2923,7 @@ def Axes(
             zlab.RotateX(90+zRot)         # ..first
             zlab.pos(v+offs)
             if zAxisRotation:
-                zlab.rotateZ(zAxisRotation, locally=False)
+                zlab.rotateZ(zAxisRotation)
             if yzShift: zlab.shift(yzShift*dx,0,0)
             if zxShift: zlab.shift(0,zxShift*dy,0)
             if zShiftAlongX: zlab.shift(zShiftAlongX*dx,0,0)
@@ -2972,13 +2975,16 @@ def Axes(
         if xlab: # xlab is the last created numeric text label..
             lt0, lt1 = xlab.GetBounds()[2:4]
             shift =  lt1 - lt0
-        xt.pos([(xoffs+xTitlePosition)*dx, -(yoffs+xTickLength/2)*dy -shift, zoffs*dz])
+        xt.pos([(xoffs+xTitlePosition)*dx,
+                -(yoffs+xTickLength/2)*dy -shift, zoffs*dz])
         if xAxisRotation:
-            xt.rotateX(xAxisRotation, locally=False)
+            xt.rotateX(xAxisRotation)
         if xyShift: xt.shift(0,0,xyShift*dz)
         if xShiftAlongY: xt.shift(0,xShiftAlongY*dy,0)
         if xShiftAlongZ: xt.shift(0,0,xShiftAlongZ*dz)
         xt.SetUseBounds(xUseBounds)
+        if xtitle == " ":
+            xt.SetUseBounds(False)
         xt.name = f"xtitle {xtitle}"
         titles.append(xt)
         if xTitleBox:
@@ -3014,9 +3020,11 @@ def Axes(
                 if zRot > 292: jus = "top-right"
                 if zRot > 337: jus = "right-center"
 
-        yt = shapes.Text3D(ytitle, s=yTitleSize*textScale*gscale, font=titleFont,
-                           c=yTitleColor, justify=jus, depth=titleDepth,
-                           italic=yTitleItalic)
+        yt = shapes.Text3D(
+            ytitle, s=yTitleSize*textScale*gscale, font=titleFont,
+            c=yTitleColor, justify=jus, depth=titleDepth,
+            italic=yTitleItalic,
+        )
         if yTitleBackfaceColor:
             yt.backColor(yTitleBackfaceColor)
 
@@ -3028,13 +3036,16 @@ def Axes(
         if ylab:  # this is the last created num label..
             lt0, lt1 = ylab.GetBounds()[0:2]
             shift = lt1 - lt0
-        yt.pos(-(xoffs + yTickLength/2)*dx -shift, (yoffs + yTitlePosition)*dy, zoffs*dz)
+        yt.pos(-(xoffs + yTickLength/2)*dx -shift,
+               (yoffs + yTitlePosition)*dy, zoffs*dz)
         if yAxisRotation:
-            yt.rotateY(yAxisRotation, locally=False)
+            yt.rotateY(yAxisRotation)
         if xyShift:      yt.shift(0, 0, xyShift*dz)
         if yShiftAlongX: yt.shift(yShiftAlongX*dx, 0, 0)
         if yShiftAlongZ: yt.shift(0, 0, yShiftAlongZ*dz)
         yt.SetUseBounds(yUseBounds)
+        if ytitle == " ":
+            yt.SetUseBounds(False)
         yt.name = f"ytitle {ytitle}"
         titles.append(yt)
         if yTitleBox:
@@ -3065,9 +3076,11 @@ def Axes(
                 if xRot > 292: jus = "top-right"
                 if xRot > 337: jus = "right-center"
 
-        zt = shapes.Text3D(ztitle, s=zTitleSize*textScale*gscale, font=titleFont,
-                           c=zTitleColor, justify=jus, depth=titleDepth,
-                           italic=yTitleItalic)
+        zt = shapes.Text3D(
+            ztitle, s=zTitleSize*textScale*gscale, font=titleFont,
+            c=zTitleColor, justify=jus, depth=titleDepth,
+            italic=yTitleItalic,
+        )
         if zTitleBackfaceColor:
             zt.backColor(zTitleBackfaceColor)
 
@@ -3084,11 +3097,13 @@ def Axes(
         zt.pos(-(zTitleOffset+zTickLength/5)*dx-shift,
                -(zTitleOffset+zTickLength/5)*dy-shift, zTitlePosition*dz)
         if zAxisRotation:
-            zt.rotateZ(zAxisRotation, locally=False)
+            zt.rotateZ(zAxisRotation)
         if zxShift: zt.shift(0,zxShift*dy,0)
         if zShiftAlongX: zt.shift(zShiftAlongX*dx,0,0)
         if zShiftAlongY: zt.shift(0,zShiftAlongY*dy,0)
         zt.SetUseBounds(zUseBounds)
+        if ztitle == " ":
+            zt.SetUseBounds(False)
         zt.name = f"ztitle {ztitle}"
         titles.append(zt)
 
@@ -3098,19 +3113,23 @@ def Axes(
             hTitleFont = titleFont
         if hTitleColor is None:
             hTitleColor = xTitleColor
-        htit = shapes.Text3D(htitle, s=hTitleSize*gscale*textScale, font=hTitleFont,
-                             c=hTitleColor, justify=hTitleJustify, depth=titleDepth,
-                             italic=hTitleItalic)
+        htit = shapes.Text3D(
+            htitle, s=hTitleSize*gscale*textScale, font=hTitleFont,
+            c=hTitleColor, justify=hTitleJustify, depth=titleDepth,
+            italic=hTitleItalic,
+        )
         if hTitleRotation:
             htit.RotateX(hTitleRotation)
-        wpos = [(0.5+hTitleOffset[0])*dx, (1+hTitleOffset[1])*dy, hTitleOffset[2]*dz]
+        wpos = [(0.5+hTitleOffset[0])*dx,
+                (1+hTitleOffset[1])*dy, hTitleOffset[2]*dz]
         htit.pos(wpos)
         if xyShift: htit.shift(0,0,xyShift*dz)
         htit.name = f"htitle {htitle}"
         titles.append(htit)
 
     ######
-    acts = titles + lines + labels + grids + framelines + highlights + majorticks + minorticks + cones
+    acts = titles + lines + labels + grids + framelines
+    acts+= highlights + majorticks + minorticks + cones
     orig = (min_bns[0], min_bns[2], min_bns[4])
     for a in acts:
         a.PickableOff()

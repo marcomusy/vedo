@@ -1,5 +1,4 @@
-"""Insert a Figure into another
-(note that the x-axes stay aligned)"""
+"""Insert a Figure into another (note that the x-axes stay aligned)"""
 from vedo import Marker, settings, show, np
 from vedo.pyplot import histogram
 
@@ -25,6 +24,7 @@ fig2 = histogram(
     bins=60,
     aspect=4/3,
     density=True,
+    outline=True,
     c='purple9',
     axes=dict(xyGrid=True, xyPlaneColor='grey2', xyAlpha=1, gridLineWidth=0),
 )

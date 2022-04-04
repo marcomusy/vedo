@@ -3,7 +3,7 @@ from vedo import *
 
 t = Text2D(__doc__)
 
-dsc = Disc().lineWidth(0.1)
+dsc = Disc(res=(8,120)).lineWidth(0.1)
 coords = dsc.points()
 
 for i in range(50):

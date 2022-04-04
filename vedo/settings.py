@@ -127,6 +127,8 @@ defaultFont = 'Normografo'
 # Palette number when using an integer to choose a color
 palette = 0
 
+# last_figure = None
+
 # Scale magnification of the screenshot (must be an integer)
 screeshotScale = 1
 screenshotTransparentBackground = False

@@ -192,14 +192,17 @@ class Base3DProp(object):
         Has no effect on position.
         """
         if x is None:
-            return np.array(self.GetOrigin())
-        if z is None:  # assume o_x is of the form (x,y,z)
-            if y is not None: # assume x and y are given so z=0
-                z=0
-            else: # assume o_x is of the form (x,y,z)
+            return np.array(self.GetOrigin()) #+ self.GetPosition()
+
+        if z is None and y is None: # assume x is of the form (x,y,z)
+            if len(x)==3:
                 x, y, z = x
-        # self.SetOrigin(x, y, z)
-        self.SetOrigin([x, y, z] - np.array(self.GetPosition()))
+            else:
+                x, y = x
+                z=0
+        elif z is None:             # assume x,y is of the form x, y
+            z=0
+        self.SetOrigin([x, y, z]) #- np.array(self.GetPosition()))
         return self
 
     def pos(self, x=None, y=None, z=None):
@@ -332,89 +335,65 @@ class Base3DProp(object):
             self.addShadows()
         return self
 
-    def rotateX(self, angle, rad=False, locally=False):
+
+    def _rotatexyz(self, a, angle, rad, around):
+        if rad:
+            angle *= 180 / np.pi
+
+        T = vtk.vtkTransform()
+        T.SetMatrix(self.GetMatrix())
+        T.PostMultiply()
+
+        rot = dict(x=T.RotateX, y=T.RotateY, z=T.RotateZ)
+
+        if around is None:
+            # rotate around its origin
+            rot[a](angle)
+        else:
+            if around == 'itself':
+                around = self.GetPosition()
+            # displacement needed to bring it back to the origin
+            # and disregard origin
+            disp = around - np.array(self.GetOrigin())
+            T.Translate(-disp)
+            rot[a](angle)
+            T.Translate(disp)
+
+        self.SetOrientation(T.GetOrientation())
+        self.SetPosition(T.GetPosition())
+
+        if self.trail:
+            self.updateTrail()
+        if len(self.shadows) > 0:
+            self.addShadows()
+
+        self.point_locator = None
+        self.cell_locator = None
+        return self
+
+    def rotateX(self, angle, rad=False, around=None):
         """
         Rotate around x-axis. If angle is in radians set ``rad=True``.
 
-        Set ``locally`` to ignore previous transformations,
-        rotate around object local origin.
+        Use `around` to define a pivoting point.
         """
-        if rad:
-            angle *= 180 / np.pi
-        if not locally:
-            T = vtk.vtkTransform()
-            self.ComputeMatrix()
-            T.SetMatrix(self.GetMatrix())
-            T.PostMultiply()
-            T.RotateX(angle)
-            self.SetOrientation(T.GetOrientation())
-            self.SetPosition(T.GetPosition())
-            if self.trail:
-                self.updateTrail()
-            if len(self.shadows) > 0:
-                self.addShadows()
-        else:
-            self.RotateX(angle)
+        return self._rotatexyz('x', angle, rad, around)
 
-        self.point_locator = None
-        self.cell_locator = None
-        return self
-
-    def rotateY(self, angle, rad=False, locally=False):
+    def rotateY(self, angle, rad=False, around=None):
         """
         Rotate around y-axis. If angle is in radians set ``rad=True``.
 
-        Set ``locally`` to ignore previous transformations,
-        rotate around object local origin.
+        Use `around` to define a pivoting point.
         """
-        if rad:
-            angle *= 180 / np.pi
-        if not locally:
-            T = vtk.vtkTransform()
-            self.ComputeMatrix()
-            T.SetMatrix(self.GetMatrix())
-            T.PostMultiply()
-            T.RotateY(angle)
-            self.SetOrientation(T.GetOrientation())
-            self.SetPosition(T.GetPosition())
-            if self.trail:
-                self.updateTrail()
-            if len(self.shadows) > 0:
-                self.addShadows()
-        else:
-            self.RotateY(angle)
+        return self._rotatexyz('y', angle, rad, around)
 
-        self.point_locator = None
-        self.cell_locator = None
-        return self
-
-    def rotateZ(self, angle, rad=False, locally=False):
+    def rotateZ(self, angle, rad=False, around=None):
         """
         Rotate around z-axis. If angle is in radians set ``rad=True``.
 
-        Set ``locally`` to ignore previous transformations,
-        rotate around object local origin.
+        Use `around` to define a pivoting point.
         """
-        if rad:
-            angle *= 180 / np.pi
-        if not locally:
-            T = vtk.vtkTransform()
-            self.ComputeMatrix()
-            T.SetMatrix(self.GetMatrix())
-            T.PostMultiply()
-            T.RotateZ(angle)
-            self.SetOrientation(T.GetOrientation())
-            self.SetPosition(T.GetPosition())
-            if self.trail:
-                self.updateTrail()
-            if len(self.shadows) > 0:
-                self.addShadows()
-        else:
-            self.RotateZ(angle)
-
-        self.point_locator = None
-        self.cell_locator = None
-        return self
+        return self._rotatexyz('z', angle, rad, around)
 
 
     def orientation(self, newaxis=None, rotation=0, rad=False):
@@ -445,12 +424,14 @@ class Base3DProp(object):
         """
         if rad:
             rotation *= 180.0 / np.pi
+
         if self.top is None or self.base is None:
             initaxis = (0,0,1)
         else:
             initaxis = utils.versor(self.top - self.base)
         if newaxis is None:
             return initaxis
+
         newaxis = utils.versor(newaxis)
         pos = np.array(self.GetPosition())
         crossvec = np.cross(initaxis, newaxis)
@@ -463,6 +444,7 @@ class Base3DProp(object):
         T.RotateWXYZ(np.rad2deg(angle), crossvec)
         T.Translate(pos)
         self.SetUserTransform(T)
+        self.transform = T
 
         self.point_locator = None
         self.cell_locator = None
@@ -473,23 +455,28 @@ class Base3DProp(object):
             self.addShadows()
         return self
 
-    def scale(self, s=None, absolute=False):
+    def scale(self, s=None, reset=False):
         """
         Set/get object's scaling factor.
 
         Parameters
         ----------
-        s : list or float
+        s : list, float
             scaling factor(s).
 
-        absolute : bool
+        reset : bool
             if True previous scaling factors are ignored.
 
         .. note:: if `s=(sx,sy,sz)` scale differently in the three coordinates.
         """
         if s is None:
             return np.array(self.GetScale())
-        if absolute:
+
+        # assert s[0] != 0
+        # assert s[1] != 0
+        # assert s[2] != 0
+
+        if reset:
             self.SetScale(s)
         else:
             self.SetScale(np.multiply(self.GetScale(), s))
@@ -702,23 +689,6 @@ class Base3DProp(object):
         return np.sqrt((b[1]-b[0])**2 + (b[3]-b[2])**2 + (b[5]-b[4])**2)
         # return self.GetLength() # ???different???
 
-    def maxBoundSize(self):
-        """Get the maximum size in x, y or z of the bounding box."""
-        b = self.GetBounds()
-        return max(b[1]-b[0], b[3]-b[2], b[5]-b[4])
-
-    def minBoundSize(self):
-        """Get the minimum size in x, y or z of the bounding box."""
-        b = self.GetBounds()
-        xm = b[1] - b[0]
-        ym = b[3] - b[2]
-        zm = b[5] - b[4]
-        m = 0
-        if xm: m=xm
-        if ym and m>ym: m=ym
-        if zm and m>zm: m=zm
-        return m
-
     def print(self):
         """Print information about an object."""
         utils.printInfo(self)
@@ -733,7 +703,7 @@ class Base3DProp(object):
         This method is meant as a shortcut. If more than one object needs to be visualised
         please use the syntax `show(mesh1, mesh2, volume, ..., options)`.
 
-        Returns the current ``Plotter`` class instance.
+        Returns the ``Plotter`` class instance.
 
         Example:
             .. code-block:: python
@@ -742,7 +712,7 @@ class Base3DProp(object):
                 s = Sphere()
                 s.show(at=1, N=2)
                 c = Cube()
-                c.show(at=0, interactive=True).close()
+                c.show(at=0).interactive().close()
         """
         return vedo.plotter.show(self, **options)
 
@@ -795,7 +765,8 @@ class BaseActor(Base3DProp):
         return self.GetMapper().GetInput()
 
     def modified(self):
-        """Use in conjunction with ``tonumpy()`` to update any modifications to the volume array"""
+        """Use in conjunction with ``tonumpy()``
+        to update any modifications to the volume array"""
         sc = self.inputdata().GetPointData().GetScalars()
         if sc:
             sc.Modified()
@@ -869,7 +840,11 @@ class BaseActor(Base3DProp):
 
 
     def deleteCells(self, ids):
-        """Remove cells from the mesh object by ID. Points (vertices) are not affected."""
+        """
+        Remove cells from the mesh object by their ID.
+        Points (vertices) are not removed
+        (you may use `.clean()` to remove those).
+        """
         data = self.inputdata()
         for cid in ids:
             data.DeleteCell(cid)

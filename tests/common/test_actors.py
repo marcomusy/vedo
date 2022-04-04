@@ -218,9 +218,6 @@ assert 9.9 < Sphere().scale(10).pos(1,3,7).averageSize() < 10.1
 print('diagonalSize',sphere.diagonalSize())
 assert 3.3 < sphere.diagonalSize() < 3.5
 
-print('maxBoundSize',sphere.maxBoundSize())
-assert 1.9 < sphere.maxBoundSize() < 2.1
-
 print('centerOfMass',sphere.centerOfMass())
 assert np.allclose(sphere.centerOfMass(), [0,0,0])
 
@@ -257,12 +254,6 @@ print('normalize',s3.centerOfMass(), (10,20,30))
 assert np.allclose(s3.centerOfMass(), (10,20,30))
 print('normalize',s3.averageSize())
 assert 0.9 < s3.averageSize() < 1.1
-
-
-###################################### stretch
-c2 = cone.clone().stretch([0,0,0], [3,4,5])
-print('stretch',c2.maxBoundSize(), '>', 5)
-assert c2.maxBoundSize() > 5
 
 
 ###################################### crop

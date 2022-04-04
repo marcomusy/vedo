@@ -1,29 +1,34 @@
 """Histogram along a PCA axis"""
-from vedo import *
-from vedo.pyplot import histogram
+import numpy as np
+from vedo import Points, pcaEllipsoid, Arrow2D, Goniometer
+from vedo.pyplot import Figure, histogram
+# np.random.seed(2)
+data = np.random.randn(1000, 3)
 
-data = np.random.randn(500,3)*[2,1,0.001]
-pts = Points(data, r=8, c='#1f77b4').rotateZ(50)  # rotate them!
+pts = Points(data, r=6, c='#1f77b4')
+pts.scale([2,1,0.01]).rotateZ(45).shift(5,1)  # rotate and shift!
 
 # Recover the rotation pretending we only know the points
-mypts = pts.clone()
+# Fit an ellipse to the points
+# elli = pcaEllipsoid(pts).lighting('off')
+elli = pcaEllipsoid(pts)
+ec, e1, e2 = elli.center, elli.axis1, elli.axis2
+arrow1 = Arrow2D(ec, ec - 3*e1)
+arrow2 = Arrow2D(ec, ec + 3*e2)
 
-# Fit an ellipse (ellipsoid) to the points
-elli = pcaEllipsoid(pts).lighting('off')
-a1 = Arrow2D([0,0], -3*versor(elli.axis1[:2]))
-a2 = Arrow2D([0,0],  3*versor(elli.axis2[:2]))
-
-angle = np.arctan2(elli.axis1[1], elli.axis1[0]) * 57.3
-mypts.rotateZ(-angle)  # rotate back to make the histo
-histo = histogram(
-    mypts.points()[:,1],
-    padding=0,
-    xlim=(-3,3),
-    ytitle='', title=' ',
-    c='#1f77b4',
+angle = np.arctan2(e1[1], e1[0]) * 180/np.pi
+mypts = pts.clone()  # rotate back to make the histo:
+mypts.shift(-ec).rotateZ(-angle)
+histo = histogram(         # a Histogram1D(Figure) object
+    mypts.points()[:,1],   # grab the y-values (PCA2)
+    ytitle='', title=' ',  # no automatic title, no y-axis
+    c='#1f77b4',           # color
+    aspect=16/9,           # aspect ratio
 )
-histo.origin([0,0,0]).rotateZ(90+angle).pos(2*a1.top)
+histo.rotateZ(90 + angle).pos(ec - 6*e1)
 
-gon = Goniometer(2*a1.top, [0,0,0], [2*a2.top[0], 0,0])
+gon = Goniometer(ec-5.5*e1, ec, [ec[0]-5.5*e1[0], ec[1],0]).z(0.2)
 
-show(pts.z(-0.2), elli, a1, a2, histo, gon, zoom='tight', axes=8).close()
+fig = Figure([0,14], [-4,9], aspect="equal", title=__doc__)
+fig += [pts, elli, arrow1, arrow2, gon, histo]
+fig.show(zoom='tight').close()

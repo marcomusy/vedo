@@ -19,7 +19,8 @@ def handle_timer(event):
     t = time.time() - t0
     x = np.linspace(t, t + 4*np.pi, 50)
     y = np.sin(x) * np.sin(x/12)
-    fig = plot(x, y, '-o', ylim=(-1.2, 1.2), aspect=3, ms=0.1,
+    fig = plot(
+        x, y, '-o', ylim=(-1.2, 1.2), aspect=3/1,
         xtitle="time window [s]", ytitle="intensity [a.u.]",
     )
     fig.shift(-x[0]) # put the whole plot object back at (0,0)
@@ -35,6 +36,6 @@ evntId = plotter.addCallback("timer", handle_timer)
 
 x = np.linspace(0, 4*np.pi, 50)
 y = np.sin(x) * np.sin(x/12)
-fig = plot(x, y, ylim=(-1.2, 1.2), xtitle="time", aspect=3, lc='grey5')
+fig = plot(x, y, ylim=(-1.2, 1.2), xtitle="time", aspect=3/1, lc='grey5')
 
 plotter.show(__doc__, fig, zoom=2)

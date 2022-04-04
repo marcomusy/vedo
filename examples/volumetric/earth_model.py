@@ -38,29 +38,31 @@ msh.addScalarBar3D(
                 s=[100, 2200],
 )
 # put scalarbar vertical, tell camera to keep bounds into account
-msh.scalarbar.rotateX(90, locally=True).rotateY(55, locally=True).useBounds()
+msh.scalarbar.rotateX(90, around='itself').rotateZ(60, around='itself')
+msh.scalarbar.useBounds()
 
 # Create cmap for conductor
 cond = conductor.tomesh().cmap(lut, 'cell_scalars', on='cells')
 
-axes = vedo.Axes(msh + cond,
-                 xtitle='Easting (m)',
-                 ytitle='Northing (m)',
-                 ztitle='Elevation (m)',
-                 xTitlePosition=0.65,
-                 yTitlePosition=0.65,
-                 zTitlePosition=0.65,
-                 yTitleOffset=-0.22,
-                 zTitleOffset= 0.06,
-                 yLabelRotation=90,
-                 yLabelOffset=-1.5,
-                 zAxisRotation=15,
-                 axesLineWidth=3,
-                 gridLineWidth=2,
-                 yShiftAlongX=1,
-                 tipSize=0,
-                 yzGrid=True,
-                 xyFrameLine=True,
+axes = vedo.Axes(
+    msh + cond,
+    xtitle='Easting (m)',
+    ytitle='Northing (m)',
+    ztitle='Elevation (m)',
+    xTitlePosition=0.65,
+    yTitlePosition=0.65,
+    zTitlePosition=0.65,
+    yTitleOffset=-0.22,
+    zTitleOffset= 0.06,
+    yLabelRotation=90,
+    yLabelOffset=-1.5,
+    zAxisRotation=15,
+    axesLineWidth=3,
+    gridLineWidth=2,
+    yShiftAlongX=1,
+    tipSize=0,
+    yzGrid=True,
+    xyFrameLine=True,
 )
 
 vedo.show(msh, cond, axes, __doc__, size=(1305, 1020),

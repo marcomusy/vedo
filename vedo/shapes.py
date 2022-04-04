@@ -1584,7 +1584,8 @@ class Arrow(Mesh):
 
         Mesh.__init__(self, tf.GetOutput(), c, alpha)
 
-        self.phong()
+        self.phong().lighting('plastic')
+        # self.property.LightingOff()
         self.SetPosition(startPoint)
         self.PickableOff()
         self.DragableOff()
@@ -1753,11 +1754,15 @@ class Arrow2D(Mesh):
         length = np.linalg.norm(axis)
         if length:
             axis = axis / length
-        theta = np.arccos(axis[2])
+        theta = 0
+        if len(axis) > 2:
+            theta = np.arccos(axis[2])
         phi = np.arctan2(axis[1], axis[0])
         t = vtk.vtkTransform()
-        t.RotateZ(np.rad2deg(phi))
-        t.RotateY(np.rad2deg(theta))
+        if phi:
+            t.RotateZ(np.rad2deg(phi))
+        if theta:
+            t.RotateY(np.rad2deg(theta))
         t.RotateY(-90)  # put it along Z
         t.Scale(length, length, length)
         tf = vtk.vtkTransformPolyDataFilter()
@@ -1919,6 +1924,11 @@ class Circle(Polygon):
     """
     def __init__(self, pos=(0,0,0), r=1, res=120, c="gray5", alpha=1):
         Polygon.__init__(self, pos, nsides=res, r=r)
+
+        self.center = [] # filled by pointcloud.pcaEllipse
+        self.eigenvalues = []
+        self.axis1 = []
+        self.axis2 = []
         self.alpha(alpha).c(c)
         self.name = "Circle"
 
@@ -2324,12 +2334,9 @@ class Ellipsoid(Mesh):
 
         Mesh.__init__(self, pd, c, alpha)
         self.phong()
-        self.GetProperty().BackfaceCullingOn()
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
         self.SetPosition(pos)
-        self.Length = -np.array(axis1, dtype=float) / 2 + pos
-        self.top = np.array(axis1, dtype=float) / 2 + pos
         self.name = "Ellipsoid"
 
     def asphericity(self):
@@ -4099,15 +4106,18 @@ class Latex(Picture):
                     bx = dict(boxstyle="square", ec=col, fc=getColor(bg))
                 else:
                     bx = None
-                mpltib.text(0.5, 0.5, formula1,
-                         size=res,
-                         color=col,
-                         alpha=alpha,
-                         ha="center",
-                         va="center",
-                         bbox=bx)
-                mpltib.savefig(tfile, format='png',
-                            transparent=True, bbox_inches='tight', pad_inches=0)
+                mpltib.text(
+                    0.5, 0.5, formula1,
+                    size=res,
+                    color=col,
+                    alpha=alpha,
+                    ha="center",
+                    va="center",
+                    bbox=bx,
+                )
+                mpltib.savefig(
+                    tfile, format='png',
+                    transparent=True, bbox_inches='tight', pad_inches=0)
                 mpltib.close()
 
             if len(pos) == 2:

@@ -738,6 +738,10 @@ def draw_scene(args):
                     plt.camera.SetClippingRange(0, ds)
                     plt.show(actor, at=i, interactive=False, zoom=args.zoom, mode=interactor_mode)
                     plt.actors = actors
+                    # if args.no_camera_share: ## BUG
+                        # plt.resetCamera()
+                        # plt.renderers[i].ResetCameraClippingRange()
+                        # print([plt.camera])
                 except AttributeError:
                     # wildcards in quotes make glob return actor as a list :(
                     vedo.logger.error("Please do not use wildcards within single or double quotes")

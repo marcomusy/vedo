@@ -15,7 +15,7 @@ fig = Figure([-1,12], [-2,14], aspect=16/9, padding=0,
 )
 print(f"yscale = {fig.yscale}")
 
-man = Mesh(dataurl+'man.vtk').scale(1.4).pos(7,4).rotateX(-90, locally=True)
+man = Mesh(dataurl+'man.vtk').scale(1.4).pos(7,4).rotateX(-90, around='itself')
 fig += man
 
 pic = Picture("https://vedo.embl.es/examples/data/textures/bricks.jpg")
@@ -66,16 +66,16 @@ fig += shapes.Grid().scale(2).pos(7,11)
 
 fig += shapes.Rectangle([2,6], [4,8], radius=0.1).c('b5')
 
-fig += shapes.Cone().scale(2).pos(10,6).rotateY(90, locally=True)
+fig += shapes.Cone().scale(2).pos(10,6).rotateY(90, around='itself')
 fig += shapes.Text3D("MyTest3D", c='k', justify='center', font="Quikhand")\
-    .pos(5,11).scale(0.5).rotateZ(20, locally=1)
+    .pos(5,11).scale(0.5).rotateZ(20, around='itself')
 
 fig += shapes.Latex('sin(x^2)', res=150).scale(3).pos(10,0)
 
 fig2 = Figure([-2.5, 14],[-5,14], padding=0, title='Test Embedding Figure')
 fig2.insert(fig)
 
-#show(fig2, size=(1600, 1100), zoom='tight').close()
+# show(fig2, size=(1600, 1100), zoom='tight').close()
 
 
 

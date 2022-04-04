@@ -42,8 +42,9 @@ class Figure(Assembly):
     ylim : list
         range of the y-axis as [y0, y1]
 
-    aspect : float
+    aspect : float, str
         the desired aspect ratio of the histogram. Default is 4/3.
+        Use `aspect="equal"` to force the same units in x and y.
 
     padding : float, list
         keep a padding space from the axes (as a fraction of the axis size).
@@ -69,8 +70,6 @@ class Figure(Assembly):
             padding=[0.05, 0.05, 0.05, 0.05],
             **kwargs,
         ):
-
-        assert aspect > 0
 
         self.xlim = xlim
         self.ylim = ylim
@@ -142,9 +141,13 @@ class Figure(Assembly):
             self.yscale = 0
             return
 
+        if aspect == "equal":
+            self.aspect = dx / dy  # so that yscale becomes 1
+
         self.yscale = dx / dy / self.aspect
 
-        y0lim, y1lim = (y0lim * self.yscale, y1lim * self.yscale)
+        y0lim *= self.yscale
+        y1lim *= self.yscale
 
         self.x0lim = x0lim
         self.x1lim = x1lim
@@ -157,7 +160,6 @@ class Figure(Assembly):
 
         ############## create axes
         if self.axopts:
-            # print(self.axopts)
             axesopts = self.axopts
             if self.axopts is True or self.axopts == 1:
                 axesopts = {}
@@ -184,13 +186,8 @@ class Figure(Assembly):
                 axesopts["c"] = options['ac']
 
             self.axes = addons.Axes(**axesopts)
-            # for a in self.axes.unpack():  # to make the frame move on top
-            #     # print(a.name)
-            #     if "Grid" in a.name:
-            #         a.shift(0, 0, 5*self.ztolerance)
 
         Assembly.__init__(self, [self.axes])
-        self.SetOrigin(x0lim, y0lim, 0)
         self.name = "Figure"
         return
 
@@ -599,6 +596,12 @@ class Histogram1D(Figure):
                 if texture:
                     r.texture(texture)
                     c = 'w'
+                # if texture: # causes Segmentation fault vtk9.0.3
+                #     if i>0 and rs[i-1].GetTexture(): # reuse the same texture obj
+                #         r.texture(rs[i-1].GetTexture())
+                #     else:
+                #         r.texture(texture)
+                #     c = 'w'
 
                 r.PickableOff()
                 maxheigth = max(maxheigth, p1[1])
@@ -1173,10 +1176,10 @@ class PlotXY(Figure):
     ylim : list
         set limits to the range for the y variable
 
-    aspect : float
+    aspect : float, str
         Desired aspect ratio.
-        If None, it is automatically calculated to get a reasonable aspect ratio.
-        Scaling factor is saved in ``Figure.yscale``
+        Use `aspect="equal"` to force the same units in x and y.
+        Scaling factor is saved in ``Figure.yscale``.
 
     padding : float, list
         keep a padding space from the axes (as a fraction of the axis size).
@@ -1204,10 +1207,12 @@ class PlotXY(Figure):
     Example:
         .. code-block:: python
 
-            from vedo.pyplot import plot
             import numpy as np
-            x = np.linspace(0, 6.28, num=50)
-            plot(np.sin(x), 'r').plot(np.cos(x), 'bo-').show()
+            from vedo.pyplot import plot
+            x = np.arange(0, np.pi, 0.1)
+            fig = plot(x, np.sin(2*x), 'r0-', aspect='equal')
+            fig+= plot(x, np.cos(2*x), 'blue4 o-', like=fig)
+            fig.show()
 
         .. image:: https://user-images.githubusercontent.com/32848391/74363882-c3638300-4dcb-11ea-8a78-eb492ad9711f.png
 
@@ -1257,7 +1262,7 @@ class PlotXY(Figure):
         if lw>0:
             line = True
         if marker == "" and not line and not splined:
-            line = True
+            marker = 'o'
 
         if like is not None:
             xlim = like.xlim
@@ -1784,20 +1789,26 @@ def plot(*args, **kwargs):
             kwargs["lw"] = 0
 
         symbs = ['.','o','O', '0', 'p','*','h','D','d','v','^','>','<','s', 'x', 'a']
-        for ss in symbs:
-            if ss in opts:
-                opts = opts.replace(ss, "", 1)
-                kwargs["marker"] = ss
-                break
-        allcols = list(colors.color_nicks.keys()) + list(colors.colors.keys())
+
+        allcols = list(colors.colors.keys()) + list(colors.color_nicks.keys())
         for cc in allcols:
+            if cc == "o":
+                continue
             if cc in opts:
                 opts = opts.replace(cc, "")
                 kwargs["lc"] = cc
                 kwargs["mc"] = cc
                 break
+
+        for ss in symbs:
+            if ss in opts:
+                opts = opts.replace(ss, "", 1)
+                kwargs["marker"] = ss
+                break
+
+        opts.replace(' ', '')
         if opts:
-            vedo.logger.error(f"Could not understand options {opts}")
+            vedo.logger.error(f"in plot(), could not understand option(s): {opts}")
 
     if optidx == 1 or optidx is None:
         if utils.isSequence(args[0][0]):

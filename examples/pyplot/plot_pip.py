@@ -31,7 +31,7 @@ fig2 = plot(
     )
 )
 # Scale fig to make it smaller
-fig2.scale(0.04).pos(0.25, 1.75, 0.1)
+fig2.scale(0.04).shift(0.05, 0.75, 0.1)
 
 fig1.insert(fig2)  ############# insert
 

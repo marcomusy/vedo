@@ -14,7 +14,7 @@ vig.color('r3').scale(0.7).followCamera()
 
 # measure the angle formed by 3 points
 gon = Goniometer([-0.5,1,2], [2.5,2,2], [-0.5,3,3],
-                 prefix="\alpha_c =~", lw=2, c='db', s=0.8)
+                 prefix="\alpha_c =~", lw=2, s=0.8)
 
 # show distance of 2 points
 rul = Ruler((-0.5,2,1.9), (2.5,2,2.9), prefix='L_x =', units="μm",
