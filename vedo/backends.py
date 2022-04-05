@@ -25,6 +25,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
         vedo.logger.error("Multirendering is not supported in jupyter")
         return
 
+
     ####################################################################################
     # https://github.com/InsightSoftwareConsortium/itkwidgets
     #  /blob/master/itkwidgets/widget_viewer.py
@@ -57,10 +58,11 @@ def getNotebookBackend(actors2show, zoom, viewup):
         # vbb, sizes, _, _ = addons.computeVisibleBounds()
         # kgrid = vbb[0], vbb[2], vbb[4], vbb[1], vbb[3], vbb[5]
 
-        vedo.notebook_plotter = k3d.plot(axes=['x', 'y', 'z'],
-                                             menu_visibility=settings.k3dMenuVisibility,
-                                             height=settings.k3dPlotHeight,
-                                             antialias=settings.k3dAntialias,
+        vedo.notebook_plotter = k3d.plot(
+            axes=['x', 'y', 'z'],
+            menu_visibility=settings.k3dMenuVisibility,
+            height=settings.k3dPlotHeight,
+            antialias=settings.k3dAntialias,
         )
         # vedo.notebook_plotter.grid = kgrid
         vedo.notebook_plotter.lighting = settings.k3dLighting
@@ -269,7 +271,9 @@ def getNotebookBackend(actors2show, zoom, viewup):
 
         from ipyvtklink.viewer import ViewInteractiveWidget
         plt.renderer.ResetCamera()
-        vedo.notebook_plotter = ViewInteractiveWidget(plt.window)
+        vedo.notebook_plotter = ViewInteractiveWidget(
+            plt.window, allow_wheel=True, quality=100, quick_quality=50,
+        )
 
     ####################################################################################
     elif 'ipygany' in vedo.notebookBackend:
@@ -381,7 +385,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
 
         from vedo.io import screenshot
         settings.screeshotLargeImage = True
-        nn = screenshot(asarray=True, scale=settings.screeshotScale+2)
+        nn = screenshot(asarray=True, scale=settings.screeshotScale)
         pil_img = PIL.Image.fromarray(nn)
         vedo.notebook_plotter = IPython.display.display(pil_img)
 

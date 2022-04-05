@@ -3091,7 +3091,7 @@ class Brace(Mesh):
     style : str
         style of the bracket, eg. `{}, [], (), <>`.
 
-    pad1 : float
+    padding1 : float
         padding space in percent form the input points.
 
     font : str
@@ -3109,7 +3109,7 @@ class Brace(Mesh):
     angle : float
         rotation angle of text. Use `None` to keep it horizontal.
 
-    pad2 : float
+    padding2 : float
         padding space in percent form brace to text comment.
 
     s : float
@@ -3123,12 +3123,12 @@ class Brace(Mesh):
             q1,
             q2,
             style='}',
-            pad1=0,
+            padding1=0,
             font='Theemim',
             comment='',
             justify=None,
             angle=0,
-            pad2=0.2,
+            padding2=0.2,
             s=1,
             italic=0,
             c='k1',
@@ -3184,7 +3184,7 @@ class Brace(Mesh):
             cx0,cx1, cy0,cy1, _,_ = cmt.bounds()
             cmt.rotateZ(90 + angle)
             cmt.scale(1/(cx1-cx0) * s * len(comment)/5)
-            cmt.shift(x1*(1 + pad2), 0, 0)
+            cmt.shift(x1*(1 + padding2), 0, 0)
             poly = merge(br, cmt).polydata()
 
         else:
@@ -3192,7 +3192,7 @@ class Brace(Mesh):
 
         tr = vtk.vtkTransform()
         tr.RotateZ(angler)
-        tr.Translate(pad1*d, 0, 0)
+        tr.Translate(padding1*d, 0, 0)
         pscale = 1
         tr.Scale(pscale/(y1-y0)*d, pscale/(y1-y0)*d, 1)
         tf = vtk.vtkTransformPolyDataFilter()
@@ -4216,7 +4216,7 @@ def VedoLogo(distance=0, c=None, bc='t', version=False, frame=True):
                              xlabel='European Molecular Biology Laboratory',
                              ylabel=vedo.__version__,
                              font=font,
-                             xpad=0.09, ypad=0.04,
+                             xpadding=0.09, ypadding=0.04,
                             )
     fakept = vedo.Point((0,500, distance*1725), alpha=0, c=c, r=1).pickable(0)
     return vedo.Assembly([vlogo, vr, fakept, rul]).scale(1/1725)

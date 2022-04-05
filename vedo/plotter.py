@@ -241,8 +241,6 @@ def show(*actors,
         if set to `True`, a call to show will instantiate
         a new Plotter object (a new window) instead of reusing the first created.
     """
-    backend = _embedWindow(backend)
-
     if len(actors) == 0:
         actors = None
     elif len(actors) == 1:
@@ -1780,7 +1778,7 @@ class Plotter:
 
         return self
 
-    def addRendererFrame(self, c=None, alpha=None, lw=None, pad=None):
+    def addRendererFrame(self, c=None, alpha=None, lw=None, padding=None):
         """
         Add a frame to the renderer subwindow
 
@@ -1795,10 +1793,10 @@ class Plotter:
         lw : int
             line width in pixels.
 
-        pad : float
+        padding : float
             padding space in pixels.
         """
-        self.frames = addons.addRendererFrame(self, c, alpha,lw, pad)
+        self.frames = addons.addRendererFrame(self, c, alpha,lw, padding)
         return self
 
 
@@ -2592,21 +2590,19 @@ class Plotter:
         if self.wxWidget:
             return self
 
-        if at is None:
-            at = self.renderers.index(self.renderer)
+        if len(self.renderers): # in case of notebooks
 
-        else:
+            if at is None:
+                at = self.renderers.index(self.renderer)
 
-            if at >= len(self.renderers):
-                vedo.logger.error(f"trying to show(at={at}) but only {len(self.renderers)} renderers exist")
-                return self
+            else:
 
-            if vedo.notebookBackend and at>0:
-                vedo.logger.error(f"in show(at={at}), multiple renderings not supported in notebooks.")
-                return self
+                if at >= len(self.renderers):
+                    t = f"trying to show(at={at}) but only {len(self.renderers)} renderers exist"
+                    vedo.logger.error(t)
+                    return self
 
-            self.renderer = self.renderers[at]
-
+                self.renderer = self.renderers[at]
 
         if title is not None:
             self.title = title
@@ -2667,12 +2663,12 @@ class Plotter:
             actors2show = self._scan_input(self.actors)
             self.actors = list(actors2show)
 
-
         # Backend ###############################################################
         if vedo.notebookBackend:
-            if vedo.notebookBackend not in ['panel', '2d', 'ipyvtk']:
+            if vedo.notebookBackend in ['k3d', 'ipygany', 'itkwidgets']:
                 return backends.getNotebookBackend(actors2show, zoom, viewup)
         #########################################################################
+
         # check if the widow needs to be closed (ESC button was hit)
         if self.escaped:
             if not self.window:

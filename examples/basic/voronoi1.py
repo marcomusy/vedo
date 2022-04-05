@@ -5,7 +5,7 @@ import numpy as np
 points = np.random.random((500, 2))
 
 pts = Points(points).subsample(0.02) # impose a min distance of 2%
-vor = voronoi(pts, pad=0.01)
+vor = voronoi(pts, padding=0.01)
 vor.cmap('Set3', "VoronoiID", on='cells').wireframe(False)
 
 lab = vor.labels("VoronoiID", cells=True, scale=0.01)

@@ -56,7 +56,7 @@ class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
     height : float
         height of the box as fraction of the window height
 
-    pad : int
+    padding : int
         padding space in units of pixels
 
     bg : color
@@ -78,7 +78,7 @@ class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
                  font="",
                  width=0.18,
                  height=None,
-                 pad=2,
+                 padding=2,
                  bg="k8",
                  alpha=0.25,
                  pos="top-right",
@@ -112,7 +112,7 @@ class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
 
         self.ScalarVisibilityOff()
         self.PickableOff()
-        self.SetPadding(pad)
+        self.SetPadding(padding)
 
         self.property = self.GetEntryTextProperty()
         self.property.ShadowOff()
@@ -1634,7 +1634,9 @@ def _addCutterToolVolumeWithBox(vol, invert):
 
 
 #####################################################################
-def addRendererFrame(plotter_instance, c=None, alpha=None, lw=None, pad=None):
+def addRendererFrame(
+        plotter_instance, c=None, alpha=None, lw=None, padding=None,
+    ):
     """
     Add a line around the renderer subwindow.
 
@@ -1646,7 +1648,7 @@ def addRendererFrame(plotter_instance, c=None, alpha=None, lw=None, pad=None):
         opacity.
     lw : int
         line width in pixels.
-    pad : int
+    padding : int
         padding in pixel units.
     """
 
@@ -1655,8 +1657,8 @@ def addRendererFrame(plotter_instance, c=None, alpha=None, lw=None, pad=None):
     if lw==0:
         return None
 
-    if pad is None:
-        pad = settings.rendererFramePadding
+    if padding is None:
+        padding = settings.rendererFramePadding
 
     if c is None:  # automatic black or white
         c = (0.9, 0.9, 0.9)
@@ -1668,8 +1670,14 @@ def addRendererFrame(plotter_instance, c=None, alpha=None, lw=None, pad=None):
         alpha = settings.rendererFrameAlpha
 
     ppoints = vtk.vtkPoints()  # Generate the polyline
-    xy = 1-pad
-    psqr = [[pad,pad],[pad,xy],[xy,xy],[xy,pad],[pad,pad]]
+    xy = 1 - padding
+    psqr = [
+        [padding, padding],
+        [padding, xy],
+        [xy, xy],
+        [xy, padding],
+        [padding, padding],
+    ]
     for i, pt in enumerate(psqr):
         ppoints.InsertPoint(i, pt[0], pt[1], 0)
     lines = vtk.vtkCellArray()
@@ -1899,9 +1907,9 @@ def RulerAxes(
         xlabel="",
         ylabel="",
         zlabel="",
-        xpad=0.05,
-        ypad=0.04,
-        zpad=0,
+        xpadding=0.05,
+        ypadding=0.04,
+        zpadding=0,
         font="Normografo",
         s=None,
         italic=0,
@@ -1958,7 +1966,7 @@ def RulerAxes(
         x0,x1,y0,y1,z0,z1 = inputobj
     else:
         x0,x1,y0,y1,z0,z1 = inputobj.GetBounds()
-    dx,dy,dz = (y1-y0)*xpad, (x1-x0)*ypad, (y1-y0)*zpad
+    dx,dy,dz = (y1-y0)*xpadding, (x1-x0)*ypadding, (y1-y0)*zpadding
     d = np.sqrt((y1-y0)**2+(x1-x0)**2+(z1-z0)**2)
 
     if not d:

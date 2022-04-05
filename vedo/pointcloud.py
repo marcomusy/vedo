@@ -175,7 +175,7 @@ def delaunay2D(plist, mode='scipy', boundaries=(), tol=None, alpha=0, offset=0, 
     delny.Update()
     return vedo.mesh.Mesh(delny.GetOutput()).clean().lighting('off')
 
-def voronoi(pts, pad=0, fit=False, method='vtk'):
+def voronoi(pts, padding=0, fit=False, method='vtk'):
     """
     Generate the 2D Voronoi convex tiling of the input points (z is ignored).
     The points are assumed to lie in a plane. The output is a Mesh. Each output cell is a convex polygon.
@@ -209,7 +209,7 @@ def voronoi(pts, pad=0, fit=False, method='vtk'):
     pts : list
         list of input points.
 
-    pad : float
+    padding : float
         padding distance. The default is 0.
 
     fit : bool
@@ -249,7 +249,7 @@ def voronoi(pts, pad=0, fit=False, method='vtk'):
             vpts.SetData(utils.numpy2vtk(pts, dtype=float))
             pd.SetPoints(vpts)
             vor.SetInputData(pd)
-        vor.SetPadding(pad)
+        vor.SetPadding(padding)
         vor.SetGenerateScalarsToPointIds()
         if fit:
             vor.SetProjectionPlaneModeToBestFittingPlane()
@@ -1916,7 +1916,7 @@ class Points(vtk.vtkFollower, BaseActor):
             txt=None,
             point=None,
             size=(0.30, 0.15),
-            pad=5,
+            padding=5,
             font="VictorMono",
             justify="center-right",
             vspacing=1,
@@ -1943,7 +1943,7 @@ class Points(vtk.vtkFollower, BaseActor):
         size : list
             (width, height) of the caption box. The default is (0.30, 0.15).
 
-        pad : float
+        padding : float
             padding space of the caption box in pixels. The default is 5.
 
         font : str
@@ -2006,7 +2006,7 @@ class Points(vtk.vtkFollower, BaseActor):
         sph.Update()
         capt.SetLeaderGlyphData(sph.GetOutput())
         capt.SetMaximumLeaderGlyphSize(5)
-        capt.SetPadding(pad)
+        capt.SetPadding(padding)
         capt.SetCaption(txt)
         capt.SetWidth(size[0])
         capt.SetHeight(size[1])
@@ -3968,7 +3968,7 @@ class Points(vtk.vtkFollower, BaseActor):
             sampleSize=None,
             holeFilling=True,
             bounds=(),
-            pad=0.1,
+            padding=0.05,
         ):
         """
         Surface reconstruction from a scattered cloud of points.
@@ -3997,7 +3997,7 @@ class Points(vtk.vtkFollower, BaseActor):
             region in space in which to perform the sampling
             in format (xmin,xmax, ymin,ymax, zim, zmax)
 
-        pad : float
+        padding : float
             increase by this fraction the bounding box
 
         .. hint:: examples/advanced/recosurface.py
@@ -4014,9 +4014,11 @@ class Points(vtk.vtkFollower, BaseActor):
             sdf.SetBounds(bounds)
         else:
             x0, x1, y0, y1, z0, z1 = polyData.GetBounds()
-            sdf.SetBounds(x0-(x1-x0)*pad, x1+(x1-x0)*pad,
-                          y0-(y1-y0)*pad, y1+(y1-y0)*pad,
-                          z0-(z1-z0)*pad, z1+(z1-z0)*pad)
+            sdf.SetBounds(
+                x0-(x1-x0)*padding, x1+(x1-x0)*padding,
+                y0-(y1-y0)*padding, y1+(y1-y0)*padding,
+                z0-(z1-z0)*padding, z1+(z1-z0)*padding
+            )
 
         if polyData.GetPointData().GetNormals():
             sdf.SetInputData(polyData)
@@ -4031,9 +4033,7 @@ class Points(vtk.vtkFollower, BaseActor):
             #print("Recalculating normals with sample size =", sampleSize)
 
         if radius is None:
-            b = polyData.GetBounds()
-            diagsize = np.sqrt((b[1]-b[0])**2 + (b[3]-b[2])**2 + (b[5]-b[4])**2)
-            radius = diagsize / (sum(dims)/3) * 5
+            radius = self.diagonalSize() / (sum(dims)/3) * 5
             #print("Calculating mesh from points with radius =", radius)
 
         sdf.SetRadius(radius)
@@ -4047,7 +4047,8 @@ class Points(vtk.vtkFollower, BaseActor):
         surface.ComputeGradientsOff()
         surface.SetInputConnection(sdf.GetOutputPort())
         surface.Update()
-        return vedo.mesh.Mesh(surface.GetOutput())
+        m = vedo.mesh.Mesh(surface.GetOutput(), c=self.color())
+        return m
 
 
     def to_trimesh(self):

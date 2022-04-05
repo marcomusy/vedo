@@ -613,7 +613,7 @@ class Base3DProp(object):
         self.VisibilityOff()
         return self
 
-    def box(self, scale=1, pad=0, fill=False):
+    def box(self, scale=1, padding=0, fill=False):
         """
         Return the bounding box as a new ``Mesh``.
 
@@ -622,21 +622,21 @@ class Base3DProp(object):
         scale : float
             box size can be scaled by a factor
 
-        pad : float, list
-            a constant pad can be added (can be a list [padx,pady,padz])
+        padding : float, list
+            a constant padding can be added (can be a list [padx,pady,padz])
 
         .. hint:: examples/pyplot/latex.py
         """
         b = self.GetBounds()
-        if not utils.isSequence(pad):
-            pad=[pad,pad,pad]
+        if not utils.isSequence(padding):
+            padding = [padding, padding, padding]
         length, width, height = b[1]-b[0], b[3]-b[2], b[5]-b[4]
         tol = (length+width+height)/30000 # useful for boxing 2D text
         pos = [(b[0]+b[1])/2, (b[3]+b[2])/2, (b[5]+b[4])/2 -tol]
         bx = vedo.shapes.Box(pos,
-                             length*scale+pad[0],
-                             width*scale+pad[1],
-                             height*scale+pad[2],
+                             length*scale+padding[0],
+                             width*scale+padding[1],
+                             height*scale+padding[2],
                              c='gray')
         if hasattr(self, 'GetProperty'): # could be Assembly
             if isinstance(self.GetProperty(), vtk.vtkProperty): # could be volume
