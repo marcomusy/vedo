@@ -52,7 +52,7 @@ fig += shapes.CSpline([[4,0],[5,2],[6,0],[7,0.5]]).c('r6')
 fig += shapes.KSpline([[4,0],[5,2],[6,0],[7,0.5]]).c('r8')
 fig += shapes.Bezier([[4,-1],[5,1],[6,-1],[7,-1.5]])
 
-fig += shapes.Brace([2,1], [4,3],comment='Brace', pad1=0, italic=3).z(0.1) ## BUGGED
+fig += shapes.Brace([2,1], [4,3],comment='Brace', padding1=0, italic=3).z(0.1) ## BUGGED
 
 fig+= shapes.Ribbon(shapes.Spline([[4,0],[5,2],[6,0],[7,0.5]]),
                     shapes.Bezier([[4,-1],[5,1],[6,-1],[7,-1.5]]))

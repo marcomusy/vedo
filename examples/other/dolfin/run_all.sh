@@ -47,13 +47,11 @@ python3 meshEditor.py
 echo Running nodal_u.py
 python3 nodal_u.py
 
-echo Running simple1Dplot.py
-python3 simple1Dplot.py
+echo Running read_image.py
+python3 read_image.py
 
 
 ######################################
-echo Running ex01_show-mesh.py
-python3 ex01_show-mesh.py
 
 echo Running ex03_poisson.py
 python3 ex03_poisson.py
@@ -80,12 +78,6 @@ python3 ft02_poisson_membrane.py
 
 echo Running ft04_heat_gaussian.py
 python3 ft04_heat_gaussian.py
-
-echo Running ft07_navier_stokes_channel.py
-python3 ft07_navier_stokes_channel.py
-
-echo Running ft08_navier_stokes_cylinder.py
-python3 ft08_navier_stokes_cylinder.py
 
 echo Running navier-stokes_lshape.py
 python3 navier-stokes_lshape.py

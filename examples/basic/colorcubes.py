@@ -16,7 +16,7 @@ for sc in sorted_colors1:
     tname = Text2D(cname, s=0.9)
     cbs.append([tname, cb])
 print("click on any cube and press i or I")
-plt1= show(cbs, N=len(cbs), azimuth=.2, size='full',
+plt1= show(cbs, N=len(cbs), azimuth=.2, size=(2100,1300),
            title="matplotlib colors", interactive=0)
 plt1.render()  # because of immediateRendering=False
 

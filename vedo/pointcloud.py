@@ -547,6 +547,9 @@ def pcaEllipsoid(points, pvalue=0.673):
     normalized directions are stored in ``ellips.axis1``, ``ellips.axis12``
     and ``ellips.axis3``.
 
+    .. warning:: the meaning of ``ellips.axis1``, has changed wrt `vedo==2022.1.0`
+        in that it's now the direction wrt the origin (e.i. the center is subtracted)
+
     .. hint:: examples/basic/pca.py, cell_colony.py
     """
     from scipy.stats import f

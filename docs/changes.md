@@ -100,32 +100,6 @@
 `moving_least_squares3D.py`
 
 
-### Broken
-
-shadow2.py
-multi_viewer1.py
-
-
-histo_hexagonal.py
-latex.py
-
-pygmsh_cut.py
-
-
-histogram(vol)
-
-
-
-mesh_modify.py on MACOSX
-remove depthpeeling on mac and put in linux
-
-strane unita di misura in welsh_ss
-
-reinstall spyder
-fix webpage
-test examples
-release
-
 
 
 

@@ -180,12 +180,10 @@ def local_project(v, V, u=None):
 
 ################################################################### time loop
 from vedo.dolfin import *
-from vedo import Box, Latex
+from vedo import Box
 
 # add a frame box
 box = Box(length=1, width=1, height=1).pos(0.5,0,0).wireframe()
-
-tex = Latex(r'\nabla \cdot \sigma+\rho b=\rho \ddot{u}', s=.2).pos(.4,.4,-.5)
 
 pb = ProgressBar(0, len(np.diff(time)), c='blue')
 
@@ -221,7 +219,7 @@ for (i, dt) in enumerate(np.diff(time)):
     E_tot = E_elas+E_kin+E_damp #-E_ext
     energies[i+1, :] = np.array([E_elas, E_kin, E_damp, E_tot])
 
-    plot(u, box, tex,
+    plot(u, box,
     	 mode='displace',
          style='matplotlib',
          axes=0,  # no axes

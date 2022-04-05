@@ -1,4 +1,4 @@
-import pymeshlab
+import pymeshlab # pip install pymeshlab==2021.10
 import vedo
 
 filepath = vedo.download(vedo.dataurl+'bunny.obj')
