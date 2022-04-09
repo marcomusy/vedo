@@ -1543,6 +1543,9 @@ class Mesh(Points):
         """
         Return the point cloud that is inside mesh surface.
 
+        If returnIds is True a list of IDs is returned and in addition vertices
+        are marked by a pointdata array named "SelectedPoints".
+
         .. hint:: pca.py
             .. image:: https://vedo.embl.es/images/basic/pca.png
         """
@@ -1564,7 +1567,8 @@ class Mesh(Points):
         sep.SetInsideOut(invert)
         sep.Update()
 
-        mask = vtk2numpy(sep.GetOutput().GetPointData().GetArray(0)).astype(np.bool)
+        varr = sep.GetOutput().GetPointData().GetArray("SelectedPoints")
+        mask = vtk2numpy(varr).astype(np.bool)
         ids = np.array(range(len(pts)))[mask]
 
         if returnIds:

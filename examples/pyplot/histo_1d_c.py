@@ -7,7 +7,7 @@ settings.defaultFont = 11
 data = np.random.rand(10000)
 weights = np.ones_like(data) * np.sin(12*data)**2 + 1/2
 
-fig1 = histogram(
+fig = histogram(
     data,
     weights=weights,
     bins=50,
@@ -17,11 +17,15 @@ fig1 = histogram(
     gap=0,                # no gap between bins
     ac='k7',              # axes color
     c='yellow9',
+    label='my histogram',
 )
 
 x = np.linspace(0,1, 200)
 y = 200*np.sin(12*x)**2 + 100
-fig1 += Line(x, y, c='red5', lw=3)
+fig += Line(x, y, c='red5', lw=3)
 
-fig1.show(size=(1000,700), bg='black', zoom='tight').close()
+fig.addLabel('my function', marker='-', mc='red5')
+fig.addLegend(pos=[0.7,1.3], alpha=0.2)
+
+fig.show(size=(1000,700), bg='black', zoom='tight').close()
 

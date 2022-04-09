@@ -520,10 +520,11 @@ def Light(
     .. hint:: examples/basic/lights.py
         .. image:: https://vedo.embl.es/images/basic/lights.png
     """
-    if hasattr(pos, "color") and c is None:
-        c = pos.color()
     if c is None:
-        c = 'white'
+        try:
+            c = pos.color()
+        except:
+            c = 'white'
 
     if isinstance(pos, vedo.Base3DProp):
         pos = pos.pos()

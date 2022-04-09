@@ -18,6 +18,10 @@ Advanced plotting utility functions
 
 __all__ = [
     "Figure",
+    #"Histogram1D", # uncomment to generate docs
+    #"Histogram2D",
+    #"PlotXY",
+    #"PlotBars",
     "plot",
     "histogram",
     "fit",
@@ -29,6 +33,15 @@ __all__ = [
     "DirectedGraph",
     "show",
 ]
+
+
+##########################################################################
+class LabelData(object):
+    def __init__(self):
+        self.text = 'dataset'
+        self.tcolor = 'black'
+        self.marker = 's'
+        self.mcolor = 'black'
 
 
 ##########################################################################
@@ -98,8 +111,13 @@ class Figure(Assembly):
         self.title  = options.pop("title", "")
         self.xtitle = options.pop("xtitle", " ")
         self.ytitle = options.pop("ytitle", " ")
-        usegrid = options.pop("grid", False)
         numberOfDivisions = 6
+
+        self.legend = None
+        self.labels = []
+        self.label = options.pop("label", None)
+        if self.label:
+            self.labels = [self.label]
 
         self.axopts = options.pop("axes", {})
         if isinstance(self.axopts, (bool,int,float)):
@@ -112,7 +130,7 @@ class Figure(Assembly):
             self.axopts['ytitle'] = self.ytitle
 
             if 'xyGrid' not in self.axopts:  ## modify the default
-                self.axopts['xyGrid'] = usegrid
+                self.axopts['xyGrid'] = options.pop("grid", False)
 
             if 'xyGridTransparent' not in self.axopts:  ## modify the default
                 self.axopts['xyGridTransparent'] = True
@@ -125,6 +143,10 @@ class Figure(Assembly):
                 self.axopts['yTitlePosition'] = 0.5
                 self.axopts['yTitleJustify'] = "bottom-center"
                 self.axopts['yTitleOffset'] = 0.05
+
+            if self.label:
+                if 'c' in self.axopts:
+                    self.label.tcolor = self.axopts['c']
 
         x0, x1 = self.xlim
         y0, y1 = self.ylim
@@ -203,6 +225,9 @@ class Figure(Assembly):
             return self.insert(*obj)
 
     def _check_unpack_and_insert(self, fig):
+
+        if fig.label:
+            self.labels.append(fig.label)
 
         if abs(self.yscale - fig.yscale) > 0.0001:
             colors.printc("ERROR: adding incompatible Figure. Y-scales are different:",
@@ -342,6 +367,226 @@ class Figure(Assembly):
 
         return self
 
+
+    def addLabel(self, text, c=None, marker="", mc='black'):
+        """
+        Manually add en entry label to the legend.
+
+        Parameters
+        ----------
+        text : str
+            text string for the label.
+
+        c : str
+            color of the text
+
+        marker : str, Mesh
+            a marker char or a Mesh object to be used as marker
+
+        mc : str, optional
+            color for the marker
+        """
+        newlabel = LabelData()
+        newlabel.text = text.replace("\n"," ")
+        newlabel.tcolor = c
+        newlabel.marker = marker
+        newlabel.mcolor = mc
+        self.labels.append(newlabel)
+        return self
+
+
+    def addLegend(self,
+            pos="top-right",
+            relative=True,
+            font=None,
+            s=1,
+            c=None,
+            vspace=1.5,
+            padding=0.1,
+            radius=0,
+            alpha=1,
+            bc='k7',
+            lw=1,
+            lc='k4',
+            z=0,
+        ):
+        """
+        Add existing labels to form a legend box.
+        Labels have been previously filled with eg: `plot(..., label="text")`
+
+        Parameters
+        ----------
+        pos : str, list
+            A string or 2D coordinates. The default is "top-right".
+
+        relative : bool
+            control whether `pos` is absolute or relative, e.i. normalized
+            to the x and y ranges so that x and y in `pos=[x,y]` should be
+            both in the range [0,1].
+            This flag is ignored if a string despcriptor is passed.
+            Default is True.
+
+        font : str, int
+            font name or number
+
+        s : float
+            global size of the legend
+
+        c : str
+            color of the text
+
+        vspace : float
+            vertical spacing of lines
+
+        padding : float
+            padding of the box as a fraction of the text size
+
+        radius : float
+            border radius of the box
+
+        alpha : float
+            opacity of the box. Values below 1 may cause poor rendering
+            bacause of antialiasing.
+            Use alpha = 0 to remove the box.
+
+        bc : str
+            box color
+
+        lw : int
+            border line width of the box in pixel units
+
+        lc : int
+            border line color of the box
+
+        z : float
+            set the zorder as z position (useful to avoid overlap)
+        """
+        sx = self.x1lim - self.x0lim
+        s = s * sx / 55  # so that input can be about 1
+
+        ds = 0
+        texts = []
+        mks = []
+        for i, t in enumerate(self.labels):
+            label = self.labels[i]
+            t = label.text
+
+            if label.tcolor is not None:
+                c = label.tcolor
+
+            tx = vedo.shapes.Text3D(t, s=s, c=c, justify="center-left", font=font)
+            y0, y1 = tx.ybounds()
+            ds = max( y1 - y0, ds)
+            texts.append(tx)
+
+            mk = label.marker
+            if isinstance(mk, vedo.Points):
+                mk = mk.clone(deep=False).lighting('off')
+                cm = mk.centerOfMass()
+                ty0, ty1 = tx.ybounds()
+                oby0, oby1 = mk.ybounds()
+                mk.shift(-cm)
+                mk.origin(cm)
+                mk.scale((ty1-ty0)/(oby1-oby0))
+                mk.scale([1.1,1.1,0.01])
+            elif mk == '-':
+                mk = vedo.shapes.Marker(mk, s=s*2)
+                mk.color(label.mcolor)
+            else:
+                mk = vedo.shapes.Marker(mk, s=s)
+                mk.color(label.mcolor)
+            mks.append(mk)
+
+        for i, tx in enumerate(texts):
+            tx.shift(0,-(i+0)*ds* vspace)
+
+        for i, mk in enumerate(mks):
+            mk.shift(-ds*1.75,-(i+0)*ds* vspace,0)
+
+        acts = texts + mks
+
+        aleg = Assembly(acts)#.show(axes=1).close()
+        x0,x1, y0,y1, _,_ = aleg.GetBounds()
+
+        if alpha:
+            dx = x1-x0
+            dy = y1-y0
+
+            if not utils.isSequence(padding):
+                padding = [padding] * 4
+            padding = min(padding)
+            padding = min(padding*dx, padding*dy)
+            if len(self.labels) == 1:
+                padding *= 4
+            x0 -= padding
+            x1 += padding
+            y0 -= padding
+            y1 += padding
+
+            box = shapes.Rectangle(
+                [x0,y0], [x1,y1], radius=radius, c=bc, alpha=alpha,
+            )
+            box.shift(0, 0, -dy/100).pickable(False)
+            if lc:
+                box.lc(lc).lw(lw)
+            aleg.AddPart(box)
+
+        xlim = self.xlim
+        ylim = self.ylim
+        if isinstance(pos, str):
+            px, py = 0, 0
+            rx, ry = (xlim[1]+xlim[0])/2, (ylim[1]+ylim[0])/2
+            shx, shy = 0, 0
+            if "top" in pos:
+                if "cent" in pos:
+                    px, py = rx, ylim[1]
+                    shx, shy = (x0+x1)/2, y1
+                elif "left" in pos:
+                    px, py = xlim[0], ylim[1]
+                    shx, shy = x0, y1
+                else: # "right"
+                    px, py = xlim[1], ylim[1]
+                    shx, shy = x1, y1
+            elif "bot" in pos:
+                if "left" in pos:
+                    px, py = xlim[0], ylim[0]
+                    shx, shy = x0, y0
+                elif "right" in pos:
+                    px, py = xlim[1], ylim[0]
+                    shx, shy =  x1, y0
+                else: # "cent"
+                    px, py = rx, ylim[0]
+                    shx, shy =  (x0+x1)/2,  y0
+            elif "cent" in pos:
+                if "left" in pos:
+                    px, py = xlim[0], ry
+                    shx, shy = x0, (y0+y1)/2
+                elif "right" in pos:
+                    px, py = xlim[1], ry
+                    shx, shy = x1, (y0+y1)/2
+            else:
+                vedo.logger.error(f"in addLegend(), cannot understand {pos}")
+                raise RuntimeError
+
+        else:
+
+            if relative:
+                rx, ry = pos[0], pos[1]
+                px = (xlim[1] - xlim[0]) * rx + xlim[0]
+                py = (ylim[1] - ylim[0]) * ry + ylim[0]
+                z *= xlim[1] - xlim[0]
+            else:
+                px, py = pos[0], pos[1]
+            shx, shy = x0, y1
+
+        aleg.pos(px - shx, py * self.yscale - shy, self.z() + sx/50 + z)
+
+        self.insert(aleg, rescale=False, cut=False)
+        self.legend = aleg
+        aleg.name = "Legend"
+        return self
+
+
 #########################################################################################
 class Histogram1D(Figure):
     """
@@ -430,7 +675,7 @@ class Histogram1D(Figure):
             xlim=None,
             ylim=(0, None),
             aspect=4/3,
-            padding=[0.025, 0.025, 0, 0.05],
+            padding=[0., 0., 0., 0.05],
 
             title="",
             xtitle=" ",
@@ -438,6 +683,7 @@ class Histogram1D(Figure):
             ac="k",
             grid=False,
             ztolerance=None,
+            label="",
             **fig_kwargs,
         ):
 
@@ -547,6 +793,22 @@ class Histogram1D(Figure):
             axesopts["hTitleSize"] = 0.016
             axesopts["hTitleOffset"] = [-0.49, 0.01, 0]
 
+        if mc is None:
+            mc = lc
+        if ma is None:
+            ma = alpha
+
+        if label:
+            nlab = LabelData()
+            nlab.text = label
+            nlab.tcolor = ac
+            nlab.marker = marker
+            nlab.mcolor = mc
+            if not marker:
+                nlab.marker = 's'
+                nlab.mcolor = c
+            fig_kwargs['label'] = nlab
+
         ############################################### Figure init
         Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
         if not self.yscale:
@@ -639,11 +901,6 @@ class Histogram1D(Figure):
                 rs.append(el)
 
         if marker:  #####################
-
-            if mc is None:
-                mc = lc
-            if ma is None:
-                ma = alpha
 
             # remove empty bins (we dont want a marker there)
             bin_centers = np.array(bin_centers)
@@ -1179,7 +1436,7 @@ class PlotXY(Figure):
     aspect : float, str
         Desired aspect ratio.
         Use `aspect="equal"` to force the same units in x and y.
-        Scaling factor is saved in ``Figure.yscale``.
+        Scaling factor is saved in Figure.yscale.
 
     padding : float, list
         keep a padding space from the axes (as a fraction of the axis size).
@@ -1255,6 +1512,7 @@ class PlotXY(Figure):
             ac="k",
             grid=True,
             ztolerance=None,
+            label="",
             **fig_kwargs,
         ):
 
@@ -1317,10 +1575,27 @@ class PlotXY(Figure):
         self.mean = data.mean()
         self.std = data.std()
 
+        ######### the PlotXY marker
+        if mc is None:
+            mc = lc
+        if ma is None:
+            ma = la
+
+        if label:
+            nlab = LabelData()
+            nlab.text = label
+            nlab.tcolor = ac
+            nlab.marker = marker
+            if line and marker == "":
+                nlab.marker = '-'
+            nlab.mcolor = mc
+            fig_kwargs['label'] = nlab
+
         ############################################### Figure init
         Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
         if not self.yscale:
             return None
+
         acts = []
 
         ######### the PlotXY Line or Spline
@@ -1333,12 +1608,6 @@ class PlotXY(Figure):
         elif line:
             l = shapes.Line(data, c=lc, alpha=la).lw(lw)
             acts.append(l)
-
-        ######### the PlotXY marker
-        if mc is None:
-            mc = lc
-        if ma is None:
-            ma = la
 
         if marker:
 
@@ -1360,6 +1629,7 @@ class PlotXY(Figure):
                     ms = (xlim[1] - xlim[0]) / 100.0
 
                 if utils.isSequence(mc):
+                    fig_kwargs['marker_color'] = None # for labels
                     mk = shapes.Marker(marker, s=ms)
                     mk.scale([1, 1/self.yscale, 1])
                     msv = np.zeros_like(pts)
@@ -1509,7 +1779,7 @@ def plot(*args, **kwargs):
     aspect : float
         Desired aspect ratio.
         If None, it is automatically calculated to get a reasonable aspect ratio.
-        Scaling factor is saved in ``Figure.yscale``
+        Scaling factor is saved in Figure.yscale
 
     padding : float, list
         keep a padding space from the axes (as a fraction of the axis size).
@@ -2729,7 +2999,6 @@ def _histogramHexBin(
     src.Update()
     pointsPolydata = src.GetOutput()
 
-    # values = list(zip(xvalues, yvalues))
     values = np.stack((xvalues, yvalues), axis=1)
     zs = [[0.0]] * len(values)
     values = np.append(values, zs, axis=1)

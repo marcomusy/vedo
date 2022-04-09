@@ -75,7 +75,9 @@ fig += shapes.Latex('sin(x^2)', res=150).scale(3).pos(10,0)
 fig2 = Figure([-2.5, 14],[-5,14], padding=0, title='Test Embedding Figure')
 fig2.insert(fig)
 
-# show(fig2, size=(1600, 1100), zoom='tight').close()
+import sys
+if len(sys.argv)>1:
+    show(fig2, size=(1600, 1100), zoom='tight').close()
 
 
 

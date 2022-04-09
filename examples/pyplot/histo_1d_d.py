@@ -27,6 +27,7 @@ fig2 = histogram(
     outline=True,
     c='purple9',
     axes=dict(xyGrid=True, xyPlaneColor='grey2', xyAlpha=1, gridLineWidth=0),
+    label='finer binning',
 )
 # let's add an asterix marker where the mean is
 fig2 += Marker('a', [fig2.mean,0.2,0.1], s=0.1).c('orange5')
@@ -35,6 +36,7 @@ fig2 += Marker('a', [fig2.mean,0.2,0.1], s=0.1).c('orange5')
 fig2.shift(0, 25, 0.1)
 
 ################## Insert fig2 into fig1
+fig2.addLegend()
 fig1.insert(fig2)
 
 show(fig1, __doc__, zoom='tight', size=(1200,900)).close()

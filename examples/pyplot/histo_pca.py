@@ -2,15 +2,14 @@
 import numpy as np
 from vedo import Points, pcaEllipsoid, Arrow2D, Goniometer
 from vedo.pyplot import Figure, histogram
-# np.random.seed(2)
+
 data = np.random.randn(1000, 3)
 
 pts = Points(data, r=6, c='#1f77b4')
 pts.scale([2,1,0.01]).rotateZ(45).shift(5,1)  # rotate and shift!
 
 # Recover the rotation pretending we only know the points
-# Fit an ellipse to the points
-# elli = pcaEllipsoid(pts).lighting('off')
+# Fit a 1-sigma ellipse to the points
 elli = pcaEllipsoid(pts)
 ec, e1, e2 = elli.center, elli.axis1, elli.axis2
 arrow1 = Arrow2D(ec, ec - 3*e1)

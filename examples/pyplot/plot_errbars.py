@@ -1,13 +1,11 @@
 """Superpose plots of different styles"""
 from vedo.pyplot import plot
-from vedo import settings
-import numpy as np
+from vedo import np, settings
 
-settings.defaultFont= 'Theemim'
+settings.defaultFont = 'Theemim'
 
 x = np.linspace(0, 10, num=21)
 y = 3 * np.sin(x)
-errs = np.ones_like(x) / 2
 
 ################# first plot
 fig = plot(
@@ -18,22 +16,26 @@ fig = plot(
     ytitle="y(x) = \pmK_i \dot\sqrtsin^2 t",
     aspect=16/9,     # aspect ratio x/y of plot
     xlim=(-1, 14),   # specify x range
-    axes=dict(textScale=1.2)
+    axes=dict(textScale=1.2),
+    label="3 \dot sin(x)",
 )
 
 ################# plot on top of fig
 fig += plot(
-    x+3, y,
+    x + np.pi, y,
     "sb--",
     like=fig,        # format like fig
-    xerrors=errs,    # set error bars on x
-    yerrors=errs,    # set error bars on y
-    splined=True,    # continous line through points
-    lw=3,
+    splined=True,    # continous spline through points
+    lw=3,            # line width
+    label="3 \dot sin(x - \pi)",
 )
 
 ################## plot again on top of fig
-fig += plot(x, y/5, "g", like=fig)
+fig += plot(x, y/5, "g", like=fig, label="3/5 \dot sin(x)")
 
-##################
-fig.show(size=(800,500), zoom='tight').close()
+################## plot again on top of fig
+fig += plot(x, y/5-1, "purple5 -", like=fig, label="3/5 \dot sin(x) - 1")
+
+################## Show! ##################
+fig.addLegend(pos=[0.9,1], radius=0.2)
+fig.show(size=(1400,900), zoom='tight').close()

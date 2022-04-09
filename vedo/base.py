@@ -151,6 +151,8 @@ class Base3DProp(object):
         self.point_locator = None
         self.cell_locator = None
 
+        self.scalarbar = None
+
 
     def address(self):
         """
@@ -738,7 +740,6 @@ class BaseActor(Base3DProp):
     def __init__(self):
         Base3DProp.__init__(self)
 
-        self.scalarbar = None
         self._mapper = None
 
         self.flagText = None

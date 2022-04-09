@@ -1163,16 +1163,11 @@ class Points(vtk.vtkFollower, BaseActor):
         return self
 
 
-    def deletePoints(self, indices, renamePoints=False):
+    def deleteCellsByPointIndex(self, indices):
         """
-        Delete a list of vertices identified by their index.
+        Delete a list of vertices identified by any of their vertex index.
 
-        Parameters
-        ----------
-        renamePoints : bool
-            if True, point indices and faces are renamed.
-            If False, vertices are not really deleted and faces indices will
-            stay unchanged (default, faster).
+        See also `vedo.base.deleteCells()`.
 
         .. hint:: examples/basic/deleteMeshPoints.py
             .. image:: https://vedo.embl.es/images/basic/deleteMeshPoints.png
@@ -1185,50 +1180,8 @@ class Points(vtk.vtkFollower, BaseActor):
                 self._data.DeleteCell(cellIds.GetId(j))  # flag cell
 
         self._data.RemoveDeletedCells()
-
-        if renamePoints:
-            coords = self.points(transformed=False)
-            faces = self.faces()
-            pts_inds = np.unique(faces) # flattened array
-
-            newfaces = []
-            for f in faces:
-                newface=[]
-                for i in f:
-                    idx = np.where(pts_inds==i)[0][0]
-                    newface.append(idx)
-                newfaces.append(newface)
-
-            newpoly = utils.buildPolyData(coords[pts_inds], newfaces)
-            return self._update(newpoly)
-        else:
-            self._mapper.Modified()
-            return self
-
-
-    def delete(self, points=(), cells=()):
-        """Delete points and/or cells from a point cloud or mesh."""
-        rp = vtk.vtkRemovePolyData()
-
-        if isinstance(points, Points):
-            rp.SetInputData(self._data)
-            poly = points._data
-            rp.RemoveInputData(poly)
-            rp.Update()
-            out = rp.GetOutput()
-            return self._update(out) ####
-
-        if points:
-            idarr = utils.numpy2vtk(points, dtype='id')
-        elif cells:
-            idarr = utils.numpy2vtk(cells, dtype='id')
-        else:
-            # utils.printc("delete(): nothing to delete, skip.", c='y')
-            return self
-        rp.SetPointIds(idarr)
-        rp.Update()
-        out = rp.GetOutput()
-        return self._update(out)
+        self._mapper.Modified()
+        return self
 
 
     def computeNormalsWithPCA(self, n=20, orientationPoint=None, invert=False):

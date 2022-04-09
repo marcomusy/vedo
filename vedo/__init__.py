@@ -28,7 +28,6 @@ __pdoc__['pointcloud.Points.thinPlateSpline'] = False
 __pdoc__['pointcloud.Points.warpByVectors'] = False
 __pdoc__['pointcloud.Points.distanceToMesh'] = False
 
-
 #######################################################################################
 
 __author__     = "Marco Musy"

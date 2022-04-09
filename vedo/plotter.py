@@ -296,21 +296,21 @@ def show(*actors,
     if utils.isSequence(at):
         for i, act in enumerate(actors):
             _plt_to_return = plt.show(
-                    act,
-                    at=i,
-                    zoom=zoom,
-                    resetcam=resetcam,
-                    viewup=viewup,
-                    azimuth=azimuth,
-                    elevation=elevation,
-                    roll=roll,
-                    camera=camera,
-                    interactive=False,
-                    mode=mode,
-                    bg=bg,
-                    bg2=bg2,
-                    axes=axes,
-                    q=q,
+                act,
+                at=i,
+                zoom=zoom,
+                resetcam=resetcam,
+                viewup=viewup,
+                azimuth=azimuth,
+                elevation=elevation,
+                roll=roll,
+                camera=camera,
+                interactive=False,
+                mode=mode,
+                bg=bg,
+                bg2=bg2,
+                axes=axes,
+                q=q,
             )
 
         if interactive or len(at)==N \
@@ -322,21 +322,21 @@ def show(*actors,
     else:
 
         _plt_to_return = plt.show(
-                    actors,
-                    at=at,
-                    zoom=zoom,
-                    resetcam=resetcam,
-                    viewup=viewup,
-                    azimuth=azimuth,
-                    elevation=elevation,
-                    roll=roll,
-                    camera=camera,
-                    interactive=interactive,
-                    mode=mode,
-                    bg=bg,
-                    bg2=bg2,
-                    axes=axes,
-                    q=q,
+            actors,
+            at=at,
+            zoom=zoom,
+            resetcam=resetcam,
+            viewup=viewup,
+            azimuth=azimuth,
+            elevation=elevation,
+            roll=roll,
+            camera=camera,
+            interactive=interactive,
+            mode=mode,
+            bg=bg,
+            bg2=bg2,
+            axes=axes,
+            q=q,
         )
 
     return _plt_to_return
@@ -932,6 +932,7 @@ class Plotter:
     def at(self, nren):
         """Select the current renderer number."""
         self.renderer = self.renderers[nren]
+        self.camera = self.renderer.GetActiveCamera()
         return self
 
     def add(self, *actors, at=None, render=True, resetcam=False):
@@ -961,7 +962,10 @@ class Plotter:
             if ren:
                 ren.AddActor(a)
         if render:
-            self.render(resetcam=resetcam)
+            if not self.interactor.GetInitialized():
+                vedo.logger.warning("call to add() but Plotter was not initialized with show()")
+            else:
+                self.render(resetcam=resetcam)
         return self
 
 
@@ -1008,7 +1012,10 @@ class Plotter:
                 i = self.actors.index(a)
                 del self.actors[i]
         if render:
-            self.render(resetcam=resetcam)
+            if not self.interactor.GetInitialized():
+                vedo.logger.warning("call to remove(resetcam=True) but Plotter was not initialized with show()")
+            else:
+                self.render(resetcam=resetcam)
         return self
 
     def pop(self, at=None):
@@ -1744,6 +1751,69 @@ class Plotter:
         self.renderer.SetPass(camerapass)
         return self
 
+    def addAmbientOcclusion(self, radius, bias=0.01, blur=True, samples=100):
+        """
+        Screen Space Ambient Occlusion.
+
+        For every pixel on the screen, the pixel shader samples the depth values around
+        the current pixel and tries to compute the amount of occlusion from each of the sampled
+        points.
+
+        Parameters
+        ----------
+        radius : float
+            radius of influence in absolute units
+
+        bias : float
+            bias of the normals
+
+        blur : bool
+            add a blurring to the sampled positions
+
+        samples : int
+            number of samples to probe
+
+        .. hint:: examples/basic/ssao.py
+        """
+        lightsP = vtk.vtkLightsPass()
+
+        opaqueP = vtk.vtkOpaquePass()
+
+        ssaoCamP = vtk.vtkCameraPass()
+        ssaoCamP.SetDelegatePass(opaqueP)
+
+        ssaoP = vtk.vtkSSAOPass()
+        ssaoP.SetRadius(radius)
+        ssaoP.SetDelegatePass(ssaoCamP)
+        ssaoP.SetBias(bias)
+        ssaoP.SetBlur(blur)
+        ssaoP.SetKernelSize(samples)
+
+        translucentP = vtk.vtkTranslucentPass()
+
+        volumeP = vtk.vtkVolumetricPass()
+        ddpP = vtk.vtkDualDepthPeelingPass()
+        ddpP.SetTranslucentPass(translucentP)
+        ddpP.SetVolumetricPass(volumeP)
+
+        overP = vtk.vtkOverlayPass()
+
+        collection = vtk.vtkRenderPassCollection()
+        collection.AddItem(lightsP)
+        collection.AddItem(ssaoP)
+        collection.AddItem(ddpP)
+        collection.AddItem(overP)
+
+        sequence = vtk.vtkSequencePass()
+        sequence.SetPasses(collection)
+
+        camP = vtk.vtkCameraPass()
+        camP.SetDelegatePass(sequence)
+
+        self.renderer.SetPass(camP)
+        return self
+
+
     def _addSkybox(self, hdrfile):
         # many hdr files are at https://polyhaven.com/all
 
@@ -1796,7 +1866,7 @@ class Plotter:
         padding : float
             padding space in pixels.
         """
-        self.frames = addons.addRendererFrame(self, c, alpha,lw, padding)
+        self.frames = addons.addRendererFrame(self, c, alpha, lw, padding)
         return self
 
 
@@ -2440,7 +2510,7 @@ class Plotter:
                     elif isinstance(b, vtk.vtkImageData):
                         scannedacts.append(vedo.Volume(b))
 
-            elif "PolyData" in str(type(a)):  # assume a pyvista obj
+            elif "PolyData" in str(type(a)):  # assume pyvista or vtkPolydata
                 scannedacts.append(vedo.Mesh(a))
 
             elif "dolfin" in str(type(a)):  # assume a dolfin.Mesh object
@@ -2587,7 +2657,17 @@ class Plotter:
         q : bool
             force program to quit after `show()` command returns.
         """
+
         if self.wxWidget:
+            return self
+
+        # check if the widow needs to be closed (ESC button was hit)
+        if self.escaped:
+            if not self.window:
+                return self # do nothing, just return self (was already closed)
+            for r in self.renderers:
+                r.RemoveAllObservers()
+            self.closeWindow()
             return self
 
         if len(self.renderers): # in case of notebooks
@@ -2646,6 +2726,7 @@ class Plotter:
         if resetcam is not None:
             self.resetcam = resetcam
 
+        # if user passes a list of actors forget about everithing and show those
         if len(actors) == 0:
             actors = None
         elif len(actors) == 1:
@@ -2653,73 +2734,35 @@ class Plotter:
         else:
             actors = utils.flatten(actors)
 
+        actors2show = []
         if actors is not None:
             self.actors = []
             actors2show = self._scan_input(actors)
             for a in actors2show:
                 if a not in self.actors:
                     self.actors.append(a)
-        else:
-            actors2show = self._scan_input(self.actors)
-            self.actors = list(actors2show)
 
         # Backend ###############################################################
         if vedo.notebookBackend:
             if vedo.notebookBackend in ['k3d', 'ipygany', 'itkwidgets']:
-                return backends.getNotebookBackend(actors2show, zoom, viewup)
+                return backends.getNotebookBackend(self.actors, zoom, viewup)
         #########################################################################
 
-        # check if the widow needs to be closed (ESC button was hit)
-        if self.escaped:
-            if not self.window:
-                return self # do nothing, just return self (was already closed)
-            for r in self.renderers:
-                r.RemoveAllObservers()
-            self.camera.RemoveAllObservers()
-            self.closeWindow()
-            return self
-
-        if interactive is not None:
-            self._interactive = interactive
-
-        if self.interactor:
-            if not self.interactor.GetInitialized():
-                self.interactor.Initialize()
-                self.interactor.RemoveObservers("CharEvent")
-
-        self.camera = self.renderer.GetActiveCamera()
-        self.camera.SetParallelProjection(settings.useParallelProjection)
-        if self.sharecam:
-            for r in self.renderers:
-                r.SetActiveCamera(self.camera)
-
-        if self.qtWidget is not None:
-            self.qtWidget.GetRenderWindow().AddRenderer(self.renderer)
-
-        if len(self.renderers) == 1:
-            self.renderer.SetActiveCamera(self.camera)
-
-        if vedo.vtk_version[0] == 9 and "Darwin" in vedo.sys_platform:
-            for a in self.actors:
-                if isinstance(a, vtk.vtkVolume):
-                    self.window.SetMultiSamples(0) # to fix mac OSX BUG vtk9
-                    break
-
         # rendering
-        for ia in actors2show:  # add the actors that are not already in scene
-            if ia:
-                if isinstance(ia, vtk.vtkVolume):
-                    self.renderer.AddVolume(ia)
-                else:
-                    self.renderer.AddActor(ia)
+        for ia in actors2show:
+            if not ia:
+                continue
 
-                if hasattr(ia, '_set2actcam') and ia._set2actcam:
+            self.renderer.AddActor(ia)
+
+            if isinstance(ia, vedo.base.Base3DProp):
+
+                if ia._set2actcam:
                     ia.SetCamera(self.camera)  # used by mesh.followCamera()
 
-                if hasattr(ia, 'renderedAt'):
-                    ia.renderedAt.add(at)
+                ia.renderedAt.add(at) # set.add()
 
-                if hasattr(ia, 'scalarbar') and ia.scalarbar:
+                if ia.scalarbar:
                     self.renderer.AddActor(ia.scalarbar)
                     # fix gray color labels and title to white or black
                     if isinstance(ia.scalarbar, vtk.vtkScalarBarActor):
@@ -2733,8 +2776,7 @@ class Plotter:
                     if ia.scalarbar not in self.scalarbars:
                         self.scalarbars.append(ia.scalarbar)
 
-                if (hasattr(ia, 'flagText')
-                    and self.interactor
+                if (self.interactor
                     and not self.offscreen
                     and not (vedo.vtk_version[0] == 9 and "Linux" in vedo.sys_platform)  # Linux vtk9 is bugged
                     ):
@@ -2767,24 +2809,32 @@ class Plotter:
                                 self.flagWidget.UpdateBalloonString(ia, ia.flagText)
                         else:
                             self.flagWidget.AddBalloon(ia, ia.flagText)
+
                     if ia.flagText is False and self.flagWidget:
                         self.flagWidget.RemoveBalloon(ia)
 
-        # remove the ones that are not in actors2show (and their scalarbar if any)
-        for ia in self.getMeshes(at, includeNonPickables=True) + self.getVolumes(at, includeNonPickables=True):
-            if ia not in actors2show:
-                if isinstance(ia, vtk.vtkSkybox):
-                    continue
-                self.renderer.RemoveActor(ia)
-                if hasattr(ia, 'scalarbar') and ia.scalarbar:
-                    if isinstance(ia.scalarbar, vtk.vtkActor):
-                        self.renderer.RemoveActor(ia.scalarbar)
-                    elif isinstance(ia.scalarbar, vedo.Assembly):
-                        for a in ia.scalarbar.unpack():
-                            self.renderer.RemoveActor(a)
-                if hasattr(ia, 'renderedAt'):
-                    ia.renderedAt.discard(at)
+        if interactive is not None:
+            self._interactive = interactive
 
+        if self.interactor:
+            if not self.interactor.GetInitialized():
+                self.interactor.Initialize()
+                self.interactor.RemoveObservers("CharEvent")
+
+        self.camera = self.renderer.GetActiveCamera()
+        self.camera.SetParallelProjection(settings.useParallelProjection)
+        if self.sharecam:
+            for r in self.renderers:
+                r.SetActiveCamera(self.camera)
+
+        if self.qtWidget is not None:
+            self.qtWidget.GetRenderWindow().AddRenderer(self.renderer)
+
+        if vedo.vtk_version[0] == 9 and "Darwin" in vedo.sys_platform:
+            for a in self.actors:
+                if isinstance(a, vtk.vtkVolume):
+                    self.window.SetMultiSamples(0) # to fix mac OSX BUG vtk9
+                    break
 
         if self.axes is not None:
             if viewup != "2d" or self.axes in [1, 8] or isinstance(self.axes, dict):
@@ -2857,7 +2907,8 @@ class Plotter:
 
         self.renderer.ResetCameraClippingRange()
         if settings.immediateRendering:
-            self.window.Render() ##################################################### <----Render
+            self.window.Render() ##################### <-------------- Render
+
         self.window.SetWindowName(self.title)
 
         # 2d ####################################################################
@@ -2921,7 +2972,7 @@ class Plotter:
                         time.sleep(mint - elapsed)
                     self.clock = time.time() - self._clockt0
 
-        if q:  # exit python
+        if q:  # exit python kernel
             sys.exit(0)
 
         return self

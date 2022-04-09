@@ -3061,7 +3061,7 @@ def Marker(symbol, pos=(0, 0, 0), c='k', alpha=1, s=0.1, filled=True):
         mesh = Polygon(nsides=3, r=s).rotateZ(90)
     elif symbol == 's':
         mesh = Mesh([[[-1,-1,0], [1,-1,0], [1,1,0], [-1,1,0]],
-                     [[0,1,2,3]]]).scale(s/1.8)
+                     [[0,1,2,3]]]).scale(s/1.4)
     elif symbol == 'x':
         mesh = Text3D('+', pos=(0,0,0), s=s*2.6, justify='center', depth=0)
         # mesh.rotateZ(45)
