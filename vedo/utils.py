@@ -868,13 +868,13 @@ def cart2pol(x, y):
     """2D Cartesian to Polar coordinates conversion."""
     theta = np.arctan2(y, x)
     rho = np.hypot(x, y)
-    return rho, theta
+    return np.array([rho, theta])
 
 def pol2cart(rho, theta):
     """2D Polar to Cartesian coordinates conversion."""
     x = rho * np.cos(theta)
     y = rho * np.sin(theta)
-    return x, y
+    return np.array([x, y])
 
 # 3d ######
 def cart2spher(x, y, z):
@@ -883,7 +883,7 @@ def cart2spher(x, y, z):
     rho = np.hypot(hxy, z)
     theta = np.arctan2(hxy, z)
     phi = np.arctan2(y, x)
-    return rho, theta, phi
+    return np.array([rho, theta, phi])
 
 def spher2cart(rho, theta, phi):
     """3D Spherical to Cartesian coordinate conversion."""
@@ -899,9 +899,9 @@ def spher2cart(rho, theta, phi):
 
 def cart2cyl(x,y,z):
     """3D Cartesian to Cylindrical coordinate conversion."""
-    rho = np.sqrt(x*x+y*y+z*z)
+    rho = np.sqrt(x*x+y*y)
     theta = np.arctan2(y, x)
-    return rho, theta, z
+    return np.array([rho, theta, z])
 
 def cyl2cart(rho, theta, z):
     """3D Cylindrical to Cartesian coordinate conversion."""
@@ -913,13 +913,13 @@ def cyl2spher(rho,theta,z):
     """3D Cylindrical to Spherical coordinate conversion."""
     rhos = np.sqrt(rho*rho+z*z)
     phi = np.arctan2(rho, z)
-    return rhos, theta, phi
+    return np.array([rhos, theta, phi])
 
 def spher2cyl(rho, theta, phi):
     """3D Spherical to Cylindrical coordinate conversion."""
     rhoc = rho * np.sin(phi)
     z = rho * np.cos(phi)
-    return rhoc, theta, z
+    return np.array([rhoc, theta, z])
 
 
 ##################################################################################

@@ -99,15 +99,16 @@ class Slicer3DPlotter(Plotter):
                 title = "Volume Slicer"
 
         ################################
-        Plotter.__init__(self,
-                         pos=pos,
-                         bg=bg,
-                         bg2=bg2,
-                         size=size,
-                         screensize=screensize,
-                         title=title,
-                         interactive=interactive,
-                         axes=axes,
+        Plotter.__init__(
+            self,
+            pos=pos,
+            bg=bg,
+            bg2=bg2,
+            size=size,
+            screensize=screensize,
+            title=title,
+            interactive=interactive,
+            axes=axes,
         )
         ################################
         box = volume.box().wireframe().alpha(0.1)
