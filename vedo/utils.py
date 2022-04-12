@@ -30,6 +30,10 @@ __all__ = [
     "makeBands",
     "spher2cart",
     "cart2spher",
+    "cart2cyl",
+    "cyl2cart",
+    "cyl2spher",
+    "spher2cyl",
     "cart2pol",
     "pol2cart",
     "humansort",
@@ -899,7 +903,7 @@ def spher2cart(rho, theta, phi):
 
 def cart2cyl(x,y,z):
     """3D Cartesian to Cylindrical coordinate conversion."""
-    rho = np.sqrt(x*x+y*y)
+    rho = np.sqrt(x*x + y*y)
     theta = np.arctan2(y, x)
     return np.array([rho, theta, z])
 
@@ -911,16 +915,15 @@ def cyl2cart(rho, theta, z):
 
 def cyl2spher(rho,theta,z):
     """3D Cylindrical to Spherical coordinate conversion."""
-    rhos = np.sqrt(rho*rho+z*z)
+    rhos = np.sqrt(rho*rho + z*z)
     phi = np.arctan2(rho, z)
-    return np.array([rhos, theta, phi])
+    return np.array([rhos, phi, theta])
 
 def spher2cyl(rho, theta, phi):
     """3D Spherical to Cylindrical coordinate conversion."""
-    rhoc = rho * np.sin(phi)
-    z = rho * np.cos(phi)
-    return np.array([rhoc, theta, z])
-
+    rhoc = rho * np.sin(theta)
+    z = rho * np.cos(theta)
+    return np.array([rhoc, phi, z])
 
 ##################################################################################
 def grep(filename, tag, firstOccurrence=False):

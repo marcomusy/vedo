@@ -1,4 +1,4 @@
-from vedo import Cone, Sphere, merge, Volume, dataurl
+from vedo import Cone, Sphere, merge, Volume, dataurl, utils
 import numpy as np
 import vtk
 
@@ -174,7 +174,7 @@ assert isinstance(st.GetTexture(), vtk.vtkTexture)
 
 
 ###################################### deletePoints
-sd = sphere.clone().deletePoints(range(100))
+sd = sphere.clone().deleteCellsByPointIndex(range(100))
 print('deletePoints',sd.N() , sphere.N())
 assert sd.N() == sphere.N()
 print('deletePoints',sd.NCells() ,'<', sphere.NCells())
@@ -323,4 +323,29 @@ assert np.min(volarr) == 0
 iso = vol.isosurface(threshold=1.0)
 print('isosurface', iso.area())
 assert 2540 < iso.area() <  3000
+
+
+###################################### utils change of coords
+q = [5,2,3]
+q = utils.cart2spher(*q)
+q = utils.spher2cart(*q)
+print("cart2spher spher2cart", q)
+assert np.allclose(q, [5,2,3])
+q = utils.cart2cyl(*q)
+q = utils.cyl2cart(*q)
+print("cart2cyl cyl2cart", q)
+assert np.allclose(q, [5,2,3])
+q = utils.cart2cyl(*q)
+q = utils.cyl2spher(*q)
+q = utils.spher2cart(*q)
+print("cart2cyl cyl2spher spher2cart", q)
+assert np.allclose(q, [5,2,3])
+q = utils.cart2spher(*q)
+q = utils.spher2cyl(*q)
+q = utils.cyl2cart(*q)
+print("cart2spher spher2cyl cyl2cart", q)
+assert np.allclose(q, [5,2,3])
+
+######################################
+print("OK with test_actors")
 
