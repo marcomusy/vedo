@@ -65,7 +65,7 @@ from vedo.tetmesh import *
 from vedo.shapes import *
 from vedo.addons import *
 from vedo.plotter import *
-
+import vedo.applications as applications
 
 ##################################################################################
 ########################################################################## GLOBALS

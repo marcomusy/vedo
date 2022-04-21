@@ -20,7 +20,7 @@ landmarksTo = [
 s1 = Mesh(dataurl + "bunny.obj").c("gold")
 s2 = s1.clone().c('orange4')
 
-s2.transformWithLandmarks(landmarksFrom, landmarksTo, rigid=False)
+s2.transformWithLandmarks(landmarksFrom, landmarksTo)
 
 arrows = Arrows(landmarksFrom, landmarksTo, s=0.5, c='black')
 show(s1, s2, arrows, __doc__, axes=True).close()

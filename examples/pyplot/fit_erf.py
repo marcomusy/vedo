@@ -23,7 +23,8 @@ y = func(x, *popt)
 x0, y0 = popt[1], func(popt[1], *popt)
 
 fig = plot(
-    xdata, ydata,
+    xdata,
+    ydata,
     'o',
     yerrors=yerrs,
     ylim=(-0.1,1.3),
@@ -33,9 +34,15 @@ fig = plot(
     mc='blue2',
     ms=0.3,
     lwe=2,
+    label='data',
 )
-fig += plot(x, y, lw=5, like=fig)
+
+fig += plot(x, y, lw=5, like=fig, label='fit')
 fig += Marker('*', s=0.5, c='r4').pos(x0,y0, 0.1)
-fig.show(size=(900, 650), zoom=1.5)
+
+fig.addLabel('\mu', marker='*', mc="r4")
+fig.addLegend("top-left", vspace=2.5)
+
+fig.show(size=(900, 650), zoom='tight').close()
 
 

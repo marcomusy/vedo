@@ -9,10 +9,10 @@ import vedo.utils as utils
 from vedo.assembly import Assembly
 from vedo.mesh import merge
 from vedo.mesh import Mesh
-from vedo.plotter import show  # not used, but useful to import this
 
 __doc__ = """
 .. image:: https://vedo.embl.es/images/pyplot/fitPolynomial2.png
+
 Advanced plotting utility functions
 """
 
@@ -31,7 +31,6 @@ __all__ = [
     "streamplot",
     "matrix",
     "DirectedGraph",
-    "show",
 ]
 
 
@@ -84,8 +83,8 @@ class Figure(Assembly):
             **kwargs,
         ):
 
-        self.xlim = xlim
-        self.ylim = ylim
+        self.xlim = np.array(xlim)
+        self.ylim = np.array(ylim)
         self.aspect = aspect
         self.padding = padding
         if not utils.isSequence(self.padding):
@@ -142,7 +141,6 @@ class Figure(Assembly):
             if 'yTitlePosition' not in self.axopts:  ## modify the default
                 self.axopts['yTitlePosition'] = 0.5
                 self.axopts['yTitleJustify'] = "bottom-center"
-                self.axopts['yTitleOffset'] = 0.05
 
             if self.label:
                 if 'c' in self.axopts:
@@ -401,7 +399,7 @@ class Figure(Assembly):
             font=None,
             s=1,
             c=None,
-            vspace=1.5,
+            vspace=1.75,
             padding=0.1,
             radius=0,
             alpha=1,
@@ -2944,7 +2942,7 @@ def _plotSpheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=
 
     ssurf = sg.clone().points(pts)
     if len(inans):
-        ssurf.deletePoints(inans)
+        ssurf.deleteCellsByPointIndex(inans)
 
     ssurf.alpha(1).wireframe(0).lw(0.1)
 

@@ -29,7 +29,7 @@ __all__ = [
     'RayCastPlotter',
     "Slicer3DPlotter",
     "Slicer2DPlotter",
-    "Animation",
+    # "Animation",
 ]
 
 
@@ -1295,8 +1295,8 @@ class Animation(Plotter):
                                                radius=d, returnPointId=True)
                     if len(ids) <= acts[0].N():
                         self.events.append((tt, self.meshErode, acts, ids))
-        else:
-            self._performers[0].deletePoints(self._inputvalues)
+        # else:
+        #     self._performers[0].deletePoints(self._inputvalues)
         return self
 
 

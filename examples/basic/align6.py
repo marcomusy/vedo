@@ -1,12 +1,15 @@
-"""Align bounding boxes"""
+"""Align to bounding boxes. Force the Mesh into the box."""
 from vedo import *
 
-eli = Ellipsoid().alpha(0.4)
-cube= Cube().pos(3,2,1).rotateX(10).rotateZ(10).wireframe()
+msh1 = Mesh(dataurl+"cessna.vtk").color("silver")
+axes1 = Axes(msh1)
 
-eli.alignToBoundingBox(cube, rigid=0)
+cube = Cube().pos(2,1,0).wireframe()
 
-axes1 = Axes(eli, c='db', htitle='ellipsoid box')
-axes2 = Axes(cube, c='dg', htitle='cube box')
+msh2 = msh1.clone().alignToBoundingBox(cube)
+axes2 = Axes(msh2)
 
-show(eli, cube, axes1, axes2, __doc__).close()
+plt = Plotter(N=2)
+plt.at(0).show(msh1, axes1, cube, __doc__)
+plt.at(1).show(msh2, axes2, viewup='z')
+plt.interactive().close()

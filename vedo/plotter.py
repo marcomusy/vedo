@@ -14,14 +14,14 @@ import vtk
 
 __doc__ = """
 This module defines the main class Plotter to manage actors and 3D rendering
+
 .. image:: https://vedo.embl.es/images/basic/multirenderers.png
 """
 
 __all__ = [
         "Plotter",
         "show",
-        "clear",
-        "interactive",
+        "interactive", # deprecated
         "close",
 ]
 
@@ -341,25 +341,16 @@ def show(*actors,
 
     return _plt_to_return
 
-
 def interactive():
-    """Start the rendering window interaction mode."""
+    """Please use plotter.interactive() or show(..., interactive=True) instead"""
+    vedo.logger.warning("Deprecation: please use plotter.interactive()\n"+
+                        "             or show(..., interactive=True)")
     if vedo.plotter_instance:
         if vedo.plotter_instance.escaped: # just return
             return vedo.plotter_instance
         if hasattr(vedo.plotter_instance, 'interactor'):
             if vedo.plotter_instance.interactor:
                 vedo.plotter_instance.interactor.Start()
-    return vedo.plotter_instance
-
-def clear(actor=None, at=None):
-    """
-    Clear specific actor or list of actors from the current rendering window.
-    Keyword ``at`` specify the reneder to be cleared.
-    """
-    if not vedo.plotter_instance:
-        return
-    vedo.plotter_instance.clear(actor, at)
     return vedo.plotter_instance
 
 def close():
@@ -660,13 +651,6 @@ class Plotter:
                     r.SetOcclusionRatio(settings.occlusionRatio)
                 r.SetUseFXAA(settings.useFXAA)
                 r.SetPreserveDepthBuffer(settings.preserveDepthBuffer)
-#                if hasattr(r, "SetUseSSAO"):
-#                    r.SetUseSSAO(settings.useSSAO)
-#                    r.SetSSAORadius(settings.SSAORadius)
-#                    r.SetSSAOBias(settings.SSAOBias)
-#                    r.SetSSAOKernelSize(settings.SSAOKernelSize)
-#                    r.SetSSAOBlur(settings.SSAOBlur)
-
 
                 r.SetBackground(vedo.getColor(self.backgrcol))
 
@@ -697,12 +681,6 @@ class Plotter:
                     arenderer.SetOcclusionRatio(settings.occlusionRatio)
                 arenderer.SetUseFXAA(settings.useFXAA)
                 arenderer.SetPreserveDepthBuffer(settings.preserveDepthBuffer)
-#                if hasattr(arenderer, "SetUseSSAO"):
-#                    arenderer.SetUseSSAO(settings.useSSAO)
-#                    arenderer.SetSSAORadius(settings.SSAORadius)
-#                    arenderer.SetSSAOBias(settings.SSAOBias)
-#                    arenderer.SetSSAOKernelSize(settings.SSAOKernelSize)
-#                    arenderer.SetSSAOBlur(settings.SSAOBlur)
 
                 arenderer.SetViewport(x0, y0, x1, y1)
                 arenderer.SetBackground(vedo.getColor(bg_))
@@ -759,12 +737,6 @@ class Plotter:
                         arenderer.SetOcclusionRatio(settings.occlusionRatio)
                     arenderer.SetUseFXAA(settings.useFXAA)
                     arenderer.SetPreserveDepthBuffer(settings.preserveDepthBuffer)
-#                    if hasattr(arenderer, "SetUseSSAO"):
-#                        arenderer.SetUseSSAO(settings.useSSAO)
-#                        arenderer.SetSSAORadius(settings.SSAORadius)
-#                        arenderer.SetSSAOBias(settings.SSAOBias)
-#                        arenderer.SetSSAOKernelSize(settings.SSAOKernelSize)
-#                        arenderer.SetSSAOBlur(settings.SSAOBlur)
 
                     if image_actor:
                         arenderer.SetLayer(1)
@@ -1023,6 +995,11 @@ class Plotter:
         Remove the last added object from the rendering window.
         This method is typically used in loops or callback functions.
         """
+        if not isinstance(at, (int, None)):
+            # wrong usage pitfall
+            vedo.logger.error("argment of pop() must be an integer")
+            raise RuntimeError()
+
         if len(self.actors):
             self.remove(self.actors[-1], at)
         return self
@@ -3094,7 +3071,6 @@ class Plotter:
         for r in self.renderers:
             r.RemoveAllObservers()
         if hasattr(self, 'window') and self.window:
-            self.window.Finalize()
             if hasattr(self, 'interactor') and self.interactor:
                 self.interactor.ExitCallback()
                 try:
@@ -3103,6 +3079,7 @@ class Plotter:
                     pass
                 self.interactor.TerminateApp()
                 self.interactor = None
+            self.window.Finalize() # this must be done here
             self.window = None
         return self
 
@@ -3110,7 +3087,8 @@ class Plotter:
         """Close the Plotter instance and release resources."""
         self.closeWindow()
         self.actors = []
-        vedo.plotter_instance = None
+        if vedo.plotter_instance == self:
+            vedo.plotter_instance = None
 
     def screenshot(self, filename='screenshot.png', scale=None, asarray=False):
         """Take a screenshot of the Plotter window.
@@ -3589,13 +3567,15 @@ class Plotter:
             cam = self.renderer.GetActiveCamera()
             vedo.printc('\n###################################################', c='y')
             vedo.printc('## Template python code to position this camera: ##', c='y')
-            vedo.printc('cam = dict(pos='          +utils.precision(cam.GetPosition(),4)+',', c='y')
-            vedo.printc('           focalPoint='   +utils.precision(cam.GetFocalPoint(),4)+',', c='y')
-            vedo.printc('           viewup='       +utils.precision(cam.GetViewUp(),4)+',', c='y')
-            vedo.printc('           distance='     +utils.precision(cam.GetDistance(),4)+',', c='y')
-            vedo.printc('           clippingRange='+utils.precision(cam.GetClippingRange(),4)+',', c='y')
+            vedo.printc('cam = dict(', c='y')
+            vedo.printc('    pos='          +utils.precision(cam.GetPosition(),4)+',', c='y')
+            vedo.printc('    focalPoint='   +utils.precision(cam.GetFocalPoint(),4)+',', c='y')
+            vedo.printc('    viewup='       +utils.precision(cam.GetViewUp(),4)+',', c='y')
+            vedo.printc('    distance='     +utils.precision(cam.GetDistance(),4)+',', c='y')
+            vedo.printc('    clippingRange='+utils.precision(cam.GetClippingRange(),4)+',', c='y')
             vedo.printc(')', c='y')
             vedo.printc('show(mymeshes, camera=cam)', c='y')
+            vedo.printc('###################################################', c='y')
             return
 
         elif key == "s":

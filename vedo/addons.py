@@ -1510,7 +1510,7 @@ def _addCutterToolMeshWithBox(mesh, invert):
     boxWidget.OutlineCursorWiresOn()
     boxWidget.GetSelectedOutlineProperty().SetColor(1, 0, 1)
     boxWidget.GetOutlineProperty().SetColor(0.2, 0.2, 0.2)
-    boxWidget.GetOutlineProperty().SetOpacity(0.8)
+    boxWidget.GetOutlineProperty().SetOpacity(1)
     boxWidget.SetPlaceFactor(1.025)
     boxWidget.SetInteractor(plt.interactor)
     boxWidget.SetCurrentRenderer(plt.renderer)
@@ -2141,7 +2141,7 @@ def Axes(
         axesLineWidth=1,
         xLineColor=None, yLineColor=None, zLineColor=None,
         xHighlightZero=False, yHighlightZero=False, zHighlightZero=False,
-        xHighlightZeroColor='r', yHighlightZeroColor='g', zHighlightZeroColor='b',
+        xHighlightZeroColor='red4', yHighlightZeroColor='green4', zHighlightZeroColor='blue4',
         showTicks=True,
         xTickLength=0.015, yTickLength=0.015, zTickLength=0.015,
         xTickThickness=0.0025, yTickThickness=0.0025, zTickThickness=0.0025,
@@ -3045,6 +3045,7 @@ def Axes(
         if ylab:  # this is the last created num label..
             lt0, lt1 = ylab.GetBounds()[0:2]
             shift = lt1 - lt0
+
         yt.pos(-(xoffs + yTickLength/2)*dx -shift,
                (yoffs + yTitlePosition)*dy, zoffs*dz)
         if yAxisRotation:

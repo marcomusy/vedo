@@ -6,6 +6,7 @@ import vtk
 
 __doc__ = """
 Submodule to work with common format images
+
 .. image:: https://vedo.embl.es/images/basic/rotateImage.png
 """
 __all__ = ["Picture"]

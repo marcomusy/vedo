@@ -2123,11 +2123,19 @@ class Points(vtk.vtkFollower, BaseActor):
         return self
 
 
-    def transformWithLandmarks(self, sourceLandmarks, targetLandmarks, rigid=False):
+    def transformWithLandmarks(
+            self,
+            sourceLandmarks,
+            targetLandmarks,
+            rigid=False,
+            affine=False,
+        ):
         """
         Trasform mesh orientation and position based on a set of landmarks points.
         The algorithm finds the best matching of source points to target points
         in the mean least square sense, in one single step.
+
+        If affine is True the x, y and z axes can scale independently.
 
         .. hint:: examples/basic/align5.py
             .. image:: https://vedo.embl.es/images/basic/align5.png
@@ -2154,9 +2162,13 @@ class Points(vtk.vtkFollower, BaseActor):
 
         lmt.SetSourceLandmarks(ss)
         lmt.SetTargetLandmarks(st)
+        lmt.SetModeToSimilarity()
         if rigid:
             lmt.SetModeToRigidBody()
+        if affine:
+            lmt.SetModeToAffine()
         lmt.Update()
+
         # self.applyTransform(lmt)
         self.SetUserTransform(lmt)
         self.transform = lmt
@@ -2960,7 +2972,6 @@ class Points(vtk.vtkFollower, BaseActor):
         return (da + db)/2
 
 
-
     def removeOutliers(self, radius, neighbors=5):
         """
         Remove outliers from a cloud of points within the specified `radius` search.
@@ -2983,7 +2994,17 @@ class Points(vtk.vtkFollower, BaseActor):
         removal.SetNumberOfNeighbors(neighbors)
         removal.GenerateOutliersOff()
         removal.Update()
-        return self._update(removal.GetOutput())
+        inputobj = removal.GetOutput()
+        if inputobj.GetNumberOfCells() == 0:
+            carr = vtk.vtkCellArray()
+            for i in range(inputobj.GetNumberOfPoints()):
+                carr.InsertNextCell(1)
+                carr.InsertCellPoint(i)
+            inputobj.SetVerts(carr)
+        self._update(inputobj)
+        self._mapper.ScalarVisibilityOff()
+        return self
+
 
     def smoothMLS1D(self, f=0.2, radius=None):
         """

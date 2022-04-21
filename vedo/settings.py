@@ -79,13 +79,6 @@ Parameters
     # By default, the depth buffer is reset for each renderer. If True, use the existing depth buffer
     preserveDepthBuffer = False
 
-    # Turn on/off Screen Space Ambient Occlusion (SSAO), darken some pixels to improve depth perception
-    useSSAO         = False
-    SSAORadius      = 0.5   # the SSAO hemisphere radius
-    SSAOBias        = 0.01  # the bias when comparing samples
-    SSAOKernelSize  = 32    # the number of samples
-    SSAOBlur        = False # blurring of the ambient occlusion (helps for low samples nr)
-
     # Use a polygon/edges offset to possibly resolve conflicts in rendering
     usePolygonOffset    = False
     polygonOffsetFactor = 0.1
@@ -191,13 +184,6 @@ useFXAA = False  # either True or False
 
 # By default, the depth buffer is reset for each renderer. If true, use the existing depth buffer
 preserveDepthBuffer = False
-
-#Enable or disable Screen Space Ambient Occlusion: SSAO darkens some pixels to improve depth perception.
-useSSAO        = False
-SSAORadius     = 0.5     # define the SSAO hemisphere radius
-SSAOBias       = 0.01    # define the bias when comparing samples
-SSAOKernelSize = 32      # define the number of samples
-SSAOBlur       = False   # define blurring of the ambient occlusion (helps for low samples)
 
 # Use a polygon/edges offset to possibly resolve conflicts in rendering
 usePolygonOffset = True

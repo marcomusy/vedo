@@ -25,7 +25,7 @@ y = 200*np.sin(12*x)**2 + 100
 fig += Line(x, y, c='red5', lw=3)
 
 fig.addLabel('my function', marker='-', mc='red5')
-fig.addLegend(pos=[0.7,1.3], alpha=0.2)
+fig.addLegend(pos=[0.7,1.33], alpha=0.2)
 
 fig.show(size=(1000,700), bg='black', zoom='tight').close()
 

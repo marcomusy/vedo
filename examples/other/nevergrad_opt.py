@@ -11,11 +11,12 @@ def f(x,y):
     z = (x-1)**2 + (y-1)**2 + 9*sin(y-1)**2 + 1
     return z/12
 
-def func(v): return f(v[0],v[1])
+def func(v):
+    return f(v[0],v[1])
 
 def callbk(optimizer, v, value):
     global minv
-    if value<minv:
+    if value < minv:
         pts.append([v.value[0], v.value[1], value])
         minv = value
 
@@ -31,6 +32,6 @@ res = optimizer.minimize(func)  # best value
 printc('Minimum at:', res.value)
 
 ln = Line(pts, lw=3, c='r')
-fu = plot(f, xlim=[-3,4], ylim=[-3,4], alpha=0.5)
+fu = plot(f, xlim=[-3,4], ylim=[-3,4])
 
 show(fu, ln, __doc__)

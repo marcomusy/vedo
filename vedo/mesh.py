@@ -18,6 +18,7 @@ from vedo.utils import vtk2numpy
 
 __doc__ = """
 Submodule to work with polygonal meshes
+
 .. image:: https://vedo.embl.es/images/advanced/mesh_smoother2.png
 """
 

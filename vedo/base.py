@@ -555,16 +555,7 @@ class Base3DProp(object):
 
         Use ``rigid`` to disable scaling.
 
-        Example:
-            .. code-block:: python
-
-                from vedo import *
-                eli = Ellipsoid().alpha(0.4)
-                cube= Cube().pos(3,2,1).rotateX(10).rotateZ(10).alpha(0.4)
-                eli.alignToBoundingBox(cube, rigid=False)
-                axes1 = Axes(eli, c='db')
-                axes2 = Axes(cube, c='dg')
-                show(eli, cube, axes1, axes2)
+        .. hint:: examples/basic/align6.py
         """
         lmt = vtk.vtkLandmarkTransform()
         ss = vtk.vtkPoints()
@@ -594,6 +585,7 @@ class Base3DProp(object):
 
         lmt.SetSourceLandmarks(ss)
         lmt.SetTargetLandmarks(st)
+        lmt.SetModeToAffine()
         if rigid:
             lmt.SetModeToRigidBody()
         lmt.Update()
