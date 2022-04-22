@@ -9,6 +9,7 @@
 
 ---
 ### `mesh.py`
+- `isInside(..., returnIds=True)` fixed bug
 
 ---
 ### `plotter.py`
@@ -18,6 +19,7 @@
 
 ---
 ### `pyplot.py`
+- add legends to Figures thanks to new method `addLegend()`
 
 ---
 ### `shapes.py`
@@ -44,10 +46,12 @@ examples/pyplot/plot_extra_yaxis.py
 examples/other/pygeodesic1.py
 
 ### Deleted
+examples/other/animation1.py
+examples/other/animation2.py
 
 ### Broken
 examples/other/morphomatics_tube.py
-pygmsh_cut.py
+examples/other/pygmsh_cut.py
 
 
 

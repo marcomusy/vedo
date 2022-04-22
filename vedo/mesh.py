@@ -1542,21 +1542,22 @@ class Mesh(Points):
 
     def insidePoints(self, pts, invert=False, tol=1e-05, returnIds=False):
         """
-        Return the point cloud that is inside mesh surface.
+        Return the point cloud that is inside mesh surface as a new Points object.
 
-        If returnIds is True a list of IDs is returned and in addition vertices
-        are marked by a pointdata array named "SelectedPoints".
+        If returnIds is True a list of IDs is returned and in addition input points
+        are marked by a pointdata array named "IsInside".
+        E.g.: print(pts.pointdata["IsInside"])
 
         .. hint:: pca.py
             .. image:: https://vedo.embl.es/images/basic/pca.png
         """
         if isinstance(pts, Points):
             pointsPolydata = pts.polydata()
-            pts = pts.points()
+            ptsa = pts.points()
         else:
-            pts = np.asarray(pts, dtype=float)
+            ptsa = np.asarray(pts, dtype=float)
             vpoints = vtk.vtkPoints()
-            vpoints.SetData(numpy2vtk(pts, dtype=float))
+            vpoints.SetData(numpy2vtk(ptsa, dtype=float))
             pointsPolydata = vtk.vtkPolyData()
             pointsPolydata.SetPoints(vpoints)
 
@@ -1570,10 +1571,13 @@ class Mesh(Points):
 
         varr = sep.GetOutput().GetPointData().GetArray("SelectedPoints")
         mask = vtk2numpy(varr).astype(np.bool)
-        ids = np.array(range(len(pts)))[mask]
+        ids = np.array(range(len(ptsa)))[mask]
+
+        if isinstance(pts, Points):
+            varr.SetName("IsInside")
+            pts._data.GetPointData().AddArray(varr)
 
         if returnIds:
-            self._update(sep.GetOutput())
             return ids
         else:
             pcl = Points(pts[ids])
