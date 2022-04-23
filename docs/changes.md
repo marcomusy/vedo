@@ -40,10 +40,14 @@ examples/basic/shadow2.py
 examples/basic/deleteMeshPoints.py
 examples/basic/ssao.py
 examples/basic/align6.py
+examples/basic/pca_ellipsoid.py
+examples/advanced/gyroid.py
 examples/pyplot/histo_1d_b.py
 examples/pyplot/fitPolynomial1.py
 examples/pyplot/plot_extra_yaxis.py
+examples/volumetric/volumeOperations.py
 examples/other/pygeodesic1.py
+
 
 ### Deleted
 examples/other/animation1.py

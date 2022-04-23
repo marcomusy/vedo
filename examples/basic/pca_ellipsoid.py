@@ -1,3 +1,5 @@
+"""Draw the ellipsoid that contains 50% of a cloud of Points,
+then check how many points are inside the surface"""
 from vedo import *
 
 settings.useDepthPeeling = True
@@ -36,5 +38,6 @@ show(elli,
      a1, a2, a3,
      Points(pin).c("green4"),
      Points(pout).c("red5").alpha(0.2),
+     __doc__,
      axes=1,
 ).close()

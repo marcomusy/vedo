@@ -1548,7 +1548,7 @@ class Mesh(Points):
         are marked by a pointdata array named "IsInside".
         E.g.: print(pts.pointdata["IsInside"])
 
-        .. hint:: pca.py
+        .. hint:: examples/basic/pca_ellipsoid.py
             .. image:: https://vedo.embl.es/images/basic/pca.png
         """
         if isinstance(pts, Points):

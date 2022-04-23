@@ -550,7 +550,7 @@ def pcaEllipsoid(points, pvalue=0.673):
     .. warning:: the meaning of ``ellips.axis1``, has changed wrt `vedo==2022.1.0`
         in that it's now the direction wrt the origin (e.i. the center is subtracted)
 
-    .. hint:: examples/basic/pca.py, cell_colony.py
+    .. hint:: examples/basic/pca_ellipsoid.py
     """
     from scipy.stats import f
 
@@ -572,7 +572,6 @@ def pcaEllipsoid(points, pvalue=0.673):
     center = np.mean(P, axis=0)   # centroid of the hyperellipsoid
 
     elli = vedo.shapes.Ellipsoid((0,0,0), (1,0,0), (0,1,0), (0,0,1), alpha=0.2)
-    elli.GetProperty().BackfaceCullingOn()
 
     matri = vtk.vtkMatrix4x4()
     matri.DeepCopy((
