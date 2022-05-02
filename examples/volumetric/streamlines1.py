@@ -1,20 +1,27 @@
-"""Streamlines originating from a probing sphere
-in a volume domain defined by the pink hyperboloid.
-The vector field is given by the coords of the hyperboloid,
-this field is interpolated to the whole bounding box.
-"""
+"""Streamlines originating from a set of seed points in space
+subjected to a vectorial field defined on a small set of points.
+This field is interpolated to a user-defined bounding box."""
 from vedo import *
+import pandas as pd
 
-mesh = Hyperboloid(pos=(0,0,0)).alpha(0.2)
+data = "https://raw.githubusercontent.com/plotly/datasets/master/vortex.csv"
+df = pd.read_csv(data)
+pts  = np.c_[df['x'], df['y'], df['z']]
+wind = np.c_[df['u'], df['v'], df['w']]
 
-vects = mesh.clone().points() # let's assume this
-mesh.pointdata["hyp_coords"] = vects
+domain = Points(pts)
+domain.pointdata["Wind"] = wind
 
-probe = Sphere(pos=[0,0.6,0.3], r=0.3, res=8).clean()
-probe.wireframe().alpha(0.2).color('g')
+seeds = domain.clone().subsample(0.2) # these are the seed points
 
-stream = streamLines(mesh, probe,
-                     maxPropagation=0.3,
-                     extrapolateToBoundingBox={'dims':(10,10,10)})
+# Compute stream lines with Runge-Kutta integration, we
+# extrapolate the field defined on points to a bounding box
+streamlines = StreamLines(
+    domain,
+    seeds,
+    maxPropagation=100,
+    extrapolateToBox=dict(bounds=[-20,20, -15,15, -20,20]),
+)
+streamlines.lw(5).cmap("Blues", "Wind").addScalarBar()
 
-show(stream, probe, mesh, mesh.box(), __doc__, axes=3, viewup='z').close()
+show(streamlines, __doc__, axes=1, viewup='z').close()

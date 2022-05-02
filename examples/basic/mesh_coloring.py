@@ -9,7 +9,6 @@ man1 = Mesh(dataurl+"man_low.vtk").lineWidth(0.1)
 nv = man1.NCells()                         # nr. of cells
 scals = range(nv)                          # coloring by the index of cell
 
-man1.celldata["mycellscalars"] = scals    # add an array of scalars to mesh
 man1.cmap("Paired", scals, on='cells').addScalarBar("cell nr")
 plt.at(0).show(man1, __doc__, elevation=-60)
 

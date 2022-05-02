@@ -3,7 +3,6 @@ Red points stay fixed while a single point in space
 moves as the arrow indicates."""
 from vedo import *
 
-
 mesh = Mesh(dataurl+"man.vtk").color('w').lineWidth(0.1)
 
 # a heavily decimated copy

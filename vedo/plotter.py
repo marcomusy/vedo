@@ -901,8 +901,17 @@ class Plotter:
             self.actors.append(acts)
         return acts
 
-    def at(self, nren):
-        """Select the current renderer number."""
+    def at(self, nren, yren=None):
+        """
+        Select the current renderer number as an int.
+        Can also use the [nx, ny] format.
+        """
+        if yren is not None:
+            nren = (yren) * self.shape[1] + (nren)
+            if nren < 0 or nren > len(self.renderers):
+                vedo.logger.error(f"at({nren, yren}) is malformed!")
+                raise RuntimeError
+
         self.renderer = self.renderers[nren]
         self.camera = self.renderer.GetActiveCamera()
         return self
@@ -1043,8 +1052,9 @@ class Plotter:
         if resetcam:
             self.renderer.ResetCamera()
 
-        if settings.allowInteraction:
-            self.allowInteraction()
+        # if settings.allowInteraction:
+        #     print('dd')
+        #     self.allowInteraction()
 
         self.window.Render()
 
@@ -1574,10 +1584,10 @@ class Plotter:
         return addons.addButton(fnc, states, c, bc, pos, size, font,
                                 bold, italic, alpha, angle)
 
-    def addSplineTool(self, points, pc='k', ps=8, lc='r4', ac='g5', lw=2, closed=False, interactive=True):
+    def addSplineTool(self, points, pc='k', ps=8, lc='r4', ac='g5', lw=2, closed=False, interactive=False):
         """
-        Add a spline tool to the current plotter. Nodes of the spline can be dragged in space
-        with the mouse.
+        Add a spline tool to the current plotter.
+        Nodes of the spline can be dragged in space with the mouse.
         Clicking on the line itself adds an extra point.
         Selecting a point and pressing del removes it.
 

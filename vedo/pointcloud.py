@@ -1083,7 +1083,7 @@ class Points(vtk.vtkFollower, BaseActor):
         return act2d
 
 
-    def addTrail(self, offset=None, maxlength=None, n=50, c=None, alpha=None, lw=2):
+    def addTrail(self, offset=None, maxlength=None, n=50, c=None, alpha=1, lw=2):
         """
         Add a trailing line to mesh.
         This new mesh is accessible through `mesh.trail`.
@@ -1109,6 +1109,7 @@ class Points(vtk.vtkFollower, BaseActor):
             maxlength = self.diagonalSize() * 20
             if maxlength == 0:
                 maxlength = 1
+                vedo.logger.warning("addTrail(): maxlength set to 1")
 
         if self.trail is None:
             pos = self.GetPosition()
@@ -1123,11 +1124,6 @@ class Points(vtk.vtkFollower, BaseActor):
                     col = (0.1, 0.1, 0.1)
             else:
                 col = colors.getColor(c)
-
-            if alpha is None:
-                alpha = 1
-                if hasattr(self, "GetProperty"):
-                    alpha = self.GetProperty().GetOpacity()
 
             tline = vedo.shapes.Line(pos, pos, res=n, c=col, alpha=alpha, lw=lw)
             self.trail = tline  # holds the Line
@@ -2433,13 +2429,14 @@ class Points(vtk.vtkFollower, BaseActor):
         "Deprecated, Please use cmap(on='points')"
         return self
 
-    def _pointColors(self,
-                     input_array,
-                     cmap,
-                     alpha,
-                     vmin, vmax,
-                     arrayName,
-                     n=256,
+    def _pointColors(
+            self,
+            input_array,
+            cmap,
+            alpha,
+            vmin, vmax,
+            arrayName,
+            n=256,
         ):
         poly = self._data
         data = poly.GetPointData()
@@ -2500,12 +2497,20 @@ class Points(vtk.vtkFollower, BaseActor):
             arrayName = arrayName+"_float"
 
         if not utils.isSequence(alpha):
-            alpha = [alpha]*n
+            alpha = [alpha] * n
 
-        if vmin is None:
-            vmin = arr.GetRange()[0]
-        if vmax is None:
-            vmax = arr.GetRange()[1]
+        if arr.GetNumberOfComponents() == 1:
+            if vmin is None:
+                vmin = arr.GetRange()[0]
+            if vmax is None:
+                vmax = arr.GetRange()[1]
+        else:
+            if vmin is None or vmax is None:
+                vn = utils.mag(utils.vtk2numpy(arr))
+            if vmin is None:
+                vmin = vn.min()
+            if vmax is None:
+                vmax = vn.max()
 
         ########################### build the look-up table
         if isinstance(cmap, vtk.vtkLookupTable): # vtkLookupTable
@@ -2524,6 +2529,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         else: # assume string cmap name OR matplotlib.colors.LinearSegmentedColormap
             lut = vtk.vtkLookupTable()
+            lut.SetVectorModeToMagnitude()
             lut.SetRange(vmin,vmax)
             ncols, nalpha = n, len(alpha)
             lut.SetNumberOfTableValues(ncols)
@@ -2552,13 +2558,14 @@ class Points(vtk.vtkFollower, BaseActor):
     @deprecated(reason=vedo.colors.red+"Please use cmap(on='cells')"+vedo.colors.reset)
     def cellColors(self, *args, **kwargs): return self
 
-    def _cellColors(self,
-                   input_array,
-                   cmap,
-                   alpha,
-                   vmin, vmax,
-                   arrayName,
-                   n,
+    def _cellColors(
+            self,
+            input_array,
+            cmap,
+            alpha,
+            vmin, vmax,
+            arrayName,
+            n,
         ):
         poly = self._data
         data = poly.GetCellData()
@@ -2621,10 +2628,18 @@ class Points(vtk.vtkFollower, BaseActor):
         if not utils.isSequence(alpha):
             alpha = [alpha]*n
 
-        if vmin is None:
-            vmin = arr.GetRange()[0]
-        if vmax is None:
-            vmax = arr.GetRange()[1]
+        if arr.GetNumberOfComponents() == 1:
+            if vmin is None:
+                vmin = arr.GetRange()[0]
+            if vmax is None:
+                vmax = arr.GetRange()[1]
+        else:
+            if vmin is None or vmax is None:
+                vn = utils.mag(utils.vtk2numpy(arr))
+            if vmin is None:
+                vmin = vn.min()
+            if vmax is None:
+                vmax = vn.max()
 
         ########################### build the look-up table
         if isinstance(cmap, vtk.vtkLookupTable):     # vtkLookupTable
@@ -2633,6 +2648,7 @@ class Points(vtk.vtkFollower, BaseActor):
         elif utils.isSequence(cmap):                 # manual sequence of colors
             lut = vtk.vtkLookupTable()
             lut.SetRange(vmin,vmax)
+            lut.SetVectorModeToMagnitude()
             ncols, nalpha = len(cmap), len(alpha)
             lut.SetNumberOfTableValues(ncols)
             for i, c in enumerate(cmap):

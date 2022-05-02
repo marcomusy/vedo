@@ -22,7 +22,7 @@ g2.triangulate()
 g2.interpolateDataFrom(
     g1,
     on='cells',
-	radius=0.1+eps,
+    radius=0.1+eps,
     nullStrategy=1,
     nullValue=-1,
 )

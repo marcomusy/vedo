@@ -1,5 +1,6 @@
 """Visualize a n\dotm numpy matrix"""
-from vedo.pyplot import matrix, show
+from vedo.pyplot import matrix
+from vedo import show
 import numpy as np
 
 n, m = (6, 5)

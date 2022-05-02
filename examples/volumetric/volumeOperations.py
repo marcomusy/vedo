@@ -49,7 +49,7 @@ vgrad = vol_obj.operation("gradient")
 printc(vgrad.pointdata.keys(), c='g')
 
 grd = vgrad.pointdata['ImageScalarsGradient']
-pts = vol_obj.topoints().points()  # coords as numpy array
+pts = vol_obj.points()  # coords as numpy array
 arrs = Arrows(pts, pts + grd*0.1).lighting('off')
 
 pts_probes = [[0.2,0.5,0.5], [0.2,0.3,0.4]]

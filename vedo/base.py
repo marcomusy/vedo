@@ -14,7 +14,6 @@ __all__ = [
     "probePoints",
     "probeLine",
     "probePlane",
-    "streamLines",
 ]
 
 
@@ -698,15 +697,6 @@ class Base3DProp(object):
         please use the syntax `show(mesh1, mesh2, volume, ..., options)`.
 
         Returns the ``Plotter`` class instance.
-
-        Example:
-            .. code-block:: python
-
-                from vedo import *
-                s = Sphere()
-                s.show(at=1, N=2)
-                c = Cube()
-                c.show(at=0).interactive().close()
         """
         return vedo.plotter.show(self, **options)
 
@@ -791,8 +781,13 @@ class BaseActor(Base3DProp):
 
             if isinstance(self, vedo.Points):
                 vpts = self.polydata(transformed).GetPoints()
+            elif isinstance(self, vedo.BaseVolume):
+                v2p = vtk.vtkImageToPoints()
+                v2p.SetInputData(self.imagedata())
+                v2p.Update()
+                vpts = v2p.GetOutput().GetPoints()
             else:
-                vpts = self._data.GetPoints()
+                vedo.error(f"points() not implmented for type {type(self)}")
 
             if vpts:
                 return utils.vtk2numpy(vpts.GetData())
@@ -1793,7 +1788,6 @@ class BaseGrid(BaseActor):
                 signedDistance = ippd.EvaluateFunction(p)
                 signedDistances.InsertNextValue(signedDistance)
             ug.GetPointData().AddArray(signedDistances)
-            ug.GetPointData().SetActiveScalars("SignedDistances")
             clipper = vtk.vtkClipDataSet()
             clipper.SetInputData(ug)
             clipper.SetInsideOut(not invert)
@@ -1941,317 +1935,6 @@ def probePlane(dataset, origin=(0, 0, 0), normal=(1, 0, 0)):
     cutmesh.name = 'probePlane'
     return cutmesh
 
-
-def interpolateToStructuredGrid(
-        mesh,
-        kernel=None,
-        radius=None,
-        bounds=None,
-        nullValue=None,
-        dims=None,
-    ):
-    """
-    Generate a volumetric dataset (vtkStructuredData) by interpolating a scalar
-    or vector field which is only known on a scattered set of points or mesh.
-    Available interpolation kernels are: shepard, gaussian, voronoi, linear.
-
-    Parameters
-    ----------
-    kernel : str
-        interpolation kernel type [shepard]
-    radius : float
-        radius of the local search
-    bounds : list
-        bounding box of the output vtkStructuredGrid object
-    dims : list
-        dimensions of the output vtkStructuredGrid object
-    nullValue : float
-        value to be assigned to invalid points
-    """
-    if isinstance(mesh, vtk.vtkPolyData):
-        output = mesh
-    else:
-        output = mesh.polydata()
-
-    if dims is None:
-        dims = (20,20,20)
-
-    if bounds is None:
-        bounds = output.GetBounds()
-
-    # Create a probe volume
-    probe = vtk.vtkStructuredGrid()
-    probe.SetDimensions(dims)
-
-    points = vtk.vtkPoints()
-    points.Allocate(dims[0] * dims[1] * dims[2])
-    deltaZ = (bounds[5]-bounds[4]) / (dims[2] - 1)
-    deltaY = (bounds[3]-bounds[2]) / (dims[1] - 1)
-    deltaX = (bounds[1]-bounds[0]) / (dims[0] - 1)
-    for k in range(dims[2]):
-        z = bounds[4] + k * deltaZ
-        kOffset = k * dims[0] * dims[1]
-        for j in range(dims[1]):
-            y = bounds[2] + j * deltaY
-            jOffset = j * dims[0]
-            for i  in range(dims[0]):
-                x = bounds[0] + i * deltaX
-                offset = i + jOffset + kOffset
-                points.InsertPoint(offset, [x,y,z])
-    probe.SetPoints(points)
-
-    if radius is None:
-        radius = min(bounds[1]-bounds[0], bounds[3]-bounds[2], bounds[5]-bounds[4])/3
-
-    locator = vtk.vtkStaticPointLocator()
-    locator.SetDataSet(output)
-    locator.BuildLocator()
-
-    if kernel == 'gaussian':
-        kern = vtk.vtkGaussianKernel()
-        kern.SetRadius(radius)
-    elif kernel == 'voronoi':
-        kern = vtk.vtkVoronoiKernel()
-    elif kernel == 'linear':
-        kern = vtk.vtkLinearKernel()
-        kern.SetRadius(radius)
-    else:
-        kern = vtk.vtkShepardKernel()
-        kern.SetPowerParameter(2)
-        kern.SetRadius(radius)
-
-    interpolator = vtk.vtkPointInterpolator()
-    interpolator.SetInputData(probe)
-    interpolator.SetSourceData(output)
-    interpolator.SetKernel(kern)
-    interpolator.SetLocator(locator)
-    if nullValue is not None:
-        interpolator.SetNullValue(nullValue)
-    else:
-        interpolator.SetNullPointsStrategyToClosestPoint()
-    interpolator.Update()
-    return interpolator.GetOutput()
-
-
-def streamLines(
-        domain,
-        probe,
-        activeVectors='',
-        integrator='rk4',
-        direction='forward',
-        initialStepSize=None,
-        maxPropagation=None,
-        maxSteps=10000,
-        stepLength=None,
-        extrapolateToBoundingBox=(),
-        surfaceConstrain=False,
-        computeVorticity=True,
-        ribbons=None,
-        tubes={},
-        scalarRange=None,
-        lw=None,
-    ):
-    """
-    Integrate a vector field on a domain (a Mesh or other vtk datasets types)
-    to generate streamlines.
-
-    The integration is performed using a specified integrator (Runge-Kutta).
-    The length of a streamline is governed by specifying a maximum value either
-    in physical arc length or in (local) cell length.
-    Otherwise, the integration terminates upon exiting the field domain.
-
-    Arguments
-    ---------
-    domain : vtkdataset
-        the vtk object that contains the vector field
-
-    probe : Mesh, list
-        the Mesh that probes the domain. Its coordinates will
-        be the seeds for the streamlines, can also be an array of positions.
-
-    Parameters
-    ----------
-    activeVectors : str
-        name of the vector array to be used
-
-    integrator : str
-        Runge-Kutta integrator, either 'rk2', 'rk4' of 'rk45'
-
-    initialStepSize : float
-        initial step size of integration
-
-    maxPropagation : float
-        maximum physical length of the streamline
-
-    maxSteps : int
-        maximum nr of steps allowed
-
-    stepLength : float
-        length of step integration.
-
-    extrapolateToBoundingBox : dict
-        Vectors defined on a surface are extrapolated to the entire volume defined by its bounding box
-
-        - kernel, (str) - interpolation kernel type [shepard]
-        - radius (float)- radius of the local search
-        - bounds, (list) - bounding box of the output Volume
-        - dims, (list) - dimensions of the output Volume object
-        - nullValue, (float) - value to be assigned to invalid points
-
-    surfaceConstrain : bool
-        force streamlines to be computed on a surface
-
-    computeVorticity : bool
-        Turn on/off vorticity computation at streamline points
-        (necessary for generating proper stream-ribbons)
-
-    ribbons : int
-        render lines as ribbons by joining them.
-        An integer value represent the ratio of joining (e.g.: ribbons=2 groups lines 2 by 2)
-
-    tubes : dict
-        dictionary containing the parameters for the tube representation:
-
-        - ratio, (int) - draws tube as longitudinal stripes
-        - res, (int) - tube resolution (nr. of sides, 12 by default)
-        - maxRadiusFactor (float) - max tube radius as a multiple of the min radius
-        - varyRadius, (int) - radius varies based on the scalar or vector magnitude:
-
-            - 0 - do not vary radius
-            - 1 - vary radius by scalar
-            - 2 - vary radius by vector
-            - 3 - vary radius by absolute value of scalar
-
-    scalarRange : list
-        specify the scalar range for coloring
-
-    .. hint::
-        examples/volumetric/streamlines1.py, streamlines2.py, streamribbons.py, office.py
-    """
-
-    if isinstance(domain, vtk.vtkActor):
-        if len(extrapolateToBoundingBox):
-            grid = interpolateToStructuredGrid(domain, **extrapolateToBoundingBox)
-        else:
-            grid = domain.polydata()
-    else:
-        grid = domain
-
-    if activeVectors:
-        grid.GetPointData().SetActiveVectors(activeVectors)
-
-    b = grid.GetBounds()
-    size = (b[5]-b[4] + b[3]-b[2] + b[1]-b[0])/3
-    if initialStepSize is None:
-        initialStepSize = size/100.
-    if maxPropagation is None:
-        maxPropagation = size
-
-    if utils.isSequence(probe):
-        pts = np.array(probe)
-        if pts.shape[1] == 2: # make it 3d
-            pts = np.c_[pts, np.zeros(len(pts))]
-    else:
-        pts = probe.clean().points()
-    src = vtk.vtkProgrammableSource()
-    def readPoints():
-        output = src.GetPolyDataOutput()
-        points = vtk.vtkPoints()
-        for x, y, z in pts:
-            points.InsertNextPoint(x, y, z)
-        output.SetPoints(points)
-    src.SetExecuteMethod(readPoints)
-    src.Update()
-
-    st = vtk.vtkStreamTracer()
-    st.SetInputDataObject(grid)
-    st.SetSourceConnection(src.GetOutputPort())
-
-    st.SetInitialIntegrationStep(initialStepSize)
-    st.SetComputeVorticity(computeVorticity)
-    st.SetMaximumNumberOfSteps(maxSteps)
-    st.SetMaximumPropagation(maxPropagation)
-    st.SetSurfaceStreamlines(surfaceConstrain)
-    if stepLength:
-        st.SetMaximumIntegrationStep(stepLength)
-
-    if 'f' in direction:
-        st.SetIntegrationDirectionToForward()
-    elif 'back' in direction:
-        st.SetIntegrationDirectionToBackward()
-    elif 'both' in direction:
-        st.SetIntegrationDirectionToBoth()
-
-    if integrator == 'rk2':
-        st.SetIntegratorTypeToRungeKutta2()
-    elif integrator == 'rk4':
-        st.SetIntegratorTypeToRungeKutta4()
-    elif integrator == 'rk45':
-        st.SetIntegratorTypeToRungeKutta45()
-    else:
-        vedo.logger.error(f"in streamlines, unknown integrator {integrator}")
-
-    st.Update()
-    output = st.GetOutput()
-
-    if ribbons:
-        scalarSurface = vtk.vtkRuledSurfaceFilter()
-        scalarSurface.SetInputConnection(st.GetOutputPort())
-        scalarSurface.SetOnRatio(int(ribbons))
-        scalarSurface.SetRuledModeToPointWalk()
-        scalarSurface.Update()
-        output = scalarSurface.GetOutput()
-
-    if len(tubes):
-        streamTube = vtk.vtkTubeFilter()
-        streamTube.SetNumberOfSides(12)
-        streamTube.SetRadius(tubes['radius'])
-
-        if 'res' in tubes:
-            streamTube.SetNumberOfSides(tubes['res'])
-
-        # max tube radius as a multiple of the min radius
-        streamTube.SetRadiusFactor(50)
-        if 'maxRadiusFactor' in tubes:
-            streamTube.SetRadius(tubes['maxRadiusFactor'])
-
-        if 'ratio' in tubes:
-            streamTube.SetOnRatio(int(tubes['ratio']))
-
-        if 'varyRadius' in tubes:
-            streamTube.SetVaryRadius(int(tubes['varyRadius']))
-
-        streamTube.SetInputData(output)
-        vname = grid.GetPointData().GetVectors().GetName()
-        streamTube.SetInputArrayToProcess(1, 0, 0,
-                                          vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS,
-                                          vname)
-        streamTube.Update()
-        sta = vedo.mesh.Mesh(streamTube.GetOutput(), c=None)
-
-        scals = grid.GetPointData().GetScalars()
-        if scals:
-            sta.mapper().SetScalarRange(scals.GetRange())
-        if scalarRange is not None:
-            sta.mapper().SetScalarRange(scalarRange)
-
-        sta.GetProperty().BackfaceCullingOn()
-        sta.phong()
-        return sta
-
-    sta = vedo.mesh.Mesh(output, c=None)
-
-    if lw is not None and len(tubes) == 0 and not ribbons:
-        sta.lw(lw)
-        sta._mapper.SetResolveCoincidentTopologyToPolygonOffset()
-        sta.lighting('off')
-
-    scals = grid.GetPointData().GetScalars()
-    if scals:
-        sta.mapper().SetScalarRange(scals.GetRange())
-    if scalarRange is not None:
-        sta.mapper().SetScalarRange(scalarRange)
-    return sta
 
 ###################################################################################
 # def extractCellsByType(obj, types=(7,)):    ### VTK9 only

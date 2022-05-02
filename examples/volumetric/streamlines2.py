@@ -17,10 +17,10 @@ pl3d.Update()
 domain = pl3d.GetOutput().GetBlock(0)
 
 ######################## vedo
-probe= Grid(pos=[9,0,30], normal=[1,0,0], s=[5,5], res=[6,6])
+probe= Grid(pos=[5,0,29], normal=[1,0,0], s=[5,5], res=[6,6])
 
-stream = streamLines(domain, probe, direction='backwards')
+stream = StreamLines(domain, probe)
 
-box = Mesh(domain).alpha(0.1)
+box = Mesh(domain).alpha(0.1).c('white')
 
 show(stream, probe, box, __doc__, axes=7, bg='bb').close()

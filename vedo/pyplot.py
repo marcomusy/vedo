@@ -18,10 +18,10 @@ Advanced plotting utility functions
 
 __all__ = [
     "Figure",
-    #"Histogram1D", # uncomment to generate docs
-    #"Histogram2D",
-    #"PlotXY",
-    #"PlotBars",
+    "Histogram1D", # uncomment to generate docs
+    "Histogram2D",
+    "PlotXY",
+    "PlotBars",
     "plot",
     "histogram",
     "fit",
@@ -2559,9 +2559,9 @@ def fit(
     Theors, all_coeffs = [], []
     for i in range(niter):
         noise = np.random.randn(n)*sigma
-        Coeffs = np.polyfit(x, y + noise, deg, w=w, rcond=None)
-        all_coeffs.append(Coeffs)
-        P1d = np.poly1d(Coeffs)
+        coeffs = np.polyfit(x, y + noise, deg, w=w, rcond=None)
+        all_coeffs.append(coeffs)
+        P1d = np.poly1d(coeffs)
         Theor = P1d(xr)
         Theors.append(Theor)
     all_coeffs = np.array(all_coeffs)
@@ -3626,10 +3626,10 @@ def streamplot(X, Y, U, V, direction="both",
         probes = np.multiply(probes, sv)
         probe = vedo.Points(probes)
 
-    stream = vedo.base.streamLines(
-        vol.imagedata(),
+    stream = vedo.shapes.StreamLines(
+        vol,
         probe,
-        tubes={"radius": lw, "varyRadius": mode,},
+        tubes={"radius": lw, "mode": mode,},
         lw=lw,
         maxPropagation=maxPropagation,
         direction=direction,
@@ -3767,6 +3767,7 @@ def matrix(
 
     ylabs=None
     if len(ylabels)==n:
+        ylabels = list(reversed(ylabels))
         ylabs=[]
         for i in range(n):
             yl = shapes.Text3D(ylabels[i], font=font, s=.02,

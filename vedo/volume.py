@@ -638,7 +638,7 @@ class BaseVolume:
         v2p = vtk.vtkImageToPoints()
         v2p.SetInputData(self.imagedata())
         v2p.Update()
-        mpts = Mesh(v2p.GetOutput())
+        mpts = vedo.Points(v2p.GetOutput())
         return mpts
 
 
