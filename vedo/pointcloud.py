@@ -997,12 +997,6 @@ class Points(vtk.vtkFollower, BaseActor):
         cloned.name = str(self.name)
         cloned.filename = str(self.filename)
         cloned.info = dict(self.info)
-        if self.trail:
-            n = len(self.trailPoints)
-            cloned.addTrail(self.trailOffset, self.trailSegmentSize*n, n,
-                            None, None, self.trail.GetProperty().GetLineWidth())
-        if len(self.shadows) > 0:
-            cloned.addShadows()
 
         cloned.point_locator = None # better not to share the same locators with original obj
         cloned.cell_locator = None
@@ -1083,7 +1077,7 @@ class Points(vtk.vtkFollower, BaseActor):
         return act2d
 
 
-    def addTrail(self, offset=None, maxlength=None, n=50, c=None, alpha=1, lw=2):
+    def addTrail(self, offset=(0,0,0), n=50, c=None, alpha=1, lw=2):
         """
         Add a trailing line to mesh.
         This new mesh is accessible through `mesh.trail`.
@@ -1093,11 +1087,8 @@ class Points(vtk.vtkFollower, BaseActor):
         offset : float
             set an offset vector from the object center.
 
-        maxlength : float
-            length of trailing line in absolute units
-
         n : int
-            number of segments to control precision
+            number of segments
 
         lw : float
             line width of the trail
@@ -1105,23 +1096,13 @@ class Points(vtk.vtkFollower, BaseActor):
         .. hint:: examples/simulations/trail.py, airplane1.py, airplane2.py
             .. image:: https://vedo.embl.es/images/simulations/trail.gif
         """
-        if maxlength is None:
-            maxlength = self.diagonalSize() * 20
-            if maxlength == 0:
-                maxlength = 1
-                vedo.logger.warning("addTrail(): maxlength set to 1")
-
         if self.trail is None:
             pos = self.GetPosition()
-            self.trailPoints = [None] * n
-            self.trailSegmentSize = maxlength / n
-            self.trailOffset = offset
+            self.trailOffset = np.asarray(offset)
+            self.trailPoints = [pos] * n
 
             if c is None:
-                if hasattr(self, "GetProperty"):
-                    col = self.GetProperty().GetColor()
-                else:
-                    col = (0.1, 0.1, 0.1)
+                col = self.GetProperty().GetColor()
             else:
                 col = colors.getColor(c)
 
@@ -1129,34 +1110,28 @@ class Points(vtk.vtkFollower, BaseActor):
             self.trail = tline  # holds the Line
         return self
 
-    def updateTrail(self):
-        # internal use
+    def _updateTrail(self):
         if isinstance(self, vedo.shapes.Arrow):
-            currentpos= self.tipPoint() # the tip of Arrow
+            currentpos= self.tipPoint()  # the tip of Arrow
         else:
             currentpos = np.array(self.GetPosition())
-
-        if self.trailOffset:
-            currentpos += self.trailOffset
-
-        lastpos = self.trailPoints[-1]
-        if lastpos is None:  # reset list
-            self.trailPoints = [currentpos] * len(self.trailPoints)
-            return
-
-        if np.linalg.norm(currentpos - lastpos) < self.trailSegmentSize:
-            return
 
         self.trailPoints.append(currentpos)  # cycle
         self.trailPoints.pop(0)
 
+        data = np.array(self.trailPoints) - currentpos + self.trailOffset
         tpoly = self.trail.polydata(False)
-        tpoly.GetPoints().SetData(
-            utils.numpy2vtk(self.trailPoints-currentpos, dtype=float)
-        )
+        tpoly.GetPoints().SetData(utils.numpy2vtk(data, dtype=float))
         self.trail.SetPosition(currentpos)
-        return self
 
+
+    def _updateShadows(self):
+        shadows = self.shadows
+        self.shadows = []
+        for sha in shadows:
+            color = sha.GetProperty().GetColor()
+            opacity = sha.GetProperty().GetOpacity()
+            self.addShadow(**sha.info, c=color, alpha=opacity)
 
     def deleteCellsByPointIndex(self, indices):
         """

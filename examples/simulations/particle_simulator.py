@@ -88,7 +88,7 @@ class Particle:
         self.negligible = negligible
         self.color = color
         if plt:
-            self.vsphere = Sphere(pos, r=radius, c=color).addTrail(alpha=1, maxlength=1, n=50)
+            self.vsphere = Sphere(pos, r=radius, c=color).addTrail(lw=0.1, n=100, alpha=0.2)
             plt.add(self.vsphere, render=False)  # Sphere representing the particle
 
 
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     sim = ParticleSim(dt=1e-5, iterations=100)
     sim.add_particle((-0.4, 0, 0), color="w", charge=3e-6, radius=0.01, fixed=True)  # the target
 
-    positions = np.random.randn(300, 3) / 60  # generate a beam of 300 particles
+    positions = np.random.randn(500, 3) / 60  # generate a beam of particles
     for p in positions:
         p[0] = -0.5  # Fix x position. Their charge are small/negligible compared to target:
         sim.add_particle(p, charge=0.01e-6, mass=0.1e-6, vel=(1000, 0, 0), negligible=True)

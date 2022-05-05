@@ -865,42 +865,6 @@ class Plotter:
         self.close()
         return None
 
-
-    def load(self, filename, unpack=True, force=False):
-        """
-        Load objects from file.
-        The output will depend on the file extension. See examples below.
-
-        Parameters
-        ----------
-        unpack : bool
-            only for multiblock data, if True returns a flat list of objects.
-
-        force : bool
-            when downloading a file ignore any previous cached downloads and force a new one.
-
-        Example:
-            .. code-block:: python
-
-                from vedo import *
-                # Return a list of 2 Mesh
-                meshes = load([dataurl+'250.vtk', dataurl+'290.vtk'])
-                show(meshes)
-                # Return a list of meshes by reading all files in a directory
-                # (if directory contains DICOM files then a Volume is returned)
-                meshes = load('mydicomdir/')
-                show(meshes)
-                # Return a Volume
-                vol = load(dataurl+'embryo.slc')
-                vol.show()
-        """
-        acts = vedo.io.load(filename, unpack, force)
-        if utils.isSequence(acts):
-            self.actors += acts
-        else:
-            self.actors.append(acts)
-        return acts
-
     def at(self, nren, yren=None):
         """
         Select the current renderer number as an int.
@@ -1004,7 +968,7 @@ class Plotter:
         Remove the last added object from the rendering window.
         This method is typically used in loops or callback functions.
         """
-        if not isinstance(at, (int, None)):
+        if at is not None and not isinstance(at, int):
             # wrong usage pitfall
             vedo.logger.error("argment of pop() must be an integer")
             raise RuntimeError()
@@ -1052,9 +1016,8 @@ class Plotter:
         if resetcam:
             self.renderer.ResetCamera()
 
-        # if settings.allowInteraction:
-        #     print('dd')
-        #     self.allowInteraction()
+        if settings.allowInteraction:
+            self.allowInteraction()
 
         self.window.Render()
 
@@ -1304,6 +1267,26 @@ class Plotter:
         self.interactor.FlyTo(self.renderers[at], point)
         return self
 
+    def lookAt(self, plane='xy'):
+        """Move the camera so that it looks the specified cartesian plane"""
+        cam = self.renderer.GetActiveCamera()
+        fp = np.array(cam.GetFocalPoint())
+        p = np.array(cam.GetPosition())
+        dist = np.linalg.norm(fp - p)
+        plane = plane.lower()
+        if 'x' in plane and 'y' in plane:
+            cam.SetPosition(fp[0], fp[1], fp[2] + dist)
+            cam.SetViewUp(0.0, 1.0, 0.0)
+        elif 'x' in plane and 'z' in plane:
+            cam.SetPosition(fp[0], fp[1] - dist, fp[2])
+            cam.SetViewUp(0.0, 0.0, 1.0)
+        elif 'y' in plane and 'z' in plane:
+            cam.SetPosition(fp[0] + dist, fp[1], fp[2])
+            cam.SetViewUp(0.0, 0.0, 1.0)
+        else:
+            vedo.logger.error(f"in plotter.look() cannot understand argument {plane}")
+        return self
+
 
     def record(self, filename='.vedo_recorded_events.log'):
         """
@@ -1388,18 +1371,19 @@ class Plotter:
 
 
     ##################################################################
-    def addSlider2D(self,
-                    sliderfunc,
-                    xmin, xmax,
-                    value=None,
-                    pos=4,
-                    title="",
-                    font="",
-                    titleSize=1,
-                    c=None,
-                    showValue=True,
-                    delayed=False,
-                    **options,
+    def addSlider2D(
+            self,
+            sliderfunc,
+            xmin, xmax,
+            value=None,
+            pos=4,
+            title="",
+            font="",
+            titleSize=1,
+            c=None,
+            showValue=True,
+            delayed=False,
+            **options,
         ):
         """
         Add a slider widget which can call an external custom function.
@@ -2413,13 +2397,22 @@ class Plotter:
                 pass
 
             elif isinstance(a, vtk.vtkActor):
+
                 scannedacts.append(a)
+
                 if isinstance(a, vedo.base.BaseActor):
+                    if a.shadows:
+                        a._updateShadows()
+                        scannedacts.extend(a.shadows)
+
                     if a.trail and a.trail not in self.actors:
+                        a._updateTrail()
                         scannedacts.append(a.trail)
-                    for sha in a.shadows:
-                        if sha not in self.actors:
-                            scannedacts.append(sha)
+                        # trails may also have shadows:
+                        if a.trail.shadows:
+                            a.trail._updateShadows()
+                            scannedacts.extend(a.trail.shadows)
+
                     if a._caption and a._caption not in self.actors:
                         scannedacts.append(a._caption)
 
@@ -2440,6 +2433,7 @@ class Plotter:
             elif isinstance(a, vedo.TetMesh):
                 # check ugrid is all made of tets
                 ugrid = a.inputdata()
+                print(ugrid)
                 uarr = ugrid.GetCellTypesArray()
                 celltypes = np.unique(utils.vtk2numpy(uarr))
                 ncelltypes = len(celltypes)
@@ -2657,6 +2651,7 @@ class Plotter:
             self.closeWindow()
             return self
 
+
         if len(self.renderers): # in case of notebooks
 
             if at is None:
@@ -2729,14 +2724,34 @@ class Plotter:
                 if a not in self.actors:
                     self.actors.append(a)
 
+        # update all trailing lines
+        for a in self.actors:
+            try:
+                if a.trail:
+                    a._updateTrail()
+            except AttributeError:
+                pass
+
         # Backend ###############################################################
         if vedo.notebookBackend:
             if vedo.notebookBackend in ['k3d', 'ipygany', 'itkwidgets']:
                 return backends.getNotebookBackend(self.actors, zoom, viewup)
         #########################################################################
 
+        # remove all old shadows from the scene
+        shad_acs = self.renderer.GetActors()
+        shad_acs.InitTraversal()
+        for i in range(shad_acs.GetNumberOfItems()):
+            a = shad_acs.GetNextItem()
+            try:
+                if a.name == "Shadow":
+                    self.renderer.RemoveActor(a)
+            except AttributeError:
+                pass
+
         # rendering
         for ia in actors2show:
+
             if not ia:
                 continue
 

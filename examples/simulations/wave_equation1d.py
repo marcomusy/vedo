@@ -7,8 +7,7 @@ For too large values of dt the simple Euler can diverge."""
 # We will keep them fixed, but adding them in as if they were
 # masses makes the programming easier.
 # Adapted from B.Martin (2009) http://www.kcvs.ca/martin by M.Musy
-from vedo import Plotter, ProgressBar, Point, dataurl, settings
-import numpy as np
+from vedo import *
 
 ####################################################
 N = 400  # Number of coupled oscillators
@@ -41,7 +40,7 @@ v = np.zeros(N + 2, float)
 # Acceleration function for the simple harmonic oscillator
 def accel(y, v, t):
     a = np.zeros(N + 2, float)  # acceleration of particles
-    # for p in range(1,N+1): a[p] = -(y[p]-y[p-1]) -(y[p]-y[p+1]) #slower
+    # for p in range(1,N+1): a[p] = -(y[p]-y[p-1]) -(y[p]-y[p+1])  # slower
     a[1 : N + 1] = -(y[1 : N + 1] - y[0:N]) - (y[1 : N + 1] - y[2 : N + 2])  # faster
     return a
 
@@ -73,6 +72,7 @@ def euler(y, v, t, dt):  # simple euler integrator
 positions_eu, positions_rk = [], []
 y_eu, y_rk = np.array(y), np.array(y)
 v_eu, v_rk = np.array(v), np.array(v)
+
 t = 0
 pb = ProgressBar(0, Nsteps, c="blue", ETA=0)
 for i in pb.range():
@@ -93,34 +93,34 @@ plt = Plotter(interactive=False, axes=2)  # choose axes type nr.2
 
 for i in x:
     plt += Point([i, 0, 0], c="green", r=6)
-pts_actors_eu = plt.actors  # save a copy of the actors list
-pts_actors_eu[0].legend = "Euler method"
+pts_eu = plt.actors  # save a copy of the actors list
 
 plt.actors = []  # clean up the list
 
 for i in x:
     plt += Point([i, 0, 0], c="red", r=6)
-pts_actors_rk = plt.actors  # save a copy of the actors list
-pts_actors_rk[0].legend = "Runge-Kutta4"
+pts_rk = plt.actors  # save a copy of the actors list
 
 # merge the two lists and set it as the current actors
-plt.actors = pts_actors_eu + pts_actors_rk
+plt.actors = pts_eu + pts_rk
 
 # let's also add a fancy background image from wikipedia
-plt.load(dataurl+"images/wave_wiki.png").alpha(0.8).scale(0.4).pos(0,-100,-20)
+plt += Picture(dataurl+"images/wave_wiki.png").alpha(0.8).scale(0.4).pos(0,-100,-20)
 plt += __doc__
+plt.show()
 
 pb = ProgressBar(0, Nsteps, c="red", ETA=1)
 for i in pb.range():
     y_eu = positions_eu[i]  # retrieve the list of y positions at step i
     y_rk = positions_rk[i]
-    for j, act in enumerate(pts_actors_eu):
+    for j, act in enumerate(pts_eu):
         act.pos(j, y_eu[j], 0)
-    for j, act in enumerate(pts_actors_rk):
+    for j, act in enumerate(pts_rk):
         act.pos(j, y_rk[j], 0)
     if i%10 ==0:
-        plt.show()
-    if plt.escaped: break  # if ESC is hit during the loop
-    pb.print("Moving actors loop")
+        plt.render()
+    if plt.escaped:
+        break               # if ESC is hit during the loop
+    pb.print()
 
 plt.interactive().close()

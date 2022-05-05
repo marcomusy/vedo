@@ -1,6 +1,8 @@
 """Intersection of two polygonal meshes"""
 from vedo import *
 
+settings.useDepthPeeling = True
+
 car = Mesh(dataurl+"porsche.ply").alpha(0.2)
 
 line = [(-9.,0.,0.), (0.,1.,0.), (9.,0.,0.)]

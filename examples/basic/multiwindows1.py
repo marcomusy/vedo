@@ -5,7 +5,6 @@ We split the main window in many subwindows and draw
 somethingon specific windows numbers.
 Then open an independent window and draw a shape on it.
 """
-print(__doc__)
 from vedo import *
 
 ##########################################################################
@@ -16,9 +15,9 @@ plt1 = Plotter(shape=(5,5), axes=0)
 plt1.renderers[24].SetBackground(0.8, 0.9, 0.9)  # use vtk method SetBackground()
 
 # load the meshes and give them a name
-a = plt1.load(dataurl+"shuttle.obj")
-b = plt1.load(dataurl+"cessna.vtk").c("red")
-c = plt1.load(dataurl+"porsche.ply")
+a = Mesh(dataurl+"shuttle.obj")
+b = Mesh(dataurl+"cessna.vtk").c("red")
+c = Mesh(dataurl+"porsche.ply")
 
 # show a Text2D in each renderer
 for i in range(25):
@@ -46,6 +45,7 @@ for i in range(len(plt2.renderers)):
     s2 = s.clone(deep=False).color(i)
     plt2.at(i).show(s2, f'renderer #{i}')
 
+printc(__doc__)
 plt2.interactive()
 plt2.close()
 plt1.close()

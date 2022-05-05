@@ -1,10 +1,9 @@
-"""Double pendulum with ODE integration"""
+"""Double pendulum from ODE integration"""
 # Copyright (c) 2018, N. Rougier, https://github.com/rougier/pendulum
 # http://www.physics.usyd.edu.au/~wheat/dpend_html/solve_dpend.c
 # Adapted for vedo by M. Musy, 2021
-import numpy as np
 import scipy.integrate as integrate
-from vedo import Axes, Line, Points, show, sin, cos, ProgressBar, settings
+from vedo import *
 
 G  = 9.81   # acceleration due to gravity, in m/s^2
 L1 = 1.0    # length of pendulum 1 in m
@@ -44,14 +43,20 @@ y = integrate.odeint(derivs, state, t)
 P1 = np.dstack([L1*sin(y[:,0]), -L1*cos(y[:,0])]).squeeze()
 P2 = P1 + np.dstack([L2*sin(y[:,2]), -L2*cos(y[:,2])]).squeeze()
 
+plt = Plotter(interactive=False, size=(900,700),)
 ax = Axes(xrange=(-2,2), yrange=(-2,1), htitle=__doc__)
 pb = ProgressBar(0, len(t), c="b")
 for i in pb.range():
     j = max(i- 5,0)
     k = max(i-10,0)
-    l1 = Line([[0,0], P1[i], P2[i]]).lw(7).c("blue2")
-    l2 = Line([[0,0], P1[j], P2[j]]).lw(6).c("blue2", 0.3)
-    l3 = Line([[0,0], P1[k], P2[k]]).lw(5).c("blue2", 0.1)
-    pt = Points([P1[i], P2[i], P1[j], P2[j], P1[k], P2[k]], r=8).c("blue2", 0.2)
-    show(l1, l2, l3, pt, ax, interactive=False, size=(900,700), zoom=1.4)
+    l1 = Line([[0,0], P1[i], P2[i]]).lw(7).c("blue2", 1.0)
+    l2 = Line([[0,0], P1[j], P2[j]]).lw(6).c("blue2", 0.4)
+    l3 = Line([[0,0], P1[k], P2[k]]).lw(5).c("blue2", 0.2)
+    plt.show(l1, l2, l3, ax, zoom=1.4).clear()
     pb.print()
+
+plt.interactive().close()
+
+
+
+

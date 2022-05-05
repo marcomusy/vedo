@@ -135,7 +135,6 @@ class Base3DProp(object):
         self.trailSegmentSize = 0
         self.trailOffset = None
         self.shadows = []
-        self.shadowsArgs = []
         self.axes = None
         self.picked3d = None
         self.units = None
@@ -223,15 +222,10 @@ class Base3DProp(object):
 
         self.point_locator = None
         self.cell_locator = None
-
-        if self.trail:
-            self.updateTrail()
-        if len(self.shadows) > 0:
-            self._updateShadow()
         return self  # return itself to concatenate methods
 
-    def addPos(self, dx=0, dy=0, dz=0):
-        """Add vector to current object position. Same as ``shift()``."""
+    def shift(self, dx=0, dy=0, dz=0):
+        """Add a vector to the current object position."""
         p = np.array(self.GetPosition())
 
         if utils.isSequence(dx):
@@ -244,16 +238,12 @@ class Base3DProp(object):
 
         self.point_locator = None
         self.cell_locator = None
-
-        if self.trail:
-            self.updateTrail()
-        if len(self.shadows) > 0:
-            self._updateShadow()
         return self
 
-    def shift(self, dx=0, dy=0, dz=0):
-        """Add vector to current object position. Same as ``addPos()``."""
-        return self.addPos(dx, dy, dz)
+    @deprecated(reason=colors.red+"Please use shift() instead."+colors.reset)
+    def addPos(self, dx=0, dy=0, dz=0):
+        """Deprecated, use ``shift()``."""
+        return self.shift(dx, dy, dz)
 
     def x(self, position=None):
         """Set/Get object position along x axis."""
@@ -261,10 +251,6 @@ class Base3DProp(object):
         if position is None:
             return p[0]
         self.pos(position, p[1], p[2])
-        if self.trail:
-            self.updateTrail()
-        if len(self.shadows) > 0:
-            self._updateShadow()
         return self
 
     def y(self, position=None):
@@ -273,10 +259,6 @@ class Base3DProp(object):
         if position is None:
             return p[1]
         self.pos(p[0], position, p[2])
-        if self.trail:
-            self.updateTrail()
-        if len(self.shadows) > 0:
-            self._updateShadow()
         return self
 
     def z(self, position=None):
@@ -285,10 +267,6 @@ class Base3DProp(object):
         if position is None:
             return p[2]
         self.pos(p[0], p[1], position)
-        if self.trail:
-            self.updateTrail()
-        if len(self.shadows) > 0:
-            self._updateShadow()
         return self
 
     def rotate(self, angle, axis=(1, 0, 0), point=(0, 0, 0), rad=False):
@@ -329,11 +307,6 @@ class Base3DProp(object):
         # this vtk method only rotates in the origin of the object:
         self.RotateWXYZ(angle, axis[0], axis[1], axis[2])
         self.pos(rv)
-
-        if self.trail:
-            self.updateTrail()
-        if len(self.shadows) > 0:
-            self.addShadows()
         return self
 
 
@@ -362,11 +335,6 @@ class Base3DProp(object):
 
         self.SetOrientation(T.GetOrientation())
         self.SetPosition(T.GetPosition())
-
-        if self.trail:
-            self.updateTrail()
-        if len(self.shadows) > 0:
-            self.addShadows()
 
         self.point_locator = None
         self.cell_locator = None
@@ -449,11 +417,6 @@ class Base3DProp(object):
 
         self.point_locator = None
         self.cell_locator = None
-
-        if self.trail:
-            self.updateTrail()
-        if len(self.shadows) > 0:
-            self.addShadows()
         return self
 
     def scale(self, s=None, reset=False):
@@ -700,16 +663,6 @@ class Base3DProp(object):
         """
         return vedo.plotter.show(self, **options)
 
-    def addShadows(self):
-        shadows = self.shadows
-        shadowsArgs = self.shadowsArgs
-        self.shadows = []
-        self.shadowsArgs = []
-        for sha, args in zip(shadows, shadowsArgs):
-            color = sha.GetProperty().GetColor()
-            opacity = sha.GetProperty().GetOpacity()
-            self.addShadow(**args, c=color, alpha=opacity)
-
 
 ########################################################################################
 class BaseActor(Base3DProp):
@@ -786,8 +739,8 @@ class BaseActor(Base3DProp):
                 v2p.SetInputData(self.imagedata())
                 v2p.Update()
                 vpts = v2p.GetOutput().GetPoints()
-            else:
-                vedo.error(f"points() not implmented for type {type(self)}")
+            else: # tetmesh et al
+                vpts = self._data.GetPoints()
 
             if vpts:
                 return utils.vtk2numpy(vpts.GetData())
@@ -840,6 +793,20 @@ class BaseActor(Base3DProp):
         data.Modified()
         self._mapper.Modified()
         return self
+
+
+    def getRGBA(self, on='points'):
+        """Grab the RGBA cell/point array as currently visualised for an object"""
+        lut = self.mapper().GetLookupTable()
+        poly = self.inputdata()
+        if 'point' in on:
+            vscalars = poly.GetPointData().GetScalars()
+        else:
+            vscalars = poly.GetCellData().GetScalars()
+        cols = lut.MapScalars(vscalars, 0, 0)
+        arr = utils.vtk2numpy(cols)
+        # arr = arr[:, :3]
+        return arr
 
 
     def findCellsWithin(self, xbounds=(), ybounds=(), zbounds=()):

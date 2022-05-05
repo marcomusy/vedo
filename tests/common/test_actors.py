@@ -73,9 +73,9 @@ print('pos',[5,6,0], cone.pos())
 assert np.allclose([5,6,0], cone.pos())
 
 
-###################################### addPos
-cone.pos(5,6,7).addPos(3,0,0)
-print('addPos',[8,6,7], cone.pos())
+###################################### shift
+cone.pos(5,6,7).shift(3,0,0)
+print('shift',[8,6,7], cone.pos())
 assert np.allclose([8,6,7], cone.pos())
 
 

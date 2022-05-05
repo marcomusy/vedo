@@ -1,12 +1,8 @@
-"""
-Quantum Tunnelling effect using 4th order Runge-Kutta method
+"""Quantum Tunnelling effect using 4th order Runge-Kutta method
 with arbitrary potential shape.
 The animation shows the evolution of a particle of well defined momentum
-(hence undefined position) in a box hitting a potential barrier.
-The wave function is forced to be zero at the box walls (line 23)."""
-print(__doc__)
-import numpy as np
-from vedo import Plotter, Tube, Line, dataurl, settings
+(hence undefined position) in a box hitting a potential barrier."""
+from vedo import *
 
 dt = 0.004  # time step
 x0 = 5      # peak initial position
@@ -39,24 +35,22 @@ def d_dt(psi):  # find Psi(t+dt)-Psi(t) /dt with 4th order Runge-Kutta method
     k4 = f(psi + dt * k3)
     return (k1 + 2 * k2 + 2 * k3 + k4) / 6
 
+
 settings.allowInteraction = True
 
-plt = Plotter(interactive=False, axes=2, size=(1000,500))
-plt.xtitle = ""
-plt.ytitle = "|\Psi(x,t)|\^2"
+plt = Plotter(interactive=False, size=(1000,500))
 
-bck = plt.load(dataurl+"images/schrod.png").scale(0.015).pos([0, 0, -0.5])
+bck = Picture(dataurl+"images/schrod.png").scale(0.015).pos([0, 0, -0.5])
 barrier = Line(np.stack((x, V * 15), axis=1), c="dr", lw=3)
 
-lines = []
 for j in range(150):
     for i in range(500):
-        Psi += d_dt(Psi) * dt  # integrate for a while
-    A = np.real(Psi * np.conj(Psi)) * 1.5  # psi squared, probability(x)
-    coords = np.stack((x, A, np.zeros_like(x)), axis=1)
-    Aline = Tube(coords, c="db", r=0.08)
-    plt.show(Aline, barrier, bck, zoom=2)
-    lines.append(Aline)
-    if plt.escaped: break # if ESC is hit during the loop
+        Psi += d_dt(Psi) * dt                # integrate for a while
+    amp = np.real(Psi * np.conj(Psi)) * 1.5  # psi squared, probability(x)
+    coords = np.stack((x, amp, np.zeros_like(x)), axis=1)
+    aline = Tube(coords, c="db", r=0.08)
+    plt.show(aline, barrier, bck, zoom=2).clear()
+    if plt.escaped:
+        break # if ESC is hit during the loop
 
 plt.interactive().close()

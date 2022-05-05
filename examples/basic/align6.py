@@ -1,4 +1,4 @@
-"""Align to bounding boxes. Force the Mesh into the box."""
+"""Align to bounding boxes. Force the Mesh into the empty box."""
 from vedo import *
 
 msh1 = Mesh(dataurl+"cessna.vtk").color("silver")

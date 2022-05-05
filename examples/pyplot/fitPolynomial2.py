@@ -1,6 +1,6 @@
 """A polynomial fit of degree="""
-from vedo import np, precision, Text3D, DashedLine
-from vedo.pyplot import plot, fit, histogram, show
+from vedo import np, precision, Text3D, DashedLine, show
+from vedo.pyplot import plot, fit, histogram
 # np.random.seed(0)
 
 n   = 25 # nr of data points to generate

@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
-
-import numpy as np
-import vedo
 import vtk
 from deprecated import deprecated
+import numpy as np
+import vedo
 from vedo.colors import colorMap
 from vedo.colors import getColor
 from vedo.pointcloud import Points
@@ -794,13 +793,12 @@ class Mesh(Points):
         T.Translate(q1)
 
         self.SetUserMatrix(T.GetMatrix())
-        if self.trail:
-            self.updateTrail()
-        self.addShadows()
         return self
 
     def crop(self,
-             top=None, bottom=None, right=None, left=None, front=None, back=None,
+             top=None, bottom=None,
+             right=None, left=None,
+             front=None, back=None,
              bounds=None,
         ):
         """
@@ -1257,8 +1255,15 @@ class Mesh(Points):
         return self
 
 
-    def addShadow(self, plane=None, point=None, direction=None,
-                  c=(0.6,0.6,0.6), alpha=1, culling=1):
+    def addShadow(
+            self,
+            plane,
+            point,
+            direction=None,
+            c=(0.6,0.6,0.6),
+            alpha=1,
+            culling=0,
+        ):
         """
         Generate a shadow out of an ``Mesh`` on one of the three Cartesian planes.
         The output is a new ``Mesh`` representing the shadow.
@@ -1288,6 +1293,7 @@ class Mesh(Points):
             .. image:: https://vedo.embl.es/images/simulations/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif
         """
         shad = self.clone()
+        shad.name = "Shadow"
         pts = shad.points()
         if   'x' == plane:
             # shad = shad.projectOnPlane('x')
@@ -1296,22 +1302,19 @@ class Mesh(Points):
             x0,x1 = self.xbounds()
             pts[:,0] = (pts[:,0]-(x0+x1)/2)/1000 + self.GetOrigin()[0]
             shad.points(pts)
-            if point is not None:
-                shad.x(point)
+            shad.x(point)
         elif 'y' == plane:
             # shad = shad.projectOnPlane('y')
             x0,x1 = self.ybounds()
             pts[:,1] = (pts[:,1]-(x0+x1)/2)/1000 + self.GetOrigin()[1]
             shad.points(pts)
-            if point is not None:
-                shad.y(point)
+            shad.y(point)
         elif 'z' == plane:
             # shad = shad.projectOnPlane('z')
             x0,x1 = self.zbounds()
             pts[:,2] = (pts[:,2]-(x0+x1)/2)/1000 + self.GetOrigin()[2]
             shad.points(pts)
-            if point is not None:
-                shad.z(point)
+            shad.z(point)
         else:
             shad = shad.projectOnPlane(plane, point, direction)
 
@@ -1325,16 +1328,10 @@ class Mesh(Points):
         shad.GetProperty().LightingOff()
         shad.SetPickable(False)
         shad.SetUseBounds(True)
+
         if shad not in self.shadows:
             self.shadows.append(shad)
-            self.shadowsArgs.append(dict(plane=plane, point=point, direction=direction))
-        return self
-
-    def _updateShadow(self):
-        p = self.GetPosition()
-        for idx, shad in enumerate(self.shadows):
-            args = self.shadowsArgs[idx]
-            shad.SetPosition(*Points([p]).projectOnPlane(**args).GetPosition())
+            shad.info = dict(plane=plane, point=point, direction=direction)
         return self
 
 
@@ -1571,7 +1568,7 @@ class Mesh(Points):
 
         varr = sep.GetOutput().GetPointData().GetArray("SelectedPoints")
         mask = vtk2numpy(varr).astype(np.bool)
-        ids = np.array(range(len(ptsa)))[mask]
+        ids = np.array(range(len(ptsa)), dtype=int)[mask]
 
         if isinstance(pts, Points):
             varr.SetName("IsInside")
@@ -1580,7 +1577,7 @@ class Mesh(Points):
         if returnIds:
             return ids
         else:
-            pcl = Points(pts[ids])
+            pcl = Points(ptsa[ids])
             pcl.name = "insidePoints"
             return pcl
 

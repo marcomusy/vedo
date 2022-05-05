@@ -1040,6 +1040,39 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
             self._mapper.SetUseJittering(status)
         return self
 
+
+    def mask(self, data):
+        """
+        Mask a volume visualization with a binary value.
+        Needs to specify keyword mapper='gpu'.
+
+        Example:
+            .. code-block:: python
+
+                from vedo import np, Volume, show
+
+                data_matrix = np.zeros([75, 75, 75], dtype=np.uint8)
+                # all voxels have value zero except:
+                data_matrix[0:35,   0:35,  0:35] = 1
+                data_matrix[35:55, 35:55, 35:55] = 2
+                data_matrix[55:74, 55:74, 55:74] = 3
+                vol = Volume(data_matrix, c=['white','b','g','r'], mapper='gpu')
+
+                data_mask = np.zeros_like(data_matrix)
+                data_mask[10:65, 10:45, 20:75] = 1
+                vol.mask(data_mask)
+
+                show(vol, axes=1).close()
+        """
+        mask = Volume(data.astype(np.uint8))
+        try:
+            self.mapper().SetMaskTypeToBinary()
+            self.mapper().SetMaskInput(mask.inputdata())
+        except AttributeError:
+            vedo.logger.error("volume.mask() must create the volume with Volume(..., mapper='gpu')")
+        return self
+
+
     def alphaGradient(self, alphaGrad, vmin=None, vmax=None):
         """
         Assign a set of tranparencies to a volume's gradient

@@ -1527,6 +1527,7 @@ def StreamLines(
             pts = np.c_[pts, np.zeros(len(pts))]
     else:
         pts = probe.clean().points()
+
     src = vtk.vtkProgrammableSource()
     def readPoints():
         output = src.GetPolyDataOutput()

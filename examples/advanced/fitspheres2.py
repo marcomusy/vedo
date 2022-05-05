@@ -3,15 +3,17 @@ Color points from the size of the sphere radius."""
 from vedo import *
 from vedo.pyplot import histogram
 
+settings.useDepthPeeling = True
+
 plt = Plotter()
 
-s = plt.load(dataurl+"cow.vtk").alpha(0.3)
+msh = Mesh(dataurl+"cow.vtk").alpha(0.3)
 
 pts1, pts2, vals, cols = [], [], [], []
 
-for i in range(0, s.N(), 10):
-    p = s.points(i)
-    pts = s.closestPoint(p, N=12)  # find the N closest points to p
+for i in range(0, msh.N(), 10):
+    p = msh.points(i)
+    pts = msh.closestPoint(p, N=12)  # find the N closest points to p
     sph = fitSphere(pts)           # find the fitting sphere
     if sph is None:
         continue
@@ -24,6 +26,7 @@ for i in range(0, s.N(), 10):
     pts1.append(p)
     pts2.append(p + n / 8)
 
+plt += msh
 plt += Points(pts1, c=cols)
 plt += Lines(pts1, pts2, c="black")
 plt += histogram(vals, xtitle='radius', xlim=[0,2]).pos(-1,0.5,-1)

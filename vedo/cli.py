@@ -681,13 +681,11 @@ def draw_scene(args):
         if ".npy" in args.files[0] or ".npz" in args.files[0] and nfiles == 1:
 
             objct = io.load(args.files[0], force=args.reload)
-
-            if "Plotter" in str(type(objct)): # loading a full scene
+            if isinstance(objct, Plotter): # loading a full scene
                 objct.show(mode=interactor_mode)
-                return
             else:                             # loading a set of meshes
                 plt.show(objct, mode=interactor_mode)
-                return
+            return
         #########################################################
 
         ds=0
@@ -766,7 +764,8 @@ def draw_scene(args):
         if plt.axes==4:
             plt.axes=1
 
-        acts = plt.load(args.files, force=args.reload)
+        acts = load(args.files, force=args.reload)
+        plt += acts
         for a in acts:
             if hasattr(a, 'c'): #Picture doesnt have it
                 a.c(args.color)

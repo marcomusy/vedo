@@ -646,6 +646,7 @@ class Browser(Plotter):
             resetcam=False,
             interactive=True,
         ):
+
         Plotter.__init__(
             self,
             pos=pos,
@@ -657,7 +658,9 @@ class Browser(Plotter):
             axes=axes,
             interactive=interactive,
         )
-        self.actors = objects
+
+        self += objects
+
         self.slider = None
 
         # define the slider

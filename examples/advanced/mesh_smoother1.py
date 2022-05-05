@@ -1,10 +1,10 @@
-from vedo import Plotter, dataurl
+from vedo import dataurl, Plotter, Volume
 
 plt = Plotter(N=2)
 
 # Load a mesh and show it
-vol = plt.load(dataurl+"embryo.tif")
-m0 = vol.isosurface().normalize().lw(0.1).c("violet")
+vol = Volume(dataurl+"embryo.tif")
+m0 = vol.isosurface().normalize().lw(1).c("violet")
 
 # Smooth the mesh
 m1 = m0.clone().smooth(niter=20).color("lg")

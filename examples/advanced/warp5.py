@@ -134,8 +134,8 @@ class Morpher:
 if __name__ == "__main__":
 
     mr = Morpher()
-    mr.source = plt.load(dataurl+"270.vtk").color("g").alpha(0.4)
-    mr.target = plt.load(dataurl+"290.vtk").color("b").alpha(0.3)
+    mr.source = Mesh(dataurl+"270.vtk").color("g").alpha(0.4)
+    mr.target = Mesh(dataurl+"290.vtk").color("b").alpha(0.3)
     mr.target.wireframe()
     mr.allowScaling = True
     mr.bound = 0.4  # limits the parameter value

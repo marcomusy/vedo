@@ -26,8 +26,6 @@ class SOM:
         sigma = sigma[0] * (sigma[1] / sigma[0]) ** t
         I = np.random.randint(0, len(self.samples), n_epoch)
         self.samples = self.samples[I]
-        pts = Points(self.samples, r=2, c='darkred')
-        doc = Text2D(__doc__)
 
         pb = ProgressBar(0,n_epoch)
         for i in pb.range():
@@ -47,14 +45,13 @@ class SOM:
             # Draw network
             if i>500 and not i%20 or i==n_epoch-1:
                 x, y, z = [self.codebook[:,i].reshape(n,n) for i in range(3)]
-                grd = Grid(res=[n-1,n-1], c='green2')
                 grd.wireframe(False).lw(0.5).bc('blue9').flat()
                 grdpts = grd.points()
                 for i in range(n):
                     for j in range(n):
                         grdpts[i*n+j] = (x[i,j], y[i,j], z[i,j])
                 grd.points(grdpts)
-                plt = show(doc, pts, grd, axes=6, azimuth=2, interactive=False)
+                plt.render()
                 if plt.escaped: break  # hit ESC
 
         plt.interactive().close()
@@ -71,6 +68,10 @@ if __name__ == "__main__":
     D = scipy.spatial.distance.cdist(P, P)
 
     s = Sphere(res=90).cutWithPlane(origin=(0,-.3,0), normal='y').subsample(0.01)
+
+    plt = Plotter(axes=6, interactive=False)
+    grd = Grid(res=[n-1,n-1], c='green2')
+    plt.show(__doc__, s.ps(1), grd)
 
     som = SOM((len(P), 3), D)
     som.samples = s.points()

@@ -26,7 +26,7 @@ f = r'-\nabla^{2} u=f'
 from vedo.dolfin import plot
 from vedo import Latex
 
-l = Latex(f, s=0.2, c='w').addPos(.6,.6,.1)
+l = Latex(f, s=0.2, c='w').shift(.6,.6,.1)
 
 acts = plot(u, l, cmap='jet', scalarbar='h', returnActorsNoShow=True)
 

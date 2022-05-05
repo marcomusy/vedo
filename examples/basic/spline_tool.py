@@ -1,7 +1,7 @@
 """Modify a spline interactively.
-→ Drag points with mouse
-→ Add points by clicking on the line
-→ Remove them by selecting&pressing DEL
+- Drag points with mouse
+- Add points by clicking on the line
+- Remove them by selecting&pressing DEL
 --- PRESS q TO PROCEED ---"""
 from vedo import Circle, show
 
@@ -13,6 +13,7 @@ plt = show(pts, __doc__, interactive=False, axes=1)
 
 # Add the spline tool using the same points and interact with it
 sptool = plt.addSplineTool(pts, closed=True)
+plt.interactive()
 
 # Switch off the tool
 sptool.off()

@@ -3,9 +3,11 @@
 ---
 ### `base.py`
 - `alignToBoundingBox()` change the default behavior to match exactly the target (affine transform) @jsaintauret
+- added `getRGBA()` to obtain the actual colors from an object as rendered
 
 ---
 ### `pointcloud.py`
+- `addTrail()` simplified.
 
 ---
 ### `mesh.py`
@@ -13,6 +15,8 @@
 
 ---
 ### `plotter.py`
+- added `lookAt(plane='xy')` to move the camera to face one of the cartesian planes
+- removed `load()` as not really necessary and potentially confusing
 
 ---
 ### `picture.py`
@@ -23,7 +27,7 @@
 
 ---
 ### `shapes.py`
-- moved `streamLines` to `StreamLines`
+- moved `volume.streamLines` to `shapes.StreamLines`
 
 ---
 ### `tetmesh.py`
@@ -31,6 +35,10 @@
 
 ---
 ### `settings.py`
+
+---
+### `volume.py`
+- added `mask(vol)` to mask the visualization of a volume
 
 
 -------------------------
@@ -49,24 +57,28 @@ examples/volumetric/streamlines1.py
 examples/simulations/orbitals.py
 examples/simulations/mag_field1.py
 examples/simulations/mag_field2.py
+examples/simulations/pendulum_3d.py
 
 examples/pyplot/histo_1d_b.py
 examples/pyplot/fitPolynomial1.py
 examples/pyplot/plot_extra_yaxis.py
 
 examples/other/pygeodesic1.py
-
+examples/other/qt_cutter.py
 
 
 ### Deleted
 examples/other/animation1.py
 examples/other/animation2.py
+examples/simulations/alien_life.py
+examples/simulations/cell_colony.py
 
 
 ### Broken
-examples/other/morphomatics_tube.py
 examples/other/pygmsh_cut.py
-
+examples/basic/multiwindows2.py
+examples/volumetric/ugrid1.py
+examples/volumetric/tet_cutMesh1.py
 
 
 

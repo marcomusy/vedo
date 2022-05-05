@@ -1724,6 +1724,7 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
             objs = [loadnumpy(fileinput)]
 
         plt.actors = objs
+        plt.add(objs, render=False)
         return plt
 
     elif '.obj' in fileinput.lower():
