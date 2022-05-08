@@ -1648,7 +1648,7 @@ class Tube(Mesh):
     res : int
         resolution, number of the sides of the tube
 
-    .. hint:: examples/basic/ribbon.py, tube.py
+    .. hint:: examples/basic/ribbon.py, tube_radii.py
         .. image:: https://vedo.embl.es/images/basic/tube.png
     """
     def __init__(self, points, r=1, cap=True, c=None, alpha=1, res=12):

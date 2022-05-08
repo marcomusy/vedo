@@ -392,6 +392,14 @@ class Mesh(Points):
 
         Parameters
         ----------
+        tname : numpy.array, str, Picture, vtkTexture, None
+            the inpout texture to be applied. Can be a numpy array, a path to an image file,
+            a vedo Picture. The None value disables texture.
+
+        tcoords : numpy.array, str
+            this is the (u,v) texture coordinate array. Can also be a string of an existing array
+            in the mesh.
+
         interpolate : bool, optional
             turn on/off linear interpolation of the texture map when rendering.
 
@@ -407,10 +415,10 @@ class Mesh(Points):
             scale the texture image by this factor
 
         ushift : bool, optional
-            shift u-coordinates of texture by this amaount
+            shift u-coordinates of texture by this amount
 
         vshift : bool, optional
-            shift v-coordinates of texture by this amaount
+            shift v-coordinates of texture by this amount
 
         seamThreshold : float, optional
             try to seal seams in texture by collapsing triangles
@@ -424,8 +432,7 @@ class Mesh(Points):
         if not tname:        # disable texture
             pd.GetPointData().SetTCoords(None)
             pd.GetPointData().Modified()
-            return self
-        ######################################
+            return self  ######################################
 
         if isinstance(tname, vtk.vtkTexture):
             tu = tname
@@ -475,34 +482,63 @@ class Mesh(Points):
             return self
 
         if tcoords is not None:
-            tcoords = np.asarray(tcoords)
-            if tcoords.ndim != 2:
-                vedo.logger.error("tcoords must be a 2-dimensional array")
-                return self
-            if tcoords.shape[0] != pd.GetNumberOfPoints():
-                vedo.logger.error("nr of texture coords must match nr of points")
-                return self
-            if tcoords.shape[1] != 2:
-                vedo.logger.error("tcoords texture vector must have 2 components")
-            tarr = numpy2vtk(tcoords)
-            tarr.SetName('TCoordinates')
-            pd.GetPointData().SetTCoords(tarr)
+
+            if isinstance(tcoords, str):
+
+                vtarr = pd.GetPointData().GetArray(tcoords)
+
+            else:
+
+                tcoords = np.asarray(tcoords)
+                if tcoords.ndim != 2:
+                    vedo.logger.error("tcoords must be a 2-dimensional array")
+                    return self
+                if tcoords.shape[0] != pd.GetNumberOfPoints():
+                    vedo.logger.error("nr of texture coords must match nr of points")
+                    return self
+                if tcoords.shape[1] != 2:
+                    vedo.logger.error("tcoords texture vector must have 2 components")
+                vtarr = numpy2vtk(tcoords)
+                vtarr.SetName('TCoordinates')
+
+            pd.GetPointData().SetTCoords(vtarr)
             pd.GetPointData().Modified()
 
         elif not pd.GetPointData().GetTCoords():
-            tmapper = vtk.vtkTextureMapToPlane()
-            tmapper.AutomaticPlaneGenerationOn()
-            tmapper.SetInputData(pd)
-            tmapper.Update()
-            tc = tmapper.GetOutput().GetPointData().GetTCoords()
-            if scale or ushift or vshift:
-                ntc = vtk2numpy(tc)
-                if scale:  ntc *= scale
-                if ushift: ntc[:,0] += ushift
-                if vshift: ntc[:,1] += vshift
-                tc = numpy2vtk(tc)
-            pd.GetPointData().SetTCoords(tc)
-            pd.GetPointData().Modified()
+
+            # TCoords still void..
+            # check that there are no texture-like arrays:
+            names = self.pointdata.keys()
+            candidate_arr = ""
+            for name in names:
+                vtarr = pd.GetPointData().GetArray(name)
+                if vtarr.GetNumberOfComponents() != 2:
+                    continue
+                t0,t1 = vtarr.GetRange()
+                if t0 >= 0 and t1 <= 1:
+                    candidate_arr = name
+
+            if candidate_arr:
+
+                vtarr = pd.GetPointData().GetArray(candidate_arr)
+                pd.GetPointData().SetTCoords(vtarr)
+                pd.GetPointData().Modified()
+
+            else:
+                # last resource is automatic mapping
+                tmapper = vtk.vtkTextureMapToPlane()
+                tmapper.AutomaticPlaneGenerationOn()
+                tmapper.SetInputData(pd)
+                tmapper.Update()
+                tc = tmapper.GetOutput().GetPointData().GetTCoords()
+                if scale or ushift or vshift:
+                    ntc = vtk2numpy(tc)
+                    if scale:  ntc *= scale
+                    if ushift: ntc[:,0] += ushift
+                    if vshift: ntc[:,1] += vshift
+                    tc = numpy2vtk(tc)
+                pd.GetPointData().SetTCoords(tc)
+                pd.GetPointData().Modified()
 
         tu.SetInputData(outimg)
         tu.SetInterpolate(interpolate)
