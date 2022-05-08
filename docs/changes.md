@@ -75,10 +75,7 @@ examples/simulations/cell_colony.py
 
 
 ### Broken
-examples/other/pygmsh_cut.py
 examples/basic/multiwindows2.py
-examples/volumetric/ugrid1.py
-examples/volumetric/tet_cutMesh1.py
 
 
 
