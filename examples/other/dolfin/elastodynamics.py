@@ -226,11 +226,9 @@ for (i, dt) in enumerate(np.diff(time)):
          scalarbar=False,
          azimuth=1, # at each iteration add an angle to rotate scene
          text=__doc__, # add this file header
-         interactive=False)
+         interactive=False).clear()
     #screenshot('bar'+str(i)+'.png') # uncomment to save screenshots
     pb.print("Time: "+str(t)+" seconds")
-
-plot()
 
 
 

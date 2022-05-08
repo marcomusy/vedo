@@ -10,8 +10,6 @@ from vedo.io import load
 from vedo.io import screenshot
 from vedo.io import Video
 from vedo.mesh import Mesh
-from vedo.plotter import clear
-from vedo.plotter import interactive
 from vedo.plotter import Plotter
 from vedo.plotter import show
 from vedo.shapes import Text2D
@@ -44,7 +42,6 @@ __all__ = [
     "load",
     "download",
     "show",
-    "clear",
     "printc",
     "Plotter",
     "ProgressBar",
@@ -53,7 +50,6 @@ __all__ = [
     "screenshot",
     "Video",
     "exportWindow",
-    "interactive",
 ]
 
 
@@ -395,7 +391,7 @@ def plot(*inputobj, **options):
         change the style of muose interaction of the scene
     """
     if len(inputobj)==0:
-        interactive()
+        vedo.plotter_instance.interactive()
         return
 
     if 'numpy' in str(type(inputobj[0])):
@@ -876,7 +872,7 @@ def MeshArrows(*inputobj, **options):
 
 def MeshStreamLines(*inputobj, **options):
     """Build a streamplot."""
-    from vedo.base import streamLines
+    from vedo.shapes import StreamLines
 
     print('Building streamlines...')
 
@@ -922,7 +918,7 @@ def MeshStreamLines(*inputobj, **options):
         tubes['varyRadius'] = varyRadius
         tubes['maxRadiusFactor'] = maxRadiusFactor
 
-    str_lns = streamLines(meshact, probes,
+    str_lns = StreamLines(meshact, probes,
                           direction=direction,
                           maxPropagation=maxPropagation,
                           tubes=tubes,

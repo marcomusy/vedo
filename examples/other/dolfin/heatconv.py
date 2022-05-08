@@ -86,10 +86,9 @@ while t < 3:
         isolines={"n": 12, "lw":1, "c":'black', "alpha":0.1},
         scalarbar=False,
         interactive=False,
-    )
+    ).clear()
 
     # Move to next time step
     u0.assign(u)
     t += dt
 
-interactive()

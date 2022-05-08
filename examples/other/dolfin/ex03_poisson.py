@@ -30,15 +30,15 @@ solve( dot(grad(w), grad(v))*dx == f*v*dx,  u, bc)
 f = r'-\nabla^{2} u=f'
 
 ########################################################### vedo
-from vedo.dolfin import plot, clear, histogram
+from vedo.dolfin import plot
+from vedo.pyplot import histogram
 from vedo import Latex
 
-l = Latex(f, s=0.2, c='w').addPos(.6,.6,.1)
+l = Latex(f, s=0.2, c='w').shift(.6,.6,.1)
 
-plot(u, l, cmap='jet', scalarbar='h', text=__doc__)
+plot(u, l, cmap='jet', scalarbar='h', text=__doc__).clear()
 
 # Now show uD values on the boundary of a much finer mesh
-clear()
 bmesh = BoundaryMesh(UnitSquareMesh(80, 80), "exterior")
 plot(uD, bmesh, cmap='cool', ps=5, legend='boundary') # ps = point size
 

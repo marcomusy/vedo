@@ -6,8 +6,8 @@ the velocity and first degree elements for the pressure (Taylor-Hood elements).
 # https://github.com/pf4d/fenics_scripts/blob/master/cbc_block/stokes.py
 from dolfin import *
 import numpy as np
-from vedo.dolfin import plot, dataurl, download
-from vedo import Latex
+from vedo.dolfin import plot, download
+from vedo import Latex, dataurl
 
 # Load mesh and subdomains
 fpath = download(dataurl+"dolfin_fine.xml")
@@ -51,7 +51,7 @@ formula = Latex(f, pos=(0.55,0.45,-.05), s=0.1)
 plot(u, formula, at=0, N=2,
      mode='mesh and arrows', scale=.03,
      wireframe=True, scalarbar=False, style=1)
-plot(p, at=1, text="pressure", cmap='rainbow', interactive=False)
+plot(p, at=1, text="pressure", cmap='rainbow', interactive=True).close()
 
 
 ##################################################################### streamlines
@@ -64,7 +64,7 @@ plot(u,
      streamlines={'tol':0.02,            # control density of streams
                   'lw':2,                # line width
                   'direction':'forward', # direction of integration
-                  'maxPropagation':1.2,  # max length of propagation
+                  'maxPropagation':2.2,  # max length of propagation
                   'probes':probes,       # custom list of point in space as seeds
                  },
      c='white',                          # mesh color

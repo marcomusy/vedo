@@ -88,5 +88,4 @@ while (t < t_max):
          lw=0, warpZfactor=-0.1,
          vmin=0, vmax=1, scalarbar=False, interactive=False)
 
-interactive()
 

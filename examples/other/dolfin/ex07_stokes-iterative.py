@@ -68,12 +68,10 @@ pressures = p.compute_vertex_values(mesh)
 
 
 #################################################### vedo
-from vedo.dolfin import plot, printHistogram
+from vedo.dolfin import plot
 
 # Plot u and p solutions on N=2 synced renderers
 plot(u, mode='mesh arrows', at=0, N=2, legend='velocity',
-     scale=0.1, wireframe=1, lw=0.03, alpha=0.5, scalarbar=False)
+     scale=0.1, wireframe=1, lw=0.03, alpha=0.5, scalarbar=False).close()
 
-printHistogram(pressures, title='pressure histo', logscale=True, c=1)
-
-plot(p, mode='mesh', at=1, N=2, legend='pressure', interactive=True)
+plot(p, mode='mesh').close()

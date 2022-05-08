@@ -89,5 +89,3 @@ while t < t_max:
     u_out, v_out = W.split()
     plot(u_out, Text2D("time = "+str(t)),
          vmin=0, vmax=1, scalarbar=False, interactive=False)
-
-interactive()

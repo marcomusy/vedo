@@ -16,7 +16,7 @@
 ---
 ### `plotter.py`
 - added `lookAt(plane='xy')` to move the camera to face one of the cartesian planes
-- removed `load()` as not really necessary and potentially confusing
+- removed `plotter.load()` as not really necessary and potentially confusing
 
 ---
 ### `picture.py`
@@ -76,7 +76,6 @@ examples/simulations/cell_colony.py
 
 ### Broken
 examples/basic/multiwindows2.py
-
 
 
 

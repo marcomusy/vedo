@@ -7,7 +7,7 @@ It injects a point source with a time-dependent source time function.
 #
 from dolfin import *
 from vedo import settings
-from vedo.dolfin import plot, interactive, ProgressBar, printc, download
+from vedo.dolfin import plot, ProgressBar, printc, download
 import numpy as np
 
 set_log_level(30)
@@ -74,19 +74,21 @@ def awefem(mesh, t, source_loc=None):
         u1.assign(u)
 
         if t_>0.03:
-            plot(u,
-                 warpZfactor=20, # set elevation along z
-                 vmin=.0,     # sets a minimum to the color scale
-                 vmax=0.003,
-                 cmap='rainbow', # the color map style
-                 alpha=1,        # transparency of the mesh
-                 lw=0.1,         # linewidth of mesh
-                 scalarbar=None,
-                 #lighting='plastic',
-                 #elevation=-.3,
-                 interactive=0)  # continue execution
-
-    interactive()
+            plt = plot(
+                u,
+                warpZfactor=20, # set elevation along z
+                vmin=.0,     # sets a minimum to the color scale
+                vmax=0.003,
+                cmap='rainbow', # the color map style
+                alpha=1,        # transparency of the mesh
+                lw=0.1,         # linewidth of mesh
+                scalarbar=None,
+                #lighting='plastic',
+                #elevation=-.3,
+                interactive=False,
+            )  # continue execution
+            plt.clear()
+    plt.interactive()
 
 if __name__ == "__main__":
 
