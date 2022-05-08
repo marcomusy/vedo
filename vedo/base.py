@@ -150,6 +150,7 @@ class Base3DProp(object):
         self.cell_locator = None
 
         self.scalarbar = None
+        self.flagText = None
 
 
     def address(self):
@@ -676,8 +677,6 @@ class BaseActor(Base3DProp):
         Base3DProp.__init__(self)
 
         self._mapper = None
-
-        self.flagText = None
         self._caption = None
         self.property = None
 

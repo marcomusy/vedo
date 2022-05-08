@@ -2782,37 +2782,40 @@ class Plotter:
                     and not (vedo.vtk_version[0] == 9 and "Linux" in vedo.sys_platform)  # Linux vtk9 is bugged
                     ):
                     #check balloons
-                    if ia.flagText:
-                        if not self.flagWidget: # Create widget on the fly
-                            self._flagRep = vtk.vtkBalloonRepresentation()
-                            self._flagRep.SetBalloonLayoutToImageRight()
-                            breppr = self._flagRep.GetTextProperty()
-                            breppr.SetFontFamily(vtk.VTK_FONT_FILE)
-                            breppr.SetFontFile(utils.getFontPath(settings.flagFont))
-                            breppr.SetFontSize(settings.flagFontSize)
-                            breppr.SetColor(vedo.getColor(settings.flagColor))
-                            breppr.SetBackgroundColor(vedo.getColor(settings.flagBackgroundColor))
-                            breppr.SetShadow(settings.flagShadow)
-                            breppr.SetJustification(settings.flagJustification)
-                            breppr.UseTightBoundingBoxOn()
-                            if settings.flagAngle:
-                                breppr.SetOrientation(settings.flagAngle)
-                                breppr.SetBackgroundOpacity(0)
-                            self.flagWidget = vtk.vtkBalloonWidget()
-                            self.flagWidget.SetTimerDuration(settings.flagDelay)
-                            self.flagWidget.ManagesCursorOff()
-                            self.flagWidget.SetRepresentation(self._flagRep)
-                            self.flagWidget.SetInteractor(self.interactor)
-                            self.widgets.append(self.flagWidget)
-                        bst = self.flagWidget.GetBalloonString(ia)
-                        if bst:
-                            if bst != ia.flagText:
-                                self.flagWidget.UpdateBalloonString(ia, ia.flagText)
-                        else:
-                            self.flagWidget.AddBalloon(ia, ia.flagText)
+                    try:
+                        if ia.flagText:
+                            if not self.flagWidget: # Create widget on the fly
+                                self._flagRep = vtk.vtkBalloonRepresentation()
+                                self._flagRep.SetBalloonLayoutToImageRight()
+                                breppr = self._flagRep.GetTextProperty()
+                                breppr.SetFontFamily(vtk.VTK_FONT_FILE)
+                                breppr.SetFontFile(utils.getFontPath(settings.flagFont))
+                                breppr.SetFontSize(settings.flagFontSize)
+                                breppr.SetColor(vedo.getColor(settings.flagColor))
+                                breppr.SetBackgroundColor(vedo.getColor(settings.flagBackgroundColor))
+                                breppr.SetShadow(settings.flagShadow)
+                                breppr.SetJustification(settings.flagJustification)
+                                breppr.UseTightBoundingBoxOn()
+                                if settings.flagAngle:
+                                    breppr.SetOrientation(settings.flagAngle)
+                                    breppr.SetBackgroundOpacity(0)
+                                self.flagWidget = vtk.vtkBalloonWidget()
+                                self.flagWidget.SetTimerDuration(settings.flagDelay)
+                                self.flagWidget.ManagesCursorOff()
+                                self.flagWidget.SetRepresentation(self._flagRep)
+                                self.flagWidget.SetInteractor(self.interactor)
+                                self.widgets.append(self.flagWidget)
+                            bst = self.flagWidget.GetBalloonString(ia)
+                            if bst:
+                                if bst != ia.flagText:
+                                    self.flagWidget.UpdateBalloonString(ia, ia.flagText)
+                            else:
+                                self.flagWidget.AddBalloon(ia, ia.flagText)
 
-                    if ia.flagText is False and self.flagWidget:
-                        self.flagWidget.RemoveBalloon(ia)
+                        if ia.flagText is False and self.flagWidget:
+                            self.flagWidget.RemoveBalloon(ia)
+                    except:
+                        pass
 
         if interactive is not None:
             self._interactive = interactive
