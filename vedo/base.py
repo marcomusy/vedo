@@ -1755,6 +1755,7 @@ class BaseGrid(BaseActor):
                 signedDistance = ippd.EvaluateFunction(p)
                 signedDistances.InsertNextValue(signedDistance)
             ug.GetPointData().AddArray(signedDistances)
+            ug.GetPointData().SetActiveScalars("SignedDistances")
             clipper = vtk.vtkClipDataSet()
             clipper.SetInputData(ug)
             clipper.SetInsideOut(not invert)

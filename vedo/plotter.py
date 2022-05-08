@@ -2433,7 +2433,6 @@ class Plotter:
             elif isinstance(a, vedo.TetMesh):
                 # check ugrid is all made of tets
                 ugrid = a.inputdata()
-                print(ugrid)
                 uarr = ugrid.GetCellTypesArray()
                 celltypes = np.unique(utils.vtk2numpy(uarr))
                 ncelltypes = len(celltypes)
