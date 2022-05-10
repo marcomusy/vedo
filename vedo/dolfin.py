@@ -1,19 +1,14 @@
 import numpy as np
-import vedo
-import vedo.shapes as shapes
-import vedo.utils as utils
 import vtk
+import vedo
 from vedo.colors import printc
-from vedo.io import download
-from vedo.io import exportWindow
-from vedo.io import load
-from vedo.io import screenshot
-from vedo.io import Video
+from vedo import utils
+from vedo import shapes
+from vedo.io import download, exportWindow, load, screenshot, Video
 from vedo.mesh import Mesh
 from vedo.plotter import Plotter
 from vedo.plotter import show
-from vedo.shapes import Text2D
-from vedo.shapes import Text3D
+from vedo.shapes import Text2D, Text3D
 from vedo.utils import ProgressBar
 
 __doc__ = """
@@ -68,7 +63,7 @@ def _inputsort(obj):
 
         # printc('inputtype is', inputtype, c=2)
 
-        if "vedo" in inputtype: # skip vtk objects, will be added later
+        if "vedo" in inputtype:  # skip vtk objects, will be added later
             continue
 
         if "dolfin" in inputtype or "ufl" in inputtype:
@@ -80,20 +75,20 @@ def _inputsort(obj):
                     printc('Try e.g.:  MeshFunction("size_t", mesh, 0)', c='r', italic=1)
                     printc('instead of MeshFunction("size_t", mesh, 1)', c='r', strike=1)
                 else:
-                    #printc(ob.dim(), mesh.num_cells(), len(mesh.coordinates()), len(ob.array()))
+                    # printc(ob.dim(), mesh.num_cells(), len(mesh.coordinates()), len(ob.array()))
                     V = dolfin.FunctionSpace(mesh, "CG", 1)
                     u = dolfin.Function(V)
                     v2d = dolfin.vertex_to_dof_map(V)
                     u.vector()[v2d] = ob.array()
             elif "Function" in inputtype or "Expression" in inputtype:
                 u = ob
-            elif "ufl.mathfunctions" in inputtype: # not working
+            elif "ufl.mathfunctions" in inputtype:  # not working
                 u = ob
             elif "Mesh" in inputtype:
                 mesh = ob
             elif "algebra" in inputtype:
                 mesh = ob.ufl_domain()
-                #print('algebra', ob.ufl_domain())
+                # print('algebra', ob.ufl_domain())
 
     if u and not mesh and hasattr(u, "function_space"):
         V = u.function_space()
@@ -102,11 +97,11 @@ def _inputsort(obj):
     if u and not mesh and hasattr(u, "mesh"):
         mesh = u.mesh()
 
-    #printc('------------------------------------')
-    #printc('mesh.topology dim=', mesh.topology().dim())
-    #printc('mesh.geometry dim=', mesh.geometry().dim())
-    #if u: printc('u.value_rank()', u.value_rank())
-    #if u and u.value_rank(): printc('u.value_dimension()', u.value_dimension(0)) # axis=0
+    # printc('------------------------------------')
+    # printc('mesh.topology dim=', mesh.topology().dim())
+    # printc('mesh.geometry dim=', mesh.geometry().dim())
+    # if u: printc('u.value_rank()', u.value_rank())
+    # if u and u.value_rank(): printc('u.value_dimension()', u.value_dimension(0)) # axis=0
     ##if u: printc('u.value_shape()', u.value_shape())
     return (mesh, u)
 
@@ -115,22 +110,23 @@ def _compute_uvalues(u, mesh):
     # the whole purpose of this function is
     # to have a scalar (or vector) for each point of the mesh
 
-    if not u: return
-#    print('u',u)
+    if not u:
+        return
+    #    print('u',u)
 
-    if hasattr(u, 'compute_vertex_values'): # old dolfin, works fine
+    if hasattr(u, "compute_vertex_values"):  # old dolfin, works fine
         u_values = u.compute_vertex_values(mesh)
 
-
-        if u.value_rank() and u.value_dimension(0)>1:
+        if u.value_rank() and u.value_dimension(0) > 1:
             l = u_values.shape[0]
             u_values = u_values.reshape(u.value_dimension(0), int(l/u.value_dimension(0))).T
 
-    elif hasattr(u, 'compute_point_values'): # dolfinx
+    elif hasattr(u, "compute_point_values"):  # dolfinx
         u_values = u.compute_point_values()
 
         try:
             from dolfin import fem
+
             fvec = u.vector
         except RuntimeError:
             fspace = u.function_space
@@ -143,11 +139,11 @@ def _compute_uvalues(u, mesh):
 
         tdim = mesh.topology.dim
 
-        #print('fvec.getSize', fvec.getSize(), mesh.num_entities(tdim))
+        # print('fvec.getSize', fvec.getSize(), mesh.num_entities(tdim))
         if fvec.getSize() == mesh.num_entities(tdim):
             # DG0 cellwise function
             C = fvec.get_local()
-            if (C.dtype.type is np.complex128):
+            if C.dtype.type is np.complex128:
                 print("Plotting real part of complex data")
                 C = np.real(C)
 
@@ -390,17 +386,18 @@ def plot(*inputobj, **options):
     interactorStyle : int
         change the style of muose interaction of the scene
     """
-    if len(inputobj)==0:
+    if len(inputobj) == 0:
         vedo.plotter_instance.interactive()
         return
 
-    if 'numpy' in str(type(inputobj[0])):
+    if "numpy" in str(type(inputobj[0])):
         from vedo.pyplot import plot as pyplot_plot
+
         return pyplot_plot(*inputobj, **options)
 
     mesh, u = _inputsort(inputobj)
 
-    mode = options.pop("mode", 'mesh')
+    mode = options.pop("mode", "mesh")
     ttime = options.pop("z", None)
 
     add = options.pop("add", False)
@@ -418,17 +415,17 @@ def plot(*inputobj, **options):
     lw = options.pop("lw", 0.5)
     ps = options.pop("ps", None)
     legend = options.pop("legend", None)
-    scbar = options.pop("scalarbar", 'v')
+    scbar = options.pop("scalarbar", "v")
     vmin = options.pop("vmin", None)
     vmax = options.pop("vmax", None)
     cmap = options.pop("cmap", None)
     scale = options.pop("scale", 1)
-    scaleMeshFactors = options.pop("scaleMeshFactors", [1,1,1])
-    shading = options.pop("shading", 'phong')
+    scaleMeshFactors = options.pop("scaleMeshFactors", [1, 1, 1])
+    shading = options.pop("shading", "phong")
     text = options.pop("text", None)
-    style = options.pop("style", 'vtk')
-    isolns = options.pop("isolines", dict())
-    streamlines = options.pop("streamlines", dict())
+    style = options.pop("style", "vtk")
+    isolns = options.pop("isolines", {})
+    streamlines = options.pop("streamlines", {})
     warpZfactor = options.pop("warpZfactor", None)
     warpYfactor = options.pop("warpYfactor", None)
     lighting = options.pop("lighting", None)
@@ -438,105 +435,103 @@ def plot(*inputobj, **options):
     at = options.pop("at", 0)
 
     # refresh axes titles for axes type = 8 (vtkCubeAxesActor)
-    xtitle = options.pop("xtitle", 'x')
-    ytitle = options.pop("ytitle", 'y')
-    ztitle = options.pop("ztitle", 'z')
+    xtitle = options.pop("xtitle", "x")
+    ytitle = options.pop("ytitle", "y")
+    ztitle = options.pop("ztitle", "z")
     if vedo.plotter_instance:
-        if xtitle!='x':
+        if xtitle != "x":
             aet = vedo.plotter_instance.axes_instances
-            if len(aet)>at and isinstance(aet[at], vtk.vtkCubeAxesActor):
+            if len(aet) > at and isinstance(aet[at], vtk.vtkCubeAxesActor):
                 aet[at].SetXTitle(xtitle)
-        if ytitle!='y':
+        if ytitle != "y":
             aet = vedo.plotter_instance.axes_instances
-            if len(aet)>at and isinstance(aet[at], vtk.vtkCubeAxesActor):
+            if len(aet) > at and isinstance(aet[at], vtk.vtkCubeAxesActor):
                 aet[at].SetYTitle(ytitle)
-        if ztitle!='z':
+        if ztitle != "z":
             aet = vedo.plotter_instance.axes_instances
-            if len(aet)>at and isinstance(aet[at], vtk.vtkCubeAxesActor):
+            if len(aet) > at and isinstance(aet[at], vtk.vtkCubeAxesActor):
                 aet[at].SetZTitle(ztitle)
 
-
     # change some default to emulate standard behaviours
-    if  style == 0 or style == 'vtk':
-        axes = options.pop('axes', None)
+    if style in (0, 'vtk'):
+        axes = options.pop("axes", None)
         if axes is None:
-            options['axes'] = {
-                    'xyGrid':False,
-                    'yzGrid':False,
-                    'zxGrid':False,
-                   }
+            options["axes"] = {
+                "xyGrid": False,
+                "yzGrid": False,
+                "zxGrid": False,
+            }
         else:
-            options['axes'] = axes # put back
+            options["axes"] = axes  # put back
         if cmap is None:
-            cmap = 'rainbow'
-    elif style == 1 or style == 'matplotlib':
-        bg = options.pop('bg', None)
+            cmap = "rainbow"
+    elif style in (1, 'matplotlib'):
+        bg = options.pop("bg", None)
         if bg is None:
-            options['bg'] = 'white'
+            options["bg"] = "white"
         else:
-            options['bg'] = bg
-        axes = options.pop('axes', None)
+            options["bg"] = bg
+        axes = options.pop("axes", None)
         if axes is None:
-            options['axes'] =  {
-                    'xyGrid':False,
-                    'yzGrid':False,
-                    'zxGrid':False,
-                   }
+            options["axes"] = {
+                "xyGrid": False,
+                "yzGrid": False,
+                "zxGrid": False,
+            }
         else:
-            options['axes'] = axes # put back
+            options["axes"] = axes  # put back
         if cmap is None:
-            cmap = 'viridis'
-    elif style == 2 or style == 'paraview':
-        bg = options.pop('bg', None)
+            cmap = "viridis"
+    elif style in (2, 'paraview'):
+        bg = options.pop("bg", None)
         if bg is None:
-            options['bg'] = (82, 87, 110)
+            options["bg"] = (82, 87, 110)
         else:
-            options['bg'] = bg
+            options["bg"] = bg
         if cmap is None:
-            cmap = 'coolwarm'
-    elif style == 3 or style == 'meshlab':
-        bg = options.pop('bg', None)
+            cmap = "coolwarm"
+    elif style in (3, 'meshlab'):
+        bg = options.pop("bg", None)
         if bg is None:
-            options['bg'] = (8, 8, 16)
-            options['bg2'] = (117, 117, 234)
+            options["bg"] = (8, 8, 16)
+            options["bg2"] = (117, 117, 234)
         else:
-            options['bg'] = bg
-        axes = options.pop('axes', None)
+            options["bg"] = bg
+        axes = options.pop("axes", None)
         if axes is None:
-            options['axes'] = 10
+            options["axes"] = 10
         else:
-            options['axes'] = axes # put back
+            options["axes"] = axes  # put back
         if cmap is None:
-            cmap = 'afmhot'
-    elif style == 4 or style == 'bw':
-        bg = options.pop('bg', None)
+            cmap = "afmhot"
+    elif style in (4, 'bw'):
+        bg = options.pop("bg", None)
         if bg is None:
-            options['bg'] = (217, 255, 238)
+            options["bg"] = (217, 255, 238)
         else:
-            options['bg'] = bg
-        axes = options.pop('axes', None)
+            options["bg"] = bg
+        axes = options.pop("axes", None)
         if axes is None:
-            options['axes'] =  {
-                    'xyGrid':False,
-                    'yzGrid':False,
-                    'zxGrid':False,
-                   }
+            options["axes"] = {
+                "xyGrid": False,
+                "yzGrid": False,
+                "zxGrid": False,
+            }
         else:
-            options['axes'] = axes # put back
+            options["axes"] = axes  # put back
         if cmap is None:
-            cmap = 'binary'
-
+            cmap = "binary"
 
     #################################################################
     actors = []
     if vedo.plotter_instance:
         if add:
             actors = vedo.plotter_instance.actors
-        elif at==0: # just remove scalarbars
+        elif at == 0:  # just remove scalarbars
             for sb in vedo.plotter_instance.scalarbars:
                 vedo.plotter_instance.renderer.RemoveActor(sb)
 
-    if mesh and ('mesh' in mode or 'color' in mode or 'displace' in mode):
+    if mesh and ("mesh" in mode or "color" in mode or "displace" in mode):
 
         actor = MeshActor(u, mesh, exterior=exterior, fast=fast)
 
@@ -554,26 +549,27 @@ def plot(*inputobj, **options):
             actor.lineColor(lc)
         if alpha:
             alpha = min(alpha, 1)
-            actor.alpha(alpha*alpha)
+            actor.alpha(alpha * alpha)
         if lw:
             actor.lineWidth(lw)
             if wire and alpha:
                 lw1 = min(lw, 1)
-                actor.alpha(alpha*lw1)
+                actor.alpha(alpha * lw1)
         if ps:
             actor.pointSize(ps)
         if shading:
-            if shading == 'phong':
+            if shading == "phong":
                 actor.phong()
-            elif shading == 'flat':
+            elif shading == "flat":
                 actor.flat()
-            elif shading[0] == 'g':
+            elif shading[0] == "g":
                 actor.gouraud()
 
-        if 'displace' in mode: actor.move(u)
+        if "displace" in mode:
+            actor.move(u)
 
         if cmap and (actor.u_values is not None) and c is None:
-            if u.value_rank() > 0: # will show the size of the vector
+            if u.value_rank() > 0:  # will show the size of the vector
                 actor.cmap(cmap, utils.mag(actor.u_values), vmin=vmin, vmax=vmax)
             else:
                 actor.cmap(cmap, actor.u_values, vmin=vmin, vmax=vmax)
@@ -582,59 +578,58 @@ def plot(*inputobj, **options):
             scals = actor.pointdata[0]
             if len(scals):
                 pts_act = actor.points()
-                pts_act[:, 1] = scals*warpYfactor*scaleMeshFactors[1]
+                pts_act[:, 1] = scals * warpYfactor * scaleMeshFactors[1]
         if warpZfactor:
             scals = actor.pointdata[0]
             if len(scals):
                 pts_act = actor.points()
-                pts_act[:, 2] = scals*warpZfactor*scaleMeshFactors[2]
+                pts_act[:, 2] = scals * warpZfactor * scaleMeshFactors[2]
         if warpYfactor or warpZfactor:
             actor.points(pts_act)
             if vmin is not None and vmax is not None:
-                actor._mapper.SetScalarRange(vmin, vmax)
+                actor.mapper().SetScalarRange(vmin, vmax)
 
         if scbar and c is None:
-            if '3d' in scbar:
+            if "3d" in scbar:
                 actor.addScalarBar3D()
-            elif 'h' in scbar:
+            elif "h" in scbar:
                 actor.addScalarBar(horizontal=True)
             else:
                 actor.addScalarBar(horizontal=False)
 
         if len(isolns) > 0:
             ison = isolns.pop("n", 10)
-            isocol = isolns.pop("c", 'black')
+            isocol = isolns.pop("c", "black")
             isoalpha = isolns.pop("alpha", 1)
             isolw = isolns.pop("lw", 1)
 
             isos = actor.isolines(n=ison).color(isocol).lw(isolw).alpha(isoalpha)
 
             isoz = isolns.pop("z", None)
-            if isoz is not None: # kind of hack to make isolines visible on flat meshes
+            if isoz is not None:  # kind of hack to make isolines visible on flat meshes
                 d = isoz
             else:
-                d = actor.diagonalSize()/400
-            isos.z(actor.z()+d)
+                d = actor.diagonalSize() / 400
+            isos.z(actor.z() + d)
             actors.append(isos)
 
         actors.append(actor)
 
-
     #################################################################
-    if 'streamline' in mode:
-        mode = mode.replace('streamline','')
+    if "streamline" in mode:
+        mode = mode.replace("streamline", "")
         str_act = MeshStreamLines(u, **streamlines)
         actors.append(str_act)
 
     #################################################################
-    if 'arrow' in mode or 'line' in mode:
-        if 'arrow' in mode:
+    if "arrow" in mode or "line" in mode:
+        if "arrow" in mode:
             arrs = MeshArrows(u, scale=scale)
         else:
             arrs = MeshLines(u, scale=scale)
 
         if arrs:
-            if legend and 'mesh' not in mode:
+            if legend and "mesh" not in mode:
                 arrs.legend(legend)
             if c:
                 arrs.color(c)
@@ -643,26 +638,25 @@ def plot(*inputobj, **options):
                 arrs.alpha(alpha)
             actors.append(arrs)
 
-
     #################################################################
-    if 'tensor' in mode:
-        pass #todo
+    if "tensor" in mode:
+        pass  # todo
 
     #################################################################
     for ob in inputobj:
         inputtype = str(type(ob))
-        if 'vedo' in inputtype:
-           actors.append(ob)
+        if "vedo" in inputtype:
+            actors.append(ob)
 
     if text:
         # textact = Text2D(text, font=font)
         actors.append(text)
 
-    if 'at' in options.keys() and 'interactive' not in options.keys():
+    if "at" in options and "interactive" not in options:
         if vedo.plotter_instance:
-            N = vedo.plotter_instance.shape[0]*vedo.plotter_instance.shape[1]
-            if options['at'] == N-1:
-                options['interactive'] = True
+            N = vedo.plotter_instance.shape[0] * vedo.plotter_instance.shape[1]
+            if options["at"] == N - 1:
+                options["interactive"] = True
 
     # if vedo.plotter_instance:
     #     for a2 in vedo.collectable_actors:
@@ -671,8 +665,8 @@ def plot(*inputobj, **options):
     #                 vedo.plotter_instance.remove(a2)
     #                 break
 
-    if len(actors)==0:
-         print('Warning: no objects to show, check mode in plot(mode="...")')
+    if len(actors) == 0:
+        print('Warning: no objects to show, check mode in plot(mode="...")')
 
     if returnActorsNoShow:
         return actors
@@ -698,7 +692,8 @@ class MeshActor(Mesh):
 
         if exterior:
             import dolfin
-            meshc = dolfin.BoundaryMesh(mesh, 'exterior')
+
+            meshc = dolfin.BoundaryMesh(mesh, "exterior")
         else:
             meshc = mesh
 
@@ -709,7 +704,8 @@ class MeshActor(Mesh):
 
         poly = utils.buildPolyData(coords, meshc.cells(), fast=fast, tetras=True)
 
-        Mesh.__init__(self,
+        Mesh.__init__(
+            self,
             poly,
             c=c,
             alpha=alpha,
@@ -721,8 +717,7 @@ class MeshActor(Mesh):
         self.u = u  # holds a dolfin function_data
         # holds the actual values of u on the mesh
         self.u_values = _compute_uvalues(u, mesh)
-        #self.addPointArray(self.u_values, "u_values")
-
+        # self.addPointArray(self.u_values, "u_values")
 
     def move(self, u=None, deltas=None):
         """Move mesh according to solution `u` or from calculated vertex displacements `deltas`."""
@@ -741,12 +736,14 @@ class MeshActor(Mesh):
             coords = self.mesh.geometry.points
 
         if coords.shape != deltas.shape:
-            vedo.logger.error(f"Try to move mesh with wrong solution type shape {coords.shape} vs {deltas.shape}")
+            vedo.logger.error(
+                f"Try to move mesh with wrong solution type shape {coords.shape} vs {deltas.shape}"
+            )
             vedo.logger.error("Mesh is not moved. Try mode='color' in plot().")
             return
 
         movedpts = coords + deltas
-        if movedpts.shape[1] == 2: #2d
+        if movedpts.shape[1] == 2:  # 2d
             movedpts = np.c_[movedpts, np.zeros(movedpts.shape[0])]
         self.polydata(False).GetPoints().SetData(utils.numpy2vtk(movedpts, dtype=float))
         self.polydata(False).GetPoints().Modified()
@@ -767,7 +764,7 @@ def MeshPoints(*inputobj, **options):
     else:
         plist = mesh.geometry.points
 
-    u_values = _compute_uvalues(u,mesh)
+    u_values = _compute_uvalues(u, mesh)
 
     if len(plist[0]) == 2:  # coords are 2d.. not good..
         plist = np.insert(plist, 2, 0, axis=1)  # make it 3d
@@ -802,7 +799,7 @@ def MeshLines(*inputobj, **options):
     """
     scale = options.pop("scale", 1)
     lw = options.pop("lw", 1)
-    c = options.pop("c", 'grey')
+    c = options.pop("c", "grey")
     alpha = options.pop("alpha", 1)
 
     mesh, u = _inputsort(inputobj)
@@ -814,7 +811,7 @@ def MeshLines(*inputobj, **options):
     else:
         startPoints = mesh.geometry.points
 
-    u_values = _compute_uvalues(u,mesh)
+    u_values = _compute_uvalues(u, mesh)
     if not utils.isSequence(u_values[0]):
         vedo.logger.error("cannot show Lines for 1D scalar values")
         raise RuntimeError()
@@ -850,19 +847,18 @@ def MeshArrows(*inputobj, **options):
     else:
         startPoints = mesh.geometry.points
 
-    u_values = _compute_uvalues(u,mesh)
+    u_values = _compute_uvalues(u, mesh)
     if not utils.isSequence(u_values[0]):
         vedo.logger.error("cannot show Arrows for 1D scalar values")
         raise RuntimeError()
 
-    endPoints = startPoints + u_values *scale
+    endPoints = startPoints + u_values * scale
     if u_values.shape[1] == 2:  # u_values is 2D
         u_values = np.insert(u_values, 2, 0, axis=1)  # make it 3d
         startPoints = np.insert(startPoints, 2, 0, axis=1)  # make it 3d
         endPoints = np.insert(endPoints, 2, 0, axis=1)  # make it 3d
 
-    actor = shapes.Arrows(startPoints, endPoints,
-                          s=s, alpha=alpha, res=res)
+    actor = shapes.Arrows(startPoints, endPoints, s=s, alpha=alpha, res=res)
     actor.color(c)
     actor.mesh = mesh
     actor.u = u
@@ -874,18 +870,18 @@ def MeshStreamLines(*inputobj, **options):
     """Build a streamplot."""
     from vedo.shapes import StreamLines
 
-    print('Building streamlines...')
+    print("Building streamlines...")
 
-    tol = options.pop('tol', 0.02)
-    lw = options.pop('lw', 2)
-    direction = options.pop('direction', 'forward')
-    maxPropagation = options.pop('maxPropagation', None)
-    scalarRange = options.pop('scalarRange', None)
-    probes = options.pop('probes', None)
+    tol = options.pop("tol", 0.02)
+    lw = options.pop("lw", 2)
+    direction = options.pop("direction", "forward")
+    maxPropagation = options.pop("maxPropagation", None)
+    scalarRange = options.pop("scalarRange", None)
+    probes = options.pop("probes", None)
 
-    tubes = options.pop('tubes', dict()) # todo
-    maxRadiusFactor = options.pop('maxRadiusFactor', 1)
-    varyRadius = options.pop('varyRadius', 1)
+    tubes = options.pop("tubes", {})  # todo
+    maxRadiusFactor = options.pop("maxRadiusFactor", 1)
+    varyRadius = options.pop("varyRadius", 1)
 
     mesh, u = _inputsort(inputobj)
     if not mesh:
@@ -899,31 +895,34 @@ def MeshStreamLines(*inputobj, **options):
         u_values = np.insert(u_values, 2, 0, axis=1)  # make it 3d
 
     meshact = MeshActor(u)
-    meshact.addPointArray(u_values, 'u_values')
+    meshact.addPointArray(u_values, "u_values")
 
     if utils.isSequence(probes):
-        pass # it's already it
+        pass  # it's already it
     elif tol:
-        print('decimating mesh points to use them as seeds...')
+        print("decimating mesh points to use them as seeds...")
         probes = meshact.clone().subsample(tol).points()
     else:
         probes = meshact.points()
-    if len(probes)>500:
-        printc('Probing domain with n =', len(probes), 'points')
-        printc(' ..this may take time (or choose a larger tol value)')
+    if len(probes) > 500:
+        printc("Probing domain with n =", len(probes), "points")
+        printc(" ..this may take time (or choose a larger tol value)")
 
     if lw:
-        tubes = dict()
+        tubes = {}
     else:
-        tubes['varyRadius'] = varyRadius
-        tubes['maxRadiusFactor'] = maxRadiusFactor
+        tubes["varyRadius"] = varyRadius
+        tubes["maxRadiusFactor"] = maxRadiusFactor
 
-    str_lns = StreamLines(meshact, probes,
-                          direction=direction,
-                          maxPropagation=maxPropagation,
-                          tubes=tubes,
-                          scalarRange=scalarRange,
-                          activeVectors='u_values')
+    str_lns = StreamLines(
+        meshact,
+        probes,
+        direction=direction,
+        maxPropagation=maxPropagation,
+        tubes=tubes,
+        scalarRange=scalarRange,
+        activeVectors="u_values",
+    )
 
     if lw:
         str_lns.lw(lw)

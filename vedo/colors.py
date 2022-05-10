@@ -1,10 +1,10 @@
 import os
 import sys
 import time
-
 import numpy as np
-import vedo
 import vtk
+
+import vedo
 
 __doc__ = """
 Colors definitions and printing methods. <br>
@@ -25,7 +25,7 @@ __all__ = [
 try:
     import matplotlib.cm as cm_mpl
     _has_matplotlib = True
-except:
+except ModuleNotFoundError:
     from vedo.cmaps import cmaps
     _has_matplotlib = False
     # see below, this is dealt with in colorMap()
@@ -34,10 +34,10 @@ except:
 # handy global shortcuts for terminal printing
 # Ex.: print(colors.red + "hello" + colors.reset)
 #########################################################
-red   = '\x1b[1m\x1b[31;1m'
-green = '\x1b[1m\x1b[32;1m'
-yellow= '\x1b[1m\x1b[33;1m'
-blue  = '\x1b[1m\x1b[34;1m'
+red = "\x1b[1m\x1b[31;1m"
+green = "\x1b[1m\x1b[32;1m"
+yellow = "\x1b[1m\x1b[33;1m"
+blue = "\x1b[1m\x1b[34;1m"
 reset = "\x1b[0m"
 
 
@@ -46,8 +46,7 @@ reset = "\x1b[0m"
 #########################################################
 colors = {
     # order kind of matters because of pyplot.plot()
-
-    "blue9": "#a8cbfe",      # bootstrap5 colors
+    "blue9": "#a8cbfe",  # bootstrap5 colors
     "blue8": "#81b4fe",
     "blue7": "#5a9cfe",
     "blue6": "#3485fd",
@@ -56,7 +55,6 @@ colors = {
     "blue3": "#094bac",
     "blue2": "#073984",
     "blue1": "#05285b",
-
     "indigo9": "#c8a9fa",
     "indigo8": "#af83f8",
     "indigo7": "#975cf6",
@@ -66,7 +64,6 @@ colors = {
     "indigo3": "#450ba5",
     "indigo2": "#35087e",
     "indigo1": "#250657",
-
     "purple9": "#cbbbe9",
     "purple8": "#b49ddf",
     "purple7": "#9d7ed5",
@@ -76,7 +73,6 @@ colors = {
     "purple3": "#4b2d83",
     "purple2": "#3a2264",
     "purple1": "#281845",
-
     "pink9": "#f0b6d3",
     "pink8": "#ea95bf",
     "pink7": "#e374ab",
@@ -86,7 +82,6 @@ colors = {
     "pink3": "#92235a",
     "pink2": "#6f1b45",
     "pink1": "#4d1230",
-
     "red9": "#f2b6bc",
     "red8": "#ed969e",
     "red7": "#e77681",
@@ -96,7 +91,6 @@ colors = {
     "red3": "#96242f",
     "red2": "#721c24",
     "red1": "#4f1319",
-
     "orange9": "#fed1aa",
     "orange8": "#febc85",
     "orange7": "#fea75f",
@@ -106,7 +100,6 @@ colors = {
     "orange3": "#ac560e",
     "orange2": "#84420a",
     "orange1": "#5b2d07",
-
     "yellow9": "#ffe9a6",
     "yellow8": "#ffdf7e",
     "yellow7": "#ffd556",
@@ -116,7 +109,6 @@ colors = {
     "yellow3": "#ad8305",
     "yellow2": "#856404",
     "yellow1": "#5c4503",
-
     "green9": "#b2dfbc",
     "green8": "#8fd19e",
     "green7": "#6dc381",
@@ -126,7 +118,6 @@ colors = {
     "green3": "#1b722f",
     "green2": "#155724",
     "green1": "#0e3c19",
-
     "teal9": "#afecda",
     "teal8": "#8be3c9",
     "teal7": "#67dab8",
@@ -136,7 +127,6 @@ colors = {
     "teal3": "#168967",
     "teal2": "#11694f",
     "teal1": "#0c4836",
-
     "cyan9": "#abdee5",
     "cyan8": "#86cfda",
     "cyan7": "#61c0cf",
@@ -146,7 +136,6 @@ colors = {
     "cyan3": "#106e7d",
     "cyan2": "#0c5460",
     "cyan1": "#083a42",
-
     "gray9": "#f8f9fa",
     "gray8": "#e9edef",
     "gray7": "#dee2e6",
@@ -156,8 +145,7 @@ colors = {
     "gray3": "#495057",
     "gray2": "#343a40",
     "gray1": "#212529",
-
-    "aliceblue": "#F0F8FF",      # matplotlib scheme
+    "aliceblue": "#F0F8FF",  # matplotlib scheme
     "antiquewhite": "#FAEBD7",
     "aqua": "#00FFFF",
     "aquamarine": "#7FFFD4",
@@ -166,7 +154,7 @@ colors = {
     "bisque": "#FFE4C4",
     "black": "#000000",
     "blanchedalmond": "#FFEBCD",
-    "blue": "#0f00fb", # "0000FF",
+    "blue": "#0f00fb",  # "0000FF",
     "blueviolet": "#8A2BE2",
     "brown": "#A52A2A",
     "burlywood": "#DEB887",
@@ -208,7 +196,7 @@ colors = {
     "gold": "#FFD700",
     "goldenrod": "#DAA520",
     "gray": "#808080",
-    "green": "#047f10", #"#008000",
+    "green": "#047f10",  # "#008000",
     "greenyellow": "#ADFF2F",
     "honeydew": "#F0FFF0",
     "hotpink": "#FF69B4",
@@ -269,7 +257,7 @@ colors = {
     "powderblue": "#B0E0E6",
     "purple": "#800080",
     "rebeccapurple": "#663399",
-    "red": "#fe1e1f", #"#FF0000",
+    "red": "#fe1e1f",  # "#FF0000",
     "rosybrown": "#BC8F8F",
     "royalblue": "#4169E1",
     "saddlebrown": "#8B4513",
@@ -295,7 +283,7 @@ colors = {
     "wheat": "#F5DEB3",
     "white": "#FFFFFF",
     "whitesmoke": "#F5F5F5",
-    "yellow": "#ffff36", #"#FFFF00",
+    "yellow": "#ffff36",  # "#FFFF00",
     "yellowgreen": "#9ACD32",
 }
 
@@ -308,14 +296,14 @@ color_nicks = {  # color nicknames
     "lc": "lightcyan",
     "ls": "lightsalmon",
     "ly": "lightyellow",
-    "dr": "darkred",    # dark
+    "dr": "darkred",  # dark
     "db": "darkblue",
     "dg": "darkgreen",
     "dm": "darkmagenta",
     "dc": "darkcyan",
     "ds": "darksalmon",
     "dv": "darkviolet",
-    "b1": "blue1",      # bootstrap5 colors
+    "b1": "blue1",  # bootstrap5 colors
     "b2": "blue2",
     "b3": "blue3",
     "b4": "blue4",
@@ -533,33 +521,33 @@ palettes = (
 
 
 emoji = {
-    "\bomb" : u"\U0001F4A5",
-    "\sparks" : u"\U00002728",
-    "\ethumbup" : u"\U0001F44d",
-    "\etarget": u"\U0001F3af",
-    "\save": u"\U0001F4be",
-    "\noentry": u"\U000026d4",
-    "\video": u"\U0001F4fd ",
-    "\lightning": u"\U000026a1",
-    "\camera": u"\U0001F4f8",
-    "\times": u"\U0000274c",
-    "\world": u"\U0001F30d",
-    "\erainbow": u"\U0001F308",
-    "\idea": u"\U0001F4a1",
-    "\pin": u"\U0001F4CC",
-    "\construction": u"\U0001F6A7",
-    "\rightarrow": u"\U000027a1",
-    "\erocket": u"\U0001F680",
-    "\hourglass": u"\U000023f3",
-    "\prohibited": u"\U0001F6ab",
-    "\checked": u"\U00002705",
-    "\smile": u"\U0001F642",
-    "\sad": u"\U0001F612",
-    "\star": u"\U00002B50",
-    "\zzz": u"\U0001F4a4",
-    "\mu": u"\U000003BC",
-    "\pi": u"\U000003C0",
-    "\sigma": u"\U000003C3",
+    "\bomb": "\U0001F4A5",
+    "\sparks": "\U00002728",
+    "\ethumbup": "\U0001F44d",
+    "\etarget": "\U0001F3af",
+    "\save": "\U0001F4be",
+    "\noentry": "\U000026d4",
+    "\video": "\U0001F4fd ",
+    "\lightning": "\U000026a1",
+    "\camera": "\U0001F4f8",
+    "\times": "\U0000274c",
+    "\world": "\U0001F30d",
+    "\erainbow": "\U0001F308",
+    "\idea": "\U0001F4a1",
+    "\pin": "\U0001F4CC",
+    "\construction": "\U0001F6A7",
+    "\rightarrow": "\U000027a1",
+    "\erocket": "\U0001F680",
+    "\hourglass": "\U000023f3",
+    "\prohibited": "\U0001F6ab",
+    "\checked": "\U00002705",
+    "\smile": "\U0001F642",
+    "\sad": "\U0001F612",
+    "\star": "\U00002B50",
+    "\zzz": "\U0001F4a4",
+    "\mu": "\U000003BC",
+    "\pi": "\U000003C0",
+    "\sigma": "\U000003C3",
 }
 
 # terminal color print
@@ -570,11 +558,12 @@ def _has_colors(stream):
         return False
     try:
         import curses
-
         curses.setupterm()
         return curses.tigetnum("colors") > 2
     except:
         return False
+
+
 #
 _terminal_has_colors = _has_colors(sys.stdout)
 
@@ -588,6 +577,7 @@ def _isSequence(arg):
     if hasattr(arg, "__iter__"):
         return True
     return False
+
 
 def getColor(rgb=None, hsv=None):
     """
@@ -616,12 +606,12 @@ def getColor(rgb=None, hsv=None):
         return seqcol
 
     # because they are most common:
-    if rgb=='r':
+    if rgb == "r":
         return (0.9960784313725, 0.11764705882352, 0.121568627450980)
-    elif rgb=='g':
+    elif rgb == "g":
         return (0.0156862745098, 0.49803921568627, 0.062745098039215)
-    elif rgb=='b':
-        return (0.0588235294117, 0.0,              0.984313725490196)
+    elif rgb == "b":
+        return (0.0588235294117, 0.0, 0.984313725490196)
 
     if str(rgb).isdigit():
         rgb = int(rgb)
@@ -643,13 +633,15 @@ def getColor(rgb=None, hsv=None):
     elif isinstance(c, str):  # is string
         c = c.replace("grey", "gray").replace(" ", "")
         if 0 < len(c) < 3:  # single/double letter color
-            if c.lower() in color_nicks.keys():
+            if c.lower() in color_nicks:
                 c = color_nicks[c.lower()]
             else:
-                vedo.logger.warning(f"Unknown color nickname {c}\nAvailable abbreviations: {color_nicks}")
+                vedo.logger.warning(
+                    f"Unknown color nickname {c}\nAvailable abbreviations: {color_nicks}"
+                )
                 return (0.5, 0.5, 0.5)
 
-        if c.lower() in colors.keys():  # matplotlib name color
+        if c.lower() in colors:  # matplotlib name color
             c = colors[c.lower()]
             # from now format is hex!
 
@@ -666,7 +658,7 @@ def getColor(rgb=None, hsv=None):
             namedColors = vtk.vtkNamedColors()
             rgba = [0, 0, 0, 0]
             namedColors.GetColor(c, rgba)
-            return (rgba[0]/255.0, rgba[1]/255.0, rgba[2]/255.0)
+            return (rgba[0] / 255.0, rgba[1] / 255.0, rgba[2] / 255.0)
 
     elif isinstance(c, (int, float)):  # color number
         return palettes[vedo.settings.palette % len(palettes)][abs(int(c)) % 10]
@@ -674,12 +666,13 @@ def getColor(rgb=None, hsv=None):
     # print("Unknown color:", c)
     return (0.5, 0.5, 0.5)
 
+
 def getColorName(c):
     """Find the name of a color."""
     c = np.array(getColor(c))  # reformat to rgb
     mdist = 99.0
     kclosest = ""
-    for key in colors.keys():
+    for key in colors:
         ci = np.array(getColor(key))
         d = np.linalg.norm(c - ci)
         if d < mdist:
@@ -691,26 +684,31 @@ def getColorName(c):
 def hsv2rgb(hsv):
     """Convert HSV to RGB color."""
     ma = vtk.vtkMath()
-    rgb = [0,0,0]
+    rgb = [0, 0, 0]
     ma.HSVToRGB(hsv, rgb)
     return rgb
+
 
 def rgb2hsv(rgb):
     """Convert RGB to HSV color."""
     ma = vtk.vtkMath()
-    hsv = [0,0,0]
+    hsv = [0, 0, 0]
     ma.RGBToHSV(getColor(rgb), hsv)
     return hsv
 
+
 def rgb2hex(rgb):
     """Convert RGB to Hex color."""
-    h = '#%02x%02x%02x' % (int(rgb[0]*255),int(rgb[1]*255),int(rgb[2]*255))
+    h = "#%02x%02x%02x" % (int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255))
     return h
 
+
 def hex2rgb(hx):
-        h = hx.lstrip("#")
-        rgb255 = [int(h[i : i + 2], 16) for i in (0, 2, 4)]
-        return (rgb255[0]/255., rgb255[1]/255., rgb255[2]/255.)
+    """Convert Hex to rgb color."""
+    h = hx.lstrip("#")
+    rgb255 = [int(h[i : i + 2], 16) for i in (0, 2, 4)]
+    return (rgb255[0] / 255.0, rgb255[1] / 255.0, rgb255[2] / 255.0)
+
 
 def colorMap(value, name="jet", vmin=None, vmax=None):
     """
@@ -748,7 +746,7 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
     .. hint:: examples/pyplot/plot_bars.py
         .. image:: https://vedo.embl.es/images/pyplot/plot_bars.png
     """
-    cut = _isSequence(value) # to speed up later
+    cut = _isSequence(value)  # to speed up later
 
     if cut:
         values = np.asarray(value)
@@ -771,26 +769,29 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
             mp = cm_mpl.get_cmap(name=name)
         else:
             mp = name  # assume matplotlib.colors.LinearSegmentedColormap
-        result = mp(values)[:, [0,1,2]]
+        result = mp(values)[:, [0, 1, 2]]
 
     else:
         # matplotlib not available ###################################
         invert = False
-        if name.endswith('_r'):
+        if name.endswith("_r"):
             invert = True
-            name = name.replace('_r', "")
+            name = name.replace("_r", "")
         try:
             cmap = cmaps[name]
         except KeyError:
-            vedo.logger.error(f"in colorMap(), no color map with name {name} or {name}_r")
+            vedo.logger.error(
+                f"in colorMap(), no color map with name {name} or {name}_r"
+            )
             vedo.logger.error(f"Available color maps are:\n{cmaps.keys()}")
-            return np.array([0.5,0.5,0.5])
+            return np.array([0.5, 0.5, 0.5])
 
         result = []
-        n = len(cmap)-1
+        n = len(cmap) - 1
         for v in values:
-            iv = int( v * n )
-            if invert: iv = n - iv
+            iv = int(v * n)
+            if invert:
+                iv = n - iv
             rgb = hex2rgb(cmap[iv])
             result.append(rgb)
         result = np.array(result)
@@ -838,12 +839,17 @@ def buildPalette(color1, color2, N, hsv=True):
 
 
 def buildLUT(
-        colorlist,
-        vmin=None, vmax=None,
-        belowColor=None, aboveColor=None, nanColor=None,
-        belowAlpha=1, aboveAlpha=1, nanAlpha=1,
-        interpolate=False,
-    ):
+    colorlist,
+    vmin=None,
+    vmax=None,
+    belowColor=None,
+    aboveColor=None,
+    nanColor=None,
+    belowAlpha=1,
+    aboveAlpha=1,
+    nanAlpha=1,
+    interpolate=False,
+):
     """
     Generate colors in a lookup table (LUT).
 
@@ -889,7 +895,7 @@ def buildLUT(
     ctf.SetScaleToLinear()
     alpha_x, alpha_vals = [], []
     for sc in colorlist:
-        if len(sc)>=3:
+        if len(sc) >= 3:
             scalar, col, alf = sc[:3]
         else:
             alf = 1
@@ -902,7 +908,7 @@ def buildLUT(
     lut = vtk.vtkLookupTable()
     lut.SetNumberOfTableValues(256)
 
-    x0, x1 = ctf.GetRange() # range of the introduced values
+    x0, x1 = ctf.GetRange()  # range of the introduced values
     if vmin is not None:
         x0 = vmin
     if vmax is not None:
@@ -911,25 +917,25 @@ def buildLUT(
     lut.SetRange(x0, x1)
 
     if belowColor is not None:
-        lut.SetBelowRangeColor(list(getColor(belowColor))+[belowAlpha])
+        lut.SetBelowRangeColor(list(getColor(belowColor)) + [belowAlpha])
         lut.SetUseBelowRangeColor(True)
     if aboveColor is not None:
-        lut.SetAboveRangeColor(list(getColor(aboveColor))+[aboveAlpha])
+        lut.SetAboveRangeColor(list(getColor(aboveColor)) + [aboveAlpha])
         lut.SetUseAboveRangeColor(True)
     if nanColor is not None:
-        lut.SetNanColor(list(getColor(nanColor))+[nanAlpha])
+        lut.SetNanColor(list(getColor(nanColor)) + [nanAlpha])
 
-    rgba = (1,1,1,1)
+    rgba = (1, 1, 1, 1)
     for i in range(256):
-        p = i/255
-        x = (1-p) *x0 + p *x1
+        p = i / 255
+        x = (1 - p) * x0 + p * x1
         if interpolate:
             alf = np.interp(x, alpha_x, alpha_vals)
             rgba = list(ctf.GetColor(x)) + [alf]
         else:
             for c in colorlist:
                 if x <= c[0]:
-                    if len(c)==3:
+                    if len(c) == 3:
                         alf = c[2]
                     else:
                         alf = 1
@@ -940,22 +946,23 @@ def buildLUT(
     lut.Build()
     return lut
 
+
 #########################################################################
 def printc(
-        *strings,
-        c = None,
-        bc = None,
-        bold = True,
-        italic = False,
-        blink = False,
-        underline = False,
-        strike = False,
-        dim = False,
-        invert = False,
-        box = "",
-        end = "\n",
-        flush = True,
-    ):
+    *strings,
+    c=None,
+    bc=None,
+    bold=True,
+    italic=False,
+    blink=False,
+    underline=False,
+    strike=False,
+    dim=False,
+    invert=False,
+    box="",
+    end="\n",
+    flush=True,
+):
     """
     Print to terminal in color (any color!).
 
@@ -1017,7 +1024,7 @@ def printc(
             print(*strings, end=end, flush=flush)
             return
 
-    try: # -------------------------------------------------------------
+    try:  # -------------------------------------------------------------
 
         txt = str()
         ns = len(strings) - 1
@@ -1027,12 +1034,11 @@ def printc(
             if i == ns:
                 separator = ""
             if "\\" in repr(s):  # "in" for some reasons changes s
-                from vedo.shapes import _reps
-                for k in emoji.keys():
+                for k in emoji:
                     if k in str(s):
                         s = s.replace(k, emoji[k])
                         offset += 1
-                for k, rp in _reps: # check symbols in shapes._reps
+                for k, rp in vedo.shapes._reps:  # check symbols in shapes._reps
                     if k in str(s):
                         s = s.replace(k, rp)
                         offset += 1
@@ -1040,14 +1046,15 @@ def printc(
             txt += str(s) + separator
 
         special, cseq = "", ""
-        oneletter_colors = {'k': u'\u001b[30;1m', # because these are supported by most terminals
-                            'r': u'\u001b[31;1m',
-                            'g': u'\u001b[32;1m',
-                            'y': u'\u001b[33;1m',
-                            'b': u'\u001b[34;1m',
-                            'm': u'\u001b[35;1m',
-                            'c': u'\u001b[36;1m',
-                            'w': u'\u001b[37;1m',
+        oneletter_colors = {
+            "k": "\u001b[30;1m",  # because these are supported by most terminals
+            "r": "\u001b[31;1m",
+            "g": "\u001b[32;1m",
+            "y": "\u001b[33;1m",
+            "b": "\u001b[34;1m",
+            "m": "\u001b[35;1m",
+            "c": "\u001b[36;1m",
+            "w": "\u001b[37;1m",
         }
 
         if c is not None:
@@ -1056,21 +1063,21 @@ def printc(
             elif c is False:
                 c = "r"
 
-            if isinstance(c, str) and c in oneletter_colors.keys():
+            if isinstance(c, str) and c in oneletter_colors:
                 cseq += oneletter_colors[c]
             else:
-                r,g,b = getColor(c) # not all terms support this syntax
+                r, g, b = getColor(c)  # not all terms support this syntax
                 cseq += f"\x1b[38;2;{int(r*255)};{int(g*255)};{int(b*255)}m"
 
         if bc:
             if bc in oneletter_colors.keys():
                 cseq += oneletter_colors[bc]
             else:
-                r,g,b = getColor(bc)
+                r, g, b = getColor(bc)
                 cseq += f"\x1b[48;2;{int(r*255)};{int(g*255)};{int(b*255)}m"
 
         if box is True:
-            box='-'
+            box = "-"
         if underline and not box:
             special += "\x1b[4m"
         if strike and not box:
@@ -1086,13 +1093,13 @@ def printc(
         if blink:
             special += "\x1b[5m"
 
-        if box and not ("\n" in txt):
+        if box and "\n" not in txt:
             box = box[0]
             boxv = box
             if box in ["_", "=", "-", "+", "~"]:
                 boxv = "|"
 
-            if box == "_" or box == ".":
+            if box in ('_', '.'):
                 outtxt = special + cseq + " " + box * (len(txt) + offset + 2) + " \n"
                 outtxt += boxv + " " * (len(txt) + 2) + boxv + "\n"
             else:
@@ -1112,11 +1119,12 @@ def printc(
             out = special + cseq + txt + reset
             sys.stdout.write(out + end)
 
-    except: # ------------------------------------------------------------- fallback
+    except:  # ------------------------------------------------------------- fallback
         print(*strings, end=end)
 
     if flush:
         sys.stdout.flush()
+
 
 def printd(*strings, q=False):
     """
@@ -1126,7 +1134,6 @@ def printd(*strings, q=False):
     Use ``q`` to quit (exit) python session after the printd call.
     """
     from inspect import currentframe, getframeinfo
-    from vedo.utils import isSequence, precision
 
     cf = currentframe().f_back
     cfi = getframeinfo(cf)
@@ -1134,10 +1141,10 @@ def printd(*strings, q=False):
     fname = os.path.basename(getframeinfo(cf).filename)
     print("\x1b[7m\x1b[3m\x1b[37m"+fname+" line:\x1b[1m"+str(cfi.lineno)+reset, end='')
     print('\x1b[3m\x1b[37m\x1b[2m', "\U00002501"*30, time.ctime(), reset)
-    if len(strings):
+    if strings:
         print("    \x1b[37m\x1b[1mMessage : ", *strings)
-    print("    \x1b[37m\x1b[1mFunction:\x1b[0m\x1b[37m "+ str(cfi.function))
-    print('    \x1b[1mLocals  :'+reset)
+    print("    \x1b[37m\x1b[1mFunction:\x1b[0m\x1b[37m " + str(cfi.function))
+    print("    \x1b[1mLocals  :" + reset)
     for loc in cf.f_locals.keys():
         obj = cf.f_locals[loc]
         var = repr(obj)
@@ -1150,20 +1157,17 @@ def printd(*strings, q=False):
                 oname = str(type(obj))
             else:
                 oname = obj.name
-            var = oname + ', at ' + precision(obj.GetPosition(),3)
+            var = oname + ", at " + vedo.utils.precision(obj.GetPosition(), 3)
 
-        var = var.replace('vtkmodules.','')
-        print('      \x1b[37m', loc,'\t\t=', var[:60].replace('\n',''), reset)
-        if isSequence(obj) and len(obj)>4:
-            try:
-                print('           \x1b[37m\x1b[2m\x1b[3m len:', len(obj),
-                      ' min:', precision(min(obj), 4),
-                      ' max:', precision(max(obj), 4),
-                      reset)
-            except:
-                pass
+        var = var.replace("vtkmodules.", "")
+        print("      \x1b[37m", loc, "\t\t=", var[:60].replace("\n", ""), reset)
+        if vedo.utils.isSequence(obj) and len(obj) > 4:
+            print('           \x1b[37m\x1b[2m\x1b[3m len:', len(obj),
+                  ' min:', vedo.utils.precision(min(obj), 4),
+                  ' max:', vedo.utils.precision(max(obj), 4),
+                  reset)
 
     if q:
         print(f"    \x1b[1m\x1b[37mExiting python now (q={bool(q)}).\x1b[0m\x1b[37m")
-        exit(0)
+        sys.exit(0)
     sys.stdout.flush()
