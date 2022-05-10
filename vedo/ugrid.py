@@ -1,10 +1,12 @@
 import numpy as np
-import vedo
-import vedo.colors as colors
-import vedo.utils as utils
 import vtk
+
+import vedo
 from vedo import settings
+from vedo import colors
+from vedo import utils
 from vedo.base import BaseGrid
+from vedo.io import download, loadUnStructuredGrid
 
 __doc__ = """
 Work with unstructured grid datasets
@@ -15,6 +17,7 @@ __all__ = ["UGrid"]
 #########################################################################
 class UGrid(vtk.vtkActor, BaseGrid):
     """Support for UnstructuredGrid objects."""
+
     def __init__(self, inputobj=None):
 
         vtk.vtkActor.__init__(self)
@@ -23,6 +26,7 @@ class UGrid(vtk.vtkActor, BaseGrid):
         inputtype = str(type(inputobj))
         self._data = None
         self._polydata = None
+        self._bfprop = None
         self.name = "UGrid"
 
         ###################
@@ -36,13 +40,13 @@ class UGrid(vtk.vtkActor, BaseGrid):
             self._data = vtk.vtkUnstructuredGrid()
 
             if not utils.isSequence(cells[0]):
-                tets=[]
-                nf=cells[0]+1
+                tets = []
+                nf = cells[0] + 1
                 for i, cl in enumerate(cells):
-                    if i==nf or i==0:
-                        k = i+1
-                        nf = cl+k
-                        cell = [cells[j+k] for j in range(cl)]
+                    if i in (nf, 0):
+                        k = i + 1
+                        nf = cl + k
+                        cell = [cells[j + k] for j in range(cl)]
                         tets.append(cell)
                 cells = tets
 
@@ -62,7 +66,7 @@ class UGrid(vtk.vtkActor, BaseGrid):
             # Fill cells
             # https://vtk.org/doc/nightly/html/vtkCellType_8h_source.html
             for i, ct in enumerate(celltypes):
-                cell_conn =  cells[i]
+                cell_conn = cells[i]
                 if ct == vtk.VTK_HEXAHEDRON:
                     cell = vtk.vtkHexahedron()
                 elif ct == vtk.VTK_TETRA:
@@ -89,7 +93,6 @@ class UGrid(vtk.vtkActor, BaseGrid):
             self._data = inputobj
 
         elif isinstance(inputobj, str):
-            from vedo.io import download, loadUnStructuredGrid
             if "https://" in inputobj:
                 inputobj = download(inputobj, verbose=False)
             self._data = loadUnStructuredGrid(inputobj)
@@ -136,7 +139,6 @@ class UGrid(vtk.vtkActor, BaseGrid):
 
     # ------------------------------------------------------------------
 
-
     def clone(self):
         """Clone the UGrid object to yield an exact copy."""
         ugCopy = vtk.vtkUnstructuredGrid()
@@ -152,14 +154,13 @@ class UGrid(vtk.vtkActor, BaseGrid):
         cloned.SetProperty(prv)
         cloned.property = prv
 
-        #assign the same transformation to the copy
+        # assign the same transformation to the copy
         cloned.SetOrigin(self.GetOrigin())
         cloned.SetScale(self.GetScale())
         cloned.SetOrientation(self.GetOrientation())
         cloned.SetPosition(self.GetPosition())
         cloned.name = self.name
         return cloned
-
 
     def color(self, c=False, alpha=None):
         """
@@ -180,7 +181,6 @@ class UGrid(vtk.vtkActor, BaseGrid):
         if alpha is not None:
             self.alpha(alpha)
         return self
-
 
     def alpha(self, opacity=None):
         """Set/get mesh's transparency. Same as `mesh.opacity()`."""
@@ -244,12 +244,11 @@ class UGrid(vtk.vtkActor, BaseGrid):
         """Set/get color of mesh edges. Same as `lineColor()`."""
         return self.lineColor(lineColor)
 
-
     def extractCellType(self, ctype):
         """Extract a specific cell type and return a new UGrid."""
         uarr = self._data.GetCellTypesArray()
-        ctarrtyp = np.where(utils.vtk2numpy(uarr)==ctype)[0]
-        uarrtyp = utils.numpy2vtk(ctarrtyp, deep=False, dtype='id')
+        ctarrtyp = np.where(utils.vtk2numpy(uarr) == ctype)[0]
+        uarrtyp = utils.numpy2vtk(ctarrtyp, deep=False, dtype="id")
         selectionNode = vtk.vtkSelectionNode()
         selectionNode.SetFieldType(vtk.vtkSelectionNode.CELL)
         selectionNode.SetContentType(vtk.vtkSelectionNode.INDICES)
