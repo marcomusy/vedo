@@ -1044,7 +1044,7 @@ def loadnumpy(inobj):
         keys = d.keys()
 
         vertices = d["points"]
-        if not vertices:
+        if len(vertices) == 0:
             return None
 
         cells = None

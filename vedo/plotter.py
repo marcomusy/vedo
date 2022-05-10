@@ -2873,7 +2873,7 @@ class Plotter:
         if self.resetcam:
             self.renderer.ResetCamera()
 
-        if self.renderers > 1:
+        if len(self.renderers) > 1:
             self.frames = self.addRendererFrame()
 
         if self.flagWidget:

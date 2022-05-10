@@ -227,8 +227,6 @@ class Mesh(Points):
 
         self._mapper.SetInputData(self._data)
 
-        self._bfprop = None  # backface property holder
-
         self.property = self.GetProperty()
         self.property.SetInterpolationToPhong()
 

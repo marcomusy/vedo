@@ -491,8 +491,16 @@ class Base3DProp():
             tr = tr.GetInverse()
         return tr
 
-    def applyTransform(self, T):
-        """Transform object position and orientation."""
+    def applyTransform(self, T, reset=False, concatenate=False):
+        """
+        Transform object position and orientation.
+
+        reset : bool
+            no effect, this is superseded by pointcloud.applyTransform()
+
+        concatenate : bool
+            no effect, this is superseded by pointcloud.applyTransform()
+        """
         if isinstance(T, vtk.vtkMatrix4x4):
             self.SetUserMatrix(T)
         elif isinstance(T, (list, tuple)):
