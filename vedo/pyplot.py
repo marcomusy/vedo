@@ -1,14 +1,14 @@
 import warnings
 import numpy as np
 import vtk
+
 import vedo
-import vedo.addons as addons
-import vedo.colors as colors
-import vedo.shapes as shapes
-import vedo.utils as utils
+from vedo import addons
+from vedo import colors
+from vedo import utils
+from vedo.mesh import merge, Mesh
 from vedo.assembly import Assembly
-from vedo.mesh import merge
-from vedo.mesh import Mesh
+from vedo import shapes
 
 __doc__ = """
 .. image:: https://vedo.embl.es/images/pyplot/fitPolynomial2.png
@@ -18,7 +18,7 @@ Advanced plotting utility functions
 
 __all__ = [
     "Figure",
-    "Histogram1D", # uncomment to generate docs
+    "Histogram1D",  # uncomment to generate docs
     "Histogram2D",
     "PlotXY",
     "PlotBars",
@@ -35,12 +35,13 @@ __all__ = [
 
 
 ##########################################################################
-class LabelData(object):
+class LabelData():
+    """Helper internal class to hold label information"""
     def __init__(self):
-        self.text = 'dataset'
-        self.tcolor = 'black'
-        self.marker = 's'
-        self.mcolor = 'black'
+        self.text = "dataset"
+        self.tcolor = "black"
+        self.marker = "s"
+        self.mcolor = "black"
 
 
 ##########################################################################
@@ -74,12 +75,13 @@ class Figure(Assembly):
     axes : dict
         an extra dictionary of options for the axes
     """
+
     def __init__(
             self,
             xlim,
             ylim,
             aspect=4/3,
-            padding=[0.05, 0.05, 0.05, 0.05],
+            padding=(0.05, 0.05, 0.05, 0.05),
             **kwargs,
         ):
 
@@ -88,7 +90,7 @@ class Figure(Assembly):
         self.aspect = aspect
         self.padding = padding
         if not utils.isSequence(self.padding):
-            self.padding = [self.padding, self.padding,self.padding, self.padding]
+            self.padding = [self.padding, self.padding, self.padding, self.padding]
 
         self.force_scaling_types = (
             shapes.Glyph,
@@ -102,7 +104,7 @@ class Figure(Assembly):
             shapes.Grid,
             # shapes.Arrows, # todo
             # shapes.Arrows2D, # todo
-            shapes.Brace, # todo
+            shapes.Brace,  # todo
         )
 
         options = dict(kwargs)
@@ -119,39 +121,39 @@ class Figure(Assembly):
             self.labels = [self.label]
 
         self.axopts = options.pop("axes", {})
-        if isinstance(self.axopts, (bool,int,float)):
+        if isinstance(self.axopts, (bool, int, float)):
             if self.axopts:
                 self.axopts = {}
         if self.axopts or isinstance(self.axopts, dict):
-            numberOfDivisions = self.axopts.pop('numberOfDivisions', numberOfDivisions)
+            numberOfDivisions = self.axopts.pop("numberOfDivisions", numberOfDivisions)
 
-            self.axopts['xtitle'] = self.xtitle
-            self.axopts['ytitle'] = self.ytitle
+            self.axopts["xtitle"] = self.xtitle
+            self.axopts["ytitle"] = self.ytitle
 
-            if 'xyGrid' not in self.axopts:  ## modify the default
-                self.axopts['xyGrid'] = options.pop("grid", False)
+            if "xyGrid" not in self.axopts:  ## modify the default
+                self.axopts["xyGrid"] = options.pop("grid", False)
 
-            if 'xyGridTransparent' not in self.axopts:  ## modify the default
-                self.axopts['xyGridTransparent'] = True
+            if "xyGridTransparent" not in self.axopts:  ## modify the default
+                self.axopts["xyGridTransparent"] = True
 
-            if 'xTitlePosition' not in self.axopts:  ## modify the default
-                self.axopts['xTitlePosition'] = 0.5
-                self.axopts['xTitleJustify'] = "top-center"
+            if "xTitlePosition" not in self.axopts:  ## modify the default
+                self.axopts["xTitlePosition"] = 0.5
+                self.axopts["xTitleJustify"] = "top-center"
 
-            if 'yTitlePosition' not in self.axopts:  ## modify the default
-                self.axopts['yTitlePosition'] = 0.5
-                self.axopts['yTitleJustify'] = "bottom-center"
+            if "yTitlePosition" not in self.axopts:  ## modify the default
+                self.axopts["yTitlePosition"] = 0.5
+                self.axopts["yTitleJustify"] = "bottom-center"
 
             if self.label:
-                if 'c' in self.axopts:
-                    self.label.tcolor = self.axopts['c']
+                if "c" in self.axopts:
+                    self.label.tcolor = self.axopts["c"]
 
         x0, x1 = self.xlim
         y0, y1 = self.ylim
         dx = x1 - x0
         dy = y1 - y0
-        x0lim, x1lim = (x0-self.padding[0]*dx, x1+self.padding[1]*dx)
-        y0lim, y1lim = (y0-self.padding[2]*dy, y1+self.padding[3]*dy)
+        x0lim, x1lim = (x0 - self.padding[0] * dx, x1 + self.padding[1] * dx)
+        y0lim, y1lim = (y0 - self.padding[2] * dy, y1 + self.padding[3] * dy)
         dy = y1lim - y0lim
 
         self.axes = None
@@ -202,8 +204,8 @@ class Figure(Assembly):
             axesopts["zrange"] = (0, 0)
             axesopts["yUseBounds"] = True
 
-            if 'c' not in axesopts and 'ac' in options:
-                axesopts["c"] = options['ac']
+            if "c" not in axesopts and "ac" in options:
+                axesopts["c"] = options["ac"]
 
             self.axes = addons.Axes(**axesopts)
 
@@ -233,7 +235,7 @@ class Figure(Assembly):
             colors.printc("  first  figure:", self.yscale, c='r')
             colors.printc("  second figure:", fig.yscale, c='r')
 
-            colors.printc("One or more of these parameters can be the cause:", c='r')
+            colors.printc("One or more of these parameters can be the cause:", c="r")
             if list(self.xlim) != list(fig.xlim):
                 colors.printc("xlim --------------------------------------------\n",
                               " first  figure:", self.xlim, "\n",
@@ -251,8 +253,8 @@ class Figure(Assembly):
                               " first  figure:", self.aspect,
                               " second figure:", fig.aspect, c='r')
 
-            colors.printc("\n*Consider using fig2 = histogram(..., like=fig1)", c='r')
-            colors.printc(" Or fig += histogram(..., like=fig)\n", c='r')
+            colors.printc("\n*Consider using fig2 = histogram(..., like=fig1)", c="r")
+            colors.printc(" Or fig += histogram(..., like=fig)\n", c="r")
             return self
 
         offset = self.zbounds()[1] + self.ztolerance
@@ -293,10 +295,10 @@ class Figure(Assembly):
                 # should not add twice the same object in plot
                 continue
 
-            if isinstance(a, vedo.Points): # hacky way to identify Points
-                if a.NCells()==a.NPoints():
+            if isinstance(a, vedo.Points):  # hacky way to identify Points
+                if a.NCells() == a.NPoints():
                     poly = a.polydata(False)
-                    if poly.GetNumberOfPolys()==0 and poly.GetNumberOfLines()==0:
+                    if poly.GetNumberOfPolys() == 0 and poly.GetNumberOfLines() == 0:
                         as3d = False
                         rescale = True
 
@@ -306,7 +308,7 @@ class Figure(Assembly):
                 prop = a.GetProperty()
                 prop.LightingOff()
                 py = a.base[1]
-                a.top[1] = (a.top[1]-py) * self.yscale + py
+                a.top[1] = (a.top[1] - py) * self.yscale + py
                 b = shapes.Arrow2D(a.base, a.top, s=a.s, fill=a.fill).z(a.z())
                 b.SetProperty(prop)
                 b.y(py * self.yscale)
@@ -344,7 +346,6 @@ class Figure(Assembly):
                     # shift it in y
                     a.y(a.y() * self.yscale)
 
-
             if cut:
                 try:
                     bx0, bx1, by0, by1, _, _ = a.GetBounds()
@@ -365,8 +366,7 @@ class Figure(Assembly):
 
         return self
 
-
-    def addLabel(self, text, c=None, marker="", mc='black'):
+    def addLabel(self, text, c=None, marker="", mc="black"):
         """
         Manually add en entry label to the legend.
 
@@ -385,7 +385,7 @@ class Figure(Assembly):
             color for the marker
         """
         newlabel = LabelData()
-        newlabel.text = text.replace("\n"," ")
+        newlabel.text = text.replace("\n", " ")
         newlabel.tcolor = c
         newlabel.marker = marker
         newlabel.mcolor = mc
@@ -474,21 +474,21 @@ class Figure(Assembly):
 
             tx = vedo.shapes.Text3D(t, s=s, c=c, justify="center-left", font=font)
             y0, y1 = tx.ybounds()
-            ds = max( y1 - y0, ds)
+            ds = max(y1 - y0, ds)
             texts.append(tx)
 
             mk = label.marker
             if isinstance(mk, vedo.Points):
-                mk = mk.clone(deep=False).lighting('off')
+                mk = mk.clone(deep=False).lighting("off")
                 cm = mk.centerOfMass()
                 ty0, ty1 = tx.ybounds()
                 oby0, oby1 = mk.ybounds()
                 mk.shift(-cm)
                 mk.origin(cm)
-                mk.scale((ty1-ty0)/(oby1-oby0))
-                mk.scale([1.1,1.1,0.01])
-            elif mk == '-':
-                mk = vedo.shapes.Marker(mk, s=s*2)
+                mk.scale((ty1 - ty0) / (oby1 - oby0))
+                mk.scale([1.1, 1.1, 0.01])
+            elif mk == "-":
+                mk = vedo.shapes.Marker(mk, s=s * 2)
                 mk.color(label.mcolor)
             else:
                 mk = vedo.shapes.Marker(mk, s=s)
@@ -496,24 +496,24 @@ class Figure(Assembly):
             mks.append(mk)
 
         for i, tx in enumerate(texts):
-            tx.shift(0,-(i+0)*ds* vspace)
+            tx.shift(0, -(i + 0) * ds * vspace)
 
         for i, mk in enumerate(mks):
-            mk.shift(-ds*1.75,-(i+0)*ds* vspace,0)
+            mk.shift(-ds * 1.75, -(i + 0) * ds * vspace, 0)
 
         acts = texts + mks
 
-        aleg = Assembly(acts)#.show(axes=1).close()
-        x0,x1, y0,y1, _,_ = aleg.GetBounds()
+        aleg = Assembly(acts)  # .show(axes=1).close()
+        x0, x1, y0, y1, _, _ = aleg.GetBounds()
 
         if alpha:
-            dx = x1-x0
-            dy = y1-y0
+            dx = x1 - x0
+            dy = y1 - y0
 
             if not utils.isSequence(padding):
                 padding = [padding] * 4
             padding = min(padding)
-            padding = min(padding*dx, padding*dy)
+            padding = min(padding * dx, padding * dy)
             if len(self.labels) == 1:
                 padding *= 4
             x0 -= padding
@@ -522,9 +522,9 @@ class Figure(Assembly):
             y1 += padding
 
             box = shapes.Rectangle(
-                [x0,y0], [x1,y1], radius=radius, c=bc, alpha=alpha,
+                [x0, y0], [x1, y1], radius=radius, c=bc, alpha=alpha,
             )
-            box.shift(0, 0, -dy/100).pickable(False)
+            box.shift(0, 0, -dy / 100).pickable(False)
             if lc:
                 box.lc(lc).lw(lw)
             aleg.AddPart(box)
@@ -533,16 +533,16 @@ class Figure(Assembly):
         ylim = self.ylim
         if isinstance(pos, str):
             px, py = 0, 0
-            rx, ry = (xlim[1]+xlim[0])/2, (ylim[1]+ylim[0])/2
+            rx, ry = (xlim[1] + xlim[0]) / 2, (ylim[1] + ylim[0]) / 2
             shx, shy = 0, 0
             if "top" in pos:
                 if "cent" in pos:
                     px, py = rx, ylim[1]
-                    shx, shy = (x0+x1)/2, y1
+                    shx, shy = (x0 + x1) / 2, y1
                 elif "left" in pos:
                     px, py = xlim[0], ylim[1]
                     shx, shy = x0, y1
-                else: # "right"
+                else:  # "right"
                     px, py = xlim[1], ylim[1]
                     shx, shy = x1, y1
             elif "bot" in pos:
@@ -551,17 +551,17 @@ class Figure(Assembly):
                     shx, shy = x0, y0
                 elif "right" in pos:
                     px, py = xlim[1], ylim[0]
-                    shx, shy =  x1, y0
-                else: # "cent"
+                    shx, shy = x1, y0
+                else:  # "cent"
                     px, py = rx, ylim[0]
-                    shx, shy =  (x0+x1)/2,  y0
+                    shx, shy = (x0 + x1) / 2, y0
             elif "cent" in pos:
                 if "left" in pos:
                     px, py = xlim[0], ry
-                    shx, shy = x0, (y0+y1)/2
+                    shx, shy = x0, (y0 + y1) / 2
                 elif "right" in pos:
                     px, py = xlim[1], ry
-                    shx, shy = x1, (y0+y1)/2
+                    shx, shy = x1, (y0 + y1) / 2
             else:
                 vedo.logger.error(f"in addLegend(), cannot understand {pos}")
                 raise RuntimeError
@@ -577,7 +577,7 @@ class Figure(Assembly):
                 px, py = pos[0], pos[1]
             shx, shy = x0, y1
 
-        aleg.pos(px - shx, py * self.yscale - shy, self.z() + sx/50 + z)
+        aleg.pos(px - shx, py * self.yscale - shy, self.z() + sx / 50 + z)
 
         self.insert(aleg, rescale=False, cut=False)
         self.legend = aleg
@@ -646,6 +646,7 @@ class Histogram1D(Figure):
     .. hint:: examples/pyplot/histo_1d_a.py histo_1d_b.py histo_1d_c.py histo_1d_d.py
         .. image:: https://vedo.embl.es/images/pyplot/histo_1D.png
     """
+
     def __init__(
             self,
             data,
@@ -673,7 +674,7 @@ class Histogram1D(Figure):
             xlim=None,
             ylim=(0, None),
             aspect=4/3,
-            padding=[0., 0., 0., 0.05],
+            padding=(0., 0., 0., 0.05),
 
             title="",
             xtitle=" ",
@@ -712,28 +713,28 @@ class Histogram1D(Figure):
         binsize = edges[1] - edges[0]
         ntot = data.shape[0]
 
-        fig_kwargs['title'] = title
-        fig_kwargs['xtitle'] = xtitle
-        fig_kwargs['ytitle'] = ytitle
-        fig_kwargs['ac'] = ac
-        fig_kwargs['ztolerance'] = ztolerance
-        fig_kwargs['grid'] = grid
+        fig_kwargs["title"] = title
+        fig_kwargs["xtitle"] = xtitle
+        fig_kwargs["ytitle"] = ytitle
+        fig_kwargs["ac"] = ac
+        fig_kwargs["ztolerance"] = ztolerance
+        fig_kwargs["grid"] = grid
 
         unscaled_errors = np.sqrt(fs)
         if density:
-            scaled_errors = unscaled_errors / (ntot*binsize)
-            fs = fs / (ntot*binsize)
-            if ytitle == ' ':
+            scaled_errors = unscaled_errors / (ntot * binsize)
+            fs = fs / (ntot * binsize)
+            if ytitle == " ":
                 ytitle = f"counts / ( {ntot}~x~{utils.precision(binsize,3)} )"
-                fig_kwargs['ytitle'] = ytitle
+                fig_kwargs["ytitle"] = ytitle
         elif logscale:
-            se_up = np.log10(fs + unscaled_errors/2 + 1)
-            se_dw = np.log10(fs - unscaled_errors/2 + 1)
+            se_up = np.log10(fs + unscaled_errors / 2 + 1)
+            se_dw = np.log10(fs - unscaled_errors / 2 + 1)
             scaled_errors = np.c_[se_up, se_dw]
             fs = np.log10(fs + 1)
-            if ytitle == ' ':
-                ytitle = 'log_10 (counts+1)'
-                fig_kwargs['ytitle'] = ytitle
+            if ytitle == " ":
+                ytitle = "log_10 (counts+1)"
+                fig_kwargs["ytitle"] = ytitle
 
         x0, x1 = np.min(edges), np.max(edges)
         y0, y1 = ylim[0], np.max(fs)
@@ -771,14 +772,14 @@ class Histogram1D(Figure):
         ############################### stats legend as htitle
         addstats = False
         if not title:
-            if 'axes' not in fig_kwargs:
+            if "axes" not in fig_kwargs:
                 addstats = True
                 axesopts = dict()
-                fig_kwargs['axes'] = axesopts
-            elif fig_kwargs['axes'] is False:
+                fig_kwargs["axes"] = axesopts
+            elif fig_kwargs["axes"] is False:
                 pass
             else:
-                axesopts = fig_kwargs['axes']
+                axesopts = fig_kwargs["axes"]
                 if "htitle" not in axesopts:
                     addstats = True
 
@@ -803,9 +804,9 @@ class Histogram1D(Figure):
             nlab.marker = marker
             nlab.mcolor = mc
             if not marker:
-                nlab.marker = 's'
+                nlab.marker = "s"
                 nlab.mcolor = c
-            fig_kwargs['label'] = nlab
+            fig_kwargs["label"] = nlab
 
         ############################################### Figure init
         Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
@@ -843,8 +844,8 @@ class Histogram1D(Figure):
                     if gap:
                         rds = np.array([0, 0, radius, radius])
                     else:
-                        rd1 = 0 if i < bins-1 and fs[i+1] >= F else radius/2
-                        rd2 = 0 if i > 0      and fs[i-1] >= F else radius/2
+                        rd1 = 0 if i < bins - 1 and fs[i + 1] >= F else radius / 2
+                        rd2 = 0 if i > 0 and fs[i - 1] >= F else radius / 2
                         rds = np.array([0, 0, rd1, rd2])
                     p1_yscaled = [p1[0], p1[1]*self.yscale, 0]
                     r = shapes.Rectangle(p0, p1_yscaled, radius=rds*binsize, res=6)
@@ -855,7 +856,7 @@ class Histogram1D(Figure):
 
                 if texture:
                     r.texture(texture)
-                    c = 'w'
+                    c = "w"
                 # if texture: # causes Segmentation fault vtk9.0.3
                 #     if i>0 and rs[i-1].GetTexture(): # reuse the same texture obj
                 #         r.texture(rs[i-1].GetTexture())
@@ -869,7 +870,7 @@ class Histogram1D(Figure):
                     col = colors.colorMap((p0[0]+p1[0])/2, c, myedges[0], myedges[-1])
                 else:
                     col = c
-                r.color(col).alpha(alpha).lighting('off')
+                r.color(col).alpha(alpha).lighting("off")
                 r.z(self.ztolerance)
                 rs.append(r)
 
@@ -881,7 +882,7 @@ class Histogram1D(Figure):
                 maxheigth = max(maxheigth, fs[i])
             lns.append([myedges[-1], 0, 0])
             outl = shapes.Line(lns, c=lc, alpha=alpha, lw=lw)
-            outl.z(self.ztolerance*2)
+            outl.z(self.ztolerance * 2)
             rs.append(outl)
 
         if errors:  #####################
@@ -906,36 +907,42 @@ class Histogram1D(Figure):
 
             if utils.isSequence(ms):  ### variable point size
                 mk = shapes.Marker(marker, s=1)
-                mk.scale([1, 1/self.yscale, 1])
+                mk.scale([1, 1 / self.yscale, 1])
                 msv = np.zeros_like(bin_centers)
                 msv[:, 0] = ms
                 marked = shapes.Glyph(
-                    bin_centers, glyphObj=mk, c=mc,
-                    orientationArray=msv, scaleByVectorSize=True
+                    bin_centers,
+                    glyphObj=mk,
+                    c=mc,
+                    orientationArray=msv,
+                    scaleByVectorSize=True,
                 )
             else:  ### fixed point size
 
                 if ms is None:
-                    ms = (xlim[1]-xlim[0]) / 100.0
+                    ms = (xlim[1] - xlim[0]) / 100.0
                 else:
-                    ms = (xlim[1]-xlim[0]) / 100.0 * ms
+                    ms = (xlim[1] - xlim[0]) / 100.0 * ms
 
                 if utils.isSequence(mc):
                     mk = shapes.Marker(marker, s=ms)
-                    mk.scale([1, 1/self.yscale, 1])
+                    mk.scale([1, 1 / self.yscale, 1])
                     msv = np.zeros_like(bin_centers)
                     msv[:, 0] = 1
                     marked = shapes.Glyph(
-                        bin_centers, glyphObj=mk, c=mc,
-                        orientationArray=msv, scaleByVectorSize=True
+                        bin_centers,
+                        glyphObj=mk,
+                        c=mc,
+                        orientationArray=msv,
+                        scaleByVectorSize=True,
                     )
                 else:
                     mk = shapes.Marker(marker, s=ms)
-                    mk.scale([1, 1/self.yscale, 1])
+                    mk.scale([1, 1 / self.yscale, 1])
                     marked = shapes.Glyph(bin_centers, glyphObj=mk, c=mc)
 
             marked.alpha(ma)
-            marked.z(self.ztolerance*4)
+            marked.z(self.ztolerance * 4)
             rs.append(marked)
 
         self.insert(*rs, as3d=False)
@@ -1009,6 +1016,7 @@ class Histogram2D(Figure):
     .. hint:: examples/pyplot/histo_2d.py
         .. image:: https://vedo.embl.es/images/pyplot/histo_2D.png
     """
+
     def __init__(
             self,
             xvalues,
@@ -1040,7 +1048,7 @@ class Histogram2D(Figure):
             yvalues = xvalues[:, 1]
             xvalues = xvalues[:, 0]
 
-        padding=[0,0,0,0]
+        padding = [0, 0, 0, 0]
 
         if like is not None:
             xlim = like.xlim
@@ -1074,18 +1082,17 @@ class Histogram2D(Figure):
             ylim = [_y0, _y1]
 
         H, xedges, yedges = np.histogram2d(
-            xvalues, yvalues, weights=weights,
-            bins=bins, range=(xlim, ylim),
+            xvalues, yvalues, weights=weights, bins=bins, range=(xlim, ylim),
         )
 
         xlim = np.min(xedges), np.max(xedges)
         ylim = np.min(yedges), np.max(yedges)
         dx, dy = xlim[1] - xlim[0], ylim[1] - ylim[0]
 
-        fig_kwargs['title'] = title
-        fig_kwargs['xtitle'] = xtitle
-        fig_kwargs['ytitle'] = ytitle
-        fig_kwargs['ac'] = ac
+        fig_kwargs["title"] = title
+        fig_kwargs["xtitle"] = xtitle
+        fig_kwargs["ytitle"] = ytitle
+        fig_kwargs["ac"] = ac
 
         self.entries = len(xvalues)
         self.frequencies = H
@@ -1097,15 +1104,15 @@ class Histogram2D(Figure):
         ############################### stats legend as htitle
         addstats = False
         if not title:
-            if 'axes' not in fig_kwargs:
+            if "axes" not in fig_kwargs:
                 addstats = True
                 axesopts = dict()
-                fig_kwargs['axes'] = axesopts
-            elif fig_kwargs['axes'] is False:
+                fig_kwargs["axes"] = axesopts
+            elif fig_kwargs["axes"] is False:
                 pass
             else:
-                axesopts = fig_kwargs['axes']
-                if "htitle" not in fig_kwargs['axes']:
+                axesopts = fig_kwargs["axes"]
+                if "htitle" not in fig_kwargs["axes"]:
                     addstats = True
 
         if addstats:
@@ -1129,16 +1136,16 @@ class Histogram2D(Figure):
             s=(dx, dy),
             res=bins[:2],
         )
-        g.alpha(alpha).lw(0).wireframe(False).flat().lighting('off')
-        g.cmap(cmap, np.ravel(H.T), on='cells', vmin=zlim[0], vmax=zlim[1])
+        g.alpha(alpha).lw(0).wireframe(False).flat().lighting("off")
+        g.cmap(cmap, np.ravel(H.T), on="cells", vmin=zlim[0], vmax=zlim[1])
         if gap:
-            g.shrink(abs(1-gap))
+            g.shrink(abs(1 - gap))
 
         if scalarbar:
             sc = g.addScalarBar3D(ztitle, c=ac).scalarbar
-            sc.scale([self.yscale,1,1]) ## prescale trick
+            sc.scale([self.yscale, 1, 1])  ## prescale trick
             sbnds = sc.xbounds()
-            sc.x(self.x1lim + (sbnds[1]-sbnds[0])*0.75)
+            sc.x(self.x1lim + (sbnds[1] - sbnds[0]) * 0.75)
             acts.append(sc)
         acts.append(g)
 
@@ -1206,6 +1213,7 @@ class PlotBars(Figure):
     .. hint:: examples/pyplot/histo_1d_a.py histo_1d_b.py histo_1d_c.py histo_1d_d.py
         .. image:: https://vedo.embl.es/images/pyplot/histo_1D.png
     """
+
     def __init__(
             self,
             data,
@@ -1225,7 +1233,7 @@ class PlotBars(Figure):
             xlim=(None, None),
             ylim=(0, None),
             aspect=4/3,
-            padding=[0.025, 0.025, 0, 0.05],
+            padding=(0.025, 0.025, 0, 0.05),
             #
             title="",
             xtitle=" ",
@@ -1240,10 +1248,10 @@ class PlotBars(Figure):
             counts, xlabs, cols, edges = data
         elif ndata == 3:
             counts, xlabs, cols = data
-            edges = np.array(range(len(counts)+1))+0.5
+            edges = np.array(range(len(counts) + 1)) + 0.5
         elif ndata == 2:
             counts, xlabs = data
-            edges = np.array(range(len(counts)+1))+0.5
+            edges = np.array(range(len(counts) + 1)) + 0.5
             cols = [c] * len(counts)
         else:
             m = "barplot error: data must be given as [counts, labels, colors, edges] not\n"
@@ -1253,15 +1261,15 @@ class PlotBars(Figure):
         # sanity checks
         assert len(counts) == len(xlabs)
         assert len(counts) == len(cols)
-        assert len(counts) == len(edges)-1
+        assert len(counts) == len(edges) - 1
 
         counts = np.asarray(counts)
-        edges  = np.asarray(edges)
+        edges = np.asarray(edges)
 
         if logscale:
             counts = np.log10(counts + 1)
-            if ytitle == ' ':
-                ytitle = 'log_10 (counts+1)'
+            if ytitle == " ":
+                ytitle = "log_10 (counts+1)"
 
         if like is not None:
             xlim = like.xlim
@@ -1290,22 +1298,23 @@ class PlotBars(Figure):
             if ylim[0] != 0:
                 ylim[0] = y0
 
-        fig_kwargs['title'] = title
-        fig_kwargs['xtitle'] = xtitle
-        fig_kwargs['ytitle'] = ytitle
-        fig_kwargs['ac'] = ac
-        fig_kwargs['ztolerance'] = ztolerance
-        fig_kwargs['grid'] = grid
+        fig_kwargs["title"] = title
+        fig_kwargs["xtitle"] = xtitle
+        fig_kwargs["ytitle"] = ytitle
+        fig_kwargs["ac"] = ac
+        fig_kwargs["ztolerance"] = ztolerance
+        fig_kwargs["grid"] = grid
 
         centers = (edges[0:-1] + edges[1:]) / 2
         binsizes = (centers - edges[0:-1]) * 2
 
-        if 'axes' not in fig_kwargs:
-            fig_kwargs['axes'] = dict()
+        if "axes" not in fig_kwargs:
+            fig_kwargs["axes"] = dict()
+
         _xlabs = []
-        for i in range(len(centers)):
-            _xlabs.append([centers[i], str(xlabs[i])])
-        fig_kwargs['axes']["xValuesAndLabels"] = _xlabs
+        for center, xlb in zip(centers, xlabs):
+            _xlabs.append([center, str(xlb)])
+        fig_kwargs["axes"]["xValuesAndLabels"] = _xlabs
 
         ############################################### Figure
         self.statslegend = ""
@@ -1325,7 +1334,7 @@ class PlotBars(Figure):
             for i in range(len(centers)):
                 binsize = binsizes[i]
                 p0 = (edges[i] + gap * binsize, 0, 0)
-                p1 = (edges[i+1] - gap * binsize, counts[i], 0)
+                p1 = (edges[i + 1] - gap * binsize, counts[i], 0)
 
                 if radius:
                     rds = np.array([0, 0, radius, radius])
@@ -1338,16 +1347,16 @@ class PlotBars(Figure):
 
                 if texture:
                     r.texture(texture)
-                    c = 'w'
+                    c = "w"
 
                 r.PickableOff()
                 maxheigth = max(maxheigth, p1[1])
                 if c in colors.cmaps_names:
-                    col = colors.colorMap((p0[0]+p1[0])/2, c, edges[0], edges[-1])
+                    col = colors.colorMap((p0[0] + p1[0]) / 2, c, edges[0], edges[-1])
                 else:
                     col = cols[i]
-                r.color(col).alpha(alpha).lighting('off')
-                r.name = f'bar_{i}'
+                r.color(col).alpha(alpha).lighting("off")
+                r.name = f"bar_{i}"
                 r.z(self.ztolerance)
                 rs.append(r)
 
@@ -1359,7 +1368,7 @@ class PlotBars(Figure):
                 maxheigth = max(maxheigth, counts[i])
             lns.append([edges[-1], 0, 0])
             outl = shapes.Line(lns, c=lc, alpha=alpha, lw=lw).z(self.ztolerance)
-            outl.name = f'bar_outline_{i}'
+            outl.name = f"bar_outline_{i}"
             rs.append(outl)
 
         if errors:  #####################
@@ -1476,6 +1485,7 @@ class PlotXY(Figure):
 
         .. image:: https://vedo.embl.es/images/pyplot/plot_pip.png
     """
+
     def __init__(
             self,
             #
@@ -1515,10 +1525,10 @@ class PlotXY(Figure):
         ):
 
         line = False
-        if lw>0:
+        if lw > 0:
             line = True
         if marker == "" and not line and not splined:
-            marker = 'o'
+            marker = "o"
 
         if like is not None:
             xlim = like.xlim
@@ -1539,21 +1549,21 @@ class PlotXY(Figure):
         validIds = np.all(np.logical_not(np.isnan(data)))
         data = np.array(data[validIds])[0]
 
-        fig_kwargs['title'] = title
-        fig_kwargs['xtitle'] = xtitle
-        fig_kwargs['ytitle'] = ytitle
-        fig_kwargs['ac'] = ac
-        fig_kwargs['ztolerance'] = ztolerance
-        fig_kwargs['grid'] = grid
+        fig_kwargs["title"] = title
+        fig_kwargs["xtitle"] = xtitle
+        fig_kwargs["ytitle"] = ytitle
+        fig_kwargs["ac"] = ac
+        fig_kwargs["ztolerance"] = ztolerance
+        fig_kwargs["grid"] = grid
 
         x0, y0 = np.min(data, axis=0)
         x1, y1 = np.max(data, axis=0)
         if xerrors is not None and not errorBand:
-            x0 = min(data[:,0] - xerrors)
-            x1 = max(data[:,0] + xerrors)
+            x0 = min(data[:, 0] - xerrors)
+            x1 = max(data[:, 0] + xerrors)
         if yerrors is not None:
-            y0 = min(data[:,1] - yerrors)
-            y1 = max(data[:,1] + yerrors)
+            y0 = min(data[:, 1] - yerrors)
+            y1 = max(data[:, 1] + yerrors)
 
         if like is None:
             if xlim is None:
@@ -1585,9 +1595,9 @@ class PlotXY(Figure):
             nlab.tcolor = ac
             nlab.marker = marker
             if line and marker == "":
-                nlab.marker = '-'
+                nlab.marker = "-"
             nlab.mcolor = mc
-            fig_kwargs['label'] = nlab
+            fig_kwargs["label"] = nlab
 
         ############################################### Figure init
         Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
@@ -1614,12 +1624,11 @@ class PlotXY(Figure):
             if utils.isSequence(ms):
                 ### variable point size
                 mk = shapes.Marker(marker, s=1)
-                mk.scale([1, 1/self.yscale, 1])
+                mk.scale([1, 1 / self.yscale, 1])
                 msv = np.zeros_like(pts)
                 msv[:, 0] = ms
                 marked = shapes.Glyph(
-                    pts, glyphObj=mk, c=mc,
-                    orientationArray=msv, scaleByVectorSize=True
+                    pts, glyphObj=mk, c=mc, orientationArray=msv, scaleByVectorSize=True
                 )
             else:
                 ### fixed point size
@@ -1627,23 +1636,26 @@ class PlotXY(Figure):
                     ms = (xlim[1] - xlim[0]) / 100.0
 
                 if utils.isSequence(mc):
-                    fig_kwargs['marker_color'] = None # for labels
+                    fig_kwargs["marker_color"] = None  # for labels
                     mk = shapes.Marker(marker, s=ms)
-                    mk.scale([1, 1/self.yscale, 1])
+                    mk.scale([1, 1 / self.yscale, 1])
                     msv = np.zeros_like(pts)
                     msv[:, 0] = 1
                     marked = shapes.Glyph(
-                        pts, glyphObj=mk, c=mc,
-                        orientationArray=msv, scaleByVectorSize=True
+                        pts,
+                        glyphObj=mk,
+                        c=mc,
+                        orientationArray=msv,
+                        scaleByVectorSize=True,
                     )
                 else:
                     mk = shapes.Marker(marker, s=ms)
-                    mk.scale([1, 1/self.yscale, 1])
+                    mk.scale([1, 1 / self.yscale, 1])
                     marked = shapes.Glyph(pts, glyphObj=mk, c=mc)
 
             marked.name = "Marker"
             marked.alpha(ma)
-            marked.z(3*self.ztolerance)
+            marked.z(3 * self.ztolerance)
             acts.append(marked)
 
         ######### the PlotXY marker errors
@@ -1658,13 +1670,13 @@ class PlotXY(Figure):
             yerrors = np.abs(yerrors)
             du = np.array(data)
             dd = np.array(data)
-            du[:,1] += yerrors
-            dd[:,1] -= yerrors
+            du[:, 1] += yerrors
+            dd[:, 1] -= yerrors
             if splined:
                 res = len(data) * 20
                 band1 = shapes.KSpline(du, res=res)
                 band2 = shapes.KSpline(dd, res=res)
-                band = shapes.Ribbon(band1, band2, res=(res,2))
+                band = shapes.Ribbon(band1, band2, res=(res, 2))
             else:
                 dd = list(reversed(dd.tolist()))
                 band = shapes.Line(du.tolist() + dd, closed=True)
@@ -1673,7 +1685,7 @@ class PlotXY(Figure):
                 band.c(lc)
             else:
                 band.c(ec)
-            band.lighting('off').alpha(la).z(ztol)
+            band.lighting("off").alpha(la).z(ztol)
             acts.append(band)
 
         else:
@@ -2074,7 +2086,7 @@ def plot(*args, **kwargs):
                 kwargs["marker"] = ss
                 break
 
-        opts.replace(' ', '')
+        opts.replace(" ", "")
         if opts:
             vedo.logger.error(f"in plot(), could not understand option(s): {opts}")
 
@@ -2494,10 +2506,10 @@ def fit(
     if isinstance(points, vedo.pointcloud.Points):
         points = points.points()
     points = np.asarray(points)
-    if len(points) == 2: # assume user is passing [x,y]
-        points = np.c_[points[0],points[1]]
-    x = points[:,0]
-    y = points[:,1] # ignore z
+    if len(points) == 2:  # assume user is passing [x,y]
+        points = np.c_[points[0], points[1]]
+    x = points[:, 0]
+    y = points[:, 1]  # ignore z
 
     n = len(x)
     ndof = n - deg - 1
@@ -2506,29 +2518,29 @@ def fit(
     else:
         x0, x1 = np.min(x), np.max(x)
         if xerrors is not None:
-            x0 -= xerrors[0]/2
-            x1 += xerrors[-1]/2
+            x0 -= xerrors[0] / 2
+            x1 += xerrors[-1] / 2
 
-    tol = (x1-x0)/10000
-    xr = np.linspace(x0,x1, res)
+    tol = (x1 - x0) / 10000
+    xr = np.linspace(x0, x1, res)
 
     # project x errs on y
     if xerrors is not None:
         xerrors = np.asarray(xerrors)
         if yerrors is not None:
             yerrors = np.asarray(yerrors)
-            w = 1.0/yerrors
+            w = 1.0 / yerrors
             coeffs = np.polyfit(x, y, deg, w=w, rcond=None)
         else:
             coeffs = np.polyfit(x, y, deg, rcond=None)
         # update yerrors, 1 bootstrap iteration is enough
         p1d = np.poly1d(coeffs)
-        der = (p1d(x+tol)-p1d(x))/tol
-        yerrors = np.sqrt(yerrors*yerrors + np.power(der*xerrors,2))
+        der = (p1d(x + tol) - p1d(x)) / tol
+        yerrors = np.sqrt(yerrors * yerrors + np.power(der * xerrors, 2))
 
     if yerrors is not None:
         yerrors = np.asarray(yerrors)
-        w = 1.0/yerrors
+        w = 1.0 / yerrors
         coeffs, V = np.polyfit(x, y, deg, w=w, rcond=None, cov=True)
     else:
         w = 1
@@ -2536,19 +2548,19 @@ def fit(
 
     p1d = np.poly1d(coeffs)
     theor = p1d(xr)
-    fitl = shapes.Line(xr, theor, lw=lw, c=c).z(tol*2)
+    fitl = shapes.Line(xr, theor, lw=lw, c=c).z(tol * 2)
     fitl.coefficients = coeffs
     fitl.covarianceMatrix = V
-    residuals2_sum = np.sum(np.power(p1d(x)-y, 2))/ndof
+    residuals2_sum = np.sum(np.power(p1d(x) - y, 2)) / ndof
     sigma = np.sqrt(residuals2_sum)
-    fitl.reducedChi2 = np.sum(np.power((p1d(x)-y)*w, 2))/ndof
+    fitl.reducedChi2 = np.sum(np.power((p1d(x) - y) * w, 2)) / ndof
     fitl.ndof = ndof
-    fitl.dataSigma = sigma # worked out from data using chi2=1 hypo
+    fitl.dataSigma = sigma  # worked out from data using chi2=1 hypo
     fitl.name = "LinePolynomialFit"
 
     if not niter:
         fitl.coefficientErrors = np.sqrt(np.diag(V))
-        return fitl ################################
+        return fitl  ################################
 
     if yerrors is not None:
         sigma = yerrors
@@ -2558,7 +2570,7 @@ def fit(
 
     Theors, all_coeffs = [], []
     for i in range(niter):
-        noise = np.random.randn(n)*sigma
+        noise = np.random.randn(n) * sigma
         coeffs = np.polyfit(x, y + noise, deg, w=w, rcond=None)
         all_coeffs.append(coeffs)
         P1d = np.poly1d(coeffs)
@@ -2582,14 +2594,14 @@ def fit(
 
     error_lines = []
     for i in [nstd, -nstd]:
-        el = shapes.Line(xr, theor+stds*i, lw=1, alpha=0.2, c='k').z(tol)
+        el = shapes.Line(xr, theor + stds * i, lw=1, alpha=0.2, c="k").z(tol)
         error_lines.append(el)
-        el.name = "ErrorLine for sigma="+str(i)
+        el.name = "ErrorLine for sigma=" + str(i)
 
     fitl.errorLines = error_lines
     l1 = error_lines[0].points().tolist()
     cband = l1 + list(reversed(error_lines[1].points().tolist())) + [l1[0]]
-    fitl.errorBand = shapes.Line(cband).triangulate().lw(0).c('k', 0.15)
+    fitl.errorBand = shapes.Line(cband).triangulate().lw(0).c("k", 0.15)
     fitl.errorBand.name = "PolynomialFitErrorBand"
     return fitl
 
@@ -2609,7 +2621,7 @@ def _plotFxy(
         axes=True,
     ):
     if c is not None:
-        texture = None # disable
+        texture = None  # disable
 
     ps = vtk.vtkPlaneSource()
     ps.SetResolution(bins[0], bins[1])
@@ -2638,7 +2650,7 @@ def _plotFxy(
             nans.append([xv, yv, 0])
         poly.GetPoints().SetPoint(i, [xv, yv, zv])
 
-    if len(todel):
+    if todel:
         cellIds = vtk.vtkIdList()
         poly.BuildLinks()
         for i in todel:
@@ -2664,11 +2676,11 @@ def _plotFxy(
         a = tmpact2.cutWithPlane((0, 0, zlim[1]), (0, 0, -1))
         poly = a.polydata()
 
-    cmap=''
+    cmap = ""
     if c in colors.cmaps_names:
         cmap = c
         c = None
-        bc= None
+        bc = None
 
     mesh = Mesh(poly, c, alpha).computeNormals().lighting("plastic")
 
@@ -2694,11 +2706,11 @@ def _plotFxy(
         bcf.GenerateValues(zlevels, elevation.GetScalarRange())
         bcf.Update()
         zpoly = bcf.GetContourEdgesOutput()
-        zbandsact = Mesh(zpoly, "k", alpha).lw(1).lighting('off')
-        zbandsact._mapper.SetResolveCoincidentTopologyToPolygonOffset()
+        zbandsact = Mesh(zpoly, "k", alpha).lw(1).lighting("off")
+        zbandsact.mapper().SetResolveCoincidentTopologyToPolygonOffset()
         acts.append(zbandsact)
 
-    if showNan and len(todel):
+    if showNan and todel:
         bb = mesh.GetBounds()
         if bb[4] <= 0 and bb[5] >= 0:
             zm = 0.0
@@ -2789,7 +2801,6 @@ def _plotPolar(
         vmax=None,
         fill=False,
         splined=False,
-        smooth=0,
         showDisc=True,
         nrays=8,
         showLines=True,
@@ -2819,9 +2830,8 @@ def _plotPolar(
 
     angles = []
     points = []
-    for i in range(len(thetas)):
-        t = thetas[i]
-        r = (radii[i]) / vmax * r2 + r1
+    for t, r in zip(thetas, radii):
+        r = r / vmax * r2 + r1
         ct, st = np.cos(t), np.sin(t)
         points.append([r * ct, r * st, 0])
     p0 = points[0]
@@ -2853,10 +2863,10 @@ def _plotPolar(
     back = None
     back2 = None
     if showDisc:
-        back = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=(1,360))
-        back.z(-0.01).lighting('off').alpha(alpha)
-        back2 = shapes.Disc(r1=r2e/2, r2=r2e/2 * 1.005, c=bc, res=(1,360))
-        back2.z(-0.01).lighting('off').alpha(alpha)
+        back = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=(1, 360))
+        back.z(-0.01).lighting("off").alpha(alpha)
+        back2 = shapes.Disc(r1=r2e / 2, r2=r2e / 2 * 1.005, c=bc, res=(1, 360))
+        back2.z(-0.01).lighting("off").alpha(alpha)
 
     ti = None
     if title:
@@ -2871,10 +2881,10 @@ def _plotPolar(
             if showLines:
                 l = shapes.Line((0, 0, -0.01), (r2e * ct * 1.03, r2e * st * 1.03, -0.01))
                 rays.append(l)
-                ct2, st2 = np.cos(t+np.pi/nrays), np.sin(t+np.pi/nrays)
-                lm = shapes.DashedLine((0, 0, -0.01),
-                                       (r2e * ct2, r2e * st2, -0.01),
-                                       spacing=0.25)
+                ct2, st2 = np.cos(t + np.pi / nrays), np.sin(t + np.pi / nrays)
+                lm = shapes.DashedLine(
+                    (0, 0, -0.01), (r2e * ct2, r2e * st2, -0.01), spacing=0.25
+                )
                 rays.append(lm)
             elif showAngles:  # just the ticks
                 l = shapes.Line(
@@ -2900,7 +2910,7 @@ def _plotPolar(
 
     mrg = merge(back, back2, angles, rays, ti)
     if mrg:
-        mrg.color(bc).alpha(alpha).lighting('off')
+        mrg.color(bc).alpha(alpha).lighting("off")
     rh = Assembly([lines, ptsact, filling] + [mrg])
     rh.base = np.array([0, 0, 0], dtype=float)
     rh.top = np.array([0, 0, 1], dtype=float)
@@ -2934,14 +2944,14 @@ def _plotSpheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=
         newr[inans] = 1
 
     nanpts = []
-    if len(inans):
+    if inans:
         redpts = utils.spher2cart(newr[inans], theta[inans], phi[inans])
         nanpts.append(shapes.Points(redpts, r=4, c="r"))
 
     pts = utils.spher2cart(newr, theta, phi)
 
     ssurf = sg.clone().points(pts)
-    if len(inans):
+    if inans:
         ssurf.deleteCellsByPointIndex(inans)
 
     ssurf.alpha(1).wireframe(0).lw(0.1)
@@ -2953,7 +2963,7 @@ def _plotSpheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=
         xm = np.max([np.max(pts[0]), 1])
         ym = np.max([np.abs(np.max(pts[1])), 1])
         ssurf.mapper().SetScalarRange(np.min(newr), np.max(newr))
-        sb3d = ssurf.addScalarBar3D(s=(xm * 0.07, ym), c='k').scalarbar
+        sb3d = ssurf.addScalarBar3D(s=(xm * 0.07, ym), c="k").scalarbar
         sb3d.rotateX(90).pos(xm * 1.1, 0, -0.5)
     else:
         sb3d = None
@@ -2967,11 +2977,7 @@ def _plotSpheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=
 def _histogramHexBin(
         xvalues,
         yvalues,
-        xtitle=" ",
-        ytitle=" ",
-        ztitle="",
         bins=12,
-        vrange=None,
         norm=1,
         fill=True,
         c=None,
@@ -2983,7 +2989,7 @@ def _histogramHexBin(
     dx, dy = xmax - xmin, ymax - ymin
 
     if utils.isSequence(bins):
-        n,m = bins
+        n, m = bins
     else:
         if xmax - xmin < ymax - ymin:
             n = bins
@@ -3040,7 +3046,7 @@ def _histogramHexBin(
             if c is None:
                 col = i
             h = Mesh(tf.GetOutput(), c=col, alpha=alpha).flat()
-            h.lighting('plastic')
+            h.lighting("plastic")
             h.PickableOff()
             hexs.append(h)
             if ne > binmax:
@@ -3098,10 +3104,11 @@ def _histogramPolar(
         t = np.arctan2(np.sin(v), np.cos(v))
         if t < 0:
             t += 2 * np.pi
-        vals.append(t+0.00001)
+        vals.append(t + 0.00001)
 
-    histodata, edges = np.histogram(vals, weights=weights,
-                                    bins=bins, range=(0, 2*np.pi))
+    histodata, edges = np.histogram(
+        vals, weights=weights, bins=bins, range=(0, 2 * np.pi)
+    )
 
     thetas = []
     for i in range(bins):
@@ -3119,7 +3126,7 @@ def _histogramPolar(
 
     back = None
     if showDisc:
-        back = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=(1,360))
+        back = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=(1, 360))
         back.z(-0.01)
 
     slices = []
@@ -3129,8 +3136,8 @@ def _histogramPolar(
 
     for i, t in enumerate(thetas):
         r = histodata[i] / vmax * r2
-        d = shapes.Disc((0, 0, 0), r1, r1+r, res=(1,360))
-        delta = np.pi/bins - np.pi/2 - phigap/k
+        d = shapes.Disc((0, 0, 0), r1, r1 + r, res=(1, 360))
+        delta = np.pi / bins - np.pi / 2 - phigap / k
         d.cutWithPlane(normal=(np.cos(t + delta), np.sin(t + delta), 0))
         d.cutWithPlane(normal=(np.cos(t - delta), np.sin(t - delta), 0))
         if cmap is not None:
@@ -3143,7 +3150,7 @@ def _histogramPolar(
                 d.color(c[i])
             else:
                 d.color(c)
-        d.alpha(alpha).lighting('off')
+        d.alpha(alpha).lighting("off")
         slices.append(d)
 
         ct, st = np.cos(t), np.sin(t)
@@ -3158,12 +3165,12 @@ def _histogramPolar(
             errl.alpha(alpha).lw(3).color(bc)
             errbars.append(errl)
 
-    labs=[]
+    labs = []
     rays = []
     if showDisc:
-        outerdisc = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=(1,360))
+        outerdisc = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=(1, 360))
         outerdisc.z(-0.01)
-        innerdisc = shapes.Disc(r1=r2e/2, r2=r2e/2 * 1.005, c=bc, res=(1, 360))
+        innerdisc = shapes.Disc(r1=r2e / 2, r2=r2e / 2 * 1.005, c=bc, res=(1, 360))
         innerdisc.z(-0.01)
         rays.append(outerdisc)
         rays.append(innerdisc)
@@ -3174,10 +3181,10 @@ def _histogramPolar(
             if showLines:
                 l = shapes.Line((0, 0, -0.01), (r2e * ct * 1.03, r2e * st * 1.03, -0.01))
                 rays.append(l)
-                ct2, st2 = np.cos(t+np.pi/nrays), np.sin(t+np.pi/nrays)
-                lm = shapes.DashedLine((0, 0, -0.01),
-                                       (r2e * ct2, r2e * st2, -0.01),
-                                       spacing=0.25)
+                ct2, st2 = np.cos(t + np.pi / nrays), np.sin(t + np.pi / nrays)
+                lm = shapes.DashedLine(
+                    (0, 0, -0.01), (r2e * ct2, r2e * st2, -0.01), spacing=0.25
+                )
                 rays.append(lm)
             elif showAngles:  # just the ticks
                 l = shapes.Line(
@@ -3206,17 +3213,21 @@ def _histogramPolar(
         ti = shapes.Text3D(title, (0, 0, 0), s=tsize, depth=0, justify="top-center")
         ti.pos(0, -r2e * 1.15, 0.01)
 
-    for i,t in enumerate(thetas):
+    for i, t in enumerate(thetas):
         if i < len(labels):
-            lab = shapes.Text3D(labels[i], (0, 0, 0), #font="VTK",
-                              s=lsize, depth=0, justify="center")
-            lab.pos(r2e *np.cos(t) * (1 + rgap) * lpos / 2,
-                    r2e *np.sin(t) * (1 + rgap) * lpos / 2, 0.01)
+            lab = shapes.Text3D(
+                labels[i], (0, 0, 0), s=lsize, depth=0, justify="center"  # font="VTK",
+            )
+            lab.pos(
+                r2e * np.cos(t) * (1 + rgap) * lpos / 2,
+                r2e * np.sin(t) * (1 + rgap) * lpos / 2,
+                0.01,
+            )
             labs.append(lab)
 
     mrg = merge(lines, angles, rays, ti, labs)
     if mrg:
-        mrg.color(bc).lighting('off')
+        mrg.color(bc).lighting("off")
 
     acts = slices + errbars + [mrg]
     asse = Assembly(acts)
@@ -3227,7 +3238,7 @@ def _histogramPolar(
 
 
 def _histogramSpheric(
-        thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", lw=0.1, scalarbar=True,
+        thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", scalarbar=True,
     ):
     x, y, z = utils.spher2cart(np.ones_like(thetavalues) * 1.1, thetavalues, phivalues)
     ptsvals = np.c_[x, y, z]
@@ -3265,7 +3276,7 @@ def _histogramSpheric(
         newsgpts[fs] = np.c_[x, y, z]
 
     newsg.points(newsgpts)
-    newsg.cmap(cmap, acounts, on='cells')
+    newsg.cmap(cmap, acounts, on="cells")
 
     if scalarbar:
         newsg.addScalarBar()
@@ -3345,7 +3356,7 @@ def donut(
                 cols.append(c[ia])
                 break
     labs = ()
-    if len(labels):
+    if labels:
         angles = np.concatenate([[0], angles])
         labs = [""] * 360
         for i in range(len(labels)):
@@ -3452,7 +3463,7 @@ def violin(
             rs.append(spl)
             rs.append(spr)
         if fill:
-            rb = shapes.Ribbon(spl, spr, c=c, alpha=alpha).lighting('off')
+            rb = shapes.Ribbon(spl, spr, c=c, alpha=alpha).lighting("off")
             rs.append(rb)
 
     else:
@@ -3477,7 +3488,7 @@ def violin(
                 p0 = (-fs[i], edges[i], 0)
                 p1 = (fs[i], edges[i + 1], 0)
                 r = shapes.Rectangle(p0, p1).x(p0[0] + x)
-                r.color(c).alpha(alpha).lighting('off')
+                r.color(c).alpha(alpha).lighting("off")
                 rs.append(r)
 
     if centerline:
@@ -3534,8 +3545,8 @@ def whisker(
     """
     xvals = np.zeros_like(np.array(data))
     if jitter:
-        xjit = np.random.randn(len(xvals))*s/9
-        xjit = np.clip(xjit, -s/2.1, s/2.1)
+        xjit = np.random.randn(len(xvals)) * s / 9
+        xjit = np.clip(xjit, -s / 2.1, s / 2.1)
         xvals += xjit
 
     dmean = np.mean(data)
@@ -3545,29 +3556,42 @@ def whisker(
     dq95 = np.quantile(data, 0.95)
 
     pts = None
-    if r: pts = shapes.Points([xvals, data], c=c, r=r)
+    if r:
+        pts = shapes.Points([xvals, data], c=c, r=r)
 
-    rec = shapes.Rectangle([-s/2, dq25],[s/2, dq75], c=bc, alpha=alpha)
+    rec = shapes.Rectangle([-s / 2, dq25], [s / 2, dq75], c=bc, alpha=alpha)
     rec.GetProperty().LightingOff()
-    rl = shapes.Line([[-s/2, dq25],[s/2, dq25],[s/2, dq75],[-s/2, dq75]], closed=True)
-    l1 = shapes.Line([0,dq05,0], [0,dq25,0], c=c, lw=lw)
-    l2 = shapes.Line([0,dq75,0], [0,dq95,0], c=c, lw=lw)
-    lm = shapes.Line([-s/2, dmean], [s/2, dmean])
+    rl = shapes.Line(
+        [[-s / 2, dq25], [s / 2, dq25], [s / 2, dq75], [-s / 2, dq75]], closed=True
+    )
+    l1 = shapes.Line([0, dq05, 0], [0, dq25, 0], c=c, lw=lw)
+    l2 = shapes.Line([0, dq75, 0], [0, dq95, 0], c=c, lw=lw)
+    lm = shapes.Line([-s / 2, dmean], [s / 2, dmean])
     lns = merge(l1, l2, lm, rl)
     asse = Assembly([lns, rec, pts])
     if horizontal:
         asse.rotateZ(-90)
     asse.name = "Whisker"
-    asse.info['mean'] = dmean
-    asse.info['quantile_05'] = dq05
-    asse.info['quantile_25'] = dq25
-    asse.info['quantile_75'] = dq75
-    asse.info['quantile_95'] = dq95
+    asse.info["mean"] = dmean
+    asse.info["quantile_05"] = dq05
+    asse.info["quantile_25"] = dq25
+    asse.info["quantile_75"] = dq75
+    asse.info["quantile_95"] = dq95
     return asse
 
 
-def streamplot(X, Y, U, V, direction="both",
-               maxPropagation=None, mode=1, lw=0.001, c=None, probes=()):
+def streamplot(
+    X,
+    Y,
+    U,
+    V,
+    direction="both",
+    maxPropagation=None,
+    mode=1,
+    lw=0.001,
+    c=None,
+    probes=(),
+):
     """
     Generate a streamline plot of a vectorial field (U,V) defined at positions (X,Y).
     Returns a ``Mesh`` object.
@@ -3638,7 +3662,7 @@ def streamplot(X, Y, U, V, direction="both",
         stream.color(c)
     else:
         stream.addScalarBar()
-    stream.lighting('off')
+    stream.lighting("off")
 
     stream.scale([1 / (n - 1) * (xmax - xmin), 1 / (n - 1) * (ymax - ymin), 1])
     stream.shift(xmin, ymin)
@@ -3650,8 +3674,8 @@ def matrix(
         title='Matrix',
         xtitle='',
         ytitle='',
-        xlabels=[],
-        ylabels=[],
+        xlabels=(),
+        ylabels=(),
         xrotation=0,
         cmap='Reds',
         vmin=None,
@@ -3730,67 +3754,74 @@ def matrix(
         .. image:: https://vedo.embl.es/images/pyplot/np_matrix.png
     """
     M = np.asarray(M)
-    n,m = M.shape
-    gr = shapes.Grid(res=(m,n), s=(m/(m+n)*2,n/(m+n)*2), c=c, alpha=alpha)
+    n, m = M.shape
+    gr = shapes.Grid(res=(m, n), s=(m / (m + n) * 2, n / (m + n) * 2), c=c, alpha=alpha)
     gr.wireframe(False).lc(lc).lw(lw)
 
-    matr = np.flip( np.flip(M), axis=1).ravel(order='C')
-    gr.cmap(cmap, matr, on='cells', vmin=vmin, vmax=vmax)
-    sbar=None
+    matr = np.flip(np.flip(M), axis=1).ravel(order="C")
+    gr.cmap(cmap, matr, on="cells", vmin=vmin, vmax=vmax)
+    sbar = None
     if scalarbar:
         gr.addScalarBar3D(titleFont=font, labelFont=font)
         sbar = gr.scalarbar
-    labs=None
-    if scale !=0:
-        labs = gr.labels(cells=True, scale=scale/max(m,n),
-                         precision=precision, font=font, justify='center', c=c)
+    labs = None
+    if scale != 0:
+        labs = gr.labels(
+            cells=True,
+            scale=scale / max(m, n),
+            precision=precision,
+            font=font,
+            justify="center",
+            c=c,
+        )
         labs.z(0.001)
     t = None
     if title:
-        if title == 'Matrix':
-            title += ' '+str(n)+'x'+str(m)
-        t = shapes.Text3D(title, font=font, s=0.04,
-                          justify='bottom-center', c=c)
-        t.shift(0, n/(m+n)*1.05)
+        if title == "Matrix":
+            title += " " + str(n) + "x" + str(m)
+        t = shapes.Text3D(title, font=font, s=0.04, justify="bottom-center", c=c)
+        t.shift(0, n / (m + n) * 1.05)
 
-    xlabs=None
-    if len(xlabels)==m:
-        xlabs=[]
-        jus = 'top-center'
-        if xrotation>44:
-            jus = 'right-center'
+    xlabs = None
+    if len(xlabels) == m:
+        xlabs = []
+        jus = "top-center"
+        if xrotation > 44:
+            jus = "right-center"
         for i in range(m):
-            xl = shapes.Text3D(xlabels[i], font=font, s=0.02,
-                               justify=jus, c=c).rotateZ(xrotation)
-            xl.shift((2*i-m+1)/(m+n), -n/(m+n)*1.05)
+            xl = shapes.Text3D(xlabels[i], font=font, s=0.02, justify=jus, c=c).rotateZ(
+                xrotation
+            )
+            xl.shift((2 * i - m + 1) / (m + n), -n / (m + n) * 1.05)
             xlabs.append(xl)
 
-    ylabs=None
-    if len(ylabels)==n:
+    ylabs = None
+    if len(ylabels) == n:
         ylabels = list(reversed(ylabels))
-        ylabs=[]
+        ylabs = []
         for i in range(n):
-            yl = shapes.Text3D(ylabels[i], font=font, s=.02,
-                               justify='right-center', c=c)
-            yl.shift(-m/(m+n)*1.05, (2*i-n+1)/(m+n))
+            yl = shapes.Text3D(
+                ylabels[i], font=font, s=0.02, justify="right-center", c=c
+            )
+            yl.shift(-m / (m + n) * 1.05, (2 * i - n + 1) / (m + n))
             ylabs.append(yl)
 
-    xt=None
+    xt = None
     if xtitle:
-        xt = shapes.Text3D(xtitle, font=font, s=0.035,
-                           justify='top-center', c=c)
-        xt.shift(0, -n/(m+n)*1.05)
+        xt = shapes.Text3D(xtitle, font=font, s=0.035, justify="top-center", c=c)
+        xt.shift(0, -n / (m + n) * 1.05)
         if xlabs is not None:
-            y0,y1 = xlabs[0].ybounds()
-            xt.shift(0, -(y1-y0)-0.55/(m+n))
-    yt=None
+            y0, y1 = xlabs[0].ybounds()
+            xt.shift(0, -(y1 - y0) - 0.55 / (m + n))
+    yt = None
     if ytitle:
-        yt = shapes.Text3D(ytitle, font=font, s=0.035,
-                           justify='bottom-center', c=c).rotateZ(90)
-        yt.shift(-m/(m+n)*1.05, 0)
+        yt = shapes.Text3D(
+            ytitle, font=font, s=0.035, justify="bottom-center", c=c
+        ).rotateZ(90)
+        yt.shift(-m / (m + n) * 1.05, 0)
         if ylabs is not None:
-            x0,x1 = ylabs[0].xbounds()
-            yt.shift(-(x1-x0)-0.55/(m+n),0)
+            x0, x1 = ylabs[0].xbounds()
+            yt.shift(-(x1 - x0) - 0.55 / (m + n), 0)
     asse = Assembly(gr, sbar, labs, t, xt, yt, xlabs, ylabs)
     asse.name = "Matrix"
     return asse
@@ -3825,50 +3856,54 @@ def CornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True, dots=T
     data = vtk.vtkDataObject()
     data.SetFieldData(field)
 
-    plot = vtk.vtkXYPlotActor()
-    plot.AddDataObjectInput(data)
-    plot.SetDataObjectXComponent(0, 0)
-    plot.SetDataObjectYComponent(0, 1)
-    plot.SetXValuesToValue()
-    plot.SetAdjustXLabels(0)
-    plot.SetAdjustYLabels(0)
-    plot.SetNumberOfXLabels(3)
+    xyplot = vtk.vtkXYPlotActor()
+    xyplot.AddDataObjectInput(data)
+    xyplot.SetDataObjectXComponent(0, 0)
+    xyplot.SetDataObjectYComponent(0, 1)
+    xyplot.SetXValuesToValue()
+    xyplot.SetAdjustXLabels(0)
+    xyplot.SetAdjustYLabels(0)
+    xyplot.SetNumberOfXLabels(3)
 
-    plot.GetProperty().SetPointSize(5)
-    plot.GetProperty().SetLineWidth(2)
-    plot.GetProperty().SetColor(colors.getColor(bg))
-    plot.SetPlotColor(0, c[0], c[1], c[2])
+    xyplot.GetProperty().SetPointSize(5)
+    xyplot.GetProperty().SetLineWidth(2)
+    xyplot.GetProperty().SetColor(colors.getColor(bg))
+    xyplot.SetPlotColor(0, c[0], c[1], c[2])
 
-    plot.SetXTitle(title)
-    plot.SetYTitle("")
-    plot.ExchangeAxesOff()
-    plot.SetPlotPoints(dots)
+    xyplot.SetXTitle(title)
+    xyplot.SetYTitle("")
+    xyplot.ExchangeAxesOff()
+    xyplot.SetPlotPoints(dots)
 
     if not lines:
-        plot.PlotLinesOff()
+        xyplot.PlotLinesOff()
 
     if isinstance(pos, str):
         spos = 2
         if "top" in pos:
-            if "left" in pos: spos=1
-            elif "right" in pos: spos=2
+            if "left" in pos:
+                spos = 1
+            elif "right" in pos:
+                spos = 2
         elif "bottom" in pos:
-            if "left" in pos: spos=3
-            elif "right" in pos: spos=4
+            if "left" in pos:
+                spos = 3
+            elif "right" in pos:
+                spos = 4
         pos = spos
     if pos == 1:
-        plot.GetPositionCoordinate().SetValue(0.0, 0.8, 0)
+        xyplot.GetPositionCoordinate().SetValue(0.0, 0.8, 0)
     elif pos == 2:
-        plot.GetPositionCoordinate().SetValue(0.76, 0.8, 0)
+        xyplot.GetPositionCoordinate().SetValue(0.76, 0.8, 0)
     elif pos == 3:
-        plot.GetPositionCoordinate().SetValue(0.0, 0.0, 0)
+        xyplot.GetPositionCoordinate().SetValue(0.0, 0.0, 0)
     elif pos == 4:
-        plot.GetPositionCoordinate().SetValue(0.76, 0.0, 0)
+        xyplot.GetPositionCoordinate().SetValue(0.76, 0.0, 0)
     else:
-        plot.GetPositionCoordinate().SetValue(pos[0], pos[1], 0)
+        xyplot.GetPositionCoordinate().SetValue(pos[0], pos[1], 0)
 
-    plot.GetPosition2Coordinate().SetValue(s, s, 0)
-    return plot
+    xyplot.GetPosition2Coordinate().SetValue(s, s, 0)
+    return xyplot
 
 
 def CornerHistogram(
@@ -3902,8 +3937,8 @@ def CornerHistogram(
         - 4, bottomright,
         - (x, y), as fraction of the rendering window
     """
-    if hasattr(values, '_data'):
-        values = utils.vtk2numpy(values._data.GetPointData().GetScalars())
+    if hasattr(values, "inputdata"):
+        values = utils.vtk2numpy(values.inputdata().GetPointData().GetScalars())
 
     n = values.shape[0]
     if nmax and nmax < n:
@@ -3921,25 +3956,25 @@ def CornerHistogram(
     for i in range(len(fs)):
         pts.append([(edges[i] + edges[i + 1]) / 2, fs[i]])
 
-    plot = CornerPlot(pts, pos, s, title, c, bg, lines, dots)
-    plot.SetNumberOfYLabels(2)
-    plot.SetNumberOfXLabels(3)
+    cplot = CornerPlot(pts, pos, s, title, c, bg, lines, dots)
+    cplot.SetNumberOfYLabels(2)
+    cplot.SetNumberOfXLabels(3)
     tprop = vtk.vtkTextProperty()
     tprop.SetColor(colors.getColor(bg))
     tprop.SetFontFamily(vtk.VTK_FONT_FILE)
     tprop.SetFontFile(utils.getFontPath(vedo.settings.defaultFont))
     tprop.SetOpacity(alpha)
-    plot.SetAxisTitleTextProperty(tprop)
-    plot.GetProperty().SetOpacity(alpha)
-    plot.GetXAxisActor2D().SetLabelTextProperty(tprop)
-    plot.GetXAxisActor2D().SetTitleTextProperty(tprop)
-    plot.GetXAxisActor2D().SetFontFactor(0.55)
-    plot.GetYAxisActor2D().SetLabelFactor(0.0)
-    plot.GetYAxisActor2D().LabelVisibilityOff()
-    return plot
+    cplot.SetAxisTitleTextProperty(tprop)
+    cplot.GetProperty().SetOpacity(alpha)
+    cplot.GetXAxisActor2D().SetLabelTextProperty(tprop)
+    cplot.GetXAxisActor2D().SetTitleTextProperty(tprop)
+    cplot.GetXAxisActor2D().SetFontFactor(0.55)
+    cplot.GetYAxisActor2D().SetLabelFactor(0.0)
+    cplot.GetYAxisActor2D().LabelVisibilityOff()
+    return cplot
 
 
-class DirectedGraph(Assembly):
+class DirectedGraph(Assembly, vedo.base.BaseActor):
     """
     A graph consists of a collection of nodes (without postional information)
     and a collection of edges connecting pairs of nodes.
@@ -4036,6 +4071,7 @@ class DirectedGraph(Assembly):
     .. hint:: examples/pyplot/lineage_graph.py, graph_network.py
         .. image:: https://vedo.embl.es/images/pyplot/graph_network.png
     """
+
     def __init__(self, **kargs):
         vedo.base.BaseActor.__init__(self)
 
@@ -4061,103 +4097,124 @@ class DirectedGraph(Assembly):
 
         self.mdg = vtk.vtkMutableDirectedGraph()
 
-        n = kargs.pop('n', 0)
-        for i in range(n): self.addNode()
+        n = kargs.pop("n", 0)
+        for _ in range(n):
+            self.addNode()
 
-        self._c = kargs.pop('c', (0.3,0.3,0.3))
+        self._c = kargs.pop("c", (0.3, 0.3, 0.3))
 
         self.gl = vtk.vtkGraphLayout()
 
-        self.font = kargs.pop('font', '')
+        self.font = kargs.pop("font", "")
 
-        s = kargs.pop('layout', '2d')
+        s = kargs.pop("layout", "2d")
         if isinstance(s, int):
-            ss = ['2d', 'fast2d', 'clustering2d', 'circular', 'circular3d',
-                  'cone', 'force', 'tree']
+            ss = [
+                "2d",
+                "fast2d",
+                "clustering2d",
+                "circular",
+                "circular3d",
+                "cone",
+                "force",
+                "tree",
+            ]
             s = ss[s]
         self.layout = s
 
-        if '2d' in s:
-            if 'clustering' in s:
+        if "2d" in s:
+            if "clustering" in s:
                 self.strategy = vtk.vtkClustering2DLayoutStrategy()
-            elif 'fast' in s:
+            elif "fast" in s:
                 self.strategy = vtk.vtkFast2DLayoutStrategy()
             else:
                 self.strategy = vtk.vtkSimple2DLayoutStrategy()
             self.rotX = 180
-            opt = kargs.pop('restDistance', None)
-            if opt is not None: self.strategy.SetRestDistance(opt)
-            opt = kargs.pop('seed', None)
-            if opt is not None: self.strategy.SetRandomSeed(opt)
-            opt = kargs.pop('maxNumberOfIterations', None)
-            if opt is not None: self.strategy.SetMaxNumberOfIterations(opt)
-            self.zrange = kargs.pop('zrange', 0)
+            opt = kargs.pop("restDistance", None)
+            if opt is not None:
+                self.strategy.SetRestDistance(opt)
+            opt = kargs.pop("seed", None)
+            if opt is not None:
+                self.strategy.SetRandomSeed(opt)
+            opt = kargs.pop("maxNumberOfIterations", None)
+            if opt is not None:
+                self.strategy.SetMaxNumberOfIterations(opt)
+            self.zrange = kargs.pop("zrange", 0)
 
-        elif 'circ' in s:
-            if '3d' in s:
+        elif "circ" in s:
+            if "3d" in s:
                 self.strategy = vtk.vtkSimple3DCirclesStrategy()
-                self.strategy.SetDirection(0,0,-1)
+                self.strategy.SetDirection(0, 0, -1)
                 self.strategy.SetAutoHeight(True)
                 self.strategy.SetMethod(1)
                 self.rotX = -90
-                opt = kargs.pop('radius', None) # float
+                opt = kargs.pop("radius", None)  # float
                 if opt is not None:
                     self.strategy.SetMethod(0)
-                    self.strategy.SetRadius(opt) # float
-                opt = kargs.pop('height', None)
+                    self.strategy.SetRadius(opt)  # float
+                opt = kargs.pop("height", None)
                 if opt is not None:
                     self.strategy.SetAutoHeight(False)
-                    self.strategy.SetHeight(opt) # float
+                    self.strategy.SetHeight(opt)  # float
             else:
                 self.strategy = vtk.vtkCircularLayoutStrategy()
-                self.zrange = kargs.pop('zrange', 0)
+                self.zrange = kargs.pop("zrange", 0)
 
-        elif 'cone' in s:
+        elif "cone" in s:
             self.strategy = vtk.vtkConeLayoutStrategy()
             self.rotX = 180
-            opt = kargs.pop('compactness', None)
-            if opt is not None: self.strategy.SetCompactness(opt)
-            opt = kargs.pop('compression', None)
-            if opt is not None: self.strategy.SetCompression(opt)
-            opt = kargs.pop('spacing', None)
-            if opt is not None: self.strategy.SetSpacing(opt)
+            opt = kargs.pop("compactness", None)
+            if opt is not None:
+                self.strategy.SetCompactness(opt)
+            opt = kargs.pop("compression", None)
+            if opt is not None:
+                self.strategy.SetCompression(opt)
+            opt = kargs.pop("spacing", None)
+            if opt is not None:
+                self.strategy.SetSpacing(opt)
 
-        elif 'force' in s:
+        elif "force" in s:
             self.strategy = vtk.vtkForceDirectedLayoutStrategy()
-            opt = kargs.pop('seed', None)
-            if opt is not None: self.strategy.SetRandomSeed(opt)
-            opt = kargs.pop('bounds', None)
+            opt = kargs.pop("seed", None)
+            if opt is not None:
+                self.strategy.SetRandomSeed(opt)
+            opt = kargs.pop("bounds", None)
             if opt is not None:
                 self.strategy.SetAutomaticBoundsComputation(False)
-                self.strategy.SetGraphBounds(opt) # list
-            opt = kargs.pop('maxNumberOfIterations', None)
-            if opt is not None: self.strategy.SetMaxNumberOfIterations(opt) # int
-            opt = kargs.pop('threeDimensional', True)
-            if opt is not None: self.strategy.SetThreeDimensionalLayout(opt) # bool
-            opt = kargs.pop('randomInitialPoints', None)
-            if opt is not None: self.strategy.SetRandomInitialPoints(opt) # bool
+                self.strategy.SetGraphBounds(opt)  # list
+            opt = kargs.pop("maxNumberOfIterations", None)
+            if opt is not None:
+                self.strategy.SetMaxNumberOfIterations(opt)  # int
+            opt = kargs.pop("threeDimensional", True)
+            if opt is not None:
+                self.strategy.SetThreeDimensionalLayout(opt)  # bool
+            opt = kargs.pop("randomInitialPoints", None)
+            if opt is not None:
+                self.strategy.SetRandomInitialPoints(opt)  # bool
 
-        elif 'tree' in s:
+        elif "tree" in s:
             self.strategy = vtk.vtkSpanTreeLayoutStrategy()
             self.rotX = 180
 
         else:
             vedo.logger.error(f"Cannot understand layout {s}. Available layouts:")
-            vedo.logger.error("[2d,fast2d,clustering2d,circular,circular3d,cone,force,tree]")
+            vedo.logger.error(
+                "[2d,fast2d,clustering2d,circular,circular3d,cone,force,tree]"
+            )
             raise RuntimeError()
 
         self.gl.SetLayoutStrategy(self.strategy)
 
         if len(kargs):
             vedo.logger.error(f"Cannot understand options: {kargs}")
-        return
 
 
     def addNode(self, label="id"):
         """Add a new node to the ``Graph``."""
-        v = self.mdg.AddVertex() # vtk calls it vertex..
+        v = self.mdg.AddVertex()  # vtk calls it vertex..
         self.nodes.append(v)
-        if label == 'id': label=int(v)
+        if label == "id":
+            label = int(v)
         self._nodeLabels.append(str(label))
         return v
 
@@ -4165,14 +4222,14 @@ class DirectedGraph(Assembly):
         """Add a new edge between to nodes.
         An extra node is created automatically if needed."""
         nv = len(self.nodes)
-        if v1>=nv:
-            for i in range(nv, v1+1):
+        if v1 >= nv:
+            for _ in range(nv, v1 + 1):
                 self.addNode()
         nv = len(self.nodes)
-        if v2>=nv:
-            for i in range(nv, v2+1):
+        if v2 >= nv:
+            for _ in range(nv, v2 + 1):
                 self.addNode()
-        e = self.mdg.AddEdge(v1,v2)
+        e = self.mdg.AddEdge(v1, v2)
         self.edges.append(e)
         self._edgeLabels.append(str(label))
         return e
@@ -4181,13 +4238,14 @@ class DirectedGraph(Assembly):
         """Add a new edge to a new node as its child.
         The extra node is created automatically if needed."""
         nv = len(self.nodes)
-        if v>=nv:
-            for i in range(nv, v+1):
+        if v >= nv:
+            for _ in range(nv, v + 1):
                 self.addNode()
         child = self.mdg.AddChild(v)
-        self.edges.append((v,child))
+        self.edges.append((v, child))
         self.nodes.append(child)
-        if nodeLabel == 'id': nodeLabel=int(child)
+        if nodeLabel == "id":
+            nodeLabel = int(child)
         self._nodeLabels.append(str(nodeLabel))
         self._edgeLabels.append(str(edgeLabel))
         return child
@@ -4212,11 +4270,11 @@ class DirectedGraph(Assembly):
         dgraph.flat().color(self._c).lw(2)
         dgraph.name = "DirectedGraph"
 
-        diagsz = self.diagonalSize()/1.42
+        diagsz = self.diagonalSize() / 1.42
         if not diagsz:
             return None
 
-        dgraph.SetScale(1/diagsz)
+        dgraph.SetScale(1 / diagsz)
         if self.rotX:
             dgraph.rotateX(self.rotX)
         if self.rotY:
@@ -4228,7 +4286,7 @@ class DirectedGraph(Assembly):
         self.edgeOrientations = utils.vtk2numpy(vecs)
 
         # Use Glyph3D to repeat the glyph on all edges.
-        arrows=None
+        arrows = None
         if self.arrowScale:
             arrowSource = vtk.vtkGlyphSource2D()
             arrowSource.SetGlyphTypeToEdgeArrow()
@@ -4239,8 +4297,8 @@ class DirectedGraph(Assembly):
             arrowGlyph.SetInputData(1, arrowSource.GetOutput())
             arrowGlyph.Update()
             arrows = Mesh(arrowGlyph.GetOutput())
-            arrows.SetScale(1/diagsz)
-            arrows.lighting('off').color(self._c)
+            arrows.SetScale(1 / diagsz)
+            arrows.lighting("off").color(self._c)
             if self.rotX:
                 arrows.rotateX(self.rotX)
             if self.rotY:
@@ -4249,27 +4307,26 @@ class DirectedGraph(Assembly):
                 arrows.rotateZ(self.rotZ)
             arrows.name = "DirectedGraphArrows"
 
-        nodeLabels = dgraph.labels(self._nodeLabels,
-                                    scale=self.nodeLabelScale,
-                                    precision=0,
-                                    font=self.font,
-                                    justify=self.nodeLabelJustify,
-                                    )
+        nodeLabels = dgraph.labels(
+            self._nodeLabels,
+            scale=self.nodeLabelScale,
+            precision=0,
+            font=self.font,
+            justify=self.nodeLabelJustify,
+        )
         nodeLabels.color(self._c).pickable(True)
         nodeLabels.name = "DirectedGraphNodeLabels"
 
-        edgeLabels = dgraph.labels(self._edgeLabels,
-                                    cells=True,
-                                    scale=self.edgeLabelScale,
-                                    precision=0,
-                                    font=self.font,
-                                    )
+        edgeLabels = dgraph.labels(
+            self._edgeLabels,
+            cells=True,
+            scale=self.edgeLabelScale,
+            precision=0,
+            font=self.font,
+        )
         edgeLabels.color(self._c).pickable(True)
         edgeLabels.name = "DirectedGraphEdgeLabels"
 
-        Assembly.__init__(self, [dgraph,
-                                 nodeLabels,
-                                 edgeLabels,
-                                 arrows])
+        Assembly.__init__(self, [dgraph, nodeLabels, edgeLabels, arrows])
         self.name = "DirectedGraphAssembly"
         return self
