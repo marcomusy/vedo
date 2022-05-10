@@ -4,13 +4,15 @@ import sys
 import time
 
 import numpy as np
-import vedo
+
 import vtk
 from vtk.util.numpy_support import numpy_to_vtk
 from vtk.util.numpy_support import numpy_to_vtkIdTypeArray
 from vtk.util.numpy_support import vtk_to_numpy
 
-__doc__ = ("Utilities submodule.")
+import vedo
+
+__doc__ = "Utilities submodule."
 
 __all__ = [
     "ProgressBar",
@@ -66,36 +68,37 @@ class ProgressBar:
 
        .. image:: https://user-images.githubusercontent.com/32848391/51858823-ed1f4880-2335-11e9-8788-2d102ace2578.png
     """
+
     def __init__(
-            self,
-            start,
-            stop,
-            step=1,
-            c=None,
-            bold=True,
-            italic=False,
-            title='',
-            ETA=True,
-            width=25,
-            char=u"\U00002501",
-            char_back=u"\U00002500",
-        ):
+        self,
+        start,
+        stop,
+        step=1,
+        c=None,
+        bold=True,
+        italic=False,
+        title="",
+        ETA=True,
+        width=25,
+        char="\U00002501",
+        char_back="\U00002500",
+    ):
 
         char_arrow = ""
-        if sys.version_info[0]<3:
-            char="="
-            char_arrow = ''
-            char_back=''
-            bold=False
+        if sys.version_info[0] < 3:
+            char = "="
+            char_arrow = ""
+            char_back = ""
+            bold = False
 
         self.char_back = char_back
         self.char_arrow = char_arrow
 
-        self.char0 = ''
-        self.char1 = ''
-        self.title = title+' '
+        self.char0 = ""
+        self.char1 = ""
+        self.title = title + " "
         if title:
-            self.title = ' '+self.title
+            self.title = " " + self.title
 
         self.start = start
         self.stop = stop
@@ -106,7 +109,7 @@ class ProgressBar:
         self.width = width
         self.char = char
         self.bar = ""
-        self.percent = 0.
+        self.percent = 0.0
         self.percent_int = 0
         self.ETA = ETA
         self.clock0 = time.time()
@@ -121,7 +124,7 @@ class ProgressBar:
     def print(self, txt="", counts=None, c=None):
         """Print the progress bar and optional message."""
         if not c:
-            c=self.color
+            c = self.color
         if counts:
             self._update(counts)
         else:
@@ -130,14 +133,14 @@ class ProgressBar:
             self._oldbar = self.bar
             eraser = [" "] * self._lentxt + ["\b"] * self._lentxt
             eraser = "".join(eraser)
-            if self.ETA and self._counts>1:
-                tdenom = (time.time() - self.clock0)
+            if self.ETA and self._counts > 1:
+                tdenom = time.time() - self.clock0
                 if tdenom:
                     vel = self._counts / tdenom
                     self._remt = (self.stop - self._counts) / vel
                 else:
                     vel = 1
-                    self._remt = 0.
+                    self._remt = 0.0
                 if self._remt > 60:
                     mins = int(self._remt / 60)
                     secs = self._remt - 60 * mins
@@ -167,7 +170,7 @@ class ProgressBar:
             vedo.printc(s, c=c, bold=self.bold, italic=self.italic, end="")
             sys.stdout.flush()
 
-            if self.percent == 100.:
+            if self.percent == 100.0:
                 print("")
             self._lentxt = len(txt)
 
@@ -185,19 +188,19 @@ class ProgressBar:
         elif counts > self.stop:
             counts = self.stop
         self._counts = counts
-        self.percent = (self._counts - self.start) * 100.
+        self.percent = (self._counts - self.start) * 100.0
         dd = self.stop - self.start
         if dd:
             self.percent /= self.stop - self.start
         else:
-            self.percent = 0.
+            self.percent = 0.0
         self.percent_int = int(round(self.percent))
         af = self.width - 2
         nh = int(round(self.percent_int / 100 * af))
-        br_bk = "\x1b[2m"+self.char_back*(af-nh)
-        br = "%s%s%s" % (self.char*(nh-1), self.char_arrow, br_bk)
+        br_bk = "\x1b[2m" + self.char_back * (af - nh)
+        br = "%s%s%s" % (self.char * (nh - 1), self.char_arrow, br_bk)
         self.bar = self.title + self.char0 + br + self.char1
-        if self.percent < 100.:
+        if self.percent < 100.0:
             ps = " " + str(self.percent_int) + "%"
         else:
             ps = ""
@@ -224,6 +227,7 @@ class dotdict(dict):
             print(isinstance(dd, dict)) # True
             print(dd.lookup("b.d"))     # [1, 2, {"e": 123}]
     """
+
     # Credits: https://stackoverflow.com/users/89391/miku
     #  https://gist.github.com/miku/dc6d06ed894bc23dfd5a364b7def5ed8
 
@@ -235,23 +239,23 @@ class dotdict(dict):
 
         super().__init__(*args, **kwargs)
 
-        self['warn_on_setting'] = True
-
         for k, v in self.items():
             if isinstance(v, dict):
                 self[k] = dotdict(v)
 
     def __getattr__(self, k):
-        if '__getstate__' in k: # a trick to make spyder happy when inspecting dotdict
+        if "__getstate__" in k:  # a trick to make spyder happy when inspecting dotdict
+
             def _dummy():
                 pass
+
             return _dummy
         return self[k]
 
     def __setattr__(self, k, v):
-        if self.warn_on_setting:
-            if k not in self and not k.startswith('__'):
-                vedo.logger.warning(f'you are setting non-existing key {k} to {v}')
+        #if self.warn_on_setting:
+        #    if k not in self and not k.startswith("__"):
+        #        vedo.logger.warning(f"you are setting non-existing key {k} to {v}")
         self[k] = v
 
     def lookup(self, dotkey):
@@ -278,7 +282,7 @@ def numpy2vtk(arr, dtype=None, deep=True, name=""):
 
     arr = np.ascontiguousarray(arr)
 
-    if dtype=='id':
+    if dtype == "id":
         varr = numpy_to_vtkIdTypeArray(arr.astype(np.int64), deep=deep)
     elif dtype:
         varr = numpy_to_vtk(arr.astype(dtype), deep=deep)
@@ -289,6 +293,7 @@ def numpy2vtk(arr, dtype=None, deep=True, name=""):
     if name:
         varr.SetName(name)
     return varr
+
 
 def vtk2numpy(varr):
     """Convert a `vtkDataArray` or `vtkIdList` into a numpy array"""
@@ -349,9 +354,9 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
     if not isSequence(vertices[0]):
         return poly
 
-    if len(vertices[0]) < 3: # make sure it is 3d
+    if len(vertices[0]) < 3:  # make sure it is 3d
         vertices = np.c_[np.array(vertices), np.zeros(len(vertices))]
-        if len(vertices[0]) == 2: # make sure it was not 1d!
+        if len(vertices[0]) == 2:  # make sure it was not 1d!
             vertices = np.c_[vertices, np.zeros(len(vertices))]
 
     sourcePoints = vtk.vtkPoints()
@@ -361,22 +366,22 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
     if lines is not None:
         # Create a cell array to store the lines in and add the lines to it
         linesarr = vtk.vtkCellArray()
-        if isSequence(lines[0]): # assume format [(id0,id1),..]
+        if isSequence(lines[0]):  # assume format [(id0,id1),..]
             for iline in lines:
-                for i in range(0, len(iline)-1):
-                    i1, i2 =  iline[i], iline[i+1]
+                for i in range(0, len(iline) - 1):
+                    i1, i2 = iline[i], iline[i + 1]
                     if i1 != i2:
                         vline = vtk.vtkLine()
-                        vline.GetPointIds().SetId(0,i1)
-                        vline.GetPointIds().SetId(1,i2)
+                        vline.GetPointIds().SetId(0, i1)
+                        vline.GetPointIds().SetId(1, i2)
                         linesarr.InsertNextCell(vline)
-        else: # assume format [id0,id1,...]
-            for i in range(0, len(lines)-1):
+        else:  # assume format [id0,id1,...]
+            for i in range(0, len(lines) - 1):
                 vline = vtk.vtkLine()
-                vline.GetPointIds().SetId(0,lines[i])
-                vline.GetPointIds().SetId(1,lines[i+1])
+                vline.GetPointIds().SetId(0, lines[i])
+                vline.GetPointIds().SetId(1, lines[i + 1])
                 linesarr.InsertNextCell(vline)
-            #print('Wrong format for lines in utils.buildPolydata(), skip.')
+            # print('Wrong format for lines in utils.buildPolydata(), skip.')
         poly.SetLines(linesarr)
 
     if faces is None:
@@ -385,8 +390,7 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
             sourceVertices.InsertNextCell(1)
             sourceVertices.InsertCellPoint(i)
         poly.SetVerts(sourceVertices)
-        return poly ###################
-
+        return poly  ###################
 
     # faces exist
     sourcePolygons = vtk.vtkCellArray()
@@ -394,7 +398,7 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
     # try it anyway: in case it's not uniform np.ndim will be 1
     faces = np.asarray(faces)
 
-    if np.ndim(faces) == 2 and indexOffset==0 and fast:
+    if np.ndim(faces) == 2 and indexOffset == 0 and fast:
         #################### all faces are composed of equal nr of vtxs, FAST
 
         ast = np.int32
@@ -402,11 +406,11 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
             ast = np.int64
 
         nf, nc = faces.shape
-        hs = np.hstack((np.zeros(nf)[:,None] + nc, faces)).astype(ast).ravel()
+        hs = np.hstack((np.zeros(nf)[:, None] + nc, faces)).astype(ast).ravel()
         arr = numpy_to_vtkIdTypeArray(hs, deep=True)
         sourcePolygons.SetCells(nf, arr)
 
-    else: ########################################## manually add faces, SLOW
+    else:  ########################################## manually add faces, SLOW
 
         showbar = False
         if len(faces) > 25000:
@@ -431,7 +435,7 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
                 ele2 = vtk.vtkTriangle()
                 ele3 = vtk.vtkTriangle()
                 if indexOffset:
-                    for i in [0,1,2,3]:
+                    for i in [0, 1, 2, 3]:
                         f[i] -= indexOffset
                 f0, f1, f2, f3 = f
                 pid0 = ele0.GetPointIds()
@@ -473,12 +477,13 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
     poly.SetPolys(sourcePolygons)
     return poly
 
+
 ##############################################################################
 def getFontPath(font):
     """Internal use."""
     if font in vedo.settings.font_parameters.keys():
         if vedo.settings.font_parameters[font]["islocal"]:
-            fl = os.path.join(vedo.fonts_path, f'{font}.ttf')
+            fl = os.path.join(vedo.fonts_path, f"{font}.ttf")
         else:
             try:
                 fl = vedo.io.download(f"https://vedo.embl.es/fonts/{font}.ttf", verbose=False)
@@ -489,7 +494,7 @@ def getFontPath(font):
         if font.startswith("https://"):
             fl = vedo.io.download(font, verbose=False)
         elif os.path.isfile(font):
-            fl = font # assume user is passing a valid file
+            fl = font  # assume user is passing a valid file
         else:
             if font.endswith(".ttf"):
                 vedo.printc("Could not set font file", font,
@@ -502,6 +507,7 @@ def getFontPath(font):
                 vedo.printc("Type 'vedo -r fonts' to see available fonts", c='g')
             fl = getFontPath(vedo.settings.defaultFont)
     return fl
+
 
 def isSequence(arg):
     """Check if input is iterable."""
@@ -516,7 +522,6 @@ def isSequence(arg):
 
 def flatten(list_to_flatten):
     """Flatten out a list."""
-
     def genflatten(lst):
         for elem in lst:
             if isinstance(elem, (list, tuple)):
@@ -524,7 +529,6 @@ def flatten(list_to_flatten):
                     yield x
             else:
                 yield elem
-
     return list(genflatten(list_to_flatten))
 
 
@@ -553,9 +557,9 @@ def humansort(l):
 
 
 def sortByColumn(arr, nth, invert=False):
-    '''Sort a numpy array by its `n-th` column'''
+    """Sort a numpy array by its `n-th` column"""
     arr = np.asarray(arr)
-    arr = arr[arr[:,nth].argsort()]
+    arr = arr[arr[:, nth].argsort()]
     if invert:
         return np.flip(arr, axis=0)
     else:
@@ -577,13 +581,14 @@ def pointIsInTriangle(p, p1, p2, p3):
     gamma = (np.dot(np.cross(u, w), n)) / ln
     if 0 < gamma < 1:
         beta = (np.dot(np.cross(w, v), n)) / ln
-        if 0 < beta < 1 :
+        if 0 < beta < 1:
             alpha = 1 - gamma - beta
             if 0 < alpha < 1:
                 return True
     return False
 
-def intersectRayTriangle(P0,P1, V0,V1,V2):
+
+def intersectRayTriangle(P0, P1, V0, V1, V2):
     """
     Fast intersection between a directional ray defined by P0,P1
     and triangle V0, V1, V2.
@@ -599,41 +604,41 @@ def intersectRayTriangle(P0,P1, V0,V1,V2):
     u = V1 - V0
     v = V2 - V0
     n = np.cross(u, v)
-    if not np.abs(v).sum():   # triangle is degenerate
-        return None           # do not deal with this case
+    if not np.abs(v).sum():  # triangle is degenerate
+        return None  # do not deal with this case
 
-    rd = P1 - P0              # ray direction vector
+    rd = P1 - P0  # ray direction vector
     w0 = P0 - V0
     a = -np.dot(n, w0)
-    b =  np.dot(n, rd)
-    if not b:                 # ray is  parallel to triangle plane
+    b = np.dot(n, rd)
+    if not b:  # ray is  parallel to triangle plane
         return None
 
     # Get intersect point of ray with triangle plane
     r = a / b
-    if r < 0.0:               # ray goes away from triangle
-        return False          #  => no intersect
+    if r < 0.0:  # ray goes away from triangle
+        return False  #  => no intersect
 
     # Gor a segment, also test if (r > 1.0) => no intersect
-    I = P0 + r * rd           # intersect point of ray and plane
+    I = P0 + r * rd  # intersect point of ray and plane
 
     # is I inside T?
-    uu = np.dot(u,u)
-    uv = np.dot(u,v)
-    vv = np.dot(v,v)
+    uu = np.dot(u, u)
+    uv = np.dot(u, v)
+    vv = np.dot(v, v)
     w = I - V0
-    wu = np.dot(w,u)
-    wv = np.dot(w,v)
+    wu = np.dot(w, u)
+    wv = np.dot(w, v)
     D = uv * uv - uu * vv
 
     # Get and test parametric coords
     s = (uv * wv - vv * wu) / D
-    if s < 0.0 or s > 1.0:       # I is outside T
+    if s < 0.0 or s > 1.0:  # I is outside T
         return False
     t = (uv * wu - uu * wv) / D
-    if t < 0.0 or (s + t) > 1.0: # I is outside T
+    if t < 0.0 or (s + t) > 1.0:  # I is outside T
         return False
-    return I                     # I is in T
+    return I  # I is in T
 
 
 def pointToLineDistance(p, p1, p2):
@@ -667,13 +672,13 @@ def linInterpolate(x, rangeX, rangeY):
         s = np.linalg.norm(x - x0) / dxn
         t = np.linalg.norm(x - x1) / dxn
         st = s + t
-        out = y0 * (t/st) + y1 * (s/st)
+        out = y0 * (t / st) + y1 * (s / st)
         # allx = []
         # for xx in x:
         #     allx.append(linInterpolate(xx, rangeX, rangeY))
         # out = np.array(allx)
 
-    else: #faster
+    else:  # faster
         x0 = rangeX[0]
         dx = rangeX[1] - x0
         if not dx:
@@ -681,7 +686,6 @@ def linInterpolate(x, rangeX, rangeY):
         s = (x - x0) / dx
         out = rangeY[0] * (1 - s) + rangeY[1] * s
     return out
-
 
 
 def vector(x, y=None, z=0.0, dtype=np.float64):
@@ -697,7 +701,7 @@ def vector(x, y=None, z=0.0, dtype=np.float64):
 
 def versor(x, y=None, z=0.0, dtype=np.float64):
     """Return the unit vector. Input can be a list of vectors."""
-    v = vector(x,y,z, dtype)
+    v = vector(x, y, z, dtype)
     if isinstance(v[0], np.ndarray):
         return np.divide(v, mag(v)[:, None])
     else:
@@ -712,6 +716,7 @@ def mag(v):
     else:
         return np.linalg.norm(v, axis=1)
 
+
 def mag2(v):
     """Get the squared magnitude of a vector or array of vectors."""
     v = np.asarray(v)
@@ -722,6 +727,7 @@ def mag2(v):
 
 
 def isInteger(n):
+    """Check if input is integer"""
     try:
         float(n)
     except ValueError:
@@ -729,30 +735,34 @@ def isInteger(n):
     else:
         return float(n).is_integer()
 
+
 def isNumber(n):
+    """Check if input is a number"""
     try:
         float(n)
         return True
     except ValueError:
         return False
 
+
 def roundToDigit(x, p):
     """Round a real number to the specified number of significant digits."""
     if not x:
         return x
-    k = int(np.floor(np.log10(np.abs(x)))) + (p-1)
+    k = int(np.floor(np.log10(np.abs(x)))) + (p - 1)
     r = np.around(x, -k)
     if int(r) == r:
         return int(r)
     else:
         return r
 
+
 def packSpheres(bounds, radius):
     """
     Packing spheres into a bounding box.
     Returns a numpy array of sphere centers.
     """
-    h = 0.8164965/2
+    h = 0.8164965 / 2
     d = 0.8660254
     a = 0.288675135
 
@@ -763,29 +773,28 @@ def packSpheres(bounds, radius):
 
     x = np.arange(x0, x1, radius)
     nul = np.zeros_like(x)
-    nz = int((z1-z0)/radius/h/2 +1.5)
-    ny = int((y1-y0)/radius/d +1.5)
+    nz = int((z1 - z0) / radius / h / 2 + 1.5)
+    ny = int((y1 - y0) / radius / d + 1.5)
 
     pts = []
     for iz in range(nz):
-        z = z0 + nul + iz*h*radius
-        dx, dy, dz = [radius*0.5, radius*a, iz*h*radius]
+        z = z0 + nul + iz * h * radius
+        dx, dy, dz = [radius * 0.5, radius * a, iz * h * radius]
         for iy in range(ny):
-            y = y0 + nul + iy*d*radius
+            y = y0 + nul + iy * d * radius
             if iy % 2:
                 xs = x
             else:
-                xs = x + radius*0.5
+                xs = x + radius * 0.5
             if iz % 2:
-                p = np.c_[xs, y, z] + [dx,dy,dz]
+                p = np.c_[xs, y, z] + [dx, dy, dz]
             else:
-                p = np.c_[xs, y, z] + [ 0, 0,dz]
+                p = np.c_[xs, y, z] + [0, 0, dz]
             pts += p.tolist()
     return np.array(pts)
 
 
-
-def precision(x, p, vrange=None, delimiter='e'):
+def precision(x, p, vrange=None, delimiter="e"):
     """
     Returns a string representation of `x` formatted with precision `p`.
 
@@ -795,12 +804,12 @@ def precision(x, p, vrange=None, delimiter='e'):
     # `from here <https://code.google.com/p/webkit-mirror/source/browse/JavaScriptCore/kjs/number_object.cpp>`_,
     # and implemented by `randlet <https://github.com/randlet/to-precision>`_.
 
-    if isinstance(x, str): #do nothing
+    if isinstance(x, str):  # do nothing
         return x
 
     if isSequence(x):
-        out = '('
-        nn=len(x)-1
+        out = "("
+        nn = len(x) - 1
         for i, ix in enumerate(x):
 
             try:
@@ -811,15 +820,16 @@ def precision(x, p, vrange=None, delimiter='e'):
                 continue
 
             out += precision(ix, p)
-            if i<nn: out += ', '
-        return out+')' ############ <--
+            if i < nn:
+                out += ", "
+        return out + ")"  ############ <--
 
     if np.isnan(x):
         return "NaN"
 
     x = float(x)
 
-    if x == 0.0 or (vrange is not None and abs(x) < vrange/pow(10,p)):
+    if x == 0.0 or (vrange is not None and abs(x) < vrange / pow(10, p)):
         return "0"
 
     out = []
@@ -866,6 +876,7 @@ def precision(x, p, vrange=None, delimiter='e'):
         out.append(m)
     return "".join(out)
 
+
 ##################################################################################
 # 2d ######
 def cart2pol(x, y):
@@ -874,11 +885,13 @@ def cart2pol(x, y):
     rho = np.hypot(x, y)
     return np.array([rho, theta])
 
+
 def pol2cart(rho, theta):
     """2D Polar to Cartesian coordinates conversion."""
     x = rho * np.cos(theta)
     y = rho * np.sin(theta)
     return np.array([x, y])
+
 
 # 3d ######
 def cart2spher(x, y, z):
@@ -888,6 +901,7 @@ def cart2spher(x, y, z):
     theta = np.arctan2(hxy, z)
     phi = np.arctan2(y, x)
     return np.array([rho, theta, phi])
+
 
 def spher2cart(rho, theta, phi):
     """3D Spherical to Cartesian coordinate conversion."""
@@ -901,11 +915,13 @@ def spher2cart(rho, theta, phi):
     z = rho * ct
     return np.array([x, y, z])
 
-def cart2cyl(x,y,z):
+
+def cart2cyl(x, y, z):
     """3D Cartesian to Cylindrical coordinate conversion."""
-    rho = np.sqrt(x*x + y*y)
+    rho = np.sqrt(x * x + y * y)
     theta = np.arctan2(y, x)
     return np.array([rho, theta, z])
+
 
 def cyl2cart(rho, theta, z):
     """3D Cylindrical to Cartesian coordinate conversion."""
@@ -913,17 +929,20 @@ def cyl2cart(rho, theta, z):
     y = rho * np.sin(theta)
     return np.array([x, y, z])
 
-def cyl2spher(rho,theta,z):
+
+def cyl2spher(rho, theta, z):
     """3D Cylindrical to Spherical coordinate conversion."""
-    rhos = np.sqrt(rho*rho + z*z)
+    rhos = np.sqrt(rho * rho + z * z)
     phi = np.arctan2(rho, z)
     return np.array([rhos, phi, theta])
+
 
 def spher2cyl(rho, theta, phi):
     """3D Spherical to Cylindrical coordinate conversion."""
     rhoc = rho * np.sin(theta)
     z = rho * np.cos(theta)
     return np.array([rhoc, phi, z])
+
 
 ##################################################################################
 def grep(filename, tag, firstOccurrence=False):
@@ -935,7 +954,7 @@ def grep(filename, tag, firstOccurrence=False):
         for line in afile:
             if re.search(tag, line):
                 c = line.split()
-                c[-1] = c[-1].replace('\n', '')
+                c[-1] = c[-1].replace("\n", "")
                 content.append(c)
                 if firstOccurrence:
                     break
@@ -974,7 +993,7 @@ def printInfo(obj):
 
         if hasattr(actor, "info") and 'legend' in actor.info.keys() and actor.info['legend']:
             vedo.printc("legend: ", c="g", bold=1, end="")
-            vedo.printc(actor.info['legend'], c="g", bold=0)
+            vedo.printc(actor.info["legend"], c="g", bold=0)
         else:
             print()
 
@@ -985,10 +1004,6 @@ def printInfo(obj):
         if hasattr(actor, "filename") and actor.filename:
             vedo.printc(tab + "           file: ", c="g", bold=1, end="")
             vedo.printc(actor.filename, c="g", bold=0)
-
-        if hasattr(actor, "_time") and actor._time:
-            vedo.printc(tab + "           time: ", c="g", bold=1, end="")
-            vedo.printc(actor._time, c="g", bold=0)
 
         if not actor.GetMapper().GetScalarVisibility():
             vedo.printc(tab + "          color: ", c="g", bold=1, end="")
@@ -1053,7 +1068,7 @@ def printInfo(obj):
         vedo.printc(" z=(" + bz1 + ", " + bz2 + ")", c="g", bold=0)
 
         if hasattr(actor, "picked3d") and actor.picked3d is not None:
-            idpt   = actor.closestPoint(actor.picked3d, returnPointId=True)
+            idpt = actor.closestPoint(actor.picked3d, returnPointId=True)
             idcell = actor.closestPoint(actor.picked3d, returnCellId=True)
             vedo.printc(tab + "  clicked point: ", c="g", bold=1, end="")
             vedo.printc(precision(actor.picked3d, 6),
@@ -1096,7 +1111,7 @@ def printInfo(obj):
                     try:
                         tt, nptt = arrtypes[ptdata.GetArray(i).GetDataType()]
                     except:
-                        tt = "VTKTYPE"+str(ptdata.GetArray(i).GetDataType())
+                        tt = "VTKTYPE" + str(ptdata.GetArray(i).GetDataType())
                         nptt = ""
                     ncomp = str(ptdata.GetArray(i).GetNumberOfComponents())
                     vedo.printc("name=" + name, "("+ncomp+" "+tt+", "+nptt+"),", c="g", bold=0, end="")
@@ -1119,8 +1134,7 @@ def printInfo(obj):
                                             precision(rng[1],4) + ')', c="g", bold=0)
         else:
             vedo.printc(tab + "        scalars:", c="g", bold=1, end=" ")
-            vedo.printc('no point or cell scalars are present.', c="g", bold=0)
-
+            vedo.printc("no point or cell scalars are present.", c="g", bold=0)
 
     if obj is None:
         return
@@ -1141,17 +1155,20 @@ def printInfo(obj):
             vedo.printc("\tmin =", np.min(A, axis=0), c=cf)
             vedo.printc("\tmax =", np.max(A, axis=0), c=cf)
             vedo.printc("\tmean=", np.mean(A, axis=0), c=cf)
-            if A.shape[1] >3 :
+            if A.shape[1] > 3:
                 vedo.printc("AXIS 1:", c=cf, italic=1)
-                vedo.printc("\tmin =",
+                vedo.printc(
+                    "\tmin =",
                     str(np.min(A, axis=1).tolist()[:2]).replace("]", ", ..."),
                     c=cf,
                 )
-                vedo.printc("\tmax =",
+                vedo.printc(
+                    "\tmax =",
                     str(np.max(A, axis=1).tolist()[:2]).replace("]", ", ..."),
                     c=cf,
                 )
-                vedo.printc("\tmean=",
+                vedo.printc(
+                    "\tmean=",
                     str(np.mean(A, axis=1).tolist()[:2]).replace("]", ", ..."),
                     c=cf,
                 )
@@ -1180,18 +1197,18 @@ def printInfo(obj):
         cl = vtk.vtkPropCollection()
         obj.GetActors(cl)
         cl.InitTraversal()
-        for i in range(obj.GetNumberOfPaths()):
+        for _ in range(obj.GetNumberOfPaths()):
             act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
             if isinstance(act, vtk.vtkActor):
                 printvtkactor(act, tab="     ")
 
     elif isinstance(obj, vedo.TetMesh):
-        cf='m'
+        cf = "m"
         vedo.printc("_" * 65, c=cf, bold=0)
         vedo.printc("TetMesh", c=cf, bold=1, invert=1)
         pos = obj.GetPosition()
         bnds = obj.GetBounds()
-        ug = obj._data
+        ug = obj.inputdata()
         vedo.printc("    nr. of tetras: ", c=cf, bold=1, end="")
         vedo.printc(ug.GetNumberOfCells(), c=cf, bold=0)
         vedo.printc("         position: ", c=cf, bold=1, end="")
@@ -1222,7 +1239,7 @@ def printInfo(obj):
         vedo.printc(img.GetDataDimension(), c="b", bold=0)
 
         vedo.printc("      memory size: ", c="b", bold=1, end="")
-        vedo.printc(int(img.GetActualMemorySize()/1024), 'MB', c="b", bold=0)
+        vedo.printc(int(img.GetActualMemorySize() / 1024), "MB", c="b", bold=0)
 
         vedo.printc("    scalar #bytes: ", c="b", bold=1, end="")
         vedo.printc(img.GetScalarSize(), c="b", bold=0)
@@ -1238,8 +1255,9 @@ def printInfo(obj):
         vedo.printc("     scalar range: ", c="b", bold=1, end="")
         vedo.printc(img.GetScalarRange(), c="b", bold=0)
 
-        printHistogram(obj, horizontal=True,
-                       logscale=True, bins=8, height=15, c='b', bold=0)
+        printHistogram(
+            obj, horizontal=True, logscale=True, bins=8, height=15, c="b", bold=0
+        )
 
     elif isinstance(obj, vedo.Plotter) and obj.interactor:  # dumps Plotter info
         axtype = {
@@ -1288,7 +1306,8 @@ def printInfo(obj):
         vedo.printc(" y=(" + by1 + ", " + by2 + ")", c="c", bold=0, end="")
         bz1, bz2 = precision(min_bns[4], 3), precision(max_bns[5], 3)
         vedo.printc(" z=(" + bz1 + ", " + bz2 + ")", c="c", bold=0)
-        if isinstance(obj.axes, dict): obj.axes=1
+        if isinstance(obj.axes, dict):
+            obj.axes = 1
         if obj.axes:
             vedo.printc("       axes type:", obj.axes, axtype[obj.axes], bold=0, c="c")
 
@@ -1324,7 +1343,7 @@ def printInfo(obj):
         vedo.printc(obj.shape, c="y", bold=0)
 
         vedo.printc("      memory size: ", c="y", bold=1, end="")
-        vedo.printc(int(img.GetActualMemorySize()), 'kB', c="y", bold=0)
+        vedo.printc(int(img.GetActualMemorySize()), "kB", c="y", bold=0)
 
         vedo.printc("           bounds: ", c="y", bold=1, end="")
         bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
@@ -1337,19 +1356,19 @@ def printInfo(obj):
         vedo.printc("  intensity range: ", c="y", bold=1, end="")
         vedo.printc(img.GetScalarRange(), c="y", bold=0)
         vedo.printc("   level / window: ", c="y", bold=1, end="")
-        vedo.printc(obj.level(), '/', obj.window(), c="y", bold=0)
+        vedo.printc(obj.level(), "/", obj.window(), c="y", bold=0)
 
         try:
             width, height = obj.dimensions()
             w = 65
-            h = int(height/width * (w-1) * 0.5 + 0.5)
-            img_arr = obj.clone().resize([w,h]).tonumpy()
+            h = int(height / width * (w - 1) * 0.5 + 0.5)
+            img_arr = obj.clone().resize([w, h]).tonumpy()
             h, w = img_arr.shape[:2]
             for x in range(h):
                 for y in range(w):
                     pix = img_arr[x][y]
                     r, g, b = pix[:3]
-                    print(f"\x1b[48;2;{r};{g};{b}m", end=' ')
+                    print(f"\x1b[48;2;{r};{g};{b}m", end=" ")
                 print("\x1b[0m")
         except:
             pass
@@ -1359,10 +1378,18 @@ def printInfo(obj):
         vedo.printc(obj)
 
 
-
-def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
-                   horizontal=False, char=u"\u2588",
-                   c=None, bold=True, title='Histogram'):
+def printHistogram(
+    data,
+    bins=10,
+    height=10,
+    logscale=False,
+    minbin=0,
+    horizontal=False,
+    char="\u2588",
+    c=None,
+    bold=True,
+    title="Histogram",
+):
     """
     Ascii histogram printing.
     Input can also be ``Volume`` or ``Mesh``.
@@ -1407,7 +1434,7 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
     # credits: http://pyinsci.blogspot.com/2009/10/ascii-histograms.html
     # adapted for vedo by M.Musy, 2019
 
-    if not horizontal: # better aspect ratio
+    if not horizontal:  # better aspect ratio
         bins *= 2
 
     isimg = isinstance(data, vtk.vtkImageData)
@@ -1418,7 +1445,7 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
         else:
             img = data
         dims = img.GetDimensions()
-        nvx = min(100000, dims[0]*dims[1]*dims[2])
+        nvx = min(100000, dims[0] * dims[1] * dims[2])
         idxs = np.random.randint(0, min(dims), size=(nvx, 3))
         data = []
         for ix, iy, iz in idxs:
@@ -1440,16 +1467,16 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
     else:
         hi = h[0]
 
-    if sys.version_info[0] < 3 and char == u"\U00002589":
-        char = "*" # python2 hack
-    if char == u"\U00002589" and horizontal:
-        char = u"\U00002586"
+    if sys.version_info[0] < 3 and char == "\U00002589":
+        char = "*"  # python2 hack
+    if char == "\U00002589" and horizontal:
+        char = "\U00002586"
 
     entrs = "\t(entries=" + str(len(data)) + ")"
     if logscale:
-        h0 = np.log10(hi+1)
-        maxh0 = int(max(h0)*100)/100
-        title = '(logscale) ' + title + entrs
+        h0 = np.log10(hi + 1)
+        maxh0 = int(max(h0) * 100) / 100
+        title = "(logscale) " + title + entrs
     else:
         h0 = hi
         maxh0 = max(h0)
@@ -1458,14 +1485,14 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
     def _v():
         his = ""
         if title:
-            his += title +"\n"
+            his += title + "\n"
         bars = h0 / maxh0 * height
         for l in reversed(range(1, height + 1)):
             line = ""
             if l == height:
                 line = "%s " % maxh0
             else:
-                line = "   |" + " " * (len(str(maxh0))-3)
+                line = "   |" + " " * (len(str(maxh0)) - 3)
             for c in bars:
                 if c >= np.ceil(l):
                     line += char
@@ -1479,13 +1506,13 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
     def _h():
         his = ""
         if title:
-            his += title +"\n"
+            his += title + "\n"
         xl = ["%.2f" % n for n in h[1]]
         lxl = [len(l) for l in xl]
         bars = h0 / maxh0 * height
         his += " " * int(max(bars) + 2 + max(lxl)) + "%s\n" % maxh0
         for i, c in enumerate(bars):
-            line = (xl[i] + " " * int(max(lxl) - lxl[i]) + "| " + char * int(c) + "\n")
+            line = xl[i] + " " * int(max(lxl) - lxl[i]) + "| " + char * int(c) + "\n"
             his += line
         return his
 
@@ -1520,7 +1547,6 @@ def makeBands(inputlist, numberOfBands):
                 newlist.append(b)
                 break
     return np.array(newlist)
-
 
 
 #################################################################
@@ -1616,7 +1642,7 @@ def orientedCamera(center=(0,0,0), upVector=(0,1,0), backoffVector=(0,0,1), back
     vup = vup / np.linalg.norm(vup)
     pt_backoff = center - backoff * np.array(backoffVector)
     camera = vtk.vtkCamera()
-    camera.SetFocalPoint(center[0],center[1],center[2])
+    camera.SetFocalPoint(center[0], center[1], center[2])
     camera.SetViewUp(vup[0], vup[1], vup[2])
     camera.SetPosition(pt_backoff[0], pt_backoff[1], pt_backoff[2])
     return camera
@@ -1642,28 +1668,28 @@ def makeTicks(x0, x1, N, labels=None, digits=None):
 
     if x1 <= x0:
         # vedo.printc("Error in makeTicks(): x0 >= x1", x0,x1, c='r')
-        return np.array([0.0,1.0]), ["",""]
+        return np.array([0.0, 1.0]), ["", ""]
 
     if labels is not None:
         # user is passing custom labels
 
         ticks_float.append(0)
-        ticks_str.append('')
+        ticks_str.append("")
         for tp, ts in labels:
             if tp == x1:
                 continue
             ticks_str.append(ts)
-            tickn = linInterpolate(tp, [x0,x1], [0,1])
+            tickn = linInterpolate(tp, [x0, x1], [0, 1])
             ticks_float.append(tickn)
 
     else:
         # ..now comes one of the shortest and most painful pieces of code i ever wrote:
         # automatically choose the best natural axis subdivision based on multiples of 1,2,5
-        dstep = (x1-x0)/N  # desired step size, begin of the nightmare
+        dstep = (x1 - x0) / N  # desired step size, begin of the nightmare
 
         basestep = pow(10, np.floor(np.log10(dstep)))
-        steps = np.array([basestep*i for i in (1,2,5,10,20,50)])
-        idx = (np.abs(steps-dstep)).argmin()
+        steps = np.array([basestep * i for i in (1, 2, 5, 10, 20, 50)])
+        idx = (np.abs(steps - dstep)).argmin()
         s = steps[idx]  # chosen step size
 
         lowBound, upBound = 0, 0
@@ -1672,55 +1698,56 @@ def makeTicks(x0, x1, N, labels=None, digits=None):
         if x1 > 0:
             upBound = pow(10, np.ceil(np.log10(x1)))
 
-        if lowBound<0:
-            if upBound<0:
-                negaxis = np.arange(lowBound, int(upBound/s)*s)
+        if lowBound < 0:
+            if upBound < 0:
+                negaxis = np.arange(lowBound, int(upBound / s) * s)
             else:
-                if -lowBound/s > 1.0e+06:
-                    return np.array([0.0,1.0]), ["",""]
+                if -lowBound / s > 1.0e06:
+                    return np.array([0.0, 1.0]), ["", ""]
                 negaxis = np.arange(lowBound, 0, s)
         else:
             negaxis = np.array([])
 
-        if upBound>0:
-            if lowBound>0:
-                posaxis = np.arange(int(lowBound/s)*s, upBound, s)
+        if upBound > 0:
+            if lowBound > 0:
+                posaxis = np.arange(int(lowBound / s) * s, upBound, s)
             else:
-                if upBound/s > 1.0e+06:
-                    return np.array([0.0,1.0]), ["",""]
+                if upBound / s > 1.0e06:
+                    return np.array([0.0, 1.0]), ["", ""]
                 posaxis = np.arange(0, upBound, s)
         else:
             posaxis = np.array([])
 
         fulaxis = np.unique(np.clip(np.concatenate([negaxis, posaxis]), x0, x1))
-        #end of the nightmare
+        # end of the nightmare
 
         if digits is None:
-            np.set_printoptions(suppress=True) # avoid zero precision
-            sas = str(fulaxis).replace('[','').replace(']','')
-            sas = sas.replace('.e','e').replace('e+0','e+').replace('e-0','e-')
-            np.set_printoptions(suppress=None) # set back to default
+            np.set_printoptions(suppress=True)  # avoid zero precision
+            sas = str(fulaxis).replace("[", "").replace("]", "")
+            sas = sas.replace(".e", "e").replace("e+0", "e+").replace("e-0", "e-")
+            np.set_printoptions(suppress=None)  # set back to default
         else:
             sas = precision(fulaxis, digits, vrange=(x0,x1))
             sas = sas.replace('[','').replace(']','').replace(')','').replace(',','')
 
         sas2 = []
         for s in sas.split():
-            if s.endswith('.'):
+            if s.endswith("."):
                 s = s[:-1]
-            if s == '-0':
-                s = '0'
-            if digits is not None and 'e' in s: s+=' ' # add space to terminate modifiers
+            if s == "-0":
+                s = "0"
+            if digits is not None and "e" in s:
+                s += " "  # add space to terminate modifiers
             sas2.append(s)
 
         for ts, tp in zip(sas2, fulaxis):
             if tp == x1:
                 continue
-            tickn = linInterpolate(tp, [x0,x1], [0,1])
+            tickn = linInterpolate(tp, [x0, x1], [0, 1])
             ticks_float.append(tickn)
             ticks_str.append(ts)
 
-    ticks_str.append('')
+    ticks_str.append("")
     ticks_float.append(1)
     ticks_float = np.array(ticks_float)
     return ticks_float, ticks_str
@@ -1767,28 +1794,28 @@ def gridcorners(i, nm, size, margin=0, flipy=True):
             show(acts, axes=1)
     """
     i -= 1
-    n,m = nm
-    sx,sy = size
-    dx, dy = sx/n, sy/m
-    nx = i%n
-    ny = int((i-nx)/n)
+    n, m = nm
+    sx, sy = size
+    dx, dy = sx / n, sy / m
+    nx = i % n
+    ny = int((i - nx) / n)
     if flipy:
         ny = n - ny
-    c1 = (dx*nx + margin, dy*ny + margin)
-    c2 = (dx*(nx+1) - margin, dy*(ny+1) - margin)
+    c1 = (dx * nx + margin, dy * ny + margin)
+    c2 = (dx * (nx + 1) - margin, dy * (ny + 1) - margin)
     return np.array(c1), np.array(c2)
 
 
 ############################################################################
-#Trimesh support
+# Trimesh support
 #
-#Install trimesh with:
+# Install trimesh with:
 #
 #    sudo apt install python3-rtree
 #    pip install rtree shapely
 #    conda install trimesh
 #
-#Check the example gallery in: examples/other/trimesh>
+# Check the example gallery in: examples/other/trimesh>
 ###########################################################################
 def vedo2trimesh(mesh):
     """
@@ -1803,18 +1830,18 @@ def vedo2trimesh(mesh):
     from trimesh import Trimesh
 
     tris = mesh.faces()
-    carr = mesh.celldata['CellIndividualColors']
+    carr = mesh.celldata["CellIndividualColors"]
     ccols = carr
 
     points = mesh.points()
-    varr = mesh.pointdata['VertexColors']
+    varr = mesh.pointdata["VertexColors"]
     vcols = varr
 
-    if len(tris)==0:
+    if len(tris) == 0:
         tris = None
 
-    return Trimesh(vertices=points, faces=tris,
-                   face_colors=ccols, vertex_colors=vcols)
+    return Trimesh(vertices=points, faces=tris, face_colors=ccols, vertex_colors=vcols)
+
 
 def trimesh2vedo(inputobj):
     """
@@ -1829,11 +1856,9 @@ def trimesh2vedo(inputobj):
     inputobj_type = str(type(inputobj))
 
     if "Trimesh" in inputobj_type or "primitives" in inputobj_type:
-        from vedo import Mesh
-
         faces = inputobj.faces
         poly = buildPolyData(inputobj.vertices, faces)
-        tact = Mesh(poly)
+        tact = vedo.Mesh(poly)
         if inputobj.visual.kind == "face":
             trim_c = inputobj.visual.face_colors
         else:
@@ -1844,7 +1869,7 @@ def trimesh2vedo(inputobj):
                 sameColor = len(np.unique(trim_c, axis=0)) < 2 # all vtxs have same color
 
                 if sameColor:
-                    tact.c(trim_c[0, [0,1,2]]).alpha(trim_c[0, 3])
+                    tact.c(trim_c[0, [0, 1, 2]]).alpha(trim_c[0, 3])
                 else:
                     if inputobj.visual.kind == "face":
                         tact.cellIndividualColors(trim_c)
@@ -1889,16 +1914,16 @@ def vedo2meshlab(vmesh):
         face_matrix = np.array(vmesh.clone().triangulate().faces(), dtype=np.float64)
 
     v_normals_matrix = vmesh.normals(cells=False, compute=False)
-    if not len(v_normals_matrix):
-        v_normals_matrix = np.empty((0,3), dtype=np.float64)
+    if not v_normals_matrix.shape[0]:
+        v_normals_matrix = np.empty((0, 3), dtype=np.float64)
 
     f_normals_matrix = vmesh.normals(cells=True, compute=False)
-    if not len(f_normals_matrix):
-        f_normals_matrix = np.empty((0,3), dtype=np.float64)
+    if not f_normals_matrix.shape[0]:
+        f_normals_matrix = np.empty((0, 3), dtype=np.float64)
 
     v_color_matrix = vmesh.pointdata["RGBA"]
     if v_color_matrix is None:
-        v_color_matrix = np.empty((0,4), dtype=np.float64)
+        v_color_matrix = np.empty((0, 4), dtype=np.float64)
     else:
         v_color_matrix = v_color_matrix.astype(np.float64) / 255
         if v_color_matrix.shape[1] == 3:
@@ -1907,7 +1932,7 @@ def vedo2meshlab(vmesh):
 
     f_color_matrix = vmesh.celldata["RGBA"]
     if f_color_matrix is None:
-        f_color_matrix = np.empty((0,4), dtype=np.float64)
+        f_color_matrix = np.empty((0, 4), dtype=np.float64)
     else:
         f_color_matrix = f_color_matrix.astype(np.float64) / 255
         if f_color_matrix.shape[1] == 3:
@@ -1924,14 +1949,15 @@ def vedo2meshlab(vmesh):
     else:
         f_quality_array = np.array([], dtype=np.float64)
 
-    m = mlab.Mesh(vertex_matrix=vertex_matrix,
-                  face_matrix=face_matrix,
-                  v_normals_matrix=v_normals_matrix,
-                  f_normals_matrix=f_normals_matrix,
-                  v_color_matrix=v_color_matrix,
-                  f_color_matrix=f_color_matrix,
-                  v_quality_array=v_quality_array,
-                  f_quality_array=f_quality_array,
+    m = mlab.Mesh(
+        vertex_matrix=vertex_matrix,
+        face_matrix=face_matrix,
+        v_normals_matrix=v_normals_matrix,
+        f_normals_matrix=f_normals_matrix,
+        v_color_matrix=v_color_matrix,
+        f_color_matrix=f_color_matrix,
+        v_quality_array=v_quality_array,
+        f_quality_array=f_quality_array,
     )
 
     m.update_bounding_box()
@@ -1966,16 +1992,16 @@ def meshlab2vedo(mmesh):
     if parr is not None:
         parr_vtk = numpy_to_vtk(parr)
         parr_vtk.SetName("MeshLabQuality")
-        x0,x1 = parr_vtk.GetRange()
-        if x1-x0:
+        x0, x1 = parr_vtk.GetRange()
+        if x1 - x0:
             polydata.GetPointData().AddArray(parr_vtk)
             polydata.GetPointData().SetActiveScalars("MeshLabQuality")
 
     if carr is not None:
         carr_vtk = numpy_to_vtk(carr)
         carr_vtk.SetName("MeshLabQuality")
-        x0,x1 = carr_vtk.GetRange()
-        if x1-x0:
+        x0, x1 = carr_vtk.GetRange()
+        if x1 - x0:
             polydata.GetCellData().AddArray(carr_vtk)
             polydata.GetCellData().SetActiveScalars("MeshLabQuality")
 
@@ -2002,18 +2028,17 @@ def vtkVersionIsAtLeast(major, minor=0, build=0):
     build : int
         Build version.
     """
-    needed_version = 10000000000*int(major) +100000000*int(minor) +int(build)
+    needed_version = 10000000000 * int(major) + 100000000 * int(minor) + int(build)
     try:
         vtk_version_number = vtk.VTK_VERSION_NUMBER
     except AttributeError:  # as error:
         ver = vtk.vtkVersion()
-        vtk_version_number = 10000000000 * ver.GetVTKMajorVersion() \
-                             + 100000000 * ver.GetVTKMinorVersion() \
-                             + ver.GetVTKBuildVersion()
-    if vtk_version_number >= needed_version:
-        return True
-    else:
-        return False
+        vtk_version_number = (
+            10000000000 * ver.GetVTKMajorVersion()
+            + 100000000 * ver.GetVTKMinorVersion()
+            + ver.GetVTKBuildVersion()
+        )
+    return vtk_version_number >= needed_version
 
 
 def ctf2lut(tvobj):
@@ -2024,13 +2049,13 @@ def ctf2lut(tvobj):
         return None
     ctf = pr.GetRGBTransferFunction()
     otf = pr.GetScalarOpacity()
-    x0,x1 = tvobj.inputdata().GetScalarRange()
-    cols, alphas = [],[]
-    for x in np.linspace(x0,x1, 256):
+    x0, x1 = tvobj.inputdata().GetScalarRange()
+    cols, alphas = [], []
+    for x in np.linspace(x0, x1, 256):
         cols.append(ctf.GetColor(x))
         alphas.append(otf.GetValue(x))
     lut = vtk.vtkLookupTable()
-    lut.SetRange(x0,x1)
+    lut.SetRange(x0, x1)
     lut.SetNumberOfTableValues(len(cols))
     for i, col in enumerate(cols):
         r, g, b = col
