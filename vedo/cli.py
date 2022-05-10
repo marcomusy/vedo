@@ -18,27 +18,25 @@ import argparse
 import glob
 import os
 import sys
-
 import numpy as np
-import vedo
-import vedo.applications as applications
 import vtk
+
+import vedo
+from vedo.utils import humansort
+from vedo.utils import isSequence
+from vedo.utils import printInfo
 from vedo import __version__
 from vedo import io
 from vedo import load
 from vedo import settings
-from vedo.colors import getColor
-from vedo.colors import printc
+from vedo.colors import getColor, printc
 from vedo.mesh import Mesh
 from vedo.picture import Picture
 from vedo.plotter import Plotter
 from vedo.tetmesh import TetMesh
 from vedo.ugrid import UGrid
-from vedo.utils import humansort
-from vedo.utils import isSequence
-from vedo.utils import printInfo
 from vedo.volume import Volume
-
+from vedo import applications
 
 __all__ = []
 
@@ -49,7 +47,7 @@ def execute_cli():
     args = parser.parse_args()
 
     if "/vedo/vedo" in vedo.installdir:
-        vedo.installdir = vedo.installdir.replace('vedo/','').replace('vedo\\','')
+        vedo.installdir = vedo.installdir.replace("vedo/", "").replace("vedo\\", "")
 
     if args.info is not None:
         system_info()
@@ -69,7 +67,7 @@ def execute_cli():
     elif args.eog:
         exe_eog(args)
 
-    elif (len(args.files) == 0 or os.name == "nt"):
+    elif len(args.files) == 0 or os.name == "nt":
         exe_gui(args)
 
     else:
@@ -80,7 +78,7 @@ def execute_cli():
 def get_parser():
 
     descr = f"version {__version__}"
-    descr+= " - check out home page at https://vedo.embl.es"
+    descr += " - check out home page at https://vedo.embl.es"
 
     pr = argparse.ArgumentParser(description=descr)
     pr.add_argument('files', nargs='*',             help="input filename(s)")
@@ -139,7 +137,7 @@ def system_info():
             vedo.logger.error(f"Could not load {file}, skip.")
 
     printc("_" * 65, bold=0)
-    printc("vedo version      :", __version__, invert=1, end='   ')
+    printc("vedo version      :", __version__, invert=1, end="   ")
     printc("https://vedo.embl.es", underline=1, italic=1)
     printc("vtk version       :", vtk.vtkVersion().GetVTKVersion())
     printc("python version    :", sys.version.replace("\n", ""))
@@ -149,45 +147,45 @@ def system_info():
         import platform
         printc("system            :", platform.system(),
                platform.release(), os.name, platform.machine())
-    except:
+    except ModuleNotFoundError:
         pass
 
     try:
         from screeninfo import get_monitors
         for m in get_monitors():
-            pr = '         '
+            pr = "         "
             if m.is_primary:
                 pr = '(primary)'
             printc(f"monitor {pr} : {m.name}, resolution=({m.width}, {m.height}), x={m.x}, y={m.y}")
-    except:
+    except ModuleNotFoundError:
         printc('monitor           : info is unavailable. Try "pip install screeninfo".')
 
     try:
         import k3d
         printc("k3d version       :", k3d.__version__, bold=0, dim=1)
-    except:
+    except ModuleNotFoundError:
         pass
     try:
         import ipyvtk_simple
         printc("ipyvtk version    :", ipyvtk_simple.__version__, bold=0, dim=1)
-    except:
+    except ModuleNotFoundError:
         pass
     try:
         import itkwidgets
         printc("itkwidgets version:", itkwidgets.__version__, bold=0, dim=1)
-    except:
+    except ModuleNotFoundError:
         pass
     try:
         import panel
         printc("panel version     :", panel.__version__, bold=0, dim=1)
-    except:
+    except ModuleNotFoundError:
         pass
 
 
 #################################################################################################
 def exe_run(args):
     expath = os.path.join(vedo.installdir, "examples", "**", "*.py")
-    exfiles = [f for f in glob.glob(expath, recursive=True)]
+    exfiles = list(glob.glob(expath, recursive=True))
     f2search = os.path.basename(args.run).lower()
     matching = [s for s in exfiles if (f2search in os.path.basename(s).lower() and "__" not in s)]
     matching = list(sorted(matching))
@@ -195,61 +193,77 @@ def exe_run(args):
     if nmat == 0:
         printc("No matching example found containing string:", args.run, c=1)
         printc(" Current installation directory is:", vedo.installdir, c=1)
-        exit(1)
+        sys.exit(1)
 
     if nmat > 1:
-        printc("\nSelect one of", nmat, "matching scripts:", c='y', italic=1)
-        args.full_screen=True # to print out the one line description
+        printc("\nSelect one of", nmat, "matching scripts:", c="y", italic=1)
+        args.full_screen = True  # to print out the one line description
 
-    if args.full_screen: # -f option not to dump the full code but just the first line
+    if args.full_screen:  # -f option not to dump the full code but just the first line
         for mat in matching[:25]:
-            printc(os.path.basename(mat).replace('.py',''), c='y', italic=1, end=' ')
-            with open(mat) as fm:
+            printc(os.path.basename(mat).replace(".py", ""), c="y", italic=1, end=" ")
+            with open(mat, 'r') as fm:
                 lline = ''.join(fm.readlines(60))
                 lline = lline.replace('\n',' ').replace('\'','').replace('\"','').replace('-','')
                 line = lline[:56] #cut
                 if line.startswith('from'): line=''
                 if line.startswith('import'): line=''
                 if len(lline) > len(line):
-                    line += '..'
-                if len(line)>5:
-                    printc('-', line,  c='y', bold=0, italic=1)
+                    line += ".."
+                if len(line) > 5:
+                    printc("-", line, c="y", bold=0, italic=1)
                 else:
                     print()
 
-    if nmat>25:
-        printc('...', c='y')
+    if nmat > 25:
+        printc("...", c="y")
 
     if nmat > 1:
-        exit(0)
+        sys.exit(0)
 
-    if not args.full_screen: # -f option not to dump the full code
-        with open(matching[0]) as fm:
+    if not args.full_screen:  # -f option not to dump the full code
+        with open(matching[0], 'r') as fm:
             code = fm.read()
-        code = "#"*80 + "\n" + code + "\n"+ "#"*80
+        code = "#" * 80 + "\n" + code + "\n" + "#" * 80
 
         try:
             from pygments import highlight
             from pygments.lexers import Python3Lexer
             from pygments.formatters import Terminal256Formatter
+
             # from pygments.styles import STYLE_MAP
             # print(STYLE_MAP.keys())
             result = highlight(code, Python3Lexer(), Terminal256Formatter(style='zenburn'))
             print(result, end='')
 
-        except:
+        except ModuleNotFoundError:
             printc(code, italic=1, bold=0)
             printc("To colorize code try:  pip install Pygments")
         # print()
 
-    printc("("+matching[0]+")", c='y', bold=0, italic=1)
-    os.system('python3 ' + matching[0])
+    printc("(" + matching[0] + ")", c="y", bold=0, italic=1)
+    os.system("python3 " + matching[0])
+
 
 ################################################################################################
 def exe_convert(args):
 
-    allowedexts = ['vtk', 'vtp', 'vtu', 'vts', 'npy', 'ply', 'stl', 'obj',
-                   'byu', 'xml', 'vti', 'tif', 'mhd', 'xml']
+    allowedexts = [
+        "vtk",
+        "vtp",
+        "vtu",
+        "vts",
+        "npy",
+        "ply",
+        "stl",
+        "obj",
+        "byu",
+        "xml",
+        "vti",
+        "tif",
+        "mhd",
+        "xml",
+    ]
 
     humansort(args.convert)
     nfiles = len(args.convert)
@@ -259,31 +273,32 @@ def exe_convert(args):
     target_ext = args.to.lower()
 
     if target_ext not in allowedexts:
-        printc('Sorry target cannot be', target_ext, '\nMust be', allowedexts, c=1)
+        printc("Sorry target cannot be", target_ext, "\nMust be", allowedexts, c=1)
         sys.exit()
 
     for f in args.convert:
-        source_ext = f.split('.')[-1]
+        source_ext = f.split(".")[-1]
 
         if target_ext == source_ext:
             continue
 
         a = load(f)
-        newf = f.replace("."+source_ext,"")+"."+target_ext
+        newf = f.replace("." + source_ext, "") + "." + target_ext
         a.write(newf, binary=True)
+
 
 ##############################################################################################
 def exe_search(args):
     expath = os.path.join(vedo.installdir, "examples", "**", "*.py")
-    exfiles = [f for f in sorted(glob.glob(expath, recursive=True))]
+    exfiles = list(sorted(glob.glob(expath, recursive=True)))
     pattern = args.search
     if args.no_camera_share:
         pattern = pattern.lower()
     if len(pattern) > 3:
         for ifile in exfiles:
             with open(ifile, "r") as file:
-                fflag=True
-                for i,line in enumerate(file):
+                fflag = True
+                for i, line in enumerate(file):
                     if args.no_camera_share:
                         bline = line.lower()
                     else:
@@ -298,7 +313,8 @@ def exe_search(args):
                         print(f"\u001b[33m{i}\t{line}\x1b[0m", end='')
                         # printc(i, line, c='o', bold=False, end='')
     else:
-        printc("Please specify at least four characters.", c='r')
+        printc("Please specify at least four characters.", c="r")
+
 
 ##############################################################################################
 def exe_search_vtk(args):
@@ -311,10 +327,10 @@ def exe_search_vtk(args):
     from urllib.error import HTTPError
     from urllib.request import urlretrieve
 
-    xref_url='https://raw.githubusercontent.com/Kitware/vtk-examples/gh-pages/src/Coverage/vtk_vtk-examples_xref.json'
+    xref_url = "https://raw.githubusercontent.com/Kitware/vtk-examples/gh-pages/src/Coverage/vtk_vtk-examples_xref.json"
 
     def download_file(dl_path, dl_url, overwrite=False):
-        file_name = dl_url.split('/')[-1]
+        file_name = dl_url.split("/")[-1]
         # Create necessary sub-directories in the dl_path (if they don't exist).
         Path(dl_path).mkdir(parents=True, exist_ok=True)
         # Download if it doesn't exist in the directory overriding if overwrite is True.
@@ -323,7 +339,7 @@ def exe_search_vtk(args):
             try:
                 urlretrieve(dl_url, path)
             except HTTPError as e:
-                raise RuntimeError(f'Failed to download {dl_url}. {e.reason}')
+                raise RuntimeError(f"Failed to download {dl_url}. {e.reason}")
         return path
 
     def get_examples(d, vtk_class, lang, all_values=False, number=5):
@@ -334,32 +350,36 @@ def exe_search_vtk(args):
             return None, None
         total = len(kv)
         samples = list(kv)
-        return total, [f'{s[1]}' for s in samples]
+        return total, [f"{s[1]}" for s in samples]
 
     vtk_class, language, all_values, number = args.search_vtk, "Python", True, 10000
     tmp_dir = tempfile.gettempdir()
     path = download_file(tmp_dir, xref_url, overwrite=False)
     if not path.is_file():
-        print(f'The path: {str(path)} does not exist.')
+        print(f"The path: {str(path)} does not exist.")
 
     dt = datetime.today().timestamp() - os.path.getmtime(path)
     # Force a new download if the time difference is > 10 minutes.
     if dt > 600:
         path = download_file(tmp_dir, xref_url, overwrite=True)
-    with open(path) as json_file:
+    with open(path, 'r') as json_file:
         xref_dict = json.load(json_file)
 
     total_number, examples = get_examples(xref_dict, vtk_class, language, all_values=all_values, number=number)
     if examples:
         if total_number <= number or all_values:
-            print(f'VTK Class: {vtk_class}, language: {language}\n'
-                  f'Number of example(s): {total_number}.')
+            print(
+                f"VTK Class: {vtk_class}, language: {language}\n"
+                f"Number of example(s): {total_number}."
+            )
         else:
-            print(f'VTK Class: {vtk_class}, language: {language}\n'
-                  f'Number of example(s): {total_number} with {number} random sample(s) shown.')
-        print('\n'.join(examples))
+            print(
+                f"VTK Class: {vtk_class}, language: {language}\n"
+                f"Number of example(s): {total_number} with {number} random sample(s) shown."
+            )
+        print("\n".join(examples))
     else:
-        print(f'No examples for the VTK Class: {vtk_class} and language: {language}')
+        print(f"No examples for the VTK Class: {vtk_class} and language: {language}")
 
 
 #################################################################################################################
@@ -378,68 +398,67 @@ def exe_eog(args):
 
     files = []
     for s in sys.argv:
-        if '--' in s or s.endswith('.py') or s.endswith('vedo'):
+        if "--" in s or s.endswith(".py") or s.endswith("vedo"):
             continue
-        if s.endswith('.gif'):
+        if s.endswith(".gif"):
             continue
         files.append(s)
-
 
     def vfunc(event):
         # print(event.keyPressed)
         for p in pics:
-            if event.keyPressed=="r":
-                    p.window(win).level(lev)
-            elif event.keyPressed=="Up":
-                    p.level(p.level()+10)
-            elif event.keyPressed=="Down":
-                    p.level(p.level()-10)
-            if event.keyPressed=="Right":
-                    p.window(p.window()+10)
-            elif event.keyPressed=="Down":
-                    p.window(p.window()-10)
-            elif event.keyPressed=="m":
-                    p.mirror()
-            elif event.keyPressed=="t":
-                    p.rotate(90)
-            elif event.keyPressed=="f":
-                    p.flip()
-            elif event.keyPressed=="b":
-                    p.binarize()
-            elif event.keyPressed=="i":
-                    p.invert()
-            elif event.keyPressed=="I":
-                    plt.colorPicker(event.picked2d, verbose=True)
-            elif event.keyPressed=="k":
-                    p.enhance()
-            elif event.keyPressed=="s":
-                    p.smooth(sigma=1)
-            elif event.keyPressed=="S":
-                    ahl = plt.hoverLegends[-1]
-                    plt.remove(ahl)
-                    plt.screenshot() # writer
-                    printc("Picture saved as screenshot.png")
-                    plt.add(ahl, render=False)
-                    return
-            elif event.keyPressed=="h":
-                printc('---------------------------------------------')
-                printc('Press:')
-                printc('  up/down     to modify level (or drag mouse)')
-                printc('  left/right  to modify window')
-                printc('  m           to mirror image horizontally')
-                printc('  f           to flip image vertically')
-                printc('  t           to rotate image by 90 deg')
-                printc('  i           to invert colors')
-                printc('  I           to pick the color under mouse')
-                printc('  b           to binarize the image')
-                printc('  k           to enhance b&w image')
-                printc('  s           to apply gaussian smoothing')
-                printc('  S           to save image as png')
-                printc('---------------------------------------------')
+            if event.keyPressed == "r":
+                p.window(win).level(lev)
+            elif event.keyPressed == "Up":
+                p.level(p.level() + 10)
+            elif event.keyPressed == "Down":
+                p.level(p.level() - 10)
+            if event.keyPressed == "Right":
+                p.window(p.window() + 10)
+            elif event.keyPressed == "Down":
+                p.window(p.window() - 10)
+            elif event.keyPressed == "m":
+                p.mirror()
+            elif event.keyPressed == "t":
+                p.rotate(90)
+            elif event.keyPressed == "f":
+                p.flip()
+            elif event.keyPressed == "b":
+                p.binarize()
+            elif event.keyPressed == "i":
+                p.invert()
+            elif event.keyPressed == "I":
+                plt.colorPicker(event.picked2d, verbose=True)
+            elif event.keyPressed == "k":
+                p.enhance()
+            elif event.keyPressed == "s":
+                p.smooth(sigma=1)
+            elif event.keyPressed == "S":
+                ahl = plt.hoverLegends[-1]
+                plt.remove(ahl)
+                plt.screenshot()  # writer
+                printc("Picture saved as screenshot.png")
+                plt.add(ahl, render=False)
+                return
+            elif event.keyPressed == "h":
+                printc("---------------------------------------------")
+                printc("Press:")
+                printc("  up/down     to modify level (or drag mouse)")
+                printc("  left/right  to modify window")
+                printc("  m           to mirror image horizontally")
+                printc("  f           to flip image vertically")
+                printc("  t           to rotate image by 90 deg")
+                printc("  i           to invert colors")
+                printc("  I           to pick the color under mouse")
+                printc("  b           to binarize the image")
+                printc("  k           to enhance b&w image")
+                printc("  s           to apply gaussian smoothing")
+                printc("  S           to save image as png")
+                printc("---------------------------------------------")
 
             plt.render()
 
-    pics =[]
+    pics = []
     for f in files:
         if os.path.isfile(f):
             try:
@@ -461,13 +480,13 @@ def exe_eog(args):
     if n > 1:
 
         plt = Plotter(N=n, sharecam=True, bg=args.background, bg2=args.background_grad)
-        plt.addCallback('key press', vfunc)
+        plt.addCallback("key press", vfunc)
         for i in range(n):
             p = pics[i].pickable(True)
-            pos = [-p.shape[0]/2, -p.shape[1]/2, 0]
+            pos = [-p.shape[0] / 2, -p.shape[1] / 2, 0]
             p.pos(pos)
-            plt.addHoverLegend(at=i, c='k8', bg='k2', alpha=0.4)
-            plt.show(p, axes=0, at=i, mode='image')
+            plt.addHoverLegend(at=i, c="k8", bg="k2", alpha=0.4)
+            plt.show(p, axes=0, at=i, mode="image")
         plt.show(interactive=False)
         plt.resetCamera(tight=0.05)
         plt.interactor.Start()
@@ -475,13 +494,13 @@ def exe_eog(args):
     else:
 
         shape = pic.shape
-        if shape[0]>1500:
-            shape[1] = shape[1]/shape[0]*1500
-            shape[0]=1500
+        if shape[0] > 1500:
+            shape[1] = shape[1] / shape[0] * 1500
+            shape[0] = 1500
 
-        if shape[1]>1200:
-            shape[0] = shape[0]/shape[1]*1200
-            shape[1]=1200
+        if shape[1] > 1200:
+            shape[0] = shape[0] / shape[1] * 1200
+            shape[1] = 1200
 
         plt = Plotter(title=files[0], size=shape, bg=args.background, bg2=args.background_grad)
         plt.addCallback('key press', vfunc)
@@ -498,7 +517,7 @@ def draw_scene(args):
 
     nfiles = len(args.files)
     if nfiles == 0:
-        printc("No input files.", c='r')
+        printc("No input files.", c="r")
         return
     humansort(args.files)
 
@@ -516,10 +535,10 @@ def draw_scene(args):
     if args.background_grad:
         args.background_grad = getColor(args.background_grad)
 
-    if nfiles == 1 and args.files[0].endswith(".gif"): ###can be improved
+    if nfiles == 1 and args.files[0].endswith(".gif"):  ###can be improved
         frames = load(args.files[0])
         applications.Browser(frames).show(bg=args.background, bg2=args.background_grad)
-        return ##########################################################
+        return  ##########################################################
 
     if args.scrolling_mode:
         args.multirenderer_mode = False
@@ -533,11 +552,11 @@ def draw_scene(args):
             printc("         you are trying to load ", nfiles, " files.\n", c=1)
             N = 200
         plt = Plotter(size=wsize, N=N, bg=args.background, bg2=args.background_grad)
-        settings.immediateRendering=False
+        settings.immediateRendering = False
         plt.axes = args.axes_type
         for i in range(N):
             plt.addHoverLegend(at=i)
-        if args.axes_type == 4 or args.axes_type == 5:
+        if args.axes_type in (4, 5):
             plt.axes = 0
     else:
         N = nfiles
@@ -581,40 +600,45 @@ def draw_scene(args):
 
         useSlider3D = False
         if args.axes_type == 4:
-            args.axes_type=1
+            args.axes_type = 1
         elif args.axes_type == 3:
-            args.axes_type=1
+            args.axes_type = 1
             useSlider3D = True
 
         vol = io.load(args.files[0], force=args.reload)
 
         sp = vol.spacing()
-        vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
+        vol.spacing(
+            [sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing]
+        )
 
-        vedo.plotter_instance = None # reset
+        vedo.plotter_instance = None  # reset
 
         plt = applications.Slicer3DPlotter(
-                     vol,
-                     bg='white', bg2='lb',
-                     useSlider3D=useSlider3D,
-                     cmaps=[args.cmap, "Spectral_r", "hot_r", "bone_r", "gist_ncar_r"],
-                     alpha=args.alpha,
-                     axes=args.axes_type,
-                     clamp=True,
-                     size=(1000,800),
+            vol,
+            bg="white",
+            bg2="lb",
+            useSlider3D=useSlider3D,
+            cmaps=[args.cmap, "Spectral_r", "hot_r", "bone_r", "gist_ncar_r"],
+            alpha=args.alpha,
+            axes=args.axes_type,
+            clamp=True,
+            size=(1000, 800),
         )
         return
 
     ########################################################################
     elif args.edit:
         # print('edit mode for meshes and pointclouds')
-        vedo.plotter_instance = None # reset
+        vedo.plotter_instance = None  # reset
         settings.useParallelProjection = True
 
         try:
-            m = Mesh(args.files[0], alpha=args.alpha/2, c=args.color)
+            m = Mesh(args.files[0], alpha=args.alpha / 2, c=args.color)
         except AttributeError:
-            vedo.logger.critical("In edit mode, input file must be a point cloud or polygonal mesh.")
+            vedo.logger.critical(
+                "In edit mode, input file must be a point cloud or polygonal mesh."
+            )
             return
 
         plt = applications.FreeHandCutPlotter(m, splined=True)
@@ -629,7 +653,7 @@ def draw_scene(args):
         vol = io.load(args.files[0], force=args.reload)
         if not vol:
             return
-        vol.cmap('bone_r')
+        vol.cmap("bone_r")
         sp = vol.spacing()
         vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
         vedo.plotter_instance = None # reset
@@ -638,34 +662,35 @@ def draw_scene(args):
         plt.close()
         return
 
-
     ########################################################################
     # normal mode for single VOXEL file with Isosurface Slider or LEGO mode
     elif nfiles == 1 and (
-            ".slc" in args.files[0].lower()
-            or ".vti" in args.files[0].lower()
-            or ".tif" in args.files[0].lower()
-            or ".mhd" in args.files[0].lower()
-            or ".nrrd" in args.files[0].lower()
-            or ".dem" in args.files[0].lower()
-        ):
+        ".slc" in args.files[0].lower()
+        or ".vti" in args.files[0].lower()
+        or ".tif" in args.files[0].lower()
+        or ".mhd" in args.files[0].lower()
+        or ".nrrd" in args.files[0].lower()
+        or ".dem" in args.files[0].lower()
+    ):
         # print('DEBUG normal mode for single VOXEL file with Isosurface Slider or LEGO mode')
         vol = io.load(args.files[0], force=args.reload)
         sp = vol.spacing()
-        vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
+        vol.spacing(
+            [sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing]
+        )
         if not args.color:
-            args.color = 'gold'
-        plt = applications.IsosurfaceBrowser(vol,
-                                            lego=args.lego,
-                                            c=args.color,
-                                            cmap=args.cmap,
-                                            delayed=args.lego,
-                                            precompute=True,
-                                            progress=True,
+            args.color = "gold"
+        plt = applications.IsosurfaceBrowser(
+            vol,
+            lego=args.lego,
+            c=args.color,
+            cmap=args.cmap,
+            delayed=args.lego,
+            precompute=True,
+            progress=True,
         )
         plt.show(zoom=args.zoom, viewup="z")
         return
-
 
     ########################################################################
     # NORMAL mode for single or multiple files, or multiren mode, or numpy scene
@@ -674,21 +699,21 @@ def draw_scene(args):
 
         interactor_mode = 0
         if args.image:
-            interactor_mode = 'image'
+            interactor_mode = "image"
 
         ##########################################################
         # loading a full scene
         if ".npy" in args.files[0] or ".npz" in args.files[0] and nfiles == 1:
 
             objct = io.load(args.files[0], force=args.reload)
-            if isinstance(objct, Plotter): # loading a full scene
+            if isinstance(objct, Plotter):  # loading a full scene
                 objct.show(mode=interactor_mode)
-            else:                             # loading a set of meshes
+            else:  # loading a set of meshes
                 plt.show(objct, mode=interactor_mode)
             return
         #########################################################
 
-        ds=0
+        ds = 0
         actors = []
         for i in range(N):
             f = args.files[i]
@@ -710,7 +735,7 @@ def draw_scene(args):
                 else:
                     actor.phong()
 
-                if i==0 and args.texture_file:
+                if i == 0 and args.texture_file:
                     actor.texture(args.texture_file)
 
                 if args.point_size > 0:
@@ -742,7 +767,9 @@ def draw_scene(args):
                         # print([plt.camera])
                 except AttributeError:
                     # wildcards in quotes make glob return actor as a list :(
-                    vedo.logger.error("Please do not use wildcards within single or double quotes")
+                    vedo.logger.error(
+                        "Please do not use wildcards within single or double quotes"
+                    )
 
         if args.multirenderer_mode:
             plt.interactor.Start()
@@ -760,14 +787,14 @@ def draw_scene(args):
     ########################################################################
     # scrolling mode  -s
     else:
-        #print("DEBUG simple browser mode  -s")
-        if plt.axes==4:
-            plt.axes=1
+        # print("DEBUG simple browser mode  -s")
+        if plt.axes == 4:
+            plt.axes = 1
 
         acts = load(args.files, force=args.reload)
         plt += acts
         for a in acts:
-            if hasattr(a, 'c'): #Picture doesnt have it
+            if hasattr(a, "c"):  # Picture doesnt have it
                 a.c(args.color)
             a.alpha(args.alpha)
 
@@ -809,22 +836,37 @@ def exe_gui(args):
             self.pack(fill=BOTH, expand=True)
 
             ############import
-            Button(self, text="Import Files", command=self._importCMD, width=15).place(x=115, y=17)
+            Button(self, text="Import Files", command=self._importCMD, width=15).place(
+                x=115, y=17
+            )
 
             ############meshes
             Frame(root, height=1, width=398, bg="grey").place(x=1, y=60)
-            Label(self, text="Meshes", fg="white", bg="green", font=("Courier 11 bold")).place(x=20, y=65)
+            Label(
+                self, text="Meshes", fg="white", bg="green", font=("Courier 11 bold")
+            ).place(x=20, y=65)
 
             # color
             Label(self, text="Color:", bg="white").place(x=30, y=98)
-            colvalues = ('by scalar', 'gold','red','green','blue', 'coral','plum','tomato')
+            colvalues = (
+                "by scalar",
+                "gold",
+                "red",
+                "green",
+                "blue",
+                "coral",
+                "plum",
+                "tomato",
+            )
             self.colorCB = Combobox(self, state="readonly", values=colvalues, width=10)
             self.colorCB.current(0)
             self.colorCB.place(x=100, y=98)
 
             # mode
-            modvalues = ('surface', 'surf. & edges','wireframe','point cloud')
-            self.surfmodeCB = Combobox(self, state="readonly", values=modvalues, width=14)
+            modvalues = ("surface", "surf. & edges", "wireframe", "point cloud")
+            self.surfmodeCB = Combobox(
+                self, state="readonly", values=modvalues, width=14
+            )
             self.surfmodeCB.current(0)
             self.surfmodeCB.place(x=205, y=98)
 
@@ -865,7 +907,6 @@ def exe_gui(args):
                                          variable=self.noshare, bg="white")
             self.noshareCB.place(x=160, y=245)
 
-
             ############volumes
             Frame(root, height=1, width=398, bg="grey").place(x=1, y=275)
             Label(self, text="Volumes", fg="white", bg="blue", font=("Courier 11 bold")).place(x=20, y=280)
@@ -886,15 +927,14 @@ def exe_gui(args):
 
             Label(self, text="Spacing factors:", bg="white").place(x=30, y=335)
             self.xspacingCB = Entry(self, textvariable=self.xspacing, width=3)
-            self.xspacing.set('1.0')
+            self.xspacing.set("1.0")
             self.xspacingCB.place(x=160, y=335)
             self.yspacingCB = Entry(self, textvariable=self.yspacing, width=3)
-            self.yspacing.set('1.0')
+            self.yspacing.set("1.0")
             self.yspacingCB.place(x=210, y=335)
             self.zspacingCB = Entry(self, textvariable=self.zspacing, width=3)
-            self.zspacing.set('1.0')
+            self.zspacing.set("1.0")
             self.zspacingCB.place(x=260, y=335)
-
 
             ############## options
             Frame(root, height=1, width=398,bg="grey").place(x=1, y=370)
@@ -914,7 +954,6 @@ def exe_gui(args):
             ################ render button
             Frame(root, height=1, width=398, bg="grey").place(x=1, y=437)
             Button(self, text="Render", command=self._run, width=15).place(x=115, y=454)
-
 
         def _importCMD(self):
             ftypes = [
@@ -954,19 +993,18 @@ def exe_gui(args):
             self.filenames = tkFileDialog.askopenfilenames(parent=root, filetypes=ftypes)
             args.files = list(self.filenames)
 
-
         def _run(self):
 
             args.files = list(self.filenames)
             if self.colorCB.get() == "by scalar":
                 args.color = None
             else:
-                if self.colorCB.get() == 'red':
-                    args.color = 'crimson'
-                elif self.colorCB.get() == 'green':
-                    args.color = 'limegreen'
-                elif self.colorCB.get() == 'blue':
-                    args.color = 'darkcyan'
+                if self.colorCB.get() == "red":
+                    args.color = "crimson"
+                elif self.colorCB.get() == "green":
+                    args.color = "limegreen"
+                elif self.colorCB.get() == "blue":
+                    args.color = "darkcyan"
                 else:
                     args.color = self.colorCB.get()
 
@@ -975,14 +1013,14 @@ def exe_gui(args):
             args.wireframe = False
             args.showedges = False
             args.point_size = 0
-            if self.surfmodeCB.get() == 'point cloud':
+            if self.surfmodeCB.get() == "point cloud":
                 args.point_size = 2
-            elif self.surfmodeCB.get() == 'wireframe':
+            elif self.surfmodeCB.get() == "wireframe":
                 args.wireframe = True
-            elif self.surfmodeCB.get() == 'surf. & edges':
+            elif self.surfmodeCB.get() == "surf. & edges":
                 args.showedges = True
             else:
-                pass # normal surface mode
+                pass  # normal surface mode
 
             args.lighting = self.lightCB.get()
             args.flat = self.flat.get()
@@ -993,7 +1031,7 @@ def exe_gui(args):
             args.background_grad = None
             if self.background_grad.get():
                 b = getColor(args.background)
-                args.background_grad = (b[0]/1.8, b[1]/1.8, b[2]/1.8)
+                args.background_grad = (b[0] / 1.8, b[1] / 1.8, b[2] / 1.8)
 
             args.multirenderer_mode = False
             args.scrolling_mode = False
@@ -1024,13 +1062,16 @@ def exe_gui(args):
             args.x_spacing = 1
             args.y_spacing = 1
             args.z_spacing = 1
-            if self.xspacing.get() != '1.0': args.x_spacing = float(self.xspacing.get())
-            if self.yspacing.get() != '1.0': args.y_spacing = float(self.yspacing.get())
-            if self.zspacing.get() != '1.0': args.z_spacing = float(self.zspacing.get())
+            if self.xspacing.get() != "1.0":
+                args.x_spacing = float(self.xspacing.get())
+            if self.yspacing.get() != "1.0":
+                args.y_spacing = float(self.yspacing.get())
+            if self.zspacing.get() != "1.0":
+                args.z_spacing = float(self.zspacing.get())
 
             draw_scene(args)
             if os.name == "nt":
-                exit()
+                sys.exit()
             if vedo.plotter_instance:
                 vedo.plotter_instance.close()
 
@@ -1039,8 +1080,8 @@ def exe_gui(args):
     app = vedoGUI(root)
 
     def tkcallback(event):
-        #printc("xy cursor position:", event.x, event.y, event.char)
-        if event.char == 'q':
+        # printc("xy cursor position:", event.x, event.y, event.char)
+        if event.char == "q":
             root.destroy()
 
     app.bind("<Key>", tkcallback)

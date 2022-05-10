@@ -8,10 +8,10 @@ cd vedo/examples/basic
 python align1.py
 ```
 
-## List and Run any of the built-in examples with commands:
+## Search and Run any of the built-in examples with commands:
 
-`vedo --list`
+`vedo --search align`
 
 and
 
-`vedo -ir covid19.py`
+`vedo -r align1`

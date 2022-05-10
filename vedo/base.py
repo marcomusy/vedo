@@ -1,16 +1,16 @@
 import numpy as np
-import vedo
-import vedo.colors as colors
-import vedo.utils as utils
-import vtk
 from deprecated import deprecated
+import vtk
+import vedo
+from vedo import colors
+from vedo import utils
 
 __doc__ = "Base classes. Do not instantiate."
 
 __all__ = [
-    'Base3DProp',
-    'BaseActor',
-    'BaseGrid',
+    "Base3DProp",
+    "BaseActor",
+    "BaseGrid",
     "probePoints",
     "probeLine",
     "probePlane",
@@ -18,7 +18,7 @@ __all__ = [
 
 
 ###############################################################################
-class _DataArrayHelper(object):
+class _DataArrayHelper():
     # Helper class to manage data associated to either
     # points (or vertices) and cells (or faces).
     # Internal use only.
@@ -28,9 +28,9 @@ class _DataArrayHelper(object):
 
     def __getitem__(self, key):
         if self.association == 0:
-            data = self.actor._data.GetPointData()
+            data = self.actor.inputdata().GetPointData()
         else:
-            data = self.actor._data.GetCellData()
+            data = self.actor.inputdata().GetCellData()
 
         if isinstance(key, int):
             key = data.GetArrayName(key)
@@ -41,39 +41,39 @@ class _DataArrayHelper(object):
 
     def __setitem__(self, key, input_array):
         if self.association == 0:
-            data = self.actor._data.GetPointData()
-            n = self.actor._data.GetNumberOfPoints()
+            data = self.actor.inputdata().GetPointData()
+            n = self.actor.inputdata().GetNumberOfPoints()
             self.actor._mapper.SetScalarModeToUsePointData()
         else:
-            data = self.actor._data.GetCellData()
-            n = self.actor._data.GetNumberOfCells()
+            data = self.actor.inputdata().GetCellData()
+            n = self.actor.inputdata().GetNumberOfCells()
             self.actor._mapper.SetScalarModeToUseCellData()
 
         if len(input_array) != n:
-            vedo.logger.error(f'Error in point/cell data: length of input {len(input_array)}'
-                              f' !=  {n} nr. of elements')
+            vedo.logger.error(
+                f"Error in point/cell data: length of input {len(input_array)}"
+                f" !=  {n} nr. of elements"
+            )
             raise RuntimeError()
 
         input_array = np.ascontiguousarray(input_array)
         varr = utils.numpy2vtk(input_array, name=key)
         data.AddArray(varr)
 
-        if len(input_array.shape)==1: # scalars
+        if len(input_array.shape) == 1:  # scalars
             data.SetActiveScalars(key)
-        elif len(input_array.shape)==2 and input_array.shape[1] == 3: # vectors
+        elif len(input_array.shape) == 2 and input_array.shape[1] == 3:  # vectors
             if key == "Normals":
                 data.SetActiveNormals(key)
             else:
                 data.SetActiveVectors(key)
 
-        return #####################
-
     def keys(self):
         """Return the list of available data array names"""
         if self.association == 0:
-            data = self.actor._data.GetPointData()
+            data = self.actor.inputdata().GetPointData()
         else:
-            data = self.actor._data.GetCellData()
+            data = self.actor.inputdata().GetCellData()
         arrnames = []
         for i in range(data.GetNumberOfArrays()):
             arrnames.append(data.GetArray(i).GetName())
@@ -82,39 +82,41 @@ class _DataArrayHelper(object):
     def remove(self, key):
         """Remove a data array by name or number"""
         if self.association == 0:
-            self.actor._data.GetPointData().RemoveArray(key)
+            self.actor.inputdata().GetPointData().RemoveArray(key)
         else:
-            self.actor._data.GetCellData().RemoveArray(key)
+            self.actor.inputdata().GetCellData().RemoveArray(key)
 
     def rename(self, oldname, newname):
         """Rename an array"""
         if self.association == 0:
-            varr = self.actor._data.GetPointData().GetArray(oldname)
+            varr = self.actor.inputdata().GetPointData().GetArray(oldname)
         else:
-            varr = self.actor._data.GetCellData().GetArray(oldname)
+            varr = self.actor.inputdata().GetCellData().GetArray(oldname)
         if varr:
             varr.SetName(newname)
         else:
-            vedo.logger.warning(f"Cannot rename non existing array {oldname} to {newname}")
+            vedo.logger.warning(
+                f"Cannot rename non existing array {oldname} to {newname}"
+            )
 
     def select(self, key):
         """Select one specific array by its name to make it the `active` one."""
         if self.association == 0:
-            data = self.actor._data.GetPointData()
-            self.actor._mapper.SetScalarModeToUsePointData()
+            data = self.actor.inputdata().GetPointData()
+            self.actor.mapper().SetScalarModeToUsePointData()
         else:
-            data = self.actor._data.GetCellData()
-            self.actor._mapper.SetScalarModeToUseCellData()
+            data = self.actor.inputdata().GetCellData()
+            self.actor.mapper().SetScalarModeToUseCellData()
 
         if isinstance(key, int):
             key = data.GetArrayName(key)
         data.SetActiveScalars(key)
 
-        if hasattr(self.actor._mapper, 'SetArrayName'):
-            self.actor._mapper.SetArrayName(key)
+        if hasattr(self.actor.mapper(), "SetArrayName"):
+            self.actor.mapper().SetArrayName(key)
 
-        if hasattr(self.actor._mapper, 'ScalarVisibilityOn'): # could be volume mapper
-            self.actor._mapper.ScalarVisibilityOn()
+        if hasattr(self.actor.mapper(), "ScalarVisibilityOn"):  # could be volume mapper
+            self.actor.mapper().ScalarVisibilityOn()
 
     def print(self, **kwargs):
         """Print the array names available to terminal"""
@@ -122,14 +124,14 @@ class _DataArrayHelper(object):
 
 
 ###############################################################################
-class Base3DProp(object):
+class Base3DProp():
     """Base class to manage positioning and size of the objects in space and other properties"""
 
     def __init__(self):
         self.filename = ""
         self.name = ""
-        self.fileSize = ''
-        self.created = ''
+        self.fileSize = ""
+        self.created = ""
         self.trail = None
         self.trailPoints = []
         self.trailSegmentSize = 0
@@ -138,20 +140,19 @@ class Base3DProp(object):
         self.axes = None
         self.picked3d = None
         self.units = None
-        self.top = np.array([0,0,1])
-        self.base = np.array([0,0,0])
-        self.info = dict()
+        self.top = np.array([0, 0, 1])
+        self.base = np.array([0, 0, 0])
+        self.info = {}
         self._time = 0
         self.renderedAt = set()
         self.transform = None
-        self._set2actcam = False # used by mesh.followCamera()
+        self._set2actcam = False  # used by mesh.followCamera()
 
         self.point_locator = None
         self.cell_locator = None
 
         self.scalarbar = None
         self.flagText = None
-
 
     def address(self):
         """
@@ -160,7 +161,7 @@ class Base3DProp(object):
         """
         # https://www.linkedin.com/pulse/speedup-your-code-accessing-python-vtk-objects-from-c-pletzer/
         # https://github.com/tfmoraes/polydata_connectivity
-        return int(self.inputdata().GetAddressAsString('')[5:], 16)
+        return int(self.inputdata().GetAddressAsString("")[5:], 16)
 
     def pickable(self, value=None):
         """Set/get the pickability property of an object."""
@@ -170,7 +171,7 @@ class Base3DProp(object):
             self.SetPickable(value)
             return self
 
-    def draggable(self, value=None): # NOT FUNCTIONAL?
+    def draggable(self, value=None):  # NOT FUNCTIONAL?
         """Set/get the draggability property of an object."""
         if value is None:
             return self.GetDragable()
@@ -193,32 +194,32 @@ class Base3DProp(object):
         Has no effect on position.
         """
         if x is None:
-            return np.array(self.GetOrigin()) #+ self.GetPosition()
+            return np.array(self.GetOrigin())  # + self.GetPosition()
 
-        if z is None and y is None: # assume x is of the form (x,y,z)
-            if len(x)==3:
+        if z is None and y is None:  # assume x is of the form (x,y,z)
+            if len(x) == 3:
                 x, y, z = x
             else:
                 x, y = x
-                z=0
-        elif z is None:             # assume x,y is of the form x, y
-            z=0
-        self.SetOrigin([x, y, z]) #- np.array(self.GetPosition()))
+                z = 0
+        elif z is None:  # assume x,y is of the form x, y
+            z = 0
+        self.SetOrigin([x, y, z])  # - np.array(self.GetPosition()))
         return self
 
     def pos(self, x=None, y=None, z=None):
         """Set/Get object position."""
-        if x is None: # get functionality
+        if x is None:  # get functionality
             return np.array(self.GetPosition())
 
-        if z is None and y is None: # assume x is of the form (x,y,z)
-            if len(x)==3:
+        if z is None and y is None:  # assume x is of the form (x,y,z)
+            if len(x) == 3:
                 x, y, z = x
             else:
                 x, y = x
-                z=0
-        elif z is None:             # assume x,y is of the form x, y
-            z=0
+                z = 0
+        elif z is None:  # assume x,y is of the form x, y
+            z = 0
         self.SetPosition(x, y, z)
 
         self.point_locator = None
@@ -235,13 +236,13 @@ class Base3DProp(object):
             else:
                 self.SetPosition(p + dx)
         else:
-            self.SetPosition(p + [dx,dy,dz])
+            self.SetPosition(p + [dx, dy, dz])
 
         self.point_locator = None
         self.cell_locator = None
         return self
 
-    @deprecated(reason=colors.red+"Please use shift() instead."+colors.reset)
+    @deprecated(reason=colors.red + "Please use shift() instead." + colors.reset)
     def addPos(self, dx=0, dy=0, dz=0):
         """Deprecated, use ``shift()``."""
         return self.shift(dx, dy, dz)
@@ -295,7 +296,8 @@ class Base3DProp(object):
         b, c, d = -axis * np.sin(anglerad / 2)
         aa, bb, cc, dd = a * a, b * b, c * c, d * d
         bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
-        R = np.array([
+        R = np.array(
+            [
                 [aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
                 [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
                 [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc],
@@ -309,7 +311,6 @@ class Base3DProp(object):
         self.RotateWXYZ(angle, axis[0], axis[1], axis[2])
         self.pos(rv)
         return self
-
 
     def _rotatexyz(self, a, angle, rad, around):
         if rad:
@@ -325,7 +326,7 @@ class Base3DProp(object):
             # rotate around its origin
             rot[a](angle)
         else:
-            if around == 'itself':
+            if around == "itself":
                 around = self.GetPosition()
             # displacement needed to bring it back to the origin
             # and disregard origin
@@ -347,7 +348,7 @@ class Base3DProp(object):
 
         Use `around` to define a pivoting point.
         """
-        return self._rotatexyz('x', angle, rad, around)
+        return self._rotatexyz("x", angle, rad, around)
 
     def rotateY(self, angle, rad=False, around=None):
         """
@@ -355,7 +356,7 @@ class Base3DProp(object):
 
         Use `around` to define a pivoting point.
         """
-        return self._rotatexyz('y', angle, rad, around)
+        return self._rotatexyz("y", angle, rad, around)
 
     def rotateZ(self, angle, rad=False, around=None):
         """
@@ -363,8 +364,7 @@ class Base3DProp(object):
 
         Use `around` to define a pivoting point.
         """
-        return self._rotatexyz('z', angle, rad, around)
-
+        return self._rotatexyz("z", angle, rad, around)
 
     def orientation(self, newaxis=None, rotation=0, rad=False):
         """
@@ -396,7 +396,7 @@ class Base3DProp(object):
             rotation *= 180.0 / np.pi
 
         if self.top is None or self.base is None:
-            initaxis = (0,0,1)
+            initaxis = (0, 0, 1)
         else:
             initaxis = utils.versor(self.top - self.base)
         if newaxis is None:
@@ -450,7 +450,6 @@ class Base3DProp(object):
         self.cell_locator = None
         return self
 
-
     def getTransform(self, invert=False):
         """
         Check if ``object.transform`` exists and returns a ``vtkTransform``.
@@ -492,16 +491,15 @@ class Base3DProp(object):
             tr = tr.GetInverse()
         return tr
 
-
     def applyTransform(self, T):
         """Transform object position and orientation."""
         if isinstance(T, vtk.vtkMatrix4x4):
             self.SetUserMatrix(T)
-        elif isinstance(T, (list,tuple)):
+        elif isinstance(T, (list, tuple)):
             vm = vtk.vtkMatrix4x4()
             for i in [0, 1, 2, 3]:
-               for j in [0, 1, 2, 3]:
-                   vm.SetElement(i, j, T[i][j])
+                for j in [0, 1, 2, 3]:
+                    vm.SetElement(i, j, T[i][j])
             self.SetUserMatrix(vm)
         else:
             self.SetUserTransform(T)
@@ -522,28 +520,30 @@ class Base3DProp(object):
         """
         lmt = vtk.vtkLandmarkTransform()
         ss = vtk.vtkPoints()
-        xss0,xss1,yss0,yss1,zss0,zss1 = self.bounds()
-        for p in [[xss0, yss0, zss0],
-                  [xss1, yss0, zss0],
-                  [xss1, yss1, zss0],
-                  [xss0, yss1, zss0],
-                  [xss0, yss0, zss1],
-                  [xss1, yss0, zss1],
-                  [xss1, yss1, zss1],
-                  [xss0, yss1, zss1],
-                 ]:
+        xss0, xss1, yss0, yss1, zss0, zss1 = self.bounds()
+        for p in [
+            [xss0, yss0, zss0],
+            [xss1, yss0, zss0],
+            [xss1, yss1, zss0],
+            [xss0, yss1, zss0],
+            [xss0, yss0, zss1],
+            [xss1, yss0, zss1],
+            [xss1, yss1, zss1],
+            [xss0, yss1, zss1],
+        ]:
             ss.InsertNextPoint(p)
         st = vtk.vtkPoints()
-        xst0,xst1,yst0,yst1,zst0,zst1 = msh.bounds()
-        for p in [[xst0, yst0, zst0],
-                  [xst1, yst0, zst0],
-                  [xst1, yst1, zst0],
-                  [xst0, yst1, zst0],
-                  [xst0, yst0, zst1],
-                  [xst1, yst0, zst1],
-                  [xst1, yst1, zst1],
-                  [xst0, yst1, zst1],
-                 ]:
+        xst0, xst1, yst0, yst1, zst0, zst1 = msh.bounds()
+        for p in [
+            [xst0, yst0, zst0],
+            [xst1, yst0, zst0],
+            [xst1, yst1, zst0],
+            [xst0, yst1, zst0],
+            [xst0, yst0, zst1],
+            [xst1, yst0, zst1],
+            [xst1, yst1, zst1],
+            [xst0, yst1, zst1],
+        ]:
             st.InsertNextPoint(p)
 
         lmt.SetSourceLandmarks(ss)
@@ -558,7 +558,6 @@ class Base3DProp(object):
         self.point_locator = None
         self.cell_locator = None
         return self
-
 
     def on(self):
         """Switch on  object visibility. Object is not removed."""
@@ -587,21 +586,23 @@ class Base3DProp(object):
         b = self.GetBounds()
         if not utils.isSequence(padding):
             padding = [padding, padding, padding]
-        length, width, height = b[1]-b[0], b[3]-b[2], b[5]-b[4]
-        tol = (length+width+height)/30000 # useful for boxing 2D text
-        pos = [(b[0]+b[1])/2, (b[3]+b[2])/2, (b[5]+b[4])/2 -tol]
-        bx = vedo.shapes.Box(pos,
-                             length*scale+padding[0],
-                             width*scale+padding[1],
-                             height*scale+padding[2],
-                             c='gray')
-        if hasattr(self, 'GetProperty'): # could be Assembly
-            if isinstance(self.GetProperty(), vtk.vtkProperty): # could be volume
+        length, width, height = b[1] - b[0], b[3] - b[2], b[5] - b[4]
+        tol = (length + width + height) / 30000  # useful for boxing 2D text
+        pos = [(b[0] + b[1]) / 2, (b[3] + b[2]) / 2, (b[5] + b[4]) / 2 - tol]
+        bx = vedo.shapes.Box(
+            pos,
+            length * scale + padding[0],
+            width * scale + padding[1],
+            height * scale + padding[2],
+            c="gray",
+        )
+        if hasattr(self, "GetProperty"):  # could be Assembly
+            if isinstance(self.GetProperty(), vtk.vtkProperty):  # could be volume
                 pr = vtk.vtkProperty()
                 pr.DeepCopy(self.GetProperty())
                 bx.SetProperty(pr)
                 bx.property = pr
-        bx.flat().lighting('off')
+        bx.flat().lighting("off")
         bx.wireframe(not fill)
         return bx
 
@@ -643,14 +644,13 @@ class Base3DProp(object):
     def diagonalSize(self):
         """Get the length of the diagonal of mesh bounding box."""
         b = self.GetBounds()
-        return np.sqrt((b[1]-b[0])**2 + (b[3]-b[2])**2 + (b[5]-b[4])**2)
+        return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
         # return self.GetLength() # ???different???
 
     def print(self):
         """Print information about an object."""
         utils.printInfo(self)
         return self
-
 
     def show(self, **options):
         """
@@ -673,13 +673,13 @@ class BaseActor(Base3DProp):
 
     .. warning:: Do not use this class to instance objects, use one the above instead.
     """
+
     def __init__(self):
         Base3DProp.__init__(self)
 
         self._mapper = None
         self._caption = None
         self.property = None
-
 
     def mapper(self, newMapper=None):
         """Return the ``vtkMapper`` data object, or update it with a new one."""
@@ -720,7 +720,6 @@ class BaseActor(Base3DProp):
         """Retrieve number of cells."""
         return self.inputdata().GetNumberOfCells()
 
-
     def points(self, pts=None, transformed=True):
         """
         Set/Get the vertex coordinates of a mesh or point cloud.
@@ -729,7 +728,7 @@ class BaseActor(Base3DProp):
 
         Set ``transformed=False`` to ignore any previous transformation applied to the mesh.
         """
-        if pts is None: ### getter
+        if pts is None:  ### getter
 
             if isinstance(self, vedo.Points):
                 vpts = self.polydata(transformed).GetPoints()
@@ -738,24 +737,28 @@ class BaseActor(Base3DProp):
                 v2p.SetInputData(self.imagedata())
                 v2p.Update()
                 vpts = v2p.GetOutput().GetPoints()
-            else: # tetmesh et al
-                vpts = self._data.GetPoints()
+            else:  # tetmesh et al
+                vpts = self.inputdata().GetPoints()
 
             if vpts:
                 return utils.vtk2numpy(vpts.GetData())
             else:
                 return np.array([])
 
-        elif (utils.isSequence(pts) and not utils.isSequence(pts[0])) or isinstance(pts, (int, np.integer)):
-            #passing a list of indices or a single index
-            return utils.vtk2numpy(self.polydata(transformed).GetPoints().GetData())[pts]
+        elif (utils.isSequence(pts) and not utils.isSequence(pts[0])) or isinstance(
+            pts, (int, np.integer)
+        ):
+            # passing a list of indices or a single index
+            return utils.vtk2numpy(self.polydata(transformed).GetPoints().GetData())[
+                pts
+            ]
 
-        else:           ### setter
+        else:  ### setter
 
             if len(pts) == 3 and len(pts[0]) != 3:
                 # assume plist is in the format [all_x, all_y, all_z]
                 pts = np.stack((pts[0], pts[1], pts[2]), axis=1)
-            vpts = self._data.GetPoints()
+            vpts = self.inputdata().GetPoints()
             vpts.SetData(utils.numpy2vtk(pts, dtype=float))
             vpts.Modified()
             # reset mesh to identity matrix position/rotation:
@@ -778,7 +781,6 @@ class BaseActor(Base3DProp):
         vcen.Update()
         return utils.vtk2numpy(vcen.GetOutput().GetPoints().GetData())
 
-
     def deleteCells(self, ids):
         """
         Remove cells from the mesh object by their ID.
@@ -793,12 +795,11 @@ class BaseActor(Base3DProp):
         self._mapper.Modified()
         return self
 
-
-    def getRGBA(self, on='points'):
+    def getRGBA(self, on="points"):
         """Grab the RGBA cell/point array as currently visualised for an object"""
         lut = self.mapper().GetLookupTable()
         poly = self.inputdata()
-        if 'point' in on:
+        if "point" in on:
             vscalars = poly.GetPointData().GetScalars()
         else:
             vscalars = poly.GetCellData().GetScalars()
@@ -806,7 +807,6 @@ class BaseActor(Base3DProp):
         arr = utils.vtk2numpy(cols)
         # arr = arr[:, :3]
         return arr
-
 
     def findCellsWithin(self, xbounds=(), ybounds=(), zbounds=()):
         """
@@ -840,13 +840,17 @@ class BaseActor(Base3DProp):
 
         return np.array(cids)
 
-
-    def lighting(self,
-                 style='',
-                 ambient=None, diffuse=None,
-                 specular=None, specularPower=None, specularColor=None,
-                 metallicity=None, roughness=None,
-        ):
+    def lighting(
+        self,
+        style="",
+        ambient=None,
+        diffuse=None,
+        specular=None,
+        specularPower=None,
+        specularColor=None,
+        metallicity=None,
+        roughness=None,
+    ):
         """
         Set the ambient, diffuse, specular and specularPower lighting constants.
 
@@ -880,24 +884,24 @@ class BaseActor(Base3DProp):
 
             if isinstance(pr, vtk.vtkVolumeProperty):
                 self.shade(True)
-                if style=='off':
+                if style == "off":
                     self.shade(False)
-                elif style=='ambient':
-                    style='default'
+                elif style == "ambient":
+                    style = "default"
                     self.shade(False)
             else:
-                if style!='off':
+                if style != "off":
                     pr.LightingOn()
 
-            if style=='off':
+            if style == "off":
                 pr.SetInterpolationToFlat()
                 pr.LightingOff()
-                return self ##############
+                return self  ##############
 
             if hasattr(pr, "GetColor"):  # could be Volume
                 c = pr.GetColor()
             else:
-                c = (1,1,0.99)
+                c = (1, 1, 0.99)
             mpr = self._mapper
             if hasattr(mpr, 'GetScalarVisibility') and mpr.GetScalarVisibility():
                 c = (1,1,0.99)
@@ -909,13 +913,16 @@ class BaseActor(Base3DProp):
             elif style=='default' : pars = [0.1, 1.0, 0.05, 5, c]
             else:
                 vedo.logger.error("in lighting(): Available styles are")
-                vedo.logger.error("[default, metallic, plastic, shiny, glossy, ambient, off]")
+                vedo.logger.error(
+                    "[default, metallic, plastic, shiny, glossy, ambient, off]"
+                )
                 raise RuntimeError()
             pr.SetAmbient(pars[0])
             pr.SetDiffuse(pars[1])
             pr.SetSpecular(pars[2])
             pr.SetSpecularPower(pars[3])
-            if hasattr(pr, "GetColor"): pr.SetSpecularColor(pars[4])
+            if hasattr(pr, "GetColor"):
+                pr.SetSpecularColor(pars[4])
 
         if ambient is not None: pr.SetAmbient(ambient)
         if diffuse is not None: pr.SetDiffuse(diffuse)
@@ -932,10 +939,18 @@ class BaseActor(Base3DProp):
 
         return self
 
-
-    def printHistogram(self, bins=10, height=10, logscale=False, minbin=0,
-                       horizontal=False, char=u"\U00002589",
-                       c=None, bold=True, title='Histogram'):
+    def printHistogram(
+        self,
+        bins=10,
+        height=10,
+        logscale=False,
+        minbin=0,
+        horizontal=False,
+        char="\U00002589",
+        c=None,
+        bold=True,
+        title="Histogram",
+    ):
         """
         Ascii histogram printing on terminal.
         Input can be ``Volume`` or ``Mesh`` (will grab the active point array).
@@ -969,10 +984,10 @@ class BaseActor(Base3DProp):
         title : str
             histogram title
         """
-        utils.printHistogram(self, bins, height, logscale, minbin,
-                             horizontal, char, c, bold, title)
+        utils.printHistogram(
+            self, bins, height, logscale, minbin, horizontal, char, c, bold, title
+        )
         return self
-
 
     def c(self, color=False, alpha=None):
         """
@@ -1065,18 +1080,17 @@ class BaseActor(Base3DProp):
         self._mapper.SetScalarModeToUseCellData()
         return self._update(p2c.GetOutput())
 
-    def addIDs(self, asfield=False):
+    def addIDs(self):
         """Generate point and cell ids."""
         ids = vtk.vtkIdFilter()
-        ids.SetInputData(self._data)
+        ids.SetInputData(self.inputdata())
         ids.PointIdsOn()
         ids.CellIdsOn()
         ids.FieldDataOff()
         ids.Update()
         return self._update(ids.GetOutput())
 
-
-    def gradient(self, on='points', fast=False):
+    def gradient(self, on="points", fast=False):
         """
         Compute and return the gradiend of the active scalar field as a numpy array.
 
@@ -1093,7 +1107,7 @@ class BaseActor(Base3DProp):
             .. image:: https://user-images.githubusercontent.com/32848391/72433087-f00a8780-3798-11ea-9778-991f0abeca70.png
         """
         gra = vtk.vtkGradientFilter()
-        if on.startswith('p'):
+        if on.startswith("p"):
             varr = self.inputdata().GetPointData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
         else:
@@ -1108,19 +1122,19 @@ class BaseActor(Base3DProp):
 
         gra.SetInputData(self.inputdata())
         gra.SetInputScalars(tp, arrname)
-        gra.SetResultArrayName('Gradient')
+        gra.SetResultArrayName("Gradient")
         gra.SetFasterApproximation(fast)
         gra.ComputeDivergenceOff()
         gra.ComputeVorticityOff()
         gra.ComputeGradientOn()
         gra.Update()
-        if on.startswith('p'):
-            gvecs = utils.vtk2numpy(gra.GetOutput().GetPointData().GetArray('Gradient'))
+        if on.startswith("p"):
+            gvecs = utils.vtk2numpy(gra.GetOutput().GetPointData().GetArray("Gradient"))
         else:
-            gvecs = utils.vtk2numpy(gra.GetOutput().GetCellData().GetArray('Gradient'))
+            gvecs = utils.vtk2numpy(gra.GetOutput().GetCellData().GetArray("Gradient"))
         return gvecs
 
-    def divergence(self, on='points', fast=False):
+    def divergence(self, on="points", fast=False):
         """
         Compute and return the divergence of a vector field as a numpy array.
 
@@ -1134,7 +1148,7 @@ class BaseActor(Base3DProp):
             that performs fewer derivative calculations (and is therefore faster).
         """
         div = vtk.vtkGradientFilter()
-        if on.startswith('p'):
+        if on.startswith("p"):
             varr = self.inputdata().GetPointData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
         else:
@@ -1152,7 +1166,7 @@ class BaseActor(Base3DProp):
         div.ComputeDivergenceOn()
         div.ComputeGradientOff()
         div.ComputeVorticityOff()
-        div.SetDivergenceArrayName('Divergence')
+        div.SetDivergenceArrayName("Divergence")
         div.SetFasterApproximation(fast)
         div.Update()
         if on.startswith('p'):
@@ -1161,7 +1175,7 @@ class BaseActor(Base3DProp):
             dvecs = utils.vtk2numpy(div.GetOutput().GetCellData().GetArray('Divergence'))
         return dvecs
 
-    def vorticity(self, on='points', fast=False):
+    def vorticity(self, on="points", fast=False):
         """
         Compute and return the vorticity of a vector field as a numpy array.
 
@@ -1175,7 +1189,7 @@ class BaseActor(Base3DProp):
             that performs fewer derivative calculations (and is therefore faster).
         """
         vort = vtk.vtkGradientFilter()
-        if on.startswith('p'):
+        if on.startswith("p"):
             varr = self.inputdata().GetPointData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
         else:
@@ -1193,7 +1207,7 @@ class BaseActor(Base3DProp):
         vort.ComputeDivergenceOff()
         vort.ComputeGradientOff()
         vort.ComputeVorticityOn()
-        vort.SetVorticityArrayName('Vorticity')
+        vort.SetVorticityArrayName("Vorticity")
         vort.SetFasterApproximation(fast)
         vort.Update()
         if on.startswith('p'):
@@ -1231,38 +1245,49 @@ class BaseActor(Base3DProp):
             elif isinstance(self.scalarbar, vedo.Assembly):
                 for a in self.scalarbar.getMeshes():
                     plt.renderer.RemoveActor(a)
-        if c is None: c = 'gray'
+        if c is None:
+            c = "gray"
 
-        sb = vedo.addons.ScalarBar(self, title, pos, titleYOffset, titleFontSize,
-                                   size, nlabels, c, horizontal, useAlpha, tformat)
+        sb = vedo.addons.ScalarBar(
+            self,
+            title,
+            pos,
+            titleYOffset,
+            titleFontSize,
+            size,
+            nlabels,
+            c,
+            horizontal,
+            useAlpha,
+            tformat,
+        )
 
         self.scalarbar = sb
         return self
 
     def addScalarBar3D(
-            self,
-            title='',
-            pos=None,
-            s=(None,None),
-            titleFont="",
-            titleXOffset=-1.5,
-            titleYOffset=0.0,
-            titleSize=1.5,
-            titleRotation= 0.0,
-            nlabels=9,
-            labelFont="",
-            labelSize=1,
-            labelOffset=0.375,
-            labelRotation=0,
-            italic=0,
-            c=None,
-            useAlpha=True,
-            drawBox=True,
-            aboveText=None,
-            belowText=None,
-            nanText='NaN',
-            categories=None,
-        ):
+        self,
+        title="",
+        pos=None,
+        s=(None, None),
+        titleFont="",
+        titleXOffset=-1.5,
+        titleYOffset=0.0,
+        titleSize=1.5,
+        titleRotation=0.0,
+        nlabels=9,
+        labelFont="",
+        labelSize=1,
+        labelOffset=0.375,
+        labelRotation=0,
+        italic=0,
+        c=None,
+        drawBox=True,
+        aboveText=None,
+        belowText=None,
+        nanText="NaN",
+        categories=None,
+    ):
         """
         Associate a 3D scalar bar to the object and add it to the scene.
         The new scalarbar object (Assembly) will be accessible as obj.scalarbar
@@ -1302,11 +1327,8 @@ class BaseActor(Base3DProp):
         labelRotation : float
             label rotation in degrees
 
-        useAlpha : bool
-            render transparency of the color bar, otherwise ignore
-
         drawBox : bool
-            draw a box around the colorbar (useful with useAlpha=True)
+            draw a box around the colorbar
 
         categories : list
             make a categorical scalarbar,
@@ -1319,7 +1341,8 @@ class BaseActor(Base3DProp):
             c = (0.9, 0.9, 0.9)
             if np.sum(vedo.getColor(plt.backgrcol)) > 1.5:
                 c = (0.1, 0.1, 0.1)
-        if c is None: c = (0,0,0)
+        if c is None:
+            c = (0, 0, 0)
         c = vedo.getColor(c)
 
         self.scalarbar = vedo.addons.ScalarBar3D(
@@ -1339,7 +1362,6 @@ class BaseActor(Base3DProp):
             labelRotation,
             italic,
             c,
-            useAlpha,
             drawBox,
             aboveText,
             belowText,
@@ -1356,14 +1378,17 @@ class BaseActor(Base3DProp):
 
 ########################################################################################
 class BaseGrid(BaseActor):
-
+    """Base class for grid datasets"""
     def __init__(self):
 
         BaseActor.__init__(self)
 
         self._data = None
         self.useCells = True
-        #-----------------------------------------------------------
+        self._color = None
+        self._alpha = [0,1]
+
+        # -----------------------------------------------------------
 
     def _update(self, data):
         self._data = data
@@ -1384,13 +1409,13 @@ class BaseGrid(BaseActor):
         gf = vtk.vtkGeometryFilter()
         if fill:
             sf = vtk.vtkShrinkFilter()
-            sf.SetInputData(self._data)
+            sf.SetInputData(self.inputdata())
             sf.SetShrinkFactor(shrink)
             sf.Update()
             gf.SetInputData(sf.GetOutput())
             gf.Update()
             poly = gf.GetOutput()
-            if shrink==1.0:
+            if shrink == 1.0:
                 cleanPolyData = vtk.vtkCleanPolyData()
                 cleanPolyData.PointMergingOn()
                 cleanPolyData.ConvertLinesToPointsOn()
@@ -1400,7 +1425,7 @@ class BaseGrid(BaseActor):
                 cleanPolyData.Update()
                 poly = cleanPolyData.GetOutput()
         else:
-            gf.SetInputData(self._data)
+            gf.SetInputData(self.inputdata())
             gf.Update()
             poly = gf.GetOutput()
 
@@ -1408,14 +1433,14 @@ class BaseGrid(BaseActor):
         msh.scalarbar = self.scalarbar
         lut = utils.ctf2lut(self)
         if lut:
-            msh._mapper.SetLookupTable(lut)
+            msh.mapper().SetLookupTable(lut)
         if self.useCells:
-            msh._mapper.SetScalarModeToUseCellData()
+            msh.mapper().SetScalarModeToUseCellData()
         else:
-            msh._mapper.SetScalarModeToUsePointData()
-        #msh._mapper.SetScalarRange(msh._mapper.GetScalarRange())
-        # print(msh._mapper.GetScalarRange(), lut.GetRange())
-        # msh._mapper.SetScalarRange()
+            msh.mapper().SetScalarModeToUsePointData()
+        # msh.mapper().SetScalarRange(msh.mapper().GetScalarRange())
+        # print(msh.mapper().GetScalarRange(), lut.GetRange())
+        # msh.mapper().SetScalarRange()
         # msh.selectCellArray('chem_0')
         return msh
 
@@ -1425,24 +1450,23 @@ class BaseGrid(BaseActor):
 
         The output format is: [[id0 ... idn], [id0 ... idm],  etc].
         """
-        arr1d = utils.vtk2numpy(self._data.GetCells().GetData())
+        arr1d = utils.vtk2numpy(self.inputdata().GetCells().GetData())
         if arr1d is None:
             return []
 
-        #Get cell connettivity ids as a 1D array. vtk format is:
-        #[nids1, id0 ... idn, niids2, id0 ... idm,  etc].
+        # Get cell connettivity ids as a 1D array. vtk format is:
+        # [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
         i = 0
         conn = []
         n = len(arr1d)
         if n:
             while True:
-                cell = [arr1d[i+k] for k in range(1, arr1d[i]+1)]
+                cell = [arr1d[i + k] for k in range(1, arr1d[i] + 1)]
                 conn.append(cell)
-                i += arr1d[i]+1
+                i += arr1d[i] + 1
                 if i >= n:
                     break
         return conn
-
 
     def color(self, col, alpha=None, vmin=None, vmax=None):
         """
@@ -1468,15 +1492,15 @@ class BaseGrid(BaseActor):
         """
         # superseeds method in Points, Mesh
         if vmin is None:
-            vmin, _ = self._data.GetScalarRange()
+            vmin, _ = self.inputdata().GetScalarRange()
         if vmax is None:
-            _, vmax = self._data.GetScalarRange()
+            _, vmax = self.inputdata().GetScalarRange()
         ctf = self.GetProperty().GetRGBTransferFunction()
         ctf.RemoveAllPoints()
         self._color = col
 
         if utils.isSequence(col):
-            if utils.isSequence(col[0]) and len(col[0])==2:
+            if utils.isSequence(col[0]) and len(col[0]) == 2:
                 # user passing [(value1, color1), ...]
                 for x, ci in col:
                     r, g, b = colors.getColor(ci)
@@ -1493,16 +1517,16 @@ class BaseGrid(BaseActor):
         elif isinstance(col, str):
             if col in colors.colors.keys() or col in colors.color_nicks.keys():
                 r, g, b = colors.getColor(col)
-                ctf.AddRGBPoint(vmin, r,g,b) # constant color
-                ctf.AddRGBPoint(vmax, r,g,b)
-            else: # assume it's a colormap
+                ctf.AddRGBPoint(vmin, r, g, b)  # constant color
+                ctf.AddRGBPoint(vmax, r, g, b)
+            else:  # assume it's a colormap
                 for x in np.linspace(vmin, vmax, num=64, endpoint=True):
-                    r,g,b = colors.colorMap(x, name=col, vmin=vmin, vmax=vmax)
+                    r, g, b = colors.colorMap(x, name=col, vmin=vmin, vmax=vmax)
                     ctf.AddRGBPoint(x, r, g, b)
         elif isinstance(col, int):
             r, g, b = colors.getColor(col)
-            ctf.AddRGBPoint(vmin, r,g,b) # constant color
-            ctf.AddRGBPoint(vmax, r,g,b)
+            ctf.AddRGBPoint(vmin, r, g, b)  # constant color
+            ctf.AddRGBPoint(vmax, r, g, b)
         else:
             vedo.logger.warning(f"in color() unknown input type {type(col)}")
 
@@ -1527,9 +1551,9 @@ class BaseGrid(BaseActor):
         will get an opacity of 40% and above 123 alpha is set to 90%.
         """
         if vmin is None:
-            vmin, _ = self._data.GetScalarRange()
+            vmin, _ = self.inputdata().GetScalarRange()
         if vmax is None:
-            _, vmax = self._data.GetScalarRange()
+            _, vmax = self.inputdata().GetScalarRange()
         otf = self.GetProperty().GetScalarOpacity()
         otf.RemoveAllPoints()
         self._alpha = alpha
@@ -1541,8 +1565,8 @@ class BaseGrid(BaseActor):
                     xalpha = vmin + (vmax - vmin) * i / (len(alpha) - 1)
                     # Create transfer mapping scalar value to opacity
                     otf.AddPoint(xalpha, al)
-                    #colors.printc("alpha at", round(xalpha, 1), "\tset to", al)
-            elif len(alpha.shape)==2: # user passing [(x0,alpha0), ...]
+                    # colors.printc("alpha at", round(xalpha, 1), "\tset to", al)
+            elif len(alpha.shape) == 2:  # user passing [(x0,alpha0), ...]
                 otf.AddPoint(vmin, alpha[0][1])
                 for xalpha, al in alpha:
                     # Create transfer mapping scalar value to opacity
@@ -1551,7 +1575,7 @@ class BaseGrid(BaseActor):
 
         else:
 
-            otf.AddPoint(vmin, alpha) # constant alpha
+            otf.AddPoint(vmin, alpha)  # constant alpha
             otf.AddPoint(vmax, alpha)
 
         return self
@@ -1572,11 +1596,10 @@ class BaseGrid(BaseActor):
             self.GetProperty().SetScalarOpacityUnitDistance(u)
             return self
 
-
     def shrink(self, fraction=0.8):
         """Shrink the individual cells to improve visibility."""
         sf = vtk.vtkShrinkFilter()
-        sf.SetInputData(self._data)
+        sf.SetInputData(self.inputdata())
         sf.SetShrinkFactor(fraction)
         sf.Update()
         return self._update(sf.GetOutput())
@@ -1588,9 +1611,9 @@ class BaseGrid(BaseActor):
 
         .. hint:: examples/volumetric/isosurfaces.py
         """
-        scrange = self._data.GetScalarRange()
+        scrange = self.inputdata().GetScalarRange()
         cf = vtk.vtkContourFilter()
-        cf.SetInputData(self._data)
+        cf.SetInputData(self.inputdata())
         cf.UseScalarTreeOn()
         cf.ComputeNormalsOn()
 
@@ -1607,9 +1630,8 @@ class BaseGrid(BaseActor):
         poly = cf.GetOutput()
 
         a = vedo.mesh.Mesh(poly, c=None).phong()
-        a._mapper.SetScalarRange(scrange[0], scrange[1])
+        a.mapper().SetScalarRange(scrange[0], scrange[1])
         return a
-
 
     def legosurface(self, vmin=None, vmax=None, invert=False, boundary=False):
         """
@@ -1631,22 +1653,22 @@ class BaseGrid(BaseActor):
         .. hint:: examples/volumetric/legosurface.py
         """
         dataset = vtk.vtkImplicitDataSet()
-        dataset.SetDataSet(self._data)
+        dataset.SetDataSet(self.inputdata())
         window = vtk.vtkImplicitWindowFunction()
         window.SetImplicitFunction(dataset)
 
-        srng = list(self._data.GetScalarRange())
+        srng = list(self.inputdata().GetScalarRange())
         if vmin is not None:
             srng[0] = vmin
         if vmax is not None:
             srng[1] = vmax
-        tol = 0.00001*(srng[1]-srng[0])
+        tol = 0.00001 * (srng[1] - srng[0])
         srng[0] -= tol
         srng[1] += tol
         window.SetWindowRange(srng)
 
         extract = vtk.vtkExtractGeometry()
-        extract.SetInputData(self._data)
+        extract.SetInputData(self.inputdata())
         extract.SetImplicitFunction(window)
         extract.SetExtractInside(invert)
         extract.SetExtractBoundaryCells(boundary)
@@ -1656,16 +1678,15 @@ class BaseGrid(BaseActor):
         gf.SetInputData(extract.GetOutput())
         gf.Update()
 
-        a = vedo.mesh.Mesh(gf.GetOutput()).lw(0.1).flat()#.lighting('ambient')
+        a = vedo.mesh.Mesh(gf.GetOutput()).lw(0.1).flat()  # .lighting('ambient')
         scalars = a.pointdata[0]
         if scalars is None:
-            #print("Error in legosurface(): no scalars found!")
+            # print("Error in legosurface(): no scalars found!")
             return a
         a.mapPointsToCells()
         return a
 
-
-    def cutWithPlane(self, origin=(0,0,0), normal='x'):
+    def cutWithPlane(self, origin=(0, 0, 0), normal="x"):
         """
         Cut the object with the plane defined by a point and a normal.
 
@@ -1688,7 +1709,7 @@ class BaseGrid(BaseActor):
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
         clipper = vtk.vtkClipDataSet()
-        clipper.SetInputData(self._data)
+        clipper.SetInputData(self.inputdata())
         clipper.SetClipFunction(plane)
         clipper.GenerateClipScalarsOff()
         clipper.GenerateClippedOutputOff()
@@ -1696,7 +1717,6 @@ class BaseGrid(BaseActor):
         clipper.Update()
         cout = clipper.GetOutput()
         return self._update(cout)
-
 
     def cutWithBox(self, box):
         """
@@ -1715,14 +1735,13 @@ class BaseGrid(BaseActor):
                 tetmesh.cutWithBox(cu).show(axes=1)
         """
         bc = vtk.vtkBoxClipDataSet()
-        bc.SetInputData(self._data)
+        bc.SetInputData(self.inputdata())
         if isinstance(box, vtk.vtkProp):
             box = box.GetBounds()
         bc.SetBoxClip(*box)
         bc.Update()
         cout = bc.GetOutput()
         return self._update(cout)
-
 
     def cutWithMesh(self, mesh, invert=False, wholeCells=False, onlyBoundary=False):
         """
@@ -1731,7 +1750,7 @@ class BaseGrid(BaseActor):
         Use ``invert`` to return cut off part of the input object.
         """
         polymesh = mesh.polydata()
-        ug = self._data
+        ug = self.inputdata()
 
         ippd = vtk.vtkImplicitPolyDataDistance()
         ippd.SetInput(polymesh)
@@ -1763,9 +1782,9 @@ class BaseGrid(BaseActor):
         clipper.Update()
         cug = clipper.GetOutput()
 
-        if ug.GetCellData().GetScalars(): # not working
+        if ug.GetCellData().GetScalars():  # not working
             scalname = ug.GetCellData().GetScalars().GetName()
-            if scalname: # not working
+            if scalname:  # not working
                 if self.useCells:
                     self.celldata.select(scalname)
                 else:
@@ -1773,7 +1792,6 @@ class BaseGrid(BaseActor):
 
         self._update(cug)
         return self
-
 
     def extractCellsByID(self, idlist, usePointIDs=False):
         """Return a new UGrid composed of the specified subset of indices."""
@@ -1785,12 +1803,12 @@ class BaseGrid(BaseActor):
         else:
             selectionNode.SetFieldType(vtk.vtkSelectionNode.CELL)
         selectionNode.SetContentType(vtk.vtkSelectionNode.INDICES)
-        vidlist = utils.numpy2vtk(idlist, dtype='id')
+        vidlist = utils.numpy2vtk(idlist, dtype="id")
         selectionNode.SetSelectionList(vidlist)
         selection = vtk.vtkSelection()
         selection.AddNode(selectionNode)
         es = vtk.vtkExtractSelection()
-        es.SetInputData(0, self._data)
+        es.SetInputData(0, self.inputdata())
         es.SetInputData(1, selection)
         es.Update()
         tm_sel = vedo.ugrid.UGrid(es.GetOutput())
@@ -1799,14 +1817,13 @@ class BaseGrid(BaseActor):
         tm_sel.SetProperty(pr)
         tm_sel.property = pr
 
-        #assign the same transformation to the copy
+        # assign the same transformation to the copy
         tm_sel.SetOrigin(self.GetOrigin())
         tm_sel.SetScale(self.GetScale())
         tm_sel.SetOrientation(self.GetOrientation())
         tm_sel.SetPosition(self.GetPosition())
-        tm_sel._mapper.SetLookupTable(utils.ctf2lut(self))
+        tm_sel.mapper().SetLookupTable(utils.ctf2lut(self))
         return tm_sel
-
 
 
 ############################################################################### funcs
@@ -1815,6 +1832,7 @@ def _getinput(obj):
         return obj.GetMapper().GetInput()
     else:
         return obj
+
 
 def probePoints(dataset, pts):
     """
@@ -1853,8 +1871,9 @@ def probePoints(dataset, pts):
     probeFilter.Update()
     poly = probeFilter.GetOutput()
     pm = vedo.mesh.Mesh(poly)
-    pm.name = 'probePoints'
+    pm.name = "probePoints"
     return pm
+
 
 def probeLine(dataset, p1, p2, res=100):
     """
@@ -1879,8 +1898,9 @@ def probeLine(dataset, p1, p2, res=100):
     probeFilter.Update()
     poly = probeFilter.GetOutput()
     lnn = vedo.mesh.Mesh(poly)
-    lnn.name = 'probeLine'
+    lnn.name = "probeLine"
     return lnn
+
 
 def probePlane(dataset, origin=(0, 0, 0), normal=(1, 0, 0)):
     """
@@ -1899,7 +1919,7 @@ def probePlane(dataset, origin=(0, 0, 0), normal=(1, 0, 0)):
     planeCut.Update()
     poly = planeCut.GetOutput()
     cutmesh = vedo.mesh.Mesh(poly)
-    cutmesh.name = 'probePlane'
+    cutmesh.name = "probePlane"
     return cutmesh
 
 

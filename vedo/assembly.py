@@ -1,7 +1,5 @@
-import vedo
-import vedo.utils as utils
 import vtk
-from vedo.base import Base3DProp
+import vedo
 
 __doc__ = """
 Submodule for managing groups of vedo objects
@@ -34,11 +32,13 @@ def procrustesAlignment(sources, rigid=False):
     .. hint:: examples/basic/align4.py
         .. image:: https://vedo.embl.es/images/basic/align4.png
     """
-    from vedo.mesh import Mesh
+
     group = vtk.vtkMultiBlockDataGroupFilter()
     for source in sources:
         if sources[0].N() != source.N():
-            vedo.logger.error("in procrustesAlignment() sources have different nr of points")
+            vedo.logger.error(
+                "in procrustesAlignment() sources have different nr of points"
+            )
             raise RuntimeError()
         group.AddInputData(source.polydata())
     procrustes = vtk.vtkProcrustesAlignmentFilter()
@@ -51,20 +51,20 @@ def procrustesAlignment(sources, rigid=False):
     acts = []
     for i, s in enumerate(sources):
         poly = procrustes.GetOutput().GetBlock(i)
-        mesh = Mesh(poly)
+        mesh = vedo.mesh.Mesh(poly)
         mesh.SetProperty(s.GetProperty())
-        if hasattr(s, 'name'):
+        if hasattr(s, "name"):
             mesh.name = s.name
             mesh.flagText = s.flagText
         acts.append(mesh)
     assem = Assembly(acts)
     assem.transform = procrustes.GetLandmarkTransform()
-    assem.info['mean'] = utils.vtk2numpy(procrustes.GetMeanPoints().GetData())
+    assem.info["mean"] = vedo.utils.vtk2numpy(procrustes.GetMeanPoints().GetData())
     return assem
 
 
 #################################################
-class Assembly(vtk.vtkAssembly, Base3DProp):
+class Assembly(vtk.vtkAssembly, vedo.base.Base3DProp):
     """
     Group many meshes and treat them as a single new object.
 
@@ -75,16 +75,16 @@ class Assembly(vtk.vtkAssembly, Base3DProp):
     def __init__(self, *meshs):
 
         vtk.vtkAssembly.__init__(self)
-        Base3DProp.__init__(self)
+        vedo.base.Base3DProp.__init__(self)
 
         if len(meshs) == 1:
             meshs = meshs[0]
         else:
-            meshs = utils.flatten(meshs)
+            meshs = vedo.utils.flatten(meshs)
 
         self.actors = meshs
 
-        if len(meshs) and hasattr(meshs[0], "top"):
+        if meshs and hasattr(meshs[0], "top"):
             self.base = meshs[0].base
             self.top = meshs[0].top
         else:
@@ -92,7 +92,7 @@ class Assembly(vtk.vtkAssembly, Base3DProp):
             self.top = None
 
         for a in meshs:
-            if a: #and a.GetNumberOfPoints():
+            if a:  # and a.GetNumberOfPoints():
                 self.AddPart(a)
 
     def __add__(self, obj):
@@ -105,11 +105,9 @@ class Assembly(vtk.vtkAssembly, Base3DProp):
         self.actors.append(obj)
         return self
 
-
     def __contains__(self, obj):
         """Allows to use ``in`` to check if an object is in the Assembly."""
         return obj in self.actors
-
 
     def clone(self):
         """Make a clone copy of the object."""
@@ -117,7 +115,6 @@ class Assembly(vtk.vtkAssembly, Base3DProp):
         for a in self.actors:
             newlist.append(a.clone())
         return Assembly(newlist)
-
 
     def unpack(self, i=None):
         """Unpack the list of objects from a ``Assembly``.
@@ -138,9 +135,15 @@ class Assembly(vtk.vtkAssembly, Base3DProp):
                     return m
         return None
 
-
-    def lighting(self, value='', ambient=None, diffuse=None,
-                 specular=None, specularPower=None, specularColor=None):
+    def lighting(
+        self,
+        value="",
+        ambient=None,
+        diffuse=None,
+        specular=None,
+        specularPower=None,
+        specularColor=None,
+    ):
         """
         Set the lighting type to all ``Mesh`` in the ``Assembly`` object.
         Argument of the function can be any of `['', metallic, plastic, shiny, glossy, default]`.
@@ -163,6 +166,5 @@ class Assembly(vtk.vtkAssembly, Base3DProp):
             color that is being reflected by the surface
         """
         for a in self.actors:
-            a.lighting(value, ambient, diffuse,
-                       specular, specularPower, specularColor)
+            a.lighting(value, ambient, diffuse, specular, specularPower, specularColor)
         return self

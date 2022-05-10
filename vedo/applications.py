@@ -3,18 +3,18 @@ import numpy as np
 import vedo
 from vedo.colors import colorMap
 from vedo.colors import getColor
-from vedo.plotter import Plotter
-from vedo.pointcloud import fitPlane
-from vedo.pointcloud import Points
-from vedo.pyplot import CornerHistogram
-from vedo.shapes import Line
-from vedo.shapes import Ribbon
-from vedo.shapes import Spline
-from vedo.shapes import Text2D
 from vedo.utils import isSequence
 from vedo.utils import linInterpolate
 from vedo.utils import mag
 from vedo.utils import precision
+from vedo.plotter import Plotter
+from vedo.pointcloud import fitPlane
+from vedo.pointcloud import Points
+from vedo.shapes import Line
+from vedo.shapes import Ribbon
+from vedo.shapes import Spline
+from vedo.shapes import Text2D
+from vedo.pyplot import CornerHistogram
 
 __doc__ = """
 This module contains vedo applications which provide some *ready-to-use* funcionalities
@@ -23,13 +23,12 @@ This module contains vedo applications which provide some *ready-to-use* funcion
 
 
 __all__ = [
-    'Browser',
-    'IsosurfaceBrowser',
-    'FreeHandCutPlotter',
-    'RayCastPlotter',
+    "Browser",
+    "IsosurfaceBrowser",
+    "FreeHandCutPlotter",
+    "RayCastPlotter",
     "Slicer3DPlotter",
     "Slicer2DPlotter",
-    # "Animation",
 ]
 
 
@@ -69,6 +68,7 @@ class Slicer3DPlotter(Plotter):
     .. hint:: examples/volumetric/slicer1.py
         .. image:: https://vedo.embl.es/images/volumetric/slicer1.jpg
     """
+
     def __init__(
             self,
             volume,
@@ -115,105 +115,143 @@ class Slicer3DPlotter(Plotter):
 
         self.show(box, viewup="z", resetcam=resetcam, interactive=False)
         if showIcon:
-            self.addInset(volume, pos=(.85,.85), size=0.15, c='w', draggable=draggable)
+            self.addInset(
+                volume, pos=(0.85, 0.85), size=0.15, c="w", draggable=draggable
+            )
 
         # inits
-        la, ld = 0.7, 0.3 #ambient, diffuse
+        la, ld = 0.7, 0.3  # ambient, diffuse
         dims = volume.dimensions()
         data = volume.pointdata[0]
         rmin, rmax = volume.imagedata().GetScalarRange()
         if clamp:
             hdata, edg = np.histogram(data, bins=50)
-            logdata = np.log(hdata+1)
+            logdata = np.log(hdata + 1)
             # mean  of the logscale plot
-            meanlog = np.sum(np.multiply(edg[:-1], logdata))/np.sum(logdata)
-            rmax = min(rmax, meanlog+(meanlog-rmin)*0.9)
-            rmin = max(rmin, meanlog-(rmax-meanlog)*0.9)
-            vedo.logger.debug('scalar range clamped to range: (' + precision(rmin, 3) +', '+  precision(rmax, 3)+')')
+            meanlog = np.sum(np.multiply(edg[:-1], logdata)) / np.sum(logdata)
+            rmax = min(rmax, meanlog + (meanlog - rmin) * 0.9)
+            rmin = max(rmin, meanlog - (rmax - meanlog) * 0.9)
+            vedo.logger.debug(
+                "scalar range clamped to range: ("
+                + precision(rmin, 3)
+                + ", "
+                + precision(rmax, 3)
+                + ")"
+            )
         self._cmap_slicer = cmaps[0]
         visibles = [None, None, None]
-        msh = volume.zSlice(int(dims[2]/2))
-        msh.alpha(alpha).lighting('', la, ld, 0)
+        msh = volume.zSlice(int(dims[2] / 2))
+        msh.alpha(alpha).lighting("", la, ld, 0)
         msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-        if map2cells: msh.mapPointsToCells()
+        if map2cells:
+            msh.mapPointsToCells()
         self.renderer.AddActor(msh)
         visibles[2] = msh
-        msh.addScalarBar(pos=(0.04,0.0), horizontal=True, titleFontSize=0)
+        msh.addScalarBar(pos=(0.04, 0.0), horizontal=True, titleFontSize=0)
 
         def sliderfunc_x(widget, event):
             i = int(widget.GetRepresentation().GetValue())
-            msh = volume.xSlice(i).alpha(alpha).lighting('', la, ld, 0)
+            msh = volume.xSlice(i).alpha(alpha).lighting("", la, ld, 0)
             msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-            if map2cells: msh.mapPointsToCells()
+            if map2cells:
+                msh.mapPointsToCells()
             self.renderer.RemoveActor(visibles[0])
-            if i and i<dims[0]:
+            if i and i < dims[0]:
                 self.renderer.AddActor(msh)
             visibles[0] = msh
 
         def sliderfunc_y(widget, event):
             i = int(widget.GetRepresentation().GetValue())
-            msh = volume.ySlice(i).alpha(alpha).lighting('', la, ld, 0)
+            msh = volume.ySlice(i).alpha(alpha).lighting("", la, ld, 0)
             msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-            if map2cells: msh.mapPointsToCells()
+            if map2cells:
+                msh.mapPointsToCells()
             self.renderer.RemoveActor(visibles[1])
-            if i and i<dims[1]:
+            if i and i < dims[1]:
                 self.renderer.AddActor(msh)
             visibles[1] = msh
 
         def sliderfunc_z(widget, event):
             i = int(widget.GetRepresentation().GetValue())
-            msh = volume.zSlice(i).alpha(alpha).lighting('', la, ld, 0)
+            msh = volume.zSlice(i).alpha(alpha).lighting("", la, ld, 0)
             msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-            if map2cells: msh.mapPointsToCells()
+            if map2cells:
+                msh.mapPointsToCells()
             self.renderer.RemoveActor(visibles[2])
-            if i and i<dims[2]:
+            if i and i < dims[2]:
                 self.renderer.AddActor(msh)
             visibles[2] = msh
 
-        cx, cy, cz, ch = 'dr', 'dg', 'db', (0.3,0.3,0.3)
+        cx, cy, cz, ch = "dr", "dg", "db", (0.3, 0.3, 0.3)
         if np.sum(self.renderer.GetBackground()) < 1.5:
-            cx, cy, cz = 'lr', 'lg', 'lb'
-            ch = (0.8,0.8,0.8)
+            cx, cy, cz = "lr", "lg", "lb"
+            ch = (0.8, 0.8, 0.8)
 
         if not useSlider3D:
-            self.addSlider2D(sliderfunc_x, 0, dims[0], title='X', titleSize=0.5,
-                           pos=[(0.8,0.12), (0.95,0.12)], showValue=False, c=cx)
-            self.addSlider2D(sliderfunc_y, 0, dims[1], title='Y', titleSize=0.5,
-                           pos=[(0.8,0.08), (0.95,0.08)], showValue=False, c=cy)
-            self.addSlider2D(sliderfunc_z, 0, dims[2], title='Z', titleSize=0.6,
-                           value=int(dims[2]/2),
-                           pos=[(0.8,0.04), (0.95,0.04)], showValue=False, c=cz)
-        else: # 3d sliders attached to the axes bounds
+            self.addSlider2D(
+                sliderfunc_x,
+                0,
+                dims[0],
+                title="X",
+                titleSize=0.5,
+                pos=[(0.8, 0.12), (0.95, 0.12)],
+                showValue=False,
+                c=cx,
+            )
+            self.addSlider2D(
+                sliderfunc_y,
+                0,
+                dims[1],
+                title="Y",
+                titleSize=0.5,
+                pos=[(0.8, 0.08), (0.95, 0.08)],
+                showValue=False,
+                c=cy,
+            )
+            self.addSlider2D(
+                sliderfunc_z,
+                0,
+                dims[2],
+                title="Z",
+                titleSize=0.6,
+                value=int(dims[2] / 2),
+                pos=[(0.8, 0.04), (0.95, 0.04)],
+                showValue=False,
+                c=cz,
+            )
+        else:  # 3d sliders attached to the axes bounds
             bs = box.bounds()
             self.addSlider3D(
-                    sliderfunc_x,
-                    pos1=(bs[0], bs[2], bs[4]),
-                    pos2=(bs[1], bs[2], bs[4]),
-                    xmin=0, xmax=dims[0],
-                    t=box.diagonalSize()/mag(box.xbounds())*0.6,
-                    c=cx,
-                    showValue=False,
+                sliderfunc_x,
+                pos1=(bs[0], bs[2], bs[4]),
+                pos2=(bs[1], bs[2], bs[4]),
+                xmin=0,
+                xmax=dims[0],
+                t=box.diagonalSize() / mag(box.xbounds()) * 0.6,
+                c=cx,
+                showValue=False,
             )
             self.addSlider3D(
-                    sliderfunc_y,
-                    pos1=(bs[1], bs[2], bs[4]),
-                    pos2=(bs[1], bs[3], bs[4]),
-                    xmin=0, xmax=dims[1],
-                    t=box.diagonalSize()/mag(box.ybounds())*0.6,
-                    c=cy,
-                    showValue=False,
+                sliderfunc_y,
+                pos1=(bs[1], bs[2], bs[4]),
+                pos2=(bs[1], bs[3], bs[4]),
+                xmin=0,
+                xmax=dims[1],
+                t=box.diagonalSize() / mag(box.ybounds()) * 0.6,
+                c=cy,
+                showValue=False,
             )
             self.addSlider3D(
-                    sliderfunc_z,
-                    pos1=(bs[0], bs[2], bs[4]),
-                    pos2=(bs[0], bs[2], bs[5]),
-                    xmin=0, xmax=dims[2],
-                    value=int(dims[2]/2),
-                    t=box.diagonalSize()/mag(box.zbounds())*0.6,
-                    c=cz,
-                    showValue=False,
+                sliderfunc_z,
+                pos1=(bs[0], bs[2], bs[4]),
+                pos2=(bs[0], bs[2], bs[5]),
+                xmin=0,
+                xmax=dims[2],
+                value=int(dims[2] / 2),
+                t=box.diagonalSize() / mag(box.zbounds()) * 0.6,
+                c=cz,
+                showValue=False,
             )
-
 
         #################
         def buttonfunc():
@@ -225,13 +263,14 @@ class Slicer3DPlotter(Plotter):
                     if map2cells:
                         mesh.mapPointsToCells()
             self.renderer.RemoveActor(mesh.scalarbar)
-            mesh.addScalarBar(pos=(0.04,0.0), horizontal=True, titleFontSize=0)
+            mesh.addScalarBar(pos=(0.04, 0.0), horizontal=True, titleFontSize=0)
 
-        bu = self.addButton(buttonfunc,
+        bu = self.addButton(
+            buttonfunc,
             pos=(0.27, 0.005),
             states=cmaps,
-            c=["db"]*len(cmaps),
-            bc=["lb"]*len(cmaps),  # colors of states
+            c=["db"] * len(cmaps),
+            bc=["lb"] * len(cmaps),  # colors of states
             size=14,
             bold=True,
         )
@@ -239,9 +278,15 @@ class Slicer3DPlotter(Plotter):
         #################
         hist = None
         if showHisto:
-            hist = CornerHistogram(data, s=0.2,
-                                   bins=25, logscale=1, pos=(0.02, 0.02),
-                                   c=ch, bg=ch, alpha=0.7,
+            hist = CornerHistogram(
+                data,
+                s=0.2,
+                bins=25,
+                logscale=1,
+                pos=(0.02, 0.02),
+                c=ch,
+                bg=ch,
+                alpha=0.7,
             )
 
         self.add([msh, hist], resetcam=False)
@@ -262,22 +307,24 @@ class Slicer2DPlotter(Plotter):
 
     .. image:: https://vedo.embl.es/images/volumetric/read_volume3.jpg
     """
-    def __init__(self,
-                 volume,
-                 levels=(None, None),
-                 axes=None,
-                 zoom=1.2,
-                 pos=(0, 0),
-                 size="auto",
-                 screensize="auto",
-                 title="",
-                 bg="white",
-                 bg2=None,
-                 interactive=True,
-        ):
-        custom_shape = [ # define here the 2 rendering rectangle spaces
-            dict(bottomleft=(0.0,0.0), topright=(1,1), bg='k9'), # the full window
-            dict(bottomleft=(0.8,0.8), topright=(1,1), bg='k8', bg2='lb'),
+
+    def __init__(
+        self,
+        volume,
+        levels=(None, None),
+        axes=None,
+        zoom=1.2,
+        pos=(0, 0),
+        size="auto",
+        screensize="auto",
+        title="",
+        bg="white",
+        bg2=None,
+        interactive=True,
+    ):
+        custom_shape = [  # define here the 2 rendering rectangle spaces
+            dict(bottomleft=(0.0, 0.0), topright=(1, 1), bg="k9"),  # the full window
+            dict(bottomleft=(0.8, 0.8), topright=(1, 1), bg="k8", bg2="lb"),
         ]
 
         if not title:
@@ -286,11 +333,22 @@ class Slicer2DPlotter(Plotter):
             else:
                 title = "Volume Slicer2D"
 
-        Plotter.__init__(self, shape=custom_shape, title=title, pos=pos,
-                         screensize=screensize, size=size, bg=bg, bg2=bg2, axes=0,
-                         interactive=False)
+        Plotter.__init__(
+            self,
+            shape=custom_shape,
+            title=title,
+            pos=pos,
+            screensize=screensize,
+            size=size,
+            bg=bg,
+            bg2=bg2,
+            axes=0,
+            interactive=False,
+        )
 
-        vsl = vedo.volume.VolumeSlice(volume)  # reuse the same underlying data as in vol
+        vsl = vedo.volume.VolumeSlice(
+            volume
+        )  # reuse the same underlying data as in vol
 
         # no argument will grab the existing cmap in vol (or use buildLUT())
         vsl.colorize()
@@ -306,15 +364,26 @@ class Slicer2DPlotter(Plotter):
             f"X                  \rightarrow Reset to sagittal view\n"
             f"Y                  \rightarrow Reset to coronal view\n"
             f"Z                  \rightarrow Reset to axial view",
-            font="Calco", pos="top-left", s=0.8, bg='yellow', alpha=0.25
+            font="Calco",
+            pos="top-left",
+            s=0.8,
+            bg="yellow",
+            alpha=0.25,
         )
 
-        hist = CornerHistogram(volume.pointdata[0],
-                               bins=25, logscale=1, pos=(0.02, 0.02), s=0.175,
-                               c='dg', bg='k', alpha=1)
+        hist = CornerHistogram(
+            volume.pointdata[0],
+            bins=25,
+            logscale=1,
+            pos=(0.02, 0.02),
+            s=0.175,
+            c="dg",
+            bg="k",
+            alpha=1,
+        )
         ax = None
         if axes == 7:
-            ax = vedo.addons.RulerAxes(vsl, xtitle='x - ', ytitle='y - ', ztitle='z - ')
+            ax = vedo.addons.RulerAxes(vsl, xtitle="x - ", ytitle="y - ", ztitle="z - ")
 
         box = vsl.box().alpha(0.1)
         self.show(vsl, box, ax, usage, hist, at=0, mode="image", zoom=zoom)
@@ -331,6 +400,7 @@ class RayCastPlotter(Plotter):
     .. hint:: examples/volumetric/app_raycaster.py
         .. image:: https://vedo.embl.es/images/advanced/app_raycaster.gif
     """
+
     def __init__(self, volume, **kwargs):
 
         Plotter.__init__(self, **kwargs)
@@ -342,7 +412,7 @@ class RayCastPlotter(Plotter):
         volumeProperty = volume.GetProperty()
         img = volume.imagedata()
 
-        if volume.dimensions()[2]<3:
+        if volume.dimensions()[2] < 3:
             vedo.logger.error("RayCastPlotter: not enough z slices.")
             raise RuntimeError
 
@@ -353,16 +423,17 @@ class RayCastPlotter(Plotter):
 
         ############################## color map slider
         # Create transfer mapping scalar value to color
-        cmaps = ["jet",
-                 "viridis",
-                 "bone",
-                 "hot",
-                 "plasma",
-                 "winter",
-                 "cool",
-                 "gist_earth",
-                 "coolwarm",
-                 "tab10",
+        cmaps = [
+            "jet",
+            "viridis",
+            "bone",
+            "hot",
+            "plasma",
+            "winter",
+            "cool",
+            "gist_earth",
+            "coolwarm",
+            "tab10",
         ]
         cols_cmaps = []
         for cm in cmaps:
@@ -409,29 +480,44 @@ class RayCastPlotter(Plotter):
             self.alphaslider0 = widget.GetRepresentation().GetValue()
             setOTF()
 
-        self.addSlider2D(sliderA0, 0, 1,
-                        value=self.alphaslider0,
-                        pos=[(0.84, 0.1), (0.84, 0.26)],
-                        c=csl, showValue=0)
+        self.addSlider2D(
+            sliderA0,
+            0,
+            1,
+            value=self.alphaslider0,
+            pos=[(0.84, 0.1), (0.84, 0.26)],
+            c=csl,
+            showValue=0,
+        )
 
         def sliderA1(widget, event):
             self.alphaslider1 = widget.GetRepresentation().GetValue()
             setOTF()
 
-        self.addSlider2D(sliderA1, 0, 1,
-                        value=self.alphaslider1,
-                        pos=[(0.89, 0.1), (0.89, 0.26)],
-                        c=csl, showValue=0)
+        self.addSlider2D(
+            sliderA1,
+            0,
+            1,
+            value=self.alphaslider1,
+            pos=[(0.89, 0.1), (0.89, 0.26)],
+            c=csl,
+            showValue=0,
+        )
 
         def sliderA2(widget, event):
             self.alphaslider2 = widget.GetRepresentation().GetValue()
             setOTF()
 
-        w2 = self.addSlider2D(sliderA2, 0, 1,
-                            value=self.alphaslider2,
-                            pos=[(0.96, 0.1), (0.96, 0.26)],
-                            c=csl, showValue=0,
-                            title="Opacity levels")
+        w2 = self.addSlider2D(
+            sliderA2,
+            0,
+            1,
+            value=self.alphaslider2,
+            pos=[(0.96, 0.1), (0.96, 0.26)],
+            c=csl,
+            showValue=0,
+            title="Opacity levels",
+        )
         w2.GetRepresentation().SetTitleHeight(0.016)
 
         # add a button
@@ -455,10 +541,16 @@ class RayCastPlotter(Plotter):
         bum.status(volume.mode())
 
         # add histogram of scalar
-        plot = CornerHistogram(volume,
-            bins=25, logscale=1, c=(.7,.7,.7), bg=(.7,.7,.7), pos=(0.78, 0.065),
-            lines=True, dots=False,
-            nmax=3.1415e+06, # subsample otherwise is too slow
+        plot = CornerHistogram(
+            volume,
+            bins=25,
+            logscale=1,
+            c=(0.7, 0.7, 0.7),
+            bg=(0.7, 0.7, 0.7),
+            pos=(0.78, 0.065),
+            lines=True,
+            dots=False,
+            nmax=3.1415e06,  # subsample otherwise is too slow
         )
 
         plot.GetPosition2Coordinate().SetValue(0.197, 0.20, 0)
@@ -491,6 +583,7 @@ class IsosurfaceBrowser(Plotter):
     .. hint:: examples/volumetric/app_isobrowser.py
         .. image:: https://vedo.embl.es/images/advanced/app_isobrowser.gif
     """
+
     def __init__(
             self,
             volume,
@@ -514,15 +607,16 @@ class IsosurfaceBrowser(Plotter):
             interactive=True,
         ):
 
-        Plotter.__init__(self,
-                         pos=pos,
-                         bg=bg,
-                         bg2=bg2,
-                         size=size,
-                         screensize=screensize,
-                         title=title,
-                         interactive=interactive,
-                         axes=axes,
+        Plotter.__init__(
+            self,
+            pos=pos,
+            bg=bg,
+            bg2=bg2,
+            size=size,
+            screensize=screensize,
+            title=title,
+            interactive=interactive,
+            axes=axes,
         )
 
         self._prev_value = 1e30
@@ -533,28 +627,28 @@ class IsosurfaceBrowser(Plotter):
             return
 
         if lego:
-            res = int(res/2)  # because lego is much slower
+            res = int(res / 2)  # because lego is much slower
             slidertitle = ""
         else:
             slidertitle = "threshold"
 
         allowed_vals = np.linspace(scrange[0], scrange[1], num=res)
 
-        bacts = dict()  # cache the meshes so we dont need to recompute
+        bacts = {}  # cache the meshes so we dont need to recompute
         if precompute:
             delayed = False  # no need to delay the slider in this case
             if progress:
-                pb = vedo.ProgressBar(0,len(allowed_vals))
+                pb = vedo.ProgressBar(0, len(allowed_vals))
 
             for value in allowed_vals:
                 value_name = precision(value, 2)
                 if lego:
                     mesh = volume.legosurface(vmin=value)
                     if mesh.NCells():
-                        mesh.cmap(cmap, vmin=scrange[0], vmax=scrange[1], on='cells')
+                        mesh.cmap(cmap, vmin=scrange[0], vmax=scrange[1], on="cells")
                 else:
                     mesh = volume.isosurface(threshold=value).color(c).alpha(alpha)
-                bacts.update({value_name: mesh}) # store it
+                bacts.update({value_name: mesh})  # store it
                 if progress:
                     pb.print("isosurfacing volume..")
 
@@ -565,33 +659,34 @@ class IsosurfaceBrowser(Plotter):
             if isinstance(widget, float):
                 value = widget
             else:
-                value =  widget.GetRepresentation().GetValue()
+                value = widget.GetRepresentation().GetValue()
 
             # snap to the closest
             idx = (np.abs(allowed_vals - value)).argmin()
             value = allowed_vals[idx]
 
-            if abs(value - self._prev_value)/delta < 0.001:
+            if abs(value - self._prev_value) / delta < 0.001:
                 return
             self._prev_value = value
 
             value_name = precision(value, 2)
-            if value_name in bacts.keys():  # reusing the already existing mesh
-                #print('reusing')
+            if value_name in bacts:  # reusing the already existing mesh
+                # print('reusing')
                 mesh = bacts[value_name]
-            else:                        # else generate it
-                #print('generating', value)
+            else:  # else generate it
+                # print('generating', value)
                 if lego:
                     mesh = volume.legosurface(vmin=value)
                     if mesh.NCells():
-                        mesh.cmap(cmap, vmin=scrange[0], vmax=scrange[1], on='cells')
+                        mesh.cmap(cmap, vmin=scrange[0], vmax=scrange[1], on="cells")
                 else:
                     mesh = volume.isosurface(threshold=value).color(c).alpha(alpha)
-                bacts.update({value_name: mesh}) # store it
+                bacts.update({value_name: mesh})  # store it
 
             self.renderer.RemoveActor(prevact)
             self.renderer.AddActor(mesh)
             self.actors[0] = mesh
+
         ################################################
 
         if threshold is None:
@@ -600,7 +695,7 @@ class IsosurfaceBrowser(Plotter):
         self.actors = [None]
         sliderThres(threshold, "")  # init call
         if lego:
-            self.actors[0].addScalarBar(pos=(0.8,0.12))
+            self.actors[0].addScalarBar(pos=(0.8, 0.12))
 
         self.addSlider2D(
             sliderThres,
@@ -630,6 +725,7 @@ class Browser(Plotter):
 
     .. hint:: examples/other/morphomatics_tube.py
     """
+
     def __init__(
             self,
             objects=(),
@@ -677,15 +773,22 @@ class Browser(Plotter):
             tx = str(k)
             if ak.filename:
                 tx = ak.filename.split("/")[-1]
-                tx = tx.split("\\")[-1] # windows os
+                tx = tx.split("\\")[-1]  # windows os
             elif ak.name:
                 tx = ak.name
-            widget.GetRepresentation().SetTitleText(prefix+tx)
+            widget.GetRepresentation().SetTitleText(prefix + tx)
 
-        self.slider = self.addSlider2D(sliderfunc, 0.5, len(objects)-0.5,
-                                       pos=sliderpos, font='courier', c=c, showValue=False)
+        self.slider = self.addSlider2D(
+            sliderfunc,
+            0.5,
+            len(objects) - 0.5,
+            pos=sliderpos,
+            font="courier",
+            c=c,
+            showValue=False,
+        )
         self.slider.GetRepresentation().SetTitleHeight(0.020)
-        sliderfunc(self.slider) # init call
+        sliderfunc(self.slider)  # init call
 
 
 #############################################################################################
@@ -743,6 +846,7 @@ class FreeHandCutPlotter(Plotter):
     .. hint:: examples/basic/cutFreeHand.py
         .. image:: https://vedo.embl.es/images/basic/cutFreeHand.gif
     """
+
     # thanks to Jakub Kaminski for the original version of this script
     def __init__(
             self,
@@ -774,19 +878,19 @@ class FreeHandCutPlotter(Plotter):
         self.color = c
         self.alpha = alpha
 
-        self.msg  = "Right-click and move to draw line\n"
+        self.msg = "Right-click and move to draw line\n"
         self.msg += "Second right-click to stop drawing\n"
         self.msg += "Press L to extract largest surface\n"
         self.msg += "        z/Z to cut mesh (s to save)\n"
         self.msg += "        c to clear points, u to undo"
-        self.txt2d = Text2D(self.msg, pos='top-left', font=font, s=0.9)
+        self.txt2d = Text2D(self.msg, pos="top-left", font=font, s=0.9)
         self.txt2d.c(tc).background(c, alpha).frame()
 
-        self.idkeypress = self.addCallback('KeyPress', self._onKeyPress)
-        self.idrightclck = self.addCallback('RightButton', self._onRightClick)
-        self.idmousemove = self.addCallback('MouseMove', self._onMouseMove)
+        self.idkeypress = self.addCallback("KeyPress", self._onKeyPress)
+        self.idrightclck = self.addCallback("RightButton", self._onRightClick)
+        self.idmousemove = self.addCallback("MouseMove", self._onMouseMove)
         self.drawmode = False
-        self.tol = tol       # tolerance of point distance
+        self.tol = tol  # tolerance of point distance
         self.cpoints = []
         self.points = None
         self.spline = None
@@ -795,30 +899,37 @@ class FreeHandCutPlotter(Plotter):
         self.top_pts = []
 
     def init(self, initpoints):
+        """Set an initial number of points to define a region"""
         if isinstance(initpoints, Points):
             self.cpoints = initpoints.points()
         else:
             self.cpoints = np.array(initpoints)
-        self.points = Points(self.cpoints, r=self.linewidth).c(self.pointcolor).pickable(0)
+        self.points = (
+            Points(self.cpoints, r=self.linewidth).c(self.pointcolor).pickable(0)
+        )
         if self.splined:
-            self.spline = Spline(self.cpoints, res=len(self.cpoints)*4)
+            self.spline = Spline(self.cpoints, res=len(self.cpoints) * 4)
         else:
             self.spline = Line(self.cpoints)
         self.spline.lw(self.linewidth).c(self.linecolor).pickable(False)
-        self.jline = Line(self.cpoints[0], self.cpoints[-1], lw=1, c=self.linecolor).pickable(0)
+        self.jline = Line(
+            self.cpoints[0], self.cpoints[-1], lw=1, c=self.linecolor
+        ).pickable(0)
         self.add([self.points, self.spline, self.jline], render=False)
         return self
 
     def _onRightClick(self, evt):
-        self.drawmode = not self.drawmode # toggle mode
+        self.drawmode = not self.drawmode  # toggle mode
         if self.drawmode:
             self.txt2d.background(self.linecolor, self.alpha)
         else:
             self.txt2d.background(self.color, self.alpha)
             if len(self.cpoints) > 2:
                 self.remove([self.spline, self.jline])
-                if self.splined: # show the spline closed
-                    self.spline = Spline(self.cpoints, closed=True, res=len(self.cpoints)*4)
+                if self.splined:  # show the spline closed
+                    self.spline = Spline(
+                        self.cpoints, closed=True, res=len(self.cpoints) * 4
+                    )
                 else:
                     self.spline = Line(self.cpoints, closed=True)
                 self.spline.lw(self.linewidth).c(self.linecolor).pickable(False)
@@ -853,27 +964,27 @@ class FreeHandCutPlotter(Plotter):
     def _onKeyPress(self, evt):
         if evt.keyPressed.lower() == 'z' and self.spline: # Cut mesh with a ribbon-like surface
             inv = False
-            if evt.keyPressed == 'Z':
+            if evt.keyPressed == "Z":
                 inv = True
-            self.txt2d.background('red8').text("  ... working ...  ")
+            self.txt2d.background("red8").text("  ... working ...  ")
             self.render()
             self.mesh_prev = self.mesh.clone()
-            tol = self.mesh.diagonalSize()/2            # size of ribbon (not shown)
+            tol = self.mesh.diagonalSize() / 2  # size of ribbon (not shown)
             pts = self.spline.points()
-            n = fitPlane(pts, signed=True).normal       # compute normal vector to points
-            rb = Ribbon(pts - tol*n, pts + tol*n, closed=True)
-            self.mesh.cutWithMesh(rb, invert=inv)       # CUT
-            self.txt2d.text(self.msg)                   # put back original message
+            n = fitPlane(pts, signed=True).normal  # compute normal vector to points
+            rb = Ribbon(pts - tol * n, pts + tol * n, closed=True)
+            self.mesh.cutWithMesh(rb, invert=inv)  # CUT
+            self.txt2d.text(self.msg)  # put back original message
             if self.drawmode:
-                self._onRightClick(evt)                 # toggle mode to normal
+                self._onRightClick(evt)  # toggle mode to normal
             else:
                 self.txt2d.background(self.color, self.alpha)
             self.remove([self.spline, self.points, self.jline, self.topline]).render()
             self.cpoints, self.points, self.spline = [], None, None
             self.top_pts, self.topline = [], None
 
-        elif evt.keyPressed == 'L':
-            self.txt2d.background('red8')
+        elif evt.keyPressed == "L":
+            self.txt2d.background("red8")
             self.txt2d.text(" ... removing smaller ... \n ... parts of the mesh ... ")
             self.render()
             self.remove(self.mesh)
@@ -881,7 +992,7 @@ class FreeHandCutPlotter(Plotter):
             mcut = self.mesh.extractLargestRegion()
             mcut.filename = self.mesh.filename          # copy over various properties
             mcut.name = self.mesh.name
-            mcut.scalarbar= self.mesh.scalarbar
+            mcut.scalarbar = self.mesh.scalarbar
             mcut.info = self.mesh.info
             self.mesh = mcut                            # discard old mesh by overwriting it
             self.txt2d.text(self.msg).background(self.color)   # put back original message
@@ -898,13 +1009,13 @@ class FreeHandCutPlotter(Plotter):
             self.top_pts, self.topline = [], None
             self.add(self.mesh)
 
-        elif evt.keyPressed == 'c' or evt.keyPressed == 'Delete':
+        elif evt.keyPressed in ('c', 'Delete'):
             # clear all points
             self.remove([self.spline, self.points, self.jline, self.topline]).render()
             self.cpoints, self.points, self.spline = [], None, None
             self.top_pts, self.topline = [], None
 
-        elif evt.keyPressed == 'r': # reset camera and axes
+        elif evt.keyPressed == "r":  # reset camera and axes
             try:
                 self.remove(self.axes_instances[0])
                 self.axes_instances[0] = None
@@ -914,14 +1025,14 @@ class FreeHandCutPlotter(Plotter):
             except:
                 pass
 
-        elif evt.keyPressed == 's':
+        elif evt.keyPressed == "s":
             if self.mesh.filename:
                 fname = os.path.basename(self.mesh.filename)
                 fname, extension = os.path.splitext(fname)
-                fname = fname.replace("_edited","")
+                fname = fname.replace("_edited", "")
                 fname = f"{fname}_edited{extension}"
             else:
-                fname="mesh_edited.vtk"
+                fname = "mesh_edited.vtk"
             self.write(fname)
 
     def write(self, filename="mesh_edited.vtk"):
@@ -962,8 +1073,15 @@ class Animation(Plotter):
 
     .. warning:: this is still an experimental feature at the moment.
     """
-    def __init__(self, totalDuration=None, timeResolution=0.02, showProgressBar=True,
-                 videoFileName='animation.mp4', videoFPS=12):
+
+    def __init__(
+        self,
+        totalDuration=None,
+        timeResolution=0.02,
+        showProgressBar=True,
+        videoFileName="animation.mp4",
+        videoFPS=12,
+    ):
         Plotter.__init__(self)
         self.resetcam = True
 
@@ -980,7 +1098,6 @@ class Animation(Plotter):
         self._lastDuration = None
         self._lastActs = None
         self.eps = 0.00001
-
 
     def _parse(self, objs, t, duration):
         if t is None:
@@ -1007,12 +1124,12 @@ class Animation(Plotter):
         else:
             objs2 = [objs]
 
-        #quantize time steps and duration
-        t = int(t/self.timeResolution+0.5)*self.timeResolution
-        nsteps =   int(duration/self.timeResolution+0.5)
-        duration = nsteps*self.timeResolution
+        # quantize time steps and duration
+        t = int(t / self.timeResolution + 0.5) * self.timeResolution
+        nsteps = int(duration / self.timeResolution + 0.5)
+        duration = nsteps * self.timeResolution
 
-        rng = np.linspace(t, t+duration, nsteps+1)
+        rng = np.linspace(t, t + duration, nsteps + 1)
 
         self._lastT = t
         self._lastDuration = duration
@@ -1024,26 +1141,24 @@ class Animation(Plotter):
 
         return objs2, t, duration, rng
 
-
-    def switchOn(self, acts=None, t=None, duration=None):
+    def switchOn(self, acts=None, t=None):
         """Switch on the input list of meshes."""
         return self.fadeIn(acts, t, 0)
 
-    def switchOff(self, acts=None, t=None, duration=None):
+    def switchOff(self, acts=None, t=None):
         """Switch off the input list of meshes."""
         return self.fadeOut(acts, t, 0)
-
 
     def fadeIn(self, acts=None, t=None, duration=None):
         """Gradually switch on the input list of meshes by increasing opacity."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
             for tt in rng:
-                alpha = linInterpolate(tt, [t,t+duration], [0,1])
+                alpha = linInterpolate(tt, [t, t + duration], [0, 1])
                 self.events.append((tt, self.fadeIn, acts, alpha))
         else:
             for a in self._performers:
-                if hasattr(a, 'alpha'):
+                if hasattr(a, "alpha"):
                     if a.alpha() >= self._inputvalues:
                         continue
                     a.alpha(self._inputvalues)
@@ -1054,7 +1169,7 @@ class Animation(Plotter):
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
             for tt in rng:
-                alpha = linInterpolate(tt, [t,t+duration], [1,0])
+                alpha = linInterpolate(tt, [t, t + duration], [1, 0])
                 self.events.append((tt, self.fadeOut, acts, alpha))
         else:
             for a in self._performers:
@@ -1063,21 +1178,19 @@ class Animation(Plotter):
                 a.alpha(self._inputvalues)
         return self
 
-
     def changeAlphaBetween(self, alpha1, alpha2, acts=None, t=None, duration=None):
         """Gradually change transparency for the input list of meshes."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
             for tt in rng:
-                alpha = linInterpolate(tt, [t,t+duration], [alpha1, alpha2])
+                alpha = linInterpolate(tt, [t, t + duration], [alpha1, alpha2])
                 self.events.append((tt, self.fadeOut, acts, alpha))
         else:
             for a in self._performers:
                 a.alpha(self._inputvalues)
         return self
 
-
-    def changeColor(self,  c, acts=None, t=None, duration=None):
+    def changeColor(self, c, acts=None, t=None, duration=None):
         """Gradually change color for the input list of meshes."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
@@ -1087,16 +1200,15 @@ class Animation(Plotter):
                 inputvalues = []
                 for a in acts:
                     col1 = a.color()
-                    r = linInterpolate(tt, [t,t+duration], [col1[0], col2[0]])
-                    g = linInterpolate(tt, [t,t+duration], [col1[1], col2[1]])
-                    b = linInterpolate(tt, [t,t+duration], [col1[2], col2[2]])
-                    inputvalues.append((r,g,b))
+                    r = linInterpolate(tt, [t, t + duration], [col1[0], col2[0]])
+                    g = linInterpolate(tt, [t, t + duration], [col1[1], col2[1]])
+                    b = linInterpolate(tt, [t, t + duration], [col1[2], col2[2]])
+                    inputvalues.append((r, g, b))
                 self.events.append((tt, self.changeColor, acts, inputvalues))
         else:
-            for i,a in enumerate(self._performers):
+            for i, a in enumerate(self._performers):
                 a.color(self._inputvalues[i])
         return self
-
 
     def changeBackColor(self, c, acts=None, t=None, duration=None):
         """Gradually change backface color for the input list of meshes.
@@ -1110,23 +1222,22 @@ class Animation(Plotter):
                 for a in acts:
                     if a.GetBackfaceProperty():
                         col1 = a.backColor()
-                        r = linInterpolate(tt, [t,t+duration], [col1[0], col2[0]])
-                        g = linInterpolate(tt, [t,t+duration], [col1[1], col2[1]])
-                        b = linInterpolate(tt, [t,t+duration], [col1[2], col2[2]])
-                        inputvalues.append((r,g,b))
+                        r = linInterpolate(tt, [t, t + duration], [col1[0], col2[0]])
+                        g = linInterpolate(tt, [t, t + duration], [col1[1], col2[1]])
+                        b = linInterpolate(tt, [t, t + duration], [col1[2], col2[2]])
+                        inputvalues.append((r, g, b))
                     else:
                         inputvalues.append(None)
                 self.events.append((tt, self.changeBackColor, acts, inputvalues))
         else:
-            for i,a in enumerate(self._performers):
+            for i, a in enumerate(self._performers):
                 a.backColor(self._inputvalues[i])
         return self
-
 
     def changeToWireframe(self, acts=None, t=None):
         """Switch representation to wireframe for the input list of meshes at time `t`."""
         if self.bookingMode:
-            acts, t, duration, rng = self._parse(acts, t, None)
+            acts, t, _, _ = self._parse(acts, t, None)
             self.events.append((t, self.changeToWireframe, acts, True))
         else:
             for a in self._performers:
@@ -1136,13 +1247,12 @@ class Animation(Plotter):
     def changeToSurface(self, acts=None, t=None):
         """Switch representation to surface for the input list of meshes at time `t`."""
         if self.bookingMode:
-            acts, t, duration, rng = self._parse(acts, t, None)
+            acts, t, _, _ = self._parse(acts, t, None)
             self.events.append((t, self.changeToSurface, acts, False))
         else:
             for a in self._performers:
                 a.wireframe(self._inputvalues)
         return self
-
 
     def changeLineWidth(self, lw, acts=None, t=None, duration=None):
         """Gradually change line width of the mesh edges for the input list of meshes."""
@@ -1151,14 +1261,13 @@ class Animation(Plotter):
             for tt in rng:
                 inputvalues = []
                 for a in acts:
-                    newlw = linInterpolate(tt, [t,t+duration], [a.lw(), lw])
+                    newlw = linInterpolate(tt, [t, t + duration], [a.lw(), lw])
                     inputvalues.append(newlw)
                 self.events.append((tt, self.changeLineWidth, acts, inputvalues))
         else:
-            for i,a in enumerate(self._performers):
+            for i, a in enumerate(self._performers):
                 a.lw(self._inputvalues[i])
         return self
-
 
     def changeLineColor(self, c, acts=None, t=None, duration=None):
         """Gradually change line color of the mesh edges for the input list of meshes."""
@@ -1169,16 +1278,15 @@ class Animation(Plotter):
                 inputvalues = []
                 for a in acts:
                     col1 = a.lineColor()
-                    r = linInterpolate(tt, [t,t+duration], [col1[0], col2[0]])
-                    g = linInterpolate(tt, [t,t+duration], [col1[1], col2[1]])
-                    b = linInterpolate(tt, [t,t+duration], [col1[2], col2[2]])
-                    inputvalues.append((r,g,b))
+                    r = linInterpolate(tt, [t, t + duration], [col1[0], col2[0]])
+                    g = linInterpolate(tt, [t, t + duration], [col1[1], col2[1]])
+                    b = linInterpolate(tt, [t, t + duration], [col1[2], col2[2]])
+                    inputvalues.append((r, g, b))
                 self.events.append((tt, self.changeLineColor, acts, inputvalues))
         else:
-            for i,a in enumerate(self._performers):
+            for i, a in enumerate(self._performers):
                 a.lineColor(self._inputvalues[i])
         return self
-
 
     def changeLighting(self, style, acts=None, t=None, duration=None):
         """Gradually change the lighting style for the input list of meshes.
@@ -1212,7 +1320,7 @@ class Animation(Plotter):
                     inputvalues.append((naa, nad, nasp, naspp))
                 self.events.append((tt, self.changeLighting, acts, inputvalues))
         else:
-            for i,a in enumerate(self._performers):
+            for i, a in enumerate(self._performers):
                 pr = a.GetProperty()
                 vals = self._inputvalues[i]
                 pr.SetAmbient(vals[0])
@@ -1221,8 +1329,7 @@ class Animation(Plotter):
                 pr.SetSpecularPower(vals[3])
         return self
 
-
-    def move(self, act=None, pt=(0,0,0), t=None, duration=None, style='linear'):
+    def move(self, act=None, pt=(0, 0, 0), t=None, duration=None, style="linear"):
         """Smoothly change the position of a specific object to a new point in space."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(act, t, duration)
@@ -1230,52 +1337,49 @@ class Animation(Plotter):
                 vedo.logger.error("in move(), can move only one object.")
             cpos = acts[0].pos()
             pt = np.array(pt)
-            dv = (pt - cpos)/len(rng)
-            for j,tt in enumerate(rng):
-                i = j+1
-                if 'quad' in style:
-                    x = i/len(rng)
-                    y = x*x
-                    self.events.append((tt, self.move, acts, cpos+dv*i*y))
+            dv = (pt - cpos) / len(rng)
+            for j, tt in enumerate(rng):
+                i = j + 1
+                if "quad" in style:
+                    x = i / len(rng)
+                    y = x * x
+                    self.events.append((tt, self.move, acts, cpos + dv * i * y))
                 else:
-                    self.events.append((tt, self.move, acts, cpos+dv*i))
+                    self.events.append((tt, self.move, acts, cpos + dv * i))
         else:
             self._performers[0].pos(self._inputvalues)
         return self
 
-
-    def rotate(self, act=None, axis=(1,0,0), angle=0, t=None, duration=None):
+    def rotate(self, act=None, axis=(1, 0, 0), angle=0, t=None, duration=None):
         """Smoothly rotate a specific object by a specified angle and axis."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(act, t, duration)
             if len(acts) != 1:
                 vedo.logger.error("in rotate(), can move only one object.")
             for tt in rng:
-                ang = angle/len(rng)
+                ang = angle / len(rng)
                 self.events.append((tt, self.rotate, acts, (axis, ang)))
         else:
             ax = self._inputvalues[0]
-            if   ax == 'x':
+            if ax == "x":
                 self._performers[0].rotateX(self._inputvalues[1])
-            elif ax == 'y':
+            elif ax == "y":
                 self._performers[0].rotateY(self._inputvalues[1])
-            elif ax == 'z':
+            elif ax == "z":
                 self._performers[0].rotateZ(self._inputvalues[1])
         return self
-
 
     def scale(self, acts=None, factor=1, t=None, duration=None):
         """Smoothly scale a specific object to a specified scale factor."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
             for tt in rng:
-                fac = linInterpolate(tt, [t,t+duration], [1, factor])
+                fac = linInterpolate(tt, [t, t + duration], [1, factor])
                 self.events.append((tt, self.scale, acts, fac))
         else:
             for a in self._performers:
                 a.scale(self._inputvalues)
         return self
-
 
     def meshErode(self, act=None, corner=6, t=None, duration=None):
         """Erode a mesh by removing cells that are close to one of the 8 corners
@@ -1286,64 +1390,71 @@ class Animation(Plotter):
             if len(acts) != 1:
                 vedo.logger.error("in meshErode(), can erode only one object.")
             diag = acts[0].diagonalSize()
-            x0,x1, y0,y1, z0,z1 = acts[0].GetBounds()
-            corners = [ (x0,y0,z0), (x1,y0,z0), (x1,y1,z0), (x0,y1,z0),
-                        (x0,y0,z1), (x1,y0,z1), (x1,y1,z1), (x0,y1,z1) ]
+            x0, x1, y0, y1, z0, z1 = acts[0].GetBounds()
+            corners = [
+                (x0, y0, z0),
+                (x1, y0, z0),
+                (x1, y1, z0),
+                (x0, y1, z0),
+                (x0, y0, z1),
+                (x1, y0, z1),
+                (x1, y1, z1),
+                (x0, y1, z1),
+            ]
             pcl = acts[0].closestPoint(corners[corner])
             dmin = np.linalg.norm(pcl - corners[corner])
             for tt in rng:
-                d = linInterpolate(tt, [t,t+duration], [dmin, diag*1.01])
-                if d>0:
-                    ids = acts[0].closestPoint(corners[corner],
-                                               radius=d, returnPointId=True)
+                d = linInterpolate(tt, [t, t + duration], [dmin, diag * 1.01])
+                if d > 0:
+                    ids = acts[0].closestPoint(
+                        corners[corner], radius=d, returnPointId=True
+                    )
                     if len(ids) <= acts[0].N():
                         self.events.append((tt, self.meshErode, acts, ids))
         # else:
         #     self._performers[0].deletePoints(self._inputvalues)
         return self
 
+    # def moveCamera(self, camstart=None, camstop=None, t=None, duration=None):
+    #     """
+    #     Smoothly move camera between two ``vtkCamera`` objects.
+    #     """
+    #     if self.bookingMode:
+    #         if camstart is None:
+    #             if not self.camera:
+    #                 vedo.logger.error("in moveCamera(), no camera exist, skip.")
+    #                 return self
+    #             camstart = self.camera
+    #         acts, t, duration, rng = self._parse(None, t, duration)
+    #         p1 = np.array(camstart.GetPosition())
+    #         f1 = np.array(camstart.GetFocalPoint())
+    #         v1 = np.array(camstart.GetViewUp())
+    #         c1 = np.array(camstart.GetClippingRange())
+    #         s1 = camstart.GetDistance()
 
-    def moveCamera(self, camstart=None, camstop=None, t=None, duration=None):
-        """
-        Smoothly move camera between two ``vtkCamera`` objects.
-        """
-        if self.bookingMode:
-            if camstart is None:
-                if not self.camera:
-                    vedo.logger.error("in moveCamera(), no camera exist, skip.")
-                    return self
-                camstart = self.camera
-            acts, t, duration, rng = self._parse(None, t, duration)
-            p1 = np.array(camstart.GetPosition())
-            f1 = np.array(camstart.GetFocalPoint())
-            v1 = np.array(camstart.GetViewUp())
-            c1 = np.array(camstart.GetClippingRange())
-            s1 = camstart.GetDistance()
-
-            p2 = np.array(camstop.GetPosition())
-            f2 = np.array(camstop.GetFocalPoint())
-            v2 = np.array(camstop.GetViewUp())
-            c2 = np.array(camstop.GetClippingRange())
-            s2 = camstop.GetDistance()
-            for tt in rng:
-                np1 = linInterpolate(tt, [t,t+duration], [p1,p2])
-                nf1 = linInterpolate(tt, [t,t+duration], [f1,f2])
-                nv1 = linInterpolate(tt, [t,t+duration], [v1,v2])
-                nc1 = linInterpolate(tt, [t,t+duration], [c1,c2])
-                ns1 = linInterpolate(tt, [t,t+duration], [s1,s2])
-                inps = (np1, nf1, nv1, nc1, ns1)
-                self.events.append((tt, self.moveCamera, acts, inps))
-        else:
-            if not self.camera:
-                return self
-            np1, nf1, nv1, nc1, ns1 = self._inputvalues
-            self.camera.SetPosition(np1)
-            self.camera.SetFocalPoint(nf1)
-            self.camera.SetViewUp(nv1)
-            self.camera.SetClippingRange(nc1)
-            self.camera.SetDistance(ns1)
-        return self
-
+    #         p2 = np.array(camstop.GetPosition())
+    #         f2 = np.array(camstop.GetFocalPoint())
+    #         v2 = np.array(camstop.GetViewUp())
+    #         c2 = np.array(camstop.GetClippingRange())
+    #         s2 = camstop.GetDistance()
+    #         for tt in rng:
+    #             np1 = linInterpolate(tt, [t,t+duration], [p1,p2])
+    #             nf1 = linInterpolate(tt, [t,t+duration], [f1,f2])
+    #             nv1 = linInterpolate(tt, [t,t+duration], [v1,v2])
+    #             nc1 = linInterpolate(tt, [t,t+duration], [c1,c2])
+    #             ns1 = linInterpolate(tt, [t,t+duration], [s1,s2])
+    #             inps = (np1, nf1, nv1, nc1, ns1)
+    #             self.events.append((tt, self.moveCamera, acts, inps))
+    #     else:
+    #         if not self.camera:
+    #             return self
+    #         np1, nf1, nv1, nc1, ns1 = self._inputvalues
+    #         self.camera.SetPosition(np1)
+    #         self.camera.SetFocalPoint(nf1)
+    #         self.camera.SetViewUp(nv1)
+    #         self.camera.SetClippingRange(nc1)
+    #         self.camera.SetDistance(ns1)
+    #     return self
 
     def play(self):
         """Play the internal list of events and save a video."""
@@ -1352,7 +1463,7 @@ class Animation(Plotter):
         self.bookingMode = False
 
         if self.showProgressBar:
-            pb = vedo.ProgressBar(0, len(self.events), c='g')
+            pb = vedo.ProgressBar(0, len(self.events), c="g")
 
         if self.totalDuration is None:
             self.totalDuration = self.events[-1][0] - self.events[0][0]
@@ -1360,13 +1471,13 @@ class Animation(Plotter):
         if self.videoFileName:
             vd = vedo.Video(self.videoFileName, fps=self.videoFPS, duration=self.totalDuration)
 
-        ttlast=0
+        ttlast = 0
         for e in self.events:
 
             tt, action, self._performers, self._inputvalues = e
-            action(0,0)
+            action(0, 0)
 
-            dt = tt-ttlast
+            dt = tt - ttlast
             if dt > self.eps:
                 self.show(interactive=False, resetcam=self.resetcam)
                 if self.videoFileName: vd.addFrame()
@@ -1377,7 +1488,7 @@ class Animation(Plotter):
             ttlast = tt
 
             if self.showProgressBar:
-                pb.print('t='+str(int(tt*100)/100)+'s,  '+action.__name__)
+                pb.print("t=" + str(int(tt * 100) / 100) + "s,  " + action.__name__)
 
         self.show(interactive=False, resetcam=self.resetcam)
         if self.videoFileName:
