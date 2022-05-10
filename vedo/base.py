@@ -681,6 +681,7 @@ class BaseActor(Base3DProp):
         self._caption = None
         self.property = None
 
+
     def mapper(self, newMapper=None):
         """Return the ``vtkMapper`` data object, or update it with a new one."""
         if newMapper:
