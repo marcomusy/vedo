@@ -2,18 +2,14 @@
 # -*- coding: utf-8 -*-
 import os
 import vtk
-from deprecated import deprecated
 import numpy as np
 import vedo
 from vedo.colors import colorMap
 from vedo.colors import getColor
 from vedo.pointcloud import Points
 from vedo.utils import buildPolyData
-from vedo.utils import flatten
-from vedo.utils import isSequence
-from vedo.utils import mag, mag2
-from vedo.utils import numpy2vtk
-from vedo.utils import vtk2numpy
+from vedo.utils import flatten, isSequence, mag, mag2
+from vedo.utils import numpy2vtk, vtk2numpy
 
 __doc__ = """
 Submodule to work with polygonal meshes
@@ -47,7 +43,7 @@ def merge(*meshs, flag=False):
     for i, a in enumerate(acts):
         try:
             poly = a.polydata()
-        except:
+        except AttributeError:
             # so a vtkPolydata can also be passed
             poly = a
         polyapp.AddInputData(poly)
@@ -91,6 +87,7 @@ class Mesh(Points):
     .. hint:: buildmesh.py (and many others!)
         ... image:: https://vedo.embl.es/images/basic/buildmesh.png
     """
+
     def __init__(
         self,
         inputobj=None,
@@ -101,27 +98,32 @@ class Mesh(Points):
 
         self.line_locator = None
 
-        self._mapper.SetInterpolateScalarsBeforeMapping(vedo.settings.interpolateScalarsBeforeMapping)
+        self._mapper.SetInterpolateScalarsBeforeMapping(
+            vedo.settings.interpolateScalarsBeforeMapping
+        )
 
         if vedo.settings.usePolygonOffset:
             self._mapper.SetResolveCoincidentTopologyToPolygonOffset()
-            pof, pou = vedo.settings.polygonOffsetFactor, vedo.settings.polygonOffsetUnits
+            pof, pou = (
+                vedo.settings.polygonOffsetFactor,
+                vedo.settings.polygonOffsetUnits,
+            )
             self._mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
             # self._mapper.SetRelativeCoincidentTopologyPolygonOffsetParameters(pof, pou)
             # self._mapper.SetRelativeCoincidentTopologyLineOffsetParameters(pof, pou)
 
-            #a = vtk.reference(0)
-            #b = vtk.reference(0)
-            #mapper.GetResolveCoincidentTopologyPolygonOffsetParameters(a,b)
-            #mapper.GetRelativeCoincidentTopologyPolygonOffsetParameters(a,b)
-            #print(a,b)
+            # a = vtk.reference(0)
+            # b = vtk.reference(0)
+            # mapper.GetResolveCoincidentTopologyPolygonOffsetParameters(a,b)
+            # mapper.GetRelativeCoincidentTopologyPolygonOffsetParameters(a,b)
+            # print(a,b)
 
         inputtype = str(type(inputobj))
 
         if inputobj is None:
             pass
 
-        elif isinstance(inputobj, Mesh) or isinstance(inputobj, vtk.vtkActor):
+        elif isinstance(inputobj, (Mesh, vtk.vtkActor)):
             polyCopy = vtk.vtkPolyData()
             polyCopy.DeepCopy(inputobj.GetMapper().GetInput())
             self._data = polyCopy
@@ -155,7 +157,7 @@ class Mesh(Points):
             tact = vedo.utils.trimesh2vedo(inputobj)
             self._data = tact.polydata()
 
-        elif "meshio" in inputtype: # meshio-4.0.11
+        elif "meshio" in inputtype:  # meshio-4.0.11
             if len(inputobj.cells):
                 mcells = []
                 for cellblock in inputobj.cells:
@@ -191,11 +193,12 @@ class Mesh(Points):
                 self._data = vtk.vtkPolyData()
             elif ninp == 2:  # assume [vertices, faces]
                 self._data = buildPolyData(inputobj[0], inputobj[1])
-            else:            # assume [vertices] or vertices
+            else:  # assume [vertices] or vertices
                 self._data = buildPolyData(inputobj, None)
 
         elif hasattr(inputobj, "GetOutput"):  # passing vtk object
-            if hasattr(inputobj, "Update"): inputobj.Update()
+            if hasattr(inputobj, "Update"):
+                inputobj.Update()
             if isinstance(inputobj.GetOutput(), vtk.vtkPolyData):
                 self._data = inputobj.GetOutput()
             else:
@@ -237,7 +240,7 @@ class Mesh(Points):
             if c is None:
                 ptdata = self._data.GetPointData()
                 cldata = self._data.GetCellData()
-                exclude = ['normals', 'tcoord']
+                exclude = ["normals", "tcoord"]
 
                 if cldata.GetNumberOfArrays():
                     for i in range(cldata.GetNumberOfArrays()):
@@ -250,7 +253,7 @@ class Mesh(Points):
                                 self._mapper.SetScalarModeToUseCellData()
                                 self._mapper.SetScalarRange(iarr.GetRange())
                                 arrexists = True
-                                break # stop at first good one
+                                break  # stop at first good one
 
                 # point come after so it has priority
                 if ptdata.GetNumberOfArrays():
@@ -264,26 +267,25 @@ class Mesh(Points):
                                 self._mapper.SetScalarModeToUsePointData()
                                 self._mapper.SetScalarRange(iarr.GetRange())
                                 arrexists = True
-                                break # stop at first good one
+                                break  # stop at first good one
 
             if not arrexists:
                 if c is None:
                     c = "gold"
                     c = getColor(c)
-                elif isinstance(c, float) and c<=1:
-                    c = colorMap(c, "rainbow", 0,1)
+                elif isinstance(c, float) and c <= 1:
+                    c = colorMap(c, "rainbow", 0, 1)
                 else:
                     c = getColor(c)
                 self.property.SetColor(c)
                 self.property.SetAmbient(0.1)
                 self.property.SetDiffuse(1)
-                self.property.SetSpecular(.05)
+                self.property.SetSpecular(0.05)
                 self.property.SetSpecularPower(5)
                 self._mapper.ScalarVisibilityOff()
 
         if alpha is not None:
             self.property.SetOpacity(alpha)
-        return
 
 
     def faces(self):
@@ -295,8 +297,8 @@ class Mesh(Points):
         if arr1d is None:
             return []
 
-        #Get cell connettivity ids as a 1D array. vtk format is:
-        #[nids1, id0 ... idn, niids2, id0 ... idm,  etc].
+        # Get cell connettivity ids as a 1D array. vtk format is:
+        # [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
         if len(arr1d) == 0:
             arr1d = vtk2numpy(self._data.GetStrips().GetData())
             if arr1d is None:
@@ -307,17 +309,16 @@ class Mesh(Points):
         n = len(arr1d)
         if n:
             while True:
-                cell = [arr1d[i+k] for k in range(1, arr1d[i]+1)]
+                cell = [arr1d[i + k] for k in range(1, arr1d[i] + 1)]
                 conn.append(cell)
-                i += arr1d[i]+1
+                i += arr1d[i] + 1
                 if i >= n:
                     break
-        return conn # cannot always make a numpy array of it!
+        return conn  # cannot always make a numpy array of it!
 
     def cells(self):
         """Alias for ``faces()``."""
         return self.faces()
-
 
     def lines(self, flat=False):
         """
@@ -329,7 +330,7 @@ class Mesh(Points):
         flat : bool
             return a 1D numpy array as e.g. [2, 10,20, 3, 10,11,12, 2, 70,80, ...]
         """
-        #Get cell connettivity ids as a 1D array. The vtk format is:
+        # Get cell connettivity ids as a 1D array. The vtk format is:
         #    [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
         arr1d = vtk2numpy(self.polydata(False).GetLines().GetData())
 
@@ -342,14 +343,14 @@ class Mesh(Points):
         i = 0
         conn = []
         n = len(arr1d)
-        for idummy in range(n):
-            cell = [arr1d[i+k+1] for k in range(arr1d[i])]
+        for _ in range(n):
+            cell = [arr1d[i + k + 1] for k in range(arr1d[i])]
             conn.append(cell)
-            i += arr1d[i]+1
+            i += arr1d[i] + 1
             if i >= n:
                 break
 
-        return conn # cannot always make a numpy array of it!
+        return conn  # cannot always make a numpy array of it!
 
     def edges(self):
         """Return an array containing the edges connectivity."""
@@ -366,25 +367,25 @@ class Mesh(Points):
         conn = []
         n = len(arr1d)
         for _ in range(n):
-            cell = [arr1d[i+k+1] for k in range(arr1d[i])]
+            cell = [arr1d[i + k + 1] for k in range(arr1d[i])]
             conn.append(cell)
-            i += arr1d[i]+1
+            i += arr1d[i] + 1
             if i >= n:
                 break
-        return conn # cannot always make a numpy array of it!
+        return conn  # cannot always make a numpy array of it!
 
-
-    def texture(self,
-                tname,
-                tcoords=None,
-                interpolate=True,
-                repeat=True,
-                edgeClamp=False,
-                scale=None,
-                ushift=None,
-                vshift=None,
-                seamThreshold=None,
-        ):
+    def texture(
+        self,
+        tname,
+        tcoords=None,
+        interpolate=True,
+        repeat=True,
+        edgeClamp=False,
+        scale=None,
+        ushift=None,
+        vshift=None,
+        seamThreshold=None,
+    ):
         """
         Assign a texture to mesh from image file or predefined texture `tname`.
         If tname is set to ``None`` texture is disabled.
@@ -429,7 +430,7 @@ class Mesh(Points):
         """
         pd = self.polydata(False)
 
-        if not tname:        # disable texture
+        if not tname:  # disable texture
             pd.GetPointData().SetTCoords(None)
             pd.GetPointData().Modified()
             return self  ######################################
@@ -449,7 +450,7 @@ class Mesh(Points):
         elif isinstance(tname, str):
             tu = vtk.vtkTexture()
 
-            if 'https://' in tname:
+            if "https://" in tname:
                 try:
                     tname = vedo.io.download(tname, verbose=False)
                 except:
@@ -471,7 +472,9 @@ class Mesh(Points):
             elif ".bmp" in fnl:
                 reader = vtk.vtkBMPReader()
             else:
-                vedo.logger.error("in texture() supported files are only PNG, BMP or JPG")
+                vedo.logger.error(
+                    "in texture() supported files are only PNG, BMP or JPG"
+                )
                 return self
             reader.SetFileName(fn)
             reader.Update()
@@ -499,7 +502,7 @@ class Mesh(Points):
                 if tcoords.shape[1] != 2:
                     vedo.logger.error("tcoords texture vector must have 2 components")
                 vtarr = numpy2vtk(tcoords)
-                vtarr.SetName('TCoordinates')
+                vtarr.SetName("TCoordinates")
 
             pd.GetPointData().SetTCoords(vtarr)
             pd.GetPointData().Modified()
@@ -514,7 +517,7 @@ class Mesh(Points):
                 vtarr = pd.GetPointData().GetArray(name)
                 if vtarr.GetNumberOfComponents() != 2:
                     continue
-                t0,t1 = vtarr.GetRange()
+                t0, t1 = vtarr.GetRange()
                 if t0 >= 0 and t1 <= 1:
                     candidate_arr = name
 
@@ -533,9 +536,12 @@ class Mesh(Points):
                 tc = tmapper.GetOutput().GetPointData().GetTCoords()
                 if scale or ushift or vshift:
                     ntc = vtk2numpy(tc)
-                    if scale:  ntc *= scale
-                    if ushift: ntc[:,0] += ushift
-                    if vshift: ntc[:,1] += vshift
+                    if scale:
+                        ntc *= scale
+                    if ushift:
+                        ntc[:, 0] += ushift
+                    if vshift:
+                        ntc[:, 1] += vshift
                     tc = numpy2vtk(tc)
                 pd.GetPointData().SetTCoords(tc)
                 pd.GetPointData().Modified()
@@ -555,7 +561,7 @@ class Mesh(Points):
             ugrad, vgrad = np.split(grad, 2, axis=1)
             ugradm, vgradm = vedo.utils.mag2(ugrad), vedo.utils.mag2(vgrad)
             gradm = np.log(ugradm + vgradm)
-            largegrad_ids = np.arange(len(grad))[gradm>seamThreshold*4]
+            largegrad_ids = np.arange(len(grad))[gradm > seamThreshold * 4]
             uvmap = self.pointdata[tname]
             # collapse triangles that have large gradient
             new_points = self.points(transformed=False)
@@ -563,9 +569,9 @@ class Mesh(Points):
                 if np.isin(f, largegrad_ids).all():
                     id1, id2, id3 = f
                     uv1, uv2, uv3 = uvmap[f]
-                    d12 = vedo.mag2(uv1-uv2)
-                    d23 = vedo.mag2(uv2-uv3)
-                    d31 = vedo.mag2(uv3-uv1)
+                    d12 = vedo.mag2(uv1 - uv2)
+                    d23 = vedo.mag2(uv2 - uv3)
+                    d31 = vedo.mag2(uv3 - uv1)
                     idm = np.argmin([d12, d23, d31])
                     if idm == 0:
                         new_points[id1] = new_points[id3]
@@ -578,8 +584,9 @@ class Mesh(Points):
         self.Modified()
         return self
 
-
-    def computeNormals(self, points=True, cells=True, featureAngle=None, consistency=True):
+    def computeNormals(
+        self, points=True, cells=True, featureAngle=None, consistency=True
+    ):
         """
         Compute cell and vertex normals for the mesh.
 
@@ -619,7 +626,6 @@ class Mesh(Points):
         pdnorm.Update()
         return self._update(pdnorm.GetOutput())
 
-
     def reverse(self, cells=True, normals=False):
         """
         Reverse the order of polygonal cells
@@ -638,7 +644,7 @@ class Mesh(Points):
             for cell in cells:
                 poly.ReverseCell(cell)
             poly.GetCellData().Modified()
-            return self ##############
+            return self  ##############
 
         rev = vtk.vtkReverseSense()
         if cells:
@@ -652,7 +658,6 @@ class Mesh(Points):
         rev.SetInputData(poly)
         rev.Update()
         return self._update(rev.GetOutput())
-
 
     def wireframe(self, value=True):
         """Set mesh's representation as wireframe or solid surface."""
@@ -682,6 +687,7 @@ class Mesh(Points):
         return self
 
     def renderLinesAsTubes(self, value=True):
+        """Wrap a fake tube around a simple line for visualization"""
         self.property.SetRenderLinesAsTubes(value)
         return self
 
@@ -714,7 +720,7 @@ class Mesh(Points):
         return self
 
     def bc(self, backColor=False):
-        """Shortcut for `mesh.backColor()`. """
+        """Shortcut for `mesh.backColor()`."""
         return self.backColor(backColor)
 
     def lineWidth(self, lw=None):
@@ -774,7 +780,6 @@ class Mesh(Points):
         ne = featureEdges.GetOutput().GetNumberOfCells()
         return not bool(ne)
 
-
     def shrink(self, fraction=0.85):
         """Shrink the triangle polydata in the representation of the input mesh.
 
@@ -797,7 +802,6 @@ class Mesh(Points):
         self.cell_locator = None
         return self._update(shrink.GetOutput())
 
-
     def stretch(self, q1, q2):
         """Stretch mesh between points `q1` and `q2`.
 
@@ -808,7 +812,9 @@ class Mesh(Points):
             and ``mesh.top`` are always defined.
         """
         if self.base is None:
-            vedo.logger.error("in stretch() must define vectors mesh.base and mesh.top at creation")
+            vedo.logger.error(
+                "in stretch() must define vectors mesh.base and mesh.top at creation"
+            )
             raise RuntimeError()
 
         p1, p2 = self.base, self.top
@@ -831,12 +837,16 @@ class Mesh(Points):
         self.SetUserMatrix(T.GetMatrix())
         return self
 
-    def crop(self,
-             top=None, bottom=None,
-             right=None, left=None,
-             front=None, back=None,
-             bounds=None,
-        ):
+    def crop(
+        self,
+        top=None,
+        bottom=None,
+        right=None,
+        left=None,
+        front=None,
+        back=None,
+        bounds=None,
+    ):
         """
         Crop an ``Mesh`` object.
 
@@ -878,21 +888,33 @@ class Mesh(Points):
         x1, y1, z1 = [x1, y1, z1] - pos
 
         if bounds is None:
-            dx, dy, dz = x1-x0, y1-y0, z1-z0
-            if top:    z1 = z1 - top*dz
-            if bottom: z0 = z0 + bottom*dz
-            if front:  y1 = y1 - front*dy
-            if back:   y0 = y0 + back*dy
-            if right:  x1 = x1 - right*dx
-            if left:   x0 = x0 + left*dx
+            dx, dy, dz = x1 - x0, y1 - y0, z1 - z0
+            if top:
+                z1 = z1 - top * dz
+            if bottom:
+                z0 = z0 + bottom * dz
+            if front:
+                y1 = y1 - front * dy
+            if back:
+                y0 = y0 + back * dy
+            if right:
+                x1 = x1 - right * dx
+            if left:
+                x0 = x0 + left * dx
             bounds = (x0, x1, y0, y1, z0, z1)
         else:
-            if bounds[0] is None: bounds[0] = x0
-            if bounds[1] is None: bounds[1] = x1
-            if bounds[2] is None: bounds[2] = y0
-            if bounds[3] is None: bounds[3] = y1
-            if bounds[4] is None: bounds[4] = z0
-            if bounds[5] is None: bounds[5] = z1
+            if bounds[0] is None:
+                bounds[0] = x0
+            if bounds[1] is None:
+                bounds[1] = x1
+            if bounds[2] is None:
+                bounds[2] = y0
+            if bounds[3] is None:
+                bounds[3] = y1
+            if bounds[4] is None:
+                bounds[4] = z0
+            if bounds[5] is None:
+                bounds[5] = z1
         cu.SetBounds(bounds)
 
         clipper = vtk.vtkClipPolyData()
@@ -907,12 +929,12 @@ class Mesh(Points):
         return self
 
     def cutWithPointLoop(
-            self,
-            points,
-            invert=False,
-            on='points',
-            includeBoundary=False,
-        ):
+        self,
+        points,
+        invert=False,
+        on="points",
+        includeBoundary=False,
+    ):
         """
         Cut an ``Mesh`` object with a set of points forming a closed loop.
 
@@ -934,13 +956,13 @@ class Mesh(Points):
             points = points.points()
         else:
             vpts = vtk.vtkPoints()
-            if len(points[0])==2: # make it 3d
+            if len(points[0]) == 2:  # make it 3d
                 points = np.asarray(points)
                 points = np.c_[points, np.zeros(len(points))]
             for p in points:
                 vpts.InsertNextPoint(p)
 
-        if 'cell' in on:
+        if "cell" in on:
             ippd = vtk.vtkImplicitSelectionLoop()
             ippd.SetLoop(vpts)
             ippd.AutomaticNormalGenerationOn()
@@ -978,7 +1000,6 @@ class Mesh(Points):
             tf.Update()
             self._update(tf.GetOutput())
         return self
-
 
     def cap(self, returnCap=False):
         """
@@ -1028,7 +1049,6 @@ class Mesh(Points):
             polyapp.AddInputData(tf.GetOutput())
             polyapp.Update()
             return self._update(polyapp.GetOutput()).clean()
-
 
     def join(self, polys=True, reset=False):
         """
@@ -1091,7 +1111,6 @@ class Mesh(Points):
         else:
             return self._update(sf.GetOutput())
 
-
     def triangulate(self, verts=True, lines=True):
         """
         Converts mesh polygons into triangles.
@@ -1141,7 +1160,6 @@ class Mesh(Points):
         csf.Update()
         return self._update(csf.GetOutput())
 
-
     def addCellVertexCount(self, name="VertexCount"):
         """Add to this mesh a cell data array containing the nr of vertices
         that a polygonal face has."""
@@ -1155,14 +1173,12 @@ class Mesh(Points):
         csf.Update()
         return self._update(csf.GetOutput())
 
-
-    def addArcLength(self, mesh, name="ArcLength"):
+    def addArcLength(self, mesh):
         """Given a mesh, add the length of the arc intersecting each point of the line."""
         arcl = vtk.vtkAppendArcLength()
         arcl.SetInputData(mesh.polydata())
         arcl.Update()
         return self._update(arcl.GetOutput())
-
 
     def addQuality(self, measure=6):
         """
@@ -1219,7 +1235,6 @@ class Mesh(Points):
         self._update(pd)
         return self
 
-
     def addCurvatureScalars(self, method=0):
         """
         Add scalars to ``Mesh`` that contains the
@@ -1255,8 +1270,9 @@ class Mesh(Points):
         cf.Update()
         return self._update(cf.GetOutput())
 
-
-    def addElevationScalars(self, lowPoint=(0,0,0), highPoint=(0,0,1), vrange=(0,1)):
+    def addElevationScalars(
+        self, lowPoint=(0, 0, 0), highPoint=(0, 0, 1), vrange=(0, 1)
+    ):
         """
         Add to ``Mesh`` a scalar array that contains distance along a specified direction.
 
@@ -1290,16 +1306,15 @@ class Mesh(Points):
         self._mapper.ScalarVisibilityOn()
         return self
 
-
     def addShadow(
-            self,
-            plane,
-            point,
-            direction=None,
-            c=(0.6,0.6,0.6),
-            alpha=1,
-            culling=0,
-        ):
+        self,
+        plane,
+        point,
+        direction=None,
+        c=(0.6, 0.6, 0.6),
+        alpha=1,
+        culling=0,
+    ):
         """
         Generate a shadow out of an ``Mesh`` on one of the three Cartesian planes.
         The output is a new ``Mesh`` representing the shadow.
@@ -1331,24 +1346,24 @@ class Mesh(Points):
         shad = self.clone()
         shad.name = "Shadow"
         pts = shad.points()
-        if   'x' == plane:
+        if "x" == plane:
             # shad = shad.projectOnPlane('x')
             # instead do it manually so in case of alpha<1 we dont see glitches due to coplanar points
             # we leave a small tolerance of 0.1% in thickness
-            x0,x1 = self.xbounds()
-            pts[:,0] = (pts[:,0]-(x0+x1)/2)/1000 + self.GetOrigin()[0]
+            x0, x1 = self.xbounds()
+            pts[:, 0] = (pts[:, 0] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[0]
             shad.points(pts)
             shad.x(point)
-        elif 'y' == plane:
+        elif "y" == plane:
             # shad = shad.projectOnPlane('y')
-            x0,x1 = self.ybounds()
-            pts[:,1] = (pts[:,1]-(x0+x1)/2)/1000 + self.GetOrigin()[1]
+            x0, x1 = self.ybounds()
+            pts[:, 1] = (pts[:, 1] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[1]
             shad.points(pts)
             shad.y(point)
-        elif 'z' == plane:
+        elif "z" == plane:
             # shad = shad.projectOnPlane('z')
-            x0,x1 = self.zbounds()
-            pts[:,2] = (pts[:,2]-(x0+x1)/2)/1000 + self.GetOrigin()[2]
+            x0, x1 = self.zbounds()
+            pts[:, 2] = (pts[:, 2] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[2]
             shad.points(pts)
             shad.z(point)
         else:
@@ -1356,9 +1371,9 @@ class Mesh(Points):
 
         shad.c(c).alpha(alpha).flat()
 
-        if culling==1 or culling==True:
+        if culling in (1, True):
             shad.frontFaceCulling()
-        elif culling==-1:
+        elif culling == -1:
             shad.backFaceCulling()
 
         shad.GetProperty().LightingOff()
@@ -1369,7 +1384,6 @@ class Mesh(Points):
             self.shadows.append(shad)
             shad.info = dict(plane=plane, point=point, direction=direction)
         return self
-
 
     def subdivide(self, N=1, method=0, mel=None):
         """
@@ -1395,7 +1409,7 @@ class Mesh(Points):
         elif method == 2:
             sdf = vtk.vtkAdaptiveSubdivisionFilter()
             if mel is None:
-                mel = self.diagonalSize() / np.sqrt(self._data.GetNumberOfPoints())/N
+                mel = self.diagonalSize() / np.sqrt(self._data.GetNumberOfPoints()) / N
             sdf.SetMaximumEdgeLength(mel)
         elif method == 3:
             sdf = vtk.vtkButterflySubdivisionFilter()
@@ -1409,7 +1423,7 @@ class Mesh(Points):
         sdf.Update()
         return self._update(sdf.GetOutput())
 
-    def decimate(self, fraction=0.5, N=None, method='quadric', boundaries=False):
+    def decimate(self, fraction=0.5, N=None, method="quadric", boundaries=False):
         """
         Downsample the number of vertices in a mesh to `fraction`.
 
@@ -1441,7 +1455,7 @@ class Mesh(Points):
             if fraction >= 1:
                 return self
 
-        if 'quad' in method:
+        if "quad" in method:
             decimate = vtk.vtkQuadricDecimation()
             # decimate.SetAttributeErrorMetric(True)
             # if self.GetTexture():
@@ -1464,38 +1478,39 @@ class Mesh(Points):
     def collapseEdges(self, distance, iterations=1):
         """Collapse mesh edges so that are all above distance."""
         self.clean()
-        x0,x1,y0,y1,z0,z1 = self.GetBounds()
-        fs = min(x1-x0, y1-y0, z1-z0)/10
+        x0, x1, y0, y1, z0, z1 = self.GetBounds()
+        fs = min(x1 - x0, y1 - y0, z1 - z0) / 10
         d2 = distance * distance
         if distance > fs:
-            vedo.logger.error(f"distance parameter is too large, should be < {fs}, skip!")
+            vedo.logger.error(
+                f"distance parameter is too large, should be < {fs}, skip!"
+            )
             return self
-        for i in range(iterations):
+        for _ in range(iterations):
             medges = self.edges()
             pts = self.points()
             newpts = np.array(pts)
-            moved=[]
+            moved = []
             for e in medges:
                 if len(e) == 2:
                     id0, id1 = e
                     p0, p1 = pts[id0], pts[id1]
-                    d = mag2(p1-p0)
+                    d = mag2(p1 - p0)
                     if d < d2 and id0 not in moved and id1 not in moved:
-                        p = (p0+p1)/2
+                        p = (p0 + p1) / 2
                         newpts[id0] = p
                         newpts[id1] = p
-                        moved += [id0,id1]
+                        moved += [id0, id1]
 
             self.points(newpts)
             self.clean()
-        self.computeNormals()#.flat()
+        self.computeNormals()  # .flat()
         return self
 
-    @deprecated(reason=vedo.colors.red+"Please use smooth()"+vedo.colors.reset)
-    def smoothLaplacian(self, niter=15, relaxfact=0.1, edgeAngle=15, featureAngle=60, boundary=False):
-        return self.smooth(niter, passBand=0.1, edgeAngle=edgeAngle, boundary=boundary)
 
-    def smooth(self, niter=15, passBand=0.1, edgeAngle=15, featureAngle=60, boundary=False):
+    def smooth(
+        self, niter=15, passBand=0.1, edgeAngle=15, featureAngle=60, boundary=False
+    ):
         """
         Adjust mesh point positions using the `Windowed Sinc` function interpolation kernel.
 
@@ -1533,7 +1548,6 @@ class Mesh(Points):
         smoothFilter.Update()
         return self._update(smoothFilter.GetOutput())
 
-
     def fillHoles(self, size=None):
         """
         Identifies and fills holes in input mesh.
@@ -1556,7 +1570,6 @@ class Mesh(Points):
         fh.Update()
         return self._update(fh.GetOutput())
 
-
     def isInside(self, point, tol=1e-05):
         """Return True if point is inside a polydata closed surface."""
         poly = self.polydata()
@@ -1571,7 +1584,6 @@ class Mesh(Points):
         sep.SetSurfaceData(poly)
         sep.Update()
         return sep.IsInside(0)
-
 
     def insidePoints(self, pts, invert=False, tol=1e-05, returnIds=False):
         """
@@ -1608,7 +1620,7 @@ class Mesh(Points):
 
         if isinstance(pts, Points):
             varr.SetName("IsInside")
-            pts._data.GetPointData().AddArray(varr)
+            pts.inputdata().GetPointData().AddArray(varr)
 
         if returnIds:
             return ids
@@ -1618,13 +1630,13 @@ class Mesh(Points):
             return pcl
 
     def boundaries(
-            self,
-            boundaryEdges=True,
-            nonManifoldEdges=False,
-            featureAngle=180,
-            returnPointIds=False,
-            returnCellIds=False,
-        ):
+        self,
+        boundaryEdges=True,
+        nonManifoldEdges=False,
+        featureAngle=180,
+        returnPointIds=False,
+        returnCellIds=False,
+    ):
         """
         Return the boundary lines of an input mesh.
 
@@ -1678,8 +1690,7 @@ class Mesh(Points):
 
             fe.SetInputData(self.polydata())
             fe.Update()
-            return Mesh(fe.GetOutput(), c="p").lw(5).lighting('off')
-
+            return Mesh(fe.GetOutput(), c="p").lw(5).lighting("off")
 
     def imprint(self, loopline, tol=0.01):
         """
@@ -1720,7 +1731,6 @@ class Mesh(Points):
         imp.Update()
         return self._update(imp.GetOutput())
 
-
     def connectedVertices(self, index, returnIds=False):
         """Find all vertices connected to an input vertex specified by its index.
 
@@ -1755,7 +1765,6 @@ class Mesh(Points):
                 poly.GetPoints().GetPoint(i, p)
                 trgp.append(p)
             return np.array(trgp)
-
 
     def connectedCells(self, index, returnIds=False):
         """Find all cellls connected to an input vertex specified by its index."""
@@ -1816,7 +1825,7 @@ class Mesh(Points):
             self.line_locator = vtk.vtkOBBTree()
             self.line_locator.SetDataSet(self.polydata())
             if not tol:
-                tol = mag(np.asarray(p1)-np.asarray(p0))/10000
+                tol = mag(np.asarray(p1) - np.asarray(p0)) / 10000
             self.line_locator.SetTolerance(tol)
             self.line_locator.BuildLocator()
 
@@ -1838,7 +1847,6 @@ class Mesh(Points):
             return np.array(pts_ids)
         else:
             return pts
-
 
     def silhouette(self, direction=None, borderEdges=True, featureAngle=False):
         """
@@ -1872,20 +1880,18 @@ class Mesh(Points):
             sil.SetEnableFeatureAngle(1)
             sil.SetFeatureAngle(featureAngle)
 
-        if (direction is None
-            and vedo.plotter_instance
-            and vedo.plotter_instance.camera):
+        if direction is None and vedo.plotter_instance and vedo.plotter_instance.camera:
             sil.SetCamera(vedo.plotter_instance.camera)
             m = Mesh()
-            m._mapper.SetInputConnection(sil.GetOutputPort())
+            m.mapper().SetInputConnection(sil.GetOutputPort())
 
         elif isinstance(direction, vtk.vtkCamera):
             sil.SetCamera(direction)
             m = Mesh()
-            m._mapper.SetInputConnection(sil.GetOutputPort())
+            m.mapper().SetInputConnection(sil.GetOutputPort())
 
-        elif direction == '2d':
-            sil.SetVector(3.4,4.5,5.6) # random
+        elif direction == "2d":
+            sil.SetVector(3.4, 4.5, 5.6)  # random
             sil.SetDirectionToSpecifiedVector()
             sil.Update()
             m = Mesh(sil.GetOutput())
@@ -1900,10 +1906,9 @@ class Mesh(Points):
             vedo.logger.error("first render the scene with show() or specify camera/direction")
             return self
 
-        m.lw(2).c((0,0,0)).lighting('off')
-        m._mapper.SetResolveCoincidentTopologyToPolygonOffset()
+        m.lw(2).c((0, 0, 0)).lighting("off")
+        m.mapper().SetResolveCoincidentTopologyToPolygonOffset()
         return m
-
 
     def followCamera(self, cam=None):
         """
@@ -1924,9 +1929,8 @@ class Mesh(Points):
                 self.SetCamera(plt.camera)
             else:
                 # postpone to show() call
-                self._set2actcam=True
+                self._set2actcam = True
         return self
-
 
     def isobands(self, n=10, vmin=None, vmax=None):
         """
@@ -1956,7 +1960,7 @@ class Mesh(Points):
 
         # --------------------------------
         bands = []
-        dx = (vmax - vmin)/float(n)
+        dx = (vmax - vmin) / float(n)
         b = [vmin, vmin + dx / 2.0, vmin + dx]
         i = 0
         while i < n:
@@ -1968,7 +1972,7 @@ class Mesh(Points):
         lut = self.mapper().GetLookupTable()
         labels = []
         for b in bands:
-            labels.append('{:4.2f}'.format(b[1]))
+            labels.append("{:4.2f}".format(b[1]))
         values = vtk.vtkVariantArray()
         for la in labels:
             values.InsertNextValue(vtk.vtkVariant(la))
@@ -1988,7 +1992,6 @@ class Mesh(Points):
         m1 = Mesh(bcf.GetOutput()).computeNormals(cells=True)
         m1.mapper().SetLookupTable(lut)
         return m1
-
 
     def isolines(self, n=10, vmin=None, vmax=None):
         """
@@ -2024,10 +2027,9 @@ class Mesh(Points):
         cl = vtk.vtkCleanPolyData()
         cl.SetInputData(sf.GetOutput())
         cl.Update()
-        msh = Mesh(cl.GetOutput(), c="k").lighting('off')
-        msh._mapper.SetResolveCoincidentTopologyToPolygonOffset()
+        msh = Mesh(cl.GetOutput(), c="k").lighting("off")
+        msh.mapper().SetResolveCoincidentTopologyToPolygonOffset()
         return msh
-
 
     def extrude(self, zshift=1, rotation=0, dR=0, cap=True, res=1):
         """
@@ -2072,7 +2074,7 @@ class Mesh(Points):
         else:
             rf = vtk.vtkRotationalExtrusionFilter()
             # rf = vtk.vtkLinearExtrusionFilter()
-            rf.SetInputData(self.polydata(False)) #must not be transformed
+            rf.SetInputData(self.polydata(False))  # must not be transformed
             rf.SetResolution(res)
             rf.SetCapping(cap)
             rf.SetAngle(rotation)
@@ -2090,7 +2092,6 @@ class Mesh(Points):
             m.SetOrientation(self.GetOrientation())
             m.SetPosition(self.GetPosition())
             return m.computeNormals(cells=False).phong()
-
 
     def split(self, maxdepth=1000, flag=False):
         """
@@ -2138,7 +2139,6 @@ class Mesh(Points):
             blist.append(l[0])
         return blist
 
-
     def extractLargestRegion(self):
         """
         Extract the largest connected part of a mesh and discard all the smaller pieces.
@@ -2161,7 +2161,7 @@ class Mesh(Points):
         m.SetOrientation(self.GetOrientation())
         m.SetPosition(self.GetPosition())
         vis = self._mapper.GetScalarVisibility()
-        m._mapper.SetScalarVisibility(vis)
+        m.mapper().SetScalarVisibility(vis)
         return m
 
     def boolean(self, operation, mesh2):
@@ -2181,15 +2181,14 @@ class Mesh(Points):
             bf.SetOperationToIntersection()
         elif operation.lower() == "minus" or operation.lower() == "-":
             bf.SetOperationToDifference()
-        #bf.ReorientDifferenceCellsOn()
+        # bf.ReorientDifferenceCellsOn()
         bf.SetInputData(0, poly1)
         bf.SetInputData(1, poly2)
         bf.Update()
         mesh = Mesh(bf.GetOutput(), c=None)
         mesh.flat()
-        mesh.name = self.name+operation+mesh2.name
+        mesh.name = self.name + operation + mesh2.name
         return mesh
-
 
     def intersectWith(self, mesh2, tol=1e-06):
         """
@@ -2207,14 +2206,14 @@ class Mesh(Points):
             poly2 = mesh2.polydata()
         else:
             poly2 = mesh2.GetMapper().GetInput()
+        bf.SetTolerance(tol)
         bf.SetInputData(0, poly1)
         bf.SetInputData(1, poly2)
         bf.Update()
-        mesh = Mesh(bf.GetOutput(), "k", 1).lighting('off')
+        mesh = Mesh(bf.GetOutput(), "k", 1).lighting("off")
         mesh.GetProperty().SetLineWidth(3)
         mesh.name = "surfaceIntersection"
         return mesh
-
 
     def geodesic(self, start, end):
         """
@@ -2236,11 +2235,11 @@ class Mesh(Points):
             cc = self.points()
             pa = Points(cc)
             start = pa.closestPoint(start, returnPointId=True)
-            end   = pa.closestPoint(end,   returnPointId=True)
+            end = pa.closestPoint(end, returnPointId=True)
 
         dijkstra = vtk.vtkDijkstraGraphGeodesicPath()
         dijkstra.SetInputData(self.polydata())
-        dijkstra.SetStartVertex(end) # inverted in vtk
+        dijkstra.SetStartVertex(end)  # inverted in vtk
         dijkstra.SetEndVertex(start)
         dijkstra.Update()
 
@@ -2266,7 +2265,7 @@ class Mesh(Points):
         poly.GetPointData().AddArray(vdata2)
         poly.GetPointData().Modified()
 
-        dmesh = Mesh(poly, c='k')
+        dmesh = Mesh(poly, c="k")
         prop = vtk.vtkProperty()
         prop.DeepCopy(self.property)
         prop.SetLineWidth(3)
@@ -2279,7 +2278,7 @@ class Mesh(Points):
     #####################################################################
     ### Stuff returning a Volume
     ###
-    def binarize(self, spacing=(1,1,1), invert=False):
+    def binarize(self, spacing=(1, 1, 1), invert=False):
         """
         Convert a ``Mesh`` into a ``Volume``
         where the foreground (exterior) voxels value is 255 and the background
@@ -2340,7 +2339,7 @@ class Mesh(Points):
         imgstenc.Update()
         return vedo.Volume(imgstenc.GetOutput())
 
-    def signedDistance(self, bounds=None, dims=(20,20,20), invert=False):
+    def signedDistance(self, bounds=None, dims=(20, 20, 20), invert=False, maxradius=None):
         """
         Compute the ``Volume`` object whose voxels contains the signed distance from
         the mesh.
@@ -2358,11 +2357,15 @@ class Mesh(Points):
 
         .. hint:: examples/volumetric/volumeFromMesh.py
         """
+        if maxradius is not None:
+            vedo.logger.warning(
+                "in signedDistance(maxradius=...) is ignored. (Only valid for pointclouds)."
+            )
         if bounds is None:
             bounds = self.GetBounds()
-        sx = (bounds[1]-bounds[0])/dims[0]
-        sy = (bounds[3]-bounds[2])/dims[1]
-        sz = (bounds[5]-bounds[4])/dims[2]
+        sx = (bounds[1] - bounds[0]) / dims[0]
+        sy = (bounds[3] - bounds[2]) / dims[1]
+        sz = (bounds[5] - bounds[4]) / dims[2]
 
         img = vtk.vtkImageData()
         img.SetDimensions(dims)
@@ -2377,29 +2380,29 @@ class Mesh(Points):
         d0, d1, d2 = dims
 
         for i in range(d0):
-            x = i*sx+bounds[0]
+            x = i * sx + bounds[0]
             for j in range(d1):
-                y = j*sy+b2
+                y = j * sy + b2
                 for k in range(d2):
-                    v = imp.EvaluateFunction((x, y, k*sz+b4))
+                    v = imp.EvaluateFunction((x, y, k * sz + b4))
                     if invert:
                         v = -v
-                    img.SetScalarComponentFromFloat(i,j,k, 0, v)
+                    img.SetScalarComponentFromFloat(i, j, k, 0, v)
 
         vol = vedo.Volume(img)
         vol.name = "SignedVolume"
         return vol
 
     def tetralize(
-            self,
-            side=0.02,
-            nmax=300_000,
-            gap=None,
-            subsample=False,
-            uniform=True,
-            seed=0,
-            debug=False,
-        ):
+        self,
+        side=0.02,
+        nmax=300_000,
+        gap=None,
+        subsample=False,
+        uniform=True,
+        seed=0,
+        debug=False,
+    ):
         """
         Tetralize a closed polygonal mesh. Return a `TetMesh`.
 
@@ -2434,23 +2437,27 @@ class Mesh(Points):
         surf = self.clone().clean().computeNormals()
         d = surf.diagonalSize()
         if gap is None:
-            gap = side  * d * np.sqrt(2/3)
-        n = int(min((1/side)**3, nmax))
+            gap = side * d * np.sqrt(2 / 3)
+        n = int(min((1 / side) ** 3, nmax))
 
         # fill the space w/ points
-        x0,x1, y0,y1, z0,z1 = surf.bounds()
+        x0, x1, y0, y1, z0, z1 = surf.bounds()
 
         if uniform:
-            pts = vedo.utils.packSpheres([x0,x1, y0,y1, z0,z1], side*d*1.42)
-            pts += np.random.randn(len(pts),3) * side*d*1.42/100 # some small jitter
+            pts = vedo.utils.packSpheres([x0, x1, y0, y1, z0, z1], side * d * 1.42)
+            pts += (
+                np.random.randn(len(pts), 3) * side * d * 1.42 / 100
+            )  # some small jitter
         else:
-            disp = np.array([x0+x1, y0+y1, z0+z1])/2
+            disp = np.array([x0 + x1, y0 + y1, z0 + z1]) / 2
             np.random.seed(seed)
-            pts = (np.random.rand(n,3)-0.5) * np.array([x1-x0, y1-y0, z1-z0]) + disp
+            pts = (np.random.rand(n, 3) - 0.5) * np.array(
+                [x1 - x0, y1 - y0, z1 - z0]
+            ) + disp
 
         normals = surf.celldata["Normals"]
         cc = surf.cellCenters()
-        subpts = cc - normals * gap*1.05
+        subpts = cc - normals * gap * 1.05
         pts = pts.tolist() + subpts.tolist()
 
         if debug:
@@ -2473,23 +2480,30 @@ class Mesh(Points):
         ins = np.zeros(tmesh.NCells())
         ins[ids] = 1
         if debug:
-            from vedo.pyplot import histogram
 
-            #histogram(fillpts.pointdata["Distance"], xtitle=f"gap={gap}").show().close()
+            # vedo.pyplot.histogram(fillpts.pointdata["Distance"], xtitle=f"gap={gap}").show().close()
 
             edges = self.edges()
             points = self.points()
-            elen = mag(points[edges][:,0,:] - points[edges][:,1,:])
-            histo = histogram(elen, xtitle='edge length', xlim=(0,3*side*d))
+            elen = mag(points[edges][:, 0, :] - points[edges][:, 1, :])
+            histo = vedo.pyplot.histogram(elen, xtitle="edge length", xlim=(0, 3 * side * d))
             print(".. edges min, max", elen.min(), elen.max())
-            fillpts.cmap('bone')
+            fillpts.cmap("bone")
             vedo.show([
-                        [f"This is a debug plot.\n\nGenerated points: {n}\ngap: {gap}",
-                        surf.wireframe().alpha(0.2), vedo.addons.Axes(surf),
-                        fillpts, Points(subpts).c('r4').ps(3)
-                        ],
-                       [histo, f"Edges mean length: {np.mean(elen)}\n\nPress q to continue"],
-                      ], N=2, sharecam=False, new=True).close()
+                    [   f"This is a debug plot.\n\nGenerated points: {n}\ngap: {gap}",
+                        surf.wireframe().alpha(0.2),
+                        vedo.addons.Axes(surf),
+                        fillpts,
+                        Points(subpts).c("r4").ps(3),
+                    ],
+                    [   histo,
+                        f"Edges mean length: {np.mean(elen)}\n\nPress q to continue",
+                    ],
+                ],
+                N=2,
+                sharecam=False,
+                new=True,
+            ).close()
             print(".. thresholding")
 
         tmesh.celldata["inside"] = ins.astype(np.uint8)
