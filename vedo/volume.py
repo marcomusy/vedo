@@ -1,12 +1,13 @@
 import glob
 import os
+from deprecated import deprecated
 
 import numpy as np
-import vedo
-import vedo.colors as colors
-import vedo.utils as utils
 import vtk
-from deprecated import deprecated
+
+import vedo
+from vedo import colors
+from vedo import utils
 from vedo.base import Base3DProp
 from vedo.base import BaseGrid
 from vedo.mesh import Mesh
@@ -17,22 +18,24 @@ Work with volumetric datasets (voxel data) <br>
 """
 
 __all__ = [
-    "BaseVolume",          # included to generate documentation in pydoc
+    "BaseVolume",  # included to generate documentation in pydoc
     "Volume",
     "VolumeSlice",
-    "volumeFromMesh",      #deprecated
-    "interpolateToVolume", #deprecated
+    "volumeFromMesh",  # deprecated
+    "interpolateToVolume",  # deprecated
 ]
 
 
 ##########################################################################
-@deprecated(reason=colors.red+"Please use mesh.signedVolume()"+colors.reset)
+@deprecated(reason=colors.red + "Please use mesh.signedVolume()" + colors.reset)
 def volumeFromMesh(mesh, **kwargs):
     """Deprecated. Please use ``mesh.signedVolume()``"""
-    return mesh.signedVolume(bounds=kwargs['bounds'], dims=kwargs['dims'],
-                             invert=kwargs['negate'])
+    return mesh.signedVolume(
+        bounds=kwargs["bounds"], dims=kwargs["dims"], invert=kwargs["negate"]
+    )
 
-@deprecated(reason=colors.red+"Please use Points.tovolume()"+colors.reset)
+
+@deprecated(reason=colors.red + "Please use Points.tovolume()" + colors.reset)
 def interpolateToVolume(mesh, **kwargs):
     """Deprecated. Please use ``Points.tovolume()``"""
     return mesh.tovolume(**kwargs)
@@ -41,7 +44,8 @@ def interpolateToVolume(mesh, **kwargs):
 ##########################################################################
 class BaseVolume:
     """Base class. Do not instantiate."""
-    def __init__(self, inputobj=None):
+
+    def __init__(self):
         self._data = None
         self._mapper = None
 
@@ -72,7 +76,7 @@ class BaseVolume:
         """Return the underlying `vtkImagaData` object."""
         return self._data
 
-    @deprecated(reason=colors.red+"Please use tonumpy()"+colors.reset)
+    @deprecated(reason=colors.red + "Please use tonumpy()" + colors.reset)
     def getDataArray(self):
         """Deprecated. Please use tonumpy()"""
         return self.tonumpy()
@@ -128,19 +132,19 @@ class BaseVolume:
         Position is reset to (0,0,0)."""
         if center is not None:
             cn = self._data.GetCenter()
-            self._data.SetOrigin(-np.array(cn)/2)
+            self._data.SetOrigin(-np.array(cn) / 2)
             self._update(self._data)
-            self.pos(0,0,0)
+            self.pos(0, 0, 0)
             return self
         else:
             return np.array(self._data.GetCenter())
 
-    def permuteAxes(self, x, y ,z):
+    def permuteAxes(self, x, y, z):
         """Reorder the axes of the Volume by specifying
         the input axes which are supposed to become the new X, Y, and Z."""
         imp = vtk.vtkImagePermute()
-        imp.SetFilteredAxes(x,y,z)
-        imp. SetInputData(self.imagedata())
+        imp.SetFilteredAxes(x, y, z)
+        imp.SetInputData(self.imagedata())
         imp.Update()
         return self._update(imp.GetOutput())
 
@@ -170,7 +174,6 @@ class BaseVolume:
         rsp.Update()
         return self._update(rsp.GetOutput())
 
-
     def interpolation(self, itype):
         """
         Set interpolation type.
@@ -191,7 +194,7 @@ class BaseVolume:
 
         # sanity checks
         if above is not None and below is not None:
-            if above==below:
+            if above == below:
                 return self
             if above > below:
                 vedo.logger.warning("in volume.threshold(), above > below, skip.")
@@ -223,7 +226,6 @@ class BaseVolume:
         th.Update()
         out = th.GetOutput()
         return self._update(out)
-
 
     def crop(
             self,
@@ -264,7 +266,7 @@ class BaseVolume:
         extractVOI = vtk.vtkExtractVOI()
         extractVOI.SetInputData(self.imagedata())
 
-        if len(VOI):
+        if VOI:
             extractVOI.SetVOI(VOI)
         else:
             d = self.imagedata().GetDimensions()
@@ -279,7 +281,7 @@ class BaseVolume:
         extractVOI.Update()
         return self._update(extractVOI.GetOutput())
 
-    def append(self, volumes, axis='z', preserveExtents=False):
+    def append(self, volumes, axis="z", preserveExtents=False):
         """
         Take the components from multiple inputs and merges them into one output.
         Except for the append axis, all inputs must have the same extent.
@@ -314,9 +316,9 @@ class BaseVolume:
             if isinstance(volume, vtk.vtkImageData):
                 ima.AddInputData(volume)
             else:
-                ima.AddInputData(volume._data)
+                ima.AddInputData(volume.imagedata())
         ima.SetPreserveExtents(preserveExtents)
-        if axis   == "x":
+        if axis == "x":
             axis = 0
         elif axis == "y":
             axis = 1
@@ -336,7 +338,7 @@ class BaseVolume:
         rsz.SetOutputDimensions(newdims)
         rsz.Update()
         self._data = rsz.GetOutput()
-        new_spac = old_spac * old_dims/newdims  # keep aspect ratio
+        new_spac = old_spac * old_dims / newdims  # keep aspect ratio
         self._data.SetSpacing(new_spac)
         return self._update(self._data)
 
@@ -377,7 +379,6 @@ class BaseVolume:
         ff.Update()
         return self._update(ff.GetOutput())
 
-
     def operation(self, operation, volume2=None):
         """
         Perform operations with ``Volume`` objects. Keyword `volume2` can be a constant float.
@@ -404,7 +405,7 @@ class BaseVolume:
         elif op in ["dot", "dotproduct"]:
             mf = vtk.vtkImageDotProduct()
             mf.SetInput1Data(image1)
-            mf.SetInput2Data(volume2._data)
+            mf.SetInput2Data(volume2.imagedata())
             mf.Update()
             return Volume(mf.GetOutput())
         elif op in ["grad", "gradient"]:
@@ -435,7 +436,7 @@ class BaseVolume:
             mat.SetConstantK(K)
             mat.SetConstantC(K)
         elif volume2 is not None:  # assume image2 is a constant value
-            mat.SetInput2Data(volume2._data)
+            mat.SetInput2Data(volume2.imagedata())
 
         if op in ["+", "add", "plus"]:
             if K:
@@ -493,7 +494,6 @@ class BaseVolume:
         mat.Update()
         return self._update(mat.GetOutput())
 
-
     def frequencyPassFilter(self, lowcutoff=None, highcutoff=None, order=1):
         """
         Low-pass and high-pass filtering become trivial in the frequency domain.
@@ -516,7 +516,7 @@ class BaseVolume:
         order : int
             order determines sharpness of the cutoff curve
         """
-        #https://lorensen.github.io/VTKExamples/site/Cxx/ImageProcessing/IdealHighPass
+        # https://lorensen.github.io/VTKExamples/site/Cxx/ImageProcessing/IdealHighPass
         fft = vtk.vtkImageFFT()
         fft.SetInputData(self._data)
         fft.Update()
@@ -548,7 +548,7 @@ class BaseVolume:
         butterworthReal.Update()
         return self._update(butterworthReal.GetOutput())
 
-    def gaussianSmooth(self, sigma=(2,2,2), radius=None):
+    def gaussianSmooth(self, sigma=(2, 2, 2), radius=None):
         """
         Performs a convolution of the input Volume with a gaussian.
 
@@ -577,7 +577,7 @@ class BaseVolume:
         gsf.Update()
         return self._update(gsf.GetOutput())
 
-    def medianSmooth(self, neighbours=(2,2,2)):
+    def medianSmooth(self, neighbours=(2, 2, 2)):
         """
         Median filter that replaces each pixel with the median value
         from a rectangular neighborhood around that pixel.
@@ -591,7 +591,7 @@ class BaseVolume:
         imgm.Update()
         return self._update(imgm.GetOutput())
 
-    def erode(self, neighbours=(2,2,2)):
+    def erode(self, neighbours=(2, 2, 2)):
         """
         Replace a voxel with the minimum over an ellipsoidal neighborhood of voxels.
         If `neighbours` of an axis is 1, no processing is done on that axis.
@@ -604,8 +604,7 @@ class BaseVolume:
         ver.Update()
         return self._update(ver.GetOutput())
 
-
-    def dilate(self, neighbours=(2,2,2)):
+    def dilate(self, neighbours=(2, 2, 2)):
         """
         Replace a voxel with the maximum over an ellipsoidal neighborhood of voxels.
         If `neighbours` of an axis is 1, no processing is done on that axis.
@@ -618,14 +617,12 @@ class BaseVolume:
         ver.Update()
         return self._update(ver.GetOutput())
 
-
     def magnitude(self):
         """Colapses components with magnitude function."""
         imgm = vtk.vtkImageMagnitude()
         imgm.SetInputData(self.imagedata())
         imgm.Update()
         return self._update(imgm.GetOutput())
-
 
     def topoints(self):
         """
@@ -640,7 +637,6 @@ class BaseVolume:
         v2p.Update()
         mpts = vedo.Points(v2p.GetOutput())
         return mpts
-
 
     def euclideanDistance(self, anisotropy=False, maxDistance=None):
         """
@@ -671,7 +667,6 @@ class BaseVolume:
         euv.Update()
         return Volume(euv.GetOutput())
 
-
     def correlationWith(self, vol2, dim=2):
         """
         Find the correlation between two volumetric data sets.
@@ -683,11 +678,10 @@ class BaseVolume:
         """
         imc = vtk.vtkImageCorrelation()
         imc.SetInput1Data(self._data)
-        imc.SetInput2Data(vol2._data)
+        imc.SetInput2Data(vol2.imagedata())
         imc.SetDimensionality(dim)
         imc.Update()
         return Volume(imc.GetOutput())
-
 
 
 ##########################################################################
@@ -773,18 +767,20 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
     .. hint:: examples/volumetric/read_volume2.py
         .. image:: https://vedo.embl.es/images/volumetric/read_volume2.png
     """
-    def __init__(self, inputobj=None,
-                 c='RdBu_r',
-                 alpha=(0.0, 0.0, 0.2, 0.4, 0.8, 1.0),
-                 alphaGradient=None,
-                 alphaUnit=1,
-                 mode=0,
-                 shade=False,
-                 spacing=None,
-                 dims=None,
-                 origin=None,
-                 mapper='smart',
-        ):
+
+    def __init__(
+        self,
+        inputobj=None,
+        c="RdBu_r",
+        alpha=(0.0, 0.0, 0.2, 0.4, 0.8, 1.0),
+        alphaGradient=None,
+        alphaUnit=1,
+        mode=0,
+        spacing=None,
+        dims=None,
+        origin=None,
+        mapper="smart",
+    ):
 
         vtk.vtkVolume.__init__(self)
         BaseGrid.__init__(self)
@@ -794,21 +790,20 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         if isinstance(inputobj, str):
 
             if "https://" in inputobj:
-                from vedo.io import download
-                inputobj = download(inputobj, verbose=False) # fpath
+                inputobj = vedo.io.download(inputobj, verbose=False)  # fpath
             elif os.path.isfile(inputobj):
                 pass
             else:
                 inputobj = sorted(glob.glob(inputobj))
 
         ###################
-        if 'gpu' in mapper:
+        if "gpu" in mapper:
             self._mapper = vtk.vtkGPUVolumeRayCastMapper()
-        elif 'opengl_gpu' in mapper:
+        elif "opengl_gpu" in mapper:
             self._mapper = vtk.vtkOpenGLGPUVolumeRayCastMapper()
-        elif 'smart' in mapper:
+        elif "smart" in mapper:
             self._mapper = vtk.vtkSmartVolumeMapper()
-        elif 'fixed' in mapper:
+        elif "fixed" in mapper:
             self._mapper = vtk.vtkFixedPointVolumeRayCastMapper()
         elif isinstance(mapper, vtk.vtkMapper):
             self._mapper = mapper
@@ -843,7 +838,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
                     mgf.SetInputData(picr.GetOutput())
                     mgf.Update()
                     ima.AddInputData(mgf.GetOutput())
-                    pb.print('loading...')
+                    pb.print("loading...")
                 ima.Update()
                 img = ima.GetOutput()
 
@@ -851,13 +846,13 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
                 if "ndarray" not in inputtype:
                     inputobj = np.asarray(inputobj)
 
-                if len(inputobj.shape)==1:
+                if len(inputobj.shape) == 1:
                     varr = utils.numpy2vtk(inputobj, dtype=float)
                 else:
-                    if len(inputobj.shape)>2:
+                    if len(inputobj.shape) > 2:
                         inputobj = np.transpose(inputobj, axes=[2, 1, 0])
-                    varr = utils.numpy2vtk(inputobj.ravel(order='F'), dtype=float)
-                varr.SetName('input_scalars')
+                    varr = utils.numpy2vtk(inputobj.ravel(order="F"), dtype=float)
+                varr.SetName("input_scalars")
 
                 img = vtk.vtkImageData()
                 if dims is not None:
@@ -870,7 +865,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
                 img.GetPointData().AddArray(varr)
                 img.GetPointData().SetActiveScalars(varr.GetName())
 
-                #to convert rgb to numpy
+                # to convert rgb to numpy
                 #        img_scalar = data.GetPointData().GetScalars()
                 #        dims = data.GetDimensions()
                 #        n_comp = img_scalar.GetNumberOfComponents()
@@ -888,27 +883,27 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         elif "UniformGrid" in inputtype:
             img = inputobj
 
-        elif hasattr(inputobj, "GetOutput"): # passing vtk object, try extract imagdedata
+        elif hasattr(
+            inputobj, "GetOutput"
+        ):  # passing vtk object, try extract imagdedata
             if hasattr(inputobj, "Update"):
                 inputobj.Update()
             img = inputobj.GetOutput()
 
         elif isinstance(inputobj, str):
-            from vedo.io import loadImageData, download
             if "https://" in inputobj:
-                inputobj = download(inputobj, verbose=False)
-            img = loadImageData(inputobj)
+                inputobj = vedo.io.download(inputobj, verbose=False)
+            img = vedo.io.loadImageData(inputobj)
 
         else:
             vedo.logger.error(f"cannot understand input type {inputtype}")
             return
 
-
         if dims is not None:
             img.SetDimensions(dims)
 
         if origin is not None:
-            img.SetOrigin(origin) ### DIFFERENT from volume.origin()!
+            img.SetOrigin(origin)  ### DIFFERENT from volume.origin()!
 
         if spacing is not None:
             img.SetSpacing(spacing)
@@ -927,10 +922,10 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         self._alphaGrad = alphaGradient
         self._alphaUnit = alphaUnit
 
-    def _update(self, img):
-        self._data = img
+    def _update(self, data):
+        self._data = data
         self._data.GetPointData().Modified()
-        self._mapper.SetInputData(img)
+        self._mapper.SetInputData(data)
         self._mapper.Modified()
         self._mapper.Update()
         return self
@@ -977,19 +972,19 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
             return self._mapper.GetBlendMode()
 
         if isinstance(mode, str):
-            if 'comp' in mode:
+            if "comp" in mode:
                 mode = 0
-            elif 'proj' in mode:
-                if 'max' in mode:
+            elif "proj" in mode:
+                if "max" in mode:
                     mode = 1
-                elif 'min' in mode:
+                elif "min" in mode:
                     mode = 2
-                elif 'ave' in mode:
+                elif "ave" in mode:
                     mode = 3
                 else:
                     vedo.logger.warning(f"unknown mode {mode}")
                     mode = 0
-            elif 'add' in mode:
+            elif "add" in mode:
                 mode = 4
             else:
                 vedo.logger.warning(f"unknown mode {mode}")
@@ -1034,12 +1029,11 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         If `jittering` is `True`, each ray traversal direction will be perturbed slightly
         using a noise-texture to get rid of wood-grain effects.
         """
-        if hasattr(self._mapper, 'SetUseJittering'): # tetmesh doesnt have it
+        if hasattr(self._mapper, "SetUseJittering"):  # tetmesh doesnt have it
             if status is None:
                 return self._mapper.GetUseJittering()
             self._mapper.SetUseJittering(status)
         return self
-
 
     def mask(self, data):
         """
@@ -1071,7 +1065,6 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         except AttributeError:
             vedo.logger.error("volume.mask() must create the volume with Volume(..., mapper='gpu')")
         return self
-
 
     def alphaGradient(self, alphaGrad, vmin=None, vmax=None):
         """
@@ -1105,15 +1098,15 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
                     xalpha = vmin + (vmax - vmin) * i / (len(alphaGrad) - 1)
                     # Create transfer mapping scalar value to gradient opacity
                     gotf.AddPoint(xalpha, al)
-            elif len(alphaGrad.shape)==2: # user passing [(x0,alpha0), ...]
+            elif len(alphaGrad.shape) == 2:  # user passing [(x0,alpha0), ...]
                 gotf.AddPoint(vmin, alphaGrad[0][1])
                 for xalpha, al in alphaGrad:
                     # Create transfer mapping scalar value to opacity
                     gotf.AddPoint(xalpha, al)
                 gotf.AddPoint(vmax, alphaGrad[-1][1])
-            #print("alphaGrad at", round(xalpha, 1), "\tset to", al)
+            # print("alphaGrad at", round(xalpha, 1), "\tset to", al)
         else:
-            gotf.AddPoint(vmin, alphaGrad) # constant alphaGrad
+            gotf.AddPoint(vmin, alphaGrad)  # constant alphaGrad
             gotf.AddPoint(vmax, alphaGrad)
         return self
 
@@ -1127,9 +1120,9 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         vslice = vtk.vtkImageDataGeometryFilter()
         vslice.SetInputData(self.imagedata())
         nx, ny, nz = self.imagedata().GetDimensions()
-        if i>nx-1:
-            i=nx-1
-        vslice.SetExtent(i,i, 0,ny, 0,nz)
+        if i > nx - 1:
+            i = nx - 1
+        vslice.SetExtent(i, i, 0, ny, 0, nz)
         vslice.Update()
         return Mesh(vslice.GetOutput())
 
@@ -1138,9 +1131,9 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         vslice = vtk.vtkImageDataGeometryFilter()
         vslice.SetInputData(self.imagedata())
         nx, ny, nz = self.imagedata().GetDimensions()
-        if j>ny-1:
-            j=ny-1
-        vslice.SetExtent(0,nx, j,j, 0,nz)
+        if j > ny - 1:
+            j = ny - 1
+        vslice.SetExtent(0, nx, j, j, 0, nz)
         vslice.Update()
         return Mesh(vslice.GetOutput())
 
@@ -1149,13 +1142,13 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         vslice = vtk.vtkImageDataGeometryFilter()
         vslice.SetInputData(self.imagedata())
         nx, ny, nz = self.imagedata().GetDimensions()
-        if k>nz-1:
-            k=nz-1
-        vslice.SetExtent(0,nx, 0,ny, k,k)
+        if k > nz - 1:
+            k = nz - 1
+        vslice.SetExtent(0, nx, 0, ny, k, k)
         vslice.Update()
         return Mesh(vslice.GetOutput())
 
-    def slicePlane(self, origin=(0,0,0), normal=(1,1,1)):
+    def slicePlane(self, origin=(0, 0, 0), normal=(1, 1, 1)):
         """Extract the slice along a given plane position and normal.
 
         .. hint:: examples/volumetric/slicePlane1.py
@@ -1166,7 +1159,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         reslice.SetOutputDimensionality(2)
         newaxis = utils.versor(normal)
         pos = np.array(origin)
-        initaxis = (0,0,1)
+        initaxis = (0, 0, 1)
         crossvec = np.cross(initaxis, newaxis)
         angle = np.arccos(np.dot(initaxis, newaxis))
         T = vtk.vtkTransform()
@@ -1186,7 +1179,6 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         return msh
 
 
-
 ##########################################################################
 class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
     """
@@ -1195,6 +1187,7 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
     The main purpose of this class is to be used in conjunction with `Volume`
     for visualization using `mode="image"`.
     """
+
     def __init__(self, inputobj=None):
 
         vtk.vtkImageSlice.__init__(self)
@@ -1216,8 +1209,7 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
         ###################
         if isinstance(inputobj, str):
             if "https://" in inputobj:
-                from vedo.io import download
-                inputobj = download(inputobj, verbose=False) # fpath
+                inputobj = vedo.io.download(inputobj, verbose=False)  # fpath
             elif os.path.isfile(inputobj):
                 pass
             else:
@@ -1235,7 +1227,7 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
 
         elif utils.isSequence(inputobj):
 
-            if isinstance(inputobj[0], str): # scan sequence of BMP files
+            if isinstance(inputobj[0], str):  # scan sequence of BMP files
                 ima = vtk.vtkImageAppend()
                 ima.SetAppendAxis(2)
                 pb = utils.ProgressBar(0, len(inputobj))
@@ -1248,7 +1240,7 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
                     mgf.SetInputData(picr.GetOutput())
                     mgf.Update()
                     ima.AddInputData(mgf.GetOutput())
-                    pb.print('loading...')
+                    pb.print("loading...")
                 ima.Update()
                 img = ima.GetOutput()
 
@@ -1256,13 +1248,13 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
                 if "ndarray" not in inputtype:
                     inputobj = np.array(inputobj)
 
-                if len(inputobj.shape)==1:
+                if len(inputobj.shape) == 1:
                     varr = utils.numpy2vtk(inputobj, dtype=float)
                 else:
-                    if len(inputobj.shape)>2:
+                    if len(inputobj.shape) > 2:
                         inputobj = np.transpose(inputobj, axes=[2, 1, 0])
-                    varr = utils.numpy2vtk(inputobj.ravel(order='F'), dtype=float)
-                varr.SetName('input_scalars')
+                    varr = utils.numpy2vtk(inputobj.ravel(order="F"), dtype=float)
+                varr.SetName("input_scalars")
 
                 img = vtk.vtkImageData()
                 img.SetDimensions(inputobj.shape)
@@ -1284,10 +1276,9 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
             img = inputobj.GetOutput()
 
         elif isinstance(inputobj, str):
-            from vedo.io import loadImageData, download
             if "https://" in inputobj:
-                inputobj = download(inputobj, verbose=False)
-            img = loadImageData(inputobj)
+                inputobj = vedo.io.download(inputobj, verbose=False)
+            img = vedo.io.loadImageData(inputobj)
 
         else:
             vedo.logger.error(f"cannot understand input type {inputtype}")
@@ -1299,7 +1290,7 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
 
     def bounds(self):
         """Return the bounding box as [x0,x1, y0,y1, z0,z1]"""
-        bns = [0,0,0,0,0,0]
+        bns = [0, 0, 0, 0, 0, 0]
         self.GetBounds(bns)
         return bns
 
@@ -1353,7 +1344,6 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
         self._mapper.SetSlabType(mode)
         self._mapper.SetSlabSampleFactor(sampleFactor)
         return self
-
 
     def faceCamera(self, value=True):
         """Make the slice always face the camera or not."""
