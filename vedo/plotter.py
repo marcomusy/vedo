@@ -824,13 +824,11 @@ class Plotter:
             ########################
 
         self.interactor = vtk.vtkRenderWindowInteractor()
-        # self.interactor.EnableRenderOff()
 
         self.interactor.SetRenderWindow(self.window)
         vsty = vtk.vtkInteractorStyleTrackballCamera()
         self.interactor.SetInteractorStyle(vsty)
 
-        # this is causing crash in clone_viewer if disabled :((
         if settings.enableDefaultMouseCallbacks:
             self.interactor.AddObserver("LeftButtonPressEvent", self._mouseleft)
             self.interactor.AddObserver("RightButtonPressEvent", self._mouseright)
@@ -839,16 +837,11 @@ class Plotter:
             self.interactor.AddObserver("KeyPressEvent", self._keypress)
             self.interactor.AddObserver("KeyReleaseEvent", self._keyrelease)
 
-        # if settings.allowInteraction:
-
-        #     def win_interact(iren, event):  # flushing interactor events
-        #         if event == "TimerEvent":
-        #             iren.ExitCallback()
-
         ##################################################################### ..init ends here.
 
     def allowInteraction(self):
         """Call this method from inside a loop to allow mouse and keyboard interaction."""
+        print('ddd', self._timer_event_id)
         if (
             self.interactor
             and self._timer_event_id is not None
@@ -1905,8 +1898,8 @@ class Plotter:
         def _legfunc(evt):
             # helper function (png not pickable because of alpha channel in vtk9 ??)
             if not evt.actor or not self.renderer or at != evt.at:
-                if hoverLegend.mapper().GetInput():  # clear and return
-                    hoverLegend.mapper().SetInput("")
+                if hoverLegend._mapper.GetInput():  # clear and return
+                    hoverLegend._mapper.SetInput("")
                     self.interactor.Render()
                 return
 
@@ -1978,8 +1971,8 @@ class Plotter:
             # change box color if needed in 'auto' mode
             if evt.isPoints and "auto" in str(bg):
                 actcol = evt.actor.GetProperty().GetColor()
-                if hoverLegend.mapper().GetTextProperty().GetBackgroundColor() != actcol:
-                    hoverLegend.mapper().GetTextProperty().SetBackgroundColor(actcol)
+                if hoverLegend._mapper.GetTextProperty().GetBackgroundColor() != actcol:
+                    hoverLegend._mapper.GetTextProperty().SetBackgroundColor(actcol)
 
             # adapt to changes in bg color
             bgcol = self.renderers[at].GetBackground()
@@ -1991,8 +1984,8 @@ class Plotter:
                 if len(set(_bgcol).intersection(bgcol)) < 3:
                     hoverLegend.color(_bgcol)
 
-            if hoverLegend.mapper().GetInput() != t:
-                hoverLegend.mapper().SetInput(t)
+            if hoverLegend._mapper.GetInput() != t:
+                hoverLegend._mapper.SetInput(t)
                 self.interactor.Render()
 
         self.add(hoverLegend, render=False, at=at)
