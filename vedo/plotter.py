@@ -837,11 +837,17 @@ class Plotter:
             self.interactor.AddObserver("KeyPressEvent", self._keypress)
             self.interactor.AddObserver("KeyReleaseEvent", self._keyrelease)
 
+        if settings.allowInteraction:
+            def win_interact(iren, event):  # flushing interactor events
+                if event == "TimerEvent":
+                    iren.ExitCallback()
+            self._timer_event_id = self.interactor.AddObserver("TimerEvent", win_interact)
+
         ##################################################################### ..init ends here.
+
 
     def allowInteraction(self):
         """Call this method from inside a loop to allow mouse and keyboard interaction."""
-        print('ddd', self._timer_event_id)
         if (
             self.interactor
             and self._timer_event_id is not None
@@ -1002,6 +1008,8 @@ class Plotter:
         if self.interactor:
             if not self.interactor.GetInitialized():
                 self.interactor.Initialize()
+            if settings.allowInteraction:
+                self._timer_event_id = self.interactor.AddObserver("TimerEvent", self.win_interact)
 
         # if at is not None: # disable all except i==at
         #     self.window.EraseOff()
