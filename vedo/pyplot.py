@@ -35,7 +35,7 @@ __all__ = [
 
 
 ##########################################################################
-class LabelData():
+class LabelData:
     """Helper internal class to hold label information"""
     def __init__(self):
         self.text = "dataset"

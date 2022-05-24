@@ -18,7 +18,7 @@ __all__ = [
 
 
 ###############################################################################
-class _DataArrayHelper():
+class _DataArrayHelper:
     # Helper class to manage data associated to either
     # points (or vertices) and cells (or faces).
     # Internal use only.
@@ -124,7 +124,7 @@ class _DataArrayHelper():
 
 
 ###############################################################################
-class Base3DProp():
+class Base3DProp:
     """Base class to manage positioning and size of the objects in space and other properties"""
 
     def __init__(self):
@@ -1801,6 +1801,17 @@ class BaseGrid(BaseActor):
 
         self._update(cug)
         return self
+
+    # def findCell(self, p):
+    #     """Locate the cell that contains a point and return the cell ID."""
+    #     cell = vtk.mutable(0)#vtk.vtkCell()
+    #     cellId = vtk.mutable(0)#vtk.vtkIdType()
+    #     tol2=vtk.mutable(0)
+    #     subId = vtk.mutable(0)
+    #     pcoords = [0,0,0]
+    #     weights = [0,0,0]
+    #     self.inputdata().FindAndGetCell(p, cell, cellId, tol2, subId, pcoords, weights)
+    #     return cellId
 
     def extractCellsByID(self, idlist, usePointIDs=False):
         """Return a new UGrid composed of the specified subset of indices."""
