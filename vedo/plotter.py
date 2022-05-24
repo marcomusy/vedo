@@ -1008,8 +1008,6 @@ class Plotter:
         if self.interactor:
             if not self.interactor.GetInitialized():
                 self.interactor.Initialize()
-            if settings.allowInteraction:
-                self._timer_event_id = self.interactor.AddObserver("TimerEvent", self.win_interact)
 
         # if at is not None: # disable all except i==at
         #     self.window.EraseOff()

@@ -23,4 +23,4 @@ for plt in plts:
     plt.addCallback('Interaction', func)
     plt.addCallback('EndInteraction', func) # because zooming is not an "Interaction" event
 
-interactive()
+plt.interactive()

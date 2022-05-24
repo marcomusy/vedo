@@ -11,9 +11,9 @@ histo = histogram(
     x, y,
     bins=10,
     mode='hexbin',
-    xtitle="\sigma_x =1.0",
-    ytitle="\sigma_y =1.5",
-    ztitle="counts",
+    # xtitle="\sigma_x =1.0",
+    # ytitle="\sigma_y =1.5",
+    # ztitle="counts",
     fill=True,
     cmap='terrain',
 )

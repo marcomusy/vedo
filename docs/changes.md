@@ -1,5 +1,7 @@
 ## Main changes
 
+- pep8 parsing with pylint and general cleanup of the code.
+
 ---
 ### `base.py`
 
@@ -30,7 +32,7 @@
 
 ---
 ### `volume.py`
-
+- added `slicePlane(autocrop=False)`
 
 -------------------------
 ## Examples
@@ -41,10 +43,10 @@
 
 ### Broken
 examples/basic/multiwindows2.py
+examples/simulations/lorenz.py
+examples/pyplot/histo_hexagonal.py
 
-
-
-
-
+volumetric/ugrid1.py
+volumetric/ugrid2.py
 
 

@@ -132,7 +132,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         elif utils.isSequence(inputobj):
             # if "ndarray" not in inputtype:
             #     inputobj = np.array(inputobj)
-            self._data = self._buildtetugrid(inputobj[0], inputobj[1])
+            self._data = _buildtetugrid(inputobj[0], inputobj[1])
 
         ###################
         if "tetra" in mapper:
