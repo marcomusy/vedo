@@ -1148,8 +1148,9 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         vslice.Update()
         return Mesh(vslice.GetOutput())
 
-    def slicePlane(self, origin=(0, 0, 0), normal=(1, 1, 1)):
-        """Extract the slice along a given plane position and normal.
+    def slicePlane(self, origin=(0, 0, 0), normal=(1, 1, 1), autocrop=False):
+        """
+        Extract the slice along a given plane position and normal.
 
         .. hint:: examples/volumetric/slicePlane1.py
             .. image:: https://vedo.embl.es/images/volumetric/slicePlane1.gif
@@ -1169,6 +1170,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         M = T.GetMatrix()
         reslice.SetResliceAxes(M)
         reslice.SetInterpolationModeToLinear()
+        reslice.SetAutoCropOutput(not autocrop)
         reslice.Update()
         vslice = vtk.vtkImageDataGeometryFilter()
         vslice.SetInputData(reslice.GetOutput())

@@ -13,19 +13,22 @@ data[10:70] = float('nan') # make some values invalid by setting to NaN
 data[300:600] = 100        # send some values very far above-scale
 
 # build a custom LookUp Table of colors:
-#               value, color, alpha
-lut = buildLUT([
-                #(-2, 'pink'      ),  # up to -2 is pink
-                (0.0, 'pink'      ),  # up to 0 is pink
-                (0.4, 'green', 0.5),  # up to 0.4 is green with alpha=0.5
-                (0.7, 'darkblue'  ),
-                #( 2, 'darkblue'  ),
-               ],
-               vmin=-1.2, belowColor='lightblue',
-               vmax= 0.7, aboveColor='grey',
-               nanColor='red',
-               interpolate=False,
-              )
+#     value, color, alpha
+lut = buildLUT(
+    [
+      #(-2, 'pink'      ),  # up to -2 is pink
+      (0.0, 'pink'      ),  # up to 0 is pink
+      (0.4, 'green', 0.5),  # up to 0.4 is green with alpha=0.5
+      (0.7, 'darkblue'  ),
+      #( 2, 'darkblue'  ),
+    ],
+    vmin=-1.2,
+    vmax= 0.7,
+    belowColor='lightblue',
+    aboveColor='grey',
+    nanColor='red',
+    interpolate=False,
+)
 # 3D scalarbar:
 mesh.cmap(lut, data).addScalarBar3D(title='My 3D scalarbar', c='white')
 mesh.scalarbar.scale(1.5).rotateX(90).y(1) # make it bigger and place it
