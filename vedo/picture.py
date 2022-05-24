@@ -147,8 +147,8 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
     def _update(self, data):
         """Overwrite the Picture data mesh with a new data."""
         self._data = data
-        self.mapper().SetInputData(data)
-        self.mapper().Modified()
+        self._mapper.SetInputData(data)
+        self._mapper.Modified()
         nx, ny, _ = self._data.GetDimensions()
         self.shape = np.array([nx, ny])
         return self
@@ -176,7 +176,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             return self._data.GetExtent()
         else:
             self._data.SetExtent(ext[0], ext[1], ext[2], ext[3], 0, 0)
-            self.mapper().Modified()
+            self._mapper.Modified()
             return self
 
     def alpha(self, a=None):
@@ -843,10 +843,10 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         self._data.GetPointData().GetScalars().SetName("RGBA")
         gr.inputdata().GetPointData().AddArray(self._data.GetPointData().GetScalars())
         gr.inputdata().GetPointData().SetActiveScalars("RGBA")
-        gr.mapper().SetArrayName("RGBA")
-        gr.mapper().SetScalarModeToUsePointData()
-        # gr.mapper().SetColorModeToDirectScalars()
-        gr.mapper().ScalarVisibilityOn()
+        gr._mapper.SetArrayName("RGBA")
+        gr._mapper.SetScalarModeToUsePointData()
+        # gr._mapper.SetColorModeToDirectScalars()
+        gr._mapper.ScalarVisibilityOn()
         gr.name = self.name
         gr.filename = self.filename
         return gr
