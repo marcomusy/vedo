@@ -81,7 +81,7 @@ class BaseVolume:
         """Deprecated. Please use tonumpy()"""
         return self.tonumpy()
 
-    def tonumpy(self):
+    def tonumpy(self, transpose=True):
         """
         Get read-write access to voxels of a Volume object as a numpy array.
 
@@ -98,7 +98,8 @@ class BaseVolume:
         """
         narray_shape = tuple(reversed(self._data.GetDimensions()))
         narray = utils.vtk2numpy(self._data.GetPointData().GetScalars()).reshape(narray_shape)
-        narray = np.transpose(narray, axes=[2, 1, 0])
+        if transpose:
+            narray = np.transpose(narray, axes=[2, 1, 0])
         return narray
 
     def dimensions(self):
