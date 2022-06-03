@@ -1316,23 +1316,20 @@ def write(objct, fileoutput, binary=True):
             for p in objct.points():
                 outF.write("v {:.5g} {:.5g} {:.5g}\n".format(*p))
 
-            # pdata = objct.polydata().GetPointData().GetScalars()
-            # if pdata:
-            #     ndata = vtk_to_numpy(pdata)
-            #     for vd in ndata:
-            #         outF.write('vp '+ str(vd) +'\n')
-
-            # ptxt = objct.polydata().GetPointData().GetTCoords() # not working
-            # if ptxt:
-            #    ntxt = vtk_to_numpy(ptxt)
-            #    print(len(objct.faces()), objct.points().shape, ntxt.shape)
-            #    for vt in ntxt:
-            #        outF.write('vt '+ str(vt[0]) +" "+ str(vt[1])+ ' 0\n')
+            ptxt = objct.polydata().GetPointData().GetTCoords() # not working
+            if ptxt:
+                ntxt = utils.vtk2numpy(ptxt)
+                # print(len(objct.faces()), objct.points().shape, ntxt.shape)
+                for vt in ntxt:
+                    outF.write('vt '+ str(vt[0]) +" "+ str(vt[1])+ ' 0.0\n')
 
             for i, f in enumerate(objct.faces()):
                 fs = ""
                 for fi in f:
-                    fs += " {:d}".format(fi + 1)
+                    if ptxt:
+                        fs += f" {fi+1}/{fi+1}"
+                    else:
+                        fs += f" {fi+1}"
                 outF.write(f"f{fs}\n")
 
             for l in objct.lines():
@@ -1342,6 +1339,7 @@ def write(objct, fileoutput, binary=True):
                 outF.write(f"l {ls}\n")
 
         return objct
+
 
     elif fr.endswith(".xml"):  # write tetrahedral dolfin xml
         vertices = objct.points().astype(str)
