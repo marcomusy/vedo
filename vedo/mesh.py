@@ -428,7 +428,7 @@ class Mesh(Points):
         """
         pd = self.polydata(False)
 
-        if not tname:  # disable texture
+        if tname is None:  # disable texture
             pd.GetPointData().SetTCoords(None)
             pd.GetPointData().Modified()
             return self  ######################################
@@ -443,7 +443,7 @@ class Mesh(Points):
 
         elif isSequence(tname):
             tu = vtk.vtkTexture()
-            outimg = vedo.Picture(tname).inputdata()
+            outimg = vedo.picture._get_img(tname)
 
         elif isinstance(tname, str):
             tu = vtk.vtkTexture()
