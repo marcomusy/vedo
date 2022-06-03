@@ -9,7 +9,7 @@ g = load(dataurl+'structgrid.vts')
 coords = g.points()
 
 # g.print() gives the list of point and cell data contained in g
-vects  = g.pointdata['Momentum']/600 
+vects  = g.pointdata['Momentum']/600
 print('numpy array shapes are:', coords.shape, vects.shape)
 
 # build arrows from starting points to endpoints, with colormap

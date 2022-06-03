@@ -1,8 +1,8 @@
 """Show a cube for each available color name"""
-print(__doc__)
+from operator import itemgetter
 from vedo import Cube, Text2D, show, settings
 from vedo.colors import colors
-from operator import itemgetter
+print(__doc__)
 
 settings.immediateRendering = False  # faster for multi-renderers
 

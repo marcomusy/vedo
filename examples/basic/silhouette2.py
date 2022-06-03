@@ -36,9 +36,9 @@ pts2 = sob.silhouette('2d').points()
 
 # draw the lines
 for i in range(0, n, int(n/20)):
-     plt += Line(pts1[i], pts[i], c='k', alpha=0.2)
-     plt += Line(point,   pts[i], c='k', alpha=0.2)
-     plt += Line(pts2[i], pts[i], c='k', alpha=0.2)
+    plt += Line(pts1[i], pts[i], c='k', alpha=0.2)
+    plt += Line(point,   pts[i], c='k', alpha=0.2)
+    plt += Line(pts2[i], pts[i], c='k', alpha=0.2)
 
 plt.show(axes=dict(xtitle='X-axis in \mum',
                    ytitle='Y-axis in \mum',

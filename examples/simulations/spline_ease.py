@@ -1,6 +1,5 @@
 """Spline three points in space"""
 from vedo import *
-import numpy as np
 
 pts = [[0,0,0],
        [0.5,0.6,0.8],

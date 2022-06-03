@@ -2,7 +2,7 @@
 Show a cube for each available texture name.
 Any jpg file can be used as texture.
 """
-from vedo import dataurl, settings, show, Cube
+from vedo import dataurl, show, Cube
 
 textures_path = dataurl+'textures/'
 

@@ -1,8 +1,9 @@
 """Example that shows how to draw very large number
 of spheres (same for Points, Lines) with different
 colors or different radii, N="""
-from vedo import show, Spheres
 from random import gauss
+from vedo import show, Spheres
+
 
 N = 50000
 

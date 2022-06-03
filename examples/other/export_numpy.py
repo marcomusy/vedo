@@ -18,3 +18,4 @@ plt += Text2D("Imported scene", c='k', bg='b')
 plt.show().close()
 
 printc("\nTry also:\n> vedo scene.npz", c='g')
+

@@ -31,3 +31,4 @@ show([(vol, __doc__),
        (iso2,"Colorize isosurface using\nmyscalars2"),
      ], N=3, axes=1
 ).close()
+

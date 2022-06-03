@@ -1,6 +1,7 @@
 """Elliptic Fourier Descriptors
 parametrizing a closed countour (in red)"""
-import vedo, pyefd
+import vedo
+import pyefd
 
 shapes = vedo.load(vedo.dataurl+'timecourse1d.npy')
 

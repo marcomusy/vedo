@@ -1,6 +1,6 @@
-import trimesh
 import numpy as np
 from vedo import show, Plane, printc, download, settings
+import trimesh
 
 settings.immediateRendering = False
 

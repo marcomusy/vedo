@@ -8,8 +8,8 @@ Scene interaction styles. Available styles are:
       - 5, RubberBand3D
       - 6, RubberBandZoom
 """
-print(__doc__)
 from vedo import *
+print(__doc__)
 
 show(Spring(), Cube(), at=[0, 1], shape=(1, 3)).interactive()
 

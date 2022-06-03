@@ -4,10 +4,10 @@ The spheres collide elastically with themselves and
 with the walls of the box. The masses of the spheres
 are proportional to their radius**3 (as in 3D)"""
 # Adapted by M. Musy from E. Velasco (2009)
-print(__doc__)
-
 from vedo import Plotter, ProgressBar, dot, Grid, Sphere, Point, settings
-import random, numpy as np
+import random
+import numpy as np
+print(__doc__)
 
 screen_w = 800
 screen_h = 800

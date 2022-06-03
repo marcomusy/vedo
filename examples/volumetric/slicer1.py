@@ -1,6 +1,6 @@
 """Use sliders to slice volume
 Click button to change colormap"""
-from vedo import dataurl, Volume, show, Text2D
+from vedo import dataurl, Volume, Text2D
 from vedo.applications import Slicer3DPlotter
 
 filename = dataurl+'embryo.slc'

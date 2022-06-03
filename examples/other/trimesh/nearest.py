@@ -1,9 +1,9 @@
 """Find the closest point
 on the mesh to each random point
 """
-import trimesh
 import numpy as np
 from vedo import show, Arrows, download
+import trimesh
 
 plyfile = download('https://github.com/mikedh/trimesh/blob/main/models/cycloidal.ply')
 

@@ -1,5 +1,5 @@
 """pygeodesic library to compute geodesic distances"""
-import pygeodesic.geodesic as geodesic  # pip install pygeodesic
+from pygeodesic import geodesic  # pip install pygeodesic
 import vedo
 
 m = vedo.Mesh(vedo.dataurl+"bunny.obj").c("green9")

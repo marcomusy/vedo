@@ -1,8 +1,7 @@
 """Colorize a large cloud of 1M points by passing
 colors and transparencies in the format (R,G,B,A)"""
-from vedo import *
-import numpy as np
 import time
+from vedo import *
 
 N = 1000000
 

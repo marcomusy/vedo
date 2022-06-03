@@ -16,9 +16,9 @@ custom_shape = [
 
 plt = Plotter(shape=custom_shape, size=(1200,900))
 
-for i in range(len(custom_shape)):
+for i, cust in enumerate(custom_shape):
     s = ParametricShape(i).color(i).lighting('glossy')
-    msg = 'Renderer nr.'+str(i)+'\n'+str(custom_shape[i])+'\nShape = '+s.name
+    msg = 'Renderer nr.'+str(i)+'\n'+str(cust)+'\nShape = '+s.name
     plt.at(i).show(s, msg)
 
 plt.at(0).add(Text2D(__doc__, pos='bottom-right', font="Quikhand", s=1.5))

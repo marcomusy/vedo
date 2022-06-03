@@ -4,7 +4,7 @@ import numpy as np
 vedo.settings.useDepthPeeling = True
 
 ############################
-class OpticalElement(object):
+class OpticalElement:
     # A base class
     def __init__(self):
         self.name = "OpticalElement"
@@ -121,7 +121,7 @@ class Detector(vedo.Mesh, OpticalElement):
 
 
 ###################################################
-class Ray(object):
+class Ray:
     """A photon to be tracked as a ray of light.
     wave_length in meters (so use e.g. 450.0e-09 m = 450 nm)"""
     def __init__(self, origin=(0,0,0), direction=(0,0,1),
@@ -189,7 +189,7 @@ class Ray(object):
 
             self.tolerance = element.diagonalSize()/1000.
 
-            for i in range(self.maxiterations):
+            for _ in range(self.maxiterations):
 
                 hit_cids = element.intersectWithLine(self.p, self.p + self.v * self.dmax,
                                                      returnIds=True, tol=self.OBBTreeTolerance)

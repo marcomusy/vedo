@@ -11,15 +11,19 @@ class Viewer:
         self.timerId = None
         self.isplaying = False
         self.counter = 0 # frame counter
+        self.button = None
 
         self.plotter = vedo.Plotter(*args, **kwargs) # setup the Plotter object
         self.timerevt = self.plotter.addCallback('timer', self.handle_timer)
 
     def initialize(self):
         # initialize here extra elements like buttons etc..
-        self.button = self.plotter.addButton(self._buttonfunc,
-                                             states=["\u23F5 Play  ","\u23F8 Pause"],
-                                             font="Kanopus", size=32 )
+        self.button = self.plotter.addButton(
+            self._buttonfunc,
+            states=["\u23F5 Play  ","\u23F8 Pause"],
+            font="Kanopus",
+            size=32,
+        )
         return self
 
     def show(self, *args, **kwargs):

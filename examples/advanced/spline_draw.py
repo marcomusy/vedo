@@ -18,7 +18,7 @@ class SplinePlotter(Plotter):
         printc("Added point:", precision(p[:2],4), c='g')
 
     def onRightClick(self, evt):
-        if evt.actor and len(self.cpoints):
+        if evt.actor and len(self.cpoints)>0:
             self.cpoints.pop() # pop removes from the list the last pt
             self.update()
             printc("Deleted last point", c="r")

@@ -1,5 +1,6 @@
 import numpy as np
-import napari, vedo
+import napari
+import vedo
 
 # Load the surface, triangulate just in case, and compute vertex normals
 surf = vedo.Mesh(vedo.dataurl+"beethoven.ply").triangulate().computeNormals()

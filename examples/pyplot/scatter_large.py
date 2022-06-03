@@ -5,9 +5,8 @@ Use mouse to zoom,
 press r to reset,
 press p to increase point size.
 """
-from vedo import *
-import numpy as np
 import time
+from vedo import *
 
 N = 1000000
 

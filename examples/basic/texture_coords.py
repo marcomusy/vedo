@@ -27,3 +27,4 @@ m.texture(fpath,
 )
 
 show(m, __doc__, axes=1).close()
+

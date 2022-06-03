@@ -16,7 +16,7 @@ rads = [0.3*(cos(6.0*ir/N))**2+0.1 for ir in range(N)]
 t2 = Tube(ln, r=rads, c="tomato", res=24)
 
 ############################### vary color
-cols = [i for i in range(N)]
+cols = list(range(N))
 cols = makeBands(cols, 5)  # make color bins
 t3 = Tube(ln, r=rads, c=cols, res=24)
 

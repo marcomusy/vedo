@@ -1,6 +1,7 @@
 """pymeshlab interoperability example:
 Surface reconstruction by ball pivoting"""
-import pymeshlab, vedo  # pip install pymeshlab==2021.10
+import pymeshlab  # pip install pymeshlab==2021.10
+import vedo 
 
 pts = vedo.Mesh(vedo.dataurl+'cow.vtk').points() # numpy array of vertices
 

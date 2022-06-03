@@ -1,3 +1,4 @@
+from vedo import show
 import trimesh
 import networkx as nx
 
@@ -26,8 +27,6 @@ end = int(len(mesh.vertices) / 2.0)
 path = nx.shortest_path(g, source=start, target=end, weight="length")
 
 ################################### VISUALIZE RESULT
-from vedo import show
-
 # make the sphere transparent-ish
 mesh.visual.face_colors = [150, 150, 180, 255]
 

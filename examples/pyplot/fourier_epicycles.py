@@ -37,7 +37,7 @@ def epicycles(time, rotation, fourier, order):
         y += amp * np.sin(freq * time + phase + rotation)
         path.append([x,y])
 
-    if len(points):
+    if len(points)>0:
         hline = vedo.Line([x,y], points[-1], c='red5', lw=0.1)
         pline = vedo.Line(path, c='green5', lw=2)
         oline = vedo.Line(points, c='red4', lw=5)

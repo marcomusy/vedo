@@ -2,7 +2,7 @@
 # Copyright (c) 2018, N. Rougier, https://github.com/rougier/pendulum
 # http://www.physics.usyd.edu.au/~wheat/dpend_html/solve_dpend.c
 # Adapted for vedo by M. Musy, 2021
-import scipy.integrate as integrate
+from scipy import integrate
 from vedo import *
 
 G  = 9.81   # acceleration due to gravity, in m/s^2

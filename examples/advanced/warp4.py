@@ -41,7 +41,7 @@ class Morpher:
         paxes = Axes(self.plane1, xyGrid=0, textScale=0.6)
         self.plotter.at(0).show(self.plane1, paxes, self.msg1, self.mesh1, self.mesh2)
         self.plotter.at(1).show(self.plane2, self.msg2, mode='image')
-        if len(self.arrow_starts):
+        if len(self.arrow_starts)>0:
             self.draw(True)
             self.draw(False)
             self.msg1.text(self.instructions)
@@ -53,7 +53,7 @@ class Morpher:
         if toggle:
             self.msg1.text("Choose start point or press:\nm to morph the shapes\ng to interpolate")
             self.plotter.at(0).remove("displacementArrows")
-            if not len(self.arrow_starts): return
+            if len(self.arrow_starts)==0: return
             arrows = Arrows2D(self.arrow_starts, self.arrow_stops, c='red4')
             arrows.name = "displacementArrows"
             self.plotter.add(arrows)

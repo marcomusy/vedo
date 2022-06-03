@@ -23,7 +23,7 @@ ray_visualize = trimesh.load_path(
 )
 
 print("The rays hit the mesh at coordinates:\n", locations)
-print("The rays with index: {} hit triangles stored at mesh.faces[{}]".format(index_ray, index_tri))
+print(f"The rays with index: {index_ray} hit triangles stored at mesh.faces[{index_tri}]")
 
 # stack rays into line segments for visualization as Path3D
 ray_visualize = trimesh.load_path(

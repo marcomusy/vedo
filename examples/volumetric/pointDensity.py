@@ -11,3 +11,4 @@ show([("Point cloud", s),
       ("Point density as Volume", vol, vol.box(), plane)
      ], N=2,
 ).close()
+

@@ -1,7 +1,8 @@
 """Earthquakes of magnitude 2.5+ in the past 30 days
 areas are proportional to energy release
 [hover mouse to get more info]"""
-import pandas, numpy as np
+import pandas
+import numpy as np
 from vedo import download, Picture, ProgressBar, colorMap, Plotter, Text2D, GeoCircle
 
 num = 50  # nr of earthquakes to be visualized to define a time window
