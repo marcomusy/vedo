@@ -1,3 +1,4 @@
+import time
 import os
 import numpy as np
 import vedo
@@ -1458,17 +1459,9 @@ class Animation(Plotter):
         self.bookingMode = True
 
 
-def Clock(
-        h=None,
-        m=None,
-        s=None,
-        font="Quikhand",
-        title="",
-        c="k",
-    ):
+class Clock(vedo.Assembly):
     """
     Create a clock with current time or user provided time.
-    Returns an Assembly object.
 
     Parameters
     ----------
@@ -1484,69 +1477,135 @@ def Clock(
     font : str
         font type
 
-    title : str, optional
+    title : str
         some extra text to show on the clock
 
-    c : TYPE, optional
+    c : str
         color of the numbers
+
+
+    Example:
+        .. code-block:: python
+
+            import time
+            from vedo import show
+            from vedo.applications import Clock
+            clock = Clock()
+            plt = show(clock, interactive=False)
+            for i in range(10):
+                time.sleep(1)
+                clock.update()
+                plt.render()
+            plt.close()
     """
+    def __init__(
+            self,
+            h=None,
+            m=None,
+            s=None,
+            font="Quikhand",
+            title="",
+            c="k",
+        ):
+        self.elapsed = 0
+        self._start = time.time()
 
-    wd = ""
-    if h is None and m is None:
-        import time
-        t = time.localtime()
-        h = t.tm_hour
-        m = t.tm_min
-        s = t.tm_sec
+        wd = ""
+        if h is None and m is None:
+            t = time.localtime()
+            h = t.tm_hour
+            m = t.tm_min
+            s = t.tm_sec
+            if not title:
+                d = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+                wd = d[t.tm_wday] + " "
+
+        h = int(h) % 24
+        m = int(m) % 60
+        t = (h*60+m) / 12 / 60
+
         if not title:
-            d = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
-            wd = d[t.tm_wday] + " "
+            if h<10:
+                h = f"0{h}"
+            if m<10:
+                m = f"0{m}"
+            title = f"{h}:{m}"
 
-    h = int(h) % 24
-    m = int(m) % 60
-    t = (h*60+m) / 12 / 60
+        alpha = 2*np.pi*t + np.pi/2
+        beta  = 12*2*np.pi*t + np.pi/2
 
-    if not title:
-        if h<10:
-            h = f"0{h}"
-        if m<10:
-            m = f"0{m}"
-        title = f"{h}:{m}"
+        x1,y1 = np.cos(alpha), np.sin(alpha)
+        x2,y2 = np.cos(beta),  np.sin(beta)
+        if s is not None:
+            s = int(s) % 60
+            gamma = s*2*np.pi /60 + np.pi/2
+            x3,y3 = np.cos(gamma), np.sin(gamma)
 
-    alpha = 2*np.pi*t + np.pi/2
-    beta  = 12*2*np.pi*t + np.pi/2
+        ore = Line([0,0], [x1,y1], lw=14, c='red4').scale(0.5).mirror()
+        minu= Line([0,0], [x2,y2], lw=7, c='blue3').scale(0.75).mirror()
+        secs = None
+        if s is not None:
+            secs= Line([0,0], [x3,y3], lw=1, c='k').scale(0.95).mirror()
+            secs.z(0.003)
+        back1 = vedo.shapes.Circle(res=180, c="k6").lw(1)
+        back2 = vedo.shapes.Circle(res=12).mirror().scale(0.86).rotateZ(-360/12)
+        labels = back2.labels(
+            range(1,13),
+            justify="center",
+            font=font,
+            c=c,
+        )
+        txt = vedo.shapes.Text3D(wd+title,
+            font="VictorMono",
+            justify="top-center",
+            s=.1,
+            c=c,
+        )
+        txt.pos(0,-0.25, 0.001)
+        labels.z(0.001)
+        minu.z(0.002)
+        vedo.Assembly.__init__(self, [back1, labels, ore, minu, secs, txt])
+        self.name = "Clock"
 
-    x1,y1 = np.cos(alpha), np.sin(alpha)
-    x2,y2 = np.cos(beta),  np.sin(beta)
-    if s is not None:
-        s = int(s) % 60
-        gamma = s*2*np.pi /60 + np.pi/2
-        x3,y3 = np.cos(gamma), np.sin(gamma)
+    def update(self, h=None, m=None, s=None):
+        """Update clock with current or user time"""
+        parts = self.unpack()
+        self.elapsed = time.time() - self._start
 
-    ore = Line([0,0], [x1,y1], lw=14, c='red4').scale(0.5).mirror()
-    minu= Line([0,0], [x2,y2], lw=7, c='blue3').scale(0.75).mirror()
-    secs = None
-    if s is not None:
-        secs= Line([0,0], [x3,y3], lw=1, c='k').scale(0.95).mirror()
-        secs.z(0.003)
-    back1 = vedo.shapes.Circle(res=180, c="k6").lw(1)
-    back2 = vedo.shapes.Circle(res=12).mirror().scale(0.86).rotateZ(-360/12)
-    lb = back2.labels(range(1,13),
-        justify="center",
-        font=font,
-        c=c,
-    )
-    txt = vedo.shapes.Text3D(wd+title,
-        font="VictorMono",
-        justify="top-center",
-        s=.1,
-        c=c,
-    )
-    txt.pos(0,-0.25, 0.001)
-    lb.z(0.001)
-    minu.z(0.002)
-    asse = vedo.Assembly(back1, lb, ore, minu, secs, txt)
-    asse.name = "Clock"
-    return asse
+        if h is None and m is None:
+            t = time.localtime()
+            h = t.tm_hour
+            m = t.tm_min
+            s = t.tm_sec
+
+        h = int(h) % 24
+        m = int(m) % 60
+        t = (h*60+m) / 12 / 60
+
+        alpha = 2*np.pi*t + np.pi/2
+        beta  = 12*2*np.pi*t + np.pi/2
+
+        x1,y1 = np.cos(alpha), np.sin(alpha)
+        x2,y2 = np.cos(beta),  np.sin(beta)
+        if s is not None:
+            s = int(s) % 60
+            gamma = s*2*np.pi /60 + np.pi/2
+            x3,y3 = np.cos(gamma), np.sin(gamma)
+
+        pts2 = parts[2].points()
+        pts2[1] = [-x1*0.5,y1*0.5, 0.001]
+        parts[2].points(pts2)
+
+        pts3 = parts[3].points()
+        pts3[1] = [-x2*0.75,y2*0.75, 0.002]
+        parts[3].points(pts3)
+
+        if s is not None:
+            pts4 = parts[4].points()
+            pts4[1] = [-x3*0.95,y3*0.95, 0.003]
+            parts[4].points(pts4)
+
+        return self
+
 
 
