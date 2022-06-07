@@ -30,6 +30,7 @@ __all__ = [
     "RayCastPlotter",
     "Slicer3DPlotter",
     "Slicer2DPlotter",
+    "Clock",
 ]
 
 
