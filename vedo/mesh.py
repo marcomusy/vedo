@@ -2089,7 +2089,7 @@ class Mesh(Points):
             m.SetScale(self.GetScale())
             m.SetOrientation(self.GetOrientation())
             m.SetPosition(self.GetPosition())
-            return m.computeNormals(cells=False).phong()
+            return m.computeNormals(cells=False).flat().lighting("default")
 
     def split(self, maxdepth=1000, flag=False):
         """

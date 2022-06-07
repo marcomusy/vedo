@@ -1316,10 +1316,9 @@ def write(objct, fileoutput, binary=True):
             for p in objct.points():
                 outF.write("v {:.5g} {:.5g} {:.5g}\n".format(*p))
 
-            ptxt = objct.polydata().GetPointData().GetTCoords() # not working
+            ptxt = objct.polydata().GetPointData().GetTCoords()
             if ptxt:
                 ntxt = utils.vtk2numpy(ptxt)
-                # print(len(objct.faces()), objct.points().shape, ntxt.shape)
                 for vt in ntxt:
                     outF.write('vt '+ str(vt[0]) +" "+ str(vt[1])+ ' 0.0\n')
 
