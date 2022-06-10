@@ -1385,11 +1385,14 @@ def write(objct, fileoutput, binary=True):
         return objct
 
     try:
-        if hasattr(writer, "SetFileTypeToBinary"):
-            if binary:
-                writer.SetFileTypeToBinary()
-            else:
-                writer.SetFileTypeToASCII()
+        if binary:
+            writer.SetFileTypeToBinary()
+        else:
+            writer.SetFileTypeToASCII()
+    except:
+        pass
+
+    try:
         writer.SetInputData(obj)
         writer.SetFileName(fileoutput)
         writer.Write()

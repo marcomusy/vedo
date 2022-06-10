@@ -1488,6 +1488,10 @@ class BaseGrid(BaseActor):
 
         ``volume.color(['red', 'violet', 'green'])``
 
+        You can also assign a specific color to a aspecific value with eg.:
+
+        ``volume.color([(0,'red', (0.5,'violet'), (1,'green')])``
+
         Parameters
         ----------
         alpha : list

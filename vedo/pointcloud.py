@@ -2203,6 +2203,7 @@ class Points(vtk.vtkFollower, BaseActor):
             tr = vtk.vtkTransform()
             tr.SetMatrix(T)
             T = tr
+
         elif utils.isSequence(T):
             M = vtk.vtkMatrix4x4()
             n = len(T[0])
@@ -2213,19 +2214,19 @@ class Points(vtk.vtkFollower, BaseActor):
             tr.SetMatrix(M)
             T = tr
 
-        if reset:  # or not hasattr(T, 'GetMatrix'): # might be non-linear?
+        if reset or not hasattr(T, 'GetMatrix'): # might be non-linear
 
             tf = vtk.vtkTransformPolyDataFilter()
             tf.SetTransform(T)
             tf.SetInputData(self.polydata())
             tf.Update()
+
             I = vtk.vtkMatrix4x4()
-            ID = vtk.vtkTransform()
-            ID.SetMatrix(I)
-            self.transform = ID
             self.PokeMatrix(I)  # reset to identity
             self.SetUserTransform(None)
-            return self._update(tf.GetOutput())
+
+            self._update(tf.GetOutput()) ### UPDATE
+            self.transform = T
 
         else:
 
@@ -2245,17 +2246,14 @@ class Points(vtk.vtkFollower, BaseActor):
 
             else:
 
-                try:
-                    self.SetScale(T.GetScale())
-                    self.SetOrientation(T.GetOrientation())
-                    self.SetPosition(T.GetPosition())
-                    self.SetUserTransform(None)
-                except AttributeError:  # GetScale might be missing for non linear an shear transf
-                    self.SetUserTransform(T)
+                self.SetScale(T.GetScale())
+                self.SetOrientation(T.GetOrientation())
+                self.SetPosition(T.GetPosition())
+                self.SetUserTransform(None)
 
                 self.transform = T
 
-            return self
+        return self
 
     def normalize(self):
         """Scale Mesh average size to unit."""
@@ -3345,20 +3343,20 @@ class Points(vtk.vtkFollower, BaseActor):
         for i in range(ns):
             pttar.SetPoint(i, targetPts[i])
 
-        transform = vtk.vtkThinPlateSplineTransform()
+        T = vtk.vtkThinPlateSplineTransform()
         if mode.lower() == "3d":
-            transform.SetBasisToR()
+            T.SetBasisToR()
         elif mode.lower() == "2d":
-            transform.SetBasisToR2LogR()
+            T.SetBasisToR2LogR()
         else:
             vedo.logger.error(f"unknown mode {mode}")
             raise RuntimeError()
 
-        transform.SetSigma(sigma)
-        transform.SetSourceLandmarks(ptsou)
-        transform.SetTargetLandmarks(pttar)
-        self.transform = transform
-        self.applyTransform(transform, reset=True)
+        T.SetSigma(sigma)
+        T.SetSourceLandmarks(ptsou)
+        T.SetTargetLandmarks(pttar)
+        self.transform = T
+        self.applyTransform(T, reset=True)
         return self
 
     def cutWithPlane(self, origin=(0, 0, 0), normal=(1, 0, 0)):
