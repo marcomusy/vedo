@@ -1,7 +1,7 @@
 """Warp a region of a mesh using Thin Plate Splines.
 Red points stay fixed while a single point in space
 moves as the arrow indicates."""
-from vedo import settings, dataurl, Mesh, Arrows, Points, show
+from vedo import *
 
 settings.useDepthPeeling = True
 mesh = Mesh(dataurl+"man.vtk").color('w')
@@ -21,4 +21,8 @@ apts = Points(sources).c("red")
 warp = mesh.clone().warp(sources, targets)
 warp.c("blue", 0.3).wireframe()
 
-show(mesh, arrow, warp, apts, axes=1).close()
+sphere = Sphere(r=0.3).pos(1,0,-.50)
+sphere.applyTransform(warp.transform)
+# print(warp.transform)
+
+show(mesh, arrow, warp, apts, sphere, axes=1).close()

@@ -845,14 +845,14 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
 
             else:
                 if "ndarray" not in inputtype:
-                    inputobj = np.asarray(inputobj)
+                    inputobj = np.array(inputobj).astype(float)
 
                 if len(inputobj.shape) == 1:
-                    varr = utils.numpy2vtk(inputobj, dtype=float)
+                    varr = utils.numpy2vtk(inputobj)
                 else:
                     if len(inputobj.shape) > 2:
                         inputobj = np.transpose(inputobj, axes=[2, 1, 0])
-                    varr = utils.numpy2vtk(inputobj.ravel(order="F"), dtype=float)
+                    varr = utils.numpy2vtk(inputobj.ravel(order="F"))
                 varr.SetName("input_scalars")
 
                 img = vtk.vtkImageData()
