@@ -3,6 +3,10 @@
 - pep8 parsing with pylint and general cleanup of the code.
 
 ---
+### `applications.py`
+- added `SplinePlotter` object
+
+---
 ### `base.py`
 
 ---

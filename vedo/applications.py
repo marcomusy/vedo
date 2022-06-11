@@ -30,6 +30,7 @@ __all__ = [
     "RayCastPlotter",
     "Slicer3DPlotter",
     "Slicer2DPlotter",
+    "SplinePlotter",
     "Clock",
 ]
 
@@ -1047,6 +1048,105 @@ class FreeHandCutPlotter(Plotter):
         """Start window interaction (with mouse and keyboard)"""
         acts = [self.txt2d, self.mesh, self.points, self.spline, self.jline]
         self.show(acts + list(args), **kwargs)
+        return self
+
+########################################################################
+class SplinePlotter(Plotter):
+    """
+    Create an interactive application that allows the user to click points and
+    retrieve the coordinates of such points and optionally a spline or line
+    (open or closed).
+
+    Input object can be a image file name or a 3D mesh.
+    """
+    def __init__(self, obj, initpoints=(), **kwargs):
+
+        super().__init__(**kwargs)
+
+        self.mode    = 'trackball'
+        self.verbose = True
+        self.splined = True
+        self.closed  = False
+        self.lcolor  = 'yellow4'
+        self.lwidth  = 3
+        self.pcolor  = 'purple5'
+        self.psize   = 10
+
+        self.cpoints = list(initpoints)
+        self.vpoints = None
+        self.line = None
+
+        if isinstance(obj, str):
+            self.object = vedo.Picture(obj, channels=(0,1,2))
+            # keep rgb but drop alpha channel
+            self.mode = 'image'
+        else:
+            self.object = obj
+
+        t = """Click to add a point
+        Right-click to remove it
+        Drag mouse to change constrast
+        Press c to clear points
+        Press q to continue""".replace("  ","")
+        self.instructions = Text2D(t, pos='bottom-left', c='white', bg='green', font='Calco')
+
+        self.callid1 = self.addCallback('KeyPress', self._keyPress)
+        self.callid2 = self.addCallback('LeftButtonPress', self._onLeftClick)
+        self.callid3 = self.addCallback('RightButtonPress', self._onRightClick)
+
+    def points(self, newpts=None):
+        """Retrieve the 3D coordinates of the clicked points"""
+        if newpts is not None:
+            self.cpoints = newpts
+            self._update()
+            return self
+        else:
+            return np.array(self.cpoints)
+
+    def _onLeftClick(self, evt):
+        if not evt.actor: return
+        p = evt.picked3d
+        self.cpoints.append(p)
+        self._update()
+        if self.verbose:
+            vedo.colors.printc("Added point:", precision(p,4), c='g')
+
+    def _onRightClick(self, evt):
+        if evt.actor and len(self.cpoints)>0:
+            self.cpoints.pop() # pop removes from the list the last pt
+            self._update()
+            if self.verbose:
+                vedo.colors.printc("Deleted last point", c="r")
+
+    def _update(self):
+        self.remove(self.line, self.vpoints)  # remove old points and spline
+        self.vpoints = Points(self.cpoints).ps(self.psize).c(self.pcolor)
+        self.vpoints.pickable(False)  # avoid picking the same point
+        if len(self.cpoints) > 2:
+            if self.splined:
+                try:
+                    self.line = Spline(self.cpoints, closed=self.closed)
+                except ValueError:
+                    # if clicking too close splining might fail
+                    self.cpoints.pop()
+                    return
+            else:
+                self.line = Line(self.cpoints, closed=self.closed)
+            self.line.c(self.lcolor).lw(3).pickable(False)
+            self.add(self.vpoints, self.line)
+        else:
+            self.add(self.vpoints)
+
+    def _keyPress(self, evt):
+        if evt.keyPressed == 'c':
+            self.cpoints = []
+            self.remove(self.line, self.vpoints).render()
+            if self.verbose:
+                vedo.colors.printc("==== Cleared all points ====", c="r", invert=True)
+
+    def start(self):
+        """Start the interaction"""
+        self.show(self.object, self.instructions, mode=self.mode)
         return self
 
 

@@ -1,5 +1,6 @@
 from vedo import dataurl, printc, precision
 from vedo import Plotter, Picture, Spline, Points, Text2D
+# from vedo.applications import SplinePlotter  # ready to use class!
 
 #########################################################################
 class SplinePlotter(Plotter):
@@ -29,14 +30,14 @@ class SplinePlotter(Plotter):
         self.points.pickable(False)  # avoid picking the same point
         if len(self.cpoints) > 2:
             self.spline = Spline(self.cpoints, closed=False).c('yellow5').lw(3)
-            self.add([self.points, self.spline])
+            self.add(self.points, self.spline)
         else:
             self.add(self.points)
 
     def keyPress(self, evt):
         if evt.keyPressed == 'c':
             self.cpoints = []
-            self.remove([self.spline, self.points]).render()
+            self.remove(self.spline, self.points).render()
             printc("==== Cleared all points ====", c="r", invert=True)
 
 
@@ -44,7 +45,7 @@ class SplinePlotter(Plotter):
 if __name__ == "__main__":
 
     filename = dataurl+"images/Mouse-_embryo_E11.5.jpg"
-    pic = Picture(filename, channels=(0,1,2))  # keep rgb but drop alpha channel
+    pic = Picture(filename)
 
     t = """Click to add a point
     Right-click to remove it
