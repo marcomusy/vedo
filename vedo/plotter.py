@@ -919,10 +919,11 @@ class Plotter:
             if ren:
                 ren.AddActor(a)
         if render:
-            if not self.interactor.GetInitialized():
-                vedo.logger.warning("call to add() but Plotter was not initialized with show()")
-            else:
-                self.render(resetcam=resetcam)
+            if self.interactor:
+                if not self.interactor.GetInitialized():
+                    vedo.logger.warning("call to add() but Plotter was not initialized with show()")
+                else:
+                    self.render(resetcam=resetcam)
         return self
 
     def remove(self, *actors, at=None, render=False, resetcam=False):
