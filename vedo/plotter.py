@@ -919,10 +919,11 @@ class Plotter:
             if ren:
                 ren.AddActor(a)
         if render:
-            if not self.interactor.GetInitialized():
-                vedo.logger.warning("call to add() but Plotter was not initialized with show()")
-            else:
-                self.render(resetcam=resetcam)
+            if self.interactor:
+                if not self.interactor.GetInitialized():
+                    vedo.logger.warning("call to add() but Plotter was not initialized with show()")
+                else:
+                    self.render(resetcam=resetcam)
         return self
 
     def remove(self, *actors, at=None, render=False, resetcam=False):
@@ -3609,15 +3610,18 @@ class Plotter:
             return
 
         elif key == "C":
+            # Precision needs to be 7 (or even larger) to guarantee a consistent camera when 
+            #   the model coordinates are not centered at (0, 0, 0) and the mode is large. 
+            # This could happen for plotting geological models with UTM coordinate systems
             cam = self.renderer.GetActiveCamera()
             vedo.printc('\n###################################################', c='y')
             vedo.printc('## Template python code to position this camera: ##', c='y')
             vedo.printc('cam = dict(', c='y')
-            vedo.printc('    pos='          +utils.precision(cam.GetPosition(),4)+',', c='y')
-            vedo.printc('    focalPoint='   +utils.precision(cam.GetFocalPoint(),4)+',', c='y')
-            vedo.printc('    viewup='       +utils.precision(cam.GetViewUp(),4)+',', c='y')
-            vedo.printc('    distance='     +utils.precision(cam.GetDistance(),4)+',', c='y')
-            vedo.printc('    clippingRange='+utils.precision(cam.GetClippingRange(),4)+',', c='y')
+            vedo.printc('    pos='          +utils.precision(cam.GetPosition(),7)+',', c='y')
+            vedo.printc('    focalPoint='   +utils.precision(cam.GetFocalPoint(),7)+',', c='y')
+            vedo.printc('    viewup='       +utils.precision(cam.GetViewUp(),7)+',', c='y')
+            vedo.printc('    distance='     +utils.precision(cam.GetDistance(),7)+',', c='y')
+            vedo.printc('    clippingRange='+utils.precision(cam.GetClippingRange(),7)+',', c='y')
             vedo.printc(')', c='y')
             vedo.printc('show(mymeshes, camera=cam)', c='y')
             vedo.printc('###################################################', c='y')
