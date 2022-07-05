@@ -797,6 +797,7 @@ class BaseActor(Base3DProp):
         (you may use `.clean()` to remove those).
         """
         data = self.inputdata()
+        data.BuildLinks()
         for cid in ids:
             data.DeleteCell(cid)
         data.RemoveDeletedCells()

@@ -1149,13 +1149,14 @@ class Points(vtk.vtkFollower, BaseActor):
             .. image:: https://vedo.embl.es/images/basic/deleteMeshPoints.png
         """
         cellIds = vtk.vtkIdList()
-        self.inputdata().BuildLinks()
-        for i in indices:
-            self.inputdata().GetPointCells(i, cellIds)
+        data = self.inputdata()
+        data.BuildLinks()
+        for i in np.unique(indices):
+            data.GetPointCells(i, cellIds)
             for j in range(cellIds.GetNumberOfIds()):
-                self.inputdata().DeleteCell(cellIds.GetId(j))  # flag cell
+                data.DeleteCell(cellIds.GetId(j))  # flag cell
 
-        self.inputdata().RemoveDeletedCells()
+        data.RemoveDeletedCells()
         self.mapper().Modified()
         return self
 
