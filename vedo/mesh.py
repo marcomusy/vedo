@@ -1672,10 +1672,6 @@ class Mesh(Points):
             idf.SetCellIds(returnCellIds)
             idf.Update()
             fe.SetInputData(idf.GetOutput())
-            fe.ManifoldEdgesOff()
-            fe.NonManifoldEdgesOff()
-            fe.BoundaryEdgesOn()
-            fe.FeatureEdgesOff()
             fe.Update()
             if returnPointIds:
                 vid = fe.GetOutput().GetPointData().GetArray("BoundaryIds")

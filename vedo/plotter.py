@@ -3108,6 +3108,11 @@ class Plotter:
             self.scalarbars = []
         return self
 
+    def breakInteraction(self):
+        """Break window interaction and return to the python execution flow"""
+        self.interactor.ExitCallback()
+        return self
+
     def closeWindow(self):
         """Close the current or the input rendering window.
 
@@ -3444,7 +3449,7 @@ class Plotter:
                     if a.GetPickable():
                         a.GetProperty().SetOpacity(1)
                         if hasattr(a, "_bfprop") and a._bfprop:
-                            a.clickedActor.SetBackfaceProperty(a._bfprop)
+                            a.SetBackfaceProperty(a._bfprop)
 
         elif key == "P":
             if self.clickedActor in self.getMeshes():

@@ -17,6 +17,7 @@
 
 ---
 ### `plotter.py`
+- added `breakInteraction()` to break window interaction and return to the python execution flow
 
 ---
 ### `picture.py`
@@ -47,6 +48,7 @@
 
 ### Broken
 examples/basic/multiwindows2.py
+examples/basic/input_box.py
 examples/simulations/lorenz.py
 examples/pyplot/histo_hexagonal.py
 
