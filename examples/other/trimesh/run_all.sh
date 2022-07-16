@@ -3,9 +3,6 @@
 #
 echo Running examples in directory other/trimesh/
 
-echo Running first_example.py
-python3 first_example.py
-
 echo Running nearest.py
 python3 nearest.py
 

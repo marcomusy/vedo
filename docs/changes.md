@@ -11,6 +11,7 @@
 
 ---
 ### `pointcloud.py`
+- bug fix in `clone()`
 
 ---
 ### `mesh.py`
@@ -52,7 +53,17 @@ examples/basic/input_box.py
 examples/simulations/lorenz.py
 examples/pyplot/histo_hexagonal.py
 
-volumetric/ugrid1.py
-volumetric/ugrid2.py
+ugrid1.py
+ugrid2.py
+
+
+
+
+
+
+
+
+
+
 
 

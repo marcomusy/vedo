@@ -2852,8 +2852,7 @@ class Grid(Mesh):
                     faces.append([i + j * n, i + 1 + j * n, i + 1 + j1n, i + j1n])
 
             verts = np.array(verts)
-            Mesh.__init__(self, [verts - verts[0], faces], c, alpha)
-            self.SetPosition(verts[0])
+            Mesh.__init__(self, [verts, faces], c, alpha)
 
         else:
             ps = vtk.vtkPlaneSource()

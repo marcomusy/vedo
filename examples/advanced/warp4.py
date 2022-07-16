@@ -32,7 +32,7 @@ class Morpher:
         self.plane1.wireframe(False).alpha(1).lineWidth(0.1).c('white').lc('grey5')
         self.plane2 = self.plane1.clone().pickable(False)
 
-        self.plotter = Plotter(N=2, bg='light blue', size=(2000,1000))
+        self.plotter = Plotter(N=2, bg='light blue', size=(2000,1000), sharecam=0)
         self.plotter.addCallback('left click', self.onleftclick)
         self.plotter.addCallback('right click', self.onrightclick)
         self.plotter.addCallback('key press', self.onkeypress)
@@ -104,7 +104,7 @@ class Morpher:
 
             self.msg1.text(self.instructions)
             self.msg2.text("Morphed output:")
-            self.plotter.at(1).clear().addRendererFrame().add(output)
+            self.plotter.at(1).clear().addRendererFrame().add(output).resetCamera()
 
         elif evt.keyPressed == 'g':  ##------- generate intermediate shapes
             if not self.dottedln:

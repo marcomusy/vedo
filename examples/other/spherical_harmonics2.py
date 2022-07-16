@@ -4,7 +4,7 @@ Morph one shape into another using spherical harmonics package shtools.
 In this example we morph a sphere into a octahedron and viceversa.
 """
 import numpy as np
-from vedo import settings, Plotter, Points, Sphere, cos, dataurl, mag, sin
+from vedo import settings, Plotter, Points, Sphere, cos, dataurl, mag, sin, Mesh
 
 try:
     import pyshtools
@@ -66,7 +66,8 @@ settings.useDepthPeeling = True
 plt = Plotter(shape=[2, 2], axes=3, interactive=0)
 
 shape1 = Sphere(alpha=0.2)
-shape2 = plt.load(dataurl + "icosahedron.vtk").normalize().lineWidth(1)
+shape2 = Mesh(dataurl + "icosahedron.vtk").normalize().lineWidth(1)
+plt += shape2
 
 agrid1, actorpts1 = makeGrid(shape1, N)
 

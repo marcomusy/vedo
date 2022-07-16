@@ -972,21 +972,27 @@ class Points(vtk.vtkFollower, BaseActor):
             cloned.SetBackfaceProperty(bfpr)
 
         if not transformed:
-            # assign the same transformation to the copy
-            cloned.SetOrigin(self.GetOrigin())
-            cloned.SetScale(self.GetScale())
-            cloned.SetOrientation(self.GetOrientation())
-            cloned.SetPosition(self.GetPosition())
+            if self.transform:
+                # already has a transform which can be non linear, so use that
+                cloned.SetUserTransform(self.transform)
+            else:
+                # assign the same transformation to the copy
+                cloned.SetOrigin(self.GetOrigin())
+                cloned.SetScale(self.GetScale())
+                cloned.SetOrientation(self.GetOrientation())
+                cloned.SetPosition(self.GetPosition())
 
-        cloned.mapper().SetScalarVisibility(self.mapper().GetScalarVisibility())
-        cloned.mapper().SetScalarRange(self.mapper().GetScalarRange())
-        cloned.mapper().SetColorMode(self.mapper().GetColorMode())
-        lsr = self.mapper().GetUseLookupTableScalarRange()
-        cloned.mapper().SetUseLookupTableScalarRange(lsr)
-        cloned.mapper().SetScalarMode(self.mapper().GetScalarMode())
-        lut = self.mapper().GetLookupTable()
+        mp = cloned.mapper()
+        sm = self.mapper()
+        mp.SetScalarVisibility(sm.GetScalarVisibility())
+        mp.SetScalarRange(sm.GetScalarRange())
+        mp.SetColorMode(sm.GetColorMode())
+        lsr = sm.GetUseLookupTableScalarRange()
+        mp.SetUseLookupTableScalarRange(lsr)
+        mp.SetScalarMode(sm.GetScalarMode())
+        lut = sm.GetLookupTable()
         if lut:
-            cloned.mapper().SetLookupTable(lut)
+            mp.SetLookupTable(lut)
 
         cloned.SetPickable(self.GetPickable())
 
@@ -996,9 +1002,8 @@ class Points(vtk.vtkFollower, BaseActor):
         cloned.filename = str(self.filename)
         cloned.info = dict(self.info)
 
-        cloned.point_locator = (
-            None  # better not to share the same locators with original obj
-        )
+        # better not to share the same locators with original obj
+        cloned.point_locator = None
         cloned.cell_locator = None
 
         return cloned
@@ -2154,7 +2159,6 @@ class Points(vtk.vtkFollower, BaseActor):
             lmt.SetModeToAffine()
         lmt.Update()
 
-        # self.applyTransform(lmt)
         self.SetUserTransform(lmt)
         self.transform = lmt
 
@@ -2215,7 +2219,7 @@ class Points(vtk.vtkFollower, BaseActor):
             tr.SetMatrix(M)
             T = tr
 
-        if reset or not hasattr(T, 'GetMatrix'): # might be non-linear
+        if reset or not hasattr(T, 'GetScale'): # might be non-linear
 
             tf = vtk.vtkTransformPolyDataFilter()
             tf.SetTransform(T)
