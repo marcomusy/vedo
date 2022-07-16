@@ -3878,9 +3878,6 @@ class Text3D(Mesh):
         c=None,
         alpha=1,
     ):
-        if not font:
-            font = settings.defaultFont
-
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
 
@@ -3897,6 +3894,68 @@ class Text3D(Mesh):
             else:
                 c = (0.6, 0.6, 0.6)
 
+        tpoly = self.getText3DPoly(
+            txt,
+            s,
+            font,
+            hspacing,
+            vspacing,
+            depth,
+            italic,
+            justify,
+            literal)
+
+        Mesh.__init__(self, tpoly, c, alpha)
+        self.lighting("off")
+        self.SetPosition(pos)
+        self.PickableOff()
+        self.DragableOff()
+        self.name = "Text3D"
+        self.txt = txt
+
+    def text(
+        self,
+        txt=None,
+        s=1,
+        font="",
+        hspacing=1.15,
+        vspacing=2.15,
+        depth=0,
+        italic=False,
+        justify="bottom-left",
+        literal=False,
+    ):
+        if txt is None:
+            return self.txt
+
+        tpoly = self.getText3DPoly(
+            txt,
+            s,
+            font,
+            hspacing,
+            vspacing,
+            depth,
+            italic,
+            justify,
+            literal)
+        self._update(tpoly)
+        self.txt = txt
+
+    def getText3DPoly(
+        self,
+        txt,
+        s=1,
+        font="",
+        hspacing=1.15,
+        vspacing=2.15,
+        depth=0,
+        italic=False,
+        justify="bottom-left",
+        literal=False,
+    ):
+        if not font:
+            font = settings.defaultFont
+
         txt = str(txt)
 
         if font == "VTK":  #######################################
@@ -3909,11 +3968,7 @@ class Text3D(Mesh):
 
             stxt = set(txt)  # check here if null or only spaces
             if not txt or (len(stxt) == 1 and " " in stxt):
-                Mesh.__init__(self, vtk.vtkPolyData(), c, alpha)
-                self.name = "Text3D"
-                #######################
-                return ################
-                #######################
+                return vtk.vtkPolyData()
 
             if italic is True:
                 italic = 1
@@ -4077,13 +4132,7 @@ class Text3D(Mesh):
             extrude.Update()
             tpoly = extrude.GetOutput()
 
-        Mesh.__init__(self, tpoly, c, alpha)
-        self.lighting("off")
-        self.SetPosition(pos)
-        self.PickableOff()
-        self.DragableOff()
-        self.name = "Text3D"
-        self.text = txt
+        return tpoly
 
 
 class TextBase:
