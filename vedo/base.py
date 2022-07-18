@@ -29,8 +29,12 @@ class _DataArrayHelper:
     def __getitem__(self, key):
         if self.association == 0:
             data = self.actor.inputdata().GetPointData()
-        else:
+        elif self.association == 1:
             data = self.actor.inputdata().GetCellData()
+        elif self.association == 2:
+            data = self.actor.inputdata().GetFieldData()
+        else:
+            raise RuntimeError()
 
         if isinstance(key, int):
             key = data.GetArrayName(key)
@@ -44,10 +48,34 @@ class _DataArrayHelper:
             data = self.actor.inputdata().GetPointData()
             n = self.actor.inputdata().GetNumberOfPoints()
             self.actor._mapper.SetScalarModeToUsePointData()
-        else:
+        elif self.association == 1:
             data = self.actor.inputdata().GetCellData()
             n = self.actor.inputdata().GetNumberOfCells()
             self.actor._mapper.SetScalarModeToUseCellData()
+        elif self.association == 2:
+            data = self.actor.inputdata().GetFieldData()
+            # v0 = input_array[0]
+            # if isinstance(v0, (int, np.int32, np.int64, np.int8, np.uint8)):
+            #     marray = vtk.vtkIntArray()
+            # elif isinstance(v0, float):
+            #     marray = vtk.vtkFloatArray()
+            # # elif isinstance(v0, str): # not working
+            # #     marray = vtk.vtkStringArray()
+            # else:
+            #     vedo.printc("metadata, cannot understand type", type(v0), c='r')
+            #     raise RuntimeError
+            # marray.SetName(key)
+            # marray.SetNumberOfComponents(1)
+            # for val in input_array:
+            #     try:
+            #         marray.InsertNextValue(val)
+            #     except TypeError:
+            #         vedo.printc("in metadata cannot add type", type(val), c='r')
+            varr = utils.numpy2vtk(input_array, name=key)
+            data.AddArray(varr)
+            return #############
+        else:
+            raise RuntimeError()
 
         if len(input_array) != n:
             vedo.logger.error(
@@ -56,7 +84,6 @@ class _DataArrayHelper:
             )
             raise RuntimeError()
 
-        input_array = np.ascontiguousarray(input_array)
         varr = utils.numpy2vtk(input_array, name=key)
         data.AddArray(varr)
 
@@ -1039,6 +1066,23 @@ class BaseActor(Base3DProp):
             ``myobj.celldata.remove(name)`` to remove this array
         """
         return _DataArrayHelper(self, 1)
+
+    @property
+    def metadata(self):
+        """
+        Create and/or return a ``numpy.array`` associated to neither cells nor faces.
+        A data array can be indexed either as a string or by an integer number.
+        E.g.:  ``myobj.metadata["arrayname"]``
+
+        Usage:
+
+            ``myobj.metadata.keys()`` to return the available data array names
+
+            ``myobj.metadata.select(name)`` to make this array the active one
+
+            ``myobj.metadata.remove(name)`` to remove this array
+        """
+        return _DataArrayHelper(self, 2)
 
     @deprecated(reason=colors.red+"Please use myobj.pointdata[name] instead."+colors.reset)
     def getPointArray(self, name=0):
