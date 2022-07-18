@@ -1673,7 +1673,7 @@ class Mesh(Points):
         if returnPointIds or returnCellIds:
             idf = vtk.vtkIdFilter()
             idf.SetInputData(self.polydata())
-            idf.SetIdsArrayName("BoundaryIds")
+            idf.SetPointIdsArrayName("BoundaryIds")
             idf.SetPointIds(True)
             idf.Update()
 
