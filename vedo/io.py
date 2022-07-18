@@ -2020,15 +2020,15 @@ class Video:
                 + " "
                 + str(self.fps)
                 + " -i "
-                + self.tmp_dir.name
+                + f"'{self.tmp_dir.name}'"
                 + os.sep
                 + "%01d.png "
                 + self.options
                 + " "
-                + self.name
+                + f"'{self.name}'"
             )
             if out:
-                vedo.logger.error(f"backend {self.backend} returning error")
+                vedo.logger.error(f"backend {self.backend} returning error: {out}")
             else:
                 colors.printc(f" \save video saved as {self.name}", c="m")
 

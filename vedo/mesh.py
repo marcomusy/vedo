@@ -1630,8 +1630,9 @@ class Mesh(Points):
     def boundaries(
         self,
         boundaryEdges=True,
+        manifoldEdges=False,
         nonManifoldEdges=False,
-        featureAngle=180,
+        featureAngle=None,
         returnPointIds=False,
         returnCellIds=False,
     ):
@@ -1642,6 +1643,9 @@ class Mesh(Points):
         ----------
         boundaryEdges : bool
             Turn on/off the extraction of boundary edges.
+
+        manifoldEdges : bool
+            Turn on/off the extraction of manifold edges.
 
         nonManifoldEdges : bool
             Turn on/off the extraction of non-manifold edges.
@@ -1660,31 +1664,42 @@ class Mesh(Points):
         """
         fe = vtk.vtkFeatureEdges()
         fe.SetBoundaryEdges(boundaryEdges)
-        fe.SetFeatureAngle(featureAngle)
         fe.SetNonManifoldEdges(nonManifoldEdges)
+        fe.SetManifoldEdges(manifoldEdges)
         fe.ColoringOff()
+        if featureAngle is not None:
+            fe.SetFeatureAngle(featureAngle)
 
         if returnPointIds or returnCellIds:
             idf = vtk.vtkIdFilter()
             idf.SetInputData(self.polydata())
             idf.SetIdsArrayName("BoundaryIds")
-            idf.SetPointIds(returnPointIds)
-            idf.SetCellIds(returnCellIds)
+            idf.SetPointIds(True)
             idf.Update()
+
             fe.SetInputData(idf.GetOutput())
             fe.Update()
-            if returnPointIds:
-                vid = fe.GetOutput().GetPointData().GetArray("BoundaryIds")
-            if returnCellIds:
-                vid = fe.GetOutput().GetCellData().GetArray("BoundaryIds")
+
+            vid = fe.GetOutput().GetPointData().GetArray("BoundaryIds")
             npid = vtk2numpy(vid).astype(int)
-            return npid
+
+            if returnPointIds:
+                return npid
+
+            if returnCellIds:
+                inface = []
+                for i, face in enumerate(self.faces()):
+                    isin = np.all([vtx in npid for vtx in face])
+                    if isin:
+                        inface.append(i)
+                return np.array(inface).astype(int)
 
         else:
 
             fe.SetInputData(self.polydata())
             fe.Update()
             return Mesh(fe.GetOutput(), c="p").lw(5).lighting("off")
+
 
     def imprint(self, loopline, tol=0.01):
         """
@@ -1725,10 +1740,8 @@ class Mesh(Points):
         imp.Update()
         return self._update(imp.GetOutput())
 
-    def connectedVertices(self, index, returnIds=False):
+    def connectedVertices(self, index):
         """Find all vertices connected to an input vertex specified by its index.
-
-        Use ``returnIds`` to return vertex IDs instead of vertex coordinates.
 
         .. hint:: connVtx.py
             .. image:: https://vedo.embl.es/images/basic/connVtx.png
@@ -1750,15 +1763,7 @@ class Mesh(Points):
                     continue
                 idxs.append(idj)
 
-        if returnIds:
-            return idxs
-        else:
-            trgp = []
-            for i in idxs:
-                p = [0, 0, 0]
-                poly.GetPoints().GetPoint(i, p)
-                trgp.append(p)
-            return np.array(trgp)
+        return idxs
 
     def connectedCells(self, index, returnIds=False):
         """Find all cellls connected to an input vertex specified by its index."""

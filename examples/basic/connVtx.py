@@ -6,11 +6,12 @@ from vedo import *
 s = Sphere(c="y", res=12).wireframe()
 
 index = 12 # pick one point
-pt = s.points(index)
+pt = s.points()[index]
 
-vtxs = s.connectedVertices(index, returnIds=False)
+ids = s.connectedVertices(index)
+vtxs = s.points()[ids]
 
 apt  = Point(pt, c="r", r=15)
-cpts = Points(vtxs, c="blue", r=15)
+cpts = Points(vtxs, c="blue", r=20)
 
 show(s, apt, cpts, __doc__, bg='bb').close()
