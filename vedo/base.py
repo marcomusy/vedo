@@ -1419,7 +1419,7 @@ class BaseGrid(BaseActor):
         gf = vtk.vtkGeometryFilter()
         if fill:
             sf = vtk.vtkShrinkFilter()
-            sf.SetInputData(self.inputdata())
+            sf.SetInputData(self._data)
             sf.SetShrinkFactor(shrink)
             sf.Update()
             gf.SetInputData(sf.GetOutput())
@@ -1435,7 +1435,7 @@ class BaseGrid(BaseActor):
                 cleanPolyData.Update()
                 poly = cleanPolyData.GetOutput()
         else:
-            gf.SetInputData(self.inputdata())
+            gf.SetInputData(self._data)
             gf.Update()
             poly = gf.GetOutput()
 
@@ -1460,7 +1460,7 @@ class BaseGrid(BaseActor):
 
         The output format is: [[id0 ... idn], [id0 ... idm],  etc].
         """
-        arr1d = utils.vtk2numpy(self.inputdata().GetCells().GetData())
+        arr1d = utils.vtk2numpy(self._data.GetCells().GetData())
         if arr1d is None:
             return []
 
@@ -1506,9 +1506,9 @@ class BaseGrid(BaseActor):
         """
         # superseeds method in Points, Mesh
         if vmin is None:
-            vmin, _ = self.inputdata().GetScalarRange()
+            vmin, _ = self._data.GetScalarRange()
         if vmax is None:
-            _, vmax = self.inputdata().GetScalarRange()
+            _, vmax = self._data.GetScalarRange()
         ctf = self.GetProperty().GetRGBTransferFunction()
         ctf.RemoveAllPoints()
         self._color = col
@@ -1565,9 +1565,9 @@ class BaseGrid(BaseActor):
         will get an opacity of 40% and above 123 alpha is set to 90%.
         """
         if vmin is None:
-            vmin, _ = self.inputdata().GetScalarRange()
+            vmin, _ = self._data.GetScalarRange()
         if vmax is None:
-            _, vmax = self.inputdata().GetScalarRange()
+            _, vmax = self._data.GetScalarRange()
         otf = self.GetProperty().GetScalarOpacity()
         otf.RemoveAllPoints()
         self._alpha = alpha
@@ -1625,9 +1625,9 @@ class BaseGrid(BaseActor):
 
         .. hint:: examples/volumetric/isosurfaces.py
         """
-        scrange = self.inputdata().GetScalarRange()
+        scrange = self._data.GetScalarRange()
         cf = vtk.vtkContourFilter()
-        cf.SetInputData(self.inputdata())
+        cf.SetInputData(self._data)
         cf.UseScalarTreeOn()
         cf.ComputeNormalsOn()
 
@@ -1667,11 +1667,11 @@ class BaseGrid(BaseActor):
         .. hint:: examples/volumetric/legosurface.py
         """
         dataset = vtk.vtkImplicitDataSet()
-        dataset.SetDataSet(self.inputdata())
+        dataset.SetDataSet(self._data)
         window = vtk.vtkImplicitWindowFunction()
         window.SetImplicitFunction(dataset)
 
-        srng = list(self.inputdata().GetScalarRange())
+        srng = list(self._data.GetScalarRange())
         if vmin is not None:
             srng[0] = vmin
         if vmax is not None:
@@ -1682,7 +1682,7 @@ class BaseGrid(BaseActor):
         window.SetWindowRange(srng)
 
         extract = vtk.vtkExtractGeometry()
-        extract.SetInputData(self.inputdata())
+        extract.SetInputData(self._data)
         extract.SetImplicitFunction(window)
         extract.SetExtractInside(invert)
         extract.SetExtractBoundaryCells(boundary)
@@ -1723,7 +1723,7 @@ class BaseGrid(BaseActor):
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
         clipper = vtk.vtkClipDataSet()
-        clipper.SetInputData(self.inputdata())
+        clipper.SetInputData(self._data)
         clipper.SetClipFunction(plane)
         clipper.GenerateClipScalarsOff()
         clipper.GenerateClippedOutputOff()
@@ -1749,7 +1749,7 @@ class BaseGrid(BaseActor):
                 tetmesh.cutWithBox(cu).show(axes=1)
         """
         bc = vtk.vtkBoxClipDataSet()
-        bc.SetInputData(self.inputdata())
+        bc.SetInputData(self._data)
         if isinstance(box, vtk.vtkProp):
             box = box.GetBounds()
         bc.SetBoxClip(*box)
@@ -1764,7 +1764,7 @@ class BaseGrid(BaseActor):
         Use ``invert`` to return cut off part of the input object.
         """
         polymesh = mesh.polydata()
-        ug = self.inputdata()
+        ug = self._data
 
         ippd = vtk.vtkImplicitPolyDataDistance()
         ippd.SetInput(polymesh)
@@ -1815,7 +1815,7 @@ class BaseGrid(BaseActor):
     #     subId = vtk.mutable(0)
     #     pcoords = [0,0,0]
     #     weights = [0,0,0]
-    #     self.inputdata().FindAndGetCell(p, cell, cellId, tol2, subId, pcoords, weights)
+    #     self._data.FindAndGetCell(p, cell, cellId, tol2, subId, pcoords, weights)
     #     return cellId
 
     def extractCellsByID(self, idlist, usePointIDs=False):
@@ -1833,7 +1833,7 @@ class BaseGrid(BaseActor):
         selection = vtk.vtkSelection()
         selection.AddNode(selectionNode)
         es = vtk.vtkExtractSelection()
-        es.SetInputData(0, self.inputdata())
+        es.SetInputData(0, self._data)
         es.SetInputData(1, selection)
         es.Update()
         tm_sel = vedo.ugrid.UGrid(es.GetOutput())

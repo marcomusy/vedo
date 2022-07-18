@@ -2041,7 +2041,7 @@ def vtkVersionIsAtLeast(major, minor=0, build=0):
     return vtk_version_number >= needed_version
 
 
-def ctf2lut(tvobj):
+def ctf2lut(tvobj, logscale=False):
     """Internal use."""
     # build LUT from a color transfer function for tmesh or volume
     pr = tvobj.GetProperty()
@@ -2054,7 +2054,12 @@ def ctf2lut(tvobj):
     for x in np.linspace(x0, x1, 256):
         cols.append(ctf.GetColor(x))
         alphas.append(otf.GetValue(x))
-    lut = vtk.vtkLookupTable()
+
+    if logscale:
+        lut = vtk.vtkLogLookupTable()
+    else:
+        lut = vtk.vtkLookupTable()
+
     lut.SetRange(x0, x1)
     lut.SetNumberOfTableValues(len(cols))
     for i, col in enumerate(cols):

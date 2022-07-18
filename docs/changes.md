@@ -29,6 +29,8 @@
 ---
 ### `shapes.py`
 
+- Added `text()` method to update 3d text on the fly, by @mkerrin
+
 ---
 ### `tetmesh.py`
 
@@ -52,9 +54,6 @@ examples/basic/multiwindows2.py
 examples/basic/input_box.py
 examples/simulations/lorenz.py
 examples/pyplot/histo_hexagonal.py
-
-ugrid1.py
-ugrid2.py
 
 
 

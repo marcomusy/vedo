@@ -849,6 +849,7 @@ def buildLUT(
     aboveAlpha=1,
     nanAlpha=1,
     interpolate=False,
+    # logscale=False,
 ):
     """
     Generate colors in a lookup table (LUT).
@@ -890,6 +891,8 @@ def buildLUT(
     .. hint:: examples/basic/mesh_lut.py
         .. image:: https://vedo.embl.es/images/basic/mesh_lut.png
     """
+    logscale = False ## TODO
+
     ctf = vtk.vtkColorTransferFunction()
     ctf.SetColorSpaceToRGB()
     ctf.SetScaleToLinear()
@@ -905,7 +908,11 @@ def buildLUT(
         alpha_x.append(scalar)
         alpha_vals.append(alf)
 
-    lut = vtk.vtkLookupTable()
+    if logscale:
+        lut = vtk.vtkLogLookupTable()
+    else:
+        lut = vtk.vtkLookupTable()
+
     lut.SetNumberOfTableValues(256)
 
     x0, x1 = ctf.GetRange()  # range of the introduced values

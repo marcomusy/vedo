@@ -153,13 +153,13 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         self.shape = np.array([nx, ny])
         return self
 
-    def clone(self, transform=False):
+    def clone(self, transformed=False):
         """Return an exact copy of the input Picture.
         If transform is True, it is given the same scaling and position."""
         img = vtk.vtkImageData()
         img.DeepCopy(self._data)
         pic = Picture(img)
-        if transform:
+        if transformed:
             # assign the same transformation to the copy
             pic.SetOrigin(self.GetOrigin())
             pic.SetScale(self.GetScale())
