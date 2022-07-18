@@ -1666,6 +1666,7 @@ class Mesh(Points):
         fe.SetBoundaryEdges(boundaryEdges)
         fe.SetNonManifoldEdges(nonManifoldEdges)
         fe.SetManifoldEdges(manifoldEdges)
+        # fe.SetPassLines(True) # vtk9.2
         fe.ColoringOff()
         if featureAngle is not None:
             fe.SetFeatureAngle(featureAngle)
