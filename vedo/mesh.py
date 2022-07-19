@@ -1668,7 +1668,9 @@ class Mesh(Points):
         fe.SetManifoldEdges(manifoldEdges)
         # fe.SetPassLines(True) # vtk9.2
         fe.ColoringOff()
+        fe.SetFeatureEdges(False)
         if featureAngle is not None:
+            fe.SetFeatureEdges(True)
             fe.SetFeatureAngle(featureAngle)
 
         if returnPointIds or returnCellIds:
