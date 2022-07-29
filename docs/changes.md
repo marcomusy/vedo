@@ -22,6 +22,7 @@
 
 ---
 ### `picture.py`
+- added class `MatplotlibPicture` to embed matplotlib figures as 2d objects in the scene.
 
 ---
 ### `pyplot.py`
@@ -30,6 +31,7 @@
 ### `shapes.py`
 
 - Added `text()` method to update 3d text on the fly, by @mkerrin
+- Added `pcaEllipse()` analogous to `pcaEllipsoid()` for 2D problems.
 
 ---
 ### `tetmesh.py`
@@ -51,10 +53,8 @@
 
 ### Broken
 examples/basic/multiwindows2.py
-examples/basic/input_box.py
 examples/simulations/lorenz.py
-examples/pyplot/histo_hexagonal.py
-
+examples/basic/pca_ellipse.py
 
 
 

@@ -2285,7 +2285,9 @@ class Circle(Polygon):
         Polygon.__init__(self, pos, nsides=res, r=r)
 
         self.center = []  # filled by pointcloud.pcaEllipse
-        self.eigenvalues = []
+        self.nr_of_points = 0
+        self.va = 0
+        self.vb = 0
         self.axis1 = []
         self.axis2 = []
         self.alpha(alpha).c(c)

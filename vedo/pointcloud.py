@@ -25,7 +25,7 @@ __all__ = [
     "fitCircle",
     "fitPlane",
     "fitSphere",
-    # "pcaEllipse",
+    "pcaEllipse",
     "pcaEllipsoid",
     "recoSurface",
 ]
@@ -484,59 +484,63 @@ def fitSphere(coords):
     return s
 
 
-# def pcaEllipse(points, pvalue=0.673):
-#     """
-#     Show the oriented PCA 2D ellipse that contains fraction `pvalue` of points.
+def pcaEllipse(points, pvalue=0.673):
+    """
+    Show the oriented PCA 2D ellipse that contains the fraction `pvalue` of points.
 
-#     Parameter `pvalue` sets the specified fraction of points inside the ellipse.
+    Parameter `pvalue` sets the specified fraction of points inside the ellipse.
 
-#     Eigenvalues can be accessed in ``ellips.eigenvalues``,
-#     normalized directions are stored in ``ellips.axis1``, ``ellips.axis12``
+    normalized directions are stored in ``ellipse.axis1``, ``ellipse.axis12``
+    axes sizes are stored in ``ellipse.va``, ``ellipse.vb``
 
-#     .. hint:: examples/pyplot/histo_pca.py
-#     """
-#     from scipy.stats import f
+    .. hint:: examples/pyplot/histo_pca.py
+    """
+    from scipy.stats import f
 
-#     if isinstance(points, Points):
-#         coords = points.points()
-#     else:
-#         coords = points
-#     if len(coords) < 4:
-#         vedo.logger.warning("in pcaEllipse(), there are not enough points!")
-#         return None
+    if isinstance(points, Points):
+        coords = points.points()
+    else:
+        coords = points
+    if len(coords) < 4:
+        vedo.logger.warning("in pcaEllipse(), there are not enough points!")
+        return None
 
-#     data = np.asarray(coords)[:,(0,1)]
+    P = np.array(coords, dtype=float)[:,(0,1)]
+    cov = np.cov(P, rowvar=0)     # covariance matrix
+    _, s, R = np.linalg.svd(cov)  # singular value decomposition
+    p, n = s.size, P.shape[0]
+    fppf = f.ppf(pvalue, p, n-p)  # f % point function
+    ua, ub = np.sqrt(s*fppf/2)*2  # semi-axes (largest first)
+    center = np.mean(P, axis=0)   # centroid of the ellipse
 
-#     center = np.mean(data, axis=0)
-#     eigenvalues, eigenvectors = np.linalg.eig(np.cov(data.T))
+    matri = vtk.vtkMatrix4x4()
+    matri.DeepCopy((
+        R[0][0] * ua, R[1][0] * ub, 0, center[0],
+        R[0][1] * ua, R[1][1] * ub, 0, center[1],
+                   0,            0, 1,         0,
+        0, 0, 0, 1)
+    )
+    vtra = vtk.vtkTransform()
+    vtra.SetMatrix(matri)
 
-#     ids = eigenvalues.argsort()[::-1]
-#     # eigenvalues = eigenvalues[ids]
-#     # eigenvectors = eigenvectors[:,ids]
-#     eigenvalues_s = np.sqrt(np.abs(eigenvalues))
-#     p = 2
-#     n = data.shape[0]
-#     fppf = f.ppf(pvalue, p, n-p)*(n-1)*p*(n+1)/n/(n-p)
-#     eigenvalues_s *= np.sqrt(fppf)
+    elli = vedo.shapes.Circle(alpha=0.75)
 
-#     elli = vedo.shapes.Circle().scale([eigenvalues_s[0], eigenvalues_s[1], 1])
-#     angle = np.arctan2(-eigenvectors[0][1], eigenvectors[0][0])
-#     elli.rotateZ(angle, rad=True).pos(center)
+    # assign the transformation
+    elli.SetScale(vtra.GetScale())
+    elli.SetOrientation(vtra.GetOrientation())
+    elli.SetPosition(vtra.GetPosition())
 
-#     ## quick test
-#     # ellibox = elli.z(-.2).extrude(1).triangulate()
-#     # inp = ellibox.insidePoints(Points(coords))
-#     # print("Points inside:",inp.N())
-#     # vedo.show(Points(coords), elli, axes=1).close()
-
-#     elli.center = center
-#     elli.eigenvalues = eigenvalues
-#     elli.eigenvectors = eigenvectors
-#     elli.eigenangle = angle
-#     elli.axis1 = eigenvectors[ids][0]
-#     elli.axis2 = eigenvectors[ids][1]
-#     elli.name = "pcaEllipse"
-#     return elli
+    elli.center = np.array(vtra.GetPosition())
+    elli.nr_of_points = n
+    elli.va = ua
+    elli.vb = ub
+    elli.axis1 = np.array(vtra.TransformPoint([1, 0, 0])) - elli.center
+    elli.axis2 = np.array(vtra.TransformPoint([0, 1, 0])) - elli.center
+    elli.axis1 /= np.linalg.norm(elli.axis1)
+    elli.axis2 /= np.linalg.norm(elli.axis2)
+    elli.transformation = vtra
+    elli.name = "pcaEllipse"
+    return elli
 
 
 def pcaEllipsoid(points, pvalue=0.673):
@@ -548,7 +552,7 @@ def pcaEllipsoid(points, pvalue=0.673):
     Extra can be calculated with ``mesh.asphericity()``, ``mesh.asphericity_error()``
     (asphericity is equal to 0 for a perfect sphere).
 
-    Axes can be accessed in ``ellips.va``, ``ellips.vb``, ``ellips.vc``,
+    Axes sizes can be accessed in ``ellips.va``, ``ellips.vb``, ``ellips.vc``,
     normalized directions are stored in ``ellips.axis1``, ``ellips.axis12``
     and ``ellips.axis3``.
 
@@ -576,7 +580,7 @@ def pcaEllipsoid(points, pvalue=0.673):
     ua, ub, uc = np.sqrt(s*fppf)/cfac  # semi-axes (largest first)
     center = np.mean(P, axis=0)   # centroid of the hyperellipsoid
 
-    elli = vedo.shapes.Ellipsoid((0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1), alpha=0.2)
+    elli = vedo.shapes.Ellipsoid((0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1), alpha=0.25)
 
     matri = vtk.vtkMatrix4x4()
     matri.DeepCopy((

@@ -1,5 +1,8 @@
 """Draw the ellipsoid that contains 50% of a cloud of Points,
 then check how many points are inside the surface"""
+#
+# NB: check out pcaEllipse() method for 2D problems
+#
 from vedo import *
 
 settings.useDepthPeeling = True

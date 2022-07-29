@@ -9,7 +9,7 @@ Submodule to work with common format images
 
 .. image:: https://vedo.embl.es/images/basic/rotateImage.png
 """
-__all__ = ["Picture"]
+__all__ = ["Picture", "MatplotlibPicture"]
 
 
 #################################################
@@ -48,6 +48,61 @@ def _get_img(obj, flip=False):
         img.GetPointData().SetActiveScalars("RGBA")
 
     return img
+
+
+#################################################
+class MatplotlibPicture(vtk.vtkActor2D):
+    """
+    Embed a 2D matplotlib image in the 3D scene.
+
+    Parameters
+    ----------
+    fig : matplotlib.Figure, matplotlib.pyplot
+        the output from matplotlib
+
+    pos : list
+        2D (x,y) position in range [0,1], [0,0] being the bottom-left corner
+
+    size : list
+        resize image to this pixel size
+
+    scale : float
+        apply a scaling factor to the image
+
+    ontop : bool
+        keep image on top or not
+
+    padding : int
+        padding space to keep around the image
+    """
+    def __init__(self, fig, pos=(0,0), size=(), scale=1, ontop=False, padding=1):
+
+        vtk.vtkActor2D.__init__(self)
+
+        if hasattr(fig, "gcf"):
+            fig = fig.gcf()
+        fig.tight_layout(pad=padding)
+        fig.canvas.draw()
+
+        self.data = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
+        self.data = self.data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+        self.picture = Picture(self.data)
+        if len(size):
+            self.picture.resize(np.array(size)*scale)
+        if scale != 1:
+            self.picture.scale(scale)
+
+        self.mapper = vtk.vtkImageMapper()
+        self.mapper.SetInputData(self.picture.inputdata())
+        self.mapper.SetColorWindow(255)
+        self.mapper.SetColorLevel(127.5)
+        self.SetMapper(self.mapper)
+        self.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+        self.SetPosition(pos)
+        if ontop:
+            self.GetProperty().SetDisplayLocationToForeground()
+        else:
+            self.GetProperty().SetDisplayLocationToBackground()
 
 
 #################################################

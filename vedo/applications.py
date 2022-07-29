@@ -119,7 +119,10 @@ class Slicer3DPlotter(Plotter):
         self.show(box, viewup="z", resetcam=resetcam, interactive=False)
         if showIcon:
             self.addInset(
-                volume, pos=(0.85, 0.85), size=0.15, c="w", draggable=draggable
+                volume,
+                pos=(0.85, 0.85),
+                size=0.15, c="w",
+                draggable=draggable,
             )
 
         # inits
