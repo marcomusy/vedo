@@ -1125,7 +1125,10 @@ class SplinePlotter(Plotter):
         self.remove(self.line, self.vpoints)  # remove old points and spline
         self.vpoints = Points(self.cpoints).ps(self.psize).c(self.pcolor)
         self.vpoints.pickable(False)  # avoid picking the same point
-        if len(self.cpoints) > 2:
+        minnr = 1
+        if self.splined:
+            minnr = 2
+        if len(self.cpoints) > minnr:
             if self.splined:
                 try:
                     self.line = Spline(self.cpoints, closed=self.closed)
