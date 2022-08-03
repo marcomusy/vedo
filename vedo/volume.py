@@ -81,7 +81,7 @@ class BaseVolume:
         """Deprecated. Please use tonumpy()"""
         return self.tonumpy()
 
-    def tonumpy(self, transpose=True):
+    def tonumpy(self):
         """
         Get read-write access to voxels of a Volume object as a numpy array.
 
@@ -98,8 +98,7 @@ class BaseVolume:
         """
         narray_shape = tuple(reversed(self._data.GetDimensions()))
         narray = utils.vtk2numpy(self._data.GetPointData().GetScalars()).reshape(narray_shape)
-        if transpose:
-            narray = np.transpose(narray, axes=[2, 1, 0])
+        narray = np.transpose(narray, axes=[2, 1, 0])
         return narray
 
     def dimensions(self):
@@ -844,14 +843,10 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
                 img = ima.GetOutput()
 
             else:
-                if "ndarray" not in inputtype:
-                    inputobj = np.array(inputobj).astype(float)
 
                 if len(inputobj.shape) == 1:
                     varr = utils.numpy2vtk(inputobj)
                 else:
-                    if len(inputobj.shape) > 2:
-                        inputobj = np.transpose(inputobj, axes=[2, 1, 0])
                     varr = utils.numpy2vtk(inputobj.ravel(order="F"))
                 varr.SetName("input_scalars")
 
@@ -865,15 +860,6 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
                     img.SetDimensions(inputobj.shape)
                 img.GetPointData().AddArray(varr)
                 img.GetPointData().SetActiveScalars(varr.GetName())
-
-                # to convert rgb to numpy
-                #        img_scalar = data.GetPointData().GetScalars()
-                #        dims = data.GetDimensions()
-                #        n_comp = img_scalar.GetNumberOfComponents()
-                #        temp = utils.vtk2numpy(img_scalar)
-                #        numpy_data = temp.reshape(dims[1],dims[0],n_comp)
-                #        numpy_data = numpy_data.transpose(0,1,2)
-                #        numpy_data = np.flipud(numpy_data)
 
         elif "ImageData" in inputtype:
             img = inputobj

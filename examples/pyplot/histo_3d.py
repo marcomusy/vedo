@@ -4,7 +4,7 @@ import numpy as np
 from vedo import Volume, Cube, Glyph, show
 
 # Make up some arbitrary data
-X, Y, Z = np.mgrid[:4, :8, :8]
+X, Y, Z = np.mgrid[:10, :6, :4]
 counts = 50 - ( (X-4)**2 + (Y-4)**2 + (Z-4)**2 )
 
 # This is now a point cloud with an associated array of counts

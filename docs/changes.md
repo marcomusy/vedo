@@ -1,6 +1,7 @@
 ## Main changes
 
 - pep8 parsing with pylint and general cleanup of the code.
+- `Volume(np_array)` does not need array to be transposed anymore. **Warning: this may cause flipping of the x-z axes!**
 
 ---
 ### `applications.py`
@@ -42,6 +43,7 @@
 
 ---
 ### `volume.py`
+- `Volume(np_array)` does not need array to be transposed anymore. **Warning: this may cause flipping of the x-z axes!**
 - added `slicePlane(autocrop=False)`
 
 -------------------------
