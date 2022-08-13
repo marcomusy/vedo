@@ -1678,7 +1678,7 @@ def makeTicks(x0, x1, N, labels=None, digits=None):
         for tp, ts in labels:
             if tp == x1:
                 continue
-            ticks_str.append(ts)
+            ticks_str.append(str(ts))
             tickn = linInterpolate(tp, [x0, x1], [0, 1])
             ticks_float.append(tickn)
 

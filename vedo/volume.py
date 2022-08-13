@@ -97,8 +97,15 @@ class BaseVolume:
         when all your modifications are completed.
         """
         narray_shape = tuple(reversed(self._data.GetDimensions()))
-        narray = utils.vtk2numpy(self._data.GetPointData().GetScalars()).reshape(narray_shape)
-        narray = np.transpose(narray, axes=[2, 1, 0])
+
+        scals = self._data.GetPointData().GetScalars()
+        comps = scals.GetNumberOfComponents()
+        if comps == 1:
+            narray = utils.vtk2numpy(scals).reshape(narray_shape)
+            narray = np.transpose(narray, axes=[2, 1, 0])
+        else:
+            narray = utils.vtk2numpy(scals).reshape(*narray_shape, comps)
+            narray = np.transpose(narray, axes=[2, 1, 0, 3])
         return narray
 
     def dimensions(self):
@@ -870,9 +877,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         elif "UniformGrid" in inputtype:
             img = inputobj
 
-        elif hasattr(
-            inputobj, "GetOutput"
-        ):  # passing vtk object, try extract imagdedata
+        elif hasattr(inputobj, "GetOutput"):  # passing vtk object, try extract imagdedata
             if hasattr(inputobj, "Update"):
                 inputobj.Update()
             img = inputobj.GetOutput()
@@ -897,10 +902,12 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
 
         self._data = img
         self._mapper.SetInputData(img)
-        self.mode(mode).color(c).alpha(alpha).alphaGradient(alphaGradient)
-        self.GetProperty().SetShade(True)
-        self.GetProperty().SetInterpolationType(1)
-        self.GetProperty().SetScalarOpacityUnitDistance(alphaUnit)
+
+        if img.GetPointData().GetScalars().GetNumberOfComponents() == 1:
+            self.mode(mode).color(c).alpha(alpha).alphaGradient(alphaGradient)
+            self.GetProperty().SetShade(True)
+            self.GetProperty().SetInterpolationType(1)
+            self.GetProperty().SetScalarOpacityUnitDistance(alphaUnit)
 
         # remember stuff:
         self._mode = mode

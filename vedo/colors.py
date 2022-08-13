@@ -780,9 +780,7 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
         try:
             cmap = cmaps[name]
         except KeyError:
-            vedo.logger.error(
-                f"in colorMap(), no color map with name {name} or {name}_r"
-            )
+            vedo.logger.error(f"in colorMap(), no color map with name {name} or {name}_r")
             vedo.logger.error(f"Available color maps are:\n{cmaps.keys()}")
             return np.array([0.5, 0.5, 0.5])
 
