@@ -357,11 +357,11 @@ def fitPlane(points, signed=False):
     signed : bool
         if True flip sign of the normal based on the ordering of the points
 
-    .. hint:: examples/basic/fitline.py
+    .. hint:: examples/advanced/fitline.py
     """
     if isinstance(points, Points):
         points = points.points()
-    data = np.array(points)
+    data = np.asarray(points)
     datamean = data.mean(axis=0)
     pts = data - datamean
     res = np.linalg.svd(pts)
@@ -375,14 +375,15 @@ def fitPlane(points, signed=False):
         ns = np.mean(v, axis=0)  # normal to the points plane
         if np.dot(n, ns) < 0:
             n = -n
-    xyz_min = points.min(axis=0)
-    xyz_max = points.max(axis=0)
+    xyz_min = data.min(axis=0)
+    xyz_max = data.max(axis=0)
     s = np.linalg.norm(xyz_max - xyz_min)
     pla = vedo.shapes.Plane(datamean, n, s=[s, s])
     pla.normal = n
     pla.center = datamean
     pla.variance = dd[2]
     pla.name = "fitPlane"
+    pla.top = n
     return pla
 
 
@@ -3811,7 +3812,7 @@ class Points(vtk.vtkFollower, BaseActor):
         resLine=None,
         resMesh=None,
         smooth=0,
-        jitter=0.01,
+        jitter=0.001,
         grid=None,
         quads=False,
         invert=False,
@@ -3831,10 +3832,10 @@ class Points(vtk.vtkFollower, BaseActor):
             The default is None.
 
         smooth : float
-            smoothing of the contour before meshing. The default is 0.
+            smoothing of the contour before meshing.
 
         jitter : float
-            add a small noise to the internal points. The default is 0.01.
+            add a small noise to the internal points.
 
         grid : Grid
             manually pass a Grid object. The default is True.

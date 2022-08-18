@@ -1449,17 +1449,12 @@ class Mesh(Points):
         poly = self._data
         if N:  # N = desired number of points
             Np = poly.GetNumberOfPoints()
-            fraction = float(N) / Np
+            fraction = N / Np
             if fraction >= 1:
                 return self
 
         if "quad" in method:
             decimate = vtk.vtkQuadricDecimation()
-            # decimate.SetAttributeErrorMetric(True)
-            # if self.GetTexture():
-            #     decimate.TCoordsAttributeOn()
-            # else:
-            #     pass
             # decimate.SetVolumePreservation(True)
         else:
             decimate = vtk.vtkDecimatePro()

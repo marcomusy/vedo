@@ -903,11 +903,12 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         self._data = img
         self._mapper.SetInputData(img)
 
-        if img.GetPointData().GetScalars().GetNumberOfComponents() == 1:
-            self.mode(mode).color(c).alpha(alpha).alphaGradient(alphaGradient)
-            self.GetProperty().SetShade(True)
-            self.GetProperty().SetInterpolationType(1)
-            self.GetProperty().SetScalarOpacityUnitDistance(alphaUnit)
+        if img.GetPointData().GetScalars():
+            if img.GetPointData().GetScalars().GetNumberOfComponents() == 1:
+                self.mode(mode).color(c).alpha(alpha).alphaGradient(alphaGradient)
+                self.GetProperty().SetShade(True)
+                self.GetProperty().SetInterpolationType(1)
+                self.GetProperty().SetScalarOpacityUnitDistance(alphaUnit)
 
         # remember stuff:
         self._mode = mode

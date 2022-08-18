@@ -2516,7 +2516,8 @@ class Plotter:
                 scannedacts.append(vedo.Mesh(a))
 
             elif "dolfin" in str(type(a)):  # assume a dolfin.Mesh object
-                scannedacts.append(vedo.dolfin.MeshActor(a))
+                import vedo.dolfin as dlf
+                scannedacts.append(dlf.MeshActor(a))
 
             elif "trimesh" in str(type(a)):
                 scannedacts.append(utils.trimesh2vedo(a))
@@ -3610,8 +3611,8 @@ class Plotter:
             return
 
         elif key == "C":
-            # Precision needs to be 7 (or even larger) to guarantee a consistent camera when 
-            #   the model coordinates are not centered at (0, 0, 0) and the mode is large. 
+            # Precision needs to be 7 (or even larger) to guarantee a consistent camera when
+            #   the model coordinates are not centered at (0, 0, 0) and the mode is large.
             # This could happen for plotting geological models with UTM coordinate systems
             cam = self.renderer.GetActiveCamera()
             vedo.printc('\n###################################################', c='y')

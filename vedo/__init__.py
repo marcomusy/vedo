@@ -82,7 +82,7 @@ except:
     sys_platform = ""
 
 if vtk_version[0] >= 9:
-    if "Windows" in sys_platform:
+    if "Windows" in sys_platform or "Linux" in sys_platform:
         settings.useDepthPeeling = True
 
 

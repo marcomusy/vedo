@@ -1044,7 +1044,7 @@ class FreeHandCutPlotter(Plotter):
     def write(self, filename="mesh_edited.vtk"):
         """Save the resulting mesh to file"""
         self.mesh.write(filename)
-        vedo.logger.info(f"\save saved to file {filename}")
+        vedo.logger.info(f"mesh saved to file {filename}")
         return self
 
     def start(self, *args, **kwargs):
