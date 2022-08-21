@@ -18,6 +18,7 @@ c.caption('2d caption for a cube\nwith face indices', point=[0.044, 0.03, -0.04]
 
 # create a new object made of polygonal text labels to indicate the cell numbers
 labs = c.labels('id', cells=True, font='Theemim', scale=0.02, c='k')
+# labs2d = c.labels2D()
 
 # create a custom entry to the legend
 b.legend('Bugs the bunny')

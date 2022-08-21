@@ -13,6 +13,7 @@
 ---
 ### `pointcloud.py`
 - bug fix in `clone()`
+- added `labels2D()`
 
 ---
 ### `mesh.py`
@@ -40,6 +41,10 @@
 
 ---
 ### `settings.py`
+
+---
+### `utils.py`
+- added `getUV()` method to get the texture coordinates of a 3D point
 
 ---
 ### `volume.py`

@@ -688,6 +688,79 @@ def linInterpolate(x, rangeX, rangeY):
     return out
 
 
+def getUV(p, x, v):
+    """
+    Obtain the texture uv-coords of a point p belonging to a face that has point
+    coordinates (x0, x1, x2) with the corresponding uv-coordinates v=(v0, v1, v2).
+    All p and x0,x1,x2 are 3D-vectors, while v are their 2D uv-coordinates.
+
+    Example:
+        .. code-block:: python
+
+            from vedo import *
+
+            pic = Picture(dataurl+"coloured_cube_faces.jpg")
+            cb = Mesh(dataurl+"coloured_cube.obj").lighting("off").texture(pic)
+
+            cbpts = cb.points()
+            faces = cb.faces()
+            uv = cb.pointdata["Material"]
+
+            pt = [-0.2, 0.75, 2]
+            pr = cb.closestPoint(pt)
+
+            idface = cb.closestPoint(pt, returnCellId=True)
+            idpts = faces[idface]
+            uv_face = uv[idpts]
+
+            uv_pr = utils.getUV(pr, cbpts[idpts], uv_face)
+            print("interpolated uv =", uv_pr)
+
+            sx, sy = pic.dimensions()
+            i_interp_uv = uv_pr * [sy, sx]
+            ix, iy = i_interp_uv.astype(int)
+            mpic = pic.tomesh()
+            rgba = mpic.pointdata["RGBA"].reshape(sy, sx, 3)
+            print("color =", rgba[ix, iy])
+
+            show(
+                [[cb, Point(pr), cb.labels("Material")],
+                 [pic, Point(i_interp_uv)]],
+                N=2, axes=1, sharecam=False,
+            ).close()
+    """
+    # Vector vp=p-x0 is representable as alpha*s + beta*t,
+    # where s = x1-x0 and t = x2-x0, in matrix form
+    # vp = [alpha, beta] . matrix(s,t)
+    # M = matrix(s,t) is 2x3 matrix, so (alpha, beta) can be found by
+    # inverting any of its minor A with non-zero determinant.
+    # Once found, uv-coords of p are vt0 + alpha (vt1-v0) + beta (vt2-v0)
+
+    p = np.asarray(p)
+    x0, x1, x2 = np.asarray(x)[:3]
+    vt0, vt1, vt2 = np.asarray(v)[:3]
+
+    s = x1 - x0
+    t = x2 - x0
+    vs = vt1 - vt0
+    vt = vt2 - vt0
+    vp = p - x0
+
+    # finding a minor with independent rows
+    M = np.matrix([s, t])
+    mnr = [0, 1]
+    A = M[:, mnr]
+    if np.abs(np.linalg.det(A)) < 0.000001:
+        mnr = [0, 2]
+        A = M[:, mnr]
+        if np.abs(np.linalg.det(A)) < 0.000001:
+            mnr = [1, 2]
+            A = M[:, mnr]
+    Ainv = np.linalg.inv(A)
+    alpha_beta = vp[mnr].dot(Ainv)  # [alpha, beta]
+    return np.asarray(vt0 + alpha_beta.dot(np.matrix([vs, vt])))[0]
+
+
 def vector(x, y=None, z=0.0, dtype=np.float64):
     """
     Return a 3D numpy array representing a vector.

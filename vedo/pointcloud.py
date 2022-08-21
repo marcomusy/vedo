@@ -1556,7 +1556,7 @@ class Points(vtk.vtkFollower, BaseActor):
         Generate value or ID labels for mesh cells or points.
         For large nr. of labels use ``font="VTK"`` which is much faster.
 
-        See also: ``flag()``, ``vignette()``, ``caption()`` and ``legend()``.
+        See also: ``labels2D()``, ``flag()``, ``vignette()``, ``caption()`` and ``legend()``.
 
         Parameters
         ----------
@@ -1592,7 +1592,7 @@ class Points(vtk.vtkFollower, BaseActor):
             .. image:: https://vedo.embl.es/images/basic/boundaries.png
         """
         if isinstance(content, str):
-            if content == 'cellid':
+            if content == 'cellid' or content == 'cellsid':
                 cells = True
                 content = "id"
 
@@ -1725,6 +1725,126 @@ class Points(vtk.vtkFollower, BaseActor):
         ids.GetProperty().LightingOff()
         ids.SetUseBounds(False)
         return ids
+
+    def labels2D(
+            self,
+            content="id",
+            cells=False,
+            scale=1,
+            precision=4,
+            font="",
+            justify="bottom-left",
+            angle=0,
+            frame=False,
+            c="black",
+            bc=None,
+            alpha=1,
+        ):
+        """
+        Generate value or ID bi-dimensional labels for mesh cells or points.
+
+        See also: ``labels()``, ``flag()``, ``vignette()``, ``caption()`` and ``legend()``.
+
+        Parameters
+        ----------
+        content : str
+             either 'id', 'cellid', or array name.
+
+        cells : bool
+            generate labels for cells instead of points [False]
+
+        scale : float
+            size scaling of labels
+
+        precision : int
+            precision of numeric labels
+
+        angle : float
+            local rotation angle of label in degrees
+
+        frame : bool
+            draw a frame around the label
+
+        bc : str
+            background color of the label
+
+        Example:
+            .. code-block:: python
+
+                from vedo import Sphere, show
+                sph = Sphere(quads=True, res=4).lw(1)
+                sph.celldata["zvals"] = sph.cellCenters()[:,2]
+                l2d = sph.labels2D("zvals", cells=True, bc='orange9')
+                show(sph, l2d, axes=1).close()
+        """
+        if isinstance(content, str):
+            if content == 'cellid' or content == 'cellsid':
+                cells = True
+                content = "id"
+
+        if cells:
+            if content != 'id' and content not in self.celldata.keys():
+                vedo.logger.error(f"In labels2D: cell array {content} does not exist.")
+                return None
+            cellcloud = Points(self.cellCenters())
+            arr = self.inputdata().GetCellData().GetScalars()
+            poly = cellcloud.polydata(False)
+            poly.GetPointData().SetScalars(arr)
+        else:
+            poly = self.polydata()
+            if content != 'id' and content not in self.pointdata.keys():
+                vedo.logger.error(f"In labels2D: point array {content} does not exist.")
+                return None
+            self.pointdata.select(content)
+
+        mp = vtk.vtkLabeledDataMapper()
+
+        if content == 'id':
+            mp.SetLabelModeToLabelIds()
+        else:
+            mp.SetLabelModeToLabelScalars()
+            if precision is not None:
+                mp.SetLabelFormat(f'%-#.{precision}g')
+
+        pr = mp.GetLabelTextProperty()
+        c = colors.getColor(c)
+        pr.SetColor(c)
+        pr.SetOpacity(alpha)
+        pr.SetFrame(frame)
+        pr.SetFrameColor(c)
+        pr.SetItalic(False)
+        pr.BoldOff()
+        pr.ShadowOff()
+        pr.UseTightBoundingBoxOn()
+        pr.SetOrientation(angle)
+        if not font:
+            font = settings.defaultFont
+        pr.SetFontFamily(vtk.VTK_FONT_FILE)
+        fl = utils.getFontPath(font)
+        pr.SetFontFile(fl)
+        pr.SetFontSize(int(12*scale))
+
+        if "cent" in justify or "mid" in justify:
+            pr.SetJustificationToCentered()
+        elif "rig" in justify:
+            pr.SetJustificationToRight()
+        elif "left" in justify:
+            pr.SetJustificationToLeft()
+        # ------
+        if "top" in justify:
+            pr.SetVerticalJustificationToTop()
+        else:
+            pr.SetVerticalJustificationToBottom()
+
+        if bc is not None:
+            bc = colors.getColor(bc)
+            pr.SetBackgroundColor(bc)
+            pr.SetBackgroundOpacity(alpha)
+
+        mp.SetInputData(poly)
+        a2d = vtk.vtkActor2D()
+        a2d.SetMapper(mp)
+        return a2d
 
     def legend(self, txt):
         """Book a legend text."""
