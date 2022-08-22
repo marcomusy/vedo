@@ -930,6 +930,7 @@ class Plotter:
         """
         Remove input object to the internal list of actors to be shown.
         This method is typically used in loops or callback functions.
+        Objects to be removed can be referenced by their assigned name.
 
         Parameters
         ----------
@@ -945,16 +946,16 @@ class Plotter:
             ren = self.renderer
 
         actors = utils.flatten(actors)
-        for a in actors:
-
+        actors_r = []
+        for i, a in enumerate(actors):
             if isinstance(a, str):
                 for b in self.actors:
                     if hasattr(b, "name") and a in b.name:
-                        a = b
-                        break
-                if isinstance(a, str):
-                    continue  # did not find that name so skip
+                        actors_r.append(b)
+            else:
+                actors_r.append(a)
 
+        for a in actors_r:
             if ren:
                 ren.RemoveActor(a)
                 if hasattr(a, "renderedAt"):
@@ -968,6 +969,7 @@ class Plotter:
             if a in self.actors:
                 i = self.actors.index(a)
                 del self.actors[i]
+
         if render:
             if not self.interactor.GetInitialized():
                 vedo.logger.warning("call to remove(resetcam=True) but Plotter was not initialized with show()")
