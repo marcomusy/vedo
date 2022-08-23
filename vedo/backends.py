@@ -232,6 +232,10 @@ def getNotebookBackend(actors2show, zoom, viewup):
                 vedo.notebook_plotter += kobj
 
             #####################################################################Lines
+            elif isinstance(ia, vedo.Picture):
+                vedo.logger.error("Sorry Picture objects are not supported in k3d.")
+
+            #####################################################################Lines
             elif ia.polydata(False).GetNumberOfLines():
                 # print('Line', ia.name, ia.N(), len(ia.faces()),
                 #       ia.polydata(False).GetNumberOfLines(), len(ia.lines()),

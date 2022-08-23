@@ -2484,6 +2484,7 @@ class Points(vtk.vtkFollower, BaseActor):
         vmax=None,
         alpha=1,
         n=256,
+        logscale=False
     ):
         """
         Set individual point/cell colors by providing a list of scalar values and a color map.
@@ -2527,26 +2528,22 @@ class Points(vtk.vtkFollower, BaseActor):
         if on.startswith("p"):
             if not name:
                 name = "PointScalars"
-            self._pointColors(input_array, cname, alpha, vmin, vmax, name, n)
+            self._pointColors(input_array, cname, alpha, vmin, vmax, name, n, logscale)
         elif on.startswith("c"):
             if not name:
                 name = "CellScalars"
-            self._cellColors(input_array, cname, alpha, vmin, vmax, name, n)
+            self._cellColors(input_array, cname, alpha, vmin, vmax, name, n, logscale)
         else:
             vedo.logger.error("Must specify in cmap(on=...) either cells or points")
             raise RuntimeError()
         return self
 
-    @deprecated(
-        reason=vedo.colors.red + "Please use cmap(on='points')" + vedo.colors.reset
-    )
+    @deprecated(reason=vedo.colors.red + "Please use cmap(on='points')" + vedo.colors.reset)
     def pointColors(self, *args, **kwargs):
         "Deprecated, Please use cmap(on='points')"
         return self
 
-    def _pointColors(
-        self, input_array, cmap, alpha, vmin, vmax, arrayName, n=256,
-    ):
+    def _pointColors(self, input_array, cmap, alpha, vmin, vmax, arrayName, n, logscale):
         poly = self.inputdata()
         data = poly.GetPointData()
 
@@ -2633,6 +2630,8 @@ class Points(vtk.vtkFollower, BaseActor):
 
         elif utils.isSequence(cmap):  # manual sequence of colors
             lut = vtk.vtkLookupTable()
+            if logscale:
+                lut.SetScaleToLog10()
             lut.SetRange(vmin, vmax)
             ncols, nalpha = len(cmap), len(alpha)
             lut.SetNumberOfTableValues(ncols)
@@ -2644,6 +2643,8 @@ class Points(vtk.vtkFollower, BaseActor):
 
         else:  # assume string cmap name OR matplotlib.colors.LinearSegmentedColormap
             lut = vtk.vtkLookupTable()
+            if logscale:
+                lut.SetScaleToLog10()
             lut.SetVectorModeToMagnitude()
             lut.SetRange(vmin, vmax)
             ncols, nalpha = n, len(alpha)
@@ -2675,9 +2676,7 @@ class Points(vtk.vtkFollower, BaseActor):
         """Deprecated, use cmap(on='cells')."""
         return self
 
-    def _cellColors(
-        self, input_array, cmap, alpha, vmin, vmax, arrayName, n,
-    ):
+    def _cellColors(self, input_array, cmap, alpha, vmin, vmax, arrayName, n, logscale):
         poly = self.inputdata()
         data = poly.GetCellData()
 
@@ -2762,6 +2761,8 @@ class Points(vtk.vtkFollower, BaseActor):
 
         elif utils.isSequence(cmap):  # manual sequence of colors
             lut = vtk.vtkLookupTable()
+            if logscale:
+                lut.SetScaleToLog10()
             lut.SetRange(vmin, vmax)
             lut.SetVectorModeToMagnitude()
             ncols, nalpha = len(cmap), len(alpha)
@@ -2774,6 +2775,8 @@ class Points(vtk.vtkFollower, BaseActor):
 
         else:  # assume string cmap name OR matplotlib.colors.LinearSegmentedColormap
             lut = vtk.vtkLookupTable()
+            if logscale:
+                lut.SetScaleToLog10()
             lut.SetRange(vmin, vmax)
             ncols, nalpha = n, len(alpha)
             lut.SetNumberOfTableValues(ncols)

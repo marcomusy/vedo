@@ -2667,7 +2667,7 @@ class Plotter:
             return self
 
         # check if the widow needs to be closed (ESC button was hit)
-        if self.escaped:
+        if hasattr(self, "escaped") and self.escaped:
             if not self.window:
                 return self  # do nothing, just return self (was already closed)
             for r in self.renderers:

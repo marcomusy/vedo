@@ -842,6 +842,10 @@ def ScalarBar3D(
         scale = shapes.Grid([-sx * labelOffset, 0, 0], c=c, alpha=1, s=(sx,sy),
                             res=(1, lut.GetTable().GetNumberOfTuples()))
         cscals = np.linspace(vmin, vmax, lut.GetTable().GetNumberOfTuples())
+
+        if lut.GetScale():
+            vedo.logger.warning("ScalarBar3D: logarithmic scale is not (yet) supported.")
+
         scale.cmap(lut, cscals, on="cells")
         ticks_pos, ticks_txt = utils.makeTicks(vmin, vmax, nlabels)
 
