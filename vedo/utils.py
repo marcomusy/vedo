@@ -1734,14 +1734,27 @@ def vtkCameraToK3D(vtkcam):
     return np.array(kam).ravel()
 
 
-def makeTicks(x0, x1, N, labels=None, digits=None):
+def makeTicks(x0, x1, N=None, labels=None, digits=None, logscale=False, expmode=False):
     """Internal use."""
     # Copyright M. Musy, 2021, license: MIT.
-    ticks_str, ticks_float = [], []
 
     if x1 <= x0:
         # vedo.printc("Error in makeTicks(): x0 >= x1", x0,x1, c='r')
         return np.array([0.0, 1.0]), ["", ""]
+
+    ticks_str, ticks_float = [], []
+    baseline = (1, 2, 5, 10, 20, 50)
+
+    if logscale:
+        if x0 <= 0 or x1 <= 0:
+            vedo.logger.error("makeTicks: zero or negative range with log scale.")
+            raise RuntimeError
+        if N is None:
+            N = int(abs(np.log10(x1) - np.log10(x0))) + 1
+        x0, x1 = np.log10([x0, x1])
+
+    if N is None:
+        N = 5
 
     if labels is not None:
         # user is passing custom labels
@@ -1761,7 +1774,7 @@ def makeTicks(x0, x1, N, labels=None, digits=None):
         dstep = (x1 - x0) / N  # desired step size, begin of the nightmare
 
         basestep = pow(10, np.floor(np.log10(dstep)))
-        steps = np.array([basestep * i for i in (1, 2, 5, 10, 20, 50)])
+        steps = np.array([basestep * i for i in baseline])
         idx = (np.abs(steps - dstep)).argmin()
         s = steps[idx]  # chosen step size
 
@@ -1818,7 +1831,18 @@ def makeTicks(x0, x1, N, labels=None, digits=None):
                 continue
             tickn = linInterpolate(tp, [x0, x1], [0, 1])
             ticks_float.append(tickn)
-            ticks_str.append(ts)
+            if logscale:
+                if expmode:
+                    ticks_str.append(f"10^{ts}")
+                else:
+                    val = np.power(10, tp)
+                    if val > 1:
+                        val = int(val+0.5)
+                    else:
+                        val = roundToDigit(val, 1)
+                    ticks_str.append(str(val))
+            else:
+                ticks_str.append(ts)
 
     ticks_str.append("")
     ticks_float.append(1)

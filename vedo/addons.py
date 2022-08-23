@@ -719,7 +719,7 @@ def ScalarBar3D(
         titleYOffset=0.0,
         titleSize=1.5,
         titleRotation=0.0,
-        nlabels=9,
+        nlabels=8,
         labelFont="",
         labelSize=1,
         labelOffset=0.375,
@@ -843,11 +843,15 @@ def ScalarBar3D(
                             res=(1, lut.GetTable().GetNumberOfTuples()))
         cscals = np.linspace(vmin, vmax, lut.GetTable().GetNumberOfTuples())
 
-        if lut.GetScale():
-            vedo.logger.warning("ScalarBar3D: logarithmic scale is not (yet) supported.")
-
-        scale.cmap(lut, cscals, on="cells")
-        ticks_pos, ticks_txt = utils.makeTicks(vmin, vmax, nlabels)
+        if lut.GetScale():  # logarithmic scale
+            lut10 = vtk.vtkLookupTable()
+            lut10.DeepCopy(lut)
+            lut10.SetScaleToLinear()
+            scale.cmap(lut10, cscals, on="cells")
+            ticks_pos, ticks_txt = utils.makeTicks(vmin, vmax, nlabels, logscale=True)
+        else:
+            scale.cmap(lut, cscals, on="cells")
+            ticks_pos, ticks_txt = utils.makeTicks(vmin, vmax, nlabels, logscale=False)
 
     scale.lw(0).wireframe(False).lighting("off")
 

@@ -14,6 +14,7 @@
 ### `pointcloud.py`
 - bug fix in `clone()`
 - added `labels2D()`
+- added logscale for `cmap(..., logscale=True)`
 
 ---
 ### `mesh.py`
