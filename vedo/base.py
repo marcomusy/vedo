@@ -84,6 +84,7 @@ class _DataArrayHelper:
             )
             raise RuntimeError()
 
+        input_array = np.asarray(input_array)
         varr = utils.numpy2vtk(input_array, name=key)
         data.AddArray(varr)
 

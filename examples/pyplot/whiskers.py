@@ -31,14 +31,14 @@ axes = Axes(xrange=[-1,9],
             htitle='\beta_c  expression: change in time',
             xtitle=' ',
             ytitle='Level of \beta_c  protein in \muM/l',
-            xValuesAndLabels=[(0,'Experiment^A\nat t=1h'),
-                              (4,'Experiment^B\nat t=2h'),
-                              (8,'Experiment^C\nat t=4h'),
+            xValuesAndLabels=[(0,'Experiment^A\n at t=1h'),
+                              (4,'Experiment^B\n at t=2h'),
+                              (8,'Experiment^C\n at t=4h'),
                              ],
             xLabelSize=0.02,
             xyGrid=False,
            )
 
-show(ws, bra1, bra2, line, band, __doc__, axes, zoom=1.1).close()
+show(ws, bra1, bra2, line, band, __doc__, axes, zoom=1.3).close()
 
 

@@ -1734,7 +1734,7 @@ def vtkCameraToK3D(vtkcam):
     return np.array(kam).ravel()
 
 
-def makeTicks(x0, x1, N=None, labels=None, digits=None, logscale=False, expmode=False):
+def makeTicks(x0, x1, N=None, labels=None, digits=None, logscale=False, expformat=False):
     """Internal use."""
     # Copyright M. Musy, 2021, license: MIT.
 
@@ -1832,7 +1832,7 @@ def makeTicks(x0, x1, N=None, labels=None, digits=None, logscale=False, expmode=
             tickn = linInterpolate(tp, [x0, x1], [0, 1])
             ticks_float.append(tickn)
             if logscale:
-                if expmode:
+                if expformat:
                     ticks_str.append(f"10^{ts}")
                 else:
                     val = np.power(10, tp)

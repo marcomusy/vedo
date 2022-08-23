@@ -21,8 +21,9 @@ for r,t,p in rtp:
     vals.append(prob)
     pb.print()
 
-vol.pointdata["PsiSquare"] = np.array(vals, dtype=float)*100
+vol.pointdata["PsiSquare"] = np.array(vals).astype(float)
 vol.pointdata.select("PsiSquare")
+vol.cmap("jet").alpha([0,0,1])
 vol.addScalarBar3D("100 \dot |\Psi|^2").print()
 
 show(vol, f"{__doc__}\n for (n,l,m) = {n,l,m}", axes=1)

@@ -62,12 +62,6 @@
 ### Broken
 examples/basic/multiwindows2.py
 examples/simulations/lorenz.py
-examples/basic/pca_ellipse.py
-
-
-
-
-
 
 
 

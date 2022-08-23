@@ -106,6 +106,10 @@ class BaseVolume:
         else:
             narray = utils.vtk2numpy(scals).reshape(*narray_shape, comps)
             narray = np.transpose(narray, axes=[2, 1, 0, 3])
+
+        # narray = utils.vtk2numpy(self._data.GetPointData().GetScalars()).reshape(narray_shape)
+        # narray = np.transpose(narray, axes=[2, 1, 0])
+
         return narray
 
     def dimensions(self):
