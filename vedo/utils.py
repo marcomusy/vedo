@@ -822,8 +822,9 @@ def roundToDigit(x, p):
     """Round a real number to the specified number of significant digits."""
     if not x:
         return x
-    k = int(np.floor(np.log10(np.abs(x)))) + (p - 1)
-    r = np.around(x, -k)
+    # k = int(np.floor(np.log10(abs(x)))) + (p - 1)
+    # r = np.around(x, -k)
+    r = np.round(x, p - int(np.floor(np.log10(abs(x)))) - 1)
     if int(r) == r:
         return int(r)
     else:
@@ -1753,7 +1754,7 @@ def makeTicks(x0, x1, N=None, labels=None, digits=None, logscale=False, expforma
             N = int(abs(np.log10(x1) - np.log10(x0))) + 1
         x0, x1 = np.log10([x0, x1])
 
-    if N is None:
+    if not N:
         N = 5
 
     if labels is not None:
@@ -1836,10 +1837,10 @@ def makeTicks(x0, x1, N=None, labels=None, digits=None, logscale=False, expforma
                     ticks_str.append(f"10^{ts}")
                 else:
                     val = np.power(10, tp)
-                    if val > 1:
+                    if val >= 10:
                         val = int(val+0.5)
                     else:
-                        val = roundToDigit(val, 1)
+                        val = roundToDigit(val, 2)
                     ticks_str.append(str(val))
             else:
                 ticks_str.append(ts)
