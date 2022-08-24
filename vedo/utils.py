@@ -1735,10 +1735,29 @@ def vtkCameraToK3D(vtkcam):
 
 
 def makeTicks(x0, x1, N=None, labels=None, digits=None, logscale=False, useformat=""):
-    """Internal use."""
-    # useformat eg: ":.2f", check out https://mkaz.blog/code/python-string-format-cookbook/
+    """
+    Generate numeric labels for the [x0, x1] range.
 
+    The format specifier could be in the format:
+
+        :[[fill]align][sign][#][0][width][,][.precision][type]
+
+    where, the options are:
+
+        fill        =  any character
+        align       =  < | > | = | ^
+        sign        =  + | - | " "
+        width       =  integer
+        precision   =  integer
+        type        =  b | c | d | e | E | f | F | g | G | n | o | s | x | X | %
+
+    E.g.: useformat=":.2f"
+    """
     # Copyright M. Musy, 2021, license: MIT.
+    #
+    # useformat eg: ":.2f", check out:
+    # https://mkaz.blog/code/python-string-format-cookbook/
+    # https://www.programiz.com/python-programming/methods/built-in/format
 
     if x1 <= x0:
         # vedo.printc("Error in makeTicks(): x0 >= x1", x0,x1, c='r')

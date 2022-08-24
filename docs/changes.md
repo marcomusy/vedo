@@ -1,6 +1,6 @@
 ## Main changes
 
-- pep8 parsing with pylint and general cleanup of the code.
+- `pep8` parsing with pylint and general cleanup of the code.
 - `Volume(np_array)` does not need array to be transposed anymore. **Warning: this may cause flipping of the x-z axes!**
 
 ---
@@ -14,7 +14,8 @@
 ### `pointcloud.py`
 - bug fix in `clone()`
 - added `labels2D()`
-- added logscale for `cmap(..., logscale=True)`
+- added logscale for colormapping in method `cmap(..., logscale=True)`
+- added explicit label formatting for scalarbars, @XushanLu
 
 ---
 ### `mesh.py`
@@ -56,13 +57,24 @@
 ## Examples
 
 ### New/Revised
+examples/basic/input_box.py
+examples/basic/pca_ellipse.py
+examples/advanced/capping_mesh.py
+examples/volumetric/numpy2volume2.py
+examples/volumetric/numpy2volume1.py
+examples/pyplot/fourier_epicycles.py
+examples/pyplot/histo_pca.py
+examples/pyplot/histo_1d_b.py
+examples/other/flag_labels.py
+examples/other/remesh_tetgen.py
+examples/other/pymeshlab2.py
 
 ### Deleted
 
 ### Broken
 examples/basic/multiwindows2.py
 examples/simulations/lorenz.py
-
+examples/simulations/orbitals.py
 
 
 
