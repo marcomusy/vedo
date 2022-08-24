@@ -1282,7 +1282,7 @@ class BaseActor(Base3DProp):
             c=None,
             horizontal=False,
             useAlpha=True,
-            tformat='%-#6.3g',
+            labelFormat=':6.3g',
         ):
         """
         Add a 2D scalar bar for the specified obj.
@@ -1314,9 +1314,8 @@ class BaseActor(Base3DProp):
             c,
             horizontal,
             useAlpha,
-            tformat,
+            labelFormat,
         )
-
         self.scalarbar = sb
         return self
 
@@ -1335,6 +1334,7 @@ class BaseActor(Base3DProp):
         labelSize=1,
         labelOffset=0.375,
         labelRotation=0,
+        labelFormat="",
         italic=0,
         c=None,
         drawBox=True,
@@ -1382,6 +1382,9 @@ class BaseActor(Base3DProp):
         labelRotation : float
             label rotation in degrees
 
+        labelFormat : str
+            label format for floats and integers (e.g. ':.2f')
+
         drawBox : bool
             draw a box around the colorbar
 
@@ -1415,6 +1418,7 @@ class BaseActor(Base3DProp):
             labelSize,
             labelOffset,
             labelRotation,
+            labelFormat,
             italic,
             c,
             drawBox,

@@ -9,6 +9,7 @@ data_matrix[50:69, 60:79, 70:89] = 3
 
 vol = Volume(data_matrix, c=['white','b','g','r'], mapper='gpu')
 vol.addScalarBar3D()
+vol.print()
 
 # optionally mask some parts of the volume (needs mapper='gpu'):
 # data_mask = np.zeros_like(data_matrix)

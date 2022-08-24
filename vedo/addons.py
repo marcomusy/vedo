@@ -590,7 +590,7 @@ def ScalarBar(
         c='k',
         horizontal=False,
         useAlpha=True,
-        tformat='%-#6.3g',
+        labelFormat=':6.3g',
     ):
     """
     A 2D scalar bar for the specified obj.
@@ -639,8 +639,11 @@ def ScalarBar(
 
     c = getColor(c)
     sb = vtk.vtkScalarBarActor()
+
     # print(sb.GetLabelFormat())
-    sb.SetLabelFormat(tformat)
+    labelFormat = labelFormat.replace(":","%-#")
+    sb.SetLabelFormat(labelFormat)
+
     sb.SetLookupTable(lut)
     sb.SetUseOpacity(useAlpha)
     sb.SetDrawFrame(0)
@@ -724,6 +727,7 @@ def ScalarBar3D(
         labelSize=1,
         labelOffset=0.375,
         labelRotation=0,
+        labelFormat="",
         italic=0,
         c=None,
         drawBox=True,
@@ -848,11 +852,11 @@ def ScalarBar3D(
             lut10.DeepCopy(lut)
             lut10.SetScaleToLinear()
             scale.cmap(lut10, cscals, on="cells")
-            ticks_pos, ticks_txt = utils.makeTicks(vmin, vmax, nlabels, logscale=True)
+            tk = utils.makeTicks(vmin, vmax, nlabels, logscale=True, useformat=labelFormat)
         else:
             scale.cmap(lut, cscals, on="cells")
-            ticks_pos, ticks_txt = utils.makeTicks(vmin, vmax, nlabels, logscale=False)
-
+            tk = utils.makeTicks(vmin, vmax, nlabels, logscale=False, useformat=labelFormat)
+        ticks_pos, ticks_txt = tk
     scale.lw(0).wireframe(False).lighting("off")
 
     scales = [scale]

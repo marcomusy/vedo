@@ -821,9 +821,7 @@ def isNumber(n):
 def roundToDigit(x, p):
     """Round a real number to the specified number of significant digits."""
     if not x:
-        return x
-    # k = int(np.floor(np.log10(abs(x)))) + (p - 1)
-    # r = np.around(x, -k)
+        return 0
     r = np.round(x, p - int(np.floor(np.log10(abs(x)))) - 1)
     if int(r) == r:
         return int(r)
@@ -877,6 +875,7 @@ def precision(x, p, vrange=None, delimiter="e"):
     # Based on the webkit javascript implementation
     # `from here <https://code.google.com/p/webkit-mirror/source/browse/JavaScriptCore/kjs/number_object.cpp>`_,
     # and implemented by `randlet <https://github.com/randlet/to-precision>`_.
+    # Modified for vedo by M.Musy 2020
 
     if isinstance(x, str):  # do nothing
         return x
@@ -1735,8 +1734,10 @@ def vtkCameraToK3D(vtkcam):
     return np.array(kam).ravel()
 
 
-def makeTicks(x0, x1, N=None, labels=None, digits=None, logscale=False, expformat=False):
+def makeTicks(x0, x1, N=None, labels=None, digits=None, logscale=False, useformat=""):
     """Internal use."""
+    # useformat eg: ":.2f", check out https://mkaz.blog/code/python-string-format-cookbook/
+
     # Copyright M. Musy, 2021, license: MIT.
 
     if x1 <= x0:
@@ -1770,7 +1771,7 @@ def makeTicks(x0, x1, N=None, labels=None, digits=None, logscale=False, expforma
             ticks_float.append(tickn)
 
     else:
-        # ..now comes one of the shortest and most painful pieces of code i ever wrote:
+        # ..here comes one of the shortest and most painful pieces of code:
         # automatically choose the best natural axis subdivision based on multiples of 1,2,5
         dstep = (x1 - x0) / N  # desired step size, begin of the nightmare
 
@@ -1808,7 +1809,12 @@ def makeTicks(x0, x1, N=None, labels=None, digits=None, logscale=False, expforma
         fulaxis = np.unique(np.clip(np.concatenate([negaxis, posaxis]), x0, x1))
         # end of the nightmare
 
-        if digits is None:
+        if useformat:
+            sf = "{" + f"{useformat}" + "}"
+            sas = ""
+            for x in fulaxis:
+                sas += sf.format(x) + " "
+        elif digits is None:
             np.set_printoptions(suppress=True)  # avoid zero precision
             sas = str(fulaxis).replace("[", "").replace("]", "")
             sas = sas.replace(".e", "e").replace("e+0", "e+").replace("e-0", "e-")
@@ -1833,10 +1839,11 @@ def makeTicks(x0, x1, N=None, labels=None, digits=None, logscale=False, expforma
             tickn = linInterpolate(tp, [x0, x1], [0, 1])
             ticks_float.append(tickn)
             if logscale:
-                if expformat:
-                    ticks_str.append(f"10^{ts}")
+                val = np.power(10, tp)
+                if useformat:
+                    sf = "{" + f"{useformat}" + "}"
+                    ticks_str.append(sf.format(val))
                 else:
-                    val = np.power(10, tp)
                     if val >= 10:
                         val = int(val+0.5)
                     else:
