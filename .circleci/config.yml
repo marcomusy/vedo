@@ -29,7 +29,6 @@ jobs:
             sudo apt install libgl1-mesa-dev xvfb -y
             pip3 install .
             pip3 install matplotlib
-            #pip3 uninstall -y vtk
 
       - run:
           name: Run tests
@@ -166,8 +165,8 @@ workflows:
   version: 2
   build-stuff:
     jobs:
-      - test-vedo-vtk7
-      #- test-vedo-vtk9
+      #- test-vedo-vtk7
+      - test-vedo-vtk9
       #- build-dolfin-stable
       #- build-dolfinx
 
