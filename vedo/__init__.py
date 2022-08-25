@@ -40,7 +40,7 @@ __website__    = "https://github.com/marcomusy/vedo"
 ######################################################################## imports
 import os
 import sys
-import vtk
+import vtkmodules.all as vtk
 import warnings
 import logging
 from deprecated import deprecated
@@ -134,6 +134,12 @@ notebookBackend  = None
 
 ## fonts
 fonts_path = os.path.join(installdir, "fonts/")
+
+## a fatal error occurs when compiling to exe,
+## developer needs to copy the fonts folder to the same location as the exe file to solve this problem
+if not os.path.exists(fonts_path):
+    fonts_path = "fonts/"
+
 fonts = [_f.split(".")[0] for _f in os.listdir(fonts_path) if '.npz' not in _f]
 fonts = list(sorted(fonts))
 

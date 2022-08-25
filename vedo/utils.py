@@ -5,10 +5,10 @@ import time
 
 import numpy as np
 
-import vtk
-from vtk.util.numpy_support import numpy_to_vtk
-from vtk.util.numpy_support import numpy_to_vtkIdTypeArray
-from vtk.util.numpy_support import vtk_to_numpy
+import vtkmodules.all as vtk
+from vtkmodules.util.numpy_support import numpy_to_vtk
+from vtkmodules.util.numpy_support import numpy_to_vtkIdTypeArray
+from vtkmodules.util.numpy_support import vtk_to_numpy
 
 import vedo
 
