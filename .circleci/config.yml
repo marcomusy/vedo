@@ -27,7 +27,7 @@ jobs:
             sudo apt update -y
             sudo apt upgrade -y
             sudo apt install libgl1-mesa-dev xvfb -y
-	    pip3 install vtk
+            pip3 install vtk
             pip3 install --no-deps .
             pip3 install matplotlib
 
