@@ -155,10 +155,6 @@ Type `vedo -h` for the complete list of options.<br>
 
 ## 🐾  Gallery
 `vedo` currently includes 300+ working [examples](https://github.com/marcomusy/vedo/tree/master/examples) and [notebooks](https://github.com/marcomusy/vedo/tree/master/examples/notebooks). <br>
-||||
-|:--------|:--------|:--------|
-| [![bunny](https://vedo.embl.es/images/volumetric/tetralize_surface.jpg)](https://github.com/marcomusy/vedo/blob/master/examples/volumetric/tetralize_surface.py)  | [![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif)](https://vedo.embl.es/content/vedo/dolfin.html)  | [![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/grayscott.py)  |
-| *Work with volumes, tetrahedral and polygonal meshes.* |   *Interoperability with many external libraries* |  *Animations of physical systems* |
 
 Run any of the built-in examples. In a terminal type: `vedo -r earthquake_browser`
 
@@ -173,7 +169,7 @@ Check out the example galleries organized by subject here:
 
 ## ✏  Contributing
 
-Any contributions you make are **greatly appreciated**!
+Any contributions are **greatly appreciated**!
 If you have a suggestion that would make this better, please fork the repo and create a pull request.
 You can also simply open an issue with the tag "enhancement".
 
@@ -226,9 +222,9 @@ bioRxiv 2021.10.07.463479,
 *"µMatch: 3D shape correspondence for microscopy data"*,
 Front. Comput. Sci., 15 February 2022.
 [DOI](https://doi.org/10.3389/fcomp.2022.777615)
-- G. Dalmasso *et al.*, *"4D reconstruction of developmental trajectories using spherical harmonics"*,
-bioRxiv 2021.12.16.472948,
-[DOI](https://doi.org/10.1101/2021.12.16.472948).
+- G. Dalmasso *et al.*, *"4D reconstruction of murine developmental trajectories using spherical harmonics"*,
+Developmental Cell 57, 1–11 September 2022,
+[DOI](https://doi.org/10.1016/j.devcel.2022.08.005).
 
 **Have you found this software useful for your research? Star ✨ the project and cite it as:**
 
