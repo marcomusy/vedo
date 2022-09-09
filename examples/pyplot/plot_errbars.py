@@ -1,4 +1,4 @@
-"""Superpose plots of different styles"""
+"""Superpose plots in different styles"""
 from vedo.pyplot import plot
 from vedo import np, settings
 
@@ -31,10 +31,10 @@ fig += plot(
 )
 
 ################## plot again on top of fig
-fig += plot(x, y/5, "g", like=fig, label="3/5 \dot sin(x)")
+fig += plot(x, y/5, "g", label="3/5 \dot sin(x)")
 
 ################## plot again on top of fig
-fig += plot(x, y/5-1, "purple5 -", like=fig, label="3/5 \dot sin(x) - 1")
+fig += plot(x, y/5-1, "purple5 -", label="3/5 \dot sin(x) - 1")
 
 ################## Show! ##################
 fig.addLegend(pos=[0.95,1], radius=0.2)

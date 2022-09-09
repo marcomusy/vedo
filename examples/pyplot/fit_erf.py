@@ -37,7 +37,7 @@ fig = plot(
     label='data',
 )
 
-fig += plot(x, y, lw=5, like=fig, label='fit')
+fig += plot(x, y, lw=5, label='fit')
 fig += Marker('*', s=0.5, c='r4').pos(x0,y0, 0.1)
 
 fig.addLabel('\mu', marker='*', mc="r4")

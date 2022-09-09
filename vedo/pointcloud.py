@@ -2550,29 +2550,27 @@ class Points(vtk.vtkFollower, BaseActor):
         if input_array is None:  # if None try to fetch the active scalars
             arr = data.GetScalars()
             if not arr:
-                vedo.logger.error(
-                    "cannot find any active Point array ...skip coloring."
-                )
+                vedo.logger.error("in cmap(), cannot find any active Point array ...skip coloring.")
                 return self
 
         elif isinstance(input_array, str):  # if a name string is passed
             arr = data.GetArray(input_array)
             if not arr:
-                vedo.logger.error(f"cannot find point array {input_array} ...skip coloring.")
+                vedo.logger.error(f"in cmap(), cannot find point array {input_array} ...skip coloring.")
                 return self
 
         elif isinstance(input_array, int):  # if an int is passed
             if input_array < data.GetNumberOfArrays():
                 arr = data.GetArray(input_array)
             else:
-                vedo.logger.error(f"cannot find point array at {input_array} ...skip coloring.")
+                vedo.logger.error(f"in cmap(), cannot find point array at {input_array} ...skip coloring.")
                 return self
 
         elif utils.isSequence(input_array):  # if a numpy array is passed
             npts = len(input_array)
             if npts != poly.GetNumberOfPoints():
                 n1 = poly.GetNumberOfPoints()
-                vedo.logger.error(f"nr. of scalars {npts} != {n1} nr. of points ...skip coloring.")
+                vedo.logger.error(f"in cmap(), nr. of scalars {npts} != {n1} nr. of points ...skip coloring.")
                 return self
             arr = utils.numpy2vtk(input_array, name=arrayName)
             data.AddArray(arr)
@@ -2683,27 +2681,27 @@ class Points(vtk.vtkFollower, BaseActor):
         if input_array is None:  # if None try to fetch the active scalars
             arr = data.GetScalars()
             if not arr:
-                vedo.logger.error("cannot find any active cell array ...skip coloring.")
+                vedo.logger.error("in cmap(), cannot find any active cell array ...skip coloring.")
                 return self
 
         elif isinstance(input_array, str):  # if a name string is passed
             arr = data.GetArray(input_array)
             if not arr:
-                vedo.logger.error(f"cannot find cell array {input_array} ...skip coloring.")
+                vedo.logger.error(f"in cmap(), cannot find cell array {input_array} ...skip coloring.")
                 return self
 
         elif isinstance(input_array, int):  # if a int is passed
             if input_array < data.GetNumberOfArrays():
                 arr = data.GetArray(input_array)
             else:
-                vedo.logger.error(f"cannot find cell array at {input_array} ...skip coloring.")
+                vedo.logger.error(f"in cmap(), cannot find cell array at {input_array} ...skip coloring.")
                 return self
 
         elif utils.isSequence(input_array):  # if a numpy array is passed
             n = len(input_array)
             if n != poly.GetNumberOfCells():
                 n1 = poly.GetNumberOfCells()
-                vedo.logger.error(f"nr. of scalars {n} != {n1} nr. of cells ...skip coloring.")
+                vedo.logger.error(f"in cmap(), nr. of scalars {n} != {n1} nr. of cells ...skip coloring.")
                 return self
             arr = utils.numpy2vtk(input_array, name=arrayName)
             data.AddArray(arr)

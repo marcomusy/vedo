@@ -6,7 +6,7 @@
 ##### To generate documentation #######################################################
 # cd Projects/vedo
 # pip uninstall vedo
-# pdoc --html . --force -c lunr_search="{'fuzziness': 0, 'index_docstrings': True}"
+# pdoc3 --html . --force -c lunr_search="{'fuzziness': 0, 'index_docstrings': True}"
 # chmod 755 html/ -R
 # mount_staging
 # rm ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/autodocs/html
@@ -137,88 +137,4 @@ fonts_path = os.path.join(installdir, "fonts/")
 fonts = [_f.split(".")[0] for _f in os.listdir(fonts_path) if '.npz' not in _f]
 fonts = list(sorted(fonts))
 
-################################################################## deprecated
-@deprecated(reason="\x1b[7m\x1b[1m\x1b[31;1mPlease use Plotter(backend='...')\x1b[0m")
-def embedWindow(backend='ipyvtk', verbose=True):
-    """DEPRECATED: Please use Plotter(backend='...').
-
-    Function to control whether the rendering window is inside
-    the jupyter notebook or as an independent external window"""
-    global notebook_plotter, notebookBackend
-
-    if not backend:
-        notebookBackend = None
-        notebook_plotter = None
-        return ####################
-
-    else:
-
-        if any(['SPYDER' in name for name in os.environ]):
-            notebookBackend = None
-            notebook_plotter = None
-            return
-
-        try:
-            get_ipython()
-        except NameError:
-            notebookBackend = None
-            notebook_plotter = None
-            return
-
-    backend = backend.lower()
-    notebookBackend = backend
-
-    if backend=='k3d':
-        try:
-            import k3d
-            if k3d._version.version_info != (2, 7, 4):
-                print('Warning: only k3d version 2.7.4 is currently supported')
-                # print('> pip install k3d==2.7.4')
-
-        except ModuleNotFoundError:
-            notebookBackend = None
-            if verbose:
-                print('embedWindow(verbose=True): could not load k3d module, try:')
-                print('> pip install k3d==2.7.4')
-
-    elif 'ipygany' in backend: # ipygany
-        try:
-            import ipygany
-        except ModuleNotFoundError:
-            notebookBackend = None
-            if verbose:
-                print('embedWindow(verbose=True): could not load ipygany module, try:')
-                print('> pip install ipygany')
-
-    elif 'itk' in backend: # itkwidgets
-        try:
-            import itkwidgets
-        except ModuleNotFoundError:
-            notebookBackend = None
-            if verbose:
-                print('embedWindow(verbose=True): could not load itkwidgets module, try:')
-                print('> pip install itkwidgets')
-
-    elif backend.lower() == '2d':
-        pass
-
-    elif backend =='panel':
-        try:
-            import panel
-            panel.extension('vtk')
-        except:
-            if verbose:
-                print('embedWindow(verbose=True): could not load panel try:')
-                print('> pip install panel')
-
-    elif 'ipyvtk' in backend:
-        try:
-            from ipyvtklink.viewer import ViewInteractiveWidget
-        except ModuleNotFoundError:
-            if verbose:
-                print('embedWindow(verbose=True): could not load ipyvtklink try:')
-                print('> pip install ipyvtklink')
-
-    else:
-        print("Unknown backend", backend)
-        raise RuntimeError()
+last_figure = None  # pyplot module

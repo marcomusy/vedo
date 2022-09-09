@@ -2537,25 +2537,26 @@ class Plotter:
         return scannedacts
 
 
-    def show(self,
-             *actors,
-             at=None,
-             axes=None,
-             resetcam=None,
-             zoom=False,
-             interactive=None,
-             viewup="",
-             azimuth=0,
-             elevation=0,
-             roll=0,
-             camera=None,
-             mode=0,
-             rate=None,
-             bg=None,
-             bg2=None,
-             size=None,
-             title=None,
-             q=False,
+    def show(
+            self,
+            *actors,
+            at=None,
+            axes=None,
+            resetcam=None,
+            zoom=False,
+            interactive=None,
+            viewup="",
+            azimuth=0,
+            elevation=0,
+            roll=0,
+            camera=None,
+            mode=0,
+            rate=None,
+            bg=None,
+            bg2=None,
+            size=None,
+            title=None,
+            q=False,
         ):
         """
         Render a list of actors.
@@ -3135,6 +3136,7 @@ class Plotter:
                 self.interactor = None
             self.window.Finalize()  # this must be done here
             self.window = None
+        vedo.last_figure = None
         return self
 
     def close(self):

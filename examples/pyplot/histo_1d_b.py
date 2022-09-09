@@ -23,11 +23,11 @@ fig = histogram(
 fig.unpack(10).c('purple4')
 fig.addLabel("special bin", marker='s', mc='purple4')
 
-# Add a second histogram, format it like histo, so it can be superimposed
-fig += histogram(backgr, like=fig, label='background')
+# Add a second histogram to be superimposed
+fig += histogram(backgr, label='background')
 
 # Add the data histogram with poissonian errors
-fig += histogram(data, like=fig, marker='o', errors=True, fill=False, label='data')
+fig += histogram(data, marker='o', errors=True, fill=False, label='data')
 
 fig.addLegend(s=0.8)
 fig.show(zoom='tight').close()

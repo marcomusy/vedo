@@ -21,9 +21,9 @@ fig = histogram(
     label="gaussian",
 )
 
-fig += plot(x, y, "-", lc='orange5', like=fig, label="some fit")
-fig += plot(x, y*(1+dy), "--", lc='orange5', lw=2, like=fig)
-fig += plot(x, y*(1-dy), "--", lc='orange5', lw=2, like=fig)
+fig += plot(x, y, "-", lc='orange5', label="some fit")
+fig += plot(x, y*(1+dy), "--", lc='orange5', lw=2)
+fig += plot(x, y*(1-dy), "--", lc='orange5', lw=2)
 
 fig.addLegend()
 fig.show(size=(800,700), zoom="tight").close()

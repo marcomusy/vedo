@@ -33,7 +33,6 @@ __all__ = [
     "DirectedGraph",
 ]
 
-
 ##########################################################################
 class LabelData:
     """Helper internal class to hold label information"""
@@ -211,6 +210,9 @@ class Figure(Assembly):
 
         Assembly.__init__(self, [self.axes])
         self.name = "Figure"
+
+        vedo.last_figure = self
+        # print("asssss", [vedo.last_figure])
         return
 
     def __add__(self, *obj):
@@ -230,6 +232,10 @@ class Figure(Assembly):
             self.labels.append(fig.label)
 
         if abs(self.yscale - fig.yscale) > 0.0001:
+
+            # if vedo.last_figure is not None:
+            # print("_check_unpack_and_insert" , vedo.last_figure)
+
             colors.printc("ERROR: adding incompatible Figure. Y-scales are different:",
                           c='r', invert=True)
             colors.printc("  first  figure:", self.yscale, c='r')
@@ -686,6 +692,10 @@ class Histogram1D(Figure):
             **fig_kwargs,
         ):
 
+        if like is None and vedo.last_figure is not None:
+            if xlim is None and ylim == (0, None):
+                like = vedo.last_figure
+
         if like is not None:
             xlim = like.xlim
             ylim = like.ylim
@@ -1050,6 +1060,10 @@ class Histogram2D(Figure):
 
         padding = [0, 0, 0, 0]
 
+        if like is None and vedo.last_figure is not None:
+            if xlim is None and ylim == (None, None) and zlim == (None, None):
+                like = vedo.last_figure
+
         if like is not None:
             xlim = like.xlim
             ylim = like.ylim
@@ -1271,6 +1285,10 @@ class PlotBars(Figure):
             if ytitle == " ":
                 ytitle = "log_10 (counts+1)"
 
+        if like is None and vedo.last_figure is not None:
+            if xlim == (None, None) and ylim == (0, None):
+                like = vedo.last_figure
+
         if like is not None:
             xlim = like.xlim
             ylim = like.ylim
@@ -1485,7 +1503,6 @@ class PlotXY(Figure):
 
         .. image:: https://vedo.embl.es/images/pyplot/plot_pip.png
     """
-
     def __init__(
             self,
             #
@@ -1529,6 +1546,10 @@ class PlotXY(Figure):
             line = True
         if marker == "" and not line and not splined:
             marker = "o"
+
+        if like is None and vedo.last_figure is not None:
+            if xlim is None and ylim == (None, None):
+                like = vedo.last_figure
 
         if like is not None:
             xlim = like.xlim
@@ -1601,6 +1622,7 @@ class PlotXY(Figure):
 
         ############################################### Figure init
         Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
+
         if not self.yscale:
             return None
 
