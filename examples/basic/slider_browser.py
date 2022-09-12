@@ -3,10 +3,9 @@ from vedo import settings, dataurl, load
 from vedo import Text2D, Plotter, Picture, Axes, Line
 
 def sliderfunc(widget, event):
-    i = int(widget.GetRepresentation().GetValue())
-    days = int((i*2+249)/24)
-    time = f"{days}d {i*2+249-days*24}h"
-    widget.GetRepresentation().SetTitleText(time)
+    i = int(widget.value())
+    days = int((i * 2 + 249) /24)
+    widget.title(f"{days}d {i*2+249-days*24}h")
     # remove the old and add the new shape
     # (no need to render as the slider makes a call to rendering)
     plt.pop().add(objs[i], render=False)

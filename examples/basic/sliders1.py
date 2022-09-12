@@ -4,21 +4,21 @@ from vedo import Plotter, dataurl, load
 
 
 def slider1(widget, event):
-    value = widget.GetRepresentation().GetValue()
-    mesh.color(value)
+    mesh.color(widget.value())
 
 def slider2(widget, event):
-    value = widget.GetRepresentation().GetValue()
-    mesh.alpha(value)
+    mesh.alpha(widget.value())
 
 
-plt = Plotter(axes=0)
 mesh = load(dataurl+"magnolia.vtk").flat().lw(0.1)
-plt += mesh
-plt += __doc__
+
+plt = Plotter()
+plt += [mesh, __doc__]
 
 plt.addSlider2D(
-    slider1, -9, 9,
+    slider1,
+    xmin=-9,
+    xmax=9,
     value=0,
     pos="bottom-right",
     title="color number",

@@ -13,6 +13,7 @@ data = pandas.read_csv(path, usecols=usecols)[usecols][::-1].reset_index(drop=Tr
 pic = Picture("https://eoimages.gsfc.nasa.gov/images/imagerecords/147000/147190/eo_base_2020_clean_3600x1800.png")
 pic.pickable(False).level(185).window(120)  # add some contrast to the original image
 scale = [pic.shape[0]/2, pic.shape[1]/2, 1]
+comment = Text2D(__doc__, bg='green9', alpha=0.7, font='Ubuntu')
 
 centers = []
 pb = ProgressBar(0, len(data))
@@ -30,15 +31,13 @@ for i, d in data.iterrows():
 
 
 def sliderfunc(widget, event):
-    value = widget.GetRepresentation().GetValue()      # get the slider current value
-    widget.GetRepresentation().SetTitleText(f"{data['time'][int(value)][:10]}")
+    val = widget.value()                               # get the slider current value
+    widget.title(f"{data['time'][int(val)][:10]}")
     for ce in centers:
-        isinside = abs(value-ce.time) < num            # switch on if inside of time window
+        isinside = abs(val-ce.time) < num              # switch on if inside of time window
         ce.on() if isinside else ce.off()
-    plt.render()
 
 plt = Plotter(size=(2200,1100), title="Earthquake Browser")
 plt.addSlider2D(sliderfunc, 0, len(centers)-1, value=len(centers)-1, showValue=False, title="today")
 plt.addHoverLegend(useInfo=True, alpha=1, c='white', bg='red2', s=1)
-comment = Text2D(__doc__, bg='green9', alpha=0.7, font='Ubuntu')
 plt.show(pic, centers, comment, zoom=2.27, mode='image').close()

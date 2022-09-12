@@ -2,6 +2,10 @@
 
 
 ---
+### `addons.py`
+- improved slider callback interface
+
+---
 ### `applications.py`
 
 ---
@@ -43,6 +47,7 @@
 
 ### New/Revised
 examples/pyplot/fill_gap.py
+examples/basic/sliders_hsv.py
 
 ### Deleted
 

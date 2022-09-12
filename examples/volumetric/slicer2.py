@@ -15,22 +15,23 @@ def slicerfunc(index, data):
     box = vol.box().alpha(0.5)
     vmin, vmax = vol.scalarRange()
     msh = vol.zSlice(0).cmap(cmaps[index], vmin=vmin, vmax=vmax)
-    sb = msh.lighting('off').addScalarBar3D()
+    sb = msh.lighting('off')
     zb = vol.zbounds()
     visibles = [msh]
-    txt = Text2D('..'+data.filename[-30:], font='Calco')
+    txt = Text2D(data.filename[-20:], font='Calco')
     plt.at(index).show(vol, msh, sb, box, txt)
 
     def func(widget, event):
-        i = int(widget.GetRepresentation().GetValue())
-        plt.renderer = widget.GetCurrentRenderer()
+        i = int(widget.value())
+        widget.title(f"z-slice = {i}")
+        plt.renderer = widget.renderer()
         plt.resetcam = False
         msh = vol.zSlice(i).lighting('off')
         msh.cmap(cmaps[index], vmin=vmin, vmax=vmax)
         plt.remove(visibles[0], render=False)
         if 0 < i < dims[2]:
             zlev = zb[1]/(zb[1]-zb[0])*i + zb[0]
-            plt.add([msh, sb.z(zlev)])
+            plt.add(msh, sb.z(zlev))
         visibles[0] = msh
     return func
 
@@ -38,9 +39,13 @@ def slicerfunc(index, data):
 plt = Plotter(shape=(1,3), sharecam=False, bg2='lightcyan')
 
 for index, data in enumerate(volumes):
-    plt.addSlider2D(slicerfunc(index, data),
-                    0, data.dimensions()[2], value=0,
-                    pos=(sliderstart, sliderstop))
+    plt.addSlider2D(
+        slicerfunc(index, data),
+        0, data.dimensions()[2],
+        value=0,
+        showValue=False,
+        pos=[(0.1,0.1), (0.2,0.1)],
+    )
 
 printc("Right click to rotate, use slider to slice along z.", box='-')
 plt.interactive().close()

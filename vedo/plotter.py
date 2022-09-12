@@ -524,7 +524,6 @@ class Plotter:
 
         self._repeatingtimer_id = None
 
-
         #####################################################################
         notebookBackend = vedo.notebookBackend
         if notebookBackend:
@@ -3123,6 +3122,22 @@ class Plotter:
 
         .. hint:: examples/basic/closewindow.py
         """
+        vedo.last_figure = None
+        self.sliders = []
+        self.buttons = []
+        self.widgets = []
+        self.hoverLegends = []
+        self.backgroundRenderer = None
+        self.keyPressFunction = None         # obsolete! use plotter.callBack()
+        self.mouseLeftClickFunction = None   # obsolete! use plotter.callBack()
+        self.mouseMiddleClickFunction = None # obsolete! use plotter.callBack()
+        self.mouseRightClickFunction = None  # obsolete! use plotter.callBack()
+        self._first_viewup = True
+        self._extralight = None
+        self.flagWidget = None
+        self._flagRep = None
+        self.cutterWidget = None
+
         for r in self.renderers:
             r.RemoveAllObservers()
         if hasattr(self, "window") and self.window:
@@ -3136,7 +3151,14 @@ class Plotter:
                 self.interactor = None
             self.window.Finalize()  # this must be done here
             self.window = None
-        vedo.last_figure = None
+
+        self.renderer = None  # current renderer
+        self.renderers = []
+        self.camera = None
+        self.keyheld = ""
+        self._repeatingtimer_id = None
+        self.frames = None  # holds the output of addons.addRendererFrame
+        self.skybox = None
         return self
 
     def close(self):

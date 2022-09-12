@@ -390,6 +390,37 @@ class SplineTool(vtk.vtkContourWidget):
 
 
 #####################################################################
+class SliderWidget(vtk.vtkSliderWidget):
+    """Helper class for vtkSliderWidget"""
+    def __init__(self):
+        vtk.vtkSliderWidget.__init__(self)
+
+    def value(self, val=None):
+        if val is None:
+            return self.GetRepresentation().GetValue()
+        else:
+            self.GetRepresentation().SetValue(val)
+
+    def representation(self):
+        return self.GetRepresentation()
+
+    def renderer(self):
+        return self.GetCurrentRenderer()
+
+    def title(self, txt):
+        self.GetRepresentation().SetTitleText(str(txt))
+        return self
+
+    def on(self):
+        self.EnabledOn()
+        return self
+
+    def off(self):
+        self.EnabledOff()
+        return self
+
+
+#####################################################################
 def Goniometer(
     p1,
     p2,
@@ -1294,7 +1325,7 @@ def addSlider2D(
             if abs(pos[0][0] - pos[1][0]) < 0.1:
                 sliderRep.GetTitleProperty().SetOrientation(90)
 
-    sliderWidget = vtk.vtkSliderWidget()
+    sliderWidget = SliderWidget()
     sliderWidget.SetInteractor(plt.interactor)
     sliderWidget.SetAnimationModeToJump()
     sliderWidget.SetRepresentation(sliderRep)
@@ -1304,7 +1335,7 @@ def addSlider2D(
         sliderWidget.AddObserver("InteractionEvent", sliderfunc)
     if plt.renderer:
         sliderWidget.SetCurrentRenderer(plt.renderer)
-    sliderWidget.EnabledOn()
+    sliderWidget.on()
     plt.sliders.append([sliderWidget, sliderfunc])
     return sliderWidget
 
@@ -1409,12 +1440,12 @@ def addSlider3D(
 
     sliderRep.GetTubeProperty().SetColor(c)
 
-    sliderWidget = vtk.vtkSliderWidget()
+    sliderWidget = SliderWidget()
     sliderWidget.SetInteractor(plt.interactor)
     sliderWidget.SetRepresentation(sliderRep)
     sliderWidget.SetAnimationModeToJump()
     sliderWidget.AddObserver("InteractionEvent", sliderfunc)
-    sliderWidget.EnabledOn()
+    sliderWidget.on()
     plt.sliders.append([sliderWidget, sliderfunc])
     return sliderWidget
 

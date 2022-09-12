@@ -17,7 +17,7 @@ detector = Detector(sd)
 
 
 def slider(widget, event):        ### callback to shift the beam along x
-    dx = widget.GetRepresentation().GetValue()
+    dx = widget.value()
     ray = Ray([dx,-1.2,-0.1], direction=(0,1,0.02))
     ray.maxiterations = 1000      # max nr. of reflections
     ray.trace([mirror, detector]) # cumpute trajectory

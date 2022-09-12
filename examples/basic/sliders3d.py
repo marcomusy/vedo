@@ -1,15 +1,14 @@
 """3D slider to move a mesh interactively"""
 from vedo import Plotter, Mesh, dataurl
 
-plt = Plotter(title=__doc__)
+plt = Plotter()
 
 mesh = Mesh(dataurl+"spider.ply")
 mesh.normalize().rotateZ(190)
 
 
 def slider_y(widget, event):
-    value = widget.GetRepresentation().GetValue()
-    mesh.y(value)  # set y coordinate position
+    mesh.y(widget.value())  # set y coordinate position
 
 plt.addSlider3D(
     slider_y,
@@ -24,4 +23,5 @@ plt.addSlider3D(
     title="y position",
 )
 
-plt.show(mesh, viewup="z", axes=11, bg='bb', bg2='navy').close()
+plt.show(mesh, __doc__, viewup="z", axes=11, bg='bb', bg2='navy')
+plt.close()

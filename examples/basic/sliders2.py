@@ -4,14 +4,12 @@ from vedo import *
 settings.useDepthPeeling = True
 
 def slider0(widget, event):
-    value = widget.GetRepresentation().GetValue()+0.5
-    sphere.color(value)
+    sphere.color(widget.value())
 
 def slider1(widget, event):
-    rep = widget.GetRepresentation()
-    value = rep.GetValue()+0.5
-    rep.SetTitleText(getColorName(value))
-    cube.color(value)
+    val = widget.value()+0.5
+    widget.title(getColorName(val))
+    cube.color(val)
 
 def buttonfunc():
     cube.alpha(1 - cube.alpha()) # toggle mesh transparency
@@ -29,17 +27,18 @@ plt.addSlider2D(slider0,
                value=0,         # initial value
                pos=([0.1,0.1],  # first point of slider in the renderer
                     [0.4,0.1]), # 0.4 = 40% of the window size width
-               title="slider 0, color number")
+               title="slider nr.0, color number")
 
 ######
 cube = Cube().alpha(0.9).color(0)
 plt.at(1).show(cube)
-plt.addSlider2D(slider1,
-               -9, 9,
-               value=0,
-               pos=([0.1,0.1],
-                    [0.4,0.1]),
-               title="slider 1, color number")
+plt.addSlider2D(
+    slider1,
+    -9, 9,
+    value=0,
+    pos=([0.1,0.1], [0.4,0.1]),
+    title="slider nr.1, color number",
+)
 
 ######
 button = plt.at(1).addButton(
