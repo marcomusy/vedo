@@ -2,7 +2,7 @@
 
 Thin Plate Spline or Radial Basis Function.
 
-Example shows how to share the same vtkCamera
+Example shows how to share the same Camera
 between different Plotter windows.
 """
 from vedo import Plotter, Points, Arrows, show

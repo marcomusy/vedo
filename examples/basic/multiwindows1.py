@@ -12,7 +12,7 @@ from vedo import *
 plt1 = Plotter(shape=(5,5), axes=0)
 
 # set a different background color for a specific subwindow (the last one)
-plt1.renderers[24].SetBackground(0.8, 0.9, 0.9)  # use vtk method SetBackground()
+plt1.background([0.8, 0.9, 0.9], at=24)
 
 # load the meshes and give them a name
 a = Mesh(dataurl+"shuttle.obj")
