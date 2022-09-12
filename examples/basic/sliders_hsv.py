@@ -9,20 +9,16 @@ def update(rgb, hsv):
     tx2.text(f"HSV: {precision(hsv,3)}\n{getColorName(rgb)}")
 
 def funcRGB(w, e):
-    r = slr.value()
-    g = slg.value()
-    b = slb.value()
-    h,s,v = rgb2hsv([r,g,b])
+    r, g, b = slr.value(), slg.value(), slb.value()
+    h, s, v = rgb2hsv([r,g,b])
     slh.value(h)
     sls.value(s)
     slv.value(v)
     update([r,g,b], [h,s,v])
 
 def funcHSV(w, e):
-    h = slh.value()
-    s = sls.value()
-    v = slv.value()
-    r,g,b = hsv2rgb([h,s,v])
+    h, s, v = slh.value(), sls.value(), slv.value()
+    r, g, b = hsv2rgb([h,s,v])
     slr.value(r)
     slg.value(g)
     slb.value(b)
