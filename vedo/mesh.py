@@ -2195,6 +2195,7 @@ class Mesh(Points):
             .. image:: https://vedo.embl.es/images/basic/surfIntersect.png
         """
         bf = vtk.vtkIntersectionPolyDataFilter()
+        bf.SetGlobalWarningDisplay(0)
         if isinstance(self, Mesh):
             poly1 = self.polydata()
         else:
