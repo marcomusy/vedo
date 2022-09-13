@@ -9,23 +9,23 @@ def update(rgb, hsv):
     tx2.text(f"HSV: {precision(hsv,3)}\n{getColorName(rgb)}")
 
 def funcRGB(w, e):
-    r,g,b = slr.value(), slg.value(), slb.value()
+    r,g,b = slr.value, slg.value, slb.value
     h,s,v = rgb2hsv([r,g,b])
-    slh.value(h)
-    sls.value(s)
-    slv.value(v)
+    slh.value = h
+    sls.value = s
+    slv.value = v
     update([r,g,b], [h,s,v])
 
 def funcHSV(w, e):
-    h,s,v = slh.value(), sls.value(), slv.value()
+    h,s,v = slh.value, sls.value, slv.value
     r,g,b = hsv2rgb([h,s,v])
-    slr.value(r)
-    slg.value(g)
-    slb.value(b)
+    slr.value = r
+    slg.value = g
+    slb.value = b
     update([r,g,b], [h,s,v])
 
 box = Cube().lw(2).color([1,0,0]).lighting("off")
-tx1 = Text2D(font="Calco", s=1.5, pos="top-left", bg="k5").text(__doc__)
+tx1 = Text2D(font="Calco", s=1.5, pos="top-left",  bg="k5").text(__doc__)
 tx2 = Text2D(font="Calco", s=1.5, pos="top-right", bg="k5")
 
 plt = Plotter()
@@ -39,5 +39,3 @@ sls = plt.addSlider2D(funcHSV, 0,1, value=1, showValue=False, c="k1", pos=((0.6,
 slv = plt.addSlider2D(funcHSV, 0,1, value=1, showValue=False, c="k1", pos=((0.6, 0.06),(0.95, 0.06)), title="HSV")
 
 plt.show(box, tx1, tx2, viewup="z")
-
-

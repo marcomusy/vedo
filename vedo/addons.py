@@ -395,29 +395,44 @@ class SliderWidget(vtk.vtkSliderWidget):
     def __init__(self):
         vtk.vtkSliderWidget.__init__(self)
 
-    def value(self, val=None):
-        if val is None:
-            return self.GetRepresentation().GetValue()
-        else:
-            self.GetRepresentation().SetValue(val)
+    @property
+    def value(self):
+        return self.GetRepresentation().GetValue()
 
-    def representation(self):
-        return self.GetRepresentation()
+    @value.setter
+    def value(self, val):
+        self.GetRepresentation().SetValue(val)
 
+    @property
     def renderer(self):
         return self.GetCurrentRenderer()
 
+    @property
+    def title(self):
+        self.GetRepresentation().GetTitleText()
+
+    @title.setter
     def title(self, txt):
         self.GetRepresentation().SetTitleText(str(txt))
-        return self
+
+    @property
+    def range(self):
+        xmin = self.GetRepresentation().GetMinimumValue()
+        xmax = self.GetRepresentation().GetMaximumValue()
+        return [xmin, xmax]
+
+    @range.setter
+    def range(self, vals):
+        if vals[0] is not None:
+            self.GetRepresentation().SetMinimumValue(vals[0])
+        if vals[1] is not None:
+            self.GetRepresentation().SetMaximumValue(vals[1])
 
     def on(self):
         self.EnabledOn()
-        return self
 
     def off(self):
         self.EnabledOff()
-        return self
 
 
 #####################################################################

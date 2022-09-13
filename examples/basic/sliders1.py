@@ -1,16 +1,16 @@
 """Use two sliders to change
 color and transparency of a mesh"""
-from vedo import Plotter, dataurl, load
+from vedo import Plotter, Mesh, dataurl
 
 
 def slider1(widget, event):
-    mesh.color(widget.value())
+    mesh.color(widget.value)
 
 def slider2(widget, event):
-    mesh.alpha(widget.value())
+    mesh.alpha(widget.value)
 
 
-mesh = load(dataurl+"magnolia.vtk").flat().lw(0.1)
+mesh = Mesh(dataurl+"magnolia.vtk").flat().lw(0.1)
 
 plt = Plotter()
 plt += [mesh, __doc__]

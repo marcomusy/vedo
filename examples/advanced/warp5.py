@@ -118,7 +118,7 @@ class Morpher:
         hair = Arrows(arrs, s=0.3, alpha=0.5, c='jet')
 
         zero = Point(pos, c="black")
-        x1, x2, y1, y2, z1, z2 = self.target.polydata().GetBounds()
+        x1, x2, y1, y2, z1, z2 = self.target.bounds()
         tpos = [x1, y2, z1]
         text1 = Text3D("source vs target", tpos, s=sz / 10, c="dg")
         text2 = Text3D("morphed vs target", tpos, s=sz / 10, c="dg")

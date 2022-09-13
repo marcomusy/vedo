@@ -31,8 +31,8 @@ for i, d in data.iterrows():
 
 
 def sliderfunc(widget, event):
-    val = widget.value()                               # get the slider current value
-    widget.title(f"{data['time'][int(val)][:10]}")
+    val = widget.value                                 # get the slider current value
+    widget.title = f"{data['time'][int(val)][:10]}"
     for ce in centers:
         isinside = abs(val-ce.time) < num              # switch on if inside of time window
         ce.on() if isinside else ce.off()
@@ -40,4 +40,4 @@ def sliderfunc(widget, event):
 plt = Plotter(size=(2200,1100), title="Earthquake Browser")
 plt.addSlider2D(sliderfunc, 0, len(centers)-1, value=len(centers)-1, showValue=False, title="today")
 plt.addHoverLegend(useInfo=True, alpha=1, c='white', bg='red2', s=1)
-plt.show(pic, centers, comment, zoom=2.27, mode='image').close()
+plt.show(pic, centers, comment, zoom="tightest", mode='image').close()

@@ -48,6 +48,7 @@
 ### New/Revised
 examples/pyplot/fill_gap.py
 examples/basic/sliders_hsv.py
+examples/volumetric/slicer2.py
 
 ### Deleted
 
