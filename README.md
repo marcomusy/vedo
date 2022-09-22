@@ -26,6 +26,7 @@ with no other dependencies.
 ## 💾  Installation
 ```bash
 pip install vedo
+#pip install vtk<9.1.0  # (optionally, for better results)
 ```
 
 <details>
@@ -145,11 +146,19 @@ Visualize a polygonal mesh or a volume from a terminal window simply with:
 ```bash
 vedo https://vedo.embl.es/examples/data/embryo.tif
 ```
-Volumetric files (_mhd, vti, slc, tiff, DICOM etc.._) can be visualized in different modes:
+
+
+<details>
+<summary>Volumetric files (slc, tiff, DICOM...) can be visualized in different modes <i><b>[click to expand]</b></i></summary>
+
 
 |Volume 3D slicing<br>`vedo --slicer embryo.slc`| Ray-casting<br>`vedo -g`| 2D slicing<br>`vedo --slicer2d`| Colorize voxels<br>`vedo --lego`|
 |:--------|:-----|:--------|:-----|
 | ![slicer](https://user-images.githubusercontent.com/32848391/80292484-50757180-8757-11ea-841f-2c0c5fe2c3b4.jpg)|![isohead](https://user-images.githubusercontent.com/32848391/58336107-5a09a180-7e43-11e9-8c4e-b50e4e95ae71.gif)|![viz_slicer](https://user-images.githubusercontent.com/32848391/90966778-fc955200-e4d6-11ea-8e29-215f7aea3860.png)  |![lego](https://user-images.githubusercontent.com/32848391/56969949-71b47980-6b66-11e9-8251-4bbdb275cb22.jpg) |
+
+
+</details>
+
 
 Type `vedo -h` for the complete list of options.<br>
 
@@ -165,7 +174,7 @@ Check out the example galleries organized by subject here:
 ![](https://user-images.githubusercontent.com/32848391/104370203-d1aba900-551e-11eb-876c-41e0961fcdb5.jpg)
 
 </a>
-<br>
+
 
 ## ✏  Contributing
 

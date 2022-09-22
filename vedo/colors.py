@@ -828,7 +828,7 @@ def buildPalette(color1, color2, N, hsv=True):
     c1 = np.array(getColor(color1))
     c2 = np.array(getColor(color2))
     cols = []
-    for f in np.linspace(0, 1, N - 1, endpoint=True):
+    for f in np.linspace(0, 1, N, endpoint=True):
         c = c1 * (1 - f) + c2 * f
         if hsv:
             c = np.array(hsv2rgb(c))

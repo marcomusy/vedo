@@ -48,6 +48,7 @@ class BaseVolume:
     def __init__(self):
         self._data = None
         self._mapper = None
+        self.transform = None
 
     def _update(self, img):
         self._data = img
@@ -359,14 +360,6 @@ class BaseVolume:
         norm.SetInputData(self.imagedata())
         norm.Update()
         return self._update(norm.GetOutput())
-
-    def scaleVoxels(self, scale=1):
-        """Scale the voxel content by factor `scale`."""
-        rsl = vtk.vtkImageReslice()
-        rsl.SetInputData(self.imagedata())
-        rsl.SetScalarScale(scale)
-        rsl.Update()
-        return self._update(rsl.GetOutput())
 
     def mirror(self, axis="x"):
         """
@@ -693,6 +686,14 @@ class BaseVolume:
         imc.SetDimensionality(dim)
         imc.Update()
         return Volume(imc.GetOutput())
+
+    def scaleVoxels(self, scale=1):
+        """Scale the voxel content by factor `scale`."""
+        rsl = vtk.vtkImageReslice()
+        rsl.SetInputData(self.imagedata())
+        rsl.SetScalarScale(scale)
+        rsl.Update()
+        return self._update(rsl.GetOutput())
 
 
 ##########################################################################
@@ -1178,6 +1179,119 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         msh.SetOrientation(T.GetOrientation())
         msh.SetPosition(pos)
         return msh
+
+    def warp(self, source, target, sigma=1, mode="3d", fit=False):
+        """
+        Warp volume scalars within a Volume by specifying source and target sets of points.
+
+        Parameters
+        ----------
+        source : Points, list
+            the list of source points
+
+        target : Points, list
+            the list of target points
+
+        fit : bool
+            fit/adapt the old bounding box to the warped geometry
+        """
+        if isinstance(source, vedo.Points):
+            source = source.points()
+        if isinstance(target, vedo.Points):
+            target = target.points()
+
+        ns = len(source)
+        ptsou = vtk.vtkPoints()
+        ptsou.SetNumberOfPoints(ns)
+        for i in range(ns):
+            ptsou.SetPoint(i, source[i])
+
+        nt = len(target)
+        if ns != nt:
+            vedo.logger.error(f"#source {ns} != {nt} #target points")
+            raise RuntimeError()
+
+        pttar = vtk.vtkPoints()
+        pttar.SetNumberOfPoints(nt)
+        for i in range(ns):
+            pttar.SetPoint(i, target[i])
+
+        T = vtk.vtkThinPlateSplineTransform()
+        if mode.lower() == "3d":
+            T.SetBasisToR()
+        elif mode.lower() == "2d":
+            T.SetBasisToR2LogR()
+        else:
+            vedo.logger.error(f"unknown mode {mode}")
+            raise RuntimeError()
+
+        T.SetSigma(sigma)
+        T.SetSourceLandmarks(ptsou)
+        T.SetTargetLandmarks(pttar)
+        T.Inverse()
+        self.transform = T
+        self.applyTransform(T, fit=fit)
+        return self
+
+    def applyTransform(self, T, fit=False):
+        """
+        Apply a VTK transform to the scalars in the volume.
+
+        Parameters
+        ----------
+        T : vtkTransform, matrix
+            The transformation to be applied
+
+        fit : bool
+            fit/adapt the old bounding box to the warped geometry
+        """
+        if isinstance(T, vtk.vtkMatrix4x4):
+            tr = vtk.vtkTransform()
+            tr.SetMatrix(T)
+            T = tr
+
+        elif utils.isSequence(T):
+            M = vtk.vtkMatrix4x4()
+            n = len(T[0])
+            for i in range(n):
+                for j in range(n):
+                    M.SetElement(i, j, T[i][j])
+            tr = vtk.vtkTransform()
+            tr.SetMatrix(M)
+            T = tr
+
+        reslice = vtk.vtkImageReslice()
+        reslice.SetInputData(self._data)
+        reslice.SetResliceTransform(T)
+        reslice.SetOutputDimensionality(3)
+        reslice.SetInterpolationModeToLinear()
+
+        spacing = self._data.GetSpacing()
+        origin = self._data.GetOrigin()
+
+        if fit:
+            bb = self.box()
+            if isinstance(T, vtk.vtkThinPlateSplineTransform):
+                TI = vtk.vtkThinPlateSplineTransform()
+                TI.DeepCopy(T)
+                TI.Inverse()
+            else:
+                TI = vtk.vtkTransform()
+                TI.DeepCopy(T)
+            bb.applyTransform(TI)
+            bounds = bb.GetBounds()
+            bounds = (
+                bounds[0]/spacing[0], bounds[1]/spacing[0],
+                bounds[2]/spacing[1], bounds[3]/spacing[1],
+                bounds[4]/spacing[2], bounds[5]/spacing[2],
+            )
+            bounds = np.round(bounds).astype(int)
+            reslice.SetOutputExtent(bounds)
+            reslice.SetOutputSpacing(spacing[0], spacing[1], spacing[2])
+            reslice.SetOutputOrigin(origin[0], origin[1], origin[2])
+
+        reslice.Update()
+        return self._update(reslice.GetOutput())
 
 
 ##########################################################################

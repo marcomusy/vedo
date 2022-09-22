@@ -41,6 +41,7 @@
 
 ---
 ### `volume.py`
+- can warp scalars in a volumetric dataset with `warp()`
 
 -------------------------
 ## Examples
@@ -49,6 +50,9 @@
 examples/pyplot/fill_gap.py
 examples/basic/sliders_hsv.py
 examples/volumetric/slicer2.py
+examples/volumetric/warp_scalars.py
+examples/other/qt_window3.py
+
 
 ### Deleted
 

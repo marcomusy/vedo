@@ -3371,67 +3371,6 @@ class Points(vtk.vtkFollower, BaseActor):
         self.points(coords)
         return self
 
-    def warpToPoint(self, point, factor=0.1, absolute=True):
-        """
-        Modify the mesh coordinates by moving the vertices towards a specified point.
-
-        factor : float
-            value to scale displacement.
-        point : array
-            the position to warp towards.
-        absolute : bool
-            turning on causes scale factor of the new position to be one unit away from point.
-
-        Example:
-            .. code-block:: python
-
-                from vedo import *
-                s = Cylinder(height=3).wireframe()
-                pt = [4,0,0]
-                w = s.clone().warpToPoint(pt, factor=0.5).wireframe(False)
-                show(w,s, Point(pt), axes=1)
-        """
-        warpTo = vtk.vtkWarpTo()
-        warpTo.SetInputData(self.inputdata())
-        warpTo.SetPosition(point - self.pos())
-        warpTo.SetScaleFactor(factor)
-        warpTo.SetAbsolute(absolute)
-        warpTo.Update()
-        self.point_locator = None
-        self.cell_locator = None
-        return self._update(warpTo.GetOutput())
-
-    @deprecated(reason=vedo.colors.red+"Please use mymesh.points(my_new_pts)"+vedo.colors.reset)
-    def warpByVectors(self, vects, factor=1, useCells=False):
-        """Deprecated. Please use mymesh.points(my_new_pts) """
-        wf = vtk.vtkWarpVector()
-        wf.SetInputDataObject(self.polydata())
-
-        if useCells:
-            asso = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
-        else:
-            asso = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
-
-        vname = vects
-        if utils.isSequence(vects):
-            varr = utils.numpy2vtk(vects)
-            vname = "WarpVectors"
-            if useCells:
-                self.addCellArray(varr, vname)
-            else:
-                self.addPointArray(varr, vname)
-        wf.SetInputArrayToProcess(0, 0, 0, asso, vname)
-        wf.SetScaleFactor(factor)
-        wf.Update()
-        self.point_locator = None
-        self.cell_locator = None
-        return self._update(wf.GetOutput())
-
-    @deprecated(reason=vedo.colors.red+"Please use warp() with same syntax"+vedo.colors.reset)
-    def thinPlateSpline(self, *args, **kwargs):
-        """Deprecated. Please use warp() with same syntax"""
-        return self.warp(*args, **kwargs)
-
     def warp(self, sourcePts, targetPts, sigma=1, mode="3d"):
         """
         `Thin Plate Spline` transformations describe a nonlinear warp transform defined by a set

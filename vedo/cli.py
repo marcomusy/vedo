@@ -87,7 +87,7 @@ def get_parser():
     pr.add_argument("-w", "--wireframe",            help="use wireframe representation", action="store_true")
     pr.add_argument("-p", "--point-size", type=float, help="specify point size", default=-1, metavar='')
     pr.add_argument("-l", "--showedges",            help="show a thin line on mesh edges", action="store_true")
-    pr.add_argument("-k", "--lighting", type=str,   help="metallic, plastic, shiny or glossy", default='default', metavar='')
+    pr.add_argument("-k", "--lighting", type=str,   help="metallic, plastic, shiny, glossy or off", default='default', metavar='')
     pr.add_argument("-K", "--flat",                 help="use flat shading", action="store_true")
     pr.add_argument("-t", "--texture-file",         help="texture image file", default='', metavar='')
     pr.add_argument("-x", "--axes-type", type=int,  help="specify axes type [0-14]", default=1, metavar='')
@@ -636,9 +636,7 @@ def draw_scene(args):
         try:
             m = Mesh(args.files[0], alpha=args.alpha / 2, c=args.color)
         except AttributeError:
-            vedo.logger.critical(
-                "In edit mode, input file must be a point cloud or polygonal mesh."
-            )
+            vedo.logger.critical("In edit mode, input file must be a point cloud or polygonal mesh.")
             return
 
         plt = applications.FreeHandCutPlotter(m, splined=True)
@@ -715,6 +713,7 @@ def draw_scene(args):
 
         ds = 0
         actors = []
+
         for i in range(N):
             f = args.files[i]
 
@@ -727,8 +726,7 @@ def draw_scene(args):
             if isinstance(actor, (TetMesh, UGrid)):
                 actor = actor.tomesh().shrink(0.975).c(colb).alpha(args.alpha)
 
-            if isinstance(actor, Mesh):
-                actors.append(actor)
+            elif isinstance(actor, vedo.Points):
                 actor.c(colb).alpha(args.alpha).wireframe(wire).lighting(args.lighting)
                 if args.flat:
                     actor.flat()
@@ -739,11 +737,10 @@ def draw_scene(args):
                     actor.texture(args.texture_file)
 
                 if args.point_size > 0:
-                    try:
-                        actor.GetProperty().SetPointSize(args.point_size)
-                        actor.GetProperty().SetRepresentationToPoints()
-                    except AttributeError:
-                        pass
+                    actor.ps(args.point_size)
+
+                if args.cmap != "jet":
+                    actor.cmap(args.cmap)
 
                 if args.showedges:
                     try:
@@ -752,8 +749,8 @@ def draw_scene(args):
                         actor.GetProperty().SetRepresentationToSurface()
                     except AttributeError:
                         pass
-            else:
-                actors.append(actor)
+
+            actors.append(actor)
 
             if args.multirenderer_mode:
                 try:
@@ -767,9 +764,7 @@ def draw_scene(args):
                         # print([plt.camera])
                 except AttributeError:
                     # wildcards in quotes make glob return actor as a list :(
-                    vedo.logger.error(
-                        "Please do not use wildcards within single or double quotes"
-                    )
+                    vedo.logger.error("Please do not use wildcards within single or double quotes")
 
         if args.multirenderer_mode:
             plt.interactor.Start()
@@ -796,6 +791,25 @@ def draw_scene(args):
         for a in acts:
             if hasattr(a, "c"):  # Picture doesnt have it
                 a.c(args.color)
+
+            if args.point_size > 0:
+                try:
+                    a.GetProperty().SetPointSize(args.point_size)
+                    a.GetProperty().SetRepresentationToPoints()
+                except AttributeError:
+                    pass
+
+            if args.cmap != "jet":
+                try:
+                    a.cmap(args.cmap)
+                except AttributeError:
+                    pass
+
+            try:
+                a.lighting(args.lighting)
+            except AttributeError:
+                pass
+
             a.alpha(args.alpha)
 
         plt = applications.Browser(acts, axes=1)
@@ -886,7 +900,7 @@ def exe_gui(args):
 
             # lighting
             Label(self, text="Lighting:", bg="white").place(x=30, y=180)
-            lightvalues = ('default','metallic','plastic','shiny','glossy')
+            lightvalues = ('default','metallic','plastic','shiny','glossy','off')
             self.lightCB = Combobox(self, state="readonly", values=lightvalues, width=10)
             self.lightCB.current(0)
             self.lightCB.place(x=100, y=180)
