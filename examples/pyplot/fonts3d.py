@@ -5,7 +5,7 @@ from vedo import fonts, fonts_path, settings
 import numpy as np
 import os
 
-settings.allowInteraction = True
+# settings.allowInteraction = True
 
 ################################################################################## 2D
 inred = Text2D("°monospaced fonts are marked in red", c='r5', pos='bottom-center', font='VictorMono')

@@ -29,10 +29,7 @@ pip install vedo
 ```
 
 <details>
-<summary>additional installation details <i>[click to expand]</i> </summary>
-
-- For better results installing an earlier vtk version if available:
-`pip install -U vtk<9.1.0`
+<summary>additional installation details <i><b>[click to expand]</b></i> </summary>
 
 - To install the latest _dev_ version of `vedo`: <br>
 `pip install -U git+https://github.com/marcomusy/vedo.git`
@@ -48,7 +45,6 @@ pip install vedo
 The webpage of the library with documentation is available [**here**](https://vedo.embl.es).
 
 📌 **Need help? Have a question, or wish to ask for a missing feature?**
-
 Do not hesitate to ask any questions on the [**image.sc** forum](https://forum.image.sc/)
 or by opening a [**github issue**](https://github.com/marcomusy/vedo/issues).
 

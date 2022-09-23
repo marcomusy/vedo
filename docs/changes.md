@@ -1,5 +1,6 @@
 ## Main changes
 
+- removed requirement to vtk<9.1
 
 ---
 ### `addons.py`
@@ -60,6 +61,16 @@ examples/other/qt_window3.py
 examples/basic/multiwindows2.py
 examples/simulations/lorenz.py
 examples/simulations/orbitals.py
+
+explore5d.py
+fitPolynomial2.py
+fourier_epicycles.py
+fonts3d.py
+histo_1d_d.py
+isolines.py
+plot_density4d.py
+plot_extra_yaxis.py
+plot_pip.py
 
 
 

@@ -4,6 +4,7 @@ from vedo import np, settings, Marker
 from vedo.pyplot import plot
 
 settings.defaultFont = 'Calco'
+settings.rememberLastFigureFormat = True
 
 xdata = [230, 234, 240, 243, 246, 249, 252]
 ydata = [0,   0,    11,  62,  15,  21, 100]

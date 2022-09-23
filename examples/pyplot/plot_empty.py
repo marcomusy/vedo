@@ -5,6 +5,7 @@ from vedo.pyplot import plot, Figure
 
 settings.defaultFont = "Cartoons123"
 settings.palette = 2
+settings.rememberLastFigureFormat = True
 
 # Create an empty Figure and plot on it
 fig = Figure(

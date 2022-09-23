@@ -853,6 +853,8 @@ class Plotter:
             and self._timer_event_id is not None
             and settings.immediateRendering
         ):
+            if vedo.vtk_version[0]>=9 and vedo.vtk_version[1]>=1: # VTK BUG for Start()
+                return self
             self._repeatingtimer_id = self.interactor.CreateRepeatingTimer(1)
             self.interactor.Start()
             if self.interactor:

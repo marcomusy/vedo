@@ -2,6 +2,9 @@
 # https://www.youtube.com/watch?v=vD5g8aVscUI
 import numpy as np
 from vedo.pyplot import plot
+from vedo import settings
+
+settings.rememberLastFigureFormat = True # useful for pf += plot(...)
 
 x1 = np.linspace(-2,2, num=100)
 x  = np.linspace(-2,2, num=100)

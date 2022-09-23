@@ -213,8 +213,7 @@ class Figure(Assembly):
         Assembly.__init__(self, [self.axes])
         self.name = "Figure"
 
-        vedo.last_figure = self
-        # print("asssss", [vedo.last_figure])
+        vedo.last_figure = self if vedo.settings.rememberLastFigureFormat else None
         return
 
     def __add__(self, *obj):
@@ -234,9 +233,6 @@ class Figure(Assembly):
             self.labels.append(fig.label)
 
         if abs(self.yscale - fig.yscale) > 0.0001:
-
-            # if vedo.last_figure is not None:
-            # print("_check_unpack_and_insert" , vedo.last_figure)
 
             colors.printc("ERROR: adding incompatible Figure. Y-scales are different:",
                           c='r', invert=True)

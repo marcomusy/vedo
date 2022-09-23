@@ -2,7 +2,7 @@
 # Credits: https://github.com/edmontz
 import numpy as np
 from scipy.fftpack import fftn, fftshift
-from vedo import Volume, ProgressBar, show, settings
+from vedo import Plotter, Volume, ProgressBar, show, settings
 
 settings.allowInteraction = True
 
@@ -11,10 +11,11 @@ def f(x, y, z, t):
     return np.sin(9*np.pi * r)/r
 
 n = 64
-qn = 50
+qn = 25
 vol = np.zeros((n, n, n))
 n1 = int(n/2)
 
+plt  = Plotter(bg="black", axes=1, interactive=False)
 pb = ProgressBar(0, qn, c="r")
 for q in pb.range():
     pb.print()
@@ -32,7 +33,6 @@ for q in pb.range():
     volf = np.log(12*volf/volf.max()+ 1) / 2.5
 
     vb = Volume(volf).mode(1).c("rainbow").alpha([0, 0.8, 1])
-    plt = show(vb, bg="black", axes=1, viewup='z', interactive=False)
-    if plt.escaped: break  # ESC button was hit
+    plt.pop().show(vb, viewup='z')
 
 plt.interactive().close()
