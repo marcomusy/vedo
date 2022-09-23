@@ -2620,51 +2620,95 @@ def Axes(
     # if user wants to unpack it
     grids = []
     if xyGrid and xtitle and ytitle:
-        gxy = shapes.Grid(s=(xticks_float, yticks_float))
-        gxy.alpha(xyAlpha).wireframe(xyGridTransparent).c(xyPlaneColor)
-        gxy.lc(xyGridColor).lw(gridLineWidth)
-        if xyShift: gxy.shift(0,0,xyShift*dz)
-        elif tol: gxy.shift(0,0,-tol*gscale)
-        gxy.name = "xyGrid"
-        grids.append(gxy)
+        if not xyGridTransparent:
+            gxy = shapes.Grid(s=(xticks_float, yticks_float))
+            gxy.alpha(xyAlpha).c(xyPlaneColor).lw(0)
+            if xyShift: gxy.shift(0,0,xyShift*dz)
+            elif tol:   gxy.shift(0,0,-tol*gscale)
+            gxy.name = "xyGrid"
+            grids.append(gxy)
+        if gridLineWidth:
+            gxy_lines = shapes.Grid(s=(xticks_float, yticks_float))
+            gxy_lines.c(xyPlaneColor).lw(gridLineWidth).alpha(xyAlpha)
+            if xyShift: gxy_lines.shift(0,0,xyShift*dz)
+            elif tol:   gxy_lines.shift(0,0,-tol*gscale)
+            gxy_lines.name = "xyGridLines"
+            grids.append(gxy_lines)
+
     if yzGrid and ytitle and ztitle:
-        gyz = shapes.Grid(s=(zticks_float, yticks_float))
-        gyz.alpha(yzAlpha).wireframe(yzGridTransparent).c(yzPlaneColor)
-        gyz.lc(yzGridColor).lw(gridLineWidth).RotateY(-90)
-        if yzShift: gyz.shift(yzShift*dx,0,0)
-        elif tol: gyz.shift(-tol*gscale,0,0)
-        gyz.name = "yzGrid"
-        grids.append(gyz)
+        if not yzGridTransparent:
+            gyz = shapes.Grid(s=(zticks_float, yticks_float))
+            gyz.alpha(yzAlpha).c(yzPlaneColor).lw(0).RotateY(-90)
+            if yzShift: gyz.shift(yzShift*dx,0,0)
+            elif tol:   gyz.shift(-tol*gscale,0,0)
+            gyz.name = "yzGrid"
+            grids.append(gyz)
+        if gridLineWidth:
+            gyz_lines = shapes.Grid(s=(zticks_float, yticks_float))
+            gyz_lines.c(yzPlaneColor).lw(gridLineWidth).alpha(yzAlpha).RotateY(-90)
+            if yzShift: gyz_lines.shift(yzShift*dx,0,0)
+            elif tol:   gyz_lines.shift(-tol*gscale,0,0)
+            gyz_lines.name = "yzGridLines"
+            grids.append(gyz_lines)
+
     if zxGrid and ztitle and xtitle:
-        gzx = shapes.Grid(s=(xticks_float, zticks_float))
-        gzx.alpha(zxAlpha).wireframe(zxGridTransparent).c(zxPlaneColor)
-        gzx.lc(zxGridColor).lw(gridLineWidth).RotateX(90)
-        if zxShift: gzx.shift(0,zxShift*dy,0)
-        elif tol: gzx.shift(0,-tol*gscale,0)
-        gzx.name = "zxGrid"
-        grids.append(gzx)
+        if not zxGridTransparent:
+            gzx = shapes.Grid(s=(xticks_float, zticks_float))
+            gzx.alpha(zxAlpha).c(zxPlaneColor).lw(0).RotateX(90)
+            if zxShift: gzx.shift(0,zxShift*dy,0)
+            elif tol:   gzx.shift(0,-tol*gscale,0)
+            gzx.name = "zxGrid"
+            grids.append(gzx)
+        if gridLineWidth:
+            gzx_lines = shapes.Grid(s=(xticks_float, zticks_float))
+            gzx_lines.c(zxPlaneColor).lw(gridLineWidth).alpha(zxAlpha).RotateX(90)
+            if zxShift: gzx_lines.shift(0,zxShift*dy,0)
+            elif tol:   gzx_lines.shift(0,-tol*gscale,0)
+            gzx_lines.name = "zxGridLines"
+            grids.append(gzx_lines)
+
     # Grid2
     if xyGrid2 and xtitle and ytitle:
-        gxy2 = shapes.Grid(s=(xticks_float, yticks_float)).z(dz)
-        gxy2.alpha(xyAlpha).wireframe(xyGrid2Transparent).c(xyPlaneColor)
-        gxy2.lc(xyGridColor).lw(gridLineWidth)
-        if tol: gxy2.shift(0,tol*gscale,0)
-        gxy2.name = "xyGrid2"
-        grids.append(gxy2)
+        if not zxGrid2Transparent:
+            gxy2 = shapes.Grid(s=(xticks_float, yticks_float)).z(dz)
+            gxy2.alpha(xyAlpha).c(xyPlaneColor).lw(0)
+            if tol: gxy2.shift(0,tol*gscale,0)
+            gxy2.name = "xyGrid2"
+            grids.append(gxy2)
+        if gridLineWidth:
+            gxy2_lines = shapes.Grid(s=(xticks_float, yticks_float)).z(dz)
+            gxy2_lines.c(xyPlaneColor).lw(gridLineWidth).alpha(xyAlpha)
+            if tol: gxy2_lines.shift(0,tol*gscale,0)
+            gxy2_lines.name = "xyGrid2Lines"
+            grids.append(gxy2_lines)
+
     if yzGrid2 and ytitle and ztitle:
-        gyz2 = shapes.Grid(s=(zticks_float, yticks_float)).x(dx)
-        gyz2.alpha(yzAlpha).wireframe(yzGrid2Transparent).c(yzPlaneColor)
-        gyz2.lc(yzGridColor).lw(gridLineWidth).RotateY(-90)
-        if tol: gyz2.shift(tol*gscale,0,0)
-        gyz2.name = "yzGrid2"
-        grids.append(gyz2)
+        if not yzGrid2Transparent:
+            gyz2 = shapes.Grid(s=(zticks_float, yticks_float)).x(dx)
+            gyz2.alpha(yzAlpha).c(yzPlaneColor).lw(0).RotateY(-90)
+            if tol: gyz2.shift(tol*gscale,0,0)
+            gyz2.name = "yzGrid2"
+            grids.append(gyz2)
+        if gridLineWidth:
+            gyz2_lines = shapes.Grid(s=(zticks_float, yticks_float)).x(dx)
+            gyz2_lines.c(yzPlaneColor).lw(gridLineWidth).alpha(yzAlpha).RotateY(-90)
+            if tol: gyz2_lines.shift(tol*gscale,0,0)
+            gyz2_lines.name = "yzGrid2Lines"
+            grids.append(gyz2_lines)
+
     if zxGrid2 and ztitle and xtitle:
-        gzx2 = shapes.Grid(s=(xticks_float, zticks_float)).y(dy)
-        gzx2.alpha(zxAlpha).wireframe(zxGrid2Transparent).c(zxPlaneColor)
-        gzx2.lc(zxGridColor).lw(gridLineWidth).RotateX(90)
-        if tol: gzx2.shift(0,tol*gscale,0)
-        gzx2.name = "zxGrid2"
-        grids.append(gzx2)
+        if not zxGrid2Transparent:
+            gzx2 = shapes.Grid(s=(xticks_float, zticks_float)).y(dy)
+            gzx2.alpha(zxAlpha).c(zxPlaneColor).lw(0).RotateX(90)
+            if tol: gzx2.shift(0,tol*gscale,0)
+            gzx2.name = "zxGrid2"
+            grids.append(gzx2)
+        if gridLineWidth:
+            gzx2_lines = shapes.Grid(s=(xticks_float, zticks_float)).y(dy)
+            gzx2_lines.c(zxPlaneColor).lw(gridLineWidth).alpha(zxAlpha).RotateX(90)
+            if tol: gzx2_lines.shift(0,tol*gscale,0)
+            gzx2_lines.name = "zxGrid2Lines"
+            grids.append(gzx2_lines)
 
     ################################################ frame lines
     framelines = []
