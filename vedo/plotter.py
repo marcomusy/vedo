@@ -4,7 +4,8 @@ import os.path
 import sys
 import time
 import numpy as np
-import vtk
+
+import vtkmodules.all as vtk
 
 import vedo
 from vedo import settings
@@ -1761,42 +1762,68 @@ class Plotter:
 
         .. hint:: examples/basic/ssao.py
         """
-        lightsP = vtk.vtkLightsPass()
+        lights = vtk.vtkLightsPass()
 
-        opaqueP = vtk.vtkOpaquePass()
+        opaque = vtk.vtkOpaquePass()
 
-        ssaoCamP = vtk.vtkCameraPass()
-        ssaoCamP.SetDelegatePass(opaqueP)
+        ssaoCam = vtk.vtkCameraPass()
+        ssaoCam.SetDelegatePass(opaque)
 
-        ssaoP = vtk.vtkSSAOPass()
-        ssaoP.SetRadius(radius)
-        ssaoP.SetDelegatePass(ssaoCamP)
-        ssaoP.SetBias(bias)
-        ssaoP.SetBlur(blur)
-        ssaoP.SetKernelSize(samples)
+        ssao = vtk.vtkSSAOPass()
+        ssao.SetRadius(radius)
+        ssao.SetBias(bias)
+        ssao.SetBlur(blur)
+        ssao.SetKernelSize(samples)
+        ssao.SetDelegatePass(ssaoCam)
 
-        translucentP = vtk.vtkTranslucentPass()
+        translucent = vtk.vtkTranslucentPass()
 
-        volumeP = vtk.vtkVolumetricPass()
-        ddpP = vtk.vtkDualDepthPeelingPass()
-        ddpP.SetTranslucentPass(translucentP)
-        ddpP.SetVolumetricPass(volumeP)
+        volpass = vtk.vtkVolumetricPass()
+        ddp = vtk.vtkDualDepthPeelingPass()
+        ddp.SetTranslucentPass(translucent)
+        ddp.SetVolumetricPass(volpass)
 
-        overP = vtk.vtkOverlayPass()
+        over = vtk.vtkOverlayPass()
 
         collection = vtk.vtkRenderPassCollection()
-        collection.AddItem(lightsP)
-        collection.AddItem(ssaoP)
-        collection.AddItem(ddpP)
-        collection.AddItem(overP)
+        collection.AddItem(lights)
+        collection.AddItem(ssao)
+        collection.AddItem(ddp)
+        collection.AddItem(over)
 
         sequence = vtk.vtkSequencePass()
         sequence.SetPasses(collection)
 
-        camP = vtk.vtkCameraPass()
-        camP.SetDelegatePass(sequence)
+        cam = vtk.vtkCameraPass()
+        cam.SetDelegatePass(sequence)
 
-        self.renderer.SetPass(camP)
+        self.renderer.SetPass(cam)
+        return self
+
+    def addDepthOfField(self, autofocus=True):
+        """Add a depth of field effect in the scene"""
+        lights = vtk.vtkLightsPass()
+
+        opaque = vtk.vtkOpaquePass()
+
+        dofCam = vtk.vtkCameraPass()
+        dofCam.SetDelegatePass(opaque)
+
+        dof = vtk.vtkDepthOfFieldPass()
+        dof.SetAutomaticFocalDistance(autofocus)
+        dof.SetDelegatePass(dofCam)
+
+        collection = vtk.vtkRenderPassCollection()
+        collection.AddItem(lights)
+        collection.AddItem(dof)
+
+        sequence = vtk.vtkSequencePass()
+        sequence.SetPasses(collection)
+
+        cam = vtk.vtkCameraPass()
+        cam.SetDelegatePass(sequence)
+
+        self.renderer.SetPass(cam)
         return self
 
     def _addSkybox(self, hdrfile):

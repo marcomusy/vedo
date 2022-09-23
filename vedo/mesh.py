@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
-import vtk
 import numpy as np
+import vtkmodules.all as vtk
 import vedo
 from vedo.colors import colorMap
 from vedo.colors import getColor

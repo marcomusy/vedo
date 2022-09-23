@@ -1,8 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import os
 import sys
 import time
+
 import numpy as np
-import vtk
+import vtkmodules.all as vtk
 
 import vedo
 

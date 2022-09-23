@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
-import vtk
+import vtkmodules.all as vtk
 import vedo
 from vedo import settings
 from vedo import utils
+from vedo import shapes
 from vedo.assembly import Assembly
 from vedo.colors import getColor
 from vedo.colors import printc
 from vedo.mesh import merge, Mesh
 from vedo.pointcloud import Points
-from vedo import shapes
 from vedo.tetmesh import TetMesh
 from vedo.volume import Volume
 

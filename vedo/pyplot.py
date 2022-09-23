@@ -1,6 +1,8 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import warnings
 import numpy as np
-import vtk
+import vtkmodules.all as vtk
 
 import vedo
 from vedo import addons

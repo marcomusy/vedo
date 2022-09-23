@@ -26,11 +26,13 @@ with no other dependencies.
 ## 💾  Installation
 ```bash
 pip install vedo
-#pip install vtk<9.1.0  # (optionally, for better results)
 ```
 
 <details>
 <summary>additional installation details <i>[click to expand]</i> </summary>
+
+- For better results installing an earlier vtk version if available:
+`pip install -U vtk<9.1.0`
 
 - To install the latest _dev_ version of `vedo`: <br>
 `pip install -U git+https://github.com/marcomusy/vedo.git`

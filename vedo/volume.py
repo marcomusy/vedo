@@ -3,7 +3,7 @@ import os
 from deprecated import deprecated
 
 import numpy as np
-import vtk
+import vtkmodules.all as vtk
 
 import vedo
 from vedo import colors

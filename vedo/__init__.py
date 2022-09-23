@@ -40,12 +40,12 @@ __website__    = "https://github.com/marcomusy/vedo"
 ######################################################################## imports
 import os
 import sys
-import vtkmodules.all as vtk
 import warnings
 import logging
 from deprecated import deprecated
 import numpy as np
 from numpy import sin, cos, sqrt, exp, log, dot, cross  # just because useful
+import vtkmodules.all as vtk
 
 #################################################
 from vedo.version import _version as __version__

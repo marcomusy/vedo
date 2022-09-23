@@ -18,8 +18,9 @@ import argparse
 import glob
 import os
 import sys
+
 import numpy as np
-import vtk
+import vtkmodules.all as vtk
 
 import vedo
 from vedo.utils import humansort

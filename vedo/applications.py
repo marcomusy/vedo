@@ -1,6 +1,9 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import time
 import os
 import numpy as np
+
 import vedo
 from vedo.colors import colorMap
 from vedo.colors import getColor

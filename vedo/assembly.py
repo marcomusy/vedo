@@ -1,4 +1,6 @@
-import vtk
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import vtkmodules.all as vtk
 import vedo
 
 __doc__ = """

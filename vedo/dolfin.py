@@ -1,5 +1,8 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import numpy as np
-import vtk
+import vtkmodules.all as vtk
+
 import vedo
 from vedo.colors import printc
 from vedo import utils
