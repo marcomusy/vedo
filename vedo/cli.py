@@ -552,6 +552,9 @@ def draw_scene(args):
             printc("Warning: option '-n' allows a maximum of 200 files", c=1)
             printc("         you are trying to load ", nfiles, " files.\n", c=1)
             N = 200
+        if N > 4:
+            settings.useDepthPeeling = False
+
         plt = Plotter(size=wsize, N=N, bg=args.background, bg2=args.background_grad)
         settings.immediateRendering = False
         plt.axes = args.axes_type
