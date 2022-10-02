@@ -1796,9 +1796,7 @@ def _addCutterToolVolumeWithBox(vol, invert):
 
 
 #####################################################################
-def addRendererFrame(
-        plotter_instance, c=None, alpha=None, lw=None, padding=None,
-    ):
+def addRendererFrame(plotter_instance, c=None, alpha=None, lw=None, padding=None):
     """
     Add a line around the renderer subwindow.
 

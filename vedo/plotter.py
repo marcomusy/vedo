@@ -920,6 +920,8 @@ class Plotter:
                 self.actors.append(a)
             if ren:
                 ren.AddActor(a)
+                if hasattr(a, "scalarbar") and a.scalarbar:
+                    ren.AddActor(a.scalarbar)
         if render:
             if self.interactor:
                 if not self.interactor.GetInitialized():

@@ -534,7 +534,7 @@ class Base3DProp:
         """
         if isinstance(T, vtk.vtkMatrix4x4):
             self.SetUserMatrix(T)
-        elif isinstance(T, (list, tuple)):
+        elif utils.isSequence(T):
             vm = vtk.vtkMatrix4x4()
             for i in [0, 1, 2, 3]:
                 for j in [0, 1, 2, 3]:

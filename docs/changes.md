@@ -17,6 +17,7 @@
 
 ---
 ### `mesh.py`
+- fixed issue #593
 
 ---
 ### `plotter.py`

@@ -211,9 +211,9 @@ class Mesh(Points):
             dataset = vedo.io.load(inputobj)
             self.filename = inputobj
             if "TetMesh" in str(type(dataset)):
-                self._data = dataset.tomesh().polydata()
+                self._data = dataset.tomesh().polydata(False)
             else:
-                self._data = dataset.polydata()
+                self._data = dataset.polydata(False)
 
         else:
             try:
