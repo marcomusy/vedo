@@ -1386,18 +1386,22 @@ class Points(vtk.vtkFollower, BaseActor):
         .. hint:: examples/advanced/moving_least_squares1D.py, recosurface.py
             .. image:: https://vedo.embl.es/images/advanced/moving_least_squares1D.png
         """
-        if fraction > 1:
-            vedo.logger.warning(f"subsample(fraction=...), fraction must be < 1, but is {fraction}")
-        if fraction <= 0:
-            return self
+        if not absolute:
+            if fraction > 1:
+                vedo.logger.warning(f"subsample(fraction=...), fraction must be < 1, but is {fraction}")
+            if fraction <= 0:
+                return self
         cpd = vtk.vtkCleanPolyData()
         cpd.PointMergingOn()
         cpd.ConvertLinesToPointsOn()
         cpd.ConvertPolysToLinesOn()
         cpd.ConvertStripsToPolysOn()
         cpd.SetInputData(self.inputdata())
-        cpd.SetTolerance(fraction)
-        cpd.SetToleranceIsAbsolute(absolute)
+        if absolute:
+            cpd.SetTolerance(fraction/self.diagonalSize())
+            # cpd.SetToleranceIsAbsolute(absolute)
+        else:
+            cpd.SetTolerance(fraction)
         cpd.Update()
         ps = 2
         if self.GetProperty().GetRepresentation() == 0:
