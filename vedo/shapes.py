@@ -1003,27 +1003,54 @@ class Lines(Mesh):
         if endPoints is not None:
             startPoints = np.stack((startPoints, endPoints), axis=1)
 
-        polylns = vtk.vtkAppendPolyData()
-        for twopts in startPoints:
-            lineSource = vtk.vtkLineSource()
-            lineSource.SetResolution(res)
-            if len(twopts[0]) == 2:
-                lineSource.SetPoint1(twopts[0][0], twopts[0][1], 0.0)
-            else:
-                lineSource.SetPoint1(twopts[0])
+        if len(startPoints) == 2:
 
-            if scale == 1:
-                pt2 = twopts[1]
-            else:
-                vers = (np.array(twopts[1]) - twopts[0]) * scale
-                pt2 = np.array(twopts[0]) + vers
+            polylns = vtk.vtkAppendPolyData()
+            for twopts in startPoints:
+                lineSource = vtk.vtkLineSource()
+                lineSource.SetResolution(res)
+                if len(twopts[0]) == 2:
+                    lineSource.SetPoint1(twopts[0][0], twopts[0][1], 0.0)
+                else:
+                    lineSource.SetPoint1(twopts[0])
 
-            if len(pt2) == 2:
-                lineSource.SetPoint2(pt2[0], pt2[1], 0.0)
-            else:
-                lineSource.SetPoint2(pt2)
-            polylns.AddInputConnection(lineSource.GetOutputPort())
-        polylns.Update()
+                if scale == 1:
+                    pt2 = twopts[1]
+                else:
+                    vers = (np.array(twopts[1]) - twopts[0]) * scale
+                    pt2 = np.array(twopts[0]) + vers
+
+                if len(pt2) == 2:
+                    lineSource.SetPoint2(pt2[0], pt2[1], 0.0)
+                else:
+                    lineSource.SetPoint2(pt2)
+                polylns.AddInputConnection(lineSource.GetOutputPort())
+            polylns.Update()
+
+        else:
+
+            polylns = vtk.vtkAppendPolyData()
+            for t in startPoints:
+
+                try:
+                    if len(t[0]) == 2:  # make it 3d
+                        t = np.c_[np.asarray(t, dtype=float), np.zeros(len(t), dtype=float)]
+                except:
+                    pass
+
+                ppoints = vtk.vtkPoints()  # Generate the polyline
+                ppoints.SetData(utils.numpy2vtk(np.asarray(t, dtype=float), dtype=float))
+                lines = vtk.vtkCellArray()
+                npt = len(t)
+                lines.InsertNextCell(npt)
+                for i in range(npt):
+                    lines.InsertCellPoint(i)
+                poly = vtk.vtkPolyData()
+                poly.SetPoints(ppoints)
+                poly.SetLines(lines)
+                polylns.AddInputData(poly)
+            polylns.Update()
+
 
         Mesh.__init__(self, polylns.GetOutput(), c, alpha)
         self.lw(lw).lighting("off")
