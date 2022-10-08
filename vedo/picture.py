@@ -129,7 +129,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         vtk.vtkImageActor.__init__(self)
         vedo.base.Base3DProp.__init__(self)
 
-        if utils.isSequence(obj) and len(obj):  # passing array
+        if utils.is_sequence(obj) and len(obj):  # passing array
             img = _get_img(obj, flip)
 
         elif isinstance(obj, vtk.vtkImageData):
@@ -300,7 +300,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         pf = vtk.vtkImageConstantPad()
         pf.SetInputData(self._data)
         pf.SetConstant(value)
-        if utils.isSequence(pixels):
+        if utils.is_sequence(pixels):
             pf.SetOutputWholeExtent(
                 x0 - pixels[0], x1 + pixels[1], y0 - pixels[2], y1 + pixels[3], 0, 0
             )
@@ -364,7 +364,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """
         ima = vtk.vtkImageAppend()
         ima.SetInputData(self._data)
-        if not utils.isSequence(pictures):
+        if not utils.is_sequence(pictures):
             pictures = [pictures]
         for p in pictures:
             if isinstance(p, vtk.vtkImageData):
@@ -388,7 +388,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """
         old_dims = np.array(self._data.GetDimensions())
 
-        if not utils.isSequence(newsize):
+        if not utils.is_sequence(newsize):
             newsize = (old_dims * newsize + 0.5).astype(int)
 
         if not newsize[1]:
@@ -507,12 +507,12 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         gsf.SetDimensionality(2)
         gsf.SetInputData(self._data)
         if radius is not None:
-            if utils.isSequence(radius):
+            if utils.is_sequence(radius):
                 gsf.SetRadiusFactors(radius[0], radius[1])
             else:
                 gsf.SetRadiusFactor(radius)
 
-        if utils.isSequence(sigma):
+        if utils.is_sequence(sigma):
             gsf.SetStandardDeviations(sigma[0], sigma[1])
         else:
             gsf.SetStandardDeviation(sigma)

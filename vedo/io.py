@@ -210,7 +210,7 @@ def load(inputobj, unpack=True, force=False):
             show(g)
     """
     acts = []
-    if utils.isSequence(inputobj):
+    if utils.is_sequence(inputobj):
         flist = inputobj
     elif isinstance(inputobj, str) and inputobj.startswith("https://"):
         flist = [inputobj]
@@ -1299,7 +1299,7 @@ def write(objct, fileoutput, binary=True):
         # print("GetCompression ", writer.GetCompression()) # basically uncompressed..
         writer.SetFileDimensionality(len(obj.GetDimensions()))
     elif fr.endswith(".npy") or fr.endswith(".npz"):
-        if utils.isSequence(objct):
+        if utils.is_sequence(objct):
             objslist = objct
         else:
             objslist = [objct]
@@ -1693,7 +1693,7 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
 
         if "objects" in data.keys():
             objs = loadnumpy(data["objects"])
-            if not utils.isSequence(objs):
+            if not utils.is_sequence(objs):
                 objs = [objs]
         else:
             # colors.printc("Trying to import a single mesh.. use load() instead.", c='r')

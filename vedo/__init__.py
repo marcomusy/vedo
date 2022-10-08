@@ -42,7 +42,6 @@ import os
 import sys
 import warnings
 import logging
-from deprecated import deprecated
 import numpy as np
 from numpy import sin, cos, sqrt, exp, log, dot, cross  # just because useful
 import vtkmodules.all as vtk
@@ -65,6 +64,7 @@ from vedo.tetmesh import *
 from vedo.shapes import *
 from vedo.addons import *
 from vedo.plotter import *
+
 import vedo.applications as applications
 
 ##################################################################################
@@ -130,7 +130,7 @@ dataurl    = "https://vedo.embl.es/examples/data/"
 
 plotter_instance = None
 notebook_plotter = None
-notebookBackend  = None
+notebook_backend  = None
 
 ## fonts
 fonts_path = os.path.join(installdir, "fonts/")

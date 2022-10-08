@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+from deprecated import deprecated
 
 import numpy as np
 import vtkmodules.all as vtk
@@ -17,11 +18,12 @@ Colors definitions and printing methods. <br>
 __all__ = [
     "printc",
     "printd",
-    "getColor",
-    "getColorName",
-    "colorMap",
-    "buildPalette",
-    "buildLUT",
+    "getColor",  # deprecated
+    "get_color",
+    "get_color_name",
+    "color_map",
+    "build_palette",
+    "build_lut",
 ]
 
 
@@ -571,7 +573,7 @@ def _has_colors(stream):
 _terminal_has_colors = _has_colors(sys.stdout)
 
 
-def _isSequence(arg):
+def _is_sequence(arg):
     # Check if input is iterable.
     if hasattr(arg, "strip"):
         return False
@@ -581,8 +583,11 @@ def _isSequence(arg):
         return True
     return False
 
-
+@deprecated(reason=vedo.colors.red + "Please use get_color()" + vedo.colors.reset)
 def getColor(rgb=None, hsv=None):
+    return getColor(rgb, hsv)
+
+def get_color(rgb=None, hsv=None):
     """
     Convert a color or list of colors to (r,g,b) format from many different input formats.
 
@@ -602,7 +607,7 @@ def getColor(rgb=None, hsv=None):
     .. hint:: examples/basic/colorcubes.py
     """
     # recursion, return a list if input is list of colors:
-    if _isSequence(rgb) and (len(rgb) > 3 or _isSequence(rgb[0])):
+    if _is_sequence(rgb) and (len(rgb) > 3 or _is_sequence(rgb[0])):
         seqcol = []
         for sc in rgb:
             seqcol.append(getColor(sc))
@@ -624,7 +629,7 @@ def getColor(rgb=None, hsv=None):
     else:
         c = rgb
 
-    if _isSequence(c):
+    if _is_sequence(c):
         if c[0] <= 1 and c[1] <= 1 and c[2] <= 1:
             return c  # already rgb
         else:
@@ -670,8 +675,8 @@ def getColor(rgb=None, hsv=None):
     return (0.5, 0.5, 0.5)
 
 
-def getColorName(c):
-    """Find the name of a color."""
+def get_color_name(c):
+    """Find the name of the closest color."""
     c = np.array(getColor(c))  # reformat to rgb
     mdist = 99.0
     kclosest = ""
@@ -713,7 +718,7 @@ def hex2rgb(hx):
     return (rgb255[0] / 255.0, rgb255[1] / 255.0, rgb255[2] / 255.0)
 
 
-def colorMap(value, name="jet", vmin=None, vmax=None):
+def color_map(value, name="jet", vmin=None, vmax=None):
     """
     Map a real value in range [vmin, vmax] to a (r,g,b) color scale.
 
@@ -749,7 +754,7 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
     .. hint:: examples/pyplot/plot_bars.py
         .. image:: https://vedo.embl.es/images/pyplot/plot_bars.png
     """
-    cut = _isSequence(value)  # to speed up later
+    cut = _is_sequence(value)  # to speed up later
 
     if cut:
         values = np.asarray(value)
@@ -803,7 +808,7 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
         return result[0]
 
 
-def buildPalette(color1, color2, N, hsv=True):
+def build_palette(color1, color2, n, hsv=True):
     """
     Generate N colors starting from `color1` to `color2`
     by linear interpolation in HSV or RGB spaces.
@@ -831,7 +836,7 @@ def buildPalette(color1, color2, N, hsv=True):
     c1 = np.array(getColor(color1))
     c2 = np.array(getColor(color2))
     cols = []
-    for f in np.linspace(0, 1, N, endpoint=True):
+    for f in np.linspace(0, 1, n, endpoint=True):
         c = c1 * (1 - f) + c2 * f
         if hsv:
             c = np.array(hsv2rgb(c))
@@ -839,16 +844,16 @@ def buildPalette(color1, color2, N, hsv=True):
     return np.array(cols)
 
 
-def buildLUT(
+def build_lut(
     colorlist,
     vmin=None,
     vmax=None,
-    belowColor=None,
-    aboveColor=None,
-    nanColor=None,
-    belowAlpha=1,
-    aboveAlpha=1,
-    nanAlpha=1,
+    below_color=None,
+    above_color=None,
+    nan_color=None,
+    below_alpha=1,
+    above_alpha=1,
+    nan_alpha=1,
     interpolate=False,
 ):
     """
@@ -867,22 +872,22 @@ def buildLUT(
     vmax : float
         specify maximum value of scalar range
 
-    belowColor : color
+    below_color : color
         color for scalars below the minimum in range
 
-    belowAlpha : float
+    below_alpha : float
         opacity for scalars below the minimum in range
 
-    aboveColor : color
+    above_color : color
         color for scalars above the maximum in range
 
-    aboveAlpha : float
+    above_alpha : float
         alpha for scalars above the maximum in range
 
-    nanColor : color
+    nan_color : color
         color for invalid (nan) scalars
 
-    nanAlpha : float
+    nan_alpha : float
         alpha for invalid (nan) scalars
 
     interpolate : bool
@@ -917,14 +922,14 @@ def buildLUT(
     ctf.SetRange(x0, x1)
     lut.SetRange(x0, x1)
 
-    if belowColor is not None:
-        lut.SetBelowRangeColor(list(getColor(belowColor)) + [belowAlpha])
+    if below_color is not None:
+        lut.SetBelowRangeColor(list(getColor(below_color)) + [below_alpha])
         lut.SetUseBelowRangeColor(True)
-    if aboveColor is not None:
-        lut.SetAboveRangeColor(list(getColor(aboveColor)) + [aboveAlpha])
+    if above_color is not None:
+        lut.SetAboveRangeColor(list(getColor(above_color)) + [above_alpha])
         lut.SetUseAboveRangeColor(True)
-    if nanColor is not None:
-        lut.SetNanColor(list(getColor(nanColor)) + [nanAlpha])
+    if nan_color is not None:
+        lut.SetNanColor(list(getColor(nan_color)) + [nan_alpha])
 
     rgba = (1, 1, 1, 1)
     for i in range(256):
@@ -1162,7 +1167,7 @@ def printd(*strings, q=False):
 
         var = var.replace("vtkmodules.", "")
         print("      \x1b[37m", loc, "\t\t=", var[:60].replace("\n", ""), reset)
-        if vedo.utils.isSequence(obj) and len(obj) > 4:
+        if vedo.utils.is_sequence(obj) and len(obj) > 4:
             print('           \x1b[37m\x1b[2m\x1b[3m len:', len(obj),
                   ' min:', vedo.utils.precision(min(obj), 4),
                   ' max:', vedo.utils.precision(max(obj), 4),

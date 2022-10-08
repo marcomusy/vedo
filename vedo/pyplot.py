@@ -90,7 +90,7 @@ class Figure(Assembly):
         self.ylim = np.array(ylim)
         self.aspect = aspect
         self.padding = padding
-        if not utils.isSequence(self.padding):
+        if not utils.is_sequence(self.padding):
             self.padding = [self.padding, self.padding, self.padding, self.padding]
 
         self.force_scaling_types = (
@@ -514,7 +514,7 @@ class Figure(Assembly):
             dx = x1 - x0
             dy = y1 - y0
 
-            if not utils.isSequence(padding):
+            if not utils.is_sequence(padding):
                 padding = [padding] * 4
             padding = min(padding)
             padding = min(padding * dx, padding * dy)
@@ -704,7 +704,7 @@ class Histogram1D(Figure):
         if bins is None:
             bins = 20
 
-        if utils.isSequence(xlim):
+        if utils.is_sequence(xlim):
             # deal with user passing eg [x0, None]
             _x0, _x1 = xlim
             if _x0 is None:
@@ -821,7 +821,7 @@ class Histogram1D(Figure):
         if not self.yscale:
             return None
 
-        if utils.isSequence(bins):
+        if utils.is_sequence(bins):
             myedges = np.array(bins)
             bins = len(bins) - 1
         else:
@@ -900,7 +900,7 @@ class Histogram1D(Figure):
                 if not f:
                     continue
                 err = _errors[i]
-                if utils.isSequence(err):
+                if utils.is_sequence(err):
                     el = shapes.Line([x, err[0], 0], [x, err[1], 0], c=lc, alpha=alpha, lw=lw)
                 else:
                     el = shapes.Line([x, f-err/2, 0], [x, f+err/2, 0], c=lc, alpha=alpha, lw=lw)
@@ -913,7 +913,7 @@ class Histogram1D(Figure):
             bin_centers = np.array(bin_centers)
             bin_centers = bin_centers[bin_centers[:, 1] > 0]
 
-            if utils.isSequence(ms):  ### variable point size
+            if utils.is_sequence(ms):  ### variable point size
                 mk = shapes.Marker(marker, s=1)
                 mk.scale([1, 1 / self.yscale, 1])
                 msv = np.zeros_like(bin_centers)
@@ -932,7 +932,7 @@ class Histogram1D(Figure):
                 else:
                     ms = (xlim[1] - xlim[0]) / 100.0 * ms
 
-                if utils.isSequence(mc):
+                if utils.is_sequence(mc):
                     mk = shapes.Marker(marker, s=ms)
                     mk.scale([1, 1 / self.yscale, 1])
                     msv = np.zeros_like(bin_centers)
@@ -1075,7 +1075,7 @@ class Histogram2D(Figure):
         if isinstance(bins, int):
             bins = (bins, bins)
 
-        if utils.isSequence(xlim):
+        if utils.is_sequence(xlim):
             # deal with user passing eg [x0, None]
             _x0, _x1 = xlim
             if _x0 is None:
@@ -1084,7 +1084,7 @@ class Histogram2D(Figure):
                 _x1 = xvalues.max()
             xlim = [_x0, _x1]
 
-        if utils.isSequence(ylim):
+        if utils.is_sequence(ylim):
             # deal with user passing eg [x0, None]
             _y0, _y1 = ylim
             if _y0 is None:
@@ -1293,7 +1293,7 @@ class PlotBars(Figure):
             aspect = like.aspect
             padding = like.padding
 
-        if utils.isSequence(xlim):
+        if utils.is_sequence(xlim):
             # deal with user passing eg [x0, None]
             _x0, _x1 = xlim
             if _x0 is None:
@@ -1555,7 +1555,7 @@ class PlotXY(Figure):
             aspect = like.aspect
             padding = like.padding
 
-        if utils.isSequence(xlim):
+        if utils.is_sequence(xlim):
             # deal with user passing eg [x0, None]
             _x0, _x1 = xlim
             if _x0 is None:
@@ -1641,7 +1641,7 @@ class PlotXY(Figure):
 
             pts = np.c_[data, np.zeros(len(data))]
 
-            if utils.isSequence(ms):
+            if utils.is_sequence(ms):
                 ### variable point size
                 mk = shapes.Marker(marker, s=1)
                 mk.scale([1, 1 / self.yscale, 1])
@@ -1655,7 +1655,7 @@ class PlotXY(Figure):
                 if ms is None:
                     ms = (xlim[1] - xlim[0]) / 100.0
 
-                if utils.isSequence(mc):
+                if utils.is_sequence(mc):
                     fig_kwargs["marker_color"] = None  # for labels
                     mk = shapes.Marker(marker, s=ms)
                     mk.scale([1, 1 / self.yscale, 1])
@@ -2111,7 +2111,7 @@ def plot(*args, **kwargs):
             vedo.logger.error(f"in plot(), could not understand option(s): {opts}")
 
     if optidx == 1 or optidx is None:
-        if utils.isSequence(args[0][0]):
+        if utils.is_sequence(args[0][0]):
             # print('case 1', 'plot([(x,y),..])')
             data = np.array(args[0])
             x = np.array(data[:, 0])
@@ -2120,11 +2120,11 @@ def plot(*args, **kwargs):
             # print('case 2', 'plot(x)')
             x = np.linspace(0, len(args[0]), num=len(args[0]))
             y = np.array(args[0])
-        elif utils.isSequence(args[1]):
+        elif utils.is_sequence(args[1]):
             # print('case 3', 'plot(allx,ally)')
             x = np.array(args[0])
             y = np.array(args[1])
-        elif utils.isSequence(args[0]) and utils.isSequence(args[0][0]):
+        elif utils.is_sequence(args[0]) and utils.is_sequence(args[0][0]):
             # print('case 4', 'plot([allx,ally])')
             x = np.array(args[0][0])
             y = np.array(args[0][1])
@@ -3008,7 +3008,7 @@ def _histogramHexBin(
     ymin, ymax = np.min(yvalues), np.max(yvalues)
     dx, dy = xmax - xmin, ymax - ymin
 
-    if utils.isSequence(bins):
+    if utils.is_sequence(bins):
         n, m = bins
     else:
         if xmax - xmin < ymax - ymin:
@@ -3166,7 +3166,7 @@ def _histogramPolar(
         else:
             if c is None:
                 d.color(i)
-            elif utils.isSequence(c) and len(c) == bins:
+            elif utils.is_sequence(c) and len(c) == bins:
                 d.color(c[i])
             else:
                 d.color(c)

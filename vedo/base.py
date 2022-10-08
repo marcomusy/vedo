@@ -261,7 +261,7 @@ class Base3DProp:
         """Add a vector to the current object position."""
         p = np.array(self.GetPosition())
 
-        if utils.isSequence(dx):
+        if utils.is_sequence(dx):
             if len(dx) == 2:
                 self.SetPosition(p + [dx[0], dx[1], 0])
             else:
@@ -272,11 +272,6 @@ class Base3DProp:
         self.point_locator = None
         self.cell_locator = None
         return self
-
-    @deprecated(reason=colors.red + "Please use shift() instead." + colors.reset)
-    def addPos(self, dx=0, dy=0, dz=0):
-        """Deprecated, use ``shift()``."""
-        return self.shift(dx, dy, dz)
 
     def x(self, position=None):
         """Set/Get object position along x axis."""
@@ -373,7 +368,20 @@ class Base3DProp:
         self.cell_locator = None
         return self
 
-    def rotateX(self, angle, rad=False, around=None):
+    @deprecated(reason=vedo.colors.red + "Please use rotate_x()" + vedo.colors.reset)
+    def rotateX(self, *a, **b):
+        """Deprecated. Please use rotate_x()."""
+        return self.rotate_x(*a, **b)
+    @deprecated(reason=vedo.colors.red + "Please use rotate_y()" + vedo.colors.reset)
+    def rotateY(self, *a, **b):
+        """Deprecated. Please use rotate_y()."""
+        return self.rotate_y(*a, **b)
+    @deprecated(reason=vedo.colors.red + "Please use rotate_z()" + vedo.colors.reset)
+    def rotateZ(self, *a, **b):
+        """Deprecated. Please use rotate_z()."""
+        return self.rotate_z(*a, **b)
+
+    def rotate_x(self, angle, rad=False, around=None):
         """
         Rotate around x-axis. If angle is in radians set ``rad=True``.
 
@@ -381,7 +389,7 @@ class Base3DProp:
         """
         return self._rotatexyz("x", angle, rad, around)
 
-    def rotateY(self, angle, rad=False, around=None):
+    def rotate_y(self, angle, rad=False, around=None):
         """
         Rotate around y-axis. If angle is in radians set ``rad=True``.
 
@@ -389,7 +397,7 @@ class Base3DProp:
         """
         return self._rotatexyz("y", angle, rad, around)
 
-    def rotateZ(self, angle, rad=False, around=None):
+    def rotate_z(self, angle, rad=False, around=None):
         """
         Rotate around z-axis. If angle is in radians set ``rad=True``.
 
@@ -481,7 +489,7 @@ class Base3DProp:
         self.cell_locator = None
         return self
 
-    def getTransform(self, invert=False):
+    def get_transform(self, invert=False):
         """
         Check if ``object.transform`` exists and returns a ``vtkTransform``.
         Otherwise return current user transformation (where the object is currently placed).
@@ -500,7 +508,7 @@ class Base3DProp:
                 c2.rotate(90, axis=v, point=p)
 
                 # get the inverse of the current transformation
-                T = c2.getTransform(invert=True)
+                T = c2.get_transform(invert=True)
                 c2.applyTransform(T)  # put back c2 in place
 
                 l = Line(p-v, p+v).lw(3).c('red')
@@ -522,7 +530,13 @@ class Base3DProp:
             tr = tr.GetInverse()
         return tr
 
+
+    @deprecated(reason=vedo.colors.red + "Please use apply_transform()" + vedo.colors.reset)
     def applyTransform(self, T, reset=False, concatenate=False):
+        """Deprecated. Please use apply_transform()"""
+        return self.apply_transform(T,reset,concatenate)
+
+    def apply_transform(self, T, reset=False, concatenate=False):
         """
         Transform object position and orientation.
 
@@ -534,7 +548,7 @@ class Base3DProp:
         """
         if isinstance(T, vtk.vtkMatrix4x4):
             self.SetUserMatrix(T)
-        elif utils.isSequence(T):
+        elif utils.is_sequence(T):
             vm = vtk.vtkMatrix4x4()
             for i in [0, 1, 2, 3]:
                 for j in [0, 1, 2, 3]:
@@ -548,7 +562,7 @@ class Base3DProp:
         self.cell_locator = None
         return self
 
-    def alignToBoundingBox(self, msh, rigid=False):
+    def align_to_bounding_box(self, msh, rigid=False):
         """
         Align the current object's bounding box to the bounding box
         of the input object.
@@ -623,7 +637,7 @@ class Base3DProp:
         .. hint:: examples/pyplot/latex.py
         """
         b = self.GetBounds()
-        if not utils.isSequence(padding):
+        if not utils.is_sequence(padding):
             padding = [padding, padding, padding]
         length, width, height = b[1] - b[0], b[3] - b[2], b[5] - b[4]
         tol = (length + width + height) / 30000  # useful for boxing 2D text
@@ -645,7 +659,7 @@ class Base3DProp:
         bx.wireframe(not fill)
         return bx
 
-    def useBounds(self, ub=True):
+    def use_bounds(self, ub=True):
         """
         Instruct the current camera to either take into account or ignore
         the object bounds when resetting.
@@ -680,7 +694,7 @@ class Base3DProp:
         elif i == 1: return b[5]
         return (b[4], b[5])
 
-    def diagonalSize(self):
+    def diagonal_size(self):
         """Get the length of the diagonal of mesh bounding box."""
         b = self.GetBounds()
         return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
@@ -688,7 +702,7 @@ class Base3DProp:
 
     def print(self):
         """Print information about an object."""
-        utils.printInfo(self)
+        utils.print_info(self)
         return self
 
     def show(self, **options):
@@ -721,15 +735,15 @@ class BaseActor(Base3DProp):
         self.property = None
 
 
-    def mapper(self, newMapper=None):
+    def mapper(self, new_mapper=None):
         """Return the ``vtkMapper`` data object, or update it with a new one."""
-        if newMapper:
-            self.SetMapper(newMapper)
+        if new_mapper:
+            self.SetMapper(new_mapper)
             if self._mapper:
                 iptdata = self._mapper.GetInput()
                 if iptdata:
-                    newMapper.SetInputData(self._mapper.GetInput())
-            self._mapper = newMapper
+                    new_mapper.SetInputData(self._mapper.GetInput())
+            self._mapper = new_mapper
             self._mapper.Modified()
         return self._mapper
 
@@ -748,17 +762,26 @@ class BaseActor(Base3DProp):
         self.inputdata().GetPointData().Modified()
         return self
 
+    @deprecated(reason=vedo.colors.red + "Please use property object.npoints" + vedo.colors.reset)
     def N(self):
-        """Retrieve number of points. Shortcut for ``NPoints()``."""
+        """Deprecated. Please use property object.npoints"""
         return self.inputdata().GetNumberOfPoints()
 
-    def NPoints(self):
-        """Retrieve number of points. Same as ``N()``."""
-        return self.inputdata().GetNumberOfPoints()
-
+    @deprecated(reason=vedo.colors.red + "Please use property object.ncells" + vedo.colors.reset)
     def NCells(self):
-        """Retrieve number of cells."""
+        """Deprecated. Please use property object.ncells"""
         return self.inputdata().GetNumberOfCells()
+
+    @property
+    def npoints(self):
+        """Retrieve the number of points."""
+        return self.inputdata().GetNumberOfPoints()
+
+    @property
+    def ncells(self):
+        """Retrieve the number of cells."""
+        return self.inputdata().GetNumberOfCells()
+
 
     def points(self, pts=None, transformed=True):
         """
@@ -785,13 +808,11 @@ class BaseActor(Base3DProp):
             else:
                 return np.array([])
 
-        elif (utils.isSequence(pts) and not utils.isSequence(pts[0])) or isinstance(
+        elif (utils.is_sequence(pts) and not utils.is_sequence(pts[0])) or isinstance(
             pts, (int, np.integer)
         ):
             # passing a list of indices or a single index
-            return utils.vtk2numpy(self.polydata(transformed).GetPoints().GetData())[
-                pts
-            ]
+            return utils.vtk2numpy(self.polydata(transformed).GetPoints().GetData())[pts]
 
         else:  ### setter
 
@@ -807,7 +828,12 @@ class BaseActor(Base3DProp):
             self.cell_locator = None
             return self
 
+    @deprecated(reason=vedo.colors.red + "Please use cell_centers()" + vedo.colors.reset)
     def cellCenters(self):
+        """Deprecated. Please use cell_centers()"""
+        return self.cell_centers()
+
+    def cell_centers(self):
         """
         Get the coordinates of the cell centers.
 
@@ -821,7 +847,7 @@ class BaseActor(Base3DProp):
         vcen.Update()
         return utils.vtk2numpy(vcen.GetOutput().GetPoints().GetData())
 
-    def deleteCells(self, ids):
+    def delete_cells(self, ids):
         """
         Remove cells from the mesh object by their ID.
         Points (vertices) are not removed
@@ -836,7 +862,7 @@ class BaseActor(Base3DProp):
         self._mapper.Modified()
         return self
 
-    def getRGBA(self, on="points"):
+    def get_rgba(self, on="points"):
         """Grab the RGBA cell/point array as currently visualised for an object"""
         lut = self.mapper().GetLookupTable()
         poly = self.inputdata()
@@ -846,12 +872,11 @@ class BaseActor(Base3DProp):
             vscalars = poly.GetCellData().GetScalars()
         cols = lut.MapScalars(vscalars, 0, 0)
         arr = utils.vtk2numpy(cols)
-        # arr = arr[:, :3]
         return arr
 
-    def findCellsWithin(self, xbounds=(), ybounds=(), zbounds=()):
+    def find_cells_in(self, xbounds=(), ybounds=(), zbounds=()):
         """
-        Find cells that are within specified bounds.
+        Find cells that are within the specified bounds.
         Setting a color will add a vtk array to colorize these cells.
         """
         if len(xbounds) == 6:
@@ -887,13 +912,13 @@ class BaseActor(Base3DProp):
         ambient=None,
         diffuse=None,
         specular=None,
-        specularPower=None,
-        specularColor=None,
+        specular_power=None,
+        specular_color=None,
         metallicity=None,
         roughness=None,
     ):
         """
-        Set the ambient, diffuse, specular and specularPower lighting constants.
+        Set the ambient, diffuse, specular and specular_power lighting constants.
 
         Parameters
         ----------
@@ -909,10 +934,10 @@ class BaseActor(Base3DProp):
         specular : float
             fraction of reflected light [0-1]
 
-        specularPower : float
+        specular_power : float
             precision of reflection [1-100]
 
-        specularColor : color
+        specular_color : color
             color that is being reflected by the surface
 
         .. image:: https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png
@@ -968,9 +993,9 @@ class BaseActor(Base3DProp):
         if ambient is not None: pr.SetAmbient(ambient)
         if diffuse is not None: pr.SetDiffuse(diffuse)
         if specular is not None: pr.SetSpecular(specular)
-        if specularPower is not None: pr.SetSpecularPower(specularPower)
-        if specularColor is not None: pr.SetSpecularColor(colors.getColor(specularColor))
-        if utils.vtkVersionIsAtLeast(9):
+        if specular_power is not None: pr.SetSpecularPower(specular_power)
+        if specular_color is not None: pr.SetSpecularColor(colors.getColor(specular_color))
+        if utils.vtk_version_at_least(9):
             if metallicity is not None:
                 pr.SetInterpolationToPBR()
                 pr.SetMetallic(metallicity)
@@ -980,7 +1005,7 @@ class BaseActor(Base3DProp):
 
         return self
 
-    def printHistogram(
+    def print_histogram(
         self,
         bins=10,
         height=10,
@@ -1025,7 +1050,7 @@ class BaseActor(Base3DProp):
         title : str
             histogram title
         """
-        utils.printHistogram(
+        utils.print_histogram(
             self, bins, height, logscale, minbin, horizontal, char, c, bold, title
         )
         return self
@@ -1088,29 +1113,8 @@ class BaseActor(Base3DProp):
         """
         return _DataArrayHelper(self, 2)
 
-    @deprecated(reason=colors.red+"Please use myobj.pointdata[name] instead."+colors.reset)
-    def getPointArray(self, name=0):
-        """Deprecated. Use `myobj.pointdata[name]` instead."""
-        return self.pointdata[name]
 
-    @deprecated(reason=colors.red+"Please use myobj.celldata[name] instead."+colors.reset)
-    def getCellArray(self, name=0):
-        """Deprecated. Use `myobj.celldata[name]` instead."""
-        return self.celldata[name]
-
-    @deprecated(reason=colors.red+"Please use myobj.pointdata[name] = myarr instead."+colors.reset)
-    def addPointArray(self, input_array, name):
-        """Deprecated. Use `myobj.pointdata[name] = input_array` instead."""
-        self.pointdata[name] = input_array
-        return self
-
-    @deprecated(reason=colors.red+"Please use myobj.celldata[name] = myarr instead."+colors.reset)
-    def addCellArray(self, input_array, name):
-        """Deprecated. Use `myobj.celldata[name] = input_array` instead."""
-        self.celldata[name] = input_array
-        return self
-
-    def mapCellsToPoints(self):
+    def map_cells_to_points(self):
         """
         Interpolate cell data (i.e., data specified per cell or face)
         into point data (i.e., data specified at each vertex).
@@ -1123,7 +1127,7 @@ class BaseActor(Base3DProp):
         self._mapper.SetScalarModeToUsePointData()
         return self._update(c2p.GetOutput())
 
-    def mapPointsToCells(self):
+    def map_points_to_cells(self):
         """
         Interpolate point data (i.e., data specified per point or vertex)
         into cell data (i.e., data specified per cell).
@@ -1138,8 +1142,8 @@ class BaseActor(Base3DProp):
         self._mapper.SetScalarModeToUseCellData()
         return self._update(p2c.GetOutput())
 
-    def addIDs(self):
-        """Generate point and cell ids."""
+    def add_ids(self):
+        """Generate point and cell ids arrays."""
         ids = vtk.vtkIdFilter()
         ids.SetInputData(self.inputdata())
         ids.PointIdsOn()
@@ -1274,18 +1278,24 @@ class BaseActor(Base3DProp):
             vvecs = utils.vtk2numpy(vort.GetOutput().GetCellData().GetArray('Vorticity'))
         return vvecs
 
-    def addScalarBar(
+
+    @deprecated(reason=vedo.colors.red + "Please use method add_scalarbar()" + vedo.colors.reset)
+    def addScalarBar(self, **k):
+        """Deprecated. Please use method add_scalarbar()"""
+        return self.add_scalarbar(**k)
+
+    def add_scalarbar(
             self,
             title="",
             pos=(0.8,0.05),
-            titleYOffset=15,
-            titleFontSize=12,
+            title_yoffset=15,
+            font_size=12,
             size=(None,None),
             nlabels=None,
             c=None,
             horizontal=False,
-            useAlpha=True,
-            labelFormat=':6.3g',
+            use_alpha=True,
+            label_format=':6.3g',
         ):
         """
         Add a 2D scalar bar for the specified obj.
@@ -1310,40 +1320,45 @@ class BaseActor(Base3DProp):
             self,
             title,
             pos,
-            titleYOffset,
-            titleFontSize,
+            title_yoffset,
+            font_size,
             size,
             nlabels,
             c,
             horizontal,
-            useAlpha,
-            labelFormat,
+            use_alpha,
+            label_format,
         )
         self.scalarbar = sb
         return self
 
-    def addScalarBar3D(
+    @deprecated(reason=vedo.colors.red + "Please use method add_scalarbar()" + vedo.colors.reset)
+    def addScalarBar3D(self, **k):
+        """Deprecated. Please use method add_scalarbar()"""
+        return self.add_scalarbar(**k)
+
+    def add_scalarbar_3d(
         self,
         title="",
         pos=None,
         s=(None, None),
-        titleFont="",
-        titleXOffset=-1.5,
-        titleYOffset=0.0,
-        titleSize=1.5,
-        titleRotation=0.0,
+        title_font="",
+        title_xoffset=-1.5,
+        title_yoffset=0.0,
+        title_size=1.5,
+        title_rotation=0.0,
         nlabels=9,
-        labelFont="",
-        labelSize=1,
-        labelOffset=0.375,
-        labelRotation=0,
-        labelFormat="",
+        label_font="",
+        label_size=1,
+        label_offset=0.375,
+        label_rotation=0,
+        label_format="",
         italic=0,
         c=None,
-        drawBox=True,
-        aboveText=None,
-        belowText=None,
-        nanText="NaN",
+        draw_box=True,
+        above_text=None,
+        below_text=None,
+        nan_text="NaN",
         categories=None,
     ):
         """
@@ -1358,37 +1373,37 @@ class BaseActor(Base3DProp):
         title : str
             scalar bar title
 
-        titleXOffset : float
+        title_xoffset : float
             horizontal space btw title and color scalarbar
 
-        titleYOffset : float
+        title_yoffset : float
             vertical space offset
 
-        titleSize : float
+        title_size : float
             size of title wrt numeric labels
 
-        titleRotation : float
+        title_rotation : float
             title rotation in degrees
 
         nlabels : int
             number of numeric labels
 
-        labelFont : str
+        label_font : str
             font type for labels
 
-        labelSize : float
+        label_size : float
             label scale factor
 
-        labelOffset : float
+        label_offset : float
             space btw numeric labels and scale
 
-        labelRotation : float
+        label_rotation : float
             label rotation in degrees
 
-        labelFormat : str
+        label_format : str
             label format for floats and integers (e.g. ':.2f')
 
-        drawBox : bool
+        draw_box : bool
             draw a box around the colorbar
 
         categories : list
@@ -1411,23 +1426,23 @@ class BaseActor(Base3DProp):
             title,
             pos,
             s,
-            titleFont,
-            titleXOffset,
-            titleYOffset,
-            titleSize,
-            titleRotation,
+            title_font,
+            title_xoffset,
+            title_yoffset,
+            title_size,
+            title_rotation,
             nlabels,
-            labelFont,
-            labelSize,
-            labelOffset,
-            labelRotation,
-            labelFormat,
+            label_font,
+            label_size,
+            label_offset,
+            label_rotation,
+            label_format,
             italic,
             c,
-            drawBox,
-            aboveText,
-            belowText,
-            nanText,
+            draw_box,
+            above_text,
+            below_text,
+            nan_text,
             categories,
         )
         return self
@@ -1565,8 +1580,8 @@ class BaseGrid(BaseActor):
         ctf.RemoveAllPoints()
         self._color = col
 
-        if utils.isSequence(col):
-            if utils.isSequence(col[0]) and len(col[0]) == 2:
+        if utils.is_sequence(col):
+            if utils.is_sequence(col[0]) and len(col[0]) == 2:
                 # user passing [(value1, color1), ...]
                 for x, ci in col:
                     r, g, b = colors.getColor(ci)
@@ -1624,7 +1639,7 @@ class BaseGrid(BaseActor):
         otf.RemoveAllPoints()
         self._alpha = alpha
 
-        if utils.isSequence(alpha):
+        if utils.is_sequence(alpha):
             alpha = np.array(alpha)
             if len(alpha.shape)==1: # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
                 for i, al in enumerate(alpha):
@@ -1683,7 +1698,7 @@ class BaseGrid(BaseActor):
         cf.UseScalarTreeOn()
         cf.ComputeNormalsOn()
 
-        if utils.isSequence(threshold):
+        if utils.is_sequence(threshold):
             cf.SetNumberOfContours(len(threshold))
             for i, t in enumerate(threshold):
                 cf.SetValue(i, t)

@@ -58,7 +58,7 @@ def _inputsort(obj):
 
     u = None
     mesh = None
-    if not utils.isSequence(obj):
+    if not utils.is_sequence(obj):
         obj = [obj]
 
     for ob in obj:
@@ -815,7 +815,7 @@ def MeshLines(*inputobj, **options):
         startPoints = mesh.geometry.points
 
     u_values = _compute_uvalues(u, mesh)
-    if not utils.isSequence(u_values[0]):
+    if not utils.is_sequence(u_values[0]):
         vedo.logger.error("cannot show Lines for 1D scalar values")
         raise RuntimeError()
 
@@ -851,7 +851,7 @@ def MeshArrows(*inputobj, **options):
         startPoints = mesh.geometry.points
 
     u_values = _compute_uvalues(u, mesh)
-    if not utils.isSequence(u_values[0]):
+    if not utils.is_sequence(u_values[0]):
         vedo.logger.error("cannot show Arrows for 1D scalar values")
         raise RuntimeError()
 
@@ -891,7 +891,7 @@ def MeshStreamLines(*inputobj, **options):
         return None
 
     u_values = _compute_uvalues(u, mesh)
-    if not utils.isSequence(u_values[0]):
+    if not utils.is_sequence(u_values[0]):
         vedo.logger.error("cannot show Arrows for 1D scalar values")
         raise RuntimeError()
     if u_values.shape[1] == 2:  # u_values is 2D
@@ -900,7 +900,7 @@ def MeshStreamLines(*inputobj, **options):
     meshact = MeshActor(u)
     meshact.addPointArray(u_values, "u_values")
 
-    if utils.isSequence(probes):
+    if utils.is_sequence(probes):
         pass  # it's already it
     elif tol:
         print("decimating mesh points to use them as seeds...")

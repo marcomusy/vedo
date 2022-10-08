@@ -7,8 +7,8 @@ import numpy as np
 import vedo
 from vedo.colors import colorMap
 from vedo.colors import getColor
-from vedo.utils import isSequence
-from vedo.utils import linInterpolate
+from vedo.utils import is_sequence
+from vedo.utils import lin_interpolate
 from vedo.utils import mag
 from vedo.utils import precision
 from vedo.plotter import Plotter
@@ -59,13 +59,13 @@ class Slicer3DPlotter(Plotter):
     clamp : bool
         clamp scalar to reduce the effect of tails in color mapping
 
-    useSlider3D : bool
+    use_slider_3d : bool
         show sliders attached along the axes
 
-    showHisto : bool
+    show_histo : bool
         show histogram on bottom left
 
-    showIcon : bool
+    show_icon : bool
         show a small 3D rendering icon of the volume
 
     draggable : bool
@@ -82,9 +82,9 @@ class Slicer3DPlotter(Plotter):
             cmaps=('gist_ncar_r', "hot_r", "bone_r", "jet", "Spectral_r"),
             map2cells=False,  # buggy
             clamp=True,
-            useSlider3D=False,
-            showHisto=True,
-            showIcon=True,
+            use_slider_3d=False,
+            show_histo=True,
+            show_icon=True,
             draggable=False,
             pos=(0, 0),
             size="auto",
@@ -120,7 +120,7 @@ class Slicer3DPlotter(Plotter):
         box = volume.box().wireframe().alpha(0.1)
 
         self.show(box, viewup="z", resetcam=resetcam, interactive=False)
-        if showIcon:
+        if show_icon:
             self.addInset(
                 volume,
                 pos=(0.85, 0.85),
@@ -196,7 +196,7 @@ class Slicer3DPlotter(Plotter):
             cx, cy, cz = "lr", "lg", "lb"
             ch = (0.8, 0.8, 0.8)
 
-        if not useSlider3D:
+        if not use_slider_3d:
             self.addSlider2D(
                 sliderfunc_x,
                 0,
@@ -286,7 +286,7 @@ class Slicer3DPlotter(Plotter):
 
         #################
         hist = None
-        if showHisto:
+        if show_histo:
             hist = CornerHistogram(
                 data,
                 s=0.2,
@@ -359,7 +359,7 @@ class Slicer2DPlotter(Plotter):
             volume
         )  # reuse the same underlying data as in vol
 
-        # no argument will grab the existing cmap in vol (or use buildLUT())
+        # no argument will grab the existing cmap in vol (or use build_lut())
         vsl.colorize()
 
         if levels[0] and levels[1]:
@@ -895,9 +895,9 @@ class FreeHandCutPlotter(Plotter):
         self.txt2d = Text2D(self.msg, pos="top-left", font=font, s=0.9)
         self.txt2d.c(tc).background(c, alpha).frame()
 
-        self.idkeypress = self.addCallback("KeyPress", self._onKeyPress)
-        self.idrightclck = self.addCallback("RightButton", self._onRightClick)
-        self.idmousemove = self.addCallback("MouseMove", self._onMouseMove)
+        self.idkeypress = self.add_callback("KeyPress", self._on_keypress)
+        self.idrightclck = self.add_callback("RightButton", self._on_right_click)
+        self.idmousemove = self.add_callback("MouseMove", self._on_mouse_move)
         self.drawmode = False
         self.tol = tol  # tolerance of point distance
         self.cpoints = []
@@ -913,21 +913,17 @@ class FreeHandCutPlotter(Plotter):
             self.cpoints = initpoints.points()
         else:
             self.cpoints = np.array(initpoints)
-        self.points = (
-            Points(self.cpoints, r=self.linewidth).c(self.pointcolor).pickable(0)
-        )
+        self.points = Points(self.cpoints, r=self.linewidth).c(self.pointcolor).pickable(0)
         if self.splined:
             self.spline = Spline(self.cpoints, res=len(self.cpoints) * 4)
         else:
             self.spline = Line(self.cpoints)
         self.spline.lw(self.linewidth).c(self.linecolor).pickable(False)
-        self.jline = Line(
-            self.cpoints[0], self.cpoints[-1], lw=1, c=self.linecolor
-        ).pickable(0)
+        self.jline = Line(self.cpoints[0], self.cpoints[-1], lw=1, c=self.linecolor).pickable(0)
         self.add([self.points, self.spline, self.jline], render=False)
         return self
 
-    def _onRightClick(self, evt):
+    def _on_right_click(self, evt):
         self.drawmode = not self.drawmode  # toggle mode
         if self.drawmode:
             self.txt2d.background(self.linecolor, self.alpha)
@@ -944,7 +940,7 @@ class FreeHandCutPlotter(Plotter):
                 self.spline.lw(self.linewidth).c(self.linecolor).pickable(False)
                 self.add(self.spline)
 
-    def _onMouseMove(self, evt):
+    def _on_mouse_move(self, evt):
         if self.drawmode:
             cpt = self.computeWorldPosition(evt.picked2d) # make this 2d-screen point 3d
             if self.cpoints and mag(cpt - self.cpoints[-1]) < self.mesh.diagonalSize()*self.tol:
@@ -960,8 +956,6 @@ class FreeHandCutPlotter(Plotter):
 
                 if evt.actor:
                     self.top_pts.append(evt.picked3d)
-                    # self.topline = Line(self.top_pts)
-                    # self.topline.lw(self.linewidth-1).c(self.linecolor).pickable(False)
                     self.topline = Points(self.top_pts, r=self.linewidth)
                     self.topline.c(self.linecolor).pickable(False)
 
@@ -970,7 +964,7 @@ class FreeHandCutPlotter(Plotter):
                 self.jline = Line(self.cpoints[0], self.cpoints[-1], lw=1, c=self.linecolor).pickable(0)
                 self.add([self.points, self.spline, self.jline, self.topline])
 
-    def _onKeyPress(self, evt):
+    def _on_keypress(self, evt):
         if evt.keyPressed.lower() == 'z' and self.spline: # Cut mesh with a ribbon-like surface
             inv = False
             if evt.keyPressed == "Z":
@@ -985,7 +979,7 @@ class FreeHandCutPlotter(Plotter):
             self.mesh.cutWithMesh(rb, invert=inv)  # CUT
             self.txt2d.text(self.msg)  # put back original message
             if self.drawmode:
-                self._onRightClick(evt)  # toggle mode to normal
+                self._on_right_click(evt)  # toggle mode to normal
             else:
                 self.txt2d.background(self.color, self.alpha)
             self.remove([self.spline, self.points, self.jline, self.topline]).render()
@@ -998,7 +992,7 @@ class FreeHandCutPlotter(Plotter):
             self.render()
             self.remove(self.mesh)
             self.mesh_prev = self.mesh
-            mcut = self.mesh.extractLargestRegion()
+            mcut = self.mesh.extract_largest_region()
             mcut.filename = self.mesh.filename          # copy over various properties
             mcut.name = self.mesh.name
             mcut.scalarbar = self.mesh.scalarbar
@@ -1009,7 +1003,7 @@ class FreeHandCutPlotter(Plotter):
 
         elif evt.keyPressed == 'u':                     # Undo last action
             if self.drawmode:
-                self._onRightClick(evt)                 # toggle mode to normal
+                self._on_right_click(evt)                 # toggle mode to normal
             else:
                 self.txt2d.background(self.color, self.alpha)
             self.remove([self.mesh, self.spline, self.jline, self.points, self.topline])
@@ -1096,9 +1090,9 @@ class SplinePlotter(Plotter):
         Press q to continue""".replace("  ","")
         self.instructions = Text2D(t, pos='bottom-left', c='white', bg='green', font='Calco')
 
-        self.callid1 = self.addCallback('KeyPress', self._keyPress)
-        self.callid2 = self.addCallback('LeftButtonPress', self._onLeftClick)
-        self.callid3 = self.addCallback('RightButtonPress', self._onRightClick)
+        self.callid1 = self.add_callback('KeyPress', self._keypress)
+        self.callid2 = self.add_callback('LeftButtonPress', self._onLeftClick)
+        self.callid3 = self.add_callback('RightButtonPress', self._on_right_click)
 
     def points(self, newpts=None):
         """Retrieve the 3D coordinates of the clicked points"""
@@ -1117,7 +1111,7 @@ class SplinePlotter(Plotter):
         if self.verbose:
             vedo.colors.printc("Added point:", precision(p,4), c='g')
 
-    def _onRightClick(self, evt):
+    def _on_right_click(self, evt):
         if evt.actor and len(self.cpoints)>0:
             self.cpoints.pop() # pop removes from the list the last pt
             self._update()
@@ -1146,7 +1140,7 @@ class SplinePlotter(Plotter):
         else:
             self.add(self.vpoints)
 
-    def _keyPress(self, evt):
+    def _keypress(self, evt):
         if evt.keyPressed == 'c':
             self.cpoints = []
             self.remove(self.line, self.vpoints).render()
@@ -1167,19 +1161,19 @@ class Animation(Plotter):
 
     Parameters
     ----------
-    totalDuration : float
+    total_duration : float
         expand or shrink the total duration of video to this value
 
-    timeResolution : float
+    time_resolution : float
         in seconds, save a frame at this rate
 
-    showProgressBar : bool
+    show_progressbar : bool
         whether to show a progress bar or not
 
-    videoFileName : str
+    video_filename : str
         output file name of the video
 
-    videoFPS : int
+    video_fps : int
         desired value of the nr of frames per second
 
     .. warning:: this is still an experimental feature at the moment.
@@ -1187,21 +1181,21 @@ class Animation(Plotter):
 
     def __init__(
         self,
-        totalDuration=None,
-        timeResolution=0.02,
-        showProgressBar=True,
-        videoFileName="animation.mp4",
-        videoFPS=12,
+        total_duration=None,
+        time_resolution=0.02,
+        show_progressbar=True,
+        video_filename="animation.mp4",
+        video_fps=12,
     ):
         Plotter.__init__(self)
         self.resetcam = True
 
         self.events = []
-        self.timeResolution = timeResolution
-        self.totalDuration = totalDuration
-        self.showProgressBar = showProgressBar
-        self.videoFileName = videoFileName
-        self.videoFPS = videoFPS
+        self.time_resolution = time_resolution
+        self.total_duration = total_duration
+        self.show_progressbar = show_progressbar
+        self.video_filename = video_filename
+        self.video_fps = video_fps
         self.bookingMode = True
         self._inputvalues = []
         self._performers = []
@@ -1230,15 +1224,15 @@ class Animation(Plotter):
 
         objs2 = objs
 
-        if isSequence(objs):
+        if is_sequence(objs):
             objs2 = objs
         else:
             objs2 = [objs]
 
         # quantize time steps and duration
-        t = int(t / self.timeResolution + 0.5) * self.timeResolution
-        nsteps = int(duration / self.timeResolution + 0.5)
-        duration = nsteps * self.timeResolution
+        t = int(t / self.time_resolution + 0.5) * self.time_resolution
+        nsteps = int(duration / self.time_resolution + 0.5)
+        duration = nsteps * self.time_resolution
 
         rng = np.linspace(t, t + duration, nsteps + 1)
 
@@ -1252,20 +1246,20 @@ class Animation(Plotter):
 
         return objs2, t, duration, rng
 
-    def switchOn(self, acts=None, t=None):
+    def switch_on(self, acts=None, t=None):
         """Switch on the input list of meshes."""
         return self.fadeIn(acts, t, 0)
 
-    def switchOff(self, acts=None, t=None):
+    def switch_off(self, acts=None, t=None):
         """Switch off the input list of meshes."""
         return self.fadeOut(acts, t, 0)
 
-    def fadeIn(self, acts=None, t=None, duration=None):
+    def fade_in(self, acts=None, t=None, duration=None):
         """Gradually switch on the input list of meshes by increasing opacity."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
             for tt in rng:
-                alpha = linInterpolate(tt, [t, t + duration], [0, 1])
+                alpha = lin_interpolate(tt, [t, t + duration], [0, 1])
                 self.events.append((tt, self.fadeIn, acts, alpha))
         else:
             for a in self._performers:
@@ -1275,12 +1269,12 @@ class Animation(Plotter):
                     a.alpha(self._inputvalues)
         return self
 
-    def fadeOut(self, acts=None, t=None, duration=None):
+    def fade_out(self, acts=None, t=None, duration=None):
         """Gradually switch off the input list of meshes by increasing transparency."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
             for tt in rng:
-                alpha = linInterpolate(tt, [t, t + duration], [1, 0])
+                alpha = lin_interpolate(tt, [t, t + duration], [1, 0])
                 self.events.append((tt, self.fadeOut, acts, alpha))
         else:
             for a in self._performers:
@@ -1289,19 +1283,19 @@ class Animation(Plotter):
                 a.alpha(self._inputvalues)
         return self
 
-    def changeAlphaBetween(self, alpha1, alpha2, acts=None, t=None, duration=None):
+    def change_alpha_between(self, alpha1, alpha2, acts=None, t=None, duration=None):
         """Gradually change transparency for the input list of meshes."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
             for tt in rng:
-                alpha = linInterpolate(tt, [t, t + duration], [alpha1, alpha2])
+                alpha = lin_interpolate(tt, [t, t + duration], [alpha1, alpha2])
                 self.events.append((tt, self.fadeOut, acts, alpha))
         else:
             for a in self._performers:
                 a.alpha(self._inputvalues)
         return self
 
-    def changeColor(self, c, acts=None, t=None, duration=None):
+    def change_color(self, c, acts=None, t=None, duration=None):
         """Gradually change color for the input list of meshes."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
@@ -1311,9 +1305,9 @@ class Animation(Plotter):
                 inputvalues = []
                 for a in acts:
                     col1 = a.color()
-                    r = linInterpolate(tt, [t, t + duration], [col1[0], col2[0]])
-                    g = linInterpolate(tt, [t, t + duration], [col1[1], col2[1]])
-                    b = linInterpolate(tt, [t, t + duration], [col1[2], col2[2]])
+                    r = lin_interpolate(tt, [t, t + duration], [col1[0], col2[0]])
+                    g = lin_interpolate(tt, [t, t + duration], [col1[1], col2[1]])
+                    b = lin_interpolate(tt, [t, t + duration], [col1[2], col2[2]])
                     inputvalues.append((r, g, b))
                 self.events.append((tt, self.changeColor, acts, inputvalues))
         else:
@@ -1321,7 +1315,7 @@ class Animation(Plotter):
                 a.color(self._inputvalues[i])
         return self
 
-    def changeBackColor(self, c, acts=None, t=None, duration=None):
+    def change_backcolor(self, c, acts=None, t=None, duration=None):
         """Gradually change backface color for the input list of meshes.
         An initial backface color should be set in advance."""
         if self.bookingMode:
@@ -1333,9 +1327,9 @@ class Animation(Plotter):
                 for a in acts:
                     if a.GetBackfaceProperty():
                         col1 = a.backColor()
-                        r = linInterpolate(tt, [t, t + duration], [col1[0], col2[0]])
-                        g = linInterpolate(tt, [t, t + duration], [col1[1], col2[1]])
-                        b = linInterpolate(tt, [t, t + duration], [col1[2], col2[2]])
+                        r = lin_interpolate(tt, [t, t + duration], [col1[0], col2[0]])
+                        g = lin_interpolate(tt, [t, t + duration], [col1[1], col2[1]])
+                        b = lin_interpolate(tt, [t, t + duration], [col1[2], col2[2]])
                         inputvalues.append((r, g, b))
                     else:
                         inputvalues.append(None)
@@ -1345,7 +1339,7 @@ class Animation(Plotter):
                 a.backColor(self._inputvalues[i])
         return self
 
-    def changeToWireframe(self, acts=None, t=None):
+    def change_to_wireframe(self, acts=None, t=None):
         """Switch representation to wireframe for the input list of meshes at time `t`."""
         if self.bookingMode:
             acts, t, _, _ = self._parse(acts, t, None)
@@ -1355,7 +1349,7 @@ class Animation(Plotter):
                 a.wireframe(self._inputvalues)
         return self
 
-    def changeToSurface(self, acts=None, t=None):
+    def change_to_surface(self, acts=None, t=None):
         """Switch representation to surface for the input list of meshes at time `t`."""
         if self.bookingMode:
             acts, t, _, _ = self._parse(acts, t, None)
@@ -1365,14 +1359,14 @@ class Animation(Plotter):
                 a.wireframe(self._inputvalues)
         return self
 
-    def changeLineWidth(self, lw, acts=None, t=None, duration=None):
+    def change_line_width(self, lw, acts=None, t=None, duration=None):
         """Gradually change line width of the mesh edges for the input list of meshes."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
             for tt in rng:
                 inputvalues = []
                 for a in acts:
-                    newlw = linInterpolate(tt, [t, t + duration], [a.lw(), lw])
+                    newlw = lin_interpolate(tt, [t, t + duration], [a.lw(), lw])
                     inputvalues.append(newlw)
                 self.events.append((tt, self.changeLineWidth, acts, inputvalues))
         else:
@@ -1380,7 +1374,7 @@ class Animation(Plotter):
                 a.lw(self._inputvalues[i])
         return self
 
-    def changeLineColor(self, c, acts=None, t=None, duration=None):
+    def change_line_color(self, c, acts=None, t=None, duration=None):
         """Gradually change line color of the mesh edges for the input list of meshes."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
@@ -1389,9 +1383,9 @@ class Animation(Plotter):
                 inputvalues = []
                 for a in acts:
                     col1 = a.lineColor()
-                    r = linInterpolate(tt, [t, t + duration], [col1[0], col2[0]])
-                    g = linInterpolate(tt, [t, t + duration], [col1[1], col2[1]])
-                    b = linInterpolate(tt, [t, t + duration], [col1[2], col2[2]])
+                    r = lin_interpolate(tt, [t, t + duration], [col1[0], col2[0]])
+                    g = lin_interpolate(tt, [t, t + duration], [col1[1], col2[1]])
+                    b = lin_interpolate(tt, [t, t + duration], [col1[2], col2[2]])
                     inputvalues.append((r, g, b))
                 self.events.append((tt, self.changeLineColor, acts, inputvalues))
         else:
@@ -1399,7 +1393,7 @@ class Animation(Plotter):
                 a.lineColor(self._inputvalues[i])
         return self
 
-    def changeLighting(self, style, acts=None, t=None, duration=None):
+    def change_lighting(self, style, acts=None, t=None, duration=None):
         """Gradually change the lighting style for the input list of meshes.
 
         Allowed styles are: [metallic, plastic, shiny, glossy, default].
@@ -1424,10 +1418,10 @@ class Animation(Plotter):
                     ad = pr.GetDiffuse()
                     asp = pr.GetSpecular()
                     aspp = pr.GetSpecularPower()
-                    naa  = linInterpolate(tt, [t,t+duration], [aa,  pars[0]])
-                    nad  = linInterpolate(tt, [t,t+duration], [ad,  pars[1]])
-                    nasp = linInterpolate(tt, [t,t+duration], [asp, pars[2]])
-                    naspp= linInterpolate(tt, [t,t+duration], [aspp,pars[3]])
+                    naa  = lin_interpolate(tt, [t,t+duration], [aa,  pars[0]])
+                    nad  = lin_interpolate(tt, [t,t+duration], [ad,  pars[1]])
+                    nasp = lin_interpolate(tt, [t,t+duration], [asp, pars[2]])
+                    naspp= lin_interpolate(tt, [t,t+duration], [aspp,pars[3]])
                     inputvalues.append((naa, nad, nasp, naspp))
                 self.events.append((tt, self.changeLighting, acts, inputvalues))
         else:
@@ -1485,14 +1479,14 @@ class Animation(Plotter):
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
             for tt in rng:
-                fac = linInterpolate(tt, [t, t + duration], [1, factor])
+                fac = lin_interpolate(tt, [t, t + duration], [1, factor])
                 self.events.append((tt, self.scale, acts, fac))
         else:
             for a in self._performers:
                 a.scale(self._inputvalues)
         return self
 
-    def meshErode(self, act=None, corner=6, t=None, duration=None):
+    def mesh_erode(self, act=None, corner=6, t=None, duration=None):
         """Erode a mesh by removing cells that are close to one of the 8 corners
         of the bounding box.
         """
@@ -1515,15 +1509,13 @@ class Animation(Plotter):
             pcl = acts[0].closestPoint(corners[corner])
             dmin = np.linalg.norm(pcl - corners[corner])
             for tt in rng:
-                d = linInterpolate(tt, [t, t + duration], [dmin, diag * 1.01])
+                d = lin_interpolate(tt, [t, t + duration], [dmin, diag * 1.01])
                 if d > 0:
                     ids = acts[0].closestPoint(
                         corners[corner], radius=d, returnPointId=True
                     )
                     if len(ids) <= acts[0].N():
                         self.events.append((tt, self.meshErode, acts, ids))
-        # else:
-        #     self._performers[0].deletePoints(self._inputvalues)
         return self
 
     def play(self):
@@ -1532,14 +1524,14 @@ class Animation(Plotter):
         self.events = sorted(self.events, key=lambda x: x[0])
         self.bookingMode = False
 
-        if self.showProgressBar:
+        if self.show_progressbar:
             pb = vedo.ProgressBar(0, len(self.events), c="g")
 
-        if self.totalDuration is None:
-            self.totalDuration = self.events[-1][0] - self.events[0][0]
+        if self.total_duration is None:
+            self.total_duration = self.events[-1][0] - self.events[0][0]
 
-        if self.videoFileName:
-            vd = vedo.Video(self.videoFileName, fps=self.videoFPS, duration=self.totalDuration)
+        if self.video_filename:
+            vd = vedo.Video(self.video_filename, fps=self.video_fps, duration=self.total_duration)
 
         ttlast = 0
         for e in self.events:
@@ -1550,18 +1542,18 @@ class Animation(Plotter):
             dt = tt - ttlast
             if dt > self.eps:
                 self.show(interactive=False, resetcam=self.resetcam)
-                if self.videoFileName: vd.addFrame()
+                if self.video_filename: vd.addFrame()
 
-                if dt > self.timeResolution+self.eps:
-                    if self.videoFileName: vd.pause(dt)
+                if dt > self.time_resolution+self.eps:
+                    if self.video_filename: vd.pause(dt)
 
             ttlast = tt
 
-            if self.showProgressBar:
+            if self.show_progressbar:
                 pb.print("t=" + str(int(tt * 100) / 100) + "s,  " + action.__name__)
 
         self.show(interactive=False, resetcam=self.resetcam)
-        if self.videoFileName:
+        if self.video_filename:
             vd.addFrame()
             vd.close()
 

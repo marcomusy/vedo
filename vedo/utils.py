@@ -17,19 +17,19 @@ __doc__ = "Utilities submodule."
 __all__ = [
     "ProgressBar",
     "geometry",
-    "isSequence",
-    "linInterpolate",
+    "is_sequence",
+    "lin_interpolate",
     "vector",
     "mag",
     "mag2",
     "versor",
     "precision",
-    "roundToDigit",
-    "pointIsInTriangle",
-    "pointToLineDistance",
+    "round_to_digit",
+    "point_in_triangle",
+    "point_line_distance",
     "grep",
-    "printInfo",
-    "makeBands",
+    "print_info",
+    "make_bands",
     "spher2cart",
     "cart2spher",
     "cart2cyl",
@@ -40,14 +40,13 @@ __all__ = [
     "pol2cart",
     "humansort",
     "dotdict",
-    "printHistogram",
-    "cameraFromQuaternion",
-    "cameraFromNeuroglancer",
-    "orientedCamera",
-    "vtkCameraToK3D",
+    "print_histogram",
+    "camera_from_quaternion",
+    "camera_from_neuroglancer",
+    "oriented_camera",
     "vedo2trimesh",
     "trimesh2vedo",
-    "resampleArrays",
+    "resample_arrays",
     "vtk2numpy",
     "numpy2vtk",
 ]
@@ -78,7 +77,7 @@ class ProgressBar:
         bold=True,
         italic=False,
         title="",
-        ETA=True,
+        eta=True,
         width=25,
         char="\U00002501",
         char_back="\U00002500",
@@ -111,7 +110,7 @@ class ProgressBar:
         self.bar = ""
         self.percent = 0.0
         self.percent_int = 0
-        self.ETA = ETA
+        self.eta = eta
         self.clock0 = time.time()
         self._remt = 1e10
         self._update(0)
@@ -133,7 +132,7 @@ class ProgressBar:
             self._oldbar = self.bar
             eraser = [" "] * self._lentxt + ["\b"] * self._lentxt
             eraser = "".join(eraser)
-            if self.ETA and self._counts > 1:
+            if self.eta and self._counts > 1:
                 tdenom = time.time() - self.clock0
                 if tdenom:
                     vel = self._counts / tdenom
@@ -328,7 +327,7 @@ def geometry(obj, extent=None):
     return vedo.Mesh(gf.GetOutput())
 
 
-def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, tetras=False):
+def buildPolyData(vertices, faces=None, lines=None, index_offset=0, fast=True, tetras=False):
     """
     Build a `vtkPolyData` object from a list of vertices
     where faces represents the connectivity of the polygonal mesh.
@@ -338,7 +337,7 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
         - ``faces=[[0,1,2], [1,2,3], ...]``
         - ``lines=[[0,1], [1,2,3,4], ...]``
 
-    Use `indexOffset=1` if face numbering starts from 1 instead of 0.
+    Use `index_offset=1` if face numbering starts from 1 instead of 0.
 
     If `fast=False` the mesh is built "manually" by setting polygons and triangles
     one by one. This is the fallback case when a mesh contains faces of
@@ -351,7 +350,7 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
     if len(vertices) == 0:
         return poly
 
-    if not isSequence(vertices[0]):
+    if not is_sequence(vertices[0]):
         return poly
 
     if len(vertices[0]) < 3:  # make sure it is 3d
@@ -366,7 +365,7 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
     if lines is not None:
         # Create a cell array to store the lines in and add the lines to it
         linesarr = vtk.vtkCellArray()
-        if isSequence(lines[0]):  # assume format [(id0,id1),..]
+        if is_sequence(lines[0]):  # assume format [(id0,id1),..]
             for iline in lines:
                 for i in range(0, len(iline) - 1):
                     i1, i2 = iline[i], iline[i + 1]
@@ -398,7 +397,7 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
     # try it anyway: in case it's not uniform np.ndim will be 1
     faces = np.asarray(faces)
 
-    if np.ndim(faces) == 2 and indexOffset == 0 and fast:
+    if np.ndim(faces) == 2 and index_offset == 0 and fast:
         #################### all faces are composed of equal nr of vtxs, FAST
 
         ast = np.int32
@@ -415,7 +414,7 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
         showbar = False
         if len(faces) > 25000:
             showbar = True
-            pb = ProgressBar(0, len(faces), ETA=False)
+            pb = ProgressBar(0, len(faces), eta=False)
 
         for f in faces:
             n = len(f)
@@ -424,7 +423,7 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
                 ele = vtk.vtkTriangle()
                 pids = ele.GetPointIds()
                 for i in range(3):
-                    pids.SetId(i, f[i] - indexOffset)
+                    pids.SetId(i, f[i] - index_offset)
                 sourcePolygons.InsertNextCell(ele)
 
             elif n == 4 and tetras:
@@ -434,9 +433,9 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
                 ele1 = vtk.vtkTriangle()
                 ele2 = vtk.vtkTriangle()
                 ele3 = vtk.vtkTriangle()
-                if indexOffset:
+                if index_offset:
                     for i in [0, 1, 2, 3]:
-                        f[i] -= indexOffset
+                        f[i] -= index_offset
                 f0, f1, f2, f3 = f
                 pid0 = ele0.GetPointIds()
                 pid1 = ele1.GetPointIds()
@@ -469,7 +468,7 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
                 pids = ele.GetPointIds()
                 pids.SetNumberOfIds(n)
                 for i in range(n):
-                    pids.SetId(i, f[i] - indexOffset)
+                    pids.SetId(i, f[i] - index_offset)
                 sourcePolygons.InsertNextCell(ele)
             if showbar:
                 pb.print("converting mesh...    ")
@@ -479,7 +478,7 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
 
 
 ##############################################################################
-def getFontPath(font):
+def get_font_path(font):
     """Internal use."""
     if font in vedo.settings.font_parameters.keys():
         if vedo.settings.font_parameters[font]["islocal"]:
@@ -505,11 +504,11 @@ def getFontPath(font):
                        "-> Using default: Normografo", c='r')
                 vedo.printc("Check https://vedo.embl.es/fonts for additional fonts", c='r')
                 vedo.printc("Type 'vedo -r fonts' to see available fonts", c='g')
-            fl = getFontPath(vedo.settings.defaultFont)
+            fl = get_font_path(vedo.settings.defaultFont)
     return fl
 
 
-def isSequence(arg):
+def is_sequence(arg):
     """Check if input is iterable."""
     if hasattr(arg, "strip"):
         return False
@@ -556,7 +555,7 @@ def humansort(l):
     return l  # NB: input list is modified
 
 
-def sortByColumn(arr, nth, invert=False):
+def sort_by_column(arr, nth, invert=False):
     """Sort a numpy array by its `n-th` column"""
     arr = np.asarray(arr)
     arr = arr[arr[:, nth].argsort()]
@@ -566,7 +565,7 @@ def sortByColumn(arr, nth, invert=False):
         return arr
 
 
-def pointIsInTriangle(p, p1, p2, p3):
+def point_in_triangle(p, p1, p2, p3):
     """
     Return True if a point is inside (or above/below) a triangle defined by 3 points in space.
     """
@@ -588,7 +587,7 @@ def pointIsInTriangle(p, p1, p2, p3):
     return False
 
 
-def intersectRayTriangle(P0, P1, V0, V1, V2):
+def intersection_ray_triangle(P0, P1, V0, V1, V2):
     """
     Fast intersection between a directional ray defined by P0,P1
     and triangle V0, V1, V2.
@@ -641,13 +640,13 @@ def intersectRayTriangle(P0, P1, V0, V1, V2):
     return I  # I is in T
 
 
-def pointToLineDistance(p, p1, p2):
+def point_line_distance(p, p1, p2):
     """Compute the distance of a point to a line (not the segment) defined by `p1` and `p2`."""
     d = np.sqrt(vtk.vtkLine.DistanceToLine(p, p1, p2))
     return d
 
 
-def linInterpolate(x, rangeX, rangeY):
+def lin_interpolate(x, rangeX, rangeY):
     """
     Interpolate linearly the variable x in rangeX onto the new rangeY.
     If x is a 3D vector the linear weight is the distance to the two 3D rangeX vectors.
@@ -658,7 +657,7 @@ def linInterpolate(x, rangeX, rangeY):
     .. hint:: examples/basic/linInterpolate.py
         .. image:: https://vedo.embl.es/images/basic/linInterpolate.png
     """
-    if isSequence(x):
+    if is_sequence(x):
         x = np.asarray(x)
         x0, x1 = np.asarray(rangeX)
         y0, y1 = np.asarray(rangeY)
@@ -688,7 +687,7 @@ def linInterpolate(x, rangeX, rangeY):
     return out
 
 
-def getUV(p, x, v):
+def get_uv(p, x, v):
     """
     Obtain the texture uv-coords of a point p belonging to a face that has point
     coordinates (x0, x1, x2) with the corresponding uv-coordinates v=(v0, v1, v2).
@@ -713,7 +712,7 @@ def getUV(p, x, v):
             idpts = faces[idface]
             uv_face = uv[idpts]
 
-            uv_pr = utils.getUV(pr, cbpts[idpts], uv_face)
+            uv_pr = utils.get_uv(pr, cbpts[idpts], uv_face)
             print("interpolated uv =", uv_pr)
 
             sx, sy = pic.dimensions()
@@ -799,7 +798,7 @@ def mag2(v):
         return np.square(v).sum(axis=1)
 
 
-def isInteger(n):
+def is_integer(n):
     """Check if input is integer"""
     try:
         float(n)
@@ -809,7 +808,7 @@ def isInteger(n):
         return float(n).is_integer()
 
 
-def isNumber(n):
+def is_number(n):
     """Check if input is a number"""
     try:
         float(n)
@@ -818,7 +817,7 @@ def isNumber(n):
         return False
 
 
-def roundToDigit(x, p):
+def round_to_digit(x, p):
     """Round a real number to the specified number of significant digits."""
     if not x:
         return 0
@@ -829,7 +828,7 @@ def roundToDigit(x, p):
         return r
 
 
-def packSpheres(bounds, radius):
+def pack_spheres(bounds, radius):
     """
     Packing spheres into a bounding box.
     Returns a numpy array of sphere centers.
@@ -838,7 +837,7 @@ def packSpheres(bounds, radius):
     d = 0.8660254
     a = 0.288675135
 
-    if isSequence(bounds):
+    if is_sequence(bounds):
         x0, x1, y0, y1, z0, z1 = bounds
     else:
         x0, x1, y0, y1, z0, z1 = bounds.GetBounds()
@@ -880,7 +879,7 @@ def precision(x, p, vrange=None, delimiter="e"):
     if isinstance(x, str):  # do nothing
         return x
 
-    if isSequence(x):
+    if is_sequence(x):
         out = "("
         nn = len(x) - 1
         for i, ix in enumerate(x):
@@ -1018,7 +1017,7 @@ def spher2cyl(rho, theta, phi):
 
 
 ##################################################################################
-def grep(filename, tag, firstOccurrence=False):
+def grep(filename, tag, first_occurrence_only=False):
     """Greps the line that starts with a specific `tag` string inside the file."""
     import re
 
@@ -1029,16 +1028,16 @@ def grep(filename, tag, firstOccurrence=False):
                 c = line.split()
                 c[-1] = c[-1].replace("\n", "")
                 content.append(c)
-                if firstOccurrence:
+                if first_occurrence_only:
                     break
     return content
 
 
-def printInfo(obj):
+def print_info(obj):
     """Print information about a vtk object."""
 
     ################################
-    def printvtkactor(actor, tab=""):
+    def _printvtkactor(actor, tab=""):
 
         if not actor.GetPickable():
             return
@@ -1248,7 +1247,7 @@ def printInfo(obj):
 
     elif isinstance(obj, vedo.Points):
         vedo.printc("_" * 65, c="g", bold=0)
-        printvtkactor(obj)
+        _printvtkactor(obj)
 
     elif isinstance(obj, vedo.Assembly):
         vedo.printc("_" * 65, c="g", bold=0)
@@ -1273,7 +1272,7 @@ def printInfo(obj):
         for _ in range(obj.GetNumberOfPaths()):
             act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
             if isinstance(act, vtk.vtkActor):
-                printvtkactor(act, tab="     ")
+                _printvtkactor(act, tab="     ")
 
     elif isinstance(obj, vedo.TetMesh):
         cf = "m"
@@ -1328,7 +1327,7 @@ def printInfo(obj):
         vedo.printc("     scalar range: ", c="b", bold=1, end="")
         vedo.printc(img.GetScalarRange(), c="b", bold=0)
 
-        printHistogram(
+        print_histogram(
             obj, horizontal=True, logscale=True, bins=8, height=15, c="b", bold=0
         )
 
@@ -1451,7 +1450,7 @@ def printInfo(obj):
         vedo.printc(obj)
 
 
-def printHistogram(
+def print_histogram(
     data,
     bins=10,
     height=10,
@@ -1597,7 +1596,7 @@ def printHistogram(
     return data
 
 
-def makeBands(inputlist, numberOfBands):
+def make_bands(inputlist, numberOfBands):
     """
     Group values of a list into bands of equal value.
 
@@ -1625,7 +1624,7 @@ def makeBands(inputlist, numberOfBands):
 #################################################################
 # Functions adapted from:
 # https://github.com/sdorkenw/MeshParty/blob/master/meshparty/trimesh_vtk.py
-def cameraFromQuaternion(pos, quaternion, distance=10000, ngl_correct=True):
+def camera_from_quaternion(pos, quaternion, distance=10000, ngl_correct=True):
     """
     Define a `vtkCamera` with a particular orientation.
 
@@ -1681,7 +1680,7 @@ def cameraFromQuaternion(pos, quaternion, distance=10000, ngl_correct=True):
     return camera
 
 
-def cameraFromNeuroglancer(state, zoom=300):
+def camera_from_neuroglancer(state, zoom=300):
     """
     Define a `vtkCamera` from a neuroglancer state dictionary.
 
@@ -1703,10 +1702,10 @@ def cameraFromNeuroglancer(state, zoom=300):
     pzoom = state.get("perspectiveZoom", 10.0)
     position = state["navigation"]["pose"]["position"]
     pos_nm = np.array(position["voxelCoordinates"]) * position["voxelSize"]
-    return cameraFromQuaternion(pos_nm, orient, pzoom * zoom, ngl_correct=True)
+    return camera_from_quaternion(pos_nm, orient, pzoom * zoom, ngl_correct=True)
 
 
-def orientedCamera(center=(0,0,0), upVector=(0,1,0), backoffVector=(0,0,1), backoff=1):
+def oriented_camera(center=(0,0,0), upVector=(0,1,0), backoffVector=(0,0,1), backoff=1):
     """
     Generate a `vtkCamera` pointed at a specific location,
     oriented with a given up direction, set to a backoff.
@@ -1734,7 +1733,7 @@ def vtkCameraToK3D(vtkcam):
     return np.array(kam).ravel()
 
 
-def makeTicks(x0, x1, N=None, labels=None, digits=None, logscale=False, useformat=""):
+def make_ticks(x0, x1, N=None, labels=None, digits=None, logscale=False, useformat=""):
     """
     Generate numeric labels for the [x0, x1] range.
 
@@ -1786,7 +1785,7 @@ def makeTicks(x0, x1, N=None, labels=None, digits=None, logscale=False, useforma
             if tp == x1:
                 continue
             ticks_str.append(str(ts))
-            tickn = linInterpolate(tp, [x0, x1], [0, 1])
+            tickn = lin_interpolate(tp, [x0, x1], [0, 1])
             ticks_float.append(tickn)
 
     else:
@@ -1855,7 +1854,7 @@ def makeTicks(x0, x1, N=None, labels=None, digits=None, logscale=False, useforma
         for ts, tp in zip(sas2, fulaxis):
             if tp == x1:
                 continue
-            tickn = linInterpolate(tp, [x0, x1], [0, 1])
+            tickn = lin_interpolate(tp, [x0, x1], [0, 1])
             ticks_float.append(tickn)
             if logscale:
                 val = np.power(10, tp)
@@ -1866,7 +1865,7 @@ def makeTicks(x0, x1, N=None, labels=None, digits=None, logscale=False, useforma
                     if val >= 10:
                         val = int(val+0.5)
                     else:
-                        val = roundToDigit(val, 2)
+                        val = round_to_digit(val, 2)
                     ticks_str.append(str(val))
             else:
                 ticks_str.append(ts)
@@ -1877,7 +1876,7 @@ def makeTicks(x0, x1, N=None, labels=None, digits=None, logscale=False, useforma
     return ticks_float, ticks_str
 
 
-def gridcorners(i, nm, size, margin=0, flipy=True):
+def grid_corners(i, nm, size, margin=0, flipy=True):
     """
     Compute the 2 corners coordinates of the i-th box in a grid of shape n*m.
     The top-left square is square number 1.
@@ -1911,7 +1910,7 @@ def gridcorners(i, nm, size, margin=0, flipy=True):
             acts=[]
             n,m = 5,7
             for i in range(1, n*m + 1):
-                c1,c2 = utils.gridcorners(i, [n,m], [1,1], 0.01)
+                c1,c2 = utils.grid_corners(i, [n,m], [1,1], 0.01)
                 t = Text3D(i, (c1+c2)/2, c='k', s=0.02, justify='center').z(0.01)
                 r = Rectangle(c1, c2, c=i)
                 acts += [t,r]
@@ -1945,7 +1944,7 @@ def vedo2trimesh(mesh):
     """
     Convert `vedo.mesh.Mesh` to `Trimesh.Mesh` object.
     """
-    if isSequence(mesh):
+    if is_sequence(mesh):
         tms = []
         for a in mesh:
             tms.append(vedo2trimesh(a))
@@ -1971,7 +1970,7 @@ def trimesh2vedo(inputobj):
     """
     Convert `Trimesh` object to `Mesh(vtkActor)` or `Assembly` object.
     """
-    if isSequence(inputobj):
+    if is_sequence(inputobj):
         vms = []
         for ob in inputobj:
             vms.append(trimesh2vedo(ob))
@@ -1988,8 +1987,8 @@ def trimesh2vedo(inputobj):
         else:
             trim_c = inputobj.visual.vertex_colors
 
-        if isSequence(trim_c):
-            if isSequence(trim_c[0]):
+        if is_sequence(trim_c):
+            if is_sequence(trim_c[0]):
                 sameColor = len(np.unique(trim_c, axis=0)) < 2 # all vtxs have same color
 
                 if sameColor:
@@ -2136,7 +2135,7 @@ def meshlab2vedo(mmesh):
     return polydata
 
 
-def vtkVersionIsAtLeast(major, minor=0, build=0):
+def vtk_version_at_least(major, minor=0, build=0):
     """
     Check the VTK version.
     Return ``True`` if the requested VTK version is greater or equal to the actual VTK version.
@@ -2193,7 +2192,7 @@ def ctf2lut(tvobj, logscale=False):
     return lut
 
 
-def resampleArrays(source, target, tol=None):
+def resample_arrays(source, target, tol=None):
     """
     Resample point and cell data of a dataset on points from another dataset.
     It takes two inputs - source and target, and samples the point and cell values

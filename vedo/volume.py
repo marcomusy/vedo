@@ -322,7 +322,7 @@ class BaseVolume:
         """
         ima = vtk.vtkImageAppend()
         ima.SetInputData(self.imagedata())
-        if not utils.isSequence(volumes):
+        if not utils.is_sequence(volumes):
             volumes = [volumes]
         for volume in volumes:
             if isinstance(volume, vtk.vtkImageData):
@@ -569,12 +569,12 @@ class BaseVolume:
         gsf = vtk.vtkImageGaussianSmooth()
         gsf.SetDimensionality(3)
         gsf.SetInputData(self.imagedata())
-        if utils.isSequence(sigma):
+        if utils.is_sequence(sigma):
             gsf.SetStandardDeviations(sigma)
         else:
             gsf.SetStandardDeviation(sigma)
         if radius is not None:
-            if utils.isSequence(radius):
+            if utils.is_sequence(radius):
                 gsf.SetRadiusFactors(radius)
             else:
                 gsf.SetRadiusFactor(radius)
@@ -588,7 +588,7 @@ class BaseVolume:
         """
         imgm = vtk.vtkImageMedian3D()
         imgm.SetInputData(self.imagedata())
-        if utils.isSequence(neighbours):
+        if utils.is_sequence(neighbours):
             imgm.SetKernelSize(neighbours[0], neighbours[1], neighbours[2])
         else:
             imgm.SetKernelSize(neighbours, neighbours, neighbours)
@@ -832,7 +832,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         if inputobj is None:
             img = vtk.vtkImageData()
 
-        elif utils.isSequence(inputobj):
+        elif utils.is_sequence(inputobj):
 
             if isinstance(inputobj[0], str) and ".bmp" in inputobj[0].lower():
                 # scan sequence of BMP files
@@ -1091,7 +1091,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
             volumeProperty.DisableGradientOpacityOff()
 
         gotf = volumeProperty.GetGradientOpacity()
-        if utils.isSequence(alphaGrad):
+        if utils.is_sequence(alphaGrad):
             alphaGrad = np.array(alphaGrad)
             if len(alphaGrad.shape)==1: # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
                 for i, al in enumerate(alphaGrad):
@@ -1250,7 +1250,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
             tr.SetMatrix(T)
             T = tr
 
-        elif utils.isSequence(T):
+        elif utils.is_sequence(T):
             M = vtk.vtkMatrix4x4()
             n = len(T[0])
             for i in range(n):
@@ -1340,7 +1340,7 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
             img = inputobj.imagedata()
             self.lut = utils.ctf2lut(inputobj)
 
-        elif utils.isSequence(inputobj):
+        elif utils.is_sequence(inputobj):
 
             if isinstance(inputobj[0], str):  # scan sequence of BMP files
                 ima = vtk.vtkImageAppend()

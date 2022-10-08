@@ -193,7 +193,7 @@ class Glyph(Mesh):
             alpha=1,
         ):
         lighting = None
-        if utils.isSequence(mesh):
+        if utils.is_sequence(mesh):
             # create a cloud of points
             poly = Points(mesh).polydata()
         elif isinstance(mesh, vtk.vtkPolyData):
@@ -216,7 +216,7 @@ class Glyph(Mesh):
         if c in cmaps_names:
             cmap = c
             c = None
-        elif utils.isSequence(c):  # user passing an array of point colors
+        elif utils.is_sequence(c):  # user passing an array of point colors
             ucols = vtk.vtkUnsignedCharArray()
             ucols.SetNumberOfComponents(3)
             ucols.SetName("glyph_RGB")
@@ -257,7 +257,7 @@ class Glyph(Mesh):
                     poly.GetPointData().SetActiveVectors(orientationArray)
                     gly.SetInputArrayToProcess(0, 0, 0, 0, orientationArray)
                     gly.SetVectorModeToUseVector()
-            elif utils.isSequence(orientationArray) and not tol:  # passing a list
+            elif utils.is_sequence(orientationArray) and not tol:  # passing a list
                 varr = vtk.vtkFloatArray()
                 varr.SetNumberOfComponents(3)
                 varr.SetName("glyph_vectors")
@@ -459,7 +459,7 @@ class Line(Mesh):
 
         # detect if user is passing a 2D list of points as p0=xlist, p1=ylist:
         if len(p0) > 3:
-            if not utils.isSequence(p0[0]) and not utils.isSequence(p1[0]) and len(p0)==len(p1):
+            if not utils.is_sequence(p0[0]) and not utils.is_sequence(p1[0]) and len(p0)==len(p1):
                 # assume input is 2D xlist, ylist
                 p0 = np.stack((p0, p1), axis=1)
                 p1 = None
@@ -467,7 +467,7 @@ class Line(Mesh):
                 p0 = np.c_[np.array(p0, dtype=float), np.zeros(len(p0), dtype=float)]
 
         # detect if user is passing a list of points:
-        if utils.isSequence(p0[0]):
+        if utils.is_sequence(p0[0]):
             if len(p0[0]) == 2:  # make it 3d
                 p0 = np.c_[np.array(p0, dtype=float), np.zeros(len(p0), dtype=float)]
 
@@ -527,7 +527,7 @@ class Line(Mesh):
         This corresponds to an imaginary point that travels along the line
         at constant speed.
 
-        Can be used in conjunction with `linInterpolate()`
+        Can be used in conjunction with `lin_interpolate()`
         to map any range to the [0,1] range.
         """
         distance1 = 0.0
@@ -778,7 +778,7 @@ class DashedLine(Mesh):
 
         # detect if user is passing a 2D list of points as p0=xlist, p1=ylist:
         if len(p0) > 3:
-            if not utils.isSequence(p0[0]) and not utils.isSequence(p1[0]) and len(p0)==len(p1):
+            if not utils.is_sequence(p0[0]) and not utils.is_sequence(p1[0]) and len(p0)==len(p1):
                 # assume input is 2D xlist, ylist
                 p0 = np.stack((p0, p1), axis=1)
                 p1 = None
@@ -788,13 +788,13 @@ class DashedLine(Mesh):
                 p0 = np.append(p0, [p0[0]], axis=0)
 
         if p1 is not None:  # assume passing p0=[x,y]
-            if len(p0) == 2 and not utils.isSequence(p0[0]):
+            if len(p0) == 2 and not utils.is_sequence(p0[0]):
                 p0 = (p0[0], p0[1], 0)
-            if len(p1) == 2 and not utils.isSequence(p1[0]):
+            if len(p1) == 2 and not utils.is_sequence(p1[0]):
                 p1 = (p1[0], p1[1], 0)
 
         # detect if user is passing a list of points:
-        if utils.isSequence(p0[0]):
+        if utils.is_sequence(p0[0]):
             listp = p0
         else:  # or just 2 points to link
             listp = [p0, p1]
@@ -1567,7 +1567,7 @@ def StreamLines(
     if maxPropagation is None:
         maxPropagation = size
 
-    if utils.isSequence(probe):
+    if utils.is_sequence(probe):
         pts = np.array(probe)
         if pts.shape[1] == 2:  # make it 3d
             pts = np.c_[pts, np.zeros(len(pts))]
@@ -1723,7 +1723,7 @@ class Tube(Mesh):
         tuf.SetCapping(cap)
         tuf.SetNumberOfSides(res)
         tuf.SetInputData(polyln)
-        if utils.isSequence(r):
+        if utils.is_sequence(r):
             arr = utils.numpy2vtk(r, dtype=float)
             arr.SetName("TubeRadius")
             polyln.GetPointData().AddArray(arr)
@@ -1733,7 +1733,7 @@ class Tube(Mesh):
             tuf.SetRadius(r)
 
         usingColScals = False
-        if utils.isSequence(c):
+        if utils.is_sequence(c):
             usingColScals = True
             cc = vtk.vtkUnsignedCharArray()
             cc.SetName("TubeColors")
@@ -2400,7 +2400,7 @@ class Disc(Mesh):
     def __init__(
         self, pos=(0, 0, 0), r1=0.5, r2=1, c="gray4", alpha=1, res=(2, 120),
     ):
-        if utils.isSequence(res):
+        if utils.is_sequence(res):
             res_r, res_phi = res
         else:
             res_r, res_phi = res, 12 * res
@@ -2525,7 +2525,7 @@ class Sphere(Mesh):
             self.points(pts)
 
         else:
-            if utils.isSequence(res):
+            if utils.is_sequence(res):
                 res_t, res_phi = res
             else:
                 res_t, res_phi = 2 * res, res
@@ -2561,7 +2561,7 @@ class Spheres(Mesh):
         base = centers[0]
 
         cisseq = False
-        if utils.isSequence(c):
+        if utils.is_sequence(c):
             cisseq = True
 
         if cisseq:
@@ -2570,7 +2570,7 @@ class Spheres(Mesh):
                 raise RuntimeError()
 
         risseq = False
-        if utils.isSequence(r):
+        if utils.is_sequence(r):
             risseq = True
 
         if risseq:
@@ -2584,7 +2584,7 @@ class Spheres(Mesh):
         src = vtk.vtkSphereSource()
         if not risseq:
             src.SetRadius(r)
-        if utils.isSequence(res):
+        if utils.is_sequence(res):
             res_t, res_phi = res
         else:
             res_t, res_phi = 2 * res, res
@@ -2700,7 +2700,7 @@ class Ellipsoid(Mesh):
         self.axis3 = axis3
         self.nr_of_points = 1  # used by pcaEllipsoid
 
-        if utils.isSequence(res):
+        if utils.is_sequence(res):
             res_t, res_phi = res
         else:
             res_t, res_phi = 2 * res, res
@@ -2867,7 +2867,7 @@ class Grid(Mesh):
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
 
-        if utils.isSequence(sx) and utils.isSequence(sy):
+        if utils.is_sequence(sx) and utils.is_sequence(sy):
             verts = []
             for y in sy:
                 for x in sx:
@@ -3011,7 +3011,7 @@ class Rectangle(Mesh):
         color = c
         smoothr = False
         risseq = False
-        if utils.isSequence(radius):
+        if utils.is_sequence(radius):
             risseq = True
             smoothr = True
             if max(radius) == 0:
@@ -3166,7 +3166,7 @@ class TessellatedBox(Mesh):
     """
 
     def __init__(self, pos=(0, 0, 0), n=10, spacing=(1, 1, 1), c="k5", alpha=0.5):
-        if utils.isSequence(n):  # slow
+        if utils.is_sequence(n):  # slow
             img = vtk.vtkImageData()
             img.SetDimensions(n[0] + 1, n[1] + 1, n[2] + 1)
             img.SetSpacing(spacing)
@@ -3287,7 +3287,7 @@ class Cylinder(Mesh):
         alpha=1,
     ):
 
-        if utils.isSequence(pos[0]):  # assume user is passing pos=[base, top]
+        if utils.is_sequence(pos[0]):  # assume user is passing pos=[base, top]
             base = np.array(pos[0], dtype=float)
             top = np.array(pos[1], dtype=float)
             pos = (base + top) / 2
@@ -3369,7 +3369,7 @@ class Torus(Mesh):
         rs.SetCrossSectionRadius(thickness)
         pfs = vtk.vtkParametricFunctionSource()
         pfs.SetParametricFunction(rs)
-        if utils.isSequence(res):
+        if utils.is_sequence(res):
             res_u, res_v = res
         else:
             res_u, res_v = 3 * res, res
@@ -4270,7 +4270,7 @@ class TextBase:
         elif font == "Times":   self.property.SetFontFamilyToTimes()
         elif font == "Arial":   self.property.SetFontFamilyToArial()
         else:
-            fpath = utils.getFontPath(font)
+            fpath = utils.get_font_path(font)
             self.property.SetFontFamily(vtk.VTK_FONT_FILE)
             self.property.SetFontFile(fpath)
 
@@ -4649,7 +4649,7 @@ class ConvexHull(Mesh):
     """
 
     def __init__(self, pts):
-        if utils.isSequence(pts):
+        if utils.is_sequence(pts):
             if len(pts[0]) == 2:  # make it 3d
                 pts = np.c_[np.array(pts, dtype=float), np.zeros(len(pts), dtype=float)]
             mesh = Points(pts)

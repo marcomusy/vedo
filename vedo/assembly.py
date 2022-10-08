@@ -9,12 +9,12 @@ Submodule for managing groups of vedo objects
 
 __all__ = [
     "Assembly",
-    "procrustesAlignment",
+    "procrustes_alignment",
 ]
 
 
 #################################################
-def procrustesAlignment(sources, rigid=False):
+def procrustes_alignment(sources, rigid=False):
     """
     Return an ``Assembly`` of aligned source meshes with the `Procrustes` algorithm.
     The output ``Assembly`` is normalized in size.
@@ -143,8 +143,8 @@ class Assembly(vtk.vtkAssembly, vedo.base.Base3DProp):
         ambient=None,
         diffuse=None,
         specular=None,
-        specularPower=None,
-        specularColor=None,
+        specular_power=None,
+        specular_color=None,
     ):
         """
         Set the lighting type to all ``Mesh`` in the ``Assembly`` object.
@@ -161,12 +161,12 @@ class Assembly(vtk.vtkAssembly, vedo.base.Base3DProp):
         specular : float
             fraction of reflected light [0-1]
 
-        specularPower : float
+        specular_power : float
             precision of reflection [1-100]
 
-        specularColor : color
+        specular_color : color
             color that is being reflected by the surface
         """
         for a in self.actors:
-            a.lighting(value, ambient, diffuse, specular, specularPower, specularColor)
+            a.lighting(value, ambient, diffuse, specular, specular_power, specular_color)
         return self

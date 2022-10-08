@@ -33,13 +33,13 @@ class UGrid(vtk.vtkActor, BaseGrid):
         if inputobj is None:
             self._data = vtk.vtkUnstructuredGrid()
 
-        elif utils.isSequence(inputobj):
+        elif utils.is_sequence(inputobj):
 
             pts, cells, celltypes = inputobj
 
             self._data = vtk.vtkUnstructuredGrid()
 
-            if not utils.isSequence(cells[0]):
+            if not utils.is_sequence(cells[0]):
                 tets = []
                 nf = cells[0] + 1
                 for i, cl in enumerate(cells):

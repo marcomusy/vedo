@@ -20,7 +20,7 @@ Submodule to delegate notebook rendering
 __all__ = []
 
 
-def getNotebookBackend(actors2show, zoom, viewup):
+def get_notebook_backend(actors2show, zoom, viewup):
     """Return the appropriate notebook viewer"""
 
     plt = vedo.plotter_instance
@@ -35,7 +35,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
     ####################################################################################
     # https://github.com/InsightSoftwareConsortium/itkwidgets
     #  /blob/master/itkwidgets/widget_viewer.py
-    if "itk" in vedo.notebookBackend:
+    if "itk" in vedo.notebook_backend:
         from itkwidgets import view
 
         vedo.notebook_plotter = view(
@@ -43,7 +43,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
         )
 
     ####################################################################################
-    elif vedo.notebookBackend == "k3d":
+    elif vedo.notebook_backend == "k3d":
         try:
             import k3d  # https://github.com/K3D-tools/K3D-jupyter
         except ModuleNotFoundError:
@@ -268,7 +268,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
                     vedo.notebook_plotter += kobj
 
     ####################################################################################
-    elif vedo.notebookBackend == "panel" and hasattr(plt, "window") and plt.window:
+    elif vedo.notebook_backend == "panel" and hasattr(plt, "window") and plt.window:
 
         import panel  # https://panel.pyviz.org/reference/panes/VTK.html
 
@@ -280,7 +280,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
         )
 
     ####################################################################################
-    elif "ipyvtk" in vedo.notebookBackend and hasattr(plt, "window") and plt.window:
+    elif "ipyvtk" in vedo.notebook_backend and hasattr(plt, "window") and plt.window:
 
         from ipyvtklink.viewer import ViewInteractiveWidget
 
@@ -293,7 +293,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
         )
 
     ####################################################################################
-    elif "ipygany" in vedo.notebookBackend:
+    elif "ipygany" in vedo.notebook_backend:
 
         from ipygany import PolyMesh, Scene, IsoColor, RGB, Component
         from ipygany import Alpha, ColorBar, colormaps, PointCloud
@@ -394,7 +394,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
         vedo.notebook_plotter = scene
 
     ####################################################################################
-    elif "2d" in vedo.notebookBackend.lower() and hasattr(plt, "window") and plt.window:
+    elif "2d" in vedo.notebook_backend.lower() and hasattr(plt, "window") and plt.window:
         import PIL.Image
 
         try:

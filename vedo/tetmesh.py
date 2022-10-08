@@ -20,7 +20,7 @@ __all__ = ["TetMesh", "delaunay3D"]
 def delaunay3D(mesh, alphaPar=0, tol=None, boundary=False):
     """Create 3D Delaunay triangulation of input points."""
     deln = vtk.vtkDelaunay3D()
-    if utils.isSequence(mesh):
+    if utils.is_sequence(mesh):
         pd = vtk.vtkPolyData()
         vpts = vtk.vtkPoints()
         vpts.SetData(utils.numpy2vtk(mesh, dtype=float))
@@ -46,13 +46,13 @@ def _buildtetugrid(points, cells):
 
     if len(points) == 0:
         return ug
-    if not utils.isSequence(points[0]):
+    if not utils.is_sequence(points[0]):
         return ug
 
     if len(cells) == 0:
         return ug
 
-    if not utils.isSequence(cells[0]):
+    if not utils.is_sequence(cells[0]):
         tets = []
         nf = cells[0] + 1
         for i, cl in enumerate(cells):
@@ -131,7 +131,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
             tt.Update()
             self._data = tt.GetOutput()
 
-        elif utils.isSequence(inputobj):
+        elif utils.is_sequence(inputobj):
             # if "ndarray" not in inputtype:
             #     inputobj = np.array(inputobj)
             self._data = _buildtetugrid(inputobj[0], inputobj[1])
@@ -314,7 +314,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         cf = vtk.vtkContourFilter()  # vtk.vtkContourGrid()
         cf.SetInputData(self._data)
 
-        if utils.isSequence(threshold):
+        if utils.is_sequence(threshold):
             cf.SetNumberOfContours(len(threshold))
             for i, t in enumerate(threshold):
                 cf.SetValue(i, t)

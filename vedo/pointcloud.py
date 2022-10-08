@@ -29,14 +29,7 @@ __all__ = [
     "fitSphere",
     "pcaEllipse",
     "pcaEllipsoid",
-    "recoSurface",
 ]
-
-
-def recoSurface(*args, **kwargs):
-    """Please use `points.reconstructSurface()` instead."""
-    colors.printc("Please use `points.reconstructSurface()` instead. Abort.", c="r")
-    raise RuntimeError
 
 
 def visiblePoints(mesh, area=(), tol=None, invert=False):
@@ -737,24 +730,24 @@ class Points(vtk.vtkFollower, BaseActor):
                 inputobj.SetVerts(carr)
             self._data = inputobj  # cache vtkPolyData and mapper for speed
 
-        elif utils.isSequence(inputobj):  # passing point coords
+        elif utils.is_sequence(inputobj):  # passing point coords
             plist = inputobj
             n = len(plist)
 
             if n == 3:  # assume plist is in the format [all_x, all_y, all_z]
-                if utils.isSequence(plist[0]) and len(plist[0]) > 3:
+                if utils.is_sequence(plist[0]) and len(plist[0]) > 3:
                     plist = np.stack((plist[0], plist[1], plist[2]), axis=1)
             elif n == 2:  # assume plist is in the format [all_x, all_y, 0]
-                if utils.isSequence(plist[0]) and len(plist[0]) > 3:
+                if utils.is_sequence(plist[0]) and len(plist[0]) > 3:
                     plist = np.stack((plist[0], plist[1], np.zeros(len(plist[0]))), axis=1)
 
             if n and len(plist[0]) == 2:  # make it 3d
                 plist = np.c_[np.array(plist), np.zeros(len(plist))]
 
             if (
-                utils.isSequence(c)
-                and (len(c) > 3 or (utils.isSequence(c[0]) and len(c[0]) == 4))
-            ) or utils.isSequence(alpha):
+                utils.is_sequence(c)
+                and (len(c) > 3 or (utils.is_sequence(c[0]) and len(c[0]) == 4))
+            ) or utils.is_sequence(alpha):
 
                 cols = c
 
@@ -777,7 +770,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 ucols = vtk.vtkUnsignedCharArray()
                 ucols.SetNumberOfComponents(4)
                 ucols.SetName("Points_RGBA")
-                if utils.isSequence(alpha):
+                if utils.is_sequence(alpha):
                     if len(alpha) != n:
                         vedo.logger.error(f"mismatch in Points() alpha array lengths {n} and {len(cols)}")
                         raise RuntimeError()
@@ -786,7 +779,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 else:
                     alphas = (alpha,) * n
 
-                if utils.isSequence(cols):
+                if utils.is_sequence(cols):
                     c = None
                     if len(cols[0]) == 4:
                         for i in range(n):  # FAST
@@ -1426,7 +1419,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         .. hint:: examples/basic/mesh_threshold.py
         """
-        if utils.isSequence(scalars):
+        if utils.is_sequence(scalars):
             if on.startswith("c"):
                 self.addCellArray(scalars, "threshold")
             else:
@@ -1641,7 +1634,7 @@ class Points(vtk.vtkFollower, BaseActor):
             else:
                 mode = 0
                 arr = self.pointdata[content]
-        elif utils.isSequence(content):
+        elif utils.is_sequence(content):
             mode = 0
             arr = content
             # print('WEIRD labels() test', content)
@@ -2263,14 +2256,14 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         lmt = vtk.vtkLandmarkTransform()
 
-        if utils.isSequence(sourceLandmarks):
+        if utils.is_sequence(sourceLandmarks):
             ss = vtk.vtkPoints()
             for p in sourceLandmarks:
                 ss.InsertNextPoint(p)
         else:
             ss = sourceLandmarks.polydata().GetPoints()
 
-        if utils.isSequence(targetLandmarks):
+        if utils.is_sequence(targetLandmarks):
             st = vtk.vtkPoints()
             for p in targetLandmarks:
                 st.InsertNextPoint(p)
@@ -2340,7 +2333,7 @@ class Points(vtk.vtkFollower, BaseActor):
             tr.SetMatrix(T)
             T = tr
 
-        elif utils.isSequence(T):
+        elif utils.is_sequence(T):
             M = vtk.vtkMatrix4x4()
             n = len(T[0])
             for i in range(n):
@@ -2572,7 +2565,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 vedo.logger.error(f"in cmap(), cannot find point array at {input_array} ...skip coloring.")
                 return self
 
-        elif utils.isSequence(input_array):  # if a numpy array is passed
+        elif utils.is_sequence(input_array):  # if a numpy array is passed
             npts = len(input_array)
             if npts != poly.GetNumberOfPoints():
                 n1 = poly.GetNumberOfPoints()
@@ -2612,7 +2605,7 @@ class Points(vtk.vtkFollower, BaseActor):
             arr = arr_float
             arrayName = arrayName + "_float"
 
-        if not utils.isSequence(alpha):
+        if not utils.is_sequence(alpha):
             alpha = [alpha] * n
 
         if arr.GetNumberOfComponents() == 1:
@@ -2632,7 +2625,7 @@ class Points(vtk.vtkFollower, BaseActor):
         if isinstance(cmap, vtk.vtkLookupTable):  # vtkLookupTable
             lut = cmap
 
-        elif utils.isSequence(cmap):  # manual sequence of colors
+        elif utils.is_sequence(cmap):  # manual sequence of colors
             lut = vtk.vtkLookupTable()
             if logscale:
                 lut.SetScaleToLog10()
@@ -2703,7 +2696,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 vedo.logger.error(f"in cmap(), cannot find cell array at {input_array} ...skip coloring.")
                 return self
 
-        elif utils.isSequence(input_array):  # if a numpy array is passed
+        elif utils.is_sequence(input_array):  # if a numpy array is passed
             n = len(input_array)
             if n != poly.GetNumberOfCells():
                 n1 = poly.GetNumberOfCells()
@@ -2743,7 +2736,7 @@ class Points(vtk.vtkFollower, BaseActor):
             arr = arr_float
             arrayName = arrayName + "_float"
 
-        if not utils.isSequence(alpha):
+        if not utils.is_sequence(alpha):
             alpha = [alpha] * n
 
         if arr.GetNumberOfComponents() == 1:
@@ -2763,7 +2756,7 @@ class Points(vtk.vtkFollower, BaseActor):
         if isinstance(cmap, vtk.vtkLookupTable):  # vtkLookupTable
             lut = cmap
 
-        elif utils.isSequence(cmap):  # manual sequence of colors
+        elif utils.is_sequence(cmap):  # manual sequence of colors
             lut = vtk.vtkLookupTable()
             if logscale:
                 lut.SetScaleToLog10()
@@ -3529,7 +3522,7 @@ class Points(vtk.vtkFollower, BaseActor):
             bounds = bounds.GetBounds()
 
         box = vtk.vtkBox()
-        if utils.isSequence(bounds[0]):
+        if utils.is_sequence(bounds[0]):
             for bs in bounds:
                 box.AddBounds(bs)
         else:
@@ -3853,6 +3846,80 @@ class Points(vtk.vtkFollower, BaseActor):
         else:
             return self
 
+    def cutWithPointLoop(
+        self,
+        points,
+        invert=False,
+        on="points",
+        includeBoundary=False,
+    ):
+        """
+        Cut an ``Mesh`` object with a set of points forming a closed loop.
+
+        Parameters
+        ----------
+        invert : bool
+            invert selection (inside-out)
+
+        on : str
+            if 'cells' will extract the whole cells lying inside (or outside) the point loop
+
+        includeBoundary : bool
+            include cells lying exactly on the boundary line. Only relevant on 'cells' mode
+
+        .. hint:: examples/advanced/cutWithPoints1.py, examples/advanced/cutWithPoints2.py
+        """
+        if isinstance(points, Points):
+            vpts = points.polydata().GetPoints()
+            points = points.points()
+        else:
+            vpts = vtk.vtkPoints()
+            if len(points[0]) == 2:  # make it 3d
+                points = np.asarray(points)
+                points = np.c_[points, np.zeros(len(points))]
+            for p in points:
+                vpts.InsertNextPoint(p)
+
+        if "cell" in on:
+            ippd = vtk.vtkImplicitSelectionLoop()
+            ippd.SetLoop(vpts)
+            ippd.AutomaticNormalGenerationOn()
+            clipper = vtk.vtkExtractPolyDataGeometry()
+            clipper.SetInputData(self.polydata())
+            clipper.SetImplicitFunction(ippd)
+            clipper.SetExtractInside(not invert)
+            clipper.SetExtractBoundaryCells(includeBoundary)
+        else:
+            spol = vtk.vtkSelectPolyData()
+            spol.SetLoop(vpts)
+            spol.GenerateSelectionScalarsOn()
+            spol.GenerateUnselectedOutputOff()
+            spol.SetInputData(self.polydata())
+            spol.Update()
+            clipper = vtk.vtkClipPolyData()
+            clipper.SetInputData(spol.GetOutput())
+            clipper.SetInsideOut(not invert)
+            clipper.SetValue(0.0)
+        clipper.Update()
+        cpoly = clipper.GetOutput()
+
+        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
+            self._update(cpoly)
+        else:
+            # bring the underlying polydata to where _data is
+            M = vtk.vtkMatrix4x4()
+            M.DeepCopy(self.GetMatrix())
+            M.Invert()
+            tr = vtk.vtkTransform()
+            tr.SetMatrix(M)
+            tf = vtk.vtkTransformPolyDataFilter()
+            tf.SetTransform(tr)
+            tf.SetInputData(clipper.GetOutput())
+            tf.Update()
+            self._update(tf.GetOutput())
+        return self
+
+
     def implicitModeller(self, distance=0.05, res=(50,50,50), bounds=(), maxdist=None):
         """Find the surface which sits at the specified distance from the input one."""
         if not bounds:
@@ -3935,7 +4002,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 resy = int((y1 - y0) / density + 0.5)
                 vedo.logger.debug(f"tresMesh = {[resx, resy]}")
             else:
-                if utils.isSequence(resMesh):
+                if utils.is_sequence(resMesh):
                     resx, resy = resMesh
                 else:
                     resx, resy = resMesh, resMesh
@@ -4042,7 +4109,7 @@ class Points(vtk.vtkFollower, BaseActor):
         .. hint:: examples/advanced/recosurface.py
             .. image:: https://vedo.embl.es/images/advanced/recosurface.png
         """
-        if not utils.isSequence(dims):
+        if not utils.is_sequence(dims):
             dims = (dims, dims, dims)
 
         polyData = self.polydata()
@@ -4240,7 +4307,7 @@ class Points(vtk.vtkFollower, BaseActor):
         b = list(poly.GetBounds())
         diag = self.diagonalSize()
 
-        if not utils.isSequence(dims):
+        if not utils.is_sequence(dims):
             dims = [dims, dims, dims]
 
         if b[5] - b[4] == 0 or len(dims) == 2:  # its 2D

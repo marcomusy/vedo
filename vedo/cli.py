@@ -24,8 +24,8 @@ import vtkmodules.all as vtk
 
 import vedo
 from vedo.utils import humansort
-from vedo.utils import isSequence
-from vedo.utils import printInfo
+from vedo.utils import is_sequence
+from vedo.utils import print_info
 from vedo import __version__
 from vedo import io
 from vedo import load
@@ -128,12 +128,12 @@ def system_info():
         try:
             A = load(file)
             if isinstance(A, np.ndarray):
-                printInfo(A)
-            elif isSequence(A):
+                print_info(A)
+            elif is_sequence(A):
                 for a in A:
-                    printInfo(a)
+                    print_info(a)
             else:
-                printInfo(A)
+                print_info(A)
         except:
             vedo.logger.error(f"Could not load {file}, skip.")
 
