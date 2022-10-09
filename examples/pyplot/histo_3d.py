@@ -11,7 +11,7 @@ counts = 50 - ( (X-4)**2 + (Y-4)**2 + (Z-4)**2 )
 pcloud = Volume(counts).topoints()
 
 marker = Cube().scale(0.015)
-glyphed_pcl = Glyph(pcloud, marker, scaleByScalar=True)
-glyphed_pcl.cmap('seismic').addScalarBar('counts')
+glyphed_pcl = Glyph(pcloud, marker, scale_by_scalar=True)
+glyphed_pcl.cmap('seismic').add_scalarbar('counts')
 
 show(glyphed_pcl, __doc__, axes=1)

@@ -1037,7 +1037,7 @@ class Plotter:
             self.renderer.ResetCamera()
 
         if settings.allowInteraction:
-            self.allowInteraction()
+            self.allow_interaction()
 
         self.window.Render()
 
@@ -2301,7 +2301,7 @@ class Plotter:
             return  ## _func_wrap
 
         if self._timer_event_id is not None:
-            # lets remove the existing allowInteraction callback
+            # lets remove the existing allow_interaction callback
             #  to avoid interference with the user one
             self.interactor.RemoveObserver(self._timer_event_id)
             self._timer_event_id = None
@@ -2996,7 +2996,7 @@ class Plotter:
         if self.interactor:  # can be offscreen..
 
             if settings.allowInteraction:
-                self.allowInteraction()
+                self.allow_interaction()
 
             # Set the style of interaction
             # see https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html

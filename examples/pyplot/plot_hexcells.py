@@ -6,7 +6,7 @@ settings.defaultFont = "Glasgo"
 settings.useParallelProjection = True
 
 vals = np.abs(np.random.randn(4*6))  # pixel heights
-cols = colorMap(vals, "summer")
+cols = color_map(vals, "summer")
 
 k = 0
 items = [__doc__]

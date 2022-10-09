@@ -2915,9 +2915,9 @@ class Points(vtk.vtkFollower, BaseActor):
         return self
 
     @deprecated(reason=vedo.colors.red + "Please use closest_point()" + vedo.colors.reset)
-    def closestPoint(self, *a, **b):
+    def closestPoint(self, pt, N=1, radius=None, returnPointId=False, returnCellId=False):
         "Deprecated. Please use closest_point()"
-        return self.closest_point(*a, **b)
+        return self.closest_point(pt, N, radius, returnPointId, returnCellId)
 
     def closest_point(self, pt, n=1, radius=None, return_point_id=False, return_cell_id=False):
         """
@@ -3391,6 +3391,11 @@ class Points(vtk.vtkFollower, BaseActor):
         self.apply_transform(T, reset=True)
         return self
 
+    @deprecated(reason=vedo.colors.red + "Please use cut_with_plane()" + vedo.colors.reset)
+    def cutWithPlane(self, origin=(0, 0, 0), normal=(1, 0, 0)):
+        "Deprecated. Please use cut_with_plane()"
+        return self.cut_with_plane(origin, normal)
+
     def cut_with_plane(self, origin=(0, 0, 0), normal=(1, 0, 0)):
         """
         Cut the mesh with the plane defined by a point and a normal.
@@ -3702,6 +3707,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
     @deprecated(reason=vedo.colors.red + "Please use cut_with_mesh()" + vedo.colors.reset)
     def cutWithMesh(self, mesh, invert=False, keep=False):
+        "Deprecated. Please use cut_with_mesh()"
         return self.cut_with_mesh(mesh, invert, keep)
 
     def cut_with_mesh(self, mesh, invert=False, keep=False):

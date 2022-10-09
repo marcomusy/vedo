@@ -20,7 +20,7 @@ def DFT(x):
         amp = np.sqrt(re*re + im*im)
         phase = np.arctan2(im, re)
         X.append([re, im, freq, amp, phase])
-    return vedo.utils.sortByColumn(X, 3, invert=True)
+    return vedo.utils.sort_by_column(X, 3, invert=True)
 
 
 def epicycles(time, rotation, fourier, order):

@@ -41,15 +41,14 @@ fig2 = Figure(
         yLabelJustify="center-left",
         yTitlePosition=0.5,
         yTitleJustify="top-center",
-        # yTitleOffset=-0.12,
         axesLineWidth=3,
         numberOfDivisions=10,
         c='red3',
     ),
 )
 
-fig1.rotateX(90).rotateZ(90).shift(-0.5, 0, 1)
-fig2.rotateX(90).rotateZ(90).shift(-0.5, 0, 1)
+fig1.rotate_x(90).rotate_z(90).shift(-0.5, 0, 1)
+fig2.rotate_x(90).rotate_z(90).shift(-0.5, 0, 1)
 
 msh = Mesh(dataurl+"cessna.vtk")
 

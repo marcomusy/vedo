@@ -29,7 +29,7 @@ fig = plot(
 fig += Rectangle([1,0.5], [2.7,5], c='grey5').lighting('off')
 
 # Add some text (set z=2 so it stays on top):
-fig += Text3D("Excluded\ntime range!", s=.2, c='k', font="Quikhand").rotateZ(20).pos(1.3,3.6,1)
+fig += Text3D("Excluded\ntime range!", s=.2, c='k', font="Quikhand").rotate_z(20).pos(1.3,3.6,1)
 
 # Add a star marker at maximum of function (set z=0.1, so it stays on top):
 fig += Marker('*', c='blue4').pos(x[idx], y[idx], 0.1)

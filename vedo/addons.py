@@ -1158,22 +1158,22 @@ def add_slider_2d(
     alpha : float
         opacity of the scalar bar texts
 
-    sliderLength : float
+    slider_length : float
         slider length
 
-    sliderWidth : float
+    slider_width : float
         slider width
 
-    endCapLength : float
+    end_cap_length : float
         length of the end cap
 
-    endCapWidth : float
+    end_cap_width : float
         width of the end cap
 
-    tubeWidth : float
+    tube_width : float
         width of the tube
 
-    titleHeight : float
+    title_height : float
         width of the title
 
     tformat : str
@@ -1192,12 +1192,12 @@ def add_slider_2d(
     show_value = options.pop("show_value", show_value)
     delayed = options.pop("delayed", delayed)
     alpha = options.pop("alpha", 1)
-    sliderLength = options.pop("sliderLength", 0.015)
-    sliderWidth  = options.pop("sliderWidth", 0.025)
-    endCapLength = options.pop("endCapLength", 0.0015)
-    endCapWidth  = options.pop("endCapWidth", 0.0125)
-    tubeWidth    = options.pop("tubeWidth", 0.0075)
-    titleHeight  = options.pop("titleHeight", 0.022)
+    slider_length = options.pop("slider_length", 0.015)
+    slider_width  = options.pop("slider_width", 0.025)
+    end_cap_length= options.pop("end_cap_length", 0.0015)
+    end_cap_width = options.pop("end_cap_width", 0.0125)
+    tube_width    = options.pop("tube_width", 0.0075)
+    title_height  = options.pop("title_height", 0.022)
 
     plt = vedo.plotter_instance
     if c is None:  # automatic black or white
@@ -1213,11 +1213,11 @@ def add_slider_2d(
     sliderRep.SetMinimumValue(xmin)
     sliderRep.SetMaximumValue(xmax)
     sliderRep.SetValue(value)
-    sliderRep.SetSliderLength(sliderLength)
-    sliderRep.SetSliderWidth(sliderWidth)
-    sliderRep.SetEndCapLength(endCapLength)
-    sliderRep.SetEndCapWidth(endCapWidth)
-    sliderRep.SetTubeWidth(tubeWidth)
+    sliderRep.SetSliderLength(slider_length)
+    sliderRep.SetSliderWidth(slider_width)
+    sliderRep.SetEndCapLength(end_cap_length)
+    sliderRep.SetEndCapWidth(end_cap_width)
+    sliderRep.SetTubeWidth(tube_width)
     sliderRep.GetPoint1Coordinate().SetCoordinateSystemToNormalizedDisplay()
     sliderRep.GetPoint2Coordinate().SetCoordinateSystemToNormalizedDisplay()
 
@@ -1310,7 +1310,7 @@ def add_slider_2d(
     sliderRep.GetSelectedProperty().SetColor(np.sqrt(np.array(c)))
     sliderRep.GetCapProperty().SetColor(c)
 
-    sliderRep.SetTitleHeight(titleHeight * title_size)
+    sliderRep.SetTitleHeight(title_height * title_size)
     sliderRep.GetTitleProperty().SetShadow(0)
     sliderRep.GetTitleProperty().SetColor(c)
     sliderRep.GetTitleProperty().SetOpacity(alpha)
@@ -3231,7 +3231,7 @@ def Axes(
             italic=xTitleItalic,
         )
         if xTitleBackfaceColor:
-            xt.backColor(xTitleBackfaceColor)
+            xt.backcolor(xTitleBackfaceColor)
         if zRot:
             xt.RotateZ(zRot)
         if xRot:
@@ -3263,7 +3263,7 @@ def Axes(
         xt.name = f"xtitle {xtitle}"
         titles.append(xt)
         if xTitleBox:
-            titles.append(xt.box(scale=1.1).useBounds(xUseBounds))
+            titles.append(xt.box(scale=1.1).use_bounds(xUseBounds))
 
     if ytitle:
 
@@ -3305,7 +3305,7 @@ def Axes(
             italic=yTitleItalic,
         )
         if yTitleBackfaceColor:
-            yt.backColor(yTitleBackfaceColor)
+            yt.backcolor(yTitleBackfaceColor)
 
         if zRot: yt.RotateZ(zRot)
         if yRot: yt.RotateY(yRot)
@@ -3332,7 +3332,7 @@ def Axes(
         yt.name = f"ytitle {ytitle}"
         titles.append(yt)
         if yTitleBox:
-            titles.append(yt.box(scale=1.1).useBounds(yUseBounds))
+            titles.append(yt.box(scale=1.1).use_bounds(yUseBounds))
 
     if ztitle:
 
@@ -3369,7 +3369,7 @@ def Axes(
             italic=zTitleItalic,
         )
         if zTitleBackfaceColor:
-            zt.backColor(zTitleBackfaceColor)
+            zt.backcolor(zTitleBackfaceColor)
 
         angle = 90
         if dx:

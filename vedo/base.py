@@ -767,6 +767,11 @@ class BaseActor(Base3DProp):
         """Deprecated. Please use property object.npoints"""
         return self.inputdata().GetNumberOfPoints()
 
+    @deprecated(reason=vedo.colors.red + "Please use property object.npoints" + vedo.colors.reset)
+    def NPoints(self):
+        """Deprecated. Please use property object.npoints"""
+        return self.inputdata().GetNumberOfPoints()
+
     @deprecated(reason=vedo.colors.red + "Please use property object.ncells" + vedo.colors.reset)
     def NCells(self):
         """Deprecated. Please use property object.ncells"""
@@ -1280,9 +1285,9 @@ class BaseActor(Base3DProp):
 
 
     @deprecated(reason=vedo.colors.red + "Please use method add_scalarbar()" + vedo.colors.reset)
-    def addScalarBar(self, **k):
+    def addScalarBar(self, *a, **b):
         """Deprecated. Please use method add_scalarbar()"""
-        return self.add_scalarbar(**k)
+        return self.add_scalarbar(*a, **b)
 
     def add_scalarbar(
             self,
@@ -1333,9 +1338,9 @@ class BaseActor(Base3DProp):
         return self
 
     @deprecated(reason=vedo.colors.red + "Please use method add_scalarbar_3d()" + vedo.colors.reset)
-    def addScalarBar3D(self, **k):
+    def addScalarBar3D(self, *a, **b):
         """Deprecated. Please use method add_scalarbar_3d()"""
-        return self.add_scalarbar_3d(**k)
+        return self.add_scalarbar_3d(*a, **b)
 
     def add_scalarbar_3d(
         self,

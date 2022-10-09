@@ -922,8 +922,8 @@ class Histogram1D(Figure):
                     bin_centers,
                     glyphObj=mk,
                     c=mc,
-                    orientationArray=msv,
-                    scaleByVectorSize=True,
+                    orientation_array=msv,
+                    scale_by_vector_size=True,
                 )
             else:  ### fixed point size
 
@@ -941,8 +941,8 @@ class Histogram1D(Figure):
                         bin_centers,
                         glyphObj=mk,
                         c=mc,
-                        orientationArray=msv,
-                        scaleByVectorSize=True,
+                        orientation_array=msv,
+                        scale_by_vector_size=True,
                     )
                 else:
                     mk = shapes.Marker(marker, s=ms)
@@ -1154,7 +1154,7 @@ class Histogram2D(Figure):
             g.shrink(abs(1 - gap))
 
         if scalarbar:
-            sc = g.addScalarBar3D(ztitle, c=ac).scalarbar
+            sc = g.add_scalarbar_3d(ztitle, c=ac).scalarbar
             sc.scale([self.yscale, 1, 1])  ## prescale trick
             sbnds = sc.xbounds()
             sc.x(self.x1lim + (sbnds[1] - sbnds[0]) * 0.75)
@@ -1648,7 +1648,7 @@ class PlotXY(Figure):
                 msv = np.zeros_like(pts)
                 msv[:, 0] = ms
                 marked = shapes.Glyph(
-                    pts, glyphObj=mk, c=mc, orientationArray=msv, scaleByVectorSize=True
+                    pts, glyphObj=mk, c=mc, orientation_array=msv, scale_by_vector_size=True
                 )
             else:
                 ### fixed point size
@@ -1665,8 +1665,8 @@ class PlotXY(Figure):
                         pts,
                         glyphObj=mk,
                         c=mc,
-                        orientationArray=msv,
-                        scaleByVectorSize=True,
+                        orientation_array=msv,
+                        scale_by_vector_size=True,
                     )
                 else:
                     mk = shapes.Marker(marker, s=ms)
@@ -2705,7 +2705,7 @@ def _plot_fxy(
     mesh = Mesh(poly, c, alpha).compute_normals().lighting("plastic")
 
     if cmap:
-        mesh.addElevationScalars().cmap(cmap)
+        mesh.compute_elevation().cmap(cmap)
     if bc:
         mesh.bc(bc)
     if texture:
@@ -2972,7 +2972,7 @@ def _plot_spheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha
 
     ssurf = sg.clone().points(pts)
     if inans:
-        ssurf.deleteCellsByPointIndex(inans)
+        ssurf.delete_cells_by_point_index(inans)
 
     ssurf.alpha(1).wireframe(0).lw(0.1)
 
@@ -2983,7 +2983,7 @@ def _plot_spheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha
         xm = np.max([np.max(pts[0]), 1])
         ym = np.max([np.abs(np.max(pts[1])), 1])
         ssurf.mapper().SetScalarRange(np.min(newr), np.max(newr))
-        sb3d = ssurf.addScalarBar3D(s=(xm * 0.07, ym), c="k").scalarbar
+        sb3d = ssurf.add_scalarbar_3d(s=(xm * 0.07, ym), c="k").scalarbar
         sb3d.rotateX(90).pos(xm * 1.1, 0, -0.5)
     else:
         sb3d = None
@@ -3654,7 +3654,8 @@ def streamplot(
     uf = np.ravel(U, order="F")
     vf = np.ravel(V, order="F")
     vects = np.c_[uf, vf, np.zeros_like(uf)]
-    vol.addPointArray(vects, "vects")
+    # vol.addPointArray(vects, "vects")
+    vol.pointdata["StreamPlotField"] = vects
 
     if len(probes) == 0:
         probe = shapes.Grid(pos=((n-1)/2,(n-1)/2,0), s=(n-1, n-1), res=(n-1,n-1))
@@ -3782,7 +3783,7 @@ def matrix(
     gr.cmap(cmap, matr, on="cells", vmin=vmin, vmax=vmax)
     sbar = None
     if scalarbar:
-        gr.addScalarBar3D(titleFont=font, labelFont=font)
+        gr.add_scalarbar_3d(title_font=font, label_font=font)
         sbar = gr.scalarbar
     labs = None
     if scale != 0:

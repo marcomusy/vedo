@@ -696,6 +696,11 @@ class Mesh(Points):
         self.property.SetFrontfaceCulling(value)
         return self
 
+    @deprecated(reason=vedo.colors.red + "Please use backcolor()" + vedo.colors.reset)
+    def backColor(self, bc=None):
+        "Please use backcolor()"
+        return self.backcolor(bc)
+
     def backcolor(self, bc=None):
         """
         Set/get mesh's backface color.

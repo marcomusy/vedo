@@ -12,10 +12,10 @@ pts = np.c_[df['x'], df['y'],df['z']]
 vecs= np.c_[df['u'], df['v'],df['w']]
 
 # Create a mesh to be used like a symbol (a "glyph") to be attached to each point
-cone = Cone().scale(0.3).rotateY(90) # make it smaller and orient tip to positive x
-glyph = Glyph(pts, cone, vecs, scaleByVectorSize=True, colorByVectorSize=True)
+cone = Cone().scale(0.3).rotate_y(90)  # make it smaller and orient tip to positive x
+glyph = Glyph(pts, cone, vecs, scale_by_vector_size=True, color_by_vector_size=True)
 
-glyph.lighting('ambient').cmap('Blues').addScalarBar(title='wind speed')
+glyph.lighting('ambient').cmap('Blues').add_scalarbar(title='wind speed')
 
 show(glyph, __doc__, axes=True).close()
 

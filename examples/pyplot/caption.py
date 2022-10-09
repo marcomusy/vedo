@@ -1,7 +1,7 @@
 """Attach a 2D caption to an object"""
 from vedo import Cone, Axes, show
 
-cone = Cone().rotateX(30).rotateZ(20).c('steelblue')
+cone = Cone().rotate_x(30).rotate_z(20).c('steelblue')
 
 txt  = "Japanese\nこれは青い円錐形です\n"
 txt += "Chinese\n這是一個藍錐\n"

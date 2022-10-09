@@ -2130,7 +2130,7 @@ class Arrow2D(Mesh):
         tf.SetTransform(t)
         tf.Update()
 
-        Mesh.__init__(self, tf.GetOutput())
+        Mesh.__init__(self, tf.GetOutput(), c='k1')
         self.SetPosition(start_pt)
         self.lighting("off")
         self.DragableOff()
