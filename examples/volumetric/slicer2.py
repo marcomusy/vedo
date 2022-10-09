@@ -15,7 +15,7 @@ def initfunc(iren, data):
     def func(widget, event):
         zs = int(widget.value)
         widget.title = f"z-slice = {zs}"
-        msh = vol.zSlice(zs)
+        msh = vol.zslice(zs)
         msh.cmap(cmaps[iren]).lighting("off")
         msh.name = "slice"
         sb = ScalarBar3D(msh, c='k')
@@ -29,7 +29,7 @@ def initfunc(iren, data):
 plt = Plotter(shape=(1, len(volumes)), sharecam=False, bg2='lightcyan')
 
 for iren, data in enumerate(volumes):
-    plt.addSlider2D(
+    plt.add_slider_2d(
         initfunc(iren, data), #func
         0, data.dimensions()[2],
         value=0,

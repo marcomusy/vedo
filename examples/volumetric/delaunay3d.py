@@ -7,13 +7,13 @@ settings.useDepthPeeling = True
 pts = (np.random.rand(10000, 3)-0.5)*2
 
 s = Sphere().alpha(0.1)
-pin = s.insidePoints(pts)
+pin = s.inside_points(pts)
 pin.subsample(0.05)  # impose min separation (5% of bounding box)
 printc("# of points inside the sphere:", pin.npoints)
 
-tmesh = delaunay3D(pin).shrink(0.95)
+tmesh = delaunay3d(pin).shrink(0.95)
 
-cmesh = tmesh.cutWithPlane(normal=(1,2,-1))
+cmesh = tmesh.cut_with_plane(normal=(1,2,-1))
 
 show([(s, pin, "Generate points in a Sphere"),
       (cmesh, __doc__),

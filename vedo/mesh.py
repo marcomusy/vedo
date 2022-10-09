@@ -2417,7 +2417,7 @@ class Mesh(Points):
         x0, x1, y0, y1, z0, z1 = surf.bounds()
 
         if uniform:
-            pts = vedo.utils.packSpheres([x0, x1, y0, y1, z0, z1], side * d * 1.42)
+            pts = vedo.utils.pack_spheres([x0, x1, y0, y1, z0, z1], side * d * 1.42)
             pts += np.random.randn(len(pts), 3) * side * d * 1.42 / 100  # some small jitter
         else:
             disp = np.array([x0 + x1, y0 + y1, z0 + z1]) / 2
@@ -2434,20 +2434,20 @@ class Mesh(Points):
         if debug:
             print(".. tetralize(): subsampling and cleaning")
 
-        fillpts = surf.insidePoints(pts)
+        fillpts = surf.inside_points(pts)
         fillpts.subsample(side)
 
         if gap:
-            fillpts.distanceTo(surf)
+            fillpts.distance_to(surf)
             fillpts.threshold("Distance", above=gap)
 
         if subsample:
             surf.subsample(side)
 
-        tmesh = vedo.tetmesh.delaunay3D(vedo.merge(fillpts, surf))
+        tmesh = vedo.tetmesh.delaunay3d(vedo.merge(fillpts, surf))
         tcenters = tmesh.cellCenters()
 
-        ids = surf.insidePoints(tcenters, return_ids=True)
+        ids = surf.inside_points(tcenters, return_ids=True)
         ins = np.zeros(tmesh.NCells())
         ins[ids] = 1
 

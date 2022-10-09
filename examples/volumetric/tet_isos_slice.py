@@ -2,7 +2,7 @@
 from vedo import TetMesh, dataurl, show
 
 tetmesh = TetMesh(dataurl+'limb_ugrid.vtk').color('Spectral')
-tetmesh.addScalarBar3D(title='chem_0  expression', c='k')
+tetmesh.add_scalarbar_3d('chem_0  expression', c='k')
 
 thrslist = [0.2, 0.3, 0.8]
 isos = tetmesh.isosurface(thrslist)

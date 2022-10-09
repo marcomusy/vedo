@@ -5,6 +5,6 @@ vol = Volume(dataurl+'embryo.slc').mode(1).c('bone')
 msh = Paraboloid(res=200).scale(200).pos(100,100,200)
 
 scals = probePoints(vol, msh).pointdata[0]
-msh.cmap('Spectral', scals).addScalarBar()
+msh.cmap('Spectral', scals).add_scalarbar()
 
 show(vol, msh, __doc__, axes=True).close()

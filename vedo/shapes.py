@@ -1501,7 +1501,7 @@ def StreamLines(
     step_length : float
         length of step integration.
 
-    extrapolateToBounds : dict
+    extrapolate_to_box : dict
         Vectors are defined on a surface are extrapolated to the entire volume defined
         by its bounding box
 
@@ -1511,7 +1511,7 @@ def StreamLines(
         - dims, (list) - dimensions of the output Volume object
         - null_value, (float) - value to be assigned to invalid points
 
-    surfaceConstrain : bool
+    surface_constrained : bool
         force streamlines to be computed on a surface
 
     compute_vorticity : bool
@@ -1527,7 +1527,7 @@ def StreamLines(
 
         - ratio, (int) - draws tube as longitudinal stripes
         - res, (int) - tube resolution (nr. of sides, 12 by default)
-        - maxRadiusFactor (float) - max tube radius as a multiple of the min radius
+        - max_radius_factor (float) - max tube radius as a multiple of the min radius
         - mode, (int) - radius varies based on the scalar or vector magnitude:
 
             - 0 - do not vary radius
@@ -1629,8 +1629,8 @@ def StreamLines(
 
         # max tube radius as a multiple of the min radius
         streamTube.SetRadiusFactor(50)
-        if "maxRadiusFactor" in tubes:
-            streamTube.SetRadiusFactor(tubes["maxRadiusFactor"])
+        if "max_radius_factor" in tubes:
+            streamTube.SetRadiusFactor(tubes["max_radius_factor"])
 
         if "ratio" in tubes:
             streamTube.SetOnRatio(int(tubes["ratio"]))

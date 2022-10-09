@@ -6,7 +6,6 @@ import numpy as np
 import vtkmodules.all as vtk
 
 import vedo
-from vedo import colors
 from vedo import utils
 from vedo.base import Base3DProp
 from vedo.base import BaseGrid

@@ -5,8 +5,8 @@ import numpy as np
 
 vol = Volume(dataurl+'vase.vti')
 nx, ny, nz = vol.dimensions()
-r0,r1 = vol.scalarRange()
-vol.addScalarBar3D(title='original voxel scalars')
+r0,r1 = vol.scalar_range()
+vol.add_scalarbar_3d('original voxel scalars')
 
 # create a set of scalars and add it to the Volume
 vol.pointdata["myscalars1"] = np.linspace(r0,r1, num=nx*ny*nz)
@@ -21,10 +21,10 @@ vol.pointdata.select("SLCImage")  # select the first data array as the active on
 # Build the isosurface of the active scalars,
 # but use testscals1 to colorize this isosurface, and then smooth it
 iso1 = vol.isosurface().cmap('jet', 'myscalars1').smooth().lw(0.1)
-iso1.addScalarBar3D(title='myscalars1')
+iso1.add_scalarbar_3d('myscalars1')
 
 iso2 = vol.isosurface().cmap('viridis', 'myscalars2')
-iso2.addScalarBar3D(title='myscalars2')
+iso2.add_scalarbar_3d('myscalars2')
 
 show([(vol, __doc__),
        (iso1,"Colorize isosurface using\nmyscalars1"),

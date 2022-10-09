@@ -9,17 +9,17 @@ tetm = TetMesh(dataurl+'limb_ugrid.vtk')
 sphere = Sphere(r=500).x(400).c('green', 0.1)
 
 # Clone and cut tetm, keep the outside:
-tetm1 = tetm.clone().cutWithMesh(sphere, invert=True)
+tetm1 = tetm.clone().cut_with_mesh(sphere, invert=True)
 
 # Make it a polygonal Mesh for visualization
-msh1 = tetm1.tomesh().lineWidth(0.1).color('lb')
+msh1 = tetm1.tomesh().linewidth(0.1).color('lb')
 
 # Cut tetm, but the output will keep only the whole tets (NOT the polygonal boundary!):
-tetm2 = tetm.clone().cutWithMesh(sphere, invert=True, wholeCells=True)
+tetm2 = tetm.clone().cut_with_mesh(sphere, invert=True, whole_cells=True)
 
 # Cut tetm, but the output will keep only the tets on the boundary:
-tetm3 = tetm.clone().cutWithMesh(sphere, onlyBoundary=True)
-tetm3.addScalarBar3D(c='k')
+tetm3 = tetm.clone().cut_with_mesh(sphere, only_boundary=True)
+tetm3.add_scalarbar_3d(c='k')
 
 show([(msh1, sphere, __doc__),
       (tetm2.tomesh(), "Keep only tets that lie\ncompletely outside the Sphere"),

@@ -17,6 +17,6 @@ ypr = np.linspace(-15,15, num=25)
 xpr = np.zeros_like(ypr)-40
 probes = np.c_[xpr, ypr]
 
-str_lns = StreamLines(ug, probes, maxPropagation=80, lw=3)
+str_lns = StreamLines(ug, probes, max_propagation=80, lw=3)
 
 show(ars, str_lns, zoom=8, bg2='lb').close()

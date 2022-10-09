@@ -2761,21 +2761,21 @@ class Points(vtk.vtkFollower, BaseActor):
         data.Modified()
         return self
 
-    # def cell_individual_colors(self, colorlist):
-    #     """
-    #     Colorize the faces of a mesh one by one
-    #     passing a 1-to-1 list of colors in format [R,G,B] or [R,G,B,A].
-    #     Colors levels and opacities must be in the range [0,255].
+    def cell_individual_colors(self, colorlist):
+        """
+        Colorize the faces of a mesh one by one
+        passing a 1-to-1 list of colors in format [R,G,B] or [R,G,B,A].
+        Colors levels and opacities must be in the range [0,255].
 
-    #     A cell array named "CellIndividualColors" is automatically created.
+        A cell array named "CellIndividualColors" is automatically created.
 
-    #     .. hint:: examples/basic/examples/basic/colorMeshCells.py
-    #         .. image:: https://vedo.embl.es/images/basic/colorMeshCells.png
-    #     """
-    #     colorlist = np.asarray(colorlist).astype(np.uint8)
-    #     self.celldata["CellIndividualColors"] = colorlist
-    #     self.celldata.select("CellIndividualColors")
-    #     return self
+        .. hint:: examples/basic/examples/basic/colorMeshCells.py
+            .. image:: https://vedo.embl.es/images/basic/colorMeshCells.png
+        """
+        colorlist = np.asarray(colorlist).astype(np.uint8)
+        self.celldata["CellIndividualColors"] = colorlist
+        self.celldata.select("CellIndividualColors")
+        return self
 
     def interpolate_data_from(
         self,
@@ -4378,9 +4378,10 @@ class Points(vtk.vtkFollower, BaseActor):
         dens.Update()
         pts = utils.vtk2numpy(dens.GetOutput().GetPoints().GetData())
         cld = Points(pts, c=None).pointSize(self.GetProperty().GetPointSize())
-        cld.interpolateDataFrom(self, N=nclosest, radius=radius)
+        cld.interpolate_data_from(self, N=nclosest, radius=radius)
         cld.name = "densifiedCloud"
         return cld
+
 
     ###############################################################################
     ## stuff returning Volume

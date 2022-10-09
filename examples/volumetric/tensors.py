@@ -13,7 +13,7 @@ pl.SetModelBounds(-10,10,-10,10,-10,10)
 vol = Volume(pl, mode=1)
 
 # Extract a slice of the volume data at index 3
-zsl = vol.zSlice(3)
+zsl = vol.zslice(3)
 
 # Generate tensor ellipsoids
 tens1 = Tensors(vol, source='ellipse', scale=10)

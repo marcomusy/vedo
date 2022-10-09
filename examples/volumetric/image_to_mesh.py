@@ -17,10 +17,10 @@ msh.points(pts)
 
 # more cosmetics
 msh.triangulate().smooth()
-msh.lighting("default").lineWidth(0)
-msh.cmap("bone", "RGBA").addScalarBar()
+msh.lighting("default").linewidth(0)
+msh.cmap("bone", "RGBA").add_scalarbar()
 
-msht = pic.clone().threshold(100).lineWidth(0)
+msht = pic.clone().threshold(100).linewidth(0)
 
 show([[pic, "A normal jpg image.."],
       [msh, "..becomes a polygonal Mesh"],

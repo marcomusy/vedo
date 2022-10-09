@@ -4,10 +4,10 @@ from vedo import dataurl, Volume, probeLine, show
 from vedo.pyplot import plot
 
 vol = Volume(dataurl+'embryo.slc')
-vol.addScalarBar3D(title='wild-type mouse embryo', c='k')
+vol.add_scalarbar_3d('wild-type mouse embryo', c='k')
 
 p1, p2 = (50,50,50), (200,200,200)
-pl = probeLine(vol, p1, p2, res=100).lineWidth(4)
+pl = probeLine(vol, p1, p2, res=100).linewidth(4)
 
 xvals = pl.points()[:,0]
 yvals = pl.pointdata[0] # get the probed values along the line

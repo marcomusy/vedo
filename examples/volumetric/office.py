@@ -14,11 +14,11 @@ seeds = Grid(pos=[2,2,1], normal=[1,0,0], res=[2,3], c="gray")
 slines = StreamLines(
     sgrid,
     seeds,
-    initialStepSize=0.01,
-    maxPropagation=15,
+    initial_step_size=0.01,
+    max_propagation=15,
     tubes=dict(radius=0.005, mode=2, ratio=1),
 )
-slines.cmap("Reds").addScalarBar3D(c='white')
+slines.cmap("Reds").add_scalarbar_3d(c='white')
 slines.scalarbar.x(5) # reposition scalarbar at x=5
 
 show(slines, seeds, furniture(), __doc__, axes=1, bg='bb').close()

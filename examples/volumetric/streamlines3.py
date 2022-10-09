@@ -11,8 +11,8 @@ probe = Grid(pos=[0.05,0.08,0.005], normal=[0,1,0], s=[0.1,0.01], res=[20,4], c=
 # Compute stream lines with Runge-Kutta4, return a Mesh
 stream = StreamLines(
     ugrid, probe,
-    activeVectors='U', # name of the active array
-    #tubes={"radius":1e-04, "varyRadius":2},
+    active_vectors='U', # name of the active array
+    #tubes={"radius":1e-04, "vary_radius":2},
     lw=2, # line width
 )
 

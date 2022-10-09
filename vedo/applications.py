@@ -197,27 +197,27 @@ class Slicer3DPlotter(Plotter):
             ch = (0.8, 0.8, 0.8)
 
         if not use_slider_3d:
-            self.addSlider2D(
+            self.add_slider_2d(
                 sliderfunc_x,
                 0,
                 dims[0],
                 title="X",
                 titleSize=0.5,
                 pos=[(0.8, 0.12), (0.95, 0.12)],
-                showValue=False,
+                show_value=False,
                 c=cx,
             )
-            self.addSlider2D(
+            self.add_slider_2d(
                 sliderfunc_y,
                 0,
                 dims[1],
                 title="Y",
                 titleSize=0.5,
                 pos=[(0.8, 0.08), (0.95, 0.08)],
-                showValue=False,
+                show_value=False,
                 c=cy,
             )
-            self.addSlider2D(
+            self.add_slider_2d(
                 sliderfunc_z,
                 0,
                 dims[2],
@@ -225,7 +225,7 @@ class Slicer3DPlotter(Plotter):
                 titleSize=0.6,
                 value=int(dims[2] / 2),
                 pos=[(0.8, 0.04), (0.95, 0.04)],
-                showValue=False,
+                show_value=False,
                 c=cz,
             )
         else:  # 3d sliders attached to the axes bounds
@@ -238,7 +238,7 @@ class Slicer3DPlotter(Plotter):
                 xmax=dims[0],
                 t=box.diagonal_size() / mag(box.xbounds()) * 0.6,
                 c=cx,
-                showValue=False,
+                show_value=False,
             )
             self.addSlider3D(
                 sliderfunc_y,
@@ -248,7 +248,7 @@ class Slicer3DPlotter(Plotter):
                 xmax=dims[1],
                 t=box.diagonal_size() / mag(box.ybounds()) * 0.6,
                 c=cy,
-                showValue=False,
+                show_value=False,
             )
             self.addSlider3D(
                 sliderfunc_z,
@@ -259,7 +259,7 @@ class Slicer3DPlotter(Plotter):
                 value=int(dims[2] / 2),
                 t=box.diagonal_size() / mag(box.zbounds()) * 0.6,
                 c=cz,
-                showValue=False,
+                show_value=False,
             )
 
         #################
@@ -459,12 +459,12 @@ class RayCastPlotter(Plotter):
             sliderRep.SetTitleText(cmaps[k])
             volume.color(cmaps[k])
 
-        w1 = self.addSlider2D(
+        w1 = self.add_slider_2d(
             sliderColorMap,
             0,
             Ncols - 1,
             value=0,
-            showValue=0,
+            show_value=0,
             title=cmaps[0],
             c=csl,
             pos=[(0.8, 0.05), (0.965, 0.05)],
@@ -489,55 +489,55 @@ class RayCastPlotter(Plotter):
             self.alphaslider0 = widget.GetRepresentation().GetValue()
             setOTF()
 
-        self.addSlider2D(
+        self.add_slider_2d(
             sliderA0,
             0,
             1,
             value=self.alphaslider0,
             pos=[(0.84, 0.1), (0.84, 0.26)],
             c=csl,
-            showValue=0,
+            show_value=0,
         )
 
         def sliderA1(widget, event):
             self.alphaslider1 = widget.GetRepresentation().GetValue()
             setOTF()
 
-        self.addSlider2D(
+        self.add_slider_2d(
             sliderA1,
             0,
             1,
             value=self.alphaslider1,
             pos=[(0.89, 0.1), (0.89, 0.26)],
             c=csl,
-            showValue=0,
+            show_value=0,
         )
 
         def sliderA2(widget, event):
             self.alphaslider2 = widget.GetRepresentation().GetValue()
             setOTF()
 
-        w2 = self.addSlider2D(
+        w2 = self.add_slider_2d(
             sliderA2,
             0,
             1,
             value=self.alphaslider2,
             pos=[(0.96, 0.1), (0.96, 0.26)],
             c=csl,
-            showValue=0,
+            show_value=0,
             title="Opacity levels",
         )
         w2.GetRepresentation().SetTitleHeight(0.016)
 
         # add a button
-        def buttonfuncMode():
+        def button_func_mode():
             s = volume.mode()
             snew = (s + 1) % 2
             volume.mode(snew)
             bum.switch()
 
-        bum = self.addButton(
-            buttonfuncMode,
+        bum = self.add_button(
+            button_func_mode,
             pos=(0.7, 0.035),
             states=["composite", "max proj."],
             c=["bb", "gray"],
@@ -630,7 +630,7 @@ class IsosurfaceBrowser(Plotter):
 
         self._prev_value = 1e30
 
-        scrange = volume.scalarRange()
+        scrange = volume.scalar_range()
         delta = scrange[1] - scrange[0]
         if not delta:
             return
@@ -706,14 +706,14 @@ class IsosurfaceBrowser(Plotter):
         if lego:
             self.actors[0].addScalarBar(pos=(0.8, 0.12))
 
-        self.addSlider2D(
+        self.add_slider_2d(
             sliderThres,
             scrange[0] + 0.02 * delta,
             scrange[1] - 0.02 * delta,
             value=threshold,
             pos=sliderpos,
             title=slidertitle,
-            showValue=True,
+            show_value=True,
             delayed=delayed,
         )
 
@@ -787,14 +787,14 @@ class Browser(Plotter):
                 tx = ak.name
             widget.GetRepresentation().SetTitleText(prefix + tx)
 
-        self.slider = self.addSlider2D(
+        self.slider = self.add_slider_2d(
             sliderfunc,
             0.5,
             len(objects) - 0.5,
             pos=sliderpos,
             font="courier",
             c=c,
-            showValue=False,
+            show_value=False,
         )
         self.slider.GetRepresentation().SetTitleHeight(0.020)
         sliderfunc(self.slider)  # init call

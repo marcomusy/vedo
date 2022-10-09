@@ -14,9 +14,9 @@ __all__ = [
     "Base3DProp",
     "BaseActor",
     "BaseGrid",
-    "probePoints",
-    "probeLine",
-    "probePlane",
+    "probe_points",
+    "probe_line",
+    "probe_plane",
 ]
 
 
@@ -1666,7 +1666,7 @@ class BaseGrid(BaseActor):
 
         return self
 
-    def alphaUnit(self, u=None):
+    def alpha_unit(self, u=None):
         """
         Defines light attenuation per unit length. Default is 1.
         The larger the unit length, the further light has to travel to attenuate the same amount.
@@ -1769,7 +1769,7 @@ class BaseGrid(BaseActor):
         if scalars is None:
             # print("Error in legosurface(): no scalars found!")
             return a
-        a.mapPointsToCells()
+        a.map_points_to_cells()
         return a
 
     @deprecated(reason=vedo.colors.red + "Please use cut_with_plane()" + vedo.colors.reset)
@@ -1809,7 +1809,7 @@ class BaseGrid(BaseActor):
         cout = clipper.GetOutput()
         return self._update(cout)
 
-    def cutWithBox(self, box):
+    def cut_with_box(self, box):
         """
         Cut the grid with the specified bounding box.
 
@@ -1834,7 +1834,7 @@ class BaseGrid(BaseActor):
         cout = bc.GetOutput()
         return self._update(cout)
 
-    def cutWithMesh(self, mesh, invert=False, wholeCells=False, onlyBoundary=False):
+    def cut_with_mesh(self, mesh, invert=False, whole_cells=False, only_boundary=False):
         """
         Cut a UGrid, TetMesh or Volume with a Mesh.
 
@@ -1846,13 +1846,13 @@ class BaseGrid(BaseActor):
         ippd = vtk.vtkImplicitPolyDataDistance()
         ippd.SetInput(polymesh)
 
-        if wholeCells or onlyBoundary:
+        if whole_cells or only_boundary:
             clipper = vtk.vtkExtractGeometry()
             clipper.SetInputData(ug)
             clipper.SetImplicitFunction(ippd)
             clipper.SetExtractInside(not invert)
             clipper.SetExtractBoundaryCells(False)
-            if onlyBoundary:
+            if only_boundary:
                 clipper.SetExtractBoundaryCells(True)
                 clipper.SetExtractOnlyBoundaryCells(True)
         else:
@@ -1936,7 +1936,7 @@ def _getinput(obj):
         return obj
 
 
-def probePoints(dataset, pts):
+def probe_points(dataset, pts):
     """
     Takes a ``Volume`` (or any other vtk data set)
     and probes its scalars at the specified points in space.
@@ -1949,7 +1949,7 @@ def probePoints(dataset, pts):
     if isinstance(pts, vedo.pointcloud.Points):
         pts = pts.points()
 
-    def readPoints():
+    def _readpoints():
         output = src.GetPolyDataOutput()
         points = vtk.vtkPoints()
         for p in pts:
@@ -1964,7 +1964,7 @@ def probePoints(dataset, pts):
         output.SetVerts(cells)
 
     src = vtk.vtkProgrammableSource()
-    src.SetExecuteMethod(readPoints)
+    src.SetExecuteMethod(_readpoints)
     src.Update()
     img = _getinput(dataset)
     probeFilter = vtk.vtkProbeFilter()
@@ -1973,11 +1973,11 @@ def probePoints(dataset, pts):
     probeFilter.Update()
     poly = probeFilter.GetOutput()
     pm = vedo.mesh.Mesh(poly)
-    pm.name = "probePoints"
+    pm.name = "ProbePoints"
     return pm
 
 
-def probeLine(dataset, p1, p2, res=100):
+def probe_line(dataset, p1, p2, res=100):
     """
     Takes a ``Volume``  (or any other vtk data set)
     and probes its scalars along a line defined by 2 points `p1` and `p2`.
@@ -2000,11 +2000,11 @@ def probeLine(dataset, p1, p2, res=100):
     probeFilter.Update()
     poly = probeFilter.GetOutput()
     lnn = vedo.mesh.Mesh(poly)
-    lnn.name = "probeLine"
+    lnn.name = "ProbeLine"
     return lnn
 
 
-def probePlane(dataset, origin=(0, 0, 0), normal=(1, 0, 0)):
+def probe_plane(dataset, origin=(0, 0, 0), normal=(1, 0, 0)):
     """
     Takes a ``Volume`` (or any other vtk data set)
     and probes its scalars on a plane defined by a point and a normal.
@@ -2021,12 +2021,12 @@ def probePlane(dataset, origin=(0, 0, 0), normal=(1, 0, 0)):
     planeCut.Update()
     poly = planeCut.GetOutput()
     cutmesh = vedo.mesh.Mesh(poly)
-    cutmesh.name = "probePlane"
+    cutmesh.name = "ProbePlane"
     return cutmesh
 
 
 ###################################################################################
-# def extractCellsByType(obj, types=(7,)):    ### VTK9 only
+# def extract_cells_by_type(obj, types=(7,)):    ### VTK9 only
 #     """Extract cells of a specified type.
 #     Given an input vtkDataSet and a list of cell types, produce an output
 #     containing only cells of the specified type(s).

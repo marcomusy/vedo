@@ -6,7 +6,7 @@ url = 'https://vedo.embl.es/examples/data/images/dog.jpg'
 
 pic = Picture(url).resize([200,None])  # resize so that x has 200 pixels, but keep y aspect-ratio
 picfft = pic.fft(logscale=12)
-picfft = picfft.tomesh().cmap('Set1',"RGBA").addScalarBar("12\dotlog(fft)")  # optional step
+picfft = picfft.tomesh().cmap('Set1',"RGBA").add_scalarbar("12\dotlog(fft)")  # optional step
 
 show([
       [pic, f"Original image\n{url[-40:]}"],

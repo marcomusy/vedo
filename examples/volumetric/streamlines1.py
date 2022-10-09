@@ -19,9 +19,9 @@ seeds = domain.clone().subsample(0.2) # these are the seed points
 streamlines = StreamLines(
     domain,
     seeds,
-    maxPropagation=100,
-    extrapolateToBox=dict(bounds=[-20,20, -15,15, -20,20]),
+    max_propagation=100,
+    extrapolate_to_box=dict(bounds=[-20,20, -15,15, -20,20]),
 )
-streamlines.lw(5).cmap("Blues", "Wind").addScalarBar()
+streamlines.lw(5).cmap("Blues", "Wind").add_scalarbar()
 
 show(streamlines, __doc__, axes=1, viewup='z').close()

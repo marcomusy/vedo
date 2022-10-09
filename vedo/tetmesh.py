@@ -309,7 +309,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         Set `threshold` to a single value or list of values to compute the isosurface(s)
         """
         if not self._data.GetPointData().GetScalars():
-            self.mapCellsToPoints()
+            self.map_cells_to_points()
         scrange = self._data.GetPointData().GetScalars().GetRange()
         cf = vtk.vtkContourFilter()  # vtk.vtkContourGrid()
         cf.SetInputData(self._data)

@@ -10,28 +10,28 @@ printc(__doc__)
 plt = Plotter(N=6)
 
 v0 = Volume(dataurl+'embryo.slc').c(0)
-v0.addScalarBar3D()
+v0.add_scalarbar_3d()
 plt.at(0).show("original", v0)
 
 v1 = v0.clone().operation("gradient").operation("mag")
-v1.addScalarBar3D()
+v1.add_scalarbar_3d()
 # print(v1.pointdata.keys())
 plt.at(1).show("gradient", v1)
 
 v2 = v0.clone().operation("divergence").c(2)
-v2.addScalarBar3D()
+v2.add_scalarbar_3d()
 plt.at(2).show("divergence", v2)
 
 v3 = v0.clone().operation("laplacian").c(3)
-v3.addScalarBar3D()
+v3.add_scalarbar_3d()
 plt.at(3).show("laplacian", v3)
 
 v4 = v0.clone().operation("median").c(4)
-v4.addScalarBar3D()
+v4.add_scalarbar_3d()
 plt.at(4).show("median", v4)
 
 v5 = v0.clone().operation("dot", v0).c(7)
-v5.addScalarBar3D()
+v5.add_scalarbar_3d()
 plt.at(5).show("dot(v0,v0)", v5, zoom=1.3)
 
 plt.interactive().close()
@@ -41,9 +41,9 @@ plt.interactive().close()
 #Start with creating a masked Volume then compute its gradient and probe 2 points
 msh = Ellipsoid()
 
-vol_obj = msh.signedDistance(dims=(20, 20, 20))
+vol_obj = msh.signed_distance(dims=(20, 20, 20))
 vol_obj.threshold(above=0.0, replace=0.0)  # replacing all values outside to 0
-vol_obj.c("blue").alpha([0.9, 0.0]).alphaUnit(0.1).addScalarBar3D()
+vol_obj.c("blue").alpha([0.9, 0.0]).alpha_unit(0.1).add_scalarbar_3d()
 
 vgrad = vol_obj.operation("gradient")
 printc(vgrad.pointdata.keys(), c='g')
@@ -53,7 +53,7 @@ pts = vol_obj.points()  # coords as numpy array
 arrs = Arrows(pts, pts + grd*0.1).lighting('off')
 
 pts_probes = [[0.2,0.5,0.5], [0.2,0.3,0.4]]
-vects = probePoints(vgrad, pts_probes).pointdata['ImageScalarsGradient']
+vects = probe_points(vgrad, pts_probes).pointdata['ImageScalarsGradient']
 arrs_pts_probe = Arrows(pts_probes, pts_probes+vects)
 
 plt = Plotter(axes=1, N=2)
