@@ -1312,6 +1312,12 @@ class Points(vtk.vtkFollower, BaseActor):
             self.GetProperty().SetOcclusionStrength(value)
             return self
 
+
+    @deprecated(reason=vedo.colors.red + "Please use point_size()" + vedo.colors.reset)
+    def pointSize(self, value):
+        "Deprecated. Please use point_size()"
+        return self.point_size(value)
+
     def point_size(self, value):
         """Set/get mesh's point size of vertices. Same as `mesh.ps()`"""
         if not value:

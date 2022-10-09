@@ -6,15 +6,15 @@ settings.allowInteraction = True # if ESC button is hit during the loop
 
 world = Box([0,0,0], 30, 15, 8).wireframe()
 
-plane = Mesh(dataurl+"cessna.vtk").c("green").addShadow('z', -4)
-plane.pos(-15, 2, 0.14).addTrail(n=200)
+plane = Mesh(dataurl+"cessna.vtk").c("green").add_shadow('z', -4)
+plane.pos(-15, 2, 0.14).add_trail(n=200)
 
 # Setup the scene
 plt = Plotter(axes=1, interactive=False)
 
 for t in np.arange(0, 3.2, 0.02):
 
-    plane.pos(9*t-15, 2-t, sin(3-t)).rotateX(0+t) # make up some movement
+    plane.pos(9*t-15, 2-t, sin(3-t)).rotate_x(0+t) # make up some movement
 
     plt.show(world, plane, __doc__, viewup="z")
     if plt.escaped:

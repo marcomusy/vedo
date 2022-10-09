@@ -584,9 +584,12 @@ class Mesh(Points):
         self.Modified()
         return self
 
-    def compute_normals(
-        self, points=True, cells=True, feature_angle=None, consistency=True
-    ):
+    @deprecated(reason=vedo.colors.red + "Please use compute_normals()" + vedo.colors.reset)
+    def computeNormals(self, points=True, cells=True, featureAngle=None, consistency=True):
+        "Deprecated. Please use compute_normals()"
+        return self.compute_normals(points, cells, featureAngle, consistency)
+
+    def compute_normals(self, points=True, cells=True, feature_angle=None, consistency=True):
         """
         Compute cell and vertex normals for the mesh.
 

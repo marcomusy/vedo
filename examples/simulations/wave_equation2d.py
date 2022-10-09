@@ -22,7 +22,7 @@ Z0[X**2+Y**2 > 2] = 0
 Z0 = gaussian_filter(Z0, sigma=4)
 Z1 = np.array(Z0)
 
-grid = Grid(s=(X[:,0], Y[0])).lineWidth(0).lighting('glossy')
+grid = Grid(s=(X[:,0], Y[0])).linewidth(0).lighting('glossy')
 txt = Text2D(font='Brachium', pos='bottom-left', bg='yellow5')
 
 cam = dict(

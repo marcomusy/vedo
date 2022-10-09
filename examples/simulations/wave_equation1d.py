@@ -12,7 +12,7 @@ from vedo import *
 ####################################################
 N = 400  # Number of coupled oscillators
 dt = 0.5  # Time step
-Nsteps = 1200  # Number of steps in the simulation
+nsteps = 1200  # Number of steps in the simulation
 
 
 ####################################################
@@ -74,7 +74,7 @@ y_eu, y_rk = np.array(y), np.array(y)
 v_eu, v_rk = np.array(v), np.array(v)
 
 t = 0
-pb = ProgressBar(0, Nsteps, c="blue", ETA=0)
+pb = ProgressBar(0, nsteps, c="blue", eta=0)
 for i in pb.range():
     y_eu, v_eu = euler(y_eu, v_eu, t, dt)
     y_rk, v_rk = rk4(y_rk, v_rk, t, dt)
@@ -109,7 +109,7 @@ plt += Picture(dataurl+"images/wave_wiki.png").alpha(0.8).scale(0.4).pos(0,-100,
 plt += __doc__
 plt.show()
 
-pb = ProgressBar(0, Nsteps, c="red", ETA=1)
+pb = ProgressBar(0, nsteps, c="red", eta=1)
 for i in pb.range():
     y_eu = positions_eu[i]  # retrieve the list of y positions at step i
     y_rk = positions_rk[i]

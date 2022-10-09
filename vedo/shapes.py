@@ -2892,7 +2892,7 @@ class Plane(Mesh):
 
     .. image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestPlane.png
     """
-    def __init__(self, pos=(0, 0, 0), normal=(0, 0, 1), s=(), c="gray6", alpha=1):
+    def __init__(self, pos=(0, 0, 0), normal=(0, 0, 1), s=(1, 1), c="gray6", alpha=1):
 
         pos = (pos[0], pos[1], 0)
         sx, sy = s

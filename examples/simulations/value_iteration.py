@@ -69,7 +69,7 @@ def solve(Z, start, goal):
 
     return P, G
 
-def printSolution(S, start, goal):
+def print_solution(S, start, goal):
     for y,line in enumerate(Z):
         for x,c in enumerate(line):
             if   (y,x) == start: print("[]", end='')
@@ -79,7 +79,7 @@ def printSolution(S, start, goal):
             else:                print("  ", end='')
         print()
 
-def showSolution3D(S, start, goal):
+def show_solution_3d(S, start, goal):
     from vedo import Text3D, Cube, Line, Grid, merge, show
 
     pts, cubes, txts = [], [], []
@@ -95,7 +95,7 @@ def showSolution3D(S, start, goal):
     gradient = np.flip(S[1], axis=0).ravel()
     grd = Grid(pos=((sx-1)/2, -(sy-1)/2, -0.49), s=[sx,sy], res=[sx,sy])
     grd.lw(0).wireframe(False).cmap('gist_earth_r', gradient, on='cells')
-    grd.addScalarBar(title='Gradient', horizontal=True, c='k', nlabels=2)
+    grd.add_scalarbar('Gradient', horizontal=True, c='k', nlabels=2)
 
     txts.append(__doc__)
     txts.append(Text3D('Start', pos=[start[1]-1,-start[0]+1.5,1], c='k'))
@@ -113,5 +113,5 @@ if __name__ == '__main__':
     print("Please wait..")
     S = solve(Z, start, goal)
 
-    #printSolution(S, start, goal)
-    showSolution3D(S, start, goal).close()
+    #print_solution(S, start, goal)
+    show_solution_3d(S, start, goal).close()

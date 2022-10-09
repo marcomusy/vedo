@@ -67,7 +67,7 @@ if __name__ == "__main__":
     P = np.c_[X.ravel(), Y.ravel()]
     D = scipy.spatial.distance.cdist(P, P)
 
-    s = Sphere(res=90).cutWithPlane(origin=(0,-.3,0), normal='y').subsample(0.01)
+    s = Sphere(res=90).cut_with_plane(origin=(0,-.3,0), normal='y').subsample(0.01)
 
     plt = Plotter(axes=6, interactive=False)
     grd = Grid(res=[n-1,n-1], c='green2')

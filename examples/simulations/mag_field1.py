@@ -39,16 +39,16 @@ def func(evt):
     plt.remove("Arrows", "StreamLines", "Axes")
     plt.add(arrows, streamlines, Axes(streamlines))
 
-probes = utils.packSpheres([-2,2, -2,2, -2,2], radius=0.75)
+probes = utils.pack_spheres([-2,2, -2,2, -2,2], radius=0.75)
 
 plt = Plotter()
-plt.addCallback("key press", func)
+plt.add_callback("key press", func)
 
 txt = Text2D(__doc__)
 plt += txt
 
 # Create a set of points in space to form a spline
 circle = Circle(res=8) # resolution = 8 points
-sptool = plt.addSplineTool(circle, pc='red', lw=4, closed=True)
+plt.add_spline_tool(circle, pc='red', lw=4, closed=True)
 
 plt.show().close()

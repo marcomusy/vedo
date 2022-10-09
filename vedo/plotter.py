@@ -2476,7 +2476,7 @@ class Plotter:
                         scannedacts.extend(a.shadows)
 
                     if a.trail and a.trail not in self.actors:
-                        a._updateTrail()
+                        a._update_trail()
                         scannedacts.append(a.trail)
                         # trails may also have shadows:
                         if a.trail.shadows:
@@ -2798,7 +2798,7 @@ class Plotter:
         for a in self.actors:
             try:
                 if a.trail:
-                    a._updateTrail()
+                    a._update_trail()
             except AttributeError:
                 pass
 

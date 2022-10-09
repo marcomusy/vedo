@@ -187,12 +187,12 @@ class Ray:
 
         for element in elements:
 
-            self.tolerance = element.diagonalSize()/1000.
+            self.tolerance = element.diagonal_size()/1000.
 
             for _ in range(self.maxiterations):
 
-                hit_cids = element.intersectWithLine(self.p, self.p + self.v * self.dmax,
-                                                     returnIds=True, tol=self.OBBTreeTolerance)
+                hit_cids = element.intersect_with_line(self.p, self.p + self.v * self.dmax,
+                                                     return_ids=True, tol=self.OBBTreeTolerance)
                 if not len(hit_cids):
                     break               # no hits
                 hit, cid = hit_cids[0]  # grab the first hit, point and cell ID of the mesh
@@ -265,7 +265,7 @@ class Ray:
             if cmap_amplitudes:
                 ln.cmap(cmap_amplitudes, self._amplitudes, vmin=vmin)
             elif c is None:
-                c = vedo.colors.colorMap(self.wave_length, "jet", 450e-09, 750e-09) /1.5
+                c = vedo.colors.color_map(self.wave_length, "jet", 450e-09, 750e-09) /1.5
                 ln.color(c)
             else:
                 ln.color(c)

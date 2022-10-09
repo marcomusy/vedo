@@ -18,9 +18,9 @@ def func(evt):
 
 surf = Plane(s=[60, 60])
 line = Line([l*n/2, 0], [-l*n/2, 0], res=n, lw=12)
-nodes= line.clone().c('red3').pointSize(15)
+nodes= line.clone().c('red3').point_size(15)
 
 plt = Plotter()
-plt.addCallback("on mouse move please call", func)
+plt.add_callback("on mouse move please call", func)
 plt.show(surf, line, nodes, __doc__, zoom=1.3)
 plt.close()

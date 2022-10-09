@@ -9,7 +9,7 @@ gpts = Points(pts, r=10).c('green',0.5)
 # Create a spline where the final points are more dense (easing)
 line = Spline(pts, easing="OutCubic", res=100)
 
-vpts = line.clone().pointSize(3).shift(0,0.1,0) # a dotted copy
+vpts = line.clone().point_size(3).shift(0,0.1,0) # a dotted copy
 
 # Calculate positions as a fraction of the length of the line,
 # being x=0 the first point and x=1 the last point.

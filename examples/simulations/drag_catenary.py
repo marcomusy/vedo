@@ -50,9 +50,9 @@ def move(evt):
 
 surf = vedo.Plane().shift(0.51,0,0)
 line = vedo.Line(P1, P2, res=n, lw=10)
-nodes= line.clone().c('red3').pointSize(8).z(.01)
+nodes= line.clone().c('red3').point_size(8).z(.01)
 
 plt = vedo.Plotter()
-plt.addCallback("hover", move)
+plt.add_callback("hover", move)
 plt.show(__doc__, surf, line, nodes, axes=1, mode='image')
 

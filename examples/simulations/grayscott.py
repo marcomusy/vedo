@@ -41,7 +41,7 @@ v += 0.05*np.random.uniform(-1, 1, (n, n))
 
 sy, sx = V.shape
 grd = Grid(s=[sx,sy], res=[sx,sy])
-grd.lineWidth(0).wireframe(False).lighting(ambient=0.5)
+grd.linewidth(0).wireframe(False).lighting(ambient=0.5)
 formula = r'(u,v)=(D_u\cdot\Delta u -u v v+F(1-u), D_v\cdot\Delta v +u v v -(F+k)v)'
 print('Du, Dv, F, k, name =', Du, Dv, F, k, name)
 
@@ -61,7 +61,7 @@ for step in range(Nsteps):
         v += Dv*Lv + uvv - (F+k)*v
 
     grd.cmap('ocean_r', V.ravel(), on='cells', name="escals")
-    grd.mapCellsToPoints()                   # interpolate cell data to point data
+    grd.map_cells_to_points()                # interpolate cell data to point data
     newpts = grd.points()
     newpts[:,2] = grd.pointdata['escals']*25 # assign z elevation
     grd.points(newpts)                       # set the new points

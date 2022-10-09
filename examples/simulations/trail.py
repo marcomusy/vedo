@@ -3,12 +3,12 @@ from vedo import Plotter, sin, Sphere, Point
 
 
 s = Sphere().c("green").bc("tomato")
-s.cutWithPlane([-0.8, 0, 0])  # cut left part of sphere
+s.cut_with_plane([-0.8, 0, 0])  # cut left part of sphere
 
 p = Point([-2,0,0], r=12, c="black")
 
 # add a trail to point p with 50 segments
-p.addTrail(lw=3, n=50)
+p.add_trail(lw=3, n=50)
 
 plt = Plotter(axes=6, interactive=False)
 
