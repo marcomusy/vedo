@@ -13,10 +13,10 @@ class MainWindow(Qt.QMainWindow):
         self.vtkWidget = QVTKRenderWindowInteractor(self.frame)
 
         # Create renderer and add the vedo objects and callbacks
-        self.plt = Plotter(qtWidget=self.vtkWidget)
-        self.id1 = self.plt.addCallback("mouse click", self.onMouseClick)
-        self.id2 = self.plt.addCallback("key press",   self.onKeypress)
-        self.plt += Cone().rotateX(20)
+        self.plt = Plotter(qt_widget=self.vtkWidget)
+        self.id1 = self.plt.add_callback("mouse click", self.onMouseClick)
+        self.id2 = self.plt.add_callback("key press",   self.onKeypress)
+        self.plt += Cone().rotate_x(20)
         self.plt.show()                  # <--- show the vedo rendering
 
         # Set-up the rest of the Qt window
@@ -38,7 +38,7 @@ class MainWindow(Qt.QMainWindow):
     @Qt.pyqtSlot()
     def onClick(self):
         printc("..calling onClick")
-        self.plt.actors[0].color('red').rotateZ(40)
+        self.plt.actors[0].color('red').rotate_z(40)
         self.plt.interactor.Render()
 
     def onClose(self):

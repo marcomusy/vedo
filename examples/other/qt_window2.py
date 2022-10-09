@@ -13,8 +13,8 @@ class MainWindow(Qt.QMainWindow):
         self.vtkWidget = QVTKRenderWindowInteractor(self.frame)
 
         # Create vedo renderer and add objects and callbacks
-        self.plt = Plotter(qtWidget=self.vtkWidget)
-        self.cbid = self.plt.addCallback("key press", self.onKeypress)
+        self.plt = Plotter(qt_widget=self.vtkWidget)
+        self.cbid = self.plt.add_callback("key press", self.onKeypress)
         self.imgActor = Picture("https://icatcare.org/app/uploads/2018/07/Helping-your-new-cat-or-kitten-settle-in-1.png")
         self.text2d = Text2D("Use slider to change contrast")
 

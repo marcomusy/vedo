@@ -1757,8 +1757,9 @@ class Mesh(Points):
         return Mesh(gf.GetOutput()).lw(1)
 
     @deprecated(reason=vedo.colors.red + "Please use intersect_with_line()" + vedo.colors.reset)
-    def intersectWithLine(self, p0, p1=None, return_ids=False, tol=0):
-        raise RuntimeError
+    def intersectWithLine(self, p0, p1=None, returnIds=False, tol=0):
+        "Deprecated. Please use intersect_with_line()"
+        return self.intersect_with_line(p0, p1, returnIds, tol)
 
     def intersect_with_line(self, p0, p1=None, return_ids=False, tol=0):
         """

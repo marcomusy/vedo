@@ -14,16 +14,16 @@ widget.Enable(1)
 widget.AddObserver("ExitEvent", lambda o,e,f=frame: f.Close())
 
 ##################################################### vedo
-def funcMove(event):
+def func(event):
     mesh = event.actor
     if not mesh: return
 
-    ptid = mesh.closestPoint(event.picked3d, returnPointId=True)
+    ptid = mesh.closest_point(event.picked3d, return_point_id=True)
     txt = f"Probed point:\n{vedo.utils.precision(event.picked3d, 3)}\n" \
           f"value = {vedo.utils.precision(arr[ptid], 2)}"
 
     vpt = vedo.shapes.Sphere(mesh.points(ptid), r=0.01, c='orange2').pickable(False)
-    vig = vpt.vignette(txt, s=.05, offset=(0.5,0.5), font="VictorMono").followCamera()
+    vig = vpt.vignette(txt, s=.05, offset=(0.5,0.5), font="VictorMono").follow_camera()
 
     msg.text(txt)               # update the 2d text message
     plt.remove(plt.actors[-2:]).add([vpt, vig]) # remove last 2 objects, add the new ones
@@ -34,10 +34,10 @@ msh = vedo.shapes.ParametricShape("RandomHills").cmap('terrain')
 axs = vedo.Axes(msh)
 arr = msh.pointdata["Scalars"]
 
-plt = vedo.Plotter(bg='moccasin', bg2='blue9', wxWidget=widget)
-plt.add([msh, axs, msg]).resetCamera()
+plt = vedo.Plotter(bg='moccasin', bg2='blue9', wx_widget=widget)
+plt.add([msh, axs, msg]).reset_camera()
 plt.actors += [None,None,None]  # place holder for sphere, vignette, text2d
-plt.addCallback('MouseMove', funcMove)
+plt.add_callback('MouseMove', func)
 
 #####################################################
 # Show everything

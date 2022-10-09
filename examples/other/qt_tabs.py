@@ -13,7 +13,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.vtkWidget = QVTKRenderWindowInteractor(self)
         self.vtkLayout.addWidget(self.vtkWidget)
 
-        self.plt = Plotter(qtWidget=self.vtkWidget, axes=1)
+        self.plt = Plotter(qt_widget=self.vtkWidget, axes=1)
 
         self.plt += Mesh(dataurl+'shark.ply').c('cyan')
 

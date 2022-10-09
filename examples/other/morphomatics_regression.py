@@ -54,7 +54,7 @@ pts = [y[..., 0][0] for y in Y]
 # visualize
 pts = vedo.Points(pts, r=15)
 line = vedo.Line(x).lw(10).cmap("jet", time)
-line.addScalarBar("time")
+line.aadd_scalarbar("time")
 sphere = vedo.Sphere(c='white').flat()
 vedo.show(sphere, line, pts, __doc__, axes=1, viewup='z').close()
 

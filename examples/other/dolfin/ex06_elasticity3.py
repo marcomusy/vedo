@@ -5,6 +5,7 @@ from dolfin import *
 from mshr import *
 import numpy as np
 import vedo
+from vedo.dolfin import plot
 
 set_log_level(30)
 
@@ -77,7 +78,7 @@ for i in range(N):
     # plot things:
     txt = vedo.Text2D(f"step{i}")
     arrow = vedo.Arrow2D([0,0], F*20).z(1)
-    vedo.dolfin.plot(mesh, arrow, txt, c='grey5', at=i, N=N, zoom=1.1) #PRESS q
+    plot(mesh, arrow, txt, c='grey5', at=i, N=N, zoom=1.1) #PRESS q
 
 dmesh_i = meshes[0]  # initial mesh
 dmesh_f = meshes[-1] # final mesh

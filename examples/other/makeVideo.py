@@ -8,7 +8,7 @@ from vedo import dataurl, Plotter, Mesh, Video
 # declare the class instance
 plt = Plotter(bg='beige', bg2='lb', axes=10, offscreen=False, interactive=1)
 
-plt += Mesh(dataurl+"spider.ply").rotateX(-90).texture(dataurl+'textures/leather.jpg')
+plt += Mesh(dataurl+"spider.ply").rotate_x(-90).texture(dataurl+'textures/leather.jpg')
 plt += __doc__
 
 # Open a video file and force it to last 3 seconds in total
@@ -18,7 +18,7 @@ video = Video("spider.mp4", duration=4, backend='ffmpeg') # backend='opencv'
 # Any rendering loop goes here, e.g.:
 # for i in range(80):
 #     plt.show(elevation=1, azimuth=2)  # render the scene
-#     video.addFrame()                  # add individual frame
+#     video.add_frame()                 # add individual frame
 
 ##############################################################
 # OR use the automatic video shooting function:

@@ -3,8 +3,8 @@ import napari
 import vedo
 
 # Load the surface, triangulate just in case, and compute vertex normals
-surf = vedo.Mesh(vedo.dataurl+"beethoven.ply").triangulate().computeNormals()
-surf.rotateX(180).rotateY(60)
+surf = vedo.Mesh(vedo.dataurl+"beethoven.ply").triangulate().compute_normals()
+surf.rotate_x(180).rotate_y(60)
 
 vertices = surf.points()
 faces    = np.array(surf.faces())

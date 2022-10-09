@@ -1995,7 +1995,7 @@ def trimesh2vedo(inputobj):
                     tact.c(trim_c[0, [0, 1, 2]]).alpha(trim_c[0, 3])
                 else:
                     if inputobj.visual.kind == "face":
-                        tact.cellIndividualColors(trim_c)
+                        tact.cell_individual_colors(trim_c)
         return tact
 
     elif "PointCloud" in inputobj_type:

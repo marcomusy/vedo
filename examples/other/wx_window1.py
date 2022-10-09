@@ -33,10 +33,10 @@ axes = vedo.Axes(cone, c='white')
 cube = vedo.shapes.Cube()
 
 # Create 2 subwindows with a cone and a cube
-plt = vedo.Plotter(N=2, bg='blue2', bg2='blue8', wxWidget=widget)
-plt.addCallback("right mouse click", func)
-plt.at(0).add([cone, axes, "right-click anywhere"]).resetCamera()
-plt.at(1).add(cube).resetCamera()
+plt = vedo.Plotter(N=2, bg='blue2', bg2='blue8', wx_widget=widget)
+plt.add_callback("right mouse click", func)
+plt.at(0).add([cone, axes, "right-click anywhere"]).reset_camera()
+plt.at(1).add(cube).reset_camera()
 # plt.show() # vedo.show() is now disabled in wx
 
 #####################################################

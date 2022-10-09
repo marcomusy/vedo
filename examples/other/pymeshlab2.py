@@ -15,7 +15,7 @@ ms.generate_surface_reconstruction_ball_pivoting(ballradius=p)
 # ms.compute_normals_for_point_sets()
 
 mlab_mesh = ms.current_mesh()
-reco_mesh = vedo.Mesh(mlab_mesh).computeNormals().flat().backColor('t')
+reco_mesh = vedo.Mesh(mlab_mesh).compute_normals().flat().backcolor('t')
 
 vedo.show(__doc__, vedo.Points(pts), reco_mesh,
           axes=True, bg2='blue9', title="vedo + pymeshlab",

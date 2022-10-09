@@ -26,7 +26,7 @@ for th in np.linspace(0, np.pi, N, endpoint=True):
     longs = []
     for ph in np.linspace(0, 2*np.pi, N, endpoint=False):
         p = spher2cart(rmax, th, ph)
-        intersections = surface.intersectWithLine(x0, x0+p)
+        intersections = surface.intersect_with_line(x0, x0+p)
         if len(intersections):
             value = mag(intersections[0]-x0)
             longs.append(value)
@@ -38,7 +38,7 @@ for th in np.linspace(0, np.pi, N, endpoint=True):
     agrid.append(longs)
 agrid = np.array(agrid)
 
-hits = Points(pts).cmap('jet', agrid.ravel()).addScalarBar3D(title='scalar distance to x_0')
+hits = Points(pts).cmap('jet', agrid.ravel()).add_scalarbar_3d('scalar distance to x_0')
 show([surface, hits, Point(x0), __doc__], at=0, N=2, axes=1)
 
 #############################################################

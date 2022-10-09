@@ -566,7 +566,7 @@ def draw_scene(args):
         N = nfiles
         plt = Plotter(size=wsize, bg=args.background, bg2=args.background_grad)
         plt.axes = args.axes_type
-        plt.addHoverLegend()
+        plt.add_hover_legend()
 
     plt.sharecam = not args.no_camera_share
 

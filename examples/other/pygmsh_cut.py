@@ -28,5 +28,5 @@ plt.show(
     msh,
     "Drag the sphere,\nright-click&drag to zoom",
 )
-plt.addCutterTool(mode='sphere')
+plt.add_cutter_tool(mode='sphere')
 plt.close()

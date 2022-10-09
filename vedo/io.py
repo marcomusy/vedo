@@ -835,7 +835,7 @@ def tonumpy(obj):
         adict["position"] = obj.pos()
         adict["info"] = obj.info
         m = np.eye(4)
-        vm = obj.getTransform().GetMatrix()
+        vm = obj.get_transform().GetMatrix()
         for i in [0, 1, 2, 3]:
             for j in [0, 1, 2, 3]:
                 m[i, j] = vm.GetElement(i, j)
@@ -1085,10 +1085,10 @@ def loadnumpy(inobj):
 
         if "celldata" in keys:
             for csc, cscname in d["celldata"]:
-                msh.addCellArray(csc, cscname)
+                msh.celldata[cscname] = csc
         if "pointdata" in keys:
             for psc, pscname in d["pointdata"]:
-                msh.addPointArray(psc, pscname)
+                msh.pointdata[pscname] = psc
 
         msh.mapper().ScalarVisibilityOff()  # deactivate scalars
 
@@ -1415,7 +1415,7 @@ def write_transform(inobj, filename="transform.mat", comment=""):
         some optional comment. The default is ''.
     """
     if isinstance(inobj, Points):
-        M = inobj.getTransform().GetMatrix()
+        M = inobj.get_transform().GetMatrix()
     elif isinstance(inobj, vtk.vtkTransform):
         M = inobj.GetMatrix()
     elif isinstance(inobj, vtk.vtkMatrix4x4):
@@ -1919,7 +1919,7 @@ class Video:
         self.get_filename = lambda x: os.path.join(self.tmp_dir.name, x)
         colors.printc("\video Video", self.name, "is open... ", c="m", end="")
 
-    def addFrame(self):
+    def add_frame(self):
         """Add frame to current video."""
         fr = self.get_filename(str(len(self.frames)) + ".png")
         screenshot(fr)
@@ -1989,9 +1989,9 @@ class Video:
                 if cam == cams[-1]:
                     break
                 for i in range(n):
-                    plt.moveCamera(cams[icam], cams[icam + 1], i / n)
+                    plt.move_camera(cams[icam], cams[icam + 1], i / n)
                     plt.show()
-                    self.addFrame()
+                    self.add_frame()
 
         else:  ########################################
 
@@ -1999,7 +1999,7 @@ class Video:
                 plt.camera.Elevation((elevation[1] - elevation[0]) / n)
                 plt.camera.Azimuth((azimuth[1] - azimuth[0]) / n)
                 plt.show()
-                self.addFrame()
+                self.add_frame()
 
         return self
 

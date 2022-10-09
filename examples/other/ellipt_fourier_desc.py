@@ -15,7 +15,7 @@ for order in range(5,30, 5):
     coeffs = pyefd.elliptic_fourier_descriptors(pts, order=order, normalize=False)
     a0, c0 = pyefd.calculate_dc_coefficients(pts)
     rpts = pyefd.reconstruct_contour(coeffs, locus=(a0,c0), num_points=400)
-    color = vedo.colorMap(order, "Blues", 5,30)
+    color = vedo.color_map(order, "Blues", 5,30)
     rline = vedo.Line(rpts).lw(3).c(color)
     rlines.append(rline)
 

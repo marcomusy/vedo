@@ -14,7 +14,7 @@ class MainWindow(Qt.QMainWindow):
         self.vtkWidget = QVTKRenderWindowInteractor(self.frame)
 
         # Create renderer and add the vedo objects and callbacks
-        self.plt = Plotter(qtWidget=self.vtkWidget)
+        self.plt = Plotter(qt_widget=self.vtkWidget)
         mesh = Mesh(dataurl+'cow.vtk')
         self.plt += mesh
         self.plt.show()
@@ -34,7 +34,7 @@ class MainWindow(Qt.QMainWindow):
         self.show()
 
     def ctool_start(self):
-        self.plt.addCutterTool(mode='box')
+        self.plt.add_cutter_tool(mode='box')
         self.plt.widgets[-1].On()
 
     def ctool_stop(self):

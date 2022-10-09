@@ -4,7 +4,7 @@
 import vedo
 import polyscope
 
-m = vedo.load(vedo.dataurl+'embryo.tif').isosurface().extractLargestRegion()
+m = vedo.load(vedo.dataurl+'embryo.tif').isosurface().extract_largest_region()
 # m = vedo.load(vedo.dataurl+'man.vtk')
 
 polyscope.set_program_name("vedo using polyscope")

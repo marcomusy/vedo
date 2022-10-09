@@ -14,12 +14,12 @@ class MainWindow(Qt.QMainWindow):
         self.widget = QVTKRenderWindowInteractor(self.frame)
 
         # Create renderer and add the vedo objects and callbacks
-        self.plt = Plotter(N=2, axes=1, qtWidget=self.widget)
-        self.id1 = self.plt.addCallback("mouse click", self.onMouseClick)
-        self.id2 = self.plt.addCallback("key press", self.onKeypress)
+        self.plt = Plotter(N=2, axes=1, qt_widget=self.widget)
+        self.id1 = self.plt.add_callback("mouse click", self.onMouseClick)
+        self.id2 = self.plt.add_callback("key press", self.onKeypress)
 
-        cone1 = Cone().rotateX(20)
-        cone2 = Cone().rotateX(40).c("blue5")
+        cone1 = Cone().rotate_x(20)
+        cone2 = Cone().rotate_x(40).c("blue5")
 
         self.plt.at(0).show(cone1)
         self.plt.at(1).show(cone2)
@@ -42,7 +42,7 @@ class MainWindow(Qt.QMainWindow):
 
     @Qt.pyqtSlot()
     def onClick(self):
-        self.plt.actors[0].color("red5").rotateZ(40)
+        self.plt.actors[0].color("red5").rotate_z(40)
         self.plt.render()
 
     def onClose(self):

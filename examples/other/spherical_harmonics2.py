@@ -30,7 +30,7 @@ def makeGrid(shape, N):
         lats = []
         for ph in np.linspace(0, 2 * np.pi, N, endpoint=True):
             p = np.array([sin(th) * cos(ph), sin(th) * sin(ph), cos(th)]) * rmax
-            intersections = shape.intersectWithLine([0, 0, 0], p)
+            intersections = shape.intersect_with_line([0, 0, 0], p)
             if len(intersections):
                 value = mag(intersections[0])
                 lats.append(value - rbias)
@@ -66,7 +66,7 @@ settings.useDepthPeeling = True
 plt = Plotter(shape=[2, 2], axes=3, interactive=0)
 
 shape1 = Sphere(alpha=0.2)
-shape2 = Mesh(dataurl + "icosahedron.vtk").normalize().lineWidth(1)
+shape2 = Mesh(dataurl + "icosahedron.vtk").normalize().linewidth(1)
 plt += shape2
 
 agrid1, actorpts1 = makeGrid(shape1, N)
