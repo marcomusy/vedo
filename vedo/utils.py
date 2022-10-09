@@ -107,7 +107,7 @@ class ProgressBar:
         self.italic = italic
         self.width = width
         self.char = char
-        self.bar = ""
+        self.pbar = ""
         self.percent = 0.0
         self.percent_int = 0
         self.eta = eta
@@ -128,8 +128,8 @@ class ProgressBar:
             self._update(counts)
         else:
             self._update(self._counts + self.step)
-        if self.bar != self._oldbar:
-            self._oldbar = self.bar
+        if self.pbar != self._oldbar:
+            self._oldbar = self.pbar
             eraser = [" "] * self._lentxt + ["\b"] * self._lentxt
             eraser = "".join(eraser)
             if self.eta and self._counts > 1:
@@ -165,7 +165,7 @@ class ProgressBar:
             else:
                 eta = ""
             txt = eta + str(txt)
-            s = self.bar + " " + eraser + txt + "\r"
+            s = self.pbar + " " + eraser + txt + "\r"
             vedo.printc(s, c=c, bold=self.bold, italic=self.italic, end="")
             sys.stdout.flush()
 
@@ -198,12 +198,12 @@ class ProgressBar:
         nh = int(round(self.percent_int / 100 * af))
         br_bk = "\x1b[2m" + self.char_back * (af - nh)
         br = "%s%s%s" % (self.char * (nh - 1), self.char_arrow, br_bk)
-        self.bar = self.title + self.char0 + br + self.char1
+        self.pbar = self.title + self.char0 + br + self.char1
         if self.percent < 100.0:
             ps = " " + str(self.percent_int) + "%"
         else:
             ps = ""
-        self.bar += ps
+        self.pbar += ps
 
 
 ###########################################################
@@ -1021,7 +1021,7 @@ def grep(filename, tag, first_occurrence_only=False):
     """Greps the line that starts with a specific `tag` string inside the file."""
     import re
 
-    with open(filename, "r") as afile:
+    with open(filename, "r", encoding='UTF-8') as afile:
         content = []
         for line in afile:
             if re.search(tag, line):
@@ -1150,7 +1150,7 @@ def print_info(obj):
         cldata = poly.GetCellData()
         if ptdata.GetNumberOfArrays() + cldata.GetNumberOfArrays():
 
-            arrtypes = dict()
+            arrtypes = {}
             arrtypes[vtk.VTK_UNSIGNED_CHAR] = ("UNSIGNED_CHAR",  "np.uint8")
             arrtypes[vtk.VTK_UNSIGNED_SHORT]= ("UNSIGNED_SHORT", "np.uint16")
             arrtypes[vtk.VTK_UNSIGNED_INT]  = ("UNSIGNED_INT",   "np.uint32")
@@ -1528,7 +1528,7 @@ def print_histogram(
         if not arr:
             arr = data.polydata().GetCellData().GetScalars()
             if not arr:
-                return
+                return None
 
         data = vtk2numpy(arr)
 

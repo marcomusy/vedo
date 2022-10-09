@@ -1652,6 +1652,8 @@ class Mesh(Points):
                         inface.append(i)
                 return np.array(inface).astype(int)
 
+            return self
+
         else:
 
             fe.SetInputData(self.polydata())
@@ -2025,18 +2027,18 @@ class Mesh(Points):
             .. image:: https://vedo.embl.es/images/basic/extrude.png
         """
         if is_sequence(zshift):
-            #            ms = [] # todo
-            #            poly0 = self.clone().polydata()
-            #            for i in range(len(zshift)-1):
-            #                rf = vtk.vtkRotationalExtrusionFilter()
-            #                rf.SetInputData(poly0)
-            #                rf.SetResolution(res)
-            #                rf.SetCapping(0)
-            #                rf.SetAngle(rotation)
-            #                rf.SetTranslation(zshift)
-            #                rf.SetDeltaRadius(dR)
-            #                rf.Update()
-            #                poly1 = rf.GetOutput()
+            # ms = [] # todo
+            # poly0 = self.clone().polydata()
+            # for i in range(len(zshift)-1):
+            #     rf = vtk.vtkRotationalExtrusionFilter()
+            #     rf.SetInputData(poly0)
+            #     rf.SetResolution(res)
+            #     rf.SetCapping(0)
+            #     rf.SetAngle(rotation)
+            #     rf.SetTranslation(zshift)
+            #     rf.SetDeltaRadius(dR)
+            #     rf.Update()
+            #     poly1 = rf.GetOutput()
             return self
         else:
             rf = vtk.vtkRotationalExtrusionFilter()

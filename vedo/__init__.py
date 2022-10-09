@@ -3,6 +3,42 @@
 """
 .. include:: ../docs/documentation.md
 """
+######################################################################## imports
+import os
+import sys
+import warnings
+import logging
+import numpy as np
+from numpy import sin, cos, sqrt, exp, log, dot, cross  # just because useful
+import vtkmodules.all as vtk
+
+#################################################
+from vedo.version import _version as __version__
+from vedo.utils import *
+from vedo import settings
+from vedo.colors import *
+from vedo.shapes import *
+from vedo.io import *
+from vedo.base import *
+from vedo.ugrid import *
+from vedo.assembly import *
+from vedo.pointcloud import *
+from vedo.mesh import *
+from vedo.picture import *
+from vedo.volume import *
+from vedo.tetmesh import *
+from vedo.addons import *
+from vedo.plotter import *
+
+from vedo import applications
+
+try:
+    import platform
+    sys_platform = platform.system()
+except (ModuleNotFoundError, AttributeError) as e:
+    sys_platform = ""
+
+
 ##### To generate documentation #######################################################
 # cd Projects/vedo
 # pip uninstall vedo
@@ -25,43 +61,12 @@ __pdoc__['pointcloud.Points.warpByVectors'] = False
 __pdoc__['pointcloud.Points.distanceToMesh'] = False
 
 #######################################################################################
-
 __author__     = "Marco Musy"
 __license__    = "MIT"
 __maintainer__ = "M. Musy"
 __email__      = "marco.musy@embl.es"
 __status__     = "dev"
 __website__    = "https://github.com/marcomusy/vedo"
-
-######################################################################## imports
-import os
-import sys
-import warnings
-import logging
-import numpy as np
-from numpy import sin, cos, sqrt, exp, log, dot, cross  # just because useful
-import vtkmodules.all as vtk
-
-#################################################
-from vedo.version import _version as __version__
-from vedo.utils import *
-import vedo.settings as settings
-from vedo.colors import *
-from vedo.shapes import *
-from vedo.io import *
-from vedo.base import *
-from vedo.ugrid import *
-from vedo.assembly import *
-from vedo.pointcloud import *
-from vedo.mesh import *
-from vedo.picture import *
-from vedo.volume import *
-from vedo.tetmesh import *
-from vedo.shapes import *
-from vedo.addons import *
-from vedo.plotter import *
-
-import vedo.applications as applications
 
 ##################################################################################
 ########################################################################## GLOBALS
@@ -70,12 +75,6 @@ vtk_version = [
     int(vtk.vtkVersion().GetVTKMinorVersion()),
     int(vtk.vtkVersion().GetVTKBuildVersion()),
 ]
-
-try:
-    import platform
-    sys_platform = platform.system()
-except:
-    sys_platform = ""
 
 if vtk_version[0] >= 9:
     if "Windows" in sys_platform or "Linux" in sys_platform:
@@ -103,9 +102,9 @@ class _LoggingCustomFormatter(logging.Formatter):
     }
 
     def format(self, record):
-         log_fmt = self.FORMATS.get(record.levelno)
-         formatter = logging.Formatter(log_fmt)
-         return formatter.format(record)
+        log_fmt = self.FORMATS.get(record.levelno)
+        formatter = logging.Formatter(log_fmt)
+        return formatter.format(record)
 
 logger = logging.getLogger("vedo")
 _chsh = logging.StreamHandler()

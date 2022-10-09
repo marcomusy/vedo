@@ -1,6 +1,5 @@
 import glob
 import os
-from deprecated import deprecated
 
 import numpy as np
 import vtkmodules.all as vtk
@@ -412,13 +411,15 @@ class BaseVolume:
 
         K = None
 
-        if isinstance(volume2, (int, float)):
+        if utils.is_number(volume2):
             K = volume2
             mat.SetConstantK(K)
             mat.SetConstantC(K)
+
         elif volume2 is not None:  # assume image2 is a constant value
             mat.SetInput2Data(volume2.imagedata())
 
+        # ###########################
         if op in ["+", "add", "plus"]:
             if K:
                 mat.SetOperationToAddConstant()
@@ -427,7 +428,7 @@ class BaseVolume:
 
         elif op in ["-", "subtract", "minus"]:
             if K:
-                mat.SetConstantC(-K)
+                mat.SetConstantC(-float(K))
                 mat.SetOperationToAddConstant()
             else:
                 mat.SetOperationToSubtract()

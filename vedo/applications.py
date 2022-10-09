@@ -1090,7 +1090,7 @@ class SplinePlotter(Plotter):
         Press q to continue""".replace("  ","")
         self.instructions = Text2D(t, pos='bottom-left', c='white', bg='green', font='Calco')
 
-        self.callid1 = self.add_callback('KeyPress', self._keypress)
+        self.callid1 = self.add_callback('KeyPress', self._key_press)
         self.callid2 = self.add_callback('LeftButtonPress', self._onLeftClick)
         self.callid3 = self.add_callback('RightButtonPress', self._on_right_click)
 
@@ -1140,7 +1140,7 @@ class SplinePlotter(Plotter):
         else:
             self.add(self.vpoints)
 
-    def _keypress(self, evt):
+    def _key_press(self, evt):
         if evt.keyPressed == 'c':
             self.cpoints = []
             self.remove(self.line, self.vpoints).render()

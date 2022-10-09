@@ -203,7 +203,7 @@ def exe_run(args):
     if args.full_screen:  # -f option not to dump the full code but just the first line
         for mat in matching[:25]:
             printc(os.path.basename(mat).replace(".py", ""), c="y", italic=1, end=" ")
-            with open(mat, 'r') as fm:
+            with open(mat, 'r', encoding='UTF-8') as fm:
                 lline = ''.join(fm.readlines(60))
                 lline = lline.replace('\n',' ').replace('\'','').replace('\"','').replace('-','')
                 line = lline[:56] #cut
@@ -223,7 +223,7 @@ def exe_run(args):
         sys.exit(0)
 
     if not args.full_screen:  # -f option not to dump the full code
-        with open(matching[0], 'r') as fm:
+        with open(matching[0], 'r', encoding='UTF-8') as fm:
             code = fm.read()
         code = "#" * 80 + "\n" + code + "\n" + "#" * 80
 
@@ -297,7 +297,7 @@ def exe_search(args):
         pattern = pattern.lower()
     if len(pattern) > 3:
         for ifile in exfiles:
-            with open(ifile, "r") as file:
+            with open(ifile, "r", encoding='UTF-8') as file:
                 fflag = True
                 for i, line in enumerate(file):
                     if args.no_camera_share:
@@ -343,7 +343,7 @@ def exe_search_vtk(args):
                 raise RuntimeError(f"Failed to download {dl_url}. {e.reason}")
         return path
 
-    def get_examples(d, vtk_class, lang, all_values=False, number=5):
+    def get_examples(d, vtk_class, lang):
         try:
             kv = d[vtk_class][lang].items()
         except KeyError as e:
@@ -363,10 +363,10 @@ def exe_search_vtk(args):
     # Force a new download if the time difference is > 10 minutes.
     if dt > 600:
         path = download_file(tmp_dir, xref_url, overwrite=True)
-    with open(path, 'r') as json_file:
+    with open(path, 'r', encoding='UTF-8') as json_file:
         xref_dict = json.load(json_file)
 
-    total_number, examples = get_examples(xref_dict, vtk_class, language, all_values=all_values, number=number)
+    total_number, examples = get_examples(xref_dict, vtk_class, language)
     if examples:
         if total_number <= number or all_values:
             print(
@@ -622,7 +622,7 @@ def draw_scene(args):
             vol,
             bg="white",
             bg2="lb",
-            useSlider3D=useSlider3D,
+            use_slider_3d=useSlider3D,
             cmaps=[args.cmap, "Spectral_r", "hot_r", "bone_r", "gist_ncar_r"],
             alpha=args.alpha,
             axes=args.axes_type,

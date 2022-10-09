@@ -1566,7 +1566,7 @@ class Points(vtk.vtkFollower, BaseActor):
             .. image:: https://vedo.embl.es/images/basic/boundaries.png
         """
         if isinstance(content, str):
-            if content == 'cellid' or content == 'cellsid':
+            if content in ('cellid', 'cellsid'):
                 cells = True
                 content = "id"
 
@@ -1752,7 +1752,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 show(sph, l2d, axes=1).close()
         """
         if isinstance(content, str):
-            if content == 'cellid' or content == 'cellsid':
+            if content in ('cellid', 'cellsid'):
                 cells = True
                 content = "id"
 
@@ -3230,18 +3230,18 @@ class Points(vtk.vtkFollower, BaseActor):
             # prevent centroids from escaping bounding box
             return _constrain_points([[centroid_x, centroid_y]])[0]
 
-        def _relax(voronoi):
+        def _relax(voron):
             # Moves each point to the centroid of its cell in the voronoi
             # map to "relax" the points (i.e. jitter the points so as
             # to spread them out within the space).
             centroids = []
-            for idx in voronoi.point_region:
+            for idx in voron.point_region:
                 # the region is a series of indices into voronoi.vertices
                 # remove point at infinity, designated by index -1
-                region = [i for i in voronoi.regions[idx] if i != -1]
+                region = [i for i in voron.regions[idx] if i != -1]
                 # enclose the polygon
                 region = region + [region[0]]
-                verts = voronoi.vertices[region]
+                verts = voron.vertices[region]
                 # find the centroid of those vertices
                 centroids.append(_find_centroid(verts))
             return _constrain_points(centroids)

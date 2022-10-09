@@ -253,8 +253,8 @@ def plot(*inputobj, **options):
         - tol, (float) - tolerance to reduce the number of seed points used in mesh
         - lw, (float) - line width of the streamline
         - direction, (str) - direction of integration ('forward', 'backward' or 'both')
-        - maxPropagation, (float) - max propagation of the streamline
-        - scalarRange, (list) - scalar range of coloring
+        - max_propagation, (float) - max propagation of the streamline
+        - scalar_range, (list) - scalar range of coloring
 
 
     warpZfactor : float
@@ -878,8 +878,8 @@ def MeshStreamLines(*inputobj, **options):
     tol = options.pop("tol", 0.02)
     lw = options.pop("lw", 2)
     direction = options.pop("direction", "forward")
-    maxPropagation = options.pop("maxPropagation", None)
-    scalarRange = options.pop("scalarRange", None)
+    max_propagation = options.pop("max_propagation", None)
+    scalar_range = options.pop("scalar_range", None)
     probes = options.pop("probes", None)
 
     tubes = options.pop("tubes", {})  # todo
@@ -921,10 +921,10 @@ def MeshStreamLines(*inputobj, **options):
         meshact,
         probes,
         direction=direction,
-        maxPropagation=maxPropagation,
+        max_propagation=max_propagation,
         tubes=tubes,
-        scalarRange=scalarRange,
-        activeVectors="u_values",
+        scalar_range=scalar_range,
+        active_vectors="u_values",
     )
 
     if lw:

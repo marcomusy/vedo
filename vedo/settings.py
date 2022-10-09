@@ -466,5 +466,3 @@ font_parameters = dict(
                         islocal = False,
                         ),
 )
-
-

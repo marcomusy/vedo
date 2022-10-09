@@ -89,7 +89,7 @@ class MatplotlibPicture(vtk.vtkActor2D):
         self.data = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
         self.data = self.data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
         self.picture = Picture(self.data)
-        if len(size):
+        if len(size) > 0:
             self.picture.resize(np.array(size)*scale)
         if scale != 1:
             self.picture.scale(scale)
@@ -717,7 +717,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """
         blf = vtk.vtkImageBlend()
         blf.AddInputData(self._data)
-        blf.AddInputData(pic._data)
+        blf.AddInputData(pic.inputdata())
         blf.SetOpacity(0, alpha1)
         blf.SetOpacity(1, alpha2)
         blf.SetBlendModeToNormal()
@@ -900,10 +900,10 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         self._data.GetPointData().GetScalars().SetName("RGBA")
         gr.inputdata().GetPointData().AddArray(self._data.GetPointData().GetScalars())
         gr.inputdata().GetPointData().SetActiveScalars("RGBA")
-        gr._mapper.SetArrayName("RGBA")
-        gr._mapper.SetScalarModeToUsePointData()
-        # gr._mapper.SetColorModeToDirectScalars()
-        gr._mapper.ScalarVisibilityOn()
+        gr.mapper().SetArrayName("RGBA")
+        gr.mapper().SetScalarModeToUsePointData()
+        # gr.mapper().SetColorModeToDirectScalars()
+        gr.mapper().ScalarVisibilityOn()
         gr.name = self.name
         gr.filename = self.filename
         return gr
@@ -945,8 +945,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         c = np.array([r, g, b]) * 255
         c = c.astype(np.uint8)
 
-        if alpha > 1:
-            alpha = 1
+        alpha = min(alpha, 1)
         if alpha <= 0:
             return self
         alpha2 = alpha
@@ -982,8 +981,8 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         r, g, b = vedo.colors.get_color(c)
         c = np.array([r, g, b]) * 255
         c = c.astype(np.uint8)
-        if alpha > 1:
-            alpha = 1
+
+        alpha = min(alpha, 1)
         if alpha <= 0:
             return self
         alpha2 = alpha
@@ -1021,8 +1020,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         c = np.array([r, g, b]) * 255
         c = c.astype(np.uint8)
 
-        if alpha > 1:
-            alpha = 1
+        alpha = min(alpha, 1)
         if alpha <= 0:
             return self
         alpha2 = alpha

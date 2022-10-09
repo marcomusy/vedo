@@ -1032,11 +1032,8 @@ class Lines(Mesh):
             polylns = vtk.vtkAppendPolyData()
             for t in start_pts:
 
-                try:
-                    if len(t[0]) == 2:  # make it 3d
-                        t = np.c_[np.asarray(t, dtype=float), np.zeros(len(t), dtype=float)]
-                except:
-                    pass
+                if len(t[0]) == 2:  # make it 3d
+                    t = np.c_[np.asarray(t, dtype=float), np.zeros(len(t), dtype=float)]
 
                 ppoints = vtk.vtkPoints()  # Generate the polyline
                 ppoints.SetData(utils.numpy2vtk(np.asarray(t, dtype=float), dtype=float))
@@ -2448,7 +2445,7 @@ class Arc(Mesh):
             ar.SetNormal(normal)
         else:
             vedo.logger.error("incorrect input combination")
-            return None
+            return
         ar.SetNegative(invert)
         ar.SetResolution(res)
         ar.Update()
@@ -3191,7 +3188,7 @@ class Spring(Mesh):
         diff = end_pt - np.array(start_pt, dtype=float)
         length = np.linalg.norm(diff)
         if not length:
-            return None
+            return
         if not r:
             r = length / 20
         trange = np.linspace(0, length, num=50 * coils)
@@ -3728,7 +3725,7 @@ class ParametricShape(Mesh):
             ps = vtk.vtkParametricPseudosphere()
         else:
             vedo.logger.error(f"unknown ParametricShape {name}")
-            return None
+            return
 
         pfs = vtk.vtkParametricFunctionSource()
         pfs.SetParametricFunction(ps)
@@ -3934,6 +3931,7 @@ class Text3D(Mesh):
         )
         self._update(tpoly)
         self.txt = txt
+        return self
 
     def _get_text3d_poly(
         self,

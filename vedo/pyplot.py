@@ -782,7 +782,7 @@ class Histogram1D(Figure):
         if not title:
             if "axes" not in fig_kwargs:
                 addstats = True
-                axesopts = dict()
+                axesopts = {}
                 fig_kwargs["axes"] = axesopts
             elif fig_kwargs["axes"] is False:
                 pass
@@ -819,7 +819,7 @@ class Histogram1D(Figure):
         ############################################### Figure init
         Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
         if not self.yscale:
-            return None
+            return
 
         if utils.is_sequence(bins):
             myedges = np.array(bins)
@@ -1118,7 +1118,7 @@ class Histogram2D(Figure):
         if not title:
             if "axes" not in fig_kwargs:
                 addstats = True
-                axesopts = dict()
+                axesopts = {}
                 fig_kwargs["axes"] = axesopts
             elif fig_kwargs["axes"] is False:
                 pass
@@ -1325,7 +1325,7 @@ class PlotBars(Figure):
         binsizes = (centers - edges[0:-1]) * 2
 
         if "axes" not in fig_kwargs:
-            fig_kwargs["axes"] = dict()
+            fig_kwargs["axes"] = {}
 
         _xlabs = []
         for center, xlb in zip(centers, xlabs):
@@ -1339,7 +1339,7 @@ class PlotBars(Figure):
         self.bins = edges  # internal used by "like"
         Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
         if not self.yscale:
-            return None
+            return
 
         rs = []
         maxheigth = 0
@@ -1622,7 +1622,7 @@ class PlotXY(Figure):
         Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
 
         if not self.yscale:
-            return None
+            return
 
         acts = []
 
@@ -3380,7 +3380,7 @@ def donut(
         angles = np.concatenate([[0], angles])
         labs = [""] * 360
         for i in range(len(labels)):
-            a = (angles[i + 1] + angles[i]) / 2
+            a = (angles[i+1] + angles[i]) / 2
             j = int(a / np.pi * 180)
             labs[j] = labels[i]
 
@@ -3975,7 +3975,7 @@ def CornerHistogram(
         fs = np.log10(fs + 1)
     pts = []
     for i in range(len(fs)):
-        pts.append([(edges[i] + edges[i + 1]) / 2, fs[i]])
+        pts.append([(edges[i] + edges[i+1]) / 2, fs[i]])
 
     cplot = CornerPlot(pts, pos, s, title, c, bg, lines, dots)
     cplot.SetNumberOfYLabels(2)
@@ -3995,7 +3995,7 @@ def CornerHistogram(
     return cplot
 
 
-class DirectedGraph(Assembly, vedo.base.BaseActor):
+class DirectedGraph(Assembly):
     """
     A graph consists of a collection of nodes (without postional information)
     and a collection of edges connecting pairs of nodes.
@@ -4094,7 +4094,8 @@ class DirectedGraph(Assembly, vedo.base.BaseActor):
     """
 
     def __init__(self, **kargs):
-        vedo.base.BaseActor.__init__(self)
+
+        vedo.Assembly.__init__(self)
 
         self.nodes = []
         self.edges = []

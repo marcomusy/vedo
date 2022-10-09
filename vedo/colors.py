@@ -29,6 +29,7 @@ __all__ = [
 try:
     import matplotlib.cm as cm_mpl
     _has_matplotlib = True
+    cmaps = {}
 except ModuleNotFoundError:
     from vedo.cmaps import cmaps
     _has_matplotlib = False
@@ -1075,7 +1076,7 @@ def printc(
                 cseq += f"\x1b[38;2;{int(r*255)};{int(g*255)};{int(b*255)}m"
 
         if bc:
-            if bc in oneletter_colors.keys():
+            if bc in oneletter_colors:
                 cseq += oneletter_colors[bc]
             else:
                 r, g, b = get_color(bc)

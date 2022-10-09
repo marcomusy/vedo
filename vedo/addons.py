@@ -2497,7 +2497,7 @@ def Axes(
 
     drangemax = max(drange)
     if not drangemax:
-        return
+        return None
 
     if drange[0] / drangemax < limitRatio:
         drange[0] = 0
@@ -2667,7 +2667,7 @@ def Axes(
 
     # Grid2
     if xyGrid2 and xtitle and ytitle:
-        if not zxGrid2Transparent:
+        if not xyGrid2Transparent:
             gxy2 = shapes.Grid(s=(xticks_float, yticks_float)).z(dz)
             gxy2.alpha(xyAlpha).c(xyPlaneColor).lw(0)
             if tol: gxy2.shift(0,tol*gscale,0)
