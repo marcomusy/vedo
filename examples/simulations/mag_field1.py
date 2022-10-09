@@ -25,14 +25,14 @@ def func(evt):
     txt.text(__doc__).c('black')
 
     ppts = Points(probes)
-    ppts.pointdata["B"] = field
-    domain = ppts.tovolume(N=4, dims=(50,50,50)) # interpolate
+    ppts.pointdata["BField"] = field
+    domain = ppts.tovolume(npoints=4, dims=(50,50,50)) # interpolate
 
     streamlines = StreamLines(
     	domain,
     	probes,
-        maxPropagation=0.5,
-        initialStepSize=0.01,
+        max_propagation=0.5,
+        initial_step_size=0.01,
         direction="both",
     )
     streamlines.c('black').lw(2)
@@ -49,6 +49,6 @@ plt += txt
 
 # Create a set of points in space to form a spline
 circle = Circle(res=8) # resolution = 8 points
-plt.add_spline_tool(circle, pc='red', lw=4, closed=True)
+sptool = plt.add_spline_tool(circle, pc='red', lw=4, closed=True)
 
 plt.show().close()

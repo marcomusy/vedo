@@ -75,7 +75,6 @@ plot_pip.py
 
 
 
-/home/musy/Projects/vedo/examples/basic/sliders2.py
 mag_field1.py
 /home/musy/Projects/vedo/examples/volumetric/image_probe.py
 /home/musy/Projects/vedo/examples/volumetric/volumeOperations.py

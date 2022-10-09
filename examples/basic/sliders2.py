@@ -8,7 +8,7 @@ def slider0(widget, event):
 
 def slider1(widget, event):
     val = widget.value
-    widget.title(get_color_name(val))
+    widget.title = get_color_name(val)
     cube.color(val)
 
 def buttonfunc():
