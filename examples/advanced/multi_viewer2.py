@@ -13,7 +13,7 @@ def on_left_click(evt):
 ##############################################################################
 sy, sx, dx = 0.12, 0.12, 0.01
 # Define the renderers rectangle areas
-# to help finding bottomleft&topright corners check out utils.gridcorners()
+# to help finding bottomleft&topright corners check out utils.grid_corners()
 shape = [
     dict(bottomleft=(0,0), topright=(1,1), bg='k7'), # the full empty window
     dict(bottomleft=(dx*2+sx,0.01), topright=(1-dx,1-dx), bg='w'), # the display window

@@ -79,9 +79,9 @@ plot_pip.py
 mag_field1.py
 /home/musy/Projects/vedo/examples/volumetric/image_probe.py
 /home/musy/Projects/vedo/examples/volumetric/volumeOperations.py
-
-
-
+/home/musy/Projects/vedo/examples/other/meshio_read.py
+pymeshlab2.py
+ex06_elasticity3.py
 
 
 
