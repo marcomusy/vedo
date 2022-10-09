@@ -9,11 +9,11 @@ settings.useDepthPeeling = True
 
 pts = Points(np.random.randn(10000, 3)*[3,2,1] + [50,60,70])
 
-elli = pcaEllipsoid(pts, pvalue=0.50)
+elli = pca_ellipsoid(pts, pvalue=0.50)
 
-elli.insidePoints(pts, returnIds=True)
+elli.inside_points(pts, return_ids=True)
 
-ids  = elli.insidePoints(pts, returnIds=True)
+ids  = elli.inside_points(pts, return_ids=True)
 pts.print()  # a new "IsInside" array now exists in pts
 pin = pts.points()[ids]
 print("inside  points #", len(pin))

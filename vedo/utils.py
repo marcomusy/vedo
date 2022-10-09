@@ -1383,7 +1383,7 @@ def print_info(obj):
         if obj.axes:
             vedo.printc("       axes type:", obj.axes, axtype[obj.axes], bold=0, c="c")
 
-        for a in obj.getVolumes():
+        for a in obj.get_volumes():
             if a.GetBounds() is not None:
                 img = a.GetMapper().GetDataSetInput()
                 vedo.printc('_'*65, c='b', bold=0)

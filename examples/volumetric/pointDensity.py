@@ -5,7 +5,7 @@ s = Mesh(dataurl+'bunny.obj').normalize().subdivide(2).point_size(3).c("black")
 
 vol = s.density().print()
 
-plane = probePlane(vol, normal=(1,1,1)).alpha(0.5)
+plane = probe_plane(vol, normal=(1,1,1)).alpha(0.5)
 
 show([
       ("Point cloud", s),

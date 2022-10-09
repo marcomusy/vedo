@@ -27,10 +27,10 @@ seeds = vedo.Disc(r1=1, r2=5.2, res=(3,12))
 streamlines = vedo.StreamLines(
     volume,
     seeds,
-    maxPropagation=180,
-    initialStepSize=0.1,
+    max_propagation=180,
+    initial_step_size=0.1,
     direction="both",
 )
-streamlines.cmap("RdBu_r", "B").lw(5).addScalarBar("mT")
+streamlines.cmap("RdBu_r", "B").lw(5).add_scalarbar("mT")
 
 vedo.show(streamlines, axes=1)

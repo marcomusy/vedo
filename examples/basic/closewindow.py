@@ -35,7 +35,7 @@ plt2.show(plt1.actors[0].color('red'))
 plt3 = Plotter(title='Third Plotter instance')
 
 plt2.close_window()
-printc('plt2.closeWindow() called')
+printc('plt2.close_window() called')
 
 plt3.show(Hyperboloid()).close()
 

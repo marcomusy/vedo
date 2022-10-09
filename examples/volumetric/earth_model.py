@@ -8,7 +8,7 @@ conductor = tet.clone().threshold('cell_scalars', above=0, below=4)
 
 # Crop the initial mesh
 box = vedo.Box(size=[503500, 505000, 6414000, 6417000, -1830, 600])
-tet.cutWithMesh(box, wholeCells=True)
+tet.cut_with_mesh(box, whole_cells=True)
 
 # We need to build a look up table for our color bar
 lut_table = [

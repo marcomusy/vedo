@@ -51,7 +51,7 @@ class Flock:
         velos = self.velocities()
         coords = self.positions()
         for i,b in enumerate(self.boids):
-            ids = self.actor.closestPoint(b.position, N=self.neighbors, returnPointId=True)[1:]
+            ids = self.actor.closest_point(b.position, n=self.neighbors, return_point_id=True)[1:]
 
             # alignment: steer boid towards the average heading of local flockmates
             desired_vel = np.mean(velos[ids],  axis=0)

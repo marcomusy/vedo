@@ -14,7 +14,7 @@ plt = Slicer3DPlotter(
     bg="white",
     bg2="lightblue",
     cmaps=("gist_ncar_r", "jet", "Spectral_r", "hot_r", "bone_r"),
-    useSlider3D=False,
+    use_slider_3d=False,
 )
 
 # Can now add any other object to the Plotter scene:

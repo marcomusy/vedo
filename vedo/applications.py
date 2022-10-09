@@ -121,7 +121,7 @@ class Slicer3DPlotter(Plotter):
 
         self.show(box, viewup="z", resetcam=resetcam, interactive=False)
         if show_icon:
-            self.addInset(
+            self.add_inset(
                 volume,
                 pos=(0.85, 0.85),
                 size=0.15, c="w",
@@ -149,18 +149,18 @@ class Slicer3DPlotter(Plotter):
             )
         self._cmap_slicer = cmaps[0]
         visibles = [None, None, None]
-        msh = volume.zSlice(int(dims[2] / 2))
+        msh = volume.zslice(int(dims[2] / 2))
         msh.alpha(alpha).lighting("", la, ld, 0)
         msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
         if map2cells:
             msh.mapPointsToCells()
         self.renderer.AddActor(msh)
         visibles[2] = msh
-        msh.addScalarBar(pos=(0.04, 0.0), horizontal=True, titleFontSize=0)
+        msh.add_scalarbar(pos=(0.04, 0.0), horizontal=True, font_size=0)
 
         def sliderfunc_x(widget, event):
             i = int(widget.GetRepresentation().GetValue())
-            msh = volume.xSlice(i).alpha(alpha).lighting("", la, ld, 0)
+            msh = volume.xslice(i).alpha(alpha).lighting("", la, ld, 0)
             msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
             if map2cells:
                 msh.mapPointsToCells()
@@ -171,7 +171,7 @@ class Slicer3DPlotter(Plotter):
 
         def sliderfunc_y(widget, event):
             i = int(widget.GetRepresentation().GetValue())
-            msh = volume.ySlice(i).alpha(alpha).lighting("", la, ld, 0)
+            msh = volume.yslice(i).alpha(alpha).lighting("", la, ld, 0)
             msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
             if map2cells:
                 msh.mapPointsToCells()
@@ -182,7 +182,7 @@ class Slicer3DPlotter(Plotter):
 
         def sliderfunc_z(widget, event):
             i = int(widget.GetRepresentation().GetValue())
-            msh = volume.zSlice(i).alpha(alpha).lighting("", la, ld, 0)
+            msh = volume.zslice(i).alpha(alpha).lighting("", la, ld, 0)
             msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
             if map2cells:
                 msh.mapPointsToCells()
@@ -272,9 +272,9 @@ class Slicer3DPlotter(Plotter):
                     if map2cells:
                         mesh.mapPointsToCells()
             self.renderer.RemoveActor(mesh.scalarbar)
-            mesh.addScalarBar(pos=(0.04, 0.0), horizontal=True, titleFontSize=0)
+            mesh.add_scalarbar(pos=(0.04, 0.0), horizontal=True, titleFontSize=0)
 
-        bu = self.addButton(
+        bu = self.add_button(
             buttonfunc,
             pos=(0.27, 0.005),
             states=cmaps,
@@ -704,7 +704,7 @@ class IsosurfaceBrowser(Plotter):
         self.actors = [None]
         sliderThres(threshold, "")  # init call
         if lego:
-            self.actors[0].addScalarBar(pos=(0.8, 0.12))
+            self.actors[0].add_scalarbar(pos=(0.8, 0.12))
 
         self.add_slider_2d(
             sliderThres,

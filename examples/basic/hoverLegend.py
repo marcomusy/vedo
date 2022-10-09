@@ -6,11 +6,11 @@ mesh = Mesh(dataurl+"bunny.obj").color('k7')
 
 # Create multiple arrays associated to mesh vertices or cells
 mesh.pointdata['MYPOINTARRAY'] = mesh.points()[:,0]
-mesh.celldata['MYCELLARRAY']   = mesh.cellCenters()[:,1]
+mesh.celldata['MYCELLARRAY']   = mesh.cell_centers()[:,1]
 
 # Create more objects
 sph = Sphere(r=0.02, pos=(-0.1,0.05,0.05))
-cub = Cube().alpha(0.5).lineWidth(2)
+cub = Cube().alpha(0.5).linewidth(2)
 
 pts = Points(cub.points(), r=50, c='v')
 pts.name = 'The cube vertices'  # can give a name to any objects

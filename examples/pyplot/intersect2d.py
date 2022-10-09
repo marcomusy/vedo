@@ -23,7 +23,7 @@ zax = (0,0,1)
 v0,v1,v2 = np.insert(np.array(verts2), 2, 0, axis=1)
 
 m3.cut_with_plane(origin=v0, normal=np.cross(zax, v1-v0))
-if m3.NPoints():
+if m3.npoints:
     m3.cut_with_plane(origin=v1, normal=np.cross(zax, v2-v1))
 if m3.npoints:
     m3.cut_with_plane(origin=v2, normal=np.cross(zax, v0-v2))

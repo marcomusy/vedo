@@ -506,7 +506,7 @@ def download(url, force=False, verbose=True):
             colors.printc('reading', basename, 'from',
                           url.split('/')[2][:40],'...', end='')
 
-    with urlopen(req) as response, open(tmp_file.name, "wb", encoding='UTF-8') as output:
+    with urlopen(req) as response, open(tmp_file.name, "wb") as output:
         output.write(response.read())
 
     if verbose: colors.printc(' done.')
@@ -525,7 +525,7 @@ def gunzip(filename):
         os.path.dirname(tmp_file.name), os.path.basename(filename).replace(".gz", "")
     )
     inF = gzip.open(filename, "rb")
-    with open(tmp_file.name, "wb", encoding='UTF-8') as outF:
+    with open(tmp_file.name, "wb") as outF:
         outF.write(inF.read())
     inF.close()
     return tmp_file.name

@@ -15,7 +15,7 @@ vpts2 = Points(pts2, r=8, c="red5")
 
 # Find best alignment between the 2 sets of Points,
 # e.i. find how to move vpts1 to best match vpts2
-aligned_pts1 = vpts1.clone().alignTo(vpts2, invert=False)
+aligned_pts1 = vpts1.clone().align_to(vpts2, invert=False)
 
 # draw arrows to see where points end up
 arrows = Arrows(pts1, aligned_pts1, s=0.7, c='black', alpha=0.2)

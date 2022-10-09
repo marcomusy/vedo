@@ -12,7 +12,7 @@ for i in range(25):
 def func(evt):
     if not evt.actor:
         return
-    sil = evt.actor.silhouette().lineWidth(6).c('red5')
+    sil = evt.actor.silhouette().linewidth(6).c('red5')
     sil.name = "silu" # give it a name so we can remove the old one
     msg.text("You clicked: "+evt.actor.name)
     plt.remove('silu').add(sil)

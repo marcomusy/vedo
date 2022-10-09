@@ -7,11 +7,11 @@ X, Y, Z = np.mgrid[:30, :30, :30]
 scalar_field = ((X-15)**2 + (Y-15)**2 + (Z-15)**2) /225
 
 vol = Volume(scalar_field)
-vol.addScalarBar3D()
+vol.add_scalarbar_3d()
 print('numpy array from Volume:', vol.tonumpy().shape)
 
 lego = vol.legosurface(vmin=1, vmax=2)
-lego.cmap('hot_r', vmin=1, vmax=2).addScalarBar3D()
+lego.cmap('hot_r', vmin=1, vmax=2).add_scalarbar_3d()
 
 text1 = Text2D(__doc__, c='blue')
 text2 = Text2D('..and its lego isosurface representation\nvmin=1, vmax=2', c='dr')

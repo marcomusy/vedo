@@ -6,11 +6,11 @@ i, grids, vnames1, vnames2 = 0, [], [], []
 for name in colors.cmaps_names:
     if '_r' in name:
         continue # skip reversed maps
-    cols = colorMap(range(n), name)
+    cols = color_map(range(n), name)
 
     # make a strip of n cells and assing them individual colors
-    gr = Grid(s=[50,1], res=[n,1]).cellIndividualColors(cols*255)
-    gr.lineWidth(0).wireframe(False).y(-i*1.2)
+    gr = Grid(s=[50,1], res=[n,1]).cell_individual_colors(cols*255)
+    gr.linewidth(0).wireframe(False).y(-i*1.2)
     grids.append([gr, gr.box().c('grey')])
 
     tx1 = Text3D('\rightarrow '+name, justify='left-center', s=0.75, font=2)

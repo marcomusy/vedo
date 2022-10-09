@@ -47,7 +47,7 @@ def onLeftClick(evt):
 plt1.add_callback("KeyPress", keyfunc)
 plt1.add_callback("LeftButtonPress", onLeftClick)
 plt1.at(len(plt1.renderers)-1).show(
-    Picture(dataurl+'images/embl_logo.jpg').rotateX(-20),
+    Picture(dataurl+'images/embl_logo.jpg').rotate_x(-20),
     Text2D('Some footnote', pos='bottom-right', font='Quikhand', c='grey', s=0.6),
 )
 

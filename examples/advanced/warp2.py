@@ -7,7 +7,7 @@ settings.useDepthPeeling = True
 mesh = Mesh(dataurl+"man.vtk").color('w')
 
 # a heavily decimated copy with about 200 points
-meshdec = mesh.clone().triangulate().decimate(200)
+meshdec = mesh.clone().triangulate().decimate(n=200)
 
 sources = [[0.9, 0.0, 0.2]]  # this point moves
 targets = [[1.2, 0.0, 0.4]]  # ...to this.

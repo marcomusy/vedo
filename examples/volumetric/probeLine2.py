@@ -1,13 +1,13 @@
 """Probe a Volume with a line
 and plot the intensity values"""
-from vedo import dataurl, Volume, probeLine, show
+from vedo import dataurl, Volume, probe_line, show
 from vedo.pyplot import plot
 
 vol = Volume(dataurl+'embryo.slc')
 vol.add_scalarbar_3d('wild-type mouse embryo', c='k')
 
 p1, p2 = (50,50,50), (200,200,200)
-pl = probeLine(vol, p1, p2, res=100).linewidth(4)
+pl = probe_line(vol, p1, p2, res=100).linewidth(4)
 
 xvals = pl.points()[:,0]
 yvals = pl.pointdata[0] # get the probed values along the line

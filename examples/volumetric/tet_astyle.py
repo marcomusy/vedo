@@ -5,8 +5,8 @@ from vedo import *
 # settings.useDepthPeeling = False
 
 tetm = TetMesh(dataurl+'limb_ugrid.vtk')
-tetm.color('jet').alphaUnit(100) # make the tets more transparent
-tetm.addScalarBar3D()
+tetm.color('jet').alpha_unit(100) # make the tets more transparent
+tetm.add_scalarbar_3d()
 
 # Build a Mesh object made of all the boundary triangles
 wmesh = tetm.tomesh(fill=False).wireframe()

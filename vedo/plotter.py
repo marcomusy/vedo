@@ -3284,7 +3284,7 @@ class Plotter:
                 vedo.printc("█", c=[0, rgb[1], 0], end="")
                 vedo.printc("█", c=[0, 0, rgb[2]], end="")
                 vedo.printc("] = ", end="")
-                cnm = vedo.get_colorName(rgb)
+                cnm = vedo.get_color_name(rgb)
                 if np.sum(rgb) < 150:
                     vedo.printc(rgb.tolist(), vedo.colors.rgb2hex(np.array(rgb)/255), c='w',
                            bc=rgb, invert=1, end='')
@@ -3984,9 +3984,9 @@ class Plotter:
 
         elif key == "i":  # print info
             if self.clicked_actor:
-                utils.printInfo(self.clicked_actor)
+                utils.print_info(self.clicked_actor)
             else:
-                utils.printInfo(self)
+                utils.print_info(self)
 
         elif key == "I":  # print color under the mouse
             x, y = iren.GetEventPosition()

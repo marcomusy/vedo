@@ -23,7 +23,7 @@ plt += Box(pos=(0, -0.1, 0), length=2.0, width=0.02, height=0.5)  # surface
 plt += Box(pos=(-0.82, 0.15, 0), length=0.04, width=0.50, height=0.3)  # wall
 
 block = Cube(pos=x, side=0.2, c="tomato")
-block.addTrail(offset=[0, 0.2, 0], lw=2, n=500)
+block.add_trail(offset=[0, 0.2, 0], lw=2, n=500)
 
 spring = Spring(sx0, x, r=0.06, thickness=0.01)
 
