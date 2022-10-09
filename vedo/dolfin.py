@@ -7,7 +7,7 @@ import vedo
 from vedo.colors import printc
 from vedo import utils
 from vedo import shapes
-from vedo.io import download, exportWindow, load, screenshot, Video
+from vedo.io import download, export_window, load, screenshot, Video
 from vedo.mesh import Mesh
 from vedo.plotter import Plotter
 from vedo.plotter import show
@@ -47,7 +47,7 @@ __all__ = [
     "Text2D",
     "screenshot",
     "Video",
-    "exportWindow",
+    "export_window",
 ]
 
 
@@ -612,7 +612,7 @@ def plot(*inputobj, **options):
             if isoz is not None:  # kind of hack to make isolines visible on flat meshes
                 d = isoz
             else:
-                d = actor.diagonalSize() / 400
+                d = actor.diagonal_size() / 400
             isos.z(actor.z() + d)
             actors.append(isos)
 
@@ -687,7 +687,7 @@ class MeshActor(Mesh):
         alpha = options.pop("alpha", 1)
         exterior = options.pop("exterior", False)
         fast = options.pop("fast", False)
-        computeNormals = options.pop("computeNormals", False)
+        compute_normals = options.pop("compute_normals", False)
 
         mesh, u = _inputsort(inputobj)
         if not mesh:
@@ -713,8 +713,8 @@ class MeshActor(Mesh):
             c=c,
             alpha=alpha,
         )
-        if computeNormals:
-            self.computeNormals()
+        if compute_normals:
+            self.compute_normals()
 
         self.mesh = mesh  # holds a dolfin Mesh obj
         self.u = u  # holds a dolfin function_data

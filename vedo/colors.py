@@ -3,7 +3,6 @@
 import os
 import sys
 import time
-from deprecated import deprecated
 
 import numpy as np
 import vtkmodules.all as vtk
@@ -18,8 +17,8 @@ Colors definitions and printing methods. <br>
 __all__ = [
     "printc",
     "printd",
-    "getColor",  # deprecated
     "get_color",
+    "getColor", # deprecated
     "get_color_name",
     "color_map",
     "build_palette",
@@ -33,7 +32,7 @@ try:
 except ModuleNotFoundError:
     from vedo.cmaps import cmaps
     _has_matplotlib = False
-    # see below, this is dealt with in colorMap()
+    # see below, this is dealt with in color_map()
 
 #########################################################
 # handy global shortcuts for terminal printing
@@ -583,9 +582,10 @@ def _is_sequence(arg):
         return True
     return False
 
-@deprecated(reason=vedo.colors.red + "Please use get_color()" + vedo.colors.reset)
+
 def getColor(rgb=None, hsv=None):
-    return getColor(rgb, hsv)
+    """Deprecated. Use get_color()"""
+    return get_color(rgb, hsv)
 
 def get_color(rgb=None, hsv=None):
     """
@@ -610,7 +610,7 @@ def get_color(rgb=None, hsv=None):
     if _is_sequence(rgb) and (len(rgb) > 3 or _is_sequence(rgb[0])):
         seqcol = []
         for sc in rgb:
-            seqcol.append(getColor(sc))
+            seqcol.append(get_color(sc))
         return seqcol
 
     # because they are most common:
@@ -658,7 +658,7 @@ def get_color(rgb=None, hsv=None):
             rgb255 = list(int(h[i : i + 2], 16) for i in (0, 2, 4))
             rgbh = np.array(rgb255) / 255.0
             if np.sum(rgbh) > 3:
-                vedo.logger.error(f"in getColor(): Wrong hex color {c}")
+                vedo.logger.error(f"in get_color(): Wrong hex color {c}")
                 return (0.5, 0.5, 0.5)
             return tuple(rgbh)
 
@@ -677,17 +677,16 @@ def get_color(rgb=None, hsv=None):
 
 def get_color_name(c):
     """Find the name of the closest color."""
-    c = np.array(getColor(c))  # reformat to rgb
+    c = np.array(get_color(c))  # reformat to rgb
     mdist = 99.0
     kclosest = ""
     for key in colors:
-        ci = np.array(getColor(key))
+        ci = np.array(get_color(key))
         d = np.linalg.norm(c - ci)
         if d < mdist:
             mdist = d
             kclosest = str(key)
     return kclosest
-
 
 def hsv2rgb(hsv):
     """Convert HSV to RGB color."""
@@ -701,7 +700,7 @@ def rgb2hsv(rgb):
     """Convert RGB to HSV color."""
     ma = vtk.vtkMath()
     hsv = [0, 0, 0]
-    ma.RGBToHSV(getColor(rgb), hsv)
+    ma.RGBToHSV(get_color(rgb), hsv)
     return hsv
 
 
@@ -745,9 +744,9 @@ def color_map(value, name="jet", vmin=None, vmax=None):
     Example:
         .. code-block:: python
 
-            from vedo import colorMap
+            from vedo import color_map
             import matplotlib.cm as cm
-            print( colorMap(0.2, cm.flag, 0, 1) )
+            print( color_map(0.2, cm.flag, 0, 1) )
 
             # (1.0, 0.809016994374948, 0.6173258487801733)
 
@@ -764,10 +763,10 @@ def color_map(value, name="jet", vmin=None, vmax=None):
         values = (values - vmin) / (vmax - vmin)
     else:
         if vmin is None:
-            vedo.logger.warning("in colorMap() you must specify vmin! Assume 0.")
+            vedo.logger.warning("in color_map() you must specify vmin! Assume 0.")
             vmin = 0
         if vmax is None:
-            vedo.logger.warning("in colorMap() you must specify vmax! Assume 1.")
+            vedo.logger.warning("in color_map() you must specify vmax! Assume 1.")
             vmax = 1
         values = [(value - vmin) / (vmax - vmin)]
 
@@ -788,7 +787,7 @@ def color_map(value, name="jet", vmin=None, vmax=None):
         try:
             cmap = cmaps[name]
         except KeyError:
-            vedo.logger.error(f"in colorMap(), no color map with name {name} or {name}_r")
+            vedo.logger.error(f"in color_map(), no color map with name {name} or {name}_r")
             vedo.logger.error(f"Available color maps are:\n{cmaps.keys()}")
             return np.array([0.5, 0.5, 0.5])
 
@@ -833,8 +832,8 @@ def build_palette(color1, color2, n, hsv=True):
     if hsv:
         color1 = rgb2hsv(color1)
         color2 = rgb2hsv(color2)
-    c1 = np.array(getColor(color1))
-    c2 = np.array(getColor(color2))
+    c1 = np.array(get_color(color1))
+    c2 = np.array(get_color(color2))
     cols = []
     for f in np.linspace(0, 1, n, endpoint=True):
         c = c1 * (1 - f) + c2 * f
@@ -906,7 +905,7 @@ def build_lut(
         else:
             alf = 1
             scalar, col = sc
-        r, g, b = getColor(col)
+        r, g, b = get_color(col)
         ctf.AddRGBPoint(scalar, r, g, b)
         alpha_x.append(scalar)
         alpha_vals.append(alf)
@@ -923,13 +922,13 @@ def build_lut(
     lut.SetRange(x0, x1)
 
     if below_color is not None:
-        lut.SetBelowRangeColor(list(getColor(below_color)) + [below_alpha])
+        lut.SetBelowRangeColor(list(get_color(below_color)) + [below_alpha])
         lut.SetUseBelowRangeColor(True)
     if above_color is not None:
-        lut.SetAboveRangeColor(list(getColor(above_color)) + [above_alpha])
+        lut.SetAboveRangeColor(list(get_color(above_color)) + [above_alpha])
         lut.SetUseAboveRangeColor(True)
     if nan_color is not None:
-        lut.SetNanColor(list(getColor(nan_color)) + [nan_alpha])
+        lut.SetNanColor(list(get_color(nan_color)) + [nan_alpha])
 
     rgba = (1, 1, 1, 1)
     for i in range(256):
@@ -945,7 +944,7 @@ def build_lut(
                         alf = c[2]
                     else:
                         alf = 1
-                    rgba = list(getColor(c[1])) + [alf]
+                    rgba = list(get_color(c[1])) + [alf]
                     break
         lut.SetTableValue(i, rgba)
 
@@ -1025,7 +1024,7 @@ def printc(
         print(*strings, end=end, flush=flush)
         return
 
-    if not vedo.notebookBackend:
+    if not vedo.notebook_backend:
         if not _terminal_has_colors:
             print(*strings, end=end, flush=flush)
             return
@@ -1072,14 +1071,14 @@ def printc(
             if isinstance(c, str) and c in oneletter_colors:
                 cseq += oneletter_colors[c]
             else:
-                r, g, b = getColor(c)  # not all terms support this syntax
+                r, g, b = get_color(c)  # not all terms support this syntax
                 cseq += f"\x1b[38;2;{int(r*255)};{int(g*255)};{int(b*255)}m"
 
         if bc:
             if bc in oneletter_colors.keys():
                 cseq += oneletter_colors[bc]
             else:
-                r, g, b = getColor(bc)
+                r, g, b = get_color(bc)
                 cseq += f"\x1b[48;2;{int(r*255)};{int(g*255)};{int(b*255)}m"
 
         if box is True:
@@ -1167,7 +1166,7 @@ def printd(*strings, q=False):
 
         var = var.replace("vtkmodules.", "")
         print("      \x1b[37m", loc, "\t\t=", var[:60].replace("\n", ""), reset)
-        if vedo.utils.is_sequence(obj) and len(obj) > 4:
+        if vedo.utils.isSequence(obj) and len(obj) > 4:
             print('           \x1b[37m\x1b[2m\x1b[3m len:', len(obj),
                   ' min:', vedo.utils.precision(min(obj), 4),
                   ' max:', vedo.utils.precision(max(obj), 4),

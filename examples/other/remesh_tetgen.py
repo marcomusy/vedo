@@ -44,6 +44,6 @@ for i in range(10):
     for pc in pieces:
         cm = pc.centerOfMass()
         pc.shift(cm / 25)
-    txt.text(f"{__doc__}\n\nNr. of pieces = {seeds.N()}")
+    txt.text(f"{__doc__}\n\nNr. of pieces = {seeds.npoints}")
     plt.render()
 plt.interactive().close()

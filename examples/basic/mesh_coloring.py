@@ -6,7 +6,7 @@ plt = Plotter(N=3, axes=11)
 
 ##################################### add a cell array
 man1 = Mesh(dataurl+"man_low.vtk").lineWidth(0.1)
-nv = man1.NCells()                         # nr. of cells
+nv = man1.ncells                           # nr. of cells
 scals = range(nv)                          # coloring by the index of cell
 
 man1.cmap("Paired", scals, on='cells').addScalarBar("cell nr")

@@ -24,7 +24,7 @@ def koch(level):
 kochs = []
 for i in range(levels):
     # Create a Line from the points and mesh the inside with minimum resolution
-    kmsh = Line(koch(i)).tomesh(resMesh=1).lw(0).color(-i).z(-i/1000)
+    kmsh = Line(koch(i)).tomesh(mesh_resolution=1).lw(0).color(-i).z(-i/1000)
     kochs.append(kmsh)
 
-show(kochs, __doc__+ f"\nlevels: {levels}\npoints: {kmsh.N()}", bg2='lb').close()
+show(kochs, __doc__+ f"\nlevels: {levels}\npoints: {kmsh.npoints}", bg2='lb').close()

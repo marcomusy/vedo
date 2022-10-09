@@ -5,17 +5,17 @@ def capping(msh, bias=0, invert=False, res=50):
 
     bn =  msh.boundaries().join(reset=True)
 
-    pln = fitPlane(bn)
-    cp = [pln.closestPoint(p) for p in bn.points()]
+    pln = fit_plane(bn)
+    cp = [pln.closest_point(p) for p in bn.points()]
     pts = Points(cp)
     pts.top = pln.normal
 
     if invert is None:
-        cutm = msh.clone().cutWithPlane(origin=pln.center, normal=pln.normal)
-        invert = cutm.N() > msh.N()
+        cutm = msh.clone().cut_with_plane(origin=pln.center, normal=pln.normal)
+        invert = cutm.npoints > msh.npoints
 
-    pts2 = pts.clone().orientation([0,0,1]).projectOnPlane('z')
-    msh2 = pts2.tomesh(resMesh=(res,res), invert=invert).smooth()
+    pts2 = pts.clone().orientation([0,0,1]).project_on_plane('z')
+    msh2 = pts2.tomesh(mesh_resolution=(res,res), invert=invert).smooth()
 
     source = pts2.points().tolist()
     target = bn.points().tolist()
@@ -44,7 +44,7 @@ mcap = capping(msh, invert=True)
 
 merged_msh = merge(msh, mcap)
 merged_msh.subsample(0.0001).wireframe(False)  # merge duplicate points
-printc("merged_msh is closed:", merged_msh.isClosed())
+printc("merged_msh is closed:", merged_msh.is_closed())
 
 show([[msh, __doc__],
       [merged_msh, merged_msh.boundaries()]],

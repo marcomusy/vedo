@@ -30,7 +30,7 @@ from vedo import __version__
 from vedo import io
 from vedo import load
 from vedo import settings
-from vedo.colors import getColor, printc
+from vedo.colors import get_color, printc
 from vedo.mesh import Mesh
 from vedo.picture import Picture
 from vedo.plotter import Plotter
@@ -395,7 +395,7 @@ def exe_eog(args):
         args.background = "white"
 
     if args.background_grad:
-        args.background_grad = getColor(args.background_grad)
+        args.background_grad = get_color(args.background_grad)
 
     files = []
     for s in sys.argv:
@@ -534,7 +534,7 @@ def draw_scene(args):
         args.background = "white"
 
     if args.background_grad:
-        args.background_grad = getColor(args.background_grad)
+        args.background_grad = get_color(args.background_grad)
 
     if nfiles == 1 and args.files[0].endswith(".gif"):  ###can be improved
         frames = load(args.files[0])
@@ -758,7 +758,7 @@ def draw_scene(args):
 
             if args.multirenderer_mode:
                 try:
-                    ds = actor.diagonalSize() * 3
+                    ds = actor.diagonal_size() * 3
                     plt.camera.SetClippingRange(0, ds)
                     plt.show(actor, at=i, interactive=False, zoom=args.zoom, mode=interactor_mode)
                     plt.actors = actors
@@ -1048,7 +1048,7 @@ def exe_gui(args):
 
             args.background_grad = None
             if self.background_grad.get():
-                b = getColor(args.background)
+                b = get_color(args.background)
                 args.background_grad = (b[0] / 1.8, b[1] / 1.8, b[2] / 1.8)
 
             args.multirenderer_mode = False

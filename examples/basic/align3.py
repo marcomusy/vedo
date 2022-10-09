@@ -1,7 +1,7 @@
 """Generate 3 random sets of points
 and align them using Procrustes method"""
 from random import uniform as u
-from vedo import Plotter, procrustesAlignment, Points
+from vedo import Plotter, procrustes_alignment, Points
 
 
 N = 15  # number of points
@@ -17,7 +17,7 @@ vpts3 = Points(pts3, c="b", r=8)
 
 # find best alignment among the n sets of Points,
 # return an Assembly object formed by the aligned sets
-aligned = procrustesAlignment([vpts1, vpts2, vpts3])
+aligned = procrustes_alignment([vpts1, vpts2, vpts3])
 #print([aligned.transform])
 
 plt = Plotter(shape=[1,2], axes=2, sharecam=False)

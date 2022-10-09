@@ -7,15 +7,15 @@ rim  = Mesh(dataurl + "270_rim.vtk").c("red").lw(4)
 
 # Make a clone copy of rim and align it to limb
 # rigid=True doesn't allow scaling
-rim2 = rim.clone().alignTo(limb, rigid=True)
+rim2 = rim.clone().align_to(limb, rigid=True)
 rim2.c("green").lw(5)
 
 d = 0
 for p in rim2.points():
-    cpt = limb.closestPoint(p)
+    cpt = limb.closest_point(p)
     d += mag2(p - cpt)  # square of residual distance
 
-printc("ave. squared distance =", d/rim2.N())
+printc("ave. squared distance =", d / rim2.npoints)
 # vtkTransform is available through:
 #printc([rim2.transform])
 

@@ -3,10 +3,11 @@
 import os
 import numpy as np
 from deprecated import deprecated
+
 import vtkmodules.all as vtk
 import vedo
-from vedo.colors import colorMap
-from vedo.colors import getColor
+from vedo.colors import color_map
+from vedo.colors import get_color
 from vedo.pointcloud import Points
 from vedo.utils import buildPolyData
 from vedo.utils import flatten, is_sequence, mag, mag2
@@ -271,11 +272,11 @@ class Mesh(Points):
             if not arrexists:
                 if c is None:
                     c = "gold"
-                    c = getColor(c)
+                    c = get_color(c)
                 elif isinstance(c, float) and c <= 1:
-                    c = colorMap(c, "rainbow", 0, 1)
+                    c = color_map(c, "rainbow", 0, 1)
                 else:
-                    c = getColor(c)
+                    c = get_color(c)
                 self.property.SetColor(c)
                 self.property.SetAmbient(0.1)
                 self.property.SetDiffuse(1)
@@ -712,15 +713,15 @@ class Mesh(Points):
         if not backProp:
             backProp = vtk.vtkProperty()
 
-        backProp.SetDiffuseColor(getColor(bc))
+        backProp.SetDiffuseColor(get_color(bc))
         backProp.SetOpacity(self.property.GetOpacity())
         self.SetBackfaceProperty(backProp)
         self._mapper.ScalarVisibilityOff()
         return self
 
-    def bc(self, backColor=False):
-        """Shortcut for `mesh.backColor()`."""
-        return self.backColor(backColor)
+    def bc(self, backcolor=False):
+        """Shortcut for `mesh.backcolor()`."""
+        return self.backcolor(backcolor)
 
     @deprecated(reason=vedo.colors.red + "Please use linewidth()" + vedo.colors.reset)
     def lineWidth(self, lw):
@@ -740,9 +741,9 @@ class Mesh(Points):
             return self.property.GetLineWidth()
         return self
 
-    def lw(self, lineWidth=None):
+    def lw(self, linewidth=None):
         """Set/get width of mesh edges. Same as `linewidth()`."""
-        return self.linewidth(lineWidth)
+        return self.linewidth(linewidth)
 
     def linecolor(self, lc=None):
         """Set/get color of mesh edges. Same as `lc()`."""
@@ -750,12 +751,12 @@ class Mesh(Points):
             return self.property.GetEdgeColor()
         else:
             self.property.EdgeVisibilityOn()
-            self.property.SetEdgeColor(getColor(lc))
+            self.property.SetEdgeColor(get_color(lc))
             return self
 
-    def lc(self, lineColor=None):
+    def lc(self, linecolor=None):
         """Set/get color of mesh edges. Same as `linecolor()`."""
-        return self.lineColor(lineColor)
+        return self.linecolor(linecolor)
 
     def volume(self):
         """Get/set the volume occupied by mesh."""
@@ -1240,8 +1241,9 @@ class Mesh(Points):
         self._mapper.ScalarVisibilityOn()
         return self
 
-    @deprecated(reason=vedo.colors.red + "Please use compute_curvature()" + vedo.colors.reset)
+    @deprecated(reason=vedo.colors.red + "Please use add_shadow()" + vedo.colors.reset)
     def addShadow(self, *a, **b):
+        """Please use add_shadow()"""
         return self.add_shadow(*a, **b)
 
     def add_shadow(
@@ -1349,7 +1351,7 @@ class Mesh(Points):
         elif method == 2:
             sdf = vtk.vtkAdaptiveSubdivisionFilter()
             if mel is None:
-                mel = self.diagonalSize() / np.sqrt(self._data.GetNumberOfPoints()) / n
+                mel = self.diagonal_size() / np.sqrt(self._data.GetNumberOfPoints()) / n
             sdf.SetMaximumEdgeLength(mel)
         elif method == 3:
             sdf = vtk.vtkButterflySubdivisionFilter()
@@ -1439,7 +1441,7 @@ class Mesh(Points):
 
             self.points(newpts)
             self.clean()
-        self.computeNormals()  # .flat()
+        self.compute_normals()  # .flat()
         return self
 
 
@@ -1506,7 +1508,7 @@ class Mesh(Points):
         """
         fh = vtk.vtkFillHolesFilter()
         if not size:
-            mb = self.diagonalSize()
+            mb = self.diagonal_size()
             size = mb / 10
         fh.SetHoleSize(size)
         fh.SetInputData(self._data)
@@ -1945,7 +1947,7 @@ class Mesh(Points):
         bcf.GenerateContourEdgesOff()
         bcf.Update()
         bcf.GetOutput().GetCellData().GetScalars().SetName("IsoBands")
-        m1 = Mesh(bcf.GetOutput()).computeNormals(cells=True)
+        m1 = Mesh(bcf.GetOutput()).compute_normals(cells=True)
         m1.mapper().SetLookupTable(lut)
         return m1
 
@@ -2047,7 +2049,7 @@ class Mesh(Points):
             m.SetScale(self.GetScale())
             m.SetOrientation(self.GetOrientation())
             m.SetPosition(self.GetPosition())
-            return m.computeNormals(cells=False).flat().lighting("default")
+            return m.compute_normals(cells=False).flat().lighting("default")
 
     def split(self, maxdepth=1000, flag=False):
         """
@@ -2083,7 +2085,7 @@ class Mesh(Points):
                 break
             suba = a.clone().threshold("RegionId", t - 0.1, t + 0.1)
             area = suba.area()
-            # print('splitByConnectivity  piece:', t, ' area:', area, ' N:',suba.N())
+            # print('splitByConnectivity  piece:', t, ' area:', area, ' N:',suba.npoints)
             alist.append([suba, area])
 
         alist.sort(key=lambda x: x[1])
@@ -2129,8 +2131,8 @@ class Mesh(Points):
             .. image:: https://vedo.embl.es/images/basic/boolean.png
         """
         bf = vtk.vtkBooleanOperationPolyDataFilter()
-        poly1 = self.computeNormals().polydata()
-        poly2 = mesh2.computeNormals().polydata()
+        poly1 = self.compute_normals().polydata()
+        poly2 = mesh2.compute_normals().polydata()
         if operation.lower() == "plus" or operation.lower() == "+":
             bf.SetOperationToUnion()
         elif operation.lower() == "intersect":
@@ -2397,8 +2399,8 @@ class Mesh(Points):
 
         .. hint:: examples/volumetric/tetralize_surface.py
         """
-        surf = self.clone().clean().computeNormals()
-        d = surf.diagonalSize()
+        surf = self.clone().clean().compute_normals()
+        d = surf.diagonal_size()
         if gap is None:
             gap = side * d * np.sqrt(2 / 3)
         n = int(min((1 / side) ** 3, nmax))

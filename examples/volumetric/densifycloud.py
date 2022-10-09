@@ -12,6 +12,6 @@ pts = Points(coords, r=9)
 pts.pointdata["scals"] = scals
 
 densecloud = pts.densify(0.1, nclosest=10, niter=1) # return a new pointcloud.Points
-printc('nr. points increased', pts.N(), '\rightarrow ', densecloud.N(), c='lg')
+printc('nr. points increased', pts.npoints, '\rightarrow ', densecloud.npoints, c='lg')
 
 show([(pts, __doc__), densecloud], N=2, axes=1).close()

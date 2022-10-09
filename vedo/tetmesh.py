@@ -13,11 +13,11 @@ Work with tetrahedral meshes
 .. image:: https://vedo.embl.es/images/volumetric/82767107-2631d500-9e25-11ea-967c-42558f98f721.jpg
 """
 
-__all__ = ["TetMesh", "delaunay3D"]
+__all__ = ["TetMesh", "delaunay3d"]
 
 
 ##########################################################################
-def delaunay3D(mesh, alphaPar=0, tol=None, boundary=False):
+def delaunay3d(mesh, alpha_parameter=0, tol=None, boundary=False):
     """Create 3D Delaunay triangulation of input points."""
     deln = vtk.vtkDelaunay3D()
     if utils.is_sequence(mesh):
@@ -28,7 +28,7 @@ def delaunay3D(mesh, alphaPar=0, tol=None, boundary=False):
         deln.SetInputData(pd)
     else:
         deln.SetInputData(mesh.GetMapper().GetInput())
-    deln.SetAlpha(alphaPar)
+    deln.SetAlpha(alpha_parameter)
     deln.AlphaTetsOn()
     deln.AlphaTrisOff()
     deln.AlphaLinesOff()
@@ -187,7 +187,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         cloned.name = self.name
         return cloned
 
-    def addQuality(self, measure=7):
+    def compute_quality(self, measure=7):
         """
         Calculate functions of quality for the elements of a triangular mesh.
         This method adds to the mesh a cell array named "Quality".
@@ -267,7 +267,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         th.Update()
         return self._update(th.GetOutput())
 
-    def decimate(self, scalarsName, fraction=0.5, N=None):
+    def decimate(self, scalars_name, fraction=0.5, N=None):
         """
         Downsample the number of tets in a TetMesh to a specified fraction.
 
@@ -283,7 +283,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         """
         decimate = vtk.vtkUnstructuredGridQuadricDecimation()
         decimate.SetInputData(self._data)
-        decimate.SetScalarsName(scalarsName)
+        decimate.SetScalarsName(scalars_name)
 
         if N:  # N = desired number of points
             decimate.SetNumberOfTetsOutput(N)

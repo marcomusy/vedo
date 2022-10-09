@@ -509,7 +509,7 @@ class Base3DProp:
 
                 # get the inverse of the current transformation
                 T = c2.get_transform(invert=True)
-                c2.applyTransform(T)  # put back c2 in place
+                c2.apply_transform(T)  # put back c2 in place
 
                 l = Line(p-v, p+v).lw(3).c('red')
                 show(c1.wireframe().lw(3), l, c2, axes=1)
@@ -541,10 +541,10 @@ class Base3DProp:
         Transform object position and orientation.
 
         reset : bool
-            no effect, this is superseded by pointcloud.applyTransform()
+            no effect, this is superseded by pointcloud.apply_transform()
 
         concatenate : bool
-            no effect, this is superseded by pointcloud.applyTransform()
+            no effect, this is superseded by pointcloud.apply_transform()
         """
         if isinstance(T, vtk.vtkMatrix4x4):
             self.SetUserMatrix(T)
@@ -605,7 +605,7 @@ class Base3DProp:
         if rigid:
             lmt.SetModeToRigidBody()
         lmt.Update()
-        self.applyTransform(lmt)
+        self.apply_transform(lmt)
         self.transform = lmt
 
         self.point_locator = None
@@ -994,7 +994,7 @@ class BaseActor(Base3DProp):
         if diffuse is not None: pr.SetDiffuse(diffuse)
         if specular is not None: pr.SetSpecular(specular)
         if specular_power is not None: pr.SetSpecularPower(specular_power)
-        if specular_color is not None: pr.SetSpecularColor(colors.getColor(specular_color))
+        if specular_color is not None: pr.SetSpecularColor(colors.get_color(specular_color))
         if utils.vtk_version_at_least(9):
             if metallicity is not None:
                 pr.SetInterpolationToPBR()
@@ -1332,10 +1332,10 @@ class BaseActor(Base3DProp):
         self.scalarbar = sb
         return self
 
-    @deprecated(reason=vedo.colors.red + "Please use method add_scalarbar()" + vedo.colors.reset)
+    @deprecated(reason=vedo.colors.red + "Please use method add_scalarbar_3d()" + vedo.colors.reset)
     def addScalarBar3D(self, **k):
-        """Deprecated. Please use method add_scalarbar()"""
-        return self.add_scalarbar(**k)
+        """Deprecated. Please use method add_scalarbar_3d()"""
+        return self.add_scalarbar_3d(**k)
 
     def add_scalarbar_3d(
         self,
@@ -1415,11 +1415,11 @@ class BaseActor(Base3DProp):
         plt = vedo.plotter_instance
         if plt and c is None:  # automatic black or white
             c = (0.9, 0.9, 0.9)
-            if np.sum(vedo.getColor(plt.backgrcol)) > 1.5:
+            if np.sum(vedo.get_color(plt.backgrcol)) > 1.5:
                 c = (0.1, 0.1, 0.1)
         if c is None:
             c = (0, 0, 0)
-        c = vedo.getColor(c)
+        c = vedo.get_color(c)
 
         self.scalarbar = vedo.addons.ScalarBar3D(
             self,
@@ -1584,28 +1584,28 @@ class BaseGrid(BaseActor):
             if utils.is_sequence(col[0]) and len(col[0]) == 2:
                 # user passing [(value1, color1), ...]
                 for x, ci in col:
-                    r, g, b = colors.getColor(ci)
+                    r, g, b = colors.get_color(ci)
                     ctf.AddRGBPoint(x, r, g, b)
                     # colors.printc('color at', round(x, 1),
-                    #               'set to', colors.getColorName((r, g, b)),
+                    #               'set to', colors.get_color_name((r, g, b)),
                     #               c='w', bold=0)
             else:
                 # user passing [color1, color2, ..]
                 for i, ci in enumerate(col):
-                    r, g, b = colors.getColor(ci)
+                    r, g, b = colors.get_color(ci)
                     x = vmin + (vmax - vmin) * i / (len(col) - 1)
                     ctf.AddRGBPoint(x, r, g, b)
         elif isinstance(col, str):
             if col in colors.colors.keys() or col in colors.color_nicks.keys():
-                r, g, b = colors.getColor(col)
+                r, g, b = colors.get_color(col)
                 ctf.AddRGBPoint(vmin, r, g, b)  # constant color
                 ctf.AddRGBPoint(vmax, r, g, b)
             else:  # assume it's a colormap
                 for x in np.linspace(vmin, vmax, num=64, endpoint=True):
-                    r, g, b = colors.colorMap(x, name=col, vmin=vmin, vmax=vmax)
+                    r, g, b = colors.color_map(x, name=col, vmin=vmin, vmax=vmax)
                     ctf.AddRGBPoint(x, r, g, b)
         elif isinstance(col, int):
-            r, g, b = colors.getColor(col)
+            r, g, b = colors.get_color(col)
             ctf.AddRGBPoint(vmin, r, g, b)  # constant color
             ctf.AddRGBPoint(vmax, r, g, b)
         else:
@@ -1767,7 +1767,12 @@ class BaseGrid(BaseActor):
         a.mapPointsToCells()
         return a
 
-    def cutWithPlane(self, origin=(0, 0, 0), normal="x"):
+    @deprecated(reason=vedo.colors.red + "Please use cut_with_plane()" + vedo.colors.reset)
+    def cutWithPlane(self, origin=(0, 0, 0), normal=(1, 0, 0)):
+        """Deprecated. Please use cut_with_plane()"""
+        return self.cut_with_plane(origin, normal)
+
+    def cut_with_plane(self, origin=(0, 0, 0), normal="x"):
         """
         Cut the object with the plane defined by a point and a normal.
 

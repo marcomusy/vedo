@@ -5,7 +5,7 @@ from vedo import dataurl, Volume, printc, Plotter
 mesh1 = Volume(dataurl+"embryo.tif").isosurface(80).c("yellow")
 printc("area1 =", mesh1.area(), c="yellow")
 
-mesh2 = mesh1.extractLargestRegion().color("lb")
+mesh2 = mesh1.extract_largest_region().color("lb")
 printc("area2 =", mesh2.area(), c="lb")
 
 plt = Plotter(shape=(2,1), axes=7)

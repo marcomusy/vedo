@@ -26,20 +26,20 @@ lut_table = [
     (13.0, 'lime',       1, "Layer^E"),
     (15.0, 'seagreen',   1, "Layer^V"),
 ]
-lut = vedo.buildLUT(lut_table)
+lut = vedo.build_lut(lut_table)
 
 msh = tet.tomesh(shrink=0.95).cmap(lut, 'cell_scalars', on='cells')
-msh.addScalarBar3D(
-                categories=lut_table,
-                pos=(505500, 6416900, -630),
-                title='Units',
-                titleSize=1.25,
-                labelSize=1.5,
-                s=[100, 2200],
+msh.add_scalarbar_3d(
+    categories=lut_table,
+    pos=(505500, 6416900, -630),
+    title='Units',
+    title_size=1.25,
+    label_size=1.5,
+    s=[100, 2200],
 )
 # put scalarbar vertical, tell camera to keep bounds into account
-msh.scalarbar.rotateX(90, around='itself').rotateZ(60, around='itself')
-msh.scalarbar.useBounds()
+msh.scalarbar.rotate_x(90, around='itself').rotate_z(60, around='itself')
+msh.scalarbar.use_bounds()
 
 # Create cmap for conductor
 cond = conductor.tomesh().cmap(lut, 'cell_scalars', on='cells')

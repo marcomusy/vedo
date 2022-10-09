@@ -8,7 +8,7 @@ def slider0(widget, event):
 
 def slider1(widget, event):
     val = widget.value
-    widget.title(getColorName(val))
+    widget.title(get_color_name(val))
     cube.color(val)
 
 def buttonfunc():
@@ -24,7 +24,7 @@ plt = Plotter(N=2, axes=True)
 
 ######
 plt.at(0).show(sphere, __doc__)  # show the sphere on the first renderer
-plt.addSlider2D(
+plt.add_slider_2d(
     slider0,
     -9, 9,           # slider range
     value=0,         # initial value
@@ -35,7 +35,7 @@ plt.addSlider2D(
 
 ######
 plt.at(1).show(cube)
-plt.addSlider2D(
+plt.add_slider_2d(
     slider1,
     -9, 9,
     value=0,
@@ -44,7 +44,7 @@ plt.addSlider2D(
 )
 
 ######
-button = plt.at(1).addButton(
+button = plt.at(1).add_button(
     buttonfunc,
     pos=(0.5, 0.9),       # x,y fraction from bottom left corner
     states=["HIGH alpha (click here!)", "LOW alpha (click here!)"],

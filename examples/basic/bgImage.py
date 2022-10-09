@@ -11,7 +11,7 @@ plt = Plotter(
 	bg2='light blue',
 )
 
-a1 = load(dataurl+"flamingo.3ds").rotateX(-90)
+a1 = load(dataurl+"flamingo.3ds").rotate_x(-90)
 
 plt.at(2).show(__doc__)
 

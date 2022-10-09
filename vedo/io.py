@@ -29,11 +29,11 @@ __all__ = [
     "loadStructuredGrid",
     "loadRectilinearGrid",
     "loadUnStructuredGrid",
-    "loadTransform",
-    "writeTransform",
+    "load_transform",
+    "write_transform",
     "write",
-    "exportWindow",
-    "importWindow",
+    "export_window",
+    "import_window",
     "screenshot",
     "ask",
     "Video",
@@ -1012,7 +1012,7 @@ def loadnumpy(inobj):
         isdict = hasattr(data[0], "keys")
 
         if isdict and "objects" in data[0].keys():  # loading a full scene!!
-            return importWindow(data[0])
+            return import_window(data[0])
 
         # it's a very normal numpy data object? just return it!
         if not isdict:
@@ -1036,7 +1036,7 @@ def loadnumpy(inobj):
             for i in [0, 1, 2, 3]:
                 for j in [0, 1, 2, 3]:
                     vm.SetElement(i, j, d["transform"][i, j])
-            obj.applyTransform(vm)
+            obj.apply_transform(vm)
         elif "position" in keys:
             obj.pos(d["position"])
 
@@ -1112,7 +1112,7 @@ def loadnumpy(inobj):
                 poly.GetPointData().SetActiveScalars(d["activedata"][1])
 
         if "shading" in keys and int(d["shading"]) > 0:
-            msh.computeNormals(cells=0)  # otherwise cannot renderer phong
+            msh.compute_normals(cells=0)  # otherwise cannot renderer phong
 
         if "scalarvisibility" in keys:
             if d["scalarvisibility"]:
@@ -1402,7 +1402,7 @@ def write(objct, fileoutput, binary=True):
     return objct
 
 
-def writeTransform(inobj, filename="transform.mat", comment=""):
+def write_transform(inobj, filename="transform.mat", comment=""):
     """
     Save a transformation for a mesh or pointcloud to ASCII file.
 
@@ -1422,7 +1422,7 @@ def writeTransform(inobj, filename="transform.mat", comment=""):
         M = inobj
     else:
         vedo.logger.error(
-            f"in writeTransform(), cannot understand input type {type(inobj)}"
+            f"in write_transform(), cannot understand input type {type(inobj)}"
         )
 
     with open(filename, "w") as f:
@@ -1437,14 +1437,14 @@ def writeTransform(inobj, filename="transform.mat", comment=""):
         f.write('\n')
 
 
-def loadTransform(filename):
+def load_transform(filename):
     """
     Load a ``vtkTransform`` from a file.mat.
 
     Returns
     -------
     T : vtkTransform
-        The transformation to be applied to some object (``use applyTransform()``).
+        The transformation to be applied to some object (``use apply_transform()``).
 
     comment : str
         a comment string associated to this transformation file.
@@ -1470,7 +1470,7 @@ def loadTransform(filename):
 
 
 ###############################################################################
-def exportWindow(fileoutput, binary=False):
+def export_window(fileoutput, binary=False):
     """
     Exporter which writes out the renderered scene into an HTML, X3D
     or Numpy file.
@@ -1504,7 +1504,7 @@ def exportWindow(fileoutput, binary=False):
         sdict["size"] = plt.size
         sdict["axes"] = plt.axes
         sdict["title"] = plt.title
-        sdict["backgrcol"] = colors.getColor(plt.backgrcol)
+        sdict["backgrcol"] = colors.get_color(plt.backgrcol)
         sdict["backgrcol2"] = None
         if plt.renderer.GetGradientBackground():
             sdict["backgrcol2"] = plt.renderer.GetBackground2()
@@ -1600,30 +1600,30 @@ def exportWindow(fileoutput, binary=False):
 
     ####################################################################
     elif fr.endswith(".html"):
-        savebk = vedo.notebookBackend
-        vedo.notebookBackend = "k3d"
-        plt = vedo.backends.getNotebookBackend(vedo.plotter_instance.actors, 1.5, "")
+        savebk = vedo.notebook_backend
+        vedo.notebook_backend = "k3d"
+        plt = vedo.backends.get_notebook_backend(vedo.plotter_instance.actors, 1.5, "")
 
         with open(fileoutput, "w") as fp:
             fp.write(plt.get_snapshot())
 
-        vedo.notebookBackend = savebk
+        vedo.notebook_backend = savebk
 
     else:
         vedo.logger.error(f"export extension {fr.split('.')[-1]} is not supported")
     return vedo.plotter_instance
 
 
-def importWindow(fileinput, mtlFile=None, texturePath=None):
+def import_window(fileinput, mtl_file=None, texture_path=None):
     """Import a whole scene from a Numpy or OBJ wavefront file.
     Return a ``Plotter`` instance.
 
     Parameters
     ----------
-    mtlFile : str
+    mtl_file : str
         MTL file for OBJ wavefront files.
 
-    texturePath : str
+    texture_path : str
         path of the texture files directory.
     """
     data = None
@@ -1710,14 +1710,14 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
 
         importer = vtk.vtkOBJImporter()
         importer.SetFileName(fileinput)
-        if mtlFile is not False:
-            if mtlFile is None:
-                mtlFile = fileinput.replace(".obj", ".mtl").replace(".OBJ", ".MTL")
-            importer.SetFileNameMTL(mtlFile)
-        if texturePath is not False:
-            if texturePath is None:
-                texturePath = fileinput.replace(".obj", ".txt").replace(".OBJ", ".TXT")
-            importer.SetTexturePath(texturePath)
+        if mtl_file is not False:
+            if mtl_file is None:
+                mtl_file = fileinput.replace(".obj", ".mtl").replace(".OBJ", ".MTL")
+            importer.SetFileNameMTL(mtl_file)
+        if texture_path is not False:
+            if texture_path is None:
+                texture_path = fileinput.replace(".obj", ".txt").replace(".OBJ", ".TXT")
+            importer.SetTexturePath(texture_path)
         importer.SetRenderWindow(plt.window)
         importer.Update()
 

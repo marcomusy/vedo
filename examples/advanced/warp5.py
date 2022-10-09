@@ -48,7 +48,7 @@ class Morpher:
         self.params = pars
 
         #calculate chi2
-        d2sum, n = 0.0, self.source.N()
+        d2sum, n = 0.0, self.source.npoints
         srcpts = self.source.points()
         rng = range(0, n, int(n / self.subsample))
         for i in rng:
@@ -89,7 +89,7 @@ class Morpher:
         res = opt.minimize(self._func, x0,
                            bounds=bnds, method=self.method, tol=self.tolerance)
         # recalc for all pts:
-        self.subsample = self.source.N()
+        self.subsample = self.source.npoints
         self._func(res["x"])
         print("\nFinal fit score", res["fun"])
         self.fitResult = res

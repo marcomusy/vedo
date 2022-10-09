@@ -5,11 +5,14 @@ import numpy as np
 
 settings.useDepthPeeling = True
 
-tor = Torus(res=9).lineWidth(1)
+tor = Torus(res=9).linewidth(1)
 
-rgba = np.random.rand(tor.NCells(), 4)*255 # RGBA values
+rgba = np.random.rand(tor.ncells, 4)*255 # RGBA values
 
-tor.cellIndividualColors(rgba)
+colorlist = rgba.astype(np.uint8)
+tor.celldata["CellIndividualColors"] = colorlist
+tor.celldata.select("CellIndividualColors")
+
 printc('Mesh cell arrays:', tor.celldata.keys(),
        'shape:', tor.celldata['CellIndividualColors'].shape)
 

@@ -20,11 +20,11 @@ msh2 = msh.clone()
 
 # Set parameters and allocate arrays
 radius = 1.5
-curvature = np.zeros(msh2.N())
-residues = np.zeros(msh2.N())
+curvature = np.zeros(msh2.npoints)
+residues = np.zeros(msh2.npoints)
 
 # iterate over surface points and fit sphere
-for idx in range(msh2.N()):
+for idx in range(msh2.npoints):
 
     patch = msh2.closestPoint(msh2.points()[idx], radius=radius)
     s = fitSphere(patch)

@@ -18,7 +18,7 @@ plt1 = show(mesh, __doc__, title='First Plotter instance')
 printc('\nControl returned to terminal shell:', c='tomato', invert=1)
 ask('window is now unresponsive (press Enter here)', c='tomato', invert=1)
 
-plt1.closeWindow()
+plt1.close_window()
 # window should now close, the Plotter instance becomes unusable
 # but mesh objects still exist in it:
 
@@ -34,7 +34,7 @@ plt2.show(plt1.actors[0].color('red'))
 # Create a third new Plotter and then close the second
 plt3 = Plotter(title='Third Plotter instance')
 
-plt2.closeWindow()
+plt2.close_window()
 printc('plt2.closeWindow() called')
 
 plt3.show(Hyperboloid()).close()

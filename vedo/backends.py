@@ -123,13 +123,13 @@ def get_notebook_backend(actors2show, zoom, viewup):
             #####################################################################scalars
             # work out scalars first, Points Lines are also Mesh objs
             if isinstance(ia, (Mesh, shapes.Line, Points)):
-#                print('scalars', ia.name, ia.N())
+#                print('scalars', ia.name, ia.npoints)
                 iap = ia.GetProperty()
 
                 if isinstance(ia, (shapes.Line, Points)):
                     iapoly = ia.polydata()
                 else:
-                    iapoly = ia.clone().clean().triangulate().computeNormals().polydata()
+                    iapoly = ia.clone().clean().triangulate().compute_normals().polydata()
 
                 vtkscals = None
                 color_attribute = None
@@ -195,8 +195,8 @@ def get_notebook_backend(actors2show, zoom, viewup):
                 vedo.notebook_plotter += kobj
 
             #####################################################################Mesh
-            elif isinstance(ia, Mesh) and ia.N() and len(ia.faces()):
-                # print('Mesh', ia.name, ia.N(), len(ia.faces()))
+            elif isinstance(ia, Mesh) and ia.npoints and len(ia.faces()):
+                # print('Mesh', ia.name, ia.npoints, len(ia.faces()))
                 kobj = k3d.vtk_poly_data(
                     iapoly,
                     name=name,
@@ -213,7 +213,7 @@ def get_notebook_backend(actors2show, zoom, viewup):
 
             #####################################################################Points
             elif isinstance(ia, Points):
-                # print('Points', ia.name, ia.N())
+                # print('Points', ia.name, ia.npoints)
                 kcols = []
                 if color_attribute is not None:
                     scals = utils.vtk2numpy(vtkscals)
@@ -239,7 +239,7 @@ def get_notebook_backend(actors2show, zoom, viewup):
 
             #####################################################################Lines
             elif ia.polydata(False).GetNumberOfLines():
-                # print('Line', ia.name, ia.N(), len(ia.faces()),
+                # print('Line', ia.name, ia.npoints, len(ia.faces()),
                 #       ia.polydata(False).GetNumberOfLines(), len(ia.lines()),
                 #       color_attribute, [vtkscals])
 
@@ -299,7 +299,7 @@ def get_notebook_backend(actors2show, zoom, viewup):
         from ipygany import Alpha, ColorBar, colormaps, PointCloud
         from ipywidgets import FloatRangeSlider, Dropdown, VBox, AppLayout, jslink
 
-        bgcol = colors.rgb2hex(colors.getColor(plt.backgrcol))
+        bgcol = colors.rgb2hex(colors.get_color(plt.backgrcol))
 
         actors2show2 = []
         for ia in actors2show:
@@ -321,7 +321,7 @@ def get_notebook_backend(actors2show, zoom, viewup):
             #            print("ipygany processing:", [obj], obj.name)
 
             if isinstance(obj, vedo.shapes.Line):
-                lg = obj.diagonalSize() / 1000 * obj.GetProperty().GetLineWidth()
+                lg = obj.diagonal_size() / 1000 * obj.GetProperty().GetLineWidth()
                 vmesh = vedo.shapes.Tube(obj.points(), r=lg, res=4).triangulate()
                 vmesh.c(obj.c())
                 faces = vmesh.faces()

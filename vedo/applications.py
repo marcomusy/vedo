@@ -5,14 +5,14 @@ import os
 import numpy as np
 
 import vedo
-from vedo.colors import colorMap
-from vedo.colors import getColor
+from vedo.colors import color_map
+from vedo.colors import get_color
 from vedo.utils import is_sequence
 from vedo.utils import lin_interpolate
 from vedo.utils import mag
 from vedo.utils import precision
 from vedo.plotter import Plotter
-from vedo.pointcloud import fitPlane
+from vedo.pointcloud import fit_plane
 from vedo.pointcloud import Points
 from vedo.shapes import Line
 from vedo.shapes import Ribbon
@@ -236,7 +236,7 @@ class Slicer3DPlotter(Plotter):
                 pos2=(bs[1], bs[2], bs[4]),
                 xmin=0,
                 xmax=dims[0],
-                t=box.diagonalSize() / mag(box.xbounds()) * 0.6,
+                t=box.diagonal_size() / mag(box.xbounds()) * 0.6,
                 c=cx,
                 showValue=False,
             )
@@ -246,7 +246,7 @@ class Slicer3DPlotter(Plotter):
                 pos2=(bs[1], bs[3], bs[4]),
                 xmin=0,
                 xmax=dims[1],
-                t=box.diagonalSize() / mag(box.ybounds()) * 0.6,
+                t=box.diagonal_size() / mag(box.ybounds()) * 0.6,
                 c=cy,
                 showValue=False,
             )
@@ -257,7 +257,7 @@ class Slicer3DPlotter(Plotter):
                 xmin=0,
                 xmax=dims[2],
                 value=int(dims[2] / 2),
-                t=box.diagonalSize() / mag(box.zbounds()) * 0.6,
+                t=box.diagonal_size() / mag(box.zbounds()) * 0.6,
                 c=cz,
                 showValue=False,
             )
@@ -446,11 +446,11 @@ class RayCastPlotter(Plotter):
         ]
         cols_cmaps = []
         for cm in cmaps:
-            cols = colorMap(range(0, 21), cm, 0, 20)  # sample 20 colors
+            cols = color_map(range(0, 21), cm, 0, 20)  # sample 20 colors
             cols_cmaps.append(cols)
         Ncols = len(cmaps)
         csl = (0.9, 0.9, 0.9)
-        if sum(getColor(self.renderer.GetBackground())) > 1.5:
+        if sum(get_color(self.renderer.GetBackground())) > 1.5:
             csl = (0.1, 0.1, 0.1)
 
         def sliderColorMap(widget, event):
@@ -942,8 +942,8 @@ class FreeHandCutPlotter(Plotter):
 
     def _on_mouse_move(self, evt):
         if self.drawmode:
-            cpt = self.computeWorldPosition(evt.picked2d) # make this 2d-screen point 3d
-            if self.cpoints and mag(cpt - self.cpoints[-1]) < self.mesh.diagonalSize()*self.tol:
+            cpt = self.compute_world_position(evt.picked2d) # make this 2d-screen point 3d
+            if self.cpoints and mag(cpt - self.cpoints[-1]) < self.mesh.diagonal_size()*self.tol:
                 return  # new point is too close to the last one. skip
             self.cpoints.append(cpt)
             if len(self.cpoints) > 2:
@@ -972,9 +972,9 @@ class FreeHandCutPlotter(Plotter):
             self.txt2d.background("red8").text("  ... working ...  ")
             self.render()
             self.mesh_prev = self.mesh.clone()
-            tol = self.mesh.diagonalSize() / 2  # size of ribbon (not shown)
+            tol = self.mesh.diagonal_size() / 2  # size of ribbon (not shown)
             pts = self.spline.points()
-            n = fitPlane(pts, signed=True).normal  # compute normal vector to points
+            n = fit_plane(pts, signed=True).normal  # compute normal vector to points
             rb = Ribbon(pts - tol * n, pts + tol * n, closed=True)
             self.mesh.cutWithMesh(rb, invert=inv)  # CUT
             self.txt2d.text(self.msg)  # put back original message
@@ -1300,7 +1300,7 @@ class Animation(Plotter):
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
 
-            col2 = getColor(c)
+            col2 = get_color(c)
             for tt in rng:
                 inputvalues = []
                 for a in acts:
@@ -1321,7 +1321,7 @@ class Animation(Plotter):
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
 
-            col2 = getColor(c)
+            col2 = get_color(c)
             for tt in rng:
                 inputvalues = []
                 for a in acts:
@@ -1378,7 +1378,7 @@ class Animation(Plotter):
         """Gradually change line color of the mesh edges for the input list of meshes."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
-            col2 = getColor(c)
+            col2 = get_color(c)
             for tt in rng:
                 inputvalues = []
                 for a in acts:
@@ -1494,7 +1494,7 @@ class Animation(Plotter):
             acts, t, duration, rng = self._parse(act, t, duration)
             if len(acts) != 1:
                 vedo.logger.error("in meshErode(), can erode only one object.")
-            diag = acts[0].diagonalSize()
+            diag = acts[0].diagonal_size()
             x0, x1, y0, y1, z0, z1 = acts[0].GetBounds()
             corners = [
                 (x0, y0, z0),
@@ -1514,7 +1514,7 @@ class Animation(Plotter):
                     ids = acts[0].closestPoint(
                         corners[corner], radius=d, returnPointId=True
                     )
-                    if len(ids) <= acts[0].N():
+                    if len(ids) <= acts[0].npoints:
                         self.events.append((tt, self.meshErode, acts, ids))
         return self
 

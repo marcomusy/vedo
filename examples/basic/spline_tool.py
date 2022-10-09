@@ -6,13 +6,13 @@
 from vedo import Circle, show
 
 # Create a set of points in space
-pts = Circle(res=8).extrude(zshift=0.5).pointSize(4)
+pts = Circle(res=8).extrude(zshift=0.5).ps(4)
 
 # Visualize the points
 plt = show(pts, __doc__, interactive=False, axes=1)
 
 # Add the spline tool using the same points and interact with it
-sptool = plt.addSplineTool(pts, closed=True)
+sptool = plt.add_spline_tool(pts, closed=True)
 plt.interactive()
 
 # Switch off the tool

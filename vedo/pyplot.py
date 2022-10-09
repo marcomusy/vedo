@@ -354,13 +354,13 @@ class Figure(Assembly):
                 try:
                     bx0, bx1, by0, by1, _, _ = a.GetBounds()
                     if self.y0lim > by0:
-                        a.cutWithPlane([0, self.y0lim, 0], [ 0, 1, 0])
+                        a.cut_with_plane([0, self.y0lim, 0], [ 0, 1, 0])
                     if self.y1lim < by1:
-                        a.cutWithPlane([0, self.y1lim, 0], [ 0,-1, 0])
+                        a.cut_with_plane([0, self.y1lim, 0], [ 0,-1, 0])
                     if self.x0lim > bx0:
-                        a.cutWithPlane([self.x0lim, 0, 0], [ 1, 0, 0])
+                        a.cut_with_plane([self.x0lim, 0, 0], [ 1, 0, 0])
                     if self.x1lim < bx1:
-                        a.cutWithPlane([self.x1lim, 0, 0], [-1, 0, 0])
+                        a.cut_with_plane([self.x1lim, 0, 0], [-1, 0, 0])
                 except:
                     # print("insert(): cannot cut", [a])
                     pass
@@ -484,7 +484,7 @@ class Figure(Assembly):
             mk = label.marker
             if isinstance(mk, vedo.Points):
                 mk = mk.clone(deep=False).lighting("off")
-                cm = mk.centerOfMass()
+                cm = mk.center_of_mass()
                 ty0, ty1 = tx.ybounds()
                 oby0, oby1 = mk.ybounds()
                 mk.shift(-cm)
@@ -875,7 +875,7 @@ class Histogram1D(Figure):
                 r.PickableOff()
                 maxheigth = max(maxheigth, p1[1])
                 if c in colors.cmaps_names:
-                    col = colors.colorMap((p0[0]+p1[0])/2, c, myedges[0], myedges[-1])
+                    col = colors.color_map((p0[0]+p1[0])/2, c, myedges[0], myedges[-1])
                 else:
                     col = c
                 r.color(col).alpha(alpha).lighting("off")
@@ -1368,7 +1368,7 @@ class PlotBars(Figure):
                 r.PickableOff()
                 maxheigth = max(maxheigth, p1[1])
                 if c in colors.cmaps_names:
-                    col = colors.colorMap((p0[0] + p1[0]) / 2, c, edges[0], edges[-1])
+                    col = colors.color_map((p0[0] + p1[0]) / 2, c, edges[0], edges[-1])
                 else:
                     col = cols[i]
                 r.color(col).alpha(alpha).lighting("off")
@@ -1926,7 +1926,7 @@ def plot(*args, **kwargs):
     zlevels : int
         will draw the specified number of z-levels contour lines
 
-    showNan : bool
+    show_nan : bool
         show where the function does not exist as red points
 
     bins : list
@@ -2009,16 +2009,16 @@ def plot(*args, **kwargs):
     splined : bool
         interpolate the set of input points
 
-    showDisc : bool
+    show_disc : bool
         draw the outer ring axis
 
     nrays : int
         draw this number of axis rays (continuous and dashed)
 
-    showLines : bool
+    show_lines : bool
         draw lines to the origin
 
-    showAngles : bool
+    show_angles : bool
         draw angle values
 
     .. hint:: examples/pyplot/histo_polar.py
@@ -2062,15 +2062,15 @@ def plot(*args, **kwargs):
     """
     mode = kwargs.pop("mode", "")
     if "spher" in mode:
-        return _plotSpheric(args[0], **kwargs)
+        return _plot_spheric(args[0], **kwargs)
 
     if "bar" in mode:
         return PlotBars(args[0], **kwargs)
 
     if isinstance(args[0], str) or "function" in str(type(args[0])):
         if "complex" in mode:
-            return _plotFz(args[0], **kwargs)
-        return _plotFxy(args[0], **kwargs)
+            return _plot_fz(args[0], **kwargs)
+        return _plot_fxy(args[0], **kwargs)
 
     # grab the matplotlib-like options
     optidx = None
@@ -2139,7 +2139,7 @@ def plot(*args, **kwargs):
         return None
 
     if "polar" in mode:
-        return _plotPolar(np.c_[x, y], **kwargs)
+        return _plot_polar(np.c_[x, y], **kwargs)
 
     return PlotXY(np.c_[x, y], **kwargs)
 
@@ -2374,19 +2374,19 @@ def histogram(*args, **kwargs):
     labels : list
         list of labels, must be of length `bins`
 
-    showDisc : bool
+    show_disc : bool
         show the outer ring axis
 
     nrays : int
         draw this number of axis rays (continuous and dashed)
 
-    showLines : bool
+    show_lines : bool
         show lines to the origin
 
-    showAngles : bool
+    show_angles : bool
         show angular values
 
-    showErrors : bool
+    show_errors : bool
         show error bars
 
     .. hint:: examples/pyplot/histo_polar.py
@@ -2423,7 +2423,7 @@ def histogram(*args, **kwargs):
         if "spher" in mode:
             return _histogramSpheric(args[0], args[1], **kwargs)
         if "hex" in mode:
-            return _histogramHexBin(args[0], args[1], **kwargs)
+            return _histogram_hex_bin(args[0], args[1], **kwargs)
         return Histogram2D(args[0], args[1], **kwargs)
 
     elif len(args) == 1:
@@ -2444,11 +2444,11 @@ def histogram(*args, **kwargs):
 
         if len(data.shape) == 1:
             if "polar" in mode:
-                return _histogramPolar(data, **kwargs)
+                return _histogram_polar(data, **kwargs)
             return Histogram1D(data, **kwargs)
         else:
             if "hex" in mode:
-                return _histogramHexBin(args[0][:, 0], args[0][:, 1], **kwargs)
+                return _histogram_hex_bin(args[0][:, 0], args[0][:, 1], **kwargs)
             return Histogram2D(args[0], **kwargs)
 
     print("histogram(): Could not understand input", args[0])
@@ -2626,12 +2626,12 @@ def fit(
     return fitl
 
 
-def _plotFxy(
+def _plot_fxy(
         z,
         xlim=(0, 3),
         ylim=(0, 3),
         zlim=(None, None),
-        showNan=True,
+        show_nan=True,
         zlevels=10,
         c=None,
         bc="aqua",
@@ -2689,11 +2689,11 @@ def _plotFxy(
 
     if zlim[0]:
         tmpact1 = Mesh(poly)
-        a = tmpact1.cutWithPlane((0, 0, zlim[0]), (0, 0, 1))
+        a = tmpact1.cut_with_plane((0, 0, zlim[0]), (0, 0, 1))
         poly = a.polydata()
     if zlim[1]:
         tmpact2 = Mesh(poly)
-        a = tmpact2.cutWithPlane((0, 0, zlim[1]), (0, 0, -1))
+        a = tmpact2.cut_with_plane((0, 0, zlim[1]), (0, 0, -1))
         poly = a.polydata()
 
     cmap = ""
@@ -2702,7 +2702,7 @@ def _plotFxy(
         c = None
         bc = None
 
-    mesh = Mesh(poly, c, alpha).computeNormals().lighting("plastic")
+    mesh = Mesh(poly, c, alpha).compute_normals().lighting("plastic")
 
     if cmap:
         mesh.addElevationScalars().cmap(cmap)
@@ -2730,7 +2730,7 @@ def _plotFxy(
         zbandsact.mapper().SetResolveCoincidentTopologyToPolygonOffset()
         acts.append(zbandsact)
 
-    if showNan and todel:
+    if show_nan and todel:
         bb = mesh.GetBounds()
         if bb[4] <= 0 and bb[5] >= 0:
             zm = 0.0
@@ -2753,7 +2753,7 @@ def _plotFxy(
     return assem
 
 
-def _plotFz(
+def _plot_fz(
         z,
         x=(-1, 1),
         y=(-1, 1),
@@ -2787,12 +2787,12 @@ def _plotFz(
     mesh = Mesh(poly, alpha).lighting("plastic")
     v = max(abs(np.min(arrImg)), abs(np.max(arrImg)))
     mesh.cmap(cmap, arrImg, vmin=-v, vmax=v)
-    mesh.computeNormals().lw(lw)
+    mesh.compute_normals().lw(lw)
 
     if zlimits[0]:
-        mesh.cutWithPlane((0, 0, zlimits[0]), (0, 0, 1))
+        mesh.cut_with_plane((0, 0, zlimits[0]), (0, 0, 1))
     if zlimits[1]:
-        mesh.cutWithPlane((0, 0, zlimits[1]), (0, 0, -1))
+        mesh.cut_with_plane((0, 0, zlimits[1]), (0, 0, -1))
 
     acts = [mesh]
     if axes:
@@ -2805,7 +2805,7 @@ def _plotFz(
     return asse
 
 
-def _plotPolar(
+def _plot_polar(
         rphi,
         title="",
         tsize=0.1,
@@ -2821,10 +2821,10 @@ def _plotPolar(
         vmax=None,
         fill=False,
         splined=False,
-        showDisc=True,
+        show_disc=True,
         nrays=8,
-        showLines=True,
-        showAngles=True,
+        show_lines=True,
+        show_angles=True,
     ):
     if len(rphi) == 2:
         rphi = np.stack((rphi[0], rphi[1]), axis=1)
@@ -2876,13 +2876,13 @@ def _plotPolar(
     if fill and lw:
         faces = []
         coords = [[0, 0, 0]] + lines.points().tolist()
-        for i in range(1, lines.N()):
+        for i in range(1, lines.npoints):
             faces.append([0, i, i + 1])
         filling = Mesh([coords, faces]).c(c).alpha(alpha)
 
     back = None
     back2 = None
-    if showDisc:
+    if show_disc:
         back = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=(1, 360))
         back.z(-0.01).lighting("off").alpha(alpha)
         back2 = shapes.Disc(r1=r2e / 2, r2=r2e / 2 * 1.005, c=bc, res=(1, 360))
@@ -2894,11 +2894,11 @@ def _plotPolar(
         ti.pos(0, -r2e * 1.15, 0.01)
 
     rays = []
-    if showDisc:
+    if show_disc:
         rgap = 0.05
         for t in np.linspace(0, 2 * np.pi, num=nrays, endpoint=False):
             ct, st = np.cos(t), np.sin(t)
-            if showLines:
+            if show_lines:
                 l = shapes.Line((0, 0, -0.01), (r2e * ct * 1.03, r2e * st * 1.03, -0.01))
                 rays.append(l)
                 ct2, st2 = np.cos(t + np.pi / nrays), np.sin(t + np.pi / nrays)
@@ -2906,12 +2906,12 @@ def _plotPolar(
                     (0, 0, -0.01), (r2e * ct2, r2e * st2, -0.01), spacing=0.25
                 )
                 rays.append(lm)
-            elif showAngles:  # just the ticks
+            elif show_angles:  # just the ticks
                 l = shapes.Line(
                     (r2e * ct * 0.98, r2e * st * 0.98, -0.01),
                     (r2e * ct * 1.03, r2e * st * 1.03, -0.01),
                 )
-            if showAngles:
+            if show_angles:
                 if 0 <= t < np.pi / 2:
                     ju = "bottom-left"
                 elif t == np.pi / 2:
@@ -2938,7 +2938,7 @@ def _plotPolar(
     return rh
 
 
-def _plotSpheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=0.05, cmap="jet"):
+def _plot_spheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=0.05, cmap="jet"):
     sg = shapes.Sphere(res=res, quads=True)
     sg.alpha(alpha).c(c).wireframe()
 
@@ -2977,7 +2977,7 @@ def _plotSpheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=
     ssurf.alpha(1).wireframe(0).lw(0.1)
 
     ssurf.cmap(cmap, newr)
-    ssurf.computeNormals()
+    ssurf.compute_normals()
 
     if scalarbar:
         xm = np.max([np.max(pts[0]), 1])
@@ -2994,7 +2994,7 @@ def _plotSpheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=
     return asse
 
 
-def _histogramHexBin(
+def _histogram_hex_bin(
         xvalues,
         yvalues,
         bins=12,
@@ -3032,7 +3032,7 @@ def _histogramHexBin(
 
     col = None
     if c is not None:
-        col = colors.getColor(c)
+        col = colors.get_color(c)
 
     hexs, binmax = [], 0
     ki, kj = 1.33, 1.12
@@ -3075,7 +3075,7 @@ def _histogramHexBin(
     if cmap is not None:
         for h in hexs:
             z = h.GetBounds()[5]
-            col = colors.colorMap(z, cmap, 0, binmax)
+            col = colors.color_map(z, cmap, 0, binmax)
             h.color(col)
 
     asse = Assembly(hexs)
@@ -3087,7 +3087,7 @@ def _histogramHexBin(
     return asse
 
 
-def _histogramPolar(
+def _histogram_polar(
         values,
         weights=None,
         title="",
@@ -3107,11 +3107,11 @@ def _histogramPolar(
         vmin=None,
         vmax=None,
         labels=(),
-        showDisc=True,
+        show_disc=True,
         nrays=8,
-        showLines=True,
-        showAngles=True,
-        showErrors=False,
+        show_lines=True,
+        show_angles=True,
+        show_errors=False,
     ):
     k = 180 / np.pi
     if deg:
@@ -3141,11 +3141,11 @@ def _histogramPolar(
 
     errors = np.sqrt(histodata)
     r2e = r1 + r2
-    if showErrors:
+    if show_errors:
         r2e += np.max(errors) / vmax * 1.5
 
     back = None
-    if showDisc:
+    if show_disc:
         back = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=(1, 360))
         back.z(-0.01)
 
@@ -3158,10 +3158,10 @@ def _histogramPolar(
         r = histodata[i] / vmax * r2
         d = shapes.Disc((0, 0, 0), r1, r1 + r, res=(1, 360))
         delta = np.pi / bins - np.pi / 2 - phigap / k
-        d.cutWithPlane(normal=(np.cos(t + delta), np.sin(t + delta), 0))
-        d.cutWithPlane(normal=(np.cos(t - delta), np.sin(t - delta), 0))
+        d.cut_with_plane(normal=(np.cos(t + delta), np.sin(t + delta), 0))
+        d.cut_with_plane(normal=(np.cos(t - delta), np.sin(t - delta), 0))
         if cmap is not None:
-            cslice = colors.colorMap(histodata[i], cmap, vmin, vmax)
+            cslice = colors.color_map(histodata[i], cmap, vmin, vmax)
             d.color(cslice)
         else:
             if c is None:
@@ -3175,8 +3175,8 @@ def _histogramPolar(
 
         ct, st = np.cos(t), np.sin(t)
 
-        if showErrors:
-            showLines = False
+        if show_errors:
+            show_lines = False
             err = np.sqrt(histodata[i]) / vmax * r2
             errl = shapes.Line(
                 ((r1 + r - err) * ct, (r1 + r - err) * st, 0.01),
@@ -3187,7 +3187,7 @@ def _histogramPolar(
 
     labs = []
     rays = []
-    if showDisc:
+    if show_disc:
         outerdisc = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=(1, 360))
         outerdisc.z(-0.01)
         innerdisc = shapes.Disc(r1=r2e / 2, r2=r2e / 2 * 1.005, c=bc, res=(1, 360))
@@ -3198,7 +3198,7 @@ def _histogramPolar(
         rgap = 0.05
         for t in np.linspace(0, 2 * np.pi, num=nrays, endpoint=False):
             ct, st = np.cos(t), np.sin(t)
-            if showLines:
+            if show_lines:
                 l = shapes.Line((0, 0, -0.01), (r2e * ct * 1.03, r2e * st * 1.03, -0.01))
                 rays.append(l)
                 ct2, st2 = np.cos(t + np.pi / nrays), np.sin(t + np.pi / nrays)
@@ -3206,12 +3206,12 @@ def _histogramPolar(
                     (0, 0, -0.01), (r2e * ct2, r2e * st2, -0.01), spacing=0.25
                 )
                 rays.append(lm)
-            elif showAngles:  # just the ticks
+            elif show_angles:  # just the ticks
                 l = shapes.Line(
                     (r2e * ct * 0.98, r2e * st * 0.98, -0.01),
                     (r2e * ct * 1.03, r2e * st * 1.03, -0.01),
                 )
-            if showAngles:
+            if show_angles:
                 if 0 <= t < np.pi / 2:
                     ju = "bottom-left"
                 elif t == np.pi / 2:
@@ -3263,7 +3263,7 @@ def _histogramSpheric(
     x, y, z = utils.spher2cart(np.ones_like(thetavalues) * 1.1, thetavalues, phivalues)
     ptsvals = np.c_[x, y, z]
 
-    sg = shapes.Sphere(res=res, quads=True).shrink(0.999).computeNormals().lw(0.1)
+    sg = shapes.Sphere(res=res, quads=True).shrink(0.999).compute_normals().lw(0.1)
     sgfaces = sg.faces()
     sgpts = sg.points()
     #    sgpts = np.vstack((sgpts, [0,0,0]))
@@ -3275,7 +3275,7 @@ def _histogramSpheric(
     #        newfaces.append([idx,f2,f3, idx])
     #        newfaces.append([idx,f3,f4, idx])
     #        newfaces.append([idx,f4,f1, idx])
-    newsg = sg  # Mesh((sgpts, sgfaces)).computeNormals().phong()
+    newsg = sg  # Mesh((sgpts, sgfaces)).compute_normals().phong()
     newsgpts = newsg.points()
 
     cntrs = sg.cellCenters()
@@ -3317,7 +3317,7 @@ def donut(
         bc="k",
         alpha=1,
         labels=(),
-        showDisc=False,
+        show_disc=False,
     ):
     """
     Donut plot or pie chart.
@@ -3356,7 +3356,7 @@ def donut(
     labels : list
         list of labels
 
-    showDisc : bool
+    show_disc : bool
         show the outer ring axis
 
     .. hist:: examples/pyplot/donut.py
@@ -3385,7 +3385,7 @@ def donut(
             labs[j] = labels[i]
 
     data = np.linspace(0, 2 * np.pi, 360, endpoint=False) + 0.005
-    dn = _histogramPolar(
+    dn = _histogram_polar(
         data,
         title=title,
         bins=360,
@@ -3401,10 +3401,10 @@ def donut(
         vmin=0,
         vmax=1,
         labels=labs,
-        showDisc=showDisc,
-        showLines=0,
-        showAngles=0,
-        showErrors=0,
+        show_disc=show_disc,
+        show_lines=0,
+        show_angles=0,
+        show_errors=0,
     )
     dn.name = "donut"
     return dn
@@ -3606,7 +3606,7 @@ def streamplot(
     U,
     V,
     direction="both",
-    maxPropagation=None,
+    max_propagation=None,
     mode=1,
     lw=0.001,
     c=None,
@@ -3621,7 +3621,7 @@ def streamplot(
     direction : str
         either "forward", "backward" or "both"
 
-    maxPropagation : float
+    max_propagation : float
         maximum physical length of the streamline
 
     lw : float
@@ -3675,7 +3675,7 @@ def streamplot(
         probe,
         tubes={"radius": lw, "mode": mode,},
         lw=lw,
-        maxPropagation=maxPropagation,
+        max_propagation=max_propagation,
         direction=direction,
     )
     if c is not None:
@@ -3862,7 +3862,7 @@ def CornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True, dots=T
     if len(points) == 2:  # passing [allx, ally]
         points = np.stack((points[0], points[1]), axis=1)
 
-    c = colors.getColor(c)  # allow different codings
+    c = colors.get_color(c)  # allow different codings
     array_x = vtk.vtkFloatArray()
     array_y = vtk.vtkFloatArray()
     array_x.SetNumberOfTuples(len(points))
@@ -3887,7 +3887,7 @@ def CornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True, dots=T
 
     xyplot.GetProperty().SetPointSize(5)
     xyplot.GetProperty().SetLineWidth(2)
-    xyplot.GetProperty().SetColor(colors.getColor(bg))
+    xyplot.GetProperty().SetColor(colors.get_color(bg))
     xyplot.SetPlotColor(0, c[0], c[1], c[2])
 
     xyplot.SetXTitle(title)
@@ -3980,9 +3980,9 @@ def CornerHistogram(
     cplot.SetNumberOfYLabels(2)
     cplot.SetNumberOfXLabels(3)
     tprop = vtk.vtkTextProperty()
-    tprop.SetColor(colors.getColor(bg))
+    tprop.SetColor(colors.get_color(bg))
     tprop.SetFontFamily(vtk.VTK_FONT_FILE)
-    tprop.SetFontFile(utils.getFontPath(vedo.settings.defaultFont))
+    tprop.SetFontFile(utils.get_font_path(vedo.settings.defaultFont))
     tprop.SetOpacity(alpha)
     cplot.SetAxisTitleTextProperty(tprop)
     cplot.GetProperty().SetOpacity(alpha)
@@ -4100,8 +4100,8 @@ class DirectedGraph(Assembly, vedo.base.BaseActor):
 
         self._nodeLabels = []  # holds strings
         self._edgeLabels = []
-        self.edgeOrientations = []
-        self.edgeGlyphPosition = 0.6
+        self.edge_orientations = []
+        self.edge_glyph_position = 0.6
 
         self.zrange = 0.0
 
@@ -4109,17 +4109,17 @@ class DirectedGraph(Assembly, vedo.base.BaseActor):
         self.rotY = 0
         self.rotZ = 0
 
-        self.arrowScale = 0.15
-        self.nodeLabelScale = None
-        self.nodeLabelJustify = "bottom-left"
+        self.arrow_scale = 0.15
+        self.node_label_scale = None
+        self.node_label_justify = "bottom-left"
 
-        self.edgeLabelScale = None
+        self.edge_label_scale = None
 
         self.mdg = vtk.vtkMutableDirectedGraph()
 
         n = kargs.pop("n", 0)
         for _ in range(n):
-            self.addNode()
+            self.add_node()
 
         self._c = kargs.pop("c", (0.3, 0.3, 0.3))
 
@@ -4229,7 +4229,7 @@ class DirectedGraph(Assembly, vedo.base.BaseActor):
             vedo.logger.error(f"Cannot understand options: {kargs}")
 
 
-    def addNode(self, label="id"):
+    def add_node(self, label="id"):
         """Add a new node to the ``Graph``."""
         v = self.mdg.AddVertex()  # vtk calls it vertex..
         self.nodes.append(v)
@@ -4238,29 +4238,29 @@ class DirectedGraph(Assembly, vedo.base.BaseActor):
         self._nodeLabels.append(str(label))
         return v
 
-    def addEdge(self, v1, v2, label=""):
+    def add_edge(self, v1, v2, label=""):
         """Add a new edge between to nodes.
         An extra node is created automatically if needed."""
         nv = len(self.nodes)
         if v1 >= nv:
             for _ in range(nv, v1 + 1):
-                self.addNode()
+                self.add_node()
         nv = len(self.nodes)
         if v2 >= nv:
             for _ in range(nv, v2 + 1):
-                self.addNode()
+                self.add_node()
         e = self.mdg.AddEdge(v1, v2)
         self.edges.append(e)
         self._edgeLabels.append(str(label))
         return e
 
-    def addChild(self, v, nodeLabel="id", edgeLabel=""):
+    def add_child(self, v, nodeLabel="id", edgeLabel=""):
         """Add a new edge to a new node as its child.
         The extra node is created automatically if needed."""
         nv = len(self.nodes)
         if v >= nv:
             for _ in range(nv, v + 1):
-                self.addNode()
+                self.add_node()
         child = self.mdg.AddChild(v)
         self.edges.append((v, child))
         self.nodes.append(child)
@@ -4281,7 +4281,7 @@ class DirectedGraph(Assembly, vedo.base.BaseActor):
 
         graphToPolyData = vtk.vtkGraphToPolyData()
         graphToPolyData.EdgeGlyphOutputOn()
-        graphToPolyData.SetEdgeGlyphPosition(self.edgeGlyphPosition)
+        graphToPolyData.SetEdgeGlyphPosition(self.edge_glyph_position)
         graphToPolyData.SetInputData(self.gl.GetOutput())
         graphToPolyData.Update()
 
@@ -4290,7 +4290,7 @@ class DirectedGraph(Assembly, vedo.base.BaseActor):
         dgraph.flat().color(self._c).lw(2)
         dgraph.name = "DirectedGraph"
 
-        diagsz = self.diagonalSize() / 1.42
+        diagsz = self.diagonal_size() / 1.42
         if not diagsz:
             return None
 
@@ -4303,14 +4303,14 @@ class DirectedGraph(Assembly, vedo.base.BaseActor):
             dgraph.rotateZ(self.rotZ)
 
         vecs = graphToPolyData.GetOutput(1).GetPointData().GetVectors()
-        self.edgeOrientations = utils.vtk2numpy(vecs)
+        self.edge_orientations = utils.vtk2numpy(vecs)
 
         # Use Glyph3D to repeat the glyph on all edges.
         arrows = None
-        if self.arrowScale:
+        if self.arrow_scale:
             arrowSource = vtk.vtkGlyphSource2D()
             arrowSource.SetGlyphTypeToEdgeArrow()
-            arrowSource.SetScale(self.arrowScale)
+            arrowSource.SetScale(self.arrow_scale)
             arrowSource.Update()
             arrowGlyph = vtk.vtkGlyph3D()
             arrowGlyph.SetInputData(0, graphToPolyData.GetOutput(1))
@@ -4329,10 +4329,10 @@ class DirectedGraph(Assembly, vedo.base.BaseActor):
 
         nodeLabels = dgraph.labels(
             self._nodeLabels,
-            scale=self.nodeLabelScale,
+            scale=self.node_label_scale,
             precision=0,
             font=self.font,
-            justify=self.nodeLabelJustify,
+            justify=self.node_label_justify,
         )
         nodeLabels.color(self._c).pickable(True)
         nodeLabels.name = "DirectedGraphNodeLabels"
@@ -4340,7 +4340,7 @@ class DirectedGraph(Assembly, vedo.base.BaseActor):
         edgeLabels = dgraph.labels(
             self._edgeLabels,
             cells=True,
-            scale=self.edgeLabelScale,
+            scale=self.edge_label_scale,
             precision=0,
             font=self.font,
         )

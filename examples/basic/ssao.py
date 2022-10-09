@@ -3,13 +3,13 @@ from vedo import dataurl, Mesh, Volume, Plotter
 
 # mesh = Mesh(dataurl + "porsche.ply").rotateX(90)
 mesh = Volume(dataurl+"embryo.tif").isosurface()
-mesh.computeNormals().c('white')
+mesh.compute_normals().c('white')
 
 plt = Plotter(N=2, bg='blue1')
 
 plt.at(0)
-radius = mesh.diagonalSize()/5  # need to specify it!
-plt.addAmbientOcclusion(radius)
+radius = mesh.diagonal_size()/5  # need to specify it!
+plt.add_ambient_occlusion(radius)
 plt += mesh.clone()
 plt += __doc__
 

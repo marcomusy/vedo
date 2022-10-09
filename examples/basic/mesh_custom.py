@@ -26,7 +26,7 @@ except ModuleNotFoundError:
     #mycmap = makePalette('pink', 'green', N=500, hsv=True)
     #alphas = 1
 
-man.cmap(mycmap, scals, alpha=alphas).addScalarBar()
+man.cmap(mycmap, scals, alpha=alphas).add_scalarbar()
 
 show(man, __doc__, viewup="z", axes=7).close()
 

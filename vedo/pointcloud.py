@@ -20,19 +20,20 @@ Submodule to work with point clouds <br>
 __all__ = [
     "Points",
     "Point",
-    "visiblePoints",
-    "delaunay2D",
+    "visible_points",
+    "delaunay2d",
     "voronoi",
-    "fitLine",
-    "fitCircle",
-    "fitPlane",
-    "fitSphere",
-    "pcaEllipse",
-    "pcaEllipsoid",
+    "fit_line",
+    "fit_circle",
+    "fit_plane",
+    "fit_sphere",
+    "pca_ellipse",
+    "pca_ellipsoid",
+    "pcaEllipsoid",  # deprecated
 ]
 
 
-def visiblePoints(mesh, area=(), tol=None, invert=False):
+def visible_points(mesh, area=(), tol=None, invert=False):
     """
     Extract points based on whether they are visible or not.
     Visibility is determined by accessing the z-buffer of a rendering window.
@@ -67,7 +68,7 @@ def visiblePoints(mesh, area=(), tol=None, invert=False):
             camopts = dict(pos=(0,0,25), focalPoint=(0,0,0))
             show(s, camera=camopts, offscreen=True)
 
-            m = visiblePoints(s)
+            m = visible_points(s)
             #print('visible pts:', m.points()) # numpy array
             show(m, new=True, axes=1) # optionally draw result on a new window
     """
@@ -89,9 +90,7 @@ def visiblePoints(mesh, area=(), tol=None, invert=False):
     return m
 
 
-def delaunay2D(
-    plist, mode="scipy", boundaries=(), tol=None, alpha=0, offset=0, transform=None
-):
+def delaunay2d(plist, mode="scipy", boundaries=(), tol=None, alpha=0, offset=0, transform=None):
     """
     Create a mesh from points in the XY plane.
     If `mode='fit'` then the filter computes a best fitting
@@ -271,7 +270,7 @@ def voronoi(pts, padding=0, fit=False, method="vtk"):
     return m
 
 
-def _rotatePoints(points, n0=None, n1=(0, 0, 1)):
+def _rotate_points(points, n0=None, n1=(0, 0, 1)):
     # Rotate a set of 3D points from direction n0 to direction n1.
     # Return the rotated points and the normal to the fitting plane (if n0 is None).
     # The pointing direction of the normal in this case is arbitrary.
@@ -311,7 +310,7 @@ def _rotatePoints(points, n0=None, n1=(0, 0, 1)):
     return np.array(rpoints), n0
 
 
-def fitLine(points):
+def fit_line(points):
     """
     Fits a line through points.
 
@@ -341,7 +340,7 @@ def fitLine(points):
     return l
 
 
-def fitPlane(points, signed=False):
+def fit_plane(points, signed=False):
     """
     Fits a plane to a set of points.
 
@@ -382,7 +381,7 @@ def fitPlane(points, signed=False):
     return pla
 
 
-def fitCircle(points):
+def fit_circle(points):
     """
     Fits a circle through a set of 3D points, with a very fast non-iterative method.
 
@@ -397,7 +396,7 @@ def fitCircle(points):
     data = np.asarray(points)
 
     offs = data.mean(axis=0)
-    data, n0 = _rotatePoints(data - offs)
+    data, n0 = _rotate_points(data - offs)
 
     xi = data[:, 0]
     yi = data[:, 1]
@@ -436,12 +435,12 @@ def fitCircle(points):
 
     R = np.sqrt(x0 * x0 + y0 * y0 - 1 / N * (2 * x0 * x + 2 * y0 * y - xx - yy))
 
-    c, _ = _rotatePoints([x0, y0, 0], (0, 0, 1), n0)
+    c, _ = _rotate_points([x0, y0, 0], (0, 0, 1), n0)
 
     return c[0] + offs, R, n0
 
 
-def fitSphere(coords):
+def fit_sphere(coords):
     """
     Fits a sphere to a set of points.
 
@@ -480,7 +479,7 @@ def fitSphere(coords):
     return s
 
 
-def pcaEllipse(points, pvalue=0.673):
+def pca_ellipse(points, pvalue=0.673):
     """
     Show the oriented PCA 2D ellipse that contains the fraction `pvalue` of points.
 
@@ -538,8 +537,12 @@ def pcaEllipse(points, pvalue=0.673):
     elli.name = "pcaEllipse"
     return elli
 
-
+@deprecated(reason=vedo.colors.red + "Please use pca_ellipsoid()" + vedo.colors.reset)
 def pcaEllipsoid(points, pvalue=0.673):
+    "Please use pca_ellipsoid()"
+    return pca_ellipsoid(points, pvalue)
+
+def pca_ellipsoid(points, pvalue=0.673):
     """
     Show the oriented PCA ellipsoid that contains fraction `pvalue` of points.
 
@@ -787,7 +790,7 @@ class Points(vtk.vtkFollower, BaseActor):
                             ucols.InsertNextTuple4(rc, gc, bc, ac)
                     else:
                         for i in range(n): # SLOW
-                            rc,gc,bc = colors.getColor(cols[i])
+                            rc,gc,bc = colors.get_color(cols[i])
                             ucols.InsertNextTuple4(rc*255, gc*255, bc*255, alphas[i]*255)
                 else:
                     c = cols
@@ -802,7 +805,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
                 pd = utils.buildPolyData(plist)
                 self._mapper.SetInputData(pd)
-                c = colors.getColor(c)
+                c = colors.get_color(c)
                 self.property.SetColor(c)
                 self.property.SetOpacity(alpha)
                 self._data = pd
@@ -828,7 +831,7 @@ class Points(vtk.vtkFollower, BaseActor):
                     pd.GetPointData().AddArray(arr)
 
                 self._mapper.SetInputData(pd)
-                c = colors.getColor(c)
+                c = colors.get_color(c)
                 self.property.SetColor(c)
                 self.property.SetOpacity(alpha)
                 self._data = pd
@@ -836,7 +839,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 vedo.logger.error(f"cannot build Points from type {type(inputobj)}")
                 raise RuntimeError()
 
-        c = colors.getColor(c)
+        c = colors.get_color(c)
         self.property.SetColor(c)
         self.property.SetOpacity(alpha)
 
@@ -1008,7 +1011,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         return cloned
 
-    def clone2D(
+    def clone2d(
         self,
         pos=(0, 0),
         coordsys=4,
@@ -1047,7 +1050,7 @@ class Points(vtk.vtkFollower, BaseActor):
         .. hint:: examples/other/clone2D.py
             .. image:: https://vedo.embl.es/images/other/clone2d.png
         """
-        msiz = self.diagonalSize()
+        msiz = self.diagonal_size()
         if scale is None:
             if vedo.plotter_instance:
                 sz = vedo.plotter_instance.window.GetSize()
@@ -1071,7 +1074,7 @@ class Points(vtk.vtkFollower, BaseActor):
         csys.SetCoordinateSystem(coordsys)
         act2d.SetPosition(pos)
         if c is not None:
-            c = colors.getColor(c)
+            c = colors.get_color(c)
             act2d.GetProperty().SetColor(c)
         else:
             act2d.GetProperty().SetColor(cmsh.color())
@@ -1089,7 +1092,7 @@ class Points(vtk.vtkFollower, BaseActor):
         # print(act2d.GetHeight(), act2d.GetWidth(), act2d.GetLayerNumber())
         return act2d
 
-    def addTrail(self, offset=(0, 0, 0), n=50, c=None, alpha=1, lw=2):
+    def add_trail(self, offset=(0, 0, 0), n=50, c=None, alpha=1, lw=2):
         """
         Add a trailing line to mesh.
         This new mesh is accessible through `mesh.trail`.
@@ -1116,13 +1119,13 @@ class Points(vtk.vtkFollower, BaseActor):
             if c is None:
                 col = self.GetProperty().GetColor()
             else:
-                col = colors.getColor(c)
+                col = colors.get_color(c)
 
             tline = vedo.shapes.Line(pos, pos, res=n, c=col, alpha=alpha, lw=lw)
             self.trail = tline  # holds the Line
         return self
 
-    def _updateTrail(self):
+    def _update_trail(self):
         if isinstance(self, vedo.shapes.Arrow):
             currentpos = self.tipPoint()  # the tip of Arrow
         else:
@@ -1136,7 +1139,7 @@ class Points(vtk.vtkFollower, BaseActor):
         tpoly.GetPoints().SetData(utils.numpy2vtk(data, dtype=float))
         self.trail.SetPosition(currentpos)
 
-    def _updateShadows(self):
+    def _update_shadows(self):
         shadows = self.shadows
         self.shadows = []
         for sha in shadows:
@@ -1144,11 +1147,11 @@ class Points(vtk.vtkFollower, BaseActor):
             opacity = sha.GetProperty().GetOpacity()
             self.addShadow(**sha.info, c=color, alpha=opacity)
 
-    def deleteCellsByPointIndex(self, indices):
+    def delete_cells_by_point_index(self, indices):
         """
         Delete a list of vertices identified by any of their vertex index.
 
-        See also `vedo.base.deleteCells()`.
+        See also `vedo.base.delete_cells()`.
 
         .. hint:: examples/basic/deleteMeshPoints.py
             .. image:: https://vedo.embl.es/images/basic/deleteMeshPoints.png
@@ -1165,7 +1168,7 @@ class Points(vtk.vtkFollower, BaseActor):
         self.mapper().Modified()
         return self
 
-    def computeNormalsWithPCA(self, n=20, orientationPoint=None, invert=False):
+    def compute_normals_with_pca(self, n=20, orientation_point=None, invert=False):
         """
         Generate point normals using PCA (principal component analysis).
         Basically this estimates a local tangent plane around each sample point p
@@ -1177,7 +1180,7 @@ class Points(vtk.vtkFollower, BaseActor):
         n : int
             neighborhood size to calculate the normal
 
-        orientationPoint : list
+        orientation_point : list
             adjust the +/- sign of the normals so that
             the normals all point towards a specified point. If None, perform a traversal
             of the point cloud and flip neighboring normals so that they are mutually consistent.
@@ -1190,9 +1193,9 @@ class Points(vtk.vtkFollower, BaseActor):
         pcan.SetInputData(poly)
         pcan.SetSampleSize(n)
 
-        if orientationPoint is not None:
+        if orientation_point is not None:
             pcan.SetNormalOrientationToPoint()
-            pcan.SetOrientationPoint(orientationPoint)
+            pcan.SetOrientationPoint(orientation_point)
         else:
             pcan.SetNormalOrientationToGraphTraversal()
 
@@ -1206,7 +1209,7 @@ class Points(vtk.vtkFollower, BaseActor):
         self.inputdata().GetPointData().Modified()
         return self
 
-    def distanceTo(self, pcloud, signed=False, invert=False, name="Distance"):
+    def distance_to(self, pcloud, signed=False, invert=False, name="Distance"):
         """
         Computes the distance from one point cloud or mesh to another point cloud or mesh.
         This new `pointdata` array is saved with default name "Distance".
@@ -1221,7 +1224,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 from vedo import *
                 b1 = Sphere().pos(10,0,0)
                 b2 = Sphere().pos(15,0,0)
-                b1.distanceTo(b2, signed=True, invert=False).addScalarBar()
+                b1.distance_to(b2, signed=True, invert=False).addScalarBar()
                 print(b1.pointdata["Distance"])
                 show(b1, b2, axes=1).close()
 
@@ -1270,11 +1273,6 @@ class Points(vtk.vtkFollower, BaseActor):
         self.mapper().ScalarVisibilityOn()
         return self
 
-    @deprecated(reason=vedo.colors.red + "Please use distanceTo()" + vedo.colors.reset)
-    def distanceToMesh(self, pcloud, signed=False, invert=False):
-        """Deprecated. Please use distanceTo()"""
-        return self.distanceTo(pcloud, signed, invert)
-
     def alpha(self, opacity=None):
         """Set/get mesh's transparency. Same as `mesh.opacity()`."""
         if opacity is None:
@@ -1294,14 +1292,14 @@ class Points(vtk.vtkFollower, BaseActor):
         """Set/get mesh's transparency. Same as `mesh.alpha()`."""
         return self.alpha(alpha)
 
-    def forceOpaque(self, value=True):
+    def force_opaque(self, value=True):
         """ Force the Mesh, Line or point cloud to be treated as opaque"""
         ## force the opaque pass, fixes picking in vtk9
         # but causes other bad troubles with lines..
         self.SetForceOpaque(value)
         return self
 
-    def forceTranslucent(self, value=True):
+    def force_translucent(self, value=True):
         """ Force the Mesh, Line or point cloud to be treated as translucent"""
         self.SetForceTranslucent(value)
         return self
@@ -1314,7 +1312,7 @@ class Points(vtk.vtkFollower, BaseActor):
             self.GetProperty().SetOcclusionStrength(value)
             return self
 
-    def pointSize(self, value):
+    def point_size(self, value):
         """Set/get mesh's point size of vertices. Same as `mesh.ps()`"""
         if not value:
             self.GetProperty().SetRepresentationToSurface()
@@ -1323,11 +1321,11 @@ class Points(vtk.vtkFollower, BaseActor):
             self.GetProperty().SetPointSize(value)
         return self
 
-    def ps(self, pointSize=None):
-        """Set/get mesh's point size of vertices. Same as `mesh.pointSize()`"""
-        return self.pointSize(pointSize)
+    def ps(self, pointsize=None):
+        """Set/get mesh's point size of vertices. Same as `mesh.point_size()`"""
+        return self.point_size(pointsize)
 
-    def renderPointsAsSpheres(self, value=True):
+    def render_points_as_spheres(self, value=True):
         """Make points look spheric or make them look as squares."""
         self.GetProperty().SetRenderPointsAsSpheres(value)
         return self
@@ -1345,7 +1343,7 @@ class Points(vtk.vtkFollower, BaseActor):
             self.mapper().ScalarVisibilityOn()
             return self
         self.mapper().ScalarVisibilityOff()
-        cc = colors.getColor(c)
+        cc = colors.get_color(c)
         self.GetProperty().SetColor(cc)
         if self.trail:
             self.trail.GetProperty().SetColor(cc)
@@ -1353,7 +1351,7 @@ class Points(vtk.vtkFollower, BaseActor):
             self.alpha(alpha)
         return self
 
-    def clean(self, tol=None):
+    def clean(self):
         """
         Clean pointcloud or mesh by removing coincident points.
         """
@@ -1363,9 +1361,6 @@ class Points(vtk.vtkFollower, BaseActor):
         cleanPolyData.ConvertPolysToLinesOn()
         cleanPolyData.ConvertStripsToPolysOn()
         cleanPolyData.SetInputData(self.inputdata())
-        if tol:  # deprecation message
-            vedo.logger.warning("clean(tol=...), please use subsample(fraction=...)")
-            cleanPolyData.SetTolerance(tol)
         cleanPolyData.Update()
         return self._update(cleanPolyData.GetOutput())
 
@@ -1391,7 +1386,7 @@ class Points(vtk.vtkFollower, BaseActor):
         cpd.ConvertStripsToPolysOn()
         cpd.SetInputData(self.inputdata())
         if absolute:
-            cpd.SetTolerance(fraction/self.diagonalSize())
+            cpd.SetTolerance(fraction/self.diagonal_size())
             # cpd.SetToleranceIsAbsolute(absolute)
         else:
             cpd.SetTolerance(fraction)
@@ -1405,7 +1400,7 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         Extracts cells where scalar value satisfies threshold criterion.
 
-        scalars : str,list
+        scalars : str, list
             name of the scalars array.
 
         above : float
@@ -1421,16 +1416,16 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         if utils.is_sequence(scalars):
             if on.startswith("c"):
-                self.addCellArray(scalars, "threshold")
+                self.celldata["threshold"] = scalars
             else:
-                self.addPointArray(scalars, "threshold")
+                self.pointdata["threshold"] = scalars
             scalars = "threshold"
         else:  # string is passed
             if on.startswith("c"):
-                arr = self.celldata[scalars]
+                scalars = self.celldata[scalars]
             else:
-                arr = self.pointdata[scalars]
-            if arr is None:
+                scalars = self.pointdata[scalars]
+            if scalars is None:
                 vedo.logger.error(f"no scalars found with name/nr: {scalars}")
                 raise RuntimeError()
 
@@ -1486,7 +1481,7 @@ class Points(vtk.vtkFollower, BaseActor):
         qp.Update()
         return self._update(qp.GetOutput()).flat()
 
-    def averageSize(self):
+    def average_size(self):
         """
         Calculate the average size of a mesh.
         This is the mean of the vertex distances from the center of mass.
@@ -1498,7 +1493,7 @@ class Points(vtk.vtkFollower, BaseActor):
         cc = coords - cm
         return np.mean(np.linalg.norm(cc, axis=1))
 
-    def centerOfMass(self):
+    def center_of_mass(self):
         """Get the center of mass of mesh."""
         cmf = vtk.vtkCenterOfMass()
         cmf.SetInputData(self.polydata())
@@ -1506,7 +1501,7 @@ class Points(vtk.vtkFollower, BaseActor):
         c = cmf.GetCenter()
         return np.array(c)
 
-    def normalAt(self, i):
+    def normal_at(self, i):
         """Return the normal vector at vertex point `i`."""
         normals = self.polydata().GetPointData().GetNormals()
         return np.array(normals.GetTuple(i))
@@ -1526,7 +1521,7 @@ class Points(vtk.vtkFollower, BaseActor):
         else:
             vtknormals = self.polydata().GetPointData().GetNormals()
         if not vtknormals and compute:
-            self.computeNormals(cells=cells)
+            self.compute_normals(cells=cells)
             if cells:
                 vtknormals = self.polydata().GetCellData().GetNormals()
             else:
@@ -1540,9 +1535,9 @@ class Points(vtk.vtkFollower, BaseActor):
         content=None,
         cells=False,
         scale=None,
-        rotX=0,
-        rotY=0,
-        rotZ=0,
+        xrot=0,
+        yrot=0,
+        zrot=0,
         ratio=1,
         precision=None,
         italic=False,
@@ -1569,7 +1564,7 @@ class Points(vtk.vtkFollower, BaseActor):
         scale : float
             absolute size of labels, if left as None it is automatic
 
-        rotZ : float
+        zrot : float
             local rotation angle of label in degrees
 
         ratio : int
@@ -1582,7 +1577,7 @@ class Points(vtk.vtkFollower, BaseActor):
             .. code-block:: python
 
                 from vedo import *
-                s = Sphere(res=10).lineWidth(1).c("orange").computeNormals()
+                s = Sphere(res=10).lineWidth(1).c("orange").compute_normals()
                 point_ids = s.labels('id', cells=False).c('green')
                 cell_ids  = s.labels('id', cells=True ).c('black')
                 show(s, point_ids, cell_ids)
@@ -1602,7 +1597,7 @@ class Points(vtk.vtkFollower, BaseActor):
         else:
             elems = self.points()
             norms = self.normals(cells=False, compute=False)
-            ns = np.sqrt(self.NPoints())
+            ns = np.sqrt(self.npoints)
 
         hasnorms = False
         if len(norms):
@@ -1611,7 +1606,7 @@ class Points(vtk.vtkFollower, BaseActor):
         if scale is None:
             if not ns:
                 ns = 100
-            scale = self.diagonalSize() / ns / 10
+            scale = self.diagonal_size() / ns / 10
 
         arr = None
         mode = 0
@@ -1688,24 +1683,24 @@ class Points(vtk.vtkFollower, BaseActor):
                     bb = tx_poly.GetBounds()
                     dx, dy = (bb[1] - bb[0]) / 2, (bb[3] - bb[2]) / 2
                     T.Translate(-dx, -dy, 0)
-                if rotX:
-                    T.RotateX(rotX)
-                if rotY:
-                    T.RotateY(rotY)
-                if rotZ:
-                    T.RotateZ(rotZ)
+                if xrot:
+                    T.RotateX(xrot)
+                if yrot:
+                    T.RotateY(yrot)
+                if zrot:
+                    T.RotateZ(zrot)
                 crossvec = np.cross([0, 0, 1], ni)
                 angle = np.arccos(np.dot([0, 0, 1], ni)) * 57.3
                 T.RotateWXYZ(angle, crossvec)
                 if cells:  # small offset along normal only for cells
                     T.Translate(ni * scale / 2)
             else:
-                if rotX:
-                    T.RotateX(rotX)
-                if rotY:
-                    T.RotateY(rotY)
-                if rotZ:
-                    T.RotateZ(rotZ)
+                if xrot:
+                    T.RotateX(xrot)
+                if yrot:
+                    T.RotateY(yrot)
+                if zrot:
+                    T.RotateZ(zrot)
             T.Scale(scale, scale, scale)
             T.Translate(e)
             tf = vtk.vtkTransformPolyDataFilter()
@@ -1725,7 +1720,7 @@ class Points(vtk.vtkFollower, BaseActor):
         ids.SetUseBounds(False)
         return ids
 
-    def labels2D(
+    def labels2d(
             self,
             content="id",
             cells=False,
@@ -1806,7 +1801,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 mp.SetLabelFormat(f'%-#.{precision}g')
 
         pr = mp.GetLabelTextProperty()
-        c = colors.getColor(c)
+        c = colors.get_color(c)
         pr.SetColor(c)
         pr.SetOpacity(alpha)
         pr.SetFrame(frame)
@@ -1819,7 +1814,7 @@ class Points(vtk.vtkFollower, BaseActor):
         if not font:
             font = settings.defaultFont
         pr.SetFontFamily(vtk.VTK_FONT_FILE)
-        fl = utils.getFontPath(font)
+        fl = utils.get_font_path(font)
         pr.SetFontFile(fl)
         pr.SetFontSize(int(12*scale))
 
@@ -1836,7 +1831,7 @@ class Points(vtk.vtkFollower, BaseActor):
             pr.SetVerticalJustificationToBottom()
 
         if bc is not None:
-            bc = colors.getColor(bc)
+            bc = colors.get_color(bc)
             pr.SetBackgroundColor(bc)
             pr.SetBackgroundOpacity(alpha)
 
@@ -1914,7 +1909,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         sph = None
         x0, x1, y0, y1, z0, z1 = self.bounds()
-        d = self.diagonalSize()
+        d = self.diagonal_size()
         if point is None:
             if d:
                 point = self.closestPoint([(x0 + x1) / 2, (y0 + y1) / 2, z1])
@@ -2059,7 +2054,7 @@ class Points(vtk.vtkFollower, BaseActor):
         if c is None:
             c = np.array(self.GetProperty().GetColor()) / 2
         else:
-            c = colors.getColor(c)
+            c = colors.get_color(c)
 
         if not font:
             font = settings.defaultFont
@@ -2090,7 +2085,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         pr = capt.GetCaptionTextProperty()
         pr.SetFontFamily(vtk.VTK_FONT_FILE)
-        fl = utils.getFontPath(font)
+        fl = utils.get_font_path(font)
         pr.SetFontFile(fl)
         pr.ShadowOff()
         pr.BoldOff()
@@ -2184,13 +2179,13 @@ class Points(vtk.vtkFollower, BaseActor):
         settings.flagBackgroundColor = bg
         return self
 
-    def alignTo(
+    def align_to(
             self,
             target,
             iters=100,
             rigid=False,
             invert=False,
-            useCentroids=False,
+            use_centroids=False,
         ):
         """
         Aligned to target mesh through the `Iterative Closest Point` algorithm.
@@ -2209,7 +2204,7 @@ class Points(vtk.vtkFollower, BaseActor):
              invert the transformation finally. Useful when the target is smaller
              than the source.
 
-        useCentroids : bool
+        use_centroids : bool
             start by matching the centroids of the two objects.
 
         .. hint:: examples/basic/align1.py, align2.py
@@ -2223,13 +2218,13 @@ class Points(vtk.vtkFollower, BaseActor):
         icp.SetMaximumNumberOfIterations(iters)
         if rigid:
             icp.GetLandmarkTransform().SetModeToRigidBody()
-        icp.SetStartByMatchingCentroids(useCentroids)
+        icp.SetStartByMatchingCentroids(use_centroids)
         icp.Update()
 
         M = icp.GetMatrix()
         if invert:
             M.Invert()  # icp.GetInverse() doesnt work!
-        # self.applyTransform(M)
+        # self.apply_transform(M)
         self.SetUserMatrix(M)
 
         self.transform = self.GetUserTransform()
@@ -2237,10 +2232,10 @@ class Points(vtk.vtkFollower, BaseActor):
         self.cell_locator = None
         return self
 
-    def transformWithLandmarks(
+    def transform_with_landmarks(
             self,
-            sourceLandmarks,
-            targetLandmarks,
+            source_landmarks,
+            target_landmarks,
             rigid=False,
             affine=False,
         ):
@@ -2256,19 +2251,19 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         lmt = vtk.vtkLandmarkTransform()
 
-        if utils.is_sequence(sourceLandmarks):
+        if utils.is_sequence(source_landmarks):
             ss = vtk.vtkPoints()
-            for p in sourceLandmarks:
+            for p in source_landmarks:
                 ss.InsertNextPoint(p)
         else:
-            ss = sourceLandmarks.polydata().GetPoints()
+            ss = source_landmarks.polydata().GetPoints()
 
-        if utils.is_sequence(targetLandmarks):
+        if utils.is_sequence(target_landmarks):
             st = vtk.vtkPoints()
-            for p in targetLandmarks:
+            for p in target_landmarks:
                 st.InsertNextPoint(p)
         else:
-            st = targetLandmarks.polydata().GetPoints()
+            st = target_landmarks.polydata().GetPoints()
 
         if ss.GetNumberOfPoints() != st.GetNumberOfPoints():
             vedo.logger.error("source and target have different nr of points")
@@ -2290,7 +2285,7 @@ class Points(vtk.vtkFollower, BaseActor):
         self.cell_locator = None
         return self
 
-    def applyTransform(self, T, reset=False, concatenate=False):
+    def apply_transform(self, T, reset=False, concatenate=False):
         """
         Apply a linear or non-linear transformation to the mesh polygonal data.
 
@@ -2319,9 +2314,9 @@ class Points(vtk.vtkFollower, BaseActor):
                 print("cube1 position", c1.pos())
                 T = c1.getTransform()  # rotate by 5 degrees, sum 2 to x and 1 to y
                 c2 = Cube().c('r4')
-                c2.applyTransform(T)   # ignore previous movements
-                c2.applyTransform(T, concatenate=True)
-                c2.applyTransform(T, concatenate=True)
+                c2.apply_transform(T)   # ignore previous movements
+                c2.apply_transform(T, concatenate=True)
+                c2.apply_transform(T, concatenate=True)
                 print("cube2 position", c2.pos())
                 show(c1, c2, axes=1).close()
         """
@@ -2460,10 +2455,10 @@ class Points(vtk.vtkFollower, BaseActor):
                       y,sy, z, 0,
                       0, 0,sz, 0,
                       0, 0, 0, 1])
-        self.applyTransform(t, reset=True)
+        self.apply_transform(t, reset=True)
         return self
 
-    def flipNormals(self):
+    def flip_normals(self):
         """Flip all mesh normals. Same as `mesh.mirror('n')`."""
         rs = vtk.vtkReverseSense()
         rs.SetInputData(self.inputdata())
@@ -2537,12 +2532,7 @@ class Points(vtk.vtkFollower, BaseActor):
             raise RuntimeError()
         return self
 
-    @deprecated(reason=vedo.colors.red + "Please use cmap(on='points')" + vedo.colors.reset)
-    def pointColors(self, *args, **kwargs):
-        "Deprecated, Please use cmap(on='points')"
-        return self
-
-    def _pointColors(self, input_array, cmap, alpha, vmin, vmax, arrayName, n, logscale):
+    def _pointColors(self, input_array, cmap, alpha, vmin, vmax, array_name, n, logscale):
         poly = self.inputdata()
         data = poly.GetPointData()
 
@@ -2571,7 +2561,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 n1 = poly.GetNumberOfPoints()
                 vedo.logger.error(f"in cmap(), nr. of scalars {npts} != {n1} nr. of points ...skip coloring.")
                 return self
-            arr = utils.numpy2vtk(input_array, name=arrayName)
+            arr = utils.numpy2vtk(input_array, name=array_name)
             data.AddArray(arr)
 
         elif isinstance(input_array, vtk.vtkArray):  # if a vtkArray is passed
@@ -2585,7 +2575,7 @@ class Points(vtk.vtkFollower, BaseActor):
         ##########################
         if not arr.GetName():  # sometimes they dont have a name..
             arr.SetName("PointScalars")
-        arrayName = arr.GetName()
+        array_name = arr.GetName()
 
         if arr.GetDataType() in [
             vtk.VTK_UNSIGNED_CHAR,
@@ -2595,15 +2585,15 @@ class Points(vtk.vtkFollower, BaseActor):
             vtk.VTK_UNSIGNED_LONG_LONG,
         ]:
             # dt = get_vtk_to_numpy_typemap()[arr.GetDataType()]
-            # colors.printc(f"Warning in cmap(): your point array {arrayName}, "
+            # colors.printc(f"Warning in cmap(): your point array {array_name}, "
             #               f"of data type {dt}, is not supported.", c='y')
             # make a copy as a float and add it...
             arr_float = vtk.vtkFloatArray()  # fast type casting
             arr_float.ShallowCopy(arr)
-            arr_float.SetName(arrayName + "_float")
+            arr_float.SetName(array_name + "_float")
             data.AddArray(arr_float)
             arr = arr_float
-            arrayName = arrayName + "_float"
+            array_name = array_name + "_float"
 
         if not utils.is_sequence(alpha):
             alpha = [alpha] * n
@@ -2633,7 +2623,7 @@ class Points(vtk.vtkFollower, BaseActor):
             ncols, nalpha = len(cmap), len(alpha)
             lut.SetNumberOfTableValues(ncols)
             for i, c in enumerate(cmap):
-                r, g, b = colors.getColor(c)
+                r, g, b = colors.get_color(c)
                 idx = int(i / ncols * nalpha)
                 lut.SetTableValue(i, r, g, b, alpha[idx])
             lut.Build()
@@ -2646,7 +2636,7 @@ class Points(vtk.vtkFollower, BaseActor):
             lut.SetRange(vmin, vmax)
             ncols, nalpha = n, len(alpha)
             lut.SetNumberOfTableValues(ncols)
-            mycols = colors.colorMap(range(ncols), cmap, 0, ncols)
+            mycols = colors.color_map(range(ncols), cmap, 0, ncols)
             for i, c in enumerate(mycols):
                 r, g, b = c
                 idx = int(i / ncols * nalpha)
@@ -2659,21 +2649,16 @@ class Points(vtk.vtkFollower, BaseActor):
         self.mapper().SetScalarModeToUsePointData()
         self.mapper().ScalarVisibilityOn()
         if hasattr(self.mapper(), "SetArrayName"):
-            self.mapper().SetArrayName(arrayName)
+            self.mapper().SetArrayName(array_name)
 
         self.mapper().SetScalarRange(lut.GetRange())
         # data.SetScalars(arr)  # wrong! it deletes array in position 0, never use SetScalars
-        # data.SetActiveAttribute(arrayName, 0) # boh!
-        data.SetActiveScalars(arrayName)
+        # data.SetActiveAttribute(array_name, 0) # boh!
+        data.SetActiveScalars(array_name)
         data.Modified()
         return self
 
-    @deprecated(reason=vedo.colors.red+"Please use cmap(on='cells')"+vedo.colors.reset)
-    def cellColors(self, *args, **kwargs):
-        """Deprecated, use cmap(on='cells')."""
-        return self
-
-    def _cellColors(self, input_array, cmap, alpha, vmin, vmax, arrayName, n, logscale):
+    def _cellColors(self, input_array, cmap, alpha, vmin, vmax, array_name, n, logscale):
         poly = self.inputdata()
         data = poly.GetCellData()
 
@@ -2702,7 +2687,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 n1 = poly.GetNumberOfCells()
                 vedo.logger.error(f"in cmap(), nr. of scalars {n} != {n1} nr. of cells ...skip coloring.")
                 return self
-            arr = utils.numpy2vtk(input_array, name=arrayName)
+            arr = utils.numpy2vtk(input_array, name=array_name)
             data.AddArray(arr)
 
         elif isinstance(input_array, vtk.vtkArray):  # if a vtkArray is passed
@@ -2716,7 +2701,7 @@ class Points(vtk.vtkFollower, BaseActor):
         ##########################
         if not arr.GetName():  # sometimes they dont have a name..
             arr.SetName("CellScalars")
-        arrayName = arr.GetName()
+        array_name = arr.GetName()
 
         if arr.GetDataType() in [
             vtk.VTK_UNSIGNED_CHAR,
@@ -2726,15 +2711,15 @@ class Points(vtk.vtkFollower, BaseActor):
             vtk.VTK_UNSIGNED_LONG_LONG,
         ]:
             # dt = get_vtk_to_numpy_typemap()[arr.GetDataType()]
-            # colors.printc(f"Warning in cmap(): your cell array {arrayName}, "
+            # colors.printc(f"Warning in cmap(): your cell array {array_name}, "
             #               f"of data type {dt}, is not supported.", c='y')
             # make a copy as a float and add it...
             arr_float = vtk.vtkFloatArray()  # fast type casting
             arr_float.ShallowCopy(arr)
-            arr_float.SetName(arrayName + "_float")
+            arr_float.SetName(array_name + "_float")
             data.AddArray(arr_float)
             arr = arr_float
-            arrayName = arrayName + "_float"
+            array_name = array_name + "_float"
 
         if not utils.is_sequence(alpha):
             alpha = [alpha] * n
@@ -2765,7 +2750,7 @@ class Points(vtk.vtkFollower, BaseActor):
             ncols, nalpha = len(cmap), len(alpha)
             lut.SetNumberOfTableValues(ncols)
             for i, c in enumerate(cmap):
-                r, g, b = colors.getColor(c)
+                r, g, b = colors.get_color(c)
                 idx = int(i / ncols * nalpha)
                 lut.SetTableValue(i, r, g, b, alpha[idx])
             lut.Build()
@@ -2777,7 +2762,7 @@ class Points(vtk.vtkFollower, BaseActor):
             lut.SetRange(vmin, vmax)
             ncols, nalpha = n, len(alpha)
             lut.SetNumberOfTableValues(ncols)
-            mycols = colors.colorMap(range(ncols), cmap, 0, ncols)
+            mycols = colors.color_map(range(ncols), cmap, 0, ncols)
             for i, c in enumerate(mycols):
                 r, g, b = c
                 idx = int(i / ncols * nalpha)
@@ -2790,29 +2775,29 @@ class Points(vtk.vtkFollower, BaseActor):
         self.mapper().SetScalarModeToUseCellData()
         self.mapper().ScalarVisibilityOn()
         if hasattr(self.mapper(), "SetArrayName"):
-            self.mapper().SetArrayName(arrayName)
+            self.mapper().SetArrayName(array_name)
         self.mapper().SetScalarRange(lut.GetRange())
-        data.SetActiveScalars(arrayName)
+        data.SetActiveScalars(array_name)
         data.Modified()
         return self
 
-    def cellIndividualColors(self, colorlist):
-        """
-        Colorize the faces of a mesh one by one
-        passing a 1-to-1 list of colors in format [R,G,B] or [R,G,B,A].
-        Colors levels and opacities must be in the range [0,255].
+    # def cell_individual_colors(self, colorlist):
+    #     """
+    #     Colorize the faces of a mesh one by one
+    #     passing a 1-to-1 list of colors in format [R,G,B] or [R,G,B,A].
+    #     Colors levels and opacities must be in the range [0,255].
 
-        A cell array named "CellIndividualColors" is automatically created.
+    #     A cell array named "CellIndividualColors" is automatically created.
 
-        .. hint:: examples/basic/examples/basic/colorMeshCells.py
-            .. image:: https://vedo.embl.es/images/basic/colorMeshCells.png
-        """
-        colorlist = np.asarray(colorlist).astype(np.uint8)
-        self.celldata["CellIndividualColors"] = colorlist
-        self.celldata.select("CellIndividualColors")
-        return self
+    #     .. hint:: examples/basic/examples/basic/colorMeshCells.py
+    #         .. image:: https://vedo.embl.es/images/basic/colorMeshCells.png
+    #     """
+    #     colorlist = np.asarray(colorlist).astype(np.uint8)
+    #     self.celldata["CellIndividualColors"] = colorlist
+    #     self.celldata.select("CellIndividualColors")
+    #     return self
 
-    def interpolateDataFrom(
+    def interpolate_data_from(
         self,
         source,
         radius=None,
@@ -2820,8 +2805,8 @@ class Points(vtk.vtkFollower, BaseActor):
         kernel="shepard",
         exclude=("Normals",),
         on="points",
-        nullStrategy=1,
-        nullValue=0,
+        null_strategy=1,
+        null_value=0,
     ):
         """
         Interpolate over source to port its data onto the current object using various kernels.
@@ -2833,19 +2818,19 @@ class Points(vtk.vtkFollower, BaseActor):
         kernel : str
             available kernels are [shepard, gaussian, linear]
 
-        nullStrategy : int
+        null_strategy : int
             specify a strategy to use when encountering a "null" point
             during the interpolation process. Null points occur when the local neighborhood
             (of nearby points to interpolate from) is empty.
 
             Case 0: an output array is created that marks points
-            as being valid (=1) or null (invalid =0), and the nullValue is set as well
+            as being valid (=1) or null (invalid =0), and the null_value is set as well
 
-            Case 1: the output data value(s) are set to the provided nullValue
+            Case 1: the output data value(s) are set to the provided null_value
 
             Case 2: simply use the closest point to perform the interpolation.
 
-        nullValue : float
+        null_value : float
             see above.
 
         .. hint:: examples/advanced/interpolateMeshArray.py
@@ -2896,8 +2881,8 @@ class Points(vtk.vtkFollower, BaseActor):
         interpolator.SetKernel(kern)
         interpolator.SetLocator(locator)
         interpolator.PassFieldArraysOff()
-        interpolator.SetNullPointsStrategy(nullStrategy)
-        interpolator.SetNullValue(nullValue)
+        interpolator.SetNullPointsStrategy(null_strategy)
+        interpolator.SetNullValue(null_value)
         interpolator.SetValidPointsMaskArrayName("ValidPointMask")
         for ex in exclude:
             interpolator.AddExcludedArray(ex)
@@ -2928,10 +2913,10 @@ class Points(vtk.vtkFollower, BaseActor):
 
         return self
 
-    def addGaussNoise(self, sigma=1):
+    def add_gaussian_noise(self, sigma=1):
         """
         Add gaussian noise to point positions.
-        An extra array is added named "GaussNoise" with the shifts.
+        An extra array is added named "GaussianNoise" with the shifts.
 
         sigma : float
             nr. of standard deviations, expressed in percent of the diagonal size of mesh.
@@ -2943,7 +2928,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 from vedo import Sphere
                 Sphere().pointGaussNoise(1.0).show()
         """
-        sz = self.diagonalSize()
+        sz = self.diagonal_size()
         pts = self.points()
         n = len(pts)
         ns = (np.random.randn(n, 3) * sigma) * (sz / 100)
@@ -2952,27 +2937,30 @@ class Points(vtk.vtkFollower, BaseActor):
         vpts.SetData(utils.numpy2vtk(pts + ns))
         self.inputdata().SetPoints(vpts)
         self.inputdata().GetPoints().Modified()
-        self.addPointArray(-ns, "GaussNoise")
+        self.pointdata["GaussianNoise"] = -ns
         return self
 
-    def closestPoint(
-        self, pt, N=1, radius=None, returnPointId=False, returnCellId=False,
-    ):
+    @deprecated(reason=vedo.colors.red + "Please use closest_point()" + vedo.colors.reset)
+    def closestPoint(self, *a, **b):
+        "Deprecated. Please use closest_point()"
+        return self.closest_point(*a, **b)
+
+    def closest_point(self, pt, n=1, radius=None, return_point_id=False, return_cell_id=False):
         """
         Find the closest point(s) on a mesh given from the input point `pt`.
 
         Parameters
         ----------
-        N : int
-            if greater than 1, return a list of N ordered closest points
+        n : int
+            if greater than 1, return a list of n ordered closest points
 
         radius : float
-            if given, get all points within that radius. Then N is ignored.
+            if given, get all points within that radius. Then n is ignored.
 
-        returnPointId : bool
+        return_point_id : bool
             return point ID instead of coordinates
 
-        returnCellId : bool
+        return_cell_id : bool
             return cell ID in which the closest point sits
 
         .. note::
@@ -2983,7 +2971,7 @@ class Points(vtk.vtkFollower, BaseActor):
         .. hint:: examples/basic/align1.py, fitplanes.py, quadratic_morphing.py
         """
         # NB: every time the mesh moves or is warped the locateors are set to None
-        if (N > 1 or radius) or (N == 1 and returnPointId):
+        if (n > 1 or radius) or (n == 1 and return_point_id):
 
             poly = None
             if not self.point_locator:
@@ -2996,15 +2984,15 @@ class Points(vtk.vtkFollower, BaseActor):
             if radius:
                 vtklist = vtk.vtkIdList()
                 self.point_locator.FindPointsWithinRadius(radius, pt, vtklist)
-            elif N > 1:
+            elif n > 1:
                 vtklist = vtk.vtkIdList()
-                self.point_locator.FindClosestNPoints(N, pt, vtklist)
-            else:  # N==1 hence returnPointId==True
+                self.point_locator.FindClosestNPoints(n, pt, vtklist)
+            else:  # n==1 hence return_point_id==True
                 ########
                 return self.point_locator.FindClosestPoint(pt)
                 ########
 
-            if returnPointId:
+            if return_point_id:
                 ########
                 return utils.vtk2numpy(vtklist)
                 ########
@@ -3044,15 +3032,16 @@ class Points(vtk.vtkFollower, BaseActor):
             subid = vtk.mutable(0)
             self.cell_locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
 
-            if returnCellId:
+            if return_cell_id:
                 return int(cid)
             else:
                 return np.array(trgp)
 
-    def hausdorffDistance(self, points):
+
+    def hausdorff_distance(self, points):
         """
-        Compute the Hausdorff distance of two point sets.
-        Returns a `float`.
+        Compute the Hausdorff distance to the input point set.
+        Returns a single `float`.
         """
         hp = vtk.vtkHausdorffDistancePointSetFilter()
         hp.SetInputData(0, self.polydata())
@@ -3061,10 +3050,10 @@ class Points(vtk.vtkFollower, BaseActor):
         hp.Update()
         return hp.GetHausdorffDistance()
 
-    def chamferDistance(self, pcloud):
+    def chamfer_distance(self, pcloud):
         """
-        Compute the Chamfer distance of two point sets.
-        Returns a `float`.
+        Compute the Chamfer distance to the input point set.
+        Returns a single `float`.
         """
         if not pcloud.point_locator:
             pcloud.point_locator = vtk.vtkPointLocator()
@@ -3093,7 +3082,7 @@ class Points(vtk.vtkFollower, BaseActor):
         db = np.mean(np.linalg.norm(deltav, axis=1))
         return (da + db) / 2
 
-    def removeOutliers(self, radius, neighbors=5):
+    def remove_outliers(self, radius, neighbors=5):
         """
         Remove outliers from a cloud of points within the specified `radius` search.
 
@@ -3126,7 +3115,7 @@ class Points(vtk.vtkFollower, BaseActor):
         self.mapper().ScalarVisibilityOff()
         return self
 
-    def smoothMLS1D(self, f=0.2, radius=None):
+    def smooth_mls_1d(self, f=0.2, radius=None):
         """
         Smooth mesh or points with a `Moving Least Squares` variant.
         The point data array "Variances" will contain the residue calculated for each point.
@@ -3172,7 +3161,7 @@ class Points(vtk.vtkFollower, BaseActor):
         self.inputdata().GetPointData().Modified()
         return self.points(newline)
 
-    def smoothMLS2D(self, f=0.2, radius=None):
+    def smooth_mls_2d(self, f=0.2, radius=None):
         """
         Smooth mesh or points with a `Moving Least Squares` algorithm variant.
         The list ``mesh.info['variances']`` contains the residue calculated for each point.
@@ -3227,7 +3216,7 @@ class Points(vtk.vtkFollower, BaseActor):
         self.info["isvalid"] = np.array(valid)
         return self.points(newpts)
 
-    def smoothLloyd2D(self, interations=2, bounds=None, options="Qbb Qc Qx"):
+    def smooth_lloyd_2d(self, interations=2, bounds=None, options="Qbb Qc Qx"):
         """Lloyd relaxation of a 2D pointcloud."""
         # Credits: https://hatarilabs.com/ih-en/
         # tutorial-to-create-a-geospatial-voronoi-sh-mesh-with-python-scipy-and-geopandas
@@ -3288,7 +3277,7 @@ class Points(vtk.vtkFollower, BaseActor):
         # m = vedo.Mesh([pts, self.faces()]) # not yet working properly
         return Points(pts, c="k")
 
-    def projectOnPlane(self, plane="z", point=None, direction=None):
+    def project_on_plane(self, plane="z", point=None, direction=None):
         """
         Project the mesh on one of the Cartesian planes.
 
@@ -3370,7 +3359,7 @@ class Points(vtk.vtkFollower, BaseActor):
         self.points(coords)
         return self
 
-    def warp(self, sourcePts, targetPts, sigma=1, mode="3d"):
+    def warp(self, source, target, sigma=1, mode="3d"):
         """
         `Thin Plate Spline` transformations describe a nonlinear warp transform defined by a set
         of source and target landmarks. Any point on the mesh close to a source landmark will
@@ -3391,18 +3380,18 @@ class Points(vtk.vtkFollower, BaseActor):
         .. hint:: examples/advanced/warp1.py, warp3.py, interpolateField.py
             .. image:: https://vedo.embl.es/images/advanced/warp2.png
         """
-        if isinstance(sourcePts, Points):
-            sourcePts = sourcePts.points()
-        if isinstance(targetPts, Points):
-            targetPts = targetPts.points()
+        if isinstance(source, Points):
+            source = source.points()
+        if isinstance(target, Points):
+            target = target.points()
 
-        ns = len(sourcePts)
+        ns = len(source)
         ptsou = vtk.vtkPoints()
         ptsou.SetNumberOfPoints(ns)
         for i in range(ns):
-            ptsou.SetPoint(i, sourcePts[i])
+            ptsou.SetPoint(i, source[i])
 
-        nt = len(targetPts)
+        nt = len(target)
         if ns != nt:
             vedo.logger.error(f"#source {ns} != {nt} #target points")
             raise RuntimeError()
@@ -3410,7 +3399,7 @@ class Points(vtk.vtkFollower, BaseActor):
         pttar = vtk.vtkPoints()
         pttar.SetNumberOfPoints(nt)
         for i in range(ns):
-            pttar.SetPoint(i, targetPts[i])
+            pttar.SetPoint(i, target[i])
 
         T = vtk.vtkThinPlateSplineTransform()
         if mode.lower() == "3d":
@@ -3425,10 +3414,10 @@ class Points(vtk.vtkFollower, BaseActor):
         T.SetSourceLandmarks(ptsou)
         T.SetTargetLandmarks(pttar)
         self.transform = T
-        self.applyTransform(T, reset=True)
+        self.apply_transform(T, reset=True)
         return self
 
-    def cutWithPlane(self, origin=(0, 0, 0), normal=(1, 0, 0)):
+    def cut_with_plane(self, origin=(0, 0, 0), normal=(1, 0, 0)):
         """
         Cut the mesh with the plane defined by a point and a normal.
 
@@ -3444,14 +3433,14 @@ class Points(vtk.vtkFollower, BaseActor):
             .. code-block:: python
 
                 from vedo import Cube
-                cube = Cube().cutWithPlane(normal=(1,1,1))
+                cube = Cube().cut_with_plane(normal=(1,1,1))
                 cube.bc('pink').show()
 
         .. hint:: examples/simulations/trail.py
             .. image:: https://vedo.embl.es/images/simulations/trail.gif
 
         Check out also:
-            ``crop()``, ``cutWithBox()``, ``cutWithCylinder()``, ``cutWithSphere()``
+            ``crop()``, ``cut_with_box()``, ``cut_with_cylinder()``, ``cut_with_sphere()``
         """
         s = str(normal)
         if "x" in s:
@@ -3497,9 +3486,9 @@ class Points(vtk.vtkFollower, BaseActor):
 
         return self
 
-    def cutWithBox(self, bounds, invert=False):
+    def cut_with_box(self, bounds, invert=False):
         """
-        Cut the current mesh with a box. This is much faster than ``cutWithMesh()``.
+        Cut the current mesh with a box. This is much faster than ``cut_with_mesh()``.
 
         Input ``bounds`` can be either:
             - a Mesh or Points object
@@ -3512,11 +3501,11 @@ class Points(vtk.vtkFollower, BaseActor):
                 from vedo import Sphere, Cube, show
                 mesh = Sphere(r=1, res=50)
                 box  = Cube(side=1.5).wireframe()
-                mesh.cutWithBox(box)
+                mesh.cut_with_box(box)
                 show(mesh, box, axes=1)
 
         Check out also:
-            ``crop()``, ``cutWithLine()``, ``cutWithPlane()``, ``cutWithCylinder()``
+            ``crop()``, ``cut_with_line()``, ``cut_with_plane()``, ``cut_with_cylinder()``
         """
         if isinstance(bounds, Points):
             bounds = bounds.GetBounds()
@@ -3555,14 +3544,14 @@ class Points(vtk.vtkFollower, BaseActor):
 
         return self
 
-    def cutWith2DLine(self, points, invert=False, closed=True):
+    def cut_with_line(self, points, invert=False, closed=True):
         """
         Cut the current mesh with a line vertically in the z-axis direction like a cookie cutter.
         The polyline is defined by a set of points (z-coordinates are ignored).
-        This is much faster than ``cutWithMesh()``.
+        This is much faster than ``cut_with_mesh()``.
 
         Check out also:
-            ``crop()``, ``cutWithBox()``, ``cutWithPlane()``, ``cutWithSphere()``
+            ``crop()``, ``cut_with_box()``, ``cut_with_plane()``, ``cut_with_sphere()``
         """
         pplane = vtk.vtkPolyPlane()
         if isinstance(points, Points):
@@ -3614,10 +3603,10 @@ class Points(vtk.vtkFollower, BaseActor):
 
         return self
 
-    def cutWithCylinder(self, center=(0, 0, 0), axis=(0, 0, 1), r=1, invert=False):
+    def cut_with_cylinder(self, center=(0, 0, 0), axis=(0, 0, 1), r=1, invert=False):
         """
         Cut the current mesh with an infinite cylinder.
-        This is much faster than ``cutWithMesh()``.
+        This is much faster than ``cut_with_mesh()``.
 
         Parameters
         ----------
@@ -3634,13 +3623,13 @@ class Points(vtk.vtkFollower, BaseActor):
                 from vedo import Disc, show
                 disc = Disc(r1=1, r2=1.2)
                 mesh = disc.extrude(3, res=50).lineWidth(1)
-                mesh.cutWithCylinder([0,0,2], r=0.4, axis='y', invert=True)
+                mesh.cut_with_cylinder([0,0,2], r=0.4, axis='y', invert=True)
                 show(mesh, axes=1)
 
         .. hint:: examples/simulations/optics_main1.py
 
         Check out also:
-            ``crop()``, ``cutWithBox()``, ``cutWithPlane()``, ``cutWithSphere()``
+            ``crop()``, ``cut_with_box()``, ``cut_with_plane()``, ``cut_with_sphere()``
         """
         s = str(axis)
         if "x" in s:
@@ -3681,10 +3670,10 @@ class Points(vtk.vtkFollower, BaseActor):
 
         return self
 
-    def cutWithSphere(self, center=(0, 0, 0), r=1, invert=False):
+    def cut_with_sphere(self, center=(0, 0, 0), r=1, invert=False):
         """
         Cut the current mesh with an sphere.
-        This is much faster than ``cutWithMesh()``.
+        This is much faster than ``cut_with_mesh()``.
 
         Parameters
         ----------
@@ -3700,11 +3689,11 @@ class Points(vtk.vtkFollower, BaseActor):
                 from vedo import Disc, show
                 disc = Disc(r1=1, r2=1.2)
                 mesh = disc.extrude(3, res=50).lineWidth(1)
-                mesh.cutWithSphere([1,-0.7,2], r=0.5, invert=True)
+                mesh.cut_with_sphere([1,-0.7,2], r=0.5, invert=True)
                 show(mesh, axes=1)
 
         Check out also:
-            ``crop()``, ``cutWithBox()``, ``cutWithPlane()``, ``cutWithCylinder()``
+            ``crop()``, ``cut_with_box()``, ``cut_with_plane()``, ``cut_with_cylinder()``
         """
         sph = vtk.vtkSphere()
         sph.SetCenter(center)
@@ -3737,7 +3726,11 @@ class Points(vtk.vtkFollower, BaseActor):
 
         return self
 
+    @deprecated(reason=vedo.colors.red + "Please use closest_point()" + vedo.colors.reset)
     def cutWithMesh(self, mesh, invert=False, keep=False):
+        return self.cut_with_mesh(mesh, invert, keep)
+
+    def cut_with_mesh(self, mesh, invert=False, keep=False):
         """
         Cut an ``Mesh`` mesh with another ``Mesh``.
 
@@ -3756,7 +3749,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 U = sin(6*x)*cos(6*y) + sin(6*y)*cos(6*z) + sin(6*z)*cos(6*x)
                 iso = Volume(U).isosurface(0).smooth().c('silver').lw(1)
                 cube = TessellatedBox(n=(29,29,29), spacing=(1,1,1))
-                cube.cutWithMesh(iso).c('silver').alpha(1)
+                cube.cut_with_mesh(iso).c('silver').alpha(1)
                 show(iso, cube).close()
 
         Example:
@@ -3767,14 +3760,14 @@ class Points(vtk.vtkFollower, BaseActor):
                 arr = np.random.randn(100000, 3)/2
                 pts = Points(arr).c('red3').pos(5,0,0)
                 cube = Cube().pos(4,0.5,0)
-                assem = pts.cutWithMesh(cube, keep=True)
+                assem = pts.cut_with_mesh(cube, keep=True)
                 show(assem.unpack(), axes=1).close()
 
        .. hint:: examples/advanced/cutWithMesh1.py, cutAndCap.py
            .. image:: https://vedo.embl.es/images/advanced/cutWithMesh1.jpg
 
        Check out also:
-           ``crop()``, ``cutWithBox()``, ``cutWithPlane()``, ``cutWithCylinder()``
+           ``crop()``, ``cut_with_box()``, ``cut_with_plane()``, ``cut_with_cylinder()``
        """
         polymesh = mesh.polydata()
         poly = self.polydata()
@@ -3846,12 +3839,12 @@ class Points(vtk.vtkFollower, BaseActor):
         else:
             return self
 
-    def cutWithPointLoop(
+    def cut_with_point_loop(
         self,
         points,
         invert=False,
         on="points",
-        includeBoundary=False,
+        include_boundary=False,
     ):
         """
         Cut an ``Mesh`` object with a set of points forming a closed loop.
@@ -3864,7 +3857,7 @@ class Points(vtk.vtkFollower, BaseActor):
         on : str
             if 'cells' will extract the whole cells lying inside (or outside) the point loop
 
-        includeBoundary : bool
+        include_boundary : bool
             include cells lying exactly on the boundary line. Only relevant on 'cells' mode
 
         .. hint:: examples/advanced/cutWithPoints1.py, examples/advanced/cutWithPoints2.py
@@ -3888,7 +3881,7 @@ class Points(vtk.vtkFollower, BaseActor):
             clipper.SetInputData(self.polydata())
             clipper.SetImplicitFunction(ippd)
             clipper.SetExtractInside(not invert)
-            clipper.SetExtractBoundaryCells(includeBoundary)
+            clipper.SetExtractBoundaryCells(include_boundary)
         else:
             spol = vtk.vtkSelectPolyData()
             spol.SetLoop(vpts)
@@ -3920,13 +3913,13 @@ class Points(vtk.vtkFollower, BaseActor):
         return self
 
 
-    def implicitModeller(self, distance=0.05, res=(50,50,50), bounds=(), maxdist=None):
+    def implicit_modeller(self, distance=0.05, res=(50,50,50), bounds=(), maxdist=None):
         """Find the surface which sits at the specified distance from the input one."""
         if not bounds:
             bounds = self.bounds()
 
         if not maxdist:
-            maxdist = self.diagonalSize() / 2
+            maxdist = self.diagonal_size() / 2
 
         imp = vtk.vtkImplicitModeller()
         imp.SetInputData(self.polydata())
@@ -3942,8 +3935,8 @@ class Points(vtk.vtkFollower, BaseActor):
 
     def tomesh(
         self,
-        resLine=None,
-        resMesh=None,
+        line_resolution=None,
+        mesh_resolution=None,
         smooth=0,
         jitter=0.001,
         grid=None,
@@ -3956,11 +3949,11 @@ class Points(vtk.vtkFollower, BaseActor):
 
         Parameters
         ----------
-        resLine : int
+        line_resolution : int
             resolution of the contour line. The default is None, in this case
             the contour is not resampled.
 
-        resMesh : int
+        mesh_resolution : int
             resolution of the intenal triangles not touching the boundary.
             The default is None.
 
@@ -3982,14 +3975,14 @@ class Points(vtk.vtkFollower, BaseActor):
         .. hint:: examples/advanced/cutWithMesh1.py, cutWithMesh2.py, line2mesh_quads.py
             .. image:: https://vedo.embl.es/images/advanced/cutWithMesh1.jpg
         """
-        if resLine is None:
+        if line_resolution is None:
             contour = vedo.shapes.Line(self.points())
         else:
-            contour = vedo.shapes.Spline(self.points(), smooth=smooth, res=resLine)
+            contour = vedo.shapes.Spline(self.points(), smooth=smooth, res=line_resolution)
         contour.clean()
 
         length = contour.length()
-        density = length / contour.N()
+        density = length / contour.npoints
         vedo.logger.debug(f"tomesh():\n\tline length = {length}")
         vedo.logger.debug(f"\tdensity = {density} length/pt_separation")
 
@@ -3997,15 +3990,15 @@ class Points(vtk.vtkFollower, BaseActor):
         y0, y1 = contour.ybounds()
 
         if grid is None:
-            if resMesh is None:
+            if mesh_resolution is None:
                 resx = int((x1 - x0) / density + 0.5)
                 resy = int((y1 - y0) / density + 0.5)
-                vedo.logger.debug(f"tresMesh = {[resx, resy]}")
+                vedo.logger.debug(f"tmesh_resolution = {[resx, resy]}")
             else:
-                if utils.is_sequence(resMesh):
-                    resx, resy = resMesh
+                if utils.is_sequence(mesh_resolution):
+                    resx, resy = mesh_resolution
                 else:
-                    resx, resy = resMesh, resMesh
+                    resx, resy = mesh_resolution, mesh_resolution
             grid = vedo.shapes.Grid(
                 [(x0 + x1) / 2, (y0 + y1) / 2, 0],
                 s=((x1 - x0) * 1.025, (y1 - y0) * 1.025),
@@ -4024,7 +4017,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         ####################################### quads
         if quads:
-            cmesh = grid.clone().cutWithPointLoop(contour, on="cells", invert=invert)
+            cmesh = grid.clone().cut_with_point_loop(contour, on="cells", invert=invert)
             return cmesh.wireframe(False).lw(0.5)
         #############################################
 
@@ -4032,9 +4025,9 @@ class Points(vtk.vtkFollower, BaseActor):
 
         if jitter:
             np.random.seed(0)
-            sigma = 1.0 / np.sqrt(grid.N()) * grid.diagonalSize() * jitter
+            sigma = 1.0 / np.sqrt(grid.npoints) * grid.diagonal_size() * jitter
             vedo.logger.debug(f"\tsigma jittering = {sigma}")
-            grid_tmp += np.random.rand(grid.N(), 3) * sigma
+            grid_tmp += np.random.rand(grid.npoints, 3) * sigma
             grid_tmp[:, 2] = 0.0
 
         todel = []
@@ -4042,7 +4035,7 @@ class Points(vtk.vtkFollower, BaseActor):
         vgrid_tmp = Points(grid_tmp)
 
         for p in contour.points():
-            out = vgrid_tmp.closestPoint(p, radius=density, returnPointId=True)
+            out = vgrid_tmp.closestPoint(p, radius=density, return_point_id=True)
             todel += out.tolist()
         # cpoints = contour.points()
         # for i, p in enumerate(cpoints):
@@ -4050,7 +4043,7 @@ class Points(vtk.vtkFollower, BaseActor):
         #         den = utils.mag(p-cpoints[i-1])/1.732
         #     else:
         #         den = density
-        #     todel += vgrid_tmp.closestPoint(p, radius=den, returnPointId=True)
+        #     todel += vgrid_tmp.closestPoint(p, radius=den, return_point_id=True)
 
         grid_tmp = grid_tmp.tolist()
         for index in sorted(list(set(todel)), reverse=True):
@@ -4058,21 +4051,21 @@ class Points(vtk.vtkFollower, BaseActor):
 
         points = contour.points().tolist() + grid_tmp
         if invert:
-            boundary = reversed(range(contour.N()))
+            boundary = reversed(range(contour.npoints))
         else:
-            boundary = range(contour.N())
+            boundary = range(contour.npoints)
 
-        dln = delaunay2D(points, mode="xy", boundaries=[boundary])
-        dln.computeNormals(points=False)  # fixes reversd faces
+        dln = delaunay2d(points, mode="xy", boundaries=[boundary])
+        dln.compute_normals(points=False)  # fixes reversd faces
         dln.lw(0.5)
         return dln
 
-    def reconstructSurface(
+    def reconstruct_surface(
         self,
         dims=(100, 100, 100),
         radius=None,
-        sampleSize=None,
-        holeFilling=True,
+        sample_size=None,
+        hole_filling=True,
         bounds=(),
         padding=0.05,
     ):
@@ -4091,11 +4084,11 @@ class Points(vtk.vtkFollower, BaseActor):
             any voxel taking on the value >= radius
             is presumed to be "unseen" or uninitialized.
 
-        sampleSize : int
+        sample_size : int
             if normals are not present
             they will be calculated using this sample size per point.
 
-        holeFilling : bool
+        hole_filling : bool
             enables hole filling, this generates
             separating surfaces between the empty and unseen portions of the volume.
 
@@ -4131,15 +4124,15 @@ class Points(vtk.vtkFollower, BaseActor):
         else:
             normals = vtk.vtkPCANormalEstimation()
             normals.SetInputData(polyData)
-            if not sampleSize:
-                sampleSize = int(polyData.GetNumberOfPoints() / 50)
-            normals.SetSampleSize(sampleSize)
+            if not sample_size:
+                sample_size = int(polyData.GetNumberOfPoints() / 50)
+            normals.SetSampleSize(sample_size)
             normals.SetNormalOrientationToGraphTraversal()
             sdf.SetInputConnection(normals.GetOutputPort())
-            # print("Recalculating normals with sample size =", sampleSize)
+            # print("Recalculating normals with sample size =", sample_size)
 
         if radius is None:
-            radius = self.diagonalSize() / (sum(dims) / 3) * 5
+            radius = self.diagonal_size() / (sum(dims) / 3) * 5
             # print("Calculating mesh from points with radius =", radius)
 
         sdf.SetRadius(radius)
@@ -4148,7 +4141,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         surface = vtk.vtkExtractSurface()
         surface.SetRadius(radius * 0.99)
-        surface.SetHoleFilling(holeFilling)
+        surface.SetHoleFilling(hole_filling)
         surface.ComputeNormalsOff()
         surface.ComputeGradientsOff()
         surface.SetInputConnection(sdf.GetOutputPort())
@@ -4164,9 +4157,9 @@ class Points(vtk.vtkFollower, BaseActor):
         """Return the ``pymeshlab.Mesh`` equivalent object."""
         return utils.vedo2meshlab(self)
 
-    def addClustering(self, radius):
+    def compute_clustering(self, radius):
         """
-        Clustering of points in space. The `radius` is the radius of local search.
+        Cluster points in space. The `radius` is the radius of local search.
         An array named "ClusterId" is added to the vertex points.
 
         .. hint:: examples/basic/clustering.py
@@ -4182,7 +4175,7 @@ class Points(vtk.vtkFollower, BaseActor):
         self.inputdata().GetPointData().AddArray(idsarr)
         return self
 
-    def addConnection(self, radius, mode=0, regions=(), vrange=(0,1), seeds=(), angle=0):
+    def compute_connections(self, radius, mode=0, regions=(), vrange=(0,1), seeds=(), angle=0):
         """
         Extracts and/or segments points from a point cloud based on geometric distance measures
         (e.g., proximity, normal alignments, etc.) and optional measures such as scalar range.
@@ -4274,7 +4267,7 @@ class Points(vtk.vtkFollower, BaseActor):
         dims=(40, 40, 40),
         bounds=None,
         radius=None,
-        computeGradient=False,
+        compute_gradient=False,
         locator=None,
     ):
         """
@@ -4288,7 +4281,7 @@ class Points(vtk.vtkFollower, BaseActor):
         dims : int,list
             numer of voxels in x, y and z of the output Volume.
 
-        computeGradient : bool
+        compute_gradient : bool
             Turn on/off the generation of the gradient vector,
             gradient magnitude scalar, and function classification scalar.
             By default this is off. Note that this will increase execution time
@@ -4305,7 +4298,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         poly = self.polydata()
         b = list(poly.GetBounds())
-        diag = self.diagonalSize()
+        diag = self.diagonal_size()
 
         if not utils.is_sequence(dims):
             dims = [dims, dims, dims]
@@ -4327,7 +4320,7 @@ class Points(vtk.vtkFollower, BaseActor):
         if bounds is None:
             bounds = b
         pdf.SetModelBounds(bounds)
-        pdf.SetComputeGradient(computeGradient)
+        pdf.SetComputeGradient(compute_gradient)
         pdf.Update()
         img = pdf.GetOutput()
         vol = vedo.volume.Volume(img).mode(1)
@@ -4336,7 +4329,7 @@ class Points(vtk.vtkFollower, BaseActor):
         vol.locator = pdf.GetLocator()
         return vol
 
-    def densify(self, targetDistance=0.1, nclosest=6, radius=None, niter=1, maxN=None):
+    def densify(self, target_distance=0.1, nclosest=6, radius=None, niter=1, maxN=None):
         """
         Return a copy of the cloud with new added points.
         The new points are created in such a way that all points in any local neighborhood are
@@ -4354,7 +4347,7 @@ class Points(vtk.vtkFollower, BaseActor):
             local neighborhood are the target distance apart or less.
             Note that the process may terminate early due to the
             number of iterations. By default the target distance is set to 0.5.
-            Note that the targetDistance should be less than the radius
+            Note that the target_distance should be less than the radius
             or nothing will change on output.
 
         .. warning::
@@ -4382,7 +4375,7 @@ class Points(vtk.vtkFollower, BaseActor):
         dens = vtk.vtkDensifyPointCloudFilter()
         dens.SetInputConnection(src.GetOutputPort())
         dens.InterpolateAttributeDataOn()
-        dens.SetTargetDistance(targetDistance)
+        dens.SetTargetDistance(target_distance)
         dens.SetMaximumNumberOfIterations(niter)
         if maxN:
             dens.SetMaximumNumberOfPoints(maxN)
@@ -4405,7 +4398,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
     ###############################################################################
     ## stuff returning Volume
-    def signedDistance(self, bounds=None, dims=(20,20,20), invert=False, maxradius=None):
+    def signed_distance(self, bounds=None, dims=(20,20,20), invert=False, maxradius=None):
         """
         Compute the ``Volume`` object whose voxels contains the signed distance from
         the point cloud. The point cloud must have Normals.
@@ -4430,7 +4423,7 @@ class Points(vtk.vtkFollower, BaseActor):
         if bounds is None:
             bounds = self.GetBounds()
         if maxradius is None:
-            maxradius = self.diagonalSize() / 2
+            maxradius = self.diagonal_size() / 2
         dist = vtk.vtkSignedDistance()
         dist.SetInputData(self.polydata())
         dist.SetRadius(maxradius)
@@ -4454,9 +4447,9 @@ class Points(vtk.vtkFollower, BaseActor):
         self,
         kernel="shepard",
         radius=None,
-        N=None,
+        npoints=None,
         bounds=None,
-        nullValue=None,
+        null_value=None,
         dims=(25, 25, 25),
     ):
         """
@@ -4472,20 +4465,23 @@ class Points(vtk.vtkFollower, BaseActor):
         radius : float
             radius of the local search
 
+        npoints : int
+            number of point to use for interpolation
+
         bounds : list
             bounding box of the output Volume object
 
         dims : list
             dimensions of the output Volume object
 
-        nullValue : float
+        null_value : float
             value to be assigned to invalid points
 
         .. hint:: examples/volumetric/interpolateVolume.py
             .. image:: https://vedo.embl.es/images/volumetric/59095175-1ec5a300-8918-11e9-8bc0-fd35c8981e2b.jpg
         """
-        if radius is None and not N:
-            vedo.logger.error("please set either radius or N")
+        if radius is None and not npoints:
+            vedo.logger.error("please set either radius or n")
             raise RuntimeError
 
         poly = self.polydata()
@@ -4528,14 +4524,14 @@ class Points(vtk.vtkFollower, BaseActor):
         interpolator.SetKernel(kern)
         interpolator.SetLocator(self.point_locator)
 
-        if N:
-            kern.SetNumberOfPoints(N)
+        if npoints:
+            kern.SetNumberOfPoints(npoints)
             kern.SetKernelFootprintToNClosest()
         else:
             kern.SetRadius(radius)
 
-        if nullValue is not None:
-            interpolator.SetNullValue(nullValue)
+        if null_value is not None:
+            interpolator.SetNullValue(null_value)
         else:
             interpolator.SetNullPointsStrategyToClosestPoint()
         interpolator.Update()

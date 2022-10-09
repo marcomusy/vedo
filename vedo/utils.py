@@ -1081,7 +1081,7 @@ def print_info(obj):
             vedo.printc(tab + "          color: ", c="g", bold=1, end="")
             #vedo.printc("defined by point or cell data", c="g", bold=0)
         #else:
-            vedo.printc(vedo.colors.getColorName(col) + ', rgb=('+colr+', '
+            vedo.printc(vedo.colors.get_color_name(col) + ', rgb=('+colr+', '
                           + colg+', '+colb+'), alpha='+str(alpha), c='g', bold=0)
 
             if actor.GetBackfaceProperty():
@@ -1090,7 +1090,7 @@ def print_info(obj):
                 bcolg = precision(bcol[1], 3)
                 bcolb = precision(bcol[2], 3)
                 vedo.printc(tab+'     back color: ', c='g', bold=1, end='')
-                vedo.printc(vedo.colors.getColorName(bcol) + ', rgb=('+bcolr+', '
+                vedo.printc(vedo.colors.get_color_name(bcol) + ', rgb=('+bcolr+', '
                               + bcolg+', ' + bcolb+')', c='g', bold=0)
 
         vedo.printc(tab + "         points: ", c="g", bold=1, end="")
@@ -1109,16 +1109,16 @@ def print_info(obj):
             vedo.printc(tab + "          scale: ", c="g", bold=1, end="")
             vedo.printc(precision(actor.GetScale(), 3), c="g", bold=0)
 
-        if hasattr(actor, "polydata") and actor.N():
+        if hasattr(actor, "polydata") and actor.npoints:
             vedo.printc(tab + " center of mass: ", c="g", bold=1, end="")
-            cm = tuple(actor.centerOfMass())
+            cm = tuple(actor.center_of_mass())
             vedo.printc(precision(cm, 3), c="g", bold=0)
 
             vedo.printc(tab + "   average size: ", c="g", bold=1, end="")
-            vedo.printc(precision(actor.averageSize(), 6), c="g", bold=0)
+            vedo.printc(precision(actor.average_size(), 6), c="g", bold=0)
 
             vedo.printc(tab + "  diagonal size: ", c="g", bold=1, end="")
-            vedo.printc(precision(actor.diagonalSize(), 6), c="g", bold=0)
+            vedo.printc(precision(actor.diagonal_size(), 6), c="g", bold=0)
 
             # if hasattr(actor, "area"):
                 # _area = actor.area()

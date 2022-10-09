@@ -9,12 +9,12 @@ msh.c('lightgreen').bc('tomato').lw(0.1)
 
 pt = [1, 0.5, 1]
 R = 1.2
-ids = msh.closestPoint(pt, radius=R, returnPointId=True)
+ids = msh.closest_point(pt, radius=R, return_point_id=True)
 
-printc('NPoints before:', msh.NPoints(), c='g')
-msh.deleteCellsByPointIndex(ids)
+printc('NPoints before:', msh.npoints, c='g')
+msh.delete_cells_by_point_index(ids)
 msh.clean()  # remove orphaned vertices (not associated to any cell)
-printc('NPoints after :', msh.NPoints(), c='g')
+printc('NPoints after :', msh.npoints, c='g')
 
 sph = Sphere(pt, r=R, alpha=0.1)
 

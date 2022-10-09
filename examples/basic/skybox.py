@@ -2,7 +2,7 @@
 Mesh lighting is by Physically Based Rendering (PBR)"""
 from vedo import *
 
-msh = Mesh(dataurl+"man.vtk").rotateX(-90)
+msh = Mesh(dataurl+"man.vtk").rotate_x(-90)
 
 # Use physically based rendering (PBR):
 msh.c("white").lighting(metallicity=1, roughness=0.05)

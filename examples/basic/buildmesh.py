@@ -7,7 +7,7 @@ faces = [(0,1,2), (2,1,3), (1,0,3)]
 
 # Build the polygonal Mesh object:
 mesh = Mesh([verts, faces])
-mesh.backColor('violet').lineColor('tomato').lineWidth(2)
+mesh.backcolor('violet').linecolor('tomato').linewidth(2)
 labs = mesh.labels('id').c('black')
 
 # retrieve them as numpy arrays

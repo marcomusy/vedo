@@ -12,7 +12,7 @@ coords2 = s2.points()
 
 # --- color can be a colormap which maps arrrow sizes
 t1 = 'Color arrows by size\nusing a color map'
-a1 = Arrows(coords1, coords2, c='coolwarm', alpha=0.4).addScalarBar(c='w')
+a1 = Arrows(coords1, coords2, c='coolwarm', alpha=0.4).add_scalarbar(c='w')
 
 
 # --- get a list of random rgb colors

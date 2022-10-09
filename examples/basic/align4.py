@@ -4,7 +4,7 @@ from vedo import *
 
 splines = load(dataurl+'splines.npy')  # file contains a list of vedo.Lines
 
-procus = procrustesAlignment(splines, rigid=False)
+procus = procrustes_alignment(splines, rigid=False)
 alignedsplines = procus.unpack()  # unpack Assembly into a python list
 mean = procus.info['mean']
 lmean = Line(mean, lw=4, c='b').z(0.001) # z-shift it to make it visible

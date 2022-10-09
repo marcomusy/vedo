@@ -26,11 +26,11 @@ plt.at(2).show(pts0)
 
 # 2. Smooth the point cloud with MLS
 pts1 = pts0.clone().smoothMLS2D(f=0.8)
-printc("Nr of points before cleaning nr. points:", pts1.N())
+printc("Nr of points before cleaning nr. points:", pts1.npoints)
 
 # 3. Impose a min distance among mesh points
 pts1.subsample(0.005)
-printc("             after  cleaning nr. points:", pts1.N())
+printc("             after  cleaning nr. points:", pts1.npoints)
 plt.at(3).show(pts1)
 
 # 4. Reconstruct a polygonal surface from the point cloud

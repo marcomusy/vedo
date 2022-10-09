@@ -13,7 +13,7 @@ arrs = []
 for x in range(0,10):
     for y in range(0,10):
         p = [x/5, y/5, 0]
-        v = linInterpolate(p, positions, directions)
+        v = lin_interpolate(p, positions, directions)
         arrs.append(Arrow(p, p+v, s=0.001))
 
 show(arrs, __doc__, axes=1).close()

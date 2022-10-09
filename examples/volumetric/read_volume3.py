@@ -5,7 +5,7 @@ vol = Volume(dataurl+"embryo.slc").cmap('nipy_spectral')
 vsl = VolumeSlice(vol) # reuse the same underlying data as in vol
 
 # use colorize("bw") to have black and white color scale
-# no argument will grab the existing cmap in vol (or use buildLUT())
+# no argument will grab the existing cmap in vol (or use build_lut())
 vsl.colorize().lighting(window=100, level=25)
 
 usage = Text2D(

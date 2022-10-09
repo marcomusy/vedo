@@ -32,9 +32,9 @@ plt = Plotter(axes=1)
 plt.interactor.RemoveObservers("CharEvent") # might be needed
 
 msg = ""
-plt.addCallback("key press", kfunc)
+plt.add_callback("key press", kfunc)
 
-bu = plt.addButton(
+bu = plt.add_button(
     bfunc,
     pos=(0.7, 0.05),  # x,y fraction from bottom left corner
     states=["input box"],

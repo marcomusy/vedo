@@ -174,7 +174,7 @@ class UGrid(vtk.vtkActor, BaseGrid):
             self._mapper.ScalarVisibilityOn()
             return self
         self._mapper.ScalarVisibilityOff()
-        cc = colors.getColor(c)
+        cc = colors.get_color(c)
         self.property.SetColor(cc)
         if self.trail:
             self.trail.GetProperty().SetColor(cc)
@@ -210,7 +210,7 @@ class UGrid(vtk.vtkActor, BaseGrid):
             self.property.SetRepresentationToSurface()
         return self
 
-    def lineWidth(self, lw=None):
+    def linewidth(self, lw=None):
         """Set/get width of mesh edges. Same as `lw()`."""
         if lw is not None:
             if lw == 0:
@@ -223,11 +223,11 @@ class UGrid(vtk.vtkActor, BaseGrid):
             return self.property.GetLineWidth()
         return self
 
-    def lw(self, lineWidth=None):
-        """Set/get width of mesh edges. Same as `lineWidth()`."""
-        return self.lineWidth(lineWidth)
+    def lw(self, linewidth=None):
+        """Set/get width of mesh edges. Same as `linewidth()`."""
+        return self.linewidth(linewidth)
 
-    def lineColor(self, lc=None):
+    def linecolor(self, lc=None):
         """Set/get color of mesh edges. Same as `lc()`."""
         if lc is not None:
             if "ireframe" in self.property.GetRepresentationAsString():
@@ -235,16 +235,16 @@ class UGrid(vtk.vtkActor, BaseGrid):
                 self.color(lc)
                 return self
             self.property.EdgeVisibilityOn()
-            self.property.SetEdgeColor(colors.getColor(lc))
+            self.property.SetEdgeColor(colors.get_color(lc))
         else:
             return self.property.GetEdgeColor()
         return self
 
-    def lc(self, lineColor=None):
-        """Set/get color of mesh edges. Same as `lineColor()`."""
-        return self.lineColor(lineColor)
+    def lc(self, linecolor=None):
+        """Set/get color of mesh edges. Same as `linecolor()`."""
+        return self.linecolor(linecolor)
 
-    def extractCellType(self, ctype):
+    def extract_cell_type(self, ctype):
         """Extract a specific cell type and return a new UGrid."""
         uarr = self._data.GetCellTypesArray()
         ctarrtyp = np.where(utils.vtk2numpy(uarr) == ctype)[0]

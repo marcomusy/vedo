@@ -21,24 +21,7 @@ __all__ = [
     "BaseVolume",  # included to generate documentation in pydoc
     "Volume",
     "VolumeSlice",
-    "volumeFromMesh",  # deprecated
-    "interpolateToVolume",  # deprecated
 ]
-
-
-##########################################################################
-@deprecated(reason=colors.red + "Please use mesh.signedVolume()" + colors.reset)
-def volumeFromMesh(mesh, **kwargs):
-    """Deprecated. Please use ``mesh.signedVolume()``"""
-    return mesh.signedVolume(
-        bounds=kwargs["bounds"], dims=kwargs["dims"], invert=kwargs["negate"]
-    )
-
-
-@deprecated(reason=colors.red + "Please use Points.tovolume()" + colors.reset)
-def interpolateToVolume(mesh, **kwargs):
-    """Deprecated. Please use ``Points.tovolume()``"""
-    return mesh.tovolume(**kwargs)
 
 
 ##########################################################################
@@ -77,11 +60,6 @@ class BaseVolume:
         """Return the underlying `vtkImagaData` object."""
         return self._data
 
-    @deprecated(reason=colors.red + "Please use tonumpy()" + colors.reset)
-    def getDataArray(self):
-        """Deprecated. Please use tonumpy()"""
-        return self.tonumpy()
-
     def tonumpy(self):
         """
         Get read-write access to voxels of a Volume object as a numpy array.
@@ -117,7 +95,7 @@ class BaseVolume:
         """Return the nr. of voxels in the 3 dimensions."""
         return np.array(self._data.GetDimensions())
 
-    def scalarRange(self):
+    def scalar_range(self):
         """Return the range of the scalar values."""
         return np.array(self._data.GetScalarRange())
 
@@ -151,7 +129,7 @@ class BaseVolume:
         else:
             return np.array(self._data.GetCenter())
 
-    def permuteAxes(self, x, y, z):
+    def permute_axes(self, x, y, z):
         """Reorder the axes of the Volume by specifying
         the input axes which are supposed to become the new X, Y, and Z."""
         imp = vtk.vtkImagePermute()
@@ -160,7 +138,7 @@ class BaseVolume:
         imp.Update()
         return self._update(imp.GetOutput())
 
-    def resample(self, newSpacing, interpolation=1):
+    def resample(self, new_spacing, interpolation=1):
         """
         Resamples a ``Volume`` to be larger or smaller.
 
@@ -169,7 +147,7 @@ class BaseVolume:
 
         Parameters
         ----------
-        newSpacing : list
+        new_spacing : list
             a list of 3 new spacings for the 3 axes
 
         interpolation : int
@@ -178,8 +156,8 @@ class BaseVolume:
         rsp = vtk.vtkImageResample()
         oldsp = self.spacing()
         for i in range(3):
-            if oldsp[i] != newSpacing[i]:
-                rsp.SetAxisOutputSpacing(i, newSpacing[i])
+            if oldsp[i] != new_spacing[i]:
+                rsp.SetAxisOutputSpacing(i, new_spacing[i])
         rsp.InterpolateOn()
         rsp.SetInterpolationMode(interpolation)
         rsp.OptimizationOn()
@@ -195,7 +173,7 @@ class BaseVolume:
         self.property.SetInterpolationType(itype)
         return self
 
-    def threshold(self, above=None, below=None, replace=None, replaceOut=None):
+    def threshold(self, above=None, below=None, replace=None, replace_value=0):
         """
         Binary or continuous volume thresholding.
         Find the voxels that contain a value above/below the input values
@@ -229,9 +207,9 @@ class BaseVolume:
         else:
             th.SetReplaceIn(False)
 
-        if replaceOut is not None:
+        if replace_value is not None:
             th.SetReplaceOut(True)
-            th.SetOutValue(replaceOut)
+            th.SetOutValue(replace_value)
         else:
             th.SetReplaceOut(False)
 
@@ -293,7 +271,7 @@ class BaseVolume:
         extractVOI.Update()
         return self._update(extractVOI.GetOutput())
 
-    def append(self, volumes, axis="z", preserveExtents=False):
+    def append(self, volumes, axis="z", preserve_extents=False):
         """
         Take the components from multiple inputs and merges them into one output.
         Except for the append axis, all inputs must have the same extent.
@@ -307,7 +285,7 @@ class BaseVolume:
         axis : int, str
             axis expanded to hold the multiple images
 
-        preserveExtents : bool
+        preserve_extents : bool
             if True, the extent of the inputs is used to place
             the image in the output. The whole extent of the output is the union of the input
             whole extents. Any portion of the output not covered by the inputs is set to zero.
@@ -329,7 +307,7 @@ class BaseVolume:
                 ima.AddInputData(volume)
             else:
                 ima.AddInputData(volume.imagedata())
-        ima.SetPreserveExtents(preserveExtents)
+        ima.SetPreserveExtents(preserve_extents)
         if axis == "x":
             axis = 0
         elif axis == "y":
@@ -498,7 +476,7 @@ class BaseVolume:
         mat.Update()
         return self._update(mat.GetOutput())
 
-    def frequencyPassFilter(self, lowcutoff=None, highcutoff=None, order=1):
+    def frequency_pass_filter(self, low_cutoff=None, high_cutoff=None, order=1):
         """
         Low-pass and high-pass filtering become trivial in the frequency domain.
         A portion of the pixels/voxels are simply masked or attenuated.
@@ -511,10 +489,10 @@ class BaseVolume:
 
         Parameters
         ----------
-        lowcutoff : list
+        low_cutoff : list
             the cutoff frequencies for x, y and z
 
-        highcutoff : list
+        high_cutoff : list
             the cutoff frequencies for x, y and z
 
         order : int
@@ -526,18 +504,18 @@ class BaseVolume:
         fft.Update()
         out = fft.GetOutput()
 
-        if highcutoff:
+        if high_cutoff:
             butterworthLowPass = vtk.vtkImageButterworthLowPass()
             butterworthLowPass.SetInputData(out)
-            butterworthLowPass.SetCutOff(highcutoff)
+            butterworthLowPass.SetCutOff(high_cutoff)
             butterworthLowPass.SetOrder(order)
             butterworthLowPass.Update()
             out = butterworthLowPass.GetOutput()
 
-        if lowcutoff:
+        if low_cutoff:
             butterworthHighPass = vtk.vtkImageButterworthHighPass()
             butterworthHighPass.SetInputData(out)
-            butterworthHighPass.SetCutOff(lowcutoff)
+            butterworthHighPass.SetCutOff(low_cutoff)
             butterworthHighPass.SetOrder(order)
             butterworthHighPass.Update()
             out = butterworthHighPass.GetOutput()
@@ -552,7 +530,7 @@ class BaseVolume:
         butterworthReal.Update()
         return self._update(butterworthReal.GetOutput())
 
-    def gaussianSmooth(self, sigma=(2, 2, 2), radius=None):
+    def smooth_gaussian(self, sigma=(2, 2, 2), radius=None):
         """
         Performs a convolution of the input Volume with a gaussian.
 
@@ -581,7 +559,7 @@ class BaseVolume:
         gsf.Update()
         return self._update(gsf.GetOutput())
 
-    def medianSmooth(self, neighbours=(2, 2, 2)):
+    def smooth_median(self, neighbours=(2, 2, 2)):
         """
         Median filter that replaces each pixel with the median value
         from a rectangular neighborhood around that pixel.
@@ -642,7 +620,7 @@ class BaseVolume:
         mpts = vedo.Points(v2p.GetOutput())
         return mpts
 
-    def euclideanDistance(self, anisotropy=False, maxDistance=None):
+    def euclidean_distance(self, anisotropy=False, max_distance=None):
         """
         Implementation of the Euclidean DT (Distance Transform) using Saito's algorithm.
         The distance map produced contains the square of the Euclidean distance values.
@@ -655,8 +633,8 @@ class BaseVolume:
         anisotropy : bool
             used to define whether Spacing should be used in the computation of the distances.
 
-        maxDistance : bool
-            any distance bigger than maxDistance will not be
+        max_distance : bool
+            any distance bigger than max_distance will not be
             computed but set to this specified value instead.
 
         .. hint:: examples/volumetric/euclDist.py
@@ -664,14 +642,14 @@ class BaseVolume:
         euv = vtk.vtkImageEuclideanDistance()
         euv.SetInputData(self._data)
         euv.SetConsiderAnisotropy(anisotropy)
-        if maxDistance is not None:
+        if max_distance is not None:
             euv.InitializeOn()
-            euv.SetMaximumDistance(maxDistance)
+            euv.SetMaximumDistance(max_distance)
         euv.SetAlgorithmToSaito()
         euv.Update()
         return Volume(euv.GetOutput())
 
-    def correlationWith(self, vol2, dim=2):
+    def correlation_with(self, vol2, dim=2):
         """
         Find the correlation between two volumetric data sets.
         Keyword `dim` determines whether the correlation will be 3D, 2D or 1D.
@@ -687,7 +665,7 @@ class BaseVolume:
         imc.Update()
         return Volume(imc.GetOutput())
 
-    def scaleVoxels(self, scale=1):
+    def scale_voxels(self, scale=1):
         """Scale the voxel content by factor `scale`."""
         rsl = vtk.vtkImageReslice()
         rsl.SetInputData(self.imagedata())
@@ -711,7 +689,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
     alphas : float, list
          sets transparencies along the scalar range
 
-    alphaUnit : float
+    alpha_unit : float
         low values make composite rendering look brighter and denser
 
     origin : list
@@ -785,8 +763,8 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         inputobj=None,
         c="RdBu_r",
         alpha=(0.0, 0.0, 0.2, 0.4, 0.8, 1.0),
-        alphaGradient=None,
-        alphaUnit=1,
+        alpha_gradient=None,
+        alpha_unit=1,
         mode=0,
         spacing=None,
         dims=None,
@@ -910,17 +888,17 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
 
         if img.GetPointData().GetScalars():
             if img.GetPointData().GetScalars().GetNumberOfComponents() == 1:
-                self.mode(mode).color(c).alpha(alpha).alphaGradient(alphaGradient)
+                self.mode(mode).color(c).alpha(alpha).alpha_gradient(alpha_gradient)
                 self.GetProperty().SetShade(True)
                 self.GetProperty().SetInterpolationType(1)
-                self.GetProperty().SetScalarOpacityUnitDistance(alphaUnit)
+                self.GetProperty().SetScalarOpacityUnitDistance(alpha_unit)
 
         # remember stuff:
         self._mode = mode
         self._color = c
         self._alpha = alpha
-        self._alphaGrad = alphaGradient
-        self._alphaUnit = alphaUnit
+        self._alphaGrad = alpha_gradient
+        self._alpha_unit = alpha_unit
 
     def _update(self, data):
         self._data = data
@@ -1066,7 +1044,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
             vedo.logger.error("volume.mask() must create the volume with Volume(..., mapper='gpu')")
         return self
 
-    def alphaGradient(self, alphaGrad, vmin=None, vmax=None):
+    def alpha_gradient(self, alphaGrad, vmin=None, vmax=None):
         """
         Assign a set of tranparencies to a volume's gradient
         along the range of the scalar value.
@@ -1110,12 +1088,12 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
             gotf.AddPoint(vmax, alphaGrad)
         return self
 
-    def componentWeight(self, i, weight):
+    def component_weight(self, i, weight):
         """Set the scalar component weight in range [0,1]."""
         self.GetProperty().SetComponentWeight(i, weight)
         return self
 
-    def xSlice(self, i):
+    def xslice(self, i):
         """Extract the slice at index `i` of volume along x-axis."""
         vslice = vtk.vtkImageDataGeometryFilter()
         vslice.SetInputData(self.imagedata())
@@ -1126,7 +1104,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         vslice.Update()
         return Mesh(vslice.GetOutput())
 
-    def ySlice(self, j):
+    def yslice(self, j):
         """Extract the slice at index `j` of volume along y-axis."""
         vslice = vtk.vtkImageDataGeometryFilter()
         vslice.SetInputData(self.imagedata())
@@ -1137,7 +1115,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         vslice.Update()
         return Mesh(vslice.GetOutput())
 
-    def zSlice(self, k):
+    def zslice(self, k):
         """Extract the slice at index `i` of volume along z-axis."""
         vslice = vtk.vtkImageDataGeometryFilter()
         vslice.SetInputData(self.imagedata())
@@ -1148,7 +1126,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         vslice.Update()
         return Mesh(vslice.GetOutput())
 
-    def slicePlane(self, origin=(0, 0, 0), normal=(1, 1, 1), autocrop=False):
+    def slice_plane(self, origin=(0, 0, 0), normal=(1, 1, 1), autocrop=False):
         """
         Extract the slice along a given plane position and normal.
 
@@ -1230,10 +1208,10 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         T.SetTargetLandmarks(pttar)
         T.Inverse()
         self.transform = T
-        self.applyTransform(T, fit=fit)
+        self.apply_transform(T, fit=fit)
         return self
 
-    def applyTransform(self, T, fit=False):
+    def apply_transform(self, T, fit=False):
         """
         Apply a VTK transform to the scalars in the volume.
 
@@ -1278,7 +1256,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
             else:
                 TI = vtk.vtkTransform()
                 TI.DeepCopy(T)
-            bb.applyTransform(TI)
+            bb.apply_transform(TI)
             bounds = bb.GetBounds()
             bounds = (
                 bounds[0]/spacing[0], bounds[1]/spacing[0],
@@ -1409,7 +1387,7 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
         self.GetBounds(bns)
         return bns
 
-    def colorize(self, lut=None, fixScalarRange=False):
+    def colorize(self, lut=None, fix_scalar_range=False):
         """
         Assign a LUT (Look Up Table) to colorize the slice, leave it ``None``
         to reuse an exisiting Volume color map.
@@ -1421,7 +1399,7 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
             self.property.SetLookupTable(lut)
         elif lut == "bw":
             self.property.SetLookupTable(None)
-        self.property.SetUseLookupTableScalarRange(fixScalarRange)
+        self.property.SetUseLookupTableScalarRange(fix_scalar_range)
         return self
 
     def alpha(self, value):
@@ -1429,12 +1407,12 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
         self.property.SetOpacity(value)
         return self
 
-    def autoAdjustQuality(self, value=True):
+    def auto_adjust_quality(self, value=True):
         """Automatically reduce the rendering quality for greater speed when interacting"""
         self._mapper.SetAutoAdjustImageQuality(value)
         return self
 
-    def slab(self, thickness=0, mode=0, sampleFactor=2):
+    def slab(self, thickness=0, mode=0, sample_factor=2):
         """
         Make a thick slice (slab).
 
@@ -1450,29 +1428,29 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
             2 = mean
             3 = sum
 
-        sampleFactor : float
+        sample_factor : float
             Set the number of slab samples to use as a factor of the number of input slices
             within the slab thickness. The default value is 2, but 1 will increase speed
             with very little loss of quality.
         """
         self._mapper.SetSlabThickness(thickness)
         self._mapper.SetSlabType(mode)
-        self._mapper.SetSlabSampleFactor(sampleFactor)
+        self._mapper.SetSlabSampleFactor(sample_factor)
         return self
 
-    def faceCamera(self, value=True):
+    def face_camera(self, value=True):
         """Make the slice always face the camera or not."""
         self._mapper.SetSliceFacesCameraOn(value)
         return self
 
-    def jumpToNearestSlice(self, value=True):
+    def jump_to_nearest_slice(self, value=True):
         """This causes the slicing to occur at the closest slice to the focal point,
         instead of the default behavior where a new slice is interpolated between the original slices.
         Nothing happens if the plane is oblique to the original slices."""
         self.SetJumpToNearestSlice(value)
         return self
 
-    def fillBackground(self, value=True):
+    def fill_background(self, value=True):
         """Instead of rendering only to the image border, render out to the viewport boundary with
         the background color. The background color will be the lowest color on the lookup
         table that is being used for the image."""

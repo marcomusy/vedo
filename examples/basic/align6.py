@@ -6,7 +6,7 @@ axes1 = Axes(msh1)
 
 cube = Cube().pos(2,1,0).wireframe()
 
-msh2 = msh1.clone().alignToBoundingBox(cube)
+msh2 = msh1.clone().align_to_bounding_box(cube)
 axes2 = Axes(msh2)
 
 plt = Plotter(N=2)

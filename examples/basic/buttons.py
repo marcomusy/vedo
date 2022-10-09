@@ -12,7 +12,7 @@ mesh = Mesh(dataurl+"magnolia.vtk").c("v").flat()
 
 plt = Plotter(axes=11)
 
-bu = plt.addButton(
+bu = plt.add_button(
     buttonfunc,
     pos=(0.7, 0.05),  # x,y fraction from bottom left corner
     states=["click to hide", "click to show"],

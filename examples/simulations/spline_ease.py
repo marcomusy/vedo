@@ -20,7 +20,7 @@ equi_pts = Points([line.eval(x) for x in np.arange(0,1, 0.1)]).c('blue')
 redpt = Point(r=25).c('red')
 plt = show(vpts, gpts, line, redpt, equi_pts, axes=1, interactive=0)
 # Animation
-for i in range(line.N()):
+for i in range(line.npoints):
     x = line.points(i)
     redpt.pos(x) # assign the new position
     plt.render()

@@ -14,6 +14,6 @@ l1 = Light(p1)
 l2 = Light(p2)
 l3 = Light(p3)
 
-plt = Plotter(bg='blackboard').addShadows()
+plt = Plotter(bg='blackboard').add_shadows()
 plt.show(l1, l2, l3, p1, p2, p3, man, floor, cube)
 

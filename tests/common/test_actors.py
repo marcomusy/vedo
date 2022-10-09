@@ -33,18 +33,18 @@ sphere.computeNormals()
 
 ###################################### test clone()
 c2 = cone.clone()
-print('clone()', cone.N(), c2.N())
-assert cone.N() == c2.N()
-print('clone()', cone.NCells(), c2.NCells())
-assert cone.NCells() == c2.NCells()
+print('clone()', cone.npoints, c2.npoints)
+assert cone.npoints == c2.npoints
+print('clone()', cone.ncells, c2.ncells)
+assert cone.ncells == c2.ncells
 
 
 ###################################### test merge()
 m = merge(sphere, cone)
-print('merge()', m.N(), cone.N() + sphere.N())
-assert m.N() == cone.N() + sphere.N()
-print('merge()', m.NCells(), cone.NCells() + sphere.NCells())
-assert m.NCells() == cone.NCells() + sphere.NCells()
+print('merge()', m.npoints, cone.npoints + sphere.npoints)
+assert m.npoints == cone.npoints + sphere.npoints
+print('merge()', m.ncells, cone.ncells + sphere.ncells)
+assert m.ncells == cone.ncells + sphere.ncells
 
 
 ###################################### inputdata
@@ -111,10 +111,10 @@ assert np.max(cr.points()[:,2]) > 4.99
 
 ###################################### box
 bx = cone.box()
-print('box',bx.N(), 24)
-assert bx.N() == 24
-print('box',bx.clean().N() , 8)
-assert bx.clean().N() == 8
+print('box',bx.npoints, 24)
+assert bx.npoints == 24
+print('box',bx.clean().npoints , 8)
+assert bx.clean().npoints == 8
 
 ###################################### getTransform
 ct = cone.clone().rotateX(10).rotateY(10).rotateY(10)
@@ -175,30 +175,30 @@ assert isinstance(st.GetTexture(), vtk.vtkTexture)
 
 ###################################### deletePoints
 sd = sphere.clone().deleteCellsByPointIndex(range(100))
-print('deletePoints',sd.N() , sphere.N())
-assert sd.N() == sphere.N()
-print('deletePoints',sd.NCells() ,'<', sphere.NCells())
-assert sd.NCells() < sphere.NCells()
+print('deletePoints',sd.npoints , sphere.npoints)
+assert sd.npoints == sphere.npoints
+print('deletePoints',sd.ncells ,'<', sphere.ncells)
+assert sd.ncells < sphere.ncells
 
 
 ###################################### reverse
 # this fails on some archs (see issue #185)
 # lets comment it out temporarily
 sr = sphere.clone().reverse().cutWithPlane()
-print('DISABLED: reverse test', sr.N(), 576)
+print('DISABLED: reverse test', sr.npoints, 576)
 rev = vtk.vtkReverseSense()
 rev.SetInputData(sr.polydata())
 rev.Update()
 print('DISABLED: reverse vtk nr.pts, nr.cells')
 print(rev.GetOutput().GetNumberOfPoints(),sr.polydata().GetNumberOfPoints(),
       rev.GetOutput().GetNumberOfCells(), sr.polydata().GetNumberOfCells())
-# assert sr.N() == 576
+# assert sr.npoints == 576
 
 
 ###################################### quantize
 sq = sphere.clone().quantize(0.1)
-print('quantize',sq.N() , 834)
-assert sq.N() == 834
+print('quantize',sq.npoints , 834)
+assert sq.npoints == 834
 
 
 ###################################### bounds
@@ -264,14 +264,14 @@ assert np.min(c2.points()[:,0]) > -0.001
 
 ###################################### subdivide
 s2 = sphere.clone().subdivide(4)
-print('subdivide',s2.N() , 270338)
-assert s2.N() == 270338
+print('subdivide',s2.npoints , 270338)
+assert s2.npoints == 270338
 
 
 ###################################### decimate
 s2 = sphere.clone().decimate(0.2)
-print('decimate',s2.N() , 213)
-assert s2.N() == 213
+print('decimate',s2.npoints , 213)
+assert s2.npoints == 213
 
 ###################################### normalAt
 print('normalAt',sphere.normalAt(12), [9.97668684e-01, 1.01513637e-04, 6.82437494e-02])

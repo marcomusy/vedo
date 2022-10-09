@@ -1,7 +1,6 @@
 """Use array to vary radius and color
 of a line represented as a tube"""
 from vedo import *
-import numpy as np
 
 settings.defaultFont = 'Quikhand'
 
@@ -17,7 +16,7 @@ t2 = Tube(ln, r=rads, c="tomato", res=24)
 
 ############################### vary color
 cols = list(range(N))
-cols = makeBands(cols, 5)  # make color bins
+cols = make_bands(cols, 5)  # make color bins
 t3 = Tube(ln, r=rads, c=cols, res=24)
 
 ############################### visualize

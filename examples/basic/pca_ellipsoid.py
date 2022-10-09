@@ -19,7 +19,7 @@ pin = pts.points()[ids]
 print("inside  points #", len(pin))
 
 # Create an inverted mask instead of calling insidePoints(invert=True)
-mask = np.ones(pts.N(), dtype=bool)
+mask = np.ones(pts.npoints, dtype=bool)
 mask[ids] = False
 pout = pts.points()[mask]
 print("outside  points #", len(pout))

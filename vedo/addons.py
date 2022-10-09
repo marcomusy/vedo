@@ -223,7 +223,7 @@ class Button:
             if not font:
                 font = settings.defaultFont
             self.textproperty.SetFontFamily(vtk.VTK_FONT_FILE)
-            self.textproperty.SetFontFile(utils.getFontPath(font))
+            self.textproperty.SetFontFile(utils.get_font_path(font))
         self.textproperty.SetFontSize(size)
         self.textproperty.SetBackgroundOpacity(alpha)
         self.textproperty.BoldOff()
@@ -544,7 +544,7 @@ def Goniometer(
 
     if alpha > 0:
         pts = [p2] + arc.points().tolist() + [p2]
-        msh = Mesh([pts, [list(range(arc.N() + 2))]], c=lc, alpha=alpha)
+        msh = Mesh([pts, [list(range(arc.npoints + 2))]], c=lc, alpha=alpha)
         msh.lighting("off")
         msh.triangulate()
         msh.shift(0, 0, -r / 10000)  # to resolve 2d conflicts..
@@ -716,7 +716,7 @@ def ScalarBar(
         titprop.SetVerticalJustificationToTop()
         titprop.SetFontSize(font_size)
         titprop.SetFontFamily(vtk.VTK_FONT_FILE)
-        titprop.SetFontFile(utils.getFontPath(settings.defaultFont))
+        titprop.SetFontFile(utils.get_font_path(settings.defaultFont))
         sb.SetTitle(title)
         sb.SetVerticalTitleSeparation(title_yoffset)
         sb.SetTitleTextProperty(titprop)
@@ -748,7 +748,7 @@ def ScalarBar(
 
     sctxt = sb.GetLabelTextProperty()
     sctxt.SetFontFamily(vtk.VTK_FONT_FILE)
-    sctxt.SetFontFile(utils.getFontPath(settings.defaultFont))
+    sctxt.SetFontFile(utils.get_font_path(settings.defaultFont))
     sctxt.SetColor(c)
     sctxt.SetShadow(0)
     sctxt.SetFontSize(font_size - 2)
@@ -1323,9 +1323,9 @@ def add_slider_2d(
         sliderRep.GetTitleProperty().SetFontFamilyToArial()
     else:
         if font == "":
-            font = utils.getFontPath(settings.defaultFont)
+            font = utils.get_font_path(settings.defaultFont)
         else:
-            font = utils.getFontPath(font)
+            font = utils.get_font_path(font)
         sliderRep.GetTitleProperty().SetFontFamily(vtk.VTK_FONT_FILE)
         sliderRep.GetLabelProperty().SetFontFamily(vtk.VTK_FONT_FILE)
         sliderRep.GetTitleProperty().SetFontFile(font)
@@ -1569,9 +1569,9 @@ def _addCutterToolMeshWithSphere(mesh, invert):
     plt = vedo.plotter_instance
 
     sph = vtk.vtkSphere()
-    cm = mesh.centerOfMass()
+    cm = mesh.center_of_mass()
     sph.SetCenter(cm)
-    aves = mesh.averageSize()
+    aves = mesh.average_size()
     sph.SetRadius(aves)
     clipper = vtk.vtkClipPolyData()
     clipper.SetInputData(mesh.polydata())
@@ -1632,7 +1632,7 @@ def _addCutterToolMeshWithSphere(mesh, invert):
 def _addCutterToolMeshWithBox(mesh, invert):
     plt = vedo.plotter_instance
     if not plt:
-        vedo.logger.error("in addCutterTool() scene must be first rendered.")
+        vedo.logger.error("in add_cutter_tool() scene must be first rendered.")
         raise RuntimeError()
 
     plt.clickedActor = mesh
@@ -1698,7 +1698,7 @@ def _addCutterToolMeshWithPlane(mesh, invert):
     plt = vedo.plotter_instance
 
     plane = vtk.vtkPlane()
-    plane.SetNormal(mesh.centerOfMass())
+    plane.SetNormal(mesh.center_of_mass())
     clipper = vtk.vtkClipPolyData()
     clipper.SetInputData(mesh.polydata())
     clipper.SetClipFunction(plane)
@@ -3836,7 +3836,7 @@ def add_global_axes(axtype=None, c=None):
         ls.GetBottomAxis().GetLabelTextProperty().ShadowOff()
         pr = ls.GetBottomAxis().GetLabelTextProperty()
         pr.SetFontFamily(vtk.VTK_FONT_FILE)
-        pr.SetFontFile(utils.getFontPath(settings.defaultFont))
+        pr.SetFontFile(utils.get_font_path(settings.defaultFont))
         ls.PickableOff()
         plt.renderer.AddActor(ls)
         plt.axes_instances[r] = ls

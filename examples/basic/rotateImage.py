@@ -9,7 +9,7 @@ pic = Picture(dataurl+"images/dog.jpg")
 for i in range(5):
     p = pic.clone()
     p.crop(bottom=0.20) # crop 20% from bottom
-    p.scale(1-i/10.0).rotateX(20*i).z(30*i)
+    p.scale(1-i/10.0).rotate_x(20*i).z(30*i)
     p.alpha(0.8)
     plt += p
 

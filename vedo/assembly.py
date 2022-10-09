@@ -37,7 +37,7 @@ def procrustes_alignment(sources, rigid=False):
 
     group = vtk.vtkMultiBlockDataGroupFilter()
     for source in sources:
-        if sources[0].N() != source.N():
+        if sources[0].npoints != source.npoints:
             vedo.logger.error(
                 "in procrustesAlignment() sources have different nr of points"
             )

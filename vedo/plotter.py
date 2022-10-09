@@ -454,7 +454,7 @@ class Plotter:
             backend=None,
         ):
 
-        vedo.notebookBackend = _embed_window(backend)
+        vedo.notebook_backend = _embed_window(backend)
 
         vedo.plotter_instance = self
 
@@ -527,14 +527,14 @@ class Plotter:
         self._repeatingtimer_id = None
 
         #####################################################################
-        notebookBackend = vedo.notebookBackend
-        if notebookBackend:
-            if notebookBackend == "2d":
+        notebook_backend = vedo.notebook_backend
+        if notebook_backend:
+            if notebook_backend == "2d":
                 self.offscreen = True
                 if self.size == "auto":
                     self.size = (900, 700)
 
-            elif notebookBackend == "k3d" or "ipygany" in notebookBackend:
+            elif notebook_backend == "k3d" or "ipygany" in notebook_backend:
                 self._interactive = False
                 self.interactor = None
                 self.window = None
@@ -664,7 +664,7 @@ class Plotter:
                 r.SetUseFXAA(settings.useFXAA)
                 r.SetPreserveDepthBuffer(settings.preserveDepthBuffer)
 
-                r.SetBackground(vedo.getColor(self.backgrcol))
+                r.SetBackground(vedo.get_color(self.backgrcol))
 
                 self.axes_instances.append(None)
 
@@ -695,10 +695,10 @@ class Plotter:
                 arenderer.SetPreserveDepthBuffer(settings.preserveDepthBuffer)
 
                 arenderer.SetViewport(x0, y0, x1, y1)
-                arenderer.SetBackground(vedo.getColor(bg_))
+                arenderer.SetBackground(vedo.get_color(bg_))
                 if bg2_:
                     arenderer.GradientBackgroundOn()
-                    arenderer.SetBackground2(vedo.getColor(bg2_))
+                    arenderer.SetBackground2(vedo.get_color(bg2_))
 
                 self.renderers.append(arenderer)
                 self.axes_instances.append(None)
@@ -730,7 +730,7 @@ class Plotter:
                 self.backgroundRenderer = vtk.vtkRenderer()
                 self.backgroundRenderer.SetLayer(0)
                 self.backgroundRenderer.InteractiveOff()
-                self.backgroundRenderer.SetBackground(vedo.getColor(bg2))
+                self.backgroundRenderer.SetBackground(vedo.get_color(bg2))
                 image_actor = vedo.Picture(self.backgrcol)
                 self.window.AddRenderer(self.backgroundRenderer)
                 self.backgroundRenderer.AddActor(image_actor)
@@ -753,10 +753,10 @@ class Plotter:
                     if image_actor:
                         arenderer.SetLayer(1)
 
-                    arenderer.SetBackground(vedo.getColor(self.backgrcol))
+                    arenderer.SetBackground(vedo.get_color(self.backgrcol))
                     if bg2:
                         arenderer.GradientBackgroundOn()
-                        arenderer.SetBackground2(vedo.getColor(bg2))
+                        arenderer.SetBackground2(vedo.get_color(bg2))
 
                     x0 = i / shape[0]
                     y0 = j / shape[1]
@@ -819,7 +819,7 @@ class Plotter:
             return #################
             ########################
 
-        if vedo.notebookBackend == "panel":
+        if vedo.notebook_backend == "panel":
             ########################
             return #################
             ########################
@@ -1106,10 +1106,10 @@ class Plotter:
             r = self.renderers[at]
         if r:
             if c1 is not None:
-                r.SetBackground(vedo.getColor(c1))
+                r.SetBackground(vedo.get_color(c1))
             if c2 is not None:
                 r.GradientBackgroundOn()
-                r.SetBackground2(vedo.getColor(c2))
+                r.SetBackground2(vedo.get_color(c2))
             else:
                 r.GradientBackgroundOff()
         return self
@@ -1843,7 +1843,7 @@ class Plotter:
     def _add_skybox(self, hdrfile):
         # many hdr files are at https://polyhaven.com/all
 
-        if utils.vtkVersionIsAtLeast(9):
+        if utils.vtk_version_at_least(9):
             reader = vtk.vtkHDRReader()
             # Check the image can be read.
             if not reader.CanReadFile(hdrfile):
@@ -2126,7 +2126,7 @@ class Plotter:
         csys.SetCoordinateSystem(3)
         fractor.SetPosition(pos)
         fractor.SetMapper(mapper)
-        fractor.GetProperty().SetColor(vedo.getColor(c))
+        fractor.GetProperty().SetColor(vedo.get_color(c))
         fractor.GetProperty().SetOpacity(alpha)
         fractor.GetProperty().SetLineWidth(lw)
         fractor.GetProperty().SetDisplayLocationToForeground()
@@ -2471,7 +2471,7 @@ class Plotter:
 
                 if isinstance(a, vedo.base.BaseActor):
                     if a.shadows:
-                        a._updateShadows()
+                        a._update_shadows()
                         scannedacts.extend(a.shadows)
 
                     if a.trail and a.trail not in self.actors:
@@ -2479,7 +2479,7 @@ class Plotter:
                         scannedacts.append(a.trail)
                         # trails may also have shadows:
                         if a.trail.shadows:
-                            a.trail._updateShadows()
+                            a.trail._update_shadows()
                             scannedacts.extend(a.trail.shadows)
 
                     if a._caption and a._caption not in self.actors:
@@ -2747,16 +2747,16 @@ class Plotter:
             else:
                 self.window.SetSize(int(self.size[0]), int(self.size[1]))
 
-        if not vedo.notebookBackend:
+        if not vedo.notebook_backend:
             if str(bg).endswith(".hdr"):
                 self._add_skybox(bg)
             else:
                 if bg is not None:
-                    self.backgrcol = vedo.getColor(bg)
+                    self.backgrcol = vedo.get_color(bg)
                     self.renderer.SetBackground(self.backgrcol)
                 if bg2 is not None:
                     self.renderer.GradientBackgroundOn()
-                    self.renderer.SetBackground2(vedo.getColor(bg2))
+                    self.renderer.SetBackground2(vedo.get_color(bg2))
 
         if axes is not None:
             if isinstance(axes, vedo.Assembly):  # user passing show(..., axes=myaxes)
@@ -2802,9 +2802,9 @@ class Plotter:
                 pass
 
         # Backend ###############################################################
-        if vedo.notebookBackend:
-            if vedo.notebookBackend in ["k3d", "ipygany", "itkwidgets"]:
-                return backends.getNotebookBackend(self.actors, zoom, viewup)
+        if vedo.notebook_backend:
+            if vedo.notebook_backend in ["k3d", "ipygany", "itkwidgets"]:
+                return backends.get_notebook_backend(self.actors, zoom, viewup)
         #########################################################################
 
         # remove all old shadows from the scene
@@ -2859,10 +2859,10 @@ class Plotter:
                                 self._flagRep.SetBalloonLayoutToImageRight()
                                 breppr = self._flagRep.GetTextProperty()
                                 breppr.SetFontFamily(vtk.VTK_FONT_FILE)
-                                breppr.SetFontFile(utils.getFontPath(settings.flagFont))
+                                breppr.SetFontFile(utils.get_font_path(settings.flagFont))
                                 breppr.SetFontSize(settings.flagFontSize)
-                                breppr.SetColor(vedo.getColor(settings.flagColor))
-                                breppr.SetBackgroundColor(vedo.getColor(settings.flagBackgroundColor))
+                                breppr.SetColor(vedo.get_color(settings.flagColor))
+                                breppr.SetBackgroundColor(vedo.get_color(settings.flagBackgroundColor))
                                 breppr.SetShadow(settings.flagShadow)
                                 breppr.SetJustification(settings.flagJustification)
                                 breppr.UseTightBoundingBoxOn()
@@ -2915,8 +2915,8 @@ class Plotter:
                 addons.add_global_axes(self.axes)
 
         # panel #################################################################
-        if vedo.notebookBackend in ["panel", "ipyvtk"]:
-            return backends.getNotebookBackend(0, 0, 0)
+        if vedo.notebook_backend in ["panel", "ipyvtk"]:
+            return backends.get_notebook_backend(0, 0, 0)
         #########################################################################
 
         if self.resetcam:
@@ -2988,8 +2988,8 @@ class Plotter:
         self.window.SetWindowName(self.title)
 
         # 2d ####################################################################
-        if vedo.notebookBackend == "2d":
-            return backends.getNotebookBackend(0, 0, 0)
+        if vedo.notebook_backend == "2d":
+            return backends.get_notebook_backend(0, 0, 0)
         #########################################################################
 
         if self.interactor:  # can be offscreen..
@@ -3090,7 +3090,7 @@ class Plotter:
             self.show(interactive=0)
             self._interactive = save_int
         widget = vtk.vtkOrientationMarkerWidget()
-        r, g, b = vedo.getColor(c)
+        r, g, b = vedo.get_color(c)
         widget.SetOutlineColor(r, g, b)
         if len(actors) == 1:
             widget.SetOrientationMarker(actors[0])
@@ -3259,7 +3259,7 @@ class Plotter:
 
         .. hint:: examples/other/export_x3d.py, examples/other/export_numpy.py
         """
-        vedo.io.exportWindow(filename, binary=binary)
+        vedo.io.export_window(filename, binary=binary)
         return self
 
     def color_picker(self, xy, verbose=False):
@@ -3283,7 +3283,7 @@ class Plotter:
                 vedo.printc("█", c=[0, rgb[1], 0], end="")
                 vedo.printc("█", c=[0, 0, rgb[2]], end="")
                 vedo.printc("] = ", end="")
-                cnm = vedo.getColorName(rgb)
+                cnm = vedo.get_colorName(rgb)
                 if np.sum(rgb) < 150:
                     vedo.printc(rgb.tolist(), vedo.colors.rgb2hex(np.array(rgb)/255), c='w',
                            bc=rgb, invert=1, end='')
@@ -3729,7 +3729,7 @@ class Plotter:
             self._icol += 1
             if isinstance(self.clicked_actor, vedo.Points):
                 self.clicked_actor.GetMapper().ScalarVisibilityOff()
-                self.clicked_actor.GetProperty().SetColor(vedo.getColor(bsc[(self._icol) % len(bsc)]))
+                self.clicked_actor.GetProperty().SetColor(vedo.get_color(bsc[(self._icol) % len(bsc)]))
 
         elif key == "4":
             if self.clicked_actor:
@@ -3784,7 +3784,7 @@ class Plotter:
                 "blackboard",
                 "black",
             ]
-            bg2name = vedo.getColorName(self.renderer.GetBackground2())
+            bg2name = vedo.get_color_name(self.renderer.GetBackground2())
             if bg2name in bg2cols:
                 idx = bg2cols.index(bg2name)
             else:
@@ -3795,7 +3795,7 @@ class Plotter:
                 self.renderer.GradientBackgroundOff()
             else:
                 self.renderer.GradientBackgroundOn()
-                self.renderer.SetBackground2(vedo.getColor(bg2name_next))
+                self.renderer.SetBackground2(vedo.get_color(bg2name_next))
 
         elif key in ["plus", "equal", "KP_Add", "minus", "KP_Subtract"]:  # cycle axes style
             clickedr = self.renderers.index(self.renderer)
@@ -3921,7 +3921,7 @@ class Plotter:
                 acts = self.get_meshes()
             for ia in acts:
                 if ia.GetPickable() and isinstance(ia, vedo.Mesh):
-                    ia.computeNormals(cells=False)
+                    ia.compute_normals(cells=False)
                     intrp = ia.GetProperty().GetInterpolation()
                     # print(intrp, ia.GetProperty().GetInterpolationAsString())
                     if intrp > 0:
@@ -3952,7 +3952,7 @@ class Plotter:
         elif key == "X":
             if self.clicked_actor:
                 if not self.cutterWidget:
-                    addons.addCutterTool(self.clicked_actor)
+                    addons.add_cutter_tool(self.clicked_actor)
                 else:
                     if isinstance(self.clicked_actor, vtk.vtkActor):
                         fname = "clipped.vtk"
@@ -3966,19 +3966,19 @@ class Plotter:
             else:
                 for a in self.actors:
                     if isinstance(a, vtk.vtkVolume):
-                        addons.addCutterTool(a)
+                        addons.add_cutter_tool(a)
                         return
 
                 vedo.printc("Click object and press X to open the cutter box widget.", c=4)
 
         elif key == "E":
             vedo.printc("\camera Exporting 3D window to file", c="blue", end="")
-            vedo.io.exportWindow("scene.npz")
+            vedo.io.export_window("scene.npz")
             vedo.printc(". Try:\n> vedo scene.npz", c="blue")
             self.interactor.Start()
 
         elif key == "F":
-            vedo.io.exportWindow("scene.x3d")
+            vedo.io.export_window("scene.x3d")
             vedo.printc("Try: firefox scene.html", c="blue")
 
         elif key == "i":  # print info

@@ -8,7 +8,7 @@ s = Sphere(c="y", res=12).wireframe()
 index = 12 # pick one point
 pt = s.points()[index]
 
-ids = s.connectedVertices(index)
+ids = s.connected_vertices(index)
 vtxs = s.points()[ids]
 
 apt  = Point(pt, c="r", r=15)

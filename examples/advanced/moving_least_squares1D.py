@@ -27,6 +27,6 @@ for i in range(1, N):
         # are separated by tol (in % of bbox)
         pts.subsample(0.02)
 
-    plt.at(i).show(pts, f"Iteration {i}, #points: {pts.N()}")
+    plt.at(i).show(pts, f"Iteration {i}, #points: {pts.npoints}")
 
 plt.interactive().close()

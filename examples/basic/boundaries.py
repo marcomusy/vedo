@@ -3,9 +3,9 @@ Add an ID label to all vertices."""
 from vedo import *
 
 b = Mesh(dataurl+'290.vtk')
-b.computeNormals().clean().lw(0.1)
+b.compute_normals().clean().lw(0.1)
 
-pids = b.boundaries(returnPointIds=True)
+pids = b.boundaries(return_point_ids=True)
 bpts = b.points()
 
 pts = Points(bpts[pids], r=10, c='red5')

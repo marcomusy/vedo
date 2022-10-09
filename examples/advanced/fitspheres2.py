@@ -11,7 +11,7 @@ msh = Mesh(dataurl+"cow.vtk").alpha(0.3)
 
 pts1, pts2, vals, cols = [], [], [], []
 
-for i in range(0, msh.N(), 10):
+for i in range(0, msh.npoints, 10):
     p = msh.points(i)
     pts = msh.closestPoint(p, N=12)  # find the N closest points to p
     sph = fitSphere(pts)           # find the fitting sphere

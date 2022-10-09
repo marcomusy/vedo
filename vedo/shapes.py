@@ -8,7 +8,7 @@ import vtkmodules.all as vtk
 
 import vedo
 from vedo import settings
-from vedo.colors import cmaps_names, colorMap, getColor, printc
+from vedo.colors import cmaps_names, color_map, get_color, printc
 from vedo import utils
 from vedo.pointcloud import Points
 from vedo.mesh import merge, Mesh
@@ -148,31 +148,31 @@ class Glyph(Mesh):
 
     The input can also be a simple list of 2D or 3D coordinates.
     Color can be specified as a colormap which maps the size of the orientation
-    vectors in `orientationArray`.
+    vectors in `orientation_array`.
 
     Parameters
     ----------
-    orientationArray: list, str, vtkArray
+    orientation_array: list, str, vtkArray
         list of vectors, `vtkArray` or name of an already existing pointdata array
 
-    scaleByScalar : bool
+    scale_by_scalar : bool
         glyph mesh is scaled by the active scalars
 
-    scaleByVectorSize : bool
+    scale_by_vector_size : bool
         glyph mesh is scaled by the size of the vectors
 
-    scaleByVectorComponents : bool
+    scale_by_vector_components : bool
         glyph mesh is scaled by the 3 vectors components
 
-    colorByScalar : bool
+    color_by_scalar : bool
         glyph mesh is colored based on the scalar value
 
-    colorByVectorSize : bool
+    color_by_vector_size : bool
         glyph mesh is colored based on the vector size
 
     tol : float
         set a minimum separation between two close glyphs
-        (not compatible with `orientationArray` being a list).
+        (not compatible with `orientation_array` being a list).
 
     .. hint:: examples/basic/glyphs.py, glyphs_arrows.py
         .. image:: https://vedo.embl.es/images/basic/glyphs.png
@@ -182,12 +182,12 @@ class Glyph(Mesh):
             self,
             mesh,
             glyphObj,
-            orientationArray=None,
-            scaleByScalar=False,
-            scaleByVectorSize=False,
-            scaleByVectorComponents=False,
-            colorByScalar=False,
-            colorByVectorSize=False,
+            orientation_array=None,
+            scale_by_scalar=False,
+            scale_by_vector_size=False,
+            scale_by_vector_components=False,
+            color_by_scalar=False,
+            color_by_vector_size=False,
             tol=0,
             c='k8',
             alpha=1,
@@ -221,7 +221,7 @@ class Glyph(Mesh):
             ucols.SetNumberOfComponents(3)
             ucols.SetName("glyph_RGB")
             for col in c:
-                cl = getColor(col)
+                cl = get_color(col)
                 ucols.InsertNextTuple3(cl[0] * 255, cl[1] * 255, cl[2] * 255)
             poly.GetPointData().AddArray(ucols)
             poly.GetPointData().SetActiveScalars("glyph_RGB")
@@ -231,37 +231,37 @@ class Glyph(Mesh):
         gly.SetInputData(poly)
         gly.SetSourceData(glyphObj)
 
-        if scaleByScalar:
+        if scale_by_scalar:
             gly.SetScaleModeToScaleByScalar()
-        elif scaleByVectorSize:
+        elif scale_by_vector_size:
             gly.SetScaleModeToScaleByVector()
-        elif scaleByVectorComponents:
+        elif scale_by_vector_components:
             gly.SetScaleModeToScaleByVectorComponents()
         else:
             gly.SetScaleModeToDataScalingOff()
 
-        if colorByVectorSize:
+        if color_by_vector_size:
             gly.SetVectorModeToUseVector()
             gly.SetColorModeToColorByVector()
-        elif colorByScalar:
+        elif color_by_scalar:
             gly.SetColorModeToColorByScalar()
         else:
             gly.SetColorModeToColorByScale()
 
-        if orientationArray is not None:
+        if orientation_array is not None:
             gly.OrientOn()
-            if isinstance(orientationArray, str):
-                if orientationArray.lower() == "normals":
+            if isinstance(orientation_array, str):
+                if orientation_array.lower() == "normals":
                     gly.SetVectorModeToUseNormal()
                 else:  # passing a name
-                    poly.GetPointData().SetActiveVectors(orientationArray)
-                    gly.SetInputArrayToProcess(0, 0, 0, 0, orientationArray)
+                    poly.GetPointData().SetActiveVectors(orientation_array)
+                    gly.SetInputArrayToProcess(0, 0, 0, 0, orientation_array)
                     gly.SetVectorModeToUseVector()
-            elif utils.is_sequence(orientationArray) and not tol:  # passing a list
+            elif utils.is_sequence(orientation_array) and not tol:  # passing a list
                 varr = vtk.vtkFloatArray()
                 varr.SetNumberOfComponents(3)
                 varr.SetName("glyph_vectors")
-                for v in orientationArray:
+                for v in orientation_array:
                     varr.InsertNextTuple(v)
                 poly.GetPointData().AddArray(varr)
                 poly.GetPointData().SetActiveVectors("glyph_vectors")
@@ -280,7 +280,7 @@ class Glyph(Mesh):
             lut.SetNumberOfTableValues(512)
             lut.Build()
             for i in range(512):
-                r, g, b = colorMap(i, cmap, 0, 512)
+                r, g, b = color_map(i, cmap, 0, 512)
                 lut.SetTableValue(i, r, g, b, 1)
             self.mapper().SetLookupTable(lut)
             self.mapper().ScalarVisibilityOn()
@@ -311,7 +311,7 @@ class Tensors(Mesh):
         preset type of source shape
         ['ellipsoid', 'cylinder', 'cube' or any specified ``Mesh``]
 
-    useEigenValues : bool
+    use_eigenvalues : bool
         color source glyph using the eigenvalues or by scalars
 
     threeAxes : bool
@@ -324,7 +324,7 @@ class Tensors(Mesh):
         If `True` three sources are produced, each of them oriented along an eigenvector
         and scaled according to the corresponding eigenvector.
 
-    isSymmetric : bool
+    is_symmetric : bool
         If `True` each source glyph is mirrored (2 or 6 glyphs will be produced).
         The x-axis of the source glyph will correspond to the eigenvector on output.
 
@@ -334,7 +334,7 @@ class Tensors(Mesh):
     scale : float
         scaling factor of the source glyph.
 
-    maxScale : float
+    max_scale : float
         clamp scaling at this factor.
 
     .. hint:: examples/volumetric/tensors.py, tensor_grid.py
@@ -345,11 +345,11 @@ class Tensors(Mesh):
         self,
         domain,
         source="ellipsoid",
-        useEigenValues=True,
-        isSymmetric=True,
+        use_eigenvalues=True,
+        is_symmetric=True,
         threeAxes=False,
         scale=1,
-        maxScale=None,
+        max_scale=None,
         length=None,
         c=None,
         alpha=1,
@@ -381,11 +381,11 @@ class Tensors(Mesh):
         else:
             tg.ColorGlyphsOff()
 
-        tg.SetSymmetric(int(isSymmetric))
+        tg.SetSymmetric(int(is_symmetric))
 
         if length is not None:
             tg.SetLength(length)
-        if useEigenValues:
+        if use_eigenvalues:
             tg.ExtractEigenvaluesOn()
             tg.SetColorModeToEigenvalues()
         else:
@@ -393,10 +393,10 @@ class Tensors(Mesh):
         tg.SetThreeGlyphs(threeAxes)
         tg.ScalingOn()
         tg.SetScaleFactor(scale)
-        if maxScale is None:
+        if max_scale is None:
             tg.ClampScalingOn()
-            maxScale = scale * 10
-        tg.SetMaxScaleFactor(maxScale)
+            max_scale = scale * 10
+        tg.SetMaxScaleFactor(max_scale)
         tg.Update()
         tgn = vtk.vtkPolyDataNormals()
         tgn.SetInputData(tg.GetOutput())
@@ -514,7 +514,7 @@ class Line(Mesh):
         self.top = top
         self.name = "Line"
 
-    def lineColor(self, lc=None):
+    def linecolor(self, lc=None):
         """Assign a color to the line"""
         # overrides mesh.lineColor which would have no effect here
         return self.color(lc)
@@ -655,13 +655,13 @@ class Line(Mesh):
         val[-1] = val[-2]
         return val
 
-    def addCurvatureScalars(self, method=0):
+    def compute_curvature(self, method=0):
         """Add a pointdata array named 'Curvatures' which contains
         the curvature value at each point.
 
         Keyword method is overridden in Mesh and has no effect here.
         """
-        # overrides mesh.addCurvatureScalars
+        # overrides mesh.compute_curvature
         curvs = self.curvature()
         vmin, vmax = np.min(curvs), np.max(curvs)
         if vmin < 0 and vmax > 0:
@@ -959,8 +959,8 @@ class RoundedLine(Mesh):
 
 class Lines(Mesh):
     """
-    Build the line segments between two lists of points `startPoints` and `endPoints`.
-    `startPoints` can be also passed in the form `[[point1, point2], ...]`.
+    Build the line segments between two lists of points `start_pts` and `end_pts`.
+    `start_pts` can be also passed in the form `[[point1, point2], ...]`.
 
     Parameters
     ----------
@@ -986,8 +986,8 @@ class Lines(Mesh):
 
     def __init__(
         self,
-        startPoints,
-        endPoints=None,
+        start_pts,
+        end_pts=None,
         dotted=False,
         res=1,
         scale=1,
@@ -995,18 +995,18 @@ class Lines(Mesh):
         c="k4",
         alpha=1,
     ):
-        if isinstance(startPoints, Points):
-            startPoints = startPoints.points()
-        if isinstance(endPoints, Points):
-            endPoints = endPoints.points()
+        if isinstance(start_pts, Points):
+            start_pts = start_pts.points()
+        if isinstance(end_pts, Points):
+            end_pts = end_pts.points()
 
-        if endPoints is not None:
-            startPoints = np.stack((startPoints, endPoints), axis=1)
+        if end_pts is not None:
+            start_pts = np.stack((start_pts, end_pts), axis=1)
 
-        if len(startPoints) == 2:
+        if len(start_pts) == 2:
 
             polylns = vtk.vtkAppendPolyData()
-            for twopts in startPoints:
+            for twopts in start_pts:
                 lineSource = vtk.vtkLineSource()
                 lineSource.SetResolution(res)
                 if len(twopts[0]) == 2:
@@ -1030,7 +1030,7 @@ class Lines(Mesh):
         else:
 
             polylns = vtk.vtkAppendPolyData()
-            for t in startPoints:
+            for t in start_pts:
 
                 try:
                     if len(t[0]) == 2:  # make it 3d
@@ -1092,9 +1092,7 @@ class Spline(Line):
         .. image:: https://vedo.embl.es/images/simulations/spline_ease.gif
     """
 
-    def __init__(
-        self, points, smooth=0, degree=2, closed=False, res=None, easing="",
-    ):
+    def __init__(self, points, smooth=0, degree=2, closed=False, res=None, easing=""):
         from scipy.interpolate import splprep, splev
 
         if isinstance(points, Points):
@@ -1183,9 +1181,7 @@ class KSpline(Line):
     See also: ``Spline`` and ``CSpline``.
     """
 
-    def __init__(
-        self, points, continuity=0, tension=0, bias=0, closed=False, res=None,
-    ):
+    def __init__(self, points, continuity=0, tension=0, bias=0, closed=False, res=None):
         if isinstance(points, Points):
             points = points.points()
 
@@ -1346,7 +1342,7 @@ class NormalLines(Mesh):
     """
 
     def __init__(self, mesh, ratio=1, on="cells", scale=1):
-        poly = mesh.clone().computeNormals().polydata()
+        poly = mesh.clone().compute_normals().polydata()
 
         if "cell" in on:
             centers = vtk.vtkCellCenters()
@@ -1382,9 +1378,7 @@ class NormalLines(Mesh):
         self.name = "NormalLines"
 
 
-def _interpolate2vol(
-    mesh, kernel=None, radius=None, bounds=None, nullValue=None, dims=None,
-):
+def _interpolate2vol(mesh, kernel=None, radius=None, bounds=None, null_value=None, dims=None):
     # Generate a volumetric dataset by interpolating a scalar
     # or vector field which is only known on a scattered set of points or mesh.
     # Available interpolation kernels are: shepard, gaussian, voronoi, linear.
@@ -1399,7 +1393,7 @@ def _interpolate2vol(
     #     bounding box of the output object
     # dims : list
     #     dimensions of the output object
-    # nullValue : float
+    # null_value : float
     #     value to be assigned to invalid points
     if dims is None:
         dims = (25, 25, 25)
@@ -1443,8 +1437,8 @@ def _interpolate2vol(
     interpolator.SetSourceData(mesh)
     interpolator.SetKernel(kern)
     interpolator.SetLocator(locator)
-    if nullValue is not None:
-        interpolator.SetNullValue(nullValue)
+    if null_value is not None:
+        interpolator.SetNullValue(null_value)
     else:
         interpolator.SetNullPointsStrategyToClosestPoint()
     interpolator.Update()
@@ -1454,19 +1448,19 @@ def _interpolate2vol(
 def StreamLines(
     domain,
     probe,
-    activeVectors="",
+    active_vectors="",
     integrator="rk4",
     direction="forward",
-    initialStepSize=None,
-    maxPropagation=None,
-    maxSteps=10000,
-    stepLength=None,
-    extrapolateToBox=(),
-    surfaceConstrained=False,
-    computeVorticity=False,
+    initial_step_size=None,
+    max_propagation=None,
+    max_steps=10000,
+    step_length=None,
+    extrapolate_to_box=(),
+    surface_constrained=False,
+    compute_vorticity=False,
     ribbons=None,
     tubes=(),
-    scalarRange=None,
+    scalar_range=None,
     lw=None,
 ):
     """
@@ -1489,22 +1483,22 @@ def StreamLines(
 
     Parameters
     ----------
-    activeVectors : str
+    active_vectors : str
         name of the vector array to be used
 
     integrator : str
         Runge-Kutta integrator, either 'rk2', 'rk4' of 'rk45'
 
-    initialStepSize : float
+    initial_step_size : float
         initial step size of integration
 
-    maxPropagation : float
+    max_propagation : float
         maximum physical length of the streamline
 
-    maxSteps : int
+    max_steps : int
         maximum nr of steps allowed
 
-    stepLength : float
+    step_length : float
         length of step integration.
 
     extrapolateToBounds : dict
@@ -1515,12 +1509,12 @@ def StreamLines(
         - kernel, (str) - interpolation kernel type [shepard]
         - radius (float)- radius of the local search
         - dims, (list) - dimensions of the output Volume object
-        - nullValue, (float) - value to be assigned to invalid points
+        - null_value, (float) - value to be assigned to invalid points
 
     surfaceConstrain : bool
         force streamlines to be computed on a surface
 
-    computeVorticity : bool
+    compute_vorticity : bool
         Turn on/off vorticity computation at streamline points
         (necessary for generating proper stream-ribbons)
 
@@ -1541,15 +1535,15 @@ def StreamLines(
             - 2 - vary radius by vector
             - 3 - vary radius by absolute value of scalar
 
-    scalarRange : list
+    scalar_range : list
         specify the scalar range for coloring
 
     .. hint::
         examples/volumetric/streamlines1.py, streamlines2.py, streamribbons.py, office.py
     """
     if isinstance(domain, vedo.Points):
-        if extrapolateToBox:
-            grid = _interpolate2vol(domain.polydata(), **extrapolateToBox)
+        if extrapolate_to_box:
+            grid = _interpolate2vol(domain.polydata(), **extrapolate_to_box)
         else:
             grid = domain.polydata()
     elif isinstance(domain, vedo.BaseVolume):
@@ -1557,15 +1551,15 @@ def StreamLines(
     else:
         grid = domain
 
-    if activeVectors:
-        grid.GetPointData().SetActiveVectors(activeVectors)
+    if active_vectors:
+        grid.GetPointData().SetActiveVectors(active_vectors)
 
     b = grid.GetBounds()
     size = (b[5] - b[4] + b[3] - b[2] + b[1] - b[0]) / 3
-    if initialStepSize is None:
-        initialStepSize = size / 500.0
-    if maxPropagation is None:
-        maxPropagation = size
+    if initial_step_size is None:
+        initial_step_size = size / 500.0
+    if max_propagation is None:
+        max_propagation = size
 
     if utils.is_sequence(probe):
         pts = np.array(probe)
@@ -1576,27 +1570,27 @@ def StreamLines(
 
     src = vtk.vtkProgrammableSource()
 
-    def readPoints():
+    def read_points():
         output = src.GetPolyDataOutput()
         points = vtk.vtkPoints()
         for x, y, z in pts:
             points.InsertNextPoint(x, y, z)
         output.SetPoints(points)
 
-    src.SetExecuteMethod(readPoints)
+    src.SetExecuteMethod(read_points)
     src.Update()
 
     st = vtk.vtkStreamTracer()
     st.SetInputDataObject(grid)
     st.SetSourceConnection(src.GetOutputPort())
 
-    st.SetInitialIntegrationStep(initialStepSize)
-    st.SetComputeVorticity(computeVorticity)
-    st.SetMaximumNumberOfSteps(maxSteps)
-    st.SetMaximumPropagation(maxPropagation)
-    st.SetSurfaceStreamlines(surfaceConstrained)
-    if stepLength:
-        st.SetMaximumIntegrationStep(stepLength)
+    st.SetInitialIntegrationStep(initial_step_size)
+    st.SetComputeVorticity(compute_vorticity)
+    st.SetMaximumNumberOfSteps(max_steps)
+    st.SetMaximumPropagation(max_propagation)
+    st.SetSurfaceStreamlines(surface_constrained)
+    if step_length:
+        st.SetMaximumIntegrationStep(step_length)
 
     if "f" in direction:
         st.SetIntegrationDirectionToForward()
@@ -1655,8 +1649,8 @@ def StreamLines(
         scals = grid.GetPointData().GetScalars()
         if scals:
             sta.mapper().SetScalarRange(scals.GetRange())
-        if scalarRange is not None:
-            sta.mapper().SetScalarRange(scalarRange)
+        if scalar_range is not None:
+            sta.mapper().SetScalarRange(scalar_range)
 
         sta.phong()
         sta.name = "StreamLines"
@@ -1674,8 +1668,8 @@ def StreamLines(
     scals = grid.GetPointData().GetScalars()
     if scals:
         sta.mapper().SetScalarRange(scals.GetRange())
-    if scalarRange is not None:
-        sta.mapper().SetScalarRange(scalarRange)
+    if scalar_range is not None:
+        sta.mapper().SetScalarRange(scalar_range)
 
     sta.name = "StreamLines"
     return sta
@@ -1740,7 +1734,7 @@ class Tube(Mesh):
             cc.SetNumberOfComponents(3)
             cc.SetNumberOfTuples(len(c))
             for i, ic in enumerate(c):
-                r, g, b = getColor(ic)
+                r, g, b = get_color(ic)
                 cc.InsertTuple3(i, int(255 * r), int(255 * g), int(255 * b))
             polyln.GetPointData().AddArray(cc)
             c = None
@@ -1807,7 +1801,7 @@ class Ribbon(Mesh):
             aline = Line(line1)
             ribbonFilter.SetInputData(aline.polydata())
             if width is None:
-                width = aline.diagonalSize() / 20.0
+                width = aline.diagonal_size() / 20.0
             ribbonFilter.SetWidth(width)
             ribbonFilter.Update()
             Mesh.__init__(self, ribbonFilter.GetOutput(), c, alpha)
@@ -1890,7 +1884,7 @@ class Ribbon(Mesh):
 
 class Arrow(Mesh):
     """
-    Build a 3D arrow from `startPoint` to `endPoint` of section size `s`,
+    Build a 3D arrow from `start_pt` to `end_pt` of section size `s`,
     expressed as the fraction of the window size.
 
     If c is a `float` less than 1, the arrow is rendered as a in a color scale
@@ -1901,26 +1895,25 @@ class Arrow(Mesh):
     .. image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestOrientedArrow.png
     """
 
-    def __init__(
-        self, startPoint=(0, 0, 0), endPoint=(1, 0, 0), s=None, c="r4", alpha=1, res=12
-    ):
+    def __init__(self, start_pt=(0, 0, 0), end_pt=(1, 0, 0), s=None, c="r4", alpha=1, res=12):
+
         self.s = s if s is not None else 1  ## only needed by pyplot.__iadd()
         self.fill = True
 
         # in case user is passing meshs
-        if isinstance(startPoint, vtk.vtkActor):
-            startPoint = startPoint.GetPosition()
-        if isinstance(endPoint, vtk.vtkActor):
-            endPoint = endPoint.GetPosition()
+        if isinstance(start_pt, vtk.vtkActor):
+            start_pt = start_pt.GetPosition()
+        if isinstance(end_pt, vtk.vtkActor):
+            end_pt = end_pt.GetPosition()
 
-        axis = np.asarray(endPoint) - np.asarray(startPoint)
+        axis = np.asarray(end_pt) - np.asarray(start_pt)
         length = np.linalg.norm(axis)
         if length:
             axis = axis / length
         if len(axis) < 3:  # its 2d
             theta = np.pi / 2
-            startPoint = [startPoint[0], startPoint[1], 0.0]
-            endPoint = [endPoint[0], endPoint[1], 0.0]
+            start_pt = [start_pt[0], start_pt[1], 0.0]
+            end_pt = [end_pt[0], end_pt[1], 0.0]
         else:
             theta = np.arccos(axis[2])
         phi = np.arctan2(axis[1], axis[0])
@@ -1952,30 +1945,30 @@ class Arrow(Mesh):
 
         self.phong().lighting("plastic")
         # self.property.LightingOff()
-        self.SetPosition(startPoint)
+        self.SetPosition(start_pt)
         self.PickableOff()
         self.DragableOff()
-        self.base = np.array(startPoint, dtype=float)
-        self.top = np.array(endPoint, dtype=float)
-        self.tipIndex = None
+        self.base = np.array(start_pt, dtype=float)
+        self.top = np.array(end_pt, dtype=float)
+        self.tip_index = None
         self.fill = True  # used by pyplot.__iadd__()
         self.name = "Arrow"
 
-    def tipPoint(self, returnIndex=False):
+    def tip_point(self, return_index=False):
         """Return the coordinates of the tip of the Arrow, or the point index."""
-        if self.tipIndex is None:
+        if self.tip_index is None:
             arrpts = utils.vtk2numpy(self.arr.GetOutput().GetPoints().GetData())
-            self.tipIndex = np.argmax(arrpts[:, 0])
-        if returnIndex:
-            return self.tipIndex
+            self.tip_index = np.argmax(arrpts[:, 0])
+        if return_index:
+            return self.tip_index
         else:
-            return self.points()[self.tipIndex]
+            return self.points()[self.tip_index]
 
 
 class Arrows(Glyph):
     """
-    Build arrows between two lists of points `startPoints` and `endPoints`.
-    `startPoints` can be also passed in the form `[[point1, point2], ...]`.
+    Build arrows between two lists of points `start_pts` and `end_pts`.
+    `start_pts` can be also passed in the form `[[point1, point2], ...]`.
 
     Color can be specified as a colormap which maps the size of the arrows.
 
@@ -1997,26 +1990,25 @@ class Arrows(Glyph):
         .. image:: https://user-images.githubusercontent.com/32848391/55897850-a1a0da80-5bc1-11e9-81e0-004c8f396b43.jpg
     """
 
-    def __init__(
-        self, startPoints, endPoints=None, s=None, thickness=1, c=None, alpha=1, res=12,
-    ):
-        if isinstance(startPoints, Points):
-            startPoints = startPoints.points()
-        if isinstance(endPoints, Points):
-            endPoints = endPoints.points()
-        startPoints = np.array(startPoints)
-        if endPoints is None:
-            strt = startPoints[:, 0]
-            endPoints = startPoints[:, 1]
-            startPoints = strt
-        else:
-            endPoints = np.array(endPoints)
+    def __init__(self, start_pts, end_pts=None, s=None, thickness=1, c=None, alpha=1, res=12):
 
-        if startPoints.shape[1] == 2:  # make it 3d
-            startPoints = np.c_[startPoints, np.zeros(len(startPoints))]
-        if endPoints.shape[1] == 2:  # make it 3d
-            endPoints = np.c_[
-                np.array(endPoints, dtype=float), np.zeros(len(endPoints), dtype=float)
+        if isinstance(start_pts, Points):
+            start_pts = start_pts.points()
+        if isinstance(end_pts, Points):
+            end_pts = end_pts.points()
+        start_pts = np.array(start_pts)
+        if end_pts is None:
+            strt = start_pts[:, 0]
+            end_pts = start_pts[:, 1]
+            start_pts = strt
+        else:
+            end_pts = np.array(end_pts)
+
+        if start_pts.shape[1] == 2:  # make it 3d
+            start_pts = np.c_[start_pts, np.zeros(len(start_pts))]
+        if end_pts.shape[1] == 2:  # make it 3d
+            end_pts = np.c_[
+                np.array(end_pts, dtype=float), np.zeros(len(end_pts), dtype=float)
             ]
 
         arr = vtk.vtkArrowSource()
@@ -2030,14 +2022,14 @@ class Arrows(Glyph):
         arr.Update()
         out = arr.GetOutput()
 
-        orients = endPoints - startPoints
+        orients = end_pts - start_pts
         Glyph.__init__(
             self,
-            startPoints,
+            start_pts,
             out,
-            orientationArray=orients,
-            scaleByVectorSize=True,
-            colorByVectorSize=True,
+            orientation_array=orients,
+            scale_by_vector_size=True,
+            color_by_vector_size=True,
             c=c,
             alpha=alpha,
         )
@@ -2047,23 +2039,23 @@ class Arrows(Glyph):
 
 class Arrow2D(Mesh):
     """
-    Build a 2D arrow from `startPoint` to `endPoint`.
+    Build a 2D arrow from `start_pt` to `end_pt`.
 
     Parameters
     ----------
     s : float
         a global multiplicative convenience factor controlling the arrow size
 
-    shaftLength : float
+    shaft_length : float
         fractional shaft length
 
-    shaftWidth : float
+    shaft_width : float
         fractional shaft width
 
-    headLength : float
+    head_length : float
         fractional head length
 
-    headWidth : float
+    head_width : float
         fractional head width
 
     fill : bool
@@ -2072,47 +2064,45 @@ class Arrow2D(Mesh):
 
     def __init__(
         self,
-        startPoint=(0, 0, 0),
-        endPoint=(1, 0, 0),
+        start_pt=(0, 0, 0),
+        end_pt=(1, 0, 0),
         s=1,
-        shaftLength=0.8,
-        shaftWidth=0.05,
-        headLength=0.225,
-        headWidth=0.175,
+        shaft_length=0.8,
+        shaft_width=0.05,
+        head_length=0.225,
+        head_width=0.175,
         fill=True,
-        c="r4",
-        alpha=1,
     ):
         self.fill = fill  ## needed by pyplot.__iadd()
         self.s = s  #  # needed by pyplot.__iadd()
 
         if s != 1:
-            shaftWidth *= s
-            headWidth *= np.sqrt(s)
+            shaft_width *= s
+            head_width *= np.sqrt(s)
 
         # in case user is passing meshs
-        if isinstance(startPoint, vtk.vtkActor):
-            startPoint = startPoint.GetPosition()
-        if isinstance(endPoint, vtk.vtkActor):
-            endPoint = endPoint.GetPosition()
-        if len(startPoint) == 2:
-            startPoint = [startPoint[0], startPoint[1], 0]
-        if len(endPoint) == 2:
-            endPoint = [endPoint[0], endPoint[1], 0]
+        if isinstance(start_pt, vtk.vtkActor):
+            start_pt = start_pt.GetPosition()
+        if isinstance(end_pt, vtk.vtkActor):
+            end_pt = end_pt.GetPosition()
+        if len(start_pt) == 2:
+            start_pt = [start_pt[0], start_pt[1], 0]
+        if len(end_pt) == 2:
+            end_pt = [end_pt[0], end_pt[1], 0]
 
-        headBase = 1 - headLength
-        headWidth = max(headWidth, shaftWidth)
-        if headLength is None or headBase > shaftLength:
-            headBase = shaftLength
+        headBase = 1 - head_length
+        head_width = max(head_width, shaft_width)
+        if head_length is None or headBase > shaft_length:
+            headBase = shaft_length
 
         verts = []
-        verts.append([0, -shaftWidth / 2, 0])
-        verts.append([shaftLength, -shaftWidth / 2, 0])
-        verts.append([headBase, -headWidth / 2, 0])
+        verts.append([0, -shaft_width / 2, 0])
+        verts.append([shaft_length, -shaft_width / 2, 0])
+        verts.append([headBase, -head_width / 2, 0])
         verts.append([1, 0, 0])
-        verts.append([headBase, headWidth / 2, 0])
-        verts.append([shaftLength, shaftWidth / 2, 0])
-        verts.append([0, shaftWidth / 2, 0])
+        verts.append([headBase, head_width / 2, 0])
+        verts.append([shaft_length, shaft_width / 2, 0])
+        verts.append([0, shaft_width / 2, 0])
         if fill:
             faces = ((0, 1, 3, 5, 6), (5, 3, 4), (1, 2, 3))
             poly = utils.buildPolyData(verts, faces)
@@ -2120,7 +2110,7 @@ class Arrow2D(Mesh):
             lines = (0, 1, 2, 3, 4, 5, 6, 0)
             poly = utils.buildPolyData(verts, [], lines=lines)
 
-        axis = np.array(endPoint) - np.array(startPoint)
+        axis = np.array(end_pt) - np.array(start_pt)
         length = np.linalg.norm(axis)
         if length:
             axis = axis / length
@@ -2140,35 +2130,35 @@ class Arrow2D(Mesh):
         tf.SetTransform(t)
         tf.Update()
 
-        Mesh.__init__(self, tf.GetOutput(), c, alpha)
-        self.SetPosition(startPoint)
+        Mesh.__init__(self, tf.GetOutput())
+        self.SetPosition(start_pt)
         self.lighting("off")
         self.DragableOff()
         self.PickableOff()
-        self.base = np.array(startPoint, dtype=float)
-        self.top = np.array(endPoint, dtype=float)
+        self.base = np.array(start_pt, dtype=float)
+        self.top = np.array(end_pt, dtype=float)
         self.name = "Arrow2D"
 
 
 class Arrows2D(Glyph):
     """
-    Build 2D arrows between two lists of points `startPoints` and `endPoints`.
-    `startPoints` can be also passed in the form `[[point1, point2], ...]`.
+    Build 2D arrows between two lists of points `start_pts` and `end_pts`.
+    `start_pts` can be also passed in the form `[[point1, point2], ...]`.
 
     Color can be specified as a colormap which maps the size of the arrows.
 
     Parameters
     ----------
-    shaftLength : float
+    shaft_length : float
         fractional shaft length
 
-    shaftWidth : float
+    shaft_width : float
         fractional shaft width
 
-    headLength : float
+    head_length : float
         fractional head length
 
-    headWidth : float
+    head_width : float
         fractional head width
 
     fill : bool
@@ -2186,56 +2176,56 @@ class Arrows2D(Glyph):
 
     def __init__(
         self,
-        startPoints,
-        endPoints=None,
+        start_pts,
+        end_pts=None,
         s=1,
-        shaftLength=0.8,
-        shaftWidth=0.05,
-        headLength=0.225,
-        headWidth=0.175,
+        shaft_length=0.8,
+        shaft_width=0.05,
+        head_length=0.225,
+        head_width=0.175,
         fill=True,
         c=None,
         alpha=1,
     ):
-        if isinstance(startPoints, Points):
-            startPoints = startPoints.points()
-        if isinstance(endPoints, Points):
-            endPoints = endPoints.points()
-        startPoints = np.array(startPoints, dtype=float)
-        if endPoints is None:
-            strt = startPoints[:, 0]
-            endPoints = startPoints[:, 1]
-            startPoints = strt
+        if isinstance(start_pts, Points):
+            start_pts = start_pts.points()
+        if isinstance(end_pts, Points):
+            end_pts = end_pts.points()
+        start_pts = np.array(start_pts, dtype=float)
+        if end_pts is None:
+            strt = start_pts[:, 0]
+            end_pts = start_pts[:, 1]
+            start_pts = strt
         else:
-            endPoints = np.array(endPoints, dtype=float)
+            end_pts = np.array(end_pts, dtype=float)
 
-        if headLength is None:
-            headLength = 1 - shaftLength
+        if head_length is None:
+            head_length = 1 - shaft_length
 
         arr = Arrow2D(
             (0, 0, 0),
             (1, 0, 0),
             s=s,
-            shaftLength=shaftLength,
-            shaftWidth=shaftWidth,
-            headLength=headLength,
-            headWidth=headWidth,
+            shaft_length=shaft_length,
+            shaft_width=shaft_width,
+            head_length=head_length,
+            head_width=head_width,
             fill=fill,
         )
 
-        orients = endPoints - startPoints
+        orients = end_pts - start_pts
         if orients.shape[1] == 2:  # make it 3d
             orients = np.c_[
                 np.array(orients, dtype=float), np.zeros(len(orients), dtype=float)
             ]
 
-        pts = Points(startPoints)
+        pts = Points(start_pts)
         Glyph.__init__(
             self,
             pts,
             arr.polydata(False),
-            orientationArray=orients,
-            scaleByVectorSize=True,
+            orientation_array=orients,
+            scale_by_vector_size=True,
             c=c,
             alpha=alpha,
         )
@@ -2252,9 +2242,7 @@ class FlatArrow(Ribbon):
         .. image:: https://vedo.embl.es/images/basic/flatarrow.png
     """
 
-    def __init__(
-        self, line1, line2, tipSize=1, tipWidth=1, c="r4", alpha=1,
-    ):
+    def __init__(self, line1, line2, tip_size=1, tip_width=1):
         if isinstance(line1, Points):
             line1 = line1.points()
         if isinstance(line2, Points):
@@ -2262,13 +2250,13 @@ class FlatArrow(Ribbon):
 
         sm1, sm2 = np.array(line1[-1], dtype=float), np.array(line2[-1], dtype=float)
 
-        v = (sm1-sm2)/3*tipWidth
+        v = (sm1-sm2)/3*tip_width
         p1 = sm1+v
         p2 = sm2-v
         pm1 = (sm1+sm2)/2
         pm2 = (np.array(line1[-2])+np.array(line2[-2]))/2
         pm12 = pm1-pm2
-        tip = pm12/np.linalg.norm(pm12)*np.linalg.norm(v)*3*tipSize/tipWidth + pm1
+        tip = pm12/np.linalg.norm(pm12)*np.linalg.norm(v)*3*tip_size/tip_width + pm1
 
         line1.append(p1)
         line1.append(tip)
@@ -2276,7 +2264,7 @@ class FlatArrow(Ribbon):
         line2.append(tip)
         resm = max(100, len(line1))
 
-        Ribbon.__init__(self, line1, line2, alpha=alpha, c=c, res=(resm, 1))
+        Ribbon.__init__(self, line1, line2, res=(resm, 1))
         self.phong()
         self.PickableOff()
         self.DragableOff()
@@ -2352,9 +2340,7 @@ class Star(Mesh):
     .. hint:: examples/basic/extrude.py
     """
 
-    def __init__(
-        self, pos=(0, 0, 0), n=5, r1=0.7, r2=1.0, line=False, c="blue6", alpha=1
-    ):
+    def __init__(self, pos=(0, 0, 0), n=5, r1=0.7, r2=1.0, line=False, c="blue6", alpha=1):
 
         t = np.linspace(np.pi / 2, 5 / 2 * np.pi, num=n, endpoint=False)
         x, y = utils.pol2cart(np.ones_like(t) * r2, t)
@@ -2397,9 +2383,7 @@ class Disc(Mesh):
     .. image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestDisk.png
     """
 
-    def __init__(
-        self, pos=(0, 0, 0), r1=0.5, r2=1, c="gray4", alpha=1, res=(2, 120),
-    ):
+    def __init__(self, pos=(0, 0, 0), r1=0.5, r2=1, c="gray4", alpha=1, res=(2, 120)):
         if utils.is_sequence(res):
             res_r, res_phi = res
         else:
@@ -2608,7 +2592,7 @@ class Spheres(Mesh):
             ucols.SetNumberOfComponents(3)
             ucols.SetName("Colors")
             for acol in c:
-                cx, cy, cz = getColor(acol)
+                cx, cy, cz = get_color(acol)
                 ucols.InsertNextTuple3(cx * 255, cy * 255, cz * 255)
             pd.GetPointData().AddArray(ucols)
             pd.GetPointData().SetActiveScalars("Colors")
@@ -2634,7 +2618,7 @@ class Spheres(Mesh):
             self.mapper().ScalarVisibilityOn()
         else:
             self.mapper().ScalarVisibilityOff()
-            self.GetProperty().SetColor(getColor(c))
+            self.GetProperty().SetColor(get_color(c))
         self.name = "Spheres"
 
 
@@ -2816,9 +2800,6 @@ class Grid(Mesh):
         if a list of coords is provided they are interpreted as the vertices of the grid along x and y.
         In this case keyword `res` is ignored (see example below).
 
-    sx : float, list
-        deprecated, please use s=(sx, sy)
-
     res : list
         resolutions along x and y, e.i. the number of subdivisions
 
@@ -2849,20 +2830,14 @@ class Grid(Mesh):
         self,
         pos=(0, 0, 0),
         normal=(0, 0, 1),
-        sx=1,  # softly deprecated
-        sy=1,  # softly deprecated
-        s=(),
+        s=(1,1),
         c="k3",
         alpha=1,
         lw=1,
-        resx=10,  # softly deprecated
-        resy=10,  # softly deprecated
-        res=(),
+        res=(10,10),
     ):
-        if len(res) == 2:
-            resx, resy = res
-        if len(s) == 2:
-            sx, sy = s
+        resx, resy = res
+        sx, sy = s
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
@@ -2915,18 +2890,12 @@ class Plane(Mesh):
     normal : list
         normal vector to the plane
 
-    sx : int
-        deprecated, please use s to set the size.
-
     .. image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestPlane.png
     """
-    def __init__(self, pos=(0, 0, 0), normal=(0, 0, 1), s=(), sx=1, sy=1, c="gray6", alpha=1):
+    def __init__(self, pos=(0, 0, 0), normal=(0, 0, 1), s=(), c="gray6", alpha=1):
 
-        if len(pos) == 2:
-            pos = (pos[0], pos[1], 0)
-
-        if len(s) == 2:
-            sx, sy = s
+        pos = (pos[0], pos[1], 0)
+        sx, sy = s
 
         self.normal = np.array(normal, dtype=float)
         self.center = np.array(pos, dtype=float)
@@ -3083,9 +3052,7 @@ class Box(Mesh):
         .. image:: https://vedo.embl.es/images/simulations/50738955-7e891800-11d9-11e9-85cd-02bd4f3f13ea.gif
     """
 
-    def __init__(
-        self, pos=(0, 0, 0), length=1, width=2, height=3, size=(), c="g4", alpha=1
-    ):
+    def __init__(self, pos=(0, 0, 0), length=1, width=2, height=3, size=(), c="g4", alpha=1):
 
         if len(size) == 6:
             bounds = size
@@ -3193,7 +3160,7 @@ class TessellatedBox(Mesh):
 
 class Spring(Mesh):
     """
-    Build a spring of specified nr of `coils` between `startPoint` and `endPoint`.
+    Build a spring of specified nr of `coils` between `start_pt` and `end_pt`.
 
     Parameters
     ----------
@@ -3212,8 +3179,8 @@ class Spring(Mesh):
 
     def __init__(
         self,
-        startPoint=(0, 0, 0),
-        endPoint=(1, 0, 0),
+        start_pt=(0, 0, 0),
+        end_pt=(1, 0, 0),
         coils=20,
         r=0.1,
         r2=None,
@@ -3221,7 +3188,7 @@ class Spring(Mesh):
         c="gray5",
         alpha=1,
     ):
-        diff = endPoint - np.array(startPoint, dtype=float)
+        diff = end_pt - np.array(start_pt, dtype=float)
         length = np.linalg.norm(diff)
         if not length:
             return None
@@ -3259,9 +3226,9 @@ class Spring(Mesh):
         tuf.Update()
         Mesh.__init__(self, tuf.GetOutput(), c, alpha)
         self.phong()
-        self.SetPosition(startPoint)
-        self.base = np.array(startPoint, dtype=float)
-        self.top = np.array(endPoint, dtype=float)
+        self.SetPosition(start_pt)
+        self.base = np.array(start_pt, dtype=float)
+        self.top = np.array(end_pt, dtype=float)
         self.name = "Spring"
 
 
@@ -3353,9 +3320,7 @@ class Cone(Mesh):
 class Pyramid(Cone):
     """Build a pyramid of specified base size `s` and `height`, centered at `pos`."""
 
-    def __init__(
-        self, pos=(0, 0, 0), s=1, height=1, axis=(0, 0, 1), c="green3", alpha=1
-    ):
+    def __init__(self, pos=(0, 0, 0), s=1, height=1, axis=(0, 0, 1), c="green3", alpha=1):
         Cone.__init__(self, pos, s, height, axis, 4, c, alpha)
         self.name = "Pyramid"
 
@@ -3410,7 +3375,7 @@ class Paraboloid(Mesh):
         contours.Update()
 
         Mesh.__init__(self, contours.GetOutput(), c, alpha)
-        self.computeNormals().phong()
+        self.compute_normals().phong()
         self.mapper().ScalarVisibilityOff()
         self.SetPosition(pos)
         self.name = "Paraboloid"
@@ -3439,7 +3404,7 @@ class Hyperboloid(Mesh):
         contours.Update()
 
         Mesh.__init__(self, contours.GetOutput(), c, alpha)
-        self.computeNormals().phong()
+        self.compute_normals().phong()
         self.mapper().ScalarVisibilityOff()
         self.SetPosition(pos)
         self.name = "Hyperboloid"
@@ -3922,7 +3887,7 @@ class Text3D(Mesh):
             else:
                 c = (0.6, 0.6, 0.6)
 
-        tpoly = self.getText3DPoly(
+        tpoly = self._get_text3d_poly(
             txt,
             s,
             font,
@@ -3956,7 +3921,7 @@ class Text3D(Mesh):
         if txt is None:
             return self.txt
 
-        tpoly = self.getText3DPoly(
+        tpoly = self._get_text3d_poly(
             txt,
             s,
             font,
@@ -3965,11 +3930,12 @@ class Text3D(Mesh):
             depth,
             italic,
             justify,
-            literal)
+            literal,
+        )
         self._update(tpoly)
         self.txt = txt
 
-    def getText3DPoly(
+    def _get_text3d_poly(
         self,
         txt,
         s=1,
@@ -4183,12 +4149,12 @@ class TextBase:
         self.property.SetOrientation(a)
         return self
 
-    def lineSpacing(self, ls):
+    def line_spacing(self, ls):
         """Set the extra spacing between lines, expressed as a text height multiplication factor."""
         self.property.SetLineSpacing(ls)
         return self
 
-    def lineOffset(self, lo):
+    def line_offset(self, lo):
         """Set/Get the vertical offset (measured in pixels)."""
         self.property.SetLineOffset(lo)
         return self
@@ -4214,7 +4180,7 @@ class TextBase:
 
     def color(self, c):
         """Set the text color"""
-        self.property.SetColor(getColor(c))
+        self.property.SetColor(get_color(c))
         return self
 
     def c(self, color):
@@ -4228,7 +4194,7 @@ class TextBase:
 
     def background(self, color="k9", alpha=1):
         """Text background. Set to ``None`` to disable it."""
-        bg = getColor(color)
+        bg = get_color(color)
         if color is None:
             self.property.SetBackgroundOpacity(0)
         else:
@@ -4242,7 +4208,7 @@ class TextBase:
         if color is None:
             self.property.FrameOff()
         else:
-            c = getColor(color)
+            c = get_color(color)
             self.property.FrameOn()
             self.property.SetFrameColor(c)
             self.property.SetFrameWidth(lw)
@@ -4376,7 +4342,7 @@ class Text2D(vtk.vtkActor2D, TextBase):
                     c = (0.1, 0.1, 0.1)
 
         self.font(font).color(c).background(bg, alpha).bold(bold).italic(italic)
-        self.pos(pos, justify).size(s).text(txt).lineSpacing(1.2).lineOffset(5)
+        self.pos(pos, justify).size(s).text(txt).line_spacing(1.2).line_offset(5)
         self.PickableOff()
 
     def pos(self, pos="top-left", justify=""):
@@ -4492,7 +4458,7 @@ class CornerAnnotation(vtk.vtkCornerAnnotation, TextBase):
 
         self.SetNonlinearFontScaleFactor(1 / 2.75)
         self.PickableOff()
-        self.property.SetColor(getColor(c))
+        self.property.SetColor(get_color(c))
         self.property.SetBold(False)
         self.property.SetItalic(False)
 
@@ -4594,9 +4560,9 @@ class Latex(Picture):
 
                 formula1 = "$" + formula + "$"
                 mpltib.axis("off")
-                col = getColor(c)
+                col = get_color(c)
                 if bg:
-                    bx = dict(boxstyle="square", ec=col, fc=getColor(bg))
+                    bx = dict(boxstyle="square", ec=col, fc=get_color(bg))
                 else:
                     bx = None
                 mpltib.text(
@@ -4659,7 +4625,7 @@ class ConvexHull(Mesh):
 
         # Create the convex hull of the pointcloud
         z0, z1 = mesh.zbounds()
-        d = mesh.diagonalSize()
+        d = mesh.diagonal_size()
         if (z1 - z0) / d > 0.001:
             delaunay = vtk.vtkDelaunay3D()
         else:
@@ -4694,7 +4660,7 @@ def VedoLogo(distance=0, c=None, bc="t", version=False, frame=True):
     if c is None:
         c = (0, 0, 0)
         if vedo.plotter_instance:
-            if sum(getColor(vedo.plotter_instance.backgrcol)) > 1.5:
+            if sum(get_color(vedo.plotter_instance.backgrcol)) > 1.5:
                 c = [0, 0, 0]
             else:
                 c = "linen"

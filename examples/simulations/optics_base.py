@@ -103,7 +103,7 @@ class Detector(vedo.Mesh, OpticalElement):
 
     def count(self):
         """Count the hits on the detector cells and store them in cell array 'Counts'."""
-        arr = np.zeros(self.NCells(), dtype=np.uint)
+        arr = np.zeros(self.ncells, dtype=np.uint)
         for cid in self.cellids:
             arr[cid] += 1
         self.celldata["Counts"] = arr
@@ -112,7 +112,7 @@ class Detector(vedo.Mesh, OpticalElement):
     def integrate(self, pols):
         """Integrate the polarization vector and store
         the probability in cell array 'Probability'."""
-        arr = np.zeros([self.NCells(), 3], dtype=np.float)
+        arr = np.zeros([self.ncells, 3], dtype=np.float)
         for i, cid in enumerate(self.cellids):
             arr[cid] += pols[i]
         arr = np.power(np.linalg.norm(arr, axis=1), 2) / len(self.cellids)

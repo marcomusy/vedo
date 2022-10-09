@@ -16,9 +16,9 @@ ids_r = np.where(ratio_r > 0.38)  # threshold to find the red vase
 ids_g = np.where(ratio_g > 0.36)  # threshold for grass
 ids_w = np.where(tot > 240*3)     # threshold to identify white areas
 
-data_g = np.zeros(msh.N())
-data_r = np.zeros(msh.N())
-data_w = np.zeros(msh.N())
+data_g = np.zeros(msh.npoints)
+data_r = np.zeros(msh.npoints)
+data_w = np.zeros(msh.npoints)
 data_r[ids_r] = 1.0
 data_g[ids_g] = 1.0
 data_w[ids_w] = 1.0

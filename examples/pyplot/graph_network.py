@@ -37,7 +37,7 @@ graph.scalarbar.shift(.3,0,0)
 pts.cmap('viridis', v2)
 
 # This would colorize the edges directly with solid color based on a v3 array:
-# v3 = [sin(x) for x in range(graph.NCells())]
+# v3 = [sin(x) for x in range(graph.ncells)]
 # graph.cmap('jet', v3).addScalarBar()
 
 show(pts, graph, labs1, labs2, __doc__, axes=9, mode="image").close()

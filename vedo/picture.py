@@ -455,7 +455,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
 
         reslice = vtk.vtkImageReslice()
         reslice.SetMirror(mirroring)
-        c = np.array(colors.getColor(bc)) * 255
+        c = np.array(colors.get_color(bc)) * 255
         reslice.SetBackgroundColor([c[0], c[1], c[2], alpha * 255])
         reslice.SetInputData(self._data)
         reslice.SetResliceTransform(transform)
@@ -794,7 +794,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         reslice.SetResliceTransform(transform)
         reslice.SetInterpolationModeToCubic()
         reslice.SetMirror(mirroring)
-        c = np.array(colors.getColor(bc)) * 255
+        c = np.array(colors.get_color(bc)) * 255
         reslice.SetBackgroundColor([c[0], c[1], c[2], alpha * 255])
         reslice.Update()
         self.transform = transform
@@ -941,7 +941,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         x1, x2 = xspan
         y1, y2 = yspan
 
-        r, g, b = vedo.colors.getColor(c)
+        r, g, b = vedo.colors.get_color(c)
         c = np.array([r, g, b]) * 255
         c = c.astype(np.uint8)
 
@@ -979,7 +979,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         x1, x2 = p1
         y1, y2 = p2
 
-        r, g, b = vedo.colors.getColor(c)
+        r, g, b = vedo.colors.get_color(c)
         c = np.array([r, g, b]) * 255
         c = c.astype(np.uint8)
         if alpha > 1:
@@ -1017,7 +1017,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         x2, y2 = p2
         x3, y3 = p3
 
-        r, g, b = vedo.colors.getColor(c)
+        r, g, b = vedo.colors.get_color(c)
         c = np.array([r, g, b]) * 255
         c = c.astype(np.uint8)
 
@@ -1059,7 +1059,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
 #        """Draw a box."""
 #        x1, y1 = center
 #
-#        r,g,b = vedo.colors.getColor(c)
+#        r,g,b = vedo.colors.get_color(c)
 #        c = np.array([r,g,b]) * 255
 #        c = c.astype(np.uint8)
 #
@@ -1116,7 +1116,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
 
         tp = vtk.vtkTextProperty()
         tp.BoldOff()
-        tp.SetColor(colors.getColor(c))
+        tp.SetColor(colors.get_color(c))
         tp.SetJustificationToLeft()
         if "top" in justify:
             tp.SetVerticalJustificationToTop()
@@ -1135,10 +1135,10 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         elif font.lower() == "arial": tp.SetFontFamilyToArial()
         else:
             tp.SetFontFamily(vtk.VTK_FONT_FILE)
-            tp.SetFontFile(utils.getFontPath(font))
+            tp.SetFontFile(utils.get_font_path(font))
 
         if bg:
-            bgcol = colors.getColor(bg)
+            bgcol = colors.get_color(bg)
             tp.SetBackgroundColor(bgcol)
             tp.SetBackgroundOpacity(alpha * 0.5)
             tp.SetFrameColor(bgcol)

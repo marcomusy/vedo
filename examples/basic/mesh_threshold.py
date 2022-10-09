@@ -6,7 +6,7 @@ man = Mesh(dataurl+"man.vtk")
 
 scals = man.points()[:, 0] + 37  # pick y coords of vertices
 
-man.cmap("cool", scals).addScalarBar(title="threshold", horizontal=True)
+man.cmap("cool", scals).add_scalarbar(title="threshold", horizontal=True)
 
 # make a copy and threshold the mesh
 cutman = man.clone().threshold(scals, 37, 37.5)

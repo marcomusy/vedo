@@ -13,15 +13,11 @@
 # mv html/ ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/autodocs/
 ############## pdoc excludes
 __pdoc__ = {}
-__pdoc__['embedWindow'] = False
+__pdoc__['embed_window'] = False
 __pdoc__['backends'] = False
 __pdoc__['cli'] = False
 __pdoc__['cmaps'] = False
 __pdoc__['version'] = False
-__pdoc__['base.BaseActor.getPointArray'] = False
-__pdoc__['base.BaseActor.getCellArray'] = False
-__pdoc__['base.BaseActor.addPointArray'] = False
-__pdoc__['base.BaseActor.addCellArray'] = False
 __pdoc__['pointcloud.Points.pointColors'] = False
 __pdoc__['pointcloud.Points.cellColors'] = False
 __pdoc__['pointcloud.Points.thinPlateSpline'] = False

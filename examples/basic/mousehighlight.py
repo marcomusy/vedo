@@ -20,6 +20,6 @@ def func(evt):
 msg = Text2D("", pos="bottom-center", c='k', bg='r9', alpha=0.8)
 
 plt = Plotter(axes=1, bg='black')
-plt.addCallback('mouse click', func)
+plt.add_callback('mouse click', func)
 plt.show(spheres, msg, __doc__, zoom=1.2)
 plt.close()

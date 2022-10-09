@@ -4,13 +4,13 @@ from vedo import Plotter, Mesh, dataurl
 plt = Plotter()
 
 mesh = Mesh(dataurl+"spider.ply")
-mesh.normalize().rotateZ(190)
+mesh.normalize().rotate_z(190)
 
 
 def slider_y(widget, event):
     mesh.y(widget.value)  # set y coordinate position
 
-plt.addSlider3D(
+plt.add_slider_3d(
     slider_y,
     pos1=[0.5, -3.5, 0.35],
     pos2=[0.5, -1.0, 0.35],
