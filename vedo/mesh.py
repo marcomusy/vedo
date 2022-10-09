@@ -2193,8 +2193,8 @@ class Mesh(Points):
         if is_sequence(start):
             cc = self.points()
             pa = Points(cc)
-            start = pa.closestPoint(start, returnPointId=True)
-            end = pa.closestPoint(end, returnPointId=True)
+            start = pa.closest_point(start, return_point_id=True)
+            end = pa.closest_point(end, return_point_id=True)
 
         dijkstra = vtk.vtkDijkstraGraphGeodesicPath()
         dijkstra.SetInputData(self.polydata())

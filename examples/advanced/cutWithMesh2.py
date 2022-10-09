@@ -14,8 +14,8 @@ s = Volume(U).isosurface(0).smooth().lineWidth(1)
 # Create a gridded cube
 c = TessellatedBox(n=(29,29,29), spacing=(1,1,1)).alpha(1)
 
-s.cutWithMesh(c).color('silver')  # take what's inside of cube
-c.cutWithMesh(s).color('grey')    # take what's inside of isosurface
+s.cut_with_mesh(c).color('silver')  # take what's inside of cube
+c.cut_with_mesh(s).color('grey')    # take what's inside of isosurface
 
 # Show all the created objects
 show(s, c, __doc__, bg='darkseagreen', bg2='lightblue', axes=5).close()

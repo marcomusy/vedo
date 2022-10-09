@@ -5,9 +5,9 @@ from vedo import Grid, show
 g1 = Grid(res=(25,25)).wireframe(0).lw(1)
 scalars = g1.points()[:,1]
 g1.cmap("viridis", scalars, vmin=-1, vmax=1, name='gene')
-g1.mapPointsToCells() # move the array to cells (faces)
-g1.addScalarBar(horizontal=1, pos=(0.7,0.04))
-g1.rotateZ(20)  # let's rotate it a bit so it's visible
+g1.map_points_to_cells()  # move the array to cells (faces)
+g1.add_scalarbar(horizontal=1, pos=(0.7,0.04))
+g1.rotate_z(20)  # let's rotate it a bit so it's visible
 
 # Interpolate first mesh onto a new triangular mesh
 eps = 0.01
@@ -19,14 +19,14 @@ g2.triangulate()
 
 # Interpolate by picking points in a specified radius,
 #  if there are no points in that radius set null value -1
-g2.interpolateDataFrom(
+g2.interpolate_data_from(
     g1,
     on='cells',
     radius=0.1+eps,
-    nullStrategy=1,
-    nullValue=-1,
+    null_strategy=1,
+    null_value=-1,
 )
 
-g2.cmap('hot', 'gene', on='cells', vmin=-1, vmax=1).addScalarBar()
+g2.cmap('hot', 'gene', on='cells', vmin=-1, vmax=1).add_scalarbar()
 
 show(g1, g2, __doc__, axes=1)

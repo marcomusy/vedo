@@ -101,7 +101,8 @@ def _embed_window(backend="ipyvtk"):
 
 
 ########################################################################################################
-def show(*actors,
+def show(
+        *actors,
         at=None,
         shape=(1, 1),
         N=None,

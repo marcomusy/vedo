@@ -13,13 +13,13 @@ pts1, pts2, vals, cols = [], [], [], []
 
 for i in range(0, msh.npoints, 10):
     p = msh.points(i)
-    pts = msh.closestPoint(p, N=12)  # find the N closest points to p
-    sph = fitSphere(pts)           # find the fitting sphere
+    pts = msh.closest_point(p, n=12)  # find the n-closest points to p
+    sph = fit_sphere(pts)             # find the fitting sphere
     if sph is None:
         continue
 
     value = sph.radius * 10
-    color = colorMap(value, "jet", 0, 1)  # map value to a RGB color
+    color = color_map(value, "jet", 0, 1)  # map value to a RGB color
     n = versor(p - sph.center)  # unit vector from sphere center to p
     vals.append(value)
     cols.append(color)

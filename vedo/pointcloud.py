@@ -1400,7 +1400,7 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         Extracts cells where scalar value satisfies threshold criterion.
 
-        scalars : str, list
+        scalars : str
             name of the scalars array.
 
         above : float
@@ -1414,21 +1414,6 @@ class Points(vtk.vtkFollower, BaseActor):
 
         .. hint:: examples/basic/mesh_threshold.py
         """
-        if utils.is_sequence(scalars):
-            if on.startswith("c"):
-                self.celldata["threshold"] = scalars
-            else:
-                self.pointdata["threshold"] = scalars
-            scalars = "threshold"
-        else:  # string is passed
-            if on.startswith("c"):
-                scalars = self.celldata[scalars]
-            else:
-                scalars = self.pointdata[scalars]
-            if scalars is None:
-                vedo.logger.error(f"no scalars found with name/nr: {scalars}")
-                raise RuntimeError()
-
         thres = vtk.vtkThreshold()
         thres.SetInputData(self.inputdata())
 
@@ -1436,19 +1421,8 @@ class Points(vtk.vtkFollower, BaseActor):
             asso = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
         else:
             asso = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
+
         thres.SetInputArrayToProcess(0, 0, 0, asso, scalars)
-        #        if above is not None and below is not None:
-        #            if above<below:
-        #                thres.ThresholdBetween(above, below)
-        #            elif above==below:
-        #                return self
-        #            else:
-        #                thres.InvertOn()
-        #                thres.ThresholdBetween(below, above)
-        #        elif above is not None:
-        #            thres.ThresholdByUpper(above)
-        #        elif below is not None:
-        #            thres.ThresholdByLower(below)
 
         if above is None and below is not None:
             thres.ThresholdByLower(below)
@@ -1912,7 +1886,7 @@ class Points(vtk.vtkFollower, BaseActor):
         d = self.diagonal_size()
         if point is None:
             if d:
-                point = self.closestPoint([(x0 + x1) / 2, (y0 + y1) / 2, z1])
+                point = self.closest_point([(x0 + x1) / 2, (y0 + y1) / 2, z1])
             else:  # it's a Point
                 point = self.GetPosition()
 
@@ -3144,7 +3118,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         variances, newline = [], []
         for p in coords:
-            points = self.closestPoint(p, N=Ncp, radius=radius)
+            points = self.closest_point(p, n=Ncp, radius=radius)
             if len(points) < 4:
                 continue
 
@@ -3195,7 +3169,7 @@ class Points(vtk.vtkFollower, BaseActor):
         for p in coords:
             if pb:
                 pb.print("smoothMLS2D working ...")
-            pts = self.closestPoint(p, N=Ncp, radius=radius)
+            pts = self.closest_point(p, n=Ncp, radius=radius)
             if len(pts) > 3:
                 ptsmean = pts.mean(axis=0)  # plane center
                 _, dd, vv = np.linalg.svd(pts - ptsmean)
@@ -3726,7 +3700,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         return self
 
-    @deprecated(reason=vedo.colors.red + "Please use closest_point()" + vedo.colors.reset)
+    @deprecated(reason=vedo.colors.red + "Please use cut_with_mesh()" + vedo.colors.reset)
     def cutWithMesh(self, mesh, invert=False, keep=False):
         return self.cut_with_mesh(mesh, invert, keep)
 
@@ -4035,7 +4009,7 @@ class Points(vtk.vtkFollower, BaseActor):
         vgrid_tmp = Points(grid_tmp)
 
         for p in contour.points():
-            out = vgrid_tmp.closestPoint(p, radius=density, return_point_id=True)
+            out = vgrid_tmp.closest_point(p, radius=density, return_point_id=True)
             todel += out.tolist()
         # cpoints = contour.points()
         # for i, p in enumerate(cpoints):
@@ -4043,7 +4017,7 @@ class Points(vtk.vtkFollower, BaseActor):
         #         den = utils.mag(p-cpoints[i-1])/1.732
         #     else:
         #         den = density
-        #     todel += vgrid_tmp.closestPoint(p, radius=den, return_point_id=True)
+        #     todel += vgrid_tmp.closest_point(p, radius=den, return_point_id=True)
 
         grid_tmp = grid_tmp.tolist()
         for index in sorted(list(set(todel)), reverse=True):

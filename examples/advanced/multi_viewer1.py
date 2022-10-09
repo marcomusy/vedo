@@ -44,8 +44,8 @@ def onLeftClick(evt):
     plt2.add(acts, resetcam=True)
 
 ####################################################################################
-plt1.addCallback("KeyPress", keyfunc)
-plt1.addCallback("LeftButtonPress", onLeftClick)
+plt1.add_callback("KeyPress", keyfunc)
+plt1.add_callback("LeftButtonPress", onLeftClick)
 plt1.at(len(plt1.renderers)-1).show(
     Picture(dataurl+'images/embl_logo.jpg').rotateX(-20),
     Text2D('Some footnote', pos='bottom-right', font='Quikhand', c='grey', s=0.6),
@@ -61,7 +61,7 @@ for i in range(15):
 ####################################################################################
 instr  = "Click on the left panel to select a shape\n"
 instr += "Press c to make the shape red\n"
-plt2.addCallback('KeyPress', keyfunc)
+plt2.add_callback('KeyPress', keyfunc)
 plt2.show(
     __doc__,
     VedoLogo(distance=10),

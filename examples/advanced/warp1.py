@@ -15,7 +15,7 @@ pts = surf.points()[ids]
 ptsource, pttarget = [], []
 for pt in pts:
     pt1 = pt + [0, 0, np.random.randn() * 0.1]
-    pt2 = surf.closestPoint(pt1)
+    pt2 = surf.closest_point(pt1)
     ptsource.append(pt2)
     pttarget.append(pt1)
 

@@ -8,17 +8,17 @@ class Viewer:
 
     def __init__(self, *args, **kwargs):
         self.dt = kwargs.pop("dt", 100) # update every dt milliseconds
-        self.timerId = None
+        self.timer_id = None
         self.isplaying = False
         self.counter = 0 # frame counter
         self.button = None
 
         self.plotter = vedo.Plotter(*args, **kwargs) # setup the Plotter object
-        self.timerevt = self.plotter.addCallback('timer', self.handle_timer)
+        self.timerevt = self.plotter.add_callback('timer', self.handle_timer)
 
     def initialize(self):
         # initialize here extra elements like buttons etc..
-        self.button = self.plotter.addButton(
+        self.button = self.plotter.add_button(
             self._buttonfunc,
             states=["\u23F5 Play  ","\u23F8 Pause"],
             font="Kanopus",
@@ -31,10 +31,10 @@ class Viewer:
         return plt
 
     def _buttonfunc(self):
-        if self.timerId is not None:
-            self.plotter.timerCallback("destroy", self.timerId)
+        if self.timer_id is not None:
+            self.plotter.timer_callback("destroy", self.timer_id)
         if not self.isplaying:
-            self.timerId = self.plotter.timerCallback("create", dt=100)
+            self.timer_id = self.plotter.timer_callback("create", dt=100)
         self.button.switch()
         self.isplaying = not self.isplaying
 
@@ -44,10 +44,10 @@ class Viewer:
         #####################################################################
         #print(event)               # info about what was clicked and more
         #print(self.plotter.actors) # to access object from the internal list
-        earth.rotateZ(1)            # rotate the Earth by 1deg
+        earth.rotate_z(1)           # rotate the Earth by 1deg
         moon.color(self.counter)    # change color to the Moon
         txt2d.text("Moon color is:").color(self.counter).background(self.counter,0.1)
-        txt2d.text(vedo.getColorName(self.counter), "top-center")
+        txt2d.text(vedo.get_color_name(self.counter), "top-center")
         txt2d.text("..press q to quit", "bottom-right")
         self.plotter.render()
         self.counter += 1

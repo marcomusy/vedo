@@ -1517,7 +1517,7 @@ def export_window(fileoutput, binary=False):
         sdict["defaultFont"] = settings.defaultFont
         sdict["objects"] = []
 
-        allobjs = plt.getMeshes(includeNonPickables=True) + plt.getVolumes(includeNonPickables=True)
+        allobjs = plt.get_meshes(include_non_pickables=True) + plt.get_volumes(include_non_pickables=True)
         acts2d = plt.renderer.GetActors2D()
         acts2d.InitTraversal()
         for _ in range(acts2d.GetNumberOfItems()):
@@ -1539,7 +1539,7 @@ def export_window(fileoutput, binary=False):
     ####################################################################
     elif fr.endswith(".x3d"):
         obj = list(
-            set(vedo.plotter_instance.getMeshes() + vedo.plotter_instance.actors)
+            set(vedo.plotter_instance.get_meshes() + vedo.plotter_instance.actors)
         )
         if vedo.plotter_instance.axes_instances:
             obj.append(vedo.plotter_instance.axes_instances[0])

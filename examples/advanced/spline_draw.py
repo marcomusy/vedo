@@ -11,14 +11,14 @@ class SplinePlotter(Plotter):
         self.points = None
         self.spline = None
 
-    def onLeftClick(self, evt):
+    def on_left_click(self, evt):
         if not evt.actor: return
         p = evt.picked3d + [0,0,1]
         self.cpoints.append(p)
         self.update()
         printc("Added point:", precision(p[:2],4), c='g')
 
-    def onRightClick(self, evt):
+    def on_right_click(self, evt):
         if evt.actor and len(self.cpoints)>0:
             self.cpoints.pop() # pop removes from the list the last pt
             self.update()
@@ -54,9 +54,9 @@ if __name__ == "__main__":
     instrucs = Text2D(t, pos='bottom-left', c='white', bg='green', font='Quikhand')
 
     plt = SplinePlotter(axes=True, bg='blackboard')
-    plt.addCallback('KeyPress', plt.keyPress)
-    plt.addCallback('LeftButtonPress', plt.onLeftClick)
-    plt.addCallback('RightButtonPress', plt.onRightClick)
+    plt.add_callback('KeyPress', plt.keyPress)
+    plt.add_callback('LeftButtonPress', plt.on_left_click)
+    plt.add_callback('RightButtonPress', plt.on_right_click)
     plt.show(filename, pic, instrucs, mode='image', zoom=1.2)
     plt.close()
 

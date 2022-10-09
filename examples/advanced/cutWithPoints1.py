@@ -11,7 +11,7 @@ sc = s.points()
 pts = Points([sc[10], sc[15], sc[129], sc[165]], r=12)
 
 #cut loop region identified by the points
-scut = s.clone().cutWithPointLoop(pts, invert=False)
+scut = s.clone().cut_with_point_loop(pts, invert=False)
 scut.c('blue',0.7).lw(0).scale(1.03)
 
 show(s, pts, scut, __doc__, axes=1)

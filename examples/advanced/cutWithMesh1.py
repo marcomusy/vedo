@@ -9,7 +9,7 @@ embryo = Volume(dataurl+"embryo.tif").isosurface(30).normalize()
 msh = Ellipsoid().scale(0.4).pos(2.8, 1.5, 1.5).wireframe()
 
 # make a working copy and cut it with the ellipsoid
-cutembryo = embryo.clone().cutWithMesh(msh).c("gold").bc("t")
+cutembryo = embryo.clone().cut_with_mesh(msh).c("gold").bc("t")
 
 plt = Plotter(N=2, axes=1)
 plt.at(0).show(embryo, msh, viewup="z")

@@ -21,11 +21,11 @@ mesh = Mesh(dataurl+"apple.ply").subdivide()
 plt.at(1).show(mesh)
 
 # Add noise
-pts0 = Points(mesh, r=3).addGaussNoise(1)
+pts0 = Points(mesh, r=3).add_gaussian_noise(1)
 plt.at(2).show(pts0)
 
 # 2. Smooth the point cloud with MLS
-pts1 = pts0.clone().smoothMLS2D(f=0.8)
+pts1 = pts0.clone().smooth_mls_2d(f=0.8)
 printc("Nr of points before cleaning nr. points:", pts1.npoints)
 
 # 3. Impose a min distance among mesh points
@@ -34,7 +34,7 @@ printc("             after  cleaning nr. points:", pts1.npoints)
 plt.at(3).show(pts1)
 
 # 4. Reconstruct a polygonal surface from the point cloud
-reco = pts1.reconstructSurface(dims=100, radius=0.2).c("gold")
+reco = pts1.reconstruct_surface(dims=100, radius=0.2).c("gold")
 plt.at(4).show(reco, axes=7, zoom=1.2)
 
 plt.interactive().close()

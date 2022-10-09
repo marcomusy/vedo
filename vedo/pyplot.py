@@ -187,14 +187,14 @@ class Figure(Assembly):
             if self.axopts is True or self.axopts == 1:
                 axesopts = {}
 
-            tp, ts = utils.makeTicks(
+            tp, ts = utils.make_ticks(
                 y0lim / self.yscale,
                 y1lim / self.yscale,
                 numberOfDivisions,
             )
             labs = []
             for i in range(1, len(tp) - 1):
-                ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
+                ynew = utils.lin_interpolate(tp[i], [0, 1], [y0lim, y1lim])
                 labs.append([ynew, ts[i]])
 
             if self.title:
@@ -300,7 +300,7 @@ class Figure(Assembly):
                 continue
 
             if isinstance(a, vedo.Points):  # hacky way to identify Points
-                if a.NCells() == a.NPoints():
+                if a.ncells == a.npoints:
                     poly = a.polydata(False)
                     if poly.GetNumberOfPolys() == 0 and poly.GetNumberOfLines() == 0:
                         as3d = False

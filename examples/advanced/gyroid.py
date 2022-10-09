@@ -15,7 +15,7 @@ gxs = gyr.boolean('intersect', sph)
 gxs.texture('https://vedo.embl.es/examples/data/images/marblings.jpg')
 
 plt = Plotter(bg='wheat', bg2='lightblue', axes=5)
-plt.addAmbientOcclusion(10)
+plt.add_ambient_occlusion(10)
 plt.show(gxs, __doc__, zoom=1.4)
 # Video('gyroid.mp4').action().close().interactive() # shoot video
 plt.close()

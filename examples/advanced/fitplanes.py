@@ -3,15 +3,15 @@ N points that are closest to a given point of the surface."""
 from vedo import *
 
 
-apple = Mesh(dataurl+"apple.ply").subdivide().addGaussNoise(0.5)
+apple = Mesh(dataurl+"apple.ply").subdivide().add_gaussian_noise(0.5)
 
 plt = Plotter()
 plt += apple.alpha(0.1)
 
 variances = []
 for i, p in enumerate(apple.points()):
-    pts = apple.closestPoint(p, N=12) # find the N closest points to p
-    plane = fitPlane(pts)             # find the fitting plane
+    pts = apple.closest_point(p, n=12) # find the N closest points to p
+    plane = fit_plane(pts)             # find the fitting plane
     variances.append(plane.variance)
     if i % 200: continue
     plt += plane

@@ -20,7 +20,7 @@ plt = Plotter(N=N, axes=1)
 plt.at(0).show(pts, __doc__)
 
 for i in range(1, N):
-    pts = pts.clone().smoothMLS1D(f=0.4).color(i)
+    pts = pts.clone().smooth_mls_1d(f=0.4).color(i)
 
     if i == N-1:
         # at the last iteration make sure points

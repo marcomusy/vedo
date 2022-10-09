@@ -4,8 +4,8 @@ from vedo import Circle, Ribbon, merge, show
 cs = []
 for i in range(-10, 10):
     r = 10 / (i * i + 10)
-    c = Circle(r=r).rotateY(i*2).z(i/10).x(i/20)
-    c.lineWidth(3).lineColor('blue5')
+    c = Circle(r=r).rotate_y(i*2).z(i/10).x(i/20)
+    c.linewidth(3).linecolor('blue5')
     cs.append(c)
 
 # create the mesh by merging the ribbon strips

@@ -3,17 +3,17 @@ from vedo import Spline, Grid, show
 import numpy as np
 
 pts = [
-        [0.0, 0.0],
-        [1.0, 0.0],
-        [1.1, 4.0],
-        [1.0, 1.5],
-        [0.2, 5.0],
-        [-1., 3.0],
-        [0.4, 2.7],
-        [-1., 2.4],
+    [0.0, 0.0],
+    [1.0, 0.0],
+    [1.1, 4.0],
+    [1.0, 1.5],
+    [0.2, 5.0],
+    [-1., 3.0],
+    [0.4, 2.7],
+    [-1., 2.4],
 ]
 
-shape = Spline(pts, closed=True).color('red4').lineWidth(5)
+shape = Spline(pts, closed=True).color('red4').linewidth(5)
 
 xcoords = np.arange(-2.0, 2.5, 0.075)
 ycoords = np.arange(-0.5, 5.5, 0.075)

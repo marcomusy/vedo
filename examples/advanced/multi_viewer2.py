@@ -3,7 +3,7 @@ from vedo import settings, Plotter, ParametricShape, VedoLogo, Text2D
 settings.rendererFrameWidth = 1
 
 ##############################################################################
-def onLeftClick(evt):
+def on_left_click(evt):
     if not evt.actor: return
     shapename.text(f'This is called: {evt.actor.name}, on renderer nr.{evt.at}')
     plt.at(1).remove(actsonshow).add(evt.actor, resetcam=True)
@@ -27,7 +27,7 @@ shape = [
 ]
 
 plt = Plotter(shape=shape, sharecam=False, size=(1050, 980))
-plt.addCallback("when i click my mouse button please call", onLeftClick)
+plt.add_callback("when i click my mouse button please call", on_left_click)
 
 for i in range(2,9):
     ps = ParametricShape(i).color(i)

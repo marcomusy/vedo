@@ -32,7 +32,7 @@ arr = Arrows(sources, sources + deltas)
 
 ################################################# warp using Thin Plate Splines
 warped = apos.clone().warp(sources, sources+deltas)
-warped.alpha(0.4).color("lg").pointSize(10)
+warped.alpha(0.4).color("lg").point_size(10)
 allarr = Arrows(apos.points(), warped.points())
 
 set1 = [apos, warped, src, trs, arr, __doc__]
@@ -54,7 +54,7 @@ positions_y = itry(xr, yr, zr) + yr
 positions_z = itrz(xr, yr, zr) + zr
 positions_rbf = np.vstack([positions_x, positions_y, positions_z])
 
-warped_rbf = Points(positions_rbf, r=2).alpha(0.4).color("lg").pointSize(10)
+warped_rbf = Points(positions_rbf, r=2).alpha(0.4).color("lg").point_size(10)
 allarr_rbf = Arrows(apos.points(), warped_rbf.points())
 
 arr = Arrows(sources, sources + deltas)
