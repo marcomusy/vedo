@@ -139,3 +139,9 @@ fonts = [_f.split(".")[0] for _f in os.listdir(fonts_path) if '.npz' not in _f]
 fonts = list(sorted(fonts))
 
 last_figure = None  # pyplot module
+
+# class xsettings:
+
+#     def default_font():
+#         return "Pippo"
+

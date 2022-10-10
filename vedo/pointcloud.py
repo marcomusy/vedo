@@ -1209,6 +1209,11 @@ class Points(vtk.vtkFollower, BaseActor):
         self.inputdata().GetPointData().Modified()
         return self
 
+    @deprecated(reason=vedo.colors.red + "Please use distance_to()" + vedo.colors.reset)
+    def distanceTo(self, pcloud, signed=False, invert=False, name="Distance"):
+        "Please use distance_to()"
+        return self.distance_to(pcloud, signed, invert, name)
+
     def distance_to(self, pcloud, signed=False, invert=False, name="Distance"):
         """
         Computes the distance from one point cloud or mesh to another point cloud or mesh.
@@ -4135,14 +4140,6 @@ class Points(vtk.vtkFollower, BaseActor):
         m = vedo.mesh.Mesh(surface.GetOutput(), c=self.color())
         return m
 
-    def to_trimesh(self):
-        """Return the ``trimesh`` equivalent object."""
-        return utils.vedo2trimesh(self)
-
-    def to_meshlab(self):
-        """Return the ``pymeshlab.Mesh`` equivalent object."""
-        return utils.vedo2meshlab(self)
-
     def compute_clustering(self, radius):
         """
         Cluster points in space. The `radius` is the radius of local search.
@@ -4259,6 +4256,7 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         Generate a density field from a point cloud. Input can also be a set of 3D coordinates.
         Output is a ``Volume``.
+
         The local neighborhood is specified as the `radius` around each sample position (each voxel).
         The density is expressed as the number of counts in the radius search.
 
@@ -4272,7 +4270,7 @@ class Points(vtk.vtkFollower, BaseActor):
             gradient magnitude scalar, and function classification scalar.
             By default this is off. Note that this will increase execution time
             and the size of the output. (The names of these point data arrays are:
-            "Gradient", "Gradient Magnitude", and "Classification".)
+            "Gradient", "Gradient Magnitude", and "Classification")
 
         locator : vtkPointLocator
             can be assigned from a previous call for speed (access it via `object.point_locator`).
@@ -4385,6 +4383,12 @@ class Points(vtk.vtkFollower, BaseActor):
 
     ###############################################################################
     ## stuff returning Volume
+
+    @deprecated(reason=vedo.colors.red + "Please use signed_distance()" + vedo.colors.reset)
+    def signedDistance(self, bounds=None, dims=(20,20,20), invert=False, maxradius=None):
+        "Please use signed_distance()"
+        return self.signed_distance(bounds, dims, invert, maxradius)
+
     def signed_distance(self, bounds=None, dims=(20,20,20), invert=False, maxradius=None):
         """
         Compute the ``Volume`` object whose voxels contains the signed distance from
@@ -4523,3 +4527,4 @@ class Points(vtk.vtkFollower, BaseActor):
             interpolator.SetNullPointsStrategyToClosestPoint()
         interpolator.Update()
         return vedo.Volume(interpolator.GetOutput())
+

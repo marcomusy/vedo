@@ -146,12 +146,8 @@ class Mesh(Points):
             self._data = inputobj  # cache vtkPolyData and mapper for speed
 
         elif isinstance(inputobj, (vtk.vtkStructuredGrid, vtk.vtkRectilinearGrid)):
-            if vedo.settings.visibleGridEdges:
-                gf = vtk.vtkExtractEdges()
-                gf.SetInputData(inputobj)
-            else:
-                gf = vtk.vtkGeometryFilter()
-                gf.SetInputData(inputobj)
+            gf = vtk.vtkGeometryFilter()
+            gf.SetInputData(inputobj)
             gf.Update()
             self._data = gf.GetOutput()
 

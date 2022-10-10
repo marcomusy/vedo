@@ -1546,6 +1546,11 @@ class Plotter:
             sliderfunc, pos1, pos2, xmin, xmax, value, s, t, title, rotation, c, show_value
         )
 
+
+    @deprecated(reason=vedo.colors.red + "Please use add_button()" + vedo.colors.reset)
+    def addButton(self, *a, **b):
+        return self.add_button(*a, **b)
+
     def add_button(
             self,
             fnc,

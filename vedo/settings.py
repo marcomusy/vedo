@@ -59,9 +59,6 @@ Parameters
     # Remove hidden lines when in wireframe mode
     hiddenLineRemoval = False
 
-    # For Structured and RectilinearGrid: show internal edges not only outline
-    visibleGridEdges = False
-
     # Turn on/off the automatic repositioning of lights as the camera moves.
     lightFollowsCamera = False
     twoSidedLighting = True

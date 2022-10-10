@@ -694,6 +694,11 @@ class Base3DProp:
         elif i == 1: return b[5]
         return (b[4], b[5])
 
+    @deprecated(reason=vedo.colors.red + "Please use diagonal_size()" + vedo.colors.reset)
+    def diagonalSize(self):
+        """Deprecated. Please use diagonal_size()."""
+        return self.diagonal_size()
+
     def diagonal_size(self):
         """Get the length of the diagonal of mesh bounding box."""
         b = self.GetBounds()
@@ -1895,10 +1900,10 @@ class BaseGrid(BaseActor):
     #     self._data.FindAndGetCell(p, cell, cellId, tol2, subId, pcoords, weights)
     #     return cellId
 
-    def extractCellsByID(self, idlist, usePointIDs=False):
+    def extract_cells_by_id(self, idlist, use_point_ids=False):
         """Return a new UGrid composed of the specified subset of indices."""
         selectionNode = vtk.vtkSelectionNode()
-        if usePointIDs:
+        if use_point_ids:
             selectionNode.SetFieldType(vtk.vtkSelectionNode.POINT)
             contcells = vtk.vtkSelectionNode.CONTAINING_CELLS()
             selectionNode.GetProperties().Set(contcells, 1)

@@ -12,9 +12,11 @@ ms.colorize_by_geodesic_distance_from_a_given_point(startpoint=pt)
 
 mlab_mesh = ms.current_mesh()
 
-vedo_mesh = vedo.Mesh(mlab_mesh).cmap('Paired').addScalarBar("distance")
+vedo_mesh = vedo.Mesh(mlab_mesh).cmap('Paired').add_scalarbar("distance")
 
-print("Can convert back to pymeshlab.MeshSet:", type(vedo_mesh.to_meshlab()))
+print("Can convert back to pymeshlab.MeshSet:",
+      type(vedo.utils.vedo2meshlab(vedo_mesh.to_meshlab()))
+)
 
 vedo.show(__doc__, vedo_mesh, vedo.Point(pt),
           axes=True, bg='green9', bg2='blue9', title="vedo + pymeshlab",
