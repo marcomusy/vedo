@@ -15,7 +15,7 @@ fig = Figure(
     aspect=16/9,  # desired aspect ratio
     xtitle="speed [mph]",
     grid=True,
-    axes=dict(axesLineWidth=3, xyFrameLine=3),
+    axes=dict(axes_linewidth=3, xyframe_line=3),
 )
 
 for i in range(2,11,2):

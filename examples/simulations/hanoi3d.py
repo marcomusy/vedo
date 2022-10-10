@@ -60,7 +60,7 @@ plt += list(disks.values())
 plt += Box(pos=(3,0,-0.5), size=(12,4,0.1))
 cam = dict(
     pos=(14.60, -20.56, 7.680),
-    focalPoint=(3.067, 0.5583, 1.910),
+    focal_point=(3.067, 0.5583, 1.910),
     viewup=(-0.1043, 0.2088, 0.9724),
 )
 plt.show(camera=cam)

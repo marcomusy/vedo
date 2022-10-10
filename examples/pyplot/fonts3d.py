@@ -77,10 +77,10 @@ Protect underscore \\\_ and \\\^ with a backslash.
 plt = Plotter(N=4, pos=(300,0), size=(1600,950))
 
 cam = dict(pos=(3.99e+5, 8.51e+3, 6.47e+5),
-           focalPoint=(2.46e+5, 1.16e+5, -9.24e+3),
+           focal_point=(2.46e+5, 1.16e+5, -9.24e+3),
            viewup=(-0.0591, 0.983, 0.175),
            distance=6.82e+5,
-           clippingRange=(5.26e+5, 8.92e+5))
+           clipping_range=(5.26e+5, 8.92e+5))
 
 for i,fnt in enumerate(["Kanopus", "Normografo", "Theemim", "VictorMono"]):
     t = Text3D(txt, font=fnt, italic=0).c('darkblue').scale(12300)
@@ -89,8 +89,8 @@ for i,fnt in enumerate(["Kanopus", "Normografo", "Theemim", "VictorMono"]):
              Text2D("Font: "+fnt, font=fnt, bg='r'),
              axes=dict(xtitle='my units for L_x  (\mum)',
                        ytitle='my Y-axis with\na long description',
-                       titleFont=fnt,
-                       labelFont=fnt,
+                       title_font=fnt,
+                       label_font=fnt,
                        digits=2,
                       ),
              camera=cam,

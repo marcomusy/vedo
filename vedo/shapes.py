@@ -516,7 +516,7 @@ class Line(Mesh):
 
     def linecolor(self, lc=None):
         """Assign a color to the line"""
-        # overrides mesh.lineColor which would have no effect here
+        # overrides mesh.linecolor which would have no effect here
         return self.color(lc)
 
     def eval(self, x):
@@ -618,7 +618,7 @@ class Line(Mesh):
 
                 from vedo import *
                 shape = load(dataurl+"timecourse1d.npy")[58]
-                pts = shape.rotateX(30).points()
+                pts = shape.rotate_x(30).points()
                 tangents = Line(pts).tangents()
                 arrs = Arrows(pts, pts+tangents, c='blue9')
                 show(shape.c('red5').lw(5), arrs, bg='bb', axes=1).close()
@@ -685,7 +685,7 @@ class Line(Mesh):
                 aline = Line([(0,0,0),(1,3,0),(2,4,0)])
                 surf1 = aline.sweep((1,0.2,0), res=3)
                 surf2 = aline.sweep((0.2,0,1))
-                aline.color('r').lineWidth(4)
+                aline.color('r').linewidth(4)
                 show(surf1, surf2, aline, axes=1).close()
         """
         line = self.polydata()
@@ -2166,7 +2166,7 @@ class Arrows2D(Glyph):
 
             from vedo import Grid, Arrows2D
             g1 = Grid()
-            g2 = Grid(s=(1.2,1.2)).rotateZ(4)
+            g2 = Grid(s=(1.2,1.2)).rotate_z(4)
             arrs2d = Arrows2D(g1, g2, c='red5')
             arrs2d.show(axes=1)
     """
@@ -3441,20 +3441,20 @@ def Marker(symbol, pos=(0, 0, 0), c="k", alpha=1, s=0.1, filled=True):
     elif symbol == "d":
         mesh = Polygon(nsides=4, r=s * 1.1).scale([0.5, 1, 1])
     elif symbol == "v":
-        mesh = Polygon(nsides=3, r=s).rotateZ(180)
+        mesh = Polygon(nsides=3, r=s).rotate_z(180)
     elif symbol == "^":
         mesh = Polygon(nsides=3, r=s)
     elif symbol == ">":
-        mesh = Polygon(nsides=3, r=s).rotateZ(-90)
+        mesh = Polygon(nsides=3, r=s).rotate_z(-90)
     elif symbol == "<":
-        mesh = Polygon(nsides=3, r=s).rotateZ(90)
+        mesh = Polygon(nsides=3, r=s).rotate_z(90)
     elif symbol == "s":
         mesh = Mesh(
             [[[-1, -1, 0], [1, -1, 0], [1, 1, 0], [-1, 1, 0]], [[0, 1, 2, 3]]]
         ).scale(s / 1.4)
     elif symbol == "x":
         mesh = Text3D("+", pos=(0, 0, 0), s=s * 2.6, justify="center", depth=0)
-        # mesh.rotateZ(45)
+        # mesh.rotate_z(45)
     elif symbol == "a":
         mesh = Text3D("*", pos=(0, 0, 0), s=s * 2.6, justify="center", depth=0)
     else:
@@ -3574,7 +3574,7 @@ class Brace(Mesh):
                 just = justify
             cmt = Text3D(comment, font=font, justify=just, italic=italic)
             cx0, cx1 = cmt.xbounds()
-            cmt.rotateZ(90 + angle)
+            cmt.rotate_z(90 + angle)
             cmt.scale(1 / (cx1 - cx0) * s * len(comment) / 5)
             cmt.shift(x1 * (1 + padding2), 0, 0)
             poly = merge(br, cmt).polydata()
@@ -3632,8 +3632,8 @@ class Cross3D(Mesh):
 
     def __init__(self, pos=(0, 0, 0), s=1.0, thickness=0.3, c="b", alpha=1):
         c1 = Cylinder(r=thickness * s, height=2 * s)
-        c2 = Cylinder(r=thickness * s, height=2 * s).rotateX(90)
-        c3 = Cylinder(r=thickness * s, height=2 * s).rotateY(90)
+        c2 = Cylinder(r=thickness * s, height=2 * s).rotate_x(90)
+        c3 = Cylinder(r=thickness * s, height=2 * s).rotate_y(90)
         poly = merge(c1, c2, c3).color(c).alpha(alpha).polydata(False)
         Mesh.__init__(self, poly, c, alpha)
 

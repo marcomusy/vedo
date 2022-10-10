@@ -36,7 +36,7 @@ def onLeftClick(evt):
                    pos='bottom-left', c=ishape.color(), bg='k', font='Calco')
     instt = Text2D(instr, pos='bottom-right', c='dg', bg='g', font='Quikhand')
 
-    axes = ishape.buildAxes(yzGrid=False)
+    axes = ishape.buildAxes(yzgrid=False)
     acts = [ishape, axes, sname, sprop, instt]
 
     plt1.background('silver').render()

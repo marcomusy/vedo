@@ -481,7 +481,7 @@ def exe_eog(args):
     if n > 1:
 
         plt = Plotter(N=n, sharecam=True, bg=args.background, bg2=args.background_grad)
-        plt.addCallback("key press", vfunc)
+        plt.add_callback("key press", vfunc)
         for i in range(n):
             p = pics[i].pickable(True)
             pos = [-p.shape[0] / 2, -p.shape[1] / 2, 0]
@@ -504,8 +504,8 @@ def exe_eog(args):
             shape[1] = 1200
 
         plt = Plotter(title=files[0], size=shape, bg=args.background, bg2=args.background_grad)
-        plt.addCallback('key press', vfunc)
-        plt.addHoverLegend(c='k8', bg='k2', alpha=0.4)
+        plt.add_callback('key press', vfunc)
+        plt.add_hover_legend(c='k8', bg='k2', alpha=0.4)
         plt.show(pic, mode='image',  interactive=False)
         plt.resetCamera(tight=0.0)
         plt.interactor.Start()

@@ -58,8 +58,8 @@ plt += __doc__
 plt.show(axes={'xtitle':'time',
                'ytitle':'x',
                'ztitle':'y',
-               'zxGrid':True,
-               'yzGrid':False},
+               'zxgrid':True,
+               'yzgrid':False},
          viewup='x',
 )
 plt.close()

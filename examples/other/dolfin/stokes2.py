@@ -44,5 +44,5 @@ plot(u,
      warpZfactor=-0.1,
      lw=0,
      scalarbar='horizontal',
-     axes={'xLabelSize':0.01,'yLabelSize':0.01, 'ztitle':''},
+     axes={'xlabel_size':0.01,'ylabel_size':0.01, 'ztitle':''},
      title="Velocity")

@@ -355,7 +355,7 @@ def plot(*inputobj, **options):
         - `pos`, `(list)`,
             the position of the camera in world coordinates
 
-        - `focalPoint`, `(list)`,
+        - `focal_point`, `(list)`,
             the focal point of the camera in world coordinates
 
         - `viewup`, `(list)`,
@@ -460,9 +460,9 @@ def plot(*inputobj, **options):
         axes = options.pop("axes", None)
         if axes is None:
             options["axes"] = {
-                "xyGrid": False,
-                "yzGrid": False,
-                "zxGrid": False,
+                "xygrid": False,
+                "yzgrid": False,
+                "zxgrid": False,
             }
         else:
             options["axes"] = axes  # put back
@@ -477,9 +477,9 @@ def plot(*inputobj, **options):
         axes = options.pop("axes", None)
         if axes is None:
             options["axes"] = {
-                "xyGrid": False,
-                "yzGrid": False,
-                "zxGrid": False,
+                "xygrid": False,
+                "yzgrid": False,
+                "zxgrid": False,
             }
         else:
             options["axes"] = axes  # put back
@@ -516,9 +516,9 @@ def plot(*inputobj, **options):
         axes = options.pop("axes", None)
         if axes is None:
             options["axes"] = {
-                "xyGrid": False,
-                "yzGrid": False,
-                "zxGrid": False,
+                "xygrid": False,
+                "yzgrid": False,
+                "zxgrid": False,
             }
         else:
             options["axes"] = axes  # put back
@@ -549,12 +549,12 @@ def plot(*inputobj, **options):
         if c:
             actor.color(c)
         if lc:
-            actor.lineColor(lc)
+            actor.linecolor(lc)
         if alpha:
             alpha = min(alpha, 1)
             actor.alpha(alpha * alpha)
         if lw:
-            actor.lineWidth(lw)
+            actor.linewidth(lw)
             if wire and alpha:
                 lw1 = min(lw, 1)
                 actor.alpha(alpha * lw1)

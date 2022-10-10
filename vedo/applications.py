@@ -272,7 +272,7 @@ class Slicer3DPlotter(Plotter):
                     if map2cells:
                         mesh.mapPointsToCells()
             self.renderer.RemoveActor(mesh.scalarbar)
-            mesh.add_scalarbar(pos=(0.04, 0.0), horizontal=True, titleFontSize=0)
+            mesh.add_scalarbar(pos=(0.04, 0.0), horizontal=True, title_font_size=0)
 
         bu = self.add_button(
             buttonfunc,
@@ -1248,11 +1248,11 @@ class Animation(Plotter):
 
     def switch_on(self, acts=None, t=None):
         """Switch on the input list of meshes."""
-        return self.fadeIn(acts, t, 0)
+        return self.fade_in(acts, t, 0)
 
     def switch_off(self, acts=None, t=None):
         """Switch off the input list of meshes."""
-        return self.fadeOut(acts, t, 0)
+        return self.fade_out(acts, t, 0)
 
     def fade_in(self, acts=None, t=None, duration=None):
         """Gradually switch on the input list of meshes by increasing opacity."""
@@ -1260,7 +1260,7 @@ class Animation(Plotter):
             acts, t, duration, rng = self._parse(acts, t, duration)
             for tt in rng:
                 alpha = lin_interpolate(tt, [t, t + duration], [0, 1])
-                self.events.append((tt, self.fadeIn, acts, alpha))
+                self.events.append((tt, self.fade_in, acts, alpha))
         else:
             for a in self._performers:
                 if hasattr(a, "alpha"):
@@ -1275,7 +1275,7 @@ class Animation(Plotter):
             acts, t, duration, rng = self._parse(acts, t, duration)
             for tt in rng:
                 alpha = lin_interpolate(tt, [t, t + duration], [1, 0])
-                self.events.append((tt, self.fadeOut, acts, alpha))
+                self.events.append((tt, self.fade_out, acts, alpha))
         else:
             for a in self._performers:
                 if a.alpha() <= self._inputvalues:
@@ -1289,7 +1289,7 @@ class Animation(Plotter):
             acts, t, duration, rng = self._parse(acts, t, duration)
             for tt in rng:
                 alpha = lin_interpolate(tt, [t, t + duration], [alpha1, alpha2])
-                self.events.append((tt, self.fadeOut, acts, alpha))
+                self.events.append((tt, self.fade_out, acts, alpha))
         else:
             for a in self._performers:
                 a.alpha(self._inputvalues)
@@ -1309,7 +1309,7 @@ class Animation(Plotter):
                     g = lin_interpolate(tt, [t, t + duration], [col1[1], col2[1]])
                     b = lin_interpolate(tt, [t, t + duration], [col1[2], col2[2]])
                     inputvalues.append((r, g, b))
-                self.events.append((tt, self.changeColor, acts, inputvalues))
+                self.events.append((tt, self.change_color, acts, inputvalues))
         else:
             for i, a in enumerate(self._performers):
                 a.color(self._inputvalues[i])
@@ -1333,7 +1333,7 @@ class Animation(Plotter):
                         inputvalues.append((r, g, b))
                     else:
                         inputvalues.append(None)
-                self.events.append((tt, self.changeBackColor, acts, inputvalues))
+                self.events.append((tt, self.change_backcolor, acts, inputvalues))
         else:
             for i, a in enumerate(self._performers):
                 a.backColor(self._inputvalues[i])
@@ -1343,7 +1343,7 @@ class Animation(Plotter):
         """Switch representation to wireframe for the input list of meshes at time `t`."""
         if self.bookingMode:
             acts, t, _, _ = self._parse(acts, t, None)
-            self.events.append((t, self.changeToWireframe, acts, True))
+            self.events.append((t, self.change_to_wireframe, acts, True))
         else:
             for a in self._performers:
                 a.wireframe(self._inputvalues)
@@ -1353,7 +1353,7 @@ class Animation(Plotter):
         """Switch representation to surface for the input list of meshes at time `t`."""
         if self.bookingMode:
             acts, t, _, _ = self._parse(acts, t, None)
-            self.events.append((t, self.changeToSurface, acts, False))
+            self.events.append((t, self.change_to_surface, acts, False))
         else:
             for a in self._performers:
                 a.wireframe(self._inputvalues)
@@ -1382,15 +1382,15 @@ class Animation(Plotter):
             for tt in rng:
                 inputvalues = []
                 for a in acts:
-                    col1 = a.lineColor()
+                    col1 = a.linecolor()
                     r = lin_interpolate(tt, [t, t + duration], [col1[0], col2[0]])
                     g = lin_interpolate(tt, [t, t + duration], [col1[1], col2[1]])
                     b = lin_interpolate(tt, [t, t + duration], [col1[2], col2[2]])
                     inputvalues.append((r, g, b))
-                self.events.append((tt, self.changeLineColor, acts, inputvalues))
+                self.events.append((tt, self.change_line_color, acts, inputvalues))
         else:
             for i, a in enumerate(self._performers):
-                a.lineColor(self._inputvalues[i])
+                a.linecolor(self._inputvalues[i])
         return self
 
     def change_lighting(self, style, acts=None, t=None, duration=None):
@@ -1423,7 +1423,7 @@ class Animation(Plotter):
                     nasp = lin_interpolate(tt, [t,t+duration], [asp, pars[2]])
                     naspp= lin_interpolate(tt, [t,t+duration], [aspp,pars[3]])
                     inputvalues.append((naa, nad, nasp, naspp))
-                self.events.append((tt, self.changeLighting, acts, inputvalues))
+                self.events.append((tt, self.change_lighting, acts, inputvalues))
         else:
             for i, a in enumerate(self._performers):
                 pr = a.GetProperty()
@@ -1467,11 +1467,11 @@ class Animation(Plotter):
         else:
             ax = self._inputvalues[0]
             if ax == "x":
-                self._performers[0].rotateX(self._inputvalues[1])
+                self._performers[0].rotate_x(self._inputvalues[1])
             elif ax == "y":
-                self._performers[0].rotateY(self._inputvalues[1])
+                self._performers[0].rotate_y(self._inputvalues[1])
             elif ax == "z":
-                self._performers[0].rotateZ(self._inputvalues[1])
+                self._performers[0].rotate_z(self._inputvalues[1])
         return self
 
     def scale(self, acts=None, factor=1, t=None, duration=None):
@@ -1650,7 +1650,7 @@ class Clock(vedo.Assembly):
             secs= Line([0,0], [x3,y3], lw=1, c='k').scale(0.95).mirror()
             secs.z(0.003)
         back1 = vedo.shapes.Circle(res=180, c="k6").lw(1)
-        back2 = vedo.shapes.Circle(res=12).mirror().scale(0.86).rotateZ(-360/12)
+        back2 = vedo.shapes.Circle(res=12).mirror().scale(0.86).rotate_z(-360/12)
         labels = back2.labels(
             range(1,13),
             justify="center",

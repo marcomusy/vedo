@@ -71,7 +71,7 @@ class Figure(Assembly):
         title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
 
     grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xyGrid=True)`
+        show the backgound grid for the axes, can also be set using `axes=dict(xygrid=True)`
 
     axes : dict
         an extra dictionary of options for the axes
@@ -113,7 +113,7 @@ class Figure(Assembly):
         self.title  = options.pop("title", "")
         self.xtitle = options.pop("xtitle", " ")
         self.ytitle = options.pop("ytitle", " ")
-        numberOfDivisions = 6
+        number_of_divisions = 6
 
         self.legend = None
         self.labels = []
@@ -126,24 +126,24 @@ class Figure(Assembly):
             if self.axopts:
                 self.axopts = {}
         if self.axopts or isinstance(self.axopts, dict):
-            numberOfDivisions = self.axopts.pop("numberOfDivisions", numberOfDivisions)
+            number_of_divisions = self.axopts.pop("number_of_divisions", number_of_divisions)
 
             self.axopts["xtitle"] = self.xtitle
             self.axopts["ytitle"] = self.ytitle
 
-            if "xyGrid" not in self.axopts:  ## modify the default
-                self.axopts["xyGrid"] = options.pop("grid", False)
+            if "xygrid" not in self.axopts:  ## modify the default
+                self.axopts["xygrid"] = options.pop("grid", False)
 
-            if "xyGridTransparent" not in self.axopts:  ## modify the default
-                self.axopts["xyGridTransparent"] = True
+            if "xygrid_transparent" not in self.axopts:  ## modify the default
+                self.axopts["xygrid_transparent"] = True
 
-            if "xTitlePosition" not in self.axopts:  ## modify the default
-                self.axopts["xTitlePosition"] = 0.5
-                self.axopts["xTitleJustify"] = "top-center"
+            if "xtitle_position" not in self.axopts:  ## modify the default
+                self.axopts["xtitle_position"] = 0.5
+                self.axopts["xtitle_justify"] = "top-center"
 
-            if "yTitlePosition" not in self.axopts:  ## modify the default
-                self.axopts["yTitlePosition"] = 0.5
-                self.axopts["yTitleJustify"] = "bottom-center"
+            if "ytitle_position" not in self.axopts:  ## modify the default
+                self.axopts["ytitle_position"] = 0.5
+                self.axopts["ytitle_justify"] = "bottom-center"
 
             if self.label:
                 if "c" in self.axopts:
@@ -190,7 +190,7 @@ class Figure(Assembly):
             tp, ts = utils.make_ticks(
                 y0lim / self.yscale,
                 y1lim / self.yscale,
-                numberOfDivisions,
+                number_of_divisions,
             )
             labs = []
             for i in range(1, len(tp) - 1):
@@ -199,11 +199,11 @@ class Figure(Assembly):
 
             if self.title:
                 axesopts["htitle"] = self.title
-            axesopts["yValuesAndLabels"] = labs
+            axesopts["y_values_and_labels"] = labs
             axesopts["xrange"] = (x0lim, x1lim)
             axesopts["yrange"] = (y0lim, y1lim)
             axesopts["zrange"] = (0, 0)
-            axesopts["yUseBounds"] = True
+            axesopts["y_use_bounds"] = True
 
             if "c" not in axesopts and "ac" in options:
                 axesopts["c"] = options["ac"]
@@ -641,7 +641,7 @@ class Histogram1D(Figure):
         the desired aspect ratio of the histogram. Default is 4/3.
 
     grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xyGrid=True)`
+        show the backgound grid for the axes, can also be set using `axes=dict(xygrid=True)`
 
     ztolerance : float
         a tolerance factor to superimpose objects (along the z-axis).
@@ -796,9 +796,9 @@ class Histogram1D(Figure):
             htitle += f"Mean:~~{utils.precision(self.mean, 4)}  "
             htitle += f"STD:~~{utils.precision(self.std, 4)}  "
             axesopts["htitle"] = htitle
-            axesopts["hTitleJustify"] = "bottom-left"
-            axesopts["hTitleSize"] = 0.016
-            axesopts["hTitleOffset"] = [-0.49, 0.01, 0]
+            axesopts["htitle_justify"] = "bottom-left"
+            axesopts["htitle_size"] = 0.016
+            axesopts["htitle_offset"] = [-0.49, 0.01, 0]
 
         if mc is None:
             mc = lc
@@ -1019,7 +1019,7 @@ class Histogram2D(Figure):
 
     ac : str
         axes color, additional keyword for Axes can also be added
-        using e.g. `axes=dict(xyGrid=True)`
+        using e.g. `axes=dict(xygrid=True)`
 
     .. hint:: examples/pyplot/histo_2d.py
         .. image:: https://vedo.embl.es/images/pyplot/histo_2D.png
@@ -1132,9 +1132,9 @@ class Histogram2D(Figure):
             htitle += f"Mean:~~{utils.precision(self.mean, 3)}  "
             htitle += f"STD:~~{utils.precision(self.std, 3)}  "
             axesopts["htitle"] = htitle
-            axesopts["hTitleJustify"] = "bottom-left"
-            axesopts["hTitleSize"] = 0.0175
-            axesopts["hTitleOffset"] = [-0.49, 0.01, 0]
+            axesopts["htitle_justify"] = "bottom-left"
+            axesopts["htitle_size"] = 0.0175
+            axesopts["htitle_offset"] = [-0.49, 0.01, 0]
 
         ############################################### Figure init
         Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
@@ -1220,7 +1220,7 @@ class PlotBars(Figure):
         the desired aspect ratio of the figure. Default is 4/3.
 
     grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xyGrid=True)`
+        show the backgound grid for the axes, can also be set using `axes=dict(xygrid=True)`
 
     .. hint:: examples/pyplot/histo_1d_a.py histo_1d_b.py histo_1d_c.py histo_1d_d.py
         .. image:: https://vedo.embl.es/images/pyplot/histo_1D.png
@@ -1330,7 +1330,7 @@ class PlotBars(Figure):
         _xlabs = []
         for center, xlb in zip(centers, xlabs):
             _xlabs.append([center, str(xlb)])
-        fig_kwargs["axes"]["xValuesAndLabels"] = _xlabs
+        fig_kwargs["axes"]["x_values_and_labels"] = _xlabs
 
         ############################################### Figure
         self.statslegend = ""
@@ -1478,7 +1478,7 @@ class PlotXY(Figure):
         axes color
 
     grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xyGrid=True)`
+        show the backgound grid for the axes, can also be set using `axes=dict(xygrid=True)`
 
     ztolerance : float
         a tolerance factor to superimpose objects (along the z-axis).
@@ -1828,7 +1828,7 @@ def plot(*args, **kwargs):
         axes color
 
     grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xyGrid=True)`
+        show the backgound grid for the axes, can also be set using `axes=dict(xygrid=True)`
 
     ztolerance : float
         a tolerance factor to superimpose objects (along the z-axis).
@@ -1900,7 +1900,7 @@ def plot(*args, **kwargs):
         the desired aspect ratio of the figure. Default is 4/3.
 
     grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xyGrid=True)`
+        show the backgound grid for the axes, can also be set using `axes=dict(xygrid=True)`
 
     .. hint:: examples/pyplot/histo_1d_a.py histo_1d_b.py histo_1d_c.py histo_1d_d.py
         .. image:: https://vedo.embl.es/images/pyplot/histo_1D.png
@@ -2211,7 +2211,7 @@ def histogram(*args, **kwargs):
         the desired aspect ratio of the histogram. Default is 4/3.
 
     grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xyGrid=True)`
+        show the backgound grid for the axes, can also be set using `axes=dict(xygrid=True)`
 
     ztolerance : float
         a tolerance factor to superimpose objects (along the z-axis).
@@ -2277,7 +2277,7 @@ def histogram(*args, **kwargs):
 
     ac : str
         axes color, additional keyword for Axes can also be added
-        using e.g. `axes=dict(xyGrid=True)`
+        using e.g. `axes=dict(xygrid=True)`
 
     .. hint:: examples/pyplot/histo_2d.py
         .. image:: https://vedo.embl.es/images/pyplot/histo_2D.png
@@ -2984,7 +2984,7 @@ def _plot_spheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha
         ym = np.max([np.abs(np.max(pts[1])), 1])
         ssurf.mapper().SetScalarRange(np.min(newr), np.max(newr))
         sb3d = ssurf.add_scalarbar_3d(s=(xm * 0.07, ym), c="k").scalarbar
-        sb3d.rotateX(90).pos(xm * 1.1, 0, -0.5)
+        sb3d.rotate_x(90).pos(xm * 1.1, 0, -0.5)
     else:
         sb3d = None
 
@@ -3590,7 +3590,7 @@ def whisker(
     lns = merge(l1, l2, lm, rl)
     asse = Assembly([lns, rec, pts])
     if horizontal:
-        asse.rotateZ(-90)
+        asse.rotate_z(-90)
     asse.name = "Whisker"
     asse.info["mean"] = dmean
     asse.info["quantile_05"] = dq05
@@ -3810,7 +3810,7 @@ def matrix(
         if xrotation > 44:
             jus = "right-center"
         for i in range(m):
-            xl = shapes.Text3D(xlabels[i], font=font, s=0.02, justify=jus, c=c).rotateZ(
+            xl = shapes.Text3D(xlabels[i], font=font, s=0.02, justify=jus, c=c).rotate_z(
                 xrotation
             )
             xl.shift((2 * i - m + 1) / (m + n), -n / (m + n) * 1.05)
@@ -3838,7 +3838,7 @@ def matrix(
     if ytitle:
         yt = shapes.Text3D(
             ytitle, font=font, s=0.035, justify="bottom-center", c=c
-        ).rotateZ(90)
+        ).rotate_z(90)
         yt.shift(-m / (m + n) * 1.05, 0)
         if ylabs is not None:
             x0, x1 = ylabs[0].xbounds()
@@ -4298,11 +4298,11 @@ class DirectedGraph(Assembly):
 
         dgraph.SetScale(1 / diagsz)
         if self.rotX:
-            dgraph.rotateX(self.rotX)
+            dgraph.rotate_x(self.rotX)
         if self.rotY:
-            dgraph.rotateY(self.rotY)
+            dgraph.rotate_y(self.rotY)
         if self.rotZ:
-            dgraph.rotateZ(self.rotZ)
+            dgraph.rotate_z(self.rotZ)
 
         vecs = graphToPolyData.GetOutput(1).GetPointData().GetVectors()
         self.edge_orientations = utils.vtk2numpy(vecs)
@@ -4322,11 +4322,11 @@ class DirectedGraph(Assembly):
             arrows.SetScale(1 / diagsz)
             arrows.lighting("off").color(self._c)
             if self.rotX:
-                arrows.rotateX(self.rotX)
+                arrows.rotate_x(self.rotX)
             if self.rotY:
-                arrows.rotateY(self.rotY)
+                arrows.rotate_y(self.rotY)
             if self.rotZ:
-                arrows.rotateZ(self.rotZ)
+                arrows.rotate_z(self.rotZ)
             arrows.name = "DirectedGraphArrows"
 
         nodeLabels = dgraph.labels(

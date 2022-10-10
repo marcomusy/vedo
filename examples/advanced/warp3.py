@@ -61,7 +61,7 @@ class Morpher(Plotter):
         sb = self.source.bounds()
         x1, x2, y1, y2, z1, z2 = sb
         maxb = max(x2-x1, y2-y1)
-        grid0 = Grid(self.source.centerOfMass(), s=[maxb,maxb], res=[40,40])
+        grid0 = Grid(self.source.center_of_mass(), s=[maxb,maxb], res=[40,40])
         T = self.morphed_source.getTransform()
         grid1 = grid0.alpha(0.3).wireframe(0).clone().applyTransform(T) # warp the grid
         arrows = Arrows(self.ptsource, self.pttarget, alpha=0.5, s=3).c("k")

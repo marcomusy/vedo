@@ -21,6 +21,6 @@ plt = plot(f,
            lw=0,
            warpZfactor=0.001,
            scalarbar='horizontal',
-           axes={'xTitleOffset':0.2},
+           axes={'xtitle_offset':0.2},
            text=__doc__,
            )

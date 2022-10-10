@@ -27,18 +27,18 @@ class Morpher:
         self.msg1 = Text2D(self.instructions, pos='top-left', font="VictorMono", bg='g2', alpha=0.6)
         self.msg2 = Text2D('[output will show here]', pos='top-left', font="VictorMono")
 
-        sz = self.merged_meshes.diagonalSize()
-        self.plane1 = Grid(s=[sz,sz], res=[50,50]).pos(self.merged_meshes.centerOfMass())
-        self.plane1.wireframe(False).alpha(1).lineWidth(0.1).c('white').lc('grey5')
+        sz = self.merged_meshes.diagonal_size()
+        self.plane1 = Grid(s=[sz,sz], res=[50,50]).pos(self.merged_meshes.center_of_mass())
+        self.plane1.wireframe(False).alpha(1).linewidth(0.1).c('white').lc('grey5')
         self.plane2 = self.plane1.clone().pickable(False)
 
         self.plotter = Plotter(N=2, bg='light blue', size=(2000,1000), sharecam=0)
-        self.plotter.addCallback('left click', self.onleftclick)
-        self.plotter.addCallback('right click', self.onrightclick)
-        self.plotter.addCallback('key press', self.onkeypress)
+        self.plotter.add_callback('left click', self.onleftclick)
+        self.plotter.add_callback('right click', self.onrightclick)
+        self.plotter.add_callback('key press', self.onkeypress)
 
     def start(self):  ################################################ show stuff
-        paxes = Axes(self.plane1, xyGrid=0, textScale=0.6)
+        paxes = Axes(self.plane1, xygrid=0, text_scale=0.6)
         self.plotter.at(0).show(self.plane1, paxes, self.msg1, self.mesh1, self.mesh2)
         self.plotter.at(1).show(self.plane2, self.msg2, mode='image')
         if len(self.arrow_starts)>0:
@@ -91,7 +91,7 @@ class Morpher:
             output = [self.mesh1.clone().c('grey4'), self.mesh2, self.msg2]
             warped_plane = self.plane1.clone().pickable(False)
             warped_plane.warp(self.arrow_starts, self.arrow_stops, mode=self.mode)
-            output.append(warped_plane + Axes(warped_plane, xyGrid=0, textScale=0.6))
+            output.append(warped_plane + Axes(warped_plane, xygrid=0, text_scale=0.6))
 
             mw = self.mesh1.clone().applyTransform(warped_plane.transform).c('red4')
             output.append(mw)

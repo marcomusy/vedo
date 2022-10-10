@@ -14,7 +14,7 @@ pt = Point([-4,-4,-4], c='k')
 #  A new Assembly object is returned:
 axes1 = Axes(s1, c='r')
 axes2 = Axes(s2, c='g')
-axes3 = Axes(s3, c='b', numberOfDivisions=10)
+axes3 = Axes(s3, c='b', number_of_divisions=10)
 
 # axes3 is an Assembly (group of Meshes).
 # Unpack it and scale the 7th label getting it by its name,
@@ -28,8 +28,5 @@ axes3.unpack('xNumericLabel7').scale(5).c('fuchsia')
 #  Options are passed through a dictionary
 show(pt, s1, s2, s3, axes1, axes2, axes3, __doc__,
      viewup='z',
-     axes=dict(c='black',
-               numberOfDivisions=10,
-               yzGrid=False,
-              ),
+     axes=dict(c='black', number_of_divisions=10, yzgrid=False),
 ).close()

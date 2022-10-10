@@ -909,7 +909,7 @@ def tonumpy(obj):
         adict["linecolor"] = None
         adict["linewidth"] = None
         if prp.GetEdgeVisibility():
-            adict["linewidth"] = obj.lineWidth()
+            adict["linewidth"] = obj.linewidth()
             adict["linecolor"] = prp.GetEdgeColor()
 
         adict["ambient"] = prp.GetAmbient()
@@ -1073,8 +1073,8 @@ def loadnumpy(inobj):
         if 'representation' in keys: prp.SetRepresentation(d['representation'])
         if 'pointsize' in keys and d['pointsize']: prp.SetPointSize(d['pointsize'])
 
-        if 'linewidth' in keys and d['linewidth']: msh.lineWidth(d['linewidth'])
-        if 'linecolor' in keys and d['linecolor']: msh.lineColor(d['linecolor'])
+        if 'linewidth' in keys and d['linewidth']: msh.linewidth(d['linewidth'])
+        if 'linecolor' in keys and d['linecolor']: msh.linecolor(d['linecolor'])
 
         if 'color' in keys and d['color'] is not None:
             msh.color(d['color'])
@@ -1495,7 +1495,7 @@ def export_window(fileoutput, binary=False):
         sdict["sharecam"] = plt.sharecam
         sdict["camera"] = dict(
             pos=plt.camera.GetPosition(),
-            focalPoint=plt.camera.GetFocalPoint(),
+            focal_point=plt.camera.GetFocalPoint(),
             viewup=plt.camera.GetViewUp(),
             distance=plt.camera.GetDistance(),
             clippingRange=plt.camera.GetClippingRange(),
@@ -1683,12 +1683,16 @@ def import_window(fileinput, mtl_file=None, texture_path=None):
                 plt.camera.SetPosition(cam["pos"])
             if "focalPoint" in cam.keys():
                 plt.camera.SetFocalPoint(cam["focalPoint"])
+            if "focal_point" in cam.keys():
+                plt.camera.SetFocalPoint(cam["focal_point"])
             if "viewup" in cam.keys():
                 plt.camera.SetViewUp(cam["viewup"])
             if "distance" in cam.keys():
                 plt.camera.SetDistance(cam["distance"])
             if "clippingRange" in cam.keys():
                 plt.camera.SetClippingRange(cam["clippingRange"])
+            if "clipping_range" in cam.keys():
+                plt.camera.SetClippingRange(cam["clipping_range"])
             plt.resetcam = False
 
         if "objects" in data.keys():
@@ -1956,7 +1960,7 @@ class Video:
         def build_vtk_cam(cm_input):
             cm = dict(cm_input)
             cm_pos = cm.pop("pos", None)
-            cm_focalPoint = cm.pop("focalPoint", None)
+            cm_focal_point = cm.pop("focal_point", None)
             cm_viewup = cm.pop("viewup", None)
             cm_distance = cm.pop("distance", None)
             cm_clippingRange = cm.pop("clippingRange", None)
@@ -1965,7 +1969,7 @@ class Video:
             cm_viewAngle = cm.pop("viewAngle", None)
             cm = vtk.vtkCamera()
             if cm_pos is not None: cm.SetPosition(cm_pos)
-            if cm_focalPoint is not None: cm.SetFocalPoint(cm_focalPoint)
+            if cm_focal_point is not None: cm.SetFocalPoint(cm_focal_point)
             if cm_viewup is not None: cm.SetViewUp(cm_viewup)
             if cm_distance is not None: cm.SetDistance(cm_distance)
             if cm_clippingRange is not None: cm.SetClippingRange(cm_clippingRange)

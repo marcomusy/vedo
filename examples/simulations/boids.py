@@ -85,7 +85,7 @@ if __name__=="__main__":
     flock = Flock(boids)
 
     plt = vedo.Plotter(bg2='lb', interactive=False)
-    axes = vedo.Axes(xrange=(-3,3), yrange=(-3,3), zrange=(-3,3), yzGrid=True, zxGrid2=True)
+    axes = vedo.Axes(xrange=(-3,3), yrange=(-3,3), zrange=(-3,3), yzgrid=True, zxgrid2=True)
     plt += [__doc__, flock.actor, axes]
 
     pb = vedo.ProgressBar(0, 100)

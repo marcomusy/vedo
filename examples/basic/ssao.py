@@ -1,7 +1,7 @@
 """Rendering with Screen Space Ambient Occlusion (SSAO)"""
 from vedo import dataurl, Mesh, Volume, Plotter
 
-# mesh = Mesh(dataurl + "porsche.ply").rotateX(90)
+# mesh = Mesh(dataurl + "porsche.ply").rotate_x(90)
 mesh = Volume(dataurl+"embryo.tif").isosurface()
 mesh.compute_normals().c('white')
 

@@ -8,8 +8,8 @@ h = Hyperboloid().x(6).legend('The description for\nthis one is quite long')
 
 lb = LegendBox([s,c,e,h], width=0.3, height=0.4).font(5)
 
-cam = dict(pos=(10.1, -8.33, 7.25),  # params obtained by pressing "C"
-           focalPoint=(4.46, 1.31, -0.644),
+cam = dict(position=(10.1, -8.33, 7.25),  # params obtained by pressing "C"
+           focal_point=(4.46, 1.31, -0.644),
            viewup=(-0.379, 0.443, 0.813),
            distance=13.7,
 )

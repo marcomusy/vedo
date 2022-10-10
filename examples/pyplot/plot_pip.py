@@ -24,10 +24,10 @@ fig2 = plot(
     xtitle=' ', ytitle=' ',  # leave empty
     lc='red5',
     axes=dict(
-        xyPlaneColor='#dae3f0',
-        gridLineWidth=0, # make it solid
-        xyAlpha=1,       # make it opaque
-        textScale=2,     # make text bigger
+        xyplane_color='#dae3f0',
+        grid_linewidth=0, # make it solid
+        xyalpha=1,       # make it opaque
+        text_scale=2,     # make text bigger
     )
 )
 # Scale fig to make it smaller

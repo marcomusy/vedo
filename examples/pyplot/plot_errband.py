@@ -22,7 +22,7 @@ fig = plot(
     ec="red7",       # error band color
     padding=0,       # no extra spaces around the content
     grid=0,          # no background grid
-    axes=dict(axesLineWidth=2, xyFrameLine=0),
+    axes=dict(axes_linewidth=2, xyframe_line=0),
 )
 
 # Add a grey transparent rectangle to represent an exclusion region:

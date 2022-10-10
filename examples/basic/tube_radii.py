@@ -20,7 +20,7 @@ cols = make_bands(cols, 5)  # make color bins
 t3 = Tube(ln, r=rads, c=cols, res=24)
 
 ############################### visualize
-plt = Plotter(N=3, axes=dict(textScale=4))
+plt = Plotter(N=3, axes=dict(text_scale=4))
 plt.at(0).show(t1, __doc__)
 plt.at(1).show(t2)
 plt.at(2).show(t3, viewup="z")

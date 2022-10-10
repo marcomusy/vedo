@@ -44,7 +44,7 @@ landSurface.cmap("terrain", zvals, vmin=1100)
 landSurface.name = "Land Surface" # give the object a name
 
 # Create a plotter and add landSurface to it
-plt = Plotter(axes=dict(xtitle='km', ytitle=' ', ztitle='km*1.5', yzGrid=False),
+plt = Plotter(axes=dict(xtitle='km', ytitle=' ', ztitle='km*1.5', yzgrid=False),
               bg2='lb', size=(1200,900)) # screen size
 plt += landSurface.flag()                # this adds a flag when hoovering the mouse
 plt += landSurface.isolines(5).lw(1).c('k')

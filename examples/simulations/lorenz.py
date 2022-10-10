@@ -18,7 +18,7 @@ for t in np.linspace(0, 20, int(20 / dt)):
     vel.append(v)
     pts.append(y)
 
-plt  = Plotter(title="Lorenz attractor", axes=dict(yzGrid=True))
+plt  = Plotter(title="Lorenz attractor", axes=dict(yzgrid=True))
 plt += Line(pts).lw(2).cmap("brg", vel)
 plt += __doc__
 plt.show(viewup='z').close()

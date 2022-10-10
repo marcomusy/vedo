@@ -19,11 +19,11 @@ fig1 = plot(
     xtitle="Distance from airplane axis [m]",
     ytitle="N [Kg*m/s^2 ]",
     axes=dict(
-        xyGridTransparent=False,
-        xyGridColor='k7',
-        xyAlpha=1,
-        xyPlaneColor='w',
-        yHighlightZero=True,
+        xygrid_transparent=False,
+        xygrid_color='k7',
+        xyalpha=1,
+        xyplane_color='w',
+        yhighlight_zero=True,
     ),
 )
 
@@ -36,13 +36,13 @@ fig2 = Figure(
     xtitle='',                    # don't draw the x-axis!
     ytitle='Poundal [lb*ft/s^2 ]',
     axes=dict(                    # extra options for y-axis
-        yShiftAlongX=1,           # shift 100% to the right
-        yLabelOffset=-1,
-        yLabelJustify="center-left",
-        yTitlePosition=0.5,
-        yTitleJustify="top-center",
-        axesLineWidth=3,
-        numberOfDivisions=10,
+        number_of_divisions=10,
+        yshift_along_x=1,         # shift 100% to the right
+        ylabel_offset=-1,
+        ylabel_justify="center-left",
+        ytitle_position=0.5,
+        ytitle_justify="top-center",
+        axes_linewidth=3,
         c='red3',
     ),
 )
@@ -54,7 +54,7 @@ msh = Mesh(dataurl+"cessna.vtk")
 
 cam = dict(  # press C to get these values
     pos=(3.899, -0.4781, 1.157),
-    focalPoint=(-0.1324, 0.9041, 0.3530),
+    focal_point=(-0.1324, 0.9041, 0.3530),
     viewup=(-0.1725, 0.06857, 0.9826),
 )
 show(msh, fig1, fig2, __doc__, axes=5, camera=cam, bg2='lb').close()

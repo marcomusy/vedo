@@ -45,7 +45,7 @@ plt.show(
         xtitle="X-axis in \mum",
         ytitle="Y-axis in \mum",
         ztitle="Z-axis in \mum",
-        yzGrid=False,
-        textScale=1.5,
+        yzgrid=False,
+        text_scale=1.5,
     ),
 ).close()

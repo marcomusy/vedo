@@ -17,7 +17,7 @@ fig = plot(
     ytitle="y(x) = \pmK_i \dot\sqrtsin^2 t",
     aspect=16/9,     # aspect ratio x/y of plot
     xlim=(-1, 14),   # specify x range
-    axes=dict(textScale=1.2),
+    axes=dict(text_scale=1.2),
     label="3 \dot sin(x)",
 )
 

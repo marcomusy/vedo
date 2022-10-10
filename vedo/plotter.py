@@ -1229,11 +1229,16 @@ class Plotter:
         fraction = max(fraction, 0)
 
         if isinstance(camstart, dict):
+            camstart = dict(camstart)
             p1 = np.asarray(camstart.pop("pos", [0, 0, 1]))
             f1 = np.asarray(camstart.pop("focalPoint", [0, 0, 0]))
+            if "focal_point" in camstart:
+                f1 = np.asarray(camstart.pop("focal_point", [0, 0, 0]))
             v1 = np.asarray(camstart.pop("viewup", [0, 1, 0]))
             s1 = camstart.pop("distance", None)
             c1 = np.asarray(camstart.pop("clippingRange", None))
+            if "clipping_range" in camstart:
+                c1 = np.asarray(camstart.pop("clipping_range", None))
         else:
             p1 = np.array(camstart.GetPosition())
             f1 = np.array(camstart.GetFocalPoint())
@@ -1242,11 +1247,16 @@ class Plotter:
             s1 = camstart.GetDistance()
 
         if isinstance(camstop, dict):
+            camstop = dict(camstop)
             p2 = np.asarray(camstop.pop("pos", [0, 0, 1]))
             f2 = np.asarray(camstop.pop("focalPoint", [0, 0, 0]))
+            if "focal_point" in camstop:
+                f2 = np.asarray(camstop.pop("focal_point", [0, 0, 0]))
             v2 = np.asarray(camstop.pop("viewup", [0, 1, 0]))
             s2 = camstop.pop("distance", None)
             c2 = np.asarray(camstop.pop("clippingRange", None))
+            if "clipping_range" in camstop:
+                c2 = np.asarray(camstop.pop("clipping_range", None))
         else:
             p2 = np.array(camstop.GetPosition())
             f2 = np.array(camstop.GetFocalPoint())
@@ -1722,7 +1732,7 @@ class Plotter:
                 b = Box(pos=(0,0,0), length=80, width=90, height=70).alpha(0)
 
                 show(b, axes={ 'xtitle':'Some long variable [a.u.]',
-                               'numberOfDivisions':4,
+                               'number_of_divisions':4,
                                # ...
                              }
                 )
@@ -2967,14 +2977,14 @@ class Plotter:
 
         if isinstance(camera, dict):
             camera = dict(camera)  # make a copy so input is not emptied by pop()
-            cm_pos = camera.pop("pos", None)
-            cm_focalPoint = camera.pop("focalPoint", None)
+            cm_pos = camera.pop("position", camera.pop("pos", None))
+            cm_focalPoint = camera.pop("focal_point", camera.pop("focalPoint", None))
             cm_viewup = camera.pop("viewup", None)
             cm_distance = camera.pop("distance", None)
-            cm_clippingRange = camera.pop("clippingRange", None)
-            cm_parallelScale = camera.pop("parallelScale", None)
+            cm_clippingRange = camera.pop("clipping_range", camera.pop("clippingRange", None))
+            cm_parallelScale = camera.pop("parallel_scale", camera.pop("parallelScale", None))
             cm_thickness = camera.pop("thickness", None)
-            cm_viewAngle = camera.pop("viewAngle", None)
+            cm_viewAngle = camera.pop("view_angle", camera.pop("viewAngle", None))
             if len(camera.keys()):
                 vedo.logger.warning(f"in show(cam=...), key(s) not recognized: {camera.keys()}")
             if cm_pos is not None: self.camera.SetPosition(cm_pos)
@@ -3696,11 +3706,11 @@ class Plotter:
             vedo.printc('\n###################################################', c='y')
             vedo.printc('## Template python code to position this camera: ##', c='y')
             vedo.printc('cam = dict(', c='y')
-            vedo.printc('    pos='          +utils.precision(cam.GetPosition(),7)+',', c='y')
-            vedo.printc('    focalPoint='   +utils.precision(cam.GetFocalPoint(),7)+',', c='y')
-            vedo.printc('    viewup='       +utils.precision(cam.GetViewUp(),7)+',', c='y')
-            vedo.printc('    distance='     +utils.precision(cam.GetDistance(),7)+',', c='y')
-            vedo.printc('    clippingRange='+utils.precision(cam.GetClippingRange(),7)+',', c='y')
+            vedo.printc('    position='     +utils.precision(cam.GetPosition(),6)+',', c='y')
+            vedo.printc('    focal_point='  +utils.precision(cam.GetFocalPoint(),6)+',', c='y')
+            vedo.printc('    viewup='       +utils.precision(cam.GetViewUp(),6)+',', c='y')
+            vedo.printc('    distance='     +utils.precision(cam.GetDistance(),6)+',', c='y')
+            vedo.printc('    clipping_range='+utils.precision(cam.GetClippingRange(),6)+',', c='y')
             vedo.printc(')', c='y')
             vedo.printc('show(mymeshes, camera=cam)', c='y')
             vedo.printc('###################################################', c='y')
@@ -3867,7 +3877,7 @@ class Plotter:
             if not self._extralight:
                 vup = self.renderer.GetActiveCamera().GetViewUp()
                 pos = cm + utils.vector(vup) * utils.mag(sizes)
-                self._extralight = addons.Light(pos, focalPoint=cm)
+                self._extralight = addons.Light(pos, focal_point=cm)
                 self.renderer.AddLight(self._extralight)
                 print("Press again o to rotate light source, or O to remove it.")
             else:

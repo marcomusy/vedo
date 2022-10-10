@@ -26,20 +26,20 @@ video = Video("spider.mp4", duration=4, backend='ffmpeg') # backend='opencv'
 #              azimuth=(0,359),
 #              zoom=None,
 #              cameras=None      # a list of camera positions, e.g.:
-cam1= dict(pos=(5.805, 17.34, -0.8418),
-           focalPoint=(3.133, 1.506, -3.132),
+cam1= dict(position=(5.805, 17.34, -0.8418),
+           focal_point=(3.133, 1.506, -3.132),
            viewup=(-0.3099, 0.1871, -0.9322),
            distance=16.22,
-           clippingRange=(12.35, 21.13))
-cam2= dict(pos=(-1.167, 3.356, -18.66),
-           focalPoint=(3.133, 1.506, -3.132),
+           clipping_range=(12.35, 21.13))
+cam2= dict(position=(-1.167, 3.356, -18.66),
+           focal_point=(3.133, 1.506, -3.132),
            distance=16.22,
-           clippingRange=(8.820, 25.58))
-cam3 = dict(pos=(-4.119, 0.9889, -0.8867),
-           focalPoint=(2.948, 1.048, -3.592),
+           clipping_range=(8.820, 25.58))
+cam3 = dict(position=(-4.119, 0.9889, -0.8867),
+           focal_point=(2.948, 1.048, -3.592),
            viewup=(-0.01864, 0.9995, -0.02682),
            distance=7.567,
-           clippingRange=(0.07978, 17.04))
+           clipping_range=(0.07978, 17.04))
 
 video.action(cameras=[cam1, cam2, cam3, cam1])
 

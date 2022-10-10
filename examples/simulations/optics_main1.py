@@ -15,7 +15,7 @@ lines = [Ray(pt).trace(elements).asLine() for pt in source]  # list of vedo.Line
 
 vedo.show("Test of  1/f = (n-1) \dot (1/R1-1/R2) \approx 1/2",
           elements, lines, lens.boundaries().lw(2),
-          azimuth=-90, zoom=1.2, size=(1100,700), axes=dict(zxGrid=True)).close()
+          azimuth=-90, zoom=1.2, size=(1100,700), axes=dict(zxgrid=True)).close()
 
 
 ####################################################################### dispersion

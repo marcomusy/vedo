@@ -15,8 +15,8 @@ axes = Axes(
     xtitle='マイクロメートル単位のx軸',
     ytitle='y軸にも長い説明があります',
     ztitle='Z軸始終來自中國',
-    titleFont='LogoType',
-    textScale=1.5,
+    title_font='LogoType',
+    text_scale=1.5,
     c='white',
 )
 

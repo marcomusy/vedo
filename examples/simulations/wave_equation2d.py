@@ -27,7 +27,7 @@ txt = Text2D(font='Brachium', pos='bottom-left', bg='yellow5')
 
 cam = dict(
     pos=(5.715, -10.54, 12.72),
-    focalPoint=(0.1380, -0.7437, -0.5408),
+    focal_point=(0.1380, -0.7437, -0.5408),
     viewup=(-0.2242, 0.7363, 0.6384),
     distance=17.40,
 )

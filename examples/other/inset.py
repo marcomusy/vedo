@@ -21,10 +21,10 @@ plt.add_inset(e2, pos=(0.9,0.5))
 ax = Axes(
     xrange=(0,1), yrange=(0,1), zrange=(0,1),
     xtitle='front', ytitle='left', ztitle='head',
-    yzGrid=False, xTitleSize=0.15, yTitleSize=0.15, zTitleSize=0.15,
-    xLabelSize=0, yLabelSize=0, zLabelSize=0, tipSize=0.05,
-    axesLineWidth=2, xLineColor='dr', yLineColor='dg', zLineColor='db',
-    xTitleOffset=0.05, yTitleOffset=0.05, zTitleOffset=0.05,
+    yzgrid=False, xtitle_size=0.15, ytitle_size=0.15, ztitle_size=0.15,
+    xlabel_size=0, ylabel_size=0, zlabel_size=0, tip_size=0.05,
+    axes_linewidth=2, xline_color='dr', yline_color='dg', zline_color='db',
+    xtitle_offset=0.05, ytitle_offset=0.05, ztitle_offset=0.05,
 )
 
 ex = e.clone().scale(0.25).pos(0,0.1,0.1).alpha(0.1).lighting('off')

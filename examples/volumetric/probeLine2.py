@@ -24,4 +24,4 @@ fig = plot(
 )
 fig.shift(0,25,0)
 
-show(vol, pl, fig, __doc__, axes=dict(xyGrid=0, yzGrid=0)).close()
+show(vol, pl, fig, __doc__, axes=dict(xygrid=0, yzgrid=0)).close()

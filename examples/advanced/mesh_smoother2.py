@@ -11,8 +11,8 @@ s2.c('light blue').lw(0).lighting('glossy').phong()
 # mesh.decimate(), clean(), smooth()
 
 cam = dict(
-    pos=(113, -189, 62.1),
-    focalPoint=(18.3, 4.39, 2.41),
+    position=(113, -189, 62.1),
+    focal_point=(18.3, 4.39, 2.41),
     viewup=(-0.0708, 0.263, 0.962),
     distance=223,
 )

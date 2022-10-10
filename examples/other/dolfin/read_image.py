@@ -29,7 +29,7 @@ u = Function(V)
 u.interpolate(y)
 
 cam = dict(pos=(10.6, 3.71, 22.7),
-           focalPoint=(10.6, 3.71, -1.04e-3),
+           focal_point=(10.6, 3.71, -1.04e-3),
            viewup=(0, 1.00, 0),
            distance=22.7,
            clippingRange=(21.3, 24.6)) # press C to get this lines of code
@@ -40,4 +40,4 @@ plot(u,
      lw=0.1,
      cmap='Greens_r',
      size=(600,300)
-     )
+)

@@ -18,9 +18,9 @@ from vedo.applications import FreeHandCutPlotter
 #         self.msg += "Press z to cut mesh"
 #         self.txt2d = vedo.Text2D(self.msg, pos='top-left', font="Bongas")
 #         self.txt2d.c("white").background("green4", alpha=1)
-#         self.addCallback('KeyPress', self.onKeyPress)
-#         self.addCallback('RightButton', self.onRightClick)
-#         self.addCallback('MouseMove', self.onMouseMove)
+#         self.add_callback('KeyPress', self.onKeyPress)
+#         self.add_callback('RightButton', self.onRightClick)
+#         self.add_callback('MouseMove', self.onMouseMove)
 
 #     def onRightClick(self, evt):
 #         self.drawmode = not self.drawmode  # toggle mode
@@ -38,7 +38,7 @@ from vedo.applications import FreeHandCutPlotter
 #     def onKeyPress(self, evt):
 #         if evt.keyPressed == 'z' and self.spline:       # cut mesh with a ribbon-like surface
 #             vedo.printc("Cutting the mesh please wait..", invert=True)
-#             tol = self.mesh.diagonalSize()/2            # size of ribbon
+#             tol = self.mesh.diagonal_size()/2            # size of ribbon
 #             pts = self.spline.points()
 #             n = vedo.fitPlane(pts, signed=True).normal  # compute normal vector to points
 #             rib = vedo.Ribbon(pts - tol*n, pts + tol*n, closed=True)

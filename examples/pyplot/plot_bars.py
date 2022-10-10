@@ -17,8 +17,8 @@ fig = plot(
     aspect=16/9,
     title='Clusters in lux range',
     axes=dict(
-        xLabelRotation=30,
-        xLabelSize=0.02,
+        xlabel_rotation=30,
+        xlabel_size=0.02,
     ),
 )
 

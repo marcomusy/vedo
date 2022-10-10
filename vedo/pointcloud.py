@@ -61,11 +61,11 @@ def visible_points(mesh, area=(), tol=None, invert=False):
 
             from vedo import Ellipsoid, show, visiblePoints
 
-            s = Ellipsoid().rotateY(30)
+            s = Ellipsoid().rotate_y(30)
 
-            #Camera options: pos, focalPoint, viewup, distance,
+            #Camera options: pos, focal_point, viewup, distance,
             # clippingRange, parallelScale, thickness, viewAngle
-            camopts = dict(pos=(0,0,25), focalPoint=(0,0,0))
+            camopts = dict(pos=(0,0,25), focal_point=(0,0,0))
             show(s, camera=camopts, offscreen=True)
 
             m = visible_points(s)
@@ -132,9 +132,9 @@ def delaunay2d(plist, mode="scipy", boundaries=(), tol=None, alpha=0, offset=0, 
 
     #############################################
     if mode == "scipy":
-        from scipy.spatial import Delaunay as scipy_Delaunay
+        from scipy.spatial import Delaunay as scipy_delaunay
 
-        tri = scipy_Delaunay(plist[:, 0:2])
+        tri = scipy_delaunay(plist[:, 0:2])
         return vedo.mesh.Mesh([plist, tri.simplices])
     #############################################
 
@@ -1562,7 +1562,7 @@ class Points(vtk.vtkFollower, BaseActor):
             .. code-block:: python
 
                 from vedo import *
-                s = Sphere(res=10).lineWidth(1).c("orange").compute_normals()
+                s = Sphere(res=10).linewidth(1).c("orange").compute_normals()
                 point_ids = s.labels('id', cells=False).c('green')
                 cell_ids  = s.labels('id', cells=True ).c('black')
                 show(s, point_ids, cell_ids)
@@ -3612,7 +3612,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
                 from vedo import Disc, show
                 disc = Disc(r1=1, r2=1.2)
-                mesh = disc.extrude(3, res=50).lineWidth(1)
+                mesh = disc.extrude(3, res=50).linewidth(1)
                 mesh.cut_with_cylinder([0,0,2], r=0.4, axis='y', invert=True)
                 show(mesh, axes=1)
 
@@ -3678,7 +3678,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
                 from vedo import Disc, show
                 disc = Disc(r1=1, r2=1.2)
-                mesh = disc.extrude(3, res=50).lineWidth(1)
+                mesh = disc.extrude(3, res=50).linewidth(1)
                 mesh.cut_with_sphere([1,-0.7,2], r=0.5, invert=True)
                 show(mesh, axes=1)
 

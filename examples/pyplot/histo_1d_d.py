@@ -26,7 +26,7 @@ fig2 = histogram(
     density=True,
     outline=True,
     c='purple9',
-    axes=dict(xyGrid=True, xyPlaneColor='grey2', xyAlpha=1, gridLineWidth=0),
+    axes=dict(xygrid=True, xyplane_color='grey2', xyalpha=1, grid_linewidth=0),
     label='finer binning',
 )
 # let's add an asterix marker where the mean is
