@@ -513,11 +513,7 @@ class Plotter:
         self.flagWidget = None
         self._flagRep = None
         self.scalarbars = []
-        self.backgroundRenderer = None
-        self.keyPressFunction = None         # obsolete! use plotter.callBack()
-        self.mouseLeftClickFunction = None   # obsolete! use plotter.callBack()
-        self.mouseMiddleClickFunction = None # obsolete! use plotter.callBack()
-        self.mouseRightClickFunction = None  # obsolete! use plotter.callBack()
+        self.background_renderer = None
         self._first_viewup = True
         self._extralight = None
         self.size = size
@@ -728,13 +724,13 @@ class Plotter:
             bgname = str(self.backgrcol).lower()
             if ".jpg" in bgname or ".jpeg" in bgname or ".png" in bgname:
                 self.window.SetNumberOfLayers(2)
-                self.backgroundRenderer = vtk.vtkRenderer()
-                self.backgroundRenderer.SetLayer(0)
-                self.backgroundRenderer.InteractiveOff()
-                self.backgroundRenderer.SetBackground(vedo.get_color(bg2))
+                self.background_renderer = vtk.vtkRenderer()
+                self.background_renderer.SetLayer(0)
+                self.background_renderer.InteractiveOff()
+                self.background_renderer.SetBackground(vedo.get_color(bg2))
                 image_actor = vedo.Picture(self.backgrcol)
-                self.window.AddRenderer(self.backgroundRenderer)
-                self.backgroundRenderer.AddActor(image_actor)
+                self.window.AddRenderer(self.background_renderer)
+                self.background_renderer.AddActor(image_actor)
 
             for i in reversed(range(shape[0])):
                 for j in range(shape[1]):
@@ -3189,11 +3185,7 @@ class Plotter:
         self.buttons = []
         self.widgets = []
         self.hoverLegends = []
-        self.backgroundRenderer = None
-        self.keyPressFunction = None         # obsolete! use plotter.callBack()
-        self.mouseLeftClickFunction = None   # obsolete! use plotter.callBack()
-        self.mouseMiddleClickFunction = None # obsolete! use plotter.callBack()
-        self.mouseRightClickFunction = None  # obsolete! use plotter.callBack()
+        self.background_renderer = None
         self._first_viewup = True
         self._extralight = None
         self.flagWidget = None
@@ -3318,8 +3310,6 @@ class Plotter:
         x, y = iren.GetEventPosition()
 
         renderer = iren.FindPokedRenderer(x, y)
-        self.renderer = renderer
-
         picker = vtk.vtkPropPicker()
         picker.PickProp(x, y, renderer)
 
@@ -3360,9 +3350,6 @@ class Plotter:
         if hasattr(clicked_actor, "picked3d"):  # might be not a vedo obj
             clicked_actor.picked3d = picker.GetPickPosition()
 
-        if self.mouseLeftClickFunction:
-            self.mouseLeftClickFunction(clicked_actor)
-
     #######################################################################
     def _mouseright(self, iren, event):
 
@@ -3370,8 +3357,6 @@ class Plotter:
         # print('_mouseright mouse at', x, y)
 
         renderer = iren.FindPokedRenderer(x, y)
-        self.renderer = renderer
-
         picker = vtk.vtkPropPicker()
         picker.PickProp(x, y, renderer)
         clicked_actor = picker.GetActor()
@@ -3396,8 +3381,6 @@ class Plotter:
         self.picked2d = np.array([x, y])
         self.clicked_actor = clicked_actor
 
-        if self.mouseRightClickFunction:
-            self.mouseRightClickFunction(clicked_actor)
 
     #######################################################################
     def _mousemiddle(self, iren, event):
@@ -3405,7 +3388,7 @@ class Plotter:
         x, y = iren.GetEventPosition()
 
         renderer = iren.FindPokedRenderer(x, y)
-        self.renderer = renderer
+        # self.renderer = renderer
 
         picker = vtk.vtkPropPicker()
         picker.PickProp(x, y, renderer)
@@ -3431,8 +3414,6 @@ class Plotter:
         self.picked3d = picker.GetPickPosition()
         self.picked2d = np.array([x, y])
 
-        if self.mouseMiddleClickFunction:
-            self.mouseMiddleClickFunction(self.clicked_actor)
 
     #######################################################################
     def _keypress(self, iren, event):
@@ -3446,6 +3427,7 @@ class Plotter:
         if key in ["Shift_L", "Control_L", "Super_L", "Alt_L",
                    "Shift_R", "Control_R", "Super_R", "Alt_R", "Menu"]:
             self.keyheld = key
+            return
 
         if key in ["q", "space", "Return", "F12"]:
             iren.ExitCallback()
@@ -3461,19 +3443,6 @@ class Plotter:
             vedo.logger.info("Execution aborted. Exiting python kernel now.")
             iren.ExitCallback()
             sys.exit(0)
-
-        # if ("Control_" in self.keyheld) and key=="c":
-        #     print('ctrl-c')
-
-        #############################################################
-        ### now intercept custom observer ###########################
-        #############################################################
-        if self.keyPressFunction:
-            if key not in ["Shift_L", "Control_L", "Super_L", "Alt_L",
-                           "Shift_R", "Control_R", "Super_R", "Alt_R"]:
-                self.keyPressFunction(key)
-                return
-        #############################################################
 
         if key == "Down":
             if self.clicked_actor in self.get_meshes():
@@ -3557,10 +3526,10 @@ class Plotter:
                         pass
 
         elif key == "u":
-            pval = self.renderer.GetActiveCamera().GetParallelProjection()
-            self.renderer.GetActiveCamera().SetParallelProjection(not pval)
+            pval = iren.GetActiveCamera().GetParallelProjection()
+            iren.GetActiveCamera().SetParallelProjection(not pval)
             if pval:
-                self.renderer.ResetCamera()
+                iren.ResetCamera()
 
         elif key == "p":
             if self.clicked_actor in self.get_meshes():
