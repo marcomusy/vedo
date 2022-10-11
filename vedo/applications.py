@@ -965,9 +965,9 @@ class FreeHandCutPlotter(Plotter):
                 self.add([self.points, self.spline, self.jline, self.topline])
 
     def _on_keypress(self, evt):
-        if evt.keyPressed.lower() == 'z' and self.spline: # Cut mesh with a ribbon-like surface
+        if evt.keypress.lower() == 'z' and self.spline: # Cut mesh with a ribbon-like surface
             inv = False
-            if evt.keyPressed == "Z":
+            if evt.keypress == "Z":
                 inv = True
             self.txt2d.background("red8").text("  ... working ...  ")
             self.render()
@@ -986,7 +986,7 @@ class FreeHandCutPlotter(Plotter):
             self.cpoints, self.points, self.spline = [], None, None
             self.top_pts, self.topline = [], None
 
-        elif evt.keyPressed == "L":
+        elif evt.keypress == "L":
             self.txt2d.background("red8")
             self.txt2d.text(" ... removing smaller ... \n ... parts of the mesh ... ")
             self.render()
@@ -1001,7 +1001,7 @@ class FreeHandCutPlotter(Plotter):
             self.txt2d.text(self.msg).background(self.color)   # put back original message
             self.add(mcut)
 
-        elif evt.keyPressed == 'u':                     # Undo last action
+        elif evt.keypress == 'u':                     # Undo last action
             if self.drawmode:
                 self._on_right_click(evt)                 # toggle mode to normal
             else:
@@ -1012,13 +1012,13 @@ class FreeHandCutPlotter(Plotter):
             self.top_pts, self.topline = [], None
             self.add(self.mesh)
 
-        elif evt.keyPressed in ('c', 'Delete'):
+        elif evt.keypress in ('c', 'Delete'):
             # clear all points
             self.remove([self.spline, self.points, self.jline, self.topline]).render()
             self.cpoints, self.points, self.spline = [], None, None
             self.top_pts, self.topline = [], None
 
-        elif evt.keyPressed == "r":  # reset camera and axes
+        elif evt.keypress == "r":  # reset camera and axes
             try:
                 self.remove(self.axes_instances[0])
                 self.axes_instances[0] = None
@@ -1028,7 +1028,7 @@ class FreeHandCutPlotter(Plotter):
             except:
                 pass
 
-        elif evt.keyPressed == "s":
+        elif evt.keypress == "s":
             if self.mesh.filename:
                 fname = os.path.basename(self.mesh.filename)
                 fname, extension = os.path.splitext(fname)
@@ -1141,7 +1141,7 @@ class SplinePlotter(Plotter):
             self.add(self.vpoints)
 
     def _key_press(self, evt):
-        if evt.keyPressed == 'c':
+        if evt.keypress == 'c':
             self.cpoints = []
             self.remove(self.line, self.vpoints).render()
             if self.verbose:

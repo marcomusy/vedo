@@ -406,42 +406,42 @@ def exe_eog(args):
         files.append(s)
 
     def vfunc(event):
-        # print(event.keyPressed)
+        # print(event.keypress)
         for p in pics:
-            if event.keyPressed == "r":
+            if event.keypress == "r":
                 p.window(win).level(lev)
-            elif event.keyPressed == "Up":
+            elif event.keypress == "Up":
                 p.level(p.level() + 10)
-            elif event.keyPressed == "Down":
+            elif event.keypress == "Down":
                 p.level(p.level() - 10)
-            if event.keyPressed == "Right":
+            if event.keypress == "Right":
                 p.window(p.window() + 10)
-            elif event.keyPressed == "Down":
+            elif event.keypress == "Down":
                 p.window(p.window() - 10)
-            elif event.keyPressed == "m":
+            elif event.keypress == "m":
                 p.mirror()
-            elif event.keyPressed == "t":
+            elif event.keypress == "t":
                 p.rotate(90)
-            elif event.keyPressed == "f":
+            elif event.keypress == "f":
                 p.flip()
-            elif event.keyPressed == "b":
+            elif event.keypress == "b":
                 p.binarize()
-            elif event.keyPressed == "i":
+            elif event.keypress == "i":
                 p.invert()
-            elif event.keyPressed == "I":
+            elif event.keypress == "I":
                 plt.colorPicker(event.picked2d, verbose=True)
-            elif event.keyPressed == "k":
+            elif event.keypress == "k":
                 p.enhance()
-            elif event.keyPressed == "s":
+            elif event.keypress == "s":
                 p.smooth(sigma=1)
-            elif event.keyPressed == "S":
+            elif event.keypress == "S":
                 ahl = plt.hoverLegends[-1]
                 plt.remove(ahl)
                 plt.screenshot()  # writer
                 printc("Picture saved as screenshot.png")
                 plt.add(ahl, render=False)
                 return
-            elif event.keyPressed == "h":
+            elif event.keypress == "h":
                 printc("---------------------------------------------")
                 printc("Press:")
                 printc("  up/down     to modify level (or drag mouse)")

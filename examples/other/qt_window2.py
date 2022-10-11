@@ -35,8 +35,8 @@ class MainWindow(Qt.QMainWindow):
         self.plt.render()
 
     def onKeypress(self, evt):
-        printc("You have pressed key:", evt.keyPressed, c='b')
-        if evt.keyPressed=='q':
+        printc("You have pressed key:", evt.keypress, c='b')
+        if evt.keypress=='q':
             self.plt.close()
             self.vtkWidget.close()
             exit()

@@ -36,7 +36,7 @@ from vedo.applications import FreeHandCutPlotter
 #                 self.add([self.points, self.spline])
 
 #     def onKeyPress(self, evt):
-#         if evt.keyPressed == 'z' and self.spline:       # cut mesh with a ribbon-like surface
+#         if evt.keypress == 'z' and self.spline:       # cut mesh with a ribbon-like surface
 #             vedo.printc("Cutting the mesh please wait..", invert=True)
 #             tol = self.mesh.diagonal_size()/2            # size of ribbon
 #             pts = self.spline.points()

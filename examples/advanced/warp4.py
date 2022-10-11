@@ -83,7 +83,7 @@ class Morpher:
         self.draw(True)
 
     def onkeypress(self, evt):  ###################################### MORPH & GENERATE
-        if evt.keyPressed == 'm': ##--------- morph mesh1 based on the existing arrows
+        if evt.keypress == 'm': ##--------- morph mesh1 based on the existing arrows
             if len(self.arrow_starts) != len(self.arrow_stops):
                 printc("You must select your end point first!", c='y')
                 return
@@ -106,7 +106,7 @@ class Morpher:
             self.msg2.text("Morphed output:")
             self.plotter.at(1).clear().addRendererFrame().add(output).resetCamera()
 
-        elif evt.keyPressed == 'g':  ##------- generate intermediate shapes
+        elif evt.keypress == 'g':  ##------- generate intermediate shapes
             if not self.dottedln:
                 return
             intermediates = []
@@ -120,7 +120,7 @@ class Morpher:
             self.plotter.at(1).add(intermediates)
             self.dottedln = None
 
-        elif evt.keyPressed == 'c':  ##------- clear all
+        elif evt.keypress == 'c':  ##------- clear all
             self.arrow_starts = []
             self.arrow_stops  = []
             self.toggle = False

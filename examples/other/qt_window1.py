@@ -33,7 +33,7 @@ class MainWindow(Qt.QMainWindow):
         printc("You have clicked your mouse button. Event info:\n", evt, c='y')
 
     def onKeypress(self, evt):
-        printc("You have pressed key:", evt.keyPressed, c='b')
+        printc("You have pressed key:", evt.keypress, c='b')
 
     @Qt.pyqtSlot()
     def onClick(self):

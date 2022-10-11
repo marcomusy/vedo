@@ -35,7 +35,7 @@ class SplinePlotter(Plotter):
             self.add(self.points)
 
     def keyPress(self, evt):
-        if evt.keyPressed == 'c':
+        if evt.keypress == 'c':
             self.cpoints = []
             self.remove(self.spline, self.points).render()
             printc("==== Cleared all points ====", c="r", invert=True)

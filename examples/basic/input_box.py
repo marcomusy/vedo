@@ -6,20 +6,20 @@ settings.enableDefaultKeyboardCallbacks = False
 
 def kfunc(evt):
     global msg
-    evt.keyPressed = evt.keyPressed.replace("period", ".")
-    if evt.keyPressed == "BackSpace" and msg:
+    evt.keypress = evt.keypress.replace("period", ".")
+    if evt.keypress == "BackSpace" and msg:
         msg = msg[:-1]
-        evt.keyPressed = ''
-    elif evt.keyPressed == "Return":
+        evt.keypress = ''
+    elif evt.keypress == "Return":
         bfunc()
         return
-    elif evt.keyPressed == "Escape":
+    elif evt.keypress == "Escape":
         plt.close()
 
-    if len(evt.keyPressed) > 1:
+    if len(evt.keypress) > 1:
         return
 
-    msg += f"{evt.keyPressed}"
+    msg += f"{evt.keypress}"
     bu.actor.SetInput(msg)
     plt.render()
 

@@ -4,7 +4,7 @@ Press b to compute the magnetic field
 from vedo import *
 
 def func(evt):
-    if evt.keyPressed != "b":
+    if evt.keypress != "b":
         return
     txt.text("..computing field in space, please wait!").c('red')
     plt.render()

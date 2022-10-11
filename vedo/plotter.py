@@ -2182,7 +2182,7 @@ class Plotter:
             - at: renderer nr. where the event occured
             - actor: object picked by the mouse
             - picked3d: point picked in world coordinates
-            - keyPressed: key pressed as string
+            - keypress: key pressed as string
             - picked2d: screen coords of the mouse pointer
             - delta2d: shift wrt previous position (to calculate speed, direction)
             - delta3d: ...same but in 3D world coords
@@ -2294,7 +2294,8 @@ class Plotter:
                     "at": self.renderers.index(self.renderer),
                     "actor": actor,
                     "picked3d": picked3d,
-                    "keyPressed": self.interactor.GetKeySym(),
+                    "keyPressed": self.interactor.GetKeySym(), # obsolete, will disappear. Use keypress
+                    "keypress": self.interactor.GetKeySym(),
                     "picked2d": (x, y),
                     "delta2d": (dx, dy),
                     "angle2d": np.arctan2(dy, dx),
@@ -3313,6 +3314,8 @@ class Plotter:
         renderer = iren.FindPokedRenderer(x, y)
         picker = vtk.vtkPropPicker()
         picker.PickProp(x, y, renderer)
+
+        self.renderer = renderer
 
         clicked_actor = picker.GetActor()
 

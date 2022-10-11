@@ -38,7 +38,7 @@ class MainWindow(Qt.QMainWindow):
         print("mouse clicked")
 
     def onKeypress(self, evt):
-        print("key pressed:", evt.keyPressed)
+        print("key pressed:", evt.keypress)
 
     @Qt.pyqtSlot()
     def onClick(self):

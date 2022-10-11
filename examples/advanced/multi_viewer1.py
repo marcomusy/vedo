@@ -9,16 +9,16 @@ plt2 = Plotter(title='Window 2', size=(700,700), pos=(400,0))
 
 ####################################################################################
 def keyfunc(evt):
-    printc('keyfunc called, pressed key:', evt.keyPressed)
+    printc('keyfunc called, pressed key:', evt.keypress)
 
-    if evt.keyPressed=='c':
+    if evt.keypress=='c':
         i = plt1.renderers.index(plt1.renderer)
         if i>= len(shapes): return
         shapes[i].color('red')
         plt1.render()
         plt2.render()
         onLeftClick(None)
-    elif evt.keyPressed=='h':
+    elif evt.keypress=='h':
         plt2.add(Text2D(instr, pos='bottom-right', c='dg', bg='g', font='Quikhand'))
 
 ####################################################################################
