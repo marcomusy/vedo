@@ -948,6 +948,7 @@ class Plotter:
             ren = self.renderer
 
         actors = utils.flatten(actors)
+        actors += self.get_meshes(include_non_pickables=True)
         actors_r = []
         for i, a in enumerate(actors):
             if isinstance(a, str):
@@ -957,7 +958,7 @@ class Plotter:
             else:
                 actors_r.append(a)
 
-        for a in actors_r:
+        for a in set(actors_r):
             if ren:
                 ren.RemoveActor(a)
                 if hasattr(a, "renderedAt"):
@@ -1451,22 +1452,22 @@ class Plotter:
         alpha : float
             opacity of the scalar bar texts
 
-        sliderLength : float
+        slider_length : float
             slider length
 
-        sliderWidth : float
+        slider_width : float
             slider width
 
-        endCapLength : float
+        end_cap_length : float
             length of the end cap
 
-        endCapWidth : float
+        end_cap_width : float
             width of the end cap
 
-        tubeWidth : float
+        tube_width : float
             width of the tube
 
-        titleHeight : float
+        title_height : float
             width of the title
 
         tformat : str
@@ -3421,6 +3422,8 @@ class Plotter:
         # NB: qt creates and passes a vtkGenericRenderWindowInteractor
 
         key = iren.GetKeySym()
+        x, y = iren.GetEventPosition()
+        renderer = iren.FindPokedRenderer(x, y)
 
         # utils.vedo.printc('Pressed key:', self.keyheld, key, c='y', box='-')
 
@@ -3526,10 +3529,10 @@ class Plotter:
                         pass
 
         elif key == "u":
-            pval = iren.GetActiveCamera().GetParallelProjection()
-            iren.GetActiveCamera().SetParallelProjection(not pval)
+            pval = renderer.GetActiveCamera().GetParallelProjection()
+            renderer.GetActiveCamera().SetParallelProjection(not pval)
             if pval:
-                iren.ResetCamera()
+                renderer.ResetCamera()
 
         elif key == "p":
             if self.clicked_actor in self.get_meshes():
@@ -3557,7 +3560,7 @@ class Plotter:
                             a.GetProperty().SetRepresentationToWireframe()
 
         elif key == "r":
-            self.renderer.ResetCamera()
+            renderer.ResetCamera()
 
         elif key == "h":
             msg  = " ==========================================================\n"
@@ -3634,17 +3637,17 @@ class Plotter:
                 vedo.printc("Antialiasing is now disabled", c=bool(msam))
 
         elif key == "D":  # toggle depthpeeling
-            udp = not self.renderer.GetUseDepthPeeling()
-            self.renderer.SetUseDepthPeeling(udp)
+            udp = not renderer.GetUseDepthPeeling()
+            renderer.SetUseDepthPeeling(udp)
             # self.renderer.SetUseDepthPeelingForVolumes(udp)
             # print(self.window.GetAlphaBitPlanes())
             if udp:
                 self.window.SetAlphaBitPlanes(1)
-                self.renderer.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
-                self.renderer.SetOcclusionRatio(settings.occlusionRatio)
+                renderer.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
+                renderer.SetOcclusionRatio(settings.occlusionRatio)
             self.interactor.Render()
-            wasUsed = self.renderer.GetLastRenderingUsedDepthPeeling()
-            rnr = self.renderers.index(self.renderer)
+            wasUsed = renderer.GetLastRenderingUsedDepthPeeling()
+            rnr = self.renderers.index(renderer)
             vedo.printc(f'Depth peeling is now set to {udp} for renderer nr.{rnr}', c=udp)
             if not wasUsed and udp:
                 vedo.printc('\t...but last rendering did not actually used it!', c=udp, invert=True)
@@ -3671,7 +3674,7 @@ class Plotter:
             # Precision needs to be 7 (or even larger) to guarantee a consistent camera when
             #   the model coordinates are not centered at (0, 0, 0) and the mode is large.
             # This could happen for plotting geological models with UTM coordinate systems
-            cam = self.renderer.GetActiveCamera()
+            cam = renderer.GetActiveCamera()
             vedo.printc('\n###################################################', c='y')
             vedo.printc('## Template python code to position this camera: ##', c='y')
             vedo.printc('cam = dict(', c='y')
@@ -3747,14 +3750,14 @@ class Plotter:
                                     ia._scals_idx = 0
 
         elif key == "5":
-            bgc = np.array(self.renderer.GetBackground()).sum() / 3
+            bgc = np.array(renderer.GetBackground()).sum() / 3
             if bgc <= 0:
                 bgc = 0.223
             elif 0 < bgc < 1:
                 bgc = 1
             else:
                 bgc = 0
-            self.renderer.SetBackground(bgc, bgc, bgc)
+            renderer.SetBackground(bgc, bgc, bgc)
 
         elif key == "6":
             bg2cols = [
@@ -3769,7 +3772,7 @@ class Plotter:
                 "blackboard",
                 "black",
             ]
-            bg2name = vedo.get_color_name(self.renderer.GetBackground2())
+            bg2name = vedo.get_color_name(renderer.GetBackground2())
             if bg2name in bg2cols:
                 idx = bg2cols.index(bg2name)
             else:
@@ -3777,19 +3780,19 @@ class Plotter:
             if idx is not None:
                 bg2name_next = bg2cols[(idx + 1) % (len(bg2cols) - 1)]
             if not bg2name_next:
-                self.renderer.GradientBackgroundOff()
+                renderer.GradientBackgroundOff()
             else:
-                self.renderer.GradientBackgroundOn()
-                self.renderer.SetBackground2(vedo.get_color(bg2name_next))
+                renderer.GradientBackgroundOn()
+                renderer.SetBackground2(vedo.get_color(bg2name_next))
 
         elif key in ["plus", "equal", "KP_Add", "minus", "KP_Subtract"]:  # cycle axes style
-            clickedr = self.renderers.index(self.renderer)
+            clickedr = self.renderers.index(renderer)
             if self.axes_instances[clickedr]:
                 if hasattr(self.axes_instances[clickedr], "EnabledOff"):  # widget
                     self.axes_instances[clickedr].EnabledOff()
                 else:
                     try:
-                        self.renderer.RemoveActor(self.axes_instances[clickedr])
+                        renderer.RemoveActor(self.axes_instances[clickedr])
                     except:
                         pass
                 self.axes_instances[clickedr] = None
@@ -3820,14 +3823,14 @@ class Plotter:
                     "KP_Up":8,     "KP_8":8,
                     "KP_Prior":9,  "KP_9":9,
                     }
-            clickedr = self.renderers.index(self.renderer)
+            clickedr = self.renderers.index(renderer)
             if key in asso:
                 if self.axes_instances[clickedr]:
                     if hasattr(self.axes_instances[clickedr], "EnabledOff"):  # widget
                         self.axes_instances[clickedr].EnabledOff()
                     else:
                         try:
-                            self.renderer.RemoveActor(self.axes_instances[clickedr])
+                            renderer.RemoveActor(self.axes_instances[clickedr])
                         except:
                             pass
                     self.axes_instances[clickedr] = None
@@ -3835,7 +3838,7 @@ class Plotter:
                 self.interactor.Render()
 
         if key == "O":
-            self.renderer.RemoveLight(self._extralight)
+            renderer.RemoveLight(self._extralight)
             self._extralight = None
 
         elif key == "o":
@@ -3844,10 +3847,10 @@ class Plotter:
                 (vbb[0] + vbb[1]) / 2, (vbb[2] + vbb[3]) / 2, (vbb[4] + vbb[5]) / 2
             )
             if not self._extralight:
-                vup = self.renderer.GetActiveCamera().GetViewUp()
+                vup = renderer.GetActiveCamera().GetViewUp()
                 pos = cm + utils.vector(vup) * utils.mag(sizes)
                 self._extralight = addons.Light(pos, focal_point=cm)
-                self.renderer.AddLight(self._extralight)
+                renderer.AddLight(self._extralight)
                 print("Press again o to rotate light source, or O to remove it.")
             else:
                 cpos = utils.vector(self._extralight.GetPosition())
