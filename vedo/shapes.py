@@ -2826,7 +2826,6 @@ class Grid(Mesh):
     def __init__(
         self,
         pos=(0, 0, 0),
-        normal=(0, 0, 1),
         s=(1,1),
         c="k3",
         alpha=1,
@@ -2870,8 +2869,6 @@ class Grid(Mesh):
             Mesh.__init__(self, poly, c, alpha)
             self.SetPosition(pos)
 
-        self.orientation(normal)
-
         self.wireframe().lw(lw)
         self.GetProperty().LightingOff()
         self.name = "Grid"
@@ -2889,7 +2886,7 @@ class Plane(Mesh):
 
     .. image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestPlane.png
     """
-    def __init__(self, pos=(0, 0, 0), normal=(0, 0, 1), s=(1, 1), c="gray6", alpha=1):
+    def __init__(self, pos=(0, 0, 0), normal=(0, 0, 1), s=(1, 1), c="gray6", alpha=1, res=(1, 1)):
 
         pos = (pos[0], pos[1], 0)
         sx, sy = s
@@ -2899,7 +2896,7 @@ class Plane(Mesh):
         self.variance = 0
 
         ps = vtk.vtkPlaneSource()
-        ps.SetResolution(1, 1)
+        ps.SetResolution(res[0], res[1])
         tri = vtk.vtkTriangleFilter()
         tri.SetInputConnection(ps.GetOutputPort())
         tri.Update()
@@ -2917,7 +2914,7 @@ class Plane(Mesh):
         tf.SetTransform(t)
         tf.Update()
         Mesh.__init__(self, tf.GetOutput(), c, alpha)
-        self.lighting("ambient")
+        self.lighting("off")
         self.SetPosition(pos)
         self.name = "Plane"
         self.top = self.normal

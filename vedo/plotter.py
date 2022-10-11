@@ -3831,11 +3831,11 @@ class Plotter:
             if key in ["minus", "KP_Subtract"]:
                 if not settings.useParallelProjection and self.axes == 0:
                     self.axes -= 1  # jump ruler doesnt make sense in perspective mode
-                addons.addGlobalAxes(axtype=(self.axes - 1) % 14, c=None)
+                addons.add_global_axes(axtype=(self.axes - 1) % 14, c=None)
             else:
                 if not settings.useParallelProjection and self.axes == 12:
                     self.axes += 1  # jump ruler doesnt make sense in perspective mode
-                addons.addGlobalAxes(axtype=(self.axes + 1) % 14, c=None)
+                addons.add_global_axes(axtype=(self.axes + 1) % 14, c=None)
             self.interactor.Render()
 
         elif "KP_" in key:  # change axes style
@@ -3862,7 +3862,7 @@ class Plotter:
                         except:
                             pass
                     self.axes_instances[clickedr] = None
-                addons.addGlobalAxes(axtype=asso[key], c=None)
+                addons.add_global_axes(axtype=asso[key], c=None)
                 self.interactor.Render()
 
         if key == "O":

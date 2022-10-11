@@ -1,6 +1,26 @@
 ## Main changes
 
-- removed requirement to vtk<9.1
+- NOTE: Convention has moved from `camelCase` to `snake_case`.
+
+E.g.
+```python
+mesh = Mesh("bunny.obj")
+mesh.cutWithPlane()
+show(mesh)
+```
+
+now becomes
+
+```python
+mesh = Mesh("bunny.obj")
+mesh.cut_with_plane()     ### <--
+show(mesh)
+```
+
+Some backward incompatibility may occur!
+
+
+- removed requirement on vtk version
 
 ---
 ### `addons.py`
@@ -63,24 +83,10 @@ examples/basic/multiwindows2.py
 examples/simulations/lorenz.py
 examples/simulations/orbitals.py
 
-explore5d.py
-fitPolynomial2.py
-fourier_epicycles.py
-fonts3d.py
-histo_1d_d.py
-isolines.py
-plot_density4d.py
-plot_extra_yaxis.py
-plot_pip.py
-
-
-
-mag_field1.py
 /home/musy/Projects/vedo/examples/volumetric/image_probe.py
 /home/musy/Projects/vedo/examples/volumetric/volumeOperations.py
 /home/musy/Projects/vedo/examples/other/meshio_read.py
-pymeshlab2.py
-ex06_elasticity3.py
+/home/musy/Projects/vedo/examples/other/dolfin/ex06_elasticity3.py
 
 
 

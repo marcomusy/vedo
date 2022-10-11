@@ -1022,7 +1022,7 @@ class FreeHandCutPlotter(Plotter):
             try:
                 self.remove(self.axes_instances[0])
                 self.axes_instances[0] = None
-                self.addGlobalAxes(axtype=1, c=None)
+                self.add_global_axes(axtype=1, c=None)
                 self.renderer.ResetCamera()
                 self.interactor.Render()
             except:
