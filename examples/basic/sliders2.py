@@ -24,7 +24,7 @@ plt = Plotter(N=2, axes=True)
 
 ######
 plt.at(0).show(sphere, __doc__)  # show the sphere on the first renderer
-plt.add_slider_2d(
+plt.add_slider(
     slider0,
     -9, 9,           # slider range
     value=0,         # initial value
@@ -35,7 +35,7 @@ plt.add_slider_2d(
 
 ######
 plt.at(1).show(cube)
-plt.add_slider_2d(
+plt.add_slider(
     slider1,
     -9, 9,
     value=0,

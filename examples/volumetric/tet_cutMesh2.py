@@ -19,7 +19,7 @@ tetm2 = tetm.clone().cut_with_mesh(sphere, invert=True, whole_cells=True)
 
 # Cut tetm, but the output will keep only the tets on the boundary:
 tetm3 = tetm.clone().cut_with_mesh(sphere, only_boundary=True)
-tetm3.add_scalarbar_3d(c='k')
+tetm3.add_scalarbar3d(c='k')
 
 show([(msh1, sphere, __doc__),
       (tetm2.tomesh(), "Keep only tets that lie\ncompletely outside the Sphere"),

@@ -41,8 +41,8 @@ fig = plot(
 fig += plot(x, y, lw=5, label='fit')
 fig += Marker('*', s=0.5, c='r4').pos(x0,y0, 0.1)
 
-fig.addLabel('\mu', marker='*', mc="r4")
-fig.addLegend("top-left", vspace=2.5)
+fig.add_label('\mu', marker='*', mc="r4")
+fig.add_legend("top-left", vspace=2.5)
 
 fig.show(size=(900, 650), zoom='tight').close()
 

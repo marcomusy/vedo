@@ -22,7 +22,7 @@ plt += Picture(dataurl + "images/limbs_tc.jpg").scale(0.0154).y(10)
 plt += Line([(0, 8), (0, 10), (28.6, 10), (4.5, 8)], c="gray")
 plt += Axes(objs[-1])
 plt += objs[0]
-plt.add_slider_2d(
+plt.add_slider(
     sliderfunc,
     0,
     len(objs) - 1,

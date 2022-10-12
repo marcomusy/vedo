@@ -24,7 +24,7 @@ fig = histogram(
 
 # Extract the 11th bin and color it purple
 fig.unpack(10).c('purple4')
-fig.addLabel("special bin", marker='s', mc='purple4')
+fig.add_label("special bin", marker='s', mc='purple4')
 
 # Add a second histogram to be superimposed
 fig += histogram(backgr, label='background')
@@ -32,5 +32,5 @@ fig += histogram(backgr, label='background')
 # Add the data histogram with poissonian errors
 fig += histogram(data, marker='o', errors=True, fill=False, label='data')
 
-fig.addLegend(s=0.8)
+fig.add_legend(s=0.8)
 fig.show(zoom='tight').close()

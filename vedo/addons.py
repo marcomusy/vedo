@@ -23,8 +23,8 @@ Create additional objects like axes, legends, lights, etc.
 __all__ = [
     "ScalarBar",
     "ScalarBar3D",
-    "add_slider_2d",
-    "add_slider_3d",
+    "add_slider",
+    "add_slider3d",
     "add_button",
     "add_cutter_tool",
     "add_icon",
@@ -271,7 +271,7 @@ class Button:
 #####################################################################
 class SplineTool(vtk.vtkContourWidget):
     """
-    Spline tool, to be used with ``plotter.addSplineTool()``.
+    Spline tool, to be used with ``plotter.add_spline_tool()``.
 
     Parameters
     ----------
@@ -662,7 +662,7 @@ def ScalarBar(
         .. image:: https://user-images.githubusercontent.com/32848391/62940174-4bdc7900-bdd3-11e9-9713-e4f3e2fdab63.png
     """
     if not hasattr(obj, "mapper"):
-        vedo.logger.error(f"in addScalarBar(): input is invalid {type(obj)}. Skip.")
+        vedo.logger.error(f"in add_scalarbar(): input is invalid {type(obj)}. Skip.")
         return None
 
     if isinstance(obj, Points):
@@ -1102,7 +1102,7 @@ def ScalarBar3D(
 
 
 #####################################################################
-def add_slider_2d(
+def add_slider(
         sliderfunc,
         xmin,
         xmax,
@@ -1356,7 +1356,7 @@ def add_slider_2d(
 
 
 #####################################################################
-def add_slider_3d(
+def add_slider3d(
         sliderfunc,
         pos1,
         pos2,
@@ -1884,7 +1884,7 @@ def add_icon(mesh, pos=3, size=0.08):
     """
     plt = vedo.plotter_instance
     if not plt.renderer:
-        vedo.logger.warning("Use addIcon() after first rendering the scene.")
+        vedo.logger.warning("Use add_icon() after first rendering the scene.")
 
         save_int = plt.interactive
         plt.show(interactive=0)
@@ -2244,7 +2244,7 @@ def add_scale_indicator(pos=(0.7, 0.05), s=0.02, length=2, lw=4, c="k", units=""
     wsx, wsy = plt.window.GetSize()
     if not plt.renderer.GetActiveCamera().GetParallelProjection():
         vedo.logger.warning(
-            "addScaleIndicator is called with useParallelProjection OFF."
+            "add_scale_indicator() is called with useParallelProjection OFF."
         )
 
     rlabel = vtk.vtkVectorText()

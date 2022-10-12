@@ -29,7 +29,7 @@ def initfunc(iren, data):
 plt = Plotter(shape=(1, len(volumes)), sharecam=False, bg2='lightcyan')
 
 for iren, data in enumerate(volumes):
-    plt.add_slider_2d(
+    plt.add_slider(
         initfunc(iren, data), #func
         0, data.dimensions()[2],
         value=0,

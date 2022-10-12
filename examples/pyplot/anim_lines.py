@@ -32,7 +32,7 @@ for i in range(50):
         line.points(newpts).cmap('gist_heat_r', newpts[:,2])
     plt.render()
     if plt.escaped: break # if ESC is hit during the loop
-    # vd.addFrame()
+    # vd.add_frame()
 # vd.close()
 
 plt.interactive().close()

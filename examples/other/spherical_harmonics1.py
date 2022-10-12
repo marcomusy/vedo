@@ -38,7 +38,7 @@ for th in np.linspace(0, np.pi, N, endpoint=True):
     agrid.append(longs)
 agrid = np.array(agrid)
 
-hits = Points(pts).cmap('jet', agrid.ravel()).add_scalarbar_3d('scalar distance to x_0')
+hits = Points(pts).cmap('jet', agrid.ravel()).add_scalarbar3d('scalar distance to x_0')
 show([surface, hits, Point(x0), __doc__], at=0, N=2, axes=1)
 
 #############################################################

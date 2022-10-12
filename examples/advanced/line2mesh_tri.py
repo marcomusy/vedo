@@ -9,7 +9,7 @@ cmap = "RdYlBu"
 msh = shape.tomesh()  # Generate the Mesh from the line
 msh.smooth()  # make the triangles more uniform
 msh.compute_quality()  # add a measure of triangle quality
-msh.cmap(cmap, on="cells").add_scalarbar_3d()
+msh.cmap(cmap, on="cells").add_scalarbar3d()
 
 contour = Line(shape).c("red4").lw(5)
 labels = contour.labels("id")

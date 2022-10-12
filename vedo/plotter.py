@@ -1394,11 +1394,11 @@ class Plotter:
         return self
 
     ##################################################################
-    @deprecated(reason=vedo.colors.red + "Please use add_slider_2d()" + vedo.colors.reset)
+    @deprecated(reason=vedo.colors.red + "Please use add_slider()" + vedo.colors.reset)
     def addSlider2D(self, *a, **b):
-        return self.add_slider_2d(*a, **b)
+        return self.add_slider(*a, **b)
 
-    def add_slider_2d(
+    def add_slider(
             self,
             sliderfunc,
             xmin,
@@ -1476,7 +1476,7 @@ class Plotter:
         .. hint:: [sliders1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders1.py), sliders2.py
             ..image:: https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg
         """
-        return addons.add_slider_2d(
+        return addons.add_slider(
             sliderfunc,
             xmin,
             xmax,
@@ -1491,7 +1491,7 @@ class Plotter:
             **options,
         )
 
-    def add_slider_3d(
+    def add_slider3d(
         self,
         sliderfunc,
         pos1,
@@ -1549,7 +1549,7 @@ class Plotter:
         .. hint:: [sliders3d.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders3d.py)
             ..image:: https://user-images.githubusercontent.com/32848391/52859555-4efcf200-312d-11e9-9290-6988c8295163.png
         """
-        return addons.add_slider_3d(
+        return addons.add_slider3d(
             sliderfunc, pos1, pos2, xmin, xmax, value, s, t, title, rotation, c, show_value
         )
 
@@ -1652,7 +1652,7 @@ class Plotter:
         if self.interactor:
             sw.SetInteractor(self.interactor)
         else:
-            vedo.logger.error("in addSplineTool(), No interactor found.")
+            vedo.logger.error("in add_spline_tool(), No interactor found.")
             raise RuntimeError
         sw.On()
         sw.Initialize(sw.points.polydata())
@@ -1883,7 +1883,7 @@ class Plotter:
             self.renderer.AddActor(self.skybox)
 
         else:
-            vedo.logger.error("addSkyBox not supported in this VTK version. Skip.")
+            vedo.logger.error("add_skybox not supported in this VTK version. Skip.")
 
         return self
 
@@ -2095,7 +2095,7 @@ class Plotter:
                 settings.useParallelProjection = True # or else it doesnt make sense!
                 cube = Cube().alpha(0.2)
                 plt = Plotter(size=(900,600), axes=dict(xtitle='x (um)'))
-                plt.addScaleIndicator(units='um', c='blue4')
+                plt.add_scale_indicator(units='um', c='blue4')
                 plt.show(cube, "Scale indicator with units")
         """
         ppoints = vtk.vtkPoints()  # Generate the polyline
@@ -2113,7 +2113,7 @@ class Plotter:
 
         wsx, wsy = self.window.GetSize()
         if not settings.useParallelProjection:
-            vedo.logger.warning("addScaleIndicator called with useParallelProjection OFF. Skip.")
+            vedo.logger.warning("add_scale_indicator called with useParallelProjection OFF. Skip.")
             return None
 
         rlabel = vtk.vtkVectorText()
@@ -3099,7 +3099,7 @@ class Plotter:
         draggable = options.pop("draggable", True)
 
         if not self.renderer:
-            vedo.logger.warning("call addInset() only after first rendering of the scene.")
+            vedo.logger.warning("call add_inset() only after first rendering of the scene.")
             save_int = self._interactive
             self.show(interactive=0)
             self._interactive = save_int

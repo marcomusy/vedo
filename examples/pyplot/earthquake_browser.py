@@ -38,6 +38,6 @@ def sliderfunc(widget, event):
         ce.on() if isinside else ce.off()
 
 plt = Plotter(size=(2200,1100), title="Earthquake Browser")
-plt.add_slider_2d(sliderfunc, 0, len(centers)-1, value=len(centers)-1, show_value=False, title="today")
+plt.add_slider(sliderfunc, 0, len(centers)-1, value=len(centers)-1, show_value=False, title="today")
 plt.add_hover_legend(use_info=True, alpha=1, c='white', bg='red2', s=1)
 plt.show(pic, centers, comment, zoom="tightest", mode='image').close()

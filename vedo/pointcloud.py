@@ -1145,7 +1145,7 @@ class Points(vtk.vtkFollower, BaseActor):
         for sha in shadows:
             color = sha.GetProperty().GetColor()
             opacity = sha.GetProperty().GetOpacity()
-            self.addShadow(**sha.info, c=color, alpha=opacity)
+            self.add_shadow(**sha.info, c=color, alpha=opacity)
 
     def delete_cells_by_point_index(self, indices):
         """
@@ -1229,7 +1229,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 from vedo import *
                 b1 = Sphere().pos(10,0,0)
                 b2 = Sphere().pos(15,0,0)
-                b1.distance_to(b2, signed=True, invert=False).addScalarBar()
+                b1.distance_to(b2, signed=True, invert=False).add_scalarbar()
                 print(b1.pointdata["Distance"])
                 show(b1, b2, axes=1).close()
 

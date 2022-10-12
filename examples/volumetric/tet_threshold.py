@@ -9,7 +9,7 @@ tetm.color('prism').alpha([0,1])
 
 # Threshold the tetrahedral mesh for values in the range:
 tetm.threshold(above=0.9, below=1)
-tetm.add_scalarbar_3d('chem_0  expression levels', c='k', italic=1)
+tetm.add_scalarbar3d('chem_0  expression levels', c='k', italic=1)
 
 show([(tetm,__doc__),
        tetm.tomesh(shrink=0.9),

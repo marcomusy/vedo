@@ -36,7 +36,7 @@ fig2 += Marker('a', [fig2.mean,0.2,0.1], s=0.1).c('orange5')
 fig2.shift(0, 25, 0.1)
 
 ################## Insert fig2 into fig1
-fig2.addLegend()
+fig2.add_legend()
 fig1.insert(fig2)
 
 show(fig1, __doc__, zoom='tight', size=(1200,900)).close()

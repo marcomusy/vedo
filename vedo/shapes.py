@@ -640,7 +640,7 @@ class Line(Mesh):
                 from vedo.pyplot import plot
                 shape = load(dataurl+"timecourse1d.npy")[55]
                 curvs = Line(shape.points()).curvature()
-                shape.cmap('coolwarm', curvs, vmin=-2,vmax=2).addScalarBar3D(c='w')
+                shape.cmap('coolwarm', curvs, vmin=-2,vmax=2).add_scalarbar3d(c='w')
                 shape.renderLinesAsTubes().lw(12)
                 pp = plot(curvs, c='white', lc='yellow5')
                 show(shape, pp, N=2, bg='bb', sharecam=False).close()

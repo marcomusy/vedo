@@ -38,5 +38,5 @@ fig += plot(x, y/5, "g", label="3/5 \dot sin(x)")
 fig += plot(x, y/5-1, "purple5 -", label="3/5 \dot sin(x) - 1")
 
 ################## Show! ##################
-fig.addLegend(pos=[0.95,1], radius=0.2)
+fig.add_legend(pos=[0.95,1], radius=0.2)
 fig.show(size=(1400,900), zoom='tight').close()

@@ -18,12 +18,12 @@ vol1.alpha([0.0, 0.2, 0.3, 0.8])
 # a transparency for the GRADIENT of the scalar can also be set:
 # in this case when the scalar is ~constant the gradient is ~zero
 # and the voxel are made transparent:
-vol1.alpha_gradient([0.0, 0.5, 0.9]).add_scalarbar_3d('composite shade', c='k')
+vol1.alpha_gradient([0.0, 0.5, 0.9]).add_scalarbar3d('composite shade', c='k')
 vol1.scalarbar.scale(0.8).x(20)
 
 # mode = 1 is maximum-projection volume rendering
 vol2 = Volume(dataurl+"vase.vti").mode(1).shift(60,0,0)
-vol2.add_scalarbar_3d('maximum-projection', c='k')
+vol2.add_scalarbar3d('maximum-projection', c='k')
 vol2.scalarbar.scale(0.8).x(160)
 
 # show command creates and returns an instance of class Plotter

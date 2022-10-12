@@ -79,7 +79,7 @@ def print_solution(S, start, goal):
             else:                print("  ", end='')
         print()
 
-def show_solution_3d(S, start, goal):
+def show_solution3d(S, start, goal):
     from vedo import Text3D, Cube, Line, Grid, merge, show
 
     pts, cubes, txts = [], [], []
@@ -114,4 +114,4 @@ if __name__ == '__main__':
     S = solve(Z, start, goal)
 
     #print_solution(S, start, goal)
-    show_solution_3d(S, start, goal).close()
+    show_solution3d(S, start, goal).close()

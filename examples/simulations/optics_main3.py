@@ -26,7 +26,7 @@ def slider(widget, event):         ### callback to shift the beam along x
     plt.remove("Line").add(line)   # remove the old and add the new one
 
 plt = Plotter(axes=1, bg='peachpuff', bg2='blue9')
-plt.add_slider_2d(slider, -0.07, 0.07, value=0, pos=5, title="beam shift")
+plt.add_slider(slider, -0.07, 0.07, value=0, pos=5, title="beam shift")
 plt.show(mirror, detector, __doc__, elevation=-30)
 plt.close()
 

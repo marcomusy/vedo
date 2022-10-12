@@ -77,7 +77,7 @@ class Morpher:
         self.arrow_starts.pop()
         if not self.toggle:
             self.arrow_stops.pop()
-        self.plotter.at(0).clear().addRendererFrame()
+        self.plotter.at(0).clear().add_renderer_frame()
         self.plotter.add([self.plane1, self.msg1, self.mesh1, self.mesh2], render=False)
         self.draw(False)
         self.draw(True)
@@ -104,7 +104,7 @@ class Morpher:
 
             self.msg1.text(self.instructions)
             self.msg2.text("Morphed output:")
-            self.plotter.at(1).clear().addRendererFrame().add(output).resetCamera()
+            self.plotter.at(1).clear().add_renderer_frame().add(output).resetCamera()
 
         elif evt.keypress == 'g':  ##------- generate intermediate shapes
             if not self.dottedln:
@@ -129,7 +129,7 @@ class Morpher:
             self.msg2.text("[output will show here]")
             self.plotter.at(0).clear()
             self.plotter.add([self.plane1, self.msg1, self.mesh1, self.mesh2])
-            self.plotter.at(1).clear().addRendererFrame()
+            self.plotter.at(1).clear().add_renderer_frame()
             self.plotter.add([self.plane2, self.msg2])
 
 

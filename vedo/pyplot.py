@@ -370,7 +370,7 @@ class Figure(Assembly):
 
         return self
 
-    def addLabel(self, text, c=None, marker="", mc="black"):
+    def add_label(self, text, c=None, marker="", mc="black"):
         """
         Manually add en entry label to the legend.
 
@@ -397,7 +397,7 @@ class Figure(Assembly):
         return self
 
 
-    def addLegend(self,
+    def add_legend(self,
             pos="top-right",
             relative=True,
             font=None,
@@ -567,7 +567,7 @@ class Figure(Assembly):
                     px, py = xlim[1], ry
                     shx, shy = x1, (y0 + y1) / 2
             else:
-                vedo.logger.error(f"in addLegend(), cannot understand {pos}")
+                vedo.logger.error(f"in add_legend(), cannot understand {pos}")
                 raise RuntimeError
 
         else:
@@ -1154,7 +1154,7 @@ class Histogram2D(Figure):
             g.shrink(abs(1 - gap))
 
         if scalarbar:
-            sc = g.add_scalarbar_3d(ztitle, c=ac).scalarbar
+            sc = g.add_scalarbar3d(ztitle, c=ac).scalarbar
             sc.scale([self.yscale, 1, 1])  ## prescale trick
             sbnds = sc.xbounds()
             sc.x(self.x1lim + (sbnds[1] - sbnds[0]) * 0.75)
@@ -2983,7 +2983,7 @@ def _plot_spheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha
         xm = np.max([np.max(pts[0]), 1])
         ym = np.max([np.abs(np.max(pts[1])), 1])
         ssurf.mapper().SetScalarRange(np.min(newr), np.max(newr))
-        sb3d = ssurf.add_scalarbar_3d(s=(xm * 0.07, ym), c="k").scalarbar
+        sb3d = ssurf.add_scalarbar3d(s=(xm * 0.07, ym), c="k").scalarbar
         sb3d.rotate_x(90).pos(xm * 1.1, 0, -0.5)
     else:
         sb3d = None
@@ -3299,7 +3299,7 @@ def _histogramSpheric(
     newsg.cmap(cmap, acounts, on="cells")
 
     if scalarbar:
-        newsg.addScalarBar()
+        newsg.add_scalarbar()
     newsg.name = "histogramSpheric"
     return newsg
 
@@ -3654,7 +3654,6 @@ def streamplot(
     uf = np.ravel(U, order="F")
     vf = np.ravel(V, order="F")
     vects = np.c_[uf, vf, np.zeros_like(uf)]
-    # vol.addPointArray(vects, "vects")
     vol.pointdata["StreamPlotField"] = vects
 
     if len(probes) == 0:
@@ -3682,7 +3681,7 @@ def streamplot(
     if c is not None:
         stream.color(c)
     else:
-        stream.addScalarBar()
+        stream.add_scalarbar()
     stream.lighting("off")
 
     stream.scale([1 / (n - 1) * (xmax - xmin), 1 / (n - 1) * (ymax - ymin), 1])
@@ -3783,7 +3782,7 @@ def matrix(
     gr.cmap(cmap, matr, on="cells", vmin=vmin, vmax=vmax)
     sbar = None
     if scalarbar:
-        gr.add_scalarbar_3d(title_font=font, label_font=font)
+        gr.add_scalarbar3d(title_font=font, label_font=font)
         sbar = gr.scalarbar
     labs = None
     if scale != 0:

@@ -8,7 +8,7 @@ data_matrix[30:50, 30:60, 30:70] = 2
 data_matrix[50:69, 60:79, 70:89] = 3
 
 vol = Volume(data_matrix, c=['white','b','g','r'], mapper='gpu')
-vol.add_scalarbar_3d()
+vol.add_scalarbar3d()
 vol.print()
 
 # optionally mask some parts of the volume (needs mapper='gpu'):

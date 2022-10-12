@@ -17,9 +17,9 @@ for i in range(3):
 ms[0].add_scalarbar(title="my scalarbar\nnumber #0")  # 2D
 
 # add 3D scalar bars
-ms[1].add_scalarbar_3d(c="k", title="scalarbar #1", s=[None, 3])
+ms[1].add_scalarbar3d(c="k", title="scalarbar #1", s=[None, 3])
 
-sc = ms[2].add_scalarbar_3d(
+sc = ms[2].add_scalarbar3d(
     pos=(1, 0, -5),
     c="k",
     s=[None, 2.8],  # change y-size only

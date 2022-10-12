@@ -15,7 +15,7 @@ hist = histogram(mesh.celldata["Quality"], xtitle="mesh quality", ac="w")
 hist.scale(0.6).pos(40, -53, 0).use_bounds(False)
 
 # add a scalar bar for the active scalars
-mesh.add_scalarbar_3d(c="w", title="triangle quality by min(\alpha_i )")
+mesh.add_scalarbar3d(c="w", title="triangle quality by min(\alpha_i )")
 
 # create numeric labels of active scalar on top of cells
 labs = mesh.labels(cells=True, precision=3, scale=0.4, font="Quikhand", c="black",)

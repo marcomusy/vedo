@@ -1187,7 +1187,7 @@ class Mesh(Points):
             .. code-block:: python
 
                 from vedo import Torus
-                Torus().addCurvatureScalars().addScalarBar().show(axes=1)
+                Torus().compute_curvature().add_scalarbar().show(axes=1)
 
             .. image:: https://user-images.githubusercontent.com/32848391/51934810-c2e88c00-2404-11e9-8e7e-ca0b7984bbb7.png
         """
@@ -1230,8 +1230,8 @@ class Mesh(Points):
             .. code-block:: python
 
                 from vedo import Sphere
-                s = Sphere().addElevationScalars(lowPoint=(0,0,0), highPoint=(1,1,1))
-                s.addScalarBar().show(axes=1)
+                s = Sphere().compute_elevation(low=(0,0,0), high=(1,1,1))
+                s.add_scalarbar().show(axes=1)
 
             .. image:: https://user-images.githubusercontent.com/32848391/68478872-3986a580-0231-11ea-8245-b68a683aa295.png
         """

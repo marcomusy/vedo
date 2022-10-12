@@ -18,7 +18,7 @@ slines = StreamLines(
     max_propagation=15,
     tubes=dict(radius=0.005, mode=2, ratio=1),
 )
-slines.cmap("Reds").add_scalarbar_3d(c='white')
+slines.cmap("Reds").add_scalarbar3d(c='white')
 slines.scalarbar.x(5) # reposition scalarbar at x=5
 
 show(slines, seeds, furniture(), __doc__, axes=1, bg='bb').close()

@@ -594,11 +594,11 @@ def plot(*inputobj, **options):
 
         if scbar and c is None:
             if "3d" in scbar:
-                actor.addScalarBar3D()
+                actor.add_scalarbar3d()
             elif "h" in scbar:
-                actor.addScalarBar(horizontal=True)
+                actor.add_scalarbar(horizontal=True)
             else:
-                actor.addScalarBar(horizontal=False)
+                actor.add_scalarbar(horizontal=False)
 
         if len(isolns) > 0:
             ison = isolns.pop("n", 10)
@@ -720,7 +720,6 @@ class MeshActor(Mesh):
         self.u = u  # holds a dolfin function_data
         # holds the actual values of u on the mesh
         self.u_values = _compute_uvalues(u, mesh)
-        # self.addPointArray(self.u_values, "u_values")
 
     def move(self, u=None, deltas=None):
         """Move mesh according to solution `u` or from calculated vertex displacements `deltas`."""
@@ -786,7 +785,8 @@ def MeshPoints(*inputobj, **options):
                 dispsizes = utils.mag(u_values)
         else:  # u_values is 1D
             dispsizes = u_values
-        actor.addPointArray(dispsizes, "u_values")
+        actor.pointdata["u_values"] = dispsizes
+        actor.pointdata.select("u_values")
     return actor
 
 
@@ -898,7 +898,8 @@ def MeshStreamLines(*inputobj, **options):
         u_values = np.insert(u_values, 2, 0, axis=1)  # make it 3d
 
     meshact = MeshActor(u)
-    meshact.addPointArray(u_values, "u_values")
+    meshact.pointdata["u_values"] = u_values
+    meshact.pointdata.select("u_values")
 
     if utils.is_sequence(probes):
         pass  # it's already it

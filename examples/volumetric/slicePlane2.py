@@ -11,6 +11,6 @@ for i in range(4):
 
 amap = [0, 1, 1, 1, 1]  # hide low value points giving them alpha 0
 mslices = merge(slices) # merge all slices into a single Mesh
-mslices.cmap('hot_r', alpha=amap).lighting('off').add_scalarbar_3d()
+mslices.cmap('hot_r', alpha=amap).lighting('off').add_scalarbar3d()
 
 show(vol, mslices, __doc__, axes=1).close()

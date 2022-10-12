@@ -1342,12 +1342,12 @@ class BaseActor(Base3DProp):
         self.scalarbar = sb
         return self
 
-    @deprecated(reason=vedo.colors.red + "Please use method add_scalarbar_3d()" + vedo.colors.reset)
+    @deprecated(reason=vedo.colors.red + "Please use method add_scalarbar3d()" + vedo.colors.reset)
     def addScalarBar3D(self, *a, **b):
-        """Deprecated. Please use method add_scalarbar_3d()"""
-        return self.add_scalarbar_3d(*a, **b)
+        """Deprecated. Please use method add_scalarbar3d()"""
+        return self.add_scalarbar3d(*a, **b)
 
-    def add_scalarbar_3d(
+    def add_scalarbar3d(
         self,
         title="",
         pos=None,

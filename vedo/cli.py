@@ -486,7 +486,7 @@ def exe_eog(args):
             p = pics[i].pickable(True)
             pos = [-p.shape[0] / 2, -p.shape[1] / 2, 0]
             p.pos(pos)
-            plt.addHoverLegend(at=i, c="k8", bg="k2", alpha=0.4)
+            plt.add_hover_legend(at=i, c="k8", bg="k2", alpha=0.4)
             plt.show(p, axes=0, at=i, mode="image")
         plt.show(interactive=False)
         plt.resetCamera(tight=0.05)
@@ -559,7 +559,7 @@ def draw_scene(args):
         settings.immediateRendering = False
         plt.axes = args.axes_type
         for i in range(N):
-            plt.addHoverLegend(at=i)
+            plt.add_hover_legend(at=i)
         if args.axes_type in (4, 5):
             plt.axes = 0
     else:
@@ -622,7 +622,7 @@ def draw_scene(args):
             vol,
             bg="white",
             bg2="lb",
-            use_slider_3d=useSlider3D,
+            use_slider3d=useSlider3D,
             cmaps=[args.cmap, "Spectral_r", "hot_r", "bone_r", "gist_ncar_r"],
             alpha=args.alpha,
             axes=args.axes_type,
@@ -644,7 +644,7 @@ def draw_scene(args):
             return
 
         plt = applications.FreeHandCutPlotter(m, splined=True)
-        plt.addHoverLegend()
+        plt.add_hover_legend()
         if not args.background_grad:
             args.background_grad = None
         plt.start(axes=1, bg=args.background, bg2=args.background_grad)

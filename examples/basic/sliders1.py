@@ -15,7 +15,7 @@ mesh = Mesh(dataurl+"magnolia.vtk").flat().lw(0.1)
 plt = Plotter()
 plt += [mesh, __doc__]
 
-plt.add_slider_2d(
+plt.add_slider(
     slider1,
     xmin=-9,
     xmax=9,
@@ -24,7 +24,7 @@ plt.add_slider_2d(
     title="color number",
 )
 
-plt.add_slider_2d(
+plt.add_slider(
     slider2,
     xmin=0.01,
     xmax=0.99,

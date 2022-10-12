@@ -30,11 +30,11 @@ lut = build_lut(
     interpolate=False,
 )
 # 3D scalarbar:
-mesh.cmap(lut, data).add_scalarbar_3d(title='My 3D scalarbar', c='white')
+mesh.cmap(lut, data).add_scalarbar3d(title='My 3D scalarbar', c='white')
 mesh.scalarbar.scale(1.5).rotate_x(90).y(1) # make it bigger and place it
 
 # 2D scalarbar:
-# mesh.cmap(lut, data).addScalarBar()
+# mesh.cmap(lut, data).add_scalarbar()
 
 show(mesh, __doc__,
      axes=dict(zlabel_size=.04, number_of_divisions=10),

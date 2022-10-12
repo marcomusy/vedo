@@ -28,7 +28,7 @@ vol.threshold(above=0.3, below=0.4, replace=0.9)
 
 ch = CornerHistogram(vol, pos="bottom-left")
 
-vol.add_scalarbar_3d('Height is the voxel scalar', s=[None,1])
+vol.add_scalarbar3d('Height is the voxel scalar', s=[None,1])
 vol.scalarbar.rotate_x(90).pos(1.15,1,0.5)
 
 show(pts, vol, ch, __doc__, axes=1, elevation=-90).close()

@@ -5,7 +5,7 @@ from vedo import ParametricShape, Sphere, show
 # RandomHills already contains the height as a scalar defined on vertices
 h = ParametricShape('RandomHills')
 h.cmap('hsv', vmin=0, vmax=6)
-h.add_scalarbar_3d(title='RandomHills height scalar value')
+h.add_scalarbar3d(title='RandomHills height scalar value')
 
 # interpolate such values on a completely different Mesh.
 # pick N=4 closest points and assign an ave value based on shepard kernel.

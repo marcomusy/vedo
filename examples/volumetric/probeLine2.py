@@ -4,7 +4,7 @@ from vedo import dataurl, Volume, probe_line, show
 from vedo.pyplot import plot
 
 vol = Volume(dataurl+'embryo.slc')
-vol.add_scalarbar_3d('wild-type mouse embryo', c='k')
+vol.add_scalarbar3d('wild-type mouse embryo', c='k')
 
 p1, p2 = (50,50,50), (200,200,200)
 pl = probe_line(vol, p1, p2, res=100).linewidth(4)

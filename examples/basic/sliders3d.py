@@ -10,7 +10,7 @@ mesh.normalize().rotate_z(190)
 def slider_y(widget, event):
     mesh.y(widget.value)  # set y coordinate position
 
-plt.add_slider_3d(
+plt.add_slider3d(
     slider_y,
     pos1=[0.5, -3.5, 0.35],
     pos2=[0.5, -1.0, 0.35],

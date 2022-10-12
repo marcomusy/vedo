@@ -59,7 +59,7 @@ class Slicer3DPlotter(Plotter):
     clamp : bool
         clamp scalar to reduce the effect of tails in color mapping
 
-    use_slider_3d : bool
+    use_slider3d : bool
         show sliders attached along the axes
 
     show_histo : bool
@@ -82,7 +82,7 @@ class Slicer3DPlotter(Plotter):
             cmaps=('gist_ncar_r', "hot_r", "bone_r", "jet", "Spectral_r"),
             map2cells=False,  # buggy
             clamp=True,
-            use_slider_3d=False,
+            use_slider3d=False,
             show_histo=True,
             show_icon=True,
             draggable=False,
@@ -196,8 +196,8 @@ class Slicer3DPlotter(Plotter):
             cx, cy, cz = "lr", "lg", "lb"
             ch = (0.8, 0.8, 0.8)
 
-        if not use_slider_3d:
-            self.add_slider_2d(
+        if not use_slider3d:
+            self.add_slider(
                 sliderfunc_x,
                 0,
                 dims[0],
@@ -207,7 +207,7 @@ class Slicer3DPlotter(Plotter):
                 show_value=False,
                 c=cx,
             )
-            self.add_slider_2d(
+            self.add_slider(
                 sliderfunc_y,
                 0,
                 dims[1],
@@ -217,7 +217,7 @@ class Slicer3DPlotter(Plotter):
                 show_value=False,
                 c=cy,
             )
-            self.add_slider_2d(
+            self.add_slider(
                 sliderfunc_z,
                 0,
                 dims[2],
@@ -230,7 +230,7 @@ class Slicer3DPlotter(Plotter):
             )
         else:  # 3d sliders attached to the axes bounds
             bs = box.bounds()
-            self.addSlider3D(
+            self.add_slider3d(
                 sliderfunc_x,
                 pos1=(bs[0], bs[2], bs[4]),
                 pos2=(bs[1], bs[2], bs[4]),
@@ -240,7 +240,7 @@ class Slicer3DPlotter(Plotter):
                 c=cx,
                 show_value=False,
             )
-            self.addSlider3D(
+            self.add_slider3d(
                 sliderfunc_y,
                 pos1=(bs[1], bs[2], bs[4]),
                 pos2=(bs[1], bs[3], bs[4]),
@@ -250,7 +250,7 @@ class Slicer3DPlotter(Plotter):
                 c=cy,
                 show_value=False,
             )
-            self.addSlider3D(
+            self.add_slider3d(
                 sliderfunc_z,
                 pos1=(bs[0], bs[2], bs[4]),
                 pos2=(bs[0], bs[2], bs[5]),
@@ -459,7 +459,7 @@ class RayCastPlotter(Plotter):
             sliderRep.SetTitleText(cmaps[k])
             volume.color(cmaps[k])
 
-        w1 = self.add_slider_2d(
+        w1 = self.add_slider(
             sliderColorMap,
             0,
             Ncols - 1,
@@ -489,7 +489,7 @@ class RayCastPlotter(Plotter):
             self.alphaslider0 = widget.GetRepresentation().GetValue()
             setOTF()
 
-        self.add_slider_2d(
+        self.add_slider(
             sliderA0,
             0,
             1,
@@ -503,7 +503,7 @@ class RayCastPlotter(Plotter):
             self.alphaslider1 = widget.GetRepresentation().GetValue()
             setOTF()
 
-        self.add_slider_2d(
+        self.add_slider(
             sliderA1,
             0,
             1,
@@ -517,7 +517,7 @@ class RayCastPlotter(Plotter):
             self.alphaslider2 = widget.GetRepresentation().GetValue()
             setOTF()
 
-        w2 = self.add_slider_2d(
+        w2 = self.add_slider(
             sliderA2,
             0,
             1,
@@ -706,7 +706,7 @@ class IsosurfaceBrowser(Plotter):
         if lego:
             self.actors[0].add_scalarbar(pos=(0.8, 0.12))
 
-        self.add_slider_2d(
+        self.add_slider(
             sliderThres,
             scrange[0] + 0.02 * delta,
             scrange[1] - 0.02 * delta,
@@ -787,7 +787,7 @@ class Browser(Plotter):
                 tx = ak.name
             widget.GetRepresentation().SetTitleText(prefix + tx)
 
-        self.slider = self.add_slider_2d(
+        self.slider = self.add_slider(
             sliderfunc,
             0.5,
             len(objects) - 0.5,
@@ -1542,7 +1542,7 @@ class Animation(Plotter):
             dt = tt - ttlast
             if dt > self.eps:
                 self.show(interactive=False, resetcam=self.resetcam)
-                if self.video_filename: vd.addFrame()
+                if self.video_filename: vd.add_frame()
 
                 if dt > self.time_resolution+self.eps:
                     if self.video_filename: vd.pause(dt)
@@ -1554,7 +1554,7 @@ class Animation(Plotter):
 
         self.show(interactive=False, resetcam=self.resetcam)
         if self.video_filename:
-            vd.addFrame()
+            vd.add_frame()
             vd.close()
 
         self.show(interactive=True, resetcam=self.resetcam)
