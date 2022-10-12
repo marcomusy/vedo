@@ -1,4 +1,4 @@
-"""Share the same color and trasparency mapping across different volumes"""
+"""Share the same color and transparency mapping across different volumes"""
 from vedo import Volume, Line, show
 import numpy as np
 

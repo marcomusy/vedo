@@ -27,7 +27,7 @@ fig1 = plot(
 )
 fig1 += DashedLine(x, y, c='r')
 
-# Fit points and evaluate, with a boostrap and Monte-Carlo technique,
+# Fit points and evaluate, with a bootstrap and Monte-Carlo technique,
 # the correct errors and error bands. Return a Line object:
 pfit = fit(
     [x, y+noise],

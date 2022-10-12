@@ -15,7 +15,7 @@ noise = np.random.randn(len(x)) * 5 # create gaussian noise
 fig = plot(x, y+noise, '*k', title=__doc__, label='data')
 fig += DashedLine(x, y, c='red5')
 
-# Fit points and evaluate, with a boostrap and Monte-Carlo technique,
+# Fit points and evaluate, with a bootstrap and Monte-Carlo technique,
 # the correct error coeffs and error bands. Return a Line object:
 pfit = fit(
     [x, y+noise],

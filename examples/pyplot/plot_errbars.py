@@ -26,7 +26,7 @@ fig += plot(
     x + np.pi, y,
     "sb--",
     like=fig,        # format like fig
-    splined=True,    # continous spline through points
+    splined=True,    # continuous spline through points
     lw=3,            # line width
     label="3 \dot sin(x - \pi)",
 )

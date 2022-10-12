@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     t = """Click to add a point
     Right-click to remove it
-    Drag mouse to change constrast
+    Drag mouse to change contrast
     Press c to clear points"""
     instrucs = Text2D(t, pos='bottom-left', c='white', bg='green', font='Quikhand')
 

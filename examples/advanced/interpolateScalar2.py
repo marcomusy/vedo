@@ -22,7 +22,7 @@ desc = 3*sin(4*y)
 itr = Rbf(x, y, z, desc)          # Radial Basis Function interpolator
 #itr = Near(ptsubset, desc)       # Nearest-neighbour interpolator
 
-# interpolate desciptor on the full set of mesh vertices
+# interpolate descriptor on the full set of mesh vertices
 xi, yi, zi = np.split(pts, 3, axis=1)
 interpolated_desc = itr(xi, yi, zi)
 

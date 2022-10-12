@@ -1,4 +1,4 @@
-"""Form a surface mesh by joining countour lines"""
+"""Form a surface mesh by joining contour lines"""
 from vedo import Circle, Ribbon, merge, show
 
 cs = []

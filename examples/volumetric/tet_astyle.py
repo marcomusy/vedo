@@ -12,14 +12,14 @@ tetm.add_scalarbar3d()
 wmesh = tetm.tomesh(fill=False).wireframe()
 
 # Make a copy of tetm and shrink the tets
-shrinked = tetm.clone().shrink(0.5)
+shrunk = tetm.clone().shrink(0.5)
 
 # Build a Mesh object and cut it
-cmesh = shrinked.tomesh(fill=True)
+cmesh = shrunk.tomesh(fill=True)
 
 show([(tetm, __doc__),
       (wmesh, "..wireframe surface"),
-      (cmesh, "..shrinked tetrahedra"),
+      (cmesh, "..shrunk tetrahedra"),
      ], N=3, axes=1,
 ).close()
 

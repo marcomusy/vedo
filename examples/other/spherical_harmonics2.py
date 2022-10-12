@@ -1,7 +1,7 @@
 """
 Morph one shape into another using spherical harmonics package shtools.
 
-In this example we morph a sphere into a octahedron and viceversa.
+In this example we morph a sphere into a octahedron and vice-versa.
 """
 import numpy as np
 from vedo import settings, Plotter, Points, Sphere, cos, dataurl, mag, sin, Mesh

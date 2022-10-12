@@ -10,7 +10,7 @@ mesh = Mesh(dataurl+"bunny.obj")
 pts2 = mesh.points()[:100]
 # assume the value is random
 scalars = np.random.randint(45,123, 100)
-# create a set fo points with this scalar values
+# create a set of points with this scalar values
 points = Points(pts2, r=10).cmap('rainbow', scalars)
 
 # interpolate from points onto the mesh, by averaging the 5 closest ones

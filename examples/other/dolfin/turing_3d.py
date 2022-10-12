@@ -19,7 +19,7 @@ parameters["form_compiler"]["cpp_optimize"] = True
 parameters["form_compiler"]["representation"] = "uflacs"
 set_log_level(30)
 
-# Class representing the intial conditions
+# Class representing the initial conditions
 class InitialConditions(UserExpression):
     def eval(self, val, x):
         val[0] = np.random.rand()

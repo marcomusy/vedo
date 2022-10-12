@@ -1,5 +1,5 @@
 """Elliptic Fourier Descriptors
-parametrizing a closed countour (in red)"""
+parametrizing a closed contour (in red)"""
 import vedo
 import pyefd
 
