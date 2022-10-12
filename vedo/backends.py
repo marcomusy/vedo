@@ -65,18 +65,18 @@ def get_notebook_backend(actors2show, zoom, viewup):
 
         vedo.notebook_plotter = k3d.plot(
             axes=["x", "y", "z"],
-            menu_visibility=settings.k3dMenuVisibility,
-            height=settings.k3dPlotHeight,
-            antialias=settings.k3dAntialias,
+            menu_visibility=settings.k3d_menu_visibility,
+            height=settings.k3d_plot_height,
+            antialias=settings.k3d_antialias,
         )
         # vedo.notebook_plotter.grid = kgrid
-        vedo.notebook_plotter.lighting = settings.k3dLighting
+        vedo.notebook_plotter.lighting = settings.k3d_lighting
 
         # set k3d camera
-        vedo.notebook_plotter.camera_auto_fit = settings.k3dCameraAutoFit
-        vedo.notebook_plotter.grid_auto_fit = settings.k3dGridAutoFit
+        vedo.notebook_plotter.camera_auto_fit = settings.k3d_camera_autofit
+        vedo.notebook_plotter.grid_auto_fit = settings.k3d_grid_autofit
 
-        vedo.notebook_plotter.axes_helper = settings.k3dAxesHelper
+        vedo.notebook_plotter.axes_helper = settings.k3d_axes_helper
 
         if vedo.plotter_instance and vedo.plotter_instance.camera:
             k3dc = utils.vtkCameraToK3D(vedo.plotter_instance.camera)
@@ -227,7 +227,7 @@ def get_notebook_backend(actors2show, zoom, viewup):
                     color=_rgb2int(iap.GetColor()),
                     colors=kcols,
                     opacity=iap.GetOpacity(),
-                    shader=settings.k3dPointShader,
+                    shader=settings.k3d_point_shader,
                     point_size=iap.GetPointSize(),
                     name=name,
                 )
@@ -260,7 +260,7 @@ def get_notebook_backend(actors2show, zoom, viewup):
                         pts.astype(numpy.float32),
                         color=_rgb2int(iap.GetColor()),
                         opacity=iap.GetOpacity(),
-                        shader=settings.k3dLineShader,
+                        shader=settings.k3d_line_shader,
                         # width=iap.GetLineWidth()*sqsize/1000,
                         name=name,
                     )

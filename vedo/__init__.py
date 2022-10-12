@@ -14,8 +14,12 @@ import vtkmodules.all as vtk
 
 #################################################
 from vedo.version import _version as __version__
+
+import vedo.settings_module as settings
+# from vedo.settings_class import Settings
+# settings = Settings(level=0)
+
 from vedo.utils import *
-from vedo import settings
 from vedo.colors import *
 from vedo.shapes import *
 from vedo.io import *
@@ -38,6 +42,14 @@ try:
 except (ModuleNotFoundError, AttributeError) as e:
     sys_platform = ""
 
+#######################################################################################
+__author__     = "Marco Musy"
+__license__    = "MIT"
+__maintainer__ = "M. Musy"
+__email__      = "marco.musy@embl.es"
+__status__     = "dev"
+__website__    = "https://github.com/marcomusy/vedo"
+
 
 ##### To generate documentation #######################################################
 # cd Projects/vedo
@@ -59,14 +71,6 @@ __pdoc__['pointcloud.Points.cellColors'] = False
 __pdoc__['pointcloud.Points.thinPlateSpline'] = False
 __pdoc__['pointcloud.Points.warpByVectors'] = False
 __pdoc__['pointcloud.Points.distanceToMesh'] = False
-
-#######################################################################################
-__author__     = "Marco Musy"
-__license__    = "MIT"
-__maintainer__ = "M. Musy"
-__email__      = "marco.musy@embl.es"
-__status__     = "dev"
-__website__    = "https://github.com/marcomusy/vedo"
 
 ##################################################################################
 ########################################################################## GLOBALS
@@ -139,9 +143,3 @@ fonts = [_f.split(".")[0] for _f in os.listdir(fonts_path) if '.npz' not in _f]
 fonts = list(sorted(fonts))
 
 last_figure = None  # pyplot module
-
-# class xsettings:
-
-#     def default_font():
-#         return "Pippo"
-

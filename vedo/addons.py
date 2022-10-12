@@ -3643,18 +3643,18 @@ def add_global_axes(axtype=None, c=None):
 
     elif plt.axes == 5:
         axact = vtk.vtkAnnotatedCubeActor()
-        axact.GetCubeProperty().SetColor(get_color(settings.annotatedCubeColor))
+        axact.GetCubeProperty().SetColor(get_color(settings.annotated_cube_color))
         axact.SetTextEdgesVisibility(0)
-        axact.SetFaceTextScale(settings.annotatedCubeTextScale)
-        axact.SetXPlusFaceText(settings.annotatedCubeTexts[0])  # XPlus
-        axact.SetXMinusFaceText(settings.annotatedCubeTexts[1])  # XMinus
-        axact.SetYPlusFaceText(settings.annotatedCubeTexts[2])  # YPlus
-        axact.SetYMinusFaceText(settings.annotatedCubeTexts[3])  # YMinus
-        axact.SetZPlusFaceText(settings.annotatedCubeTexts[4])  # ZPlus
-        axact.SetZMinusFaceText(settings.annotatedCubeTexts[5])  # ZMinus
+        axact.SetFaceTextScale(settings.annotated_cube_text_scale)
+        axact.SetXPlusFaceText(settings.annotated_cube_texts[0])  # XPlus
+        axact.SetXMinusFaceText(settings.annotated_cube_texts[1])  # XMinus
+        axact.SetYPlusFaceText(settings.annotated_cube_texts[2])  # YPlus
+        axact.SetYMinusFaceText(settings.annotated_cube_texts[3])  # YMinus
+        axact.SetZPlusFaceText(settings.annotated_cube_texts[4])  # ZPlus
+        axact.SetZMinusFaceText(settings.annotated_cube_texts[5])  # ZMinus
         axact.SetZFaceTextRotation(90)
 
-        if settings.annotatedCubeTextColor is None:  # use default
+        if settings.annotated_cube_text_color is None:  # use default
             axact.GetXPlusFaceProperty().SetColor(get_color("r"))
             axact.GetXMinusFaceProperty().SetColor(get_color("dr"))
             axact.GetYPlusFaceProperty().SetColor(get_color("g"))
@@ -3662,7 +3662,7 @@ def add_global_axes(axtype=None, c=None):
             axact.GetZPlusFaceProperty().SetColor(get_color("b"))
             axact.GetZMinusFaceProperty().SetColor(get_color("db"))
         else:  # use single user color
-            ac = get_color(settings.annotatedCubeTextColor)
+            ac = get_color(settings.annotated_cube_text_color)
             axact.GetXPlusFaceProperty().SetColor(ac)
             axact.GetXMinusFaceProperty().SetColor(ac)
             axact.GetYPlusFaceProperty().SetColor(ac)

@@ -2154,14 +2154,14 @@ class Points(vtk.vtkFollower, BaseActor):
             for r in vedo.shapes._reps:
                 text = text.replace(r[0], r[1])
         self.flagText = text
-        settings.flagDelay = delay
-        settings.flagFont = font
-        settings.flagFontSize = size
-        settings.flagAngle = angle
-        settings.flagShadow = shadow
-        settings.flagColor = c
-        settings.flagJustification = justify
-        settings.flagBackgroundColor = bg
+        settings.flag_delay = delay
+        settings.flag_font = font
+        settings.flag_font_size = size
+        settings.flag_angle = angle
+        settings.flag_shadow = shadow
+        settings.flag_color = c
+        settings.flag_justification = justify
+        settings.flag_background_color = bg
         return self
 
     def align_to(
