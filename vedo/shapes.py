@@ -1060,7 +1060,7 @@ class Lines(Mesh):
 
 class Spline(Line):
     """
-    Find the B-Spline curve through a set of points. This curve does not necessarly
+    Find the B-Spline curve through a set of points. This curve does not necessarily
     pass exactly through all the input points. Needs to import `scipy`.
 
     Parameters
@@ -1138,7 +1138,7 @@ class Spline(Line):
             elif easing == "OutCirc":
                 x = np.sqrt(1 - np.power(x - 1, 2))
             else:
-                vedo.logger.error(f"unkown ease mode {easing}")
+                vedo.logger.error(f"unknown ease mode {easing}")
 
         # find the knots
         tckp, _ = splprep(points.T, task=0, s=smooth, k=degree, per=per)
@@ -3747,7 +3747,7 @@ def _load_font(font):
 
     if font not in settings.font_parameters.keys():
         printc("Unknown font:", font, c="r")
-        printc("Avaliable 3D fonts are:", list(settings.font_parameters.keys()), c="y")
+        printc("Available 3D fonts are:", list(settings.font_parameters.keys()), c="y")
         printc("Using font Normografo instead.", c="y")
         font = "Normografo"
 
@@ -4244,7 +4244,7 @@ class Text2D(vtk.vtkActor2D, TextBase):
     Returns a 2D text object.
 
     All properties of the text, and the text itself, can be changed after creation
-    (which is expecially useful in loops).
+    (which is especially useful in loops).
 
     Parameters
     ----------

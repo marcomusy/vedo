@@ -2225,7 +2225,7 @@ class Points(vtk.vtkFollower, BaseActor):
             affine=False,
         ):
         """
-        Trasform mesh orientation and position based on a set of landmarks points.
+        Transform mesh orientation and position based on a set of landmarks points.
         The algorithm finds the best matching of source points to target points
         in the mean least square sense, in one single step.
 
@@ -3945,7 +3945,7 @@ class Points(vtk.vtkFollower, BaseActor):
             the contour is not resampled.
 
         mesh_resolution : int
-            resolution of the intenal triangles not touching the boundary.
+            resolution of the internal triangles not touching the boundary.
             The default is None.
 
         smooth : float
@@ -4263,7 +4263,7 @@ class Points(vtk.vtkFollower, BaseActor):
         Parameters
         ----------
         dims : int,list
-            numer of voxels in x, y and z of the output Volume.
+            number of voxels in x, y and z of the output Volume.
 
         compute_gradient : bool
             Turn on/off the generation of the gradient vector,

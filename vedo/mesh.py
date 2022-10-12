@@ -390,7 +390,7 @@ class Mesh(Points):
         Parameters
         ----------
         tname : numpy.array, str, Picture, vtkTexture, None
-            the inpout texture to be applied. Can be a numpy array, a path to an image file,
+            the input texture to be applied. Can be a numpy array, a path to an image file,
             a vedo Picture. The None value disables texture.
 
         tcoords : numpy.array, str
@@ -600,7 +600,7 @@ class Mesh(Points):
         feature_angle : float
             specify the angle that defines a sharp edge.
             If the difference in angle across neighboring polygons is greater than this value,
-            the shared edge is considered "sharp" and it is splitted.
+            the shared edge is considered "sharp" and it is split.
 
         consistency : bool
             turn on/off the enforcement of consistent polygon ordering.
@@ -1383,7 +1383,7 @@ class Mesh(Points):
 
         method : str
             can be either 'quadric' or 'pro'. In the first case triagulation
-            will look like more regular, irrespective of the mesh origianl curvature.
+            will look like more regular, irrespective of the mesh original curvature.
             In the second case triangles are more irregular but mesh is more precise on more
             curved regions.
 

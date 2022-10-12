@@ -1134,7 +1134,7 @@ def printc(
 
 def printd(*strings, q=False):
     """
-    Print debug information about the evironment where the printd() is called.
+    Print debug information about the environment where the printd() is called.
     Local variables are printed out with their current values.
 
     Use ``q`` to quit (exit) python session after the printd call.

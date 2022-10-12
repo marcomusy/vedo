@@ -1472,7 +1472,7 @@ def load_transform(filename):
 ###############################################################################
 def export_window(fileoutput, binary=False):
     """
-    Exporter which writes out the renderered scene into an HTML, X3D
+    Exporter which writes out the rendered scene into an HTML, X3D
     or Numpy file.
 
     .. hint:: examples/other/export_x3d.py

@@ -1390,7 +1390,7 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
     def colorize(self, lut=None, fix_scalar_range=False):
         """
         Assign a LUT (Look Up Table) to colorize the slice, leave it ``None``
-        to reuse an exisiting Volume color map.
+        to reuse an existing Volume color map.
         Use "bw" for automatic black and white.
         """
         if lut is None and self.lut:

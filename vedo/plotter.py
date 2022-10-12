@@ -776,7 +776,7 @@ class Plotter:
             self.window.SetSize(int(self.size[0]), int(self.size[1]))
 
         if self.wx_widget is not None:
-            settings.immediateRendering = False  # overrride
+            settings.immediateRendering = False  # override
             self.window = self.wx_widget.GetRenderWindow()  # overwrite
             self.interactor = self.window.GetInteractor()
             for r in self.renderers:
@@ -987,7 +987,7 @@ class Plotter:
         """
         if at is not None and not isinstance(at, int):
             # wrong usage pitfall
-            vedo.logger.error("argment of pop() must be an integer")
+            vedo.logger.error("argument of pop() must be an integer")
             raise RuntimeError()
 
         if self.actors:
@@ -2179,7 +2179,7 @@ class Plotter:
             - id: event unique identifier,
             - priority: event priority (float),
             - interactor: the interactor object,
-            - at: renderer nr. where the event occured
+            - at: renderer nr. where the event occurred
             - actor: object picked by the mouse
             - picked3d: point picked in world coordinates
             - keypress: key pressed as string
@@ -2791,7 +2791,7 @@ class Plotter:
         if resetcam is not None:
             self.resetcam = resetcam
 
-        # if user passes a list of actors forget about everithing and show those
+        # if user passes a list of actors forget about everything and show those
         if len(actors) == 0:
             actors = None
         elif len(actors) == 1:

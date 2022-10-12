@@ -25,7 +25,7 @@ Parameters
     screenshotTransparentBackground = False
     screeshotLargeImage = False # Sometimes setting this to True gives better results
 
-    # Allow to continously interact with scene during interactive() execution
+    # Allow to continuously interact with scene during interactive() execution
     allowInteraction = False
 
     # Set up default mouse and keyboard functionalities
@@ -124,7 +124,7 @@ screeshotScale = 1
 screenshotTransparentBackground = False
 screeshotLargeImage = False
 
-# Allow to continously interact with scene during interactor.Start() execution
+# Allow to continuously interact with scene during interactor.Start() execution
 allowInteraction = False
 
 # BUG in vtk9.0 (if true close works but sometimes vtk crashes, if false doesnt crash but cannot close)

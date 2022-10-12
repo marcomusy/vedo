@@ -71,7 +71,7 @@ class Figure(Assembly):
         title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
 
     grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xygrid=True)`
+        show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
 
     axes : dict
         an extra dictionary of options for the axes
@@ -275,7 +275,7 @@ class Figure(Assembly):
         """
         Insert objects into a Figure.
 
-        The reccomended syntax is to use "+=", which calls `insert()` under the hood.
+        The recommended syntax is to use "+=", which calls `insert()` under the hood.
         If a whole Figure is added with "+=", it is unpacked and its objects are added
         one by one.
 
@@ -285,7 +285,7 @@ class Figure(Assembly):
             rescale the y axis position while inserting the object.
 
         as3d : bool
-            if True keep the aspect ratio of the 3d obect, otherwise stretch it in y.
+            if True keep the aspect ratio of the 3d object, otherwise stretch it in y.
 
         adjusted : bool
             adjust the scaling according to the shortest axis
@@ -448,7 +448,7 @@ class Figure(Assembly):
 
         alpha : float
             opacity of the box. Values below 1 may cause poor rendering
-            bacause of antialiasing.
+            because of antialiasing.
             Use alpha = 0 to remove the box.
 
         bc : str
@@ -610,7 +610,7 @@ class Histogram1D(Figure):
         use logscale on y-axis
 
     fill : bool
-        fill bars woth solid color `c`
+        fill bars with solid color `c`
 
     gap : float
         leave a small space btw bars
@@ -641,7 +641,7 @@ class Histogram1D(Figure):
         the desired aspect ratio of the histogram. Default is 4/3.
 
     grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xygrid=True)`
+        show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
 
     ztolerance : float
         a tolerance factor to superimpose objects (along the z-axis).
@@ -1189,7 +1189,7 @@ class PlotBars(Figure):
         use logscale on y-axis
 
     fill : bool
-        fill bars woth solid color `c`
+        fill bars with solid color `c`
 
     gap : float
         leave a small space btw bars
@@ -1220,7 +1220,7 @@ class PlotBars(Figure):
         the desired aspect ratio of the figure. Default is 4/3.
 
     grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xygrid=True)`
+        show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
 
     .. hint:: examples/pyplot/histo_1d_a.py histo_1d_b.py histo_1d_c.py histo_1d_d.py
         .. image:: https://vedo.embl.es/images/pyplot/histo_1D.png
@@ -1423,7 +1423,7 @@ class PlotXY(Figure):
         line "alpha", opacity of the line
 
     dashed : bool
-        draw a dashed line instead of a continous line
+        draw a dashed line instead of a continuous line
 
     splined : bool
         spline the line joining the point as a countinous curve
@@ -1478,7 +1478,7 @@ class PlotXY(Figure):
         axes color
 
     grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xygrid=True)`
+        show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
 
     ztolerance : float
         a tolerance factor to superimpose objects (along the z-axis).
@@ -1773,7 +1773,7 @@ def plot(*args, **kwargs):
         line "alpha", opacity of the line
 
     dashed : bool
-        draw a dashed line instead of a continous line
+        draw a dashed line instead of a continuous line
 
     splined : bool
         spline the line joining the point as a countinous curve
@@ -1828,7 +1828,7 @@ def plot(*args, **kwargs):
         axes color
 
     grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xygrid=True)`
+        show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
 
     ztolerance : float
         a tolerance factor to superimpose objects (along the z-axis).
@@ -1869,7 +1869,7 @@ def plot(*args, **kwargs):
         use logscale on y-axis
 
     fill : bool
-        fill bars woth solid color `c`
+        fill bars with solid color `c`
 
     gap : float
         leave a small space btw bars
@@ -1900,7 +1900,7 @@ def plot(*args, **kwargs):
         the desired aspect ratio of the figure. Default is 4/3.
 
     grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xygrid=True)`
+        show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
 
     .. hint:: examples/pyplot/histo_1d_a.py histo_1d_b.py histo_1d_c.py histo_1d_d.py
         .. image:: https://vedo.embl.es/images/pyplot/histo_1D.png
@@ -2180,7 +2180,7 @@ def histogram(*args, **kwargs):
         use logscale on y-axis
 
     fill : bool
-        fill bars woth solid color `c`
+        fill bars with solid color `c`
 
     gap : float
         leave a small space btw bars
@@ -2211,7 +2211,7 @@ def histogram(*args, **kwargs):
         the desired aspect ratio of the histogram. Default is 4/3.
 
     grid : bool
-        show the backgound grid for the axes, can also be set using `axes=dict(xygrid=True)`
+        show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
 
     ztolerance : float
         a tolerance factor to superimpose objects (along the z-axis).
@@ -4016,7 +4016,7 @@ class DirectedGraph(Assembly):
         layout in ['2d', 'fast2d', 'clustering2d', 'circular',
                    'circular3d', 'cone', 'force', 'tree']
 
-        Each of these layouts has diferent available options.
+        Each of these layouts has different available options.
 
 
     ---------------------------------------------------------------

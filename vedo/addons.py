@@ -647,13 +647,13 @@ def ScalarBar(
         fractional x and y position in the 2D window
 
     size : list
-        size of the scalarbar in pixel units (width, heigth)
+        size of the scalarbar in pixel units (width, height)
 
     nlabels : int
         number of numeric labels to be shown
 
     use_alpha : bool
-        retain trasparency in scalarbar
+        retain transparency in scalarbar
 
     horizontal : bool
         show in horizontal layout
