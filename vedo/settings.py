@@ -125,7 +125,7 @@ class Settings:
         self.remember_last_figure_format = False
 
         # Scale magnification of the screenshot (must be an integer)
-        self.screeshotScale = 1
+        self.screeshot_scale = 1
         self.screenshot_transparent_background = False
         self.screeshot_large_image = False
 
@@ -473,6 +473,7 @@ class Settings:
 
 
     ####################################################################################
+    # Deprecations
     ####################################################################################
     @property
     def defaultFont(self):
@@ -480,6 +481,7 @@ class Settings:
         return self.default_font
     @defaultFont.setter
     def defaultFont(self, value):
+        self.warn("default_font")
         self.default_font = value
     ##################################
     @property
@@ -488,6 +490,7 @@ class Settings:
         return self.remember_last_figure_format
     @rememberLastFigureFormat.setter
     def rememberLastFigureFormat(self, value):
+        self.warn("remember_last_figure_format")
         self.remember_last_figure_format = value
     ##################################
     @property
@@ -496,6 +499,7 @@ class Settings:
         return self.screeshot_scale
     @screeshotScale.setter
     def screeshotScale(self, value):
+        self.warn("screeshot_scale")
         self.screeshot_scale = value
     ##################################
     @property
@@ -504,6 +508,7 @@ class Settings:
         return self.NAME_SNAKE
     @screenshotTransparentBackground.setter
     def screenshotTransparentBackground(self, value):
+        self.warn("screenshot_transparent_background")
         self.screenshot_transparent_background = value
     ##################################
     @property
@@ -512,6 +517,7 @@ class Settings:
         return self.screeshot_large_image
     @screeshotLargeImage.setter
     def screeshotLargeImage(self, value):
+        self.warn("screeshot_large_image")
         self.screeshot_large_image = value
     ##################################
     @property
@@ -520,6 +526,7 @@ class Settings:
         return self.allow_interaction
     @allowInteraction.setter
     def allowInteraction(self, value):
+        self.warn("allow_interaction")
         self.allow_interaction = value
     ##################################
     @property
@@ -528,6 +535,7 @@ class Settings:
         return self.hack_call_screen_size
     @hackCallScreenSize.setter
     def hackCallScreenSize(self, value):
+        self.warn("hack_call_screen_size")
         self.hack_call_screen_size = value
     ##################################
     @property
@@ -536,6 +544,7 @@ class Settings:
         return self.enable_default_mouse_callbacks
     @enableDefaultMouseCallbacks.setter
     def enableDefaultMouseCallbacks(self, value):
+        self.warn("enable_default_mouse_callbacks")
         self.enable_default_mouse_callbacks = value
     ##################################
     @property
@@ -544,6 +553,7 @@ class Settings:
         return self.enable_default_keyboard_callbacks
     @enableDefaultKeyboardCallbacks.setter
     def enableDefaultKeyboardCallbacks(self, value):
+        self.warn("enable_default_keyboard_callbacks")
         self.enable_default_keyboard_callbacks = value
     ##################################
     @property
@@ -552,6 +562,7 @@ class Settings:
         return self.immediate_rendering
     @immediateRendering.setter
     def immediateRendering(self, value):
+        self.warn("immediate_rendering")
         self.immediate_rendering = value
     ##################################
     @property
@@ -560,6 +571,7 @@ class Settings:
         return self.renderer_frame_color
     @rendererFrameColor.setter
     def rendererFrameColor(self, value):
+        self.warn("renderer_frame_color")
         self.renderer_frame_color = value
     ##################################
     @property
@@ -568,6 +580,7 @@ class Settings:
         return self.renderer_frame_alpha
     @rendererFrameAlpha.setter
     def rendererFrameAlpha(self, value):
+        self.warn("renderer_frame_alpha")
         self.renderer_frame_alpha = value
     ##################################
     @property
@@ -576,6 +589,7 @@ class Settings:
         return self.renderer_frame_width
     @rendererFrameWidth.setter
     def rendererFrameWidth(self, value):
+        self.warn("renderer_frame_width")
         self.renderer_frame_width = value
     ##################################
     @property
@@ -584,6 +598,7 @@ class Settings:
         return self.renderer_frame_padding
     @rendererFramePadding.setter
     def rendererFramePadding(self, value):
+        self.warn("renderer_frame_padding")
         self.renderer_frame_padding = value
     ##################################
     @property
@@ -592,6 +607,7 @@ class Settings:
         return self.render_lines_as_tubes
     @renderLinesAsTubes.setter
     def renderLinesAsTubes(self, value):
+        self.warn("render_lines_as_tubes")
         self.render_lines_as_tubes = value
     ##################################
     @property
@@ -600,6 +616,7 @@ class Settings:
         return self.hidden_line_removal
     @hiddenLineRemoval.setter
     def hiddenLineRemoval(self, value):
+        self.warn("hidden_line_removal")
         self.hidden_line_removal = value
     ##################################
     @property
@@ -608,6 +625,7 @@ class Settings:
         return self.point_smoothing
     @pointSmoothing.setter
     def pointSmoothing(self, value):
+        self.warn("point_smoothing")
         self.point_smoothing = value
     ##################################
     @property
@@ -616,6 +634,7 @@ class Settings:
         return self.line_smoothing
     @lineSmoothing.setter
     def lineSmoothing(self, value):
+        self.warn("line_smoothing")
         self.line_smoothing = value
     ##################################
     @property
@@ -624,6 +643,7 @@ class Settings:
         return self.polygon_smoothing
     @polygonSmoothing.setter
     def polygonSmoothing(self, value):
+        self.warn("polygon_smoothing")
         self.polygon_smoothing = value
     ##################################
     @property
@@ -632,6 +652,7 @@ class Settings:
         return self.visible_grid_edges
     @visibleGridEdges.setter
     def visibleGridEdges(self, value):
+        self.warn("visible_grid_edges")
         self.visible_grid_edges = value
     ##################################
     @property
@@ -640,6 +661,7 @@ class Settings:
         return self.light_follows_camera
     @lightFollowsCamera.setter
     def lightFollowsCamera(self, value):
+        self.warn("light_follows_camera")
         self.light_follows_camera = value
     ##################################
     @property
@@ -648,6 +670,7 @@ class Settings:
         return self.two_sided_lighting
     @twoSidedLighting.setter
     def twoSidedLighting(self, value):
+        self.warn("two_sided_lighting")
         self.two_sided_lighting = value
     ##################################
     @property
@@ -656,6 +679,7 @@ class Settings:
         return self.use_depth_peeling
     @useDepthPeeling.setter
     def useDepthPeeling(self, value):
+        self.warn("use_depth_peeling")
         self.use_depth_peeling = value
     ##################################
     @property
@@ -664,6 +688,7 @@ class Settings:
         return self.multi_samples
     @multiSamples.setter
     def multiSamples(self, value):
+        self.warn("multi_samples")
         self.multi_samples = value
     ##################################
     @property
@@ -672,6 +697,7 @@ class Settings:
         return self.alpha_bit_planes
     @alphaBitPlanes.setter
     def alphaBitPlanes(self, value):
+        self.warn("alpha_bit_planes")
         self.alpha_bit_planes = value
     ##################################
     @property
@@ -680,6 +706,7 @@ class Settings:
         return self.max_number_of_peels
     @maxNumberOfPeels.setter
     def maxNumberOfPeels(self, value):
+        self.warn("max_number_of_peels")
         self.max_number_of_peels = value
     ##################################
     @property
@@ -688,6 +715,7 @@ class Settings:
         return self.occlusion_ratio
     @occlusionRatio.setter
     def occlusionRatio(self, value):
+        self.warn("occlusion_ratio")
         self.occlusion_ratio = value
     ##################################
     @property
@@ -696,6 +724,7 @@ class Settings:
         return self.use_fxaa
     @useFXAA.setter
     def useFXAA(self, value):
+        self.warn("use_fxaa")
         self.use_fxaa = value
     ##################################
     @property
@@ -704,6 +733,7 @@ class Settings:
         return self.preserve_depth_buffer
     @preserveDepthBuffer.setter
     def preserveDepthBuffer(self, value):
+        self.warn("preserve_depth_buffer")
         self.preserve_depth_buffer = value
     ##################################
     @property
@@ -712,6 +742,7 @@ class Settings:
         return self.use_polygon_offset
     @usePolygonOffset.setter
     def usePolygonOffset(self, value):
+        self.warn("use_polygon_offset")
         self.use_polygon_offset = value
     ##################################
     @property
@@ -720,6 +751,7 @@ class Settings:
         return self.polygon_offset_factor
     @polygonOffsetFactor.setter
     def polygonOffsetFactor(self, value):
+        self.warn("polygon_offset_factor")
         self.polygon_offset_factor = value
     ##################################
     @property
@@ -728,6 +760,7 @@ class Settings:
         return self.polygon_offset_units
     @polygonOffsetUnits.setter
     def polygonOffsetUnits(self, value):
+        self.warn("polygon_offset_units")
         self.polygon_offset_units = value
     ##################################
     @property
@@ -736,6 +769,7 @@ class Settings:
         return self.interpolate_scalars_before_mapping
     @interpolateScalarsBeforeMapping.setter
     def interpolateScalarsBeforeMapping(self, value):
+        self.warn("interpolate_scalars_before_mapping")
         self.interpolate_scalars_before_mapping = value
     ##################################
     @property
@@ -744,6 +778,7 @@ class Settings:
         return self.use_parallel_projection
     @useParallelProjection.setter
     def useParallelProjection(self, value):
+        self.warn("use_parallel_projection")
         self.use_parallel_projection = value
     ##################################
     @property
@@ -752,6 +787,7 @@ class Settings:
         return self.window_splitting_position
     @windowSplittingPosition.setter
     def windowSplittingPosition(self, value):
+        self.warn("window_splitting_position")
         self.window_splitting_position = value
     ##################################
     @property
@@ -760,6 +796,7 @@ class Settings:
         return self.tiff_orientation_type
     @tiffOrientationType.setter
     def tiffOrientationType(self, value):
+        self.warn("tiff_orientation_type")
         self.tiff_orientation_type = value
     ##################################
     @property
@@ -768,7 +805,6 @@ class Settings:
         return self.enable_print_color
     @enablePrintColor.setter
     def enablePrintColor(self, value):
+        self.warn("enable_print_color")
         self.enable_print_color = value
-
-
 

@@ -1640,8 +1640,6 @@ def import_window(fileinput, mtl_file=None, texture_path=None):
             settings.hidden_line_removal = data["hidden_line_removal"]
         if "visible_grid_edges" in data.keys():
             settings.visible_grid_edges = data["visible_grid_edges"]
-        if "interactorStyle" in data.keys():
-            vedo.interactorStyle = data["interactorStyle"]
         if "use_parallel_projection" in data.keys():
             settings.use_parallel_projection = data["use_parallel_projection"]
         if "use_polygon_offset" in data.keys():
@@ -1654,8 +1652,6 @@ def import_window(fileinput, mtl_file=None, texture_path=None):
             settings.interpolate_scalars_before_mapping = data["interpolate_scalars_before_mapping"]
         if "default_font" in data.keys():
             settings.default_font = data["default_font"]
-        if "defaultFont" in data.keys():
-            settings.default_font = data["defaultFont"]
         if "use_depth_peeling" in data.keys():
             settings.use_depth_peeling = data["use_depth_peeling"]
 

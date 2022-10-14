@@ -108,7 +108,7 @@ class UGrid(vtk.vtkActor, BaseGrid):
 
         if settings.use_polygon_offset:
             self._mapper.SetResolveCoincidentTopologyToPolygonOffset()
-            pof, pou = settings.use_polygon_offset_factor, settings.use_polygon_offset_units
+            pof, pou = settings.polygon_offset_factor, settings.polygon_offset_units
             self._mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
         self.GetProperty().SetInterpolationToFlat()
 
