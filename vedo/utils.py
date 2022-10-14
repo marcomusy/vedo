@@ -1496,11 +1496,11 @@ def print_histogram(
     Example:
         .. code-block:: python
 
-            from vedo import printHistogram
+            from vedo import print_histogram
             import numpy as np
             d = np.random.normal(size=1000)
-            data = printHistogram(d, c='blue', logscale=True, title='my scalars')
-            data = printHistogram(d, c=1, horizontal=1)
+            data = print_histogram(d, c='blue', logscale=True, title='my scalars')
+            data = print_histogram(d, c=1, horizontal=1)
             print(np.mean(data)) # data here is same as d
     """
     # credits: http://pyinsci.blogspot.com/2009/10/ascii-histograms.html

@@ -18,11 +18,13 @@ __all__ = [
     "printc",
     "printd",
     "get_color",
-    "getColor", # deprecated
     "get_color_name",
     "color_map",
     "build_palette",
     "build_lut",
+    "getColor", # deprecated will disappear
+    "colorMap", # deprecated
+    "buildLUT", # deprecated
 ]
 
 
@@ -718,6 +720,11 @@ def hex2rgb(hx):
     return (rgb255[0] / 255.0, rgb255[1] / 255.0, rgb255[2] / 255.0)
 
 
+def colorMap(value, name="jet", vmin=None, vmax=None):
+    """Deprecated, use color_map()"""
+    print("Deprecated call to colorMap(), use color_map()")
+    return color_map(value, name, vmin, vmax)
+
 def color_map(value, name="jet", vmin=None, vmax=None):
     """
     Map a real value in range [vmin, vmax] to a (r,g,b) color scale.
@@ -843,6 +850,9 @@ def build_palette(color1, color2, n, hsv=True):
         cols.append(c)
     return np.array(cols)
 
+def buildLUT(*a, **b):
+    """Deprecated call to buildLUT(). Please use build_lut()"""
+    return build_lut(*a, **b)
 
 def build_lut(
     colorlist,

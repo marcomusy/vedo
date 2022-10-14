@@ -66,6 +66,9 @@ __pdoc__['backends'] = False
 __pdoc__['cli'] = False
 __pdoc__['cmaps'] = False
 __pdoc__['version'] = False
+__pdoc__['colors.getColor'] = False
+__pdoc__['colors.colorMap'] = False
+__pdoc__['colors.buildLUT'] = False
 
 ##################################################################################
 ########################################################################## GLOBALS
