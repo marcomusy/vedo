@@ -23,7 +23,6 @@ This module defines the main class Plotter to manage actors and 3D rendering
 __all__ = [
     "Plotter",
     "show",
-    "interactive",  # deprecated
     "close",
 ]
 
@@ -346,21 +345,6 @@ def show(
         )
 
     return _plt_to_return
-
-
-def interactive():
-    """Please use plotter.interactive() or show(..., interactive=True) instead"""
-    vedo.logger.warning(
-        "Deprecation: please use plotter.interactive()\n"
-        + "             or show(..., interactive=True)"
-    )
-    if vedo.plotter_instance:
-        if vedo.plotter_instance.escaped:  # just return
-            return vedo.plotter_instance
-        if hasattr(vedo.plotter_instance, "interactor"):
-            if vedo.plotter_instance.interactor:
-                vedo.plotter_instance.interactor.Start()
-    return vedo.plotter_instance
 
 
 def close():
