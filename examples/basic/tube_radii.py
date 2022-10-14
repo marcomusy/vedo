@@ -2,7 +2,7 @@
 of a line represented as a tube"""
 from vedo import *
 
-settings.defaultFont = 'Quikhand'
+settings.default_font = 'Quikhand'
 
 ln = [[sin(x), cos(x), x / 2] for x in np.arange(0,9, 0.1)]
 N = len(ln)

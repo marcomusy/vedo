@@ -2,7 +2,7 @@
 from vedo import np, settings, show
 from vedo.pyplot import plot
 
-settings.defaultFont = 'Theemim'
+settings.default_font = 'Theemim'
 
 def f(x):
     return 3*np.exp(-x)*np.cos(2*x)**2

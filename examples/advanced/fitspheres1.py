@@ -5,7 +5,7 @@ Red lines join the center of the sphere to the surface point.
 Blue points are the N points used for fitting"""
 from vedo import *
 
-settings.defaultFont = 'Kanopus'
+settings.default_font = 'Kanopus'
 settings.useDepthPeeling = True
 
 plt = Plotter()

@@ -1,7 +1,7 @@
 """Visualization of a discretized Earth model"""
 import vedo
 
-vedo.settings.defaultFont = 'Kanopus'
+vedo.settings.default_font = 'Kanopus'
 
 tet = vedo.TetMesh(vedo.dataurl+'earth_model.vtu')
 conductor = tet.clone().threshold('cell_scalars', above=0, below=4)

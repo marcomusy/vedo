@@ -14,7 +14,7 @@ def sliderfunc(widget, event):
 
 objs = load(dataurl + "timecourse1d.npy")  # load a list of shapes
 
-settings.defaultFont = "Glasgo"
+settings.default_font = "Glasgo"
 
 plt = Plotter(bg="blackboard")
 plt += Text2D(__doc__, pos="top-center", s=1.2, c="w")

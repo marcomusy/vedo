@@ -3,7 +3,7 @@
 Title font: """
 from vedo import Box, Lines, Points, Spline, show, settings
 
-settings.defaultFont = 'Theemim'
+settings.default_font = 'Theemim'
 
 # an invisible box:
 world = Box(pos=(2.7,0,0), size=(12,10,8), alpha=0)
@@ -44,5 +44,5 @@ axes_opts = dict(
     ylabel_color='dg',    # color of the numeric labels along Y axis
 )
 
-show(world, pts, spl, lns, __doc__+settings.defaultFont, axes=axes_opts).close()
+show(world, pts, spl, lns, __doc__+settings.default_font, axes=axes_opts).close()
 

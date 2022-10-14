@@ -2,7 +2,7 @@
 from vedo.pyplot import plot
 from vedo import np, settings
 
-settings.defaultFont = 'Theemim'
+settings.default_font = 'Theemim'
 settings.rememberLastFigureFormat = True
 
 x = np.linspace(0, 10, num=21)

@@ -2,7 +2,7 @@
 from vedo import *
 import numpy as np
 
-settings.defaultFont = "Glasgo"
+settings.default_font = "Glasgo"
 settings.useParallelProjection = True
 
 vals = np.abs(np.random.randn(4*6))  # pixel heights

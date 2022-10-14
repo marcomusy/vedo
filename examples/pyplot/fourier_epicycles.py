@@ -56,7 +56,7 @@ x, y, _ = shape.points().T
 fourierX = DFT(x)
 fourierY = DFT(y)
 
-vedo.settings.defaultFont = 'Glasgo'
+vedo.settings.default_font = 'Glasgo'
 
 plt = vedo.Plotter(size=(1500,750), bg='black', axes=1, interactive=False)
 txt = vedo.Text2D(f"{__doc__} (order={order})", c='red9', bg='white', pos='bottom-center')

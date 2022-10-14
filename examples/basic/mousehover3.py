@@ -2,7 +2,7 @@
 (hover mouse to place the points)"""
 from vedo import *
 
-settings.defaultFont = "Ubuntu"
+settings.default_font = "Ubuntu"
 settings.useDepthPeeling = True
 
 

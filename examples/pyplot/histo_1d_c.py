@@ -2,7 +2,7 @@
 from vedo import Line, settings, np
 from vedo.pyplot import histogram
 
-settings.defaultFont = 11
+settings.default_font = 11
 
 data = np.random.rand(10000)
 weights = np.ones_like(data) * np.sin(12*data)**2 + 1/2

@@ -2,7 +2,7 @@
 from vedo import precision, Text3D, color_map, settings
 from vedo.pyplot import plot
 
-settings.defaultFont = "Meson"
+settings.default_font = "Meson"
 
 counts  = [1946, 8993, 3042, 1190, 1477,    0,    0]
 percent = [11.68909178, 54.01850072, 18.27246516,  7.14800577,  8.87193657, 0, 0]

@@ -15,9 +15,9 @@ import vtkmodules.all as vtk
 #################################################
 from vedo.version import _version as __version__
 
-import vedo.settings_module as settings
-# from vedo.settings_class import Settings
-# settings = Settings(level=0)
+# import vedo.settings_module as settings
+from vedo.settings_class import Settings
+settings = Settings(level=0)
 
 from vedo.utils import *
 from vedo.colors import *
@@ -66,11 +66,6 @@ __pdoc__['backends'] = False
 __pdoc__['cli'] = False
 __pdoc__['cmaps'] = False
 __pdoc__['version'] = False
-__pdoc__['pointcloud.Points.pointColors'] = False
-__pdoc__['pointcloud.Points.cellColors'] = False
-__pdoc__['pointcloud.Points.thinPlateSpline'] = False
-__pdoc__['pointcloud.Points.warpByVectors'] = False
-__pdoc__['pointcloud.Points.distanceToMesh'] = False
 
 ##################################################################################
 ########################################################################## GLOBALS

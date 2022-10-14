@@ -3,7 +3,7 @@
 from vedo import np, settings, Rectangle, Text3D, Line, DashedLine
 from vedo.pyplot import Figure
 
-settings.defaultFont = "Theemim"
+settings.default_font = "Theemim"
 
 #################################################################### First plot
 groupA = np.random.randn(3)*10+50

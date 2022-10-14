@@ -3,7 +3,7 @@ import numpy as np
 from vedo.pyplot import histogram, plot
 from vedo import settings
 
-settings.defaultFont = "Bongas"
+settings.default_font = "Bongas"
 settings.rememberLastFigureFormat = True
 
 mu, sigma, n, bins = 100.0, 15.0, 600, 50

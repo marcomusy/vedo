@@ -5,7 +5,7 @@ Axes font: """
 # Source: Zhi-Qiang Zhou (https://github.com/zhouzq-thu)
 from vedo import *
 
-settings.defaultFont = "Kanopus"
+settings.default_font = "Kanopus"
 settings.useDepthPeeling = True
 
 plt = Plotter(title="Example of project_on_plane()")
@@ -14,7 +14,7 @@ s = Hyperboloid().rotate_x(20)
 pts = s.points()
 n = len(pts)
 
-plt += [s, __doc__ + settings.defaultFont]
+plt += [s, __doc__ + settings.default_font]
 
 # orthogonal projection ###############################
 plane1 = Plane(pos=(2, 0, 2), normal=(1, 0, 1), s=[5, 5]).alpha(0.1)

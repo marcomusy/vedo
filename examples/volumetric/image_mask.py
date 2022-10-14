@@ -2,7 +2,7 @@ from vedo import Picture, show, settings
 from vedo.pyplot import histogram
 import numpy as np
 
-settings.defaultFont = "Theemim"
+settings.default_font = "Theemim"
 
 pic = Picture("https://aws1.discourse-cdn.com/business4/uploads/imagej/original/3X/5/8/58468da123203f6056ca786adf159064db47aefa.jpeg")
 msh = pic.tomesh()                # convert it to a quad-mesh

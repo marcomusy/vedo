@@ -948,7 +948,7 @@ class Plotter:
             ren = self.renderer
 
         actors = utils.flatten(actors)
-        actors += self.get_meshes(include_non_pickables=True)
+        # actors += self.get_meshes(include_non_pickables=True)
         actors_r = []
         for i, a in enumerate(actors):
             if isinstance(a, str):

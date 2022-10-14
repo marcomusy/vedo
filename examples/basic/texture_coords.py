@@ -1,7 +1,7 @@
 """Assign texture coordinates to a polygon"""
 from vedo import *
 
-settings.defaultFont = 'Bongas'
+settings.default_font = 'Bongas'
 
 # define a polygon of 4 vertices:
 polygon = [
