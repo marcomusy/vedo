@@ -2270,6 +2270,11 @@ class Points(vtk.vtkFollower, BaseActor):
         self.cell_locator = None
         return self
 
+    @deprecated(reason=vedo.colors.red + "Please use apply_transform()" + vedo.colors.reset)
+    def applyTransform(self, *a, **b):
+        "Please use apply_transform()"
+        return self.apply_transform()
+
     def apply_transform(self, T, reset=False, concatenate=False):
         """
         Apply a linear or non-linear transformation to the mesh polygonal data.
@@ -2766,6 +2771,11 @@ class Points(vtk.vtkFollower, BaseActor):
         data.Modified()
         return self
 
+    @deprecated(reason=vedo.colors.red + "Please use cell_individual_colors()" + vedo.colors.reset)
+    def cellIndividualColors(self, colorlist):
+        "Please use cell_individual_colors()"
+        return self.cell_individual_colors(colorlist)
+
     def cell_individual_colors(self, colorlist):
         """
         Colorize the faces of a mesh one by one
@@ -2781,6 +2791,11 @@ class Points(vtk.vtkFollower, BaseActor):
         self.celldata["CellIndividualColors"] = colorlist
         self.celldata.select("CellIndividualColors")
         return self
+
+    @deprecated(reason=vedo.colors.red + "Please use interpolate_data_from()" + vedo.colors.reset)
+    def interpolateDataFrom(self, *a, **b):
+        "Please use interpolate_data_from()"
+        return self.interpolate_data_from(*a, **b)
 
     def interpolate_data_from(
         self,
@@ -4050,6 +4065,11 @@ class Points(vtk.vtkFollower, BaseActor):
         dln.compute_normals(points=False)  # fixes reversd faces
         dln.lw(0.5)
         return dln
+
+    @deprecated(reason=vedo.colors.red + "Please use reconstruct_surface()" + vedo.colors.reset)
+    def reconstructSurface(self, *a, **b):
+        "Please use reconstruct_surface()"
+        return self.reconstruct_surface(*a, **b)
 
     def reconstruct_surface(
         self,
