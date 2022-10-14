@@ -15,7 +15,6 @@ import vtkmodules.all as vtk
 #################################################
 from vedo.version import _version as __version__
 
-# import vedo.settings_module as settings
 from vedo.settings import Settings
 settings = Settings(level=0)
 
