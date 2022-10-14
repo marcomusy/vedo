@@ -386,7 +386,7 @@ def exe_search_vtk(args):
 #################################################################################################################
 def exe_eog(args):
     # print("EOG emulator")
-    settings.settings.immediate_rendering = False
+    settings.immediate_rendering = False
     settings.use_parallel_projection = True
     settings.enable_default_mouse_callbacks = False
     settings.enable_default_keyboard_callbacks = False

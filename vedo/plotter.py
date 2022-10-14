@@ -3850,7 +3850,7 @@ class Plotter:
             self._extralight = None
 
         elif key == "o":
-            vbb, sizes, _, _ = addons.computeVisibleBounds()
+            vbb, sizes, _, _ = addons.compute_visible_bounds()
             cm = utils.vector(
                 (vbb[0] + vbb[1]) / 2, (vbb[2] + vbb[3]) / 2, (vbb[4] + vbb[5]) / 2
             )

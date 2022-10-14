@@ -60,7 +60,7 @@ def get_notebook_backend(actors2show, zoom, viewup):
             else:
                 actors2show2.append(ia)
 
-        # vbb, sizes, _, _ = addons.computeVisibleBounds()
+        # vbb, sizes, _, _ = addons.compute_visible_bounds()
         # kgrid = vbb[0], vbb[2], vbb[4], vbb[1], vbb[3], vbb[5]
 
         vedo.notebook_plotter = k3d.plot(
