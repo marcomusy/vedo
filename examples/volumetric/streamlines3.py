@@ -6,7 +6,8 @@ fpath = download(dataurl+"cavity.vtk")
 ugrid = loadUnStructuredGrid(fpath)
 
 # Make a grid of points to probe as type Mesh
-probe = Grid(pos=[0.05,0.08,0.005], normal=[0,1,0], s=[0.1,0.01], res=[20,4], c='k')
+probe = Grid(s=[0.1,0.01], res=[20,4], c='k')
+probe.rotate_x(90).pos(0.05,0.08,0.005)
 
 # Compute stream lines with Runge-Kutta4, return a Mesh
 stream = StreamLines(

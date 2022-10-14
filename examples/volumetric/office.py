@@ -8,7 +8,7 @@ fpath = download(dataurl + 'office.binary.vtk')
 sgrid = loadStructuredGrid(fpath)
 
 # Create a grid of points and use those as integration seeds
-seeds = Grid(pos=[2,2,1], normal=[1,0,0], res=[2,3], c="gray")
+seeds = Grid(res=[2,3], c="gray").rotate_y(90).pos(2,2,1)
 
 # Now we will generate multiple streamlines in the data
 slines = StreamLines(

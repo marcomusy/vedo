@@ -11,13 +11,13 @@ print('---------------------------------')
 cone = Cone(res=48)
 sphere = Sphere(res=24)
 
-carr = cone.cellCenters()[:, 2]
+carr = cone.cell_centers()[:, 2]
 parr = cone.points()[:, 0]
 
 cone.pointdata["parr"] = parr
 cone.celldata["carr"] = carr
 
-carr = sphere.cellCenters()[:, 2]
+carr = sphere.cell_centers()[:, 2]
 parr = sphere.points()[:, 0]
 
 sphere.pointdata["parr"] = parr
@@ -25,7 +25,7 @@ sphere.celldata["carr"] = carr
 
 sphere.pointdata["pvectors"] = np.sin(sphere.points())
 
-sphere.addElevationScalars()
+sphere.compute_elevation()
 
 cone.computeNormals()
 sphere.computeNormals()
@@ -116,13 +116,13 @@ assert bx.npoints == 24
 print('box',bx.clean().npoints , 8)
 assert bx.clean().npoints == 8
 
-###################################### getTransform
-ct = cone.clone().rotateX(10).rotateY(10).rotateY(10)
-print('getTransform', [ct.getTransform()], [vtk.vtkTransform])
-assert isinstance(ct.getTransform(), vtk.vtkTransform)
-ct.applyTransform(ct.getTransform())
-print('getTransform',ct.getTransform().GetNumberOfConcatenatedTransforms())
-assert ct.getTransform().GetNumberOfConcatenatedTransforms()
+###################################### get_transform
+ct = cone.clone().rotate_x(10).rotate_y(10).rotate_z(10)
+print('get_transform', [ct.get_transform()], [vtk.vtkTransform])
+assert isinstance(ct.get_transform(), vtk.vtkTransform)
+ct.apply_transform(ct.get_transform())
+print('get_transform',ct.get_transform().GetNumberOfConcatenatedTransforms())
+assert ct.get_transform().GetNumberOfConcatenatedTransforms()
 
 
 ###################################### pointdata and celldata
@@ -173,18 +173,18 @@ print('texture test')
 assert isinstance(st.GetTexture(), vtk.vtkTexture)
 
 
-###################################### deletePoints
-sd = sphere.clone().deleteCellsByPointIndex(range(100))
-print('deletePoints',sd.npoints , sphere.npoints)
+###################################### delete_cells_by_point_index
+sd = sphere.clone().delete_cells_by_point_index(range(100))
+print('delete_cells_by_point_index',sd.npoints , sphere.npoints)
 assert sd.npoints == sphere.npoints
-print('deletePoints',sd.ncells ,'<', sphere.ncells)
+print('delete_cells_by_point_index',sd.ncells ,'<', sphere.ncells)
 assert sd.ncells < sphere.ncells
 
 
 ###################################### reverse
 # this fails on some archs (see issue #185)
 # lets comment it out temporarily
-sr = sphere.clone().reverse().cutWithPlane()
+sr = sphere.clone().reverse().cut_with_plane()
 print('DISABLED: reverse test', sr.npoints, 576)
 rev = vtk.vtkReverseSense()
 rev.SetInputData(sr.polydata())
@@ -211,15 +211,15 @@ print('bounds',ss.zbounds())
 assert np.allclose(ss.zbounds(), [-3,3], atol=0.01)
 
 
-###################################### averageSize
-print('averageSize', Sphere().scale(10).pos(1,3,7).averageSize())
-assert 9.9 < Sphere().scale(10).pos(1,3,7).averageSize() < 10.1
+###################################### average_size
+print('average_size', Sphere().scale(10).pos(1,3,7).average_size())
+assert 9.9 < Sphere().scale(10).pos(1,3,7).average_size() < 10.1
 
-print('diagonalSize',sphere.diagonalSize())
-assert 3.3 < sphere.diagonalSize() < 3.5
+print('diagonal_size',sphere.diagonal_size())
+assert 3.3 < sphere.diagonal_size() < 3.5
 
-print('centerOfMass',sphere.centerOfMass())
-assert np.allclose(sphere.centerOfMass(), [0,0,0])
+print('center_of_mass',sphere.center_of_mass())
+assert np.allclose(sphere.center_of_mass(), [0,0,0])
 
 print('volume',sphere.volume())
 assert 4.1 < sphere.volume() < 4.2
@@ -228,32 +228,32 @@ print('area',sphere.area())
 assert 12.5 < sphere.area() < 12.6
 
 
-###################################### closestPoint
+###################################### closest_point
 pt = [12,34,52]
-print('closestPoint',sphere.closestPoint(pt), [0.19883616, 0.48003298, 0.85441941])
-assert np.allclose(sphere.closestPoint(pt),
+print('closest_point',sphere.closest_point(pt), [0.19883616, 0.48003298, 0.85441941])
+assert np.allclose(sphere.closest_point(pt),
                    [0.19883616, 0.48003298, 0.85441941])
 
 
 ###################################### findCellsWithin
-ics = sphere.findCellsWithin(xbounds=(-0.5, 0.5))
+ics = sphere.find_cells_in(xbounds=(-0.5, 0.5))
 print('findCellsWithin',len(ics) , 1404)
 assert len(ics) == 1404
 
 
 ######################################transformMesh
-T = cone.clone().pos(35,67,87).getTransform()
-s3 = sphere.clone().applyTransform(T)
-print('transformMesh',s3.centerOfMass(), (35,67,87))
-assert np.allclose(s3.centerOfMass(), (35,67,87))
+T = cone.clone().pos(35,67,87).get_transform()
+s3 = sphere.clone().apply_transform(T)
+print('transformMesh',s3.center_of_mass(), (35,67,87))
+assert np.allclose(s3.center_of_mass(), (35,67,87))
 
 
 ######################################normalize
 s3 = sphere.clone().pos(10,20,30).scale([7,8,9]).normalize()
-print('normalize',s3.centerOfMass(), (10,20,30))
-assert np.allclose(s3.centerOfMass(), (10,20,30))
-print('normalize',s3.averageSize())
-assert 0.9 < s3.averageSize() < 1.1
+print('normalize',s3.center_of_mass(), (10,20,30))
+assert np.allclose(s3.center_of_mass(), (10,20,30))
+print('normalize',s3.average_size())
+assert 0.9 < s3.average_size() < 1.1
 
 
 ###################################### crop
@@ -273,13 +273,13 @@ s2 = sphere.clone().decimate(0.2)
 print('decimate',s2.npoints , 213)
 assert s2.npoints == 213
 
-###################################### normalAt
-print('normalAt',sphere.normalAt(12), [9.97668684e-01, 1.01513637e-04, 6.82437494e-02])
-assert np.allclose(sphere.normalAt(12), [9.97668684e-01, 1.01513637e-04, 6.82437494e-02])
+###################################### normal_at
+print('normal_at',sphere.normal_at(12), [9.97668684e-01, 1.01513637e-04, 6.82437494e-02])
+assert np.allclose(sphere.normal_at(12), [9.97668684e-01, 1.01513637e-04, 6.82437494e-02])
 
 ###################################### isInside
 print('isInside',)
-assert sphere.isInside([0.1,0.2,0.3])
+assert sphere.is_inside([0.1,0.2,0.3])
 
 ###################################### intersectWithLine (fails vtk7..)
 # pts = sphere.intersectWithLine([-2,-2,-2], [2,3,4])
@@ -300,8 +300,8 @@ print('unpack', asse.unpack(0).name)
 assert asse.unpack(0) == cone
 print('unpack',asse.unpack(1).name)
 assert asse.unpack(1) == sphere
-print('unpack',asse.diagonalSize(), 4.15)
-assert 4.1 < asse.diagonalSize() < 4.2
+print('unpack',asse.diagonal_size(), 4.15)
+assert 4.1 < asse.diagonal_size() < 4.2
 
 
 ############################################################################ Volume

@@ -2273,7 +2273,7 @@ class Points(vtk.vtkFollower, BaseActor):
     @deprecated(reason=vedo.colors.red + "Please use apply_transform()" + vedo.colors.reset)
     def applyTransform(self, *a, **b):
         "Please use apply_transform()"
-        return self.apply_transform()
+        return self.apply_transform(*a, **b)
 
     def apply_transform(self, T, reset=False, concatenate=False):
         """

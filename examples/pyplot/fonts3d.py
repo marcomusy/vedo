@@ -53,9 +53,10 @@ printc('\n(use the above to copy&paste any char into your python script!)', ital
 printc('Symbols ~ ^ _ are reserved modifiers:', italic=1)
 printc(' use ~ to add a short space, 1/4 of the default size,', italic=1)
 printc(' use ^ and _ to start up/sub scripting, space terminates them.\n', italic=1)
-printc('Supported LaTeX tags:', box='-', c='y')
-for r in shapes._reps:
-    print('\\'+repr(r[0]).replace("'","").replace("\\",""),' = ', r[1])
+
+# printc('Supported LaTeX tags:', box='-', c='y')
+# for r in shapes._reps:
+#     print('\\'+repr(r[0]).replace("'","").replace("\\",""),' = ', r[1])
 
 
 ################################################################################## 3D

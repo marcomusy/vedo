@@ -67,7 +67,7 @@ class Morpher:
     def onleftclick(self, evt):  ############################################ add points
         msh = evt.actor
         if not msh or msh.name!="Grid": return
-        pt = self.merged_meshes.closestPoint(evt.picked3d) # get the closest pt on the line
+        pt = self.merged_meshes.closest_point(evt.picked3d) # get the closest pt on the line
         self.arrow_stops.append(pt) if self.toggle else self.arrow_starts.append(pt)
         self.draw()
         self.toggle = not self.toggle
@@ -93,18 +93,18 @@ class Morpher:
             warped_plane.warp(self.arrow_starts, self.arrow_stops, mode=self.mode)
             output.append(warped_plane + Axes(warped_plane, xygrid=0, text_scale=0.6))
 
-            mw = self.mesh1.clone().applyTransform(warped_plane.transform).c('red4')
+            mw = self.mesh1.clone().apply_transform(warped_plane.transform).c('red4')
             output.append(mw)
 
             T_inv = warped_plane.transform.GetInverse()
-            a = Points(self.arrow_starts, r=10).applyTransform(warped_plane.transform)
-            b = Points(self.arrow_stops,  r=10).applyTransform(warped_plane.transform)
-            self.dottedln = Lines(a,b, res=self.n).applyTransform(T_inv).pointSize(5)
+            a = Points(self.arrow_starts, r=10).apply_transform(warped_plane.transform)
+            b = Points(self.arrow_stops,  r=10).apply_transform(warped_plane.transform)
+            self.dottedln = Lines(a,b, res=self.n).apply_transform(T_inv).point_size(5)
             output.append(self.dottedln)
 
             self.msg1.text(self.instructions)
             self.msg2.text("Morphed output:")
-            self.plotter.at(1).clear().add_renderer_frame().add(output).resetCamera()
+            self.plotter.at(1).clear().add_renderer_frame().add(output).reset_camera()
 
         elif evt.keypress == 'g':  ##------- generate intermediate shapes
             if not self.dottedln:

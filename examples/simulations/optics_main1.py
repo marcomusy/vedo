@@ -81,7 +81,7 @@ src = vedo.merge(s1,s2).clean().compute_normals()
 dirs = src.pointdata["Normals"]
 screen= Screen(3,3).z(4)
 
-grid = vedo.Grid(normal=[0,0,1], res=[40,40], s=[4,4])
+grid = vedo.Grid(res=[40,40], s=[4,4]).rotate_z(90)
 detector = Detector(grid).z(3.5)
 
 elements = [detector]

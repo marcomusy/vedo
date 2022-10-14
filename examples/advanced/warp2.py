@@ -22,7 +22,7 @@ warp = mesh.clone().warp(sources, targets)
 warp.c("blue", 0.3).wireframe()
 
 sphere = Sphere(r=0.3).pos(1,0,-.50)
-sphere.applyTransform(warp.transform)
+sphere.apply_transform(warp.transform)
 # print(warp.transform)
 
 show(mesh, arrow, warp, apts, sphere, axes=1).close()
