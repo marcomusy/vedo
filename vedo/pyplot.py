@@ -213,7 +213,7 @@ class Figure(Assembly):
         Assembly.__init__(self, [self.axes])
         self.name = "Figure"
 
-        vedo.last_figure = self if vedo.settings.rememberLastFigureFormat else None
+        vedo.last_figure = self if vedo.settings.remember_last_figure_format else None
         return
 
     def __add__(self, *obj):
@@ -3982,7 +3982,7 @@ def CornerHistogram(
     tprop = vtk.vtkTextProperty()
     tprop.SetColor(colors.get_color(bg))
     tprop.SetFontFamily(vtk.VTK_FONT_FILE)
-    tprop.SetFontFile(utils.get_font_path(vedo.settings.defaultFont))
+    tprop.SetFontFile(utils.get_font_path(vedo.settings.default_font))
     tprop.SetOpacity(alpha)
     cplot.SetAxisTitleTextProperty(tprop)
     cplot.GetProperty().SetOpacity(alpha)

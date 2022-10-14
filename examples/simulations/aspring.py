@@ -1,7 +1,7 @@
 """Simulation of a block connected to a spring in a viscous medium"""
 from vedo import *
 
-settings.allowInteraction = True  # allow mouse interaction while playing
+settings.allow_interaction = True  # allow mouse interaction while playing
 
 
 L = 0.1    # spring x position at rest

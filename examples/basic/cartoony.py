@@ -1,8 +1,8 @@
 """Give a cartoony appearance to a 3D mesh"""
 from vedo import dataurl, settings, Plotter, Mesh, Text2D
 
-settings.useDepthPeeling = True
-settings.multiSamples = 8  # antialiasing
+settings.use_depth_peeling = True
+settings.multi_samples = 8  # antialiasing
 
 plt = Plotter()  # this creates a default camera, needed by silhouette()
 

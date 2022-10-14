@@ -2,7 +2,7 @@ import trimesh
 import numpy as np
 from vedo import show, settings
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 # test on a sphere mesh
 mesh = trimesh.creation.icosphere()

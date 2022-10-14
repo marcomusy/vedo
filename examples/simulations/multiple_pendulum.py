@@ -22,7 +22,7 @@ for k in range(1, N + 1):
     bob_x.append(bob_x[k - 1] + np.cos(alpha) + np.random.normal(0, 0.1))
     bob_y.append(bob_y[k - 1] + np.sin(alpha) + np.random.normal(0, 0.1))
 
-settings.allowInteraction = True
+settings.allow_interaction = True
 
 plt = Plotter(title="Multiple Pendulum", axes=0, interactive=0, bg2='ly')
 plt += Box(pos=(0, -5, 0), length=12, width=12, height=0.7, c="k").wireframe(1)

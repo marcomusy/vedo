@@ -9,7 +9,7 @@ import numpy as np
 
 K_COULOMB = 8987551787.3681764  # N*m^2/C^2
 plt = None  # so that it can be also used without visualization
-settings.allowInteraction = True
+settings.allow_interaction = True
 
 
 class ParticleSim:

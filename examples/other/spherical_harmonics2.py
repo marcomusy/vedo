@@ -61,7 +61,7 @@ def morph(clm1, clm2, t, lmax):
             pts.append(p)
     return pts
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 plt = Plotter(shape=[2, 2], axes=3, interactive=0)
 

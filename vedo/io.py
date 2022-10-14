@@ -1198,7 +1198,7 @@ def loadImageData(filename):
     if ".tif" in filename.lower():
         reader = vtk.vtkTIFFReader()
         # print("GetOrientationType ", reader.GetOrientationType())
-        reader.SetOrientationType(settings.tiffOrientationType)
+        reader.SetOrientationType(settings.tiff_orientation_type)
     elif ".slc" in filename.lower():
         reader = vtk.vtkSLCReader()
         if not reader.CanReadFile(filename):
@@ -1508,13 +1508,12 @@ def export_window(fileoutput, binary=False):
         sdict["backgrcol2"] = None
         if plt.renderer.GetGradientBackground():
             sdict["backgrcol2"] = plt.renderer.GetBackground2()
-        sdict["useDepthPeeling"] = settings.useDepthPeeling
-        sdict["renderLinesAsTubes"] = settings.renderLinesAsTubes
-        sdict["hiddenLineRemoval"] = settings.hiddenLineRemoval
-        sdict["visibleGridEdges"] = settings.visibleGridEdges
-        # sdict['interactorStyle'] = 0
-        sdict["useParallelProjection"] = settings.useParallelProjection
-        sdict["defaultFont"] = settings.defaultFont
+        sdict["use_depth_peeling"] = settings.use_depth_peeling
+        sdict["render_lines_as_tubes"] = settings.render_lines_as_tubes
+        sdict["hidden_line_removal"] = settings.hidden_line_removal
+        sdict["visible_grid_edges"] = settings.visible_grid_edges
+        sdict["use_parallel_projection"] = settings.use_parallel_projection
+        sdict["default_font"] = settings.default_font
         sdict["objects"] = []
 
         allobjs = plt.get_meshes(include_non_pickables=True) + plt.get_volumes(include_non_pickables=True)
@@ -1635,30 +1634,30 @@ def import_window(fileinput, mtl_file=None, texture_path=None):
         data = np.load(fileinput, allow_pickle=True)["vedo_scenes"][0]
 
     if data is not None:
-        if "renderLinesAsTubes" in data.keys():
-            settings.renderLinesAsTubes = data["renderLinesAsTubes"]
-        if "hiddenLineRemoval" in data.keys():
-            settings.hiddenLineRemoval = data["hiddenLineRemoval"]
-        if "visibleGridEdges" in data.keys():
-            settings.visibleGridEdges = data["visibleGridEdges"]
+        if "render_lines_as_tubes" in data.keys():
+            settings.render_lines_as_tubes = data["render_lines_as_tubes"]
+        if "hidden_line_removal" in data.keys():
+            settings.hidden_line_removal = data["hidden_line_removal"]
+        if "visible_grid_edges" in data.keys():
+            settings.visible_grid_edges = data["visible_grid_edges"]
         if "interactorStyle" in data.keys():
             vedo.interactorStyle = data["interactorStyle"]
-        if "useParallelProjection" in data.keys():
-            settings.useParallelProjection = data["useParallelProjection"]
-        if "usePolygonOffset" in data.keys():
-            settings.usePolygonOffset = data["usePolygonOffset"]
-        if "polygonOffsetFactor" in data.keys():
-            settings.polygonOffsetFactor = data["polygonOffsetFactor"]
-        if "polygonOffsetUnits" in data.keys():
-            settings.polygonOffsetUnits = data["polygonOffsetUnits"]
-        if "interpolateScalarsBeforeMapping" in data.keys():
-            settings.interpolateScalarsBeforeMapping = data[
-                "interpolateScalarsBeforeMapping"
-            ]
+        if "use_parallel_projection" in data.keys():
+            settings.use_parallel_projection = data["use_parallel_projection"]
+        if "use_polygon_offset" in data.keys():
+            settings.use_polygon_offset = data["use_polygon_offset"]
+        if "polygon_offset_factor" in data.keys():
+            settings.polygon_offset_factor = data["polygon_offset_factor"]
+        if "polygon_offset_units" in data.keys():
+            settings.polygon_offset_units = data["polygon_offset_units"]
+        if "interpolate_scalars_before_mapping" in data.keys():
+            settings.interpolate_scalars_before_mapping = data["interpolate_scalars_before_mapping"]
+        if "default_font" in data.keys():
+            settings.default_font = data["default_font"]
         if "defaultFont" in data.keys():
-            settings.defaultFont = data["defaultFont"]
-        if "useDepthPeeling" in data.keys():
-            settings.useDepthPeeling = data["useDepthPeeling"]
+            settings.default_font = data["defaultFont"]
+        if "use_depth_peeling" in data.keys():
+            settings.use_depth_peeling = data["use_depth_peeling"]
 
         axes = data.pop("axes", 4)
         title = data.pop("title", "")
@@ -1787,9 +1786,9 @@ def screenshot(filename="screenshot.png", scale=None, asarray=False):
         return vedo.plotter_instance  ##########
 
     if scale is None:
-        scale = settings.screeshotScale
+        scale = settings.screeshot_scale
 
-    if settings.screeshotLargeImage:
+    if settings.screeshot_large_image:
         w2if = vtk.vtkRenderLargeImage()
         w2if.SetInput(vedo.plotter_instance.renderer)
         w2if.SetMagnification(scale)
@@ -1798,7 +1797,7 @@ def screenshot(filename="screenshot.png", scale=None, asarray=False):
         w2if.SetInput(vedo.plotter_instance.window)
         if hasattr(w2if, "SetScale"):
             w2if.SetScale(scale, scale)
-        if settings.screenshotTransparentBackground:
+        if settings.screenshot_transparent_background:
             w2if.SetInputBufferTypeToRGBA()
         w2if.ReadFrontBufferOff()  # read from the back buffer
     w2if.Update()
@@ -2048,7 +2047,7 @@ class Video:
             cap = cv2.VideoCapture(os.path.join(self.tmp_dir.name, "%1d.png"))
             fourcc = cv2.VideoWriter_fourcc(*"mp4v")
             w, h = vedo.plotter_instance.window.GetSize()
-            w, h = w * settings.screeshotScale, h * settings.screeshotScale
+            w, h = w * settings.screeshot_scale, h * settings.screeshot_scale
             writer = cv2.VideoWriter(self.name, fourcc, self.fps, (w, h), True)
 
             found = False

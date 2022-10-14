@@ -75,7 +75,7 @@ class Flock:
 ################################################################################
 if __name__=="__main__":
 
-    vedo.settings.allowInteraction = True
+    vedo.settings.allow_interaction = True
 
     np.random.seed(6)
     boids = []

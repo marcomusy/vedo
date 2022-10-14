@@ -12,7 +12,7 @@ import pymeshfix
 import tetgen
 import vedo
 
-vedo.settings.useDepthPeeling = True
+vedo.settings.use_depth_peeling = True
 
 amesh = vedo.Mesh(vedo.dataurl+'290.vtk')
 

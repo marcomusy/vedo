@@ -3,7 +3,7 @@ an arbitrary polygonal Mesh
 Units are \mum"""
 from vedo import *
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 tetmesh = TetMesh(dataurl+'limb_ugrid.vtk')
 

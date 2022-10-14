@@ -2,7 +2,7 @@
 import numpy as np
 from vedo import *
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 n = 10000
 p = np.random.normal(0, 0.3, (n,2))

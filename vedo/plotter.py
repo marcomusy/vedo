@@ -554,13 +554,13 @@ class Plotter:
         self._timer_event_id = None
 
         # more settings
-        if settings.useDepthPeeling:
-            self.window.SetAlphaBitPlanes(settings.alphaBitPlanes)
-        self.window.SetMultiSamples(settings.multiSamples)
+        if settings.use_depth_peeling:
+            self.window.SetAlphaBitPlanes(settings.alpha_bit_planes)
+        self.window.SetMultiSamples(settings.multi_samples)
 
-        self.window.SetPolygonSmoothing(settings.polygonSmoothing)
-        self.window.SetLineSmoothing(settings.lineSmoothing)
-        self.window.SetPointSmoothing(settings.pointSmoothing)
+        self.window.SetPolygonSmoothing(settings.polygon_smoothing)
+        self.window.SetLineSmoothing(settings.line_smoothing)
+        self.window.SetPointSmoothing(settings.point_smoothing)
 
         # sort out screen size
         if screensize == "auto":
@@ -568,7 +568,7 @@ class Plotter:
 
             ### BUG in GetScreenSize in VTK 9.1.0
             ### https://discourse.vtk.org/t/vtk9-1-0-problems/7094/3
-            if settings.hackCallScreenSize:  # True
+            if settings.hack_call_screen_size:  # True
 
                 vtkvers = vedo.vtk_version
                 if not self.offscreen and (vtkvers[0]<9 or vtkvers[0]==9 and vtkvers[1]==0):
@@ -629,8 +629,8 @@ class Plotter:
                 xsplit = m / (n + m)
             else:
                 xsplit = 1 - n / (n + m)
-            if settings.windowSplittingPosition:
-                xsplit = settings.windowSplittingPosition
+            if settings.window_splitting_position:
+                xsplit = settings.window_splitting_position
 
             for i in rangen:
                 arenderer = vtk.vtkRenderer()
@@ -650,16 +650,16 @@ class Plotter:
                 self.renderers.append(arenderer)
 
             for r in self.renderers:
-                r.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
-                r.SetLightFollowCamera(settings.lightFollowsCamera)
+                r.SetUseHiddenLineRemoval(settings.hidden_line_removal)
+                r.SetLightFollowCamera(settings.light_follows_camera)
 
-                r.SetUseDepthPeeling(settings.useDepthPeeling)
-                # r.SetUseDepthPeelingForVolumes(settings.useDepthPeeling)
-                if settings.useDepthPeeling:
-                    r.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
-                    r.SetOcclusionRatio(settings.occlusionRatio)
-                r.SetUseFXAA(settings.useFXAA)
-                r.SetPreserveDepthBuffer(settings.preserveDepthBuffer)
+                r.SetUseDepthPeeling(settings.use_depth_peeling)
+                # r.SetUseDepthPeelingForVolumes(settings.use_depth_peeling)
+                if settings.use_depth_peeling:
+                    r.SetMaximumNumberOfPeels(settings.max_number_of_peels)
+                    r.SetOcclusionRatio(settings.occlusion_ratio)
+                r.SetUseFXAA(settings.use_fxaa)
+                r.SetPreserveDepthBuffer(settings.preserve_depth_buffer)
 
                 r.SetBackground(vedo.get_color(self.backgrcol))
 
@@ -680,16 +680,16 @@ class Plotter:
                 bg2_ = rd.pop("bg2", None)
 
                 arenderer = vtk.vtkRenderer()
-                arenderer.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
-                arenderer.SetLightFollowCamera(settings.lightFollowsCamera)
+                arenderer.SetUseHiddenLineRemoval(settings.hidden_line_removal)
+                arenderer.SetLightFollowCamera(settings.light_follows_camera)
 
-                arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
-                # arenderer.SetUseDepthPeelingForVolumes(settings.useDepthPeeling)
-                if settings.useDepthPeeling:
-                    arenderer.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
-                    arenderer.SetOcclusionRatio(settings.occlusionRatio)
-                arenderer.SetUseFXAA(settings.useFXAA)
-                arenderer.SetPreserveDepthBuffer(settings.preserveDepthBuffer)
+                arenderer.SetUseDepthPeeling(settings.use_depth_peeling)
+                # arenderer.SetUseDepthPeelingForVolumes(settings.use_depth_peeling)
+                if settings.use_depth_peeling:
+                    arenderer.SetMaximumNumberOfPeels(settings.max_number_of_peels)
+                    arenderer.SetOcclusionRatio(settings.occlusion_ratio)
+                arenderer.SetUseFXAA(settings.use_fxaa)
+                arenderer.SetPreserveDepthBuffer(settings.preserve_depth_buffer)
 
                 arenderer.SetViewport(x0, y0, x1, y1)
                 arenderer.SetBackground(vedo.get_color(bg_))
@@ -735,17 +735,17 @@ class Plotter:
             for i in reversed(range(shape[0])):
                 for j in range(shape[1]):
                     arenderer = vtk.vtkRenderer()
-                    arenderer.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
-                    arenderer.SetLightFollowCamera(settings.lightFollowsCamera)
-                    arenderer.SetTwoSidedLighting(settings.twoSidedLighting)
+                    arenderer.SetUseHiddenLineRemoval(settings.hidden_line_removal)
+                    arenderer.SetLightFollowCamera(settings.light_follows_camera)
+                    arenderer.SetTwoSidedLighting(settings.two_sided_lighting)
 
-                    arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
-                    # arenderer.SetUseDepthPeelingForVolumes(settings.useDepthPeeling)
-                    if settings.useDepthPeeling:
-                        arenderer.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
-                        arenderer.SetOcclusionRatio(settings.occlusionRatio)
-                    arenderer.SetUseFXAA(settings.useFXAA)
-                    arenderer.SetPreserveDepthBuffer(settings.preserveDepthBuffer)
+                    arenderer.SetUseDepthPeeling(settings.use_depth_peeling)
+                    # arenderer.SetUseDepthPeelingForVolumes(settings.use_depth_peeling)
+                    if settings.use_depth_peeling:
+                        arenderer.SetMaximumNumberOfPeels(settings.max_number_of_peels)
+                        arenderer.SetOcclusionRatio(settings.occlusion_ratio)
+                    arenderer.SetUseFXAA(settings.use_fxaa)
+                    arenderer.SetPreserveDepthBuffer(settings.preserve_depth_buffer)
 
                     if image_actor:
                         arenderer.SetLayer(1)
@@ -776,18 +776,18 @@ class Plotter:
             self.window.SetSize(int(self.size[0]), int(self.size[1]))
 
         if self.wx_widget is not None:
-            settings.immediateRendering = False  # override
+            settings.immediate_rendering = False  # override
             self.window = self.wx_widget.GetRenderWindow()  # overwrite
             self.interactor = self.window.GetInteractor()
             for r in self.renderers:
                 self.window.AddRenderer(r)
             self.wx_widget.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
             self.camera = self.renderer.GetActiveCamera()
-            # if settings.enableDefaultMouseCallbacks:
+            # if settings.enable_default_mouse_callbacks:
             #     self.wx_widget.AddObserver("LeftButtonPressEvent", self._mouseleft)
             #     self.wx_widget.AddObserver("RightButtonPressEvent", self._mouseright)
             #     self.wx_widget.AddObserver("MiddleButtonPressEvent", self._mousemiddle)
-            # if settings.enableDefaultKeyboardCallbacks:
+            # if settings.enable_default_keyboard_callbacks:
             #     self.wx_widget.AddObserver("KeyPressEvent", self._keypress)
             #     self.wx_widget.AddObserver("KeyReleaseEvent", self._keyrelease)
             ########################
@@ -827,15 +827,15 @@ class Plotter:
         vsty = vtk.vtkInteractorStyleTrackballCamera()
         self.interactor.SetInteractorStyle(vsty)
 
-        if settings.enableDefaultMouseCallbacks:
+        if settings.enable_default_mouse_callbacks:
             self.interactor.AddObserver("LeftButtonPressEvent", self._mouseleft)
             self.interactor.AddObserver("RightButtonPressEvent", self._mouseright)
             self.interactor.AddObserver("MiddleButtonPressEvent", self._mousemiddle)
-        if settings.enableDefaultKeyboardCallbacks:
+        if settings.enable_default_keyboard_callbacks:
             self.interactor.AddObserver("KeyPressEvent", self._keypress)
             self.interactor.AddObserver("KeyReleaseEvent", self._keyrelease)
 
-        if settings.allowInteraction:
+        if settings.allow_interaction:
             def win_interact(iren, event):  # flushing interactor events
                 if event == "TimerEvent":
                     iren.ExitCallback()
@@ -849,7 +849,7 @@ class Plotter:
         if (
             self.interactor
             and self._timer_event_id is not None
-            and settings.immediateRendering
+            and settings.immediate_rendering
         ):
             if vedo.vtk_version[0]>=9 and vedo.vtk_version[1]>=1: # VTK BUG for Start()
                 return self
@@ -1033,7 +1033,7 @@ class Plotter:
         if resetcam:
             self.renderer.ResetCamera()
 
-        if settings.allowInteraction:
+        if settings.allow_interaction:
             self.allow_interaction()
 
         self.window.Render()
@@ -2092,7 +2092,7 @@ class Plotter:
             .. code-block:: python
 
                 from vedo import settings, Cube, Plotter
-                settings.useParallelProjection = True # or else it doesnt make sense!
+                settings.use_parallel_projection = True # or else it doesnt make sense!
                 cube = Cube().alpha(0.2)
                 plt = Plotter(size=(900,600), axes=dict(xtitle='x (um)'))
                 plt.add_scale_indicator(units='um', c='blue4')
@@ -2112,8 +2112,8 @@ class Plotter:
         pd.SetLines(lines)
 
         wsx, wsy = self.window.GetSize()
-        if not settings.useParallelProjection:
-            vedo.logger.warning("add_scale_indicator called with useParallelProjection OFF. Skip.")
+        if not settings.use_parallel_projection:
+            vedo.logger.warning("add_scale_indicator called with use_parallel_projection OFF. Skip.")
             return None
 
         rlabel = vtk.vtkVectorText()
@@ -2910,7 +2910,7 @@ class Plotter:
                 self.interactor.RemoveObservers("CharEvent")
 
         self.camera = self.renderer.GetActiveCamera()
-        self.camera.SetParallelProjection(settings.useParallelProjection)
+        self.camera.SetParallelProjection(settings.use_parallel_projection)
         if self.sharecam:
             for r in self.renderers:
                 r.SetActiveCamera(self.camera)
@@ -2996,7 +2996,7 @@ class Plotter:
 
 
         self.renderer.ResetCameraClippingRange()
-        if settings.immediateRendering:
+        if settings.immediate_rendering:
             self.window.Render()  ##################### <-------------- Render
 
         self.window.SetWindowName(self.title)
@@ -3008,7 +3008,7 @@ class Plotter:
 
         if self.interactor:  # can be offscreen..
 
-            if settings.allowInteraction:
+            if settings.allow_interaction:
                 self.allow_interaction()
 
             # Set the style of interaction
@@ -3247,9 +3247,9 @@ class Plotter:
             set image magnification as an integer multiplicating factor
         """
         if scale is None:
-            scale = settings.screeshotScale
+            scale = settings.screeshot_scale
 
-        if settings.screeshotLargeImage:
+        if settings.screeshot_large_image:
             w2if = vtk.vtkRenderLargeImage()
             w2if.SetInput(self.renderer)
             w2if.SetMagnification(scale)
@@ -3258,7 +3258,7 @@ class Plotter:
             w2if.SetInput(self.window)
             if hasattr(w2if, "SetScale"):
                 w2if.SetScale(scale, scale)
-            if settings.screenshotTransparentBackground:
+            if settings.screenshot_transparent_background:
                 w2if.SetInputBufferTypeToRGBA()
             w2if.ReadFrontBufferOff()  # read from the back buffer
         w2if.Update()
@@ -3646,8 +3646,8 @@ class Plotter:
             # print(self.window.GetAlphaBitPlanes())
             if udp:
                 self.window.SetAlphaBitPlanes(1)
-                renderer.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
-                renderer.SetOcclusionRatio(settings.occlusionRatio)
+                renderer.SetMaximumNumberOfPeels(settings.max_number_of_peels)
+                renderer.SetOcclusionRatio(settings.occlusion_ratio)
             self.interactor.Render()
             wasUsed = renderer.GetLastRenderingUsedDepthPeeling()
             rnr = self.renderers.index(renderer)
@@ -3804,11 +3804,11 @@ class Plotter:
             if isinstance(self.axes, dict):
                 self.axes = 1
             if key in ["minus", "KP_Subtract"]:
-                if not settings.useParallelProjection and self.axes == 0:
+                if not settings.use_parallel_projection and self.axes == 0:
                     self.axes -= 1  # jump ruler doesnt make sense in perspective mode
                 addons.add_global_axes(axtype=(self.axes - 1) % 14, c=None)
             else:
-                if not settings.useParallelProjection and self.axes == 12:
+                if not settings.use_parallel_projection and self.axes == 12:
                     self.axes += 1  # jump ruler doesnt make sense in perspective mode
                 addons.add_global_axes(axtype=(self.axes + 1) % 14, c=None)
             self.interactor.Render()

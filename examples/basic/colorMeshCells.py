@@ -3,7 +3,7 @@ a 1-to-1 list of colors and transparencies"""
 from vedo import *
 import numpy as np
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 tor = Torus(res=9).linewidth(1)
 

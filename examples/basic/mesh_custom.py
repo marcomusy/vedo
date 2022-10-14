@@ -3,8 +3,8 @@ of a Mesh with various color map definitions"""
 from vedo import *
 
 # "depth peeling" may improve the rendering of transparent objects
-settings.useDepthPeeling = True
-settings.multiSamples = 0  # needed on OSX vtk9
+settings.use_depth_peeling = True
+settings.multi_samples = 0
 
 man = Mesh(dataurl+"man.vtk")
 

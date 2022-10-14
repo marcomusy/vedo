@@ -2,7 +2,7 @@
 from vedo import *
 
 settings.default_font = 'Bongas'
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 spid = Mesh(dataurl+"spider.ply").c("brown")
 

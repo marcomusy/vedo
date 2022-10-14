@@ -2,7 +2,7 @@
 with a scalar array"""
 from vedo import *
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 tetm = TetMesh(dataurl+'limb_ugrid.vtk')
 tetm.color('prism').alpha([0,1])

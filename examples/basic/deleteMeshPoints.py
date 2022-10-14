@@ -2,7 +2,7 @@
 which are closest to a specified point."""
 from vedo import *
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 msh = Mesh(dataurl+'apple.ply')
 msh.c('lightgreen').bc('tomato').lw(0.1)

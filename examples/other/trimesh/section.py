@@ -2,7 +2,7 @@ import numpy as np
 from vedo import show, Plane, printc, download, settings
 import trimesh
 
-settings.immediateRendering = False
+settings.immediate_rendering = False
 
 # load the mesh from filename, file objects are also supported
 f = download('https://github.com/mikedh/trimesh/raw/main/models/featuretype.STL')

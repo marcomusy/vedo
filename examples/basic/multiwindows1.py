@@ -37,7 +37,7 @@ plt1.at(24).show(c)
 s = Mesh(dataurl+'mug.ply')
 
 # Set the position of the horizontal of vertical splitting [0,1]:
-#settings.windowSplittingPosition = 0.5
+#settings.window_splitting_position = 0.5
 
 plt2 = Plotter(pos=(500, 250), shape='2/6')
 

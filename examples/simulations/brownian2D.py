@@ -11,7 +11,7 @@ print(__doc__)
 
 screen_w = 800
 screen_h = 800
-settings.allowInteraction = True
+settings.allow_interaction = True
 
 plt = Plotter(size=(screen_w, screen_h), axes=0, interactive=0)
 

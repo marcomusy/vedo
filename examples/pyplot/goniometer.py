@@ -2,7 +2,7 @@
 a vignette and a goniometer"""
 from vedo import *
 
-settings.useParallelProjection = True  # avoid parallax effects
+settings.use_parallel_projection = True  # avoid parallax effects
 
 mesh = Cone().c("steelblue").rotate_y(90).pos(1, 2, 3)
 

@@ -23,7 +23,7 @@ x = vector(theta, phi, psi)  # Lagrangian coordinates
 v = vector(thetadot, phidot, psidot)
 
 # ############################################################ the scene
-settings.allowInteraction = True
+settings.allow_interaction = True
 plt = Plotter(interactive=False)
 plt += __doc__
 

@@ -2,7 +2,7 @@
 Access any element to change its size and color"""
 from vedo import *
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 # Create a bunch of objects
 s1 = Sphere(pos=(10, 0, 0), r=1, c='r')

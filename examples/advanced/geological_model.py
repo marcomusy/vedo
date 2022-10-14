@@ -3,7 +3,7 @@
 from vedo import printc, dataurl, settings, delaunay2d, Line, Lines, Points, Plotter
 import pandas as pd
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 # Load surfaces, import the file from github
 printc("...loading data...", invert=1, end='')

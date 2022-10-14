@@ -1,7 +1,7 @@
 """Boolean operations with Meshes"""
 from vedo import *
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 # declare the instance of the class
 plt = Plotter(shape=(2, 2), interactive=False, axes=3)

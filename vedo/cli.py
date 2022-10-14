@@ -386,10 +386,10 @@ def exe_search_vtk(args):
 #################################################################################################################
 def exe_eog(args):
     # print("EOG emulator")
-    settings.immediateRendering = False
-    settings.useParallelProjection = True
-    settings.enableDefaultMouseCallbacks = False
-    settings.enableDefaultKeyboardCallbacks = False
+    settings.settings.immediate_rendering = False
+    settings.use_parallel_projection = True
+    settings.enable_default_mouse_callbacks = False
+    settings.enable_default_keyboard_callbacks = False
 
     if args.background == "":
         args.background = "white"
@@ -553,10 +553,10 @@ def draw_scene(args):
             printc("         you are trying to load ", nfiles, " files.\n", c=1)
             N = 200
         if N > 4:
-            settings.useDepthPeeling = False
+            settings.use_depth_peeling = False
 
         plt = Plotter(size=wsize, N=N, bg=args.background, bg2=args.background_grad)
-        settings.immediateRendering = False
+        settings.immediate_rendering = False
         plt.axes = args.axes_type
         for i in range(N):
             plt.add_hover_legend(at=i)
@@ -635,7 +635,7 @@ def draw_scene(args):
     elif args.edit:
         # print('edit mode for meshes and pointclouds')
         vedo.plotter_instance = None  # reset
-        settings.useParallelProjection = True
+        settings.use_parallel_projection = True
 
         try:
             m = Mesh(args.files[0], alpha=args.alpha / 2, c=args.color)

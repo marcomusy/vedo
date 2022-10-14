@@ -3,7 +3,7 @@
 from vedo import *
 
 settings.default_font = "Ubuntu"
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 
 def func(evt):                 # this is the callback function

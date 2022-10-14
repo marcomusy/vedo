@@ -221,7 +221,7 @@ class Button:
             self.textproperty.SetFontFamilyToArial()
         else:
             if not font:
-                font = settings.defaultFont
+                font = settings.default_font
             self.textproperty.SetFontFamily(vtk.VTK_FONT_FILE)
             self.textproperty.SetFontFile(utils.get_font_path(font))
         self.textproperty.SetFontSize(size)
@@ -716,7 +716,7 @@ def ScalarBar(
         titprop.SetVerticalJustificationToTop()
         titprop.SetFontSize(font_size)
         titprop.SetFontFamily(vtk.VTK_FONT_FILE)
-        titprop.SetFontFile(utils.get_font_path(settings.defaultFont))
+        titprop.SetFontFile(utils.get_font_path(settings.default_font))
         sb.SetTitle(title)
         sb.SetVerticalTitleSeparation(title_yoffset)
         sb.SetTitleTextProperty(titprop)
@@ -748,7 +748,7 @@ def ScalarBar(
 
     sctxt = sb.GetLabelTextProperty()
     sctxt.SetFontFamily(vtk.VTK_FONT_FILE)
-    sctxt.SetFontFile(utils.get_font_path(settings.defaultFont))
+    sctxt.SetFontFile(utils.get_font_path(settings.default_font))
     sctxt.SetColor(c)
     sctxt.SetShadow(0)
     sctxt.SetFontSize(font_size - 2)
@@ -1323,7 +1323,7 @@ def add_slider(
         sliderRep.GetTitleProperty().SetFontFamilyToArial()
     else:
         if font == "":
-            font = utils.get_font_path(settings.defaultFont)
+            font = utils.get_font_path(settings.default_font)
         else:
             font = utils.get_font_path(font)
         sliderRep.GetTitleProperty().SetFontFamily(vtk.VTK_FONT_FILE)
@@ -1813,12 +1813,12 @@ def add_renderer_frame(plotter_instance, c=None, alpha=None, lw=None, padding=No
     """
 
     if lw is None:
-        lw = settings.rendererFrameWidth
+        lw = settings.renderer_frame_width
     if lw == 0:
         return None
 
     if padding is None:
-        padding = settings.rendererFramePadding
+        padding = settings.renderer_frame_padding
 
     if c is None:  # automatic black or white
         c = (0.9, 0.9, 0.9)
@@ -1827,7 +1827,7 @@ def add_renderer_frame(plotter_instance, c=None, alpha=None, lw=None, padding=No
     c = get_color(c)
 
     if alpha is None:
-        alpha = settings.rendererFrameAlpha
+        alpha = settings.renderer_frame_alpha
 
     ppoints = vtk.vtkPoints()  # Generate the polyline
     xy = 1 - padding
@@ -2244,7 +2244,7 @@ def add_scale_indicator(pos=(0.7, 0.05), s=0.02, length=2, lw=4, c="k", units=""
     wsx, wsy = plt.window.GetSize()
     if not plt.renderer.GetActiveCamera().GetParallelProjection():
         vedo.logger.warning(
-            "add_scale_indicator() is called with useParallelProjection OFF."
+            "add_scale_indicator() is called with use_parallel_projection OFF."
         )
 
     rlabel = vtk.vtkVectorText()
@@ -2302,7 +2302,7 @@ def Axes(
         digits=None,
         limit_ratio=0.04,
         title_depth=0,
-        title_font="", # grab settings.defaultFont
+        title_font="", # grab settings.default_font
         text_scale=1.0,
         x_values_and_labels=None, y_values_and_labels=None, z_values_and_labels=None,
         htitle="",
@@ -2341,7 +2341,7 @@ def Axes(
         xtick_thickness=0.0025, ytick_thickness=0.0025, ztick_thickness=0.0025,
         xminor_ticks=1, yminor_ticks=1, zminor_ticks=1,
         tip_size=None,
-        label_font="", # grab settings.defaultFont
+        label_font="", # grab settings.default_font
         xlabel_color=None, ylabel_color=None, zlabel_color=None,
         xlabel_size=0.016, ylabel_size=0.016, zlabel_size=0.016,
         xlabel_offset=0.8, ylabel_offset=0.8, zlabel_offset=0.8, # each can be a list (dx,dy,dz)
@@ -2440,9 +2440,9 @@ def Axes(
         .. image:: https://vedo.embl.es/images/pyplot/customAxes3.png
     """
     if not title_font:
-        title_font = settings.defaultFont
+        title_font = settings.default_font
     if not label_font:
-        label_font = settings.defaultFont
+        label_font = settings.default_font
 
     if c is None:  # automatic black or white
         c = (0.1, 0.1, 0.1)
@@ -2531,7 +2531,7 @@ def Axes(
     if not zlabel_color:  zlabel_color = zline_color
 
     # vtk version<9 dont like depthpeeling: force switching off grids
-    if settings.useDepthPeeling and not utils.vtk_version_at_least(9):
+    if settings.use_depth_peeling and not utils.vtk_version_at_least(9):
         xygrid = False
         yzgrid = False
         zxgrid = False
@@ -3836,7 +3836,7 @@ def add_global_axes(axtype=None, c=None):
         ls.GetBottomAxis().GetLabelTextProperty().ShadowOff()
         pr = ls.GetBottomAxis().GetLabelTextProperty()
         pr.SetFontFamily(vtk.VTK_FONT_FILE)
-        pr.SetFontFile(utils.get_font_path(settings.defaultFont))
+        pr.SetFontFile(utils.get_font_path(settings.default_font))
         ls.PickableOff()
         plt.renderer.AddActor(ls)
         plt.axes_instances[r] = ls

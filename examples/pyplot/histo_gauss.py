@@ -4,7 +4,7 @@ from vedo.pyplot import histogram, plot
 from vedo import settings
 
 settings.default_font = "Bongas"
-settings.rememberLastFigureFormat = True
+settings.remember_last_figure_format = True
 
 mu, sigma, n, bins = 100.0, 15.0, 600, 50
 samples = np.random.normal(loc=mu, scale=sigma, size=n)

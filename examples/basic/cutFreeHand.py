@@ -50,7 +50,7 @@ from vedo.applications import FreeHandCutPlotter
 #         return self.show(self.txt2d, self.mesh, **kwargs)
 #
 ######################################################################################
-vedo.settings.useParallelProjection = True  # to avoid perspective artifacts
+vedo.settings.use_parallel_projection = True  # to avoid perspective artifacts
 
 msh = vedo.Volume(vedo.dataurl+'embryo.tif').isosurface().color('gold', 0.25) # Mesh
 

@@ -51,7 +51,7 @@ def remesh(mesh, res=50):
 N = 40             # number of iterations of stretching
 res = 15           # resolution of meshes
 do_remesh = False  # grab the boundary and remesh the interior at each iteration
-vedo.settings.useParallelProjection = True  # avoid perspective parallax
+vedo.settings.use_parallel_projection = True  # avoid perspective parallax
 
 circle = Circle(Point(0, 0), 50)
 mesh = generate_mesh(circle, res)

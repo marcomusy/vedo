@@ -2,7 +2,7 @@
 a simulation.. just a way to illustrate how to move objects around!"""
 from vedo import *
 
-settings.allowInteraction = True # if ESC button is hit during the loop
+settings.allow_interaction = True # if ESC button is hit during the loop
 
 world = Box([0,0,0], 30, 16, 8).wireframe()
 

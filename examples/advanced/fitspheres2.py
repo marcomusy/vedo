@@ -3,7 +3,7 @@ Color points from the size of the sphere radius."""
 from vedo import *
 from vedo.pyplot import histogram
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 plt = Plotter()
 

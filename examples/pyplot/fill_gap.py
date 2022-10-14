@@ -4,7 +4,7 @@ import numpy as np
 from vedo.pyplot import plot
 from vedo import settings
 
-settings.rememberLastFigureFormat = True # useful for pf += plot(...)
+settings.remember_last_figure_format = True # useful for pf += plot(...)
 
 x1 = np.linspace(-2,2, num=100)
 x  = np.linspace(-2,2, num=100)

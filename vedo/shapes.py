@@ -641,7 +641,7 @@ class Line(Mesh):
                 shape = load(dataurl+"timecourse1d.npy")[55]
                 curvs = Line(shape.points()).curvature()
                 shape.cmap('coolwarm', curvs, vmin=-2,vmax=2).add_scalarbar3d(c='w')
-                shape.renderLinesAsTubes().lw(12)
+                shape.render_lines_as_tubes().lw(12)
                 pp = plot(curvs, c='white', lc='yellow5')
                 show(shape, pp, N=2, bg='bb', sharecam=False).close()
         """
@@ -3833,7 +3833,7 @@ class Text3D(Mesh):
 
         Or type in your terminal `vedo --run fonts`.
 
-        Default is Normografo, which can be changed using `settings.defaultFont`.
+        Default is Normografo, which can be changed using `settings.default_font`.
 
     hspacing : float
         horizontal spacing of the font
@@ -3943,7 +3943,7 @@ class Text3D(Mesh):
         literal=False,
     ):
         if not font:
-            font = settings.defaultFont
+            font = settings.default_font
 
         txt = str(txt)
 
@@ -4131,12 +4131,12 @@ class TextBase:
 
         self.renderedAt = set()
 
-        if isinstance(settings.defaultFont, int):
+        if isinstance(settings.default_font, int):
             lfonts = list(settings.font_parameters.keys())
-            font = settings.defaultFont % len(lfonts)
+            font = settings.default_font % len(lfonts)
             self.fontname = lfonts[font]
         else:
-            self.fontname = settings.defaultFont
+            self.fontname = settings.default_font
         self.name = "Text"
 
     def angle(self, a):

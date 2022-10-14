@@ -1,7 +1,7 @@
 """Cut a mesh with another mesh"""
 from vedo import dataurl, settings, Plotter, Volume, Ellipsoid
 
-settings.tiffOrientationType = 4 # data origin is bottom-left
+settings.tiff_orientation_type = 4 # data origin is bottom-left
 
 embryo = Volume(dataurl+"embryo.tif").isosurface(30).normalize()
 

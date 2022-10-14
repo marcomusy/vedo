@@ -5,7 +5,7 @@ Show the first set of 20 points and fit a plane to them"""
 import numpy as np
 from vedo import *
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 # declare the class instance
 plt = Plotter()

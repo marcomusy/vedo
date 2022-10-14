@@ -10,7 +10,7 @@ import scipy.optimize as opt
 
 print(__doc__)
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 plt = Plotter(shape=[1, 3], interactive=0, axes=1)
 

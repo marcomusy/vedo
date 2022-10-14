@@ -4,7 +4,7 @@
 Click on the mesh and press ↓ or x to toggle a piece"""
 from vedo import dataurl, Sphere, settings, Mesh, TessellatedBox, show
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 surf = Sphere(quads=True, res=15)
 # surf = TessellatedBox()

@@ -60,7 +60,7 @@ class SOM:
 # -------------------------------------------------------------------------------
 if __name__ == "__main__":
 
-    settings.allowInteraction = True
+    settings.allow_interaction = True
 
     n = 25
     X, Y = np.meshgrid(np.linspace(0, 1, n), np.linspace(0, 1, n))

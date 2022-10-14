@@ -101,14 +101,14 @@ class Mesh(Points):
         self.line_locator = None
 
         self._mapper.SetInterpolateScalarsBeforeMapping(
-            vedo.settings.interpolateScalarsBeforeMapping
+            vedo.settings.interpolate_scalars_before_mapping
         )
 
-        if vedo.settings.usePolygonOffset:
+        if vedo.settings.use_polygon_offset:
             self._mapper.SetResolveCoincidentTopologyToPolygonOffset()
             pof, pou = (
-                vedo.settings.polygonOffsetFactor,
-                vedo.settings.polygonOffsetUnits,
+                vedo.settings.polygon_offset_factor,
+                vedo.settings.polygon_offset_units,
             )
             self._mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
             # self._mapper.SetRelativeCoincidentTopologyPolygonOffsetParameters(pof, pou)

@@ -3,7 +3,7 @@
 (needs ffmpeg or opencv)"""
 from vedo import dataurl, Plotter, Mesh, Video
 
-# settings.screeshotScale = 2           # to get higher resolution
+# settings.screeshot_scale = 2           # to get higher resolution
 
 # declare the class instance
 plt = Plotter(bg='beige', bg2='lb', axes=10, offscreen=False, interactive=1)

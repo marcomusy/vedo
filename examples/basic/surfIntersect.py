@@ -1,7 +1,7 @@
 """Intersection of two polygonal meshes"""
 from vedo import *
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 car = Mesh(dataurl+"porsche.ply").alpha(0.2)
 

@@ -1,7 +1,7 @@
 """Sliders and buttons controlling objects"""
 from vedo import *
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 def slider0(widget, event):
     sphere.color(widget.value)

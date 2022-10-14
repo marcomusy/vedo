@@ -1,7 +1,7 @@
 import vedo
 import numpy as np
 
-vedo.settings.useDepthPeeling = True
+vedo.settings.use_depth_peeling = True
 
 ############################
 class OpticalElement:

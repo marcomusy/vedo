@@ -104,11 +104,11 @@ class UGrid(vtk.vtkActor, BaseGrid):
 
         # self._mapper = vtk.vtkDataSetMapper()
         self._mapper = vtk.vtkPolyDataMapper()
-        self._mapper.SetInterpolateScalarsBeforeMapping(settings.interpolateScalarsBeforeMapping)
+        self._mapper.SetInterpolateScalarsBeforeMapping(settings.interpolate_scalars_before_mapping)
 
-        if settings.usePolygonOffset:
+        if settings.use_polygon_offset:
             self._mapper.SetResolveCoincidentTopologyToPolygonOffset()
-            pof, pou = settings.polygonOffsetFactor, settings.polygonOffsetUnits
+            pof, pou = settings.use_polygon_offset_factor, settings.use_polygon_offset_units
             self._mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
         self.GetProperty().SetInterpolationToFlat()
 

@@ -2,7 +2,7 @@
 from vedo import *
 import numpy as np
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 pts = (np.random.rand(10000, 3)-0.5)*2
 

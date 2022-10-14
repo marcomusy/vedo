@@ -5,7 +5,7 @@ then check how many points are inside the surface"""
 #
 from vedo import *
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 pts = Points(np.random.randn(10000, 3)*[3,2,1] + [50,60,70])
 

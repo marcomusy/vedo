@@ -1,6 +1,6 @@
 from vedo import settings, Plotter, ParametricShape, VedoLogo, Text2D
 
-settings.rendererFrameWidth = 1
+settings.renderer_frame_width = 1
 
 ##############################################################################
 def on_left_click(evt):

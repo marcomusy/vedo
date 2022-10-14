@@ -4,7 +4,7 @@ from vedo import Cube, Text2D, show, settings
 from vedo.colors import colors
 print(__doc__)
 
-settings.immediateRendering = False  # faster for multi-renderers
+settings.immediate_rendering = False  # faster for multi-renderers
 
 # sorting by hex color code (matplotlib colors):
 sorted_colors1 = sorted(colors.items(), key=itemgetter(1))
@@ -18,7 +18,7 @@ for sc in sorted_colors1:
 print("click on any cube and press i or I")
 plt1= show(cbs, N=len(cbs), azimuth=.2, size=(2100,1300),
            title="matplotlib colors", interactive=0)
-plt1.render()  # because of immediateRendering=False
+plt1.render()  # because of immediate_rendering=False
 
 # sort by name (bootstrap5 colors):
 sorted_colors2 = sorted(colors.items(), key=itemgetter(0))

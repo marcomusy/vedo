@@ -2,7 +2,7 @@
 default ray casting."""
 from vedo import *
 
-# settings.useDepthPeeling = False
+# settings.use_depth_peeling = False
 
 tetm = TetMesh(dataurl+'limb_ugrid.vtk')
 tetm.color('jet').alpha_unit(100) # make the tets more transparent

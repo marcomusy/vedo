@@ -3,7 +3,7 @@ Red points stay fixed while a single point in space
 moves as the arrow indicates."""
 from vedo import *
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 mesh = Mesh(dataurl+"man.vtk").color('w')
 
 # a heavily decimated copy with about 200 points

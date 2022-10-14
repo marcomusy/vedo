@@ -2,7 +2,7 @@
 E.g. pink4"""
 from vedo import settings, dataurl, Plotter, Mesh
 
-settings.enableDefaultKeyboardCallbacks = False
+settings.enable_default_keyboard_callbacks = False
 
 def kfunc(evt):
     global msg

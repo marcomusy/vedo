@@ -1021,7 +1021,7 @@ def printc(
     .. hint:: examples/other/printc.py
         .. image:: https://user-images.githubusercontent.com/32848391/50739010-2bfc2b80-11da-11e9-94de-011e50a86e61.jpg
     """
-    if not vedo.settings.enablePrintColor:
+    if not vedo.settings.enable_print_color:
         print(*strings, end=end, flush=flush)
         return
 

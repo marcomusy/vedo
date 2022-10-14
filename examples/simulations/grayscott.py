@@ -26,7 +26,7 @@ n = 200 # grid subdivisions
 Du, Dv, F, k, name = 0.16, 0.08, 0.035, 0.060, 'Zebrafish'
 # ---------------------------------------------------------------
 
-settings.allowInteraction = True
+settings.allow_interaction = True
 
 Z = np.zeros((n+2, n+2), [('U', np.double), ('V', np.double)])
 U, V = Z['U'], Z['V']

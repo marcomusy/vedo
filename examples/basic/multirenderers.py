@@ -2,7 +2,7 @@
 of the renderers inside the rendering window"""
 from vedo import *
 
-settings.immediateRendering = False  # faster for multi-renderers
+settings.immediate_rendering = False  # faster for multi-renderers
 
 # (0,0) is the bottom-left corner of the window, (1,1) the top-right
 # the order in the list defines the priority when overlapping

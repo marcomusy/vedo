@@ -3,7 +3,7 @@ from vedo.pyplot import plot
 from vedo import np, settings
 
 settings.default_font = 'Theemim'
-settings.rememberLastFigureFormat = True
+settings.remember_last_figure_format = True
 
 x = np.linspace(0, 10, num=21)
 y = 3 * np.sin(x)

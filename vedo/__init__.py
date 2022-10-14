@@ -16,7 +16,7 @@ import vtkmodules.all as vtk
 from vedo.version import _version as __version__
 
 # import vedo.settings_module as settings
-from vedo.settings_class import Settings
+from vedo.settings import Settings
 settings = Settings(level=0)
 
 from vedo.utils import *
@@ -77,7 +77,7 @@ vtk_version = [
 
 if vtk_version[0] >= 9:
     if "Windows" in sys_platform or "Linux" in sys_platform:
-        settings.useDepthPeeling = True
+        settings.use_depth_peeling = True
 
 
 ######################################################################### logging

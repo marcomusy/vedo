@@ -2,7 +2,7 @@
 (note the presence of polygonal boundary)"""
 from vedo import *
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 tetm = TetMesh(dataurl+'limb_ugrid.vtk')
 

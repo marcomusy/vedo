@@ -6,7 +6,7 @@ Blue points are the N points used for fitting"""
 from vedo import *
 
 settings.default_font = 'Kanopus'
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 plt = Plotter()
 

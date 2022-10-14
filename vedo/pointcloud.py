@@ -1797,7 +1797,7 @@ class Points(vtk.vtkFollower, BaseActor):
         pr.UseTightBoundingBoxOn()
         pr.SetOrientation(angle)
         if not font:
-            font = settings.defaultFont
+            font = settings.default_font
         pr.SetFontFamily(vtk.VTK_FONT_FILE)
         fl = utils.get_font_path(font)
         pr.SetFontFile(fl)
@@ -2042,7 +2042,7 @@ class Points(vtk.vtkFollower, BaseActor):
             c = colors.get_color(c)
 
         if not font:
-            font = settings.defaultFont
+            font = settings.default_font
 
         if point is None:
             x0, x1, y0, y1, _, z1 = self.GetBounds()

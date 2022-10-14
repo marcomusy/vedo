@@ -2,7 +2,7 @@
 from vedo import np, settings, dataurl, Mesh, show
 from vedo.pyplot import plot, Figure
 
-settings.annotatedCubeTexts = ['front','back','left','right','top','bttm']
+settings.annotated_cube_texts = ['front','back','left','right','top','bttm']
 
 x0, x1 = [0.3, 2.0]
 x = np.linspace(x0, x1, num=50)

@@ -2,7 +2,7 @@
 to cut a region of the mesh"""
 from vedo import *
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 s = Sphere().alpha(0.2).lw(0.1)
 

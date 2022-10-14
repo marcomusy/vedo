@@ -2,7 +2,7 @@
 the associated vector and scalar fields"""
 from vedo import *
 
-settings.useDepthPeeling = True
+settings.use_depth_peeling = True
 
 g = load(dataurl+'structgrid.vts')
 

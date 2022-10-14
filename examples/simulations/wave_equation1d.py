@@ -87,7 +87,7 @@ for i in pb.range():
 ####################################################
 # Visualize the result
 ####################################################
-settings.allowInteraction = True
+settings.allow_interaction = True
 
 plt = Plotter(interactive=False, axes=2)  # choose axes type nr.2
 

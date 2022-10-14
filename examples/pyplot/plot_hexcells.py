@@ -3,7 +3,7 @@ from vedo import *
 import numpy as np
 
 settings.default_font = "Glasgo"
-settings.useParallelProjection = True
+settings.use_parallel_projection = True
 
 vals = np.abs(np.random.randn(4*6))  # pixel heights
 cols = color_map(vals, "summer")

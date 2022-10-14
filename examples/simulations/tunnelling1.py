@@ -36,7 +36,7 @@ def d_dt(psi):  # find Psi(t+dt)-Psi(t) /dt with 4th order Runge-Kutta method
     return (k1 + 2 * k2 + 2 * k3 + k4) / 6
 
 
-settings.allowInteraction = True
+settings.allow_interaction = True
 
 plt = Plotter(interactive=False, size=(1000,500))
 

@@ -148,7 +148,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
                 picr = vtk.vtkBMPReader()
             elif fname.endswith(".tif") or fname.endswith(".tiff"):
                 picr = vtk.vtkTIFFReader()
-                picr.SetOrientationType(vedo.settings.tiffOrientationType)
+                picr.SetOrientationType(vedo.settings.tiff_orientation_type)
             else:
                 colors.printc("Cannot understand picture format", obj, c="r")
                 return
