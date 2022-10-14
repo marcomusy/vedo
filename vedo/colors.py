@@ -850,9 +850,32 @@ def build_palette(color1, color2, n, hsv=True):
         cols.append(c)
     return np.array(cols)
 
-def buildLUT(*a, **b):
+def buildLUT(
+    colorlist,
+    vmin=None,
+    vmax=None,
+    belowColor=None,
+    aboveColor=None,
+    nanColor=None,
+    belowAlpha=1,
+    aboveAlpha=1,
+    nanAlpha=1,
+    interpolate=False,
+):
     """Deprecated call to buildLUT(). Please use build_lut()"""
-    return build_lut(*a, **b)
+    print("Warning! Deprecated call to buildLUT(). Please use build_lut()")
+    return build_lut(
+        colorlist,
+        vmin,
+        vmax,
+        belowColor,
+        aboveColor,
+        nanColor,
+        belowAlpha,
+        aboveAlpha,
+        nanAlpha,
+        interpolate,
+    )
 
 def build_lut(
     colorlist,
