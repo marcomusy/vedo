@@ -429,7 +429,7 @@ def exe_eog(args):
             elif event.keypress == "i":
                 p.invert()
             elif event.keypress == "I":
-                plt.colorPicker(event.picked2d, verbose=True)
+                plt.color_picker(event.picked2d, verbose=True)
             elif event.keypress == "k":
                 p.enhance()
             elif event.keypress == "s":

@@ -1113,6 +1113,11 @@ class Plotter:
         return self
 
     ####################################################
+    @deprecated(reason=vedo.colors.red + "Please use get_meshes()" + vedo.colors.reset)
+    def getMeshes(self, *a, **b):
+        """Deprecated, use get_meshes()"""
+        return self.get_meshes(*a, **b)
+
     def get_meshes(self, at=None, include_non_pickables=False):
         """
         Return a list of Meshes from the specified renderer.
