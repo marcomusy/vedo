@@ -1,5 +1,6 @@
 import glob
 import os
+from deprecated import deprecated
 
 import numpy as np
 import vtkmodules.all as vtk
@@ -92,6 +93,11 @@ class BaseVolume:
     def dimensions(self):
         """Return the nr. of voxels in the 3 dimensions."""
         return np.array(self._data.GetDimensions())
+
+    @deprecated(reason=vedo.colors.red + "Please use scalar_range()" + vedo.colors.reset)
+    def scalarRange(self):
+        "Deprecated. Please use scalar_range()"
+        return self.scalar_range()
 
     def scalar_range(self):
         """Return the range of the scalar values."""
@@ -1125,6 +1131,11 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         vslice.SetExtent(0, nx, 0, ny, k, k)
         vslice.Update()
         return Mesh(vslice.GetOutput())
+
+    @deprecated(reason=vedo.colors.red + "Please use slice_plane()" + vedo.colors.reset)
+    def slicePlane(self, *a, **b):
+        "Deprecated. Please use scalar_range()"
+        return self.slice_plane(*a, **b)
 
     def slice_plane(self, origin=(0, 0, 0), normal=(1, 1, 1), autocrop=False):
         """

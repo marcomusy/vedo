@@ -3508,6 +3508,10 @@ def add_global_axes(axtype=None, c=None):
 
         if isinstance(plt.axes, dict):
             plt.axes.update({"use_global": True})
+            # protect from invalid camelCase options from vedo<=2.3
+            for k in plt.axes:
+                if k.lower() != k:
+                    return
             asse = Axes(None, **plt.axes)
         else:
             asse = Axes(None, use_global=True)

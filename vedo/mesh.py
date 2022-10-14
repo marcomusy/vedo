@@ -1110,16 +1110,9 @@ class Mesh(Points):
         csf.Update()
         return self._update(csf.GetOutput())
 
-    def compute_arc_length(self, mesh):
-        """Given a mesh, add the length of the arc intersecting each point of the line."""
-        arcl = vtk.vtkAppendArcLength()
-        arcl.SetInputData(mesh.polydata())
-        arcl.Update()
-        return self._update(arcl.GetOutput())
-
     def compute_quality(self, measure=6):
         """
-        Calculate functions of quality for the elements of a triangular mesh.
+        Calculate metrics of quality for the elements of a triangular mesh.
         This method adds to the mesh a cell array named "Quality".
         See class [vtkMeshQuality](https://vtk.org/doc/nightly/html/classvtkMeshQuality.html)
         for explanation.
@@ -2104,6 +2097,11 @@ class Mesh(Points):
             blist.append(l[0])
         return blist
 
+    @deprecated(reason=vedo.colors.red + "Please use extract_largest_region()" + vedo.colors.reset)
+    def extractLargestRegion(self):
+        "Deprecated. Please use extract_largest_region()"
+        return self.extract_largest_region()
+
     def extract_largest_region(self):
         """
         Extract the largest connected part of a mesh and discard all the smaller pieces.
@@ -2154,6 +2152,11 @@ class Mesh(Points):
         mesh.flat()
         mesh.name = self.name + operation + mesh2.name
         return mesh
+
+    @deprecated(reason=vedo.colors.red + "Please use intersect_with()" + vedo.colors.reset)
+    def intersectWith(self, mesh2, tol=1e-06):
+        "Deprecated. Please use intersect_with()"
+        return self.intersect_with(mesh2, tol)
 
     def intersect_with(self, mesh2, tol=1e-06):
         """
