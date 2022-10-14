@@ -2837,7 +2837,7 @@ class Points(vtk.vtkFollower, BaseActor):
             .. image:: https://vedo.embl.es/images/advanced/interpolateMeshArray.png
         """
         if radius is None and not N:
-            vedo.logger.error("in interpolateDataFrom(): please set either radius or N")
+            vedo.logger.error("in interpolate_data_from(): please set either radius or N")
             raise RuntimeError
 
         if on == "points":
@@ -2850,7 +2850,7 @@ class Points(vtk.vtkFollower, BaseActor):
             c2p.Update()
             points = c2p.GetOutput()
         else:
-            vedo.logger.error("in interpolateDataFrom(), on must be on points or cells")
+            vedo.logger.error("in interpolate_data_from(), on must be on points or cells")
             raise RuntimeError()
 
         locator = vtk.vtkPointLocator()

@@ -32,7 +32,7 @@ def onLeftClick(evt):
     ishape = shapes[i]
     sname = Text2D('This is called: '+ishape.name,
                    pos='top-center', c='r', bg='y', font='Calco')
-    sprop = Text2D('color = '+getColorName(ishape.color()),
+    sprop = Text2D('color = '+get_color_name(ishape.color()),
                    pos='bottom-left', c=ishape.color(), bg='k', font='Calco')
     instt = Text2D(instr, pos='bottom-right', c='dg', bg='g', font='Quikhand')
 

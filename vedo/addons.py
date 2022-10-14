@@ -2315,7 +2315,7 @@ def Axes(
         htitle_offset=(0, 0.01, 0),
         xtitle_position=0.95, ytitle_position=0.95, ztitle_position=0.95,
         xtitle_offset=0.025,  ytitle_offset=0.0275, ztitle_offset=0.02, # can be a list (dx,dy,dz)
-        xtitle_justify=None, ytitle_justify=None, ztitle_justify=None,
+        xtitle_justify=None,  ytitle_justify=None,  ztitle_justify=None,
         xtitle_rotation=0, ytitle_rotation=0, ztitle_rotation=0,         # can be a list (rx,ry,rz)
         xtitle_box=False,  ytitle_box=False,
         xtitle_size=0.025, ytitle_size=0.025, ztitle_size=0.025,
@@ -2356,6 +2356,7 @@ def Axes(
         x_inverted=False, y_inverted=False, z_inverted=False,
         use_global=False,
         tol=0.001,
+        **options,
     ):
     """
     Draw axes for the input object.
@@ -2439,6 +2440,14 @@ def Axes(
 
         .. image:: https://vedo.embl.es/images/pyplot/customAxes3.png
     """
+    # make sure options are correct and user passed snake_case instead of camelCase
+    if len(options):
+        for k in options:
+            if k.lower() == k:
+                vedo.logger.warning(f"Unrecognised keyword '{k}' is ignored")
+            else:
+                vedo.logger.warning(f"Unrecognised keyword '{k}'. Please use snake_case notation")
+
     if not title_font:
         title_font = settings.default_font
     if not label_font:

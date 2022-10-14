@@ -37,7 +37,7 @@ class Flock:
 
         self.boids = list(boids)
         self.actor = None
-        self.colors = [vedo.getColor(b.color) for b in boids]
+        self.colors = [vedo.get_color(b.color) for b in boids]
 
         self.actor = vedo.Points([b.position for b in self.boids], r=8, c=self.colors)
 

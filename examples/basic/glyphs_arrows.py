@@ -17,7 +17,7 @@ a1 = Arrows(coords1, coords2, c='coolwarm', alpha=0.4).add_scalarbar(c='w')
 
 # --- get a list of random rgb colors
 nrs = np.random.randint(0, 10, len(coords1))
-cols = getColor(nrs)
+cols = get_color(nrs)
 
 t2 = 'Color arrows by an array\nand scale them by half'
 a2 = Arrows(coords1, coords2, c=cols)
