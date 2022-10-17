@@ -314,7 +314,7 @@ class Tensors(Mesh):
     use_eigenvalues : bool
         color source glyph using the eigenvalues or by scalars
 
-    threeAxes : bool
+    three_axes : bool
         if `False` scale the source in the x-direction,
         the medium in the y-direction, and the minor in the z-direction.
         Then, the source is rotated so that the glyph's local x-axis lies
@@ -347,7 +347,7 @@ class Tensors(Mesh):
         source="ellipsoid",
         use_eigenvalues=True,
         is_symmetric=True,
-        threeAxes=False,
+        three_axes=False,
         scale=1,
         max_scale=None,
         length=None,
@@ -390,7 +390,7 @@ class Tensors(Mesh):
             tg.SetColorModeToEigenvalues()
         else:
             tg.SetColorModeToScalars()
-        tg.SetThreeGlyphs(threeAxes)
+        tg.SetThreeGlyphs(three_axes)
         tg.ScalingOn()
         tg.SetScaleFactor(scale)
         if max_scale is None:
@@ -1002,10 +1002,12 @@ class Lines(Mesh):
 
         if end_pts is not None:
             start_pts = np.stack((start_pts, end_pts), axis=1)
+        start_pts = np.asarray(start_pts)
 
-        if len(start_pts) == 2:
+        polylns = vtk.vtkAppendPolyData()
 
-            polylns = vtk.vtkAppendPolyData()
+        if start_pts.shape[1] == 2:
+
             for twopts in start_pts:
                 lineSource = vtk.vtkLineSource()
                 lineSource.SetResolution(res)
@@ -1025,7 +1027,6 @@ class Lines(Mesh):
                 else:
                     lineSource.SetPoint2(pt2)
                 polylns.AddInputConnection(lineSource.GetOutputPort())
-            polylns.Update()
 
         else:
 
@@ -1046,8 +1047,8 @@ class Lines(Mesh):
                 poly.SetPoints(ppoints)
                 poly.SetLines(lines)
                 polylns.AddInputData(poly)
-            polylns.Update()
 
+        polylns.Update()
 
         Mesh.__init__(self, polylns.GetOutput(), c, alpha)
         self.lw(lw).lighting("off")
