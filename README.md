@@ -26,6 +26,9 @@ with no other dependencies.
 ## 💾  Installation
 ```bash
 pip install vedo
+
+# (for better results try also):
+# pip install vtk==9.0.3
 ```
 
 <details>
