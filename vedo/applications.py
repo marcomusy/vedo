@@ -580,15 +580,6 @@ class IsosurfaceBrowser(Plotter):
 
     Set ``precompute=True`` to precompute the isosurfaces (so slider browsing will be smoother).
 
-    Example:
-        .. code-block:: python
-
-            from vedo import dataurl, Volume
-            from vedo.applications import IsosurfaceBrowser
-            vol = Volume(dataurl+'head.vti')
-            plt = IsosurfaceBrowser(vol, c='gold')
-            plt.show(axes=7, bg2='lb')
-
     .. hint:: examples/volumetric/app_isobrowser.py
         .. image:: https://vedo.embl.es/images/advanced/app_isobrowser.gif
     """
@@ -734,7 +725,6 @@ class Browser(Plotter):
 
     .. hint:: examples/other/morphomatics_tube.py
     """
-
     def __init__(
             self,
             objects=(),

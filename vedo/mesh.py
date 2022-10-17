@@ -792,14 +792,6 @@ class Mesh(Points):
     def shrink(self, fraction=0.85):
         """Shrink the triangle polydata in the representation of the input mesh.
 
-        Example:
-            .. code-block:: python
-
-                from vedo import *
-                pot = load(dataurl+'teapot.vtk').shrink(0.75)
-                s = Sphere(r=0.2).pos(0,0,-0.5)
-                show(pot, s)
-
         .. hint:: shrink.py
             .. image:: https://vedo.embl.es/images/basic/shrink.png
         """
@@ -1022,7 +1014,7 @@ class Mesh(Points):
                 from vedo import *
                 c1 = Cylinder(pos=(0,0,0), r=2, height=3, axis=(1,.0,0), alpha=.1).triangulate()
                 c2 = Cylinder(pos=(0,0,2), r=1, height=2, axis=(0,.3,1), alpha=.1).triangulate()
-                intersect = c1.intersectWith(c2).join(reset=True)
+                intersect = c1.intersect_with(c2).join(reset=True)
                 spline = Spline(intersect).c('blue').lw(5)
                 show(c1, c2, spline, intersect.labels('id'), axes=1)
         """
@@ -1180,7 +1172,7 @@ class Mesh(Points):
             .. code-block:: python
 
                 from vedo import Torus
-                Torus().compute_curvature().add_scalarbar().show(axes=1)
+                Torus().compute_curvature().add_scalarbar().show(axes=1).close()
 
             .. image:: https://user-images.githubusercontent.com/32848391/51934810-c2e88c00-2404-11e9-8e7e-ca0b7984bbb7.png
         """
@@ -1224,7 +1216,7 @@ class Mesh(Points):
 
                 from vedo import Sphere
                 s = Sphere().compute_elevation(low=(0,0,0), high=(1,1,1))
-                s.add_scalarbar().show(axes=1)
+                s.add_scalarbar().show(axes=1).close()
 
             .. image:: https://user-images.githubusercontent.com/32848391/68478872-3986a580-0231-11ea-8245-b68a683aa295.png
         """

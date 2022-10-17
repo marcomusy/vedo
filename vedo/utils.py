@@ -706,9 +706,9 @@ def get_uv(p, x, v):
             uv = cb.pointdata["Material"]
 
             pt = [-0.2, 0.75, 2]
-            pr = cb.closestPoint(pt)
+            pr = cb.closest_point(pt)
 
-            idface = cb.closestPoint(pt, returnCellId=True)
+            idface = cb.closest_point(pt, return_cell_id=True)
             idpts = faces[idface]
             uv_face = uv[idpts]
 

@@ -642,7 +642,7 @@ class Line(Mesh):
                 curvs = Line(shape.points()).curvature()
                 shape.cmap('coolwarm', curvs, vmin=-2,vmax=2).add_scalarbar3d(c='w')
                 shape.render_lines_as_tubes().lw(12)
-                pp = plot(curvs, c='white', lc='yellow5')
+                pp = plot(curvs, ac='white', lc='yellow5')
                 show(shape, pp, N=2, bg='bb', sharecam=False).close()
         """
         v = np.gradient(self.points())[0]
@@ -878,7 +878,7 @@ class RoundedLine(Mesh):
             pts = [(-4,-3),(1,1),(2,4),(4,1),(3,-1),(2,-5),(9,-3)]
             ln = Line(pts, c='r', lw=2).z(0.01)
             rl = RoundedLine(pts, 0.6)
-            show(Points(pts), ln, rl, axes=1)
+            show(Points(pts), ln, rl, axes=1).close()
     """
 
     def __init__(self, pts, lw, res=10, c="gray4", alpha=1):
@@ -2160,15 +2160,6 @@ class Arrows2D(Glyph):
 
     fill : bool
         if False only generate the outline
-
-    Example:
-        .. code-block:: python
-
-            from vedo import Grid, Arrows2D
-            g1 = Grid()
-            g2 = Grid(s=(1.2,1.2)).rotate_z(4)
-            arrs2d = Arrows2D(g1, g2, c='red5')
-            arrs2d.show(axes=1)
     """
 
     def __init__(
@@ -3654,10 +3645,12 @@ class ParametricShape(Mesh):
         .. code-block:: python
 
             from vedo import *
+            settings.immediate_rendering = False
+            plt = Plotter(N=18)
             for i in range(18):
-                ps = ParametricShape(i, c=i)
-                show([ps, ps.name], at=i, N=18)
-            interactive()
+                ps = ParametricShape(i).color(i)
+                plt.at(i).show(ps, ps.name)
+            plt.interactive()
 
         .. image:: https://user-images.githubusercontent.com/32848391/69181075-bb6aae80-0b0e-11ea-92f7-d0cd3b9087bf.png
     """

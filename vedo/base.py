@@ -311,7 +311,7 @@ class Base3DProp:
                 p = vector(1,0,0)  # axis passes through this point
                 c2.rotate(90, axis=v, point=p)
                 l = Line(-v+p, v+p).lw(3).c('red')
-                show(c1, l, c2, axes=1)
+                show(c1, l, c2, axes=1).close()
         """
         if rad:
             anglerad = angle
@@ -426,7 +426,7 @@ class Base3DProp:
                     v = vector(i/10, i/20, 1)
                     c = Circle(r=i/5+1.2).pos(p).orientation(v).lw(3)
                     objs += [c, Arrow(p,p+v)]
-                show(objs, axes=1)
+                show(objs, axes=1).close()
 
         .. hint:: examples/simulations/gyroscope2.py
             .. image:: https://vedo.embl.es/images/simulations/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif
@@ -1828,7 +1828,7 @@ class BaseGrid(BaseActor):
                 tetmesh = TetMesh(dataurl+'limb_ugrid.vtk')
                 tetmesh.color('rainbow')
                 cu = Cube(side=500).x(500) # any Mesh works
-                tetmesh.cutWithBox(cu).show(axes=1)
+                tetmesh.cut_with_box(cu).show(axes=1)
         """
         bc = vtk.vtkBoxClipDataSet()
         bc.SetInputData(self._data)

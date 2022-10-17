@@ -1276,7 +1276,7 @@ class Plotter:
             .. code-block:: python
 
                 from vedo import Cone
-                Cone().show(axes=1).flyTo([1,0,0]).show()
+                Cone().show(axes=1).fly_to([1,0,0]).show()
         """
         self.resetcam = False
         self.interactor.FlyTo(self.renderers[at], point)
@@ -1715,12 +1715,14 @@ class Plotter:
             .. code-block:: python
 
                 from vedo import Box, show
-                b = Box(pos=(0,0,0), length=80, width=90, height=70).alpha(0)
-
-                show(b, axes={ 'xtitle':'Some long variable [a.u.]',
-                               'number_of_divisions':4,
-                               # ...
-                             }
+                b = Box(pos=(0, 0, 0), length=80, width=90, height=70).alpha(0.1)
+                show(
+                    b,
+                    axes={
+                        "xtitle": "Some long variable [a.u.]",
+                        "number_of_divisions": 4,
+                        # ...
+                    },
                 )
 
         .. hint::
@@ -2085,7 +2087,7 @@ class Plotter:
                 cube = Cube().alpha(0.2)
                 plt = Plotter(size=(900,600), axes=dict(xtitle='x (um)'))
                 plt.add_scale_indicator(units='um', c='blue4')
-                plt.show(cube, "Scale indicator with units")
+                plt.show(cube, "Scale indicator with units").close()
         """
         ppoints = vtk.vtkPoints()  # Generate the polyline
         psqr = [[0.0, gap], [length / 10, gap]]
@@ -2215,9 +2217,9 @@ class Plotter:
                     # print("full event dump:", evt)
 
                 elli = Ellipsoid()
-                plt = show(elli, axes=1, interactive=False)
-                plt.add_callback('MouseMove', func)
-                interactive()
+                plt = Plotter(axes=1)
+                plt.add_callback('mouse hovering', func)
+                plt.show(elli).close()
 
         .. hint:: examples/advanced/spline_draw.py, examples/basic/colorlines.py, ...
         """

@@ -2430,10 +2430,11 @@ def Axes(
         .. code-block:: python
 
             from vedo import Axes, Box, show
-            b = Box(pos=(1,2,3), length=8, width=9, height=7).alpha(0.1)
-            axs = Axes(b, c='k')  # returns Assembly object
-            #for a in axs.unpack(): print(a.name)
-            show(axs)
+            box = Box(pos=(1,2,3), length=8, width=9, height=7).alpha(0.1)
+            axs = Axes(box, c='k')  # returns Assembly object
+            for a in axs.unpack():
+                print(a.name)
+            show(box, axs).close()
 
     .. hint::
         examples/pyplot/customAxes1.py, customAxes2.py customAxes3.py, customIndividualAxes.py
@@ -3482,11 +3483,14 @@ def add_global_axes(axtype=None, c=None):
         .. code-block:: python
 
             from vedo import Box, show
-            b = Box(pos=(0,0,0), length=80, width=90, height=70).alpha(0.1)
-            show(b, axes={ 'xtitle':'Some long variable [a.u.]',
-                           'number_of_divisions':4,
-                           # ...
-                         }
+            b = Box(pos=(0, 0, 0), length=80, width=90, height=70).alpha(0.1)
+            show(
+                b,
+                axes={
+                    "xtitle": "Some long variable [a.u.]",
+                    "number_of_divisions": 4,
+                    # ...
+                },
             )
     """
     plt = vedo.plotter_instance

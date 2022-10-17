@@ -360,7 +360,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             pic = Picture(dataurl+'dog.jpg').pad()
             pic.append([pic,pic,pic], axis='y')
             pic.append([pic,pic,pic,pic], axis='x')
-            pic.show(axes=1)
+            pic.show(axes=1).close()
         """
         ima = vtk.vtkImageAppend()
         ima.SetInputData(self._data)
@@ -541,7 +541,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
 
                 import vedo
                 p = vedo.Picture(vedo.dataurl+'images/dog.jpg').bw()
-                vedo.show(p, p.clone().enhance(), N=2, mode='image')
+                vedo.show(p, p.clone().enhance(), N=2, mode='image', zoom='tight')
         """
         img = self._data
         scalarRange = img.GetPointData().GetScalars().GetRange()
@@ -825,7 +825,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             pic1 = Picture("https://aws.glamour.es/prod/designs/v1/assets/620x459/547577.jpg")
             pic2 = pic1.clone().invert()
             pic3 = pic1.clone().binarize()
-            show(pic1, pic2, pic3, N=3, bg="blue9")
+            show(pic1, pic2, pic3, N=3, bg="blue9").close()
         """
         rgb = self.tonumpy()
         if rgb.ndim == 3:
@@ -932,7 +932,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         .. code-block:: python
 
                 import vedo
-                pic = vedo.Picture("dog.jpg")
+                pic = vedo.Picture(vedo.dataurl+"images/dog.jpg")
                 pic.rectangle([100,300], [100,200], c='green4', alpha=0.7)
                 pic.line([100,100],[400,500], lw=2, alpha=1)
                 pic.triangle([250,300], [100,300], [200,400])

@@ -82,6 +82,7 @@ examples/other/qt_window3.py
 examples/basic/multiwindows2.py
 examples/simulations/lorenz.py
 examples/simulations/orbitals.py
+scatter2.py
 
 /home/musy/Projects/vedo/examples/volumetric/image_probe.py
 /home/musy/Projects/vedo/examples/volumetric/volumeOperations.py

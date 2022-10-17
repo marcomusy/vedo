@@ -59,8 +59,7 @@ def visible_points(mesh, area=(), tol=None, invert=False):
     Example:
         .. code-block:: python
 
-            from vedo import Ellipsoid, show, visiblePoints
-
+            from vedo import Ellipsoid, show, visible_points
             s = Ellipsoid().rotate_y(30)
 
             #Camera options: pos, focal_point, viewup, distance,
@@ -1223,16 +1222,6 @@ class Points(vtk.vtkFollower, BaseActor):
         but the mesh in that case must have polygonal faces (not a simple point cloud),
         and normals must also be computed.
 
-        Example:
-            .. code-block:: python
-
-                from vedo import *
-                b1 = Sphere().pos(10,0,0)
-                b2 = Sphere().pos(15,0,0)
-                b1.distance_to(b2, signed=True, invert=False).add_scalarbar()
-                print(b1.pointdata["Distance"])
-                show(b1, b2, axes=1).close()
-
         .. hint:: examples/basic/distance2mesh.py
             .. image:: https://vedo.embl.es/images/basic/distance2mesh.png
         """
@@ -1452,12 +1441,6 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         The user should input a value and all {x,y,z} coordinates
         will be quantized to that absolute grain size.
-
-        Example:
-            .. code-block:: python
-
-                from vedo import Paraboloid
-                Paraboloid().lw(0.1).quantize(0.1).show()
         """
         poly = self.inputdata()
         qp = vtk.vtkQuantizePolyDataPoints()
@@ -1751,9 +1734,9 @@ class Points(vtk.vtkFollower, BaseActor):
             .. code-block:: python
 
                 from vedo import Sphere, show
-                sph = Sphere(quads=True, res=4).lw(1)
-                sph.celldata["zvals"] = sph.cellCenters()[:,2]
-                l2d = sph.labels2D("zvals", cells=True, bc='orange9')
+                sph = Sphere(quads=True, res=4).compute_normals().wireframe()
+                sph.celldata["zvals"] = sph.cell_centers()[:,2]
+                l2d = sph.labels("zvals", cells=True, precision=2).backcolor('orange9')
                 show(sph, l2d, axes=1).close()
         """
         if isinstance(content, str):
@@ -2300,9 +2283,9 @@ class Points(vtk.vtkFollower, BaseActor):
             .. code-block:: python
 
                 from vedo import Cube, show
-                c1 = Cube().rotateZ(5).x(2).y(1)
+                c1 = Cube().rotate_z(5).x(2).y(1)
                 print("cube1 position", c1.pos())
-                T = c1.getTransform()  # rotate by 5 degrees, sum 2 to x and 1 to y
+                T = c1.get_transform()  # rotate by 5 degrees, sum 2 to x and 1 to y
                 c2 = Cube().c('r4')
                 c2.apply_transform(T)   # ignore previous movements
                 c2.apply_transform(T, concatenate=True)
@@ -2926,7 +2909,7 @@ class Points(vtk.vtkFollower, BaseActor):
             .. code-block:: python
 
                 from vedo import Sphere
-                Sphere().pointGaussNoise(1.0).show()
+                Sphere().add_gaussian_noise(1.0).show().close()
         """
         sz = self.diagonal_size()
         pts = self.points()
@@ -3301,11 +3284,11 @@ class Points(vtk.vtkFollower, BaseActor):
         Example:
             .. code-block:: python
 
-                s.projectOnPlane(plane='z') # project to z-plane
+                s.project_on_plane(plane='z') # project to z-plane
                 plane = Plane(pos=(4, 8, -4), normal=(-1, 0, 1), s=(5,5))
-                s.projectOnPlane(plane=plane)                       # orthogonal projection
-                s.projectOnPlane(plane=plane, point=(6, 6, 6))      # perspective projection
-                s.projectOnPlane(plane=plane, direction=(1, 2, -1)) # oblique projection
+                s.project_on_plane(plane=plane)                       # orthogonal projection
+                s.project_on_plane(plane=plane, point=(6, 6, 6))      # perspective projection
+                s.project_on_plane(plane=plane, direction=(1, 2, -1)) # oblique projection
 
         .. hint:: examples/basic/silhouette2.py
             .. image:: https://vedo.embl.es/images/basic/silhouette2.png
@@ -3694,7 +3677,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 from vedo import Disc, show
                 disc = Disc(r1=1, r2=1.2)
                 mesh = disc.extrude(3, res=50).linewidth(1)
-                mesh.cut_with_sphere([1,-0.7,2], r=0.5, invert=True)
+                mesh.cut_with_sphere([1,-0.7,2], r=1.5, invert=True)
                 show(mesh, axes=1)
 
         Check out also:
@@ -3745,18 +3728,6 @@ class Points(vtk.vtkFollower, BaseActor):
         Use `keep` to keep the cutoff part, in this case an `Assembly` is returned:
         the "cut" object and the "discarded" part of the original object.
         You can access the via `assembly.unpack()` method.
-
-        Example:
-            .. code-block:: python
-
-                from vedo import *
-                import numpy as np
-                x, y, z = np.mgrid[:30, :30, :30] / 15
-                U = sin(6*x)*cos(6*y) + sin(6*y)*cos(6*z) + sin(6*z)*cos(6*x)
-                iso = Volume(U).isosurface(0).smooth().c('silver').lw(1)
-                cube = TessellatedBox(n=(29,29,29), spacing=(1,1,1))
-                cube.cut_with_mesh(iso).c('silver').alpha(1)
-                show(iso, cube).close()
 
         Example:
             .. code-block:: python
