@@ -53,8 +53,7 @@ class Lens(vedo.Mesh, OpticalElement):
             l2 = (wave_length*1e+06)**2
             n = np.sqrt(1 + B1 * l2/(l2-C1) + B2 * l2/(l2-C2))
             return n
-        else:
-            return self.ref_index
+        return self.ref_index
 
 
 class Mirror(vedo.Mesh, OpticalElement):
@@ -193,7 +192,7 @@ class Ray:
 
                 hit_cids = element.intersect_with_line(self.p, self.p + self.v * self.dmax,
                                                      return_ids=True, tol=self.OBBTreeTolerance)
-                if not len(hit_cids):
+                if len(hit_cids) == 0:
                     break               # no hits
                 hit, cid = hit_cids[0]  # grab the first hit, point and cell ID of the mesh
                 d = np.linalg.norm(hit - self.p)

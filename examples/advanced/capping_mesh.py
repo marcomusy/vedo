@@ -1,9 +1,9 @@
 """Manual capping of a mesh"""
 from vedo import *
 
-def capping(msh, bias=0, invert=False, res=50):
+def capping(amsh, bias=0, invert=False, res=50):
 
-    bn =  msh.boundaries().join(reset=True)
+    bn =  amsh.boundaries().join(reset=True)
 
     pln = fit_plane(bn)
     cp = [pln.closest_point(p) for p in bn.points()]
@@ -11,8 +11,8 @@ def capping(msh, bias=0, invert=False, res=50):
     pts.top = pln.normal
 
     if invert is None:
-        cutm = msh.clone().cut_with_plane(origin=pln.center, normal=pln.normal)
-        invert = cutm.npoints > msh.npoints
+        cutm = amsh.clone().cut_with_plane(origin=pln.center, normal=pln.normal)
+        invert = cutm.npoints > amsh.npoints
 
     pts2 = pts.clone().orientation([0,0,1]).project_on_plane('z')
     msh2 = pts2.tomesh(mesh_resolution=(res,res), invert=invert).smooth()

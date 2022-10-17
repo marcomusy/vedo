@@ -14,6 +14,6 @@ scalars = np.random.randint(45,123, 100)
 points = Points(pts2, r=10).cmap('rainbow', scalars)
 
 # interpolate from points onto the mesh, by averaging the 5 closest ones
-mesh.interpolate_data_from(points, N=5).cmap('rainbow').add_scalarbar()
+mesh.interpolate_data_from(points, n=5).cmap('rainbow').add_scalarbar()
 
 show(mesh, points, __doc__, axes=9).close()

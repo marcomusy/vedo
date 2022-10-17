@@ -8,9 +8,9 @@ h.cmap('hsv', vmin=0, vmax=6)
 h.add_scalarbar3d(title='RandomHills height scalar value')
 
 # interpolate such values on a completely different Mesh.
-# pick N=4 closest points and assign an ave value based on shepard kernel.
+# pick n=4 closest points and assign an ave value based on shepard kernel.
 s = Sphere().scale([1,1,0.5]).pos(-.1,1.5,0.3).alpha(1).lw(0.1)
-s.interpolate_data_from(h, N=4, kernel='gaussian')
+s.interpolate_data_from(h, n=4, kernel='gaussian')
 s.cmap('hsv', vmin=0, vmax=6)
 
 show(h,s, __doc__, axes=1).close()

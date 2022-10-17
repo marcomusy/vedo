@@ -187,15 +187,15 @@ def show(
 
         - pos, `(list)`,  the position of the camera in world coordinates
 
-        - focalPoint `(list)`, the focal point of the camera in world coordinates
+        - focal_point `(list)`, the focal point of the camera in world coordinates
 
         - viewup `(list)`, the view up direction for the camera
 
         - distance `(float)`, set the focal point to the specified distance from the camera position.
 
-        - clippingRange `(float)`, distance of the near and far clipping planes along the direction of projection.
+        - clipping_range `(float)`, distance of the near and far clipping planes along the direction of projection.
 
-        - parallelScale `(float)`,
+        - parallel_scale `(float)`,
         scaling used for a parallel projection, i.e. the height of the viewport
         in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
         an "inverse scale", larger numbers produce smaller images.
@@ -205,7 +205,7 @@ def show(
         set the distance between clipping planes. This method adjusts the far clipping
         plane to be set a distance 'thickness' beyond the near clipping plane.
 
-        - viewAngle `(float)`,
+        - view_angle `(float)`,
         the camera view angle, which is the angular height of the camera view
         measured in degrees. The default angle is 30 degrees.
         This method has no effect in parallel projection mode.
@@ -859,7 +859,6 @@ class Plotter:
     def __exit__(self, *args, **kwargs):
         # context manager like in "with Plotter() as plt:"
         self.close()
-        return None
 
     def at(self, nren, yren=None):
         """
@@ -1168,6 +1167,7 @@ class Plotter:
 
     @deprecated(reason=vedo.colors.red + "Please use reset_camera()" + vedo.colors.reset)
     def resetCamera(self, tight=None):
+        "Deprecated, please use reset_camera()"
         return self.reset_camera(tight)
 
     def reset_camera(self, tight=None):
@@ -1206,7 +1206,7 @@ class Plotter:
 
         camstart and camstop can also be dictionaries of format:
 
-            dict(pos=..., focalPoint=..., viewup=..., distance=..., clippingRange=...)
+            dict(pos=..., focal_point=..., viewup=..., distance=..., clipping_range=...)
 
         Press shift-C key in interactive mode to dump a python snipplet
         of parameters for the current camera view.
@@ -1328,7 +1328,7 @@ class Plotter:
         self.interactor.Start()
         erec.Stop()
         erec.EnabledOff()
-        with open(filename, "r") as fl:
+        with open(filename, "r", encoding='UTF-8') as fl:
             events = fl.read()
         erec = None
         return events
@@ -1974,7 +1974,7 @@ class Plotter:
                 elif evt.isAssembly:
                     tp = "Assembly "
                 else:
-                    return self
+                    return
 
                 if evt.isAssembly:
                     if not evt.actor.name:
@@ -2379,7 +2379,8 @@ class Plotter:
             else:
                 timer_id = self.interactor.CreateRepeatingTimer(dt)
             return timer_id
-        elif action == "destroy":
+
+        if action == "destroy":
             if timerId is not None:
                 self.interactor.DestroyTimer(timerId)
         else:
@@ -2662,15 +2663,15 @@ class Plotter:
 
             - pos, `(list)`,  the position of the camera in world coordinates
 
-            - focalPoint `(list)`, the focal point of the camera in world coordinates
+            - focal_point `(list)`, the focal point of the camera in world coordinates
 
             - viewup `(list)`, the view up direction for the camera
 
             - distance `(float)`, set the focal point to the specified distance from the camera position.
 
-            - clippingRange `(float)`, distance of the near and far clipping planes along the direction of projection.
+            - clipping_range `(float)`, distance of the near and far clipping planes along the direction of projection.
 
-            - parallelScale `(float)`,
+            - parallel_scale `(float)`,
             scaling used for a parallel projection, i.e. the height of the viewport
             in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
             an "inverse scale", larger numbers produce smaller images.
@@ -2680,7 +2681,7 @@ class Plotter:
             set the distance between clipping planes. This method adjusts the far clipping
             plane to be set a distance 'thickness' beyond the near clipping plane.
 
-            - viewAngle `(float)`,
+            - view_angle `(float)`,
             the camera view angle, which is the angular height of the camera view
             measured in degrees. The default angle is 30 degrees.
             This method has no effect in parallel projection mode.
@@ -2947,7 +2948,7 @@ class Plotter:
         if roll:
             self.camera.Roll(roll)
 
-        if self._first_viewup and len(viewup):
+        if self._first_viewup and len(viewup)>0:
             self._first_viewup = False  # gets executed only once
             if viewup == "x":
                 self.camera.SetViewUp([1, 0.001, 0])
@@ -2967,23 +2968,23 @@ class Plotter:
         if isinstance(camera, dict):
             camera = dict(camera)  # make a copy so input is not emptied by pop()
             cm_pos = camera.pop("position", camera.pop("pos", None))
-            cm_focalPoint = camera.pop("focal_point", camera.pop("focalPoint", None))
+            cm_focal_point = camera.pop("focal_point", camera.pop("focalPoint", None))
             cm_viewup = camera.pop("viewup", None)
             cm_distance = camera.pop("distance", None)
-            cm_clippingRange = camera.pop("clipping_range", camera.pop("clippingRange", None))
-            cm_parallelScale = camera.pop("parallel_scale", camera.pop("parallelScale", None))
+            cm_clipping_range = camera.pop("clipping_range", camera.pop("clippingRange", None))
+            cm_parallel_scale = camera.pop("parallel_scale", camera.pop("parallelScale", None))
             cm_thickness = camera.pop("thickness", None)
-            cm_viewAngle = camera.pop("view_angle", camera.pop("viewAngle", None))
+            cm_view_angle = camera.pop("view_angle", camera.pop("viewAngle", None))
             if len(camera.keys()):
                 vedo.logger.warning(f"in show(cam=...), key(s) not recognized: {camera.keys()}")
             if cm_pos is not None: self.camera.SetPosition(cm_pos)
-            if cm_focalPoint is not None: self.camera.SetFocalPoint(cm_focalPoint)
-            if cm_viewup is not None: self.camera.SetViewUp(cm_viewup)
-            if cm_distance is not None: self.camera.SetDistance(cm_distance)
-            if cm_clippingRange is not None: self.camera.SetClippingRange(cm_clippingRange)
-            if cm_parallelScale is not None: self.camera.SetParallelScale(cm_parallelScale)
-            if cm_thickness is not None: self.camera.SetThickness(cm_thickness)
-            if cm_viewAngle is not None: self.camera.SetViewAngle(cm_viewAngle)
+            if cm_focal_point is not None:    self.camera.SetFocalPoint(cm_focal_point)
+            if cm_viewup is not None:         self.camera.SetViewUp(cm_viewup)
+            if cm_distance is not None:       self.camera.SetDistance(cm_distance)
+            if cm_clipping_range is not None: self.camera.SetClippingRange(cm_clipping_range)
+            if cm_parallel_scale is not None: self.camera.SetParallelScale(cm_parallel_scale)
+            if cm_thickness is not None:      self.camera.SetThickness(cm_thickness)
+            if cm_view_angle is not None:     self.camera.SetViewAngle(cm_view_angle)
 
 
         self.renderer.ResetCameraClippingRange()
@@ -3430,13 +3431,13 @@ class Plotter:
             iren.ExitCallback()
             return
 
-        elif key == "Escape":
+        if key == "Escape":
             vedo.logger.info("Closing window now. Plotter.escaped is set to True.")
             self.escaped = True  # window will be escaped ASAP
             iren.ExitCallback()
             return
 
-        elif key == "F1":
+        if key == "F1":
             vedo.logger.info("Execution aborted. Exiting python kernel now.")
             iren.ExitCallback()
             sys.exit(0)
@@ -3661,7 +3662,7 @@ class Plotter:
 
         elif key == "S":
             vedo.io.screenshot("screenshot.png")
-            vedo.printc("\camera Saved rendering window as screenshot.png", c="blue")
+            vedo.printc(r"\camera Saved rendering window as screenshot.png", c="blue")
             return
 
         elif key == "C":
@@ -3942,7 +3943,7 @@ class Plotter:
                         w.SetInputData(self.clicked_actor.polydata())
                         w.SetFileName(fname)
                         w.Write()
-                        vedo.printc("\save Saved file:", fname, c="m")
+                        vedo.printc(r"\save Saved file:", fname, c="m")
                         self.cutterWidget.Off()
                         self.cutterWidget = None
             else:
@@ -3954,7 +3955,7 @@ class Plotter:
                 vedo.printc("Click object and press X to open the cutter box widget.", c=4)
 
         elif key == "E":
-            vedo.printc("\camera Exporting 3D window to file", c="blue", end="")
+            vedo.printc(r"\camera Exporting 3D window to file", c="blue", end="")
             vedo.io.export_window("scene.npz")
             vedo.printc(". Try:\n> vedo scene.npz", c="blue")
             self.interactor.Start()

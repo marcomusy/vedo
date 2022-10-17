@@ -135,7 +135,6 @@ class Assembly(vtk.vtkAssembly, vedo.base.Base3DProp):
             for m in self.actors:
                 if i in m.name:
                     return m
-        return None
 
     def lighting(
         self,

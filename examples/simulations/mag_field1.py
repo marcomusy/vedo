@@ -26,7 +26,7 @@ def func(evt):
 
     ppts = Points(probes)
     ppts.pointdata["BField"] = field
-    domain = ppts.tovolume(npoints=4, dims=(50,50,50)) # interpolate
+    domain = ppts.tovolume(n=4, dims=(50,50,50)) # interpolate
 
     streamlines = StreamLines(
     	domain,

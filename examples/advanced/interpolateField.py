@@ -5,6 +5,7 @@ Thin Plate Spline or Radial Basis Function.
 Example shows how to share the same Camera
 between different Plotter windows.
 """
+from scipy.interpolate import Rbf
 from vedo import Plotter, Points, Arrows, show
 import numpy as np
 
@@ -40,8 +41,6 @@ plt1 = show([set1, allarr], N=2, bg='bb')  # returns the Plotter class
 
 
 ################################################# RBF
-from scipy.interpolate import Rbf
-
 x, y, z = sources[:, 0], sources[:, 1], sources[:, 2]
 dx, dy, dz = deltas[:, 0], deltas[:, 1], deltas[:, 2]
 

@@ -753,10 +753,9 @@ class Mesh(Points):
         """Set/get color of mesh edges. Same as `lc()`."""
         if lc is None:
             return self.property.GetEdgeColor()
-        else:
-            self.property.EdgeVisibilityOn()
-            self.property.SetEdgeColor(get_color(lc))
-            return self
+        self.property.EdgeVisibilityOn()
+        self.property.SetEdgeColor(get_color(lc))
+        return self
 
     def lc(self, linecolor=None):
         """Set/get color of mesh edges. Same as `linecolor()`."""
@@ -972,12 +971,11 @@ class Mesh(Points):
             m.SetOrientation(self.GetOrientation())
             m.SetPosition(self.GetPosition())
             return m
-        else:
-            polyapp = vtk.vtkAppendPolyData()
-            polyapp.AddInputData(poly)
-            polyapp.AddInputData(tf.GetOutput())
-            polyapp.Update()
-            return self._update(polyapp.GetOutput()).clean()
+        polyapp = vtk.vtkAppendPolyData()
+        polyapp.AddInputData(poly)
+        polyapp.AddInputData(tf.GetOutput())
+        polyapp.Update()
+        return self._update(polyapp.GetOutput()).clean()
 
     def join(self, polys=True, reset=False):
         """
@@ -1037,8 +1035,7 @@ class Mesh(Points):
             vpts = poly.GetCell(0).GetPoints().GetData()
             poly.GetPoints().SetData(vpts)
             return self._update(poly)
-        else:
-            return self._update(sf.GetOutput())
+        return self._update(sf.GetOutput())
 
     def triangulate(self, verts=True, lines=True):
         """
@@ -1067,15 +1064,14 @@ class Mesh(Points):
             tf.Update()
             return self._update(tf.GetOutput())
 
-        elif self._data.GetNumberOfLines():
+        if self._data.GetNumberOfLines():
             vct = vtk.vtkContourTriangulator()
             vct.SetInputData(self._data)
             vct.Update()
             return self._update(vct.GetOutput())
 
-        else:
-            vedo.logger.debug("input in triangulate() seems to be void")
-            return self
+        vedo.logger.debug("input in triangulate() seems to be void")
+        return self
 
     def compute_cell_area(self, name="Area"):
         """Add to this mesh a cell data array containing the areas of the polygonal faces"""
@@ -1558,10 +1554,10 @@ class Mesh(Points):
 
         if return_ids:
             return ids
-        else:
-            pcl = Points(ptsa[ids])
-            pcl.name = "InsidePoints"
-            return pcl
+
+        pcl = Points(ptsa[ids])
+        pcl.name = "InsidePoints"
+        return pcl
 
     def boundaries(
         self,
@@ -1790,8 +1786,8 @@ class Mesh(Points):
                 cid = idlist.GetId(i)
                 pts_ids.append([pts[i], cid])
             return np.array(pts_ids)
-        else:
-            return pts
+
+        return pts
 
     def silhouette(self, direction=None, border_edges=True, feature_angle=False):
         """
@@ -2021,27 +2017,27 @@ class Mesh(Points):
             #     rf.Update()
             #     poly1 = rf.GetOutput()
             return self
-        else:
-            rf = vtk.vtkRotationalExtrusionFilter()
-            # rf = vtk.vtkLinearExtrusionFilter()
-            rf.SetInputData(self.polydata(False))  # must not be transformed
-            rf.SetResolution(res)
-            rf.SetCapping(cap)
-            rf.SetAngle(rotation)
-            rf.SetTranslation(zshift)
-            rf.SetDeltaRadius(dR)
-            rf.Update()
-            m = Mesh(rf.GetOutput(), c=self.c(), alpha=self.alpha())
-            prop = vtk.vtkProperty()
-            prop.DeepCopy(self.property)
-            m.SetProperty(prop)
-            m.property = prop
-            # assign the same transformation
-            m.SetOrigin(self.GetOrigin())
-            m.SetScale(self.GetScale())
-            m.SetOrientation(self.GetOrientation())
-            m.SetPosition(self.GetPosition())
-            return m.compute_normals(cells=False).flat().lighting("default")
+
+        rf = vtk.vtkRotationalExtrusionFilter()
+        # rf = vtk.vtkLinearExtrusionFilter()
+        rf.SetInputData(self.polydata(False))  # must not be transformed
+        rf.SetResolution(res)
+        rf.SetCapping(cap)
+        rf.SetAngle(rotation)
+        rf.SetTranslation(zshift)
+        rf.SetDeltaRadius(dR)
+        rf.Update()
+        m = Mesh(rf.GetOutput(), c=self.c(), alpha=self.alpha())
+        prop = vtk.vtkProperty()
+        prop.DeepCopy(self.property)
+        m.SetProperty(prop)
+        m.property = prop
+        # assign the same transformation
+        m.SetOrigin(self.GetOrigin())
+        m.SetScale(self.GetScale())
+        m.SetOrientation(self.GetOrientation())
+        m.SetPosition(self.GetPosition())
+        return m.compute_normals(cells=False).flat().lighting("default")
 
     def split(self, maxdepth=1000, flag=False):
         """

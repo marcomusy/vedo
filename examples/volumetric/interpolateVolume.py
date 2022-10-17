@@ -15,7 +15,7 @@ pts.pointdata["scals"] = scals
 
 # Now interpolate the values at these points to the full Volume
 # available interpolation kernels are: shepard, gaussian, voronoi, linear.
-vol = pts.tovolume(kernel='shepard', npoints=4, dims=(90,90,90))
+vol = pts.tovolume(kernel='shepard', n=4, dims=(90,90,90))
 
 vol.c(["maroon","g","b"])        # set color   transfer function
 vol.alpha([0.3, 0.9])            # set opacity transfer function

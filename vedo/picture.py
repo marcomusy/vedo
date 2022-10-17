@@ -231,18 +231,17 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """
         if ext is None:
             return self._data.GetExtent()
-        else:
-            self._data.SetExtent(ext[0], ext[1], ext[2], ext[3], 0, 0)
-            self._mapper.Modified()
-            return self
+
+        self._data.SetExtent(ext[0], ext[1], ext[2], ext[3], 0, 0)
+        self._mapper.Modified()
+        return self
 
     def alpha(self, a=None):
         """Set/get picture's transparency in the rendering scene."""
         if a is not None:
             self.GetProperty().SetOpacity(a)
             return self
-        else:
-            return self.GetProperty().GetOpacity()
+        return self.GetProperty().GetOpacity()
 
     def level(self, value=None):
         """Get/Set the image color level (brightness) in the rendering scene."""

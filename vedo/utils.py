@@ -298,7 +298,7 @@ def vtk2numpy(varr):
     """Convert a `vtkDataArray` or `vtkIdList` into a numpy array"""
     if isinstance(varr, vtk.vtkIdList):
         return np.array([varr.GetId(i) for i in range(varr.GetNumberOfIds())])
-    elif isinstance(varr, vtk.vtkBitArray):
+    if isinstance(varr, vtk.vtkBitArray):
         carr = vtk.vtkCharArray()
         carr.DeepCopy(varr)
         varr = carr
@@ -561,8 +561,7 @@ def sort_by_column(arr, nth, invert=False):
     arr = arr[arr[:, nth].argsort()]
     if invert:
         return np.flip(arr, axis=0)
-    else:
-        return arr
+    return arr
 
 
 def point_in_triangle(p, p1, p2, p3):
@@ -776,8 +775,7 @@ def versor(x, y=None, z=0.0, dtype=np.float64):
     v = vector(x, y, z, dtype)
     if isinstance(v[0], np.ndarray):
         return np.divide(v, mag(v)[:, None])
-    else:
-        return v / mag(v)
+    return v / mag(v)
 
 
 def mag(v):
@@ -785,8 +783,7 @@ def mag(v):
     v = np.asarray(v)
     if v.ndim == 1:
         return np.linalg.norm(v)
-    else:
-        return np.linalg.norm(v, axis=1)
+    return np.linalg.norm(v, axis=1)
 
 
 def mag2(v):
@@ -794,8 +791,7 @@ def mag2(v):
     v = np.asarray(v)
     if v.ndim == 1:
         return np.square(v).sum()
-    else:
-        return np.square(v).sum(axis=1)
+    return np.square(v).sum(axis=1)
 
 
 def is_integer(n):
@@ -824,8 +820,7 @@ def round_to_digit(x, p):
     r = np.round(x, p - int(np.floor(np.log10(abs(x)))) - 1)
     if int(r) == r:
         return int(r)
-    else:
-        return r
+    return r
 
 
 def pack_spheres(bounds, radius):
@@ -1211,7 +1206,7 @@ def print_info(obj):
     if obj is None:
         return
 
-    elif isinstance(obj, np.ndarray):
+    if isinstance(obj, np.ndarray):
         A = obj
         cf = "y"
         vedo.printc("_" * 65, c=cf, bold=0)
@@ -1998,7 +1993,7 @@ def trimesh2vedo(inputobj):
                         tact.cell_individual_colors(trim_c)
         return tact
 
-    elif "PointCloud" in inputobj_type:
+    if "PointCloud" in inputobj_type:
 
         trim_cc, trim_al = "black", 1
         if hasattr(inputobj, "vertices_color"):
@@ -2009,7 +2004,7 @@ def trimesh2vedo(inputobj):
                 trim_al = np.sum(trim_al) / len(trim_al)  # just the average
         return vedo.shapes.Points(inputobj.vertices, r=8, c=trim_cc, alpha=trim_al)
 
-    elif "path" in inputobj_type:
+    if "path" in inputobj_type:
 
         lines = []
         for e in inputobj.entities:

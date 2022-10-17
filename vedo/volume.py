@@ -108,8 +108,7 @@ class BaseVolume:
         if s is not None:
             self._data.SetSpacing(s)
             return self
-        else:
-            return np.array(self._data.GetSpacing())
+        return np.array(self._data.GetSpacing())
 
     def origin(self, s=None):
         """Set/get the origin of the volumetric dataset."""
@@ -118,8 +117,7 @@ class BaseVolume:
         if s is not None:
             self._data.SetOrigin(s)
             return self
-        else:
-            return np.array(self._data.GetOrigin())
+        return np.array(self._data.GetOrigin())
 
     def center(self, center=None):
         """Set/get the volume coordinates of its center.
@@ -130,8 +128,7 @@ class BaseVolume:
             self._update(self._data)
             self.pos(0, 0, 0)
             return self
-        else:
-            return np.array(self._data.GetCenter())
+        return np.array(self._data.GetCenter())
 
     def permute_axes(self, x, y, z):
         """Reorder the axes of the Volume by specifying
@@ -383,29 +380,29 @@ class BaseVolume:
             mf.SetInputData(image1)
             mf.Update()
             return Volume(mf.GetOutput())
-        elif op in ["mag"]:
+        if op in ["mag"]:
             mf = vtk.vtkImageMagnitude()
             mf.SetInputData(image1)
             mf.Update()
             return Volume(mf.GetOutput())
-        elif op in ["dot", "dotproduct"]:
+        if op in ["dot", "dotproduct"]:
             mf = vtk.vtkImageDotProduct()
             mf.SetInput1Data(image1)
             mf.SetInput2Data(volume2.imagedata())
             mf.Update()
             return Volume(mf.GetOutput())
-        elif op in ["grad", "gradient"]:
+        if op in ["grad", "gradient"]:
             mf = vtk.vtkImageGradient()
             mf.SetDimensionality(3)
             mf.SetInputData(image1)
             mf.Update()
             return Volume(mf.GetOutput())
-        elif op in ["div", "divergence"]:
+        if op in ["div", "divergence"]:
             mf = vtk.vtkImageDivergence()
             mf.SetInputData(image1)
             mf.Update()
             return Volume(mf.GetOutput())
-        elif op in ["laplacian"]:
+        if op in ["laplacian"]:
             mf = vtk.vtkImageLaplacian()
             mf.SetDimensionality(3)
             mf.SetInputData(image1)
@@ -1068,11 +1065,12 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
             _, vmax = self._data.GetScalarRange()
         self._alphaGrad = alphaGrad
         volumeProperty = self.GetProperty()
+
         if alphaGrad is None:
             volumeProperty.DisableGradientOpacityOn()
             return self
-        else:
-            volumeProperty.DisableGradientOpacityOff()
+
+        volumeProperty.DisableGradientOpacityOff()
 
         gotf = volumeProperty.GetGradientOpacity()
         if utils.is_sequence(alphaGrad):

@@ -198,17 +198,15 @@ class Base3DProp:
         """Set/get the pickability property of an object."""
         if value is None:
             return self.GetPickable()
-        else:
-            self.SetPickable(value)
-            return self
+        self.SetPickable(value)
+        return self
 
     def draggable(self, value=None):  # NOT FUNCTIONAL?
         """Set/get the draggability property of an object."""
         if value is None:
             return self.GetDragable()
-        else:
-            self.SetDragable(value)
-            return self
+        self.SetDragable(value)
+        return self
 
     def time(self, t=None):
         """Set/get object's absolute time of creation."""
@@ -684,14 +682,14 @@ class Base3DProp:
         """Get the bounds [ymin,ymax]. Can specify upper or lower with i (0,1)."""
         b = self.GetBounds()
         if i == 0: return b[2]
-        elif i == 1: return b[3]
+        if i == 1: return b[3]
         return (b[2], b[3])
 
     def zbounds(self, i=None):
         """Get the bounds [zmin,zmax]. Can specify upper or lower with i (0,1)."""
         b = self.GetBounds()
         if i == 0: return b[4]
-        elif i == 1: return b[5]
+        if i == 1: return b[5]
         return (b[4], b[5])
 
     @deprecated(reason=vedo.colors.red + "Please use diagonal_size()" + vedo.colors.reset)
@@ -815,8 +813,7 @@ class BaseActor(Base3DProp):
 
             if vpts:
                 return utils.vtk2numpy(vpts.GetData())
-            else:
-                return np.array([])
+            return np.array([])
 
         elif (utils.is_sequence(pts) and not utils.is_sequence(pts[0])) or isinstance(
             pts, (int, np.integer)
@@ -1321,7 +1318,7 @@ class BaseActor(Base3DProp):
             if isinstance(self.scalarbar, vtk.vtkActor):
                 plt.renderer.RemoveActor(self.scalarbar)
             elif isinstance(self.scalarbar, vedo.Assembly):
-                for a in self.scalarbar.getMeshes():
+                for a in self.scalarbar.get_meshes():
                     plt.renderer.RemoveActor(a)
         if c is None:
             c = "gray"
@@ -1683,9 +1680,8 @@ class BaseGrid(BaseActor):
         """
         if u is None:
             return self.GetProperty().GetScalarOpacityUnitDistance()
-        else:
-            self.GetProperty().SetScalarOpacityUnitDistance(u)
-            return self
+        self.GetProperty().SetScalarOpacityUnitDistance(u)
+        return self
 
     def shrink(self, fraction=0.8):
         """Shrink the individual cells to improve visibility."""
@@ -1937,8 +1933,7 @@ class BaseGrid(BaseActor):
 def _getinput(obj):
     if isinstance(obj, (vtk.vtkVolume, vtk.vtkActor)):
         return obj.GetMapper().GetInput()
-    else:
-        return obj
+    return obj
 
 
 def probe_points(dataset, pts):

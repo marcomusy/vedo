@@ -170,7 +170,7 @@ class UGrid(vtk.vtkActor, BaseGrid):
         """
         if c is False:
             return np.array(self.GetProperty().GetColor())
-        elif c is None:
+        if c is None:
             self._mapper.ScalarVisibilityOn()
             return self
         self._mapper.ScalarVisibilityOff()

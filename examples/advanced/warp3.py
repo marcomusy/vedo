@@ -14,7 +14,7 @@ class Morpher(Plotter):
         self.source = None
         self.morphed_source = None
         self.target = None
-        self.bound = None
+        self.bound = 1
         self.sigma = 1  # stiffness of the mesh
         self.method = "SLSQP"  # 'SLSQP', 'L-BFGS-B', 'TNC' ...
         self.fitTolerance = 1e-6
@@ -59,7 +59,7 @@ class Morpher(Plotter):
     # ------------------------------------------------------- Visualization
     def draw_shapes(self):
         sb = self.source.bounds()
-        x1, x2, y1, y2, z1, z2 = sb
+        x1, x2, y1, y2, _, _ = sb
         maxb = max(x2-x1, y2-y1)
         grid0 = Grid(self.source.center_of_mass(), s=[maxb,maxb], res=[40,40])
         T = self.morphed_source.get_transform()

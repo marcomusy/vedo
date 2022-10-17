@@ -1090,8 +1090,7 @@ class SplinePlotter(Plotter):
             self.cpoints = newpts
             self._update()
             return self
-        else:
-            return np.array(self.cpoints)
+        return np.array(self.cpoints)
 
     def _onLeftClick(self, evt):
         if not evt.actor: return

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from vedo import printc, Text2D, Text3D, show, Plotter, shapes
+import os
+from vedo import printc, Text2D, Text3D, show, Plotter
 from vedo import fonts, fonts_path, settings
 import numpy as np
-import os
 
 # settings.allow_interaction = True
 
@@ -28,7 +28,7 @@ i = 0
 for key, props in sorted(settings.font_parameters.items()):
     if props['islocal']:
         continue
-    if key=='Justino2' or key=='Justino3':
+    if key in ('Justino2', 'Justino3'):
         continue
     bg = None
     if props['mono']:

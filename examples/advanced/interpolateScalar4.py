@@ -15,7 +15,7 @@ g2 = Grid(res=(50,50)).pos(0.2, 0.2, 0.1).wireframe(0).lw(0)
 g2.triangulate()
 
 # Interpolate by averaging the closest 3 points:
-#g2.interpolate_data_from(g1, on='cells', N=3)
+#g2.interpolate_data_from(g1, on='cells', n=3)
 
 # Interpolate by picking points in a specified radius,
 #  if there are no points in that radius set null value -1

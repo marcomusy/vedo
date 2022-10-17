@@ -1958,8 +1958,7 @@ class Arrow(Mesh):
             self.tip_index = np.argmax(arrpts[:, 0])
         if return_index:
             return self.tip_index
-        else:
-            return self.points()[self.tip_index]
+        return self.points()[self.tip_index]
 
 
 class Arrows(Glyph):

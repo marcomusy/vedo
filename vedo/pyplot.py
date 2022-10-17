@@ -223,9 +223,9 @@ class Figure(Assembly):
     def __iadd__(self, *obj):
         if len(obj) == 1 and isinstance(obj[0], Figure):
             return self._check_unpack_and_insert(obj[0])
-        else:
-            obj = utils.flatten(obj)
-            return self.insert(*obj)
+
+        obj = utils.flatten(obj)
+        return self.insert(*obj)
 
     def _check_unpack_and_insert(self, fig):
 
@@ -1138,31 +1138,30 @@ class Histogram2D(Figure):
 
         ############################################### Figure init
         Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
-        if not self.yscale:
-            return None
 
-        ##################### the grid
-        acts = []
-        g = shapes.Grid(
-            pos=[(xlim[0] + xlim[1]) / 2, (ylim[0] + ylim[1]) / 2, 0],
-            s=(dx, dy),
-            res=bins[:2],
-        )
-        g.alpha(alpha).lw(0).wireframe(False).flat().lighting("off")
-        g.cmap(cmap, np.ravel(H.T), on="cells", vmin=zlim[0], vmax=zlim[1])
-        if gap:
-            g.shrink(abs(1 - gap))
+        if self.yscale:
+            ##################### the grid
+            acts = []
+            g = shapes.Grid(
+                pos=[(xlim[0] + xlim[1]) / 2, (ylim[0] + ylim[1]) / 2, 0],
+                s=(dx, dy),
+                res=bins[:2],
+            )
+            g.alpha(alpha).lw(0).wireframe(False).flat().lighting("off")
+            g.cmap(cmap, np.ravel(H.T), on="cells", vmin=zlim[0], vmax=zlim[1])
+            if gap:
+                g.shrink(abs(1 - gap))
 
-        if scalarbar:
-            sc = g.add_scalarbar3d(ztitle, c=ac).scalarbar
-            sc.scale([self.yscale, 1, 1])  ## prescale trick
-            sbnds = sc.xbounds()
-            sc.x(self.x1lim + (sbnds[1] - sbnds[0]) * 0.75)
-            acts.append(sc)
-        acts.append(g)
+            if scalarbar:
+                sc = g.add_scalarbar3d(ztitle, c=ac).scalarbar
+                sc.scale([self.yscale, 1, 1])  ## prescale trick
+                sbnds = sc.xbounds()
+                sc.x(self.x1lim + (sbnds[1] - sbnds[0]) * 0.75)
+                acts.append(sc)
+            acts.append(g)
 
-        self.insert(*acts, as3d=False)
-        self.name = "Histogram2D"
+            self.insert(*acts, as3d=False)
+            self.name = "Histogram2D"
 
 
 #########################################################################################
@@ -2426,7 +2425,7 @@ def histogram(*args, **kwargs):
             return _histogram_hex_bin(args[0], args[1], **kwargs)
         return Histogram2D(args[0], args[1], **kwargs)
 
-    elif len(args) == 1:
+    if len(args) == 1:
 
         if isinstance(args[0], vedo.Volume):
             data = args[0].pointdata[0]
@@ -2446,10 +2445,10 @@ def histogram(*args, **kwargs):
             if "polar" in mode:
                 return _histogram_polar(data, **kwargs)
             return Histogram1D(data, **kwargs)
-        else:
-            if "hex" in mode:
-                return _histogram_hex_bin(args[0][:, 0], args[0][:, 1], **kwargs)
-            return Histogram2D(args[0], **kwargs)
+
+        if "hex" in mode:
+            return _histogram_hex_bin(args[0][:, 0], args[0][:, 1], **kwargs)
+        return Histogram2D(args[0], **kwargs)
 
     print("histogram(): Could not understand input", args[0])
     return None

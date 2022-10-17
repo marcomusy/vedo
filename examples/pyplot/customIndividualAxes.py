@@ -21,7 +21,7 @@ axes3 = Axes(s3, c='b', number_of_divisions=10)
 # make it 5 times bigger big and fuchsia:
 axes3.unpack('xNumericLabel7').scale(5).c('fuchsia')
 # Print all element names in axes3:
-#for m in axes3.getMeshes(): print(m.name)
+#for m in axes3.get_meshes(): print(m.name)
 
 # By specifiyng axes in show(), new axes are
 #  created which span the whole bounding box.

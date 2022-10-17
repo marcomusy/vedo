@@ -14,7 +14,7 @@ def f(x,y):
 def func(v):
     return f(v[0],v[1])
 
-def callbk(optimizer, v, value):
+def callbk(opti, v, value):
     global minv
     if value < minv:
         pts.append([v.value[0], v.value[1], value])

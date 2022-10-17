@@ -528,33 +528,33 @@ palettes = (
 
 
 emoji = {
-    "\bomb": "\U0001F4A5",
-    "\sparks": "\U00002728",
-    "\ethumbup": "\U0001F44d",
-    "\etarget": "\U0001F3af",
-    "\save": "\U0001F4be",
-    "\noentry": "\U000026d4",
-    "\video": "\U0001F4fd ",
-    "\lightning": "\U000026a1",
-    "\camera": "\U0001F4f8",
-    "\times": "\U0000274c",
-    "\world": "\U0001F30d",
-    "\erainbow": "\U0001F308",
-    "\idea": "\U0001F4a1",
-    "\pin": "\U0001F4CC",
-    "\construction": "\U0001F6A7",
-    "\rightarrow": "\U000027a1",
-    "\erocket": "\U0001F680",
-    "\hourglass": "\U000023f3",
-    "\prohibited": "\U0001F6ab",
-    "\checked": "\U00002705",
-    "\smile": "\U0001F642",
-    "\sad": "\U0001F612",
-    "\star": "\U00002B50",
-    "\zzz": "\U0001F4a4",
-    "\mu": "\U000003BC",
-    "\pi": "\U000003C0",
-    "\sigma": "\U000003C3",
+    r"\bomb": "\U0001F4A5",
+    r"\sparks": "\U00002728",
+    r"\ethumbup": "\U0001F44d",
+    r"\etarget": "\U0001F3af",
+    r"\save": "\U0001F4be",
+    r"\noentry": "\U000026d4",
+    r"\video": "\U0001F4fd ",
+    r"\lightning": "\U000026a1",
+    r"\camera": "\U0001F4f8",
+    r"\times": "\U0000274c",
+    r"\world": "\U0001F30d",
+    r"\erainbow": "\U0001F308",
+    r"\idea": "\U0001F4a1",
+    r"\pin": "\U0001F4CC",
+    r"\construction": "\U0001F6A7",
+    r"\rightarrow": "\U000027a1",
+    r"\erocket": "\U0001F680",
+    r"\hourglass": "\U000023f3",
+    r"\prohibited": "\U0001F6ab",
+    r"\checked": "\U00002705",
+    r"\smile": "\U0001F642",
+    r"\sad": "\U0001F612",
+    r"\star": "\U00002B50",
+    r"\zzz": "\U0001F4a4",
+    r"\mu": "\U000003BC",
+    r"\pi": "\U000003C0",
+    r"\sigma": "\U000003C3",
 }
 
 # terminal color print
@@ -619,9 +619,9 @@ def get_color(rgb=None, hsv=None):
     # because they are most common:
     if rgb == "r":
         return (0.9960784313725, 0.11764705882352, 0.121568627450980)
-    elif rgb == "g":
+    if rgb == "g":
         return (0.0156862745098, 0.49803921568627, 0.062745098039215)
-    elif rgb == "b":
+    if rgb == "b":
         return (0.0588235294117, 0.0, 0.984313725490196)
 
     if str(rgb).isdigit():
@@ -635,11 +635,9 @@ def get_color(rgb=None, hsv=None):
     if _is_sequence(c):
         if c[0] <= 1 and c[1] <= 1 and c[2] <= 1:
             return c  # already rgb
-        else:
-            if len(c) == 3:
-                return list(np.array(c) / 255.0)  # RGB
-            else:
-                return (c[0] / 255.0, c[1] / 255.0, c[2] / 255.0, c[3])  # RGBA
+        if len(c) == 3:
+            return list(np.array(c) / 255.0)  # RGB
+        return (c[0] / 255.0, c[1] / 255.0, c[2] / 255.0, c[3])  # RGBA
 
     elif isinstance(c, str):  # is string
         c = c.replace("grey", "gray").replace(" ", "")
@@ -811,8 +809,7 @@ def color_map(value, name="jet", vmin=None, vmax=None):
 
     if cut:
         return result
-    else:
-        return result[0]
+    return result[0]
 
 
 def build_palette(color1, color2, n, hsv=True):

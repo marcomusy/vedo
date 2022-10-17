@@ -18,8 +18,7 @@ def koch(level):
             p3 = (pa[0]+z.real, pa[1]+z.imag)
             kpts += [p1, pa, p3, pb]
         return kpts
-    else:
-        return [(0, 0), (1, 0), (0.5, k)]
+    return [(0, 0), (1, 0), (0.5, k)]
 
 kochs = []
 for i in range(levels):

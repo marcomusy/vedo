@@ -12,7 +12,7 @@ centers = np.zeros_like(pts) + cpt    # create the same amount of center coords
 lines = Lines(centers, pts, res=50)   # create Lines with 50 pts of resolution each
 
 msh = pic.tomesh()                    # transform the picture into a quad mesh
-lines.interpolate_data_from(msh, N=3) # interpolate all msh data onto the lines
+lines.interpolate_data_from(msh, n=3) # interpolate all msh data onto the lines
 rgb = lines.pointdata['RGBA']         # extract the rgb intensities
 intensities = np.sum(rgb, axis=1)     # sum the rgb values into one single intensty
 intensities_ray = np.split(intensities, 36)  # split array so we can index any radius

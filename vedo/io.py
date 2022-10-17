@@ -272,7 +272,7 @@ def load(inputobj, unpack=True, force=False):
             vedo.logger.error(f"in load(), cannot load {inputobj}")
         return acts[0]
 
-    elif len(acts) == 0:
+    if len(acts) == 0:
         vedo.logger.error(f"in load(), cannot load {inputobj}")
         return None
 
@@ -374,8 +374,7 @@ def _load_file(filename, unpack):
                 elif isinstance(b, vtk.vtkUnstructuredGrid):
                     acts.append(vedo.UGrid(b))
             return acts
-        else:
-            return mb
+        return mb
 
         ################################################################# numpy:
     elif fl.endswith(".npy") or fl.endswith(".npz"):
@@ -713,10 +712,9 @@ def loadPVD(filename):
             listofobjs.append(ob)
     if len(listofobjs) == 1:
         return listofobjs[0]
-    elif len(listofobjs) == 0:
+    if len(listofobjs) == 0:
         return None
-    else:
-        return listofobjs
+    return listofobjs
 
 
 def loadPDB(filename, bondScale=1, hydrogenBondScale=1, coilWidth=0.3, helixWidth=1.3):
@@ -1187,10 +1185,9 @@ def loadnumpy(inobj):
 
     if len(objs) == 1:
         return objs[0]
-    elif len(objs) == 0:
+    if len(objs) == 0:
         return None
-    else:
-        return objs
+    return objs
 
 
 def loadImageData(filename):
@@ -1731,6 +1728,7 @@ def import_window(fileinput, mtl_file=None, texture_path=None):
                 act.texture(act_tu)
             plt.actors.append(act)
         return plt
+    return None
 
 
 ##########################################################
@@ -1760,7 +1758,7 @@ def screenshot(filename="screenshot.png", scale=None, asarray=False):
         writer.SetFilePrefix(filename.replace(".pdf", ""))
         writer.Write()
         return vedo.plotter_instance  ##########
-    elif filename.endswith(".svg"):
+    if filename.endswith(".svg"):
         writer = vtk.vtkGL2PSExporter()
         writer.SetRenderWindow(vedo.plotter_instance.window)
         writer.Write3DPropsAsRasterImageOff()
@@ -1770,7 +1768,7 @@ def screenshot(filename="screenshot.png", scale=None, asarray=False):
         writer.SetFilePrefix(filename.replace(".svg", ""))
         writer.Write()
         return vedo.plotter_instance  ##########
-    elif filename.endswith(".eps"):
+    if filename.endswith(".eps"):
         writer = vtk.vtkGL2PSExporter()
         writer.SetRenderWindow(vedo.plotter_instance.window)
         writer.Write3DPropsAsRasterImageOff()

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import vtkmodules.all as vtk
+
 import vedo
 from vedo import settings
 from vedo import utils
@@ -590,7 +591,7 @@ def Light(
     if c is None:
         try:
             c = pos.color()
-        except:
+        except AttributeError:
             c = "white"
 
     if isinstance(pos, vedo.Base3DProp):
@@ -740,8 +741,10 @@ def ScalarBar(
         sb.SetMaximumWidthInPixels(60)
         sb.SetMaximumHeightInPixels(250)
 
-    if size[0] is not None: sb.SetMaximumWidthInPixels(size[0])
-    if size[1] is not None: sb.SetMaximumHeightInPixels(size[1])
+    if size[0] is not None:
+        sb.SetMaximumWidthInPixels(size[0])
+    if size[1] is not None:
+        sb.SetMaximumHeightInPixels(size[1])
 
     if nlabels is not None:
         sb.SetNumberOfLabels(nlabels)
@@ -1552,15 +1555,15 @@ def add_cutter_tool(obj=None, mode="box", invert=False):
     try:
         if isinstance(obj, vedo.Volume):
             return _addCutterToolVolumeWithBox(obj, invert)
+
+        if mode == "box":
+            return _addCutterToolMeshWithBox(obj, invert)
+        elif mode == "plane":
+            return _addCutterToolMeshWithPlane(obj, invert)
+        elif mode == "sphere":
+            return _addCutterToolMeshWithSphere(obj, invert)
         else:
-            if mode == "box":
-                return _addCutterToolMeshWithBox(obj, invert)
-            elif mode == "plane":
-                return _addCutterToolMeshWithPlane(obj, invert)
-            elif mode == "sphere":
-                return _addCutterToolMeshWithSphere(obj, invert)
-            else:
-                raise RuntimeError(f"Unknown mode: {mode}")
+            raise RuntimeError(f"Unknown mode: {mode}")
     except:
         return None
 
@@ -2010,10 +2013,16 @@ def Ruler(
             + "a 'units' arguments must be specified."
         )
 
-    if isinstance(p1, Points): p1 = p1.GetPosition()
-    if isinstance(p2, Points): p2 = p2.GetPosition()
-    if len(p1)==2: p1=[p1[0],p1[1],0.0]
-    if len(p2)==2: p2=[p2[0],p2[1],0.0]
+    if isinstance(p1, Points):
+        p1 = p1.GetPosition()
+    if isinstance(p2, Points):
+        p2 = p2.GetPosition()
+
+    if len(p1)==2:
+        p1=[p1[0],p1[1],0.0]
+    if len(p2)==2:
+        p2=[p2[0],p2[1],0.0]
+
     p1, p2 = np.array(p1), np.array(p2)
     q1, q2 = [0, 0, 0], [utils.mag(p2 - p1), 0, 0]
     q1, q2 = np.array(q1), np.array(q2)
@@ -3510,10 +3519,10 @@ def add_global_axes(axtype=None, c=None):
         c = get_color(c)  # for speed
 
     if not plt.renderer:
-        return
+        return None
 
     if plt.axes_instances[r]:
-        return
+        return None
 
     ############################################################
     # custom grid walls
@@ -3889,4 +3898,4 @@ def add_global_axes(axtype=None, c=None):
 
     if not plt.axes_instances[r]:
         plt.axes_instances[r] = True
-    return
+    return None

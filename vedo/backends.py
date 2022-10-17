@@ -30,7 +30,7 @@ def get_notebook_backend(actors2show, zoom, viewup):
 
     if isinstance(plt.shape, str) or sum(plt.shape) > 2:
         vedo.logger.error("Multirendering is not supported in jupyter")
-        return
+        return None
 
     ####################################################################################
     # https://github.com/InsightSoftwareConsortium/itkwidgets

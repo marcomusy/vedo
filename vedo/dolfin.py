@@ -114,7 +114,7 @@ def _compute_uvalues(u, mesh):
     # to have a scalar (or vector) for each point of the mesh
 
     if not u:
-        return
+        return np.array([])
     #    print('u',u)
 
     if hasattr(u, "compute_vertex_values"):  # old dolfin, works fine
@@ -391,7 +391,7 @@ def plot(*inputobj, **options):
     """
     if len(inputobj) == 0:
         vedo.plotter_instance.interactive()
-        return
+        return None
 
     if "numpy" in str(type(inputobj[0])):
         from vedo.pyplot import plot as pyplot_plot
