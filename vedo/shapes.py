@@ -1017,7 +1017,8 @@ class Lines(Mesh):
 
         polylns = vtk.vtkAppendPolyData()
 
-        if start_pts.shape[1] == 2:
+        if len(start_pts.shape)>1 and start_pts.shape[1] == 2:
+            #checking len() is necessary because numpy array may not be rectangular
 
             for twopts in start_pts:
                 lineSource = vtk.vtkLineSource()
