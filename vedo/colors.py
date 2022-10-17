@@ -588,6 +588,7 @@ def _is_sequence(arg):
 
 def getColor(rgb=None, hsv=None):
     """Deprecated. Use get_color()"""
+    #print("Deprecated call to getColor(). Use get_color() instead.")
     return get_color(rgb, hsv)
 
 def get_color(rgb=None, hsv=None):
@@ -720,7 +721,7 @@ def hex2rgb(hx):
 
 def colorMap(value, name="jet", vmin=None, vmax=None):
     """Deprecated, use color_map()"""
-    print("Deprecated call to colorMap(), use color_map()")
+    print("Deprecated call to colorMap(), use color_map() instead")
     return color_map(value, name, vmin, vmax)
 
 def color_map(value, name="jet", vmin=None, vmax=None):
@@ -860,7 +861,7 @@ def buildLUT(
     interpolate=False,
 ):
     """Deprecated call to buildLUT(). Please use build_lut()"""
-    print("Warning! Deprecated call to buildLUT(). Please use build_lut()")
+    print("Warning! Deprecated call to buildLUT(). Please use build_lut() instead")
     return build_lut(
         colorlist,
         vmin,

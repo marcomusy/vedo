@@ -1601,6 +1601,10 @@ class Plotter:
         """
         return addons.add_button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
 
+    @deprecated(reason=vedo.colors.red + "Please use add_spline_tool()" + vedo.colors.reset)
+    def addSplineTool(self, *a, **b):
+        return self.add_spline_tool(*a, **b)
+
     def add_spline_tool(self, points, pc='k', ps=8, lc='r4', ac='g5', lw=2, closed=False, interactive=False):
         """
         Add a spline tool to the current plotter.

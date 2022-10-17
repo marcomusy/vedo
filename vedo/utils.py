@@ -508,6 +508,12 @@ def get_font_path(font):
     return fl
 
 
+def isSequence(arg):
+    "isSequence() is deprecated. Please use is_sequence()"
+    m = "Warning! isSequence() is deprecated. Please use is_sequence()"
+    print("\x1b[1m\x1b[33;1m "+m+ "\x1b[0m")
+    return is_sequence(arg)
+
 def is_sequence(arg):
     """Check if input is iterable."""
     if hasattr(arg, "strip"):
@@ -644,6 +650,12 @@ def point_line_distance(p, p1, p2):
     d = np.sqrt(vtk.vtkLine.DistanceToLine(p, p1, p2))
     return d
 
+
+def linInterpolate(x, rangeX, rangeY):
+    "linInterpolate() is deprecated. Please lin_interpolate()"
+    m = "Warning! linInterpolate() is deprecated. Please use lin_interpolate()"
+    print("\x1b[1m\x1b[33;1m "+m+ "\x1b[0m")
+    return lin_interpolate(x, rangeX, rangeY)
 
 def lin_interpolate(x, rangeX, rangeY):
     """
@@ -822,6 +834,12 @@ def round_to_digit(x, p):
         return int(r)
     return r
 
+
+def packSpheres(bounds, radius):
+    "packSpheres() is deprecated. Please use pack_spheres()"
+    m = "Warning! packSpheres() is deprecated. Please use pack_spheres()"
+    print("\x1b[1m\x1b[33;1m "+m+ "\x1b[0m")
+    return pack_spheres(bounds, radius)
 
 def pack_spheres(bounds, radius):
     """

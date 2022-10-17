@@ -1459,6 +1459,7 @@ def StreamLines(
     tubes=(),
     scalar_range=None,
     lw=None,
+    **opts,
 ):
     """
     Integrate a vector field on a domain (a Points/Mesh or other vtk datasets types)
@@ -1538,6 +1539,18 @@ def StreamLines(
     .. hint::
         examples/volumetric/streamlines1.py, streamlines2.py, streamribbons.py, office.py
     """
+    if len(opts): # Deprecations
+        printc(" Warning! In StreamLines() unrecognized keywords:", opts, c='y')
+        initial_step_size = opts.pop("initialStepSize", initial_step_size)
+        max_propagation = opts.pop("maxPropagation", max_propagation)
+        max_steps = opts.pop("maxSteps", max_steps)
+        step_length = opts.pop("stepLength", step_length)
+        extrapolate_to_box = opts.pop("extrapolateToBox", extrapolate_to_box)
+        surface_constrained = opts.pop("surfaceConstrained", surface_constrained)
+        compute_vorticity = opts.pop("computeVorticity", compute_vorticity)
+        scalar_range = opts.pop("scalarRange", scalar_range)
+        printc("          Please use 'snake_case' instead of 'camelCase' keywords", c='y')
+
     if isinstance(domain, vedo.Points):
         if extrapolate_to_box:
             grid = _interpolate2vol(domain.polydata(), **extrapolate_to_box)

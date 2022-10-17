@@ -9,7 +9,7 @@ import sys
 import warnings
 import logging
 import numpy as np
-from numpy import sin, cos, sqrt, exp, log, dot, cross  # just because useful
+from numpy import sin, cos, sqrt, exp, log, dot, cross  # just because handy
 import vtkmodules.all as vtk
 
 #################################################
@@ -46,7 +46,6 @@ __author__     = "Marco Musy"
 __license__    = "MIT"
 __maintainer__ = "M. Musy"
 __email__      = "marco.musy@embl.es"
-__status__     = "dev"
 __website__    = "https://github.com/marcomusy/vedo"
 
 
@@ -65,9 +64,14 @@ __pdoc__['backends'] = False
 __pdoc__['cli'] = False
 __pdoc__['cmaps'] = False
 __pdoc__['version'] = False
+# deprecations:
 __pdoc__['colors.getColor'] = False
 __pdoc__['colors.colorMap'] = False
 __pdoc__['colors.buildLUT'] = False
+__pdoc__['utils.isSequence'] = False
+__pdoc__['utils.packSpheres'] = False
+__pdoc__['utils.linInterpolate'] = False
+
 
 ##################################################################################
 ########################################################################## GLOBALS
@@ -80,6 +84,28 @@ vtk_version = [
 if vtk_version[0] >= 9:
     if "Windows" in sys_platform or "Linux" in sys_platform:
         settings.use_depth_peeling = True
+
+
+installdir = os.path.dirname(__file__)
+dataurl = "https://vedo.embl.es/examples/data/"
+
+plotter_instance = None
+notebook_plotter = None
+notebook_backend  = None
+
+## fonts
+fonts_path = os.path.join(installdir, "fonts/")
+
+## a fatal error occurs when compiling to exe,
+## developer needs to copy the fonts folder to the same location as the exe file to solve this problem
+if not os.path.exists(fonts_path):
+    fonts_path = "fonts/"
+
+fonts = [_f.split(".")[0] for _f in os.listdir(fonts_path) if '.npz' not in _f]
+fonts = list(sorted(fonts))
+
+# pyplot module to remember last figure format
+last_figure = None
 
 
 ######################################################################### logging
@@ -108,6 +134,7 @@ class _LoggingCustomFormatter(logging.Formatter):
         return formatter.format(record)
 
 logger = logging.getLogger("vedo")
+
 _chsh = logging.StreamHandler()
 _chsh.flush = sys.stdout.flush
 _chsh.setLevel(logging.DEBUG)
@@ -115,28 +142,6 @@ _chsh.setFormatter(_LoggingCustomFormatter())
 logger.addHandler(_chsh)
 logger.setLevel(logging.INFO)
 
-# silence annoying messages
+################################################# silence annoying messages
 warnings.simplefilter(action="ignore", category=FutureWarning)
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
-
-
-################################################################################
-installdir = os.path.dirname(__file__)
-dataurl    = "https://vedo.embl.es/examples/data/"
-
-plotter_instance = None
-notebook_plotter = None
-notebook_backend  = None
-
-## fonts
-fonts_path = os.path.join(installdir, "fonts/")
-
-## a fatal error occurs when compiling to exe,
-## developer needs to copy the fonts folder to the same location as the exe file to solve this problem
-if not os.path.exists(fonts_path):
-    fonts_path = "fonts/"
-
-fonts = [_f.split(".")[0] for _f in os.listdir(fonts_path) if '.npz' not in _f]
-fonts = list(sorted(fonts))
-
-last_figure = None  # pyplot module

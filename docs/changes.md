@@ -91,7 +91,5 @@ scatter2.py
 untitled5.py
 untitled6.py
 
-alias pylint='pylint -d C0103 -d C0321 -d E1101 -d R0913 -d C0301 -d R0914 -d R0912 -d R0915 -d W1203 -d R1705 -d C0302 -d R0902 '
-
 
 

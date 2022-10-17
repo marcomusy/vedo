@@ -1461,6 +1461,12 @@ class Points(vtk.vtkFollower, BaseActor):
         cc = coords - cm
         return np.mean(np.linalg.norm(cc, axis=1))
 
+
+    @deprecated(reason=vedo.colors.red + "Please use center_of_mass()" + vedo.colors.reset)
+    def centerOfMass(self):
+        "Please use center_of_mass()"
+        return self.center_of_mass()
+
     def center_of_mass(self):
         """Get the center of mass of mesh."""
         cmf = vtk.vtkCenterOfMass()
@@ -2146,6 +2152,11 @@ class Points(vtk.vtkFollower, BaseActor):
         settings.flag_justification = justify
         settings.flag_background_color = bg
         return self
+
+    @deprecated(reason=vedo.colors.red + "Please use align_to()" + vedo.colors.reset)
+    def alignTo(self, *a, **b):
+        "Please use align_to()"
+        return self.align_to(*a, **b)
 
     def align_to(
             self,
@@ -4444,6 +4455,7 @@ class Points(vtk.vtkFollower, BaseActor):
         bounds=None,
         null_value=None,
         dims=(25, 25, 25),
+        N=None, # deprecated, do not use
     ):
         """
         Generate a ``Volume`` by interpolating a scalar
@@ -4473,6 +4485,10 @@ class Points(vtk.vtkFollower, BaseActor):
         .. hint:: examples/volumetric/interpolateVolume.py
             .. image:: https://vedo.embl.es/images/volumetric/59095175-1ec5a300-8918-11e9-8bc0-fd35c8981e2b.jpg
         """
+        if N is not None:
+            colors.printc(" Warning! In tovolume() please use n=... instead of N=...", c='y')
+            n = N
+
         if radius is None and not n:
             vedo.logger.error("please set either radius or n")
             raise RuntimeError

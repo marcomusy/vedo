@@ -2440,7 +2440,7 @@ def Axes(
 
             from vedo import Axes, Box, show
             box = Box(pos=(1,2,3), length=8, width=9, height=7).alpha(0.1)
-            axs = Axes(box, c='k')  # returns Assembly object
+            axs = Axes(box, c='k')  # returns an Assembly object
             for a in axs.unpack():
                 print(a.name)
             show(box, axs).close()
