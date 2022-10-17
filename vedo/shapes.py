@@ -191,7 +191,18 @@ class Glyph(Mesh):
             tol=0,
             c='k8',
             alpha=1,
+            **opts,
         ):
+        if len(opts): # Deprecations
+            printc(" Warning! In Glyph() unrecognized keywords:", opts, c='y')
+            orientation_array = opts.pop("orientationArray", orientation_array)
+            scale_by_scalar = opts.pop("scaleByScalar", scale_by_scalar)
+            scale_by_vector_size = opts.pop("scaleByVectorSize", scale_by_vector_size)
+            scale_by_vector_components = opts.pop("scaleByVectorComponents", scale_by_vector_components)
+            color_by_scalar = opts.pop("colorByScalar", color_by_scalar)
+            color_by_vector_size = opts.pop("colorByVectorSize", color_by_vector_size)
+            printc("          Please use 'snake_case' instead of 'camelCase' keywords", c='y')
+
         lighting = None
         if utils.is_sequence(mesh):
             # create a cloud of points

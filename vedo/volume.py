@@ -174,7 +174,7 @@ class BaseVolume:
         self.property.SetInterpolationType(itype)
         return self
 
-    def threshold(self, above=None, below=None, replace=None, replace_value=0):
+    def threshold(self, above=None, below=None, replace=None, replace_value=None):
         """
         Binary or continuous volume thresholding.
         Find the voxels that contain a value above/below the input values

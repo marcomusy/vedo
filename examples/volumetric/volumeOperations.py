@@ -41,15 +41,15 @@ plt.interactive().close()
 #Start with creating a masked Volume then compute its gradient and probe 2 points
 msh = Ellipsoid()
 
-vol_obj = msh.signed_distance(dims=(20, 20, 20))
-vol_obj.threshold(above=0.0, replace=0.0)  # replacing all values outside to 0
-vol_obj.c("blue").alpha([0.9, 0.0]).alpha_unit(0.1).add_scalarbar3d()
+vol = msh.signed_distance(dims=(20, 20, 20))
+vol.threshold(above=0.0, replace=0.0)  # replacing all values outside to 0
+vol.c("blue").alpha([0.9, 0.0]).alpha_unit(0.1).add_scalarbar3d()
 
-vgrad = vol_obj.operation("gradient")
+vgrad = vol.operation("gradient")
 printc(vgrad.pointdata.keys(), c='g')
 
 grd = vgrad.pointdata['ImageScalarsGradient']
-pts = vol_obj.points()  # coords as numpy array
+pts = vol.points()  # coords as numpy array
 arrs = Arrows(pts, pts + grd*0.1).lighting('off')
 
 pts_probes = [[0.2,0.5,0.5], [0.2,0.3,0.4]]
@@ -57,7 +57,6 @@ vects = probe_points(vgrad, pts_probes).pointdata['ImageScalarsGradient']
 arrs_pts_probe = Arrows(pts_probes, pts_probes+vects)
 
 plt = Plotter(axes=1, N=2)
-plt.at(0).show("A masked Volume", vol_obj)
+plt.at(0).show("A masked Volume", vol)
 plt.at(1).show("..compute its gradient and probe 2 points", arrs, arrs_pts_probe)
 plt.interactive().close()
-

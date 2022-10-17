@@ -6,7 +6,6 @@ E.g.
 ```python
 mesh = Mesh("bunny.obj")
 mesh.cutWithPlane()
-show(mesh)
 ```
 
 now becomes
@@ -14,7 +13,6 @@ now becomes
 ```python
 mesh = Mesh("bunny.obj")
 mesh.cut_with_plane()     ### <--
-show(mesh)
 ```
 
 Some backward incompatibility may occur!
@@ -82,14 +80,10 @@ examples/other/qt_window3.py
 examples/basic/multiwindows2.py
 examples/simulations/lorenz.py
 examples/simulations/orbitals.py
-scatter2.py
+examples/pyplot/scatter2.py
 
-/home/musy/Projects/vedo/examples/volumetric/image_probe.py
-/home/musy/Projects/vedo/examples/volumetric/volumeOperations.py
 /home/musy/Projects/vedo/examples/other/meshio_read.py
 /home/musy/Projects/vedo/examples/other/dolfin/ex06_elasticity3.py
-untitled5.py
-untitled6.py
 
 
 

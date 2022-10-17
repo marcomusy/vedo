@@ -1,12 +1,14 @@
-"""Drag the red points to modify the current path
-Press b to compute the magnetic field
-(field streamlines are approximate)"""
-from vedo import *
+"""Drag the red points to modify the wire path
+Press "b" to compute the magnetic field"""
+import numpy as np
+from vedo import settings, mag, utils
+from vedo import Arrows, Points, StreamLines, Axes, Plotter, Text2D, Circle
 
 def func(evt):
     if evt.keypress != "b":
         return
-    txt.text("..computing field in space, please wait!").c('red')
+    txt.text("..computing field in space, please wait!")
+    txt.c('red5').background('yellow7')
     plt.render()
 
     pts = sptool.spline().points() # extract the current spline
@@ -17,16 +19,23 @@ def func(evt):
             p = (p0+p1)/2
             r = mag(p-probe)
             B += np.cross(p1-p0, p-probe)/r**3  # Biot-Savart law
-        B /= max(1, mag(B))  # clamp the field magnitude
+        B /= max(1, mag(B))  # clamp the field magnitude near the wire
         field.append(B)
     field = np.array(field)
 
     arrows = Arrows(probes, probes+field/5).c('black')
-    txt.text(__doc__).c('black')
+    txt.text(__doc__).c('black').background(None)
 
-    ppts = Points(probes)
-    ppts.pointdata["BField"] = field
-    domain = ppts.tovolume(n=4, dims=(50,50,50)) # interpolate
+    ppts1 = Points(probes)
+    ppts1.pointdata["BField"] = field
+    domain = ppts1.tovolume(n=4, dims=(10,10,10)) # interpolate
+
+    ppts2 = ppts1.clone()  # make a copy
+    ppts2.pointdata["BFieldIntensity"] = mag(field*255/3).astype(np.uint8)
+    vol = ppts2.tovolume(n=4, dims=(10,10,10)).crop(back=0.5)
+    isos = vol.isosurface(np.arange(0,250, 12)).smooth()
+    isos.cmap("rainbow").lighting('off').alpha(0.5).add_scalarbar()
+    isos.name = "Isosurfaces"
 
     streamlines = StreamLines(
     	domain,
@@ -35,20 +44,24 @@ def func(evt):
         initial_step_size=0.01,
         direction="both",
     )
-    streamlines.c('black').lw(2)
-    plt.remove("Arrows", "StreamLines", "Axes")
-    plt.add(arrows, streamlines, Axes(streamlines))
+    streamlines.c('black').linewidth(2)
+    plt.remove("Arrows", "StreamLines", "Isosurfaces", "Axes")
+    plt.add(arrows, streamlines, isos,  Axes(streamlines))
 
-probes = utils.pack_spheres([-2,2, -2,2, -2,2], radius=0.75)
+
+probes = utils.pack_spheres([-2,2, -2,2, -2,2], radius=0.7)
+
+settings.use_depth_peeling = True
+settings.multi_samples = 0
 
 plt = Plotter()
 plt.add_callback("key press", func)
 
-txt = Text2D(__doc__)
+txt = Text2D(__doc__, font="Kanopus")
 plt += txt
 
 # Create a set of points in space to form a spline
-circle = Circle(res=8) # resolution = 8 points
+circle = Circle(res=8)  # resolution = 8 points
 sptool = plt.add_spline_tool(circle, pc='red', lw=4, closed=True)
 
 plt.show().close()
