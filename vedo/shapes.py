@@ -1002,10 +1002,12 @@ class Lines(Mesh):
 
         if endPoints is not None:
             startPoints = np.stack((startPoints, endPoints), axis=1)
+        startPoints = np.asarray(startPoints)
 
-        if len(startPoints) == 2:
+        polylns = vtk.vtkAppendPolyData()
 
-            polylns = vtk.vtkAppendPolyData()
+        if startPoints.shape[1] == 2:
+
             for twopts in startPoints:
                 lineSource = vtk.vtkLineSource()
                 lineSource.SetResolution(res)
@@ -1025,7 +1027,6 @@ class Lines(Mesh):
                 else:
                     lineSource.SetPoint2(pt2)
                 polylns.AddInputConnection(lineSource.GetOutputPort())
-            polylns.Update()
 
         else:
 
@@ -1049,8 +1050,8 @@ class Lines(Mesh):
                 poly.SetPoints(ppoints)
                 poly.SetLines(lines)
                 polylns.AddInputData(poly)
-            polylns.Update()
 
+        polylns.Update()
 
         Mesh.__init__(self, polylns.GetOutput(), c, alpha)
         self.lw(lw).lighting("off")
