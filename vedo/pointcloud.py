@@ -1154,7 +1154,7 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         Delete a list of vertices identified by any of their vertex index.
 
-        See also `vedo.base.delete_cells()`.
+        See also `delete_cells()`.
 
         .. hint:: examples/basic/deleteMeshPoints.py
             .. image:: https://vedo.embl.es/images/basic/deleteMeshPoints.png
