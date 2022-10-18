@@ -28,6 +28,7 @@ from vtkmodules.vtkCommonComputationalGeometry import (
     vtkParametricTorus,
 )
 from vtkmodules.vtkCommonCore import (
+    mutable,
     VTK_UNSIGNED_CHAR,
     VTK_UNSIGNED_SHORT,
     VTK_UNSIGNED_INT,

@@ -4343,7 +4343,7 @@ class DirectedGraph(Assembly):
 
         edgeLabels = dgraph.labels(
             self._edgeLabels,
-            cells=True,
+            on="cells",
             scale=self.edge_label_scale,
             precision=0,
             font=self.font,

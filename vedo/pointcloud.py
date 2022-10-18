@@ -1241,6 +1241,7 @@ class Points(vtk.vtkFollower, BaseActor):
             df.SetNegateDistance(invert)
             df.Update()
             scals = df.GetOutput().GetPointData().GetScalars()
+            dists = utils.vtk2numpy(scals)
 
         else:  # has no polygons and vtkDistancePolyDataFilter wants them (dont know why)
 
@@ -1260,8 +1261,8 @@ class Points(vtk.vtkFollower, BaseActor):
                 ids.append(pid)
 
             deltas = ps2[ids] - ps1
-            d = np.linalg.norm(deltas, axis=1).astype(np.float32)
-            scals = utils.numpy2vtk(d)
+            dists = np.linalg.norm(deltas, axis=1).astype(np.float32)
+            scals = utils.numpy2vtk(dists)
 
         scals.SetName(name)
         self.inputdata().GetPointData().AddArray(scals)  # must be self.inputdata() !
@@ -1269,7 +1270,7 @@ class Points(vtk.vtkFollower, BaseActor):
         rng = scals.GetRange()
         self.mapper().SetScalarRange(rng[0], rng[1])
         self.mapper().ScalarVisibilityOn()
-        return self
+        return dists
 
     def alpha(self, opacity=None):
         """Set/get mesh's transparency. Same as `mesh.opacity()`."""
@@ -1510,7 +1511,7 @@ class Points(vtk.vtkFollower, BaseActor):
     def labels(
         self,
         content=None,
-        cells=False,
+        on="points",
         scale=None,
         xrot=0,
         yrot=0,
@@ -1522,6 +1523,7 @@ class Points(vtk.vtkFollower, BaseActor):
         justify="bottom-left",
         c="black",
         alpha=1,
+        cells=None,
     ):
         """
         Generate value or ID labels for mesh cells or points.
@@ -1535,8 +1537,8 @@ class Points(vtk.vtkFollower, BaseActor):
              either 'id', 'cellid', array name or array number.
              A array can also be passed (must match the nr. of points or cells).
 
-        cells : bool
-            generate labels for cells instead of points [False]
+        on : str
+            generate labels for "cells" instead of "points"
 
         scale : float
             absolute size of labels, if left as None it is automatic
@@ -1555,13 +1557,19 @@ class Points(vtk.vtkFollower, BaseActor):
 
                 from vedo import *
                 s = Sphere(res=10).linewidth(1).c("orange").compute_normals()
-                point_ids = s.labels('id', cells=False).c('green')
-                cell_ids  = s.labels('id', cells=True ).c('black')
+                point_ids = s.labels('id', on="points").c('green')
+                cell_ids  = s.labels('id', on="cells" ).c('black')
                 show(s, point_ids, cell_ids)
 
         .. hint:: examples/basic/boundaries.py
             .. image:: https://vedo.embl.es/images/basic/boundaries.png
         """
+        if cells is not None:  # deprecation message
+            vedo.logger.warning("In labels(cells=...) please use labels(on='cells') instead")
+
+        if "cell" in on or "face" in on:
+            cells = True
+
         if isinstance(content, str):
             if content in ('cellid', 'cellsid'):
                 cells = True
@@ -1745,7 +1753,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 from vedo import Sphere, show
                 sph = Sphere(quads=True, res=4).compute_normals().wireframe()
                 sph.celldata["zvals"] = sph.cell_centers()[:,2]
-                l2d = sph.labels("zvals", cells=True, precision=2).backcolor('orange9')
+                l2d = sph.labels("zvals", on="cells", precision=2).backcolor('orange9')
                 show(sph, l2d, axes=1).close()
         """
         if isinstance(content, str):

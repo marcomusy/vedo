@@ -18,7 +18,7 @@ hist.scale(0.6).pos(40, -53, 0).use_bounds(False)
 mesh.add_scalarbar3d(c="w", title="triangle quality by min(\alpha_i )")
 
 # create numeric labels of active scalar on top of cells
-labs = mesh.labels(cells=True, precision=3, scale=0.4, font="Quikhand", c="black",)
+labs = mesh.labels(on="cells", precision=3, scale=0.4, font="Quikhand", c="black")
 
 cam = dict(
     pos=(59.8, -191, 78.9),
