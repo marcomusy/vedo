@@ -14,32 +14,24 @@ A lightweight and powerful python module
 for scientific analysis and **v**isualization of **3d** **o**bjects.<br>
 
 
-### ✨  Philosophy
-Inspired by the *vpython* *manifesto* "3D programming for ordinary mortals",
-`vedo` makes it easy to work with 3D pointclouds, meshes and volumes,
-in just a few lines of code, even for less experienced programmers.
-
-`vedo` is based on [VTK](https://www.vtk.org/) and [numpy](http://www.numpy.org/),
-with no other dependencies.
-
-
 ## 💾  Installation
 ```bash
 pip install vedo
 
-# (for better results try)
+# For better results try:
 # pip install vtk==9.0.3
 ```
 
 <details>
 <summary>additional installation details <i><b>[click to expand]</b></i> </summary>
 
+- Installing VTK version 9.0.x (the latest is 9.2) will generate better visualization for transparent objects.
+
 - To install the latest _dev_ version of `vedo`: <br>
 `pip install -U git+https://github.com/marcomusy/vedo.git`
 
 - To install from the conda-forge channel: <br>
 `conda install -c conda-forge vedo`
-
 
 </details>
 
@@ -54,7 +46,7 @@ or by opening a [**github issue**](https://github.com/marcomusy/vedo/issues).
 
 ## 🎨  Features
 The library includes a [large set of working examples](https://github.com/marcomusy/vedo/tree/master/examples)
-for a wide range of functionalities:
+for a wide range of functionalities
 
 <details>
 <summary>working with polygonal meshes and point clouds <i><b>[click to expand]</b></i> </summary>
@@ -240,7 +232,7 @@ Developmental Cell 57, 1–11 September 2022,
 
 M. Musy  <em>et al.</em>,
 "<code>vedo</code>, a python module for scientific analysis and visualization of 3D objects and point clouds",
-Zenodo, 2021, <a href="https://doi.org/10.5281/zenodo.5842090">doi: 10.5281/zenodo.5842090</a>.
+Zenodo, 2021, <a href="https://doi.org/10.5281/zenodo.7019968">doi: 10.5281/zenodo.7019968</a>.
 
 
 [![embl_logo](https://user-images.githubusercontent.com/32848391/58046204-e9157180-7b44-11e9-81c9-e916cdf9ba84.gif)](https://www.embl.es)
