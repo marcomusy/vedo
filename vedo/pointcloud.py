@@ -4557,3 +4557,32 @@ class Points(vtk.vtkFollower, BaseActor):
         interpolator.Update()
         return vedo.Volume(interpolator.GetOutput())
 
+
+    def retrieve_rgb(self, alpha=False, on='points'):
+        """
+        Retrieve the RGB color array for the current object.
+
+        Parameters
+        ----------
+        alpha : bool
+            return transparency as well
+
+        on : str
+            either from points (vertices) or cells (faces)
+
+        Returns
+        -------
+        arr : numpy.array
+            the vertex or face colors
+        """
+        lut = self.mapper().GetLookupTable()
+        poly = self.polydata(transformed=False)
+        if 'point' in on:
+            vscalars = poly.GetPointData().GetScalars()
+        else:
+            vscalars = poly.GetCellData().GetScalars()
+        cols =lut.MapScalars(vscalars, 0,0)
+        arr = utils.vtk2numpy(cols)
+        if not alpha:
+            arr = arr[:, :3]
+        return arr

@@ -542,6 +542,8 @@ class Base3DProp:
         """
         Transform object position and orientation.
 
+        Parameters
+        ----------
         reset : bool
             no effect, this is superseded by pointcloud.apply_transform()
 

@@ -1,28 +1,7 @@
 ## Main changes
 
-- NOTE: Convention has moved from `camelCase` to `snake_case`.
-
-E.g.
-```python
-mesh = Mesh("bunny.obj")
-mesh.cutWithPlane()
-```
-
-now becomes
-
-```python
-mesh = Mesh("bunny.obj")
-mesh.cut_with_plane()     ### <--
-```
-
-Some backward incompatibility may occur!
-
-
-- removed requirement on vtk version
-
 ---
 ### `addons.py`
-- improved slider callback interface
 
 ---
 ### `applications.py`
@@ -32,10 +11,10 @@ Some backward incompatibility may occur!
 
 ---
 ### `pointcloud.py`
+- added method `retrieve_rgb()` to get the color array of a mesh or pointcloud
 
 ---
 ### `mesh.py`
-- fixed issue #593
 
 ---
 ### `plotter.py`
@@ -61,7 +40,6 @@ Some backward incompatibility may occur!
 
 ---
 ### `volume.py`
-- can warp scalars in a volumetric dataset with `warp()`
 
 -------------------------
 ## Examples
@@ -80,10 +58,8 @@ examples/other/qt_window3.py
 examples/basic/multiwindows2.py
 examples/simulations/lorenz.py
 examples/simulations/orbitals.py
-examples/pyplot/scatter2.py
-
-/home/musy/Projects/vedo/examples/other/meshio_read.py
-/home/musy/Projects/vedo/examples/other/dolfin/ex06_elasticity3.py
+examples/other/meshio_read.py
+examples/other/dolfin/ex06_elasticity3.py
 
 
 
