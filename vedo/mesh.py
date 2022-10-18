@@ -4,7 +4,11 @@ import os
 import numpy as np
 from deprecated import deprecated
 
-import vtkmodules.all as vtk
+try:
+    import vedo.vtkclasses as vtk
+except ImportError:
+    import vtkmodules.all as vtk
+
 import vedo
 from vedo.colors import color_map
 from vedo.colors import get_color

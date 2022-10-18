@@ -5,7 +5,11 @@ import sys
 import time
 
 import numpy as np
-import vtkmodules.all as vtk
+
+try:
+    import vedo.vtkclasses as vtk
+except ImportError:
+    import vtkmodules.all as vtk
 
 import vedo
 

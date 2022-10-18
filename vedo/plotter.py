@@ -6,7 +6,10 @@ import time
 import numpy as np
 from deprecated import deprecated
 
-import vtkmodules.all as vtk
+try:
+    import vedo.vtkclasses as vtk
+except ImportError:
+    import vtkmodules.all as vtk
 
 import vedo
 from vedo import settings

@@ -10,7 +10,8 @@ import warnings
 import logging
 import numpy as np
 from numpy import sin, cos, sqrt, exp, log, dot, cross  # just because handy
-import vtkmodules.all as vtk
+
+from vtkmodules.vtkCommonCore import vtkVersion
 
 #################################################
 from vedo.version import _version as __version__
@@ -76,9 +77,9 @@ __pdoc__['utils.linInterpolate'] = False
 ##################################################################################
 ########################################################################## GLOBALS
 vtk_version = [
-    int(vtk.vtkVersion().GetVTKMajorVersion()),
-    int(vtk.vtkVersion().GetVTKMinorVersion()),
-    int(vtk.vtkVersion().GetVTKBuildVersion()),
+    int(vtkVersion().GetVTKMajorVersion()),
+    int(vtkVersion().GetVTKMinorVersion()),
+    int(vtkVersion().GetVTKBuildVersion()),
 ]
 
 if vtk_version[0] >= 9:
