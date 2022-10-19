@@ -3054,7 +3054,7 @@ def _histogram_hex_bin(
             else:
                 p = (i / ki, j / kj + 0.45, 0)
             q = (p[0] / n * 1.2 * dx + xmin, p[1] / m * dy + ymin, 0)
-            ids = cloud.closestPoint(q, radius=r, returnCellId=True)
+            ids = cloud.closest_point(q, radius=r, return_cell_id=True)
             ne = len(ids)
             if fill:
                 t.Translate(p[0], p[1], ne / 2)
@@ -3284,7 +3284,7 @@ def _histogramSpheric(
     cntrs = sg.cellCenters()
     counts = np.zeros(len(cntrs))
     for p in ptsvals:
-        cell = sg.closestPoint(p, returnCellId=True)
+        cell = sg.closest_point(p, return_cell_id=True)
         counts[cell] += 1
     acounts = np.array(counts, dtype=float)
     counts *= (rmax - 1) / np.max(counts)

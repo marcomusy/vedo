@@ -11,7 +11,6 @@
 
 ---
 ### `pointcloud.py`
-- added method `retrieve_rgb()` to get the color array of a mesh or pointcloud
 
 ---
 ### `mesh.py`

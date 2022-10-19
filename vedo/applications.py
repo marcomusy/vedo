@@ -1495,13 +1495,13 @@ class Animation(Plotter):
                 (x1, y1, z1),
                 (x0, y1, z1),
             ]
-            pcl = acts[0].closestPoint(corners[corner])
+            pcl = acts[0].closest_point(corners[corner])
             dmin = np.linalg.norm(pcl - corners[corner])
             for tt in rng:
                 d = lin_interpolate(tt, [t, t + duration], [dmin, diag * 1.01])
                 if d > 0:
-                    ids = acts[0].closestPoint(
-                        corners[corner], radius=d, returnPointId=True
+                    ids = acts[0].closest_point(
+                        corners[corner], radius=d, return_point_id=True
                     )
                     if len(ids) <= acts[0].npoints:
                         self.events.append((tt, self.meshErode, acts, ids))

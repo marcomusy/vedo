@@ -1943,7 +1943,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         x0, x1, y0, y1, z0, z1 = box.bounds()
         if x0 < pt[0] < x1:
-            c0 = box.closestPoint(pt)
+            c0 = box.closest_point(pt)
             c1 = [c0[0], c0[1] + (pt[1] - y0) / 4, pt[2]]
         elif (pt[0] - x0) < (x1 - pt[0]):
             c0 = [x0, (y0 + y1) / 2, pt[2]]
@@ -2047,7 +2047,7 @@ class Points(vtk.vtkFollower, BaseActor):
         if point is None:
             x0, x1, y0, y1, _, z1 = self.GetBounds()
             pt = [(x0 + x1) / 2, (y0 + y1) / 2, z1]
-            point = self.closestPoint(pt)
+            point = self.closest_point(pt)
 
         capt = vtk.vtkCaptionActor2D()
         capt.SetAttachmentPoint(point)
