@@ -772,17 +772,11 @@ class DashedLine(Mesh):
     spacing : float
         relative size of the dash
 
-    c : color
-        color name, number, or list of [R,G,B] colors
-
-    alpha : float
-        opacity in range [0,1]
-
     lw : int
         line width in pixels
     """
 
-    def __init__(self, p0, p1=None, spacing=0.1, closed=False, c="k5", alpha=1, lw=2):
+    def __init__(self, p0, p1=None, spacing=0.1, closed=False, lw=2, c="k5", alpha=1):
 
         if isinstance(p1, vtk.vtkActor):
             p1 = p1.GetPosition()
@@ -1711,17 +1705,17 @@ class Tube(Mesh):
     r :  float, list
         constant radius or list of radii.
 
-    c : color
-        constant color or list of colors for each point.
-
     res : int
         resolution, number of the sides of the tube
+
+    c : color
+        constant color or list of colors for each point.
 
     .. hint:: examples/basic/ribbon.py, tube_radii.py
         .. image:: https://vedo.embl.es/images/basic/tube.png
     """
 
-    def __init__(self, points, r=1, cap=True, c=None, alpha=1, res=12):
+    def __init__(self, points, r=1, cap=True, res=12, c=None, alpha=1):
 
         base = np.asarray(points[0], dtype=float)
         top = np.asarray(points[-1], dtype=float)
@@ -1812,9 +1806,9 @@ class Ribbon(Mesh):
         mode=0,
         closed=False,
         width=None,
+        res=(200, 5),
         c="indigo3",
         alpha=1,
-        res=(200, 5),
     ):
 
         if isinstance(line1, Points):
@@ -1922,7 +1916,7 @@ class Arrow(Mesh):
     .. image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestOrientedArrow.png
     """
 
-    def __init__(self, start_pt=(0, 0, 0), end_pt=(1, 0, 0), s=None, c="r4", alpha=1, res=12):
+    def __init__(self, start_pt=(0, 0, 0), end_pt=(1, 0, 0), s=None, res=12, c="r4", alpha=1):
 
         self.s = s if s is not None else 1  ## only needed by pyplot.__iadd()
         self.fill = True
@@ -2016,7 +2010,7 @@ class Arrows(Glyph):
         .. image:: https://user-images.githubusercontent.com/32848391/55897850-a1a0da80-5bc1-11e9-81e0-004c8f396b43.jpg
     """
 
-    def __init__(self, start_pts, end_pts=None, s=None, thickness=1, c=None, alpha=1, res=12):
+    def __init__(self, start_pts, end_pts=None, s=None, thickness=1, res=12, c=None, alpha=1):
 
         if isinstance(start_pts, Points):
             start_pts = start_pts.points()
@@ -2334,7 +2328,7 @@ class GeoCircle(Polygon):
     See example `vedo -r earthquake`
     """
 
-    def __init__(self, lat, lon, r=1, c="red4", alpha=1, res=60):
+    def __init__(self, lat, lon, r=1, res=60, c="red4", alpha=1):
         coords = []
         sinr, cosr = np.sin(r), np.cos(r)
         sinlat, coslat = np.sin(lat), np.cos(lat)
@@ -2400,7 +2394,7 @@ class Disc(Mesh):
     .. image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestDisk.png
     """
 
-    def __init__(self, pos=(0, 0, 0), r1=0.5, r2=1, c="gray4", alpha=1, res=(2, 120)):
+    def __init__(self, pos=(0, 0, 0), r1=0.5, r2=1, res=(2, 120), c="gray4", alpha=1):
         if utils.is_sequence(res):
             res_r, res_phi = res
         else:
@@ -2438,9 +2432,9 @@ class Arc(Mesh):
         normal=None,
         angle=None,
         invert=False,
+        res=50,
         c="gray4",
         alpha=1,
-        res=48,
     ):
         if len(point1) == 2:
             point1 = (point1[0], point1[1], 0)
@@ -2493,7 +2487,7 @@ class Sphere(Mesh):
     .. image:: https://user-images.githubusercontent.com/32848391/72433092-f0a31e00-3798-11ea-85f7-b2f5fcc31568.png
     """
 
-    def __init__(self, pos=(0, 0, 0), r=1, c="r5", alpha=1, res=24, quads=False):
+    def __init__(self, pos=(0, 0, 0), r=1, res=24, quads=False, c="r5", alpha=1):
 
         if len(pos) == 2:
             pos = np.asarray([pos[0], pos[1], 0])
@@ -2554,7 +2548,7 @@ class Spheres(Mesh):
         .. image:: https://vedo.embl.es/images/basic/manyspheres.jpg
     """
 
-    def __init__(self, centers, r=1, c="r5", alpha=1, res=8):
+    def __init__(self, centers, r=1, res=8, c="r5", alpha=1):
 
         if isinstance(centers, Points):
             centers = centers.points()
@@ -2687,9 +2681,9 @@ class Ellipsoid(Mesh):
         axis1=(1, 0, 0),
         axis2=(0, 2, 0),
         axis3=(0, 0, 3),
+        res=24,
         c="cyan4",
         alpha=1,
-        res=24,
     ):
 
         self.center = pos
@@ -2820,9 +2814,6 @@ class Grid(Mesh):
     res : list
         resolutions along x and y, e.i. the number of subdivisions
 
-    resx : int
-        deprecated, please use res=(n,m)
-
     lw : int
         line width
 
@@ -2847,10 +2838,10 @@ class Grid(Mesh):
         self,
         pos=(0, 0, 0),
         s=(1,1),
+        res=(10,10),
+        lw=1,
         c="k3",
         alpha=1,
-        lw=1,
-        res=(10,10),
     ):
         resx, resy = res
         sx, sy = s
@@ -2906,7 +2897,7 @@ class Plane(Mesh):
 
     .. image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestPlane.png
     """
-    def __init__(self, pos=(0, 0, 0), normal=(0, 0, 1), s=(1, 1), c="gray6", alpha=1, res=(1, 1)):
+    def __init__(self, pos=(0, 0, 0), normal=(0, 0, 1), s=(1, 1), res=(1, 1), c="gray6", alpha=1):
 
         pos = (pos[0], pos[1], 0)
         sx, sy = s
@@ -3340,22 +3331,53 @@ class Pyramid(Cone):
 
 
 class Torus(Mesh):
-    """Build a torus of specified outer radius `r` internal radius `thickness`, centered at `pos`."""
+    """
+    Build a torus of specified outer radius `r1` internal radius `r2`, centered at `pos`.
+    If `quad=True` a quad-mesh is generated.
+    """
 
-    def __init__(self, pos=(0, 0, 0), r=1, thickness=0.2, res=30, c="yellow3", alpha=1):
-        rs = vtk.vtkParametricTorus()
-        rs.SetRingRadius(r)
-        rs.SetCrossSectionRadius(thickness)
-        pfs = vtk.vtkParametricFunctionSource()
-        pfs.SetParametricFunction(rs)
+    def __init__(self, pos=(0, 0, 0), r1=1, r2=0.2, res=36, quads=False, c="yellow3", alpha=1):
+
         if utils.is_sequence(res):
             res_u, res_v = res
         else:
-            res_u, res_v = 3 * res, res
-        pfs.SetUResolution(res_u)
-        pfs.SetVResolution(res_v)
-        pfs.Update()
-        Mesh.__init__(self, pfs.GetOutput(), c, alpha)
+            res_u, res_v = 3*res, res
+
+        if quads:
+            #https://github.com/marcomusy/vedo/issues/710
+
+            n = res_v
+            m = res_u
+
+            theta = np.linspace(0, 2.*np.pi, n)
+            phi   = np.linspace(0, 2.*np.pi, m)
+            theta, phi = np.meshgrid(theta, phi)
+            t = r1 + r2 * np.cos(theta)
+            x = t * np.cos(phi)
+            y = t * np.sin(phi)
+            z = r2 * np.sin(theta)
+            pts = np.column_stack((x.ravel(), y.ravel(), z.ravel()))
+
+            faces = []
+            for j in range(m-1):
+                j1n = (j+1) * n
+                for i in range(n-1):
+                    faces.append([i + j*n, i+1 + j*n, i+1 + j1n, i + j1n])
+
+            Mesh.__init__(self, [pts, faces], c, alpha)
+
+        else:
+
+            rs = vtk.vtkParametricTorus()
+            rs.SetRingRadius(r1)
+            rs.SetCrossSectionRadius(r2)
+            pfs = vtk.vtkParametricFunctionSource()
+            pfs.SetParametricFunction(rs)
+            pfs.SetUResolution(res_u)
+            pfs.SetVResolution(res_v)
+            pfs.Update()
+            Mesh.__init__(self, pfs.GetOutput(), c, alpha)
+
         self.phong()
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)

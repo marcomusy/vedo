@@ -54,7 +54,7 @@ class Morpher:
         for i in rng:
             p1 = srcpts[i]
             p2 = self.transform(p1)
-            tp = self.target.closestPoint(p2)
+            tp = self.target.closest_point(p2)
             d2sum += mag2(p2 - tp)
         d2sum /= len(rng)
 

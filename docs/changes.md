@@ -60,5 +60,29 @@ examples/simulations/orbitals.py
 examples/other/meshio_read.py
 examples/other/dolfin/ex06_elasticity3.py
 
+cutter.py
+interactionstyle.py
+fitplanes.py
+SHIFT - KEY
+interpolateVolume.py looks different
+isosurfaces.py
+multiple_pendulum.py
+makeVideo.py
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

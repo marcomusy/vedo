@@ -2479,18 +2479,18 @@ def fit(
 
     Additional information about the fitting output can be accessed with:
 
-    ``fit = fitPolynomial(pts)``
+    ``fitd = fit(pts)``
 
-    - *fit.coefficients* will contain the coefficients of the polynomial fit
-    - *fit.coefficientErrors*, errors on the fitting coefficients
-    - *fit.MonteCarloCoefficients*, fitting coefficient set from MC generation
-    - *fit.covarianceMatrix*, covariance matrix as a numpy array
-    - *fit.reducedChi2*, reduced chi-square of the fitting
-    - *fit.ndof*, number of degrees of freedom
-    - *fit.dataSigma*, mean data dispersion from the central fit assuming Chi2=1
+    - *fitd.coefficients* will contain the coefficients of the polynomial fit
+    - *fitd.coefficientErrors*, errors on the fitting coefficients
+    - *fitd.MonteCarloCoefficients*, fitting coefficient set from MC generation
+    - *fitd.covarianceMatrix*, covariance matrix as a numpy array
+    - *fitd.reducedChi2*, reduced chi-square of the fitting
+    - *fitd.ndof*, number of degrees of freedom
+    - *fitd.dataSigma*, mean data dispersion from the central fit assuming Chi2=1
 
-    - *fit.errorLines*, a ``vedo.shapes.Line`` object for the upper and lower error band
-    - *fit.errorBand*, the ``vedo.mesh.Mesh`` object representing the error band
+    - *fitd.errorLines*, a ``vedo.shapes.Line`` object for the upper and lower error band
+    - *fitd.errorBand*, the ``vedo.mesh.Mesh`` object representing the error band
 
     Errors on x and y can be specified. If left to `None` an estimate is made from
     the statistical spread of the dataset itself. Errors are always assumed gaussian.
