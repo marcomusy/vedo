@@ -506,7 +506,6 @@ class Plotter:
         self.size = size
         self.interactor = None
         self.camera = None
-        self.keyheld = ""
 
         self._repeatingtimer_id = None
 
@@ -776,7 +775,6 @@ class Plotter:
             #     self.wx_widget.AddObserver("MiddleButtonPressEvent", self._mousemiddle)
             # if settings.enable_default_keyboard_callbacks:
             #     self.wx_widget.AddObserver("KeyPressEvent", self._keypress)
-            #     self.wx_widget.AddObserver("KeyReleaseEvent", self._keyrelease)
             ########################
             return #################
             ########################
@@ -820,7 +818,6 @@ class Plotter:
             self.interactor.AddObserver("MiddleButtonPressEvent", self._mousemiddle)
         if settings.enable_default_keyboard_callbacks:
             self.interactor.AddObserver("KeyPressEvent", self._keypress)
-            self.interactor.AddObserver("KeyReleaseEvent", self._keyrelease)
 
         if settings.allow_interaction:
             def win_interact(iren, event):  # flushing interactor events
@@ -2283,6 +2280,21 @@ class Plotter:
 
             dx, dy = x - xp, y - yp
 
+            key = self.interactor.GetKeySym()
+            if key:
+                if "_L" in key or "_R" in key:
+                    # skip things like Shift_R
+                    key = None
+                else:
+                    if iren.GetShiftKey():
+                        key = key.upper()
+
+                    if iren.GetControlKey():
+                        key = "Ctrl+" + key
+
+                    if iren.GetAltKey():
+                        key = "Alt+" + key
+
             event_dict = utils.dotdict(
                 {
                     "name": ename,
@@ -2292,18 +2304,18 @@ class Plotter:
                     "at": self.renderers.index(self.renderer),
                     "actor": actor,
                     "picked3d": picked3d,
-                    "keyPressed": self.interactor.GetKeySym(), # obsolete, will disappear. Use keypress
-                    "keypress": self.interactor.GetKeySym(),
+                    "keyPressed": key,  # obsolete, will disappear. Use "keypress"
+                    "keypress": key,
                     "picked2d": (x, y),
                     "delta2d": (dx, dy),
                     "angle2d": np.arctan2(dy, dx),
                     "speed2d": np.sqrt(dx * dx + dy * dy),
                     "delta3d": delta3d,
                     "speed3d": np.sqrt(np.dot(delta3d, delta3d)),
-                    "isPoints": isinstance(actor, vedo.Points),
-                    "isMesh": isinstance(actor, vedo.Mesh),
+                    "isPoints":  isinstance(actor, vedo.Points),
+                    "isMesh":    isinstance(actor, vedo.Mesh),
                     "isAssembly": isinstance(actor, vedo.Assembly),
-                    "isVolume": isinstance(actor, vedo.Volume),
+                    "isVolume":  isinstance(actor, vedo.Volume),
                     "isPicture": isinstance(actor, vedo.Picture),
                     "isActor2D": isinstance(actor, vtk.vtkActor2D),
                 }
@@ -3210,7 +3222,6 @@ class Plotter:
         self.renderer = None  # current renderer
         self.renderers = []
         self.camera = None
-        self.keyheld = ""
         self._repeatingtimer_id = None
         self.frames = None  # holds the output of addons.add_renderer_frame
         self.skybox = None
@@ -3424,17 +3435,27 @@ class Plotter:
         # NB: qt creates and passes a vtkGenericRenderWindowInteractor
 
         key = iren.GetKeySym()
+
+        if "_L" in key or "_R" in key:
+            return
+
+        if iren.GetShiftKey():
+            key = key.upper()
+
+        if iren.GetControlKey():
+            key = "Ctrl+" + key
+
+        if iren.GetAltKey():
+            key = "Alt+" + key
+
+        # utils.vedo.printc('Pressed key:', key, c='y', box='-')
+        # print(key, iren.GetShiftKey(), iren.GetAltKey(), iren.GetControlKey(),
+        #       iren.GetKeyCode(), iren.GetRepeatCount())
+
         x, y = iren.GetEventPosition()
         renderer = iren.FindPokedRenderer(x, y)
 
-        # utils.vedo.printc('Pressed key:', self.keyheld, key, c='y', box='-')
-
-        if key in ["Shift_L", "Control_L", "Super_L", "Alt_L",
-                   "Shift_R", "Control_R", "Super_R", "Alt_R", "Menu"]:
-            self.keyheld = key
-            return
-
-        if key in ["q", "space", "Return", "F12"]:
+        if key in ["q", "Ctrl+q", "space", "Return"]:
             iren.ExitCallback()
             return
 
@@ -3984,13 +4005,3 @@ class Plotter:
         if iren:
             iren.Render()
 
-
-    ######################################
-    def _keyrelease(self, iren, event):
-        key = iren.GetKeySym()
-        # print(iren.GetShiftKey())
-        # utils.vedo.printc('Released key:', key, c='v', box='-')
-        if key in ["Shift_L", "Control_L", "Super_L", "Alt_L",
-                   "Shift_R", "Control_R", "Super_R", "Alt_R", "Menu"]:
-            self.keyheld = ''
-        return

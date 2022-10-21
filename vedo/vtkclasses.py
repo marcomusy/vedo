@@ -397,8 +397,10 @@ from vtkmodules.vtkInfovisLayout import (
 from vtkmodules.vtkInteractionStyle import (
     vtkInteractorStyleImage,
     vtkInteractorStyleJoystickCamera,
+    vtkInteractorStyleTrackballActor,
     vtkInteractorStyleTrackballCamera,
 )
+
 from vtkmodules.vtkInteractionWidgets import (
     vtkBalloonRepresentation,
     vtkBalloonWidget,
@@ -467,6 +469,7 @@ from vtkmodules.vtkRenderingCore import (
     vtkVolumeProperty,
     vtkWindowToImageFilter,
 )
+
 from vtkmodules.vtkRenderingFreeType import vtkVectorText
 
 from vtkmodules.vtkRenderingImage import vtkImageResliceMapper

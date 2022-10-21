@@ -17,6 +17,7 @@
 
 ---
 ### `plotter.py`
+- fixed key bindings for uppercase hits.
 
 ---
 ### `picture.py`
@@ -44,11 +45,6 @@
 ## Examples
 
 ### New/Revised
-examples/pyplot/fill_gap.py
-examples/basic/sliders_hsv.py
-examples/volumetric/slicer2.py
-examples/volumetric/warp_scalars.py
-examples/other/qt_window3.py
 
 
 ### Deleted
@@ -60,10 +56,10 @@ examples/simulations/orbitals.py
 examples/other/meshio_read.py
 examples/other/dolfin/ex06_elasticity3.py
 
+vtk9.2:
 cutter.py
 interactionstyle.py
 fitplanes.py
-SHIFT - KEY
 interpolateVolume.py looks different
 isosurfaces.py
 multiple_pendulum.py
