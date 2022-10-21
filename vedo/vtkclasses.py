@@ -3,30 +3,11 @@
 """
 Subset of vtk classes to be imported directly
 """
+
+import vtkmodules.vtkCommonComputationalGeometry
+
 from vtkmodules.vtkCommonColor import vtkNamedColors
-from vtkmodules.vtkCommonComputationalGeometry import (
-    vtkCardinalSpline,
-    vtkKochanekSpline,
-    vtkParametricBohemianDome,
-    vtkParametricBour,
-    vtkParametricBoy,
-    vtkParametricCatalanMinimal,
-    vtkParametricConicSpiral,
-    vtkParametricCrossCap,
-    vtkParametricDini,
-    vtkParametricEnneper,
-    vtkParametricFigure8Klein,
-    vtkParametricHenneberg,
-    vtkParametricKlein,
-    vtkParametricKuen,
-    vtkParametricMobius,
-    vtkParametricPluckerConoid,
-    vtkParametricPseudosphere,
-    vtkParametricRandomHills,
-    vtkParametricRoman,
-    vtkParametricSuperEllipsoid,
-    vtkParametricTorus,
-)
+
 from vtkmodules.vtkCommonCore import (
     mutable,
     VTK_UNSIGNED_CHAR,
@@ -62,6 +43,7 @@ from vtkmodules.vtkCommonCore import (
     vtkVariantArray,
     vtkVersion,
 )
+
 from vtkmodules.vtkCommonDataModel import (
     VTK_TETRA,
     VTK_VOXEL,
@@ -110,13 +92,15 @@ from vtkmodules.vtkCommonDataModel import (
     vtkVoxel,
     vtkWedge,
 )
+
 from vtkmodules.vtkCommonMath import vtkMatrix4x4, vtkQuaternion
+
 from vtkmodules.vtkCommonTransforms import (
     vtkLandmarkTransform,
     vtkThinPlateSplineTransform,
+    vtkTransform
 )
-from vtkmodules.vtkCommonTransforms import vtkTransform
-from vtkmodules.vtkDomainsChemistry import vtkProteinRibbonFilter
+
 from vtkmodules.vtkFiltersCore import (
     VTK_BEST_FITTING_PLANE,
     vtkAppendPolyData,
@@ -156,14 +140,20 @@ from vtkmodules.vtkFiltersCore import (
     vtkVoronoi2D,
     vtkWindowedSincPolyDataFilter,
 )
+
 from vtkmodules.vtkFiltersExtraction import (
     vtkExtractCellsByType,
-    vtkExtractEdges,
     vtkExtractGeometry,
     vtkExtractPolyDataGeometry,
     vtkExtractSelection,
 )
+try:
+    from vtkmodules.vtkFiltersExtraction import vtkExtractEdges # vtk9.0
+except ImportError:
+    from vtkmodules.vtkFiltersCore import vtkExtractEdges # vtk9.2
+
 from vtkmodules.vtkFiltersFlowPaths import vtkStreamTracer
+
 from vtkmodules.vtkFiltersGeneral import (
     vtkBooleanOperationPolyDataFilter,
     vtkClipDataSet,
@@ -194,6 +184,7 @@ from vtkmodules.vtkFiltersGeometry import (
     vtkDataSetSurfaceFilter,
     vtkImageDataGeometryFilter,
 )
+
 from vtkmodules.vtkFiltersHybrid import (
     vtkFacetReader,
     vtkImplicitModeller,
@@ -201,6 +192,7 @@ from vtkmodules.vtkFiltersHybrid import (
     vtkProcrustesAlignmentFilter,
     vtkRenderLargeImage,
 )
+
 from vtkmodules.vtkFiltersModeling import (
     vtkAdaptiveSubdivisionFilter,
     vtkBandedPolyDataContourFilter,
@@ -219,6 +211,7 @@ from vtkmodules.vtkFiltersModeling import (
     vtkSelectPolyData,
     vtkSubdivideTetra,
 )
+
 from vtkmodules.vtkFiltersPoints import (
     vtkConnectedPointsFilter,
     vtkDensifyPointCloudFilter,
@@ -235,6 +228,7 @@ from vtkmodules.vtkFiltersPoints import (
     vtkSignedDistance,
     vtkVoronoiKernel,
 )
+
 from vtkmodules.vtkFiltersSources import (
     vtkArcSource,
     vtkArrowSource,
@@ -254,22 +248,29 @@ from vtkmodules.vtkFiltersSources import (
     vtkTexturedSphereSource,
     vtkTessellatedBoxSource,
 )
+
 from vtkmodules.vtkFiltersTexture import vtkTextureMapToPlane
+
 from vtkmodules.vtkFiltersVerdict import vtkMeshQuality, vtkCellSizeFilter
+
 from vtkmodules.vtkImagingStencil import vtkPolyDataToImageStencil
+
 from vtkmodules.vtkIOExport import vtkX3DExporter
+
 from vtkmodules.vtkIOExportGL2PS import vtkGL2PSExporter
+
 from vtkmodules.vtkIOGeoJSON import vtkGeoJSONReader
+
 from vtkmodules.vtkIOGeometry import (
     vtkBYUReader,
     vtkFacetWriter,
     vtkOBJReader,
     vtkOpenFOAMReader,
-    vtkPDBReader,
     vtkParticleReader,
     vtkSTLReader,
     vtkSTLWriter,
 )
+
 from vtkmodules.vtkIOImage import (
     vtkBMPReader,
     vtkBMPWriter,
@@ -289,11 +290,13 @@ from vtkmodules.vtkIOImage import (
     vtkTIFFReader,
     vtkTIFFWriter,
 )
+
 from vtkmodules.vtkIOImport import (
     vtk3DSImporter,
     vtkOBJImporter,
     vtkVRMLImporter,
 )
+
 from vtkmodules.vtkIOLegacy import (
     vtkSimplePointsWriter,
     vtkStructuredGridReader,
@@ -304,7 +307,9 @@ from vtkmodules.vtkIOLegacy import (
     vtkRectilinearGridReader,
     vtkUnstructuredGridReader,
 )
+
 from vtkmodules.vtkIOPLY import vtkPLYReader, vtkPLYWriter
+
 from vtkmodules.vtkIOXML import (
     vtkXMLGenericDataObjectReader,
     vtkXMLImageDataReader,
@@ -320,10 +325,12 @@ from vtkmodules.vtkIOXML import (
     vtkXMLUnstructuredGridReader,
     vtkXMLUnstructuredGridWriter,
 )
+
 from vtkmodules.vtkImagingColor import (
     vtkImageLuminance,
     vtkImageMapToWindowLevelColors,
 )
+
 from vtkmodules.vtkImagingCore import (
     vtkExtractVOI,
     vtkImageAppendComponents,
@@ -339,6 +346,7 @@ from vtkmodules.vtkImagingCore import (
     vtkImageReslice,
     vtkImageThreshold,
 )
+
 from vtkmodules.vtkImagingFourier import (
     vtkImageButterworthHighPass,
     vtkImageButterworthLowPass,
@@ -346,6 +354,7 @@ from vtkmodules.vtkImagingFourier import (
     vtkImageFourierCenter,
     vtkImageRFFT,
 )
+
 from vtkmodules.vtkImagingGeneral import (
     vtkImageCorrelation,
     vtkImageEuclideanDistance,
@@ -356,6 +365,7 @@ from vtkmodules.vtkImagingGeneral import (
     vtkImageMedian3D,
     vtkImageNormalize,
 )
+
 from vtkmodules.vtkImagingHybrid import vtkImageToPoints, vtkSampleFunction
 from vtkmodules.vtkImagingMath import (
     vtkImageDivergence,
@@ -364,10 +374,12 @@ from vtkmodules.vtkImagingMath import (
     vtkImageMagnitude,
     vtkImageMathematics,
 )
+
 from vtkmodules.vtkImagingMorphological import (
     vtkImageContinuousDilate3D,
     vtkImageContinuousErode3D,
 )
+
 from vtkmodules.vtkImagingSources import vtkImageCanvasSource2D
 from vtkmodules.vtkImagingStencil import vtkImageStencil
 from vtkmodules.vtkInfovisLayout import (
@@ -381,6 +393,7 @@ from vtkmodules.vtkInfovisLayout import (
     vtkSimple3DCirclesStrategy,
     vtkSpanTreeLayoutStrategy,
 )
+
 from vtkmodules.vtkInteractionStyle import (
     vtkInteractorStyleImage,
     vtkInteractorStyleJoystickCamera,
@@ -401,6 +414,7 @@ from vtkmodules.vtkInteractionWidgets import (
     vtkSliderWidget,
     vtkSphereWidget,
 )
+
 from vtkmodules.vtkRenderingAnnotation import (
     vtkAnnotatedCubeActor,
     vtkAxesActor,
@@ -413,6 +427,7 @@ from vtkmodules.vtkRenderingAnnotation import (
     vtkScalarBarActor,
     vtkXYPlotActor,
 )
+
 from vtkmodules.vtkRenderingCore import (
     vtkActor,
     vtkActor2D,
@@ -453,8 +468,11 @@ from vtkmodules.vtkRenderingCore import (
     vtkWindowToImageFilter,
 )
 from vtkmodules.vtkRenderingFreeType import vtkVectorText
+
 from vtkmodules.vtkRenderingImage import vtkImageResliceMapper
+
 from vtkmodules.vtkRenderingLabel import vtkLabeledDataMapper
+
 from vtkmodules.vtkRenderingOpenGL2 import (
     vtkDepthOfFieldPass,
     vtkCameraPass,
@@ -471,6 +489,7 @@ from vtkmodules.vtkRenderingOpenGL2 import (
     vtkTranslucentPass,
     vtkVolumetricPass,
 )
+
 from vtkmodules.vtkRenderingVolume import (
     vtkFixedPointVolumeRayCastMapper,
     vtkGPUVolumeRayCastMapper,
@@ -478,6 +497,7 @@ from vtkmodules.vtkRenderingVolume import (
     vtkUnstructuredGridVolumeRayCastMapper,
     vtkUnstructuredGridVolumeZSweepMapper,
 )
+
 from vtkmodules.vtkRenderingVolumeOpenGL2 import (
     vtkOpenGLGPUVolumeRayCastMapper,
     vtkSmartVolumeMapper,

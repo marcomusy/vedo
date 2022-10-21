@@ -394,9 +394,6 @@ def _load_file(filename, unpack):
     elif fl.endswith(".pvd"):
         return loadPVD(filename)
 
-    elif fl.endswith(".pdb"):
-        return loadPDB(filename)
-
         ################################################################# polygonal mesh:
     else:
         if fl.endswith(".vtk"):  # read all legacy vtk types
@@ -719,21 +716,6 @@ def loadPVD(filename):
     if len(listofobjs) == 0:
         return None
     return listofobjs
-
-
-def loadPDB(filename, bondScale=1, hydrogenBondScale=1, coilWidth=0.3, helixWidth=1.3):
-    """Reads a molecule Protein Data Bank file."""
-    rr = vtk.vtkPDBReader()
-    rr.SetFileName(filename)
-    rr.SetBScale(bondScale)
-    rr.SetHBScale(hydrogenBondScale)
-    rr.Update()
-    prf = vtk.vtkProteinRibbonFilter()
-    prf.SetCoilWidth(coilWidth)
-    prf.SetHelixWidth(helixWidth)
-    prf.SetInputData(rr.GetOutput())
-    prf.Update()
-    return Mesh(prf.GetOutput())
 
 
 def loadNeutral(filename):

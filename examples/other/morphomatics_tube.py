@@ -6,6 +6,7 @@ try:
 except ModuleNotFoundError:
     print("Install with:")
     print("pip install git+https://github.com/morphomatics/morphomatics.git#egg=morphomatics")
+    exit(0)
 import numpy as np
 import vedo
 
@@ -34,4 +35,5 @@ for t in np.linspace(-1.0, 1.0, 20):
     shapes.append(vedo.Mesh([v, faces]))
 
 plt = vedo.applications.Browser(shapes, prefix="shape ", bg2='lb')
+plt += vedo.Axes(shapes[-1])
 plt.show(viewup='z').close()
