@@ -2523,7 +2523,7 @@ def fit(
     res : int
         resolution of the output fitted line and error lines
 
-    .. hint:: examples/pyplot/fitPolynomial1.py
+    .. hint:: examples/pyplot/fit_polynomial1.py
         .. image:: https://vedo.embl.es/images/pyplot/fitPolynomial1.png
     """
     if isinstance(points, vedo.pointcloud.Points):

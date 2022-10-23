@@ -667,9 +667,9 @@ def lin_interpolate(x, rangeX, rangeY):
     If x is a 3D vector the linear weight is the distance to the two 3D rangeX vectors.
 
     E.g. if x runs in rangeX=[x0,x1] and I want it to run in rangeY=[y0,y1] then
-    y = linInterpolate(x, rangeX, rangeY) will interpolate x onto rangeY.
+    y = lin_interpolate(x, rangeX, rangeY) will interpolate x onto rangeY.
 
-    .. hint:: examples/basic/linInterpolate.py
+    .. hint:: examples/basic/lin_interpolate.py
         .. image:: https://vedo.embl.es/images/basic/linInterpolate.png
     """
     if is_sequence(x):
@@ -677,7 +677,7 @@ def lin_interpolate(x, rangeX, rangeY):
         x0, x1 = np.asarray(rangeX)
         y0, y1 = np.asarray(rangeY)
         # if len(np.unique([x.shape, x0.shape, x1.shape, y1.shape]))>1:
-        #     print("Error in linInterpolate(): mismatch in input shapes.")
+        #     print("Error in lin_interpolate(): mismatch in input shapes.")
         #     raise RuntimeError()
         dx = x1 - x0
         dxn = np.linalg.norm(dx)
@@ -689,7 +689,7 @@ def lin_interpolate(x, rangeX, rangeY):
         out = y0 * (t / st) + y1 * (s / st)
         # allx = []
         # for xx in x:
-        #     allx.append(linInterpolate(xx, rangeX, rangeY))
+        #     allx.append(lin_interpolate(xx, rangeX, rangeY))
         # out = np.array(allx)
 
     else:  # faster

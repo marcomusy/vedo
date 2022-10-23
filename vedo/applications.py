@@ -842,7 +842,7 @@ class FreeHandCutPlotter(Plotter):
     tol : int
         tolerance of the point proximity.
 
-    .. hint:: examples/basic/cutFreeHand.py
+    .. hint:: examples/basic/cut_freehand.py
         .. image:: https://vedo.embl.es/images/basic/cutFreeHand.gif
     """
 

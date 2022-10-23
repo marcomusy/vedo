@@ -1730,8 +1730,8 @@ class Plotter:
                 )
 
         .. hint::
-            [customAxes1.py](https://github.com/marcomusy/vedo/blob/master/examples/pyplot/customAxes1.py)
-            customAxes2.py, customAxes3.py, customIndividualAxes.py
+            [custom_axes1.py](https://github.com/marcomusy/vedo/blob/master/examples/pyplot/custom_axes1.py)
+            custom_axes2.py, custom_axes3.py, customIndividualAxes.py
             .. image:: https://user-images.githubusercontent.com/32848391/72752870-ab7d5280-3bc3-11ea-8911-9ace00211e23.png
         """
         addons.add_global_axes(axtype, c)
@@ -2450,7 +2450,7 @@ class Plotter:
         numpy array
             the point in 3D world coordinates.
 
-        .. hint:: examples/basic/cutFreeHand.py, examples/basic/mousehover3.py
+        .. hint:: examples/basic/cut_freehand.py, examples/basic/mousehover3.py
         """
         if at is not None:
             renderer = self.renderers[at]

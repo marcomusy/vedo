@@ -22,7 +22,7 @@ from vedo.volume import Volume
 __doc__ = """
 Create additional objects like axes, legends, lights, etc.
 
-.. image:: https://vedo.embl.es/images/pyplot/customAxes2.png
+.. image:: https://vedo.embl.es/images/pyplot/custom_axes2.png
 """
 
 __all__ = [
@@ -2450,9 +2450,9 @@ def Axes(
             show(box, axs).close()
 
     .. hint::
-        examples/pyplot/customAxes1.py, customAxes2.py customAxes3.py, customIndividualAxes.py
+        examples/pyplot/custom_axes1.py, custom_axes2.py custom_axes3.py, customIndividualAxes.py
 
-        .. image:: https://vedo.embl.es/images/pyplot/customAxes3.png
+        .. image:: https://vedo.embl.es/images/pyplot/custom_axes3.png
     """
     # make sure options are correct and user passed snake_case instead of camelCase
     if len(options):

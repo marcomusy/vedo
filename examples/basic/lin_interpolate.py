@@ -1,4 +1,4 @@
-"""linInterpolate():
+"""Interpolate linearly
 [(0, 0, 0), (2, 2, 0)] # at these positions,
 [(0.2,0,0), (0,0,0.2)] # these are the specified vectors
 """
@@ -7,7 +7,7 @@ from vedo import *
 positions  =  [(0, 0, 0), (2, 2, 0)] # at these positions,
 directions =  [(0.2,0,0), (0,0,0.2)] # these are the specified vectors
 
-# now use linInterpolate to interpolate linearly any other point in space
+# now use lin_interpolate to interpolate linearly any other point in space
 # (points far from both positions will get close to the directions average)
 arrs = []
 for x in range(0,10):

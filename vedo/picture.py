@@ -123,8 +123,6 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
 
     Use `Picture.dimensions()` to access the number of pixels in x and y.
 
-    |rotateImage| |rotateImage.py|_
-
     :param int,list channels: only select these specific rgba channels (useful to remove alpha)
     :param bool flip: flip xy axis convention (when input is a numpy array)
     """

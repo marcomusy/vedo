@@ -4493,7 +4493,7 @@ class Points(vtk.vtkFollower, BaseActor):
         null_value : float
             value to be assigned to invalid points
 
-        .. hint:: examples/volumetric/interpolateVolume.py
+        .. hint:: examples/volumetric/interpolate_volume.py
             .. image:: https://vedo.embl.es/images/volumetric/59095175-1ec5a300-8918-11e9-8bc0-fd35c8981e2b.jpg
         """
         if N is not None:
