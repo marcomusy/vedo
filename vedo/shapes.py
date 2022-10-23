@@ -3818,6 +3818,13 @@ def _load_font(font):
 
         if not settings.font_parameters[font]["islocal"]:
             font = "https://vedo.embl.es/fonts/" + font + ".npz"
+            try:
+                fontfile = vedo.io.download(font, verbose=False, force=False)
+                font = os.path.basename(font).split(".")[0]
+            except:
+                vedo.logger.warning(f"font {font} not found")
+                font = settings.default_font
+                fontfile = os.path.join(vedo.fonts_path, font + ".npz")
 
     #####
     try:

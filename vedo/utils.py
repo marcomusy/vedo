@@ -500,14 +500,14 @@ def get_font_path(font):
             fl = font  # assume user is passing a valid file
         else:
             if font.endswith(".ttf"):
-                vedo.printc("Could not set font file", font,
-                       "-> Using default:", vedo.settings.default_font, c='r')
+                vedo.logger.error(f"Could not set font file {font}"
+                                  f"-> using default: {vedo.settings.default_font}")
             else:
                 vedo.settings.default_font = 'Normografo'
-                vedo.printc("Could set font name", font,
-                       "-> Using default: Normografo", c='r')
-                vedo.printc("Check https://vedo.embl.es/fonts for additional fonts", c='r')
-                vedo.printc("Type 'vedo -r fonts' to see available fonts", c='g')
+                vedo.logger.error(f"Could not set font name {font}"
+                                  f" -> using default: Normografo\n"
+                                  f"Check out https://vedo.embl.es/fonts for additional fonts\n"
+                                  f"Type 'vedo -r fonts' to see available fonts")
             fl = get_font_path(vedo.settings.default_font)
     return fl
 
