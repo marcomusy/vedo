@@ -3368,7 +3368,7 @@ class Torus(Mesh):
 
         else:
 
-            rs = vtk.vtkParametricTorus()
+            rs = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkParametricTorus()
             rs.SetRingRadius(r1)
             rs.SetCrossSectionRadius(r2)
             pfs = vtk.vtkParametricFunctionSource()

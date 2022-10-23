@@ -45,7 +45,7 @@
 ## Examples
 
 ### New/Revised
-
+examples/pyplot/fit_curve.py
 
 ### Deleted
 

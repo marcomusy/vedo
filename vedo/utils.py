@@ -1722,14 +1722,14 @@ def camera_from_neuroglancer(state, zoom=300):
     return camera_from_quaternion(pos_nm, orient, pzoom * zoom, ngl_correct=True)
 
 
-def oriented_camera(center=(0,0,0), upVector=(0,1,0), backoffVector=(0,0,1), backoff=1):
+def oriented_camera(center=(0,0,0), up_vector=(0,1,0), backoff_vector=(0,0,1), backoff=1):
     """
     Generate a `vtkCamera` pointed at a specific location,
     oriented with a given up direction, set to a backoff.
     """
-    vup = np.array(upVector)
+    vup = np.array(up_vector)
     vup = vup / np.linalg.norm(vup)
-    pt_backoff = center - backoff * np.array(backoffVector)
+    pt_backoff = center - backoff * np.array(backoff_vector)
     camera = vtk.vtkCamera()
     camera.SetFocalPoint(center[0], center[1], center[2])
     camera.SetViewUp(vup[0], vup[1], vup[2])
