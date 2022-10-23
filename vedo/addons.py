@@ -2452,7 +2452,7 @@ def Axes(
     .. hint::
         examples/pyplot/custom_axes1.py, custom_axes2.py custom_axes3.py, customIndividualAxes.py
 
-        .. image:: https://vedo.embl.es/images/pyplot/custom_axes3.png
+        .. image:: https://vedo.embl.es/images/pyplot/customAxes3.png
     """
     # make sure options are correct and user passed snake_case instead of camelCase
     if len(options):
