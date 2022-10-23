@@ -1,38 +1,31 @@
+"""Fitting a curve to a dataset"""
 import numpy as np
 from scipy.optimize import curve_fit
 from vedo.pyplot import plot
 from vedo import settings
 
 
-def gauss(x, H, A, x0, sigma):
-    return H + A * np.exp(-((x - x0)**2) / (2 * sigma**2))
-
-
-def gauss_fit(x, y):
-    mean = sum(x * y) / sum(y)
-    sigma = np.sqrt(sum(y * (x - mean)**2) / sum(y))
-    ymin, ymax = min(y), max(y)
-    popt, pcov = curve_fit(gauss, x, y, p0=[ymin, ymax-ymin, mean, sigma])
-    return popt
+def func(x, H, A, x0, sigma):
+    return H + A * (x-x0) * np.sin((x-x0)**2 / sigma)
 
 
 # generate simulated data
-xdata = np.linspace(3, 10, 100)
-ydata_true = gauss(xdata, 20, 5, 6, 1)
-ydata = np.random.normal(ydata_true, 1, 100)
+xdata = np.linspace(3, 10, 80)
+true_params = [20, 2, 8, 3]
+ydata_true = func(xdata, *true_params)
+ydata = np.random.normal(ydata_true, 3, 80)
 
-H, A, x0, sigma = gauss_fit(xdata, ydata)
-# print("Offset   :", H)
-# print("Center   :", x0)
-# print("Sigma    :", sigma)
-# print("Amplitude:", A)
+fit_params, pcov = curve_fit(func, xdata, ydata, p0=[19, 3, 8, 2.5])
+ydata_fit = func(xdata, *fit_params)
+print("true params = ", true_params)
+print("fit  params = ", fit_params)
 
 settings.default_font = "ComicMono"
 settings.remember_last_figure_format = True  # when adding with p += ...
 
-p  = plot(xdata, ydata, "o", title="Gaussian Fit to points", label="Data")
-p += plot(xdata, ydata_true, "-g", label="Ground Truth")
-p += plot(xdata, gauss(xdata, *gauss_fit(xdata, ydata)), "-r", label="Fit")
-p.add_legend()
+p  = plot(xdata, ydata, "o", mc="blue2", title=__doc__, label="Data")
+p += plot(xdata, ydata_true, "-g", lw=2, label="Ground Truth")
+p += plot(xdata, ydata_fit,  "-r", lw=4, label="Fit")
+p.add_legend(pos="bottom-right")
 
 p.show(size=(900, 650), zoom="tight")
