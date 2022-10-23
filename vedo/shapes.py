@@ -3788,36 +3788,43 @@ class ParametricShape(Mesh):
 
 @lru_cache(None)
 def _load_font(font):
-    # print('_load_font', font)
-
-    if font not in settings.font_parameters.keys():
-        printc("Unknown font:", font, c="r")
-        printc("Available 3D fonts are:", list(settings.font_parameters.keys()), c="y")
-        printc("Using font Normografo instead.", c="y")
-        font = "Normografo"
-
-    if not settings.font_parameters[font]["islocal"]:
-        font = "https://vedo.embl.es/fonts/" + font + ".npz"
-
-    # some other fonts are downloadable from the vedo website
-    if font.startswith("https"):  # user passed URL link, make it a path
-        try:
-            font = vedo.io.download(font, verbose=False, force=False)
-        except:
-            vedo.logger.warning(f"font {font} not found")
-            font = "Normografo"
+    # print('_load_font()', font)
 
     if font.endswith(".npz"):  # user passed font as a local path
         fontfile = font
         font = os.path.basename(font).split(".")[0]
-    else:  # user passed font by its name
+
+    elif font.startswith("https"):  # user passed URL link, make it a path
+        try:
+            fontfile = vedo.io.download(font, verbose=False, force=False)
+            font = os.path.basename(font).split(".")[0]
+        except:
+            vedo.logger.warning(f"font {font} not found")
+            font = settings.default_font
+            fontfile = os.path.join(vedo.fonts_path, font + ".npz")
+
+    else:  # user passed font by its standard name
         fontfile = os.path.join(vedo.fonts_path, font + ".npz")
 
+        if font not in settings.font_parameters.keys():
+            vedo.logger.warning(
+                f"Unknown font: {font}\n"
+                f"Available 3D fonts are: "
+                f"{list(settings.font_parameters.keys())}\n"
+                f"Using font {font} instead."
+            )
+            font = settings.default_font
+            fontfile = os.path.join(vedo.fonts_path, font + ".npz")
+
+        if not settings.font_parameters[font]["islocal"]:
+            font = "https://vedo.embl.es/fonts/" + font + ".npz"
+
+    #####
     try:
         # printc('loading', font, fontfile)
         font_meshes = np.load(fontfile, allow_pickle=True)["font"][0]
     except:
-        vedo.logger.error(f"font name {font} not found.")
+        vedo.logger.warning(f"font name {font} not found.")
         raise RuntimeError
     return font_meshes
 
@@ -3846,7 +3853,7 @@ class Text3D(Mesh):
 
         use ^ and _ to start up/sub scripting, a space terminates their effect.
 
-    Monospaced fonts are: `Calco, Glasgo, SmartCouric, VictorMono, Justino`.
+    Monospaced fonts are: `Calco, ComicMono, Glasgo, SmartCouric, VictorMono, Justino`.
 
     More fonts at: https://vedo.embl.es/fonts/
 
@@ -3870,7 +3877,7 @@ class Text3D(Mesh):
 
     font : str, int
         some of the available 3D-polygonized fonts are:
-        Bongas, Calco, Comae, Kanopus, Glasgo, Ubuntu,
+        Bongas, Calco, Comae, ComicMono, Kanopus, Glasgo, Ubuntu,
         LogoType, Normografo, Quikhand, SmartCouric, Theemim, VictorMono, VTK,
         Capsmall, Cartoons123, Vega, Justino, Spears, Meson.
 
@@ -4328,6 +4335,7 @@ class Text2D(vtk.vtkActor2D, TextBase):
         - Bongas
         - Calco
         - Comae
+        - ComicMono
         - Courier
         - Glasgo
         - Kanopus

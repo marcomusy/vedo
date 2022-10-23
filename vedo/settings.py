@@ -280,6 +280,14 @@ class Settings:
                 dotsep="~·",
                 islocal=True,
             ),
+            ComicMono=dict(
+                mono=True,
+                fscale=0.8,
+                hspacing=1,
+                lspacing=0.1,
+                dotsep="·",
+                islocal=False,
+            ),
             Glasgo=dict(
                 mono=True,
                 fscale=0.75,
