@@ -864,7 +864,7 @@ def ScalarBar3D(
         vedo.logger.error("in ScalarBar3D(): input must be a vedo object with bounds.")
         return obj
 
-    bns = obj.GetBounds()
+    bns = obj.bounds()
     sx, sy = s
     if sy is None:
         sy = bns[3] - bns[2]
@@ -1646,7 +1646,7 @@ def _addCutterToolMeshWithBox(mesh, invert):
     apd = mesh.polydata()
 
     planes = vtk.vtkPlanes()
-    planes.SetBounds(apd.GetBounds())
+    planes.SetBounds(mesh.bounds())
 
     clipper = vtk.vtkClipPolyData()
     clipper.GenerateClipScalarsOff()
@@ -1735,7 +1735,7 @@ def _addCutterToolMeshWithPlane(mesh, invert):
     planeWidget.SetInteractor(plt.interactor)
     planeWidget.SetCurrentRenderer(plt.renderer)
     planeWidget.SetInputData(mesh.inputdata())
-    planeWidget.PlaceWidget(mesh.GetBounds())
+    planeWidget.PlaceWidget(mesh.bounds())
     planeWidget.AddObserver("InteractionEvent", myCallback)
     planeWidget.GetPlaneProperty().SetColor(get_color("grey"))
     planeWidget.GetPlaneProperty().SetOpacity(0.5)
@@ -2145,7 +2145,7 @@ def RulerAxes(
     if utils.is_sequence(inputobj):
         x0, x1, y0, y1, z0, z1 = inputobj
     else:
-        x0, x1, y0, y1, z0, z1 = inputobj.GetBounds()
+        x0, x1, y0, y1, z0, z1 = inputobj.bounds()
     dx, dy, dz = (y1 - y0) * xpadding, (x1 - x0) * ypadding, (y1 - y0) * zpadding
     d = np.sqrt((y1 - y0) ** 2 + (x1 - x0) ** 2 + (z1 - z0) ** 2)
 

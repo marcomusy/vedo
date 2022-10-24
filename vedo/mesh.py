@@ -886,7 +886,7 @@ class Mesh(Points):
             .. image:: https://user-images.githubusercontent.com/32848391/57081955-0ef1e800-6cf6-11e9-99de-b45220939bc9.png
         """
         cu = vtk.vtkBox()
-        x0, x1, y0, y1, z0, z1 = self.GetBounds()
+        x0, x1, y0, y1, z0, z1 = self.bounds()
         pos = np.array(self.GetPosition())
         x0, y0, z0 = [x0, y0, z0] - pos
         x1, y1, z1 = [x1, y1, z1] - pos
@@ -1404,7 +1404,7 @@ class Mesh(Points):
     def collapse_edges(self, distance, iterations=1):
         """Collapse mesh edges so that are all above distance."""
         self.clean()
-        x0, x1, y0, y1, z0, z1 = self.GetBounds()
+        x0, x1, y0, y1, z0, z1 = self.bounds()
         fs = min(x1 - x0, y1 - y0, z1 - z0) / 10
         d2 = distance * distance
         if distance > fs:
@@ -2252,7 +2252,7 @@ class Mesh(Points):
         pd = self.polydata()
 
         whiteImage = vtk.vtkImageData()
-        bounds = pd.GetBounds()
+        bounds = self.bounds()
 
         whiteImage.SetSpacing(spacing)
 
@@ -2329,7 +2329,7 @@ class Mesh(Points):
                 "in signedDistance(maxradius=...) is ignored. (Only valid for pointclouds)."
             )
         if bounds is None:
-            bounds = self.GetBounds()
+            bounds = self.bounds()
         sx = (bounds[1] - bounds[0]) / dims[0]
         sy = (bounds[3] - bounds[2]) / dims[1]
         sz = (bounds[5] - bounds[4]) / dims[2]

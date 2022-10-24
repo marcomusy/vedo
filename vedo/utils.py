@@ -857,7 +857,7 @@ def pack_spheres(bounds, radius):
     if is_sequence(bounds):
         x0, x1, y0, y1, z0, z1 = bounds
     else:
-        x0, x1, y0, y1, z0, z1 = bounds.GetBounds()
+        x0, x1, y0, y1, z0, z1 = bounds.bounds()
 
     x = np.arange(x0, x1, radius)
     nul = np.zeros_like(x)
@@ -1067,7 +1067,7 @@ def print_info(obj):
 
         pro = actor.GetProperty()
         pos = actor.GetPosition()
-        bnds = actor.GetBounds()
+        bnds = actor.bounds()
         col = pro.GetColor()
         colr = precision(col[0], 3)
         colg = precision(col[1], 3)

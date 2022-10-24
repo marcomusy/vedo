@@ -3529,7 +3529,7 @@ class Points(vtk.vtkFollower, BaseActor):
             ``crop()``, ``cut_with_line()``, ``cut_with_plane()``, ``cut_with_cylinder()``
         """
         if isinstance(bounds, Points):
-            bounds = bounds.GetBounds()
+            bounds = bounds.bounds()
 
         box = vtk.vtkBox()
         if utils.is_sequence(bounds[0]):
@@ -4120,19 +4120,19 @@ class Points(vtk.vtkFollower, BaseActor):
         if not utils.is_sequence(dims):
             dims = (dims, dims, dims)
 
-        polyData = self.polydata()
-
         sdf = vtk.vtkSignedDistance()
 
         if len(bounds) == 6:
             sdf.SetBounds(bounds)
         else:
-            x0, x1, y0, y1, z0, z1 = polyData.GetBounds()
+            x0, x1, y0, y1, z0, z1 = self.bounds()
             sdf.SetBounds(
                 x0-(x1-x0)*padding, x1+(x1-x0)*padding,
                 y0-(y1-y0)*padding, y1+(y1-y0)*padding,
                 z0-(z1-z0)*padding, z1+(z1-z0)*padding
             )
+
+        polyData = self.polydata()
 
         if polyData.GetPointData().GetNormals():
             sdf.SetInputData(polyData)
@@ -4304,8 +4304,7 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         pdf = vtk.vtkPointDensityFilter()
 
-        poly = self.polydata()
-        b = list(poly.GetBounds())
+        b = list(self.bounds())
         diag = self.diagonal_size()
 
         if not utils.is_sequence(dims):
@@ -4316,7 +4315,7 @@ class Points(vtk.vtkFollower, BaseActor):
             dims = [dims[0], dims[1], 2]
             b[5] = b[4] + diag / 1000
 
-        pdf.SetInputData(poly)
+        pdf.SetInputData(self.polydata())
         pdf.SetSampleDimensions(dims)
         pdf.SetDensityEstimateToFixedRadius()
         pdf.SetDensityFormToNumberOfPoints()
@@ -4436,7 +4435,7 @@ class Points(vtk.vtkFollower, BaseActor):
             .. image:: https://vedo.embl.es/images/basic/distance2mesh.png
         """
         if bounds is None:
-            bounds = self.GetBounds()
+            bounds = self.bounds()
         if maxradius is None:
             maxradius = self.diagonal_size() / 2
         dist = vtk.vtkSignedDistance()
@@ -4510,7 +4509,7 @@ class Points(vtk.vtkFollower, BaseActor):
         probe = vtk.vtkImageData()
         probe.SetDimensions(dims)
         if bounds is None:
-            bounds = poly.GetBounds()
+            bounds = self.bounds()
         probe.SetOrigin(bounds[0], bounds[2], bounds[4])
         probe.SetSpacing(
             (bounds[1] - bounds[0]) / dims[0],

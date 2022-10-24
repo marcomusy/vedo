@@ -640,7 +640,7 @@ class Base3DProp:
 
         .. hint:: examples/pyplot/latex.py
         """
-        b = self.GetBounds()
+        b = self.bounds()
         if not utils.is_sequence(padding):
             padding = [padding, padding, padding]
         length, width, height = b[1] - b[0], b[3] - b[2], b[5] - b[4]
@@ -676,24 +676,33 @@ class Base3DProp:
         Get the object bounds.
         Returns a list in format [xmin,xmax, ymin,ymax, zmin,zmax].
         """
-        return self.GetBounds()
+        try:
+            pts = self.points()
+            xmin, ymin, zmin = np.min(pts, axis=0)
+            xmax, ymax, zmax = np.max(pts, axis=0)
+            return [xmin,xmax, ymin,ymax, zmin,zmax]
+        except AttributeError:
+            return self.GetBounds()
 
     def xbounds(self, i=None):
         """Get the bounds [xmin,xmax]. Can specify upper or lower with i (0,1)."""
-        b = self.GetBounds()
-        if i is not None: return b[i]
+        b = self.bounds()
+        if i is not None:
+            return b[i]
         return (b[0], b[1])
 
     def ybounds(self, i=None):
         """Get the bounds [ymin,ymax]. Can specify upper or lower with i (0,1)."""
-        b = self.GetBounds()
-        if i == 0: return b[2]
-        if i == 1: return b[3]
+        b = self.bounds()
+        if i == 0:
+            return b[2]
+        if i == 1:
+            return b[3]
         return (b[2], b[3])
 
     def zbounds(self, i=None):
         """Get the bounds [zmin,zmax]. Can specify upper or lower with i (0,1)."""
-        b = self.GetBounds()
+        b = self.bounds()
         if i == 0: return b[4]
         if i == 1: return b[5]
         return (b[4], b[5])
@@ -705,7 +714,7 @@ class Base3DProp:
 
     def diagonal_size(self):
         """Get the length of the diagonal of mesh bounding box."""
-        b = self.GetBounds()
+        b = self.bounds()
         return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
         # return self.GetLength() # ???different???
 
@@ -1835,7 +1844,7 @@ class BaseGrid(BaseActor):
         bc = vtk.vtkBoxClipDataSet()
         bc.SetInputData(self._data)
         if isinstance(box, vtk.vtkProp):
-            box = box.GetBounds()
+            box = box.bounds()
         bc.SetBoxClip(*box)
         bc.Update()
         cout = bc.GetOutput()

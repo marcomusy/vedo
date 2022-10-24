@@ -1407,7 +1407,7 @@ def _interpolate2vol(mesh, kernel=None, radius=None, bounds=None, null_value=Non
         dims = (25, 25, 25)
 
     if bounds is None:
-        bounds = mesh.GetBounds()
+        bounds = mesh.bounds()
     elif isinstance(bounds, vedo.base.Base3DProp):
         bounds = bounds.bounds()
 
@@ -3598,7 +3598,7 @@ class Brace(Mesh):
         if flip:
             angler += 180
 
-        _, x1, y0, y1, _, _ = br.GetBounds()
+        _, x1, y0, y1, _, _ = br.bounds()
         if comment:
             just = "center-top"
             if angle is None:

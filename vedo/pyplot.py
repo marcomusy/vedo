@@ -356,7 +356,7 @@ class Figure(Assembly):
 
             if cut:
                 try:
-                    bx0, bx1, by0, by1, _, _ = a.GetBounds()
+                    bx0, bx1, by0, by1, _, _ = a.bounds()
                     if self.y0lim > by0:
                         a.cut_with_plane([0, self.y0lim, 0], [ 0, 1, 0])
                     if self.y1lim < by1:
