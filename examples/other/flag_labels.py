@@ -10,7 +10,7 @@ vig = b.vignette('A vignette descriptor\nfor a rabbit', font='Quikhand')
 vig.scale(0.5).color('v').use_bounds() # tell camera to take vig bounds into account
 
 # add a pop up flag when hovering mouse
-c.flag('my cube\nflag-style label', font="LionelOfParis") # picks filename by default
+c.flag('my cube\nflag-style label', font="Calco") # picks filename by default
 #c.flag(False) # to later disable it
 
 c.caption('2d caption for a cube\nwith face indices', point=[0.044, 0.03, -0.04],

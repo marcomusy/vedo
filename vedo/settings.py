@@ -304,20 +304,20 @@ class Settings:
                 dotsep="~·",
                 islocal=True,
             ),
-            LionelOfParis=dict(
-                mono=False,
-                fscale=0.875,
-                hspacing=0.7,
-                lspacing=0.3,
-                dotsep="·",
-                islocal=False,
-            ),
             LogoType=dict(
                 mono=False,
                 fscale=0.75,
                 hspacing=1,
                 lspacing=0.2,
                 dotsep="·~~",
+                islocal=False,
+            ),
+            STFANGSO=dict(
+                mono=False,
+                fscale=0.75,
+                hspacing=1,
+                lspacing=0.2,
+                dotsep="~·",
                 islocal=False,
             ),
             Quikhand=dict(
@@ -377,14 +377,6 @@ class Settings:
                 islocal=False,
             ),
             Justino3=dict(
-                mono=True,
-                fscale=0.725,
-                hspacing=1,
-                lspacing=0.1,
-                dotsep="·",
-                islocal=False,
-            ),
-            Justino4=dict(
                 mono=True,
                 fscale=0.725,
                 hspacing=1,
