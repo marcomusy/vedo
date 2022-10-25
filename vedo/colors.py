@@ -1161,7 +1161,11 @@ def printc(
             sys.stdout.write(out + end)
 
     except:  # ------------------------------------------------------------- fallback
-        print(*strings, end=end)
+        try:
+            print(*strings, end=end)
+        except UnicodeEncodeError as e:
+            print(e, end=end)
+            pass
 
     if flush:
         sys.stdout.flush()

@@ -3840,11 +3840,11 @@ def _load_font(font):
 def _get_font_letter(font, letter):
     # print("_get_font_letter", font, letter)
     font_meshes = _load_font(font)
-
-    if letter in font_meshes.keys():
+    try:
         pts, faces = font_meshes[letter]
         return utils.buildPolyData(pts, faces)
-    return None
+    except KeyError:
+        return None
 
 
 class Text3D(Mesh):
