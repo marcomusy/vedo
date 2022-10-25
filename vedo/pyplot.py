@@ -492,7 +492,7 @@ class Figure(Assembly):
                 ty0, ty1 = tx.ybounds()
                 oby0, oby1 = mk.ybounds()
                 mk.shift(-cm)
-                mk.origin(cm)
+                mk.SetOrigin(cm)
                 mk.scale((ty1 - ty0) / (oby1 - oby0))
                 mk.scale([1.1, 1.1, 0.01])
             elif mk == "-":

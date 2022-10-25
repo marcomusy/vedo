@@ -1937,7 +1937,7 @@ class Points(vtk.vtkFollower, BaseActor):
             box = vedo.shapes.Line(
                 [(x0,y0,z0), (x1,y0,z0), (x1,y1,z0), (x0,y1,z0), (x0,y0,z0)]
             )
-        box.origin([(x0+x1) / 2, (y0+y1) / 2, (z0+z1) / 2])
+        box.SetOrigin((x0+x1) / 2, (y0+y1) / 2, (z0+z1) / 2)
         box.scale([1.1,1.2,1])
         acts.append(box)
 

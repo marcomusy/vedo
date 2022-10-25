@@ -227,7 +227,7 @@ class Base3DProp:
         Has no effect on position.
         """
         if x is None:
-            return np.array(self.GetOrigin())  # + self.GetPosition()
+            return np.array(self.GetOrigin()) + self.GetPosition()
 
         if z is None and y is None:  # assume x is of the form (x,y,z)
             if len(x) == 3:
@@ -237,7 +237,7 @@ class Base3DProp:
                 z = 0
         elif z is None:  # assume x,y is of the form x, y
             z = 0
-        self.SetOrigin([x, y, z])  # - np.array(self.GetPosition()))
+        self.SetOrigin([x, y, z] - np.array(self.GetPosition()))
         return self
 
     def pos(self, x=None, y=None, z=None):
@@ -407,7 +407,7 @@ class Base3DProp:
         """
         return self._rotatexyz("z", angle, rad, around)
 
-    def orientation(self, newaxis=None, rotation=0, rad=False):
+    def orientation(self, newaxis=None, rotation=0, concatenate=False, xyplane=False, rad=False):
         """
         Set/Get object orientation.
 
@@ -415,6 +415,13 @@ class Base3DProp:
         ----------
         rotation : float
             rotate object around newaxis.
+
+        concatenate : bool
+            concatenate the orietation operation with the previous existing transform (if any)
+
+        xyplane : bool
+            make an extra rotation to keep the object aligned to the xy-plane
+
         rad : bool
             set to True if angle is expressed in radians.
 
@@ -422,44 +429,71 @@ class Base3DProp:
             .. code-block:: python
 
                 from vedo import *
+                center = np.array([581/2,723/2,0])
                 objs = []
-                for i in range(-5, 5):
-                    p = [i/3, i/2, i]
-                    v = vector(i/10, i/20, 1)
-                    c = Circle(r=i/5+1.2).pos(p).orientation(v).lw(3)
-                    objs += [c, Arrow(p,p+v)]
-                show(objs, axes=1).close()
+                for a in np.linspace(0, 6.28, 7):
+                    v = vector(cos(a), sin(a), 0)*1000
+                    pic = Picture(dataurl+"images/dog.jpg").rotate_z(10)
+                    pic.orientation(v, xyplane=True)
+                    pic.origin(center)
+                    pic.pos(v - center)
+                    objs += [pic, Arrow(v, v+v)]
+                show(objs, Point(), axes=1).close()
 
         .. hint:: examples/simulations/gyroscope2.py
             .. image:: https://vedo.embl.es/images/simulations/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif
         """
-        if rad:
-            rotation *= 180.0 / np.pi
 
         if self.top is None or self.base is None:
             initaxis = (0, 0, 1)
         else:
             initaxis = utils.versor(self.top - self.base)
-        if newaxis is None:
-            return initaxis
 
         newaxis = utils.versor(newaxis)
-        pos = np.array(self.GetPosition())
+        p = np.array(self.GetPosition())
         crossvec = np.cross(initaxis, newaxis)
-        angle = np.arccos(np.dot(initaxis, newaxis))
+
+        angleth = np.arccos(np.dot(initaxis, newaxis))
+
         T = vtk.vtkTransform()
+        if concatenate:
+            try:
+                M = self.GetMatrix()
+                T.SetMatrix(M)
+            except:
+                pass
         T.PostMultiply()
-        T.Translate(-pos)
+        T.Translate(-p)
         if rotation:
+            if rad:
+                rotation *= 180.0 / np.pi
             T.RotateWXYZ(rotation, initaxis)
-        T.RotateWXYZ(np.rad2deg(angle), crossvec)
-        T.Translate(pos)
-        self.SetUserTransform(T)
-        self.transform = T
+        if xyplane:
+            angleph = np.arctan2(newaxis[1], newaxis[0])
+            T.RotateWXYZ(np.rad2deg(angleph + angleth), initaxis) # compensation
+        T.RotateWXYZ(np.rad2deg(angleth), crossvec)
+        T.Translate(p)
+
+        self.SetOrientation(T.GetOrientation())
 
         self.point_locator = None
         self.cell_locator = None
         return self
+
+        # newaxis = utils.versor(newaxis)
+        # pos = np.array(self.GetPosition())
+        # crossvec = np.cross(initaxis, newaxis)
+        # angle = np.arccos(np.dot(initaxis, newaxis))
+        # T = vtk.vtkTransform()
+        # T.PostMultiply()
+        # T.Translate(-pos)
+        # if rotation:
+        #     T.RotateWXYZ(rotation, initaxis)
+        # T.RotateWXYZ(np.rad2deg(angle), crossvec)
+        # T.Translate(pos)
+        # self.SetUserTransform(T)
+        # self.transform = T
+
 
     def scale(self, s=None, reset=False):
         """
