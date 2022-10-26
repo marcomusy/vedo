@@ -2415,16 +2415,13 @@ def histogram(*args, **kwargs):
     lw : int
         line width of the bin edges
 
-    scalarbar : bool
-        add a scalarbar to plot
-
     .. hint:: examples/pyplot/histo_spheric.py
         .. image:: https://vedo.embl.es/images/pyplot/histo_spheric.png
     """
     mode = kwargs.pop("mode", "")
     if len(args) == 2:  # x, y
         if "spher" in mode:
-            return _histogramSpheric(args[0], args[1], **kwargs)
+            return _histogram_spheric(args[0], args[1], **kwargs)
         if "hex" in mode:
             return _histogram_hex_bin(args[0], args[1], **kwargs)
         return Histogram2D(args[0], args[1], **kwargs)
@@ -2443,7 +2440,7 @@ def histogram(*args, **kwargs):
             data = np.array(args[0])
 
         if "spher" in mode:
-            return _histogramSpheric(args[0][:, 0], args[0][:, 1], **kwargs)
+            return _histogram_spheric(args[0][:, 0], args[0][:, 1], **kwargs)
 
         if len(data.shape) == 1:
             if "polar" in mode:
@@ -2579,7 +2576,7 @@ def fit(
     fitl.reducedChi2 = np.sum(np.power((p1d(x) - y) * w, 2)) / ndof
     fitl.ndof = ndof
     fitl.dataSigma = sigma  # worked out from data using chi2=1 hypo
-    fitl.name = "LinePolynomialFit"
+    fitl.name = "LinearPolynomialFit"
 
     if not niter:
         fitl.coefficientErrors = np.sqrt(np.diag(V))
@@ -2752,7 +2749,7 @@ def _plot_fxy(
         acts.append(axs)
 
     assem = Assembly(acts)
-    assem.name = "plotFxy"
+    assem.name = "PlotFxy"
     return assem
 
 
@@ -2802,7 +2799,7 @@ def _plot_fz(
         axs = addons.Axes(mesh, ztitle="Real part")
         acts.append(axs)
     asse = Assembly(acts)
-    asse.name = "plotFz"
+    asse.name = "PlotFz"
     if isinstance(z, str):
         asse.name += " " + z
     return asse
@@ -2937,7 +2934,7 @@ def _plot_polar(
     rh = Assembly([lines, ptsact, filling] + [mrg])
     rh.base = np.array([0, 0, 0], dtype=float)
     rh.top = np.array([0, 0, 1], dtype=float)
-    rh.name = "plotPolar"
+    rh.name = "PlotPolar"
     return rh
 
 
@@ -2993,7 +2990,7 @@ def _plot_spheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha
 
     sg.pickable(False)
     asse = Assembly([ssurf, sg] + nanpts + [sb3d])
-    asse.name = "plotSpheric"
+    asse.name = "PlotSpheric"
     return asse
 
 
@@ -3086,7 +3083,7 @@ def _histogram_hex_bin(
     asse.SetPosition(xmin, ymin, 0)
     asse.base = np.array([0, 0, 0], dtype=float)
     asse.top = np.array([0, 0, 1], dtype=float)
-    asse.name = "histogramHexBin"
+    asse.name = "HistogramHexBin"
     return asse
 
 
@@ -3256,30 +3253,17 @@ def _histogram_polar(
     asse = Assembly(acts)
     asse.frequencies = histodata
     asse.bins = edges
-    asse.name = "histogramPolar"
+    asse.name = "HistogramPolar"
     return asse
 
+def _histogram_spheric(thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", gap=0.1):
 
-def _histogramSpheric(
-        thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", scalarbar=True,
-    ):
     x, y, z = utils.spher2cart(np.ones_like(thetavalues) * 1.1, thetavalues, phivalues)
     ptsvals = np.c_[x, y, z]
 
-    sg = shapes.Sphere(res=res, quads=True).shrink(0.999).compute_normals().lw(0.1)
+    sg = shapes.Sphere(res=res, quads=True).shrink(1-gap)
     sgfaces = sg.faces()
     sgpts = sg.points()
-    #    sgpts = np.vstack((sgpts, [0,0,0]))
-    #    idx = sgpts.shape[0]-1
-    #    newfaces = []
-    #    for fc in sgfaces:
-    #        f1,f2,f3,f4 = fc
-    #        newfaces.append([idx,f1,f2, idx])
-    #        newfaces.append([idx,f2,f3, idx])
-    #        newfaces.append([idx,f3,f4, idx])
-    #        newfaces.append([idx,f4,f1, idx])
-    newsg = sg  # Mesh((sgpts, sgfaces)).compute_normals().phong()
-    newsgpts = newsg.points()
 
     cntrs = sg.cellCenters()
     counts = np.zeros(len(cntrs))
@@ -3296,14 +3280,31 @@ def _histogramSpheric(
         pts = sgpts[fs]
         _, t1, p1 = utils.cart2spher(pts[:, 0], pts[:, 1], pts[:, 2])
         x, y, z = utils.spher2cart(1 + cn, t1, p1)
-        newsgpts[fs] = np.c_[x, y, z]
+        sgpts[fs] = np.c_[x, y, z]
 
-    newsg.points(newsgpts)
-    newsg.cmap(cmap, acounts, on="cells")
+    sg.points(sgpts)
+    sg.cmap(cmap, acounts, on="cells")
+    vals = sg.celldata["CellScalars"]
 
-    if scalarbar:
-        newsg.add_scalarbar()
-    newsg.name = "histogramSpheric"
+    faces = sg.faces()
+    points = sg.points().tolist() + [[0.,0.,0.]]
+    lp = len(points)-1
+    newfaces = []
+    newvals = []
+    for i, f in enumerate(faces):
+        p0,p1,p2,p3 = f
+        newfaces.append(f)
+        newfaces.append([p0,lp,p1])
+        newfaces.append([p1,lp,p2])
+        newfaces.append([p2,lp,p3])
+        newfaces.append([p3,lp,p0])
+        for j in range(5):
+            newvals.append(vals[i])
+
+    newsg = Mesh([points, newfaces]).cmap(cmap,newvals,on='cells')
+    newsg.compute_normals().lw(0.1).flat()
+
+    newsg.name = "HistogramSpheric"
     return newsg
 
 
@@ -3409,7 +3410,7 @@ def donut(
         show_angles=0,
         show_errors=0,
     )
-    dn.name = "donut"
+    dn.name = "Donut"
     return dn
 
 
@@ -3519,7 +3520,7 @@ def violin(
         rs.append(cl)
 
     asse = Assembly(rs)
-    asse.name = "violin"
+    asse.name = "Violin"
     return asse
 
 
@@ -3790,7 +3791,7 @@ def matrix(
     labs = None
     if scale != 0:
         labs = gr.labels(
-            cells=True,
+            on="cells",
             scale=scale / max(m, n),
             precision=precision,
             font=font,

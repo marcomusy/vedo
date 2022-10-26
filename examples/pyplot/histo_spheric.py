@@ -2,10 +2,11 @@
 is not uniform on a sphere"""
 import numpy as np
 from vedo.pyplot import histogram
+from vedo import show
 
 phi = np.random.rand(1000)*6.28
 the = np.random.rand(1000)*3.14
 
-h = histogram(the, phi, mode='spheric')
+h = histogram(the, phi, mode='spheric').add_scalarbar()
 
-h.show(axes=12, viewup='z').close()
+show(h, __doc__, axes=12, viewup='z').close()
