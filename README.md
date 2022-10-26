@@ -142,7 +142,7 @@ vedo https://vedo.embl.es/examples/data/embryo.tif
 
 
 <details>
-<summary>Volumetric files (slc, tiff, DICOM...) can be visualized in different modes <i><b>[click to expand]</b></i></summary>
+<summary>volumetric files (slc, tiff, DICOM...) can be visualized in different modes </summary>
 
 
 |Volume 3D slicing<br>`vedo --slicer embryo.slc`| Ray-casting<br>`vedo -g`| 2D slicing<br>`vedo --slicer2d`| Colorize voxels<br>`vedo --lego`|

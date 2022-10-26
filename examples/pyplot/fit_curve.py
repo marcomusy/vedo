@@ -5,8 +5,8 @@ from vedo.pyplot import plot
 from vedo import settings
 
 
-def func(x, H, A, x0, sigma):
-    return H + A * (x-x0) * np.sin((x-x0)**2 / sigma)
+def func(x, h, a, x0, k):
+    return h + a * (x-x0) * np.sin((x-x0)**2 / k)
 
 
 # generate simulated data

@@ -2450,7 +2450,7 @@ def Axes(
             show(box, axs).close()
 
     .. hint::
-        examples/pyplot/custom_axes1.py, custom_axes2.py custom_axes3.py, customIndividualAxes.py
+        examples/pyplot/custom_axes1.py, custom_axes2.py custom_axes3.py, custom_axes4.py
 
         .. image:: https://vedo.embl.es/images/pyplot/customAxes3.png
     """

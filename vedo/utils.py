@@ -612,8 +612,8 @@ def intersection_ray_triangle(P0, P1, V0, V1, V2):
     u = V1 - V0
     v = V2 - V0
     n = np.cross(u, v)
-    if not np.abs(v).sum():  # triangle is degenerate
-        return None  # do not deal with this case
+    # if not np.abs(v).sum():  # triangle is degenerate
+    #     return None  # do not deal with this case
 
     rd = P1 - P0  # ray direction vector
     w0 = P0 - V0

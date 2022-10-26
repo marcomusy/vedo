@@ -36,7 +36,7 @@ class Lens(vedo.Mesh, OpticalElement):
         OpticalElement.__init__(self)
         self.name = actor.name
         self.type = "lens"
-        self.computeNormals(cells=True, points=False)
+        self.compute_normals(cells=True, points=False)
         self.lighting('off')
         self.normals = self.celldata["Normals"]
         self.ref_index = ref_index
@@ -61,7 +61,7 @@ class Mirror(vedo.Mesh, OpticalElement):
     def __init__(self, actor):
         vedo.Mesh.__init__(self, actor.polydata(), "blue8", 0.5)
         OpticalElement.__init__(self)
-        self.computeNormals(cells=True, points=True)
+        self.compute_normals(cells=True, points=True)
         self.name = actor.name
         self.type = "mirror"
         self.normals = self.celldata["Normals"]
@@ -71,8 +71,9 @@ class Screen(vedo.Grid, OpticalElement):
     """A simple read out screen plane"""
     def __init__(self, sizex, sizey):
         vedo.Grid.__init__(self, res=[1,1], s=[sizex,sizey])
+        # self.triangulate()
         OpticalElement.__init__(self)
-        self.computeNormals(cells=True, points=False)
+        self.compute_normals(cells=True, points=False)
         self.name = "Screen"
         self.type = "screen"
         self.normals = self.celldata["Normals"]
@@ -83,7 +84,7 @@ class Absorber(vedo.Grid, OpticalElement):
     def __init__(self, sizex, sizey):
         vedo.Grid.__init__(self, res=[100,100], s=[sizex,sizey])
         OpticalElement.__init__(self)
-        self.computeNormals()
+        self.compute_normals()
         self.name = "Absorber"
         self.type = "screen"
         self.normals = self.celldata["Normals"]
@@ -94,7 +95,7 @@ class Detector(vedo.Mesh, OpticalElement):
     def __init__(self, actor):
         vedo.Mesh.__init__(self, actor.polydata(), "k5", 0.5)
         OpticalElement.__init__(self)
-        self.computeNormals()
+        self.compute_normals()
         self.name = "Detector"
         self.type = "screen"
         self.normals = self.celldata["Normals"]
@@ -181,6 +182,18 @@ class Ray:
         b = (r12*ct - ci) / (r12*ct + ci) # Rp
         return (a*a + b*b)/2
 
+    # def intersect(self, element, p0,p1): # not working (but no need to)
+    #     points = element.points()
+    #     faces = element.faces()
+    #     cids = []
+    #     for i,f in enumerate(faces):
+    #         v0,v1,v2 = points[f]
+    #         res = vedo.utils.intersection_ray_triangle(p0,p1, v0,v1,v2)
+    #         if res is not False:
+    #             if res is not None:
+    #                 cids.append([res, i])
+    #     return cids
+
     def trace(self, elements):
         """Trace the path of a single photon through the input list of lenses, mirrors etc."""
 
@@ -190,15 +203,22 @@ class Ray:
 
             for _ in range(self.maxiterations):
 
-                hit_cids = element.intersect_with_line(self.p, self.p + self.v * self.dmax,
-                                                     return_ids=True, tol=self.OBBTreeTolerance)
+                hit_cids = element.intersect_with_line( # faster
+                    self.p,
+                    self.p + self.v * self.dmax,
+                    return_ids=True,
+                    tol=self.OBBTreeTolerance,
+                )
+                # hit_cids = self.intersect(element, self.p, self.p + self.v * self.dmax)
+
                 if len(hit_cids) == 0:
                     break               # no hits
                 hit, cid = hit_cids[0]  # grab the first hit, point and cell ID of the mesh
                 d = np.linalg.norm(hit - self.p)
                 if d < self.tolerance:
                     # it's picking itself.. get the second hit if it exists
-                    if len(hit_cids) < 2: break
+                    if len(hit_cids) < 2:
+                        break
                     hit, cid = hit_cids[1]
                     d = np.linalg.norm(hit - self.p)
 

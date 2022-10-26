@@ -130,7 +130,7 @@ class Assembly(vtk.vtkAssembly, vedo.base.Base3DProp):
         Input can be a string, in this case returns the first object
         whose name contains the given string.
 
-        .. hint:: examples/pyplot/customIndividualAxes.py
+        .. hint:: examples/pyplot/custom_axes4.py
         """
         if i is None:
             return self.actors
