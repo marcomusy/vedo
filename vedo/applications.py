@@ -355,9 +355,8 @@ class Slicer2DPlotter(Plotter):
             interactive=False,
         )
 
-        vsl = vedo.volume.VolumeSlice(
-            volume
-        )  # reuse the same underlying data as in vol
+        # reuse the same underlying data as in vol
+        vsl = vedo.volume.VolumeSlice(volume)
 
         # no argument will grab the existing cmap in vol (or use build_lut())
         vsl.colorize()
@@ -395,8 +394,8 @@ class Slicer2DPlotter(Plotter):
             ax = vedo.addons.RulerAxes(vsl, xtitle="x - ", ytitle="y - ", ztitle="z - ")
 
         box = vsl.box().alpha(0.1)
-        self.show(vsl, box, ax, usage, hist, at=0, mode="image", zoom=zoom)
-        self.show(volume, at=1, interactive=interactive)
+        self.at(0).show(vsl, box, ax, usage, hist, mode="image", zoom=zoom)
+        self.at(1).show(volume, interactive=interactive)
 
 
 ########################################################################
@@ -418,7 +417,7 @@ class RayCastPlotter(Plotter):
         self.alphaslider1 = 0.66
         self.alphaslider2 = 1
 
-        volumeProperty = volume.GetProperty()
+        self.property = volume.GetProperty()
         img = volume.imagedata()
 
         if volume.dimensions()[2] < 3:
@@ -473,7 +472,7 @@ class RayCastPlotter(Plotter):
 
         ############################## alpha sliders
         # Create transfer mapping scalar value to opacity
-        opacityTransferFunction = volumeProperty.GetScalarOpacity()
+        opacityTransferFunction = self.property.GetScalarOpacity()
 
         def setOTF():
             opacityTransferFunction.RemoveAllPoints()
@@ -644,7 +643,7 @@ class IsosurfaceBrowser(Plotter):
                 value_name = precision(value, 2)
                 if lego:
                     mesh = volume.legosurface(vmin=value)
-                    if mesh.NCells():
+                    if mesh.ncells:
                         mesh.cmap(cmap, vmin=scrange[0], vmax=scrange[1], on="cells")
                 else:
                     mesh = volume.isosurface(threshold=value).color(c).alpha(alpha)
@@ -653,7 +652,7 @@ class IsosurfaceBrowser(Plotter):
                     pb.print("isosurfacing volume..")
 
         ############################## threshold slider callback
-        def sliderThres(widget, event):
+        def slider_thres(widget, event):
 
             prevact = self.actors[0]
             if isinstance(widget, float):
@@ -677,7 +676,7 @@ class IsosurfaceBrowser(Plotter):
                 # print('generating', value)
                 if lego:
                     mesh = volume.legosurface(vmin=value)
-                    if mesh.NCells():
+                    if mesh.ncells:
                         mesh.cmap(cmap, vmin=scrange[0], vmax=scrange[1], on="cells")
                 else:
                     mesh = volume.isosurface(threshold=value).color(c).alpha(alpha)
@@ -693,12 +692,12 @@ class IsosurfaceBrowser(Plotter):
             threshold = delta / 3.0 + scrange[0]
 
         self.actors = [None]
-        sliderThres(threshold, "")  # init call
+        slider_thres(threshold, "")  # init call
         if lego:
             self.actors[0].add_scalarbar(pos=(0.8, 0.12))
 
         self.add_slider(
-            sliderThres,
+            slider_thres,
             scrange[0] + 0.02 * delta,
             scrange[1] - 0.02 * delta,
             value=threshold,
@@ -768,7 +767,7 @@ class Browser(Plotter):
                 else:
                     a.off()
             if resetcam:
-                self.resetCamera()
+                self.reset_camera()
             tx = str(k)
             if ak.filename:
                 tx = ak.filename.split("/")[-1]
@@ -1081,7 +1080,7 @@ class SplinePlotter(Plotter):
         self.instructions = Text2D(t, pos='bottom-left', c='white', bg='green', font='Calco')
 
         self.callid1 = self.add_callback('KeyPress', self._key_press)
-        self.callid2 = self.add_callback('LeftButtonPress', self._onLeftClick)
+        self.callid2 = self.add_callback('LeftButtonPress', self._on_left_click)
         self.callid3 = self.add_callback('RightButtonPress', self._on_right_click)
 
     def points(self, newpts=None):
@@ -1092,7 +1091,7 @@ class SplinePlotter(Plotter):
             return self
         return np.array(self.cpoints)
 
-    def _onLeftClick(self, evt):
+    def _on_left_click(self, evt):
         if not evt.actor: return
         p = evt.picked3d
         self.cpoints.append(p)

@@ -185,7 +185,7 @@ class Glyph(Mesh):
     def __init__(
             self,
             mesh,
-            glyphObj,
+            glyph,
             orientation_array=None,
             scale_by_scalar=False,
             scale_by_vector_size=False,
@@ -217,15 +217,15 @@ class Glyph(Mesh):
             poly = mesh.polydata()
 
         if tol:
-            cleanPolyData = vtk.vtkCleanPolyData()
-            cleanPolyData.SetInputData(poly)
-            cleanPolyData.SetTolerance(tol)
-            cleanPolyData.Update()
-            poly = cleanPolyData.GetOutput()
+            cpd = vtk.vtkCleanPolyData()
+            cpd.SetInputData(poly)
+            cpd.SetTolerance(tol)
+            cpd.Update()
+            poly = cpd.GetOutput()
 
-        if isinstance(glyphObj, Points):
-            lighting = glyphObj.property.GetLighting()
-            glyphObj = glyphObj.polydata()
+        if isinstance(glyph, Points):
+            lighting = glyph.property.GetLighting()
+            glyph = glyph.polydata()
 
         cmap = ""
         if c in cmaps_names:
@@ -244,7 +244,7 @@ class Glyph(Mesh):
 
         gly = vtk.vtkGlyph3D()
         gly.SetInputData(poly)
-        gly.SetSourceData(glyphObj)
+        gly.SetSourceData(glyph)
 
         if scale_by_scalar:
             gly.SetScaleModeToScaleByScalar()
@@ -454,15 +454,15 @@ class Line(Mesh):
         self.variances = []
 
         self.coefficients = []  # populated by pyplot.fit()
-        self.covarianceMatrix = []
+        self.covariance_matrix = []
         self.coefficients = []
-        self.coefficientErrors = []
-        self.MonteCarloCoefficients = []
-        self.reducedChi2 = -1
+        self.coefficient_errors = []
+        self.monte_carlo_coefficients = []
+        self.reduced_chi2 = -1
         self.ndof = 0
-        self.dataSigma = 0
-        self.errorLines = []
-        self.errorBand = None
+        self.data_sigma = 0
+        self.error_lines = []
+        self.error_band = None
         self.res = res
 
         if isinstance(p1, Points):
@@ -507,16 +507,16 @@ class Line(Mesh):
 
         else:  # or just 2 points to link
 
-            lineSource = vtk.vtkLineSource()
+            line_source = vtk.vtkLineSource()
             if len(p0) == 2:  # make it 3d
                 p0 = [p0[0], p0[1], 0]
             if len(p1) == 2:
                 p1 = [p1[0], p1[1], 0]
-            lineSource.SetPoint1(p0)
-            lineSource.SetPoint2(p1)
-            lineSource.SetResolution(res - 1)
-            lineSource.Update()
-            poly = lineSource.GetOutput()
+            line_source.SetPoint1(p0)
+            line_source.SetPoint2(p1)
+            line_source.SetResolution(res - 1)
+            line_source.Update()
+            poly = line_source.GetOutput()
             top = np.array(p1, dtype=float)
             base = np.array(p0, dtype=float)
 
@@ -710,10 +710,10 @@ class Line(Mesh):
         surface = vtk.vtkPolyData()
 
         res += 1
-        numberOfPoints = rows * res
-        numberOfPolys = (rows - 1) * (res - 1)
+        npts = rows * res
+        npolys = (rows - 1) * (res - 1)
         points = vtk.vtkPoints()
-        points.Allocate(numberOfPoints)
+        points.Allocate(npts)
 
         cnt = 0
         x = [0.0, 0.0, 0.0]
@@ -729,7 +729,7 @@ class Line(Mesh):
 
         # Generate the quads
         polys = vtk.vtkCellArray()
-        polys.Allocate(numberOfPolys * 4)
+        polys.Allocate(npolys * 4)
         pts = [0, 0, 0, 0]
         for row in range(rows - 1):
             for col in range(res - 1):
@@ -847,11 +847,11 @@ class DashedLine(Mesh):
             if not i % 2:
                 continue
             q0 = qs[i - 1]
-            lineSource = vtk.vtkLineSource()
-            lineSource.SetPoint1(q0)
-            lineSource.SetPoint2(q1)
-            lineSource.Update()
-            polylns.AddInputData(lineSource.GetOutput())
+            line_source = vtk.vtkLineSource()
+            line_source.SetPoint1(q0)
+            line_source.SetPoint2(q1)
+            line_source.Update()
+            polylns.AddInputData(line_source.GetOutput())
         polylns.Update()
 
         Mesh.__init__(self, polylns.GetOutput(), c, alpha)
@@ -1019,12 +1019,12 @@ class Lines(Mesh):
             #checking len() is necessary because numpy array may not be rectangular
 
             for twopts in start_pts:
-                lineSource = vtk.vtkLineSource()
-                lineSource.SetResolution(res)
+                line_source = vtk.vtkLineSource()
+                line_source.SetResolution(res)
                 if len(twopts[0]) == 2:
-                    lineSource.SetPoint1(twopts[0][0], twopts[0][1], 0.0)
+                    line_source.SetPoint1(twopts[0][0], twopts[0][1], 0.0)
                 else:
-                    lineSource.SetPoint1(twopts[0])
+                    line_source.SetPoint1(twopts[0])
 
                 if scale == 1:
                     pt2 = twopts[1]
@@ -1033,10 +1033,10 @@ class Lines(Mesh):
                     pt2 = np.array(twopts[0]) + vers
 
                 if len(pt2) == 2:
-                    lineSource.SetPoint2(pt2[0], pt2[1], 0.0)
+                    line_source.SetPoint2(pt2[0], pt2[1], 0.0)
                 else:
-                    lineSource.SetPoint2(pt2)
-                polylns.AddInputConnection(lineSource.GetOutputPort())
+                    line_source.SetPoint2(pt2)
+                polylns.AddInputConnection(line_source.GetOutputPort())
 
         else:
 
@@ -1358,11 +1358,11 @@ class NormalLines(Mesh):
             centers.Update()
             poly = centers.GetOutput()
 
-        maskPts = vtk.vtkMaskPoints()
-        maskPts.SetInputData(poly)
-        maskPts.SetOnRatio(ratio)
-        maskPts.RandomModeOff()
-        maskPts.Update()
+        mask_pts = vtk.vtkMaskPoints()
+        mask_pts.SetInputData(poly)
+        mask_pts.SetOnRatio(ratio)
+        mask_pts.RandomModeOff()
+        mask_pts.Update()
 
         ln = vtk.vtkLineSource()
         ln.SetPoint1(0, 0, 0)
@@ -1370,7 +1370,7 @@ class NormalLines(Mesh):
         ln.Update()
         glyph = vtk.vtkGlyph3D()
         glyph.SetSourceData(ln.GetOutput())
-        glyph.SetInputData(maskPts.GetOutput())
+        glyph.SetInputData(mask_pts.GetOutput())
         glyph.SetVectorModeToUseNormal()
 
         b = poly.GetBounds()
@@ -1633,39 +1633,39 @@ def StreamLines(
     output = st.GetOutput()
 
     if ribbons:
-        scalarSurface = vtk.vtkRuledSurfaceFilter()
-        scalarSurface.SetInputConnection(st.GetOutputPort())
-        scalarSurface.SetOnRatio(int(ribbons))
-        scalarSurface.SetRuledModeToPointWalk()
-        scalarSurface.Update()
-        output = scalarSurface.GetOutput()
+        scalar_surface = vtk.vtkRuledSurfaceFilter()
+        scalar_surface.SetInputConnection(st.GetOutputPort())
+        scalar_surface.SetOnRatio(int(ribbons))
+        scalar_surface.SetRuledModeToPointWalk()
+        scalar_surface.Update()
+        output = scalar_surface.GetOutput()
 
     if tubes:
-        streamTube = vtk.vtkTubeFilter()
-        streamTube.SetNumberOfSides(24)
-        streamTube.SetRadius(tubes["radius"])
+        stream_tube = vtk.vtkTubeFilter()
+        stream_tube.SetNumberOfSides(24)
+        stream_tube.SetRadius(tubes["radius"])
 
         if "res" in tubes:
-            streamTube.SetNumberOfSides(tubes["res"])
+            stream_tube.SetNumberOfSides(tubes["res"])
 
         # max tube radius as a multiple of the min radius
-        streamTube.SetRadiusFactor(50)
+        stream_tube.SetRadiusFactor(50)
         if "max_radius_factor" in tubes:
-            streamTube.SetRadiusFactor(tubes["max_radius_factor"])
+            stream_tube.SetRadiusFactor(tubes["max_radius_factor"])
 
         if "ratio" in tubes:
-            streamTube.SetOnRatio(int(tubes["ratio"]))
+            stream_tube.SetOnRatio(int(tubes["ratio"]))
 
         if "mode" in tubes:
-            streamTube.SetVaryRadius(int(tubes["mode"]))
+            stream_tube.SetVaryRadius(int(tubes["mode"]))
 
-        streamTube.SetInputData(output)
+        stream_tube.SetInputData(output)
         vname = grid.GetPointData().GetVectors().GetName()
-        streamTube.SetInputArrayToProcess(
+        stream_tube.SetInputArrayToProcess(
             1, 0, 0, vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS, vname
         )
-        streamTube.Update()
-        sta = vedo.mesh.Mesh(streamTube.GetOutput(), c=None)
+        stream_tube.Update()
+        sta = vedo.mesh.Mesh(stream_tube.GetOutput(), c=None)
 
         scals = grid.GetPointData().GetScalars()
         if scals:
@@ -1818,14 +1818,14 @@ class Ribbon(Mesh):
             line2 = line2.points()
 
         elif line2 is None:
-            ribbonFilter = vtk.vtkRibbonFilter()
+            ribbon_filter = vtk.vtkRibbonFilter()
             aline = Line(line1)
-            ribbonFilter.SetInputData(aline.polydata())
+            ribbon_filter.SetInputData(aline.polydata())
             if width is None:
                 width = aline.diagonal_size() / 20.0
-            ribbonFilter.SetWidth(width)
-            ribbonFilter.Update()
-            Mesh.__init__(self, ribbonFilter.GetOutput(), c, alpha)
+            ribbon_filter.SetWidth(width)
+            ribbon_filter.Update()
+            Mesh.__init__(self, ribbon_filter.GetOutput(), c, alpha)
             self.name = "Ribbon"
 
             #######################
@@ -1887,16 +1887,16 @@ class Ribbon(Mesh):
         polygon2.SetPoints(ppoints2)
         polygon2.SetLines(lines2)
 
-        mergedPolyData = vtk.vtkAppendPolyData()
-        mergedPolyData.AddInputData(polygon1)
-        mergedPolyData.AddInputData(polygon2)
-        mergedPolyData.Update()
+        merged_pd = vtk.vtkAppendPolyData()
+        merged_pd.AddInputData(polygon1)
+        merged_pd.AddInputData(polygon2)
+        merged_pd.Update()
 
         rsf = vtk.vtkRuledSurfaceFilter()
         rsf.CloseSurfaceOff()
         rsf.SetRuledMode(mode)
         rsf.SetResolution(res[0], res[1])
-        rsf.SetInputData(mergedPolyData.GetOutput())
+        rsf.SetInputData(merged_pd.GetOutput())
         rsf.Update()
 
         Mesh.__init__(self, rsf.GetOutput(), c, alpha)
@@ -2648,10 +2648,10 @@ class Earth(Mesh):
         tss.SetPhiResolution(36)
         Mesh.__init__(self, tss, c="w")
         atext = vtk.vtkTexture()
-        pnmReader = vtk.vtkJPEGReader()
+        pnm_reader = vtk.vtkJPEGReader()
         fn = vedo.io.download(vedo.dataurl + f"textures/earth{style}.jpg", verbose=False)
-        pnmReader.SetFileName(fn)
-        atext.SetInputConnection(pnmReader.GetOutputPort())
+        pnm_reader.SetFileName(fn)
+        atext.SetInputConnection(pnm_reader.GetOutputPort())
         atext.InterpolateOn()
         self.SetTexture(atext)
         self.name = "Earth"
@@ -2700,10 +2700,10 @@ class Ellipsoid(Mesh):
         else:
             res_t, res_phi = 2 * res, res
 
-        elliSource = vtk.vtkSphereSource()
-        elliSource.SetThetaResolution(res_t)
-        elliSource.SetPhiResolution(res_phi)
-        elliSource.Update()
+        elli_source = vtk.vtkSphereSource()
+        elli_source.SetThetaResolution(res_t)
+        elli_source.SetPhiResolution(res_phi)
+        elli_source.Update()
         l1 = np.linalg.norm(axis1)
         l2 = np.linalg.norm(axis2)
         l3 = np.linalg.norm(axis3)
@@ -2724,7 +2724,7 @@ class Ellipsoid(Mesh):
         t.RotateY(np.rad2deg(theta))
         t.RotateZ(np.rad2deg(phi))
         tf = vtk.vtkTransformPolyDataFilter()
-        tf.SetInputData(elliSource.GetOutput())
+        tf.SetInputData(elli_source.GetOutput())
         tf.SetTransform(t)
         tf.Update()
         pd = tf.GetOutput()
@@ -3148,13 +3148,13 @@ class TessellatedBox(Mesh):
             poly = gf.GetOutput()
         else:  # fast
             n -= 1
-            boxSource = vtk.vtkTessellatedBoxSource()
-            boxSource.SetLevel(n)
-            boxSource.QuadsOn()
-            boxSource.SetBounds(0, n * spacing[0], 0, n * spacing[1], 0, n * spacing[2])
-            boxSource.SetOutputPointsPrecision(vtk.vtkAlgorithm.SINGLE_PRECISION)
-            boxSource.Update()
-            poly = boxSource.GetOutput()
+            tbs = vtk.vtkTessellatedBoxSource()
+            tbs.SetLevel(n)
+            tbs.QuadsOn()
+            tbs.SetBounds(0, n * spacing[0], 0, n * spacing[1], 0, n * spacing[2])
+            tbs.SetOutputPointsPrecision(vtk.vtkAlgorithm.SINGLE_PRECISION)
+            tbs.Update()
+            poly = tbs.GetOutput()
         Mesh.__init__(self, poly, c=c, alpha=alpha)
         self.SetPosition(pos)
         self.lw(1)
@@ -4188,7 +4188,7 @@ class TextBase:
 
     def __init__(self):
 
-        self.renderedAt = set()
+        self.rendered_at = set()
 
         if isinstance(settings.default_font, int):
             lfonts = list(settings.font_parameters.keys())

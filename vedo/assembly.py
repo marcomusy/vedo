@@ -62,7 +62,7 @@ def procrustes_alignment(sources, rigid=False):
         mesh.SetProperty(s.GetProperty())
         if hasattr(s, "name"):
             mesh.name = s.name
-            mesh.flagText = s.flagText
+            mesh.flag_text = s.flag_text
         acts.append(mesh)
     assem = Assembly(acts)
     assem.transform = procrustes.GetLandmarkTransform()
@@ -103,11 +103,9 @@ class Assembly(vtk.vtkAssembly, vedo.base.Base3DProp):
                 self.AddPart(a)
 
     def __add__(self, obj):
-        # if isinstance(meshs, list):
-        #     for a in meshs:
-        #         self.AddPart(a)
-        # else:  # meshs=one mesh
-        #     self.AddPart(meshs)
+        """
+        Add an object to the assembly
+        """
         self.AddPart(obj)
         self.actors.append(obj)
         return self

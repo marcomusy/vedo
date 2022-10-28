@@ -202,7 +202,7 @@ class Button:
         alpha,
         angle,
     ):
-        self.statusIdx = 0
+        self.status_idx = 0
         self.states = states
         self.colors = c
         self.bcolors = bc
@@ -216,30 +216,30 @@ class Button:
         self.offset = 5
         self.spacer = " "
 
-        self.textproperty = self.actor.GetTextProperty()
-        self.textproperty.SetJustificationToCentered()
+        self.text_property = self.actor.GetTextProperty()
+        self.text_property.SetJustificationToCentered()
         if font.lower() == "courier":
-            self.textproperty.SetFontFamilyToCourier()
+            self.text_property.SetFontFamilyToCourier()
         elif font.lower() == "times":
-            self.textproperty.SetFontFamilyToTimes()
+            self.text_property.SetFontFamilyToTimes()
         elif font.lower() == "arial":
-            self.textproperty.SetFontFamilyToArial()
+            self.text_property.SetFontFamilyToArial()
         else:
             if not font:
                 font = settings.default_font
-            self.textproperty.SetFontFamily(vtk.VTK_FONT_FILE)
-            self.textproperty.SetFontFile(utils.get_font_path(font))
-        self.textproperty.SetFontSize(size)
-        self.textproperty.SetBackgroundOpacity(alpha)
-        self.textproperty.BoldOff()
+            self.text_property.SetFontFamily(vtk.VTK_FONT_FILE)
+            self.text_property.SetFontFile(utils.get_font_path(font))
+        self.text_property.SetFontSize(size)
+        self.text_property.SetBackgroundOpacity(alpha)
+        self.text_property.BoldOff()
         if bold:
-            self.textproperty.BoldOn()
-        self.textproperty.ItalicOff()
+            self.text_property.BoldOn()
+        self.text_property.ItalicOff()
         if italic:
-            self.textproperty.ItalicOn()
-        self.textproperty.ShadowOff()
-        self.textproperty.SetOrientation(angle)
-        self.showframe = hasattr(self.textproperty, "FrameOn")
+            self.text_property.ItalicOn()
+        self.text_property.ShadowOff()
+        self.text_property.SetOrientation(angle)
+        self.showframe = hasattr(self.text_property, "FrameOn")
         self.status(0)
 
     def status(self, s=None):
@@ -247,29 +247,29 @@ class Button:
         Set/Get the status of the button.
         """
         if s is None:
-            return self.states[self.statusIdx]
+            return self.states[self.status_idx]
 
         if isinstance(s, str):
             s = self.states.index(s)
-        self.statusIdx = s
-        self.textproperty.SetLineOffset(self.offset)
+        self.status_idx = s
+        self.text_property.SetLineOffset(self.offset)
         self.actor.SetInput(self.spacer + self.states[s] + self.spacer)
         s = s % len(self.colors)  # to avoid mismatch
-        self.textproperty.SetColor(get_color(self.colors[s]))
+        self.text_property.SetColor(get_color(self.colors[s]))
         bcc = np.array(get_color(self.bcolors[s]))
-        self.textproperty.SetBackgroundColor(bcc)
+        self.text_property.SetBackgroundColor(bcc)
         if self.showframe:
-            self.textproperty.FrameOn()
-            self.textproperty.SetFrameWidth(self.framewidth)
-            self.textproperty.SetFrameColor(np.sqrt(bcc))
+            self.text_property.FrameOn()
+            self.text_property.SetFrameWidth(self.framewidth)
+            self.text_property.SetFrameColor(np.sqrt(bcc))
         return self
 
     def switch(self):
         """
         Change/cycle button status to the next defined status in states list.
         """
-        self.statusIdx = (self.statusIdx + 1) % len(self.states)
-        self.status(self.statusIdx)
+        self.status_idx = (self.status_idx + 1) % len(self.states)
+        self.status(self.status_idx)
         return self
 
 
@@ -611,14 +611,6 @@ def Light(
     light.SetFocalPoint(focal_point)
     light.SetIntensity(intensity)
     light.SetColor(get_color(c))
-
-    # light.SetPositional(1) ##??
-    # if ambientColor is not None: # doesnt work anyway
-    #     light.SetAmbientColor(get_color(ambientColor))
-    # if diffuseColor is not None:
-    #     light.SetDiffuseColor(get_color(diffuseColor))
-    # if specularColor is not None:
-    #     light.SetSpecularColor(get_color(specularColor))
 
     if remove_others:
         if vedo.plotter_instance and vedo.plotter_instance.renderer:
@@ -1216,17 +1208,17 @@ def add_slider(
     if value is None or value < xmin:
         value = xmin
 
-    sliderRep = vtk.vtkSliderRepresentation2D()
-    sliderRep.SetMinimumValue(xmin)
-    sliderRep.SetMaximumValue(xmax)
-    sliderRep.SetValue(value)
-    sliderRep.SetSliderLength(slider_length)
-    sliderRep.SetSliderWidth(slider_width)
-    sliderRep.SetEndCapLength(end_cap_length)
-    sliderRep.SetEndCapWidth(end_cap_width)
-    sliderRep.SetTubeWidth(tube_width)
-    sliderRep.GetPoint1Coordinate().SetCoordinateSystemToNormalizedDisplay()
-    sliderRep.GetPoint2Coordinate().SetCoordinateSystemToNormalizedDisplay()
+    slider_rep = vtk.vtkSliderRepresentation2D()
+    slider_rep.SetMinimumValue(xmin)
+    slider_rep.SetMaximumValue(xmax)
+    slider_rep.SetValue(value)
+    slider_rep.SetSliderLength(slider_length)
+    slider_rep.SetSliderWidth(slider_width)
+    slider_rep.SetEndCapLength(end_cap_length)
+    slider_rep.SetEndCapWidth(end_cap_width)
+    slider_rep.SetTubeWidth(tube_width)
+    slider_rep.GetPoint1Coordinate().SetCoordinateSystemToNormalizedDisplay()
+    slider_rep.GetPoint2Coordinate().SetCoordinateSystemToNormalizedDisplay()
 
     if isinstance(pos, str):
         if "top" in pos:
@@ -1258,41 +1250,41 @@ def add_slider(
                 pos = 5
 
     if utils.is_sequence(pos):
-        sliderRep.GetPoint1Coordinate().SetValue(pos[0][0], pos[0][1])
-        sliderRep.GetPoint2Coordinate().SetValue(pos[1][0], pos[1][1])
+        slider_rep.GetPoint1Coordinate().SetValue(pos[0][0], pos[0][1])
+        slider_rep.GetPoint2Coordinate().SetValue(pos[1][0], pos[1][1])
     elif pos == 1:  # top-left horizontal
-        sliderRep.GetPoint1Coordinate().SetValue(0.04, 0.93)
-        sliderRep.GetPoint2Coordinate().SetValue(0.45, 0.93)
+        slider_rep.GetPoint1Coordinate().SetValue(0.04, 0.93)
+        slider_rep.GetPoint2Coordinate().SetValue(0.45, 0.93)
     elif pos == 2:
-        sliderRep.GetPoint1Coordinate().SetValue(0.55, 0.93)
-        sliderRep.GetPoint2Coordinate().SetValue(0.95, 0.93)
+        slider_rep.GetPoint1Coordinate().SetValue(0.55, 0.93)
+        slider_rep.GetPoint2Coordinate().SetValue(0.95, 0.93)
     elif pos == 3:
-        sliderRep.GetPoint1Coordinate().SetValue(0.05, 0.06)
-        sliderRep.GetPoint2Coordinate().SetValue(0.45, 0.06)
+        slider_rep.GetPoint1Coordinate().SetValue(0.05, 0.06)
+        slider_rep.GetPoint2Coordinate().SetValue(0.45, 0.06)
     elif pos == 4:  # bottom-right
-        sliderRep.GetPoint1Coordinate().SetValue(0.55, 0.06)
-        sliderRep.GetPoint2Coordinate().SetValue(0.95, 0.06)
+        slider_rep.GetPoint1Coordinate().SetValue(0.55, 0.06)
+        slider_rep.GetPoint2Coordinate().SetValue(0.95, 0.06)
     elif pos == 5:  # bottom span horizontal
-        sliderRep.GetPoint1Coordinate().SetValue(0.04, 0.06)
-        sliderRep.GetPoint2Coordinate().SetValue(0.95, 0.06)
+        slider_rep.GetPoint1Coordinate().SetValue(0.04, 0.06)
+        slider_rep.GetPoint2Coordinate().SetValue(0.95, 0.06)
     elif pos == 11:  # top-left vertical
-        sliderRep.GetPoint1Coordinate().SetValue(0.065, 0.54)
-        sliderRep.GetPoint2Coordinate().SetValue(0.065, 0.9)
+        slider_rep.GetPoint1Coordinate().SetValue(0.065, 0.54)
+        slider_rep.GetPoint2Coordinate().SetValue(0.065, 0.9)
     elif pos == 12:
-        sliderRep.GetPoint1Coordinate().SetValue(0.94, 0.54)
-        sliderRep.GetPoint2Coordinate().SetValue(0.94, 0.9)
+        slider_rep.GetPoint1Coordinate().SetValue(0.94, 0.54)
+        slider_rep.GetPoint2Coordinate().SetValue(0.94, 0.9)
     elif pos == 13:
-        sliderRep.GetPoint1Coordinate().SetValue(0.065, 0.1)
-        sliderRep.GetPoint2Coordinate().SetValue(0.065, 0.54)
+        slider_rep.GetPoint1Coordinate().SetValue(0.065, 0.1)
+        slider_rep.GetPoint2Coordinate().SetValue(0.065, 0.54)
     elif pos == 14:  # bottom-right vertical
-        sliderRep.GetPoint1Coordinate().SetValue(0.94, 0.1)
-        sliderRep.GetPoint2Coordinate().SetValue(0.94, 0.54)
+        slider_rep.GetPoint1Coordinate().SetValue(0.94, 0.1)
+        slider_rep.GetPoint2Coordinate().SetValue(0.94, 0.54)
     elif pos == 15:  # right margin vertical
-        sliderRep.GetPoint1Coordinate().SetValue(0.95, 0.1)
-        sliderRep.GetPoint2Coordinate().SetValue(0.95, 0.9)
+        slider_rep.GetPoint1Coordinate().SetValue(0.95, 0.1)
+        slider_rep.GetPoint2Coordinate().SetValue(0.95, 0.9)
     else:  # bottom-right
-        sliderRep.GetPoint1Coordinate().SetValue(0.55, 0.06)
-        sliderRep.GetPoint2Coordinate().SetValue(0.95, 0.06)
+        slider_rep.GetPoint1Coordinate().SetValue(0.55, 0.06)
+        slider_rep.GetPoint2Coordinate().SetValue(0.95, 0.06)
 
     if show_value:
         if isinstance(xmin, int) and isinstance(xmax, int) and isinstance(value, int):
@@ -1302,64 +1294,64 @@ def add_slider(
 
         frm = options.pop("tformat", frm)
 
-        sliderRep.SetLabelFormat(frm)  # default is '%0.3g'
-        sliderRep.GetLabelProperty().SetShadow(0)
-        sliderRep.GetLabelProperty().SetBold(0)
-        sliderRep.GetLabelProperty().SetOpacity(alpha)
-        sliderRep.GetLabelProperty().SetColor(c)
+        slider_rep.SetLabelFormat(frm)  # default is '%0.3g'
+        slider_rep.GetLabelProperty().SetShadow(0)
+        slider_rep.GetLabelProperty().SetBold(0)
+        slider_rep.GetLabelProperty().SetOpacity(alpha)
+        slider_rep.GetLabelProperty().SetColor(c)
         if isinstance(pos, int) and pos > 10:
-            sliderRep.GetLabelProperty().SetOrientation(90)
+            slider_rep.GetLabelProperty().SetOrientation(90)
     else:
-        sliderRep.ShowSliderLabelOff()
-    sliderRep.GetTubeProperty().SetColor(c)
-    sliderRep.GetTubeProperty().SetOpacity(0.6)
-    sliderRep.GetSliderProperty().SetColor(c)
-    sliderRep.GetSelectedProperty().SetColor(np.sqrt(np.array(c)))
-    sliderRep.GetCapProperty().SetColor(c)
+        slider_rep.ShowSliderLabelOff()
+    slider_rep.GetTubeProperty().SetColor(c)
+    slider_rep.GetTubeProperty().SetOpacity(0.6)
+    slider_rep.GetSliderProperty().SetColor(c)
+    slider_rep.GetSelectedProperty().SetColor(np.sqrt(np.array(c)))
+    slider_rep.GetCapProperty().SetColor(c)
 
-    sliderRep.SetTitleHeight(title_height * title_size)
-    sliderRep.GetTitleProperty().SetShadow(0)
-    sliderRep.GetTitleProperty().SetColor(c)
-    sliderRep.GetTitleProperty().SetOpacity(alpha)
-    sliderRep.GetTitleProperty().SetBold(0)
+    slider_rep.SetTitleHeight(title_height * title_size)
+    slider_rep.GetTitleProperty().SetShadow(0)
+    slider_rep.GetTitleProperty().SetColor(c)
+    slider_rep.GetTitleProperty().SetOpacity(alpha)
+    slider_rep.GetTitleProperty().SetBold(0)
     if font.lower() == "courier":
-        sliderRep.GetTitleProperty().SetFontFamilyToCourier()
+        slider_rep.GetTitleProperty().SetFontFamilyToCourier()
     elif font.lower() == "times":
-        sliderRep.GetTitleProperty().SetFontFamilyToTimes()
+        slider_rep.GetTitleProperty().SetFontFamilyToTimes()
     elif font.lower() == "arial":
-        sliderRep.GetTitleProperty().SetFontFamilyToArial()
+        slider_rep.GetTitleProperty().SetFontFamilyToArial()
     else:
         if font == "":
             font = utils.get_font_path(settings.default_font)
         else:
             font = utils.get_font_path(font)
-        sliderRep.GetTitleProperty().SetFontFamily(vtk.VTK_FONT_FILE)
-        sliderRep.GetLabelProperty().SetFontFamily(vtk.VTK_FONT_FILE)
-        sliderRep.GetTitleProperty().SetFontFile(font)
-        sliderRep.GetLabelProperty().SetFontFile(font)
+        slider_rep.GetTitleProperty().SetFontFamily(vtk.VTK_FONT_FILE)
+        slider_rep.GetLabelProperty().SetFontFamily(vtk.VTK_FONT_FILE)
+        slider_rep.GetTitleProperty().SetFontFile(font)
+        slider_rep.GetLabelProperty().SetFontFile(font)
 
     if title:
-        sliderRep.SetTitleText(title)
+        slider_rep.SetTitleText(title)
         if not utils.is_sequence(pos):
             if isinstance(pos, int) and pos > 10:
-                sliderRep.GetTitleProperty().SetOrientation(90)
+                slider_rep.GetTitleProperty().SetOrientation(90)
         else:
             if abs(pos[0][0] - pos[1][0]) < 0.1:
-                sliderRep.GetTitleProperty().SetOrientation(90)
+                slider_rep.GetTitleProperty().SetOrientation(90)
 
-    sliderWidget = SliderWidget()
-    sliderWidget.SetInteractor(plt.interactor)
-    sliderWidget.SetAnimationModeToJump()
-    sliderWidget.SetRepresentation(sliderRep)
+    slider_widget = SliderWidget()
+    slider_widget.SetInteractor(plt.interactor)
+    slider_widget.SetAnimationModeToJump()
+    slider_widget.SetRepresentation(slider_rep)
     if delayed:
-        sliderWidget.AddObserver("EndInteractionEvent", sliderfunc)
+        slider_widget.AddObserver("EndInteractionEvent", sliderfunc)
     else:
-        sliderWidget.AddObserver("InteractionEvent", sliderfunc)
+        slider_widget.AddObserver("InteractionEvent", sliderfunc)
     if plt.renderer:
-        sliderWidget.SetCurrentRenderer(plt.renderer)
-    sliderWidget.on()
-    plt.sliders.append([sliderWidget, sliderfunc])
-    return sliderWidget
+        slider_widget.SetCurrentRenderer(plt.renderer)
+    slider_widget.on()
+    plt.sliders.append([slider_widget, sliderfunc])
+    return slider_widget
 
 
 #####################################################################
@@ -1431,45 +1423,45 @@ def add_slider3d(
     if value is None or value < xmin:
         value = xmin
 
-    sliderRep = vtk.vtkSliderRepresentation3D()
-    sliderRep.SetMinimumValue(xmin)
-    sliderRep.SetMaximumValue(xmax)
-    sliderRep.SetValue(value)
+    slider_rep = vtk.vtkSliderRepresentation3D()
+    slider_rep.SetMinimumValue(xmin)
+    slider_rep.SetMaximumValue(xmax)
+    slider_rep.SetValue(value)
 
-    sliderRep.GetPoint1Coordinate().SetCoordinateSystemToWorld()
-    sliderRep.GetPoint2Coordinate().SetCoordinateSystemToWorld()
-    sliderRep.GetPoint1Coordinate().SetValue(pos2)
-    sliderRep.GetPoint2Coordinate().SetValue(pos1)
+    slider_rep.GetPoint1Coordinate().SetCoordinateSystemToWorld()
+    slider_rep.GetPoint2Coordinate().SetCoordinateSystemToWorld()
+    slider_rep.GetPoint1Coordinate().SetValue(pos2)
+    slider_rep.GetPoint2Coordinate().SetValue(pos1)
 
-    # sliderRep.SetPoint1InWorldCoordinates(pos2[0], pos2[1], pos2[2])
-    # sliderRep.SetPoint2InWorldCoordinates(pos1[0], pos1[1], pos1[2])
+    # slider_rep.SetPoint1InWorldCoordinates(pos2[0], pos2[1], pos2[2])
+    # slider_rep.SetPoint2InWorldCoordinates(pos1[0], pos1[1], pos1[2])
 
-    sliderRep.SetSliderWidth(0.03 * t)
-    sliderRep.SetTubeWidth(0.01 * t)
-    sliderRep.SetSliderLength(0.04 * t)
-    sliderRep.SetSliderShapeToCylinder()
-    sliderRep.GetSelectedProperty().SetColor(np.sqrt(np.array(c)))
-    sliderRep.GetSliderProperty().SetColor(np.array(c) / 1.5)
-    sliderRep.GetCapProperty().SetOpacity(0)
-    sliderRep.SetRotation(rotation)
+    slider_rep.SetSliderWidth(0.03 * t)
+    slider_rep.SetTubeWidth(0.01 * t)
+    slider_rep.SetSliderLength(0.04 * t)
+    slider_rep.SetSliderShapeToCylinder()
+    slider_rep.GetSelectedProperty().SetColor(np.sqrt(np.array(c)))
+    slider_rep.GetSliderProperty().SetColor(np.array(c) / 1.5)
+    slider_rep.GetCapProperty().SetOpacity(0)
+    slider_rep.SetRotation(rotation)
 
     if not show_value:
-        sliderRep.ShowSliderLabelOff()
+        slider_rep.ShowSliderLabelOff()
 
-    sliderRep.SetTitleText(title)
-    sliderRep.SetTitleHeight(s * t)
-    sliderRep.SetLabelHeight(s * t * 0.85)
+    slider_rep.SetTitleText(title)
+    slider_rep.SetTitleHeight(s * t)
+    slider_rep.SetLabelHeight(s * t * 0.85)
 
-    sliderRep.GetTubeProperty().SetColor(c)
+    slider_rep.GetTubeProperty().SetColor(c)
 
-    sliderWidget = SliderWidget()
-    sliderWidget.SetInteractor(plt.interactor)
-    sliderWidget.SetRepresentation(sliderRep)
-    sliderWidget.SetAnimationModeToJump()
-    sliderWidget.AddObserver("InteractionEvent", sliderfunc)
-    sliderWidget.on()
-    plt.sliders.append([sliderWidget, sliderfunc])
-    return sliderWidget
+    slider_widget = SliderWidget()
+    slider_widget.SetInteractor(plt.interactor)
+    slider_widget.SetRepresentation(slider_rep)
+    slider_widget.SetAnimationModeToJump()
+    slider_widget.AddObserver("InteractionEvent", sliderfunc)
+    slider_widget.on()
+    plt.sliders.append([slider_widget, sliderfunc])
+    return slider_widget
 
 
 #####################################################################
@@ -1603,24 +1595,24 @@ def _addCutterToolMeshWithSphere(mesh, invert):
     def myCallback(obj, event):
         obj.GetSphere(sph)
 
-    sphereWidget = vtk.vtkSphereWidget()
-    sphereWidget.SetThetaResolution(120)
-    sphereWidget.SetPhiResolution(60)
-    sphereWidget.SetRadius(aves)
-    sphereWidget.SetCenter(cm)
-    sphereWidget.SetRepresentation(2)
-    sphereWidget.HandleVisibilityOff()
-    sphereWidget.GetSphereProperty().SetOpacity(0.2)
-    sphereWidget.GetSelectedSphereProperty().SetOpacity(0.1)
-    sphereWidget.SetInteractor(plt.interactor)
-    sphereWidget.SetCurrentRenderer(plt.renderer)
-    sphereWidget.SetInputData(mesh.inputdata())
-    sphereWidget.AddObserver("InteractionEvent", myCallback)
+    sphere_widget = vtk.vtkSphereWidget()
+    sphere_widget.SetThetaResolution(120)
+    sphere_widget.SetPhiResolution(60)
+    sphere_widget.SetRadius(aves)
+    sphere_widget.SetCenter(cm)
+    sphere_widget.SetRepresentation(2)
+    sphere_widget.HandleVisibilityOff()
+    sphere_widget.GetSphereProperty().SetOpacity(0.2)
+    sphere_widget.GetSelectedSphereProperty().SetOpacity(0.1)
+    sphere_widget.SetInteractor(plt.interactor)
+    sphere_widget.SetCurrentRenderer(plt.renderer)
+    sphere_widget.SetInputData(mesh.inputdata())
+    sphere_widget.AddObserver("InteractionEvent", myCallback)
     plt.interactor.Render()
-    sphereWidget.On()
-    plt.widgets.append(sphereWidget)
+    sphere_widget.On()
+    plt.widgets.append(sphere_widget)
 
-    plt.cutterWidget = sphereWidget
+    plt.cutter_widget = sphere_widget
     plt.clickedActor = act0
     if mesh in plt.actors:
         ia = plt.actors.index(mesh)
@@ -1631,7 +1623,7 @@ def _addCutterToolMeshWithSphere(mesh, invert):
     printc("  Press X to save file to: clipped.vtk", c="m")
     printc("  [Press space bar to continue]", c="m")
     plt.interactor.Start()
-    sphereWidget.Off()
+    sphere_widget.Off()
     plt.interactor.Start()  # allow extra interaction
     return act0
 
@@ -1671,21 +1663,21 @@ def _addCutterToolMeshWithBox(mesh, invert):
     def selectPolygons(vobj, event):
         vobj.GetPlanes(planes)
 
-    boxWidget = vtk.vtkBoxWidget()
-    boxWidget.OutlineCursorWiresOn()
-    boxWidget.GetSelectedOutlineProperty().SetColor(1, 0, 1)
-    boxWidget.GetOutlineProperty().SetColor(0.2, 0.2, 0.2)
-    boxWidget.GetOutlineProperty().SetOpacity(1)
-    boxWidget.SetPlaceFactor(1.025)
-    boxWidget.SetInteractor(plt.interactor)
-    boxWidget.SetCurrentRenderer(plt.renderer)
-    boxWidget.SetInputData(apd)
-    boxWidget.PlaceWidget()
-    boxWidget.AddObserver("InteractionEvent", selectPolygons)
-    boxWidget.On()
-    plt.widgets.append(boxWidget)
+    box_widget = vtk.vtkBoxWidget()
+    box_widget.OutlineCursorWiresOn()
+    box_widget.GetSelectedOutlineProperty().SetColor(1, 0, 1)
+    box_widget.GetOutlineProperty().SetColor(0.2, 0.2, 0.2)
+    box_widget.GetOutlineProperty().SetOpacity(1)
+    box_widget.SetPlaceFactor(1.025)
+    box_widget.SetInteractor(plt.interactor)
+    box_widget.SetCurrentRenderer(plt.renderer)
+    box_widget.SetInputData(apd)
+    box_widget.PlaceWidget()
+    box_widget.AddObserver("InteractionEvent", selectPolygons)
+    box_widget.On()
+    plt.widgets.append(box_widget)
 
-    plt.cutterWidget = boxWidget
+    plt.cutter_widget = box_widget
     plt.clickedActor = act0
     if mesh in plt.actors:
         ia = plt.actors.index(mesh)
@@ -1696,7 +1688,7 @@ def _addCutterToolMeshWithBox(mesh, invert):
     printc("  Press X to save file to: clipped.vtk", c="m")
     printc("  [Press space bar to continue]", c="m")
     plt.interactor.Start()
-    boxWidget.Off()
+    box_widget.Off()
     plt.interactor.Start()  # allow extra interaction
     return act0
 
@@ -1729,26 +1721,26 @@ def _addCutterToolMeshWithPlane(mesh, invert):
     def myCallback(obj, event):
         obj.GetPlane(plane)
 
-    planeWidget = vtk.vtkImplicitPlaneWidget()
-    planeWidget.SetNormal(1, 0, 0)
-    planeWidget.SetPlaceFactor(1.25)
-    planeWidget.SetInteractor(plt.interactor)
-    planeWidget.SetCurrentRenderer(plt.renderer)
-    planeWidget.SetInputData(mesh.inputdata())
-    planeWidget.PlaceWidget(mesh.bounds())
-    planeWidget.AddObserver("InteractionEvent", myCallback)
-    planeWidget.GetPlaneProperty().SetColor(get_color("grey"))
-    planeWidget.GetPlaneProperty().SetOpacity(0.5)
-    planeWidget.SetTubing(False)
-    planeWidget.SetOutlineTranslation(True)
-    planeWidget.SetOriginTranslation(True)
-    planeWidget.SetDrawPlane(False)
-    planeWidget.GetPlaneProperty().LightingOff()
+    plane_widget = vtk.vtkImplicitPlaneWidget()
+    plane_widget.SetNormal(1, 0, 0)
+    plane_widget.SetPlaceFactor(1.25)
+    plane_widget.SetInteractor(plt.interactor)
+    plane_widget.SetCurrentRenderer(plt.renderer)
+    plane_widget.SetInputData(mesh.inputdata())
+    plane_widget.PlaceWidget(mesh.bounds())
+    plane_widget.AddObserver("InteractionEvent", myCallback)
+    plane_widget.GetPlaneProperty().SetColor(get_color("grey"))
+    plane_widget.GetPlaneProperty().SetOpacity(0.5)
+    plane_widget.SetTubing(False)
+    plane_widget.SetOutlineTranslation(True)
+    plane_widget.SetOriginTranslation(True)
+    plane_widget.SetDrawPlane(False)
+    plane_widget.GetPlaneProperty().LightingOff()
     plt.interactor.Render()
-    planeWidget.On()
-    plt.widgets.append(planeWidget)
+    plane_widget.On()
+    plt.widgets.append(plane_widget)
 
-    plt.cutterWidget = planeWidget
+    plt.cutter_widget = plane_widget
     plt.clickedActor = act0
     if mesh in plt.actors:
         ia = plt.actors.index(mesh)
@@ -1759,7 +1751,7 @@ def _addCutterToolMeshWithPlane(mesh, invert):
     printc("  Press X to save file to: clipped.vtk", c="m")
     printc("  [Press space bar to continue]", c="m")
     plt.interactor.Start()
-    planeWidget.Off()
+    plane_widget.Off()
     plt.interactor.Start()  # allow extra interaction
     return act0
 
@@ -1767,11 +1759,11 @@ def _addCutterToolMeshWithPlane(mesh, invert):
 def _addCutterToolVolumeWithBox(vol, invert):
     plt = vedo.plotter_instance
 
-    boxWidget = vtk.vtkBoxWidget()
-    boxWidget.SetInteractor(plt.interactor)
-    boxWidget.SetPlaceFactor(1.0)
+    box_widget = vtk.vtkBoxWidget()
+    box_widget.SetInteractor(plt.interactor)
+    box_widget.SetPlaceFactor(1.0)
 
-    plt.cutterWidget = boxWidget
+    plt.cutter_widget = box_widget
 
     plt.renderer.AddVolume(vol)
 
@@ -1781,24 +1773,24 @@ def _addCutterToolVolumeWithBox(vol, invert):
         obj.GetPlanes(planes)
         vol.mapper().SetClippingPlanes(planes)
 
-    boxWidget.SetInputData(vol.inputdata())
-    boxWidget.OutlineCursorWiresOn()
-    boxWidget.GetSelectedOutlineProperty().SetColor(1, 0, 1)
-    boxWidget.GetOutlineProperty().SetColor(0.2, 0.2, 0.2)
-    boxWidget.GetOutlineProperty().SetOpacity(0.7)
-    boxWidget.SetPlaceFactor(1.0)
-    boxWidget.PlaceWidget()
-    boxWidget.SetInsideOut(not invert)
-    boxWidget.AddObserver("InteractionEvent", _clip)
+    box_widget.SetInputData(vol.inputdata())
+    box_widget.OutlineCursorWiresOn()
+    box_widget.GetSelectedOutlineProperty().SetColor(1, 0, 1)
+    box_widget.GetOutlineProperty().SetColor(0.2, 0.2, 0.2)
+    box_widget.GetOutlineProperty().SetOpacity(0.7)
+    box_widget.SetPlaceFactor(1.0)
+    box_widget.PlaceWidget()
+    box_widget.SetInsideOut(not invert)
+    box_widget.AddObserver("InteractionEvent", _clip)
 
     printc("Volume Cutter Tool:", c="m", invert=1)
     printc("  Move gray handles to cut parts of the volume", c="m")
 
     plt.interactor.Render()
-    boxWidget.On()
+    box_widget.On()
     plt.interactor.Start()
-    boxWidget.Off()
-    plt.widgets.append(boxWidget)
+    box_widget.Off()
+    plt.widgets.append(box_widget)
     return vol
 
 

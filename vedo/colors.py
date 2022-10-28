@@ -573,8 +573,6 @@ def _has_colors(stream):
         return curses.tigetnum("colors") > 2
     except:
         return False
-
-
 #
 _terminal_has_colors = _has_colors(sys.stdout)
 
@@ -677,7 +675,6 @@ def get_color(rgb=None, hsv=None):
     elif isinstance(c, (int, float)):  # color number
         return palettes[vedo.settings.palette % len(palettes)][abs(int(c)) % 10]
 
-    # print("Unknown color:", c)
     return (0.5, 0.5, 0.5)
 
 

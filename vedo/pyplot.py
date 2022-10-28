@@ -187,9 +187,9 @@ class Figure(Assembly):
 
         ############## create axes
         if self.axopts:
-            axesopts = self.axopts
+            axes_opts = self.axopts
             if self.axopts is True or self.axopts == 1:
-                axesopts = {}
+                axes_opts = {}
 
             tp, ts = utils.make_ticks(
                 y0lim / self.yscale,
@@ -202,17 +202,17 @@ class Figure(Assembly):
                 labs.append([ynew, ts[i]])
 
             if self.title:
-                axesopts["htitle"] = self.title
-            axesopts["y_values_and_labels"] = labs
-            axesopts["xrange"] = (x0lim, x1lim)
-            axesopts["yrange"] = (y0lim, y1lim)
-            axesopts["zrange"] = (0, 0)
-            axesopts["y_use_bounds"] = True
+                axes_opts["htitle"] = self.title
+            axes_opts["y_values_and_labels"] = labs
+            axes_opts["xrange"] = (x0lim, x1lim)
+            axes_opts["yrange"] = (y0lim, y1lim)
+            axes_opts["zrange"] = (0, 0)
+            axes_opts["y_use_bounds"] = True
 
-            if "c" not in axesopts and "ac" in options:
-                axesopts["c"] = options["ac"]
+            if "c" not in axes_opts and "ac" in options:
+                axes_opts["c"] = options["ac"]
 
-            self.axes = addons.Axes(**axesopts)
+            self.axes = addons.Axes(**axes_opts)
 
         Assembly.__init__(self, [self.axes])
         self.name = "Figure"
@@ -786,23 +786,23 @@ class Histogram1D(Figure):
         if not title:
             if "axes" not in fig_kwargs:
                 addstats = True
-                axesopts = {}
-                fig_kwargs["axes"] = axesopts
+                axes_opts = {}
+                fig_kwargs["axes"] = axes_opts
             elif fig_kwargs["axes"] is False:
                 pass
             else:
-                axesopts = fig_kwargs["axes"]
-                if "htitle" not in axesopts:
+                axes_opts = fig_kwargs["axes"]
+                if "htitle" not in axes_opts:
                     addstats = True
 
         if addstats:
             htitle = f"Entries:~~{int(self.entries)}  "
             htitle += f"Mean:~~{utils.precision(self.mean, 4)}  "
             htitle += f"STD:~~{utils.precision(self.std, 4)}  "
-            axesopts["htitle"] = htitle
-            axesopts["htitle_justify"] = "bottom-left"
-            axesopts["htitle_size"] = 0.016
-            axesopts["htitle_offset"] = [-0.49, 0.01, 0]
+            axes_opts["htitle"] = htitle
+            axes_opts["htitle_justify"] = "bottom-left"
+            axes_opts["htitle_size"] = 0.016
+            axes_opts["htitle_offset"] = [-0.49, 0.01, 0]
 
         if mc is None:
             mc = lc
@@ -924,7 +924,7 @@ class Histogram1D(Figure):
                 msv[:, 0] = ms
                 marked = shapes.Glyph(
                     bin_centers,
-                    glyphObj=mk,
+                    mk,
                     c=mc,
                     orientation_array=msv,
                     scale_by_vector_size=True,
@@ -943,7 +943,7 @@ class Histogram1D(Figure):
                     msv[:, 0] = 1
                     marked = shapes.Glyph(
                         bin_centers,
-                        glyphObj=mk,
+                        mk,
                         c=mc,
                         orientation_array=msv,
                         scale_by_vector_size=True,
@@ -951,7 +951,7 @@ class Histogram1D(Figure):
                 else:
                     mk = shapes.Marker(marker, s=ms)
                     mk.scale([1, 1 / self.yscale, 1])
-                    marked = shapes.Glyph(bin_centers, glyphObj=mk, c=mc)
+                    marked = shapes.Glyph(bin_centers, mk, c=mc)
 
             marked.alpha(ma)
             marked.z(self.ztolerance * 4)
@@ -1122,12 +1122,12 @@ class Histogram2D(Figure):
         if not title:
             if "axes" not in fig_kwargs:
                 addstats = True
-                axesopts = {}
-                fig_kwargs["axes"] = axesopts
+                axes_opts = {}
+                fig_kwargs["axes"] = axes_opts
             elif fig_kwargs["axes"] is False:
                 pass
             else:
-                axesopts = fig_kwargs["axes"]
+                axes_opts = fig_kwargs["axes"]
                 if "htitle" not in fig_kwargs["axes"]:
                     addstats = True
 
@@ -1135,10 +1135,10 @@ class Histogram2D(Figure):
             htitle = f"Entries:~~{int(self.entries)}  "
             htitle += f"Mean:~~{utils.precision(self.mean, 3)}  "
             htitle += f"STD:~~{utils.precision(self.std, 3)}  "
-            axesopts["htitle"] = htitle
-            axesopts["htitle_justify"] = "bottom-left"
-            axesopts["htitle_size"] = 0.0175
-            axesopts["htitle_offset"] = [-0.49, 0.01, 0]
+            axes_opts["htitle"] = htitle
+            axes_opts["htitle_justify"] = "bottom-left"
+            axes_opts["htitle_size"] = 0.0175
+            axes_opts["htitle_offset"] = [-0.49, 0.01, 0]
 
         ############################################### Figure init
         Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
@@ -1437,7 +1437,7 @@ class PlotXY(Figure):
     ec : color
         color of error bar, by default the same as marker color
 
-    errorBand : bool
+    error_band : bool
         represent errors on y as a filled error band.
         Use ``ec`` keyword to modify its color.
 
@@ -1519,7 +1519,7 @@ class PlotXY(Figure):
             #
             elw=2,  # error line width
             ec=None,  # error line or band color
-            errorBand=False, # errors in x are ignored
+            error_band=False, # errors in x are ignored
             #
             marker="",
             ms=None,
@@ -1580,7 +1580,7 @@ class PlotXY(Figure):
 
         x0, y0 = np.min(data, axis=0)
         x1, y1 = np.max(data, axis=0)
-        if xerrors is not None and not errorBand:
+        if xerrors is not None and not error_band:
             x0 = min(data[:, 0] - xerrors)
             x1 = max(data[:, 0] + xerrors)
         if yerrors is not None:
@@ -1651,7 +1651,7 @@ class PlotXY(Figure):
                 msv = np.zeros_like(pts)
                 msv[:, 0] = ms
                 marked = shapes.Glyph(
-                    pts, glyphObj=mk, c=mc, orientation_array=msv, scale_by_vector_size=True
+                    pts, mk, c=mc, orientation_array=msv, scale_by_vector_size=True
                 )
             else:
                 ### fixed point size
@@ -1666,7 +1666,7 @@ class PlotXY(Figure):
                     msv[:, 0] = 1
                     marked = shapes.Glyph(
                         pts,
-                        glyphObj=mk,
+                        mk,
                         c=mc,
                         orientation_array=msv,
                         scale_by_vector_size=True,
@@ -1674,7 +1674,7 @@ class PlotXY(Figure):
                 else:
                     mk = shapes.Marker(marker, s=ms)
                     mk.scale([1, 1 / self.yscale, 1])
-                    marked = shapes.Glyph(pts, glyphObj=mk, c=mc)
+                    marked = shapes.Glyph(pts, mk, c=mc)
 
             marked.name = "Marker"
             marked.alpha(ma)
@@ -1689,7 +1689,7 @@ class PlotXY(Figure):
                 ec = mc
         ztol = self.ztolerance
 
-        if errorBand:
+        if error_band:
             yerrors = np.abs(yerrors)
             du = np.array(data)
             dd = np.array(data)
@@ -1708,7 +1708,7 @@ class PlotXY(Figure):
                 band.c(lc)
             else:
                 band.c(ec)
-            band.lighting("off").alpha(la).z(ztol)
+            band.lighting("off").alpha(la).z(ztol/10)
             acts.append(band)
 
         else:
@@ -1787,7 +1787,7 @@ def plot(*args, **kwargs):
     ec : color
         color of error bar, by default the same as marker color
 
-    errorBand : bool
+    error_band : bool
         represent errors on y as a filled error band.
         Use ``ec`` keyword to modify its color.
 
@@ -2479,15 +2479,15 @@ def fit(
     ``fitd = fit(pts)``
 
     - *fitd.coefficients* will contain the coefficients of the polynomial fit
-    - *fitd.coefficientErrors*, errors on the fitting coefficients
-    - *fitd.MonteCarloCoefficients*, fitting coefficient set from MC generation
-    - *fitd.covarianceMatrix*, covariance matrix as a numpy array
-    - *fitd.reducedChi2*, reduced chi-square of the fitting
+    - *fitd.coefficient_errors*, errors on the fitting coefficients
+    - *fitd.monte_carlo_coefficients*, fitting coefficient set from MC generation
+    - *fitd.covariance_matrix*, covariance matrix as a numpy array
+    - *fitd.reduced_chi2*, reduced chi-square of the fitting
     - *fitd.ndof*, number of degrees of freedom
-    - *fitd.dataSigma*, mean data dispersion from the central fit assuming Chi2=1
+    - *fitd.data_sigma*, mean data dispersion from the central fit assuming Chi2=1
 
-    - *fitd.errorLines*, a ``vedo.shapes.Line`` object for the upper and lower error band
-    - *fitd.errorBand*, the ``vedo.mesh.Mesh`` object representing the error band
+    - *fitd.error_lines*, a ``vedo.shapes.Line`` object for the upper and lower error band
+    - *fitd.error_band*, the ``vedo.mesh.Mesh`` object representing the error band
 
     Errors on x and y can be specified. If left to `None` an estimate is made from
     the statistical spread of the dataset itself. Errors are always assumed gaussian.
@@ -2501,7 +2501,7 @@ def fit(
         number of monte-carlo iterations to compute error bands.
         If set to 0, return the simple least-squares fit with naive error estimation
         on coefficients only. A reasonable non-zero value to set is about 500, in
-        this case *errorLines*, *errorBand* and the other class attributes are filled
+        this case *error_lines*, *error_band* and the other class attributes are filled
 
     nstd : float
         nr. of standard deviation to use for error calculation
@@ -2570,23 +2570,23 @@ def fit(
     theor = p1d(xr)
     fitl = shapes.Line(xr, theor, lw=lw, c=c).z(tol * 2)
     fitl.coefficients = coeffs
-    fitl.covarianceMatrix = V
+    fitl.covariance_matrix = V
     residuals2_sum = np.sum(np.power(p1d(x) - y, 2)) / ndof
     sigma = np.sqrt(residuals2_sum)
-    fitl.reducedChi2 = np.sum(np.power((p1d(x) - y) * w, 2)) / ndof
+    fitl.reduced_chi2 = np.sum(np.power((p1d(x) - y) * w, 2)) / ndof
     fitl.ndof = ndof
-    fitl.dataSigma = sigma  # worked out from data using chi2=1 hypo
+    fitl.data_sigma = sigma  # worked out from data using chi2=1 hypo
     fitl.name = "LinearPolynomialFit"
 
     if not niter:
-        fitl.coefficientErrors = np.sqrt(np.diag(V))
+        fitl.coefficient_errors = np.sqrt(np.diag(V))
         return fitl  ################################
 
     if yerrors is not None:
         sigma = yerrors
     else:
         w = None
-        fitl.reducedChi2 = 1
+        fitl.reduced_chi2 = 1
 
     Theors, all_coeffs = [], []
     for i in range(niter):
@@ -2597,10 +2597,10 @@ def fit(
         Theor = P1d(xr)
         Theors.append(Theor)
     all_coeffs = np.array(all_coeffs)
-    fitl.MonteCarloCoefficients = all_coeffs
+    fitl.monte_carlo_coefficients = all_coeffs
 
     stds = np.std(Theors, axis=0)
-    fitl.coefficientErrors = np.std(all_coeffs, axis=0)
+    fitl.coefficient_errors = np.std(all_coeffs, axis=0)
 
     # check distributions on the fly
     # for i in range(deg+1):
@@ -2618,11 +2618,11 @@ def fit(
         error_lines.append(el)
         el.name = "ErrorLine for sigma=" + str(i)
 
-    fitl.errorLines = error_lines
+    fitl.error_lines = error_lines
     l1 = error_lines[0].points().tolist()
     cband = l1 + list(reversed(error_lines[1].points().tolist())) + [l1[0]]
-    fitl.errorBand = shapes.Line(cband).triangulate().lw(0).c("k", 0.15)
-    fitl.errorBand.name = "PolynomialFitErrorBand"
+    fitl.error_band = shapes.Line(cband).triangulate().lw(0).c("k", 0.15)
+    fitl.error_band.name = "PolynomialFitErrorBand"
     return fitl
 
 
@@ -2821,8 +2821,8 @@ def _plot_polar(
         vmax=None,
         fill=False,
         splined=False,
-        show_disc=True,
         nrays=8,
+        show_disc=True,
         show_lines=True,
         show_angles=True,
     ):
@@ -3265,7 +3265,7 @@ def _histogram_spheric(thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", 
     sgfaces = sg.faces()
     sgpts = sg.points()
 
-    cntrs = sg.cellCenters()
+    cntrs = sg.cell_centers()
     counts = np.zeros(len(cntrs))
     for p in ptsvals:
         cell = sg.closest_point(p, return_cell_id=True)
@@ -3303,7 +3303,6 @@ def _histogram_spheric(thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", 
 
     newsg = Mesh([points, newfaces]).cmap(cmap,newvals,on='cells')
     newsg.compute_normals().lw(0.1).flat()
-
     newsg.name = "HistogramSpheric"
     return newsg
 
@@ -4103,8 +4102,8 @@ class DirectedGraph(Assembly):
         self.nodes = []
         self.edges = []
 
-        self._nodeLabels = []  # holds strings
-        self._edgeLabels = []
+        self._node_labels = []  # holds strings
+        self._edge_labels = []
         self.edge_orientations = []
         self.edge_glyph_position = 0.6
 
@@ -4240,7 +4239,7 @@ class DirectedGraph(Assembly):
         self.nodes.append(v)
         if label == "id":
             label = int(v)
-        self._nodeLabels.append(str(label))
+        self._node_labels.append(str(label))
         return v
 
     def add_edge(self, v1, v2, label=""):
@@ -4256,10 +4255,10 @@ class DirectedGraph(Assembly):
                 self.add_node()
         e = self.mdg.AddEdge(v1, v2)
         self.edges.append(e)
-        self._edgeLabels.append(str(label))
+        self._edge_labels.append(str(label))
         return e
 
-    def add_child(self, v, nodeLabel="id", edgeLabel=""):
+    def add_child(self, v, node_label="id", edge_label=""):
         """Add a new edge to a new node as its child.
         The extra node is created automatically if needed."""
         nv = len(self.nodes)
@@ -4269,10 +4268,10 @@ class DirectedGraph(Assembly):
         child = self.mdg.AddChild(v)
         self.edges.append((v, child))
         self.nodes.append(child)
-        if nodeLabel == "id":
-            nodeLabel = int(child)
-        self._nodeLabels.append(str(nodeLabel))
-        self._edgeLabels.append(str(edgeLabel))
+        if node_label == "id":
+            node_label = int(child)
+        self._node_labels.append(str(node_label))
+        self._edge_labels.append(str(edge_label))
         return child
 
     def build(self):
@@ -4284,13 +4283,13 @@ class DirectedGraph(Assembly):
         self.gl.SetInputData(self.mdg)
         self.gl.Update()
 
-        graphToPolyData = vtk.vtkGraphToPolyData()
-        graphToPolyData.EdgeGlyphOutputOn()
-        graphToPolyData.SetEdgeGlyphPosition(self.edge_glyph_position)
-        graphToPolyData.SetInputData(self.gl.GetOutput())
-        graphToPolyData.Update()
+        gr2poly = vtk.vtkGraphToPolyData()
+        gr2poly.EdgeGlyphOutputOn()
+        gr2poly.SetEdgeGlyphPosition(self.edge_glyph_position)
+        gr2poly.SetInputData(self.gl.GetOutput())
+        gr2poly.Update()
 
-        dgraph = Mesh(graphToPolyData.GetOutput(0))
+        dgraph = Mesh(gr2poly.GetOutput(0))
         # dgraph.clean() # WRONG!!! dont uncomment
         dgraph.flat().color(self._c).lw(2)
         dgraph.name = "DirectedGraph"
@@ -4307,21 +4306,21 @@ class DirectedGraph(Assembly):
         if self.rotZ:
             dgraph.rotate_z(self.rotZ)
 
-        vecs = graphToPolyData.GetOutput(1).GetPointData().GetVectors()
+        vecs = gr2poly.GetOutput(1).GetPointData().GetVectors()
         self.edge_orientations = utils.vtk2numpy(vecs)
 
         # Use Glyph3D to repeat the glyph on all edges.
         arrows = None
         if self.arrow_scale:
-            arrowSource = vtk.vtkGlyphSource2D()
-            arrowSource.SetGlyphTypeToEdgeArrow()
-            arrowSource.SetScale(self.arrow_scale)
-            arrowSource.Update()
-            arrowGlyph = vtk.vtkGlyph3D()
-            arrowGlyph.SetInputData(0, graphToPolyData.GetOutput(1))
-            arrowGlyph.SetInputData(1, arrowSource.GetOutput())
-            arrowGlyph.Update()
-            arrows = Mesh(arrowGlyph.GetOutput())
+            arrow_source = vtk.vtkGlyphSource2D()
+            arrow_source.SetGlyphTypeToEdgeArrow()
+            arrow_source.SetScale(self.arrow_scale)
+            arrow_source.Update()
+            arrow_glyph = vtk.vtkGlyph3D()
+            arrow_glyph.SetInputData(0, gr2poly.GetOutput(1))
+            arrow_glyph.SetInputData(1, arrow_source.GetOutput())
+            arrow_glyph.Update()
+            arrows = Mesh(arrow_glyph.GetOutput())
             arrows.SetScale(1 / diagsz)
             arrows.lighting("off").color(self._c)
             if self.rotX:
@@ -4332,26 +4331,26 @@ class DirectedGraph(Assembly):
                 arrows.rotate_z(self.rotZ)
             arrows.name = "DirectedGraphArrows"
 
-        nodeLabels = dgraph.labels(
-            self._nodeLabels,
+        node_labels = dgraph.labels(
+            self._node_labels,
             scale=self.node_label_scale,
             precision=0,
             font=self.font,
             justify=self.node_label_justify,
         )
-        nodeLabels.color(self._c).pickable(True)
-        nodeLabels.name = "DirectedGraphNodeLabels"
+        node_labels.color(self._c).pickable(True)
+        node_labels.name = "DirectedGraphNodeLabels"
 
-        edgeLabels = dgraph.labels(
-            self._edgeLabels,
+        edge_labels = dgraph.labels(
+            self._edge_labels,
             on="cells",
             scale=self.edge_label_scale,
             precision=0,
             font=self.font,
         )
-        edgeLabels.color(self._c).pickable(True)
-        edgeLabels.name = "DirectedGraphEdgeLabels"
+        edge_labels.color(self._c).pickable(True)
+        edge_labels.name = "DirectedGraphEdgeLabels"
 
-        Assembly.__init__(self, [dgraph, nodeLabels, edgeLabels, arrows])
+        Assembly.__init__(self, [dgraph, node_labels, edge_labels, arrows])
         self.name = "DirectedGraphAssembly"
         return self

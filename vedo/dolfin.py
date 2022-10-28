@@ -668,7 +668,7 @@ def plot(*inputobj, **options):
     # if vedo.plotter_instance:
     #     for a2 in vedo.collectable_actors:
     #         if isinstance(a2, vtk.vtkCornerAnnotation):
-    #             if 0 in a2.renderedAt: # remove old message
+    #             if 0 in a2.rendered_at: # remove old message
     #                 vedo.plotter_instance.remove(a2)
     #                 break
 

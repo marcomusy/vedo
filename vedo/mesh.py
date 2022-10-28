@@ -115,14 +115,6 @@ class Mesh(Points):
                 vedo.settings.polygon_offset_units,
             )
             self._mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
-            # self._mapper.SetRelativeCoincidentTopologyPolygonOffsetParameters(pof, pou)
-            # self._mapper.SetRelativeCoincidentTopologyLineOffsetParameters(pof, pou)
-
-            # a = vtk.reference(0)
-            # b = vtk.reference(0)
-            # mapper.GetResolveCoincidentTopologyPolygonOffsetParameters(a,b)
-            # mapper.GetRelativeCoincidentTopologyPolygonOffsetParameters(a,b)
-            # print(a,b)
 
         inputtype = str(type(inputobj))
 
@@ -783,13 +775,13 @@ class Mesh(Points):
 
     def is_closed(self):
         """Return ``True`` if mesh is watertight."""
-        featureEdges = vtk.vtkFeatureEdges()
-        featureEdges.BoundaryEdgesOn()
-        featureEdges.FeatureEdgesOff()
-        featureEdges.NonManifoldEdgesOn()
-        featureEdges.SetInputData(self.polydata(False))
-        featureEdges.Update()
-        ne = featureEdges.GetOutput().GetNumberOfCells()
+        fe = vtk.vtkFeatureEdges()
+        fe.BoundaryEdgesOn()
+        fe.FeatureEdgesOff()
+        fe.NonManifoldEdgesOn()
+        fe.SetInputData(self.polydata(False))
+        fe.Update()
+        ne = fe.GetOutput().GetNumberOfCells()
         return not bool(ne)
 
     def shrink(self, fraction=0.85):
@@ -1250,7 +1242,7 @@ class Mesh(Points):
         This new mesh is accessible through `mesh.shadow`.
         By default the shadow mesh is placed on the bottom wall of the bounding box.
 
-        See also ``pointcloud.projectOnPlane``.
+        See also ``pointcloud.project_on_plane``.
 
         Parameters
         ----------
@@ -1276,7 +1268,7 @@ class Mesh(Points):
         shad.name = "Shadow"
         pts = shad.points()
         if "x" == plane:
-            # shad = shad.projectOnPlane('x')
+            # shad = shad.project_on_plane('x')
             # instead do it manually so in case of alpha<1 we dont see glitches due to coplanar points
             # we leave a small tolerance of 0.1% in thickness
             x0, x1 = self.xbounds()
@@ -1284,19 +1276,19 @@ class Mesh(Points):
             shad.points(pts)
             shad.x(point)
         elif "y" == plane:
-            # shad = shad.projectOnPlane('y')
+            # shad = shad.project_on_plane('y')
             x0, x1 = self.ybounds()
             pts[:, 1] = (pts[:, 1] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[1]
             shad.points(pts)
             shad.y(point)
         elif "z" == plane:
-            # shad = shad.projectOnPlane('z')
+            # shad = shad.project_on_plane('z')
             x0, x1 = self.zbounds()
             pts[:, 2] = (pts[:, 2] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[2]
             shad.points(pts)
             shad.z(point)
         else:
-            shad = shad.projectOnPlane(plane, point, direction)
+            shad = shad.project_on_plane(plane, point, direction)
 
         shad.c(c).alpha(alpha).flat()
 
@@ -1430,7 +1422,7 @@ class Mesh(Points):
 
             self.points(newpts)
             self.clean()
-        self.compute_normals()  # .flat()
+        self.compute_normals()
         return self
 
 
@@ -1464,18 +1456,18 @@ class Mesh(Points):
         cl = vtk.vtkCleanPolyData()
         cl.SetInputData(poly)
         cl.Update()
-        smoothFilter = vtk.vtkWindowedSincPolyDataFilter()
-        smoothFilter.SetInputData(cl.GetOutput())
-        smoothFilter.SetNumberOfIterations(niter)
-        smoothFilter.SetEdgeAngle(edge_angle)
-        smoothFilter.SetFeatureAngle(feature_angle)
-        smoothFilter.SetPassBand(pass_band)
-        smoothFilter.NormalizeCoordinatesOn()
-        smoothFilter.NonManifoldSmoothingOn()
-        smoothFilter.FeatureEdgeSmoothingOn()
-        smoothFilter.SetBoundarySmoothing(boundary)
-        smoothFilter.Update()
-        return self._update(smoothFilter.GetOutput())
+        smf = vtk.vtkWindowedSincPolyDataFilter()
+        smf.SetInputData(cl.GetOutput())
+        smf.SetNumberOfIterations(niter)
+        smf.SetEdgeAngle(edge_angle)
+        smf.SetFeatureAngle(feature_angle)
+        smf.SetPassBand(pass_band)
+        smf.NormalizeCoordinatesOn()
+        smf.NonManifoldSmoothingOn()
+        smf.FeatureEdgeSmoothingOn()
+        smf.SetBoundarySmoothing(boundary)
+        smf.Update()
+        return self._update(smf.GetOutput())
 
     @deprecated(reason=vedo.colors.red + "Please use fill_holes()" + vedo.colors.reset)
     def fillHoles(self, size=None):
@@ -1724,12 +1716,12 @@ class Mesh(Points):
         if return_ids:
             return rids
 
-        selectionNode = vtk.vtkSelectionNode()
-        selectionNode.SetFieldType(vtk.vtkSelectionNode.CELL)
-        selectionNode.SetContentType(vtk.vtkSelectionNode.INDICES)
-        selectionNode.SetSelectionList(ids)
+        selection_node = vtk.vtkSelectionNode()
+        selection_node.SetFieldType(vtk.vtkSelectionNode.CELL)
+        selection_node.SetContentType(vtk.vtkSelectionNode.INDICES)
+        selection_node.SetSelectionList(ids)
         selection = vtk.vtkSelection()
-        selection.AddNode(selectionNode)
+        selection.AddNode(selection_node)
         extractSelection = vtk.vtkExtractSelection()
         extractSelection.SetInputData(0, dpoly)
         extractSelection.SetInputData(1, selection)
@@ -2071,13 +2063,11 @@ class Mesh(Points):
 
         a = Mesh(cf.GetOutput())
         alist = []
-
         for t in range(max(a.pointdata["RegionId"]) + 1):
             if t == maxdepth:
                 break
             suba = a.clone().threshold("RegionId", t - 0.1, t + 0.1)
             area = suba.area()
-            # print('splitByConnectivity  piece:', t, ' area:', area, ' N:',suba.npoints)
             alist.append([suba, area])
 
         alist.sort(key=lambda x: x[1])
@@ -2140,10 +2130,10 @@ class Mesh(Points):
         bf.SetInputData(0, poly1)
         bf.SetInputData(1, poly2)
         bf.Update()
-        mesh = Mesh(bf.GetOutput(), c=None)
-        mesh.flat()
-        mesh.name = self.name + operation + mesh2.name
-        return mesh
+        msh = Mesh(bf.GetOutput(), c=None)
+        msh.flat()
+        msh.name = self.name + operation + mesh2.name
+        return msh
 
     @deprecated(reason=vedo.colors.red + "Please use intersect_with()" + vedo.colors.reset)
     def intersectWith(self, mesh2, tol=1e-06):
@@ -2171,10 +2161,10 @@ class Mesh(Points):
         bf.SetInputData(0, poly1)
         bf.SetInputData(1, poly2)
         bf.Update()
-        mesh = Mesh(bf.GetOutput(), "k", 1).lighting("off")
-        mesh.GetProperty().SetLineWidth(3)
-        mesh.name = "surfaceIntersection"
-        return mesh
+        msh = Mesh(bf.GetOutput(), "k", 1).lighting("off")
+        msh.GetProperty().SetLineWidth(3)
+        msh.name = "surfaceIntersection"
+        return msh
 
     def geodesic(self, start, end):
         """
@@ -2421,7 +2411,7 @@ class Mesh(Points):
             ) + disp
 
         normals = surf.celldata["Normals"]
-        cc = surf.cellCenters()
+        cc = surf.cell_centers()
         subpts = cc - normals * gap * 1.05
         pts = pts.tolist() + subpts.tolist()
 
@@ -2439,10 +2429,10 @@ class Mesh(Points):
             surf.subsample(side)
 
         tmesh = vedo.tetmesh.delaunay3d(vedo.merge(fillpts, surf))
-        tcenters = tmesh.cellCenters()
+        tcenters = tmesh.cell_centers()
 
         ids = surf.inside_points(tcenters, return_ids=True)
-        ins = np.zeros(tmesh.NCells())
+        ins = np.zeros(tmesh.ncells)
         ins[ids] = 1
 
         if debug:
@@ -2460,8 +2450,7 @@ class Mesh(Points):
                         fillpts,
                         Points(subpts).c("r4").ps(3),
                     ],
-                    [   histo,
-                        f"Edges mean length: {np.mean(elen)}\n\nPress q to continue",
+                    [   f"Edges mean length: {np.mean(elen)}\n\nPress q to continue", histo
                     ],
                 ],
                 N=2,
@@ -2475,5 +2464,5 @@ class Mesh(Points):
         tmesh.celldata.remove("inside")
 
         if debug:
-            print(f".. tetralize() completed, ntets = {tmesh.NCells()}")
+            print(f".. tetralize() completed, ntets = {tmesh.ncells}")
         return tmesh

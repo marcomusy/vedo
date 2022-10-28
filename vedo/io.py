@@ -480,9 +480,7 @@ def download(url, force=False, verbose=True):
         basename = basename.split("?")[0]
 
     tmp_file = NamedTemporaryFile(delete=False)
-    tmp_file.name = os.path.join(
-        os.path.dirname(tmp_file.name), os.path.basename(basename)
-    )
+    tmp_file.name = os.path.join(os.path.dirname(tmp_file.name), os.path.basename(basename))
 
     if not force and os.path.exists(tmp_file.name):
         if verbose:
@@ -503,8 +501,7 @@ def download(url, force=False, verbose=True):
         urlopen = lambda url_: contextlib.closing(urllib2.urlopen(url_))
         req = url
         if verbose:
-            colors.printc('reading', basename, 'from',
-                          url.split('/')[2][:40],'...', end='')
+            colors.printc('reading', basename, 'from', url.split('/')[2][:40],'...', end='')
 
     with urlopen(req) as response, open(tmp_file.name, "wb") as output:
         output.write(response.read())
@@ -734,11 +731,6 @@ def loadNeutral(filename):
     for i in range(ncoords + 2, ncoords + ntets + 2):
         text = lines[i].split()
         v0, v1, v2, v3 = int(text[1])-1, int(text[2])-1, int(text[3])-1, int(text[4])-1
-#        p0, p1, p2, p3 = np.array(coords[v1]), np.array(coords[v0]), coords[v3], coords[v2]
-#        d10 = p1-p0
-#        d21 = p2-p1
-#        dc = np.cross(d10, d21)
-#        print(np.dot(dc,p3-p0))
         idolf_tets.append([v0, v1, v2, v3])
 
     poly = utils.buildPolyData(coords, idolf_tets)
@@ -815,7 +807,7 @@ def tonumpy(obj):
         adict["filename"] = obj.filename
         adict["name"] = obj.name
         adict["time"] = obj.time()
-        adict["rendered_at"] = obj.renderedAt
+        adict["rendered_at"] = obj.rendered_at
         adict["position"] = obj.pos()
         adict["info"] = obj.info
         m = np.eye(4)
@@ -836,7 +828,7 @@ def tonumpy(obj):
 
         adict["points"] = obj.points(transformed=False).astype(np.float32)
         poly = obj.polydata()
-        adict["flagText"] = obj.flagText
+        adict["flag_text"] = obj.flag_text
 
         adict["cells"] = None
         if poly.GetNumberOfPolys():
@@ -903,10 +895,10 @@ def tonumpy(obj):
         adict["specularcolor"] = prp.GetSpecularColor()
         adict["shading"] = prp.GetInterpolation()  # flat phong..:
         adict["color"] = prp.GetColor()
-        adict["lightingIsOn"] = prp.GetLighting()
-        adict["backColor"] = None
+        adict["lighting_is_on"] = prp.GetLighting()
+        adict["backcolor"] = None
         if obj.GetBackfaceProperty():
-            adict["backColor"] = obj.GetBackfaceProperty().GetColor()
+            adict["backcolor"] = obj.GetBackfaceProperty().GetColor()
 
         adict["scalarvisibility"] = obj.mapper().GetScalarVisibility()
         adict["texture"] = None
@@ -964,7 +956,7 @@ def tonumpy(obj):
     ######################################################## Text2D
     elif isinstance(obj, vedo.Text2D):
         adict["type"] = "Text2D"
-        adict["rendered_at"] = obj.renderedAt
+        adict["rendered_at"] = obj.rendered_at
         adict["text"] = obj.text()
         adict["position"] = obj.GetPosition()
         adict["color"] = obj.property.GetColor()
@@ -984,7 +976,6 @@ def tonumpy(obj):
 
 def loadnumpy(inobj):
     """Load a vedo format file or scene."""
-
     # make sure the numpy file is not containing a scene
     if isinstance(inobj, str):  # user passing a file
 
@@ -1008,7 +999,7 @@ def loadnumpy(inobj):
         data = inobj
 
     ######################################################
-    def _loadcommon(obj, d):
+    def _load_common(obj, d):
         keys = d.keys()
         if 'time' in keys: obj.time(d['time'])
         if 'name' in keys: obj.name = d['name']
@@ -1042,7 +1033,7 @@ def loadnumpy(inobj):
 
         poly = utils.buildPolyData(vertices, cells, lines)
         msh = Mesh(poly)
-        _loadcommon(msh, d)
+        _load_common(msh, d)
 
         prp = msh.GetProperty()
         if 'ambient' in keys:        prp.SetAmbient(d['ambient'])
@@ -1050,7 +1041,7 @@ def loadnumpy(inobj):
         if 'specular' in keys:       prp.SetSpecular(d['specular'])
         if 'specularpower' in keys:  prp.SetSpecularPower(d['specularpower'])
         if 'specularcolor' in keys:  prp.SetSpecularColor(d['specularcolor'])
-        if 'lightingIsOn' in keys:   prp.SetLighting(d['lightingIsOn'])
+        if 'lighting_is_on' in keys:   prp.SetLighting(d['lighting_is_on'])
         if 'shading' in keys:        prp.SetInterpolation(d['shading'])
         if 'alpha' in keys:          prp.SetOpacity(d['alpha'])
         if 'opacity' in keys:        prp.SetOpacity(d['opacity']) # synonym
@@ -1062,10 +1053,10 @@ def loadnumpy(inobj):
 
         if 'color' in keys and d['color'] is not None:
             msh.color(d['color'])
-        if 'backColor' in keys and d['backColor'] is not None:
-            msh.backColor(d['backColor'])
+        if 'backcolor' in keys and d['backcolor'] is not None:
+            msh.backcolor(d['backcolor'])
 
-        if 'flagText' in keys and d['flagText']:   msh.flag(d['flagText'])
+        if 'flag_text' in keys and d['flag_text']:   msh.flag(d['flag_text'])
 
         if "celldata" in keys:
             for csc, cscname in d["celldata"]:
@@ -1127,26 +1118,26 @@ def loadnumpy(inobj):
             for ad in d["actors"]:
                 assacts.append(_buildmesh(ad))
             asse = Assembly(assacts)
-            _loadcommon(asse, d)
+            _load_common(asse, d)
             objs.append(asse)
 
         ### Volume
         elif "volume" == d["type"].lower():
             vol = Volume(d["array"])
-            _loadcommon(vol, d)
+            _load_common(vol, d)
             if "jittering" in d.keys():
                 vol.jittering(d["jittering"])
             # print(d['mode'])
             vol.mode(d["mode"])
             vol.color(d["color"])
             vol.alpha(d["alpha"])
-            vol.alphaGradient(d["alphagrad"])
+            vol.alpha_gradient(d["alphagrad"])
             objs.append(vol)
 
         ### Picture
         elif "picture" == d["type"].lower():
             vimg = Picture(d["array"])
-            _loadcommon(vimg, d)
+            _load_common(vimg, d)
             objs.append(vimg)
 
         ### Text2D
@@ -1207,20 +1198,17 @@ def loadImageData(filename):
 
 
 ###########################################################
-def write(objct, fileoutput, binary=True):
+def write(obj, fileoutput, binary=True):
     """
-    Write 3D object to file. (same as `save()`).
+    Write object to file.
 
     Possile extensions are:
         - vtk, vti, npy, npz, ply, obj, stl, byu, vtp, vti, mhd, xyz, tif, png, bmp.
     """
-    obj = objct
     if isinstance(obj, Points):  # picks transformation
-        obj = objct.polydata(True)
+        obj = obj.polydata(True)
     elif isinstance(obj, (vtk.vtkActor, vtk.vtkVolume)):
-        obj = objct.GetMapper().GetInput()
-    elif isinstance(obj, (vtk.vtkPolyData, vtk.vtkImageData)):
-        obj = objct
+        obj = obj.GetMapper().GetInput()
 
     if hasattr(obj, "filename"):
         obj.filename = fileoutput
@@ -1231,7 +1219,7 @@ def write(objct, fileoutput, binary=True):
     elif fr.endswith(".ply"):
         writer = vtk.vtkPLYWriter()
         writer.AddComment("PLY file generated by vedo")
-        lut = objct.GetMapper().GetLookupTable()
+        lut = obj.GetMapper().GetLookupTable()
         if lut:
             pscal = obj.GetPointData().GetScalars()
             if not pscal:
@@ -1247,13 +1235,10 @@ def write(objct, fileoutput, binary=True):
         writer = vtk.vtkXMLUnstructuredGridWriter()
     elif fr.endswith(".vtm"):
         g = vtk.vtkMultiBlockDataGroupFilter()
-        for ob in objct:
+        for ob in obj:
             if isinstance(ob, (Points, Volume)):  # picks transformation
                 ob = ob.polydata(True)
                 g.AddInputData(ob)
-            # elif isinstance(ob, (vtk.vtkActor, vtk.vtkVolume)):
-            #     ob = ob.GetMapper().GetInput()
-            #     g.AddInputData(ob)
         g.Update()
         mb = g.GetOutputDataObject(0)
         wri = vtk.vtkXMLMultiBlockDataWriter()
@@ -1279,13 +1264,12 @@ def write(objct, fileoutput, binary=True):
         writer = vtk.vtkBMPWriter()
     elif fr.endswith(".tif") or fr.endswith(".tiff"):
         writer = vtk.vtkTIFFWriter()
-        # print("GetCompression ", writer.GetCompression()) # basically uncompressed..
         writer.SetFileDimensionality(len(obj.GetDimensions()))
     elif fr.endswith(".npy") or fr.endswith(".npz"):
-        if utils.is_sequence(objct):
-            objslist = objct
+        if utils.is_sequence(obj):
+            objslist = obj
         else:
-            objslist = [objct]
+            objslist = [obj]
         dicts2save = []
         for obj in objslist:
             dicts2save.append(tonumpy(obj))
@@ -1297,16 +1281,16 @@ def write(objct, fileoutput, binary=True):
             outF.write("# OBJ file format with ext .obj\n")
             outF.write("# File generated by vedo\n")
 
-            for p in objct.points():
+            for p in obj.points():
                 outF.write("v {:.5g} {:.5g} {:.5g}\n".format(*p))
 
-            ptxt = objct.polydata().GetPointData().GetTCoords()
+            ptxt = obj.polydata().GetPointData().GetTCoords()
             if ptxt:
                 ntxt = utils.vtk2numpy(ptxt)
                 for vt in ntxt:
                     outF.write('vt '+ str(vt[0]) +" "+ str(vt[1])+ ' 0.0\n')
 
-            for i, f in enumerate(objct.faces()):
+            for i, f in enumerate(obj.faces()):
                 fs = ""
                 for fi in f:
                     if ptxt:
@@ -1315,18 +1299,18 @@ def write(objct, fileoutput, binary=True):
                         fs += f" {fi+1}"
                 outF.write(f"f{fs}\n")
 
-            for l in objct.lines():
+            for l in obj.lines():
                 ls = ""
                 for li in l:
                     ls += str(li + 1) + " "
                 outF.write(f"l {ls}\n")
 
-        return objct
+        return obj
 
 
     elif fr.endswith(".xml"):  # write tetrahedral dolfin xml
-        vertices = objct.points().astype(str)
-        faces = np.array(objct.faces()).astype(str)
+        vertices = obj.points().astype(str)
+        faces = np.array(obj.faces()).astype(str)
         ncoords = vertices.shape[0]
         with open(fileoutput, "w", encoding='UTF-8') as outF:
             outF.write('<?xml version="1.0" encoding="UTF-8"?>\n')
@@ -1362,11 +1346,11 @@ def write(objct, fileoutput, binary=True):
             outF.write("    </cells>\n")
             outF.write("  </mesh>\n")
             outF.write("</dolfin>\n")
-        return objct
+        return obj
 
     else:
         vedo.logger.error(f"Unknown format {fileoutput}, file not saved")
-        return objct
+        return obj
 
     try:
         if binary:
@@ -1382,7 +1366,7 @@ def write(objct, fileoutput, binary=True):
         writer.Write()
     except:
         vedo.logger.error(f"could not save {fileoutput}")
-    return objct
+    return obj
 
 
 def write_transform(inobj, filename="transform.mat", comment=""):
@@ -1412,11 +1396,12 @@ def write_transform(inobj, filename="transform.mat", comment=""):
         if comment:
             f.write("# " + comment + "\n")
         for i in range(4):
-            f.write( str(M.GetElement(i,0))+' '+
-                     str(M.GetElement(i,1))+' '+
-                     str(M.GetElement(i,2))+' '+
-                     str(M.GetElement(i,3))+'\n',
-                    )
+            f.write(
+                str(M.GetElement(i,0))+' '+
+                str(M.GetElement(i,1))+' '+
+                str(M.GetElement(i,2))+' '+
+                str(M.GetElement(i,3))+'\n',
+            )
         f.write('\n')
 
 
@@ -1942,19 +1927,19 @@ class Video:
             cm_focal_point = cm.pop("focal_point", None)
             cm_viewup = cm.pop("viewup", None)
             cm_distance = cm.pop("distance", None)
-            cm_clippingRange = cm.pop("clippingRange", None)
-            cm_parallelScale = cm.pop("parallelScale", None)
+            cm_clipping_range = cm.pop("clippingRange", None)
+            cm_parallel_scale = cm.pop("parallelScale", None)
             cm_thickness = cm.pop("thickness", None)
-            cm_viewAngle = cm.pop("viewAngle", None)
+            cm_view_angle = cm.pop("viewAngle", None)
             cm = vtk.vtkCamera()
             if cm_pos is not None: cm.SetPosition(cm_pos)
             if cm_focal_point is not None: cm.SetFocalPoint(cm_focal_point)
             if cm_viewup is not None: cm.SetViewUp(cm_viewup)
             if cm_distance is not None: cm.SetDistance(cm_distance)
-            if cm_clippingRange is not None: cm.SetClippingRange(cm_clippingRange)
-            if cm_parallelScale is not None: cm.SetParallelScale(cm_parallelScale)
+            if cm_clipping_range is not None: cm.SetClippingRange(cm_clipping_range)
+            if cm_parallel_scale is not None: cm.SetParallelScale(cm_parallel_scale)
             if cm_thickness is not None: cm.SetThickness(cm_thickness)
-            if cm_viewAngle is not None: cm.SetViewAngle(cm_viewAngle)
+            if cm_view_angle is not None: cm.SetViewAngle(cm_view_angle)
             return cm
 
         plt = vedo.plotter_instance

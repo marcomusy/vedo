@@ -168,9 +168,9 @@ class Base3DProp:
         self.fileSize = ""
         self.created = ""
         self.trail = None
-        self.trailPoints = []
-        self.trailSegmentSize = 0
-        self.trailOffset = None
+        self.trail_points = []
+        self.trail_segment_size = 0
+        self.trail_offset = None
         self.shadows = []
         self.axes = None
         self.picked3d = None
@@ -179,7 +179,7 @@ class Base3DProp:
         self.base = np.array([0, 0, 0])
         self.info = {}
         self._time = 0
-        self.renderedAt = set()
+        self.rendered_at = set()
         self.transform = None
         self._set2actcam = False  # used by mesh.followCamera()
 
@@ -187,7 +187,7 @@ class Base3DProp:
         self.cell_locator = None
 
         self.scalarbar = None
-        self.flagText = None
+        self.flag_text = None
 
     def address(self):
         """

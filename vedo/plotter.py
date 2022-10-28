@@ -496,8 +496,8 @@ class Plotter:
         self.sliders = []
         self.buttons = []
         self.widgets = []
-        self.cutterWidget = None
-        self.flagWidget = None
+        self.cutter_widget = None
+        self.flag_widget = None
         self._flagRep = None
         self.scalarbars = []
         self.background_renderer = None
@@ -944,14 +944,14 @@ class Plotter:
         for a in set(actors_r):
             if ren:
                 ren.RemoveActor(a)
-                if hasattr(a, "renderedAt"):
+                if hasattr(a, "rendered_at"):
                     ir = self.renderers.index(ren)
-                    a.renderedAt.discard(ir)
+                    a.rendered_at.discard(ir)
                 if hasattr(a, "scalarbar") and a.scalarbar:
                     ren.RemoveActor(a.scalarbar)
                 if hasattr(a, "trail") and a.trail:
                     ren.RemoveActor(a.trail)
-                    a.trailPoints = []
+                    a.trail_points = []
             if a in self.actors:
                 i = self.actors.index(a)
                 del self.actors[i]
@@ -2536,7 +2536,7 @@ class Plotter:
                     if not ugrid.GetPointData().GetScalars():
                         if not ugrid.GetCellData().GetScalars():
                             # add dummy array for vtkProjectedTetrahedraMapper to work:
-                            a.addCellArray(np.ones(a.NCells()), "DummyOneArray")
+                            a.addCellArray(np.ones(a.ncells), "DummyOneArray")
                     scannedacts.append(a)
 
             elif isinstance(a, vedo.UGrid):
@@ -2856,7 +2856,7 @@ class Plotter:
                 if ia._set2actcam:
                     ia.SetCamera(self.camera)  # used by mesh.followCamera()
 
-                ia.renderedAt.add(at)  # set.add()
+                ia.rendered_at.add(at)  # set.add()
 
                 if ia.scalarbar:
                     self.renderer.AddActor(ia.scalarbar)
@@ -2871,46 +2871,6 @@ class Plotter:
                             ia.scalarbar.GetTitleTextProperty().SetColor(c)
                     if ia.scalarbar not in self.scalarbars:
                         self.scalarbars.append(ia.scalarbar)
-
-                if (self.interactor
-                    and not self.offscreen
-                    and not (vedo.vtk_version[0] == 9 and "Linux" in vedo.sys_platform)  # Linux vtk9 is bugged
-                    ):
-                    #check balloons
-                    try:
-                        if ia.flagText:
-                            if not self.flagWidget:  # Create widget on the fly
-                                self._flagRep = vtk.vtkBalloonRepresentation()
-                                self._flagRep.SetBalloonLayoutToImageRight()
-                                breppr = self._flagRep.GetTextProperty()
-                                breppr.SetFontFamily(vtk.VTK_FONT_FILE)
-                                breppr.SetFontFile(utils.get_font_path(settings.flag_font))
-                                breppr.SetFontSize(settings.flag_font_size)
-                                breppr.SetColor(vedo.get_color(settings.flag_color))
-                                breppr.SetBackgroundColor(vedo.get_color(settings.flag_background_color))
-                                breppr.SetShadow(settings.flag_shadow)
-                                breppr.SetJustification(settings.flag_justification)
-                                breppr.UseTightBoundingBoxOn()
-                                if settings.flag_angle:
-                                    breppr.SetOrientation(settings.flag_angle)
-                                    breppr.SetBackgroundOpacity(0)
-                                self.flagWidget = vtk.vtkBalloonWidget()
-                                self.flagWidget.SetTimerDuration(settings.flag_delay)
-                                self.flagWidget.ManagesCursorOff()
-                                self.flagWidget.SetRepresentation(self._flagRep)
-                                self.flagWidget.SetInteractor(self.interactor)
-                                self.widgets.append(self.flagWidget)
-                            bst = self.flagWidget.GetBalloonString(ia)
-                            if bst:
-                                if bst != ia.flagText:
-                                    self.flagWidget.UpdateBalloonString(ia, ia.flagText)
-                            else:
-                                self.flagWidget.AddBalloon(ia, ia.flagText)
-
-                        if ia.flagText is False and self.flagWidget:
-                            self.flagWidget.RemoveBalloon(ia)
-                    except:
-                        pass
 
         if interactive is not None:
             self._interactive = interactive
@@ -2949,9 +2909,6 @@ class Plotter:
 
         if len(self.renderers) > 1:
             self.frames = self.add_renderer_frame()
-
-        if self.flagWidget:
-            self.flagWidget.EnabledOn()
 
         if zoom:
             if zoom == "tight":
@@ -3016,6 +2973,53 @@ class Plotter:
         if vedo.notebook_backend == "2d":
             return backends.get_notebook_backend(0, 0, 0)
         #########################################################################
+
+        if (self.interactor
+            and not self.offscreen
+            and not (vedo.vtk_version[0] == 9 and "Linux" in vedo.sys_platform)  # Linux vtk9 is bugged
+            ):
+            #check balloons
+            try:
+                if hasattr(ia, "flag_text"):
+                    if ia.flag_text:
+                        print("ia.flag_text", ia.flag_text)
+                        # 'Text2D' object has no attribute 'flag_text'
+                        if not self.flag_widget:  # Create widget on the fly
+                            self._flagRep = vtk.vtkBalloonRepresentation()
+                            self._flagRep.SetBalloonLayoutToImageRight()
+                            breppr = self._flagRep.GetTextProperty()
+                            breppr.SetFontFamily(vtk.VTK_FONT_FILE)
+                            breppr.SetFontFile(utils.get_font_path(settings.flag_font))
+                            breppr.SetFontSize(settings.flag_font_size)
+                            breppr.SetColor(vedo.get_color(settings.flag_color))
+                            breppr.SetBackgroundColor(vedo.get_color(settings.flag_background_color))
+                            breppr.SetShadow(settings.flag_shadow)
+                            breppr.SetJustification(settings.flag_justification)
+                            breppr.UseTightBoundingBoxOn()
+                            if settings.flag_angle:
+                                breppr.SetOrientation(settings.flag_angle)
+                                breppr.SetBackgroundOpacity(0)
+                            self.flag_widget = vtk.vtkBalloonWidget()
+                            self.flag_widget.SetTimerDuration(settings.flag_delay)
+                            self.flag_widget.ManagesCursorOff()
+                            self.flag_widget.SetRepresentation(self._flagRep)
+                            self.flag_widget.SetInteractor(self.interactor)
+                            self.widgets.append(self.flag_widget)
+                        bst = self.flag_widget.GetBalloonString(ia)
+                        if bst:
+                            if bst != ia.flag_text:
+                                self.flag_widget.UpdateBalloonString(ia, ia.flag_text)
+                        else:
+                            self.flag_widget.AddBalloon(ia, ia.flag_text)
+
+                    if ia.flag_text is False and self.flag_widget:
+                        self.flag_widget.RemoveBalloon(ia)
+
+                if self.flag_widget:
+                    self.flag_widget.EnabledOn()
+
+            except AttributeError:
+                pass
 
         if self.interactor:  # can be offscreen..
 
@@ -3201,9 +3205,9 @@ class Plotter:
         self.background_renderer = None
         self._first_viewup = True
         self._extralight = None
-        self.flagWidget = None
+        self.flag_widget = None
         self._flagRep = None
-        self.cutterWidget = None
+        self.cutter_widget = None
 
         for r in self.renderers:
             r.RemoveAllObservers()
@@ -3962,7 +3966,7 @@ class Plotter:
 
         elif key == "X":
             if self.clicked_actor:
-                if not self.cutterWidget:
+                if not self.cutter_widget:
                     addons.add_cutter_tool(self.clicked_actor)
                 else:
                     if isinstance(self.clicked_actor, vtk.vtkActor):
@@ -3972,8 +3976,8 @@ class Plotter:
                         w.SetFileName(fname)
                         w.Write()
                         vedo.printc(r"\save Saved file:", fname, c="m")
-                        self.cutterWidget.Off()
-                        self.cutterWidget = None
+                        self.cutter_widget.Off()
+                        self.cutter_widget = None
             else:
                 for a in self.actors:
                     if isinstance(a, vtk.vtkVolume):

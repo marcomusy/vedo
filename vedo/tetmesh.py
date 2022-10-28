@@ -68,10 +68,10 @@ def _buildtetugrid(points, cells):
                 tets.append(cell)
         cells = tets
 
-    sourcePoints = vtk.vtkPoints()
+    source_points = vtk.vtkPoints()
     varr = utils.numpy2vtk(points, dtype=float)
-    sourcePoints.SetData(varr)
-    ug.SetPoints(sourcePoints)
+    source_points.SetData(varr)
+    ug.SetPoints(source_points)
 
     sourceTets = vtk.vtkCellArray()
     for f in cells:

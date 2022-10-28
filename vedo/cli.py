@@ -157,6 +157,7 @@ def system_info():
 
     try:
         from screeninfo import get_monitors
+
         for m in get_monitors():
             pr = "         "
             if m.is_primary:
@@ -167,21 +168,25 @@ def system_info():
 
     try:
         import k3d
+
         printc("k3d version       :", k3d.__version__, bold=0, dim=1)
     except ModuleNotFoundError:
         pass
     try:
         import ipyvtk_simple
+
         printc("ipyvtk version    :", ipyvtk_simple.__version__, bold=0, dim=1)
     except ModuleNotFoundError:
         pass
     try:
         import itkwidgets
+
         printc("itkwidgets version:", itkwidgets.__version__, bold=0, dim=1)
     except ModuleNotFoundError:
         pass
     try:
         import panel
+
         printc("panel version     :", panel.__version__, bold=0, dim=1)
     except ModuleNotFoundError:
         pass
@@ -192,7 +197,11 @@ def exe_run(args):
     expath = os.path.join(vedo.installdir, "examples", "**", "*.py")
     exfiles = list(glob.glob(expath, recursive=True))
     f2search = os.path.basename(args.run).lower()
-    matching = [s for s in exfiles if (f2search in os.path.basename(s).lower() and "__" not in s)]
+    matching = [
+        s
+        for s in exfiles
+        if (f2search in os.path.basename(s).lower() and "__" not in s)
+    ]
     matching = list(sorted(matching))
     nmat = len(matching)
     if nmat == 0:
@@ -227,7 +236,7 @@ def exe_run(args):
         sys.exit(0)
 
     if not args.full_screen:  # -f option not to dump the full code
-        with open(matching[0], 'r', encoding='UTF-8') as fm:
+        with open(matching[0], "r", encoding="UTF-8") as fm:
             code = fm.read()
         code = "#" * 80 + "\n" + code + "\n" + "#" * 80
 
@@ -301,7 +310,7 @@ def exe_search(args):
         pattern = pattern.lower()
     if len(pattern) > 3:
         for ifile in exfiles:
-            with open(ifile, "r", encoding='UTF-8') as file:
+            with open(ifile, "r", encoding="UTF-8") as file:
                 fflag = True
                 for i, line in enumerate(file):
                     if args.no_camera_share:
@@ -367,7 +376,7 @@ def exe_search_vtk(args):
     # Force a new download if the time difference is > 10 minutes.
     if dt > 600:
         path = download_file(tmp_dir, xref_url, overwrite=True)
-    with open(path, 'r', encoding='UTF-8') as json_file:
+    with open(path, "r", encoding="UTF-8") as json_file:
         xref_dict = json.load(json_file)
 
     total_number, examples = get_examples(xref_dict, vtk_class, language)
@@ -493,7 +502,7 @@ def exe_eog(args):
             plt.add_hover_legend(at=i, c="k8", bg="k2", alpha=0.4)
             plt.show(p, axes=0, at=i, mode="image")
         plt.show(interactive=False)
-        plt.resetCamera(tight=0.05)
+        plt.reset_camera(tight=0.05)
         plt.interactor.Start()
 
     else:
@@ -507,11 +516,13 @@ def exe_eog(args):
             shape[0] = shape[0] / shape[1] * 1200
             shape[1] = 1200
 
-        plt = Plotter(title=files[0], size=shape, bg=args.background, bg2=args.background_grad)
-        plt.add_callback('key press', vfunc)
-        plt.add_hover_legend(c='k8', bg='k2', alpha=0.4)
-        plt.show(pic, mode='image',  interactive=False)
-        plt.resetCamera(tight=0.0)
+        plt = Plotter(
+            title=files[0], size=shape, bg=args.background, bg2=args.background_grad
+        )
+        plt.add_callback("key press", vfunc)
+        plt.add_hover_legend(c="k8", bg="k2", alpha=0.4)
+        plt.show(pic, mode="image", interactive=False)
+        plt.reset_camera(tight=0.0)
         plt.interactor.Start()
 
     plt.close()
@@ -767,9 +778,9 @@ def draw_scene(args):
                     plt.show(actor, at=i, interactive=False, zoom=args.zoom, mode=interactor_mode)
                     plt.actors = actors
                     # if args.no_camera_share: ## BUG
-                        # plt.resetCamera()
-                        # plt.renderers[i].ResetCameraClippingRange()
-                        # print([plt.camera])
+                    # plt.reset_camera()
+                    # plt.renderers[i].ResetCameraClippingRange()
+                    # print([plt.camera])
                 except AttributeError:
                     # wildcards in quotes make glob return actor as a list :(
                     vedo.logger.error("Please do not use wildcards within single or double quotes")
@@ -880,21 +891,21 @@ def exe_gui(args):
                 "plum",
                 "tomato",
             )
-            self.colorCB = Combobox(self, state="readonly", values=colvalues, width=10)
-            self.colorCB.current(0)
-            self.colorCB.place(x=100, y=98)
+            self.color_cb = Combobox(self, state="readonly", values=colvalues, width=10)
+            self.color_cb.current(0)
+            self.color_cb.place(x=100, y=98)
 
             # mode
             modvalues = ("surface", "surf. & edges", "wireframe", "point cloud")
-            self.surfmodeCB = Combobox(
+            self.surfmode_cb = Combobox(
                 self, state="readonly", values=modvalues, width=14
             )
-            self.surfmodeCB.current(0)
-            self.surfmodeCB.place(x=205, y=98)
+            self.surfmode_cb.current(0)
+            self.surfmode_cb.place(x=205, y=98)
 
             # alpha
             Label(self, text="Alpha:", bg="white").place(x=30, y=145)
-            self.alphaCB = Scale(
+            self.alpha_cb = Scale(
                 self,
                 from_=0,
                 to=1,
@@ -903,35 +914,48 @@ def exe_gui(args):
                 length=220,
                 orient="horizontal",
             )
-            self.alphaCB.set(1.0)
-            self.alphaCB.place(x=100, y=125)
+            self.alpha_cb.set(1.0)
+            self.alpha_cb.place(x=100, y=125)
 
             # lighting
             Label(self, text="Lighting:", bg="white").place(x=30, y=180)
-            lightvalues = ('default','metallic','plastic','shiny','glossy','off')
-            self.lightCB = Combobox(self, state="readonly", values=lightvalues, width=10)
-            self.lightCB.current(0)
-            self.lightCB.place(x=100, y=180)
+            lightvalues = ("default", "metallic", "plastic", "shiny", "glossy", "off")
+            self.light_cb = Combobox(
+                self, state="readonly", values=lightvalues, width=10
+            )
+            self.light_cb.current(0)
+            self.light_cb.place(x=100, y=180)
             # shading phong or flat
-            self.flatCB = Checkbutton(self, text="flat shading", var=self.flat, bg="white")
-            #self.flatCB.select()
-            self.flatCB.place(x=210, y=180)
+            self.flat_cb = Checkbutton(
+                self, text="flat shading", var=self.flat, bg="white"
+            )
+            # self.flat_cb.select()
+            self.flat_cb.place(x=210, y=180)
 
             # rendering arrangement
             Label(self, text="Arrange as:", bg="white").place(x=30, y=220)
-            schemevalues = ('superpose (default)','mesh browser', 'n sync-ed renderers')
-            self.schememodeCB = Combobox(self, state="readonly", values=schemevalues, width=20)
-            self.schememodeCB.current(0)
-            self.schememodeCB.place(x=160, y=220)
+            schemevalues = (
+                "superpose (default)",
+                "mesh browser",
+                "n sync-ed renderers",
+            )
+            self.schememode_cb = Combobox(
+                self, state="readonly", values=schemevalues, width=20
+            )
+            self.schememode_cb.current(0)
+            self.schememode_cb.place(x=160, y=220)
 
             # share cam
-            self.noshareCB = Checkbutton(self, text="independent cameras",
-                                         variable=self.noshare, bg="white")
-            self.noshareCB.place(x=160, y=245)
+            self.noshare_cb = Checkbutton(
+                self, text="independent cameras", variable=self.noshare, bg="white"
+            )
+            self.noshare_cb.place(x=160, y=245)
 
             ############volumes
             Frame(root, height=1, width=398, bg="grey").place(x=1, y=275)
-            Label(self, text="Volumes", fg="white", bg="blue", font=("Courier 11 bold")).place(x=20, y=280)
+            Label(
+                self, text="Volumes", fg="white", bg="blue", font=("Courier 11 bold")
+            ).place(x=20, y=280)
 
             # mode
             Label(self, text="Rendering mode:", bg="white").place(x=30, y=310)
@@ -943,20 +967,20 @@ def exe_gui(args):
                 "slicer2d",
                 "slicer3d",
             )
-            self.modeCB = Combobox(self, state="readonly", values=modevalues, width=20)
-            self.modeCB.current(0)
-            self.modeCB.place(x=160, y=310)
+            self.mode_cb = Combobox(self, state="readonly", values=modevalues, width=20)
+            self.mode_cb.current(0)
+            self.mode_cb.place(x=160, y=310)
 
             Label(self, text="Spacing factors:", bg="white").place(x=30, y=335)
-            self.xspacingCB = Entry(self, textvariable=self.xspacing, width=3)
+            self.xspacing_cb = Entry(self, textvariable=self.xspacing, width=3)
             self.xspacing.set("1.0")
-            self.xspacingCB.place(x=160, y=335)
-            self.yspacingCB = Entry(self, textvariable=self.yspacing, width=3)
+            self.xspacing_cb.place(x=160, y=335)
+            self.yspacing_cb = Entry(self, textvariable=self.yspacing, width=3)
             self.yspacing.set("1.0")
-            self.yspacingCB.place(x=210, y=335)
-            self.zspacingCB = Entry(self, textvariable=self.zspacing, width=3)
+            self.yspacing_cb.place(x=210, y=335)
+            self.zspacing_cb = Entry(self, textvariable=self.zspacing, width=3)
             self.zspacing.set("1.0")
-            self.zspacingCB.place(x=260, y=335)
+            self.zspacing_cb.place(x=260, y=335)
 
             ############## options
             Frame(root, height=1, width=398,bg="grey").place(x=1, y=370)
@@ -965,13 +989,14 @@ def exe_gui(args):
             # backgr color
             Label(self, text="Background color:", bg="white").place(x=30, y=405)
             bgcolvalues = ("white", "lightyellow", "azure", "blackboard", "black")
-            self.bgcolorCB = Combobox(self, state="readonly", values=bgcolvalues, width=9)
-            self.bgcolorCB.current(3)
-            self.bgcolorCB.place(x=160, y=405)
+            self.bgcolor_cb = Combobox(self, state="readonly", values=bgcolvalues, width=9)
+            self.bgcolor_cb.current(3)
+            self.bgcolor_cb.place(x=160, y=405)
             # backgr color gradient
-            self.backgroundGradCB = Checkbutton(self, text="gradient",
-                                                variable=self.background_grad, bg="white")
-            self.backgroundGradCB.place(x=255, y=405)
+            self.backgroundGrad_cb = Checkbutton(
+                self, text="gradient", variable=self.background_grad, bg="white"
+            )
+            self.backgroundGrad_cb.place(x=255, y=405)
 
             ################ render button
             Frame(root, height=1, width=398, bg="grey").place(x=1, y=437)
@@ -1018,37 +1043,37 @@ def exe_gui(args):
         def _run(self):
 
             args.files = list(self.filenames)
-            if self.colorCB.get() == "by scalar":
+            if self.color_cb.get() == "by scalar":
                 args.color = None
             else:
-                if self.colorCB.get() == "red":
+                if self.color_cb.get() == "red":
                     args.color = "crimson"
-                elif self.colorCB.get() == "green":
+                elif self.color_cb.get() == "green":
                     args.color = "limegreen"
-                elif self.colorCB.get() == "blue":
+                elif self.color_cb.get() == "blue":
                     args.color = "darkcyan"
                 else:
-                    args.color = self.colorCB.get()
+                    args.color = self.color_cb.get()
 
-            args.alpha = self.alphaCB.get()
+            args.alpha = self.alpha_cb.get()
 
             args.wireframe = False
             args.showedges = False
             args.point_size = 0
-            if self.surfmodeCB.get() == "point cloud":
+            if self.surfmode_cb.get() == "point cloud":
                 args.point_size = 2
-            elif self.surfmodeCB.get() == "wireframe":
+            elif self.surfmode_cb.get() == "wireframe":
                 args.wireframe = True
-            elif self.surfmodeCB.get() == "surf. & edges":
+            elif self.surfmode_cb.get() == "surf. & edges":
                 args.showedges = True
             else:
                 pass  # normal surface mode
 
-            args.lighting = self.lightCB.get()
+            args.lighting = self.light_cb.get()
             args.flat = self.flat.get()
 
             args.no_camera_share = self.noshare.get()
-            args.background = self.bgcolorCB.get()
+            args.background = self.bgcolor_cb.get()
 
             args.background_grad = None
             if self.background_grad.get():
@@ -1057,9 +1082,9 @@ def exe_gui(args):
 
             args.multirenderer_mode = False
             args.scrolling_mode = False
-            if self.schememodeCB.get() == "n sync-ed renderers":
+            if self.schememode_cb.get() == "n sync-ed renderers":
                 args.multirenderer_mode = True
-            elif self.schememodeCB.get() == "mesh browser":
+            elif self.schememode_cb.get() == "mesh browser":
                 args.scrolling_mode = True
 
             args.ray_cast_mode = False
@@ -1068,17 +1093,17 @@ def exe_gui(args):
             args.slicer2d = False
             args.lego = False
             args.mode = 0
-            if self.modeCB.get() == "composite":
+            if self.mode_cb.get() == "composite":
                 args.ray_cast_mode = True
                 args.mode = 0
-            elif self.modeCB.get() == "maximum proj":
+            elif self.mode_cb.get() == "maximum proj":
                 args.ray_cast_mode = True
                 args.mode = 1
-            elif self.modeCB.get() == "slicer3d":
+            elif self.mode_cb.get() == "slicer3d":
                 args.slicer3d = True
-            elif self.modeCB.get() == "slicer2d":
+            elif self.mode_cb.get() == "slicer2d":
                 args.slicer2d = True
-            elif self.modeCB.get() == "lego":
+            elif self.mode_cb.get() == "lego":
                 args.lego = True
 
             args.x_spacing = 1

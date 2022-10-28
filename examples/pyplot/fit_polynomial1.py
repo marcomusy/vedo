@@ -24,12 +24,12 @@ pfit = fit(
     nstd=2,         # nr. of std deviations to display
 )
 
-fig += [pfit, pfit.errorBand, *pfit.errorLines] # add these objects to fig
+fig += [pfit, pfit.error_band, *pfit.error_lines] # add these objects to fig
 
 msg = f"Generated a, b  : {np.array([a,b])}"\
       f"\nFitted    a, b  : {pfit.coefficients}"\
-      f"\nerrors on a, b  : {pfit.coefficientErrors}"\
-      f"\nave point spread: \sigma \approx {pfit.dataSigma:.3f} in y units"
+      f"\nerrors on a, b  : {pfit.coefficient_errors}"\
+      f"\nave point spread: \sigma \approx {pfit.data_sigma:.3f} in y units"
 msg = Text2D(msg, font='VictorMono', pos='bottom-left', c='red3')
 
 fig.add_label("y = a\dotx+b", c='k', marker='-', mc='red4')

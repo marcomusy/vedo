@@ -328,9 +328,9 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             shift in x and y in pixels. The default is 4.
         """
         x0, x1, y0, y1, z0, z1 = self._data.GetExtent()
-        constantPad = vtk.vtkImageMirrorPad()
-        constantPad.SetInputData(self._data)
-        constantPad.SetOutputWholeExtent(
+        constant_pad = vtk.vtkImageMirrorPad()
+        constant_pad.SetInputData(self._data)
+        constant_pad.SetOutputWholeExtent(
             int(x0 + shift[0] + 0.5),
             int(x1 * nx + shift[0] + 0.5),
             int(y0 + shift[1] + 0.5),
@@ -338,8 +338,8 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             z0,
             z1,
         )
-        constantPad.Update()
-        return Picture(constantPad.GetOutput())
+        constant_pad.Update()
+        return Picture(constant_pad.GetOutput())
 
     def append(self, pictures, axis="z", preserveExtents=False):
         """
@@ -564,14 +564,14 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         subtr.SetOperationToSubtract()
         subtr.Update()
 
-        colorWindow = scalarRange[1] - scalarRange[0]
-        colorLevel = colorWindow / 2
-        originalColor = vtk.vtkImageMapToWindowLevelColors()
-        originalColor.SetWindow(colorWindow)
-        originalColor.SetLevel(colorLevel)
-        originalColor.SetInputData(subtr.GetOutput())
-        originalColor.Update()
-        return self._update(originalColor.GetOutput())
+        color_window = scalarRange[1] - scalarRange[0]
+        color_level = color_window / 2
+        original_color = vtk.vtkImageMapToWindowLevelColors()
+        original_color.SetWindow(color_window)
+        original_color.SetLevel(color_level)
+        original_color.SetInputData(subtr.GetOutput())
+        original_color.Update()
+        return self._update(original_color.GetOutput())
 
     def fft(self, mode="magnitude", logscale=12, center=True):
         """Fast Fourier transform of a picture.
@@ -594,17 +594,17 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             mag.Update()
             out = mag.GetOutput()
         elif "real" in mode:
-            extractRealFilter = vtk.vtkImageExtractComponents()
-            extractRealFilter.SetInputData(ffti.GetOutput())
-            extractRealFilter.SetComponents(0)
-            extractRealFilter.Update()
-            out = extractRealFilter.GetOutput()
+            erf = vtk.vtkImageExtractComponents()
+            erf.SetInputData(ffti.GetOutput())
+            erf.SetComponents(0)
+            erf.Update()
+            out = erf.GetOutput()
         elif "imaginary" in mode:
-            extractImgFilter = vtk.vtkImageExtractComponents()
-            extractImgFilter.SetInputData(ffti.GetOutput())
-            extractImgFilter.SetComponents(1)
-            extractImgFilter.Update()
-            out = extractImgFilter.GetOutput()
+            eimf = vtk.vtkImageExtractComponents()
+            eimf.SetInputData(ffti.GetOutput())
+            eimf.SetComponents(1)
+            eimf.Update()
+            out = eimf.GetOutput()
         elif "complex" in mode:
             out = ffti.GetOutput()
         else:
@@ -640,17 +640,17 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             mag.Update()
             out = mag.GetOutput()
         elif "real" in mode:
-            extractRealFilter = vtk.vtkImageExtractComponents()
-            extractRealFilter.SetInputData(ffti.GetOutput())
-            extractRealFilter.SetComponents(0)
-            extractRealFilter.Update()
-            out = extractRealFilter.GetOutput()
+            erf = vtk.vtkImageExtractComponents()
+            erf.SetInputData(ffti.GetOutput())
+            erf.SetComponents(0)
+            erf.Update()
+            out = erf.GetOutput()
         elif "imaginary" in mode:
-            extractImgFilter = vtk.vtkImageExtractComponents()
-            extractImgFilter.SetInputData(ffti.GetOutput())
-            extractImgFilter.SetComponents(1)
-            extractImgFilter.Update()
-            out = extractImgFilter.GetOutput()
+            eimf = vtk.vtkImageExtractComponents()
+            eimf.SetInputData(ffti.GetOutput())
+            eimf.SetComponents(1)
+            eimf.Update()
+            out = eimf.GetOutput()
         elif "complex" in mode:
             out = ffti.GetOutput()
         else:
@@ -683,33 +683,33 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         out = fft.GetOutput()
 
         if highcutoff:
-            butterworthLowPass = vtk.vtkImageButterworthLowPass()
-            butterworthLowPass.SetInputData(out)
-            butterworthLowPass.SetCutOff(highcutoff)
-            butterworthLowPass.SetOrder(order)
-            butterworthLowPass.Update()
-            out = butterworthLowPass.GetOutput()
+            blp = vtk.vtkImageButterworthLowPass()
+            blp.SetInputData(out)
+            blp.SetCutOff(highcutoff)
+            blp.SetOrder(order)
+            blp.Update()
+            out = blp.GetOutput()
 
         if lowcutoff:
-            butterworthHighPass = vtk.vtkImageButterworthHighPass()
-            butterworthHighPass.SetInputData(out)
-            butterworthHighPass.SetCutOff(lowcutoff)
-            butterworthHighPass.SetOrder(order)
-            butterworthHighPass.Update()
-            out = butterworthHighPass.GetOutput()
+            bhp = vtk.vtkImageButterworthHighPass()
+            bhp.SetInputData(out)
+            bhp.SetCutOff(lowcutoff)
+            bhp.SetOrder(order)
+            bhp.Update()
+            out = bhp.GetOutput()
 
-        butterworthRfft = vtk.vtkImageRFFT()
-        butterworthRfft.SetInputData(out)
-        butterworthRfft.Update()
+        rfft = vtk.vtkImageRFFT()
+        rfft.SetInputData(out)
+        rfft.Update()
 
-        butterworthReal = vtk.vtkImageExtractComponents()
-        butterworthReal.SetInputData(butterworthRfft.GetOutput())
-        butterworthReal.SetComponents(0)
-        butterworthReal.Update()
+        ecomp = vtk.vtkImageExtractComponents()
+        ecomp.SetInputData(rfft.GetOutput())
+        ecomp.SetComponents(0)
+        ecomp.Update()
 
         caster = vtk.vtkImageCast()
         caster.SetOutputScalarTypeToUnsignedChar()
-        caster.SetInputData(butterworthReal.GetOutput())
+        caster.SetInputData(ecomp.GetOutput())
         caster.Update()
         return self._update(caster.GetOutput())
 

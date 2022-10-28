@@ -39,18 +39,18 @@ pfit = fit(
     vrange=(-3,15), # specify the domain of fit
 )
 
-fig1 += [pfit, pfit.errorBand, pfit.errorLines] # add these objects to Figure
+fig1 += [pfit, pfit.error_band, pfit.error_lines] # add these objects to Figure
 
 # Add some text too
 txt = "fit coefficients:\n " + precision(pfit.coefficients, 2) \
-    + "\n\pm" + precision(pfit.coefficientErrors, 2) \
-    + "\n\Chi^2_\nu  = " + precision(pfit.reducedChi2, 3)
+    + "\n\pm" + precision(pfit.coefficient_errors, 2) \
+    + "\n\Chi^2_\nu  = " + precision(pfit.reduced_chi2, 3)
 fig1 += Text3D(txt, s=0.42, font='VictorMono').pos(4,-2).c('k')
 
 # Create a 2D histo to show the correlation of fit parameters
 fig2 = histogram(
-    pfit.MonteCarloCoefficients[:,0],
-    pfit.MonteCarloCoefficients[:,1],
+    pfit.monte_carlo_coefficients[:,0],
+    pfit.monte_carlo_coefficients[:,1],
     title="parameters correlation",
     xtitle='coeff_0', ytitle='coeff_1',
     cmap='ocean_r',

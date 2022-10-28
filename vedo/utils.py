@@ -362,9 +362,9 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, fast=True, t
         if len(vertices[0]) == 2:  # make sure it was not 1d!
             vertices = np.c_[vertices, np.zeros(len(vertices))]
 
-    sourcePoints = vtk.vtkPoints()
-    sourcePoints.SetData(numpy2vtk(vertices, dtype=float))
-    poly.SetPoints(sourcePoints)
+    source_points = vtk.vtkPoints()
+    source_points.SetData(numpy2vtk(vertices, dtype=float))
+    poly.SetPoints(source_points)
 
     if lines is not None:
         # Create a cell array to store the lines in and add the lines to it
@@ -388,15 +388,15 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, fast=True, t
         poly.SetLines(linesarr)
 
     if faces is None:
-        sourceVertices = vtk.vtkCellArray()
+        source_vertices = vtk.vtkCellArray()
         for i in range(len(vertices)):
-            sourceVertices.InsertNextCell(1)
-            sourceVertices.InsertCellPoint(i)
-        poly.SetVerts(sourceVertices)
+            source_vertices.InsertNextCell(1)
+            source_vertices.InsertCellPoint(i)
+        poly.SetVerts(source_vertices)
         return poly  ###################
 
     # faces exist
-    sourcePolygons = vtk.vtkCellArray()
+    source_polygons = vtk.vtkCellArray()
 
     # try it anyway: in case it's not uniform np.ndim will be 1
     faces = np.asarray(faces)
@@ -411,7 +411,7 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, fast=True, t
         nf, nc = faces.shape
         hs = np.hstack((np.zeros(nf)[:, None] + nc, faces)).astype(ast).ravel()
         arr = numpy_to_vtkIdTypeArray(hs, deep=True)
-        sourcePolygons.SetCells(nf, arr)
+        source_polygons.SetCells(nf, arr)
 
     else:  ########################################## manually add faces, SLOW
 
@@ -428,7 +428,7 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, fast=True, t
                 pids = ele.GetPointIds()
                 for i in range(3):
                     pids.SetId(i, f[i] - index_offset)
-                sourcePolygons.InsertNextCell(ele)
+                source_polygons.InsertNextCell(ele)
 
             elif n == 4 and tetras:
                 # do not use vtkTetra() because it fails
@@ -462,10 +462,10 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, fast=True, t
                 pid3.SetId(1, f3)
                 pid3.SetId(2, f0)
 
-                sourcePolygons.InsertNextCell(ele0)
-                sourcePolygons.InsertNextCell(ele1)
-                sourcePolygons.InsertNextCell(ele2)
-                sourcePolygons.InsertNextCell(ele3)
+                source_polygons.InsertNextCell(ele0)
+                source_polygons.InsertNextCell(ele1)
+                source_polygons.InsertNextCell(ele2)
+                source_polygons.InsertNextCell(ele3)
 
             else:
                 ele = vtk.vtkPolygon()
@@ -473,11 +473,11 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, fast=True, t
                 pids.SetNumberOfIds(n)
                 for i in range(n):
                     pids.SetId(i, f[i] - index_offset)
-                sourcePolygons.InsertNextCell(ele)
+                source_polygons.InsertNextCell(ele)
             if showbar:
                 pb.print("converting mesh...    ")
 
-    poly.SetPolys(sourcePolygons)
+    poly.SetPolys(source_polygons)
     return poly
 
 
@@ -607,13 +607,15 @@ def intersection_ray_triangle(P0, P1, V0, V1, V2):
     """
     # Credits: http://geomalgorithms.com/a06-_intersect-2.html
     # Get triangle edge vectors and plane normal
+    # todo : this is slow should check
+    # https://vtk.org/doc/nightly/html/classvtkCell.html#aa850382213d7b8693f0eeec0209c347b
     V0 = np.asarray(V0, dtype=float)
     P0 = np.asarray(P0, dtype=float)
     u = V1 - V0
     v = V2 - V0
     n = np.cross(u, v)
-    # if not np.abs(v).sum():  # triangle is degenerate
-    #     return None  # do not deal with this case
+    if not np.abs(v).sum():  # triangle is degenerate
+        return None  # do not deal with this case
 
     rd = P1 - P0  # ray direction vector
     w0 = P0 - V0
@@ -676,9 +678,6 @@ def lin_interpolate(x, rangeX, rangeY):
         x = np.asarray(x)
         x0, x1 = np.asarray(rangeX)
         y0, y1 = np.asarray(rangeY)
-        # if len(np.unique([x.shape, x0.shape, x1.shape, y1.shape]))>1:
-        #     print("Error in lin_interpolate(): mismatch in input shapes.")
-        #     raise RuntimeError()
         dx = x1 - x0
         dxn = np.linalg.norm(dx)
         if not dxn:
@@ -687,12 +686,9 @@ def lin_interpolate(x, rangeX, rangeY):
         t = np.linalg.norm(x - x1) / dxn
         st = s + t
         out = y0 * (t / st) + y1 * (s / st)
-        # allx = []
-        # for xx in x:
-        #     allx.append(lin_interpolate(xx, rangeX, rangeY))
-        # out = np.array(allx)
 
     else:  # faster
+
         x0 = rangeX[0]
         dx = rangeX[1] - x0
         if not dx:
@@ -1137,17 +1133,6 @@ def print_info(obj):
             vedo.printc(tab + "  diagonal size: ", c="g", bold=1, end="")
             vedo.printc(precision(actor.diagonal_size(), 6), c="g", bold=0)
 
-            # if hasattr(actor, "area"):
-                # _area = actor.area()
-                # if _area:
-                #     vedo.printc(tab + "           area: ", c="g", bold=1, end="")
-                #     vedo.printc(precision(_area, 6), c="g", bold=0)
-
-                # _vol = actor.volume()
-                # if _vol:
-                #     vedo.printc(tab + "         volume: ", c="g", bold=1, end="")
-                #     vedo.printc(precision(_vol, 6), c="g", bold=0)
-
         vedo.printc(tab + "         bounds: ", c="g", bold=1, end="")
         bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
         vedo.printc("x=(" + bx1 + ", " + bx2 + ")", c="g", bold=0, end="")
@@ -1556,8 +1541,6 @@ def print_histogram(
     else:
         hi = h[0]
 
-    if sys.version_info[0] < 3 and char == "\U00002589":
-        char = "*"  # python2 hack
     if char == "\U00002589" and horizontal:
         char = "\U00002586"
 
@@ -1613,19 +1596,19 @@ def print_histogram(
     return data
 
 
-def make_bands(inputlist, numberOfBands):
+def make_bands(inputlist, n):
     """
     Group values of a list into bands of equal value.
 
     Return a binned list of the same length as the input.
 
-    `numberOfBands` is the number of bands, a positive integer > 2.
+    `n` is the number of bands, a positive integer > 2.
     """
-    if numberOfBands < 2:
+    if n < 2:
         return inputlist
     vmin = np.min(inputlist)
     vmax = np.max(inputlist)
-    bb = np.linspace(vmin, vmax, numberOfBands, endpoint=0)
+    bb = np.linspace(vmin, vmax, n, endpoint=0)
     dr = bb[1] - bb[0]
     bb += dr / 2
     tol = dr / 2 * 1.001
@@ -1750,7 +1733,7 @@ def vtkCameraToK3D(vtkcam):
     return np.array(kam).ravel()
 
 
-def make_ticks(x0, x1, N=None, labels=None, digits=None, logscale=False, useformat=""):
+def make_ticks(x0, x1, n=None, labels=None, digits=None, logscale=False, useformat=""):
     """
     Generate numeric labels for the [x0, x1] range.
 
@@ -1786,12 +1769,12 @@ def make_ticks(x0, x1, N=None, labels=None, digits=None, logscale=False, useform
         if x0 <= 0 or x1 <= 0:
             vedo.logger.error("makeTicks: zero or negative range with log scale.")
             raise RuntimeError
-        if N is None:
-            N = int(abs(np.log10(x1) - np.log10(x0))) + 1
+        if n is None:
+            n = int(abs(np.log10(x1) - np.log10(x0))) + 1
         x0, x1 = np.log10([x0, x1])
 
-    if not N:
-        N = 5
+    if not n:
+        n = 5
 
     if labels is not None:
         # user is passing custom labels
@@ -1808,36 +1791,36 @@ def make_ticks(x0, x1, N=None, labels=None, digits=None, logscale=False, useform
     else:
         # ..here comes one of the shortest and most painful pieces of code:
         # automatically choose the best natural axis subdivision based on multiples of 1,2,5
-        dstep = (x1 - x0) / N  # desired step size, begin of the nightmare
+        dstep = (x1 - x0) / n  # desired step size, begin of the nightmare
 
         basestep = pow(10, np.floor(np.log10(dstep)))
         steps = np.array([basestep * i for i in baseline])
         idx = (np.abs(steps - dstep)).argmin()
         s = steps[idx]  # chosen step size
 
-        lowBound, upBound = 0, 0
+        low_bound, up_bound = 0, 0
         if x0 < 0:
-            lowBound = -pow(10, np.ceil(np.log10(-x0)))
+            low_bound = -pow(10, np.ceil(np.log10(-x0)))
         if x1 > 0:
-            upBound = pow(10, np.ceil(np.log10(x1)))
+            up_bound = pow(10, np.ceil(np.log10(x1)))
 
-        if lowBound < 0:
-            if upBound < 0:
-                negaxis = np.arange(lowBound, int(upBound / s) * s)
+        if low_bound < 0:
+            if up_bound < 0:
+                negaxis = np.arange(low_bound, int(up_bound / s) * s)
             else:
-                if -lowBound / s > 1.0e06:
+                if -low_bound / s > 1.0e06:
                     return np.array([0.0, 1.0]), ["", ""]
-                negaxis = np.arange(lowBound, 0, s)
+                negaxis = np.arange(low_bound, 0, s)
         else:
             negaxis = np.array([])
 
-        if upBound > 0:
-            if lowBound > 0:
-                posaxis = np.arange(int(lowBound / s) * s, upBound, s)
+        if up_bound > 0:
+            if low_bound > 0:
+                posaxis = np.arange(int(low_bound / s) * s, up_bound, s)
             else:
-                if upBound / s > 1.0e06:
+                if up_bound / s > 1.0e06:
                     return np.array([0.0, 1.0]), ["", ""]
-                posaxis = np.arange(0, upBound, s)
+                posaxis = np.arange(0, up_bound, s)
         else:
             posaxis = np.array([])
 

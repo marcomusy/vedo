@@ -17,7 +17,7 @@ fig = plot(
     ytitle='y oscillation [a.u.]',
     ylim=(0.5, 5),
     aspect=5/3,      # aspect ratio (any float = xsize/ysize)
-    errorBand=True,  # join errors on y into an error band
+    error_band=True, # join errors on y into an error band
     lc="red2",       # line color
     ec="red7",       # error band color
     padding=0,       # no extra spaces around the content

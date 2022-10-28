@@ -512,30 +512,30 @@ class BaseVolume:
         out = fft.GetOutput()
 
         if high_cutoff:
-            butterworthLowPass = vtk.vtkImageButterworthLowPass()
-            butterworthLowPass.SetInputData(out)
-            butterworthLowPass.SetCutOff(high_cutoff)
-            butterworthLowPass.SetOrder(order)
-            butterworthLowPass.Update()
-            out = butterworthLowPass.GetOutput()
+            blp = vtk.vtkImageButterworthLowPass()
+            blp.SetInputData(out)
+            blp.SetCutOff(high_cutoff)
+            blp.SetOrder(order)
+            blp.Update()
+            out = blp.GetOutput()
 
         if low_cutoff:
-            butterworthHighPass = vtk.vtkImageButterworthHighPass()
-            butterworthHighPass.SetInputData(out)
-            butterworthHighPass.SetCutOff(low_cutoff)
-            butterworthHighPass.SetOrder(order)
-            butterworthHighPass.Update()
-            out = butterworthHighPass.GetOutput()
+            bhp = vtk.vtkImageButterworthHighPass()
+            bhp.SetInputData(out)
+            bhp.SetCutOff(low_cutoff)
+            bhp.SetOrder(order)
+            bhp.Update()
+            out = bhp.GetOutput()
 
-        butterworthRfft = vtk.vtkImageRFFT()
-        butterworthRfft.SetInputData(out)
-        butterworthRfft.Update()
+        rfft = vtk.vtkImageRFFT()
+        rfft.SetInputData(out)
+        rfft.Update()
 
-        butterworthReal = vtk.vtkImageExtractComponents()
-        butterworthReal.SetInputData(butterworthRfft.GetOutput())
-        butterworthReal.SetComponents(0)
-        butterworthReal.Update()
-        return self._update(butterworthReal.GetOutput())
+        ecomp = vtk.vtkImageExtractComponents()
+        ecomp.SetInputData(rfft.GetOutput())
+        ecomp.SetComponents(0)
+        ecomp.Update()
+        return self._update(ecomp.GetOutput())
 
     def smooth_gaussian(self, sigma=(2, 2, 2), radius=None):
         """
@@ -904,7 +904,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         self._mode = mode
         self._color = c
         self._alpha = alpha
-        self._alphaGrad = alpha_gradient
+        self._alpha_grad = alpha_gradient
         self._alpha_unit = alpha_unit
 
     def _update(self, data):
@@ -1051,7 +1051,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
             vedo.logger.error("volume.mask() must create the volume with Volume(..., mapper='gpu')")
         return self
 
-    def alpha_gradient(self, alphaGrad, vmin=None, vmax=None):
+    def alpha_gradient(self, alpha_grad, vmin=None, vmax=None):
         """
         Assign a set of tranparencies to a volume's gradient
         along the range of the scalar value.
@@ -1061,39 +1061,39 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         at the boundaries between material types.  The gradient is measured
         as the amount by which the intensity changes over unit distance.
 
-        The format for alphaGrad is the same as for method `volume.alpha()`.
+        The format for alpha_grad is the same as for method `volume.alpha()`.
         """
         if vmin is None:
             vmin, _ = self._data.GetScalarRange()
         if vmax is None:
             _, vmax = self._data.GetScalarRange()
-        self._alphaGrad = alphaGrad
+        self._alpha_grad = alpha_grad
         volumeProperty = self.GetProperty()
 
-        if alphaGrad is None:
+        if alpha_grad is None:
             volumeProperty.DisableGradientOpacityOn()
             return self
 
         volumeProperty.DisableGradientOpacityOff()
 
         gotf = volumeProperty.GetGradientOpacity()
-        if utils.is_sequence(alphaGrad):
-            alphaGrad = np.array(alphaGrad)
-            if len(alphaGrad.shape)==1: # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
-                for i, al in enumerate(alphaGrad):
-                    xalpha = vmin + (vmax - vmin) * i / (len(alphaGrad) - 1)
+        if utils.is_sequence(alpha_grad):
+            alpha_grad = np.array(alpha_grad)
+            if len(alpha_grad.shape)==1: # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
+                for i, al in enumerate(alpha_grad):
+                    xalpha = vmin + (vmax - vmin) * i / (len(alpha_grad) - 1)
                     # Create transfer mapping scalar value to gradient opacity
                     gotf.AddPoint(xalpha, al)
-            elif len(alphaGrad.shape) == 2:  # user passing [(x0,alpha0), ...]
-                gotf.AddPoint(vmin, alphaGrad[0][1])
-                for xalpha, al in alphaGrad:
+            elif len(alpha_grad.shape) == 2:  # user passing [(x0,alpha0), ...]
+                gotf.AddPoint(vmin, alpha_grad[0][1])
+                for xalpha, al in alpha_grad:
                     # Create transfer mapping scalar value to opacity
                     gotf.AddPoint(xalpha, al)
-                gotf.AddPoint(vmax, alphaGrad[-1][1])
-            # print("alphaGrad at", round(xalpha, 1), "\tset to", al)
+                gotf.AddPoint(vmax, alpha_grad[-1][1])
+            # print("alpha_grad at", round(xalpha, 1), "\tset to", al)
         else:
-            gotf.AddPoint(vmin, alphaGrad)  # constant alphaGrad
-            gotf.AddPoint(vmax, alphaGrad)
+            gotf.AddPoint(vmin, alpha_grad)  # constant alpha_grad
+            gotf.AddPoint(vmax, alpha_grad)
         return self
 
     def component_weight(self, i, weight):
