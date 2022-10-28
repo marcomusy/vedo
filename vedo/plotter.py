@@ -2284,7 +2284,7 @@ class Plotter:
             if key:
                 if "_L" in key or "_R" in key:
                     # skip things like Shift_R
-                    key = None
+                    key = "" # better than None
                 else:
                     if iren.GetShiftKey():
                         key = key.upper()
