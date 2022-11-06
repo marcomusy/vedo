@@ -18,6 +18,7 @@
 ---
 ### `plotter.py`
 - fixed key bindings for uppercase hits.
+- added method `add_hint()` to generate a pop-up message on hovering an object
 
 ---
 ### `picture.py`
