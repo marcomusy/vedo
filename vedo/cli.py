@@ -448,7 +448,7 @@ def exe_eog(args):
             elif event.keypress == "s":
                 p.smooth(sigma=1)
             elif event.keypress == "S":
-                ahl = plt.hoverLegends[-1]
+                ahl = plt.hover_legends[-1]
                 plt.remove(ahl)
                 plt.screenshot()  # writer
                 printc("Picture saved as screenshot.png")

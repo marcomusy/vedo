@@ -46,7 +46,7 @@ landSurface.name = "Land Surface" # give the object a name
 # Create a plotter and add landSurface to it
 plt = Plotter(axes=dict(xtitle='km', ytitle=' ', ztitle='km*1.5', yzgrid=False),
               bg2='lb', size=(1200,900)) # screen size
-plt += landSurface.flag()                # this adds a flag when hoovering the mouse
+plt += landSurface
 plt += landSurface.isolines(5).lw(1).c('k')
 
 #############################################
@@ -54,28 +54,28 @@ plt += landSurface.isolines(5).lw(1).c('k')
 # Mesh of 175 C isotherm
 vertices_175C = delaunay2d(vertices_175CPD.values)
 vertices_175C.name = "175C temperature isosurface"
-plt += vertices_175C.c("orange").opacity(0.3).flag()
+plt += vertices_175C.c("orange").opacity(0.3)
 
 # Mesh of 225 C isotherm
 vertices_225CT = delaunay2d(vertices_225CPD.values)
 vertices_225CT.name = "225C temperature isosurface"
-plt += vertices_225CT.c("red").opacity(0.4).flag()
+plt += vertices_225CT.c("red").opacity(0.4)
 
 # Negro fault, mode=fit is used because point cloud is not in xy plane
 Negro_Mag_Fault_vertices = delaunay2d(Negro_Mag_Fault_verticesPD.values, mode='fit')
 Negro_Mag_Fault_vertices.name = "Negro Fault"
-plt += Negro_Mag_Fault_vertices.c("f").opacity(0.6).flag()
+plt += Negro_Mag_Fault_vertices.c("f").opacity(0.6)
 
 # Opal fault
 Opal_Mound_Fault_vertices = delaunay2d(Opal_Mound_Fault_verticesPD.values, mode='fit')
 Opal_Mound_Fault_vertices.name = "Opal Mound Fault"
-plt += Opal_Mound_Fault_vertices.c("g").opacity(0.6).flag()
+plt += Opal_Mound_Fault_vertices.c("g").opacity(0.6)
 
 # Top Granite, (shift it a bit to avoid overlapping)
 xyz = top_granitoid_verticesPD.values - [0,0,20]
 top_granitoid_vertices = delaunay2d(xyz).texture(dataurl+'textures/paper2.jpg')
 top_granitoid_vertices.name = "Top of granite surface"
-plt += top_granitoid_vertices.flag()
+plt += top_granitoid_vertices
 
 ###################################################
 printc("plotting...", invert=1)
@@ -83,9 +83,9 @@ printc("plotting...", invert=1)
 # Microseismic
 microseismicxyz = microseismic[["xloc", "yloc", "zloc"]].values
 scals = microseismic[["mw"]]
-microseismicPts = Points(microseismicxyz, r=5).cmap("jet", scals)
-microseismicPts.name = "Microseismic events"
-plt += microseismicPts.flag()
+microseismic_pts = Points(microseismicxyz, r=5).cmap("jet", scals)
+microseismic_pts.name = "Microseismic events"
+plt += microseismic_pts
 
 # FORGE Boundary. Since the boundary area did not have a Z column,
 # I assigned a Z value for where I wanted it to appear
@@ -94,40 +94,40 @@ borderxyz = border[["xcoord", "ycoord", "zcoord"]]
 boundary = Line(borderxyz.values).extrude(zshift=120, cap=False)
 boundary.lw(0).texture(dataurl+'textures/wood1.jpg')
 boundary.name = "FORGE area boundary"
-plt += boundary.flag()
+plt += boundary
 
 # The path of well 58_32
 Well1 = Line(well_5832_path[["X", "Y", "Z"]].values, lw=2, c='k')
 Well1.name = "Well 58-32"
-plt += Well1.flag()
+plt += Well1
 
 # A porosity log in the well
 xyz = nphi_well[["X", "Y", "Z"]].values
 porosity = nphi_well["Nphi"].values
 Well2 = Line(xyz, lw=3).cmap("hot", porosity)
 Well2.name = "Porosity log well 58-32"
-plt += Well2.flag()
+plt += Well2
 
 # This well data is actually represented by points since as of right now,
 xyz = pressure_well[["X", "Y", "Z"]].values
 pressure = pressure_well["Pressure"].values
 Well3 = Line(xyz, lw=3).cmap("cool", pressure)
 Well3.name = "Pressure log well 58-32"
-plt += Well3.flag()
+plt += Well3
 
 # Temperature log
 xyz = temp_well[["X", "Y", "Z"]].values
 temp = temp_well["Temperature"].values
 Well4 = Line(xyz, lw=3).cmap("seismic", temp)
 Well4.name = "Temperature log well 58-32"
-plt += Well4.flag()
+plt += Well4
 
 # defining the start and end of the lines that will be representing the wellbores
 Wells = Lines(wellsmin[["x", "y", "z"]].values, # start points
               wellsmax[["x", "y", "z"]].values, # end points
               c="gray", alpha=1, lw=3)
 Wells.name = "Pre-existing wellbores"
-plt += Wells.flag()
+plt += Wells
 
 for a in plt.actors:
     # change scale to kilometers in x and y, but expand z scale by 1.5!

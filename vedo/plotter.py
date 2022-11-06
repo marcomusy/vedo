@@ -485,7 +485,7 @@ class Plotter:
         self.frames = None  # holds the output of addons.add_renderer_frame
 
         # mostly internal stuff:
-        self.hoverLegends = []
+        self.hover_legends = []
         self.backgrcol = bg
         self.pos = pos  # used by vedo.io
         self.justremoved = None
@@ -497,8 +497,7 @@ class Plotter:
         self.buttons = []
         self.widgets = []
         self.cutter_widget = None
-        self.flag_widget = None
-        self._flagRep = None
+        self.hint_widget = None
         self.scalarbars = []
         self.background_renderer = None
         self._first_viewup = True
@@ -1747,6 +1746,88 @@ class Plotter:
         self.add(lb)
         return self
 
+    def add_hint(
+            self, obj, text="", c="k", bc="yellow8",
+            font="Calco", size=18, justify=0, angle=0, delay=100,
+        ):
+        """
+        Create a pop-up hint style message when hovering an object.
+        Use add_hint(False) to disable all hints.
+
+        Parameters
+        ----------
+        obj : Mesh, Points
+            the object to associate the pop-up to
+
+        text : str
+            string description of the pop-up
+
+        delay : int
+            milliseconds to wait before pop-up occurs
+        """
+        if self.offscreen:
+            return self
+
+        if vedo.vtk_version[0] == 9 and "Linux" in vedo.sys_platform:  # Linux vtk9 is bugged
+            vedo.logger.warning("add_hint() is not available on Linux platforms.")
+            return self
+
+        if obj is False:
+            self.hint_widget.EnabledOff()
+            self.hint_widget = None
+            return self
+
+        if text is False and self.hint_widget:
+            self.hint_widget.RemoveBalloon(obj)
+            return self
+
+        if text == "":
+            if obj.name:
+                text = obj.name
+            elif obj.filename:
+                text = obj.filename
+            else:
+                return self
+
+        if not self.hint_widget:
+            self.hint_widget = vtk.vtkBalloonWidget()
+
+            rep = vtk.vtkBalloonRepresentation()
+            rep.SetBalloonLayoutToImageRight()
+
+            trep = rep.GetTextProperty()
+            trep.SetFontFamily(vtk.VTK_FONT_FILE)
+            trep.SetFontFile(utils.get_font_path(font))
+            trep.SetFontSize(size)
+            trep.SetColor(vedo.get_color(c))
+            trep.SetBackgroundColor(vedo.get_color(bc))
+            trep.SetShadow(False)
+            trep.SetJustification(justify)
+            trep.UseTightBoundingBoxOn()
+
+            self.hint_widget.ManagesCursorOff()
+            self.hint_widget.SetTimerDuration(delay)
+            self.hint_widget.SetInteractor(self.interactor)
+            if angle:
+                rep.SetOrientation(angle)
+                rep.SetBackgroundOpacity(0)
+            self.hint_widget.SetRepresentation(rep)
+            self.widgets.append(self.hint_widget)
+            if self.interactor.GetInitialized():
+                self.hint_widget.EnabledOn()
+            else:
+                vedo.logger.warning("add_hint() must be called after show(). Skip.")
+                return self
+
+        bst = self.hint_widget.GetBalloonString(obj)
+        if bst:
+            self.hint_widget.UpdateBalloonString(obj, text)
+        else:
+            self.hint_widget.AddBalloon(obj, text)
+
+        return self
+
+
     def add_shadows(self):
         """Add shadows at the current renderer."""
         shadows = vtk.vtkShadowMapPass()
@@ -1917,7 +1998,7 @@ class Plotter:
     ):
         """Add a legend with 2D text which is triggered by hovering the mouse on an object.
 
-        The created text object are stored in plotter.hoverLegends
+        The created text object are stored in plotter.hover_legends
 
         Parameters
         ----------
@@ -2046,7 +2127,7 @@ class Plotter:
                 self.interactor.Render()
 
         self.add(hoverLegend, render=False, at=at)
-        self.hoverLegends.append(hoverLegend)
+        self.hover_legends.append(hoverLegend)
         self.add_callback("MouseMove", _legfunc)
         return self
 
@@ -2974,53 +3055,6 @@ class Plotter:
             return backends.get_notebook_backend(0, 0, 0)
         #########################################################################
 
-        if (self.interactor
-            and not self.offscreen
-            and not (vedo.vtk_version[0] == 9 and "Linux" in vedo.sys_platform)  # Linux vtk9 is bugged
-            ):
-            #check balloons
-            try:
-                if hasattr(ia, "flag_text"):
-                    if ia.flag_text:
-                        print("ia.flag_text", ia.flag_text)
-                        # 'Text2D' object has no attribute 'flag_text'
-                        if not self.flag_widget:  # Create widget on the fly
-                            self._flagRep = vtk.vtkBalloonRepresentation()
-                            self._flagRep.SetBalloonLayoutToImageRight()
-                            breppr = self._flagRep.GetTextProperty()
-                            breppr.SetFontFamily(vtk.VTK_FONT_FILE)
-                            breppr.SetFontFile(utils.get_font_path(settings.flag_font))
-                            breppr.SetFontSize(settings.flag_font_size)
-                            breppr.SetColor(vedo.get_color(settings.flag_color))
-                            breppr.SetBackgroundColor(vedo.get_color(settings.flag_background_color))
-                            breppr.SetShadow(settings.flag_shadow)
-                            breppr.SetJustification(settings.flag_justification)
-                            breppr.UseTightBoundingBoxOn()
-                            if settings.flag_angle:
-                                breppr.SetOrientation(settings.flag_angle)
-                                breppr.SetBackgroundOpacity(0)
-                            self.flag_widget = vtk.vtkBalloonWidget()
-                            self.flag_widget.SetTimerDuration(settings.flag_delay)
-                            self.flag_widget.ManagesCursorOff()
-                            self.flag_widget.SetRepresentation(self._flagRep)
-                            self.flag_widget.SetInteractor(self.interactor)
-                            self.widgets.append(self.flag_widget)
-                        bst = self.flag_widget.GetBalloonString(ia)
-                        if bst:
-                            if bst != ia.flag_text:
-                                self.flag_widget.UpdateBalloonString(ia, ia.flag_text)
-                        else:
-                            self.flag_widget.AddBalloon(ia, ia.flag_text)
-
-                    if ia.flag_text is False and self.flag_widget:
-                        self.flag_widget.RemoveBalloon(ia)
-
-                if self.flag_widget:
-                    self.flag_widget.EnabledOn()
-
-            except AttributeError:
-                pass
-
         if self.interactor:  # can be offscreen..
 
             if settings.allow_interaction:
@@ -3201,12 +3235,12 @@ class Plotter:
         self.sliders = []
         self.buttons = []
         self.widgets = []
-        self.hoverLegends = []
+        self.hover_legends = []
         self.background_renderer = None
         self._first_viewup = True
         self._extralight = None
-        self.flag_widget = None
-        self._flagRep = None
+
+        self.hint_widget = None
         self.cutter_widget = None
 
         for r in self.renderers:

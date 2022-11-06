@@ -1534,7 +1534,7 @@ class Points(vtk.vtkFollower, BaseActor):
         Generate value or ID labels for mesh cells or points.
         For large nr. of labels use ``font="VTK"`` which is much faster.
 
-        See also: ``labels2D()``, ``flag()``, ``vignette()``, ``caption()`` and ``legend()``.
+        See also: ``labels2D()``, ``vignette()``, ``caption()`` and ``legend()``.
 
         Parameters
         ----------
@@ -1727,7 +1727,7 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         Generate value or ID bi-dimensional labels for mesh cells or points.
 
-        See also: ``labels()``, ``flag()``, ``vignette()``, ``caption()`` and ``legend()``.
+        See also: ``labels()``, ``vignette()``, ``caption()`` and ``legend()``.
 
         Parameters
         ----------
@@ -1983,7 +1983,7 @@ class Points(vtk.vtkFollower, BaseActor):
         Add a 2D caption to an object which follows the camera movements.
         Latex is not supported. Returns the same input object for concatenation.
 
-        See also ``vignette()``, ``flag()``, ``labels()`` and ``legend()``
+        See also ``vignette()``, ``labels()`` and ``legend()``
         with similar functionality.
 
         Parameters
@@ -2091,77 +2091,6 @@ class Points(vtk.vtkFollower, BaseActor):
             pr.SetJustificationToRight()
         pr.SetLineSpacing(vspacing)
         self._caption = capt
-        return self
-
-    def flag(
-        self,
-        text=None,
-        font="Normografo",
-        size=18,
-        angle=0,
-        shadow=False,
-        c="k",
-        bg="w",
-        justify=0,
-        delay=150,
-    ):
-        """
-        Add a flag label which becomes visible when hovering the object with mouse.
-        Can be later disabled by setting `flag(False)`.
-
-        See also: ``labels()``, ``vignette()``, ``caption()`` and ``legend()``.
-
-        Parameters
-        ----------
-        text : str
-            text string to be rendered. The default is the filename without extension.
-
-        font : str
-            name of font to use. The default is "Courier".
-
-        size : int
-            size of font. The default is 18. Fonts are: "Arial", "Courier", "Times".
-
-        angle : float
-            rotation angle. The default is 0.
-
-        shadow : bool
-            add a shadow to the font. The default is False.
-
-        c : str
-            color name or index. The default is 'k'.
-
-        bg : str
-            color name of the background. The default is 'w'.
-
-        justify : TYPE
-            justification code. The default is 0.
-
-        delay : float
-            pop up delay in milliseconds. The default is 150.
-
-        .. hint:: examples/other/flag_labels.py
-            .. image:: https://vedo.embl.es/images/other/flag_labels.png
-        """
-        if text is None:
-            if self.filename:
-                text = self.filename.split("/")[-1]
-            elif self.name:
-                text = self.name
-            else:
-                text = ""
-        if "\\" in repr(text):
-            for r in vedo.shapes._reps:
-                text = text.replace(r[0], r[1])
-        self.flag_text = text
-        settings.flag_delay = delay
-        settings.flag_font = font
-        settings.flag_font_size = size
-        settings.flag_angle = angle
-        settings.flag_shadow = shadow
-        settings.flag_color = c
-        settings.flag_justification = justify
-        settings.flag_background_color = bg
         return self
 
     @deprecated(reason=vedo.colors.red + "Please use align_to()" + vedo.colors.reset)

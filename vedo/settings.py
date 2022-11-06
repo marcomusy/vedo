@@ -229,18 +229,6 @@ class Settings:
         self.k3d_line_shader = "thick" # others are 'flat', 'mesh'
 
         ####################################################################################
-        self.flag_delay = 150  # values will be superseded
-        self.flag_font = "Courier"
-        self.flag_font_size = 18
-        self.flag_justification = 0
-        self.flag_angle = 0
-        self.flag_bold = False
-        self.flag_italic = False
-        self.flag_shadow = False
-        self.flag_color = "k"
-        self.flag_background_color = "w"
-
-        ####################################################################################
         ####################################################################################
         # mono       # means that all letters occupy the same space slot horizontally
         # hspacing   # an horizontal stretching factor (affects both letters and words)

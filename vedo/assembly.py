@@ -62,7 +62,6 @@ def procrustes_alignment(sources, rigid=False):
         mesh.SetProperty(s.GetProperty())
         if hasattr(s, "name"):
             mesh.name = s.name
-            mesh.flag_text = s.flag_text
         acts.append(mesh)
     assem = Assembly(acts)
     assem.transform = procrustes.GetLandmarkTransform()

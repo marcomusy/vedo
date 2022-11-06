@@ -187,7 +187,7 @@ class Base3DProp:
         self.cell_locator = None
 
         self.scalarbar = None
-        self.flag_text = None
+
 
     def address(self):
         """

@@ -2,16 +2,12 @@
 to pop a flag-style label"""
 from vedo import *
 
-b = Mesh(dataurl+'bunny.obj').flag().color('m')
-c = Cube(side=0.1).compute_normals().alpha(0.5).y(-0.02)
+b = Mesh(dataurl+'bunny.obj').color('m')
+c = Cube(side=0.1).compute_normals().alpha(0.8).y(-0.02)
 
 # vignette returns a Mesh type object which can be later modified
 vig = b.vignette('A vignette descriptor\nfor a rabbit', font='Quikhand')
 vig.scale(0.5).color('v').use_bounds() # tell camera to take vig bounds into account
-
-# add a pop up flag when hovering mouse
-c.flag('my cube\nflag-style label', font="Calco") # picks filename by default
-#c.flag(False) # to later disable it
 
 c.caption('2d caption for a cube\nwith face indices', point=[0.044, 0.03, -0.04],
           size=(0.3,0.06), font="VictorMono", alpha=1)

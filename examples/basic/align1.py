@@ -2,7 +2,7 @@
 the red line to the yellow surface"""
 from vedo import *
 
-limb = Mesh(dataurl + "270.vtk").c("gold").flag("limb")
+limb = Mesh(dataurl + "270.vtk").c("gold")
 rim  = Mesh(dataurl + "270_rim.vtk").c("red").lw(4)
 
 # Make a clone copy of rim and align it to limb
