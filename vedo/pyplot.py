@@ -1025,7 +1025,7 @@ class Histogram2D(Figure):
         axes color, additional keyword for Axes can also be added
         using e.g. `axes=dict(xygrid=True)`
 
-    .. hint:: examples/pyplot/histo_2d.py
+    .. hint:: examples/pyplot/histo_2d_a.py, examples/pyplot/histo_2d_b.py
         .. image:: https://vedo.embl.es/images/pyplot/histo_2D.png
     """
 
@@ -2282,8 +2282,43 @@ def histogram(*args, **kwargs):
         axes color, additional keyword for Axes can also be added
         using e.g. `axes=dict(xygrid=True)`
 
-    .. hint:: examples/pyplot/histo_2d.py
+    .. hint:: examples/pyplot/histo_2d_a.py, examples/pyplot/histo_2d_b.py
         .. image:: https://vedo.embl.es/images/pyplot/histo_2D.png
+
+
+    -------------------------------------------------------------------------
+    .. note:: mode="3d"
+
+    If ``mode='3d'``, build a 2D histogram as 3D bars from a list of x and y values.
+
+    Parameters
+    ----------
+    xtitle : str
+        x axis title
+
+    bins : int
+        nr of bins for the smaller range in x or y
+
+    vrange : list
+        range in x and y in format `[(xmin,xmax), (ymin,ymax)]`
+
+    norm : float
+        sets a scaling factor for the z axis (frequency axis)
+
+    fill : bool
+        draw solid hexagons
+
+    cmap : str
+        color map name for elevation
+
+    gap : float
+        keep a internal empty gap between bins [0,1]
+
+    zscale : float
+        rescale the (already normalized) zaxis for visual convenience
+
+    .. hint:: examples/pyplot/histo_hexagonal.py
+        .. image:: https://vedo.embl.es/images/pyplot/histo_hexagonal.png
 
 
     -------------------------------------------------------------------------
@@ -2420,13 +2455,19 @@ def histogram(*args, **kwargs):
     """
     mode = kwargs.pop("mode", "")
     if len(args) == 2:  # x, y
+
         if "spher" in mode:
             return _histogram_spheric(args[0], args[1], **kwargs)
+
         if "hex" in mode:
             return _histogram_hex_bin(args[0], args[1], **kwargs)
+
+        if "3d" in mode.lower():
+            return _histogram_quad_bin(args[0], args[1], **kwargs)
+
         return Histogram2D(args[0], args[1], **kwargs)
 
-    if len(args) == 1:
+    elif len(args) == 1:
 
         if isinstance(args[0], vedo.Volume):
             data = args[0].pointdata[0]
@@ -2449,9 +2490,13 @@ def histogram(*args, **kwargs):
 
         if "hex" in mode:
             return _histogram_hex_bin(args[0][:, 0], args[0][:, 1], **kwargs)
+
+        if "3d" in mode.lower():
+            return _histogram_quad_bin(args[0][:, 0], args[0][:, 1], **kwargs)
+
         return Histogram2D(args[0], **kwargs)
 
-    print("histogram(): Could not understand input", args[0])
+    vedo.logger.error(f"in histogram(): could not understand input {args[0]}")
     return None
 
 
@@ -2992,6 +3037,58 @@ def _plot_spheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha
     asse = Assembly([ssurf, sg] + nanpts + [sb3d])
     asse.name = "PlotSpheric"
     return asse
+
+
+def _histogram_quad_bin(x,y, **kwargs):
+
+    # kwargs2 = dict(kwargs)
+    # kwargs2.update({"gap", 0})
+    histo = Histogram2D(x,y, **kwargs)
+
+    gap = kwargs.pop("gap", 0)
+    zscale = kwargs.pop("zscale", 1)
+    cmap = kwargs.pop("cmap", "Blues_r")
+
+    gr = histo.actors[2]
+    d = gr.diagonal_size()
+    tol = d / 1_000_000  # tolerance
+    gr.shrink(1 - gap - tol)
+    gr.map_cells_to_points()
+
+    faces = np.array(gr.faces())
+    s = 1 / histo.entries * len(faces) * zscale
+    zvals = gr.pointdata["CellScalars"] * s
+
+    pts1 = gr.points()
+    pts2 = np.copy(pts1)
+    pts2[:, 2] = zvals + tol
+    newpts = np.vstack([pts1, pts2])
+    newzvals = np.hstack([zvals, zvals]) / s
+
+    n = pts1.shape[0]
+    newfaces = []
+    for f in faces:
+        f0, f1, f2, f3 = f
+        f0n, f1n, f2n, f3n = f + n
+        newfaces.extend(
+            [
+                [f0, f1, f2, f3],
+                [f0n, f1n, f2n, f3n],
+                [f0, f1, f1n, f0n],
+                [f1, f2, f2n, f1n],
+                [f2, f3, f3n, f2n],
+                [f3, f0, f0n, f3n],
+            ]
+        )
+
+    msh = Mesh([newpts, newfaces]).pickable(False)
+    msh.cmap(cmap, newzvals, name="Frequency")
+    msh.lw(1).lighting("ambient")
+
+    histo.actors[2] = msh
+    histo.RemovePart(gr)
+    histo.AddPart(msh)
+    return histo
 
 
 def _histogram_hex_bin(

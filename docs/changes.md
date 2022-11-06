@@ -47,7 +47,10 @@
 
 ### New/Revised
 examples/pyplot/fit_curve.py
+examples/pyplot/histo_2d_a.py
+examples/pyplot/histo_2d_b.py
 
+-------------------------
 ### Deleted
 
 ### Broken

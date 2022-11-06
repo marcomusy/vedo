@@ -1172,7 +1172,7 @@ class Plotter:
     def reset_camera(self, tight=None):
         """
         Reset the camera position and zooming.
-        If tight is specified the zooming reserves a padding space in the xy-plane
+        If tight (float) is specified the zooming reserves a padding space in the xy-plane
         expressed in percent of the average size.
         """
         if tight is None:
@@ -1181,7 +1181,6 @@ class Plotter:
             x0, x1, y0, y1, z0, z1 = self.renderer.ComputeVisiblePropBounds()
 
             cam = self.renderer.GetActiveCamera()
-            cam.SetParallelProjection(True)
 
             self.renderer.ComputeAspect()
             aspect = self.renderer.GetAspect()
@@ -1192,8 +1191,9 @@ class Plotter:
             cam.SetViewUp(0, 1, 0)
             cam.SetPosition(x0 + dx / 2, y0 + dy / 2, dist * (1 + tight))
             cam.SetFocalPoint(x0 + dx / 2, y0 + dy / 2, 0)
-            ps = max(dx / aspect[0], dy) / 2
-            cam.SetParallelScale(ps * (1 + tight))
+            if cam.GetParallelProjection():
+                ps = max(dx / aspect[0], dy) / 2
+                cam.SetParallelScale(ps * (1 + tight))
             self.renderer.ResetCameraClippingRange(x0, x1, y0, y1, z0, z1)
         return self
 
