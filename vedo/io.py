@@ -1913,9 +1913,16 @@ class Video:
         """
         Automatic shooting of a static scene by specifying rotation and elevation ranges.
 
-        :param list elevation: initial and final elevation angles
-        :param list azimuth_range: initial and final azimuth angles
-        :param list cameras: list of cameras to go through, each camera can be dictionary or a vtkCamera
+        Parameters
+        ----------
+        elevation : list
+            initial and final elevation angles
+
+        azimuth_range : list
+            initial and final azimuth angles
+
+        cameras : list
+            list of cameras to go through, each camera can be dictionary or a vtkCamera
         """
         if not self.duration:
             self.duration = 5

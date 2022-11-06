@@ -2346,7 +2346,7 @@ class Star(Mesh):
     """
     Build a 2D star shape of `n` cusps of inner radius `r1` and outer radius `r2`.
 
-    :param bool line: only build the outer line (no internal surface meshing).
+    If line is True then only build the outer line (no internal surface meshing).
 
     .. hint:: examples/basic/extrude.py
     """

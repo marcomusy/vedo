@@ -123,8 +123,13 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
 
     Use `Picture.dimensions()` to access the number of pixels in x and y.
 
-    :param int,list channels: only select these specific rgba channels (useful to remove alpha)
-    :param bool flip: flip xy axis convention (when input is a numpy array)
+    Parameters
+    ----------
+    channels :  int, list
+        only select these specific rgba channels (useful to remove alpha)
+
+    flip : bool
+        flip xy axis convention (when input is a numpy array)
     """
 
     def __init__(self, obj=None, channels=3, flip=False):
@@ -263,11 +268,22 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
     def crop(self, top=None, bottom=None, right=None, left=None, pixels=False):
         """Crop picture.
 
-        :param float top: fraction to crop from the top margin
-        :param float bottom: fraction to crop from the bottom margin
-        :param float left: fraction to crop from the left margin
-        :param float right: fraction to crop from the right margin
-        :param bool pixels: units are pixels
+        Parameters
+        ----------
+        top : float
+            fraction to crop from the top margin
+
+        bottom : float
+            fraction to crop from the bottom margin
+
+        left : float
+            fraction to crop from the left margin
+
+        right : float
+            fraction to crop from the right margin
+
+        pixels : bool
+            units are pixels
         """
         extractVOI = vtk.vtkExtractVOI()
         extractVOI.SetInputData(self._data)
@@ -350,12 +366,19 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         The origin and spacing of all other inputs are ignored.
         All inputs must have the same scalar type.
 
-        :param int,str axis: axis expanded to hold the multiple images.
-        :param bool preserveExtents: if True, the extent of the inputs is used to place
+        Parameters
+        ----------
+        axis : int, str
+            axis expanded to hold the multiple images
+
+        preserveExtents : bool
+            if True, the extent of the inputs is used to place
             the image in the output. The whole extent of the output is the union of the input
             whole extents. Any portion of the output not covered by the inputs is set to zero.
             The origin and spacing is taken from the first input.
 
+        Example
+        -------
         .. code-block:: python
 
             from vedo import Picture, dataurl
@@ -386,7 +409,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """Resize the image resolution by specifying the number of pixels in width and height.
         If left to zero, it will be automatically calculated to keep the original aspect ratio.
 
-        :param list,float newsize: shape of picture as [npx, npy], or as a fraction.
+        newsize is the shape of picture as [npx, npy], or it can be also expressed as a fraction.
         """
         old_dims = np.array(self._data.GetDimensions())
 
@@ -574,14 +597,19 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         return self._update(original_color.GetOutput())
 
     def fft(self, mode="magnitude", logscale=12, center=True):
-        """Fast Fourier transform of a picture.
+        """
+        Fast Fourier transform of a picture.
 
-        :param float logscale: if non-zero, take the logarithm of the
-            intensity and scale it by this factor.
+        Parameters
+        ----------
+        logscale : float
+            if non-zero, take the logarithm of the intensity and scale it by this factor.
 
-        :param str mode: either [magnitude, real, imaginary, complex], compute the
-            point array data accordingly.
-        :param bool center: shift constant zero-frequency to the center of the image for display.
+        mode : str
+            either [magnitude, real, imaginary, complex], compute the point array data accordingly.
+
+        center : bool
+            shift constant zero-frequency to the center of the image for display.
             (FFT converts spatial images into frequency space, but puts the zero frequency at the origin)
         """
         ffti = vtk.vtkImageFFT()
@@ -666,15 +694,20 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         This function applies a high pass Butterworth filter that attenuates the
         frequency domain image with the function
 
-        |G_Of_Omega|
-
         The gradual attenuation of the filter is important.
         A simple high-pass filter would simply mask a set of pixels in the frequency domain,
         but the abrupt transition would cause a ringing effect in the spatial domain.
 
-        :param list lowcutoff:  the cutoff frequencies
-        :param list highcutoff: the cutoff frequencies
-        :param int order: order determines sharpness of the cutoff curve
+        Parameters
+        ----------
+        lowcutoff : list
+            the cutoff frequencies
+
+        highcutoff : list
+            the cutoff frequencies
+
+        order : int
+            order determines sharpness of the cutoff curve
         """
         # https://lorensen.github.io/VTKExamples/site/Cxx/ImageProcessing/IdealHighPass
         fft = vtk.vtkImageFFT()

@@ -1033,7 +1033,7 @@ def printc(
     invert : bool
         invert background and forward colors [False]
 
-    :param box : bool
+    box : bool
         print a box with specified text character ['']
 
     flush : bool
