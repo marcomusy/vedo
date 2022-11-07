@@ -44,6 +44,7 @@ __all__ = [
     "Arrows2D",
     "FlatArrow",
     "Polygon",
+    "Triangle",
     "Rectangle",
     "Disc",
     "Circle",
@@ -2280,6 +2281,14 @@ class FlatArrow(Ribbon):
         self.PickableOff()
         self.DragableOff()
         self.name = "FlatArrow"
+
+
+class Triangle(Mesh):
+    """Create a triangle from 3 points in space"""
+    def __init__(self, p1, p2, p3, c="green7", alpha=1):
+        Mesh.__init__(self, [[p1,p2,p3], [[0,1,2]]], c, alpha)
+        self.GetProperty().LightingOff()
+        self.name = "Triangle"
 
 
 class Polygon(Mesh):
