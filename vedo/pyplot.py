@@ -2244,7 +2244,8 @@ def histogram(*args, **kwargs):
         opacity of the histogram
 
     gap : float
-        separation between adjacent bins as a fraction for their size
+        separation between adjacent bins as a fraction for their size.
+        Set gap=-1 to generate a quad surface.
 
     scalarbar : bool
         add a scalarbar to right of the histogram
@@ -3040,9 +3041,8 @@ def _plot_spheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha
 
 
 def _histogram_quad_bin(x,y, **kwargs):
-
-    # kwargs2 = dict(kwargs)
-    # kwargs2.update({"gap", 0})
+    # generate a histgram with 3D bars
+    #
     histo = Histogram2D(x,y, **kwargs)
 
     gap = kwargs.pop("gap", 0)
@@ -3052,7 +3052,8 @@ def _histogram_quad_bin(x,y, **kwargs):
     gr = histo.actors[2]
     d = gr.diagonal_size()
     tol = d / 1_000_000  # tolerance
-    gr.shrink(1 - gap - tol)
+    if gap >= 0:
+        gr.shrink(1 - gap - tol)
     gr.map_cells_to_points()
 
     faces = np.array(gr.faces())

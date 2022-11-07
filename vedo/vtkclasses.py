@@ -417,6 +417,11 @@ from vtkmodules.vtkInteractionWidgets import (
     vtkSphereWidget,
 )
 
+try:
+    from vtkmodules.vtkInteractionWidgets import vtkCameraOrientationWidget
+except ImportError:
+    pass
+
 from vtkmodules.vtkRenderingAnnotation import (
     vtkAnnotatedCubeActor,
     vtkAxesActor,

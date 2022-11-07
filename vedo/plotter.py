@@ -2362,6 +2362,7 @@ class Plotter:
             dx, dy = x - xp, y - yp
 
             key = self.interactor.GetKeySym()
+
             if key:
                 if "_L" in key or "_R" in key:
                     # skip things like Shift_R
@@ -2369,6 +2370,13 @@ class Plotter:
                 else:
                     if iren.GetShiftKey():
                         key = key.upper()
+
+                    if key == "MINUS": # fix: vtk9 is ignoring shift chars..
+                        key = "underscore"
+                    elif key == "EQUAL": # fix: vtk9 is ignoring shift chars..
+                        key = "plus"
+                    elif key == "SLASH": # fix: vtk9 is ignoring shift chars..
+                        key = "?"
 
                     if iren.GetControlKey():
                         key = "Ctrl+" + key
