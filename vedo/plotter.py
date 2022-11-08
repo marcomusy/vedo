@@ -3231,7 +3231,8 @@ class Plotter:
 
     def break_interaction(self):
         """Break window interaction and return to the python execution flow"""
-        self.interactor.ExitCallback()
+        if self.interactor:
+            self.interactor.ExitCallback()
         return self
 
     def close_window(self):
