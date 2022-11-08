@@ -9,13 +9,13 @@ y = np.random.randn(n)     + 70
 
 histo = histogram(
     x, y,
-    bins=(10, 15),
+    bins=(12, 10),
     cmap="summer",
     ztitle="Number of entries in bin",
     mode="3d",
     gap=0.0,
     zscale=0.4,  # rescale the z axis
-    aspect=2
+    aspect=16/9,
 )
 
 print(histo.frequencies)
