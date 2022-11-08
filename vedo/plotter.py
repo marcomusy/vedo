@@ -752,6 +752,7 @@ class Plotter:
         if self.renderers:
             self.renderer = self.renderers[0]
             self.camera = self.renderer.GetActiveCamera()
+            self.camera.SetParallelProjection(settings.use_parallel_projection)
 
         if self.size[0] == "f":  # full screen
             self.size = "fullscreen"
@@ -2970,7 +2971,7 @@ class Plotter:
                 self.interactor.RemoveObservers("CharEvent")
 
         self.camera = self.renderer.GetActiveCamera()
-        self.camera.SetParallelProjection(settings.use_parallel_projection)
+
         if self.sharecam:
             for r in self.renderers:
                 r.SetActiveCamera(self.camera)
