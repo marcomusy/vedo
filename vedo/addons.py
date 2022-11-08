@@ -218,6 +218,10 @@ class Button:
 
         self.text_property = self.actor.GetTextProperty()
         self.text_property.SetJustificationToCentered()
+
+        if not font:
+            font = settings.default_font
+
         if font.lower() == "courier":
             self.text_property.SetFontFamilyToCourier()
         elif font.lower() == "times":
@@ -225,8 +229,6 @@ class Button:
         elif font.lower() == "arial":
             self.text_property.SetFontFamilyToArial()
         else:
-            if not font:
-                font = settings.default_font
             self.text_property.SetFontFamily(vtk.VTK_FONT_FILE)
             self.text_property.SetFontFile(utils.get_font_path(font))
         self.text_property.SetFontSize(size)
@@ -1472,7 +1474,7 @@ def add_button(
         bc=("dg", "dr"),
         pos=(0.7, 0.05),
         size=24,
-        font="Normografo",
+        font=None,
         bold=False,
         italic=False,
         alpha=1,
@@ -1502,7 +1504,7 @@ def add_button(
         size of button font
 
     font : str
-        font type (arial, courier, times)
+        font type
 
     bold : bool
         set bold font face
@@ -1950,7 +1952,7 @@ def Ruler(
         units_scale=1,
         label="",
         s=None,
-        font="",
+        font=None,
         italic=0,
         prefix="",
         units="",  #eg.'μm'

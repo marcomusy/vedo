@@ -1554,7 +1554,7 @@ class Plotter:
             bc=("dg", "dr"),
             pos=(0.7, 0.05),
             size=24,
-            font="Normografo",
+            font=None,
             bold=False,
             italic=False,
             alpha=1,
