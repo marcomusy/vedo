@@ -27,8 +27,8 @@ sphere.pointdata["pvectors"] = np.sin(sphere.points())
 
 sphere.compute_elevation()
 
-cone.computeNormals()
-sphere.computeNormals()
+cone.compute_normals()
+sphere.compute_normals()
 
 
 ###################################### test clone()
