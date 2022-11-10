@@ -1210,9 +1210,6 @@ def write(objct, fileoutput, binary=True):
     elif isinstance(obj, (vtk.vtkPolyData, vtk.vtkImageData)):
         obj = objct
 
-    if hasattr(obj, "filename"):
-        obj.filename = fileoutput
-
     fr = fileoutput.lower()
     if fr.endswith(".vtk"):
         writer = vtk.vtkDataSetWriter()
@@ -1717,6 +1714,8 @@ def screenshot(filename="screenshot.png", scale=None, asarray=False):
     if not vedo.plotter_instance or not vedo.plotter_instance.window:
         vedo.logger.error("in screenshot(), rendering window is not present, skip.")
         return vedo.plotter_instance
+
+    filename= str(filename)
 
     if filename.endswith(".pdf"):
         writer = vtk.vtkGL2PSExporter()

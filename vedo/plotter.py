@@ -2626,7 +2626,7 @@ class Plotter:
                     if not ugrid.GetPointData().GetScalars():
                         if not ugrid.GetCellData().GetScalars():
                             # add dummy array for vtkProjectedTetrahedraMapper to work:
-                            a.addCellArray(np.ones(a.ncells), "DummyOneArray")
+                            a.celldata["DummyOneArray"] = np.ones(a.ncells)
                     scannedacts.append(a)
 
             elif isinstance(a, vedo.UGrid):

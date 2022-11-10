@@ -463,344 +463,349 @@ class Settings:
         )
 
     ####################################################################################
-    def warn(self, key):
+    def _warn(self, key):
         if self.level == 0:
             print(f'\x1b[1m\x1b[33;20m Warning! Please use "settings.{key}" instead!\x1b[0m')
 
+    def reset(self):
+        """
+        Reset all settings to their default status.
+        """
+        self.__init__()
 
     ####################################################################################
     # Deprecations
     ####################################################################################
     @property
     def defaultFont(self):
-        self.warn("default_font")
+        self._warn("default_font")
         return self.default_font
     @defaultFont.setter
     def defaultFont(self, value):
-        self.warn("default_font")
+        self._warn("default_font")
         self.default_font = value
     ##################################
     @property
     def rememberLastFigureFormat(self):
-        self.warn("remember_last_figure_format")
+        self._warn("remember_last_figure_format")
         return self.remember_last_figure_format
     @rememberLastFigureFormat.setter
     def rememberLastFigureFormat(self, value):
-        self.warn("remember_last_figure_format")
+        self._warn("remember_last_figure_format")
         self.remember_last_figure_format = value
     ##################################
     @property
     def screeshotScale(self):
-        self.warn("screeshot_scale")
+        self._warn("screeshot_scale")
         return self.screeshot_scale
     @screeshotScale.setter
     def screeshotScale(self, value):
-        self.warn("screeshot_scale")
+        self._warn("screeshot_scale")
         self.screeshot_scale = value
     ##################################
     @property
     def screenshotTransparentBackground(self):
-        self.warn("screenshot_transparent_background")
+        self._warn("screenshot_transparent_background")
         return self.NAME_SNAKE
     @screenshotTransparentBackground.setter
     def screenshotTransparentBackground(self, value):
-        self.warn("screenshot_transparent_background")
+        self._warn("screenshot_transparent_background")
         self.screenshot_transparent_background = value
     ##################################
     @property
     def screeshotLargeImage(self):
-        self.warn("screeshot_large_image")
+        self._warn("screeshot_large_image")
         return self.screeshot_large_image
     @screeshotLargeImage.setter
     def screeshotLargeImage(self, value):
-        self.warn("screeshot_large_image")
+        self._warn("screeshot_large_image")
         self.screeshot_large_image = value
     ##################################
     @property
     def allowInteraction(self):
-        self.warn("allow_interaction")
+        self._warn("allow_interaction")
         return self.allow_interaction
     @allowInteraction.setter
     def allowInteraction(self, value):
-        self.warn("allow_interaction")
+        self._warn("allow_interaction")
         self.allow_interaction = value
     ##################################
     @property
     def hackCallScreenSize(self):
-        self.warn("hack_call_screen_size")
+        self._warn("hack_call_screen_size")
         return self.hack_call_screen_size
     @hackCallScreenSize.setter
     def hackCallScreenSize(self, value):
-        self.warn("hack_call_screen_size")
+        self._warn("hack_call_screen_size")
         self.hack_call_screen_size = value
     ##################################
     @property
     def enableDefaultMouseCallbacks(self):
-        self.warn("enable_default_mouse_callbacks")
+        self._warn("enable_default_mouse_callbacks")
         return self.enable_default_mouse_callbacks
     @enableDefaultMouseCallbacks.setter
     def enableDefaultMouseCallbacks(self, value):
-        self.warn("enable_default_mouse_callbacks")
+        self._warn("enable_default_mouse_callbacks")
         self.enable_default_mouse_callbacks = value
     ##################################
     @property
     def enableDefaultKeyboardCallbacks(self):
-        self.warn("enable_default_keyboard_callbacks")
+        self._warn("enable_default_keyboard_callbacks")
         return self.enable_default_keyboard_callbacks
     @enableDefaultKeyboardCallbacks.setter
     def enableDefaultKeyboardCallbacks(self, value):
-        self.warn("enable_default_keyboard_callbacks")
+        self._warn("enable_default_keyboard_callbacks")
         self.enable_default_keyboard_callbacks = value
     ##################################
     @property
     def immediateRendering(self):
-        self.warn("immediate_rendering")
+        self._warn("immediate_rendering")
         return self.immediate_rendering
     @immediateRendering.setter
     def immediateRendering(self, value):
-        self.warn("immediate_rendering")
+        self._warn("immediate_rendering")
         self.immediate_rendering = value
     ##################################
     @property
     def rendererFrameColor(self):
-        self.warn("renderer_frame_color")
+        self._warn("renderer_frame_color")
         return self.renderer_frame_color
     @rendererFrameColor.setter
     def rendererFrameColor(self, value):
-        self.warn("renderer_frame_color")
+        self._warn("renderer_frame_color")
         self.renderer_frame_color = value
     ##################################
     @property
     def rendererFrameAlpha(self):
-        self.warn("renderer_frame_alpha")
+        self._warn("renderer_frame_alpha")
         return self.renderer_frame_alpha
     @rendererFrameAlpha.setter
     def rendererFrameAlpha(self, value):
-        self.warn("renderer_frame_alpha")
+        self._warn("renderer_frame_alpha")
         self.renderer_frame_alpha = value
     ##################################
     @property
     def rendererFrameWidth(self):
-        self.warn("renderer_frame_width")
+        self._warn("renderer_frame_width")
         return self.renderer_frame_width
     @rendererFrameWidth.setter
     def rendererFrameWidth(self, value):
-        self.warn("renderer_frame_width")
+        self._warn("renderer_frame_width")
         self.renderer_frame_width = value
     ##################################
     @property
     def rendererFramePadding(self):
-        self.warn("renderer_frame_padding")
+        self._warn("renderer_frame_padding")
         return self.renderer_frame_padding
     @rendererFramePadding.setter
     def rendererFramePadding(self, value):
-        self.warn("renderer_frame_padding")
+        self._warn("renderer_frame_padding")
         self.renderer_frame_padding = value
     ##################################
     @property
     def renderLinesAsTubes(self):
-        self.warn("render_lines_as_tubes")
+        self._warn("render_lines_as_tubes")
         return self.render_lines_as_tubes
     @renderLinesAsTubes.setter
     def renderLinesAsTubes(self, value):
-        self.warn("render_lines_as_tubes")
+        self._warn("render_lines_as_tubes")
         self.render_lines_as_tubes = value
     ##################################
     @property
     def hiddenLineRemoval(self):
-        self.warn("hidden_line_removal")
+        self._warn("hidden_line_removal")
         return self.hidden_line_removal
     @hiddenLineRemoval.setter
     def hiddenLineRemoval(self, value):
-        self.warn("hidden_line_removal")
+        self._warn("hidden_line_removal")
         self.hidden_line_removal = value
     ##################################
     @property
     def pointSmoothing(self):
-        self.warn("point_smoothing")
+        self._warn("point_smoothing")
         return self.point_smoothing
     @pointSmoothing.setter
     def pointSmoothing(self, value):
-        self.warn("point_smoothing")
+        self._warn("point_smoothing")
         self.point_smoothing = value
     ##################################
     @property
     def lineSmoothing(self):
-        self.warn("line_smoothing")
+        self._warn("line_smoothing")
         return self.line_smoothing
     @lineSmoothing.setter
     def lineSmoothing(self, value):
-        self.warn("line_smoothing")
+        self._warn("line_smoothing")
         self.line_smoothing = value
     ##################################
     @property
     def polygonSmoothing(self):
-        self.warn("polygon_smoothing")
+        self._warn("polygon_smoothing")
         return self.polygon_smoothing
     @polygonSmoothing.setter
     def polygonSmoothing(self, value):
-        self.warn("polygon_smoothing")
+        self._warn("polygon_smoothing")
         self.polygon_smoothing = value
     ##################################
     @property
     def visibleGridEdges(self):
-        self.warn("visible_grid_edges")
+        self._warn("visible_grid_edges")
         return self.visible_grid_edges
     @visibleGridEdges.setter
     def visibleGridEdges(self, value):
-        self.warn("visible_grid_edges")
+        self._warn("visible_grid_edges")
         self.visible_grid_edges = value
     ##################################
     @property
     def lightFollowsCamera(self):
-        self.warn("light_follows_camera")
+        self._warn("light_follows_camera")
         return self.light_follows_camera
     @lightFollowsCamera.setter
     def lightFollowsCamera(self, value):
-        self.warn("light_follows_camera")
+        self._warn("light_follows_camera")
         self.light_follows_camera = value
     ##################################
     @property
     def twoSidedLighting(self):
-        self.warn("two_sided_lighting")
+        self._warn("two_sided_lighting")
         return self.two_sided_lighting
     @twoSidedLighting.setter
     def twoSidedLighting(self, value):
-        self.warn("two_sided_lighting")
+        self._warn("two_sided_lighting")
         self.two_sided_lighting = value
     ##################################
     @property
     def useDepthPeeling(self):
-        self.warn("use_depth_peeling")
+        self._warn("use_depth_peeling")
         return self.use_depth_peeling
     @useDepthPeeling.setter
     def useDepthPeeling(self, value):
-        self.warn("use_depth_peeling")
+        self._warn("use_depth_peeling")
         self.use_depth_peeling = value
     ##################################
     @property
     def multiSamples(self):
-        self.warn("multi_samples")
+        self._warn("multi_samples")
         return self.multi_samples
     @multiSamples.setter
     def multiSamples(self, value):
-        self.warn("multi_samples")
+        self._warn("multi_samples")
         self.multi_samples = value
     ##################################
     @property
     def alphaBitPlanes(self):
-        self.warn("alpha_bit_planes")
+        self._warn("alpha_bit_planes")
         return self.alpha_bit_planes
     @alphaBitPlanes.setter
     def alphaBitPlanes(self, value):
-        self.warn("alpha_bit_planes")
+        self._warn("alpha_bit_planes")
         self.alpha_bit_planes = value
     ##################################
     @property
     def maxNumberOfPeels(self):
-        self.warn("max_number_of_peels")
+        self._warn("max_number_of_peels")
         return self.max_number_of_peels
     @maxNumberOfPeels.setter
     def maxNumberOfPeels(self, value):
-        self.warn("max_number_of_peels")
+        self._warn("max_number_of_peels")
         self.max_number_of_peels = value
     ##################################
     @property
     def occlusionRatio(self):
-        self.warn("occlusion_ratio")
+        self._warn("occlusion_ratio")
         return self.occlusion_ratio
     @occlusionRatio.setter
     def occlusionRatio(self, value):
-        self.warn("occlusion_ratio")
+        self._warn("occlusion_ratio")
         self.occlusion_ratio = value
     ##################################
     @property
     def useFXAA(self):
-        self.warn("use_fxaa")
+        self._warn("use_fxaa")
         return self.use_fxaa
     @useFXAA.setter
     def useFXAA(self, value):
-        self.warn("use_fxaa")
+        self._warn("use_fxaa")
         self.use_fxaa = value
     ##################################
     @property
     def preserveDepthBuffer(self):
-        self.warn("preserve_depth_buffer")
+        self._warn("preserve_depth_buffer")
         return self.preserve_depth_buffer
     @preserveDepthBuffer.setter
     def preserveDepthBuffer(self, value):
-        self.warn("preserve_depth_buffer")
+        self._warn("preserve_depth_buffer")
         self.preserve_depth_buffer = value
     ##################################
     @property
     def usePolygonOffset(self):
-        self.warn("use_polygon_offset")
+        self._warn("use_polygon_offset")
         return self.use_polygon_offset
     @usePolygonOffset.setter
     def usePolygonOffset(self, value):
-        self.warn("use_polygon_offset")
+        self._warn("use_polygon_offset")
         self.use_polygon_offset = value
     ##################################
     @property
     def polygonOffsetFactor(self):
-        self.warn("polygon_offset_factor")
+        self._warn("polygon_offset_factor")
         return self.polygon_offset_factor
     @polygonOffsetFactor.setter
     def polygonOffsetFactor(self, value):
-        self.warn("polygon_offset_factor")
+        self._warn("polygon_offset_factor")
         self.polygon_offset_factor = value
     ##################################
     @property
     def polygonOffsetUnits(self):
-        self.warn("polygon_offset_units")
+        self._warn("polygon_offset_units")
         return self.polygon_offset_units
     @polygonOffsetUnits.setter
     def polygonOffsetUnits(self, value):
-        self.warn("polygon_offset_units")
+        self._warn("polygon_offset_units")
         self.polygon_offset_units = value
     ##################################
     @property
     def interpolateScalarsBeforeMapping(self):
-        self.warn("interpolate_scalars_before_mapping")
+        self._warn("interpolate_scalars_before_mapping")
         return self.interpolate_scalars_before_mapping
     @interpolateScalarsBeforeMapping.setter
     def interpolateScalarsBeforeMapping(self, value):
-        self.warn("interpolate_scalars_before_mapping")
+        self._warn("interpolate_scalars_before_mapping")
         self.interpolate_scalars_before_mapping = value
     ##################################
     @property
     def useParallelProjection(self):
-        self.warn("use_parallel_projection")
+        self._warn("use_parallel_projection")
         return self.use_parallel_projection
     @useParallelProjection.setter
     def useParallelProjection(self, value):
-        self.warn("use_parallel_projection")
+        self._warn("use_parallel_projection")
         self.use_parallel_projection = value
     ##################################
     @property
     def windowSplittingPosition(self):
-        self.warn("window_splitting_position")
+        self._warn("window_splitting_position")
         return self.window_splitting_position
     @windowSplittingPosition.setter
     def windowSplittingPosition(self, value):
-        self.warn("window_splitting_position")
+        self._warn("window_splitting_position")
         self.window_splitting_position = value
     ##################################
     @property
     def tiffOrientationType(self):
-        self.warn("tiff_orientation_type")
+        self._warn("tiff_orientation_type")
         return self.tiff_orientation_type
     @tiffOrientationType.setter
     def tiffOrientationType(self, value):
-        self.warn("tiff_orientation_type")
+        self._warn("tiff_orientation_type")
         self.tiff_orientation_type = value
     ##################################
     @property
     def enablePrintColor(self):
-        self.warn("enable_print_color")
+        self._warn("enable_print_color")
         return self.enable_print_color
     @enablePrintColor.setter
     def enablePrintColor(self, value):
-        self.warn("enable_print_color")
+        self._warn("enable_print_color")
         self.enable_print_color = value
 
