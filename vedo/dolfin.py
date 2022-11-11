@@ -796,8 +796,8 @@ def MeshPoints(*inputobj, **options):
 
 def MeshLines(*inputobj, **options):
     """
-    Build the line segments between two lists of points `startPoints` and `endPoints`.
-    `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
+    Build the line segments between two lists of points `start_points` and `end_points`.
+    `start_points` can be also passed in the form ``[[point1, point2], ...]``.
 
     A dolfin ``Mesh`` that was deformed/modified by a function can be
     passed together as inputs.
@@ -814,22 +814,22 @@ def MeshLines(*inputobj, **options):
         return None
 
     if hasattr(mesh, "coordinates"):
-        startPoints = mesh.coordinates()
+        start_points = mesh.coordinates()
     else:
-        startPoints = mesh.geometry.points
+        start_points = mesh.geometry.points
 
     u_values = _compute_uvalues(u, mesh)
     if not utils.is_sequence(u_values[0]):
         vedo.logger.error("cannot show Lines for 1D scalar values")
         raise RuntimeError()
 
-    endPoints = startPoints + u_values
+    end_points = start_points + u_values
     if u_values.shape[1] == 2:  # u_values is 2D
         u_values = np.insert(u_values, 2, 0, axis=1)  # make it 3d
-        startPoints = np.insert(startPoints, 2, 0, axis=1)  # make it 3d
-        endPoints = np.insert(endPoints, 2, 0, axis=1)  # make it 3d
+        start_points = np.insert(start_points, 2, 0, axis=1)  # make it 3d
+        end_points = np.insert(end_points, 2, 0, axis=1)  # make it 3d
 
-    actor = shapes.Lines(startPoints, endPoints, scale=scale, lw=lw, c=c, alpha=alpha)
+    actor = shapes.Lines(start_points, end_points, scale=scale, lw=lw, c=c, alpha=alpha)
 
     actor.mesh = mesh
     actor.u = u
@@ -850,22 +850,22 @@ def MeshArrows(*inputobj, **options):
         return None
 
     if hasattr(mesh, "coordinates"):
-        startPoints = mesh.coordinates()
+        start_points = mesh.coordinates()
     else:
-        startPoints = mesh.geometry.points
+        start_points = mesh.geometry.points
 
     u_values = _compute_uvalues(u, mesh)
     if not utils.is_sequence(u_values[0]):
         vedo.logger.error("cannot show Arrows for 1D scalar values")
         raise RuntimeError()
 
-    endPoints = startPoints + u_values * scale
+    end_points = start_points + u_values * scale
     if u_values.shape[1] == 2:  # u_values is 2D
         u_values = np.insert(u_values, 2, 0, axis=1)  # make it 3d
-        startPoints = np.insert(startPoints, 2, 0, axis=1)  # make it 3d
-        endPoints = np.insert(endPoints, 2, 0, axis=1)  # make it 3d
+        start_points = np.insert(start_points, 2, 0, axis=1)  # make it 3d
+        end_points = np.insert(end_points, 2, 0, axis=1)  # make it 3d
 
-    actor = shapes.Arrows(startPoints, endPoints, s=s, alpha=alpha, res=res)
+    actor = shapes.Arrows(start_points, end_points, s=s, alpha=alpha, res=res)
     actor.color(c)
     actor.mesh = mesh
     actor.u = u

@@ -11,7 +11,6 @@ except ImportError:
 import vedo
 from vedo import colors
 from vedo import utils
-from vedo import settings
 from vedo.base import BaseActor
 
 
@@ -129,8 +128,9 @@ def delaunay2d(plist, mode="scipy", boundaries=(), tol=None, alpha=0, offset=0, 
         plist = plist.points()
     else:
         plist = np.ascontiguousarray(plist)
-        if plist.shape[1] == 2:  # make it 3d
-            plist = np.c_[plist, np.zeros(len(plist))]
+        # if plist.shape[1] == 2:  # make it 3d
+        #     plist = np.c_[plist, np.zeros(len(plist))]
+        plist = utils.make3d(plist)
 
     #############################################
     if mode == "scipy":
@@ -746,8 +746,9 @@ class Points(vtk.vtkFollower, BaseActor):
                 if utils.is_sequence(plist[0]) and len(plist[0]) > 3:
                     plist = np.stack((plist[0], plist[1], np.zeros(len(plist[0]))), axis=1)
 
-            if n and len(plist[0]) == 2:  # make it 3d
-                plist = np.c_[np.array(plist), np.zeros(len(plist))]
+            # if n and len(plist[0]) == 2:  # make it 3d
+            #     plist = np.c_[np.array(plist), np.zeros(len(plist))]
+            plist = utils.make3d(plist)
 
             if (
                 utils.is_sequence(c)
@@ -1906,8 +1907,10 @@ class Points(vtk.vtkFollower, BaseActor):
 
         if offset is None:
             offset = [(x1 - x0) / 3, (y1 - y0) / 6, 0]
-        elif len(offset) == 2:
-            offset = [offset[0], offset[1], 0]  # make it 3d
+        # elif len(offset) == 2:
+        #     offset = [offset[0], offset[1], 0]  # make it 3d
+
+        offset = utils.make3d(offset)
 
         if s is None:
             s = d / 20
@@ -3806,9 +3809,10 @@ class Points(vtk.vtkFollower, BaseActor):
             points = points.points()
         else:
             vpts = vtk.vtkPoints()
-            if len(points[0]) == 2:  # make it 3d
-                points = np.asarray(points)
-                points = np.c_[points, np.zeros(len(points))]
+            # if len(points[0]) == 2:  # make it 3d
+            #     points = np.asarray(points)
+            #     points = np.c_[points, np.zeros(len(points))]
+            points = utils.make3d(points)
             for p in points:
                 vpts.InsertNextPoint(p)
 

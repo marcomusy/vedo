@@ -479,13 +479,15 @@ class Line(Mesh):
                 # assume input is 2D xlist, ylist
                 p0 = np.stack((p0, p1), axis=1)
                 p1 = None
-            if len(p0[0]) == 2:  # make it 3d
-                p0 = np.c_[np.array(p0, dtype=float), np.zeros(len(p0), dtype=float)]
+            # if len(p0[0]) == 2:  # make it 3d
+            #     p0 = np.c_[np.array(p0, dtype=float), np.zeros(len(p0), dtype=float)]
+            p0 = utils.make3d(p0)
 
         # detect if user is passing a list of points:
         if utils.is_sequence(p0[0]):
-            if len(p0[0]) == 2:  # make it 3d
-                p0 = np.c_[np.array(p0, dtype=float), np.zeros(len(p0), dtype=float)]
+            # if len(p0[0]) == 2:  # make it 3d
+            #     p0 = np.c_[np.array(p0, dtype=float), np.zeros(len(p0), dtype=float)]
+            p0 = utils.make3d(p0)
 
             ppoints = vtk.vtkPoints()  # Generate the polyline
             ppoints.SetData(utils.numpy2vtk(np.asarray(p0, dtype=float), dtype=float))
@@ -509,17 +511,19 @@ class Line(Mesh):
         else:  # or just 2 points to link
 
             line_source = vtk.vtkLineSource()
-            if len(p0) == 2:  # make it 3d
-                p0 = [p0[0], p0[1], 0]
-            if len(p1) == 2:
-                p1 = [p1[0], p1[1], 0]
+            # if len(p0) == 2:  # make it 3d
+            #     p0 = [p0[0], p0[1], 0]
+            p0 = utils.make3d(p0)
+            # if len(p1) == 2:
+            #     p1 = [p1[0], p1[1], 0]
+            p1 = utils.make3d(p1)
             line_source.SetPoint1(p0)
             line_source.SetPoint2(p1)
             line_source.SetResolution(res - 1)
             line_source.Update()
             poly = line_source.GetOutput()
-            top = np.array(p1, dtype=float)
-            base = np.array(p0, dtype=float)
+            top = np.asarray(p1, dtype=float)
+            base = np.asarray(p0, dtype=float)
 
         Mesh.__init__(self, poly, c, alpha)
         self.lw(lw)
@@ -792,8 +796,9 @@ class DashedLine(Mesh):
                 # assume input is 2D xlist, ylist
                 p0 = np.stack((p0, p1), axis=1)
                 p1 = None
-            if len(p0[0]) == 2:  # make it 3d
-                p0 = np.c_[np.array(p0, dtype=float), np.zeros(len(p0), dtype=float)]
+            # if len(p0[0]) == 2:  # make it 3d
+            #     p0 = np.c_[np.array(p0, dtype=float), np.zeros(len(p0), dtype=float)]
+            p0 = utils.make3d(p0)
             if closed:
                 p0 = np.append(p0, [p0[0]], axis=0)
 
@@ -892,9 +897,10 @@ class RoundedLine(Mesh):
     """
 
     def __init__(self, pts, lw, res=10, c="gray4", alpha=1):
-        pts = np.asarray(pts, dtype=float)
-        if len(pts[0]) == 2:  # make it 3d
-            pts = np.c_[pts, np.zeros(len(pts))]
+        # pts = np.asarray(pts, dtype=float)
+        # if len(pts[0]) == 2:  # make it 3d
+        #     pts = np.c_[pts, np.zeros(len(pts))]
+        pts = utils.make3d(pts)
 
         def _getpts(pts, revd=False):
 
@@ -1044,11 +1050,12 @@ class Lines(Mesh):
             polylns = vtk.vtkAppendPolyData()
             for t in start_pts:
 
-                if len(t[0]) == 2:  # make it 3d
-                    t = np.c_[np.asarray(t, dtype=float), np.zeros(len(t), dtype=float)]
+                # if len(t[0]) == 2:  # make it 3d
+                #     t = np.c_[np.asarray(t, dtype=float), np.zeros(len(t), dtype=float)]
+                t = utils.make3d(t)
 
                 ppoints = vtk.vtkPoints()  # Generate the polyline
-                ppoints.SetData(utils.numpy2vtk(np.asarray(t, dtype=float), dtype=float))
+                ppoints.SetData(utils.numpy2vtk(t, dtype=float))
                 lines = vtk.vtkCellArray()
                 npt = len(t)
                 lines.InsertNextCell(npt)
@@ -1107,8 +1114,9 @@ class Spline(Line):
         if isinstance(points, Points):
             points = points.points()
 
-        if len(points[0]) == 2: # make it 3d
-            points = np.c_[np.array(points, dtype=float), np.zeros(len(points), dtype=float)]
+        # if len(points[0]) == 2: # make it 3d
+        #     points = np.c_[np.array(points, dtype=float), np.zeros(len(points), dtype=float)]
+        points = utils.make3d(points)
 
         per = 0
         if closed:
@@ -1158,7 +1166,6 @@ class Spline(Line):
         xnew, ynew, znew = splev(x, tckp)
 
         Line.__init__(self, np.c_[xnew, ynew, znew], lw=2)
-        self.lighting("off")
         self.name = "Spline"
 
 
@@ -1197,10 +1204,11 @@ class KSpline(Line):
         if not res:
             res = len(points) * 20
 
-        if len(points[0]) == 2:  # make it 3d
-            points = np.c_[
-                np.array(points, dtype=float), np.zeros(len(points), dtype=float)
-            ]
+        # if len(points[0]) == 2:  # make it 3d
+        #     points = np.c_[
+        #         np.array(points, dtype=float), np.zeros(len(points), dtype=float)
+        #     ]
+        points = utils.make3d(points).astype(float)
 
         xspline = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkKochanekSpline()
         yspline = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkKochanekSpline()
@@ -1263,8 +1271,9 @@ class CSpline(Line):
         if not res:
             res = len(points) * 20
 
-        if len(points[0]) == 2: # make it 3d
-            points = np.c_[np.array(points, dtype=float), np.zeros(len(points), dtype=float)]
+        # if len(points[0]) == 2: # make it 3d
+        #     points = np.c_[np.array(points, dtype=float), np.zeros(len(points), dtype=float)]
+        points = utils.make3d(points).astype(float)
 
         xspline = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkCardinalSpline()
         yspline = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkCardinalSpline()
@@ -1293,8 +1302,8 @@ class CSpline(Line):
         self.clean()
         self.lighting("off")
         self.name = "CSpline"
-        self.base = np.array(points[0], dtype=float)
-        self.top = np.array(points[-1], dtype=float)
+        self.base = points[0]
+        self.top = points[-1]
 
 
 class Bezier(Line):
@@ -1584,9 +1593,10 @@ def StreamLines(
         max_propagation = size
 
     if utils.is_sequence(probe):
-        pts = np.array(probe)
-        if pts.shape[1] == 2:  # make it 3d
-            pts = np.c_[pts, np.zeros(len(pts))]
+        # pts = np.array(probe)
+        # if pts.shape[1] == 2:  # make it 3d
+        #     pts = np.c_[pts, np.zeros(len(pts))]
+        pts = utils.make3d(probe)
     else:
         pts = probe.clean().points()
 
@@ -2017,20 +2027,23 @@ class Arrows(Glyph):
             start_pts = start_pts.points()
         if isinstance(end_pts, Points):
             end_pts = end_pts.points()
-        start_pts = np.array(start_pts)
+
+        start_pts = np.asarray(start_pts)
         if end_pts is None:
             strt = start_pts[:, 0]
             end_pts = start_pts[:, 1]
             start_pts = strt
         else:
-            end_pts = np.array(end_pts)
+            end_pts = np.asarray(end_pts)
 
-        if start_pts.shape[1] == 2:  # make it 3d
-            start_pts = np.c_[start_pts, np.zeros(len(start_pts))]
-        if end_pts.shape[1] == 2:  # make it 3d
-            end_pts = np.c_[
-                np.array(end_pts, dtype=float), np.zeros(len(end_pts), dtype=float)
-            ]
+        # if start_pts.shape[1] == 2:  # make it 3d
+        #     start_pts = np.c_[start_pts, np.zeros(len(start_pts))]
+        # if end_pts.shape[1] == 2:  # make it 3d
+        #     end_pts = np.c_[
+        #         np.array(end_pts, dtype=float), np.zeros(len(end_pts), dtype=float)
+        #     ]
+        start_pts = utils.make3d(start_pts)
+        end_pts = utils.make3d(end_pts)
 
         arr = vtk.vtkArrowSource()
         arr.SetShaftResolution(res)
@@ -2203,13 +2216,14 @@ class Arrows2D(Glyph):
             start_pts = start_pts.points()
         if isinstance(end_pts, Points):
             end_pts = end_pts.points()
-        start_pts = np.array(start_pts, dtype=float)
+
+        start_pts = np.asarray(start_pts, dtype=float)
         if end_pts is None:
             strt = start_pts[:, 0]
             end_pts = start_pts[:, 1]
             start_pts = strt
         else:
-            end_pts = np.array(end_pts, dtype=float)
+            end_pts = np.asarray(end_pts, dtype=float)
 
         if head_length is None:
             head_length = 1 - shaft_length
@@ -2226,10 +2240,11 @@ class Arrows2D(Glyph):
         )
 
         orients = end_pts - start_pts
-        if orients.shape[1] == 2:  # make it 3d
-            orients = np.c_[
-                np.array(orients, dtype=float), np.zeros(len(orients), dtype=float)
-            ]
+        # if orients.shape[1] == 2:  # make it 3d
+        #     orients = np.c_[
+        #         np.array(orients, dtype=float), np.zeros(len(orients), dtype=float)
+        #     ]
+        orients = utils.make3d(orients)
 
         pts = Points(start_pts)
         Glyph.__init__(
@@ -4680,8 +4695,9 @@ class ConvexHull(Mesh):
 
     def __init__(self, pts):
         if utils.is_sequence(pts):
-            if len(pts[0]) == 2:  # make it 3d
-                pts = np.c_[np.array(pts, dtype=float), np.zeros(len(pts), dtype=float)]
+            # if len(pts[0]) == 2:  # make it 3d
+            #     pts = np.c_[np.array(pts, dtype=float), np.zeros(len(pts), dtype=float)]
+            pts = utils.make3d(pts).astype(float)
             mesh = Points(pts)
         else:
             mesh = pts

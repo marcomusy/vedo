@@ -28,6 +28,8 @@
 
 ---
 ### `shapes.py`
+- Added support for chinese and japanese chars
+- Added font "ComicMono"
 
 ---
 ### `tetmesh.py`

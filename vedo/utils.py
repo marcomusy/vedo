@@ -309,6 +309,61 @@ def vtk2numpy(varr):
     return vtk_to_numpy(varr)
 
 
+def make3d(pts, transpose=False):
+    """
+    Make an array which might be 2D to 3D.
+    Array can also be in the form [allx, ally, allz].
+    Use transpose to resolve ambigous cases (eg, shapes like [3,3]).
+    """
+    # Experimental, tests:
+    #
+    # print(make3d([]))
+    #
+    # print(make3d([0,1]))
+    # print(make3d([0,1,2]))
+    # print(make3d([0,1,2,3])) # will raise error
+    #
+    # print(make3d([[0,1,2,3], [6,7,8,9]]))
+    # print(make3d([ [0,1,2,3], [6,7,8,9], [6,7,8,8] ]))
+    # print(make3d([ [0,1,2], [6,7,8], [6,7,9] ]))
+    # print(make3d([ [0,1,2], [6,7,8], [6,7,9] ], transpose=True))
+    #
+    # print(make3d([[0,1,2]]))
+    # print(make3d([[0,1,2], [6,7,8]]))
+    # print(make3d([[0,1,2], [6,7,8], [6,7,8], [6,7,4]]))
+    # print(make3d([[0,1], [6,7], [6,7], [6,7]]))
+    # print(pts.ndim, pts.shape, pts.dtype)
+
+    pts = np.asarray(pts)
+
+    if pts.dtype == "object":
+        raise ValueError("Cannot form a valid numpy array")
+
+    if pts.shape[0] == 0: # empty list
+        return pts
+
+    if pts.ndim == 1:
+        if pts.shape[0] == 2:
+            return np.hstack([pts,[0]]).astype(pts.dtype)
+        elif pts.shape[0] == 3:
+            return pts
+        else:
+            raise ValueError
+
+    if pts.shape[1] == 3:
+        return pts
+
+    if transpose or (2 <= pts.shape[0] <= 3 and pts.shape[1] > 3):
+        pts = pts.T
+
+    if pts.shape[1] == 2:
+        return np.c_[pts, np.zeros(pts.shape[0], dtype=pts.dtype)]
+
+    if pts.shape[1] != 3:
+        raise ValueError("input shape is not supported.")
+    return pts
+
+
 def geometry(obj, extent=None):
     """
     Apply the ``vtkGeometryFilter``.
@@ -357,10 +412,11 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, fast=True, t
     if not is_sequence(vertices[0]):
         return poly
 
-    if len(vertices[0]) < 3:  # make sure it is 3d
-        vertices = np.c_[np.array(vertices), np.zeros(len(vertices))]
-        if len(vertices[0]) == 2:  # make sure it was not 1d!
-            vertices = np.c_[vertices, np.zeros(len(vertices))]
+    # if len(vertices[0]) < 3:  # make sure it is 3d
+    #     vertices = np.c_[np.array(vertices), np.zeros(len(vertices))]
+    #     if len(vertices[0]) == 2:  # make sure it was not 1d!
+    #         vertices = np.c_[vertices, np.zeros(len(vertices))]
+    vertices = make3d(vertices)
 
     source_points = vtk.vtkPoints()
     source_points.SetData(numpy2vtk(vertices, dtype=float))
@@ -1759,7 +1815,7 @@ def make_ticks(x0, x1, n=None, labels=None, digits=None, logscale=False, useform
     # https://www.programiz.com/python-programming/methods/built-in/format
 
     if x1 <= x0:
-        # vedo.printc("Error in makeTicks(): x0 >= x1", x0,x1, c='r')
+        # vedo.printc("Error in make_ticks(): x0 >= x1", x0,x1, c='r')
         return np.array([0.0, 1.0]), ["", ""]
 
     ticks_str, ticks_float = [], []
@@ -1767,7 +1823,7 @@ def make_ticks(x0, x1, n=None, labels=None, digits=None, logscale=False, useform
 
     if logscale:
         if x0 <= 0 or x1 <= 0:
-            vedo.logger.error("makeTicks: zero or negative range with log scale.")
+            vedo.logger.error("make_ticks: zero or negative range with log scale.")
             raise RuntimeError
         if n is None:
             n = int(abs(np.log10(x1) - np.log10(x0))) + 1
