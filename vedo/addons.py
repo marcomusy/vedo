@@ -128,6 +128,9 @@ class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
         # self.property.SetJustificationToLeft() # no effect
         # self.property.SetVerticalJustificationToTop()
 
+        if not font:
+            font = settings.default_font
+
         self.font(font)
 
         n = 0

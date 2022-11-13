@@ -62,27 +62,15 @@ examples/simulations/orbitals.py
 examples/other/meshio_read.py
 examples/other/dolfin/ex06_elasticity3.py
 
+-------------------------
 vtk9.2:
-cutter.py
 interactionstyle.py
-fitplanes.py
-interpolateVolume.py looks different
-isosurfaces.py
-multiple_pendulum.py
+cutter.py
+histo_manual.py
+tet_explode.py
+tet_isos_slice.py # stuck
 makeVideo.py
-
-
-
-
-
-
-
-
-
-
-
-
-
+lorenz.py
 
 
 

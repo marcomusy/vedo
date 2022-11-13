@@ -6,7 +6,7 @@ c = Cube().x(2)
 e = Ellipsoid().x(4)
 h = Hyperboloid().x(6).legend('The description for\nthis one is quite long')
 
-lb = LegendBox([s,c,e,h], width=0.3, height=0.4).font(5)
+lb = LegendBox([s,c,e,h], width=0.3, height=0.4).font("Kanopus")
 
 cam = dict(position=(10.1, -8.33, 7.25),  # params obtained by pressing "C"
            focal_point=(4.46, 1.31, -0.644),

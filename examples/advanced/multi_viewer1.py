@@ -4,9 +4,6 @@
 from vedo import *
 
 
-plt1 = Plotter(title='Window 1', sharecam=False, shape=(8,2))
-plt2 = Plotter(title='Window 2', size=(700,700), pos=(400,0))
-
 ####################################################################################
 def keyfunc(evt):
     printc('keyfunc called, pressed key:', evt.keypress)
@@ -43,7 +40,11 @@ def onLeftClick(evt):
     plt2.clear()
     plt2.add(acts, resetcam=True)
 
+
 ####################################################################################
+plt1 = Plotter(title='Window 1', sharecam=False, shape=(8,2))
+plt2 = Plotter(title='Window 2', size=(700,700), pos=(400,0))
+
 plt1.add_callback("KeyPress", keyfunc)
 plt1.add_callback("LeftButtonPress", onLeftClick)
 plt1.at(len(plt1.renderers)-1).show(
@@ -60,7 +61,7 @@ for i in range(15):
 
 ####################################################################################
 instr  = "Click on the left panel to select a shape\n"
-instr += "Press c to make the shape red\n"
+instr += "Press c to make the shape red"
 plt2.add_callback('KeyPress', keyfunc)
 plt2.show(
     __doc__,

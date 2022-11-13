@@ -1203,7 +1203,7 @@ def printd(*strings, q=False):
 
         var = var.replace("vtkmodules.", "")
         print("      \x1b[37m", loc, "\t\t=", var[:60].replace("\n", ""), reset)
-        if vedo.utils.isSequence(obj) and len(obj) > 4:
+        if vedo.utils.is_sequence(obj) and len(obj) > 4:
             print('           \x1b[37m\x1b[2m\x1b[3m len:', len(obj),
                   ' min:', vedo.utils.precision(min(obj), 4),
                   ' max:', vedo.utils.precision(max(obj), 4),

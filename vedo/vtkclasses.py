@@ -40,6 +40,7 @@ from vtkmodules.vtkCommonCore import (
     vtkPoints,
     vtkStringArray,
     vtkUnsignedCharArray,
+    vtkVariant,
     vtkVariantArray,
     vtkVersion,
 )
@@ -92,6 +93,8 @@ from vtkmodules.vtkCommonDataModel import (
     vtkVoxel,
     vtkWedge,
 )
+
+from vtkmodules.vtkCommonExecutionModel import vtkAlgorithm
 
 from vtkmodules.vtkCommonMath import vtkMatrix4x4, vtkQuaternion
 
@@ -397,6 +400,7 @@ from vtkmodules.vtkInfovisLayout import (
 from vtkmodules.vtkInteractionStyle import (
     vtkInteractorStyleImage,
     vtkInteractorStyleJoystickCamera,
+    vtkInteractorStyleRubberBandZoom,
     vtkInteractorStyleTrackballActor,
     vtkInteractorStyleTrackballCamera,
 )

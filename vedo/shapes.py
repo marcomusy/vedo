@@ -2918,16 +2918,14 @@ class Plane(Mesh):
     ----------
     normal : list
         normal vector to the plane
-
-    .. image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestPlane.png
     """
-    def __init__(self, pos=(0, 0, 0), normal=(0, 0, 1), s=(1, 1), res=(1, 1), c="gray6", alpha=1):
+    def __init__(self, pos=(0, 0, 0), normal=(0, 0, 1), s=(1, 1), res=(1, 1), c="gray5", alpha=1):
 
-        pos = (pos[0], pos[1], 0)
+        pos = utils.make3d(pos)
         sx, sy = s
 
-        self.normal = np.array(normal, dtype=float)
-        self.center = np.array(pos, dtype=float)
+        self.normal = np.asarray(normal, dtype=float)
+        self.center = np.asarray(pos, dtype=float)
         self.variance = 0
 
         ps = vtk.vtkPlaneSource()
@@ -4317,7 +4315,6 @@ class TextBase:
             fpath = utils.get_font_path(font)
             self.property.SetFontFamily(vtk.VTK_FONT_FILE)
             self.property.SetFontFile(fpath)
-
         self.fontname = font  # io.toNumpy() uses it
         return self
 
