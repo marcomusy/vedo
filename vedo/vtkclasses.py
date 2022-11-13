@@ -215,6 +215,11 @@ from vtkmodules.vtkFiltersModeling import (
     vtkSubdivideTetra,
 )
 
+try:
+    from vtkmodules.vtkFiltersModeling import vtkImprintFilter
+except ImportError:
+    pass
+
 from vtkmodules.vtkFiltersPoints import (
     vtkConnectedPointsFilter,
     vtkDensifyPointCloudFilter,

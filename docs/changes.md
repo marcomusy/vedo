@@ -56,7 +56,6 @@ examples/pyplot/histo_2d_b.py
 ### Deleted
 
 ### Broken
-examples/basic/multiwindows2.py
 examples/simulations/lorenz.py
 examples/simulations/orbitals.py
 examples/other/meshio_read.py
@@ -72,7 +71,7 @@ tet_isos_slice.py # stuck
 makeVideo.py
 lorenz.py
 
-
+plot_errbars.py
 
 
 

@@ -307,11 +307,11 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         sd.Update()
         return self._update(sd.GetOutput())
 
-    def isosurface(self, threshold=True):
+    def isosurface(self, value=True):
         """
         Return a ``Mesh`` isosurface.
 
-        Set `threshold` to a single value or list of values to compute the isosurface(s)
+        Set `value` to a single value or list of values to compute the isosurface(s)
         """
         if not self._data.GetPointData().GetScalars():
             self.map_cells_to_points()
@@ -319,17 +319,17 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         cf = vtk.vtkContourFilter()  # vtk.vtkContourGrid()
         cf.SetInputData(self._data)
 
-        if utils.is_sequence(threshold):
-            cf.SetNumberOfContours(len(threshold))
-            for i, t in enumerate(threshold):
+        if utils.is_sequence(value):
+            cf.SetNumberOfContours(len(value))
+            for i, t in enumerate(value):
                 cf.SetValue(i, t)
             cf.Update()
         else:
-            if threshold is True:
-                threshold = (2 * scrange[0] + scrange[1]) / 3.0
-                # print('automatic threshold set to ' + utils.precision(threshold, 3), end=' ')
+            if value is True:
+                value = (2 * scrange[0] + scrange[1]) / 3.0
+                # print('automatic value set to ' + utils.precision(value, 3), end=' ')
                 # print('in [' + utils.precision(scrange[0], 3) + ', ' + utils.precision(scrange[1], 3)+']')
-            cf.SetValue(0, threshold)
+            cf.SetValue(0, value)
             cf.Update()
 
         clp = vtk.vtkCleanPolyData()

@@ -9,6 +9,6 @@ mesh.color('k').point_size(3) # render mesh as points
 vol = mesh.signed_distance(dims=(40,40,40))
 
 # Generate an isosurface at distance -0.5
-iso = vol.isosurface(threshold=-0.5)
+iso = vol.isosurface(-0.5)
 
 show(mesh, iso, __doc__, axes=1).close()

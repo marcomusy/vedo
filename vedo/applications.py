@@ -586,7 +586,7 @@ class IsosurfaceBrowser(Plotter):
     def __init__(
             self,
             volume,
-            threshold=None,
+            isovalue=None,
             c=None,
             alpha=1,
             lego=False,
@@ -629,7 +629,7 @@ class IsosurfaceBrowser(Plotter):
             res = int(res / 2)  # because lego is much slower
             slidertitle = ""
         else:
-            slidertitle = "threshold"
+            slidertitle = "scalar value"
 
         allowed_vals = np.linspace(scrange[0], scrange[1], num=res)
 
@@ -646,13 +646,13 @@ class IsosurfaceBrowser(Plotter):
                     if mesh.ncells:
                         mesh.cmap(cmap, vmin=scrange[0], vmax=scrange[1], on="cells")
                 else:
-                    mesh = volume.isosurface(threshold=value).color(c).alpha(alpha)
+                    mesh = volume.isosurface(value).color(c).alpha(alpha)
                 bacts.update({value_name: mesh})  # store it
                 if progress:
                     pb.print("isosurfacing volume..")
 
-        ############################## threshold slider callback
-        def slider_thres(widget, event):
+        ############################## isovalue slider callback
+        def slider_isovalue(widget, event):
 
             prevact = self.actors[0]
             if isinstance(widget, float):
@@ -679,7 +679,7 @@ class IsosurfaceBrowser(Plotter):
                     if mesh.ncells:
                         mesh.cmap(cmap, vmin=scrange[0], vmax=scrange[1], on="cells")
                 else:
-                    mesh = volume.isosurface(threshold=value).color(c).alpha(alpha)
+                    mesh = volume.isosurface(value).color(c).alpha(alpha)
                 bacts.update({value_name: mesh})  # store it
 
             self.renderer.RemoveActor(prevact)
@@ -688,19 +688,19 @@ class IsosurfaceBrowser(Plotter):
 
         ################################################
 
-        if threshold is None:
-            threshold = delta / 3.0 + scrange[0]
+        if isovalue is None:
+            isovalue = delta / 3.0 + scrange[0]
 
         self.actors = [None]
-        slider_thres(threshold, "")  # init call
+        slider_isovalue(isovalue, "")  # init call
         if lego:
             self.actors[0].add_scalarbar(pos=(0.8, 0.12))
 
         self.add_slider(
-            slider_thres,
+            slider_isovalue,
             scrange[0] + 0.02 * delta,
             scrange[1] - 0.02 * delta,
-            value=threshold,
+            value=isovalue,
             pos=sliderpos,
             title=slidertitle,
             show_value=True,

@@ -320,7 +320,7 @@ print('Volume',np.min(volarr) , 0)
 assert np.min(volarr) == 0
 
 ###################################### isosurface
-iso = vol.isosurface(threshold=1.0)
+iso = vol.isosurface(1.0)
 print('isosurface', iso.area())
 assert 2540 < iso.area() <  3000
 

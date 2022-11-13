@@ -3204,10 +3204,13 @@ class Plotter:
         if not renderer:
             return self
 
-        for a in set(self.get_meshes() + self.get_volumes() + self.actors):
+        for a in set(self.get_meshes() + self.get_volumes() + self.actors + self.axes_instances):
+            if isinstance(a, vedo.shapes.Text2D):
+                continue
             self.remove(a)
             try:
-                self.remove(a.scalarbar)
+                if a.scalarbar:
+                    self.remove(a.scalarbar)
             except AttributeError:
                 pass
         self.actors = []
