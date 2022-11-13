@@ -3195,8 +3195,8 @@ class Plotter:
         self.widgets.append(widget)
         return widget
 
-    def clear(self, actors=None, at=None):
-        """Delete specified list of actors, by default delete all."""
+    def clear(self, at=None, render=True):
+        """Clear the scene from all meshes and volumes."""
         if at is not None:
             renderer = self.renderers[at]
         else:
@@ -3204,17 +3204,15 @@ class Plotter:
         if not renderer:
             return self
 
-        if actors is None:
-            actors = self.get_meshes() + self.get_volumes()
-
-        for a in actors:
+        for a in set(self.get_meshes() + self.get_volumes() + self.actors):
             self.remove(a)
             try:
                 self.remove(a.scalarbar)
             except AttributeError:
                 pass
         self.actors = []
-        self.render()
+        if render:
+            self.render()
         return self
 
     def break_interaction(self):
