@@ -140,7 +140,6 @@ __website__    = "https://github.com/marcomusy/vedo"
 # __pdoc__['settings.Settings.usePolygonOffset'] = False
 # __pdoc__['settings.Settings.visibleGridEdges'] = False
 # __pdoc__['settings.Settings.windowSplittingPosition'] = False
-# __pdoc__['settings.Settings.warn'] = False
 
 # __pdoc__['pointcloud.pcaEllipsoid'] = False
 # __pdoc__['pointcloud.Points.cellIndividualColors'] = False
@@ -161,11 +160,11 @@ __website__    = "https://github.com/marcomusy/vedo"
 
 ##################################################################################
 ########################################################################## GLOBALS
-vtk_version = [
+vtk_version = (
     int(vtkVersion().GetVTKMajorVersion()),
     int(vtkVersion().GetVTKMinorVersion()),
     int(vtkVersion().GetVTKBuildVersion()),
-]
+)
 
 if vtk_version[0] >= 9:
     if "Windows" in sys_platform or "Linux" in sys_platform:

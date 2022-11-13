@@ -1627,9 +1627,14 @@ def _addCutterToolMeshWithSphere(mesh, invert):
     printc("  Move gray handles to cut away parts of the mesh", c="m")
     printc("  Press X to save file to: clipped.vtk", c="m")
     printc("  [Press space bar to continue]", c="m")
+
     plt.interactor.Start()
+    if vedo.vtk_version == (9,2,2): plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
+
     sphere_widget.Off()
+
     plt.interactor.Start()  # allow extra interaction
+    if vedo.vtk_version == (9,2,2): plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
     return act0
 
 
@@ -1693,8 +1698,10 @@ def _addCutterToolMeshWithBox(mesh, invert):
     printc("  Press X to save file to: clipped.vtk", c="m")
     printc("  [Press space bar to continue]", c="m")
     plt.interactor.Start()
+    if vedo.vtk_version == (9,2,2): plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
     box_widget.Off()
     plt.interactor.Start()  # allow extra interaction
+    if vedo.vtk_version == (9,2,2): plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
     return act0
 
 
@@ -1756,8 +1763,10 @@ def _addCutterToolMeshWithPlane(mesh, invert):
     printc("  Press X to save file to: clipped.vtk", c="m")
     printc("  [Press space bar to continue]", c="m")
     plt.interactor.Start()
+    if vedo.vtk_version == (9,2,2): plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
     plane_widget.Off()
     plt.interactor.Start()  # allow extra interaction
+    if vedo.vtk_version == (9,2,2): plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
     return act0
 
 
@@ -1794,6 +1803,7 @@ def _addCutterToolVolumeWithBox(vol, invert):
     plt.interactor.Render()
     box_widget.On()
     plt.interactor.Start()
+    if vedo.vtk_version == (9,2,2): plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
     box_widget.Off()
     plt.widgets.append(box_widget)
     return vol

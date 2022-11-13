@@ -504,6 +504,7 @@ def exe_eog(args):
         plt.show(interactive=False)
         plt.reset_camera(tight=0.05)
         plt.interactor.Start()
+        if vedo.vtk_version == (9,2,2): plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
 
     else:
 
@@ -524,6 +525,7 @@ def exe_eog(args):
         plt.show(pic, mode="image", interactive=False)
         plt.reset_camera(tight=0.0)
         plt.interactor.Start()
+        if vedo.vtk_version == (9,2,2): plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
 
     plt.close()
 
@@ -787,6 +789,7 @@ def draw_scene(args):
 
         if args.multirenderer_mode:
             plt.interactor.Start()
+            if vedo.vtk_version == (9,2,2): plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
 
         else:
 
