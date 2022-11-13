@@ -95,10 +95,10 @@ if doshow:
 
 
 ##################################################################### picture.py
-pic = Picture(dataurl+'dog.jpg').pad()
-pic.append([pic,pic,pic], axis='y')
-pic.append([pic,pic,pic,pic], axis='x')
 if doshow:
+    pic = Picture(dataurl+'dog.jpg').pad()
+    pic.append([pic,pic,pic], axis='y')
+    pic.append([pic,pic,pic,pic], axis='x')
     pic.show(axes=1).close()
 
 
