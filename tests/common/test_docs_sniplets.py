@@ -103,28 +103,28 @@ if doshow:
 
 
 ######################################################
-p = vedo.Picture(vedo.dataurl+'images/dog.jpg').bw()
-pe = p.clone().enhance()
 if doshow:
+    p = vedo.Picture(vedo.dataurl+'images/dog.jpg').bw()
+    pe = p.clone().enhance()
     show(p, pe, N=2, mode='image', zoom='tight').close()
 
 
 
 ######################################################
-pic1 = Picture("https://aws.glamour.es/prod/designs/v1/assets/620x459/547577.jpg")
-pic2 = pic1.clone().invert()
-pic3 = pic1.clone().binarize()
 if doshow:
+    pic1 = Picture("https://aws.glamour.es/prod/designs/v1/assets/620x459/547577.jpg")
+    pic2 = pic1.clone().invert()
+    pic3 = pic1.clone().binarize()
     show(pic1, pic2, pic3, N=3, bg="blue9").close()
 
 
 
 ######################################################
-pic = vedo.Picture(vedo.dataurl+"images/dog.jpg")
-pic.rectangle([100,300], [100,200], c='green4', alpha=0.7)
-pic.line([100,100],[400,500], lw=2, alpha=1)
-pic.triangle([250,300], [100,300], [200,400])
 if doshow:
+    pic = vedo.Picture(vedo.dataurl+"images/dog.jpg")
+    pic.rectangle([100,300], [100,200], c='green4', alpha=0.7)
+    pic.line([100,100],[400,500], lw=2, alpha=1)
+    pic.triangle([250,300], [100,300], [200,400])
     show(pic, axes=1).close()
 
 
@@ -250,21 +250,21 @@ if doshow:
 
 
 ######################################################
-shape = load(dataurl+"timecourse1d.npy")[58]
-pts = shape.rotate_x(30).points()
-tangents = Line(pts).tangents()
-arrs = Arrows(pts, pts+tangents, c='blue9')
 if doshow:
+    shape = load(dataurl+"timecourse1d.npy")[58]
+    pts = shape.rotate_x(30).points()
+    tangents = Line(pts).tangents()
+    arrs = Arrows(pts, pts+tangents, c='blue9')
     show(shape.c('red5').lw(5), arrs, bg='bb', axes=1).close()
 
 
 ######################################################
-shape = load(dataurl+"timecourse1d.npy")[55]
-curvs = Line(shape.points()).curvature()
-shape.cmap('coolwarm', curvs, vmin=-2,vmax=2).add_scalarbar3d(c='w')
-shape.render_lines_as_tubes().lw(12)
-pp = plot(curvs, ac='white', lc='yellow5')
 if doshow:
+    shape = load(dataurl+"timecourse1d.npy")[55]
+    curvs = Line(shape.points()).curvature()
+    shape.cmap('coolwarm', curvs, vmin=-2,vmax=2).add_scalarbar3d(c='w')
+    shape.render_lines_as_tubes().lw(12)
+    pp = plot(curvs, ac='white', lc='yellow5')
     show(shape, pp, N=2, bg='bb', sharecam=False).close()
 
 

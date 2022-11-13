@@ -823,8 +823,6 @@ class Plotter:
             def win_interact(iren, event):  # flushing interactor events
                 if event == "TimerEvent":
                     iren.ExitCallback()
-                    if vedo.vtk_version == (9,2,2):
-                        self.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
             self._timer_event_id = self.interactor.AddObserver("TimerEvent", win_interact)
 
         ##################################################################### ..init ends here.
@@ -841,10 +839,10 @@ class Plotter:
                 return self
             self._repeatingtimer_id = self.interactor.CreateRepeatingTimer(1)
             self.interactor.Start()
-            if self.interactor:
-                self.interactor.DestroyTimer(self._repeatingtimer_id)
             if vedo.vtk_version == (9,2,2):
                 self.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
+            if self.interactor:
+                self.interactor.DestroyTimer(self._repeatingtimer_id)
             self._repeatingtimer_id = None
         return self
 
@@ -3222,8 +3220,6 @@ class Plotter:
         """Break window interaction and return to the python execution flow"""
         if self.interactor:
             self.interactor.ExitCallback()
-            if vedo.vtk_version == (9,2,2):
-                self.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
         return self
 
     def close_window(self):
@@ -3248,8 +3244,6 @@ class Plotter:
         if hasattr(self, "window") and self.window:
             if hasattr(self, "interactor") and self.interactor:
                 self.interactor.ExitCallback()
-                if vedo.vtk_version == (9,2,2):
-                    self.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
                 try:
                     self.interactor.SetDone(True)
                 except AttributeError:
@@ -3497,23 +3491,17 @@ class Plotter:
 
         if key in ["q", "Ctrl+q", "space", "Return"]:
             iren.ExitCallback()
-            if vedo.vtk_version == (9,2,2):
-                iren.GetRenderWindow().SetDisplayId("_0_p_void")
             return
 
         if key == "Escape":
             vedo.logger.info("Closing window now. Plotter.escaped is set to True.")
             self.escaped = True  # window will be escaped ASAP
             iren.ExitCallback()
-            if vedo.vtk_version == (9,2,2):
-                iren.GetRenderWindow().SetDisplayId("_0_p_void")
             return
 
         if key == "F1":
             vedo.logger.info("Execution aborted. Exiting python kernel now.")
             iren.ExitCallback()
-            if vedo.vtk_version == (9,2,2):
-                iren.GetRenderWindow().SetDisplayId("_0_p_void")
             sys.exit(0)
 
         if key == "Down":
@@ -3680,8 +3668,6 @@ class Plotter:
 
         elif key == "a":
             iren.ExitCallback()
-            if vedo.vtk_version == (9,2,2):
-                iren.GetRenderWindow().SetDisplayId("_0_p_void")
             cur = iren.GetInteractorStyle()
             if isinstance(cur, vtk.vtkInteractorStyleTrackballCamera):
                 msg = "\nInteractor style changed to TrackballActor\n"
@@ -3727,8 +3713,6 @@ class Plotter:
 
         elif key == "j":
             iren.ExitCallback()
-            if vedo.vtk_version == (9,2,2):
-                iren.GetRenderWindow().SetDisplayId("_0_p_void")
             cur = iren.GetInteractorStyle()
             if isinstance(cur, vtk.vtkInteractorStyleJoystickCamera):
                 iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
