@@ -1618,12 +1618,12 @@ def _addCutterToolMeshWithSphere(mesh, invert):
     plt.widgets.append(sphere_widget)
 
     plt.cutter_widget = sphere_widget
-    plt.clickedActor = act0
+    plt.clicked_actor = act0
     if mesh in plt.actors:
         ia = plt.actors.index(mesh)
         plt.actors[ia] = act0
 
-    printc("Mesh Cutter Tool:", c="m", invert=1)
+    printc("Mesh Cutter Tool:", c="m", invert=True)
     printc("  Move gray handles to cut away parts of the mesh", c="m")
     printc("  Press X to save file to: clipped.vtk", c="m")
     printc("  [Press space bar to continue]", c="m")
@@ -1644,7 +1644,6 @@ def _addCutterToolMeshWithBox(mesh, invert):
         vedo.logger.error("in add_cutter_tool() scene must be first rendered.")
         raise RuntimeError()
 
-    plt.clickedActor = mesh
     apd = mesh.polydata()
 
     planes = vtk.vtkPlanes()
@@ -1688,12 +1687,12 @@ def _addCutterToolMeshWithBox(mesh, invert):
     plt.widgets.append(box_widget)
 
     plt.cutter_widget = box_widget
-    plt.clickedActor = act0
+    plt.clicked_actor = act0
     if mesh in plt.actors:
         ia = plt.actors.index(mesh)
         plt.actors[ia] = act0
 
-    printc("Mesh Cutter Tool:", c="m", invert=1)
+    printc("Mesh Cutter Tool:", c="m", invert=True)
     printc("  Move gray handles to cut away parts of the mesh", c="m")
     printc("  Press X to save file to: clipped.vtk", c="m")
     printc("  [Press space bar to continue]", c="m")
@@ -1753,12 +1752,12 @@ def _addCutterToolMeshWithPlane(mesh, invert):
     plt.widgets.append(plane_widget)
 
     plt.cutter_widget = plane_widget
-    plt.clickedActor = act0
+    plt.clicked_actor = act0
     if mesh in plt.actors:
         ia = plt.actors.index(mesh)
         plt.actors[ia] = act0
 
-    printc("Mesh Cutter Tool:", c="m", invert=1)
+    printc("Mesh Cutter Tool:", c="m", invert=True)
     printc("  Move gray handles to cut away parts of the mesh", c="m")
     printc("  Press X to save file to: clipped.vtk", c="m")
     printc("  [Press space bar to continue]", c="m")
@@ -1797,7 +1796,7 @@ def _addCutterToolVolumeWithBox(vol, invert):
     box_widget.SetInsideOut(not invert)
     box_widget.AddObserver("InteractionEvent", _clip)
 
-    printc("Volume Cutter Tool:", c="m", invert=1)
+    printc("Volume Cutter Tool:", c="m", invert=True)
     printc("  Move gray handles to cut parts of the volume", c="m")
 
     plt.interactor.Render()

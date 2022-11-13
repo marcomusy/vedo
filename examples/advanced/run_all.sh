@@ -9,6 +9,8 @@ echo
 
 for f in *.py
     do
+        if [[ "$f" == *"geological_model"* ]]; then continue; fi
+
         echo "Processing $f script.."
         python3 "$f"
     done

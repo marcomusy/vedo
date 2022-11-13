@@ -1740,10 +1740,10 @@ class BaseGrid(BaseActor):
         sf.Update()
         return self._update(sf.GetOutput())
 
-    def isosurface(self, threshold=None):
+    def isosurface(self, value=None):
         """Return an ``Mesh`` isosurface extracted from the ``Volume`` object.
 
-        Set ``threshold`` as single float or list of values to draw the isosurface(s)
+        Set ``value`` as single float or list of values to draw the isosurface(s)
 
         .. hint:: examples/volumetric/isosurfaces.py
         """
@@ -1753,14 +1753,14 @@ class BaseGrid(BaseActor):
         cf.UseScalarTreeOn()
         cf.ComputeNormalsOn()
 
-        if utils.is_sequence(threshold):
-            cf.SetNumberOfContours(len(threshold))
-            for i, t in enumerate(threshold):
+        if utils.is_sequence(value):
+            cf.SetNumberOfContours(len(value))
+            for i, t in enumerate(value):
                 cf.SetValue(i, t)
         else:
-            if threshold is None:
-                threshold = (2 * scrange[0] + scrange[1]) / 3.0
-            cf.SetValue(0, threshold)
+            if value is None:
+                value = (2 * scrange[0] + scrange[1]) / 3.0
+            cf.SetValue(0, value)
 
         cf.Update()
         poly = cf.GetOutput()
