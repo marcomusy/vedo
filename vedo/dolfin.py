@@ -534,9 +534,6 @@ def plot(*inputobj, **options):
     if vedo.plotter_instance:
         if add:
             actors = vedo.plotter_instance.actors
-        elif at == 0:  # just remove scalarbars
-            for sb in vedo.plotter_instance.scalarbars:
-                vedo.plotter_instance.renderer.RemoveActor(sb)
 
     if mesh and ("mesh" in mode or "color" in mode or "displace" in mode):
 

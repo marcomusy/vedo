@@ -499,7 +499,6 @@ class Plotter:
         self.widgets = []
         self.cutter_widget = None
         self.hint_widget = None
-        self.scalarbars = []
         self.background_renderer = None
         self._first_viewup = True
         self._extralight = None
@@ -2967,8 +2966,6 @@ class Plotter:
                                 c = (0.1, 0.1, 0.1)
                             ia.scalarbar.GetLabelTextProperty().SetColor(c)
                             ia.scalarbar.GetTitleTextProperty().SetColor(c)
-                    if ia.scalarbar not in self.scalarbars:
-                        self.scalarbars.append(ia.scalarbar)
 
         if interactive is not None:
             self._interactive = interactive
@@ -3208,35 +3205,16 @@ class Plotter:
             return self
 
         if actors is None:
-            renderer.RemoveAllViewProps()
-            self.actors = []
-            self.scalarbars = []
-            self.sliders = []
-            self.buttons = []
-            self.widgets = []
-            self.scalarbars = []
-            return self
+            actors = self.get_meshes() + self.get_volumes()
 
-        if not utils.is_sequence(actors):
-            actors = [actors]
-        if len(actors):
-            for a in actors:
-                self.remove(a)
-        elif self.renderer:
-            self.actors = []
-            for a in self.get_meshes():
-                self.renderer.RemoveActor(a)
-            for a in self.get_volumes():
-                self.renderer.RemoveVolume(a)
-            for s in self.sliders:
-                s.EnabledOff()
-            for b in self.buttons:
-                self.renderer.RemoveActor(b)
-            for w in self.widgets:
-                w.EnabledOff()
-            for a in self.scalarbars:
-                self.renderer.RemoveActor(a)
-            self.scalarbars = []
+        for a in actors:
+            self.remove(a)
+            try:
+                self.remove(a.scalarbar)
+            except AttributeError:
+                pass
+        self.actors = []
+        self.render()
         return self
 
     def break_interaction(self):
