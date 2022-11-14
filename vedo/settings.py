@@ -75,7 +75,8 @@ class Settings:
         # Turn on/off nvidia FXAA post-process anti-aliasing, if supported.
         use_fxaa = False           # either True or False
 
-        # By default, the depth buffer is reset for each renderer. If True, use the existing depth buffer
+        # By default, the depth buffer is reset for each renderer.
+        #  If True, use the existing depth buffer
         preserve_depth_buffer = False
 
         # Use a polygon/edges offset to possibly resolve conflicts in rendering
@@ -113,9 +114,67 @@ class Settings:
         k3d_point_shader= "mesh"  # others are '3d', '3dSpecular', 'dot', 'flat'
         k3d_line_shader = "thick" # others are 'flat', 'mesh'
     """
+
+    # Restrict the attributes so accidental typos will generate an AttributeError exception
+    __slots__ = [
+        "level",
+        "default_font",
+        "palette",
+        "remember_last_figure_format",
+        "screeshot_scale",
+        "screenshot_transparent_background",
+        "screeshot_large_image",
+        "allow_interaction",
+        "hack_call_screen_size",
+        "enable_default_mouse_callbacks",
+        "enable_default_keyboard_callbacks",
+        "immediate_rendering",
+        "renderer_frame_color",
+        "renderer_frame_alpha",
+        "renderer_frame_width",
+        "renderer_frame_padding",
+        "render_lines_as_tubes",
+        "hidden_line_removal",
+        "point_smoothing",
+        "line_smoothing",
+        "polygon_smoothing",
+        "visible_grid_edges",
+        "light_follows_camera",
+        "two_sided_lighting",
+        "use_depth_peeling",
+        "multi_samples",
+        "alpha_bit_planes",
+        "max_number_of_peels",
+        "occlusion_ratio",
+        "use_fxaa",
+        "preserve_depth_buffer",
+        "use_polygon_offset",
+        "polygon_offset_factor",
+        "polygon_offset_units",
+        "interpolate_scalars_before_mapping",
+        "use_parallel_projection",
+        "window_splitting_position",
+        "tiff_orientation_type",
+        "annotated_cube_color",
+        "annotated_cube_text_color",
+        "annotated_cube_text_scale",
+        "annotated_cube_texts",
+        "enable_print_color",
+        "k3d_menu_visibility",
+        "k3d_plot_height",
+        "k3d_antialias",
+        "k3d_lighting",
+        "k3d_camera_autofit",
+        "k3d_grid_autofit",
+        "k3d_axes_helper",
+        "k3d_point_shader",
+        "k3d_line_shader",
+        "font_parameters",
+    ]
+
     def __init__(self, level=0):
 
-        self.level = level
+        self.level = level  # verbosity
 
         self.default_font = "Normografo"
 
@@ -169,13 +228,8 @@ class Settings:
         self.two_sided_lighting = True
 
         # Turn on/off rendering of translucent material with depth peeling technique.
-        # print("vtk_version sys_platform", vtk_version, sys_platform)
         self.use_depth_peeling = False
         self.multi_samples = 8
-        # if vtk_version[0] >= 9: # moved to __init__
-        #    if "Windows" in sys_platform:
-        #        useDepthPeeling = True
-        # only relevant if depthpeeling is on
         self.alpha_bit_planes = 1
         self.max_number_of_peels = 4
         self.occlusion_ratio = 0.1
@@ -463,15 +517,37 @@ class Settings:
         )
 
     ####################################################################################
+    def reset(self):
+        """Reset all settings to their default status."""
+        self.__init__()
+
+    def print(self):
+        print(' ' + '-'*80)
+        s = Settings.__doc__.replace('   ','')
+        s = s.replace(".. code-block:: python\n","")
+        try:
+            from pygments import highlight
+            from pygments.lexers import Python3Lexer
+            from pygments.formatters import Terminal256Formatter
+            s = highlight(s, Python3Lexer(), Terminal256Formatter(style='zenburn'))
+            print(s, end='')
+
+        except ModuleNotFoundError:
+            print("\x1b[33;1m" + s + "\x1b[0m")
+
+
     def _warn(self, key):
         if self.level == 0:
             print(f'\x1b[1m\x1b[33;20m Warning! Please use "settings.{key}" instead!\x1b[0m')
 
-    def reset(self):
-        """
-        Reset all settings to their default status.
-        """
-        self.__init__()
+    def __getitem__(self, key):
+        """Make the class work like a dictionary too"""
+        return getattr(self, key)
+
+    def __setitem__(self, key, value):
+        """Make the class work like a dictionary too"""
+        setattr(self, key, value)
+
 
     ####################################################################################
     # Deprecations
