@@ -96,9 +96,6 @@ def delaunay2d(plist, mode="scipy", boundaries=(), tol=None, alpha=0, offset=0, 
     Create a mesh from points in the XY plane.
     If `mode='fit'` then the filter computes a best fitting
     plane and projects the points onto it.
-    If `mode='fit'` then the xy plane is assumed.
-
-    When mode=='fit' or 'xy'
 
     Parameters
     ----------
@@ -159,13 +156,13 @@ def delaunay2d(plist, mode="scipy", boundaries=(), tol=None, alpha=0, offset=0, 
     if mode == "xy" and boundaries:
         boundary = vtk.vtkPolyData()
         boundary.SetPoints(vpts)
-        aCellArray = vtk.vtkCellArray()
+        cell_array = vtk.vtkCellArray()
         for b in boundaries:
-            cPolygon = vtk.vtkPolygon()
+            cpolygon = vtk.vtkPolygon()
             for idd in b:
-                cPolygon.GetPointIds().InsertNextId(idd)
-            aCellArray.InsertNextCell(cPolygon)
-        boundary.SetPolys(aCellArray)
+                cpolygon.GetPointIds().InsertNextId(idd)
+            cell_array.InsertNextCell(cpolygon)
+        boundary.SetPolys(cell_array)
         delny.SetSourceData(boundary)
 
     if mode == "fit":
