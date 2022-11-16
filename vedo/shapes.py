@@ -479,14 +479,10 @@ class Line(Mesh):
                 # assume input is 2D xlist, ylist
                 p0 = np.stack((p0, p1), axis=1)
                 p1 = None
-            # if len(p0[0]) == 2:  # make it 3d
-            #     p0 = np.c_[np.array(p0, dtype=float), np.zeros(len(p0), dtype=float)]
             p0 = utils.make3d(p0)
 
         # detect if user is passing a list of points:
         if utils.is_sequence(p0[0]):
-            # if len(p0[0]) == 2:  # make it 3d
-            #     p0 = np.c_[np.array(p0, dtype=float), np.zeros(len(p0), dtype=float)]
             p0 = utils.make3d(p0)
 
             ppoints = vtk.vtkPoints()  # Generate the polyline
@@ -511,11 +507,7 @@ class Line(Mesh):
         else:  # or just 2 points to link
 
             line_source = vtk.vtkLineSource()
-            # if len(p0) == 2:  # make it 3d
-            #     p0 = [p0[0], p0[1], 0]
             p0 = utils.make3d(p0)
-            # if len(p1) == 2:
-            #     p1 = [p1[0], p1[1], 0]
             p1 = utils.make3d(p1)
             line_source.SetPoint1(p0)
             line_source.SetPoint2(p1)
@@ -796,8 +788,6 @@ class DashedLine(Mesh):
                 # assume input is 2D xlist, ylist
                 p0 = np.stack((p0, p1), axis=1)
                 p1 = None
-            # if len(p0[0]) == 2:  # make it 3d
-            #     p0 = np.c_[np.array(p0, dtype=float), np.zeros(len(p0), dtype=float)]
             p0 = utils.make3d(p0)
             if closed:
                 p0 = np.append(p0, [p0[0]], axis=0)
@@ -897,9 +887,6 @@ class RoundedLine(Mesh):
     """
 
     def __init__(self, pts, lw, res=10, c="gray4", alpha=1):
-        # pts = np.asarray(pts, dtype=float)
-        # if len(pts[0]) == 2:  # make it 3d
-        #     pts = np.c_[pts, np.zeros(len(pts))]
         pts = utils.make3d(pts)
 
         def _getpts(pts, revd=False):
@@ -1049,11 +1036,7 @@ class Lines(Mesh):
 
             polylns = vtk.vtkAppendPolyData()
             for t in start_pts:
-
-                # if len(t[0]) == 2:  # make it 3d
-                #     t = np.c_[np.asarray(t, dtype=float), np.zeros(len(t), dtype=float)]
                 t = utils.make3d(t)
-
                 ppoints = vtk.vtkPoints()  # Generate the polyline
                 ppoints.SetData(utils.numpy2vtk(t, dtype=float))
                 lines = vtk.vtkCellArray()
@@ -1114,8 +1097,6 @@ class Spline(Line):
         if isinstance(points, Points):
             points = points.points()
 
-        # if len(points[0]) == 2: # make it 3d
-        #     points = np.c_[np.array(points, dtype=float), np.zeros(len(points), dtype=float)]
         points = utils.make3d(points)
 
         per = 0
@@ -1204,10 +1185,6 @@ class KSpline(Line):
         if not res:
             res = len(points) * 20
 
-        # if len(points[0]) == 2:  # make it 3d
-        #     points = np.c_[
-        #         np.array(points, dtype=float), np.zeros(len(points), dtype=float)
-        #     ]
         points = utils.make3d(points).astype(float)
 
         xspline = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkKochanekSpline()
@@ -1271,8 +1248,6 @@ class CSpline(Line):
         if not res:
             res = len(points) * 20
 
-        # if len(points[0]) == 2: # make it 3d
-        #     points = np.c_[np.array(points, dtype=float), np.zeros(len(points), dtype=float)]
         points = utils.make3d(points).astype(float)
 
         xspline = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkCardinalSpline()
@@ -1593,9 +1568,6 @@ def StreamLines(
         max_propagation = size
 
     if utils.is_sequence(probe):
-        # pts = np.array(probe)
-        # if pts.shape[1] == 2:  # make it 3d
-        #     pts = np.c_[pts, np.zeros(len(pts))]
         pts = utils.make3d(probe)
     else:
         pts = probe.clean().points()
@@ -1927,11 +1899,18 @@ class Arrow(Mesh):
     .. image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestOrientedArrow.png
     """
 
-    def __init__(self, start_pt=(0, 0, 0), end_pt=(1, 0, 0), s=None, res=12, c="r4", alpha=1):
-
-        self.s = s if s is not None else 1  ## only needed by pyplot.__iadd()
-        self.fill = True
-
+    def __init__(
+        self,
+        start_pt=(0, 0, 0),
+        end_pt=(1, 0, 0),
+        s=None,
+        shaft_radius=None,
+        head_radius=None,
+        head_length=None,
+        res=12,
+        c="r4",
+        alpha=1,
+    ):
         # in case user is passing meshs
         if isinstance(start_pt, vtk.vtkActor):
             start_pt = start_pt.GetPosition()
@@ -1949,15 +1928,32 @@ class Arrow(Mesh):
         else:
             theta = np.arccos(axis[2])
         phi = np.arctan2(axis[1], axis[0])
-        self.arr = vtk.vtkArrowSource()
-        self.arr.SetShaftResolution(res)
-        self.arr.SetTipResolution(res)
+        self.source = vtk.vtkArrowSource()
+        self.source.SetShaftResolution(res)
+        self.source.SetTipResolution(res)
+
         if s:
             sz = 0.02
-            self.arr.SetTipRadius(sz)
-            self.arr.SetShaftRadius(sz / 1.75)
-            self.arr.SetTipLength(sz * 15)
-        self.arr.Update()
+            self.source.SetTipRadius(sz)
+            self.source.SetShaftRadius(sz / 1.75)
+            self.source.SetTipLength(sz * 15)
+
+        # if s:
+        #     sz = 0.02 * s * length
+        #     tl = sz / 20
+        #     print(s, sz)
+        #     self.source.SetShaftRadius(sz)
+        #     self.source.SetTipRadius(sz*1.75)
+        #     self.source.SetTipLength(sz*15)
+
+        if head_length:
+            self.source.SetTipLength(head_length)
+        if head_radius:
+            self.source.SetTipRadius(head_radius)
+        if shaft_radius:
+            self.source.SetShaftRadius(shaft_radius)
+
+        self.source.Update()
 
         t = vtk.vtkTransform()
         t.RotateZ(np.rad2deg(phi))
@@ -1969,14 +1965,13 @@ class Arrow(Mesh):
         else:
             t.Scale(length, length, length)
         tf = vtk.vtkTransformPolyDataFilter()
-        tf.SetInputData(self.arr.GetOutput())
+        tf.SetInputData(self.source.GetOutput())
         tf.SetTransform(t)
         tf.Update()
 
         Mesh.__init__(self, tf.GetOutput(), c, alpha)
 
         self.phong().lighting("plastic")
-        # self.property.LightingOff()
         self.SetPosition(start_pt)
         self.PickableOff()
         self.DragableOff()
@@ -1984,12 +1979,13 @@ class Arrow(Mesh):
         self.top = np.array(end_pt, dtype=float)
         self.tip_index = None
         self.fill = True  # used by pyplot.__iadd__()
+        self.s = s if s is not None else 1  ## used by pyplot.__iadd()
         self.name = "Arrow"
 
     def tip_point(self, return_index=False):
         """Return the coordinates of the tip of the Arrow, or the point index."""
         if self.tip_index is None:
-            arrpts = utils.vtk2numpy(self.arr.GetOutput().GetPoints().GetData())
+            arrpts = utils.vtk2numpy(self.source.GetOutput().GetPoints().GetData())
             self.tip_index = np.argmax(arrpts[:, 0])
         if return_index:
             return self.tip_index
@@ -2021,8 +2017,19 @@ class Arrows(Glyph):
         .. image:: https://user-images.githubusercontent.com/32848391/55897850-a1a0da80-5bc1-11e9-81e0-004c8f396b43.jpg
     """
 
-    def __init__(self, start_pts, end_pts=None, s=None, thickness=1, res=12, c=None, alpha=1):
-
+    def __init__(
+        self,
+        start_pts,
+        end_pts=None,
+        s=None,
+        shaft_radius=None,
+        head_radius=None,
+        head_length=None,
+        thickness=1,
+        res=12,
+        c=None,
+        alpha=1,
+    ):
         if isinstance(start_pts, Points):
             start_pts = start_pts.points()
         if isinstance(end_pts, Points):
@@ -2036,23 +2043,26 @@ class Arrows(Glyph):
         else:
             end_pts = np.asarray(end_pts)
 
-        # if start_pts.shape[1] == 2:  # make it 3d
-        #     start_pts = np.c_[start_pts, np.zeros(len(start_pts))]
-        # if end_pts.shape[1] == 2:  # make it 3d
-        #     end_pts = np.c_[
-        #         np.array(end_pts, dtype=float), np.zeros(len(end_pts), dtype=float)
-        #     ]
         start_pts = utils.make3d(start_pts)
         end_pts = utils.make3d(end_pts)
 
         arr = vtk.vtkArrowSource()
         arr.SetShaftResolution(res)
         arr.SetTipResolution(res)
+
         if s:
             sz = 0.02 * s
             arr.SetTipRadius(sz * 2)
             arr.SetShaftRadius(sz * thickness)
             arr.SetTipLength(sz * 10)
+
+        if head_radius:
+            arr.SetTipRadius(head_radius)
+        if shaft_radius:
+            arr.SetShaftRadius(shaft_radius)
+        if head_length:
+            arr.SetTipLength(head_length)
+
         arr.Update()
         out = arr.GetOutput()
 
@@ -2240,10 +2250,6 @@ class Arrows2D(Glyph):
         )
 
         orients = end_pts - start_pts
-        # if orients.shape[1] == 2:  # make it 3d
-        #     orients = np.c_[
-        #         np.array(orients, dtype=float), np.zeros(len(orients), dtype=float)
-        #     ]
         orients = utils.make3d(orients)
 
         pts = Points(start_pts)
@@ -4692,8 +4698,6 @@ class ConvexHull(Mesh):
 
     def __init__(self, pts):
         if utils.is_sequence(pts):
-            # if len(pts[0]) == 2:  # make it 3d
-            #     pts = np.c_[np.array(pts, dtype=float), np.zeros(len(pts), dtype=float)]
             pts = utils.make3d(pts).astype(float)
             mesh = Points(pts)
         else:
