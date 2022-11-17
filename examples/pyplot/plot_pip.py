@@ -22,7 +22,7 @@ fig2 = plot(
     xb, f(xb),
     title='3 e^-x cos 2x**2  (wider range)',
     xtitle=' ', ytitle=' ',  # leave empty
-    lc='red5',
+    c='red5',
     axes=dict(
         xyplane_color='#dae3f0',
         grid_linewidth=0, # make it solid

@@ -22,7 +22,7 @@ for i in range(2,11,2):
     x = np.linspace(0, 4*np.pi, 20)
     y = np.sin(x) * np.sin(x/12) * i/5
 
-    fig += plot(x, y, '-0', lc=i, splined=True)
+    fig += plot(x, y, '-0', c=i, splined=True)
 
 fig += Arrow([5,-1], [8,-1], s=0.5, c='green3')
 

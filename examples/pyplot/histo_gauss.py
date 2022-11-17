@@ -23,8 +23,8 @@ fig = histogram(
 )
 
 fig += plot(x, y, "-", lc='orange5', label="some fit")
-fig += plot(x, y*(1+dy), "--", lc='orange5', lw=2)
-fig += plot(x, y*(1-dy), "--", lc='orange5', lw=2)
+fig += plot(x, y*(1+dy), "--", c='orange5', lw=2)
+fig += plot(x, y*(1-dy), "--", c='orange5', lw=2)
 
 fig.add_legend()
 fig.show(size=(800,700), zoom="tight").close()

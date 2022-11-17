@@ -25,9 +25,9 @@ w = phi(x)
 h = (1-w) * fx + w * gx
 
 pf  = plot(x1[:50], fx[:50], xlim=[-2,2], ylim=[-2,1.5], lw=5, title=__doc__)
-pf += plot(x[50:75], h[50:75], lc='red5')
+pf += plot(x[50:75], h[50:75], c='red5')
 pf += plot(x2[75:], gx[75:], lw=5)
-pf += plot(x[50:75], w[50:75], lc='green4', lw=1)
+pf += plot(x[50:75], w[50:75], c='green4', lw=1)
 
 pf.show(mode='image', zoom='tight')
 
