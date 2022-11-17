@@ -38,14 +38,14 @@ def get_notebook_backend(actors2show=()):
 
     #########################################
     elif vedo.notebook_backend == "k3d":
-        return start_k3d()
+        return start_k3d(actors2show)
 
     #########################################
     elif vedo.notebook_backend == "panel":
         return start_panel()
 
     #########################################
-    elif vedo.notebook_backend == "ipyvtk":
+    elif vedo.notebook_backend.startswith("ipyvtk"):
         return start_ipyvtklink()
 
     #########################################

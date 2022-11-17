@@ -49,7 +49,10 @@ def _embed_window(backend="ipyvtk"):
 
     backend = backend.lower()
 
-    if backend == "k3d":
+    if backend == "vtk":
+        return backend
+
+    elif backend == "k3d":
         try:
             import k3d
             if str(k3d.__version__) != "2.7.4":
