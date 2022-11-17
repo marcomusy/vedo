@@ -1514,7 +1514,7 @@ class PlotXY(Figure):
             yerrors=None,
             #
             lw=2,
-            lc="k",
+            lc=None,
             la=1,
             dashed=False,
             splined=False,
@@ -1609,6 +1609,7 @@ class PlotXY(Figure):
 
         ######### the PlotXY marker
         # fall back solutions logic for colors
+        print(lc)
         if "c" in fig_kwargs:
             if mc is None:
                 mc = fig_kwargs["c"]
@@ -1616,6 +1617,8 @@ class PlotXY(Figure):
                 lc = fig_kwargs["c"]
             if ec is None:
                 ec = fig_kwargs["c"]
+        if lc is None:
+            lc = 'k'
         if mc is None:
             mc = lc
         if ma is None:

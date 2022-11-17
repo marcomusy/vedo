@@ -64,7 +64,10 @@ def get_notebook_backend(actors2show=()):
 def start_itkwidgets(actors2show):
     # https://github.com/InsightSoftwareConsortium/itkwidgets
     #  /blob/master/itkwidgets/widget_viewer.py
-    from itkwidgets import view
+    try:
+        from itkwidgets import view
+    except ModuleNotFoundError("Cannot find itkwidgets"):
+        return None
 
     vedo.notebook_plotter = view(
         actors=actors2show,
@@ -77,11 +80,10 @@ def start_itkwidgets(actors2show):
 
 ####################################################################################
 def start_k3d(actors2show):
-
+    # https://github.com/K3D-tools/K3D-jupyter
     try:
-        import k3d  # https://github.com/K3D-tools/K3D-jupyter
-    except ModuleNotFoundError:
-        print("Cannot find k3d, install with:  pip install k3d")
+        import k3d
+    except ModuleNotFoundError("Cannot find k3d, install with:  pip install k3d"):
         return None
 
     plt = vedo.plotter_instance
