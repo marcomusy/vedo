@@ -1609,7 +1609,6 @@ class PlotXY(Figure):
 
         ######### the PlotXY marker
         # fall back solutions logic for colors
-        print(lc)
         if "c" in fig_kwargs:
             if mc is None:
                 mc = fig_kwargs["c"]

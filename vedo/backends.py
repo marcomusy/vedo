@@ -56,6 +56,10 @@ def get_notebook_backend(actors2show=()):
     elif vedo.notebook_backend == "2d":
         return start_2d()
 
+    #########################################
+    # elif vedo.notebook_backend.startswith("pythree"): #todo
+    #     return start_pythreejs(actors2show)
+
     vedo.logger.error(f"Unknown jupyter backend: {vedo.notebook_backend}")
     return None
 
@@ -75,6 +79,7 @@ def start_itkwidgets(actors2show):
         ui_collapsed=True,
         gradient_opacity=False,
     )
+    vedo.plotter_instance.close()
     return vedo.notebook_plotter
 
 
@@ -281,7 +286,6 @@ def start_k3d(actors2show):
                     # width=iap.GetLineWidth()*sqsize/1000,
                     name=name,
                 )
-
                 vedo.notebook_plotter += kobj
 
     plt.close()
