@@ -34,26 +34,26 @@ __all__ = [
 def _embed_window(backend="ipyvtk"):
     # check availability of backend by just returning its name
 
-    if not backend:
-        return None  ####################
+    if backend is None:
+        return vedo.settings.default_backend  ####################
 
     else:
 
         if any(["SPYDER" in name for name in os.environ]):
-            return None
+            return "vtk"
 
         try:
             get_ipython()
         except NameError:
-            return None
+            return "vtk"
 
     backend = backend.lower()
 
     if backend == "k3d":
         try:
             import k3d
-            # if k3d._version.version_info != (2, 7, 4):
-            #     vedo.logger.warning("Only k3d version 2.7.4 is currently supported")
+            if str(k3d.__version__) != "2.7.4":
+                vedo.logger.warning("Only k3d version 2.7.4 is currently supported")
             return backend
 
         except ModuleNotFoundError:
@@ -509,14 +509,13 @@ class Plotter:
         self._repeatingtimer_id = None
 
         #####################################################################
-        notebook_backend = vedo.notebook_backend
-        if notebook_backend:
-            if notebook_backend == "2d":
+        if vedo.notebook_backend != 'vtk':
+            if vedo.notebook_backend == "2d":
                 self.offscreen = True
                 if self.size == "auto":
-                    self.size = (900, 700)
+                    self.size = (800, 600)
 
-            elif notebook_backend == "k3d" or "ipygany" in notebook_backend:
+            elif vedo.notebook_backend == "k3d" or "ipygany" in vedo.notebook_backend:
                 self._interactive = False
                 self.interactor = None
                 self.window = None
@@ -2867,7 +2866,7 @@ class Plotter:
             else:
                 self.window.SetSize(int(self.size[0]), int(self.size[1]))
 
-        if not vedo.notebook_backend:
+        if vedo.notebook_backend == 'vtk':
             if str(bg).endswith(".hdr"):
                 self._add_skybox(bg)
             else:
@@ -2922,9 +2921,9 @@ class Plotter:
                 pass
 
         # Backend ###############################################################
-        if vedo.notebook_backend:
+        if vedo.notebook_backend != 'vtk':
             if vedo.notebook_backend in ["k3d", "ipygany", "itkwidgets"]:
-                return backends.get_notebook_backend(self.actors, zoom, viewup)
+                return backends.get_notebook_backend(self.actors)
         #########################################################################
 
         # remove all old shadows from the scene
@@ -2994,7 +2993,7 @@ class Plotter:
 
         # panel #################################################################
         if vedo.notebook_backend in ["panel", "ipyvtk"]:
-            return backends.get_notebook_backend(0, 0, 0)
+            return backends.get_notebook_backend()
         #########################################################################
 
         if self.resetcam:
@@ -3002,6 +3001,9 @@ class Plotter:
 
         if len(self.renderers) > 1:
             self.frames = self.add_renderer_frame()
+
+        if settings.default_backend == '2d' and not zoom:
+            zoom = "tightest"
 
         if zoom:
             if zoom == "tight":
@@ -3064,7 +3066,7 @@ class Plotter:
 
         # 2d ####################################################################
         if vedo.notebook_backend == "2d":
-            return backends.get_notebook_backend(0, 0, 0)
+            return backends.get_notebook_backend()
         #########################################################################
 
         if self.interactor:  # can be offscreen..

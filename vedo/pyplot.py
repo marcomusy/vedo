@@ -9,6 +9,7 @@ except ImportError:
     import vtkmodules.all as vtk
 
 import vedo
+from vedo import settings
 from vedo import addons
 from vedo import colors
 from vedo import utils
@@ -90,8 +91,8 @@ class Figure(Assembly):
             **kwargs,
         ):
 
-        self.xlim = np.array(xlim)
-        self.ylim = np.array(ylim)
+        self.xlim = np.asarray(xlim)
+        self.ylim = np.asarray(ylim)
         self.aspect = aspect
         self.padding = padding
         if not utils.is_sequence(self.padding):
@@ -217,7 +218,7 @@ class Figure(Assembly):
         Assembly.__init__(self, [self.axes])
         self.name = "Figure"
 
-        vedo.last_figure = self if vedo.settings.remember_last_figure_format else None
+        vedo.last_figure = self if settings.remember_last_figure_format else None
         return
 
     def __add__(self, *obj):
@@ -799,6 +800,7 @@ class Histogram1D(Figure):
             htitle = f"Entries:~~{int(self.entries)}  "
             htitle += f"Mean:~~{utils.precision(self.mean, 4)}  "
             htitle += f"STD:~~{utils.precision(self.std, 4)}  "
+
             axes_opts["htitle"] = htitle
             axes_opts["htitle_justify"] = "bottom-left"
             axes_opts["htitle_size"] = 0.016
@@ -1606,10 +1608,23 @@ class PlotXY(Figure):
         self.std = data.std()
 
         ######### the PlotXY marker
+        # fall back solutions logic for colors
+        if "c" in fig_kwargs:
+            if mc is None:
+                mc = fig_kwargs["c"]
+            if lc is None:
+                lc = fig_kwargs["c"]
+            if ec is None:
+                ec = fig_kwargs["c"]
         if mc is None:
             mc = lc
         if ma is None:
             ma = la
+        if ec is None:
+            if mc is None:
+                ec = lc
+            else:
+                ec = mc
 
         if label:
             nlab = LabelData()
@@ -1682,11 +1697,6 @@ class PlotXY(Figure):
             acts.append(marked)
 
         ######### the PlotXY marker errors
-        if ec is None:
-            if mc is None:
-                ec = lc
-            else:
-                ec = mc
         ztol = self.ztolerance
 
         if error_band:
@@ -2114,28 +2124,40 @@ def plot(*args, **kwargs):
             vedo.logger.error(f"in plot(), could not understand option(s): {opts}")
 
     if optidx == 1 or optidx is None:
-        if utils.is_sequence(args[0][0]):
-            # print('case 1', 'plot([(x,y),..])')
-            data = np.array(args[0])
-            x = np.array(data[:, 0])
-            y = np.array(data[:, 1])
+        if utils.is_sequence(args[0][0]) and len(args[0][0])>1:
+            # print('------------- case 1', 'plot([(x,y),..])')
+            data = np.asarray(args[0]) #(x,y)
+            x = np.asarray(data[:, 0])
+            y = np.asarray(data[:, 1])
+
         elif len(args) == 1 or optidx == 1:
-            # print('case 2', 'plot(x)')
+            # print('------------- case 2', 'plot(x)')
+            if "pandas" in str(type(args[0])):
+                if "ytitle" not in kwargs:
+                    kwargs.update({"ytitle" : args[0].name.replace("_","\_")})
             x = np.linspace(0, len(args[0]), num=len(args[0]))
-            y = np.array(args[0])
+            y = np.asarray(args[0]).ravel()
+
         elif utils.is_sequence(args[1]):
-            # print('case 3', 'plot(allx,ally)')
-            x = np.array(args[0])
-            y = np.array(args[1])
+            # print('------------- case 3', 'plot(allx,ally)',str(type(args[0])))
+            if "pandas" in str(type(args[0])):
+                if "xtitle" not in kwargs:
+                    kwargs.update({"xtitle" : args[0].name.replace("_","\_")})
+            if "pandas" in str(type(args[1])):
+                if "ytitle" not in kwargs:
+                    kwargs.update({"ytitle" : args[1].name.replace("_","\_")})
+            x = np.asarray(args[0]).ravel()
+            y = np.asarray(args[1]).ravel()
+
         elif utils.is_sequence(args[0]) and utils.is_sequence(args[0][0]):
-            # print('case 4', 'plot([allx,ally])')
-            x = np.array(args[0][0])
-            y = np.array(args[0][1])
+            # print('------------- case 4', 'plot([allx,ally])')
+            x = np.asarray(args[0][0]).ravel()
+            y = np.asarray(args[0][1]).ravel()
 
     elif optidx == 2:
-        # print('case 5', 'plot(x,y)')
-        x = np.array(args[0])
-        y = np.array(args[1])
+        # print('------------- case 5', 'plot(x,y)')
+        x = np.asarray(args[0]).ravel()
+        y = np.asarray(args[1]).ravel()
 
     else:
         vedo.logger.error(f"plot(): Could not understand input arguments {args}")
@@ -2479,12 +2501,18 @@ def histogram(*args, **kwargs):
             else:
                 data = args[0].celldata[0].ravel()
         else:
-            data = np.array(args[0])
+            try:
+                if "pandas" in str(type(args[0])):
+                    if "xtitle" not in kwargs:
+                        kwargs.update({"xtitle" : args[0].name.replace("_","\_")})
+            except:
+                pass
+            data = np.asarray(args[0])
 
         if "spher" in mode:
             return _histogram_spheric(args[0][:, 0], args[0][:, 1], **kwargs)
 
-        if len(data.shape) == 1:
+        if data.ndim == 1:
             if "polar" in mode:
                 return _histogram_polar(data, **kwargs)
             return Histogram1D(data, **kwargs)
@@ -3664,7 +3692,7 @@ def whisker(
     .. hint:: examples/pyplot/whiskers.py
         .. image:: https://vedo.embl.es/images/pyplot/whiskers.png
     """
-    xvals = np.zeros_like(np.array(data))
+    xvals = np.zeros_like(np.asarray(data))
     if jitter:
         xjit = np.random.randn(len(xvals)) * s / 9
         xjit = np.clip(xjit, -s / 2.1, s / 2.1)

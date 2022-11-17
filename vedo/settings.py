@@ -117,8 +117,9 @@ class Settings:
 
     # Restrict the attributes so accidental typos will generate an AttributeError exception
     __slots__ = [
-        "level",
+        "_level",
         "default_font",
+        "default_backend",
         "palette",
         "remember_last_figure_format",
         "screeshot_scale",
@@ -174,9 +175,13 @@ class Settings:
 
     def __init__(self, level=0):
 
-        self.level = level  # verbosity
+        self._level = level
 
+        # Default font
         self.default_font = "Normografo"
+
+        # Default backend engine in jupyter notebooks
+        self.default_backend = "vtk"
 
         # Palette number when using an integer to choose a color
         self.palette = 0
@@ -537,7 +542,7 @@ class Settings:
 
 
     def _warn(self, key):
-        if self.level == 0:
+        if self._level == 0:
             print(f'\x1b[1m\x1b[33;20m Warning! Please use "settings.{key}" instead!\x1b[0m')
 
     def __getitem__(self, key):
