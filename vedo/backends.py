@@ -29,8 +29,10 @@ def get_notebook_backend(actors2show=()):
 
     plt = vedo.plotter_instance
 
-    if isinstance(plt.shape, str) or sum(plt.shape) > 2:
-        vedo.logger.error("Multirendering is not supported in jupyter notebooks")
+    if isinstance(plt.shape, str) or sum(plt.shape) > 2 and vedo.notebook_backend != '2d':
+        vedo.logger.error(
+            f"Multirendering is not supported for jupyter backend: {vedo.notebook_backend}"
+        )
 
     #########################################
     if "itk" in vedo.notebook_backend:
@@ -455,15 +457,13 @@ def start_2d():
     plt = vedo.plotter_instance
 
     if hasattr(plt, "window") and plt.window:
-        nn = vedo.io.screenshot(asarray=True, scale=settings.screeshot_scale)
-        pil_img = PIL.Image.fromarray(nn)
-        notebook_plotter = IPython.display.display(pil_img)
-        vedo.notebook_plotter = notebook_plotter
-        plt.close()
-        return notebook_plotter
-
-    vedo.logger.error("No window present for 2D backend.")
-    return None
+        if plt.renderer == plt.renderers[-1]:
+            nn = vedo.io.screenshot(asarray=True, scale=settings.screeshot_scale)
+            pil_img = PIL.Image.fromarray(nn)
+            notebook_plotter = IPython.display.display(pil_img)
+            vedo.notebook_plotter = notebook_plotter
+            plt.close()
+            return notebook_plotter
 
 
 #####################################################################################

@@ -302,6 +302,7 @@ def show(
     _plt_to_return = None
 
     if utils.is_sequence(at):
+
         for i, act in enumerate(actors):
             _plt_to_return = plt.show(
                 act,
@@ -327,7 +328,7 @@ def show(
             or (isinstance(shape[0], int) and len(at) == shape[0] * shape[1])
         ):
             # note that shape can be a string
-            if not offscreen and (interactive is None or interactive):
+            if plt.interactor and not offscreen and (interactive is None or interactive):
                 plt.interactor.Start()
                 if vedo.vtk_version == (9,2,2): plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
 
@@ -3128,8 +3129,6 @@ class Plotter:
                         time.sleep(mint - elapsed)
                     self.clock = time.time() - self._clockt0
 
-        if q:  # exit python kernel
-            sys.exit(0)
 
         return self
 

@@ -26,12 +26,12 @@ fig2 = plot(
     axes=dict(
         xyplane_color='#dae3f0',
         grid_linewidth=0, # make it solid
-        xyalpha=1,       # make it opaque
+        xyalpha=1,        # make it opaque
         text_scale=2,     # make text bigger
     )
 )
 # Scale fig to make it smaller
-fig2.scale(0.04).shift(0.05, 0.75, 0.1)
+fig2.scale(0.04).shift(0.05, 0.75)
 
 fig1.insert(fig2)  ############# insert
 
