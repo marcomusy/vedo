@@ -30,81 +30,6 @@ __all__ = [
 ]
 
 
-##################################################################################
-def _embed_window(backend="ipyvtk"):
-    # check availability of backend by just returning its name
-
-    if backend is None:
-        return vedo.settings.default_backend  ####################
-
-    else:
-
-        if any(["SPYDER" in name for name in os.environ]):
-            return "vtk"
-
-        try:
-            get_ipython()
-        except NameError:
-            return "vtk"
-
-    backend = backend.lower()
-
-    if backend == "vtk":
-        return backend
-
-    elif backend == "k3d":
-        try:
-            import k3d
-            if str(k3d.__version__) != "2.7.4":
-                vedo.logger.warning("Only k3d version 2.7.4 is currently supported")
-            return backend
-
-        except ModuleNotFoundError:
-            vedo.logger.error("Could not load k3d try:\n> pip install k3d==2.7.4")
-            print(flush=True)
-
-    elif "ipygany" in backend:  # ipygany
-        try:
-            import ipygany
-            return backend
-        except ModuleNotFoundError:
-            vedo.logger.error("Could not load ipygany try:\n> pip install ipygany")
-            print(flush=True)
-
-    elif "itk" in backend:  # itkwidgets
-        try:
-            import itkwidgets
-            return backend
-        except ModuleNotFoundError:
-            vedo.logger.error('Could not load itkwidgets try:\n> pip install itkwidgets')
-            print(flush=True)
-
-    elif backend.lower() == "2d":
-        return backend
-
-    elif backend == "panel":
-        try:
-            import panel
-            panel.extension("vtk")
-            return backend
-        except ModuleNotFoundError:
-            vedo.logger.error("Could not load panel try:\n> pip install panel")
-
-    elif "ipyvtk" in backend:
-        try:
-            from ipyvtklink.viewer import ViewInteractiveWidget
-            return backend
-        except ModuleNotFoundError:
-            vedo.logger.error('Could not load ipyvtklink try:\n> pip install ipyvtklink')
-            print(flush=True)
-
-    else:
-        vedo.logger.error("Unknown backend" + str(backend))
-        raise RuntimeError()
-
-    return None
-
-
 ########################################################################################################
 def show(
         *actors,
@@ -131,7 +56,7 @@ def show(
         mode=0,
         q=False,
         new=False,
-        backend=None,
+        # backend=None,
     ):
     """
     Create on the fly an instance of class Plotter and show the object(s) provided.
@@ -295,7 +220,7 @@ def show(
             offscreen=offscreen,
             bg=bg,
             bg2=bg2,
-            backend=backend,
+            # backend=backend,
         )
 
     # use _plt_to_return because plt.show() can return a k3d/panel plot
@@ -444,10 +369,8 @@ class Plotter:
             offscreen=False,
             qt_widget=None,
             wx_widget=None,
-            backend=None,
+            # backend=None,
         ):
-
-        vedo.notebook_backend = _embed_window(backend)
 
         vedo.plotter_instance = self
 
@@ -513,13 +436,13 @@ class Plotter:
         self._repeatingtimer_id = None
 
         #####################################################################
-        if vedo.notebook_backend != 'vtk':
-            if vedo.notebook_backend == "2d":
+        if settings.default_backend != 'vtk':
+            if settings.default_backend == "2d":
                 self.offscreen = True
                 if self.size == "auto":
                     self.size = (800, 600)
 
-            elif vedo.notebook_backend == "k3d" or "ipygany" in vedo.notebook_backend:
+            elif settings.default_backend == "k3d" or "ipygany" in settings.default_backend:
                 self._interactive = False
                 self.interactor = None
                 self.window = None
@@ -804,7 +727,7 @@ class Plotter:
             return #################
             ########################
 
-        if vedo.notebook_backend == "panel":
+        if settings.default_backend == "panel":
             ########################
             return #################
             ########################
@@ -2870,7 +2793,7 @@ class Plotter:
             else:
                 self.window.SetSize(int(self.size[0]), int(self.size[1]))
 
-        if vedo.notebook_backend == 'vtk':
+        if settings.default_backend == 'vtk':
             if str(bg).endswith(".hdr"):
                 self._add_skybox(bg)
             else:
@@ -2925,8 +2848,8 @@ class Plotter:
                 pass
 
         # Backend ###############################################################
-        if vedo.notebook_backend != 'vtk':
-            if vedo.notebook_backend in ["k3d", "ipygany", "itkwidgets"]:
+        if settings.default_backend != 'vtk':
+            if settings.default_backend in ["k3d", "ipygany", "itkwidgets"]:
                 return backends.get_notebook_backend(self.actors)
         #########################################################################
 
@@ -2996,7 +2919,7 @@ class Plotter:
                 addons.add_global_axes(self.axes)
 
         # panel #################################################################
-        if vedo.notebook_backend in ["panel", "ipyvtk"]:
+        if settings.default_backend in ["panel", "ipyvtk"]:
             return backends.get_notebook_backend()
         #########################################################################
 
@@ -3069,7 +2992,7 @@ class Plotter:
         self.window.SetWindowName(self.title)
 
         # 2d ####################################################################
-        if vedo.notebook_backend == "2d":
+        if settings.default_backend == "2d":
             return backends.get_notebook_backend()
         #########################################################################
 

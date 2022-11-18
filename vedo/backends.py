@@ -17,11 +17,10 @@ from vedo.pointcloud import Points
 from vedo.mesh import Mesh
 from vedo.volume import Volume
 
-__doc__ = """
-Submodule to delegate notebook rendering
-"""
+__doc__ = """Submodule to delegate notebook rendering"""
 
 __all__ = []
+
 
 ############################################################################################
 def get_notebook_backend(actors2show=()):
@@ -29,40 +28,40 @@ def get_notebook_backend(actors2show=()):
 
     plt = vedo.plotter_instance
 
-    if isinstance(plt.shape, str) or sum(plt.shape) > 2 and vedo.notebook_backend != '2d':
+    if isinstance(plt.shape, str) or sum(plt.shape) > 2 and settings.default_backend != '2d':
         vedo.logger.error(
-            f"Multirendering is not supported for jupyter backend: {vedo.notebook_backend}"
+            f"Multirendering is not supported for jupyter backend: {settings.default_backend}"
         )
 
     #########################################
-    if "itk" in vedo.notebook_backend:
+    if "itk" in settings.default_backend:
         return start_itkwidgets(actors2show)
 
     #########################################
-    elif vedo.notebook_backend == "k3d":
+    elif settings.default_backend == "k3d":
         return start_k3d(actors2show)
 
     #########################################
-    elif vedo.notebook_backend == "panel":
+    elif settings.default_backend == "panel":
         return start_panel()
 
     #########################################
-    elif vedo.notebook_backend.startswith("ipyvtk"):
+    elif settings.default_backend.startswith("ipyvtk"):
         return start_ipyvtklink()
 
     #########################################
-    elif vedo.notebook_backend == "ipygany":
+    elif settings.default_backend == "ipygany":
         return start_ipygany(actors2show)
 
     #########################################
-    elif vedo.notebook_backend == "2d":
+    elif settings.default_backend == "2d":
         return start_2d()
 
     #########################################
-    # elif vedo.notebook_backend.startswith("pythree"): #todo
+    # elif settings.default_backend.startswith("pythree"): #todo
     #     return start_pythreejs(actors2show)
 
-    vedo.logger.error(f"Unknown jupyter backend: {vedo.notebook_backend}")
+    vedo.logger.error(f"Unknown jupyter backend: {settings.default_backend}")
     return None
 
 
@@ -72,7 +71,7 @@ def start_itkwidgets(actors2show):
     #  /blob/master/itkwidgets/widget_viewer.py
     try:
         from itkwidgets import view
-    except ModuleNotFoundError("Cannot find itkwidgets"):
+    except ModuleNotFoundError("Cannot find itkwidgets, try:\n> pip install itkwidgets"):
         return None
 
     vedo.notebook_plotter = view(
@@ -90,7 +89,9 @@ def start_k3d(actors2show):
     # https://github.com/K3D-tools/K3D-jupyter
     try:
         import k3d
-    except ModuleNotFoundError("Cannot find k3d, install with:  pip install k3d"):
+        if str(k3d.__version__) != "2.7.4":
+            vedo.logger.warning("Only k3d version 2.7.4 is currently supported")
+    except ModuleNotFoundError("Cannot find k3d, install with:  pip install k3d==2.7.4"):
         return None
 
     plt = vedo.plotter_instance
@@ -299,7 +300,8 @@ def start_panel():
 
     try:
         import panel  # https://panel.pyviz.org/reference/panes/VTK.html
-    except ImportError("panel is not installed"):
+        panel.extension("vtk")
+    except ImportError("panel is not installed, try:\n> pip install panel"):
         return None
 
     plt = vedo.plotter_instance
@@ -321,7 +323,7 @@ def start_ipyvtklink():
 
     try:
         from ipyvtklink.viewer import ViewInteractiveWidget
-    except ImportError("ipyvtklink is not installed"):
+    except ImportError("ipyvtklink is not installed, try:\n> pip install ipyvtklink"):
         return None
 
     plt = vedo.plotter_instance
@@ -344,7 +346,7 @@ def start_ipygany(actors2show):
         from ipygany import PolyMesh, Scene, IsoColor, RGB, Component
         from ipygany import Alpha, ColorBar, colormaps, PointCloud
         from ipywidgets import FloatRangeSlider, Dropdown, VBox, AppLayout, jslink
-    except ImportError("ipygany is not installed"):
+    except ImportError("ipygany is not installed, try:\n> pip install ipygany"):
         return None
 
     plt = vedo.plotter_instance
