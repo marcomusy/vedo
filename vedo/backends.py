@@ -34,7 +34,11 @@ def get_notebook_backend(actors2show=()):
         )
 
     #########################################
-    if "itk" in settings.default_backend:
+    elif settings.default_backend == "2d":
+        return start_2d()
+
+    #########################################
+    if settings.default_backend.startswith("itk"):
         return start_itkwidgets(actors2show)
 
     #########################################
@@ -52,10 +56,6 @@ def get_notebook_backend(actors2show=()):
     #########################################
     elif settings.default_backend == "ipygany":
         return start_ipygany(actors2show)
-
-    #########################################
-    elif settings.default_backend == "2d":
-        return start_2d()
 
     #########################################
     # elif settings.default_backend.startswith("pythree"): #todo

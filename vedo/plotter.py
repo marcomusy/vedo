@@ -56,7 +56,7 @@ def show(
         mode=0,
         q=False,
         new=False,
-        # backend=None,
+        backend="", # DEPRECATED
     ):
     """
     Create on the fly an instance of class Plotter and show the object(s) provided.
@@ -220,7 +220,7 @@ def show(
             offscreen=offscreen,
             bg=bg,
             bg2=bg2,
-            # backend=backend,
+            backend=backend, # DEPRECATED
         )
 
     # use _plt_to_return because plt.show() can return a k3d/panel plot
@@ -369,8 +369,12 @@ class Plotter:
             offscreen=False,
             qt_widget=None,
             wx_widget=None,
-            # backend=None,
+            backend="", # DEPRECATED
         ):
+
+        if backend != "":
+            vedo.logger.error(f"obsolete 'backend' keyword, use settings.default_backend = '{backend}'")
+            settings.default_backend = backend
 
         vedo.plotter_instance = self
 
@@ -2849,7 +2853,7 @@ class Plotter:
 
         # Backend ###############################################################
         if settings.default_backend != 'vtk':
-            if settings.default_backend in ["k3d", "ipygany", "itkwidgets"]:
+            if settings.default_backend in ["k3d", "ipygany", "itk"]:
                 return backends.get_notebook_backend(self.actors)
         #########################################################################
 

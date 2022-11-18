@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import os
 
 class Settings:
     """
@@ -182,6 +183,15 @@ class Settings:
 
         # Default backend engine in jupyter notebooks
         self.default_backend = "vtk"
+
+        if any(["SPYDER" in name for name in os.environ]):
+            self.default_backend = "vtk"
+        else:
+            try:
+                get_ipython()
+                self.default_backend = "2d"
+            except NameError:
+                pass
 
         # Palette number when using an integer to choose a color
         self.palette = 0
