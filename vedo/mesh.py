@@ -2229,11 +2229,12 @@ class Mesh(Points):
     #####################################################################
     ### Stuff returning a Volume
     ###
-    def binarize(self, spacing=(1, 1, 1), invert=False):
+    def binarize(self, spacing=(1, 1, 1), invert=False, direction_matrix=None,
+                 image_size=None, origin=None, fg_val=255, bg_val=0):
         """
         Convert a ``Mesh`` into a ``Volume``
-        where the foreground (exterior) voxels value is 255 and the background
-        (interior) voxels value is 0.
+        where the foreground (exterior) voxels value is fg_val (255 by default)
+        and the background (interior) voxels value is bg_val (0 by default).
 
         .. hint:: mesh2volume.py
             .. image:: https://vedo.embl.es/images/volumetric/mesh2volume.png
@@ -2242,46 +2243,46 @@ class Mesh(Points):
         pd = self.polydata()
 
         whiteImage = vtk.vtkImageData()
+        if direction_matrix:
+            whiteImage.SetDirectionMatrix(direction_matrix)
+
+        dim = [0, 0, 0] if not image_size else image_size
+
         bounds = self.bounds()
+        if not image_size:  # compute dimensions
+            dim = [0, 0, 0]
+            for i in [0, 1, 2]:
+                dim[i] = int(
+                    np.ceil((bounds[i * 2 + 1] - bounds[i * 2]) / spacing[i])
+                )
 
-        whiteImage.SetSpacing(spacing)
-
-        # compute dimensions
-        dim = [0, 0, 0]
-        for i in [0, 1, 2]:
-            dim[i] = int(np.ceil((bounds[i * 2 + 1] - bounds[i * 2]) / spacing[i]))
         whiteImage.SetDimensions(dim)
+        whiteImage.SetSpacing(spacing)
         whiteImage.SetExtent(0, dim[0] - 1, 0, dim[1] - 1, 0, dim[2] - 1)
 
-        origin = [0, 0, 0]
-        origin[0] = bounds[0] + spacing[0] / 2
-        origin[1] = bounds[2] + spacing[1] / 2
-        origin[2] = bounds[4] + spacing[2] / 2
+        if not origin:
+            origin = [0, 0, 0]
+            origin[0] = bounds[0] + spacing[0] / 2
+            origin[1] = bounds[2] + spacing[1] / 2
+            origin[2] = bounds[4] + spacing[2] / 2
         whiteImage.SetOrigin(origin)
         whiteImage.AllocateScalars(vtk.VTK_UNSIGNED_CHAR, 1)
 
         # fill the image with foreground voxels:
-        if invert:
-            inval = 0
-        else:
-            inval = 255
-        count = whiteImage.GetNumberOfPoints()
-        for i in range(count):
-            whiteImage.GetPointData().GetScalars().SetTuple1(i, inval)
+        inval = bg_val if invert else fg_val
+        whiteImage.GetPointData().GetScalars().Fill(inval)
 
         # polygonal data --> image stencil:
         pol2stenc = vtk.vtkPolyDataToImageStencil()
         pol2stenc.SetInputData(pd)
-        pol2stenc.SetOutputOrigin(origin)
-        pol2stenc.SetOutputSpacing(spacing)
+        pol2stenc.SetOutputOrigin(whiteImage.GetOrigin())
+        pol2stenc.SetOutputSpacing(whiteImage.GetSpacing())
         pol2stenc.SetOutputWholeExtent(whiteImage.GetExtent())
         pol2stenc.Update()
 
         # cut the corresponding white image and set the background:
-        if invert:
-            outval = 255
-        else:
-            outval = 0
+        outval = fg_val if invert else bg_val
+
         imgstenc = vtk.vtkImageStencil()
         imgstenc.SetInputData(whiteImage)
         imgstenc.SetStencilConnection(pol2stenc.GetOutputPort())
