@@ -826,14 +826,14 @@ def tonumpy(obj):
     ########################################################
     def _fillmesh(obj, adict):
 
-        adict["points"] = obj.points(transformed=False).astype(np.float32)
+        adict["points"] = obj.points(transformed=False).astype(float)
         poly = obj.polydata()
 
         adict["cells"] = None
         if poly.GetNumberOfPolys():
             try:
                 adict["cells"] = np.array(obj.faces(), dtype=np.uint32)
-            except ValueError:
+            except ValueError: # in case of inhomogeneous shape
                 adict["cells"] = obj.faces()
 
         adict["lines"] = None

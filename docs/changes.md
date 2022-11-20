@@ -14,6 +14,7 @@
 
 ---
 ### `mesh.py`
+- improved `binarize()` method thanks to @vfmatzkin
 
 ---
 ### `plotter.py`
@@ -22,6 +23,7 @@
 
 ---
 ### `picture.py`
+-  generate false colors for an image with Picture().cmap()
 
 ---
 ### `pyplot.py`

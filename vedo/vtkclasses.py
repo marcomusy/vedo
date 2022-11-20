@@ -347,6 +347,7 @@ from vtkmodules.vtkImagingCore import (
     vtkImageConstantPad,
     vtkImageExtractComponents,
     vtkImageFlip,
+    vtkImageMapToColors,
     vtkImageMirrorPad,
     vtkImagePermute,
     vtkImageResample,

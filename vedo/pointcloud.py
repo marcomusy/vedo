@@ -2446,17 +2446,17 @@ class Points(vtk.vtkFollower, BaseActor):
         if on.startswith("p"):
             if not name:
                 name = "PointScalars"
-            self._pointColors(input_array, cname, alpha, vmin, vmax, name, n, logscale)
+            self._point_colors(input_array, cname, alpha, vmin, vmax, name, n, logscale)
         elif on.startswith("c"):
             if not name:
                 name = "CellScalars"
-            self._cellColors(input_array, cname, alpha, vmin, vmax, name, n, logscale)
+            self._cell_colors(input_array, cname, alpha, vmin, vmax, name, n, logscale)
         else:
             vedo.logger.error("Must specify in cmap(on=...) either cells or points")
             raise RuntimeError()
         return self
 
-    def _pointColors(self, input_array, cmap, alpha, vmin, vmax, array_name, n, logscale):
+    def _point_colors(self, input_array, cmap, alpha, vmin, vmax, array_name, n, logscale):
         poly = self.inputdata()
         data = poly.GetPointData()
 
@@ -2582,7 +2582,7 @@ class Points(vtk.vtkFollower, BaseActor):
         data.Modified()
         return self
 
-    def _cellColors(self, input_array, cmap, alpha, vmin, vmax, array_name, n, logscale):
+    def _cell_colors(self, input_array, cmap, alpha, vmin, vmax, array_name, n, logscale):
         poly = self.inputdata()
         data = poly.GetCellData()
 

@@ -51,6 +51,7 @@ def _get_img(obj, flip=False):
         varb = utils.numpy2vtk(arr, dtype=np.uint8, name="RGBA")
         img = vtk.vtkImageData()
         img.SetDimensions(obj.shape[1], obj.shape[0], 1)
+
         img.GetPointData().AddArray(varb)
         img.GetPointData().SetActiveScalars("RGBA")
 
@@ -231,6 +232,42 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             pic.SetOrientation(self.GetOrientation())
             pic.SetPosition(self.GetPosition())
         return pic
+
+    def cmap(self, name, vmin=None, vmax=None):
+        """Colorize a picture with a colormap representing pixel intensity"""
+        n = self._data.GetPointData().GetNumberOfComponents()
+        if n > 1:
+            ecr = vtk.vtkImageExtractComponents()
+            ecr.SetInputData(self._data)
+            ecr.SetComponents(0, 1, 2)
+            ecr.Update()
+            ilum = vtk.vtkImageMagnitude()
+            ilum.SetInputData(self._data)
+            ilum.Update()
+            img = ilum.GetOutput()
+        else:
+            img = self._data
+
+        lut = vtk.vtkLookupTable()
+        _vmin, _vmax = img.GetScalarRange()
+        if vmin is not None:
+            _vmin = vmin
+        if vmax is not None:
+            _vmax = vmax
+        lut.SetRange(_vmin, _vmax)
+
+        ncols = 256
+        lut.SetNumberOfTableValues(ncols)
+        cols = colors.color_map(range(ncols), name, 0, ncols)
+        for i, c in enumerate(cols):
+            lut.SetTableValue(i, *c)
+        lut.Build()
+
+        imap = vtk.vtkImageMapToColors()
+        imap.SetLookupTable(lut)
+        imap.SetInputData(img)
+        imap.Update()
+        return self._update(imap.GetOutput())
 
     def extent(self, ext=None):
         """
