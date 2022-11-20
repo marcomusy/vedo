@@ -700,9 +700,7 @@ class Plotter:
             self.wx_widget.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
             self.camera = self.renderer.GetActiveCamera()
             # if settings.enable_default_mouse_callbacks:
-            #     self.wx_widget.AddObserver("LeftButtonPressEvent", self._mouseleft)
-            #     self.wx_widget.AddObserver("RightButtonPressEvent", self._mouseright)
-            #     self.wx_widget.AddObserver("MiddleButtonPressEvent", self._mousemiddle)
+            #     self.wx_widget.AddObserver("LeftButtonPressEvent", self._mouseleftclick)
             # if settings.enable_default_keyboard_callbacks:
             #     self.wx_widget.AddObserver("KeyPressEvent", self._keypress)
             ########################
@@ -743,9 +741,8 @@ class Plotter:
         self.interactor.SetInteractorStyle(vsty)
 
         if settings.enable_default_mouse_callbacks:
-            self.interactor.AddObserver("LeftButtonPressEvent", self._mouseleft)
-            self.interactor.AddObserver("RightButtonPressEvent", self._mouseright)
-            self.interactor.AddObserver("MiddleButtonPressEvent", self._mousemiddle)
+            self.interactor.AddObserver("LeftButtonPressEvent", self._mouseleftclick)
+
         if settings.enable_default_keyboard_callbacks:
             self.interactor.AddObserver("KeyPressEvent", self._keypress)
 
@@ -3282,7 +3279,7 @@ class Plotter:
         return None
 
     #######################################################################
-    def _mouseleft(self, iren, event):
+    def _mouseleftclick(self, iren, event):
 
         x, y = iren.GetEventPosition()
 
@@ -3294,7 +3291,7 @@ class Plotter:
 
         clicked_actor = picker.GetActor()
 
-        # print('_mouseleft mouse at', x, y)
+        # print('_mouseleftclick mouse at', x, y)
         # print("picked Volume:",   [picker.GetVolume()])
         # print("picked Actor2D:",  [picker.GetActor2D()])
         # print("picked Assembly:", [picker.GetAssembly()])
@@ -3329,69 +3326,14 @@ class Plotter:
         if hasattr(clicked_actor, "picked3d"):  # might be not a vedo obj
             clicked_actor.picked3d = picker.GetPickPosition()
 
-    #######################################################################
-    def _mouseright(self, iren, event):
+        # -----------
+        if "Histogram1D" in str(type(picker.GetAssembly())):
+            histo = picker.GetAssembly()
+            x = self.picked3d[0]
+            idx = np.digitize(x, histo.edges) - 1
+            f = histo.frequencies[idx]
+            vedo.colors.printc(f"{histo.name}  bin={idx}, value={f}")
 
-        x, y = iren.GetEventPosition()
-        # print('_mouseright mouse at', x, y)
-
-        renderer = iren.FindPokedRenderer(x, y)
-        picker = vtk.vtkPropPicker()
-        picker.PickProp(x, y, renderer)
-        clicked_actor = picker.GetActor()
-
-        # check if any button objects were created
-        clicked_actor2D = picker.GetActor2D()
-        if clicked_actor2D:
-            for bt in self.buttons:
-                if clicked_actor2D == bt.actor:
-                    bt.function()
-                    break
-
-        if not clicked_actor:
-            clicked_actor = picker.GetAssembly()
-
-        if not clicked_actor:
-            clicked_actor = picker.GetProp3D()
-
-        if not hasattr(clicked_actor, "GetPickable") or not clicked_actor.GetPickable():
-            return
-        self.picked3d = picker.GetPickPosition()
-        self.picked2d = np.array([x, y])
-        self.clicked_actor = clicked_actor
-
-
-    #######################################################################
-    def _mousemiddle(self, iren, event):
-
-        x, y = iren.GetEventPosition()
-
-        renderer = iren.FindPokedRenderer(x, y)
-        # self.renderer = renderer
-
-        picker = vtk.vtkPropPicker()
-        picker.PickProp(x, y, renderer)
-        clicked_actor = picker.GetActor()
-
-        # check if any button objects were created
-        clicked_actor2D = picker.GetActor2D()
-        if clicked_actor2D:
-            for bt in self.buttons:
-                if clicked_actor2D == bt.actor:
-                    bt.function()
-                    break
-
-        if not clicked_actor:
-            clicked_actor = picker.GetAssembly()
-
-        if not clicked_actor:
-            clicked_actor = picker.GetProp3D()
-
-        if not hasattr(clicked_actor, "GetPickable") or not clicked_actor.GetPickable():
-            return
-        self.clicked_actor = clicked_actor
-        self.picked3d = picker.GetPickPosition()
-        self.picked2d = np.array([x, y])
 
 
     #######################################################################

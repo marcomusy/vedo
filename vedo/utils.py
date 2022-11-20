@@ -315,7 +315,7 @@ def make3d(pts, transpose=False):
     Array can also be in the form [allx, ally, allz].
     Use transpose to resolve ambigous cases (eg, shapes like [3,3]).
     """
-    # Experimental, tests:
+    # Tests:
     #
     # print(make3d([]))
     #

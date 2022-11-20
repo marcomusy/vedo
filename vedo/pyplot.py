@@ -738,7 +738,7 @@ class Histogram1D(Figure):
             scaled_errors = unscaled_errors / (ntot * binsize)
             fs = fs / (ntot * binsize)
             if ytitle == " ":
-                ytitle = f"counts / ( {ntot}~x~{utils.precision(binsize,3)} )"
+                ytitle = f"counts / ({ntot} x {utils.precision(binsize,3)})"
                 fig_kwargs["ytitle"] = ytitle
         elif logscale:
             se_up = np.log10(fs + unscaled_errors / 2 + 1)
@@ -773,6 +773,9 @@ class Histogram1D(Figure):
             if ylim[0] != 0:
                 ylim[0] = y0
 
+        self.title = title
+        self.xtitle = xtitle
+        self.ytitle = ytitle
         self.entries = ntot
         self.frequencies = fs
         self.errors = _errors
@@ -961,6 +964,18 @@ class Histogram1D(Figure):
 
         self.insert(*rs, as3d=False)
         self.name = "Histogram1D"
+
+    def print(self, **kwargs):
+        """Print infos about this histogram"""
+        txt = (
+            f"{self.name}  {self.title}\n"
+            f"    xtitle  = '{self.xtitle}'\n"
+            f"    ytitle  = '{self.ytitle}'\n"
+            f"    entries = {self.entries}\n"
+            f"    mean    = {self.mean}\n"
+            f"    std     = {self.std}"
+        )
+        colors.printc(txt, **kwargs)
 
 
 #########################################################################################
