@@ -4,7 +4,7 @@ import numpy as np
 
 settings.default_font = "Theemim"
 
-pic = Picture("https://aws1.discourse-cdn.com/business4/uploads/imagej/original/3X/5/8/58468da123203f6056ca786adf159064db47aefa.jpeg")
+pic = Picture("https://thumbs.dreamstime.com/z/green-grass-vase-tranquillity-white-rectangular-nature-81294508.jpg")
 msh = pic.tomesh()                # convert it to a quad-mesh
 rgb = msh.pointdata["RGBA"]       # numpy array
 
