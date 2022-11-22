@@ -17,7 +17,7 @@ from vedo.pointcloud import Points
 from vedo.mesh import Mesh
 from vedo.volume import Volume
 
-__doc__ = """Submodule to delegate notebook rendering"""
+__doc__ = """Submodule to delegate jupyter notebook rendering"""
 
 __all__ = []
 
@@ -27,14 +27,14 @@ def get_notebook_backend(actors2show=()):
     """Return the appropriate notebook viewer"""
 
     plt = vedo.plotter_instance
-
-    if isinstance(plt.shape, str) or sum(plt.shape) > 2 and settings.default_backend != '2d':
-        vedo.logger.error(
-            f"Multirendering is not supported for jupyter backend: {settings.default_backend}"
-        )
+    if plt:
+        if isinstance(plt.shape, str) or sum(plt.shape) > 2 and settings.default_backend != "2d":
+            vedo.logger.error(
+                f"Multirendering is not supported for jupyter backend: {settings.default_backend}"
+            )
 
     #########################################
-    elif settings.default_backend == "2d":
+    if settings.default_backend == "2d":
         return start_2d()
 
     #########################################
@@ -42,27 +42,48 @@ def get_notebook_backend(actors2show=()):
         return start_itkwidgets(actors2show)
 
     #########################################
-    elif settings.default_backend == "k3d":
+    if settings.default_backend == "k3d":
         return start_k3d(actors2show)
 
     #########################################
-    elif settings.default_backend == "panel":
+    if settings.default_backend == "panel":
         return start_panel()
 
     #########################################
-    elif settings.default_backend.startswith("ipyvtk"):
+    if settings.default_backend.startswith("ipyvtk"):
         return start_ipyvtklink()
 
     #########################################
-    elif settings.default_backend == "ipygany":
+    if settings.default_backend == "ipygany":
         return start_ipygany(actors2show)
 
     #########################################
-    # elif settings.default_backend.startswith("pythree"): #todo
+    # if settings.default_backend.startswith("pythree"): #todo
     #     return start_pythreejs(actors2show)
 
     vedo.logger.error(f"Unknown jupyter backend: {settings.default_backend}")
     return None
+
+
+#####################################################################################
+def start_2d():
+
+    try:
+        import PIL.Image
+        import IPython
+    except ImportError("PIL or IPython not available"):
+        return None
+
+    plt = vedo.plotter_instance
+
+    if hasattr(plt, "window") and plt.window:
+        if plt.renderer == plt.renderers[-1]:
+            nn = vedo.io.screenshot(asarray=True, scale=settings.screeshot_scale)
+            pil_img = PIL.Image.fromarray(nn)
+            notebook_plotter = IPython.display.display(pil_img)
+            vedo.notebook_plotter = notebook_plotter
+            plt.close()
+            return notebook_plotter
 
 
 ####################################################################################
@@ -106,9 +127,6 @@ def start_k3d(actors2show):
         else:
             actors2show2.append(ia)
 
-    # vbb, sizes, _, _ = addons.compute_visible_bounds()
-    # kgrid = vbb[0], vbb[2], vbb[4], vbb[1], vbb[3], vbb[5]
-
     vedo.notebook_plotter = k3d.plot(
         axes=["x", "y", "z"],
         menu_visibility=settings.k3d_menu_visibility,
@@ -121,14 +139,13 @@ def start_k3d(actors2show):
     # set k3d camera
     vedo.notebook_plotter.camera_auto_fit = settings.k3d_camera_autofit
     vedo.notebook_plotter.grid_auto_fit = settings.k3d_grid_autofit
-
     vedo.notebook_plotter.axes_helper = settings.k3d_axes_helper
 
     if plt and plt.camera:
         k3dc = utils.vtkCameraToK3D(plt.camera)
         vedo.notebook_plotter.camera = k3dc
 
-    if not plt.axes:
+    if plt and not plt.axes:
         vedo.notebook_plotter.grid_visible = False
 
     for ia in actors2show2:
@@ -188,7 +205,7 @@ def start_k3d(actors2show):
 
         #####################################################################Volume
         if isinstance(ia, Volume):
-            #                print('Volume', ia.name, ia.dimensions())
+            # print('Volume', ia.name, ia.dimensions())
             kx, ky, _ = ia.dimensions()
             arr = ia.pointdata[0]
             kimage = arr.reshape(-1, ky, kx)
@@ -242,9 +259,9 @@ def start_k3d(actors2show):
             kcols = []
             if color_attribute is not None:
                 scals = utils.vtk2numpy(vtkscals)
-                kcols = k3d.helpers.map_colors(
-                    scals, kcmap, [scals_min, scals_max]
-                ).astype(numpy.uint32)
+                kcols = k3d.helpers.map_colors(scals, kcmap, [scals_min, scals_max]).astype(
+                    numpy.uint32
+                )
             # sqsize = numpy.sqrt(numpy.dot(sizes, sizes))
 
             kobj = k3d.points(
@@ -267,13 +284,11 @@ def start_k3d(actors2show):
             # print('Line', ia.name, ia.npoints, len(ia.faces()),
             #       ia.polydata(False).GetNumberOfLines(), len(ia.lines()),
             #       color_attribute, [vtkscals])
-
             # kcols=[]
             # if color_attribute is not None:
             #     scals = utils.vtk2numpy(vtkscals)
             #     kcols = k3d.helpers.map_colors(scals, kcmap,
             #                                    [scals_min,scals_max]).astype(numpy.uint32)
-
             # sqsize = numpy.sqrt(numpy.dot(sizes, sizes))
 
             for i, ln_idx in enumerate(ia.lines()):
@@ -290,8 +305,8 @@ def start_k3d(actors2show):
                     name=name,
                 )
                 vedo.notebook_plotter += kobj
-
-    plt.close()
+    if plt:
+        plt.close()
     return vedo.notebook_plotter
 
 
@@ -423,9 +438,7 @@ def start_ipygany(actors2show):
             else:
                 pmesh = PointCloud(vertices=vertices)
             if vmesh.alpha() < 1:
-                colored_pmesh = Alpha(
-                    RGB(pmesh, input=tuple(vmesh.color())), input=vmesh.alpha()
-                )
+                colored_pmesh = Alpha(RGB(pmesh, input=tuple(vmesh.color())), input=vmesh.alpha())
             else:
                 colored_pmesh = RGB(pmesh, input=tuple(vmesh.color()))
 
@@ -434,9 +447,7 @@ def start_ipygany(actors2show):
     if colorbar:
         scene = AppLayout(
             left_sidebar=Scene(pmeshes, background_color=bgcol),
-            right_sidebar=VBox(
-                (colormap_slider_range, colorbar, colormap)  # not working
-            ),
+            right_sidebar=VBox((colormap_slider_range, colorbar, colormap)),  # not working
             pane_widths=[2, 0, 1],
         )
     else:
@@ -445,27 +456,6 @@ def start_ipygany(actors2show):
     vedo.notebook_plotter = scene
     plt.close()
     return scene
-
-
-#####################################################################################
-def start_2d():
-
-    try:
-        import PIL.Image
-        import IPython
-    except ImportError("PIL not available"):
-        return None
-
-    plt = vedo.plotter_instance
-
-    if hasattr(plt, "window") and plt.window:
-        if plt.renderer == plt.renderers[-1]:
-            nn = vedo.io.screenshot(asarray=True, scale=settings.screeshot_scale)
-            pil_img = PIL.Image.fromarray(nn)
-            notebook_plotter = IPython.display.display(pil_img)
-            vedo.notebook_plotter = notebook_plotter
-            plt.close()
-            return notebook_plotter
 
 
 #####################################################################################
