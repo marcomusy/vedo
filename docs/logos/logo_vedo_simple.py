@@ -1,7 +1,8 @@
 from vedo import VedoLogo, settings
 
-settings.useParallelProjection = 1
-settings.screenshotTransparentBackground = 0
+settings.use_parallel_projection = 1
+settings.screenshot_transparent_background = 0
 
 vl = VedoLogo(frame=False, c='k')
-vl.show(size=(340,125), zoom=2.8)#.screenshot("logo_vedo_simple.png")
+vl.show(size=(340*3,115*3), zoom="tight")
+# vl.screenshot("logo_vedo_simple.png")

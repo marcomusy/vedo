@@ -3332,7 +3332,8 @@ class Plotter:
             x = self.picked3d[0]
             idx = np.digitize(x, histo.edges) - 1
             f = histo.frequencies[idx]
-            vedo.colors.printc(f"{histo.name}  bin={idx}, value={f}")
+            cn = histo.centers[idx]
+            vedo.colors.printc(f"{histo.name}, bin={idx}, center={cn}, value={f}")
 
 
 
@@ -3613,7 +3614,10 @@ class Plotter:
             vedo.printc('    position='     +utils.precision(cam.GetPosition(),6)+',', c='y')
             vedo.printc('    focal_point='  +utils.precision(cam.GetFocalPoint(),6)+',', c='y')
             vedo.printc('    viewup='       +utils.precision(cam.GetViewUp(),6)+',', c='y')
-            vedo.printc('    distance='     +utils.precision(cam.GetDistance(),6)+',', c='y')
+            if settings.use_parallel_projection:
+                vedo.printc('    parallel_scale='+utils.precision(cam.GetParallelScale(),6)+',', c='y')
+            else:
+                vedo.printc('    distance='     +utils.precision(cam.GetDistance(),6)+',', c='y')
             vedo.printc('    clipping_range='+utils.precision(cam.GetClippingRange(),6)+',', c='y')
             vedo.printc(')', c='y')
             vedo.printc('show(mymeshes, camera=cam)', c='y')

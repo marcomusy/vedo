@@ -337,7 +337,7 @@ def make3d(pts, transpose=False):
     pts = np.asarray(pts)
 
     if pts.dtype == "object":
-        raise ValueError("Cannot form a valid numpy array")
+        raise ValueError("Cannot form a valid numpy array, input may be non-homogenous")
 
     if pts.shape[0] == 0: # empty list
         return pts

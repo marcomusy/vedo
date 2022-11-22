@@ -3367,7 +3367,12 @@ class Points(vtk.vtkFollower, BaseActor):
         "Deprecated. Please use cut_with_plane()"
         return self.cut_with_plane(origin, normal)
 
-    def cut_with_plane(self, origin=(0, 0, 0), normal=(1, 0, 0)):
+    @deprecated(reason=vedo.colors.red + "Please use cut_with_mesh()" + vedo.colors.reset)
+    def cutWithMesh(self, mesh, invert=False, keep=False):
+        "Deprecated. Please use cut_with_mesh()"
+        return self.cut_with_mesh(mesh, invert, keep)
+
+    def cut_with_plane(self, origin=(0, 0, 0), normal=(1, 0, 0), invert=False):
         """
         Cut the mesh with the plane defined by a point and a normal.
 
@@ -3412,6 +3417,60 @@ class Points(vtk.vtkFollower, BaseActor):
         clipper = vtk.vtkClipPolyData()
         clipper.SetInputData(self.polydata(True))  # must be True
         clipper.SetClipFunction(plane)
+        clipper.GenerateClippedOutputOff()
+        clipper.GenerateClipScalarsOff()
+        clipper.SetInsideOut(not invert)
+        clipper.SetValue(0)
+        clipper.Update()
+
+        cpoly = clipper.GetOutput()
+
+        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
+            self._update(cpoly)
+        else:
+            # bring the underlying polydata to where _data is
+            M = vtk.vtkMatrix4x4()
+            M.DeepCopy(self.GetMatrix())
+            M.Invert()
+            tr = vtk.vtkTransform()
+            tr.SetMatrix(M)
+            tf = vtk.vtkTransformPolyDataFilter()
+            tf.SetTransform(tr)
+            tf.SetInputData(cpoly)
+            tf.Update()
+            self._update(tf.GetOutput())
+
+        return self
+
+    def cut_with_planes(self, origins, normals, invert=False):
+        """
+        Cut the mesh with a convex set of planes defined by points and normals.
+
+        Parameters
+        ----------
+        origins : array
+            each cutting plane goes through this point
+
+        normals : array
+            normal of each of the cutting planes
+
+        Check out also:
+            ``crop()``, ``cut_with_box()``, ``cut_with_cylinder()``, ``cut_with_sphere()``
+        """
+
+        vpoints = vtk.vtkPoints()
+        for p in utils.make3d(origins):
+            vpoints.InsertNextPoint(p)
+        normals = utils.make3d(normals)
+
+        planes = vtk.vtkPlanes()
+        planes.SetPoints(vpoints)
+        planes.SetNormals(utils.numpy2vtk(normals, dtype=float))
+
+        clipper = vtk.vtkClipPolyData()
+        clipper.SetInputData(self.polydata(True))  # must be True
+        clipper.SetInsideOut(not invert)
+        clipper.SetClipFunction(planes)
         clipper.GenerateClippedOutputOff()
         clipper.GenerateClipScalarsOff()
         clipper.SetValue(0)
@@ -3675,11 +3734,6 @@ class Points(vtk.vtkFollower, BaseActor):
             self._update(tf.GetOutput())
 
         return self
-
-    @deprecated(reason=vedo.colors.red + "Please use cut_with_mesh()" + vedo.colors.reset)
-    def cutWithMesh(self, mesh, invert=False, keep=False):
-        "Deprecated. Please use cut_with_mesh()"
-        return self.cut_with_mesh(mesh, invert, keep)
 
     def cut_with_mesh(self, mesh, invert=False, keep=False):
         """

@@ -1,14 +1,20 @@
-from vedo import Volume, Text3D, show, dataurl
+from vedo import Volume, Text3D, show, dataurl, settings
 
-vol = Volume(dataurl+"embryo.slc").mode(0).c('b2').alphaUnit(5)
+settings.use_parallel_projection = True
 
-t = Text3D("Sharpe\n~~~Lab", s=40, font="Spears", vspacing=1.4, depth=.04)
-t.c('k1').rotateX(90).pos(200,150,70)
+vol = Volume(dataurl+"embryo.slc")
+vol.mode(0).c('b2').alpha_unit(5)
 
-cam = dict(pos=(363, -247, 121),
-           focalPoint=(240, 137, 116),
-           viewup=(4.45e-3, 0.0135, 1.00),
-           distance=403)
+t = Text3D("Sharpe\n~~~Lab", s=40, font="Spears", vspacing=1.4)
+t.c('k1').rotate_x(90).pos(200,150,70)
+
+cam = dict(
+    position=(227.421, -911.244, 192.438),
+    focal_point=(217.166, 126.841, 116.242),
+    viewup=(0, 0, 1),
+    parallel_scale=110,
+    clipping_range=(754.990, 1403.38),
+)
 
 show(vol, t, size=(700,400), camera=cam)
 

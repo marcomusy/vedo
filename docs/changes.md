@@ -11,6 +11,7 @@
 
 ---
 ### `pointcloud.py`
+- added `cut_with_planes()` to cut at once with multiple planes
 
 ---
 ### `mesh.py`
@@ -20,6 +21,7 @@
 ### `plotter.py`
 - fixed key bindings for uppercase hits.
 - added method `add_hint()` to generate a pop-up message on hovering an object
+- fix output of template camera when pressing "C"
 
 ---
 ### `picture.py`
@@ -27,6 +29,7 @@
 
 ---
 ### `pyplot.py`
+- clicking on a histogram shows the bin value
 
 ---
 ### `shapes.py`
