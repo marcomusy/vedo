@@ -16,6 +16,7 @@
 ---
 ### `mesh.py`
 - improved `binarize()` method thanks to @vfmatzkin
+- added `collide_with()` to fix crashing of `intersect_with()` in special cases
 
 ---
 ### `plotter.py`

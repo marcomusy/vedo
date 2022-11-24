@@ -2163,7 +2163,39 @@ class Mesh(Points):
         bf.Update()
         msh = Mesh(bf.GetOutput(), "k", 1).lighting("off")
         msh.GetProperty().SetLineWidth(3)
-        msh.name = "surfaceIntersection"
+        msh.name = "SurfaceIntersection"
+        return msh
+
+    def collide_with(self, mesh2, tol=0, return_bool=False):
+        """
+        Collide this Mesh with the input surface.
+        """
+        ipdf = vtk.vtkCollisionDetectionFilter()
+        # ipdf.SetGlobalWarningDisplay(0)
+
+        transform0 = vtk.vtkTransform()
+        transform1 = vtk.vtkTransform()
+
+        # ipdf.SetBoxTolerance(tol)
+        ipdf.SetCellTolerance(tol)
+        ipdf.SetInputData(0, self.polydata())
+        ipdf.SetInputData(1, mesh2.polydata())
+        ipdf.SetTransform(0, transform0)
+        ipdf.SetTransform(1, transform1)
+        if return_bool:
+            ipdf.SetCollisionModeToFirstContact()
+        else:
+            ipdf.SetCollisionModeToAllContacts()
+        ipdf.Update()
+
+        if return_bool:
+            return bool(ipdf.GetNumberOfContacts())
+
+        msh = Mesh(ipdf.GetContactsOutput(), "k", 1).lighting("off")
+        msh.metadata["ContactCells1"] = vtk2numpy(ipdf.GetOutput(0).GetFieldData().GetArray("ContactCells"))
+        msh.metadata["ContactCells2"] = vtk2numpy(ipdf.GetOutput(1).GetFieldData().GetArray("ContactCells"))
+        msh.GetProperty().SetLineWidth(3)
+        msh.name = "SurfaceCollision"
         return msh
 
     def geodesic(self, start, end):

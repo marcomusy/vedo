@@ -107,8 +107,10 @@ class _DataArrayHelper:
         """Return the list of available data array names"""
         if self.association == 0:
             data = self.actor.inputdata().GetPointData()
-        else:
+        elif self.association == 1:
             data = self.actor.inputdata().GetCellData()
+        elif  self.association == 2:
+            data = self.actor.inputdata().GetFieldData()
         arrnames = []
         for i in range(data.GetNumberOfArrays()):
             arrnames.append(data.GetArray(i).GetName())
@@ -118,15 +120,19 @@ class _DataArrayHelper:
         """Remove a data array by name or number"""
         if self.association == 0:
             self.actor.inputdata().GetPointData().RemoveArray(key)
-        else:
+        elif self.association == 1:
             self.actor.inputdata().GetCellData().RemoveArray(key)
+        elif  self.association == 2:
+            self.actor.inputdata().GetFieldData().RemoveArray(key)
 
     def rename(self, oldname, newname):
         """Rename an array"""
         if self.association == 0:
             varr = self.actor.inputdata().GetPointData().GetArray(oldname)
-        else:
+        elif self.association == 1:
             varr = self.actor.inputdata().GetCellData().GetArray(oldname)
+        elif self.association == 2:
+            varr = self.actor.inputdata().GetFieldData().GetArray(oldname)
         if varr:
             varr.SetName(newname)
         else:

@@ -216,6 +216,11 @@ from vtkmodules.vtkFiltersModeling import (
 )
 
 try:
+    from vtkmodules.vtkFiltersModeling import vtkCollisionDetectionFilter
+except ImportError:
+    pass
+
+try:
     from vtkmodules.vtkFiltersModeling import vtkImprintFilter
 except ImportError:
     pass
