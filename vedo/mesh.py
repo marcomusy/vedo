@@ -841,10 +841,10 @@ class Mesh(Points):
         left=None,
         front=None,
         back=None,
-        bounds=None,
     ):
         """
         Crop an ``Mesh`` object.
+        Use this method at creation (before moving the object).
 
         Parameters
         ----------
@@ -866,9 +866,6 @@ class Mesh(Points):
         left : float
             fraction to crop from the left plane (negative x)
 
-        bounds : list
-            direct list of bounds passed as [x0,x1, y0,y1, z0,z1]
-
         Example:
             .. code-block:: python
 
@@ -878,39 +875,26 @@ class Mesh(Points):
             .. image:: https://user-images.githubusercontent.com/32848391/57081955-0ef1e800-6cf6-11e9-99de-b45220939bc9.png
         """
         cu = vtk.vtkBox()
-        x0, x1, y0, y1, z0, z1 = self.bounds()
         pos = np.array(self.GetPosition())
+        x0, x1, y0, y1, z0, z1 = self.bounds()
         x0, y0, z0 = [x0, y0, z0] - pos
         x1, y1, z1 = [x1, y1, z1] - pos
 
-        if bounds is None:
-            dx, dy, dz = x1 - x0, y1 - y0, z1 - z0
-            if top:
-                z1 = z1 - top * dz
-            if bottom:
-                z0 = z0 + bottom * dz
-            if front:
-                y1 = y1 - front * dy
-            if back:
-                y0 = y0 + back * dy
-            if right:
-                x1 = x1 - right * dx
-            if left:
-                x0 = x0 + left * dx
-            bounds = (x0, x1, y0, y1, z0, z1)
-        else:
-            if bounds[0] is None:
-                bounds[0] = x0
-            if bounds[1] is None:
-                bounds[1] = x1
-            if bounds[2] is None:
-                bounds[2] = y0
-            if bounds[3] is None:
-                bounds[3] = y1
-            if bounds[4] is None:
-                bounds[4] = z0
-            if bounds[5] is None:
-                bounds[5] = z1
+        dx, dy, dz = x1 - x0, y1 - y0, z1 - z0
+        if top:
+            z1 = z1 - top * dz
+        if bottom:
+            z0 = z0 + bottom * dz
+        if front:
+            y1 = y1 - front * dy
+        if back:
+            y0 = y0 + back * dy
+        if right:
+            x1 = x1 - right * dx
+        if left:
+            x0 = x0 + left * dx
+        bounds = (x0, x1, y0, y1, z0, z1)
+
         cu.SetBounds(bounds)
 
         clipper = vtk.vtkClipPolyData()
@@ -922,6 +906,7 @@ class Mesh(Points):
         clipper.SetValue(0)
         clipper.Update()
         self._update(clipper.GetOutput())
+        self.point_locator = None
         return self
 
 

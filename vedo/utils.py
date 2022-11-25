@@ -43,7 +43,6 @@ __all__ = [
     "cart2pol",
     "pol2cart",
     "humansort",
-    "dotdict",
     "print_histogram",
     "camera_from_quaternion",
     "camera_from_neuroglancer",
@@ -210,70 +209,6 @@ class ProgressBar:
         self.pbar += ps
 
 
-###########################################################
-class dotdict(dict):
-    """
-    A dictionary supporting dot notation.
-
-    Example:
-        .. code-block:: python
-
-            dd = dotdict({"a": 1,
-                          "b": {"c": "hello",
-                                "d": [1, 2, {"e": 123}]}
-                              }
-                         )
-            dd.update({'k':3})
-            dd.g = 7
-            print("k=", dd.k)           # k= 3
-            print(dd.b.c)               # hello
-            print(isinstance(dd, dict)) # True
-            print(dd.lookup("b.d"))     # [1, 2, {"e": 123}]
-    """
-
-    # Credits: https://stackoverflow.com/users/89391/miku
-    #  https://gist.github.com/miku/dc6d06ed894bc23dfd5a364b7def5ed8
-
-    # __getattr__ = dict.get
-    # __setattr__ = dict.__setitem__
-    __delattr__ = dict.__delitem__
-
-    def __init__(self, *args, **kwargs):
-
-        super().__init__(*args, **kwargs)
-
-        for k, v in self.items():
-            if isinstance(v, dict):
-                self[k] = dotdict(v)
-
-    def __getattr__(self, k):
-        if "__getstate__" in k:  # a trick to make spyder happy when inspecting dotdict
-
-            def _dummy():
-                pass
-
-            return _dummy
-        return self[k]
-
-    def __setattr__(self, k, v):
-        #if self.warn_on_setting:
-        #    if k not in self and not k.startswith("__"):
-        #        vedo.logger.warning(f"you are setting non-existing key {k} to {v}")
-        self[k] = v
-
-    def lookup(self, dotkey):
-        """Lookup value in a nested structure with a single key, e.g. "a.b.c"."""
-        path = list(reversed(dotkey.split(".")))
-        v = self
-        while path:
-            key = path.pop()
-            if isinstance(v, dict):
-                v = v[key]
-            elif isinstance(v, list):
-                v = v[int(key)]
-            else:
-                raise KeyError(key)
-        return v
 
 
 ###########################################################

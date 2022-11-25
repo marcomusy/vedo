@@ -29,6 +29,54 @@ __all__ = [
     "close",
 ]
 
+########################################################################################################
+class Event:
+    """Event class"""
+    # this class holds the info from an event in the window, works as dictionary too
+    __slots__ = [
+         "name",
+         "title",
+         "id",
+         "priority",
+         "at",
+         "actor",
+         "picked3d",
+         "keyPressed", # obsolete, will disappear. Use "keypress"
+         "keypress",
+         "picked2d",
+         "delta2d",
+         "angle2d",
+         "speed2d",
+         "delta3d",
+         "speed3d",
+         "isPoints",
+         "isMesh",
+         "isAssembly",
+         "isVolume",
+         "isPicture",
+         "isActor2D",
+    ]
+
+    def __init__(self):
+        return
+
+    def __getitem__(self, key):
+        """Make the class work like a dictionary too"""
+        return getattr(self, key)
+
+    def __setitem__(self, key, value):
+        """Make the class work like a dictionary too"""
+        setattr(self, key, value)
+
+    def __repr__(self):
+        f = "---------- <vedo.plotter.Event object> ----------\n"
+        for n in self.__slots__:
+            f += f"event.{n} = " + str(self[n]).replace('\n','')[:60] + "\n"
+        return f
+
+    def keys(self):
+        return self.__slots__
+
 
 ########################################################################################################
 def show(
@@ -2169,12 +2217,13 @@ class Plotter:
         sifunc(0, 0)
         return fractor
 
+
     @deprecated(reason=vedo.colors.red + "Please use add_callback()" + vedo.colors.reset)
     def addCallback(self, *a, **b):
         """Deprecated, use add_callback()"""
         return self.add_callback(*a, **b)
 
-    def add_callback(self, eventName, func, priority=0.0):
+    def add_callback(self, event_name, func, priority=0.0):
         """
         Add a function to be executed while show() is active.
         Information about the event can be acquired with method getEvent().
@@ -2245,30 +2294,30 @@ class Plotter:
             return None
 
         # as vtk names are ugly and difficult to remember:
-        ln = eventName.lower()
+        ln = event_name.lower()
         if "click" in ln or "button" in ln:
-            eventName = "LeftButtonPress"
+            event_name = "LeftButtonPress"
             if "right" in ln:
-                eventName = "RightButtonPress"
+                event_name = "RightButtonPress"
             elif "mid" in ln:
-                eventName = "MiddleButtonPress"
+                event_name = "MiddleButtonPress"
             if "release" in ln:
-                # eventName = eventName.replace("Press","Release") # vtk bug
-                eventName = "EndInteraction"
+                # event_name = event_name.replace("Press","Release") # vtk bug
+                event_name = "EndInteraction"
         else:
             if "key" in ln:
                 if "release" in ln:
-                    eventName = "KeyRelease"
+                    event_name = "KeyRelease"
                 else:
-                    eventName = "KeyPress"
+                    event_name = "KeyPress"
 
         if ("mouse" in ln and "mov" in ln) or "over" in ln:
-            eventName = "MouseMove"
+            event_name = "MouseMove"
         if "timer" in ln:
-            eventName = "Timer"
+            event_name = "Timer"
 
-        if not eventName.endswith("Event"):
-            eventName += "Event"
+        if not event_name.endswith("Event"):
+            event_name += "Event"
 
         def _func_wrap(iren, ename):
             x, y = self.interactor.GetEventPosition()
@@ -2317,32 +2366,30 @@ class Plotter:
                     if iren.GetAltKey():
                         key = "Alt+" + key
 
-            event_dict = utils.dotdict(
-                {
-                    "name": ename,
-                    "title": self.title,  # window title, can be used as an id for the Plotter
-                    "id": cid,
-                    "priority": priority,
-                    "at": self.renderers.index(self.renderer),
-                    "actor": actor,
-                    "picked3d": picked3d,
-                    "keyPressed": key,  # obsolete, will disappear. Use "keypress"
-                    "keypress": key,
-                    "picked2d": (x, y),
-                    "delta2d": (dx, dy),
-                    "angle2d": np.arctan2(dy, dx),
-                    "speed2d": np.sqrt(dx * dx + dy * dy),
-                    "delta3d": delta3d,
-                    "speed3d": np.sqrt(np.dot(delta3d, delta3d)),
-                    "isPoints":  isinstance(actor, vedo.Points),
-                    "isMesh":    isinstance(actor, vedo.Mesh),
-                    "isAssembly": isinstance(actor, vedo.Assembly),
-                    "isVolume":  isinstance(actor, vedo.Volume),
-                    "isPicture": isinstance(actor, vedo.Picture),
-                    "isActor2D": isinstance(actor, vtk.vtkActor2D),
-                }
-            )
-            func(event_dict)
+            event = Event()
+            event.name = ename
+            event.title = self.title
+            event.id = cid
+            event.priority = priority
+            event.at = self.renderers.index(self.renderer)
+            event.actor = actor
+            event.picked3d = picked3d
+            event.keyPressed = key  # obsolete, will disappear. Use "keypress"
+            event.keypress = key
+            event.picked2d = (x, y)
+            event.delta2d = (dx, dy)
+            event.angle2d = np.arctan2(dy, dx)
+            event.speed2d = np.sqrt(dx * dx + dy * dy)
+            event.delta3d = delta3d
+            event.speed3d = np.sqrt(np.dot(delta3d, delta3d))
+            event.isPoints = isinstance(actor, vedo.Points)
+            event.isMesh = isinstance(actor, vedo.Mesh)
+            event.isAssembly = isinstance(actor, vedo.Assembly)
+            event.isVolume = isinstance(actor, vedo.Volume)
+            event.isPicture = isinstance(actor, vedo.Picture)
+            event.isActor2D = isinstance(actor, vtk.vtkActor2D)
+
+            func(event)
             return  ## _func_wrap
 
         if self._timer_event_id is not None:
@@ -2351,8 +2398,8 @@ class Plotter:
             self.interactor.RemoveObserver(self._timer_event_id)
             self._timer_event_id = None
 
-        cid = self.interactor.AddObserver(eventName, _func_wrap, priority)
-        vedo.logger.debug(f"registering event: {eventName} with id={cid}")
+        cid = self.interactor.AddObserver(event_name, _func_wrap, priority)
+        vedo.logger.debug(f"registering event: {event_name} with id={cid}")
         return cid
 
     def remove_callback(self, cid):
