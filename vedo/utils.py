@@ -259,25 +259,6 @@ def make3d(pts, transpose=False):
     Array can also be in the form [allx, ally, allz].
     Use transpose to resolve ambigous cases (eg, shapes like [3,3]).
     """
-    # Tests:
-    #
-    # print(make3d([]))
-    #
-    # print(make3d([0,1]))
-    # print(make3d([0,1,2]))
-    # print(make3d([0,1,2,3])) # will raise error
-    #
-    # print(make3d([[0,1,2,3], [6,7,8,9]]))
-    # print(make3d([ [0,1,2,3], [6,7,8,9], [6,7,8,8] ]))
-    # print(make3d([ [0,1,2], [6,7,8], [6,7,9] ]))
-    # print(make3d([ [0,1,2], [6,7,8], [6,7,9] ], transpose=True))
-    #
-    # print(make3d([[0,1,2]]))
-    # print(make3d([[0,1,2], [6,7,8]]))
-    # print(make3d([[0,1,2], [6,7,8], [6,7,8], [6,7,4]]))
-    # print(make3d([[0,1], [6,7], [6,7], [6,7]]))
-    # print(pts.ndim, pts.shape, pts.dtype)
-
     pts = np.asarray(pts)
 
     if pts.dtype == "object":
