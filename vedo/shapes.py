@@ -3165,7 +3165,9 @@ class TessellatedBox(Mesh):
         size of the side of the single quad in the 3 directions
     """
 
-    def __init__(self, pos=(0, 0, 0), n=10, spacing=(1, 1, 1), c="k5", alpha=0.5):
+    def __init__(self, pos=(0, 0, 0), n=10, spacing=(1, 1, 1), bounds=(),
+                 c="k5", alpha=0.5,
+    ):
         if utils.is_sequence(n):  # slow
             img = vtk.vtkImageData()
             img.SetDimensions(n[0] + 1, n[1] + 1, n[2] + 1)
@@ -3178,14 +3180,17 @@ class TessellatedBox(Mesh):
             n -= 1
             tbs = vtk.vtkTessellatedBoxSource()
             tbs.SetLevel(n)
+            if len(bounds):
+                tbs.SetBounds(bounds)
+            else:
+                tbs.SetBounds(0, n * spacing[0], 0, n * spacing[1], 0, n * spacing[2])
             tbs.QuadsOn()
-            tbs.SetBounds(0, n * spacing[0], 0, n * spacing[1], 0, n * spacing[2])
             tbs.SetOutputPointsPrecision(vtk.vtkAlgorithm.SINGLE_PRECISION)
             tbs.Update()
             poly = tbs.GetOutput()
         Mesh.__init__(self, poly, c=c, alpha=alpha)
         self.SetPosition(pos)
-        self.lw(1)
+        self.lw(1).lighting("off")
         self.base = np.array([0.5, 0.5, 0.0])
         self.top = np.array([0.5, 0.5, 1.0])
         self.name = "TessellatedBox"

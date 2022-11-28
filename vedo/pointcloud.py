@@ -2204,7 +2204,9 @@ class Points(vtk.vtkFollower, BaseActor):
                 target_landmarks = target_landmarks.points()
 
         if ss.GetNumberOfPoints() != st.GetNumberOfPoints():
-            vedo.logger.error("source and target have different nr of points")
+            n1 = ss.GetNumberOfPoints()
+            n2 = st.GetNumberOfPoints()
+            vedo.logger.error(f"source and target have different nr of points {n1} vs {n2}")
             raise RuntimeError()
 
         lmt = vtk.vtkLandmarkTransform()
