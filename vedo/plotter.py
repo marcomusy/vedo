@@ -71,7 +71,10 @@ class Event:
     def __repr__(self):
         f = "---------- <vedo.plotter.Event object> ----------\n"
         for n in self.__slots__:
-            f += f"event.{n} = " + str(self[n]).replace('\n','')[:60] + "\n"
+            if n == "actor" and self.actor and self.actor.name:
+                f += f"event.{n} = {self.actor.name} ({self.actor.npoints} points)\n"
+            else:
+                f += f"event.{n} = " + str(self[n]).replace('\n','')[:60] + "\n"
         return f
 
     def keys(self):
@@ -1238,7 +1241,7 @@ class Plotter:
             self.camera.SetClippingRange(c2 * fraction + c1 * ufraction)
         return self
 
-    def fly_to(self, point, at=0):
+    def fly_to(self, point):
         """
         Fly camera to the specified point.
 
@@ -1247,17 +1250,15 @@ class Plotter:
         point : list
             point in space to place camera.
 
-        at : int, optional
-            Renderer number.
-
         Example:
             .. code-block:: python
 
                 from vedo import Cone
                 Cone().show(axes=1).fly_to([1,0,0]).show()
         """
-        self.resetcam = False
-        self.interactor.FlyTo(self.renderers[at], point)
+        if self.interactor:
+            self.resetcam = False
+            self.interactor.FlyTo(self.renderer, point)
         return self
 
     def look_at(self, plane="xy"):

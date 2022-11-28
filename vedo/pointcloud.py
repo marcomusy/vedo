@@ -1051,23 +1051,36 @@ class Points(vtk.vtkFollower, BaseActor):
         .. hint:: examples/other/clone2D.py
             .. image:: https://vedo.embl.es/images/other/clone2d.png
         """
-        msiz = self.diagonal_size()
         if scale is None:
-            if vedo.plotter_instance:
+            msiz = self.diagonal_size()
+            if vedo.plotter_instance and vedo.plotter_instance.window:
                 sz = vedo.plotter_instance.window.GetSize()
                 dsiz = utils.mag(sz)
-                scale = dsiz / msiz / 9
+                scale = dsiz / msiz / 10
             else:
                 scale = 350 / msiz
-            # colors.printc('clone2D(): scale set to', utils.precision(scale/300,3))
-        else:
-            scale *= 300
 
         cmsh = self.clone()
         poly = cmsh.pos(0, 0, 0).scale(scale).polydata()
 
+        mapper3d = self.mapper()
+        cm = mapper3d.GetColorMode()
+        lut = mapper3d.GetLookupTable()
+        sv = mapper3d.GetScalarVisibility()
+        use_lut = mapper3d.GetUseLookupTableScalarRange()
+        vrange = mapper3d.GetScalarRange()
+        sm = mapper3d.GetScalarMode()
+
         mapper2d = vtk.vtkPolyDataMapper2D()
+        mapper2d.ShallowCopy(mapper3d)
         mapper2d.SetInputData(poly)
+        mapper2d.SetColorMode(cm)
+        mapper2d.SetLookupTable(lut)
+        mapper2d.SetScalarVisibility(sv)
+        mapper2d.SetUseLookupTableScalarRange(use_lut)
+        mapper2d.SetScalarRange(vrange)
+        mapper2d.SetScalarMode(sm)
+
         act2d = vtk.vtkActor2D()
         act2d.SetMapper(mapper2d)
         act2d.SetLayerNumber(layer)
@@ -1077,6 +1090,7 @@ class Points(vtk.vtkFollower, BaseActor):
         if c is not None:
             c = colors.get_color(c)
             act2d.GetProperty().SetColor(c)
+            mapper2d.SetScalarVisibility(False)
         else:
             act2d.GetProperty().SetColor(cmsh.color())
         if alpha is not None:
@@ -2157,18 +2171,19 @@ class Points(vtk.vtkFollower, BaseActor):
             target_landmarks,
             rigid=False,
             affine=False,
+            least_squares=False,
         ):
         """
         Transform mesh orientation and position based on a set of landmarks points.
         The algorithm finds the best matching of source points to target points
         in the mean least square sense, in one single step.
 
-        If affine is True the x, y and z axes can scale independently.
+        If affine is True the x, y and z axes can scale independently but stay collinear.
+        With least_squares they can vary orientation.
 
         .. hint:: examples/basic/align5.py
             .. image:: https://vedo.embl.es/images/basic/align5.png
         """
-        lmt = vtk.vtkLandmarkTransform()
 
         if utils.is_sequence(source_landmarks):
             ss = vtk.vtkPoints()
@@ -2176,6 +2191,8 @@ class Points(vtk.vtkFollower, BaseActor):
                 ss.InsertNextPoint(p)
         else:
             ss = source_landmarks.polydata().GetPoints()
+            if least_squares:
+                source_landmarks = source_landmarks.points()
 
         if utils.is_sequence(target_landmarks):
             st = vtk.vtkPoints()
@@ -2183,23 +2200,44 @@ class Points(vtk.vtkFollower, BaseActor):
                 st.InsertNextPoint(p)
         else:
             st = target_landmarks.polydata().GetPoints()
+            if least_squares:
+                target_landmarks = target_landmarks.points()
 
         if ss.GetNumberOfPoints() != st.GetNumberOfPoints():
             vedo.logger.error("source and target have different nr of points")
             raise RuntimeError()
 
+        lmt = vtk.vtkLandmarkTransform()
         lmt.SetSourceLandmarks(ss)
         lmt.SetTargetLandmarks(st)
         lmt.SetModeToSimilarity()
         if rigid:
             lmt.SetModeToRigidBody()
-        if affine:
+            lmt.Update()
+            self.SetUserTransform(lmt)
+
+        elif affine:
             lmt.SetModeToAffine()
-        lmt.Update()
+            lmt.Update()
+            self.SetUserTransform(lmt)
 
-        self.SetUserTransform(lmt)
+        elif least_squares:
+            cms = source_landmarks.mean(axis=0)
+            cmt = target_landmarks.mean(axis=0)
+            m = np.linalg.lstsq(source_landmarks-cms, target_landmarks-cmt, rcond=None)[0]
+            M = vtk.vtkMatrix4x4()
+            for i in range(3):
+                for j in range(3):
+                    M.SetElement(j, i, m[i][j])
+            lmt = vtk.vtkTransform()
+            lmt.Translate( cmt)
+            lmt.Concatenate(M)
+            lmt.Translate(-cms)
+            self.apply_transform(lmt, concatenate=True)
+        else:
+            self.SetUserTransform(lmt)
+
         self.transform = lmt
-
         self.point_locator = None
         self.cell_locator = None
         return self
@@ -4569,3 +4607,24 @@ class Points(vtk.vtkFollower, BaseActor):
         if not alpha:
             arr = arr[:, :3]
         return arr
+
+
+    def generate_random_data(self):
+        """Fill a dataset with random attributes"""
+        gen = vtk.vtkRandomAttributeGenerator()
+        gen.SetInputData(self._data)
+        gen.GenerateAllDataOn()
+        gen.SetDataTypeToFloat()
+        gen.GeneratePointNormalsOff()
+        gen.GeneratePointTensorsOn()
+        gen.GenerateCellScalarsOn()
+
+        gen.Update()
+        return self._update(gen.GetOutput())
+
+
+
+
+
+
+

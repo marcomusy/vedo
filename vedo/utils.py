@@ -237,10 +237,19 @@ def vtk2numpy(varr):
     """Convert a `vtkDataArray` or `vtkIdList` into a numpy array"""
     if isinstance(varr, vtk.vtkIdList):
         return np.array([varr.GetId(i) for i in range(varr.GetNumberOfIds())])
-    if isinstance(varr, vtk.vtkBitArray):
+    elif isinstance(varr, vtk.vtkBitArray):
         carr = vtk.vtkCharArray()
         carr.DeepCopy(varr)
         varr = carr
+    elif isinstance(varr, vtk.vtkHomogeneousTransform):
+        try:
+            varr = varr.GetMatrix()
+        except AttributeError:
+            pass
+        n = 4
+        M = [[varr.GetElement(i, j) for j in range(n)] for i in range(n)]
+        return np.array(M)
+
     return vtk_to_numpy(varr)
 
 

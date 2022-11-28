@@ -99,6 +99,7 @@ from vtkmodules.vtkCommonExecutionModel import vtkAlgorithm
 from vtkmodules.vtkCommonMath import vtkMatrix4x4, vtkQuaternion
 
 from vtkmodules.vtkCommonTransforms import (
+    vtkHomogeneousTransform,
     vtkLandmarkTransform,
     vtkThinPlateSplineTransform,
     vtkTransform
@@ -171,6 +172,7 @@ from vtkmodules.vtkFiltersGeneral import (
     vtkTransformPolyDataFilter,
     vtkOBBTree,
     vtkQuantizePolyDataPoints,
+    vtkRandomAttributeGenerator,
     vtkShrinkFilter,
     vtkShrinkPolyData,
     vtkRectilinearGridToTetrahedra,

@@ -12,6 +12,7 @@
 ---
 ### `pointcloud.py`
 - added `cut_with_planes()` to cut at once with multiple planes
+- added `generate_random_data()` for testing purposes
 
 ---
 ### `mesh.py`
