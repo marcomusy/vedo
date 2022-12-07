@@ -1926,45 +1926,21 @@ class Video:
         if not self.duration:
             self.duration = 5
 
-        def build_vtk_cam(cm_input):
-            cm = dict(cm_input)
-            cm_pos = cm.pop("pos", None)
-            cm_focal_point = cm.pop("focal_point", None)
-            cm_viewup = cm.pop("viewup", None)
-            cm_distance = cm.pop("distance", None)
-            cm_clipping_range = cm.pop("clippingRange", None)
-            cm_parallel_scale = cm.pop("parallelScale", None)
-            cm_thickness = cm.pop("thickness", None)
-            cm_view_angle = cm.pop("viewAngle", None)
-            cm = vtk.vtkCamera()
-            if cm_pos is not None: cm.SetPosition(cm_pos)
-            if cm_focal_point is not None: cm.SetFocalPoint(cm_focal_point)
-            if cm_viewup is not None: cm.SetViewUp(cm_viewup)
-            if cm_distance is not None: cm.SetDistance(cm_distance)
-            if cm_clipping_range is not None: cm.SetClippingRange(cm_clipping_range)
-            if cm_parallel_scale is not None: cm.SetParallelScale(cm_parallel_scale)
-            if cm_thickness is not None: cm.SetThickness(cm_thickness)
-            if cm_view_angle is not None: cm.SetViewAngle(cm_view_angle)
-            return cm
-
         plt = vedo.plotter_instance
         n = int(self.fps * self.duration)
 
         cams = []
         for cm in cameras:
-            cams.append(build_vtk_cam(cm))
+            cams.append(utils.camera_from_dict(cm))
         nc = len(cams)
 
         plt.show(resetcam=resetcam, interactive=False)
 
         if nc:
-            for icam, cam in enumerate(cams):
-                if cam == cams[-1]:
-                    break
-                for i in range(n):
-                    plt.move_camera(cams[icam], cams[icam + 1], i / n)
-                    plt.show()
-                    self.add_frame()
+            for i in range(n):
+                plt.move_camera(cams, i / n)
+                plt.show()
+                self.add_frame()
 
         else:  ########################################
 

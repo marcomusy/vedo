@@ -28,6 +28,7 @@
 - fixed key bindings for uppercase hits.
 - added method `add_hint()` to generate a pop-up message on hovering an object
 - fix output of template camera when pressing "C"
+- improved `move_camera()`
 
 ---
 ### `picture.py`

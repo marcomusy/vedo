@@ -464,6 +464,7 @@ from vtkmodules.vtkRenderingCore import (
     vtkAssembly,
     vtkBillboardTextActor3D,
     vtkCamera,
+    vtkCameraInterpolator,
     vtkColorTransferFunction,
     vtkCoordinate,
     vtkDataSetMapper,

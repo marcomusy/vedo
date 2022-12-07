@@ -1179,67 +1179,49 @@ class Plotter:
             self.renderer.ResetCameraClippingRange(x0, x1, y0, y1, z0, z1)
         return self
 
-    def move_camera(self, camstart, camstop, fraction):
+
+    def move_camera(self, cameras, t=0, times=(), smooth=True, output_times=()):
         """
-        Takes as input two vtkCamera objects and set camera at an intermediate position:
+        Takes as input two cameras set camera at an interpolated position:
 
-        fraction=0 -> camstart,  fraction=1 -> camstop.
-
-        camstart and camstop can also be dictionaries of format:
+        Cameras can be vtkCamera or dictionaries in format:
 
             dict(pos=..., focal_point=..., viewup=..., distance=..., clipping_range=...)
 
         Press shift-C key in interactive mode to dump a python snipplet
         of parameters for the current camera view.
         """
-        fraction = min(fraction, 1)
-        fraction = max(fraction, 0)
+        nc = len(cameras)
+        if len(times) == 0:
+            times = np.linspace(0, 1, num=nc, endpoint=True)
+        assert len(times) == nc
 
-        if isinstance(camstart, dict):
-            camstart = dict(camstart)
-            p1 = np.asarray(camstart.pop("pos", [0, 0, 1]))
-            f1 = np.asarray(camstart.pop("focalPoint", [0, 0, 0]))
-            if "focal_point" in camstart:
-                f1 = np.asarray(camstart.pop("focal_point", [0, 0, 0]))
-            v1 = np.asarray(camstart.pop("viewup", [0, 1, 0]))
-            s1 = camstart.pop("distance", None)
-            c1 = np.asarray(camstart.pop("clippingRange", None))
-            if "clipping_range" in camstart:
-                c1 = np.asarray(camstart.pop("clipping_range", None))
+        cin = vtk.vtkCameraInterpolator()
+
+        # cin.SetInterpolationTypeToLinear() # bugged?
+        if nc > 2 and smooth:
+            cin.SetInterpolationTypeToSpline()
+
+        for i, cam in enumerate(cameras):
+            vcam = cam
+            if isinstance(cam, dict):
+                vcam = utils.camera_from_dict(cam)
+            cin.AddCamera(times[i], vcam)
+
+        mint, maxt = cin.GetMinimumT(), cin.GetMaximumT()
+        rng = maxt - mint
+
+        if len(output_times) == 0:
+            cin.InterpolateCamera(t * rng, self.camera)
+            self.renderer.SetActiveCamera(self.camera)
+            return [self.camera]
         else:
-            p1 = np.array(camstart.GetPosition())
-            f1 = np.array(camstart.GetFocalPoint())
-            v1 = np.array(camstart.GetViewUp())
-            c1 = np.array(camstart.GetClippingRange())
-            s1 = camstart.GetDistance()
-
-        if isinstance(camstop, dict):
-            camstop = dict(camstop)
-            p2 = np.asarray(camstop.pop("pos", [0, 0, 1]))
-            f2 = np.asarray(camstop.pop("focalPoint", [0, 0, 0]))
-            if "focal_point" in camstop:
-                f2 = np.asarray(camstop.pop("focal_point", [0, 0, 0]))
-            v2 = np.asarray(camstop.pop("viewup", [0, 1, 0]))
-            s2 = camstop.pop("distance", None)
-            c2 = np.asarray(camstop.pop("clippingRange", None))
-            if "clipping_range" in camstop:
-                c2 = np.asarray(camstop.pop("clipping_range", None))
-        else:
-            p2 = np.array(camstop.GetPosition())
-            f2 = np.array(camstop.GetFocalPoint())
-            v2 = np.array(camstop.GetViewUp())
-            c2 = np.array(camstop.GetClippingRange())
-            s2 = camstop.GetDistance()
-
-        ufraction = 1 - fraction
-        self.camera.SetPosition(p2 * fraction + p1 * ufraction)
-        self.camera.SetFocalPoint(f2 * fraction + f1 * ufraction)
-        self.camera.SetViewUp(v2 * fraction + v1 * ufraction)
-        if s1 is not None and s2 is not None:
-            self.camera.SetDistance(s2 * fraction + s1 * ufraction)
-        if c1 is not None and c2 is not None:
-            self.camera.SetClippingRange(c2 * fraction + c1 * ufraction)
-        return self
+            vcams = []
+            for t in output_times:
+                c = vtk.vtkCamera()
+                cin.InterpolateCamera(t * rng, c)
+                vcams.append(c)
+            return vcams
 
     def fly_to(self, point):
         """
@@ -1259,6 +1241,7 @@ class Plotter:
         if self.interactor:
             self.resetcam = False
             self.interactor.FlyTo(self.renderer, point)
+            self.camera = self.renderer.GetActiveCamera()
         return self
 
     def look_at(self, plane="xy"):
@@ -2864,10 +2847,18 @@ class Plotter:
             interactive = False
             self._interactive = False
 
+        # camera stuff
         if camera is not None:
             self.resetcam = False
             if isinstance(camera, vtk.vtkCamera):
                 self.camera = camera
+            else:
+                self.camera = utils.camera_from_dict(camera)
+            if self.renderer:
+                self.renderer.SetActiveCamera(self.camera)
+
+        if self.renderer:
+            self.camera = self.renderer.GetActiveCamera()
 
         if resetcam is not None:
             self.resetcam = resetcam
@@ -2924,7 +2915,7 @@ class Plotter:
             if isinstance(ia, vedo.base.Base3DProp):
 
                 if ia._set2actcam:
-                    ia.SetCamera(self.camera)  # used by mesh.followCamera()
+                    ia.SetCamera(self.camera)  # used by mesh.follow_camera()
 
                 ia.rendered_at.add(at)  # set.add()
 
@@ -2947,8 +2938,6 @@ class Plotter:
             if not self.interactor.GetInitialized():
                 self.interactor.Initialize()
                 self.interactor.RemoveObservers("CharEvent")
-
-        self.camera = self.renderer.GetActiveCamera()
 
         if self.sharecam:
             for r in self.renderers:
@@ -3012,29 +3001,8 @@ class Plotter:
             elif viewup == "2d":
                 mode = 12
 
-        if isinstance(camera, dict):
-            camera = dict(camera)  # make a copy so input is not emptied by pop()
-            cm_pos = camera.pop("position", camera.pop("pos", None))
-            cm_focal_point = camera.pop("focal_point", camera.pop("focalPoint", None))
-            cm_viewup = camera.pop("viewup", None)
-            cm_distance = camera.pop("distance", None)
-            cm_clipping_range = camera.pop("clipping_range", camera.pop("clippingRange", None))
-            cm_parallel_scale = camera.pop("parallel_scale", camera.pop("parallelScale", None))
-            cm_thickness = camera.pop("thickness", None)
-            cm_view_angle = camera.pop("view_angle", camera.pop("viewAngle", None))
-            if len(camera.keys()):
-                vedo.logger.warning(f"in show(cam=...), key(s) not recognized: {camera.keys()}")
-            if cm_pos is not None: self.camera.SetPosition(cm_pos)
-            if cm_focal_point is not None:    self.camera.SetFocalPoint(cm_focal_point)
-            if cm_viewup is not None:         self.camera.SetViewUp(cm_viewup)
-            if cm_distance is not None:       self.camera.SetDistance(cm_distance)
-            if cm_clipping_range is not None: self.camera.SetClippingRange(cm_clipping_range)
-            if cm_parallel_scale is not None: self.camera.SetParallelScale(cm_parallel_scale)
-            if cm_thickness is not None:      self.camera.SetThickness(cm_thickness)
-            if cm_view_angle is not None:     self.camera.SetViewAngle(cm_view_angle)
-
-
         self.renderer.ResetCameraClippingRange()
+
         if settings.immediate_rendering:
             self.window.Render()  ##################### <-------------- Render
 
@@ -3087,6 +3055,7 @@ class Plotter:
 
             if self._interactive:
                 self.interactor.Start()
+                # vtk BUG:
                 if vedo.vtk_version == (9,2,2): self.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
 
             if rate:

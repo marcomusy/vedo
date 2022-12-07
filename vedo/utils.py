@@ -1700,6 +1700,36 @@ def oriented_camera(center=(0,0,0), up_vector=(0,1,0), backoff_vector=(0,0,1), b
     camera.SetPosition(pt_backoff[0], pt_backoff[1], pt_backoff[2])
     return camera
 
+def camera_from_dict(camera, modify_inplace=None):
+    """
+    Generate a `vtkCamera` from a dictionary.
+    """
+    if modify_inplace:
+        vcam = modify_inplace
+    else:
+        vcam = vtk.vtkCamera()
+
+    camera = dict(camera)  # make a copy so input is not emptied by pop()
+    cm_pos = camera.pop("position", camera.pop("pos", None))
+    cm_focal_point = camera.pop("focal_point", camera.pop("focalPoint", None))
+    cm_viewup = camera.pop("viewup", None)
+    cm_distance = camera.pop("distance", None)
+    cm_clipping_range = camera.pop("clipping_range", camera.pop("clippingRange", None))
+    cm_parallel_scale = camera.pop("parallel_scale", camera.pop("parallelScale", None))
+    cm_thickness = camera.pop("thickness", None)
+    cm_view_angle = camera.pop("view_angle", camera.pop("viewAngle", None))
+    if len(camera.keys()):
+        vedo.logger.warning(f"in camera_from_dict, key(s) not recognized: {camera.keys()}")
+    if cm_pos is not None:            vcam.SetPosition(cm_pos)
+    if cm_focal_point is not None:    vcam.SetFocalPoint(cm_focal_point)
+    if cm_viewup is not None:         vcam.SetViewUp(cm_viewup)
+    if cm_distance is not None:       vcam.SetDistance(cm_distance)
+    if cm_clipping_range is not None: vcam.SetClippingRange(cm_clipping_range)
+    if cm_parallel_scale is not None: vcam.SetParallelScale(cm_parallel_scale)
+    if cm_thickness is not None:      vcam.SetThickness(cm_thickness)
+    if cm_view_angle is not None:     vcam.SetViewAngle(cm_view_angle)
+    return vcam
+
 
 def vtkCameraToK3D(vtkcam):
     """
