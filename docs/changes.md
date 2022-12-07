@@ -17,6 +17,8 @@
 ### `pointcloud.py`
 - added `cut_with_planes()` to cut at once with multiple planes
 - added `generate_random_data()` for testing purposes
+- renamed `vignette()` to `flagpole()`
+- added new `flagpost()` similar to the above
 
 ---
 ### `mesh.py`
@@ -69,6 +71,7 @@
 examples/pyplot/fit_curve.py
 examples/pyplot/histo_2d_a.py
 examples/pyplot/histo_2d_b.py
+examples/other/flag_labels2.py
 
 -------------------------
 ### Deleted
