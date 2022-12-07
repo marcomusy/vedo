@@ -192,14 +192,14 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         cloned.name = self.name
         return cloned
 
-    def compute_quality(self, measure=7):
+    def compute_quality(self, metric=7):
         """
         Calculate functions of quality for the elements of a triangular mesh.
         This method adds to the mesh a cell array named "Quality".
 
         Parameters
         ----------
-        measure : int
+        metric : int
             type of estimator
 
                 - EDGE RATIO, 0
@@ -219,10 +219,50 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         """
         qf = vtk.vtkMeshQuality()
         qf.SetInputData(self._data)
-        qf.SetTetQualityMeasure(measure)
+        qf.SetTetQualityMeasure(metric)
         qf.SaveCellQualityOn()
         qf.Update()
-        return self._update(qf.GetOutput())
+        self._update(qf.GetOutput())
+        return utils.vtk2numpy(qf.GetOutput().GetCellData().GetArray("Quality"))
+
+    def compute_tets_volume(self):
+        """Add to this mesh a cell data array containing the areas of the polygonal faces"""
+        csf = vtk.vtkCellSizeFilter()
+        csf.SetInputData(self._data)
+        csf.SetComputeArea(False)
+        csf.SetComputeVolume(True)
+        csf.SetComputeLength(False)
+        csf.SetComputeVertexCount(False)
+        csf.SetVolumeArrayName("TetVolume")
+        csf.Update()
+        self._update(csf.GetOutput())
+        return utils.vtk2numpy(csf.GetOutput().GetCellData().GetArray("TetVolume"))
+
+    def check_validity(self, tol=0):
+        """
+        Return an array of possible problematic tets following this convention:
+
+            Valid               =  0
+            WrongNumberOfPoints = 01
+            IntersectingEdges   = 02
+            IntersectingFaces   = 04
+            NoncontiguousEdges  = 08
+            Nonconvex           = 10
+            OrientedIncorrectly = 20
+
+        Parameters
+        ----------
+        tol : float
+            This value is used as an epsilon for floating point
+            equality checks throughout the cell checking process.
+        """
+        vald = vtk.vtkCellValidator()
+        if tol:
+            vald.SetTolerance(tol)
+        vald.SetInputData(self._data)
+        vald.Update()
+        varr = vald.GetOutput().GetCellData().GetArray("ValidityState")
+        return utils.vtk2numpy(varr)
 
     def threshold(self, name=None, above=None, below=None, on="cells"):
         """

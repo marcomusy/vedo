@@ -11,7 +11,7 @@
 - added `basegrid.extract_cells_on_plane()`
 - added `basegrid.extract_cells_on_sphere()`
 - added `basegrid.extract_cells_on_cylinder()`
-
+- added `count_vertices()` method
 
 ---
 ### `pointcloud.py`
@@ -22,6 +22,7 @@
 ### `mesh.py`
 - improved `binarize()` method thanks to @vfmatzkin
 - added `collide_with()` to fix crashing of `intersect_with()` in special cases
+- added `check_validity()`
 
 ---
 ### `plotter.py`
@@ -45,6 +46,8 @@
 
 ---
 ### `tetmesh.py`
+- added `compute_tets_volume()`
+- added `check_validity()`
 
 
 ---

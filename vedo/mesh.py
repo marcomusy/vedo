@@ -1079,7 +1079,7 @@ class Mesh(Points):
         csf.Update()
         return self._update(csf.GetOutput())
 
-    def compute_quality(self, measure=6):
+    def compute_quality(self, metric=6):
         """
         Calculate metrics of quality for the elements of a triangular mesh.
         This method adds to the mesh a cell array named "Quality".
@@ -1088,7 +1088,7 @@ class Mesh(Points):
 
         Parameters
         ----------
-        measure : int
+        metric : int
             type of estimator
 
                 - EDGE RATIO, 0
@@ -1127,12 +1127,39 @@ class Mesh(Points):
         """
         qf = vtk.vtkMeshQuality()
         qf.SetInputData(self.polydata(False))
-        qf.SetTriangleQualityMeasure(measure)
+        qf.SetTriangleQualityMeasure(metric)
         qf.SaveCellQualityOn()
         qf.Update()
         pd = qf.GetOutput()
         self._update(pd)
         return self
+
+    def check_validity(self, tol=0):
+        """
+        Return an array of possible problematic faces following this convention:
+
+            Valid               =  0
+            WrongNumberOfPoints = 01
+            IntersectingEdges   = 02
+            IntersectingFaces   = 04
+            NoncontiguousEdges  = 08
+            Nonconvex           = 10
+            OrientedIncorrectly = 20
+
+        Parameters
+        ----------
+        tol : float
+            This value is used as an epsilon for floating point
+            equality checks throughout the cell checking process.
+        """
+        vald = vtk.vtkCellValidator()
+        if tol:
+            vald.SetTolerance(tol)
+        vald.SetInputData(self._data)
+        vald.Update()
+        varr = vald.GetOutput().GetCellData().GetArray("ValidityState")
+        return vtk2numpy(varr)
+
 
     @deprecated(reason=vedo.colors.red + "Please use compute_curvature()" + vedo.colors.reset)
     def addCurvatureScalars(self, method=0):

@@ -166,7 +166,9 @@ from vtkmodules.vtkFiltersFlowPaths import vtkStreamTracer
 
 from vtkmodules.vtkFiltersGeneral import (
     vtkBooleanOperationPolyDataFilter,
+    vtkCellValidator,
     vtkClipDataSet,
+    vtkCountVertices,
     vtkBoxClipDataSet,
     vtkContourTriangulator,
     vtkCurvatures,

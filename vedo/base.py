@@ -968,6 +968,15 @@ class BaseActor(Base3DProp):
 
         return np.array(cids)
 
+    def count_vertices(self):
+        """Count the number of vertices each cell has and return it as a numpy array"""
+        vc = vtk.vtkCountVertices()
+        vc.SetInputData(self._data)
+        vc.SetOutputArrayName("VertexCount")
+        vc.Update()
+        varr = vc.GetOutput().GetCellData().GetArray("VertexCount")
+        return utils.vtk2numpy(varr)
+
     def lighting(
         self,
         style="",

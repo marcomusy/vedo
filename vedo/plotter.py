@@ -2848,6 +2848,9 @@ class Plotter:
             self._interactive = False
 
         # camera stuff
+        if resetcam is not None:
+            self.resetcam = resetcam
+
         if camera is not None:
             self.resetcam = False
             if isinstance(camera, vtk.vtkCamera):
@@ -2859,9 +2862,6 @@ class Plotter:
 
         if self.renderer:
             self.camera = self.renderer.GetActiveCamera()
-
-        if resetcam is not None:
-            self.resetcam = resetcam
 
         # if user passes a list of actors forget about everything and show those
         if len(actors) == 0:
