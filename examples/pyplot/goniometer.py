@@ -1,18 +1,18 @@
 """The 3D-ruler axis style,
-a vignette and a goniometer"""
+a flag pole and a goniometer"""
 from vedo import *
 
 settings.use_parallel_projection = True  # avoid parallax effects
 
 mesh = Cone().c("steelblue").rotate_y(90).pos(1, 2, 3)
 
-# add a vignette-style comment
+# add a flagpole-style comment
 a, v = precision(mesh.area(), 4), precision(mesh.volume(), 4)
-vig = mesh.vignette(
+fp = mesh.flagpole(
     "S = πr^2 +πr√(h^2 +r^2 )\n  = " + a + "~μm^2 \nV = πr^2 ·h/3\n  = " + v + "~μm^3",
     s=0.1,
 )
-vig.color("r3").scale(0.7).follow_camera()
+fp.color("r3").scale(0.7).follow_camera()
 
 # measure the angle formed by 3 points
 gon = Goniometer(
@@ -32,4 +32,4 @@ rul = Ruler(
 # make 3d rulers along the bounding box (similar to set axes=7)
 ax3 = RulerAxes(mesh, units="μm")
 
-show(mesh, vig, gon, rul, ax3, __doc__, bg2="lb", viewup="z").close()
+show(mesh, fp, gon, rul, ax3, __doc__, bg2="lb", viewup="z").close()

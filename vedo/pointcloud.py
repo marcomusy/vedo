@@ -1546,7 +1546,7 @@ class Points(vtk.vtkFollower, BaseActor):
         Generate value or ID labels for mesh cells or points.
         For large nr. of labels use ``font="VTK"`` which is much faster.
 
-        See also: ``labels2D()``, ``vignette()``, ``caption()`` and ``legend()``.
+        See also: ``labels2D()``, ``flagpole()``, ``caption()`` and ``legend()``.
 
         Parameters
         ----------
@@ -1739,7 +1739,7 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         Generate value or ID bi-dimensional labels for mesh cells or points.
 
-        See also: ``labels()``, ``vignette()``, ``caption()`` and ``legend()``.
+        See also: ``labels()``, ``flagpole()``, ``caption()`` and ``legend()``.
 
         Parameters
         ----------
@@ -1845,7 +1845,12 @@ class Points(vtk.vtkFollower, BaseActor):
         self.info["legend"] = txt
         return self
 
-    def vignette(
+    @deprecated(reason=vedo.colors.red + "Please use flagpole() instead" + vedo.colors.reset)
+    def vignette(self, *args, **kwargs):
+        """Deprecated. Use flagpole()."""
+        return self.flagpole(*args, **kwargs)
+
+    def flagpole(
         self,
         txt=None,
         point=None,
@@ -1857,10 +1862,15 @@ class Points(vtk.vtkFollower, BaseActor):
         alpha=1,
         lw=2,
         italic=0,
+        padding=0.1,
     ):
         """
-        Generate and return a vignette to describe an object.
+        Generate a flag pole style element to describe an object.
         Returns a ``Mesh`` object.
+
+        Use flagpole.follow_camera() to make it face the camera in the scene.
+
+        See also ``flagpost()``.
 
         Parameters
         ----------
@@ -1868,13 +1878,13 @@ class Points(vtk.vtkFollower, BaseActor):
             Text to display. The default is the filename or the object name.
 
         point : list
-            position of the vignette pointer. The default is None.
+            position of the flagpole pointer. The default is None.
 
         offset : list
             text offset wrt the application point. The default is None.
 
         s : float
-            size of the vignette. The default is None.
+            size of the flagpole. The default is None.
 
         font : str
             text font. The default is "".
@@ -1886,7 +1896,7 @@ class Points(vtk.vtkFollower, BaseActor):
             text and box color. The default is None.
 
         alpha : float
-            transparency of text and box. The default is 1.
+            opacity of text and box. The default is 1.
 
         lw : float
             line with of box frame. The default is 2.
@@ -1894,7 +1904,7 @@ class Points(vtk.vtkFollower, BaseActor):
         italic : float
             italicness of text. The default is 0.
 
-        .. hint:: examples/pyplot/intersect2d.py, goniometer.py, flag_labels.py
+        .. hint:: examples/pyplot/intersect2d.py, goniometer.py, examples/other/flag_labels1.py, flag_labels2.py
             .. image:: https://vedo.embl.es/images/pyplot/intersect2d.png
         """
         acts = []
@@ -1907,7 +1917,6 @@ class Points(vtk.vtkFollower, BaseActor):
             else:
                 return None
 
-        sph = None
         x0, x1, y0, y1, z0, z1 = self.bounds()
         d = self.diagonal_size()
         if point is None:
@@ -1916,11 +1925,10 @@ class Points(vtk.vtkFollower, BaseActor):
             else:  # it's a Point
                 point = self.GetPosition()
 
-        if offset is None:
-            offset = [(x1 - x0) / 3, (y1 - y0) / 6, 0]
-        # elif len(offset) == 2:
-        #     offset = [offset[0], offset[1], 0]  # make it 3d
+        pt = utils.make3d(point)
 
+        if offset is None:
+            offset = [(x1 - x0) / 2, (y1 - y0) / 6, 0]
         offset = utils.make3d(offset)
 
         if s is None:
@@ -1928,17 +1936,15 @@ class Points(vtk.vtkFollower, BaseActor):
 
         sph = None
         if d and (z1 - z0) / d > 0.1:
-            sph = vedo.shapes.Sphere(point, r=s * 0.4, res=6)
+            sph = vedo.shapes.Sphere(pt, r=s * 0.4, res=6)
 
         if c is None:
             c = np.array(self.color()) / 1.4
 
-        if len(point) == 2:
-            point = [point[0], point[1], 0.0]
-        pt = np.asarray(point)
-
-        lb = vedo.shapes.Text3D(txt, pos=pt+offset, s=s, font=font,
-                                italic=italic, justify="center-left")
+        lb = vedo.shapes.Text3D(
+            txt, pos=pt+offset, s=s, font=font,
+            italic=italic, justify="center-left",
+        )
         acts.append(lb)
 
         if d and not sph:
@@ -1954,9 +1960,24 @@ class Points(vtk.vtkFollower, BaseActor):
             box = vedo.shapes.Line(
                 [(x0,y0,z0), (x1,y0,z0), (x1,y1,z0), (x0,y1,z0), (x0,y0,z0)]
             )
-        box.SetOrigin((x0+x1) / 2, (y0+y1) / 2, (z0+z1) / 2)
-        box.scale([1.1,1.2,1])
+
+        cnt = [(x0+x1) / 2, (y0+y1) / 2, (z0+z1) / 2]
+
+        box.SetOrigin(cnt)
+        box.scale([1 + padding, 1 + 2*padding, 1])
         acts.append(box)
+
+        # pts = box.points()
+        # bfaces = []
+        # for i, pt in enumerate(pts):
+        #     if i:
+        #         face = [i-1, i, 0]
+        #         bfaces.append(face)
+        # bpts = [cnt] + pts.tolist()
+        # box2 = vedo.Mesh([bpts, bfaces]).z(-cnt[0]/10)#.c('w').alpha(0.1)
+        # #should be made assembly otherwise later merge() nullifies it
+        # box2.SetOrigin(cnt)
+        # acts.append(box2)
 
         x0, x1, y0, y1, z0, z1 = box.bounds()
         if x0 < pt[0] < x1:
@@ -1977,7 +1998,134 @@ class Points(vtk.vtkFollower, BaseActor):
         macts.bc("t").pickable(False).GetProperty().LightingOff()
         macts.GetProperty().SetLineWidth(lw)
         macts.UseBoundsOff()
+        macts.name = "FlagPole"
         return macts
+
+    def flagpost(
+        self,
+        txt=None,
+        point=None,
+        offset=None,
+        s=1,
+        c="k9",
+        bc="k1",
+        alpha=1,
+        lw=0,
+        font="Calco",
+        justify="center-left",
+        vspacing=1,
+    ):
+        """
+        Generate a flag post style element to describe an object.
+
+        Parameters
+        ----------
+        txt : str
+            Text to display. The default is the filename or the object name.
+
+        point : list
+            position of the flag anchor point. The default is None.
+
+        offset : list
+            a 3D displacement or offset. The default is None.
+
+        s : float
+            size of the text to be shown
+
+        c : list
+            color of text and line
+
+        bc : list
+            color of the flag background
+
+        alpha : float
+            opacity of text and box.
+
+        lw : int
+            line with of box frame. The default is 0.
+
+        font : str
+            font name. Use a monospace font for better rendering. The default is "Calco".
+            Type ``vedo -r fonts`` for a font demo.
+
+        justify : str
+            internal text justification. The default is "center-left".
+
+        vspacing : TYPE
+            vertical spacing between lines.
+        """
+        if txt is None:
+            if self.filename:
+                txt = self.filename.split("/")[-1]
+            elif self.name:
+                txt = self.name
+            else:
+                return None
+
+        x0, x1, y0, y1, z0, z1 = self.bounds()
+        d = self.diagonal_size()
+        if point is None:
+            if d:
+                point = self.closest_point([(x0 + x1) / 2, (y0 + y1) / 2, z1])
+            else:  # it's a Point
+                point = self.GetPosition()
+
+        point = utils.make3d(point)
+
+        if offset is None:
+            offset = [0,0, (z1-z0)/2]
+        offset = utils.make3d(offset)
+
+        fpost = vtk.vtkFlagpoleLabel()
+        fpost.SetBasePosition(point[0], point[1], point[2])
+        tp = point + np.asarray(offset)
+        fpost.SetTopPosition(tp[0], tp[1], tp[2])
+        fpost.SetFlagSize(s * 0.65)
+        fpost.SetInput(txt)
+        fpost.PickableOff()
+
+        fpost.GetProperty().LightingOff()
+        fpost.GetProperty().SetLineWidth(lw+1)
+
+        prop = fpost.GetTextProperty()
+        if bc is not None:
+            prop.SetBackgroundColor(colors.get_color(bc))
+
+        prop.SetOpacity(alpha)
+        prop.SetBackgroundOpacity(alpha)
+        if bc is not None and len(bc) == 4:
+            prop.SetBackgroundRGBA(alpha)
+
+        c = colors.get_color(c)
+        prop.SetColor(c)
+        fpost.GetProperty().SetColor(c)
+
+        prop.SetFrame(bool(lw))
+        prop.SetFrameWidth(lw)
+        prop.SetFrameColor(prop.GetColor())
+
+        prop.SetFontFamily(vtk.VTK_FONT_FILE)
+        fl = utils.get_font_path(font)
+        prop.SetFontFile(fl)
+        prop.ShadowOff()
+        prop.BoldOff()
+        prop.SetOpacity(alpha)
+        prop.SetJustificationToLeft()
+        if "top" in justify:
+            prop.SetVerticalJustificationToTop()
+        if "bottom" in justify:
+            prop.SetVerticalJustificationToBottom()
+        if "cent" in justify:
+            prop.SetVerticalJustificationToCentered()
+            prop.SetJustificationToCentered()
+        if "left" in justify:
+            prop.SetJustificationToLeft()
+        if "right" in justify:
+            prop.SetJustificationToRight()
+        prop.SetLineSpacing(vspacing * 1.2)
+        self._caption = fpost
+        return fpost
+
 
     def caption(
         self,
@@ -1997,7 +2145,7 @@ class Points(vtk.vtkFollower, BaseActor):
         Add a 2D caption to an object which follows the camera movements.
         Latex is not supported. Returns the same input object for concatenation.
 
-        See also ``vignette()``, ``labels()`` and ``legend()``
+        See also ``flagpole()``, ``flagpost()``, ``labels()`` and ``legend()``
         with similar functionality.
 
         Parameters
@@ -2015,8 +2163,7 @@ class Points(vtk.vtkFollower, BaseActor):
             padding space of the caption box in pixels. The default is 5.
 
         font : str
-            font name. Font "LogoType" allows for Japanese and Chinese characters.
-            Use a monospace font for better rendering. The default is "VictorMono".
+            font name. Use a monospace font for better rendering. The default is "VictorMono".
             Type ``vedo -r fonts`` for a font demo.
 
         justify : str
@@ -2037,7 +2184,7 @@ class Points(vtk.vtkFollower, BaseActor):
         ontop : bool
             keep the 2d caption always on top. The default is True.
 
-        .. hint:: examples/pyplot/caption.py, flag_labels.py
+        .. hint:: examples/pyplot/caption.py, examples/other/flag_labels1.py, flag_labels2.py
             .. image:: https://vedo.embl.es/images/pyplot/caption.png
         """
         if txt is None:

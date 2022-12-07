@@ -1704,7 +1704,7 @@ class Plotter:
     def add_legend_box(self, **kwargs):
         """Add a legend to the top right.
 
-        .. hint:: examples/basic/legendbox.py, examples/other/flag_labels.py
+        .. hint:: examples/basic/legendbox.py, examples/other/flag_labels1.py, flag_labels2.py
         """
         acts = self.get_meshes()
         lb = addons.LegendBox(acts, **kwargs)
@@ -3678,6 +3678,8 @@ class Plotter:
             else:
                 acts = self.get_meshes()
             for ia in acts:
+                if not hasattr(ia, "_cmap_name"):
+                    continue
                 cmap_name = ia._cmap_name
                 if not cmap_name:
                     cmap_name = "rainbow"

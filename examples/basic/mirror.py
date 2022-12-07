@@ -5,7 +5,7 @@ myted1 = Mesh(dataurl+"teddy.vtk")
 
 myted2 = myted1.clone(deep=False).mirror("y")
 myted2.pos(0,3,0).c("green")
-vig = myted2.vignette("mirrored\nmesh").follow_camera()
+fp = myted2.flagpole("mirrored\nmesh").follow_camera()
 
-show(myted1, myted2, vig, __doc__,
+show(myted1, myted2, fp, __doc__,
      axes=2, viewup="z", bg2='ly').close()

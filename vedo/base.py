@@ -721,7 +721,7 @@ class Base3DProp:
             xmin, ymin, zmin = np.min(pts, axis=0)
             xmax, ymax, zmax = np.max(pts, axis=0)
             return [xmin,xmax, ymin,ymax, zmin,zmax]
-        except AttributeError:
+        except (AttributeError, ValueError):
             return self.GetBounds()
 
     def xbounds(self, i=None):

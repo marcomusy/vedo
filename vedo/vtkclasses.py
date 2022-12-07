@@ -472,6 +472,7 @@ from vtkmodules.vtkRenderingCore import (
     vtkColorTransferFunction,
     vtkCoordinate,
     vtkDataSetMapper,
+    vtkFlagpoleLabel,
     vtkFollower,
     vtkHierarchicalPolyDataMapper,
     vtkImageActor,

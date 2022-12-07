@@ -73,7 +73,7 @@ class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
     pos : str, list
         position of the box, can be either a string or a (x,y) screen position in range [0,1]
 
-    .. hint:: examples/basic/legendbox.py, examples/other/flag_labels.py
+    .. hint:: examples/basic/legendbox.py, examples/other/flag_labels1.py, examples/other/flag_labels2.py
         .. image:: https://vedo.embl.es/images/other/flag_labels.png
     """
 
