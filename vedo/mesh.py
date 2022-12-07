@@ -1366,6 +1366,7 @@ class Mesh(Points):
         if "quad" in method:
             decimate = vtk.vtkQuadricDecimation()
             # decimate.SetVolumePreservation(True)
+
         else:
             decimate = vtk.vtkDecimatePro()
             decimate.PreserveTopologyOn()
@@ -2150,6 +2151,7 @@ class Mesh(Points):
         msh.GetProperty().SetLineWidth(3)
         msh.name = "SurfaceIntersection"
         return msh
+
 
     def collide_with(self, mesh2, tol=0, return_bool=False):
         """

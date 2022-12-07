@@ -1940,16 +1940,85 @@ class BaseGrid(BaseActor):
         self._update(cug)
         return self
 
-    # def findCell(self, p):
-    #     """Locate the cell that contains a point and return the cell ID."""
-    #     cell = vtk.mutable(0)#vtk.vtkCell()
-    #     cellId = vtk.mutable(0)#vtk.vtkIdType()
-    #     tol2=vtk.mutable(0)
-    #     subId = vtk.mutable(0)
-    #     pcoords = [0,0,0]
-    #     weights = [0,0,0]
-    #     self._data.FindAndGetCell(p, cell, cellId, tol2, subId, pcoords, weights)
-    #     return cellId
+    def extract_cells_on_plane(self, origin, normal):
+        """
+        Extract cells that are lying of the specified surface.
+        """
+        bf = vtk.vtk3DLinearGridCrinkleExtractor()
+        bf.SetInputData(self._data)
+        bf.CopyPointDataOn()
+        bf.CopyCellDataOn()
+        bf.RemoveUnusedPointsOff()
+
+        plane = vtk.vtkPlane()
+        plane.SetOrigin(origin)
+        plane.SetNormal(normal)
+        bf.SetImplicitFunction(plane)
+
+        bf.Update()
+        return self._update(bf.GetOutput())
+
+    def extract_cells_on_sphere(self, center, radius):
+        """
+        Extract cells that are lying of the specified surface.
+        """
+        bf = vtk.vtk3DLinearGridCrinkleExtractor()
+        bf.SetInputData(self._data)
+        bf.CopyPointDataOn()
+        bf.CopyCellDataOn()
+        bf.RemoveUnusedPointsOff()
+
+        sph = vtk.vtkSphere()
+        sph.SetRadius(radius)
+        sph.SetCenter(center)
+        bf.SetImplicitFunction(sph)
+
+        bf.Update()
+        return self._update(bf.GetOutput())
+
+    def extract_cells_on_cylinder(self, center, axis, radius):
+        """
+        Extract cells that are lying of the specified surface.
+        """
+        bf = vtk.vtk3DLinearGridCrinkleExtractor()
+        bf.SetInputData(self._data)
+        bf.CopyPointDataOn()
+        bf.CopyCellDataOn()
+        bf.RemoveUnusedPointsOff()
+
+        cyl = vtk.vtkCylinder()
+        cyl.SetRadius(radius)
+        cyl.SetCenter(center)
+        cyl.SetAxis(axis)
+        bf.SetImplicitFunction(cyl)
+
+        bf.Update()
+        return self._update(bf.GetOutput())
+
+    def clean(self):
+        """
+        Cleanup unused points and empty cells
+        """
+        cl = vtk.vtkStaticCleanUnstructuredGrid()
+        cl.SetInputData(self._data)
+        cl.RemoveUnusedPointsOn()
+        cl.ProduceMergeMapOff()
+        cl.AveragePointDataOff()
+        cl.Update()
+        return self._update(cl.GetOutput())
+
+
+    def find_cell(self, p):
+        """Locate the cell that contains a point and return the cell ID."""
+        cell = vtk.vtkTetra()
+        cellId = vtk.mutable(0)
+        tol2 = vtk.mutable(0)
+        subId = vtk.mutable(0)
+        pcoords = [0,0,0]
+        weights = [0,0,0]
+        cid = self._data.FindCell(p, cell, cellId, tol2, subId, pcoords, weights)
+        return cid
+
 
     def extract_cells_by_id(self, idlist, use_point_ids=False):
         """Return a new UGrid composed of the specified subset of indices."""

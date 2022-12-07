@@ -52,7 +52,6 @@ from vtkmodules.vtkCommonDataModel import (
     VTK_PYRAMID,
     VTK_HEXAGONAL_PRISM,
     VTK_PENTAGONAL_PRISM,
-    vtkCell,
     vtkCellArray,
     vtkBox,
     vtkCellLocator,
@@ -107,6 +106,7 @@ from vtkmodules.vtkCommonTransforms import (
 
 from vtkmodules.vtkFiltersCore import (
     VTK_BEST_FITTING_PLANE,
+    vtk3DLinearGridCrinkleExtractor,
     vtkAppendPolyData,
     vtkCellCenters,
     vtkCellDataToPointData,
@@ -144,6 +144,12 @@ from vtkmodules.vtkFiltersCore import (
     vtkVoronoi2D,
     vtkWindowedSincPolyDataFilter,
 )
+
+try:
+    from vtkmodules.vtkFiltersCore import vtkStaticCleanUnstructuredGrid
+except ImportError:
+    pass
+
 
 from vtkmodules.vtkFiltersExtraction import (
     vtkExtractCellsByType,

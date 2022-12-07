@@ -8,6 +8,10 @@
 
 ---
 ### `base.py`
+- added `basegrid.extract_cells_on_plane()`
+- added `basegrid.extract_cells_on_sphere()`
+- added `basegrid.extract_cells_on_cylinder()`
+
 
 ---
 ### `pointcloud.py`
