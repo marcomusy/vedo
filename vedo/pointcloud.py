@@ -4360,7 +4360,7 @@ class Points(vtk.vtkFollower, BaseActor):
         vol.locator = pdf.GetLocator()
         return vol
 
-    def densify(self, target_distance=0.1, nclosest=6, radius=None, niter=1, maxN=None):
+    def densify(self, target_distance=0.1, nclosest=6, radius=None, niter=1, nmax=None):
         """
         Return a copy of the cloud with new added points.
         The new points are created in such a way that all points in any local neighborhood are
@@ -4408,8 +4408,8 @@ class Points(vtk.vtkFollower, BaseActor):
         dens.InterpolateAttributeDataOn()
         dens.SetTargetDistance(target_distance)
         dens.SetMaximumNumberOfIterations(niter)
-        if maxN:
-            dens.SetMaximumNumberOfPoints(maxN)
+        if nmax:
+            dens.SetMaximumNumberOfPoints(nmax)
 
         if radius:
             dens.SetNeighborhoodTypeToRadius()

@@ -1328,10 +1328,10 @@ class Mesh(Points):
             number of subdivisions.
 
         method : int
-            Loop(0), Linear(1), Adaptive(2), Butterfly(3)
+            Loop(0), Linear(1), Adaptive(2), Butterfly(3), Centroid(4)
 
         mel : float
-            Maximum Edge Length (for Adaptive method only).
+            Maximum Edge Length (applicable to Adaptive method only).
         """
         triangles = vtk.vtkTriangleFilter()
         triangles.SetInputData(self._data)
@@ -1348,12 +1348,15 @@ class Mesh(Points):
             sdf.SetMaximumEdgeLength(mel)
         elif method == 3:
             sdf = vtk.vtkButterflySubdivisionFilter()
+        elif method == 4:
+            sdf = vtk.vtkDensifyPolyData()
         else:
             vedo.logger.error(f"in subdivide() unknown method {method}")
             raise RuntimeError()
 
         if method != 2:
             sdf.SetNumberOfSubdivisions(n)
+
         sdf.SetInputData(originalMesh)
         sdf.Update()
         return self._update(sdf.GetOutput())

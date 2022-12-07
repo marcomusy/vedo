@@ -23,6 +23,7 @@
 - improved `binarize()` method thanks to @vfmatzkin
 - added `collide_with()` to fix crashing of `intersect_with()` in special cases
 - added `check_validity()`
+- added method=4 for `subdivide()`
 
 ---
 ### `plotter.py`
