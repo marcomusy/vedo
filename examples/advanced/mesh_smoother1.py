@@ -4,7 +4,7 @@ plt = Plotter(N=2)
 
 # Load a mesh and show it
 vol = Volume(dataurl+"embryo.tif")
-m0 = vol.isosurface().normalize().lw(1).c("violet")
+m0 = vol.isosurface(flying_edges=False).normalize().lw(1).c("violet")
 
 # Smooth the mesh
 m1 = m0.clone().smooth(niter=20).color("lg")

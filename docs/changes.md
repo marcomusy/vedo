@@ -59,6 +59,8 @@
 
 ---
 ### `volume.py`
+- added `vtkFlyingEdges3D` instead of contouring, which is faster.
+
 
 -------------------------
 ## Examples

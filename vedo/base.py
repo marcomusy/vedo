@@ -1755,17 +1755,25 @@ class BaseGrid(BaseActor):
         sf.Update()
         return self._update(sf.GetOutput())
 
-    def isosurface(self, value=None):
-        """Return an ``Mesh`` isosurface extracted from the ``Volume`` object.
+    def isosurface(self, value=None, flying_edges=True):
+        """
+        Return an ``Mesh`` isosurface extracted from the ``Volume`` object.
 
-        Set ``value`` as single float or list of values to draw the isosurface(s)
+        Set ``value`` as single float or list of values to draw the isosurface(s).
+        Use flying_edges for faster results (but sometimes can interfere with `smooth()`).
 
         .. hint:: examples/volumetric/isosurfaces.py
         """
         scrange = self._data.GetScalarRange()
-        cf = vtk.vtkContourFilter()
+
+        if flying_edges:
+            cf = vtk.vtkFlyingEdges3D()
+            cf.InterpolateAttributesOn()
+        else:
+            cf = vtk.vtkContourFilter()
+            cf.UseScalarTreeOn()
+
         cf.SetInputData(self._data)
-        cf.UseScalarTreeOn()
         cf.ComputeNormalsOn()
 
         if utils.is_sequence(value):
@@ -1779,6 +1787,16 @@ class BaseGrid(BaseActor):
 
         cf.Update()
         poly = cf.GetOutput()
+
+        # pdnorm = vtk.vtkPolyDataNormals() # no effect
+        # pdnorm.SetInputData(poly)
+        # pdnorm.SetComputePointNormals(True)
+        # pdnorm.SetComputeCellNormals(True)
+        # pdnorm.SetConsistency(True)
+        # pdnorm.FlipNormalsOff()
+        # pdnorm.SetSplitting(False)
+        # pdnorm.Update()
+        # poly = pdnorm.GetOutput()
 
         a = vedo.mesh.Mesh(poly, c=None).phong()
         a.mapper().SetScalarRange(scrange[0], scrange[1])

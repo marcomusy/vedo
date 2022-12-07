@@ -122,6 +122,7 @@ from vtkmodules.vtkFiltersCore import (
     vtkDelaunay3D,
     vtkElevationFilter,
     vtkFeatureEdges,
+    vtkFlyingEdges3D,
     vtkGlyph3D,
     vtkIdFilter,
     vtkImageAppend,
