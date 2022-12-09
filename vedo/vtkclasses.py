@@ -222,6 +222,7 @@ from vtkmodules.vtkFiltersModeling import (
     vtkRibbonFilter,
     vtkRotationalExtrusionFilter,
     vtkRuledSurfaceFilter,
+    vtkSectorSource,
     vtkSelectEnclosedPoints,
     vtkSelectPolyData,
     vtkSubdivideTetra,
@@ -269,11 +270,11 @@ from vtkmodules.vtkFiltersSources import (
     vtkPlaneSource,
     vtkPointSource,
     vtkProgrammableSource,
-    vtkSectorSource,
     vtkSphereSource,
     vtkTexturedSphereSource,
     vtkTessellatedBoxSource,
 )
+
 
 from vtkmodules.vtkFiltersTexture import vtkTextureMapToPlane
 
