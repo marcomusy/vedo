@@ -89,7 +89,7 @@ if doshow:
 grid = Grid()#.triangulate()
 circle = Circle(r=0.3, res=24).pos(0.11,0.12)
 line = Line(circle, closed=True, lw=4, c='r4')
-grid.imprint(line)
+# grid.imprint(line)
 if doshow:
     show(grid, line, axes=1).close()
 

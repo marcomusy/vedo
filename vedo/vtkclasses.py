@@ -128,7 +128,6 @@ from vtkmodules.vtkFiltersCore import (
     vtkImageAppend,
     vtkImplicitPolyDataDistance,
     vtkMarchingSquares,
-    vtkMarkBoundaryFilter,
     vtkMaskPoints,
     vtkMassProperties,
     vtkPointDataToCellData,
@@ -200,6 +199,11 @@ from vtkmodules.vtkFiltersGeometry import (
     vtkDataSetSurfaceFilter,
     vtkImageDataGeometryFilter,
 )
+try:
+    from vtkmodules.vtkFiltersGeometry import vtkMarkBoundaryFilter
+except ImportError:
+    pass
+
 
 from vtkmodules.vtkFiltersHybrid import (
     vtkFacetReader,
@@ -488,6 +492,7 @@ from vtkmodules.vtkRenderingCore import (
     vtkMapper,
     vtkPolyDataMapper,
     vtkPolyDataMapper2D,
+    vtkProp,
     vtkPropAssembly,
     vtkPropCollection,
     vtkPropPicker,
