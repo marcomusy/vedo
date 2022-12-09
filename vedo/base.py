@@ -926,20 +926,17 @@ class BaseActor(Base3DProp):
 
     def get_rgba(self, on="points"):
         """
-        Retrieve the RGBA cell/point array as currently visualised for an object
+        Retrieve the RGBA cell/point colors as an array for an object
 
         Parameters
         ----------
-        alpha : bool
-            return transparency as well
-
         on : str
             either from points (vertices) or cells (faces)
 
         Returns
         -------
         arr : numpy.array
-            the vertex or face colors
+            the point or cell colors
         """
         lut = self.mapper().GetLookupTable()
         if "point" in on:

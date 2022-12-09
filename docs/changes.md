@@ -26,6 +26,7 @@
 - added `collide_with()` to fix crashing of `intersect_with()` in special cases
 - added `check_validity()`
 - added method=4 for `subdivide()`
+- added `intersect_with_plane()`
 
 ---
 ### `plotter.py`

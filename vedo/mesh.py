@@ -1582,6 +1582,7 @@ class Mesh(Points):
     ):
         """
         Return the boundary lines of an input mesh.
+        Check also `mark_boundaries()` method.
 
         Parameters
         ----------
@@ -1747,59 +1748,6 @@ class Mesh(Points):
         gf.Update()
         return Mesh(gf.GetOutput()).lw(1)
 
-    @deprecated(reason=vedo.colors.red + "Please use intersect_with_line()" + vedo.colors.reset)
-    def intersectWithLine(self, p0, p1=None, returnIds=False, tol=0):
-        "Deprecated. Please use intersect_with_line()"
-        return self.intersect_with_line(p0, p1, returnIds, tol)
-
-    def intersect_with_line(self, p0, p1=None, return_ids=False, tol=0):
-        """
-        Return the list of points intersecting the mesh
-        along the segment defined by two points `p0` and `p1`.
-
-        Use ``return_ids`` to return the cell ids instead of point coords
-
-        Example:
-            .. code-block:: python
-
-                from vedo import *
-                s = Spring()
-                pts = s.intersect_with_line([0,0,0], [1,0.1,0])
-                ln = Line([0,0,0], [1,0.1,0], c='blue')
-                ps = Points(pts, r=10, c='r')
-                show(s, ln, ps, bg='white')
-
-            .. image:: https://user-images.githubusercontent.com/32848391/55967065-eee08300-5c79-11e9-8933-265e1bab9f7e.png
-        """
-        if isinstance(p0, Points):
-            p0, p1 = p0.points()
-
-        if not self.line_locator:
-            self.line_locator = vtk.vtkOBBTree()
-            self.line_locator.SetDataSet(self.polydata())
-            if not tol:
-                tol = mag(np.asarray(p1) - np.asarray(p0)) / 10000
-            self.line_locator.SetTolerance(tol)
-            self.line_locator.BuildLocator()
-
-        intersectPoints = vtk.vtkPoints()
-        idlist = vtk.vtkIdList()
-        self.line_locator.IntersectWithLine(p0, p1, intersectPoints, idlist)
-        pts = []
-        for i in range(intersectPoints.GetNumberOfPoints()):
-            intersection = [0, 0, 0]
-            intersectPoints.GetPoint(i, intersection)
-            pts.append(intersection)
-        pts = np.array(pts)
-
-        if return_ids:
-            pts_ids = []
-            for i in range(idlist.GetNumberOfIds()):
-                cid = idlist.GetId(i)
-                pts_ids.append([pts[i], cid])
-            return np.array(pts_ids)
-
-        return pts
 
     def silhouette(self, direction=None, border_edges=True, feature_angle=False):
         """
@@ -2155,6 +2103,10 @@ class Mesh(Points):
     def intersectWith(self, mesh2, tol=1e-06):
         "Deprecated. Please use intersect_with()"
         return self.intersect_with(mesh2, tol)
+    @deprecated(reason=vedo.colors.red + "Please use intersect_with_line()" + vedo.colors.reset)
+    def intersectWithLine(self, p0, p1=None, returnIds=False, tol=0):
+        "Deprecated. Please use intersect_with_line()"
+        return self.intersect_with_line(p0, p1, returnIds, tol)
 
     def intersect_with(self, mesh2, tol=1e-06):
         """
@@ -2165,14 +2117,8 @@ class Mesh(Points):
         """
         bf = vtk.vtkIntersectionPolyDataFilter()
         bf.SetGlobalWarningDisplay(0)
-        if isinstance(self, Mesh):
-            poly1 = self.polydata()
-        else:
-            poly1 = self.GetMapper().GetInput()
-        if isinstance(mesh2, Mesh):
-            poly2 = mesh2.polydata()
-        else:
-            poly2 = mesh2.GetMapper().GetInput()
+        poly1 = self.polydata()
+        poly2 = mesh2.polydata()
         bf.SetTolerance(tol)
         bf.SetInputData(0, poly1)
         bf.SetInputData(1, poly2)
@@ -2180,6 +2126,85 @@ class Mesh(Points):
         msh = Mesh(bf.GetOutput(), "k", 1).lighting("off")
         msh.GetProperty().SetLineWidth(3)
         msh.name = "SurfaceIntersection"
+        return msh
+
+    def intersect_with_line(self, p0, p1=None, return_ids=False, tol=0):
+        """
+        Return the list of points intersecting the mesh
+        along the segment defined by two points `p0` and `p1`.
+
+        Use ``return_ids`` to return the cell ids instead of point coords
+
+        Example
+        -------
+            .. code-block:: python
+
+                from vedo import *
+                s = Spring()
+                pts = s.intersect_with_line([0,0,0], [1,0.1,0])
+                ln = Line([0,0,0], [1,0.1,0], c='blue')
+                ps = Points(pts, r=10, c='r')
+                show(s, ln, ps, bg='white')
+
+            .. image:: https://user-images.githubusercontent.com/32848391/55967065-eee08300-5c79-11e9-8933-265e1bab9f7e.png
+        """
+        if isinstance(p0, Points):
+            p0, p1 = p0.points()
+
+        if not self.line_locator:
+            self.line_locator = vtk.vtkOBBTree()
+            self.line_locator.SetDataSet(self.polydata())
+            if not tol:
+                tol = mag(np.asarray(p1) - np.asarray(p0)) / 10000
+            self.line_locator.SetTolerance(tol)
+            self.line_locator.BuildLocator()
+
+        intersectPoints = vtk.vtkPoints()
+        idlist = vtk.vtkIdList()
+        self.line_locator.IntersectWithLine(p0, p1, intersectPoints, idlist)
+        pts = []
+        for i in range(intersectPoints.GetNumberOfPoints()):
+            intersection = [0, 0, 0]
+            intersectPoints.GetPoint(i, intersection)
+            pts.append(intersection)
+        pts = np.array(pts)
+
+        if return_ids:
+            pts_ids = []
+            for i in range(idlist.GetNumberOfIds()):
+                cid = idlist.GetId(i)
+                pts_ids.append([pts[i], cid])
+            return np.array(pts_ids)
+
+        return pts
+
+    def intersect_with_plane(self, origin=[0,0,0], normal=[1,0,0]):
+        """
+        Intersect this Mesh with a plane to return a set of lines.
+
+        Example
+        -------
+            .. code-block:: python
+
+                from vedo import *
+                mi = Sphere().intersect_with_plane().join()
+                print(mi.lines())
+                show(mi, axes=1)
+        """
+        plane = vtk.vtkPlane()
+        plane.SetOrigin(origin)
+        plane.SetNormal(normal)
+
+        cutter = vtk.vtkPolyDataPlaneCutter()
+        cutter.SetInputData(self.polydata())
+        cutter.SetPlane(plane)
+        cutter.InterpolateAttributesOn()
+        cutter.ComputeNormalsOff()
+        cutter.Update()
+
+        msh = Mesh(cutter.GetOutput(), "k", 1).lighting("off")
+        msh.GetProperty().SetLineWidth(3)
+        msh.name = "PlaneIntersection"
         return msh
 
 

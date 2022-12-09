@@ -147,7 +147,7 @@ from vtkmodules.vtkFiltersCore import (
 )
 
 try:
-    from vtkmodules.vtkFiltersCore import vtkStaticCleanUnstructuredGrid
+    from vtkmodules.vtkFiltersCore import vtkStaticCleanUnstructuredGrid, vtkPolyDataPlaneCutter
 except ImportError:
     pass
 
