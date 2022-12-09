@@ -42,6 +42,7 @@
 ---
 ### `pyplot.py`
 - clicking on a histogram shows the bin value
+- add `as2d()` method to freeze a plot in 2d canvas, without mouse interaction (experimental)
 
 ---
 ### `shapes.py`

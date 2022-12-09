@@ -1048,7 +1048,7 @@ class Points(vtk.vtkFollower, BaseActor):
         sendback : bool
             put it behind any other 3D object
 
-        .. hint:: examples/other/clone2D.py
+        .. hint:: examples/other/clone2d.py
             .. image:: https://vedo.embl.es/images/other/clone2d.png
         """
         if scale is None:

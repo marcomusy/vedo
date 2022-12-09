@@ -2655,6 +2655,9 @@ class Plotter:
                 else:
                     scannedacts.append(vedo.Mesh(utils.meshlab2vedo(a)))
 
+            elif "Assembly" in str(type(a)):
+                scannedacts.append(a)
+
             else:
                 vedo.logger.error(f"cannot understand input in show(): {type(a)}")
         return scannedacts

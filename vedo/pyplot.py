@@ -14,7 +14,7 @@ from vedo import addons
 from vedo import colors
 from vedo import utils
 from vedo.mesh import merge, Mesh
-from vedo.assembly import Assembly
+from vedo.assembly import Assembly, Assembly2D
 from vedo import shapes
 
 __doc__ = """
@@ -39,6 +39,39 @@ __all__ = [
     "matrix",
     "DirectedGraph",
 ]
+
+##########################################################################
+def _to2d(actor, offset, z, scale):
+
+    poly = actor.polydata()
+
+    tp = vtk.vtkTransformPolyDataFilter()
+    transform = vtk.vtkTransform()
+    transform.Scale(scale, scale, scale)
+    transform.Translate(-offset[0], -offset[1], 0)
+    tp.SetTransform(transform)
+    tp.SetInputData(poly)
+    tp.Update()
+    poly = tp.GetOutput()
+
+    mapper2d = vtk.vtkPolyDataMapper2D()
+    mapper2d.SetInputData(poly)
+
+    act2d = vtk.vtkActor2D()
+    act2d.SetMapper(mapper2d)
+
+    act2d.GetProperty().SetColor(actor.color())
+    act2d.GetProperty().SetOpacity(actor.alpha())
+    act2d.GetProperty().SetLineWidth(actor.GetProperty().GetLineWidth())
+    act2d.GetProperty().SetPointSize(actor.GetProperty().GetPointSize())
+
+    act2d.PickableOff()
+
+    csys = act2d.GetPositionCoordinate()
+    csys.SetCoordinateSystem(4)
+
+    act2d.GetProperty().SetDisplayLocationToBackground()
+    return act2d
 
 ##########################################################################
 class LabelData:
@@ -81,7 +114,6 @@ class Figure(Assembly):
     axes : dict
         an extra dictionary of options for the axes
     """
-
     def __init__(
             self,
             xlim,
@@ -592,6 +624,98 @@ class Figure(Assembly):
         self.legend = aleg
         aleg.name = "Legend"
         return self
+
+    def as2d(self, scale=1, pos="center", padding=0.05):
+        """
+        Convert the Figure into a 2D static object (a 2D assembly).
+
+        Still experimental.
+
+        Parameters
+        ----------
+        scale : float
+            scaling factor
+
+        pos : str, list
+            position in 2D, as atring or list (x,y).
+            Any combination of "center", "top", "bottom", "left" and "right" will work.
+            The center of the renderer is [0,0] while top-right is [1,1].
+
+        padding : float, list
+            a single value or a list (xpad, ypad)
+
+        Returns
+        -------
+        Assembly2D object.
+        """
+        x0, x1 = self.xbounds()
+        y0, y1 = self.ybounds()
+
+        if not utils.is_sequence(padding):
+            padding = (padding, padding)
+        padding = np.array(padding)
+
+        def _unpack(p):
+            for o in list(objs):
+                if isinstance(o, Assembly):
+                    objs.extend(o.unpack())
+        objs = [self]
+        for _ in range(3):
+            _unpack(self)
+
+        if "cent" in pos:
+            offset = [(x0 + x1) / 2, (y0 + y1) / 2]
+            position = [0, 0]
+            if "right" in pos:
+                offset[0] = x1
+                position = [1 - padding[0], 0]
+            if "left" in pos:
+                offset[0] = x0
+                position = [-1 + padding[0], 0]
+            if "top" in pos:
+                offset[1] = y1
+                position = [0, 1 - padding[1]]
+            if "bottom" in pos:
+                offset[1] = y0
+                position = [0, -1 + padding[1]]
+        elif "top" in pos:
+            if "right" in pos:
+                offset = [x1, y1]
+                position = [1, 1] - padding
+            elif "left" in pos:
+                offset = [x0, y1]
+                position = [-1 + padding[0], 1 - padding[1]]
+            else:
+                raise ValueError(f"incomplete position pos='{pos}'")
+        elif "bottom" in pos:
+            if "right" in pos:
+                offset = [x1, y0]
+                position = [1 - padding[0], -1 + padding[1]]
+            elif "left" in pos:
+                offset = [x0, y0]
+                position = [-1, -1] + padding
+            else:
+                raise ValueError(f"incomplete position pos='{pos}'")
+        else:
+            offset = [0,0]
+            position = pos
+
+        scanned = []
+        assembly2d = Assembly2D()
+        for a in objs:
+            if a in scanned:
+                continue
+            if not isinstance(a, vedo.Points):
+                continue
+            if a.npoints == 0:
+                continue
+            if a.GetProperty().GetRepresentation() == 1:
+                # wireframe is not renedered in 2d
+                continue
+            aa = _to2d(a, offset, self.z(), scale / (x1-x0) * 550)
+            aa.SetPosition(position)
+            assembly2d += aa
+        return assembly2d
 
 
 #########################################################################################

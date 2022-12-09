@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import numpy as np
 
 try:
     import vedo.vtkclasses as vtk
@@ -67,6 +68,98 @@ def procrustes_alignment(sources, rigid=False):
     assem.transform = procrustes.GetLandmarkTransform()
     assem.info["mean"] = vedo.utils.vtk2numpy(procrustes.GetMeanPoints().GetData())
     return assem
+
+
+#################################################
+class Assembly2D(vtk.vtkPropAssembly):
+
+    def __init__(self, *meshes):
+
+        vtk.vtkPropAssembly.__init__(self)
+        for a in meshes:
+            if isinstance(a, vedo.Points) and a.npoints:
+                if a.npoints:
+                    self.AddPart(a)
+        self.PickableOff()
+
+    def __iadd__(self, obj):
+        """
+        Add an object to the assembly
+        """
+        self.AddPart(obj)
+        return self
+
+    def on(self):
+        self.VisibilityOn()
+        return self
+
+    def off(self):
+        self.VisibilityOff()
+        return self
+
+    def pickable(self, value=None):
+        """Set/get the pickability property of an object."""
+        if value is None:
+            return self.GetPickable()
+        self.SetPickable(value)
+        return self
+
+    def draggable(self, value=None):  # NOT FUNCTIONAL?
+        """Set/get the draggability property of an object."""
+        if value is None:
+            return self.GetDragable()
+        self.SetDragable(value)
+        return self
+
+
+    def pos(self, x=None, y=None):
+        """Set/Get object position."""
+        if x is None:  # get functionality
+            return np.array(self.GetPosition())
+
+        if y is None:  # assume x is of the form (x,y)
+            x, y = x
+        self.SetPosition(x, y)
+        return self
+
+    def shift(self, ds):
+        """Add a shift to the current object position."""
+        p = np.array(self.GetPosition())
+
+        self.SetPosition(p + ds)
+        return self
+
+    def bounds(self):
+        """
+        Get the object bounds.
+        Returns a list in format [xmin,xmax, ymin,ymax].
+        """
+        return self.GetBounds()
+
+    def diagonal_size(self):
+        """Get the length of the diagonal"""
+        b = self.bounds()
+        return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2)
+
+    def unpack(self):
+        self.InitTraversal()
+        actors2d = []
+        for _ in range(self.GetNumberOfItems()):
+            a = self.GetNextItem()
+            actors2d.append(a)
+        return actors2d
+
+    def show(self, **options):
+        """
+        Create on the fly an instance of class ``Plotter`` or use the last existing one to
+        show one single object.
+
+        This method is meant as a shortcut. If more than one object needs to be visualised
+        please use the syntax `show(mesh1, mesh2, volume, ..., options)`.
+
+        Returns the ``Plotter`` class instance.
+        """
+        return vedo.plotter.show(self, **options)
 
 
 #################################################
