@@ -925,16 +925,44 @@ class BaseActor(Base3DProp):
         return self
 
     def get_rgba(self, on="points"):
-        """Grab the RGBA cell/point array as currently visualised for an object"""
+        """
+        Retrieve the RGBA cell/point array as currently visualised for an object
+
+        Parameters
+        ----------
+        alpha : bool
+            return transparency as well
+
+        on : str
+            either from points (vertices) or cells (faces)
+
+        Returns
+        -------
+        arr : numpy.array
+            the vertex or face colors
+        """
         lut = self.mapper().GetLookupTable()
-        poly = self.inputdata()
         if "point" in on:
-            vscalars = poly.GetPointData().GetScalars()
+            vscalars = self._data.GetPointData().GetScalars()
+        elif "cell" in on:
+            vscalars = self._data.GetCellData().GetScalars()
         else:
-            vscalars = poly.GetCellData().GetScalars()
+            raise ValueError("in get_rgba() input must be 'points' or 'cells'")
+
+        if vscalars is None or lut is None:
+            vedo.logger.error("in get_rgba() no coloring (LookUpTable) was set.")
+            return np.array([], dtype=np.uint8)
+
         cols = lut.MapScalars(vscalars, 0, 0)
         arr = utils.vtk2numpy(cols)
         return arr
+
+    def mark_boundaries(self):
+        """Mark cells and vertices of the mesh if they lie on a boundary."""
+        mb = vtk.vtkMarkBoundaryFilter()
+        mb.SetInputData(self.polydata())
+        mb.Update()
+        return self._update(mb.GetOutput())
 
     def find_cells_in(self, xbounds=(), ybounds=(), zbounds=()):
         """
