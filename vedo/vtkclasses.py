@@ -128,6 +128,7 @@ from vtkmodules.vtkFiltersCore import (
     vtkImageAppend,
     vtkImplicitPolyDataDistance,
     vtkMarchingSquares,
+    vtkMarkBoundaryFilter,
     vtkMaskPoints,
     vtkMassProperties,
     vtkPointDataToCellData,
