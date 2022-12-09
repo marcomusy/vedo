@@ -269,6 +269,7 @@ from vtkmodules.vtkFiltersSources import (
     vtkPlaneSource,
     vtkPointSource,
     vtkProgrammableSource,
+    vtkSectorSource,
     vtkSphereSource,
     vtkTexturedSphereSource,
     vtkTessellatedBoxSource,

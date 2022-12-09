@@ -2421,15 +2421,24 @@ class Disc(Mesh):
 
     Set `res` as the resolution in R and Phi (can be a list).
 
+    Use `angle_range` to create a disc sector between the 2 specified angles.
+
     .. image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestDisk.png
     """
 
-    def __init__(self, pos=(0, 0, 0), r1=0.5, r2=1, res=(2, 120), c="gray4", alpha=1):
+    def __init__(self, pos=(0, 0, 0), r1=0.5, r2=1, res=(1, 120), angle_range=(), c="gray4", alpha=1):
         if utils.is_sequence(res):
             res_r, res_phi = res
         else:
             res_r, res_phi = res, 12 * res
-        ps = vtk.vtkDiskSource()
+
+        if len(angle_range) == 0:
+            ps = vtk.vtkDiskSource()
+        else:
+            ps = vtk.vtkSectorSource()
+            ps.SetStartAngle(angle_range[0])
+            ps.SetEndAngle(angle_range[1])
+
         ps.SetInnerRadius(r1)
         ps.SetOuterRadius(r2)
         ps.SetRadialResolution(res_r)
@@ -2437,9 +2446,7 @@ class Disc(Mesh):
         ps.Update()
         Mesh.__init__(self, ps.GetOutput(), c, alpha)
         self.flat()
-        if len(pos) == 2:
-            pos = (pos[0], pos[1], 0)
-        self.SetPosition(pos)
+        self.SetPosition(utils.make3d(pos))
         self.name = "Disc"
 
 

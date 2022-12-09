@@ -48,6 +48,7 @@
 ### `shapes.py`
 - Added support for chinese and japanese chars
 - Added font "ComicMono"
+- added possibility to create a disc sector in `Disc(angle_range=...)`
 
 ---
 ### `tetmesh.py`
