@@ -19,6 +19,8 @@
 - added `generate_random_data()` for testing purposes
 - renamed `vignette()` to `flagpole()`
 - added new `flagpost()` similar to the above
+- added new property `pointcloud.cellcolors`and `pointcolors`
+to access and modify colors by RGBA assignment.
 
 ---
 ### `mesh.py`
@@ -71,6 +73,8 @@
 ## Examples
 
 ### New/Revised
+examples/basic/color_mesh_cells1.py
+examples/basic/color_mesh_cells2.py
 examples/pyplot/fit_curve.py
 examples/pyplot/histo_2d_a.py
 examples/pyplot/histo_2d_b.py
@@ -84,7 +88,6 @@ examples/simulations/lorenz.py
 examples/simulations/orbitals.py
 examples/other/meshio_read.py
 examples/other/dolfin/ex06_elasticity3.py
-
 -------------------------
 vtk9.2:
 interactionstyle.py
@@ -94,8 +97,6 @@ tet_explode.py
 tet_isos_slice.py # stuck
 makeVideo.py
 lorenz.py
-
-plot_errbars.py
 
 
 

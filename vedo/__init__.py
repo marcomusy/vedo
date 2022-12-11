@@ -155,6 +155,7 @@ __website__    = "https://github.com/marcomusy/vedo"
 # __pdoc__['pointcloud.Points.distanceTo'] = False
 # __pdoc__['pointcloud.Points.pointSize'] = False
 # __pdoc__['pointcloud.Points.vignette'] = False
+# __pdoc__['pointcloud.Points.cell_individual_colors'] = False
 
 # __pdoc__['volume.BaseVolume.scalarRange'] = False
 # __pdoc__['volume.BaseVolume.slicePlane'] = False

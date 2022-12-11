@@ -2892,26 +2892,126 @@ class Points(vtk.vtkFollower, BaseActor):
         data.Modified()
         return self
 
-    @deprecated(reason=vedo.colors.red + "Please use cell_individual_colors()" + vedo.colors.reset)
+    @deprecated(reason=vedo.colors.red + "Please use property mesh.cellcolors" + vedo.colors.reset)
     def cellIndividualColors(self, colorlist):
-        "Please use cell_individual_colors()"
-        return self.cell_individual_colors(colorlist)
-
-    def cell_individual_colors(self, colorlist):
-        """
-        Colorize the faces of a mesh one by one
-        passing a 1-to-1 list of colors in format [R,G,B] or [R,G,B,A].
-        Colors levels and opacities must be in the range [0,255].
-
-        A cell array named "CellIndividualColors" is automatically created.
-
-        .. hint:: examples/basic/examples/basic/colorMeshCells.py
-            .. image:: https://vedo.embl.es/images/basic/colorMeshCells.png
-        """
-        colorlist = np.asarray(colorlist).astype(np.uint8)
-        self.celldata["CellIndividualColors"] = colorlist
-        self.celldata.select("CellIndividualColors")
+        self.cellcolors = colorlist
         return self
+
+    @deprecated(reason=vedo.colors.red + "Please use property mesh.cellcolors" + vedo.colors.reset)
+    def cell_individual_colors(self, colorlist):
+        self.cellcolors = colorlist
+        return self
+    
+    @property
+    def cellcolors(self):
+        """
+        Colorize each cell (face) of a mesh by passing
+        a 1-to-1 list of colors in format [R,G,B] or [R,G,B,A].
+        Colors levels and opacities must be in the range [0,255].
+        
+        A single constant color can also be passed as string or RGBA.
+
+        A cell array named "CellsRGBA" is automatically created.
+
+        .. hint:: 
+            
+            examples/basic/color_mesh_cells1.py
+            examples/basic/color_mesh_cells2.py
+      
+        .. image:: https://vedo.embl.es/images/basic/colorMeshCells.png
+        """
+        if "CellsRGBA" not in self.celldata.keys():
+            lut = self.mapper().GetLookupTable()
+            vscalars = self._data.GetCellData().GetScalars()
+            if vscalars is None or lut is None:
+                arr = np.zeros([self.ncells, 4], dtype=np.uint8)
+                col = np.array(self.property.GetColor())
+                col = np.round(col*255).astype(np.uint8)
+                alf = self.property.GetOpacity()
+                alf = np.round(alf*255).astype(np.uint8)
+                arr[:,(0,1,2)] = col
+                arr[:,3] = alf
+            else:
+                cols = lut.MapScalars(vscalars, 0, 0)
+                arr = utils.vtk2numpy(cols)
+            self.celldata["CellsRGBA"] = arr
+        self.celldata.select("CellsRGBA")
+        return self.celldata["CellsRGBA"]
+
+    @cellcolors.setter
+    def cellcolors(self, value):
+        if isinstance(value, str):
+            c = colors.get_color(value)
+            value = np.array([*c, 1]) * 255
+            value = np.round(value)
+
+        value = np.asarray(value)
+        n = self.ncells
+
+        if value.ndim == 1:
+            value = np.repeat([value], n, axis=0)
+
+        if value.shape[1] == 3:
+            z = np.zeros((n,1), dtype=np.uint8)
+            value = np.append(value, z+255, axis=1)
+                
+        assert n == value.shape[0]            
+
+        self.celldata["CellsRGBA"] = value.astype(np.uint8)
+        self.celldata.select("CellsRGBA")
+        
+
+    @property
+    def pointcolors(self):
+        """
+        Colorize each point (or vertex of a mesh) by passing
+        a 1-to-1 list of colors in format [R,G,B] or [R,G,B,A].
+        Colors levels and opacities must be in the range [0,255].
+        
+        A single constant color can also be passed as string or RGBA.
+
+        A point array named "PointsRGBA" is automatically created.
+        """
+        if "PointsRGBA" not in self.pointdata.keys():
+            lut = self.mapper().GetLookupTable()
+            vscalars = self._data.GetPointData().GetScalars()
+            if vscalars is None or lut is None:
+                arr = np.zeros([self.npoints, 4], dtype=np.uint8)
+                col = np.array(self.property.GetColor())
+                col = np.round(col*255).astype(np.uint8)
+                alf = self.property.GetOpacity()
+                alf = np.round(alf*255).astype(np.uint8)
+                arr[:,(0,1,2)] = col
+                arr[:,3] = alf
+            else:
+                cols = lut.MapScalars(vscalars, 0, 0)
+                arr = utils.vtk2numpy(cols)
+            self.pointdata["PointsRGBA"] = arr
+        self.pointdata.select("PointsRGBA")
+        return self.pointdata["PointsRGBA"]
+
+    @pointcolors.setter
+    def pointcolors(self, value):
+        if isinstance(value, str):
+            c = colors.get_color(value)
+            value = np.array([*c, 1]) * 255
+            value = np.round(value)
+
+        value = np.asarray(value)
+        n = self.npoints
+
+        if value.ndim == 1:
+            value = np.repeat([value], n, axis=0)
+
+        if value.shape[1] == 3:
+            z = np.zeros((n,1), dtype=np.uint8)
+            value = np.append(value, z+255, axis=1)
+                
+        assert n == value.shape[0]            
+
+        self.pointdata["PointsRGBA"] = value.astype(np.uint8)
+        self.pointdata.select("PointsRGBA")
+        
 
     @deprecated(reason=vedo.colors.red + "Please use interpolate_data_from()" + vedo.colors.reset)
     def interpolateDataFrom(self,

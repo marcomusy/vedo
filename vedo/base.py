@@ -923,36 +923,18 @@ class BaseActor(Base3DProp):
         data.Modified()
         self._mapper.Modified()
         return self
+    
+    
+    # @deprecated(reason=vedo.colors.red + "Please use property cellcolors" + vedo.colors.reset)
+    # def get_rgba(self, on="points"):
+    #     """Deprecated."""
+    #     if "point" in on:
+    #         return self.pointcolors
+    #     elif "cell" in on:
+    #         return self.cellcolors
+    #     else:
+    #         raise ValueError("in get_rgba() input must be 'points' or 'cells'")
 
-    def get_rgba(self, on="points"):
-        """
-        Retrieve the RGBA cell/point colors as an array for an object
-
-        Parameters
-        ----------
-        on : str
-            either from points (vertices) or cells (faces)
-
-        Returns
-        -------
-        arr : numpy.array
-            the point or cell colors
-        """
-        lut = self.mapper().GetLookupTable()
-        if "point" in on:
-            vscalars = self._data.GetPointData().GetScalars()
-        elif "cell" in on:
-            vscalars = self._data.GetCellData().GetScalars()
-        else:
-            raise ValueError("in get_rgba() input must be 'points' or 'cells'")
-
-        if vscalars is None or lut is None:
-            vedo.logger.error("in get_rgba() no coloring (LookUpTable) was set.")
-            return np.array([], dtype=np.uint8)
-
-        cols = lut.MapScalars(vscalars, 0, 0)
-        arr = utils.vtk2numpy(cols)
-        return arr
 
     def mark_boundaries(self):
         """Mark cells and vertices of the mesh if they lie on a boundary."""
