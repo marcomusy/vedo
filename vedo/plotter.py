@@ -1179,6 +1179,42 @@ class Plotter:
             self.renderer.ResetCameraClippingRange(x0, x1, y0, y1, z0, z1)
         return self
 
+    def reset_viewup(self):
+        """
+        Reset the orientation of the camera to the closest orthogonal direction and view-up.
+        """
+        vbb, sizes, _, _ = addons.compute_visible_bounds()
+        x0,x1, y0,y1, z0,z1 = vbb
+        mx, my, mz = (x0+x1)/2, (y0+y1)/2, (z0+z1)/2
+        d = np.linalg.norm(sizes) * 2
+
+        viewups = np.array([
+            (0, 1, 0), ( 0, -1,  0),
+            (0, 0, 1), ( 0,  0, -1),
+            (1, 0, 0), (-1,  0,  0),
+        ])
+        positions = np.array([
+            (mx, my, mz+d), (mx, my, mz-d),
+            (mx, my-d, mz), (mx, my+d, mz),
+            (mx-d, my, mz), (mx+d, my, mz),
+        ])
+
+        vu = np.array(self.camera.GetViewUp())
+        vui = np.argmin(np.linalg.norm(viewups-vu, axis=1))
+
+        poc = np.array(self.camera.GetPosition())
+        foc = np.array(self.camera.GetFocalPoint())
+        a = poc - foc
+        b = positions - foc
+        a = a / np.linalg.norm(a)
+        b = b.T * (1/np.linalg.norm(b, axis=1))
+        pui = np.argmin(np.linalg.norm(b.T - a, axis=1))
+
+        self.camera.SetViewUp(viewups[vui])
+        self.camera.SetPosition(positions[pui])
+        self.camera.SetFocalPoint(mx,my,mz)
+        self.renderer.ResetCameraClippingRange(x0, x1, y0, y1, z0, z1)
+        return self
 
     def move_camera(self, cameras, t=0, times=(), smooth=True, output_times=()):
         """
@@ -2394,7 +2430,8 @@ class Plotter:
         Parameters
         ----------
         cid : int, str
-            Unique id of the callback. If an event name is passed all callbacks of that type are removed.
+            Unique id of the callback.
+            If an event name is passed all callbacks of that type are removed.
         """
         if self.interactor:
             if isinstance(cid, str):
@@ -3514,50 +3551,53 @@ class Plotter:
             renderer.ResetCamera()
 
         elif key == "h":
-            msg  = " ==========================================================\n"
-            msg += "| Press: i     print info about selected object            |\n"
-            msg += "|        I     print the RGB color under the mouse         |\n"
-            msg += "|        <-->  use arrows to reduce/increase opacity       |\n"
-            msg += "|        w/s   toggle wireframe/surface style              |\n"
-            msg += "|        p/P   change point size of vertices               |\n"
-            msg += "|        l     toggle edges visibility                     |\n"
-            msg += "|        x     toggle mesh visibility                      |\n"
-            msg += "|        X     invoke a cutter widget tool                 |\n"
-            msg += "|        1-3   change mesh color                           |\n"
-            msg += "|        4     use data array as colors, if present        |\n"
-            msg += "|        5-6   change background color(s)                  |\n"
-            msg += "|        09+-  (on keypad) or +/- to cycle axes style      |\n"
-            msg += "|        k     cycle available lighting styles             |\n"
-            msg += "|        K     cycle available shading styles              |\n"
-            msg += "|        A     toggle anti-aliasing                        |\n"
-            msg += "|        D     toggle depth-peeling (for transparencies)   |\n"
-            msg += "|        o/O   add/remove light to scene and rotate it     |\n"
-            msg += "|        n     show surface mesh normals                   |\n"
-            msg += "|        a     toggle interaction to Actor Mode            |\n"
-            msg += "|        j     toggle interaction to Joystick Mode         |\n"
-            msg += "|        u     toggle perspective/parallel projection      |\n"
-            msg += "|        r     reset camera position                       |\n"
-            msg += "|        C     print current camera settings               |\n"
-            msg += "|        S     save a screenshot                           |\n"
-            msg += "|        E/F   export 3D scene to numpy file or X3D        |\n"
-            msg += "|        q     return control to python script             |\n"
-            msg += "|        Esc   abort execution and exit python kernel      |\n"
-            msg += "|----------------------------------------------------------|\n"
-            msg += "| Mouse: Left-click    rotate scene / pick actors          |\n"
-            msg += "|        Middle-click  pan scene                           |\n"
-            msg += "|        Right-click   zoom scene in or out                |\n"
-            msg += "|        Cntrl-click   rotate scene                        |\n"
-            msg += "|----------------------------------------------------------|\n"
-            msg += "| Check out documentation at:  https://vedo.embl.es        |\n"
-            msg += " =========================================================="
-            vedo.printc(msg, dim=1)
+            msg  = (
+                "  ============================================================\n"
+                " | Press: i     print info about selected object              |\n"
+                " |        I     print the RGB color under the mouse           |\n"
+                " |        <-->  use arrows to reduce/increase opacity         |\n"
+                " |        w/s   toggle wireframe/surface style                |\n"
+                " |        p/P   change point size of vertices                 |\n"
+                " |        l     toggle edges visibility                       |\n"
+                " |        x     toggle mesh visibility                        |\n"
+                " |        X     invoke a cutter widget tool                   |\n"
+                " |        1-3   change mesh color                             |\n"
+                " |        4     use data array as colors, if present          |\n"
+                " |        5-6   change background color(s)                    |\n"
+                " |        09+-  (on keypad) or +/- to cycle axes style        |\n"
+                " |        k     cycle available lighting styles               |\n"
+                " |        K     cycle available shading styles                |\n"
+                " |        A     toggle anti-aliasing                          |\n"
+                " |        D     toggle depth-peeling (for transparencies)     |\n"
+                " |        o/O   add/remove light to scene and rotate it       |\n"
+                " |        n     show surface mesh normals                     |\n"
+                " |        a     toggle interaction to Actor Mode              |\n"
+                " |        j     toggle interaction to Joystick Mode           |\n"
+                " |        u     toggle perspective/parallel projection        |\n"
+                " |        r     reset camera position                         |\n"
+                " |        R     reset camera orientation to orthogonal view   |\n"
+                " |        C     print current camera settings                 |\n"
+                " |        S     save a screenshot                             |\n"
+                " |        E/F   export 3D scene to numpy file or X3D          |\n"
+                " |        q     return control to python script               |\n"
+                " |        Esc   abort execution and exit python kernel        |\n"
+                " |------------------------------------------------------------|\n"
+                " | Mouse: Left-click    rotate scene / pick actors            |\n"
+                " |        Middle-click  pan scene                             |\n"
+                " |        Right-click   zoom scene in or out                  |\n"
+                " |        Cntrl-click   rotate scene                          |\n"
+                " |------------------------------------------------------------|\n"
+                " |   Check out the documentation at:  https://vedo.embl.es    |\n"
+                "  ============================================================"
+            )
+            vedo.printc(msg, dim=True)
 
             msg = " vedo " + vedo.__version__ + " "
-            vedo.printc(msg, invert=1, dim=1, end="")
+            vedo.printc(msg, invert=True, dim=True, end="")
             vtkVers = vtk.vtkVersion().GetVTKVersion()
             msg = "| vtk " + str(vtkVers)
             msg += " | python " + str(sys.version_info[0]) + "." + str(sys.version_info[1])
-            vedo.printc(msg, invert=0, dim=1)
+            vedo.printc(msg, invert=False, dim=True)
             return
 
         elif key == "a":
@@ -3643,6 +3683,9 @@ class Plotter:
             vedo.printc('show(mymeshes, camera=cam)', c='y')
             vedo.printc('###################################################', c='y')
             return
+
+        elif key == "R":
+            self.reset_viewup()
 
         elif key == "s":
             if self.clicked_actor and self.clicked_actor in self.get_meshes():

@@ -36,6 +36,8 @@ to access and modify colors by RGBA assignment.
 - added method `add_hint()` to generate a pop-up message on hovering an object
 - fix output of template camera when pressing "C"
 - improved `move_camera()`
+- added key-press `R` to reset camera viewup to closest orthogonal viewup
+  added corresponding method `plotter.reset_viewup()`
 
 ---
 ### `picture.py`

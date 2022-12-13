@@ -1947,7 +1947,7 @@ def compute_visible_bounds(actors=None):
             min_bns = np.min(bns, axis=0)
             vbb = [min_bns[0], max_bns[1], min_bns[2], max_bns[3], min_bns[4], max_bns[5]]
         else:
-            vbb = vedo.plotter_instance.renderer.ComputeVisiblePropBounds()
+            vbb = list(vedo.plotter_instance.renderer.ComputeVisiblePropBounds())
             max_bns = vbb
             min_bns = vbb
         sizes = np.array(
@@ -1955,7 +1955,7 @@ def compute_visible_bounds(actors=None):
         )
         return [vbb, sizes, min_bns, max_bns]
     except:
-        return [(0, 0, 0, 0, 0, 0), (0, 0, 0), 0, 0]
+        return [[0, 0, 0, 0, 0, 0], [0, 0, 0], 0, 0]
 
 
 #####################################################################
