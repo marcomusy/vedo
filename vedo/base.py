@@ -689,7 +689,7 @@ class Base3DProp:
         bx = vedo.shapes.Box(
             pos,
             length * scale + padding[0],
-            width * scale + padding[1],
+            width  * scale + padding[1],
             height * scale + padding[2],
             c="gray",
         )
@@ -699,8 +699,8 @@ class Base3DProp:
                 pr.DeepCopy(self.GetProperty())
                 bx.SetProperty(pr)
                 bx.property = pr
-        bx.flat().lighting("off")
         bx.wireframe(not fill)
+        bx.flat().lighting("off")
         return bx
 
     def use_bounds(self, ub=True):

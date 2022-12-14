@@ -4195,7 +4195,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
     def cut_with_scalars(self, value, name="", invert=False):
         """
-        Cut polygonal data with some input scalar data.
+        Cut a mesh or point cloud with some input scalar point-data.
 
         Parameters
         ----------
@@ -4211,12 +4211,14 @@ class Points(vtk.vtkFollower, BaseActor):
         Example:
             .. code-block:: python
 
+                from vedo import *
                 s = Sphere().lw(1)
                 pts = s.points()
                 scalars = np.sin(3*pts[:,2]) + pts[:,0]
                 s.pointdata["somevalues"] = scalars
+                s.cut_with_scalars(0.3)
                 s.cmap("Spectral", "somevalues").add_scalarbar()
-                s.cut_with_scalars(0.3).show(axes=1).close()
+                s.show(axes=1).close()
         """
         if name:
             self.pointdata.select(name)
