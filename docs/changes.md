@@ -24,6 +24,7 @@
 to access and modify colors by RGBA assignment.
 - added `compute_camera_distance()` to calculate the distance from points to the camera.
   A pointdata array is created with name 'DistanceToCamera'.
+- added `cut_with_scalars()` to cut polygonal data with some input scalar data.
 
 
 ---

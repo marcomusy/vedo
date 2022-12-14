@@ -4193,6 +4193,41 @@ class Points(vtk.vtkFollower, BaseActor):
             self._update(tf.GetOutput())
         return self
 
+    def cut_with_scalars(self, value, name="", invert=False):
+        """
+        Cut polygonal data with some input scalar data.
+
+        Parameters
+        ----------
+        value : float
+            cutting value
+
+        name : str
+            array name of the scalars to be used
+
+        invert : bool
+            flip selection
+
+        Example:
+            .. code-block:: python
+
+                s = Sphere().lw(1)
+                pts = s.points()
+                scalars = np.sin(3*pts[:,2]) + pts[:,0]
+                s.pointdata["somevalues"] = scalars
+                s.cmap("Spectral", "somevalues").add_scalarbar()
+                s.cut_with_scalars(0.3).show(axes=1).close()
+        """
+        if name:
+            self.pointdata.select(name)
+        clipper = vtk.vtkClipPolyData()
+        clipper.SetInputData(self._data)
+        clipper.SetValue(value)
+        clipper.GenerateClippedOutputOn()
+        clipper.SetInsideOut(not invert)
+        clipper.Update()
+        self._update(clipper.GetOutput())
+        return self
 
     def implicit_modeller(self, distance=0.05, res=(50,50,50), bounds=(), maxdist=None):
         """Find the surface which sits at the specified distance from the input one."""
