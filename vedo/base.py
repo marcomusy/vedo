@@ -923,8 +923,8 @@ class BaseActor(Base3DProp):
         data.Modified()
         self._mapper.Modified()
         return self
-    
-    
+
+
     # @deprecated(reason=vedo.colors.red + "Please use property cellcolors" + vedo.colors.reset)
     # def get_rgba(self, on="points"):
     #     """Deprecated."""

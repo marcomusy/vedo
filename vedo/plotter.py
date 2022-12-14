@@ -37,6 +37,7 @@ class Event:
          "name",
          "title",
          "id",
+         "time",
          "priority",
          "at",
          "actor",
@@ -306,7 +307,7 @@ def show(
             # note that shape can be a string
             if plt.interactor and not offscreen and (interactive is None or interactive):
                 plt.interactor.Start()
-                if vedo.vtk_version == (9,2,2): plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
+                if vedo.vtk_version == (9,2,2): plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
 
     else:
 
@@ -818,7 +819,7 @@ class Plotter:
             self._repeatingtimer_id = self.interactor.CreateRepeatingTimer(1)
             self.interactor.Start()
             if vedo.vtk_version == (9,2,2):
-                self.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
+                self.interactor.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
             if self.interactor:
                 self.interactor.DestroyTimer(self._repeatingtimer_id)
             self._repeatingtimer_id = None
@@ -1016,7 +1017,7 @@ class Plotter:
         """
         if self.interactor and not self.escaped:
             self.interactor.Start()
-            if vedo.vtk_version == (9,2,2): self.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
+            if vedo.vtk_version == (9,2,2): self.interactor.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
         return self
 
     def enable_erase(self, value=True):
@@ -1179,14 +1180,14 @@ class Plotter:
             self.renderer.ResetCameraClippingRange(x0, x1, y0, y1, z0, z1)
         return self
 
-    def reset_viewup(self):
+    def reset_viewup(self, smooth=True):
         """
         Reset the orientation of the camera to the closest orthogonal direction and view-up.
         """
         vbb, sizes, _, _ = addons.compute_visible_bounds()
         x0,x1, y0,y1, z0,z1 = vbb
         mx, my, mz = (x0+x1)/2, (y0+y1)/2, (z0+z1)/2
-        d = np.linalg.norm(sizes) * 2
+        d = self.camera.GetDistance()
 
         viewups = np.array([
             (0, 1, 0), ( 0, -1,  0),
@@ -1195,8 +1196,8 @@ class Plotter:
         ])
         positions = np.array([
             (mx, my, mz+d), (mx, my, mz-d),
-            (mx, my-d, mz), (mx, my+d, mz),
-            (mx-d, my, mz), (mx+d, my, mz),
+            (mx, my+d, mz), (mx, my-d, mz),
+            (mx+d, my, mz), (mx-d, my, mz),
         ])
 
         vu = np.array(self.camera.GetViewUp())
@@ -1210,10 +1211,49 @@ class Plotter:
         b = b.T * (1/np.linalg.norm(b, axis=1))
         pui = np.argmin(np.linalg.norm(b.T - a, axis=1))
 
-        self.camera.SetViewUp(viewups[vui])
-        self.camera.SetPosition(positions[pui])
-        self.camera.SetFocalPoint(mx,my,mz)
-        self.renderer.ResetCameraClippingRange(x0, x1, y0, y1, z0, z1)
+        if smooth:
+            outtimes = np.linspace(0,1, num=11, endpoint=True)
+            for t in outtimes:
+                vv = vu  * (1-t) + viewups[vui] * t
+                pp = poc * (1-t) + positions[pui] * t
+                ff = foc * (1-t) + np.array([mx,my,mz]) * t
+                self.camera.SetViewUp(vv)
+                self.camera.SetPosition(pp)
+                self.camera.SetFocalPoint(ff)
+                self.render()
+
+            # interpolator does not respect parallel view...:
+            # cam1 = dict(
+            #     pos=poc,
+            #     viewup=vu,
+            #     focal_point=(mx,my,mz),
+            #     clipping_range=self.camera.GetClippingRange()
+            # )
+            # # cam1 = self.camera
+            # cam2 = dict(
+            #     pos=positions[pui],
+            #     viewup=viewups[vui],
+            #     focal_point=(mx,my,mz),
+            #     clipping_range=self.camera.GetClippingRange()
+            # )
+            # vcams = self.move_camera([cam1, cam2], output_times=outtimes, smooth=0)
+            # for c in vcams:
+            #     self.renderer.SetActiveCamera(c)
+            #     self.render()
+        else:
+
+            self.camera.SetViewUp(viewups[vui])
+            self.camera.SetPosition(positions[pui])
+            self.camera.SetFocalPoint(mx,my,mz)
+            self.render()
+
+        self.renderer.ResetCameraClippingRange()
+        self.render()
+        # vbb, _, _, _ = addons.compute_visible_bounds()
+        # x0,x1, y0,y1, z0,z1 = vbb
+        # self.renderer.ResetCameraClippingRange(x0, x1, y0, y1, z0, z1)
+        # self.render()
+
         return self
 
     def move_camera(self, cameras, t=0, times=(), smooth=True, output_times=()):
@@ -1230,6 +1270,7 @@ class Plotter:
         nc = len(cameras)
         if len(times) == 0:
             times = np.linspace(0, 1, num=nc, endpoint=True)
+
         assert len(times) == nc
 
         cin = vtk.vtkCameraInterpolator()
@@ -1324,7 +1365,7 @@ class Plotter:
         erec.EnabledOn()
         erec.Record()
         self.interactor.Start()
-        if vedo.vtk_version == (9,2,2): self.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
+        if vedo.vtk_version == (9,2,2): self.interactor.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
         erec.Stop()
         erec.EnabledOff()
         with open(filename, "r", encoding='UTF-8') as fl:
@@ -1655,7 +1696,7 @@ class Plotter:
         sw.Render()
         if interactive:
             self.interactor.Start()
-            if vedo.vtk_version == (9,2,2): self.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
+            if vedo.vtk_version == (9,2,2): self.interactor.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
         else:
             self.interactor.Render()
         return sw
@@ -2238,6 +2279,82 @@ class Plotter:
         return fractor
 
 
+    def fill_event(self, ename="", cid=0, priority=0):
+        """Create an Event object. Internal use mostly."""
+        if not self.interactor:
+            return Event()
+
+        x, y = self.interactor.GetEventPosition()
+        self.renderer = self.interactor.FindPokedRenderer(x, y)
+        if not self.picker:
+            self.picker = vtk.vtkPropPicker()
+        self.picked2d = (x, y)
+        self.picker.PickProp(x, y, self.renderer)
+        xp, yp = self.interactor.GetLastEventPosition()
+        actor = self.picker.GetProp3D()
+        delta3d = np.array([0, 0, 0])
+        if actor:
+            picked3d = np.array(self.picker.GetPickPosition())
+            if isinstance(actor, vedo.base.Base3DProp):  # needed!
+                if actor.picked3d is not None:
+                    delta3d = picked3d - actor.picked3d
+            actor.picked3d = picked3d
+        else:
+            picked3d = None
+
+        if not actor:  # try 2D
+            actor = self.picker.GetActor2D()
+
+        dx, dy = x - xp, y - yp
+
+        key = self.interactor.GetKeySym()
+
+        if key:
+            if "_L" in key or "_R" in key:
+                # skip things like Shift_R
+                key = "" # better than None
+            else:
+                if self.interactor.GetShiftKey():
+                    key = key.upper()
+
+                if key == "MINUS": # fix: vtk9 is ignoring shift chars..
+                    key = "underscore"
+                elif key == "EQUAL": # fix: vtk9 is ignoring shift chars..
+                    key = "plus"
+                elif key == "SLASH": # fix: vtk9 is ignoring shift chars..
+                    key = "?"
+
+                if self.interactor.GetControlKey():
+                    key = "Ctrl+" + key
+
+                if self.interactor.GetAltKey():
+                    key = "Alt+" + key
+
+        event = Event()
+        event.name = ename
+        event.title = self.title
+        event.id = cid
+        event.priority = priority
+        event.time = time.time()
+        event.at = self.renderers.index(self.renderer)
+        event.actor = actor
+        event.picked3d = picked3d
+        event.keyPressed = key  # obsolete, will disappear. Use "keypress"
+        event.keypress = key
+        event.picked2d = (x, y)
+        event.delta2d = (dx, dy)
+        event.angle2d = np.arctan2(dy, dx)
+        event.speed2d = np.sqrt(dx * dx + dy * dy)
+        event.delta3d = delta3d
+        event.speed3d = np.sqrt(np.dot(delta3d, delta3d))
+        event.isPoints = isinstance(actor, vedo.Points)
+        event.isMesh   = isinstance(actor, vedo.Mesh)
+        event.isAssembly = isinstance(actor, vedo.Assembly)
+        event.isVolume = isinstance(actor, vedo.Volume)
+        event.isPicture = isinstance(actor, vedo.Picture)
+        event.isActor2D = isinstance(actor, vtk.vtkActor2D)
+        return event
+
     @deprecated(reason=vedo.colors.red + "Please use add_callback()" + vedo.colors.reset)
     def addCallback(self, *a, **b):
         """Deprecated, use add_callback()"""
@@ -2340,75 +2457,7 @@ class Plotter:
             event_name += "Event"
 
         def _func_wrap(iren, ename):
-            x, y = self.interactor.GetEventPosition()
-            self.renderer = self.interactor.FindPokedRenderer(x, y)
-            if not self.picker:
-                self.picker = vtk.vtkPropPicker()
-            self.picked2d = (x, y)
-            self.picker.PickProp(x, y, self.renderer)
-            xp, yp = self.interactor.GetLastEventPosition()
-            actor = self.picker.GetProp3D()
-            delta3d = np.array([0, 0, 0])
-            if actor:
-                picked3d = np.array(self.picker.GetPickPosition())
-                if isinstance(actor, vedo.base.Base3DProp):  # needed!
-                    if actor.picked3d is not None:
-                        delta3d = picked3d - actor.picked3d
-                actor.picked3d = picked3d
-            else:
-                picked3d = None
-
-            if not actor:  # try 2D
-                actor = self.picker.GetActor2D()
-
-            dx, dy = x - xp, y - yp
-
-            key = self.interactor.GetKeySym()
-
-            if key:
-                if "_L" in key or "_R" in key:
-                    # skip things like Shift_R
-                    key = "" # better than None
-                else:
-                    if iren.GetShiftKey():
-                        key = key.upper()
-
-                    if key == "MINUS": # fix: vtk9 is ignoring shift chars..
-                        key = "underscore"
-                    elif key == "EQUAL": # fix: vtk9 is ignoring shift chars..
-                        key = "plus"
-                    elif key == "SLASH": # fix: vtk9 is ignoring shift chars..
-                        key = "?"
-
-                    if iren.GetControlKey():
-                        key = "Ctrl+" + key
-
-                    if iren.GetAltKey():
-                        key = "Alt+" + key
-
-            event = Event()
-            event.name = ename
-            event.title = self.title
-            event.id = cid
-            event.priority = priority
-            event.at = self.renderers.index(self.renderer)
-            event.actor = actor
-            event.picked3d = picked3d
-            event.keyPressed = key  # obsolete, will disappear. Use "keypress"
-            event.keypress = key
-            event.picked2d = (x, y)
-            event.delta2d = (dx, dy)
-            event.angle2d = np.arctan2(dy, dx)
-            event.speed2d = np.sqrt(dx * dx + dy * dy)
-            event.delta3d = delta3d
-            event.speed3d = np.sqrt(np.dot(delta3d, delta3d))
-            event.isPoints = isinstance(actor, vedo.Points)
-            event.isMesh = isinstance(actor, vedo.Mesh)
-            event.isAssembly = isinstance(actor, vedo.Assembly)
-            event.isVolume = isinstance(actor, vedo.Volume)
-            event.isPicture = isinstance(actor, vedo.Picture)
-            event.isActor2D = isinstance(actor, vtk.vtkActor2D)
-
+            event = self.fill_event(ename=ename, priority=priority, cid=cid)
             func(event)
             return  ## _func_wrap
 
@@ -3096,7 +3145,7 @@ class Plotter:
             if self._interactive:
                 self.interactor.Start()
                 # vtk BUG:
-                if vedo.vtk_version == (9,2,2): self.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
+                if vedo.vtk_version == (9,2,2): self.interactor.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
 
             if rate:
                 if self.clock is None:  # set clock and limit rate
@@ -3382,6 +3431,7 @@ class Plotter:
         self.clicked_actor = clicked_actor
         if hasattr(clicked_actor, "picked3d"):  # might be not a vedo obj
             clicked_actor.picked3d = picker.GetPickPosition()
+            x, y = iren.GetEventPosition()
 
         # -----------
         if "Histogram1D" in str(type(picker.GetAssembly())):
@@ -3576,6 +3626,7 @@ class Plotter:
                 " |        u     toggle perspective/parallel projection        |\n"
                 " |        r     reset camera position                         |\n"
                 " |        R     reset camera orientation to orthogonal view   |\n"
+                " |        .     fly camera towards last clicked point         |\n"
                 " |        C     print current camera settings                 |\n"
                 " |        S     save a screenshot                             |\n"
                 " |        E/F   export 3D scene to numpy file or X3D          |\n"
@@ -3613,7 +3664,7 @@ class Plotter:
             else:
                 iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
             iren.Start()
-            if vedo.vtk_version == (9,2,2): iren.GetRenderWindow().SetDisplayId("_0_p_void")
+            if vedo.vtk_version == (9,2,2): iren.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
             return
 
         elif key == "A":  # toggle antialiasing
@@ -3655,7 +3706,12 @@ class Plotter:
                 vedo.printc(" press j to go back to normal.")
                 iren.SetInteractorStyle(vtk.vtkInteractorStyleJoystickCamera())
             iren.Start()
-            if vedo.vtk_version == (9,2,2): iren.GetRenderWindow().SetDisplayId("_0_p_void")
+            if vedo.vtk_version == (9,2,2): iren.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
+            return
+
+        elif key == "period":
+            if self.picked3d:
+                self.fly_to(self.picked3d)
             return
 
         elif key == "S":
@@ -3965,7 +4021,7 @@ class Plotter:
             vedo.io.export_window("scene.npz")
             vedo.printc(". Try:\n> vedo scene.npz", c="blue")
             self.interactor.Start()
-            if vedo.vtk_version == (9,2,2): iren.GetRenderWindow().SetDisplayId("_0_p_void")
+            if vedo.vtk_version == (9,2,2): iren.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
 
         elif key == "F":
             vedo.io.export_window("scene.x3d")
