@@ -461,6 +461,7 @@ class Plotter:
         self.picked3d = None  # 3d coords of a clicked point on an actor
         self.offscreen = offscreen
         self.resetcam = resetcam
+        self.last_event = None
 
         self.qt_widget = qt_widget  #  QVTKRenderWindowInteractor
         self.wx_widget = wx_widget  # wxVTKRenderWindowInteractor
@@ -2458,6 +2459,7 @@ class Plotter:
 
         def _func_wrap(iren, ename):
             event = self.fill_event(ename=ename, priority=priority, cid=cid)
+            self.last_event = event
             func(event)
             return  ## _func_wrap
 

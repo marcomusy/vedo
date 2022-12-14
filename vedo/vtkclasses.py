@@ -165,6 +165,7 @@ except ImportError:
 
 from vtkmodules.vtkFiltersFlowPaths import vtkStreamTracer
 
+
 from vtkmodules.vtkFiltersGeneral import (
     vtkBooleanOperationPolyDataFilter,
     vtkBoxClipDataSet,
@@ -178,6 +179,7 @@ from vtkmodules.vtkFiltersGeneral import (
     vtkDistancePolyDataFilter,
     vtkGradientFilter,
     vtkIntersectionPolyDataFilter,
+    vtkLoopBooleanPolyDataFilter,
     vtkMultiBlockDataGroupFilter,
     vtkTransformPolyDataFilter,
     vtkOBBTree,
@@ -479,6 +481,7 @@ from vtkmodules.vtkRenderingCore import (
     vtkColorTransferFunction,
     vtkCoordinate,
     vtkDataSetMapper,
+    vtkDistanceToCamera,
     vtkFlagpoleLabel,
     vtkFollower,
     vtkHierarchicalPolyDataMapper,

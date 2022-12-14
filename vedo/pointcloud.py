@@ -2901,23 +2901,23 @@ class Points(vtk.vtkFollower, BaseActor):
     def cell_individual_colors(self, colorlist):
         self.cellcolors = colorlist
         return self
-    
+
     @property
     def cellcolors(self):
         """
         Colorize each cell (face) of a mesh by passing
         a 1-to-1 list of colors in format [R,G,B] or [R,G,B,A].
         Colors levels and opacities must be in the range [0,255].
-        
+
         A single constant color can also be passed as string or RGBA.
 
         A cell array named "CellsRGBA" is automatically created.
 
-        .. hint:: 
-            
+        .. hint::
+
             examples/basic/color_mesh_cells1.py
             examples/basic/color_mesh_cells2.py
-      
+
         .. image:: https://vedo.embl.es/images/basic/colorMeshCells.png
         """
         if "CellsRGBA" not in self.celldata.keys():
@@ -2954,12 +2954,12 @@ class Points(vtk.vtkFollower, BaseActor):
         if value.shape[1] == 3:
             z = np.zeros((n,1), dtype=np.uint8)
             value = np.append(value, z+255, axis=1)
-                
-        assert n == value.shape[0]            
+
+        assert n == value.shape[0]
 
         self.celldata["CellsRGBA"] = value.astype(np.uint8)
         self.celldata.select("CellsRGBA")
-        
+
 
     @property
     def pointcolors(self):
@@ -2967,7 +2967,7 @@ class Points(vtk.vtkFollower, BaseActor):
         Colorize each point (or vertex of a mesh) by passing
         a 1-to-1 list of colors in format [R,G,B] or [R,G,B,A].
         Colors levels and opacities must be in the range [0,255].
-        
+
         A single constant color can also be passed as string or RGBA.
 
         A point array named "PointsRGBA" is automatically created.
@@ -3006,12 +3006,12 @@ class Points(vtk.vtkFollower, BaseActor):
         if value.shape[1] == 3:
             z = np.zeros((n,1), dtype=np.uint8)
             value = np.append(value, z+255, axis=1)
-                
-        assert n == value.shape[0]            
+
+        assert n == value.shape[0]
 
         self.pointdata["PointsRGBA"] = value.astype(np.uint8)
         self.pointdata.select("PointsRGBA")
-        
+
 
     @deprecated(reason=vedo.colors.red + "Please use interpolate_data_from()" + vedo.colors.reset)
     def interpolateDataFrom(self,
@@ -4539,6 +4539,20 @@ class Points(vtk.vtkFollower, BaseActor):
 
         cpf.Update()
         return self._update(cpf.GetOutput())
+
+    def compute_camera_distance(self):
+        """
+        Calculate the distance from points to the camera.
+        A pointdata array is created with name 'DistanceToCamera'.
+        """
+        if vedo.plotter_instance.renderer:
+            poly = self.polydata()
+            dc = vtk.vtkDistanceToCamera()
+            dc.SetInputData(poly)
+            dc.SetRenderer(vedo.plotter_instance.renderer)
+            dc.Update()
+            return self._update(dc.GetOutput())
+        return self
 
     def density(
         self,

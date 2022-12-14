@@ -758,6 +758,13 @@ class Base3DProp:
         return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
         # return self.GetLength() # ???different???
 
+
+    def copy_data_from(self, obj):
+        """Copy all data (point and cell data) from this input object"""
+        self._data.GetPointData().PassData(obj._data.GetPointData())
+        self._data.GetCellData().PassData(obj._data.GetCellData())
+        return self
+
     def print(self):
         """Print information about an object."""
         utils.print_info(self)

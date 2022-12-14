@@ -12,6 +12,7 @@
 - added `basegrid.extract_cells_on_sphere()`
 - added `basegrid.extract_cells_on_cylinder()`
 - added `count_vertices()` method
+- added `copy_data_from()` method to transfer all cell and point data from an object to another.
 
 ---
 ### `pointcloud.py`
@@ -21,6 +22,9 @@
 - added new `flagpost()` similar to the above
 - added new property `pointcloud.cellcolors`and `pointcolors`
 to access and modify colors by RGBA assignment.
+- added `compute_camera_distance()` to calculate the distance from points to the camera.
+  A pointdata array is created with name 'DistanceToCamera'.
+
 
 ---
 ### `mesh.py`
@@ -29,6 +33,9 @@ to access and modify colors by RGBA assignment.
 - added `check_validity()`
 - added method=4 for `subdivide()`
 - added `intersect_with_plane()`
+- added `boolean(..., method=1)`
+- added `intersect_with_multiplanes()` to generate a set of lines from cutting a mesh in n intervals
+  between a minimum and maximum distance from a plane of given origin and normal.
 
 ---
 ### `plotter.py`

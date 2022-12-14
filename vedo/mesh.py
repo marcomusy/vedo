@@ -2073,24 +2073,36 @@ class Mesh(Points):
         m.mapper().SetScalarVisibility(vis)
         return m
 
-    def boolean(self, operation, mesh2):
+    def boolean(self, operation, mesh2, method=0, tol=None):
         """Volumetric union, intersection and subtraction of surfaces.
 
         Use ``operation`` for the allowed operations 'plus', 'intersect', 'minus'.
 
+        Two possible algorithms are available.
+
         .. hint:: boolean.py
             .. image:: https://vedo.embl.es/images/basic/boolean.png
         """
-        bf = vtk.vtkBooleanOperationPolyDataFilter()
+        if method == 0:
+            bf = vtk.vtkBooleanOperationPolyDataFilter()
+        elif method == 1:
+            bf = vtk.vtkLoopBooleanPolyDataFilter()
+        else:
+            raise ValueError(f"Unknown method={method}")
+
         poly1 = self.compute_normals().polydata()
         poly2 = mesh2.compute_normals().polydata()
-        if operation.lower() == "plus" or operation.lower() == "+":
+
+        if operation.lower() in ("plus", "+"):
             bf.SetOperationToUnion()
         elif operation.lower() == "intersect":
             bf.SetOperationToIntersection()
-        elif operation.lower() == "minus" or operation.lower() == "-":
+        elif operation.lower() in ("minus", "-"):
             bf.SetOperationToDifference()
-        # bf.ReorientDifferenceCellsOn()
+
+        if tol:
+            bf.SetTolerance(tol)
+
         bf.SetInputData(0, poly1)
         bf.SetInputData(1, poly2)
         bf.Update()
@@ -2207,6 +2219,57 @@ class Mesh(Points):
         msh.name = "PlaneIntersection"
         return msh
 
+    def intersect_with_multiplanes(self, origin=(0,0,0), normal=(1,0,0), dmin=-1, dmax=1, n=10):
+        """
+        Generate a set of lines from cutting a mesh in n intervals
+        between a minimum and maximum distance from a plane of given origin and normal.
+
+        Parameters
+        ----------
+        origin : list
+            the point of the cutting plane
+
+        normal : list
+            normal vector to the cutting plane
+
+        dmin : float
+            negative distance below the plane
+
+        dmax : float
+            positive distance above the plane
+
+        n : int
+            number of cuts
+        """
+        plane = vtk.vtkPlane()
+        poly = self.polydata()
+        plane.SetOrigin(poly.GetCenter())
+        plane.SetNormal(normal)
+
+        bounds = np.array(self.bounds())
+        min_bound = bounds[[0,2,4]]
+        max_bound = bounds[[1,3,5]]
+
+        center = np.array(poly.GetCenter())
+        distance_min = np.linalg.norm(min_bound - center)
+        distance_max = np.linalg.norm(max_bound - center)
+
+        cutter = vtk.vtkCutter()
+        cutter.SetCutFunction(plane)
+        cutter.SetInputData(poly)
+        cutter.GenerateValues(n, -distance_min, distance_max)
+        cutter.Update()
+
+        stripper = vtk.vtkStripper()
+        stripper.SetJoinContiguousSegments(True)
+        stripper.SetInputData(cutter.GetOutput())
+        stripper.Update()
+
+        msh = Mesh(stripper.GetOutput())
+        msh.property.LightingOff()
+        msh.property.SetColor(get_color("k2"))
+        msh.lw(2)
+        return msh
 
     def collide_with(self, mesh2, tol=0, return_bool=False):
         """
