@@ -38,6 +38,7 @@ to access and modify colors by RGBA assignment.
 - improved `move_camera()`
 - added key-press `R` to reset camera viewup to closest orthogonal viewup
   added corresponding method `plotter.reset_viewup()`
+- added press `.` to fly to last clicked point and zoom in
 
 ---
 ### `picture.py`

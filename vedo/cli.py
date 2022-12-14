@@ -145,6 +145,7 @@ def system_info():
     printc("vedo version      :", __version__, invert=1, end="   ")
     printc("https://vedo.embl.es", underline=1, italic=1)
     printc("vtk version       :", vtk.vtkVersion().GetVTKVersion())
+    printc("numpy version     :", np.__version__)
     printc("python version    :", sys.version.replace("\n", ""))
     printc("python interpreter:", sys.executable)
     printc("vedo installation :", vedo.installdir)

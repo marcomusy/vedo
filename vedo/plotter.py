@@ -3647,6 +3647,7 @@ class Plotter:
             vedo.printc(msg, invert=True, dim=True, end="")
             vtkVers = vtk.vtkVersion().GetVTKVersion()
             msg = "| vtk " + str(vtkVers)
+            msg += " | numpy " + str(np.__version__)
             msg += " | python " + str(sys.version_info[0]) + "." + str(sys.version_info[1])
             vedo.printc(msg, invert=False, dim=True)
             return
