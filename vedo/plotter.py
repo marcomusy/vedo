@@ -3229,7 +3229,7 @@ class Plotter:
         self.widgets.append(widget)
         return widget
 
-    def clear(self, at=None, render=True):
+    def clear(self, at=None, render=True, deep=False):
         """Clear the scene from all meshes and volumes."""
         if at is not None:
             renderer = self.renderers[at]
@@ -3238,16 +3238,20 @@ class Plotter:
         if not renderer:
             return self
 
-        for a in set(self.get_meshes() + self.get_volumes() + self.actors + self.axes_instances):
-            if isinstance(a, vedo.shapes.Text2D):
-                continue
-            self.remove(a)
-            try:
-                if a.scalarbar:
-                    self.remove(a.scalarbar)
-            except AttributeError:
-                pass
-        self.actors = []
+        if deep:
+            renderer.RemoveAllViewProps()
+        else:
+            for a in set(self.get_meshes() + self.get_volumes() + self.actors + self.axes_instances):
+                if isinstance(a, vedo.shapes.Text2D):
+                    continue
+                self.remove(a)
+                try:
+                    if a.scalarbar:
+                        self.remove(a.scalarbar)
+                except AttributeError:
+                    pass
+            self.actors = []
+
         if render:
             self.render()
         return self

@@ -3875,7 +3875,7 @@ class Points(vtk.vtkFollower, BaseActor):
         clipper = vtk.vtkClipPolyData()
         clipper.SetInputData(self.polydata(True))  # must be True
         clipper.SetClipFunction(pplane)
-        clipper.SetInsideOut(not invert)
+        clipper.SetInsideOut(invert)
         clipper.GenerateClippedOutputOff()
         clipper.GenerateClipScalarsOff()
         clipper.SetValue(0)

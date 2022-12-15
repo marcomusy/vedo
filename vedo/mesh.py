@@ -1288,13 +1288,11 @@ class Mesh(Points):
             shad.points(pts)
             shad.x(point)
         elif "y" == plane:
-            # shad = shad.project_on_plane('y')
             x0, x1 = self.ybounds()
             pts[:, 1] = (pts[:, 1] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[1]
             shad.points(pts)
             shad.y(point)
         elif "z" == plane:
-            # shad = shad.project_on_plane('z')
             x0, x1 = self.zbounds()
             pts[:, 2] = (pts[:, 2] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[2]
             shad.points(pts)

@@ -77,7 +77,7 @@ class _DataArrayHelper:
         elif self.association == 2:
             data = self.actor.inputdata().GetFieldData()
 
-            if isinstance(input_array[0], str):
+            if utils.is_sequence(input_array) and isinstance(input_array[0], str):
                 varr = vtk.vtkStringArray()
                 varr.SetName(key)
                 varr.SetNumberOfComponents(1)
