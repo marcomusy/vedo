@@ -34,53 +34,64 @@ class _DataArrayHelper:
         self.association = association
 
     def __getitem__(self, key):
+
         if self.association == 0:
             data = self.actor.inputdata().GetPointData()
+
         elif self.association == 1:
             data = self.actor.inputdata().GetCellData()
+
         elif self.association == 2:
             data = self.actor.inputdata().GetFieldData()
+            if isinstance(key, int):
+                key = data.GetArrayName(key)
+            varr = data.GetAbstractArray(key)
+            n = varr.GetNumberOfValues()
+            narr = np.array([varr.GetValue(i) for i in range(n)], dtype='|U')
+            return narr
+            ###########
+
         else:
             raise RuntimeError()
 
         if isinstance(key, int):
             key = data.GetArrayName(key)
+
         arr = data.GetArray(key)
         if not arr:
             return None
         return utils.vtk2numpy(arr)
 
     def __setitem__(self, key, input_array):
+
         if self.association == 0:
             data = self.actor.inputdata().GetPointData()
             n = self.actor.inputdata().GetNumberOfPoints()
             self.actor._mapper.SetScalarModeToUsePointData()
+
         elif self.association == 1:
             data = self.actor.inputdata().GetCellData()
             n = self.actor.inputdata().GetNumberOfCells()
             self.actor._mapper.SetScalarModeToUseCellData()
+
         elif self.association == 2:
             data = self.actor.inputdata().GetFieldData()
-            # v0 = input_array[0]
-            # if isinstance(v0, (int, np.int32, np.int64, np.int8, np.uint8)):
-            #     marray = vtk.vtkIntArray()
-            # elif isinstance(v0, float):
-            #     marray = vtk.vtkFloatArray()
-            # # elif isinstance(v0, str): # not working
-            # #     marray = vtk.vtkStringArray()
-            # else:
-            #     vedo.printc("metadata, cannot understand type", type(v0), c='r')
-            #     raise RuntimeError
-            # marray.SetName(key)
-            # marray.SetNumberOfComponents(1)
-            # for val in input_array:
-            #     try:
-            #         marray.InsertNextValue(val)
-            #     except TypeError:
-            #         vedo.printc("in metadata cannot add type", type(val), c='r')
-            varr = utils.numpy2vtk(input_array, name=key)
+
+            if isinstance(input_array[0], str):
+                varr = vtk.vtkStringArray()
+                varr.SetName(key)
+                varr.SetNumberOfComponents(1)
+                for val in input_array:
+                    try:
+                        varr.InsertNextValue(val)
+                    except TypeError:
+                        vedo.printc("in metadata cannot add type", type(val), c='r')
+            else:
+                varr = utils.numpy2vtk(input_array, name=key)
+
             data.AddArray(varr)
-            return #############
+            return ############
+
         else:
             raise RuntimeError()
 
@@ -98,7 +109,7 @@ class _DataArrayHelper:
         if len(input_array.shape) == 1:  # scalars
             data.SetActiveScalars(key)
         elif len(input_array.shape) == 2 and input_array.shape[1] == 3:  # vectors
-            if key == "Normals":
+            if key.lower() == "normals":
                 data.SetActiveNormals(key)
             else:
                 data.SetActiveVectors(key)
