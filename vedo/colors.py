@@ -1085,14 +1085,14 @@ def printc(
 
         special, cseq = "", ""
         oneletter_colors = {
-            "k": "\u001b[30;1m",  # because these are supported by most terminals
-            "r": "\u001b[31;1m",
-            "g": "\u001b[32;1m",
-            "y": "\u001b[33;1m",
-            "b": "\u001b[34;1m",
-            "m": "\u001b[35;1m",
-            "c": "\u001b[36;1m",
-            "w": "\u001b[37;1m",
+            "k": "\u001b[30m",  # because these are supported by most terminals
+            "r": "\u001b[31m",
+            "g": "\u001b[32m",
+            "y": "\u001b[33m",
+            "b": "\u001b[34m",
+            "m": "\u001b[35m",
+            "c": "\u001b[36m",
+            "w": "\u001b[37m",
         }
 
         if c is not None:
