@@ -3706,7 +3706,7 @@ class Points(vtk.vtkFollower, BaseActor):
         clipper.SetClipFunction(plane)
         clipper.GenerateClippedOutputOff()
         clipper.GenerateClipScalarsOff()
-        clipper.SetInsideOut(not invert)
+        clipper.SetInsideOut(invert)
         clipper.SetValue(0)
         clipper.Update()
 
@@ -3756,7 +3756,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         clipper = vtk.vtkClipPolyData()
         clipper.SetInputData(self.polydata(True))  # must be True
-        clipper.SetInsideOut(not invert)
+        clipper.SetInsideOut(invert)
         clipper.SetClipFunction(planes)
         clipper.GenerateClippedOutputOff()
         clipper.GenerateClipScalarsOff()
@@ -3875,7 +3875,7 @@ class Points(vtk.vtkFollower, BaseActor):
         clipper = vtk.vtkClipPolyData()
         clipper.SetInputData(self.polydata(True))  # must be True
         clipper.SetClipFunction(pplane)
-        clipper.SetInsideOut(invert)
+        clipper.SetInsideOut(not invert)
         clipper.GenerateClippedOutputOff()
         clipper.GenerateClipScalarsOff()
         clipper.SetValue(0)
