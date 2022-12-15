@@ -3229,7 +3229,7 @@ class Plotter:
         self.widgets.append(widget)
         return widget
 
-    def clear(self, at=None, render=True, deep=False):
+    def clear(self, at=None, deep=False, render=False):
         """Clear the scene from all meshes and volumes."""
         if at is not None:
             renderer = self.renderers[at]

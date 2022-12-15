@@ -10,8 +10,11 @@ echo
 echo Running clone2d.py
 python3 clone2d.py
 
-echo Running flag_labels.py
-python3 flag_labels.py
+echo Running flag_labels1.py
+python3 flag_labels1.py
+
+echo Running flag_labels2.py
+python3 flag_labels2.py
 
 echo Running icon.py
 python3 icon.py

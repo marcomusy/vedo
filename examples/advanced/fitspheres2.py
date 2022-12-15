@@ -7,7 +7,7 @@ settings.use_depth_peeling = True
 
 plt = Plotter()
 
-msh = Mesh(dataurl+"cow.vtk").alpha(0.3)
+msh = Mesh(dataurl+"cow.vtk").c("cyan7")
 
 pts1, pts2, vals, cols = [], [], [], []
 
@@ -29,7 +29,7 @@ for i in range(0, msh.npoints, 10):
 plt += msh
 plt += Points(pts1, c=cols)
 plt += Lines(pts1, pts2, c="black")
-plt += histogram(vals, xtitle='radius', xlim=[0,2]).pos(-1,0.5,-1)
+plt += histogram(vals, xtitle='radius', xlim=[0,2]).as2d(pos="bottom-left")
 plt += __doc__
 
 plt.show().close()

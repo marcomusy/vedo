@@ -151,7 +151,7 @@ class Mesh(Points):
             tact = vedo.utils.trimesh2vedo(inputobj)
             self._data = tact.polydata()
 
-        elif "meshio" in inputtype:  # meshio-4.0.11
+        elif "meshio" in inputtype:
             if len(inputobj.cells):
                 mcells = []
                 for cellblock in inputobj.cells:
@@ -169,14 +169,16 @@ class Mesh(Points):
                         self._data.GetPointData().AddArray(vdata)
             except AssertionError:
                 print("Could not add meshio point data, skip.")
-            try:
-                if len(inputobj.cell_data):
-                    for k in inputobj.cell_data.keys():
-                        vdata = numpy2vtk(inputobj.cell_data[k])
-                        vdata.SetName(str(k))
-                        self._data.GetCellData().AddArray(vdata)
-            except AssertionError:
-                print("Could not add meshio cell data, skip.")
+            # try:
+            #     if len(inputobj.cell_data):
+            #         for k in inputobj.cell_data.keys():
+            #             #print(inputobj.cell_data)
+            #             exit()
+            #             vdata = numpy2vtk(inputobj.cell_data[k])
+            #             vdata.SetName(str(k))
+            #             self._data.GetCellData().AddArray(vdata)
+            # except AssertionError:
+            #     print("Could not add meshio cell data, skip.")
 
         elif "meshlab" in inputtype:
             self._data = vedo.utils.meshlab2vedo(inputobj)

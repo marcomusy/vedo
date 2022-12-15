@@ -650,6 +650,11 @@ class Figure(Assembly):
         """
         x0, x1 = self.xbounds()
         y0, y1 = self.ybounds()
+        pp = self.pos()
+        x0 -= pp[0]
+        x1 -= pp[0]
+        y0 -= pp[1]
+        y1 -= pp[1]
 
         if not utils.is_sequence(padding):
             padding = (padding, padding)

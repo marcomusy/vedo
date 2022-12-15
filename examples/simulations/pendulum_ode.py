@@ -52,7 +52,7 @@ for i in pb.range():
     l1 = Line([[0,0], P1[i], P2[i]]).lw(7).c("blue2", 1.0)
     l2 = Line([[0,0], P1[j], P2[j]]).lw(6).c("blue2", 0.4)
     l3 = Line([[0,0], P1[k], P2[k]]).lw(5).c("blue2", 0.2)
-    plt.show(l1, l2, l3, ax, zoom=1.4).clear()
+    plt.clear().show(l1, l2, l3, ax, zoom=1.4)
     pb.print()
 
 plt.interactive().close()

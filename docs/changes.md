@@ -13,6 +13,7 @@
 - added `basegrid.extract_cells_on_cylinder()`
 - added `count_vertices()` method
 - added `copy_data_from()` method to transfer all cell and point data from an object to another.
+- fixed `metadata` association
 
 ---
 ### `pointcloud.py`
@@ -90,9 +91,7 @@ examples/pyplot/fit_curve.py
 examples/pyplot/histo_2d_a.py
 examples/pyplot/histo_2d_b.py
 examples/other/flag_labels2.py
-
--------------------------
-### Deleted
+examples/volumetric/image_false_colors.py
 
 ### Broken
 examples/simulations/lorenz.py
