@@ -3077,20 +3077,30 @@ class Plotter:
 
         if self._first_viewup and len(viewup)>0:
             self._first_viewup = False  # gets executed only once
+            b = self.renderer.ComputeVisiblePropBounds()
+            cm = np.array([(b[1]+b[0])/2, (b[3]+b[2])/2, (b[5]+b[4])/2])
+            sz = np.array([(b[1]-b[0]), (b[3]-b[2]), (b[5]-b[4])])
             if viewup == "x":
+                sz = np.linalg.norm(sz)
                 self.camera.SetViewUp([1, 0, 0])
+                self.camera.SetPosition(cm + sz)
             elif viewup == "y":
+                sz = np.linalg.norm(sz)
                 self.camera.SetViewUp([0, 1, 0])
+                self.camera.SetPosition(cm + sz)
             elif viewup == "z":
-                b = self.renderer.ComputeVisiblePropBounds()
+                sz = np.array([
+                    (b[1] - b[0]) * 0.7, 
+                    -(b[3] - b[2]) * 1.0,
+                    (b[5] - b[4]) * 1.2,
+                ])
                 self.camera.SetViewUp([0, 0, 1])
-                cm = [(b[1] + b[0]) / 2, (b[3] + b[2]) / 2, (b[5] + b[4]) / 2]
-                sz = np.array(
-                    [(b[1] - b[0]) * 0.7, -(b[3] - b[2]) * 1.0, (b[5] - b[4]) * 1.2]
-                )
                 self.camera.SetPosition(cm + 2 * sz)
             elif utils.is_sequence(viewup):
+                sz = np.linalg.norm(sz)
                 self.camera.SetViewUp(viewup)
+                cpos = np.cross([0,1,0], viewup)
+                self.camera.SetPosition(cm - 2 * sz * cpos)
             elif viewup == "2d":
                 mode = 12
 
