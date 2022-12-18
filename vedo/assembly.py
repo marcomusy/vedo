@@ -45,9 +45,7 @@ def procrustes_alignment(sources, rigid=False):
     group = vtk.vtkMultiBlockDataGroupFilter()
     for source in sources:
         if sources[0].npoints != source.npoints:
-            vedo.logger.error(
-                "in procrustesAlignment() sources have different nr of points"
-            )
+            vedo.logger.error("sources have different nr of points")
             raise RuntimeError()
         group.AddInputData(source.polydata())
     procrustes = vtk.vtkProcrustesAlignmentFilter()
@@ -77,7 +75,7 @@ class Group(vtk.vtkPropAssembly):
     def __init__(self, *objects):
 
         vtk.vtkPropAssembly.__init__(self)
-        
+
         self.name = ""
         self.created = ""
         self.trail = None
@@ -89,7 +87,7 @@ class Group(vtk.vtkPropAssembly):
         self.rendered_at = set()
         self.transform = None
         self.scalarbar = None
-        
+
         for a in objects:
             if isinstance(a, vedo.Points) and a.npoints:
                 if a.npoints:
@@ -164,7 +162,7 @@ class Group(vtk.vtkPropAssembly):
                 continue
             elements.append(a)
         return elements
-    
+
 
     def show(self, **options):
         """
