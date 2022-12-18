@@ -72,7 +72,7 @@ def procrustes_alignment(sources, rigid=False):
 #################################################
 class Group(vtk.vtkPropAssembly):
 
-    def __init__(self, *objects):
+    def __init__(self, objects=()):
 
         vtk.vtkPropAssembly.__init__(self)
 
@@ -89,16 +89,45 @@ class Group(vtk.vtkPropAssembly):
         self.scalarbar = None
 
         for a in objects:
-            if isinstance(a, vedo.Points) and a.npoints:
-                if a.npoints:
-                    self.AddPart(a)
+            if a:
+                self.AddPart(a)
+            
         self.PickableOff()
 
     def __iadd__(self, obj):
         """
         Add an object to the group
         """
-        self.AddPart(obj)
+        if not vedo.utils.is_sequence(obj):
+            obj = [obj]
+        for a in obj:
+            if a:
+                self.AddPart(a)
+        return self
+
+    def unpack(self):
+        elements = []
+        self.InitPathTraversal()
+        parts = self.GetParts()
+        parts.InitTraversal()
+        for i in range(parts.GetNumberOfItems()):
+            ele = parts.GetItemAsObject(i)
+            elements.append(ele)
+                
+        # gr.InitPathTraversal()
+        # for _ in range(gr.GetNumberOfPaths()):
+        #     path  = gr.GetNextPath()
+        #     print([path])
+        #     path.InitTraversal()
+        #     for i in range(path.GetNumberOfItems()):
+        #         a = path.GetItemAsObject(i).GetViewProp()
+        #         print([a])
+
+        return elements
+
+    def clear(self):
+        for a in self.unpack():
+            self.RemovePart(a)
         return self
 
     def on(self):
@@ -152,16 +181,6 @@ class Group(vtk.vtkPropAssembly):
         """Get the length of the diagonal"""
         b = self.GetBounds()
         return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2)
-
-    def unpack(self):
-        self.InitPathTraversal()
-        elements = []
-        for _ in range(self.GetNumberOfPaths()):
-            a = self.GetNextPath().GetNextNode()
-            if not a:
-                continue
-            elements.append(a)
-        return elements
 
 
     def show(self, **options):

@@ -11,11 +11,11 @@ import vedo
 from vedo import settings
 from vedo import utils
 from vedo import shapes
-from vedo.assembly import Assembly
+from vedo.assembly import Assembly, Group
 from vedo.colors import get_color
 from vedo.colors import printc
 from vedo.mesh import merge, Mesh
-from vedo.pointcloud import Points
+from vedo.pointcloud import Points, Point
 from vedo.tetmesh import TetMesh
 from vedo.volume import Volume
 
@@ -39,6 +39,7 @@ __all__ = [
     "Ruler",
     "RulerAxes",
     "Ruler2D",
+    "DistanceTool",
     "Goniometer",
 ]
 
@@ -2286,7 +2287,9 @@ class Ruler2D(vtk.vtkAxisActor2D):
     """
     def __init__(
             self,
-            lw=2, ticks=True, labels=True,
+            lw=2,
+            ticks=True,
+            labels=False,
             c="k",
             alpha=1,
             title="",
@@ -2304,11 +2307,14 @@ class Ruler2D(vtk.vtkAxisActor2D):
 
         self.p0 = [0,0,0]
         self.p1 = [0,0,0]
+        self.distance = 0
+        self.title = title
 
         prop  = self.GetProperty()
         tprop = self.GetTitleTextProperty()
 
         self.SetTitle(title)
+        self.SetNumberOfLabels(9)
 
         if not font:
             font = settings.default_font
@@ -2344,7 +2350,7 @@ class Ruler2D(vtk.vtkAxisActor2D):
 
         self.renderer = plt.renderer
         self.cid = plt.interactor.AddObserver(
-            "ModifiedEvent",
+            "RenderEvent",
             self._update_viz,
             1.0,
         )
@@ -2359,7 +2365,7 @@ class Ruler2D(vtk.vtkAxisActor2D):
 
     def off(self):
         """Switch off the ruler completely"""
-        self.interactor.RemoveObserver(self.cid)
+        self.renderer.RemoveObserver(self.cid)
         self.renderer.RemoveActor(self)
 
     def set_points(self, p0, p1):
@@ -2385,6 +2391,83 @@ class Ruler2D(vtk.vtkAxisActor2D):
 
         self.SetPoint1(*disp_point1)
         self.SetPoint2(*disp_point2)
+        self.distance = np.linalg.norm(self.p1-self.p0)
+        self.SetRange(0, self.distance)
+        if not self.title:
+            self.SetTitle(utils.precision(self.distance, 3))
+
+
+#####################################################################
+class DistanceTool(Group):
+    """
+    Create a tool to measure the distance between two clicked points.
+
+    Example:
+
+        from vedo import *
+        mesh = ParametricShape("RandomHills").c("red5")
+        plt = Plotter(axes=1)
+        dtool = DistanceTool()
+        dtool.on()
+        plt.show(mesh, dtool)
+        dtool.off()
+    """
+    def __init__(self, plotter=None, c="k", lw=2):
+
+        Group.__init__(self)
+
+        self.p0 = [0,0,0]
+        self.p1 = [0,0,0]
+        self.distance = 0
+        if plotter is None:
+            plotter = vedo.plotter_instance
+        self.plotter = plotter
+        self.callback = None
+        self.cid = None
+        self.color = c
+        self.linewidth = lw
+        self.toggle = True
+        self.ruler = None
+        self.title = ""
+
+    def on(self):
+        """Swicth tool on"""
+        self.cid = self.plotter.add_callback("click", self._onclick)
+        self.VisibilityOn()
+        self.plotter.render()
+        return self
+
+    def off(self):
+        """Swicth tool off"""
+        self.plotter.remove_callback(self.cid)
+        self.VisibilityOff()
+        self.ruler.off()
+        self.plotter.render()
+
+    def _onclick(self, event):
+        if not event.actor:
+            return
+
+        self.clear()
+
+        acts = []
+        if self.toggle:
+            self.p0 = event.picked3d
+            acts.append(Point(self.p0, c=self.color))
+        else:
+            self.p1 = event.picked3d
+            self.distance = np.linalg.norm(self.p1 - self.p0)
+            acts.append(Point(self.p0, c=self.color))
+            acts.append(Point(self.p1, c=self.color))
+            self.ruler = Ruler2D(c=self.color)
+            self.ruler.set_points(self.p0, self.p1)
+            acts.append(self.ruler)
+
+            if self.callback is not None:
+                self.callback(event)
+
+        self += acts
+        self.toggle = not self.toggle
 
 
 #####################################################################

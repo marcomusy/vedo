@@ -2743,7 +2743,7 @@ class Plotter:
                 else:
                     scannedacts.append(vedo.Mesh(utils.meshlab2vedo(a)))
 
-            elif isinstance(a, vtk.vtkProp):
+            elif isinstance(a, (vtk.vtkProp, )):
                 scannedacts.append(a)
 
             else:
@@ -3078,17 +3078,19 @@ class Plotter:
         if self._first_viewup and len(viewup)>0:
             self._first_viewup = False  # gets executed only once
             if viewup == "x":
-                self.camera.SetViewUp([1, 0.001, 0])
+                self.camera.SetViewUp([1, 0, 0])
             elif viewup == "y":
-                self.camera.SetViewUp([0.001, 1, 0])
+                self.camera.SetViewUp([0, 1, 0])
             elif viewup == "z":
                 b = self.renderer.ComputeVisiblePropBounds()
-                self.camera.SetViewUp([0, 0.001, 1])
+                self.camera.SetViewUp([0, 0, 1])
                 cm = [(b[1] + b[0]) / 2, (b[3] + b[2]) / 2, (b[5] + b[4]) / 2]
                 sz = np.array(
                     [(b[1] - b[0]) * 0.7, -(b[3] - b[2]) * 1.0, (b[5] - b[4]) * 1.2]
                 )
                 self.camera.SetPosition(cm + 2 * sz)
+            elif utils.is_sequence(viewup):
+                self.camera.SetViewUp(viewup)
             elif viewup == "2d":
                 mode = 12
 
