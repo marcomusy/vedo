@@ -14,6 +14,7 @@ Submodule for managing groups of vedo objects
 """
 
 __all__ = [
+    "Group",
     "Assembly",
     "procrustes_alignment",
 ]
@@ -71,12 +72,25 @@ def procrustes_alignment(sources, rigid=False):
 
 
 #################################################
-class Assembly2D(vtk.vtkPropAssembly):
+class Group(vtk.vtkPropAssembly):
 
-    def __init__(self, *meshes):
+    def __init__(self, *objects):
 
         vtk.vtkPropAssembly.__init__(self)
-        for a in meshes:
+        
+        self.name = ""
+        self.created = ""
+        self.trail = None
+        self.trail_points = []
+        self.trail_segment_size = 0
+        self.trail_offset = None
+        self.shadows = []
+        self.info = {}
+        self.rendered_at = set()
+        self.transform = None
+        self.scalarbar = None
+        
+        for a in objects:
             if isinstance(a, vedo.Points) and a.npoints:
                 if a.npoints:
                     self.AddPart(a)
@@ -84,7 +98,7 @@ class Assembly2D(vtk.vtkPropAssembly):
 
     def __iadd__(self, obj):
         """
-        Add an object to the assembly
+        Add an object to the group
         """
         self.AddPart(obj)
         return self
@@ -104,7 +118,7 @@ class Assembly2D(vtk.vtkPropAssembly):
         self.SetPickable(value)
         return self
 
-    def draggable(self, value=None):  # NOT FUNCTIONAL?
+    def draggable(self, value=None):
         """Set/get the draggability property of an object."""
         if value is None:
             return self.GetDragable()
@@ -138,16 +152,19 @@ class Assembly2D(vtk.vtkPropAssembly):
 
     def diagonal_size(self):
         """Get the length of the diagonal"""
-        b = self.bounds()
+        b = self.GetBounds()
         return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2)
 
     def unpack(self):
-        self.InitTraversal()
-        actors2d = []
-        for _ in range(self.GetNumberOfItems()):
-            a = self.GetNextItem()
-            actors2d.append(a)
-        return actors2d
+        self.InitPathTraversal()
+        elements = []
+        for _ in range(self.GetNumberOfPaths()):
+            a = self.GetNextPath().GetNextNode()
+            if not a:
+                continue
+            elements.append(a)
+        return elements
+    
 
     def show(self, **options):
         """
@@ -165,7 +182,7 @@ class Assembly2D(vtk.vtkPropAssembly):
 #################################################
 class Assembly(vtk.vtkAssembly, vedo.base.Base3DProp):
     """
-    Group many meshes and treat them as a single new object.
+    Group many objects and treat them as a single new object.
 
     .. hint:: examples/simulations/gyroscope1.py
         .. image:: https://vedo.embl.es/images/simulations/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif
@@ -231,36 +248,3 @@ class Assembly(vtk.vtkAssembly, vedo.base.Base3DProp):
                 if i in m.name:
                     return m
 
-    def lighting(
-        self,
-        value="",
-        ambient=None,
-        diffuse=None,
-        specular=None,
-        specular_power=None,
-        specular_color=None,
-    ):
-        """
-        Set the lighting type to all ``Mesh`` in the ``Assembly`` object.
-        Argument of the function can be any of `['', metallic, plastic, shiny, glossy, default]`.
-
-        Parameters
-        ----------
-        ambient : float
-            ambient fraction of emission [0-1]
-
-        diffuse : float
-            emission of diffused light in fraction [0-1]
-
-        specular : float
-            fraction of reflected light [0-1]
-
-        specular_power : float
-            precision of reflection [1-100]
-
-        specular_color : color
-            color that is being reflected by the surface
-        """
-        for a in self.actors:
-            a.lighting(value, ambient, diffuse, specular, specular_power, specular_color)
-        return self

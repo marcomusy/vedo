@@ -461,6 +461,7 @@ except ImportError:
 from vtkmodules.vtkRenderingAnnotation import (
     vtkAnnotatedCubeActor,
     vtkAxesActor,
+    vtkAxisActor2D,
     vtkCaptionActor2D,
     vtkCornerAnnotation,
     vtkCubeAxesActor,

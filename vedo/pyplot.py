@@ -14,7 +14,7 @@ from vedo import addons
 from vedo import colors
 from vedo import utils
 from vedo.mesh import merge, Mesh
-from vedo.assembly import Assembly, Assembly2D
+from vedo.assembly import Assembly, Group
 from vedo import shapes
 
 __doc__ = """
@@ -646,7 +646,7 @@ class Figure(Assembly):
 
         Returns
         -------
-        Assembly2D object.
+        Group object.
         """
         x0, x1 = self.xbounds()
         y0, y1 = self.ybounds()
@@ -706,7 +706,7 @@ class Figure(Assembly):
             position = pos
 
         scanned = []
-        assembly2d = Assembly2D()
+        group = Group()
         for a in objs:
             if a in scanned:
                 continue
@@ -719,8 +719,8 @@ class Figure(Assembly):
                 continue
             aa = _to2d(a, offset, self.z(), scale / (x1-x0) * 550)
             aa.SetPosition(position)
-            assembly2d += aa
-        return assembly2d
+            group += aa
+        return group
 
 
 #########################################################################################

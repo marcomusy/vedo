@@ -2743,7 +2743,7 @@ class Plotter:
                 else:
                     scannedacts.append(vedo.Mesh(utils.meshlab2vedo(a)))
 
-            elif "Assembly" in str(type(a)):
+            elif isinstance(a, vtk.vtkProp):
                 scannedacts.append(a)
 
             else:

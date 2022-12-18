@@ -38,6 +38,7 @@ __all__ = [
     "Axes",
     "Ruler",
     "RulerAxes",
+    "Ruler2D",
     "Goniometer",
 ]
 
@@ -2225,6 +2226,165 @@ def RulerAxes(
     macts.UseBoundsOff()
     macts.PickableOff()
     return macts
+
+#####################################################################
+class Ruler2D(vtk.vtkAxisActor2D):
+    """
+    Creates a ruler line with tick marks, labels and a title.
+    Ruler2D is a 2D actor; that is, it is drawn on the overlay
+    plane and is not occluded by 3D geometry.
+    To use this class, specify two points defining the start and end
+    with update_points() as 3D points.
+
+    This class decides decides how to create reasonable tick
+    marks and labels.
+
+    Labels are drawn on the "right" side of the axis.
+    The "right" side is the side of the axis on the right.
+    The way the labels and title line up with the axis and tick marks
+    depends on whether the line is considered horizontal or vertical.
+
+    Parameters
+    ----------
+    lw : int
+        width of the line in pixel units
+
+    ticks : bool
+        control if drawing the tick marks
+
+    labels : bool
+        control if drawing the numeric labels
+
+    c : color
+        color of the object
+
+    alpha : float
+        opacity of the object
+
+    title : str
+        title of the ruler
+
+    font : str
+        font face name
+
+    font_size : int
+        font size
+
+    bc : color
+        background color of the title
+
+    Example
+    -------
+        .. code-block:: python
+
+            from vedo  import *
+            plt = Plotter(axes=1, interactive=False)
+            plt.show(Cube())
+            rul = Ruler2D()
+            rul.set_points([0,0,0], [.5,.5,.5])
+            plt.add(rul).interactive().close()
+    """
+    def __init__(
+            self,
+            lw=2, ticks=True, labels=True,
+            c="k",
+            alpha=1,
+            title="",
+            font="Calco",
+            font_size=24,
+            bc=None,
+        ):
+
+        vtk.vtkAxisActor2D.__init__(self)
+
+        plt = vedo.plotter_instance
+        if not plt:
+            vedo.logger.error("Ruler2D need to initialize Plotter first.")
+            raise RunTimeError
+
+        self.p0 = [0,0,0]
+        self.p1 = [0,0,0]
+
+        prop  = self.GetProperty()
+        tprop = self.GetTitleTextProperty()
+
+        self.SetTitle(title)
+
+        if not font:
+            font = settings.default_font
+        if font.lower() == "courier":
+            tprop.SetFontFamilyToCourier()
+        elif font.lower() == "times":
+            tprop.SetFontFamilyToTimes()
+        elif font.lower() == "arial":
+            tprop.SetFontFamilyToArial()
+        else:
+            tprop.SetFontFamily(vtk.VTK_FONT_FILE)
+            tprop.SetFontFile(utils.get_font_path(font))
+        tprop.SetFontSize(font_size)
+        tprop.BoldOff()
+        tprop.ItalicOff()
+        tprop.ShadowOff()
+        tprop.SetColor(get_color(c))
+        tprop.SetOpacity(alpha)
+        if bc is not None:
+            bc = get_color(bc)
+            tprop.SetBackgroundColor(bc)
+            tprop.SetBackgroundOpacity(alpha)
+
+        lprop = vtk.vtkTextProperty()
+        lprop.ShallowCopy(tprop)
+        self.SetLabelTextProperty(lprop)
+
+        self.SetLabelFormat('%0.3g')
+        self.SetTickVisibility(ticks)
+        self.SetLabelVisibility(labels)
+        prop.SetLineWidth(lw)
+        prop.SetColor(get_color(c))
+
+        self.renderer = plt.renderer
+        self.cid = plt.interactor.AddObserver(
+            "ModifiedEvent",
+            self._update_viz,
+            1.0,
+        )
+
+    def color(self, c):
+        """Assign a new color"""
+        c = get_color(c)
+        self.GetTitleTextProperty().SetColor(c)
+        self.GetLabelTextProperty().SetColor(c)
+        self.GetProperty().SetColor(c)
+        return self
+
+    def off(self):
+        """Switch off the ruler completely"""
+        self.interactor.RemoveObserver(self.cid)
+        self.renderer.RemoveActor(self)
+
+    def set_points(self, p0, p1):
+        """Set new values for the ruler start and end points"""
+        self.p0 = p0
+        self.p1 = p1
+        self._update_viz(0,0)
+        return self
+
+    def _update_viz(self, evt, name):
+        ren = self.renderer
+        view_size = np.array(ren.GetSize())
+
+        ren.SetWorldPoint(*self.p0, 1)
+        ren.WorldToDisplay()
+        disp_point1 = ren.GetDisplayPoint()[:2]
+        disp_point1 = np.array(disp_point1)/view_size
+
+        ren.SetWorldPoint(*self.p1, 1)
+        ren.WorldToDisplay()
+        disp_point2 = ren.GetDisplayPoint()[:2]
+        disp_point2 = np.array(disp_point2)/view_size
+
+        self.SetPoint1(*disp_point1)
+        self.SetPoint2(*disp_point2)
 
 
 #####################################################################
