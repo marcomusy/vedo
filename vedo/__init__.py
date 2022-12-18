@@ -231,4 +231,9 @@ logger.setLevel(logging.INFO)
 
 ################################################# silence annoying messages
 warnings.simplefilter(action="ignore", category=FutureWarning)
-np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
+try:
+    np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
+except AttributeError:
+    pass
+
+
