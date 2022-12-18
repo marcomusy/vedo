@@ -377,11 +377,15 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, fast=True, t
     # faces exist
     source_polygons = vtk.vtkCellArray()
 
-    # try it anyway: in case it's not uniform np.ndim will be 1
-    faces = np.asarray(faces)
+    # test if array is homogenoeus or ndim will be 1
+    try:
+        faces = np.asarray(faces)
+        ndim = np.ndim(faces)
+    except ValueError:
+        ndim = 1
 
-    if np.ndim(faces) == 2 and index_offset == 0 and fast:
-        #################### all faces are composed of equal nr of vtxs, FAST
+    if ndim == 2 and index_offset == 0 and fast:
+        ##### all faces are composed of equal nr of vtxs, FAST
 
         ast = np.int32
         if vtk.vtkIdTypeArray().GetDataTypeSize() != 4:
@@ -392,7 +396,8 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, fast=True, t
         arr = numpy_to_vtkIdTypeArray(hs, deep=True)
         source_polygons.SetCells(nf, arr)
 
-    else:  ########################################## manually add faces, SLOW
+    else:  
+        ############################# manually add faces, SLOW
 
         showbar = False
         if len(faces) > 25000:
