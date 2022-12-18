@@ -46,6 +46,7 @@ from vtkmodules.vtkCommonCore import (
 )
 
 from vtkmodules.vtkCommonDataModel import (
+    VTK_HEXAHEDRON,
     VTK_TETRA,
     VTK_VOXEL,
     VTK_WEDGE,
