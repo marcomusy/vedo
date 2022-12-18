@@ -2303,7 +2303,7 @@ class Ruler2D(vtk.vtkAxisActor2D):
         plt = vedo.plotter_instance
         if not plt:
             vedo.logger.error("Ruler2D need to initialize Plotter first.")
-            raise RunTimeError
+            raise RuntimeError()
 
         self.p0 = [0,0,0]
         self.p1 = [0,0,0]
@@ -2403,14 +2403,15 @@ class DistanceTool(Group):
     Create a tool to measure the distance between two clicked points.
 
     Example:
+        .. code-block:: python
 
-        from vedo import *
-        mesh = ParametricShape("RandomHills").c("red5")
-        plt = Plotter(axes=1)
-        dtool = DistanceTool()
-        dtool.on()
-        plt.show(mesh, dtool)
-        dtool.off()
+            from vedo import *
+            mesh = ParametricShape("RandomHills").c("red5")
+            plt = Plotter(axes=1)
+            dtool = DistanceTool()
+            dtool.on()
+            plt.show(mesh, dtool)
+            dtool.off()
     """
     def __init__(self, plotter=None, c="k", lw=2):
 
