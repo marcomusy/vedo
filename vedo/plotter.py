@@ -475,22 +475,22 @@ class Plotter:
         self.pos = pos  # used by vedo.io
         self.justremoved = None
         self.axes_instances = []
-        self._icol = 0
         self.clock = 0
-        self._clockt0 = time.time()
         self.sliders = []
         self.buttons = []
         self.widgets = []
         self.cutter_widget = None
         self.hint_widget = None
         self.background_renderer = None
-        self._first_viewup = True
-        self._extralight = None
         self.size = size
         self.interactor = None
         self.camera = None
 
-        self._repeatingtimer_id = None
+        self._icol = 0
+        self._clockt0 = time.time()
+        self._first_viewup = True
+        self._extralight = None
+        self._cocoa_initialized = False
 
         #####################################################################
         if settings.default_backend != 'vtk':
@@ -791,6 +791,7 @@ class Plotter:
 
         if settings.enable_default_keyboard_callbacks:
             self.interactor.AddObserver("KeyPressEvent", self._keypress)
+        
 
     ##################################################################### ..init ends here.
 
@@ -3080,6 +3081,24 @@ class Plotter:
 
         self.window.SetWindowName(self.title)
 
+        try:
+            if (self._cocoa_initialized is False 
+                and "Darwin" in vedo.sys_platform
+                and not self.offscreen
+            ):
+                self._cocoa_initialized = True
+                from Cocoa import NSRunningApplication, NSApplicationActivateIgnoringOtherApps
+                pid = os.getpid()
+                x = NSRunningApplication.runningApplicationWithProcessIdentifier_(int(pid))
+                x.activateWithOptions_(NSApplicationActivateIgnoringOtherApps)
+                # self.interactor.LeftButtonPressEvent()
+                # self.interactor.LeftButtonReleaseEvent()
+                # self.interactor.ShowWindowOn()
+                # self.interactor.ProcessEvents()
+                # self.window.MakeCurrent()
+        except:
+            pass
+        
         # 2d ####################################################################
         if settings.default_backend == "2d":
             return backends.get_notebook_backend()
@@ -3277,7 +3296,6 @@ class Plotter:
         self.renderer = None  # current renderer
         self.renderers = []
         self.camera = None
-        self._repeatingtimer_id = None
         self.frames = None  # holds the output of addons.add_renderer_frame
         self.skybox = None
         return self
