@@ -59,7 +59,7 @@ __website__    = "https://github.com/marcomusy/vedo"
 # mount_staging
 # rm ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/autodocs/html
 # mv html/ ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/autodocs/
-############## pdoc excludes
+########################################## pdoc excludes:
 # __pdoc__ = {}
 # __pdoc__['backends'] = False
 # __pdoc__['cli'] = False
@@ -168,17 +168,16 @@ vtk_version = (
     int(vtkVersion().GetVTKBuildVersion()),
 )
 
-if vtk_version[0] >= 9:
-    if "Windows" in sys_platform or "Linux" in sys_platform:
-        settings.use_depth_peeling = True
-
+# if vtk_version[0] >= 9:
+#     if "Windows" in sys_platform or "Linux" in sys_platform:
+#         settings.use_depth_peeling = True
 
 installdir = os.path.dirname(__file__)
 dataurl = "https://vedo.embl.es/examples/data/"
 
 plotter_instance = None
 notebook_plotter = None
-notebook_backend  = None
+notebook_backend = None
 
 ## fonts
 fonts_path = os.path.join(installdir, "fonts/")

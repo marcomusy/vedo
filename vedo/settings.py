@@ -577,15 +577,6 @@ class Settings:
         self.default_font = value
     ##################################
     @property
-    def rememberLastFigureFormat(self):
-        self._warn("remember_last_figure_format")
-        return self.remember_last_figure_format
-    @rememberLastFigureFormat.setter
-    def rememberLastFigureFormat(self, value):
-        self._warn("remember_last_figure_format")
-        self.remember_last_figure_format = value
-    ##################################
-    @property
     def screeshotScale(self):
         self._warn("screeshot_scale")
         return self.screeshot_scale
@@ -622,15 +613,6 @@ class Settings:
         self.allow_interaction = value
     ##################################
     @property
-    def hackCallScreenSize(self):
-        self._warn("hack_call_screen_size")
-        return self.hack_call_screen_size
-    @hackCallScreenSize.setter
-    def hackCallScreenSize(self, value):
-        self._warn("hack_call_screen_size")
-        self.hack_call_screen_size = value
-    ##################################
-    @property
     def enableDefaultMouseCallbacks(self):
         self._warn("enable_default_mouse_callbacks")
         return self.enable_default_mouse_callbacks
@@ -658,42 +640,6 @@ class Settings:
         self.immediate_rendering = value
     ##################################
     @property
-    def rendererFrameColor(self):
-        self._warn("renderer_frame_color")
-        return self.renderer_frame_color
-    @rendererFrameColor.setter
-    def rendererFrameColor(self, value):
-        self._warn("renderer_frame_color")
-        self.renderer_frame_color = value
-    ##################################
-    @property
-    def rendererFrameAlpha(self):
-        self._warn("renderer_frame_alpha")
-        return self.renderer_frame_alpha
-    @rendererFrameAlpha.setter
-    def rendererFrameAlpha(self, value):
-        self._warn("renderer_frame_alpha")
-        self.renderer_frame_alpha = value
-    ##################################
-    @property
-    def rendererFrameWidth(self):
-        self._warn("renderer_frame_width")
-        return self.renderer_frame_width
-    @rendererFrameWidth.setter
-    def rendererFrameWidth(self, value):
-        self._warn("renderer_frame_width")
-        self.renderer_frame_width = value
-    ##################################
-    @property
-    def rendererFramePadding(self):
-        self._warn("renderer_frame_padding")
-        return self.renderer_frame_padding
-    @rendererFramePadding.setter
-    def rendererFramePadding(self, value):
-        self._warn("renderer_frame_padding")
-        self.renderer_frame_padding = value
-    ##################################
-    @property
     def renderLinesAsTubes(self):
         self._warn("render_lines_as_tubes")
         return self.render_lines_as_tubes
@@ -719,33 +665,6 @@ class Settings:
     def pointSmoothing(self, value):
         self._warn("point_smoothing")
         self.point_smoothing = value
-    ##################################
-    @property
-    def lineSmoothing(self):
-        self._warn("line_smoothing")
-        return self.line_smoothing
-    @lineSmoothing.setter
-    def lineSmoothing(self, value):
-        self._warn("line_smoothing")
-        self.line_smoothing = value
-    ##################################
-    @property
-    def polygonSmoothing(self):
-        self._warn("polygon_smoothing")
-        return self.polygon_smoothing
-    @polygonSmoothing.setter
-    def polygonSmoothing(self, value):
-        self._warn("polygon_smoothing")
-        self.polygon_smoothing = value
-    ##################################
-    @property
-    def visibleGridEdges(self):
-        self._warn("visible_grid_edges")
-        return self.visible_grid_edges
-    @visibleGridEdges.setter
-    def visibleGridEdges(self, value):
-        self._warn("visible_grid_edges")
-        self.visible_grid_edges = value
     ##################################
     @property
     def lightFollowsCamera(self):

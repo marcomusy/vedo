@@ -791,7 +791,7 @@ class Plotter:
 
         if settings.enable_default_keyboard_callbacks:
             self.interactor.AddObserver("KeyPressEvent", self._keypress)
-        
+
 
     ##################################################################### ..init ends here.
 
@@ -812,7 +812,6 @@ class Plotter:
         self.close()
 
     def process_events(self):
-        """Call this method from inside a loop to allow mouse and keyboard interaction."""
         if self.interactor:
             self.interactor.ProcessEvents()
         return self
@@ -973,10 +972,10 @@ class Plotter:
         if resetcam:
             self.renderer.ResetCamera()
 
+        self.window.Render()
+
         if settings.allow_interaction:
             self.process_events()
-
-        self.window.Render()
 
         # if at is not None: # re-enable all that were disabled
         #     for i, ren in enumerate(self.renderers):
@@ -2438,6 +2437,10 @@ class Plotter:
             func(event)
             return  ## _func_wrap
 
+        # Not compatible with ProcessEvents()
+        if "MouseMove" in event_name or "Timer" in event_name:
+            settings.allow_interaction = False
+
         cid = self.interactor.AddObserver(event_name, _func_wrap, priority)
         vedo.logger.debug(f"registering event: {event_name} with id={cid}")
         return cid
@@ -3082,7 +3085,7 @@ class Plotter:
         self.window.SetWindowName(self.title)
 
         try:
-            if (self._cocoa_initialized is False 
+            if (self._cocoa_initialized is False
                 and "Darwin" in vedo.sys_platform
                 and not self.offscreen
             ):
@@ -3098,7 +3101,7 @@ class Plotter:
                 # self.window.MakeCurrent()
         except:
             pass
-        
+
         # 2d ####################################################################
         if settings.default_backend == "2d":
             return backends.get_notebook_backend()

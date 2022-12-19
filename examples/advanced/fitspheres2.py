@@ -3,8 +3,6 @@ Color points from the size of the sphere radius."""
 from vedo import *
 from vedo.pyplot import histogram
 
-settings.use_depth_peeling = True
-
 plt = Plotter()
 
 msh = Mesh(dataurl+"cow.vtk").c("cyan7")
