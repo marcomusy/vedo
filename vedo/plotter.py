@@ -2513,17 +2513,17 @@ class Plotter:
                 self.interactor.RemoveObserver(cid)
         return self
 
-    def timer_callback(self, action, timerId=None, dt=10, one_shot=False):
+    def timer_callback(self, action, timer_id=None, dt=1, one_shot=False):
         """
-        Activate or destroy an existing Timer Event callback.
+        Start or stop an existing timer.
 
         Parameters
         ----------
         action : str
-            Either "create" or "destroy"
+            Either "create"/"start" or "destroy"/"stop"
 
-        timerId : int
-            When destroying the timer, the ID of the timer as returned when created
+        timer_id : int
+            When stopping the timer, the ID of the timer as returned when created
 
         dt : int
             time in milliseconds between each repeated call
@@ -2533,19 +2533,19 @@ class Plotter:
 
         .. hint:: examples/advanced/timer_callback1.py, examples/advanced/timer_callback2.py
         """
-        if action == "create":
+        if action in ("create", "start") :
             if one_shot:
                 timer_id = self.interactor.CreateOneShotTimer(dt)
             else:
                 timer_id = self.interactor.CreateRepeatingTimer(dt)
             return timer_id
 
-        if action == "destroy":
-            if timerId is not None:
-                self.interactor.DestroyTimer(timerId)
+        elif action in ("destroy", "stop"):
+            if timer_id is not None:
+                self.interactor.DestroyTimer(timer_id)
         else:
-            e = "in plotter.timer(). Cannot understand action:\n"
-            e += "                          allowed actions: [create, destroy]"
+            e = f"in plotter.timer_callback(). Cannot understand action: {action}\n"
+            e += " allowed actions are: ['start', 'stop']. Skipped."
             vedo.logger.error(e)
         return self
 
@@ -3090,7 +3090,7 @@ class Plotter:
                 self.camera.SetPosition(cm + sz)
             elif viewup == "z":
                 sz = np.array([
-                    (b[1] - b[0]) * 0.7, 
+                    (b[1] - b[0]) * 0.7,
                     -(b[3] - b[2]) * 1.0,
                     (b[5] - b[4]) * 1.2,
                 ])

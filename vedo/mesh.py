@@ -1305,9 +1305,9 @@ class Mesh(Points):
         shad.c(c).alpha(alpha).flat()
 
         if culling in (1, True):
-            shad.frontFaceCulling()
+            shad.frontface_culling()
         elif culling == -1:
-            shad.backFaceCulling()
+            shad.backface_culling()
 
         shad.GetProperty().LightingOff()
         shad.SetPickable(False)
