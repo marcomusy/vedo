@@ -204,7 +204,7 @@ class Settings:
         self.screeshot_large_image = False
 
         # Allow to continuously interact with scene during interactor.Start() execution
-        self.allow_interaction = True
+        self.allow_interaction = False
 
         # BUG in vtk9.0 (if true close works but sometimes vtk crashes, if false doesnt crash but cannot close)
         # see plotter.py line 555
