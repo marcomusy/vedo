@@ -1,4 +1,4 @@
-from vedo import Plotter, printc, mag, versor, vector, settings
+from vedo import Plotter, printc, mag, versor, vector
 from vedo import Cylinder, Spring, Box, Sphere
 import numpy as np
 
@@ -22,9 +22,7 @@ for k in range(1, N + 1):
     bob_x.append(bob_x[k - 1] + np.cos(alpha) + np.random.normal(0, 0.1))
     bob_y.append(bob_y[k - 1] + np.sin(alpha) + np.random.normal(0, 0.1))
 
-settings.allow_interaction = True
-
-plt = Plotter(title="Multiple Pendulum", axes=0, interactive=0, bg2='ly')
+plt = Plotter(title="Multiple Pendulum", interactive=False, bg2='ly')
 plt += Box(pos=(0, -5, 0), length=12, width=12, height=0.7, c="k").wireframe(1)
 sph = Sphere(pos=(bob_x[0], bob_y[0], 0), r=R / 2, c="gray")
 plt += sph
@@ -56,6 +54,7 @@ Dt2 = Dt / 2  # Midpoint time step
 DiaSq = (2 * R) ** 2  # Diameter of bob squared
 
 printc("Press ESC to exit.", c="red", invert=1)
+plt.show()
 
 while True:
     bob_x_m = list(map((lambda x, dx: x + Dt2 * dx), bob_x, x_dot))  # midpoint variables
@@ -113,7 +112,8 @@ while True:
         bob[k].pos([bob_x[k], bob_y[k], 0])
         link[k - 1].stretch(bob[k - 1].pos(), bob[k].pos())
 
-    plt.show()
-    if plt.escaped: break  # if ESC is hit during the loop
+    plt.render()
+    if plt.escaped:
+        break  # if ESC is hit during the loop
 
 plt.close()

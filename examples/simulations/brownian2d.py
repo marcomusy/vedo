@@ -4,14 +4,13 @@ The spheres collide elastically with themselves and
 with the walls of the box. The masses of the spheres
 are proportional to their radius**3 (as in 3D)"""
 # Adapted by M. Musy from E. Velasco (2009)
-from vedo import Plotter, ProgressBar, dot, Grid, Sphere, Point, settings
+from vedo import Plotter, ProgressBar, dot, Grid, Sphere, Point
 import random
 import numpy as np
 print(__doc__)
 
 screen_w = 800
 screen_h = 800
-settings.allow_interaction = True
 
 plt = Plotter(size=(screen_w, screen_h), axes=0, interactive=0)
 
@@ -63,9 +62,11 @@ Spheres = [Sphere(pos=(Pos[0][0], Pos[0][1], 0), r=Radius[0], c="red", res=12).p
 for s in range(1, Nsp):
     a = Sphere(pos=(Pos[s][0], Pos[s][1], 0), r=Radius[s], c="blue", res=6).phong()
     Spheres.append(a)
-#    plt += a
 plt += Spheres
+
 plt += Grid(s=[screen_w,screen_w])
+
+plt.show()
 
 # Auxiliary variables
 Id = np.identity(Nsp)
@@ -135,8 +136,9 @@ for i in pb.range():
         rsp = [Pos[0][0], Pos[0][1], 0]
         rsv = [Vel[0][0], Vel[0][1], 0]
         plt += Point(rsp, c="r", r=5, alpha=0.1)  # leave a point trace
-        plt.show()  # render scene
-        if plt.escaped: break
+        plt.render()  # render scene
+        if plt.escaped: 
+            break
     pb.print()
 
 plt.interactive().close()

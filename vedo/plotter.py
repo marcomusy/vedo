@@ -518,9 +518,6 @@ class Plotter:
         self.window.GlobalWarningDisplayOff()
         self.window.SetWindowName(self.title)
 
-        self._repeating_timer_id = None
-        self._timer_event_id = None
-
         # more settings
         if settings.use_depth_peeling:
             self.window.SetAlphaBitPlanes(settings.alpha_bit_planes)
@@ -752,10 +749,6 @@ class Plotter:
                 self.window.AddRenderer(r)
             self.wx_widget.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
             self.camera = self.renderer.GetActiveCamera()
-            # if settings.enable_default_mouse_callbacks:
-            #     self.wx_widget.AddObserver("LeftButtonPressEvent", self._mouseleftclick)
-            # if settings.enable_default_keyboard_callbacks:
-            #     self.wx_widget.AddObserver("KeyPressEvent", self._keypress)
             ########################
             return #################
             ########################
@@ -799,32 +792,7 @@ class Plotter:
         if settings.enable_default_keyboard_callbacks:
             self.interactor.AddObserver("KeyPressEvent", self._keypress)
 
-        if settings.allow_interaction:
-            def win_interact(iren, event):  # flushing interactor events
-                if event == "TimerEvent":
-                    iren.ExitCallback()
-            self._timer_event_id = self.interactor.AddObserver("TimerEvent", win_interact)
-
-        ##################################################################### ..init ends here.
-
-
-    def allow_interaction(self):
-        """Call this method from inside a loop to allow mouse and keyboard interaction."""
-        if (
-            self.interactor
-            and self._timer_event_id is not None
-            and settings.immediate_rendering
-        ):
-            if vedo.vtk_version[0]>=9 and vedo.vtk_version[1]>=1: # VTK BUG for Start()
-                return self
-            self._repeatingtimer_id = self.interactor.CreateRepeatingTimer(1)
-            self.interactor.Start()
-            if vedo.vtk_version == (9,2,2):
-                self.interactor.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
-            if self.interactor:
-                self.interactor.DestroyTimer(self._repeatingtimer_id)
-            self._repeatingtimer_id = None
-        return self
+    ##################################################################### ..init ends here.
 
     def __iadd__(self, actors):
         self.add(actors, render=False)
@@ -841,6 +809,12 @@ class Plotter:
     def __exit__(self, *args, **kwargs):
         # context manager like in "with Plotter() as plt:"
         self.close()
+
+    def process_events(self):
+        """Call this method from inside a loop to allow mouse and keyboard interaction."""
+        if self.interactor:
+            self.interactor.ProcessEvents()
+        return self
 
     def at(self, nren, yren=None):
         """
@@ -999,7 +973,7 @@ class Plotter:
             self.renderer.ResetCamera()
 
         if settings.allow_interaction:
-            self.allow_interaction()
+            self.process_events()
 
         self.window.Render()
 
@@ -2463,12 +2437,6 @@ class Plotter:
             func(event)
             return  ## _func_wrap
 
-        if self._timer_event_id is not None:
-            # lets remove the existing allow_interaction callback
-            #  to avoid interference with the user one
-            self.interactor.RemoveObserver(self._timer_event_id)
-            self._timer_event_id = None
-
         cid = self.interactor.AddObserver(event_name, _func_wrap, priority)
         vedo.logger.debug(f"registering event: {event_name} with id={cid}")
         return cid
@@ -3029,6 +2997,7 @@ class Plotter:
             if not self.interactor.GetInitialized():
                 self.interactor.Initialize()
                 self.interactor.RemoveObservers("CharEvent")
+                # self.interactor.ProcessEvents()
 
         if self.sharecam:
             for r in self.renderers:
@@ -3119,7 +3088,7 @@ class Plotter:
         if self.interactor:  # can be offscreen..
 
             if settings.allow_interaction:
-                self.allow_interaction()
+                self.process_events()
 
             # Set the style of interaction
             # see https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html
@@ -3461,7 +3430,6 @@ class Plotter:
             vedo.colors.printc(f"{histo.name}, bin={idx}, center={cn}, value={f}")
 
 
-
     #######################################################################
     def _keypress(self, iren, event):
 
@@ -3493,7 +3461,7 @@ class Plotter:
             return
 
         if key == "Escape":
-            vedo.logger.info("Closing window now. Plotter.escaped is set to True.")
+            vedo.logger.info("Closing window now. Plotter.escaped set to True.")
             self.escaped = True  # window will be escaped ASAP
             iren.ExitCallback()
             return

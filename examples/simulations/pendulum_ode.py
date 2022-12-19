@@ -16,7 +16,6 @@ w1 = 0      # initial angular velocities (degrees per second)
 w2 = 0
 dt = 0.015
 
-settings.allow_interaction = True
 
 def derivs(state, t):
     dydx = np.zeros_like(state)
@@ -56,7 +55,3 @@ for i in pb.range():
     pb.print()
 
 plt.interactive().close()
-
-
-
-

@@ -5,8 +5,6 @@ from vedo import printc, Text2D, Text3D, show, Plotter
 from vedo import fonts, fonts_path, settings
 import numpy as np
 
-# settings.allow_interaction = True
-
 ################################################################################## 2D
 inred = Text2D("°monospaced fonts are marked in red", c='r5', pos='bottom-center', font='VictorMono')
 acts2d = [inred]

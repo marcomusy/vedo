@@ -10,9 +10,9 @@ For too large values of dt the simple Euler can diverge."""
 from vedo import *
 
 ####################################################
-N = 400  # Number of coupled oscillators
+N = 400   # Number of coupled oscillators
 dt = 0.5  # Time step
-nsteps = 1200  # Number of steps in the simulation
+nsteps = 2000  # Number of steps in the simulation
 
 
 ####################################################
@@ -40,12 +40,11 @@ v = np.zeros(N + 2, float)
 # Acceleration function for the simple harmonic oscillator
 def accel(y, v, t):
     a = np.zeros(N + 2, float)  # acceleration of particles
-    # for p in range(1,N+1): a[p] = -(y[p]-y[p-1]) -(y[p]-y[p+1])  # slower
-    a[1 : N + 1] = -(y[1 : N + 1] - y[0:N]) - (y[1 : N + 1] - y[2 : N + 2])  # faster
+    a[1 : N+1] = -(y[1 : N+1] - y[0:N]) - (y[1 : N+1] - y[2 : N+2])
     return a
 
 
-def rk4(y, v, t, dt):  # 4th Order Runge-Kutta
+def runge_kutta4(y, v, t, dt):  # 4th Order Runge-Kutta
     yk1 = dt * v
     vk1 = dt * accel(y, v, t)
 
@@ -77,50 +76,47 @@ t = 0
 pb = ProgressBar(0, nsteps, c="blue", eta=0)
 for i in pb.range():
     y_eu, v_eu = euler(y_eu, v_eu, t, dt)
-    y_rk, v_rk = rk4(y_rk, v_rk, t, dt)
+    y_rk, v_rk = runge_kutta4(y_rk, v_rk, t, dt)
     t += dt
     positions_eu.append(y_eu)  # store result of integration
     positions_rk.append(y_rk)
-    pb.print("Integrate: RK-4 and Euler")
-
+    pb.print("integrating RK4 and Euler")
 
 ####################################################
 # Visualize the result
 ####################################################
-settings.allow_interaction = True
+plt = Plotter(interactive=False, axes=2, size=(1400,1000))
 
-plt = Plotter(interactive=False, axes=2)  # choose axes type nr.2
+line_eu = Line([0,0,0], [len(x)-1,0,0], res=len(x), c="red5", lw=5)
+plt += line_eu
 
-for i in x:
-    plt += Point([i, 0, 0], c="green", r=6)
-pts_eu = plt.actors  # save a copy of the actors list
-
-plt.actors = []  # clean up the list
-
-for i in x:
-    plt += Point([i, 0, 0], c="red", r=6)
-pts_rk = plt.actors  # save a copy of the actors list
-
-# merge the two lists and set it as the current actors
-plt.actors = pts_eu + pts_rk
+line_rk = Line([0,0,0], [len(x)-1,0,0], res=len(x), c="green5", lw=5)
+plt += line_rk
 
 # let's also add a fancy background image from wikipedia
-plt += Picture(dataurl+"images/wave_wiki.png").alpha(0.8).scale(0.4).pos(0,-100,-20)
+img = dataurl + "images/wave_wiki.png"
+plt += Picture(img).alpha(0.8).scale(0.4).pos(0,-100,-20)
 plt += __doc__
-plt.show()
+plt.show(zoom=1.5)
 
 pb = ProgressBar(0, nsteps, c="red", eta=1)
 for i in pb.range():
+    pb.print()
+    if i%10 != 0:
+        continue
     y_eu = positions_eu[i]  # retrieve the list of y positions at step i
     y_rk = positions_rk[i]
-    for j, act in enumerate(pts_eu):
-        act.pos(j, y_eu[j], 0)
-    for j, act in enumerate(pts_rk):
-        act.pos(j, y_rk[j], 0)
-    if i%10 ==0:
-        plt.render()
+    
+    pts = line_eu.points()
+    pts[:,1] = y_eu
+    line_eu.points(pts)
+    
+    pts = line_rk.points()
+    pts[:,1] = y_rk
+    line_rk.points(pts)
+    
+    plt.render()
     if plt.escaped:
         break               # if ESC is hit during the loop
-    pb.print()
 
 plt.interactive().close()

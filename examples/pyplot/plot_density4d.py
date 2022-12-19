@@ -2,9 +2,8 @@
 # Credits: https://github.com/edmontz
 import numpy as np
 from scipy.fftpack import fftn, fftshift
-from vedo import Plotter, Volume, ProgressBar, show, settings
+from vedo import Axes, Plotter, Volume, ProgressBar
 
-settings.allow_interaction = True
 
 def f(x, y, z, t):
     r = np.sqrt(x*x + y*y + z*z + 2*t*t) + 0.1
@@ -15,7 +14,10 @@ qn = 25
 vol = np.zeros((n, n, n))
 n1 = int(n/2)
 
-plt  = Plotter(bg="black", axes=1, interactive=False)
+plt = Plotter(bg="black", interactive=False)
+axes = Axes(xrange=(0,n), yrange=(0,n), zrange=(0,n))
+plt.show(axes, viewup='z')
+
 pb = ProgressBar(0, qn, c="r")
 for q in pb.range():
     pb.print()
@@ -33,6 +35,7 @@ for q in pb.range():
     volf = np.log(12*volf/volf.max()+ 1) / 2.5
 
     vb = Volume(volf).mode(1).c("rainbow").alpha([0, 0.8, 1])
-    plt.pop().show(vb, viewup='z')
+    vb.name = "MyVolume"
+    plt.remove("MyVolume").add(vb)
 
 plt.interactive().close()
