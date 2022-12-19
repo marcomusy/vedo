@@ -8,7 +8,7 @@
 # -----------------------------------------------------------------------------
 """Grey-Scott reaction-diffusion system"""
 import numpy as np
-from vedo import Plotter, Grid, settings
+from vedo import Plotter, Grid
 
 # ---------------------------------------------------------------
 Nsteps = 300
@@ -25,8 +25,6 @@ n = 200 # grid subdivisions
 #Du, Dv, F, k, name = 0.16, 0.08, 0.054, 0.063, 'Worms 2'
 Du, Dv, F, k, name = 0.16, 0.08, 0.035, 0.060, 'Zebrafish'
 # ---------------------------------------------------------------
-
-settings.allow_interaction = True
 
 Z = np.zeros((n+2, n+2), [('U', np.double), ('V', np.double)])
 U, V = Z['U'], Z['V']

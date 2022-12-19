@@ -29,7 +29,7 @@ class Settings:
         screeshot_large_image = False # Sometimes setting this to True gives better results
 
         # Allow to continuously interact with scene during interactive() execution
-        allow_interaction = False
+        allow_interaction = True
 
         # Set up default mouse and keyboard functionalities
         enable_default_mouse_callbacks = True
@@ -204,7 +204,7 @@ class Settings:
         self.screeshot_large_image = False
 
         # Allow to continuously interact with scene during interactor.Start() execution
-        self.allow_interaction = False
+        self.allow_interaction = True
 
         # BUG in vtk9.0 (if true close works but sometimes vtk crashes, if false doesnt crash but cannot close)
         # see plotter.py line 555

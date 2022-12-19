@@ -4,8 +4,6 @@ Press ESC to quit"""
 # https://www.youtube.com/watch?v=MtG9cueB548
 from vedo import *
 
-settings.allow_interaction = True
-
 # Load the solution:
 x1, y1, z1,  x2, y2, z2 = np.load(download(dataurl+'3Dpen.npy'))
 p1, p2 = np.c_[x1,y1,z1], np.c_[x2,y2,z2]

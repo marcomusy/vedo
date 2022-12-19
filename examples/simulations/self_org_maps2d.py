@@ -52,15 +52,14 @@ class SOM:
                         grdpts[i*n+j] = (x[i,j], y[i,j], z[i,j])
                 grd.points(grdpts)
                 plt.render()
-                if plt.escaped: break  # hit ESC
+                if plt.escaped:
+                    break  # hit ESC
 
         plt.interactive().close()
         return [self.codebook[:,i].reshape(n,n) for i in range(3)]
 
 # -------------------------------------------------------------------------------
 if __name__ == "__main__":
-
-    settings.allow_interaction = True
 
     n = 25
     X, Y = np.meshgrid(np.linspace(0, 1, n), np.linspace(0, 1, n))

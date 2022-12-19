@@ -23,7 +23,6 @@ x = vector(theta, phi, psi)  # Lagrangian coordinates
 v = vector(thetadot, phidot, psidot)
 
 # ############################################################ the scene
-settings.allow_interaction = True
 plt = Plotter(interactive=False)
 plt += __doc__
 
@@ -40,6 +39,7 @@ pedpin = Pyramid([0, -0.08, 0], axis=[0, 1, 0], s=0.05, height=0.12).texture(dat
 formulas = Picture(dataurl+"images/gyro_formulas.png").alpha(0.9)
 formulas.scale(0.0035).pos(-1.4, -1.1, -1.1)
 plt += [pedestal + pedbase + pedpin + formulas]
+plt.show()
 
 # ############################################################ the physics
 pb = ProgressBar(0, 4, dt, c="b")
@@ -62,8 +62,9 @@ for i, t in enumerate(pb.range()):
     gyro.orientation(gaxis, rotation=psidot * t, rad=True)
     if not i % 200:  # add trace and render all, every 200 iterations
         plt += Point(gaxis, r=3, c="r")
-        plt.show()
-        if plt.escaped: break # if ESC is hit during the loop
+        plt.render()
+        if plt.escaped: 
+            break # if ESC is hit during the loop
     pb.print()
 
 plt.interactive().close()

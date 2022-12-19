@@ -23,8 +23,7 @@ Lrot = I * omega * gaxis  # angular momentum
 cm = gpos + 0.5 * Ls * gaxis  # center of mass of shaft
 
 # ############################################################ the scene
-settings.allow_interaction = True
-plt = Plotter(axes=0, interactive=0)
+plt = Plotter(interactive=False)
 plt += __doc__
 
 shaft = Cylinder([[0, 0, 0], Ls * gaxis], r=0.03, c="dg")
@@ -36,6 +35,7 @@ spring = Spring(top, gpos, r=0.06, thickness=0.01, c="gray")
 plt += [gyro, spring] # add it to Plotter.
 plt += Box(top, length=0.2, width=0.02, height=0.2, c="gray")
 plt += Box(pos=(0, 0.5, 0), length=2.6, width=3, height=2.6, c="gray", alpha=0.2).wireframe()
+plt.show()
 
 # ############################################################ the physics
 pb = ProgressBar(0, 5, dt, c="b")
@@ -50,8 +50,9 @@ for t in pb.range():
     # set orientation along gaxis and rotate it around its axis by omega*t degrees
     gyro.orientation(Lrot, rotation=omega * t, rad=True).pos(gpos)
     spring.stretch(top, gpos)
-    plt.show()
-    if plt.escaped: break # if ESC is hit during the loop
+    plt.render()
+    if plt.escaped: 
+        break # if ESC is hit during the loop
     pb.print()
 
 plt.interactive().close()

@@ -3,13 +3,12 @@ Simulate interacting charged particles in 3D space.
 """
 # An example simulation of N particles scattering on a charged target.
 # See e.g. https://en.wikipedia.org/wiki/Rutherford_scattering
-# By Tommy Vandermolen, 3 August 2018
-from vedo import Plotter, Cube, Sphere, mag2, versor, vector, settings
+# By Tommy Vandermolen
 import numpy as np
+from vedo import Plotter, Cube, Sphere, mag2, versor, vector
 
 K_COULOMB = 8987551787.3681764  # N*m^2/C^2
 plt = None  # so that it can be also used without visualization
-settings.allow_interaction = True
 
 
 class ParticleSim:

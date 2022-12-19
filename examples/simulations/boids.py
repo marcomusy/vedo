@@ -75,23 +75,22 @@ class Flock:
 ################################################################################
 if __name__=="__main__":
 
-    vedo.settings.allow_interaction = True
-
     np.random.seed(6)
     boids = []
     for i in range(500):
         c = 'black' if i % 50 else 'red'
-        boids.append( Boid(np.random.randn(3), np.random.randn(3), c=c) )
+        boid = Boid(np.random.randn(3), np.random.randn(3), c=c)
+        boids.append(boid)
     flock = Flock(boids)
 
     plt = vedo.Plotter(bg2='lb', interactive=False)
     axes = vedo.Axes(xrange=(-3,3), yrange=(-3,3), zrange=(-3,3), yzgrid=True, zxgrid2=True)
-    plt += [__doc__, flock.actor, axes]
+    plt.show(__doc__, flock.actor, axes, viewup='z')
 
     pb = vedo.ProgressBar(0, 100)
     for i in pb.range():
         flock.move()
-        plt.show(resetcam=False, viewup='z')
+        plt.render()
         pb.print()
 
 

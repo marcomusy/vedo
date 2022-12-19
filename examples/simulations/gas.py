@@ -18,17 +18,13 @@ k = 1.4e-23  # Boltzmann constant
 T = 300  # room temperature
 dt = 1.5e-5
 
-settings.allow_interaction = True
-#############################################################
-
-
+############################################################
 def reflection(p, pos):
     n = versor(pos)
     return np.dot(np.identity(3) - 2 * n * n[:, np.newaxis], p)
 
 
 plt = Plotter(title="gas in toroid", interactive=0, axes=0)
-
 plt += __doc__
 plt += Torus(c="g", r1=RingRadius, r2=RingThickness, alpha=0.1).wireframe(1)  ### <--
 
@@ -68,8 +64,11 @@ ds = (p / m) * (dt / 2.0)
 if "False" not in np.less_equal(mag(ds), radius).tolist():
     pos = pos + (p / mass) * (dt / 2.0)  # initial half-step
 
-pb = ProgressBar(0, Nsteps, c=1)
+plt.show()
+
+pb = ProgressBar(0, Nsteps, c="b")
 for i in pb.range():
+    pb.print()
 
     # Update all positions
     ds = mag((p / m) * (dt / 2.0))
@@ -128,11 +127,10 @@ for i in pb.range():
         Atoms[i].pos(pos[i])  ### <--
     outside = np.greater_equal(mag(pos), RingRadius + RingThickness)
 
-    plt.show()  ### <--
-    if plt.escaped: break # if ESC is hit during the loop
+    plt.render().reset_camera()  ### <--
+    if plt.escaped: 
+        break # if ESC is hit during the loop
 
     plt.camera.Azimuth(0.5)
-    plt.camera.Elevation(0.1)
-    pb.print()
 
 plt.interactive().close()

@@ -40,7 +40,6 @@ def d_dt(psi):  # find Psi(t+dt)-Psi(t) /dt with 4th order Runge-Kutta method
     k4 = f(psi + dt * k3)
     return (k1 + 2 * k2 + 2 * k3 + k4) / 6
 
-settings.allow_interaction = True
 
 plt = Plotter(interactive=False)
 bck = Picture(dataurl+"images/schrod.png").alpha(.3).scale(.0256).pos([0,-5,-.1])
@@ -66,7 +65,7 @@ for i in range(Nsteps):
     p = [0, 0, i*size/Nsteps]  # shift along z
     l, a = lines[i]
     l.cmap("gist_earth_r", a)
-    plt += [box, bck, l.pos(p), barrier.clone().alpha(0.3).pos(p)]
-    plt.show()
+    plt.add(box, bck, l.pos(p), barrier.clone().alpha(0.3).pos(p))
+    plt.reset_camera()
 
 plt.interactive().close()
