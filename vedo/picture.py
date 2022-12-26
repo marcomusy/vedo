@@ -996,7 +996,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         nchan = self._data.GetPointData().GetScalars().GetNumberOfComponents()
         narray = utils.vtk2numpy(self._data.GetPointData().GetScalars()).reshape(ny,nx,nchan)
         narray = np.flip(narray, axis=0).astype(np.uint8)
-        return narray
+        return narray.squeeze()
 
     def rectangle(self, xspan, yspan, c="green5", alpha=1):
         """Draw a rectangle box on top of current image. Units are pixels.

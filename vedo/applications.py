@@ -1123,7 +1123,7 @@ class SplinePlotter(Plotter):
                     return
             else:
                 self.line = Line(self.cpoints, closed=self.closed)
-            self.line.c(self.lcolor).lw(3).pickable(False)
+            self.line.c(self.lcolor).lw(self.lwidth).pickable(False)
             self.add(self.vpoints, self.line)
         else:
             self.add(self.vpoints)
