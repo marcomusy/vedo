@@ -498,6 +498,7 @@ from vtkmodules.vtkRenderingCore import (
     vtkPolyDataMapper,
     vtkPolyDataMapper2D,
     vtkProp,
+    vtkProp3D,
     vtkPropAssembly,
     vtkPropCollection,
     vtkPropPicker,

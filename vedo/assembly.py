@@ -225,7 +225,7 @@ class Assembly(vtk.vtkAssembly, vedo.base.Base3DProp):
             self.top = None
 
         for a in meshs:
-            if a:  # and a.GetNumberOfPoints():
+            if isinstance(a, vtk.vtkProp3D):  # and a.GetNumberOfPoints():
                 self.AddPart(a)
 
     def __add__(self, obj):
