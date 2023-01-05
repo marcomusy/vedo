@@ -256,9 +256,12 @@ class Assembly(vtk.vtkAssembly, vedo.base.Base3DProp):
                 else:
                     return scalarbar
 
-            self.scalarbar = Group(
-                [unpack_group(self.scalarbar), unpack_group(obj.scalarbar)]
-            )
+            if isinstance(self.scalarbar, Group):
+                self.scalarbar += unpack_group(obj.scalarbar)
+            else:
+                self.scalarbar = Group(
+                    [unpack_group(self.scalarbar), unpack_group(obj.scalarbar)]
+                )
 
         return self
 
