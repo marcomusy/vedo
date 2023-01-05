@@ -52,7 +52,7 @@ for i in range(nframes):
         Z0[:] = ZC[:]
 
     wave = Z1.ravel()
-    txt.text(f"frame: {i}/{nframes}, higth_max = {wave.max()}")
+    txt.text(f"frame: {i}/{nframes}, height_max = {wave.max()}")
     grid.cmap("Blues", wave, vmin=-2, vmax=2)
     newpts = grid.points()
     newpts[:,2] = wave

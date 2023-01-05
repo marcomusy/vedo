@@ -116,7 +116,7 @@ class BaseVolume:
 
     def origin(self, s=None):
         """Set/get the origin of the volumetric dataset."""
-        ### superseedes base.origin()
+        ### supersedes base.origin()
         ### DIFFERENT from base.origin()!
         if s is not None:
             self._data.SetOrigin(s)

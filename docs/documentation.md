@@ -68,7 +68,7 @@ Pressing `h` will then show a number of options to interact with your 3D scene:
 You can export it to a vedo file, which is actually a normal `numpy` file by pressing `E`
 in your 3D scene, the you can interact with it normally using for example the key bindings shown above.
 
-Another way is to export to a template htlm web page by pressing `F` using `x3d` backend.
+Another way is to export to a template html web page by pressing `F` using `x3d` backend.
 You can also export it programmatically in `k3d` from a jupyter notebook.
 
 

@@ -1667,7 +1667,7 @@ class BaseGrid(BaseActor):
         vmax : float
             force the max of the scalar range to be this value
         """
-        # superseeds method in Points, Mesh
+        # supersedes method in Points, Mesh
         if vmin is None:
             vmin, _ = self._data.GetScalarRange()
         if vmax is None:
