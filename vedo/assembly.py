@@ -88,7 +88,7 @@ class Group(vtk.vtkPropAssembly):
         self.transform = None
         self.scalarbar = None
 
-        for a in objects:
+        for a in vedo.utils.flatten(objects):
             if a:
                 self.AddPart(a)
             
@@ -248,10 +248,17 @@ class Assembly(vtk.vtkAssembly, vedo.base.Base3DProp):
         if hasattr(obj, "scalarbar") and obj.scalarbar is not None:
             if self.scalarbar is None:
                 self.scalarbar = obj.scalarbar
-            elif isinstance(self.scalarbar, Group):
-                self.scalarbar += obj.scalarbar
-            else:
-                self.scalarbar = Group(self.scalarbar, obj.scalarbar)
+                return self
+
+            def unpack_group(scalarbar):
+                if isinstance(scalarbar, Group):
+                    return scalarbar.unpack()
+                else:
+                    return scalarbar
+
+            self.scalarbar = Group(
+                [unpack_group(self.scalarbar), unpack_group(obj.scalarbar)]
+            )
 
         return self
 
