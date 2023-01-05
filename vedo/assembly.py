@@ -224,16 +224,35 @@ class Assembly(vtk.vtkAssembly, vedo.base.Base3DProp):
             self.base = None
             self.top = None
 
+        scalarbars = []
         for a in meshs:
             if isinstance(a, vtk.vtkProp3D):  # and a.GetNumberOfPoints():
                 self.AddPart(a)
+            if hasattr(a, "scalarbar") and a.scalarbar is not None:
+                scalarbars.append(a.scalarbar)
+
+        if len(scalarbars) > 1:
+            self.scalarbar = Group(scalarbars)
+        elif len(scalarbars) == 1:
+            self.scalarbar = scalarbars[0]
 
     def __add__(self, obj):
         """
         Add an object to the assembly
         """
-        self.AddPart(obj)
+        if isinstance(obj, vtk.vtkProp3D):
+            self.AddPart(obj)
+
         self.actors.append(obj)
+
+        if hasattr(obj, "scalarbar") and obj.scalarbar is not None:
+            if self.scalarbar is None:
+                self.scalarbar = obj.scalarbar
+            elif isinstance(self.scalarbar, Group):
+                self.scalarbar += obj.scalarbar
+            else:
+                self.scalarbar = Group(self.scalarbar, obj.scalarbar)
+
         return self
 
     def __contains__(self, obj):
