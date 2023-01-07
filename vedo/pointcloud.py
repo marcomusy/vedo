@@ -858,15 +858,15 @@ class Points(vtk.vtkFollower, BaseActor):
         if isinstance(meshs, list):
             alist = [self]
             for l in meshs:
-                if isinstance(l, vtk.vtkAssembly):
-                    alist += l.getMeshes()
+                if isinstance(l, vedo.Assembly):
+                    alist += l.unpack()
                 else:
                     alist += l
             return vedo.assembly.Assembly(alist)
 
-        if isinstance(meshs, vtk.vtkAssembly):
-            meshs.AddPart(self)
-            return meshs
+        if isinstance(meshs, vedo.Assembly):
+            return meshs + self  # use Assembly.__add__
+
         return vedo.assembly.Assembly([self, meshs])
 
     def polydata(self, transformed=True):

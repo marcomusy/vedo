@@ -1407,7 +1407,7 @@ class BaseActor(Base3DProp):
             if isinstance(self.scalarbar, vtk.vtkActor):
                 plt.renderer.RemoveActor(self.scalarbar)
             elif isinstance(self.scalarbar, vedo.Assembly):
-                for a in self.scalarbar.get_meshes():
+                for a in self.scalarbar.unpack():
                     plt.renderer.RemoveActor(a)
         if c is None:
             c = "gray"
