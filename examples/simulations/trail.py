@@ -15,11 +15,9 @@ plt = Plotter(axes=6, interactive=False)
 # add meshes to Plotter list
 plt += [s, p, __doc__]
 
-for i in range(200):
+for i in range(150):
     p.pos(-2+i/100.0, sin(i/5.0)/15, 0)
     plt.show(azimuth=-0.2)
-    if plt.escaped:
-        break # if ESC is hit during the loop
 
 # stay interactive and after pressing q close
 plt.interactive().close()

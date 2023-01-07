@@ -21,7 +21,8 @@ axes = Axes(xrange=(-3,3), yrange=(-3,3), zrange=(-3,3))
 plt = Plotter(interactive=False)
 plt.show(axes, __doc__, viewup='z')
 
-pb = ProgressBar(0, len(p1))
+pb = ProgressBar(0, 50)
+i = 0
 for b1, b2 in zip(p1,p2):
     ball1.pos(b1)
     ball2.pos(b2)
@@ -30,7 +31,8 @@ for b1, b2 in zip(p1,p2):
     # show at max frame rate of 15 Hz
     plt.show(ball1, ball2, rod1, rod2, resetcam=False, rate=15)
     pb.print()
-    if plt.escaped:  # if ESC is pressed
+    i+=1
+    if i > 50:
         break
 
-plt.interactive()
+plt.interactive().close()

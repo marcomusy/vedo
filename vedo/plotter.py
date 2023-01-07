@@ -513,7 +513,6 @@ class Plotter:
 
         # build the rendering window:
         self.window = vtk.vtkRenderWindow()
-        self.escaped = False
 
         self.window.GlobalWarningDisplayOff()
         self.window.SetWindowName(self.title)
@@ -792,8 +791,31 @@ class Plotter:
         if settings.enable_default_keyboard_callbacks:
             self.interactor.AddObserver("KeyPressEvent", self._keypress)
 
+        # self._timer_event_id = None
+        # if settings.allow_interaction:
+            # def win_interact(iren, event):  # flushing interactor events
+            #     if event == "TimerEvent":
+            #         iren.ExitCallback()
+            # self._timer_event_id = self.interactor.AddObserver("TimerEvent", win_interact)
 
     ##################################################################### ..init ends here.
+
+
+    # def allow_interaction(self):
+    #     """Call this method from inside a loop to allow mouse and keyboard interaction."""
+    #     if (
+    #         self.interactor
+    #         and self._timer_event_id is not None
+    #         and settings.immediate_rendering
+    #     ):
+    #         self._repeatingtimer_id = self.interactor.CreateRepeatingTimer(1)
+    #         self.interactor.Start()
+    #         if vedo.vtk_version == (9,2,2):
+    #             self.interactor.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
+    #         if self.interactor:
+    #             self.interactor.DestroyTimer(self._repeatingtimer_id)
+    #         self._repeatingtimer_id = None
+    #     return self
 
     def __iadd__(self, actors):
         self.add(actors, render=False)
@@ -954,35 +976,17 @@ class Plotter:
             if not self.interactor.GetInitialized():
                 self.interactor.Initialize()
 
-        # if at is not None: # disable all except i==at
-        #     self.window.EraseOff()
-        #     if at < 0:
-        #         at = at + len(self.renderers) +1
-        #     for i, ren in enumerate(self.renderers):
-        #         if i != at:
-        #             ren.DrawOff()
-
-        if vedo.vtk_version[0] == 9 and "Darwin" in vedo.sys_platform:
-            for a in self.actors:
-                if isinstance(a, vtk.vtkVolume):
-                    self.window.SetMultiSamples(0)  # to fix mac OSX BUG vtk9
-                    break
+        # if vedo.vtk_version[0] == 9 and "Darwin" in vedo.sys_platform:
+        #     for a in self.actors:
+        #         if isinstance(a, vtk.vtkVolume):
+        #             self.window.SetMultiSamples(0)  # to fix mac OSX BUG vtk9
+        #             break
 
         self.camera = self.renderer.GetActiveCamera()
         if resetcam:
             self.renderer.ResetCamera()
 
         self.window.Render()
-
-        if settings.allow_interaction:
-            self.process_events()
-
-        # if at is not None: # re-enable all that were disabled
-        #     for i, ren in enumerate(self.renderers):
-        #         if i != at:
-        #             ren.DrawOn()
-        #     self.window.EraseOn()
-
         return self
 
     def interactive(self):
@@ -990,14 +994,10 @@ class Plotter:
         Start window interaction.
         Analogous to show(..., interactive=True).
         """
-        if self.interactor and not self.escaped:
+        if self.interactor:
             self.interactor.Start()
-            if vedo.vtk_version == (9,2,2): self.interactor.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
-        return self
-
-    def enable_erase(self, value=True):
-        """Enable erasing the redering window between render() calls."""
-        self.window.SetErase(value)
+            if vedo.vtk_version == (9,2,2):
+                self.interactor.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
         return self
 
     def enable_renderer(self, at=None, value=True):
@@ -2853,15 +2853,6 @@ class Plotter:
         if self.wx_widget:
             return self
 
-        # check if the widow needs to be closed (ESC button was hit)
-        if hasattr(self, "escaped") and self.escaped:
-            if not self.window:
-                return self  # do nothing, just return self (was already closed)
-            for r in self.renderers:
-                r.RemoveAllObservers()
-            self.close_window()
-            return self
-
         if self.renderers:  # in case of notebooks
 
             if at is None:
@@ -3109,9 +3100,6 @@ class Plotter:
 
         if self.interactor:  # can be offscreen..
 
-            if settings.allow_interaction:
-                self.process_events()
-
             # Set the style of interaction
             # see https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html
             if mode in (0, 'TrackballCamera'):
@@ -3150,7 +3138,8 @@ class Plotter:
             if self._interactive:
                 self.interactor.Start()
                 # vtk BUG:
-                if vedo.vtk_version == (9,2,2): self.interactor.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
+                if vedo.vtk_version == (9,2,2):
+                    self.interactor.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
 
             if rate:
                 if self.clock is None:  # set clock and limit rate
@@ -3164,8 +3153,8 @@ class Plotter:
                         time.sleep(mint - elapsed)
                     self.clock = time.time() - self._clockt0
 
-
         return self
+
 
     def add_inset(self, *actors, **options):
         """Add a draggable inset space into a renderer.
@@ -3477,22 +3466,16 @@ class Plotter:
         x, y = iren.GetEventPosition()
         renderer = iren.FindPokedRenderer(x, y)
 
-        if key in ["q", "Ctrl+q", "space", "Return"]:
+        if key in ["q", "Ctrl+q", "space", "Return", "Escape"]:
             iren.ExitCallback()
             return
 
-        if key == "Escape":
-            vedo.logger.info("Closing window now. Plotter.escaped set to True.")
-            self.escaped = True  # window will be escaped ASAP
-            iren.ExitCallback()
-            return
-
-        if key == "F1":
+        elif key == "F1":
             vedo.logger.info("Execution aborted. Exiting python kernel now.")
             iren.ExitCallback()
             sys.exit(0)
 
-        if key == "Down":
+        elif key == "Down":
             if self.clicked_actor in self.get_meshes():
                 self.clicked_actor.GetProperty().SetOpacity(0.02)
                 bfp = self.clicked_actor.GetBackfaceProperty()

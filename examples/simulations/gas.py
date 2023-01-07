@@ -9,7 +9,7 @@ import numpy as np
 
 #############################################################
 Natoms = 400  # change this to have more or fewer atoms
-Nsteps = 350  # nr of steps in the simulation
+Nsteps = 150  # nr of steps in the simulation
 Matom = 4e-3 / 6e23  # helium mass
 Ratom = 0.025  # wildly exaggerated size of helium atom
 RingThickness = 0.3  # thickness of the toroid
@@ -128,8 +128,6 @@ for i in pb.range():
     outside = np.greater_equal(mag(pos), RingRadius + RingThickness)
 
     plt.render().reset_camera()  ### <--
-    if plt.escaped: 
-        break # if ESC is hit during the loop
 
     plt.camera.Azimuth(0.5)
 

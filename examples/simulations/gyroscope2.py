@@ -6,7 +6,7 @@ azimuthal angle phi, and spin angle psi"""
 from vedo import *
 
 # ############################################################ parameters
-dt = 5e-05  # time step
+dt = 3e-03  # time step
 Lshaft = 1  # length of gyroscope shaft
 M = 1  # mass of gyroscope (massless shaft)
 R = 0.4  # radius of gyroscope rotor
@@ -23,7 +23,7 @@ x = vector(theta, phi, psi)  # Lagrangian coordinates
 v = vector(thetadot, phidot, psidot)
 
 # ############################################################ the scene
-plt = Plotter(interactive=False)
+plt = Plotter()
 plt += __doc__
 
 shaft = Cylinder([[0, 0, 0], [Lshaft, 0, 0]], r=0.03, c="dg")
@@ -39,18 +39,17 @@ pedpin = Pyramid([0, -0.08, 0], axis=[0, 1, 0], s=0.05, height=0.12).texture(dat
 formulas = Picture(dataurl+"images/gyro_formulas.png").alpha(0.9)
 formulas.scale(0.0035).pos(-1.4, -1.1, -1.1)
 plt += [pedestal + pedbase + pedpin + formulas]
-plt.show()
 
 # ############################################################ the physics
-pb = ProgressBar(0, 4, dt, c="b")
-for i, t in enumerate(pb.range()):
+def loop_func(event):
+    global  t, v, x
+    t += dt
+
     st, ct, sp, cp = sin(x[0]), cos(x[0]), sin(x[1]), cos(x[1])
 
     thetadot, phidot, psidot = v  # unpack
-    atheta = (
-        st * ct * phidot ** 2 + (M * g * r * st - I3 * (psidot + phidot * ct) * phidot * st) / I1
-    )
-    aphi = (I3 / I1) * (psidot + phidot * ct) * thetadot / st - 2 * ct * thetadot * phidot / st
+    atheta = st*ct * phidot**2 + (M*g*r*st - I3*(psidot + phidot*ct) * phidot*st)/I1
+    aphi = I3/I1 * (psidot + phidot * ct) * thetadot/st - 2 * ct * thetadot * phidot/st
     apsi = phidot * thetadot * st - aphi * ct
     a = vector(atheta, aphi, apsi)
 
@@ -60,11 +59,9 @@ for i, t in enumerate(pb.range()):
     gaxis = (Lshaft + 0.03) * vector(st * sp, ct, st * cp)
     # set orientation along gaxis and rotate it around its axis by psidot*t degrees
     gyro.orientation(gaxis, rotation=psidot * t, rad=True)
-    if not i % 200:  # add trace and render all, every 200 iterations
-        plt += Point(gaxis, r=3, c="r")
-        plt.render()
-        if plt.escaped: 
-            break # if ESC is hit during the loop
-    pb.print()
+    plt.add(Point(gaxis, r=3, c="red4"))
 
-plt.interactive().close()
+t = 0
+plt.add_callback("timer", loop_func)
+plt.timer_callback("start")
+plt.show().close()

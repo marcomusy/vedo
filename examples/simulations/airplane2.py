@@ -18,10 +18,6 @@ plt = Plotter(axes=1, interactive=False)
 for t in np.arange(0, 3.2, 0.02):
     plane1.pos(9*t-15, 2-t, sin(3-t)).rotate_x(0+t) # make up some movement
     plane2.pos(8*t-15, t-2, sin(t-3)).rotate_x(2-t) # for the 2 planes
-
     plt.show(world, plane1, plane2, __doc__, viewup="z")
-
-    if plt.escaped:
-        break  # if ESC button is hit during the loop
 
 plt.interactive().close()

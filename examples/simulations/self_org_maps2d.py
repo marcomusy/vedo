@@ -52,16 +52,15 @@ class SOM:
                         grdpts[i*n+j] = (x[i,j], y[i,j], z[i,j])
                 grd.points(grdpts)
                 plt.render()
-                if plt.escaped:
-                    break  # hit ESC
-
+                plt.camera.Azimuth(1)
         plt.interactive().close()
+
         return [self.codebook[:,i].reshape(n,n) for i in range(3)]
 
 # -------------------------------------------------------------------------------
 if __name__ == "__main__":
 
-    n = 25
+    n = 20
     X, Y = np.meshgrid(np.linspace(0, 1, n), np.linspace(0, 1, n))
     P = np.c_[X.ravel(), Y.ravel()]
     D = scipy.spatial.distance.cdist(P, P)
@@ -74,4 +73,4 @@ if __name__ == "__main__":
 
     som = SOM((len(P), 3), D)
     som.samples = s.points()
-    som.learn(n_epoch=7000, sigma=(1, 0.01), lrate=(1, 0.01))
+    som.learn(n_epoch=4000, sigma=(1, 0.01), lrate=(1, 0.01))

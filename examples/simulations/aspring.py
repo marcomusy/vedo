@@ -15,20 +15,17 @@ xr = vector(L, 0, 0)
 sx0 = vector(-0.8, 0, 0)
 offx = vector(0, 0.3, 0)
 
-plt = Plotter(size=(1050, 600), interactive=False)
+plt = Plotter(size=(1050, 600))
 
 plt += Box(pos=(0, -0.1, 0), size=(2.0, 0.02, 0.5))  # floor
 plt += Box(pos=(-0.82, 0.15, 0), size=(0.04,0.50,0.3))  # wall
 
 block = Cube(pos=x, side=0.2, c="tomato")
-block.add_trail(offset=[0, 0.2, 0], lw=2, n=500)
-
 spring = Spring(sx0, x, r=0.06, thickness=0.01)
-
 plt += [block, spring, __doc__]
 
-pb = ProgressBar(0, 300, c="r")
-for i in pb.range():
+def loop_func(event):
+    global v, x
     F = -k * (x - xr) - b*v  # Force and friction
     a = F / m  # acceleration
     v = v + a*dt  # velocity
@@ -36,10 +33,8 @@ for i in pb.range():
 
     block.pos(x)  # update block position and trail
     spring.stretch(sx0, x)  # stretch helix accordingly
+    plt.render()
 
-    plt.show(elevation=0.1, azimuth=0.1, zoom=1.5)
-    if plt.escaped: 
-        break # if ESC is hit during the loop
-    pb.print()
-
-plt.interactive().close()
+plt.add_callback("timer", loop_func)
+plt.timer_callback("start")
+plt.show().close()

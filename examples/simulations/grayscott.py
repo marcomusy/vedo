@@ -43,10 +43,11 @@ grd.linewidth(0).wireframe(False).lighting(ambient=0.5)
 formula = r'(u,v)=(D_u\cdot\Delta u -u v v+F(1-u), D_v\cdot\Delta v +u v v -(F+k)v)'
 print('Du, Dv, F, k, name =', Du, Dv, F, k, name)
 
-plt = Plotter(bg='linen', interactive=False)
-plt.show(grd, __doc__, zoom=1.25, elevation=-30)
+plt = Plotter(bg='linen')
 
-for step in range(Nsteps):
+def loop_func(event):
+    global u, v
+
     for i in range(25):
         Lu = (                  U[0:-2, 1:-1] +
               U[1:-1, 0:-2] - 4*U[1:-1, 1:-1] + U[1:-1, 2:] +
@@ -63,9 +64,10 @@ for step in range(Nsteps):
     newpts = grd.points()
     newpts[:,2] = grd.pointdata['escals']*25 # assign z elevation
     grd.points(newpts)                       # set the new points
-
     plt.render()
-    if plt.escaped:
-        break  # if ESC is hit during loop
 
-plt.interactive().close()
+plt.add_callback("timer", loop_func)
+plt.timer_callback("start")
+plt.show(grd, __doc__, zoom=1.25, elevation=-30)
+plt.close()
+

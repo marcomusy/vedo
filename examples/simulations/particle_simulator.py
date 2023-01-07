@@ -61,7 +61,6 @@ class ParticleSim:
                 a.vsphere.pos(a.pos)
             if plt:
                 plt.show(resetcam=not i, azimuth=1)
-                if plt.escaped: break # if ESC is hit during the loop
 
 
 class Particle:
@@ -98,7 +97,7 @@ if __name__ == "__main__":
 
     plt += Cube().c('w').wireframe(True).lighting('off') # a wireframe cube
 
-    sim = ParticleSim(dt=1e-5, iterations=100)
+    sim = ParticleSim(dt=1e-5, iterations=60)
     sim.add_particle((-0.4, 0, 0), color="w", charge=3e-6, radius=0.01, fixed=True)  # the target
 
     positions = np.random.randn(500, 3) / 60  # generate a beam of particles
@@ -107,4 +106,4 @@ if __name__ == "__main__":
         sim.add_particle(p, charge=0.01e-6, mass=0.1e-6, vel=(1000, 0, 0), negligible=True)
 
     sim.simulate()
-    plt.show(interactive=True, resetcam=False).close()
+    plt.interactive().close()

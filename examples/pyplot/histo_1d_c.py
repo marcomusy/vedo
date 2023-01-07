@@ -22,7 +22,7 @@ fig = histogram(
 
 x = np.linspace(0,1, 200)
 y = 200*np.sin(12*x)**2 + 100
-fig += Line(x, y, c='red5', lw=3)
+fig += Line(x, y, c='red5', lw=3).z(0.001)
 
 fig.add_label('my function', marker='-', mc='red5')
 fig.add_legend(pos=[0.7,1.33], alpha=0.2)

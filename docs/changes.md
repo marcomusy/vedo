@@ -51,16 +51,6 @@
 examples/simulations/lorenz.py
 examples/simulations/orbitals.py
 examples/other/meshio_read.py
-examples/other/dolfin/ex06_elasticity3.py
--------------------------
-vtk9.2:
-interactionstyle.py
-cutter.py
-histo_manual.py
-tet_explode.py
-tet_isos_slice.py # stuck
-makeVideo.py
-lorenz.py
 
 
 

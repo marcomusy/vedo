@@ -5,12 +5,11 @@ quadratic, transformation defined in transform()
 The fitting minimizes the distance to the target surface
 using algorithms available in the scipy.optimize package.
 """
-from vedo import *
+from vedo import dataurl, vector, mag2, mag
+from vedo import Plotter, Sphere, Point, Text3D, Arrows, Mesh
 import scipy.optimize as opt
 
 print(__doc__)
-
-settings.use_depth_peeling = True
 
 plt = Plotter(shape=[1, 3], interactive=0, axes=1)
 
@@ -23,7 +22,7 @@ class Morpher:
         self.method = "SLSQP"  # 'SLSQP', 'L-BFGS-B', 'TNC' ...
         self.tolerance = 0.0001
         self.subsample = 200  # pick only subsample pts
-        self.allowScaling = False
+        self.allow_scaling = False
         self.params = []
 
         self.msource = None
@@ -82,7 +81,7 @@ class Morpher:
         bnds = [(-self.bound, self.bound)] * 18
         x0 = [0.0] * 18  # initial guess
         x0 += [1.0]  # the optional scale
-        if self.allowScaling:
+        if self.allow_scaling:
             bnds += [(1.0 - self.bound, 1.0 + self.bound)]
         else:
             bnds += [(1.0, 1.0)]  # fix scale to 1
@@ -99,8 +98,7 @@ class Morpher:
 
         pos, sz = self.s_size[0], self.s_size[1]
 
-        sphere0 = Sphere(pos, c="gray", r=sz, alpha=0.8, res=16).wireframe()
-        sphere1 = sphere0.clone().alpha(0.2).wireframe(False)
+        sphere0 = Sphere(pos, c="gray", r=sz, res=10, quads=True).wireframe()
 
         newpts = []
         for p in self.msource.points():
@@ -109,13 +107,10 @@ class Morpher:
         self.msource.points(newpts)
 
         arrs = []
-        newpts = []
         for p in sphere0.points():
             newp = self.transform(p)
-            newpts.append(newp)
             arrs.append([p, newp])
-        sphere1.points(newpts)
-        hair = Arrows(arrs, s=0.3, alpha=0.5, c='jet')
+        hair = Arrows(arrs, s=0.3, c='jet')
 
         zero = Point(pos, c="black")
         x1, x2, y1, y2, z1, z2 = self.target.bounds()
@@ -124,7 +119,7 @@ class Morpher:
         text2 = Text3D("morphed vs target", tpos, s=sz / 10, c="dg")
         text3 = Text3D("deformation", tpos, s=sz / 10, c="dr")
 
-        plt.at(2).show(sphere0, sphere1, zero, text3, hair)
+        plt.at(2).show(sphere0, zero, text3, hair)
         plt.at(1).show(self.msource, self.target, text2)
         plt.at(0).show(self.source, self.target, text1, zoom=1.2, interactive=True)
         plt.close()
@@ -137,7 +132,7 @@ if __name__ == "__main__":
     mr.source = Mesh(dataurl+"270.vtk").color("g").alpha(0.4)
     mr.target = Mesh(dataurl+"290.vtk").color("b").alpha(0.3)
     mr.target.wireframe()
-    mr.allowScaling = True
+    mr.allow_scaling = True
     mr.bound = 0.4  # limits the parameter value
 
     mr.morph()

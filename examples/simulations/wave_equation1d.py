@@ -12,7 +12,7 @@ from vedo import *
 ####################################################
 N = 400   # Number of coupled oscillators
 dt = 0.5  # Time step
-nsteps = 2000  # Number of steps in the simulation
+nsteps = 1500  # Number of steps in the simulation
 
 
 ####################################################
@@ -106,17 +106,14 @@ for i in pb.range():
         continue
     y_eu = positions_eu[i]  # retrieve the list of y positions at step i
     y_rk = positions_rk[i]
-    
+
     pts = line_eu.points()
     pts[:,1] = y_eu
     line_eu.points(pts)
-    
+
     pts = line_rk.points()
     pts[:,1] = y_rk
     line_rk.points(pts)
-    
     plt.render()
-    if plt.escaped:
-        break               # if ESC is hit during the loop
 
 plt.interactive().close()

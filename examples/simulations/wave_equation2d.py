@@ -1,8 +1,7 @@
-"""Solve the wave equation using finite differences and the Euler method
-(press space bar to continue)"""
+"""Solve the wave equation using finite differences and the Euler method"""
 import numpy as np
 from scipy.ndimage import gaussian_filter
-from vedo import Grid, Text2D, show
+from vedo import Plotter, Grid, Text2D
 
 N = 400      # grid resolution
 A, B = 5, 4  # box sides
@@ -31,9 +30,9 @@ cam = dict(
     viewup=(-0.2242, 0.7363, 0.6384),
     distance=17.40,
 )
-plt = show(grid, txt, __doc__,
-           camera=cam, axes=1, size=(1000,700), interactive=False,
-)
+
+plt = Plotter(axes=1, size=(1000,700), interactive=False)
+plt.show(grid, txt, __doc__, camera=cam)
 
 for i in range(nframes):
     # iterate m times before showing the frame
@@ -57,6 +56,7 @@ for i in range(nframes):
     newpts = grid.points()
     newpts[:,2] = wave
     grid.points(newpts)  # update the z component
-    plt.render().interactive()
+    plt.render()
 
+plt.interactive()
 plt.close()

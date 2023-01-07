@@ -73,7 +73,7 @@ Id = np.identity(Nsp)
 Dij = (Radius + Radius[:, np.newaxis]) ** 2  # Matrix Dij=(Ri+Rj)**2
 
 # The main loop
-pb = ProgressBar(0, 2000, c="r")
+pb = ProgressBar(0, 1000, c="r")
 for i in pb.range():
     # Update all positions
     np.add(Pos, Vel * Dt, Pos)  # Fast version of Pos = Pos + Vel*Dt
@@ -137,8 +137,6 @@ for i in pb.range():
         rsv = [Vel[0][0], Vel[0][1], 0]
         plt += Point(rsp, c="r", r=5, alpha=0.1)  # leave a point trace
         plt.render()  # render scene
-        if plt.escaped: 
-            break
     pb.print()
 
 plt.interactive().close()

@@ -22,7 +22,6 @@ for i, d in enumerate(data):
 axes = dict(xtitle='\Deltat /\mus', ytitle="source", ztitle="")
 plt = show(lines, __doc__, axes=axes, elevation=-30, interactive=False, bg='k8')
 
-# vd = Video("anim_lines.mp4")
 for i in range(50):
     data[:, 1:] = data[:, :-1]                      # Shift data to the right
     data[:, 0] = np.random.uniform(0, 1, len(data)) # Fill-in new values
@@ -31,9 +30,6 @@ for i in range(50):
         newpts[:,2] = G * d
         line.points(newpts).cmap('gist_heat_r', newpts[:,2])
     plt.render()
-    if plt.escaped: break # if ESC is hit during the loop
-    # vd.add_frame()
-# vd.close()
 
 plt.interactive().close()
 

@@ -11,7 +11,6 @@ from vedo.dolfin import plot, ProgressBar, printc, download
 import numpy as np
 
 set_log_level(30)
-settings.allow_interaction = True
 
 def ricker_source(t, f=40):
     t -= 2 / f

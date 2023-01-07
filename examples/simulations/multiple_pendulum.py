@@ -1,6 +1,6 @@
-from vedo import Plotter, printc, mag, versor, vector
-from vedo import Cylinder, Spring, Box, Sphere
 import numpy as np
+from vedo import Plotter, mag, versor, vector
+from vedo import Cylinder, Spring, Box, Sphere
 
 ############## Constants
 N = 5  # number of bobs
@@ -22,7 +22,7 @@ for k in range(1, N + 1):
     bob_x.append(bob_x[k - 1] + np.cos(alpha) + np.random.normal(0, 0.1))
     bob_y.append(bob_y[k - 1] + np.sin(alpha) + np.random.normal(0, 0.1))
 
-plt = Plotter(title="Multiple Pendulum", interactive=False, bg2='ly')
+plt = Plotter(title="Multiple Pendulum", bg2='ly')
 plt += Box(pos=(0, -5, 0), length=12, width=12, height=0.7, c="k").wireframe(1)
 sph = Sphere(pos=(bob_x[0], bob_y[0], 0), r=R / 2, c="gray")
 plt += sph
@@ -53,19 +53,17 @@ Dt *= np.sqrt(1 / g)
 Dt2 = Dt / 2  # Midpoint time step
 DiaSq = (2 * R) ** 2  # Diameter of bob squared
 
-printc("Press ESC to exit.", c="red", invert=1)
-plt.show()
 
-while True:
+def loop_func(evt):
+    global bob_x, bob_y
+
     bob_x_m = list(map((lambda x, dx: x + Dt2 * dx), bob_x, x_dot))  # midpoint variables
     bob_y_m = list(map((lambda y, dy: y + Dt2 * dy), bob_y, y_dot))
 
     for k in range(1, N + 1):
         factor = fctr(dij[k])
         x_dot_m[k] = x_dot[k] - Dt2 * (Ks * (bob_x[k] - bob_x[k - 1]) * factor + gamma * x_dot[k])
-        y_dot_m[k] = y_dot[k] - Dt2 * (
-            Ks * (bob_y[k] - bob_y[k - 1]) * factor + gamma * y_dot[k] + g
-        )
+        y_dot_m[k] = y_dot[k] - Dt2 * (Ks * (bob_y[k] - bob_y[k - 1]) * factor + gamma * y_dot[k] + g)
 
     for k in range(1, N):
         factor = fctr(dij[k + 1])
@@ -113,7 +111,7 @@ while True:
         link[k - 1].stretch(bob[k - 1].pos(), bob[k].pos())
 
     plt.render()
-    if plt.escaped:
-        break  # if ESC is hit during the loop
 
-plt.close()
+plt.add_callback("timer", loop_func)
+plt.timer_callback("start")
+plt.show().close()
