@@ -1506,17 +1506,18 @@ def export_window(fileoutput, binary=False):
         )
         if vedo.plotter_instance.axes_instances:
             obj.append(vedo.plotter_instance.axes_instances[0])
+
         for a in obj:
             if isinstance(a, Mesh):
                 newa = a.clone(transformed=True)
-                vedo.plotter_instance.remove(a, render=False).add(newa, render=False)
+                vedo.plotter_instance.remove(a).add(newa, render=False)
 
             elif isinstance(a, Assembly):
+                vedo.plotter_instance.remove(a)
                 for b in a.unpack():
                     if b:
-                        newb = b.clone()
+                        newb = b.clone(transformed=True)
                         vedo.plotter_instance.add(newb, render=False)
-                vedo.plotter_instance.remove(a)
         vedo.plotter_instance.render()
 
         exporter = vtk.vtkX3DExporter()
@@ -1524,7 +1525,7 @@ def export_window(fileoutput, binary=False):
         exporter.FastestOff()
         exporter.SetInput(vedo.plotter_instance.window)
         exporter.SetFileName(fileoutput)
-        #        exporter.WriteToOutputStringOn() # see below
+        # exporter.WriteToOutputStringOn() # see below
         exporter.Update()
         exporter.Write()
 

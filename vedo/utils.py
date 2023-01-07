@@ -396,7 +396,7 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, fast=True, t
         arr = numpy_to_vtkIdTypeArray(hs, deep=True)
         source_polygons.SetCells(nf, arr)
 
-    else:  
+    else:
         ############################# manually add faces, SLOW
 
         showbar = False
