@@ -88,7 +88,7 @@ class Group(vtk.vtkPropAssembly):
         self.transform = None
         self.scalarbar = None
 
-        for a in objects:
+        for a in vedo.utils.flatten(objects):
             if a:
                 self.AddPart(a)
             
@@ -224,16 +224,45 @@ class Assembly(vtk.vtkAssembly, vedo.base.Base3DProp):
             self.base = None
             self.top = None
 
+        scalarbars = []
         for a in meshs:
-            if a:  # and a.GetNumberOfPoints():
+            if isinstance(a, vtk.vtkProp3D):  # and a.GetNumberOfPoints():
                 self.AddPart(a)
+            if hasattr(a, "scalarbar") and a.scalarbar is not None:
+                scalarbars.append(a.scalarbar)
+
+        if len(scalarbars) > 1:
+            self.scalarbar = Group(scalarbars)
+        elif len(scalarbars) == 1:
+            self.scalarbar = scalarbars[0]
 
     def __add__(self, obj):
         """
         Add an object to the assembly
         """
-        self.AddPart(obj)
+        if isinstance(obj, vtk.vtkProp3D):
+            self.AddPart(obj)
+
         self.actors.append(obj)
+
+        if hasattr(obj, "scalarbar") and obj.scalarbar is not None:
+            if self.scalarbar is None:
+                self.scalarbar = obj.scalarbar
+                return self
+
+            def unpack_group(scalarbar):
+                if isinstance(scalarbar, Group):
+                    return scalarbar.unpack()
+                else:
+                    return scalarbar
+
+            if isinstance(self.scalarbar, Group):
+                self.scalarbar += unpack_group(obj.scalarbar)
+            else:
+                self.scalarbar = Group(
+                    [unpack_group(self.scalarbar), unpack_group(obj.scalarbar)]
+                )
+
         return self
 
     def __contains__(self, obj):

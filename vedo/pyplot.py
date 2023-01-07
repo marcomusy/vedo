@@ -254,7 +254,7 @@ class Figure(Assembly):
         return
 
     def __add__(self, *obj):
-        # just to avoid confusion, superseed Assembly.__add__
+        # just to avoid confusion, supersede Assembly.__add__
         return self.__iadd__(*obj)
 
     def __iadd__(self, *obj):
