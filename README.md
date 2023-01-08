@@ -17,15 +17,10 @@ for scientific analysis and **v**isualization of **3d** **o**bjects.<br>
 ## 💾  Installation
 ```bash
 pip install vedo
-
-# For better results try:
-# pip install vtk==9.0.3
 ```
 
 <details>
 <summary>additional installation details <i><b>[click to expand]</b></i> </summary>
-
-- Installing VTK version 9.0.x (the latest is 9.2) will generate better visualization for transparent objects.
 
 - To install the latest _dev_ version of `vedo`: <br>
 `pip install -U git+https://github.com/marcomusy/vedo.git`
