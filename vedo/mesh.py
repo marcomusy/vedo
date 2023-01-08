@@ -2145,7 +2145,7 @@ class Mesh(Points):
         Return the list of points intersecting the mesh
         along the segment defined by two points `p0` and `p1`.
 
-        Use ``return_ids`` to return the cell ids instead of point coords
+        Use ``return_ids`` to return the cell ids along with point coords
 
         Example
         -------
@@ -2185,8 +2185,8 @@ class Mesh(Points):
             pts_ids = []
             for i in range(idlist.GetNumberOfIds()):
                 cid = idlist.GetId(i)
-                pts_ids.append([pts[i], cid])
-            return np.array(pts_ids)
+                pts_ids.append(cid)
+            return (pts, np.array(pts_ids).astype(np.uint32))
 
         return pts
 
