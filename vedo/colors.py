@@ -33,7 +33,7 @@ __all__ = [
 
 
 try:
-    import matplotlib.cm as cm_mpl
+    import matplotlib.cm as _cm_mpl
     _has_matplotlib = True
     cmaps = {}
 except ModuleNotFoundError:
@@ -781,7 +781,7 @@ def color_map(value, name="jet", vmin=None, vmax=None):
     if _has_matplotlib:
         # matplotlib is available, use it! ###########################
         if isinstance(name, str):
-            mp = cm_mpl.get_cmap(name=name)
+            mp = _cm_mpl.get_cmap(name=name)
         else:
             mp = name  # assume matplotlib.colors.LinearSegmentedColormap
         result = mp(values)[:, [0, 1, 2]]

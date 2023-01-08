@@ -2055,7 +2055,7 @@ def trimesh2vedo(inputobj):
 
 
 def vedo2meshlab(vmesh):
-    """Convert a vedo mesh to a meshlab object."""
+    """Convert a vedo mesh to a Meshlab object."""
     try:
         import pymeshlab as mlab
     except RuntimeError:
@@ -2069,11 +2069,11 @@ def vedo2meshlab(vmesh):
         print("In vedo2meshlab, need to triangulate mesh first!")
         face_matrix = np.array(vmesh.clone().triangulate().faces(), dtype=np.float64)
 
-    v_normals_matrix = vmesh.normals(cells=False, compute=False)
+    v_normals_matrix = vmesh.normals(cells=False, recompute=False)
     if not v_normals_matrix.shape[0]:
         v_normals_matrix = np.empty((0, 3), dtype=np.float64)
 
-    f_normals_matrix = vmesh.normals(cells=True, compute=False)
+    f_normals_matrix = vmesh.normals(cells=True, recompute=False)
     if not f_normals_matrix.shape[0]:
         f_normals_matrix = np.empty((0, 3), dtype=np.float64)
 
@@ -2097,16 +2097,6 @@ def vedo2meshlab(vmesh):
                 f_color_matrix, np.ones(f_color_matrix.shape[0], dtype=np.float64)
             ]
 
-    if len(vmesh.pointdata.keys()) and vmesh.pointdata[0] is not None:
-        v_quality_array = vmesh.pointdata[0].astype(np.float64)
-    else:
-        v_quality_array = np.array([], dtype=np.float64)
-
-    if len(vmesh.celldata.keys()) and vmesh.celldata[0] is not None:
-        f_quality_array = vmesh.celldata[0].astype(np.float64)
-    else:
-        f_quality_array = np.array([], dtype=np.float64)
-
     m = mlab.Mesh(
         vertex_matrix=vertex_matrix,
         face_matrix=face_matrix,
@@ -2114,57 +2104,63 @@ def vedo2meshlab(vmesh):
         f_normals_matrix=f_normals_matrix,
         v_color_matrix=v_color_matrix,
         f_color_matrix=f_color_matrix,
-        v_quality_array=v_quality_array,
-        f_quality_array=f_quality_array,
     )
+
+    for k in vmesh.pointdata.keys():
+        data = vmesh.pointdata[k]
+        if data is not None:
+            if data.ndim == 1: # scalar
+                m.add_vertex_custom_scalar_attribute(data.astype(np.float64), k)
+            elif data.ndim == 2: # vectorial data
+                m.add_vertex_custom_point_attribute(data.astype(np.float64), k)
+
+    for k in vmesh.celldata.keys():
+        data = vmesh.celldata[k]
+        if data is not None:
+            if data.ndim == 1: # scalar
+                m.add_face_custom_scalar_attribute(data.astype(np.float64), k)
+            elif data.ndim == 2: # vectorial data
+                m.add_face_custom_point_attribute(data.astype(np.float64), k)
 
     m.update_bounding_box()
     return m
 
-
 def meshlab2vedo(mmesh):
-    """Convert a meshlab object to vedo mesh."""
+    """Convert a Meshlab object to vedo mesh."""
     inputtype = str(type(mmesh))
 
     if "MeshSet" in inputtype:
         mmesh = mmesh.current_mesh()
 
     mpoints, mcells = mmesh.vertex_matrix(), mmesh.face_matrix()
-    pnorms = mmesh.vertex_normal_matrix()
-    cnorms = mmesh.face_normal_matrix()
-
-    try:
-        parr = mmesh.vertex_quality_array()
-    except:
-        parr = None
-    try:
-        carr = mmesh.face_quality_array()
-    except:
-        carr = None
-
     if len(mcells):
         polydata = buildPolyData(mpoints, mcells)
     else:
         polydata = buildPolyData(mpoints, None)
 
-    if parr is not None:
+    if mmesh.has_vertex_scalar():
+        parr = mmesh.vertex_scalar_array()
         parr_vtk = numpy_to_vtk(parr)
-        parr_vtk.SetName("MeshLabQuality")
+        parr_vtk.SetName("MeshLabScalars")
         x0, x1 = parr_vtk.GetRange()
         if x1 - x0:
             polydata.GetPointData().AddArray(parr_vtk)
-            polydata.GetPointData().SetActiveScalars("MeshLabQuality")
+            polydata.GetPointData().SetActiveScalars("MeshLabScalars")
 
-    if carr is not None:
+    if mmesh.has_face_scalar():
+        carr = mmesh.face_scalar_array()
         carr_vtk = numpy_to_vtk(carr)
-        carr_vtk.SetName("MeshLabQuality")
+        carr_vtk.SetName("MeshLabScalars")
         x0, x1 = carr_vtk.GetRange()
         if x1 - x0:
             polydata.GetCellData().AddArray(carr_vtk)
-            polydata.GetCellData().SetActiveScalars("MeshLabQuality")
+            polydata.GetCellData().SetActiveScalars("MeshLabScalars")
 
+    pnorms = mmesh.vertex_normal_matrix()
     if len(pnorms):
         polydata.GetPointData().SetNormals(numpy2vtk(pnorms))
+
+    cnorms = mmesh.face_normal_matrix()
     if len(cnorms):
         polydata.GetCellData().SetNormals(numpy2vtk(cnorms))
     return polydata

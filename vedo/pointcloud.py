@@ -471,7 +471,7 @@ def fit_sphere(coords):
     else:
         residue = 0
     sph = vedo.shapes.Sphere(center, radius, c=(1, 0, 0)).wireframe(1)
-    sph.radius = radius  # used by fitSphere
+    sph.radius = radius
     sph.center = center
     sph.residue = residue
     sph.name = "FitSphere"

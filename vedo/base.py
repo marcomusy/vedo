@@ -124,7 +124,9 @@ class _DataArrayHelper:
             data = self.actor.inputdata().GetFieldData()
         arrnames = []
         for i in range(data.GetNumberOfArrays()):
-            arrnames.append(data.GetArray(i).GetName())
+            name = data.GetArray(i).GetName()
+            if name:
+                arrnames.append(name)
         return arrnames
 
     def remove(self, key):
