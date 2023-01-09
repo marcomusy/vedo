@@ -11,48 +11,6 @@
 - added example `basic/shadow3.py` (thanks to @paul0noah in #767)
 
 
----
-### `addons.py`
-
----
-### `applications.py`
-
----
-### `base.py`
-
----
-### `pointcloud.py`
-
-
----
-### `mesh.py`
-
----
-### `plotter.py`
-
----
-### `picture.py`
-
----
-### `pyplot.py`
-
----
-### `shapes.py`
-
----
-### `tetmesh.py`
-
-
----
-### `settings.py`
-
----
-### `utils.py`
-
----
-### `volume.py`
-
-
 -------------------------
 ## Examples
 
@@ -62,7 +20,7 @@ examples/other/pymeshlab1.py
 examples/other/pymeshlab2.py
 
 
-### Broken
+### Still Broken
 examples/simulations/lorenz.py
 examples/simulations/orbitals.py
 examples/other/meshio_read.py
