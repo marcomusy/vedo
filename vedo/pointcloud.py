@@ -900,39 +900,6 @@ class Points(vtk.vtkFollower, BaseActor):
 
         return self._data
 
-    # def shader(stype="vertex", block="Normal", dcode="", icode="", before=True, repeat=False):
-    #     """todo"""
-    #     sp = self.GetShaderProperty()
-
-    #     if "vertex" == stype and dcode:
-    #         sp.AddShaderReplacement(
-    #                                 vtk.vtkShader.Vertex,
-    #                                 f"//VTK::{block}::Dec",  # replace the normal block
-    #                                 before,                  # before the standard replacements
-    #                                 "//VTK::Normal::Dec\n" + dcode+" \n", # we still want the default
-    #                                 repeat,                 # only do it once
-    #         )
-    #         sp.AddVertexShaderReplacement(
-    #                                 "//VTK::Normal::Impl",  # replace the normal block
-    #                                 before,                  # before the standard replacements
-    #                                 "//VTK::Normal::Impl\n" + icode+" \n"# we still want the default
-    #                                 repeat,                 # only do it once
-    #         )
-
-    #     if "fragment" in stype and dcode:
-    #         sp.AddFragmentShaderReplacement("//VTK::System::Dec",
-    #                                False, # before the standard replacements
-    #                                dcode,
-    #                                False, # only do it once
-    #         );
-
-    #         sp.AddFragmentShaderReplacement(
-    #           "//VTK::Normal::Dec",  # replace the normal block
-    #           before,                  # before the standard replacements
-    #           "//VTK::Normal::Dec\n" + icode, # we still want the default
-    #           repeat,  # only do it once
-    #         );
-    #     return self
 
     def vertices(self, pts=None, transformed=True):
         """Alias for ``points()``."""

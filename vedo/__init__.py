@@ -59,6 +59,11 @@ __website__    = "https://github.com/marcomusy/vedo"
 # mount_staging
 # rm ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/autodocs/html
 # mv html/ ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/autodocs/
+#
+# To generate pdf
+# sudo apt install wkhtmltopdf
+# wkhtmltopdf --encoding utf8 -s A4 html/vedo/index.html 01_index.pdf
+
 ########################################## pdoc excludes:
 # __pdoc__ = {}
 # __pdoc__['backends'] = False

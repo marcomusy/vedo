@@ -8,6 +8,7 @@
 - `settings.allow_interaction` is now temporarily disabled.
 - fix on OSX window focusing
 - fixes for numpy 1.24
+- added example `basic/shadow3.py` (thanks to @paul0noah in #767)
 
 
 ---
@@ -56,8 +57,10 @@
 ## Examples
 
 ### New/Revised
+examples/basic/shadow3.py
 examples/other/pymeshlab1.py
 examples/other/pymeshlab2.py
+
 
 ### Broken
 examples/simulations/lorenz.py
