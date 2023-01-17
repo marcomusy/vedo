@@ -3843,7 +3843,8 @@ class Plotter:
                 addons.add_global_axes(axtype=(self.axes + 1) % 15, c=None)
             self.interactor.Render()
 
-        elif "KP_" in key:  # change axes style
+        elif "KP_" in key or key in ["Insert","End","Down","Next","Left","Begin","Right","Home","Up","Prior"]:
+            # change axes style
             asso = {
                     "KP_Insert":0, "KP_0":0,
                     "KP_End":1,    "KP_1":1,
@@ -3854,8 +3855,18 @@ class Plotter:
                     "KP_Right":6,  "KP_6":6,
                     "KP_Home":7,   "KP_7":7,
                     "KP_Up":8,     "KP_8":8,
-                    "KP_Prior":9,  "KP_9":9,
-                    }
+                    "Prior":9,  # on windows OS
+                    "Insert":0,
+                    "End":1,   
+                    "Down":2,
+                    "Next":3,
+                    "Left":4,
+                    "Begin":5,
+                    "Right":6,
+                    "Home":7,
+                    "Up":8,
+                    "Prior":9,
+            }
             clickedr = self.renderers.index(renderer)
             if key in asso:
                 if self.axes_instances[clickedr]:
