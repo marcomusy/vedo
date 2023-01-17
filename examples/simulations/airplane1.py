@@ -14,7 +14,7 @@ for t in np.arange(0, 3.2, 0.02):
     if t==0:
         airplane.add_trail(n=200).add_shadow('z', -4)
     plt.show(world, airplane, __doc__, viewup="z", resetcam=False)
-    #plt.process_events()
+    # plt.process_events()
 
 plt.interactive().close()
 

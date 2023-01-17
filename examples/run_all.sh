@@ -34,7 +34,7 @@ vedo       ../data/2*.vtk
 
 echo '----------------------------'
 echo vedo  ../data/2*.vtk
-vedo  -ni -k glossy data/2*.vtk
+vedo  -ni -k glossy ../data/2*.vtk
 
 echo '----------------------------'
 echo vedo -s  "../data/2??.vtk"

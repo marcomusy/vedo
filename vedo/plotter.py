@@ -29,33 +29,33 @@ __all__ = [
     "close",
 ]
 
-########################################################################################################
+########################################################################################
 class Event:
     """Event class"""
     # this class holds the info from an event in the window, works as dictionary too
     __slots__ = [
-         "name",
-         "title",
-         "id",
-         "time",
-         "priority",
-         "at",
-         "actor",
-         "picked3d",
-         "keyPressed", # obsolete, will disappear. Use "keypress"
-         "keypress",
-         "picked2d",
-         "delta2d",
-         "angle2d",
-         "speed2d",
-         "delta3d",
-         "speed3d",
-         "isPoints",
-         "isMesh",
-         "isAssembly",
-         "isVolume",
-         "isPicture",
-         "isActor2D",
+        "name",
+        "title",
+        "id",
+        "time",
+        "priority",
+        "at",
+        "actor",
+        "picked3d",
+        "keyPressed", # obsolete, will disappear. Use "keypress"
+        "keypress",
+        "picked2d",
+        "delta2d",
+        "angle2d",
+        "speed2d",
+        "delta3d",
+        "speed3d",
+        "isPoints",
+        "isMesh",
+        "isAssembly",
+        "isVolume",
+        "isPicture",
+        "isActor2D",
     ]
 
     def __init__(self):
@@ -82,7 +82,7 @@ class Event:
         return self.__slots__
 
 
-########################################################################################################
+##############################################################################################
 def show(
         *actors,
         at=None,
@@ -2057,7 +2057,7 @@ class Plotter:
                     tp = "Mesh "
                 elif evt.isPoints:
                     tp = "Points "
-                # elif evt.isVolume: # todo -not working
+                # elif evt.isVolume:
                 #     tp = "Volume "
                 elif evt.isPicture:
                     tp = "Pict "
@@ -2951,6 +2951,11 @@ class Plotter:
 
             if not ia:
                 continue
+            
+            # if hasattr(ia, "shadows"):
+            #     for ias in ia.shadows:
+            #         # print([ias.name])
+            #         self.renderer.RemoveActor(ias)
 
             self.renderer.AddActor(ia)
 
