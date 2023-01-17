@@ -835,7 +835,10 @@ class Plotter:
 
     def process_events(self):
         if self.interactor:
-            self.interactor.ProcessEvents()
+            try:
+                self.interactor.ProcessEvents()
+            except AttributeError:
+                pass
         return self
 
     def at(self, nren, yren=None):
@@ -976,12 +979,6 @@ class Plotter:
             if not self.interactor.GetInitialized():
                 self.interactor.Initialize()
 
-        # if vedo.vtk_version[0] == 9 and "Darwin" in vedo.sys_platform:
-        #     for a in self.actors:
-        #         if isinstance(a, vtk.vtkVolume):
-        #             self.window.SetMultiSamples(0)  # to fix mac OSX BUG vtk9
-        #             break
-
         self.camera = self.renderer.GetActiveCamera()
         if resetcam:
             self.renderer.ResetCamera()
@@ -998,15 +995,6 @@ class Plotter:
             self.interactor.Start()
             if vedo.vtk_version == (9,2,2):
                 self.interactor.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
-        return self
-
-    def enable_renderer(self, at=None, value=True):
-        """Enable a render() call to refresh this renderer."""
-        if at is None:
-            ren = self.renderer
-        else:
-            ren = self.renderers[at]
-        ren.SetDraw(value)
         return self
 
     def use_depth_peeling(self, at=None, value=True):
@@ -2992,7 +2980,6 @@ class Plotter:
             if not self.interactor.GetInitialized():
                 self.interactor.Initialize()
                 self.interactor.RemoveObservers("CharEvent")
-                # self.interactor.ProcessEvents()
 
         if self.sharecam:
             for r in self.renderers:
@@ -3000,12 +2987,6 @@ class Plotter:
 
         if self.qt_widget is not None:
             self.qt_widget.GetRenderWindow().AddRenderer(self.renderer)
-
-        if vedo.vtk_version[0] == 9 and "Darwin" in vedo.sys_platform:
-            for a in self.actors:
-                if isinstance(a, vtk.vtkVolume):
-                    self.window.SetMultiSamples(0)  # to fix mac OSX BUG vtk9
-                    break
 
         if self.axes is not None:
             if viewup != "2d" or self.axes in [1, 8] or isinstance(self.axes, dict):
@@ -3075,7 +3056,13 @@ class Plotter:
 
         self.window.SetWindowName(self.title)
 
+        # 2d ####################################################################
+        if settings.default_backend == "2d":
+            return backends.get_notebook_backend()
+        #########################################################################
+
         try:
+            # Needs pip install pyobjc
             if (self._cocoa_initialized is False
                 and "Darwin" in vedo.sys_platform
                 and not self.offscreen
@@ -3085,18 +3072,8 @@ class Plotter:
                 pid = os.getpid()
                 x = NSRunningApplication.runningApplicationWithProcessIdentifier_(int(pid))
                 x.activateWithOptions_(NSApplicationActivateIgnoringOtherApps)
-                # self.interactor.LeftButtonPressEvent()
-                # self.interactor.LeftButtonReleaseEvent()
-                # self.interactor.ShowWindowOn()
-                # self.interactor.ProcessEvents()
-                # self.window.MakeCurrent()
         except:
-            pass
-
-        # 2d ####################################################################
-        if settings.default_backend == "2d":
-            return backends.get_notebook_backend()
-        #########################################################################
+            vedo.logger.debug("On Mac OSX try: pip install pyobjc")
 
         if self.interactor:  # can be offscreen..
 
@@ -3140,6 +3117,14 @@ class Plotter:
                 # vtk BUG:
                 if vedo.vtk_version == (9,2,2):
                     self.interactor.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
+            elif (
+                    "Darwin" in vedo.sys_platform 
+                    and settings.allow_interaction
+                    and len(self.renderers) == 1
+            ):
+                # this causes focus problems with boolean.py and others
+                # when multirendering is present, but makes the window pop up
+                self.process_events()
 
             if rate:
                 if self.clock is None:  # set clock and limit rate

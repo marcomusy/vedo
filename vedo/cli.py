@@ -52,7 +52,11 @@ def execute_cli():
     args = parser.parse_args()
 
     if "/vedo/vedo" in vedo.installdir:
-        vedo.installdir = vedo.installdir.replace("vedo/", "").replace("vedo\\", "")
+        vedo.installdir = vedo.installdir.replace("vedo/", "")
+
+    if "\\vedo\\vedo" in vedo.installdir:
+        vedo.installdir = vedo.installdir.replace("vedo\\", "")
+
 
     if args.info is not None:
         system_info()
@@ -72,7 +76,7 @@ def execute_cli():
     elif args.eog:
         exe_eog(args)
 
-    elif len(args.files) == 0 or os.name == "nt":
+    elif len(args.files) == 0:
         exe_gui(args)
 
     else:
@@ -257,7 +261,7 @@ def exe_run(args):
         # print()
 
     printc("(" + matching[0] + ")", c="y", bold=0, italic=1)
-    os.system("python3 " + matching[0])
+    os.system("python " + matching[0])
 
 
 ################################################################################################
@@ -321,8 +325,12 @@ def exe_search(args):
                     if pattern in bline:
                         if fflag:
                             name = os.path.basename(ifile)
-                            etype = ifile.split("/")[-2]
-                            printc("--> examples/"+etype+"/"+name+":", c='y', italic=1, invert=1)
+                            try:
+                                etype = ifile.split("/")[-2]
+                                printc("--> examples/"+etype+"/"+name+":", c='y', italic=1, invert=1)
+                            except IndexError:
+                                etype = ifile.split("\\")[-2]
+                                printc("--> examples\\"+etype+"\\"+name+":", c='y', italic=1, invert=1)
                             fflag = False
                         line = line.replace(pattern, "\x1b[4m\x1b[1m"+pattern+"\x1b[0m\u001b[33m")
                         print(f"\u001b[33m{i}\t{line}\x1b[0m", end='')

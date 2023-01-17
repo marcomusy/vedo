@@ -44,7 +44,7 @@ setup(
         "console_scripts": ["vedo=vedo.cli:execute_cli"],
     },
 
-    install_requires=["vtk", "numpy", "Deprecated"],
+    install_requires=["vtk", "numpy", "Deprecated", "Pygments"],
     include_package_data=True,
 
     description="A python module for scientific analysis and visualization of 3D objects and point clouds based on VTK.",

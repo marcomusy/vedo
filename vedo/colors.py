@@ -561,19 +561,14 @@ emoji = {
     r"\sigma": "\U000003C3",
 }
 
+
 # terminal color print
 def _has_colors(stream):
     if not hasattr(stream, "isatty"):
         return False
     if not stream.isatty():
         return False
-    try:
-        import curses
-        curses.setupterm()
-        return curses.tigetnum("colors") > 2
-    except:
-        return False
-#
+    return True
 _terminal_has_colors = _has_colors(sys.stdout)
 
 
@@ -1158,6 +1153,7 @@ def printc(
             sys.stdout.write(out + end)
 
     except:  # ------------------------------------------------------------- fallback
+
         try:
             print(*strings, end=end)
         except UnicodeEncodeError as e:

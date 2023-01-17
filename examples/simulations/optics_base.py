@@ -112,7 +112,7 @@ class Detector(vedo.Mesh, OpticalElement):
     def integrate(self, pols):
         """Integrate the polarization vector and store
         the probability in cell array 'Probability'."""
-        arr = np.zeros([self.ncells, 3], dtype=np.float)
+        arr = np.zeros([self.ncells, 3], dtype=float)
         for i, cid in enumerate(self.cellids):
             arr[cid] += pols[i]
         arr = np.power(np.linalg.norm(arr, axis=1), 2) / len(self.cellids)
@@ -203,7 +203,7 @@ class Ray:
 
             for _ in range(self.maxiterations):
 
-                hit_cids = element.intersect_with_line( # faster
+                hits, cids = element.intersect_with_line( # faster
                     self.p,
                     self.p + self.v * self.dmax,
                     return_ids=True,
@@ -211,15 +211,15 @@ class Ray:
                 )
                 # hit_cids = self.intersect(element, self.p, self.p + self.v * self.dmax)
 
-                if len(hit_cids) == 0:
+                if len(hits) == 0:
                     break               # no hits
-                hit, cid = hit_cids[0]  # grab the first hit, point and cell ID of the mesh
+                hit, cid = hits[0], cids[0]  # grab the first hit, point and cell ID of the mesh
                 d = np.linalg.norm(hit - self.p)
                 if d < self.tolerance:
                     # it's picking itself.. get the second hit if it exists
-                    if len(hit_cids) < 2:
+                    if len(hits) < 2:
                         break
-                    hit, cid = hit_cids[1]
+                    hit, cid = hits[1], cids[1]
                     d = np.linalg.norm(hit - self.p)
 
                 n = element.normals[cid]
