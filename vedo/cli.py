@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Command Line Interface module
 -----------------------------
@@ -9,16 +11,16 @@ Command Line Interface module
 
     # Some useful bash aliases:
     alias v='vedo '
-    alias vr='vedo --run '        # to search and run examples by name
-    alias vs='vedo -i --search '  # to search for a string in examples
-    alias ve='vedo --eog '        # to view single and multiple images (press h for help)
+    alias vr='vedo --run '             # to search and run examples by name
+    alias vs='vedo -i --search '       # to search for a string in examples
+    alias vdoc='vedo -i --search-code' # to search for a string in source code
+    alias ve='vedo --eog '             # to view single and multiple images
     alias vv='vedo -bg blackboard -bg2 gray3 -z 1.05 -k glossy -c blue9 '
 """
 import argparse
 import glob
 import os
 import sys
-
 import numpy as np
 
 try:
@@ -70,6 +72,9 @@ def execute_cli():
     elif args.search_vtk:
         exe_search_vtk(args)
 
+    elif args.search_code:
+        exe_search_code(args)
+
     elif args.convert:
         exe_convert(args)
 
@@ -120,6 +125,7 @@ def get_parser():
     pr.add_argument("-r", "--run",                  help="run example from vedo/examples", metavar='')
     pr.add_argument("--search",           type=str, help="search/grep for word in vedo examples", default='', metavar='')
     pr.add_argument("--search-vtk",       type=str, help="search examples for the input vtk class", default='', metavar='')
+    pr.add_argument("--search-code",      type=str, help="search keyword in source code", default='', metavar='')
     pr.add_argument("--reload",                     help="reload the file, ignoring any previous download", action="store_true")
     pr.add_argument("--info", nargs='*',            help="get an info printout of the input file(s)")
     pr.add_argument("--convert", nargs='*',         help="input file(s) to be converted")
@@ -245,20 +251,14 @@ def exe_run(args):
             code = fm.read()
         code = "#" * 80 + "\n" + code + "\n" + "#" * 80
 
-        try:
-            from pygments import highlight
-            from pygments.lexers import Python3Lexer
-            from pygments.formatters import Terminal256Formatter
+        from pygments import highlight
+        from pygments.lexers import Python3Lexer
+        from pygments.formatters import Terminal256Formatter
 
-            # from pygments.styles import STYLE_MAP
-            # print(STYLE_MAP.keys())
-            result = highlight(code, Python3Lexer(), Terminal256Formatter(style='zenburn'))
-            print(result, end='')
-
-        except ModuleNotFoundError:
-            printc(code, italic=1, bold=0)
-            printc("To colorize code try:  pip install Pygments")
-        # print()
+        # from pygments.styles import STYLE_MAP
+        # print(STYLE_MAP.keys())
+        result = highlight(code, Python3Lexer(), Terminal256Formatter(style='zenburn'))
+        print(result, end='')
 
     printc("(" + matching[0] + ")", c="y", bold=0, italic=1)
     os.system("python " + matching[0])
@@ -336,7 +336,110 @@ def exe_search(args):
                         print(f"\u001b[33m{i}\t{line}\x1b[0m", end='')
                         # printc(i, line, c='o', bold=False, end='')
     else:
-        printc("Please specify at least four characters.", c="r")
+        printc("Please use at least 4 letters in keyword search!", c="r")
+
+
+##############################################################################################
+def exe_search_code(args):
+
+    import inspect
+    from pygments import highlight
+    from pygments.lexers import Python3Lexer
+    from pygments.formatters import Terminal256Formatter
+
+    # styles: autumn, material, rrt, zenburn
+    style = "zenburn"
+    key = args.search_code
+    iopt = args.no_camera_share
+    if key.lower() == key:
+        iopt = True
+
+    if len(key) < 4:
+        printc("Please use at least 4 letters in keyword search!", c="r")
+        return
+
+    def _dump(mcontent):
+        for name, mm in mcontent:
+            if name.startswith("_"):
+                continue
+            if name.startswith("vtk"):
+                continue
+            # if not inspect.isfunction(mm):
+            #     continue
+
+            try:
+                mmdoc = inspect.getsource(mm)
+            except TypeError:
+                return
+
+            if mmdoc is None:
+                continue
+
+            if iopt:
+                # -i option to ignore case
+                mmdoc_lower = mmdoc.lower()
+                key_lower = key.lower()
+                name_lower = name.lower()
+            else:
+                mmdoc_lower = mmdoc
+                key_lower = key
+                name_lower = name
+
+            if "eprecated" in mmdoc_lower:
+                continue
+
+            # printc(".....", name, mm, c='y', bold=0)
+            
+            # idcomment = mmdoc_lower.find('"""')
+            # if key_lower in mmdoc_lower[:idcomment]:
+            if key_lower in name_lower:
+
+                sname = inspect.getmodule(mm).__name__ + " -> " + name
+                if sname in snames:
+                    continue
+                snames.append(sname)
+
+                printc(
+                    "Found matching",
+                    mm,
+                    "in module",
+                    os.path.basename(inspect.getfile(mm)),
+                    c="y",
+                    invert=True,
+                )
+                mmdoc = mmdoc.replace("``", '"').replace("`", '"')
+                mmdoc = mmdoc.replace(".. hint::", "Check out:")
+                mmdoc = mmdoc.replace(".. image::", "image:")
+                mmdoc = mmdoc.replace(".. warning::", "Warning!")
+                mmdoc = mmdoc.replace(".. code-block:: python\n", "")
+                result = highlight(
+                    mmdoc,
+                    Python3Lexer(),
+                    Terminal256Formatter(style=style),
+                )
+                idcomment = result.rfind('"""')
+                print(result[: idcomment + 3], "\x1b[0m\n")
+
+    printc("..parsing source code, please wait", c='y', bold=False)
+    content = inspect.getmembers(vedo)
+    snames = []
+    for name, m in content:
+        if name.startswith("_"):
+            continue
+        if not inspect.isclass(m) and not inspect.isfunction(m):
+            continue
+        if inspect.isbuiltin(m):
+            continue
+
+        # if name != "Points": continue # test
+        # printc("---", name, str(m), c='r')
+
+        # function case
+        _dump([[name, m]])
+
+        # class case
+        mcontent = inspect.getmembers(m)
+        _dump(mcontent)
 
 
 ##############################################################################################
