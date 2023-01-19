@@ -2,15 +2,14 @@
 areas are proportional to energy release
 [hover mouse to get more info]"""
 import pandas
-import numpy as np
-from vedo import download, Picture, ProgressBar, color_map, Plotter, Text2D, GeoCircle
+from vedo import *
 
 num = 50  # nr of earthquakes to be visualized to define a time window
 path = download("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_month.csv")
 usecols = ['time','place','latitude','longitude','depth','mag']
 data = pandas.read_csv(path, usecols=usecols)[usecols][::-1].reset_index(drop=True) # reverse list
 
-pic = Picture("https://eoimages.gsfc.nasa.gov/images/imagerecords/147000/147190/eo_base_2020_clean_3600x1800.png")
+pic = Picture(dataurl+"images/eo_base_2020_clean_3600x1800.png")
 pic.pickable(False).level(185).window(120)  # add some contrast to the original image
 scale = [pic.shape[0]/2, pic.shape[1]/2, 1]
 comment = Text2D(__doc__, bg='green9', alpha=0.7, font='Ubuntu')
