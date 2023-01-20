@@ -849,7 +849,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
 
                 img = vtk.vtkImageData()
                 if dims is not None:
-                    img.SetDimensions(dims)
+                    img.SetDimensions(dims[2],dims[1],dims[0])
                 else:
                     if len(inputobj.shape)==1:
                         vedo.logger.error("must set dimensions (dims keyword) in Volume")
