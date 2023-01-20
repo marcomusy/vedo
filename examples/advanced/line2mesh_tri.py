@@ -6,9 +6,9 @@ shapes = load(dataurl + "timecourse1d.npy")  # list of lines
 shape = shapes[56].mirror().rotate_z(-90)
 cmap = "RdYlBu"
 
-msh = shape.tomesh()  # Generate the Mesh from the line
-msh.smooth()  # make the triangles more uniform
-msh.compute_quality()  # add a measure of triangle quality
+msh = shape.generate_mesh()  # Generate the Mesh from the line
+msh.smooth()                 # make the triangles more uniform
+msh.compute_quality()        # add a measure of triangle quality
 msh.cmap(cmap, on="cells").add_scalarbar3d()
 
 contour = Line(shape).c("red4").lw(5)

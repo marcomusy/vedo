@@ -4270,7 +4270,13 @@ class Points(vtk.vtkFollower, BaseActor):
         poly = contour.GetOutput()
         return vedo.Mesh(poly, c="lb")
 
-    def tomesh(
+
+    @deprecated(reason=vedo.colors.red + "Please use generate_mesh()" + vedo.colors.reset)
+    def tomesh(self, *args, **kwargs):
+        """Deprecated, please use generate_mesh()."""
+        return self.generate_mesh(*args, **kwargs)
+
+    def generate_mesh(
         self,
         line_resolution=None,
         mesh_resolution=None,

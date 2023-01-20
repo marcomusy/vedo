@@ -44,7 +44,7 @@ def remesh(mesh, res=50):
         vmesh = vedo.Mesh([mesh.coordinates(), mesh.cells()])
     bpts = vmesh.computeNormals(cells=True).boundaries().join(reset=1) #extract boundary
     vz = vmesh.celldata["Normals"][0][2] # check z component of normals at first point
-    bpts.tomesh(invert=vz<0).smooth().write('tmpmesh.xml') #vedo REMESHING + smoothing
+    bpts.generate_mesh(invert=vz<0).smooth().write('tmpmesh.xml') #vedo REMESHING + smoothing
     return Mesh("tmpmesh.xml")
 
 #################################################################################

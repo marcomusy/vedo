@@ -15,7 +15,7 @@ def capping(amsh, bias=0, invert=False, res=50):
         invert = cutm.npoints > amsh.npoints
 
     pts2 = pts.clone().orientation([0,0,1]).project_on_plane('z')
-    msh2 = pts2.tomesh(mesh_resolution=(res,res), invert=invert).smooth()
+    msh2 = pts2.generate_mesh(invert=invert, mesh_resolution=res)
 
     source = pts2.points().tolist()
     target = bn.points().tolist()
@@ -42,7 +42,7 @@ msh = Mesh(dataurl+"260_flank.vtp").c('orange5').bc('purple7').lw(0.1)
 # mcap = msh.cap()  # automatic
 mcap = capping(msh, invert=True)
 
-merged_msh = merge(msh, mcap)
+merged_msh = merge(msh, mcap).clean().smooth()
 merged_msh.subsample(0.0001).wireframe(False)  # merge duplicate points
 printc("merged_msh is closed:", merged_msh.is_closed())
 

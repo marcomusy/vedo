@@ -23,7 +23,7 @@ ycoords += np.sin(ycoords+0.5)*0.75 # to refine mesh resolution
 
 grd = Grid(s=[xcoords, ycoords])    # create a gridded plane
 
-msh = shape.tomesh(grid=grd, quads=True)
+msh = shape.generate_mesh(grid=grd, quads=True)
 
 show(shape, msh, __doc__, axes=1).close()
 
