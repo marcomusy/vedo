@@ -14,8 +14,8 @@ import vedo
 from vedo import settings
 from vedo.colors import cmaps_names, color_map, get_color, printc
 from vedo import utils
-from vedo.pointcloud import Points
-from vedo.mesh import merge, Mesh
+from vedo.pointcloud import Points, merge
+from vedo.mesh import Mesh
 from vedo.picture import Picture
 
 __doc__ = """

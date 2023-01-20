@@ -14,8 +14,8 @@ from vedo import shapes
 from vedo.assembly import Assembly, Group
 from vedo.colors import get_color
 from vedo.colors import printc
-from vedo.mesh import merge, Mesh
-from vedo.pointcloud import Points, Point
+from vedo.mesh import Mesh
+from vedo.pointcloud import Points, Point, merge
 from vedo.tetmesh import TetMesh
 from vedo.volume import Volume
 

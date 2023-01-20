@@ -23,52 +23,7 @@ Submodule to work with polygonal meshes
 .. image:: https://vedo.embl.es/images/advanced/mesh_smoother2.png
 """
 
-__all__ = ["Mesh", "merge"]
-
-
-####################################################
-def merge(*meshs, flag=False):
-    """
-    Build a new mesh formed by the fusion of the input polygonal Meshes (or Points).
-
-    Similar to Assembly, but in this case the input objects become a single mesh entity.
-
-    To keep track of the original identities of the input mesh you can use ``flag``.
-    In this case a point array of IDs is added to the merged output mesh.
-
-    .. hint:: warp1.py, value_iteration.py
-        .. image:: https://vedo.embl.es/images/advanced/warp1.png
-    """
-    acts = [a for a in flatten(meshs) if a]
-
-    if not acts:
-        return None
-
-    idarr = []
-    polyapp = vtk.vtkAppendPolyData()
-    for i, a in enumerate(acts):
-        try:
-            poly = a.polydata()
-        except AttributeError:
-            # so a vtkPolydata can also be passed
-            poly = a
-        polyapp.AddInputData(poly)
-        if flag:
-            idarr += [i] * poly.GetNumberOfPoints()
-    polyapp.Update()
-    mpoly = polyapp.GetOutput()
-
-    if flag:
-        varr = numpy2vtk(idarr, dtype=np.uint16, name="OriginalMeshID")
-        mpoly.GetPointData().AddArray(varr)
-
-    msh = Mesh(mpoly)
-    if isinstance(acts[0], vtk.vtkActor):
-        cprp = vtk.vtkProperty()
-        cprp.DeepCopy(acts[0].GetProperty())
-        msh.SetProperty(cprp)
-        msh.property = cprp
-    return msh
+__all__ = ["Mesh"]
 
 
 ####################################################

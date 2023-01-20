@@ -22,6 +22,7 @@ Submodule to work with point clouds <br>
 __all__ = [
     "Points",
     "Point",
+    "merge",
     "visible_points",
     "delaunay2d",
     "voronoi",
@@ -35,6 +36,56 @@ __all__ = [
 ]
 
 
+####################################################
+def merge(*meshs, flag=False):
+    """
+    Build a new Mesh (or Points) formed by the fusion of the inputs.
+
+    Similar to Assembly, but in this case the input objects become a single entity.
+
+    To keep track of the original identities of the inputs you can use ``flag``.
+    In this case a point array of IDs is added to the output.
+
+    .. hint:: warp1.py, value_iteration.py
+        .. image:: https://vedo.embl.es/images/advanced/warp1.png
+    """
+    acts = [a for a in utils.flatten(meshs) if a]
+
+    if not acts:
+        return None
+
+    idarr = []
+    polyapp = vtk.vtkAppendPolyData()
+    for i, a in enumerate(acts):
+        try:
+            poly = a.polydata()
+        except AttributeError:
+            # so a vtkPolydata can also be passed
+            poly = a
+        polyapp.AddInputData(poly)
+        if flag:
+            idarr += [i] * poly.GetNumberOfPoints()
+    polyapp.Update()
+    mpoly = polyapp.GetOutput()
+
+    if flag:
+        varr = utils.numpy2vtk(idarr, dtype=np.uint16, name="OriginalMeshID")
+        mpoly.GetPointData().AddArray(varr)
+
+    if isinstance(acts[0], vedo.Mesh):
+        msh = vedo.Mesh(mpoly)
+    else:
+        msh = Points(mpoly)
+
+    if isinstance(acts[0], vtk.vtkActor):
+        cprp = vtk.vtkProperty()
+        cprp.DeepCopy(acts[0].GetProperty())
+        msh.SetProperty(cprp)
+        msh.property = cprp
+    return msh
+
+
+####################################################
 def visible_points(mesh, area=(), tol=None, invert=False):
     """
     Extract points based on whether they are visible or not.
@@ -3751,7 +3802,8 @@ class Points(vtk.vtkFollower, BaseActor):
 
     def cut_with_box(self, bounds, invert=False):
         """
-        Cut the current mesh with a box. This is much faster than ``cut_with_mesh()``.
+        Cut the current mesh with a box or a set of boxes. 
+        This is much faster than ``cut_with_mesh()``.
 
         Input ``bounds`` can be either:
             - a Mesh or Points object
@@ -4192,7 +4244,7 @@ class Points(vtk.vtkFollower, BaseActor):
         clipper = vtk.vtkClipPolyData()
         clipper.SetInputData(self._data)
         clipper.SetValue(value)
-        clipper.GenerateClippedOutputOn()
+        clipper.GenerateClippedOutputOff()
         clipper.SetInsideOut(not invert)
         clipper.Update()
         self._update(clipper.GetOutput())

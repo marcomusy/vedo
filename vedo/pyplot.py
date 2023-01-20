@@ -13,7 +13,8 @@ from vedo import settings
 from vedo import addons
 from vedo import colors
 from vedo import utils
-from vedo.mesh import merge, Mesh
+from vedo.pointcloud import merge
+from vedo.mesh import Mesh
 from vedo.assembly import Assembly, Group
 from vedo import shapes
 
