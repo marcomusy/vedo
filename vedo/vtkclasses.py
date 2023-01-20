@@ -294,8 +294,6 @@ from vtkmodules.vtkIOExport import vtkX3DExporter
 
 from vtkmodules.vtkIOExportGL2PS import vtkGL2PSExporter
 
-from vtkmodules.vtkIOGeoJSON import vtkGeoJSONReader
-
 from vtkmodules.vtkIOGeometry import (
     vtkBYUReader,
     vtkFacetWriter,
