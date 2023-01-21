@@ -1247,12 +1247,16 @@ class BaseActor(Base3DProp):
         ids.Update()
         return self._update(ids.GetOutput())
 
-    def gradient(self, on="points", fast=False):
+    def gradient(self, input_array=None, on="points", fast=False):
         """
         Compute and return the gradiend of the active scalar field as a numpy array.
 
         Parameters
         ----------
+        input_array : str
+            array of the scalars to compute the gradient,
+            if None the current active array is selected
+
         on : str
             compute either on 'points' or 'cells' data
 
@@ -1271,14 +1275,15 @@ class BaseActor(Base3DProp):
             varr = self.inputdata().GetCellData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
 
-        if varr.GetScalars():
-            arrname = varr.GetScalars().GetName()
-        else:
-            vedo.logger.error(f"in gradient: no scalars found for {on}")
-            raise RuntimeError
+        if input_array is None:
+            if varr.GetScalars():
+                input_array = varr.GetScalars().GetName()
+            else:
+                vedo.logger.error(f"in gradient: no scalars found for {on}")
+                raise RuntimeError
 
         gra.SetInputData(self.inputdata())
-        gra.SetInputScalars(tp, arrname)
+        gra.SetInputScalars(tp, input_array)
         gra.SetResultArrayName("Gradient")
         gra.SetFasterApproximation(fast)
         gra.ComputeDivergenceOff()
@@ -1291,12 +1296,16 @@ class BaseActor(Base3DProp):
             gvecs = utils.vtk2numpy(gra.GetOutput().GetCellData().GetArray("Gradient"))
         return gvecs
 
-    def divergence(self, on="points", fast=False):
+    def divergence(self, array_name=None, on="points", fast=False):
         """
         Compute and return the divergence of a vector field as a numpy array.
 
         Parameters
         ----------
+        array_name : str
+            name of the array of vectors to compute the divergence,
+            if None the current active array is selected
+
         on : str
             compute either on 'points' or 'cells' data
 
@@ -1312,14 +1321,15 @@ class BaseActor(Base3DProp):
             varr = self.inputdata().GetCellData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
 
-        if varr.GetVectors():
-            arrname = varr.GetVectors().GetName()
-        else:
-            vedo.logger.error(f"in divergence(): no vectors found for {on}")
-            raise RuntimeError
+        if array_name is None:
+            if varr.GetVectors():
+                array_name = varr.GetVectors().GetName()
+            else:
+                vedo.logger.error(f"in divergence(): no vectors found for {on}")
+                raise RuntimeError
 
         div.SetInputData(self.inputdata())
-        div.SetInputScalars(tp, arrname)
+        div.SetInputScalars(tp, array_name)
         div.ComputeDivergenceOn()
         div.ComputeGradientOff()
         div.ComputeVorticityOff()
@@ -1332,12 +1342,16 @@ class BaseActor(Base3DProp):
             dvecs = utils.vtk2numpy(div.GetOutput().GetCellData().GetArray('Divergence'))
         return dvecs
 
-    def vorticity(self, on="points", fast=False):
+    def vorticity(self, array_name=None, on="points", fast=False):
         """
         Compute and return the vorticity of a vector field as a numpy array.
 
         Parameters
         ----------
+        array_name : str
+            name of the array to compute the vorticity,
+            if None the current active array is selected
+
         on : str
             compute either on 'points' or 'cells' data
 
@@ -1353,14 +1367,15 @@ class BaseActor(Base3DProp):
             varr = self.inputdata().GetCellData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
 
-        if varr.GetVectors():
-            arrname = varr.GetVectors().GetName()
-        else:
-            vedo.logger.error(f"in vorticity(): no vectors found for {on}")
-            raise RuntimeError
+        if array_name is None:
+            if varr.GetVectors():
+                array_name = varr.GetVectors().GetName()
+            else:
+                vedo.logger.error(f"in vorticity(): no vectors found for {on}")
+                raise RuntimeError
 
         vort.SetInputData(self.inputdata())
-        vort.SetInputScalars(tp, arrname)
+        vort.SetInputScalars(tp, array_name)
         vort.ComputeDivergenceOff()
         vort.ComputeGradientOff()
         vort.ComputeVorticityOn()
