@@ -941,22 +941,10 @@ class BaseActor(Base3DProp):
         self._mapper.Modified()
         return self
 
-
-    # @deprecated(reason=vedo.colors.red + "Please use property cellcolors" + vedo.colors.reset)
-    # def get_rgba(self, on="points"):
-    #     """Deprecated."""
-    #     if "point" in on:
-    #         return self.pointcolors
-    #     elif "cell" in on:
-    #         return self.cellcolors
-    #     else:
-    #         raise ValueError("in get_rgba() input must be 'points' or 'cells'")
-
-
     def mark_boundaries(self):
         """Mark cells and vertices of the mesh if they lie on a boundary."""
         mb = vtk.vtkMarkBoundaryFilter()
-        mb.SetInputData(self.polydata())
+        mb.SetInputData(self._data)
         mb.Update()
         return self._update(mb.GetOutput())
 
