@@ -1062,20 +1062,6 @@ def print_info(obj):
             arrtypes[vtk.VTK_SIGNED_CHAR]   = ("SIGNED_CHAR",    "np.int8")
             arrtypes[vtk.VTK_ID_TYPE]       = ("ID",             "np.int64")
 
-            try:
-                sc_mode = mapper.GetScalarModeAsString()
-                col_mode = mapper.GetColorModeAsString()
-                vedo.printc("scalar mode".ljust(14) + ":", c=c, bold=True, end=" ")
-                vedo.printc(
-                    f"{sc_mode},",
-                    "coloring =",
-                    col_mode,
-                    c=c,
-                    bold=False,
-                )
-            except AttributeError:
-                pass
-
             if ptdata.GetScalars():
                 vedo.printc("active array".ljust(14)+": ", c=c, bold=True, end="")
                 vedo.printc(ptdata.GetScalars().GetName(), "(pointdata)  ", c=c, bold=False)
@@ -1129,8 +1115,8 @@ def print_info(obj):
                     vedo.printc(f'"{name}" ({ncomp} components, {nvals} values)', c=c, bold=False)
 
         else:
-            vedo.printc("scalars".ljust(14) + ":", c=c, bold=True, end=" ")
-            vedo.printc("no point or cell scalars are present.", c=c, bold=False)
+            vedo.printc("mesh data".ljust(14) + ":", c=c, bold=True, end=" ")
+            vedo.printc("no point or cell data is present.", c=c, bold=False)
 
     ################################
     def _printvtkactor(actor):

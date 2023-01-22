@@ -3226,7 +3226,7 @@ class Points(vtk.vtkFollower, BaseActor):
             poly = None
             if not self.point_locator:
                 poly = self.polydata()
-                self.point_locator = vtk.vtkPointLocator()
+                self.point_locator = vtk.vtkStaticPointLocator()
                 self.point_locator.SetDataSet(poly)
                 self.point_locator.BuildLocator()
 
@@ -3266,12 +3266,11 @@ class Points(vtk.vtkFollower, BaseActor):
 
                 # As per Miquel example with limbs the vtkStaticCellLocator doesnt work !!
                 # https://discourse.vtk.org/t/vtkstaticcelllocator-problem-vtk9-0-3/7854/4
-                self.cell_locator = vtk.vtkCellLocator()
-
-#                try:
-#                    self.cell_locator = vtk.vtkStaticCellLocator() # vtk7 doesn't have it
-#                except:
-#                    self.cell_locator = vtk.vtkCellLocator() # bugged if only 1 cell exists ? (#558)
+                if vedo.vtk_version[0] >= 9 and vedo.vtk_version[0] > 0:
+                    self.cell_locator = vtk.vtkStaticCellLocator()
+                    print("vtkStaticCellLocator")
+                else:
+                    self.cell_locator = vtk.vtkCellLocator()
 
                 self.cell_locator.SetDataSet(poly)
                 self.cell_locator.BuildLocator()

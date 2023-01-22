@@ -43,13 +43,15 @@ class _DataArrayHelper:
 
         elif self.association == 2:
             data = self.actor.inputdata().GetFieldData()
-            if isinstance(key, int):
-                key = data.GetArrayName(key)
+
             varr = data.GetAbstractArray(key)
-            n = varr.GetNumberOfValues()
-            narr = np.array([varr.GetValue(i) for i in range(n)], dtype='|U')
-            return narr
-            ###########
+            if isinstance(varr, vtk.vtkStringArray):
+                if isinstance(key, int):
+                    key = data.GetArrayName(key)
+                n = varr.GetNumberOfValues()
+                narr = [varr.GetValue(i) for i in range(n)]
+                return narr
+                ###########
 
         else:
             raise RuntimeError()
@@ -76,18 +78,34 @@ class _DataArrayHelper:
 
         elif self.association == 2:
             data = self.actor.inputdata().GetFieldData()
-
-            if utils.is_sequence(input_array) and isinstance(input_array[0], str):
+            if not utils.is_sequence(input_array):
+                input_array = [input_array]
+            
+            if isinstance(input_array[0], str):
                 varr = vtk.vtkStringArray()
                 varr.SetName(key)
                 varr.SetNumberOfComponents(1)
-                for val in input_array:
-                    try:
-                        varr.InsertNextValue(val)
-                    except TypeError:
-                        vedo.printc("in metadata cannot add type", type(val), c='r')
+                varr.SetNumberOfTuples(len(input_array))
+                for i, iarr in enumerate(input_array):
+                    if isinstance(iarr, np.ndarray):
+                        iarr = iarr.tolist()  # better format
+                        # Note: a string k can be converted to numpy with
+                        # import json; k = np.array(json.loads(k))
+                    varr.InsertValue(i, str(iarr))
             else:
-                varr = utils.numpy2vtk(input_array, name=key)
+                try:
+                    varr = utils.numpy2vtk(input_array, name=key)
+                except TypeError as e:
+                    vedo.logger.error(
+                        f"cannot create metadata with input object:\n"
+                        f"{input_array}"
+                        f"\n\nAllowed content examples are:\n"
+                        f"- flat list of strings ['a','b', 1, [1,2,3], ...]"
+                        f" (first item must be a string in this case)\n"
+                        f"  hint: use k = np.array(json.loads(k)) to convert strings\n"
+                        f"- numpy arrays of any shape"
+                    )
+                    raise e
 
             data.AddArray(varr)
             return ############
