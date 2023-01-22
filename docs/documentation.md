@@ -1,4 +1,4 @@
-.. image:: https://user-images.githubusercontent.com/32848391/46815773-dc919500-cd7b-11e8-8e80-8b83f760a303.png
+![](https://user-images.githubusercontent.com/32848391/46815773-dc919500-cd7b-11e8-8e80-8b83f760a303.png)
 
 A python module for scientific analysis of 3D objects and
 point clouds based on [VTK](https://www.vtk.org/) and [numpy](http://www.numpy.org/).
@@ -14,7 +14,7 @@ Then
 import vedo
 vedo.Cone().show(axes=1).close()
 ```
-.. image:: https://vedo.embl.es/images/feats/cone.png
+![](https://vedo.embl.es/images/feats/cone.png)
 
 
 ## Command Line Interface
@@ -25,7 +25,7 @@ Type for example in your terminal:
 vedo --help
 vedo https://vedo.embl.es/examples/data/panther.stl.gz
 ```
-.. image:: https://vedo.embl.es/images/feats/vedo_cli_panther.png
+![](https://vedo.embl.es/images/feats/vedo_cli_panther.png)
 
 Pressing `h` will then show a number of options to interact with your 3D scene:
 

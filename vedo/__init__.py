@@ -3,6 +3,7 @@
 """
 .. include:: ../docs/documentation.md
 """
+
 ######################################################################## imports
 import os
 import sys
@@ -50,6 +51,7 @@ __email__      = "marco.musy@embl.es"
 __website__    = "https://github.com/marcomusy/vedo"
 
 
+
 ##### To generate documentation #######################################################
 # cd Projects/vedo
 # pip uninstall vedo
@@ -65,106 +67,6 @@ __website__    = "https://github.com/marcomusy/vedo"
 # sudo apt install wkhtmltopdf
 # wkhtmltopdf --encoding utf8 -s A4 html/vedo/index.html 01_index.pdf
 
-########################################## pdoc excludes:
-# __pdoc__ = {}
-# __pdoc__['backends'] = False
-# __pdoc__['cli'] = False
-# __pdoc__['cmaps'] = False
-# __pdoc__['version'] = False
-# __pdoc__['vtkclasses'] = False
-
-# __pdoc__['colors.getColor'] = False
-# __pdoc__['colors.colorMap'] = False
-# __pdoc__['colors.buildLUT'] = False
-
-# __pdoc__['base.Base3DProp.rotateX'] = False
-# __pdoc__['base.Base3DProp.rotateY'] = False
-# __pdoc__['base.Base3DProp.rotateZ'] = False
-# __pdoc__['base.Base3DProp.applyTransform'] = False
-# __pdoc__['base.Base3DProp.diagonalSize'] = False
-# __pdoc__['base.BaseActor.N'] = False
-# __pdoc__['base.BaseActor.NPoints'] = False
-# __pdoc__['base.BaseActor.NCells'] = False
-# __pdoc__['base.BaseActor.cellCenters'] = False
-# __pdoc__['base.BaseActor.addScalarBar'] = False
-# __pdoc__['base.BaseActor.addScalarBar3D'] = False
-# __pdoc__['base.BaseGrid.cutWithPlane'] = False
-
-# __pdoc__['mesh.Mesh.computeNormals'] = False
-# __pdoc__['mesh.Mesh.backColor'] = False
-# __pdoc__['mesh.Mesh.lineWidth'] = False
-# __pdoc__['mesh.Mesh.addCurvatureScalars'] = False
-# __pdoc__['mesh.Mesh.addShadow'] = False
-# __pdoc__['mesh.Mesh.fillHoles'] = False
-# __pdoc__['mesh.Mesh.intersectWithLine'] = False
-# __pdoc__['mesh.Mesh.followCamera'] = False
-# __pdoc__['mesh.Mesh.extractLargestRegion'] = False
-# __pdoc__['mesh.Mesh.intersectWith'] = False
-# __pdoc__['mesh.Mesh.signedDistance'] = False
-
-# __pdoc__['plotter.Plotter.getMeshes'] = False
-# __pdoc__['plotter.Plotter.resetCamera'] = False
-# __pdoc__['plotter.Plotter.addSlider2D'] = False
-# __pdoc__['plotter.Plotter.addButton'] = False
-# __pdoc__['plotter.Plotter.addSplineTool'] = False
-# __pdoc__['plotter.Plotter.addCallback'] = False
-
-# __pdoc__['settings.Settings.allowInteraction'] = False
-# __pdoc__['settings.Settings.alphaBitPlanes'] = False
-# __pdoc__['settings.Settings.defaultFont'] = False
-# __pdoc__['settings.Settings.enableDefaultKeyboardCallbacks'] = False
-# __pdoc__['settings.Settings.enableDefaultMouseCallbacks'] = False
-# __pdoc__['settings.Settings.enablePrintColor'] = False
-# __pdoc__['settings.Settings.hackCallScreenSize'] = False
-# __pdoc__['settings.Settings.hiddenLineRemoval'] = False
-# __pdoc__['settings.Settings.immediateRendering'] = False
-# __pdoc__['settings.Settings.interpolateScalarsBeforeMapping'] = False
-# __pdoc__['settings.Settings.lightFollowsCamera'] = False
-# __pdoc__['settings.Settings.lineSmoothing'] = False
-# __pdoc__['settings.Settings.maxNumberOfPeels'] = False
-# __pdoc__['settings.Settings.multiSamples'] = False
-# __pdoc__['settings.Settings.occlusionRatio'] = False
-# __pdoc__['settings.Settings.pointSmoothing'] = False
-# __pdoc__['settings.Settings.polygonOffsetFactor'] = False
-# __pdoc__['settings.Settings.polygonOffsetUnits'] = False
-# __pdoc__['settings.Settings.polygonSmoothing'] = False
-# __pdoc__['settings.Settings.preserveDepthBuffer'] = False
-# __pdoc__['settings.Settings.rememberLastFigureFormat'] = False
-# __pdoc__['settings.Settings.renderLinesAsTubes'] = False
-# __pdoc__['settings.Settings.rendererFrameAlpha'] = False
-# __pdoc__['settings.Settings.rendererFrameColor'] = False
-# __pdoc__['settings.Settings.rendererFramePadding'] = False
-# __pdoc__['settings.Settings.rendererFrameWidth'] = False
-# __pdoc__['settings.Settings.screenshotTransparentBackground'] = False
-# __pdoc__['settings.Settings.screeshotLargeImage'] = False
-# __pdoc__['settings.Settings.screeshotScale'] = False
-# __pdoc__['settings.Settings.tiffOrientationType'] = False
-# __pdoc__['settings.Settings.twoSidedLighting'] = False
-# __pdoc__['settings.Settings.useDepthPeeling'] = False
-# __pdoc__['settings.Settings.useFXAA'] = False
-# __pdoc__['settings.Settings.useParallelProjection'] = False
-# __pdoc__['settings.Settings.usePolygonOffset'] = False
-# __pdoc__['settings.Settings.visibleGridEdges'] = False
-# __pdoc__['settings.Settings.windowSplittingPosition'] = False
-
-# __pdoc__['pointcloud.pcaEllipsoid'] = False
-# __pdoc__['pointcloud.Points.cellIndividualColors'] = False
-# __pdoc__['pointcloud.Points.centerOfMass'] = False
-# __pdoc__['pointcloud.Points.alignTo'] = False
-# __pdoc__['pointcloud.Points.applyTransform'] = False
-# __pdoc__['pointcloud.Points.interpolateDataFrom'] = False
-# __pdoc__['pointcloud.Points.closestPoint'] = False
-# __pdoc__['pointcloud.Points.cutWithPlane'] = False
-# __pdoc__['pointcloud.Points.cutWithMesh'] = False
-# __pdoc__['pointcloud.Points.reconstructSurface'] = False
-# __pdoc__['pointcloud.Points.signedDistance'] = False
-# __pdoc__['pointcloud.Points.distanceTo'] = False
-# __pdoc__['pointcloud.Points.pointSize'] = False
-# __pdoc__['pointcloud.Points.vignette'] = False
-# __pdoc__['pointcloud.Points.cell_individual_colors'] = False
-
-# __pdoc__['volume.BaseVolume.scalarRange'] = False
-# __pdoc__['volume.BaseVolume.slicePlane'] = False
 
 ##################################################################################
 ########################################################################## GLOBALS
