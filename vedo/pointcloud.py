@@ -3268,7 +3268,6 @@ class Points(vtk.vtkFollower, BaseActor):
                 # https://discourse.vtk.org/t/vtkstaticcelllocator-problem-vtk9-0-3/7854/4
                 if vedo.vtk_version[0] >= 9 and vedo.vtk_version[0] > 0:
                     self.cell_locator = vtk.vtkStaticCellLocator()
-                    print("vtkStaticCellLocator")
                 else:
                     self.cell_locator = vtk.vtkCellLocator()
 
