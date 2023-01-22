@@ -18,8 +18,7 @@ from vedo import backends
 from vedo import addons
 
 __doc__ = """
-This module defines the main class Plotter to manage actors and 3D rendering
-
+This module defines the main class Plotter to manage actors and 3D rendering <br>
 .. image:: https://vedo.embl.es/images/basic/multirenderers.png
 """
 

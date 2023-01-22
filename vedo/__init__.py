@@ -59,6 +59,7 @@ __website__    = "https://github.com/marcomusy/vedo"
 # mount_staging
 # rm ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/autodocs/html
 # mv html/ ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/autodocs/
+# comment out below lines
 #
 # To generate pdf
 # sudo apt install wkhtmltopdf

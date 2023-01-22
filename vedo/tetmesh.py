@@ -13,8 +13,7 @@ from vedo.mesh import Mesh
 from vedo.io import download, loadUnStructuredGrid
 
 __doc__ = """
-Work with tetrahedral meshes
-
+Work with tetrahedral meshes <br>
 .. image:: https://vedo.embl.es/images/volumetric/82767107-2631d500-9e25-11ea-967c-42558f98f721.jpg
 """
 

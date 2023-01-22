@@ -19,9 +19,8 @@ from vedo.assembly import Assembly, Group
 from vedo import shapes
 
 __doc__ = """
+Advanced plotting utility functions <br>
 .. image:: https://vedo.embl.es/images/pyplot/fitPolynomial2.png
-
-Advanced plotting utility functions
 """
 
 __all__ = [

@@ -18,8 +18,7 @@ from vedo.utils import flatten, is_sequence, mag, mag2
 from vedo.utils import numpy2vtk, vtk2numpy
 
 __doc__ = """
-Submodule to work with polygonal meshes
-
+Submodule to work with polygonal meshes <br>
 .. image:: https://vedo.embl.es/images/advanced/mesh_smoother2.png
 """
 
@@ -650,7 +649,7 @@ class Mesh(Points):
 
     @deprecated(reason=vedo.colors.red + "Please use backcolor()" + vedo.colors.reset)
     def backColor(self, bc=None):
-        "Please use backcolor()"
+        "Deprecated. Please use backcolor()"
         return self.backcolor(bc)
 
     def backcolor(self, bc=None):
