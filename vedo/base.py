@@ -12,6 +12,8 @@ import vedo
 from vedo import colors
 from vedo import utils
 
+__docformat__ = "google"
+
 __doc__ = "Base classes. Do not instantiate."
 
 __all__ = [
@@ -341,16 +343,16 @@ class Base3DProp:
         Rotate around an arbitrary `axis` passing through `point`.
 
         Example:
-            .. code-block:: python
-
-                from vedo import *
-                c1 = Cube()
-                c2 = c1.clone().c('violet').alpha(0.5) # copy of c1
-                v = vector(0.2,1,0)
-                p = vector(1,0,0)  # axis passes through this point
-                c2.rotate(90, axis=v, point=p)
-                l = Line(-v+p, v+p).lw(3).c('red')
-                show(c1, l, c2, axes=1).close()
+            ```python
+            from vedo import *
+            c1 = Cube()
+            c2 = c1.clone().c('violet').alpha(0.5) # copy of c1
+            v = vector(0.2,1,0)
+            p = vector(1,0,0)  # axis passes through this point
+            c2.rotate(90, axis=v, point=p)
+            l = Line(-v+p, v+p).lw(3).c('red')
+            show(c1, l, c2, axes=1).close()
+            ```
         """
         if rad:
             anglerad = angle
@@ -409,15 +411,15 @@ class Base3DProp:
 
     @deprecated(reason=vedo.colors.red + "Please use rotate_x()" + vedo.colors.reset)
     def rotateX(self, *a, **b):
-        """Deprecated. Please use rotate_x()."""
+        """Deprecated. Please use `rotate_x()`."""
         return self.rotate_x(*a, **b)
     @deprecated(reason=vedo.colors.red + "Please use rotate_y()" + vedo.colors.reset)
     def rotateY(self, *a, **b):
-        """Deprecated. Please use rotate_y()."""
+        """Deprecated. Please use `rotate_y()`."""
         return self.rotate_y(*a, **b)
     @deprecated(reason=vedo.colors.red + "Please use rotate_z()" + vedo.colors.reset)
     def rotateZ(self, *a, **b):
-        """Deprecated. Please use rotate_z()."""
+        """Deprecated. Please use `rotate_z()`."""
         return self.rotate_z(*a, **b)
 
     def rotate_x(self, angle, rad=False, around=None):
@@ -448,39 +450,36 @@ class Base3DProp:
         """
         Set/Get object orientation.
 
-        Parameters
-        ----------
-        rotation : float
-            rotate object around newaxis.
-
-        concatenate : bool
-            concatenate the orietation operation with the previous existing transform (if any)
-
-        xyplane : bool
-            make an extra rotation to keep the object aligned to the xy-plane
-
-        rad : bool
-            set to True if angle is expressed in radians.
+        Args:
+            rotation : (float)
+                rotate object around newaxis.
+            concatenate : (bool)
+                concatenate the orietation operation with the previous existing transform (if any)
+            xyplane : (bool)
+                make an extra rotation to keep the object aligned to the xy-plane
+            rad : (bool)
+                set to True if angle is expressed in radians.
 
         Example:
-            .. code-block:: python
+            ```python
+            from vedo import *
+            center = np.array([581/2,723/2,0])
+            objs = []
+            for a in np.linspace(0, 6.28, 7):
+                v = vector(cos(a), sin(a), 0)*1000
+                pic = Picture(dataurl+"images/dog.jpg").rotate_z(10)
+                pic.orientation(v, xyplane=True)
+                pic.origin(center)
+                pic.pos(v - center)
+                objs += [pic, Arrow(v, v+v)]
+            show(objs, Point(), axes=1).close()
+            ```
 
-                from vedo import *
-                center = np.array([581/2,723/2,0])
-                objs = []
-                for a in np.linspace(0, 6.28, 7):
-                    v = vector(cos(a), sin(a), 0)*1000
-                    pic = Picture(dataurl+"images/dog.jpg").rotate_z(10)
-                    pic.orientation(v, xyplane=True)
-                    pic.origin(center)
-                    pic.pos(v - center)
-                    objs += [pic, Arrow(v, v+v)]
-                show(objs, Point(), axes=1).close()
-
-        .. hint:: examples/simulations/gyroscope2.py
-            .. image:: https://vedo.embl.es/images/simulations/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif
+        Examples:
+            - [gyroscope2.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/gyroscope2.py)
+            
+            ![](https://vedo.embl.es/images/simulations/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif)
         """
-
         if self.top is None or self.base is None:
             initaxis = (0, 0, 1)
         else:
@@ -536,15 +535,13 @@ class Base3DProp:
         """
         Set/get object's scaling factor.
 
-        Parameters
-        ----------
-        s : list, float
-            scaling factor(s).
+        Args:
+            s : (list, float)
+                scaling factor(s).
+            reset : (bool)
+                if True previous scaling factors are ignored.
 
-        reset : bool
-            if True previous scaling factors are ignored.
-
-        .. note:: if `s=(sx,sy,sz)` scale differently in the three coordinates.
+        .. note:: use `s=(sx,sy,sz)` to scale differently in the three coordinates.
         """
         if s is None:
             return np.array(self.GetScale())
@@ -570,22 +567,22 @@ class Base3DProp:
         Use ``invert`` to return the inverse of the current transformation
 
         Example:
-            .. code-block:: python
+            ```python
+            from vedo import *
 
-                from vedo import *
+            c1 = Cube()
+            c2 = c1.clone().c('violet').alpha(0.5) # copy of c1
+            v = vector(0.2,1,0)
+            p = vector(1,0,0)  # axis passes through this point
+            c2.rotate(90, axis=v, point=p)
 
-                c1 = Cube()
-                c2 = c1.clone().c('violet').alpha(0.5) # copy of c1
-                v = vector(0.2,1,0)
-                p = vector(1,0,0)  # axis passes through this point
-                c2.rotate(90, axis=v, point=p)
+            # get the inverse of the current transformation
+            T = c2.get_transform(invert=True)
+            c2.apply_transform(T)  # put back c2 in place
 
-                # get the inverse of the current transformation
-                T = c2.get_transform(invert=True)
-                c2.apply_transform(T)  # put back c2 in place
-
-                l = Line(p-v, p+v).lw(3).c('red')
-                show(c1.wireframe().lw(3), l, c2, axes=1)
+            l = Line(p-v, p+v).lw(3).c('red')
+            show(c1.wireframe().lw(3), l, c2, axes=1)
+            ```
         """
         if self.transform:
             tr = self.transform
@@ -603,20 +600,18 @@ class Base3DProp:
 
     @deprecated(reason=vedo.colors.red + "Please use apply_transform()" + vedo.colors.reset)
     def applyTransform(self, T, reset=False, concatenate=False):
-        """Deprecated. Please use apply_transform()"""
+        """Deprecated. Please use `apply_transform()`"""
         return self.apply_transform(T,reset,concatenate)
 
     def apply_transform(self, T, reset=False, concatenate=False):
         """
         Transform object position and orientation.
 
-        Parameters
-        ----------
-        reset : bool
-            no effect, this is superseded by pointcloud.apply_transform()
-
-        concatenate : bool
-            no effect, this is superseded by pointcloud.apply_transform()
+        Args:
+            reset : (bool)
+                no effect, this is superseded by `pointcloud.apply_transform()`
+            concatenate : (bool)
+                no effect, this is superseded by `pointcloud.apply_transform()`
         """
         if isinstance(T, vtk.vtkMatrix4x4):
             self.SetUserMatrix(T)
@@ -641,7 +636,8 @@ class Base3DProp:
 
         Use ``rigid`` to disable scaling.
 
-        .. hint:: examples/basic/align6.py
+        Examples:
+            - [align6.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/align6.py)
         """
         lmt = vtk.vtkLandmarkTransform()
         ss = vtk.vtkPoints()
@@ -698,15 +694,14 @@ class Base3DProp:
         """
         Return the bounding box as a new ``Mesh``.
 
-        Parameters
-        ----------
-        scale : float
-            box size can be scaled by a factor
+        Args:
+            scale : (float)
+                box size can be scaled by a factor
+            padding : (float, list)
+                a constant padding can be added (can be a list [padx,pady,padz])
 
-        padding : float, list
-            a constant padding can be added (can be a list [padx,pady,padz])
-
-        .. hint:: examples/pyplot/latex.py
+        Examples:
+            - [latex.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/latex.py)
         """
         b = self.bounds()
         if not utils.is_sequence(padding):
@@ -742,7 +737,7 @@ class Base3DProp:
     def bounds(self):
         """
         Get the object bounds.
-        Returns a list in format [xmin,xmax, ymin,ymax, zmin,zmax].
+        Returns a list in format `[xmin,xmax, ymin,ymax, zmin,zmax]`.
         """
         try:
             pts = self.points()
@@ -753,14 +748,14 @@ class Base3DProp:
             return self.GetBounds()
 
     def xbounds(self, i=None):
-        """Get the bounds [xmin,xmax]. Can specify upper or lower with i (0,1)."""
+        """Get the bounds `[xmin,xmax]`. Can specify upper or lower with i (0,1)."""
         b = self.bounds()
         if i is not None:
             return b[i]
         return (b[0], b[1])
 
     def ybounds(self, i=None):
-        """Get the bounds [ymin,ymax]. Can specify upper or lower with i (0,1)."""
+        """Get the bounds `[ymin,ymax]`. Can specify upper or lower with i (0,1)."""
         b = self.bounds()
         if i == 0:
             return b[2]
@@ -769,7 +764,7 @@ class Base3DProp:
         return (b[2], b[3])
 
     def zbounds(self, i=None):
-        """Get the bounds [zmin,zmax]. Can specify upper or lower with i (0,1)."""
+        """Get the bounds `[zmin,zmax]`. Can specify upper or lower with i (0,1)."""
         b = self.bounds()
         if i == 0: return b[4]
         if i == 1: return b[5]
@@ -777,7 +772,7 @@ class Base3DProp:
 
     @deprecated(reason=vedo.colors.red + "Please use diagonal_size()" + vedo.colors.reset)
     def diagonalSize(self):
-        """Deprecated. Please use diagonal_size()."""
+        """Deprecated. Please use `diagonal_size()`."""
         return self.diagonal_size()
 
     def diagonal_size(self):
@@ -927,14 +922,15 @@ class BaseActor(Base3DProp):
 
     @deprecated(reason=vedo.colors.red + "Please use cell_centers()" + vedo.colors.reset)
     def cellCenters(self):
-        """Deprecated. Please use cell_centers()"""
+        """Deprecated. Please use `cell_centers()`"""
         return self.cell_centers()
 
     def cell_centers(self):
         """
         Get the coordinates of the cell centers.
 
-        .. hint:: examples/basic/delaunay2d.py
+        Examples:
+            - [delaunay2d.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/delaunay2d.py)
         """
         vcen = vtk.vtkCellCenters()
         if hasattr(self, "polydata"):
@@ -947,8 +943,7 @@ class BaseActor(Base3DProp):
     def delete_cells(self, ids):
         """
         Remove cells from the mesh object by their ID.
-        Points (vertices) are not removed
-        (you may use `.clean()` to remove those).
+        Points (vertices) are not removed (you may use `.clean()` to remove those).
         """
         data = self.inputdata()
         data.BuildLinks()
@@ -1021,29 +1016,24 @@ class BaseActor(Base3DProp):
         """
         Set the ambient, diffuse, specular and specular_power lighting constants.
 
-        Parameters
-        ----------
-        style: str
-            preset style, options are `[metallic, plastic, shiny, glossy, ambient, off]`
+        Args:
+            style : (str)
+                preset style, options are `[metallic, plastic, shiny, glossy, ambient, off]`
+            ambient : (float)
+                ambient fraction of emission [0-1]
+            diffuse : (float)
+                emission of diffused light in fraction [0-1]
+            specular : (float)
+                fraction of reflected light [0-1]
+            specular_power : (float)
+                precision of reflection [1-100]
+            specular_color : (color)
+                color that is being reflected by the surface
 
-        ambient : float
-            ambient fraction of emission [0-1]
+        ![](https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png)
 
-        diffuse : float
-            emission of diffused light in fraction [0-1]
-
-        specular : float
-            fraction of reflected light [0-1]
-
-        specular_power : float
-            precision of reflection [1-100]
-
-        specular_color : color
-            color that is being reflected by the surface
-
-        .. image:: https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png
-
-        .. hint:: examples/basic/specular.py
+        Examples:
+            - [specular.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/specular.py)
         """
         pr = self.GetProperty()
 
@@ -1122,34 +1112,25 @@ class BaseActor(Base3DProp):
         Ascii histogram printing on terminal.
         Input can be ``Volume`` or ``Mesh`` (will grab the active point array).
 
-        Parameters
-        ----------
-        bins : int
-            number of histogram bins
-
-        height : int
-            height of the histogram in character units
-
-        logscale : bool
-            use logscale for frequencies
-
-        minbin : int
-            ignore bins before minbin
-
-        horizontal : bool
-            show histogram horizontally
-
-        char : str
-            character to be used as marker
-
-        c : color
-            ascii color
-
-        bold : bool
-            use boldface
-
-        title : str
-            histogram title
+        Args:
+            bins : (int)
+                number of histogram bins
+            height : (int)
+                height of the histogram in character units
+            logscale : (bool)
+                use logscale for frequencies
+            minbin : (int)
+                ignore bins before minbin
+            horizontal : (bool)
+                show histogram horizontally
+            char : (str)
+                character to be used as marker
+            c : (color)
+                ascii color
+            bold : (bool)
+                use boldface
+            title : (str)
+                histogram title
         """
         utils.print_histogram(
             self, bins, height, logscale, minbin, horizontal, char, c, bold, title
@@ -1235,7 +1216,8 @@ class BaseActor(Base3DProp):
         The method of transformation is based on averaging the data values
         of all points defining a particular cell.
 
-        .. hint:: examples/basic/mesh_map2cell.py
+        Examples:
+            - [mesh_map2cell.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_map2cell.py)
         """
         p2c = vtk.vtkPointDataToCellData()
         p2c.SetInputData(self.inputdata())
@@ -1257,21 +1239,20 @@ class BaseActor(Base3DProp):
         """
         Compute and return the gradiend of the active scalar field as a numpy array.
 
-        Parameters
-        ----------
-        input_array : str
-            array of the scalars to compute the gradient,
-            if None the current active array is selected
+        Args:
+            input_array : (str)
+                array of the scalars to compute the gradient,
+                if None the current active array is selected
+            on : (str)
+                compute either on 'points' or 'cells' data
+            fast : (bool)
+                if True, will use a less accurate algorithm
+                that performs fewer derivative calculations (and is therefore faster).
 
-        on : str
-            compute either on 'points' or 'cells' data
+        Examples:
+            - [isolines.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/isolines.py)
 
-        fast : bool
-            if True, will use a less accurate algorithm
-            that performs fewer derivative calculations (and is therefore faster).
-
-        .. hint::  examples/advanced/isolines.py
-            .. image:: https://user-images.githubusercontent.com/32848391/72433087-f00a8780-3798-11ea-9778-991f0abeca70.png
+            ![](https://user-images.githubusercontent.com/32848391/72433087-f00a8780-3798-11ea-9778-991f0abeca70.png)
         """
         gra = vtk.vtkGradientFilter()
         if on.startswith("p"):
@@ -1306,18 +1287,15 @@ class BaseActor(Base3DProp):
         """
         Compute and return the divergence of a vector field as a numpy array.
 
-        Parameters
-        ----------
-        array_name : str
-            name of the array of vectors to compute the divergence,
-            if None the current active array is selected
-
-        on : str
-            compute either on 'points' or 'cells' data
-
-        fast : bool
-            if True, will use a less accurate algorithm
-            that performs fewer derivative calculations (and is therefore faster).
+        Args:
+            array_name : (str)
+                name of the array of vectors to compute the divergence,
+                if None the current active array is selected
+            on : (str)
+                compute either on 'points' or 'cells' data
+            fast : (bool)
+                if True, will use a less accurate algorithm
+                that performs fewer derivative calculations (and is therefore faster).
         """
         div = vtk.vtkGradientFilter()
         if on.startswith("p"):
@@ -1352,18 +1330,15 @@ class BaseActor(Base3DProp):
         """
         Compute and return the vorticity of a vector field as a numpy array.
 
-        Parameters
-        ----------
-        array_name : str
-            name of the array to compute the vorticity,
-            if None the current active array is selected
-
-        on : str
-            compute either on 'points' or 'cells' data
-
-        fast : bool
-            if True, will use a less accurate algorithm
-            that performs fewer derivative calculations (and is therefore faster).
+        Args:
+            array_name : (str)
+                name of the array to compute the vorticity,
+                if None the current active array is selected
+            on : (str)
+                compute either on 'points' or 'cells' data
+            fast : (bool)
+                if True, will use a less accurate algorithm
+                that performs fewer derivative calculations (and is therefore faster).
         """
         vort = vtk.vtkGradientFilter()
         if on.startswith("p"):
@@ -1397,7 +1372,7 @@ class BaseActor(Base3DProp):
 
     @deprecated(reason=vedo.colors.red + "Please use method add_scalarbar()" + vedo.colors.reset)
     def addScalarBar(self, *a, **b):
-        """Deprecated. Please use method add_scalarbar()"""
+        """Deprecated. Please use method `add_scalarbar()`"""
         return self.add_scalarbar(*a, **b)
 
     def add_scalarbar(
@@ -1416,7 +1391,9 @@ class BaseActor(Base3DProp):
         """
         Add a 2D scalar bar for the specified obj.
 
-        .. hint:: examples/basic/mesh_coloring.py, scalarbars.py
+        Examples:
+            - examples/basic/mesh_coloring.py
+            - scalarbars.py
         """
         plt = vedo.plotter_instance
 
@@ -1450,7 +1427,7 @@ class BaseActor(Base3DProp):
 
     @deprecated(reason=vedo.colors.red + "Please use method add_scalarbar3d()" + vedo.colors.reset)
     def addScalarBar3D(self, *a, **b):
-        """Deprecated. Please use method add_scalarbar3d()"""
+        """Deprecated. Please use method `add_scalarbar3d()`"""
         return self.add_scalarbar3d(*a, **b)
 
     def add_scalarbar3d(
@@ -1481,52 +1458,39 @@ class BaseActor(Base3DProp):
         Associate a 3D scalar bar to the object and add it to the scene.
         The new scalarbar object (Assembly) will be accessible as obj.scalarbar
 
-        Parameters
-        ----------
-        s : list
-            (thickness, length) of scalarbar
+        Args:
+            s : (list)
+                (thickness, length) of scalarbar
+            title : (str)
+                scalar bar title
+            title_xoffset : (float)
+                horizontal space btw title and color scalarbar
+            title_yoffset : (float)
+                vertical space offset
+            title_size : (float)
+                size of title wrt numeric labels
+            title_rotation : (float)
+                title rotation in degrees
+            nlabels : (int)
+                number of numeric labels
+            label_font : (str)
+                font type for labels
+            label_size : (float)
+                label scale factor
+            label_offset : (float)
+                space btw numeric labels and scale
+            label_rotation : (float)
+                label rotation in degrees
+            label_format : (str)
+                label format for floats and integers (e.g. ':.2f')
+            draw_box : (bool)
+                draw a box around the colorbar
+            categories : (list)
+                make a categorical scalarbar,
+                the input list will have the format [value, color, alpha, textlabel]
 
-        title : str
-            scalar bar title
-
-        title_xoffset : float
-            horizontal space btw title and color scalarbar
-
-        title_yoffset : float
-            vertical space offset
-
-        title_size : float
-            size of title wrt numeric labels
-
-        title_rotation : float
-            title rotation in degrees
-
-        nlabels : int
-            number of numeric labels
-
-        label_font : str
-            font type for labels
-
-        label_size : float
-            label scale factor
-
-        label_offset : float
-            space btw numeric labels and scale
-
-        label_rotation : float
-            label rotation in degrees
-
-        label_format : str
-            label format for floats and integers (e.g. ':.2f')
-
-        draw_box : bool
-            draw a box around the colorbar
-
-        categories : list
-            make a categorical scalarbar,
-            the input list will have the format [value, color, alpha, textlabel]
-
-        .. hint:: examples/basic/scalarbars.py
+        Examples:
+            - [scalarbars.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/scalarbars.py)
         """
         plt = vedo.plotter_instance
         if plt and c is None:  # automatic black or white
@@ -1593,11 +1557,11 @@ class BaseGrid(BaseActor):
         """
         Build a polygonal Mesh from the current Grid object.
 
-        If ``fill=True``, the interior faces of all the cells are created.
-        (setting a ``shrink`` value slightly smaller than the default 1.0
+        If `fill=True`, the interior faces of all the cells are created.
+        (setting a `shrink` value slightly smaller than the default 1.0
         can avoid flickering due to internal adjacent faces).
 
-        If ``fill=False``, only the boundary faces will be generated.
+        If `fill=False`, only the boundary faces will be generated.
         """
         gf = vtk.vtkGeometryFilter()
         if fill:
@@ -1641,7 +1605,7 @@ class BaseGrid(BaseActor):
         """
         Get the cells connectivity ids as a numpy array.
 
-        The output format is: [[id0 ... idn], [id0 ... idm],  etc].
+        The output format is: `[[id0 ... idn], [id0 ... idm],  etc]`.
         """
         arr1d = utils.vtk2numpy(self._data.GetCells().GetData())
         if arr1d is None:
@@ -1676,16 +1640,13 @@ class BaseGrid(BaseActor):
 
         ``volume.color([(0,'red', (0.5,'violet'), (1,'green')])``
 
-        Parameters
-        ----------
-        alpha : list
-            use a list to specify transparencies along the scalar range
-
-        vmin : float
-            force the min of the scalar range to be this value
-
-        vmax : float
-            force the max of the scalar range to be this value
+        Args:
+            alpha : (list)
+                use a list to specify transparencies along the scalar range
+            vmin : (float)
+                force the min of the scalar range to be this value
+            vmax : (float)
+                force the max of the scalar range to be this value
         """
         # supersedes method in Points, Mesh
         if vmin is None:
@@ -1807,7 +1768,8 @@ class BaseGrid(BaseActor):
         Set ``value`` as single float or list of values to draw the isosurface(s).
         Use flying_edges for faster results (but sometimes can interfere with `smooth()`).
 
-        .. hint:: examples/volumetric/isosurfaces.py
+        Examples:
+            - [isosurfaces.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/isosurfaces.py)
         """
         scrange = self._data.GetScalarRange()
 
@@ -1853,18 +1815,17 @@ class BaseGrid(BaseActor):
         By default colors correspond to the volume's scalar.
         Returns an ``Mesh`` object.
 
-        Parameters
-        ----------
-        vmin : float
-            the lower threshold, voxels below this value are not shown.
 
-        vmax : float
-            the upper threshold, voxels above this value are not shown.
+        Args:
+            vmin : (float)
+                the lower threshold, voxels below this value are not shown.
+            vmax : (float)
+                the upper threshold, voxels above this value are not shown.
+            boundary : (bool)
+                controls whether to include cells that are partially inside
 
-        boundary : bool
-            controls whether to include cells that are partially inside
-
-        .. hint:: examples/volumetric/legosurface.py
+        Examples:
+            - [legosurface.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/legosurface.py)
         """
         dataset = vtk.vtkImplicitDataSet()
         dataset.SetDataSet(self._data)
@@ -1909,13 +1870,11 @@ class BaseGrid(BaseActor):
         """
         Cut the object with the plane defined by a point and a normal.
 
-        Parameters
-        ----------
-        origin : list
-            the cutting plane goes through this point
-
-        normal : list, str
-            normal vector to the cutting plane
+        Args:
+            origin : (list)
+                the cutting plane goes through this point
+            normal : (list, str)
+                normal vector to the cutting plane
         """
         strn = str(normal)
         if strn   ==  "x": normal = (1, 0, 0)
@@ -1945,13 +1904,13 @@ class BaseGrid(BaseActor):
         If an object is passed, its bounding box are used.
 
         Example:
-            .. code-block:: python
-
-                from vedo import *
-                tetmesh = TetMesh(dataurl+'limb_ugrid.vtk')
-                tetmesh.color('rainbow')
-                cu = Cube(side=500).x(500) # any Mesh works
-                tetmesh.cut_with_box(cu).show(axes=1)
+            ```python
+            from vedo import *
+            tetmesh = TetMesh(dataurl+'limb_ugrid.vtk')
+            tetmesh.color('rainbow')
+            cu = Cube(side=500).x(500) # any Mesh works
+            tetmesh.cut_with_box(cu).show(axes=1)
+            ```
         """
         bc = vtk.vtkBoxClipDataSet()
         bc.SetInputData(self._data)
@@ -2140,7 +2099,8 @@ def probe_points(dataset, pts):
     Note that a mask is also output with valid/invalid points which can be accessed
     with `mesh.pointdata['vtkValidPointMask']`.
 
-    .. hint:: examples/volumetric/probePoints.py
+    Examples:
+        - [probePoints.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probePoints.py)
     """
     if isinstance(pts, vedo.pointcloud.Points):
         pts = pts.points()
@@ -2183,7 +2143,9 @@ def probe_line(dataset, p1, p2, res=100):
 
     Use ``res`` to set the nr of points along the line
 
-    .. hint:: examples/volumetric/probeLine1.py, examples/volumetric/probeLine2.py
+    Examples:
+        - [probeLine1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probeLine1.py)
+        - [probeLine2.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probeLine2.py)
     """
     line = vtk.vtkLineSource()
     line.SetResolution(res)
@@ -2205,7 +2167,9 @@ def probe_plane(dataset, origin=(0, 0, 0), normal=(1, 0, 0)):
     Takes a ``Volume`` (or any other vtk data set)
     and probes its scalars on a plane defined by a point and a normal.
 
-    .. hint:: examples/volumetric/slicePlane1.py, examples/volumetric/slicePlane2.py
+    Examples:
+        - [slicePlane1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slicePlane1.py)
+        - [slicePlane2.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slicePlane2.py)
     """
     img = _getinput(dataset)
     plane = vtk.vtkPlane()
