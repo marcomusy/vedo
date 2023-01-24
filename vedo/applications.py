@@ -20,11 +20,12 @@ from vedo.shapes import Spline
 from vedo.shapes import Text2D
 from vedo.pyplot import CornerHistogram
 
+__docformat__ = "google"
+
 __doc__ = """
 This module contains vedo applications which provide some *ready-to-use* funcionalities
 .. image:: https://vedo.embl.es/images/advanced/app_raycaster.gif
 """
-
 
 __all__ = [
     "Browser",
@@ -44,37 +45,7 @@ class Slicer3DPlotter(Plotter):
     Generate a ``Plotter`` window with slicing planes for the input Volume.
 
     Returns the ``Plotter`` object.
-
-    Parameters
-    ----------
-    alpha : float
-        transparency of the slicing planes
-
-    cmaps : list
-        list of color maps names to cycle when clicking button
-
-    map2cells : bool
-        scalars are mapped to cells, not interpolated
-
-    clamp : bool
-        clamp scalar to reduce the effect of tails in color mapping
-
-    use_slider3d : bool
-        show sliders attached along the axes
-
-    show_histo : bool
-        show histogram on bottom left
-
-    show_icon : bool
-        show a small 3D rendering icon of the volume
-
-    draggable : bool
-        make the icon draggable
-
-    .. hint:: examples/volumetric/slicer1.py
-        .. image:: https://vedo.embl.es/images/volumetric/slicer1.jpg
     """
-
     def __init__(
             self,
             volume,
@@ -96,6 +67,30 @@ class Slicer3DPlotter(Plotter):
             resetcam=True,
             interactive=True,
         ):
+        """            
+        Args:
+            alpha : (float)
+                transparency of the slicing planes
+            cmaps : (list)
+                list of color maps names to cycle when clicking button
+            map2cells : (bool)
+                scalars are mapped to cells, not interpolated
+            clamp : (bool)
+                clamp scalar to reduce the effect of tails in color mapping
+            use_slider3d : (bool)
+                show sliders attached along the axes
+            show_histo : (bool)
+                show histogram on bottom left
+            show_icon : (bool)
+                show a small 3D rendering icon of the volume
+            draggable : (bool)
+                make the icon draggable
+
+        Examples:
+            - [slicer1.py](examples/volumetric/slicer1.py)
+
+            ![](https://vedo.embl.es/images/volumetric/slicer1.jpg)
+        """
         self._cmap_slicer= 'gist_ncar_r'
 
         if not title:
@@ -309,12 +304,7 @@ class Slicer2DPlotter(Plotter):
     Create a ``Plotter`` with a single slice of a Volume which always faces the camera,
     but at the same time can be oriented arbitrarily in space.
 
-    Parameters
-    ----------
-    levels : list
-        window and color level
-
-    .. image:: https://vedo.embl.es/images/volumetric/read_volume3.jpg
+    ![](https://vedo.embl.es/images/volumetric/read_volume3.jpg)
     """
 
     def __init__(
@@ -331,6 +321,11 @@ class Slicer2DPlotter(Plotter):
         bg2=None,
         interactive=True,
     ):
+        """
+        Args:
+            levels : (list)
+                window and color level
+        """
         custom_shape = [  # define here the 2 rendering rectangle spaces
             dict(bottomleft=(0.0, 0.0), topright=(1, 1), bg="k9"),  # the full window
             dict(bottomleft=(0.8, 0.8), topright=(1, 1), bg="k8", bg2="lb"),
@@ -405,10 +400,11 @@ class RayCastPlotter(Plotter):
 
     Returns the ``Plotter`` object.
 
-    .. hint:: examples/volumetric/app_raycaster.py
-        .. image:: https://vedo.embl.es/images/advanced/app_raycaster.gif
-    """
+    Examples:
+        - [app_raycaster.py](examples/volumetric/app_raycaster.py)
 
+        ![](https://vedo.embl.es/images/advanced/app_raycaster.gif)
+    """
     def __init__(self, volume, **kwargs):
 
         Plotter.__init__(self, **kwargs)
@@ -579,8 +575,10 @@ class IsosurfaceBrowser(Plotter):
 
     Set ``precompute=True`` to precompute the isosurfaces (so slider browsing will be smoother).
 
-    .. hint:: examples/volumetric/app_isobrowser.py
-        .. image:: https://vedo.embl.es/images/advanced/app_isobrowser.gif
+    Examples:
+        - [app_isobrowser.py](examples/volumetric/app_isobrowser.py)
+
+            ![](https://vedo.embl.es/images/advanced/app_isobrowser.gif)
     """
 
     def __init__(
@@ -713,16 +711,16 @@ class Browser(Plotter):
     """
     Browse a serie of vedo objects by using a simple slider.
 
-    Example:
-        .. code-block:: python
+    Examples:
+        ```python
+        import vedo
+        from vedo.applications import Browser
+        meshes = vedo.load("data/2*0.vtk") # a python list
+        plt = Browser(meshes, resetcam=1, axes=4) # a vedo.Plotter
+        plt.show().close()
+        ```
 
-            import vedo
-            from vedo.applications import Browser
-            meshes = vedo.load("data/2*0.vtk") # a python list
-            plt = Browser(meshes, resetcam=1, axes=4) # a vedo.Plotter
-            plt.show()
-
-    .. hint:: examples/other/morphomatics_tube.py
+        - [morphomatics_tube.py](examples/other/morphomatics_tube.py)
     """
     def __init__(
             self,
@@ -791,60 +789,7 @@ class Browser(Plotter):
 
 #############################################################################################
 class FreeHandCutPlotter(Plotter):
-    """
-    A ``Plotter`` derived class which edits polygonal meshes interactively.
-    Can also be invoked from command line. E.g. with:
-
-    ``vedo --edit https://vedo.embl.es/examples/data/porsche.ply``
-
-    Usage
-    -----
-        - Left-click and hold to rotate
-        - Right-click and move to draw line
-        - Second right-click to stop drawing
-        - Press c to clear points
-        -       z/Z to cut mesh (Z inverts inside-out the selection area)
-        -       L to keep only the largest connected surface
-        -       s to save mesh to file (tag _edited is appended to filename)
-        -       u to undo last action
-        -       h for help, i for info
-
-    Parameters
-    ----------
-    mesh : Mesh, Points
-        The input Mesh or pointcloud.
-
-    splined : bool
-        join points with a spline or a simple line.
-
-    font : str
-        Font name for the instructions.
-
-    alpha : float
-        transparency of the instruction message panel.
-
-    lw : str
-        selection line width.
-
-    lc : str
-        selection line color.
-
-    pc : str
-        selection points color.
-
-    c : str
-        backgound color of instructions.
-
-    tc : str
-        text color of instructions.
-
-    tol : int
-        tolerance of the point proximity.
-
-    .. hint:: examples/basic/cut_freehand.py
-        .. image:: https://vedo.embl.es/images/basic/cutFreeHand.gif
-    """
-
+    """FreeHandCutPlotter class"""
     # thanks to Jakub Kaminski for the original version of this script
     def __init__(
             self,
@@ -860,6 +805,51 @@ class FreeHandCutPlotter(Plotter):
             tol=0.008,
             **options
         ):
+        """
+        A ``Plotter`` derived class which edits polygonal meshes interactively.
+        Can also be invoked from command line. E.g. with:
+
+        ``vedo --edit https://vedo.embl.es/examples/data/porsche.ply``
+
+        Usage
+        -----
+            - Left-click and hold to rotate
+            - Right-click and move to draw line
+            - Second right-click to stop drawing
+            - Press c to clear points
+            -       z/Z to cut mesh (Z inverts inside-out the selection area)
+            -       L to keep only the largest connected surface
+            -       s to save mesh to file (tag _edited is appended to filename)
+            -       u to undo last action
+            -       h for help, i for info
+
+        Args:
+            mesh : (Mesh, Points)
+                The input Mesh or pointcloud.
+            splined : (bool)
+                join points with a spline or a simple line.
+            font : (str)
+                Font name for the instructions.
+            alpha : (float)
+                transparency of the instruction message panel.
+            lw : (str)
+                selection line width.
+            lc : (str)
+                selection line color.
+            pc : (str)
+                selection points color.
+            c : (str)
+                backgound color of instructions.
+            tc : (str)
+                text color of instructions.
+            tol : (int)
+                tolerance of the point proximity.
+
+        Examples:
+            - examples/basic/cut_freehand.py
+                
+                ![](https://vedo.embl.es/images/basic/cutFreeHand.gif)
+        """
 
         if not isinstance(mesh, Points):
             vedo.logger.error("FreeHandCutPlotter input must be Points or Mesh")
@@ -1147,22 +1137,17 @@ class Animation(Plotter):
     A ``Plotter`` derived class that allows to animate simultaneously various objects
     by specifying event times and durations of different visual effects.
 
-    Parameters
-    ----------
-    total_duration : float
-        expand or shrink the total duration of video to this value
-
-    time_resolution : float
-        in seconds, save a frame at this rate
-
-    show_progressbar : bool
-        whether to show a progress bar or not
-
-    video_filename : str
-        output file name of the video
-
-    video_fps : int
-        desired value of the nr of frames per second
+    Args:
+        total_duration : (float)
+            expand or shrink the total duration of video to this value
+        time_resolution : (float)
+            in seconds, save a frame at this rate
+        show_progressbar : (bool)
+            whether to show a progress bar or not
+        video_filename : (str)
+            output file name of the video
+        video_fps : (int)
+            desired value of the nr of frames per second
 
     .. warning:: this is still an experimental feature at the moment.
     """
@@ -1550,33 +1535,35 @@ class Animation(Plotter):
 
 
 class Clock(vedo.Assembly):
-    """
-    Create a clock with current time or user provided time.
+    """Clock class"""
+    def __init__(
+            self,
+            h=None,
+            m=None,
+            s=None,
+            font="Quikhand",
+            title="",
+            c="k",
+        ):
+        """
+        Create a clock with current time or user provided time.
 
-    Parameters
-    ----------
-    h : int
-        hours in range [0,23]
+        Args:
+            h : (int)
+                hours in range [0,23]
+            m : (int)
+                minutes in range [0,59]
+            s : (int)
+                seconds in range [0,59]
+            font : (str)
+                font type
+            title : (str)
+                some extra text to show on the clock
+            c : (str)
+                color of the numbers
 
-    m : int
-        minutes in range [0,59]
-
-    s : int
-        seconds in range [0,59]
-
-    font : str
-        font type
-
-    title : str
-        some extra text to show on the clock
-
-    c : str
-        color of the numbers
-
-
-    Example:
-        .. code-block:: python
-
+        Example:
+            ```python
             import time
             from vedo import show
             from vedo.applications import Clock
@@ -1587,16 +1574,8 @@ class Clock(vedo.Assembly):
                 clock.update()
                 plt.render()
             plt.close()
-    """
-    def __init__(
-            self,
-            h=None,
-            m=None,
-            s=None,
-            font="Quikhand",
-            title="",
-            c="k",
-        ):
+            ```
+        """
         self.elapsed = 0
         self._start = time.time()
 
