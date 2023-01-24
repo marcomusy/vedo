@@ -54,9 +54,8 @@ __website__    = "https://github.com/marcomusy/vedo"
 
 ##### To generate documentation #######################################################
 # cd Projects/vedo
-# pip uninstall vedo
-# Uncomment the lines below __pdoc__[] ...
-# pdoc3 --html . --force -c lunr_search="{'fuzziness': 0, 'index_docstrings': True}"
+# pip uninstall vtk
+# pdoc vedo -o html
 # chmod 755 html/ -R
 # mount_staging
 # rm ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/autodocs/html
