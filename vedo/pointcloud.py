@@ -17,7 +17,8 @@ __docformat__ = "google"
 
 __doc__ = """
 Submodule to work with point clouds <br>
-.. image:: https://vedo.embl.es/images/basic/pca.png
+
+![](https://vedo.embl.es/images/basic/pca.png)
 """
 
 __all__ = [
@@ -701,18 +702,15 @@ class Points(vtk.vtkFollower, BaseActor):
         For very large point clouds a list of colors and alpha can be assigned to each
         point in the form c=[(R,G,B,A), ... ] where 0<=R<256, ... 0<=A<256.
 
+
         Args:
             inputobj : (list, tuple)
-                The default is None.
-
-            c : str, (list)
-                Color. The default is (0.2,0.2,0.2).
-
+            c : (str, list)
+                Color name or rgb tuple. 
             alpha : (float)
-                Transparency in range [0,1]. The default is 1.
-
+                Transparency in range [0,1]. 
             r : (int)
-                Point radius in units of pixels. The default is 4.
+                Point radius in units of pixels. 
 
         Example:
             ```python
@@ -728,7 +726,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 z = np.sin(theta) * r
                 return [x,y,z]
 
-            Points(fibonacci_sphere(1000)).show(axes=1)
+            Points(fibonacci_sphere(1000)).show(axes=1).close()
             ```
 
         More Examples:
