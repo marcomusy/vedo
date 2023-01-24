@@ -1933,7 +1933,7 @@ def Ruler(
             initial rotation of the line around the main axis
 
     Examples:
-        - [](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/goniometer.py)
+        - [goniometer.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/goniometer.py)
         
         ![](https://vedo.embl.es/images/pyplot/goniometer.png)
     """
