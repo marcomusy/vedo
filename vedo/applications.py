@@ -87,7 +87,7 @@ class Slicer3DPlotter(Plotter):
                 make the icon draggable
 
         Examples:
-            - [slicer1.py](examples/volumetric/slicer1.py)
+            - [slicer1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slicer1.py)
 
             ![](https://vedo.embl.es/images/volumetric/slicer1.jpg)
         """
@@ -401,7 +401,7 @@ class RayCastPlotter(Plotter):
     Returns the ``Plotter`` object.
 
     Examples:
-        - [app_raycaster.py](examples/volumetric/app_raycaster.py)
+        - [app_raycaster.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/app_raycaster.py)
 
         ![](https://vedo.embl.es/images/advanced/app_raycaster.gif)
     """
@@ -576,7 +576,7 @@ class IsosurfaceBrowser(Plotter):
     Set ``precompute=True`` to precompute the isosurfaces (so slider browsing will be smoother).
 
     Examples:
-        - [app_isobrowser.py](examples/volumetric/app_isobrowser.py)
+        - [app_isobrowser.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/app_isobrowser.py)
 
             ![](https://vedo.embl.es/images/advanced/app_isobrowser.gif)
     """
@@ -720,7 +720,7 @@ class Browser(Plotter):
         plt.show().close()
         ```
 
-        - [morphomatics_tube.py](examples/other/morphomatics_tube.py)
+        - [morphomatics_tube.py](https://github.com/marcomusy/vedo/tree/master/examples/other/morphomatics_tube.py)
     """
     def __init__(
             self,
@@ -846,7 +846,7 @@ class FreeHandCutPlotter(Plotter):
                 tolerance of the point proximity.
 
         Examples:
-            - examples/basic/cut_freehand.py
+            - [](https://github.com/marcomusy/vedo/tree/master/examples/basic/cut_freehand.py)
                 
                 ![](https://vedo.embl.es/images/basic/cutFreeHand.gif)
         """
