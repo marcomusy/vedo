@@ -637,7 +637,7 @@ def ScalarBar(
         horizontal : (bool)
             show in horizontal layout
 
-    Examples: 
+    Examples:
         - [scalarbars.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/scalarbars.py)
 
     ![](https://user-images.githubusercontent.com/32848391/62940174-4bdc7900-bdd3-11e9-9713-e4f3e2fdab63.png)
