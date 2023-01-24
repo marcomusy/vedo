@@ -19,6 +19,8 @@ from vedo.pointcloud import Points, Point, merge
 from vedo.tetmesh import TetMesh
 from vedo.volume import Volume
 
+__docformat__ = "google"
+
 __doc__ = """
 Create additional objects like axes, legends, lights, etc.
 
@@ -645,26 +647,22 @@ def ScalarBar(
     """
     A 2D scalar bar for the specified obj.
 
+    Args:
+        pos : list
+            fractional x and y position in the 2D window
+        size : list
+            size of the scalarbar in pixel units (width, height)
+        nlabels : int
+            number of numeric labels to be shown
+        use_alpha : bool
+            retain transparency in scalarbar
+        horizontal : bool
+            show in horizontal layout
+
     .. note:: 
         examples/basic/scalarbars.py
     ![](https://user-images.githubusercontent.com/32848391/62940174-4bdc7900-bdd3-11e9-9713-e4f3e2fdab63.png)
 
-    Parameters
-    ----------
-    pos : list
-        fractional x and y position in the 2D window
-
-    size : list
-        size of the scalarbar in pixel units (width, height)
-
-    nlabels : int
-        number of numeric labels to be shown
-
-    use_alpha : bool
-        retain transparency in scalarbar
-
-    horizontal : bool
-        show in horizontal layout
     """
     if not hasattr(obj, "mapper"):
         vedo.logger.error(f"in add_scalarbar(): input is invalid {type(obj)}. Skip.")
