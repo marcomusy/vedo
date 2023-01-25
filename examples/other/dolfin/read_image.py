@@ -3,7 +3,8 @@
 """Interpolate a jpg image to a mesh and plot it"""
 from dolfin import *
 import matplotlib.pyplot as plt
-from vedo.dolfin import plot, download
+from vedo import download
+from vedo.dolfin import plot
 
 scale = 0.1
 fpath = download("https://vedo.embl.es/examples/data/images/embl_logo.jpg")

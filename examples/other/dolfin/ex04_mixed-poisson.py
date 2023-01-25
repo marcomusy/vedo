@@ -49,7 +49,7 @@ solve(a == L, w, bc)
 
 
 ########################################################### vedo
-from vedo.dolfin import plot, Text3D
+from vedo.dolfin import plot
 
 # Plot solution on mesh, and warp z-axis by the scalar value
 plot(u, warpZfactor=0.8, legend='u', text=__doc__)

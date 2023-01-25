@@ -46,20 +46,23 @@ u_magnitude = sqrt(dot(u, u))
 u_magnitude = project(u_magnitude, V)
 
 ################################ Plot solution
-from vedo.dolfin import *
+from vedo import Text3D
+from vedo.dolfin import plot
 
-plot(u, mode="displaced mesh",
-     text=__doc__,
-     scalarbar=False,
-     axes=1,
-     viewup='z')
-#exportWindow('elasticbeam1.x3d') # generate a html test page
+plot(
+    u, mode="displaced mesh",
+    text=__doc__,
+    scalarbar=False,
+    axes=1,
+    viewup='z',
+)
+#export_window('elasticbeam1.x3d') # generate a html test page
 
 txt = Text3D("Von Mises stress intensity", pos=(0.1,.12,0), s=0.03, c='white')
 plot(von_Mises, txt, cmap='plasma', scalarbar=False, new=True)
-#exportWindow('elasticbeam2.x3d') # generate a html test page
+#export_window('elasticbeam2.x3d') # generate a html test page
 
 txt = Text3D("Magnitude of displacement", pos=(0.1,.12,0), s=0.03, c='white')
 plot(u_magnitude, txt, scalarbar=False, new=True)
-#exportWindow('elasticbeam3.x3d') # generate a html test page
+#export_window('elasticbeam3.x3d') # generate a html test page
 

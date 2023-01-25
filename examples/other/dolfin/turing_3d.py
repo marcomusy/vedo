@@ -77,8 +77,8 @@ solver = NewtonSolver()
 #solver.parameters["convergence_criterion"] = "incremental"
 solver.parameters["relative_tolerance"] = 1e-3
 
-
-from vedo.dolfin import *
+from vedo import Text2D
+from vedo.dolfin import plot
 
 t = 0.0
 W.assign(W0)

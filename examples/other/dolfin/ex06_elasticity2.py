@@ -36,15 +36,6 @@ solve(inner(grad(w), grad(v)) * dx == inner(c, v) * dx, u, [bcl, bcr])
 
 
 ########################################################### vedo
-from vedo.dolfin import plot, printc, export_window
-
-# print out some funny text
-printc("""\idea Try out plot options:
-          \pin color='gold'
-          \pin alpha=0.2, depthpeeling=True
-          \pin mode='mesh warp lines', lw=.05""", c='blue')
+from vedo.dolfin import plot
 
 plot(u, mode='my displaced mesh please!!', azimuth=45)
-#export_window('ex06_elasticity2.x3d')
-
-printc('\smile Thanks for using vedo!', c='green')

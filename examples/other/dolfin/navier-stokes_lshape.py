@@ -4,7 +4,8 @@ on an L-shaped domain using Chorin's splitting method.
 """
 from __future__ import print_function
 from dolfin import *
-from vedo.dolfin import ProgressBar, plot, download
+from vedo import ProgressBar, download
+from vedo.dolfin import plot
 
 # Print log messages only from the root process in parallel
 parameters["std_out_all_processes"] = False

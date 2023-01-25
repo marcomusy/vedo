@@ -6,8 +6,8 @@ It injects a point source with a time-dependent source time function.
 #https://github.com/cako/fenics-scripts/blob/master/awefem/awefem.py
 #
 from dolfin import *
-from vedo import settings
-from vedo.dolfin import plot, ProgressBar, printc, download
+from vedo import ProgressBar, printc, download, settings
+from vedo.dolfin import plot
 import numpy as np
 
 set_log_level(30)

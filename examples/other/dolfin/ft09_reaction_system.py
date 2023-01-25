@@ -9,7 +9,6 @@ is given by the flow field w from the demo navier_stokes_cylinder.py.
   u_3' + w . nabla(u_3) - div(eps*grad(u_3)) = f_3 + K*u_1*u_2 - K*u_3
 
 """
-from __future__ import print_function
 print(__doc__)
 from fenics import *
 set_log_level(30)
@@ -66,7 +65,9 @@ F = ((u_1 - u_n1) / k)*v_1*dx + dot(w, grad(u_1))*v_1*dx \
 timeseries_w = TimeSeries('navier_stokes_cylinder/velocity_series')
 
 # Time-stepping
-from vedo.dolfin import plot, ProgressBar
+from vedo import ProgressBar
+from vedo.dolfin import plot
+
 pb = ProgressBar(0, num_steps, c='red')
 t = 0
 for n in pb.range():

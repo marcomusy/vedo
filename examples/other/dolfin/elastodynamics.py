@@ -179,8 +179,8 @@ def local_project(v, V, u=None):
         return
 
 ################################################################### time loop
-from vedo.dolfin import *
-from vedo import Box
+from vedo import Box, ProgressBar
+from vedo.dolfin import plot
 
 # add a frame box
 box = Box(length=1, width=1, height=1).pos(0.5,0,0).wireframe()

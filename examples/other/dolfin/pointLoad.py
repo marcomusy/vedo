@@ -4,7 +4,7 @@ to a corner of a linear-elastic cube.
 # Credit https://fenicsproject.discourse.group/t/
 #applying-pointsource-at-two-different-vectors/1459/2
 from dolfin import *
-from vedo.dolfin import plot, Text2D
+from vedo.dolfin import plot
 
 BULK_MOD = 1.0
 SHEAR_MOD = 1.0

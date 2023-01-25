@@ -2,7 +2,8 @@
 # ==========================
 
 from dolfin import *
-from vedo.dolfin import download, plot
+from vedo import download
+from vedo.dolfin import plot
 
 # Define mesh, function space
 fpath = download("https://vedo.embl.es/examples/data/box_with_dent.xml.gz")

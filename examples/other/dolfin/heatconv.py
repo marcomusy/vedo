@@ -71,7 +71,7 @@ u.interpolate(ic)
 
 
 ######################################################Time-stepping
-from vedo.dolfin import *
+from vedo.dolfin import plot
 
 t = 0.0
 while t < 3:
