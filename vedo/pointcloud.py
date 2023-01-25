@@ -692,16 +692,16 @@ def Point(pos=(0, 0, 0), r=12, c="red", alpha=1):
 
 ###################################################
 class Points(vtk.vtkFollower, BaseActor):
+    """Work with pointclouds."""
 
     def __init__(
         self, inputobj=None, c=(0.2, 0.2, 0.2), alpha=1, r=4,
     ):
         """
-        Build a `Mesh` made of only vertex points for a list of 2D/3D points.
+        Build an object made of only vertex points for a list of 2D/3D points.
         Both shapes (N, 3) or (3, N) are accepted as input, if N>3.
         For very large point clouds a list of colors and alpha can be assigned to each
         point in the form c=[(R,G,B,A), ... ] where 0<=R<256, ... 0<=A<256.
-
 
         Args:
             inputobj : (list, tuple)
@@ -1253,7 +1253,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
     @deprecated(reason=vedo.colors.red + "Please use distance_to()" + vedo.colors.reset)
     def distanceTo(self, pcloud, signed=False, invert=False, name="Distance"):
-        "Please use distance_to()"
+        "Please use `distance_to()`."
         return self.distance_to(pcloud, signed, invert, name)
 
     def distance_to(self, pcloud, signed=False, invert=False, name="Distance"):
@@ -1354,7 +1354,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
     @deprecated(reason=vedo.colors.red + "Please use point_size()" + vedo.colors.reset)
     def pointSize(self, value):
-        "Deprecated. Please use point_size()"
+        "Deprecated. Please use `point_size()`."
         return self.point_size(value)
 
     def point_size(self, value):
@@ -3043,19 +3043,15 @@ class Points(vtk.vtkFollower, BaseActor):
         Args:
             kernel : (str)
                 available kernels are [shepard, gaussian, linear]
-
             null_strategy : (int)
                 specify a strategy to use when encountering a "null" point
                 during the interpolation process. Null points occur when the local neighborhood
                 (of nearby points to interpolate from) is empty.
 
                 - Case 0: an output array is created that marks points
-                as being valid (=1) or null (invalid =0), and the null_value is set as well
-
+                  as being valid (=1) or null (invalid =0), and the null_value is set as well
                 - Case 1: the output data value(s) are set to the provided null_value
-
                 - Case 2: simply use the closest point to perform the interpolation.
-
             null_value : (float)
                 see above.
 
@@ -3194,8 +3190,8 @@ class Points(vtk.vtkFollower, BaseActor):
             - [quadratic_morphing.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/quadratic_morphing.py)
 
         .. note::
-            The appropriate tree search locator is built on the
-            fly and cached for speed.
+            The appropriate tree search locator is built on the fly and cached for speed.
+
             If you want to reset it use `mymesh.point_locator=None`
         """
         # NB: every time the mesh moves or is warped the locateors are set to None
@@ -3677,12 +3673,12 @@ class Points(vtk.vtkFollower, BaseActor):
             ```
 
         Examples:
-            - [](https://github.com/marcomusy/vedo/blob/master/examples/simulations/trail.py)
+            - [trail.py](https://github.com/marcomusy/vedo/blob/master/examples/simulations/trail.py)
 
             ![](https://vedo.embl.es/images/simulations/trail.gif)
 
         Check out also:
-            `cut_with_box()`, `cut_with_cylinder()`, `cut_with_sphere()`
+            `cut_with_box()`, `cut_with_cylinder()`, `cut_with_sphere()`.
         """
         s = str(normal)
         if "x" in s:
@@ -4673,7 +4669,7 @@ class Points(vtk.vtkFollower, BaseActor):
             This class can generate a lot of points very quickly.
             The maximum number of iterations is by default set to =1.0 for this reason.
             Increase the number of iterations very carefully.
-            Also, `maxN` can be set to limit the explosion of points.
+            Also, `nmax` can be set to limit the explosion of points.
             It is also recommended that a N closest neighborhood is used.
 
         """
