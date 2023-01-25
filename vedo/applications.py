@@ -24,7 +24,8 @@ __docformat__ = "google"
 
 __doc__ = """
 This module contains vedo applications which provide some *ready-to-use* funcionalities
-.. image:: https://vedo.embl.es/images/advanced/app_raycaster.gif
+
+<img src="https://vedo.embl.es/images/advanced/app_raycaster.gif" width="500">
 """
 
 __all__ = [
@@ -89,7 +90,7 @@ class Slicer3DPlotter(Plotter):
         Examples:
             - [slicer1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slicer1.py)
 
-            ![](https://vedo.embl.es/images/volumetric/slicer1.jpg)
+            <img src="https://vedo.embl.es/images/volumetric/slicer1.jpg" width="500">
         """
         self._cmap_slicer= 'gist_ncar_r'
 
@@ -303,8 +304,6 @@ class Slicer2DPlotter(Plotter):
     """
     Create a ``Plotter`` with a single slice of a Volume which always faces the camera,
     but at the same time can be oriented arbitrarily in space.
-
-    ![](https://vedo.embl.es/images/volumetric/read_volume3.jpg)
     """
 
     def __init__(
@@ -325,6 +324,8 @@ class Slicer2DPlotter(Plotter):
         Args:
             levels : (list)
                 window and color level
+            
+        <img src="https://vedo.embl.es/images/volumetric/read_volume3.jpg" width="500">
         """
         custom_shape = [  # define here the 2 rendering rectangle spaces
             dict(bottomleft=(0.0, 0.0), topright=(1, 1), bg="k9"),  # the full window
