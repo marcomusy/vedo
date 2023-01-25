@@ -2,118 +2,120 @@
 # -*- coding: utf-8 -*-
 import os
 
+__docformat__ = "google"
+
 class Settings:
     """
     General settings to modify the global behavior
 
-    Usage Example
-    -------------
-    .. code-block:: python
-
+    Usage Example:
+        ```python
         from vedo import settings, Cube
         settings.use_parallel_projection = True
-        Cube().color('g').show()
+        Cube().color('g').show().close()
+        ```
 
-    Parameters
-    ----------
+    List of available properties:
+    
+    ```python
+    # Set a default for the font to be used for axes, comments etc.
+    default_font = 'Normografo' # check font options in shapes.Text
 
-        # Set a default for the font to be used for axes, comments etc.
-        default_font = 'Normografo' # check font options in shapes.Text
+    # Palette number when using an integer to choose a color
+    palette = 0
 
-        # Palette number when using an integer to choose a color
-        palette = 0
+    # Scale magnification of the screenshot (must be an integer)
+    screeshot_scale = 1
+    screenshot_transparent_background = False
+    screeshot_large_image = False # Sometimes setting this to True gives better results
 
-        # Scale magnification of the screenshot (must be an integer)
-        screeshot_scale = 1
-        screenshot_transparent_background = False
-        screeshot_large_image = False # Sometimes setting this to True gives better results
+    # [DISABLED] Allow to continuously interact with scene during interactive() execution
+    allow_interaction = True
 
-        # [DISABLED] Allow to continuously interact with scene during interactive() execution
-        allow_interaction = True
+    # Set up default mouse and keyboard functionalities
+    enable_default_mouse_callbacks = True
+    enable_default_keyboard_callbacks = True
 
-        # Set up default mouse and keyboard functionalities
-        enable_default_mouse_callbacks = True
-        enable_default_keyboard_callbacks = True
+    # If False, when multiple renderers are present do not render each one for separate
+    #  but do it just once at the end (when interactive() is called)
+    immediate_rendering = True
 
-        # If False, when multiple renderers are present do not render each one for separate
-        #  but do it just once at the end (when interactive() is called)
-        immediate_rendering = True
+    # Show a gray frame margin in multirendering windows
+    renderer_frame_color = None
+    renderer_frame_alpha = 0.5
+    renderer_frame_width = 0.5
+    renderer_frame_padding = 0.0001
 
-        # Show a gray frame margin in multirendering windows
-        renderer_frame_color = None
-        renderer_frame_alpha = 0.5
-        renderer_frame_width = 0.5
-        renderer_frame_padding = 0.0001
+    # In multirendering mode set the position of the horizontal of vertical splitting [0,1]
+    window_splitting_position = None
 
-        # In multirendering mode set the position of the horizontal of vertical splitting [0,1]
-        window_splitting_position = None
+    # Enable / disable color printing by printc()
+    enable_print_color = True
 
-        # Enable / disable color printing by printc()
-        enable_print_color = True
+    # Wrap lines in tubes
+    render_lines_as_tubes = False
 
-        # Wrap lines in tubes
-        render_lines_as_tubes = False
+    # Smoothing options
+    point_smoothing = False
+    line_smoothing = False
+    polygon_smoothing = False
 
-        # Smoothing options
-        point_smoothing = False
-        line_smoothing = False
-        polygon_smoothing = False
+    # Remove hidden lines when in wireframe mode
+    hidden_line_removal = False
 
-        # Remove hidden lines when in wireframe mode
-        hidden_line_removal = False
+    # Turn on/off the automatic repositioning of lights as the camera moves.
+    light_follows_camera = False
+    two_sided_lighting = True
 
-        # Turn on/off the automatic repositioning of lights as the camera moves.
-        light_follows_camera = False
-        two_sided_lighting = True
+    # Turn on/off rendering of translucent material with depth peeling technique.
+    use_depth_peeling = False
+    alpha_bit_planes  = True   # options only active if useDepthPeeling=True
+    multi_samples     = 8      # force to not pick a framebuffer with a multisample buffer
+    max_number_of_peels= 4     # maximum number of rendering passes
+    occlusion_ratio   = 0.0    # occlusion ratio, 0 = exact image.
 
-        # Turn on/off rendering of translucent material with depth peeling technique.
-        use_depth_peeling = False
-        alpha_bit_planes  = True   # options only active if useDepthPeeling=True
-        multi_samples     = 8      # force to not pick a framebuffer with a multisample buffer
-        max_number_of_peels= 4     # maximum number of rendering passes
-        occlusion_ratio   = 0.0    # occlusion ratio, 0 = exact image.
+    # Turn on/off nvidia FXAA post-process anti-aliasing, if supported.
+    use_fxaa = False           # either True or False
 
-        # Turn on/off nvidia FXAA post-process anti-aliasing, if supported.
-        use_fxaa = False           # either True or False
+    # By default, the depth buffer is reset for each renderer.
+    #  If True, use the existing depth buffer
+    preserve_depth_buffer = False
 
-        # By default, the depth buffer is reset for each renderer.
-        #  If True, use the existing depth buffer
-        preserve_depth_buffer = False
+    # Use a polygon/edges offset to possibly resolve conflicts in rendering
+    use_polygon_offset    = False
+    polygon_offset_factor = 0.1
+    polygon_offset_units  = 0.1
 
-        # Use a polygon/edges offset to possibly resolve conflicts in rendering
-        use_polygon_offset    = False
-        polygon_offset_factor = 0.1
-        polygon_offset_units  = 0.1
+    # Interpolate scalars to render them smoothly
+    interpolate_scalars_before_mapping = True
 
-        # Interpolate scalars to render them smoothly
-        interpolate_scalars_before_mapping = True
+    # Set parallel projection On or Off (place camera to infinity, no perspective effects)
+    use_parallel_projection = False
 
-        # Set parallel projection On or Off (place camera to infinity, no perspective effects)
-        use_parallel_projection = False
+    # Set orientation type when reading TIFF files (volumes):
+    # TOPLEFT  1 (row 0 top, col 0 lhs)    TOPRIGHT 2 (row 0 top, col 0 rhs)
+    # BOTRIGHT 3 (row 0 bottom, col 0 rhs) BOTLEFT  4 (row 0 bottom, col 0 lhs)
+    # LEFTTOP  5 (row 0 lhs, col 0 top)    RIGHTTOP 6 (row 0 rhs, col 0 top)
+    # RIGHTBOT 7 (row 0 rhs, col 0 bottom) LEFTBOT  8 (row 0 lhs, col 0 bottom)
+    tiff_orientation_type = 1
 
-        # Set orientation type when reading TIFF files (volumes):
-        # TOPLEFT  1 (row 0 top, col 0 lhs)    TOPRIGHT 2 (row 0 top, col 0 rhs)
-        # BOTRIGHT 3 (row 0 bottom, col 0 rhs) BOTLEFT  4 (row 0 bottom, col 0 lhs)
-        # LEFTTOP  5 (row 0 lhs, col 0 top)    RIGHTTOP 6 (row 0 rhs, col 0 top)
-        # RIGHTBOT 7 (row 0 rhs, col 0 bottom) LEFTBOT  8 (row 0 lhs, col 0 bottom)
-        tiff_orientation_type = 1
+    # Annotated cube axis type nr. 5 options:
+    annotated_cube_color      = (0.75, 0.75, 0.75)
+    annotated_cube_text_color = None # use default, otherwise specify a single color
+    annotated_cube_text_scale = 0.2
+    annotated_cube_texts      = ["right","left ", "front","back ", " top ", "bttom"]
 
-        # Annotated cube axis type nr. 5 options:
-        annotated_cube_color      = (0.75, 0.75, 0.75)
-        annotated_cube_text_color = None # use default, otherwise specify a single color
-        annotated_cube_text_scale = 0.2
-        annotated_cube_texts      = ["right","left ", "front","back ", " top ", "bttom"]
-
-        # k3d settings for jupyter notebooks
-        k3d_menu_visibility = True
-        k3d_plot_height = 512
-        k3d_antialias   = True
-        k3d_lighting    = 1.2
-        k3d_camera_autofit = True
-        k3d_grid_autofit= True
-        k3d_axes_helper = True    # size of the small triad of axes on the bottom right
-        k3d_point_shader= "mesh"  # others are '3d', '3dSpecular', 'dot', 'flat'
-        k3d_line_shader = "thick" # others are 'flat', 'mesh'
+    # k3d settings for jupyter notebooks
+    k3d_menu_visibility = True
+    k3d_plot_height = 512
+    k3d_antialias   = True
+    k3d_lighting    = 1.2
+    k3d_camera_autofit = True
+    k3d_grid_autofit= True
+    k3d_axes_helper = True    # size of the small triad of axes on the bottom right
+    k3d_point_shader= "mesh"  # others are '3d', '3dSpecular', 'dot', 'flat'
+    k3d_line_shader = "thick" # others are 'flat', 'mesh'
+    ```
     """
 
     # Restrict the attributes so accidental typos will generate an AttributeError exception
@@ -537,6 +539,7 @@ class Settings:
         self.__init__()
 
     def print(self):
+        """Print function."""
         print(' ' + '-'*80)
         s = Settings.__doc__.replace('   ','')
         s = s.replace(".. code-block:: python\n","")
