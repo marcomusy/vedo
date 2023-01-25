@@ -13,6 +13,8 @@ except ImportError:
 
 import vedo
 
+__docformat__ = "google"
+
 __doc__ = """
 Colors definitions and printing methods. <br>
 .. image:: https://vedo.embl.es/images/basic/colorcubes.png
@@ -584,8 +586,7 @@ def _is_sequence(arg):
 
 
 def getColor(rgb=None, hsv=None):
-    """Deprecated. Use get_color()"""
-    #print("Deprecated call to getColor(). Use get_color() instead.")
+    """Deprecated. Use `get_color()`"""
     return get_color(rgb, hsv)
 
 def get_color(rgb=None, hsv=None):
@@ -595,17 +596,19 @@ def get_color(rgb=None, hsv=None):
     Set ``hsv`` to input as (hue, saturation, value).
 
     Example:
-         - RGB    = (255, 255, 255), corresponds to white
-         - rgb    = (1,1,1) is white
-         - hex    = #FFFF00 is yellow
-         - string = 'white'
-         - string = 'w' is white nickname
-         - string = 'dr' is darkred
-         - int    =  7 picks color nr. 7 in a predefined color list
-         - int    = -7 picks color nr. 7 in a different predefined list
+         - `RGB    = (255, 255, 255)` corresponds to white
+         - `rgb    = (1,1,1)` is again white
+         - `hex    = #FFFF00` is yellow
+         - `string = 'white'`
+         - `string = 'w'` is white nickname
+         - `string = 'dr'` is darkred
+         - `string = 'red4'` is a shade of red
+         - `int    =  7` picks color nr. 7 in a predefined color list
+         - `int    = -7` picks color nr. 7 in a different predefined list
 
 
-    .. hint:: examples/basic/colorcubes.py
+    Examples:
+        - [colorcubes.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/colorcubes.py)
     """
     # recursion, return a list if input is list of colors:
     if _is_sequence(rgb) and (len(rgb) > 3 or _is_sequence(rgb[0])):
@@ -716,7 +719,7 @@ def hex2rgb(hx):
 
 
 def colorMap(value, name="jet", vmin=None, vmax=None):
-    """Deprecated, use color_map()"""
+    """Deprecated, use `color_map()`"""
     print("Deprecated call to colorMap(), use color_map() instead")
     return color_map(value, name, vmin, vmax)
 
@@ -726,35 +729,35 @@ def color_map(value, name="jet", vmin=None, vmax=None):
 
     Return the (r,g,b) color, or a list of (r,g,b) colors.
 
-    Parameters
-    ----------
-    value : float, list
-        scalar value to transform into a color
+    Args:
+        value : *(float, list)*
+            scalar value to transform into a color
+        name : *(str, matplotlib.colors.LinearSegmentedColormap)*
+            color map name
 
-    name : str, matplotlib.colors.LinearSegmentedColormap
-        color map name
+    Very frequently used color maps are:
 
-    .. note:: Most frequently used color maps:
+        ![](https://user-images.githubusercontent.com/32848391/50738804-577e1680-11d8-11e9-929e-fca17a8ac6f3.jpg)
 
-        .. image:: https://user-images.githubusercontent.com/32848391/50738804-577e1680-11d8-11e9-929e-fca17a8ac6f3.jpg
+    A more complete color maps list:
 
-        Color maps list:
-
-        .. image:: https://matplotlib.org/1.2.1/_images/show_colormaps.png
+        ![](https://matplotlib.org/1.2.1/_images/show_colormaps.png)
 
     .. note:: Can also directly use and customize a matplotlib color map
 
     Example:
-        .. code-block:: python
+        ```python
+        from vedo import color_map
+        import matplotlib.cm as cm
+        print( color_map(0.2, cm.flag, 0, 1) )
+        # (1.0, 0.809016994374948, 0.6173258487801733)
+        ```
 
-            from vedo import color_map
-            import matplotlib.cm as cm
-            print( color_map(0.2, cm.flag, 0, 1) )
+    Examples:
+        - [plot_bars.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_bars.py)
 
-            # (1.0, 0.809016994374948, 0.6173258487801733)
-
-    .. hint:: examples/pyplot/plot_bars.py
-        .. image:: https://vedo.embl.es/images/pyplot/plot_bars.png
+            <img src="https://vedo.embl.es/images/pyplot/plot_bars.png" width="400"/>
+            
     """
     cut = _is_sequence(value)  # to speed up later
 
@@ -814,22 +817,20 @@ def build_palette(color1, color2, n, hsv=True):
     Generate N colors starting from `color1` to `color2`
     by linear interpolation in HSV or RGB spaces.
 
-    Parameters
-    ----------
-    N : int
-        number of output colors.
+    Args:
+        N : (int)
+            number of output colors.
+        color1 : (color)
+            first color.
+        color2 : (color)
+            second color.
+        hsv : (bool)
+            if `False`, interpolation is calculated in RGB space.
 
-    color1 : color
-        first color.
-
-    color2 : color
-        second color.
-
-    hsv : bool
-        if `False`, interpolation is calculated in RGB space.
-
-    .. hint:: examples/basic/mesh_custom.py
-        .. image:: https://vedo.embl.es/images/basic/mesh_custom.png
+    Examples:
+        - [mesh_custom.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_custom.py)
+    
+    ![](https://vedo.embl.es/images/basic/mesh_custom.png)
     """
     if hsv:
         color1 = rgb2hsv(color1)
@@ -856,8 +857,8 @@ def buildLUT(
     nanAlpha=1,
     interpolate=False,
 ):
-    """Deprecated call to buildLUT(). Please use build_lut()"""
-    print("Warning! Deprecated call to buildLUT(). Please use build_lut() instead")
+    """Deprecated. Please use `build_lut()`"""
+    print("Deprecated call to buildLUT(). Please use build_lut() instead")
     return build_lut(
         colorlist,
         vmin,
@@ -888,40 +889,32 @@ def build_lut(
 
     Return the ``vtkLookupTable`` object. This can be fed into ``cmap()`` method.
 
-    Parameters
-    ----------
-    colorlist : list
-        a list in the form ``[(scalar1, [r,g,b]), (scalar2, 'blue'), ...]``.
+    Args:
+        colorlist : (list)
+            a list in the form ``[(scalar1, [r,g,b]), (scalar2, 'blue'), ...]``.
+        vmin : (float)
+            specify minimum value of scalar range
+        vmax : (float)
+            specify maximum value of scalar range
+        below_color : (color)
+            color for scalars below the minimum in range
+        below_alpha : (float)
+            opacity for scalars below the minimum in range
+        above_color : (color)
+            color for scalars above the maximum in range
+        above_alpha : (float)
+            alpha for scalars above the maximum in range
+        nan_color : (color)
+            color for invalid (nan) scalars
+        nan_alpha : (float)
+            alpha for invalid (nan) scalars
+        interpolate : (bool)
+            interpolate or not intermediate scalars
 
-    vmin : float
-        specify minimum value of scalar range
+    Examples:
+        - [mesh_lut.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_lut.py)
 
-    vmax : float
-        specify maximum value of scalar range
-
-    below_color : color
-        color for scalars below the minimum in range
-
-    below_alpha : float
-        opacity for scalars below the minimum in range
-
-    above_color : color
-        color for scalars above the maximum in range
-
-    above_alpha : float
-        alpha for scalars above the maximum in range
-
-    nan_color : color
-        color for invalid (nan) scalars
-
-    nan_alpha : float
-        alpha for invalid (nan) scalars
-
-    interpolate : bool
-        interpolate or not intermediate scalars
-
-    .. hint:: examples/basic/mesh_lut.py
-        .. image:: https://vedo.embl.es/images/basic/mesh_lut.png
+            ![](https://vedo.embl.es/images/basic/mesh_lut.png)
     """
     ctf = vtk.vtkColorTransferFunction()
     ctf.SetColorSpaceToRGB()
@@ -999,54 +992,44 @@ def printc(
     """
     Print to terminal in color (any color!).
 
-    Parameters
-    ----------
-    c : color
-        foreground color name or (r,g,b)
-
-    bc : color
-        background color name or (r,g,b)
-
-    bold : bool
-        boldface [True]
-
-    italic : bool
-        italic [False]
-
-    blink : bool
-        blinking text [False]
-
-    underline : bool
-        underline text [False]
-
-    strike : bool
-        strike through text [False]
-
-    dim : bool
-        make text look dimmer [False]
-
-    invert : bool
-        invert background and forward colors [False]
-
-    box : bool
-        print a box with specified text character ['']
-
-    flush : bool
-        flush buffer after printing [True]
-
-    end : str
-        the end character to be printed [newline]
+    Args:
+        c : (color)
+            foreground color name or (r,g,b)
+        bc : (color)
+            background color name or (r,g,b)
+        bold : (bool)
+            boldface [True]
+        italic : (bool)
+            italic [False]
+        blink : (bool)
+            blinking text [False]
+        underline : (bool)
+            underline text [False]
+        strike : (bool)
+            strike through text [False]
+        dim : (bool)
+            make text look dimmer [False]
+        invert : (bool)
+            invert background and forward colors [False]
+        box : (bool)
+            print a box with specified text character ['']
+        flush : (bool)
+            flush buffer after printing [True]
+        end : (str)
+            the end character to be printed [newline]
 
     Example:
-        .. code-block:: python
+        ```python
+        from vedo.colors import printc
+        printc('anything', c='tomato', bold=False, end=' ')
+        printc('anything', 455.5, c='lightblue')
+        printc(299792.48, c=4)
+        ```
 
-            from vedo.colors import printc
-            printc('anything', c='tomato', bold=False, end=' ')
-            printc('anything', 455.5, c='lightblue')
-            printc(299792.48, c=4)
+    Examples:
+        - [printc.py](https://github.com/marcomusy/vedo/tree/master/examples/other/printc.py)
 
-    .. hint:: examples/other/printc.py
-        .. image:: https://user-images.githubusercontent.com/32848391/50739010-2bfc2b80-11da-11e9-94de-011e50a86e61.jpg
+        ![](https://user-images.githubusercontent.com/32848391/50739010-2bfc2b80-11da-11e9-94de-011e50a86e61.jpg)
     """
     if not vedo.settings.enable_print_color:
         print(*strings, end=end, flush=flush)
@@ -1169,7 +1152,7 @@ def printd(*strings, q=False):
     Print debug information about the environment where the printd() is called.
     Local variables are printed out with their current values.
 
-    Use ``q`` to quit (exit) python session after the printd call.
+    Use `q` to quit (exit) python session after the printd call.
     """
     from inspect import currentframe, getframeinfo
 
