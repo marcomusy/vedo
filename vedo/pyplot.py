@@ -18,9 +18,13 @@ from vedo.mesh import Mesh
 from vedo.assembly import Assembly, Group
 from vedo import shapes
 
+
+__docformat__ = "google"
+
 __doc__ = """
-Advanced plotting utility functions <br>
-.. image:: https://vedo.embl.es/images/pyplot/fitPolynomial2.png
+Advanced plotting functionalities.
+
+![](https://vedo.embl.es/images/pyplot/fitPolynomial2.png)
 """
 
 __all__ = [
@@ -85,35 +89,6 @@ class LabelData:
 
 ##########################################################################
 class Figure(Assembly):
-    """
-    Parameters
-    ----------
-    xlim : list
-        range of the x-axis as [x0, x1]
-
-    ylim : list
-        range of the y-axis as [y0, y1]
-
-    aspect : float, str
-        the desired aspect ratio of the histogram. Default is 4/3.
-        Use `aspect="equal"` to force the same units in x and y.
-
-    padding : float, list
-        keep a padding space from the axes (as a fraction of the axis size).
-        This can be a list of four numbers.
-
-    xtitle : str
-        title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
-
-    ytitle : str
-        title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-
-    grid : bool
-        show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
-
-    axes : dict
-        an extra dictionary of options for the axes
-    """
     def __init__(
             self,
             xlim,
@@ -122,6 +97,27 @@ class Figure(Assembly):
             padding=(0.05, 0.05, 0.05, 0.05),
             **kwargs,
         ):
+        """
+        Args:
+            xlim : (list)
+                range of the x-axis as [x0, x1]
+            ylim : (list)
+                range of the y-axis as [y0, y1]
+            aspect : (float, str)
+                the desired aspect ratio of the histogram. Default is 4/3.
+                Use `aspect="equal"` to force the same units in x and y.
+            padding : (float, list)
+                keep a padding space from the axes (as a fraction of the axis size).
+                This can be a list of four numbers.
+            xtitle : (str)
+                title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
+            ytitle : (str)
+                title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
+            grid : (bool)
+                show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
+            axes : (dict)
+                an extra dictionary of options for the axes
+        """
 
         self.xlim = np.asarray(xlim)
         self.ylim = np.asarray(ylim)
@@ -316,19 +312,15 @@ class Figure(Assembly):
         If a whole Figure is added with "+=", it is unpacked and its objects are added
         one by one.
 
-        Parameters
-        ----------
-        rescale : bool
-            rescale the y axis position while inserting the object.
-
-        as3d : bool
-            if True keep the aspect ratio of the 3d object, otherwise stretch it in y.
-
-        adjusted : bool
-            adjust the scaling according to the shortest axis
-
-        cut : bool
-            cut off the parts of the object which go beyond the axes frame.
+        Args:
+            rescale : (bool)
+                rescale the y axis position while inserting the object.
+            as3d : (bool)
+                if True keep the aspect ratio of the 3d object, otherwise stretch it in y.
+            adjusted : (bool)
+                adjust the scaling according to the shortest axis
+            cut : (bool)
+                cut off the parts of the object which go beyond the axes frame.
         """
         for a in objs:
 
@@ -411,19 +403,15 @@ class Figure(Assembly):
         """
         Manually add en entry label to the legend.
 
-        Parameters
-        ----------
-        text : str
-            text string for the label.
-
-        c : str
-            color of the text
-
-        marker : str, Mesh
-            a marker char or a Mesh object to be used as marker
-
-        mc : str, optional
-            color for the marker
+        Args:
+            text : (str)
+                text string for the label.
+            c : (str)
+                color of the text
+            marker : (str), Mesh
+                a marker char or a Mesh object to be used as marker
+            mc : (str)
+                color for the marker
         """
         newlabel = LabelData()
         newlabel.text = text.replace("\n", " ")
@@ -453,52 +441,39 @@ class Figure(Assembly):
         Add existing labels to form a legend box.
         Labels have been previously filled with eg: `plot(..., label="text")`
 
-        Parameters
-        ----------
-        pos : str, list
-            A string or 2D coordinates. The default is "top-right".
-
-        relative : bool
-            control whether `pos` is absolute or relative, e.i. normalized
-            to the x and y ranges so that x and y in `pos=[x,y]` should be
-            both in the range [0,1].
-            This flag is ignored if a string despcriptor is passed.
-            Default is True.
-
-        font : str, int
-            font name or number
-
-        s : float
-            global size of the legend
-
-        c : str
-            color of the text
-
-        vspace : float
-            vertical spacing of lines
-
-        padding : float
-            padding of the box as a fraction of the text size
-
-        radius : float
-            border radius of the box
-
-        alpha : float
-            opacity of the box. Values below 1 may cause poor rendering
-            because of antialiasing.
-            Use alpha = 0 to remove the box.
-
-        bc : str
-            box color
-
-        lw : int
-            border line width of the box in pixel units
-
-        lc : int
-            border line color of the box
-
-        z : float
-            set the zorder as z position (useful to avoid overlap)
+        Args:
+            pos : (str, list)
+                A string or 2D coordinates. The default is "top-right".
+            relative : (bool)
+                control whether `pos` is absolute or relative, e.i. normalized
+                to the x and y ranges so that x and y in `pos=[x,y]` should be
+                both in the range [0,1].
+                This flag is ignored if a string despcriptor is passed.
+                Default is True.
+            font : (str, int)
+                font name or number
+            s : (float)
+                global size of the legend
+            c : (str)
+                color of the text
+            vspace : (float)
+                vertical spacing of lines
+            padding : (float)
+                padding of the box as a fraction of the text size
+            radius : (float)
+                border radius of the box
+            alpha : (float)
+                opacity of the box. Values below 1 may cause poor rendering
+                because of antialiasing.
+                Use alpha = 0 to remove the box.
+            bc : (str)
+                box color
+            lw : (int)
+                border line width of the box in pixel units
+            lc : (int)
+                border line color of the box
+            z : (float)
+                set the zorder as z position (useful to avoid overlap)
         """
         sx = self.x1lim - self.x0lim
         s = s * sx / 55  # so that input can be about 1
@@ -631,22 +606,18 @@ class Figure(Assembly):
 
         Still experimental.
 
-        Parameters
-        ----------
-        scale : float
-            scaling factor
+        Args:
+            scale : (float)
+                scaling factor
+            pos : (str, list)
+                position in 2D, as atring or list (x,y).
+                Any combination of "center", "top", "bottom", "left" and "right" will work.
+                The center of the renderer is [0,0] while top-right is [1,1].
+            padding : (float, list)
+                a single value or a list (xpad, ypad)
 
-        pos : str, list
-            position in 2D, as atring or list (x,y).
-            Any combination of "center", "top", "bottom", "left" and "right" will work.
-            The center of the renderer is [0,0] while top-right is [1,1].
-
-        padding : float, list
-            a single value or a list (xpad, ypad)
-
-        Returns
-        -------
-        Group object.
+        Returns:
+            `Group` object.
         """
         x0, x1 = self.xbounds()
         y0, y1 = self.ybounds()
@@ -725,65 +696,7 @@ class Figure(Assembly):
 
 #########################################################################################
 class Histogram1D(Figure):
-    """
-    Creates a `Histogram1D(Figure)` object.
-
-    Parameters
-    ----------
-    weights : list
-        An array of weights, of the same shape as `data`. Each value in `data`
-        only contributes its associated weight towards the bin count (instead of 1).
-
-    bins : int
-        number of bins
-
-    density : bool
-        normalize the area to 1 by dividing by the nr of entries and bin size
-
-    logscale : bool
-        use logscale on y-axis
-
-    fill : bool
-        fill bars with solid color `c`
-
-    gap : float
-        leave a small space btw bars
-
-    radius : float
-        border radius of the top of the histogram bar. Default value is 0.1.
-
-    texture : str
-        url or path to an image to be used as texture for the bin
-
-    outline : bool
-        show outline of the bins
-
-    errors : bool
-        show error bars
-
-    xtitle : str
-        title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
-
-    ytitle : str
-        title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-
-    padding : float, list
-        keep a padding space from the axes (as a fraction of the axis size).
-        This can be a list of four numbers.
-
-    aspect : float
-        the desired aspect ratio of the histogram. Default is 4/3.
-
-    grid : bool
-        show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
-
-    ztolerance : float
-        a tolerance factor to superimpose objects (along the z-axis).
-
-
-    .. hint:: examples/pyplot/histo_1d_a.py histo_1d_b.py histo_1d_c.py histo_1d_d.py
-        .. image:: https://vedo.embl.es/images/pyplot/histo_1D.png
-    """
+    "1D histogramming."
 
     def __init__(
             self,
@@ -823,6 +736,53 @@ class Histogram1D(Figure):
             label="",
             **fig_kwargs,
         ):
+        """
+        Creates a `Histogram1D(Figure)` object.
+
+        Args:
+            weights : (list)
+                An array of weights, of the same shape as `data`. Each value in `data`
+                only contributes its associated weight towards the bin count (instead of 1).
+            bins : (int)
+                number of bins
+            density : (bool)
+                normalize the area to 1 by dividing by the nr of entries and bin size
+            logscale : (bool)
+                use logscale on y-axis
+            fill : (bool)
+                fill bars with solid color `c`
+            gap : (float)
+                leave a small space btw bars
+            radius : (float)
+                border radius of the top of the histogram bar. Default value is 0.1.
+            texture : (str)
+                url or path to an image to be used as texture for the bin
+            outline : (bool)
+                show outline of the bins
+            errors : (bool)
+                show error bars
+            xtitle : (str)
+                title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
+            ytitle : (str)
+                title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
+            padding : (float), list
+                keep a padding space from the axes (as a fraction of the axis size).
+                This can be a list of four numbers.
+            aspect : (float)
+                the desired aspect ratio of the histogram. Default is 4/3.
+            grid : (bool)
+                show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
+            ztolerance : (float)
+                a tolerance factor to superimpose objects (along the z-axis).
+
+        Examples:
+            - [histo_1d_a.py](examples/pyplot/histo_1d_a.py)
+            - [histo_1d_b.py](examples/pyplot/histo_1d_b.py)
+            - [histo_1d_c.py](examples/pyplot/histo_1d_c.py)
+            - [histo_1d_d.py](examples/pyplot/histo_1d_d.py)
+
+            ![](https://vedo.embl.es/images/pyplot/histo_1D.png)
+        """
 
         if like is None and vedo.last_figure is not None:
             if xlim is None and ylim == (0, None):
@@ -1109,71 +1069,7 @@ class Histogram1D(Figure):
 
 #########################################################################################
 class Histogram2D(Figure):
-    """
-    Input data formats `[(x1,x2,..), (y1,y2,..)] or [(x1,y1), (x2,y2),..]`
-    are both valid.
-
-    Use keyword `like=...` if you want to use the same format of a previously
-    created Figure (useful when superimposing Figures) to make sure
-    they are compatible and comparable. If they are not compatible
-    you will receive an error message.
-
-    Parameters
-    ----------
-    bins : list
-        binning as (nx, ny)
-
-    weights : list
-        array of weights to assign to each entry
-
-    cmap : str, lookuptable
-        color map name or look up table
-
-    alpha : float
-        opacity of the histogram
-
-    gap : float
-        separation between adjacent bins as a fraction for their size
-
-    scalarbar : bool
-        add a scalarbar to right of the histogram
-
-    like : Figure
-        grab and use the same format of the given Figure (for superimposing)
-
-    xlim : list
-        [x0, x1] range of interest. If left to None will automatically
-        choose the minimum or the maximum of the data range.
-        Data outside the range are completely ignored.
-
-    ylim : list
-        [y0, y1] range of interest. If left to None will automatically
-        choose the minimum or the maximum of the data range.
-        Data outside the range are completely ignored.
-
-    aspect : float
-        the desired aspect ratio of the figure.
-
-    title : str
-        title of the plot to appear on top.
-        If left blank some statistics will be shown.
-
-    xtitle : str
-        x axis title
-
-    ytitle : str
-        y axis title
-
-    ztitle : str
-        title for the scalar bar
-
-    ac : str
-        axes color, additional keyword for Axes can also be added
-        using e.g. `axes=dict(xygrid=True)`
-
-    .. hint:: examples/pyplot/histo_2d_a.py, examples/pyplot/histo_2d_b.py
-        .. image:: https://vedo.embl.es/images/pyplot/histo_2D.png
-    """
+    """2D histogramming."""
 
     def __init__(
             self,
@@ -1200,7 +1096,59 @@ class Histogram2D(Figure):
             ac="k",
             **fig_kwargs,
         ):
+        """
+        Input data formats `[(x1,x2,..), (y1,y2,..)] or [(x1,y1), (x2,y2),..]`
+        are both valid.
 
+        Use keyword `like=...` if you want to use the same format of a previously
+        created Figure (useful when superimposing Figures) to make sure
+        they are compatible and comparable. If they are not compatible
+        you will receive an error message.
+
+        Args:
+            bins : (list)
+                binning as (nx, ny)
+            weights : (list)
+                array of weights to assign to each entry
+            cmap : (str, lookuptable)
+                color map name or look up table
+            alpha : (float)
+                opacity of the histogram
+            gap : (float)
+                separation between adjacent bins as a fraction for their size
+            scalarbar : (bool)
+                add a scalarbar to right of the histogram
+            like : (Figure)
+                grab and use the same format of the given Figure (for superimposing)
+            xlim : (list)
+                [x0, x1] range of interest. If left to None will automatically
+                choose the minimum or the maximum of the data range.
+                Data outside the range are completely ignored.
+            ylim : (list)
+                [y0, y1] range of interest. If left to None will automatically
+                choose the minimum or the maximum of the data range.
+                Data outside the range are completely ignored.
+            aspect : (float)
+                the desired aspect ratio of the figure.
+            title : (str)
+                title of the plot to appear on top.
+                If left blank some statistics will be shown.
+            xtitle : (str)
+                x axis title
+            ytitle : (str)
+                y axis title
+            ztitle : (str)
+                title for the scalar bar
+            ac : (str)
+                axes color, additional keyword for Axes can also be added
+                using e.g. `axes=dict(xygrid=True)`
+
+        Examples:
+            - [histo_2d_a.py](examples/pyplot/histo_2d_a.py)
+            - [histo_2d_b.py](examples/pyplot/histo_2d_b.py)
+            
+            ![](https://vedo.embl.es/images/pyplot/histo_2D.png)
+        """
         if yvalues is None:
             # assume [(x1,y1), (x2,y2) ...] format
             yvalues = xvalues[:, 1]
@@ -1316,64 +1264,7 @@ class Histogram2D(Figure):
 
 #########################################################################################
 class PlotBars(Figure):
-    """
-    Creates a `PlotBars(Figure)` object.
-
-    Input must be in format `[counts, labels, colors, edges]`.
-    Either or both `edges` and `colors` are optional and can be omitted.
-
-    Use keyword `like=...` if you want to use the same format of a previously
-    created Figure (useful when superimposing Figures) to make sure
-    they are compatible and comparable. If they are not compatible
-    you will receive an error message.
-
-
-    Parameters
-    ----------
-
-    errors : bool
-        show error bars
-
-    logscale : bool
-        use logscale on y-axis
-
-    fill : bool
-        fill bars with solid color `c`
-
-    gap : float
-        leave a small space btw bars
-
-    radius : float
-        border radius of the top of the histogram bar. Default value is 0.1.
-
-    texture : str
-        url or path to an image to be used as texture for the bin
-
-    outline : bool
-        show outline of the bins
-
-    xtitle : str
-        title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
-
-    ytitle : str
-        title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-
-    ac : str
-        axes color
-
-    padding : float, list
-        keep a padding space from the axes (as a fraction of the axis size).
-        This can be a list of four numbers.
-
-    aspect : float
-        the desired aspect ratio of the figure. Default is 4/3.
-
-    grid : bool
-        show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
-
-    .. hint:: examples/pyplot/histo_1d_a.py histo_1d_b.py histo_1d_c.py histo_1d_d.py
-        .. image:: https://vedo.embl.es/images/pyplot/histo_1D.png
-    """
+    """Creates a `PlotBars(Figure)` object."""
 
     def __init__(
             self,
@@ -1404,6 +1295,49 @@ class PlotBars(Figure):
             ztolerance=None,
             **fig_kwargs,
         ):
+        """
+        Input must be in format `[counts, labels, colors, edges]`.
+        Either or both `edges` and `colors` are optional and can be omitted.
+
+        Use keyword `like=...` if you want to use the same format of a previously
+        created Figure (useful when superimposing Figures) to make sure
+        they are compatible and comparable. If they are not compatible
+        you will receive an error message.
+
+        Args:
+            errors : (bool)
+                show error bars
+            logscale : (bool)
+                use logscale on y-axis
+            fill : (bool)
+                fill bars with solid color `c`
+            gap : (float)
+                leave a small space btw bars
+            radius : (float)
+                border radius of the top of the histogram bar. Default value is 0.1.
+            texture : (str)
+                url or path to an image to be used as texture for the bin
+            outline : (bool)
+                show outline of the bins
+            xtitle : (str)
+                title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
+            ytitle : (str)
+                title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
+            ac : (str)
+                axes color
+            padding : (float, list)
+                keep a padding space from the axes (as a fraction of the axis size).
+                This can be a list of four numbers.
+            aspect : (float)
+                the desired aspect ratio of the figure. Default is 4/3.
+            grid : (bool)
+                show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
+
+        Examples:
+            - [plot_bars.py](examples/pyplot/plot_bars.py)
+
+            ![](https://vedo.embl.es/images/pyplot/plot_bars.png)
+        """
         ndata = len(data)
         if ndata == 4:
             counts, xlabs, cols, edges = data
@@ -1549,107 +1483,7 @@ class PlotBars(Figure):
 
 #########################################################################################
 class PlotXY(Figure):
-    """
-    Creates a `PlotXY(Figure)` object.
-
-    Parameters
-    ----------
-
-    xerrors : bool
-        show error bars associated to each point in x
-
-    yerrors : bool
-        show error bars associated to each point in y
-
-    lw : int
-        width of the line connecting points in pixel units.
-        Set it to 0 to remove the line.
-
-    lc : str
-        line color
-
-    la : float
-        line "alpha", opacity of the line
-
-    dashed : bool
-        draw a dashed line instead of a continuous line
-
-    splined : bool
-        spline the line joining the point as a countinous curve
-
-    elw : int
-        width of error bar lines in units of pixels
-
-    ec : color
-        color of error bar, by default the same as marker color
-
-    error_band : bool
-        represent errors on y as a filled error band.
-        Use ``ec`` keyword to modify its color.
-
-    marker : str, int
-        use a marker for the data points
-
-    ms : float
-        marker size
-
-    mc : color
-        color of the marker
-
-    ma : float
-        opacity of the marker
-
-    xlim : list
-        set limits to the range for the x variable
-
-    ylim : list
-        set limits to the range for the y variable
-
-    aspect : float, str
-        Desired aspect ratio.
-        Use `aspect="equal"` to force the same units in x and y.
-        Scaling factor is saved in Figure.yscale.
-
-    padding : float, list
-        keep a padding space from the axes (as a fraction of the axis size).
-        This can be a list of four numbers.
-
-    title : str
-        title to appear on the top of the frame, like a header.
-
-    xtitle : str
-        title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
-
-    ytitle : str
-        title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-
-    ac : str
-        axes color
-
-    grid : bool
-        show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
-
-    ztolerance : float
-        a tolerance factor to superimpose objects (along the z-axis).
-
-
-    Example:
-        .. code-block:: python
-
-            import numpy as np
-            from vedo.pyplot import plot
-            x = np.arange(0, np.pi, 0.1)
-            fig = plot(x, np.sin(2*x), 'r0-', aspect='equal')
-            fig+= plot(x, np.cos(2*x), 'blue4 o-', like=fig)
-            fig.show()
-
-        .. image:: https://user-images.githubusercontent.com/32848391/74363882-c3638300-4dcb-11ea-8a78-eb492ad9711f.png
-
-    .. hint::
-        examples/pyplot/plot_errbars.py, plot_errband.py, plot_pip.py, scatter1.py, scatter2.py
-
-        .. image:: https://vedo.embl.es/images/pyplot/plot_pip.png
-    """
+    """Creates a `PlotXY(Figure)` object."""
     def __init__(
             self,
             #
@@ -1687,7 +1521,82 @@ class PlotXY(Figure):
             label="",
             **fig_kwargs,
         ):
+        """
+        Args:
+            xerrors : (bool)
+                show error bars associated to each point in x
+            yerrors : (bool)
+                show error bars associated to each point in y
+            lw : (int)
+                width of the line connecting points in pixel units.
+                Set it to 0 to remove the line.
+            lc : (str)
+                line color
+            la : (float)
+                line "alpha", opacity of the line
+            dashed : (bool)
+                draw a dashed line instead of a continuous line
+            splined : (bool)
+                spline the line joining the point as a countinous curve
+            elw : (int)
+                width of error bar lines in units of pixels
+            ec : (color)
+                color of error bar, by default the same as marker color
+            error_band : (bool)
+                represent errors on y as a filled error band.
+                Use ``ec`` keyword to modify its color.
+            marker : (str, int)
+                use a marker for the data points
+            ms : (float)
+                marker size
+            mc : (color)
+                color of the marker
+            ma : (float)
+                opacity of the marker
+            xlim : (list)
+                set limits to the range for the x variable
+            ylim : (list)
+                set limits to the range for the y variable
+            aspect : (float, str)
+                Desired aspect ratio.
+                Use `aspect="equal"` to force the same units in x and y.
+                Scaling factor is saved in Figure.yscale.
+            padding : (float, list)
+                keep a padding space from the axes (as a fraction of the axis size).
+                This can be a list of four numbers.
+            title : (str)
+                title to appear on the top of the frame, like a header.
+            xtitle : (str)
+                title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
+            ytitle : (str)
+                title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
+            ac : (str)
+                axes color
+            grid : (bool)
+                show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
+            ztolerance : (float)
+                a tolerance factor to superimpose objects (along the z-axis).
 
+        Example:
+            ```python
+            import numpy as np
+            from vedo.pyplot import plot
+            x = np.arange(0, np.pi, 0.1)
+            fig = plot(x, np.sin(2*x), 'r0-', aspect='equal')
+            fig+= plot(x, np.cos(2*x), 'blue4 o-', like=fig)
+            fig.show().close()
+            ```
+            <img src="https://user-images.githubusercontent.com/32848391/74363882-c3638300-4dcb-11ea-8a78-eb492ad9711f.png" width="600">
+
+        Examples:
+            - [plot_errbars.py](examples/pyplot/plot_errbars.py)
+            - [plot_errband.py](examples/pyplot/plot_errband.py)
+            - [plot_pip.py](examples/pyplot/plot_pip.py)
+    
+                ![](https://vedo.embl.es/images/pyplot/plot_pip.png)
+            - [scatter1.py](examples/pyplot/scatter1.py)
+            - [scatter2.py](examples/pyplot/scatter2.py)
+        """
         line = False
         if lw > 0:
             line = True
@@ -1913,100 +1822,78 @@ def plot(*args, **kwargs):
     they are compatible and comparable. If they are not compatible
     you will receive an error message.
 
-    Parameters
-    ----------
-    xerrors : bool
-        show error bars associated to each point in x
-
-    yerrors : bool
-        show error bars associated to each point in y
-
-    lw : int
-        width of the line connecting points in pixel units.
-        Set it to 0 to remove the line.
-
-    lc : str
-        line color
-
-    la : float
-        line "alpha", opacity of the line
-
-    dashed : bool
-        draw a dashed line instead of a continuous line
-
-    splined : bool
-        spline the line joining the point as a countinous curve
-
-    elw : int
-        width of error bar lines in units of pixels
-
-    ec : color
-        color of error bar, by default the same as marker color
-
-    error_band : bool
-        represent errors on y as a filled error band.
-        Use ``ec`` keyword to modify its color.
-
-    marker : str, int
-        use a marker for the data points
-
-    ms : float
-        marker size
-
-    mc : color
-        color of the marker
-
-    ma : float
-        opacity of the marker
-
-    xlim : list
-        set limits to the range for the x variable
-
-    ylim : list
-        set limits to the range for the y variable
-
-    aspect : float
-        Desired aspect ratio.
-        If None, it is automatically calculated to get a reasonable aspect ratio.
-        Scaling factor is saved in Figure.yscale
-
-    padding : float, list
-        keep a padding space from the axes (as a fraction of the axis size).
-        This can be a list of four numbers.
-
-    title : str
-        title to appear on the top of the frame, like a header.
-
-    xtitle : str
-        title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
-
-    ytitle : str
-        title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-
-    ac : str
-        axes color
-
-    grid : bool
-        show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
-
-    ztolerance : float
-        a tolerance factor to superimpose objects (along the z-axis).
-
+    Args:
+        xerrors : (bool)
+            show error bars associated to each point in x
+        yerrors : (bool)
+            show error bars associated to each point in y
+        lw : (int)
+            width of the line connecting points in pixel units.
+            Set it to 0 to remove the line.
+        lc : (str)
+            line color
+        la : (float)
+            line "alpha", opacity of the line
+        dashed : (bool)
+            draw a dashed line instead of a continuous line
+        splined : (bool)
+            spline the line joining the point as a countinous curve
+        elw : (int)
+            width of error bar lines in units of pixels
+        ec : (color)
+            color of error bar, by default the same as marker color
+        error_band : (bool)
+            represent errors on y as a filled error band.
+            Use ``ec`` keyword to modify its color.
+        marker : (str, int)
+            use a marker for the data points
+        ms : (float)
+            marker size
+        mc : (color)
+            color of the marker
+        ma : (float)
+            opacity of the marker
+        xlim : (list)
+            set limits to the range for the x variable
+        ylim : (list)
+            set limits to the range for the y variable
+        aspect : (float)
+            Desired aspect ratio.
+            If None, it is automatically calculated to get a reasonable aspect ratio.
+            Scaling factor is saved in Figure.yscale
+        padding : (float, list)
+            keep a padding space from the axes (as a fraction of the axis size).
+            This can be a list of four numbers.
+        title : (str)
+            title to appear on the top of the frame, like a header.
+        xtitle : (str)
+            title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
+        ytitle : (str)
+            title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
+        ac : (str)
+            axes color
+        grid : (bool)
+            show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
+        ztolerance : (float)
+            a tolerance factor to superimpose objects (along the z-axis).
 
     Example:
-        .. code-block:: python
+        ```python
+        from vedo.pyplot import plot
+        import numpy as np
+        x = np.linspace(0, 6.28, num=50)
+        plot(np.sin(x), 'r').plot(np.cos(x), 'bo-').show().close()
+        ```
+        ![](https://user-images.githubusercontent.com/32848391/74363882-c3638300-4dcb-11ea-8a78-eb492ad9711f.png)
 
-            from vedo.pyplot import plot
-            import numpy as np
-            x = np.linspace(0, 6.28, num=50)
-            plot(np.sin(x), 'r').plot(np.cos(x), 'bo-').show()
+    Examples:
+        - [plot_errbars.py](examples/pyplot/plot_errbars.py)
+        - [plot_errband.py](examples/pyplot/plot_errband.py)
+        - [plot_pip.py](examples/pyplot/plot_pip.py)
+        - [scatter1.py](examples/pyplot/scatter1.py)
+        - [scatter2.py](examples/pyplot/scatter2.py)
 
-        .. image:: https://user-images.githubusercontent.com/32848391/74363882-c3638300-4dcb-11ea-8a78-eb492ad9711f.png
-
-    .. hint::
-        examples/pyplot/plot_errbars.py, plot_errband.py, plot_pip.py, scatter1.py, scatter2.py
-
-        .. image:: https://vedo.embl.es/images/pyplot/plot_pip.png
+        ![](https://vedo.embl.es/images/pyplot/plot_pip.png)
 
 
     -------------------------------------------------------------------------
@@ -2017,52 +1904,42 @@ def plot(*args, **kwargs):
     Input must be in format `[counts, labels, colors, edges]`.
     Either or both `edges` and `colors` are optional and can be omitted.
 
+    Args:
+        errors : (bool)
+            show error bars
+        logscale : (bool)
+            use logscale on y-axis
+        fill : (bool)
+            fill bars with solid color `c`
+        gap : (float)
+            leave a small space btw bars
+        radius : (float)
+            border radius of the top of the histogram bar. Default value is 0.1.
+        texture : (str)
+            url or path to an image to be used as texture for the bin
+        outline : (bool)
+            show outline of the bins
+        xtitle : (str)
+            title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
+        ytitle : (str)
+            title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
+        ac : (str)
+            axes color
+        padding : (float, list)
+            keep a padding space from the axes (as a fraction of the axis size).
+            This can be a list of four numbers.
+        aspect : (float)
+            the desired aspect ratio of the figure. Default is 4/3.
+        grid : (bool)
+            show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
 
-    Parameters
-    ----------
+    Examples:
+        - [histo_1d_a.py](examples/pyplot/histo_1d_a.py)
+        - [histo_1d_b.py](examples/pyplot/histo_1d_b.py)
+        - [histo_1d_c.py](examples/pyplot/histo_1d_c.py)
+        - [histo_1d_d.py](examples/pyplot/histo_1d_d.py)
 
-    errors : bool
-        show error bars
-
-    logscale : bool
-        use logscale on y-axis
-
-    fill : bool
-        fill bars with solid color `c`
-
-    gap : float
-        leave a small space btw bars
-
-    radius : float
-        border radius of the top of the histogram bar. Default value is 0.1.
-
-    texture : str
-        url or path to an image to be used as texture for the bin
-
-    outline : bool
-        show outline of the bins
-
-    xtitle : str
-        title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
-
-    ytitle : str
-        title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-
-    ac : str
-        axes color
-
-    padding : float, list
-        keep a padding space from the axes (as a fraction of the axis size).
-        This can be a list of four numbers.
-
-    aspect : float
-        the desired aspect ratio of the figure. Default is 4/3.
-
-    grid : bool
-        show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
-
-    .. hint:: examples/pyplot/histo_1d_a.py histo_1d_b.py histo_1d_c.py histo_1d_d.py
-        .. image:: https://vedo.embl.es/images/pyplot/histo_1D.png
+        ![](https://vedo.embl.es/images/pyplot/histo_1D.png)
 
 
     ----------------------------------------------------------------------
@@ -2071,28 +1948,24 @@ def plot(*args, **kwargs):
     If input is an external function or a formula, draw the surface
     representing the function `f(x,y)`.
 
-    Parameters
-    ----------
-    x : float
-        x range of values
+    Args:
+        x : (float)
+            x range of values
+        y : (float)
+            y range of values
+        zlimits : (float)
+            limit the z range of the independent variable
+        zlevels : (int)
+            will draw the specified number of z-levels contour lines
+        show_nan : (bool)
+            show where the function does not exist as red points
+        bins : (list)
+            number of bins in x and y
 
-    y : float
-        y range of values
+    Examples:
+        - [plot_fxy.py](examples/pyplot/plot_fxy.py)
 
-    zlimits : float
-        limit the z range of the independent variable
-
-    zlevels : int
-        will draw the specified number of z-levels contour lines
-
-    show_nan : bool
-        show where the function does not exist as red points
-
-    bins : list
-        number of bins in x and y
-
-    .. hint:: plot_fxy.py
-        .. image:: https://vedo.embl.es/images/pyplot/plot_fxy.png
+        ![](https://vedo.embl.es/images/pyplot/plot_fxy.png)
 
 
     --------------------------------------------------------------------
@@ -2100,19 +1973,18 @@ def plot(*args, **kwargs):
 
     If ``mode='complex'`` draw the real value of the function and color map the imaginary part.
 
-    Parameters
-    ----------
-    cmap : str
-        diverging color map (white means imag(z)=0)
+    Args:
+        cmap : (str)
+            diverging color map (white means `imag(z)=0`)
+        lw : (float)
+            line with of the binning
+        bins : (list)
+            binning in x and y
 
-    lw : float
-        line with of the binning
-
-    bins : list
-        binning in x and y
-
-    .. hint:: examples/pyplot/plot_fxy.py
-        ..image:: https://user-images.githubusercontent.com/32848391/73392962-1709a300-42db-11ea-9278-30c9d6e5eeaa.png
+    Examples:
+        - [plot_fxy.py](examples/pyplot/plot_fxy.py)
+        
+        ![](https://user-images.githubusercontent.com/32848391/73392962-1709a300-42db-11ea-9278-30c9d6e5eeaa.png)
 
 
     --------------------------------------------------------------------
@@ -2121,67 +1993,50 @@ def plot(*args, **kwargs):
     If ``mode='polar'`` input arrays are interpreted as a list of polar angles and radii.
     Build a polar (radar) plot by joining the set of points in polar coordinates.
 
-    Parameters
-    ----------
-    title : str
-        plot title
+    Args:
+        title : (str)
+            plot title
+        tsize : (float)
+            title size
+        bins : (int)
+            number of bins in phi
+        r1 : (float)
+            inner radius
+        r2 : (float)
+            outer radius
+        lsize : (float)
+            label size
+        c : (color)
+            color of the line
+        ac : (color)
+            color of the frame and labels
+        alpha : (float)
+            opacity of the frame
+        ps : (int)
+            point size in pixels, if ps=0 no point is drawn
+        lw : (int)
+            line width in pixels, if lw=0 no line is drawn
+        deg : (bool)
+            input array is in degrees
+        vmax : (float)
+            normalize radius to this maximum value
+        fill : (bool)
+            fill convex area with solid color
+        splined : (bool)
+            interpolate the set of input points
+        show_disc : (bool)
+            draw the outer ring axis
+        nrays : (int)
+            draw this number of axis rays (continuous and dashed)
+        show_lines : (bool)
+            draw lines to the origin
+        show_angles : (bool)
+            draw angle values
 
-    tsize : float
-        title size
+    Examples:
+        - [histo_polar.py](examples/pyplot/histo_polar.py)
 
-    bins : int
-        number of bins in phi
-
-    r1 : float
-        inner radius
-
-    r2 : float
-        outer radius
-
-    lsize : float
-        label size
-
-    c : color
-        color of the line
-
-    ac : color
-        color of the frame and labels
-
-    alpha : float
-        opacity of the frame
-
-    ps : int
-        point size in pixels, if ps=0 no point is drawn
-
-    lw : int
-        line width in pixels, if lw=0 no line is drawn
-
-    deg : bool
-        input array is in degrees
-
-    vmax : float
-        normalize radius to this maximum value
-
-    fill : bool
-        fill convex area with solid color
-
-    splined : bool
-        interpolate the set of input points
-
-    show_disc : bool
-        draw the outer ring axis
-
-    nrays : int
-        draw this number of axis rays (continuous and dashed)
-
-    show_lines : bool
-        draw lines to the origin
-
-    show_angles : bool
-        draw angle values
-
-    .. hint:: examples/pyplot/histo_polar.py
-        .. image:: https://user-images.githubusercontent.com/32848391/64992590-7fc82400-d8d4-11e9-9c10-795f4756a73f.png
+        ![](https://user-images.githubusercontent.com/32848391/64992590-7fc82400-d8d4-11e9-9c10-795f4756a73f.png)
 
 
     --------------------------------------------------------------------
@@ -2193,31 +2048,26 @@ def plot(*args, **kwargs):
     Return an ``Figure(Assembly)`` of 2 objects: the unit
     sphere (in wireframe representation) and the surface `rho(theta, phi)`.
 
-    Parameters
-    ----------
-    rfunc : function
-        handle to a user defined function `rho(theta, phi)`.
+    Args:
+        rfunc : function
+            handle to a user defined function `rho(theta, phi)`.
+        normalize : (bool)
+            scale surface to fit inside the unit sphere
+        res : (int)
+            grid resolution of the unit sphere
+        scalarbar : (bool)
+            add a 3D scalarbar to the plot for radius
+        c : (color)
+            color of the unit sphere
+        alpha : (float)
+            opacity of the unit sphere
+        cmap : (str)
+            color map for the surface
 
-    normalize : bool
-        scale surface to fit inside the unit sphere
+    Examples:
+        - [plot_spheric.py](examples/pyplot/plot_spheric.py)
 
-    res : int
-        grid resolution of the unit sphere
-
-    scalarbar : bool
-        add a 3D scalarbar to the plot for radius
-
-    c : color
-        color of the unit sphere
-
-    alpha : float
-        opacity of the unit sphere
-
-    cmap : str
-        color map for the surface
-
-    .. hint:: examples/pyplot/plot_spheric.py
-        .. image:: https://vedo.embl.es/images/pyplot/plot_spheric.png
+        ![](https://vedo.embl.es/images/pyplot/plot_spheric.png)
     """
     mode = kwargs.pop("mode", "")
     if "spher" in mode:
@@ -2332,64 +2182,52 @@ def histogram(*args, **kwargs):
 
     Creates a `Histogram1D(Figure)` object.
 
-    Parameters
-    ----------
-    weights : list
-        An array of weights, of the same shape as `data`. Each value in `data`
-        only contributes its associated weight towards the bin count (instead of 1).
+    Args:
+        weights : (list)
+            An array of weights, of the same shape as `data`. Each value in `data`
+            only contributes its associated weight towards the bin count (instead of 1).
+        bins : (int)
+            number of bins
+        vrange : (list)
+            restrict the range of the histogram
+        density : (bool)
+            normalize the area to 1 by dividing by the nr of entries and bin size
+        logscale : (bool)
+            use logscale on y-axis
+        fill : (bool)
+            fill bars with solid color `c`
+        gap : (float)
+            leave a small space btw bars
+        radius : (float)
+            border radius of the top of the histogram bar. Default value is 0.1.
+        texture : (str)
+            url or path to an image to be used as texture for the bin
+        outline : (bool)
+            show outline of the bins
+        errors : (bool)
+            show error bars
+        xtitle : (str)
+            title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
+        ytitle : (str)
+            title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
+        padding : (float, list)
+            keep a padding space from the axes (as a fraction of the axis size).
+            This can be a list of four numbers.
+        aspect : (float)
+            the desired aspect ratio of the histogram. Default is 4/3.
+        grid : (bool)
+            show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
+        ztolerance : (float)
+            a tolerance factor to superimpose objects (along the z-axis).
 
-    bins : int
-        number of bins
+    Examples:
+        - [histo_1d_a.py](examples/pyplot/histo_1d_a.py)
+        - [histo_1d_b.py](examples/pyplot/histo_1d_b.py)
+        - [histo_1d_c.py](examples/pyplot/histo_1d_c.py)
+        - [histo_1d_d.py](examples/pyplot/histo_1d_d.py)
 
-    vrange : list
-        restrict the range of the histogram
+        ![](https://vedo.embl.es/images/pyplot/histo_1D.png)
 
-    density : bool
-        normalize the area to 1 by dividing by the nr of entries and bin size
-
-    logscale : bool
-        use logscale on y-axis
-
-    fill : bool
-        fill bars with solid color `c`
-
-    gap : float
-        leave a small space btw bars
-
-    radius : float
-        border radius of the top of the histogram bar. Default value is 0.1.
-
-    texture : str
-        url or path to an image to be used as texture for the bin
-
-    outline : bool
-        show outline of the bins
-
-    errors : bool
-        show error bars
-
-    xtitle : str
-        title for the x-axis, can also be set using `axes=dict(xtitle="my x axis")`
-
-    ytitle : str
-        title for the y-axis, can also be set using `axes=dict(ytitle="my y axis")`
-
-    padding : float, list
-        keep a padding space from the axes (as a fraction of the axis size).
-        This can be a list of four numbers.
-
-    aspect : float
-        the desired aspect ratio of the histogram. Default is 4/3.
-
-    grid : bool
-        show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
-
-    ztolerance : float
-        a tolerance factor to superimpose objects (along the z-axis).
-
-
-    .. hint:: examples/pyplot/histo_1d_a.py histo_1d_b.py histo_1d_c.py histo_1d_d.py
-        .. image:: https://vedo.embl.es/images/pyplot/histo_1D.png
 
     -------------------------------------------------------------------------
     .. note:: default mode, for 2D arrays
@@ -2397,62 +2235,50 @@ def histogram(*args, **kwargs):
     Input data formats `[(x1,x2,..), (y1,y2,..)] or [(x1,y1), (x2,y2),..]`
     are both valid.
 
-    Parameters
-    ----------
-    bins : list
-        binning as (nx, ny)
+    Args:
+        bins : (list)
+            binning as (nx, ny)
+        weights : (list)
+            array of weights to assign to each entry
+        cmap : (str, lookuptable)
+            color map name or look up table
+        alpha : (float)
+            opacity of the histogram
+        gap : (float)
+            separation between adjacent bins as a fraction for their size.
+            Set gap=-1 to generate a quad surface.
+        scalarbar : (bool)
+            add a scalarbar to right of the histogram
+        like : (Figure)
+            grab and use the same format of the given Figure (for superimposing)
+        xlim : (list)
+            [x0, x1] range of interest. If left to None will automatically
+            choose the minimum or the maximum of the data range.
+            Data outside the range are completely ignored.
+        ylim : (list)
+            [y0, y1] range of interest. If left to None will automatically
+            choose the minimum or the maximum of the data range.
+            Data outside the range are completely ignored.
+        aspect : (float)
+            the desired aspect ratio of the figure.
+        title : (str)
+            title of the plot to appear on top.
+            If left blank some statistics will be shown.
+        xtitle : (str)
+            x axis title
+        ytitle : (str)
+            y axis title
+        ztitle : (str)
+            title for the scalar bar
+        ac : (str)
+            axes color, additional keyword for Axes can also be added
+            using e.g. `axes=dict(xygrid=True)`
 
-    weights : list
-        array of weights to assign to each entry
+    Examples:
+        - [histo_2d_a.py](examples/pyplot/histo_2d_a.py)
+        - [histo_2d_b.py](examples/pyplot/histo_2d_b.py)
 
-    cmap : str, lookuptable
-        color map name or look up table
-
-    alpha : float
-        opacity of the histogram
-
-    gap : float
-        separation between adjacent bins as a fraction for their size.
-        Set gap=-1 to generate a quad surface.
-
-    scalarbar : bool
-        add a scalarbar to right of the histogram
-
-    like : Figure
-        grab and use the same format of the given Figure (for superimposing)
-
-    xlim : list
-        [x0, x1] range of interest. If left to None will automatically
-        choose the minimum or the maximum of the data range.
-        Data outside the range are completely ignored.
-
-    ylim : list
-        [y0, y1] range of interest. If left to None will automatically
-        choose the minimum or the maximum of the data range.
-        Data outside the range are completely ignored.
-
-    aspect : float
-        the desired aspect ratio of the figure.
-
-    title : str
-        title of the plot to appear on top.
-        If left blank some statistics will be shown.
-
-    xtitle : str
-        x axis title
-
-    ytitle : str
-        y axis title
-
-    ztitle : str
-        title for the scalar bar
-
-    ac : str
-        axes color, additional keyword for Axes can also be added
-        using e.g. `axes=dict(xygrid=True)`
-
-    .. hint:: examples/pyplot/histo_2d_a.py, examples/pyplot/histo_2d_b.py
-        .. image:: https://vedo.embl.es/images/pyplot/histo_2D.png
+        ![](https://vedo.embl.es/images/pyplot/histo_2D.png)
 
 
     -------------------------------------------------------------------------
@@ -2460,34 +2286,26 @@ def histogram(*args, **kwargs):
 
     If ``mode='3d'``, build a 2D histogram as 3D bars from a list of x and y values.
 
-    Parameters
-    ----------
-    xtitle : str
-        x axis title
+    Args:
+        xtitle : (str)
+            x axis title
+        bins : (int)
+            nr of bins for the smaller range in x or y
+        vrange : (list)
+            range in x and y in format `[(xmin,xmax), (ymin,ymax)]`
+        norm : (float)
+            sets a scaling factor for the z axis (frequency axis)
+        fill : (bool)
+            draw solid hexagons
+        cmap : (str)
+            color map name for elevation
+        gap : (float)
+            keep a internal empty gap between bins [0,1]
+        zscale : (float)
+            rescale the (already normalized) zaxis for visual convenience
 
-    bins : int
-        nr of bins for the smaller range in x or y
-
-    vrange : list
-        range in x and y in format `[(xmin,xmax), (ymin,ymax)]`
-
-    norm : float
-        sets a scaling factor for the z axis (frequency axis)
-
-    fill : bool
-        draw solid hexagons
-
-    cmap : str
-        color map name for elevation
-
-    gap : float
-        keep a internal empty gap between bins [0,1]
-
-    zscale : float
-        rescale the (already normalized) zaxis for visual convenience
-
-    .. hint:: examples/pyplot/histo_hexagonal.py
-        .. image:: https://vedo.embl.es/images/pyplot/histo_hexagonal.png
+    Examples:
+        - [histo_2d_b.py](examples/pyplot/histo_2d_b.py)
 
 
     -------------------------------------------------------------------------
@@ -2495,28 +2313,24 @@ def histogram(*args, **kwargs):
 
     If ``mode='hexbin'``, build a hexagonal histogram from a list of x and y values.
 
-    Parameters
-    ----------
-    xtitle : str
-        x axis title
+    Args:
+        xtitle : (str)
+            x axis title
+        bins : (int)
+            nr of bins for the smaller range in x or y
+        vrange : (list)
+            range in x and y in format `[(xmin,xmax), (ymin,ymax)]`
+        norm : (float)
+            sets a scaling factor for the z axis (frequency axis)
+        fill : (bool)
+            draw solid hexagons
+        cmap : (str)
+            color map name for elevation
 
-    bins : int
-        nr of bins for the smaller range in x or y
+    Examples:
+        - [histo_hexagonal.py](examples/pyplot/histo_hexagonal.py)
 
-    vrange : list
-        range in x and y in format `[(xmin,xmax), (ymin,ymax)]`
-
-    norm : float
-        sets a scaling factor for the z axis (frequency axis)
-
-    fill : bool
-        draw solid hexagons
-
-    cmap : str
-        color map name for elevation
-
-    .. hint:: examples/pyplot/histo_hexagonal.py
-        .. image:: https://vedo.embl.es/images/pyplot/histo_hexagonal.png
+        ![](https://vedo.embl.es/images/pyplot/histo_hexagonal.png)
 
 
     -------------------------------------------------------------------------
@@ -2524,80 +2338,59 @@ def histogram(*args, **kwargs):
 
     If ``mode='polar'`` assume input is polar coordinate system (rho, theta):
 
-    Parameters
-    ----------
-    weights : list
-        Array of weights, of the same shape as the input.
-        Each value only contributes its associated weight towards the bin count (instead of 1).
+    Args:
+        weights : (list)
+            Array of weights, of the same shape as the input.
+            Each value only contributes its associated weight towards the bin count (instead of 1).
+        title : (str)
+            histogram title
+        tsize : (float)
+            title size
+        bins : (int)
+            number of bins in phi
+        r1 : (float)
+            inner radius
+        r2 : (float)
+            outer radius
+        phigap : (float)
+            gap angle btw 2 radial bars, in degrees
+        rgap : (float)
+            gap factor along radius of numeric angle labels
+        lpos : (float)
+            label gap factor along radius
+        lsize : (float)
+            label size
+        c : (color)
+            color of the histogram bars, can be a list of length `bins`
+        bc : (color)
+            color of the frame and labels
+        alpha : (float)
+            opacity of the frame
+        cmap : (str)
+            color map name
+        deg : (bool)
+            input array is in degrees
+        vmin : (float)
+            minimum value of the radial axis
+        vmax : (float)
+            maximum value of the radial axis
+        labels : (list)
+            list of labels, must be of length `bins`
+        show_disc : (bool)
+            show the outer ring axis
+        nrays : (int)
+            draw this number of axis rays (continuous and dashed)
+        show_lines : (bool)
+            show lines to the origin
+        show_angles : (bool)
+            show angular values
+        show_errors : (bool)
+            show error bars
 
-    title : str
-        histogram title
-
-    tsize : float
-        title size
-
-    bins : int
-        number of bins in phi
-
-    r1 : float
-        inner radius
-
-    r2 : float
-        outer radius
-
-    phigap : float
-        gap angle btw 2 radial bars, in degrees
-
-    rgap : float
-        gap factor along radius of numeric angle labels
-
-    lpos : float
-        label gap factor along radius
-
-    lsize : float
-        label size
-
-    c : color
-        color of the histogram bars, can be a list of length `bins`
-
-    bc : color
-        color of the frame and labels
-
-    alpha : float
-        opacity of the frame
-
-    cmap : str
-        color map name
-
-    deg : bool
-        input array is in degrees
-
-    vmin : float
-        minimum value of the radial axis
-
-    vmax : float
-        maximum value of the radial axis
-
-    labels : list
-        list of labels, must be of length `bins`
-
-    show_disc : bool
-        show the outer ring axis
-
-    nrays : int
-        draw this number of axis rays (continuous and dashed)
-
-    show_lines : bool
-        show lines to the origin
-
-    show_angles : bool
-        show angular values
-
-    show_errors : bool
-        show error bars
-
-    .. hint:: examples/pyplot/histo_polar.py
-        .. image:: https://vedo.embl.es/images/pyplot/histo_polar.png
+    Examples:
+        - [histo_polar.py](examples/pyplot/histo_polar.py)
+        
+        ![](https://vedo.embl.es/images/pyplot/histo_polar.png)
 
 
     -------------------------------------------------------------------------
@@ -2605,22 +2398,20 @@ def histogram(*args, **kwargs):
 
     If ``mode='spheric'``, build a histogram from list of theta and phi values.
 
-    Parameters
-    ----------
-    rmax : float
-        maximum radial elevation of bin
+    Args:
+        rmax : (float)
+            maximum radial elevation of bin
+        res : (int)
+            sphere resolution
+        cmap : (str)
+            color map name
+        lw : (int)
+            line width of the bin edges
 
-    res : int
-        sphere resolution
-
-    cmap : str
-        color map name
-
-    lw : int
-        line width of the bin edges
-
-    .. hint:: examples/pyplot/histo_spheric.py
-        .. image:: https://vedo.embl.es/images/pyplot/histo_spheric.png
+    Examples:
+        - [histo_spheric.py](examples/pyplot/histo_spheric.py)
+        
+        ![](https://vedo.embl.es/images/pyplot/histo_spheric.png)
     """
     mode = kwargs.pop("mode", "")
     if len(args) == 2:  # x, y
@@ -2689,59 +2480,52 @@ def fit(
     ):
     """
     Polynomial fitting with parameter error and error bands calculation.
-
-    Returns a ``vedo.shapes.Line`` object.
-
     Errors bars in both x and y are supported.
+
+    Returns a `vedo.shapes.Line` object.
 
     Additional information about the fitting output can be accessed with:
 
-    ``fitd = fit(pts)``
+    `fitd = fit(pts)`
 
-    - *fitd.coefficients* will contain the coefficients of the polynomial fit
-    - *fitd.coefficient_errors*, errors on the fitting coefficients
-    - *fitd.monte_carlo_coefficients*, fitting coefficient set from MC generation
-    - *fitd.covariance_matrix*, covariance matrix as a numpy array
-    - *fitd.reduced_chi2*, reduced chi-square of the fitting
-    - *fitd.ndof*, number of degrees of freedom
-    - *fitd.data_sigma*, mean data dispersion from the central fit assuming Chi2=1
-
-    - *fitd.error_lines*, a ``vedo.shapes.Line`` object for the upper and lower error band
-    - *fitd.error_band*, the ``vedo.mesh.Mesh`` object representing the error band
+    - `fitd.coefficients` will contain the coefficients of the polynomial fit
+    - `fitd.coefficient_errors`, errors on the fitting coefficients
+    - `fitd.monte_carlo_coefficients`, fitting coefficient set from MC generation
+    - `fitd.covariance_matrix`, covariance matrix as a numpy array
+    - `fitd.reduced_chi2`, reduced chi-square of the fitting
+    - `fitd.ndof`, number of degrees of freedom
+    - `fitd.data_sigma`, mean data dispersion from the central fit assuming `Chi2=1`
+    - `fitd.error_lines`, a ``vedo.shapes.Line`` object for the upper and lower error band
+    - `fitd.error_band`, the ``vedo.mesh.Mesh`` object representing the error band
 
     Errors on x and y can be specified. If left to `None` an estimate is made from
     the statistical spread of the dataset itself. Errors are always assumed gaussian.
 
-    Parameters
-    ----------
-    deg : int
-        degree of the polynomial to be fitted
+    Args:
+        deg : (int)
+            degree of the polynomial to be fitted
+        niter : (int)
+            number of monte-carlo iterations to compute error bands.
+            If set to 0, return the simple least-squares fit with naive error estimation
+            on coefficients only. A reasonable non-zero value to set is about 500, in
+            this case *error_lines*, *error_band* and the other class attributes are filled
+        nstd : (float)
+            nr. of standard deviation to use for error calculation
+        xerrors : (list)
+            array of the same length of points with the errors on x
+        yerrors : (list)
+            array of the same length of points with the errors on y
+        vrange : (list)
+            specify the domain range of the fitting line
+            (only affects visualization, but can be used to extrapolate the fit
+            outside the data range)
+        res : (int)
+            resolution of the output fitted line and error lines
 
-    niter : int
-        number of monte-carlo iterations to compute error bands.
-        If set to 0, return the simple least-squares fit with naive error estimation
-        on coefficients only. A reasonable non-zero value to set is about 500, in
-        this case *error_lines*, *error_band* and the other class attributes are filled
+    Examples:
+        - [fit_polynomial1.py](examples/pyplot/fit_polynomial1.py)
 
-    nstd : float
-        nr. of standard deviation to use for error calculation
-
-    xerrors : list
-        array of the same length of points with the errors on x
-
-    yerrors : list
-        array of the same length of points with the errors on y
-
-    vrange : list
-        specify the domain range of the fitting line
-        (only affects visualization, but can be used to extrapolate the fit
-         outside the data range)
-
-    res : int
-        resolution of the output fitted line and error lines
-
-    .. hint:: examples/pyplot/fit_polynomial1.py
-        .. image:: https://vedo.embl.es/images/pyplot/fitPolynomial1.png
+        ![](https://vedo.embl.es/images/pyplot/fitPolynomial1.png)
     """
     if isinstance(points, vedo.pointcloud.Points):
         points = points.points()
@@ -3597,45 +3381,35 @@ def donut(
     """
     Donut plot or pie chart.
 
-    Parameters
-    ----------
-    title : str
-        plot title
+    Args:
+        title : (str)
+            plot title
+        tsize : (float)
+            title size
+        r1 : (float) inner radius
+        r2 : (float)
+            outer radius, starting from r1
+        phigap : (float)
+            gap angle btw 2 radial bars, in degrees
+        lpos : (float)
+            label gap factor along radius
+        lsize : (float)
+            label size
+        c : (color)
+            color of the plot slices
+        bc : (color)
+            color of the disc frame
+        alpha : (float)
+            opacity of the disc frame
+        labels : (list)
+            list of labels
+        show_disc : (bool)
+            show the outer ring axis
 
-    tsize : float
-        title size
+    Examples:
+        - [donut.py](examples/pyplot/donut.py)
 
-    r1 : float inner radius
-
-    r2 : float
-        outer radius, starting from r1
-
-    phigap : float
-        gap angle btw 2 radial bars, in degrees
-
-    lpos : float
-        label gap factor along radius
-
-    lsize : float
-        label size
-
-    c : color
-        color of the plot slices
-
-    bc : color
-        color of the disc frame
-
-    alpha : float
-        opacity of the disc frame
-
-    labels : list
-        list of labels
-
-    show_disc : bool
-        show the outer ring axis
-
-    .. hist:: examples/pyplot/donut.py
-        .. image:: https://vedo.embl.es/images/pyplot/donut.png
+        ![](https://vedo.embl.es/images/pyplot/donut.png)
     """
     fractions = np.array(fractions, dtype=float)
     angles = np.add.accumulate(2 * np.pi * fractions)
@@ -3703,37 +3477,30 @@ def violin(
     """
     Violin style histogram.
 
-    Parameters
-    ----------
-    bins : int
-        number of bins
+    Args:
+        bins : (int)
+            number of bins
+        vlim : (list)
+            input value limits. Crop values outside range
+        x : (float)
+            x-position of the violin axis
+        width : (float)
+            width factor of the normalized distribution
+        splined : (bool)
+            spline the outline
+        fill : (bool)
+            fill violin with solid color
+        outline : (bool)
+            add the distribution outline
+        centerline : (bool)
+            add the vertical centerline at x
+        lc : (color)
+            line color
 
-    vlim : list
-        input value limits. Crop values outside range
-
-    x : float
-        x-position of the violin axis
-
-    width : float
-        width factor of the normalized distribution
-
-    splined : bool
-        spline the outline
-
-    fill : bool
-        fill violin with solid color
-
-    outline : bool
-        add the distribution outline
-
-    centerline : bool
-        add the vertical centerline at x
-
-    lc : color
-        line color
-
-    .. hint:: examples/pyplot/histo_violin.py
-        .. image:: https://vedo.embl.es/images/pyplot/histo_violin.png
+    Examples:
+        - [histo_violin.py](examples/pyplot/histo_violin.py)
+        
+        ![](https://vedo.embl.es/images/pyplot/histo_violin.png)
     """
     fs, edges = np.histogram(values, bins=bins, range=vlim)
     mine, maxe = np.min(edges), np.max(edges)
@@ -3809,34 +3576,28 @@ def whisker(
     """
     Generate a "whisker" bar from a 1-dimensional dataset.
 
-    Parameters
-    ----------
-    s : float
-        size of the box
+    Args:
+        s : (float)
+            size of the box
+        c : (color)
+            color of the lines
+        lw : (float)
+            line width
+        bc : (color)
+            color of the box
+        alpha : (float)
+            transparency of the box
+        r : (float)
+            point radius in pixels (use value 0 to disable)
+        jitter : (bool)
+            add some randomness to points to avoid overlap
+        horizontal : (bool)
+            set horizontal layout
 
-    c : color
-        color of the lines
-
-    lw : float
-        line width
-
-    bc : color
-        color of the box
-
-    alpha : float
-        transparency of the box
-
-    r : float
-        point radius in pixels (use value 0 to disable)
-
-    jitter : bool
-        add some randomness to points to avoid overlap
-
-    horizontal : bool
-        set horizontal layout
-
-    .. hint:: examples/pyplot/whiskers.py
-        .. image:: https://vedo.embl.es/images/pyplot/whiskers.png
+    Examples:
+        - [whiskers.py](examples/pyplot/whiskers.py)
+        
+        ![](https://vedo.embl.es/images/pyplot/whiskers.png)
     """
     xvals = np.zeros_like(np.asarray(data))
     if jitter:
@@ -3891,27 +3652,24 @@ def streamplot(
     Generate a streamline plot of a vectorial field (U,V) defined at positions (X,Y).
     Returns a ``Mesh`` object.
 
-    Parameters
-    ----------
-    direction : str
-        either "forward", "backward" or "both"
+    Args:
+        direction : (str)
+            either "forward", "backward" or "both"
+        max_propagation : (float)
+            maximum physical length of the streamline
+        lw : (float)
+            line width in absolute units
+        mode : (int)
+            mode of varying the line width:
+            - 0 - do not vary line width
+            - 1 - vary line width by first vector component
+            - 2 - vary line width vector magnitude
+            - 3 - vary line width by absolute value of first vector component
 
-    max_propagation : float
-        maximum physical length of the streamline
-
-    lw : float
-        line width in absolute units
-
-    mode : int
-        mode of varying the line width
-
-        - 0 - do not vary line width
-        - 1 - vary line width by first vector component
-        - 2 - vary line width vector magnitude
-        - 3 - vary line width by absolute value of first vector component
-
-    .. hint:: examples/pyplot/plot_stream.py
-        .. image:: https://vedo.embl.es/images/pyplot/plot_stream.png
+    Examples:
+        - [plot_stream.py](examples/pyplot/plot_stream.py)
+        
+        ![](https://vedo.embl.es/images/pyplot/plot_stream.png)
     """
     n = len(X)
     m = len(Y[0])
@@ -3989,64 +3747,48 @@ def matrix(
 
     Returns an ``Assembly`` object.
 
-    Parameters
-    ----------
-    M : list or numpy array
-        the input array to visualize
+    Args:
+        M : (list, numpy array)
+            the input array to visualize
+        title : (str)
+            title of the plot
+        xtitle : (str)
+            title of the horizontal colmuns
+        ytitle : (str)
+            title of the vertical rows
+        xlabels : (list)
+            individual string labels for each column. Must be of length m
+        ylabels : (list)
+            individual string labels for each row. Must be of length n
+        xrotation : (float)
+            rotation of the horizontal labels
+        cmap : (str)
+            color map name
+        vmin : (float)
+            minimum value of the colormap range
+        vmax : (float)
+            maximum value of the colormap range
+        precision : (int)
+            number of digits for the matrix entries or bins
+        font : (str)
+            font name
+        scale : (float)
+            size of the numeric entries or bin values
+        scalarbar : (bool)
+            add a scalar bar to the right of the plot
+        lc : (str)
+            color of the line separating the bins
+        lw : (float)
+            Width of the line separating the bins
+        c : (str)
+            text color
+        alpha : (float)
+            plot transparency
 
-    title : str
-        title of the plot
-
-    xtitle : str
-        title of the horizontal colmuns
-
-    ytitle : str
-        title of the vertical rows
-
-    xlabels : list
-        individual string labels for each column. Must be of length m
-
-    ylabels : list
-        individual string labels for each row. Must be of length n
-
-    xrotation : float
-        rotation of the horizontal labels
-
-    cmap : str
-        color map name
-
-    vmin : float
-        minimum value of the colormap range
-
-    vmax : float
-        maximum value of the colormap range
-
-    precision : int
-        number of digits for the matrix entries or bins
-
-    font : str
-        font name
-
-    scale : float
-        size of the numeric entries or bin values
-
-    scalarbar : bool
-        add a scalar bar to the right of the plot
-
-    lc : str
-        color of the line separating the bins
-
-    lw : float
-        Width of the line separating the bins
-
-    c : str
-        text color
-
-    alpha : float
-        plot transparency
-
-    .. hint:: examples/pyplot/np_matrix.py
-        .. image:: https://vedo.embl.es/images/pyplot/np_matrix.png
+    Examples:
+        - [np_matrix.py](examples/pyplot/np_matrix.py)
+        
+        ![](https://vedo.embl.es/images/pyplot/np_matrix.png)
     """
     M = np.asarray(M)
     n, m = M.shape
@@ -4278,93 +4020,74 @@ class DirectedGraph(Assembly):
     This class is derived from class ``Assembly``, and it assembles 4 Mesh objects
     representing the graph, the node labels, edge labels and edge arrows.
 
-    Parameters
-    ----------
-    c : color
-        Color of the Graph
-
-    n : int
-        number of the initial set of nodes
-
-    layout : int, str
-        layout in ['2d', 'fast2d', 'clustering2d', 'circular',
-                   'circular3d', 'cone', 'force', 'tree']
-
-        Each of these layouts has different available options.
+    Args:
+        c : (color)
+            Color of the Graph
+        n : (int)
+            number of the initial set of nodes
+        layout : (int, str)
+            layout in 
+            `['2d', 'fast2d', 'clustering2d', 'circular', 'circular3d', 'cone', 'force', 'tree']`.
+            Each of these layouts has different available options.
 
 
     ---------------------------------------------------------------
     .. note:: Options for layouts '2d', 'fast2d' and 'clustering2d'
 
-    Parameters
-    ----------
-    seed : int
-        seed of the random number generator used to jitter point positions
-
-    restDistance : float
-        manually set the resting distance
-
-    maxNumberOfIterations : int
-        the maximum number of iterations to be used
-
-    zrange : list
-        expand 2d graph along z axis.
-
+    Args:
+        seed : (int)
+            seed of the random number generator used to jitter point positions
+        rest_distance : (float)
+            manually set the resting distance
+        nmax : (int)
+            the maximum number of iterations to be used
+        zrange : (list)
+            expand 2d graph along z axis.
 
     ---------------------------------------------------------------
     .. note:: Options for layouts 'circular', and 'circular3d':
 
-    Parameters
-    ----------
-    radius : float
-        set the radius of the circles
-
-    height : float
-        set the vertical (local z) distance between the circles
-
-    zrange : float
-        expand 2d graph along z axis
-
+    Args:
+        radius : (float)
+            set the radius of the circles
+        height : (float)
+            set the vertical (local z) distance between the circles
+        zrange : (float)
+            expand 2d graph along z axis
 
     ---------------------------------------------------------------
     .. note:: Options for layout 'cone'
 
-    Parameters
-    ----------
-    compactness : float
-        ratio between the average width of a cone in the tree,
-        and the height of the cone.
-
-    compression : bool
-        put children closer together, possibly allowing sub-trees to overlap.
-        This is useful if the tree is actually the spanning tree of a graph.
-
-    spacing : float
-        space between layers of the tree
-
+    Args:
+        compactness : (float)
+            ratio between the average width of a cone in the tree,
+            and the height of the cone.
+        compression : (bool)
+            put children closer together, possibly allowing sub-trees to overlap.
+            This is useful if the tree is actually the spanning tree of a graph.
+        spacing : (float)
+            space between layers of the tree
 
     ---------------------------------------------------------------
     .. note:: Options for layout 'force'
 
-    Parameters
-    ----------
-    seed : int
-        seed the random number generator used to jitter point positions
+    Args:
+        seed : (int)
+            seed the random number generator used to jitter point positions
+        bounds : (list)
+            set the region in space in which to place the final graph
+        nmax : (int)
+            the maximum number of iterations to be used
+        three_dimensional : (bool)
+            allow optimization in the 3rd dimension too
+        random_initial_points : (bool)
+            use random positions within the graph bounds as initial points
 
-    bounds : list
-        set the region in space in which to place the final graph
+    Examples:
+        - [lineage_graph.py](examples/pyplot/lineage_graph.py)
+        - [graph_network.py](examples/pyplot/graph_network.py)
 
-    maxNumberOfIterations : int
-        the maximum number of iterations to be used
-
-    threeDimensional : bool
-        allow optimization in the 3rd dimension too
-
-    randomInitialPoints : bool
-        use random positions within the graph bounds as initial points
-
-    .. hint:: examples/pyplot/lineage_graph.py, graph_network.py
-        .. image:: https://vedo.embl.es/images/pyplot/graph_network.png
+            ![](https://vedo.embl.es/images/pyplot/graph_network.png)   
     """
 
     def __init__(self, **kargs):
@@ -4426,13 +4149,13 @@ class DirectedGraph(Assembly):
             else:
                 self.strategy = vtk.vtkSimple2DLayoutStrategy()
             self.rotX = 180
-            opt = kargs.pop("restDistance", None)
+            opt = kargs.pop("rest_distance", None)
             if opt is not None:
                 self.strategy.SetRestDistance(opt)
             opt = kargs.pop("seed", None)
             if opt is not None:
                 self.strategy.SetRandomSeed(opt)
-            opt = kargs.pop("maxNumberOfIterations", None)
+            opt = kargs.pop("nmax", None)
             if opt is not None:
                 self.strategy.SetMaxNumberOfIterations(opt)
             self.zrange = kargs.pop("zrange", 0)
@@ -4478,13 +4201,13 @@ class DirectedGraph(Assembly):
             if opt is not None:
                 self.strategy.SetAutomaticBoundsComputation(False)
                 self.strategy.SetGraphBounds(opt)  # list
-            opt = kargs.pop("maxNumberOfIterations", None)
+            opt = kargs.pop("nmax", None)
             if opt is not None:
                 self.strategy.SetMaxNumberOfIterations(opt)  # int
-            opt = kargs.pop("threeDimensional", True)
+            opt = kargs.pop("three_dimensional", True)
             if opt is not None:
                 self.strategy.SetThreeDimensionalLayout(opt)  # bool
-            opt = kargs.pop("randomInitialPoints", None)
+            opt = kargs.pop("random_initial_points", None)
             if opt is not None:
                 self.strategy.SetRandomInitialPoints(opt)  # bool
 
