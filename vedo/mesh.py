@@ -17,9 +17,12 @@ from vedo.utils import buildPolyData
 from vedo.utils import flatten, is_sequence, mag, mag2
 from vedo.utils import numpy2vtk, vtk2numpy
 
+__docformat__ = "google"
+
 __doc__ = """
-Submodule to work with polygonal meshes <br>
-.. image:: https://vedo.embl.es/images/advanced/mesh_smoother2.png
+Submodule to work with polygonal meshes
+
+![](https://vedo.embl.es/images/advanced/mesh_smoother2.png)
 """
 
 __all__ = ["Mesh"]
@@ -29,31 +32,33 @@ __all__ = ["Mesh"]
 class Mesh(Points):
     """
     Build an instance of object ``Mesh`` derived from ``PointCloud``.
-
-    Finally input can be a list of vertices and their connectivity (faces of the polygonal mesh).
-    For point clouds - e.i. no faces - just substitute the `faces` list with ``None``.
-
-    E.g.:
-        `Mesh( [ [[x1,y1,z1],[x2,y2,z2], ...],  [[0,1,2], [1,2,3], ...] ] )`
-
-    Parameters
-    ----------
-    c : color
-        color in RGB format, hex, symbol or name
-
-    alpha : float
-        mesh opacity [0,1]
-
-    .. hint:: buildmesh.py (and many others!)
-        ... image:: https://vedo.embl.es/images/basic/buildmesh.png
     """
-
     def __init__(
         self,
         inputobj=None,
         c=None,
         alpha=1,
     ):
+        """
+        Input can be a list of vertices and their connectivity (faces of the polygonal mesh),
+        or directly a `vtkPolydata` object.
+        For point clouds - e.i. no faces - just substitute the `faces` list with ``None``.
+
+        Example:
+            `Mesh( [ [[x1,y1,z1],[x2,y2,z2], ...],  [[0,1,2], [1,2,3], ...] ] )`
+
+        Args:
+            c : (color)
+                color in RGB format, hex, symbol or name
+            alpha : (float)
+                mesh opacity [0,1]
+
+        Examples:
+            - [buildmesh.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/buildmesh.py)
+            (and many others!)
+
+            ![](https://vedo.embl.es/images/basic/buildmesh.png)
+        """
         Points.__init__(self)
 
         self.line_locator = None
@@ -239,7 +244,7 @@ class Mesh(Points):
     def faces(self):
         """
         Get cell polygonal connectivity ids as a python `list`.
-        The output format is: [[id0 ... idn], [id0 ... idm],  etc].
+        The output format is: `[[id0 ... idn], [id0 ... idm],  etc]`.
         """
         arr1d = vtk2numpy(self._data.GetPolys().GetData())
         if arr1d is None:
@@ -265,18 +270,17 @@ class Mesh(Points):
         return conn  # cannot always make a numpy array of it!
 
     def cells(self):
-        """Alias for ``faces()``."""
+        """Alias for `faces()`."""
         return self.faces()
 
     def lines(self, flat=False):
         """
         Get lines connectivity ids as a numpy array.
-        Default format is [[id0,id1], [id3,id4], ...]
+        Default format is `[[id0,id1], [id3,id4], ...]`
 
-        Parameters
-        ----------
-        flat : bool
-            return a 1D numpy array as e.g. [2, 10,20, 3, 10,11,12, 2, 70,80, ...]
+        Args:
+            flat : (bool)
+                return a 1D numpy array as e.g. [2, 10,20, 3, 10,11,12, 2, 70,80, ...]
         """
         # Get cell connettivity ids as a 1D array. The vtk format is:
         #    [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
@@ -339,42 +343,35 @@ class Mesh(Points):
         If tname is set to ``None`` texture is disabled.
         Input tname can also be an array or a `vtkTexture`.
 
-        Parameters
-        ----------
-        tname : numpy.array, str, Picture, vtkTexture, None
-            the input texture to be applied. Can be a numpy array, a path to an image file,
-            a vedo Picture. The None value disables texture.
+        Args:
+            tname : (numpy.array, str, Picture, vtkTexture, None)
+                the input texture to be applied. Can be a numpy array, a path to an image file,
+                a vedo Picture. The None value disables texture.
+            tcoords : (numpy.array, str)
+                this is the (u,v) texture coordinate array. Can also be a string of an existing array
+                in the mesh.
+            interpolate : (bool)
+                turn on/off linear interpolation of the texture map when rendering.
+            repeat : (bool)
+                repeat of the texture when tcoords extend beyond the [0,1] range.
+            edge_clamp : (bool)
+                turn on/off the clamping of the texture map when
+                the texture coords extend beyond the [0,1] range.
+                Only used when repeat is False, and edge clamping is supported by the graphics card.
+            scale : (bool)
+                scale the texture image by this factor
+            ushift : (bool)
+                shift u-coordinates of texture by this amount
+            vshift : (bool)
+                shift v-coordinates of texture by this amount
+            seam_threshold : (float)
+                try to seal seams in texture by collapsing triangles
+                (test values around 1.0, lower values = stronger collapse)
 
-        tcoords : numpy.array, str
-            this is the (u,v) texture coordinate array. Can also be a string of an existing array
-            in the mesh.
+        Examples:
+            - [texturecubes.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/texturecubes.py)
 
-        interpolate : bool, optional
-            turn on/off linear interpolation of the texture map when rendering.
-
-        repeat : bool, optional
-            repeat of the texture when tcoords extend beyond the [0,1] range.
-
-        edge_clamp : bool, optional
-            turn on/off the clamping of the texture map when
-            the texture coords extend beyond the [0,1] range.
-            Only used when repeat is False, and edge clamping is supported by the graphics card.
-
-        scale : bool, optional
-            scale the texture image by this factor
-
-        ushift : bool, optional
-            shift u-coordinates of texture by this amount
-
-        vshift : bool, optional
-            shift v-coordinates of texture by this amount
-
-        seam_threshold : float, optional
-            try to seal seams in texture by collapsing triangles
-            (test values around 1.0, lower values = stronger collapse)
-
-        .. hint:: texturecubes.py
-            .. image:: https://vedo.embl.es/images/basic/texturecubes.png
+            ![](https://vedo.embl.es/images/basic/texturecubes.png)
         """
         pd = self.polydata(False)
 
@@ -541,24 +538,20 @@ class Mesh(Points):
         """
         Compute cell and vertex normals for the mesh.
 
-        Parameters
-        ----------
-        points : bool
-            do the computation for the vertices too
-
-        cells : bool
-            do the computation for the cells too
-
-        feature_angle : float
-            specify the angle that defines a sharp edge.
-            If the difference in angle across neighboring polygons is greater than this value,
-            the shared edge is considered "sharp" and it is split.
-
-        consistency : bool
-            turn on/off the enforcement of consistent polygon ordering.
+        Args:
+            points : (bool)
+                do the computation for the vertices too
+            cells : (bool)
+                do the computation for the cells too
+            feature_angle : (float)
+                specify the angle that defines a sharp edge.
+                If the difference in angle across neighboring polygons is greater than this value,
+                the shared edge is considered "sharp" and it is split.
+            consistency : (bool)
+                turn on/off the enforcement of consistent polygon ordering.
 
         .. warning::
-            if feature_angle is set to a float the Mesh can be modified, and it
+            If feature_angle is set to a float the Mesh can be modified, and it
             can have a different nr. of vertices from the original.
         """
         poly = self.polydata(False)
@@ -619,21 +612,20 @@ class Mesh(Points):
         return self
 
     def flat(self):
-        """Set surface interpolation to Flat.
+        """Set surface interpolation to flat.
 
-        .. image:: https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png" width="700">
         """
         self.property.SetInterpolationToFlat()
         return self
 
     def phong(self):
-        """Set surface interpolation to Phong."""
+        """Set surface interpolation to "phong"."""
         self.property.SetInterpolationToPhong()
         return self
 
     def backface_culling(self, value=True):
-        """Set culling of polygons based on orientation
-        of normal with respect to camera."""
+        """Set culling of polygons based on orientation of normal with respect to camera."""
         self.property.SetBackfaceCulling(value)
         return self
 
@@ -649,7 +641,7 @@ class Mesh(Points):
 
     @deprecated(reason=vedo.colors.red + "Please use backcolor()" + vedo.colors.reset)
     def backColor(self, bc=None):
-        "Deprecated. Please use backcolor()"
+        "Deprecated. Please use `backcolor()`"
         return self.backcolor(bc)
 
     def backcolor(self, bc=None):
@@ -681,7 +673,7 @@ class Mesh(Points):
 
     @deprecated(reason=vedo.colors.red + "Please use linewidth()" + vedo.colors.reset)
     def lineWidth(self, lw):
-        "Deprecated: please use linewidth()"
+        "Deprecated: please use `linewidth()`"
         return self.linewidth(lw)
 
     def linewidth(self, lw=None):
@@ -743,8 +735,10 @@ class Mesh(Points):
     def shrink(self, fraction=0.85):
         """Shrink the triangle polydata in the representation of the input mesh.
 
-        .. hint:: shrink.py
-            .. image:: https://vedo.embl.es/images/basic/shrink.png
+        Examples:
+            - [shrink.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/shrink.py)
+
+            ![](https://vedo.embl.es/images/basic/shrink.png)
         """
         shrink = vtk.vtkShrinkPolyData()
         shrink.SetInputData(self._data)
@@ -757,11 +751,13 @@ class Mesh(Points):
     def stretch(self, q1, q2):
         """Stretch mesh between points `q1` and `q2`.
 
-        .. hint:: aspring.py
-            .. image:: https://vedo.embl.es/images/simulations/50738955-7e891800-11d9-11e9-85cd-02bd4f3f13ea.gif
+        Examples:
+            - [aspring.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/aspring.py)
+            
+            ![](https://vedo.embl.es/images/simulations/50738955-7e891800-11d9-11e9-85cd-02bd4f3f13ea.gif)
 
-        .. note:: for ``Mesh`` objects, two attributes ``mesh.base``,
-            and ``mesh.top`` are always defined.
+        .. note:: 
+            for ``Mesh`` objects, two vectors ``mesh.base``, and ``mesh.top`` must be defined.
         """
         if self.base is None:
             vedo.logger.error(
@@ -802,33 +798,26 @@ class Mesh(Points):
         Crop an ``Mesh`` object.
         Use this method at creation (before moving the object).
 
-        Parameters
-        ----------
-        top : float
-            fraction to crop from the top plane (positive z)
-
-        bottom : float
-            fraction to crop from the bottom plane (negative z)
-
-        front : float
-            fraction to crop from the front plane (positive y)
-
-        back : float
-            fraction to crop from the back plane (negative y)
-
-        right : float
-            fraction to crop from the right plane (positive x)
-
-        left : float
-            fraction to crop from the left plane (negative x)
+        Args:
+            top : (float)
+                fraction to crop from the top plane (positive z)
+            bottom : (float)
+                fraction to crop from the bottom plane (negative z)
+            front : (float)
+                fraction to crop from the front plane (positive y)
+            back : (float)
+                fraction to crop from the back plane (negative y)
+            right : (float)
+                fraction to crop from the right plane (positive x)
+            left : (float)
+                fraction to crop from the left plane (negative x)
 
         Example:
-            .. code-block:: python
-
-                from vedo import Sphere
-                Sphere().crop(right=0.3, left=0.1).show()
-
-            .. image:: https://user-images.githubusercontent.com/32848391/57081955-0ef1e800-6cf6-11e9-99de-b45220939bc9.png
+            ```python
+            from vedo import Sphere
+            Sphere().crop(right=0.3, left=0.1).show()
+            ```
+            ![](https://user-images.githubusercontent.com/32848391/57081955-0ef1e800-6cf6-11e9-99de-b45220939bc9.png)
         """
         cu = vtk.vtkBox()
         pos = np.array(self.GetPosition())
@@ -870,8 +859,10 @@ class Mesh(Points):
         """
         Generate a "cap" on a clipped mesh, or caps sharp edges.
 
-        .. hint:: cutAndCap.py
-            .. image:: https://vedo.embl.es/images/advanced/cutAndCap.png
+        Examples:
+            - [cutAndCap.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/cutAndCap.py)
+
+            ![](https://vedo.embl.es/images/advanced/cutAndCap.png)
         """
         poly = self._data
 
@@ -929,13 +920,11 @@ class Mesh(Points):
         If you wish to strip these use mesh.triangulate() to fragment the input
         into triangles and lines prior to applying join().
 
-        Parameters
-        ----------
-        polys : bool
-            polygonal segments will be joined if they are contiguous
-
-        reset : bool
-            reset points ordering
+        Args:
+            polys : (bool)
+                polygonal segments will be joined if they are contiguous
+            reset : (bool)
+                reset points ordering
 
         Warning:
             If triangle strips or polylines exist in the input data
@@ -944,14 +933,14 @@ class Mesh(Points):
             are available; and will only construct polylines if lines are available.
 
         Example:
-            .. code-block:: python
-
-                from vedo import *
-                c1 = Cylinder(pos=(0,0,0), r=2, height=3, axis=(1,.0,0), alpha=.1).triangulate()
-                c2 = Cylinder(pos=(0,0,2), r=1, height=2, axis=(0,.3,1), alpha=.1).triangulate()
-                intersect = c1.intersect_with(c2).join(reset=True)
-                spline = Spline(intersect).c('blue').lw(5)
-                show(c1, c2, spline, intersect.labels('id'), axes=1)
+            ```python
+            from vedo import *
+            c1 = Cylinder(pos=(0,0,0), r=2, height=3, axis=(1,.0,0), alpha=.1).triangulate()
+            c2 = Cylinder(pos=(0,0,2), r=1, height=2, axis=(0,.3,1), alpha=.1).triangulate()
+            intersect = c1.intersect_with(c2).join(reset=True)
+            spline = Spline(intersect).c('blue').lw(5)
+            show(c1, c2, spline, intersect.labels('id'), axes=1)
+            ```
         """
         sf = vtk.vtkStripper()
         sf.SetPassThroughCellIds(True)
@@ -983,15 +972,13 @@ class Mesh(Points):
         i.e. a contour may contain an internal contour winding in the opposite
         direction to indicate that it is a hole.
 
-        Parameters
-        ----------
-        verts : bool
-            if True, break input vertex cells into individual vertex cells
-            (one point per cell). If False, the input vertex cells will be ignored.
-
-        lines : bool
-            if True, break input polylines into line segments.
-            If False, input lines will be ignored and the output will have no lines.
+        Args:
+            verts : (bool)
+                if True, break input vertex cells into individual vertex cells
+                (one point per cell). If False, the input vertex cells will be ignored.
+            lines : (bool)
+                if True, break input polylines into line segments.
+                If False, input lines will be ignored and the output will have no lines.
         """
         if self._data.GetNumberOfPolys() or self._data.GetNumberOfStrips():
             tf = vtk.vtkTriangleFilter()
@@ -1042,11 +1029,9 @@ class Mesh(Points):
         See class [vtkMeshQuality](https://vtk.org/doc/nightly/html/classvtkMeshQuality.html)
         for explanation.
 
-        Parameters
-        ----------
-        metric : int
-            type of estimator
-
+        Args:
+            metric : (int)
+                type of available estimators are:
                 - EDGE RATIO, 0
                 - ASPECT RATIO, 1
                 - RADIUS RATIO, 2
@@ -1078,8 +1063,10 @@ class Mesh(Points):
                 - AREA, 28
                 - ASPECT BETA, 29
 
-        .. hint:: meshquality.py
-            .. image:: https://vedo.embl.es/images/advanced/meshquality.png
+        Examples:
+            - [meshquality.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/meshquality.py)
+
+            ![](https://vedo.embl.es/images/advanced/meshquality.png)
         """
         qf = vtk.vtkMeshQuality()
         qf.SetInputData(self.polydata(False))
@@ -1093,20 +1080,18 @@ class Mesh(Points):
     def check_validity(self, tol=0):
         """
         Return an array of possible problematic faces following this convention:
+        - Valid               =  0
+        - WrongNumberOfPoints =  1
+        - IntersectingEdges   =  2
+        - IntersectingFaces   =  4
+        - NoncontiguousEdges  =  8
+        - Nonconvex           = 10
+        - OrientedIncorrectly = 20
 
-            Valid               =  0
-            WrongNumberOfPoints = 01
-            IntersectingEdges   = 02
-            IntersectingFaces   = 04
-            NoncontiguousEdges  = 08
-            Nonconvex           = 10
-            OrientedIncorrectly = 20
-
-        Parameters
-        ----------
-        tol : float
-            This value is used as an epsilon for floating point
-            equality checks throughout the cell checking process.
+        Args:
+            tol : (float)
+                value is used as an epsilon for floating point
+                equality checks throughout the cell checking process.
         """
         vald = vtk.vtkCellValidator()
         if tol:
@@ -1119,22 +1104,25 @@ class Mesh(Points):
 
     @deprecated(reason=vedo.colors.red + "Please use compute_curvature()" + vedo.colors.reset)
     def addCurvatureScalars(self, method=0):
-        """Deprecated. Please use compute_curvature()"""
+        """Deprecated. Please use `compute_curvature()`"""
         return self.compute_curvature(method)
 
     def compute_curvature(self, method=0):
         """
         Add scalars to ``Mesh`` that contains the curvature calculated in three different ways.
 
-        Use ``method`` as: 0-gaussian, 1-mean, 2-max, 3-min curvature.
+        Variable ``method`` can be:
+        - 0 = gaussian
+        - 1 = mean curvature
+        - 2 = max curvature
+        - 3 = min curvature
 
         Example:
-            .. code-block:: python
-
-                from vedo import Torus
-                Torus().compute_curvature().add_scalarbar().show(axes=1).close()
-
-            .. image:: https://user-images.githubusercontent.com/32848391/51934810-c2e88c00-2404-11e9-8e7e-ca0b7984bbb7.png
+            ```python
+            from vedo import Torus
+            Torus().compute_curvature().add_scalarbar().show(axes=1).close()
+            ```
+            ![](https://user-images.githubusercontent.com/32848391/51934810-c2e88c00-2404-11e9-8e7e-ca0b7984bbb7.png)
         """
         curve = vtk.vtkCurvatures()
         curve.SetInputData(self._data)
@@ -1160,25 +1148,21 @@ class Mesh(Points):
         """
         Add to ``Mesh`` a scalar array that contains distance along a specified direction.
 
-        Parameters
-        ----------
-        low : list
-            one end of the line (small scalar values).
-
-        high : list
-            other end of the line (large scalar values).
-
-        vrange : list
-            set the range of the scalar.
+        Args:
+            low : (list)
+                one end of the line (small scalar values)
+            high : (list)
+                other end of the line (large scalar values)
+            vrange : (list)
+                set the range of the scalar
 
         Example:
-            .. code-block:: python
-
-                from vedo import Sphere
-                s = Sphere().compute_elevation(low=(0,0,0), high=(1,1,1))
-                s.add_scalarbar().show(axes=1).close()
-
-            .. image:: https://user-images.githubusercontent.com/32848391/68478872-3986a580-0231-11ea-8245-b68a683aa295.png
+            ```python
+            from vedo import Sphere
+            s = Sphere().compute_elevation(low=(0,0,0), high=(1,1,1))
+            s.add_scalarbar().show(axes=1).close()
+            ```
+            ![](https://user-images.githubusercontent.com/32848391/68478872-3986a580-0231-11ea-8245-b68a683aa295.png)
         """
         ef = vtk.vtkElevationFilter()
         ef.SetInputData(self.polydata())
@@ -1192,7 +1176,7 @@ class Mesh(Points):
 
     @deprecated(reason=vedo.colors.red + "Please use add_shadow()" + vedo.colors.reset)
     def addShadow(self, *a, **b):
-        """Please use add_shadow()"""
+        """Please use `add_shadow()`"""
         return self.add_shadow(*a, **b)
 
     def add_shadow(
@@ -1212,25 +1196,25 @@ class Mesh(Points):
 
         See also ``pointcloud.project_on_plane``.
 
-        Parameters
-        ----------
-        plane : str, Plane
-            if plane is `str`, plane can be one of ['x', 'y', 'z'],
-            represents x-plane, y-plane and z-plane, respectively.
-            Otherwise, plane should be an instance of `vedo.shapes.Plane`.
+        Args:
+            plane : (str, Plane)
+                if plane is `str`, plane can be one of `['x', 'y', 'z']`,
+                represents x-plane, y-plane and z-plane, respectively.
+                Otherwise, plane should be an instance of `vedo.shapes.Plane`
+            point : (float, array)
+                if plane is `str`, point should be a float represents the intercept.
+                Otherwise, point is the camera point of perspective projection
+            direction : (list)
+                direction of oblique projection
+            culling : (int)
+                choose between front [1] or backface [-1] culling or None.
 
-        point : float, array
-            if plane is `str`, point should be a float represents the intercept.
-            Otherwise, point is the camera point of perspective projection
-
-        direction : list
-            direction of oblique projection
-
-        culling : int
-            choose between front [1] or backface [-1] culling or None.
-
-        .. hint:: shadow.py, airplane1.py, airplane2.py
-            .. image:: https://vedo.embl.es/images/simulations/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif
+        Examples:
+            - [shadow1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/shadow1.py)
+            - [airplane1.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplane1.py)
+            - [airplane2.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplane2.py)
+            
+            ![](https://vedo.embl.es/images/simulations/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)
         """
         shad = self.clone()
         shad.name = "Shadow"
@@ -1276,16 +1260,13 @@ class Mesh(Points):
         """
         Increase the number of vertices of a surface mesh.
 
-        Parameters
-        ----------
-        n : int
-            number of subdivisions.
-
-        method : int
-            Loop(0), Linear(1), Adaptive(2), Butterfly(3), Centroid(4)
-
-        mel : float
-            Maximum Edge Length (applicable to Adaptive method only).
+        Args:
+            n : (int)
+                number of subdivisions.
+            method : (int)
+                Loop(0), Linear(1), Adaptive(2), Butterfly(3), Centroid(4)
+            mel : (float)
+                Maximum Edge Length (applicable to Adaptive method only).
         """
         triangles = vtk.vtkTriangleFilter()
         triangles.SetInputData(self._data)
@@ -1319,26 +1300,20 @@ class Mesh(Points):
         """
         Downsample the number of vertices in a mesh to `fraction`.
 
-        Parameters
-        ----------
-        fraction : float
-            the desired target of reduction.
+        Args:
+            fraction : (float)
+                the desired target of reduction.
+            n : (int)
+                the desired number of final points (`fraction` is recalculated based on it).
+            method : (str)
+                can be either 'quadric' or 'pro'. In the first case triagulation
+                will look like more regular, irrespective of the mesh original curvature.
+                In the second case triangles are more irregular but mesh is more precise on more
+                curved regions.
+            boundaries : (bool)
+                in "pro" mode decide whether to leave boundaries untouched or not
 
-        n : int
-            the desired number of final points (`fraction` is recalculated based on it).
-
-        method : str
-            can be either 'quadric' or 'pro'. In the first case triagulation
-            will look like more regular, irrespective of the mesh original curvature.
-            In the second case triangles are more irregular but mesh is more precise on more
-            curved regions.
-
-        boundaries : bool
-            in "pro" mode decide whether to leave boundaries untouched or not.
-
-        .. note:: Setting ``fraction=0.1`` leaves 10% of the original nr of vertices.
-
-        .. hint:: skeletonize.py
+        .. note:: Setting ``fraction=0.1`` leaves 10% of the original number of vertices
         """
         poly = self._data
         if n:  # N = desired number of points
@@ -1402,25 +1377,22 @@ class Mesh(Points):
         """
         Adjust mesh point positions using the `Windowed Sinc` function interpolation kernel.
 
-        Parameters
-        ----------
-        niter : int
-            number of iterations.
+        Args:
+            niter : (int)
+                number of iterations.
+            pass_band : (float)
+                set the pass_band value for the windowed sinc filter.
+            edge_angle : (float)
+                edge angle to control smoothing along edges (either interior or boundary).
+            feature_angle : (float)
+                specifies the feature angle for sharp edge identification.
+            boundary : (bool)
+                specify if boundary should also be smoothed or kept unmodified
 
-        pass_band : float
-            set the pass_band value for the windowed sinc filter.
-
-        edge_angle : float
-            edge angle to control smoothing along edges (either interior or boundary).
-
-        feature_angle : float
-            specifies the feature angle for sharp edge identification.
-
-        boundary : bool
-            specify if boundary should also be smoothed or kept unmodified
-
-        .. hint:: mesh_smoother1.py
-            .. image:: https://vedo.embl.es/images/advanced/mesh_smoother2.png
+        Examples:
+            - [mesh_smoother1.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/mesh_smoother1.py)
+            
+            ![](https://vedo.embl.es/images/advanced/mesh_smoother2.png)
         """
         poly = self._data
         cl = vtk.vtkCleanPolyData()
@@ -1441,7 +1413,7 @@ class Mesh(Points):
 
     @deprecated(reason=vedo.colors.red + "Please use fill_holes()" + vedo.colors.reset)
     def fillHoles(self, size=None):
-        """Deprecated. Please use fill_holes()"""
+        """Deprecated. Please use `fill_holes()`"""
         return self.fill_holes(size)
 
     def fill_holes(self, size=None):
@@ -1450,12 +1422,12 @@ class Mesh(Points):
         Holes are identified by locating boundary edges, linking them together into loops,
         and then triangulating the resulting loops.
 
-        Parameters
-        ----------
-        size : float, optional
-            Approximate limit to the size of the hole that can be filled. The default is None.
+        Args:
+            size : (float)
+                Approximate limit to the size of the hole that can be filled. The default is None.
 
-        .. hint:: fillholes.py
+        Examples:
+            - [fillholes.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/fillholes.py)
         """
         fh = vtk.vtkFillHolesFilter()
         if not size:
@@ -1487,10 +1459,14 @@ class Mesh(Points):
 
         If return_ids is True a list of IDs is returned and in addition input points
         are marked by a pointdata array named "IsInside".
-        E.g.: print(pts.pointdata["IsInside"])
 
-        .. hint:: examples/basic/pca_ellipsoid.py
-            .. image:: https://vedo.embl.es/images/basic/pca.png
+        Example:
+            `print(pts.pointdata["IsInside"])`
+
+        Examples:
+            - [pca_ellipsoid.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/pca_ellipsoid.py)
+            
+            ![](https://vedo.embl.es/images/basic/pca.png)
         """
         if isinstance(pts, Points):
             pointsPolydata = pts.polydata()
@@ -1538,28 +1514,24 @@ class Mesh(Points):
         Return the boundary lines of an input mesh.
         Check also `mark_boundaries()` method.
 
-        Parameters
-        ----------
-        boundary_edges : bool
-            Turn on/off the extraction of boundary edges.
+        Args:
+            boundary_edges : (bool)
+                Turn on/off the extraction of boundary edges.
+            manifold_edges : (bool)
+                Turn on/off the extraction of manifold edges.
+            non_manifold_edges : (bool)
+                Turn on/off the extraction of non-manifold edges.
+            feature_angle : (bool)
+                Specify the min angle btw 2 faces for extracting edges.
+            return_point_ids : (bool)
+                return a numpy array of point indices
+            return_cell_ids : (bool)
+                return a numpy array of cell indices
 
-        manifold_edges : bool
-            Turn on/off the extraction of manifold edges.
-
-        non_manifold_edges : bool
-            Turn on/off the extraction of non-manifold edges.
-
-        feature_angle : bool
-            Specify the min angle btw 2 faces for extracting edges.
-
-        return_point_ids : bool
-            return a numpy array of point indices
-
-        return_cell_ids : bool
-            return a numpy array of cell indices
-
-        .. hint:: boundaries.py
-            .. image:: https://vedo.embl.es/images/basic/boundaries.png
+        Examples:
+            - [boundaries.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/boundaries.py)
+            
+            ![](https://vedo.embl.es/images/basic/boundaries.png)
         """
         fe = vtk.vtkFeatureEdges()
         fe.SetBoundaryEdges(boundary_edges)
@@ -1609,23 +1581,21 @@ class Mesh(Points):
         """
         Imprint the contact surface of one object onto another surface.
 
-        Parameters
-        ----------
-        loopline : vedo.shapes.Line
-            a Line object to be imprinted onto the mesh.
-
-        tol : float, optional
-            projection tolerance which controls how close the imprint surface must be to the target.
+        Args:
+            loopline : vedo.shapes.Line
+                a Line object to be imprinted onto the mesh.
+            tol : (float), optional
+                projection tolerance which controls how close the imprint surface must be to the target.
 
         Example:
-            .. code-block:: python
-
-                from vedo import *
-                grid = Grid()#.triangulate()
-                circle = Circle(r=0.3, res=24).pos(0.11,0.12)
-                line = Line(circle, closed=True, lw=4, c='r4')
-                grid.imprint(line)
-                show(grid, line, axes=1)
+            ```python
+            from vedo import *
+            grid = Grid()#.triangulate()
+            circle = Circle(r=0.3, res=24).pos(0.11,0.12)
+            line = Line(circle, closed=True, lw=4, c='r4')
+            grid.imprint(line)
+            show(grid, line, axes=1).close()
+            ```
         """
         loop = vtk.vtkContourLoopExtraction()
         loop.SetInputData(loopline.polydata())
@@ -1647,8 +1617,10 @@ class Mesh(Points):
     def connected_vertices(self, index):
         """Find all vertices connected to an input vertex specified by its index.
 
-        .. hint:: connVtx.py
-            .. image:: https://vedo.embl.es/images/basic/connVtx.png
+        Examples:
+            - [connVtx.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/connVtx.py)
+            
+            ![](https://vedo.embl.es/images/basic/connVtx.png)
         """
         poly = self._data
 
@@ -1709,22 +1681,21 @@ class Mesh(Points):
         of the input as seen along a specified `direction`, this can also be
         a ``vtkCamera`` object.
 
-        Parameters
-        ----------
-        direction : list
-            viewpoint direction vector.
-            If *None* this is guessed by looking at the minimum
-            of the sides of the bounding box.
+        Args:
+            direction : (list)
+                viewpoint direction vector.
+                If *None* this is guessed by looking at the minimum
+                of the sides of the bounding box.
+            border_edges : (bool)
+                enable or disable generation of border edges
+            feature_angle : (float)
+                minimal angle for sharp edges detection.
+                If set to `False` the functionality is disabled.
 
-        border_edges : bool
-            enable or disable generation of border edges
-
-        feature_angle : float
-            minimal angle for sharp edges detection.
-            If set to `False` the functionality is disabled.
-
-        .. hint:: silhouette.py
-            .. image:: https://vedo.embl.es/images/basic/silhouette1.png
+        Examples:
+            - [silhouette1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/silhouette1.py)
+            
+            ![](https://vedo.embl.es/images/basic/silhouette1.png)
         """
         sil = vtk.vtkPolyDataSilhouette()
         sil.SetInputData(self.polydata())
@@ -1767,7 +1738,7 @@ class Mesh(Points):
 
     @deprecated(reason=vedo.colors.red + "Please use follow_camera()" + vedo.colors.reset)
     def followCamera(self, cam=None):
-        "Deprecated. Please use follow_camera()"
+        "Deprecated. Please use `follow_camera()`"
         return self.follow_camera(cam)
 
     def follow_camera(self, cam=None):
@@ -1798,19 +1769,18 @@ class Mesh(Points):
         This is a new mesh where the scalar is now associated to cell faces and
         used to colorize the mesh.
 
-        Parameters
-        ----------
-        n : int
-            number of isobands in the range
+        Args:
+            n : (int)
+                number of isobands in the range
+            vmin : (float)
+                minimum of the range
+            vmax : (float)
+                maximum of the range
 
-        vmin : float
-            minimum of the range
-
-        vmax : float
-            maximum of the range
-
-        .. hint:: isolines.py
-            .. image:: https://vedo.embl.es/images/pyplot/isolines.png
+        Examples:
+            - [isolines.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/isolines.py)
+            
+            ![](https://vedo.embl.es/images/pyplot/isolines.png)
         """
         r0, r1 = self._data.GetScalarRange()
         if vmin is None:
@@ -1857,19 +1827,18 @@ class Mesh(Points):
         """
         Return a new ``Mesh`` representing the isolines of the active scalars.
 
-        Parameters
-        ----------
-        n : int
-            number of isolines in the range
+        Args:
+            n : (int)
+                number of isolines in the range
+            vmin : (float)
+                minimum of the range
+            vmax : (float)
+                maximum of the range
 
-        vmin : float
-            minimum of the range
-
-        vmax : float
-            maximum of the range
-
-        .. hint:: isolines.py
-            .. image:: https://vedo.embl.es/images/pyplot/isolines.png
+        Examples:
+            - [isolines.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/isolines.py)
+            
+            ![](https://vedo.embl.es/images/pyplot/isolines.png)
         """
         bcf = vtk.vtkContourFilter()
         bcf.SetInputData(self.polydata())
@@ -1914,8 +1883,10 @@ class Mesh(Points):
             Some polygonal objects have no free edges (e.g., sphere). When swept, this will result
             in two separate surfaces if capping is on, or no surface if capping is off.
 
-        .. hint:: extrude.py
-            .. image:: https://vedo.embl.es/images/basic/extrude.png
+        Examples:
+            - [extrude.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/extrude.py)
+            
+            ![](https://vedo.embl.es/images/basic/extrude.png)
         """
         if is_sequence(zshift):
             # ms = [] # todo
@@ -1957,17 +1928,17 @@ class Mesh(Points):
         """
         Split a mesh by connectivity and order the pieces by increasing area.
 
-        Parameters
-        ----------
-        maxdepth : int
-            only consider this maximum number of mesh parts.
+        Args:
+            maxdepth : (int)
+                only consider this maximum number of mesh parts.
+            flag : (bool)
+                if set to True return the same single object,
+                but add a "RegionId" array to flag the mesh subparts
 
-        flag : bool
-            if set to True return the same single object,
-            but add a "RegionId" array to flag the mesh subparts
-
-        .. hint:: splitmesh.py
-            .. image:: https://vedo.embl.es/images/advanced/splitmesh.png
+        Examples:
+            - [splitmesh.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/splitmesh.py)
+            
+            ![](https://vedo.embl.es/images/advanced/splitmesh.png)
         """
         pd = self.polydata(False)
         cf = vtk.vtkConnectivityFilter()
@@ -1999,14 +1970,15 @@ class Mesh(Points):
 
     @deprecated(reason=vedo.colors.red + "Please use extract_largest_region()" + vedo.colors.reset)
     def extractLargestRegion(self):
-        "Deprecated. Please use extract_largest_region()"
+        "Deprecated. Please use `extract_largest_region()`"
         return self.extract_largest_region()
 
     def extract_largest_region(self):
         """
         Extract the largest connected part of a mesh and discard all the smaller pieces.
 
-        .. hint:: largestregion.py
+        Examples:
+            - [largestregion.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/largestregion.py)
         """
         conn = vtk.vtkConnectivityFilter()
         conn.SetExtractionModeToLargestRegion()
@@ -2030,12 +2002,14 @@ class Mesh(Points):
     def boolean(self, operation, mesh2, method=0, tol=None):
         """Volumetric union, intersection and subtraction of surfaces.
 
-        Use ``operation`` for the allowed operations 'plus', 'intersect', 'minus'.
+        Use ``operation`` for the allowed operations `['plus', 'intersect', 'minus']`.
 
-        Two possible algorithms are available.
+        Two possible algorithms are available by changing `method`.
 
-        .. hint:: boolean.py
-            .. image:: https://vedo.embl.es/images/basic/boolean.png
+        Example:
+            - [boolean.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/boolean.py)
+            
+            ![](https://vedo.embl.es/images/basic/boolean.png)
         """
         if method == 0:
             bf = vtk.vtkBooleanOperationPolyDataFilter()
@@ -2067,19 +2041,22 @@ class Mesh(Points):
 
     @deprecated(reason=vedo.colors.red + "Please use intersect_with()" + vedo.colors.reset)
     def intersectWith(self, mesh2, tol=1e-06):
-        "Deprecated. Please use intersect_with()"
+        "Deprecated. Please use `intersect_with()`"
         return self.intersect_with(mesh2, tol)
+
     @deprecated(reason=vedo.colors.red + "Please use intersect_with_line()" + vedo.colors.reset)
     def intersectWithLine(self, p0, p1=None, returnIds=False, tol=0):
-        "Deprecated. Please use intersect_with_line()"
+        "Deprecated. Please use `intersect_with_line()`"
         return self.intersect_with_line(p0, p1, returnIds, tol)
 
     def intersect_with(self, mesh2, tol=1e-06):
         """
         Intersect this Mesh with the input surface to return a set of lines.
 
-        .. hint:: surfIntersect.py
-            .. image:: https://vedo.embl.es/images/basic/surfIntersect.png
+        Examples:
+            - [surfIntersect.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/surfIntersect.py)
+            
+            ![](https://vedo.embl.es/images/basic/surfIntersect.png)
         """
         bf = vtk.vtkIntersectionPolyDataFilter()
         bf.SetGlobalWarningDisplay(0)
@@ -2101,18 +2078,16 @@ class Mesh(Points):
 
         Use ``return_ids`` to return the cell ids along with point coords
 
-        Example
-        -------
-            .. code-block:: python
-
-                from vedo import *
-                s = Spring()
-                pts = s.intersect_with_line([0,0,0], [1,0.1,0])
-                ln = Line([0,0,0], [1,0.1,0], c='blue')
-                ps = Points(pts, r=10, c='r')
-                show(s, ln, ps, bg='white')
-
-            .. image:: https://user-images.githubusercontent.com/32848391/55967065-eee08300-5c79-11e9-8933-265e1bab9f7e.png
+        Example:
+            ```python
+            from vedo import *
+            s = Spring()
+            pts = s.intersect_with_line([0,0,0], [1,0.1,0])
+            ln = Line([0,0,0], [1,0.1,0], c='blue')
+            ps = Points(pts, r=10, c='r')
+            show(s, ln, ps, bg='white').close()
+            ```
+            ![](https://user-images.githubusercontent.com/32848391/55967065-eee08300-5c79-11e9-8933-265e1bab9f7e.png)
         """
         if isinstance(p0, Points):
             p0, p1 = p0.points()
@@ -2148,14 +2123,13 @@ class Mesh(Points):
         """
         Intersect this Mesh with a plane to return a set of lines.
 
-        Example
-        -------
-            .. code-block:: python
-
-                from vedo import *
-                mi = Sphere().intersect_with_plane().join()
-                print(mi.lines())
-                show(mi, axes=1)
+        Example:
+            ```python
+            from vedo import *
+            mi = Sphere().intersect_with_plane().join()
+            print(mi.lines())
+            show(mi, axes=1).close()
+            ```
         """
         plane = vtk.vtkPlane()
         plane.SetOrigin(origin)
@@ -2178,22 +2152,17 @@ class Mesh(Points):
         Generate a set of lines from cutting a mesh in n intervals
         between a minimum and maximum distance from a plane of given origin and normal.
 
-        Parameters
-        ----------
-        origin : list
-            the point of the cutting plane
-
-        normal : list
-            normal vector to the cutting plane
-
-        dmin : float
-            negative distance below the plane
-
-        dmax : float
-            positive distance above the plane
-
-        n : int
-            number of cuts
+        Args:
+            origin : (list)
+                the point of the cutting plane
+            normal : (list)
+                normal vector to the cutting plane
+            dmin : (float)
+                negative distance below the plane
+            dmax : (float)
+                positive distance above the plane
+            n : (int)
+                number of cuts
         """
         plane = vtk.vtkPlane()
         poly = self.polydata()
@@ -2262,16 +2231,16 @@ class Mesh(Points):
         Dijkstra algorithm to compute the geodesic line.
         Takes as input a polygonal mesh and performs a single source shortest path calculation.
 
-        Parameters
-        ----------
-        start : int, list
-            start vertex index or close point `[x,y,z]`
+        Args:
+            start : (int, list)
+                start vertex index or close point `[x,y,z]`
+            end :  (int, list)
+                end vertex index or close point `[x,y,z]`
 
-        end :  int, list
-            end vertex index or close point `[x,y,z]`
-
-        .. hint:: geodesic.py
-            .. image:: https://vedo.embl.es/images/advanced/geodesic.png
+        Examples:
+            - [geodesic.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/geodesic.py)
+            
+            ![](https://vedo.embl.es/images/advanced/geodesic.png)
         """
         if is_sequence(start):
             cc = self.points()
@@ -2327,8 +2296,10 @@ class Mesh(Points):
         where the foreground (exterior) voxels value is fg_val (255 by default)
         and the background (interior) voxels value is bg_val (0 by default).
 
-        .. hint:: mesh2volume.py
-            .. image:: https://vedo.embl.es/images/volumetric/mesh2volume.png
+        Examples:
+            - [mesh2volume.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/mesh2volume.py)
+
+            ![](https://vedo.embl.es/images/volumetric/mesh2volume.png)
         """
         # https://vtk.org/Wiki/VTK/Examples/Cxx/PolyData/PolyDataToImageData
         pd = self.polydata()
@@ -2385,7 +2356,7 @@ class Mesh(Points):
 
     @deprecated(reason=vedo.colors.red + "Please use signed_distance()" + vedo.colors.reset)
     def signedDistance(self, **k):
-        "Deprecated. Please use signed_distance()"
+        "Deprecated. Please use `signed_distance()`"
         return self.signed_distance(**k)
 
     def signed_distance(self, bounds=None, dims=(20, 20, 20), invert=False, maxradius=None):
@@ -2393,18 +2364,16 @@ class Mesh(Points):
         Compute the ``Volume`` object whose voxels contains the signed distance from
         the mesh.
 
-        Parameters
-        ----------
-        bounds : list
-            bounds of the output volume.
+        Args:
+            bounds : (list)
+                bounds of the output volume
+            dims : (list)
+                dimensions (nr. of voxels) of the output volume
+            invert : (bool)
+                flip the sign
 
-        dims : list
-            dimensions (nr. of voxels) of the output volume.
-
-        invert : bool
-            flip the sign.
-
-        .. hint:: examples/volumetric/volumeFromMesh.py
+        Examples:
+            - [volumeFromMesh.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/volumeFromMesh.py)
         """
         if maxradius is not None:
             vedo.logger.warning(
@@ -2455,33 +2424,27 @@ class Mesh(Points):
         """
         Tetralize a closed polygonal mesh. Return a `TetMesh`.
 
-        Parameters
-        ----------
-        side : float
-            desired side of the single tetras as fraction of the bounding box diagonal.
-            Typical values are in the range (0.01 - 0.03)
+        Args:
+            side : (float)
+                desired side of the single tetras as fraction of the bounding box diagonal.
+                Typical values are in the range (0.01 - 0.03)
+            nmax : (int)
+                maximum random numbers to be sampled in the bounding box
+            gap : (float)
+                keep this minimum distance from the surface,
+                if None an automatic choice is made.
+            subsample : (bool)
+                subsample input surface, the geometry might be affected
+                (the number of original faces reduceed), but higher tet quality might be obtained.
+            uniform : (bool)
+                generate tets more uniformly packed in the interior of the mesh
+            seed : (int)
+                random number generator seed
+            debug : (bool)
+                show an intermediate plot with sampled points
 
-        nmax : int
-            maximum random numbers to be sampled in the bounding box
-
-        gap : float
-            keep this minimum distance from the surface,
-            if None an automatic choice is made.
-
-        subsample : bool
-            subsample input surface, the geometry might be affected
-            (the number of original faces reduceed), but higher tet quality might be obtained.
-
-        uniform : bool
-            generate tets more uniformly packed in the interior of the mesh
-
-        seed : int
-            random number generator seed
-
-        debug : bool
-            show an intermediate plot with sampled points
-
-        .. hint:: examples/volumetric/tetralize_surface.py
+        Examples:
+            - [tetralize_surface.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/tetralize_surface.py)
         """
         surf = self.clone().clean().compute_normals()
         d = surf.diagonal_size()
