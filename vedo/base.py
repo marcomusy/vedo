@@ -541,7 +541,8 @@ class Base3DProp:
             reset : (bool)
                 if True previous scaling factors are ignored.
 
-        .. note:: use `s=(sx,sy,sz)` to scale differently in the three coordinates.
+        Note:
+            use `s=(sx,sy,sz)` to scale differently in the three coordinates.
         """
         if s is None:
             return np.array(self.GetScale())
@@ -812,7 +813,7 @@ class BaseActor(Base3DProp):
     Base class to add operative and data
     functionality to ``Mesh``, ``Assembly``, ``Volume`` and ``Picture`` objects.
 
-    .. warning:: Do not use this class to instance objects, use one the above instead.
+    .. warning:: Do not use this class to instanciate objects, use one the above instead.
     """
 
     def __init__(self):
@@ -1030,7 +1031,7 @@ class BaseActor(Base3DProp):
             specular_color : (color)
                 color that is being reflected by the surface
 
-        ![](https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png)
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png" alt="", width=700px>
 
         Examples:
             - [specular.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/specular.py)
@@ -1392,8 +1393,8 @@ class BaseActor(Base3DProp):
         Add a 2D scalar bar for the specified obj.
 
         Examples:
-            - examples/basic/mesh_coloring.py
-            - scalarbars.py
+            - [mesh_coloring.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_coloring.py)
+            - [scalarbars.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/scalarbars.py)
         """
         plt = vedo.plotter_instance
 
@@ -1482,12 +1483,12 @@ class BaseActor(Base3DProp):
             label_rotation : (float)
                 label rotation in degrees
             label_format : (str)
-                label format for floats and integers (e.g. ':.2f')
+                label format for floats and integers (e.g. `':.2f'`)
             draw_box : (bool)
                 draw a box around the colorbar
             categories : (list)
                 make a categorical scalarbar,
-                the input list will have the format [value, color, alpha, textlabel]
+                the input list will have the format `[value, color, alpha, textlabel]`
 
         Examples:
             - [scalarbars.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/scalarbars.py)
