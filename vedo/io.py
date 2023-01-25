@@ -20,6 +20,8 @@ from vedo.pointcloud import Points
 from vedo.mesh import Mesh
 from vedo.volume import Volume
 
+__docformat__ = "google"
+
 __doc__ = """
 Submodule to read/write meshes and other objects in different formats,
 and other I/O functionalities.
@@ -176,42 +178,30 @@ _x3d_html = """
 
 def load(inputobj, unpack=True, force=False):
     """
-    Load ``Mesh``, ``Volume`` and ``Picture`` objects from file or from the web.
+    Load any vedo objects from file or from the web.
 
     The output will depend on the file extension. See examples below.
     Unzip is made on the fly, if file ends with `.gz`.
     Can load an object directly from a URL address.
 
-    Parameters
-    ----------
+    Args:
+        unpack : bool
+            unpack MultiBlockData into a flat list of objects.
 
-    unpack : bool
-        unpack MultiBlockData into a flat list of objects.
-
-    force : bool
-        when downloading a file ignore any previous cached downloads and force a new one.
+        force : bool
+            when downloading a file ignore any previous cached downloads and force a new one.
 
     Example:
-        .. code-block:: python
-
-            from vedo import dataurl, load, show
-
-            # Return a Mesh object
-            g = load(dataurl+'250.vtk')
-            show(g)
-
-            # Return a list of 2 meshes
-            g = load([dataurl+'250.vtk', dataurl+'270.vtk'])
-            show(g)
-
-            # Return a list of meshes by reading all files in a directory
-            # (if directory contains DICOM files then a Volume is returned)
-            g = load('mydicomdir/')
-            show(g)
-
-            # Download a file from a URL address and unzip it on the fly
-            g = load('https://vedo.embl.es/examples/panther.stl.gz')
-            show(g)
+        ```python
+        from vedo import dataurl, load, show
+        # Return a list of 2 meshes
+        g = load([dataurl+'250.vtk', dataurl+'270.vtk'])
+        show(g)
+        # Return a list of meshes by reading all files in a directory
+        # (if directory contains DICOM files then a Volume is returned)
+        g = load('mydicomdir/')
+        show(g)
+        ```
     """
     acts = []
     if utils.is_sequence(inputobj):
@@ -463,8 +453,8 @@ def _load_file(filename, unpack):
 
 
 def download(url, force=False, verbose=True):
-    """Retrieve a file from a url, save it locally and return its path.
-    Use ``force`` to force reload and discard cache copies."""
+    """Retrieve a file from a URL, save it locally and return its path.
+    Use `force` to force reload and discard cached copies."""
 
     if not url.startswith("https://"):
         vedo.logger.error(f"Invalid URL (must start with https):\n{url}")
@@ -595,7 +585,10 @@ def loadXMLData(filename):
 
 ###################################################################
 def load3DS(filename):
-    """Load ``3DS`` file format from file. Return an ``Assembly(vtkAssembly)`` object."""
+    """Load ``3DS`` file format from file. 
+    Returns:
+        ``Assembly(vtkAssembly)`` object.
+    """
     renderer = vtk.vtkRenderer()
     renWin = vtk.vtkRenderWindow()
     renWin.AddRenderer(renderer)
@@ -1200,7 +1193,7 @@ def write(objct, fileoutput, binary=True):
     Write object to file.
 
     Possile extensions are:
-        - vtk, vti, npy, npz, ply, obj, stl, byu, vtp, vti, mhd, xyz, tif, png, bmp.
+        - `vtk, vti, npy, npz, ply, obj, stl, byu, vtp, vti, mhd, xyz, tif, png, bmp`
     """
     obj = objct
     if isinstance(obj, Points):  # picks transformation
@@ -1369,13 +1362,11 @@ def write_transform(inobj, filename="transform.mat", comment=""):
     """
     Save a transformation for a mesh or pointcloud to ASCII file.
 
-    Parameters
-    ----------
-    filename : str, optional
-        output file name. The default is 'transform.mat'.
-
-    comment : str, optional
-        some optional comment. The default is ''.
+    Args:
+        filename : (str)
+            output file name
+        comment : (str)
+            some optional comment
     """
     if isinstance(inobj, Points):
         M = inobj.get_transform().GetMatrix()
@@ -1403,15 +1394,12 @@ def write_transform(inobj, filename="transform.mat", comment=""):
 
 def load_transform(filename):
     """
-    Load a ``vtkTransform`` from a file.mat.
+    Load a transformation from a file `.mat`.
 
-    Returns
-    -------
-    T : vtkTransform
-        The transformation to be applied to some object (``use apply_transform()``).
-
-    comment : str
-        a comment string associated to this transformation file.
+    Returns:
+        - `vtkTransform`
+            The transformation to be applied to some object (``use apply_transform()``).
+        - `str`, a comment string associated to this transformation file.
     """
     with open(filename, "r", encoding='UTF-8') as f:
         lines = f.readlines()
@@ -1439,15 +1427,16 @@ def export_window(fileoutput, binary=False):
     Exporter which writes out the rendered scene into an HTML, X3D
     or Numpy file.
 
-    .. hint:: examples/other/export_x3d.py
+    Example:
+        - [export_x3d.py](examples/other/export_x3d.py)
+
         Check out the HTML generated webpage [here](https://vedo.embl.es/examples/embryo.html).
 
-        See also: FEniCS [test webpage](https://vedo.embl.es/examples/fenics_elasticity.html).
+        <img src='https://user-images.githubusercontent.com/32848391/57160341-c6ffbd80-6de8-11e9-95ff-7215ce642bc5.jpg' width="600"/>
 
-    .. note:: the rendering window can also be exported to `numpy` file `scene.npz`
+    .. note:: 
+        the rendering window can also be exported to `numpy` file `scene.npz`
         by pressing ``E`` keyboard at any moment during visualization.
-
-        .. image:: https://user-images.githubusercontent.com/32848391/57160341-c6ffbd80-6de8-11e9-95ff-7215ce642bc5.jpg
     """
     fr = fileoutput.lower()
 
@@ -1580,15 +1569,15 @@ def export_window(fileoutput, binary=False):
 
 def import_window(fileinput, mtl_file=None, texture_path=None):
     """Import a whole scene from a Numpy or OBJ wavefront file.
-    Return a ``Plotter`` instance.
 
-    Parameters
-    ----------
-    mtl_file : str
-        MTL file for OBJ wavefront files.
-
-    texture_path : str
-        path of the texture files directory.
+    Args:
+        mtl_file : (str)
+            MTL file for OBJ wavefront files
+        texture_path : (str)
+            path of the texture files directory
+    
+    Returns:
+        ``Plotter`` instance
     """
     data = None
     if isinstance(fileinput, dict):
@@ -1704,13 +1693,11 @@ def screenshot(filename="screenshot.png", scale=None, asarray=False):
     """
     Save a screenshot of the current rendering window.
 
-    Parameters
-    ----------
-    scale : int
-        set image magnification as an integer multiplicative factor
-
-    asarray : bool
-        return a numpy array of the image
+    Args:
+        scale : (int)
+            set image magnification as an integer multiplicative factor
+        asarray : (bool)
+            return a numpy array of the image
     """
     if not vedo.plotter_instance or not vedo.plotter_instance.window:
         vedo.logger.error("in screenshot(), rendering window is not present, skip.")
@@ -1796,22 +1783,20 @@ def screenshot(filename="screenshot.png", scale=None, asarray=False):
 def ask(*question, **kwarg):
     """
     Ask a question from command line. Return the answer as a string.
-    See function `printc()` for the description of the options.
+    See function `colors.printc()` for the description of the keyword options.
 
-    Parameters
-    ----------
-    options : list
-        a python list of possible answers to choose from.
-
-    default : str
-        the default answer when just hitting return.
+    Args:
+        options : (list)
+            a python list of possible answers to choose from.
+        default : (str)
+            the default answer when just hitting return.
 
     Example:
-        .. code-block:: python
-
-            import vedo
-            res = vedo.io.ask("Continue?", options=['Y','n'], default='Y', c='g')
-            print(res)
+        ```python
+        import vedo
+        res = vedo.io.ask("Continue?", options=['Y','n'], default='Y', c='g')
+        print(res)
+        ```
     """
     kwarg.update({"end": " "})
     if "invert" not in kwarg:
@@ -1848,22 +1833,20 @@ class Video:
     Class to generate a video from the specified rendering window.
     Program `ffmpeg` is used to create video from each generated frame.
 
-    Parameters
-    ----------
-    name : str
-        name of the output file.
+    Args:
+        name : (str)
+            name of the output file.
+        fps : (int)
+            set the number of frames per second.
+        duration : (float)
+            set the total `duration` of the video and recalculates `fps` accordingly.
+        ffmpeg : (str)
+            set path to ffmpeg program. Default value assumes ffmpeg command is in the path.
 
-    fps : int
-        set the number of frames per second.
+    Examples:
+        - [makeVideo.py](examples/other/makeVideo.py)
 
-    duration : float
-        set the total `duration` of the video and recalculates `fps` accordingly.
-
-     ffmpeg : str
-         set path to ffmpeg program. Default value assumes ffmpeg command is in the path.
-
-    .. hint:: examples/other/makeVideo.py
-        .. image:: https://user-images.githubusercontent.com/32848391/50739007-2bfc2b80-11da-11e9-97e6-620a3541a6fa.jpg
+        ![](https://user-images.githubusercontent.com/32848391/50739007-2bfc2b80-11da-11e9-97e6-620a3541a6fa.jpg)
     """
 
     def __init__(
@@ -1913,16 +1896,13 @@ class Video:
         """
         Automatic shooting of a static scene by specifying rotation and elevation ranges.
 
-        Parameters
-        ----------
-        elevation : list
-            initial and final elevation angles
-
-        azimuth_range : list
-            initial and final azimuth angles
-
-        cameras : list
-            list of cameras to go through, each camera can be dictionary or a vtkCamera
+        Args:
+            elevation : list
+                initial and final elevation angles
+            azimuth_range : list
+                initial and final azimuth angles
+            cameras : list
+                list of cameras to go through, each camera can be dictionary or a vtkCamera
         """
         if not self.duration:
             self.duration = 5
@@ -1955,8 +1935,7 @@ class Video:
 
     def close(self):
         """
-        Render the video and write to file.
-        Return the current ``Plotter`` instance.
+        Render the video and write it to file.
         """
         if self.duration:
             self.fps = len(self.frames) / float(self.duration)
@@ -2013,4 +1992,3 @@ class Video:
                 vedo.logger.error("could not find snapshots")
 
         self.tmp_dir.cleanup()
-        return vedo.plotter_instance
