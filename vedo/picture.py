@@ -11,11 +11,14 @@ import vedo
 from vedo import colors
 from vedo import utils
 
-__doc__ = """
-Submodule to work with common format images
+__docformat__ = "google"
 
-.. image:: https://vedo.embl.es/images/basic/rotateImage.png
+__doc__ = """
+Submodule to work with common format images.
+
+![](https://vedo.embl.es/images/basic/rotateImage.png)
 """
+
 __all__ = ["Picture", "MatplotlibPicture"]
 
 
@@ -62,29 +65,23 @@ def _get_img(obj, flip=False):
 class MatplotlibPicture(vtk.vtkActor2D):
     """
     Embed a 2D matplotlib image in the 3D scene.
-
-    Parameters
-    ----------
-    fig : matplotlib.Figure, matplotlib.pyplot
-        the output from matplotlib
-
-    pos : list
-        2D (x,y) position in range [0,1], [0,0] being the bottom-left corner
-
-    size : list
-        resize image to this pixel size
-
-    scale : float
-        apply a scaling factor to the image
-
-    ontop : bool
-        keep image on top or not
-
-    padding : int
-        padding space to keep around the image
     """
     def __init__(self, fig, pos=(0,0), size=(), scale=1, ontop=False, padding=1):
-
+        """
+        Args:
+            fig : matplotlib.Figure, matplotlib.pyplot
+                the output from matplotlib
+            pos : (list)
+                2D (x,y) position in range [0,1], [0,0] being the bottom-left corner
+            size : (list)
+                resize image to this pixel size
+            scale : (float)
+                apply a scaling factor to the image
+            ontop : (bool)
+                keep image on top or not
+            padding : (int)
+                padding space to keep around the image
+        """
         vtk.vtkActor2D.__init__(self)
 
         if hasattr(fig, "gcf"):
@@ -116,24 +113,24 @@ class MatplotlibPicture(vtk.vtkActor2D):
 #################################################
 class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
     """
-    Derived class of ``vtkImageActor``. Used to represent 2D pictures.
-    Can be instantiated with a path file name or with a numpy array.
-
-    By default the transparency channel is disabled.
-    To enable it set channels=4.
-
-    Use `Picture.dimensions()` to access the number of pixels in x and y.
-
-    Parameters
-    ----------
-    channels :  int, list
-        only select these specific rgba channels (useful to remove alpha)
-
-    flip : bool
-        flip xy axis convention (when input is a numpy array)
+    Derived class of `vtkImageActor`. Used to represent 2D pictures in a 3D world.
     """
 
     def __init__(self, obj=None, channels=3, flip=False):
+        """
+        Can be instantiated with a path file name or with a numpy array.
+
+        By default the transparency channel is disabled.
+        To enable it set channels=4.
+
+        Use `Picture.dimensions()` to access the number of pixels in x and y.
+
+        Args:
+            channels :  (int, list)
+                only select these specific rgba channels (useful to remove alpha)
+            flip : (bool)
+                flip xy axis convention (when input is a numpy array)
+        """
 
         vtk.vtkImageActor.__init__(self)
         vedo.base.Base3DProp.__init__(self)
@@ -272,7 +269,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
     def extent(self, ext=None):
         """
         Get or set the physical extent that the picture spans.
-        Format is ext=[minx, maxx, miny, maxy].
+        Format is `ext=[minx, maxx, miny, maxy]`.
         """
         if ext is None:
             return self._data.GetExtent()
@@ -305,22 +302,17 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
     def crop(self, top=None, bottom=None, right=None, left=None, pixels=False):
         """Crop picture.
 
-        Parameters
-        ----------
-        top : float
-            fraction to crop from the top margin
-
-        bottom : float
-            fraction to crop from the bottom margin
-
-        left : float
-            fraction to crop from the left margin
-
-        right : float
-            fraction to crop from the right margin
-
-        pixels : bool
-            units are pixels
+        Args:
+            top : (float)
+                fraction to crop from the top margin
+            bottom : (float)
+                fraction to crop from the bottom margin
+            left : (float)
+                fraction to crop from the left margin
+            right : (float)
+                fraction to crop from the right margin
+            pixels : (bool)
+                units are pixels
         """
         extractVOI = vtk.vtkExtractVOI()
         extractVOI.SetInputData(self._data)
@@ -344,12 +336,11 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         Add the specified number of pixels at the picture borders.
         Pixels can be a list formatted as [left,right,bottom,top].
 
-        Parameters
-        ----------
-        pixels : int,list , optional
-            number of pixels to be added (or a list of length 4). The default is 10.
-        value : int, optional
-            intensity value (gray-scale color) of the padding. The default is 255.
+        Args:
+            pixels : (int),list , optional
+                number of pixels to be added (or a list of length 4)
+            value : (int), optional
+                intensity value (gray-scale color) of the padding
         """
         x0, x1, y0, y1, _z0, _z1 = self._data.GetExtent()
         pf = vtk.vtkImageConstantPad()
@@ -371,14 +362,13 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """
         Generate a tiling from the current picture by mirroring and repeating it.
 
-        Parameters
-        ----------
-        nx :  float, optional
-            number of repeats along x. The default is 4.
-        ny : float, optional
-            number of repeats along x. The default is 4.
-        shift : list, optional
-            shift in x and y in pixels. The default is 4.
+        Args:
+            nx : (float)
+                number of repeats along x
+            ny : (float)
+                number of repeats along x
+            shift : (list)
+                shift in x and y in pixels
         """
         x0, x1, y0, y1, z0, z1 = self._data.GetExtent()
         constant_pad = vtk.vtkImageMirrorPad()
@@ -403,26 +393,23 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         The origin and spacing of all other inputs are ignored.
         All inputs must have the same scalar type.
 
-        Parameters
-        ----------
-        axis : int, str
-            axis expanded to hold the multiple images
+        Args:
+            axis : (int, str)
+                axis expanded to hold the multiple images
+            preserveExtents : (bool)
+                if True, the extent of the inputs is used to place
+                the image in the output. The whole extent of the output is the union of the input
+                whole extents. Any portion of the output not covered by the inputs is set to zero.
+                The origin and spacing is taken from the first input.
 
-        preserveExtents : bool
-            if True, the extent of the inputs is used to place
-            the image in the output. The whole extent of the output is the union of the input
-            whole extents. Any portion of the output not covered by the inputs is set to zero.
-            The origin and spacing is taken from the first input.
-
-        Example
-        -------
-        .. code-block:: python
-
+        Example:
+            ```python
             from vedo import Picture, dataurl
             pic = Picture(dataurl+'dog.jpg').pad()
             pic.append([pic,pic,pic], axis='y')
             pic.append([pic,pic,pic,pic], axis='x')
             pic.show(axes=1).close()
+            ```
         """
         ima = vtk.vtkImageAppend()
         ima.SetInputData(self._data)
@@ -471,7 +458,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         return self._update(out)
 
     def mirror(self, axis="x"):
-        """Mirror picture along x or y axis. Same as flip()."""
+        """Mirror picture along x or y axis. Same as `flip()`."""
         ff = vtk.vtkImageFlip()
         ff.SetInputData(self.inputdata())
         if axis.lower() == "x":
@@ -485,19 +472,18 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         return self._update(ff.GetOutput())
 
     def flip(self, axis="y"):
-        """Mirror picture along x or y axis. Same as mirror()."""
+        """Mirror picture along x or y axis. Same as `mirror()`."""
         return self.mirror(axis=axis)
 
     def rotate(self, angle, center=(), scale=1, mirroring=False, bc="w", alpha=1):
         """
         Rotate by the specified angle (anticlockwise).
 
-        Parameters
-        ----------
-        angle : float
-            rotation angle in degrees.
-        center: list
-            center of rotation (x,y) in pixels.
+        Args:
+            angle : (float)
+                rotation angle in degrees
+            center : (list)
+                center of rotation (x,y) in pixels
         """
         bounds = self.bounds()
         pc = [0, 0, 0]
@@ -530,7 +516,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         return self._update(reslice.GetOutput())
 
     def select(self, component):
-        """Select one single component of the rgb image"""
+        """Select one single component of the rgb image."""
         ec = vtk.vtkImageExtractComponents()
         ec.SetInputData(self._data)
         ec.SetComponents(component)
@@ -538,7 +524,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         return Picture(ec.GetOutput())
 
     def bw(self):
-        """Make it black and white using luminance calibration"""
+        """Make it black and white using luminance calibration."""
         n = self._data.GetPointData().GetNumberOfComponents()
         if n == 4:
             ecr = vtk.vtkImageExtractComponents()
@@ -558,12 +544,11 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """
         Smooth a Picture with Gaussian kernel.
 
-        Parameters
-        ----------
-        sigma : int, optional
-            number of sigmas in pixel units. The default is 3.
-        radius : TYPE, optional
-            how far out the gaussian kernel will go before being clamped to zero. The default is None.
+        Args:
+            sigma : (int)
+                number of sigmas in pixel units
+            radius : (float)
+                how far out the gaussian kernel will go before being clamped to zero
         """
         gsf = vtk.vtkImageGaussianSmooth()
         gsf.SetDimensionality(2)
@@ -582,7 +567,9 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         return self._update(gsf.GetOutput())
 
     def median(self):
-        """Median filter that preserves thin lines and corners.
+        """
+        Median filter that preserves thin lines and corners.
+        
         It operates on a 5x5 pixel neighborhood. It computes two values initially:
         the median of the + neighbors and the median of the x neighbors.
         It then computes the median of these two values plus the center pixel.
@@ -598,12 +585,11 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         Enhance a b&w picture using the laplacian, enhancing high-freq edges.
 
         Example:
-
-            .. code-block:: python
-
-                import vedo
-                p = vedo.Picture(vedo.dataurl+'images/dog.jpg').bw()
-                vedo.show(p, p.clone().enhance(), N=2, mode='image', zoom='tight')
+            ```python
+            import vedo
+            p = vedo.Picture(vedo.dataurl+'images/dog.jpg').bw()
+            vedo.show(p, p.clone().enhance(), N=2, mode='image', zoom='tight').close()
+            ```
         """
         img = self._data
         scalarRange = img.GetPointData().GetScalars().GetRange()
@@ -637,17 +623,14 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """
         Fast Fourier transform of a picture.
 
-        Parameters
-        ----------
-        logscale : float
-            if non-zero, take the logarithm of the intensity and scale it by this factor.
-
-        mode : str
-            either [magnitude, real, imaginary, complex], compute the point array data accordingly.
-
-        center : bool
-            shift constant zero-frequency to the center of the image for display.
-            (FFT converts spatial images into frequency space, but puts the zero frequency at the origin)
+        Args:
+            logscale : (float)
+                if non-zero, take the logarithm of the intensity and scale it by this factor.
+            mode : (str)
+                either [magnitude, real, imaginary, complex], compute the point array data accordingly.
+            center : (bool)
+                shift constant zero-frequency to the center of the image for display.
+                (FFT converts spatial images into frequency space, but puts the zero frequency at the origin)
         """
         ffti = vtk.vtkImageFFT()
         ffti.SetInputData(self._data)
@@ -735,16 +718,13 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         A simple high-pass filter would simply mask a set of pixels in the frequency domain,
         but the abrupt transition would cause a ringing effect in the spatial domain.
 
-        Parameters
-        ----------
-        lowcutoff : list
-            the cutoff frequencies
-
-        highcutoff : list
-            the cutoff frequencies
-
-        order : int
-            order determines sharpness of the cutoff curve
+        Args:
+            lowcutoff : (list)
+                the cutoff frequencies
+            highcutoff : (list)
+                the cutoff frequencies
+            order : (int)
+                order determines sharpness of the cutoff curve
         """
         # https://lorensen.github.io/VTKExamples/site/Cxx/ImageProcessing/IdealHighPass
         fft = vtk.vtkImageFFT()
@@ -784,7 +764,8 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         return self._update(caster.GetOutput())
 
     def blend(self, pic, alpha1=0.5, alpha2=0.5):
-        """Take L, LA, RGB, or RGBA images as input and blends
+        """
+        Take L, LA, RGB, or RGBA images as input and blends
         them according to the alpha values and/or the opacity setting for each input.
         """
         blf = vtk.vtkImageBlend()
@@ -798,8 +779,8 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
 
     def warp(
         self,
-        sourcePts=(),
-        targetPts=(),
+        source_pts=(),
+        target_pts=(),
         transform=None,
         sigma=1,
         mirroring=False,
@@ -809,34 +790,33 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """
         Warp an image using thin-plate splines.
 
-        Parameters
-        ----------
-        sourcePts : list, optional
-            source points.
-        targetPts : list, optional
-            target points.
-        transform : TYPE, optional
-            a vtkTransform object can be supplied. The default is None.
-        sigma : float, optional
-            stiffness of the interpolation. The default is 1.
-        mirroring : TYPE, optional
-            fill the margins with a reflection of the original image. The default is False.
-        bc : TYPE, optional
-            fill the margins with a solid color. The default is 'w'.
-        alpha : TYPE, optional
-            opacity of the filled margins. The default is 1.
+        Args:
+            source_pts : (list)
+                source points
+            target_pts : (list)
+                target points
+            transform : (vtkTransform)
+                a vtkTransform object can be supplied
+            sigma : (float), optional
+                stiffness of the interpolation
+            mirroring : (bool)
+                fill the margins with a reflection of the original image
+            bc : (color)
+                fill the margins with a solid color
+            alpha : (float)
+                opacity of the filled margins
         """
         if transform is None:
             # source and target must be filled
             transform = vtk.vtkThinPlateSplineTransform()
             transform.SetBasisToR2LogR()
-            if isinstance(sourcePts, vedo.Points):
-                sourcePts = sourcePts.points()
-            if isinstance(targetPts, vedo.Points):
-                targetPts = targetPts.points()
+            if isinstance(source_pts, vedo.Points):
+                source_pts = source_pts.points()
+            if isinstance(target_pts, vedo.Points):
+                target_pts = target_pts.points()
 
-            ns = len(sourcePts)
-            nt = len(targetPts)
+            ns = len(source_pts)
+            nt = len(target_pts)
             if ns != nt:
                 colors.printc("Error in picture.warp(): #source != #target points", ns, nt, c='r')
                 raise RuntimeError()
@@ -848,9 +828,9 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             pttar.SetNumberOfPoints(nt)
 
             for i in range(ns):
-                p = sourcePts[i]
+                p = source_pts[i]
                 ptsou.SetPoint(i, [p[0], p[1], 0])
-                p = targetPts[i]
+                p = target_pts[i]
                 pttar.SetPoint(i, [p[0], p[1], 0])
 
             transform.SetSigma(sigma)
@@ -884,20 +864,18 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """Return a new Picture where pixel above threshold are set to 255
         and pixels below are set to 0.
 
-        Parameters
-        ----------
-        invert : bool, optional
-            Invert threshold. Default is False.
+        Args:
+            invert : (bool)
+                invert threshold direction
 
-        Example
-        -------
-        .. code-block:: python
-
+        Example:
+            ```python
             from vedo import Picture, show
             pic1 = Picture("https://aws.glamour.es/prod/designs/v1/assets/620x459/547577.jpg")
             pic2 = pic1.clone().invert()
             pic3 = pic1.clone().binarize()
             show(pic1, pic2, pic3, N=3, bg="blue9").close()
+            ```
         """
         rgb = self.tonumpy()
         if rgb.ndim == 3:
@@ -924,17 +902,13 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         Create a polygonal Mesh from a Picture by filling regions with pixels
         luminosity above a specified value.
 
-        Parameters
-        ----------
-        value : float, optional
-            The default is None, e.i. 1/3 of the scalar range.
+        Args:
+            value : (float)
+                The default is None, e.i. 1/3 of the scalar range.
+            flip: bool
+                Flip polygon orientations
 
-        flip: bool, optional
-            Flip polygon orientations
-
-        Returns
-        -------
-        Mesh
+        Returns:
             A polygonal mesh.
         """
         mgf = vtk.vtkImageMagnitude()
@@ -981,7 +955,8 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         return gr
 
     def tonumpy(self):
-        """Get read-write access to pixels of a Picture object as a numpy array.
+        """
+        Get read-write access to pixels of a Picture object as a numpy array.
         Note that the shape is (nrofchannels, nx, ny).
 
         When you set values in the output image, you don't want numpy to reallocate the array
@@ -1001,14 +976,15 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
     def rectangle(self, xspan, yspan, c="green5", alpha=1):
         """Draw a rectangle box on top of current image. Units are pixels.
 
-        .. code-block:: python
-
-                import vedo
-                pic = vedo.Picture(vedo.dataurl+"images/dog.jpg")
-                pic.rectangle([100,300], [100,200], c='green4', alpha=0.7)
-                pic.line([100,100],[400,500], lw=2, alpha=1)
-                pic.triangle([250,300], [100,300], [200,400])
-                vedo.show(pic, axes=1)
+        Example:
+            ```python
+            import vedo
+            pic = vedo.Picture(vedo.dataurl+"images/dog.jpg")
+            pic.rectangle([100,300], [100,200], c='green4', alpha=0.7)
+            pic.line([100,100],[400,500], lw=2, alpha=1)
+            pic.triangle([250,300], [100,300], [200,400])
+            vedo.show(pic, axes=1).close()
+            ```
         """
         x1, x2 = xspan
         y1, y2 = yspan
