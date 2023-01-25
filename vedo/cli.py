@@ -5,16 +5,20 @@
 """
 Command Line Interface module
 -----------------------------
+The library includes a handy Command Line Interface.
 
-    # Type for help
+    # For a list of options type:
+
     vedo -h
 
     # Some useful bash aliases:
+    #
     alias v='vedo '
     alias vr='vedo --run '             # to search and run examples by name
     alias vs='vedo -i --search '       # to search for a string in examples
     alias vdoc='vedo -i --search-code' # to search for a string in source code
     alias ve='vedo --eog '             # to view single and multiple images
+    #
     alias vv='vedo -bg blackboard -bg2 gray3 -z 1.05 -k glossy -c blue9 '
 """
 import argparse
