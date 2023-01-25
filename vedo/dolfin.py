@@ -11,47 +11,32 @@ import vedo
 from vedo.colors import printc
 from vedo import utils
 from vedo import shapes
-from vedo.io import download, export_window, load, screenshot, Video
 from vedo.mesh import Mesh
-from vedo.plotter import Plotter
 from vedo.plotter import show
-from vedo.shapes import Text2D, Text3D
-from vedo.utils import ProgressBar
+
+__docformat__ = "google"
 
 __doc__ = """
 Submodule for support of the [FEniCS/Dolfin](https://fenicsproject.org) library.
 
 Example:
-    .. code-block:: python
+    ```python
+    import dolfin
+    from vedo import dataurl, download
+    from vedo.dolfin import plot
+    fname = download(dataurl+"dolfin_fine.xml")
+    mesh = dolfin.Mesh(fname)
+    plot(mesh)
+    ```
 
-        import dolfin
-        from vedo.dolfin import dataurl, download, plot
-        fname = download(dataurl+"dolfin_fine.xml")
-        mesh = dolfin.Mesh(fname)
-        plot(mesh)
-
-    .. image:: https://user-images.githubusercontent.com/32848391/53026243-d2d31900-3462-11e9-9dde-518218c241b6.jpg
+![](https://user-images.githubusercontent.com/32848391/53026243-d2d31900-3462-11e9-9dde-518218c241b6.jpg)
 
 Find many more examples in
 [vedo/examples/dolfin](https://github.com/marcomusy/vedo/blob/master/vedo/examples/other/dolfin).
-
-.. image:: https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif
 """
-
 
 __all__ = [
     "plot",
-    "load",
-    "download",
-    "show",
-    "printc",
-    "Plotter",
-    "ProgressBar",
-    "Text3D",
-    "Text2D",
-    "screenshot",
-    "Video",
-    "export_window",
 ]
 
 
@@ -179,219 +164,157 @@ def plot(*inputobj, **options):
 
     Return the current ``Plotter`` class instance.
 
-    Parameters
-    ----------
-    mode : str
-        one or more of the following can be combined in any order
-
-        - `mesh`/`color`, will plot the mesh, by default colored with a scalar if available
-        - `displacement` show displaced mesh by solution
-        - `arrows`, mesh displacements are plotted as scaled arrows.
-        - `lines`, mesh displacements are plotted as scaled lines.
-        - `tensors`, to be implemented
-
-    add : bool
-        add the input objects without clearing the already plotted ones
-
-    density : float
-        show only a subset of lines or arrows [0-1]
-
-    wire[frame] : bool
-        visualize mesh as wireframe [False]
-
-    c[olor] : color
-        set mesh color [None]
-
-    exterior : bool
-        only show the outer surface of the mesh [False]
-
-    alpha : float
-        set object's transparency [1]
-
-    lw : int
-        line width of the mesh (set to zero to hide mesh) [0.1]
-
-    ps :  int
-        set point size of mesh vertices [None]
-
-    z : float
-        add a constant to z-coordinate (useful to show 2D slices as function of time)
-
-    legend : str
-        add a legend to the top-right of window [None]
-
-    scalarbar : bool
-        add a scalarbar to the window ['vertical']
-
-    vmin : float
-        set the minimum for the range of the scalar [None]
-
-    vmax : float
-        set the maximum for the range of the scalar [None]
-
-    scale : float
-        add a scaling factor to arrows and lines sizes [1]
-
-    cmap : str
-        choose a color map for scalars
-
-    shading : str
-        mesh shading ['flat', 'phong']
-
-    text : str
-        add a gray text comment to the top-left of the window [None]
-
-    isolines : dict
-        dictionary of isolines properties
-
-        - n, (int) - add this number of isolines to the mesh
-        - c, - isoline color
-        - lw, (float) - isoline width
-        - z, (float) - add to the isoline z coordinate to make them more visible
-
-
-    streamlines : dict
-        dictionary of streamlines properties
-
-        - probes, (list, None) - custom list of points to use as seeds
-        - tol, (float) - tolerance to reduce the number of seed points used in mesh
-        - lw, (float) - line width of the streamline
-        - direction, (str) - direction of integration ('forward', 'backward' or 'both')
-        - max_propagation, (float) - max propagation of the streamline
-        - scalar_range, (list) - scalar range of coloring
-
-
-    warpZfactor : float
-        elevate z-axis by scalar value (useful for 2D geometries)
-
-    warpYfactor : float
-        elevate z-axis by scalar value (useful for 1D geometries)
-
-    scaleMeshFactors : list
-        rescale mesh by these factors [1,1,1]
-
-    new : bool
-        spawn a new instance of Plotter class, pops up a new window
-
-    at : int
-        renderer number to plot to
-
-    shape : list
-        subdvide window in (n,m) rows and columns
-
-    N : int
-        automatically subdvide window in N renderers
-
-    pos : list
-        (x,y) coordinates of the window position on screen
-
-    size : list
-        window size (x,y)
-
-    title : str
-        window title
-
-    bg : color
-        background color name of window
-
-    bg2 : color
-        second background color name to create a color gradient
-
-    style : int
-        choose a predefined style [0-4]
-
-          - 0, `vedo`, style (blackboard background, rainbow color map)
-          - 1, `matplotlib`, style (white background, viridis color map)
-          - 2, `paraview`, style
-          - 3, `meshlab`, style
-          - 4, `bw`, black and white style.
-
-    axes : int
-        Axes type number.
-        Axes type-1 can be fully customized by passing a dictionary ``axes=dict()``.
-
-           - 0,  no axes,
-           - 1,  draw customizable grid axes (see below).
-           - 2,  show cartesian axes from (0,0,0)
-           - 3,  show positive range of cartesian axes from (0,0,0)
-           - 4,  show a triad at bottom left
-           - 5,  show a cube at bottom left
-           - 6,  mark the corners of the bounding box
-           - 7,  draw a simple ruler at the bottom of the window
-           - 8,  show the `vtkCubeAxesActor` object,
-           - 9,  show the bounding box outLine,
-           - 10, show three circles representing the maximum bounding box,
-           - 11, show a large grid on the x-y plane (use with zoom=8)
-           - 12, show polar axes.
-
-    infinity : bool
-        if True fugue point is set at infinity (no perspective effects)
-
-    sharecam : bool
-        if False each renderer will have an independent vtkCamera
-
-    interactive : bool
-        if True will stop after show() to allow interaction w/ window
-
-    offscreen : bool
-        if True will not show the rendering window
-
-    zoom : float
-        camera zooming factor
-
-    viewup : list, str
-        camera view-up direction ['x','y','z', or a vector direction]
-
-    azimuth : float
-        add azimuth rotation of the scene, in degrees
-
-    elevation : float
-        add elevation rotation of the scene, in degrees
-
-    roll : float
-        add roll-type rotation of the scene, in degrees
-
-    camera : dict
-        Camera parameters can further be specified with a dictionary
-        assigned to the ``camera`` keyword:
-        (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`)
-
-        - `pos`, `(list)`,
-            the position of the camera in world coordinates
-
-        - `focal_point`, `(list)`,
-            the focal point of the camera in world coordinates
-
-        - `viewup`, `(list)`,
-            the view up direction for the camera
-
-        - `distance`, `(float)`,
-            set the focal point to the specified distance from the camera position.
-
-        - `clippingRange`, `(float)`,
-            distance of the near and far clipping planes along the direction of projection.
-
-        - `parallelScale`, `(float)`,
-            scaling used for a parallel projection, i.e. the height of the viewport
-            in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
-            an "inverse scale", larger numbers produce smaller images.
-            This method has no effect in perspective projection mode.
-
-        - `thickness`, `(float)`,
-            set the distance between clipping planes. This method adjusts the far clipping
-            plane to be set a distance 'thickness' beyond the near clipping plane.
-
-        - `viewAngle`, `(float)`,
-            the camera view angle, which is the angular height of the camera view
-            measured in degrees. The default angle is 30 degrees.
-            This method has no effect in parallel projection mode.
-            The formula for setting the angle up for perfect perspective viewing is:
-            angle = 2*atan((h/2)/d) where h is the height of the RenderWindow
-            (measured by holding a ruler up to your screen) and d is the distance
-            from your eyes to the screen.
-
-    interactorStyle : int
-        change the style of muose interaction of the scene
+    Args:
+        mode : (str)
+            one or more of the following can be combined in any order
+            - `mesh`/`color`, will plot the mesh, by default colored with a scalar if available
+            - `displacement` show displaced mesh by solution
+            - `arrows`, mesh displacements are plotted as scaled arrows.
+            - `lines`, mesh displacements are plotted as scaled lines.
+            - `tensors`, to be implemented
+        add : (bool)
+            add the input objects without clearing the already plotted ones
+        density : (float)
+            show only a subset of lines or arrows [0-1]
+        wire[frame] : (bool)
+            visualize mesh as wireframe [False]
+        c[olor] : (color)
+            set mesh color [None]
+        exterior : (bool)
+            only show the outer surface of the mesh [False]
+        alpha : (float)
+            set object's transparency [1]
+        lw : (int)
+            line width of the mesh (set to zero to hide mesh) [0.1]
+        ps :  int
+            set point size of mesh vertices [None]
+        z : (float)
+            add a constant to z-coordinate (useful to show 2D slices as function of time)
+        legend : (str)
+            add a legend to the top-right of window [None]
+        scalarbar : (bool)
+            add a scalarbar to the window ['vertical']
+        vmin : (float)
+            set the minimum for the range of the scalar [None]
+        vmax : (float)
+            set the maximum for the range of the scalar [None]
+        scale : (float)
+            add a scaling factor to arrows and lines sizes [1]
+        cmap : (str)
+            choose a color map for scalars
+        shading : (str)
+            mesh shading ['flat', 'phong']
+        text : (str)
+            add a gray text comment to the top-left of the window [None]
+        isolines : (dict)
+            dictionary of isolines properties
+            - n, (int) - add this number of isolines to the mesh
+            - c, - isoline color
+            - lw, (float) - isoline width
+            - z, (float) - add to the isoline z coordinate to make them more visible
+        streamlines : (dict)
+            dictionary of streamlines properties
+            - probes, (list, None) - custom list of points to use as seeds
+            - tol, (float) - tolerance to reduce the number of seed points used in mesh
+            - lw, (float) - line width of the streamline
+            - direction, (str) - direction of integration ('forward', 'backward' or 'both')
+            - max_propagation, (float) - max propagation of the streamline
+            - scalar_range, (list) - scalar range of coloring
+        warpZfactor : (float)
+            elevate z-axis by scalar value (useful for 2D geometries)
+        warpYfactor : (float)
+            elevate z-axis by scalar value (useful for 1D geometries)
+        scaleMeshFactors : (list)
+            rescale mesh by these factors [1,1,1]
+        new : (bool)
+            spawn a new instance of Plotter class, pops up a new window
+        at : (int)
+            renderer number to plot to
+        shape : (list)
+            subdvide window in (n,m) rows and columns
+        N : (int)
+            automatically subdvide window in N renderers
+        pos : (list)
+            (x,y) coordinates of the window position on screen
+        size : (list)
+            window size (x,y)
+        title : (str)
+            window title
+        bg : (color)
+            background color name of window
+        bg2 : (color)
+            second background color name to create a color gradient
+        style : (int)
+            choose a predefined style [0-4]
+            - 0, `vedo`, style (blackboard background, rainbow color map)
+            - 1, `matplotlib`, style (white background, viridis color map)
+            - 2, `paraview`, style
+            - 3, `meshlab`, style
+            - 4, `bw`, black and white style.
+        axes : (int)
+            Axes type number.
+            Axes type-1 can be fully customized by passing a dictionary ``axes=dict()``.
+            - 0,  no axes,
+            - 1,  draw customizable grid axes (see below).
+            - 2,  show cartesian axes from (0,0,0)
+            - 3,  show positive range of cartesian axes from (0,0,0)
+            - 4,  show a triad at bottom left
+            - 5,  show a cube at bottom left
+            - 6,  mark the corners of the bounding box
+            - 7,  draw a simple ruler at the bottom of the window
+            - 8,  show the `vtkCubeAxesActor` object,
+            - 9,  show the bounding box outLine,
+            - 10, show three circles representing the maximum bounding box,
+            - 11, show a large grid on the x-y plane (use with zoom=8)
+            - 12, show polar axes.
+        infinity : (bool)
+            if True fugue point is set at infinity (no perspective effects)
+        sharecam : (bool)
+            if False each renderer will have an independent vtkCamera
+        interactive : (bool)
+            if True will stop after show() to allow interaction w/ window
+        offscreen : (bool)
+            if True will not show the rendering window
+        zoom : (float)
+            camera zooming factor
+        viewup : (list), str
+            camera view-up direction ['x','y','z', or a vector direction]
+        azimuth : (float)
+            add azimuth rotation of the scene, in degrees
+        elevation : (float)
+            add elevation rotation of the scene, in degrees
+        roll : (float)
+            add roll-type rotation of the scene, in degrees
+        camera : (dict)
+            Camera parameters can further be specified with a dictionary
+            assigned to the ``camera`` keyword:
+            (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`)
+            - `pos`, `(list)`,
+                the position of the camera in world coordinates
+            - `focal_point`, `(list)`,
+                the focal point of the camera in world coordinates
+            - `viewup`, `(list)`,
+                the view up direction for the camera
+            - `distance`, `(float)`,
+                set the focal point to the specified distance from the camera position.
+            - `clipping_range`, `(float)`,
+                distance of the near and far clipping planes along the direction of projection.
+            - `parallel_scale`, `(float)`,
+                scaling used for a parallel projection, i.e. the height of the viewport
+                in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
+                an "inverse scale", larger numbers produce smaller images.
+                This method has no effect in perspective projection mode.
+            - `thickness`, `(float)`,
+                set the distance between clipping planes. This method adjusts the far clipping
+                plane to be set a distance 'thickness' beyond the near clipping plane.
+            - `view_angle`, `(float)`,
+                the camera view angle, which is the angular height of the camera view
+                measured in degrees. The default angle is 30 degrees.
+                This method has no effect in parallel projection mode.
+                The formula for setting the angle up for perfect perspective viewing is:
+                angle = 2*atan((h/2)/d) where h is the height of the RenderWindow
+                (measured by holding a ruler up to your screen) and d is the distance
+                from your eyes to the screen.
     """
     if len(inputobj) == 0:
         vedo.plotter_instance.interactive()
