@@ -1505,7 +1505,16 @@ def export_window(fileoutput, binary=False):
                 vedo.plotter_instance.remove(a)
                 for b in a.unpack():
                     if b:
-                        newb = b.clone(transformed=True)
+                        # print(b.GetMatrix(), a.name) # SOME BUG HERE...
+                        if a.name == "Axes":
+                            newb = b.clone(transformed=True)
+                        else:
+                            newb = b.clone(transformed=False)
+                            tt = vtk.vtkTransform()
+                            tt.Concatenate(a.GetMatrix())
+                            tt.Concatenate(b.GetMatrix())
+                            newb.PokeMatrix(vtk.vtkMatrix4x4())
+                            newb.SetUserTransform(tt)
                         vedo.plotter_instance.add(newb, render=False)
         vedo.plotter_instance.render()
 
