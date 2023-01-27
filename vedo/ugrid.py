@@ -12,6 +12,9 @@ from vedo import utils
 from vedo.base import BaseGrid
 from vedo.io import download, loadUnStructuredGrid
 
+
+__docformat__ = "google"
+
 __doc__ = """
 Work with unstructured grid datasets
 """
@@ -23,6 +26,23 @@ class UGrid(vtk.vtkActor, BaseGrid):
     """Support for UnstructuredGrid objects."""
 
     def __init__(self, inputobj=None):
+        """
+        Support for UnstructuredGrid objects.
+
+        Arguments:
+            inputobj : (list, vtkUnstructuredGrid, str)
+                A list in the form `[points, cells, celltypes]`,
+                or a vtkUnstructuredGrid object, or a filename
+        
+        Celltypes are identified by the following convention:
+            - VTK_TETRA = 10
+            - VTK_VOXEL = 11
+            - VTK_HEXAHEDRON = 12
+            - VTK_WEDGE = 13
+            - VTK_PYRAMID = 14
+            - VTK_HEXAGONAL_PRISM = 15
+            - VTK_PENTAGONAL_PRISM = 16
+        """
 
         vtk.vtkActor.__init__(self)
         BaseGrid.__init__(self)
@@ -249,7 +269,7 @@ class UGrid(vtk.vtkActor, BaseGrid):
         return self.linecolor(linecolor)
 
     def extract_cell_type(self, ctype):
-        """Extract a specific cell type and return a new UGrid."""
+        """Extract a specific cell type and return a new `UGrid`."""
         uarr = self._data.GetCellTypesArray()
         ctarrtyp = np.where(utils.vtk2numpy(uarr) == ctype)[0]
         uarrtyp = utils.numpy2vtk(ctarrtyp, deep=False, dtype="id")
