@@ -12,17 +12,33 @@ from vedo.base import BaseGrid
 from vedo.mesh import Mesh
 from vedo.io import download, loadUnStructuredGrid
 
+
+__docformat__ = "google"
+
 __doc__ = """
-Work with tetrahedral meshes <br>
-.. image:: https://vedo.embl.es/images/volumetric/82767107-2631d500-9e25-11ea-967c-42558f98f721.jpg
+Work with tetrahedral meshes.
+
+![](https://vedo.embl.es/images/volumetric/82767107-2631d500-9e25-11ea-967c-42558f98f721.jpg)
 """
 
 __all__ = ["TetMesh", "delaunay3d"]
 
 
 ##########################################################################
-def delaunay3d(mesh, alpha_parameter=0, tol=None, boundary=False):
-    """Create 3D Delaunay triangulation of input points."""
+def delaunay3d(mesh, radius=0, tol=None):
+    """
+    Create 3D Delaunay triangulation of input points.
+    
+    Arguments:
+        radius : (float)
+            specify distance (or "alpha") value to control output.
+            For a non-zero values, only tetra contained within the circumsphere 
+            will be output.
+        tol : (float)
+            Specify a tolerance to control discarding of closely spaced points.
+            This tolerance is specified as a fraction of the diagonal length of 
+            the bounding box of the points.
+    """
     deln = vtk.vtkDelaunay3D()
     if utils.is_sequence(mesh):
         pd = vtk.vtkPolyData()
@@ -32,14 +48,14 @@ def delaunay3d(mesh, alpha_parameter=0, tol=None, boundary=False):
         deln.SetInputData(pd)
     else:
         deln.SetInputData(mesh.GetMapper().GetInput())
-    deln.SetAlpha(alpha_parameter)
+    deln.SetAlpha(radius)
     deln.AlphaTetsOn()
     deln.AlphaTrisOff()
     deln.AlphaLinesOff()
     deln.AlphaVertsOff()
+    deln.BoundingTriangulationOff()
     if tol:
         deln.SetTolerance(tol)
-    deln.SetBoundingTriangulation(boundary)
     deln.Update()
     m = TetMesh(deln.GetOutput())
     return m
@@ -92,10 +108,18 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         inputobj=None,
         c=("r", "y", "lg", "lb", "b"),  # ('b','lb','lg','y','r')
         alpha=(0.5, 1),
-        alphaUnit=1,
+        alpha_unit=1,
         mapper="tetra",
     ):
-
+        """
+        Arguments:
+            inputobj : (vtkDataSet, list, str)
+                list of points and tet indices, or filename
+            alpha_unit : (float)
+                opacity scale
+            mapper : (str)
+                choose a visualization style in `['tetra', 'raycast', 'zsweep']`
+        """
         BaseGrid.__init__(self)
 
         self.useArray = 0
@@ -156,13 +180,13 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         self._mapper.SetInputData(self._data)
         self.SetMapper(self._mapper)
         self.color(c).alpha(alpha)
-        if alphaUnit:
-            self.GetProperty().SetScalarOpacityUnitDistance(alphaUnit)
+        if alpha_unit:
+            self.GetProperty().SetScalarOpacityUnitDistance(alpha_unit)
 
         # remember stuff:
         self._color = c
         self._alpha = alpha
-        self._alphaUnit = alphaUnit
+        self._alpha_unit = alpha_unit
         # -----------------------------------------------------------
 
     def _update(self, data):
@@ -172,7 +196,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         return self
 
     def clone(self):
-        """Clone the ``TetMesh`` object to yield an exact copy."""
+        """Clone the `TetMesh` object to yield an exact copy."""
         ugCopy = vtk.vtkUnstructuredGrid()
         ugCopy.DeepCopy(self._data)
 
@@ -196,25 +220,21 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         Calculate functions of quality for the elements of a triangular mesh.
         This method adds to the mesh a cell array named "Quality".
 
-        Parameters
-        ----------
-        metric : int
-            type of estimator
+        Arguments:
+            metric : (int)
+                type of estimators:
+                    - EDGE RATIO, 0
+                    - ASPECT RATIO, 1
+                    - RADIUS RATIO, 2
+                    - ASPECT FROBENIUS, 3
+                    - MIN_ANGLE, 4
+                    - COLLAPSE RATIO, 5
+                    - ASPECT GAMMA, 6
+                    - VOLUME, 7
+                    - ...
 
-                - EDGE RATIO, 0
-                - ASPECT RATIO, 1
-                - RADIUS RATIO, 2
-                - ASPECT FROBENIUS, 3
-                - MIN_ANGLE, 4
-                - COLLAPSE RATIO, 5
-                - ASPECT GAMMA, 6
-                - VOLUME, 7
-                - ...
-                See class [vtkMeshQuality](https://vtk.org/doc/nightly/html/classvtkMeshQuality.html)
-                for explanation.
-
-        .. hint:: meshquality.py
-            .. image:: https://vedo.embl.es/images/advanced/meshquality.png
+                    See class [vtkMeshQuality](https://vtk.org/doc/nightly/html/classvtkMeshQuality.html)
+                    for explanation.
         """
         qf = vtk.vtkMeshQuality()
         qf.SetInputData(self._data)
@@ -225,7 +245,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         return utils.vtk2numpy(qf.GetOutput().GetCellData().GetArray("Quality"))
 
     def compute_tets_volume(self):
-        """Add to this mesh a cell data array containing the areas of the polygonal faces"""
+        """Add to this mesh a cell data array containing the tetrahedron volume."""
         csf = vtk.vtkCellSizeFilter()
         csf.SetInputData(self._data)
         csf.SetComputeArea(False)
@@ -240,20 +260,20 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
     def check_validity(self, tol=0):
         """
         Return an array of possible problematic tets following this convention:
-
-            Valid               =  0
-            WrongNumberOfPoints = 01
-            IntersectingEdges   = 02
-            IntersectingFaces   = 04
-            NoncontiguousEdges  = 08
-            Nonconvex           = 10
-            OrientedIncorrectly = 20
-
-        Parameters
-        ----------
-        tol : float
-            This value is used as an epsilon for floating point
-            equality checks throughout the cell checking process.
+        ```python
+        Valid               =  0
+        WrongNumberOfPoints = 01
+        IntersectingEdges   = 02
+        IntersectingFaces   = 04
+        NoncontiguousEdges  = 08
+        Nonconvex           = 10
+        OrientedIncorrectly = 20
+        ```
+        
+        Arguments:
+            tol : (float)
+                This value is used as an epsilon for floating point
+                equality checks throughout the cell checking process.
         """
         vald = vtk.vtkCellValidator()
         if tol:
@@ -267,10 +287,11 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         """
         Threshold the tetrahedral mesh by a cell scalar value.
         Reduce to only tets which satisfy the threshold limits.
-        If ``above==below`` will only select tets with that specific value.
-        If ``above > below`` selection range is "flipped" (vtk_version>8).
 
-        Set keyword `on` either to a "cells" or "points".
+        - if `above==below` will only select tets with that specific value.
+        - if `above > below` selection range is flipped.
+
+        Set keyword "on" to either "cells" or "points".
         """
         th = vtk.vtkThreshold()
         th.SetInputData(self._data)
@@ -315,15 +336,13 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         """
         Downsample the number of tets in a TetMesh to a specified fraction.
 
-        Parameters
-        ----------
-        fraction : float
-            the desired final fraction of the total.
+        Arguments:
+            fraction : (float)
+                the desired final fraction of the total.
+            N : (int)
+                the desired number of final tets
 
-        N : int
-            the desired number of final tets
-
-        .. note:: Setting ``fraction=0.1`` leaves 10% of the original nr of tets.
+        .. note:: setting ``fraction=0.1`` leaves 10% of the original nr of tets.
         """
         decimate = vtk.vtkUnstructuredGridQuadricDecimation()
         decimate.SetInputData(self._data)
@@ -338,7 +357,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
 
     def subdvide(self):
         """
-        Increase the number of tets of a TetMesh.
+        Increase the number of tets of a `TetMesh`.
         Subdivide one tetrahedron into twelve for every tetra.
         """
         sd = vtk.vtkSubdivideTetra()
@@ -348,7 +367,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
 
     def isosurface(self, value=True):
         """
-        Return a ``Mesh`` isosurface.
+        Return a `vedo.Mesh` isosurface.
 
         Set `value` to a single value or list of values to compute the isosurface(s)
         """
