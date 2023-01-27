@@ -16,6 +16,9 @@ from vtkmodules.util.numpy_support import vtk_to_numpy
 
 import vedo
 
+
+__docformat__ = "google"
+
 __doc__ = "Utilities submodule."
 
 __all__ = [
@@ -57,20 +60,8 @@ __all__ = [
 ###########################################################################
 class ProgressBar:
     """
-    Class to print a progress bar with optional text message.
-
-    Example:
-        .. code-block:: python
-
-            import time
-            pb = ProgressBar(0,400, c='red')
-            for i in pb.range():
-                time.sleep(.1)
-                pb.print('some message')
-
-       .. image:: https://user-images.githubusercontent.com/32848391/51858823-ed1f4880-2335-11e9-8788-2d102ace2578.png
+    Class to print a progress bar.
     """
-
     def __init__(
         self,
         start,
@@ -85,16 +76,21 @@ class ProgressBar:
         char="\U00002501",
         char_back="\U00002500",
     ):
-
-        char_arrow = ""
-        if sys.version_info[0] < 3:
-            char = "="
-            char_arrow = ""
-            char_back = ""
-            bold = False
-
+        """
+        Class to print a progress bar with optional text message.
+            
+        Example:
+            ```python
+            import time
+            pb = ProgressBar(0,400, c='red')
+            for i in pb.range():
+                time.sleep(.1)
+                pb.print('some message')
+            ```
+            ![](https://user-images.githubusercontent.com/32848391/51858823-ed1f4880-2335-11e9-8788-2d102ace2578.png)
+        """
         self.char_back = char_back
-        self.char_arrow = char_arrow
+        self.char_arrow = ""
 
         self.char0 = ""
         self.char1 = ""
@@ -211,7 +207,10 @@ class ProgressBar:
 
 ###########################################################
 def numpy2vtk(arr, dtype=None, deep=True, name=""):
-    """Convert a numpy array into a `vtkDataArray`. Use dtype='id' for vtkIdTypeArray objects."""
+    """
+    Convert a numpy array into a `vtkDataArray`.
+    Use `dtype='id'` for `vtkIdTypeArray` objects.
+    """
     # https://github.com/Kitware/VTK/blob/master/Wrapping/Python/vtkmodules/util/numpy_support.py
     if arr is None:
         return None
@@ -254,8 +253,8 @@ def vtk2numpy(varr):
 def make3d(pts, transpose=False):
     """
     Make an array which might be 2D to 3D.
-    Array can also be in the form [allx, ally, allz].
-    Use transpose to resolve ambigous cases (eg, shapes like [3,3]).
+    Array can also be in the form `[allx, ally, allz]`.
+    Use transpose to resolve ambigous cases (eg, shapes like `[3,3]`).
     """
     pts = np.asarray(pts)
 
@@ -289,7 +288,7 @@ def make3d(pts, transpose=False):
 
 def geometry(obj, extent=None):
     """
-    Apply the ``vtkGeometryFilter``.
+    Apply the `vtkGeometryFilter`.
     This is a general-purpose filter to extract geometry (and associated data)
     from any type of dataset.
     This filter also may be used to convert any type of data to polygonal type.
@@ -297,7 +296,7 @@ def geometry(obj, extent=None):
     For example, this filter will extract the outer surface of a volume
     or structured grid dataset.
 
-    Returns a ``Mesh`` object.
+    Returns a `vedo.Mesh` object.
 
     Set `extent` as the `[xmin,xmax, ymin,ymax, zmin,zmax]` bounding box to clip data.
     """
@@ -501,7 +500,7 @@ def get_font_path(font):
 
 
 def isSequence(arg):
-    "isSequence() is deprecated. Please use is_sequence()"
+    "isSequence() is deprecated. Please use `is_sequence()`"
     m = "Warning! isSequence() is deprecated. Please use is_sequence()"
     print("\x1b[1m\x1b[33;1m " + m + "\x1b[0m")
     return is_sequence(arg)
@@ -532,11 +531,11 @@ def flatten(list_to_flatten):
     return list(genflatten(list_to_flatten))
 
 
-def humansort(l):
+def humansort(alist):
     """
     Sort in place a given list the way humans expect.
 
-    NB: input list is modified
+    .. warning:: input list is modified in-place.
 
     E.g. `['file11', 'file1'] -> ['file1', 'file11']`
     """
@@ -552,8 +551,8 @@ def humansort(l):
 
         return [tryint(c) for c in re.split("([0-9]+)", s)]
 
-    l.sort(key=alphanum_key)
-    return l  # NB: input list is modified
+    alist.sort(key=alphanum_key)
+    return alist  # NB: input list is modified
 
 
 def sort_by_column(arr, nth, invert=False):
@@ -567,7 +566,8 @@ def sort_by_column(arr, nth, invert=False):
 
 def point_in_triangle(p, p1, p2, p3):
     """
-    Return True if a point is inside (or above/below) a triangle defined by 3 points in space.
+    Return True if a point is inside (or above/below) 
+    a triangle defined by 3 points in space.
     """
     p1 = np.array(p1)
     u = p2 - p1
@@ -589,12 +589,12 @@ def point_in_triangle(p, p1, p2, p3):
 
 def intersection_ray_triangle(P0, P1, V0, V1, V2):
     """
-    Fast intersection between a directional ray defined by P0,P1
-    and triangle V0, V1, V2.
+    Fast intersection between a directional ray defined by `P0,P1`
+    and triangle `V0, V1, V2`.
 
     Returns the intersection point or
-    ``None`` if triangle is degenerate, or ray is  parallel to triangle plane.
-    ``False`` if no intersection, or ray direction points away from triangle.
+    - `None` if triangle is degenerate, or ray is  parallel to triangle plane.
+    - `False` if no intersection, or ray direction points away from triangle.
     """
     # Credits: http://geomalgorithms.com/a06-_intersect-2.html
     # Get triangle edge vectors and plane normal
@@ -643,13 +643,16 @@ def intersection_ray_triangle(P0, P1, V0, V1, V2):
 
 
 def point_line_distance(p, p1, p2):
-    """Compute the distance of a point to a line (not the segment) defined by `p1` and `p2`."""
+    """
+    Compute the distance of a point to a line (not the segment)
+    defined by `p1` and `p2`.
+    """
     d = np.sqrt(vtk.vtkLine.DistanceToLine(p, p1, p2))
     return d
 
 
 def linInterpolate(x, rangeX, rangeY):
-    "linInterpolate() is deprecated. Please lin_interpolate()"
+    "linInterpolate() is deprecated. Please `lin_interpolate()`"
     m = "Warning! linInterpolate() is deprecated. Please use lin_interpolate()"
     print("\x1b[1m\x1b[33;1m " + m + "\x1b[0m")
     return lin_interpolate(x, rangeX, rangeY)
@@ -663,8 +666,10 @@ def lin_interpolate(x, rangeX, rangeY):
     E.g. if x runs in rangeX=[x0,x1] and I want it to run in rangeY=[y0,y1] then
     y = lin_interpolate(x, rangeX, rangeY) will interpolate x onto rangeY.
 
-    .. hint:: examples/basic/lin_interpolate.py
-        .. image:: https://vedo.embl.es/images/basic/linInterpolate.png
+    Examples:
+        - [lin_interpolate.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/lin_interpolate.py)
+
+        ![](https://vedo.embl.es/images/basic/linInterpolate.png)
     """
     if is_sequence(x):
         x = np.asarray(x)
@@ -697,39 +702,39 @@ def get_uv(p, x, v):
     All p and x0,x1,x2 are 3D-vectors, while v are their 2D uv-coordinates.
 
     Example:
-        .. code-block:: python
+        ```python
+        from vedo import *
 
-            from vedo import *
+        pic = Picture(dataurl+"coloured_cube_faces.jpg")
+        cb = Mesh(dataurl+"coloured_cube.obj").lighting("off").texture(pic)
 
-            pic = Picture(dataurl+"coloured_cube_faces.jpg")
-            cb = Mesh(dataurl+"coloured_cube.obj").lighting("off").texture(pic)
+        cbpts = cb.points()
+        faces = cb.faces()
+        uv = cb.pointdata["Material"]
 
-            cbpts = cb.points()
-            faces = cb.faces()
-            uv = cb.pointdata["Material"]
+        pt = [-0.2, 0.75, 2]
+        pr = cb.closest_point(pt)
 
-            pt = [-0.2, 0.75, 2]
-            pr = cb.closest_point(pt)
+        idface = cb.closest_point(pt, return_cell_id=True)
+        idpts = faces[idface]
+        uv_face = uv[idpts]
 
-            idface = cb.closest_point(pt, return_cell_id=True)
-            idpts = faces[idface]
-            uv_face = uv[idpts]
+        uv_pr = utils.get_uv(pr, cbpts[idpts], uv_face)
+        print("interpolated uv =", uv_pr)
 
-            uv_pr = utils.get_uv(pr, cbpts[idpts], uv_face)
-            print("interpolated uv =", uv_pr)
+        sx, sy = pic.dimensions()
+        i_interp_uv = uv_pr * [sy, sx]
+        ix, iy = i_interp_uv.astype(int)
+        mpic = pic.tomesh()
+        rgba = mpic.pointdata["RGBA"].reshape(sy, sx, 3)
+        print("color =", rgba[ix, iy])
 
-            sx, sy = pic.dimensions()
-            i_interp_uv = uv_pr * [sy, sx]
-            ix, iy = i_interp_uv.astype(int)
-            mpic = pic.tomesh()
-            rgba = mpic.pointdata["RGBA"].reshape(sy, sx, 3)
-            print("color =", rgba[ix, iy])
-
-            show(
-                [[cb, Point(pr), cb.labels("Material")],
-                 [pic, Point(i_interp_uv)]],
-                N=2, axes=1, sharecam=False,
-            ).close()
+        show(
+            [[cb, Point(pr), cb.labels("Material")],
+                [pic, Point(i_interp_uv)]],
+            N=2, axes=1, sharecam=False,
+        ).close()
+        ```
     """
     # Vector vp=p-x0 is representable as alpha*s + beta*t,
     # where s = x1-x0 and t = x2-x0, in matrix form
@@ -767,7 +772,7 @@ def vector(x, y=None, z=0.0, dtype=np.float64):
     """
     Return a 3D numpy array representing a vector.
 
-    If `y` is ``None``, assume input is already in the form `[x,y,z]`.
+    If `y` is `None`, assume input is already in the form `[x,y,z]`.
     """
     if y is None:  # assume x is already [x,y,z]
         return np.asarray(x, dtype=dtype)
@@ -828,7 +833,7 @@ def round_to_digit(x, p):
 
 
 def packSpheres(bounds, radius):
-    "packSpheres() is deprecated. Please use pack_spheres()"
+    "packSpheres() is deprecated. Please use `pack_spheres()`"
     m = "Warning! packSpheres() is deprecated. Please use pack_spheres()"
     print("\x1b[1m\x1b[33;1m " + m + "\x1b[0m")
     return pack_spheres(bounds, radius)
@@ -1040,7 +1045,7 @@ def grep(filename, tag, first_occurrence_only=False):
 
 
 def print_info(obj):
-    """Print information about a vtk object."""
+    """Print information about a `vedo` object."""
 
     def _print_data(poly, mapper, c):
         ptdata = poly.GetPointData()
@@ -1454,41 +1459,40 @@ def print_histogram(
     Input can also be ``Volume`` or ``Mesh``.
     Returns the raw data before binning (useful when passing vtk objects).
 
-    Parameters
-    ----------
-    bins : int
-        number of histogram bins
+    Arguments:
+        bins : (int)
+            number of histogram bins
 
-    height : int
-        height of the histogram in character units
+        height : (int)
+            height of the histogram in character units
 
-    logscale : bool
-        use logscale for frequencies
+        logscale : (bool)
+            use logscale for frequencies
 
-    minbin : int
-        ignore bins before minbin
+        minbin : (int)
+            ignore bins before minbin
 
-    horizontal : bool
-        show histogram horizontally
+        horizontal : (bool)
+            show histogram horizontally
 
-    char : str
-        character to be used
+        char : (str)
+            character to be used
 
-    bold : boold
-        use boldface
+        bold : (bool)
+            use boldface
 
-    title : str
-        histogram title
+        title : (str)
+            histogram title
 
     Example:
-        .. code-block:: python
-
-            from vedo import print_histogram
-            import numpy as np
-            d = np.random.normal(size=1000)
-            data = print_histogram(d, c='blue', logscale=True, title='my scalars')
-            data = print_histogram(d, c=1, horizontal=1)
-            print(np.mean(data)) # data here is same as d
+        ```python
+        from vedo import print_histogram
+        import numpy as np
+        d = np.random.normal(size=1000)
+        data = print_histogram(d, c='blue', logscale=True, title='my scalars')
+        data = print_histogram(d, c=1, horizontal=1)
+        print(np.mean(data)) # data here is same as d
+        ```
     """
     # credits: http://pyinsci.blogspot.com/2009/10/ascii-histograms.html
     # adapted for vedo by M.Musy, 2019
@@ -1583,11 +1587,10 @@ def print_histogram(
 
 def make_bands(inputlist, n):
     """
-    Group values of a list into bands of equal value.
-
-    Return a binned list of the same length as the input.
-
+    Group values of a list into bands of equal value, where
     `n` is the number of bands, a positive integer > 2.
+
+    Returns a binned list of the same length as the input.
     """
     if n < 2:
         return inputlist
@@ -1613,22 +1616,17 @@ def camera_from_quaternion(pos, quaternion, distance=10000, ngl_correct=True):
     """
     Define a `vtkCamera` with a particular orientation.
 
-    Parameters
-    ----------
-    pos: np.array, list, tuple
-        an iterator of length 3 containing the focus point of the camera
+    Arguments:
+        pos: (np.array, list, tuple)
+            an iterator of length 3 containing the focus point of the camera
+        quaternion: (np.array, list, tuple)
+            a len(4) quaternion `(x,y,z,w)` describing the rotation of the camera
+            such as returned by neuroglancer `x,y,z,w` all in `[0,1]` range
+        distance: (float)
+            the desired distance from pos to the camera (default = 10000 nm)
 
-    quaternion: np.array, list, tuple
-        a len(4) quaternion (x,y,z,w) describing the rotation of the camera
-        such as returned by neuroglancer x,y,z,w all in [0,1] range
-
-    distance: float
-        the desired distance from pos to the camera (default = 10000 nm)
-
-    Returns
-    -------
-    vtk.vtkCamera
-        a vtk camera setup according to these rules.
+    Returns:
+        vtk.vtkCamera, a vtk camera setup according to these rules.
     """
     camera = vtk.vtkCamera()
     # define the quaternion in vtk, note the swapped order
@@ -1667,19 +1665,15 @@ def camera_from_neuroglancer(state, zoom=300):
     """
     Define a `vtkCamera` from a neuroglancer state dictionary.
 
-    Parameters
-    ----------
-    state: dict
-        an neuroglancer state dictionary.
+    Arguments:
+        state: dict
+            an neuroglancer state dictionary.
+        zoom: float
+            how much to multiply zoom by to get camera backoff distance
+            default = 300 > ngl_zoom = 1 > 300 nm backoff distance.
 
-    zoom: float
-        how much to multiply zoom by to get camera backoff distance
-        default = 300 > ngl_zoom = 1 > 300 nm backoff distance.
-
-    Returns
-    -------
-    vtk.vtkCamera
-        a vtk camera setup that matches this state.
+    Returns:
+        vtk.vtkCamera, a vtk camera setup that matches this state.
     """
     orient = state.get("perspectiveOrientation", [0.0, 0.0, 0.0, 1.0])
     pzoom = state.get("perspectiveZoom", 10.0)
@@ -1738,9 +1732,10 @@ def camera_from_dict(camera, modify_inplace=None):
 
 def vtkCameraToK3D(vtkcam):
     """
-    Convert a `vtkCamera` object into a 9-element list to be used by K3D backend.
+    Convert a `vtkCamera` object into a 9-element list to be used by the K3D backend.
 
-    Output format is: `[posx,posy,posz, targetx,targety,targetz, upx,upy,upz]`.
+    Output format is:
+        `[posx,posy,posz, targetx,targety,targetz, upx,upy,upz]`.
     """
     cpos = np.array(vtkcam.GetPosition())
     kam = [cpos.tolist()]
@@ -1751,20 +1746,20 @@ def vtkCameraToK3D(vtkcam):
 
 def make_ticks(x0, x1, n=None, labels=None, digits=None, logscale=False, useformat=""):
     """
-    Generate numeric labels for the [x0, x1] range.
+    Generate numeric labels for the `[x0, x1]` range.
 
     The format specifier could be in the format:
-
-        :[[fill]align][sign][#][0][width][,][.precision][type]
+        `:[[fill]align][sign][#][0][width][,][.precision][type]`
 
     where, the options are:
-
-        fill        =  any character
-        align       =  < | > | = | ^
-        sign        =  + | - | " "
-        width       =  integer
-        precision   =  integer
-        type        =  b | c | d | e | E | f | F | g | G | n | o | s | x | X | %
+    ```
+    fill        =  any character
+    align       =  < | > | = | ^
+    sign        =  + | - | " "
+    width       =  integer
+    precision   =  integer
+    type        =  b | c | d | e | E | f | F | g | G | n | o | s | x | X | %
+    ```
 
     E.g.: useformat=":.2f"
     """
@@ -1892,45 +1887,39 @@ def make_ticks(x0, x1, n=None, labels=None, digits=None, logscale=False, useform
     return ticks_float, ticks_str
 
 
-def grid_corners(i, nm, size, margin=0, flipy=True):
+def grid_corners(i, nm, size, margin=0, yflip=True):
     """
     Compute the 2 corners coordinates of the i-th box in a grid of shape n*m.
     The top-left square is square number 1.
 
-    Parameters
-    ----------
-    i : int
-        input index of the desired grid square (to be used in ``show(..., at=...)``).
+    Arguments:
+        i : (int)
+            input index of the desired grid square (to be used in `show(..., at=...)`).
+        nm : (list)
+            grid shape as (n,m).
+        size : (list)
+            total size of the grid along x and y.
+        margin : (float)
+            keep a small margin between boxes.
+        yflip : (bool)
+            y-coordinate points downwards
 
-    nm : list
-        grid shape as (n,m).
-
-    size : list
-        total size of the grid along x and y.
-
-    margin : float, optional
-        keep a small margin between boxes.
-
-    flipy : bool, optional
-        y-coordinate points downwards
-
-    Returns
-    -------
-    Two 2D points representing the bottom-left corner and the top-right corner
-    of the ``i``-nth box in the grid.
+    Returns:
+        Two 2D points representing the bottom-left corner and the top-right corner
+        of the ``i``-nth box in the grid.
 
     Example:
-        .. code-block:: python
-
-            from vedo import *
-            acts=[]
-            n,m = 5,7
-            for i in range(1, n*m + 1):
-                c1,c2 = utils.grid_corners(i, [n,m], [1,1], 0.01)
-                t = Text3D(i, (c1+c2)/2, c='k', s=0.02, justify='center').z(0.01)
-                r = Rectangle(c1, c2, c=i)
-                acts += [t,r]
-            show(acts, axes=1)
+        ```python
+        from vedo import *
+        acts=[]
+        n,m = 5,7
+        for i in range(1, n*m + 1):
+            c1,c2 = utils.grid_corners(i, [n,m], [1,1], 0.01)
+            t = Text3D(i, (c1+c2)/2, c='k', s=0.02, justify='center').z(0.01)
+            r = Rectangle(c1, c2, c=i)
+            acts += [t,r]
+        show(acts, axes=1).close()
+        ```
     """
     i -= 1
     n, m = nm
@@ -1938,7 +1927,7 @@ def grid_corners(i, nm, size, margin=0, flipy=True):
     dx, dy = sx / n, sy / m
     nx = i % n
     ny = int((i - nx) / n)
-    if flipy:
+    if yflip:
         ny = n - ny
     c1 = (dx * nx + margin, dy * ny + margin)
     c2 = (dx * (nx + 1) - margin, dy * (ny + 1) - margin)
@@ -2155,16 +2144,13 @@ def vtk_version_at_least(major, minor=0, build=0):
     Check the VTK version.
     Return ``True`` if the requested VTK version is greater or equal to the actual VTK version.
 
-    Parameters
-    ----------
-    major : int
-        Major version.
-
-    minor : int
-        Minor version.
-
-    build : int
-        Build version.
+    Arguments:
+        major : (int)
+            Major version.
+        minor : (int)
+            Minor version.
+        build : (int)
+            Build version.
     """
     needed_version = 10000000000 * int(major) + 100000000 * int(minor) + int(build)
     try:
@@ -2217,7 +2203,7 @@ def resample_arrays(source, target, tol=None):
 
     `tol` sets the tolerance used to compute whether
     a point in the target is in a cell of the source.
-    Points without resampled values, and their cells, are be marked as blank.
+    Points without resampled values, and their cells, are marked as blank.
     """
     rs = vtk.vtkResampleWithDataSet()
     rs.SetInputData(source.polydata())
