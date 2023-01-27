@@ -1211,7 +1211,7 @@ class CSpline(Line):
             closed : (bool)
                 join last to first point to produce a closed curve
             res : (int)
-                approximateresolution of the output line.
+                approximate resolution of the output line.
                 Default is 20 times the number of input points.
 
         See also: `Spline` and `KSpline`.

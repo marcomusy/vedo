@@ -133,6 +133,7 @@ def show(
             Can also accept a shape as string descriptor. E.g.:
             - shape="3|1" means 3 plots on the left and 1 on the right,
             - shape="4/2" means 4 plots on top of 2 at bottom.
+
         axes : (int)
             set the type of axes to be shown:
             - 0,  no axes
@@ -143,7 +144,7 @@ def show(
             - 5,  show a cube at bottom left
             - 6,  mark the corners of the bounding box
             - 7,  draw a 3D ruler at each side of the cartesian axes
-            - 8,  show the vtkCubeAxesActor object
+            - 8,  show the `vtkCubeAxesActor` object
             - 9,  show the bounding box outLine
             - 10, show three circles representing the maximum bounding box
             - 11, show a large grid on the x-y plane
@@ -151,30 +152,30 @@ def show(
             - 13, draw a simple ruler at the bottom of the window
 
             Axis type-1 can be fully customized by passing a dictionary.
-            Check addons.Axes() for the full list of options.
+            Check `vedo.addons.Axes()` for the full list of options.
         azimuth/elevation/roll : (float)
             move camera accordingly the specified value
-        viewup: str, list
-            either ['x', 'y', 'z'] or a vector to set vertical direction
+        viewup : (str, list)
+            either `['x', 'y', 'z']` or a vector to set vertical direction
         resetcam : (bool)
             re-adjust camera position to fit objects
-        camera : dict, vtkCamera
+        camera : (dict, vtkCamera)
             camera parameters can further be specified with a dictionary
-            assigned to the ``camera`` keyword (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`):
-            - pos, `(list)`,  the position of the camera in world coordinates
-            - focal_point `(list)`, the focal point of the camera in world coordinates
-            - viewup `(list)`, the view up direction for the camera
-            - distance `(float)`, set the focal point to the specified distance from the camera position.
-            - clipping_range `(float)`, distance of the near and far clipping planes along the direction of projection.
-            - parallel_scale `(float)`,
+            assigned to the `camera` keyword (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`):
+            - **pos** (list),  the position of the camera in world coordinates
+            - **focal_point** (list), the focal point of the camera in world coordinates
+            - **viewup** (list), the view up direction for the camera
+            - **distance** (float), set the focal point to the specified distance from the camera position.
+            - **clipping_range** (float), distance of the near and far clipping planes along the direction of projection.
+            - **parallel_scale** (float),
             scaling used for a parallel projection, i.e. the height of the viewport
             in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
             an "inverse scale", larger numbers produce smaller images.
             This method has no effect in perspective projection mode.
-            - thickness `(float)`,
+            - **thickness** (float),
             set the distance between clipping planes. This method adjusts the far clipping
             plane to be set a distance 'thickness' beyond the near clipping plane.
-            - view_angle `(float)`,
+            - **view_angle** (float),
             the camera view angle, which is the angular height of the camera view
             measured in degrees. The default angle is 30 degrees.
             This method has no effect in parallel projection mode.
@@ -186,7 +187,7 @@ def show(
             pause and interact with window (True) or continue execution (False)
         rate : (float)
             maximum rate of `show()` in Hertz
-        mode : (int), str
+        mode : (int, str)
             set the type of interaction:
             - 0 = TrackballCamera [default]
             - 1 = TrackballActor
