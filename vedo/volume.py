@@ -579,6 +579,8 @@ class BaseVolume:
 
         Examples:
             - [erode_dilate.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/erode_dilate.py)
+        
+                ![](https://vedo.embl.es/images/volumetric/erode_dilate.png)
         """
         ver = vtk.vtkImageContinuousErode3D()
         ver.SetInputData(self._data)
@@ -1129,7 +1131,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         Example:
             - [slicePlane1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slicePlane1.py)
 
-            ![](https://vedo.embl.es/images/volumetric/slicePlane1.gif)
+                ![](https://vedo.embl.es/images/volumetric/slicePlane1.gif)
         """
         reslice = vtk.vtkImageReslice()
         reslice.SetInputData(self._data)

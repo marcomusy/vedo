@@ -1492,8 +1492,13 @@ def StreamLines(
     Examples:
         - [streamlines1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/streamlines1.py)
         - [streamlines2.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/streamlines2.py)
+
+            ![](https://vedo.embl.es/images/volumetric/81459343-b9210d00-919f-11ea-846c-152d62cba06e.png)
+
         - [streamribbons.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/streamribbons.py)
         - [office.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/office.py)
+
+            ![](https://vedo.embl.es/images/volumetric/56964003-9145a500-6b5a-11e9-9d9e-9736d90e1900.png)
     """
     if len(opts): # Deprecations
         printc(" Warning! In StreamLines() unrecognized keywords:", opts, c='y')
@@ -1657,7 +1662,7 @@ class Tube(Mesh):
             - [ribbon.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/ribbon.py)
             - [tube_radii.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/tube_radii.py)
 
-            ![](https://vedo.embl.es/images/basic/tube.png)
+                ![](https://vedo.embl.es/images/basic/tube.png)
         """
 
         base = np.asarray(points[0], dtype=float)
@@ -1753,7 +1758,7 @@ class Ribbon(Mesh):
         Examples:
             - [ribbon.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/ribbon.py)
 
-            ![](https://vedo.embl.es/images/basic/ribbon.png)
+                ![](https://vedo.embl.es/images/basic/ribbon.png)
         """
 
         if isinstance(line1, Points):
@@ -2234,7 +2239,7 @@ class FlatArrow(Ribbon):
         Examples:
             - [flatarrow.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/flatarrow.py)
 
-            ![](https://vedo.embl.es/images/basic/flatarrow.png)
+                ![](https://vedo.embl.es/images/basic/flatarrow.png)
         """
         if isinstance(line1, Points):
             line1 = line1.points()
@@ -2350,6 +2355,8 @@ class Star(Mesh):
 
         Example:
             - [extrude.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/extrude.py)
+
+                ![](https://vedo.embl.es/images/basic/extrude.png)
         """
         t = np.linspace(np.pi / 2, 5 / 2 * np.pi, num=n, endpoint=False)
         x, y = utils.pol2cart(np.ones_like(t) * r2, t)
@@ -2655,7 +2662,7 @@ class Earth(Mesh):
         Example:
             - [geodesic.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/geodesic.py)
 
-            ![](https://vedo.embl.es/images/advanced/geodesic.png)
+                ![](https://vedo.embl.es/images/advanced/geodesic.png)
         """
         tss = vtk.vtkTexturedSphereSource()
         tss.SetRadius(r)
@@ -3070,7 +3077,7 @@ class Box(Mesh):
         Examples:
             - [aspring.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/aspring.py)
 
-            ![](https://vedo.embl.es/images/simulations/50738955-7e891800-11d9-11e9-85cd-02bd4f3f13ea.gif)
+                ![](https://vedo.embl.es/images/simulations/50738955-7e891800-11d9-11e9-85cd-02bd4f3f13ea.gif)
         """
         if len(size) == 6:
             bounds = size
@@ -3578,7 +3585,7 @@ class Brace(Mesh):
         Examples:
             - [scatter3.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/scatter3.py)
 
-            ![](https://vedo.embl.es/images/pyplot/scatter3.png)
+                ![](https://vedo.embl.es/images/pyplot/scatter3.png)
         """
         if isinstance(q1, vtk.vtkActor):
             q1 = q1.GetPosition()
@@ -4616,7 +4623,7 @@ class Latex(Picture):
         Examples:
             - [latex.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/latex.py)
 
-            ![](https://vedo.embl.es/images/pyplot/latex.png)
+                ![](https://vedo.embl.es/images/pyplot/latex.png)
         """
         self.formula = formula
 
@@ -4687,7 +4694,7 @@ class ConvexHull(Mesh):
         Examples:
             - [convexHull.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/convexHull.py)
 
-            ![](https://vedo.embl.es/images/advanced/convexHull.png)
+                ![](https://vedo.embl.es/images/advanced/convexHull.png)
         """
         if utils.is_sequence(pts):
             pts = utils.make3d(pts).astype(float)

@@ -776,10 +776,10 @@ class Histogram1D(Figure):
                 a tolerance factor to superimpose objects (along the z-axis).
 
         Examples:
-            - [histo_1d_a.py](examples/pyplot/histo_1d_a.py)
-            - [histo_1d_b.py](examples/pyplot/histo_1d_b.py)
-            - [histo_1d_c.py](examples/pyplot/histo_1d_c.py)
-            - [histo_1d_d.py](examples/pyplot/histo_1d_d.py)
+            - [histo_1d_a.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_1d_a.py)
+            - [histo_1d_b.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_1d_b.py)
+            - [histo_1d_c.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_1d_c.py)
+            - [histo_1d_d.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_1d_d.py)
 
             ![](https://vedo.embl.es/images/pyplot/histo_1D.png)
         """
@@ -1144,8 +1144,8 @@ class Histogram2D(Figure):
                 using e.g. `axes=dict(xygrid=True)`
 
         Examples:
-            - [histo_2d_a.py](examples/pyplot/histo_2d_a.py)
-            - [histo_2d_b.py](examples/pyplot/histo_2d_b.py)
+            - [histo_2d_a.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_2d_a.py)
+            - [histo_2d_b.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_2d_b.py)
 
             ![](https://vedo.embl.es/images/pyplot/histo_2D.png)
         """
@@ -1334,9 +1334,9 @@ class PlotBars(Figure):
                 show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
 
         Examples:
-            - [plot_bars.py](examples/pyplot/plot_bars.py)
+            - [plot_bars.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_bars.py)
 
-            ![](https://vedo.embl.es/images/pyplot/plot_bars.png)
+               ![](https://vedo.embl.es/images/pyplot/plot_bars.png)
         """
         ndata = len(data)
         if ndata == 4:
@@ -1589,13 +1589,16 @@ class PlotXY(Figure):
             <img src="https://user-images.githubusercontent.com/32848391/74363882-c3638300-4dcb-11ea-8a78-eb492ad9711f.png" width="600">
 
         Examples:
-            - [plot_errbars.py](examples/pyplot/plot_errbars.py)
-            - [plot_errband.py](examples/pyplot/plot_errband.py)
-            - [plot_pip.py](examples/pyplot/plot_pip.py)
+            - [plot_errbars.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_errbars.py)
+            - [plot_errband.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_errband.py)
+            - [plot_pip.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_pip.py)
 
                 ![](https://vedo.embl.es/images/pyplot/plot_pip.png)
-            - [scatter1.py](examples/pyplot/scatter1.py)
-            - [scatter2.py](examples/pyplot/scatter2.py)
+
+            - [scatter1.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/scatter1.py)
+            - [scatter2.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/scatter2.py)
+
+                ![](https://vedo.embl.es/images/pyplot/scatter2.png)
         """
         line = False
         if lw > 0:
@@ -1887,13 +1890,15 @@ def plot(*args, **kwargs):
         ![](https://user-images.githubusercontent.com/32848391/74363882-c3638300-4dcb-11ea-8a78-eb492ad9711f.png)
 
     Examples:
-        - [plot_errbars.py](examples/pyplot/plot_errbars.py)
-        - [plot_errband.py](examples/pyplot/plot_errband.py)
-        - [plot_pip.py](examples/pyplot/plot_pip.py)
-        - [scatter1.py](examples/pyplot/scatter1.py)
-        - [scatter2.py](examples/pyplot/scatter2.py)
+        - [plot_errbars.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/plot_errbars.py)
+        - [plot_errband.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/plot_errband.py)
+        
+           ![](https://vedo.embl.es/images/pyplot/plot_pip.png)
+        
+        - [plot_pip.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/plot_pip.py)
+        - [scatter1.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/scatter1.py)
+        - [scatter2.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/scatter2.py)
 
-        ![](https://vedo.embl.es/images/pyplot/plot_pip.png)
 
 
     -------------------------------------------------------------------------
@@ -1934,10 +1939,10 @@ def plot(*args, **kwargs):
             show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
 
     Examples:
-        - [histo_1d_a.py](examples/pyplot/histo_1d_a.py)
-        - [histo_1d_b.py](examples/pyplot/histo_1d_b.py)
-        - [histo_1d_c.py](examples/pyplot/histo_1d_c.py)
-        - [histo_1d_d.py](examples/pyplot/histo_1d_d.py)
+        - [histo_1d_a.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/histo_1d_a.py)
+        - [histo_1d_b.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/histo_1d_b.py)
+        - [histo_1d_c.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/histo_1d_c.py)
+        - [histo_1d_d.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/histo_1d_d.py)
 
         ![](https://vedo.embl.es/images/pyplot/histo_1D.png)
 
@@ -1963,9 +1968,9 @@ def plot(*args, **kwargs):
             number of bins in x and y
 
     Examples:
-        - [plot_fxy.py](examples/pyplot/plot_fxy.py)
+        - [plot_fxy.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/plot_fxy.py)
 
-        ![](https://vedo.embl.es/images/pyplot/plot_fxy.png)
+            ![](https://vedo.embl.es/images/pyplot/plot_fxy.png)
 
 
     --------------------------------------------------------------------
@@ -1982,9 +1987,9 @@ def plot(*args, **kwargs):
             binning in x and y
 
     Examples:
-        - [plot_fxy.py](examples/pyplot/plot_fxy.py)
+        - [plot_fxy.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/plot_fxy.py)
 
-        ![](https://user-images.githubusercontent.com/32848391/73392962-1709a300-42db-11ea-9278-30c9d6e5eeaa.png)
+            ![](https://user-images.githubusercontent.com/32848391/73392962-1709a300-42db-11ea-9278-30c9d6e5eeaa.png)
 
 
     --------------------------------------------------------------------
@@ -2034,9 +2039,9 @@ def plot(*args, **kwargs):
             draw angle values
 
     Examples:
-        - [histo_polar.py](examples/pyplot/histo_polar.py)
+        - [histo_polar.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/histo_polar.py)
 
-        ![](https://user-images.githubusercontent.com/32848391/64992590-7fc82400-d8d4-11e9-9c10-795f4756a73f.png)
+            ![](https://user-images.githubusercontent.com/32848391/64992590-7fc82400-d8d4-11e9-9c10-795f4756a73f.png)
 
 
     --------------------------------------------------------------------
@@ -2065,9 +2070,9 @@ def plot(*args, **kwargs):
             color map for the surface
 
     Examples:
-        - [plot_spheric.py](examples/pyplot/plot_spheric.py)
+        - [plot_spheric.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/plot_spheric.py)
 
-        ![](https://vedo.embl.es/images/pyplot/plot_spheric.png)
+            ![](https://vedo.embl.es/images/pyplot/plot_spheric.png)
     """
     mode = kwargs.pop("mode", "")
     if "spher" in mode:
@@ -2221,10 +2226,10 @@ def histogram(*args, **kwargs):
             a tolerance factor to superimpose objects (along the z-axis).
 
     Examples:
-        - [histo_1d_a.py](examples/pyplot/histo_1d_a.py)
-        - [histo_1d_b.py](examples/pyplot/histo_1d_b.py)
-        - [histo_1d_c.py](examples/pyplot/histo_1d_c.py)
-        - [histo_1d_d.py](examples/pyplot/histo_1d_d.py)
+        - [histo_1d_a.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/histo_1d_a.py)
+        - [histo_1d_b.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/histo_1d_b.py)
+        - [histo_1d_c.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/histo_1d_c.py)
+        - [histo_1d_d.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/histo_1d_d.py)
 
         ![](https://vedo.embl.es/images/pyplot/histo_1D.png)
 
@@ -2275,8 +2280,8 @@ def histogram(*args, **kwargs):
             using e.g. `axes=dict(xygrid=True)`
 
     Examples:
-        - [histo_2d_a.py](examples/pyplot/histo_2d_a.py)
-        - [histo_2d_b.py](examples/pyplot/histo_2d_b.py)
+        - [histo_2d_a.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/histo_2d_a.py)
+        - [histo_2d_b.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/histo_2d_b.py)
 
         ![](https://vedo.embl.es/images/pyplot/histo_2D.png)
 
@@ -2305,7 +2310,7 @@ def histogram(*args, **kwargs):
             rescale the (already normalized) zaxis for visual convenience
 
     Examples:
-        - [histo_2d_b.py](examples/pyplot/histo_2d_b.py)
+        - [histo_2d_b.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/histo_2d_b.py)
 
 
     -------------------------------------------------------------------------
@@ -2328,7 +2333,7 @@ def histogram(*args, **kwargs):
             color map name for elevation
 
     Examples:
-        - [histo_hexagonal.py](examples/pyplot/histo_hexagonal.py)
+        - [histo_hexagonal.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/histo_hexagonal.py)
 
         ![](https://vedo.embl.es/images/pyplot/histo_hexagonal.png)
 
@@ -2388,7 +2393,7 @@ def histogram(*args, **kwargs):
             show error bars
 
     Examples:
-        - [histo_polar.py](examples/pyplot/histo_polar.py)
+        - [histo_polar.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/histo_polar.py)
 
         ![](https://vedo.embl.es/images/pyplot/histo_polar.png)
 
@@ -2409,7 +2414,7 @@ def histogram(*args, **kwargs):
             line width of the bin edges
 
     Examples:
-        - [histo_spheric.py](examples/pyplot/histo_spheric.py)
+        - [histo_spheric.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/histo_spheric.py)
 
         ![](https://vedo.embl.es/images/pyplot/histo_spheric.png)
     """
@@ -2523,7 +2528,7 @@ def fit(
             resolution of the output fitted line and error lines
 
     Examples:
-        - [fit_polynomial1.py](examples/pyplot/fit_polynomial1.py)
+        - [fit_polynomial1.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/fit_polynomial1.py)
 
         ![](https://vedo.embl.es/images/pyplot/fitPolynomial1.png)
     """
@@ -3407,9 +3412,9 @@ def donut(
             show the outer ring axis
 
     Examples:
-        - [donut.py](examples/pyplot/donut.py)
+        - [donut.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/donut.py)
 
-        ![](https://vedo.embl.es/images/pyplot/donut.png)
+            ![](https://vedo.embl.es/images/pyplot/donut.png)
     """
     fractions = np.array(fractions, dtype=float)
     angles = np.add.accumulate(2 * np.pi * fractions)
@@ -3498,9 +3503,9 @@ def violin(
             line color
 
     Examples:
-        - [histo_violin.py](examples/pyplot/histo_violin.py)
+        - [histo_violin.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/histo_violin.py)
 
-        ![](https://vedo.embl.es/images/pyplot/histo_violin.png)
+            ![](https://vedo.embl.es/images/pyplot/histo_violin.png)
     """
     fs, edges = np.histogram(values, bins=bins, range=vlim)
     mine, maxe = np.min(edges), np.max(edges)
@@ -3595,9 +3600,9 @@ def whisker(
             set horizontal layout
 
     Examples:
-        - [whiskers.py](examples/pyplot/whiskers.py)
+        - [whiskers.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/whiskers.py)
 
-        ![](https://vedo.embl.es/images/pyplot/whiskers.png)
+            ![](https://vedo.embl.es/images/pyplot/whiskers.png)
     """
     xvals = np.zeros_like(np.asarray(data))
     if jitter:
@@ -3667,9 +3672,9 @@ def streamplot(
             - 3 - vary line width by absolute value of first vector component
 
     Examples:
-        - [plot_stream.py](examples/pyplot/plot_stream.py)
+        - [plot_stream.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/plot_stream.py)
 
-        ![](https://vedo.embl.es/images/pyplot/plot_stream.png)
+            ![](https://vedo.embl.es/images/pyplot/plot_stream.png)
     """
     n = len(X)
     m = len(Y[0])
@@ -3786,9 +3791,9 @@ def matrix(
             plot transparency
 
     Examples:
-        - [np_matrix.py](examples/pyplot/np_matrix.py)
+        - [np_matrix.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/np_matrix.py)
 
-        ![](https://vedo.embl.es/images/pyplot/np_matrix.png)
+            ![](https://vedo.embl.es/images/pyplot/np_matrix.png)
     """
     M = np.asarray(M)
     n, m = M.shape
@@ -4084,8 +4089,11 @@ class DirectedGraph(Assembly):
             use random positions within the graph bounds as initial points
 
     Examples:
-        - [lineage_graph.py](examples/pyplot/lineage_graph.py)
-        - [graph_network.py](examples/pyplot/graph_network.py)
+        - [lineage_graph.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/lineage_graph.py)
+        
+            ![](https://vedo.embl.es/images/pyplot/graph_lineage.png)
+        
+        - [graph_network.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/graph_network.py)
 
             ![](https://vedo.embl.es/images/pyplot/graph_network.png)
     """

@@ -2056,7 +2056,7 @@ class Mesh(Points):
         Examples:
             - [surfIntersect.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/surfIntersect.py)
 
-            ![](https://vedo.embl.es/images/basic/surfIntersect.png)
+                ![](https://vedo.embl.es/images/basic/surfIntersect.png)
         """
         bf = vtk.vtkIntersectionPolyDataFilter()
         bf.SetGlobalWarningDisplay(0)
@@ -2240,7 +2240,7 @@ class Mesh(Points):
         Examples:
             - [geodesic.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/geodesic.py)
 
-            ![](https://vedo.embl.es/images/advanced/geodesic.png)
+                ![](https://vedo.embl.es/images/advanced/geodesic.png)
         """
         if is_sequence(start):
             cc = self.points()
@@ -2299,7 +2299,7 @@ class Mesh(Points):
         Examples:
             - [mesh2volume.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/mesh2volume.py)
 
-            ![](https://vedo.embl.es/images/volumetric/mesh2volume.png)
+                ![](https://vedo.embl.es/images/volumetric/mesh2volume.png)
         """
         # https://vtk.org/Wiki/VTK/Examples/Cxx/PolyData/PolyDataToImageData
         pd = self.polydata()
@@ -2445,6 +2445,8 @@ class Mesh(Points):
 
         Examples:
             - [tetralize_surface.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/tetralize_surface.py)
+        
+                ![](https://vedo.embl.es/images/volumetric/tetralize_surface.jpg)
         """
         surf = self.clone().clean().compute_normals()
         d = surf.diagonal_size()

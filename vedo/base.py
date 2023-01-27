@@ -1771,6 +1771,8 @@ class BaseGrid(BaseActor):
 
         Examples:
             - [isosurfaces.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/isosurfaces.py)
+
+                ![](https://vedo.embl.es/images/volumetric/isosurfaces.png)
         """
         scrange = self._data.GetScalarRange()
 
@@ -1827,6 +1829,8 @@ class BaseGrid(BaseActor):
 
         Examples:
             - [legosurface.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/legosurface.py)
+
+                ![](https://vedo.embl.es/images/volumetric/56820682-da40e500-684c-11e9-8ea3-91cbcba24b3a.png)
         """
         dataset = vtk.vtkImplicitDataSet()
         dataset.SetDataSet(self._data)
@@ -2102,6 +2106,8 @@ def probe_points(dataset, pts):
 
     Examples:
         - [probePoints.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probePoints.py)
+
+            ![](https://vedo.embl.es/images/volumetric/probePoints.png)
     """
     if isinstance(pts, vedo.pointcloud.Points):
         pts = pts.points()
@@ -2147,6 +2153,8 @@ def probe_line(dataset, p1, p2, res=100):
     Examples:
         - [probeLine1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probeLine1.py)
         - [probeLine2.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probeLine2.py)
+
+            ![](https://vedo.embl.es/images/volumetric/probeLine2.png) 
     """
     line = vtk.vtkLineSource()
     line.SetResolution(res)
@@ -2171,6 +2179,8 @@ def probe_plane(dataset, origin=(0, 0, 0), normal=(1, 0, 0)):
     Examples:
         - [slicePlane1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slicePlane1.py)
         - [slicePlane2.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slicePlane2.py)
+
+            ![](https://vedo.embl.es/images/volumetric/slicePlane2.png)
     """
     img = _getinput(dataset)
     plane = vtk.vtkPlane()

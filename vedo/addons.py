@@ -577,7 +577,7 @@ def Light(
     Examples:
         - [lights.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/lights.py)
 
-    ![](https://vedo.embl.es/images/basic/lights.png)
+            ![](https://vedo.embl.es/images/basic/lights.png)
     """
     if c is None:
         try:
@@ -640,8 +640,7 @@ def ScalarBar(
     Examples:
         - [scalarbars.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/scalarbars.py)
 
-    ![](https://user-images.githubusercontent.com/32848391/62940174-4bdc7900-bdd3-11e9-9713-e4f3e2fdab63.png)
-
+        ![](https://user-images.githubusercontent.com/32848391/62940174-4bdc7900-bdd3-11e9-9713-e4f3e2fdab63.png)
     """
     if not hasattr(obj, "mapper"):
         vedo.logger.error(f"in add_scalarbar(): input is invalid {type(obj)}. Skip.")

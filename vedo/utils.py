@@ -669,7 +669,7 @@ def lin_interpolate(x, rangeX, rangeY):
     Examples:
         - [lin_interpolate.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/lin_interpolate.py)
 
-        ![](https://vedo.embl.es/images/basic/linInterpolate.png)
+            ![](https://vedo.embl.es/images/basic/linInterpolate.png)
     """
     if is_sequence(x):
         x = np.asarray(x)

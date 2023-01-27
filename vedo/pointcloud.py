@@ -266,6 +266,8 @@ def voronoi(pts, padding=0, fit=False, method="vtk"):
             ![](https://vedo.embl.es/images/basic/voronoi1.png)
 
         - [voronoi2.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/voronoi2.py)
+
+            ![](https://vedo.embl.es/images/advanced/voronoi2.png)
     """
     if method == "scipy":
         from scipy.spatial import Voronoi as scipy_voronoi
@@ -466,6 +468,8 @@ def fit_plane(points, signed=False):
 
     Examples:
         - [fitline.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/fitline.py)
+
+            ![](https://vedo.embl.es/images/advanced/fitline.png)
     """
     if isinstance(points, Points):
         points = points.points()
@@ -504,9 +508,7 @@ def fit_sphere(coords):
     Examples:
         - [fitspheres1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/fitspheres1.py)
 
-        ![](https://vedo.embl.es/images/advanced/fitspheres1.jpg)
-
-        - [fitspheres2.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/fitspheres2.py)
+            ![](https://vedo.embl.es/images/advanced/fitspheres1.jpg)
     """
     if isinstance(coords, Points):
         coords = coords.points()
@@ -548,6 +550,8 @@ def pca_ellipse(points, pvalue=0.673):
 
     Examples:
         - [histo_pca.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_pca.py)
+
+            ![](https://vedo.embl.es/images/pyplot/histo_pca.png)
     """
     from scipy.stats import f
 
@@ -619,6 +623,8 @@ def pca_ellipsoid(points, pvalue=0.673):
 
     Examples:
         - [pca_ellipsoid.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/pca_ellipsoid.py)
+
+            ![](https://vedo.embl.es/images/basic/pca.png)
     """
     from scipy.stats import f
 
@@ -731,7 +737,8 @@ class Points(vtk.vtkFollower, BaseActor):
 
         More Examples:
             - [manypoints.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/manypoints.py)
-            - [lorenz.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/lorenz.py)
+
+                ![](https://vedo.embl.es/images/basic/manypoints.jpg)
         """
 
         vtk.vtkActor.__init__(self)
@@ -1421,7 +1428,9 @@ class Points(vtk.vtkFollower, BaseActor):
 
                 ![](https://vedo.embl.es/images/advanced/moving_least_squares1D.png)
 
-            - [recosurface.py](recosurface.py)
+            - [recosurface.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/recosurface.py)
+
+                ![](https://vedo.embl.es/images/advanced/recosurface.png)
         """
         if not absolute:
             if fraction > 1:
@@ -1608,7 +1617,7 @@ class Points(vtk.vtkFollower, BaseActor):
         Examples:
             - [boundaries.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/boundaries.py)
 
-            ![](https://vedo.embl.es/images/basic/boundaries.png)
+                ![](https://vedo.embl.es/images/basic/boundaries.png)
         """
         if cells is not None:  # deprecation message
             vedo.logger.warning("In labels(cells=...) please use labels(on='cells') instead")
@@ -2290,6 +2299,8 @@ class Points(vtk.vtkFollower, BaseActor):
                 ![](https://vedo.embl.es/images/basic/align1.png)
 
             - [align2.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/align2.py)
+
+                ![](https://vedo.embl.es/images/basic/align2.png)
         """
         icp = vtk.vtkIterativeClosestPointTransform()
         icp.SetSource(self.polydata())
@@ -3352,6 +3363,8 @@ class Points(vtk.vtkFollower, BaseActor):
         Examples:
             - [moving_least_squares1D.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/moving_least_squares1D.py)
             - [skeletonize.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/skeletonize.py)
+
+            ![](https://vedo.embl.es/images/advanced/moving_least_squares1D.png)
         """
         coords = self.points()
         ncoords = len(coords)
@@ -3602,8 +3615,8 @@ class Points(vtk.vtkFollower, BaseActor):
                 set the basis function to either abs(R) (for 3d) or R2LogR (for 2d meshes)
 
         Examples:
-            - [warp1.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/warp1.py)
             - [interpolateField.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/interpolateField.py)
+            - [warp1.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/warp1.py)
             - [warp2.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/warp2.py)
 
                 ![](https://vedo.embl.es/images/advanced/warp2.png)
@@ -3675,7 +3688,7 @@ class Points(vtk.vtkFollower, BaseActor):
         Examples:
             - [trail.py](https://github.com/marcomusy/vedo/blob/master/examples/simulations/trail.py)
 
-            ![](https://vedo.embl.es/images/simulations/trail.gif)
+                ![](https://vedo.embl.es/images/simulations/trail.gif)
 
         Check out also:
             `cut_with_box()`, `cut_with_cylinder()`, `cut_with_sphere()`.
@@ -4129,7 +4142,12 @@ class Points(vtk.vtkFollower, BaseActor):
 
         Examples:
             - [cutWithPoints1.py](https://github.com/marcomusy/vedo/blob/master/examples/advanced/cutWithPoints1.py)
+            
+                ![](https://vedo.embl.es/images/advanced/cutWithPoints1.png)
+            
             - [cutWithPoints2.py](https://github.com/marcomusy/vedo/blob/master/examples/advanced/cutWithPoints2.py)
+        
+                ![](https://vedo.embl.es/images/advanced/cutWithPoints2.png)
         """
         if isinstance(points, Points):
             vpts = points.polydata().GetPoints()
@@ -4276,12 +4294,13 @@ class Points(vtk.vtkFollower, BaseActor):
                 flip the line orientation. The default is False.
 
         Examples:
-            - [cutWithMesh1.py](https://github.com/marcomusy/vedo/blob/master/examples/advanced/cutWithMesh1.py)
+            - [line2mesh_tri.py](https://github.com/marcomusy/vedo/blob/master/examples/advanced/line2mesh_tri.py)
 
-                ![](https://vedo.embl.es/images/advanced/cutWithMesh1.jpg)
+                ![](https://vedo.embl.es/images/advanced/line2mesh_tri.jpg)
 
-            - [cutWithMesh2.py](https://github.com/marcomusy/vedo/blob/master/examples/advanced/cutWithMesh2.py)
             - [line2mesh_quads.py](https://github.com/marcomusy/vedo/blob/master/examples/advanced/line2mesh_quads.py)
+        
+                ![](https://vedo.embl.es/images/advanced/line2mesh_quads.png)
         """
         if line_resolution is None:
             contour = vedo.shapes.Line(self.points())

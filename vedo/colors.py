@@ -610,6 +610,8 @@ def get_color(rgb=None, hsv=None):
 
     Examples:
         - [colorcubes.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/colorcubes.py)
+
+            ![](https://vedo.embl.es/images/basic/colorcubes.png)
     """
     # recursion, return a list if input is list of colors:
     if _is_sequence(rgb) and (len(rgb) > 3 or _is_sequence(rgb[0])):
@@ -831,7 +833,7 @@ def build_palette(color1, color2, n, hsv=True):
     Examples:
         - [mesh_custom.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_custom.py)
 
-    ![](https://vedo.embl.es/images/basic/mesh_custom.png)
+            ![](https://vedo.embl.es/images/basic/mesh_custom.png)
     """
     if hsv:
         color1 = rgb2hsv(color1)
