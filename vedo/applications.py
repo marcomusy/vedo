@@ -68,8 +68,8 @@ class Slicer3DPlotter(Plotter):
             resetcam=True,
             interactive=True,
         ):
-        """            
-        Args:
+        """
+        Arguments:
             alpha : (float)
                 transparency of the slicing planes
             cmaps : (list)
@@ -321,10 +321,10 @@ class Slicer2DPlotter(Plotter):
         interactive=True,
     ):
         """
-        Args:
+        Arguments:
             levels : (list)
                 window and color level
-            
+
         <img src="https://vedo.embl.es/images/volumetric/read_volume3.jpg" width="500">
         """
         custom_shape = [  # define here the 2 rendering rectangle spaces
@@ -824,7 +824,7 @@ class FreeHandCutPlotter(Plotter):
             -       u to undo last action
             -       h for help, i for info
 
-        Args:
+        Arguments:
             mesh : (Mesh, Points)
                 The input Mesh or pointcloud.
             splined : (bool)
@@ -848,7 +848,7 @@ class FreeHandCutPlotter(Plotter):
 
         Examples:
             - [](https://github.com/marcomusy/vedo/tree/master/examples/basic/cut_freehand.py)
-                
+
                 ![](https://vedo.embl.es/images/basic/cutFreeHand.gif)
         """
 
@@ -1138,7 +1138,7 @@ class Animation(Plotter):
     A ``Plotter`` derived class that allows to animate simultaneously various objects
     by specifying event times and durations of different visual effects.
 
-    Args:
+    Arguments:
         total_duration : (float)
             expand or shrink the total duration of video to this value
         time_resolution : (float)
@@ -1549,7 +1549,7 @@ class Clock(vedo.Assembly):
         """
         Create a clock with current time or user provided time.
 
-        Args:
+        Arguments:
             h : (int)
                 hours in range [0,23]
             m : (int)

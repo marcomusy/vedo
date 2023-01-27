@@ -98,7 +98,7 @@ class Figure(Assembly):
             **kwargs,
         ):
         """
-        Args:
+        Arguments:
             xlim : (list)
                 range of the x-axis as [x0, x1]
             ylim : (list)
@@ -312,7 +312,7 @@ class Figure(Assembly):
         If a whole Figure is added with "+=", it is unpacked and its objects are added
         one by one.
 
-        Args:
+        Arguments:
             rescale : (bool)
                 rescale the y axis position while inserting the object.
             as3d : (bool)
@@ -403,7 +403,7 @@ class Figure(Assembly):
         """
         Manually add en entry label to the legend.
 
-        Args:
+        Arguments:
             text : (str)
                 text string for the label.
             c : (str)
@@ -441,7 +441,7 @@ class Figure(Assembly):
         Add existing labels to form a legend box.
         Labels have been previously filled with eg: `plot(..., label="text")`
 
-        Args:
+        Arguments:
             pos : (str, list)
                 A string or 2D coordinates. The default is "top-right".
             relative : (bool)
@@ -606,7 +606,7 @@ class Figure(Assembly):
 
         Still experimental.
 
-        Args:
+        Arguments:
             scale : (float)
                 scaling factor
             pos : (str, list)
@@ -739,7 +739,7 @@ class Histogram1D(Figure):
         """
         Creates a `Histogram1D(Figure)` object.
 
-        Args:
+        Arguments:
             weights : (list)
                 An array of weights, of the same shape as `data`. Each value in `data`
                 only contributes its associated weight towards the bin count (instead of 1).
@@ -1105,7 +1105,7 @@ class Histogram2D(Figure):
         they are compatible and comparable. If they are not compatible
         you will receive an error message.
 
-        Args:
+        Arguments:
             bins : (list)
                 binning as (nx, ny)
             weights : (list)
@@ -1146,7 +1146,7 @@ class Histogram2D(Figure):
         Examples:
             - [histo_2d_a.py](examples/pyplot/histo_2d_a.py)
             - [histo_2d_b.py](examples/pyplot/histo_2d_b.py)
-            
+
             ![](https://vedo.embl.es/images/pyplot/histo_2D.png)
         """
         if yvalues is None:
@@ -1304,7 +1304,7 @@ class PlotBars(Figure):
         they are compatible and comparable. If they are not compatible
         you will receive an error message.
 
-        Args:
+        Arguments:
             errors : (bool)
                 show error bars
             logscale : (bool)
@@ -1522,7 +1522,7 @@ class PlotXY(Figure):
             **fig_kwargs,
         ):
         """
-        Args:
+        Arguments:
             xerrors : (bool)
                 show error bars associated to each point in x
             yerrors : (bool)
@@ -1592,7 +1592,7 @@ class PlotXY(Figure):
             - [plot_errbars.py](examples/pyplot/plot_errbars.py)
             - [plot_errband.py](examples/pyplot/plot_errband.py)
             - [plot_pip.py](examples/pyplot/plot_pip.py)
-    
+
                 ![](https://vedo.embl.es/images/pyplot/plot_pip.png)
             - [scatter1.py](examples/pyplot/scatter1.py)
             - [scatter2.py](examples/pyplot/scatter2.py)
@@ -1822,7 +1822,7 @@ def plot(*args, **kwargs):
     they are compatible and comparable. If they are not compatible
     you will receive an error message.
 
-    Args:
+    Arguments:
         xerrors : (bool)
             show error bars associated to each point in x
         yerrors : (bool)
@@ -1904,7 +1904,7 @@ def plot(*args, **kwargs):
     Input must be in format `[counts, labels, colors, edges]`.
     Either or both `edges` and `colors` are optional and can be omitted.
 
-    Args:
+    Arguments:
         errors : (bool)
             show error bars
         logscale : (bool)
@@ -1948,7 +1948,7 @@ def plot(*args, **kwargs):
     If input is an external function or a formula, draw the surface
     representing the function `f(x,y)`.
 
-    Args:
+    Arguments:
         x : (float)
             x range of values
         y : (float)
@@ -1973,7 +1973,7 @@ def plot(*args, **kwargs):
 
     If ``mode='complex'`` draw the real value of the function and color map the imaginary part.
 
-    Args:
+    Arguments:
         cmap : (str)
             diverging color map (white means `imag(z)=0`)
         lw : (float)
@@ -1983,7 +1983,7 @@ def plot(*args, **kwargs):
 
     Examples:
         - [plot_fxy.py](examples/pyplot/plot_fxy.py)
-        
+
         ![](https://user-images.githubusercontent.com/32848391/73392962-1709a300-42db-11ea-9278-30c9d6e5eeaa.png)
 
 
@@ -1993,7 +1993,7 @@ def plot(*args, **kwargs):
     If ``mode='polar'`` input arrays are interpreted as a list of polar angles and radii.
     Build a polar (radar) plot by joining the set of points in polar coordinates.
 
-    Args:
+    Arguments:
         title : (str)
             plot title
         tsize : (float)
@@ -2048,7 +2048,7 @@ def plot(*args, **kwargs):
     Return an ``Figure(Assembly)`` of 2 objects: the unit
     sphere (in wireframe representation) and the surface `rho(theta, phi)`.
 
-    Args:
+    Arguments:
         rfunc : function
             handle to a user defined function `rho(theta, phi)`.
         normalize : (bool)
@@ -2182,7 +2182,7 @@ def histogram(*args, **kwargs):
 
     Creates a `Histogram1D(Figure)` object.
 
-    Args:
+    Arguments:
         weights : (list)
             An array of weights, of the same shape as `data`. Each value in `data`
             only contributes its associated weight towards the bin count (instead of 1).
@@ -2235,7 +2235,7 @@ def histogram(*args, **kwargs):
     Input data formats `[(x1,x2,..), (y1,y2,..)] or [(x1,y1), (x2,y2),..]`
     are both valid.
 
-    Args:
+    Arguments:
         bins : (list)
             binning as (nx, ny)
         weights : (list)
@@ -2286,7 +2286,7 @@ def histogram(*args, **kwargs):
 
     If ``mode='3d'``, build a 2D histogram as 3D bars from a list of x and y values.
 
-    Args:
+    Arguments:
         xtitle : (str)
             x axis title
         bins : (int)
@@ -2313,7 +2313,7 @@ def histogram(*args, **kwargs):
 
     If ``mode='hexbin'``, build a hexagonal histogram from a list of x and y values.
 
-    Args:
+    Arguments:
         xtitle : (str)
             x axis title
         bins : (int)
@@ -2338,7 +2338,7 @@ def histogram(*args, **kwargs):
 
     If ``mode='polar'`` assume input is polar coordinate system (rho, theta):
 
-    Args:
+    Arguments:
         weights : (list)
             Array of weights, of the same shape as the input.
             Each value only contributes its associated weight towards the bin count (instead of 1).
@@ -2389,7 +2389,7 @@ def histogram(*args, **kwargs):
 
     Examples:
         - [histo_polar.py](examples/pyplot/histo_polar.py)
-        
+
         ![](https://vedo.embl.es/images/pyplot/histo_polar.png)
 
 
@@ -2398,7 +2398,7 @@ def histogram(*args, **kwargs):
 
     If ``mode='spheric'``, build a histogram from list of theta and phi values.
 
-    Args:
+    Arguments:
         rmax : (float)
             maximum radial elevation of bin
         res : (int)
@@ -2410,7 +2410,7 @@ def histogram(*args, **kwargs):
 
     Examples:
         - [histo_spheric.py](examples/pyplot/histo_spheric.py)
-        
+
         ![](https://vedo.embl.es/images/pyplot/histo_spheric.png)
     """
     mode = kwargs.pop("mode", "")
@@ -2501,7 +2501,7 @@ def fit(
     Errors on x and y can be specified. If left to `None` an estimate is made from
     the statistical spread of the dataset itself. Errors are always assumed gaussian.
 
-    Args:
+    Arguments:
         deg : (int)
             degree of the polynomial to be fitted
         niter : (int)
@@ -3381,7 +3381,7 @@ def donut(
     """
     Donut plot or pie chart.
 
-    Args:
+    Arguments:
         title : (str)
             plot title
         tsize : (float)
@@ -3477,7 +3477,7 @@ def violin(
     """
     Violin style histogram.
 
-    Args:
+    Arguments:
         bins : (int)
             number of bins
         vlim : (list)
@@ -3499,7 +3499,7 @@ def violin(
 
     Examples:
         - [histo_violin.py](examples/pyplot/histo_violin.py)
-        
+
         ![](https://vedo.embl.es/images/pyplot/histo_violin.png)
     """
     fs, edges = np.histogram(values, bins=bins, range=vlim)
@@ -3576,7 +3576,7 @@ def whisker(
     """
     Generate a "whisker" bar from a 1-dimensional dataset.
 
-    Args:
+    Arguments:
         s : (float)
             size of the box
         c : (color)
@@ -3596,7 +3596,7 @@ def whisker(
 
     Examples:
         - [whiskers.py](examples/pyplot/whiskers.py)
-        
+
         ![](https://vedo.embl.es/images/pyplot/whiskers.png)
     """
     xvals = np.zeros_like(np.asarray(data))
@@ -3652,7 +3652,7 @@ def streamplot(
     Generate a streamline plot of a vectorial field (U,V) defined at positions (X,Y).
     Returns a ``Mesh`` object.
 
-    Args:
+    Arguments:
         direction : (str)
             either "forward", "backward" or "both"
         max_propagation : (float)
@@ -3668,7 +3668,7 @@ def streamplot(
 
     Examples:
         - [plot_stream.py](examples/pyplot/plot_stream.py)
-        
+
         ![](https://vedo.embl.es/images/pyplot/plot_stream.png)
     """
     n = len(X)
@@ -3747,7 +3747,7 @@ def matrix(
 
     Returns an ``Assembly`` object.
 
-    Args:
+    Arguments:
         M : (list, numpy array)
             the input array to visualize
         title : (str)
@@ -3787,7 +3787,7 @@ def matrix(
 
     Examples:
         - [np_matrix.py](examples/pyplot/np_matrix.py)
-        
+
         ![](https://vedo.embl.es/images/pyplot/np_matrix.png)
     """
     M = np.asarray(M)
@@ -4020,13 +4020,13 @@ class DirectedGraph(Assembly):
     This class is derived from class ``Assembly``, and it assembles 4 Mesh objects
     representing the graph, the node labels, edge labels and edge arrows.
 
-    Args:
+    Arguments:
         c : (color)
             Color of the Graph
         n : (int)
             number of the initial set of nodes
         layout : (int, str)
-            layout in 
+            layout in
             `['2d', 'fast2d', 'clustering2d', 'circular', 'circular3d', 'cone', 'force', 'tree']`.
             Each of these layouts has different available options.
 
@@ -4034,7 +4034,7 @@ class DirectedGraph(Assembly):
     ---------------------------------------------------------------
     .. note:: Options for layouts '2d', 'fast2d' and 'clustering2d'
 
-    Args:
+    Arguments:
         seed : (int)
             seed of the random number generator used to jitter point positions
         rest_distance : (float)
@@ -4047,7 +4047,7 @@ class DirectedGraph(Assembly):
     ---------------------------------------------------------------
     .. note:: Options for layouts 'circular', and 'circular3d':
 
-    Args:
+    Arguments:
         radius : (float)
             set the radius of the circles
         height : (float)
@@ -4058,7 +4058,7 @@ class DirectedGraph(Assembly):
     ---------------------------------------------------------------
     .. note:: Options for layout 'cone'
 
-    Args:
+    Arguments:
         compactness : (float)
             ratio between the average width of a cone in the tree,
             and the height of the cone.
@@ -4071,7 +4071,7 @@ class DirectedGraph(Assembly):
     ---------------------------------------------------------------
     .. note:: Options for layout 'force'
 
-    Args:
+    Arguments:
         seed : (int)
             seed the random number generator used to jitter point positions
         bounds : (list)
@@ -4087,7 +4087,7 @@ class DirectedGraph(Assembly):
         - [lineage_graph.py](examples/pyplot/lineage_graph.py)
         - [graph_network.py](examples/pyplot/graph_network.py)
 
-            ![](https://vedo.embl.es/images/pyplot/graph_network.png)   
+            ![](https://vedo.embl.es/images/pyplot/graph_network.png)
     """
 
     def __init__(self, **kargs):

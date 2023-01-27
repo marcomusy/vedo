@@ -184,7 +184,7 @@ def load(inputobj, unpack=True, force=False):
     Unzip is made on the fly, if file ends with `.gz`.
     Can load an object directly from a URL address.
 
-    Args:
+    Arguments:
         unpack : bool
             unpack MultiBlockData into a flat list of objects.
 
@@ -585,7 +585,7 @@ def loadXMLData(filename):
 
 ###################################################################
 def load3DS(filename):
-    """Load ``3DS`` file format from file. 
+    """Load ``3DS`` file format from file.
     Returns:
         ``Assembly(vtkAssembly)`` object.
     """
@@ -1362,7 +1362,7 @@ def write_transform(inobj, filename="transform.mat", comment=""):
     """
     Save a transformation for a mesh or pointcloud to ASCII file.
 
-    Args:
+    Arguments:
         filename : (str)
             output file name
         comment : (str)
@@ -1434,7 +1434,7 @@ def export_window(fileoutput, binary=False):
 
         <img src='https://user-images.githubusercontent.com/32848391/57160341-c6ffbd80-6de8-11e9-95ff-7215ce642bc5.jpg' width="600"/>
 
-    .. note:: 
+    .. note::
         the rendering window can also be exported to `numpy` file `scene.npz`
         by pressing ``E`` keyboard at any moment during visualization.
     """
@@ -1570,12 +1570,12 @@ def export_window(fileoutput, binary=False):
 def import_window(fileinput, mtl_file=None, texture_path=None):
     """Import a whole scene from a Numpy or OBJ wavefront file.
 
-    Args:
+    Arguments:
         mtl_file : (str)
             MTL file for OBJ wavefront files
         texture_path : (str)
             path of the texture files directory
-    
+
     Returns:
         ``Plotter`` instance
     """
@@ -1693,7 +1693,7 @@ def screenshot(filename="screenshot.png", scale=None, asarray=False):
     """
     Save a screenshot of the current rendering window.
 
-    Args:
+    Arguments:
         scale : (int)
             set image magnification as an integer multiplicative factor
         asarray : (bool)
@@ -1785,7 +1785,7 @@ def ask(*question, **kwarg):
     Ask a question from command line. Return the answer as a string.
     See function `colors.printc()` for the description of the keyword options.
 
-    Args:
+    Arguments:
         options : (list)
             a python list of possible answers to choose from.
         default : (str)
@@ -1833,7 +1833,7 @@ class Video:
     Class to generate a video from the specified rendering window.
     Program `ffmpeg` is used to create video from each generated frame.
 
-    Args:
+    Arguments:
         name : (str)
             name of the output file.
         fps : (int)
@@ -1896,7 +1896,7 @@ class Video:
         """
         Automatic shooting of a static scene by specifying rotation and elevation ranges.
 
-        Args:
+        Arguments:
             elevation : list
                 initial and final elevation angles
             azimuth_range : list

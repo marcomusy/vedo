@@ -28,15 +28,15 @@ __all__ = ["TetMesh", "delaunay3d"]
 def delaunay3d(mesh, radius=0, tol=None):
     """
     Create 3D Delaunay triangulation of input points.
-    
+
     Arguments:
         radius : (float)
             specify distance (or "alpha") value to control output.
-            For a non-zero values, only tetra contained within the circumsphere 
+            For a non-zero values, only tetra contained within the circumsphere
             will be output.
         tol : (float)
             Specify a tolerance to control discarding of closely spaced points.
-            This tolerance is specified as a fraction of the diagonal length of 
+            This tolerance is specified as a fraction of the diagonal length of
             the bounding box of the points.
     """
     deln = vtk.vtkDelaunay3D()
@@ -269,7 +269,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         Nonconvex           = 10
         OrientedIncorrectly = 20
         ```
-        
+
         Arguments:
             tol : (float)
                 This value is used as an epsilon for floating point

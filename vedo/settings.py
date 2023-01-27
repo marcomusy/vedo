@@ -16,7 +16,7 @@ class Settings:
         ```
 
     List of available properties:
-    
+
     ```python
     # Set a default for the font to be used for axes, comments etc.
     default_font = 'Normografo' # check font options in shapes.Text

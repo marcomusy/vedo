@@ -730,7 +730,7 @@ def color_map(value, name="jet", vmin=None, vmax=None):
 
     Return the (r,g,b) color, or a list of (r,g,b) colors.
 
-    Args:
+    Arguments:
         value : *(float, list)*
             scalar value to transform into a color
         name : *(str, matplotlib.colors.LinearSegmentedColormap)*
@@ -758,7 +758,7 @@ def color_map(value, name="jet", vmin=None, vmax=None):
         - [plot_bars.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_bars.py)
 
             <img src="https://vedo.embl.es/images/pyplot/plot_bars.png" width="400"/>
-            
+
     """
     cut = _is_sequence(value)  # to speed up later
 
@@ -818,7 +818,7 @@ def build_palette(color1, color2, n, hsv=True):
     Generate N colors starting from `color1` to `color2`
     by linear interpolation in HSV or RGB spaces.
 
-    Args:
+    Arguments:
         N : (int)
             number of output colors.
         color1 : (color)
@@ -830,7 +830,7 @@ def build_palette(color1, color2, n, hsv=True):
 
     Examples:
         - [mesh_custom.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_custom.py)
-    
+
     ![](https://vedo.embl.es/images/basic/mesh_custom.png)
     """
     if hsv:
@@ -890,7 +890,7 @@ def build_lut(
 
     Return the ``vtkLookupTable`` object. This can be fed into ``cmap()`` method.
 
-    Args:
+    Arguments:
         colorlist : (list)
             a list in the form ``[(scalar1, [r,g,b]), (scalar2, 'blue'), ...]``.
         vmin : (float)
@@ -993,7 +993,7 @@ def printc(
     """
     Print to terminal in color (any color!).
 
-    Args:
+    Arguments:
         c : (color)
             foreground color name or (r,g,b)
         bc : (color)

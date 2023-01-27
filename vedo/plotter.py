@@ -122,7 +122,7 @@ def show(
         vtkPolyData, vtkActor, vtkActor2D, vtkImageActor,
         vtkAssembly or vtkVolume``
 
-    Args:
+    Arguments:
         at : (int)
             number of the renderer to plot to, in case of more than one exists
         shape : (list, str)
@@ -341,7 +341,7 @@ class Plotter:
             backend="", # DEPRECATED
         ):
         """
-        Args:
+        Arguments:
             shape : (str, list)
                 shape of the grid of renderers in format (rows, columns). Ignored if N is specified.
             N : (int)
@@ -374,7 +374,7 @@ class Plotter:
                 - 11, show a large grid on the x-y plane (use with zoom=8)
                 - 12, show polar axes.
                 - 13, draw a simple ruler at the bottom of the window
-            
+
             sharecam : (bool)
                 if False each renderer will have an independent vtkCamera
             interactive : (bool)
@@ -825,7 +825,7 @@ class Plotter:
         Append the input objects to the internal list of actors to be shown.
         This method is typically used in loops or callback functions.
 
-        Args:
+        Arguments:
             at : (int)
                 add the object at the specified renderer
             render : (bool)
@@ -860,7 +860,7 @@ class Plotter:
         This method is typically used in loops or callback functions.
         Objects to be removed can be referenced by their assigned name.
 
-        Args:
+        Arguments:
             at : (int)
                 remove the object at the specified renderer
             render : (bool)
@@ -973,7 +973,7 @@ class Plotter:
         """Set the color of the background for the current renderer.
         A different renderer index can be specified by keyword ``at``.
 
-        Args:
+        Arguments:
             c1 : (list)
                 background main color.
             c2 : (list)
@@ -1007,7 +1007,7 @@ class Plotter:
         """
         Return a list of Meshes from the specified renderer.
 
-        Args:
+        Arguments:
             at : (int)
                 specify which renderer to look at.
             include_non_pickables : (bool)
@@ -1042,7 +1042,7 @@ class Plotter:
         """
         Return a list of Volumes from the specified renderer.
 
-        Args:
+        Arguments:
             at : (int)
                 specify which renderer to look at
             include_non_pickables : (bool)
@@ -1220,7 +1220,7 @@ class Plotter:
         """
         Fly camera to the specified point.
 
-        Args:
+        Arguments:
             point : (list)
                 point in space to place camera.
 
@@ -1261,7 +1261,7 @@ class Plotter:
         Record camera, mouse, keystrokes and all other events.
         Recording can be toggled on/off by pressing key "R".
 
-        Args:
+        Arguments:
             filename : (str)
                 ascii file to store events. The default is '.vedo_recorded_events.log'.
 
@@ -1290,7 +1290,7 @@ class Plotter:
         """
         Play camera, mouse, keystrokes and all other events.
 
-        Args:
+        Arguments:
             events : (str)
                 file o string of events. The default is '.vedo_recorded_events.log'.
             repeats : (int)
@@ -1357,7 +1357,7 @@ class Plotter:
         """
         Add a slider widget which can call an external custom function.
 
-        Args:
+        Arguments:
             sliderfunc : (function)
                 external callback function to be called by the widget
             xmin : (float)
@@ -1399,7 +1399,7 @@ class Plotter:
         Examples:
             - [sliders1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders1.py)
             - [sliders2.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders2.py)
-            
+
             ![](https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg)
         """
         return addons.add_slider(
@@ -1435,7 +1435,7 @@ class Plotter:
         """
         Add a 3D slider widget which can call an external custom function.
 
-        Args:
+        Arguments:
             sliderfunc : (function)
                 external function to be called by the widget
             pos1 : (list)
@@ -1492,7 +1492,7 @@ class Plotter:
         """
         Add a button to the renderer window.
 
-        Args:
+        Arguments:
             states : (list)
                 a list of possible states, e.g. ['On', 'Off']
             c : (list)
@@ -1516,7 +1516,7 @@ class Plotter:
 
         Examples:
             - [buttons.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/buttons.py)
-            
+
             ![](https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg)
         """
         return addons.add_button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
@@ -1533,7 +1533,7 @@ class Plotter:
         Clicking on the line itself adds an extra point.
         Selecting a point and pressing del removes it.
 
-        Args:
+        Arguments:
             points : (Mesh, Points, array)
                 the set of vertices forming the spline nodes.
             pc : (str)
@@ -1578,7 +1578,7 @@ class Plotter:
     def add_cutter_tool(self, obj=None, mode="box", invert=False):
         """Create an interactive tool to cut away parts of a mesh or volume.
 
-        Args:
+        Arguments:
             mode : (str)
                 either "box", "plane" or "sphere"
             invert : (bool)
@@ -1586,7 +1586,7 @@ class Plotter:
 
         Examples:
             - [cutter.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/cutter.py)
-            
+
             ![](https://user-images.githubusercontent.com/32848391/50738866-c0658e80-11d8-11e9-955b-551d4d8b0db5.jpg)
         """
         return addons.add_cutter_tool(obj, mode, invert)
@@ -1594,7 +1594,7 @@ class Plotter:
     def add_icon(self, icon, pos=3, size=0.08):
         """Add an inset icon mesh into the same renderer.
 
-        Args:
+        Arguments:
             pos : (int, list)
                 icon position in the range [1-4] indicating one of the 4 corners,
                 or it can be a tuple (x,y) as a fraction of the renderer size.
@@ -1609,7 +1609,7 @@ class Plotter:
     def add_global_axes(self, axtype=None, c=None):
         """Draw axes on scene. Available axes types:
 
-        Args:
+        Arguments:
             axtype : (int)
                 - 0,  no axes,
                 - 1,  draw three gray grid walls
@@ -1647,7 +1647,7 @@ class Plotter:
             - [custom_axes2.py](https://github.com/marcomusy/vedo/blob/master/examples/pyplot/custom_axes2.py)
             - [custom_axes3.py](https://github.com/marcomusy/vedo/blob/master/examples/pyplot/custom_axes3.py)
             - [custom_axes4.py](https://github.com/marcomusy/vedo/blob/master/examples/pyplot/custom_axes4.py)
-            
+
             <img src="https://user-images.githubusercontent.com/32848391/72752870-ab7d5280-3bc3-11ea-8911-9ace00211e23.png" width="600">
         """
         addons.add_global_axes(axtype, c)
@@ -1671,7 +1671,7 @@ class Plotter:
         Create a pop-up hint style message when hovering an object.
         Use add_hint(False) to disable all hints.
 
-        Args:
+        Arguments:
             obj : (Mesh, Points)
                 the object to associate the pop-up to
             text : (str)
@@ -1763,7 +1763,7 @@ class Plotter:
         the current pixel and tries to compute the amount of occlusion from each of the sampled
         points.
 
-        Args:
+        Arguments:
             radius : (float)
                 radius of influence in absolute units
             bias : (float)
@@ -1878,7 +1878,7 @@ class Plotter:
         """
         Add a frame to the renderer subwindow
 
-        Args:
+        Arguments:
             c : (color)
                 color name or index
             alpha : (float)
@@ -1908,7 +1908,7 @@ class Plotter:
 
         The created text object are stored in plotter.hover_legends
 
-        Args:
+        Arguments:
             c : (color)
                 Text color. If None then black or white is chosen automatically
             pos : (str)
@@ -2048,7 +2048,7 @@ class Plotter:
         """
         Add a Scale Indicator. Only works in parallel mode (no perspective).
 
-        Args:
+        Arguments:
             pos : (list)
                 fractional (x,y) position on the screen.
             s : (float)
@@ -2329,7 +2329,7 @@ class Plotter:
         Remove a callback function by its id
         or a whole category of callbacks by their name.
 
-        Args:
+        Arguments:
             cid : (int, str)
                 Unique id of the callback.
                 If an event name is passed all callbacks of that type are removed.
@@ -2367,7 +2367,7 @@ class Plotter:
         """
         Start or stop an existing timer.
 
-        Args:
+        Arguments:
             action : (str)
                 Either "create"/"start" or "destroy"/"stop"
             timer_id : (int)
@@ -2411,7 +2411,7 @@ class Plotter:
         Transform a 2D point on the screen into a 3D point inside the rendering scene.
         If a set of meshes is passed then points are placed onto these.
 
-        Args:
+        Arguments:
             pos2d : (list)
                 2D screen coordinates point.
             at : (int)
@@ -2616,7 +2616,7 @@ class Plotter:
         """
         Render a list of actors.
 
-        Args:
+        Arguments:
             at : (int)
                 number of the renderer to plot to, in case of more than one exists
             shape : (list, str)
@@ -2813,7 +2813,7 @@ class Plotter:
 
             if not ia:
                 continue
-            
+
             # if hasattr(ia, "shadows"):
             #     for ias in ia.shadows:
             #         # print([ias.name])
@@ -2985,7 +2985,7 @@ class Plotter:
                 if vedo.vtk_version == (9,2,2):
                     self.interactor.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
             elif (
-                    "Darwin" in vedo.sys_platform 
+                    "Darwin" in vedo.sys_platform
                     and settings.allow_interaction
                     and len(self.renderers) == 1
             ):
@@ -3011,7 +3011,7 @@ class Plotter:
     def add_inset(self, *actors, **options):
         """Add a draggable inset space into a renderer.
 
-        Args:
+        Arguments:
             at : (int)
                 specify the renderer number
             pos : (list)
@@ -3026,7 +3026,7 @@ class Plotter:
 
         Examples:
             - [inset.py](https://github.com/marcomusy/vedo/tree/master/examples/other/inset.py)
-            
+
             ![](https://user-images.githubusercontent.com/32848391/56758560-3c3f1300-6797-11e9-9b33-49f5a4876039.jpg)
         """
         if not self.interactor:
@@ -3153,7 +3153,7 @@ class Plotter:
         """
         Take a screenshot of the Plotter window.
 
-        Args:
+        Arguments:
             scale : (int)
                 set image magnification as an integer multiplicating factor
             asarray : (bool)
@@ -3166,7 +3166,7 @@ class Plotter:
         """
         Generate a Picture object from the current rendering window.
 
-        Args:
+        Arguments:
             scale : (int)
                 set image magnification as an integer multiplicating factor
         """
@@ -3724,7 +3724,7 @@ class Plotter:
                     "KP_Up":8,     "KP_8":8,
                     "Prior":9,  # on windows OS
                     "Insert":0,
-                    "End":1,   
+                    "End":1,
                     "Down":2,
                     "Next":3,
                     "Left":4,

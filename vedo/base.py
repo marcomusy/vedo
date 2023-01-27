@@ -82,7 +82,7 @@ class _DataArrayHelper:
             data = self.actor.inputdata().GetFieldData()
             if not utils.is_sequence(input_array):
                 input_array = [input_array]
-            
+
             if isinstance(input_array[0], str):
                 varr = vtk.vtkStringArray()
                 varr.SetName(key)
@@ -450,7 +450,7 @@ class Base3DProp:
         """
         Set/Get object orientation.
 
-        Args:
+        Arguments:
             rotation : (float)
                 rotate object around newaxis.
             concatenate : (bool)
@@ -477,7 +477,7 @@ class Base3DProp:
 
         Examples:
             - [gyroscope2.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/gyroscope2.py)
-            
+
             ![](https://vedo.embl.es/images/simulations/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif)
         """
         if self.top is None or self.base is None:
@@ -535,7 +535,7 @@ class Base3DProp:
         """
         Set/get object's scaling factor.
 
-        Args:
+        Arguments:
             s : (list, float)
                 scaling factor(s).
             reset : (bool)
@@ -608,7 +608,7 @@ class Base3DProp:
         """
         Transform object position and orientation.
 
-        Args:
+        Arguments:
             reset : (bool)
                 no effect, this is superseded by `pointcloud.apply_transform()`
             concatenate : (bool)
@@ -695,7 +695,7 @@ class Base3DProp:
         """
         Return the bounding box as a new ``Mesh``.
 
-        Args:
+        Arguments:
             scale : (float)
                 box size can be scaled by a factor
             padding : (float, list)
@@ -1017,7 +1017,7 @@ class BaseActor(Base3DProp):
         """
         Set the ambient, diffuse, specular and specular_power lighting constants.
 
-        Args:
+        Arguments:
             style : (str)
                 preset style, options are `[metallic, plastic, shiny, glossy, ambient, off]`
             ambient : (float)
@@ -1113,7 +1113,7 @@ class BaseActor(Base3DProp):
         Ascii histogram printing on terminal.
         Input can be ``Volume`` or ``Mesh`` (will grab the active point array).
 
-        Args:
+        Arguments:
             bins : (int)
                 number of histogram bins
             height : (int)
@@ -1240,7 +1240,7 @@ class BaseActor(Base3DProp):
         """
         Compute and return the gradiend of the active scalar field as a numpy array.
 
-        Args:
+        Arguments:
             input_array : (str)
                 array of the scalars to compute the gradient,
                 if None the current active array is selected
@@ -1288,7 +1288,7 @@ class BaseActor(Base3DProp):
         """
         Compute and return the divergence of a vector field as a numpy array.
 
-        Args:
+        Arguments:
             array_name : (str)
                 name of the array of vectors to compute the divergence,
                 if None the current active array is selected
@@ -1331,7 +1331,7 @@ class BaseActor(Base3DProp):
         """
         Compute and return the vorticity of a vector field as a numpy array.
 
-        Args:
+        Arguments:
             array_name : (str)
                 name of the array to compute the vorticity,
                 if None the current active array is selected
@@ -1459,7 +1459,7 @@ class BaseActor(Base3DProp):
         Associate a 3D scalar bar to the object and add it to the scene.
         The new scalarbar object (Assembly) will be accessible as obj.scalarbar
 
-        Args:
+        Arguments:
             s : (list)
                 (thickness, length) of scalarbar
             title : (str)
@@ -1641,7 +1641,7 @@ class BaseGrid(BaseActor):
 
         ``volume.color([(0,'red', (0.5,'violet'), (1,'green')])``
 
-        Args:
+        Arguments:
             alpha : (list)
                 use a list to specify transparencies along the scalar range
             vmin : (float)
@@ -1817,7 +1817,7 @@ class BaseGrid(BaseActor):
         Returns an ``Mesh`` object.
 
 
-        Args:
+        Arguments:
             vmin : (float)
                 the lower threshold, voxels below this value are not shown.
             vmax : (float)
@@ -1871,7 +1871,7 @@ class BaseGrid(BaseActor):
         """
         Cut the object with the plane defined by a point and a normal.
 
-        Args:
+        Arguments:
             origin : (list)
                 the cutting plane goes through this point
             normal : (list, str)

@@ -393,7 +393,7 @@ def exe_search_code(args):
                 continue
 
             # printc(".....", name, mm, c='y', bold=0)
-            
+
             # idcomment = mmdoc_lower.find('"""')
             # if key_lower in mmdoc_lower[:idcomment]:
             if key_lower in name_lower:
@@ -412,10 +412,7 @@ def exe_search_code(args):
                     invert=True,
                 )
                 mmdoc = mmdoc.replace("``", '"').replace("`", '"')
-                mmdoc = mmdoc.replace(".. hint::", "Check out:")
-                mmdoc = mmdoc.replace(".. image::", "image:")
                 mmdoc = mmdoc.replace(".. warning::", "Warning!")
-                mmdoc = mmdoc.replace(".. code-block:: python\n", "")
                 result = highlight(
                     mmdoc,
                     Python3Lexer(),

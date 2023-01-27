@@ -165,7 +165,7 @@ def plot(*inputobj, **options):
 
     Return the current ``Plotter`` class instance.
 
-    Args:
+    Arguments:
         mode : (str)
             one or more of the following can be combined in any order
             - `mesh`/`color`, will plot the mesh, by default colored with a scalar if available

@@ -47,7 +47,7 @@ class Mesh(Points):
         Example:
             `Mesh( [ [[x1,y1,z1],[x2,y2,z2], ...],  [[0,1,2], [1,2,3], ...] ] )`
 
-        Args:
+        Arguments:
             c : (color)
                 color in RGB format, hex, symbol or name
             alpha : (float)
@@ -278,7 +278,7 @@ class Mesh(Points):
         Get lines connectivity ids as a numpy array.
         Default format is `[[id0,id1], [id3,id4], ...]`
 
-        Args:
+        Arguments:
             flat : (bool)
                 return a 1D numpy array as e.g. [2, 10,20, 3, 10,11,12, 2, 70,80, ...]
         """
@@ -343,7 +343,7 @@ class Mesh(Points):
         If tname is set to ``None`` texture is disabled.
         Input tname can also be an array or a `vtkTexture`.
 
-        Args:
+        Arguments:
             tname : (numpy.array, str, Picture, vtkTexture, None)
                 the input texture to be applied. Can be a numpy array, a path to an image file,
                 a vedo Picture. The None value disables texture.
@@ -538,7 +538,7 @@ class Mesh(Points):
         """
         Compute cell and vertex normals for the mesh.
 
-        Args:
+        Arguments:
             points : (bool)
                 do the computation for the vertices too
             cells : (bool)
@@ -753,10 +753,10 @@ class Mesh(Points):
 
         Examples:
             - [aspring.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/aspring.py)
-            
+
             ![](https://vedo.embl.es/images/simulations/50738955-7e891800-11d9-11e9-85cd-02bd4f3f13ea.gif)
 
-        .. note:: 
+        .. note::
             for ``Mesh`` objects, two vectors ``mesh.base``, and ``mesh.top`` must be defined.
         """
         if self.base is None:
@@ -798,7 +798,7 @@ class Mesh(Points):
         Crop an ``Mesh`` object.
         Use this method at creation (before moving the object).
 
-        Args:
+        Arguments:
             top : (float)
                 fraction to crop from the top plane (positive z)
             bottom : (float)
@@ -920,7 +920,7 @@ class Mesh(Points):
         If you wish to strip these use mesh.triangulate() to fragment the input
         into triangles and lines prior to applying join().
 
-        Args:
+        Arguments:
             polys : (bool)
                 polygonal segments will be joined if they are contiguous
             reset : (bool)
@@ -972,7 +972,7 @@ class Mesh(Points):
         i.e. a contour may contain an internal contour winding in the opposite
         direction to indicate that it is a hole.
 
-        Args:
+        Arguments:
             verts : (bool)
                 if True, break input vertex cells into individual vertex cells
                 (one point per cell). If False, the input vertex cells will be ignored.
@@ -1029,7 +1029,7 @@ class Mesh(Points):
         See class [vtkMeshQuality](https://vtk.org/doc/nightly/html/classvtkMeshQuality.html)
         for explanation.
 
-        Args:
+        Arguments:
             metric : (int)
                 type of available estimators are:
                 - EDGE RATIO, 0
@@ -1088,7 +1088,7 @@ class Mesh(Points):
         - Nonconvex           = 10
         - OrientedIncorrectly = 20
 
-        Args:
+        Arguments:
             tol : (float)
                 value is used as an epsilon for floating point
                 equality checks throughout the cell checking process.
@@ -1148,7 +1148,7 @@ class Mesh(Points):
         """
         Add to ``Mesh`` a scalar array that contains distance along a specified direction.
 
-        Args:
+        Arguments:
             low : (list)
                 one end of the line (small scalar values)
             high : (list)
@@ -1196,7 +1196,7 @@ class Mesh(Points):
 
         See also ``pointcloud.project_on_plane``.
 
-        Args:
+        Arguments:
             plane : (str, Plane)
                 if plane is `str`, plane can be one of `['x', 'y', 'z']`,
                 represents x-plane, y-plane and z-plane, respectively.
@@ -1213,7 +1213,7 @@ class Mesh(Points):
             - [shadow1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/shadow1.py)
             - [airplane1.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplane1.py)
             - [airplane2.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplane2.py)
-            
+
             ![](https://vedo.embl.es/images/simulations/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)
         """
         shad = self.clone()
@@ -1260,7 +1260,7 @@ class Mesh(Points):
         """
         Increase the number of vertices of a surface mesh.
 
-        Args:
+        Arguments:
             n : (int)
                 number of subdivisions.
             method : (int)
@@ -1300,7 +1300,7 @@ class Mesh(Points):
         """
         Downsample the number of vertices in a mesh to `fraction`.
 
-        Args:
+        Arguments:
             fraction : (float)
                 the desired target of reduction.
             n : (int)
@@ -1377,7 +1377,7 @@ class Mesh(Points):
         """
         Adjust mesh point positions using the `Windowed Sinc` function interpolation kernel.
 
-        Args:
+        Arguments:
             niter : (int)
                 number of iterations.
             pass_band : (float)
@@ -1391,7 +1391,7 @@ class Mesh(Points):
 
         Examples:
             - [mesh_smoother1.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/mesh_smoother1.py)
-            
+
             ![](https://vedo.embl.es/images/advanced/mesh_smoother2.png)
         """
         poly = self._data
@@ -1422,7 +1422,7 @@ class Mesh(Points):
         Holes are identified by locating boundary edges, linking them together into loops,
         and then triangulating the resulting loops.
 
-        Args:
+        Arguments:
             size : (float)
                 Approximate limit to the size of the hole that can be filled. The default is None.
 
@@ -1465,7 +1465,7 @@ class Mesh(Points):
 
         Examples:
             - [pca_ellipsoid.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/pca_ellipsoid.py)
-            
+
             ![](https://vedo.embl.es/images/basic/pca.png)
         """
         if isinstance(pts, Points):
@@ -1514,7 +1514,7 @@ class Mesh(Points):
         Return the boundary lines of an input mesh.
         Check also `mark_boundaries()` method.
 
-        Args:
+        Arguments:
             boundary_edges : (bool)
                 Turn on/off the extraction of boundary edges.
             manifold_edges : (bool)
@@ -1530,7 +1530,7 @@ class Mesh(Points):
 
         Examples:
             - [boundaries.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/boundaries.py)
-            
+
             ![](https://vedo.embl.es/images/basic/boundaries.png)
         """
         fe = vtk.vtkFeatureEdges()
@@ -1581,7 +1581,7 @@ class Mesh(Points):
         """
         Imprint the contact surface of one object onto another surface.
 
-        Args:
+        Arguments:
             loopline : vedo.shapes.Line
                 a Line object to be imprinted onto the mesh.
             tol : (float), optional
@@ -1619,7 +1619,7 @@ class Mesh(Points):
 
         Examples:
             - [connVtx.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/connVtx.py)
-            
+
             ![](https://vedo.embl.es/images/basic/connVtx.png)
         """
         poly = self._data
@@ -1681,7 +1681,7 @@ class Mesh(Points):
         of the input as seen along a specified `direction`, this can also be
         a ``vtkCamera`` object.
 
-        Args:
+        Arguments:
             direction : (list)
                 viewpoint direction vector.
                 If *None* this is guessed by looking at the minimum
@@ -1694,7 +1694,7 @@ class Mesh(Points):
 
         Examples:
             - [silhouette1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/silhouette1.py)
-            
+
             ![](https://vedo.embl.es/images/basic/silhouette1.png)
         """
         sil = vtk.vtkPolyDataSilhouette()
@@ -1769,7 +1769,7 @@ class Mesh(Points):
         This is a new mesh where the scalar is now associated to cell faces and
         used to colorize the mesh.
 
-        Args:
+        Arguments:
             n : (int)
                 number of isobands in the range
             vmin : (float)
@@ -1779,7 +1779,7 @@ class Mesh(Points):
 
         Examples:
             - [isolines.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/isolines.py)
-            
+
             ![](https://vedo.embl.es/images/pyplot/isolines.png)
         """
         r0, r1 = self._data.GetScalarRange()
@@ -1827,7 +1827,7 @@ class Mesh(Points):
         """
         Return a new ``Mesh`` representing the isolines of the active scalars.
 
-        Args:
+        Arguments:
             n : (int)
                 number of isolines in the range
             vmin : (float)
@@ -1837,7 +1837,7 @@ class Mesh(Points):
 
         Examples:
             - [isolines.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/isolines.py)
-            
+
             ![](https://vedo.embl.es/images/pyplot/isolines.png)
         """
         bcf = vtk.vtkContourFilter()
@@ -1885,7 +1885,7 @@ class Mesh(Points):
 
         Examples:
             - [extrude.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/extrude.py)
-            
+
             ![](https://vedo.embl.es/images/basic/extrude.png)
         """
         if is_sequence(zshift):
@@ -1928,7 +1928,7 @@ class Mesh(Points):
         """
         Split a mesh by connectivity and order the pieces by increasing area.
 
-        Args:
+        Arguments:
             maxdepth : (int)
                 only consider this maximum number of mesh parts.
             flag : (bool)
@@ -1937,7 +1937,7 @@ class Mesh(Points):
 
         Examples:
             - [splitmesh.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/splitmesh.py)
-            
+
             ![](https://vedo.embl.es/images/advanced/splitmesh.png)
         """
         pd = self.polydata(False)
@@ -2008,7 +2008,7 @@ class Mesh(Points):
 
         Example:
             - [boolean.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/boolean.py)
-            
+
             ![](https://vedo.embl.es/images/basic/boolean.png)
         """
         if method == 0:
@@ -2055,7 +2055,7 @@ class Mesh(Points):
 
         Examples:
             - [surfIntersect.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/surfIntersect.py)
-            
+
             ![](https://vedo.embl.es/images/basic/surfIntersect.png)
         """
         bf = vtk.vtkIntersectionPolyDataFilter()
@@ -2152,7 +2152,7 @@ class Mesh(Points):
         Generate a set of lines from cutting a mesh in n intervals
         between a minimum and maximum distance from a plane of given origin and normal.
 
-        Args:
+        Arguments:
             origin : (list)
                 the point of the cutting plane
             normal : (list)
@@ -2231,7 +2231,7 @@ class Mesh(Points):
         Dijkstra algorithm to compute the geodesic line.
         Takes as input a polygonal mesh and performs a single source shortest path calculation.
 
-        Args:
+        Arguments:
             start : (int, list)
                 start vertex index or close point `[x,y,z]`
             end :  (int, list)
@@ -2239,7 +2239,7 @@ class Mesh(Points):
 
         Examples:
             - [geodesic.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/geodesic.py)
-            
+
             ![](https://vedo.embl.es/images/advanced/geodesic.png)
         """
         if is_sequence(start):
@@ -2364,7 +2364,7 @@ class Mesh(Points):
         Compute the ``Volume`` object whose voxels contains the signed distance from
         the mesh.
 
-        Args:
+        Arguments:
             bounds : (list)
                 bounds of the output volume
             dims : (list)
@@ -2424,7 +2424,7 @@ class Mesh(Points):
         """
         Tetralize a closed polygonal mesh. Return a `TetMesh`.
 
-        Args:
+        Arguments:
             side : (float)
                 desired side of the single tetras as fraction of the bounding box diagonal.
                 Typical values are in the range (0.01 - 0.03)

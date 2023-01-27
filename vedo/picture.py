@@ -68,7 +68,7 @@ class MatplotlibPicture(vtk.vtkActor2D):
     """
     def __init__(self, fig, pos=(0,0), size=(), scale=1, ontop=False, padding=1):
         """
-        Args:
+        Arguments:
             fig : matplotlib.Figure, matplotlib.pyplot
                 the output from matplotlib
             pos : (list)
@@ -125,7 +125,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
 
         Use `Picture.dimensions()` to access the number of pixels in x and y.
 
-        Args:
+        Arguments:
             channels :  (int, list)
                 only select these specific rgba channels (useful to remove alpha)
             flip : (bool)
@@ -302,7 +302,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
     def crop(self, top=None, bottom=None, right=None, left=None, pixels=False):
         """Crop picture.
 
-        Args:
+        Arguments:
             top : (float)
                 fraction to crop from the top margin
             bottom : (float)
@@ -336,7 +336,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         Add the specified number of pixels at the picture borders.
         Pixels can be a list formatted as [left,right,bottom,top].
 
-        Args:
+        Arguments:
             pixels : (int),list , optional
                 number of pixels to be added (or a list of length 4)
             value : (int), optional
@@ -362,7 +362,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """
         Generate a tiling from the current picture by mirroring and repeating it.
 
-        Args:
+        Arguments:
             nx : (float)
                 number of repeats along x
             ny : (float)
@@ -393,7 +393,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         The origin and spacing of all other inputs are ignored.
         All inputs must have the same scalar type.
 
-        Args:
+        Arguments:
             axis : (int, str)
                 axis expanded to hold the multiple images
             preserveExtents : (bool)
@@ -479,7 +479,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """
         Rotate by the specified angle (anticlockwise).
 
-        Args:
+        Arguments:
             angle : (float)
                 rotation angle in degrees
             center : (list)
@@ -544,7 +544,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """
         Smooth a Picture with Gaussian kernel.
 
-        Args:
+        Arguments:
             sigma : (int)
                 number of sigmas in pixel units
             radius : (float)
@@ -569,7 +569,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
     def median(self):
         """
         Median filter that preserves thin lines and corners.
-        
+
         It operates on a 5x5 pixel neighborhood. It computes two values initially:
         the median of the + neighbors and the median of the x neighbors.
         It then computes the median of these two values plus the center pixel.
@@ -623,7 +623,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """
         Fast Fourier transform of a picture.
 
-        Args:
+        Arguments:
             logscale : (float)
                 if non-zero, take the logarithm of the intensity and scale it by this factor.
             mode : (str)
@@ -718,7 +718,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         A simple high-pass filter would simply mask a set of pixels in the frequency domain,
         but the abrupt transition would cause a ringing effect in the spatial domain.
 
-        Args:
+        Arguments:
             lowcutoff : (list)
                 the cutoff frequencies
             highcutoff : (list)
@@ -790,7 +790,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """
         Warp an image using thin-plate splines.
 
-        Args:
+        Arguments:
             source_pts : (list)
                 source points
             target_pts : (list)
@@ -864,7 +864,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """Return a new Picture where pixel above threshold are set to 255
         and pixels below are set to 0.
 
-        Args:
+        Arguments:
             invert : (bool)
                 invert threshold direction
 
@@ -902,7 +902,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         Create a polygonal Mesh from a Picture by filling regions with pixels
         luminosity above a specified value.
 
-        Args:
+        Arguments:
             value : (float)
                 The default is None, e.i. 1/3 of the scalar range.
             flip: bool

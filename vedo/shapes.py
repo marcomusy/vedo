@@ -176,7 +176,7 @@ class Glyph(Mesh):
             **opts,
         ):
         """
-        Args:
+        Arguments:
             orientation_array: (list, str, vtkArray)
                 list of vectors, `vtkArray` or name of an already existing pointdata array
             scale_by_scalar : (bool)
@@ -336,7 +336,7 @@ class Tensors(Mesh):
         alpha=1,
     ):
         """
-        Args:
+        Arguments:
             source : (str, Mesh)
                 preset type of source shape
                 `['ellipsoid', 'cylinder', 'cube' or any specified ``Mesh``]`
@@ -429,7 +429,7 @@ class Line(Mesh):
 
     def __init__(self, p0, p1=None, closed=False, res=2, lw=1, c="k1", alpha=1):
         """
-        Args:
+        Arguments:
             closed : (bool)
                 join last to first point
             res : (int)
@@ -757,7 +757,7 @@ class DashedLine(Mesh):
 
     def __init__(self, p0, p1=None, spacing=0.1, closed=False, lw=2, c="k5", alpha=1):
         """
-        Args:
+        Arguments:
             closed : (bool)
                 join last to first point
             spacing : (float)
@@ -857,7 +857,7 @@ class RoundedLine(Mesh):
     """
     def __init__(self, pts, lw, res=10, c="gray4", alpha=1):
         """
-        Args:
+        Arguments:
             pts : (list)
                 a list of points in 2D or 3D (z will be ignored).
             lw : (float)
@@ -964,7 +964,7 @@ class Lines(Mesh):
         alpha=1,
     ):
         """
-        Args:
+        Arguments:
             scale : (float)
                 apply a rescaling factor to the lengths.
             c : (color, int, str, list)
@@ -1051,7 +1051,7 @@ class Spline(Line):
     """
     def __init__(self, points, smooth=0, degree=2, closed=False, res=None, easing=""):
         """
-        Args:
+        Arguments:
         smooth : (float)
             smoothing factor.
             - 0 = interpolate points exactly [default].
@@ -1139,7 +1139,7 @@ class KSpline(Line):
     """
     def __init__(self, points, continuity=0, tension=0, bias=0, closed=False, res=None):
         """
-        Args:
+        Arguments:
             continuity : (float)
                 changes the sharpness in change between tangents
             tension : (float)
@@ -1207,7 +1207,7 @@ class CSpline(Line):
     """
     def __init__(self, points, closed=False, res=None):
         """
-        Args:
+        Arguments:
             closed : (bool)
                 join last to first point to produce a closed curve
             res : (int)
@@ -1261,7 +1261,7 @@ class Bezier(Line):
     Generate the Bezier line that links the first to the last point.
     """
     def __init__(self, points, res=None):
-        """    
+        """
         Example:
             ```python
             from vedo import *
@@ -1438,7 +1438,7 @@ def StreamLines(
     in physical arc length or in (local) cell length.
     Otherwise, the integration terminates upon exiting the field domain.
 
-    Args:
+    Arguments:
         domain : (Points, Volume, vtkDataSet)
             the object that contains the vector field
         probe : (Mesh, list)
@@ -1474,7 +1474,7 @@ def StreamLines(
         ribbons : (int)
             render lines as ribbons by joining them.
             An integer value represent the ratio of joining (e.g.: ribbons=2 groups lines 2 by 2)
- 
+
         tubes : (dict)
             dictionary containing the parameters for the tube representation:
             - ratio, (int) - draws tube as longitudinal stripes
@@ -1645,7 +1645,7 @@ class Tube(Mesh):
     """
     def __init__(self, points, r=1, cap=True, res=12, c=None, alpha=1):
         """
-        Args:
+        Arguments:
             r :  (float, list)
                 constant radius or list of radii.
             res : (int)
@@ -1656,7 +1656,7 @@ class Tube(Mesh):
         Examples:
             - [ribbon.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/ribbon.py)
             - [tube_radii.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/tube_radii.py)
-            
+
             ![](https://vedo.embl.es/images/basic/tube.png)
         """
 
@@ -1737,12 +1737,12 @@ class Ribbon(Mesh):
         alpha=1,
     ):
         """
-        Args:
+        Arguments:
             mode : (int)
                 If mode=0, resample evenly the input lines (based on length)
                 and generates triangle strips.
 
-                If mode=1, use the existing points and walks around the 
+                If mode=1, use the existing points and walks around the
                 polyline using existing points.
 
             closed : (bool)
@@ -1752,7 +1752,7 @@ class Ribbon(Mesh):
 
         Examples:
             - [ribbon.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/ribbon.py)
-            
+
             ![](https://vedo.embl.es/images/basic/ribbon.png)
         """
 
@@ -1865,7 +1865,7 @@ class Arrow(Mesh):
         c="r4",
         alpha=1,
     ):
-        """            
+        """
         If `c` is a `float` less than 1, the arrow is rendered as a in a color scale
         from white to red.
 
@@ -1974,10 +1974,10 @@ class Arrows(Glyph):
         """
         Build arrows between two lists of points `start_pts` and `end_pts`.
          `start_pts` can be also passed in the form `[[point1, point2], ...]`.
-        
+
         Color can be specified as a colormap which maps the size of the arrows.
 
-        Args:
+        Arguments:
             s : (float)
                 fix aspect-ratio of the arrow and scale its cross section
             c : (color)
@@ -2060,8 +2060,8 @@ class Arrow2D(Mesh):
     ):
         """
         Build a 2D arrow from `start_pt` to `end_pt`.
-        
-        Args:
+
+        Arguments:
             s : (float)
                 a global multiplicative convenience factor controlling the arrow size
             shaft_length : (float)
@@ -2165,7 +2165,7 @@ class Arrows2D(Glyph):
 
         Color can be specified as a colormap which maps the size of the arrows.
 
-        Args:
+        Arguments:
             shaft_length : (float)
                 fractional shaft length
             shaft_width : (float)
@@ -2486,7 +2486,7 @@ class Sphere(Mesh):
         """
         Build a sphere at position `pos` of radius `r`.
 
-        Args:
+        Arguments:
             r : (float)
                 sphere radius
             res : (int, list)
@@ -2557,7 +2557,7 @@ class Spheres(Mesh):
 
         Examples:
             - [manyspheres.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/manyspheres.py)
-            
+
             ![](https://vedo.embl.es/images/basic/manyspheres.jpg)
         """
 
@@ -2652,7 +2652,7 @@ class Earth(Mesh):
         """
         Build a textured mesh representing the Earth.
 
-        Example: 
+        Example:
             - [geodesic.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/geodesic.py)
 
             ![](https://vedo.embl.es/images/advanced/geodesic.png)
@@ -2689,7 +2689,7 @@ class Ellipsoid(Mesh):
         """
         Build a 3D ellipsoid centered at position `pos`.
 
-        Args:
+        Arguments:
             axis1 : (list)
                 First axis
             axis2 : (list)
@@ -2830,7 +2830,7 @@ class Grid(Mesh):
         """
         Return an even or uneven 2D grid.
 
-        Args:
+        Arguments:
             s : (float, list)
                 if a float is provided it is interpreted as the total size along x and y,
                 if a list of coords is provided they are interpreted as the vertices of the grid along x and y.
@@ -2907,7 +2907,7 @@ class Plane(Mesh):
         Create a plane of size `s=(xsize, ysize)` oriented perpendicular to vector `normal`
         and so that it passes through point `pos`.
 
-        Args:
+        Arguments:
             normal : (list)
                 normal vector to the plane
         """
@@ -2971,7 +2971,7 @@ class Rectangle(Mesh):
         """
         Build a rectangle in the xy plane identified by any two corner points.
 
-        Args:
+        Arguments:
             p1 : (list)
                 bottom-left position of the corner
             p2 : (list)
@@ -3069,7 +3069,7 @@ class Box(Mesh):
 
         Examples:
             - [aspring.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/aspring.py)
-            
+
             ![](https://vedo.embl.es/images/simulations/50738955-7e891800-11d9-11e9-85cd-02bd4f3f13ea.gif)
         """
         if len(size) == 6:
@@ -3144,7 +3144,7 @@ class TessellatedBox(Mesh):
         """
         Build a cubic `Mesh` made of `n` small quads in the 3 axis directions.
 
-        Args:
+        Arguments:
             pos : (list)
                 position of the left bottom corner
             n : (int, list)
@@ -3199,7 +3199,7 @@ class Spring(Mesh):
         """
         Build a spring of specified nr of `coils` between `start_pt` and `end_pt`.
 
-        Args:
+        Arguments:
             coils : (int)
                 number of coils
             r1 : (float)
@@ -3551,7 +3551,7 @@ class Brace(Mesh):
         """
         Create a brace (bracket) shape which spans from point q1 to point q2.
 
-        Args:
+        Arguments:
             q1 : (list)
                 point 1.
             q2 : (list)
@@ -3900,7 +3900,7 @@ class Text3D(Mesh):
 
         More fonts at: https://vedo.embl.es/fonts/
 
-        Args:
+        Arguments:
             pos : (list)
                 position coordinates in 3D space
             s : (float)
@@ -4336,7 +4336,7 @@ class Text2D(vtk.vtkActor2D, TextBase):
         All properties of the text, and the text itself, can be changed after creation
         (which is especially useful in loops).
 
-        Args:
+        Arguments:
             pos : (str)
                 text is placed in one of the 8 positions:
                 - bottom-left
@@ -4599,7 +4599,7 @@ class Latex(Picture):
         """
         Render Latex text and formulas.
 
-        Args:
+        Arguments:
             formula : (str)
                 latex text string
             pos : (list)
@@ -4686,7 +4686,7 @@ class ConvexHull(Mesh):
 
         Examples:
             - [convexHull.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/convexHull.py)
-            
+
             ![](https://vedo.embl.es/images/advanced/convexHull.png)
         """
         if utils.is_sequence(pts):
@@ -4719,7 +4719,7 @@ def VedoLogo(distance=0, c=None, bc="t", version=False, frame=True):
     """
     Create the 3D vedo logo.
 
-    Args:
+    Arguments:
         distance : (float)
             send back logo by this distance from camera
         version : (bool)

@@ -33,7 +33,7 @@ class UGrid(vtk.vtkActor, BaseGrid):
             inputobj : (list, vtkUnstructuredGrid, str)
                 A list in the form `[points, cells, celltypes]`,
                 or a vtkUnstructuredGrid object, or a filename
-        
+
         Celltypes are identified by the following convention:
             - VTK_TETRA = 10
             - VTK_VOXEL = 11

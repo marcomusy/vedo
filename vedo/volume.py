@@ -157,7 +157,7 @@ class BaseVolume:
         This method modifies the spacing of the input.
         Linear interpolation is used to resample the data.
 
-        Args:
+        Arguments:
             new_spacing : (list)
                 a list of 3 new spacings for the 3 axes
             interpolation : (int)
@@ -237,7 +237,7 @@ class BaseVolume:
         """
         Crop a `Volume` object.
 
-        Args:
+        Arguments:
             left : (float)
                 fraction to crop from the left plane (negative x)
             right : (float)
@@ -362,7 +362,7 @@ class BaseVolume:
 
     def operation(self, operation, volume2=None):
         """
-        Perform operations with `Volume` objects. 
+        Perform operations with `Volume` objects.
         Keyword `volume2` can be a constant float.
 
         Possible operations are:
@@ -491,7 +491,7 @@ class BaseVolume:
         A simple high-pass filter would simply mask a set of pixels in the frequency domain,
         but the abrupt transition would cause a ringing effect in the spatial domain.
 
-        Args:
+        Arguments:
             low_cutoff : (list)
                 the cutoff frequencies for x, y and z
             high_cutoff : (list)
@@ -535,7 +535,7 @@ class BaseVolume:
         """
         Performs a convolution of the input Volume with a gaussian.
 
-        Args:
+        Arguments:
             sigma : (float, list)
                 standard deviation(s) in voxel units.
                 A list can be given to smooth in the three direction differently.
@@ -630,7 +630,7 @@ class BaseVolume:
 
         Check out also: https://en.wikipedia.org/wiki/Distance_transform
 
-        Args:
+        Arguments:
             anisotropy : bool
                 used to define whether Spacing should be used in the
                 computation of the distances.
@@ -759,7 +759,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
 
         Examples:
             - [numpy2volume1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/numpy2volume1.py)
-                
+
                 ![](https://vedo.embl.es/images/volumetric/numpy2volume1.png)
 
             - [read_volume2.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/read_volume2.py)
@@ -985,7 +985,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
     def cmap(self, c, alpha=None, vmin=None, vmax=None):
         """Same as `color()`.
 
-        Args:
+        Arguments:
             alpha : (list)
                 use a list to specify transparencies along the scalar range
             vmin : (float)
@@ -1128,7 +1128,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
 
         Example:
             - [slicePlane1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slicePlane1.py)
-            
+
             ![](https://vedo.embl.es/images/volumetric/slicePlane1.gif)
         """
         reslice = vtk.vtkImageReslice()
@@ -1158,10 +1158,10 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
 
     def warp(self, source, target, sigma=1, mode="3d", fit=False):
         """
-        Warp volume scalars within a Volume by specifying 
+        Warp volume scalars within a Volume by specifying
         source and target sets of points.
 
-        Args:
+        Arguments:
             source : (Points, list)
                 the list of source points
             target : (Points, list)
@@ -1211,7 +1211,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         """
         Apply a transform to the scalars in the volume.
 
-        Args:
+        Arguments:
             T : (vtkTransform, matrix)
                 The transformation to be applied
             fit : (bool)
@@ -1410,7 +1410,7 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
         """
         Make a thick slice (slab).
 
-        Args:
+        Arguments:
             thickness : (float)
                 set the slab thickness, for thick slicing
             mode : (int)

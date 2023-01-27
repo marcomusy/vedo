@@ -52,7 +52,7 @@ class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
     """
     Create a 2D legend box for the list of specified objects
 
-    Args:
+    Arguments:
         nmax : (int)
             max number of legend entries
         c : color
@@ -205,7 +205,7 @@ class Button:
         Examples:
             - [buttons.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/buttons.py)
             - [timer_callback2.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/timer_callback2.py)
-            
+
                 ![](https://vedo.embl.es/images/advanced/timer_callback1.jpg)
         """
         self.status_idx = 0
@@ -286,7 +286,7 @@ class SplineTool(vtk.vtkContourWidget):
     """
     Spline tool, to be used with ``plotter.add_spline_tool()``.
 
-    Args:
+    Arguments:
         points : (list), Points
             initial set of points.
         pc : (str)
@@ -462,7 +462,7 @@ def Goniometer(
     """
     Build a graphical goniometer to measure the angle formed by 3 points in space.
 
-    Args:
+    Arguments:
         p1 : (list)
             first point 3D coordinates.
         p2 : (list)
@@ -494,7 +494,7 @@ def Goniometer(
 
     Examples:
         - [goniometer.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/goniometer.py)
-        
+
             ![](https://vedo.embl.es/images/pyplot/goniometer.png)
     """
     if isinstance(p1, Points): p1 = p1.GetPosition()
@@ -561,7 +561,7 @@ def Light(
     Generate a source of light placed at pos, directed to focal point.
     Returns a ``vtkLight`` object.
 
-    Args:
+    Arguments:
         focal_point : (list)
             focal point, if this is a vedo object use its position.
         angle : (float)
@@ -576,7 +576,7 @@ def Light(
 
     Examples:
         - [lights.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/lights.py)
-        
+
     ![](https://vedo.embl.es/images/basic/lights.png)
     """
     if c is None:
@@ -625,7 +625,7 @@ def ScalarBar(
     """
     A 2D scalar bar for the specified obj.
 
-    Args:
+    Arguments:
         pos : (list)
             fractional x and y position in the 2D window
         size : (list)
@@ -776,7 +776,7 @@ def ScalarBar3D(
         - a ``Mesh`` already containing a set of scalars associated to vertices or cells,
         - if ``None`` the last object in the list of actors will be used.
 
-    Args:
+    Arguments:
         s : (list)
             (thickness, length) of scalarbar
         title : (str)
@@ -1092,7 +1092,7 @@ def add_slider(
 
     Set any value as float to increase the number of significant digits above the slider.
 
-    Args:
+    Arguments:
         sliderfunc : (function)
             external function to be called by the widget
         xmin : (float)
@@ -1135,7 +1135,7 @@ def add_slider(
     Examples:
         - [sliders1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders1.py)
         - [sliders2.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders2.py)
-        
+
         ![](https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg)
     """
     options = dict(options)
@@ -1329,7 +1329,7 @@ def add_slider3d(
     """
     Add a 3D slider widget which can call an external custom function.
 
-    Args:
+    Arguments:
         sliderfunc : (function)
             external function to be called by the widget
         pos1 : (list)
@@ -1427,7 +1427,7 @@ def add_button(
     """
     Add a button to the renderer window.
 
-    Args:
+    Arguments:
         fnc : (function)
             external function to be called by the widget
         states : (list)
@@ -1471,7 +1471,7 @@ def add_cutter_tool(obj=None, mode="box", invert=False):
     """
     Create an interactive tool to cut away parts of a mesh or volume.
 
-    Args:
+    Arguments:
         mode : (str)
             either "box", "plane" or "sphere"
         invert : (bool)
@@ -1744,7 +1744,7 @@ def add_renderer_frame(plotter_instance, c=None, alpha=None, lw=None, padding=No
     """
     Add a line around the renderer subwindow.
 
-    Args:
+    Arguments:
         c : (color)
             color of the line.
         alpha : (float)
@@ -1814,7 +1814,7 @@ def add_icon(mesh, pos=3, size=0.08):
     """
     Add an inset icon mesh into the renderer.
 
-    Args:
+    Arguments:
         pos : (list, int)
             icon position in the range [1-4] indicating one of the 4 corners,
             or it can be a tuple (x,y) as a fraction of the renderer size.
@@ -1908,7 +1908,7 @@ def Ruler(
     """
     Build a 3D ruler to indicate the distance of two points p1 and p2.
 
-    Args:
+    Arguments:
         label : (str)
             alternative fixed label to be shown
         units_scale : (float)
@@ -1934,7 +1934,7 @@ def Ruler(
 
     Examples:
         - [goniometer.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/goniometer.py)
-        
+
         ![](https://vedo.embl.es/images/pyplot/goniometer.png)
     """
     if units_scale != 1.0 and units == "":
@@ -2031,7 +2031,7 @@ def RulerAxes(
     """
     A 3D ruler axes to indicate the sizes of the input scene or object.
 
-    Args:
+    Arguments:
         xtitle : (str)
             name of the axis or title
         xlabel : (str)
@@ -2153,7 +2153,7 @@ class Ruler2D(vtk.vtkAxisActor2D):
     The way the labels and title line up with the axis and tick marks
     depends on whether the line is considered horizontal or vertical.
 
-    Args:
+    Arguments:
         lw : (int)
             width of the line in pixel units
         ticks : (bool)
@@ -2374,7 +2374,7 @@ def add_scale_indicator(pos=(0.7, 0.05), s=0.02, length=2, lw=4, c="k", units=""
     """
     Add a Scale Indicator.
 
-    Args:
+    Arguments:
         pos : (list)
             fractional (x,y) position on the screen.
         s : (float)
