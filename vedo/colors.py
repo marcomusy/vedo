@@ -16,8 +16,9 @@ import vedo
 __docformat__ = "google"
 
 __doc__ = """
-Colors definitions and printing methods. <br>
-.. image:: https://vedo.embl.es/images/basic/colorcubes.png
+Colors definitions and printing methods.
+
+![](https://vedo.embl.es/images/basic/colorcubes.png)
 """
 
 __all__ = [
