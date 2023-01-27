@@ -1,7 +1,16 @@
+
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
+[![Anaconda-Server Badge](https://anaconda.org/conda-forge/vedo/badges/version.svg)](https://anaconda.org/conda-forge/vedo)
+[![Ubuntu 22.10 package](https://repology.org/badge/version-for-repo/ubuntu_22_10/vedo.svg)](https://repology.org/project/vedo/versions)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5842090.svg)](https://doi.org/10.5281/zenodo.5842090)
+
 ![](https://user-images.githubusercontent.com/32848391/46815773-dc919500-cd7b-11e8-8e80-8b83f760a303.png)
+
 
 A python module for scientific analysis of 3D objects and
 point clouds based on [VTK](https://www.vtk.org/) and [numpy](http://www.numpy.org/).
+
+Check out the [GitHub repository here](https://github.com/marcomusy/vedo).
 
 ## Install and Test
 ```bash
@@ -29,42 +38,47 @@ vedo https://vedo.embl.es/examples/data/panther.stl.gz
 
 Pressing `h` will then show a number of options to interact with your 3D scene:
 
-     ==========================================================
-    | Press: i     print info about selected object            |
-    |        I     print the RGB color under the mouse         |
-    |        <-->  use arrows to reduce/increase opacity       |
-    |        w/s   toggle wireframe/surface style              |
-    |        p/P   change point size of vertices               |
-    |        l     toggle edges visibility                     |
-    |        x     toggle mesh visibility                      |
-    |        X     invoke a cutter widget tool                 |
-    |        1-3   change mesh color                           |
-    |        4     use data array as colors, if present        |
-    |        5-6   change background color(s)                  |
-    |        09+-  (on keypad) or +/- to cycle axes style      |
-    |        k     cycle available lighting styles             |
-    |        K     cycle available shading styles              |
-    |        A     toggle anti-aliasing                        |
-    |        D     toggle depth-peeling (for transparencies)   |
-    |        o/O   add/remove light to scene and rotate it     |
-    |        n     show surface mesh normals                   |
-    |        a     toggle interaction to Actor Mode            |
-    |        j     toggle interaction to Joystick Mode         |
-    |        u     toggle perspective/parallel projection      |
-    |        r     reset camera position                       |
-    |        C     print current camera settings               |
-    |        S     save a screenshot                           |
-    |        E     export rendering window to numpy file       |
-    |        q     return control to python script             |
-    |        Esc   abort execution and exit python kernel      |
-    |----------------------------------------------------------|
-    | Mouse: Left-click    rotate scene / pick actors          |
-    |        Middle-click  pan scene                           |
-    |        Right-click   zoom scene in or out                |
-    |        Cntrl-click   rotate scene                        |
-     ==========================================================
+    ============================================================
+    | Press: i     print info about selected object              |
+    |        I     print the RGB color under the mouse           |
+    |        <-->  use arrows to reduce/increase opacity         |
+    |        w/s   toggle wireframe/surface style                |
+    |        p/P   change point size of vertices                 |
+    |        l     toggle edges visibility                       |
+    |        x     toggle mesh visibility                        |
+    |        X     invoke a cutter widget tool                   |
+    |        1-3   change mesh color                             |
+    |        4     use data array as colors, if present          |
+    |        5-6   change background color(s)                    |
+    |        09+-  (on keypad) or +/- to cycle axes style        |
+    |        k     cycle available lighting styles               |
+    |        K     cycle available shading styles                |
+    |        A     toggle anti-aliasing                          |
+    |        D     toggle depth-peeling (for transparencies)     |
+    |        o/O   add/remove light to scene and rotate it       |
+    |        n     show surface mesh normals                     |
+    |        a     toggle interaction to Actor Mode              |
+    |        j     toggle interaction to Joystick Mode           |
+    |        u     toggle perspective/parallel projection        |
+    |        r     reset camera position                         |
+    |        R     reset camera orientation to orthogonal view   |
+    |        .     fly camera towards last clicked point         |
+    |        C     print current camera settings                 |
+    |        S     save a screenshot                             |
+    |        E/F   export 3D scene to numpy file or X3D          |
+    |        q     return control to python script               |
+    |        Esc   abort execution and exit python kernel        |
+    |------------------------------------------------------------|
+    | Mouse: Left-click    rotate scene / pick actors            |
+    |        Middle-click  pan scene                             |
+    |        Right-click   zoom scene in or out                  |
+    |        Cntrl-click   rotate scene                          |
+    |------------------------------------------------------------|
+    |   Check out the documentation at:  https://vedo.embl.es    |
+    ============================================================
+   
 
-### export your 3D scene to file
+## Export your 3D scene to file
 You can export it to a vedo file, which is actually a normal `numpy` file by pressing `E`
 in your 3D scene, the you can interact with it normally using for example the key bindings shown above.
 
@@ -72,13 +86,13 @@ Another way is to export to a template html web page by pressing `F` using `x3d`
 You can also export it programmatically in `k3d` from a jupyter notebook.
 
 
-### file format conversion
+## File format conversion
 You can convert on the fly a file (or multiple files) to a different format with
 ```bash
 vedo --convert bunny.obj --to ply
 ```
 
-### some useful bash aliases
+### Some useful bash aliases
 ```bash
 alias vr='vedo --run '        # to search and run examples by name
 alias vs='vedo -i --search '  # to search for a string in examples

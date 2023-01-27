@@ -385,7 +385,7 @@ class Plotter:
                 render in a Qt-Widget using an QVTKRenderWindowInteractor.
                 Overrides offscreen to True.
                 Overrides interactive to False.
-                See Also: Example qt_windows1.py and qt_windows2.py
+                See examples `qt_windows1.py` and `qt_windows2.py`
         """
 
         if backend != "":
@@ -1554,6 +1554,8 @@ class Plotter:
 
         Examples:
             - [spline_tool.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/spline_tool.py)
+
+            ![](https://vedo.embl.es/images/basic/spline_tool.png)
         """
         sw = addons.SplineTool(points, pc, ps, lc, ac, lw, closed)
         if self.interactor:
@@ -1601,7 +1603,7 @@ class Plotter:
             size : (float)
                 size of the square inset.
 
-        Examples"
+        Examples:
             - [icon.py](https://github.com/marcomusy/vedo/tree/master/examples/other/icon.py)
         """
         return addons.add_icon(icon, pos, size)
@@ -1656,7 +1658,10 @@ class Plotter:
     def add_legend_box(self, **kwargs):
         """Add a legend to the top right.
 
-        .. hint:: examples/basic/legendbox.py, examples/other/flag_labels1.py, flag_labels2.py
+        Examples:
+            - [legendbox.py](https://github.com/marcomusy/vedo/blob/master/examples/examples/basic/legendbox.py),
+            - [flag_labels1.py](https://github.com/marcomusy/vedo/blob/master/examples/examples/other/flag_labels1.py)
+            - [flag_labels2.py](https://github.com/marcomusy/vedo/blob/master/examples/examples/other/flag_labels2.py)
         """
         acts = self.get_meshes()
         lb = addons.LegendBox(acts, **kwargs)
@@ -1775,6 +1780,8 @@ class Plotter:
 
         Examples:
             - [ssao.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/ssao.py)
+
+            ![](https://vedo.embl.es/images/basic/ssao.jpg)
         """
         lights = vtk.vtkLightsPass()
 
@@ -1929,6 +1936,8 @@ class Plotter:
         Examples:
             - [hoverLegend.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/hoverLegend.py)
             - [earthquake_browser.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/earthquake_browser.py)
+        
+            ![](https://vedo.embl.es/images/pyplot/earthquake_browser.jpg)
         """
         hoverLegend = vedo.shapes.Text2D('', pos=pos, font=font, c=c, s=s, alpha=alpha, bg=bg)
 
@@ -2279,6 +2288,9 @@ class Plotter:
         Examples:
             - [spline_draw.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/spline_draw.py)
             - [colorlines.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/colorlines.py)
+
+                ![](https://vedo.embl.es/images/advanced/spline_draw.png)
+
             - ..and many others!
         """
         if not self.interactor:
@@ -2380,6 +2392,8 @@ class Plotter:
         Examples:
             - [timer_callback1.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/timer_callback1.py)
             - [timer_callback2.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/timer_callback2.py)
+        
+            ![](https://vedo.embl.es/images/advanced/timer_callback1.jpg)
         """
         if action in ("create", "start") :
             if one_shot:
@@ -2433,6 +2447,8 @@ class Plotter:
         Examples:
             - [cut_freehand.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/cut_freehand.py)
             - [mousehover3.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mousehover3.py)
+        
+            ![](https://vedo.embl.es/images/basic/mousehover3.jpg)
         """
         if at is not None:
             renderer = self.renderers[at]

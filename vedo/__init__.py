@@ -4,6 +4,17 @@
 .. include:: ../docs/documentation.md
 """
 
+##### To generate documentation ###############################################
+# cd Projects/vedo/docs/pdoc
+# pdoc vedo -o html -t . --footer-text "version 2023.4.3"  \
+#   --logo https://vedo.embl.es/images/logos/logo_vedo_simple_transp.png \
+#   --favicon https://vedo.embl.es/images/logos/favicon.svg 
+# chmod 755 html/ -R
+# mount_staging
+# rm ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/autodocs/html
+# mv html/ ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/autodocs/
+
+
 ######################################################################## imports
 import os
 import sys
@@ -49,23 +60,6 @@ __license__    = "MIT"
 __maintainer__ = "M. Musy"
 __email__      = "marco.musy@embl.es"
 __website__    = "https://github.com/marcomusy/vedo"
-
-
-
-##### To generate documentation #######################################################
-# cd Projects/vedo
-# pip uninstall vtk
-# pdoc vedo -o html
-# chmod 755 html/ -R
-# mount_staging
-# rm ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/autodocs/html
-# mv html/ ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/autodocs/
-# comment out below lines
-#
-# To generate pdf
-# sudo apt install wkhtmltopdf
-# wkhtmltopdf --encoding utf8 -s A4 html/vedo/index.html 01_index.pdf
-
 
 ##################################################################################
 ########################################################################## GLOBALS
