@@ -621,12 +621,13 @@ def get_color(rgb=None, hsv=None):
         return seqcol
 
     # because they are most common:
-    if rgb == "r":
-        return (0.9960784313725, 0.11764705882352, 0.121568627450980)
-    if rgb == "g":
-        return (0.0156862745098, 0.49803921568627, 0.062745098039215)
-    if rgb == "b":
-        return (0.0588235294117, 0.0, 0.984313725490196)
+    if isinstance(rgb, str):
+        if rgb == "r":
+            return (0.9960784313725, 0.11764705882352, 0.121568627450980)
+        elif rgb == "g":
+            return (0.0156862745098, 0.49803921568627, 0.062745098039215)
+        elif rgb == "b":
+            return (0.0588235294117, 0.0, 0.984313725490196)
 
     if str(rgb).isdigit():
         rgb = int(rgb)

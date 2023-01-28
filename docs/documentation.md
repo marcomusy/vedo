@@ -270,9 +270,9 @@ pyinstaller myscript.spec
 See also an example [here](https://github.com/marcomusy/welsh_embryo_stager/blob/main/stager.spec).
 
 
-.. include:: ../docs/tutorials.md
+<!-- .. include:: ../docs/tutorials.md -->
 
-## Getting more help
+## Getting help
 Check out the [**Github repository**](https://github.com/marcomusy/vedo)
 for more information, where you can ask questions and report issues.
 You are also welcome to post specific questions on the [**image.sc**](https://forum.image.sc/) forum,

@@ -1,24 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#
+##### To generate documentation
+# cd ~/Projects/vedo/docs/pdoc
+# ./build_html.py
+###############################
 """
 .. include:: ../docs/documentation.md
 """
 
-##### To generate documentation ###############################################
-# cd Projects/vedo/docs/pdoc
-# pdoc vedo -o html -t . --footer-text "version 2023.4.3"  \
-#   --logo https://vedo.embl.es/images/logos/logo_vedo_simple_transp.png \
-#   --favicon https://vedo.embl.es/images/logos/favicon.svg 
-# chmod 755 html/ -R
-# mount_staging
-# rm ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/autodocs/html
-# mv html/ ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/autodocs/
-
-
 ######################################################################## imports
 import os
 import sys
-import warnings
+# import warnings
 import logging
 import numpy as np
 from numpy import sin, cos, sqrt, exp, log, dot, cross  # just because handy
@@ -54,24 +48,20 @@ try:
 except (ModuleNotFoundError, AttributeError) as e:
     sys_platform = ""
 
-#######################################################################################
+######################################################################### GLOBALS
 __author__     = "Marco Musy"
 __license__    = "MIT"
 __maintainer__ = "M. Musy"
 __email__      = "marco.musy@embl.es"
 __website__    = "https://github.com/marcomusy/vedo"
 
-##################################################################################
-########################################################################## GLOBALS
+
+##########################################################################
 vtk_version = (
     int(vtkVersion().GetVTKMajorVersion()),
     int(vtkVersion().GetVTKMinorVersion()),
     int(vtkVersion().GetVTKBuildVersion()),
 )
-
-# if vtk_version[0] >= 9:
-#     if "Windows" in sys_platform or "Linux" in sys_platform:
-#         settings.use_depth_peeling = True
 
 installdir = os.path.dirname(__file__)
 dataurl = "https://vedo.embl.es/examples/data/"
@@ -83,8 +73,10 @@ notebook_backend = None
 ## fonts
 fonts_path = os.path.join(installdir, "fonts/")
 
-## a fatal error occurs when compiling to exe,
-## developer needs to copy the fonts folder to the same location as the exe file to solve this problem
+# Note:
+# a fatal error occurs when compiling to exe,
+# developer needs to copy the fonts folder to the same location as the exe file
+# to solve this problem
 if not os.path.exists(fonts_path):
     fonts_path = "fonts/"
 
@@ -95,7 +87,7 @@ fonts = list(sorted(fonts))
 last_figure = None
 
 
-######################################################################### logging
+######################################################################### LOGGING
 class _LoggingCustomFormatter(logging.Formatter):
 
     logformat = "[vedo.%(filename)s:%(lineno)d] %(levelname)s: %(message)s"
@@ -130,10 +122,10 @@ logger.addHandler(_chsh)
 logger.setLevel(logging.INFO)
 
 ################################################# silence annoying messages
-warnings.simplefilter(action="ignore", category=FutureWarning)
-try:
-    np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
-except AttributeError:
-    pass
+# warnings.simplefilter(action="ignore", category=FutureWarning)
+# try:
+#     np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
+# except AttributeError:
+#     pass
 
 
