@@ -79,8 +79,9 @@ def _to2d(actor, offset, z, scale):
 
 ##########################################################################
 class LabelData:
-    """Helper internal class to hold label information"""
+    """Helper internal class to hold label information."""
     def __init__(self):
+        """Helper internal class to hold label information."""
         self.text = "dataset"
         self.tcolor = "black"
         self.marker = "s"
@@ -89,6 +90,7 @@ class LabelData:
 
 ##########################################################################
 class Figure(Assembly):
+    """Format class for figures."""
     def __init__(
             self,
             xlim,
@@ -98,6 +100,8 @@ class Figure(Assembly):
             **kwargs,
         ):
         """
+        Create an empty formatted figure for plotting.
+
         Arguments:
             xlim : (list)
                 range of the x-axis as [x0, x1]
@@ -116,7 +120,7 @@ class Figure(Assembly):
             grid : (bool)
                 show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
             axes : (dict)
-                an extra dictionary of options for the axes
+                an extra dictionary of options for the `vedo.addons.Axes` object
         """
 
         self.xlim = np.asarray(xlim)
@@ -808,8 +812,8 @@ class Histogram1D(Figure):
             xlim = [_x0, _x1]
 
         # purge NaN from data
-        validIds = np.all(np.logical_not(np.isnan(data)))
-        data = np.array(data[validIds]).ravel()
+        valid_ids = np.all(np.logical_not(np.isnan(data)))
+        data = np.asarray(data[valid_ids]).ravel()
 
         fs, edges = np.histogram(data, bins=bins, weights=weights, range=xlim)
         binsize = edges[1] - edges[0]
@@ -1544,7 +1548,7 @@ class PlotXY(Figure):
                 color of error bar, by default the same as marker color
             error_band : (bool)
                 represent errors on y as a filled error band.
-                Use ``ec`` keyword to modify its color.
+                Use `ec` keyword to modify its color.
             marker : (str, int)
                 use a marker for the data points
             ms : (float)
@@ -1847,7 +1851,7 @@ def plot(*args, **kwargs):
             color of error bar, by default the same as marker color
         error_band : (bool)
             represent errors on y as a filled error band.
-            Use ``ec`` keyword to modify its color.
+            Use `ec` keyword to modify its color.
         marker : (str, int)
             use a marker for the data points
         ms : (float)
@@ -1976,7 +1980,7 @@ def plot(*args, **kwargs):
     --------------------------------------------------------------------
     .. note:: mode="complex"
 
-    If ``mode='complex'`` draw the real value of the function and color map the imaginary part.
+    If `mode='complex'` draw the real value of the function and color map the imaginary part.
 
     Arguments:
         cmap : (str)
@@ -1995,7 +1999,7 @@ def plot(*args, **kwargs):
     --------------------------------------------------------------------
     .. note:: mode="polar"
 
-    If ``mode='polar'`` input arrays are interpreted as a list of polar angles and radii.
+    If `mode='polar'` input arrays are interpreted as a list of polar angles and radii.
     Build a polar (radar) plot by joining the set of points in polar coordinates.
 
     Arguments:
@@ -2047,10 +2051,10 @@ def plot(*args, **kwargs):
     --------------------------------------------------------------------
     .. note:: mode="spheric"
 
-    If ``mode='spheric'`` input must be an external function rho(theta, phi).
+    If `mode='spheric'` input must be an external function rho(theta, phi).
     A surface is created in spherical coordinates.
 
-    Return an ``Figure(Assembly)`` of 2 objects: the unit
+    Return an `Figure(Assembly)` of 2 objects: the unit
     sphere (in wireframe representation) and the surface `rho(theta, phi)`.
 
     Arguments:
@@ -2289,7 +2293,7 @@ def histogram(*args, **kwargs):
     -------------------------------------------------------------------------
     .. note:: mode="3d"
 
-    If ``mode='3d'``, build a 2D histogram as 3D bars from a list of x and y values.
+    If `mode='3d'`, build a 2D histogram as 3D bars from a list of x and y values.
 
     Arguments:
         xtitle : (str)
@@ -2316,7 +2320,7 @@ def histogram(*args, **kwargs):
     -------------------------------------------------------------------------
     .. note:: mode="hexbin"
 
-    If ``mode='hexbin'``, build a hexagonal histogram from a list of x and y values.
+    If `mode='hexbin'`, build a hexagonal histogram from a list of x and y values.
 
     Arguments:
         xtitle : (str)
@@ -2341,7 +2345,7 @@ def histogram(*args, **kwargs):
     -------------------------------------------------------------------------
     .. note:: mode="polar"
 
-    If ``mode='polar'`` assume input is polar coordinate system (rho, theta):
+    If `mode='polar'` assume input is polar coordinate system (rho, theta):
 
     Arguments:
         weights : (list)
@@ -2401,7 +2405,7 @@ def histogram(*args, **kwargs):
     -------------------------------------------------------------------------
     .. note:: mode="spheric"
 
-    If ``mode='spheric'``, build a histogram from list of theta and phi values.
+    If `mode='spheric'`, build a histogram from list of theta and phi values.
 
     Arguments:
         rmax : (float)
@@ -2500,8 +2504,8 @@ def fit(
     - `fitd.reduced_chi2`, reduced chi-square of the fitting
     - `fitd.ndof`, number of degrees of freedom
     - `fitd.data_sigma`, mean data dispersion from the central fit assuming `Chi2=1`
-    - `fitd.error_lines`, a ``vedo.shapes.Line`` object for the upper and lower error band
-    - `fitd.error_band`, the ``vedo.mesh.Mesh`` object representing the error band
+    - `fitd.error_lines`, a `vedo.shapes.Line` object for the upper and lower error band
+    - `fitd.error_band`, the `vedo.mesh.Mesh` object representing the error band
 
     Errors on x and y can be specified. If left to `None` an estimate is made from
     the statistical spread of the dataset itself. Errors are always assumed gaussian.
@@ -3655,7 +3659,7 @@ def streamplot(
 ):
     """
     Generate a streamline plot of a vectorial field (U,V) defined at positions (X,Y).
-    Returns a ``Mesh`` object.
+    Returns a `Mesh` object.
 
     Arguments:
         direction : (str)
@@ -3750,7 +3754,7 @@ def matrix(
     """
     Generate a matrix, or a 2D color-coded plot with bin labels.
 
-    Returns an ``Assembly`` object.
+    Returns an `Assembly` object.
 
     Arguments:
         M : (list, numpy array)
@@ -3871,7 +3875,7 @@ def matrix(
 
 def CornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True, dots=True):
     """
-    Return a ``vtkXYPlotActor`` that is a plot of `x` versus `y`,
+    Return a `vtkXYPlotActor` that is a plot of `x` versus `y`,
     where `points` is a list of `(x,y)` points.
 
     Assign position following this convention:
@@ -3968,9 +3972,9 @@ def CornerHistogram(
     Build a histogram from a list of values in n bins.
     The resulting object is a 2D actor.
 
-    Use ``vrange`` to restrict the range of the histogram.
+    Use `vrange` to restrict the range of the histogram.
 
-    Use ``nmax`` to limit the sampling to this max nr of entries
+    Use `nmax` to limit the sampling to this max nr of entries
 
     Use `pos` to assign its position:
         - 1, topleft,
@@ -4018,87 +4022,88 @@ def CornerHistogram(
 
 class DirectedGraph(Assembly):
     """
-    A graph consists of a collection of nodes (without postional information)
-    and a collection of edges connecting pairs of nodes.
-    The task is to determine the node positions only based on their connections.
-
-    This class is derived from class ``Assembly``, and it assembles 4 Mesh objects
-    representing the graph, the node labels, edge labels and edge arrows.
-
-    Arguments:
-        c : (color)
-            Color of the Graph
-        n : (int)
-            number of the initial set of nodes
-        layout : (int, str)
-            layout in
-            `['2d', 'fast2d', 'clustering2d', 'circular', 'circular3d', 'cone', 'force', 'tree']`.
-            Each of these layouts has different available options.
-
-
-    ---------------------------------------------------------------
-    .. note:: Options for layouts '2d', 'fast2d' and 'clustering2d'
-
-    Arguments:
-        seed : (int)
-            seed of the random number generator used to jitter point positions
-        rest_distance : (float)
-            manually set the resting distance
-        nmax : (int)
-            the maximum number of iterations to be used
-        zrange : (list)
-            expand 2d graph along z axis.
-
-    ---------------------------------------------------------------
-    .. note:: Options for layouts 'circular', and 'circular3d':
-
-    Arguments:
-        radius : (float)
-            set the radius of the circles
-        height : (float)
-            set the vertical (local z) distance between the circles
-        zrange : (float)
-            expand 2d graph along z axis
-
-    ---------------------------------------------------------------
-    .. note:: Options for layout 'cone'
-
-    Arguments:
-        compactness : (float)
-            ratio between the average width of a cone in the tree,
-            and the height of the cone.
-        compression : (bool)
-            put children closer together, possibly allowing sub-trees to overlap.
-            This is useful if the tree is actually the spanning tree of a graph.
-        spacing : (float)
-            space between layers of the tree
-
-    ---------------------------------------------------------------
-    .. note:: Options for layout 'force'
-
-    Arguments:
-        seed : (int)
-            seed the random number generator used to jitter point positions
-        bounds : (list)
-            set the region in space in which to place the final graph
-        nmax : (int)
-            the maximum number of iterations to be used
-        three_dimensional : (bool)
-            allow optimization in the 3rd dimension too
-        random_initial_points : (bool)
-            use random positions within the graph bounds as initial points
-
-    Examples:
-        - [lineage_graph.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/lineage_graph.py)
-        
-            ![](https://vedo.embl.es/images/pyplot/graph_lineage.png)
-        
-        - [graph_network.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/graph_network.py)
-
-            ![](https://vedo.embl.es/images/pyplot/graph_network.png)
+    Support for Directed Graphs.
     """
-
     def __init__(self, **kargs):
+        """
+        A graph consists of a collection of nodes (without postional information)
+        and a collection of edges connecting pairs of nodes.
+        The task is to determine the node positions only based on their connections.
+
+        This class is derived from class `Assembly`, and it assembles 4 Mesh objects
+        representing the graph, the node labels, edge labels and edge arrows.
+
+        Arguments:
+            c : (color)
+                Color of the Graph
+            n : (int)
+                number of the initial set of nodes
+            layout : (int, str)
+                layout in
+                `['2d', 'fast2d', 'clustering2d', 'circular', 'circular3d', 'cone', 'force', 'tree']`.
+                Each of these layouts has different available options.
+
+        ---------------------------------------------------------------
+        .. note:: Options for layouts '2d', 'fast2d' and 'clustering2d'
+
+        Arguments:
+            seed : (int)
+                seed of the random number generator used to jitter point positions
+            rest_distance : (float)
+                manually set the resting distance
+            nmax : (int)
+                the maximum number of iterations to be used
+            zrange : (list)
+                expand 2d graph along z axis.
+
+        ---------------------------------------------------------------
+        .. note:: Options for layouts 'circular', and 'circular3d':
+
+        Arguments:
+            radius : (float)
+                set the radius of the circles
+            height : (float)
+                set the vertical (local z) distance between the circles
+            zrange : (float)
+                expand 2d graph along z axis
+
+        ---------------------------------------------------------------
+        .. note:: Options for layout 'cone'
+
+        Arguments:
+            compactness : (float)
+                ratio between the average width of a cone in the tree,
+                and the height of the cone.
+            compression : (bool)
+                put children closer together, possibly allowing sub-trees to overlap.
+                This is useful if the tree is actually the spanning tree of a graph.
+            spacing : (float)
+                space between layers of the tree
+
+        ---------------------------------------------------------------
+        .. note:: Options for layout 'force'
+
+        Arguments:
+            seed : (int)
+                seed the random number generator used to jitter point positions
+            bounds : (list)
+                set the region in space in which to place the final graph
+            nmax : (int)
+                the maximum number of iterations to be used
+            three_dimensional : (bool)
+                allow optimization in the 3rd dimension too
+            random_initial_points : (bool)
+                use random positions within the graph bounds as initial points
+
+        Examples:
+            - [lineage_graph.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/lineage_graph.py)
+            
+                ![](https://vedo.embl.es/images/pyplot/graph_lineage.png)
+            
+            - [graph_network.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/graph_network.py)
+
+                ![](https://vedo.embl.es/images/pyplot/graph_network.png)
+        """
 
         vedo.Assembly.__init__(self)
 
@@ -4237,7 +4242,7 @@ class DirectedGraph(Assembly):
 
 
     def add_node(self, label="id"):
-        """Add a new node to the ``Graph``."""
+        """Add a new node to the `Graph`."""
         v = self.mdg.AddVertex()  # vtk calls it vertex..
         self.nodes.append(v)
         if label == "id":
@@ -4279,7 +4284,7 @@ class DirectedGraph(Assembly):
 
     def build(self):
         """
-        Build the ``DirectedGraph(Assembly)``.
+        Build the `DirectedGraph(Assembly)`.
         Accessory objects are also created for labels and arrows.
         """
         self.gl.SetZRange(self.zrange)

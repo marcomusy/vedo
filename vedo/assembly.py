@@ -77,8 +77,8 @@ def procrustes_alignment(sources, rigid=False):
 #################################################
 class Group(vtk.vtkPropAssembly):
     """Form groups of generic objects (not necessarily meshes)."""
-
     def __init__(self, objects=()):
+        """Form groups of generic objects (not necessarily meshes)."""
 
         vtk.vtkPropAssembly.__init__(self)
 
@@ -210,14 +210,17 @@ class Group(vtk.vtkPropAssembly):
 class Assembly(vtk.vtkAssembly, vedo.base.Base3DProp):
     """
     Group many objects and treat them as a single new object.
-
-    Examples:
-        - [gyroscope1.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/gyroscope1.py)
-
-        ![](https://vedo.embl.es/images/simulations/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)
     """
     def __init__(self, *meshs):
+        """
+        Group many objects and treat them as a single new object,
+        keeping track of internal transformations.
 
+        Examples:
+            - [gyroscope1.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/gyroscope1.py)
+
+            ![](https://vedo.embl.es/images/simulations/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)
+        """
         vtk.vtkAssembly.__init__(self)
         vedo.base.Base3DProp.__init__(self)
 

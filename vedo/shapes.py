@@ -159,7 +159,6 @@ class Glyph(Mesh):
     Color can be specified as a colormap which maps the size of the orientation
     vectors in `orientation_array`.
     """
-
     def __init__(
             self,
             mesh,
@@ -339,7 +338,7 @@ class Tensors(Mesh):
         Arguments:
             source : (str, Mesh)
                 preset type of source shape
-                `['ellipsoid', 'cylinder', 'cube' or any specified ``Mesh``]`
+                `['ellipsoid', 'cylinder', 'cube' or any specified `Mesh`]`
             use_eigenvalues : (bool)
                 color source glyph using the eigenvalues or by scalars
             three_axes : (bool)
@@ -426,7 +425,6 @@ class Line(Mesh):
 
     A 2D set of coords can also be passed as `p0=[x..], p1=[y..]`.
     """
-
     def __init__(self, p0, p1=None, closed=False, res=2, lw=1, c="k1", alpha=1):
         """
         Arguments:
@@ -754,7 +752,6 @@ class DashedLine(Mesh):
     If `p0` is a list of points returns the line connecting them.
     A 2D set of coords can also be passed as `p0=[x..], p1=[y..]`.
     """
-
     def __init__(self, p0, p1=None, spacing=0.1, closed=False, lw=2, c="k5", alpha=1):
         """
         Arguments:
@@ -1052,27 +1049,27 @@ class Spline(Line):
     def __init__(self, points, smooth=0, degree=2, closed=False, res=None, easing=""):
         """
         Arguments:
-        smooth : (float)
-            smoothing factor.
-            - 0 = interpolate points exactly [default].
-            - 1 = average point positions.
-        degree : (int)
-            degree of the spline (1<degree<5)
-        easing : (str)
-            control sensity of points along the spline.
-            Available options are
-            `[InSine, OutSine, Sine, InQuad, OutQuad, InCubic, OutCubic, InQuart, OutQuart, InCirc, OutCirc].`
-            Can be used to create animations (move objects at varying speed).
-            See e.g.: https://easings.net
-        res : (int)
-            number of points on the spline
+            smooth : (float)
+                smoothing factor.
+                - 0 = interpolate points exactly [default].
+                - 1 = average point positions.
+            degree : (int)
+                degree of the spline (1<degree<5)
+            easing : (str)
+                control sensity of points along the spline.
+                Available options are
+                `[InSine, OutSine, Sine, InQuad, OutQuad, InCubic, OutCubic, InQuart, OutQuart, InCirc, OutCirc].`
+                Can be used to create animations (move objects at varying speed).
+                See e.g.: https://easings.net
+            res : (int)
+                number of points on the spline
 
         See also: `CSpline` and `KSpline`.
 
         Examples:
             - [spline_ease.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/spline_ease.py)
 
-            ![](https://vedo.embl.es/images/simulations/spline_ease.gif)
+                ![](https://vedo.embl.es/images/simulations/spline_ease.gif)
         """
         from scipy.interpolate import splprep, splev
 
@@ -1303,10 +1300,12 @@ class Bezier(Line):
 
 class NormalLines(Mesh):
     """
-    Build an ``Glyph`` made of the normals at cells shown as lines.
+    Build an `Glyph` made of the normals at cells shown as lines.
     """
     def __init__(self, mesh, ratio=1, on="cells", scale=1):
-        """If `on="points"` normals are shown at mesh vertices."""
+        """
+        If `on="points"` normals are shown at mesh vertices.
+        """
         poly = mesh.clone().compute_normals().polydata()
 
         if "cell" in on:
@@ -1874,7 +1873,7 @@ class Arrow(Mesh):
         If `c` is a `float` less than 1, the arrow is rendered as a in a color scale
         from white to red.
 
-        .. note:: If ``s=None`` the arrow is scaled proportionally to its length
+        .. note:: If `s=None` the arrow is scaled proportionally to its length
 
         ![](https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestOrientedArrow.png)
         """
@@ -2050,7 +2049,7 @@ class Arrows(Glyph):
 
 class Arrow2D(Mesh):
     """
-    Build a 2D arrow from `start_pt` to `end_pt`.
+    Build a 2D arrow.
     """
     def __init__(
         self,
@@ -2270,8 +2269,9 @@ class FlatArrow(Ribbon):
 
 
 class Triangle(Mesh):
-    """Create a triangle from 3 points in space"""
+    """Create a triangle from 3 points in space."""
     def __init__(self, p1, p2, p3, c="green7", alpha=1):
+        """Create a triangle from 3 points in space."""
         Mesh.__init__(self, [[p1,p2,p3], [[0,1,2]]], c, alpha)
         self.GetProperty().LightingOff()
         self.name = "Triangle"
@@ -2328,7 +2328,10 @@ class GeoCircle(Polygon):
         Build a Circle of radius `r` as projected on a geographic map.
         Circles near the poles will look very squashed.
 
-        See example `vedo -r earthquake`.
+        See example:
+            ```bash
+            vedo -r earthquake
+            ```
         """
         coords = []
         sinr, cosr = np.sin(r), np.cos(r)
@@ -2445,6 +2448,7 @@ class Arc(Mesh):
     ):
         """
         Build a 2D circular arc between 2 points `point1` and `point2`.
+
         If `normal` is specified then `center` is ignored, and
         normal vector, a starting `point1` (polar vector)
         and an angle defining the arc length need to be assigned.
@@ -2497,7 +2501,7 @@ class Sphere(Mesh):
             r : (float)
                 sphere radius
             res : (int, list)
-                resolution in phi, resolution in theta is 2*res
+                resolution in phi, resolution in theta is by default `2*res`
             quads : (bool)
                 sphere mesh will be made of quads instead of triangles
 
@@ -2823,7 +2827,7 @@ class Ellipsoid(Mesh):
 
 class Grid(Mesh):
     """
-    Return an even or uneven 2D grid.
+    An even or uneven 2D grid.
     """
     def __init__(
         self,
@@ -2835,7 +2839,7 @@ class Grid(Mesh):
         alpha=1,
     ):
         """
-        Return an even or uneven 2D grid.
+        Create an even or uneven 2D grid.
 
         Arguments:
             s : (float, list)
@@ -3071,6 +3075,7 @@ class Box(Mesh):
         """
         Build a box of dimensions `x=length, y=width and z=height`.
         Alternatively dimensions can be defined by setting `size` keyword with a tuple.
+
         If `size` is a list of 6 numbers, this will be interpreted as the bounding box:
         `[xmin,xmax, ymin,ymax, zmin,zmax]`
 
@@ -3191,7 +3196,6 @@ class Spring(Mesh):
     """
     Build a spring model.
     """
-
     def __init__(
         self,
         start_pt=(0, 0, 0),
@@ -3347,7 +3351,7 @@ class Cone(Mesh):
 
 
 class Pyramid(Cone):
-    """Build a pyramid shape."""
+    """Build a pyramidal shape."""
     def __init__(self, pos=(0, 0, 0), s=1, height=1, axis=(0, 0, 1), c="green3", alpha=1):
         """Build a pyramid of specified base size `s` and `height`, centered at `pos`."""
         Cone.__init__(self, pos, s, height, axis, 4, c, alpha)
@@ -3894,7 +3898,7 @@ class Text3D(Mesh):
         alpha=1,
     ):
         """
-        Generate a 3D polygonal ``Mesh`` representing a text string.
+        Generate a 3D polygonal `Mesh` representing a text string.
 
         Can render strings like `3.7 10^9` or `H_2 O` with subscripts and superscripts.
         Most Latex symbols are also supported.
@@ -4207,9 +4211,9 @@ class Text3D(Mesh):
 
 
 class TextBase:
-    "Do not instantiate this base class."
-
+    "Base class."
     def __init__(self):
+        "Do not instantiate this base class."
 
         self.rendered_at = set()
 
@@ -4501,7 +4505,7 @@ class Text2D(vtk.vtkActor2D, TextBase):
 
 
 class CornerAnnotation(vtk.vtkCornerAnnotation, TextBase):
-    # PROBABLY USELEES given that Text2D does pretty much the same ...
+    # PROBABLY USELESS given that Text2D does pretty much the same ...
     """
     Annotate the window corner with 2D text.
 
@@ -4519,7 +4523,6 @@ class CornerAnnotation(vtk.vtkCornerAnnotation, TextBase):
         TextBase.__init__(self)
 
         self.property = self.GetTextProperty()
-
 
         # automatic black or white
         if c is None:
@@ -4618,12 +4621,12 @@ class Latex(Picture):
             usetex : (bool)
                 use latex compiler of matplotlib if available
 
-        You can access the latex formula in *Latex.formula*.
+        You can access the latex formula in `Latex.formula`.
 
         Examples:
             - [latex.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/latex.py)
 
-                ![](https://vedo.embl.es/images/pyplot/latex.png)
+            ![](https://vedo.embl.es/images/pyplot/latex.png)
         """
         self.formula = formula
 

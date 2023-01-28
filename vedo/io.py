@@ -535,7 +535,7 @@ def fileInfo(file_path):
 
 ###################################################################
 def loadStructuredPoints(filename):
-    """Load and return a ``vtkStructuredPoints`` object from file."""
+    """Load and return a `vtkStructuredPoints` object from file."""
     reader = vtk.vtkStructuredPointsReader()
     reader.SetFileName(filename)
     reader.Update()
@@ -543,7 +543,7 @@ def loadStructuredPoints(filename):
 
 
 def loadStructuredGrid(filename):
-    """Load and return a ``vtkStructuredGrid`` object from file."""
+    """Load and return a `vtkStructuredGrid` object from file."""
     if filename.endswith(".vts"):
         reader = vtk.vtkXMLStructuredGridReader()
     else:
@@ -554,7 +554,7 @@ def loadStructuredGrid(filename):
 
 
 def loadUnStructuredGrid(filename):
-    """Load and return a ``vtkunStructuredGrid`` object from file."""
+    """Load and return a `vtkunStructuredGrid` object from file."""
     if filename.endswith(".vtu"):
         reader = vtk.vtkXMLUnstructuredGridReader()
     else:
@@ -565,7 +565,7 @@ def loadUnStructuredGrid(filename):
 
 
 def loadRectilinearGrid(filename):
-    """Load and return a ``vtkRectilinearGrid`` object from file."""
+    """Load and return a `vtkRectilinearGrid` object from file."""
     if filename.endswith(".vtr"):
         reader = vtk.vtkXMLRectilinearGridReader()
     else:
@@ -585,9 +585,9 @@ def loadXMLData(filename):
 
 ###################################################################
 def load3DS(filename):
-    """Load ``3DS`` file format from file.
+    """Load `3DS` file format from file.
     Returns:
-        ``Assembly(vtkAssembly)`` object.
+        `Assembly(vtkAssembly)` object.
     """
     renderer = vtk.vtkRenderer()
     renWin = vtk.vtkRenderWindow()
@@ -657,7 +657,7 @@ def loadGeoJSON(filename):
 
 def loadDolfin(filename, exterior=False):
     """Reads a `Fenics/Dolfin` file format (.xml or .xdmf).
-    Return an ``Mesh`` object."""
+    Return an `Mesh` object."""
     import dolfin
 
     if filename.lower().endswith(".xdmf"):
@@ -709,7 +709,7 @@ def loadPVD(filename):
 
 
 def loadNeutral(filename):
-    """Reads a `Neutral` tetrahedral file format. Return an ``Mesh`` object."""
+    """Reads a `Neutral` tetrahedral file format. Return an `Mesh` object."""
     with open(filename, "r", encoding='UTF-8') as f:
         lines = f.readlines()
 
@@ -731,7 +731,7 @@ def loadNeutral(filename):
 
 
 def loadGmesh(filename):
-    """Reads a `gmesh` file format. Return an ``Mesh`` object."""
+    """Reads a `gmesh` file format. Return an `Mesh` object."""
     with open(filename, "r", encoding='UTF-8') as f:
         lines = f.readlines()
 
@@ -764,8 +764,8 @@ def loadGmesh(filename):
 
 
 def loadPCD(filename):
-    """Return a ``Mesh`` made of only vertex points
-    from `Point Cloud` file format. Return an ``Points`` object."""
+    """Return a `Mesh` made of only vertex points
+    from `Point Cloud` file format. Return an `Points` object."""
     with open(filename, "r", encoding='UTF-8') as f:
         lines = f.readlines()
 
@@ -1158,7 +1158,7 @@ def loadnumpy(inobj):
 
 
 def loadImageData(filename):
-    """Read and return a ``vtkImageData`` object from file."""
+    """Read and return a `vtkImageData` object from file."""
     if ".tif" in filename.lower():
         reader = vtk.vtkTIFFReader()
         # print("GetOrientationType ", reader.GetOrientationType())
@@ -1398,7 +1398,7 @@ def load_transform(filename):
 
     Returns:
         - `vtkTransform`
-            The transformation to be applied to some object (``use apply_transform()``).
+            The transformation to be applied to some object (`use apply_transform()`).
         - `str`, a comment string associated to this transformation file.
     """
     with open(filename, "r", encoding='UTF-8') as f:
@@ -1436,7 +1436,7 @@ def export_window(fileoutput, binary=False):
 
     .. note::
         the rendering window can also be exported to `numpy` file `scene.npz`
-        by pressing ``E`` keyboard at any moment during visualization.
+        by pressing `E` keyboard at any moment during visualization.
     """
     fr = fileoutput.lower()
 
@@ -1586,7 +1586,7 @@ def import_window(fileinput, mtl_file=None, texture_path=None):
             path of the texture files directory
 
     Returns:
-        ``Plotter`` instance
+        `Plotter` instance
     """
     data = None
     if isinstance(fileinput, dict):
@@ -1839,25 +1839,8 @@ def ask(*question, **kwarg):
 ##############################################################################################
 class Video:
     """
-    Class to generate a video from the specified rendering window.
-    Program `ffmpeg` is used to create video from each generated frame.
-
-    Arguments:
-        name : (str)
-            name of the output file.
-        fps : (int)
-            set the number of frames per second.
-        duration : (float)
-            set the total `duration` of the video and recalculates `fps` accordingly.
-        ffmpeg : (str)
-            set path to ffmpeg program. Default value assumes ffmpeg command is in the path.
-
-    Examples:
-        - [makeVideo.py](examples/other/makeVideo.py)
-
-        ![](https://user-images.githubusercontent.com/32848391/50739007-2bfc2b80-11da-11e9-97e6-620a3541a6fa.jpg)
+    Generate a video from a rendering window.
     """
-
     def __init__(
             self,
             name="movie.mp4",
@@ -1865,7 +1848,25 @@ class Video:
             fps=24,
             backend="ffmpeg",
         ):
+        """
+        Class to generate a video from the specified rendering window.
+        Program `ffmpeg` is used to create video from each generated frame.
 
+        Arguments:
+            name : (str)
+                name of the output file.
+            fps : (int)
+                set the number of frames per second.
+            duration : (float)
+                set the total `duration` of the video and recalculates `fps` accordingly.
+            ffmpeg : (str)
+                set path to ffmpeg program. Default value assumes ffmpeg command is in the path.
+
+        Examples:
+            - [makeVideo.py](examples/other/makeVideo.py)
+
+            ![](https://user-images.githubusercontent.com/32848391/50739007-2bfc2b80-11da-11e9-97e6-620a3541a6fa.jpg)
+        """
         self.name = name
         self.duration = duration
         self.backend = backend

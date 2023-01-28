@@ -160,10 +160,10 @@ def plot(*inputobj, **options):
     """
     Plot the object(s) provided.
 
-    Input can be any combination of: ``Mesh``, ``Volume``, ``dolfin.Mesh``,
-    ``dolfin.MeshFunction``, ``dolfin.Expression`` or ``dolfin.Function``.
+    Input can be any combination of: `Mesh`, `Volume`, `dolfin.Mesh`,
+    `dolfin.MeshFunction`, `dolfin.Expression` or `dolfin.Function`.
 
-    Return the current ``Plotter`` class instance.
+    Return the current `Plotter` class instance.
 
     Arguments:
         mode : (str)
@@ -254,7 +254,7 @@ def plot(*inputobj, **options):
             - 4, `bw`, black and white style.
         axes : (int)
             Axes type number.
-            Axes type-1 can be fully customized by passing a dictionary ``axes=dict()``.
+            Axes type-1 can be fully customized by passing a dictionary `axes=dict()`.
             - 0,  no axes,
             - 1,  draw customizable grid axes (see below).
             - 2,  show cartesian axes from (0,0,0)
@@ -288,7 +288,7 @@ def plot(*inputobj, **options):
             add roll-type rotation of the scene, in degrees
         camera : (dict)
             Camera parameters can further be specified with a dictionary
-            assigned to the ``camera`` keyword:
+            assigned to the `camera` keyword:
             (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`)
             - `pos`, `(list)`,
                 the position of the camera in world coordinates
@@ -604,9 +604,9 @@ def plot(*inputobj, **options):
 
 ###################################################################################
 class MeshActor(Mesh):
-    """MeshActor, a vedo.Mesh derived object for dolfin support."""
-
+    """MeshActor for dolfin support."""
     def __init__(self, *inputobj, **options):
+        """MeshActor, a `vedo.Mesh` derived object for dolfin support."""
 
         c = options.pop("c", None)
         alpha = options.pop("alpha", 1)
@@ -677,7 +677,7 @@ class MeshActor(Mesh):
 
 
 def MeshPoints(*inputobj, **options):
-    """Build a point object of type ``Mesh`` for a list of points."""
+    """Build a point object of type `Mesh` for a list of points."""
     r = options.pop("r", 5)
     c = options.pop("c", "gray")
     alpha = options.pop("alpha", 1)
@@ -718,12 +718,12 @@ def MeshPoints(*inputobj, **options):
 def MeshLines(*inputobj, **options):
     """
     Build the line segments between two lists of points `start_points` and `end_points`.
-    `start_points` can be also passed in the form ``[[point1, point2], ...]``.
+    `start_points` can be also passed in the form `[[point1, point2], ...]`.
 
-    A dolfin ``Mesh`` that was deformed/modified by a function can be
+    A dolfin `Mesh` that was deformed/modified by a function can be
     passed together as inputs.
 
-    Use ``scale`` to apply a rescaling factor to the length
+    Use `scale` to apply a rescaling factor to the length
     """
     scale = options.pop("scale", 1)
     lw = options.pop("lw", 1)

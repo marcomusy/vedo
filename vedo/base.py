@@ -199,9 +199,15 @@ class _DataArrayHelper:
 
 ###############################################################################
 class Base3DProp:
-    """Base class to manage positioning and size of the objects in space and other properties"""
+    """
+    Base class to manage positioning and size of the objects in space and other properties.
 
+    .. warning:: Do not use this class to instanciate objects, use one the above instead.
+    """
     def __init__(self):
+        """
+        Base class to manage positioning and size of the objects in space and other properties.
+        """
         self.filename = ""
         self.name = ""
         self.fileSize = ""
@@ -424,7 +430,7 @@ class Base3DProp:
 
     def rotate_x(self, angle, rad=False, around=None):
         """
-        Rotate around x-axis. If angle is in radians set ``rad=True``.
+        Rotate around x-axis. If angle is in radians set `rad=True`.
 
         Use `around` to define a pivoting point.
         """
@@ -432,7 +438,7 @@ class Base3DProp:
 
     def rotate_y(self, angle, rad=False, around=None):
         """
-        Rotate around y-axis. If angle is in radians set ``rad=True``.
+        Rotate around y-axis. If angle is in radians set `rad=True`.
 
         Use `around` to define a pivoting point.
         """
@@ -440,7 +446,7 @@ class Base3DProp:
 
     def rotate_z(self, angle, rad=False, around=None):
         """
-        Rotate around z-axis. If angle is in radians set ``rad=True``.
+        Rotate around z-axis. If angle is in radians set `rad=True`.
 
         Use `around` to define a pivoting point.
         """
@@ -562,10 +568,10 @@ class Base3DProp:
 
     def get_transform(self, invert=False):
         """
-        Check if ``object.transform`` exists and returns a ``vtkTransform``.
+        Check if `object.transform` exists and returns a `vtkTransform`.
         Otherwise return current user transformation (where the object is currently placed).
 
-        Use ``invert`` to return the inverse of the current transformation
+        Use `invert` to return the inverse of the current transformation
 
         Example:
             ```python
@@ -635,7 +641,7 @@ class Base3DProp:
         Align the current object's bounding box to the bounding box
         of the input object.
 
-        Use ``rigid`` to disable scaling.
+        Use `rigid` to disable scaling.
 
         Examples:
             - [align6.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/align6.py)
@@ -693,7 +699,7 @@ class Base3DProp:
 
     def box(self, scale=1, padding=0, fill=False):
         """
-        Return the bounding box as a new ``Mesh``.
+        Return the bounding box as a new `Mesh`.
 
         Arguments:
             scale : (float)
@@ -796,13 +802,13 @@ class Base3DProp:
 
     def show(self, **options):
         """
-        Create on the fly an instance of class ``Plotter`` or use the last existing one to
+        Create on the fly an instance of class `Plotter` or use the last existing one to
         show one single object.
 
         This method is meant as a shortcut. If more than one object needs to be visualised
         please use the syntax `show(mesh1, mesh2, volume, ..., options)`.
 
-        Returns the ``Plotter`` class instance.
+        Returns the `Plotter` class instance.
         """
         return vedo.plotter.show(self, **options)
 
@@ -810,13 +816,15 @@ class Base3DProp:
 ########################################################################################
 class BaseActor(Base3DProp):
     """
-    Base class to add operative and data
-    functionality to ``Mesh``, ``Assembly``, ``Volume`` and ``Picture`` objects.
+    Base class.
 
     .. warning:: Do not use this class to instanciate objects, use one the above instead.
     """
-
     def __init__(self):
+        """
+        Base class to add operative and data
+        functionality to `Mesh`, `Assembly`, `Volume` and `Picture` objects.
+        """
         Base3DProp.__init__(self)
 
         self._mapper = None
@@ -825,7 +833,7 @@ class BaseActor(Base3DProp):
 
 
     def mapper(self, new_mapper=None):
-        """Return the ``vtkMapper`` data object, or update it with a new one."""
+        """Return the `vtkMapper` data object, or update it with a new one."""
         if new_mapper:
             self.SetMapper(new_mapper)
             if self._mapper:
@@ -843,7 +851,7 @@ class BaseActor(Base3DProp):
         return self.GetMapper().GetInput()
 
     def modified(self):
-        """Use in conjunction with ``tonumpy()``
+        """Use in conjunction with `tonumpy()`
         to update any modifications to the volume array"""
         sc = self.inputdata().GetPointData().GetScalars()
         if sc:
@@ -883,7 +891,7 @@ class BaseActor(Base3DProp):
         Argument can be an index, a set of indices
         or a complete new set of points to update the mesh.
 
-        Set ``transformed=False`` to ignore any previous transformation applied to the mesh.
+        Set `transformed=False` to ignore any previous transformation applied to the mesh.
         """
         if pts is None:  ### getter
 
@@ -1111,7 +1119,7 @@ class BaseActor(Base3DProp):
     ):
         """
         Ascii histogram printing on terminal.
-        Input can be ``Volume`` or ``Mesh`` (will grab the active point array).
+        Input can be `Volume` or `Mesh` (will grab the active point array).
 
         Arguments:
             bins : (int)
@@ -1148,51 +1156,51 @@ class BaseActor(Base3DProp):
     @property
     def pointdata(self):
         """
-        Create and/or return a ``numpy.array`` associated to points (vertices).
+        Create and/or return a `numpy.array` associated to points (vertices).
         A data array can be indexed either as a string or by an integer number.
-        E.g.:  ``myobj.pointdata["arrayname"]``
+        E.g.:  `myobj.pointdata["arrayname"]`
 
         Usage:
 
-            ``myobj.pointdata.keys()`` to return the available data array names
+            `myobj.pointdata.keys()` to return the available data array names
 
-            ``myobj.pointdata.select(name)`` to make this array the active one
+            `myobj.pointdata.select(name)` to make this array the active one
 
-            ``myobj.pointdata.remove(name)`` to remove this array
+            `myobj.pointdata.remove(name)` to remove this array
         """
         return _DataArrayHelper(self, 0)
 
     @property
     def celldata(self):
         """
-        Create and/or return a ``numpy.array`` associated to cells (faces).
+        Create and/or return a `numpy.array` associated to cells (faces).
         A data array can be indexed either as a string or by an integer number.
-        E.g.:  ``myobj.celldata["arrayname"]``
+        E.g.:  `myobj.celldata["arrayname"]`
 
         Usage:
 
-            ``myobj.celldata.keys()`` to return the available data array names
+            `myobj.celldata.keys()` to return the available data array names
 
-            ``myobj.celldata.select(name)`` to make this array the active one
+            `myobj.celldata.select(name)` to make this array the active one
 
-            ``myobj.celldata.remove(name)`` to remove this array
+            `myobj.celldata.remove(name)` to remove this array
         """
         return _DataArrayHelper(self, 1)
 
     @property
     def metadata(self):
         """
-        Create and/or return a ``numpy.array`` associated to neither cells nor faces.
+        Create and/or return a `numpy.array` associated to neither cells nor faces.
         A data array can be indexed either as a string or by an integer number.
-        E.g.:  ``myobj.metadata["arrayname"]``
+        E.g.:  `myobj.metadata["arrayname"]`
 
         Usage:
 
-            ``myobj.metadata.keys()`` to return the available data array names
+            `myobj.metadata.keys()` to return the available data array names
 
-            ``myobj.metadata.select(name)`` to make this array the active one
+            `myobj.metadata.select(name)` to make this array the active one
 
-            ``myobj.metadata.remove(name)`` to remove this array
+            `myobj.metadata.remove(name)` to remove this array
         """
         return _DataArrayHelper(self, 2)
 
@@ -1536,8 +1544,13 @@ class BaseActor(Base3DProp):
 
 ########################################################################################
 class BaseGrid(BaseActor):
-    """Base class for grid datasets"""
+    """
+    Base class for grid datasets.
+
+    .. warning:: Do not use this class to instanciate objects, use one the above instead.
+    """
     def __init__(self):
+        """Base class for grid datasets."""
 
         BaseActor.__init__(self)
 
@@ -1630,16 +1643,16 @@ class BaseGrid(BaseActor):
         """
         Assign a color or a set of colors along the range of the scalar value.
         A single constant color can also be assigned.
-        Any matplotlib color map name is also accepted, e.g. ``volume.color('jet')``.
+        Any matplotlib color map name is also accepted, e.g. `volume.color('jet')`.
 
         E.g.: say that your cells scalar runs from -3 to 6,
         and you want -3 to show red and 1.5 violet and 6 green, then just set:
 
-        ``volume.color(['red', 'violet', 'green'])``
+        `volume.color(['red', 'violet', 'green'])`
 
         You can also assign a specific color to a aspecific value with eg.:
 
-        ``volume.color([(0,'red', (0.5,'violet'), (1,'green')])``
+        `volume.color([(0,'red', (0.5,'violet'), (1,'green')])`
 
         Arguments:
             alpha : (list)
@@ -1764,9 +1777,9 @@ class BaseGrid(BaseActor):
 
     def isosurface(self, value=None, flying_edges=True):
         """
-        Return an ``Mesh`` isosurface extracted from the ``Volume`` object.
+        Return an `Mesh` isosurface extracted from the `Volume` object.
 
-        Set ``value`` as single float or list of values to draw the isosurface(s).
+        Set `value` as single float or list of values to draw the isosurface(s).
         Use flying_edges for faster results (but sometimes can interfere with `smooth()`).
 
         Examples:
@@ -1814,9 +1827,9 @@ class BaseGrid(BaseActor):
 
     def legosurface(self, vmin=None, vmax=None, invert=False, boundary=False):
         """
-        Represent an object - typically a ``Volume`` - as lego blocks (voxels).
+        Represent an object - typically a `Volume` - as lego blocks (voxels).
         By default colors correspond to the volume's scalar.
-        Returns an ``Mesh`` object.
+        Returns an `Mesh` object.
 
 
         Arguments:
@@ -1930,7 +1943,7 @@ class BaseGrid(BaseActor):
         """
         Cut a UGrid, TetMesh or Volume with a Mesh.
 
-        Use ``invert`` to return cut off part of the input object.
+        Use `invert` to return cut off part of the input object.
         """
         polymesh = mesh.polydata()
         ug = self._data
@@ -2098,7 +2111,7 @@ def _getinput(obj):
 
 def probe_points(dataset, pts):
     """
-    Takes a ``Volume`` (or any other vtk data set)
+    Takes a `Volume` (or any other vtk data set)
     and probes its scalars at the specified points in space.
 
     Note that a mask is also output with valid/invalid points which can be accessed
@@ -2142,13 +2155,13 @@ def probe_points(dataset, pts):
 
 def probe_line(dataset, p1, p2, res=100):
     """
-    Takes a ``Volume``  (or any other vtk data set)
+    Takes a `Volume`  (or any other vtk data set)
     and probes its scalars along a line defined by 2 points `p1` and `p2`.
 
     Note that a mask is also output with valid/invalid points which can be accessed
     with `mesh.pointdata['vtkValidPointMask']`.
 
-    Use ``res`` to set the nr of points along the line
+    Use `res` to set the nr of points along the line
 
     Examples:
         - [probeLine1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probeLine1.py)
@@ -2173,7 +2186,7 @@ def probe_line(dataset, p1, p2, res=100):
 
 def probe_plane(dataset, origin=(0, 0, 0), normal=(1, 0, 0)):
     """
-    Takes a ``Volume`` (or any other vtk data set)
+    Takes a `Volume` (or any other vtk data set)
     and probes its scalars on a plane defined by a point and a normal.
 
     Examples:

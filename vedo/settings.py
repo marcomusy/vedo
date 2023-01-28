@@ -177,6 +177,7 @@ class Settings:
     ]
 
     def __init__(self, level=0):
+        """Contructor."""
 
         self._level = level
 

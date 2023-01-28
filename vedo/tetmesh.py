@@ -233,8 +233,8 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
                     - VOLUME, 7
                     - ...
 
-                    See class [vtkMeshQuality](https://vtk.org/doc/nightly/html/classvtkMeshQuality.html)
-                    for explanation.
+        See class [vtkMeshQuality](https://vtk.org/doc/nightly/html/classvtkMeshQuality.html)
+        for an explanation of the meaning of each metric..
         """
         qf = vtk.vtkMeshQuality()
         qf.SetInputData(self._data)
@@ -288,7 +288,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         Threshold the tetrahedral mesh by a cell scalar value.
         Reduce to only tets which satisfy the threshold limits.
 
-        - if `above==below` will only select tets with that specific value.
+        - if `above = below` will only select tets with that specific value.
         - if `above > below` selection range is flipped.
 
         Set keyword "on" to either "cells" or "points".
@@ -332,24 +332,25 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         th.Update()
         return self._update(th.GetOutput())
 
-    def decimate(self, scalars_name, fraction=0.5, N=None):
+    def decimate(self, scalars_name, fraction=0.5, n=0):
         """
         Downsample the number of tets in a TetMesh to a specified fraction.
+        Either `fraction` or `n` must be set.
 
         Arguments:
             fraction : (float)
                 the desired final fraction of the total.
-            N : (int)
+            n : (int)
                 the desired number of final tets
 
-        .. note:: setting ``fraction=0.1`` leaves 10% of the original nr of tets.
+        .. note:: setting `fraction=0.1` leaves 10% of the original nr of tets.
         """
         decimate = vtk.vtkUnstructuredGridQuadricDecimation()
         decimate.SetInputData(self._data)
         decimate.SetScalarsName(scalars_name)
 
-        if N:  # N = desired number of points
-            decimate.SetNumberOfTetsOutput(N)
+        if n:  # n = desired number of points
+            decimate.SetNumberOfTetsOutput(n)
         else:
             decimate.SetTargetReduction(1 - fraction)
         decimate.Update()
@@ -369,7 +370,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         """
         Return a `vedo.Mesh` isosurface.
 
-        Set `value` to a single value or list of values to compute the isosurface(s)
+        Set `value` to a single value or list of values to compute the isosurface(s).
         """
         if not self._data.GetPointData().GetScalars():
             self.map_cells_to_points()
@@ -399,7 +400,8 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
 
     def slice(self, origin=(0, 0, 0), normal=(1, 0, 0)):
         """
-        Return a 2D slice of the mesh by a plane passing through origin and assigned normal."""
+        Return a 2D slice of the mesh by a plane passing through origin and assigned normal.
+        """
         strn = str(normal)
         if strn   ==  "x": normal = (1, 0, 0)
         elif strn ==  "y": normal = (0, 1, 0)

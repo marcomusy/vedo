@@ -253,8 +253,9 @@ def vtk2numpy(varr):
 def make3d(pts, transpose=False):
     """
     Make an array which might be 2D to 3D.
+
     Array can also be in the form `[allx, ally, allz]`.
-    Use transpose to resolve ambigous cases (eg, shapes like `[3,3]`).
+    Use `transpose` to resolve ambigous cases (eg, shapes like `[3,3]`).
     """
     pts = np.asarray(pts)
 
@@ -288,7 +289,7 @@ def make3d(pts, transpose=False):
 
 def geometry(obj, extent=None):
     """
-    Apply the `vtkGeometryFilter`.
+    Apply the `vtkGeometryFilter` to the input object.
     This is a general-purpose filter to extract geometry (and associated data)
     from any type of dataset.
     This filter also may be used to convert any type of data to polygonal type.
@@ -314,9 +315,9 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, fast=True, t
     where faces represents the connectivity of the polygonal mesh.
 
     E.g. :
-        - ``vertices=[[x1,y1,z1],[x2,y2,z2], ...]``
-        - ``faces=[[0,1,2], [1,2,3], ...]``
-        - ``lines=[[0,1], [1,2,3,4], ...]``
+        - `vertices=[[x1,y1,z1],[x2,y2,z2], ...]`
+        - `faces=[[0,1,2], [1,2,3], ...]`
+        - `lines=[[0,1], [1,2,3,4], ...]`
 
     Use `index_offset=1` if face numbering starts from 1 instead of 0.
 
@@ -500,7 +501,7 @@ def get_font_path(font):
 
 
 def isSequence(arg):
-    "isSequence() is deprecated. Please use `is_sequence()`"
+    "Deprecated. Please use `is_sequence()`"
     m = "Warning! isSequence() is deprecated. Please use is_sequence()"
     print("\x1b[1m\x1b[33;1m " + m + "\x1b[0m")
     return is_sequence(arg)
@@ -520,7 +521,7 @@ def is_sequence(arg):
 def flatten(list_to_flatten):
     """Flatten out a list."""
 
-    def genflatten(lst):
+    def _genflatten(lst):
         for elem in lst:
             if isinstance(elem, (list, tuple)):
                 for x in flatten(elem):
@@ -528,16 +529,16 @@ def flatten(list_to_flatten):
             else:
                 yield elem
 
-    return list(genflatten(list_to_flatten))
+    return list(_genflatten(list_to_flatten))
 
 
 def humansort(alist):
     """
     Sort in place a given list the way humans expect.
 
-    .. warning:: input list is modified in-place.
-
     E.g. `['file11', 'file1'] -> ['file1', 'file11']`
+
+    .. warning:: input list is modified in-place by this function.
     """
     import re
 
@@ -556,7 +557,7 @@ def humansort(alist):
 
 
 def sort_by_column(arr, nth, invert=False):
-    """Sort a numpy array by its `n-th` column"""
+    """Sort a numpy array by its `n-th` column."""
     arr = np.asarray(arr)
     arr = arr[arr[:, nth].argsort()]
     if invert:
@@ -652,7 +653,7 @@ def point_line_distance(p, p1, p2):
 
 
 def linInterpolate(x, rangeX, rangeY):
-    "linInterpolate() is deprecated. Please `lin_interpolate()`"
+    "Deprecated. Please `lin_interpolate()`"
     m = "Warning! linInterpolate() is deprecated. Please use lin_interpolate()"
     print("\x1b[1m\x1b[33;1m " + m + "\x1b[0m")
     return lin_interpolate(x, rangeX, rangeY)
@@ -804,7 +805,7 @@ def mag2(v):
 
 
 def is_integer(n):
-    """Check if input is integer"""
+    """Check if input is an integer."""
     try:
         float(n)
     except ValueError:
@@ -833,7 +834,7 @@ def round_to_digit(x, p):
 
 
 def packSpheres(bounds, radius):
-    "packSpheres() is deprecated. Please use `pack_spheres()`"
+    "Deprecated. Please use `pack_spheres()`"
     m = "Warning! packSpheres() is deprecated. Please use pack_spheres()"
     print("\x1b[1m\x1b[33;1m " + m + "\x1b[0m")
     return pack_spheres(bounds, radius)
@@ -878,7 +879,7 @@ def pack_spheres(bounds, radius):
 
 def precision(x, p, vrange=None, delimiter="e"):
     """
-    Returns a string representation of `x` formatted with precision `p`.
+    Returns a string representation of `x` formatted to precision `p`.
 
     Set `vrange` to the range in which x exists (to snap x to '0' if below precision).
     """
@@ -1029,7 +1030,7 @@ def spher2cyl(rho, theta, phi):
 
 ##################################################################################
 def grep(filename, tag, first_occurrence_only=False):
-    """Greps the line that starts with a specific `tag` string inside the file."""
+    """Greps the line in a file that starts with a specific `tag` string inside the file."""
     import re
 
     with open(filename, "r", encoding="UTF-8") as afile:
@@ -1287,7 +1288,7 @@ def print_info(obj):
         vedo.printc(" z=(" + bz1 + ", " + bz2 + ")", c=cf, bold=False)
         _print_data(ug, obj._mapper, cf)
 
-    elif isinstance(obj, vedo.Volume):
+    elif isinstance(obj, (vedo.volume.Volume, vedo.volume.VolumeSlice)):
         vedo.printc("Volume".ljust(70), c="b", bold=True, invert=True)
 
         img = obj.GetMapper().GetInput()
@@ -1438,7 +1439,7 @@ def print_info(obj):
         vedo.printc(obj.level(), "/", obj.window(), c="y", bold=False)
 
     else:
-        vedo.printc(type(obj).ljust(70), invert=True)
+        vedo.printc(str(type(obj)).ljust(70), invert=True)
         vedo.printc(obj)
 
 
@@ -1456,31 +1457,25 @@ def print_histogram(
 ):
     """
     Ascii histogram printing.
-    Input can also be ``Volume`` or ``Mesh``.
+    
+    Input can be a `vedo.Volume` or `vedo.Mesh`.
     Returns the raw data before binning (useful when passing vtk objects).
 
     Arguments:
         bins : (int)
             number of histogram bins
-
         height : (int)
             height of the histogram in character units
-
         logscale : (bool)
             use logscale for frequencies
-
         minbin : (int)
             ignore bins before minbin
-
         horizontal : (bool)
             show histogram horizontally
-
         char : (str)
             character to be used
-
         bold : (bool)
             use boldface
-
         title : (str)
             histogram title
 
@@ -1523,7 +1518,11 @@ def print_histogram(
 
         data = vtk2numpy(arr)
 
-    h = np.histogram(data, bins=bins)
+    try:
+        h = np.histogram(data, bins=bins)
+    except TypeError as e:
+        vedo.logger.error(f"cannot compute histogram: {e}")
+        return ""
 
     if minbin:
         hi = h[0][minbin:-1]
@@ -1626,7 +1625,7 @@ def camera_from_quaternion(pos, quaternion, distance=10000, ngl_correct=True):
             the desired distance from pos to the camera (default = 10000 nm)
 
     Returns:
-        vtk.vtkCamera, a vtk camera setup according to these rules.
+        `vtk.vtkCamera`, a vtk camera setup according to these rules.
     """
     camera = vtk.vtkCamera()
     # define the quaternion in vtk, note the swapped order
@@ -1673,7 +1672,7 @@ def camera_from_neuroglancer(state, zoom=300):
             default = 300 > ngl_zoom = 1 > 300 nm backoff distance.
 
     Returns:
-        vtk.vtkCamera, a vtk camera setup that matches this state.
+        `vtk.vtkCamera`, a vtk camera setup that matches this state.
     """
     orient = state.get("perspectiveOrientation", [0.0, 0.0, 0.0, 1.0])
     pzoom = state.get("perspectiveZoom", 10.0)
@@ -1748,7 +1747,7 @@ def make_ticks(x0, x1, n=None, labels=None, digits=None, logscale=False, useform
     """
     Generate numeric labels for the `[x0, x1]` range.
 
-    The format specifier could be in the format:
+    The format specifier could be expressed in the format:
         `:[[fill]align][sign][#][0][width][,][.precision][type]`
 
     where, the options are:
@@ -1906,7 +1905,7 @@ def grid_corners(i, nm, size, margin=0, yflip=True):
 
     Returns:
         Two 2D points representing the bottom-left corner and the top-right corner
-        of the ``i``-nth box in the grid.
+        of the `i`-nth box in the grid.
 
     Example:
         ```python
@@ -1973,7 +1972,7 @@ def vedo2trimesh(mesh):
 
 def trimesh2vedo(inputobj):
     """
-    Convert `Trimesh` object to `Mesh(vtkActor)` or `Assembly` object.
+    Convert a `Trimesh` object to `vedo.Mesh` or `vedo.Assembly` object.
     """
     if is_sequence(inputobj):
         vms = []
@@ -2027,7 +2026,7 @@ def trimesh2vedo(inputobj):
 
 
 def vedo2meshlab(vmesh):
-    """Convert a vedo mesh to a Meshlab object."""
+    """Convert a `vedo.Mesh` to a Meshlab object."""
     try:
         import pymeshlab as mlab
     except RuntimeError:
@@ -2099,7 +2098,7 @@ def vedo2meshlab(vmesh):
 
 
 def meshlab2vedo(mmesh):
-    """Convert a Meshlab object to vedo mesh."""
+    """Convert a Meshlab object to `vedo.Mesh`."""
     inputtype = str(type(mmesh))
 
     if "MeshSet" in inputtype:
@@ -2141,8 +2140,9 @@ def meshlab2vedo(mmesh):
 
 def vtk_version_at_least(major, minor=0, build=0):
     """
-    Check the VTK version.
-    Return ``True`` if the requested VTK version is greater or equal to the actual VTK version.
+    Check the installed VTK version.
+
+    Return `True` if the requested VTK version is greater or equal to the actual VTK version.
 
     Arguments:
         major : (int)

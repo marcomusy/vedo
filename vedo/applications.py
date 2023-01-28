@@ -43,9 +43,7 @@ __all__ = [
 #################################
 class Slicer3DPlotter(Plotter):
     """
-    Generate a ``Plotter`` window with slicing planes for the input Volume.
-
-    Returns the ``Plotter`` object.
+    Generate a rendering window with slicing planes for the input Volume.
     """
     def __init__(
             self,
@@ -69,6 +67,8 @@ class Slicer3DPlotter(Plotter):
             interactive=True,
         ):
         """
+        Generate a rendering window with slicing planes for the input Volume.
+     
         Arguments:
             alpha : (float)
                 transparency of the slicing planes
@@ -302,54 +302,36 @@ class Slicer3DPlotter(Plotter):
 ########################################################################################
 class Slicer2DPlotter(Plotter):
     """
-    Create a ``Plotter`` with a single slice of a Volume which always faces the camera,
+    A single slice of a Volume which always faces the camera,
     but at the same time can be oriented arbitrarily in space.
     """
-
     def __init__(
         self,
         volume,
         levels=(None, None),
-        axes=None,
-        zoom=1.2,
-        pos=(0, 0),
-        size="auto",
-        screensize="auto",
-        title="",
-        bg="white",
-        bg2=None,
-        interactive=True,
+        histo_color="red5",
+        **kwargs,
     ):
         """
+        A single slice of a Volume which always faces the camera,
+        but at the same time can be oriented arbitrarily in space.
+
         Arguments:
             levels : (list)
-                window and color level
+                window and color levels
+            histo_color : (color)
+                histogram color, use `None` to disable it
 
         <img src="https://vedo.embl.es/images/volumetric/read_volume3.jpg" width="500">
         """
-        custom_shape = [  # define here the 2 rendering rectangle spaces
-            dict(bottomleft=(0.0, 0.0), topright=(1, 1), bg="k9"),  # the full window
-            dict(bottomleft=(0.8, 0.8), topright=(1, 1), bg="k8", bg2="lb"),
-        ]
+        if "shape" not in kwargs:
+            custom_shape = [  # define here the 2 rendering rectangle spaces
+                dict(bottomleft=(0.0, 0.0), topright=(1, 1), bg="k9"),  # the full window
+                dict(bottomleft=(0.8, 0.8), topright=(1, 1), bg="k8", bg2="lb"),
+            ]
+            kwargs["shape"] = custom_shape
 
-        if not title:
-            if volume.filename:
-                title = volume.filename[:80]
-            else:
-                title = "Volume Slicer2D"
-
-        Plotter.__init__(
-            self,
-            shape=custom_shape,
-            title=title,
-            pos=pos,
-            screensize=screensize,
-            size=size,
-            bg=bg,
-            bg2=bg2,
-            axes=0,
-            interactive=False,
-        )
+        Plotter.__init__(self, **kwargs)
 
         # reuse the same underlying data as in vol
         vsl = vedo.volume.VolumeSlice(volume)
@@ -361,9 +343,9 @@ class Slicer2DPlotter(Plotter):
             vsl.lighting(window=levels[0], level=levels[1])
 
         usage = Text2D((
-            "SHIFT+Left click   \rightarrow rotate camera for oblique slicing\n"
-            "SHIFT+Middle click \rightarrow slice perpendicularly through image\n"
             "Left click & drag  \rightarrow modify luminosity and contrast\n"
+            "SHIFT+Left click   \rightarrow slice image obliquely\n"
+            "SHIFT+Middle click \rightarrow slice image perpendicularly\n"
             "R                  \rightarrow Reset the Window/Color levels\n"
             "X                  \rightarrow Reset to sagittal view\n"
             "Y                  \rightarrow Reset to coronal view\n"
@@ -375,38 +357,55 @@ class Slicer2DPlotter(Plotter):
             alpha=0.25,
         )
 
-        hist = CornerHistogram(
-            volume.pointdata[0],
-            bins=25,
-            logscale=1,
-            pos=(0.02, 0.02),
-            s=0.175,
-            c="dg",
-            bg="k",
-            alpha=1,
-        )
-        ax = None
+        hist = None
+        if histo_color is not None:
+            # hist = CornerHistogram(
+            #     volume.pointdata[0],
+            #     bins=25,
+            #     logscale=1,
+            #     pos=(0.02, 0.02),
+            #     s=0.175,
+            #     c="dg",
+            #     bg="k",
+            #     alpha=1,
+            # )
+            hist = vedo.pyplot.histogram(
+                volume.pointdata[0],
+                bins=10,
+                logscale=True,
+                c=histo_color,
+                ytitle="log_10 (counts)",
+                axes=dict(text_scale=1.9)
+            )
+            hist = hist.as2d(pos="bottom-left", scale=0.5)
+        
+        axes = kwargs.pop("axes", 7)
+        interactive = kwargs.pop("interactive", True)
         if axes == 7:
             ax = vedo.addons.RulerAxes(vsl, xtitle="x - ", ytitle="y - ", ztitle="z - ")
 
-        box = vsl.box().alpha(0.1)
-        self.at(0).show(vsl, box, ax, usage, hist, mode="image", zoom=zoom)
+        box = vsl.box().alpha(0.2)
+        self.at(0).show(vsl, box, ax, usage, hist, mode="image")
         self.at(1).show(volume, interactive=interactive)
 
 
 ########################################################################
 class RayCastPlotter(Plotter):
     """
-    Generate a ``Plotter`` window for Volume rendering using ray casting.
-
-    Returns the ``Plotter`` object.
-
-    Examples:
-        - [app_raycaster.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/app_raycaster.py)
-
-        ![](https://vedo.embl.es/images/advanced/app_raycaster.gif)
+    Generate Volume rendering using ray casting.
     """
     def __init__(self, volume, **kwargs):
+        """
+        Generate a window for Volume rendering using ray casting.
+
+        Returns:
+            `vedo.Plotter` object.
+
+        Examples:
+            - [app_raycaster.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/app_raycaster.py)
+
+            ![](https://vedo.embl.es/images/advanced/app_raycaster.gif)
+        """
 
         Plotter.__init__(self, **kwargs)
 
@@ -567,21 +566,8 @@ class RayCastPlotter(Plotter):
 #####################################################################################
 class IsosurfaceBrowser(Plotter):
     """
-    Generate a ``Plotter`` for Volume isosurfacing using a slider.
-
-    Set ``delayed=True`` to delay slider update on mouse release.
-
-    Set ``res`` to set the resolution, e.g. the number of desired isosurfaces to be
-    generated on the fly.
-
-    Set ``precompute=True`` to precompute the isosurfaces (so slider browsing will be smoother).
-
-    Examples:
-        - [app_isobrowser.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/app_isobrowser.py)
-
-            ![](https://vedo.embl.es/images/advanced/app_isobrowser.gif)
+    Generate a Volume isosurfacing controlled by a slider.
     """
-
     def __init__(
             self,
             volume,
@@ -604,6 +590,21 @@ class IsosurfaceBrowser(Plotter):
             axes=1,
             interactive=True,
         ):
+        """
+        Generate a `vedo.Plotter` for Volume isosurfacing using a slider.
+    
+        Set `delayed=True` to delay slider update on mouse release.
+
+        Set `res` to set the resolution, e.g. the number of desired isosurfaces to be
+        generated on the fly.
+
+        Set `precompute=True` to precompute the isosurfaces (so slider browsing will be smoother).
+
+        Examples:
+            - [app_isobrowser.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/app_isobrowser.py)
+
+                ![](https://vedo.embl.es/images/advanced/app_isobrowser.gif)
+        """
 
         Plotter.__init__(
             self,
@@ -711,17 +712,6 @@ class IsosurfaceBrowser(Plotter):
 class Browser(Plotter):
     """
     Browse a serie of vedo objects by using a simple slider.
-
-    Examples:
-        ```python
-        import vedo
-        from vedo.applications import Browser
-        meshes = vedo.load("data/2*0.vtk") # a python list
-        plt = Browser(meshes, resetcam=1, axes=4) # a vedo.Plotter
-        plt.show().close()
-        ```
-
-        - [morphomatics_tube.py](https://github.com/marcomusy/vedo/tree/master/examples/other/morphomatics_tube.py)
     """
     def __init__(
             self,
@@ -739,7 +729,20 @@ class Browser(Plotter):
             resetcam=False,
             interactive=True,
         ):
+        """
+        Browse a serie of vedo objects by using a simple slider.
 
+        Examples:
+            ```python
+            import vedo
+            from vedo.applications import Browser
+            meshes = vedo.load("data/2*0.vtk") # a python list of Meshes
+            plt = Browser(meshes, resetcam=1, axes=4) # a vedo.Plotter
+            plt.show().close()
+            ```
+
+        - [morphomatics_tube.py](https://github.com/marcomusy/vedo/tree/master/examples/other/morphomatics_tube.py)
+        """
         Plotter.__init__(
             self,
             pos=pos,
@@ -790,7 +793,7 @@ class Browser(Plotter):
 
 #############################################################################################
 class FreeHandCutPlotter(Plotter):
-    """FreeHandCutPlotter class"""
+    """A tool to edit meshes interactively."""
     # thanks to Jakub Kaminski for the original version of this script
     def __init__(
             self,
@@ -807,22 +810,24 @@ class FreeHandCutPlotter(Plotter):
             **options
         ):
         """
-        A ``Plotter`` derived class which edits polygonal meshes interactively.
-        Can also be invoked from command line. E.g. with:
+        A `vedo.Plotter` derived class which edits polygonal meshes interactively.
 
-        ``vedo --edit https://vedo.embl.es/examples/data/porsche.ply``
+        Can also be invoked from command line with:
 
-        Usage
-        -----
+        ```bash
+        vedo --edit https://vedo.embl.es/examples/data/porsche.ply
+        ```
+
+        Usage:
             - Left-click and hold to rotate
             - Right-click and move to draw line
             - Second right-click to stop drawing
-            - Press c to clear points
-            -       z/Z to cut mesh (Z inverts inside-out the selection area)
-            -       L to keep only the largest connected surface
-            -       s to save mesh to file (tag _edited is appended to filename)
-            -       u to undo last action
-            -       h for help, i for info
+            - Press "c" to clear points
+            -       "z/Z" to cut mesh (Z inverts inside-out the selection area)
+            -       "L" to keep only the largest connected surface
+            -       "s" to save mesh to file (tag `_edited` is appended to filename)
+            -       "u" to undo last action
+            -       "h" for help, "i" for info
 
         Arguments:
             mesh : (Mesh, Points)
@@ -847,7 +852,7 @@ class FreeHandCutPlotter(Plotter):
                 tolerance of the point proximity.
 
         Examples:
-            - [](https://github.com/marcomusy/vedo/tree/master/examples/basic/cut_freehand.py)
+            - [cut_freehand.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/cut_freehand.py)
 
                 ![](https://vedo.embl.es/images/basic/cutFreeHand.gif)
         """
@@ -887,12 +892,12 @@ class FreeHandCutPlotter(Plotter):
         self.topline = None
         self.top_pts = []
 
-    def init(self, initpoints):
+    def init(self, init_points):
         """Set an initial number of points to define a region"""
-        if isinstance(initpoints, Points):
-            self.cpoints = initpoints.points()
+        if isinstance(init_points, Points):
+            self.cpoints = init_points.points()
         else:
-            self.cpoints = np.array(initpoints)
+            self.cpoints = np.array(init_points)
         self.points = Points(self.cpoints, r=self.linewidth).c(self.pointcolor).pickable(0)
         if self.splined:
             self.spline = Spline(self.cpoints, res=len(self.cpoints) * 4)
@@ -1033,14 +1038,16 @@ class FreeHandCutPlotter(Plotter):
 ########################################################################
 class SplinePlotter(Plotter):
     """
-    Create an interactive application that allows the user to click points and
-    retrieve the coordinates of such points and optionally a spline or line
-    (open or closed).
-
-    Input object can be a image file name or a 3D mesh.
+    Interactive drawing of splined curves on meshes.
     """
-    def __init__(self, obj, initpoints=(), **kwargs):
+    def __init__(self, obj, init_points=(), **kwargs):
+        """
+        Create an interactive application that allows the user to click points and
+        retrieve the coordinates of such points and optionally a spline or line
+        (open or closed).
 
+        Input object can be a image file name or a 3D mesh.
+        """
         super().__init__(**kwargs)
 
         self.mode    = 'trackball'
@@ -1052,7 +1059,7 @@ class SplinePlotter(Plotter):
         self.pcolor  = 'purple5'
         self.psize   = 10
 
-        self.cpoints = list(initpoints)
+        self.cpoints = list(init_points)
         self.vpoints = None
         self.line = None
 
@@ -1135,7 +1142,7 @@ class SplinePlotter(Plotter):
 ########################################################################
 class Animation(Plotter):
     """
-    A ``Plotter`` derived class that allows to animate simultaneously various objects
+    A `Plotter` derived class that allows to animate simultaneously various objects
     by specifying event times and durations of different visual effects.
 
     Arguments:
@@ -1536,7 +1543,7 @@ class Animation(Plotter):
 
 
 class Clock(vedo.Assembly):
-    """Clock class"""
+    """Clock animation."""
     def __init__(
             self,
             h=None,
@@ -1588,18 +1595,11 @@ class Clock(vedo.Assembly):
             s = t.tm_sec
             if not title:
                 d = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
-                wd = d[t.tm_wday] + " "
+                wd = f"{d[t.tm_wday]} {t.tm_mday}/{t.tm_mon}/{t.tm_year} "
 
         h = int(h) % 24
         m = int(m) % 60
         t = (h*60+m) / 12 / 60
-
-        if not title:
-            if h<10:
-                h = f"0{h}"
-            if m<10:
-                m = f"0{m}"
-            title = f"{h}:{m}"
 
         alpha = 2*np.pi*t + np.pi/2
         beta  = 12*2*np.pi*t + np.pi/2
@@ -1617,18 +1617,20 @@ class Clock(vedo.Assembly):
         if s is not None:
             secs= Line([0,0], [x3,y3], lw=1, c='k').scale(0.95).mirror()
             secs.z(0.003)
-        back1 = vedo.shapes.Circle(res=180, c="k6").lw(1)
-        back2 = vedo.shapes.Circle(res=12).mirror().scale(0.86).rotate_z(-360/12)
+        back1 = vedo.shapes.Circle(res=180, c="k5")
+        back2 = vedo.shapes.Circle(res=12).mirror().scale(0.84).rotate_z(-360/12)
         labels = back2.labels(
             range(1,13),
             justify="center",
             font=font,
             c=c,
+            scale=0.14,
         )
-        txt = vedo.shapes.Text3D(wd+title,
+        txt = vedo.shapes.Text3D(
+            wd + title,
             font="VictorMono",
             justify="top-center",
-            s=.1,
+            s=0.07,
             c=c,
         )
         txt.pos(0,-0.25, 0.001)
@@ -1638,7 +1640,7 @@ class Clock(vedo.Assembly):
         self.name = "Clock"
 
     def update(self, h=None, m=None, s=None):
-        """Update clock with current or user time"""
+        """Update clock with current or user time."""
         parts = self.unpack()
         self.elapsed = time.time() - self._start
 

@@ -34,8 +34,8 @@ __all__ = [
 ##########################################################################
 class BaseVolume:
     """Base class. Do not instantiate."""
-
     def __init__(self):
+        """Base class. Do not instantiate."""
         self._data = None
         self._mapper = None
         self.transform = None
@@ -77,8 +77,8 @@ class BaseVolume:
         Example:
             `arr[:] = arr*2 + 15`
 
-        If the array is modified call:
-            `volume.imagedata().GetPointData().GetScalars().Modified()`
+        If the array is modified add a call to:
+        `volume.imagedata().GetPointData().GetScalars().Modified()`
         when all your modifications are completed.
         """
         narray_shape = tuple(reversed(self._data.GetDimensions()))
@@ -103,7 +103,7 @@ class BaseVolume:
 
     @deprecated(reason=vedo.colors.red + "Please use scalar_range()" + vedo.colors.reset)
     def scalarRange(self):
-        "Deprecated. Please use `scalar_range()`"
+        "Deprecated. Please use `scalar_range()`."
         return self.scalar_range()
 
     def scalar_range(self):
@@ -178,7 +178,7 @@ class BaseVolume:
         """
         Set interpolation type.
 
-        0 = nearest neighbour, 1 = linear
+        0=nearest neighbour, 1=linear
         """
         self.property.SetInterpolationType(itype)
         return self
@@ -366,9 +366,11 @@ class BaseVolume:
         Keyword `volume2` can be a constant float.
 
         Possible operations are:
-        `+`, `-`, `/`, `1/x`, `sin`, `cos`, `exp`, `log`,
-        `abs`, `**2`, `sqrt`, `min`, `max`, `atan`, `atan2`, `median`,
-        `mag`, `dot`, `gradient`, `divergence`, `laplacian`.
+        ```
+        +, -, /, 1/x, sin, cos, exp, log,
+        abs, **2, sqrt, min, max, atan, atan2, median,
+        mag, dot, gradient, divergence, laplacian.
+        ```
 
         Examples:
             - [volumeOperations.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/volumeOperations.py)
@@ -698,7 +700,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         mapper="smart",
     ):
         """
-        Class can be initialized with a numpy object, a `vtkImageData`
+        This class can be initialized with a numpy object, a `vtkImageData`
         or a list of 2D bmp files.
 
         Arguments:
@@ -768,7 +770,8 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
 
                 ![](https://vedo.embl.es/images/volumetric/read_volume2.png)
 
-        .. note:: if a `list` of values is used for `alphas` this is interpreted
+        .. note:: 
+            if a `list` of values is used for `alphas` this is interpreted
             as a transfer function along the range of the scalar.
         """
         vtk.vtkVolume.__init__(self)
@@ -1417,10 +1420,10 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
                 set the slab thickness, for thick slicing
             mode : (int)
                 The slab type:
-                0 = min
-                1 = max
-                2 = mean
-                3 = sum
+                    0 = min
+                    1 = max
+                    2 = mean
+                    3 = sum
             sample_factor : (float)
                 Set the number of slab samples to use as a factor of the number of input slices
                 within the slab thickness. The default value is 2, but 1 will increase speed
@@ -1437,15 +1440,19 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
         return self
 
     def jump_to_nearest_slice(self, value=True):
-        """This causes the slicing to occur at the closest slice to the focal point,
-        instead of the default behavior where a new slice is interpolated between the original slices.
+        """
+        This causes the slicing to occur at the closest slice to the focal point,
+        instead of the default behavior where a new slice is interpolated between
+        the original slices.
         Nothing happens if the plane is oblique to the original slices."""
         self.SetJumpToNearestSlice(value)
         return self
 
     def fill_background(self, value=True):
-        """Instead of rendering only to the image border, render out to the viewport boundary with
-        the background color. The background color will be the lowest color on the lookup
+        """
+        Instead of rendering only to the image border, 
+        render out to the viewport boundary with the background color. 
+        The background color will be the lowest color on the lookup
         table that is being used for the image."""
         self._mapper.SetBackground(value)
         return self

@@ -31,7 +31,7 @@ __all__ = ["Mesh"]
 ####################################################
 class Mesh(Points):
     """
-    Build an instance of object ``Mesh`` derived from ``PointCloud``.
+    Build an instance of object `Mesh` derived from `PointCloud`.
     """
     def __init__(
         self,
@@ -42,7 +42,7 @@ class Mesh(Points):
         """
         Input can be a list of vertices and their connectivity (faces of the polygonal mesh),
         or directly a `vtkPolydata` object.
-        For point clouds - e.i. no faces - just substitute the `faces` list with ``None``.
+        For point clouds - e.i. no faces - just substitute the `faces` list with `None`.
 
         Example:
             `Mesh( [ [[x1,y1,z1],[x2,y2,z2], ...],  [[0,1,2], [1,2,3], ...] ] )`
@@ -340,7 +340,7 @@ class Mesh(Points):
     ):
         """
         Assign a texture to mesh from image file or predefined texture `tname`.
-        If tname is set to ``None`` texture is disabled.
+        If tname is set to `None` texture is disabled.
         Input tname can also be an array or a `vtkTexture`.
 
         Arguments:
@@ -722,7 +722,7 @@ class Mesh(Points):
         return mass.GetSurfaceArea()
 
     def is_closed(self):
-        """Return ``True`` if mesh is watertight."""
+        """Return `True` if mesh is watertight."""
         fe = vtk.vtkFeatureEdges()
         fe.BoundaryEdgesOn()
         fe.FeatureEdgesOff()
@@ -757,7 +757,7 @@ class Mesh(Points):
             ![](https://vedo.embl.es/images/simulations/50738955-7e891800-11d9-11e9-85cd-02bd4f3f13ea.gif)
 
         .. note::
-            for ``Mesh`` objects, two vectors ``mesh.base``, and ``mesh.top`` must be defined.
+            for `Mesh` objects, two vectors `mesh.base`, and `mesh.top` must be defined.
         """
         if self.base is None:
             vedo.logger.error(
@@ -795,7 +795,7 @@ class Mesh(Points):
         back=None,
     ):
         """
-        Crop an ``Mesh`` object.
+        Crop an `Mesh` object.
         Use this method at creation (before moving the object).
 
         Arguments:
@@ -1109,9 +1109,9 @@ class Mesh(Points):
 
     def compute_curvature(self, method=0):
         """
-        Add scalars to ``Mesh`` that contains the curvature calculated in three different ways.
+        Add scalars to `Mesh` that contains the curvature calculated in three different ways.
 
-        Variable ``method`` can be:
+        Variable `method` can be:
         - 0 = gaussian
         - 1 = mean curvature
         - 2 = max curvature
@@ -1135,7 +1135,7 @@ class Mesh(Points):
     def compute_connectivity(self):
         """
         Flag a mesh by connectivity: each disconnected region will receive a different Id.
-        You can access the array of ids through ``mesh.pointdata["RegionId"]``.
+        You can access the array of ids through `mesh.pointdata["RegionId"]`.
         """
         cf = vtk.vtkConnectivityFilter()
         cf.SetInputData(self.polydata(False))
@@ -1146,7 +1146,7 @@ class Mesh(Points):
 
     def compute_elevation(self, low=(0, 0, 0), high=(0, 0, 1), vrange=(0, 1)):
         """
-        Add to ``Mesh`` a scalar array that contains distance along a specified direction.
+        Add to `Mesh` a scalar array that contains distance along a specified direction.
 
         Arguments:
             low : (list)
@@ -1189,12 +1189,12 @@ class Mesh(Points):
         culling=0,
     ):
         """
-        Generate a shadow out of an ``Mesh`` on one of the three Cartesian planes.
-        The output is a new ``Mesh`` representing the shadow.
+        Generate a shadow out of an `Mesh` on one of the three Cartesian planes.
+        The output is a new `Mesh` representing the shadow.
         This new mesh is accessible through `mesh.shadow`.
         By default the shadow mesh is placed on the bottom wall of the bounding box.
 
-        See also ``pointcloud.project_on_plane``.
+        See also `pointcloud.project_on_plane`.
 
         Arguments:
             plane : (str, Plane)
@@ -1313,7 +1313,7 @@ class Mesh(Points):
             boundaries : (bool)
                 in "pro" mode decide whether to leave boundaries untouched or not
 
-        .. note:: Setting ``fraction=0.1`` leaves 10% of the original number of vertices
+        .. note:: Setting `fraction=0.1` leaves 10% of the original number of vertices
         """
         poly = self._data
         if n:  # N = desired number of points
@@ -1677,9 +1677,9 @@ class Mesh(Points):
 
     def silhouette(self, direction=None, border_edges=True, feature_angle=False):
         """
-        Return a new line ``Mesh`` which corresponds to the outer `silhouette`
+        Return a new line `Mesh` which corresponds to the outer `silhouette`
         of the input as seen along a specified `direction`, this can also be
-        a ``vtkCamera`` object.
+        a `vtkCamera` object.
 
         Arguments:
             direction : (list)
@@ -1744,10 +1744,10 @@ class Mesh(Points):
     def follow_camera(self, cam=None):
         """
         Mesh object will follow camera movements and stay locked to it.
-        Use ``mesh.followCamera(False)`` to disable it.
+        Use `mesh.follow_camera(False)` to disable it.
 
-        Set ``cam`` to None and the text will auto-orient itself to the active camera.
-        A ``vtkCamera`` object can also be passed.
+        Set `cam` to None and the text will auto-orient itself to the active camera.
+        A `vtkCamera` object can also be passed.
         """
         if cam is False:
             self.SetCamera(None)
@@ -1765,7 +1765,7 @@ class Mesh(Points):
 
     def isobands(self, n=10, vmin=None, vmax=None):
         """
-        Return a new ``Mesh`` representing the isobands of the active scalars.
+        Return a new `Mesh` representing the isobands of the active scalars.
         This is a new mesh where the scalar is now associated to cell faces and
         used to colorize the mesh.
 
@@ -1825,7 +1825,7 @@ class Mesh(Points):
 
     def isolines(self, n=10, vmin=None, vmax=None):
         """
-        Return a new ``Mesh`` representing the isolines of the active scalars.
+        Return a new `Mesh` representing the isolines of the active scalars.
 
         Arguments:
             n : (int)
@@ -2002,7 +2002,7 @@ class Mesh(Points):
     def boolean(self, operation, mesh2, method=0, tol=None):
         """Volumetric union, intersection and subtraction of surfaces.
 
-        Use ``operation`` for the allowed operations `['plus', 'intersect', 'minus']`.
+        Use `operation` for the allowed operations `['plus', 'intersect', 'minus']`.
 
         Two possible algorithms are available by changing `method`.
 
@@ -2076,7 +2076,7 @@ class Mesh(Points):
         Return the list of points intersecting the mesh
         along the segment defined by two points `p0` and `p1`.
 
-        Use ``return_ids`` to return the cell ids along with point coords
+        Use `return_ids` to return the cell ids along with point coords
 
         Example:
             ```python
@@ -2292,7 +2292,7 @@ class Mesh(Points):
     def binarize(self, spacing=(1, 1, 1), invert=False, direction_matrix=None,
                  image_size=None, origin=None, fg_val=255, bg_val=0):
         """
-        Convert a ``Mesh`` into a ``Volume``
+        Convert a `Mesh` into a `Volume`
         where the foreground (exterior) voxels value is fg_val (255 by default)
         and the background (interior) voxels value is bg_val (0 by default).
 
@@ -2361,7 +2361,7 @@ class Mesh(Points):
 
     def signed_distance(self, bounds=None, dims=(20, 20, 20), invert=False, maxradius=None):
         """
-        Compute the ``Volume`` object whose voxels contains the signed distance from
+        Compute the `Volume` object whose voxels contains the signed distance from
         the mesh.
 
         Arguments:

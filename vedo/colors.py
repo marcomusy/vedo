@@ -594,7 +594,7 @@ def get_color(rgb=None, hsv=None):
     """
     Convert a color or list of colors to (r,g,b) format from many different input formats.
 
-    Set ``hsv`` to input as (hue, saturation, value).
+    Set `hsv` to input as (hue, saturation, value).
 
     Example:
          - `RGB    = (255, 255, 255)` corresponds to white
@@ -890,11 +890,11 @@ def build_lut(
     """
     Generate colors in a lookup table (LUT).
 
-    Return the ``vtkLookupTable`` object. This can be fed into ``cmap()`` method.
+    Return the `vtkLookupTable` object. This can be fed into `cmap()` method.
 
     Arguments:
         colorlist : (list)
-            a list in the form ``[(scalar1, [r,g,b]), (scalar2, 'blue'), ...]``.
+            a list in the form `[(scalar1, [r,g,b]), (scalar2, 'blue'), ...]`.
         vmin : (float)
             specify minimum value of scalar range
         vmax : (float)
