@@ -57,6 +57,7 @@ __all__ = [
     "Star",
     "Star3D",
     "Cross3D",
+    "IcoSphere",
     "Sphere",
     "Spheres",
     "Earth",
@@ -2487,6 +2488,71 @@ class Arc(Mesh):
         self.SetPosition(self.base)
         self.lw(2).lighting("off")
         self.name = "Arc"
+
+class IcoSphere(Mesh):
+    """
+    Create a sphere made of a uniform triangle mesh.
+    """
+    def __init__(self, pos=(0, 0, 0), r=1, subdivisions=3, c="r5", alpha=1):
+        """
+        Create a sphere made of a uniform triangle mesh
+        (from recursive subdivision of an icosahedron).
+
+        Example:
+        ```python
+        from vedo import IcoSphere
+        icos = IcoSphere([1,2,3], r=4, subdivisions=4)
+        icos.show(axes=1)
+        ```
+        """
+        subdivisions = int(min(subdivisions, 9)) # to avoid disasters
+
+        t = (1.0 + np.sqrt(5.0)) / 2.0
+        points = np.array([
+            [-1,  t,  0],
+            [ 1,  t,  0],
+            [-1, -t,  0],
+            [ 1, -t,  0],
+            [ 0, -1,  t],
+            [ 0,  1,  t],
+            [ 0, -1, -t],
+            [ 0,  1, -t],
+            [ t,  0, -1],
+            [ t,  0,  1],
+            [-t,  0, -1],
+            [-t,  0,  1]
+        ])
+        faces = [
+            [0, 11, 5],
+            [0, 5, 1],
+            [0, 1, 7],
+            [0, 7, 10],
+            [0, 10, 11],
+            [1, 5, 9],
+            [5, 11, 4],
+            [11, 10, 2],
+            [10, 7, 6],
+            [7, 1, 8],
+            [3, 9, 4],
+            [3, 4, 2],
+            [3, 2, 6],
+            [3, 6, 8],
+            [3, 8, 9],
+            [4, 9, 5],
+            [2, 4, 11],
+            [6, 2, 10],
+            [8, 6, 7],
+            [9, 8, 1]
+        ]
+        Mesh.__init__(self, [points * r, faces], c=c, alpha=alpha)
+
+        for _ in range(subdivisions):
+            self.subdivide(method=1)
+            pts = utils.versor(self.points()) * r
+            self.points(pts)
+
+        self.SetPosition(pos)
+        self.name = "IcoSphere"
 
 
 class Sphere(Mesh):

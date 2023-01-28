@@ -719,7 +719,6 @@ class Points(vtk.vtkFollower, BaseActor):
 
         Example:
             ```python
-            import numpy as np
             from vedo import *
 
             def fibonacci_sphere(n):
