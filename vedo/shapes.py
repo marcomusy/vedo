@@ -2500,10 +2500,12 @@ class IcoSphere(Mesh):
 
         Example:
         ```python
-        from vedo import IcoSphere
-        icos = IcoSphere([1,2,3], r=4, subdivisions=4)
-        icos.show(axes=1)
+        from vedo import *
+        icos = IcoSphere(subdivisions=3)
+        icos.compute_quality().cmap('coolwarm')
+        icos.show(axes=1).close()
         ```
+        ![](https://vedo.embl.es/images/basic/icosphere.jpg)
         """
         subdivisions = int(min(subdivisions, 9)) # to avoid disasters
 
