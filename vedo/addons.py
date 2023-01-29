@@ -441,6 +441,14 @@ class SliderWidget(vtk.vtkSliderWidget):
         vtk.vtkSliderWidget.__init__(self)
 
     @property
+    def interactor(self):
+        return self.GetInteractor()
+
+    @interactor.setter
+    def interactor(self, iren):
+        self.SetInteractor(iren)
+
+    @property
     def representation(self):
         return self.GetRepresentation()
 
@@ -455,6 +463,10 @@ class SliderWidget(vtk.vtkSliderWidget):
     @property
     def renderer(self):
         return self.GetCurrentRenderer()
+
+    @renderer.setter
+    def renderer(self, ren):
+        self.SetCurrentRenderer(ren)
 
     @property
     def title(self):

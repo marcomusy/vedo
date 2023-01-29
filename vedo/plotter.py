@@ -1430,9 +1430,9 @@ class Plotter:
         )
 
         if self.renderer:
-            slider2d.SetCurrentRenderer(self.renderer)
+            slider2d.renderer = self.renderer
             if self.interactor:
-                slider2d.SetInteractor(self.interactor)
+                slider2d.interactor = self.interactor
                 slider2d.on()
                 self.sliders.append([slider2d, sliderfunc])
         return slider2d
@@ -1495,7 +1495,8 @@ class Plotter:
             c = vedo.get_color(c)
         
         slider3d = addons.Slider3D(sliderfunc, pos1, pos2, xmin, xmax, value, s, t, title, rotation, c, show_value)
-        slider3d.SetInteractor(self.interactor)
+        slider3d.renderer = self.renderer
+        slider3d.interactor = self.interactor
         slider3d.on()
         self.sliders.append([slider3d, sliderfunc])
         return slider3d
