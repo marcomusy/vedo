@@ -1787,11 +1787,11 @@ class RendererFrame(vtk.vtkActor2D):
 
 #####################################################################
 class Icon(vtk.vtkOrientationMarkerWidget):
-
+    """
+    Add an inset icon mesh into the renderer.
+    """
     def __init__(self, mesh, pos=3, size=0.08):
         """
-        Add an inset icon mesh into the renderer.
-
         Arguments:
             pos : (list, int)
                 icon position in the range [1-4] indicating one of the 4 corners,
