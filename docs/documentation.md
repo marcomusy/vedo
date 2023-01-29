@@ -183,7 +183,6 @@ exec "$@"
 - `test.py`:
 ```python
 from vedo import Sphere, Plotter, settings
-settings.screenshotTransparentBackground = True
 sph = Sphere(pos=[-5, 0, 0], c="r")
 plt = Plotter(interactive=False, offscreen=True)
 plt.show(sph)
@@ -278,8 +277,3 @@ for more information, where you can ask questions and report issues.
 You are also welcome to post specific questions on the [**image.sc**](https://forum.image.sc/) forum,
 or simply browse the [**examples gallery**](https://vedo.embl.es/#gallery).
 
-
-## API Documentation
-Use this page to search and inspect `vedo` sub-modules, methods and functions.
-These documentation pages are automatically generated
-by [pdoc](https://pdoc3.github.io/pdoc/) from the source files.

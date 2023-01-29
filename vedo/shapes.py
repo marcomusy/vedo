@@ -3645,7 +3645,7 @@ class Brace(Mesh):
                 additional text to appear next to the brace symbol.
             justify : (str)
                 specify the anchor point to justify text comment, e.g. "top-left".
-            italic, float
+            italic : float
                 italicness of the text comment (can be a positive or negative number)
             angle : (float)
                 rotation angle of text. Use `None` to keep it horizontal.

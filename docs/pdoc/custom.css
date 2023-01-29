@@ -1,0 +1,10 @@
+/* You can add additional CSS rules in custom.css. */
+/* https://github.com/mitmproxy/pdoc/tree/main/pdoc/templates */
+
+.modulename {
+    color: rgb(41, 27, 0);
+}
+
+html, main {
+    scroll-behavior: auto !important;
+}
