@@ -3706,7 +3706,7 @@ def add_global_axes(axtype=None, c=None):
         axact.GetYAxisCaptionActor2D().GetCaptionTextProperty().SetColor(lc)
         axact.GetZAxisCaptionActor2D().GetCaptionTextProperty().SetColor(lc)
         axact.PickableOff()
-        icn = add_icon(axact, size=0.1)
+        icn = Icon(axact, size=0.1)
         plt.axes_instances[r] = icn
 
     elif plt.axes == 5:
