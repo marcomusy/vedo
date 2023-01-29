@@ -33,7 +33,7 @@ __all__ = [
     "Slider2D",
     "Slider3D",
     "add_cutter_tool",
-    "add_icon",
+    "Icon",
     "LegendBox",
     "Light",
     "Axes",
@@ -1787,47 +1787,36 @@ class RendererFrame(vtk.vtkActor2D):
 
 
 #####################################################################
-def add_icon(mesh, pos=3, size=0.08):
-    """
-    Add an inset icon mesh into the renderer.
+class Icon(vtk.vtkOrientationMarkerWidget):
 
-    Arguments:
-        pos : (list, int)
-            icon position in the range [1-4] indicating one of the 4 corners,
-            or it can be a tuple (x,y) as a fraction of the renderer size.
-        size : (float)
-            size of the icon space as fraction of the window size.
+    def __init__(self, mesh, pos=3, size=0.08):
+        """
+        Add an inset icon mesh into the renderer.
 
-    Examples:
-        - [icon.py](https://github.com/marcomusy/vedo/tree/master/examples/other/icon.py)
-    """
-    plt = vedo.plotter_instance
-    if not plt.renderer:
-        vedo.logger.warning("Use add_icon() after first rendering the scene.")
+        Arguments:
+            pos : (list, int)
+                icon position in the range [1-4] indicating one of the 4 corners,
+                or it can be a tuple (x,y) as a fraction of the renderer size.
+            size : (float)
+                size of the icon space as fraction of the window size.
 
-        save_int = plt.interactive
-        plt.show(interactive=0)
-        plt.interactive = save_int
-    widget = vtk.vtkOrientationMarkerWidget()
-    widget.SetOrientationMarker(mesh)
-    widget.SetInteractor(plt.interactor)
-    if utils.is_sequence(pos):
-        widget.SetViewport(pos[0] - size, pos[1] - size, pos[0] + size, pos[1] + size)
-    else:
-        if pos < 2:
-            widget.SetViewport(0, 1 - 2 * size, size * 2, 1)
-        elif pos == 2:
-            widget.SetViewport(1 - 2 * size, 1 - 2 * size, 1, 1)
-        elif pos == 3:
-            widget.SetViewport(0, 0, size * 2, size * 2)
-        elif pos == 4:
-            widget.SetViewport(1 - 2 * size, 0, 1, size * 2)
-    widget.EnabledOn()
-    widget.InteractiveOff()
-    plt.widgets.append(widget)
-    if mesh in plt.actors:
-        plt.actors.remove(mesh)
-    return widget
+        Examples:
+            - [icon.py](https://github.com/marcomusy/vedo/tree/master/examples/other/icon.py)
+        """
+        vtk.vtkOrientationMarkerWidget.__init__(self)
+        self.SetOrientationMarker(mesh)
+
+        if utils.is_sequence(pos):
+            self.SetViewport(pos[0] - size, pos[1] - size, pos[0] + size, pos[1] + size)
+        else:
+            if pos < 2:
+                self.SetViewport(0, 1 - 2 * size, size * 2, 1)
+            elif pos == 2:
+                self.SetViewport(1 - 2 * size, 1 - 2 * size, 1, 1)
+            elif pos == 3:
+                self.SetViewport(0, 0, size * 2, size * 2)
+            elif pos == 4:
+                self.SetViewport(1 - 2 * size, 0, 1, size * 2)
 
 
 #####################################################################
@@ -3830,7 +3819,7 @@ def add_global_axes(axtype=None, c=None):
             axact.GetZMinusFaceProperty().SetColor(ac)
 
         axact.PickableOff()
-        icn = add_icon(axact, size=0.06)
+        icn = Icon(axact, size=0.06)
         plt.axes_instances[r] = icn
 
     elif plt.axes == 6:

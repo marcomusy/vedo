@@ -1644,7 +1644,14 @@ class Plotter:
         Examples:
             - [icon.py](https://github.com/marcomusy/vedo/tree/master/examples/other/icon.py)
         """
-        return addons.add_icon(icon, pos, size)
+        iconw = addons.Icon(icon, pos, size)
+
+        iconw.SetInteractor(self.interactor)
+        iconw.EnabledOn()
+        iconw.InteractiveOff()
+        self.widgets.append(iconw)
+        return iconw
+        
 
     def add_global_axes(self, axtype=None, c=None):
         """Draw axes on scene. Available axes types:
