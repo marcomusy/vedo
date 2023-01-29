@@ -32,7 +32,6 @@ __all__ = [
     "ScalarBar3D",
     "Slider2D",
     "Slider3D",
-    "add_cutter_tool",
     "Icon",
     "LegendBox",
     "Light",
