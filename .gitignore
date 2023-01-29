@@ -1,7 +1,9 @@
 *pyc
 .DS_Store
 .vedo_recorded_events.log
-docs/web_page
+docs/web_page/css
+docs/web_page/images
+docs/web_page/js
 
 vedo.egg-info
 build
