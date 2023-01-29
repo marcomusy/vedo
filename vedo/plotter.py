@@ -432,7 +432,6 @@ class Plotter:
         self.wx_widget = wx_widget  # wxVTKRenderWindowInteractor
 
         self.skybox = None
-        self.frames = None  # holds the output of addons.add_renderer_frame
 
         # mostly internal stuff:
         self.hover_legends = []
@@ -1555,7 +1554,6 @@ class Plotter:
         """              
         bu = addons.Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
         self.renderer.AddActor2D(bu.actor)
-        self.window.Render()
         self.buttons.append(bu)
         return bu
 
@@ -1923,7 +1921,7 @@ class Plotter:
 
     def add_renderer_frame(self, c=None, alpha=None, lw=None, padding=None):
         """
-        Add a frame to the renderer subwindow
+        Add a frame to the renderer subwindow.
 
         Arguments:
             c : (color)
@@ -1935,7 +1933,12 @@ class Plotter:
             padding : (float)
                 padding space in pixels.
         """
-        self.frames = addons.add_renderer_frame(self, c, alpha, lw, padding)
+        if c is None:  # automatic black or white
+            c = (0.9, 0.9, 0.9)
+            if np.sum(vedo.plotter_instance.renderer.GetBackground()) > 1.5:
+                c = (0.1, 0.1, 0.1)
+        renf = addons.RendererFrame(c, alpha, lw, padding)
+        self.renderer.AddActor(renf)
         return self
 
     def add_hover_legend(
@@ -2924,7 +2927,7 @@ class Plotter:
             self.renderer.ResetCamera()
 
         if len(self.renderers) > 1:
-            self.frames = self.add_renderer_frame()
+            self.add_renderer_frame()
 
         if settings.default_backend == '2d' and not zoom:
             zoom = "tightest"
@@ -3194,7 +3197,6 @@ class Plotter:
         self.renderer = None  # current renderer
         self.renderers = []
         self.camera = None
-        self.frames = None  # holds the output of addons.add_renderer_frame
         self.skybox = None
         return self
 

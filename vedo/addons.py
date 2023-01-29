@@ -37,6 +37,7 @@ __all__ = [
     "LegendBox",
     "Light",
     "Axes",
+    "RendererFrame",
     "Ruler",
     "RulerAxes",
     "Ruler2D",
@@ -1352,7 +1353,9 @@ class Slider2D(SliderWidget):
 
 #####################################################################
 class Slider3D(SliderWidget):
-
+    """
+    Add a 3D slider which can call an external custom function.
+    """
     def __init__(
             self,
             sliderfunc,
@@ -1369,7 +1372,7 @@ class Slider3D(SliderWidget):
             show_value=True,
         ):
         """
-        Add a 3D slider widget which can call an external custom function.
+        Add a 3D slider which can call an external custom function.
 
         Arguments:
             sliderfunc : (function)
@@ -1716,73 +1719,71 @@ def _addCutterToolVolumeWithBox(vol, invert):
 
 
 #####################################################################
-def add_renderer_frame(plotter_instance, c=None, alpha=None, lw=None, padding=None):
+class RendererFrame(vtk.vtkActor2D):
     """
     Add a line around the renderer subwindow.
-
-    Arguments:
-        c : (color)
-            color of the line.
-        alpha : (float)
-            opacity.
-        lw : (int)
-            line width in pixels.
-        padding : (int)
-            padding in pixel units.
     """
+    def __init__(self, c='k', alpha=None, lw=None, padding=None):
+        """
+        Add a line around the renderer subwindow.
 
-    if lw is None:
-        lw = settings.renderer_frame_width
-    if lw == 0:
-        return None
+        Arguments:
+            c : (color)
+                color of the line.
+            alpha : (float)
+                opacity.
+            lw : (int)
+                line width in pixels.
+            padding : (int)
+                padding in pixel units.
+        """
+    
+        if lw is None:
+            lw = settings.renderer_frame_width
+        if lw == 0:
+            return None
 
-    if padding is None:
-        padding = settings.renderer_frame_padding
+        if alpha is None:
+            alpha = settings.renderer_frame_alpha
 
-    if c is None:  # automatic black or white
-        c = (0.9, 0.9, 0.9)
-        if np.sum(plotter_instance.renderer.GetBackground()) > 1.5:
-            c = (0.1, 0.1, 0.1)
-    c = get_color(c)
+        if padding is None:
+            padding = settings.renderer_frame_padding
 
-    if alpha is None:
-        alpha = settings.renderer_frame_alpha
+        c = get_color(c)
 
-    ppoints = vtk.vtkPoints()  # Generate the polyline
-    xy = 1 - padding
-    psqr = [
-        [padding, padding],
-        [padding, xy],
-        [xy, xy],
-        [xy, padding],
-        [padding, padding],
-    ]
-    for i, pt in enumerate(psqr):
-        ppoints.InsertPoint(i, pt[0], pt[1], 0)
-    lines = vtk.vtkCellArray()
-    lines.InsertNextCell(len(psqr))
-    for i in range(len(psqr)):
-        lines.InsertCellPoint(i)
-    pd = vtk.vtkPolyData()
-    pd.SetPoints(ppoints)
-    pd.SetLines(lines)
+        ppoints = vtk.vtkPoints()  # Generate the polyline
+        xy = 1 - padding
+        psqr = [
+            [padding, padding],
+            [padding, xy],
+            [xy, xy],
+            [xy, padding],
+            [padding, padding],
+        ]
+        for i, pt in enumerate(psqr):
+            ppoints.InsertPoint(i, pt[0], pt[1], 0)
+        lines = vtk.vtkCellArray()
+        lines.InsertNextCell(len(psqr))
+        for i in range(len(psqr)):
+            lines.InsertCellPoint(i)
+        pd = vtk.vtkPolyData()
+        pd.SetPoints(ppoints)
+        pd.SetLines(lines)
 
-    mapper = vtk.vtkPolyDataMapper2D()
-    mapper.SetInputData(pd)
-    cs = vtk.vtkCoordinate()
-    cs.SetCoordinateSystemToNormalizedViewport()
-    mapper.SetTransformCoordinate(cs)
+        mapper = vtk.vtkPolyDataMapper2D()
+        mapper.SetInputData(pd)
+        cs = vtk.vtkCoordinate()
+        cs.SetCoordinateSystemToNormalizedViewport()
+        mapper.SetTransformCoordinate(cs)
 
-    fractor = vtk.vtkActor2D()
-    fractor.GetPositionCoordinate().SetValue(0, 0)
-    fractor.GetPosition2Coordinate().SetValue(1, 1)
-    fractor.SetMapper(mapper)
-    fractor.GetProperty().SetColor(c)
-    fractor.GetProperty().SetOpacity(alpha)
-    fractor.GetProperty().SetLineWidth(lw)
+        vtk.vtkActor2D.__init__(self)
 
-    plotter_instance.renderer.AddActor(fractor)
-    return fractor
+        self.GetPositionCoordinate().SetValue(0, 0)
+        self.GetPosition2Coordinate().SetValue(1, 1)
+        self.SetMapper(mapper)
+        self.GetProperty().SetColor(c)
+        self.GetProperty().SetOpacity(alpha)
+        self.GetProperty().SetLineWidth(lw)
 
 
 #####################################################################
