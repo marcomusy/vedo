@@ -1109,7 +1109,7 @@ def add_slider(
             upper value
         value : (float)
             current value
-        pos : (list), str
+        pos : (list, str)
             position corner number: horizontal [1-5] or vertical [11-15]
             it can also be specified by corners coordinates [(x1,y1), (x2,y2)]
             and also by a string descriptor (eg. "bottom-left")

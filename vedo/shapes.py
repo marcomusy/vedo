@@ -1477,14 +1477,16 @@ def StreamLines(
 
         tubes : (dict)
             dictionary containing the parameters for the tube representation:
-            - ratio, (int) - draws tube as longitudinal stripes
-            - res, (int) - tube resolution (nr. of sides, 12 by default)
-            - max_radius_factor (float) - max tube radius as a multiple of the min radius
-            - mode, (int) - radius varies based on the scalar or vector magnitude:
-                - 0 - do not vary radius
-                - 1 - vary radius by scalar
-                - 2 - vary radius by vector
-                - 3 - vary radius by absolute value of scalar
+            - ratio (int), draws tube as longitudinal stripes
+            - res (int), tube resolution (nr. of sides, 12 by default)
+            - max_radius_factor (float), max tube radius as a multiple of the min radius
+            - cap (bool), capping of the tube
+            - mode (int), radius varies based on the scalar or vector magnitude:
+                - 0 do not vary radius
+                - 1 vary radius by scalar
+                - 2 vary radius by vector
+                - 3 vary radius by absolute value of scalar
+                - 4 vary radius by vector norm
 
         scalar_range : (list)
             specify the scalar range for coloring
@@ -1589,23 +1591,23 @@ def StreamLines(
         output = scalar_surface.GetOutput()
 
     if tubes:
+        radius = tubes.pop("radius", domain.GetLength()/500)
+        res = tubes.pop("res", 24)
+        radfact = tubes.pop("max_radius_factor", 10)
+        ratio = tubes.pop("ratio", 1)
+        mode = tubes.pop("mode", 0)
+        cap = tubes.pop("mode", False)
+        if tubes:
+            vedo.logger.warning(f"in StreamLines unknown 'tubes' parameters: {tubes}")
+
         stream_tube = vtk.vtkTubeFilter()
-        stream_tube.SetNumberOfSides(24)
-        stream_tube.SetRadius(tubes["radius"])
-
-        if "res" in tubes:
-            stream_tube.SetNumberOfSides(tubes["res"])
-
+        stream_tube.SetNumberOfSides(res)
+        stream_tube.SetRadius(radius)
+        stream_tube.SetCapping(cap)
         # max tube radius as a multiple of the min radius
-        stream_tube.SetRadiusFactor(50)
-        if "max_radius_factor" in tubes:
-            stream_tube.SetRadiusFactor(tubes["max_radius_factor"])
-
-        if "ratio" in tubes:
-            stream_tube.SetOnRatio(int(tubes["ratio"]))
-
-        if "mode" in tubes:
-            stream_tube.SetVaryRadius(int(tubes["mode"]))
+        stream_tube.SetRadiusFactor(radfact)
+        stream_tube.SetOnRatio(int(ratio))
+        stream_tube.SetVaryRadius(int(mode))
 
         stream_tube.SetInputData(output)
         vname = grid.GetPointData().GetVectors().GetName()
