@@ -633,7 +633,8 @@ class Plotter:
 
         else:
 
-            if self.size == "auto":  # figure out a reasonable window size
+            if isinstance(self.size, str) and self.size == "auto":
+                # figure out a reasonable window size
                 f = 1.5
                 xs = y / f * shape[1]  # because y<x
                 ys = y / f * shape[0]
@@ -1514,12 +1515,21 @@ class Plotter:
                 opacity level
             angle : (float)
                 anticlockwise rotation in degrees
+        
+        Returns:
+            `vedo.addons.Button` object.
 
         Examples:
             - [buttons.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/buttons.py)
 
             ![](https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg)
-        """
+        """              
+        bu = addons.Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
+        self.renderer.AddActor2D(bu.actor)
+        self.window.Render()
+        self.buttons.append(bu)
+        return bu
+
         return addons.add_button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
 
     @deprecated(reason=vedo.colors.red + "Please use add_spline_tool()" + vedo.colors.reset)

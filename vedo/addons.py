@@ -32,7 +32,6 @@ __all__ = [
     "ScalarBar3D",
     "add_slider",
     "add_slider3d",
-    "add_button",
     "add_cutter_tool",
     "add_icon",
     "LegendBox",
@@ -73,7 +72,7 @@ class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
         Arguments:
             nmax : (int)
                 max number of legend entries
-            c : color
+            c : (color)
                 text color, leave as None to pick the mesh color automatically
             width : (float)
                 width of the box as fraction of the window width
@@ -81,11 +80,11 @@ class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
                 height of the box as fraction of the window height
             padding : (int)
                 padding space in units of pixels
-            bg : color
+            bg : (color)
                 background color of the box
-            alpha: float
+            alpha: (float)
                 opacity of the box
-            pos : (str), list
+            pos : (str, list)
                 position of the box, can be either a string or a (x,y) screen position in range [0,1]
 
         Examples:
@@ -189,7 +188,7 @@ class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
 
 class Button:
     """
-    Build a Button object to be shown in the rendering window.
+    Build a Button object.
     """
     def __init__(
         self,
@@ -207,9 +206,39 @@ class Button:
     ):
         """
         Build a Button object to be shown in the rendering window.
-    
+
+        Arguments:
+            fnc : (function)
+                external function to be called by the widget
+            states : (list)
+                the list of possible states, eg. ['On', 'Off']
+            c : (list)
+                the list of colors for each state eg. ['red3', 'green5']
+            bc : (list)
+                the list of background colors for each state
+            pos : (list, str)
+                2D position in pixels from left-bottom corner
+            size : (int)
+                size of button font
+            font : (str)
+                font type
+            bold : (bool)
+                set bold font face
+            italic : (bool)
+                italic font face
+            alpha : (float)
+                opacity level
+            angle : (float)
+                anticlockwise rotation in degrees
+
         Examples:
             - [buttons.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/buttons.py)
+
+        Examples:
+            - [buttons.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/buttons.py)
+                
+                ![](https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg)
+            
             - [timer_callback2.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/timer_callback2.py)
 
                 ![](https://vedo.embl.es/images/advanced/timer_callback1.jpg)
@@ -567,12 +596,12 @@ def Light(
         remove_others=False,
     ):
     """
-    Generate a source of light placed at pos, directed to focal point.
+    Generate a source of light placed at `pos` and directed to `focal point`.
     Returns a `vtkLight` object.
 
     Arguments:
         focal_point : (list)
-            focal point, if this is a vedo object use its position.
+            focal point, if a `vedo` object is passed then will grab its position.
         angle : (float)
             aperture angle of the light source, in degrees
         c : (color)
@@ -581,7 +610,7 @@ def Light(
             intensity value between 0 and 1.
         remove_others : (bool)
             remove all other lights in the scene
-            (in this case a Plotter object must already exist)
+            (in this case a `vedo.Plotter` object must already exist)
 
     Examples:
         - [lights.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/lights.py)
@@ -780,13 +809,13 @@ def ScalarBar3D(
     Input `obj` input can be:
 
         - a list of numbers,
-        - a list of two numbers in the form `(min, max)`,
-        - a `vedo.Mesh` already containing a set of scalars associated to vertices or cells,
-        - if `None` the last object in the list of actors will be used.
+        - a list of two numbers in the form (min, max),
+        - a Mesh already containing a set of scalars associated to vertices or cells,
+        - if None the last object in the list of actors will be used.
 
     Arguments:
         s : (list)
-            (thickness, length) of scalarbar
+            the tuple (thickness, length) of scalarbar
         title : (str)
             scalar bar title
         title_xoffset : (float)
@@ -1419,60 +1448,60 @@ def add_slider3d(
 
 
 #####################################################################
-def add_button(
-        fnc,
-        states=("On", "Off"),
-        c=("w", "w"),
-        bc=("dg", "dr"),
-        pos=(0.7, 0.05),
-        size=24,
-        font=None,
-        bold=False,
-        italic=False,
-        alpha=1,
-        angle=0,
-    ):
-    """
-    Add a button to the renderer window.
+# def add_button(
+#         fnc,
+#         states=("On", "Off"),
+#         c=("w", "w"),
+#         bc=("dg", "dr"),
+#         pos=(0.7, 0.05),
+#         size=24,
+#         font=None,
+#         bold=False,
+#         italic=False,
+#         alpha=1,
+#         angle=0,
+#     ):
+#     """
+#     Add a button to the renderer window.
 
-    Arguments:
-        fnc : (function)
-            external function to be called by the widget
-        states : (list)
-            the list of possible states, eg. ['On', 'Off']
-        c : (list)
-            the list of colors for each state eg. ['red3', 'green5']
-        bc : (list)
-            the list of background colors for each state
-        pos : (list, str)
-            2D position in pixels from left-bottom corner
-        size : (int)
-            size of button font
-        font : (str)
-            font type
-        bold : (bool)
-            set bold font face
-        italic : (bool)
-            italic font face
-        alpha : (float)
-            opacity level
-        angle : (float)
-            anticlockwise rotation in degrees
+#     Arguments:
+#         fnc : (function)
+#             external function to be called by the widget
+#         states : (list)
+#             the list of possible states, eg. ['On', 'Off']
+#         c : (list)
+#             the list of colors for each state eg. ['red3', 'green5']
+#         bc : (list)
+#             the list of background colors for each state
+#         pos : (list, str)
+#             2D position in pixels from left-bottom corner
+#         size : (int)
+#             size of button font
+#         font : (str)
+#             font type
+#         bold : (bool)
+#             set bold font face
+#         italic : (bool)
+#             italic font face
+#         alpha : (float)
+#             opacity level
+#         angle : (float)
+#             anticlockwise rotation in degrees
 
-    Examples:
-        - [buttons.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/buttons.py)
+#     Examples:
+#         - [buttons.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/buttons.py)
 
-        ![](https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg)
-    """
-    plt = vedo.plotter_instance
-    if not plt.renderer:
-        vedo.logger.error("Use addButton() only after rendering the scene.")
-        return None
-    bu = Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
-    plt.renderer.AddActor2D(bu.actor)
-    plt.window.Render()
-    plt.buttons.append(bu)
-    return bu
+#         ![](https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg)
+#     """
+#     plt = vedo.plotter_instance
+#     if not plt.renderer:
+#         vedo.logger.error("Use addButton() only after rendering the scene.")
+#         return None
+#     bu = Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
+#     plt.renderer.AddActor2D(bu.actor)
+#     plt.window.Render()
+#     plt.buttons.append(bu)
+#     return bu
 
 
 def add_cutter_tool(obj=None, mode="box", invert=False):
@@ -2184,7 +2213,7 @@ class Ruler2D(vtk.vtkAxisActor2D):
                 control if drawing the tick marks
             labels : (bool)
                 control if drawing the numeric labels
-            c : color
+            c : (color)
                 color of the object
             alpha : (float)
                 opacity of the object
@@ -2265,7 +2294,7 @@ class Ruler2D(vtk.vtkAxisActor2D):
         )
 
     def color(self, c):
-        """Assign a new color"""
+        """Assign a new color."""
         c = get_color(c)
         self.GetTitleTextProperty().SetColor(c)
         self.GetLabelTextProperty().SetColor(c)
@@ -2273,12 +2302,12 @@ class Ruler2D(vtk.vtkAxisActor2D):
         return self
 
     def off(self):
-        """Switch off the ruler completely"""
+        """Switch off the ruler completely."""
         self.renderer.RemoveObserver(self.cid)
         self.renderer.RemoveActor(self)
 
     def set_points(self, p0, p1):
-        """Set new values for the ruler start and end points"""
+        """Set new values for the ruler start and end points."""
         self.p0 = p0
         self.p1 = p1
         self._update_viz(0,0)
@@ -2343,14 +2372,14 @@ class DistanceTool(Group):
         self.title = ""
 
     def on(self):
-        """Swicth tool on"""
+        """Swicth tool on."""
         self.cid = self.plotter.add_callback("click", self._onclick)
         self.VisibilityOn()
         self.plotter.render()
         return self
 
     def off(self):
-        """Swicth tool off"""
+        """Swicth tool off."""
         self.plotter.remove_callback(self.cid)
         self.VisibilityOff()
         self.ruler.off()
