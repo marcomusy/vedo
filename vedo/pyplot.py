@@ -1891,15 +1891,15 @@ def plot(*args, **kwargs):
         x = np.linspace(0, 6.28, num=50)
         plot(np.sin(x), 'r').plot(np.cos(x), 'bo-').show().close()
         ```
-        ![](https://user-images.githubusercontent.com/32848391/74363882-c3638300-4dcb-11ea-8a78-eb492ad9711f.png)
+        <img src="https://user-images.githubusercontent.com/32848391/74363882-c3638300-4dcb-11ea-8a78-eb492ad9711f.png" width="600">
 
     Examples:
         - [plot_errbars.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/plot_errbars.py)
         - [plot_errband.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/plot_errband.py)
-        
-           ![](https://vedo.embl.es/images/pyplot/plot_pip.png)
-        
         - [plot_pip.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/plot_pip.py)
+        
+            ![](https://vedo.embl.es/images/pyplot/plot_pip.png)
+        
         - [scatter1.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/scatter1.py)
         - [scatter2.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/scatter2.py)
 

@@ -42,6 +42,7 @@ __all__ = [
     "RulerAxes",
     "Ruler2D",
     "DistanceTool",
+    "SplineTool",
     "Goniometer",
     "Button",
 ]
@@ -50,34 +51,8 @@ __all__ = [
 ###########################################################################################
 class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
     """
-    Create a 2D legend box for the list of specified objects
-
-    Arguments:
-        nmax : (int)
-            max number of legend entries
-        c : color
-            text color, leave as None to pick the mesh color automatically
-        width : (float)
-            width of the box as fraction of the window width
-        height : (float)
-            height of the box as fraction of the window height
-        padding : (int)
-            padding space in units of pixels
-        bg : color
-            background color of the box
-        alpha: float
-            opacity of the box
-        pos : (str), list
-            position of the box, can be either a string or a (x,y) screen position in range [0,1]
-
-    Examples:
-        - [legendbox.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/legendbox.py)
-        - [flag_labels1.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels1.py)
-        - [flag_labels2.py](examples/other/flag_labels2.py)
-
-            ![](https://vedo.embl.es/images/other/flag_labels.png)
+    Create a 2D legend box.
     """
-
     def __init__(
         self,
         entries=(),
@@ -92,6 +67,34 @@ class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
         pos="top-right",
         markers=None,
     ):
+        """
+        Create a 2D legend box for the list of specified objects.
+
+        Arguments:
+            nmax : (int)
+                max number of legend entries
+            c : color
+                text color, leave as None to pick the mesh color automatically
+            width : (float)
+                width of the box as fraction of the window width
+            height : (float)
+                height of the box as fraction of the window height
+            padding : (int)
+                padding space in units of pixels
+            bg : color
+                background color of the box
+            alpha: float
+                opacity of the box
+            pos : (str), list
+                position of the box, can be either a string or a (x,y) screen position in range [0,1]
+
+        Examples:
+            - [legendbox.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/legendbox.py)
+            - [flag_labels1.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels1.py)
+            - [flag_labels2.py](examples/other/flag_labels2.py)
+
+                ![](https://vedo.embl.es/images/other/flag_labels.png)
+        """
         shapes.TextBase.__init__(self)
         vtk.vtkLegendBoxActor.__init__(self)
 
@@ -185,8 +188,9 @@ class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
 
 
 class Button:
-    """Build a Button object to be shown in the rendering window."""
-
+    """
+    Build a Button object to be shown in the rendering window.
+    """
     def __init__(
         self,
         fnc,
@@ -202,6 +206,8 @@ class Button:
         angle,
     ):
         """
+        Build a Button object to be shown in the rendering window.
+    
         Examples:
             - [buttons.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/buttons.py)
             - [timer_callback2.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/timer_callback2.py)
@@ -284,34 +290,37 @@ class Button:
 #####################################################################
 class SplineTool(vtk.vtkContourWidget):
     """
-    Spline tool, to be used with ``plotter.add_spline_tool()``.
-
-    Arguments:
-        points : (list), Points
-            initial set of points.
-        pc : (str)
-            point color.
-        ps : (int)
-            point size.
-        lc : (str)
-            line color.
-        ac : (str)
-            active point color.
-        lw : (int)
-            line width.
-        closed : (bool)
-            spline is closed or open.
-        ontop : (bool)
-            show it always on top of other objects.
-
-    Examples:
-        - [spline_tool.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/spline_tool.py)
-
-            ![](https://vedo.embl.es/images/basic/spline_tool.png)
+    Spline tool, draw a spline through a set of points interactively.
     """
     def __init__(
             self, points, pc="k", ps=8, lc="r4", ac="g5", lw=2, closed=False, ontop=True
         ):
+        """
+        Spline tool, draw a spline through a set of points interactively.
+
+        Arguments:
+            points : (list), Points
+                initial set of points.
+            pc : (str)
+                point color.
+            ps : (int)
+                point size.
+            lc : (str)
+                line color.
+            ac : (str)
+                active point color.
+            lw : (int)
+                line width.
+            closed : (bool)
+                spline is closed or open.
+            ontop : (bool)
+                show it always on top of other objects.
+
+        Examples:
+            - [spline_tool.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/spline_tool.py)
+
+                ![](https://vedo.embl.es/images/basic/spline_tool.png)
+        """
         vtk.vtkContourWidget.__init__(self)
 
         self.representation = vtk.vtkOrientedGlyphContourRepresentation()
@@ -559,7 +568,7 @@ def Light(
     ):
     """
     Generate a source of light placed at pos, directed to focal point.
-    Returns a ``vtkLight`` object.
+    Returns a `vtkLight` object.
 
     Arguments:
         focal_point : (list)
@@ -768,12 +777,12 @@ def ScalarBar3D(
     """
     Create a 3D scalar bar for the specified object.
 
-    Input ``obj`` input can be:
+    Input `obj` input can be:
 
         - a list of numbers,
         - a list of two numbers in the form `(min, max)`,
-        - a ``Mesh`` already containing a set of scalars associated to vertices or cells,
-        - if ``None`` the last object in the list of actors will be used.
+        - a `vedo.Mesh` already containing a set of scalars associated to vertices or cells,
+        - if `None` the last object in the list of actors will be used.
 
     Arguments:
         s : (list)
@@ -2138,49 +2147,7 @@ def RulerAxes(
 #####################################################################
 class Ruler2D(vtk.vtkAxisActor2D):
     """
-    Creates a ruler line with tick marks, labels and a title.
-    Ruler2D is a 2D actor; that is, it is drawn on the overlay
-    plane and is not occluded by 3D geometry.
-    To use this class, specify two points defining the start and end
-    with update_points() as 3D points.
-
-    This class decides decides how to create reasonable tick
-    marks and labels.
-
-    Labels are drawn on the "right" side of the axis.
-    The "right" side is the side of the axis on the right.
-    The way the labels and title line up with the axis and tick marks
-    depends on whether the line is considered horizontal or vertical.
-
-    Arguments:
-        lw : (int)
-            width of the line in pixel units
-        ticks : (bool)
-            control if drawing the tick marks
-        labels : (bool)
-            control if drawing the numeric labels
-        c : color
-            color of the object
-        alpha : (float)
-            opacity of the object
-        title : (str)
-            title of the ruler
-        font : (str)
-            font face name
-        font_size : (int)
-            font size
-        bc : (color)
-            background color of the title
-
-    Example:
-        ```python
-        from vedo  import *
-        plt = Plotter(axes=1, interactive=False)
-        plt.show(Cube())
-        rul = Ruler2D()
-        rul.set_points([0,0,0], [.5,.5,.5])
-        plt.add(rul).interactive().close()
-        ```
+    Create a ruler with tick marks, labels and a title.
     """
     def __init__(
             self,
@@ -2194,7 +2161,52 @@ class Ruler2D(vtk.vtkAxisActor2D):
             font_size=24,
             bc=None,
         ):
+        """
+        Create a ruler with tick marks, labels and a title.
 
+        Ruler2D is a 2D actor; that is, it is drawn on the overlay
+        plane and is not occluded by 3D geometry.
+        To use this class, specify two points defining the start and end
+        with update_points() as 3D points.
+
+        This class decides decides how to create reasonable tick
+        marks and labels.
+
+        Labels are drawn on the "right" side of the axis.
+        The "right" side is the side of the axis on the right.
+        The way the labels and title line up with the axis and tick marks
+        depends on whether the line is considered horizontal or vertical.
+
+        Arguments:
+            lw : (int)
+                width of the line in pixel units
+            ticks : (bool)
+                control if drawing the tick marks
+            labels : (bool)
+                control if drawing the numeric labels
+            c : color
+                color of the object
+            alpha : (float)
+                opacity of the object
+            title : (str)
+                title of the ruler
+            font : (str)
+                font face name
+            font_size : (int)
+                font size
+            bc : (color)
+                background color of the title
+
+        Example:
+            ```python
+            from vedo  import *
+            plt = Plotter(axes=1, interactive=False)
+            plt.show(Cube())
+            rul = Ruler2D()
+            rul.set_points([0,0,0], [.5,.5,.5])
+            plt.add(rul).interactive().close()
+            ```
+        """
         vtk.vtkAxisActor2D.__init__(self)
 
         plt = vedo.plotter_instance
@@ -2298,20 +2310,22 @@ class Ruler2D(vtk.vtkAxisActor2D):
 class DistanceTool(Group):
     """
     Create a tool to measure the distance between two clicked points.
-
-    Example:
-        ```python
-        from vedo import *
-        mesh = ParametricShape("RandomHills").c("red5")
-        plt = Plotter(axes=1)
-        dtool = DistanceTool()
-        dtool.on()
-        plt.show(mesh, dtool)
-        dtool.off()
-        ```
     """
     def __init__(self, plotter=None, c="k", lw=2):
+        """
+        Create a tool to measure the distance between two clicked points.
 
+        Example:
+            ```python
+            from vedo import *
+            mesh = ParametricShape("RandomHills").c("red5")
+            plt = Plotter(axes=1)
+            dtool = DistanceTool()
+            dtool.on()
+            plt.show(mesh, dtool)
+            dtool.off()
+            ```
+        """
         Group.__init__(self)
 
         self.p0 = [0,0,0]
@@ -2517,7 +2531,7 @@ def Axes(
     """
     Draw axes for the input object.
 
-    Returns an `Assembly` object.
+    Returns an `vedo.Assembly` object.
 
     Parameters
     ----------
@@ -3626,16 +3640,16 @@ def add_global_axes(axtype=None, c=None):
         - 5,  show a cube at bottom left
         - 6,  mark the corners of the bounding box
         - 7,  draw a 3D ruler at each side of the cartesian axes
-        - 8,  show the ``vtkCubeAxesActor`` object
+        - 8,  show the `vtkCubeAxesActor` object
         - 9,  show the bounding box outLine
         - 10, show three circles representing the maximum bounding box
         - 11, show a large grid on the x-y plane (use with zoom=8)
         - 12, show polar axes
         - 13, draw a simple ruler at the bottom of the window
-        - 14, show the vtk default vtkCameraOrientationWidget object
+        - 14, show the vtk default `vtkCameraOrientationWidget` object
 
-    Axis type-1 can be fully customized by passing a dictionary ``axes=dict()``,
-    see ``Axes`` for the complete list of options.
+    Axis type-1 can be fully customized by passing a dictionary `axes=dict()`,
+    see `vedo.Axes` for the complete list of options.
 
     Example
     -------

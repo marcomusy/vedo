@@ -29,12 +29,19 @@
         {% endif %}
     {% endblock %}
 
+
+    {% if module.members %}
+        <h2>API Documentation</h2>
+    {% endif %}
+
+
     {% block search_box %}
         {% if search and all_modules|length > 1 %}
             {# we set a pattern here so that we can use the :valid CSS selector #}
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
         {% endif %}
+        <br>
     {% endblock %}
 
     {% set index = module.docstring | to_markdown | to_html | attr("toc_html") %}
@@ -48,7 +55,7 @@
         <ul>
             {% for submodule in module.submodules if is_public(submodule) | trim %}
                 
-                {% if "cmaps" not in submodule.name and "vtkclasses" not in submodule.name %}
+                {% if "cmaps" not in submodule.name and "vtkclasses" not in submodule.name and "cli" not in submodule.name %}
                     {% if "version" not in submodule.name and "backends" not in submodule.name %}
 
                         <li>{{ submodule.taken_from | link(text=submodule.name) }}</li>
@@ -61,7 +68,7 @@
     {% endif %}
 
     {% if module.members %}
-        <h2>API Documentation</h2>
+        <br>
         {{ nav_members(module.members.values()) }}
     {% endif %}
 
@@ -227,26 +234,46 @@ See https://pdoc.dev/docs/pdoc/render_helpers.html#DefaultMacroExtension for an 
         <div class="docstring">{{ var.docstring | to_markdown | to_html | linkify(namespace=var.qualname) }}</div>
     {% endif %}
 {% enddefaultmacro %}
+
+
 {% defaultmacro nav_members(members) %}
     <ul class="memberlist">
-        {% for m in members if is_public(m) | trim %}
+        {#% for m in members if is_public(m) | trim %#}
+        {% for m in members|sort(attribute='qualname') if is_public(m) | trim %}
             <li>
                 {% if m.kind == "class" %}
+
+                    {% if m.own_members and "shapes" not in module_name() %}
+                        <hr>
+                    {% endif %}
+
                     <a class="class" href="#{{ m.qualname }}">{{ m.qualname }}</a>
                     {% if m.own_members %}
                         {{ nav_members(m.own_members) | indent(12) }}
                     {% endif %}
+
+                    {% if m.own_members and "shapes" not in module_name() %}
+                        <br>
+                    {% endif %}
+
+                    
                 {% elif m.kind == "module" %}
                     <a class="module" href="#{{ m.name }}">{{ m.name }}</a>
+
                 {% elif m.name == "__init__" %}
-                    <a class="function" href="#{{ m.qualname }}">{{ m.qualname.split(".")[-2] }}</a>
+                    
                 {% else %}
-                    <a class="{{ m.kind }}" href="#{{ m.qualname }}">{{ m.name }}</a>
+
+                    {% if m.name.lower() == m.name %}
+                        <a class="module" href="#{{ m.qualname }}">{{ m.name }}</a>
+                    {% endif %}
+
                 {% endif %}
             </li>
         {% endfor %}
     </ul>
 {% enddefaultmacro %}
+
 {% defaultmacro is_public(doc) %}
     {#
     This macro is a bit unconventional in that its output is not rendered, but treated as a boolean:
@@ -287,16 +314,11 @@ See https://pdoc.dev/docs/pdoc/render_helpers.html#DefaultMacroExtension for an 
         
         
     
-    
-    
-    
         {% if member_html and "vtkmodules" not in base | link %}
             <div><dt>{{ base | link }}</dt>
                 {{ member_html }}
             </div>
         {% endif %}
-    
-
     
     
     {% endfor %}

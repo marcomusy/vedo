@@ -31,7 +31,7 @@ __all__ = ["Mesh"]
 ####################################################
 class Mesh(Points):
     """
-    Build an instance of object `Mesh` derived from `PointCloud`.
+    Build an instance of object `Mesh` derived from `vedo.PointCloud`.
     """
     def __init__(
         self,
@@ -1194,7 +1194,7 @@ class Mesh(Points):
         This new mesh is accessible through `mesh.shadow`.
         By default the shadow mesh is placed on the bottom wall of the bounding box.
 
-        See also `pointcloud.project_on_plane`.
+        See also `pointcloud.project_on_plane()`.
 
         Arguments:
             plane : (str, Plane)
@@ -1512,7 +1512,7 @@ class Mesh(Points):
     ):
         """
         Return the boundary lines of an input mesh.
-        Check also `mark_boundaries()` method.
+        Check also `vedo.base.BaseActor.mark_boundaries()` method.
 
         Arguments:
             boundary_edges : (bool)

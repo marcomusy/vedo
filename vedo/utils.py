@@ -37,6 +37,7 @@ __all__ = [
     "grep",
     "print_info",
     "make_bands",
+    "pack_spheres",
     "spher2cart",
     "cart2spher",
     "cart2cyl",
@@ -661,11 +662,12 @@ def linInterpolate(x, rangeX, rangeY):
 
 def lin_interpolate(x, rangeX, rangeY):
     """
-    Interpolate linearly the variable x in rangeX onto the new rangeY.
-    If x is a 3D vector the linear weight is the distance to the two 3D rangeX vectors.
+    Interpolate linearly the variable `x` in `rangeX` onto the new `rangeY`.
+    If `x` is a 3D vector the linear weight is the distance to the two 3D `rangeX` vectors.
 
-    E.g. if x runs in rangeX=[x0,x1] and I want it to run in rangeY=[y0,y1] then
-    y = lin_interpolate(x, rangeX, rangeY) will interpolate x onto rangeY.
+    E.g. if `x` runs in `rangeX=[x0,x1]` and I want it to run in `rangeY=[y0,y1]` then
+
+    `y = lin_interpolate(x, rangeX, rangeY)` will interpolate `x` onto `rangeY`.
 
     Examples:
         - [lin_interpolate.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/lin_interpolate.py)
