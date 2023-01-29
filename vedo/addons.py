@@ -30,7 +30,7 @@ Create additional objects like axes, legends, lights, etc.
 __all__ = [
     "ScalarBar",
     "ScalarBar3D",
-    "add_slider",
+    "Slider2D",
     "add_slider3d",
     "add_cutter_tool",
     "add_icon",
@@ -439,6 +439,10 @@ class SliderWidget(vtk.vtkSliderWidget):
     """Helper class for vtkSliderWidget"""
     def __init__(self):
         vtk.vtkSliderWidget.__init__(self)
+
+    @property
+    def representation(self):
+        return self.GetRepresentation()
 
     @property
     def value(self):
@@ -1110,242 +1114,226 @@ def ScalarBar3D(
 
 
 #####################################################################
-def add_slider(
-        sliderfunc,
-        xmin,
-        xmax,
-        value=None,
-        pos=4,
-        title="",
-        font="",
-        title_size=1,
-        c=None,
-        show_value=True,
-        delayed=False,
-        **options,
-    ):
+class Slider2D(SliderWidget):
     """
-    Add a slider widget which can call an external custom function.
-
-    Set any value as float to increase the number of significant digits above the slider.
-
-    Arguments:
-        sliderfunc : (function)
-            external function to be called by the widget
-        xmin : (float)
-            lower value of the slider
-        xmax : (float)
-            upper value
-        value : (float)
-            current value
-        pos : (list, str)
-            position corner number: horizontal [1-5] or vertical [11-15]
-            it can also be specified by corners coordinates [(x1,y1), (x2,y2)]
-            and also by a string descriptor (eg. "bottom-left")
-        title : (str)
-            title text
-        font : (str)
-            title font face
-        title_size : (float)
-            title text scale [1.0]
-        show_value : (bool)
-            if true current value is shown
-        delayed : (bool)
-            if True the callback is delayed until when the mouse button is released
-        alpha : (float)
-            opacity of the scalar bar texts
-        slider_length : (float)
-            slider length
-        slider_width : (float)
-            slider width
-        end_cap_length : (float)
-            length of the end cap
-        end_cap_width : (float)
-            width of the end cap
-        tube_width : (float)
-            width of the tube
-        title_height : (float)
-            width of the title
-        tformat : (str)
-            format of the title
-
-    Examples:
-        - [sliders1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders1.py)
-        - [sliders2.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders2.py)
-
-        ![](https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg)
+    Add a slider which can call an external custom function.
     """
-    options = dict(options)
-    value = options.pop("value", value)
-    pos = options.pop("pos", pos)
-    title = options.pop("title", title)
-    font = options.pop("font", font)
-    title_size = options.pop("title_size", title_size)
-    c = options.pop("c", c)
-    show_value = options.pop("show_value", show_value)
-    delayed = options.pop("delayed", delayed)
-    alpha = options.pop("alpha", 1)
-    slider_length = options.pop("slider_length", 0.015)
-    slider_width  = options.pop("slider_width", 0.025)
-    end_cap_length= options.pop("end_cap_length", 0.0015)
-    end_cap_width = options.pop("end_cap_width", 0.0125)
-    tube_width    = options.pop("tube_width", 0.0075)
-    title_height  = options.pop("title_height", 0.022)
+    def __init__(self,
+            sliderfunc,
+            xmin,
+            xmax,
+            value=None,
+            pos=4,
+            title="",
+            font="",
+            title_size=1,
+            c="k",
+            alpha=1,
+            show_value=True,
+            delayed=False,
+            **options,
+        ):
+        """
+        Add a slider which can call an external custom function.
+        Set any value as float to increase the number of significant digits above the slider.
 
-    plt = vedo.plotter_instance
-    if c is None:  # automatic black or white
-        c = (0.8, 0.8, 0.8)
-        if np.sum(get_color(plt.backgrcol)) > 1.5:
-            c = (0.2, 0.2, 0.2)
-    c = get_color(c)
+        Arguments:
+            sliderfunc : (function)
+                external function to be called by the widget
+            xmin : (float)
+                lower value of the slider
+            xmax : (float)
+                upper value
+            value : (float)
+                current value
+            pos : (list, str)
+                position corner number: horizontal [1-5] or vertical [11-15]
+                it can also be specified by corners coordinates [(x1,y1), (x2,y2)]
+                and also by a string descriptor (eg. "bottom-left")
+            title : (str)
+                title text
+            font : (str)
+                title font face
+            title_size : (float)
+                title text scale [1.0]
+            show_value : (bool)
+                if True current value is shown
+            delayed : (bool)
+                if True the callback is delayed until when the mouse button is released
+            alpha : (float)
+                opacity of the scalar bar texts
+            slider_length : (float)
+                slider length
+            slider_width : (float)
+                slider width
+            end_cap_length : (float)
+                length of the end cap
+            end_cap_width : (float)
+                width of the end cap
+            tube_width : (float)
+                width of the tube
+            title_height : (float)
+                width of the title
+            tformat : (str)
+                format of the title
 
-    if value is None or value < xmin:
-        value = xmin
+        Examples:
+            - [sliders1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders1.py)
+            - [sliders2.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders2.py)
+            
+            ![](https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg)
+        """
+        slider_length = options.pop("slider_length",  0.015)
+        slider_width  = options.pop("slider_width",   0.025)
+        end_cap_length= options.pop("end_cap_length", 0.0015)
+        end_cap_width = options.pop("end_cap_width",  0.0125)
+        tube_width    = options.pop("tube_width",     0.0075)
+        title_height  = options.pop("title_height",   0.022)
+        if options:
+            vedo.logger.warning(f"in Slider2D unknown option(s): {options}")
 
-    slider_rep = vtk.vtkSliderRepresentation2D()
-    slider_rep.SetMinimumValue(xmin)
-    slider_rep.SetMaximumValue(xmax)
-    slider_rep.SetValue(value)
-    slider_rep.SetSliderLength(slider_length)
-    slider_rep.SetSliderWidth(slider_width)
-    slider_rep.SetEndCapLength(end_cap_length)
-    slider_rep.SetEndCapWidth(end_cap_width)
-    slider_rep.SetTubeWidth(tube_width)
-    slider_rep.GetPoint1Coordinate().SetCoordinateSystemToNormalizedDisplay()
-    slider_rep.GetPoint2Coordinate().SetCoordinateSystemToNormalizedDisplay()
+        if value is None or value < xmin:
+            value = xmin
 
-    if isinstance(pos, str):
-        if "top" in pos:
-            if "left" in pos:
-                if "vert" in pos:
-                    pos = 11
-                else:
-                    pos = 1
-            elif "right" in pos:
-                if "vert" in pos:
-                    pos = 12
-                else:
-                    pos = 2
-        elif "bott" in pos:
-            if "left" in pos:
-                if "vert" in pos:
-                    pos = 13
-                else:
-                    pos = 3
-            elif "right" in pos:
-                if "vert" in pos:
-                    if "span" in pos:
-                        pos = 15
+        slider_rep = vtk.vtkSliderRepresentation2D()
+        slider_rep.SetMinimumValue(xmin)
+        slider_rep.SetMaximumValue(xmax)
+        slider_rep.SetValue(value)
+        slider_rep.SetSliderLength(slider_length)
+        slider_rep.SetSliderWidth(slider_width)
+        slider_rep.SetEndCapLength(end_cap_length)
+        slider_rep.SetEndCapWidth(end_cap_width)
+        slider_rep.SetTubeWidth(tube_width)
+        slider_rep.GetPoint1Coordinate().SetCoordinateSystemToNormalizedDisplay()
+        slider_rep.GetPoint2Coordinate().SetCoordinateSystemToNormalizedDisplay()
+
+        if isinstance(pos, str):
+            if "top" in pos:
+                if "left" in pos:
+                    if "vert" in pos:
+                        pos = 11
                     else:
-                        pos = 14
-                else:
-                    pos = 4
-            elif "span" in pos:
-                pos = 5
+                        pos = 1
+                elif "right" in pos:
+                    if "vert" in pos:
+                        pos = 12
+                    else:
+                        pos = 2
+            elif "bott" in pos:
+                if "left" in pos:
+                    if "vert" in pos:
+                        pos = 13
+                    else:
+                        pos = 3
+                elif "right" in pos:
+                    if "vert" in pos:
+                        if "span" in pos:
+                            pos = 15
+                        else:
+                            pos = 14
+                    else:
+                        pos = 4
+                elif "span" in pos:
+                    pos = 5
 
-    if utils.is_sequence(pos):
-        slider_rep.GetPoint1Coordinate().SetValue(pos[0][0], pos[0][1])
-        slider_rep.GetPoint2Coordinate().SetValue(pos[1][0], pos[1][1])
-    elif pos == 1:  # top-left horizontal
-        slider_rep.GetPoint1Coordinate().SetValue(0.04, 0.93)
-        slider_rep.GetPoint2Coordinate().SetValue(0.45, 0.93)
-    elif pos == 2:
-        slider_rep.GetPoint1Coordinate().SetValue(0.55, 0.93)
-        slider_rep.GetPoint2Coordinate().SetValue(0.95, 0.93)
-    elif pos == 3:
-        slider_rep.GetPoint1Coordinate().SetValue(0.05, 0.06)
-        slider_rep.GetPoint2Coordinate().SetValue(0.45, 0.06)
-    elif pos == 4:  # bottom-right
-        slider_rep.GetPoint1Coordinate().SetValue(0.55, 0.06)
-        slider_rep.GetPoint2Coordinate().SetValue(0.95, 0.06)
-    elif pos == 5:  # bottom span horizontal
-        slider_rep.GetPoint1Coordinate().SetValue(0.04, 0.06)
-        slider_rep.GetPoint2Coordinate().SetValue(0.95, 0.06)
-    elif pos == 11:  # top-left vertical
-        slider_rep.GetPoint1Coordinate().SetValue(0.065, 0.54)
-        slider_rep.GetPoint2Coordinate().SetValue(0.065, 0.9)
-    elif pos == 12:
-        slider_rep.GetPoint1Coordinate().SetValue(0.94, 0.54)
-        slider_rep.GetPoint2Coordinate().SetValue(0.94, 0.9)
-    elif pos == 13:
-        slider_rep.GetPoint1Coordinate().SetValue(0.065, 0.1)
-        slider_rep.GetPoint2Coordinate().SetValue(0.065, 0.54)
-    elif pos == 14:  # bottom-right vertical
-        slider_rep.GetPoint1Coordinate().SetValue(0.94, 0.1)
-        slider_rep.GetPoint2Coordinate().SetValue(0.94, 0.54)
-    elif pos == 15:  # right margin vertical
-        slider_rep.GetPoint1Coordinate().SetValue(0.95, 0.1)
-        slider_rep.GetPoint2Coordinate().SetValue(0.95, 0.9)
-    else:  # bottom-right
-        slider_rep.GetPoint1Coordinate().SetValue(0.55, 0.06)
-        slider_rep.GetPoint2Coordinate().SetValue(0.95, 0.06)
+        if utils.is_sequence(pos):
+            slider_rep.GetPoint1Coordinate().SetValue(pos[0][0], pos[0][1])
+            slider_rep.GetPoint2Coordinate().SetValue(pos[1][0], pos[1][1])
+        elif pos == 1:  # top-left horizontal
+            slider_rep.GetPoint1Coordinate().SetValue(0.04, 0.93)
+            slider_rep.GetPoint2Coordinate().SetValue(0.45, 0.93)
+        elif pos == 2:
+            slider_rep.GetPoint1Coordinate().SetValue(0.55, 0.93)
+            slider_rep.GetPoint2Coordinate().SetValue(0.95, 0.93)
+        elif pos == 3:
+            slider_rep.GetPoint1Coordinate().SetValue(0.05, 0.06)
+            slider_rep.GetPoint2Coordinate().SetValue(0.45, 0.06)
+        elif pos == 4:  # bottom-right
+            slider_rep.GetPoint1Coordinate().SetValue(0.55, 0.06)
+            slider_rep.GetPoint2Coordinate().SetValue(0.95, 0.06)
+        elif pos == 5:  # bottom span horizontal
+            slider_rep.GetPoint1Coordinate().SetValue(0.04, 0.06)
+            slider_rep.GetPoint2Coordinate().SetValue(0.95, 0.06)
+        elif pos == 11:  # top-left vertical
+            slider_rep.GetPoint1Coordinate().SetValue(0.065, 0.54)
+            slider_rep.GetPoint2Coordinate().SetValue(0.065, 0.9)
+        elif pos == 12:
+            slider_rep.GetPoint1Coordinate().SetValue(0.94, 0.54)
+            slider_rep.GetPoint2Coordinate().SetValue(0.94, 0.9)
+        elif pos == 13:
+            slider_rep.GetPoint1Coordinate().SetValue(0.065, 0.1)
+            slider_rep.GetPoint2Coordinate().SetValue(0.065, 0.54)
+        elif pos == 14:  # bottom-right vertical
+            slider_rep.GetPoint1Coordinate().SetValue(0.94, 0.1)
+            slider_rep.GetPoint2Coordinate().SetValue(0.94, 0.54)
+        elif pos == 15:  # right margin vertical
+            slider_rep.GetPoint1Coordinate().SetValue(0.95, 0.1)
+            slider_rep.GetPoint2Coordinate().SetValue(0.95, 0.9)
+        else:  # bottom-right
+            slider_rep.GetPoint1Coordinate().SetValue(0.55, 0.06)
+            slider_rep.GetPoint2Coordinate().SetValue(0.95, 0.06)
 
-    if show_value:
-        if isinstance(xmin, int) and isinstance(xmax, int) and isinstance(value, int):
-            frm = "%0.0f"
-        else:
-            frm = "%0.2f"
+        if show_value:
+            if isinstance(xmin, int) and isinstance(xmax, int) and isinstance(value, int):
+                frm = "%0.0f"
+            else:
+                frm = "%0.2f"
 
-        frm = options.pop("tformat", frm)
+            frm = options.pop("tformat", frm)
 
-        slider_rep.SetLabelFormat(frm)  # default is '%0.3g'
-        slider_rep.GetLabelProperty().SetShadow(0)
-        slider_rep.GetLabelProperty().SetBold(0)
-        slider_rep.GetLabelProperty().SetOpacity(alpha)
-        slider_rep.GetLabelProperty().SetColor(c)
-        if isinstance(pos, int) and pos > 10:
-            slider_rep.GetLabelProperty().SetOrientation(90)
-    else:
-        slider_rep.ShowSliderLabelOff()
-    slider_rep.GetTubeProperty().SetColor(c)
-    slider_rep.GetTubeProperty().SetOpacity(0.6)
-    slider_rep.GetSliderProperty().SetColor(c)
-    slider_rep.GetSelectedProperty().SetColor(np.sqrt(np.array(c)))
-    slider_rep.GetCapProperty().SetColor(c)
-
-    slider_rep.SetTitleHeight(title_height * title_size)
-    slider_rep.GetTitleProperty().SetShadow(0)
-    slider_rep.GetTitleProperty().SetColor(c)
-    slider_rep.GetTitleProperty().SetOpacity(alpha)
-    slider_rep.GetTitleProperty().SetBold(0)
-    if font.lower() == "courier":
-        slider_rep.GetTitleProperty().SetFontFamilyToCourier()
-    elif font.lower() == "times":
-        slider_rep.GetTitleProperty().SetFontFamilyToTimes()
-    elif font.lower() == "arial":
-        slider_rep.GetTitleProperty().SetFontFamilyToArial()
-    else:
-        if font == "":
-            font = utils.get_font_path(settings.default_font)
-        else:
-            font = utils.get_font_path(font)
-        slider_rep.GetTitleProperty().SetFontFamily(vtk.VTK_FONT_FILE)
-        slider_rep.GetLabelProperty().SetFontFamily(vtk.VTK_FONT_FILE)
-        slider_rep.GetTitleProperty().SetFontFile(font)
-        slider_rep.GetLabelProperty().SetFontFile(font)
-
-    if title:
-        slider_rep.SetTitleText(title)
-        if not utils.is_sequence(pos):
+            slider_rep.SetLabelFormat(frm)  # default is '%0.3g'
+            slider_rep.GetLabelProperty().SetShadow(0)
+            slider_rep.GetLabelProperty().SetBold(0)
+            slider_rep.GetLabelProperty().SetOpacity(alpha)
+            slider_rep.GetLabelProperty().SetColor(c)
             if isinstance(pos, int) and pos > 10:
-                slider_rep.GetTitleProperty().SetOrientation(90)
+                slider_rep.GetLabelProperty().SetOrientation(90)
         else:
-            if abs(pos[0][0] - pos[1][0]) < 0.1:
-                slider_rep.GetTitleProperty().SetOrientation(90)
+            slider_rep.ShowSliderLabelOff()
+        slider_rep.GetTubeProperty().SetColor(c)
+        slider_rep.GetTubeProperty().SetOpacity(0.6)
+        slider_rep.GetSliderProperty().SetColor(c)
+        slider_rep.GetSelectedProperty().SetColor(np.sqrt(np.array(c)))
+        slider_rep.GetCapProperty().SetColor(c)
 
-    slider_widget = SliderWidget()
-    slider_widget.SetInteractor(plt.interactor)
-    slider_widget.SetAnimationModeToJump()
-    slider_widget.SetRepresentation(slider_rep)
-    if delayed:
-        slider_widget.AddObserver("EndInteractionEvent", sliderfunc)
-    else:
-        slider_widget.AddObserver("InteractionEvent", sliderfunc)
-    if plt.renderer:
-        slider_widget.SetCurrentRenderer(plt.renderer)
-    slider_widget.on()
-    plt.sliders.append([slider_widget, sliderfunc])
-    return slider_widget
+        slider_rep.SetTitleHeight(title_height * title_size)
+        slider_rep.GetTitleProperty().SetShadow(0)
+        slider_rep.GetTitleProperty().SetColor(c)
+        slider_rep.GetTitleProperty().SetOpacity(alpha)
+        slider_rep.GetTitleProperty().SetBold(0)
+        if font.lower() == "courier":
+            slider_rep.GetTitleProperty().SetFontFamilyToCourier()
+        elif font.lower() == "times":
+            slider_rep.GetTitleProperty().SetFontFamilyToTimes()
+        elif font.lower() == "arial":
+            slider_rep.GetTitleProperty().SetFontFamilyToArial()
+        else:
+            if font == "":
+                font = utils.get_font_path(settings.default_font)
+            else:
+                font = utils.get_font_path(font)
+            slider_rep.GetTitleProperty().SetFontFamily(vtk.VTK_FONT_FILE)
+            slider_rep.GetLabelProperty().SetFontFamily(vtk.VTK_FONT_FILE)
+            slider_rep.GetTitleProperty().SetFontFile(font)
+            slider_rep.GetLabelProperty().SetFontFile(font)
+
+        if title:
+            slider_rep.SetTitleText(title)
+            if not utils.is_sequence(pos):
+                if isinstance(pos, int) and pos > 10:
+                    slider_rep.GetTitleProperty().SetOrientation(90)
+            else:
+                if abs(pos[0][0] - pos[1][0]) < 0.1:
+                    slider_rep.GetTitleProperty().SetOrientation(90)
+
+        SliderWidget.__init__(self)
+
+        self.SetAnimationModeToJump()
+        self.SetRepresentation(slider_rep)
+        if delayed:
+            self.AddObserver("EndInteractionEvent", sliderfunc)
+        else:
+            self.AddObserver("InteractionEvent", sliderfunc)
 
 
 #####################################################################
@@ -1445,63 +1433,6 @@ def add_slider3d(
     slider_widget.on()
     plt.sliders.append([slider_widget, sliderfunc])
     return slider_widget
-
-
-#####################################################################
-# def add_button(
-#         fnc,
-#         states=("On", "Off"),
-#         c=("w", "w"),
-#         bc=("dg", "dr"),
-#         pos=(0.7, 0.05),
-#         size=24,
-#         font=None,
-#         bold=False,
-#         italic=False,
-#         alpha=1,
-#         angle=0,
-#     ):
-#     """
-#     Add a button to the renderer window.
-
-#     Arguments:
-#         fnc : (function)
-#             external function to be called by the widget
-#         states : (list)
-#             the list of possible states, eg. ['On', 'Off']
-#         c : (list)
-#             the list of colors for each state eg. ['red3', 'green5']
-#         bc : (list)
-#             the list of background colors for each state
-#         pos : (list, str)
-#             2D position in pixels from left-bottom corner
-#         size : (int)
-#             size of button font
-#         font : (str)
-#             font type
-#         bold : (bool)
-#             set bold font face
-#         italic : (bool)
-#             italic font face
-#         alpha : (float)
-#             opacity level
-#         angle : (float)
-#             anticlockwise rotation in degrees
-
-#     Examples:
-#         - [buttons.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/buttons.py)
-
-#         ![](https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg)
-#     """
-#     plt = vedo.plotter_instance
-#     if not plt.renderer:
-#         vedo.logger.error("Use addButton() only after rendering the scene.")
-#         return None
-#     bu = Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
-#     plt.renderer.AddActor2D(bu.actor)
-#     plt.window.Render()
-#     plt.buttons.append(bu)
-#     return bu
 
 
 def add_cutter_tool(obj=None, mode="box", invert=False):

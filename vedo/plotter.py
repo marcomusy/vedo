@@ -1352,35 +1352,37 @@ class Plotter:
             font="",
             title_size=1,
             c=None,
+            alpha=1,
             show_value=True,
             delayed=False,
             **options,
         ):
         """
-        Add a slider widget which can call an external custom function.
+        Add a `vedo.addons.Slider2D` which can call an external custom function.
 
         Arguments:
             sliderfunc : (function)
-                external callback function to be called by the widget
+                external function to be called by the widget
             xmin : (float)
-                lower value of the slider range
-            xmax :  float
-                upper value of the slider range
+                lower value of the slider
+            xmax : (float)
+                upper value
             value : (float)
-                current value of the slider range
-            pos : (list)
-                position corner number, horizontal [1-5] or vertical [11-15]
+                current value
+            pos : (list, str)
+                position corner number: horizontal [1-5] or vertical [11-15]
                 it can also be specified by corners coordinates [(x1,y1), (x2,y2)]
+                and also by a string descriptor (eg. "bottom-left")
             title : (str)
                 title text
-            titleSize : (float)
-                title text scale [1.0]
             font : (str)
-                title font
+                title font face
+            title_size : (float)
+                title text scale [1.0]
             show_value : (bool)
-                if true current value is shown
+                if True current value is shown
             delayed : (bool)
-                if True the callback is delayed to when the mouse is released
+                if True the callback is delayed until when the mouse button is released
             alpha : (float)
                 opacity of the scalar bar texts
             slider_length : (float)
@@ -1401,10 +1403,17 @@ class Plotter:
         Examples:
             - [sliders1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders1.py)
             - [sliders2.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders2.py)
-
+            
             ![](https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg)
         """
-        return addons.add_slider(
+        if c is None:  # automatic black or white
+            c = (0.8, 0.8, 0.8)
+            if np.sum(vedo.get_color(self.backgrcol)) > 1.5:
+                c = (0.2, 0.2, 0.2)
+        else:
+            c = vedo.get_color(c)
+
+        slider2d = addons.Slider2D(
             sliderfunc,
             xmin,
             xmax,
@@ -1414,10 +1423,20 @@ class Plotter:
             font,
             title_size,
             c,
+            alpha,
             show_value,
             delayed,
             **options,
         )
+
+        if self.renderer:
+            slider2d.SetCurrentRenderer(self.renderer)
+            if self.interactor:
+                slider2d.SetInteractor(self.interactor)
+                slider2d.on()
+                self.sliders.append([slider2d, sliderfunc])
+        return slider2d
+
 
     def add_slider3d(
         self,
