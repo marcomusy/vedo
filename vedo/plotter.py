@@ -1487,9 +1487,18 @@ class Plotter:
 
             ![](https://user-images.githubusercontent.com/32848391/52859555-4efcf200-312d-11e9-9290-6988c8295163.png)
         """
-        return addons.add_slider3d(
-            sliderfunc, pos1, pos2, xmin, xmax, value, s, t, title, rotation, c, show_value
-        )
+        if c is None:  # automatic black or white
+            c = (0.8, 0.8, 0.8)
+            if np.sum(vedo.get_color(self.backgrcol)) > 1.5:
+                c = (0.2, 0.2, 0.2)
+        else:
+            c = vedo.get_color(c)
+        
+        slider3d = addons.Slider3D(sliderfunc, pos1, pos2, xmin, xmax, value, s, t, title, rotation, c, show_value)
+        slider3d.SetInteractor(self.interactor)
+        slider3d.on()
+        self.sliders.append([slider3d, sliderfunc])
+        return slider3d
 
 
     @deprecated(reason=vedo.colors.red + "Please use add_button()" + vedo.colors.reset)

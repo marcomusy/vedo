@@ -31,7 +31,7 @@ __all__ = [
     "ScalarBar",
     "ScalarBar3D",
     "Slider2D",
-    "add_slider3d",
+    "Slider3D",
     "add_cutter_tool",
     "add_icon",
     "LegendBox",
@@ -1192,6 +1192,8 @@ class Slider2D(SliderWidget):
         if options:
             vedo.logger.warning(f"in Slider2D unknown option(s): {options}")
 
+        c = get_color(c)
+
         if value is None or value < xmin:
             value = xmin
 
@@ -1337,102 +1339,96 @@ class Slider2D(SliderWidget):
 
 
 #####################################################################
-def add_slider3d(
-        sliderfunc,
-        pos1,
-        pos2,
-        xmin,
-        xmax,
-        value=None,
-        s=0.03,
-        t=1,
-        title="",
-        rotation=0,
-        c=None,
-        show_value=True,
-    ):
-    """
-    Add a 3D slider widget which can call an external custom function.
+class Slider3D(SliderWidget):
 
-    Arguments:
-        sliderfunc : (function)
-            external function to be called by the widget
-        pos1 : (list)
-            first position 3D coordinates
-        pos2 : (list)
-            second position 3D coordinates
-        xmin : (float)
-            lower value
-        xmax : (float)
-            upper value
-        value : (float)
-            initial value
-        s : (float)
-            label scaling factor
-        t : (float)
-            tube scaling factor
-        title : (str)
-            title text
-        c : (color)
-            slider color
-        rotation : (float)
-            title rotation around slider axis
-        show_value : (bool)
-            if True current value is shown on top of the slider
+    def __init__(
+            self,
+            sliderfunc,
+            pos1,
+            pos2,
+            xmin,
+            xmax,
+            value=None,
+            s=0.03,
+            t=1,
+            title="",
+            rotation=0,
+            c=None,
+            show_value=True,
+        ):
+        """
+        Add a 3D slider widget which can call an external custom function.
 
-    Examples:
-        - [sliders3d.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders3d.py)
-    """
-    plt = vedo.plotter_instance
-    if c is None:  # automatic black or white
-        c = (0.8, 0.8, 0.8)
-        if np.sum(get_color(plt.backgrcol)) > 1.5:
-            c = (0.2, 0.2, 0.2)
-    else:
+        Arguments:
+            sliderfunc : (function)
+                external function to be called by the widget
+            pos1 : (list)
+                first position 3D coordinates
+            pos2 : (list)
+                second position 3D coordinates
+            xmin : (float)
+                lower value
+            xmax : (float)
+                upper value
+            value : (float)
+                initial value
+            s : (float)
+                label scaling factor
+            t : (float)
+                tube scaling factor
+            title : (str)
+                title text
+            c : (color)
+                slider color
+            rotation : (float)
+                title rotation around slider axis
+            show_value : (bool)
+                if True current value is shown on top of the slider
+
+        Examples:
+            - [sliders3d.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders3d.py)
+        """
         c = get_color(c)
 
-    if value is None or value < xmin:
-        value = xmin
+        if value is None or value < xmin:
+            value = xmin
 
-    slider_rep = vtk.vtkSliderRepresentation3D()
-    slider_rep.SetMinimumValue(xmin)
-    slider_rep.SetMaximumValue(xmax)
-    slider_rep.SetValue(value)
+        slider_rep = vtk.vtkSliderRepresentation3D()
+        slider_rep.SetMinimumValue(xmin)
+        slider_rep.SetMaximumValue(xmax)
+        slider_rep.SetValue(value)
 
-    slider_rep.GetPoint1Coordinate().SetCoordinateSystemToWorld()
-    slider_rep.GetPoint2Coordinate().SetCoordinateSystemToWorld()
-    slider_rep.GetPoint1Coordinate().SetValue(pos2)
-    slider_rep.GetPoint2Coordinate().SetValue(pos1)
+        slider_rep.GetPoint1Coordinate().SetCoordinateSystemToWorld()
+        slider_rep.GetPoint2Coordinate().SetCoordinateSystemToWorld()
+        slider_rep.GetPoint1Coordinate().SetValue(pos2)
+        slider_rep.GetPoint2Coordinate().SetValue(pos1)
 
-    # slider_rep.SetPoint1InWorldCoordinates(pos2[0], pos2[1], pos2[2])
-    # slider_rep.SetPoint2InWorldCoordinates(pos1[0], pos1[1], pos1[2])
+        # slider_rep.SetPoint1InWorldCoordinates(pos2[0], pos2[1], pos2[2])
+        # slider_rep.SetPoint2InWorldCoordinates(pos1[0], pos1[1], pos1[2])
 
-    slider_rep.SetSliderWidth(0.03 * t)
-    slider_rep.SetTubeWidth(0.01 * t)
-    slider_rep.SetSliderLength(0.04 * t)
-    slider_rep.SetSliderShapeToCylinder()
-    slider_rep.GetSelectedProperty().SetColor(np.sqrt(np.array(c)))
-    slider_rep.GetSliderProperty().SetColor(np.array(c) / 1.5)
-    slider_rep.GetCapProperty().SetOpacity(0)
-    slider_rep.SetRotation(rotation)
+        slider_rep.SetSliderWidth(0.03 * t)
+        slider_rep.SetTubeWidth(0.01 * t)
+        slider_rep.SetSliderLength(0.04 * t)
+        slider_rep.SetSliderShapeToCylinder()
+        slider_rep.GetSelectedProperty().SetColor(np.sqrt(np.array(c)))
+        slider_rep.GetSliderProperty().SetColor(np.array(c) / 1.5)
+        slider_rep.GetCapProperty().SetOpacity(0)
+        slider_rep.SetRotation(rotation)
 
-    if not show_value:
-        slider_rep.ShowSliderLabelOff()
+        if not show_value:
+            slider_rep.ShowSliderLabelOff()
 
-    slider_rep.SetTitleText(title)
-    slider_rep.SetTitleHeight(s * t)
-    slider_rep.SetLabelHeight(s * t * 0.85)
+        slider_rep.SetTitleText(title)
+        slider_rep.SetTitleHeight(s * t)
+        slider_rep.SetLabelHeight(s * t * 0.85)
 
-    slider_rep.GetTubeProperty().SetColor(c)
+        slider_rep.GetTubeProperty().SetColor(c)
 
-    slider_widget = SliderWidget()
-    slider_widget.SetInteractor(plt.interactor)
-    slider_widget.SetRepresentation(slider_rep)
-    slider_widget.SetAnimationModeToJump()
-    slider_widget.AddObserver("InteractionEvent", sliderfunc)
-    slider_widget.on()
-    plt.sliders.append([slider_widget, sliderfunc])
-    return slider_widget
+        SliderWidget.__init__(self)
+
+        self.SetRepresentation(slider_rep)
+        self.SetAnimationModeToJump()
+        self.AddObserver("InteractionEvent", sliderfunc)
 
 
 def add_cutter_tool(obj=None, mode="box", invert=False):
