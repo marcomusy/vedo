@@ -1347,19 +1347,12 @@ def _interpolate2vol(mesh, kernel=None, radius=None, bounds=None, null_value=Non
     # Generate a volumetric dataset by interpolating a scalar
     # or vector field which is only known on a scattered set of points or mesh.
     # Available interpolation kernels are: shepard, gaussian, voronoi, linear.
-
-    # Parameters
-    # ----------
-    # kernel : (str)
-    #     interpolation kernel type [shepard]
-    # radius : (float)
-    #     radius of the local search
-    # bounds : (list)
-    #     bounding box of the output object
-    # dims : (list)
-    #     dimensions of the output object
-    # null_value : (float)
-    #     value to be assigned to invalid points
+    #
+    # kernel : (str) interpolation kernel type [shepard]
+    # radius : (float) radius of the local search
+    # bounds : (list) bounding box of the output object
+    # dims : (list) dimensions of the output object
+    # null_value : (float) value to be assigned to invalid points
     if dims is None:
         dims = (25, 25, 25)
 
@@ -1378,7 +1371,7 @@ def _interpolate2vol(mesh, kernel=None, radius=None, bounds=None, null_value=Non
     domain.SetSpacing(deltaX, deltaY, deltaZ)
 
     if radius is None:
-        radius = np.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ)
+        radius = 2.5*np.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ)
 
     locator = vtk.vtkStaticPointLocator()
     locator.SetDataSet(mesh)
@@ -1457,14 +1450,13 @@ def StreamLines(
         step_length : (float)
             length of step integration.
         extrapolate_to_box : (dict)
-            Vectors are defined on a surface are extrapolated to the entire
-            volume defined by its bounding box
-
-            - bounds, (list) - bounding box of the output Volume
-            - kernel, (str) - interpolation kernel type [shepard]
-            - radius (float)- radius of the local search
-            - dims, (list) - dimensions of the output Volume object
-            - null_value, (float) - value to be assigned to invalid points
+            Vectors that are defined on a descrete set of points
+            are extrapolated to a 3D domain defined by its bounding box:
+                - bounds (list), bounding box of the domain
+                - kernel (str), interpolation kernel `["shepard","gaussian","voronoi","linear"]`
+                - radius (float), radius of the local search
+                - dims (list), nr of subdivisions of the domain along x, y, and z
+                - null_value (float), value to be assigned to invalid points
 
         surface_constrained : (bool)
             force streamlines to be computed on a surface
