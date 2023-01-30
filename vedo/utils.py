@@ -738,6 +738,7 @@ def get_uv(p, x, v):
             N=2, axes=1, sharecam=False,
         ).close()
         ```
+        ![](https://vedo.embl.es/images/feats/utils_get_uv.png)
     """
     # Vector vp=p-x0 is representable as alpha*s + beta*t,
     # where s = x1-x0 and t = x2-x0, in matrix form
@@ -1490,6 +1491,7 @@ def print_histogram(
         data = print_histogram(d, c=1, horizontal=1)
         print(np.mean(data)) # data here is same as d
         ```
+        ![](https://vedo.embl.es/images/feats/print_histogram.png)
     """
     # credits: http://pyinsci.blogspot.com/2009/10/ascii-histograms.html
     # adapted for vedo by M.Musy, 2019
@@ -1921,6 +1923,7 @@ def grid_corners(i, nm, size, margin=0, yflip=True):
             acts += [t,r]
         show(acts, axes=1).close()
         ```
+        ![](https://vedo.embl.es/images/feats/grid_corners.png)
     """
     i -= 1
     n, m = nm

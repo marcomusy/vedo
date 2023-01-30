@@ -1590,7 +1590,7 @@ class PlotXY(Figure):
             fig+= plot(x, np.cos(2*x), 'blue4 o-', like=fig)
             fig.show().close()
             ```
-            <img src="https://user-images.githubusercontent.com/32848391/74363882-c3638300-4dcb-11ea-8a78-eb492ad9711f.png" width="600">
+            ![](https://vedo.embl.es/images/feats/plotxy.png)
 
         Examples:
             - [plot_errbars.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_errbars.py)

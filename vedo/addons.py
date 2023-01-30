@@ -2160,9 +2160,11 @@ class Ruler2D(vtk.vtkAxisActor2D):
             plt = Plotter(axes=1, interactive=False)
             plt.show(Cube())
             rul = Ruler2D()
-            rul.set_points([0,0,0], [.5,.5,.5])
-            plt.add(rul).interactive().close()
+            rul.set_points([0,0,0], [0.5,0.5,0.5])
+            plt.add(rul)
+            plt.interactive().close()
             ```
+            ![](https://vedo.embl.es/images/feats/dist_tool.png)
         """
         vtk.vtkAxisActor2D.__init__(self)
 
@@ -2236,8 +2238,8 @@ class Ruler2D(vtk.vtkAxisActor2D):
 
     def set_points(self, p0, p1):
         """Set new values for the ruler start and end points."""
-        self.p0 = p0
-        self.p1 = p1
+        self.p0 = np.asarray(p0)
+        self.p1 = np.asarray(p1)
         self._update_viz(0,0)
         return self
 
@@ -2282,6 +2284,7 @@ class DistanceTool(Group):
             plt.show(mesh, dtool)
             dtool.off()
             ```
+            ![](https://vedo.embl.es/images/feats/dist_tool.png)
         """
         Group.__init__(self)
 
@@ -2482,6 +2485,7 @@ def Axes(
             print(a.name)
         show(box, axs).close()
         ```
+        ![](https://vedo.embl.es/images/feaxes1ats/axes1.png)
 
     Examples:
         - [custom_axes1.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/custom_axes1.py)

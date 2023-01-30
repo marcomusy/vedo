@@ -406,10 +406,11 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             ```python
             from vedo import Picture, dataurl
             pic = Picture(dataurl+'dog.jpg').pad()
-            pic.append([pic,pic,pic], axis='y')
-            pic.append([pic,pic,pic,pic], axis='x')
+            pic.append([pic,pic], axis='y')
+            pic.append([pic,pic,pic], axis='x')
             pic.show(axes=1).close()
             ```
+            ![](https://vedo.embl.es/images/feats/pict_append.png)
         """
         ima = vtk.vtkImageAppend()
         ima.SetInputData(self._data)
@@ -586,10 +587,11 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
 
         Example:
             ```python
-            import vedo
-            p = vedo.Picture(vedo.dataurl+'images/dog.jpg').bw()
-            vedo.show(p, p.clone().enhance(), N=2, mode='image', zoom='tight').close()
+            from vedo import *
+            pic = Picture(vedo.dataurl+'images/dog.jpg').bw()
+            show(pic, pic.clone().enhance(), N=2, mode='image', zoom='tight')
             ```
+            ![](https://vedo.embl.es/images/feats/pict_enhance.png)
         """
         img = self._data
         scalarRange = img.GetPointData().GetScalars().GetRange()
@@ -860,11 +862,14 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         data = 255 - np.array(rgb)
         return self._update(_get_img(data))
 
-    def binarize(self, thresh=None, invert=False):
-        """Return a new Picture where pixel above threshold are set to 255
+    def binarize(self, threshold=None, invert=False):
+        """
+        Return a new Picture where pixel above threshold are set to 255
         and pixels below are set to 0.
 
         Arguments:
+            threshold : (float)
+                input threshold value
             invert : (bool)
                 invert threshold direction
 
@@ -876,6 +881,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             pic3 = pic1.clone().binarize()
             show(pic1, pic2, pic3, N=3, bg="blue9").close()
             ```
+            ![](https://vedo.embl.es/images/feats/pict_binarize.png)
         """
         rgb = self.tonumpy()
         if rgb.ndim == 3:
@@ -883,12 +889,12 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         else:
             intensity = rgb
 
-        if thresh is None:
+        if threshold is None:
             vmin, vmax = np.min(intensity), np.max(intensity)
-            thresh = (vmax + vmin) / 2
+            threshold = (vmax + vmin) / 2
 
         data = np.zeros_like(intensity).astype(np.uint8)
-        mask = np.where(intensity > thresh)
+        mask = np.where(intensity > threshold)
         if invert:
             data += 255
             data[mask] = 0
@@ -982,9 +988,10 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             pic = vedo.Picture(vedo.dataurl+"images/dog.jpg")
             pic.rectangle([100,300], [100,200], c='green4', alpha=0.7)
             pic.line([100,100],[400,500], lw=2, alpha=1)
-            pic.triangle([250,300], [100,300], [200,400])
+            pic.triangle([250,300], [100,300], [200,400], c='blue5')
             vedo.show(pic, axes=1).close()
             ```
+            ![](https://vedo.embl.es/images/feats/pict_drawon.png)
         """
         x1, x2 = xspan
         y1, y2 = yspan

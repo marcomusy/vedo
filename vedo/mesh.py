@@ -939,8 +939,9 @@ class Mesh(Points):
             c2 = Cylinder(pos=(0,0,2), r=1, height=2, axis=(0,.3,1), alpha=.1).triangulate()
             intersect = c1.intersect_with(c2).join(reset=True)
             spline = Spline(intersect).c('blue').lw(5)
-            show(c1, c2, spline, intersect.labels('id'), axes=1)
+            show(c1, c2, spline, intersect.labels('id'), axes=1).close()
             ```
+            ![](https://vedo.embl.es/images/feats/line_join.png)
         """
         sf = vtk.vtkStripper()
         sf.SetPassThroughCellIds(True)
@@ -1596,6 +1597,7 @@ class Mesh(Points):
             grid.imprint(line)
             show(grid, line, axes=1).close()
             ```
+            ![](https://vedo.embl.es/images/feats/imprint.png)
         """
         loop = vtk.vtkContourLoopExtraction()
         loop.SetInputData(loopline.polydata())
@@ -2126,10 +2128,12 @@ class Mesh(Points):
         Example:
             ```python
             from vedo import *
-            mi = Sphere().intersect_with_plane().join()
+            sph = Sphere()
+            mi = sph.clone().intersect_with_plane().join()
             print(mi.lines())
-            show(mi, axes=1).close()
+            show(sph, mi, axes=1).close()
             ```
+            ![](https://vedo.embl.es/images/feats/intersect_plane.png)
         """
         plane = vtk.vtkPlane()
         plane.SetOrigin(origin)

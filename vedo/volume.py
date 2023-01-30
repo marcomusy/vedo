@@ -298,6 +298,7 @@ class BaseVolume:
             vol = Volume(dataurl+'embryo.tif')
             vol.append(vol, axis='x').show().close()
             ```
+            ![](https://vedo.embl.es/images/feats/volume_append.png)
         """
         ima = vtk.vtkImageAppend()
         ima.SetInputData(self.imagedata())
@@ -757,8 +758,8 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         Example:
             ```python
             from vedo import Volume
-            vol = Volume("path/to/mydata/rec*.bmp", c='jet', mode=1)
-            vol.show(axes=1).close()
+            vol = Volume("path/to/mydata/rec*.bmp")
+            vol.show()
             ```
 
         Examples:

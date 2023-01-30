@@ -359,6 +359,7 @@ class Base3DProp:
             l = Line(-v+p, v+p).lw(3).c('red')
             show(c1, l, c2, axes=1).close()
             ```
+            ![](https://vedo.embl.es/images/feats/rotate_axis.png)
         """
         if rad:
             anglerad = angle
@@ -480,6 +481,7 @@ class Base3DProp:
                 objs += [pic, Arrow(v, v+v)]
             show(objs, Point(), axes=1).close()
             ```
+            ![](https://vedo.embl.es/images/feats/orientation.png)
 
         Examples:
             - [gyroscope2.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/gyroscope2.py)
@@ -588,8 +590,9 @@ class Base3DProp:
             c2.apply_transform(T)  # put back c2 in place
 
             l = Line(p-v, p+v).lw(3).c('red')
-            show(c1.wireframe().lw(3), l, c2, axes=1)
+            show(c1.wireframe().lw(3), l, c2, axes=1).close()
             ```
+            ![](https://vedo.embl.es/images/feats/get_transf.png)
         """
         if self.transform:
             tr = self.transform
@@ -1140,6 +1143,8 @@ class BaseActor(Base3DProp):
                 use boldface
             title : (str)
                 histogram title
+
+        ![](https://vedo.embl.es/images/feats/histoprint.png)
         """
         utils.print_histogram(
             self, bins, height, logscale, minbin, horizontal, char, c, bold, title
@@ -1768,7 +1773,11 @@ class BaseGrid(BaseActor):
         return self
 
     def shrink(self, fraction=0.8):
-        """Shrink the individual cells to improve visibility."""
+        """
+        Shrink the individual cells to improve visibility.
+        
+        ![](https://vedo.embl.es/images/feats/shrink_hex.png)
+        """
         sf = vtk.vtkShrinkFilter()
         sf.SetInputData(self.inputdata())
         sf.SetShrinkFactor(fraction)
@@ -1929,6 +1938,7 @@ class BaseGrid(BaseActor):
             cu = Cube(side=500).x(500) # any Mesh works
             tetmesh.cut_with_box(cu).show(axes=1)
             ```
+            ![](https://vedo.embl.es/images/feats/tet_cut_box.png)
         """
         bc = vtk.vtkBoxClipDataSet()
         bc.SetInputData(self._data)

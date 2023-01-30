@@ -1583,6 +1583,7 @@ class Clock(vedo.Assembly):
                 plt.render()
             plt.close()
             ```
+            ![](https://vedo.embl.es/images/feats/clock.png)
         """
         self.elapsed = 0
         self._start = time.time()

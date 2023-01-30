@@ -566,6 +566,7 @@ class Line(Mesh):
             ln = Line(pts, c='r', lw=5).pattern('- -', repeats=10)
             ln.show(axes=1).close()
             ```
+            ![](https://vedo.embl.es/images/feats/line_pattern.png)
         """
         stipple = str(stipple) * int(2 * repeats)
         dimension = len(stipple)
@@ -625,6 +626,7 @@ class Line(Mesh):
             arrs = Arrows(pts, pts+tangents, c='blue9')
             show(shape.c('red5').lw(5), arrs, bg='bb', axes=1).close()
             ```
+            ![](https://vedo.embl.es/images/feats/line_tangents.png)
         """
         v = np.gradient(self.points())[0]
         ds_dt = np.linalg.norm(v, axis=1)
@@ -647,6 +649,7 @@ class Line(Mesh):
             pp = plot(curvs, ac='white', lc='yellow5')
             show(shape, pp, N=2, bg='bb', sharecam=False).close()
             ```
+            ![](https://vedo.embl.es/images/feats/line_curvature.png)
         """
         v = np.gradient(self.points())[0]
         a = np.gradient(v)[0]
@@ -691,6 +694,7 @@ class Line(Mesh):
             aline.color('r').linewidth(4)
             show(surf1, surf2, aline, axes=1).close()
             ```
+            ![](https://vedo.embl.es/images/feats/sweepline.png)
         """
         line = self.polydata()
         rows = line.GetNumberOfPoints()
@@ -871,6 +875,7 @@ class RoundedLine(Mesh):
                 rl = RoundedLine(pts, 0.6)
                 show(Points(pts), ln, rl, axes=1).close()
                 ```
+                ![](https://vedo.embl.es/images/feats/rounded_line.png)
         """
         pts = utils.make3d(pts)
 
@@ -1269,7 +1274,7 @@ class Bezier(Line):
                 p += [5*i, 15*sin(i/2), i*i*i/200]
             show(Points(pts), Bezier(pts), axes=1).close()
             ```
-        ![](https://user-images.githubusercontent.com/32848391/90437534-dafd2a80-e0d2-11ea-9b93-9ecb3f48a3ff.png)
+            ![](https://user-images.githubusercontent.com/32848391/90437534-dafd2a80-e0d2-11ea-9b93-9ecb3f48a3ff.png)
         """
         N = len(points)
         if res is None:
@@ -2920,14 +2925,15 @@ class Grid(Mesh):
             xcoords = np.arange(0, 2, 0.2)
             ycoords = np.arange(0, 1, 0.2)
             sqrtx = sqrt(xcoords)
-            grid = Grid(s=(sqrtx, ycoords))
+            grid = Grid(s=(sqrtx, ycoords)).lw(2)
             grid.show(axes=8)
 
             # can also create a grid from np.mgrid:
             X, Y = np.mgrid[-12:12:1000*1j, 0:15:1000*1j]
             vgrid = Grid(s=(X[:,0], Y[0]))
-            vgrid.show(axes=8).close()
+            vgrid.show(axes=1).close()
             ```
+            ![](https://vedo.embl.es/images/feats/uneven_grid.png)
         """
         resx, resy = res
         sx, sy = s

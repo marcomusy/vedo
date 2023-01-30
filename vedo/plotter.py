@@ -1227,8 +1227,12 @@ class Plotter:
 
         Example:
             ```python
-            from vedo import Cone
-            Cone().show(axes=1).fly_to([1,0,0]).show().close()
+            from vedo import *
+            cone = Cone()
+            plt = Plotter(axes=1)
+            plt.show(cone)
+            plt.fly_to([1,0,0])
+            plt.interactive().close()
             ```
         """
         if self.interactor:
@@ -1651,7 +1655,7 @@ class Plotter:
         iconw.InteractiveOff()
         self.widgets.append(iconw)
         return iconw
-        
+
 
     def add_global_axes(self, axtype=None, c=None):
         """Draw axes on scene. Available axes types:
@@ -2128,6 +2132,7 @@ class Plotter:
             plt.add_scale_indicator(units='um', c='blue4')
             plt.show(cube, "Scale indicator with units").close()
             ```
+            ![](https://vedo.embl.es/images/feats/scale_indicator.png)
         """
         ppoints = vtk.vtkPoints()  # Generate the polyline
         psqr = [[0.0, gap], [length / 10, gap]]
@@ -2322,8 +2327,9 @@ class Plotter:
             ```python
             from vedo import *
 
-            def func(evt): # called every time the mouse moves
-                # evt is a dotted dictionary
+            def func(evt): 
+                # this function is called every time the mouse moves
+                # (evt is a dotted dictionary)
                 if not evt.actor:
                     return  # no hit, return
                 print("point coords =", evt.picked3d)

@@ -126,6 +126,7 @@ def visible_points(mesh, area=(), tol=None, invert=False):
         #print('visible pts:', m.points()) # numpy array
         show(m, new=True, axes=1) # optionally draw result on a new window
         ```
+        ![](https://vedo.embl.es/images/feats/visible_points.png)
     """
     # specify a rectangular region
     svp = vtk.vtkSelectVisiblePoints()
@@ -732,6 +733,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
             Points(fibonacci_sphere(1000)).show(axes=1).close()
             ```
+            ![](https://vedo.embl.es/images/feats/fibonacci.png)
 
         More Examples:
             - [manypoints.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/manypoints.py)
@@ -1611,6 +1613,7 @@ class Points(vtk.vtkFollower, BaseActor):
         cell_ids  = s.labels('id', on="cells" ).c('black')
         show(s, point_ids, cell_ids)
         ```
+        ![](https://vedo.embl.es/images/feats/labels.png)
 
         Examples:
             - [boundaries.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/boundaries.py)
@@ -1761,7 +1764,7 @@ class Points(vtk.vtkFollower, BaseActor):
     def labels2d(
             self,
             content="id",
-            cells=False,
+            on="points",
             scale=1,
             precision=4,
             font="Calco",
@@ -1779,9 +1782,9 @@ class Points(vtk.vtkFollower, BaseActor):
 
         Arguments:
             content : (str)
-                either 'id', 'cellid', or array name.
-            cells : (bool)
-                generate labels for cells instead of points [False]
+                either 'id', 'cellid', or array name
+            on : (str)
+                generate labels for "cells" instead of "points" (the default)
             scale : (float)
                 size scaling of labels
             precision : (int)
@@ -1800,11 +1803,18 @@ class Points(vtk.vtkFollower, BaseActor):
         l2d = sph.labels("zvals", on="cells", precision=2).backcolor('orange9')
         show(sph, l2d, axes=1).close()
         ```
+        ![](https://vedo.embl.es/images/feats/labels2d.png)
         """
+        cells = False
         if isinstance(content, str):
             if content in ('cellid', 'cellsid'):
                 cells = True
                 content = "id"
+        
+        if "cell" in on:
+            cells = True
+        elif "point" in on:
+            cells = False
 
         if cells:
             if content != 'id' and content not in self.celldata.keys():
@@ -2437,6 +2447,7 @@ class Points(vtk.vtkFollower, BaseActor):
             print("cube2 position", c2.pos())
             show(c1, c2, axes=1).close()
             ```
+            ![](https://vedo.embl.es/images/feats/apply_transform.png)
         """
         self.point_locator = None
         self.cell_locator = None
@@ -3159,7 +3170,7 @@ class Points(vtk.vtkFollower, BaseActor):
         Examples:
             ```python
             from vedo import Sphere
-            Sphere().add_gaussian_noise(1.0).show().close()
+            Sphere().add_gaussian_noise(1.0).point_size(8).show().close()
             ```
         """
         sz = self.diagonal_size()
@@ -3682,6 +3693,7 @@ class Points(vtk.vtkFollower, BaseActor):
             cube = Cube().cut_with_plane(normal=(1,1,1))
             cube.bc('pink').show()
             ```
+            ![](https://vedo.embl.es/images/feats/cut_with_plane_cube.png)
 
         Examples:
             - [trail.py](https://github.com/marcomusy/vedo/blob/master/examples/simulations/trail.py)
@@ -3805,6 +3817,7 @@ class Points(vtk.vtkFollower, BaseActor):
             mesh.cut_with_box(box)
             show(mesh, box, axes=1)
             ```
+            ![](https://vedo.embl.es/images/feats/cut_with_box_cube.png)
 
         Check out also:
             `cut_with_line()`, `cut_with_plane()`, `cut_with_cylinder()`
@@ -3926,6 +3939,7 @@ class Points(vtk.vtkFollower, BaseActor):
             mesh.cut_with_cylinder([0,0,2], r=0.4, axis='y', invert=True)
             show(mesh, axes=1)
             ```
+            ![](https://vedo.embl.es/images/feats/cut_with_cylinder.png)
 
         Examples:
             - [optics_main1.py](https://github.com/marcomusy/vedo/blob/master/examples/simulations/optics_main1.py)
@@ -3991,6 +4005,7 @@ class Points(vtk.vtkFollower, BaseActor):
             mesh.cut_with_sphere([1,-0.7,2], r=1.5, invert=True)
             show(mesh, axes=1)
             ```
+            ![](https://vedo.embl.es/images/feats/cut_with_sphere.png)
 
         Check out also:
             `cut_with_box()`, `cut_with_plane()`, `cut_with_cylinder()`
@@ -4034,7 +4049,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         Use `keep` to keep the cutoff part, in this case an `Assembly` is returned:
         the "cut" object and the "discarded" part of the original object.
-        You can access the via `assembly.unpack()` method.
+        You can access both via `assembly.unpack()` method.
 
         Example:
             ```python
@@ -4046,6 +4061,7 @@ class Points(vtk.vtkFollower, BaseActor):
             assem = pts.cut_with_mesh(cube, keep=True)
             show(assem.unpack(), axes=1).close()
             ```
+            ![](https://vedo.embl.es/images/feats/cut_with_mesh.png)
 
        Check out also:
             `cut_with_box()`, `cut_with_plane()`, `cut_with_cylinder()`
@@ -4221,6 +4237,7 @@ class Points(vtk.vtkFollower, BaseActor):
             s.cmap("Spectral", "somevalues").add_scalarbar()
             s.show(axes=1).close()
             ```
+            ![](https://vedo.embl.es/images/feats/cut_with_scalars.png)
         """
         if name:
             self.pointdata.select(name)
