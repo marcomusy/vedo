@@ -1990,7 +1990,9 @@ def RulerAxes(
         lw=1,
         precision=3,
         label_rotation=0,
-        axis_rotation=0,
+        xaxis_rotation=0,
+        yaxis_rotation=0,
+        zaxis_rotation=0,
         xycross=True,
     ):
     """
@@ -2015,8 +2017,8 @@ def RulerAxes(
             nr of significant digits to be shown
         label_rotation : (float)
             initial rotation of the label around the z-axis
-        axis_rotation : (float)
-            initial rotation of the line around the main axis
+        [x,y,z]axis_rotation : (float)
+            initial rotation of the line around the main axis in degrees
         xycross : (bool)
             show two back crossing lines in the xy plane
 
@@ -2045,7 +2047,7 @@ def RulerAxes(
             font=font,
             precision=precision,
             label_rotation=label_rotation,
-            axis_rotation=axis_rotation,
+            axis_rotation=xaxis_rotation,
             lw=lw,
             italic=italic,
             prefix=xtitle,
@@ -2061,7 +2063,7 @@ def RulerAxes(
             font=font,
             precision=precision,
             label_rotation=label_rotation,
-            axis_rotation=axis_rotation,
+            axis_rotation=yaxis_rotation,
             lw=lw,
             italic=italic,
             prefix=ytitle,
@@ -2077,7 +2079,7 @@ def RulerAxes(
             font=font,
             precision=precision,
             label_rotation=label_rotation,
-            axis_rotation=axis_rotation + 90,
+            axis_rotation=zaxis_rotation + 90,
             lw=lw,
             italic=italic,
             prefix=ztitle,
