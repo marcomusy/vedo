@@ -87,10 +87,8 @@ if __name__=="__main__":
     axes = vedo.Axes(xrange=(-3,3), yrange=(-3,3), zrange=(-3,3), yzgrid=True, zxgrid2=True)
     plt.show(__doc__, flock.actor, axes, viewup='z')
 
-    pb = vedo.ProgressBar(0, 100)
-    for i in pb.range():
+    for i in vedo.progress_bar(range(100)):
         flock.move()
         plt.render()
-        pb.print()
 
 

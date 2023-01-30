@@ -27,9 +27,7 @@ class SOM:
         I = np.random.randint(0, len(self.samples), n_epoch)
         self.samples = self.samples[I]
 
-        pb = ProgressBar(0,n_epoch)
-        for i in pb.range():
-            pb.print("epochs")
+        for i in progress_bar(range(n_epoch)):
             # Get random sample
             data = self.samples[i]
 

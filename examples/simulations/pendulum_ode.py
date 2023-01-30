@@ -44,14 +44,13 @@ P2 = P1 + np.dstack([L2*sin(y[:,2]), -L2*cos(y[:,2])]).squeeze()
 
 plt = Plotter(interactive=False, size=(900,700),)
 ax = Axes(xrange=(-2,2), yrange=(-2,1), htitle=__doc__)
-pb = ProgressBar(0, len(t), c="b")
-for i in pb.range():
+
+for i in progress_bar(range(len(t))):
     j = max(i- 5,0)
     k = max(i-10,0)
     l1 = Line([[0,0], P1[i], P2[i]]).lw(7).c("blue2", 1.0)
     l2 = Line([[0,0], P1[j], P2[j]]).lw(6).c("blue2", 0.4)
     l3 = Line([[0,0], P1[k], P2[k]]).lw(5).c("blue2", 0.2)
     plt.clear().show(l1, l2, l3, ax, zoom=1.4)
-    pb.print()
 
 plt.interactive().close()

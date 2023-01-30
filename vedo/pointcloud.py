@@ -4640,30 +4640,33 @@ class Points(vtk.vtkFollower, BaseActor):
                 ![](https://vedo.embl.es/images/pyplot/plot_density3d.png)
         """
         pdf = vtk.vtkPointDensityFilter()
-
-        b = list(self.bounds())
-        diag = self.diagonal_size()
+        pdf.SetInputData(self.polydata())
 
         if not utils.is_sequence(dims):
             dims = [dims, dims, dims]
 
-        if b[5] - b[4] == 0 or len(dims) == 2:  # its 2D
+        if bounds is None:
+            bounds = list(self.bounds())
+        elif len(bounds)==4:
+            bounds = [*bounds, 0, 0]
+
+        if bounds[5] - bounds[4] == 0 or len(dims) == 2:  # its 2D
             dims = list(dims)
             dims = [dims[0], dims[1], 2]
-            b[5] = b[4] + diag / 1000
+            diag = self.diagonal_size()
+            bounds[5] = bounds[4] + diag / 1000
+        pdf.SetModelBounds(bounds)
 
-        pdf.SetInputData(self.polydata())
         pdf.SetSampleDimensions(dims)
-        pdf.SetDensityEstimateToFixedRadius()
-        pdf.SetDensityFormToNumberOfPoints()
+
         if locator:
             pdf.SetLocator(locator)
+         
+        pdf.SetDensityEstimateToFixedRadius()
         if radius is None:
-            radius = diag / 15
+            radius = diag / 20
         pdf.SetRadius(radius)
-        if bounds is None:
-            bounds = b
-        pdf.SetModelBounds(bounds)
+
         pdf.SetComputeGradient(compute_gradient)
         pdf.Update()
         img = pdf.GetOutput()

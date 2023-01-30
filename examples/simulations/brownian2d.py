@@ -4,7 +4,7 @@ The spheres collide elastically with themselves and
 with the walls of the box. The masses of the spheres
 are proportional to their radius**3 (as in 3D)"""
 # Adapted by M. Musy from E. Velasco (2009)
-from vedo import Plotter, ProgressBar, dot, Grid, Sphere, Point
+from vedo import Plotter, progress_bar, dot, Grid, Sphere, Point
 import random
 import numpy as np
 print(__doc__)
@@ -73,8 +73,7 @@ Id = np.identity(Nsp)
 Dij = (Radius + Radius[:, np.newaxis]) ** 2  # Matrix Dij=(Ri+Rj)**2
 
 # The main loop
-pb = ProgressBar(0, 1000, c="r")
-for i in pb.range():
+for i in progress_bar(range(1000), c="r"):
     # Update all positions
     np.add(Pos, Vel * Dt, Pos)  # Fast version of Pos = Pos + Vel*Dt
 
@@ -137,6 +136,5 @@ for i in pb.range():
         rsv = [Vel[0][0], Vel[0][1], 0]
         plt += Point(rsp, c="r", r=5, alpha=0.1)  # leave a point trace
         plt.render()  # render scene
-    pb.print()
 
 plt.interactive().close()

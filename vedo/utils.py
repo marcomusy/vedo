@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import math
 import os
 import sys
@@ -23,6 +25,7 @@ __doc__ = "Utilities submodule."
 
 __all__ = [
     "ProgressBar",
+    "progress_bar",
     "geometry",
     "is_sequence",
     "lin_interpolate",
@@ -58,6 +61,7 @@ __all__ = [
     "numpy2vtk",
 ]
 
+
 ###########################################################################
 class ProgressBar:
     """
@@ -80,12 +84,14 @@ class ProgressBar:
         """
         Class to print a progress bar with optional text message.
 
+        Check out also function `progress_bar()`.
+
         Example:
             ```python
             import time
             pb = ProgressBar(0,400, c='red')
             for i in pb.range():
-                time.sleep(.1)
+                time.sleep(0.1)
                 pb.print('some message')
             ```
             ![](https://user-images.githubusercontent.com/32848391/51858823-ed1f4880-2335-11e9-8788-2d102ace2578.png)
@@ -205,6 +211,40 @@ class ProgressBar:
             ps = ""
         self.pbar += ps
 
+#####################################
+def progress_bar(
+        iterable,
+        c=None,
+        bold=True,
+        italic=False,
+        title="",
+        eta=True,
+        width=25,
+    ):
+    """
+    Function to print a progress bar with optional text message.
+
+    Example:
+        ```python
+        import time
+        for i in progress_bar(range(100), c='red'):
+            time.sleep(0.1)
+        ```
+    """
+    try:
+        total = len(iterable)
+    except TypeError: 
+        iterable = list(iterable)
+        total = len(iterable)
+
+    pb = ProgressBar(
+        0, total, 
+        c=c, bold=bold, italic=italic, 
+        title=title, eta=eta, width=width,
+    )
+    for item in iterable:
+        pb.print()
+        yield item
 
 ###########################################################
 def numpy2vtk(arr, dtype=None, deep=True, name=""):

@@ -2,7 +2,7 @@
 # Credits: https://github.com/edmontz
 import numpy as np
 from scipy.fftpack import fftn, fftshift
-from vedo import Axes, Plotter, Volume, ProgressBar
+from vedo import Axes, Plotter, Volume, progress_bar
 
 
 def f(x, y, z, t):
@@ -18,10 +18,7 @@ plt = Plotter(bg="black", interactive=False)
 axes = Axes(xrange=(0,n), yrange=(0,n), zrange=(0,n))
 plt.show(axes, viewup='z')
 
-pb = ProgressBar(0, qn, c="r")
-for q in pb.range():
-    pb.print()
-
+for q in progress_bar(range(qn), c='r'):
     t = 2 * q / qn - 1
     for k in range(n1):
         z = 2 * k / n1 - 1
