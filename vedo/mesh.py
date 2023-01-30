@@ -1781,8 +1781,6 @@ class Mesh(Points):
 
         Examples:
             - [isolines.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/isolines.py)
-
-            ![](https://vedo.embl.es/images/pyplot/isolines.png)
         """
         r0, r1 = self._data.GetScalarRange()
         if vmin is None:

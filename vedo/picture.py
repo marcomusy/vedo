@@ -384,7 +384,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         constant_pad.Update()
         return Picture(constant_pad.GetOutput())
 
-    def append(self, pictures, axis="z", preserveExtents=False):
+    def append(self, pictures, axis="z", preserve_extents=False):
         """
         Append the input images to the current one along the specified axis.
         Except for the append axis, all inputs must have the same extent.
@@ -396,7 +396,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         Arguments:
             axis : (int, str)
                 axis expanded to hold the multiple images
-            preserveExtents : (bool)
+            preserve_extents : (bool)
                 if True, the extent of the inputs is used to place
                 the image in the output. The whole extent of the output is the union of the input
                 whole extents. Any portion of the output not covered by the inputs is set to zero.
@@ -421,7 +421,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
                 ima.AddInputData(p)
             else:
                 ima.AddInputData(p.inputdata())
-        ima.SetPreserveExtents(preserveExtents)
+        ima.SetPreserveExtents(preserve_extents)
         if axis == "x":
             axis = 0
         elif axis == "y":
@@ -911,7 +911,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         Arguments:
             value : (float)
                 The default is None, e.i. 1/3 of the scalar range.
-            flip: bool
+            flip: (bool)
                 Flip polygon orientations
 
         Returns:

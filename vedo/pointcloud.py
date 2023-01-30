@@ -734,11 +734,6 @@ class Points(vtk.vtkFollower, BaseActor):
             Points(fibonacci_sphere(1000)).show(axes=1).close()
             ```
             ![](https://vedo.embl.es/images/feats/fibonacci.png)
-
-        More Examples:
-            - [manypoints.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/manypoints.py)
-
-                ![](https://vedo.embl.es/images/basic/manypoints.jpg)
         """
 
         vtk.vtkActor.__init__(self)
@@ -2076,6 +2071,11 @@ class Points(vtk.vtkFollower, BaseActor):
                 internal text justification. The default is "center-left".
             vspacing : (float)
                 vertical spacing between lines.
+        
+        Examples:
+            - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/other/flag_labels2.py)
+
+            ![](https://vedo.embl.es/images/other/flag_labels2.png)
         """
         if txt is None:
             if self.filename:
@@ -3691,7 +3691,7 @@ class Points(vtk.vtkFollower, BaseActor):
             ```python
             from vedo import Cube
             cube = Cube().cut_with_plane(normal=(1,1,1))
-            cube.bc('pink').show()
+            cube.back_color('pink').show()
             ```
             ![](https://vedo.embl.es/images/feats/cut_with_plane_cube.png)
 

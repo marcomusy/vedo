@@ -867,15 +867,15 @@ class RoundedLine(Mesh):
             res : (int)
                 resolution of the rounded regions
 
-            Example:
-                ```python
-                from vedo import *
-                pts = [(-4,-3),(1,1),(2,4),(4,1),(3,-1),(2,-5),(9,-3)]
-                ln = Line(pts, c='r', lw=2).z(0.01)
-                rl = RoundedLine(pts, 0.6)
-                show(Points(pts), ln, rl, axes=1).close()
-                ```
-                ![](https://vedo.embl.es/images/feats/rounded_line.png)
+        Example:
+            ```python
+            from vedo import *
+            pts = [(-4,-3),(1,1),(2,4),(4,1),(3,-1),(2,-5),(9,-3)]
+            ln = Line(pts, c='r', lw=2).z(0.01)
+            rl = RoundedLine(pts, 0.6)
+            show(Points(pts), ln, rl, axes=1).close()
+            ```
+            ![](https://vedo.embl.es/images/feats/rounded_line.png)
         """
         pts = utils.make3d(pts)
 
