@@ -912,12 +912,6 @@ class BaseActor(Base3DProp):
                 return utils.vtk2numpy(vpts.GetData())
             return np.array([])
 
-        elif (utils.is_sequence(pts) and not utils.is_sequence(pts[0])) or isinstance(
-            pts, (int, np.integer)
-        ):
-            # passing a list of indices or a single index
-            return utils.vtk2numpy(self.polydata(transformed).GetPoints().GetData())[pts]
-
         else:  ### setter
 
             if len(pts) == 3 and len(pts[0]) != 3:

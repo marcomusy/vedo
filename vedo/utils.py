@@ -683,6 +683,110 @@ def intersection_ray_triangle(P0, P1, V0, V1, V2):
         return False
     return I  # I is in T
 
+def triangle_solver(**input_dict):
+    """
+    Solve a triangle from any 3 known elements.
+    (Note that there might be more than one solution or none).
+    Angles are in radians.
+
+    Example:
+    ```python
+    print(triangle_solver(a=3, b=4, c=5))
+    print(triangle_solver(a=3, ac=0.9273, ab=1.5716))
+    print(triangle_solver(a=3, b=4, ab=1.5716))
+    print(triangle_solver(b=4, bc=.64, ab=1.5716))
+    print(triangle_solver(c=5, ac=.9273, bc=0.6435))
+    print(triangle_solver(a=3, c=5, bc=0.6435))
+    print(triangle_solver(b=4, c=5, ac=0.927))
+    ```
+    """
+    a = input_dict.get("a")
+    b = input_dict.get("b")
+    c = input_dict.get("c")
+    ab = input_dict.get("ab")
+    bc = input_dict.get("bc")
+    ac = input_dict.get("ac")
+
+    if ab and bc:
+        ac = np.pi - bc - ab
+    elif bc and ac:
+        ab = np.pi - bc - ac
+    elif ab and ac:
+        bc = np.pi - ab - ac
+
+    if a is not None and b is not None and c is not None:
+        ab = np.arccos((a ** 2 + b ** 2 - c ** 2) / (2 * a * b))
+        sinab = np.sin(ab)
+        ac = np.arcsin(a / c * sinab)
+        bc = np.arcsin(b / c * sinab)
+
+    elif a is not None and b is not None and ab is not None:
+        c = np.sqrt(a ** 2 + b ** 2 - 2 * a * b * np.cos(ab))
+        sinab = np.sin(ab)
+        ac = np.arcsin(a / c * sinab)
+        bc = np.arcsin(b / c * sinab)
+
+    elif a is not None and ac is not None and ab is not None:
+        h = a * np.sin(ac)
+        b = h / np.sin(bc)
+        c = b * np.cos(bc) + a * np.cos(ac)
+
+    elif b is not None and bc is not None and ab is not None:
+        h = b * np.sin(bc)
+        a = h / np.sin(ac)
+        c = np.sqrt(a * a + b * b)
+
+    elif c is not None and ac is not None and bc is not None:
+        h = c * np.sin(bc)
+        b1 = c * np.cos(bc)
+        b2 = h / np.tan(ab)
+        b = b1 + b2
+        a = np.sqrt(b2 * b2 + h * h)
+
+    elif a is not None and c is not None and bc is not None:
+        # double solution
+        h = c * np.sin(bc)
+        k = np.sqrt(a * a - h * h)
+        omega = np.arcsin(k / a)
+        cosbc = np.cos(bc)
+        b = c * cosbc - k
+        phi = np.pi / 2 - bc - omega
+        ac = phi
+        ab = np.pi - ac - bc
+        if k:
+            b2 = c * cosbc + k
+            ac2 = phi + 2 * omega
+            ab2 = np.pi - ac2 - bc
+            return [
+                {"a": a, "b": b,  "c": c, "ab": ab,  "bc": bc, "ac": ac},
+                {"a": a, "b": b2, "c": c, "ab": ab2, "bc": bc, "ac": ac2},
+            ]
+
+    elif b is not None and c is not None and ac is not None:
+        # double solution
+        h = c * np.sin(ac)
+        k = np.sqrt(b * b - h * h)
+        omega = np.arcsin(k / b)
+        cosac = np.cos(ac)
+        a = c * cosac - k
+        phi = np.pi / 2 - ac - omega
+        bc = phi
+        ab = np.pi - bc - ac
+        if k:
+            a2 = c * cosac + k
+            bc2 = phi + 2 * omega
+            ab2 = np.pi - ac - bc2
+            return [
+                {"a": a,  "b": b, "c": c, "ab": ab,  "bc": bc,  "ac": ac},
+                {"a": a2, "b": b, "c": c, "ab": ab2, "bc": bc2, "ac": ac},
+            ]
+
+    else:
+        vedo.logger.error(f"Case {input_dict} is not supported.")
+        return []
+
+    return [{"a": a, "b": b, "c": c, "ab": ab, "bc": bc, "ac": ac}]
+
 
 def point_line_distance(p, p1, p2):
     """
@@ -1626,6 +1730,49 @@ def print_histogram(
     else:
         vedo.printc(_v(), c=c, bold=bold)
     return data
+
+def print_table(*columns, headers=None, c='g'):
+    """
+    Print lists as tables.
+
+    Example:
+    ```python
+    list1 = [1, np.sqrt(2), 3]
+    list2 = ["A", "B", "C"]
+    list3 = [True, False, True]
+    headers = ["First Column", "Second Column", "Third Column"]
+    print_table(list1, list2, list3, headers=headers)
+    ```
+    """
+    # If headers is not provided, use default header names
+    corner='─'
+    if headers is None:
+        headers = [f"Column {i}" for i in range(1, len(columns)+1)]
+    assert len(headers) == len(columns)
+
+    # Find the maximum length of the elements in each column and header
+    max_lens = [max(len(str(x)) for x in column) for column in columns]
+    max_len_headers = [max(len(str(header)), max_len) for header, max_len in zip(headers, max_lens)]
+
+    # Construct the table header
+    header = "│ " + " │ ".join(header.ljust(max_len) for header, max_len in zip(headers, max_len_headers)) + " │"
+
+    # Construct the line separator
+    line1 = "┌" + corner.join("─"*(max_len+2) for max_len in max_len_headers) + "┐"
+    line2 = "└" + corner.join("─"*(max_len+2) for max_len in max_len_headers) + "┘"
+
+    # Print the table header
+    vedo.printc(line1, c=c)
+    vedo.printc(header, c=c)
+    vedo.printc(line2, c=c)
+
+    # Print the data rows
+    for row in zip(*columns):
+        row = "│ " + " │ ".join(str(col).ljust(max_len) for col, max_len in zip(row, max_len_headers)) + " │"
+        vedo.printc(row, bold=False, c=c)
+
+    # Print the line separator again to close the table
+    vedo.printc(line2, c=c)
 
 
 def make_bands(inputlist, n):
