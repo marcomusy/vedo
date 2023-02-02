@@ -290,7 +290,7 @@ class Assembly(vtk.vtkAssembly, vedo.base.Base3DProp):
             newlist.append(a.clone())
         return Assembly(newlist)
 
-    def unpack(self, i=None):
+    def unpack(self, i=None, transformed=False):
         """Unpack the list of objects from a ``Assembly``.
 
         If `i` is given, get `i-th` object from a ``Assembly``.
@@ -300,12 +300,19 @@ class Assembly(vtk.vtkAssembly, vedo.base.Base3DProp):
         Examples:
             - [custom_axes4.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/custom_axes4.py)
         """
+        if transformed:
+            actors = []
+            for a in self.actors:
+                actors.append(a.clone(transformed=True))
+        else:
+            actors = self.actors
+
         if i is None:
-            return self.actors
+            return actors
         elif isinstance(i, int):
-            return self.actors[i]
+            return actors[i]
         elif isinstance(i, str):
-            for m in self.actors:
+            for m in actors:
                 if i in m.name:
                     return m
 

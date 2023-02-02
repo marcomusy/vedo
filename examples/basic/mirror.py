@@ -7,5 +7,6 @@ myted2 = myted1.clone(deep=False).mirror("y")
 myted2.pos(0,3,0).c("green")
 fp = myted2.flagpole("mirrored\nmesh").follow_camera()
 
-show(myted1, myted2, fp, __doc__,
-     axes=2, viewup="z", bg2='ly').close()
+show(myted1, myted2, fp, __doc__, viewup="z", bg2='ly', axes=9)
+
+

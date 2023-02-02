@@ -7,9 +7,15 @@
 - use vtkStaticCellLocator instead of vtkCellLocator
 - improved `pointcloud.density()` function
 - add `utils.progress_bar()`
+- add `trame` examples
 
 -------------------------
 ## Examples
+```
+examples/other/trame_ex1.py
+examples/other/trame_ex2.py
+examples/other/trame_ex3.py
+```
 
 ### New/Revised
 

@@ -2895,8 +2895,8 @@ class Plotter:
 
             if isinstance(ia, vedo.base.Base3DProp):
 
-                if ia._set2actcam:
-                    ia.SetCamera(self.camera)  # used by mesh.follow_camera()
+                if ia._isfollower:  # set by mesh.follow_camera()
+                    ia.SetCamera(self.camera)
 
                 ia.rendered_at.add(at)  # set.add()
 

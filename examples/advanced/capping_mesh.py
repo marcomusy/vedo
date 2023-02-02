@@ -29,7 +29,7 @@ def capping(amsh, bias=0, invert=False, res=50):
     if bias:
         newpts = []
         for p in msh3.points():
-            q = bn.closestPoint(p)
+            q = bn.closest_point(p)
             d = mag(p-q)
             newpt = p + d * pln.normal * bias
             newpts.append(newpt)

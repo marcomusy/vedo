@@ -8,7 +8,8 @@ def func(evt):
     pid = evt.actor.closest_point(evt.picked3d, return_point_id=True)
     txt = f"Probing:\n{precision(evt.actor.picked3d, 3)}\nvalue = {arr[pid]}"
 
-    sph = Sphere(evt.actor.points(pid), c='orange7').pickable(False)
+    pts = evt.actor.points()
+    sph = Sphere(pts[pid], c='orange7').pickable(False)
     fp = sph.flagpole(txt, s=7, offset=(-150,15), font=2).follow_camera()
     # remove old and add the two new objects
     plt.remove('Sphere', 'FlagPole').add(sph, fp)

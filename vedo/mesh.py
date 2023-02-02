@@ -14,7 +14,7 @@ from vedo.colors import color_map
 from vedo.colors import get_color
 from vedo.pointcloud import Points
 from vedo.utils import buildPolyData
-from vedo.utils import flatten, is_sequence, mag, mag2
+from vedo.utils import is_sequence, mag, mag2
 from vedo.utils import numpy2vtk, vtk2numpy
 
 __docformat__ = "google"
@@ -1743,27 +1743,31 @@ class Mesh(Points):
         "Deprecated. Please use `follow_camera()`"
         return self.follow_camera(cam)
 
-    def follow_camera(self, cam=None):
+    def follow_camera(self, camera=None):
         """
-        Mesh object will follow camera movements and stay locked to it.
+        Return an object that will follow camera movements and stay locked to it.
         Use `mesh.follow_camera(False)` to disable it.
 
-        Set `cam` to None and the text will auto-orient itself to the active camera.
         A `vtkCamera` object can also be passed.
         """
-        if cam is False:
-            self.SetCamera(None)
-            return self
-        if isinstance(cam, vtk.vtkCamera):
-            self.SetCamera(cam)
+        if camera is False:
+            try:
+                self.SetCamera(None)
+                return self
+            except AttributeError:
+                return self
+
+        factor = Follower(self, camera)
+
+        if isinstance(camera, vtk.vtkCamera):
+            factor.SetCamera(camera)
         else:
             plt = vedo.plotter_instance
-            if plt and plt.camera:
-                self.SetCamera(plt.camera)
+            if plt and plt.renderer and plt.renderer.GetActiveCamera():
+                factor.SetCamera(plt.renderer.GetActiveCamera())
             else:
-                # postpone to show() call
-                self._set2actcam = True
-        return self
+                factor._isfollower = True  # postpone to show() call
+        return factor
 
     def isobands(self, n=10, vmin=None, vmax=None):
         """
@@ -2525,3 +2529,29 @@ class Mesh(Points):
         if debug:
             print(f".. tetralize() completed, ntets = {tmesh.ncells}")
         return tmesh
+
+####################################################
+class Follower(vtk.vtkFollower, vedo.base.BaseActor):
+    
+    def __init__(self, actor, camera=None):
+
+        vtk.vtkFollower.__init__(self)
+        vedo.base.BaseActor.__init__(self)
+        
+        self.name = actor.name
+        self._isfollower = False
+
+        self.SetMapper(actor.GetMapper())
+        
+        self.SetProperty(actor.GetProperty())
+        self.SetBackfaceProperty(actor.GetBackfaceProperty())
+        self.SetTexture(actor.GetTexture())
+
+        self.SetCamera(camera)
+        self.SetOrigin(actor.GetOrigin())
+        self.SetScale(actor.GetScale())
+        self.SetOrientation(actor.GetOrientation())
+        self.SetPosition(actor.GetPosition())
+        self.SetUseBounds(actor.GetUseBounds())
+
+        self.PickableOff()

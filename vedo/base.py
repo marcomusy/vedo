@@ -226,7 +226,7 @@ class Base3DProp:
         self._time = 0
         self.rendered_at = set()
         self.transform = None
-        self._set2actcam = False  # used by mesh.followCamera()
+        self._isfollower = False  # set by mesh.follow_camera()
 
         self.point_locator = None
         self.cell_locator = None

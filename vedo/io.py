@@ -1181,6 +1181,9 @@ def loadImageData(filename):
         if not reader.CanReadFile(filename):
             vedo.logger.error(f"sorry, bad NRRD file {filename}")
             return None
+    else:
+        vedo.logger.error(f"sorry, cannot read file {filename}")
+        return None
     reader.SetFileName(filename)
     reader.Update()
     image = reader.GetOutput()
