@@ -2531,7 +2531,7 @@ class Mesh(Points):
         return tmesh
 
 ####################################################
-class Follower(vtk.vtkFollower, vedo.base.BaseActor):
+class Follower(vedo.base.BaseActor, vtk.vtkFollower):
     
     def __init__(self, actor, camera=None):
 

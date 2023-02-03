@@ -1439,16 +1439,18 @@ def print_info(obj):
         vedo.printc("Volume".ljust(70), c="b", bold=True, invert=True)
 
         img = obj.GetMapper().GetInput()
-        vedo.printc("position".ljust(14) + ": ", c="b", bold=True, end="")
-        pos = obj.GetPosition()
-        vedo.printc(pos, c="b", bold=False)
+        vedo.printc("origin".ljust(14) + ": ", c="b", bold=True, end="")
+        vedo.printc(precision(obj.origin(),6), c="b", bold=False)
+
+        vedo.printc("center".ljust(14) + ": ", c="b", bold=True, end="")
+        vedo.printc(precision(obj.center(),6), c="b", bold=False)
 
         vedo.printc("dimensions".ljust(14) + ": ", c="b", bold=True, end="")
         vedo.printc(img.GetDimensions(), c="b", bold=False)
         vedo.printc("spacing".ljust(14) + ": ", c="b", bold=True, end="")
-        vedo.printc(img.GetSpacing(), c="b", bold=False)
-        vedo.printc("data dimension".ljust(14) + ": ", c="b", bold=True, end="")
-        vedo.printc(img.GetDataDimension(), c="b", bold=False)
+        vedo.printc(precision(img.GetSpacing(),6), c="b", bold=False)
+        # vedo.printc("data dimension".ljust(14) + ": ", c="b", bold=True, end="")
+        # vedo.printc(img.GetDataDimension(), c="b", bold=False)
 
         vedo.printc("memory size".ljust(14) + ": ", c="b", bold=True, end="")
         vedo.printc(int(img.GetActualMemorySize() / 1024), "MB", c="b", bold=False)
@@ -1458,17 +1460,17 @@ def print_info(obj):
 
         bnds = obj.GetBounds()
         vedo.printc("bounds".ljust(14) + ": ", c="b", bold=True, end="")
-        bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
+        bx1, bx2 = precision(bnds[0], 4), precision(bnds[1], 4)
         vedo.printc("x=(" + bx1 + ", " + bx2 + ")", c="b", bold=False, end="")
-        by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
+        by1, by2 = precision(bnds[2], 4), precision(bnds[3], 4)
         vedo.printc(" y=(" + by1 + ", " + by2 + ")", c="b", bold=False, end="")
-        bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
+        bz1, bz2 = precision(bnds[4], 4), precision(bnds[5], 4)
         vedo.printc(" z=(" + bz1 + ", " + bz2 + ")", c="b", bold=False)
 
         vedo.printc("scalar range".ljust(14) + ": ", c="b", bold=True, end="")
         vedo.printc(img.GetScalarRange(), c="b", bold=False)
 
-        print_histogram(obj, horizontal=True, logscale=True, bins=8, height=15, c="b", bold=False)
+        print_histogram(obj, horizontal=True, logscale=True, bins=8, height=15, c="b", bold=True)
 
     elif isinstance(obj, vedo.Plotter) and obj.interactor:  # dumps Plotter info
         axtype = {
@@ -1600,7 +1602,7 @@ def print_histogram(
     char="\u2588",
     c=None,
     bold=True,
-    title="Histogram",
+    title="histogram",
 ):
     """
     Ascii histogram printing.
@@ -1680,11 +1682,12 @@ def print_histogram(
     if char == "\U00002589" and horizontal:
         char = "\U00002586"
 
-    entrs = "\t(entries=" + str(len(data)) + ")"
+    title = title.ljust(14) + ":"
+    entrs = " entries=" + str(len(data))
     if logscale:
         h0 = np.log10(hi + 1)
         maxh0 = int(max(h0) * 100) / 100
-        title = "(logscale) " + title + entrs
+        title = title + entrs + " (logscale)"
     else:
         h0 = hi
         maxh0 = max(h0)

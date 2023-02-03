@@ -4392,7 +4392,7 @@ class TextBase:
         return self
 
 
-class Text2D(vtk.vtkActor2D, TextBase):
+class Text2D(TextBase, vtk.vtkActor2D):
     """
     Create a 2D text object.
     """

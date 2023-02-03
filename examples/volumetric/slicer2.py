@@ -33,7 +33,7 @@ for iren, data in enumerate(volumes):
         initfunc(iren, data), #func
         0, data.dimensions()[2],
         value=0,
-        showValue=False,
+        show_value=False,
         pos=[(0.1,0.1), (0.25,0.1)],
     )
 

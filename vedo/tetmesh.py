@@ -100,7 +100,7 @@ def _buildtetugrid(points, cells):
 
 
 ##########################################################################
-class TetMesh(vtk.vtkVolume, BaseGrid):
+class TetMesh(BaseGrid, vtk.vtkVolume):
     """The class describing tetrahedral meshes."""
 
     def __init__(
@@ -120,6 +120,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
             mapper : (str)
                 choose a visualization style in `['tetra', 'raycast', 'zsweep']`
         """
+        vtk.vtkVolume.__init__(self)
         BaseGrid.__init__(self)
 
         self.useArray = 0

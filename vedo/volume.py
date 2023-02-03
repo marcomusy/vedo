@@ -33,9 +33,12 @@ __all__ = [
 
 ##########################################################################
 class BaseVolume:
-    """Base class. Do not instantiate."""
+    """
+    Base class. Do not instantiate.
+    """
     def __init__(self):
         """Base class. Do not instantiate."""
+
         self._data = None
         self._mapper = None
         self.transform = None
@@ -117,6 +120,10 @@ class BaseVolume:
             return self
         return np.array(self._data.GetSpacing())
 
+    def pos(self, p=None):
+        """Same effect as calling `origin()`."""
+        return self.origin(p)
+
     def origin(self, s=None):
         """Set/get the origin of the volumetric dataset."""
         ### supersedes base.origin()
@@ -126,16 +133,10 @@ class BaseVolume:
             return self
         return np.array(self._data.GetOrigin())
 
-    def center(self, center=None):
-        """
-        Set/get the volume coordinates of its center.
-        Position is reset to (0,0,0).
-        """
-        if center is not None:
-            cn = self._data.GetCenter()
-            self._data.SetOrigin(-np.array(cn) / 2)
-            self._update(self._data)
-            self.pos(0, 0, 0)
+    def center(self, p=None):
+        """Set/get the center of the volumetric dataset."""
+        if p is not None:
+            self._data.SetCenter(p)
             return self
         return np.array(self._data.GetCenter())
 
@@ -682,7 +683,7 @@ class BaseVolume:
 
 
 ##########################################################################
-class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
+class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
     """
     Class to describe dataset that are defined on "voxels":
     the 3D equivalent of 2D pixels.
@@ -778,7 +779,8 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         vtk.vtkVolume.__init__(self)
         BaseGrid.__init__(self)
         BaseVolume.__init__(self)
-
+        # super().__init__()
+        
         ###################
         if isinstance(inputobj, str):
 
@@ -1273,7 +1275,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
 
 
 ##########################################################################
-class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
+class VolumeSlice(BaseVolume, Base3DProp, vtk.vtkImageSlice):
     """
     Derived class of `vtkImageSlice`.
     """
@@ -1286,6 +1288,7 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
         vtk.vtkImageSlice.__init__(self)
         Base3DProp.__init__(self)
         BaseVolume.__init__(self)
+        # super().__init__()
 
         self._mapper = vtk.vtkImageResliceMapper()
         self._mapper.SliceFacesCameraOn()

@@ -698,7 +698,7 @@ def Point(pos=(0, 0, 0), r=12, c="red", alpha=1):
 
 
 ###################################################
-class Points(vtk.vtkActor, BaseActor):
+class Points(BaseActor, vtk.vtkActor):
     """Work with pointclouds."""
     def __init__(
         self, inputobj=None, c=(0.2, 0.2, 0.2), alpha=1, r=4,

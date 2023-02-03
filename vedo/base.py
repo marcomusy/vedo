@@ -828,7 +828,8 @@ class BaseActor(Base3DProp):
         Base class to add operative and data
         functionality to `Mesh`, `Assembly`, `Volume` and `Picture` objects.
         """
-        Base3DProp.__init__(self)
+        
+        super().__init__()
 
         self._mapper = None
         self._caption = None
@@ -1551,7 +1552,7 @@ class BaseGrid(BaseActor):
     def __init__(self):
         """Base class for grid datasets."""
 
-        BaseActor.__init__(self)
+        super().__init__()
 
         self._data = None
         self.useCells = True

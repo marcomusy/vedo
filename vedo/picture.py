@@ -111,7 +111,7 @@ class MatplotlibPicture(vtk.vtkActor2D):
 
 
 #################################################
-class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
+class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
     """
     Derived class of `vtkImageActor`. Used to represent 2D pictures in a 3D world.
     """

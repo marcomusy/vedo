@@ -207,7 +207,7 @@ class Group(vtk.vtkPropAssembly):
 
 
 #################################################
-class Assembly(vtk.vtkAssembly, vedo.base.Base3DProp):
+class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
     """
     Group many objects and treat them as a single new object.
     """

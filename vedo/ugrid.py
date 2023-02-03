@@ -22,7 +22,7 @@ Work with unstructured grid datasets
 __all__ = ["UGrid"]
 
 #########################################################################
-class UGrid(vtk.vtkActor, BaseGrid):
+class UGrid(BaseGrid, vtk.vtkActor):
     """Support for UnstructuredGrid objects."""
 
     def __init__(self, inputobj=None):

@@ -48,7 +48,7 @@ __all__ = [
 
 
 ###########################################################################################
-class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
+class LegendBox(shapes.TextBase, vtk.vtkLegendBoxActor):
     """
     Create a 2D legend box.
     """
@@ -94,8 +94,8 @@ class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
 
                 ![](https://vedo.embl.es/images/other/flag_labels.png)
         """
-        shapes.TextBase.__init__(self)
         vtk.vtkLegendBoxActor.__init__(self)
+        shapes.TextBase.__init__(self)
 
         self.name = "LegendBox"
         self.entries = entries[:nmax]
