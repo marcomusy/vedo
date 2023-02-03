@@ -876,6 +876,7 @@ class Mesh(Points):
 
         stripper = vtk.vtkStripper()
         stripper.SetInputData(fe.GetOutput())
+        stripper.JoinContiguousSegmentsOn()
         stripper.Update()
 
         boundaryPoly = vtk.vtkPolyData()

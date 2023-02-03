@@ -2915,11 +2915,6 @@ class Plotter:
         if interactive is not None:
             self._interactive = interactive
 
-        if self.interactor:
-            if not self.interactor.GetInitialized():
-                self.interactor.Initialize()
-                self.interactor.RemoveObservers("CharEvent")
-
         if self.sharecam:
             for r in self.renderers:
                 r.SetActiveCamera(self.camera)
@@ -2932,9 +2927,14 @@ class Plotter:
                 addons.add_global_axes(self.axes)
 
         # panel #################################################################
-        if settings.default_backend in ["panel", "ipyvtk"]:
+        if settings.default_backend in ["panel", "ipyvtk", "trame"]:
             return backends.get_notebook_backend()
         #########################################################################
+
+        if self.interactor:
+            if not self.interactor.GetInitialized():
+                self.interactor.Initialize()
+                self.interactor.RemoveObservers("CharEvent")
 
         if self.resetcam:
             self.renderer.ResetCamera()

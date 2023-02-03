@@ -26,12 +26,12 @@ __all__ = []
 def get_notebook_backend(actors2show=()):
     """Return the appropriate notebook viewer"""
 
-    plt = vedo.plotter_instance
-    if plt:
-        if isinstance(plt.shape, str) or sum(plt.shape) > 2 and settings.default_backend != "2d":
-            vedo.logger.error(
-                f"Multirendering is not supported for jupyter backend: {settings.default_backend}"
-            )
+    # plt = vedo.plotter_instance
+    # if plt:
+    #     if isinstance(plt.shape, str) or sum(plt.shape) > 2 and settings.default_backend != "2d":
+    #         vedo.logger.error(
+    #             f"Multirendering is not supported for jupyter backend: {settings.default_backend}"
+    #         )
 
     #########################################
     if settings.default_backend == "2d":
@@ -50,16 +50,16 @@ def get_notebook_backend(actors2show=()):
         return start_panel()
 
     #########################################
+    if settings.default_backend.startswith("trame"):
+        return start_trame()
+
+    #########################################
     if settings.default_backend.startswith("ipyvtk"):
         return start_ipyvtklink()
 
     #########################################
     if settings.default_backend == "ipygany":
         return start_ipygany(actors2show)
-
-    #########################################
-    # if settings.default_backend.startswith("pythree"): #todo
-    #     return start_pythreejs(actors2show)
 
     vedo.logger.error(f"Unknown jupyter backend: {settings.default_backend}")
     return None
@@ -328,6 +328,41 @@ def start_panel():
             width=int(plt.size[0] / 1.5),
             height=int(plt.size[1] / 2),
         )
+        return vedo.notebook_plotter
+    vedo.logger.error("No window present for panel backend.")
+    return None
+
+#####################################################################################
+def start_trame():
+
+    try:
+        from trame.app import get_server, jupyter
+        from trame.ui.vuetify import VAppLayout
+        from trame.widgets import vtk, vuetify
+    except ImportError("trame is not installed, try:\n> pip install trame"):
+        return None
+
+    plt = vedo.plotter_instance
+    if hasattr(plt, "window") and plt.window:
+        plt.renderer.ResetCamera()
+        server = get_server("jupyter-1")
+        state, ctrl = server.state, server.controller
+        plt.server = server
+        plt.controller = ctrl
+        plt.state = state
+
+        with VAppLayout(server) as layout:
+
+            with layout.root:
+
+                with vuetify.VContainer(fluid=True, classes="pa-0 fill-height"):
+                    plt.reset_camera()
+                    view = vtk.VtkLocalView(plt.window)
+                    ctrl.view_update = view.update
+                    ctrl.view_reset_camera = view.reset_camera
+
+        ctrl.on_server_exited.add(lambda **_: print("trame server exited"))
+        vedo.notebook_plotter = jupyter.show(server)
         return vedo.notebook_plotter
     vedo.logger.error("No window present for panel backend.")
     return None
