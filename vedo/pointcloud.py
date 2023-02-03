@@ -1849,7 +1849,7 @@ class Points(BaseActor, vtk.vtkActor):
         pr.SetFontFamily(vtk.VTK_FONT_FILE)
         fl = utils.get_font_path(font)
         pr.SetFontFile(fl)
-        pr.SetFontSize(int(12*scale))
+        pr.SetFontSize(int(20*scale))
 
         if "cent" in justify or "mid" in justify:
             pr.SetJustificationToCentered()

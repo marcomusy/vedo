@@ -1470,7 +1470,8 @@ def print_info(obj):
         vedo.printc("scalar range".ljust(14) + ": ", c="b", bold=True, end="")
         vedo.printc(img.GetScalarRange(), c="b", bold=False)
 
-        print_histogram(obj, horizontal=True, logscale=True, bins=8, height=15, c="b", bold=True)
+        print_histogram(obj, horizontal=True, spacer=" "*10,
+            logscale=True, bins=8, height=15, c="b", bold=True)
 
     elif isinstance(obj, vedo.Plotter) and obj.interactor:  # dumps Plotter info
         axtype = {
@@ -1603,6 +1604,7 @@ def print_histogram(
     c=None,
     bold=True,
     title="histogram",
+    spacer="",
 ):
     """
     Ascii histogram printing.
@@ -1627,6 +1629,8 @@ def print_histogram(
             use boldface
         title : (str)
             histogram title
+        spacer : (str)
+            horizontal spacer
 
     Example:
         ```python
@@ -1721,10 +1725,10 @@ def print_histogram(
         xl = ["%.2f" % n for n in h[1]]
         lxl = [len(l) for l in xl]
         bars = h0 / maxh0 * height
-        his += " " * int(max(bars) + 2 + max(lxl)) + "%s\n" % maxh0
+        his += spacer + " " * int(max(bars) + 2 + max(lxl)) + "%s\n" % maxh0
         for i, c in enumerate(bars):
             line = xl[i] + " " * int(max(lxl) - lxl[i]) + "| " + char * int(c) + "\n"
-            his += line
+            his += spacer + line
         return his
 
     if horizontal:

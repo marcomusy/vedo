@@ -718,13 +718,9 @@ def draw_scene(args):
         sp = vol.spacing()
         vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
         vol.mode(int(args.mode)).color(args.cmap).jittering(True)
-        # if args.lighting !='default':
-        vol.lighting(args.lighting).jittering(True)
+        vol.lighting(args.lighting)
         plt = applications.RayCastPlotter(vol)
-        plt.show(viewup="z", interactive=True)
-        plt.sliders[0][0].SetEnabled(False)
-        plt.sliders[1][0].SetEnabled(False)
-        plt.sliders[2][0].SetEnabled(False)
+        plt.show(viewup="z", interactive=True).close()
         return
 
     ##########################################################

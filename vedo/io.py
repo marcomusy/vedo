@@ -803,18 +803,25 @@ def tonumpy(obj):
         adict["rendered_at"] = obj.rendered_at
         adict["position"] = obj.pos()
         adict["info"] = obj.info
-        m = np.eye(4)
-        vm = obj.get_transform().GetMatrix()
-        for i in [0, 1, 2, 3]:
-            for j in [0, 1, 2, 3]:
-                m[i, j] = vm.GetElement(i, j)
-        adict["transform"] = m
-        minv = np.eye(4)
-        vm.Invert()
-        for i in [0, 1, 2, 3]:
-            for j in [0, 1, 2, 3]:
-                minv[i, j] = vm.GetElement(i, j)
-        adict["transform_inverse"] = minv
+
+        try:
+            # GetMatrix might not exist for non linear transforms
+            m = np.eye(4)
+            vm = obj.get_transform().GetMatrix()
+            for i in [0, 1, 2, 3]:
+                for j in [0, 1, 2, 3]:
+                    m[i, j] = vm.GetElement(i, j)
+            adict["transform"] = m
+            minv = np.eye(4)
+            vm.Invert()
+            for i in [0, 1, 2, 3]:
+                for j in [0, 1, 2, 3]:
+                    minv[i, j] = vm.GetElement(i, j)
+            adict["transform_inverse"] = minv
+        except AttributeError:
+            adict["transform"] = []
+            adict["transform_inverse"] = []
+
 
     ########################################################
     def _fillmesh(obj, adict):

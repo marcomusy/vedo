@@ -33,6 +33,7 @@ __all__ = [
     "DashedLine",
     "RoundedLine",
     "Tube",
+    "ThickTube",
     "Lines",
     "Spline",
     "KSpline",
@@ -1663,6 +1664,8 @@ class Tube(Mesh):
 
                 ![](https://vedo.embl.es/images/basic/tube.png)
         """
+        if isinstance(points, vedo.Points):
+            points = points.points()
 
         base = np.asarray(points[0], dtype=float)
         top = np.asarray(points[-1], dtype=float)
@@ -1720,6 +1723,51 @@ class Tube(Mesh):
         self.top = top
         self.name = "Tube"
 
+def ThickTube(pts, r1, r2, res=12, c=None, alpha=1):
+    """
+    Create a tube with a thickness along a line of points.
+
+    Example:
+    ```python
+    from vedo import *
+    pts = [[sin(x), cos(x), x/3] for x in np.arange(0.1, 3, 0.3)]
+    vline = Line(pts, lw=5, c='red5')
+    thick_tube = ThickTube(vline, r1=0.2, r2=0.3).lw(1)
+    show(vline, thick_tube, axes=1).close()
+    ```
+    ![](https://vedo.embl.es/images/feats/thick_tube.png)
+    """
+    def make_cap(t1, t2):
+        newpoints = t1.points().tolist() + t2.points().tolist()
+        newfaces = []
+        for i in range(n-1):
+            newfaces.append([i,   i+1, i+n])
+            newfaces.append([i+n, i+1, i+n+1])
+        newfaces.append([2*n-1,   0, n])
+        newfaces.append([2*n-1, n-1, 0])
+        capm = utils.buildPolyData(newpoints, newfaces)
+        return capm
+    
+    assert r1 < r2
+
+    t1 = Tube(pts, r=r1, cap=False, res=res)
+    t2 = Tube(pts, r=r2, cap=False, res=res)
+
+    tc1a, tc1b = t1.boundaries().split()
+    tc2a, tc2b = t2.boundaries().split()
+    n = tc1b.npoints
+
+    tc1b.join(reset=True).clean() # needed because indices are flipped
+    tc2b.join(reset=True).clean()
+
+    capa = make_cap(tc1a, tc2a)
+    capb = make_cap(tc1b, tc2b)
+
+    thick_tube = merge(t1, t2, capa, capb).c(c).alpha(alpha)
+    thick_tube.base = t1.base
+    thick_tube.top = t1.top
+    thick_tube.name = "ThickTube"
+    return thick_tube
 
 class Ribbon(Mesh):
     """
@@ -1767,6 +1815,7 @@ class Ribbon(Mesh):
             line2 = line2.points()
 
         elif line2 is None:
+            #############################################
             ribbon_filter = vtk.vtkRibbonFilter()
             aline = Line(line1)
             ribbon_filter.SetInputData(aline.polydata())
@@ -1776,10 +1825,9 @@ class Ribbon(Mesh):
             ribbon_filter.Update()
             Mesh.__init__(self, ribbon_filter.GetOutput(), c, alpha)
             self.name = "Ribbon"
-
-            #######################
-            return  ################
-            #######################
+            ##############################################
+            return  ######################################
+            ##############################################
 
         line1 = np.asarray(line1)
         line2 = np.asarray(line2)

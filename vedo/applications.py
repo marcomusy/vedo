@@ -560,7 +560,7 @@ class RayCastPlotter(Plotter):
         plot.GetPosition2Coordinate().SetValue(0.197, 0.20, 0)
         plot.GetXAxisActor2D().SetFontFactor(0.7)
         plot.GetProperty().SetOpacity(0.5)
-        self.add([plot, volume])
+        self.add([plot, volume], render=False)
 
 
 #####################################################################################
