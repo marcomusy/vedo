@@ -4052,16 +4052,15 @@ class Points(BaseActor, vtk.vtkActor):
         You can access both via `assembly.unpack()` method.
 
         Example:
-            ```python
-            from vedo import *
-            import numpy as np
-            arr = np.random.randn(100000, 3)/2
-            pts = Points(arr).c('red3').pos(5,0,0)
-            cube = Cube().pos(4,0.5,0)
-            assem = pts.cut_with_mesh(cube, keep=True)
-            show(assem.unpack(), axes=1).close()
-            ```
-            ![](https://vedo.embl.es/images/feats/cut_with_mesh.png)
+        ```python
+        from vedo import *
+        arr = np.random.randn(100000, 3)/2
+        pts = Points(arr).c('red3').pos(5,0,0)
+        cube = Cube().pos(4,0.5,0)
+        assem = pts.cut_with_mesh(cube, keep=True)
+        show(assem.unpack(), axes=1).close()
+        ```        
+        ![](https://vedo.embl.es/images/feats/cut_with_mesh.png)
 
        Check out also:
             `cut_with_box()`, `cut_with_plane()`, `cut_with_cylinder()`

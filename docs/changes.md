@@ -4,10 +4,13 @@
 - added cli functionality with `vedo --search-code` to inpect the code for keywords
 - method `tomesh()` changed to `generate_mesh()`
 - fix for `mark_boundaries()`
-- use vtkStaticCellLocator instead of vtkCellLocator
+- use `vtkStaticCellLocator` instead of `vtkCellLocator`
 - improved `pointcloud.density()` function
 - add `utils.progress_bar()`
 - add `trame` examples
+- add `utils.is_ragged()` to check if an array is homogeneuos
+- fix `shapes.Lines()` class 
+- add `shapes.ThickTube()` as per #800
 
 -------------------------
 ## Examples

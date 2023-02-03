@@ -543,19 +543,40 @@ def get_font_path(font):
 
 def isSequence(arg):
     "Deprecated. Please use `is_sequence()`"
-    m = "Warning! isSequence() is deprecated. Please use is_sequence()"
+    m = "Warning! isSequence() is deprecated. Please use is_sequence()."
     print("\x1b[1m\x1b[33;1m " + m + "\x1b[0m")
     return is_sequence(arg)
 
 
 def is_sequence(arg):
-    """Check if input is iterable."""
+    """Check if the input is iterable."""
     if hasattr(arg, "strip"):
         return False
     if hasattr(arg, "__getslice__"):
         return True
     if hasattr(arg, "__iter__"):
         return True
+    return False
+
+
+def is_ragged(arr, deep=False):
+    """
+    A ragged array in Python is an array with arrays of different
+    lengths as its elements. To check if an array is ragged,
+    we iterate through the elements and check if their lengths are the same.
+
+    Example:
+    ```python
+    arr = [[1, 2, 3], [[4, 5], [6], 1], [7, 8, 9]]
+    print(is_ragged(arr, deep=True))  # output: True
+    ```
+    """
+    if is_sequence(arr[0]):
+        length = len(arr[0])
+        for i in range(1, len(arr)):
+            if len(arr[i]) != length or (deep and is_ragged(arr[i])):
+                return True
+        return False
     return False
 
 

@@ -1184,14 +1184,6 @@ vedo_example_db =
         imgsrc: 'images/simulations/tunneling2.gif',
     },
     {
-        pyname: 'orbitals',
-        kbd   : '',
-        categ : 'simulations',
-        short : 'hydrogen oribitals',
-        long  : 'Visualise the hydrogen orbitals as volumes (needs sympy)',
-        imgsrc: 'images/simulations/orbitals.jpg',
-    },
-    {
         pyname: 'particle_simulator',
         kbd   : 'particle_sim',
         categ : 'simulations',

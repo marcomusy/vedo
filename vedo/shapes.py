@@ -993,12 +993,10 @@ class Lines(Mesh):
 
         if end_pts is not None:
             start_pts = np.stack((start_pts, end_pts), axis=1)
-        start_pts = np.asarray(start_pts)
 
         polylns = vtk.vtkAppendPolyData()
 
-        if len(start_pts.shape)>1 and start_pts.shape[1] == 2:
-            #checking len() is necessary because numpy array may not be rectangular
+        if not utils.is_ragged(start_pts):
 
             for twopts in start_pts:
                 line_source = vtk.vtkLineSource()

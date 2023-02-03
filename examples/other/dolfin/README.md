@@ -1,17 +1,14 @@
 # _FEniCS/Dolfin_ examples
 In this directory you will find a bunch of examples of to visualize meshes in conjunction with 
 [FEniCS/Dolfin](https://fenicsproject.org/) package.
-It emulates the functionality of the `plot()` command of *matplotlib*.
 
-Run any of the examples with:
-
-`vedo -ir example.py`
+The `plot()` function emulates the *matplotlib* functionality.
 
 To gain more control on the property of the shown objects one can access the output of the `plot()`
-method and chenge their properties, e.g.:
+method and change their properties, e.g.:
 ```python
-plt = plot(u)
+plt = plot(u_solution)
 msh = plt.actors[0]
-msh.color('blue').alpha(0.5).cutWithPlane() # etc
+msh.color('blue').alpha(0.5).cut_with_plane()  # etc
 plt.show()
 ```

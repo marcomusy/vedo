@@ -32,8 +32,8 @@ Example:
 ![](https://user-images.githubusercontent.com/32848391/53026243-d2d31900-3462-11e9-9dde-518218c241b6.jpg)
 
 .. note::
-    Find many more examples in
-    [vedo/examples/dolfin](https://github.com/marcomusy/vedo/blob/master/vedo/examples/other/dolfin).
+    Find many more examples in directory    
+    [vedo/examples/dolfin](https://github.com/marcomusy/vedo/blob/master/examples/other/dolfin).
 """
 
 __all__ = [
