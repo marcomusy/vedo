@@ -670,10 +670,10 @@ def loadDolfin(filename, exterior=False):
     bm = dolfin.BoundaryMesh(m, "exterior")
 
     if exterior:
-        poly = utils.buildPolyData(bm.coordinates(), bm.cells(), fast=True, tetras=True)
+        poly = utils.buildPolyData(bm.coordinates(), bm.cells(), tetras=True)
     else:
-        polyb = utils.buildPolyData(bm.coordinates(), bm.cells(), fast=True, tetras=True)
-        polym = utils.buildPolyData(m.coordinates(), m.cells(), fast=True, tetras=True)
+        polyb = utils.buildPolyData(bm.coordinates(), bm.cells(), tetras=True)
+        polym = utils.buildPolyData(m.coordinates(), m.cells(), tetras=True)
         app = vtk.vtkAppendPolyData()
         app.AddInputData(polym)
         app.AddInputData(polyb)

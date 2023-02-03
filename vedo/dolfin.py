@@ -361,7 +361,6 @@ def plot(*inputobj, **options):
     warpYfactor = options.pop("warpYfactor", None)
     lighting = options.pop("lighting", None)
     exterior = options.pop("exterior", False)
-    fast = options.pop("fast", False)
     returnActorsNoShow = options.pop("returnActorsNoShow", False)
     at = options.pop("at", 0)
 
@@ -461,7 +460,7 @@ def plot(*inputobj, **options):
 
     if mesh and ("mesh" in mode or "color" in mode or "displace" in mode):
 
-        actor = MeshActor(u, mesh, exterior=exterior, fast=fast)
+        actor = MeshActor(u, mesh, exterior=exterior)
 
         actor.wireframe(wire)
         actor.scale(scaleMeshFactors)
@@ -611,7 +610,6 @@ class MeshActor(Mesh):
         c = options.pop("c", None)
         alpha = options.pop("alpha", 1)
         exterior = options.pop("exterior", False)
-        fast = options.pop("fast", False)
         compute_normals = options.pop("compute_normals", False)
 
         mesh, u = _inputsort(inputobj)
@@ -630,7 +628,7 @@ class MeshActor(Mesh):
         else:
             coords = mesh.geometry.points
 
-        poly = utils.buildPolyData(coords, meshc.cells(), fast=fast, tetras=True)
+        poly = utils.buildPolyData(coords, meshc.cells(), tetras=True)
 
         Mesh.__init__(
             self,

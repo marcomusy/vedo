@@ -350,7 +350,7 @@ def geometry(obj, extent=None):
     return vedo.Mesh(gf.GetOutput())
 
 
-def buildPolyData(vertices, faces=None, lines=None, index_offset=0, fast=True, tetras=False):
+def buildPolyData(vertices, faces=None, lines=None, index_offset=0, tetras=False):
     """
     Build a `vtkPolyData` object from a list of vertices
     where faces represents the connectivity of the polygonal mesh.
@@ -361,10 +361,6 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, fast=True, t
         - `lines=[[0,1], [1,2,3,4], ...]`
 
     Use `index_offset=1` if face numbering starts from 1 instead of 0.
-
-    If `fast=False` the mesh is built "manually" by setting polygons and triangles
-    one by one. This is the fallback case when a mesh contains faces of
-    different number of vertices.
 
     If `tetras=True`, interpret 4-point faces as tetrahedrons instead of surface quads.
     """
@@ -418,16 +414,9 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, fast=True, t
     # faces exist
     source_polygons = vtk.vtkCellArray()
 
-    # test if array is homogenoeus or ndim will be 1
-    try:
-        faces = np.asarray(faces)
-        ndim = np.ndim(faces)
-    except ValueError:
-        ndim = 1
-
-    if ndim == 2 and index_offset == 0 and fast:
+    if isinstance(faces, np.ndarray) or not is_ragged(faces):
         ##### all faces are composed of equal nr of vtxs, FAST
-
+        faces = np.asarray(faces)
         ast = np.int32
         if vtk.vtkIdTypeArray().GetDataTypeSize() != 4:
             ast = np.int64
