@@ -11,15 +11,17 @@
 - add `utils.is_ragged()` to check if an array is homogeneuos
 - fix `shapes.Lines()` class 
 - add `shapes.ThickTube()` as per #800
+- add `settings.backend_autoclose` (default is True) to automatically close `Plotter` after show 
+in jupyter notebooks, #802
+
 
 -------------------------
-## Examples
+## New/Revised Examples
 ```
 examples/other/trame_ex1.py
 examples/other/trame_ex2.py
 examples/other/trame_ex3.py
+examples/simulations/lorenz.py
 ```
 
-### New/Revised
-
-
+### Broken Examples

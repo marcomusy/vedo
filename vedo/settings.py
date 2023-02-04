@@ -105,6 +105,10 @@ class Settings:
     annotated_cube_text_scale = 0.2
     annotated_cube_texts      = ["right","left ", "front","back ", " top ", "bttom"]
 
+    # Automatically close the Plotter instance after show() in jupyter sessions
+    # setting it to False will keep the current Plotter instance active
+    backend_autoclose = True
+
     # k3d settings for jupyter notebooks
     k3d_menu_visibility = True
     k3d_plot_height = 512
@@ -164,6 +168,7 @@ class Settings:
         "annotated_cube_text_scale",
         "annotated_cube_texts",
         "enable_print_color",
+        "backend_autoclose",
         "k3d_menu_visibility",
         "k3d_plot_height",
         "k3d_antialias",
@@ -289,6 +294,10 @@ class Settings:
         self.enable_print_color = True
 
         ####################################################################################
+        # Automatically close the Plotter instance after show() in jupyter sessions,
+        #  setting it to False will keep the current Plotter instance active
+        self.backend_autoclose = True
+
         # k3d settings for jupyter notebooks
         self.k3d_menu_visibility = True
         self.k3d_plot_height = 512

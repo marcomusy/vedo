@@ -1719,10 +1719,10 @@ def screenshot(filename="screenshot.png", scale=None, asarray=False):
             return a numpy array of the image
     """
     if not vedo.plotter_instance or not vedo.plotter_instance.window:
-        vedo.logger.error("in screenshot(), rendering window is not present, skip.")
+        #vedo.logger.error("in screenshot(), rendering window is not present, skip.")
         return vedo.plotter_instance
 
-    filename= str(filename)
+    filename = str(filename)
 
     if filename.endswith(".pdf"):
         writer = vtk.vtkGL2PSExporter()

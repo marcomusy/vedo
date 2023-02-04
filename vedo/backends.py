@@ -82,7 +82,8 @@ def start_2d():
             pil_img = PIL.Image.fromarray(nn)
             notebook_plotter = IPython.display.display(pil_img)
             vedo.notebook_plotter = notebook_plotter
-            plt.close()
+            if settings.backend_autoclose:
+                plt.close()
             return notebook_plotter
 
 
@@ -101,7 +102,8 @@ def start_itkwidgets(actors2show):
         ui_collapsed=True,
         gradient_opacity=False,
     )
-    vedo.plotter_instance.close()
+    if settings.backend_autoclose:
+        vedo.plotter_instance.close()
     return vedo.notebook_plotter
 
 
@@ -305,7 +307,7 @@ def start_k3d(actors2show):
                     name=name,
                 )
                 vedo.notebook_plotter += kobj
-    if plt:
+    if plt and settings.backend_autoclose:
         plt.close()
     return vedo.notebook_plotter
 
@@ -329,6 +331,7 @@ def start_panel():
             height=int(plt.size[1] / 2),
         )
         return vedo.notebook_plotter
+
     vedo.logger.error("No window present for panel backend.")
     return None
 
@@ -370,7 +373,6 @@ def start_trame():
 
 #####################################################################################
 def start_ipyvtklink():
-
     try:
         from ipyvtklink.viewer import ViewInteractiveWidget
     except ImportError("ipyvtklink is not installed, try:\n> pip install ipyvtklink"):
@@ -489,7 +491,8 @@ def start_ipygany(actors2show):
         scene = Scene(pmeshes, background_color=bgcol)
 
     vedo.notebook_plotter = scene
-    plt.close()
+    if settings.backend_autoclose:
+        plt.close()
     return scene
 
 
