@@ -2912,9 +2912,6 @@ class Plotter:
                             ia.scalarbar.GetLabelTextProperty().SetColor(c)
                             ia.scalarbar.GetTitleTextProperty().SetColor(c)
 
-        if interactive is not None:
-            self._interactive = interactive
-
         if self.sharecam:
             for r in self.renderers:
                 r.SetActiveCamera(self.camera)
@@ -2930,11 +2927,6 @@ class Plotter:
         if settings.default_backend in ["panel", "ipyvtk", "trame"]:
             return backends.get_notebook_backend()
         #########################################################################
-
-        if self.interactor:
-            if not self.interactor.GetInitialized():
-                self.interactor.Initialize()
-                self.interactor.RemoveObservers("CharEvent")
 
         if self.resetcam:
             self.renderer.ResetCamera()
@@ -2993,12 +2985,12 @@ class Plotter:
         if settings.immediate_rendering:
             self.window.Render()  ##################### <-------------- Render
 
-        self.window.SetWindowName(self.title)
-
         # 2d ####################################################################
         if settings.default_backend == "2d":
             return backends.get_notebook_backend()
         #########################################################################
+
+        self.window.SetWindowName(self.title)
 
         try:
             # Needs pip install pyobjc
@@ -3015,6 +3007,13 @@ class Plotter:
             vedo.logger.debug("On Mac OSX try: pip install pyobjc")
 
         if self.interactor:  # can be offscreen..
+
+            if interactive is not None:
+                self._interactive = interactive
+
+            if not self.interactor.GetInitialized():
+                self.interactor.Initialize()
+                self.interactor.RemoveObservers("CharEvent")
 
             # Set the style of interaction
             # see https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html
