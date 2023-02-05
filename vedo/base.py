@@ -1234,6 +1234,45 @@ class BaseActor(Base3DProp):
         self._mapper.SetScalarModeToUseCellData()
         return self._update(p2c.GetOutput())
 
+    def resample_data_from(self, source, tol=None):
+        """
+        Resample point and cell data from another dataset.
+        The output has the same structure but its point data have
+        the resampled values from target.
+
+        Use `tol` to set the tolerance used to compute whether
+        a point in the source is in a cell of the current object.
+        Points without resampled values, and their cells, are marked as blank.
+
+        Example:
+        ```python
+        from vedo import *
+        m1 = Mesh(dataurl+'bunny.obj')#.add_gaussian_noise(0.1)
+        pts = m1.points()
+        ces = m1.cell_centers()
+        m1.pointdata["xvalues"] = np.power(pts[:,0], 3)
+        m1.celldata["yvalues"]  = np.power(ces[:,1], 3)
+        m2 = Mesh(dataurl+'bunny.obj')
+        m2.resample_arrays_from(m1)
+        # print(m2.pointdata["xvalues"])
+        show(m1, m2 , N=2, axes=1)
+        ```
+        """
+        rs = vtk.vtkResampleWithDataSet()
+        rs.SetInputData(self.inputdata())
+        rs.SetSourceData(source.inputdata())
+        
+        rs.SetPassPointArrays(True)
+        rs.SetPassCellArrays(True)
+        rs.SetPassFieldArrays(True)
+
+        rs.SetComputeTolerance(True)
+        if tol:
+            rs.SetComputeTolerance(False)
+            rs.SetTolerance(tol)
+        rs.Update()
+        return self._update(rs.GetOutput())
+
     def add_ids(self):
         """Generate point and cell ids arrays."""
         ids = vtk.vtkIdFilter()

@@ -56,7 +56,6 @@ __all__ = [
     "oriented_camera",
     "vedo2trimesh",
     "trimesh2vedo",
-    "resample_arrays",
     "vtk2numpy",
     "numpy2vtk",
 ]
@@ -230,6 +229,7 @@ def progressbar(
         for i in progressbar(range(100), c='red'):
             time.sleep(0.1)
         ```
+        ![](https://user-images.githubusercontent.com/32848391/51858823-ed1f4880-2335-11e9-8788-2d102ace2578.png)
     """
     try:
         if is_number(iterable):
@@ -1877,9 +1877,9 @@ def camera_from_neuroglancer(state, zoom=300):
     Define a `vtkCamera` from a neuroglancer state dictionary.
 
     Arguments:
-        state: dict
+        state: (dict)
             an neuroglancer state dictionary.
-        zoom: float
+        zoom: (float)
             how much to multiply zoom by to get camera backoff distance
             default = 300 > ngl_zoom = 1 > 300 nm backoff distance.
 
@@ -2404,27 +2404,3 @@ def ctf2lut(tvobj, logscale=False):
         lut.SetTableValue(i, r, g, b, alphas[i])
     lut.Build()
     return lut
-
-
-def resample_arrays(source, target, tol=None):
-    """
-    Resample point and cell data of a dataset on points from another dataset.
-    It takes two inputs - source and target, and samples the point and cell values
-    of target onto the point locations of source.
-    The output has the same structure as the source but its point data have
-    the resampled values from target.
-
-    `tol` sets the tolerance used to compute whether
-    a point in the target is in a cell of the source.
-    Points without resampled values, and their cells, are marked as blank.
-    """
-    rs = vtk.vtkResampleWithDataSet()
-    rs.SetInputData(source.polydata())
-    rs.SetSourceData(target.polydata())
-    rs.SetPassPointArrays(True)
-    rs.SetPassCellArrays(True)
-    if tol:
-        rs.SetComputeTolerance(False)
-        rs.SetTolerance(tol)
-    rs.Update()
-    return rs.GetOutput()
