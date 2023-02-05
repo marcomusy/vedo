@@ -1234,7 +1234,7 @@ class BaseActor(Base3DProp):
         self._mapper.SetScalarModeToUseCellData()
         return self._update(p2c.GetOutput())
 
-    def resample_data_from(self, source, tol=None):
+    def resample_data_from(self, source, tol=None, categorical=False):
         """
         Resample point and cell data from another dataset.
         The output has the same structure but its point data have
@@ -1243,6 +1243,8 @@ class BaseActor(Base3DProp):
         Use `tol` to set the tolerance used to compute whether
         a point in the source is in a cell of the current object.
         Points without resampled values, and their cells, are marked as blank.
+        If the data is categorical, then the resulting data will be determined
+        by a nearest neighbor interpolation scheme.
 
         Example:
         ```python
@@ -1265,6 +1267,7 @@ class BaseActor(Base3DProp):
         rs.SetPassPointArrays(True)
         rs.SetPassCellArrays(True)
         rs.SetPassFieldArrays(True)
+        rs.SetCategoricalData(categorical)
 
         rs.SetComputeTolerance(True)
         if tol:
