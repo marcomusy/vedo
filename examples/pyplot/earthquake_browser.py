@@ -15,7 +15,7 @@ scale = [pic.shape[0]/2, pic.shape[1]/2, 1]
 comment = Text2D(__doc__, bg='green9', alpha=0.7, font='Ubuntu')
 
 centers = []
-for i, d in progress_bar(data.iterrows()):
+for i, d in progressbar(data.iterrows()):
     M = d['mag']                                       # earthquake estimated magnitude
     E = np.sqrt(np.exp(5.24+1.44*M) * scale[0])/10000  # empirical formula for sqrt(energy_release(M))
     rgb = color_map(E, name='Reds', vmin=0, vmax=7)    # map energy to color

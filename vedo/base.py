@@ -320,28 +320,28 @@ class Base3DProp:
         self.cell_locator = None
         return self
 
-    def x(self, position=None):
+    def x(self, val=None):
         """Set/Get object position along x axis."""
         p = self.GetPosition()
-        if position is None:
+        if val is None:
             return p[0]
-        self.pos(position, p[1], p[2])
+        self.pos(val, p[1], p[2])
         return self
 
-    def y(self, position=None):
+    def y(self, val=None):
         """Set/Get object position along y axis."""
         p = self.GetPosition()
-        if position is None:
+        if val is None:
             return p[1]
-        self.pos(p[0], position, p[2])
+        self.pos(p[0], val, p[2])
         return self
 
-    def z(self, position=None):
+    def z(self, val=None):
         """Set/Get object position along z axis."""
         p = self.GetPosition()
-        if position is None:
+        if val is None:
             return p[2]
-        self.pos(p[0], p[1], position)
+        self.pos(p[0], p[1], val)
         return self
 
     def rotate(self, angle, axis=(1, 0, 0), point=(0, 0, 0), rad=False):

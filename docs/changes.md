@@ -6,9 +6,9 @@
 - fix for `mark_boundaries()`
 - use `vtkStaticCellLocator` instead of `vtkCellLocator`
 - improved `pointcloud.density()` function
-- add `utils.progress_bar()`
+- add `utils.progressbar()`
 - add `trame` examples
-- add `utils.is_ragged()` to check if an array is homogeneuos
+- add `utils.is_ragged()` to check if an array is homogeneuos (not ragged)
 - fix `shapes.Lines()` class 
 - add `shapes.ThickTube()` as per #800
 - add `settings.backend_autoclose` (default is True) to automatically close `Plotter` after show 
@@ -22,6 +22,7 @@ examples/other/trame_ex1.py
 examples/other/trame_ex2.py
 examples/other/trame_ex3.py
 examples/simulations/lorenz.py
+examples/notebooks/slider2d.ipynb
 ```
 
 ### Broken Examples

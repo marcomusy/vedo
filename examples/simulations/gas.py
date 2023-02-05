@@ -4,7 +4,7 @@
 ## Adapted by M. Musy for vedo
 ## relevant points in the code are marked with '### <--'
 from random import random
-from vedo import Plotter, progress_bar, mag, versor, Torus, Sphere, settings
+from vedo import Plotter, progressbar, mag, versor, Torus, Sphere
 import numpy as np
 
 #############################################################
@@ -66,7 +66,7 @@ if "False" not in np.less_equal(mag(ds), radius).tolist():
 
 plt.show()
 
-for i in progress_bar(range(0, Nsteps)):
+for i in progressbar(Nsteps):
     # Update all positions
     ds = mag((p / m) * (dt / 2.0))
     if "False" not in np.less_equal(ds, radius).tolist():

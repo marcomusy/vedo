@@ -73,8 +73,7 @@ y_eu, y_rk = np.array(y), np.array(y)
 v_eu, v_rk = np.array(v), np.array(v)
 
 t = 0 
-# integrating RK4 and Euler
-for i in progress_bar(range(nsteps), c="blue"):
+for i in progressbar(nsteps, c="blue", title="integrating RK4 and Euler"):
     y_eu, v_eu = euler(y_eu, v_eu, t, dt)
     y_rk, v_rk = runge_kutta4(y_rk, v_rk, t, dt)
     t += dt
@@ -98,7 +97,7 @@ plt += Picture(img).alpha(0.8).scale(0.4).pos(0,-100,-20)
 plt += __doc__
 plt.show(zoom=1.5)
 
-for i in progress_bar(range(nsteps), c='red'):
+for i in progressbar(nsteps, c='red', title="visualize the result"):
     if i%10 != 0:
         continue
     y_eu = positions_eu[i]  # retrieve the list of y positions at step i

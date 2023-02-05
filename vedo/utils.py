@@ -25,7 +25,7 @@ __doc__ = "Utilities submodule."
 
 __all__ = [
     "ProgressBar",
-    "progress_bar",
+    "progressbar",
     "geometry",
     "is_sequence",
     "lin_interpolate",
@@ -84,7 +84,7 @@ class ProgressBar:
         """
         Class to print a progress bar with optional text message.
 
-        Check out also function `progress_bar()`.
+        Check out also function `progressbar()`.
 
         Example:
             ```python
@@ -212,7 +212,7 @@ class ProgressBar:
         self.pbar += ps
 
 #####################################
-def progress_bar(
+def progressbar(
         iterable,
         c=None,
         bold=True,
@@ -227,12 +227,16 @@ def progress_bar(
     Example:
         ```python
         import time
-        for i in progress_bar(range(100), c='red'):
+        for i in progressbar(range(100), c='red'):
             time.sleep(0.1)
         ```
     """
     try:
-        total = len(iterable)
+        if is_number(iterable):
+            total = int(iterable)
+            iterable = range(total)
+        else:
+            total = len(iterable)
     except TypeError: 
         iterable = list(iterable)
         total = len(iterable)

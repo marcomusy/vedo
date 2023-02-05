@@ -22,7 +22,7 @@ plt = Plotter(interactive=False)
 plt.show(axes, __doc__, viewup='z')
 
 i = 0
-for b1, b2 in progress_bar(zip(p1,p2)):
+for b1, b2 in progressbar(zip(p1,p2)):
     ball1.pos(b1)
     ball2.pos(b2)
     rod1.stretch([0,0,0], b1)

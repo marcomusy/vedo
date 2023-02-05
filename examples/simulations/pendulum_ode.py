@@ -45,7 +45,7 @@ P2 = P1 + np.dstack([L2*sin(y[:,2]), -L2*cos(y[:,2])]).squeeze()
 plt = Plotter(interactive=False, size=(900,700),)
 ax = Axes(xrange=(-2,2), yrange=(-2,1), htitle=__doc__)
 
-for i in progress_bar(range(len(t))):
+for i in progressbar(len(t)):
     j = max(i- 5,0)
     k = max(i-10,0)
     l1 = Line([[0,0], P1[i], P2[i]]).lw(7).c("blue2", 1.0)

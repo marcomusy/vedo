@@ -541,13 +541,19 @@ def fit_sphere(coords):
     return sph
 
 
-def pca_ellipse(points, pvalue=0.673):
+def pca_ellipse(points, pvalue=0.673, res=60):
     """
     Show the oriented PCA 2D ellipse that contains the fraction `pvalue` of points.
 
     Parameter `pvalue` sets the specified fraction of points inside the ellipse.
     Normalized directions are stored in `ellipse.axis1`, `ellipse.axis12`
     axes sizes are stored in `ellipse.va`, `ellipse.vb`
+
+    Arguments:
+        pvalue : (float)
+            ellipse will include this fraction of points
+        res : (int)
+            resolution of the ellipse
 
     Examples:
         - [histo_pca.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_pca.py)
@@ -582,7 +588,7 @@ def pca_ellipse(points, pvalue=0.673):
     vtra = vtk.vtkTransform()
     vtra.SetMatrix(matri)
 
-    elli = vedo.shapes.Circle(alpha=0.75)
+    elli = vedo.shapes.Circle(alpha=0.75, res=res)
 
     # assign the transformation
     elli.SetScale(vtra.GetScale())

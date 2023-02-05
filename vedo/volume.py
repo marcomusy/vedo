@@ -120,9 +120,9 @@ class BaseVolume:
             return self
         return np.array(self._data.GetSpacing())
 
-    def pos(self, p=None):
-        """Same effect as calling `origin()`."""
-        return self.origin(p)
+    # def pos(self, p=None): # conflicts with API of base.x()
+    #     """Same effect as calling `origin()`."""
+    #     return self.origin(p)
 
     def origin(self, s=None):
         """Set/get the origin of the volumetric dataset."""

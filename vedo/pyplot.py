@@ -604,19 +604,19 @@ class Figure(Assembly):
         aleg.name = "Legend"
         return self
 
-    def as2d(self, scale=1, pos="center", padding=0.05):
+    def as2d(self, pos="bottom-left", scale=1, padding=0.05):
         """
         Convert the Figure into a 2D static object (a 2D assembly).
 
         Still experimental.
 
         Arguments:
-            scale : (float)
-                scaling factor
             pos : (str, list)
                 position in 2D, as atring or list (x,y).
                 Any combination of "center", "top", "bottom", "left" and "right" will work.
                 The center of the renderer is [0,0] while top-right is [1,1].
+            scale : (float)
+                scaling factor
             padding : (float, list)
                 a single value or a list (xpad, ypad)
 
