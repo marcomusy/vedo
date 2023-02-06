@@ -2531,6 +2531,63 @@ class Mesh(Points):
             print(f".. tetralize() completed, ntets = {tmesh.ncells}")
         return tmesh
 
+    def _repr_html_(self):
+        """HTML representation of the surface object for IPython.
+        Returns
+        -------
+        HTML text with the image and some properties.
+        """
+        import numpy as np
+        from stackview._static_view import _png_to_html, _plt_to_png
+        import matplotlib.pyplot as plt
+
+        from .plotter import Plotter
+
+        self.library_name = "vedo.Mesh"
+        self.help_url = "https://vedo.embl.es/"
+
+        mesh = self
+
+        # Draw mesh
+        plotter = Plotter(offscreen=True, N=2)
+        # values = ...
+        # mesh.cmap(self.cmap, values)
+        plotter.show(mesh)
+        np_rgb_image = plotter.screenshot(asarray=True)
+        plt.imshow(np_rgb_image)
+        # turn off axes
+        frame1 = plt.gca()
+        frame1.axes.xaxis.set_ticklabels([])
+        frame1.axes.yaxis.set_ticklabels([])
+        plt.tick_params(left=False, bottom=False)
+        image = _png_to_html(_plt_to_png())
+
+        # mesh statisitics
+        bounds = "<br/>".join(
+            [str(min_x) + "..." + str(max_x) for min_x, max_x in zip(mesh.bounds()[::2], mesh.bounds()[1::2])])
+        average_size = "{size:.3f}".format(size=mesh.average_size())
+
+        help_text = "<b><a href=\"" + self.help_url + "\" target=\"_blank\">" + self.library_name + "</a></b><br/>"
+
+        all = [
+            "<table>",
+            "<tr>",
+            "<td>",
+            image,
+            "</td>",
+            "<td style=\"text-align: center; vertical-align: top;\">",
+            help_text,
+            "<table>",
+            "<tr><td>bounds (z/y/x)</td><td>" + str(bounds).replace(" ", "&nbsp;") + "</td></tr>",
+            "<tr><td>average size</td><td>" + str(average_size) + "</td></tr>",
+            "</table>",
+            "</td>",
+            "</tr>",
+            "</table>",
+        ]
+
+        return "\n".join(all)
+
 ####################################################
 class Follower(vedo.base.BaseActor, vtk.vtkFollower):
     

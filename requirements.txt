@@ -1,3 +1,4 @@
 vtk
 Deprecated
 Pygments
+stackview>=0.5.2
