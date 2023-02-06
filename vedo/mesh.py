@@ -2580,6 +2580,7 @@ class Mesh(Points):
             "<table>",
             "<tr><td>bounds (z/y/x)</td><td>" + str(bounds).replace(" ", "&nbsp;") + "</td></tr>",
             "<tr><td>average size</td><td>" + str(average_size) + "</td></tr>",
+            "<tr><td>n points</td><td>" + str(self.npoints) + "</td></tr>",
             "</table>",
             "</td>",
             "</tr>",
