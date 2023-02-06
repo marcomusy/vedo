@@ -8,8 +8,6 @@ docs/web_page/js
 vedo.egg-info
 build
 
-.ipynb
-*.ipynb
 .ipynb_checkpoints
 examples/notebooks/.ipynb_checkpoints
 *png
