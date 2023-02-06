@@ -2532,7 +2532,7 @@ class Mesh(Points):
         return tmesh
 
     def _repr_html_(self):
-        """HTML representation of the surface object for IPython.
+        """HTML representation of the Mesh object for Jupyter Notebooks.
         Returns
         -------
         HTML text with the image and some properties.
