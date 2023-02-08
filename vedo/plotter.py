@@ -3057,6 +3057,7 @@ class Plotter:
                     self.interactor.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
             elif (
                     "Darwin" in vedo.sys_platform
+                    and vedo.vtk_version == (9,2,5)
                     and settings.allow_interaction
                     and len(self.renderers) == 1
             ):
