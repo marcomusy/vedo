@@ -2680,7 +2680,10 @@ class Points(BaseActor, vtk.vtkActor):
         elif isinstance(input_array, str):  # if a name string is passed
             arr = data.GetArray(input_array)
             if not arr:
-                vedo.logger.error(f"in cmap(), cannot find point array {input_array} ...skip coloring.")
+                hint = ""
+                if poly.GetCellData().GetArray(input_array):
+                    hint = "\n\t\tA cell array is detected with that name, try cmap(..., on='cells')"
+                vedo.logger.error(f"in cmap(), cannot find point array {input_array} ...skip coloring."+hint)
                 return self
 
         elif isinstance(input_array, int):  # if an int is passed
@@ -4175,9 +4178,6 @@ class Points(BaseActor, vtk.vtkActor):
             points = points.points()
         else:
             vpts = vtk.vtkPoints()
-            # if len(points[0]) == 2:  # make it 3d
-            #     points = np.asarray(points)
-            #     points = np.c_[points, np.zeros(len(points))]
             points = utils.make3d(points)
             for p in points:
                 vpts.InsertNextPoint(p)
