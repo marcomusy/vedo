@@ -2982,6 +2982,10 @@ class Plotter:
 
         self.renderer.ResetCameraClippingRange()
 
+        if not self.interactor.GetInitialized():
+            self.interactor.Initialize()
+            self.interactor.RemoveObservers("CharEvent")
+
         if settings.immediate_rendering:
             self.window.Render()  ##################### <-------------- Render
 
@@ -3010,10 +3014,6 @@ class Plotter:
 
             if interactive is not None:
                 self._interactive = interactive
-
-            if not self.interactor.GetInitialized():
-                self.interactor.Initialize()
-                self.interactor.RemoveObservers("CharEvent")
 
             # Set the style of interaction
             # see https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html
