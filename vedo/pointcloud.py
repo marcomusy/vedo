@@ -1921,7 +1921,7 @@ class Points(BaseActor, vtk.vtkActor):
             s : (float)
                 size of the flagpole. The default is None.
             font : (str)
-                text font. The default is "".
+                font face. Check [available fonts here](https://vedo.embl.es/fonts).
             rounded : (bool)
                 draw a rounded or squared box around the text. The default is True.
             c : (list)
@@ -2073,6 +2073,7 @@ class Points(BaseActor, vtk.vtkActor):
             font : (str)
                 font name. Use a monospace font for better rendering. The default is "Calco".
                 Type `vedo -r fonts` for a font demo.
+                Check [available fonts here](https://vedo.embl.es/fonts).
             justify : (str)
                 internal text justification. The default is "center-left".
             vspacing : (float)
@@ -2189,6 +2190,7 @@ class Points(BaseActor, vtk.vtkActor):
             font : (str)
                 font name. Use a monospace font for better rendering. The default is "VictorMono".
                 Type `vedo -r fonts` for a font demo.
+                Check [available fonts here](https://vedo.embl.es/fonts).
             justify : (str)
                 internal text justification. The default is "center-right".
             vspacing : (float)

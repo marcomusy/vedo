@@ -1379,7 +1379,7 @@ class Plotter:
             title : (str)
                 title text
             font : (str)
-                title font face
+                title font face. Check [available fonts here](https://vedo.embl.es/fonts).
             title_size : (float)
                 title text scale [1.0]
             show_value : (bool)
@@ -1538,7 +1538,7 @@ class Plotter:
             size : (float)
                 size of button font
             font : (str)
-                font type
+                font type. Check [available fonts here](https://vedo.embl.es/fonts).
             bold : (bool)
                 bold font face (False)
             italic : (bool)
@@ -1975,7 +1975,7 @@ class Plotter:
             pos : (str)
                 text positioning
             font : (str)
-                text font type
+                text font type. Check [available fonts here](https://vedo.embl.es/fonts).
             s : (float)
                 text size scale
             bg : (color)
@@ -2982,7 +2982,7 @@ class Plotter:
 
         self.renderer.ResetCameraClippingRange()
 
-        if not self.interactor.GetInitialized():
+        if self.interactor and not self.interactor.GetInitialized():
             self.interactor.Initialize()
             self.interactor.RemoveObservers("CharEvent")
 

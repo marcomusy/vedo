@@ -455,7 +455,8 @@ class Figure(Assembly):
                 This flag is ignored if a string despcriptor is passed.
                 Default is True.
             font : (str, int)
-                font name or number
+                font name or number.
+                Check [available fonts here](https://vedo.embl.es/fonts).
             s : (float)
                 global size of the legend
             c : (str)
@@ -3780,7 +3781,8 @@ def matrix(
         precision : (int)
             number of digits for the matrix entries or bins
         font : (str)
-            font name
+            font name. Check [available fonts here](https://vedo.embl.es/fonts).
+
         scale : (float)
             size of the numeric entries or bin values
         scalarbar : (bool)

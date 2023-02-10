@@ -8,6 +8,7 @@ docs/web_page/js
 vedo.egg-info
 build
 
+.jupyter
 .ipynb
 *.ipynb
 .ipynb_checkpoints

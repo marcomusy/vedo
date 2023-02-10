@@ -1467,7 +1467,7 @@ def export_window(fileoutput, binary=False):
         sdict["size"] = plt.size
         sdict["axes"] = plt.axes
         sdict["title"] = plt.title
-        sdict["backgrcol"] = colors.get_color(plt.backgrcol)
+        sdict["backgrcol"] = colors.get_color(plt.renderer.GetBackground())
         sdict["backgrcol2"] = None
         if plt.renderer.GetGradientBackground():
             sdict["backgrcol2"] = plt.renderer.GetBackground2()
@@ -1491,7 +1491,8 @@ def export_window(fileoutput, binary=False):
         allobjs = list(set(allobjs))  # make sure its unique
 
         for a in allobjs:
-            sdict["objects"].append(tonumpy(a))
+            if a.GetVisibility():
+                sdict["objects"].append(tonumpy(a))
 
         if fr.endswith(".npz"):
             np.savez_compressed(fileoutput, vedo_scenes=[sdict])

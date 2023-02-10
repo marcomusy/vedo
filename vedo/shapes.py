@@ -3935,6 +3935,9 @@ class ParametricShape(Mesh):
 def _load_font(font):
     # print('_load_font()', font)
 
+    if utils.is_number(font):
+        font = list(settings.font_parameters.keys())[int(font)]
+
     if font.endswith(".npz"):  # user passed font as a local path
         fontfile = font
         font = os.path.basename(font).split(".")[0]
@@ -3949,16 +3952,17 @@ def _load_font(font):
             fontfile = os.path.join(vedo.fonts_path, font + ".npz")
 
     else:  # user passed font by its standard name
+        font = font[:1].upper() + font[1:]  # capitalize first letter only
         fontfile = os.path.join(vedo.fonts_path, font + ".npz")
 
         if font not in settings.font_parameters.keys():
+            font = "Normografo"
             vedo.logger.warning(
                 f"Unknown font: {font}\n"
                 f"Available 3D fonts are: "
                 f"{list(settings.font_parameters.keys())}\n"
                 f"Using font {font} instead."
             )
-            font = settings.default_font
             fontfile = os.path.join(vedo.fonts_path, font + ".npz")
 
         if not settings.font_parameters[font]["islocal"]:
@@ -3973,7 +3977,6 @@ def _load_font(font):
 
     #####
     try:
-        # printc('loading', font, fontfile)
         font_meshes = np.load(fontfile, allow_pickle=True)["font"][0]
     except:
         vedo.logger.warning(f"font name {font} not found.")
@@ -4037,7 +4040,7 @@ class Text3D(Mesh):
             justify : (str)
                 text justification as centering of the bounding box
                 (bottom-left, bottom-right, top-left, top-right, centered)
-            font : (str), int
+            font : (str, int)
                 some of the available 3D-polygonized fonts are:
                 Bongas, Calco, Comae, ComicMono, Kanopus, Glasgo, Ubuntu,
                 LogoType, Normografo, Quikhand, SmartCouric, Theemim, VictorMono, VTK,
@@ -4112,6 +4115,10 @@ class Text3D(Mesh):
         justify="bottom-left",
         literal=False,
     ):
+        """
+        Update the font style of the text.
+        Check [available fonts here](https://vedo.embl.es/fonts).
+        """
         if txt is None:
             return self.txt
 
@@ -4487,7 +4494,7 @@ class Text2D(TextBase, vtk.vtkActor2D):
                 text justification
 
             font : (str)
-                predefined available fonts are:
+                built-in available fonts are:
                 - Arial
                 - Bongas
                 - Calco
@@ -4598,8 +4605,7 @@ class Text2D(TextBase, vtk.vtkActor2D):
         return self
 
     def text(self, txt=None):
-        """Set/get the input text string"""
-
+        """Set/get the input text string."""
         if txt is None:
             return self._mapper.GetInput()
 
@@ -4613,7 +4619,7 @@ class Text2D(TextBase, vtk.vtkActor2D):
         return self
 
     def size(self, s):
-        """Set the font size"""
+        """Set the font size."""
         self.property.SetFontSize(int(s * 22.5))
         return self
 

@@ -74,6 +74,8 @@ class LegendBox(shapes.TextBase, vtk.vtkLegendBoxActor):
                 max number of legend entries
             c : (color)
                 text color, leave as None to pick the mesh color automatically
+            font : (str)
+                Check [available fonts here](https://vedo.embl.es/fonts)
             width : (float)
                 width of the box as fraction of the window width
             height : (float)
@@ -524,7 +526,7 @@ def Goniometer(
         p3 : (list)
             the last point defining the angle.
         font : (str)
-            Font name to be used.
+            Font face. Check [available fonts here](https://vedo.embl.es/fonts).
         arc_size : (float)
             dimension of the arc wrt the smallest axis.
         s : (float)
@@ -1165,7 +1167,7 @@ class Slider2D(SliderWidget):
             title : (str)
                 title text
             font : (str)
-                title font face
+                title font face. Check [available fonts here](https://vedo.embl.es/fonts).
             title_size : (float)
                 title text scale [1.0]
             show_value : (bool)
@@ -1881,7 +1883,7 @@ def Ruler(
         s : (float)
             size of the label
         font : (str)
-            font face
+            font face.  Check [available fonts here](https://vedo.embl.es/fonts).
         italic : (float)
             italicness of the font in the range [0,1]
         units : (str)
@@ -2006,7 +2008,7 @@ def RulerAxes(
         s : (float)
             size of the label
         font : (str)
-            font face
+            font face. Check [available fonts here](https://vedo.embl.es/fonts).
         italic : (float)
             italicness of the font in the range [0,1]
         units : (str)
@@ -2150,7 +2152,7 @@ class Ruler2D(vtk.vtkAxisActor2D):
             title : (str)
                 title of the ruler
             font : (str)
-                font face name
+                font face name. Check [available fonts here](https://vedo.embl.es/fonts).
             font_size : (int)
                 font size
             bc : (color)
@@ -2412,6 +2414,7 @@ def Axes(
     ):
     """
     Draw axes for the input object.
+    Check [available fonts here](https://vedo.embl.es/fonts).
 
     Returns an `vedo.Assembly` object.
 
