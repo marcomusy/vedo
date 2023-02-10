@@ -448,7 +448,7 @@ def _load_file(filename, unpack):
                 actor.GetProperty().SetPointSize(4)
 
     actor.filename = filename
-    actor.fileSize, actor.created = fileInfo(filename)
+    actor.file_size, actor.created = fileInfo(filename)
     return actor
 
 

@@ -210,7 +210,7 @@ class Base3DProp:
         """
         self.filename = ""
         self.name = ""
-        self.fileSize = ""
+        self.file_size = ""
         self.created = ""
         self.trail = None
         self.trail_points = []
@@ -693,11 +693,37 @@ class Base3DProp:
     def on(self):
         """Switch on  object visibility. Object is not removed."""
         self.VisibilityOn()
+        try:
+            self.scalarbar.VisibilityOn()
+        except AttributeError:
+            pass
+        try:
+            self.trail.VisibilityOn()
+        except AttributeError:
+            pass
+        try:
+            for sh in self.shadows:
+                sh.VisibilityOn()
+        except AttributeError:
+            pass        
         return self
 
     def off(self):
         """Switch off object visibility. Object is not removed."""
         self.VisibilityOff()
+        try:
+            self.scalarbar.VisibilityOff()
+        except AttributeError:
+            pass
+        try:
+            self.trail.VisibilityOff()
+        except AttributeError:
+            pass
+        try:
+            for sh in self.shadows:
+                sh.VisibilityOff()
+        except AttributeError:
+            pass        
         return self
 
     def box(self, scale=1, padding=0, fill=False):

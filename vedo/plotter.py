@@ -1993,7 +1993,7 @@ class Plotter:
         
             ![](https://vedo.embl.es/images/pyplot/earthquake_browser.jpg)
         """
-        hoverLegend = vedo.shapes.Text2D('', pos=pos, font=font, c=c, s=s, alpha=alpha, bg=bg)
+        hoverlegend = vedo.shapes.Text2D('', pos=pos, font=font, c=c, s=s, alpha=alpha, bg=bg)
 
         if at is None:
             at = self.renderers.index(self.renderer)
@@ -2001,8 +2001,8 @@ class Plotter:
         def _legfunc(evt):
             # helper function (png not pickable because of alpha channel in vtk9 ??)
             if not evt.actor or not self.renderer or at != evt.at:
-                if hoverLegend._mapper.GetInput():  # clear and return
-                    hoverLegend._mapper.SetInput("")
+                if hoverlegend._mapper.GetInput():  # clear and return
+                    hoverlegend._mapper.SetInput("")
                     self.interactor.Render()
                 return
 
@@ -2030,29 +2030,29 @@ class Plotter:
                     if not evt.actor.name:
                         t += f"Assembly object of {len(evt.actor.unpack())} parts\n"
                     else:
-                        t += f"Assembly name: {evt.actor.name} ({len(evt.actor.unpack())} parts)"
+                        t += f"Assembly name: {evt.actor.name} ({len(evt.actor.unpack())} parts)\n"
                 else:
                     if evt.actor.name:
                         t += f"{tp}name"
                         if evt.isPoints: t += '  '
                         if evt.isMesh: t += '  '
-                        t += f": {evt.actor.name[:maxlength]}".ljust(maxlength)
+                        t += f": {evt.actor.name[:maxlength]}".ljust(maxlength) + "\n"
 
                 if evt.actor.filename:
-                    if evt.actor.name: t +='\n'
                     t += f"{tp}filename: "
                     t += f"{os.path.basename(evt.actor.filename[-maxlength:])}".ljust(maxlength)
-                    if not evt.actor.fileSize:
-                        evt.actor.fileSize, evt.actor.created = vedo.io.fileInfo(evt.actor.filename) #BUG?
-                    if evt.actor.fileSize:
-                        t += "\n             : "
-                        sz, created = evt.actor.fileSize, evt.actor.created
-                        t += f"{created[4:-5]} ({sz})"
+                    t += '\n'
+                    if not evt.actor.file_size:
+                        evt.actor.file_size, evt.actor.created = vedo.io.fileInfo(evt.actor.filename)
+                    if evt.actor.file_size:
+                        t += "             : "
+                        sz, created = evt.actor.file_size, evt.actor.created
+                        t += f"{created[4:-5]} ({sz})" + "\n"
 
                 if evt.isPoints:
                     indata = evt.actor.polydata(False)
                     if indata.GetNumberOfPoints():
-                        t += f"\n#points/cells: {indata.GetNumberOfPoints()}"\
+                        t += f"#points/cells: {indata.GetNumberOfPoints()}"\
                              f" / {indata.GetNumberOfCells()}"
                     pdata = indata.GetPointData()
                     cdata = indata.GetCellData()
@@ -2074,8 +2074,8 @@ class Plotter:
             # change box color if needed in 'auto' mode
             if evt.isPoints and "auto" in str(bg):
                 actcol = evt.actor.GetProperty().GetColor()
-                if hoverLegend._mapper.GetTextProperty().GetBackgroundColor() != actcol:
-                    hoverLegend._mapper.GetTextProperty().SetBackgroundColor(actcol)
+                if hoverlegend._mapper.GetTextProperty().GetBackgroundColor() != actcol:
+                    hoverlegend._mapper.GetTextProperty().SetBackgroundColor(actcol)
 
             # adapt to changes in bg color
             bgcol = self.renderers[at].GetBackground()
@@ -2085,14 +2085,14 @@ class Plotter:
                 if sum(bgcol) > 1.5:
                     _bgcol = (0.1, 0.1, 0.1)
                 if len(set(_bgcol).intersection(bgcol)) < 3:
-                    hoverLegend.color(_bgcol)
+                    hoverlegend.color(_bgcol)
 
-            if hoverLegend._mapper.GetInput() != t:
-                hoverLegend._mapper.SetInput(t)
+            if hoverlegend._mapper.GetInput() != t:
+                hoverlegend._mapper.SetInput(t)
                 self.interactor.Render()
 
-        self.add(hoverLegend, render=False, at=at)
-        self.hover_legends.append(hoverLegend)
+        self.add(hoverlegend, render=False, at=at)
+        self.hover_legends.append(hoverlegend)
         self.add_callback("MouseMove", _legfunc)
         return self
 

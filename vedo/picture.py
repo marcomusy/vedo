@@ -320,7 +320,7 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
 
         d = self.GetInput().GetDimensions()
         if pixels:
-            extractVOI.SetVOI(right, d[0] - left, bottom, d[1] - top, 0, 0)
+            extractVOI.SetVOI(left, d[0]-right-1, bottom, d[1]-top-1, 0, 0)
         else:
             bx0, bx1, by0, by1 = 0, d[0]-1, 0, d[1]-1
             if left is not None:   bx0 = int((d[0]-1)*left)
