@@ -1,9 +1,9 @@
 *pyc
 .DS_Store
 .vedo_recorded_events.log
-docs/web_page/css
-docs/web_page/images
-docs/web_page/js
+
+docs/examples_db.js
+docs/index.html
 
 vedo.egg-info
 build
@@ -23,5 +23,4 @@ untitled*.py
 bug_*.py
 prove
 speed_tester.py
-font_polygonizer.py
 data

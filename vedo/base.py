@@ -1309,6 +1309,8 @@ class BaseActor(Base3DProp):
         ids.PointIdsOn()
         ids.CellIdsOn()
         ids.FieldDataOff()
+        ids.SetPointIdsArrayName("PointID")
+        ids.SetCellIdsArrayName("CellID")
         ids.Update()
         return self._update(ids.GetOutput())
 

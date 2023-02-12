@@ -4,7 +4,7 @@
 
 [![lics](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/vedo/badges/version.svg)](https://anaconda.org/conda-forge/vedo)
-[![Ubuntu 22.10 package](https://repology.org/badge/version-for-repo/ubuntu_22_10/vedo.svg)](https://repology.org/project/vedo/versions)
+[![Ubuntu 23.04 package](https://repology.org/badge/version-for-repo/ubuntu_23_04/vedo.svg)](https://repology.org/project/vedo/versions)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5842090.svg)](https://doi.org/10.5281/zenodo.5842090)
 [![Downloads](https://pepy.tech/badge/vedo)](https://pepy.tech/project/vedo)
 [![CircleCI](https://circleci.com/gh/marcomusy/vedo.svg?style=svg)](https://circleci.com/gh/marcomusy/vedo)
@@ -70,7 +70,7 @@ for a wide range of functionalities
 - Interpolate scalar and vectorial fields with Radial Basis Functions and Thin Plate Splines.
 - Add sliders and buttons to interact with the scene and the individual objects.
 - Visualization of tensors.
-- Analysis of Point Clouds:
+- Analysis of Point Clouds
 - Moving Least Squares smoothing of 2D, 3D and 4D clouds
 - Fit lines, planes, spheres and ellipsoids in space
 - Identify outliers in a distribution of points
@@ -100,7 +100,7 @@ for a wide range of functionalities
 <summary>plotting and histogramming in 2D and 3D</summary>
 <i>
 
-- Polygonal 3D text rendering with Latex-like syntax and unicode characters, with 14 different fonts.
+- Polygonal 3D text rendering with Latex-like syntax and unicode characters, with 30 different fonts.
 - Fully customizable axis styles
 - donut plots and pie charts
 - Scatter plots in 2D and 3D
@@ -153,7 +153,7 @@ Type `vedo -h` for the complete list of options.<br>
 ## 🐾  Gallery
 `vedo` currently includes 300+ working [examples](https://github.com/marcomusy/vedo/tree/master/examples) and [notebooks](https://github.com/marcomusy/vedo/tree/master/examples/notebooks). <br>
 
-Run any of the built-in examples. In a terminal type: `vedo -r earthquake_browser`
+Run any of the built-in examples. In a terminal type: `vedo -r warp2`
 
 Check out the example galleries organized by subject here:
 
@@ -222,6 +222,10 @@ Front. Comput. Sci., 15 February 2022.
 - G. Dalmasso *et al.*, *"4D reconstruction of murine developmental trajectories using spherical harmonics"*,
 Developmental Cell 57, 1–11 September 2022,
 [DOI](https://doi.org/10.1016/j.devcel.2022.08.005).
+- D.J.E Waibel *et al.*, *"Capturing Shape Information with Multi-scale Topological Loss Terms for 3D Reconstruction"*,
+Lecture Notes in Computer Science, vol 13434. Springer, Cham. 
+[DOI](https://doi.org/10.1007/978-3-031-16440-8_15).
+
 
 **Have you found this software useful for your research? Star ✨ the project and cite it as:**
 
