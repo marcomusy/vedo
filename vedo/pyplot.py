@@ -712,7 +712,7 @@ class Histogram1D(Figure):
             density=False,
             logscale=False,
             fill=True,
-            radius=0.1,
+            radius=0.075,
             c="olivedrab",
             gap=0.02,
             alpha=1,
@@ -789,6 +789,18 @@ class Histogram1D(Figure):
             ![](https://vedo.embl.es/images/pyplot/histo_1D.png)
         """
 
+        # purge NaN from data
+        valid_ids = np.all(np.logical_not(np.isnan(data)))
+        data = np.asarray(data[valid_ids]).ravel()
+
+        # if data.dtype is integer try to center bins by default
+        if like is None and bins is None and np.issubdtype(data.dtype, np.integer):
+            if xlim is None and ylim == (0, None):
+                x1, x0 = data.max(), data.min()
+                if 0 < x1 - x0 <= 100:
+                    bins = x1 - x0 +1 
+                    xlim = (x0 - 0.5, x1 + 0.5)
+
         if like is None and vedo.last_figure is not None:
             if xlim is None and ylim == (0, None):
                 like = vedo.last_figure
@@ -811,10 +823,6 @@ class Histogram1D(Figure):
             if _x1 is None:
                 _x1 = data.max()
             xlim = [_x0, _x1]
-
-        # purge NaN from data
-        valid_ids = np.all(np.logical_not(np.isnan(data)))
-        data = np.asarray(data[valid_ids]).ravel()
 
         fs, edges = np.histogram(data, bins=bins, weights=weights, range=xlim)
         binsize = edges[1] - edges[0]
@@ -1154,6 +1162,7 @@ class Histogram2D(Figure):
 
             ![](https://vedo.embl.es/images/pyplot/histo_2D.png)
         """
+        xvalues = np.asarray(xvalues)
         if yvalues is None:
             # assume [(x1,y1), (x2,y2) ...] format
             yvalues = xvalues[:, 1]
@@ -1197,7 +1206,8 @@ class Histogram2D(Figure):
             ylim = [_y0, _y1]
 
         H, xedges, yedges = np.histogram2d(
-            xvalues, yvalues, weights=weights, bins=bins, range=(xlim, ylim),
+            xvalues, yvalues, 
+            weights=weights, bins=bins, range=(xlim, ylim),
         )
 
         xlim = np.min(xedges), np.max(xedges)

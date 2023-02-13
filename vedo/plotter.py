@@ -3385,6 +3385,8 @@ class Plotter:
         # utils.vedo.printc('Pressed key:', key, c='y', box='-')
         # print(key, iren.GetShiftKey(), iren.GetAltKey(), iren.GetControlKey(),
         #       iren.GetKeyCode(), iren.GetRepeatCount())
+        # iren.ExitCallback()
+        # return
 
         x, y = iren.GetEventPosition()
         renderer = iren.FindPokedRenderer(x, y)
