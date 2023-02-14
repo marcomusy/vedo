@@ -1231,31 +1231,49 @@ class BaseActor(Base3DProp):
         return _DataArrayHelper(self, 2)
 
 
-    def map_cells_to_points(self):
+    def map_cells_to_points(self, arrays=()):
         """
         Interpolate cell data (i.e., data specified per cell or face)
         into point data (i.e., data specified at each vertex).
         The method of transformation is based on averaging the data values
         of all cells using a particular point.
+        
+        A custom list of arrays to be mapped can be passed in input.
         """
         c2p = vtk.vtkCellDataToPointData()
         c2p.SetInputData(self.inputdata())
+        if arrays:
+            c2p.ClearCellDataArrays()
+            c2p.ProcessAllArraysOff()
+            for arr in arrays:
+                c2p.AddCellDataArray(arr)
+        else:
+            c2p.ProcessAllArraysOn()
         c2p.Update()
         self._mapper.SetScalarModeToUsePointData()
         return self._update(c2p.GetOutput())
 
-    def map_points_to_cells(self):
+    def map_points_to_cells(self, arrays=()):
         """
         Interpolate point data (i.e., data specified per point or vertex)
         into cell data (i.e., data specified per cell).
         The method of transformation is based on averaging the data values
         of all points defining a particular cell.
 
+        A custom list of arrays to be mapped can be passed in input.
+
         Examples:
             - [mesh_map2cell.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_map2cell.py)
         """
         p2c = vtk.vtkPointDataToCellData()
         p2c.SetInputData(self.inputdata())
+        if arrays:
+            p2c.ClearPointDataArrays()
+            p2c.ProcessAllArraysOff()
+            for arr in arrays:
+                p2c.AddPointDataArray(arr)
+        else:
+            p2c.ProcessAllArraysOn()
         p2c.Update()
         self._mapper.SetScalarModeToUseCellData()
         return self._update(p2c.GetOutput())
@@ -1899,12 +1917,15 @@ class BaseGrid(BaseActor):
         a.mapper().SetScalarRange(scrange[0], scrange[1])
         return a
 
-    def legosurface(self, vmin=None, vmax=None, invert=False, boundary=False):
+    def legosurface(
+        self, vmin=None, vmax=None, 
+        invert=False, boundary=False,
+        array_name='input_scalars',
+    ):
         """
         Represent an object - typically a `Volume` - as lego blocks (voxels).
         By default colors correspond to the volume's scalar.
         Returns an `Mesh` object.
-
 
         Arguments:
             vmin : (float)
@@ -1913,6 +1934,8 @@ class BaseGrid(BaseActor):
                 the upper threshold, voxels above this value are not shown.
             boundary : (bool)
                 controls whether to include cells that are partially inside
+            array_name : (int, str)
+                name or index of the scalar array to be considered
 
         Examples:
             - [legosurface.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/legosurface.py)
@@ -1945,13 +1968,10 @@ class BaseGrid(BaseActor):
         gf.SetInputData(extract.GetOutput())
         gf.Update()
 
-        a = vedo.mesh.Mesh(gf.GetOutput()).lw(0.1).flat()  # .lighting('ambient')
-        scalars = a.pointdata[0]
-        if scalars is None:
-            # print("Error in legosurface(): no scalars found!")
-            return a
-        a.map_points_to_cells()
-        return a
+        m = vedo.mesh.Mesh(gf.GetOutput()).lw(0.1).flat()
+        m.pointdata.select(array_name)
+        m.map_points_to_cells()
+        return m
 
     @deprecated(reason=vedo.colors.red + "Please use cut_with_plane()" + vedo.colors.reset)
     def cutWithPlane(self, origin=(0, 0, 0), normal=(1, 0, 0)):
