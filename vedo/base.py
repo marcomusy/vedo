@@ -1969,8 +1969,8 @@ class BaseGrid(BaseActor):
         gf.Update()
 
         m = vedo.mesh.Mesh(gf.GetOutput()).lw(0.1).flat()
-        m.pointdata.select(array_name)
         m.map_points_to_cells()
+        m.celldata.select(array_name)
         return m
 
     @deprecated(reason=vedo.colors.red + "Please use cut_with_plane()" + vedo.colors.reset)
