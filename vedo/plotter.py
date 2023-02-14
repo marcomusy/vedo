@@ -3203,8 +3203,18 @@ class Plotter:
                 except AttributeError:
                     pass
                 self.interactor.TerminateApp()
-                self.interactor = None
+
+                # self.interactor = None
             self.window.Finalize()  # this must be done here
+
+            if hasattr(self, "interactor") and self.interactor:
+                if "Darwin" in vedo.sys_platform:
+                    try:
+                        self.interactor.ProcessEvents()
+                    except:
+                        pass
+                self.interactor = None
+
             self.window = None
 
         self.renderer = None  # current renderer
