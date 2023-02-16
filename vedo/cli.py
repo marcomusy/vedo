@@ -63,7 +63,6 @@ def execute_cli():
     if "\\vedo\\vedo" in vedo.installdir:
         vedo.installdir = vedo.installdir.replace("vedo\\", "")
 
-
     if args.info is not None:
         system_info()
 
@@ -87,7 +86,7 @@ def execute_cli():
 
     elif len(args.files) == 0:
         system_info()
-        printc("No input files. Try > vedo mymesh.stl", c='y')
+        printc("No input files. Try > vedo mymesh.stl", c="y")
 
     else:
         draw_scene(args)
@@ -167,8 +166,14 @@ def system_info():
     printc("vedo installation :", vedo.installdir)
     try:
         import platform
-        printc("system            :", platform.system(),
-               platform.release(), os.name, platform.machine())
+
+        printc(
+            "system            :",
+            platform.system(),
+            platform.release(),
+            os.name,
+            platform.machine(),
+        )
     except ModuleNotFoundError:
         pass
 
@@ -178,8 +183,10 @@ def system_info():
         for m in get_monitors():
             pr = "         "
             if m.is_primary:
-                pr = '(primary)'
-            printc(f"monitor {pr} : {m.name}, resolution=({m.width}, {m.height}), x={m.x}, y={m.y}")
+                pr = "(primary)"
+            printc(
+                f"monitor {pr} : {m.name}, resolution=({m.width}, {m.height}), x={m.x}, y={m.y}"
+            )
     except ModuleNotFoundError:
         printc('monitor           : info is unavailable. Try "pip install screeninfo".')
 
@@ -189,24 +196,18 @@ def system_info():
         printc("k3d version       :", k3d.__version__, bold=0, dim=1)
     except ModuleNotFoundError:
         pass
+
     try:
         import ipyvtk_simple
 
         printc("ipyvtk version    :", ipyvtk_simple.__version__, bold=0, dim=1)
     except ModuleNotFoundError:
         pass
-    try:
-        import itkwidgets
-
-        printc("itkwidgets version:", itkwidgets.__version__, bold=0, dim=1)
-    except ModuleNotFoundError:
-        pass
-    try:
-        import panel
-
-        printc("panel version     :", panel.__version__, bold=0, dim=1)
-    except ModuleNotFoundError:
-        pass
+    # try:
+    #     import trame
+    #     printc("trame version     :", trame.__version__, bold=0, dim=1)
+    # except ModuleNotFoundError:
+    #     pass
 
 
 #################################################################################################
@@ -263,8 +264,8 @@ def exe_run(args):
 
         # from pygments.styles import STYLE_MAP
         # print(STYLE_MAP.keys())
-        result = highlight(code, Python3Lexer(), Terminal256Formatter(style='zenburn'))
-        print(result, end='')
+        result = highlight(code, Python3Lexer(), Terminal256Formatter(style="zenburn"))
+        print(result, end="")
 
     printc("(" + matching[0] + ")", c="y", bold=0, italic=1)
     os.system("python " + matching[0])
@@ -423,7 +424,7 @@ def exe_search_code(args):
                 idcomment = result.rfind('"""')
                 print(result[: idcomment + 3], "\x1b[0m\n")
 
-    printc("..parsing source code, please wait", c='y', bold=False)
+    printc("..parsing source code, please wait", c="y", bold=False)
     content = inspect.getmembers(vedo)
     snames = []
     for name, m in content:
@@ -619,7 +620,8 @@ def exe_eog(args):
         plt.show(interactive=False)
         plt.reset_camera(tight=0.05)
         plt.interactor.Start()
-        if vedo.vtk_version == (9,2,2): plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
+        if vedo.vtk_version == (9, 2, 2):
+            plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
 
     else:
 
@@ -640,7 +642,8 @@ def exe_eog(args):
         plt.show(pic, mode="image", interactive=False)
         plt.reset_camera(tight=0.0)
         plt.interactor.Start()
-        if vedo.vtk_version == (9,2,2): plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
+        if vedo.vtk_version == (9, 2, 2):
+            plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
 
     plt.close()
 
@@ -901,7 +904,8 @@ def draw_scene(args):
 
         if args.multirenderer_mode:
             plt.interactor.Start()
-            if vedo.vtk_version == (9,2,2): plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
+            if vedo.vtk_version == (9, 2, 2):
+                plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
 
         else:
 
@@ -948,4 +952,3 @@ def draw_scene(args):
 
         plt = applications.Browser(acts, axes=1)
         plt.show(zoom=args.zoom).close()
-

@@ -26,28 +26,13 @@ __all__ = []
 def get_notebook_backend(actors2show=()):
     """Return the appropriate notebook viewer"""
 
-    # plt = vedo.plotter_instance
-    # if plt:
-    #     if isinstance(plt.shape, str) or sum(plt.shape) > 2 and settings.default_backend != "2d":
-    #         vedo.logger.error(
-    #             f"Multirendering is not supported for jupyter backend: {settings.default_backend}"
-    #         )
-
     #########################################
     if settings.default_backend == "2d":
         return start_2d()
 
     #########################################
-    if settings.default_backend.startswith("itk"):
-        return start_itkwidgets(actors2show)
-
-    #########################################
     if settings.default_backend == "k3d":
         return start_k3d(actors2show)
-
-    #########################################
-    if settings.default_backend == "panel":
-        return start_panel()
 
     #########################################
     if settings.default_backend.startswith("trame"):
@@ -57,17 +42,12 @@ def get_notebook_backend(actors2show=()):
     if settings.default_backend.startswith("ipyvtk"):
         return start_ipyvtklink()
 
-    #########################################
-    if settings.default_backend == "ipygany":
-        return start_ipygany(actors2show)
-
     vedo.logger.error(f"Unknown jupyter backend: {settings.default_backend}")
     return None
 
 
 #####################################################################################
 def start_2d():
-
     try:
         import PIL.Image
         import IPython
@@ -85,26 +65,6 @@ def start_2d():
             if settings.backend_autoclose:
                 plt.close()
             return notebook_plotter
-
-
-####################################################################################
-def start_itkwidgets(actors2show):
-    # https://github.com/InsightSoftwareConsortium/itkwidgets
-    #  /blob/master/itkwidgets/widget_viewer.py
-    try:
-        from itkwidgets import view
-    except ModuleNotFoundError("Cannot find itkwidgets, try:\n> pip install itkwidgets"):
-        return None
-
-    vedo.notebook_plotter = view(
-        actors=actors2show,
-        cmap="jet",
-        ui_collapsed=True,
-        gradient_opacity=False,
-    )
-    if settings.backend_autoclose:
-        vedo.plotter_instance.close()
-    return vedo.notebook_plotter
 
 
 ####################################################################################
@@ -313,29 +273,6 @@ def start_k3d(actors2show):
 
 
 #####################################################################################
-def start_panel():
-
-    try:
-        import panel  # https://panel.pyviz.org/reference/panes/VTK.html
-        panel.extension("vtk")
-    except ImportError("panel is not installed, try:\n> pip install panel"):
-        return None
-
-    plt = vedo.plotter_instance
-
-    if hasattr(plt, "window") and plt.window:
-        plt.renderer.ResetCamera()
-        vedo.notebook_plotter = panel.pane.VTK(
-            plt.window,
-            width=int(plt.size[0] / 1.5),
-            height=int(plt.size[1] / 2),
-        )
-        return vedo.notebook_plotter
-
-    vedo.logger.error("No window present for panel backend.")
-    return None
-
-#####################################################################################
 def start_trame():
 
     try:
@@ -367,7 +304,7 @@ def start_trame():
         ctrl.on_server_exited.add(lambda **_: print("trame server exited"))
         vedo.notebook_plotter = jupyter.show(server)
         return vedo.notebook_plotter
-    vedo.logger.error("No window present for panel backend.")
+    vedo.logger.error("No window present for the trame backend.")
     return None
 
 
@@ -388,112 +325,8 @@ def start_ipyvtklink():
             quick_quality=50,
         )
         return vedo.notebook_plotter
-    vedo.logger.error("No window present for panel backend.")
+    vedo.logger.error("No window present for the ipyvtklink backend.")
     return None
-
-
-#####################################################################################
-def start_ipygany(actors2show):
-    try:
-        from ipygany import PolyMesh, Scene, IsoColor, RGB, Component
-        from ipygany import Alpha, ColorBar, colormaps, PointCloud
-        from ipywidgets import FloatRangeSlider, Dropdown, VBox, AppLayout, jslink
-    except ImportError("ipygany is not installed, try:\n> pip install ipygany"):
-        return None
-
-    plt = vedo.plotter_instance
-
-    bgcol = colors.rgb2hex(colors.get_color(plt.backgrcol))
-
-    actors2show2 = []
-    for ia in actors2show:
-        if not ia:
-            continue
-        if isinstance(ia, vedo.Assembly):  # unpack assemblies
-            assacts = ia.unpack()
-            for ja in assacts:
-                if isinstance(ja, vedo.Assembly):
-                    actors2show2 += ja.unpack()
-                else:
-                    actors2show2.append(ja)
-        else:
-            actors2show2.append(ia)
-
-    pmeshes = []
-    colorbar = None
-    for obj in actors2show2:
-        #            print("ipygany processing:", [obj], obj.name)
-        if isinstance(obj, vedo.shapes.Line):
-            lg = obj.diagonal_size() / 1000 * obj.GetProperty().GetLineWidth()
-            vmesh = vedo.shapes.Tube(obj.points(), r=lg, res=4).triangulate()
-            vmesh.c(obj.c())
-            faces = vmesh.faces()
-            # todo: Lines
-        elif isinstance(obj, Mesh):
-            vmesh = obj.triangulate()
-            faces = vmesh.faces()
-        elif isinstance(obj, Points):
-            vmesh = obj
-            faces = []
-        elif isinstance(obj, Volume):
-            vmesh = obj.isosurface()
-            faces = vmesh.faces()
-        elif isinstance(obj, vedo.TetMesh):
-            vmesh = obj.tomesh(fill=False)
-            faces = vmesh.faces()
-        else:
-            print("ipygany backend: cannot process object type", [obj])
-            continue
-
-        vertices = vmesh.points()
-        scals = vmesh.inputdata().GetPointData().GetScalars()
-        if scals and not colorbar:  # there is an active array, only pick the first
-            aname = scals.GetName()
-            arr = vmesh.pointdata[aname]
-            parr = Component(name=aname, array=arr)
-            if len(faces):
-                pmesh = PolyMesh(vertices=vertices, triangle_indices=faces, data={aname: [parr]})
-            else:
-                pmesh = PointCloud(vertices=vertices, data={aname: [parr]})
-            rng = scals.GetRange()
-            colored_pmesh = IsoColor(pmesh, input=aname, min=rng[0], max=rng[1])
-            if obj.scalarbar:
-                colorbar = ColorBar(colored_pmesh)
-                colormap_slider_range = FloatRangeSlider(
-                    value=rng,
-                    min=rng[0],
-                    max=rng[1],
-                    step=(rng[1] - rng[0]) / 100.0,
-                )
-                jslink((colored_pmesh, "range"), (colormap_slider_range, "value"))
-                colormap = Dropdown(options=colormaps, description="Colormap:")
-                jslink((colored_pmesh, "colormap"), (colormap, "index"))
-
-        else:
-            if len(faces):
-                pmesh = PolyMesh(vertices=vertices, triangle_indices=faces)
-            else:
-                pmesh = PointCloud(vertices=vertices)
-            if vmesh.alpha() < 1:
-                colored_pmesh = Alpha(RGB(pmesh, input=tuple(vmesh.color())), input=vmesh.alpha())
-            else:
-                colored_pmesh = RGB(pmesh, input=tuple(vmesh.color()))
-
-        pmeshes.append(colored_pmesh)
-
-    if colorbar:
-        scene = AppLayout(
-            left_sidebar=Scene(pmeshes, background_color=bgcol),
-            right_sidebar=VBox((colormap_slider_range, colorbar, colormap)),  # not working
-            pane_widths=[2, 0, 1],
-        )
-    else:
-        scene = Scene(pmeshes, background_color=bgcol)
-
-    vedo.notebook_plotter = scene
-    if settings.backend_autoclose:
-        plt.close()
-    return scene
 
 
 #####################################################################################

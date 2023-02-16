@@ -1,7 +1,7 @@
 
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/vedo/badges/version.svg)](https://anaconda.org/conda-forge/vedo)
-[![Ubuntu 22.10 package](https://repology.org/badge/version-for-repo/ubuntu_22_10/vedo.svg)](https://repology.org/project/vedo/versions)
+[![Ubuntu 23.04 package](https://repology.org/badge/version-for-repo/ubuntu_23_04/vedo.svg)](https://repology.org/project/vedo/versions)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5842090.svg)](https://doi.org/10.5281/zenodo.5842090)
 
 ![](https://user-images.githubusercontent.com/32848391/46815773-dc919500-cd7b-11e8-8e80-8b83f760a303.png)
@@ -97,25 +97,18 @@ vedo --convert bunny.obj --to ply
 alias vr='vedo --run '        # to search and run examples by name
 alias vs='vedo -i --search '  # to search for a string in examples
 alias ve='vedo --eog '        # to view single and multiple images
-alias vv='vedo -bg blackboard -bg2 gray3 -z 1.05 -k glossy -c blue9'
 ```
 
 ## Running in a Jupyter Notebook
-To use in jupyter notebooks use the syntax `vedo.Plotter(backend='...')`,
-you may want to install the
-[k3d](https://github.com/K3D-tools/K3D-jupyter) library with:
+To use in jupyter notebooks use the syntax `vedo.Plotter(backend='...')` the supported backend for visualization are:
 
-`pip install k3d==2.7.4` (only this version is supported at present)
+- `2d`, the default a static image is generated.
+- `vtk`, in this case a normal graphics rendering window will pop up.
+- [k3d](https://github.com/K3D-tools/K3D-jupyter) use with `pip install k3d`
+- [ipyvtklink](https://github.com/Kitware/ipyvtklink) (allows interaction with the scene).
+- [trame](https://www.kitware.com/trame-visual-analytics-everywhere/)
 
-Other supported backend for visualization are:
-
-- [ipyvtklink](https://github.com/Kitware/ipyvtklink) (allows interaction with the scene)
-- [itkwidgets](https://github.com/InsightSoftwareConsortium/itkwidgets)
-- [ipygany](https://github.com/QuantStack/ipygany)
-- [panel](https://panel.holoviz.org/)
-- `None`, in this case a normal graphics rendering window will pop up.
-
-Check for more examples in the
+Check for more examples in 
 [repository](https://github.com/marcomusy/vedo/tree/master/examples/notebooks).
 
 ## Running on a Server

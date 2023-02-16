@@ -254,7 +254,7 @@ def show(
             backend=backend, # DEPRECATED
         )
 
-    # use _plt_to_return because plt.show() can return a k3d/panel plot
+    # use _plt_to_return because plt.show() can return a k3d plot
     _plt_to_return = None
 
     if utils.is_sequence(at):
@@ -463,7 +463,7 @@ class Plotter:
                 if self.size == "auto":
                     self.size = (800, 600)
 
-            elif settings.default_backend == "k3d" or "ipygany" in settings.default_backend:
+            elif settings.default_backend == "k3d":
                 self._interactive = False
                 self.interactor = None
                 self.window = None
@@ -735,11 +735,6 @@ class Plotter:
             self.window.SetOffScreenRendering(True)
             self._interactive = False
             self.interactor = None
-            ########################
-            return #################
-            ########################
-
-        if settings.default_backend == "panel":
             ########################
             return #################
             ########################
@@ -2865,7 +2860,7 @@ class Plotter:
 
         # Backend ###############################################################
         if settings.default_backend != 'vtk':
-            if settings.default_backend in ["k3d", "ipygany", "itk"]:
+            if settings.default_backend in ["k3d"]:
                 return backends.get_notebook_backend(self.actors)
         #########################################################################
 
@@ -2923,8 +2918,8 @@ class Plotter:
             if viewup != "2d" or self.axes in [1, 8] or isinstance(self.axes, dict):
                 addons.add_global_axes(self.axes)
 
-        # panel #################################################################
-        if settings.default_backend in ["panel", "ipyvtk", "trame"]:
+        #########################################################################
+        if settings.default_backend in ["ipyvtk", "trame"]:
             return backends.get_notebook_backend()
         #########################################################################
 

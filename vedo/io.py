@@ -1575,15 +1575,18 @@ def export_window(fileoutput, binary=False):
     elif fr.endswith(".html"):
         savebk = vedo.notebook_backend
         vedo.notebook_backend = "k3d"
-        plt = vedo.backends.get_notebook_backend(vedo.plotter_instance.actors, 1.5, "")
-
+        vedo.settings.default_backend = "k3d"
+        plt = vedo.backends.get_notebook_backend(vedo.plotter_instance.actors)
+ 
         with open(fileoutput, "w", encoding='UTF-8') as fp:
-            fp.write(plt.get_snapshot())
-
+             fp.write(plt.get_snapshot())
+ 
         vedo.notebook_backend = savebk
+        vedo.settings.default_backend = savebk
 
     else:
         vedo.logger.error(f"export extension {fr.split('.')[-1]} is not supported")
+
     return vedo.plotter_instance
 
 
