@@ -37,7 +37,7 @@ link = [None] * N
 for k in range(N):
     p0 = bob[k].pos()
     p1 = bob[k + 1].pos()
-    link[k] = Spring(p0, p1, thickness=0.015, r=R / 3, c="gray")
+    link[k] = Spring(p0, p1, thickness=0.015, r1=R / 3, c="gray")
     plt += link[k]
 
 # Create some auxiliary variables

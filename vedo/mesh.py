@@ -749,7 +749,8 @@ class Mesh(Points):
         return self._update(shrink.GetOutput())
 
     def stretch(self, q1, q2):
-        """Stretch mesh between points `q1` and `q2`.
+        """
+        Stretch mesh between points `q1` and `q2`.
 
         Examples:
             - [aspring.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/aspring.py)
@@ -776,16 +777,18 @@ class Mesh(Points):
         T.Translate(-p1)
         cosa = np.dot(a, z) / plength
         n = np.cross(a, z)
-        n_norm = np.linalg.norm(n)
-        if n_norm:
+        if np.linalg.norm(n):
             T.RotateWXYZ(np.rad2deg(np.arccos(cosa)), n)
         T.Scale(1, 1, qlength / plength)
 
         cosa = np.dot(b, z) / qlength
-        n = np.cross(a, z)
-        n_norm = np.linalg.norm(n)
-        if n_norm:
+        n = np.cross(b, z)
+        if np.linalg.norm(n):
             T.RotateWXYZ(-np.rad2deg(np.arccos(cosa)), n)
+        else:
+            if np.dot(b, z) < 0:
+                T.RotateWXYZ(180, [1,0,0])
+
         T.Translate(q1)
 
         self.SetUserMatrix(T.GetMatrix())
