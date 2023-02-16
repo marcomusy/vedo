@@ -9,8 +9,8 @@ faces  = [(0,1,2)]
 m1 = Mesh([verts1, faces]).c('g').lw(4).wireframe()
 m2 = Mesh([verts2, faces]).c('b').lw(4).wireframe()
 
-a1 = precision(m1.area(),3) + " \mum\^2"
-a2 = precision(m2.area(),3) + " \mum\^2"
+a1 = precision(m1.area(),3) + " :mum:^2"
+a2 = precision(m2.area(),3) + " :mum:^2"
 
 fp1 = m1.flagpole('Triangle 1\nA=' + a1,
                    point=(2.1,0.7), s=0.012, offset=(-0.3,0.04))

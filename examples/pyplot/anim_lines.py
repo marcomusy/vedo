@@ -19,7 +19,7 @@ for i, d in enumerate(data):
     lines.append(Line(pts, lw=3))
 
 # Set up the first frame
-axes = dict(xtitle='\Deltat /\mus', ytitle="source", ztitle="")
+axes = dict(xtitle=':Deltat /:mus', ytitle="source", ztitle="")
 plt = show(lines, __doc__, axes=axes, elevation=-30, interactive=False, bg='k8')
 
 for i in range(50):

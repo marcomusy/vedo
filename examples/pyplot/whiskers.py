@@ -23,14 +23,14 @@ for i in range(5):
 
 # build braces to inndicate stats significance and dosage
 bra1 = Brace([0, 3],[2, 3], comment='*~*', s=0.7, style='[')
-bra2 = Brace([4,-1],[8,-1], comment='dose > 3~\mug/kg', s=0.4)
+bra2 = Brace([4,-1],[8,-1], comment='dose > 3~:mug/kg', s=0.4)
 
 # build custom axes
 axes = Axes(xrange=[-1,9],
             yrange=[-3,5],
-            htitle='\beta_c  expression: change in time',
+            htitle=':beta_c  expression: change in time',
             xtitle=' ',
-            ytitle='Level of \beta_c  protein in \muM/l',
+            ytitle='Level of :beta_c  protein in \muM/l',
             x_values_and_labels=[(0,'Experiment^A\n at t=1h'),
                                  (4,'Experiment^B\n at t=2h'),
                                  (8,'Experiment^C\n at t=4h'),

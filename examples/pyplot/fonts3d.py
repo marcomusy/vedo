@@ -52,24 +52,20 @@ printc('Symbols ~ ^ _ are reserved modifiers:', italic=1)
 printc(' use ~ to add a short space, 1/4 of the default size,', italic=1)
 printc(' use ^ and _ to start up/sub scripting, space terminates them.\n', italic=1)
 
-# printc('Supported LaTeX tags:', box='-', c='y')
-# for r in shapes._reps:
-#     print('\\'+repr(r[0]).replace("'","").replace("\\",""),' = ', r[1])
-
 
 ################################################################################## 3D
 # Symbols ~ ^ _ are reserved modifiers:
 #  use ~ to add a short space, 1/4 of the default size,
 #  use ^ and _ to start up/sub scripting, a space terminates them.
 txt = """The quick fox jumps over the lazy dog.
-Symbols: !@#$%&*()+=-{}[]:;|<>?/\euro1234567890\~
-Units:  \delta=0.25E-03 ~μm, T_sea ~=~5.3~±0.7~\circC
-LaTeX: \nabla\dotE=~4\pi~\rho, \nabla\timesE=~-1/c~~\partialB/\partialt
-       ih~\partial/\partialt~\Psi = [-h^2 /2m\nabla^2  + V(r,t)]~\Psi(r,t)
-       \DeltaE~=~h\nu, y = \Sigma_n ~A_n cos(\omega_n t+\delta_n ) sin(k_n x)
-       \intx\dot~dx = \onehalf x\^2 + const.
-       d^2 x^\mu  + \Gamma^\mu_\alpha\beta ~dx^\alpha ~dx^\beta  = 0
-       -∇\^2u(x) = f(x) in Ω, u(x)~=~u_D (x) in \partial\Omega
+Symbols: !@#$%&*()+=-{}[]:;|<>?/:euro1234567890
+Units:  :delta=0.25E-03 ~μm, T_sea ~=~5.3~±0.7~:circC
+LaTeX: :nabla:dotE=~4:pi~:rho, :nabla:timesE=~-1/c~~:partialB/:partialt
+       ih~:partial/:partialt~:Psi = [-h^2 /2m:nabla^2  + V(r,t)]~:Psi(r,t)
+       :DeltaE~=~h:nu, y = :Sigma_n ~A_n cos(:omega_n t+:delta_n ) sin(k_n x)
+       :intx:dot~dx = :onehalf x:^2 + const.
+       d^2 x^:mu  + :Gamma^:mu_:alpha:beta ~dx^:alpha ~dx^:beta  = 0
+       -∇:^2u(x) = f(x) in Ω, u(x)~=~u_D (x) in :partial:Omega
 Protect underscore \\\_ and \\\^ with a backslash.
 """
 
@@ -86,8 +82,8 @@ for i,fnt in enumerate(["Kanopus", "Normografo", "Theemim", "VictorMono"]):
     plt.at(i)
     plt.show(t,
              Text2D("Font: "+fnt, font=fnt, bg='r'),
-             axes=dict(xtitle='my units for L_x  (\mum)',
-                       ytitle='my Y-axis with\na long description',
+             axes=dict(xtitle='my units for L_x  (:mum)',
+                       ytitle='my Y-axis with:na long description',
                        title_font=fnt,
                        label_font=fnt,
                        digits=2,

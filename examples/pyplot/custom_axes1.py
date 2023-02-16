@@ -15,7 +15,7 @@ lns = Lines(spl, spl.shadows[0])                          # join spline points w
 
 # make a dictionary of axes options
 axes_opts = dict(
-    xtitle='My variable \Omega^\lowerxi_lm  in units of \mum^3', # latex-style syntax
+    xtitle='My variable :Omega^:lowerxi_lm  in units of :mum^3', # latex-style syntax
     ytitle='This is my highly\ncustomized y-axis',
     ztitle='z in units of Å', # many unicode chars are supported (type: vedo -r fonts)
     y_values_and_labels=[(-3.2,'Mark^a_-3.2'), (-1.2,'Carmen^b_-1.2'), (3,'John^c_3')],

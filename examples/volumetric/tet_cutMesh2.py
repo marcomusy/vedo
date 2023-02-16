@@ -21,7 +21,11 @@ tetm2 = tetm.clone().cut_with_mesh(sphere, invert=True, whole_cells=True)
 tetm3 = tetm.clone().cut_with_mesh(sphere, only_boundary=True)
 tetm3.add_scalarbar3d(c='k')
 
-show([(msh1, sphere, __doc__),
+show([
+      (msh1, sphere, __doc__),
       (tetm2.tomesh(), "Keep only tets that lie\ncompletely outside the Sphere"),
       (tetm3.tomesh(), sphere, "Keep only tets that lie\nexactly on the Sphere"),
-     ], N=3, axes=dict(xtitle='x in \mum')).close()
+     ], 
+     N=3, 
+     axes=dict(xtitle='x in :mum'),
+).close()

@@ -42,9 +42,9 @@ for i in range(0, n, int(n / 20)):
 
 plt.show(
     axes=dict(
-        xtitle="X-axis in \mum",
-        ytitle="Y-axis in \mum",
-        ztitle="Z-axis in \mum",
+        xtitle="X-axis in :mum",
+        ytitle="Y-axis in :mum",
+        ztitle="Z-axis in :mum",
         yzgrid=False,
         text_scale=1.5,
     ),

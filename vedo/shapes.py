@@ -88,67 +88,66 @@ __all__ = [
 ]
 
 ##############################################
-_reps = [
-    ("\nabla", "∇"),
-    ("\infty", "∞"),
-    ("\rightarrow", "→"),
-    ("\lefttarrow", "←"),
-    ("\partial", "∂"),
-    ("\sqrt", "√"),
-    ("\approx", "≈"),
-    ("\neq", "≠"),
-    ("\leq", "≤"),
-    ("\geq", "≥"),
-    ("\foreach", "∀"),
-    ("\permille", "‰"),
-    ("\euro", "€"),
-    ("\dot", "·"),
-    ("\varnothing", "∅"),
-    ("\int", "∫"),
-    ("\pm", "±"),
-    ("\times", "×"),
-    ("\Gamma", "Γ"),
-    ("\Delta", "Δ"),
-    ("\Theta", "Θ"),
-    ("\Lambda", "Λ"),
-    ("\Pi", "Π"),
-    ("\Sigma", "Σ"),
-    ("\Phi", "Φ"),
-    ("\Chi", "X"),
-    ("\Xi", "Ξ"),
-    ("\Psi", "Ψ"),
-    ("\Omega", "Ω"),
-    ("\alpha", "α"),
-    ("\beta", "β"),
-    ("\gamma", "γ"),
-    ("\delta", "δ"),
-    ("\epsilon", "ε"),
-    ("\zeta", "ζ"),
-    ("\eta", "η"),
-    ("\theta", "θ"),
-    ("\kappa", "κ"),
-    ("\lambda", "λ"),
-    ("\mu", "μ"),
-    ("\lowerxi", "ξ"),
-    ("\nu", "ν"),
-    ("\pi", "π"),
-    ("\rho", "ρ"),
-    ("\sigma", "σ"),
-    ("\tau", "τ"),
-    ("\varphi", "φ"),
-    ("\phi", "φ"),
-    ("\chi", "χ"),
-    ("\psi", "ψ"),
-    ("\omega", "ω"),
-    ("\circ", "°"),
-    ("\onehalf", "½"),
-    ("\onefourth", "¼"),
-    ("\threefourths", "¾"),
-    ("\^1", "¹"),
-    ("\^2", "²"),
-    ("\^3", "³"),
-    ("\,", "~"),
-]
+_reps = (
+    (":nabla", "∇"),
+    (":inf", "∞"),
+    (":rightarrow", "→"),
+    (":lefttarrow", "←"),
+    (":partial", "∂"),
+    (":sqrt", "√"),
+    (":approx", "≈"),
+    (":neq", "≠"),
+    (":leq", "≤"),
+    (":geq", "≥"),
+    (":foreach", "∀"),
+    (":permille", "‰"),
+    (":euro", "€"),
+    (":dot", "·"),
+    (":int", "∫"),
+    (":pm", "±"),
+    (":times", "×"),
+    (":Gamma", "Γ"),
+    (":Delta", "Δ"),
+    (":Theta", "Θ"),
+    (":Lambda", "Λ"),
+    (":Pi", "Π"),
+    (":Sigma", "Σ"),
+    (":Phi", "Φ"),
+    (":Chi", "X"),
+    (":Xi", "Ξ"),
+    (":Psi", "Ψ"),
+    (":Omega", "Ω"),
+    (":alpha", "α"),
+    (":beta", "β"),
+    (":gamma", "γ"),
+    (":delta", "δ"),
+    (":epsilon", "ε"),
+    (":zeta", "ζ"),
+    (":eta", "η"),
+    (":theta", "θ"),
+    (":kappa", "κ"),
+    (":lambda", "λ"),
+    (":mu", "μ"),
+    (":lowerxi", "ξ"),
+    (":nu", "ν"),
+    (":pi", "π"),
+    (":rho", "ρ"),
+    (":sigma", "σ"),
+    (":tau", "τ"),
+    (":varphi", "φ"),
+    (":phi", "φ"),
+    (":chi", "χ"),
+    (":psi", "ψ"),
+    (":omega", "ω"),
+    (":circ", "°"),
+    (":onehalf", "½"),
+    (":onefourth", "¼"),
+    (":threefourths", "¾"),
+    (":^1", "¹"),
+    (":^2", "²"),
+    (":^3", "³"),
+    (":,", "~"),
+)
 
 
 ########################################################################
@@ -4187,7 +4186,7 @@ class Text3D(Mesh):
             dotsep = fpars["dotsep"]
 
             # replacements
-            if "\\" in repr(txt):
+            if ":" in txt:
                 for r in _reps:
                     txt = txt.replace(r[0], r[1])
 
@@ -4609,7 +4608,7 @@ class Text2D(TextBase, vtk.vtkActor2D):
         if txt is None:
             return self._mapper.GetInput()
 
-        if "\\" in repr(txt):
+        if ":" in txt:
             for r in _reps:
                 txt = txt.replace(r[0], r[1])
         else:

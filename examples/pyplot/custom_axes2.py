@@ -7,10 +7,10 @@ vpts2 = vpts1.clone().shift(5,6,7).c('green2')
 
 axs = Axes(
     [vpts1, vpts2],  # build axes for this set of objects
-    xtitle="X-axis in \mum",
-    ytitle="Variable Y in \mum",
-    ztitle="_inverted Z in \mum",
-    htitle='My \Gamma^2_ijk  plot',
+    xtitle="X-axis in :mum",
+    ytitle="Variable Y in :mum",
+    ztitle="_inverted Z in :mum",
+    htitle='My :Gamma^2_ijk  plot',
     htitle_font='Kanopus',
     htitle_justify='bottom-right',
     htitle_color='red2',
