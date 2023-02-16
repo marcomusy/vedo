@@ -725,6 +725,15 @@ class Base3DProp:
         except AttributeError:
             pass        
         return self
+    
+    def toggle(self):
+        """Toggle object visibility on/off."""
+        v = self.GetVisibility()
+        if v:
+            self.off()
+        else:
+            self.on()
+        return self
 
     def box(self, scale=1, padding=0, fill=False):
         """
