@@ -21,7 +21,7 @@ plt += Box(pos=(0, -0.1, 0), size=(2.0, 0.02, 0.5))  # floor
 plt += Box(pos=(-0.82, 0.15, 0), size=(0.04,0.50,0.3))  # wall
 
 block = Cube(pos=x, side=0.2, c="tomato")
-spring = Spring(sx0, x, r=0.06, thickness=0.01)
+spring = Spring(sx0, x, r1=0.06, thickness=0.01)
 plt += [block, spring, __doc__]
 
 def loop_func(event):

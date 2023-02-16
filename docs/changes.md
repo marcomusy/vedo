@@ -15,7 +15,7 @@
 in jupyter notebooks, #802
 - fix k3d backend - remove pinning to 2.7.4 #808
 - in `Text2d` and `Text3D` shortcut to symbols are now formatted as `:gamma` and no more as `\gamma`
-
+- fix `mesh.stretch()` thanks to @mikaeltulldahl in #807
 
 
 -------------------------
