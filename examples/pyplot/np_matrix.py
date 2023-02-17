@@ -1,4 +1,4 @@
-"""Visualize a n\dotm numpy matrix"""
+"""Visualize a n:dotm numpy matrix"""
 from vedo.pyplot import matrix
 from vedo import show
 import numpy as np

@@ -915,8 +915,12 @@ def ScalarBar3D(
     else:  ########################################################
 
         # build the color scale part
-        scale = shapes.Grid([-sx * label_offset, 0, 0], c=c, alpha=1, s=(sx,sy),
-                            res=(1, lut.GetTable().GetNumberOfTuples()))
+        scale = shapes.Grid(
+            [-sx * label_offset, 0, 0], 
+            c=c, alpha=1, 
+            s=(sx,sy),
+            res=(1, lut.GetTable().GetNumberOfTuples()),
+        )
         cscals = np.linspace(vmin, vmax, lut.GetTable().GetNumberOfTuples())
 
         if lut.GetScale():  # logarithmic scale

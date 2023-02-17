@@ -30,12 +30,12 @@ tx2 = Text2D(font="Calco", s=1.5, pos="top-right", bg="k5")
 
 plt = Plotter()
 
-slr = plt.add_slider(funcRGB, 0,1, value=1, showValue=False, c="r3", pos=((0.05, 0.18),(0.4, 0.18)))
-slg = plt.add_slider(funcRGB, 0,1, value=0, showValue=False, c="g3", pos=((0.05, 0.12),(0.4, 0.12)))
-slb = plt.add_slider(funcRGB, 0,1, value=0, showValue=False, c="b3", pos=((0.05, 0.06),(0.4, 0.06)), title="RGB")
+slr = plt.add_slider(funcRGB, 0,1, value=1, show_value=False, c="r3", pos=((0.05, 0.18),(0.4, 0.18)))
+slg = plt.add_slider(funcRGB, 0,1, value=0, show_value=False, c="g3", pos=((0.05, 0.12),(0.4, 0.12)))
+slb = plt.add_slider(funcRGB, 0,1, value=0, show_value=False, c="b3", pos=((0.05, 0.06),(0.4, 0.06)), title="RGB")
 
-slh = plt.add_slider(funcHSV, 0,1, value=0, showValue=False, c="k1", pos=((0.6, 0.18),(0.95, 0.18)))
-sls = plt.add_slider(funcHSV, 0,1, value=1, showValue=False, c="k1", pos=((0.6, 0.12),(0.95, 0.12)))
-slv = plt.add_slider(funcHSV, 0,1, value=1, showValue=False, c="k1", pos=((0.6, 0.06),(0.95, 0.06)), title="HSV")
+slh = plt.add_slider(funcHSV, 0,1, value=0, show_value=False, c="k1", pos=((0.6, 0.18),(0.95, 0.18)))
+sls = plt.add_slider(funcHSV, 0,1, value=1, show_value=False, c="k1", pos=((0.6, 0.12),(0.95, 0.12)))
+slv = plt.add_slider(funcHSV, 0,1, value=1, show_value=False, c="k1", pos=((0.6, 0.06),(0.95, 0.06)), title="HSV")
 
 plt.show(box, tx1, tx2, viewup="z")

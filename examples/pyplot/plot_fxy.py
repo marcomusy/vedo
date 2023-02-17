@@ -35,7 +35,7 @@ show([(f1, 'y = sin(2*x*y) * cos(3*y) /2', doc),
 
 ############################################################## COMPLEX
 comment = """Vertical axis shows the real part of complex z:
-    z = sin(log(x\doty))
+    z = sin(log(x:doty))
 Color map the value of the imaginary part
 (green=positive, purple=negative)"""
 

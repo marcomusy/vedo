@@ -43,9 +43,9 @@ class Viewer:
         ### Animate your stuff here                                       ###
         #####################################################################
         #print(event)               # info about what was clicked and more
-        #print(self.plotter.actors) # to access object from the internal list
-        earth.rotate_z(1)           # rotate the Earth by 1deg
         moon.color(self.counter)    # change color to the Moon
+        earth.rotate_z(2)           # rotate the Earth
+        moon.rotate_z(1)
         txt2d.text("Moon color is:").color(self.counter).background(self.counter,0.1)
         txt2d.text(vedo.get_color_name(self.counter), "top-center")
         txt2d.text("..press q to quit", "bottom-right")

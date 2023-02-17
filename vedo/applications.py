@@ -268,7 +268,8 @@ class Slicer3DPlotter(Plotter):
                     if map2cells:
                         mesh.mapPointsToCells()
             self.renderer.RemoveActor(mesh.scalarbar)
-            mesh.add_scalarbar(pos=(0.04, 0.0), horizontal=True, title_font_size=0)
+            mesh.add_scalarbar(pos=(0.04, 0.0), horizontal=True)
+            self.renderer.AddActor(mesh.scalarbar)
 
         bu = self.add_button(
             buttonfunc,

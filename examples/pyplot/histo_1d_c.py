@@ -1,8 +1,8 @@
-"""Uniform distribution weighted by sin^2 12x + \onehalf"""
+"""Uniform distribution weighted by sin^2 12x + :onehalf"""
 from vedo import Line, settings, np
 from vedo.pyplot import histogram
 
-settings.default_font = 11
+settings.default_font = "DejavuSansMono"
 
 data = np.random.rand(10000)
 weights = np.ones_like(data) * np.sin(12*data)**2 + 1/2

@@ -425,10 +425,11 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, tetras=False
         if vtk.vtkIdTypeArray().GetDataTypeSize() != 4:
             ast = np.int64
 
-        nf, nc = faces.shape
-        hs = np.hstack((np.zeros(nf)[:, None] + nc, faces)).astype(ast).ravel()
-        arr = numpy_to_vtkIdTypeArray(hs, deep=True)
-        source_polygons.SetCells(nf, arr)
+        if faces.ndim > 1:
+            nf, nc = faces.shape
+            hs = np.hstack((np.zeros(nf)[:, None] + nc, faces)).astype(ast).ravel()
+            arr = numpy_to_vtkIdTypeArray(hs, deep=True)
+            source_polygons.SetCells(nf, arr)
 
     else:
         ############################# manually add faces, SLOW

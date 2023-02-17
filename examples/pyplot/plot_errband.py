@@ -13,7 +13,7 @@ idx = np.argmax(y)
 fig = plot(
     x,y,
     yerrors=ye,
-    xtitle='time in \museconds',
+    xtitle='time in :museconds',
     ytitle='y oscillation [a.u.]',
     ylim=(0.5, 5),
     aspect=5/3,      # aspect ratio (any float = xsize/ysize)

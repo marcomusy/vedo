@@ -29,12 +29,12 @@ fig += [pfit, pfit.error_band, *pfit.error_lines] # add these objects to fig
 msg = f"Generated a, b  : {np.array([a,b])}"\
       f"\nFitted    a, b  : {pfit.coefficients}"\
       f"\nerrors on a, b  : {pfit.coefficient_errors}"\
-      f"\nave point spread: \sigma \approx {pfit.data_sigma:.3f} in y units"
+      f"\nave point spread: :sigma :approx {pfit.data_sigma:.3f} in y units"
 msg = Text2D(msg, font='VictorMono', pos='bottom-left', c='red3')
 
-fig.add_label("y = a\dotx+b", c='k', marker='-', mc='red4')
+fig.add_label("y = a:dotx+b", c='k', marker='-', mc='red4')
 fig.add_label("ground truth", c='k', marker='--', mc='red5')
-fig.add_label("1\sigma error band", c='k', marker='s', mc='grey')
+fig.add_label("1:sigma error band", c='k', marker='s', mc='grey')
 fig.add_legend(pos=[1.07,1], vspace=2)
 
 show(fig, msg, zoom=1.1).close()

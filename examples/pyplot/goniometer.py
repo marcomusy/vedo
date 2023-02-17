@@ -19,7 +19,7 @@ fp.color("r3").scale(0.7)
 
 # measure the angle formed by 3 points
 gon = Goniometer(
-    [-0.5, 1, 2], [2.5, 2, 2], [-0.5, 3, 3], prefix="\alpha_c =~", lw=2, s=0.8
+    [-0.5, 1, 2], [2.5, 2, 2], [-0.5, 3, 3], prefix=":alpha_c =~", lw=2, s=0.8
 )
 
 # show distance of 2 points

@@ -14,7 +14,6 @@ scals = man.points()[:, 2]
 # assign color map with specified opacities
 try:
     import colorcet  # https://colorcet.holoviz.org
-    import numpy as np
     mycmap = colorcet.bmy
     alphas = np.linspace(0.8, 0.2, num=len(mycmap))
 except ModuleNotFoundError:

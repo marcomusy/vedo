@@ -9,8 +9,9 @@ msh = Mesh(dataurl+"cow.vtk").c("cyan7")
 
 pts1, pts2, vals, cols = [], [], [], []
 
+msh_points = msh.points()
 for i in range(0, msh.npoints, 10):
-    p = msh.points(i)
+    p = msh_points[i]
     pts = msh.closest_point(p, n=12)  # find the n-closest points to p
     sph = fit_sphere(pts)             # find the fitting sphere
     if sph is None:

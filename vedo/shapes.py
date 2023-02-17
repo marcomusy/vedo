@@ -230,7 +230,7 @@ class Glyph(Mesh):
             glyph = glyph.polydata()
 
         cmap = ""
-        if c in cmaps_names:
+        if isinstance(c, str) and c in cmaps_names:
             cmap = c
             c = None
         elif utils.is_sequence(c):  # user passing an array of point colors
@@ -4296,9 +4296,9 @@ class Text3D(Mesh):
                 tpoly = polyapp.GetOutput()
 
             if notfounds:
-                printc("These characters are not available in font name", font+": ", c='y', end='')
-                printc(notfounds, c='y')
-                printc('Type "vedo -r fonts" for a demo.', c='y')
+                wmsg = f"These characters are not available in font name {font}: {notfounds}. "
+                wmsg += 'Type "vedo -r fonts" for a demo.'
+                vedo.logger.warning(wmsg)
 
         bb = tpoly.GetBounds()
         dx, dy = (bb[1] - bb[0]) / 2 * s, (bb[3] - bb[2]) / 2 * s

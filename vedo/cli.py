@@ -86,7 +86,7 @@ def execute_cli():
 
     elif len(args.files) == 0:
         system_info()
-        printc("No input files. Try > vedo mymesh.stl", c="y")
+        printc("No input files. Try:\n> vedo https://vedo.embl.es/examples/data/panther.stl.gz", c="y")
 
     else:
         draw_scene(args)

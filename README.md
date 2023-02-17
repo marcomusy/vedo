@@ -225,6 +225,9 @@ Developmental Cell 57, 1–11 September 2022,
 - D.J.E Waibel *et al.*, *"Capturing Shape Information with Multi-scale Topological Loss Terms for 3D Reconstruction"*,
 Lecture Notes in Computer Science, vol 13434. Springer, Cham. 
 [DOI](https://doi.org/10.1007/978-3-031-16440-8_15).
+- N. Lamb *et al.*, *"DeepJoin: Learning a Joint Occupancy, Signed Distance, and Normal Field Function for Shape Repair"*,
+ACM Transactions on Graphics (TOG), vol 41, 6, 2022.
+[DOI](https://dl.acm.org/doi/abs/10.1145/3550454.3555470)
 
 
 **Have you found this software useful for your research? Star ✨ the project and cite it as:**

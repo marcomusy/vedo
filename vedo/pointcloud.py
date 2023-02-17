@@ -523,7 +523,10 @@ def fit_sphere(coords):
     y = coords[:, 1]
     z = coords[:, 2]
     f[:, 0] = x * x + y * y + z * z
-    C, residue, rank, _ = np.linalg.lstsq(A, f)  # solve AC=f
+    try:
+        C, residue, rank, _ = np.linalg.lstsq(A, f, rcond=-1)  # solve AC=f
+    except:
+        C, residue, rank, _ = np.linalg.lstsq(A, f)  # solve AC=f
     if rank < 4:
         return None
     t = (C[0] * C[0]) + (C[1] * C[1]) + (C[2] * C[2]) + C[3]
@@ -681,7 +684,7 @@ def pca_ellipsoid(points, pvalue=0.673):
     elli.axis2 /= np.linalg.norm(elli.axis2)
     elli.axis3 /= np.linalg.norm(elli.axis3)
     elli.transformation = vtra
-    elli.name = "pcaEllipsoid"
+    elli.name = "PCAEllipsoid"
     return elli
 
 
@@ -2608,6 +2611,188 @@ class Points(BaseActor, vtk.vtkActor):
     #####################################################################################
     def cmap(
         self,
+        input_cmap,
+        input_array=None,
+        on="points",
+        name="Scalars",
+        vmin=None,
+        vmax=None,
+        n_colors=256,
+        alpha=1,
+        logscale=False
+    ):
+        """
+        Set individual point/cell colors by providing a list of scalar values and a color map.
+
+        Arguments:
+            input_cmap : (str, list, vtkLookupTable, matplotlib.colors.LinearSegmentedColormap)
+                color map scheme to transform a real number into a color.
+            input_array : (str, list, vtkArray)
+                can be the string name of an existing array, a numpy array or a `vtkArray`.
+            on : (str)
+                either 'points' or 'cells'.
+                Apply the color map to data which is defined on either points or cells.
+            name : (str)
+                give a name to the provided numpy array (if input_array is a numpy array)
+            vmin : (float)
+                clip scalars to this minimum value
+            vmax : (float)
+                clip scalars to this maximum value
+            n_colors : (int)
+                number of distinct colors to be used in colormap table.
+            alpha : (float, list)
+                Mesh transparency. Can be a `list` of values one for each vertex.
+            logscale : (bool)
+                Use logscale
+
+        Examples:
+            - [mesh_coloring.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_coloring.py)
+            - [mesh_alphas.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_alphas.py)
+            - [mesh_custom.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_custom.py)
+            (and many others)
+
+                ![](https://vedo.embl.es/images/basic/mesh_custom.png)
+        """
+        self._cmap_name = input_cmap
+        poly = self.inputdata()
+
+        if input_array is None:
+            if not self.pointdata.keys() and self.celldata.keys():
+                on = "cells"
+                if not poly.GetCellData().GetScalars():
+                    input_array = 0  # pick the first at hand
+
+        if on.startswith("point"):
+            data = poly.GetPointData()
+            n = poly.GetNumberOfPoints()
+        elif on.startswith("cell"):
+            data = poly.GetCellData()
+            n = poly.GetNumberOfCells()
+        else:
+            vedo.logger.error("Must specify in cmap(on=...) to either 'cells' or 'points'")
+            raise RuntimeError()
+        
+        if input_array is None:  # if None try to fetch the active scalars
+            arr = data.GetScalars()
+            if not arr:
+                vedo.logger.error(f"in cmap(), cannot find any {on} active array ...skip coloring.")
+                return self
+
+            if not arr.GetName():  # sometimes arrays dont have a name..
+                arr.SetName(name)
+            
+        elif isinstance(input_array, str):  # if a string is passed
+            arr = data.GetArray(input_array)
+            if not arr:
+                vedo.logger.error(f"in cmap(), cannot find {on} array {input_array} ...skip coloring.")
+                return self
+
+        elif isinstance(input_array, int):  # if an int is passed
+            if input_array < data.GetNumberOfArrays():
+                arr = data.GetArray(input_array)
+            else:
+                vedo.logger.error(f"in cmap(), cannot find {on} array at {input_array} ...skip coloring.")
+                return self
+
+        elif utils.is_sequence(input_array):  # if a numpy array is passed
+            npts = len(input_array)
+            if npts != n:
+                vedo.logger.error(f"in cmap(), nr. of input {on} scalars {npts} != {n} ...skip coloring.")
+                return self
+            arr = utils.numpy2vtk(input_array, name=name, dtype=float)
+            data.AddArray(arr)
+            data.Modified()
+
+        elif isinstance(input_array, vtk.vtkArray):  # if a vtkArray is passed
+            arr = input_array
+            data.AddArray(arr)
+            data.Modified()
+
+        else:
+            vedo.logger.error(f"in cmap(), cannot understand input type {type(input_array)}")
+            raise RuntimeError()
+
+        # Now we have array "arr"
+        array_name = arr.GetName()
+
+        if arr.GetNumberOfComponents() == 1:
+            if vmin is None:
+                vmin = arr.GetRange()[0]
+            if vmax is None:
+                vmax = arr.GetRange()[1]
+        else:
+            if vmin is None or vmax is None:
+                vn = utils.mag(utils.vtk2numpy(arr))
+            if vmin is None:
+                vmin = vn.min()
+            if vmax is None:
+                vmax = vn.max()
+
+        # interpolate alphas if they are not constant
+        if not utils.is_sequence(alpha):
+            alpha = [alpha] * n_colors
+        else:
+            v = np.linspace(0,1, n_colors, endpoint=True)
+            xp = np.linspace(0,1, len(alpha), endpoint=True)
+            alpha = np.interp(v, xp, alpha)
+
+        ########################### build the look-up table
+        if isinstance(input_cmap, vtk.vtkLookupTable):  # vtkLookupTable
+            lut = input_cmap
+
+        elif utils.is_sequence(input_cmap):  # manual sequence of colors
+            lut = vtk.vtkLookupTable()
+            if logscale:
+                lut.SetScaleToLog10()
+            lut.SetRange(vmin, vmax)
+            ncols = len(input_cmap)
+            lut.SetNumberOfTableValues(ncols)
+
+            for i, c in enumerate(input_cmap):
+                r, g, b = colors.get_color(c)
+                lut.SetTableValue(i, r, g, b, alpha[i])
+            lut.Build()
+
+        else:  # assume string cmap name OR matplotlib.colors.LinearSegmentedColormap
+            lut = vtk.vtkLookupTable()
+            if logscale:
+                lut.SetScaleToLog10()
+            lut.SetVectorModeToMagnitude()
+            lut.SetRange(vmin, vmax)
+            lut.SetNumberOfTableValues(n_colors)
+            mycols = colors.color_map(range(n_colors), input_cmap, 0, n_colors)
+            for i, c in enumerate(mycols):
+                r, g, b = c
+                lut.SetTableValue(i, r, g, b, alpha[i])
+            lut.Build()
+
+        arr.SetLookupTable(lut)
+
+        data.SetActiveScalars(array_name)
+        # data.SetScalars(arr)  # wrong! it deletes array in position 0, never use SetScalars
+        # data.SetActiveAttribute(array_name, 0) # boh!
+
+        if data.GetScalars():
+            data.GetScalars().SetLookupTable(lut)
+            data.GetScalars().Modified()
+
+        self._mapper.SetLookupTable(lut)
+        self._mapper.SetColorModeToMapScalars() # so we dont need to convert uint8 scalars
+
+        self._mapper.ScalarVisibilityOn()
+        self._mapper.SetScalarRange(lut.GetRange())
+        if on.startswith("point"):
+            self._mapper.SetScalarModeToUsePointData()
+        else:
+            self._mapper.SetScalarModeToUseCellData()
+        if hasattr(self._mapper, "SetArrayName"):
+            self._mapper.SetArrayName(array_name)
+
+        return self
+
+    # #####################################################################################
+    def cmapOLD(
+        self,
         cname,
         input_array=None,
         on="points",
@@ -2780,20 +2965,26 @@ class Points(BaseActor, vtk.vtkActor):
                 idx = int(i / ncols * nalpha)
                 lut.SetTableValue(i, r, g, b, alpha[idx])
             lut.Build()
+            print("assume string",[lut])
 
-        if self.inputdata().GetPointData().GetScalars():
-            self.inputdata().GetPointData().GetScalars().SetLookupTable(lut)
-        self.mapper().SetLookupTable(lut)
+        arr.SetLookupTable(lut)
+
+        # if self.inputdata().GetPointData().GetScalars():
+        #     self.inputdata().GetPointData().GetScalars().SetLookupTable(lut)
+        #     self.inputdata().GetPointData().GetScalars().Modified()
+        # self.mapper().SetLookupTable(lut)
+
         self.mapper().SetScalarModeToUsePointData()
         self.mapper().ScalarVisibilityOn()
         if hasattr(self.mapper(), "SetArrayName"):
+            print('array_name',array_name)
             self.mapper().SetArrayName(array_name)
 
         self.mapper().SetScalarRange(lut.GetRange())
         # data.SetScalars(arr)  # wrong! it deletes array in position 0, never use SetScalars
         # data.SetActiveAttribute(array_name, 0) # boh!
         data.SetActiveScalars(array_name)
-        data.Modified()
+        # data.Modified()
         return self
 
     def _cell_colors(self, input_array, cmap, alpha, vmin, vmax, array_name, n, logscale):
@@ -4671,7 +4862,7 @@ class Points(BaseActor, vtk.vtkActor):
          
         pdf.SetDensityEstimateToFixedRadius()
         if radius is None:
-            radius = diag / 20
+            radius = self.diagonal_size() / 20
         pdf.SetRadius(radius)
 
         pdf.SetComputeGradient(compute_gradient)

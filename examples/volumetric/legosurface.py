@@ -10,6 +10,6 @@ vol.crop(back=0.50) # crop 50% from neg. y
 
 # show lego blocks whose value is between vmin and vmax
 lego = vol.legosurface(vmin=20, vmax=None, boundary=False)
-lego.cmap('seismic', on='cells', vmin=0, vmax=127).add_scalarbar()
+lego.cmap('seismic', vmin=0, vmax=127).add_scalarbar()
 
 show(lego, __doc__, axes=1, viewup='z').close()

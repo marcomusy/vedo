@@ -27,7 +27,7 @@ scalars = mug.points()[:, 1]  # let y-coord be the scalar
 plt = Plotter(N=len(maps))
 
 for i, key in enumerate(maps):  # for each available color map name
-    imug = mug.clone(deep=False).cmap(key, scalars, n=5)
+    imug = mug.clone(deep=False).cmap(key, scalars, n_colors=5)
     plt.at(i).show(imug, key)
 
 plt.interactive().close()
