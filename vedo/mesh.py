@@ -722,9 +722,20 @@ class Mesh(Points):
         return mass.GetSurfaceArea()
 
     def is_closed(self):
-        """Return `True` if mesh is watertight."""
+        """Return `True` if the mesh is watertight."""
         fe = vtk.vtkFeatureEdges()
         fe.BoundaryEdgesOn()
+        fe.FeatureEdgesOff()
+        fe.NonManifoldEdgesOn()
+        fe.SetInputData(self.polydata(False))
+        fe.Update()
+        ne = fe.GetOutput().GetNumberOfCells()
+        return not bool(ne)
+
+    def is_manifold(self):
+        """Return `True` if the mesh is manifold."""
+        fe = vtk.vtkFeatureEdges()
+        fe.BoundaryEdgesOff()
         fe.FeatureEdgesOff()
         fe.NonManifoldEdgesOn()
         fe.SetInputData(self.polydata(False))
@@ -1613,13 +1624,13 @@ class Mesh(Points):
         loop.SetInputData(loopline.polydata())
         loop.Update()
 
-        cleanLoop = vtk.vtkCleanPolyData()
-        cleanLoop.SetInputData(loop.GetOutput())
-        cleanLoop.Update()
+        clean_loop = vtk.vtkCleanPolyData()
+        clean_loop.SetInputData(loop.GetOutput())
+        clean_loop.Update()
 
         imp = vtk.vtkImprintFilter()
         imp.SetTargetData(self.polydata())
-        imp.SetImprintData(cleanLoop.GetOutput())
+        imp.SetImprintData(clean_loop.GetOutput())
         imp.SetTolerance(tol)
         imp.BoundaryEdgeInsertionOn()
         imp.TriangulateOutputOn()

@@ -56,6 +56,10 @@ __all__ = [
     "oriented_camera",
     "vedo2trimesh",
     "trimesh2vedo",
+    "vedo2meshlab",
+    "meshlab2vedo",
+    "vedo2open3d",
+    "open3d2vedo",
     "vtk2numpy",
     "numpy2vtk",
 ]
@@ -2351,6 +2355,32 @@ def meshlab2vedo(mmesh):
         polydata.GetCellData().SetNormals(numpy2vtk(cnorms))
     return polydata
 
+def open3d2vedo(o3d_mesh):
+    """Convert `open3d.geometry.TriangleMesh` to a `vedo.Mesh`."""
+    m = vedo.Mesh([np.array(o3d_mesh.vertices), np.array(o3d_mesh.triangles)])
+    # TODO: could also check whether normals and color are present in 
+    # order to port with the above vertices/faces
+    return m
+
+def vedo2open3d(vedo_mesh):
+    """
+    Return an `open3d.geometry.TriangleMesh` version of the current mesh.
+    """
+    try:
+        import open3d as o3d
+    except RuntimeError:
+        vedo.logger.error("Need open3d to run:\npip install open3d")
+
+    # create from numpy arrays
+    o3d_mesh = o3d.geometry.TriangleMesh(
+        vertices=o3d.utility.Vector3dVector(vedo_mesh.points()),
+        triangles=o3d.utility.Vector3iVector(vedo_mesh.faces()),
+    )
+    # TODO: need to add some if check here in case color and normals
+    #  info are not existing
+    # o3d_mesh.vertex_colors = o3d.utility.Vector3dVector(vedo_mesh.pointdata["RGB"]/255)
+    # o3d_mesh.vertex_normals= o3d.utility.Vector3dVector(vedo_mesh.pointdata["Normals"])
+    return o3d_mesh
 
 def vtk_version_at_least(major, minor=0, build=0):
     """
