@@ -11,14 +11,14 @@
 - add `utils.is_ragged()` to check if an array is homogeneuos (not ragged)
 - fix `shapes.Lines()` class 
 - add `shapes.ThickTube()` as per #800
-- add `settings.backend_autoclose` (default is True) to automatically close `Plotter` after show 
-in jupyter notebooks, #802
+- add `settings.backend_autoclose` (default is True) to automatically close `Plotter` after show() in jupyter notebooks, #802
 - fix k3d backend - remove pinning to 2.7.4 #808
 - in `Text2D` and `Text3D` shortcut to symbols are now formatted as `:gamma` and no more as `\gamma`
 - fix `mesh.stretch()` thanks to @mikaeltulldahl in #807
 - fixes to `cmap()`
 - added `mesh.is_manifold()` method #813
 - added `utils.open3d2vedo()` and `utils.vedo2open3d` converters as per #663
+- added `mesh.non_manifold_faces()` to detect and (try to) remove non-manifold faces of a triangular mesh #813 #663 and https://github.com/SlicerIGT/SlicerBoneReconstructionPlanner/issues/35
 
 
 -------------------------

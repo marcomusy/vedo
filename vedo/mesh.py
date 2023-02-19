@@ -13,8 +13,7 @@ import vedo
 from vedo.colors import color_map
 from vedo.colors import get_color
 from vedo.pointcloud import Points
-from vedo.utils import buildPolyData
-from vedo.utils import is_sequence, mag, mag2
+from vedo.utils import buildPolyData, is_sequence, mag, mag2
 from vedo.utils import numpy2vtk, vtk2numpy
 
 __docformat__ = "google"
@@ -742,6 +741,66 @@ class Mesh(Points):
         fe.Update()
         ne = fe.GetOutput().GetNumberOfCells()
         return not bool(ne)
+
+    def non_manifold_faces(self, remove_all=False, remove_boundary=False, collapse_edges=False):
+        """
+        Detect and (try to) remove non-manifold faces of a triangular mesh.
+
+        Leaving all to `False` will add a new cell array with name "NonManifoldCell".
+        Note that "faces" and "cells" are synomyms.
+        """
+        if int(remove_all)+int(remove_boundary)+int(collapse_edges) > 1:
+            raise ValueError("Select only one option")
+        # mark original point and cell ids
+        self.add_ids()
+        nme = self.boundaries(
+            boundary_edges=False,
+            non_manifold_edges=True,
+        )
+        nme_pids = nme.pointdata["PointID"]
+
+        bnd_cids = []
+        if remove_boundary:
+            # find cells sitting on boundaries
+            bnd_cids = self.boundaries(return_cell_ids=True)
+
+        all_nf = []
+        toremove = []
+        faces = self.faces()
+        points = self.points()
+        new_points = np.array(points)
+        for e in vedo.utils.progressbar(nme.lines(), delay=5, title="parsing faces"):
+            ie0, ie1 = e
+            ip0, ip1 = nme_pids[ie0], nme_pids[ie1]
+            for i, f in enumerate(faces):
+                if ip0 in f and ip1 in f:
+                    all_nf.append(i)
+                    if remove_all:
+                        toremove.append(i)
+                    elif remove_boundary:
+                        if i in bnd_cids:
+                            toremove.append(i)
+                    elif collapse_edges:
+                        pass
+                        m = (points[ip0] + points[ip1])/2
+                        new_points[ip0] = m
+                        new_points[ip1] = m
+
+        # print("NF points", nme_pids)
+        # print("NF cells ", nfcells)
+        # print("NF toremove ", toremove)
+
+        if collapse_edges:
+            self.points(new_points)
+            self.clean()
+        elif toremove:
+            self.delete_cells(toremove)
+        else:
+            mark = np.zeros(self.ncells, dtype=np.uint8)
+            mark[all_nf] = 1
+            self.celldata["NonManifoldCell"] = mark
+
+        return self
 
     def shrink(self, fraction=0.85):
         """Shrink the triangle polydata in the representation of the input mesh.

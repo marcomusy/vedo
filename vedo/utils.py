@@ -80,6 +80,7 @@ class ProgressBar:
         italic=False,
         title="",
         eta=True,
+        delay=0,
         width=25,
         char="\U00002501",
         char_back="\U00002500",
@@ -120,23 +121,28 @@ class ProgressBar:
         self.percent = 0.0
         self.percent_int = 0
         self.eta = eta
+        self.delay = delay
         self.clock0 = time.time()
         self._remt = 1e10
         self._update(0)
+
         self._counts = 0
         self._oldbar = ""
         self._lentxt = 0
         self._range = np.arange(start, stop, step)
         self._len = len(self._range)
 
-    def print(self, txt="", counts=None, c=None):
+    def print(self, txt="", c=None):
         """Print the progress bar and optional message."""
         if not c:
             c = self.color
-        if counts:
-            self._update(counts)
-        else:
-            self._update(self._counts + self.step)
+        
+        self._update(self._counts + self.step)
+
+        if self.delay:
+            if time.time() - self.clock0 < self.delay:
+                return
+
         if self.pbar != self._oldbar:
             self._oldbar = self.pbar
             eraser = [" "] * self._lentxt + ["\b"] * self._lentxt
@@ -223,6 +229,7 @@ def progressbar(
         title="",
         eta=True,
         width=25,
+        delay=0,
     ):
     """
     Function to print a progress bar with optional text message.
@@ -248,7 +255,7 @@ def progressbar(
     pb = ProgressBar(
         0, total, 
         c=c, bold=bold, italic=italic, 
-        title=title, eta=eta, width=width,
+        title=title, eta=eta, delay=delay, width=width,
     )
     for item in iterable:
         pb.print()
