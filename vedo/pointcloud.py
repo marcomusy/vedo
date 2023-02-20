@@ -570,7 +570,7 @@ def pca_ellipse(points, pvalue=0.673, res=60):
     else:
         coords = points
     if len(coords) < 4:
-        vedo.logger.warning("in pcaEllipse(), there are not enough points!")
+        vedo.logger.warning("in pca_ellipse(), there are not enough points!")
         return None
 
     P = np.array(coords, dtype=float)[:,(0,1)]

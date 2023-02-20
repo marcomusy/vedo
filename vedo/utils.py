@@ -100,11 +100,9 @@ class ProgressBar:
             ```
             ![](https://user-images.githubusercontent.com/32848391/51858823-ed1f4880-2335-11e9-8788-2d102ace2578.png)
         """
+        self.char = char
         self.char_back = char_back
-        self.char_arrow = ""
 
-        self.char0 = ""
-        self.char1 = ""
         self.title = title + " "
         if title:
             self.title = " " + self.title
@@ -112,80 +110,84 @@ class ProgressBar:
         self.start = start
         self.stop = stop
         self.step = step
+
         self.color = c
         self.bold = bold
         self.italic = italic
         self.width = width
-        self.char = char
         self.pbar = ""
         self.percent = 0.0
         self.percent_int = 0
         self.eta = eta
         self.delay = delay
-        self.clock0 = time.time()
-        self._remt = 1e10
+
+        self.t0 = time.time()
+        self._remaining = 1e10
+
         self._update(0)
 
         self._counts = 0
         self._oldbar = ""
         self._lentxt = 0
         self._range = np.arange(start, stop, step)
-        self._len = len(self._range)
 
     def print(self, txt="", c=None):
-        """Print the progress bar and optional message."""
+        """Print the progress bar with an optional message."""
         if not c:
             c = self.color
         
         self._update(self._counts + self.step)
 
         if self.delay:
-            if time.time() - self.clock0 < self.delay:
+            if time.time() - self.t0 < self.delay:
                 return
 
         if self.pbar != self._oldbar:
             self._oldbar = self.pbar
-            eraser = [" "] * self._lentxt + ["\b"] * self._lentxt
-            eraser = "".join(eraser)
+
             if self.eta and self._counts > 1:
-                tdenom = time.time() - self.clock0
+
+                tdenom = time.time() - self.t0
                 if tdenom:
                     vel = self._counts / tdenom
-                    self._remt = (self.stop - self._counts) / vel
+                    self._remaining = (self.stop - self._counts) / vel
                 else:
                     vel = 1
-                    self._remt = 0.0
-                if self._remt > 60:
-                    mins = int(self._remt / 60)
-                    secs = self._remt - 60 * mins
-                    mins = str(mins) + "m"
-                    secs = str(int(secs + 0.5)) + "s "
+                    self._remaining = 0.0
+
+                if self._remaining > 60:
+                    mins = int(self._remaining / 60)
+                    secs = self._remaining - 60 * mins
+                    mins = f"{mins}m"
+                    secs = f"{int(secs + 0.5)}s "
                 else:
                     mins = ""
-                    secs = str(int(self._remt + 0.5)) + "s "
-                vel = str(round(vel, 1))
-                eta = "ETA: " + mins + secs + "(" + vel + " it/s) "
-                if self._remt < 1:
-                    dt = time.time() - self.clock0
+                    secs = f"{int(self._remaining + 0.5)}s "
+
+                vel = round(vel, 1)
+                eta = f"eta: {mins}{secs}({vel} it/s) "
+                if self._remaining < 0.5:
+                    dt = time.time() - self.t0
                     if dt > 60:
                         mins = int(dt / 60)
                         secs = dt - 60 * mins
-                        mins = str(mins) + "m"
-                        secs = str(int(secs + 0.5)) + "s "
+                        mins = f"{mins}m"
+                        secs = f"{int(secs + 0.5)}s "
                     else:
                         mins = ""
-                        secs = str(int(dt + 0.5)) + "s "
-                    eta = "elapsed: " + mins + secs + "(" + vel + " it/s)        "
+                        secs = f"{int(dt + 0.5)}s "
+                    eta = f"elapsed: {mins}{secs}({vel} it/s)        "
                     txt = ""
             else:
                 eta = ""
-            txt = eta + str(txt)
-            s = self.pbar + " " + eraser + txt + "\r"
-            vedo.printc(s, c=c, bold=self.bold, italic=self.italic, end="")
-            sys.stdout.flush()
 
-            if self.percent == 100.0:
+            eraser = " " * self._lentxt + "\b" * self._lentxt
+
+            s = f"{self.pbar} {eraser}{eta}{txt}\r"
+            vedo.printc(s, c=c, bold=self.bold, italic=self.italic, end="")
+            if self.percent > 99.999:
                 print("")
+
             self._lentxt = len(txt)
 
     def range(self):
@@ -198,20 +200,22 @@ class ProgressBar:
         elif counts > self.stop:
             counts = self.stop
         self._counts = counts
+
         self.percent = (self._counts - self.start) * 100.0
-        dd = self.stop - self.start
-        if dd:
-            self.percent /= self.stop - self.start
+
+        delta = self.stop - self.start
+        if delta:
+            self.percent /= delta
         else:
             self.percent = 0.0
+
         self.percent_int = int(round(self.percent))
         af = self.width - 2
         nh = int(round(self.percent_int / 100 * af))
-        br_bk = "\x1b[2m" + self.char_back * (af - nh)
-        br = "%s%s%s" % (self.char * (nh - 1), self.char_arrow, br_bk)
-        self.pbar = self.title + self.char0 + br + self.char1
+        pbar_background = "\x1b[2m" + self.char_back * (af - nh)
+        self.pbar = f"{self.title}{self.char * (nh-1)}{pbar_background}"
         if self.percent < 100.0:
-            ps = " " + str(self.percent_int) + "%"
+            ps = f" {self.percent_int}%"
         else:
             ps = ""
         self.pbar += ps
