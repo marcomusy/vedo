@@ -749,14 +749,12 @@ class Mesh(Points):
         Leaving all to `False` will add a new cell array with name "NonManifoldCell".
         Note that "faces" and "cells" are synomyms.
         """
-        if int(remove_all)+int(remove_boundary)+int(collapse_edges) > 1:
-            raise ValueError("Select only one option")
+        if int(remove_all) + int(remove_boundary) + int(collapse_edges) > 1:
+            raise ValueError("Select only one option please.")
+
         # mark original point and cell ids
         self.add_ids()
-        nme = self.boundaries(
-            boundary_edges=False,
-            non_manifold_edges=True,
-        )
+        nme = self.boundaries(boundary_edges=False, non_manifold_edges=True)
         nme_pids = nme.pointdata["PointID"]
 
         bnd_cids = []
@@ -781,14 +779,9 @@ class Mesh(Points):
                         if i in bnd_cids:
                             toremove.append(i)
                     elif collapse_edges:
-                        pass
                         m = (points[ip0] + points[ip1])/2
                         new_points[ip0] = m
                         new_points[ip1] = m
-
-        # print("NF points", nme_pids)
-        # print("NF cells ", nfcells)
-        # print("NF toremove ", toremove)
 
         if collapse_edges:
             self.points(new_points)

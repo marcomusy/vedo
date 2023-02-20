@@ -192,10 +192,6 @@ class ProgressBar:
         """Return the range iterator."""
         return self._range
 
-    def len(self):
-        """Return the number of steps."""
-        return self._len
-
     def _update(self, counts):
         if counts < self.start:
             counts = self.start
@@ -254,8 +250,7 @@ def progressbar(
 
     pb = ProgressBar(
         0, total, 
-        c=c, bold=bold, italic=italic, 
-        title=title, eta=eta, delay=delay, width=width,
+        c=c, bold=bold, italic=italic, title=title, eta=eta, delay=delay, width=width,
     )
     for item in iterable:
         pb.print()

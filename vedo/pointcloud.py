@@ -1261,6 +1261,53 @@ class Points(BaseActor, vtk.vtkActor):
         self.inputdata().GetPointData().SetNormals(varr)
         self.inputdata().GetPointData().Modified()
         return self
+    
+    def compute_acoplanarity(self, n=25, radius=None, on='points'):
+        """
+        Compute acoplanarity which is a measure of how much a local region of the mesh 
+        differs from a plane.
+        The information is stored in a `pointdata` or `celldata` array with name 'Acoplanarity'.
+        Either `n` (number of neighbour points) or `radius` (radius of local search) can be specified.
+        If a radius value is given and not enough points fall inside it, then a -1 is stored.
+
+        Example:
+            ```python
+            from vedo import *
+            msh = ParametricShape('RandomHills')
+            msh.compute_acoplanarity(radius=0.1, on='cells')
+            msh.cmap("coolwarm", on='cells').add_scalarbar()
+            msh.show(axes=1).close()
+            ```
+            ![](https://vedo.embl.es/images/feats/acoplanarity.jpg)
+        """
+        acoplanarities = []
+        if 'point'  in on:
+            pts = self.points()
+        elif 'cell' in on:
+            pts = self.cell_centers()
+        else:
+            raise ValueError(f"In compute_acoplanarity() set on to either 'cells' or 'points', not {on}")
+
+        for p in utils.progressbar(pts, delay=5, width=15, title=f'{on} acoplanarity'):
+            if n:
+                data = self.closest_point(p, n=n)
+                npts = n
+            elif radius:
+                data = self.closest_point(p, radius=radius)
+                npts = len(data)
+
+            try:
+                center = data.mean(axis=0)
+                res = np.linalg.svd(data - center)
+                acoplanarities.append(res[1][2]/npts)
+            except:
+                acoplanarities.append(-1.0)
+
+        if 'point'  in on:
+            self.pointdata["Acoplanarity"] = np.array(acoplanarities, dtype=float)
+        else:
+            self.celldata["Acoplanarity"] = np.array(acoplanarities, dtype=float)
+        return self
 
     @deprecated(reason=vedo.colors.red + "Please use distance_to()" + vedo.colors.reset)
     def distanceTo(self, pcloud, signed=False, invert=False, name="Distance"):

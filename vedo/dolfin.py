@@ -495,8 +495,8 @@ def plot(*inputobj, **options):
         if "displace" in mode:
             actor.move(u)
 
-        if cmap and (actor.u_values is not None) and c is None:
-            if u.value_rank() > 0:  # will show the size of the vector
+        if cmap and (actor.u_values is not None) and len(actor.u_values) and c is None:
+            if actor.u_values.ndim > 1:
                 actor.cmap(cmap, utils.mag(actor.u_values), vmin=vmin, vmax=vmax)
             else:
                 actor.cmap(cmap, actor.u_values, vmin=vmin, vmax=vmax)

@@ -19,6 +19,7 @@
 - added `mesh.is_manifold()` method #813
 - added `utils.open3d2vedo()` and `utils.vedo2open3d` converters as per #663
 - added `mesh.non_manifold_faces()` to detect and (try to) remove non-manifold faces of a triangular mesh #813 #663 and https://github.com/SlicerIGT/SlicerBoneReconstructionPlanner/issues/35
+- added `pointcloud.compute_acoplanarity()` method
 
 
 -------------------------
