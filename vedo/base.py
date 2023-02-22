@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import time
 import numpy as np
 from deprecated import deprecated
 
@@ -223,7 +224,7 @@ class Base3DProp:
         self.top = np.array([0, 0, 1])
         self.base = np.array([0, 0, 0])
         self.info = {}
-        self._time = 0
+        self.time = time.time()
         self.rendered_at = set()
         self.transform = None
         self._isfollower = False  # set by mesh.follow_camera()
@@ -232,6 +233,8 @@ class Base3DProp:
         self.cell_locator = None
 
         self.scalarbar = None
+        # self.scalarbars = dict() #TODO
+        self.pipeline = None
 
 
     def address(self):
@@ -256,13 +259,6 @@ class Base3DProp:
             return self.GetDragable()
         self.SetDragable(value)
         return self
-
-    def time(self, t=None):
-        """Set/get object's absolute time of creation."""
-        if t is None:
-            return self._time
-        self._time = t
-        return self  # return itself to concatenate methods
 
     def origin(self, x=None, y=None, z=None):
         """

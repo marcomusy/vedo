@@ -14,7 +14,7 @@ from vedo.colors import color_map
 from vedo.colors import get_color
 from vedo.pointcloud import Points
 from vedo.utils import buildPolyData, is_sequence, mag, mag2
-from vedo.utils import numpy2vtk, vtk2numpy
+from vedo.utils import numpy2vtk, vtk2numpy, OperationNode
 
 __docformat__ = "google"
 
@@ -238,7 +238,10 @@ class Mesh(Points):
 
         if alpha is not None:
             self.property.SetOpacity(alpha)
-
+        
+        self.pipeline = OperationNode(
+            self, parents=[], comment=f"#pts {self._data.GetNumberOfPoints()}",
+        )
 
     def faces(self):
         """
@@ -600,7 +603,9 @@ class Mesh(Points):
             rev.ReverseNormalsOff()
         rev.SetInputData(poly)
         rev.Update()
-        return self._update(rev.GetOutput())
+        out = self._update(rev.GetOutput())
+        out.pipeline = OperationNode("reverse", parents=[self])
+        return out
 
     def wireframe(self, value=True):
         """Set mesh's representation as wireframe or solid surface."""
@@ -793,6 +798,10 @@ class Mesh(Points):
             mark[all_nf] = 1
             self.celldata["NonManifoldCell"] = mark
 
+        self.pipeline = OperationNode(
+            "non_manifold_faces", parents=[self], 
+            comment=f"#cells {self._data.GetNumberOfCells()}",
+        )
         return self
 
     def shrink(self, fraction=0.85):
@@ -809,7 +818,10 @@ class Mesh(Points):
         shrink.Update()
         self.point_locator = None
         self.cell_locator = None
-        return self._update(shrink.GetOutput())
+        out = self._update(shrink.GetOutput())
+
+        out.pipeline = OperationNode("shrink", parents=[self])
+        return out
 
     def stretch(self, q1, q2):
         """
@@ -924,6 +936,11 @@ class Mesh(Points):
         clipper.Update()
         self._update(clipper.GetOutput())
         self.point_locator = None
+
+        self.pipeline = OperationNode(
+            "crop", parents=[self], 
+            comment=f"#pts {self._data.GetNumberOfPoints()}",
+        )
         return self
 
 
@@ -971,12 +988,24 @@ class Mesh(Points):
             m.SetScale(self.GetScale())
             m.SetOrientation(self.GetOrientation())
             m.SetPosition(self.GetPosition())
+
+            m.pipeline = OperationNode(
+                "cap", parents=[self], 
+                comment=f"#pts {m._data.GetNumberOfPoints()}",
+            )
             return m
+
         polyapp = vtk.vtkAppendPolyData()
         polyapp.AddInputData(poly)
         polyapp.AddInputData(tf.GetOutput())
         polyapp.Update()
-        return self._update(polyapp.GetOutput()).clean()
+        out = self._update(polyapp.GetOutput()).clean()
+
+        out.pipeline = OperationNode(
+            "capped", parents=[self], 
+            comment=f"#pts {out._data.GetNumberOfPoints()}",
+        )
+        return out
 
     def join(self, polys=True, reset=False):
         """
@@ -1035,7 +1064,13 @@ class Mesh(Points):
             vpts = poly.GetCell(0).GetPoints().GetData()
             poly.GetPoints().SetData(vpts)
             return self._update(poly)
-        return self._update(sf.GetOutput())
+
+        out = self._update(sf.GetOutput())
+
+        out.pipeline = OperationNode("join", parents=[self], 
+            comment=f"#pts {out._data.GetNumberOfPoints()}",
+        )
+        return out
 
     def triangulate(self, verts=True, lines=True):
         """
@@ -1058,18 +1093,24 @@ class Mesh(Points):
             tf = vtk.vtkTriangleFilter()
             tf.SetPassLines(lines)
             tf.SetPassVerts(verts)
-            tf.SetInputData(self._data)
-            tf.Update()
-            return self._update(tf.GetOutput())
 
-        if self._data.GetNumberOfLines():
-            vct = vtk.vtkContourTriangulator()
-            vct.SetInputData(self._data)
-            vct.Update()
-            return self._update(vct.GetOutput())
+        elif self._data.GetNumberOfLines():
+            tf = vtk.vtkContourTriangulator()
+        
+        else:
+            vedo.logger.debug("input in triangulate() seems to be void")
+            return self
 
-        vedo.logger.debug("input in triangulate() seems to be void")
-        return self
+        tf.SetInputData(self._data)
+        tf.Update()
+        out = self._update(tf.GetOutput())
+
+        out.pipeline = OperationNode(
+            "triangulate", parents=[self], 
+            comment=f"#cells {out._data.GetNumberOfCells()}",
+        )
+        return out
+
 
     def compute_cell_area(self, name="Area"):
         """Add to this mesh a cell data array containing the areas of the polygonal faces"""
@@ -1368,7 +1409,12 @@ class Mesh(Points):
 
         sdf.SetInputData(originalMesh)
         sdf.Update()
-        return self._update(sdf.GetOutput())
+        out = sdf.GetOutput()
+
+        self.pipeline = OperationNode(
+            "subdivide", parents=[self], comment=f"#pts {out.GetNumberOfPoints()}",
+        )
+        return self._update(out)
 
     def decimate(self, fraction=0.5, n=None, method="quadric", boundaries=False):
         """
@@ -1410,7 +1456,12 @@ class Mesh(Points):
         decimate.SetInputData(poly)
         decimate.SetTargetReduction(1 - fraction)
         decimate.Update()
-        return self._update(decimate.GetOutput())
+        out = decimate.GetOutput()
+
+        self.pipeline = OperationNode(
+            "decimate", parents=[self], comment=f"#pts {out.GetNumberOfPoints()}",
+        )
+        return self._update(out)
 
     def collapse_edges(self, distance, iterations=1):
         """Collapse mesh edges so that are all above distance."""
@@ -1442,6 +1493,11 @@ class Mesh(Points):
             self.points(newpts)
             self.clean()
         self.compute_normals()
+
+        self.pipeline = OperationNode(
+            "collapse_edges", parents=[self], 
+            comment=f"#pts {self._data.GetNumberOfPoints()}",
+        )
         return self
 
 
@@ -1483,7 +1539,12 @@ class Mesh(Points):
         smf.FeatureEdgeSmoothingOn()
         smf.SetBoundarySmoothing(boundary)
         smf.Update()
-        return self._update(smf.GetOutput())
+        out = self._update(smf.GetOutput())
+
+        out.pipeline = OperationNode("smooth", parents=[self], 
+            comment=f"#pts {out._data.GetNumberOfPoints()}",
+        )
+        return out
 
     @deprecated(reason=vedo.colors.red + "Please use fill_holes()" + vedo.colors.reset)
     def fillHoles(self, size=None):
@@ -1510,7 +1571,13 @@ class Mesh(Points):
         fh.SetHoleSize(size)
         fh.SetInputData(self._data)
         fh.Update()
-        return self._update(fh.GetOutput())
+        out = self._update(fh.GetOutput())
+        
+        out.pipeline = OperationNode(
+            "fill_holes", parents=[self], 
+            comment=f"#pts {out._data.GetNumberOfPoints()}",
+        )
+        return out
 
     def is_inside(self, point, tol=1e-05):
         """Return True if point is inside a polydata closed surface."""
@@ -1573,6 +1640,11 @@ class Mesh(Points):
 
         pcl = Points(ptsa[ids])
         pcl.name = "InsidePoints"
+
+        pcl.pipeline = OperationNode(
+            "inside_points", parents=[self, ptsa], 
+            comment=f"#pts {pcl._data.GetNumberOfPoints()}",
+        )
         return pcl
 
     def boundaries(
@@ -1648,7 +1720,15 @@ class Mesh(Points):
 
             fe.SetInputData(self.polydata())
             fe.Update()
-            return Mesh(fe.GetOutput(), c="p").lw(5).lighting("off")
+            msh = Mesh(fe.GetOutput(), c="p").lw(5).lighting("off")
+
+            msh.pipeline = OperationNode(
+                "boundaries", 
+                parents=[self], 
+                shape="octagon",
+                comment=f"#pts {msh._data.GetNumberOfPoints()}",
+            )
+            return msh
 
 
     def imprint(self, loopline, tol=0.01):
@@ -1687,7 +1767,12 @@ class Mesh(Points):
         imp.BoundaryEdgeInsertionOn()
         imp.TriangulateOutputOn()
         imp.Update()
-        return self._update(imp.GetOutput())
+        out = self._update(imp.GetOutput())
+
+        out.pipeline = OperationNode("imprint", parents=[self], 
+            comment=f"#pts {out._data.GetNumberOfPoints()}",
+        )
+        return out
 
     def connected_vertices(self, index):
         """Find all vertices connected to an input vertex specified by its index.
@@ -1809,6 +1894,7 @@ class Mesh(Points):
 
         m.lw(2).c((0, 0, 0)).lighting("off")
         m.mapper().SetResolveCoincidentTopologyToPolygonOffset()
+        m.pipeline = OperationNode("silhouette", parents=[self])
         return m
 
     @deprecated(reason=vedo.colors.red + "Please use follow_camera()" + vedo.colors.reset)
@@ -1840,6 +1926,7 @@ class Mesh(Points):
                 factor.SetCamera(plt.renderer.GetActiveCamera())
             else:
                 factor._isfollower = True  # postpone to show() call
+        
         return factor
 
     def isobands(self, n=10, vmin=None, vmax=None):
@@ -1898,6 +1985,8 @@ class Mesh(Points):
         bcf.GetOutput().GetCellData().GetScalars().SetName("IsoBands")
         m1 = Mesh(bcf.GetOutput()).compute_normals(cells=True)
         m1.mapper().SetLookupTable(lut)
+
+        m1.pipeline = OperationNode("isobands", parents=[self])
         return m1
 
     def isolines(self, n=10, vmin=None, vmax=None):
@@ -1935,6 +2024,7 @@ class Mesh(Points):
         cl.Update()
         msh = Mesh(cl.GetOutput(), c="k").lighting("off")
         msh.mapper().SetResolveCoincidentTopologyToPolygonOffset()
+        msh.pipeline = OperationNode("isolines", parents=[self])
         return msh
 
     def extrude(self, zshift=1, rotation=0, dR=0, cap=True, res=1):
@@ -1999,7 +2089,14 @@ class Mesh(Points):
         m.SetScale(self.GetScale())
         m.SetOrientation(self.GetOrientation())
         m.SetPosition(self.GetPosition())
-        return m.compute_normals(cells=False).flat().lighting("default")
+        
+        m.compute_normals(cells=False).flat().lighting("default")
+
+        m.pipeline = OperationNode(
+            "extrude", parents=[self], 
+            comment=f"#pts {m._data.GetNumberOfPoints()}",
+        )
+        return m
 
     def split(self, maxdepth=1000, flag=False):
         """
@@ -2043,6 +2140,12 @@ class Mesh(Points):
             l[0].color(i + 1).phong()
             l[0].mapper().ScalarVisibilityOff()
             blist.append(l[0])
+        
+            if i<4:
+                l[0].pipeline = OperationNode(
+                    f"split mesh {i}", parents=[self], 
+                    comment=f"#pts {l[0]._data.GetNumberOfPoints()}",
+                )
         return blist
 
     @deprecated(reason=vedo.colors.red + "Please use extract_largest_region()" + vedo.colors.reset)
@@ -2074,6 +2177,11 @@ class Mesh(Points):
         m.SetPosition(self.GetPosition())
         vis = self._mapper.GetScalarVisibility()
         m.mapper().SetScalarVisibility(vis)
+
+        m.pipeline = OperationNode(
+            "extract_largest_region", parents=[self], 
+            comment=f"#pts {m._data.GetNumberOfPoints()}",
+        )
         return m
 
     def boolean(self, operation, mesh2, method=0, tol=None):
@@ -2111,9 +2219,17 @@ class Mesh(Points):
         bf.SetInputData(0, poly1)
         bf.SetInputData(1, poly2)
         bf.Update()
+
         msh = Mesh(bf.GetOutput(), c=None)
         msh.flat()
         msh.name = self.name + operation + mesh2.name
+
+        msh.pipeline = OperationNode(
+            "boolean " + operation, 
+            parents=[self, mesh2], 
+            shape="cylinder",
+            comment=f"#pts {msh._data.GetNumberOfPoints()}",
+        )
         return msh
 
     @deprecated(reason=vedo.colors.red + "Please use intersect_with()" + vedo.colors.reset)
@@ -2146,6 +2262,10 @@ class Mesh(Points):
         msh = Mesh(bf.GetOutput(), "k", 1).lighting("off")
         msh.GetProperty().SetLineWidth(3)
         msh.name = "SurfaceIntersection"
+        
+        msh.pipeline = OperationNode(
+            "intersect_with", parents=[self, mesh2], comment=f"#pts {msh.npoints}",
+        )
         return msh
 
     def intersect_with_line(self, p0, p1=None, return_ids=False, tol=0):
@@ -2224,6 +2344,11 @@ class Mesh(Points):
         msh = Mesh(cutter.GetOutput(), "k", 1).lighting("off")
         msh.GetProperty().SetLineWidth(3)
         msh.name = "PlaneIntersection"
+
+        msh.pipeline = OperationNode(
+            "intersect_with_plan", parents=[self], 
+            comment=f"#pts {msh._data.GetNumberOfPoints()}",
+        )
         return msh
 
     def intersect_with_multiplanes(self, origin=(0,0,0), normal=(1,0,0), dmin=-1, dmax=1, n=10):
@@ -2271,11 +2396,17 @@ class Mesh(Points):
         msh.property.LightingOff()
         msh.property.SetColor(get_color("k2"))
         msh.lw(2)
+
+        msh.pipeline = OperationNode(
+            "intersect_with_multiplanes", parents=[self], 
+            comment=f"#pts {msh._data.GetNumberOfPoints()}",
+        )
         return msh
 
     def collide_with(self, mesh2, tol=0, return_bool=False):
         """
         Collide this Mesh with the input surface.
+        Information is stored in `ContactCells1` and `ContactCells2`.
         """
         ipdf = vtk.vtkCollisionDetectionFilter()
         # ipdf.SetGlobalWarningDisplay(0)
@@ -2303,6 +2434,11 @@ class Mesh(Points):
         msh.metadata["ContactCells2"] = vtk2numpy(ipdf.GetOutput(1).GetFieldData().GetArray("ContactCells"))
         msh.GetProperty().SetLineWidth(3)
         msh.name = "SurfaceCollision"
+ 
+        msh.pipeline = OperationNode(
+            "collide_with", parents=[self, mesh2], 
+            comment=f"#pts {msh._data.GetNumberOfPoints()}",
+        )
         return msh
 
     def geodesic(self, start, end):
@@ -2363,6 +2499,11 @@ class Mesh(Points):
         dmesh.SetProperty(prop)
         dmesh.property = prop
         dmesh.name = "GeodesicLine"
+
+        dmesh.pipeline = OperationNode(
+            "GeodesicLine", parents=[self], 
+            comment=f"#pts {dmesh._data.GetNumberOfPoints()}",
+        )
         return dmesh
 
     #####################################################################
@@ -2430,7 +2571,15 @@ class Mesh(Points):
         imgstenc.SetReverseStencil(invert)
         imgstenc.SetBackgroundValue(outval)
         imgstenc.Update()
-        return vedo.Volume(imgstenc.GetOutput())
+        vol = vedo.Volume(imgstenc.GetOutput())
+
+        vol.pipeline = OperationNode(
+            "binarize", 
+            parents=[self], 
+            comment=f"dim = {tuple(vol.dimensions())}",
+            c="#e9c46a:#0096c7"
+        )
+        return vol
 
 
     @deprecated(reason=vedo.colors.red + "Please use signed_distance()" + vedo.colors.reset)
@@ -2488,6 +2637,12 @@ class Mesh(Points):
 
         vol = vedo.Volume(img)
         vol.name = "SignedVolume"
+
+        vol.pipeline = OperationNode(
+            "signed_distance", parents=[self], 
+            comment=f"dim = {tuple(vol.dimensions())}",
+            c="#e9c46a:#0096c7"
+        )
         return vol
 
     def tetralize(
@@ -2601,6 +2756,13 @@ class Mesh(Points):
 
         if debug:
             print(f".. tetralize() completed, ntets = {tmesh.ncells}")
+
+        tmesh.pipeline = OperationNode(
+            "tetralize", 
+            parents=[self], 
+            comment=f"#tets = {tmesh.ncells}",
+            c="#e9c46a:#9e2a2b"
+        )        
         return tmesh
 
 ####################################################
@@ -2628,3 +2790,10 @@ class Follower(vedo.base.BaseActor, vtk.vtkFollower):
         self.SetUseBounds(actor.GetUseBounds())
 
         self.PickableOff()
+
+        self.pipeline = OperationNode(
+            "Follower", 
+            parents=[actor],
+            shape='component',
+            c="#d9ed92",
+        )        

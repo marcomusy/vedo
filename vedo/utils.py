@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import math
 import os
-import sys
 import time
 
 import numpy as np
@@ -62,7 +61,87 @@ __all__ = [
     "open3d2vedo",
     "vtk2numpy",
     "numpy2vtk",
+    "get_uv",
 ]
+
+
+###########################################################################
+class OperationNode:
+
+    def __init__(
+        self, 
+        operation,
+        parents=(),
+        comment="",
+        shape="none",
+        c="#e9c46a",
+        style="filled",
+    ):
+        if isinstance(operation, str):
+            self.operation = operation
+        else:
+            self.operation = operation.__class__.__name__
+
+        pp = [] # filter out invalid stuff
+        for p in parents:
+            if hasattr(p, "pipeline"):
+                pp.append(p.pipeline)
+        self.parents = pp
+
+        if comment:
+            self.operation = f"<{self.operation}<BR/><SUB><I>{comment}</I></SUB>>"
+
+        self.dot = None
+        self.time = time.time()
+        self.shape = shape
+        self.color = c
+        self.style = style
+
+    def __repr__(self):
+        return self.operation
+
+    def _build_tree(self, dot):
+        dot.node(
+            str(id(self)), 
+            label=self.operation, 
+            shape=self.shape,
+            color=self.color,
+            style=self.style,
+        )
+        t = f"{time.time()- self.time: .1f}s"
+        for parent in self.parents:
+
+            dot.edge(str(id(parent)), str(id(self)), label=t)
+            parent._build_tree(dot)
+    
+    def draw(self):
+        try:
+            from graphviz import Digraph
+        except ImportError:
+            vedo.logger.error("please install graphviz with command\n pip install graphviz")
+            return
+
+        # visualize the entire tree
+        dot = Digraph(
+            node_attr={
+                'color': self.color, 
+                'shape': self.shape,
+                'style': self.style,
+                'fontcolor':'#201010',
+                'fontname': "Helvetica",
+                'fontsize': '12',
+        },
+            edge_attr={ 
+                'fontname': "Helvetica",
+                'fontsize': '6',
+                'arrowsize': '0.33',
+            }
+        )
+        dot.attr(rankdir='LR')
+
+        self._build_tree(dot)
+        dot.render('.vedo_pipeline_tree', view=True)
+        self.dot = dot
 
 
 ###########################################################################
@@ -286,7 +365,7 @@ def numpy2vtk(arr, dtype=None, deep=True, name=""):
 
 
 def vtk2numpy(varr):
-    """Convert a `vtkDataArray` or `vtkIdList` into a numpy array"""
+    """Convert a `vtkDataArray`, `vtkIdList` or `vtTransform` into a numpy array."""
     if isinstance(varr, vtk.vtkIdList):
         return np.array([varr.GetId(i) for i in range(varr.GetNumberOfIds())])
     elif isinstance(varr, vtk.vtkBitArray):
@@ -386,10 +465,6 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, tetras=False
     if not is_sequence(vertices[0]):
         return poly
 
-    # if len(vertices[0]) < 3:  # make sure it is 3d
-    #     vertices = np.c_[np.array(vertices), np.zeros(len(vertices))]
-    #     if len(vertices[0]) == 2:  # make sure it was not 1d!
-    #         vertices = np.c_[vertices, np.zeros(len(vertices))]
     vertices = make3d(vertices)
 
     source_points = vtk.vtkPoints()
@@ -633,8 +708,7 @@ def sort_by_column(arr, nth, invert=False):
 
 def point_in_triangle(p, p1, p2, p3):
     """
-    Return True if a point is inside (or above/below)
-    a triangle defined by 3 points in space.
+    Return True if a point is inside (or above/below) a triangle defined by 3 points in space.
     """
     p1 = np.array(p1)
     u = p2 - p1

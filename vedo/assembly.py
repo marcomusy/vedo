@@ -278,6 +278,10 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
                 )
 
         return self
+    
+    # def __radd__(self, obj):
+    #     return obj + self
+
 
     def __contains__(self, obj):
         """Allows to use ``in`` to check if an object is in the Assembly."""

@@ -89,6 +89,10 @@ def merge(*meshs, flag=False):
         cprp.DeepCopy(acts[0].GetProperty())
         msh.SetProperty(cprp)
         msh.property = cprp
+
+    msh.pipeline = utils.OperationNode(
+        "merge", parents=acts, comment=f"#pts {msh._data.GetNumberOfPoints()}",
+    )
     return msh
 
 
@@ -1047,6 +1051,9 @@ class Points(BaseActor, vtk.vtkActor):
         cloned.point_locator = None
         cloned.cell_locator = None
 
+        cloned.pipeline = utils.OperationNode(
+            "clone", parents=[self], shape='diamond', c='#edede9',
+        )
         return cloned
 
     def clone2d(
