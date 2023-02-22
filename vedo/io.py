@@ -1000,7 +1000,8 @@ def loadnumpy(inobj):
     ######################################################
     def _load_common(obj, d):
         keys = d.keys()
-        if 'time' in keys: obj.time(d['time'])
+        if 'time' in keys: 
+            obj.time = d['time']
         if 'name' in keys: obj.name = d['name']
         if 'filename' in keys: obj.filename = d['filename']
         if 'info' in keys: obj.info = d['info']

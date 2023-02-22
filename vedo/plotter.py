@@ -3525,6 +3525,7 @@ class Plotter:
                 "  ============================================================\n"
                 " | Press: i     print info about selected object              |\n"
                 " |        I     print the RGB color under the mouse           |\n"
+                " |        y     show the pipeline for this object as a graph  |\n"
                 " |        <-->  use arrows to reduce/increase opacity         |\n"
                 " |        w/s   toggle wireframe/surface style                |\n"
                 " |        p/P   change point size of vertices                 |\n"
@@ -3968,6 +3969,10 @@ class Plotter:
         elif key == "I":  # print color under the mouse
             x, y = iren.GetEventPosition()
             self.color_picker([x, y], verbose=True)
+
+        elif key == "y":
+            if self.clicked_actor and self.clicked_actor.pipeline:
+                self.clicked_actor.pipeline.draw()
 
         if iren:
             iren.Render()
