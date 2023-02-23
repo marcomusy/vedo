@@ -56,6 +56,7 @@ class BaseVolume:
         newimg = vtk.vtkImageData()
         newimg.CopyStructure(self._data)
         newimg.CopyAttributes(self._data)
+
         newvol = Volume(newimg)
         prop = vtk.vtkVolumeProperty()
         prop.DeepCopy(self.GetProperty())
@@ -64,6 +65,7 @@ class BaseVolume:
         newvol.SetScale(self.GetScale())
         newvol.SetOrientation(self.GetOrientation())
         newvol.SetPosition(self.GetPosition())
+        newvol.pipeline = utils.OperationNode("clone", parents=[self], c="#bbd0ff")
         return newvol
 
     def imagedata(self):
@@ -149,7 +151,10 @@ class BaseVolume:
         imp.SetFilteredAxes(x, y, z)
         imp.SetInputData(self.imagedata())
         imp.Update()
-        return self._update(imp.GetOutput())
+        self._update(imp.GetOutput())
+        self.pipeline = utils.OperationNode(
+            f"permute_axes\n{tuple(x,y,z)}", parents=[self], c="#4cc9f0")
+        return self
 
     def resample(self, new_spacing, interpolation=1):
         """
@@ -173,7 +178,10 @@ class BaseVolume:
         rsp.SetInterpolationMode(interpolation)
         rsp.OptimizationOn()
         rsp.Update()
-        return self._update(rsp.GetOutput())
+        self._update(rsp.GetOutput())
+        self.pipeline = utils.OperationNode(
+            f"resample\n{tuple(new_spacing)}", parents=[self], c="#4cc9f0")
+        return self
 
     def interpolation(self, itype):
         """
@@ -225,8 +233,9 @@ class BaseVolume:
             th.SetReplaceOut(False)
 
         th.Update()
-        out = th.GetOutput()
-        return self._update(out)
+        self._update(th.GetOutput())
+        self.pipeline = utils.OperationNode("threshold", parents=[self], c="#4cc9f0")
+        return self
 
     def crop(
             self,
@@ -273,7 +282,13 @@ class BaseVolume:
             if top is not None:    bz1 = int((d[2]-1)*(1-top))
             extractVOI.SetVOI(bx0, bx1, by0, by1, bz0, bz1)
         extractVOI.Update()
-        return self._update(extractVOI.GetOutput())
+        self._update(extractVOI.GetOutput())
+
+        self.pipeline = utils.OperationNode(
+            "crop", parents=[self], c="#4cc9f0",
+            comment=f"dims={tuple(self.dimensions())}",
+        )
+        return self
 
     def append(self, volumes, axis="z", preserve_extents=False):
         """
@@ -319,7 +334,13 @@ class BaseVolume:
             axis = 2
         ima.SetAppendAxis(axis)
         ima.Update()
-        return self._update(ima.GetOutput())
+        self._update(ima.GetOutput())
+        
+        self.pipeline = utils.OperationNode(
+            "append", parents=[self, *volumes], c="#4cc9f0",
+            comment=f"dims={tuple(self.dimensions())}",
+        )
+        return self
 
     def resize(self, *newdims):
         """Increase or reduce the number of voxels of a Volume with interpolation."""
@@ -333,14 +354,21 @@ class BaseVolume:
         self._data = rsz.GetOutput()
         new_spac = old_spac * old_dims / newdims  # keep aspect ratio
         self._data.SetSpacing(new_spac)
-        return self._update(self._data)
+        self._update(self._data)
+        self.pipeline = utils.OperationNode(
+            "resize", parents=[self], c="#4cc9f0",
+            comment=f"dims={tuple(self.dimensions())}",
+        )
+        return self
 
     def normalize(self):
         """Normalize that scalar components for each point."""
         norm = vtk.vtkImageNormalize()
         norm.SetInputData(self.imagedata())
         norm.Update()
-        return self._update(norm.GetOutput())
+        self._update(norm.GetOutput())
+        self.pipeline = utils.OperationNode("normalize", parents=[self], c="#4cc9f0")
+        return self
 
     def mirror(self, axis="x"):
         """
@@ -360,7 +388,9 @@ class BaseVolume:
             vedo.logger.error("mirror must be set to either x, y, z or n")
             raise RuntimeError()
         ff.Update()
-        return self._update(ff.GetOutput())
+        self._update(ff.GetOutput())
+        self.pipeline = utils.OperationNode(f"mirror {axis}", parents=[self], c="#4cc9f0")
+        return self
 
     def operation(self, operation, volume2=None):
         """
@@ -380,39 +410,37 @@ class BaseVolume:
         op = operation.lower()
         image1 = self._data
 
+        mf = None
         if op in ["median"]:
             mf = vtk.vtkImageMedian3D()
             mf.SetInputData(image1)
-            mf.Update()
-            return Volume(mf.GetOutput())
-        if op in ["mag"]:
+        elif op in ["mag"]:
             mf = vtk.vtkImageMagnitude()
             mf.SetInputData(image1)
-            mf.Update()
-            return Volume(mf.GetOutput())
-        if op in ["dot", "dotproduct"]:
+        elif op in ["dot", "dotproduct"]:
             mf = vtk.vtkImageDotProduct()
             mf.SetInput1Data(image1)
             mf.SetInput2Data(volume2.imagedata())
-            mf.Update()
-            return Volume(mf.GetOutput())
-        if op in ["grad", "gradient"]:
+        elif op in ["grad", "gradient"]:
             mf = vtk.vtkImageGradient()
             mf.SetDimensionality(3)
             mf.SetInputData(image1)
-            mf.Update()
-            return Volume(mf.GetOutput())
-        if op in ["div", "divergence"]:
+        elif op in ["div", "divergence"]:
             mf = vtk.vtkImageDivergence()
             mf.SetInputData(image1)
-            mf.Update()
-            return Volume(mf.GetOutput())
-        if op in ["laplacian"]:
+        elif op in ["laplacian"]:
             mf = vtk.vtkImageLaplacian()
             mf.SetDimensionality(3)
             mf.SetInputData(image1)
+        
+        if mf is not None:
             mf.Update()
-            return Volume(mf.GetOutput())
+            vol = Volume(mf.GetOutput())
+            vol.pipeline = utils.OperationNode(
+                f"operation\n{op}", parents=[self], c="#4cc9f0",
+                shape="cylinder",
+            )
+            return vol ###########################
 
         mat = vtk.vtkImageMathematics()
         mat.SetInput1Data(image1)
@@ -482,7 +510,14 @@ class BaseVolume:
             vedo.logger.error(f"unknown operation {operation}")
             raise RuntimeError()
         mat.Update()
-        return self._update(mat.GetOutput())
+
+        self._update(mat.GetOutput())
+
+        self.pipeline = utils.OperationNode(
+            f"operation\n{op}", parents=[self, volume2],
+            shape="cylinder", c="#4cc9f0",
+        )
+        return self
 
     def frequency_pass_filter(self, low_cutoff=None, high_cutoff=None, order=1):
         """
@@ -533,7 +568,9 @@ class BaseVolume:
         ecomp.SetInputData(rfft.GetOutput())
         ecomp.SetComponents(0)
         ecomp.Update()
-        return self._update(ecomp.GetOutput())
+        self._update(ecomp.GetOutput())
+        self.pipeline = utils.OperationNode("frequency_pass_filter", parents=[self], c="#4cc9f0")
+        return self
 
     def smooth_gaussian(self, sigma=(2, 2, 2), radius=None):
         """
@@ -560,7 +597,9 @@ class BaseVolume:
             else:
                 gsf.SetRadiusFactor(radius)
         gsf.Update()
-        return self._update(gsf.GetOutput())
+        self._update(gsf.GetOutput())
+        self.pipeline = utils.OperationNode("smooth_gaussian", parents=[self], c="#4cc9f0")
+        return self
 
     def smooth_median(self, neighbours=(2, 2, 2)):
         """
@@ -574,7 +613,9 @@ class BaseVolume:
         else:
             imgm.SetKernelSize(neighbours, neighbours, neighbours)
         imgm.Update()
-        return self._update(imgm.GetOutput())
+        self._update(imgm.GetOutput())
+        self.pipeline = utils.OperationNode("smooth_median", parents=[self], c="#4cc9f0")
+        return self
 
     def erode(self, neighbours=(2, 2, 2)):
         """
@@ -590,7 +631,9 @@ class BaseVolume:
         ver.SetInputData(self._data)
         ver.SetKernelSize(neighbours[0], neighbours[1], neighbours[2])
         ver.Update()
-        return self._update(ver.GetOutput())
+        self._update(ver.GetOutput())
+        self.pipeline = utils.OperationNode("erode", parents=[self], c="#4cc9f0")
+        return self
 
     def dilate(self, neighbours=(2, 2, 2)):
         """
@@ -604,14 +647,18 @@ class BaseVolume:
         ver.SetInputData(self._data)
         ver.SetKernelSize(neighbours[0], neighbours[1], neighbours[2])
         ver.Update()
-        return self._update(ver.GetOutput())
+        self._update(ver.GetOutput())
+        self.pipeline = utils.OperationNode("dilate", parents=[self], c="#4cc9f0")
+        return self
 
     def magnitude(self):
         """Colapses components with magnitude function."""
         imgm = vtk.vtkImageMagnitude()
         imgm.SetInputData(self.imagedata())
         imgm.Update()
-        return self._update(imgm.GetOutput())
+        self._update(imgm.GetOutput())
+        self.pipeline = utils.OperationNode("magnitude", parents=[self], c="#4cc9f0")
+        return self
 
     def topoints(self):
         """
@@ -626,6 +673,7 @@ class BaseVolume:
         v2p.SetInputData(self.imagedata())
         v2p.Update()
         mpts = vedo.Points(v2p.GetOutput())
+        mpts.pipeline = utils.OperationNode("topoints", parents=[self], c="#4cc9f0:#e9c46a")
         return mpts
 
     def euclidean_distance(self, anisotropy=False, max_distance=None):
@@ -655,7 +703,9 @@ class BaseVolume:
             euv.SetMaximumDistance(max_distance)
         euv.SetAlgorithmToSaito()
         euv.Update()
-        return Volume(euv.GetOutput())
+        vol = Volume(euv.GetOutput())
+        vol.pipeline = utils.OperationNode("euclidean_distance", parents=[self], c="#4cc9f0")
+        return vol
 
     def correlation_with(self, vol2, dim=2):
         """
@@ -671,7 +721,12 @@ class BaseVolume:
         imc.SetInput2Data(vol2.imagedata())
         imc.SetDimensionality(dim)
         imc.Update()
-        return Volume(imc.GetOutput())
+        vol = Volume(imc.GetOutput())
+
+        vol.pipeline = utils.OperationNode(
+            "correlation_with", parents=[self, vol2], c="#4cc9f0",
+        )
+        return vol
 
     def scale_voxels(self, scale=1):
         """Scale the voxel content by factor `scale`."""
@@ -679,7 +734,10 @@ class BaseVolume:
         rsl.SetInputData(self.imagedata())
         rsl.SetScalarScale(scale)
         rsl.Update()
-        return self._update(rsl.GetOutput())
+        self._update(rsl.GetOutput())
+        self.pipeline = utils.OperationNode(
+            f"scale_voxels\nscale={scale}", parents=[self], c="#4cc9f0")
+        return self
 
 
 ##########################################################################
@@ -904,6 +962,12 @@ class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
         self._alpha = alpha
         self._alpha_grad = alpha_gradient
         self._alpha_unit = alpha_unit
+        
+        self.pipeline = utils.OperationNode("Volume",
+            comment=f"dims={tuple(self.dimensions())}", c="#4cc9f0",
+        )
+        #######################################################################
+
 
     def _update(self, data):
         self._data = data
@@ -1101,7 +1165,9 @@ class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
             i = nx - 1
         vslice.SetExtent(i, i, 0, ny, 0, nz)
         vslice.Update()
-        return Mesh(vslice.GetOutput())
+        m = Mesh(vslice.GetOutput())
+        m.pipeline = utils.OperationNode(f"xslice {i}", parents=[self], c="#4cc9f0:#e9c46a")
+        return m
 
     def yslice(self, j):
         """Extract the slice at index `j` of volume along y-axis."""
@@ -1112,7 +1178,9 @@ class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
             j = ny - 1
         vslice.SetExtent(0, nx, j, j, 0, nz)
         vslice.Update()
-        return Mesh(vslice.GetOutput())
+        m = Mesh(vslice.GetOutput())
+        m.pipeline = utils.OperationNode(f"yslice {j}", parents=[self], c="#4cc9f0:#e9c46a")
+        return m
 
     def zslice(self, k):
         """Extract the slice at index `i` of volume along z-axis."""
@@ -1123,7 +1191,9 @@ class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
             k = nz - 1
         vslice.SetExtent(0, nx, 0, ny, k, k)
         vslice.Update()
-        return Mesh(vslice.GetOutput())
+        m = Mesh(vslice.GetOutput())
+        m.pipeline = utils.OperationNode(f"zslice {k}", parents=[self], c="#4cc9f0:#e9c46a")
+        return m
 
     @deprecated(reason=vedo.colors.red + "Please use slice_plane()" + vedo.colors.reset)
     def slicePlane(self, *a, **b):
@@ -1162,6 +1232,8 @@ class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
         msh = Mesh(vslice.GetOutput())
         msh.SetOrientation(T.GetOrientation())
         msh.SetPosition(pos)
+        msh.pipeline = utils.OperationNode(
+            "slice_plane", parents=[self], c="#4cc9f0:#e9c46a")
         return msh
 
     def warp(self, source, target, sigma=1, mode="3d", fit=False):
@@ -1213,6 +1285,7 @@ class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
         T.Inverse()
         self.transform = T
         self.apply_transform(T, fit=fit)
+        self.pipeline = utils.OperationNode("warp", parents=[self], c="#4cc9f0")
         return self
 
     def apply_transform(self, T, fit=False):
@@ -1271,7 +1344,9 @@ class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
             reslice.SetOutputOrigin(origin[0], origin[1], origin[2])
 
         reslice.Update()
-        return self._update(reslice.GetOutput())
+        self._update(reslice.GetOutput())
+        self.pipeline = utils.OperationNode("apply_transform", parents=[self], c="#4cc9f0")
+        return self
 
 
 ##########################################################################

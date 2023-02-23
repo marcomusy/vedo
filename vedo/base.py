@@ -1735,7 +1735,7 @@ class BaseGrid(BaseActor):
         msh.pipeline = utils.OperationNode(
             "tomesh", parents=[self], 
             comment=f"fill={fill}",
-            c="#6b705c:#e9c46a",
+            c="#4cc9f0:#e9c46a",
         )
         return msh
 
@@ -1947,7 +1947,7 @@ class BaseGrid(BaseActor):
         out.pipeline = utils.OperationNode(
             "isosurface", parents=[self], 
             comment=f"#pts {out._data.GetNumberOfPoints()}",
-            c="#6b705c:#e9c46a",
+            c="#4cc9f0:#e9c46a",
         )
         return out
 
@@ -2009,7 +2009,7 @@ class BaseGrid(BaseActor):
         m.pipeline = utils.OperationNode(
             "legosurface", parents=[self], 
             comment=f"array: {array_name}",
-            c="#6b705c:#e9c46a",
+            c="#4cc9f0:#e9c46a",
         )
         return m
 
@@ -2265,7 +2265,7 @@ class BaseGrid(BaseActor):
         ug.pipeline = utils.OperationNode(
             "extract_cells_by_id", parents=[self],
             comment=f"#cells {self._data.GetNumberOfCells()}",
-            c="#6b705c",
+            c="#4cc9f0",
         )
         return ug
 
