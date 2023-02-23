@@ -247,17 +247,26 @@ class Button:
         """
         self.status_idx = 0
         self.states = states
+
+        if not utils.is_sequence(c):
+            c = [c]
         self.colors = c
+        
+        if not utils.is_sequence(bc):
+            bc = [bc]
         self.bcolors = bc
+        
+        assert len(c) == len(bc), "in Button color number mismatch!"
         self.function = fnc
         self.actor = vtk.vtkTextActor()
 
         self.actor.GetActualPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
         self.actor.SetPosition(pos[0], pos[1])
 
-        self.framewidth = 2
         self.offset = 5
         self.spacer = " "
+
+        self.len_states = max([len(s) for s in states])
 
         self.text_property = self.actor.GetTextProperty()
         self.text_property.SetJustificationToCentered()
@@ -275,17 +284,54 @@ class Button:
             self.text_property.SetFontFamily(vtk.VTK_FONT_FILE)
             self.text_property.SetFontFile(utils.get_font_path(font))
         self.text_property.SetFontSize(size)
+
         self.text_property.SetBackgroundOpacity(alpha)
+
         self.text_property.BoldOff()
         if bold:
             self.text_property.BoldOn()
+
         self.text_property.ItalicOff()
         if italic:
             self.text_property.ItalicOn()
+
         self.text_property.ShadowOff()
         self.text_property.SetOrientation(angle)
-        self.showframe = hasattr(self.text_property, "FrameOn")
+        self.text_property.SetLineOffset(self.offset)
+
+        self.hasframe = hasattr(self.text_property, "FrameOn")
+
         self.status(0)
+
+    def text(self, txt="", c=None):
+        if txt:
+            # n = int(self.len_states)
+            # ss = "{txt: ^"+str(n)+"}"
+            # t = f"{ss}"
+            t = txt
+            self.actor.SetInput(self.spacer + t + self.spacer)
+
+        if c is not None:
+            self.text_property.SetColor(get_color(c))
+        return self
+
+    def backcolor(self, c):
+        self.text_property.SetBackgroundColor(get_color(c))
+        return self
+
+    def frame(self, lw=None, c=None):
+        if self.hasframe:
+            self.text_property.FrameOn()
+            if lw is not None:
+                if lw > 0:
+                    self.text_property.FrameOn()
+                    self.text_property.SetFrameWidth(lw)
+                else:
+                    self.text_property.FrameOff()
+                    return self
+            if c is not None:
+                self.text_property.SetFrameColor(get_color(c))
+        return self
 
     def status(self, s=None):
         """
@@ -297,16 +343,10 @@ class Button:
         if isinstance(s, str):
             s = self.states.index(s)
         self.status_idx = s
-        self.text_property.SetLineOffset(self.offset)
-        self.actor.SetInput(self.spacer + self.states[s] + self.spacer)
-        s = s % len(self.colors)  # to avoid mismatch
-        self.text_property.SetColor(get_color(self.colors[s]))
-        bcc = np.array(get_color(self.bcolors[s]))
-        self.text_property.SetBackgroundColor(bcc)
-        if self.showframe:
-            self.text_property.FrameOn()
-            self.text_property.SetFrameWidth(self.framewidth)
-            self.text_property.SetFrameColor(np.sqrt(bcc))
+        self.text(self.states[s])
+        s = s % len(self.bcolors)  
+        self.text(c=self.colors[s])
+        self.backcolor(self.bcolors[s])
         return self
 
     def switch(self):

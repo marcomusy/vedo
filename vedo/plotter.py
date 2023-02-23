@@ -1556,7 +1556,6 @@ class Plotter:
         self.buttons.append(bu)
         return bu
 
-        return addons.add_button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
 
     @deprecated(reason=vedo.colors.red + "Please use add_spline_tool()" + vedo.colors.reset)
     def addSplineTool(self, *a, **b):

@@ -4153,9 +4153,7 @@ class Points(BaseActor, vtk.vtkActor):
             cutoff.c("k5").alpha(0.2)
             return vedo.Assembly([self, cutoff])
 
-        self.pipeline = utils.OperationNode(
-            "cut_with_mesh", parents=[self, mesh],
-        )
+        self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self, mesh])
         return self
 
     def cut_with_point_loop(

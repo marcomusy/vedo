@@ -1735,7 +1735,7 @@ class BaseGrid(BaseActor):
         msh.pipeline = utils.OperationNode(
             "tomesh", parents=[self], 
             comment=f"fill={fill}",
-            c="#4cc9f0:#e9c46a",
+            c="#9e2a2b:#e9c46a",
         )
         return msh
 
@@ -1902,7 +1902,8 @@ class BaseGrid(BaseActor):
         sf.SetShrinkFactor(fraction)
         sf.Update()
         self._update(sf.GetOutput())
-        self.pipeline = utils.OperationNode(f"shrink\nby {fraction}", parents=[self])
+        self.pipeline = utils.OperationNode(
+            "shrink", comment=f"by {fraction}", parents=[self], c='#9e2a2b')
         return self
 
     def isosurface(self, value=None, flying_edges=True):
@@ -2047,7 +2048,8 @@ class BaseGrid(BaseActor):
         clipper.Update()
         cout = clipper.GetOutput()
         self._update(cout)
-        self.pipeline = utils.OperationNode("cut_with_plane", parents=[self])
+        self.pipeline = utils.OperationNode(
+            "cut_with_plane", parents=[self], c='#9e2a2b')
         return self
 
     def cut_with_box(self, box):
@@ -2076,7 +2078,8 @@ class BaseGrid(BaseActor):
         bc.SetBoxClip(*boxb)
         bc.Update()
         self._update(bc.GetOutput())
-        self.pipeline = utils.OperationNode("cut_with_box", parents=[self, box])
+        self.pipeline = utils.OperationNode(
+            "cut_with_box", parents=[self, box], c='#9e2a2b')
         return self
 
     def cut_with_mesh(self, mesh, invert=False, whole_cells=False, only_boundary=False):
@@ -2127,7 +2130,8 @@ class BaseGrid(BaseActor):
                     self.pointdata.select(scalname)
 
         self._update(cug)
-        self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self, mesh])
+        self.pipeline = utils.OperationNode(
+            "cut_with_mesh", parents=[self, mesh], c='#9e2a2b')
         return self
 
     def extract_cells_on_plane(self, origin, normal):
@@ -2149,7 +2153,7 @@ class BaseGrid(BaseActor):
         self._update(bf.GetOutput())
         self.pipeline = utils.OperationNode(
             "extract_cells_on_plane", parents=[self],
-            comment=f"#cells {self._data.GetNumberOfCells()}",
+            comment=f"#cells {self._data.GetNumberOfCells()}", c='#9e2a2b',
         )
         return self
 
@@ -2172,7 +2176,7 @@ class BaseGrid(BaseActor):
         self._update(bf.GetOutput())
         self.pipeline = utils.OperationNode(
             "extract_cells_on_sphere", parents=[self],
-            comment=f"#cells {self._data.GetNumberOfCells()}",
+            comment=f"#cells {self._data.GetNumberOfCells()}", c='#9e2a2b',
         )
         return self
 
@@ -2195,7 +2199,7 @@ class BaseGrid(BaseActor):
 
         self.pipeline = utils.OperationNode(
             "extract_cells_on_cylinder", parents=[self],
-            comment=f"#cells {self._data.GetNumberOfCells()}",
+            comment=f"#cells {self._data.GetNumberOfCells()}", c='#9e2a2b',
         )
         self._update(bf.GetOutput())
         return self
@@ -2215,6 +2219,7 @@ class BaseGrid(BaseActor):
         self.pipeline = utils.OperationNode(
             "clean", parents=[self],
             comment=f"#cells {self._data.GetNumberOfCells()}",
+            c='#9e2a2b',
         )
         return self
 
@@ -2265,7 +2270,7 @@ class BaseGrid(BaseActor):
         ug.pipeline = utils.OperationNode(
             "extract_cells_by_id", parents=[self],
             comment=f"#cells {self._data.GetNumberOfCells()}",
-            c="#4cc9f0",
+            c="#9e2a2b",
         )
         return ug
 

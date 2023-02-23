@@ -239,9 +239,8 @@ class Mesh(Points):
         if alpha is not None:
             self.property.SetOpacity(alpha)
         
-        self.pipeline = OperationNode(
-            self, parents=[], comment=f"#pts {self._data.GetNumberOfPoints()}",
-        )
+        n = self._data.GetNumberOfPoints()
+        self.pipeline = OperationNode(self, comment=f"#pts {n}")
 
     def faces(self):
         """
@@ -1628,7 +1627,7 @@ class Mesh(Points):
         sep.Update()
 
         varr = sep.GetOutput().GetPointData().GetArray("SelectedPoints")
-        mask = vtk2numpy(varr).astype(np.bool)
+        mask = vtk2numpy(varr).astype(bool)
         ids = np.array(range(len(ptsa)), dtype=int)[mask]
 
         if isinstance(pts, Points):

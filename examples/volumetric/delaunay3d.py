@@ -14,6 +14,7 @@ printc("# of points inside the sphere:", pin.npoints)
 tmesh = delaunay3d(pin).shrink(0.95)
 
 cmesh = tmesh.cut_with_plane(normal=(1,2,-1))
+# cmesh.pipeline.show()  # to show the graph of operations
 
 show([(s, pin, "Generate points in a Sphere"),
       (cmesh, __doc__),

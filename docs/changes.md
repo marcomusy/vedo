@@ -20,7 +20,8 @@
 - added `utils.open3d2vedo()` and `utils.vedo2open3d` converters as per #663
 - added `mesh.non_manifold_faces()` to detect and (try to) remove non-manifold faces of a triangular mesh #813 #663 and https://github.com/SlicerIGT/SlicerBoneReconstructionPlanner/issues/35
 - added `pointcloud.compute_acoplanarity()` method
-- add pipeline visualization
+- add pipeline visualization with syntax `any_vedo_obj.pipeline.show()` or interactively by clicking an object and pressing `y`.
+- fixes to `Button` class
 
 -------------------------
 ## New/Revised Examples

@@ -274,7 +274,7 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         imap.Update()
         self._update(imap.GetOutput())
         self.pipeline = utils.OperationNode(
-            f"cmap\n{name}", parents=[self], c="#f28482")
+            f"cmap", comment=f'"{name}"', parents=[self], c="#f28482")
         return self
 
     def extent(self, ext=None):
@@ -1185,33 +1185,25 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         self.pipeline = utils.OperationNode("triangle", parents=[self], c="#f28482")
         return self
 
-    def text(
+    def add_text(
         self,
         txt,
-        pos=(0, 0, 0),
-        s=1,
-        c=None,
+        pos=(0, 0), # TODO
+        width=400,
+        height=200,
         alpha=1,
+        c="black",
         bg=None,
+        alpha_bg=1,
         font="Theemim",
-        dpi=500,
+        dpi=200,
         justify="bottom-left",
     ):
-        """Build an image from a string."""
-
-        if c is None:  # automatic black or white
-            if vedo.plotter_instance and vedo.plotter_instance.renderer:
-                c = (0.9, 0.9, 0.9)
-                if np.sum(vedo.plotter_instance.renderer.GetBackground()) > 1.5:
-                    c = (0.1, 0.1, 0.1)
-            else:
-                c = (0.3, 0.3, 0.3)
-
-        r = vtk.vtkTextRenderer()
-        img = vtk.vtkImageData()
+        """Add text to an image."""
 
         tp = vtk.vtkTextProperty()
         tp.BoldOff()
+        tp.FrameOff()
         tp.SetColor(colors.get_color(c))
         tp.SetJustificationToLeft()
         if "top" in justify:
@@ -1226,7 +1218,7 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         if "right" in justify:
             tp.SetJustificationToRight()
 
-        if font.lower() == "courier": tp.SetFontFamilyToCourier()
+        if   font.lower() == "courier": tp.SetFontFamilyToCourier()
         elif font.lower() == "times": tp.SetFontFamilyToTimes()
         elif font.lower() == "arial": tp.SetFontFamilyToArial()
         else:
@@ -1236,30 +1228,33 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         if bg:
             bgcol = colors.get_color(bg)
             tp.SetBackgroundColor(bgcol)
-            tp.SetBackgroundOpacity(alpha * 0.5)
+            tp.SetBackgroundOpacity(alpha_bg)
             tp.SetFrameColor(bgcol)
             tp.FrameOn()
 
+        tr = vtk.vtkTextRenderer()
         # GetConstrainedFontSize (const vtkUnicodeString &str,
-        # vtkTextProperty *tprop, int targetWidth, int targetHeight, int dpi)
-        fs = r.GetConstrainedFontSize(txt, tp, 900, 1000, dpi)
+        # vtkTextProperty(*tprop, int targetWidth, int targetHeight, int dpi)
+        fs = tr.GetConstrainedFontSize(txt, tp, width, height, dpi)
         tp.SetFontSize(fs)
 
-        r.RenderString(tp, txt, img, [1, 1], dpi)
+        img = vtk.vtkImageData()
+        # img.SetOrigin(*pos,1)
+        tr.RenderString(tp, txt, img, [width, height], dpi)
         # RenderString (vtkTextProperty *tprop, const vtkStdString &str,
         #   vtkImageData *data, int textDims[2], int dpi, int backend=Default)
 
-        self.SetInputData(img)
-        self.GetMapper().Modified()
+        blf = vtk.vtkImageBlend()
+        blf.AddInputData(self._data)
+        blf.AddInputData(img)
+        blf.SetOpacity(0, 1)
+        blf.SetOpacity(1, alpha)
+        blf.SetBlendModeToNormal()
+        blf.Update()
 
-        self.SetPosition(pos)
-        x0, x1 = self.xbounds()
-        if x1 != x0:
-            sc = s / (x1 - x0)
-            self.SetScale(sc, sc, sc)
-
+        self._update(blf.GetOutput())
         self.pipeline = utils.OperationNode(
-            "text", comment=f"{txt}", parents=[self], c="#f28482")
+            "add_text", comment=f"{txt}", parents=[self], c="#f28482")
         return self
 
     def modified(self):

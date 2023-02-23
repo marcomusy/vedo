@@ -23,6 +23,7 @@ __docformat__ = "google"
 __doc__ = "Utilities submodule."
 
 __all__ = [
+    "OperationNode",
     "ProgressBar",
     "progressbar",
     "geometry",
@@ -68,7 +69,10 @@ __all__ = [
 
 ###########################################################################
 class OperationNode:
-    """Keep track of the operations which led to a final object."""
+    """
+    Keep track of the operations which led to a final object.
+    """
+    # https://www.graphviz.org/doc/info/shapes.html#html
     def __init__(
         self, 
         operation,
@@ -78,6 +82,54 @@ class OperationNode:
         c="#e9c46a",
         style="filled",
     ):
+        """
+        Keep track of the operations which led to a final object.
+        This allows to show the `pipeline` tree for any `vedo` object with e.g.:
+
+        ```python
+        from vedo import *
+        sp = Sphere()
+        sp.clean().subdivide()
+        sp.pipeline.show()
+        ```
+        
+        Arguments:
+            operation : (str, class)
+                descriptor label, if a class is passed then grab its name           
+            parents : (list)
+                list of the parent classes the object comes from           
+            comment : (str)
+                a second-line text description      
+            shape : (str)
+                shape of the frame, check out [this link.](https://graphviz.org/doc/info/shapes.html)     
+            c : (hex)
+                hex color
+            style : (str)
+                comma-separated list of styles
+
+        Example:
+            ```python
+            from vedo.utils import OperationNode
+
+            op_node1 = OperationNode("Operation1", c="lightblue")
+            op_node2 = OperationNode("Operation2")
+            op_node3 = OperationNode("Operation3", shape='diamond')
+            op_node4 = OperationNode("Operation4")
+            op_node5 = OperationNode("Operation5")
+            op_node6 = OperationNode("Result", c="lightgreen")
+
+            op_node3.add_parent(op_node1)
+            op_node4.add_parent(op_node1)
+            op_node3.add_parent(op_node2)
+            op_node5.add_parent(op_node2)
+            op_node6.add_parent(op_node3)
+            op_node6.add_parent(op_node5)
+            op_node6.add_parent(op_node1)
+
+            op_node6.show(orientation="TB")
+            ```
+            ![](https://vedo.embl.es/images/feats/operation_node.png)
+        """
         if not vedo.settings.enable_pipeline:
             return
 
@@ -110,8 +162,8 @@ class OperationNode:
         # Picture  #f28482
         # Assembly #f08080
 
-    def __repr__(self):
-        return self.operation
+    def add_parent(self, parent):
+        self.parents.append(parent)
 
     def _build_tree(self, dot):
         dot.node(

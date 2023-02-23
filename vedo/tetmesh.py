@@ -61,7 +61,7 @@ def delaunay3d(mesh, radius=0, tol=None):
     deln.Update()
     m = TetMesh(deln.GetOutput())
     m.pipeline = utils.OperationNode(
-        "delaunay3d", c="#e9c46a:#edabab", parents=[self, mesh],
+        "delaunay3d", c="#e9c46a:#edabab", parents=[mesh],
     )
     return m
 
