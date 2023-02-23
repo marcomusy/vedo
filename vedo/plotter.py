@@ -2681,19 +2681,11 @@ class Plotter:
             q=False,
         ):
         """
-        Render a list of actors.
+        Render a list of objects.
 
         Arguments:
             at : (int)
                 number of the renderer to plot to, in case of more than one exists
-            shape : (list, str)
-                Number of sub-render windows inside of the main window. E.g.:
-                specify two across with shape=(2,1) and a two by two grid
-                with shape=(2, 2).  By default there is only one renderer.
-
-                Can also accept a shape as string descriptor. E.g.:
-                - shape="3|1" means 3 plots on the left and 1 on the right,
-                - shape="4/2" means 4 plots on top of 2 at bottom.
 
             axes : (int)
                 axis type-1 can be fully customized by passing a dictionary.
@@ -2716,10 +2708,13 @@ class Plotter:
 
             azimuth/elevation/roll : (float)
                 move camera accordingly the specified value
+
             viewup: str, list
                 either `['x', 'y', 'z']` or a vector to set vertical direction
+
             resetcam : (bool)
                 re-adjust camera position to fit objects
+
             camera : (dict, vtkCamera)
                 camera parameters can further be specified with a dictionary
                 assigned to the ``camera`` keyword (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`):
@@ -2749,8 +2744,10 @@ class Plotter:
 
             interactive : (bool)
                 pause and interact with window (True) or continue execution (False)
+
             rate : (float)
                 maximum rate of `show()` in Hertz
+
             mode : (int, str)
                 set the type of interaction:
                 - 0 = TrackballCamera [default]

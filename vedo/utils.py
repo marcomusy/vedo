@@ -26,6 +26,7 @@ __all__ = [
     "ProgressBar",
     "progressbar",
     "geometry",
+    "extract_cells_by_type",
     "is_sequence",
     "lin_interpolate",
     "vector",
@@ -67,7 +68,7 @@ __all__ = [
 
 ###########################################################################
 class OperationNode:
-
+    """Keep track of the operations which led to a final object."""
     def __init__(
         self, 
         operation,
@@ -77,6 +78,9 @@ class OperationNode:
         c="#e9c46a",
         style="filled",
     ):
+        if not vedo.settings.enable_pipeline:
+            return
+
         if isinstance(operation, str):
             self.operation = operation
         else:
@@ -96,6 +100,7 @@ class OperationNode:
         self.shape = shape
         self.color = c
         self.style = style
+        self.counts = 0
 
     def __repr__(self):
         return self.operation
@@ -108,13 +113,18 @@ class OperationNode:
             color=self.color,
             style=self.style,
         )
-        t = f"{time.time()- self.time: .1f}s"
         for parent in self.parents:
-
-            dot.edge(str(id(parent)), str(id(self)), label=t)
-            parent._build_tree(dot)
+            if parent and self.counts < 1000:
+                t = f"{self.time - parent.time: .1f}s"
+                dot.edge(str(id(parent)), str(id(self)), label=t)
+                parent._build_tree(dot)
+                self.counts += 1
     
-    def show(self):
+    def show(self, orientation="LR", popup=True):
+        """Show the graphviz output for the pipeline of this object"""
+        if not vedo.settings.enable_pipeline:
+            return
+        
         try:
             from graphviz import Digraph
         except ImportError:
@@ -124,9 +134,6 @@ class OperationNode:
         # visualize the entire tree
         dot = Digraph(
             node_attr={
-                'color': self.color, 
-                'shape': self.shape,
-                'style': self.style,
                 'fontcolor':'#201010',
                 'fontname': "Helvetica",
                 'fontsize': '12',
@@ -134,14 +141,15 @@ class OperationNode:
             edge_attr={ 
                 'fontname': "Helvetica",
                 'fontsize': '6',
-                'arrowsize': '0.33',
+                'arrowsize': '0.4',
             }
         )
-        dot.attr(rankdir='LR')
-
+        dot.attr(rankdir=orientation)
+        
+        self.counts = 0
         self._build_tree(dot)
-        dot.render('.vedo_pipeline_graphviz', view=True)
         self.dot = dot
+        dot.render('.vedo_pipeline_graphviz', view=popup)
 
 
 ###########################################################################
@@ -441,6 +449,31 @@ def geometry(obj, extent=None):
         gf.SetExtent(extent)
     gf.Update()
     return vedo.Mesh(gf.GetOutput())
+
+
+def extract_cells_by_type(obj, types=()):
+    """
+    Extract cells of a specified type from a vtk dataset.
+
+    Given an input `vtkDataSet` and a list of cell types, produce an output
+    containing only cells of the specified type(s).
+    
+    Find [here](https://vtk.org/doc/nightly/html/vtkCellType_8h_source.html)
+    the list of possible cell types.
+
+    Return:
+        a `vtkDataSet` object which can be wrapped.
+    """
+    ef = vtk.vtkExtractCellsByType()
+    try:
+        ef.SetInputData(obj._data)
+    except:
+        ef.SetInputData(obj)
+
+    for ct in types:
+        ef.AddCellType(ct)
+    ef.Update()
+    return ef.GetOutput()
 
 
 def buildPolyData(vertices, faces=None, lines=None, index_offset=0, tetras=False):

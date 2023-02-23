@@ -2141,7 +2141,7 @@ class Mesh(Points):
             l[0].mapper().ScalarVisibilityOff()
             blist.append(l[0])
         
-            if i<4:
+            if i<10:
                 l[0].pipeline = OperationNode(
                     f"split mesh {i}", parents=[self], 
                     comment=f"#pts {l[0]._data.GetNumberOfPoints()}",

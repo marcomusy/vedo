@@ -32,6 +32,11 @@ class Settings:
     # [DISABLED] Allow to continuously interact with scene during interactive() execution
     allow_interaction = True
 
+    # enable tracking pipeline functionality: 
+    #  allows to show a graph with the pipeline of action which let to a final object
+    #  this is achieved by calling "myobj.pipeline.show()" (a new window will pop up)
+    self.enable_pipeline = True
+
     # Set up default mouse and keyboard functionalities
     enable_default_mouse_callbacks = True
     enable_default_keyboard_callbacks = True
@@ -136,6 +141,7 @@ class Settings:
         "hack_call_screen_size",
         "enable_default_mouse_callbacks",
         "enable_default_keyboard_callbacks",
+        "enable_pipeline",
         "immediate_rendering",
         "renderer_frame_color",
         "renderer_frame_alpha",
@@ -191,6 +197,9 @@ class Settings:
 
         # Default backend engine in jupyter notebooks
         self.default_backend = "vtk"
+
+        # enable tracking pipeline functionality
+        self.enable_pipeline = True
 
         if any(["SPYDER" in name for name in os.environ]):
             self.default_backend = "vtk"

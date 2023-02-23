@@ -827,6 +827,12 @@ class Base3DProp:
         """Copy all data (point and cell data) from this input object"""
         self._data.GetPointData().PassData(obj._data.GetPointData())
         self._data.GetCellData().PassData(obj._data.GetCellData())
+        self.pipeline = utils.OperationNode(
+            f"copy_data_from\n{obj.__class__.__name__}", 
+            parents=[self, obj],
+            shape='note',
+            c="#ccc5b9",
+        )
         return self
 
     def print(self):
@@ -990,6 +996,10 @@ class BaseActor(Base3DProp):
         data.RemoveDeletedCells()
         data.Modified()
         self._mapper.Modified()
+        self.pipeline = utils.OperationNode(
+            "delete_cells", parents=[self],
+            comment=f"#cells {self._data.GetNumberOfCells()}",
+        )
         return self
 
     def mark_boundaries(self):
@@ -997,7 +1007,9 @@ class BaseActor(Base3DProp):
         mb = vtk.vtkMarkBoundaryFilter()
         mb.SetInputData(self._data)
         mb.Update()
-        return self._update(mb.GetOutput())
+        out = self._update(mb.GetOutput())
+        out.pipeline = utils.OperationNode("mark_boundaries", parents=[self])
+        return out
 
     def find_cells_in(self, xbounds=(), ybounds=(), zbounds=()):
         """
@@ -1256,7 +1268,9 @@ class BaseActor(Base3DProp):
             c2p.ProcessAllArraysOn()
         c2p.Update()
         self._mapper.SetScalarModeToUsePointData()
-        return self._update(c2p.GetOutput())
+        out = self._update(c2p.GetOutput())
+        out.pipeline = utils.OperationNode("map cell\nto point data", parents=[self])
+        return out
 
     def map_points_to_cells(self, arrays=()):
         """
@@ -1281,7 +1295,9 @@ class BaseActor(Base3DProp):
             p2c.ProcessAllArraysOn()
         p2c.Update()
         self._mapper.SetScalarModeToUseCellData()
-        return self._update(p2c.GetOutput())
+        out = self._update(p2c.GetOutput())
+        out.pipeline = utils.OperationNode("map point\nto cell data", parents=[self])
+        return out
 
     def resample_data_from(self, source, tol=None, categorical=False):
         """
@@ -1323,7 +1339,11 @@ class BaseActor(Base3DProp):
             rs.SetComputeTolerance(False)
             rs.SetTolerance(tol)
         rs.Update()
-        return self._update(rs.GetOutput())
+        self._update(rs.GetOutput())
+        self.pipeline = utils.OperationNode(
+            f"resample_data_from\n{source.__class__.__name__}",
+            parents=[self, source])
+        return self
 
     def add_ids(self):
         """Generate point and cell ids arrays."""
@@ -1335,7 +1355,9 @@ class BaseActor(Base3DProp):
         ids.SetPointIdsArrayName("PointID")
         ids.SetCellIdsArrayName("CellID")
         ids.Update()
-        return self._update(ids.GetOutput())
+        self._update(ids.GetOutput())
+        self.pipeline = utils.OperationNode("add_ids", parents=[self])
+        return self
 
     def gradient(self, input_array=None, on="points", fast=False):
         """
@@ -1632,7 +1654,14 @@ class BaseActor(Base3DProp):
     ###################################################################################
     def write(self, filename, binary=True):
         """Write object to file."""
-        return vedo.io.write(self, filename, binary)
+        out = vedo.io.write(self, filename, binary)
+        out.pipeline = utils.OperationNode(
+            "write", parents=[self],
+            comment=filename[:15],
+            shape="folder",
+            c="#8a817c",
+        )
+        return out
 
 
 ########################################################################################
@@ -1702,10 +1731,12 @@ class BaseGrid(BaseActor):
             msh.mapper().SetScalarModeToUseCellData()
         else:
             msh.mapper().SetScalarModeToUsePointData()
-        # msh.mapper().SetScalarRange(msh.mapper().GetScalarRange())
-        # print(msh.mapper().GetScalarRange(), lut.GetRange())
-        # msh.mapper().SetScalarRange()
-        # msh.selectCellArray('chem_0')
+        
+        msh.pipeline = utils.OperationNode(
+            "tomesh", parents=[self], 
+            comment=f"fill={fill}",
+            c="#6b705c:#e9c46a",
+        )
         return msh
 
     def cells(self):
@@ -1870,7 +1901,9 @@ class BaseGrid(BaseActor):
         sf.SetInputData(self.inputdata())
         sf.SetShrinkFactor(fraction)
         sf.Update()
-        return self._update(sf.GetOutput())
+        self._update(sf.GetOutput())
+        self.pipeline = utils.OperationNode(f"shrink\nby {fraction}", parents=[self])
+        return self
 
     def isosurface(self, value=None, flying_edges=True):
         """
@@ -1908,19 +1941,15 @@ class BaseGrid(BaseActor):
         cf.Update()
         poly = cf.GetOutput()
 
-        # pdnorm = vtk.vtkPolyDataNormals() # no effect
-        # pdnorm.SetInputData(poly)
-        # pdnorm.SetComputePointNormals(True)
-        # pdnorm.SetComputeCellNormals(True)
-        # pdnorm.SetConsistency(True)
-        # pdnorm.FlipNormalsOff()
-        # pdnorm.SetSplitting(False)
-        # pdnorm.Update()
-        # poly = pdnorm.GetOutput()
+        out = vedo.mesh.Mesh(poly, c=None).phong()
+        out.mapper().SetScalarRange(scrange[0], scrange[1])
 
-        a = vedo.mesh.Mesh(poly, c=None).phong()
-        a.mapper().SetScalarRange(scrange[0], scrange[1])
-        return a
+        out.pipeline = utils.OperationNode(
+            "isosurface", parents=[self], 
+            comment=f"#pts {out._data.GetNumberOfPoints()}",
+            c="#6b705c:#e9c46a",
+        )
+        return out
 
     def legosurface(
         self, vmin=None, vmax=None, 
@@ -1976,6 +2005,12 @@ class BaseGrid(BaseActor):
         m = vedo.mesh.Mesh(gf.GetOutput()).lw(0.1).flat()
         m.map_points_to_cells()
         m.celldata.select(array_name)
+
+        m.pipeline = utils.OperationNode(
+            "legosurface", parents=[self], 
+            comment=f"array: {array_name}",
+            c="#6b705c:#e9c46a",
+        )
         return m
 
     @deprecated(reason=vedo.colors.red + "Please use cut_with_plane()" + vedo.colors.reset)
@@ -2011,7 +2046,9 @@ class BaseGrid(BaseActor):
         clipper.SetValue(0)
         clipper.Update()
         cout = clipper.GetOutput()
-        return self._update(cout)
+        self._update(cout)
+        self.pipeline = utils.OperationNode("cut_with_plane", parents=[self])
+        return self
 
     def cut_with_box(self, box):
         """
@@ -2033,11 +2070,14 @@ class BaseGrid(BaseActor):
         bc = vtk.vtkBoxClipDataSet()
         bc.SetInputData(self._data)
         if isinstance(box, vtk.vtkProp):
-            box = box.bounds()
-        bc.SetBoxClip(*box)
+            boxb = box.GetBounds()
+        else:
+            boxb = box
+        bc.SetBoxClip(*boxb)
         bc.Update()
-        cout = bc.GetOutput()
-        return self._update(cout)
+        self._update(bc.GetOutput())
+        self.pipeline = utils.OperationNode("cut_with_box", parents=[self, box])
+        return self
 
     def cut_with_mesh(self, mesh, invert=False, whole_cells=False, only_boundary=False):
         """
@@ -2087,6 +2127,7 @@ class BaseGrid(BaseActor):
                     self.pointdata.select(scalname)
 
         self._update(cug)
+        self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self, mesh])
         return self
 
     def extract_cells_on_plane(self, origin, normal):
@@ -2103,9 +2144,14 @@ class BaseGrid(BaseActor):
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
         bf.SetImplicitFunction(plane)
-
         bf.Update()
-        return self._update(bf.GetOutput())
+
+        self._update(bf.GetOutput())
+        self.pipeline = utils.OperationNode(
+            "extract_cells_on_plane", parents=[self],
+            comment=f"#cells {self._data.GetNumberOfCells()}",
+        )
+        return self
 
     def extract_cells_on_sphere(self, center, radius):
         """
@@ -2121,9 +2167,14 @@ class BaseGrid(BaseActor):
         sph.SetRadius(radius)
         sph.SetCenter(center)
         bf.SetImplicitFunction(sph)
-
         bf.Update()
-        return self._update(bf.GetOutput())
+
+        self._update(bf.GetOutput())
+        self.pipeline = utils.OperationNode(
+            "extract_cells_on_sphere", parents=[self],
+            comment=f"#cells {self._data.GetNumberOfCells()}",
+        )
+        return self
 
     def extract_cells_on_cylinder(self, center, axis, radius):
         """
@@ -2140,9 +2191,14 @@ class BaseGrid(BaseActor):
         cyl.SetCenter(center)
         cyl.SetAxis(axis)
         bf.SetImplicitFunction(cyl)
-
         bf.Update()
-        return self._update(bf.GetOutput())
+
+        self.pipeline = utils.OperationNode(
+            "extract_cells_on_cylinder", parents=[self],
+            comment=f"#cells {self._data.GetNumberOfCells()}",
+        )
+        self._update(bf.GetOutput())
+        return self
 
     def clean(self):
         """
@@ -2154,7 +2210,13 @@ class BaseGrid(BaseActor):
         cl.ProduceMergeMapOff()
         cl.AveragePointDataOff()
         cl.Update()
-        return self._update(cl.GetOutput())
+        
+        self._update(cl.GetOutput())
+        self.pipeline = utils.OperationNode(
+            "clean", parents=[self],
+            comment=f"#cells {self._data.GetNumberOfCells()}",
+        )
+        return self
 
 
     def find_cell(self, p):
@@ -2187,19 +2249,25 @@ class BaseGrid(BaseActor):
         es.SetInputData(0, self._data)
         es.SetInputData(1, selection)
         es.Update()
-        tm_sel = vedo.ugrid.UGrid(es.GetOutput())
+
+        ug = vedo.ugrid.UGrid(es.GetOutput())
         pr = vtk.vtkProperty()
         pr.DeepCopy(self.GetProperty())
-        tm_sel.SetProperty(pr)
-        tm_sel.property = pr
+        ug.SetProperty(pr)
+        ug.property = pr
 
         # assign the same transformation to the copy
-        tm_sel.SetOrigin(self.GetOrigin())
-        tm_sel.SetScale(self.GetScale())
-        tm_sel.SetOrientation(self.GetOrientation())
-        tm_sel.SetPosition(self.GetPosition())
-        tm_sel.mapper().SetLookupTable(utils.ctf2lut(self))
-        return tm_sel
+        ug.SetOrigin(self.GetOrigin())
+        ug.SetScale(self.GetScale())
+        ug.SetOrientation(self.GetOrientation())
+        ug.SetPosition(self.GetPosition())
+        ug.mapper().SetLookupTable(utils.ctf2lut(self))
+        ug.pipeline = utils.OperationNode(
+            "extract_cells_by_id", parents=[self],
+            comment=f"#cells {self._data.GetNumberOfCells()}",
+            c="#6b705c",
+        )
+        return ug
 
 
 ############################################################################### funcs
@@ -2250,6 +2318,7 @@ def probe_points(dataset, pts):
     poly = probeFilter.GetOutput()
     pm = vedo.mesh.Mesh(poly)
     pm.name = "ProbePoints"
+    pm.pipeline = utils.OperationNode("probe_points", parents=[dataset])
     return pm
 
 
@@ -2281,6 +2350,7 @@ def probe_line(dataset, p1, p2, res=100):
     poly = probeFilter.GetOutput()
     lnn = vedo.mesh.Mesh(poly)
     lnn.name = "ProbeLine"
+    lnn.pipeline = utils.OperationNode("probe_line", parents=[dataset])
     return lnn
 
 
@@ -2306,19 +2376,6 @@ def probe_plane(dataset, origin=(0, 0, 0), normal=(1, 0, 0)):
     poly = planeCut.GetOutput()
     cutmesh = vedo.mesh.Mesh(poly)
     cutmesh.name = "ProbePlane"
+    cutmesh.pipeline = utils.OperationNode("probe_plane", parents=[dataset])
     return cutmesh
 
-
-###################################################################################
-# def extract_cells_by_type(obj, types=(7,)):    ### VTK9 only
-#     """Extract cells of a specified type.
-#     Given an input vtkDataSet and a list of cell types, produce an output
-#     containing only cells of the specified type(s).
-#     Find `here <https://vtk.org/doc/nightly/html/vtkCellType_8h_source.html>`_
-#     the list of possible cell types.
-#     """
-#     ef = vtk.vtkExtractCellsByType()
-#     for ct in types:
-#         ef.AddCellType(ct)
-#     ef.Update()
-#     return Mesh(ef.GetOutput())
