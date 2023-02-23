@@ -3972,7 +3972,11 @@ class Plotter:
 
         elif key == "y":
             if self.clicked_actor and self.clicked_actor.pipeline:
-                self.clicked_actor.pipeline.draw()
+                # self.clicked_actor.pipeline =  utils.OperationNode(
+                #         "show", parents=[self.clicked_actor],
+                #         shape="circle",
+                # )
+                self.clicked_actor.pipeline.show()
 
         if iren:
             iren.Render()

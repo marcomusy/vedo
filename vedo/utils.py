@@ -114,7 +114,7 @@ class OperationNode:
             dot.edge(str(id(parent)), str(id(self)), label=t)
             parent._build_tree(dot)
     
-    def draw(self):
+    def show(self):
         try:
             from graphviz import Digraph
         except ImportError:
@@ -140,7 +140,7 @@ class OperationNode:
         dot.attr(rankdir='LR')
 
         self._build_tree(dot)
-        dot.render('.vedo_pipeline_tree', view=True)
+        dot.render('.vedo_pipeline_graphviz', view=True)
         self.dot = dot
 
 

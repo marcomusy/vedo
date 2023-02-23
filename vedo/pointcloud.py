@@ -91,7 +91,8 @@ def merge(*meshs, flag=False):
         msh.property = cprp
 
     msh.pipeline = utils.OperationNode(
-        "merge", parents=acts, comment=f"#pts {msh._data.GetNumberOfPoints()}",
+        "merge", parents=acts,
+        comment=f"#pts {msh._data.GetNumberOfPoints()}",
     )
     return msh
 
@@ -179,11 +180,11 @@ def delaunay2d(plist, mode="scipy", boundaries=(), tol=None, alpha=0, offset=0, 
             ![](https://vedo.embl.es/images/basic/delaunay2d.png)
     """
     if isinstance(plist, Points):
+        parents = [plist]
         plist = plist.points()
     else:
+        parents = []
         plist = np.ascontiguousarray(plist)
-        # if plist.shape[1] == 2:  # make it 3d
-        #     plist = np.c_[plist, np.zeros(len(plist))]
         plist = utils.make3d(plist)
 
     #############################################
@@ -225,7 +226,13 @@ def delaunay2d(plist, mode="scipy", boundaries=(), tol=None, alpha=0, offset=0, 
     if mode == "fit":
         delny.SetProjectionPlaneMode(vtk.VTK_BEST_FITTING_PLANE)
     delny.Update()
-    return vedo.mesh.Mesh(delny.GetOutput()).clean().lighting("off")
+    msh = vedo.mesh.Mesh(delny.GetOutput()).clean().lighting("off")
+
+    msh.pipeline = utils.OperationNode(
+        "delaunay2d", parents=parents, 
+        comment=f"#cells {msh._data.GetNumberOfCells()}",
+    )
+    return msh
 
 
 def voronoi(pts, padding=0, fit=False, method="vtk"):
@@ -782,7 +789,7 @@ class Points(BaseActor, vtk.vtkActor):
         if isinstance(inputobj, vedo.BaseActor):
             inputobj = inputobj.points()  # numpy
 
-
+        ######
         if isinstance(inputobj, vtk.vtkActor):
             poly_copy = vtk.vtkPolyData()
             pr = vtk.vtkProperty()
@@ -884,6 +891,9 @@ class Points(BaseActor, vtk.vtkActor):
                 self._data = pd
 
             ##########
+            self.pipeline = utils.OperationNode(
+                self, parents=[], comment=f"#pts {self._data.GetNumberOfPoints()}",
+            )
             return
             ##########
 
@@ -917,6 +927,10 @@ class Points(BaseActor, vtk.vtkActor):
         self.property.SetOpacity(alpha)
 
         self._mapper.SetInputData(self._data)
+
+        self.pipeline = utils.OperationNode(
+            self, parents=[], comment=f"#pts {self._data.GetNumberOfPoints()}",
+        )
         return
 
     ##################################################################################
@@ -1222,13 +1236,17 @@ class Points(BaseActor, vtk.vtkActor):
         cell_ids = vtk.vtkIdList()
         data = self.inputdata()
         data.BuildLinks()
+        n = 0
         for i in np.unique(indices):
             data.GetPointCells(i, cell_ids)
             for j in range(cell_ids.GetNumberOfIds()):
                 data.DeleteCell(cell_ids.GetId(j))  # flag cell
+                n += 1
 
         data.RemoveDeletedCells()
         self.mapper().Modified()
+        self.pipeline = utils.OperationNode(
+            f"delete {n} cells\nby point index", parents=[self])
         return self
 
     def compute_normals_with_pca(self, n=20, orientation_point=None, invert=False):
@@ -1376,6 +1394,13 @@ class Points(BaseActor, vtk.vtkActor):
         rng = scals.GetRange()
         self.mapper().SetScalarRange(rng[0], rng[1])
         self.mapper().ScalarVisibilityOn()
+        
+        self.pipeline = utils.OperationNode(
+            "distance_to", 
+            parents=[self, pcloud], 
+            shape="cylinder",
+            comment=f"#pts {self._data.GetNumberOfPoints()}",
+        )
         return dists
 
     def alpha(self, opacity=None):
@@ -1472,7 +1497,13 @@ class Points(BaseActor, vtk.vtkActor):
         cpd.ConvertStripsToPolysOn()
         cpd.SetInputData(self.inputdata())
         cpd.Update()
-        return self._update(cpd.GetOutput())
+        out = self._update(cpd.GetOutput())
+
+        out.pipeline = utils.OperationNode(
+            "clean", parents=[self], 
+            comment=f"#pts {out._data.GetNumberOfPoints()}",
+        )
+        return out
 
     def subsample(self, fraction, absolute=False):
         """
@@ -1495,6 +1526,7 @@ class Points(BaseActor, vtk.vtkActor):
                 vedo.logger.warning(f"subsample(fraction=...), fraction must be < 1, but is {fraction}")
             if fraction <= 0:
                 return self
+
         cpd = vtk.vtkCleanPolyData()
         cpd.PointMergingOn()
         cpd.ConvertLinesToPointsOn()
@@ -1507,10 +1539,18 @@ class Points(BaseActor, vtk.vtkActor):
         else:
             cpd.SetTolerance(fraction)
         cpd.Update()
+
         ps = 2
         if self.GetProperty().GetRepresentation() == 0:
             ps = self.GetProperty().GetPointSize()
-        return self._update(cpd.GetOutput()).ps(ps)
+        
+        out = self._update(cpd.GetOutput()).ps(ps)
+
+        out.pipeline = utils.OperationNode(
+            "subsample", parents=[self],
+            comment=f"#pts {out._data.GetNumberOfPoints()}",
+        )
+        return out
 
     def threshold(self, scalars, above=None, below=None, on="points"):
         """
@@ -1562,7 +1602,9 @@ class Points(BaseActor, vtk.vtkActor):
         qp.SetInputData(poly)
         qp.SetQFactor(value)
         qp.Update()
-        return self._update(qp.GetOutput()).flat()
+        out = self._update(qp.GetOutput()).flat()
+        out.pipeline = utils.OperationNode("quantize", parents=[self])
+        return out
 
     def average_size(self):
         """
@@ -2395,6 +2437,10 @@ class Points(BaseActor, vtk.vtkActor):
         self.transform = self.GetUserTransform()
         self.point_locator = None
         self.cell_locator = None
+        
+        self.pipeline = utils.OperationNode(
+            "align_to", parents=[self, target], comment=f"rigid = {rigid}",
+        )
         return self
 
     def transform_with_landmarks(
@@ -2476,6 +2522,7 @@ class Points(BaseActor, vtk.vtkActor):
         self.transform = lmt
         self.point_locator = None
         self.cell_locator = None
+        self.pipeline = utils.OperationNode("transform_with_landmarks", parents=[self])
         return self
 
     @deprecated(reason=vedo.colors.red + "Please use apply_transform()" + vedo.colors.reset)
@@ -2640,7 +2687,12 @@ class Points(BaseActor, vtk.vtkActor):
 
         self.point_locator = None
         self.cell_locator = None
-        return self._update(outpoly)
+
+        out = self._update(outpoly)
+
+        out.pipeline = utils.OperationNode(
+            f"mirror\naxis = {axis}", parents=[self])
+        return out
 
     def shear(self, x=0, y=0, z=0):
         """Apply a shear deformation along one of the main axes"""
@@ -2660,7 +2712,9 @@ class Points(BaseActor, vtk.vtkActor):
         rs.ReverseCellsOff()
         rs.ReverseNormalsOn()
         rs.Update()
-        return self._update(rs.GetOutput())
+        out = self._update(rs.GetOutput())
+        self.pipeline = utils.OperationNode("flip_normals", parents=[self])
+        return out
 
     #####################################################################################
     def cmap(
@@ -3090,7 +3144,10 @@ class Points(BaseActor, vtk.vtkActor):
             tf.SetInputData(cpoly)
             tf.Update()
             self._update(tf.GetOutput())
-
+    
+        self.pipeline = utils.OperationNode(
+            "interpolate_data_from", parents=[self, source], 
+        )
         return self
 
     def add_gaussian_noise(self, sigma=1):
@@ -3119,6 +3176,12 @@ class Points(BaseActor, vtk.vtkActor):
         self.inputdata().SetPoints(vpts)
         self.inputdata().GetPoints().Modified()
         self.pointdata["GaussianNoise"] = -ns
+        self.pipeline = utils.OperationNode(
+            "gaussian_noise", 
+            parents=[self], 
+            shape="egg",
+            comment=f"sigma = {sigma}",
+        )
         return self
 
     @deprecated(reason=vedo.colors.red + "Please use closest_point()" + vedo.colors.reset)
@@ -3291,6 +3354,7 @@ class Points(BaseActor, vtk.vtkActor):
             inputobj.SetVerts(carr)
         self._update(inputobj)
         self.mapper().ScalarVisibilityOff()
+        self.pipeline = utils.OperationNode("remove\outliers", parents=[self])
         return self
 
     def smooth_mls_1d(self, f=0.2, radius=None):
@@ -3339,7 +3403,9 @@ class Points(BaseActor, vtk.vtkActor):
         vdata.SetName("Variances")
         self.inputdata().GetPointData().AddArray(vdata)
         self.inputdata().GetPointData().Modified()
-        return self.points(newline)
+        self.points(newline)
+        self.pipeline = utils.OperationNode("smooth_mls_1d", parents=[self])
+        return self
 
     def smooth_mls_2d(self, f=0.2, radius=None):
         """
@@ -3397,8 +3463,11 @@ class Points(BaseActor, vtk.vtkActor):
 
         self.info["variances"] = np.array(variances)
         self.info["is_valid"] = np.array(valid)
-        return self.points(newpts)
+        self.points(newpts)
 
+        self.pipeline = utils.OperationNode("smooth_mls_2d", parents=[self])
+        return self 
+    
     def smooth_lloyd_2d(self, interations=2, bounds=None, options="Qbb Qc Qx"):
         """Lloyd relaxation of a 2D pointcloud."""
         # Credits: https://hatarilabs.com/ih-en/
@@ -3458,7 +3527,9 @@ class Points(BaseActor, vtk.vtkActor):
             _constrain_points(vor.vertices)
             pts = _relax(vor)
         # m = vedo.Mesh([pts, self.faces()]) # not yet working properly
-        return Points(pts, c="k")
+        out = Points(pts, c="k")
+        out.pipeline = utils.OperationNode("smooth_lloyd", parents=[self])
+        return out
 
     def project_on_plane(self, plane="z", point=None, direction=None):
         """
@@ -3566,9 +3637,12 @@ class Points(BaseActor, vtk.vtkActor):
 
                 ![](https://vedo.embl.es/images/advanced/warp2.png)
         """
+        parents = [self]
         if isinstance(source, Points):
+            parents.append(source)
             source = source.points()
         if isinstance(target, Points):
+            parents.append(target)
             target = target.points()
 
         ns = len(source)
@@ -3601,6 +3675,10 @@ class Points(BaseActor, vtk.vtkActor):
         T.SetTargetLandmarks(pttar)
         self.transform = T
         self.apply_transform(T, reset=True)
+
+        self.pipeline = utils.OperationNode(
+            "warp", parents=parents, 
+        )
         return self
 
     @deprecated(reason=vedo.colors.red + "Please use cut_with_plane()" + vedo.colors.reset)
@@ -3682,6 +3760,7 @@ class Points(BaseActor, vtk.vtkActor):
             tf.Update()
             self._update(tf.GetOutput())
 
+        self.pipeline = utils.OperationNode("cut_with_plane", parents=[self])
         return self
 
     def cut_with_planes(self, origins, normals, invert=False):
@@ -3733,6 +3812,7 @@ class Points(BaseActor, vtk.vtkActor):
             tf.Update()
             self._update(tf.GetOutput())
 
+        self.pipeline = utils.OperationNode("cut_with_planes", parents=[self])
         return self
 
     def cut_with_box(self, bounds, invert=False):
@@ -3793,6 +3873,7 @@ class Points(BaseActor, vtk.vtkActor):
             tf.Update()
             self._update(tf.GetOutput())
 
+        self.pipeline = utils.OperationNode("cut_with_box", parents=[self])
         return self
 
     def cut_with_line(self, points, invert=False, closed=True):
@@ -3852,6 +3933,7 @@ class Points(BaseActor, vtk.vtkActor):
             tf.Update()
             self._update(tf.GetOutput())
 
+        self.pipeline = utils.OperationNode("cut_with_line", parents=[self])
         return self
 
     def cut_with_cylinder(self, center=(0, 0, 0), axis=(0, 0, 1), r=1, invert=False):
@@ -3920,6 +4002,7 @@ class Points(BaseActor, vtk.vtkActor):
             tf.Update()
             self._update(tf.GetOutput())
 
+        self.pipeline = utils.OperationNode("cut_with_cylinder", parents=[self])
         return self
 
     def cut_with_sphere(self, center=(0, 0, 0), r=1, invert=False):
@@ -3975,6 +4058,7 @@ class Points(BaseActor, vtk.vtkActor):
             tf.Update()
             self._update(tf.GetOutput())
 
+        self.pipeline = utils.OperationNode("cut_with_sphere", parents=[self])
         return self
 
     def cut_with_mesh(self, mesh, invert=False, keep=False):
@@ -4069,6 +4153,9 @@ class Points(BaseActor, vtk.vtkActor):
             cutoff.c("k5").alpha(0.2)
             return vedo.Assembly([self, cutoff])
 
+        self.pipeline = utils.OperationNode(
+            "cut_with_mesh", parents=[self, mesh],
+        )
         return self
 
     def cut_with_point_loop(
@@ -4099,9 +4186,11 @@ class Points(BaseActor, vtk.vtkActor):
                 ![](https://vedo.embl.es/images/advanced/cutWithPoints2.png)
         """
         if isinstance(points, Points):
+            parents = [points]
             vpts = points.polydata().GetPoints()
             points = points.points()
         else:
+            parents = [self]
             vpts = vtk.vtkPoints()
             points = utils.make3d(points)
             for p in points:
@@ -4144,6 +4233,9 @@ class Points(BaseActor, vtk.vtkActor):
             tf.SetInputData(clipper.GetOutput())
             tf.Update()
             self._update(tf.GetOutput())
+        
+        self.pipeline = utils.OperationNode(
+            "cut_with_pointloop", parents=parents)
         return self
 
     def cut_with_scalars(self, value, name="", invert=False):
@@ -4180,6 +4272,10 @@ class Points(BaseActor, vtk.vtkActor):
         clipper.SetInsideOut(not invert)
         clipper.Update()
         self._update(clipper.GetOutput())
+
+        self.pipeline = utils.OperationNode(
+            "cut_with_scalars", parents=[self],
+        )
         return self
 
     def implicit_modeller(self, distance=0.05, res=(50,50,50), bounds=(), maxdist=None):
@@ -4200,7 +4296,12 @@ class Points(BaseActor, vtk.vtkActor):
         contour.SetValue(0, distance)
         contour.Update()
         poly = contour.GetOutput()
-        return vedo.Mesh(poly, c="lb")
+        out = vedo.Mesh(poly, c="lb")
+
+        out.pipeline = utils.OperationNode(
+            "implicit_modeller", parents=[self],
+        )        
+        return out
 
 
     @deprecated(reason=vedo.colors.red + "Please use generate_mesh()" + vedo.colors.reset)
@@ -4292,7 +4393,12 @@ class Points(BaseActor, vtk.vtkActor):
         ####################################### quads
         if quads:
             cmesh = grid.clone().cut_with_point_loop(contour, on="cells", invert=invert)
-            return cmesh.wireframe(False).lw(0.5)
+            cmesh.wireframe(False).lw(0.5)
+            cmesh.pipeline = utils.OperationNode(
+                "generate_mesh", parents=[self, contour], 
+                comment=f"#quads {cmesh._data.GetNumberOfCells()}",
+            )
+            return cmesh
         #############################################
 
         grid_tmp = grid.points()
@@ -4332,6 +4438,11 @@ class Points(BaseActor, vtk.vtkActor):
         dln = delaunay2d(points, mode="xy", boundaries=[boundary])
         dln.compute_normals(points=False)  # fixes reversd faces
         dln.lw(0.5)
+
+        dln.pipeline = utils.OperationNode(
+            "generate_mesh", parents=[self, contour], 
+            comment=f"#cells {dln._data.GetNumberOfCells()}",
+        )
         return dln
 
     @deprecated(reason=vedo.colors.red + "Please use reconstruct_surface()" + vedo.colors.reset)
@@ -4422,6 +4533,11 @@ class Points(BaseActor, vtk.vtkActor):
         surface.SetInputConnection(sdf.GetOutputPort())
         surface.Update()
         m = vedo.mesh.Mesh(surface.GetOutput(), c=self.color())
+
+        m.pipeline = utils.OperationNode(
+            "reconstruct_surface", parents=[self], 
+            comment=f"#pts {m._data.GetNumberOfPoints()}",
+        )
         return m
 
     def compute_clustering(self, radius):
@@ -4442,6 +4558,11 @@ class Points(BaseActor, vtk.vtkActor):
         cluster.Update()
         idsarr = cluster.GetOutput().GetPointData().GetArray("ClusterId")
         self.inputdata().GetPointData().AddArray(idsarr)
+
+        self.pipeline = utils.OperationNode(
+            "compute_clustering", parents=[self],
+            comment=f"radius = {radius}",
+        )
         return self
 
     def compute_connections(self, radius, mode=0, regions=(), vrange=(0,1), seeds=(), angle=0):
@@ -4606,6 +4727,11 @@ class Points(BaseActor, vtk.vtkActor):
         vol.name = "PointDensity"
         vol.info["radius"] = radius
         vol.locator = pdf.GetLocator()
+    
+        vol.pipeline = utils.OperationNode(
+            "density", parents=[self], 
+            comment=f"dims = {tuple(vol.dimensions())}",
+        )
         return vol
 
     def densify(self, target_distance=0.1, nclosest=6, radius=None, niter=1, nmax=None):
@@ -4676,6 +4802,12 @@ class Points(BaseActor, vtk.vtkActor):
         cld = Points(pts, c=None).pointSize(self.GetProperty().GetPointSize())
         cld.interpolate_data_from(self, n=nclosest, radius=radius)
         cld.name = "densifiedCloud"
+
+        cld.pipeline = utils.OperationNode(
+            "densify", parents=[self], 
+            c="#e9c46a:",
+            comment=f"#pts {cld._data.GetNumberOfPoints()}",
+        )
         return cld
 
 
@@ -4728,6 +4860,12 @@ class Points(BaseActor, vtk.vtkActor):
 
         vol = vedo.Volume(img)
         vol.name = "SignedDistanceVolume"
+
+        vol.pipeline = utils.OperationNode(
+            "signed_distance", parents=[self], 
+            comment=f"dim = {tuple(vol.dimensions())}",
+            c="#e9c46a:#0096c7"
+        )
         return vol
 
     def tovolume(
@@ -4823,8 +4961,16 @@ class Points(BaseActor, vtk.vtkActor):
         else:
             interpolator.SetNullPointsStrategyToClosestPoint()
         interpolator.Update()
-        return vedo.Volume(interpolator.GetOutput())
 
+        vol = vedo.Volume(interpolator.GetOutput())
+
+        vol.pipeline = utils.OperationNode(
+            "signed_distance", parents=[self], 
+            comment=f"dim = {tuple(vol.dimensions())}",
+            c="#e9c46a:#0096c7",
+        )
+        return vol
+    
     def generate_random_data(self):
         """Fill a dataset with random attributes"""
         gen = vtk.vtkRandomAttributeGenerator()
@@ -4834,7 +4980,12 @@ class Points(BaseActor, vtk.vtkActor):
         gen.GeneratePointNormalsOff()
         gen.GeneratePointTensorsOn()
         gen.GenerateCellScalarsOn()
-
         gen.Update()
-        return self._update(gen.GetOutput())
+
+        m = self._update(gen.GetOutput())
+        
+        m.pipeline = utils.OperationNode(
+            "generate\nrandom data", parents=[self]
+        )
+        return m
 
