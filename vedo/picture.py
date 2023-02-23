@@ -234,7 +234,8 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
             pic.SetOrientation(self.GetOrientation())
             pic.SetPosition(self.GetPosition())
         
-        pic.pipeline = utils.OperationNode("clone", parents=[self], c="#f7dada")
+        pic.pipeline = utils.OperationNode(
+            "clone", parents=[self], c="#f7dada", shape="diamond")
         return pic
 
     def cmap(self, name, vmin=None, vmax=None):

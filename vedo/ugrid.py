@@ -161,6 +161,10 @@ class UGrid(BaseGrid, vtk.vtkActor):
         self.SetMapper(self._mapper)
         self.property = self.GetProperty()
 
+        self.pipeline = utils.OperationNode(
+            self, comment=f"#cells {self._data.GetNumberOfCells()}",
+            c="#4cc9f0",
+        )
     # ------------------------------------------------------------------
 
     def clone(self):
@@ -184,6 +188,10 @@ class UGrid(BaseGrid, vtk.vtkActor):
         cloned.SetOrientation(self.GetOrientation())
         cloned.SetPosition(self.GetPosition())
         cloned.name = self.name
+
+        cloned.pipeline = utils.OperationNode(
+            "clone", parents=[self], shape='diamond', c='#bbe1ed',
+        )
         return cloned
 
     def color(self, c=False, alpha=None):
@@ -283,4 +291,10 @@ class UGrid(BaseGrid, vtk.vtkActor):
         es.SetInputData(0, self._data)
         es.SetInputData(1, selection)
         es.Update()
-        return UGrid(es.GetOutput())
+        ug = UGrid(es.GetOutput())
+
+        ug.pipeline = utils.OperationNode(
+            "extract_cell_type", comment=f"type {ctype}",
+            c="#edabab", parents=[self],
+        )
+        return ug

@@ -30,10 +30,12 @@ def delaunay3d(mesh, radius=0, tol=None):
     Create 3D Delaunay triangulation of input points.
 
     Arguments:
+    
         radius : (float)
             specify distance (or "alpha") value to control output.
             For a non-zero values, only tetra contained within the circumsphere
             will be output.
+
         tol : (float)
             Specify a tolerance to control discarding of closely spaced points.
             This tolerance is specified as a fraction of the diagonal length of
@@ -58,6 +60,9 @@ def delaunay3d(mesh, radius=0, tol=None):
         deln.SetTolerance(tol)
     deln.Update()
     m = TetMesh(deln.GetOutput())
+    m.pipeline = utils.OperationNode(
+        "delaunay3d", c="#e9c46a:#edabab", parents=[self, mesh],
+    )
     return m
 
 
@@ -188,6 +193,11 @@ class TetMesh(BaseGrid, vtk.vtkVolume):
         self._color = c
         self._alpha = alpha
         self._alpha_unit = alpha_unit
+
+        self.pipeline = utils.OperationNode(
+            self, comment=f"#tets {self._data.GetNumberOfCells()}",
+            c="#9e2a2b",
+        )
         # -----------------------------------------------------------
 
     def _update(self, data):
@@ -214,6 +224,10 @@ class TetMesh(BaseGrid, vtk.vtkVolume):
 
         cloned.mapper().SetScalarMode(self.mapper().GetScalarMode())
         cloned.name = self.name
+
+        cloned.pipeline = utils.OperationNode(
+            "clone", c="#edabab", shape="diamond", parents=[self],
+        )
         return cloned
 
     def compute_quality(self, metric=7):
@@ -355,7 +369,12 @@ class TetMesh(BaseGrid, vtk.vtkVolume):
         else:
             decimate.SetTargetReduction(1 - fraction)
         decimate.Update()
-        return self._update(decimate.GetOutput())
+        self._update(decimate.GetOutput())
+        self.pipeline = utils.OperationNode(
+            "decimate", comment=f"array: {scalars_name}",
+            c="#edabab", parents=[self],
+        )
+        return self
 
     def subdvide(self):
         """
@@ -365,7 +384,11 @@ class TetMesh(BaseGrid, vtk.vtkVolume):
         sd = vtk.vtkSubdivideTetra()
         sd.SetInputData(self._data)
         sd.Update()
-        return self._update(sd.GetOutput())
+        self._update(sd.GetOutput())
+        self.pipeline = utils.OperationNode(
+            "subdvide", c="#edabab", parents=[self],
+        )
+        return self
 
     def isosurface(self, value=True):
         """
@@ -387,8 +410,6 @@ class TetMesh(BaseGrid, vtk.vtkVolume):
         else:
             if value is True:
                 value = (2 * scrange[0] + scrange[1]) / 3.0
-                # print('automatic value set to ' + utils.precision(value, 3), end=' ')
-                # print('in [' + utils.precision(scrange[0], 3) + ', ' + utils.precision(scrange[1], 3)+']')
             cf.SetValue(0, value)
             cf.Update()
 
@@ -397,6 +418,7 @@ class TetMesh(BaseGrid, vtk.vtkVolume):
         clp.Update()
         msh = Mesh(clp.GetOutput(), c=None).phong()
         msh.mapper().SetLookupTable(utils.ctf2lut(self))
+        msh.pipeline = utils.OperationNode("isosurface", c="#edabab", parents=[self])
         return msh
 
     def slice(self, origin=(0, 0, 0), normal=(1, 0, 0)):
@@ -420,4 +442,5 @@ class TetMesh(BaseGrid, vtk.vtkVolume):
         cc.Update()
         msh = Mesh(cc.GetOutput()).flat().lighting("ambient")
         msh.mapper().SetLookupTable(utils.ctf2lut(self))
+        msh.pipeline = utils.OperationNode("slice", c="#edabab", parents=[self])
         return msh

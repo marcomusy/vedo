@@ -98,9 +98,17 @@ class OperationNode:
         self.dot = None
         self.time = time.time()
         self.shape = shape
-        self.color = c
         self.style = style
         self.counts = 0
+
+        self.color = c
+        # Mesh     #e9c46a
+        # Follower #d9ed92
+        # Volume, UGrid #4cc9f0
+        # TetMesh  #9e2a2b
+        # File     #8a817c
+        # Picture  #f28482
+        # Assembly #f08080
 
     def __repr__(self):
         return self.operation

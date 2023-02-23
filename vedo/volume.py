@@ -65,7 +65,8 @@ class BaseVolume:
         newvol.SetScale(self.GetScale())
         newvol.SetOrientation(self.GetOrientation())
         newvol.SetPosition(self.GetPosition())
-        newvol.pipeline = utils.OperationNode("clone", parents=[self], c="#bbd0ff")
+        newvol.pipeline = utils.OperationNode(
+            "clone", parents=[self], c="#bbd0ff", shape="diamond")
         return newvol
 
     def imagedata(self):
