@@ -250,6 +250,11 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
         elif len(scalarbars) == 1:
             self.scalarbar = scalarbars[0]
 
+        self.pipeline = vedo.utils.OperationNode(
+            "Assembly", parents=meshs, comment=f"#meshes {len(meshs)}", c="#f08080",
+        )
+        ###################################################################
+
     def __add__(self, obj):
         """
         Add an object to the assembly
@@ -276,13 +281,11 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
                 self.scalarbar = Group(
                     [unpack_group(self.scalarbar), unpack_group(obj.scalarbar)]
                 )
-
+        self.pipeline = vedo.utils.OperationNode(
+            "add mesh", parents=[self, obj], c="#f08080",
+        )
         return self
     
-    # def __radd__(self, obj):
-    #     return obj + self
-
-
     def __contains__(self, obj):
         """Allows to use ``in`` to check if an object is in the Assembly."""
         return obj in self.actors
