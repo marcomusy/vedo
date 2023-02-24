@@ -1,6 +1,7 @@
 *pyc
 .DS_Store
 .vedo_recorded_events.log
+.vedo_pipeline_graphviz*
 
 docs/examples_db.js
 docs/index.html

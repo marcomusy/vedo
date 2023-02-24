@@ -24,8 +24,10 @@ jobs:
       - run:
           name: installing vedo
           command: |
-            sudo apt update -y
-            sudo apt upgrade -y
+            sudo apt-get purge grub\*
+            sudo apt-get install grub-efi
+            sudo apt-get autoremove
+            sudo update-grub
             sudo apt install libgl1-mesa-dev xvfb -y
             pip3 install vtk
             pip3 install Deprecated
@@ -44,81 +46,6 @@ jobs:
           path: test-reports
           destination: test-reports
 
-
-  ##############################################################
-  test-vedo-vtk7:
-    docker:
-      - image: quay.io/fenicsproject/stable:latest
-    environment:
-      MPLBACKEND: "agg"
-      DEBIAN_FRONTEND: "noninteractive"
-
-    steps:
-      - checkout
-
-      - run:
-          name: install vedo
-          command: |
-            sudo apt update -y
-            sudo apt upgrade -y
-            sudo apt install libgl1-mesa-dev xvfb -y
-            sudo apt install python3-vtk7 -y
-            pip3 install Deprecated
-            pip3 install .
-            pip3 uninstall -y vtk
-
-            #set -x
-            #export DISPLAY=:99.0
-            #which Xvfb
-            #Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-            #sleep 3
-            #set +x
-            #exec "$@"
-
-      - run:
-          name: Run tests
-          command: |
-            cd
-            cd project/tests/common
-            source run_all.sh
-
-      - store_artifacts:
-          path: test-reports
-          destination: test-reports
-
-  ##############################################################
-  build-dolfin-stable:
-    docker:
-      - image: quay.io/fenicsproject/stable:latest
-    environment:
-      MPLBACKEND: "agg"
-      DEBIAN_FRONTEND: "noninteractive"
-
-    steps:
-      - checkout
-
-      - run:
-          name: install vedo
-          command: |
-            sudo apt update -y
-            sudo apt upgrade -y
-            sudo apt install libgl1-mesa-dev xvfb -y
-            pip3 install vtk
-            pip3 install .
-
-      - run:
-          name: Run tests
-          command: |
-            cd
-            cd project/tests/common
-            source run_all.sh
-            cd
-            cd project/tests/dolfin
-            source run_all.sh
-
-      - store_artifacts:
-          path: test-reports
-          destination: test-reports
 
   ##############################################################
   build-dolfinx:

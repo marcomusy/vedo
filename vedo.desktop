@@ -1,5 +1,8 @@
 
-# In linux systems, place this file in directory: /usr/share/applications/
+# In linux systems, place this file in directory:
+# /usr/share/applications/
+# sudo chmod o+r /usr/share/applications/vedo.desktop
+#
 # then right-click a file
 # choose Properties
 # choose Open With ... vedo
