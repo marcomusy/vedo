@@ -24,13 +24,9 @@ jobs:
       - run:
           name: installing vedo
           command: |
-            sudo apt-get purge grub\*
-            sudo apt-get install grub-efi
-            sudo apt-get autoremove
-            sudo update-grub
+            sudo apt-get update
             sudo apt install libgl1-mesa-dev xvfb -y
-            pip3 install vtk
-            pip3 install Deprecated
+            pip3 install vedo
             pip3 install matplotlib
             pip3 install scipy
             pip3 install --no-deps .
