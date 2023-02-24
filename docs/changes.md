@@ -22,6 +22,7 @@
 - added `pointcloud.compute_acoplanarity()` method
 - add pipeline visualization with syntax `any_vedo_obj.pipeline.show()` or interactively by clicking an object and pressing `y`.
 - fixes to `Button` class
+- in `map_points_to_cells()` added keyword `move` in #819 @19kdc3
 
 -------------------------
 ## New/Revised Examples
