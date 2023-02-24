@@ -1248,7 +1248,7 @@ class BaseActor(Base3DProp):
         return _DataArrayHelper(self, 2)
 
 
-    def map_cells_to_points(self, arrays=()):
+    def map_cells_to_points(self, arrays=(), move=False):
         """
         Interpolate cell data (i.e., data specified per cell or face)
         into point data (i.e., data specified at each vertex).
@@ -1256,9 +1256,13 @@ class BaseActor(Base3DProp):
         of all cells using a particular point.
         
         A custom list of arrays to be mapped can be passed in input.
+ 
+        Set `move=True` to delete the original `celldata` array.
         """
         c2p = vtk.vtkCellDataToPointData()
         c2p.SetInputData(self.inputdata())
+        if not move:
+            c2p.PassCellDataOn()
         if arrays:
             c2p.ClearCellDataArrays()
             c2p.ProcessAllArraysOff()
@@ -1272,7 +1276,7 @@ class BaseActor(Base3DProp):
         out.pipeline = utils.OperationNode("map cell\nto point data", parents=[self])
         return out
 
-    def map_points_to_cells(self, arrays=()):
+    def map_points_to_cells(self, arrays=(), move=False):
         """
         Interpolate point data (i.e., data specified per point or vertex)
         into cell data (i.e., data specified per cell).
@@ -1281,11 +1285,15 @@ class BaseActor(Base3DProp):
 
         A custom list of arrays to be mapped can be passed in input.
 
+        Set `move=True` to delete the original `pointdata` array.
+
         Examples:
             - [mesh_map2cell.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_map2cell.py)
         """
         p2c = vtk.vtkPointDataToCellData()
         p2c.SetInputData(self.inputdata())
+        if not move:
+            p2c.PassPointDataOn()
         if arrays:
             p2c.ClearPointDataArrays()
             p2c.ProcessAllArraysOff()
