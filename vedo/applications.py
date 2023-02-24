@@ -1065,7 +1065,7 @@ class SplinePlotter(Plotter):
         self.line = None
 
         if isinstance(obj, str):
-            self.object = vedo.Picture(obj, channels=(0,1,2))
+            self.object = vedo.io.load(obj)
             # keep rgb but drop alpha channel
             self.mode = 'image'
         else:
@@ -1112,7 +1112,7 @@ class SplinePlotter(Plotter):
         minnr = 1
         if self.splined:
             minnr = 2
-        if len(self.cpoints) > minnr:
+        if self.lwidth and len(self.cpoints) > minnr:
             if self.splined:
                 try:
                     self.line = Spline(self.cpoints, closed=self.closed)
