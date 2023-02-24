@@ -7,7 +7,7 @@ version: 2
 jobs:
 
   ##############################################################
-  test-vedo-vtk9:
+  test-vedo:
 
     machine:
       image: ubuntu-2004:current
@@ -44,7 +44,7 @@ jobs:
 
 
   ##############################################################
-  build-dolfinx:
+  test-dolfinx:
     docker:
       - image: quay.io/fenicsproject/dolfinx:dev-env-real
     environment:
@@ -60,7 +60,6 @@ jobs:
             pip3 install vtk
             pip3 install .
 
-      # FEniCS:
       - run:
           name: Get dolfinx cmake compile and install
           command: |
@@ -91,10 +90,8 @@ workflows:
   version: 2
   build-stuff:
     jobs:
-      #- test-vedo-vtk7
-      - test-vedo-vtk9
-      #- build-dolfin-stable
-      #- build-dolfinx
+      - test-vedo
+      #- test-dolfinx
 
 
 

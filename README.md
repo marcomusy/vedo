@@ -7,9 +7,8 @@
 [![Ubuntu 23.04 package](https://repology.org/badge/version-for-repo/ubuntu_23_04/vedo.svg)](https://repology.org/project/vedo/versions)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5842090.svg)](https://doi.org/10.5281/zenodo.5842090)
 [![Downloads](https://pepy.tech/badge/vedo)](https://pepy.tech/project/vedo)
-<!-- broken
 [![CircleCI](https://circleci.com/gh/marcomusy/vedo.svg?style=svg)](https://circleci.com/gh/marcomusy/vedo)
--->
+
 
 A lightweight and powerful python module
 for scientific analysis and **v**isualization of **3d** **o**bjects.<br>
