@@ -781,8 +781,7 @@ class Mesh(Points):
         copy = self.clone()
         copy.delete_cells(toremove+toremove_always).clean()
         copy.compute_normals(cells=False)
-        normals = copy.polydata().GetPointData().GetNormals()
-        normals = vtk2numpy(normals)
+        normals = copy.normals()
         deltas = []
 
         for i in vedo.utils.progressbar(toremove, delay=5, title="recover faces"):
