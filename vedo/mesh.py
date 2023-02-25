@@ -746,49 +746,44 @@ class Mesh(Points):
         ne = fe.GetOutput().GetNumberOfCells()
         return not bool(ne)
 
-    def non_manifold_faces(self, remove=True, tol=0):
+    def non_manifold_faces(self, remove=True, tol="auto"):
         """
         Detect and (try to) remove non-manifold faces of a triangular mesh.
         
         Set `remove` to `False` to mark cells without removing them.
-        Set `tol>0` to cut off non-manifold faces.
+        Set `tol=0` for zero-tolerance, the result will be manifold but with holes.
+        Set `tol>0` to cut off non-manifold faces, and try to recover the good ones.
+        Set `tol="auto"` to make an automatic choice of the tolerance.
         """
         # mark original point and cell ids
         self.add_ids()
+        toremove = self.boundaries(
+            boundary_edges=False, 
+            non_manifold_edges=True,
+            cell_edge=True,
+            return_cell_ids=True,
+        )
+        if len(toremove) == 0:
+            return self
 
-        nme = self.boundaries(boundary_edges=False, non_manifold_edges=True)
-        nme_pids = nme.pointdata["PointID"]
-
-        # find cells sitting on boundaries
-        bnd_cids = self.boundaries(return_cell_ids=True)
-
-        toremove = []
-        toremove_always = []
         points = self.points()
         faces = self.faces()
         centers = self.cell_centers()
-        for e in vedo.utils.progressbar(nme.lines(), delay=5, title="parsing faces"):
-            ie0, ie1 = e
-            ip0, ip1 = nme_pids[ie0], nme_pids[ie1]
-            for i, f in enumerate(faces):
-                if ip0 in f and ip1 in f:
-                    if i in bnd_cids:
-                        toremove_always.append(i)
-                    else:
-                        toremove.append(i)
 
-        recover = []
         copy = self.clone()
-        copy.delete_cells(toremove+toremove_always).clean()
+        copy.delete_cells(toremove).clean()
         copy.compute_normals(cells=False)
         normals = copy.normals()
-        deltas = []
+        deltas, deltas_i = [], []
 
-        for i in vedo.utils.progressbar(toremove, delay=5, title="recover faces"):
+        for i in vedo.utils.progressbar(toremove, delay=3, title="recover faces"):
             pids = copy.closest_point(centers[i], n=3, return_point_id=True)
             norms = normals[pids]
             n = np.mean(norms, axis=0)
-            n = n/np.linalg.norm(n)
+            dn = np.linalg.norm(n)
+            if not dn:
+                continue
+            n = n / dn
 
             p0, p1, p2 = points[faces[i]][:3]
             v = np.cross(p1-p0, p2-p0)
@@ -797,25 +792,38 @@ class Mesh(Points):
                 continue
             v = v / lv
 
-            ca = 1 - abs(np.dot(n,v))
-            deltas.append(ca)
-            if ca < tol:
-                recover.append(i)
+            cosa = 1 - np.dot(n, v)
+            deltas.append(cosa)
+            deltas_i.append(i)
+
+        recover = []
+        if len(deltas):
+            mean_delta = np.mean(deltas)
+            err_delta = np.std(deltas)
+            txt = ""
+            if tol == "auto": #automatic choice
+                tol = mean_delta / 5
+                txt = f"\n Automatic tol. : {tol: .4f}"
+            for i, cosa in zip(deltas_i, deltas):
+                if cosa < tol:
+                    recover.append(i)
+
+            vedo.logger.info(
+                f"\n --------- Non manifold faces ---------"
+                f"\n Average tol.   : {mean_delta: .4f} +- {err_delta: .4f}{txt}"
+                f"\n Removed faces  : {len(toremove)}"
+                f"\n Recovered faces: {len(recover)}"
+            )
+
         toremove = list(set(toremove) - set(recover))
-        vedo.logger.info(
-            f"\n--------- Non manifold faces ---------"
-            f"\nAverage tol    : {np.mean(deltas)} +- {np.std(deltas)}"
-            f"\nRecovered faces: {len(recover)}"
-        )
 
         if not remove:
             mark = np.zeros(self.ncells, dtype=np.uint8)
             mark[recover] = 1
             mark[toremove] = 2
-            mark[toremove_always] = 3
             self.celldata["NonManifoldCell"] = mark
         else:
-            self.delete_cells(toremove + toremove_always)
+            self.delete_cells(toremove)
  
         self.pipeline = OperationNode(
             "non_manifold_faces", parents=[self], 
@@ -1674,6 +1682,7 @@ class Mesh(Points):
         feature_angle=None,
         return_point_ids=False,
         return_cell_ids=False,
+        cell_edge=False,
     ):
         """
         Return the boundary lines of an input mesh.
@@ -1692,6 +1701,9 @@ class Mesh(Points):
                 return a numpy array of point indices
             return_cell_ids : (bool)
                 return a numpy array of cell indices
+            cell_edge : (bool)
+                set to `True` if a cell need to share an edge with 
+                the boundary line, or `False` if a single vertex is enough
 
         Examples:
             - [boundaries.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/boundaries.py)
@@ -1726,10 +1738,16 @@ class Mesh(Points):
                 return npid
 
             if return_cell_ids:
+                n = 1 if cell_edge else 0
                 inface = []
                 for i, face in enumerate(self.faces()):
-                    isin = np.all([vtx in npid for vtx in face])
-                    if isin:
+                    # isin = np.any([vtx in npid for vtx in face])
+                    isin = 0
+                    for vtx in face:
+                        isin += int(vtx in npid)
+                        if isin > n:
+                            break
+                    if isin > n:
                         inface.append(i)
                 return np.array(inface).astype(int)
 
@@ -1803,15 +1821,15 @@ class Mesh(Points):
         """
         poly = self._data
 
-        cellIdList = vtk.vtkIdList()
-        poly.GetPointCells(index, cellIdList)
+        cell_idlist = vtk.vtkIdList()
+        poly.GetPointCells(index, cell_idlist)
 
         idxs = []
-        for i in range(cellIdList.GetNumberOfIds()):
-            pointIdList = vtk.vtkIdList()
-            poly.GetCellPoints(cellIdList.GetId(i), pointIdList)
-            for j in range(pointIdList.GetNumberOfIds()):
-                idj = pointIdList.GetId(j)
+        for i in range(cell_idlist.GetNumberOfIds()):
+            point_idlist = vtk.vtkIdList()
+            poly.GetCellPoints(cell_idlist.GetId(i), point_idlist)
+            for j in range(point_idlist.GetNumberOfIds()):
+                idj = point_idlist.GetId(j)
                 if idj == index:
                     continue
                 if idj in idxs:
@@ -1825,14 +1843,14 @@ class Mesh(Points):
 
         # Find all cells connected to point index
         dpoly = self._data
-        cellPointIds = vtk.vtkIdList()
-        dpoly.GetPointCells(index, cellPointIds)
+        idlist = vtk.vtkIdList()
+        dpoly.GetPointCells(index, idlist)
 
         ids = vtk.vtkIdTypeArray()
         ids.SetNumberOfComponents(1)
         rids = []
-        for k in range(cellPointIds.GetNumberOfIds()):
-            cid = cellPointIds.GetId(k)
+        for k in range(idlist.GetNumberOfIds()):
+            cid = idlist.GetId(k)
             ids.InsertNextValue(cid)
             rids.append(int(cid))
         if return_ids:
