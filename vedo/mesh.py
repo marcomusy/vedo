@@ -746,57 +746,78 @@ class Mesh(Points):
         ne = fe.GetOutput().GetNumberOfCells()
         return not bool(ne)
 
-    def non_manifold_faces(self, remove_all=False, remove_boundary=False, collapse_edges=False):
+    def non_manifold_faces(self, remove=True, tol=0):
         """
         Detect and (try to) remove non-manifold faces of a triangular mesh.
-
-        Leaving all to `False` will add a new cell array with name "NonManifoldCell".
-        Note that "faces" and "cells" are synomyms.
+        
+        Set `remove` to `False` to mark cells without removing them.
+        Set `tol>0` to cut off non-manifold faces.
         """
-        if int(remove_all) + int(remove_boundary) + int(collapse_edges) > 1:
-            raise ValueError("Select only one option please.")
-
         # mark original point and cell ids
         self.add_ids()
+
         nme = self.boundaries(boundary_edges=False, non_manifold_edges=True)
         nme_pids = nme.pointdata["PointID"]
 
-        bnd_cids = []
-        if remove_boundary:
-            # find cells sitting on boundaries
-            bnd_cids = self.boundaries(return_cell_ids=True)
+        # find cells sitting on boundaries
+        bnd_cids = self.boundaries(return_cell_ids=True)
 
-        all_nf = []
         toremove = []
-        faces = self.faces()
+        toremove_always = []
         points = self.points()
-        new_points = np.array(points)
+        faces = self.faces()
+        centers = self.cell_centers()
         for e in vedo.utils.progressbar(nme.lines(), delay=5, title="parsing faces"):
             ie0, ie1 = e
             ip0, ip1 = nme_pids[ie0], nme_pids[ie1]
             for i, f in enumerate(faces):
                 if ip0 in f and ip1 in f:
-                    all_nf.append(i)
-                    if remove_all:
+                    if i in bnd_cids:
+                        toremove_always.append(i)
+                    else:
                         toremove.append(i)
-                    elif remove_boundary:
-                        if i in bnd_cids:
-                            toremove.append(i)
-                    elif collapse_edges:
-                        m = (points[ip0] + points[ip1])/2
-                        new_points[ip0] = m
-                        new_points[ip1] = m
 
-        if collapse_edges:
-            self.points(new_points)
-            self.clean()
-        elif toremove:
-            self.delete_cells(toremove)
-        else:
+        recover = []
+        copy = self.clone()
+        copy.delete_cells(toremove+toremove_always).clean()
+        copy.compute_normals(cells=False)
+        normals = copy.polydata().GetPointData().GetNormals()
+        normals = vtk2numpy(normals)
+        deltas = []
+
+        for i in vedo.utils.progressbar(toremove, delay=5, title="recover faces"):
+            pids = copy.closest_point(centers[i], n=3, return_point_id=True)
+            norms = normals[pids]
+            n = np.mean(norms, axis=0)
+            n = n/np.linalg.norm(n)
+
+            p0, p1, p2 = points[faces[i]][:3]
+            v = np.cross(p1-p0, p2-p0)
+            lv = np.linalg.norm(v)
+            if not lv:
+                continue
+            v = v / lv
+
+            ca = 1 - abs(np.dot(n,v))
+            deltas.append(ca)
+            if ca < tol:
+                recover.append(i)
+        toremove = list(set(toremove) - set(recover))
+        vedo.logger.info(
+            f"\n--------- Non manifold faces ---------"
+            f"\nAverage tol    : {np.mean(deltas)} +- {np.std(deltas)}"
+            f"\nRecovered faces: {len(recover)}"
+        )
+
+        if not remove:
             mark = np.zeros(self.ncells, dtype=np.uint8)
-            mark[all_nf] = 1
+            mark[recover] = 1
+            mark[toremove] = 2
+            mark[toremove_always] = 3
             self.celldata["NonManifoldCell"] = mark
-
+        else:
+            self.delete_cells(toremove + toremove_always)
+ 
         self.pipeline = OperationNode(
             "non_manifold_faces", parents=[self], 
             comment=f"#cells {self._data.GetNumberOfCells()}",
