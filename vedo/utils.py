@@ -1687,7 +1687,7 @@ def print_info(obj):
         for a in obj.actors:
             b = a.GetBounds()
             if a.GetBounds() is not None:
-                if isinstance(a, vtk.vtkActor):
+                if isinstance(a, vtk.vtkActor) and a.GetMapper():
                     totpt += a.GetMapper().GetInput().GetNumberOfPoints()
                 bns.append(b)
         if len(bns) == 0:

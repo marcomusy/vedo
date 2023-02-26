@@ -44,7 +44,164 @@ __all__ = [
     "SplineTool",
     "Goniometer",
     "Button",
+    "Flagpost",
 ]
+
+########################################################################################
+class Flagpost(vtk.vtkFlagpoleLabel):
+    """
+    Create a flag post style element to describe an object.
+    """
+    def __init__(
+        self,
+        txt="",
+        base=(0,0,0),
+        top=(0,0,1),
+        s=1,
+        c="k9",
+        bc="k1",
+        alpha=1,
+        lw=0,
+        font="Calco",
+        justify="center-left",
+        vspacing=1,
+    ):
+        """
+        Create a flag post style element to describe an object.
+
+        Arguments:
+            txt : (str)
+                Text to display. The default is the filename or the object name.
+            base : (list)
+                position of the flag anchor point. 
+            top : (list)
+                a 3D displacement or offset. 
+            s : (float)
+                size of the text to be shown
+            c : (list)
+                color of text and line
+            bc : (list)
+                color of the flag background
+            alpha : (float)
+                opacity of text and box.
+            lw : (int)
+                line with of box frame. The default is 0.
+            font : (str)
+                font name. Use a monospace font for better rendering. The default is "Calco".
+                Type `vedo -r fonts` for a font demo.
+                Check [available fonts here](https://vedo.embl.es/fonts).
+            justify : (str)
+                internal text justification. The default is "center-left".
+            vspacing : (float)
+                vertical spacing between lines.
+        
+        Examples:
+            - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/other/flag_labels2.py)
+
+            ![](https://vedo.embl.es/images/other/flag_labels2.png)
+        """
+
+        vtk.vtkFlagpoleLabel.__init__(self)
+        
+        base = utils.make3d(base)
+        top = utils.make3d(top)
+
+        self.SetBasePosition(*base)
+        self.SetTopPosition(*top)
+        
+        self.SetFlagSize(s)
+        self.SetInput(txt)
+        self.PickableOff()
+
+        self.GetProperty().LightingOff()
+        self.GetProperty().SetLineWidth(lw+1)
+
+        prop = self.GetTextProperty()
+        if bc is not None:
+            prop.SetBackgroundColor(get_color(bc))
+
+        prop.SetOpacity(alpha)
+        prop.SetBackgroundOpacity(alpha)
+        if bc is not None and len(bc) == 4:
+            prop.SetBackgroundRGBA(alpha)
+
+        c = get_color(c)
+        prop.SetColor(c)
+        self.GetProperty().SetColor(c)
+
+        prop.SetFrame(bool(lw))
+        prop.SetFrameWidth(lw)
+        prop.SetFrameColor(prop.GetColor())
+
+        prop.SetFontFamily(vtk.VTK_FONT_FILE)
+        fl = utils.get_font_path(font)
+        prop.SetFontFile(fl)
+        prop.ShadowOff()
+        prop.BoldOff()
+        prop.SetOpacity(alpha)
+        prop.SetJustificationToLeft()
+        if "top" in justify:
+            prop.SetVerticalJustificationToTop()
+        if "bottom" in justify:
+            prop.SetVerticalJustificationToBottom()
+        if "cent" in justify:
+            prop.SetVerticalJustificationToCentered()
+            prop.SetJustificationToCentered()
+        if "left" in justify:
+            prop.SetJustificationToLeft()
+        if "right" in justify:
+            prop.SetJustificationToRight()
+        prop.SetLineSpacing(vspacing * 1.2)
+        self.SetUseBounds(False)
+
+    def text(self, value):
+        self.SetInput(value)
+        return self
+
+    def on(self):
+        self.VisibilityOn()
+        return self
+
+    def off(self):
+        self.VisibilityOff()
+        return self
+
+    def toggle(self):
+        self.SetVisibility(not(self.GetVisibility()))
+        return self
+
+    def use_bounds(self, value=True):
+        self.SetUseBounds(value)
+        return self
+    
+    def color(self, c):
+        c = get_color(c)
+        self.GetTextProperty().SetColor(c)
+        self.GetProperty().SetColor(c)
+        return self
+
+    def pos(self, p):
+        p = np.asarray(p)
+        self.top = self.top - self.base + p
+        self.base = p
+        return self
+
+    @property
+    def base(self):
+        return np.array(self.GetBasePosition())
+
+    @property
+    def top(self):
+        return np.array(self.GetTopPosition())
+
+    @base.setter
+    def base(self, value):
+        self.SetBasePosition(*value)
+
+    @top.setter
+    def top(self, value):
+        self.SetTopPosition(*value)
+
 
 
 ###########################################################################################

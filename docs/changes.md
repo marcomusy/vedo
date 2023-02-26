@@ -23,6 +23,8 @@
 - add pipeline visualization with syntax `any_vedo_obj.pipeline.show()` or interactively by clicking an object and pressing `y`.
 - fixes to `Button` class
 - in `map_points_to_cells()` added keyword `move` in #819 @19kdc3
+- fix `flagpost()` by creating a new class `addons.Flagpost()` in #821 @ZiguoAtGitHub @marcomusy
+
 
 -------------------------
 ## New/Revised Examples
@@ -32,6 +34,7 @@ examples/other/trame_ex2.py
 examples/other/trame_ex3.py
 examples/simulations/lorenz.py
 examples/notebooks/slider2d.ipynb
+examples/basic/mousehover0.py.py
 ```
 
 ### Broken Examples

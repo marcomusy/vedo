@@ -2205,56 +2205,21 @@ class Points(BaseActor, vtk.vtkActor):
             offset = [0,0, (z1-z0)/2]
         offset = utils.make3d(offset)
 
-        fpost = vtk.vtkFlagpoleLabel()
-        fpost.SetBasePosition(point[0], point[1], point[2])
-        tp = point + np.asarray(offset)
-        fpost.SetTopPosition(tp[0], tp[1], tp[2])
-        fpost.SetFlagSize(s * 0.65)
-        fpost.SetInput(txt)
-        fpost.PickableOff()
-
-        fpost.GetProperty().LightingOff()
-        fpost.GetProperty().SetLineWidth(lw+1)
-
-        prop = fpost.GetTextProperty()
-        if bc is not None:
-            prop.SetBackgroundColor(colors.get_color(bc))
-
-        prop.SetOpacity(alpha)
-        prop.SetBackgroundOpacity(alpha)
-        if bc is not None and len(bc) == 4:
-            prop.SetBackgroundRGBA(alpha)
-
-        c = colors.get_color(c)
-        prop.SetColor(c)
-        fpost.GetProperty().SetColor(c)
-
-        prop.SetFrame(bool(lw))
-        prop.SetFrameWidth(lw)
-        prop.SetFrameColor(prop.GetColor())
-
-        prop.SetFontFamily(vtk.VTK_FONT_FILE)
-        fl = utils.get_font_path(font)
-        prop.SetFontFile(fl)
-        prop.ShadowOff()
-        prop.BoldOff()
-        prop.SetOpacity(alpha)
-        prop.SetJustificationToLeft()
-        if "top" in justify:
-            prop.SetVerticalJustificationToTop()
-        if "bottom" in justify:
-            prop.SetVerticalJustificationToBottom()
-        if "cent" in justify:
-            prop.SetVerticalJustificationToCentered()
-            prop.SetJustificationToCentered()
-        if "left" in justify:
-            prop.SetJustificationToLeft()
-        if "right" in justify:
-            prop.SetJustificationToRight()
-        prop.SetLineSpacing(vspacing * 1.2)
+        fpost = vedo.addons.Flagpost(
+            txt, 
+            point, 
+            point + offset,
+            s,
+            c,
+            bc,
+            alpha,
+            lw,
+            font,
+            justify,
+            vspacing,
+        )
         self._caption = fpost
         return fpost
-
 
     def caption(
         self,

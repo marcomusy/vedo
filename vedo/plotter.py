@@ -886,6 +886,8 @@ class Plotter:
                     a.rendered_at.discard(ir)
                 if hasattr(a, "scalarbar") and a.scalarbar:
                     ren.RemoveActor(a.scalarbar)
+                if hasattr(a, "_caption") and a._caption:
+                    ren.RemoveActor(a._caption)
                 if hasattr(a, "trail") and a.trail:
                     ren.RemoveActor(a.trail)
                     a.trail_points = []

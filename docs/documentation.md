@@ -241,7 +241,7 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           [],
-          name='stager',
+          name='myprogramname',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
@@ -252,7 +252,7 @@ exe = EXE(pyz,
           disable_windowed_traceback=False,
           target_arch=None,
           codesign_identity=None,
-          entitlements_file=None )
+          entitlements_file=None)
 
 ```
 then run it with
@@ -260,6 +260,9 @@ then run it with
 pyinstaller myscript.spec
 ```
 See also an example [here](https://github.com/marcomusy/welsh_embryo_stager/blob/main/stager.spec).
+
+If you get an [error message](https://github.com/marcomusy/vedo/discussions/820) related to a font which is not shipped with the vedo library you will need to copy the `.npz` and `.ttf` files to `vedo/fonts` (where all the other fonts are) and reinstall vedo. 
+Then add in your script `settings.font_parameters["FONTNAME"]["islocal"] = True`.
 
 
 <!-- .. include:: ../docs/tutorials.md -->
