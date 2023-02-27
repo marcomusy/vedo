@@ -699,7 +699,7 @@ def loadPVD(filename):
             ob = load(dname + "/" + fname)
             tm = dataset.get("timestep")
             if tm:
-                ob.time(tm)
+                ob.time = tm
             listofobjs.append(ob)
     if len(listofobjs) == 1:
         return listofobjs[0]
@@ -799,7 +799,7 @@ def tonumpy(obj):
     def _fillcommon(obj, adict):
         adict["filename"] = obj.filename
         adict["name"] = obj.name
-        adict["time"] = obj.time()
+        adict["time"] = obj.time
         adict["rendered_at"] = obj.rendered_at
         adict["position"] = obj.pos()
         adict["info"] = obj.info
