@@ -1861,7 +1861,7 @@ class Video:
             name="movie.mp4",
             duration=None,
             fps=24,
-            backend="ffmpeg",
+            backend="imageio",
         ):
         """
         Class to generate a video from the specified rendering window.
@@ -1874,8 +1874,8 @@ class Video:
                 set the number of frames per second.
             duration : (float)
                 set the total `duration` of the video and recalculates `fps` accordingly.
-            ffmpeg : (str)
-                set path to ffmpeg program. Default value assumes ffmpeg command is in the path.
+            backend : (str)
+                the backend engine to be used `['imageio', 'ffmpeg', 'cv']`
 
         Examples:
             - [makeVideo.py](examples/other/makeVideo.py)
@@ -1963,8 +1963,8 @@ class Video:
         Render the video and write it to file.
         """
         if self.duration:
-            self.fps = len(self.frames) / float(self.duration)
-            colors.printc("Recalculated video FPS to", round(self.fps, 3), c="m")
+            self.fps = int(len(self.frames) / float(self.duration) +0.5)
+            colors.printc("recalculated fps:", self.fps, c="m", end='')
         else:
             self.fps = int(self.fps)
 
@@ -1985,7 +1985,7 @@ class Video:
             if out:
                 vedo.logger.error(f"backend {self.backend} returning error: {out}")
             else:
-                colors.printc(f" \save video saved as {self.name}", c="m")
+                colors.printc(f"saved as {self.name}", c="m")
 
         ########################################
         elif "cv" in self.backend:
@@ -1993,7 +1993,7 @@ class Video:
                 import cv2
             except ImportError:
                 vedo.logger.error("opencv is not installed")
-                return None
+                return
 
             cap = cv2.VideoCapture(os.path.join(self.tmp_dir.name, "%1d.png"))
             fourcc = cv2.VideoWriter_fourcc(*"mp4v")
@@ -2011,9 +2011,62 @@ class Video:
 
             cap.release()
             writer.release()
-            if found:
-                vedo.logger.info("video saved as {self.name}")
-            else:
-                vedo.logger.error("could not find snapshots")
 
+        ########################################
+        elif "imageio" in self.backend:
+            try:
+                import imageio
+            except ImportError:
+                vedo.logger.error("Please install imageio with:\n pip install imageio[ffmpeg]")
+                return
+
+            if self.name.endswith(".mp4"):
+                writer = imageio.get_writer(self.name, fps=self.fps)
+            elif self.name.endswith(".gif"):
+                writer = imageio.get_writer(self.name, mode='I', duration=1/self.fps)
+            elif self.name.endswith(".webm"):
+                writer = imageio.get_writer(self.name, format="webm", fps=self.fps)
+            else:
+                vedo.logger.error(f"Unknown format of {self.name}.")
+                return
+
+            for f in utils.humansort(self.frames):
+                image = imageio.v3.imread(f)
+                writer.append_data(image)
+            try:
+                writer.close()
+                colors.printc(f"... saved as {self.name}", c="m")
+            except:
+                colors.printc(f"Could not save video {self.name}", c="r")
+
+        # finalize cleanup
         self.tmp_dir.cleanup()
+
+    def split_frames(self, output_dir='video_frames', prefix="frame_", format="png"):
+        """Split an existing video file into frames."""
+        try:
+            import imageio
+        except ImportError:
+            vedo.logger.error("\nPlease install imageio with:\n pip install imageio")
+            return
+        
+        # Create the output directory if it doesn't exist
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        # Create a reader object to read the video
+        reader = imageio.get_reader(self.name)
+
+        # Loop through each frame of the video and save it as image
+        print()
+        for i, frame in utils.progressbar(
+                enumerate(reader), 
+                title=f"writing {format} frames",
+                c='m',
+                width=20,
+            ):
+            output_file = os.path.join(
+                output_dir, 
+                f'{prefix}{str(i).zfill(5)}.{format}'
+            )
+            imageio.imwrite(output_file, frame, format=format)

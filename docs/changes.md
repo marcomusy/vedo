@@ -23,7 +23,9 @@
 - add pipeline visualization with syntax `any_vedo_obj.pipeline.show()` or interactively by clicking an object and pressing `y`.
 - fixes to `Button` class
 - in `map_points_to_cells()` added keyword `move` in #819 @19kdc3
-- fix `flagpost()` by creating a new class `addons.Flagpost()` in #821 @ZiguoAtGitHub @marcomusy
+- fix `flagpost()` by creating a new class `addons.Flagpost()` in #821 @ZiguoAtGitHub
+- add `vedo.io.Video(backend='imageio')` support for video generation
+- add `vedo.io.Video.split_frames()` of an already existing video file.
 
 
 -------------------------
