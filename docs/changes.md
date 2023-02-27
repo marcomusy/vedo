@@ -36,7 +36,8 @@ examples/other/trame_ex2.py
 examples/other/trame_ex3.py
 examples/simulations/lorenz.py
 examples/notebooks/slider2d.ipynb
-examples/basic/mousehover0.py.py
+examples/basic/mousehover0.py
+examples/other/make_video.py
 ```
 
 ### Broken Examples

@@ -976,7 +976,7 @@ class Mesh(Points):
         Generate a "cap" on a clipped mesh, or caps sharp edges.
 
         Examples:
-            - [cutAndCap.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/cutAndCap.py)
+            - [cut_and_cap.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/cut_and_cap.py)
 
             ![](https://vedo.embl.es/images/advanced/cutAndCap.png)
         """
@@ -1815,7 +1815,7 @@ class Mesh(Points):
         """Find all vertices connected to an input vertex specified by its index.
 
         Examples:
-            - [connVtx.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/connVtx.py)
+            - [connected_vtx.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/connected_vtx.py)
 
             ![](https://vedo.embl.es/images/basic/connVtx.png)
         """
@@ -2284,7 +2284,7 @@ class Mesh(Points):
         Intersect this Mesh with the input surface to return a set of lines.
 
         Examples:
-            - [surfIntersect.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/surfIntersect.py)
+            - [surf_intersect.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/surf_intersect.py)
 
                 ![](https://vedo.embl.es/images/basic/surfIntersect.png)
         """

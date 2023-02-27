@@ -1229,7 +1229,7 @@ class Points(BaseActor, vtk.vtkActor):
         See also `delete_cells()`.
 
         Examples:
-            - [deleteMeshPoints.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/deleteMeshPoints.py)
+            - [elete_mesh_pts.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/elete_mesh_pts.py)
 
                 ![](https://vedo.embl.es/images/basic/deleteMeshPoints.png)
         """
@@ -3596,7 +3596,7 @@ class Points(BaseActor, vtk.vtkActor):
                 set the basis function to either abs(R) (for 3d) or R2LogR (for 2d meshes)
 
         Examples:
-            - [interpolateField.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/interpolateField.py)
+            - [interpolate_field.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/interpolate_field.py)
             - [warp1.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/warp1.py)
             - [warp2.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/warp2.py)
 
@@ -4140,11 +4140,11 @@ class Points(BaseActor, vtk.vtkActor):
                 include cells lying exactly on the boundary line. Only relevant on 'cells' mode
 
         Examples:
-            - [cutWithPoints1.py](https://github.com/marcomusy/vedo/blob/master/examples/advanced/cutWithPoints1.py)
+            - [cut_with_points1.py](https://github.com/marcomusy/vedo/blob/master/examples/advanced/cut_with_points1.py)
             
                 ![](https://vedo.embl.es/images/advanced/cutWithPoints1.png)
             
-            - [cutWithPoints2.py](https://github.com/marcomusy/vedo/blob/master/examples/advanced/cutWithPoints2.py)
+            - [cut_with_points2.py](https://github.com/marcomusy/vedo/blob/master/examples/advanced/cut_with_points2.py)
         
                 ![](https://vedo.embl.es/images/advanced/cutWithPoints2.png)
         """

@@ -2299,7 +2299,7 @@ def probe_points(dataset, pts):
     with `mesh.pointdata['vtkValidPointMask']`.
 
     Examples:
-        - [probePoints.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probePoints.py)
+        - [probe_points.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probe_points.py)
 
             ![](https://vedo.embl.es/images/volumetric/probePoints.png)
     """
@@ -2346,8 +2346,8 @@ def probe_line(dataset, p1, p2, res=100):
     Use `res` to set the nr of points along the line
 
     Examples:
-        - [probeLine1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probeLine1.py)
-        - [probeLine2.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probeLine2.py)
+        - [probe_line1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probe_line1.py)
+        - [probe_line2.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probe_line2.py)
 
             ![](https://vedo.embl.es/images/volumetric/probeLine2.png) 
     """

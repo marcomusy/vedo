@@ -406,7 +406,7 @@ class BaseVolume:
         ```
 
         Examples:
-            - [volumeOperations.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/volumeOperations.py)
+            - [volume_operations.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/volume_operations.py)
         """
         op = operation.lower()
         image1 = self._data
@@ -694,7 +694,7 @@ class BaseVolume:
                 computed but set to this specified value instead.
 
         Examples:
-            - [euclDist.py](examples/volumetric/euclDist.py)
+            - [euclidian_dist.py](examples/volumetric/euclidian_dist.py)
         """
         euv = vtk.vtkImageEuclideanDistance()
         euv.SetInputData(self._data)

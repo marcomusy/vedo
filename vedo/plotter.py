@@ -1984,7 +1984,7 @@ class Plotter:
                 visualize the content of the `obj.info` attribute
 
         Examples:
-            - [hoverLegend.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/hoverLegend.py)
+            - [hover_legend.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/hover_legend.py)
             - [earthquake_browser.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/earthquake_browser.py)
         
             ![](https://vedo.embl.es/images/pyplot/earthquake_browser.jpg)

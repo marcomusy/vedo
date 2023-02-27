@@ -4814,7 +4814,7 @@ class ConvexHull(Mesh):
         Create the 2D/3D convex hull from a set of input points or input Mesh.
 
         Examples:
-            - [convexHull.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/convexHull.py)
+            - [convex_hull.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/convex_hull.py)
 
                 ![](https://vedo.embl.es/images/advanced/convexHull.png)
         """
