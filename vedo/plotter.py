@@ -3951,8 +3951,6 @@ class Plotter:
             vedo.printc(r"\camera Exporting 3D window to file", c="blue", end="")
             vedo.io.export_window("scene.npz")
             vedo.printc(". Try:\n> vedo scene.npz", c="blue")
-            self.interactor.Start()
-            if vedo.vtk_version == (9,2,2): iren.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
 
         elif key == "F":
             vedo.io.export_window("scene.x3d")

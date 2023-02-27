@@ -803,7 +803,7 @@ def tonumpy(obj):
         adict["rendered_at"] = obj.rendered_at
         adict["position"] = obj.pos()
         adict["info"] = obj.info
-
+        
         try:
             # GetMatrix might not exist for non linear transforms
             m = np.eye(4)
@@ -826,7 +826,7 @@ def tonumpy(obj):
     ########################################################
     def _fillmesh(obj, adict):
 
-        adict["points"] = obj.points(transformed=False).astype(float)
+        adict["points"] = obj.points(transformed=True).astype(float)
         poly = obj.polydata()
 
         adict["cells"] = None
@@ -1006,12 +1006,13 @@ def loadnumpy(inobj):
         if 'filename' in keys: obj.filename = d['filename']
         if 'info' in keys: obj.info = d['info']
 
-        if "transform" in keys and len(d["transform"]) == 4:
-            vm = vtk.vtkMatrix4x4()
-            for i in [0, 1, 2, 3]:
-                for j in [0, 1, 2, 3]:
-                    vm.SetElement(i, j, d["transform"][i, j])
-            obj.apply_transform(vm)
+        # if "transform" in keys and len(d["transform"]) == 4:
+        #     vm = vtk.vtkMatrix4x4()
+        #     for i in [0, 1, 2, 3]:
+        #         for j in [0, 1, 2, 3]:
+        #             vm.SetElement(i, j, d["transform"][i, j])
+        #     obj.apply_transform(vm)
+
         elif "position" in keys:
             obj.pos(d["position"])
 
@@ -1462,7 +1463,7 @@ def export_window(fileoutput, binary=False):
             focal_point=plt.camera.GetFocalPoint(),
             viewup=plt.camera.GetViewUp(),
             distance=plt.camera.GetDistance(),
-            clippingRange=plt.camera.GetClippingRange(),
+            clipping_range=plt.camera.GetClippingRange(),
         )
         sdict["position"] = plt.pos
         sdict["size"] = plt.size
@@ -1517,17 +1518,20 @@ def export_window(fileoutput, binary=False):
                 vedo.plotter_instance.remove(a)
                 for b in a.unpack():
                     if b:
-                        # print(b.GetMatrix(), a.name) # SOME BUG HERE...
                         if a.name == "Axes":
                             newb = b.clone(transformed=True)
                         else:
+                            # newb = b.clone(transformed=True) # BUG??
+
                             newb = b.clone(transformed=False)
                             tt = vtk.vtkTransform()
                             tt.Concatenate(a.GetMatrix())
                             tt.Concatenate(b.GetMatrix())
                             newb.PokeMatrix(vtk.vtkMatrix4x4())
                             newb.SetUserTransform(tt)
+
                         vedo.plotter_instance.add(newb, render=False)
+
         vedo.plotter_instance.render()
 
         exporter = vtk.vtkX3DExporter()
