@@ -42,5 +42,6 @@ examples/pyplot/embed_matplotlib.py
 ```
 
 ### Broken Examples
-
+plot_fxy.py
+vedo --lego --cmap afmhot_r ../data/embryo.tif
 

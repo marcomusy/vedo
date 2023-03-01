@@ -38,9 +38,10 @@ vedo https://vedo.embl.es/examples/data/panther.stl.gz
 
 Pressing `h` will then show a number of options to interact with your 3D scene:
 
-    ============================================================
+     ============================================================
     | Press: i     print info about selected object              |
     |        I     print the RGB color under the mouse           |
+    |        y     show the pipeline for this object as a graph  |
     |        <-->  use arrows to reduce/increase opacity         |
     |        w/s   toggle wireframe/surface style                |
     |        p/P   change point size of vertices                 |
@@ -75,7 +76,7 @@ Pressing `h` will then show a number of options to interact with your 3D scene:
     |        Cntrl-click   rotate scene                          |
     |------------------------------------------------------------|
     |   Check out the documentation at:  https://vedo.embl.es    |
-    ============================================================
+     ============================================================
    
 
 ## Export your 3D scene to file
