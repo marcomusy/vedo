@@ -478,6 +478,14 @@ class Settings:
                 dotsep="·",
                 islocal=False,
             ),
+            Calibri=dict(
+                mono=False,
+                fscale=0.75,
+                hspacing=1,
+                lspacing=0.2,
+                dotsep="~·",
+                islocal=False,
+            ),
             Capsmall=dict(
                 mono=False,
                 fscale=0.8,
@@ -607,6 +615,22 @@ class Settings:
                 islocal=False,
             ),
             Wananti=dict(  # support chinese glyphs
+                mono=False,
+                fscale=0.75,
+                hspacing=1,
+                lspacing=0.2,
+                dotsep="~·",
+                islocal=False,
+            ),
+            AnimeAce=dict(
+                mono=False,
+                fscale=0.75,
+                hspacing=1,
+                lspacing=0.2,
+                dotsep="~·",
+                islocal=False,
+            ),
+            AnimeAceBold=dict(
                 mono=False,
                 fscale=0.75,
                 hspacing=1,
