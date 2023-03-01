@@ -379,6 +379,7 @@ from vtkmodules.vtkImagingCore import (
     vtkImageResize,
     vtkImageReslice,
     vtkImageThreshold,
+    vtkImageTranslateExtent,
 )
 
 from vtkmodules.vtkImagingFourier import (

@@ -19,96 +19,226 @@ Submodule to work with common format images.
 ![](https://vedo.embl.es/images/basic/rotateImage.png)
 """
 
-__all__ = ["Picture", "MatplotlibPicture"]
+__all__ = ["Picture", "Picture2D"]
 
 
 #################################################
-def _get_img(obj, flip=False):
-    # get vtkImageData from numpy array
-    obj = np.asarray(obj)
+def _get_img(obj, flip=False, translate=()):
+    # get vtkImageData from numpy array or filename
 
-    if obj.ndim == 3:  # has shape (nx,ny, ncolor_alpha_chan)
-        iac = vtk.vtkImageAppendComponents()
-        nchan = obj.shape[2]  # get number of channels in inputimage (L/LA/RGB/RGBA)
-        for i in range(nchan):
+    if isinstance(obj, str):
+        if "https://" in obj:
+            obj = vedo.io.download(obj, verbose=False)
+
+        fname = obj.lower()
+        if fname.endswith(".png"):
+            picr = vtk.vtkPNGReader()
+        elif fname.endswith(".jpg") or fname.endswith(".jpeg"):
+            picr = vtk.vtkJPEGReader()
+        elif fname.endswith(".bmp"):
+            picr = vtk.vtkBMPReader()
+        elif fname.endswith(".tif") or fname.endswith(".tiff"):
+            picr = vtk.vtkTIFFReader()
+            picr.SetOrientationType(vedo.settings.tiff_orientation_type)
+        else:
+            colors.printc("Cannot understand picture format", obj, c="r")
+            return
+        picr.SetFileName(obj)
+        picr.Update()
+        img = picr.GetOutput()
+    
+    else:
+        obj = np.asarray(obj)
+
+        if obj.ndim == 3:  # has shape (nx,ny, ncolor_alpha_chan)
+            iac = vtk.vtkImageAppendComponents()
+            nchan = obj.shape[2]  # get number of channels in inputimage (L/LA/RGB/RGBA)
+            for i in range(nchan):
+                if flip:
+                    arr = np.flip(np.flip(obj[:, :, i], 0), 0).ravel()
+                else:
+                    arr = np.flip(obj[:, :, i], 0).ravel()
+                arr = np.clip(arr, 0, 255)
+                varb = utils.numpy2vtk(arr, dtype=np.uint8, name="RGBA")
+                imgb = vtk.vtkImageData()
+                imgb.SetDimensions(obj.shape[1], obj.shape[0], 1)
+                imgb.GetPointData().AddArray(varb)
+                imgb.GetPointData().SetActiveScalars("RGBA")
+                iac.AddInputData(imgb)
+            iac.Update()
+            img = iac.GetOutput()
+
+        elif obj.ndim == 2:  # black and white
             if flip:
-                arr = np.flip(np.flip(obj[:, :, i], 0), 0).ravel()
+                arr = np.flip(obj[:, :], 0).ravel()
             else:
-                arr = np.flip(obj[:, :, i], 0).ravel()
+                arr = obj.ravel()
             arr = np.clip(arr, 0, 255)
             varb = utils.numpy2vtk(arr, dtype=np.uint8, name="RGBA")
-            imgb = vtk.vtkImageData()
-            imgb.SetDimensions(obj.shape[1], obj.shape[0], 1)
-            imgb.GetPointData().AddArray(varb)
-            imgb.GetPointData().SetActiveScalars("RGBA")
-            iac.AddInputData(imgb)
-        iac.Update()
-        img = iac.GetOutput()
+            img = vtk.vtkImageData()
+            img.SetDimensions(obj.shape[1], obj.shape[0], 1)
 
-    elif obj.ndim == 2:  # black and white
-        if flip:
-            arr = np.flip(obj[:, :], 0).ravel()
-        else:
-            arr = obj.ravel()
-        arr = np.clip(arr, 0, 255)
-        varb = utils.numpy2vtk(arr, dtype=np.uint8, name="RGBA")
-        img = vtk.vtkImageData()
-        img.SetDimensions(obj.shape[1], obj.shape[0], 1)
+            img.GetPointData().AddArray(varb)
+            img.GetPointData().SetActiveScalars("RGBA")
 
-        img.GetPointData().AddArray(varb)
-        img.GetPointData().SetActiveScalars("RGBA")
+    if len(translate):
+        translate_extent = vtk.vtkImageTranslateExtent()
+        translate_extent.SetTranslation(-translate[0], -translate[1], 0)
+        translate_extent.SetInputData(img)
+        translate_extent.Update()
+        img.DeepCopy(translate_extent.GetOutput())
 
     return img
 
 
+def _set_justification(img, pos):
+
+    if not isinstance(pos, str):
+        return img, pos
+    
+    sx, sy = img.GetDimensions()[:2]
+    translate = ()
+    if "top" in pos:
+        if "left" in pos:
+            pos = (0, 1)
+            translate = (0, sy)
+        elif "right" in pos:
+            pos = (1, 1)
+            translate = (sx, sy)
+        elif "mid" in pos or "cent" in pos:
+            pos = (0.5, 1)
+            translate = (sx/2, sy)
+    elif "bottom" in pos:
+        if "left" in pos:
+            pos = (0, 0)
+        elif "right" in pos:
+            pos = (1, 0)
+            translate = (sx, 0)
+        elif "mid" in pos or "cent" in pos:
+            pos = (0.5, 0)
+            translate = (sx/2, 0)
+    elif "mid" in pos or "cent" in pos:
+        if "left" in pos:
+            pos = (0, 0.5)
+            translate = (0, sy/2)
+        elif "right" in pos:
+            pos = (1, 0.5)
+            translate = (sx, sy/2)
+        else:
+            pos = (0.5, 0.5)           
+            translate = (sx/2, sy/2)
+
+    if len(translate):
+        translate = np.array(translate).astype(int)
+        translate_extent = vtk.vtkImageTranslateExtent()
+        translate_extent.SetTranslation(-translate[0], -translate[1], 0)
+        translate_extent.SetInputData(img)
+        translate_extent.Update()
+        img = translate_extent.GetOutput()
+    
+    return img, pos
+
+
 #################################################
-class MatplotlibPicture(vtk.vtkActor2D):
+class Picture2D(vedo.BaseActor2D):
     """
-    Embed a 2D matplotlib image in the 3D scene.
+    Embed an image as a static 2D image in the canvas.
     """
-    def __init__(self, fig, pos=(0,0), size=(), scale=1, ontop=False, padding=1):
+    def __init__(
+        self, 
+        fig, 
+        pos=(0,0), 
+        scale=1, 
+        ontop=False, 
+        padding=1, 
+        justify="",    
+    ):
         """
+        Embed an image as a static 2D image in the canvas.
+
         Arguments:
-            fig : matplotlib.Figure, matplotlib.pyplot
-                the output from matplotlib
+            fig : Picture, matplotlib.Figure, matplotlib.pyplot, vtkImageData
+                the input image
             pos : (list)
-                2D (x,y) position in range [0,1], [0,0] being the bottom-left corner
-            size : (list)
-                resize image to this pixel size
+                2D (x,y) position in range [0,1], 
+                [0,0] being the bottom-left corner
             scale : (float)
                 apply a scaling factor to the image
             ontop : (bool)
                 keep image on top or not
             padding : (int)
-                padding space to keep around the image
+                an internal padding space as a fraction of size
+                (matplotlib only)
+            justify : (str)
+                define the anchor point ("top-left", "top-center", ...)
         """
-        vtk.vtkActor2D.__init__(self)
+        vedo.BaseActor2D.__init__(self)
+        # print("input type:", fig.__class__)
+        
+        self.array = None 
 
-        if hasattr(fig, "gcf"):
-            fig = fig.gcf()
-        fig.tight_layout(pad=padding)
-        fig.canvas.draw()
+        if utils.is_sequence(fig):
+            self.array = fig
+            self._data = _get_img(self.array)
 
-        self.data = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
-        self.data = self.data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-        self.picture = Picture(self.data)
-        if len(size) > 0:
-            self.picture.resize(np.array(size)*scale)
+        elif isinstance(fig, Picture):
+            self._data = fig.inputdata()
+
+        elif isinstance(fig, vtk.vtkImageData):
+            assert fig.GetDimensions()[2] == 1, "Cannot create an Picture2D from Volume"
+            self._data = fig
+
+        elif isinstance(fig, str):
+            self._data = _get_img(fig)
+            self.filename = fig
+
+        elif 'matplotlib' in str(fig.__class__):
+            if hasattr(fig, "gcf"):
+                fig = fig.gcf()
+            fig.tight_layout(pad=padding)
+            fig.canvas.draw()
+
+            self.array = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
+            self.array = self.array.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+            self._data = _get_img(self.array)
+
+        #############
         if scale != 1:
-            self.picture.scale(scale)
+            newsize = np.array(self._data.GetDimensions()[:2]) * scale
+            newsize = newsize.astype(int)
+            rsz = vtk.vtkImageResize()
+            rsz.SetInputData(self._data)
+            rsz.SetResizeMethodToOutputDimensions()
+            rsz.SetOutputDimensions(newsize[0], newsize[1], 1)
+            rsz.Update()
+            self._data = rsz.GetOutput()
+        
+        if padding:
+            pass # TODO
 
-        self.mapper = vtk.vtkImageMapper()
-        self.mapper.SetInputData(self.picture.inputdata())
-        self.mapper.SetColorWindow(255)
-        self.mapper.SetColorLevel(127.5)
-        self.SetMapper(self.mapper)
-        self.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+        if justify:
+            self._data, pos = _set_justification(self._data, justify)
+        else:
+            self._data, pos = _set_justification(self._data, pos)
+
+        self._mapper = vtk.vtkImageMapper()
+        # self._mapper.RenderToRectangleOn() # NOT good because of aliasing
+        self._mapper.SetInputData(self._data)
+        self._mapper.SetColorWindow(255)
+        self._mapper.SetColorLevel(127.5)
+        self.SetMapper(self._mapper)
+
+        self.GetPositionCoordinate().SetCoordinateSystem(3)
         self.SetPosition(pos)
+
         if ontop:
             self.GetProperty().SetDisplayLocationToForeground()
         else:
             self.GetProperty().SetDisplayLocationToBackground()
 
+    @property
+    def shape(self):
+        return np.array(self._data.GetDimensions()[:2]).astype(int)
 
 #################################################
 class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
@@ -142,26 +272,8 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
             img = obj
 
         elif isinstance(obj, str):
-            if "https://" in obj:
-                obj = vedo.io.download(obj, verbose=False)
-
-            fname = obj.lower()
-            if fname.endswith(".png"):
-                picr = vtk.vtkPNGReader()
-            elif fname.endswith(".jpg") or fname.endswith(".jpeg"):
-                picr = vtk.vtkJPEGReader()
-            elif fname.endswith(".bmp"):
-                picr = vtk.vtkBMPReader()
-            elif fname.endswith(".tif") or fname.endswith(".tiff"):
-                picr = vtk.vtkTIFFReader()
-                picr.SetOrientationType(vedo.settings.tiff_orientation_type)
-            else:
-                colors.printc("Cannot understand picture format", obj, c="r")
-                return
-            picr.SetFileName(obj)
+            img = _get_img(obj)
             self.filename = obj
-            picr.Update()
-            img = picr.GetOutput()
 
         else:
             img = vtk.vtkImageData()

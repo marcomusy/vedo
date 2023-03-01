@@ -26,7 +26,7 @@
 - fix `flagpost()` by creating a new class `addons.Flagpost()` in #821 @ZiguoAtGitHub
 - add `vedo.io.Video(backend='imageio')` support for video generation
 - add `vedo.io.Video.split_frames()` of an already existing video file.
-
+- add `Picture2D` class
 
 -------------------------
 ## New/Revised Examples
@@ -38,6 +38,7 @@ examples/simulations/lorenz.py
 examples/notebooks/slider2d.ipynb
 examples/basic/mousehover0.py
 examples/other/make_video.py
+examples/pyplot/embed_matplotlib.py
 ```
 
 ### Broken Examples

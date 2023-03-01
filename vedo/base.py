@@ -20,6 +20,7 @@ __doc__ = "Base classes. Do not instantiate."
 __all__ = [
     "Base3DProp",
     "BaseActor",
+    "BaseActor2D",
     "BaseGrid",
     "probe_points",
     "probe_line",
@@ -203,7 +204,7 @@ class Base3DProp:
     """
     Base class to manage positioning and size of the objects in space and other properties.
 
-    .. warning:: Do not use this class to instanciate objects, use one the above instead.
+    .. warning:: Do not use this class to instanciate objects
     """
     def __init__(self):
         """
@@ -851,6 +852,102 @@ class Base3DProp:
         Returns the `Plotter` class instance.
         """
         return vedo.plotter.show(self, **options)
+
+
+########################################################################################
+class BaseActor2D(vtk.vtkActor2D):
+    """
+    Base class.
+
+    .. warning:: Do not use this class to instanciate objects.
+    """
+    def __init__(self):
+        """Manage 2D objects."""
+        super().__init__()
+        self._mapper = None
+        self.property = self.GetProperty()
+        self.filename = ""
+
+    def layer(self, value=None):
+        """Set/Get the layer number in the overlay planes into which to render."""
+        if value is None:
+            return self.GetLayerNumber()
+        self.SetLayerNumber(value)
+        return self
+
+    def pos(self, px=None, py=None):
+        """Set/Get the screen-coordinate position."""
+        if isinstance(px, str):
+            vedo.logger.error("Use string descriptors only inside the contructor")
+            return self
+        if px is None:
+            return np.array(self.GetPosition(), dtype=int)
+        if  py is not None:
+            p = [px,py]
+        else:
+            p = px
+        assert len(p) == 2, "Error: len(pos) must be 2 for BaseActor2D"
+        self.SetPosition(p)
+        return self
+
+    def coordinate_system(self, value=None):
+        """
+        Set/get the coordinate system which this coordinate is defined in.
+        
+        The options are:
+            0. Display
+            1. Normalized Display
+            2. Viewport
+            3. Normalized Viewport
+            4. View
+            5. Pose
+            6. World
+        """
+        coor = self.GetPositionCoordinate()
+        if value is None:
+            return coor.GetCoordinateSystem()
+        coor.SetCoordinateSystem(value)
+        return self
+
+    def on(self):
+        """Set object visibility."""
+        self.VisibilityOn()
+        return self
+
+    def off(self):
+        """Set object visibility."""
+        self.VisibilityOn()
+        return self
+
+    def toggle(self):
+        """Toggle object visibility."""
+        self.SetVisibility(not(self.GetVisibility()))
+        return self
+
+    def pickable(self, value=True):
+        self.SetPickable(value)
+        return self
+
+    def alpha(self, value=None):
+        """Set/Get the object opacity."""
+        if value is None:
+            return self.GetProperty().GetOpacity()
+        self.GetProperty().SetOpacity(value)
+        return self
+
+    def ps(self, point_size=None):
+        if value is None:
+            return self.GetProperty().GetPointSize()
+        self.GetProperty().SetPointSize(point_size)
+        return self
+    
+    def ontop(self, value=True):
+        """Keep the object always on top of everithing else."""
+        if value:
+            self.GetProperty().SetDisplayLocationToForeground()
+        else:
+            self.GetProperty().SetDisplayLocationToBackground()
+        return self
 
 
 ########################################################################################
@@ -1677,7 +1774,7 @@ class BaseGrid(BaseActor):
     """
     Base class for grid datasets.
 
-    .. warning:: Do not use this class to instanciate objects, use one the above instead.
+    .. warning:: Do not use this class to instanciate objects.
     """
     def __init__(self):
         """Base class for grid datasets."""

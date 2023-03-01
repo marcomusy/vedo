@@ -12,7 +12,6 @@
 ######################################################################## imports
 import os
 import sys
-# import warnings
 import logging
 import numpy as np
 from numpy import sin, cos, sqrt, exp, log, dot, cross  # just because handy
@@ -25,11 +24,11 @@ from vedo.version import _version as __version__
 from vedo.settings import Settings
 settings = Settings(level=0)
 
-from vedo.utils import *
 from vedo.colors import *
+from vedo.utils import *
+from vedo.base import *
 from vedo.shapes import *
 from vedo.io import *
-from vedo.base import *
 from vedo.ugrid import *
 from vedo.assembly import *
 from vedo.pointcloud import *
@@ -122,6 +121,7 @@ logger.addHandler(_chsh)
 logger.setLevel(logging.INFO)
 
 ################################################# silence annoying messages
+# import warnings
 # warnings.simplefilter(action="ignore", category=FutureWarning)
 # try:
 #     np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
