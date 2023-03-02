@@ -43,7 +43,7 @@ def remesh(mesh):
     return Mesh("tmpmesh.xml")
 
 #################################################################################
-N = 40         # number of iterations of stretching
+N = 20         # number of iterations of stretching
 do_remesh = 0  # grab the boundary and remesh the interior at each iteration
 
 circle = vedo.Circle(r=50)
@@ -61,18 +61,17 @@ for i in range(N):
     allb = AllBoundaries()
     allb.mark(mfunc, 1)
 
-    F = np.array([2, (i-N/2)/N])
-
+    F = np.array([4, 2*(i-N/2)/N])
     displacement = solve_problem(mesh, mfunc, F)
     new_mesh = update(mesh, displacement)
 
-    mesh = remesh(new_mesh)if do_remesh else new_mesh
+    mesh = remesh(new_mesh) if do_remesh else new_mesh
     meshes.append(mesh)
     displacements.append(displacement)
 
-    arrow = vedo.Arrow2D([0,0], F*20).z(1).c("red4")
+    arrow = vedo.Arrow2D([0,0], F*15).z(1).c("red4")
     vmesh = vedo.Mesh([mesh.coordinates(), mesh.cells()]).c("k5")
-    plt.at(i).show(f"step{i}", half_circle, vmesh, arrow)
+    plt.at(i).show(f"step{i}", half_circle, vmesh, arrow, zoom=1.5)
 
 plt.interactive().close()
 

@@ -3178,7 +3178,7 @@ class Points(BaseActor, vtk.vtkActor):
 
             If you want to reset it use `mymesh.point_locator=None`
         """
-        # NB: every time the mesh moves or is warped the locateors are set to None
+        # NB: every time the mesh moves or is warped the locators are set to None
         if (n > 1 or radius) or (n == 1 and return_point_id):
 
             poly = None
