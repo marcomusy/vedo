@@ -198,8 +198,15 @@ class Picture2D(vedo.BaseActor2D):
             fig.tight_layout(pad=padding)
             fig.canvas.draw()
 
-            self.array = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
-            self.array = self.array.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+            # self.array = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
+            # self.array = self.array.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+            width, height = fig.get_size_inches() * fig.get_dpi()
+            self.array = np.frombuffer(
+                fig.canvas.buffer_rgba(), dtype=np.uint8).reshape(
+                (int(height), int(width), 4)
+            )
+            self.array = self.array[:, :, :3]
+
             self._data = _get_img(self.array)
 
         #############
