@@ -49,7 +49,7 @@ do_remesh = 0  # grab the boundary and remesh the interior at each iteration
 circle = vedo.Circle(r=50)
 mesh = remesh(circle)
 half_circle = circle.boundaries().cut_with_plane(origin=[-10,0,0], normal='-x').z(2)
-half_circle.linewidth(5).c("yellow4")
+half_circle.linewidth(5).c("red4")
 
 plt = vedo.Plotter(N=N, size=(2250, 1300))
 
@@ -69,9 +69,9 @@ for i in range(N):
     meshes.append(mesh)
     displacements.append(displacement)
 
-    arrow = vedo.Arrow2D([0,0], F*15).z(1).c("red4")
-    vmesh = vedo.Mesh([mesh.coordinates(), mesh.cells()]).c("k5")
-    plt.at(i).show(f"step{i}", half_circle, vmesh, arrow, zoom=1.5)
+    varrow = vedo.Arrow2D([0,0], F*15).z(1).c("red4")
+    vmesh = vedo.Mesh([mesh.coordinates(), mesh.cells()]).c("k4").lc('k5')
+    plt.at(i).show(f"t={i}, F={F}", half_circle, vmesh, varrow, zoom=1.5)
 
 plt.interactive().close()
 
