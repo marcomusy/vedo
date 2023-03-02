@@ -218,7 +218,9 @@ def exe_run(args):
     matching = [
         s
         for s in exfiles
-        if (f2search in os.path.basename(s).lower() and "__" not in s)
+        if (f2search in os.path.basename(s).lower() 
+            and "__" not in s and "dolfin" not in s and "trimesh" not in s
+        )
     ]
     matching = list(sorted(matching))
     nmat = len(matching)
@@ -322,6 +324,10 @@ def exe_search(args):
         pattern = pattern.lower()
     if len(pattern) > 3:
         for ifile in exfiles:
+            if "dolfin" in ifile:
+                continue
+            if "trimesh" in ifile:
+                continue
             with open(ifile, "r", encoding="UTF-8") as file:
                 fflag = True
                 for i, line in enumerate(file):
@@ -395,10 +401,6 @@ def exe_search_code(args):
             if "eprecated" in mmdoc_lower:
                 continue
 
-            # printc(".....", name, mm, c='y', bold=0)
-
-            # idcomment = mmdoc_lower.find('"""')
-            # if key_lower in mmdoc_lower[:idcomment]:
             if key_lower in name_lower:
 
                 sname = inspect.getmodule(mm).__name__ + " -> " + name

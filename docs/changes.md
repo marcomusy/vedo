@@ -39,6 +39,7 @@ examples/notebooks/slider2d.ipynb
 examples/basic/mousehover0.py
 examples/other/make_video.py
 examples/pyplot/embed_matplotlib.py
+examples/other/dolfin/ex06_elasticity4.py
 ```
 
 ### Broken Examples
