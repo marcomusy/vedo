@@ -928,7 +928,7 @@ class FreeHandCutPlotter(Plotter):
 
     def _on_mouse_move(self, evt):
         if self.drawmode:
-            cpt = self.compute_world_position(evt.picked2d) # make this 2d-screen point 3d
+            cpt = self.compute_world_coordinate(evt.picked2d) # make this 2d-screen point 3d
             if self.cpoints and mag(cpt - self.cpoints[-1]) < self.mesh.diagonal_size()*self.tol:
                 return  # new point is too close to the last one. skip
             self.cpoints.append(cpt)

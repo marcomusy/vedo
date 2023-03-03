@@ -10,7 +10,7 @@ def func(evt):                 # this is the callback function
     i = evt.at                 # the renderer nr. which is being hit
     pt2d = evt.picked2d        # 2D screen coordinate
     # passing a list of meshes will force the points to be placed on any of them
-    pt3d = plt.at(i).compute_world_position(pt2d, objs=[objs[i]])
+    pt3d = plt.at(i).compute_world_coordinate(pt2d, objs=[objs[i]])
     if mag(pt3d) < 0.01:
         return
     newpt = Point(pt3d).color(i)
