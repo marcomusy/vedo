@@ -2192,13 +2192,58 @@ class Plotter:
         sifunc(0, 0)
         return fractor
 
+    def compute_screen_coordinates(self, obj, full_window=False):
+        """
+        Given a 3D points in the current renderer (or full window),
+        find the screen pixel coordinates.
 
-    def fill_event(self, ename="", cid=0, priority=0):
-        """Create an Event object. Internal use mostly."""
+        Example:
+            ```python
+            from vedo import *
+
+            elli = Ellipsoid().rotate_y(30)
+
+            plt = Plotter()
+            plt.show(elli)
+
+            xyscreen = plt.compute_screen_coordinates(elli)
+            print('xyscreen coords:', xyscreen)
+
+            # simulate an event happening at one point
+            event = plt.fill_event(pos=xyscreen[123])
+            print(event)
+            ```
+        """
+        if isinstance(obj, vedo.base.Base3DProp):
+            pts = obj.points()
+        elif utils.is_sequence(obj):
+            pts = obj
+        p2d = []    
+        cs = vtk.vtkCoordinate()
+        cs.SetCoordinateSystemToWorld()
+        cs.SetViewport(self.renderer)
+        for p in pts:
+            cs.SetValue(p)
+            if full_window:
+                p2d.append(cs.GetComputedDisplayValue(self.renderer))
+            else:
+                p2d.append(cs.GetComputedViewportValue(self.renderer))
+        return np.array(p2d, dtype=int)
+
+    def fill_event(self, ename="", pos=(), cid=0, priority=0):
+        """
+        Create an Event object.
+
+        A 2D screen-position can be provided to be picked.
+        """
         if not self.interactor:
             return Event()
 
-        x, y = self.interactor.GetEventPosition()
+        if len(pos):
+            x, y = pos
+            self.interactor.SetEventPosition(pos)
+        else:
+            x, y = self.interactor.GetEventPosition()
         self.renderer = self.interactor.FindPokedRenderer(x, y)
         if not self.picker:
             self.picker = vtk.vtkPropPicker()
