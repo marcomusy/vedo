@@ -1045,15 +1045,19 @@ class BaseActor(Base3DProp):
 
             if vpts:
                 return utils.vtk2numpy(vpts.GetData())
-            return np.array([])
+            return np.array([], dtype=np.float32)
 
         else:  ### setter
 
             if len(pts) == 3 and len(pts[0]) != 3:
                 # assume plist is in the format [all_x, all_y, all_z]
                 pts = np.stack((pts[0], pts[1], pts[2]), axis=1)
+            pts = np.asarray(pts, dtype=np.float32)
+            if pts.shape[1] == 2:
+                pts = np.c_[pts, np.zeros(pts.shape[0], dtype=np.float32)]
             vpts = self.inputdata().GetPoints()
-            vpts.SetData(utils.numpy2vtk(pts, dtype=float))
+            arr = utils.numpy2vtk(pts, dtype=np.float32)
+            vpts.SetData(arr)
             vpts.Modified()
             # reset mesh to identity matrix position/rotation:
             self.PokeMatrix(vtk.vtkMatrix4x4())

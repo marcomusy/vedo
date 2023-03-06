@@ -3097,14 +3097,14 @@ def _histogram_hex_bin(
     src = vtk.vtkPointSource()
     src.SetNumberOfPoints(len(xvalues))
     src.Update()
-    pointsPolydata = src.GetOutput()
+    poly = src.GetOutput()
 
     values = np.stack((xvalues, yvalues), axis=1)
     zs = [[0.0]] * len(values)
     values = np.append(values, zs, axis=1)
 
-    pointsPolydata.GetPoints().SetData(utils.numpy2vtk(values, dtype=float))
-    cloud = Mesh(pointsPolydata)
+    poly.GetPoints().SetData(utils.numpy2vtk(values, dtype=np.float32))
+    cloud = Mesh(poly)
 
     col = None
     if c is not None:

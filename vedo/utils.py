@@ -561,7 +561,7 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, tetras=False
     vertices = make3d(vertices)
 
     source_points = vtk.vtkPoints()
-    source_points.SetData(numpy2vtk(vertices, dtype=float))
+    source_points.SetData(numpy2vtk(vertices, dtype=np.float32))
     poly.SetPoints(source_points)
 
     if lines is not None:

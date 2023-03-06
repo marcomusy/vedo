@@ -112,6 +112,30 @@ To use in jupyter notebooks use the syntax `vedo.Plotter(backend='...')` the sup
 Check for more examples in 
 [repository](https://github.com/marcomusy/vedo/tree/master/examples/notebooks).
 
+### Running on Google Colab
+Start your notebook with this setup:
+```python
+import os
+print("setup xvfb (can take a minute)...")
+os.system('apt-get install xvfb')
+os.system('pip install pyvirtualdisplay')
+os.system('pip install vedo')
+from pyvirtualdisplay import Display
+Display(visible=0).start()
+print('setup complete.')
+```
+
+Then test it with:
+```python
+import vedo
+print("vedo", vedo.__version__)
+sphere = vedo.Sphere().linewidth(1)
+plt = vedo.Plotter()
+plt += sphere
+plt.show(axes=1, viewup='z', zoom=1.5)
+```
+
+
 ## Running on a Server
 - Install `libgl1-mesa` and `xvfb` on your server:
 ```bash

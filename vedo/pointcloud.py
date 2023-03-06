@@ -197,7 +197,7 @@ def delaunay2d(plist, mode="scipy", boundaries=(), tol=None, alpha=0, offset=0, 
 
     pd = vtk.vtkPolyData()
     vpts = vtk.vtkPoints()
-    vpts.SetData(utils.numpy2vtk(plist, dtype=float))
+    vpts.SetData(utils.numpy2vtk(plist, dtype=np.float32))
     pd.SetPoints(vpts)
 
     delny = vtk.vtkDelaunay2D()
@@ -310,7 +310,7 @@ def voronoi(pts, padding=0, fit=False, method="vtk"):
                 pts = np.c_[pts, np.zeros(len(pts))]
             pd = vtk.vtkPolyData()
             vpts = vtk.vtkPoints()
-            vpts.SetData(utils.numpy2vtk(pts, dtype=float))
+            vpts.SetData(utils.numpy2vtk(pts, dtype=np.float32))
             pd.SetPoints(vpts)
             vor.SetInputData(pd)
         vor.SetPadding(padding)
@@ -848,7 +848,7 @@ class Points(BaseActor, vtk.vtkActor):
                 vgf.Update()
                 pd = vgf.GetOutput()
 
-                pd.GetPoints().SetData(utils.numpy2vtk(plist, dtype=float))
+                pd.GetPoints().SetData(utils.numpy2vtk(plist, dtype=np.float32))
 
                 ucols = vtk.vtkUnsignedCharArray()
                 ucols.SetNumberOfComponents(4)
@@ -1211,7 +1211,7 @@ class Points(BaseActor, vtk.vtkActor):
 
         data = np.array(self.trail_points) - currentpos + self.trail_offset
         tpoly = self.trail.polydata(False)
-        tpoly.GetPoints().SetData(utils.numpy2vtk(data, dtype=float))
+        tpoly.GetPoints().SetData(utils.numpy2vtk(data, dtype=np.float32))
         self.trail.SetPosition(currentpos)
 
     def _update_shadows(self):
@@ -3137,7 +3137,7 @@ class Points(BaseActor, vtk.vtkActor):
         ns = (np.random.randn(n, 3) * sigma) * (sz / 100)
         vpts = vtk.vtkPoints()
         vpts.SetNumberOfPoints(n)
-        vpts.SetData(utils.numpy2vtk(pts + ns))
+        vpts.SetData(utils.numpy2vtk(pts + ns, dtype=np.float32))
         self.inputdata().SetPoints(vpts)
         self.inputdata().GetPoints().Modified()
         self.pointdata["GaussianNoise"] = -ns
@@ -3248,6 +3248,25 @@ class Points(BaseActor, vtk.vtkActor):
         """
         Compute the Hausdorff distance to the input point set.
         Returns a single `float`.
+
+        Example:
+            ```python
+            from vedo import *
+            t = np.linspace(0, 2*np.pi, 100)
+            x = 4/3 * sin(t)**3
+            y = cos(t) - cos(2*t)/3 - cos(3*t)/6 - cos(4*t)/12
+            pol1 = Line(np.c_[x,y], closed=True).triangulate()
+            pol2 = Polygon(nsides=5).pos(2,2)
+            d12 = pol1.distance_to(pol2)
+            d21 = pol2.distance_to(pol1)
+            pol1.lw(0).cmap("viridis")
+            pol2.lw(0).cmap("viridis")
+            print("distance d12, d21 :", min(d12), min(d21))
+            print("hausdorff distance:", pol1.hausdorff_distance(pol2))
+            print("chamfer distance  :", pol1.chamfer_distance(pol2))
+            show(pol1, pol2, axes=1)
+            ```
+            ![](https://vedo.embl.es/images/feats/heart.png)
         """
         hp = vtk.vtkHausdorffDistancePointSetFilter()
         hp.SetInputData(0, self.polydata())

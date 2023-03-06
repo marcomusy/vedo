@@ -477,7 +477,7 @@ class Line(Mesh):
             p0 = utils.make3d(p0)
 
             ppoints = vtk.vtkPoints()  # Generate the polyline
-            ppoints.SetData(utils.numpy2vtk(np.asarray(p0, dtype=float), dtype=float))
+            ppoints.SetData(utils.numpy2vtk(np.asarray(p0), dtype=np.float32))
             lines = vtk.vtkCellArray()
             npt = len(p0)
             if closed:
@@ -930,7 +930,7 @@ class RoundedLine(Mesh):
         ptsnew = _getpts(pts) + _getpts(pts, revd=True)
 
         ppoints = vtk.vtkPoints()  # Generate the polyline
-        ppoints.SetData(utils.numpy2vtk(np.asarray(ptsnew, dtype=float), dtype=float))
+        ppoints.SetData(utils.numpy2vtk(np.asarray(ptsnew), dtype=np.float32))
         lines = vtk.vtkCellArray()
         npt = len(ptsnew)
         lines.InsertNextCell(npt)
@@ -1023,7 +1023,7 @@ class Lines(Mesh):
             for t in start_pts:
                 t = utils.make3d(t)
                 ppoints = vtk.vtkPoints()  # Generate the polyline
-                ppoints.SetData(utils.numpy2vtk(t, dtype=float))
+                ppoints.SetData(utils.numpy2vtk(t, dtype=np.float32))
                 lines = vtk.vtkCellArray()
                 npt = len(t)
                 lines.InsertNextCell(npt)
@@ -1796,6 +1796,7 @@ class Ribbon(Mesh):
 
             closed : (bool)
                 if True, join the last point with the first to form a closed surface
+
             res : (list)
                 ribbon resolutions along the line and perpendicularly to it.
 
@@ -1843,7 +1844,7 @@ class Ribbon(Mesh):
             line2 = np.c_[line2, np.zeros(len(line2))]
 
         ppoints1 = vtk.vtkPoints()  # Generate the polyline1
-        ppoints1.SetData(utils.numpy2vtk(line1, dtype=float))
+        ppoints1.SetData(utils.numpy2vtk(line1, dtype=np.float32))
         lines1 = vtk.vtkCellArray()
         lines1.InsertNextCell(len(line1))
         for i in range(len(line1)):
@@ -1853,7 +1854,7 @@ class Ribbon(Mesh):
         poly1.SetLines(lines1)
 
         ppoints2 = vtk.vtkPoints()  # Generate the polyline2
-        ppoints2.SetData(utils.numpy2vtk(line2, dtype=float))
+        ppoints2.SetData(utils.numpy2vtk(line2, dtype=np.float32))
         lines2 = vtk.vtkCellArray()
         lines2.InsertNextCell(len(line2))
         for i in range(len(line2)):
@@ -2744,12 +2745,12 @@ class Spheres(Mesh):
             glyph.ScalingOff()
         elif risseq:
             glyph.SetScaleModeToScaleByScalar()
-            urads = utils.numpy2vtk(2 * np.ascontiguousarray(r), dtype=float)
+            urads = utils.numpy2vtk(2 * np.ascontiguousarray(r), dtype=np.float32)
             urads.SetName("Radii")
             pd.GetPointData().AddArray(urads)
             pd.GetPointData().SetActiveScalars("Radii")
 
-        vpts.SetData(utils.numpy2vtk(centers - base, dtype=float))
+        vpts.SetData(utils.numpy2vtk(centers - base, dtype=np.float32))
 
         glyph.SetInputData(pd)
         glyph.Update()

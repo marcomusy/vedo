@@ -45,7 +45,7 @@ def delaunay3d(mesh, radius=0, tol=None):
     if utils.is_sequence(mesh):
         pd = vtk.vtkPolyData()
         vpts = vtk.vtkPoints()
-        vpts.SetData(utils.numpy2vtk(mesh, dtype=float))
+        vpts.SetData(utils.numpy2vtk(mesh, dtype=np.float32))
         pd.SetPoints(vpts)
         deln.SetInputData(pd)
     else:
@@ -89,7 +89,7 @@ def _buildtetugrid(points, cells):
         cells = tets
 
     source_points = vtk.vtkPoints()
-    varr = utils.numpy2vtk(points, dtype=float)
+    varr = utils.numpy2vtk(points, dtype=np.float32)
     source_points.SetData(varr)
     ug.SetPoints(source_points)
 

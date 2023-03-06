@@ -1640,9 +1640,9 @@ class Mesh(Points):
             pointsPolydata = pts.polydata()
             ptsa = pts.points()
         else:
-            ptsa = np.asarray(pts, dtype=float)
+            ptsa = np.asarray(pts)
             vpoints = vtk.vtkPoints()
-            vpoints.SetData(numpy2vtk(ptsa, dtype=float))
+            vpoints.SetData(numpy2vtk(ptsa, dtype=np.float32))
             pointsPolydata = vtk.vtkPolyData()
             pointsPolydata.SetPoints(vpoints)
 
