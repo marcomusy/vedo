@@ -27,6 +27,7 @@
 - add `vedo.io.Video(backend='imageio')` support for video generation
 - add `vedo.io.Video.split_frames()` of an already existing video file.
 - add `Picture2D` class
+- add `mesh.slice()`
 
 -------------------------
 ## New/Revised Examples

@@ -979,6 +979,8 @@ class Mesh(Points):
             - [cut_and_cap.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/cut_and_cap.py)
 
             ![](https://vedo.embl.es/images/advanced/cutAndCap.png)
+
+        See also: `join()`, `join_segments()`, `slice()`.
         """
         poly = self._data
 
@@ -1093,11 +1095,103 @@ class Mesh(Points):
             return self._update(poly)
 
         out = self._update(sf.GetOutput())
-
         out.pipeline = OperationNode("join", parents=[self], 
             comment=f"#pts {out._data.GetNumberOfPoints()}",
         )
         return out
+
+    def join_segments(self, closed=True, tol=1e-03):
+        """
+        Join line segments into contiguous lines.
+        Useful to call with `triangulate()` method.
+
+        Returns:
+            list of `shapes.Lines`
+        
+        Example:
+            ```python
+            from vedo import *
+            msh = Torus().alpha(0.1).wireframe()
+            intersection = msh.intersect_with_plane(normal=[1,1,1]).c('purple5')
+            slices = [s.triangulate() for s in intersection.join_segments()]
+            show(msh, intersection, merge(slices), axes=1, viewup='z')
+            ```
+            ![](https://vedo.embl.es/images/feats/join_segments.jpg)
+        """
+        vlines = []
+        for ipiece, outline in enumerate(self.split()):
+
+            outline.clean()
+            pts = outline.points()
+            if len(pts) < 3:
+                continue
+            avesize = outline.average_size()
+            lines = outline.lines()
+            # print("---lines", lines, "in piece", ipiece)
+            tol = avesize / pts.shape[0] * tol
+
+            k = 0
+            joinedpts = [pts[k]]
+            for _ in range(len(pts)):
+                pk = pts[k]
+                for j, line in enumerate(lines):
+
+                    id0, id1 = line[0], line[-1]
+                    p0, p1 = pts[id0], pts[id1]
+
+                    if np.linalg.norm(p0 - pk) < tol:
+                        n = len(line)
+                        for m in range(1, n):
+                            joinedpts.append(pts[line[m]])
+                        # joinedpts.append(p1)
+                        k = id1
+                        lines.pop(j)
+                        break
+
+                    elif np.linalg.norm(p1 - pk) < tol:
+                        n = len(line)
+                        for m in reversed(range(0, n-1)):
+                            joinedpts.append(pts[line[m]])
+                        # joinedpts.append(p0)
+                        k = id0
+                        lines.pop(j)
+                        break
+
+            if len(joinedpts) > 1:
+                newline = vedo.shapes.Line(joinedpts, closed=closed)
+                newline.clean()
+                newline.SetProperty(self.GetProperty())
+                newline.property = self.GetProperty()
+                newline.pipeline = OperationNode("join_segments", parents=[self], 
+                    comment=f"#pts {newline._data.GetNumberOfPoints()}",
+                )
+                vlines.append(newline)
+
+        return vlines
+
+    def slice(self, origin=[0,0,0], normal=[1,0,0]):
+        """
+        Slice a mesh with a plane and fill the contour.
+
+        Example:
+            ```python
+            from vedo import *
+            msh = Mesh(dataurl+"bunny.obj").alpha(0.1).wireframe()
+            mslice = msh.slice(normal=[0,1,0.3], origin=[0,0.16,0])
+            mslice.c('purple5')
+            show(msh, mslice, axes=1)
+            ```
+            ![](https://vedo.embl.es/images/feats/mesh_slice.jpg)
+
+        See also: `join()`, `join_segments()`, `cap()`, `cut_with_plane()`.
+        """
+        intersection = self.intersect_with_plane(origin=origin, normal=normal)
+        slices = [s.triangulate() for s in intersection.join_segments()]
+        mslices = vedo.pointcloud.merge(slices)
+        mslices.name = "MeshSlice"
+        mslices.pipeline = OperationNode("slice", parents=[self], comment=f"normal = {normal}")
+        return mslices
+
 
     def triangulate(self, verts=True, lines=True):
         """
@@ -2160,6 +2254,9 @@ class Mesh(Points):
 
         if flag:
             return self._update(cf.GetOutput())
+
+        if not cf.GetOutput().GetNumberOfPoints():
+            return []
 
         a = Mesh(cf.GetOutput())
         alist = []
