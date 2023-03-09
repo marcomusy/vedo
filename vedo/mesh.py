@@ -1188,8 +1188,10 @@ class Mesh(Points):
         intersection = self.intersect_with_plane(origin=origin, normal=normal)
         slices = [s.triangulate() for s in intersection.join_segments()]
         mslices = vedo.pointcloud.merge(slices)
-        mslices.name = "MeshSlice"
-        mslices.pipeline = OperationNode("slice", parents=[self], comment=f"normal = {normal}")
+        if mslices:
+            mslices.name = "MeshSlice"
+            mslices.pipeline = OperationNode(
+                "slice", parents=[self], comment=f"normal = {normal}")
         return mslices
 
 
