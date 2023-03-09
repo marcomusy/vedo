@@ -125,7 +125,6 @@ def get_parser():
     pr.add_argument("-e", "--edit",                 help="free-hand edit the input Mesh", action="store_true")
     pr.add_argument("--slicer2d",                   help="2D Slicer Mode for volumetric data", action="store_true")
     pr.add_argument("--slicer3d",                   help="3D Slicer Mode for volumetric data", action="store_true")
-    pr.add_argument("--lego",                       help="voxel rendering for 3D image files", action="store_true")
     pr.add_argument("-r", "--run",                  help="run example from vedo/examples", metavar='')
     pr.add_argument("--search",           type=str, help="search/grep for word in vedo examples", default='', metavar='')
     pr.add_argument("--search-vtk",       type=str, help="search examples for the input vtk class", default='', metavar='')
@@ -799,7 +798,7 @@ def draw_scene(args):
         return
 
     ########################################################################
-    # normal mode for single VOXEL file with Isosurface Slider or LEGO mode
+    # normal mode for single VOXEL file with Isosurface Slider mode
     elif nfiles == 1 and (
         ".slc" in args.files[0].lower()
         or ".vti" in args.files[0].lower()
@@ -808,7 +807,7 @@ def draw_scene(args):
         or ".nrrd" in args.files[0].lower()
         or ".dem" in args.files[0].lower()
     ):
-        # print('DEBUG normal mode for single VOXEL file with Isosurface Slider or LEGO mode')
+        # print('DEBUG normal mode for single VOXEL file with Isosurface Slider mode')
         vol = io.load(args.files[0], force=args.reload)
         sp = vol.spacing()
         vol.spacing(
@@ -818,10 +817,8 @@ def draw_scene(args):
             args.color = "gold"
         plt = applications.IsosurfaceBrowser(
             vol,
-            lego=args.lego,
             c=args.color,
             cmap=args.cmap,
-            delayed=args.lego,
             precompute=True,
             progress=True,
         )
@@ -896,10 +893,6 @@ def draw_scene(args):
                     plt.camera.SetClippingRange(0, ds)
                     plt.show(actor, at=i, interactive=False, zoom=args.zoom, mode=interactor_mode)
                     plt.actors = actors
-                    # if args.no_camera_share: ## BUG
-                    # plt.reset_camera()
-                    # plt.renderers[i].ResetCameraClippingRange()
-                    # print([plt.camera])
                 except AttributeError:
                     # wildcards in quotes make glob return actor as a list :(
                     vedo.logger.error("Please do not use wildcards within single or double quotes")

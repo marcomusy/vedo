@@ -10,7 +10,7 @@ fig = plt.figure()
 plt.hist(msh.celldata["chem_0"], log=True)
 plt.title(r'$\mathrm{Matplotlib\ Histogram\ of\ log(chem_0)}$')
 
-pic1 = Picture2D(fig, scale=0.5).coordinate_system(6).pos(-600,-600).ontop()
+pic1 = Picture2D(fig, scale=0.5, pos="bottom-right").ontop()
 pic2 = Picture2D(dataurl+"images/embryo.jpg", pos='top-right')
 
 show(msh, pic1, pic2, __doc__, bg='lightgrey', axes=1)
