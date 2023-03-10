@@ -1221,7 +1221,7 @@ class Mesh(Points):
             tf = vtk.vtkContourTriangulator()
         
         else:
-            vedo.logger.debug("input in triangulate() seems to be void")
+            vedo.logger.debug("input in triangulate() seems to be void! Skip.")
             return self
 
         tf.SetInputData(self._data)
@@ -1229,8 +1229,7 @@ class Mesh(Points):
         out = self._update(tf.GetOutput())
 
         out.pipeline = OperationNode(
-            "triangulate", parents=[self], 
-            comment=f"#cells {out._data.GetNumberOfCells()}",
+            "triangulate", parents=[self], comment=f"#cells {out._data.GetNumberOfCells()}",
         )
         return out
 

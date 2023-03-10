@@ -179,7 +179,24 @@ class OperationNode:
                 dot.edge(str(id(parent)), str(id(self)), label=t)
                 parent._build_tree(dot)
                 self.counts += 1
-    
+
+    # def __repr__(self):
+    #     import re
+    #     CLEANR = re.compile('<.*?>') 
+
+    #     def cleanhtml(raw_html):
+    #         cleantext = re.sub(CLEANR, '', raw_html)
+    #         return cleantext
+        
+    #     s = ""
+    #     for parent in self.parents:
+    #         if parent and self.counts < 1000:
+    #             t = f"{self.time - parent.time: .1f}s"
+    #             s += parent.operation
+    #             self.counts += 1
+    #     # s= cleanhtml(s[1:-1])
+    #     return s
+
     def show(self, orientation="LR", popup=True):
         """Show the graphviz output for the pipeline of this object"""
         if not vedo.settings.enable_pipeline:

@@ -23,5 +23,5 @@ for i in range(n, npt - n-1):
         circles.append(circle)
         fitpts.append(center)
 
-shape.lw(8).cmap('coolwarm', curvs).add_scalarbar3d(title='\pm1/\sqrtR', c='w')
+shape.lw(8).cmap('coolwarm', curvs).add_scalarbar3d(title=':pm1/:sqrtR', c='w')
 show(shape, circles, Points(fitpts), __doc__, axes=1, bg='bb').close()

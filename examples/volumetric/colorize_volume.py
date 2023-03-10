@@ -15,7 +15,7 @@ vol.color([(0,"green"), (49,"green"),
 # vol.mode('max-projection')
 vol.alpha([0., 1.])
 vol.alpha_unit(8)  # absorption unit, higher factors = higher transparency
-vol.add_scalarbar3d(title='color~\dot~alpha transfer function', c='k')
+vol.add_scalarbar3d(title='color:dot:alpha transfer function', c='k')
 
 ch = CornerHistogram(vol, logscale=True, pos='bottom-left')
 

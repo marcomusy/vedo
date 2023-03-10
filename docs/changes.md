@@ -44,5 +44,4 @@ examples/other/dolfin/ex06_elasticity4.py
 ```
 
 ### Broken Examples
-vedo --lego --cmap afmhot_r ../data/embryo.tif
 
