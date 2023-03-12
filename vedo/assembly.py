@@ -255,6 +255,62 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
         )
         ###################################################################
 
+    def _repr_html_(self):
+        """
+        HTML representation of the Assembly object for Jupyter Notebooks.
+        
+        Returns:
+            HTML text with the image and some properties.
+        """
+        import io
+        import base64
+        from PIL import Image
+
+        library_name = "vedo.assembly.Assembly"
+        help_url = "https://vedo.embl.es/docs/vedo/assembly.html"
+
+        arr = self.thumbnail(zoom=1.1, elevation=-60)
+
+        im = Image.fromarray(arr)
+        buffered = io.BytesIO()
+        im.save(buffered, format="PNG", quality=100)
+        encoded = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        url = "data:image/png;base64," + encoded
+        image = f"<img src='{url}'></img>"
+
+        # statisitics
+        bounds = "<br/>".join(
+            [
+                vedo.utils.precision(min_x,4) + " ... " + vedo.utils.precision(max_x,4)
+                for min_x, max_x in zip(self.bounds()[::2], self.bounds()[1::2])
+            ]
+        )
+
+        help_text = ""
+        if self.name:
+            help_text += f"<b> {self.name}: &nbsp&nbsp</b>"
+        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>" 
+        if self.filename:
+            dots = ""
+            if len(self.filename) > 30:
+                dots = "..."
+            help_text += f"<br/><code><i>({dots}{self.filename[-30:]})</i></code>"
+        
+        all = [
+            "<table>",
+            "<tr>", 
+            "<td>", image, "</td>",
+            "<td style='text-align: center; vertical-align: center;'><br/>", help_text,
+            "<table>",
+            "<tr><td><b> nr. of objects </b></td><td>" + str(self.GetNumberOfPaths()) + "</td></tr>",
+            "<tr><td><b> position </b></td><td>" + str(self.GetPosition()) + "</td></tr>",
+            "<tr><td><b> diagonal size </b></td><td>" + vedo.utils.precision(self.diagonal_size(), 5) + "</td></tr>",
+            "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>" + str(bounds) + "</td></tr>",
+            "</table>",
+            "</table>",
+        ]
+        return "\n".join(all)
+
     def __add__(self, obj):
         """
         Add an object to the assembly

@@ -43,6 +43,79 @@ class BaseVolume:
         self._mapper = None
         self.transform = None
 
+    def _repr_html_(self):
+        """
+        HTML representation of the Volume object for Jupyter Notebooks.
+        
+        Returns:
+            HTML text with the image and some properties.
+        """
+        import io
+        import base64
+        from PIL import Image
+
+        library_name = "vedo.volume.Volume"
+        help_url = "https://vedo.embl.es/docs/vedo/volume.html"
+
+        arr = self.thumbnail(azimuth=0, elevation=-60, zoom=1.4, axes=True)
+
+        im = Image.fromarray(arr)
+        buffered = io.BytesIO()
+        im.save(buffered, format="PNG", quality=100)
+        encoded = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        url = "data:image/png;base64," + encoded
+        image = f"<img src='{url}'></img>"
+
+        # statisitics
+        bounds = "<br/>".join(
+            [
+                utils.precision(min_x,4) + " ... " + utils.precision(max_x,4)
+                for min_x, max_x in zip(self.bounds()[::2], self.bounds()[1::2])
+            ]
+        )
+
+        help_text = ""
+        if self.name:
+            help_text += f"<b> {self.name}: &nbsp&nbsp</b>"
+        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>" 
+        if self.filename:
+            dots = ""
+            if len(self.filename) > 30:
+                dots = "..."
+            help_text += f"<br/><code><i>({dots}{self.filename[-30:]})</i></code>"
+        
+        pdata = ""
+        if self._data.GetPointData().GetScalars():
+            if self._data.GetPointData().GetScalars().GetName():
+                name = self._data.GetPointData().GetScalars().GetName()
+                pdata = "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
+
+        cdata = ""
+        if self._data.GetCellData().GetScalars():
+            if self._data.GetCellData().GetScalars().GetName():
+                name = self._data.GetCellData().GetScalars().GetName()
+                cdata = "<tr><td><b> voxel data array </b></td><td>" + name + "</td></tr>"
+
+        img = self.GetMapper().GetInput()
+
+        all = [
+            "<table>",
+            "<tr>", 
+            "<td>", image, "</td>",
+            "<td style='text-align: center; vertical-align: center;'><br/>", help_text,
+            "<table>",
+            "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>" + str(bounds) + "</td></tr>",
+            "<tr><td><b> dimensions </b></td><td>" + str(img.GetDimensions()) + "</td></tr>",
+            "<tr><td><b> voxel spacing </b></td><td>" + utils.precision(img.GetSpacing(),3) + "</td></tr>",
+            "<tr><td><b> in memory size </b></td><td>" + str(int(img.GetActualMemorySize() / 1024)) + "MB</td></tr>",
+            pdata,
+            cdata,
+            "<tr><td><b> scalar range </b></td><td>" + str(img.GetScalarRange()) + "</td></tr>",
+            "</table>",
+            "</table>",
+        ]
+        return "\n".join(all)
+
     def _update(self, img):
         self._data = img
         self._data.GetPointData().Modified()

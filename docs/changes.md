@@ -28,6 +28,8 @@
 - add `vedo.io.Video.split_frames()` of an already existing video file.
 - add `Picture2D` class
 - add `mesh.slice()`
+- added `__repr_html__` for all types (thanks to @haesleinhuepf input)
+
 
 -------------------------
 ## New/Revised Examples

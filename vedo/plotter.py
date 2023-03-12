@@ -3279,8 +3279,7 @@ class Plotter:
             asarray : (bool)
                 return a numpy array of the image instead of writing a file
         """
-        retval = vedo.io.screenshot(filename, scale, asarray)
-        return retval
+        return vedo.io.screenshot(filename, scale, asarray)
 
     def topicture(self, scale=None):
         """

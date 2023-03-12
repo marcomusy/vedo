@@ -853,6 +853,41 @@ class Base3DProp:
         """
         return vedo.plotter.show(self, **options)
 
+    def thumbnail(self, zoom=1.25, size=(200, 200), bg="white", azimuth=0, elevation=0, axes=False):
+        """Build a thumbnail of the object as an array."""
+        # speed is about 20Hz for size=[200,200]
+        ren = vtk.vtkRenderer()
+        ren.AddActor(self)
+
+        if axes:
+            axes = vedo.addons.Axes(self)
+            ren.AddActor(axes)
+        ren.ResetCamera()
+        cam = ren.GetActiveCamera()
+        cam.Zoom(zoom)
+        cam.Elevation(elevation)
+        cam.Azimuth(azimuth)
+
+        ren_win = vtk.vtkRenderWindow()
+        ren_win.SetOffScreenRendering(True)
+        ren_win.SetSize(size)
+        ren.SetBackground(colors.get_color(bg))
+        ren_win.AddRenderer(ren)
+        ren_win.Render()
+
+        nx, ny = ren_win.GetSize()
+        arr = vtk.vtkUnsignedCharArray()
+        ren_win.GetRGBACharPixelData(0, 0, nx - 1, ny - 1, 0, arr)
+        narr = utils.vtk2numpy(arr).T[:3].T.reshape([ny, nx, 3])
+        narr = np.ascontiguousarray(np.flip(narr, axis=0))
+
+        ren.RemoveActor(self)
+        if axes:
+            ren.RemoveActor(axes)
+        ren_win.Finalize()
+        del ren_win
+        return narr
+
 
 ########################################################################################
 class BaseActor2D(vtk.vtkActor2D):
@@ -936,7 +971,7 @@ class BaseActor2D(vtk.vtkActor2D):
         return self
 
     def ps(self, point_size=None):
-        if value is None:
+        if point_size is None:
             return self.GetProperty().GetPointSize()
         self.GetProperty().SetPointSize(point_size)
         return self

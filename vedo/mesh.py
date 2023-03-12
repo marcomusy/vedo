@@ -13,7 +13,7 @@ import vedo
 from vedo.colors import color_map
 from vedo.colors import get_color
 from vedo.pointcloud import Points
-from vedo.utils import buildPolyData, is_sequence, mag, mag2
+from vedo.utils import buildPolyData, is_sequence, mag, mag2, precision
 from vedo.utils import numpy2vtk, vtk2numpy, OperationNode
 
 __docformat__ = "google"
@@ -241,6 +241,78 @@ class Mesh(Points):
         
         n = self._data.GetNumberOfPoints()
         self.pipeline = OperationNode(self, comment=f"#pts {n}")
+
+    def _repr_html_(self):
+        """
+        HTML representation of the Mesh object for Jupyter Notebooks.
+        
+        Returns:
+            HTML text with the image and some properties.
+        """
+        import io
+        import base64
+        from PIL import Image
+
+        library_name = "vedo.mesh.Mesh"
+        help_url = "https://vedo.embl.es/docs/vedo/mesh.html"
+
+        arr = self.thumbnail()
+        im = Image.fromarray(arr)
+        buffered = io.BytesIO()
+        im.save(buffered, format="PNG", quality=100)
+        encoded = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        url = "data:image/png;base64," + encoded
+        image = f"<img src='{url}'></img>"
+
+        # mesh statisitics
+        bounds = "<br/>".join(
+            [
+                precision(min_x,4) + " ... " + precision(max_x,4)
+                for min_x, max_x in zip(self.bounds()[::2], self.bounds()[1::2])
+            ]
+        )
+        average_size = "{size:.3f}".format(size=self.average_size())
+
+        help_text = ""
+        if self.name:
+            help_text += f"<b> {self.name}: &nbsp&nbsp</b>"
+        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>" 
+        if self.filename:
+            dots = ""
+            if len(self.filename) > 30:
+                dots = "..."
+            help_text += f"<br/><code><i>({dots}{self.filename[-30:]})</i></code>"
+        
+        pdata = ""
+        if self._data.GetPointData().GetScalars():
+            if self._data.GetPointData().GetScalars().GetName():
+                name = self._data.GetPointData().GetScalars().GetName()
+                pdata = "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
+
+        cdata = ""
+        if self._data.GetCellData().GetScalars():
+            if self._data.GetCellData().GetScalars().GetName():
+                name = self._data.GetCellData().GetScalars().GetName()
+                cdata = "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
+
+        all = [
+            "<table>",
+            "<tr>", 
+            "<td>", image, "</td>",
+            "<td style='text-align: center; vertical-align: center;'><br/>", help_text,
+            "<table>",
+            "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>" + str(bounds) + "</td></tr>",
+            "<tr><td><b> center of mass </b></td><td>" + precision(self.center_of_mass(),3) + "</td></tr>",
+            "<tr><td><b> average size </b></td><td>" + str(average_size) + "</td></tr>",
+            "<tr><td><b> nr. points&nbsp/&nbspfaces </b></td><td>" 
+            + str(self.npoints) + "&nbsp/&nbsp" + str(self.ncells) + "</td></tr>",
+            pdata,
+            cdata,
+            "</table>",
+            "</table>",
+        ]
+        return "\n".join(all)
+
 
     def faces(self):
         """

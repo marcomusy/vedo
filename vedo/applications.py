@@ -1091,7 +1091,14 @@ class SplinePlotter(Plotter):
         return np.array(self.cpoints)
 
     def _on_left_click(self, evt):
-        if not evt.actor: return
+        if not evt.actor: 
+            return
+        if evt.actor.name == "points":
+            # remove clicked point if clicked twice
+            pid = self.vpoints.closest_point(evt.picked3d, return_point_id=True)
+            self.cpoints.pop(pid)
+            self._update()
+            return
         p = evt.picked3d
         self.cpoints.append(p)
         self._update()
@@ -1108,7 +1115,8 @@ class SplinePlotter(Plotter):
     def _update(self):
         self.remove(self.line, self.vpoints)  # remove old points and spline
         self.vpoints = Points(self.cpoints).ps(self.psize).c(self.pcolor)
-        self.vpoints.pickable(False)  # avoid picking the same point
+        self.vpoints.name = "points"
+        self.vpoints.pickable(True)  # to allow toggle
         minnr = 1
         if self.splined:
             minnr = 2
