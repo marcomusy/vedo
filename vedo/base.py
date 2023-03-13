@@ -853,12 +853,19 @@ class Base3DProp:
         """
         return vedo.plotter.show(self, **options)
 
-    def thumbnail(self, zoom=1.25, size=(200, 200), bg="white", azimuth=0, elevation=0, axes=False):
-        """Build a thumbnail of the object as an array."""
+    def thumbnail(
+            self, 
+            zoom=1.25,
+            size=(200, 200),
+            bg="white", 
+            azimuth=0, 
+            elevation=0, 
+            axes=False,
+        ):
+        """Build a thumbnail of the object and return it as an array."""
         # speed is about 20Hz for size=[200,200]
         ren = vtk.vtkRenderer()
         ren.AddActor(self)
-
         if axes:
             axes = vedo.addons.Axes(self)
             ren.AddActor(axes)
@@ -877,7 +884,7 @@ class Base3DProp:
 
         nx, ny = ren_win.GetSize()
         arr = vtk.vtkUnsignedCharArray()
-        ren_win.GetRGBACharPixelData(0, 0, nx - 1, ny - 1, 0, arr)
+        ren_win.GetRGBACharPixelData(0, 0, nx-1, ny-1, 0, arr)
         narr = utils.vtk2numpy(arr).T[:3].T.reshape([ny, nx, 3])
         narr = np.ascontiguousarray(np.flip(narr, axis=0))
 

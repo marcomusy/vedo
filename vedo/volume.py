@@ -110,7 +110,7 @@ class BaseVolume:
             "<tr><td><b> in memory size </b></td><td>" + str(int(img.GetActualMemorySize() / 1024)) + "MB</td></tr>",
             pdata,
             cdata,
-            "<tr><td><b> scalar range </b></td><td>" + str(img.GetScalarRange()) + "</td></tr>",
+            "<tr><td><b> scalar range </b></td><td>" + utils.precision(img.GetScalarRange(), 4) + "</td></tr>",
             "</table>",
             "</table>",
         ]

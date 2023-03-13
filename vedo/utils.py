@@ -73,6 +73,14 @@ class OperationNode:
     Keep track of the operations which led to a final object.
     """
     # https://www.graphviz.org/doc/info/shapes.html#html
+    # Mesh     #e9c46a
+    # Follower #d9ed92
+    # Volume, UGrid #4cc9f0
+    # TetMesh  #9e2a2b
+    # File     #8a817c
+    # Picture  #f28482
+    # Assembly #f08080
+
     def __init__(
         self, 
         operation,
@@ -137,6 +145,7 @@ class OperationNode:
             self.operation = operation
         else:
             self.operation = operation.__class__.__name__
+        self.operation_plain = str(self.operation)
 
         pp = [] # filter out invalid stuff
         for p in parents:
@@ -151,16 +160,7 @@ class OperationNode:
         self.time = time.time()
         self.shape = shape
         self.style = style
-        self.counts = 0
-
         self.color = c
-        # Mesh     #e9c46a
-        # Follower #d9ed92
-        # Volume, UGrid #4cc9f0
-        # TetMesh  #9e2a2b
-        # File     #8a817c
-        # Picture  #f28482
-        # Assembly #f08080
 
     def add_parent(self, parent):
         self.parents.append(parent)
@@ -174,28 +174,35 @@ class OperationNode:
             style=self.style,
         )
         for parent in self.parents:
-            if parent and self.counts < 1000:
+            if parent:
                 t = f"{self.time - parent.time: .1f}s"
                 dot.edge(str(id(parent)), str(id(self)), label=t)
                 parent._build_tree(dot)
-                self.counts += 1
 
-    # def __repr__(self):
-    #     import re
-    #     CLEANR = re.compile('<.*?>') 
+    def __repr__(self): 
+        try:      
+            from treelib import Tree
+        except ImportError:
+            vedo.logger.error("To use this functionality please install treelib:"
+                              "\n pip install treelib")
+            return ""
 
-    #     def cleanhtml(raw_html):
-    #         cleantext = re.sub(CLEANR, '', raw_html)
-    #         return cleantext
-        
-    #     s = ""
-    #     for parent in self.parents:
-    #         if parent and self.counts < 1000:
-    #             t = f"{self.time - parent.time: .1f}s"
-    #             s += parent.operation
-    #             self.counts += 1
-    #     # s= cleanhtml(s[1:-1])
-    #     return s
+        def _build_tree(parent):
+            for par in parent.parents:
+                if par:
+                    op = par.operation_plain
+                    tree.create_node(
+                        op, 
+                        op + str(par.time), 
+                        parent=parent.operation_plain + str(parent.time))
+                    _build_tree(par)
+
+        tree = Tree()
+        tree.create_node(
+            self.operation_plain, self.operation_plain + str(self.time)
+        )
+        _build_tree(self)
+        return tree.show(reverse=True, stdout=False)
 
     def show(self, orientation="LR", popup=True):
         """Show the graphviz output for the pipeline of this object"""

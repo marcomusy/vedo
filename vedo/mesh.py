@@ -1384,6 +1384,7 @@ class Mesh(Points):
         qf.Update()
         pd = qf.GetOutput()
         self._update(pd)
+        self.pipeline = OperationNode("compute_quality", parents=[self])
         return self
 
     def check_validity(self, tol=0):
