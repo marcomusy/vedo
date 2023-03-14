@@ -845,7 +845,8 @@ class Plotter:
         if render:
             if self.interactor:
                 if not self.interactor.GetInitialized():
-                    vedo.logger.warning("call to add() but Plotter was not initialized with show()")
+                    # vedo.logger.warning("call to add() but Plotter was not initialized with show()")
+                    pass
                 else:
                     self.render(resetcam=resetcam)
         return self

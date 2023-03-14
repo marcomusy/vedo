@@ -51,7 +51,8 @@ def start_2d():
     try:
         import PIL.Image
         import IPython
-    except ImportError("PIL or IPython not available"):
+    except ImportError:
+        print("PIL or IPython not available")
         return None
 
     plt = vedo.plotter_instance
@@ -72,9 +73,8 @@ def start_k3d(actors2show):
     # https://github.com/K3D-tools/K3D-jupyter
     try:
         import k3d
-        if str(k3d.__version__) != "2.7.4":
-            vedo.logger.warning("Only k3d version 2.7.4 is currently supported")
-    except ModuleNotFoundError("Cannot find k3d, install with:  pip install k3d==2.7.4"):
+    except ModuleNotFoundError:
+        print("Cannot find k3d, install with:  pip install k3d")
         return None
 
     plt = vedo.plotter_instance
@@ -279,7 +279,8 @@ def start_trame():
         from trame.app import get_server, jupyter
         from trame.ui.vuetify import VAppLayout
         from trame.widgets import vtk, vuetify
-    except ImportError("trame is not installed, try:\n> pip install trame"):
+    except ImportError:
+        print("trame is not installed, try:\n> pip install trame")
         return None
 
     plt = vedo.plotter_instance
@@ -312,7 +313,8 @@ def start_trame():
 def start_ipyvtklink():
     try:
         from ipyvtklink.viewer import ViewInteractiveWidget
-    except ImportError("ipyvtklink is not installed, try:\n> pip install ipyvtklink"):
+    except ImportError:
+        print("ipyvtklink is not installed, try:\n> pip install ipyvtklink")
         return None
 
     plt = vedo.plotter_instance
