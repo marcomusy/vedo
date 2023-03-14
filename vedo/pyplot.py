@@ -2859,7 +2859,7 @@ def _plot_fz(
         xv = (px + 0.5) * dx + x[0]
         yv = (py + 0.5) * dy + y[0]
         try:
-            zv = z(np.complex(xv), np.complex(yv))
+            zv = z(complex(xv), complex(yv))
         except:
             zv = 0
         poly.GetPoints().SetPoint(i, [xv, yv, np.real(zv)])

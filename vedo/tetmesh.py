@@ -94,14 +94,14 @@ def _buildtetugrid(points, cells):
     source_points.SetData(varr)
     ug.SetPoints(source_points)
 
-    sourceTets = vtk.vtkCellArray()
+    source_tets = vtk.vtkCellArray()
     for f in cells:
         ele = vtk.vtkTetra()
         pid = ele.GetPointIds()
         for i, fi in enumerate(f):
             pid.SetId(i, fi)
-        sourceTets.InsertNextCell(ele)
-    ug.SetCells(vtk.VTK_TETRA, sourceTets)
+        source_tets.InsertNextCell(ele)
+    ug.SetCells(vtk.VTK_TETRA, source_tets)
     return ug
 
 

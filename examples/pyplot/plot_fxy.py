@@ -39,6 +39,6 @@ comment = """Vertical axis shows the real part of complex z:
 Color map the value of the imaginary part
 (green=positive, purple=negative)"""
 
-plt = plot(lambda x,y: sin(log(x*y))/25, mode='complex')
+plt = plot(lambda x,y: sin(log(x*y))/25, mode='complex', bins=(51,51))
 
 show(plt, comment, viewup='z').close()

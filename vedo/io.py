@@ -1892,7 +1892,7 @@ class Video:
                 the backend engine to be used `['imageio', 'ffmpeg', 'cv']`
 
         Examples:
-            - [makeVideo.py](examples/other/make_video.py)
+            - [make_video.py](examples/other/make_video.py)
 
             ![](https://user-images.githubusercontent.com/32848391/50739007-2bfc2b80-11da-11e9-97e6-620a3541a6fa.jpg)
         """

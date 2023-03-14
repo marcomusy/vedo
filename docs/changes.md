@@ -30,22 +30,23 @@
 - add `mesh.slice()`
 - added `__repr_html__` for all types (thanks to @haesleinhuepf input)
 - added `treelib` for pipeline representation
+- fixes to dolfin support `MeshActor`
 
 
 -------------------------
 ## New/Revised Examples
 ```
+examples/basic/mousehover0.py
+examples/advanced/timer_callback0.py
+examples/simulations/lorenz.py
+examples/pyplot/embed_matplotlib.py
 examples/other/trame_ex1.py
 examples/other/trame_ex2.py
 examples/other/trame_ex3.py
-examples/simulations/lorenz.py
-examples/basic/mousehover0.py
 examples/other/make_video.py
-examples/pyplot/embed_matplotlib.py
 examples/other/dolfin/ex06_elasticity4.py
 examples/notebooks/test_types.ipynb
 examples/notebooks/slider2d.ipynb
-
 ```
 
 ### Broken Examples

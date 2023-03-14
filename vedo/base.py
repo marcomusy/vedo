@@ -2088,6 +2088,7 @@ class BaseGrid(BaseActor):
         else:
             if value is None:
                 value = (2 * scrange[0] + scrange[1]) / 3.0
+                # print("automatic isosurface value =", value)
             cf.SetValue(0, value)
 
         cf.Update()

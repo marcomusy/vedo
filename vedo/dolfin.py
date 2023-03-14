@@ -43,7 +43,7 @@ __all__ = [
 
 ##########################################################################
 def _inputsort(obj):
-# def _inputsort_dolfin(obj):
+
     import dolfin
 
     u = None
@@ -628,7 +628,70 @@ class MeshActor(Mesh):
         else:
             coords = mesh.geometry.points
 
-        poly = utils.buildPolyData(coords, meshc.cells(), tetras=True)
+        cells = meshc.cells()
+
+        if cells.shape[1] == 4:
+            # something wrong in this as it cannot reproduce the tet cell..
+            # from vedo.tetmesh import _buildtetugrid
+            # cells[:,[2, 0]] = cells[:,[0, 2]]
+            # cells[:,[1, 0]] = cells[:,[0, 1]]
+            # cells[:,[0, 1, 2, 3]] = cells[:,[0, 2, 1, 3]]
+            # cells[:,[0, 1, 2, 3]] = cells[:,[0, 2, 1, 3]]
+            # cells[:,[0, 1, 2, 3]] = cells[:,  [0, 1, 3, 2]]
+            # cells[:,[0, 1, 2, 3]] = cells[:,[1, 0, 2, 3]]
+            # cells[:,[0, 1, 2, 3]] = cells[:,[2, 0, 1, 3]]
+            # cells[:,[0, 1, 2, 3]] = cells[:,[2, 0, 1, 3]]
+            # print(cells[0])
+            # print(coords[cells[0]])
+            # poly = utils.geometry(_buildtetugrid(coords, cells))
+            # poly = utils.geometry(vedo.TetMesh([coords, cells]).inputdata())
+
+            poly = vtk.vtkPolyData()
+
+            source_points = vtk.vtkPoints()
+            source_points.SetData(utils.numpy2vtk(coords, dtype=np.float32))
+            poly.SetPoints(source_points)
+
+            source_polygons = vtk.vtkCellArray()
+            for f in cells:
+                # do not use vtkTetra() because it fails
+                # with dolfin faces orientation
+                ele0 = vtk.vtkTriangle()
+                ele1 = vtk.vtkTriangle()
+                ele2 = vtk.vtkTriangle()
+                ele3 = vtk.vtkTriangle()
+
+                f0, f1, f2, f3 = f
+                pid0 = ele0.GetPointIds()
+                pid1 = ele1.GetPointIds()
+                pid2 = ele2.GetPointIds()
+                pid3 = ele3.GetPointIds()
+
+                pid0.SetId(0, f0)
+                pid0.SetId(1, f1)
+                pid0.SetId(2, f2)
+
+                pid1.SetId(0, f0)
+                pid1.SetId(1, f1)
+                pid1.SetId(2, f3)
+
+                pid2.SetId(0, f1)
+                pid2.SetId(1, f2)
+                pid2.SetId(2, f3)
+
+                pid3.SetId(0, f2)
+                pid3.SetId(1, f3)
+                pid3.SetId(2, f0)
+
+                source_polygons.InsertNextCell(ele0)
+                source_polygons.InsertNextCell(ele1)
+                source_polygons.InsertNextCell(ele2)
+                source_polygons.InsertNextCell(ele3)
+
+            poly.SetPolys(source_polygons)
+
+        else:
+            poly = utils.buildPolyData(coords, cells)
 
         Mesh.__init__(
             self,

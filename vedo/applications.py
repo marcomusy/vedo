@@ -1070,6 +1070,8 @@ class SplinePlotter(Plotter):
             self.mode = 'image'
         else:
             self.object = obj
+        
+        self += obj
 
         t = """Click to add a point
         Right-click to remove it
