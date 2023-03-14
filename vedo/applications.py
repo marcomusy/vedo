@@ -1054,6 +1054,7 @@ class SplinePlotter(Plotter):
         self.mode    = 'trackball'
         self.verbose = True
         self.splined = True
+        self.resolution = None  # spline resolution (None = automatic)
         self.closed  = False
         self.lcolor  = 'yellow4'
         self.lwidth  = 3
@@ -1066,19 +1067,24 @@ class SplinePlotter(Plotter):
 
         if isinstance(obj, str):
             self.object = vedo.io.load(obj)
-            # keep rgb but drop alpha channel
-            self.mode = 'image'
         else:
             self.object = obj
         
-        self += obj
+        if isinstance(self.object, vedo.Picture):
+            self.mode = 'image'
 
-        t = """Click to add a point
-        Right-click to remove it
-        Drag mouse to change constrast
-        Press c to clear points
-        Press q to continue""".replace("  ","")
-        self.instructions = Text2D(t, pos='bottom-left', c='white', bg='green', font='Calco')
+        t = (
+            "Click to add a point\n"
+            "Right-click to remove it\n"
+            "Drag mouse to change constrast\n"
+            "Press c to clear points\n"
+            "Press q to continue"
+        )
+        self.instructions = Text2D(
+            t, pos='bottom-left', c='white', bg='green', font='Calco'
+        )
+        
+        self += [self.object, self.instructions]
 
         self.callid1 = self.add_callback('KeyPress', self._key_press)
         self.callid2 = self.add_callback('LeftButtonPress', self._on_left_click)
@@ -1125,7 +1131,7 @@ class SplinePlotter(Plotter):
         if self.lwidth and len(self.cpoints) > minnr:
             if self.splined:
                 try:
-                    self.line = Spline(self.cpoints, closed=self.closed)
+                    self.line = Spline(self.cpoints, closed=self.closed, res=self.resolution)
                 except ValueError:
                     # if clicking too close splining might fail
                     self.cpoints.pop()
