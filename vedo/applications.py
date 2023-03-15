@@ -577,6 +577,7 @@ class IsosurfaceBrowser(Plotter):
             alpha=1,
             lego=False,
             res=50,
+            use_gpu=False,
             precompute=False,
             progress=False,
             cmap='hot',
@@ -619,94 +620,128 @@ class IsosurfaceBrowser(Plotter):
             axes=axes,
         )
 
-        self._prev_value = 1e30
-
-        scrange = volume.scalar_range()
-        delta = scrange[1] - scrange[0]
-        if not delta:
-            return
-
-        if lego:
-            res = int(res / 2)  # because lego is much slower
-            slidertitle = ""
-        else:
-            slidertitle = "scalar value"
-
-        allowed_vals = np.linspace(scrange[0], scrange[1], num=res)
-
-        bacts = {}  # cache the meshes so we dont need to recompute
-        if precompute:
-            delayed = False  # no need to delay the slider in this case
-            if progress:
-                pb = vedo.ProgressBar(0, len(allowed_vals))
-
-            for value in allowed_vals:
-                value_name = precision(value, 2)
-                if lego:
-                    mesh = volume.legosurface(vmin=value)
-                    if mesh.ncells:
-                        mesh.cmap(cmap, vmin=scrange[0], vmax=scrange[1], on="cells")
-                else:
-                    mesh = volume.isosurface(value).color(c).alpha(alpha)
-                bacts.update({value_name: mesh})  # store it
-                if progress:
-                    pb.print("isosurfacing volume..")
-
-        ############################## isovalue slider callback
-        def slider_isovalue(widget, event):
-
-            prevact = self.actors[0]
-            if isinstance(widget, float):
-                value = widget
-            else:
-                value = widget.GetRepresentation().GetValue()
-
-            # snap to the closest
-            idx = (np.abs(allowed_vals - value)).argmin()
-            value = allowed_vals[idx]
-
-            if abs(value - self._prev_value) / delta < 0.001:
+        ### GPU ################################
+        if use_gpu and hasattr(volume.GetProperty(), "GetIsoSurfaceValues"):
+            
+            scrange = volume.scalar_range()
+            delta = scrange[1] - scrange[0]
+            if not delta:
                 return
-            self._prev_value = value
+            
+            if isovalue is None:
+                isovalue = delta / 3.0 + scrange[0]
 
-            value_name = precision(value, 2)
-            if value_name in bacts:  # reusing the already existing mesh
-                # print('reusing')
-                mesh = bacts[value_name]
-            else:  # else generate it
-                # print('generating', value)
-                if lego:
-                    mesh = volume.legosurface(vmin=value)
-                    if mesh.ncells:
-                        mesh.cmap(cmap, vmin=scrange[0], vmax=scrange[1], on="cells")
+            ### isovalue slider callback
+            def slider_isovalue(widget, event):
+                value = widget.GetRepresentation().GetValue()
+                isovals.SetValue(0, value)      
+
+            isovals = volume.GetProperty().GetIsoSurfaceValues()
+            isovals.SetValue(0, isovalue)
+            self.renderer.AddActor(volume.mode(5).alpha(alpha).c(c))
+
+            self.add_slider(
+                slider_isovalue,
+                scrange[0] + 0.02 * delta,
+                scrange[1] - 0.02 * delta,
+                value=isovalue,
+                pos=sliderpos,
+                title="scalar value",
+                show_value=True,
+                delayed=delayed,
+            )
+
+        ### CPU ################################
+        else:
+            
+            self._prev_value = 1e30
+
+            scrange = volume.scalar_range()
+            delta = scrange[1] - scrange[0]
+            if not delta:
+                return
+
+            if lego:
+                res = int(res / 2)  # because lego is much slower
+                slidertitle = ""
+            else:
+                slidertitle = "scalar value"
+
+            allowed_vals = np.linspace(scrange[0], scrange[1], num=res)
+
+            bacts = {}  # cache the meshes so we dont need to recompute
+            if precompute:
+                delayed = False  # no need to delay the slider in this case
+                if progress:
+                    pb = vedo.ProgressBar(0, len(allowed_vals), delay=1)
+
+                for value in allowed_vals:
+                    value_name = precision(value, 2)
+                    if lego:
+                        mesh = volume.legosurface(vmin=value)
+                        if mesh.ncells:
+                            mesh.cmap(cmap, vmin=scrange[0], vmax=scrange[1], on="cells")
+                    else:
+                        mesh = volume.isosurface(value).color(c).alpha(alpha)
+                    bacts.update({value_name: mesh})  # store it
+                    if progress:
+                        pb.print("isosurfacing volume..")
+
+            ### isovalue slider callback
+            def slider_isovalue(widget, event):
+
+                prevact = self.actors[0]
+                if isinstance(widget, float):
+                    value = widget
                 else:
-                    mesh = volume.isosurface(value).color(c).alpha(alpha)
-                bacts.update({value_name: mesh})  # store it
+                    value = widget.GetRepresentation().GetValue()
 
-            self.renderer.RemoveActor(prevact)
-            self.renderer.AddActor(mesh)
-            self.actors[0] = mesh
+                # snap to the closest
+                idx = (np.abs(allowed_vals - value)).argmin()
+                value = allowed_vals[idx]
 
-        ################################################
+                if abs(value - self._prev_value) / delta < 0.001:
+                    return
+                self._prev_value = value
 
-        if isovalue is None:
-            isovalue = delta / 3.0 + scrange[0]
+                value_name = precision(value, 2)
+                if value_name in bacts:  # reusing the already existing mesh
+                    # print('reusing')
+                    mesh = bacts[value_name]
+                else:  # else generate it
+                    # print('generating', value)
+                    if lego:
+                        mesh = volume.legosurface(vmin=value)
+                        if mesh.ncells:
+                            mesh.cmap(cmap, vmin=scrange[0], vmax=scrange[1], on="cells")
+                    else:
+                        mesh = volume.isosurface(value).color(c).alpha(alpha)
+                    bacts.update({value_name: mesh})  # store it
 
-        self.actors = [None]
-        slider_isovalue(isovalue, "")  # init call
-        if lego:
-            self.actors[0].add_scalarbar(pos=(0.8, 0.12))
+                self.renderer.RemoveActor(prevact)
+                self.renderer.AddActor(mesh)
+                self.actors[0] = mesh
 
-        self.add_slider(
-            slider_isovalue,
-            scrange[0] + 0.02 * delta,
-            scrange[1] - 0.02 * delta,
-            value=isovalue,
-            pos=sliderpos,
-            title=slidertitle,
-            show_value=True,
-            delayed=delayed,
-        )
+            ################################################
+
+            if isovalue is None:
+                isovalue = delta / 3.0 + scrange[0]
+
+            self.actors = [None]
+            slider_isovalue(isovalue, "")  # init call
+            if lego:
+                self.actors[0].add_scalarbar(pos=(0.8, 0.12))
+
+            self.add_slider(
+                slider_isovalue,
+                scrange[0] + 0.02 * delta,
+                scrange[1] - 0.02 * delta,
+                value=isovalue,
+                pos=sliderpos,
+                title=slidertitle,
+                show_value=True,
+                delayed=delayed,
+            )
 
 
 ##############################################################################

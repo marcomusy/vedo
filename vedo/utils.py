@@ -1444,10 +1444,9 @@ def print_info(obj):
                 if name and ptdata.GetArray(i):
                     vedo.printc("pointdata".ljust(14) + ": ", c=c, bold=True, end="")
                     try:
-                        tt, nptt = arrtypes[ptdata.GetArray(i).GetDataType()]
+                        tt, _ = arrtypes[ptdata.GetArray(i).GetDataType()]
                     except:
                         tt = "VTKTYPE" + str(ptdata.GetArray(i).GetDataType())
-                        nptt = ""
                     ncomp = ptdata.GetArray(i).GetNumberOfComponents()
                     rng = ptdata.GetArray(i).GetRange()
                     vedo.printc(f'"{name}" ({ncomp} {tt}),', c=c, bold=False, end="")
@@ -1686,7 +1685,7 @@ def print_info(obj):
         vedo.printc("scalar range".ljust(14) + ": ", c="b", bold=True, end="")
         vedo.printc(img.GetScalarRange(), c="b", bold=False)
 
-        print_histogram(obj, horizontal=True, spacer=" "*10,
+        print_histogram(obj, horizontal=True,
             logscale=True, bins=8, height=15, c="b", bold=True)
 
     elif isinstance(obj, vedo.Plotter) and obj.interactor:  # dumps Plotter info

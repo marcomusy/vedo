@@ -196,12 +196,6 @@ def system_info():
     except ModuleNotFoundError:
         pass
 
-    try:
-        import ipyvtk_simple
-
-        printc("ipyvtk version    :", ipyvtk_simple.__version__, bold=0, dim=1)
-    except ModuleNotFoundError:
-        pass
     # try:
     #     import trame
     #     printc("trame version     :", trame.__version__, bold=0, dim=1)
@@ -800,7 +794,7 @@ def draw_scene(args):
     ########################################################################
     # normal mode for single VOXEL file with Isosurface Slider mode
     elif nfiles == 1 and (
-        ".slc" in args.files[0].lower()
+           ".slc" in args.files[0].lower()
         or ".vti" in args.files[0].lower()
         or ".tif" in args.files[0].lower()
         or ".mhd" in args.files[0].lower()
@@ -811,7 +805,9 @@ def draw_scene(args):
         vol = io.load(args.files[0], force=args.reload)
         sp = vol.spacing()
         vol.spacing(
-            [sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing]
+            [sp[0] * args.x_spacing, 
+             sp[1] * args.y_spacing, 
+             sp[2] * args.z_spacing]
         )
         if not args.color:
             args.color = "gold"
@@ -819,8 +815,9 @@ def draw_scene(args):
             vol,
             c=args.color,
             cmap=args.cmap,
-            precompute=True,
+            precompute=False,
             progress=True,
+            use_gpu=True,
         )
         plt.show(zoom=args.zoom, viewup="z")
         return

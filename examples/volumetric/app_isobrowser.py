@@ -3,6 +3,7 @@ from vedo.applications import IsosurfaceBrowser
 
 vol = Volume(dataurl+'head.vti')
 
-plt = IsosurfaceBrowser(vol, c='gold') # Plotter instance
+# IsosurfaceBrowser(Plotter) instance:
+plt = IsosurfaceBrowser(vol, use_gpu=True, c='gold')
 
 plt.show(axes=7, bg2='lb').close()
