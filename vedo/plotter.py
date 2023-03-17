@@ -851,6 +851,12 @@ class Plotter:
                     self.render(resetcam=resetcam)
         return self
 
+    def remove_lights(self):
+        """Remove all the present lights in the current renderer."""
+        if self.renderer:
+            self.renderer.RemoveAllLights()
+        return self
+
     def remove(self, *actors, at=None, render=False, resetcam=False):
         """
         Remove input object to the internal list of actors to be shown.

@@ -808,7 +808,6 @@ def Light(
         angle=180,
         c=None,
         intensity=1,
-        remove_others=False,
     ):
     """
     Generate a source of light placed at `pos` and directed to `focal point`.
@@ -823,9 +822,9 @@ def Light(
             set the light color
         intensity : (float)
             intensity value between 0 and 1.
-        remove_others : (bool)
-            remove all other lights in the scene
-            (in this case a `vedo.Plotter` object must already exist)
+
+    Check also:
+        `plotter.Plotter.remove_lights()`
 
     Examples:
         - [lights.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/lights.py)
@@ -851,13 +850,6 @@ def Light(
     light.SetFocalPoint(focal_point)
     light.SetIntensity(intensity)
     light.SetColor(get_color(c))
-
-    if remove_others:
-        if vedo.plotter_instance and vedo.plotter_instance.renderer:
-            vedo.plotter_instance.renderer.RemoveAllLights()
-        else:
-            vedo.logger.error("in Light(remove_others=True): scene does not exist.")
-
     return light
 
 

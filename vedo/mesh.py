@@ -1297,7 +1297,7 @@ class Mesh(Points):
 
         tf.SetInputData(self._data)
         tf.Update()
-        out = self._update(tf.GetOutput())
+        out = self._update(tf.GetOutput()).lw(0).lighting("default")
 
         out.pipeline = OperationNode(
             "triangulate", parents=[self], comment=f"#cells {out._data.GetNumberOfCells()}",
