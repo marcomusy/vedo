@@ -731,7 +731,7 @@ class Plotter:
 
         if self.offscreen:
             if self.axes in (4, 5):
-                self.axes = 0  # doesn't work with those
+                self.axes = 0  # does not work with those
             self.window.SetOffScreenRendering(True)
             self._interactive = False
             self.interactor = None
@@ -2123,7 +2123,7 @@ class Plotter:
         Example:
             ```python
             from vedo import settings, Cube, Plotter
-            settings.use_parallel_projection = True # or else it doesnt make sense!
+            settings.use_parallel_projection = True # or else it does not make sense!
             cube = Cube().alpha(0.2)
             plt = Plotter(size=(900,600), axes=dict(xtitle='x (um)'))
             plt.add_scale_indicator(units='um', c='blue4')

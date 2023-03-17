@@ -956,7 +956,6 @@ class Points(BaseActor, vtk.vtkActor):
         url = "data:image/png;base64," + encoded
         image = f"<img src='{url}'></img>"
 
-        # mesh statisitics
         bounds = "<br/>".join(
             [
                 utils.precision(min_x,4) + " ... " + utils.precision(max_x,4)
@@ -3524,7 +3523,7 @@ class Points(BaseActor, vtk.vtkActor):
         self.pipeline = utils.OperationNode("smooth_mls_2d", parents=[self])
         return self 
     
-    def smooth_lloyd_2d(self, interations=2, bounds=None, options="Qbb Qc Qx"):
+    def smooth_lloyd_2d(self, iterations=2, bounds=None, options="Qbb Qc Qx"):
         """Lloyd relaxation of a 2D pointcloud."""
         # Credits: https://hatarilabs.com/ih-en/
         # tutorial-to-create-a-geospatial-voronoi-sh-mesh-with-python-scipy-and-geopandas
@@ -3578,7 +3577,7 @@ class Points(BaseActor, vtk.vtkActor):
             bounds = self.bounds()
 
         pts = self.points()[:, (0, 1)]
-        for i in range(interations):
+        for i in range(iterations):
             vor = scipy_voronoi(pts, qhull_options=options)
             _constrain_points(vor.vertices)
             pts = _relax(vor)

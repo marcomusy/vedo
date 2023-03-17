@@ -204,7 +204,7 @@ class Base3DProp:
     """
     Base class to manage positioning and size of the objects in space and other properties.
 
-    .. warning:: Do not use this class to instanciate objects
+    .. warning:: Do not use this class to instantiate objects
     """
     def __init__(self):
         """
@@ -458,7 +458,7 @@ class Base3DProp:
             rotation : (float)
                 rotate object around newaxis.
             concatenate : (bool)
-                concatenate the orietation operation with the previous existing transform (if any)
+                concatenate the orientation operation with the previous existing transform (if any)
             xyplane : (bool)
                 make an extra rotation to keep the object aligned to the xy-plane
             rad : (bool)
@@ -901,7 +901,7 @@ class BaseActor2D(vtk.vtkActor2D):
     """
     Base class.
 
-    .. warning:: Do not use this class to instanciate objects.
+    .. warning:: Do not use this class to instantiate objects.
     """
     def __init__(self):
         """Manage 2D objects."""
@@ -920,7 +920,7 @@ class BaseActor2D(vtk.vtkActor2D):
     def pos(self, px=None, py=None):
         """Set/Get the screen-coordinate position."""
         if isinstance(px, str):
-            vedo.logger.error("Use string descriptors only inside the contructor")
+            vedo.logger.error("Use string descriptors only inside the constructor")
             return self
         if px is None:
             return np.array(self.GetPosition(), dtype=int)
@@ -984,7 +984,7 @@ class BaseActor2D(vtk.vtkActor2D):
         return self
     
     def ontop(self, value=True):
-        """Keep the object always on top of everithing else."""
+        """Keep the object always on top of everything else."""
         if value:
             self.GetProperty().SetDisplayLocationToForeground()
         else:
@@ -997,7 +997,7 @@ class BaseActor(Base3DProp):
     """
     Base class.
 
-    .. warning:: Do not use this class to instanciate objects, use one the above instead.
+    .. warning:: Do not use this class to instantiate objects, use one the above instead.
     """
     def __init__(self):
         """
@@ -1820,7 +1820,7 @@ class BaseGrid(BaseActor):
     """
     Base class for grid datasets.
 
-    .. warning:: Do not use this class to instanciate objects.
+    .. warning:: Do not use this class to instantiate objects.
     """
     def __init__(self):
         """Base class for grid datasets."""

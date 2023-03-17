@@ -1453,7 +1453,7 @@ def StreamLines(
         step_length : (float)
             length of step integration.
         extrapolate_to_box : (dict)
-            Vectors that are defined on a descrete set of points
+            Vectors that are defined on a discrete set of points
             are extrapolated to a 3D domain defined by its bounding box:
                 - bounds (list), bounding box of the domain
                 - kernel (str), interpolation kernel `["shepard","gaussian","voronoi","linear"]`

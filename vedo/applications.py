@@ -747,7 +747,7 @@ class IsosurfaceBrowser(Plotter):
 ##############################################################################
 class Browser(Plotter):
     """
-    Browse a serie of vedo objects by using a simple slider.
+    Browse a series of vedo objects by using a simple slider.
     """
     def __init__(
             self,
@@ -766,7 +766,7 @@ class Browser(Plotter):
             interactive=True,
         ):
         """
-        Browse a serie of vedo objects by using a simple slider.
+        Browse a series of vedo objects by using a simple slider.
 
         Examples:
             ```python
@@ -881,7 +881,7 @@ class FreeHandCutPlotter(Plotter):
             pc : (str)
                 selection points color.
             c : (str)
-                backgound color of instructions.
+                background color of instructions.
             tc : (str)
                 text color of instructions.
             tol : (int)
@@ -1111,7 +1111,7 @@ class SplinePlotter(Plotter):
         t = (
             "Click to add a point\n"
             "Right-click to remove it\n"
-            "Drag mouse to change constrast\n"
+            "Drag mouse to change contrast\n"
             "Press c to clear points\n"
             "Press q to continue"
         )

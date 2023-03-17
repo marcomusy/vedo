@@ -264,7 +264,6 @@ class Mesh(Points):
         url = "data:image/png;base64," + encoded
         image = f"<img src='{url}'></img>"
 
-        # mesh statisitics
         bounds = "<br/>".join(
             [
                 precision(min_x,4) + " ... " + precision(max_x,4)

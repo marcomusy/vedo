@@ -276,7 +276,6 @@ class Figure(Assembly):
         url = "data:image/png;base64," + encoded
         image = f"<img src='{url}'></img>"
 
-        # statisitics
         bounds = "<br/>".join(
             [
                 vedo.utils.precision(min_x,4) + " ... " + vedo.utils.precision(max_x,4)
@@ -748,7 +747,7 @@ class Figure(Assembly):
             if a.npoints == 0:
                 continue
             if a.GetProperty().GetRepresentation() == 1:
-                # wireframe is not renedered in 2d
+                # wireframe is not rendered in 2d
                 continue
             aa = _to2d(a, offset, self.z(), scale / (x1-x0) * 550)
             aa.SetPosition(position)
@@ -3076,7 +3075,7 @@ def _plot_spheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha
 
 
 def _histogram_quad_bin(x,y, **kwargs):
-    # generate a histgram with 3D bars
+    # generate a histogram with 3D bars
     #
     histo = Histogram2D(x,y, **kwargs)
 

@@ -2508,14 +2508,14 @@ class DistanceTool(Group):
         self.title = ""
 
     def on(self):
-        """Swicth tool on."""
+        """Switch tool on."""
         self.cid = self.plotter.add_callback("click", self._onclick)
         self.VisibilityOn()
         self.plotter.render()
         return self
 
     def off(self):
-        """Swicth tool off."""
+        """Switch tool off."""
         self.plotter.remove_callback(self.cid)
         self.VisibilityOff()
         self.ruler.off()

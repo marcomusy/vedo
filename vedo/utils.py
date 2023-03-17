@@ -481,7 +481,7 @@ def make3d(pts, transpose=False):
     Make an array which might be 2D to 3D.
 
     Array can also be in the form `[allx, ally, allz]`.
-    Use `transpose` to resolve ambigous cases (eg, shapes like `[3,3]`).
+    Use `transpose` to resolve ambiguous cases (eg, shapes like `[3,3]`).
     """
     pts = np.asarray(pts)
 
