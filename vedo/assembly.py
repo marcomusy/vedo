@@ -353,6 +353,7 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
             newlist.append(a.clone())
         return Assembly(newlist)
 
+
     def unpack(self, i=None, transformed=False):
         """Unpack the list of objects from a ``Assembly``.
 
@@ -379,3 +380,27 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
                 if i in m.name:
                     return m
 
+    def recursive_unpack(self):
+        """Flatten out an Assembly."""
+
+        def _genflatten(lst):
+            if not lst:
+                return []
+            ##
+            if isinstance(lst[0], Assembly):
+                lst = lst[0].unpack()
+            ##
+            for elem in lst:
+                if isinstance(elem, Assembly):
+                    apos = elem.GetPosition()
+                    sum = np.sum(apos)
+                    for x in elem.unpack():
+                        if sum:
+                            yield x.clone().shift(apos)
+                        else:
+                            yield x
+                else:
+                    yield elem
+
+        return list(_genflatten([self]))
+    

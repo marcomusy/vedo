@@ -45,7 +45,7 @@ __all__ = [
 ]
 
 ##########################################################################
-def _to2d(actor, offset, z, scale):
+def _to2d(actor, offset, scale):
 
     poly = actor.polydata()
 
@@ -56,6 +56,7 @@ def _to2d(actor, offset, z, scale):
     tp.SetTransform(transform)
     tp.SetInputData(poly)
     tp.Update()
+
     poly = tp.GetOutput()
 
     mapper2d = vtk.vtkPolyDataMapper2D()
@@ -299,7 +300,7 @@ class Figure(Assembly):
             "<td>", image, "</td>",
             "<td style='text-align: center; vertical-align: center;'><br/>", help_text,
             "<table>",
-            "<tr><td><b> nr. of objects </b></td><td>" + str(self.GetNumberOfPaths()) + "</td></tr>",
+            "<tr><td><b> nr. of parts </b></td><td>" + str(self.GetNumberOfPaths()) + "</td></tr>",
             "<tr><td><b> position </b></td><td>" + str(self.GetPosition()) + "</td></tr>",
             "<tr><td><b> x-limits </b></td><td>" + utils.precision(self.xlim,4) + "</td></tr>",
             "<tr><td><b> y-limits </b></td><td>" + utils.precision(self.ylim,4) + "</td></tr>",
@@ -663,9 +664,7 @@ class Figure(Assembly):
 
     def as2d(self, pos="bottom-left", scale=1, padding=0.05):
         """
-        Convert the Figure into a 2D static object (a 2D assembly).
-
-        Still experimental.
+        Convert the Figure into a 2D static object (a 2D Assembly).
 
         Arguments:
             pos : (str, list)
@@ -691,14 +690,6 @@ class Figure(Assembly):
         if not utils.is_sequence(padding):
             padding = (padding, padding)
         padding = np.array(padding)
-
-        def _unpack(p):
-            for o in list(objs):
-                if isinstance(o, Assembly):
-                    objs.extend(o.unpack())
-        objs = [self]
-        for _ in range(3):
-            _unpack(self)
 
         if "cent" in pos:
             offset = [(x0 + x1) / 2, (y0 + y1) / 2]
@@ -739,7 +730,7 @@ class Figure(Assembly):
 
         scanned = []
         group = Group()
-        for a in objs:
+        for a in self.recursive_unpack():
             if a in scanned:
                 continue
             if not isinstance(a, vedo.Points):
@@ -747,11 +738,11 @@ class Figure(Assembly):
             if a.npoints == 0:
                 continue
             if a.GetProperty().GetRepresentation() == 1:
-                # wireframe is not rendered in 2d
+                # wireframe is not rendered correctly in 2d
                 continue
-            aa = _to2d(a, offset, self.z(), scale / (x1-x0) * 550)
-            aa.SetPosition(position)
-            group += aa
+            a2d = _to2d(a, offset, scale*550 / (x1-x0) )
+            a2d.SetPosition(position)
+            group += a2d
         return group
 
 
