@@ -3731,9 +3731,7 @@ class Points(BaseActor, vtk.vtkActor):
         self.transform = T
         self.apply_transform(T, reset=True)
 
-        self.pipeline = utils.OperationNode(
-            "warp", parents=parents, 
-        )
+        self.pipeline = utils.OperationNode("warp", parents=parents)
         return self
 
     @deprecated(reason=vedo.colors.red + "Please use cut_with_plane()" + vedo.colors.reset)

@@ -372,7 +372,7 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
             "<td style='text-align: center; vertical-align: center;'><br/>", help_text,
             "<table>",
             "<tr><td><b> shape </b></td><td>" + str(img.GetDimensions()[:2]) + "</td></tr>",
-            "<tr><td><b> in memory size </b></td><td>" + str(int(img.GetActualMemorySize() / 1024)) + "MB</td></tr>",
+            "<tr><td><b> in memory size </b></td><td>" + str(int(img.GetActualMemorySize())) + " KB</td></tr>",
             pdata,
             cdata,
             "<tr><td><b> intensity range </b></td><td>" + str(img.GetScalarRange()) + "</td></tr>",

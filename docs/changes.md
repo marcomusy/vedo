@@ -8,6 +8,8 @@
 -------------------------
 ## New/Revised Examples
 ```
+examples/advanced/warp6.py
+
 ```
 
 ### Broken Examples
