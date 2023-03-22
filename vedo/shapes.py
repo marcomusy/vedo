@@ -4380,13 +4380,17 @@ class TextBase:
             self.property.SetShadowOffset(offset)
         return self
 
-    def color(self, c):
+    def color(self, c=None):
         """Set the text color"""
+        if c is None:
+            return get_color(self.property.GetColor())
         self.property.SetColor(get_color(c))
         return self
 
-    def c(self, color):
+    def c(self, color=None):
         """Set the text color"""
+        if color is None:
+            return get_color(self.property.GetColor())
         return self.color(color)
 
     def alpha(self, value):

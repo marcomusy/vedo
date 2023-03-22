@@ -118,10 +118,11 @@ class Settings:
     k3d_menu_visibility = True
     k3d_plot_height = 512
     k3d_antialias   = True
-    k3d_lighting    = 1.2
+    k3d_lighting    = 1.5
     k3d_camera_autofit = True
     k3d_grid_autofit= True
-    k3d_axes_helper = True    # size of the small triad of axes on the bottom right
+    k3d_axes_color  = "gray4"
+    k3d_axes_helper = 1.0     # size of the small triad of axes on the bottom right
     k3d_point_shader= "mesh"  # others are '3d', '3dSpecular', 'dot', 'flat'
     k3d_line_shader = "thick" # others are 'flat', 'mesh'
     ```
@@ -181,6 +182,7 @@ class Settings:
         "k3d_lighting",
         "k3d_camera_autofit",
         "k3d_grid_autofit",
+        "k3d_axes_color",
         "k3d_axes_helper",
         "k3d_point_shader",
         "k3d_line_shader",
@@ -310,10 +312,11 @@ class Settings:
         self.k3d_menu_visibility = True
         self.k3d_plot_height = 512
         self.k3d_antialias  = True
-        self.k3d_lighting   = 1.2
+        self.k3d_lighting   = 1.5
         self.k3d_camera_autofit = True
         self.k3d_grid_autofit= True
-        self.k3d_axes_helper = True    # size of the small triad of axes on the bottom right
+        self.k3d_axes_color  = "k4"
+        self.k3d_axes_helper = 1.0     # size of the small triad of axes on the bottom right
         self.k3d_point_shader= "mesh"  # others are '3d', '3dSpecular', 'dot', 'flat'
         self.k3d_line_shader = "thick" # others are 'flat', 'mesh'
 

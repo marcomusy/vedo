@@ -38,6 +38,7 @@ __all__ = [
     "round_to_digit",
     "point_in_triangle",
     "point_line_distance",
+    "closest",
     "grep",
     "print_info",
     "make_bands",
@@ -1003,16 +1004,50 @@ def triangle_solver(**input_dict):
 
     return [{"a": a, "b": b, "c": c, "ab": ab, "bc": bc, "ac": ac}]
 
-
+#############################################################################
 def point_line_distance(p, p1, p2):
     """
     Compute the distance of a point to a line (not the segment)
     defined by `p1` and `p2`.
     """
-    d = np.sqrt(vtk.vtkLine.DistanceToLine(p, p1, p2))
-    return d
+    return np.sqrt(vtk.vtkLine.DistanceToLine(p, p1, p2))
 
+def closest(point, points, n=1, return_ids=False, use_tree=False):
+    """
+    Returns the distances and the closest point(s) to the given set of points.
+    Needs `scipy.spatial` library.
 
+    Arguments:
+        n : (int)
+            the nr of closest points to return
+        return_ids : (bool)
+            return the ids instead of the points coordinates
+        use_tree : (bool)
+            build a `scipy.spatial.KDTree`.
+            An already existing one can be passed to avoid rebuilding.
+    """
+    from scipy.spatial import distance, KDTree
+    points = np.asarray(points)
+    if n == 1:
+        dists = distance.cdist([point], points)
+        closest_idx = np.argmin(dists)
+    else:
+        if use_tree:
+            if isinstance(use_tree, KDTree): # reuse
+                tree = use_tree
+            else:
+                tree = KDTree(points)
+            dists, closest_idx = tree.query([point], k=n)
+            closest_idx = closest_idx[0]
+        else:
+            dists = distance.cdist([point], points)
+            closest_idx = np.argsort(dists)[0][:n]
+    if return_ids:
+        return dists, closest_idx
+    else:
+        return dists, points[closest_idx]
+
+#############################################################################
 def linInterpolate(x, rangeX, rangeY):
     "Deprecated. Please `lin_interpolate()`"
     m = "Warning! linInterpolate() is deprecated. Please use lin_interpolate()"

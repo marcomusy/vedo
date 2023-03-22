@@ -455,6 +455,7 @@ class Plotter:
         self._first_viewup = True
         self._extralight = None
         self._cocoa_initialized = False
+        self._bg = bg  # used by backend notebooks
 
         #####################################################################
         if settings.default_backend != 'vtk':
@@ -995,6 +996,7 @@ class Plotter:
         if r:
             if c1 is not None:
                 r.SetBackground(vedo.get_color(c1))
+                self._bg = r.GetBackground() # notebooks
             if c2 is not None:
                 r.GradientBackgroundOn()
                 r.SetBackground2(vedo.get_color(c2))
@@ -1341,6 +1343,12 @@ class Plotter:
             value = not val
         r.GetActiveCamera().SetParallelProjection(value)
         r.Modified()
+        return self
+    
+    def fov(self, value):
+        """Set a field of view in degrees for the camera."""
+        self.GetActiveCamera().UseHorizontalViewAngleOn()
+        self.GetActiveCamera().SetViewAngle(value)
         return self
 
     ##################################################################
