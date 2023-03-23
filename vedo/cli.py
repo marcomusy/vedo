@@ -563,7 +563,7 @@ def exe_eog(args):
                 plt.remove(ahl)
                 plt.screenshot()  # writer
                 printc("Picture saved as screenshot.png")
-                plt.add(ahl, render=False)
+                plt.add(ahl)
                 return
             elif event.keypress == "h":
                 printc("---------------------------------------------")

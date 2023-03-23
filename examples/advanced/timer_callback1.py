@@ -25,7 +25,7 @@ def handle_timer(event):
     )
     fig.shift(-x[0]) # put the whole plot object back at (0,0)
     # pop (remove) the old plot and add the new one
-    plotter.pop().add(fig)
+    plotter.pop().add(fig).render()
 
 
 timer_id = None

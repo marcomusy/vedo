@@ -1271,7 +1271,7 @@ class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
 
     @deprecated(reason=vedo.colors.red + "Please use slice_plane()" + vedo.colors.reset)
     def slicePlane(self, *a, **b):
-        "Deprecated. Please use `scalar_range()`"
+        "Deprecated. Please use `slice_plane()`"
         return self.slice_plane(*a, **b)
 
     def slice_plane(self, origin=(0, 0, 0), normal=(1, 1, 1), autocrop=False):
@@ -1279,7 +1279,7 @@ class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
         Extract the slice along a given plane position and normal.
 
         Example:
-            - [slicePlane1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slicePlane1.py)
+            - [slice_plane1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slice_plane1.py)
 
                 ![](https://vedo.embl.es/images/volumetric/slicePlane1.gif)
         """

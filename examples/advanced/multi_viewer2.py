@@ -6,7 +6,7 @@ settings.renderer_frame_width = 1
 def on_left_click(evt):
     if not evt.actor: return
     shapename.text(f'This is called: {evt.actor.name}, on renderer nr.{evt.at}')
-    plt.at(1).remove(actsonshow).add(evt.actor, resetcam=True)
+    plt.at(1).remove(actsonshow).add(evt.actor).reset_camera()
     actsonshow.clear()
     actsonshow.append(evt.actor)
 

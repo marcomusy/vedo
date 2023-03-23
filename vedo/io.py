@@ -1512,7 +1512,7 @@ def export_window(fileoutput, binary=False):
         for a in obj:
             if isinstance(a, Mesh):
                 newa = a.clone(transformed=True)
-                vedo.plotter_instance.remove(a).add(newa, render=False)
+                vedo.plotter_instance.remove(a).add(newa)
 
             elif isinstance(a, Assembly):
                 vedo.plotter_instance.remove(a)
@@ -1530,7 +1530,7 @@ def export_window(fileoutput, binary=False):
                             newb.PokeMatrix(vtk.vtkMatrix4x4())
                             newb.SetUserTransform(tt)
 
-                        vedo.plotter_instance.add(newb, render=False)
+                        vedo.plotter_instance.add(newb)
 
         vedo.plotter_instance.render()
 
@@ -1682,7 +1682,7 @@ def import_window(fileinput, mtl_file=None, texture_path=None):
             objs = [loadnumpy(fileinput)]
 
         plt.actors = objs
-        plt.add(objs, render=False)
+        plt.add(objs)
         return plt
 
     elif ".obj" in fileinput.lower():

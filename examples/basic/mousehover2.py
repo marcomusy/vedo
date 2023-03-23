@@ -10,7 +10,7 @@ def func(event):  # callback function
     pts.name = "mypoints"   # we give it a name to make it easy to
     sph.name = "mysphere"   # remove the old and add the new ones
     txt.text(f'Radius : {sph.radius}\nResidue: {sph.residue}')
-    plt.remove("mypoints", "mysphere").add(pts, sph)
+    plt.remove("mypoints", "mysphere").add(pts, sph).render()
 
 txt = Text2D(__doc__, bg='yellow', font='Calco')
 

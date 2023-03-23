@@ -78,7 +78,7 @@ class Morpher:
         if not self.toggle:
             self.arrow_stops.pop()
         self.plotter.at(0).clear().add_renderer_frame()
-        self.plotter.add([self.plane1, self.msg1, self.mesh1, self.mesh2], render=False)
+        self.plotter.add([self.plane1, self.msg1, self.mesh1, self.mesh2])
         self.draw(False)
         self.draw(True)
 
@@ -117,7 +117,7 @@ class Morpher:
                 m_nterp = self.mesh1.clone().warp(self.arrow_starts, pi, mode=self.mode).c('b3').lw(1)
                 intermediates.append(m_nterp)
             self.msg2.text("Morphed output + Interpolation:")
-            self.plotter.at(1).add(intermediates)
+            self.plotter.at(1).add(intermediates).render()
             self.dottedln = None
 
         elif evt.keypress == 'c':  ##------- clear all
@@ -130,7 +130,7 @@ class Morpher:
             self.plotter.at(0).clear()
             self.plotter.add([self.plane1, self.msg1, self.mesh1, self.mesh2])
             self.plotter.at(1).clear().add_renderer_frame()
-            self.plotter.add([self.plane2, self.msg2])
+            self.plotter.add([self.plane2, self.msg2]).render()
 
 
 ######################################################################################## MAIN

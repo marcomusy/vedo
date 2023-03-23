@@ -9,7 +9,7 @@ def sliderfunc(widget, event):
     widget.title = f"{days}d {i*2+249-days*24}h"
     # remove the old and add the new shape
     # (no need to render as the slider makes a call to rendering)
-    plt.pop().add(objs[i], render=False)
+    plt.pop().add(objs[i])
 
 
 objs = load(dataurl + "timecourse1d.npy")  # load a list of shapes

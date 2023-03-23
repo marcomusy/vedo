@@ -22,7 +22,7 @@ def func(evt):                       ### called every time mouse moves!
     ).follow_camera()  # make it always face the camera
     if len(plt.actors) > 3:
         plt.pop()                    # remove the old flagpole
-    plt.add(arw, fp)                 # add Arrow and the new flagpole
+    plt.add(arw, fp).render()        # add Arrow and the new flagpole
 
 msg = Text2D(pos='bottom-left', font="VictorMono") # an empty text
 hil = ParametricShape('RandomHills').cmap('terrain').add_scalarbar()

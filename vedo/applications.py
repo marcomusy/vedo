@@ -295,7 +295,7 @@ class Slicer3DPlotter(Plotter):
                 alpha=0.7,
             )
 
-        self.add([msh, hist], resetcam=False)
+        self.add([msh, hist])
         if interactive:
             self.interactive()
 
@@ -561,7 +561,7 @@ class RayCastPlotter(Plotter):
         plot.GetPosition2Coordinate().SetValue(0.197, 0.20, 0)
         plot.GetXAxisActor2D().SetFontFactor(0.7)
         plot.GetProperty().SetOpacity(0.5)
-        self.add([plot, volume], render=False)
+        self.add([plot, volume])
 
 
 #####################################################################################
@@ -941,7 +941,7 @@ class FreeHandCutPlotter(Plotter):
             self.spline = Line(self.cpoints)
         self.spline.lw(self.linewidth).c(self.linecolor).pickable(False)
         self.jline = Line(self.cpoints[0], self.cpoints[-1], lw=1, c=self.linecolor).pickable(0)
-        self.add([self.points, self.spline, self.jline], render=False)
+        self.add([self.points, self.spline, self.jline]).render()
         return self
 
     def _on_right_click(self, evt):
@@ -983,7 +983,7 @@ class FreeHandCutPlotter(Plotter):
                 self.spline.lw(self.linewidth).c(self.linecolor).pickable(False)
                 self.txt2d.background(self.linecolor)
                 self.jline = Line(self.cpoints[0], self.cpoints[-1], lw=1, c=self.linecolor).pickable(0)
-                self.add([self.points, self.spline, self.jline, self.topline])
+                self.add([self.points, self.spline, self.jline, self.topline]).render()
 
     def _on_keypress(self, evt):
         if evt.keypress.lower() == 'z' and self.spline: # Cut mesh with a ribbon-like surface
@@ -1022,16 +1022,16 @@ class FreeHandCutPlotter(Plotter):
             self.txt2d.text(self.msg).background(self.color)   # put back original message
             self.add(mcut)
 
-        elif evt.keypress == 'u':                     # Undo last action
+        elif evt.keypress == 'u':                       # Undo last action
             if self.drawmode:
-                self._on_right_click(evt)                 # toggle mode to normal
+                self._on_right_click(evt)               # toggle mode to normal
             else:
                 self.txt2d.background(self.color, self.alpha)
             self.remove([self.mesh, self.spline, self.jline, self.points, self.topline])
             self.mesh = self.mesh_prev
             self.cpoints, self.points, self.spline = [], None, None
             self.top_pts, self.topline = [], None
-            self.add(self.mesh)
+            self.add(self.mesh).render()
 
         elif evt.keypress in ('c', 'Delete'):
             # clear all points
@@ -1107,6 +1107,7 @@ class SplinePlotter(Plotter):
         
         if isinstance(self.object, vedo.Picture):
             self.mode = 'image'
+            self.parallel_projection(True)
 
         t = (
             "Click to add a point\n"

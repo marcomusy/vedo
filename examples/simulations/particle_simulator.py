@@ -87,7 +87,7 @@ class Particle:
         self.color = color
         if plt:
             self.vsphere = Sphere(pos, r=radius, c=color).add_trail(lw=0.1, n=100, alpha=0.2)
-            plt.add(self.vsphere, render=False)  # Sphere representing the particle
+            plt.add(self.vsphere)  # Sphere representing the particle
 
 
 #####################################################################################################

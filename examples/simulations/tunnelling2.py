@@ -66,6 +66,6 @@ for i in range(Nsteps):
     l, a = lines[i]
     l.cmap("gist_earth_r", a)
     plt.add(box, bck, l.pos(p), barrier.clone().alpha(0.3).pos(p))
-    plt.reset_camera()
+    plt.reset_camera().render()
 
 plt.interactive().close()

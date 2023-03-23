@@ -1698,8 +1698,8 @@ def _addCutterToolMeshWithSphere(mesh, invert):
     act1.mapper().SetInputConnection(clipper.GetClippedOutputPort())  # needs OutputPort
     act1.color((0.5, 0.5, 0.5), 0.04).wireframe()
 
-    plt.remove(mesh, render=False)
-    plt.add([act0, act1])
+    plt.remove(mesh)
+    plt.add([act0, act1]).render()
 
     def myCallback(obj, event):
         obj.GetSphere(sph)
@@ -1770,8 +1770,8 @@ def _addCutterToolMeshWithBox(mesh, invert):
     act1.mapper().SetInputConnection(clipper.GetClippedOutputPort())  # needs OutputPort
     act1.alpha(0.04).color((0.5, 0.5, 0.5)).wireframe()
 
-    plt.remove(mesh, render=False)
-    plt.add([act0, act1])
+    plt.remove(mesh)
+    plt.add([act0, act1]).render()
 
     def selectPolygons(vobj, event):
         vobj.GetPlanes(planes)
@@ -1830,8 +1830,8 @@ def _addCutterToolMeshWithPlane(mesh, invert):
     act1.mapper().SetInputConnection(clipper.GetClippedOutputPort())  # needs OutputPort
     act1.alpha(0.04).color((0.5, 0.5, 0.5)).wireframe()
 
-    plt.remove(mesh, render=False)
-    plt.add([act0, act1])
+    plt.remove(mesh)
+    plt.add([act0, act1]).render()
 
     def myCallback(obj, event):
         obj.GetPlane(plane)

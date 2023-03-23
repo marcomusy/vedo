@@ -33,6 +33,6 @@ for q in progressbar(range(qn), c='r'):
 
     vb = Volume(volf).mode(1).c("rainbow").alpha([0, 0.8, 1])
     vb.name = "MyVolume"
-    plt.remove("MyVolume").add(vb)
+    plt.remove("MyVolume").add(vb).render()
 
 plt.interactive().close()

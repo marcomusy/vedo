@@ -59,7 +59,7 @@ def loop_func(event):
     gaxis = (Lshaft + 0.03) * vector(st * sp, ct, st * cp)
     # set orientation along gaxis and rotate it around its axis by psidot*t degrees
     gyro.orientation(gaxis, rotation=psidot * t, rad=True)
-    plt.add(Point(gaxis, r=3, c="red4"))
+    plt.add(Point(gaxis, r=3, c="red4")).render()
 
 t = 0
 plt.add_callback("timer", loop_func)

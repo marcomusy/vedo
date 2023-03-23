@@ -6,17 +6,17 @@ settings.default_font = "Ubuntu"
 settings.use_depth_peeling = True
 
 
-def func(evt):                 # this is the callback function
-    i = evt.at                 # the renderer nr. which is being hit
-    pt2d = evt.picked2d        # 2D screen coordinate
+def func(evt):                   # this is the callback function
+    i = evt.at                   # the renderer nr. which is being hit
+    pt2d = evt.picked2d          # 2D screen coordinate
     # passing a list of meshes will force the points to be placed on any of them
     pt3d = plt.at(i).compute_world_coordinate(pt2d, objs=[objs[i]])
     if mag(pt3d) < 0.01:
         return
     newpt = Point(pt3d).color(i)
     txt.text(f'2D coords: {pt2d}\n3D coords: {pt3d}\nNpt = {len(plt.actors)}')
-    txt.color(i)               # update text and color on the fly
-    plt.at(i).add(newpt)       # add new point and render i
+    txt.color(i)                  # update text and color on the fly
+    plt.at(i).add(newpt).render() # add new point and render i
 
 
 # create an empty text (to be updated in the callback)

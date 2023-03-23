@@ -779,11 +779,11 @@ class Plotter:
     #     return self
 
     def __iadd__(self, actors):
-        self.add(actors, render=False)
+        self.add(actors)
         return self
 
     def __isub__(self, actors):
-        self.remove(actors, render=False)
+        self.remove(actors)
         return self
 
     def __enter__(self):
@@ -817,7 +817,7 @@ class Plotter:
         self.camera = self.renderer.GetActiveCamera()
         return self
 
-    def add(self, *actors, at=None, render=True, resetcam=False):
+    def add(self, *actors, at=None):
         """
         Append the input objects to the internal list of actors to be shown.
         This method is typically used in loops or callback functions.
@@ -825,8 +825,6 @@ class Plotter:
         Arguments:
             at : (int)
                 add the object at the specified renderer
-            render : (bool)
-                render the scene after adding the objects (True by default)
         """
         if at is not None:
             ren = self.renderers[at]
@@ -843,22 +841,12 @@ class Plotter:
                 ren.AddActor(a)
                 if hasattr(a, "scalarbar") and a.scalarbar:
                     ren.AddActor(a.scalarbar)
-        if render:
-            if self.interactor:
-                if not self.interactor.GetInitialized():
-                    # vedo.logger.warning("call to add() but Plotter was not initialized with show()")
-                    pass
-                else:
-                    self.render(resetcam=resetcam)
+                if hasattr(a, "shadows") and a.shadows:
+                    for sha in a.shadows:
+                        ren.AddActor(sha)
         return self
 
-    def remove_lights(self):
-        """Remove all the present lights in the current renderer."""
-        if self.renderer:
-            self.renderer.RemoveAllLights()
-        return self
-
-    def remove(self, *actors, at=None, render=False, resetcam=False):
+    def remove(self, *actors, at=None):
         """
         Remove input object to the internal list of actors to be shown.
         This method is typically used in loops or callback functions.
@@ -867,8 +855,6 @@ class Plotter:
         Arguments:
             at : (int)
                 remove the object at the specified renderer
-            render : (bool)
-                render the scene after removing the objects (False by default).
         """
         if at is not None:
             ren = self.renderers[at]
@@ -903,11 +889,12 @@ class Plotter:
                 i = self.actors.index(a)
                 del self.actors[i]
 
-        if render:
-            if not self.interactor.GetInitialized():
-                vedo.logger.warning("call to remove(resetcam=True) but Plotter was not initialized with show()")
-            else:
-                self.render(resetcam=resetcam)
+        return self
+
+    def remove_lights(self):
+        """Remove all the present lights in the current renderer."""
+        if self.renderer:
+            self.renderer.RemoveAllLights()
         return self
 
     def pop(self, at=None):
@@ -1168,15 +1155,13 @@ class Plotter:
             self.camera.SetViewUp(viewups[vui])
             self.camera.SetPosition(positions[pui])
             self.camera.SetFocalPoint(mx,my,mz)
-            self.render()
 
         self.renderer.ResetCameraClippingRange()
-        self.render()
+
         # vbb, _, _, _ = addons.compute_visible_bounds()
         # x0,x1, y0,y1, z0,z1 = vbb
         # self.renderer.ResetCameraClippingRange(x0, x1, y0, y1, z0, z1)
-        # self.render()
-
+        self.render()
         return self
 
     def move_camera(self, cameras, t=0, times=(), smooth=True, output_times=()):
@@ -2004,13 +1989,12 @@ class Plotter:
         
             ![](https://vedo.embl.es/images/pyplot/earthquake_browser.jpg)
         """
-        hoverlegend = vedo.shapes.Text2D('', pos=pos, font=font, c=c, s=s, alpha=alpha, bg=bg)
+        hoverlegend = vedo.shapes.Text2D(pos=pos, font=font, c=c, s=s, alpha=alpha, bg=bg)
 
         if at is None:
             at = self.renderers.index(self.renderer)
 
         def _legfunc(evt):
-            # helper function (png not pickable because of alpha channel in vtk9 ??)
             if not evt.actor or not self.renderer or at != evt.at:
                 if hoverlegend._mapper.GetInput():  # clear and return
                     hoverlegend._mapper.SetInput("")
@@ -2102,10 +2086,11 @@ class Plotter:
                 hoverlegend._mapper.SetInput(t)
                 self.interactor.Render()
 
-        self.add(hoverlegend, render=False, at=at)
+        self.add(hoverlegend, at=at)
         self.hover_legends.append(hoverlegend)
         self.add_callback("MouseMove", _legfunc)
         return self
+
 
     #####################################################################
     def add_scale_indicator(
@@ -2713,7 +2698,7 @@ class Plotter:
                 else:
                     scannedacts.append(vedo.Mesh(utils.meshlab2vedo(a)))
 
-            elif isinstance(a, (vtk.vtkProp, )):
+            elif isinstance(a, vtk.vtkProp):
                 scannedacts.append(a)
 
             else:
@@ -3196,7 +3181,7 @@ class Plotter:
         self.widgets.append(widget)
         return widget
 
-    def clear(self, at=None, deep=False, render=False):
+    def clear(self, at=None, deep=False):
         """Clear the scene from all meshes and volumes."""
         if at is not None:
             renderer = self.renderers[at]
@@ -3218,9 +3203,6 @@ class Plotter:
                 except AttributeError:
                     pass
             self.actors = []
-
-        if render:
-            self.render()
         return self
 
     def break_interaction(self):

@@ -14,7 +14,7 @@ def myfnc(evt):
         return
     printc("point:", mesh.picked3d, c="v")
     cpt = Point(pos=mesh.picked3d, r=20, c="v").pickable(False)
-    plt.add(cpt)
+    plt.add(cpt).render()
 
 ##############################################################
 plt = Plotter(axes=1)

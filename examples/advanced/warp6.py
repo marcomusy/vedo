@@ -1,17 +1,16 @@
-"""Press c while hovering to warp a text onto a surface"""
+"""Press c while hovering to warp a Mesh onto another Mesh"""
 from vedo import *
 
 
 def on_keypress(event):
-
     if event.actor is not None and event.keypress == "c":
-        p = event.picked3d
-        ix = mesh.closest_point(p, return_point_id=True)
-        pt = points[ix]
-        vec = normals[ix]
-        pt = pt + vec / 8
+        picked = event.picked3d
+        idx = mesh.closest_point(picked, return_point_id=True)
+        pt = points[idx]
+        n = normals[idx]
+        pt = pt + n / 5
 
-        txt.orientation(vec).pos(pt)
+        txt.orientation(n).pos(pt)
 
         tpts = txt.clone().subsample(0.05).points()
         kpts = [mesh.closest_point(tp) for tp in tpts]
@@ -19,10 +18,10 @@ def on_keypress(event):
         warped.c("purple5")
 
         lines = Lines(tpts, kpts, alpha=0.2)
-        plt.remove("Text3D", "Lines").add(txt, warped, lines)
+        plt.remove("Text3D", "Lines").add(txt, warped, lines).render()
 
 
-txt = Text3D("Text3D\n01-ABCD", s=0.15, justify="centered", c="red5")
+txt = Text3D("Text3D\n01-ABCD", s=0.1, justify="centered", c="red5")
 
 mesh = ParametricShape("RandomHills").c("gray5").alpha(0.25)
 points = mesh.points()

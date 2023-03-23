@@ -42,7 +42,7 @@ def epicycles(time, rotation, fourier, order):
         pline = vedo.Line(path, c='green5', lw=2)
         oline = vedo.Line(points, c='red4', lw=5)
         objs += [hline, pline, oline]
-        plt.add(objs, resetcam=False)
+        plt.add(objs).render()
     return [x, y]
 
 

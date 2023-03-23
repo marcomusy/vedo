@@ -2517,8 +2517,8 @@ def probe_plane(dataset, origin=(0, 0, 0), normal=(1, 0, 0)):
     and probes its scalars on a plane defined by a point and a normal.
 
     Examples:
-        - [slicePlane1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slicePlane1.py)
-        - [slicePlane2.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slicePlane2.py)
+        - [slice_plane1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slice_plane1.py)
+        - [slice_plane2.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slice_plane2.py)
 
             ![](https://vedo.embl.es/images/volumetric/slicePlane2.png)
     """
