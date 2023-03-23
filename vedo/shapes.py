@@ -200,7 +200,7 @@ class Glyph(Mesh):
             ![](https://vedo.embl.es/images/basic/glyphs.png)
         """
         if len(opts): # Deprecations
-            printc(" Warning! In Glyph() unrecognized keywords:", opts, c='y')
+            printc(":noentry: Warning! In Glyph() unrecognized keywords:", opts, c='y')
             orientation_array = opts.pop("orientationArray", orientation_array)
             scale_by_scalar = opts.pop("scaleByScalar", scale_by_scalar)
             scale_by_vector_size = opts.pop("scaleByVectorSize", scale_by_vector_size)

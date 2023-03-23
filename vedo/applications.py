@@ -344,13 +344,13 @@ class Slicer2DPlotter(Plotter):
             vsl.lighting(window=levels[0], level=levels[1])
 
         usage = Text2D((
-            "Left click & drag  \rightarrow modify luminosity and contrast\n"
-            "SHIFT+Left click   \rightarrow slice image obliquely\n"
-            "SHIFT+Middle click \rightarrow slice image perpendicularly\n"
-            "R                  \rightarrow Reset the Window/Color levels\n"
-            "X                  \rightarrow Reset to sagittal view\n"
-            "Y                  \rightarrow Reset to coronal view\n"
-            "Z                  \rightarrow Reset to axial view"),
+            "Left click & drag  :rightarrow modify luminosity and contrast\n"
+            "SHIFT+Left click   :rightarrow slice image obliquely\n"
+            "SHIFT+Middle click :rightarrow slice image perpendicularly\n"
+            "R                  :rightarrow Reset the Window/Color levels\n"
+            "X                  :rightarrow Reset to sagittal view\n"
+            "Y                  :rightarrow Reset to coronal view\n"
+            "Z                  :rightarrow Reset to axial view"),
             font="Calco",
             pos="top-left",
             s=0.8,
@@ -908,7 +908,7 @@ class FreeHandCutPlotter(Plotter):
         self.color = c
         self.alpha = alpha
 
-        self.msg = "Right-click and move to draw line\n"
+        self.msg =  "Right-click and move to draw line\n"
         self.msg += "Second right-click to stop drawing\n"
         self.msg += "Press L to extract largest surface\n"
         self.msg += "        z/Z to cut mesh (s to save)\n"
@@ -916,7 +916,7 @@ class FreeHandCutPlotter(Plotter):
         self.txt2d = Text2D(self.msg, pos="top-left", font=font, s=0.9)
         self.txt2d.c(tc).background(c, alpha).frame()
 
-        self.idkeypress = self.add_callback("KeyPress", self._on_keypress)
+        self.idkeypress  = self.add_callback("KeyPress", self._on_keypress)
         self.idrightclck = self.add_callback("RightButton", self._on_right_click)
         self.idmousemove = self.add_callback("MouseMove", self._on_mouse_move)
         self.drawmode = False

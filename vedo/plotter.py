@@ -3331,7 +3331,7 @@ class Plotter:
             rgb = arr[y, x]
 
             if verbose:
-                vedo.printc("Pixel", [x, y], "has RGB[", end="")
+                vedo.printc(":rainbow:Pixel", [x, y], "has RGB[", end="")
                 vedo.printc("█", c=[rgb[0], 0, 0], end="")
                 vedo.printc("█", c=[0, rgb[1], 0], end="")
                 vedo.printc("█", c=[0, 0, rgb[2]], end="")
@@ -3405,7 +3405,7 @@ class Plotter:
             idx = np.digitize(x, histo.edges) - 1
             f = histo.frequencies[idx]
             cn = histo.centers[idx]
-            vedo.colors.printc(f"{histo.name}, bin={idx}, center={cn}, value={f}")
+            vedo.colors.printc(f"➡ {histo.name}, bin={idx}, center={cn}, value={f}")
 
 
     #######################################################################
@@ -3678,7 +3678,7 @@ class Plotter:
 
         elif key == "S":
             vedo.io.screenshot("screenshot.png")
-            vedo.printc(r"\camera Saved rendering window as screenshot.png", c="blue")
+            vedo.printc(r":camera: Saved rendering window to 'screenshot.png'", c="b")
             return
 
         elif key == "C":
@@ -3928,7 +3928,6 @@ class Plotter:
                         lnr = (ia._ligthingnr + 1) % 6
                         ia.lighting(shds[lnr])
                         ia._ligthingnr = lnr
-                        # vedo.printc('-> lighting set to:', shds[lnr], c='g', bold=0)
                     except AttributeError:
                         pass
 
@@ -3978,7 +3977,7 @@ class Plotter:
                         w.SetInputData(self.clicked_actor.polydata())
                         w.SetFileName(fname)
                         w.Write()
-                        vedo.printc(r"\save Saved file:", fname, c="m")
+                        vedo.printc(r":save: Saved file:", fname, c="m")
                         self.cutter_widget.Off()
                         self.cutter_widget = None
             else:
@@ -3990,13 +3989,13 @@ class Plotter:
                 vedo.printc("Click object and press X to open the cutter box widget.", c=4)
 
         elif key == "E":
-            vedo.printc(r"\camera Exporting 3D window to file", c="blue", end="")
+            vedo.printc(r":camera: Exporting 3D window to file", c="blue", end="")
             vedo.io.export_window("scene.npz")
             vedo.printc(". Try:\n> vedo scene.npz", c="blue")
 
         elif key == "F":
             vedo.io.export_window("scene.x3d")
-            vedo.printc("Try: firefox scene.html", c="blue")
+            vedo.printc(":idea: Try: firefox scene.html", c="blue")
 
         elif key == "i":  # print info
             if self.clicked_actor:

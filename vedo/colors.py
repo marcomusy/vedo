@@ -535,33 +535,33 @@ palettes = (
 
 
 emoji = {
-    r"\bomb": "\U0001F4A5",
-    r"\sparks": "\U00002728",
-    r"\ethumbup": "\U0001F44d",
-    r"\etarget": "\U0001F3af",
-    r"\save": "\U0001F4be",
-    r"\noentry": "\U000026d4",
-    r"\video": "\U0001F4fd ",
-    r"\lightning": "\U000026a1",
-    r"\camera": "\U0001F4f8",
-    r"\times": "\U0000274c",
-    r"\world": "\U0001F30d",
-    r"\erainbow": "\U0001F308",
-    r"\idea": "\U0001F4a1",
-    r"\pin": "\U0001F4CC",
-    r"\construction": "\U0001F6A7",
-    r"\rightarrow": "\U000027a1",
-    r"\erocket": "\U0001F680",
-    r"\hourglass": "\U000023f3",
-    r"\prohibited": "\U0001F6ab",
-    r"\checked": "\U00002705",
-    r"\smile": "\U0001F642",
-    r"\sad": "\U0001F612",
-    r"\star": "\U00002B50",
-    r"\zzz": "\U0001F4a4",
-    r"\mu": "\U000003BC",
-    r"\pi": "\U000003C0",
-    r"\sigma": "\U000003C3",
+    ":bomb:": "\U0001F4A5",
+    ":sparks:": "\U00002728",
+    ":thumbup:": "\U0001F44D",
+    ":target:": "\U0001F3AF",
+    ":save:": "\U0001F4BE",
+    ":noentry:": "\U000026D4",
+    ":video:": "\U0001F4FD",
+    ":lightning:": "\U000026A1",
+    ":camera:": "\U0001F4F8",
+    ":times:": "\U0000274C",
+    ":world:": "\U0001F30D",
+    ":rainbow:": "\U0001F308",
+    ":idea:": "\U0001F4A1",
+    ":pin:": "\U0001F4CC",
+    ":construction:": "\U0001F6A7",
+    ":rocket:": "\U0001F680",
+    ":hourglass:": "\U000023F3",
+    ":prohibited:": "\U0001F6AB",
+    ":checked:": "\U00002705",
+    ":smile:": "\U0001F642",
+    ":sad:": "\U0001F612",
+    ":star:": "\U00002B50",
+    ":zzz:": "\U0001F4A4",
+    ":mu:": "\U000003BC",
+    ":pi:": "\U000003C0",
+    ":sigma:": "\U000003C3",
+    ":rightarrow:": "\U000027A1",
 }
 
 
@@ -1053,7 +1053,7 @@ def printc(
         for i, s in enumerate(strings):
             if i == ns:
                 separator = ""
-            if "\\" in repr(s):  # "in" for some reasons changes s
+            if ":" in repr(s):
                 for k in emoji:
                     if k in str(s):
                         s = s.replace(k, emoji[k])

@@ -1993,13 +1993,16 @@ def print_table(*columns, headers=None, c='g'):
     Print lists as tables.
 
     Example:
-    ```python
-    list1 = [1, np.sqrt(2), 3]
-    list2 = ["A", "B", "C"]
-    list3 = [True, False, True]
-    headers = ["First Column", "Second Column", "Third Column"]
-    print_table(list1, list2, list3, headers=headers)
-    ```
+        ```python
+        from vedo.utils import print_table
+        list1 = ["A", "B", "C"]
+        list2 = [142, 220, 330]
+        list3 = [True, False, True]
+        headers = ["First Column", "Second Column", "Third Column"]
+        print_table(list1, list2, list3, headers=headers)
+        ```
+
+        ![](https://vedo.embl.es/images/feats/)
     """
     # If headers is not provided, use default header names
     corner='─'

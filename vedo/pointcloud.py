@@ -4927,7 +4927,6 @@ class Points(BaseActor, vtk.vtkActor):
         bounds=None,
         null_value=None,
         dims=(25, 25, 25),
-        N=None, # deprecated, do not use
     ):
         """
         Generate a `Volume` by interpolating a scalar
@@ -4953,10 +4952,6 @@ class Points(BaseActor, vtk.vtkActor):
 
                 ![](https://vedo.embl.es/images/volumetric/59095175-1ec5a300-8918-11e9-8bc0-fd35c8981e2b.jpg)
         """
-        if N is not None:
-            colors.printc(" Warning! In tovolume() please use n=... instead of N=...", c='y')
-            n = N
-
         if radius is None and not n:
             vedo.logger.error("please set either radius or n")
             raise RuntimeError

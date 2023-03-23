@@ -328,7 +328,7 @@ class Figure(Assembly):
 
         if abs(self.yscale - fig.yscale) > 0.0001:
 
-            colors.printc("ERROR: adding incompatible Figure. Y-scales are different:",
+            colors.printc(":bomb:ERROR: adding incompatible Figure. Y-scales are different:",
                           c='r', invert=True)
             colors.printc("  first  figure:", self.yscale, c='r')
             colors.printc("  second figure:", fig.yscale, c='r')
@@ -348,10 +348,10 @@ class Figure(Assembly):
                               " second figure:", fig.padding, c='r')
             if self.aspect != fig.aspect:
                 colors.printc("aspect ------------------------------------------\n",
-                              " first  figure:", self.aspect,
+                              " first  figure:", self.aspect, "\n",
                               " second figure:", fig.aspect, c='r')
 
-            colors.printc("\n*Consider using fig2 = histogram(..., like=fig1)", c="r")
+            colors.printc("\n:idea: Consider using fig2 = histogram(..., like=fig1)", c="r")
             colors.printc(" Or fig += histogram(..., like=fig)\n", c="r")
             return self
 

@@ -1906,7 +1906,7 @@ class Video:
         self.frames = []
         self.tmp_dir = TemporaryDirectory()
         self.get_filename = lambda x: os.path.join(self.tmp_dir.name, x)
-        colors.printc("Video file", self.name, "is open... ", c="m", end="")
+        colors.printc(":video: Video file", self.name, "is open... ", c="m", end="")
 
     def add_frame(self):
         """Add frame to current video."""
@@ -1997,9 +1997,9 @@ class Video:
                 + f"'{self.name}'"
             )
             if out:
-                vedo.logger.error(f"backend {self.backend} returning error: {out}")
+                vedo.logger.error(f":noentry: backend {self.backend} returning error: {out}")
             else:
-                colors.printc(f"saved as {self.name}", c="m")
+                colors.printc(f":save: saved to {self.name}", c="m")
 
         ########################################
         elif "cv" in self.backend:
@@ -2051,7 +2051,7 @@ class Video:
                 writer.close()
                 colors.printc(f"... saved as {self.name}", c="m")
             except:
-                colors.printc(f"Could not save video {self.name}", c="r")
+                colors.printc(f":noentry: Could not save video {self.name}", c="r")
 
         # finalize cleanup
         self.tmp_dir.cleanup()

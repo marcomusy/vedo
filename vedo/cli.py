@@ -86,7 +86,7 @@ def execute_cli():
 
     elif len(args.files) == 0:
         system_info()
-        printc("No input files. Try:\n> vedo https://vedo.embl.es/examples/data/panther.stl.gz", c="y")
+        printc(":idea: No input files. Try:\n> vedo https://vedo.embl.es/examples/data/panther.stl.gz", c="y")
 
     else:
         draw_scene(args)
@@ -218,12 +218,12 @@ def exe_run(args):
     matching = list(sorted(matching))
     nmat = len(matching)
     if nmat == 0:
-        printc("No matching example found containing string:", args.run, c=1)
+        printc(f":sad: No matching example found containing string: {args.run}", c=1)
         printc(" Current installation directory is:", vedo.installdir, c=1)
         sys.exit(1)
 
     if nmat > 1:
-        printc("\nSelect one of", nmat, "matching scripts:", c="y", italic=1)
+        printc(f"\n:target: Select one of these {nmat} matching scripts:", c="y", italic=1)
         args.full_screen = True  # to print out the one line description
 
     if args.full_screen:  # -f option not to dump the full code but just the first line
@@ -294,7 +294,7 @@ def exe_convert(args):
     target_ext = args.to.lower()
 
     if target_ext not in allowedexts:
-        printc("Sorry target cannot be", target_ext, "\nMust be", allowedexts, c=1)
+        printc(f":sad: Sorry target cannot be {target_ext}\nMust be {allowedexts}", c=1)
         sys.exit()
 
     for f in args.convert:
@@ -402,7 +402,7 @@ def exe_search_code(args):
                 snames.append(sname)
 
                 printc(
-                    "Found matching",
+                    ":checked:Found matching",
                     mm,
                     "in module",
                     os.path.basename(inspect.getfile(mm)),
@@ -419,7 +419,7 @@ def exe_search_code(args):
                 idcomment = result.rfind('"""')
                 print(result[: idcomment + 3], "\x1b[0m\n")
 
-    printc("..parsing source code, please wait", c="y", bold=False)
+    # printc("..parsing source code, please wait", c="y", bold=False)
     content = inspect.getmembers(vedo)
     snames = []
     for name, m in content:
@@ -562,7 +562,7 @@ def exe_eog(args):
                 ahl = plt.hover_legends[-1]
                 plt.remove(ahl)
                 plt.screenshot()  # writer
-                printc("Picture saved as screenshot.png")
+                printc(":camera: Picture saved as screenshot.png")
                 plt.add(ahl)
                 return
             elif event.keypress == "h":
@@ -680,7 +680,7 @@ def draw_scene(args):
         if nfiles < 201:
             N = nfiles
         if nfiles > 200:
-            printc("Warning: option '-n' allows a maximum of 200 files", c=1)
+            printc(":lightning: Warning: option '-n' allows a maximum of 200 files", c=1)
             printc("         you are trying to load ", nfiles, " files.\n", c=1)
             N = 200
         if N > 4:
