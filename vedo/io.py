@@ -1292,20 +1292,22 @@ def write(objct, fileoutput, binary=True):
                 for vt in ntxt:
                     outF.write('vt '+ str(vt[0]) +" "+ str(vt[1])+ ' 0.0\n')
 
-            for i, f in enumerate(objct.faces()):
-                fs = ""
-                for fi in f:
-                    if ptxt:
-                        fs += f" {fi+1}/{fi+1}"
-                    else:
-                        fs += f" {fi+1}"
-                outF.write(f"f{fs}\n")
+            if isinstance(objct, Mesh):
 
-            for l in objct.lines():
-                ls = ""
-                for li in l:
-                    ls += str(li + 1) + " "
-                outF.write(f"l {ls}\n")
+                for i, f in enumerate(objct.faces()):
+                    fs = ""
+                    for fi in f:
+                        if ptxt:
+                            fs += f" {fi+1}/{fi+1}"
+                        else:
+                            fs += f" {fi+1}"
+                    outF.write(f"f{fs}\n")
+
+                for l in objct.lines():
+                    ls = ""
+                    for li in l:
+                        ls += str(li + 1) + " "
+                    outF.write(f"l {ls}\n")
 
         return objct
 
