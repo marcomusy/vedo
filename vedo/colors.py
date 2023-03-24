@@ -565,8 +565,14 @@ emoji = {
 }
 
 
-# terminal color print
+# terminal or notebook can do color print
 def _has_colors(stream):
+    try:
+        import IPython
+        return True
+    except:
+        pass
+
     if not hasattr(stream, "isatty"):
         return False
     if not stream.isatty():
@@ -1035,14 +1041,10 @@ def printc(
 
         ![](https://user-images.githubusercontent.com/32848391/50739010-2bfc2b80-11da-11e9-94de-011e50a86e61.jpg)
     """
-    if not vedo.settings.enable_print_color:
+
+    if not vedo.settings.enable_print_color or not _terminal_has_colors:
         print(*strings, end=end, flush=flush)
         return
-
-    if not vedo.notebook_backend:
-        if not _terminal_has_colors:
-            print(*strings, end=end, flush=flush)
-            return
 
     try:  # -------------------------------------------------------------
 
