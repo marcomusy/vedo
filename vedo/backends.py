@@ -127,6 +127,8 @@ def start_k3d(actors2show):
         if isinstance(ia, (vtk.vtkCornerAnnotation, vtk.vtkAssembly)):
             continue
 
+        iacloned = ia
+
         kobj = None
         kcmap = None
         color_attribute = None
@@ -144,12 +146,13 @@ def start_k3d(actors2show):
             # print('scalars', ia.name, ia.npoints)
             iap = ia.GetProperty()
 
-            if isinstance(ia, shapes.Line):
-                iapoly = ia.polydata()
+            if ia._data.GetNumberOfPolys():
+                iacloned = ia.clone()
+                iapoly = iacloned.clean().triangulate().compute_normals().polydata()
             else:
-                iapoly = ia.clone().clean().triangulate().compute_normals().polydata()
+                iapoly = ia.polydata()
 
-            if ia.mapper().GetScalarVisibility():
+            if ia.mapper().GetScalarVisibility() and ia._mapper.GetColorMode() > 0:
 
                 vtkdata = iapoly.GetPointData()
                 vtkscals = vtkdata.GetScalars()
@@ -226,7 +229,7 @@ def start_k3d(actors2show):
             )
             vedo.notebook_plotter += kobj
 
-        ################################################################### Lines
+        ################################################################# Lines
         elif (ia.polydata(False).GetNumberOfLines() 
               and ia.polydata(False).GetNumberOfPolys() == 0
             ):
@@ -238,33 +241,66 @@ def start_k3d(actors2show):
                     break
 
                 pts = ia.points()[ln_idx]
+                
+                aves = ia.diagonal_size() * iap.GetLineWidth() /100
 
                 kobj = k3d.line(
                     pts.astype(np.float32),
                     color=_rgb2int(iap.GetColor()),
                     opacity=iap.GetOpacity(),
                     shader=settings.k3d_line_shader,
-                    width=iap.GetLineWidth() / 2,
+                    width=aves,
                     name=name,
                 )
                 vedo.notebook_plotter += kobj
 
-        #####################################################################Mesh
-        elif isinstance(ia, Mesh) and ia.npoints and len(ia.faces()):
+        ################################################################## Mesh
+        elif (isinstance(ia, Mesh) 
+              and ia.npoints
+              and ia.polydata(False).GetNumberOfPolys()
+            ):
             # print('Mesh', ia.name, ia.npoints, len(ia.faces()))
             
             if not vtkscals:
                 color_attribute = None
+            
+            cols = []
+            if ia._mapper.GetColorMode() == 0:
+                # direct RGB colors
 
-            kobj = k3d.vtk_poly_data(
-                iapoly,
-                name=name,
-                color=_rgb2int(iap.GetColor()),
-                color_attribute=color_attribute,
-                color_map=kcmap,
-                opacity=iap.GetOpacity(),
-                wireframe=(iap.GetRepresentation() == 1),
-            )
+                vcols = ia._data.GetPointData().GetScalars()
+                if vcols and vcols.GetNumberOfComponents() == 3:
+                    cols = utils.vtk2numpy(vcols)
+                    cols = 65536 * cols[:,0] + 256 * cols[:,1] + cols[:,2]
+                # print("GetColor",iap.GetColor(), _rgb2int(iap.GetColor()) )
+                # print("colors", len(cols))
+                # print("color_attribute", color_attribute)
+                # if kcmap is not None: print("color_map", len(kcmap))
+                # TODO:
+                # https://k3d-jupyter.org/reference/factory.mesh.html#colormap
+
+                kobj = k3d.mesh(
+                    iacloned.points(), 
+                    iacloned.faces(),
+                    colors=cols,
+                    name=name,
+                    color=_rgb2int(iap.GetColor()),
+                    opacity=iap.GetOpacity(),
+                    side="double",
+                    wireframe=(iap.GetRepresentation() == 1),
+                )
+
+            else:
+
+                kobj = k3d.vtk_poly_data(iapoly,
+                    name=name,
+                    color=_rgb2int(iap.GetColor()),
+                    color_attribute=color_attribute,
+                    color_map=kcmap,
+                    opacity=iap.GetOpacity(),
+                    side="double",
+                    wireframe=(iap.GetRepresentation() == 1),
+                )
 
             if iap.GetInterpolation() == 0:
                 kobj.flat_shading = True
@@ -277,10 +313,13 @@ def start_k3d(actors2show):
             kcols = []
             if kcmap is not None and vtkscals:
                 scals = utils.vtk2numpy(vtkscals)
-                kcols = k3d.helpers.map_colors(scals, kcmap, [scals_min, scals_max]).astype(
-                    np.uint32
-                )
-            # sqsize = np.sqrt(np.dot(sizes, sizes))
+                kcols = k3d.helpers.map_colors(
+                    scals, 
+                    kcmap, 
+                    [scals_min, scals_max],
+                ).astype(np.uint32)
+            
+            aves = ia.average_size() * iap.GetPointSize() /200
 
             kobj = k3d.points(
                 ia.points().astype(np.float32),
@@ -288,7 +327,7 @@ def start_k3d(actors2show):
                 colors=kcols,
                 opacity=iap.GetOpacity(),
                 shader=settings.k3d_point_shader,
-                point_size=iap.GetPointSize(),
+                point_size=aves,
                 name=name,
             )
             vedo.notebook_plotter += kobj
