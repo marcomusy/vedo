@@ -197,7 +197,52 @@ class _DataArrayHelper:
     def print(self, **kwargs):
         """Print the array names available to terminal"""
         colors.printc(self.keys(), **kwargs)
+    
+    def __repr__(self) -> str:
+        """Representation"""
+        def _get_str(pd, header):
+            if pd.GetNumberOfArrays():
+                out = f"\x1b[2m\x1b[1m\x1b[7m{header}"
+                if self.actor.name:
+                    out += f" in {self.actor.name}"
+                out += f" contains {pd.GetNumberOfArrays()} array(s)\x1b[0m"
+                for i in range(pd.GetNumberOfArrays()):
+                    varr = pd.GetArray(i)
+                    out += f"\n\x1b[1m\x1b[4mArray name    : {varr.GetName()}\x1b[0m" 
+                    out += "\nindex".ljust(15) + f": {i}"
+                    t = varr.GetDataType()
+                    if t in vedo.utils.array_types:
+                        out += f"\ntype".ljust(15)  
+                        out += f": {vedo.utils.array_types[t][1]} ({vedo.utils.array_types[t][0]})"
+                    shape = (varr.GetNumberOfTuples(), varr.GetNumberOfComponents())
+                    out += "\nshape".ljust(15) + f": {shape}"
+                    out += "\nrange".ljust(15) + f": {np.array(varr.GetRange())}"
+                    out += "\nmax id".ljust(15) + f": {varr.GetMaxId()}"
+                    out += "\nlook up table".ljust(15) + f": {bool(varr.GetLookupTable())}"
+                    out += "\nin-memory size".ljust(15) + f": {varr.GetActualMemorySize()} KB"
+            else:
+                out += " has no associated data."
+            return out
 
+        if self.association == 0:
+            out = _get_str(self.actor._data.GetPointData(), "Point Data")
+        elif self.association == 1:
+            out = _get_str(self.actor._data.GetCellData(), "Cell Data")
+        elif self.association == 2:
+            pd = self.actor._data.GetFieldData()
+            if pd.GetNumberOfArrays():
+                out = f"\x1b[2m\x1b[1m\x1b[7mMeta Data"
+                if self.actor.name:
+                    out += f" in {self.actor.name}"
+                out += f" contains {pd.GetNumberOfArrays()} entries\x1b[0m"
+                for i in range(pd.GetNumberOfArrays()):
+                    varr = pd.GetAbstractArray(i)
+                    out += f"\n\x1b[1m\x1b[4mEntry name    : {varr.GetName()}\x1b[0m"
+                    out += "\nindex".ljust(15) + f": {i}"
+                    shape = (varr.GetNumberOfTuples(), varr.GetNumberOfComponents())
+                    out += "\nshape".ljust(15) + f": {shape}"
+
+        return out
 
 ###############################################################################
 class Base3DProp:

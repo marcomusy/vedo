@@ -69,6 +69,23 @@ __all__ = [
 
 
 ###########################################################################
+array_types = {}
+array_types[vtk.VTK_UNSIGNED_CHAR] = ("UNSIGNED_CHAR",  "np.uint8")
+array_types[vtk.VTK_UNSIGNED_SHORT]= ("UNSIGNED_SHORT", "np.uint16")
+array_types[vtk.VTK_UNSIGNED_INT]  = ("UNSIGNED_INT",   "np.uint32")
+array_types[vtk.VTK_UNSIGNED_LONG_LONG] = ("UNSIGNED_LONG_LONG", "np.uint64")
+array_types[vtk.VTK_CHAR]          = ("CHAR",           "np.int8")
+array_types[vtk.VTK_SHORT]         = ("SHORT",          "np.int16")
+array_types[vtk.VTK_INT]           = ("INT",            "np.int32")
+array_types[vtk.VTK_LONG]          = ("LONG",           "") # ??
+array_types[vtk.VTK_LONG_LONG]     = ("LONG_LONG",      "np.int64")
+array_types[vtk.VTK_FLOAT]         = ("FLOAT",          "np.float32")
+array_types[vtk.VTK_DOUBLE]        = ("DOUBLE",         "np.float64")
+array_types[vtk.VTK_SIGNED_CHAR]   = ("SIGNED_CHAR",    "np.int8")
+array_types[vtk.VTK_ID_TYPE]       = ("ID",             "np.int64")
+
+
+###########################################################################
 class OperationNode:
     """
     Keep track of the operations which led to a final object.
@@ -1446,40 +1463,18 @@ def grep(filename, tag, first_occurrence_only=False):
 def print_info(obj):
     """Print information about a `vedo` object."""
 
-    def _print_data(poly, mapper, c):
+    def _print_data(poly, c):
         ptdata = poly.GetPointData()
         cldata = poly.GetCellData()
         fldata = poly.GetFieldData()
         if ptdata.GetNumberOfArrays() + cldata.GetNumberOfArrays():
-            arrtypes = {}
-            arrtypes[vtk.VTK_UNSIGNED_CHAR] = ("UNSIGNED_CHAR",  "np.uint8")
-            arrtypes[vtk.VTK_UNSIGNED_SHORT]= ("UNSIGNED_SHORT", "np.uint16")
-            arrtypes[vtk.VTK_UNSIGNED_INT]  = ("UNSIGNED_INT",   "np.uint32")
-            arrtypes[vtk.VTK_UNSIGNED_LONG_LONG] = ("UNSIGNED_LONG_LONG", "np.uint64")
-            arrtypes[vtk.VTK_CHAR]          = ("CHAR",           "np.int8")
-            arrtypes[vtk.VTK_SHORT]         = ("SHORT",          "np.int16")
-            arrtypes[vtk.VTK_INT]           = ("INT",            "np.int32")
-            arrtypes[vtk.VTK_LONG]          = ("LONG",           "") # ??
-            arrtypes[vtk.VTK_LONG_LONG]     = ("LONG_LONG",      "np.int64")
-            arrtypes[vtk.VTK_FLOAT]         = ("FLOAT",          "np.float32")
-            arrtypes[vtk.VTK_DOUBLE]        = ("DOUBLE",         "np.float64")
-            arrtypes[vtk.VTK_SIGNED_CHAR]   = ("SIGNED_CHAR",    "np.int8")
-            arrtypes[vtk.VTK_ID_TYPE]       = ("ID",             "np.int64")
-
-            if ptdata.GetScalars():
-                vedo.printc("active array".ljust(14)+": ", c=c, bold=True, end="")
-                vedo.printc(ptdata.GetScalars().GetName(), "(pointdata)  ", c=c, bold=False)
-
-            if cldata.GetScalars():
-                vedo.printc("active array".ljust(14)+": ", c=c, bold=True, end="")
-                vedo.printc(cldata.GetScalars().GetName(), "(celldata)", c=c, bold=False)
 
             for i in range(ptdata.GetNumberOfArrays()):
                 name = ptdata.GetArrayName(i)
                 if name and ptdata.GetArray(i):
                     vedo.printc("pointdata".ljust(14) + ": ", c=c, bold=True, end="")
                     try:
-                        tt, _ = arrtypes[ptdata.GetArray(i).GetDataType()]
+                        tt, _ = array_types[ptdata.GetArray(i).GetDataType()]
                     except:
                         tt = "VTKTYPE" + str(ptdata.GetArray(i).GetDataType())
                     ncomp = ptdata.GetArray(i).GetNumberOfComponents()
@@ -1491,12 +1486,25 @@ def print_info(obj):
                         bold=False,
                     )
 
+            if ptdata.GetScalars():
+                vedo.printc("active scalars".ljust(14)+": ", c=c, bold=True, end="")
+                vedo.printc(ptdata.GetScalars().GetName(), "(pointdata)  ", c=c, bold=False)
+
+            if ptdata.GetVectors():
+                vedo.printc("active vectors".ljust(14)+": ", c=c, bold=True, end="")
+                vedo.printc(ptdata.GetVectors().GetName(), "(pointdata)  ", c=c, bold=False)
+
+            if ptdata.GetTensors():
+                vedo.printc("active tensors".ljust(14)+": ", c=c, bold=True, end="")
+                vedo.printc(ptdata.GetTensors().GetName(), "(pointdata)  ", c=c, bold=False)
+
+            # same for cells
             for i in range(cldata.GetNumberOfArrays()):
                 name = cldata.GetArrayName(i)
                 if name and cldata.GetArray(i):
                     vedo.printc("celldata".ljust(14) + ": ", c=c, bold=True, end="")
                     try:
-                        tt, nptt = arrtypes[cldata.GetArray(i).GetDataType()]
+                        tt, _ = array_types[cldata.GetArray(i).GetDataType()]
                     except:
                         tt = cldata.GetArray(i).GetDataType()
                     ncomp = cldata.GetArray(i).GetNumberOfComponents()
@@ -1507,6 +1515,14 @@ def print_info(obj):
                         c=c,
                         bold=False,
                     )
+
+            if cldata.GetScalars():
+                vedo.printc("active scalars".ljust(14)+": ", c=c, bold=True, end="")
+                vedo.printc(cldata.GetScalars().GetName(), "(celldata)", c=c, bold=False)
+
+            if cldata.GetVectors():
+                vedo.printc("active vectors".ljust(14)+": ", c=c, bold=True, end="")
+                vedo.printc(cldata.GetVectors().GetName(), "(celldata)", c=c, bold=False)
 
             for i in range(fldata.GetNumberOfArrays()):
                 name = fldata.GetArrayName(i)
@@ -1600,7 +1616,7 @@ def print_info(obj):
         bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
         vedo.printc(" z=(" + bz1 + ", " + bz2 + ")", c="g", bold=False)
 
-        _print_data(poly, mapper, "g")
+        _print_data(poly, "g")
 
         if hasattr(actor, "picked3d") and actor.picked3d is not None:
             idpt = actor.closest_point(actor.picked3d, return_point_id=True)
@@ -1683,7 +1699,7 @@ def print_info(obj):
         vedo.printc(" y=(" + by1 + ", " + by2 + ")", c=cf, bold=False, end="")
         bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
         vedo.printc(" z=(" + bz1 + ", " + bz2 + ")", c=cf, bold=False)
-        _print_data(ug, obj._mapper, cf)
+        _print_data(ug, cf)
 
     elif isinstance(obj, (vedo.volume.Volume, vedo.volume.VolumeSlice)):
         vedo.printc("Volume".ljust(70), c="b", bold=True, invert=True)
