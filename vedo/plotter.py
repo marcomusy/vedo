@@ -197,10 +197,9 @@ def show(
             - 5 = RubberBand2D
             - 6 = RubberBand3D
             - 7 = RubberBandZoom
-            - 8 = Context
-            - 9 = 3D
-            - 10 = Terrain
-            - 11 = Unicam
+            - 8 = Terrain
+            - 9 = Unicam
+            - 10 = Image
         new : (bool)
             if set to `True`, a call to show will instantiate
             a new Plotter object (a new window) instead of reusing the first created.
@@ -2805,10 +2804,9 @@ class Plotter:
                 - 5 = RubberBand2D
                 - 6 = RubberBand3D
                 - 7 = RubberBandZoom
-                - 8 = Context
-                - 9 = 3D
-                - 10 = Terrain
-                - 11 = Unicam
+                - 8 = Terrain
+                - 9 = Unicam
+                - 10 = Image
         """
 
         if self.wx_widget:
@@ -3076,15 +3074,11 @@ class Plotter:
                 self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBand3D())
             elif mode in (7, 'RubberBandZoom'):
                 self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBandZoom())
-            elif mode in (8, 'Context'):
-                self.interactor.SetInteractorStyle(vtk.vtkContextInteractorStyle())
-            elif mode in (9, '3D'):
-                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyle3D())
-            elif mode in (10, 'Terrain'):
+            elif mode in (8, 'Terrain'):
                 self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTerrain())
-            elif mode in (11, 'Unicam'):
+            elif mode in (9, 'Unicam'):
                 self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleUnicam())
-            elif mode in (12, 'Image', 'image'):
+            elif mode in (10, 'Image', 'image'):
                 astyle = vtk.vtkInteractorStyleImage()
                 astyle.SetInteractionModeToImage3D()
                 self.interactor.SetInteractorStyle(astyle)

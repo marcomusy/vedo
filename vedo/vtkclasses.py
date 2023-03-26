@@ -430,11 +430,17 @@ from vtkmodules.vtkInfovisLayout import (
 )
 
 from vtkmodules.vtkInteractionStyle import (
+    vtkInteractorStyleFlight,
     vtkInteractorStyleImage,
+    vtkInteractorStyleJoystickActor,
     vtkInteractorStyleJoystickCamera,
+    vtkInteractorStyleRubberBand2D,
+    vtkInteractorStyleRubberBand3D,
     vtkInteractorStyleRubberBandZoom,
+    vtkInteractorStyleTerrain,
     vtkInteractorStyleTrackballActor,
     vtkInteractorStyleTrackballCamera,
+    vtkInteractorStyleUnicam,
 )
 
 from vtkmodules.vtkInteractionWidgets import (
@@ -552,3 +558,5 @@ from vtkmodules.vtkRenderingVolumeOpenGL2 import (
     vtkOpenGLGPUVolumeRayCastMapper,
     vtkSmartVolumeMapper,
 )
+
+# print("finished importing vtkmodules")

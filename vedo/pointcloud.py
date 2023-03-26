@@ -3696,9 +3696,14 @@ class Points(BaseActor, vtk.vtkActor):
         if isinstance(source, Points):
             parents.append(source)
             source = source.points()
+        else:
+            source = utils.make3d(source)
+
         if isinstance(target, Points):
             parents.append(target)
             target = target.points()
+        else:
+            target = utils.make3d(target)
 
         ns = len(source)
         ptsou = vtk.vtkPoints()
