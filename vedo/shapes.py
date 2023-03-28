@@ -170,7 +170,6 @@ class Glyph(Mesh):
             scale_by_vector_components=False,
             color_by_scalar=False,
             color_by_vector_size=False,
-            tol=0,
             c='k8',
             alpha=1,
             **opts,
@@ -189,12 +188,9 @@ class Glyph(Mesh):
                 glyph mesh is colored based on the scalar value
             color_by_vector_size : (bool)
                 glyph mesh is colored based on the vector size
-            tol : (float)
-                set a minimum separation between two close glyphs
-                (not compatible with `orientation_array` being a list).
 
         Examples:
-            - [glyphs.py](]https://github.com/marcomusy/vedo/tree/master/examples/basic/glyphs.py)
+            - [glyphs1.py](]https://github.com/marcomusy/vedo/tree/master/examples/basic/glyphs1.py)
             - [glyphs_arrows.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/glyphs_arrows.py)
 
             ![](https://vedo.embl.es/images/basic/glyphs.png)
@@ -218,13 +214,6 @@ class Glyph(Mesh):
         else:
             poly = mesh.polydata()
 
-        if tol:
-            cpd = vtk.vtkCleanPolyData()
-            cpd.SetInputData(poly)
-            cpd.SetTolerance(tol)
-            cpd.Update()
-            poly = cpd.GetOutput()
-
         if isinstance(glyph, Points):
             lighting = glyph.property.GetLighting()
             glyph = glyph.polydata()
@@ -245,6 +234,7 @@ class Glyph(Mesh):
             c = None
 
         gly = vtk.vtkGlyph3D()
+        gly.GeneratePointIdsOn()
         gly.SetInputData(poly)
         gly.SetSourceData(glyph)
 
@@ -274,7 +264,7 @@ class Glyph(Mesh):
                     poly.GetPointData().SetActiveVectors(orientation_array)
                     gly.SetInputArrayToProcess(0, 0, 0, 0, orientation_array)
                     gly.SetVectorModeToUseVector()
-            elif utils.is_sequence(orientation_array) and not tol:  # passing a list
+            elif utils.is_sequence(orientation_array):  # passing a list
                 varr = vtk.vtkFloatArray()
                 varr.SetNumberOfComponents(3)
                 varr.SetName("glyph_vectors")

@@ -27,7 +27,6 @@ gsphere2 = Glyph(
     s,
     gly2,
     orientation_array="normals",
-    tol=0.1,  # minimum seaparation of 10% of bounding box
     c="lightblue",
 )
 
