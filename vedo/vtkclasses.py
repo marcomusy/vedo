@@ -114,7 +114,8 @@ from vtkmodules.vtkFiltersCore import (
     vtkCenterOfMass,
     vtkCleanPolyData,
     vtkClipPolyData,
-    vtkConnectivityFilter,
+    vtkPolyDataConnectivityFilter,
+    vtkPolyDataEdgeConnectivityFilter,
     vtkContourFilter,
     vtkContourGrid,
     vtkCutter,
@@ -559,4 +560,4 @@ from vtkmodules.vtkRenderingVolumeOpenGL2 import (
     vtkSmartVolumeMapper,
 )
 
-# print("finished importing vtkmodules")
+# print("successfully finished importing vtkmodules")

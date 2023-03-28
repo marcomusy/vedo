@@ -1441,18 +1441,6 @@ class Mesh(Points):
         self._mapper.ScalarVisibilityOn()
         return self
 
-    def compute_connectivity(self):
-        """
-        Flag a mesh by connectivity: each disconnected region will receive a different Id.
-        You can access the array of ids through `mesh.pointdata["RegionId"]`.
-        """
-        cf = vtk.vtkConnectivityFilter()
-        cf.SetInputData(self.polydata(False))
-        cf.SetExtractionModeToAllRegions()
-        cf.ColorRegionsOn()
-        cf.Update()
-        return self._update(cf.GetOutput())
-
     def compute_elevation(self, low=(0, 0, 0), high=(0, 0, 1), vrange=(0, 1)):
         """
         Add to `Mesh` a scalar array that contains distance along a specified direction.
@@ -2302,7 +2290,13 @@ class Mesh(Points):
         )
         return m
 
-    def split(self, maxdepth=1000, flag=False):
+    def split(
+            self, 
+            maxdepth=1000, 
+            flag=False, 
+            must_share_edge=False,
+            sort_by_area=True,
+        ):
         """
         Split a mesh by connectivity and order the pieces by increasing area.
 
@@ -2312,6 +2306,10 @@ class Mesh(Points):
             flag : (bool)
                 if set to True return the same single object,
                 but add a "RegionId" array to flag the mesh subparts
+            must_share_edge : (bool)
+                if True, mesh regions that only share single points will be split.
+            sort_by_area : (bool)
+                if True, sort the mesh parts by decreasing area.
 
         Examples:
             - [splitmesh.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/splitmesh.py)
@@ -2319,36 +2317,60 @@ class Mesh(Points):
             ![](https://vedo.embl.es/images/advanced/splitmesh.png)
         """
         pd = self.polydata(False)
-        cf = vtk.vtkConnectivityFilter()
+        if must_share_edge:
+            if pd.GetNumberOfPolys() == 0:
+                vedo.logger.warning("in split(): no polygons found. Skip.")
+                return self
+            cf = vtk.vtkPolyDataEdgeConnectivityFilter()
+            cf.BarrierEdgesOff()
+        else:
+            cf = vtk.vtkPolyDataConnectivityFilter()
+
         cf.SetInputData(pd)
         cf.SetExtractionModeToAllRegions()
         cf.SetColorRegions(True)
         cf.Update()
+        out = cf.GetOutput()
 
+        if not out.GetNumberOfPoints():
+            return self
+        
         if flag:
-            return self._update(cf.GetOutput())
+            self.pipeline = OperationNode(
+                f"split mesh {i}", parents=[self], 
+                comment=f"#pts {l[0]._data.GetNumberOfPoints()}",
+            )
+            return self._update(out)
+        
+        a = Mesh(out)
+        if must_share_edge:
+            arr = a.celldata["RegionId"]
+            on = "cells"
+        else:
+            arr = a.pointdata["RegionId"]
+            on = "points"
 
-        if not cf.GetOutput().GetNumberOfPoints():
-            return []
-
-        a = Mesh(cf.GetOutput())
         alist = []
-        for t in range(max(a.pointdata["RegionId"]) + 1):
+        for t in range(max(arr) + 1):
             if t == maxdepth:
                 break
-            suba = a.clone().threshold("RegionId", t - 0.1, t + 0.1)
-            area = suba.area()
+            suba = a.clone().threshold("RegionId", t, t, on=on)
+            if sort_by_area:
+                area = suba.area()
+            else:
+                area = 0 # dummy 
             alist.append([suba, area])
 
-        alist.sort(key=lambda x: x[1])
-        alist.reverse()
+        if sort_by_area:
+            alist.sort(key=lambda x: x[1])
+            alist.reverse()
+
         blist = []
         for i, l in enumerate(alist):
             l[0].color(i + 1).phong()
             l[0].mapper().ScalarVisibilityOff()
             blist.append(l[0])
-        
-            if i<10:
+            if i < 10:
                 l[0].pipeline = OperationNode(
                     f"split mesh {i}", parents=[self], 
                     comment=f"#pts {l[0]._data.GetNumberOfPoints()}",
@@ -2367,7 +2389,7 @@ class Mesh(Points):
         Examples:
             - [largestregion.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/largestregion.py)
         """
-        conn = vtk.vtkConnectivityFilter()
+        conn = vtk.vtkPolyDataConnectivityFilter()
         conn.SetExtractionModeToLargestRegion()
         conn.ScalarConnectivityOff()
         conn.SetInputData(self._data)
