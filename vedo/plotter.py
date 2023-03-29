@@ -861,13 +861,19 @@ class Plotter:
             ren = self.renderer
 
         actors = utils.flatten(actors)
-        # actors += self.get_meshes(include_non_pickables=True)
+
+        actors_in_ren = None
+
         actors_r = []
         for i, a in enumerate(actors):
             if isinstance(a, str):
-                for b in self.actors:
+                if actors_in_ren is None:
+                    actors_in_ren = self.get_meshes(include_non_pickables=True)
+                
+                for b in set(self.actors + actors_in_ren):
                     if hasattr(b, "name") and a in b.name:
                         actors_r.append(b)
+
             else:
                 actors_r.append(a)
 
