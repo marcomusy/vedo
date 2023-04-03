@@ -1689,7 +1689,10 @@ def import_window(fileinput, mtl_file=None, texture_path=None):
 
     elif ".obj" in fileinput.lower():
 
-        plt = vedo.Plotter()
+        window = vtk.vtkRenderWindow()
+        window.SetOffScreenRendering(1)
+        renderer = vtk.vtkRenderer()
+        window.AddRenderer(renderer)
 
         importer = vtk.vtkOBJImporter()
         importer.SetFileName(fileinput)
@@ -1701,20 +1704,22 @@ def import_window(fileinput, mtl_file=None, texture_path=None):
             if texture_path is None:
                 texture_path = fileinput.replace(".obj", ".txt").replace(".OBJ", ".TXT")
             importer.SetTexturePath(texture_path)
-        importer.SetRenderWindow(plt.window)
+        importer.SetRenderWindow(window)
         importer.Update()
 
-        actors = plt.renderer.GetActors()
+        plt = vedo.Plotter()
+
+        actors = renderer.GetActors()
         actors.InitTraversal()
         for _ in range(actors.GetNumberOfItems()):
             vactor = actors.GetNextActor()
             act = Mesh(vactor)
             act_tu = vactor.GetTexture()
             if act_tu:
-                act_tu.InterpolateOn()
                 act.texture(act_tu)
             plt.actors.append(act)
         return plt
+
     return None
 
 

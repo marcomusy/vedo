@@ -1335,10 +1335,17 @@ class Plotter:
         r.Modified()
         return self
     
-    def fov(self, value):
-        """Set a field of view in degrees for the camera."""
+    def fov(self, angle):
+        """
+        Set the field of view angle for the camera.
+        This is the angle of the camera frustum in the horizontal direction.
+        High values will result in a wide-angle lens (fish-eye effect), 
+        and low values will result in a telephoto lens.
+
+        Default value is 30 degrees.
+        """
         self.GetActiveCamera().UseHorizontalViewAngleOn()
-        self.GetActiveCamera().SetViewAngle(value)
+        self.GetActiveCamera().SetViewAngle(angle)
         return self
 
     ##################################################################
