@@ -1931,7 +1931,8 @@ class Mesh(Points):
             loopline : vedo.shapes.Line
                 a Line object to be imprinted onto the mesh.
             tol : (float), optional
-                projection tolerance which controls how close the imprint surface must be to the target.
+                projection tolerance which controls how close the imprint 
+                surface must be to the target.
 
         Example:
             ```python

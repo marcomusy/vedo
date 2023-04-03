@@ -3,7 +3,7 @@ from vedo import *
 
 
 def on_keypress(event):
-    if event.actor is not None and event.keypress == "c":
+    if event.actor and event.keypress == "c":
         picked = event.picked3d
         idx = mesh.closest_point(picked, return_point_id=True)
         pt = points[idx]
@@ -23,7 +23,8 @@ def on_keypress(event):
 
 txt = Text3D("Text3D\n01-ABCD", s=0.1, justify="centered", c="red5")
 
-mesh = ParametricShape("RandomHills").c("gray5").alpha(0.25)
+mesh = ParametricShape("RandomHills").scale([1,1,0.5])
+mesh.c("gray5").alpha(0.25)
 points = mesh.points()
 normals = mesh.normals()
 

@@ -124,6 +124,8 @@ class Figure(Assembly):
                 an extra dictionary of options for the `vedo.addons.Axes` object
         """
 
+        self.verbose = True  # printing to stdout on every mouse click
+
         self.xlim = np.asarray(xlim)
         self.ylim = np.asarray(ylim)
         self.aspect = aspect

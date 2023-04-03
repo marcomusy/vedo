@@ -77,7 +77,10 @@ class Event:
         f = "---------- <vedo.plotter.Event object> ----------\n"
         for n in self.__slots__:
             if n == "actor" and self.actor and self.actor.name:
-                f += f"event.{n} = {self.actor.name} ({self.actor.npoints} points)\n"
+                try:
+                    f += f"event.{n} = {self.actor.name} ({self.actor.npoints} points)\n"
+                except AttributeError:
+                    f += f"event.{n} = {self.actor.name}\n"
             else:
                 f += f"event.{n} = " + str(self[n]).replace('\n','')[:60] + "\n"
         return f
@@ -866,9 +869,13 @@ class Plotter:
 
         actors_r = []
         for i, a in enumerate(actors):
+
             if isinstance(a, str):
                 if actors_in_ren is None:
-                    actors_in_ren = self.get_meshes(include_non_pickables=True)
+                    actors_in_ren = self.get_meshes(
+                        include_non_pickables=True,
+                        unpack_assemblies=False,
+                    )
                 
                 for b in set(self.actors + actors_in_ren):
                     if hasattr(b, "name") and a in b.name:
@@ -1002,7 +1009,12 @@ class Plotter:
         """Deprecated, use get_meshes()"""
         return self.get_meshes(*a, **b)
 
-    def get_meshes(self, at=None, include_non_pickables=False):
+    def get_meshes(
+            self, 
+            at=None,
+            include_non_pickables=False,
+            unpack_assemblies=True,
+        ):
         """
         Return a list of Meshes from the specified renderer.
 
@@ -1011,6 +1023,8 @@ class Plotter:
                 specify which renderer to look at.
             include_non_pickables : (bool)
                 include non-pickable objects
+            unpack_assemblies : (bool)
+                unpack assemblies into their components
         """
         if at is None:
             renderer = self.renderer
@@ -1022,13 +1036,23 @@ class Plotter:
         if isinstance(self.axes_instances[at], vedo.Assembly):
             has_global_axes = True
 
+        if unpack_assemblies:  
+            acs = renderer.GetActors()
+        else:
+            acs = renderer.GetViewProps()
+
         actors = []
-        acs = renderer.GetActors()
         acs.InitTraversal()
         for _ in range(acs.GetNumberOfItems()):
-            a = acs.GetNextItem()
+
+            if unpack_assemblies:
+                a = acs.GetNextItem()
+            else:
+                a = acs.GetNextProp()
+            
             if isinstance(a, vtk.vtkVolume):
                 continue
+
             if include_non_pickables or a.GetPickable():
                 if a == self.axes_instances[at]:
                     continue
@@ -3406,13 +3430,14 @@ class Plotter:
             x, y = iren.GetEventPosition()
 
         # -----------
-        if "Histogram1D" in str(type(picker.GetAssembly())):
+        if "Histogram1D" in picker.GetAssembly().__class__.__name__:
             histo = picker.GetAssembly()
-            x = self.picked3d[0]
-            idx = np.digitize(x, histo.edges) - 1
-            f = histo.frequencies[idx]
-            cn = histo.centers[idx]
-            vedo.colors.printc(f"➡ {histo.name}, bin={idx}, center={cn}, value={f}")
+            if histo.verbose:
+                x = self.picked3d[0]
+                idx = np.digitize(x, histo.edges) - 1
+                f = histo.frequencies[idx]
+                cn = histo.centers[idx]
+                vedo.colors.printc(f"{histo.name}, bin={idx}, center={cn}, value={f}")
 
 
     #######################################################################
@@ -3461,12 +3486,11 @@ class Plotter:
                     self.clicked_actor.SetBackfaceProperty(None)
             else:
                 for a in self.get_meshes():
-                    if a.GetPickable():
-                        a.GetProperty().SetOpacity(0.02)
-                        bfp = a.GetBackfaceProperty()
-                        if bfp and hasattr(a, "_bfprop"):
-                            a._bfprop = bfp
-                            a.SetBackfaceProperty(None)
+                    a.GetProperty().SetOpacity(0.02)
+                    bfp = a.GetBackfaceProperty()
+                    if bfp and hasattr(a, "_bfprop"):
+                        a._bfprop = bfp
+                        a.SetBackfaceProperty(None)
 
         elif key == "Left":
             if self.clicked_actor in self.get_meshes():
@@ -3479,14 +3503,13 @@ class Plotter:
                     self.clicked_actor.SetBackfaceProperty(None)
             else:
                 for a in self.get_meshes():
-                    if a.GetPickable():
-                        ap = a.GetProperty()
-                        aal = max([ap.GetOpacity() * 0.75, 0.01])
-                        ap.SetOpacity(aal)
-                        bfp = a.GetBackfaceProperty()
-                        if bfp and hasattr(a, "_bfprop"):
-                            a._bfprop = bfp
-                            a.SetBackfaceProperty(None)
+                    ap = a.GetProperty()
+                    aal = max([ap.GetOpacity() * 0.75, 0.01])
+                    ap.SetOpacity(aal)
+                    bfp = a.GetBackfaceProperty()
+                    if bfp and hasattr(a, "_bfprop"):
+                        a._bfprop = bfp
+                        a.SetBackfaceProperty(None)
 
         elif key == "Right":
             if self.clicked_actor in self.get_meshes():
@@ -3499,12 +3522,11 @@ class Plotter:
                     self.clicked_actor.SetBackfaceProperty(self.clicked_actor._bfprop)
             else:
                 for a in self.get_meshes():
-                    if a.GetPickable():
-                        ap = a.GetProperty()
-                        aal = min([ap.GetOpacity() * 1.25, 1.0])
-                        ap.SetOpacity(aal)
-                        if aal == 1 and hasattr(a, "_bfprop") and a._bfprop:
-                            a.SetBackfaceProperty(a._bfprop)
+                    ap = a.GetProperty()
+                    aal = min([ap.GetOpacity() * 1.25, 1.0])
+                    ap.SetOpacity(aal)
+                    if aal == 1 and hasattr(a, "_bfprop") and a._bfprop:
+                        a.SetBackfaceProperty(a._bfprop)
 
         elif key in ('slash', 'Up'):
             if self.clicked_actor in self.get_meshes():
@@ -3513,10 +3535,9 @@ class Plotter:
                     self.clicked_actor.SetBackfaceProperty(self.clicked_actor._bfprop)
             else:
                 for a in self.get_meshes():
-                    if a.GetPickable():
-                        a.GetProperty().SetOpacity(1)
-                        if hasattr(a, "_bfprop") and a._bfprop:
-                            a.SetBackfaceProperty(a._bfprop)
+                    a.GetProperty().SetOpacity(1)
+                    if hasattr(a, "_bfprop") and a._bfprop:
+                        a.SetBackfaceProperty(a._bfprop)
 
         elif key == "P":
             if self.clicked_actor in self.get_meshes():
@@ -3524,14 +3545,13 @@ class Plotter:
             else:
                 acts = self.get_meshes()
             for ia in acts:
-                if ia.GetPickable():
-                    try:
-                        ps = ia.GetProperty().GetPointSize()
-                        if ps > 1:
-                            ia.GetProperty().SetPointSize(ps - 1)
-                        ia.GetProperty().SetRepresentationToPoints()
-                    except AttributeError:
-                        pass
+                try:
+                    ps = ia.GetProperty().GetPointSize()
+                    if ps > 1:
+                        ia.GetProperty().SetPointSize(ps - 1)
+                    ia.GetProperty().SetRepresentationToPoints()
+                except AttributeError:
+                    pass
 
         elif key == "u":
             pval = renderer.GetActiveCamera().GetParallelProjection()
@@ -3545,24 +3565,22 @@ class Plotter:
             else:
                 acts = self.get_meshes()
             for ia in acts:
-                if ia.GetPickable():
-                    try:
-                        ps = ia.GetProperty().GetPointSize()
-                        ia.GetProperty().SetPointSize(ps + 2)
-                        ia.GetProperty().SetRepresentationToPoints()
-                    except AttributeError:
-                        pass
+                try:
+                    ps = ia.GetProperty().GetPointSize()
+                    ia.GetProperty().SetPointSize(ps + 2)
+                    ia.GetProperty().SetRepresentationToPoints()
+                except AttributeError:
+                    pass
 
         elif key == "w":
             if self.clicked_actor and self.clicked_actor in self.get_meshes():
                 self.clicked_actor.GetProperty().SetRepresentationToWireframe()
             else:
                 for a in self.get_meshes():
-                    if a and a.GetPickable():
-                        if a.GetProperty().GetRepresentation() == 1:  # toggle
-                            a.GetProperty().SetRepresentationToSurface()
-                        else:
-                            a.GetProperty().SetRepresentationToWireframe()
+                    if a.GetProperty().GetRepresentation() == 1:  # toggle
+                        a.GetProperty().SetRepresentationToSurface()
+                    else:
+                        a.GetProperty().SetRepresentationToWireframe()
 
         elif key == "r":
             renderer.ResetCamera()
@@ -3717,8 +3735,7 @@ class Plotter:
                 self.clicked_actor.GetProperty().SetRepresentationToSurface()
             else:
                 for a in self.get_meshes():
-                    if a and a.GetPickable():
-                        a.GetProperty().SetRepresentationToSurface()
+                    a.GetProperty().SetRepresentationToSurface()
 
         elif key == "1":
             self._icol += 1
@@ -3908,8 +3925,6 @@ class Plotter:
             else:
                 acts = self.get_meshes()
             for ia in acts:
-                if not ia.GetPickable():
-                    continue
                 try:
                     ev = ia.GetProperty().GetEdgeVisibility()
                     ia.GetProperty().SetEdgeVisibility(not ev)
@@ -3930,13 +3945,12 @@ class Plotter:
                     'glossy',
                     'off')
             for ia in acts:
-                if ia.GetPickable():
-                    try:
-                        lnr = (ia._ligthingnr + 1) % 6
-                        ia.lighting(shds[lnr])
-                        ia._ligthingnr = lnr
-                    except AttributeError:
-                        pass
+                try:
+                    lnr = (ia._ligthingnr + 1) % 6
+                    ia.lighting(shds[lnr])
+                    ia._ligthingnr = lnr
+                except AttributeError:
+                    pass
 
         elif key == "K":  # shading
             if self.clicked_actor in self.get_meshes():
@@ -3944,7 +3958,7 @@ class Plotter:
             else:
                 acts = self.get_meshes()
             for ia in acts:
-                if ia.GetPickable() and isinstance(ia, vedo.Mesh):
+                if isinstance(ia, vedo.Mesh):
                     ia.compute_normals(cells=False)
                     intrp = ia.GetProperty().GetInterpolation()
                     # print(intrp, ia.GetProperty().GetInterpolationAsString())
