@@ -1989,7 +1989,7 @@ class Points(BaseActor, vtk.vtkActor):
 
         if cells:
             if content != 'id' and content not in self.celldata.keys():
-                vedo.logger.error(f"In labels2D: cell array {content} does not exist.")
+                vedo.logger.error(f"In labels2d: cell array {content} does not exist.")
                 return None
             cellcloud = Points(self.cell_centers())
             arr = self.inputdata().GetCellData().GetScalars()
@@ -1998,7 +1998,7 @@ class Points(BaseActor, vtk.vtkActor):
         else:
             poly = self.polydata()
             if content != 'id' and content not in self.pointdata.keys():
-                vedo.logger.error(f"In labels2D: point array {content} does not exist.")
+                vedo.logger.error(f"In labels2d: point array {content} does not exist.")
                 return None
             self.pointdata.select(content)
 

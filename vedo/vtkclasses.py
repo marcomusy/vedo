@@ -443,6 +443,7 @@ from vtkmodules.vtkInteractionStyle import (
     vtkInteractorStyleTrackballActor,
     vtkInteractorStyleTrackballCamera,
     vtkInteractorStyleUnicam,
+    vtkInteractorStyleUser,
 )
 
 from vtkmodules.vtkInteractionWidgets import (

@@ -40,6 +40,7 @@ from vedo.addons import *
 from vedo.plotter import *
 
 from vedo import applications
+from vedo import interactor_modes
 
 try:
     import platform

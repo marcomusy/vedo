@@ -1306,7 +1306,7 @@ class NormalLines(Mesh):
             scale factor to control size.
     """
     def __init__(self, msh, ratio=1, on="cells", scale=1):
-        
+
         poly = msh.clone().compute_normals().polydata()
 
         if "cell" in on:

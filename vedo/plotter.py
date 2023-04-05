@@ -277,7 +277,6 @@ def show(
                 bg=bg,
                 bg2=bg2,
                 axes=axes,
-                q=q,
             )
 
         if (
@@ -307,7 +306,6 @@ def show(
             bg=bg,
             bg2=bg2,
             axes=axes,
-            q=q,
         )
 
     return _plt_to_return
@@ -2761,7 +2759,6 @@ class Plotter:
             bg2=None,
             size=None,
             title=None,
-            q=False,
         ):
         """
         Render a list of objects.
@@ -2844,6 +2841,7 @@ class Plotter:
                 - 8 = Terrain
                 - 9 = Unicam
                 - 10 = Image
+                - Check out `vedo.interaction_modes` for more options.
         """
 
         if self.wx_widget:
@@ -3089,36 +3087,7 @@ class Plotter:
             if interactive is not None:
                 self._interactive = interactive
 
-            # Set the style of interaction
-            # see https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html
-            if mode in (0, 'TrackballCamera'):
-                # csty = self.interactor.GetInteractorStyle().GetCurrentStyle().GetClassName()
-                # if "TrackballCamera" not in csty:
-                # this causes problems (when pressing 3 eg) :
-                if self.qt_widget:
-                    self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
-            elif mode in (1, 'TrackballActor'):
-                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballActor())
-            elif mode in (2, 'JoystickCamera'):
-                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleJoystickCamera())
-            elif mode in (3, 'JoystickActor'):
-                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleJoystickActor())
-            elif mode in (4, 'Flight'):
-                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleFlight())
-            elif mode in (5, 'RubberBand2D'):
-                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBand2D())
-            elif mode in (6, 'RubberBand3D'):
-                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBand3D())
-            elif mode in (7, 'RubberBandZoom'):
-                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBandZoom())
-            elif mode in (8, 'Terrain'):
-                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTerrain())
-            elif mode in (9, 'Unicam'):
-                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleUnicam())
-            elif mode in (10, 'Image', 'image'):
-                astyle = vtk.vtkInteractorStyleImage()
-                astyle.SetInteractionModeToImage3D()
-                self.interactor.SetInteractorStyle(astyle)
+            self.user_mode(mode)
 
             if self._interactive:
                 self.interactor.Start()
@@ -3242,6 +3211,64 @@ class Plotter:
             self.interactor.ExitCallback()
         return self
 
+    def user_mode(self, mode):
+        """
+        Modify the user interaction mode.
+        
+        Examples:
+            ```python
+            from vedo import *
+            mode = interactor_modes.MousePan()
+            mesh = Mesh(dataurl+"cow.vtk")
+            plt = Plotter().user_mode(mode)
+            plt.show(mesh, axes=1)
+           ```
+        """
+        if not self.interactor:
+            return None
+        
+        if isinstance(mode, (str, int)):
+            # Set the style of interaction
+            # see https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html
+            if mode in (0, 'TrackballCamera'):
+                # csty = self.interactor.GetInteractorStyle().GetCurrentStyle().GetClassName()
+                # if "TrackballCamera" not in csty:
+                # this causes problems (when pressing 3 eg) :
+                if self.qt_widget:
+                    self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
+            elif mode in (1, 'TrackballActor'):
+                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballActor())
+            elif mode in (2, 'JoystickCamera'):
+                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleJoystickCamera())
+            elif mode in (3, 'JoystickActor'):
+                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleJoystickActor())
+            elif mode in (4, 'Flight'):
+                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleFlight())
+            elif mode in (5, 'RubberBand2D'):
+                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBand2D())
+            elif mode in (6, 'RubberBand3D'):
+                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBand3D())
+            elif mode in (7, 'RubberBandZoom'):
+                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBandZoom())
+            elif mode in (8, 'Terrain'):
+                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTerrain())
+            elif mode in (9, 'Unicam'):
+                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleUnicam())
+            elif mode in (10, 'Image', 'image'):
+                astyle = vtk.vtkInteractorStyleImage()
+                astyle.SetInteractionModeToImage3D()
+                self.interactor.SetInteractorStyle(astyle)
+            else:
+                vedo.logger.warning("Unknown interaction mode:", mode)
+            
+        else:
+            # set a custom interactor style
+            mode.interactor = self.interactor
+            mode.renderer = self.renderer
+            self.interactor.SetInteractorStyle(mode)
+
+        return self
+    
     def close_window(self):
         """Close the current or the input rendering window.
 
