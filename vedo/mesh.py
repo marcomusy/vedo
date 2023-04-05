@@ -1190,7 +1190,7 @@ class Mesh(Points):
             ![](https://vedo.embl.es/images/feats/join_segments.jpg)
         """
         vlines = []
-        for ipiece, outline in enumerate(self.split()):
+        for ipiece, outline in enumerate(self.split(must_share_edge=False)):
 
             outline.clean()
             pts = outline.points()
@@ -1284,12 +1284,15 @@ class Mesh(Points):
                 If False, input lines will be ignored and the output will have no lines.
         """
         if self._data.GetNumberOfPolys() or self._data.GetNumberOfStrips():
+            # print("vtkTriangleFilter")
             tf = vtk.vtkTriangleFilter()
             tf.SetPassLines(lines)
             tf.SetPassVerts(verts)
 
         elif self._data.GetNumberOfLines():
+            # print("vtkContourTriangulator")
             tf = vtk.vtkContourTriangulator()
+            tf.TriangulationErrorDisplayOn()
         
         else:
             vedo.logger.debug("input in triangulate() seems to be void! Skip.")
@@ -1298,6 +1301,7 @@ class Mesh(Points):
         tf.SetInputData(self._data)
         tf.Update()
         out = self._update(tf.GetOutput()).lw(0).lighting("default")
+        out.PickableOn()
 
         out.pipeline = OperationNode(
             "triangulate", parents=[self], comment=f"#cells {out._data.GetNumberOfCells()}",
@@ -2321,7 +2325,7 @@ class Mesh(Points):
         if must_share_edge:
             if pd.GetNumberOfPolys() == 0:
                 vedo.logger.warning("in split(): no polygons found. Skip.")
-                return self
+                return [self]
             cf = vtk.vtkPolyDataEdgeConnectivityFilter()
             cf.BarrierEdgesOff()
         else:
@@ -2334,7 +2338,7 @@ class Mesh(Points):
         out = cf.GetOutput()
 
         if not out.GetNumberOfPoints():
-            return self
+            return [self]
         
         if flag:
             self.pipeline = OperationNode(

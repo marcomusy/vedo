@@ -1294,13 +1294,20 @@ class Bezier(Line):
 
 class NormalLines(Mesh):
     """
-    Build an `Glyph` made of the normals at cells shown as lines.
+    Build an `Glyph` to show the normals 
+    at cell centers or at mesh vertices.
+
+    Arguments:
+        ratio : (int)
+            show 1 normal every `ratio` cells.
+        on : (str)
+            either "cells" or "points".
+        scale : (float)
+            scale factor to control size.
     """
-    def __init__(self, mesh, ratio=1, on="cells", scale=1):
-        """
-        If `on="points"` normals are shown at mesh vertices.
-        """
-        poly = mesh.clone().compute_normals().polydata()
+    def __init__(self, msh, ratio=1, on="cells", scale=1):
+        
+        poly = msh.clone().compute_normals().polydata()
 
         if "cell" in on:
             centers = vtk.vtkCellCenters()
@@ -1324,15 +1331,20 @@ class NormalLines(Mesh):
         glyph.SetVectorModeToUseNormal()
 
         b = poly.GetBounds()
-        sc = max([b[1] - b[0], b[3] - b[2], b[5] - b[4]]) / 50 * scale
-        glyph.SetScaleFactor(sc)
+        f = max([b[1]-b[0], b[3]-b[2], b[5]-b[4]]) / 50 * scale
+        glyph.SetScaleFactor(f)
         glyph.OrientOn()
         glyph.Update()
+
         Mesh.__init__(self, glyph.GetOutput())
+
         self.PickableOff()
-        self.SetProperty(mesh.GetProperty())
-        self.property = mesh.GetProperty()
+        prop = vtk.vtkProperty()
+        prop.DeepCopy(msh.GetProperty())
+        self.SetProperty(prop)
+        self.property = prop
         self.property.LightingOff()
+        self.mapper().ScalarVisibilityOff()
         self.name = "NormalLines"
 
 

@@ -3994,6 +3994,96 @@ class Points(BaseActor, vtk.vtkActor):
         self.pipeline = utils.OperationNode("cut_with_line", parents=[self])
         return self
 
+    def cut_with_cookiecutter(self, lines):
+        """
+        Cut the current mesh with a single line or a set of lines.
+        
+        Input `lines` can be either:
+        - a `Mesh` or `Points` object
+        - a list of 3D points: `[(x1,y1,z1), (x2,y2,z2), ...]`
+        - a list of 2D points: `[(x1,y1), (x2,y2), ...]`
+        
+        Example:
+            ```python
+            from vedo import *
+            grid = Mesh(dataurl + "dolfin_fine.vtk")
+            grid.compute_quality().cmap("Greens")
+            pols = merge(
+                Polygon(nsides=10, r=0.3).pos(0.7, 0.3), 
+                Polygon(nsides=10, r=0.2).pos(0.3, 0.7),
+            )
+            lines = pols.boundaries()
+            grid.cut_with_cookiecutter(lines)
+            show(grid, lines, axes=8, bg='blackboard').close()
+            ```
+            ![](https://vedo.embl.es/images/feats/cookiecutter.png)
+        
+        Check out also:
+            `cut_with_line()` and `cut_with_point_loop()`
+
+        Note:
+            In case of a warning message like:
+                "Mesh and trim loop point data attributes are different"
+            consider interpolating the mesh point data to the loop points,
+            Eg. (in the above example):
+            ```python
+            lines = pols.boundaries().interpolate_data_from(grid, n=2)
+            ```
+
+        Note:
+            trying to invert the selection by reversing the loop order
+            will have no effect in this method, hence it does not have
+            the `invert` option.
+        """
+        if utils.is_sequence(lines):
+            lines = utils.make3d(lines)
+            iline = list(range(len(lines))) + [0]
+            poly = utils.buildPolyData(lines, lines=[iline])
+        else:
+            poly = lines.polydata()
+
+        # if invert: # not working
+        #     rev = vtk.vtkReverseSense()
+        #     rev.ReverseCellsOn()
+        #     rev.SetInputData(poly)
+        #     rev.Update()
+        #     poly = rev.GetOutput()
+       
+        # Build loops from the polyline
+        build_loops = vtk.vtkContourLoopExtraction()
+        build_loops.SetInputData(poly)
+        build_loops.Update()
+        boundaryPoly = build_loops.GetOutput()
+
+        ccut = vtk.vtkCookieCutter()
+        ccut.SetInputData(self.polydata())
+        ccut.SetLoopsData(boundaryPoly)
+        ccut.SetPointInterpolationToMeshEdges()
+        # ccut.SetPointInterpolationToLoopEdges()
+        ccut.PassCellDataOn()
+        # ccut.PassPointDataOn()
+        ccut.Update()
+        cpoly = ccut.GetOutput()
+
+        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
+            self._update(cpoly)
+        else:
+            # bring the underlying polydata to where _data is
+            M = vtk.vtkMatrix4x4()
+            M.DeepCopy(self.GetMatrix())
+            M.Invert()
+            tr = vtk.vtkTransform()
+            tr.SetMatrix(M)
+            tf = vtk.vtkTransformPolyDataFilter()
+            tf.SetTransform(tr)
+            tf.SetInputData(cpoly)
+            tf.Update()
+            self._update(tf.GetOutput())
+
+        self.pipeline = utils.OperationNode(
+            "cut_with_cookiecutter", parents=[self])
+        return self
+
     def cut_with_cylinder(self, center=(0, 0, 0), axis=(0, 0, 1), r=1, invert=False):
         """
         Cut the current mesh with an infinite cylinder.

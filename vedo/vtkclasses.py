@@ -222,6 +222,7 @@ from vtkmodules.vtkFiltersModeling import (
     vtkBandedPolyDataContourFilter,
     vtkButterflySubdivisionFilter,
     vtkContourLoopExtraction,
+    vtkCookieCutter,
     vtkDijkstraGraphGeodesicPath,
     vtkFillHolesFilter,
     vtkHausdorffDistancePointSetFilter,

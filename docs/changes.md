@@ -10,14 +10,15 @@
 - fix `ploter.get_meshes()`
 - fix for `plotter.remove(unpack_assemblies=False)` method
 - fix for `io.import_window()` method
-
+- added `cut_with_cookiecutter()` to cut 2D contours.
+- fix `shapes.NormalLines()` class
 
 
 -------------------------
 ## New/Revised Examples
 ```
+examples/basic/sliders_range.py
 examples/advanced/warp6.py
-
 ```
 
 ### Broken Examples

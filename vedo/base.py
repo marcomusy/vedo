@@ -186,12 +186,21 @@ class _DataArrayHelper:
 
         if isinstance(key, int):
             key = data.GetArrayName(key)
-        data.SetActiveScalars(key)
+
+        arr = data.GetArray(key)
+        nc = arr.GetNumberOfComponents()
+        if   nc == 1:
+            data.SetActiveScalars(key)
+        elif nc >= 2:
+            data.SetActiveVectors(key)
+        elif nc >= 4:
+            data.SetActiveTensors(key)
 
         if hasattr(self.actor.mapper(), "SetArrayName"):
             self.actor.mapper().SetArrayName(key)
 
-        if hasattr(self.actor.mapper(), "ScalarVisibilityOn"):  # could be volume mapper
+        if hasattr(self.actor.mapper(), "ScalarVisibilityOn"): 
+            # ^need to check.. could be a volume mapper
             self.actor.mapper().ScalarVisibilityOn()
 
     def print(self, **kwargs):
