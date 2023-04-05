@@ -3260,11 +3260,13 @@ class Plotter:
                 self.interactor.SetInteractorStyle(astyle)
             else:
                 vedo.logger.warning("Unknown interaction mode:", mode)
-            
-        else:
+        
+        elif isinstance(mode, vtk.vtkInteractorStyleUser):
             # set a custom interactor style
             mode.interactor = self.interactor
             mode.renderer = self.renderer
+            mode.SetInteractor(self.interactor)
+            mode.SetDefaultRenderer(self.renderer)
             self.interactor.SetInteractorStyle(mode)
 
         return self
