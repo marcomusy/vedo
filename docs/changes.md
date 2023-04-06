@@ -15,6 +15,7 @@
 - added `vedo.interactor_modes` module
 - added `vedo.interactor_modes.BlenderStyle` class
 - added `base.pointdata.clear()` to remove all associated data 
+- added `volume.hide_voxels()` for visualization
 
 
 -------------------------

@@ -57,6 +57,7 @@ from vtkmodules.vtkCommonDataModel import (
     vtkBox,
     vtkCellLocator,
     vtkCylinder,
+    vtkDataSetAttributes,
     vtkDataObject,
     vtkDataSet,
     vtkFieldData,

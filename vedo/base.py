@@ -200,6 +200,9 @@ class _DataArrayHelper:
             key = data.GetArrayName(key)
 
         arr = data.GetArray(key)
+        if not arr:
+            return
+        
         nc = arr.GetNumberOfComponents()
         if   nc == 1:
             data.SetActiveScalars(key)
@@ -1259,7 +1262,10 @@ class BaseActor(Base3DProp):
         return self
 
     def mark_boundaries(self):
-        """Mark cells and vertices of the mesh if they lie on a boundary."""
+        """
+        Mark cells and vertices of the mesh if they lie on a boundary.
+        A new array called `BoundaryCells` is added to the mesh.
+        """
         mb = vtk.vtkMarkBoundaryFilter()
         mb.SetInputData(self._data)
         mb.Update()

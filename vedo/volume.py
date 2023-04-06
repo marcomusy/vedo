@@ -1171,6 +1171,8 @@ class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
             vol.mask(data_mask)
             show(vol, axes=1).close()
         ```
+        See also:
+            `volume.hide_voxels()`
         """
         mask = Volume(data.astype(np.uint8))
         try:
@@ -1178,6 +1180,29 @@ class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
             self.mapper().SetMaskInput(mask.inputdata())
         except AttributeError:
             vedo.logger.error("volume.mask() must create the volume with Volume(..., mapper='gpu')")
+        return self
+
+    def hide_voxels(self, ids):
+        """
+        Hide voxels (cells) from visualization.
+
+        Example:
+            ```python
+            from vedo import *
+            embryo = Volume(dataurl+'embryo.tif')
+            embryo.hide_voxels(list(range(10000)))
+            show(embryo, axes=1).close()
+            ```
+
+        See also:
+            `volume.mask()`
+        """
+        ghost_mask = np.zeros(self.ncells, dtype=np.uint8)
+        ghost_mask[ids] = vtk.vtkDataSetAttributes.HIDDENCELL
+        name = vtk.vtkDataSetAttributes.GhostArrayName()
+        garr = utils.numpy2vtk(ghost_mask, name=name, dtype=np.uint8)
+        self._data.GetCellData().AddArray(garr)
+        self._data.GetCellData().Modified()
         return self
 
     def alpha_gradient(self, alpha_grad, vmin=None, vmax=None):
