@@ -3223,6 +3223,8 @@ class Plotter:
             plt = Plotter().user_mode(mode)
             plt.show(mesh, axes=1)
            ```
+        See also:
+        [interactors](https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html)
         """
         if not self.interactor:
             return None
@@ -3231,9 +3233,6 @@ class Plotter:
             # Set the style of interaction
             # see https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html
             if mode in (0, 'TrackballCamera'):
-                # csty = self.interactor.GetInteractorStyle().GetCurrentStyle().GetClassName()
-                # if "TrackballCamera" not in csty:
-                # this causes problems (when pressing 3 eg) :
                 if self.qt_widget:
                     self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
             elif mode in (1, 'TrackballActor'):

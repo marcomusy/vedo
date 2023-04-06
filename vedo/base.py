@@ -159,6 +159,18 @@ class _DataArrayHelper:
             self.actor.inputdata().GetCellData().RemoveArray(key)
         elif  self.association == 2:
             self.actor.inputdata().GetFieldData().RemoveArray(key)
+    
+    def clear(self):
+        """Remove all data associated to this object"""
+        if self.association == 0:
+            data = self.actor.inputdata().GetPointData()
+        elif self.association == 1:
+            data = self.actor.inputdata().GetCellData()
+        elif  self.association == 2:
+            data = self.actor.inputdata().GetFieldData()
+        for i in range(data.GetNumberOfArrays()):
+            name = data.GetArray(i).GetName()
+            data.RemoveArray(name)
 
     def rename(self, oldname, newname):
         """Rename an array"""
@@ -192,16 +204,63 @@ class _DataArrayHelper:
         if   nc == 1:
             data.SetActiveScalars(key)
         elif nc >= 2:
-            data.SetActiveVectors(key)
+            if "rgb" in key.lower():
+                data.SetActiveScalars(key)
+                # try:
+                #     self.actor.mapper().SetColorModeToDirectScalars()
+                # except AttributeError:
+                #     pass
+            else:
+                data.SetActiveVectors(key)
         elif nc >= 4:
             data.SetActiveTensors(key)
 
-        if hasattr(self.actor.mapper(), "SetArrayName"):
+        try:
             self.actor.mapper().SetArrayName(key)
-
-        if hasattr(self.actor.mapper(), "ScalarVisibilityOn"): 
-            # ^need to check.. could be a volume mapper
             self.actor.mapper().ScalarVisibilityOn()
+            # .. could be a volume mapper
+        except AttributeError:
+            pass
+
+    def select_scalars(self, key):
+        """Select one specific scalar array by its name to make it the `active` one."""
+        if self.association == 0:
+            data = self.actor.inputdata().GetPointData()
+            self.actor.mapper().SetScalarModeToUsePointData()
+        else:
+            data = self.actor.inputdata().GetCellData()
+            self.actor.mapper().SetScalarModeToUseCellData()
+
+        if isinstance(key, int):
+            key = data.GetArrayName(key)
+
+        data.SetActiveScalars(key)
+
+        try:
+            self.actor.mapper().SetArrayName(key)
+            self.actor.mapper().ScalarVisibilityOn()
+        except AttributeError:
+            pass
+
+    def select_vectors(self, key):
+        """Select one specific vector array by its name to make it the `active` one."""
+        if self.association == 0:
+            data = self.actor.inputdata().GetPointData()
+            self.actor.mapper().SetScalarModeToUsePointData()
+        else:
+            data = self.actor.inputdata().GetCellData()
+            self.actor.mapper().SetScalarModeToUseCellData()
+
+        if isinstance(key, int):
+            key = data.GetArrayName(key)
+
+        data.SetActiveVectors(key)
+
+        try:
+            self.actor.mapper().SetArrayName(key)
+            self.actor.mapper().ScalarVisibilityOn()
+        except AttributeError:
+            pass
 
     def print(self, **kwargs):
         """Print the array names available to terminal"""

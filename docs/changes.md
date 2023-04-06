@@ -12,7 +12,9 @@
 - fix for `io.import_window()` method
 - added `cut_with_cookiecutter()` to cut 2D contours.
 - fix `shapes.NormalLines()` class
-- added `vedo.
+- added `vedo.interactor_modes` module
+- added `vedo.interactor_modes.BlenderStyle` class
+- added `base.pointdata.clear()` to remove all associated data 
 
 
 -------------------------

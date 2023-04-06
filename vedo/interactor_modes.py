@@ -33,9 +33,9 @@ class MousePan(vtk.vtkInteractorStyleUser):
         self.middle = False
         self.right = False
 
-        self.camera = None
         self.interactor = None
         self.renderer = None
+        self.camera = None
 
         self.oldpickD = []
         self.newpickD = []
@@ -46,17 +46,17 @@ class MousePan(vtk.vtkInteractorStyleUser):
         self.motionD = np.array([0, 0], dtype=float)
         self.motionW = np.array([0, 0, 0], dtype=float)
 
-        self.AddObserver("LeftButtonPressEvent", self.left_down)
-        self.AddObserver("LeftButtonReleaseEvent", self.left_up)
-        self.AddObserver("MiddleButtonPressEvent", self.middle_down)
-        self.AddObserver("MiddleButtonReleaseEvent", self.middle_up)
-        self.AddObserver("RightButtonPressEvent", self.right_down)
-        self.AddObserver("RightButtonReleaseEvent", self.right_up)
-        self.AddObserver("MouseWheelForwardEvent", self.wheel_forward)
-        self.AddObserver("MouseWheelBackwardEvent", self.wheel_backward)
+        self.AddObserver("LeftButtonPressEvent", self._left_down)
+        self.AddObserver("LeftButtonReleaseEvent", self._left_up)
+        self.AddObserver("MiddleButtonPressEvent", self._middle_down)
+        self.AddObserver("MiddleButtonReleaseEvent", self._middle_up)
+        self.AddObserver("RightButtonPressEvent", self._right_down)
+        self.AddObserver("RightButtonReleaseEvent", self._right_up)
+        self.AddObserver("MouseWheelForwardEvent", self._wheel_forward)
+        self.AddObserver("MouseWheelBackwardEvent", self._wheel_backward)
         self.AddObserver("MouseMoveEvent", self._mouse_move)
 
-    def get_motion(self):
+    def _get_motion(self):
         self.oldpickD = np.array(self.interactor.GetLastEventPosition())
         self.newpickD = np.array(self.interactor.GetEventPosition())
         self.motionD = (self.newpickD - self.oldpickD) / 4
@@ -75,60 +75,60 @@ class MousePan(vtk.vtkInteractorStyleUser):
         )
         self.motionW[:3] = self.oldpickW[:3] - self.newpickW[:3]
 
-    def mouse_left_move(self):
-        self.get_motion()
+    def _mouse_left_move(self):
+        self._get_motion()
         self.camera.SetFocalPoint(self.fpW[:3] + self.motionW[:3])
         self.camera.SetPosition(self.posW[:3] + self.motionW[:3])
         self.interactor.Render()
 
-    def mouse_middle_move(self):
-        self.get_motion()
+    def _mouse_middle_move(self):
+        self._get_motion()
         if abs(self.motionD[0]) > abs(self.motionD[1]):
             self.camera.Azimuth(-2 * self.motionD[0])
         else:
             self.camera.Elevation(-self.motionD[1])
         self.interactor.Render()
 
-    def mouse_right_move(self):
-        self.get_motion()
+    def _mouse_right_move(self):
+        self._get_motion()
         if abs(self.motionD[0]) > abs(self.motionD[1]):
             self.camera.Azimuth(-2.0 * self.motionD[0])
         else:
             self.camera.Zoom(1 + self.motionD[1] / 100)
         self.interactor.Render()
 
-    def mouse_wheel_forward(self):
+    def _mouse_wheel_forward(self):
         self.camera = self.renderer.GetActiveCamera()
         self.camera.Zoom(1.1)
         self.interactor.Render()
 
-    def mouse_wheel_backward(self):
+    def _mouse_wheel_backward(self):
         self.camera = self.renderer.GetActiveCamera()
         self.camera.Zoom(0.9)
         self.interactor.Render()
 
-    def left_down(self, w, e):
+    def _left_down(self, w, e):
         self.left = True
 
-    def left_up(self, w, e):
+    def _left_up(self, w, e):
         self.left = False
 
-    def middle_down(self, w, e):
+    def _middle_down(self, w, e):
         self.middle = True
 
-    def middle_up(self, w, e):
+    def _middle_up(self, w, e):
         self.middle = False
 
-    def right_down(self, w, e):
+    def _right_down(self, w, e):
         self.right = True
 
-    def right_up(self, w, e):
+    def _right_up(self, w, e):
         self.right = False
 
-    def wheel_forward(self, w, e):
+    def _wheel_forward(self, w, e):
         self.mouse_wheel_forward()
 
-    def wheel_backward(self, w, e):
+    def _wheel_backward(self, w, e):
         self.mouse_wheel_backward()
 
     def _mouse_move(self, w, e):
