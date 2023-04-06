@@ -2341,10 +2341,7 @@ class Mesh(Points):
             return [self]
         
         if flag:
-            self.pipeline = OperationNode(
-                f"split mesh {i}", parents=[self], 
-                comment=f"#pts {l[0]._data.GetNumberOfPoints()}",
-            )
+            self.pipeline = OperationNode("split mesh", parents=[self])
             return self._update(out)
         
         a = Mesh(out)
