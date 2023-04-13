@@ -28,7 +28,7 @@ def handle_timer(event):
     plotter.pop().add(fig).render()
 
 
-timer_id = None
+timer_id = -1
 t0 = time.time()
 plotter= Plotter(size=(1200,600))
 button = plotter.add_button(bfunc, states=[" Play ","Pause"], size=40)

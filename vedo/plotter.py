@@ -41,6 +41,7 @@ class Event:
         "name",
         "title",
         "id",
+        "timerid",
         "time",
         "priority",
         "at",
@@ -2226,7 +2227,7 @@ class Plotter:
         sifunc(0, 0)
         return fractor
 
-    def fill_event(self, ename="", pos=(), cid=0, priority=0):
+    def fill_event(self, ename="", pos=()):
         """
         Create an Event object.
 
@@ -2288,8 +2289,9 @@ class Plotter:
         event = Event()
         event.name = ename
         event.title = self.title
-        event.id = cid
-        event.priority = priority
+        event.id = -1  # will be set by the timer wrapper function
+        event.timerid = -1  # will be set by the timer wrapper function
+        event.priority = -1  # will be set by the timer wrapper function
         event.time = time.time()
         event.at = self.renderers.index(self.renderer)
         event.actor = actor
@@ -2386,6 +2388,8 @@ class Plotter:
 
             - ..and many others!
         """
+        from vtkmodules.util.misc import calldata_type
+        
         if not self.interactor:
             return None
 
@@ -2415,8 +2419,12 @@ class Plotter:
         if not event_name.endswith("Event"):
             event_name += "Event"
 
-        def _func_wrap(iren, ename):
-            event = self.fill_event(ename=ename, priority=priority, cid=cid)
+        @calldata_type(vtk.VTK_INT)
+        def _func_wrap(iren, ename, timerid=None):
+            event = self.fill_event(ename=ename)
+            event.timerid = timerid
+            event.id = cid
+            event.priority = priority
             self.last_event = event
             func(event)
             return  ## _func_wrap
@@ -2488,7 +2496,9 @@ class Plotter:
         
             ![](https://vedo.embl.es/images/advanced/timer_callback1.jpg)
         """
-        if action in ("create", "start") :
+        if action in ("create", "start"):
+            if timer_id is not None:
+                vedo.logger.warning("you set a timer_id but it will be ignored.")
             if one_shot:
                 timer_id = self.interactor.CreateOneShotTimer(dt)
             else:
@@ -2498,11 +2508,13 @@ class Plotter:
         elif action in ("destroy", "stop"):
             if timer_id is not None:
                 self.interactor.DestroyTimer(timer_id)
+            else:
+                vedo.logger.warning("please set a timer_id. Cannot stop timer.")
         else:
-            e = f"in plotter.timer_callback(). Cannot understand action: {action}\n"
+            e = f"in timer_callback(). Cannot understand action: {action}\n"
             e += " allowed actions are: ['start', 'stop']. Skipped."
             vedo.logger.error(e)
-        return self
+        return timer_id
 
     def compute_world_coordinate(
         self,

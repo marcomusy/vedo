@@ -16,6 +16,7 @@
 - added `vedo.interactor_modes.BlenderStyle` class
 - added `base.pointdata.clear()` to remove all associated data 
 - added `volume.hide_voxels()` for visualization
+- added `Event.timerid` attribute
 
 
 -------------------------
@@ -23,6 +24,7 @@
 ```
 examples/basic/sliders_range.py
 examples/basic/interaction_modes.py
+examples/advanced/timer_callback3.py
 examples/advanced/warp6.py
 examples/pyplot/histo_1d_e.py
 ```
