@@ -24,6 +24,7 @@
 examples/basic/sliders_range.py
 examples/basic/interaction_modes.py
 examples/advanced/warp6.py
+examples/pyplot/histo_1d_e.py
 ```
 
 ### Broken Examples
