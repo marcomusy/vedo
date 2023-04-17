@@ -28,7 +28,8 @@ from vedo.applications import FreeHandCutPlotter
 #     def onMouseMove(self, evt):
 #         if self.drawmode:
 #             self.remove([self.points, self.spline])
-#             cpt = self.computeWorldPosition(evt.picked2d) # make this 2d-screen point 3d
+#             # make this 2d-screen point 3d:
+#             cpt = self.compute_world_coordinate(evt.picked2d)
 #             self.cpoints.append(cpt)
 #             self.points = vedo.Points(self.cpoints, r=8).c('black')
 #             if len(self.cpoints) > 2:
@@ -36,13 +37,13 @@ from vedo.applications import FreeHandCutPlotter
 #                 self.add([self.points, self.spline]).render()
 
 #     def onKeyPress(self, evt):
-#         if evt.keypress == 'z' and self.spline:       # cut mesh with a ribbon-like surface
+#         if evt.keypress == 'z' and self.spline:  # cut mesh with a ribbon-like surf.
 #             vedo.printc("Cutting the mesh please wait..", invert=True)
 #             tol = self.mesh.diagonal_size()/2            # size of ribbon
 #             pts = self.spline.points()
-#             n = vedo.fitPlane(pts, signed=True).normal  # compute normal vector to points
+#             n = vedo.fit_plane(pts, signed=True).normal  # compute normal vector
 #             rib = vedo.Ribbon(pts - tol*n, pts + tol*n, closed=True)
-#             self.mesh.cutWithMesh(rib)
+#             self.mesh.cut_with_mesh(rib)
 #             self.remove([self.spline, self.points]).render()
 #             self.cpoints, self.points, self.spline = [], None, None
 
