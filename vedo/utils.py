@@ -1223,7 +1223,7 @@ def is_integer(n):
     """Check if input is an integer."""
     try:
         float(n)
-    except ValueError:
+    except (ValueError, TypeError):
         return False
     else:
         return float(n).is_integer()
@@ -1234,7 +1234,7 @@ def is_number(n):
     try:
         float(n)
         return True
-    except ValueError:
+    except (ValueError, TypeError):
         return False
 
 
@@ -1246,13 +1246,6 @@ def round_to_digit(x, p):
     if int(r) == r:
         return int(r)
     return r
-
-
-def packSpheres(bounds, radius):
-    "Deprecated. Please use `pack_spheres()`"
-    m = "Warning! packSpheres() is deprecated. Please use pack_spheres()"
-    print("\x1b[1m\x1b[33;1m " + m + "\x1b[0m")
-    return pack_spheres(bounds, radius)
 
 
 def pack_spheres(bounds, radius):

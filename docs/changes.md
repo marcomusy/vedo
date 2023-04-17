@@ -17,6 +17,8 @@
 - added `base.pointdata.clear()` to remove all associated data 
 - added `volume.hide_voxels()` for visualization
 - added `Event.timerid` attribute
+- fix to `Volume.operation` by @DanKrsi
+
 
 
 -------------------------
