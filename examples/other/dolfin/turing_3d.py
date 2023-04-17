@@ -2,7 +2,8 @@
 # https://fenicsproject.org/qa/8612/difficulties-with-solving-the-gray-scott-model
 from dolfin import *
 import numpy as np
-import mshr
+from vedo import Text2D, Sphere, show
+from vedo.dolfin import plot
 
 # Set parameters
 D_u = 8.0e-05
@@ -40,11 +41,17 @@ class GrayScottEquations(NonlinearProblem):
         assemble(self.a, tensor=A)
 
 
+def convert(vmesh):
+    bpts = vmesh.compute_normals()
+    bpts.write('tmpmesh.xml')
+    return Mesh("tmpmesh.xml")
+
+
 # Define mesh and function space
-p1 = Point(1.0, 1.0)
 p0 = Point(0.0, 0.0, 0.0)
-sphere = mshr.Sphere(p0, 1.0)
-mesh = mshr.generate_mesh(sphere, 16)
+
+sphere = Sphere([p0.x(), p0.y(), p0.z()], r=1.0)
+mesh = convert(sphere)
 
 V_ele = FiniteElement("CG", mesh.ufl_cell(), 1)
 V = FunctionSpace(mesh, MixedElement([V_ele, V_ele]))
@@ -75,10 +82,7 @@ problem = GrayScottEquations(a, F)
 solver = NewtonSolver()
 #solver.parameters["linear_solver"] = "lu"
 #solver.parameters["convergence_criterion"] = "incremental"
-solver.parameters["relative_tolerance"] = 1e-3
-
-from vedo import Text2D
-from vedo.dolfin import plot
+# solver.parameters["relative_tolerance"] = 1e-3
 
 t = 0.0
 W.assign(W0)
