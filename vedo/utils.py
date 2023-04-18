@@ -1437,7 +1437,7 @@ def spher2cyl(rho, theta, phi):
 
 
 ##################################################################################
-def grep(filename, tag, first_occurrence_only=False):
+def grep(filename, tag, column=None, first_occurrence_only=False):
     """Greps the line in a file that starts with a specific `tag` string inside the file."""
     import re
 
@@ -1447,6 +1447,8 @@ def grep(filename, tag, first_occurrence_only=False):
             if re.search(tag, line):
                 c = line.split()
                 c[-1] = c[-1].replace("\n", "")
+                if column is not None:
+                    c = c[column]
                 content.append(c)
                 if first_occurrence_only:
                     break

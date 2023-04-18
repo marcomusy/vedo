@@ -18,6 +18,7 @@
 - added `volume.hide_voxels()` for visualization
 - added `Event.timerid` attribute
 - fix to `Volume.operation` by @DanKrsi
+- fix links in `pyplot` examples by @androbaza
 
 
 
@@ -29,6 +30,7 @@ examples/basic/interaction_modes.py
 examples/advanced/timer_callback3.py
 examples/advanced/warp6.py
 examples/pyplot/histo_1d_e.py
+examples/other/tensor_grid2.py
 ```
 
 ### Broken Examples

@@ -353,7 +353,7 @@ class Tensors(Mesh):
 
         Examples:
             - [tensors.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/tensors.py)
-            - [tensor_grid.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/tensor_grid.py)
+            - [tensor_grid1.py](https://github.com/marcomusy/vedo/tree/master/examples/other/tensor_grid1.py)
 
             ![](https://vedo.embl.es/images/volumetric/tensor_grid.png)
         """
