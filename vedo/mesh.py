@@ -446,6 +446,7 @@ class Mesh(Points):
             ![](https://vedo.embl.es/images/basic/texturecubes.png)
         """
         pd = self.polydata(False)
+        outimg = None
 
         if tname is None:  # disable texture
             pd.GetPointData().SetTCoords(None)
@@ -454,7 +455,6 @@ class Mesh(Points):
 
         if isinstance(tname, vtk.vtkTexture):
             tu = tname
-            outimg = self._data
 
         elif isinstance(tname, vedo.Picture):
             tu = vtk.vtkTexture()
@@ -563,7 +563,8 @@ class Mesh(Points):
                 pd.GetPointData().SetTCoords(tc)
                 pd.GetPointData().Modified()
 
-        tu.SetInputData(outimg)
+        if outimg:
+            tu.SetInputData(outimg)
         tu.SetInterpolate(interpolate)
         tu.SetRepeat(repeat)
         tu.SetEdgeClamp(edge_clamp)
