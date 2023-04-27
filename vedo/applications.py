@@ -45,27 +45,28 @@ class Slicer3DPlotter(Plotter):
     """
     Generate a rendering window with slicing planes for the input Volume.
     """
+
     def __init__(
-            self,
-            volume,
-            alpha=1,
-            cmaps=('gist_ncar_r', "hot_r", "bone_r", "jet", "Spectral_r"),
-            map2cells=False,  # buggy
-            clamp=True,
-            use_slider3d=False,
-            show_histo=True,
-            show_icon=True,
-            draggable=False,
-            pos=(0, 0),
-            size="auto",
-            screensize="auto",
-            title="",
-            bg="white",
-            bg2="lightblue",
-            axes=7,
-            resetcam=True,
-            interactive=True,
-        ):
+        self,
+        volume,
+        alpha=1,
+        cmaps=("gist_ncar_r", "hot_r", "bone_r", "jet", "Spectral_r"),
+        map2cells=False,  # buggy
+        clamp=True,
+        use_slider3d=False,
+        show_histo=True,
+        show_icon=True,
+        draggable=False,
+        pos=(0, 0),
+        size="auto",
+        screensize="auto",
+        title="",
+        bg="white",
+        bg2="lightblue",
+        axes=7,
+        resetcam=True,
+        interactive=True,
+    ):
         """
         Generate a rendering window with slicing planes for the input Volume.
      
@@ -92,7 +93,7 @@ class Slicer3DPlotter(Plotter):
 
             <img src="https://vedo.embl.es/images/volumetric/slicer1.jpg" width="500">
         """
-        self._cmap_slicer= 'gist_ncar_r'
+        self._cmap_slicer = "gist_ncar_r"
 
         if not title:
             if volume.filename:
@@ -117,12 +118,7 @@ class Slicer3DPlotter(Plotter):
 
         self.show(box, viewup="z", resetcam=resetcam, interactive=False)
         if show_icon:
-            self.add_inset(
-                volume,
-                pos=(0.85, 0.85),
-                size=0.15, c="w",
-                draggable=draggable,
-            )
+            self.add_inset(volume, pos=(0.85, 0.85), size=0.15, c="w", draggable=draggable)
 
         # inits
         la, ld = 0.7, 0.3  # ambient, diffuse
@@ -285,14 +281,7 @@ class Slicer3DPlotter(Plotter):
         hist = None
         if show_histo:
             hist = CornerHistogram(
-                data,
-                s=0.2,
-                bins=25,
-                logscale=1,
-                pos=(0.02, 0.02),
-                c=ch,
-                bg=ch,
-                alpha=0.7,
+                data, s=0.2, bins=25, logscale=1, pos=(0.02, 0.02), c=ch, bg=ch, alpha=0.7
             )
 
         self.add([msh, hist])
@@ -306,13 +295,8 @@ class Slicer2DPlotter(Plotter):
     A single slice of a Volume which always faces the camera,
     but at the same time can be oriented arbitrarily in space.
     """
-    def __init__(
-        self,
-        volume,
-        levels=(None, None),
-        histo_color="red5",
-        **kwargs,
-    ):
+
+    def __init__(self, volume, levels=(None, None), histo_color="red5", **kwargs):
         """
         A single slice of a Volume which always faces the camera,
         but at the same time can be oriented arbitrarily in space.
@@ -343,14 +327,16 @@ class Slicer2DPlotter(Plotter):
         if levels[0] and levels[1]:
             vsl.lighting(window=levels[0], level=levels[1])
 
-        usage = Text2D((
-            "Left click & drag  :rightarrow modify luminosity and contrast\n"
-            "SHIFT+Left click   :rightarrow slice image obliquely\n"
-            "SHIFT+Middle click :rightarrow slice image perpendicularly\n"
-            "R                  :rightarrow Reset the Window/Color levels\n"
-            "X                  :rightarrow Reset to sagittal view\n"
-            "Y                  :rightarrow Reset to coronal view\n"
-            "Z                  :rightarrow Reset to axial view"),
+        usage = Text2D(
+            (
+                "Left click & drag  :rightarrow modify luminosity and contrast\n"
+                "SHIFT+Left click   :rightarrow slice image obliquely\n"
+                "SHIFT+Middle click :rightarrow slice image perpendicularly\n"
+                "R                  :rightarrow Reset the Window/Color levels\n"
+                "X                  :rightarrow Reset to sagittal view\n"
+                "Y                  :rightarrow Reset to coronal view\n"
+                "Z                  :rightarrow Reset to axial view"
+            ),
             font="Calco",
             pos="top-left",
             s=0.8,
@@ -376,10 +362,10 @@ class Slicer2DPlotter(Plotter):
                 logscale=True,
                 c=histo_color,
                 ytitle="log_10 (counts)",
-                axes=dict(text_scale=1.9)
+                axes=dict(text_scale=1.9),
             )
             hist = hist.as2d(pos="bottom-left", scale=0.5)
-        
+
         axes = kwargs.pop("axes", 7)
         interactive = kwargs.pop("interactive", True)
         if axes == 7:
@@ -395,6 +381,7 @@ class RayCastPlotter(Plotter):
     """
     Generate Volume rendering using ray casting.
     """
+
     def __init__(self, volume, **kwargs):
         """
         Generate a window for Volume rendering using ray casting.
@@ -569,29 +556,30 @@ class IsosurfaceBrowser(Plotter):
     """
     Generate a Volume isosurfacing controlled by a slider.
     """
+
     def __init__(
-            self,
-            volume,
-            isovalue=None,
-            c=None,
-            alpha=1,
-            lego=False,
-            res=50,
-            use_gpu=False,
-            precompute=False,
-            progress=False,
-            cmap='hot',
-            delayed=False,
-            sliderpos=4,
-            pos=(0,0),
-            size="auto",
-            screensize="auto",
-            title="",
-            bg="white",
-            bg2=None,
-            axes=1,
-            interactive=True,
-        ):
+        self,
+        volume,
+        isovalue=None,
+        c=None,
+        alpha=1,
+        lego=False,
+        res=50,
+        use_gpu=False,
+        precompute=False,
+        progress=False,
+        cmap="hot",
+        delayed=False,
+        sliderpos=4,
+        pos=(0, 0),
+        size="auto",
+        screensize="auto",
+        title="",
+        bg="white",
+        bg2=None,
+        axes=1,
+        interactive=True,
+    ):
         """
         Generate a `vedo.Plotter` for Volume isosurfacing using a slider.
     
@@ -622,19 +610,19 @@ class IsosurfaceBrowser(Plotter):
 
         ### GPU ################################
         if use_gpu and hasattr(volume.GetProperty(), "GetIsoSurfaceValues"):
-            
+
             scrange = volume.scalar_range()
             delta = scrange[1] - scrange[0]
             if not delta:
                 return
-            
+
             if isovalue is None:
                 isovalue = delta / 3.0 + scrange[0]
 
             ### isovalue slider callback
             def slider_isovalue(widget, event):
                 value = widget.GetRepresentation().GetValue()
-                isovals.SetValue(0, value)      
+                isovals.SetValue(0, value)
 
             isovals = volume.GetProperty().GetIsoSurfaceValues()
             isovals.SetValue(0, isovalue)
@@ -653,7 +641,7 @@ class IsosurfaceBrowser(Plotter):
 
         ### CPU ################################
         else:
-            
+
             self._prev_value = 1e30
 
             scrange = volume.scalar_range()
@@ -749,22 +737,23 @@ class Browser(Plotter):
     """
     Browse a series of vedo objects by using a simple slider.
     """
+
     def __init__(
-            self,
-            objects=(),
-            sliderpos=((0.55, 0.07),(0.96, 0.07)),
-            c=None,  # slider color
-            prefix="",
-            pos=(0, 0),
-            size="auto",
-            screensize="auto",
-            title="Browser",
-            bg="white",
-            bg2=None,
-            axes=4,
-            resetcam=False,
-            interactive=True,
-        ):
+        self,
+        objects=(),
+        sliderpos=((0.55, 0.07), (0.96, 0.07)),
+        c=None,  # slider color
+        prefix="",
+        pos=(0, 0),
+        size="auto",
+        screensize="auto",
+        title="Browser",
+        bg="white",
+        bg2=None,
+        axes=4,
+        resetcam=False,
+        interactive=True,
+    ):
         """
         Browse a series of vedo objects by using a simple slider.
 
@@ -830,21 +819,22 @@ class Browser(Plotter):
 #############################################################################################
 class FreeHandCutPlotter(Plotter):
     """A tool to edit meshes interactively."""
+
     # thanks to Jakub Kaminski for the original version of this script
     def __init__(
-            self,
-            mesh,
-            splined=True,
-            font="Bongas",
-            alpha=0.9,
-            lw=4,
-            lc="red5",
-            pc="red4",
-            c="green3",
-            tc="k9",
-            tol=0.008,
-            **options
-        ):
+        self,
+        mesh,
+        splined=True,
+        font="Bongas",
+        alpha=0.9,
+        lw=4,
+        lc="red5",
+        pc="red4",
+        c="green3",
+        tc="k9",
+        tol=0.008,
+        **options,
+    ):
         """
         A `vedo.Plotter` derived class which edits polygonal meshes interactively.
 
@@ -908,7 +898,7 @@ class FreeHandCutPlotter(Plotter):
         self.color = c
         self.alpha = alpha
 
-        self.msg =  "Right-click and move to draw line\n"
+        self.msg = "Right-click and move to draw line\n"
         self.msg += "Second right-click to stop drawing\n"
         self.msg += "Press L to extract largest surface\n"
         self.msg += "        z/Z to cut mesh (s to save)\n"
@@ -916,7 +906,7 @@ class FreeHandCutPlotter(Plotter):
         self.txt2d = Text2D(self.msg, pos="top-left", font=font, s=0.9)
         self.txt2d.c(tc).background(c, alpha).frame()
 
-        self.idkeypress  = self.add_callback("KeyPress", self._on_keypress)
+        self.idkeypress = self.add_callback("KeyPress", self._on_keypress)
         self.idrightclck = self.add_callback("RightButton", self._on_right_click)
         self.idmousemove = self.add_callback("MouseMove", self._on_mouse_move)
         self.drawmode = False
@@ -953,9 +943,7 @@ class FreeHandCutPlotter(Plotter):
             if len(self.cpoints) > 2:
                 self.remove([self.spline, self.jline])
                 if self.splined:  # show the spline closed
-                    self.spline = Spline(
-                        self.cpoints, closed=True, res=len(self.cpoints) * 4
-                    )
+                    self.spline = Spline(self.cpoints, closed=True, res=len(self.cpoints) * 4)
                 else:
                     self.spline = Line(self.cpoints, closed=True)
                 self.spline.lw(self.linewidth).c(self.linecolor).pickable(False)
@@ -963,15 +951,15 @@ class FreeHandCutPlotter(Plotter):
 
     def _on_mouse_move(self, evt):
         if self.drawmode:
-            cpt = self.compute_world_coordinate(evt.picked2d) # make this 2d-screen point 3d
-            if self.cpoints and mag(cpt - self.cpoints[-1]) < self.mesh.diagonal_size()*self.tol:
+            cpt = self.compute_world_coordinate(evt.picked2d)  # make this 2d-screen point 3d
+            if self.cpoints and mag(cpt - self.cpoints[-1]) < self.mesh.diagonal_size() * self.tol:
                 return  # new point is too close to the last one. skip
             self.cpoints.append(cpt)
             if len(self.cpoints) > 2:
                 self.remove([self.points, self.spline, self.jline, self.topline])
                 self.points = Points(self.cpoints, r=self.linewidth).c(self.pointcolor).pickable(0)
                 if self.splined:
-                    self.spline = Spline(self.cpoints, res=len(self.cpoints)*4) # not closed here
+                    self.spline = Spline(self.cpoints, res=len(self.cpoints) * 4)  # not closed here
                 else:
                     self.spline = Line(self.cpoints)
 
@@ -986,7 +974,7 @@ class FreeHandCutPlotter(Plotter):
                 self.add([self.points, self.spline, self.jline, self.topline]).render()
 
     def _on_keypress(self, evt):
-        if evt.keypress.lower() == 'z' and self.spline: # Cut mesh with a ribbon-like surface
+        if evt.keypress.lower() == "z" and self.spline:  # Cut mesh with a ribbon-like surface
             inv = False
             if evt.keypress == "Z":
                 inv = True
@@ -1014,7 +1002,7 @@ class FreeHandCutPlotter(Plotter):
             self.remove(self.mesh)
             self.mesh_prev = self.mesh
             mcut = self.mesh.extract_largest_region()
-            mcut.filename = self.mesh.filename          # copy over various properties
+            mcut.filename = self.mesh.filename  # copy over various properties
             mcut.name = self.mesh.name
             mcut.scalarbar = self.mesh.scalarbar
             mcut.info = self.mesh.info
@@ -1033,7 +1021,7 @@ class FreeHandCutPlotter(Plotter):
             self.top_pts, self.topline = [], None
             self.add(self.mesh).render()
 
-        elif evt.keypress in ('c', 'Delete'):
+        elif evt.keypress in ("c", "Delete"):
             # clear all points
             self.remove([self.spline, self.points, self.jline, self.topline]).render()
             self.cpoints, self.points, self.spline = [], None, None
@@ -1071,11 +1059,13 @@ class FreeHandCutPlotter(Plotter):
         self.show(acts + list(args), **kwargs)
         return self
 
+
 ########################################################################
 class SplinePlotter(Plotter):
     """
     Interactive drawing of splined curves on meshes.
     """
+
     def __init__(self, obj, init_points=(), **kwargs):
         """
         Create an interactive application that allows the user to click points and
@@ -1086,15 +1076,15 @@ class SplinePlotter(Plotter):
         """
         super().__init__(**kwargs)
 
-        self.mode    = 'trackball'
+        self.mode = "trackball"
         self.verbose = True
         self.splined = True
         self.resolution = None  # spline resolution (None = automatic)
-        self.closed  = False
-        self.lcolor  = 'yellow4'
-        self.lwidth  = 3
-        self.pcolor  = 'purple5'
-        self.psize   = 10
+        self.closed = False
+        self.lcolor = "yellow4"
+        self.lwidth = 3
+        self.pcolor = "purple5"
+        self.psize = 10
 
         self.cpoints = list(init_points)
         self.vpoints = None
@@ -1104,9 +1094,9 @@ class SplinePlotter(Plotter):
             self.object = vedo.io.load(obj)
         else:
             self.object = obj
-        
+
         if isinstance(self.object, vedo.Picture):
-            self.mode = 'image'
+            self.mode = "image"
             self.parallel_projection(True)
 
         t = (
@@ -1116,15 +1106,13 @@ class SplinePlotter(Plotter):
             "Press c to clear points\n"
             "Press q to continue"
         )
-        self.instructions = Text2D(
-            t, pos='bottom-left', c='white', bg='green', font='Calco'
-        )
-        
+        self.instructions = Text2D(t, pos="bottom-left", c="white", bg="green", font="Calco")
+
         self += [self.object, self.instructions]
 
-        self.callid1 = self.add_callback('KeyPress', self._key_press)
-        self.callid2 = self.add_callback('LeftButtonPress', self._on_left_click)
-        self.callid3 = self.add_callback('RightButtonPress', self._on_right_click)
+        self.callid1 = self.add_callback("KeyPress", self._key_press)
+        self.callid2 = self.add_callback("LeftButtonPress", self._on_left_click)
+        self.callid3 = self.add_callback("RightButtonPress", self._on_right_click)
 
     def points(self, newpts=None):
         """Retrieve the 3D coordinates of the clicked points"""
@@ -1135,7 +1123,7 @@ class SplinePlotter(Plotter):
         return np.array(self.cpoints)
 
     def _on_left_click(self, evt):
-        if not evt.actor: 
+        if not evt.actor:
             return
         if evt.actor.name == "points":
             # remove clicked point if clicked twice
@@ -1147,11 +1135,11 @@ class SplinePlotter(Plotter):
         self.cpoints.append(p)
         self._update()
         if self.verbose:
-            vedo.colors.printc("Added point:", precision(p,4), c='g')
+            vedo.colors.printc("Added point:", precision(p, 4), c="g")
 
     def _on_right_click(self, evt):
-        if evt.actor and len(self.cpoints)>0:
-            self.cpoints.pop() # pop removes from the list the last pt
+        if evt.actor and len(self.cpoints) > 0:
+            self.cpoints.pop()  # pop removes from the list the last pt
             self._update()
             if self.verbose:
                 vedo.colors.printc("Deleted last point", c="r")
@@ -1180,7 +1168,7 @@ class SplinePlotter(Plotter):
             self.add(self.vpoints)
 
     def _key_press(self, evt):
-        if evt.keypress == 'c':
+        if evt.keypress == "c":
             self.cpoints = []
             self.remove(self.line, self.vpoints).render()
             if self.verbose:
@@ -1545,9 +1533,7 @@ class Animation(Plotter):
             for tt in rng:
                 d = lin_interpolate(tt, [t, t + duration], [dmin, diag * 1.01])
                 if d > 0:
-                    ids = acts[0].closest_point(
-                        corners[corner], radius=d, return_point_id=True
-                    )
+                    ids = acts[0].closest_point(corners[corner], radius=d, return_point_id=True)
                     if len(ids) <= acts[0].npoints:
                         self.events.append((tt, self.meshErode, acts, ids))
         return self
@@ -1576,10 +1562,12 @@ class Animation(Plotter):
             dt = tt - ttlast
             if dt > self.eps:
                 self.show(interactive=False, resetcam=self.resetcam)
-                if self.video_filename: vd.add_frame()
+                if self.video_filename:
+                    vd.add_frame()
 
-                if dt > self.time_resolution+self.eps:
-                    if self.video_filename: vd.pause(dt)
+                if dt > self.time_resolution + self.eps:
+                    if self.video_filename:
+                        vd.pause(dt)
 
             ttlast = tt
 
@@ -1597,15 +1585,8 @@ class Animation(Plotter):
 
 class Clock(vedo.Assembly):
     """Clock animation."""
-    def __init__(
-            self,
-            h=None,
-            m=None,
-            s=None,
-            font="Quikhand",
-            title="",
-            c="k",
-        ):
+
+    def __init__(self, h=None, m=None, s=None, font="Quikhand", title="", c="k"):
         """
         Create a clock with current time or user provided time.
 
@@ -1648,46 +1629,34 @@ class Clock(vedo.Assembly):
             m = t.tm_min
             s = t.tm_sec
             if not title:
-                d = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+                d = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
                 wd = f"{d[t.tm_wday]} {t.tm_mday}/{t.tm_mon}/{t.tm_year} "
 
         h = int(h) % 24
         m = int(m) % 60
-        t = (h*60+m) / 12 / 60
+        t = (h * 60 + m) / 12 / 60
 
-        alpha = 2*np.pi*t + np.pi/2
-        beta  = 12*2*np.pi*t + np.pi/2
+        alpha = 2 * np.pi * t + np.pi / 2
+        beta = 12 * 2 * np.pi * t + np.pi / 2
 
-        x1,y1 = np.cos(alpha), np.sin(alpha)
-        x2,y2 = np.cos(beta),  np.sin(beta)
+        x1, y1 = np.cos(alpha), np.sin(alpha)
+        x2, y2 = np.cos(beta), np.sin(beta)
         if s is not None:
             s = int(s) % 60
-            gamma = s*2*np.pi /60 + np.pi/2
-            x3,y3 = np.cos(gamma), np.sin(gamma)
+            gamma = s * 2 * np.pi / 60 + np.pi / 2
+            x3, y3 = np.cos(gamma), np.sin(gamma)
 
-        ore = Line([0,0], [x1,y1], lw=14, c='red4').scale(0.5).mirror()
-        minu= Line([0,0], [x2,y2], lw=7, c='blue3').scale(0.75).mirror()
+        ore = Line([0, 0], [x1, y1], lw=14, c="red4").scale(0.5).mirror()
+        minu = Line([0, 0], [x2, y2], lw=7, c="blue3").scale(0.75).mirror()
         secs = None
         if s is not None:
-            secs= Line([0,0], [x3,y3], lw=1, c='k').scale(0.95).mirror()
+            secs = Line([0, 0], [x3, y3], lw=1, c="k").scale(0.95).mirror()
             secs.z(0.003)
         back1 = vedo.shapes.Circle(res=180, c="k5")
-        back2 = vedo.shapes.Circle(res=12).mirror().scale(0.84).rotate_z(-360/12)
-        labels = back2.labels(
-            range(1,13),
-            justify="center",
-            font=font,
-            c=c,
-            scale=0.14,
-        )
-        txt = vedo.shapes.Text3D(
-            wd + title,
-            font="VictorMono",
-            justify="top-center",
-            s=0.07,
-            c=c,
-        )
-        txt.pos(0,-0.25, 0.001)
+        back2 = vedo.shapes.Circle(res=12).mirror().scale(0.84).rotate_z(-360 / 12)
+        labels = back2.labels(range(1, 13), justify="center", font=font, c=c, scale=0.14)
+        txt = vedo.shapes.Text3D(wd + title, font="VictorMono", justify="top-center", s=0.07, c=c)
+        txt.pos(0, -0.25, 0.001)
         labels.z(0.001)
         minu.z(0.002)
         vedo.Assembly.__init__(self, [back1, labels, ore, minu, secs, txt])
@@ -1706,29 +1675,29 @@ class Clock(vedo.Assembly):
 
         h = int(h) % 24
         m = int(m) % 60
-        t = (h*60+m) / 12 / 60
+        t = (h * 60 + m) / 12 / 60
 
-        alpha = 2*np.pi*t + np.pi/2
-        beta  = 12*2*np.pi*t + np.pi/2
+        alpha = 2 * np.pi * t + np.pi / 2
+        beta = 12 * 2 * np.pi * t + np.pi / 2
 
-        x1,y1 = np.cos(alpha), np.sin(alpha)
-        x2,y2 = np.cos(beta),  np.sin(beta)
+        x1, y1 = np.cos(alpha), np.sin(alpha)
+        x2, y2 = np.cos(beta), np.sin(beta)
         if s is not None:
             s = int(s) % 60
-            gamma = s*2*np.pi /60 + np.pi/2
-            x3,y3 = np.cos(gamma), np.sin(gamma)
+            gamma = s * 2 * np.pi / 60 + np.pi / 2
+            x3, y3 = np.cos(gamma), np.sin(gamma)
 
         pts2 = parts[2].points()
-        pts2[1] = [-x1*0.5,y1*0.5, 0.001]
+        pts2[1] = [-x1 * 0.5, y1 * 0.5, 0.001]
         parts[2].points(pts2)
 
         pts3 = parts[3].points()
-        pts3[1] = [-x2*0.75,y2*0.75, 0.002]
+        pts3[1] = [-x2 * 0.75, y2 * 0.75, 0.002]
         parts[3].points(pts3)
 
         if s is not None:
             pts4 = parts[4].points()
-            pts4[1] = [-x3*0.95,y3*0.95, 0.003]
+            pts4[1] = [-x3 * 0.95, y3 * 0.95, 0.003]
             parts[4].points(pts4)
 
         return self
