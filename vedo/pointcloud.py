@@ -229,8 +229,7 @@ def delaunay2d(plist, mode="scipy", boundaries=(), tol=None, alpha=0, offset=0, 
     msh = vedo.mesh.Mesh(delny.GetOutput()).clean().lighting("off")
 
     msh.pipeline = utils.OperationNode(
-        "delaunay2d", parents=parents, 
-        comment=f"#cells {msh._data.GetNumberOfCells()}",
+        "delaunay2d", parents=parents, comment=f"#cells {msh._data.GetNumberOfCells()}"
     )
     return msh
 
@@ -721,15 +720,7 @@ def Point(pos=(0, 0, 0), r=12, c="red", alpha=1):
 class Points(BaseActor, vtk.vtkActor):
     """Work with pointclouds."""
 
-    def __init__(
-        self, 
-        inputobj=None, 
-        r=4,
-        c=(0.2, 0.2, 0.2), 
-        alpha=1, 
-        blur=False, 
-        emissive=True,
-    ):
+    def __init__(self, inputobj=None, r=4, c=(0.2, 0.2, 0.2), alpha=1, blur=False, emissive=True):
         """
         Build an object made of only vertex points for a list of 2D/3D points.
         Both shapes (N, 3) or (3, N) are accepted as input, if N>3.
@@ -905,9 +896,9 @@ class Points(BaseActor, vtk.vtkActor):
                             rc, gc, bc, ac = cols[i]
                             ucols.InsertNextTuple4(rc, gc, bc, ac)
                     else:
-                        for i in range(n): # SLOW
-                            rc,gc,bc = colors.get_color(cols[i])
-                            ucols.InsertNextTuple4(rc*255, gc*255, bc*255, alphas[i]*255)
+                        for i in range(n):  # SLOW
+                            rc, gc, bc = colors.get_color(cols[i])
+                            ucols.InsertNextTuple4(rc * 255, gc * 255, bc * 255, alphas[i] * 255)
                 else:
                     c = cols
 
@@ -928,7 +919,7 @@ class Points(BaseActor, vtk.vtkActor):
 
             ##########
             self.pipeline = utils.OperationNode(
-                self, parents=[], comment=f"#pts {self._data.GetNumberOfPoints()}",
+                self, parents=[], comment=f"#pts {self._data.GetNumberOfPoints()}"
             )
             return
             ##########
@@ -965,7 +956,7 @@ class Points(BaseActor, vtk.vtkActor):
         self._mapper.SetInputData(self._data)
 
         self.pipeline = utils.OperationNode(
-            self, parents=[], comment=f"#pts {self._data.GetNumberOfPoints()}",
+            self, parents=[], comment=f"#pts {self._data.GetNumberOfPoints()}"
         )
         return
 
@@ -993,7 +984,7 @@ class Points(BaseActor, vtk.vtkActor):
 
         bounds = "<br/>".join(
             [
-                utils.precision(min_x,4) + " ... " + utils.precision(max_x,4)
+                utils.precision(min_x, 4) + " ... " + utils.precision(max_x, 4)
                 for min_x, max_x in zip(self.bounds()[::2], self.bounds()[1::2])
             ]
         )
@@ -1002,13 +993,13 @@ class Points(BaseActor, vtk.vtkActor):
         help_text = ""
         if self.name:
             help_text += f"<b> {self.name}: &nbsp&nbsp</b>"
-        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>" 
+        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
         if self.filename:
             dots = ""
             if len(self.filename) > 30:
                 dots = "..."
             help_text += f"<br/><code><i>({dots}{self.filename[-30:]})</i></code>"
-        
+
         pdata = ""
         if self._data.GetPointData().GetScalars():
             if self._data.GetPointData().GetScalars().GetName():
@@ -1023,12 +1014,17 @@ class Points(BaseActor, vtk.vtkActor):
 
         all = [
             "<table>",
-            "<tr>", 
-            "<td>", image, "</td>",
-            "<td style='text-align: center; vertical-align: center;'><br/>", help_text,
+            "<tr>",
+            "<td>",
+            image,
+            "</td>",
+            "<td style='text-align: center; vertical-align: center;'><br/>",
+            help_text,
             "<table>",
             "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>" + str(bounds) + "</td></tr>",
-            "<tr><td><b> center of mass </b></td><td>" + utils.precision(self.center_of_mass(),3) + "</td></tr>",
+            "<tr><td><b> center of mass </b></td><td>"
+            + utils.precision(self.center_of_mass(), 3)
+            + "</td></tr>",
             "<tr><td><b> average size </b></td><td>" + str(average_size) + "</td></tr>",
             "<tr><td><b> nr. points </b></td><td>" + str(self.npoints) + "</td></tr>",
             pdata,
@@ -1135,7 +1131,7 @@ class Points(BaseActor, vtk.vtkActor):
             bfpr = vtk.vtkProperty()
             bfpr.DeepCopy(self.GetBackfaceProperty())
             cloned.SetBackfaceProperty(bfpr)
-        
+
         if not transformed:
             if self.transform:
                 # already has a transform which can be non linear, so use that
@@ -1174,9 +1170,7 @@ class Points(BaseActor, vtk.vtkActor):
         cloned.point_locator = None
         cloned.cell_locator = None
 
-        cloned.pipeline = utils.OperationNode(
-            "clone", parents=[self], shape='diamond', c='#edede9',
-        )
+        cloned.pipeline = utils.OperationNode("clone", parents=[self], shape="diamond", c="#edede9")
         return cloned
 
     def clone2d(
@@ -1354,8 +1348,7 @@ class Points(BaseActor, vtk.vtkActor):
 
         data.RemoveDeletedCells()
         self.mapper().Modified()
-        self.pipeline = utils.OperationNode(
-            f"delete {n} cells\nby point index", parents=[self])
+        self.pipeline = utils.OperationNode(f"delete {n} cells\nby point index", parents=[self])
         return self
 
     def compute_normals_with_pca(self, n=20, orientation_point=None, invert=False):
@@ -1395,8 +1388,8 @@ class Points(BaseActor, vtk.vtkActor):
         self.inputdata().GetPointData().SetNormals(varr)
         self.inputdata().GetPointData().Modified()
         return self
-    
-    def compute_acoplanarity(self, n=25, radius=None, on='points'):
+
+    def compute_acoplanarity(self, n=25, radius=None, on="points"):
         """
         Compute acoplanarity which is a measure of how much a local region of the mesh 
         differs from a plane.
@@ -1415,14 +1408,14 @@ class Points(BaseActor, vtk.vtkActor):
             ![](https://vedo.embl.es/images/feats/acoplanarity.jpg)
         """
         acoplanarities = []
-        if 'point'  in on:
+        if "point" in on:
             pts = self.points()
-        elif 'cell' in on:
+        elif "cell" in on:
             pts = self.cell_centers()
         else:
             raise ValueError(f"In compute_acoplanarity() set on to either 'cells' or 'points', not {on}")
 
-        for p in utils.progressbar(pts, delay=5, width=15, title=f'{on} acoplanarity'):
+        for p in utils.progressbar(pts, delay=5, width=15, title=f"{on} acoplanarity"):
             if n:
                 data = self.closest_point(p, n=n)
                 npts = n
@@ -1433,11 +1426,11 @@ class Points(BaseActor, vtk.vtkActor):
             try:
                 center = data.mean(axis=0)
                 res = np.linalg.svd(data - center)
-                acoplanarities.append(res[1][2]/npts)
+                acoplanarities.append(res[1][2] / npts)
             except:
                 acoplanarities.append(-1.0)
 
-        if 'point'  in on:
+        if "point" in on:
             self.pointdata["Acoplanarity"] = np.array(acoplanarities, dtype=float)
         else:
             self.celldata["Acoplanarity"] = np.array(acoplanarities, dtype=float)
@@ -1503,10 +1496,10 @@ class Points(BaseActor, vtk.vtkActor):
         rng = scals.GetRange()
         self.mapper().SetScalarRange(rng[0], rng[1])
         self.mapper().ScalarVisibilityOn()
-        
+
         self.pipeline = utils.OperationNode(
-            "distance_to", 
-            parents=[self, pcloud], 
+            "distance_to",
+            parents=[self, pcloud],
             shape="cylinder",
             comment=f"#pts {self._data.GetNumberOfPoints()}",
         )
@@ -1609,8 +1602,7 @@ class Points(BaseActor, vtk.vtkActor):
         out = self._update(cpd.GetOutput())
 
         out.pipeline = utils.OperationNode(
-            "clean", parents=[self], 
-            comment=f"#pts {out._data.GetNumberOfPoints()}",
+            "clean", parents=[self], comment=f"#pts {out._data.GetNumberOfPoints()}"
         )
         return out
 
@@ -1632,7 +1624,9 @@ class Points(BaseActor, vtk.vtkActor):
         """
         if not absolute:
             if fraction > 1:
-                vedo.logger.warning(f"subsample(fraction=...), fraction must be < 1, but is {fraction}")
+                vedo.logger.warning(
+                    f"subsample(fraction=...), fraction must be < 1, but is {fraction}"
+                )
             if fraction <= 0:
                 return self
 
@@ -1643,7 +1637,7 @@ class Points(BaseActor, vtk.vtkActor):
         cpd.ConvertStripsToPolysOn()
         cpd.SetInputData(self.inputdata())
         if absolute:
-            cpd.SetTolerance(fraction/self.diagonal_size())
+            cpd.SetTolerance(fraction / self.diagonal_size())
             # cpd.SetToleranceIsAbsolute(absolute)
         else:
             cpd.SetTolerance(fraction)
@@ -1652,12 +1646,11 @@ class Points(BaseActor, vtk.vtkActor):
         ps = 2
         if self.GetProperty().GetRepresentation() == 0:
             ps = self.GetProperty().GetPointSize()
-        
+
         out = self._update(cpd.GetOutput()).ps(ps)
 
         out.pipeline = utils.OperationNode(
-            "subsample", parents=[self],
-            comment=f"#pts {out._data.GetNumberOfPoints()}",
+            "subsample", parents=[self], comment=f"#pts {out._data.GetNumberOfPoints()}"
         )
         return out
 
@@ -1836,7 +1829,7 @@ class Points(BaseActor, vtk.vtkActor):
             cells = True
 
         if isinstance(content, str):
-            if content in ('cellid', 'cellsid'):
+            if content in ("cellid", "cellsid"):
                 cells = True
                 content = "id"
 
@@ -1971,19 +1964,19 @@ class Points(BaseActor, vtk.vtkActor):
         return ids
 
     def labels2d(
-            self,
-            content="id",
-            on="points",
-            scale=1,
-            precision=4,
-            font="Calco",
-            justify="bottom-left",
-            angle=0,
-            frame=False,
-            c="black",
-            bc=None,
-            alpha=1,
-        ):
+        self,
+        content="id",
+        on="points",
+        scale=1,
+        precision=4,
+        font="Calco",
+        justify="bottom-left",
+        angle=0,
+        frame=False,
+        c="black",
+        bc=None,
+        alpha=1,
+    ):
         """
         Generate value or ID bi-dimensional labels for mesh cells or points.
 
@@ -2016,17 +2009,17 @@ class Points(BaseActor, vtk.vtkActor):
         """
         cells = False
         if isinstance(content, str):
-            if content in ('cellid', 'cellsid'):
+            if content in ("cellid", "cellsid"):
                 cells = True
                 content = "id"
-        
+
         if "cell" in on:
             cells = True
         elif "point" in on:
             cells = False
 
         if cells:
-            if content != 'id' and content not in self.celldata.keys():
+            if content != "id" and content not in self.celldata.keys():
                 vedo.logger.error(f"In labels2d: cell array {content} does not exist.")
                 return None
             cellcloud = Points(self.cell_centers())
@@ -2035,19 +2028,19 @@ class Points(BaseActor, vtk.vtkActor):
             poly.GetPointData().SetScalars(arr)
         else:
             poly = self.polydata()
-            if content != 'id' and content not in self.pointdata.keys():
+            if content != "id" and content not in self.pointdata.keys():
                 vedo.logger.error(f"In labels2d: point array {content} does not exist.")
                 return None
             self.pointdata.select(content)
 
         mp = vtk.vtkLabeledDataMapper()
 
-        if content == 'id':
+        if content == "id":
             mp.SetLabelModeToLabelIds()
         else:
             mp.SetLabelModeToLabelScalars()
             if precision is not None:
-                mp.SetLabelFormat(f'%-#.{precision}g')
+                mp.SetLabelFormat(f"%-#.{precision}g")
 
         pr = mp.GetLabelTextProperty()
         c = colors.get_color(c)
@@ -2063,7 +2056,7 @@ class Points(BaseActor, vtk.vtkActor):
         pr.SetFontFamily(vtk.VTK_FONT_FILE)
         fl = utils.get_font_path(font)
         pr.SetFontFile(fl)
-        pr.SetFontSize(int(20*scale))
+        pr.SetFontSize(int(20 * scale))
 
         if "cent" in justify or "mid" in justify:
             pr.SetJustificationToCentered()
@@ -2185,8 +2178,7 @@ class Points(BaseActor, vtk.vtkActor):
             c = np.array(self.color()) / 1.4
 
         lb = vedo.shapes.Text3D(
-            txt, pos=pt+offset, s=s, font=font,
-            italic=italic, justify="center-left",
+            txt, pos=pt + offset, s=s, font=font, italic=italic, justify="center-left"
         )
         acts.append(lb)
 
@@ -2201,13 +2193,13 @@ class Points(BaseActor, vtk.vtkActor):
             )
         else:
             box = vedo.shapes.Line(
-                [(x0,y0,z0), (x1,y0,z0), (x1,y1,z0), (x0,y1,z0), (x0,y0,z0)]
+                [(x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0), (x0, y0, z0)]
             )
 
-        cnt = [(x0+x1) / 2, (y0+y1) / 2, (z0+z1) / 2]
+        cnt = [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2]
 
         box.SetOrigin(cnt)
-        box.scale([1 + padding, 1 + 2*padding, 1])
+        box.scale([1 + padding, 1 + 2 * padding, 1])
         acts.append(box)
 
         # pts = box.points()
@@ -2311,21 +2303,11 @@ class Points(BaseActor, vtk.vtkActor):
         point = utils.make3d(point)
 
         if offset is None:
-            offset = [0,0, (z1-z0)/2]
+            offset = [0, 0, (z1 - z0) / 2]
         offset = utils.make3d(offset)
 
         fpost = vedo.addons.Flagpost(
-            txt, 
-            point, 
-            point + offset,
-            s,
-            c,
-            bc,
-            alpha,
-            lw,
-            font,
-            justify,
-            vspacing,
+            txt, point, point + offset, s, c, bc, alpha, lw, font, justify, vspacing
         )
         self._caption = fpost
         return fpost
@@ -2457,14 +2439,7 @@ class Points(BaseActor, vtk.vtkActor):
         "Deprecated, Please use `align_to()`."
         return self.align_to(*a, **b)
 
-    def align_to(
-            self,
-            target,
-            iters=100,
-            rigid=False,
-            invert=False,
-            use_centroids=False,
-        ):
+    def align_to(self, target, iters=100, rigid=False, invert=False, use_centroids=False):
         """
         Aligned to target mesh through the `Iterative Closest Point` algorithm.
 
@@ -2511,20 +2486,15 @@ class Points(BaseActor, vtk.vtkActor):
         self.transform = self.GetUserTransform()
         self.point_locator = None
         self.cell_locator = None
-        
+
         self.pipeline = utils.OperationNode(
-            "align_to", parents=[self, target], comment=f"rigid = {rigid}",
+            "align_to", parents=[self, target], comment=f"rigid = {rigid}"
         )
         return self
 
     def transform_with_landmarks(
-            self,
-            source_landmarks,
-            target_landmarks,
-            rigid=False,
-            affine=False,
-            least_squares=False,
-        ):
+        self, source_landmarks, target_landmarks, rigid=False, affine=False, least_squares=False
+    ):
         """
         Transform mesh orientation and position based on a set of landmarks points.
         The algorithm finds the best matching of source points to target points
@@ -2580,13 +2550,13 @@ class Points(BaseActor, vtk.vtkActor):
         elif least_squares:
             cms = source_landmarks.mean(axis=0)
             cmt = target_landmarks.mean(axis=0)
-            m = np.linalg.lstsq(source_landmarks-cms, target_landmarks-cmt, rcond=None)[0]
+            m = np.linalg.lstsq(source_landmarks - cms, target_landmarks - cmt, rcond=None)[0]
             M = vtk.vtkMatrix4x4()
             for i in range(3):
                 for j in range(3):
                     M.SetElement(j, i, m[i][j])
             lmt = vtk.vtkTransform()
-            lmt.Translate( cmt)
+            lmt.Translate(cmt)
             lmt.Concatenate(M)
             lmt.Translate(-cms)
             self.apply_transform(lmt, concatenate=True)
@@ -2653,7 +2623,7 @@ class Points(BaseActor, vtk.vtkActor):
             tr.SetMatrix(M)
             T = tr
 
-        if reset or not hasattr(T, 'GetScale'): # might be non-linear
+        if reset or not hasattr(T, "GetScale"):  # might be non-linear
 
             tf = vtk.vtkTransformPolyDataFilter()
             tf.SetTransform(T)
@@ -2664,7 +2634,7 @@ class Points(BaseActor, vtk.vtkActor):
             self.PokeMatrix(I)  # reset to identity
             self.SetUserTransform(None)
 
-            self._update(tf.GetOutput()) ### UPDATE
+            self._update(tf.GetOutput())  ### UPDATE
             self.transform = T
 
         else:
@@ -2764,8 +2734,7 @@ class Points(BaseActor, vtk.vtkActor):
 
         out = self._update(outpoly)
 
-        out.pipeline = utils.OperationNode(
-            f"mirror\naxis = {axis}", parents=[self])
+        out.pipeline = utils.OperationNode(f"mirror\naxis = {axis}", parents=[self])
         return out
 
     def shear(self, x=0, y=0, z=0):
@@ -2801,7 +2770,7 @@ class Points(BaseActor, vtk.vtkActor):
         vmax=None,
         n_colors=256,
         alpha=1,
-        logscale=False
+        logscale=False,
     ):
         """
         Set individual point/cell colors by providing a list of scalar values and a color map.
@@ -2853,7 +2822,7 @@ class Points(BaseActor, vtk.vtkActor):
         else:
             vedo.logger.error("Must specify in cmap(on=...) to either 'cells' or 'points'")
             raise RuntimeError()
-        
+
         if input_array is None:  # if None try to fetch the active scalars
             arr = data.GetScalars()
             if not arr:
@@ -2862,7 +2831,7 @@ class Points(BaseActor, vtk.vtkActor):
 
             if not arr.GetName():  # sometimes arrays dont have a name..
                 arr.SetName(name)
-            
+
         elif isinstance(input_array, str):  # if a string is passed
             arr = data.GetArray(input_array)
             if not arr:
@@ -2914,8 +2883,8 @@ class Points(BaseActor, vtk.vtkActor):
         if not utils.is_sequence(alpha):
             alpha = [alpha] * n_colors
         else:
-            v = np.linspace(0,1, n_colors, endpoint=True)
-            xp = np.linspace(0,1, len(alpha), endpoint=True)
+            v = np.linspace(0, 1, n_colors, endpoint=True)
+            xp = np.linspace(0, 1, len(alpha), endpoint=True)
             alpha = np.interp(v, xp, alpha)
 
         ########################### build the look-up table
@@ -2959,7 +2928,7 @@ class Points(BaseActor, vtk.vtkActor):
             data.GetScalars().Modified()
 
         self._mapper.SetLookupTable(lut)
-        self._mapper.SetColorModeToMapScalars() # so we dont need to convert uint8 scalars
+        self._mapper.SetColorModeToMapScalars()  # so we dont need to convert uint8 scalars
 
         self._mapper.ScalarVisibilityOn()
         self._mapper.SetScalarRange(lut.GetRange())
@@ -3005,11 +2974,11 @@ class Points(BaseActor, vtk.vtkActor):
             if vscalars is None or lut is None:
                 arr = np.zeros([self.ncells, 4], dtype=np.uint8)
                 col = np.array(self.property.GetColor())
-                col = np.round(col*255).astype(np.uint8)
+                col = np.round(col * 255).astype(np.uint8)
                 alf = self.property.GetOpacity()
-                alf = np.round(alf*255).astype(np.uint8)
-                arr[:,(0,1,2)] = col
-                arr[:,3] = alf
+                alf = np.round(alf * 255).astype(np.uint8)
+                arr[:, (0, 1, 2)] = col
+                arr[:, 3] = alf
             else:
                 cols = lut.MapScalars(vscalars, 0, 0)
                 arr = utils.vtk2numpy(cols)
@@ -3031,8 +3000,8 @@ class Points(BaseActor, vtk.vtkActor):
             value = np.repeat([value], n, axis=0)
 
         if value.shape[1] == 3:
-            z = np.zeros((n,1), dtype=np.uint8)
-            value = np.append(value, z+255, axis=1)
+            z = np.zeros((n, 1), dtype=np.uint8)
+            value = np.append(value, z + 255, axis=1)
 
         assert n == value.shape[0]
 
@@ -3057,11 +3026,11 @@ class Points(BaseActor, vtk.vtkActor):
             if vscalars is None or lut is None:
                 arr = np.zeros([self.npoints, 4], dtype=np.uint8)
                 col = np.array(self.property.GetColor())
-                col = np.round(col*255).astype(np.uint8)
+                col = np.round(col * 255).astype(np.uint8)
                 alf = self.property.GetOpacity()
-                alf = np.round(alf*255).astype(np.uint8)
-                arr[:,(0,1,2)] = col
-                arr[:,3] = alf
+                alf = np.round(alf * 255).astype(np.uint8)
+                arr[:, (0, 1, 2)] = col
+                arr[:, 3] = alf
             else:
                 cols = lut.MapScalars(vscalars, 0, 0)
                 arr = utils.vtk2numpy(cols)
@@ -3083,8 +3052,8 @@ class Points(BaseActor, vtk.vtkActor):
             value = np.repeat([value], n, axis=0)
 
         if value.shape[1] == 3:
-            z = np.zeros((n,1), dtype=np.uint8)
-            value = np.append(value, z+255, axis=1)
+            z = np.zeros((n, 1), dtype=np.uint8)
+            value = np.append(value, z + 255, axis=1)
 
         assert n == value.shape[0]
 
@@ -3093,19 +3062,20 @@ class Points(BaseActor, vtk.vtkActor):
 
 
     @deprecated(reason=vedo.colors.red + "Please use interpolate_data_from()" + vedo.colors.reset)
-    def interpolateDataFrom(self,
-            source,
-            radius=None,
-            N=None,
-            kernel="shepard",
-            exclude=("Normals",),
-            on="points",
-            nullStrategy=1,
-            nullValue=0,
-        ):
+    def interpolateDataFrom(
+        self,
+        source,
+        radius=None,
+        N=None,
+        kernel="shepard",
+        exclude=("Normals",),
+        on="points",
+        nullStrategy=1,
+        nullValue=0,
+    ):
         "Deprecated. Please use `interpolate_data_from()`."
         return self.interpolate_data_from(
-            source, radius, N, kernel, exclude, on, nullStrategy, nullValue,
+            source, radius, N, kernel, exclude, on, nullStrategy, nullValue
         )
 
     def interpolate_data_from(
@@ -3218,10 +3188,8 @@ class Points(BaseActor, vtk.vtkActor):
             tf.SetInputData(cpoly)
             tf.Update()
             self._update(tf.GetOutput())
-    
-        self.pipeline = utils.OperationNode(
-            "interpolate_data_from", parents=[self, source], 
-        )
+
+        self.pipeline = utils.OperationNode("interpolate_data_from", parents=[self, source])
         return self
 
     def add_gaussian_noise(self, sigma=1):
@@ -3251,10 +3219,7 @@ class Points(BaseActor, vtk.vtkActor):
         self.inputdata().GetPoints().Modified()
         self.pointdata["GaussianNoise"] = -ns
         self.pipeline = utils.OperationNode(
-            "gaussian_noise", 
-            parents=[self], 
-            shape="egg",
-            comment=f"sigma = {sigma}",
+            "gaussian_noise", parents=[self], shape="egg", comment=f"sigma = {sigma}"
         )
         return self
 
@@ -3559,8 +3524,8 @@ class Points(BaseActor, vtk.vtkActor):
         self.points(newpts)
 
         self.pipeline = utils.OperationNode("smooth_mls_2d", parents=[self])
-        return self 
-    
+        return self
+
     def smooth_lloyd_2d(self, iterations=2, bounds=None, options="Qbb Qc Qx"):
         """Lloyd relaxation of a 2D pointcloud."""
         # Credits: https://hatarilabs.com/ih-en/
@@ -3583,11 +3548,10 @@ class Points(BaseActor, vtk.vtkActor):
             area = 0
             centroid_x = 0
             centroid_y = 0
-            for i in range(len(vertices)-1):
-                step = (vertices[i  , 0] * vertices[i+1, 1]) - \
-                    (vertices[i+1, 0] * vertices[i  , 1])
-                centroid_x += (vertices[i, 0] + vertices[i+1, 0]) * step
-                centroid_y += (vertices[i, 1] + vertices[i+1, 1]) * step
+            for i in range(len(vertices) - 1):
+                step = (vertices[i, 0] * vertices[i + 1, 1]) - (vertices[i + 1, 0] * vertices[i, 1])
+                centroid_x += (vertices[i, 0] + vertices[i + 1, 0]) * step
+                centroid_y += (vertices[i, 1] + vertices[i + 1, 1]) * step
                 area += step
             if area:
                 centroid_x = (1.0 / (3.0 * area)) * centroid_x
@@ -4086,7 +4050,7 @@ class Points(BaseActor, vtk.vtkActor):
         #     rev.SetInputData(poly)
         #     rev.Update()
         #     poly = rev.GetOutput()
-       
+
         # Build loops from the polyline
         build_loops = vtk.vtkContourLoopExtraction()
         build_loops.SetInputData(poly)
@@ -4118,8 +4082,7 @@ class Points(BaseActor, vtk.vtkActor):
             tf.Update()
             self._update(tf.GetOutput())
 
-        self.pipeline = utils.OperationNode(
-            "cut_with_cookiecutter", parents=[self])
+        self.pipeline = utils.OperationNode("cut_with_cookiecutter", parents=[self])
         return self
 
     def cut_with_cylinder(self, center=(0, 0, 0), axis=(0, 0, 1), r=1, invert=False):
@@ -4342,13 +4305,7 @@ class Points(BaseActor, vtk.vtkActor):
         self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self, mesh])
         return self
 
-    def cut_with_point_loop(
-        self,
-        points,
-        invert=False,
-        on="points",
-        include_boundary=False,
-    ):
+    def cut_with_point_loop(self, points, invert=False, on="points", include_boundary=False):
         """
         Cut an `Mesh` object with a set of points forming a closed loop.
 
@@ -4417,9 +4374,8 @@ class Points(BaseActor, vtk.vtkActor):
             tf.SetInputData(clipper.GetOutput())
             tf.Update()
             self._update(tf.GetOutput())
-        
-        self.pipeline = utils.OperationNode(
-            "cut_with_pointloop", parents=parents)
+
+        self.pipeline = utils.OperationNode("cut_with_pointloop", parents=parents)
         return self
 
     def cut_with_scalars(self, value, name="", invert=False):
@@ -4457,12 +4413,10 @@ class Points(BaseActor, vtk.vtkActor):
         clipper.Update()
         self._update(clipper.GetOutput())
 
-        self.pipeline = utils.OperationNode(
-            "cut_with_scalars", parents=[self],
-        )
+        self.pipeline = utils.OperationNode("cut_with_scalars", parents=[self])
         return self
 
-    def implicit_modeller(self, distance=0.05, res=(50,50,50), bounds=(), maxdist=None):
+    def implicit_modeller(self, distance=0.05, res=(50, 50, 50), bounds=(), maxdist=None):
         """Find the surface which sits at the specified distance from the input one."""
         if not bounds:
             bounds = self.bounds()
@@ -4482,9 +4436,7 @@ class Points(BaseActor, vtk.vtkActor):
         poly = contour.GetOutput()
         out = vedo.Mesh(poly, c="lb")
 
-        out.pipeline = utils.OperationNode(
-            "implicit_modeller", parents=[self],
-        )        
+        out.pipeline = utils.OperationNode("implicit_modeller", parents=[self])
         return out
 
 
@@ -4579,7 +4531,8 @@ class Points(BaseActor, vtk.vtkActor):
             cmesh = grid.clone().cut_with_point_loop(contour, on="cells", invert=invert)
             cmesh.wireframe(False).lw(0.5)
             cmesh.pipeline = utils.OperationNode(
-                "generate_mesh", parents=[self, contour], 
+                "generate_mesh",
+                parents=[self, contour],
                 comment=f"#quads {cmesh._data.GetNumberOfCells()}",
             )
             return cmesh
@@ -4624,7 +4577,8 @@ class Points(BaseActor, vtk.vtkActor):
         dln.lw(0.5)
 
         dln.pipeline = utils.OperationNode(
-            "generate_mesh", parents=[self, contour], 
+            "generate_mesh",
+            parents=[self, contour],
             comment=f"#cells {dln._data.GetNumberOfCells()}",
         )
         return dln
@@ -4682,9 +4636,12 @@ class Points(BaseActor, vtk.vtkActor):
         else:
             x0, x1, y0, y1, z0, z1 = self.bounds()
             sdf.SetBounds(
-                x0-(x1-x0)*padding, x1+(x1-x0)*padding,
-                y0-(y1-y0)*padding, y1+(y1-y0)*padding,
-                z0-(z1-z0)*padding, z1+(z1-z0)*padding
+                x0 - (x1 - x0) * padding,
+                x1 + (x1 - x0) * padding,
+                y0 - (y1 - y0) * padding,
+                y1 + (y1 - y0) * padding,
+                z0 - (z1 - z0) * padding,
+                z1 + (z1 - z0) * padding,
             )
 
         pd = self.polydata()
@@ -4719,8 +4676,7 @@ class Points(BaseActor, vtk.vtkActor):
         m = vedo.mesh.Mesh(surface.GetOutput(), c=self.color())
 
         m.pipeline = utils.OperationNode(
-            "reconstruct_surface", parents=[self], 
-            comment=f"#pts {m._data.GetNumberOfPoints()}",
+            "reconstruct_surface", parents=[self], comment=f"#pts {m._data.GetNumberOfPoints()}"
         )
         return m
 
@@ -4744,12 +4700,11 @@ class Points(BaseActor, vtk.vtkActor):
         self.inputdata().GetPointData().AddArray(idsarr)
 
         self.pipeline = utils.OperationNode(
-            "compute_clustering", parents=[self],
-            comment=f"radius = {radius}",
+            "compute_clustering", parents=[self], comment=f"radius = {radius}"
         )
         return self
 
-    def compute_connections(self, radius, mode=0, regions=(), vrange=(0,1), seeds=(), angle=0):
+    def compute_connections(self, radius, mode=0, regions=(), vrange=(0, 1), seeds=(), angle=0):
         """
         Extracts and/or segments points from a point cloud based on geometric distance measures
         (e.g., proximity, normal alignments, etc.) and optional measures such as scalar range.
@@ -4845,12 +4800,7 @@ class Points(BaseActor, vtk.vtkActor):
         return self
 
     def density(
-        self,
-        dims=(40, 40, 40),
-        bounds=None,
-        radius=None,
-        compute_gradient=False,
-        locator=None,
+        self, dims=(40, 40, 40), bounds=None, radius=None, compute_gradient=False, locator=None
     ):
         """
         Generate a density field from a point cloud. Input can also be a set of 3D coordinates.
@@ -4884,7 +4834,7 @@ class Points(BaseActor, vtk.vtkActor):
 
         if bounds is None:
             bounds = list(self.bounds())
-        elif len(bounds)==4:
+        elif len(bounds) == 4:
             bounds = [*bounds, 0, 0]
 
         if bounds[5] - bounds[4] == 0 or len(dims) == 2:  # its 2D
@@ -4898,7 +4848,7 @@ class Points(BaseActor, vtk.vtkActor):
 
         if locator:
             pdf.SetLocator(locator)
-         
+
         pdf.SetDensityEstimateToFixedRadius()
         if radius is None:
             radius = self.diagonal_size() / 20
@@ -4911,10 +4861,9 @@ class Points(BaseActor, vtk.vtkActor):
         vol.name = "PointDensity"
         vol.info["radius"] = radius
         vol.locator = pdf.GetLocator()
-    
+
         vol.pipeline = utils.OperationNode(
-            "density", parents=[self], 
-            comment=f"dims = {tuple(vol.dimensions())}",
+            "density", parents=[self], comment=f"dims = {tuple(vol.dimensions())}"
         )
         return vol
 
@@ -4988,9 +4937,7 @@ class Points(BaseActor, vtk.vtkActor):
         cld.name = "densifiedCloud"
 
         cld.pipeline = utils.OperationNode(
-            "densify", parents=[self], 
-            c="#e9c46a:",
-            comment=f"#pts {cld._data.GetNumberOfPoints()}",
+            "densify", parents=[self], c="#e9c46a:", comment=f"#pts {cld._data.GetNumberOfPoints()}"
         )
         return cld
 
@@ -4999,11 +4946,11 @@ class Points(BaseActor, vtk.vtkActor):
     ## stuff returning Volume
 
     @deprecated(reason=vedo.colors.red + "Please use signed_distance()" + vedo.colors.reset)
-    def signedDistance(self, bounds=None, dims=(20,20,20), invert=False, maxradius=None):
+    def signedDistance(self, bounds=None, dims=(20, 20, 20), invert=False, maxradius=None):
         "Please use `signed_distance()`."
         return self.signed_distance(bounds, dims, invert, maxradius)
 
-    def signed_distance(self, bounds=None, dims=(20,20,20), invert=False, maxradius=None):
+    def signed_distance(self, bounds=None, dims=(20, 20, 20), invert=False, maxradius=None):
         """
         Compute the `Volume` object whose voxels contains the signed distance from
         the point cloud. The point cloud must have Normals.
@@ -5046,20 +4993,15 @@ class Points(BaseActor, vtk.vtkActor):
         vol.name = "SignedDistanceVolume"
 
         vol.pipeline = utils.OperationNode(
-            "signed_distance", parents=[self], 
+            "signed_distance",
+            parents=[self],
             comment=f"dim = {tuple(vol.dimensions())}",
-            c="#e9c46a:#0096c7"
+            c="#e9c46a:#0096c7",
         )
         return vol
 
     def tovolume(
-        self,
-        kernel="shepard",
-        radius=None,
-        n=None,
-        bounds=None,
-        null_value=None,
-        dims=(25, 25, 25),
+        self, kernel="shepard", radius=None, n=None, bounds=None, null_value=None, dims=(25, 25, 25)
     ):
         """
         Generate a `Volume` by interpolating a scalar
@@ -5144,12 +5086,13 @@ class Points(BaseActor, vtk.vtkActor):
         vol = vedo.Volume(interpolator.GetOutput())
 
         vol.pipeline = utils.OperationNode(
-            "signed_distance", parents=[self], 
+            "signed_distance",
+            parents=[self],
             comment=f"dim = {tuple(vol.dimensions())}",
             c="#e9c46a:#0096c7",
         )
         return vol
-    
+
     def generate_random_data(self):
         """Fill a dataset with random attributes"""
         gen = vtk.vtkRandomAttributeGenerator()
@@ -5162,9 +5105,7 @@ class Points(BaseActor, vtk.vtkActor):
         gen.Update()
 
         m = self._update(gen.GetOutput())
-        
-        m.pipeline = utils.OperationNode(
-            "generate\nrandom data", parents=[self]
-        )
+
+        m.pipeline = utils.OperationNode("generate\nrandom data", parents=[self])
         return m
 
