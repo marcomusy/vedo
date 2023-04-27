@@ -1100,7 +1100,7 @@ class Points(BaseActor, vtk.vtkActor):
             bfpr = vtk.vtkProperty()
             bfpr.DeepCopy(self.GetBackfaceProperty())
             cloned.SetBackfaceProperty(bfpr)
-
+        
         if not transformed:
             if self.transform:
                 # already has a transform which can be non linear, so use that
@@ -1123,6 +1123,9 @@ class Points(BaseActor, vtk.vtkActor):
         lut = sm.GetLookupTable()
         if lut:
             mp.SetLookupTable(lut)
+
+        if self.GetTexture():
+            cloned.texture(self.GetTexture())
 
         cloned.SetPickable(self.GetPickable())
 
