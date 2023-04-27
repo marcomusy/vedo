@@ -96,18 +96,18 @@ def start_k3d(actors2show):
         height=settings.k3d_plot_height,
         antialias=settings.k3d_antialias,
         background_color=_rgb2int(vedo.get_color(plt._bg)),
-        camera_fov=30.0,   # deg (this is the vtk default)
+        camera_fov=30.0,  # deg (this is the vtk default)
         lighting=settings.k3d_lighting,
         grid_color=_rgb2int(vedo.get_color(settings.k3d_axes_color)),
         label_color=_rgb2int(vedo.get_color(settings.k3d_axes_color)),
         axes_helper=settings.k3d_axes_helper,
         # axes_helper_colors=[_rgb2int(vedo.get_color("red5")), # not working
-        #                     _rgb2int(vedo.get_color("green5")), 
+        #                     _rgb2int(vedo.get_color("green5")),
         #                     _rgb2int(vedo.get_color("blue5"))],
     )
     # vedo.notebook_plotter.axes_helper_colors = [
     #     vedo.backends._rgb2int(vedo.get_color("red5")), # not working
-    #     vedo.backends._rgb2int(vedo.get_color("green5")), 
+    #     vedo.backends._rgb2int(vedo.get_color("green5")),
     #     vedo.backends._rgb2int(vedo.get_color("blue5"))
     # ]
 
@@ -181,10 +181,9 @@ def start_k3d(actors2show):
                     for i in range(nlut):
                         r, g, b, _ = lut.GetTableValue(i)
                         kcmap += [i / (nlut - 1), r, g, b]
-                
+
             else:
                 color_attribute = ia.color()
-
 
         #####################################################################Volume
         if isinstance(ia, Volume):
@@ -219,20 +218,18 @@ def start_k3d(actors2show):
             pos = (ia.GetPosition()[0], 1.0 - ia.GetPosition()[1])
 
             kobj = k3d.text2d(
-                ia.text(), 
+                ia.text(),
                 position=pos,
                 color=_rgb2int(vedo.get_color(ia.c())),
                 is_html=True,
-                size = ia.property.GetFontSize() / 22.5 * 1.5,
+                size=ia.property.GetFontSize() / 22.5 * 1.5,
                 label_box=bool(ia.property.GetFrame()),
                 # reference_point='bl',
             )
             vedo.notebook_plotter += kobj
 
         ################################################################# Lines
-        elif (ia.polydata(False).GetNumberOfLines() 
-              and ia.polydata(False).GetNumberOfPolys() == 0
-            ):
+        elif ia.polydata(False).GetNumberOfLines() and ia.polydata(False).GetNumberOfPolys() == 0:
 
             for i, ln_idx in enumerate(ia.lines()):
 
@@ -241,8 +238,8 @@ def start_k3d(actors2show):
                     break
 
                 pts = ia.points()[ln_idx]
-                
-                aves = ia.diagonal_size() * iap.GetLineWidth() /100
+
+                aves = ia.diagonal_size() * iap.GetLineWidth() / 100
 
                 kobj = k3d.line(
                     pts.astype(np.float32),
@@ -255,15 +252,12 @@ def start_k3d(actors2show):
                 vedo.notebook_plotter += kobj
 
         ################################################################## Mesh
-        elif (isinstance(ia, Mesh) 
-              and ia.npoints
-              and ia.polydata(False).GetNumberOfPolys()
-            ):
+        elif isinstance(ia, Mesh) and ia.npoints and ia.polydata(False).GetNumberOfPolys():
             # print('Mesh', ia.name, ia.npoints, len(ia.faces()))
-            
+
             if not vtkscals:
                 color_attribute = None
-            
+
             cols = []
             if ia._mapper.GetColorMode() == 0:
                 # direct RGB colors
@@ -271,7 +265,7 @@ def start_k3d(actors2show):
                 vcols = ia._data.GetPointData().GetScalars()
                 if vcols and vcols.GetNumberOfComponents() == 3:
                     cols = utils.vtk2numpy(vcols)
-                    cols = 65536 * cols[:,0] + 256 * cols[:,1] + cols[:,2]
+                    cols = 65536 * cols[:, 0] + 256 * cols[:, 1] + cols[:, 2]
                 # print("GetColor",iap.GetColor(), _rgb2int(iap.GetColor()) )
                 # print("colors", len(cols))
                 # print("color_attribute", color_attribute)
@@ -280,7 +274,7 @@ def start_k3d(actors2show):
                 # https://k3d-jupyter.org/reference/factory.mesh.html#colormap
 
                 kobj = k3d.mesh(
-                    iacloned.points(), 
+                    iacloned.points(),
                     iacloned.faces(),
                     colors=cols,
                     name=name,
@@ -292,7 +286,8 @@ def start_k3d(actors2show):
 
             else:
 
-                kobj = k3d.vtk_poly_data(iapoly,
+                kobj = k3d.vtk_poly_data(
+                    iapoly,
                     name=name,
                     color=_rgb2int(iap.GetColor()),
                     color_attribute=color_attribute,
@@ -313,13 +308,11 @@ def start_k3d(actors2show):
             kcols = []
             if kcmap is not None and vtkscals:
                 scals = utils.vtk2numpy(vtkscals)
-                kcols = k3d.helpers.map_colors(
-                    scals, 
-                    kcmap, 
-                    [scals_min, scals_max],
-                ).astype(np.uint32)
-            
-            aves = ia.average_size() * iap.GetPointSize() /200
+                kcols = k3d.helpers.map_colors(scals, kcmap, [scals_min, scals_max]).astype(
+                    np.uint32
+                )
+
+            aves = ia.average_size() * iap.GetPointSize() / 200
 
             kobj = k3d.points(
                 ia.points().astype(np.float32),
@@ -335,7 +328,6 @@ def start_k3d(actors2show):
         #####################################################################
         elif isinstance(ia, vedo.Picture):
             vedo.logger.error("Sorry Picture objects are not supported in k3d.")
-
 
     if plt and settings.backend_autoclose:
         plt.close()
@@ -391,10 +383,7 @@ def start_ipyvtklink():
     if hasattr(plt, "window") and plt.window:
         plt.renderer.ResetCamera()
         vedo.notebook_plotter = ViewInteractiveWidget(
-            plt.window,
-            allow_wheel=True,
-            quality=100,
-            quick_quality=50,
+            plt.window, allow_wheel=True, quality=100, quick_quality=50
         )
         return vedo.notebook_plotter
     vedo.logger.error("No window present for the ipyvtklink backend.")
