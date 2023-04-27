@@ -52,11 +52,12 @@ class Flagpost(vtk.vtkFlagpoleLabel):
     """
     Create a flag post style element to describe an object.
     """
+
     def __init__(
         self,
         txt="",
-        base=(0,0,0),
-        top=(0,0,1),
+        base=(0, 0, 0),
+        top=(0, 0, 1),
         s=1,
         c="k9",
         bc="k1",
@@ -102,19 +103,19 @@ class Flagpost(vtk.vtkFlagpoleLabel):
         """
 
         vtk.vtkFlagpoleLabel.__init__(self)
-        
+
         base = utils.make3d(base)
         top = utils.make3d(top)
 
         self.SetBasePosition(*base)
         self.SetTopPosition(*top)
-        
+
         self.SetFlagSize(s)
         self.SetInput(txt)
         self.PickableOff()
 
         self.GetProperty().LightingOff()
-        self.GetProperty().SetLineWidth(lw+1)
+        self.GetProperty().SetLineWidth(lw + 1)
 
         prop = self.GetTextProperty()
         if bc is not None:
@@ -167,13 +168,13 @@ class Flagpost(vtk.vtkFlagpoleLabel):
         return self
 
     def toggle(self):
-        self.SetVisibility(not(self.GetVisibility()))
+        self.SetVisibility(not (self.GetVisibility()))
         return self
 
     def use_bounds(self, value=True):
         self.SetUseBounds(value)
         return self
-    
+
     def color(self, c):
         c = get_color(c)
         self.GetTextProperty().SetColor(c)
@@ -312,9 +313,7 @@ class LegendBox(shapes.TextBase, vtk.vtkLegendBoxActor):
             else:
                 marker = markers[i] if utils.is_sequence(markers) else markers
                 if isinstance(marker, vedo.Points):
-                    poly = (
-                        marker.clone(deep=False).normalize().shift(0, 1, 0).polydata()
-                    )
+                    poly = marker.clone(deep=False).normalize().shift(0, 1, 0).polydata()
                 else:  # assume string marker
                     poly = vedo.shapes.Marker(marker, s=1).shift(0, 1, 0).polydata()
 
@@ -349,20 +348,8 @@ class Button:
     """
     Build a Button object.
     """
-    def __init__(
-        self,
-        fnc,
-        states,
-        c,
-        bc,
-        pos,
-        size,
-        font,
-        bold,
-        italic,
-        alpha,
-        angle,
-    ):
+
+    def __init__(self, fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle):
         """
         Build a Button object to be shown in the rendering window.
 
@@ -408,11 +395,11 @@ class Button:
         if not utils.is_sequence(c):
             c = [c]
         self.colors = c
-        
+
         if not utils.is_sequence(bc):
             bc = [bc]
         self.bcolors = bc
-        
+
         assert len(c) == len(bc), "in Button color number mismatch!"
         self.function = fnc
         self.actor = vtk.vtkTextActor()
@@ -501,7 +488,7 @@ class Button:
             s = self.states.index(s)
         self.status_idx = s
         self.text(self.states[s])
-        s = s % len(self.bcolors)  
+        s = s % len(self.bcolors)
         self.text(c=self.colors[s])
         self.backcolor(self.bcolors[s])
         return self
@@ -520,9 +507,8 @@ class SplineTool(vtk.vtkContourWidget):
     """
     Spline tool, draw a spline through a set of points interactively.
     """
-    def __init__(
-            self, points, pc="k", ps=8, lc="r4", ac="g5", lw=2, closed=False, ontop=True
-        ):
+
+    def __init__(self, points, pc="k", ps=8, lc="r4", ac="g5", lw=2, closed=False, ontop=True):
         """
         Spline tool, draw a spline through a set of points interactively.
 
@@ -636,6 +622,7 @@ class SplineTool(vtk.vtkContourWidget):
 #####################################################################
 class SliderWidget(vtk.vtkSliderWidget):
     """Helper class for vtkSliderWidget"""
+
     def __init__(self):
         vtk.vtkSliderWidget.__init__(self)
 
@@ -802,13 +789,7 @@ def Goniometer(
     return asse
 
 
-def Light(
-        pos,
-        focal_point=(0, 0, 0),
-        angle=180,
-        c=None,
-        intensity=1,
-    ):
+def Light(pos, focal_point=(0, 0, 0), angle=180, c=None, intensity=1):
     """
     Generate a source of light placed at `pos` and directed to `focal point`.
     Returns a `vtkLight` object.
@@ -855,18 +836,18 @@ def Light(
 
 #####################################################################
 def ScalarBar(
-        obj,
-        title="",
-        pos=(0.8,0.05),
-        title_yoffset=15,
-        font_size=12,
-        size=(None,None),
-        nlabels=None,
-        c='k',
-        horizontal=False,
-        use_alpha=True,
-        label_format=':6.3g',
-    ):
+    obj,
+    title="",
+    pos=(0.8, 0.05),
+    title_yoffset=15,
+    font_size=12,
+    size=(None, None),
+    nlabels=None,
+    c="k",
+    horizontal=False,
+    use_alpha=True,
+    label_format=":6.3g",
+):
     """
     A 2D scalar bar for the specified obj.
 
@@ -913,7 +894,7 @@ def ScalarBar(
     sb = vtk.vtkScalarBarActor()
 
     # print(sb.GetLabelFormat())
-    label_format = label_format.replace(":","%-#")
+    label_format = label_format.replace(":", "%-#")
     sb.SetLabelFormat(label_format)
 
     sb.SetLookupTable(lut)
@@ -987,29 +968,29 @@ def ScalarBar(
 
 #####################################################################
 def ScalarBar3D(
-        obj,
-        title='',
-        pos=None,
-        s=(None, None),
-        title_font="",
-        title_xoffset=-1.5,
-        title_yoffset=0.0,
-        title_size=1.5,
-        title_rotation=0.0,
-        nlabels=8,
-        label_font="",
-        label_size=1,
-        label_offset=0.375,
-        label_rotation=0,
-        label_format="",
-        italic=0,
-        c=None,
-        draw_box=True,
-        above_text=None,
-        below_text=None,
-        nan_text='NaN',
-        categories=None,
-    ):
+    obj,
+    title="",
+    pos=None,
+    s=(None, None),
+    title_font="",
+    title_xoffset=-1.5,
+    title_yoffset=0.0,
+    title_size=1.5,
+    title_rotation=0.0,
+    nlabels=8,
+    label_font="",
+    label_size=1,
+    label_offset=0.375,
+    label_rotation=0,
+    label_format="",
+    italic=0,
+    c=None,
+    draw_box=True,
+    above_text=None,
+    below_text=None,
+    nan_text="NaN",
+    categories=None,
+):
     """
     Create a 3D scalar bar for the specified object.
 
@@ -1081,9 +1062,9 @@ def ScalarBar3D(
 
     if categories is not None:  ################################
         ncats = len(categories)
-        scale = shapes.Grid([-sx * label_offset, 0, 0], c=c, alpha=1, s=(sx,sy), res=(1,ncats))
-        cols, alphas= [], []
-        ticks_pos, ticks_txt = [0.0], ['']
+        scale = shapes.Grid([-sx * label_offset, 0, 0], c=c, alpha=1, s=(sx, sy), res=(1, ncats))
+        cols, alphas = [], []
+        ticks_pos, ticks_txt = [0.0], [""]
         for i, cat in enumerate(categories):
             cl = get_color(cat[1])
             cols.append(cl)
@@ -1105,9 +1086,10 @@ def ScalarBar3D(
 
         # build the color scale part
         scale = shapes.Grid(
-            [-sx * label_offset, 0, 0], 
-            c=c, alpha=1, 
-            s=(sx,sy),
+            [-sx * label_offset, 0, 0],
+            c=c,
+            alpha=1,
+            s=(sx, sy),
             res=(1, lut.GetTable().GetNumberOfTuples()),
         )
         cscals = np.linspace(vmin, vmax, lut.GetTable().GetNumberOfTuples())
@@ -1166,9 +1148,7 @@ def ScalarBar3D(
             tacts.append(a)
 
             # build ticks
-            tic = shapes.Line(
-                [xbns[1], y, 0], [xbns[1] + sx * label_offset / 4, y, 0], lw=2, c=c
-            )
+            tic = shapes.Line([xbns[1], y, 0], [xbns[1] + sx * label_offset / 4, y, 0], lw=2, c=c)
             tacts.append(tic)
 
     # build title
@@ -1325,21 +1305,23 @@ class Slider2D(SliderWidget):
     """
     Add a slider which can call an external custom function.
     """
-    def __init__(self,
-            sliderfunc,
-            xmin,
-            xmax,
-            value=None,
-            pos=4,
-            title="",
-            font="",
-            title_size=1,
-            c="k",
-            alpha=1,
-            show_value=True,
-            delayed=False,
-            **options,
-        ):
+
+    def __init__(
+        self,
+        sliderfunc,
+        xmin,
+        xmax,
+        value=None,
+        pos=4,
+        title="",
+        font="",
+        title_size=1,
+        c="k",
+        alpha=1,
+        show_value=True,
+        delayed=False,
+        **options,
+    ):
         """
         Add a slider which can call an external custom function.
         Set any value as float to increase the number of significant digits above the slider.
@@ -1550,21 +1532,22 @@ class Slider3D(SliderWidget):
     """
     Add a 3D slider which can call an external custom function.
     """
+
     def __init__(
-            self,
-            sliderfunc,
-            pos1,
-            pos2,
-            xmin,
-            xmax,
-            value=None,
-            s=0.03,
-            t=1,
-            title="",
-            rotation=0,
-            c=None,
-            show_value=True,
-        ):
+        self,
+        sliderfunc,
+        pos1,
+        pos2,
+        xmin,
+        xmax,
+        value=None,
+        s=0.03,
+        t=1,
+        title="",
+        rotation=0,
+        c=None,
+        show_value=True,
+    ):
         """
         Add a 3D slider which can call an external custom function.
 
@@ -1733,12 +1716,13 @@ def _addCutterToolMeshWithSphere(mesh, invert):
     printc("  [Press space bar to continue]", c="m")
 
     plt.interactor.Start()
-    if vedo.vtk_version == (9,2,2): plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
+    if vedo.vtk_version == (9, 2, 2):
+        plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
 
     sphere_widget.Off()
 
     plt.interactor.Start()  # allow extra interaction
-    if vedo.vtk_version == (9,2,2): plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")
+    if vedo.vtk_version == (9,2,2): plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void") #HACK
     return act0
 
 
@@ -1917,7 +1901,8 @@ class RendererFrame(vtk.vtkActor2D):
     """
     Add a line around the renderer subwindow.
     """
-    def __init__(self, c='k', alpha=None, lw=None, padding=None):
+
+    def __init__(self, c="k", alpha=None, lw=None, padding=None):
         """
         Add a line around the renderer subwindow.
 
@@ -1931,7 +1916,7 @@ class RendererFrame(vtk.vtkActor2D):
             padding : (int)
                 padding in pixel units.
         """
-    
+
         if lw is None:
             lw = settings.renderer_frame_width
         if lw == 0:
@@ -1947,13 +1932,7 @@ class RendererFrame(vtk.vtkActor2D):
 
         ppoints = vtk.vtkPoints()  # Generate the polyline
         xy = 1 - padding
-        psqr = [
-            [padding, padding],
-            [padding, xy],
-            [xy, xy],
-            [xy, padding],
-            [padding, padding],
-        ]
+        psqr = [[padding, padding], [padding, xy], [xy, xy], [xy, padding], [padding, padding]]
         for i, pt in enumerate(psqr):
             ppoints.InsertPoint(i, pt[0], pt[1], 0)
         lines = vtk.vtkCellArray()
@@ -1985,6 +1964,7 @@ class Icon(vtk.vtkOrientationMarkerWidget):
     """
     Add an inset icon mesh into the renderer.
     """
+
     def __init__(self, mesh, pos=3, size=0.08):
         """
         Arguments:
@@ -2049,22 +2029,23 @@ def compute_visible_bounds(actors=None):
 
 #####################################################################
 def Ruler(
-        p1, p2,
-        units_scale=1,
-        label="",
-        s=None,
-        font=None,
-        italic=0,
-        prefix="",
-        units="",  #eg.'μm'
-        c=(0.2, 0.1, 0.1),
-        alpha=1,
-        lw=1,
-        precision=3,
-        label_rotation=0,
-        axis_rotation=0,
-        tick_angle=90,
-    ):
+    p1,
+    p2,
+    units_scale=1,
+    label="",
+    s=None,
+    font=None,
+    italic=0,
+    prefix="",
+    units="",  # eg.'μm'
+    c=(0.2, 0.1, 0.1),
+    alpha=1,
+    lw=1,
+    precision=3,
+    label_rotation=0,
+    axis_rotation=0,
+    tick_angle=90,
+):
     """
     Build a 3D ruler to indicate the distance of two points p1 and p2.
 
@@ -2108,10 +2089,10 @@ def Ruler(
     if isinstance(p2, Points):
         p2 = p2.GetPosition()
 
-    if len(p1)==2:
-        p1=[p1[0],p1[1],0.0]
-    if len(p2)==2:
-        p2=[p2[0],p2[1],0.0]
+    if len(p1) == 2:
+        p1 = [p1[0], p1[1], 0.0]
+    if len(p2) == 2:
+        p2 = [p2[0], p2[1], 0.0]
 
     p1, p2 = np.array(p1), np.array(p2)
     q1, q2 = [0, 0, 0], [utils.mag(p2 - p1), 0, 0]
@@ -2131,9 +2112,7 @@ def Ruler(
     if units:
         label += "~" + units
 
-    lb = shapes.Text3D(
-        label, pos=(q1 + q2) / 2, s=s, font=font, italic=italic, justify="center"
-    )
+    lb = shapes.Text3D(label, pos=(q1 + q2) / 2, s=s, font=font, italic=italic, justify="center")
     if label_rotation:
         lb.RotateZ(label_rotation)
 
@@ -2166,30 +2145,30 @@ def Ruler(
 
 
 def RulerAxes(
-        inputobj,
-        xtitle="",
-        ytitle="",
-        ztitle="",
-        xlabel="",
-        ylabel="",
-        zlabel="",
-        xpadding=0.05,
-        ypadding=0.04,
-        zpadding=0,
-        font="Normografo",
-        s=None,
-        italic=0,
-        units="",
-        c=(0.2, 0, 0),
-        alpha=1,
-        lw=1,
-        precision=3,
-        label_rotation=0,
-        xaxis_rotation=0,
-        yaxis_rotation=0,
-        zaxis_rotation=0,
-        xycross=True,
-    ):
+    inputobj,
+    xtitle="",
+    ytitle="",
+    ztitle="",
+    xlabel="",
+    ylabel="",
+    zlabel="",
+    xpadding=0.05,
+    ypadding=0.04,
+    zpadding=0,
+    font="Normografo",
+    s=None,
+    italic=0,
+    units="",
+    c=(0.2, 0, 0),
+    alpha=1,
+    lw=1,
+    precision=3,
+    label_rotation=0,
+    xaxis_rotation=0,
+    yaxis_rotation=0,
+    zaxis_rotation=0,
+    xycross=True,
+):
     """
     A 3D ruler axes to indicate the sizes of the input scene or object.
 
@@ -2298,23 +2277,25 @@ def RulerAxes(
     macts.PickableOff()
     return macts
 
+
 #####################################################################
 class Ruler2D(vtk.vtkAxisActor2D):
     """
     Create a ruler with tick marks, labels and a title.
     """
+
     def __init__(
-            self,
-            lw=2,
-            ticks=True,
-            labels=False,
-            c="k",
-            alpha=1,
-            title="",
-            font="Calco",
-            font_size=24,
-            bc=None,
-        ):
+        self,
+        lw=2,
+        ticks=True,
+        labels=False,
+        c="k",
+        alpha=1,
+        title="",
+        font="Calco",
+        font_size=24,
+        bc=None,
+    ):
         """
         Create a ruler with tick marks, labels and a title.
 
@@ -2370,12 +2351,12 @@ class Ruler2D(vtk.vtkAxisActor2D):
             vedo.logger.error("Ruler2D need to initialize Plotter first.")
             raise RuntimeError()
 
-        self.p0 = [0,0,0]
-        self.p1 = [0,0,0]
+        self.p0 = [0, 0, 0]
+        self.p1 = [0, 0, 0]
         self.distance = 0
         self.title = title
 
-        prop  = self.GetProperty()
+        prop = self.GetProperty()
         tprop = self.GetTitleTextProperty()
 
         self.SetTitle(title)
@@ -2407,18 +2388,14 @@ class Ruler2D(vtk.vtkAxisActor2D):
         lprop.ShallowCopy(tprop)
         self.SetLabelTextProperty(lprop)
 
-        self.SetLabelFormat('%0.3g')
+        self.SetLabelFormat("%0.3g")
         self.SetTickVisibility(ticks)
         self.SetLabelVisibility(labels)
         prop.SetLineWidth(lw)
         prop.SetColor(get_color(c))
 
         self.renderer = plt.renderer
-        self.cid = plt.interactor.AddObserver(
-            "RenderEvent",
-            self._update_viz,
-            1.0,
-        )
+        self.cid = plt.interactor.AddObserver("RenderEvent", self._update_viz, 1.0)
 
     def color(self, c):
         """Assign a new color."""
@@ -2437,7 +2414,7 @@ class Ruler2D(vtk.vtkAxisActor2D):
         """Set new values for the ruler start and end points."""
         self.p0 = np.asarray(p0)
         self.p1 = np.asarray(p1)
-        self._update_viz(0,0)
+        self._update_viz(0, 0)
         return self
 
     def _update_viz(self, evt, name):
@@ -2447,16 +2424,16 @@ class Ruler2D(vtk.vtkAxisActor2D):
         ren.SetWorldPoint(*self.p0, 1)
         ren.WorldToDisplay()
         disp_point1 = ren.GetDisplayPoint()[:2]
-        disp_point1 = np.array(disp_point1)/view_size
+        disp_point1 = np.array(disp_point1) / view_size
 
         ren.SetWorldPoint(*self.p1, 1)
         ren.WorldToDisplay()
         disp_point2 = ren.GetDisplayPoint()[:2]
-        disp_point2 = np.array(disp_point2)/view_size
+        disp_point2 = np.array(disp_point2) / view_size
 
         self.SetPoint1(*disp_point1)
         self.SetPoint2(*disp_point2)
-        self.distance = np.linalg.norm(self.p1-self.p0)
+        self.distance = np.linalg.norm(self.p1 - self.p0)
         self.SetRange(0, self.distance)
         if not self.title:
             self.SetTitle(utils.precision(self.distance, 3))
@@ -2467,6 +2444,7 @@ class DistanceTool(Group):
     """
     Create a tool to measure the distance between two clicked points.
     """
+
     def __init__(self, plotter=None, c="k", lw=2):
         """
         Create a tool to measure the distance between two clicked points.
@@ -2485,8 +2463,8 @@ class DistanceTool(Group):
         """
         Group.__init__(self)
 
-        self.p0 = [0,0,0]
-        self.p1 = [0,0,0]
+        self.p0 = [0, 0, 0]
+        self.p1 = [0, 0, 0]
         self.distance = 0
         if plotter is None:
             plotter = vedo.plotter_instance
@@ -3054,8 +3032,9 @@ def Axes(
 
         if xtitle:
             if x_inverted:
-                cx = shapes.Cone(r=tip_size, height=tip_size*2,
-                                 axis=(-1,0,0), c=xline_color, res=12)
+                cx = shapes.Cone(
+                    r=tip_size, height=tip_size * 2, axis=(-1, 0, 0), c=xline_color, res=12
+                )
             else:
                 cx = shapes.Cone((dx,0,0), r=tip_size, height=tip_size*2,
                                  axis=(1,0,0), c=xline_color, res=12)
@@ -3505,11 +3484,7 @@ def Axes(
             lt0, lt1 = xlab.GetBounds()[2:4]
             shift = lt1 - lt0
         xt.pos(
-            [
-                (xoffs + xtitle_position) * dx,
-                -(yoffs + xtick_length / 2) * dy - shift,
-                zoffs * dz,
-            ]
+            [(xoffs + xtitle_position) * dx, -(yoffs + xtick_length / 2) * dy - shift, zoffs * dz]
         )
         if xaxis_rotation:
             xt.rotate_x(xaxis_rotation)
@@ -3578,14 +3553,10 @@ def Axes(
             lt0, lt1 = ylab.GetBounds()[0:2]
             shift = lt1 - lt0
 
-        yt.pos(
-            -(xoffs + ytick_length / 2) * dx - shift,
-            (yoffs + ytitle_position) * dy,
-            zoffs * dz,
-        )
+        yt.pos(-(xoffs + ytick_length / 2) * dx - shift, (yoffs + ytitle_position) * dy, zoffs * dz)
         if yaxis_rotation:
             yt.rotate_y(yaxis_rotation)
-        if xyshift:      yt.shift(0, 0, xyshift*dz)
+        if xyshift:        yt.shift(0, 0, xyshift*dz)
         if yshift_along_x: yt.shift(yshift_along_x*dx, 0, 0)
         if yshift_along_z: yt.shift(0, 0, yshift_along_z*dz)
         yt.SetUseBounds(y_use_bounds)
@@ -3678,11 +3649,7 @@ def Axes(
         )
         if htitle_rotation:
             htit.RotateX(htitle_rotation)
-        wpos = [
-            (0.5 + htitle_offset[0]) * dx,
-            (1 + htitle_offset[1]) * dy,
-            htitle_offset[2] * dz,
-        ]
+        wpos = [(0.5 + htitle_offset[0]) * dx, (1 + htitle_offset[1]) * dy, htitle_offset[2] * dz]
         htit.pos(wpos)
         if xyshift:
             htit.shift(0, 0, xyshift * dz)
@@ -3811,9 +3778,7 @@ def add_global_axes(axtype=None, c=None):
             acts += [zero]
 
         if dx > aves / 100:
-            xl = shapes.Cylinder(
-                [[x0, 0, 0], [x1, 0, 0]], r=aves / 250 * s, c=xcol, alpha=alpha
-            )
+            xl = shapes.Cylinder([[x0, 0, 0], [x1, 0, 0]], r=aves / 250 * s, c=xcol, alpha=alpha)
             xc = shapes.Cone(
                 pos=[x1, 0, 0],
                 c=xcol,
@@ -3830,9 +3795,7 @@ def add_global_axes(axtype=None, c=None):
             acts += [xl, xc, xt]
 
         if dy > aves / 100:
-            yl = shapes.Cylinder(
-                [[0, y0, 0], [0, y1, 0]], r=aves / 250 * s, c=ycol, alpha=alpha
-            )
+            yl = shapes.Cylinder([[0, y0, 0], [0, y1, 0]], r=aves / 250 * s, c=ycol, alpha=alpha)
             yc = shapes.Cone(
                 pos=[0, y1, 0],
                 c=ycol,
@@ -3850,9 +3813,7 @@ def add_global_axes(axtype=None, c=None):
             acts += [yl, yc, yt]
 
         if dz > aves / 100:
-            zl = shapes.Cylinder(
-                [[0, 0, z0], [0, 0, z1]], r=aves / 250 * s, c=zcol, alpha=alpha
-            )
+            zl = shapes.Cylinder([[0, 0, z0], [0, 0, z1]], r=aves / 250 * s, c=zcol, alpha=alpha)
             zc = shapes.Cone(
                 pos=[0, 0, z1],
                 c=zcol,
