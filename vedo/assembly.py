@@ -17,11 +17,7 @@ Submodule for managing groups of vedo objects
 ![](https://vedo.embl.es/images/basic/align4.png)
 """
 
-__all__ = [
-    "Group",
-    "Assembly",
-    "procrustes_alignment",
-]
+__all__ = ["Group", "Assembly", "procrustes_alignment"]
 
 
 #################################################
@@ -77,6 +73,7 @@ def procrustes_alignment(sources, rigid=False):
 #################################################
 class Group(vtk.vtkPropAssembly):
     """Form groups of generic objects (not necessarily meshes)."""
+
     def __init__(self, objects=()):
         """Form groups of generic objects (not necessarily meshes)."""
 
@@ -162,7 +159,6 @@ class Group(vtk.vtkPropAssembly):
         self.SetDragable(value)
         return self
 
-
     def pos(self, x=None, y=None):
         """Set/Get object position."""
         if x is None:  # get functionality
@@ -192,7 +188,6 @@ class Group(vtk.vtkPropAssembly):
         b = self.GetBounds()
         return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2)
 
-
     def show(self, **options):
         """
         Create on the fly an instance of class ``Plotter`` or use the last existing one to
@@ -211,6 +206,7 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
     """
     Group many objects and treat them as a single new object.
     """
+
     def __init__(self, *meshs):
         """
         Group many objects and treat them as a single new object,
@@ -251,7 +247,7 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
             self.scalarbar = scalarbars[0]
 
         self.pipeline = vedo.utils.OperationNode(
-            "Assembly", parents=meshs, comment=f"#meshes {len(meshs)}", c="#f08080",
+            "Assembly", parents=meshs, comment=f"#meshes {len(meshs)}", c="#f08080"
         )
         ###################################################################
 
@@ -281,7 +277,7 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
         # statisitics
         bounds = "<br/>".join(
             [
-                vedo.utils.precision(min_x,4) + " ... " + vedo.utils.precision(max_x,4)
+                vedo.utils.precision(min_x, 4) + " ... " + vedo.utils.precision(max_x, 4)
                 for min_x, max_x in zip(self.bounds()[::2], self.bounds()[1::2])
             ]
         )
@@ -289,22 +285,29 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
         help_text = ""
         if self.name:
             help_text += f"<b> {self.name}: &nbsp&nbsp</b>"
-        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>" 
+        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
         if self.filename:
             dots = ""
             if len(self.filename) > 30:
                 dots = "..."
             help_text += f"<br/><code><i>({dots}{self.filename[-30:]})</i></code>"
-        
+
         all = [
             "<table>",
-            "<tr>", 
-            "<td>", image, "</td>",
-            "<td style='text-align: center; vertical-align: center;'><br/>", help_text,
+            "<tr>",
+            "<td>",
+            image,
+            "</td>",
+            "<td style='text-align: center; vertical-align: center;'><br/>",
+            help_text,
             "<table>",
-            "<tr><td><b> nr. of objects </b></td><td>" + str(self.GetNumberOfPaths()) + "</td></tr>",
+            "<tr><td><b> nr. of objects </b></td><td>"
+            + str(self.GetNumberOfPaths())
+            + "</td></tr>",
             "<tr><td><b> position </b></td><td>" + str(self.GetPosition()) + "</td></tr>",
-            "<tr><td><b> diagonal size </b></td><td>" + vedo.utils.precision(self.diagonal_size(), 5) + "</td></tr>",
+            "<tr><td><b> diagonal size </b></td><td>"
+            + vedo.utils.precision(self.diagonal_size(), 5)
+            + "</td></tr>",
             "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>" + str(bounds) + "</td></tr>",
             "</table>",
             "</table>",
@@ -334,14 +337,10 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
             if isinstance(self.scalarbar, Group):
                 self.scalarbar += unpack_group(obj.scalarbar)
             else:
-                self.scalarbar = Group(
-                    [unpack_group(self.scalarbar), unpack_group(obj.scalarbar)]
-                )
-        self.pipeline = vedo.utils.OperationNode(
-            "add mesh", parents=[self, obj], c="#f08080",
-        )
+                self.scalarbar = Group([unpack_group(self.scalarbar), unpack_group(obj.scalarbar)])
+        self.pipeline = vedo.utils.OperationNode("add mesh", parents=[self, obj], c="#f08080")
         return self
-    
+
     def __contains__(self, obj):
         """Allows to use ``in`` to check if an object is in the Assembly."""
         return obj in self.actors
@@ -352,7 +351,6 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
         for a in self.actors:
             newlist.append(a.clone())
         return Assembly(newlist)
-
 
     def unpack(self, i=None, transformed=False):
         """Unpack the list of objects from a ``Assembly``.
