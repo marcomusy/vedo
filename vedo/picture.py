@@ -46,7 +46,7 @@ def _get_img(obj, flip=False, translate=()):
         picr.SetFileName(obj)
         picr.Update()
         img = picr.GetOutput()
-    
+
     else:
         obj = np.asarray(obj)
 
@@ -95,7 +95,7 @@ def _set_justification(img, pos):
 
     if not isinstance(pos, str):
         return img, pos
-    
+
     sx, sy = img.GetDimensions()[:2]
     translate = ()
     if "top" in pos:
@@ -107,7 +107,7 @@ def _set_justification(img, pos):
             translate = (sx, sy)
         elif "mid" in pos or "cent" in pos:
             pos = (0.5, 1)
-            translate = (sx/2, sy)
+            translate = (sx / 2, sy)
     elif "bottom" in pos:
         if "left" in pos:
             pos = (0, 0)
@@ -116,17 +116,17 @@ def _set_justification(img, pos):
             translate = (sx, 0)
         elif "mid" in pos or "cent" in pos:
             pos = (0.5, 0)
-            translate = (sx/2, 0)
+            translate = (sx / 2, 0)
     elif "mid" in pos or "cent" in pos:
         if "left" in pos:
             pos = (0, 0.5)
-            translate = (0, sy/2)
+            translate = (0, sy / 2)
         elif "right" in pos:
             pos = (1, 0.5)
-            translate = (sx, sy/2)
+            translate = (sx, sy / 2)
         else:
-            pos = (0.5, 0.5)           
-            translate = (sx/2, sy/2)
+            pos = (0.5, 0.5)
+            translate = (sx / 2, sy / 2)
 
     if len(translate):
         translate = np.array(translate).astype(int)
@@ -135,7 +135,7 @@ def _set_justification(img, pos):
         translate_extent.SetInputData(img)
         translate_extent.Update()
         img = translate_extent.GetOutput()
-    
+
     return img, pos
 
 
@@ -144,15 +144,8 @@ class Picture2D(vedo.BaseActor2D):
     """
     Embed an image as a static 2D image in the canvas.
     """
-    def __init__(
-        self, 
-        fig, 
-        pos=(0,0), 
-        scale=1, 
-        ontop=False, 
-        padding=1, 
-        justify="",    
-    ):
+
+    def __init__(self, fig, pos=(0, 0), scale=1, ontop=False, padding=1, justify=""):
         """
         Embed an image as a static 2D image in the canvas.
 
@@ -174,8 +167,8 @@ class Picture2D(vedo.BaseActor2D):
         """
         vedo.BaseActor2D.__init__(self)
         # print("input type:", fig.__class__)
-        
-        self.array = None 
+
+        self.array = None
 
         if utils.is_sequence(fig):
             self.array = fig
@@ -192,7 +185,7 @@ class Picture2D(vedo.BaseActor2D):
             self._data = _get_img(fig)
             self.filename = fig
 
-        elif 'matplotlib' in str(fig.__class__):
+        elif "matplotlib" in str(fig.__class__):
             if hasattr(fig, "gcf"):
                 fig = fig.gcf()
             fig.tight_layout(pad=padding)
@@ -201,8 +194,7 @@ class Picture2D(vedo.BaseActor2D):
             # self.array = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
             # self.array = self.array.reshape(fig.canvas.get_width_height()[::-1] + (3,))
             width, height = fig.get_size_inches() * fig.get_dpi()
-            self.array = np.frombuffer(
-                fig.canvas.buffer_rgba(), dtype=np.uint8).reshape(
+            self.array = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8).reshape(
                 (int(height), int(width), 4)
             )
             self.array = self.array[:, :, :3]
@@ -219,9 +211,9 @@ class Picture2D(vedo.BaseActor2D):
             rsz.SetOutputDimensions(newsize[0], newsize[1], 1)
             rsz.Update()
             self._data = rsz.GetOutput()
-        
+
         if padding:
-            pass # TODO
+            pass  # TODO
 
         if justify:
             self._data, pos = _set_justification(self._data, justify)
@@ -246,6 +238,7 @@ class Picture2D(vedo.BaseActor2D):
     @property
     def shape(self):
         return np.array(self._data.GetDimensions()[:2]).astype(int)
+
 
 #################################################
 class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
@@ -313,9 +306,7 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
 
         self._mapper = self.GetMapper()
 
-        self.pipeline = utils.OperationNode(
-            "Picture", comment=f"#shape {self.shape}", c="#f28482",
-        )
+        self.pipeline = utils.OperationNode("Picture", comment=f"#shape {self.shape}", c="#f28482")
         ######################################################################
 
     def _repr_html_(self):
@@ -344,13 +335,13 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         help_text = ""
         if self.name:
             help_text += f"<b> {self.name}: &nbsp&nbsp</b>"
-        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>" 
+        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
         if self.filename:
             dots = ""
             if len(self.filename) > 30:
                 dots = "..."
             help_text += f"<br/><code><i>({dots}{self.filename[-30:]})</i></code>"
-        
+
         pdata = ""
         if self._data.GetPointData().GetScalars():
             if self._data.GetPointData().GetScalars().GetName():
@@ -367,17 +358,25 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
 
         all = [
             "<table>",
-            "<tr>", 
-            "<td>", image, "</td>",
-            "<td style='text-align: center; vertical-align: center;'><br/>", help_text,
+            "<tr>",
+            "<td>",
+            image,
+            "</td>",
+            "<td style='text-align: center; vertical-align: center;'><br/>",
+            help_text,
             "<table>",
             "<tr><td><b> shape </b></td><td>" + str(img.GetDimensions()[:2]) + "</td></tr>",
-            "<tr><td><b> in memory size </b></td><td>" + str(int(img.GetActualMemorySize())) + " KB</td></tr>",
+            "<tr><td><b> in memory size </b></td><td>"
+            + str(int(img.GetActualMemorySize()))
+            + " KB</td></tr>",
             pdata,
             cdata,
             "<tr><td><b> intensity range </b></td><td>" + str(img.GetScalarRange()) + "</td></tr>",
-            "<tr><td><b> level&nbsp/&nbspwindow </b></td><td>" 
-            + str(self.level()) + "&nbsp/&nbsp" + str(self.window())+ "</td></tr>",
+            "<tr><td><b> level&nbsp/&nbspwindow </b></td><td>"
+            + str(self.level())
+            + "&nbsp/&nbsp"
+            + str(self.window())
+            + "</td></tr>",
             "</table>",
             "</table>",
         ]
@@ -417,9 +416,8 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
             pic.SetScale(self.GetScale())
             pic.SetOrientation(self.GetOrientation())
             pic.SetPosition(self.GetPosition())
-        
-        pic.pipeline = utils.OperationNode(
-            "clone", parents=[self], c="#f7dada", shape="diamond")
+
+        pic.pipeline = utils.OperationNode("clone", parents=[self], c="#f7dada", shape="diamond")
         return pic
 
     def cmap(self, name, vmin=None, vmax=None):
@@ -458,7 +456,8 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         imap.Update()
         self._update(imap.GetOutput())
         self.pipeline = utils.OperationNode(
-            f"cmap", comment=f'"{name}"', parents=[self], c="#f28482")
+            f"cmap", comment=f'"{name}"', parents=[self], c="#f28482"
+        )
         return self
 
     def extent(self, ext=None):
@@ -515,7 +514,7 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
 
         d = self.GetInput().GetDimensions()
         if pixels:
-            extractVOI.SetVOI(left, d[0]-right-1, bottom, d[1]-top-1, 0, 0)
+            extractVOI.SetVOI(left, d[0] - right - 1, bottom, d[1] - top - 1, 0, 0)
         else:
             bx0, bx1, by0, by1 = 0, d[0]-1, 0, d[1]-1
             if left is not None:   bx0 = int((d[0]-1)*left)
@@ -528,7 +527,8 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         self.shape = extractVOI.GetOutput().GetDimensions()[:2]
         self._update(extractVOI.GetOutput())
         self.pipeline = utils.OperationNode(
-            "crop", comment=f"shape={tuple(self.shape)}", parents=[self], c="#f28482")
+            "crop", comment=f"shape={tuple(self.shape)}", parents=[self], c="#f28482"
+        )
         return self
 
     def pad(self, pixels=10, value=255):
@@ -555,7 +555,8 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         pf.Update()
         self._update(pf.GetOutput())
         self.pipeline = utils.OperationNode(
-            "pad", comment=f"{pixels} pixels", parents=[self], c="#f28482")
+            "pad", comment=f"{pixels} pixels", parents=[self], c="#f28482"
+        )
         return self
 
     def tile(self, nx=4, ny=4, shift=(0, 0)):
@@ -585,7 +586,8 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         pic = Picture(constant_pad.GetOutput())
 
         pic.pipeline = utils.OperationNode(
-            "tile", comment=f"by {nx}x{ny}", parents=[self], c="#f28482")
+            "tile", comment=f"by {nx}x{ny}", parents=[self], c="#f28482"
+        )
         return pic
 
     def append(self, pictures, axis="z", preserve_extents=False):
@@ -634,7 +636,8 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         ima.Update()
         self._update(ima.GetOutput())
         self.pipeline = utils.OperationNode(
-            "append", comment=f"axis={axis}", parents=[self, *pictures], c="#f28482")
+            "append", comment=f"axis={axis}", parents=[self, *pictures], c="#f28482"
+        )
         return self
 
     def resize(self, newsize):
@@ -665,7 +668,8 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         out.SetSpacing(1, 1, 1)
         self._update(out)
         self.pipeline = utils.OperationNode(
-            "resize", comment=f"shape={tuple(self.shape)}", parents=[self], c="#f28482")
+            "resize", comment=f"shape={tuple(self.shape)}", parents=[self], c="#f28482"
+        )
         return self
 
     def mirror(self, axis="x"):
@@ -729,7 +733,8 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         self._update(reslice.GetOutput())
 
         self.pipeline = utils.OperationNode(
-            "rotate", comment=f"angle={angle}", parents=[self], c="#f28482")
+            "rotate", comment=f"angle={angle}", parents=[self], c="#f28482"
+        )
         return self
 
     def select(self, component):
@@ -740,8 +745,8 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         ec.Update()
         pic = Picture(ec.GetOutput())
         pic.pipeline = utils.OperationNode(
-            "select", comment=f"component {component}",
-            parents=[self], c="#f28482")
+            "select", comment=f"component {component}", parents=[self], c="#f28482"
+        )
         return pic
 
     def bw(self):
@@ -789,7 +794,8 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         gsf.Update()
         self._update(gsf.GetOutput())
         self.pipeline = utils.OperationNode(
-            "smooth", comment=f"sigma={sigma}", parents=[self], c="#f28482")
+            "smooth", comment=f"sigma={sigma}", parents=[self], c="#f28482"
+        )
         return self
 
     def median(self):
@@ -848,8 +854,7 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         original_color.Update()
         self._update(original_color.GetOutput())
 
-        self.pipeline = utils.OperationNode(
-            "enhance", parents=[self], c="#f28482")
+        self.pipeline = utils.OperationNode("enhance", parents=[self], c="#f28482")
         return self
 
     def fft(self, mode="magnitude", logscale=12, center=True):
@@ -1063,7 +1068,7 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
             ns = len(source_pts)
             nt = len(target_pts)
             if ns != nt:
-                colors.printc("Error in picture.warp(): #source != #target points", ns, nt, c='r')
+                colors.printc("Error in picture.warp(): #source != #target points", ns, nt, c="r")
                 raise RuntimeError()
 
             ptsou = vtk.vtkPoints()
@@ -1149,9 +1154,10 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
             data[mask] = 255
 
         self._update(_get_img(data, flip=True))
-        
+
         self.pipeline = utils.OperationNode(
-            "binarize", comment=f"threshold={threshold}", parents=[self], c="#f28482")
+            "binarize", comment=f"threshold={threshold}", parents=[self], c="#f28482"
+        )
         return self
 
     def threshold(self, value=None, flip=False):
@@ -1193,7 +1199,8 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         out = vedo.Mesh(ctr.GetOutput(), c="k").bc("t").lighting("off")
 
         out.pipeline = utils.OperationNode(
-            "threshold", comment=f"{value: .2f}", parents=[self], c="#f28482:#e9c46a")
+            "threshold", comment=f"{value: .2f}", parents=[self], c="#f28482:#e9c46a"
+        )
         return out
 
     def tomesh(self):
@@ -1230,7 +1237,7 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         """
         nx, ny, _ = self._data.GetDimensions()
         nchan = self._data.GetPointData().GetScalars().GetNumberOfComponents()
-        narray = utils.vtk2numpy(self._data.GetPointData().GetScalars()).reshape(ny,nx,nchan)
+        narray = utils.vtk2numpy(self._data.GetPointData().GetScalars()).reshape(ny, nx, nchan)
         narray = np.flip(narray, axis=0).astype(np.uint8)
         return narray.squeeze()
 
@@ -1262,8 +1269,10 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         alpha1 = 1 - alpha
 
         nx, ny = self.dimensions()
-        if x2>nx : x2=nx-1
-        if y2>ny : y2=ny-1
+        if x2 > nx:
+            x2 = nx - 1
+        if y2 > ny:
+            y2 = ny - 1
 
         nchan = self.channels()
         narrayA = self.tonumpy()
@@ -1301,8 +1310,10 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         alpha1 = 1 - alpha
 
         nx, ny = self.dimensions()
-        if x2>nx : x2=nx-1
-        if y2>ny : y2=ny-1
+        if x2 > nx:
+            x2 = nx - 1
+        if y2 > ny:
+            y2 = ny - 1
 
         nchan = self.channels()
         narrayA = self.tonumpy()
@@ -1372,7 +1383,7 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
     def add_text(
         self,
         txt,
-        pos=(0, 0), # TODO
+        pos=(0, 0),  # TODO
         width=400,
         height=200,
         alpha=1,
@@ -1438,7 +1449,8 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
 
         self._update(blf.GetOutput())
         self.pipeline = utils.OperationNode(
-            "add_text", comment=f"{txt}", parents=[self], c="#f28482")
+            "add_text", comment=f"{txt}", parents=[self], c="#f28482"
+        )
         return self
 
     def modified(self):
@@ -1450,6 +1462,6 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         """Write picture to file as png or jpg."""
         vedo.io.write(self._data, filename)
         self.pipeline = utils.OperationNode(
-            "write", comment=filename[:15], parents=[self], 
-            c="#8a817c", shape='cylinder')
+            "write", comment=filename[:15], parents=[self], c="#8a817c", shape="cylinder"
+        )
         return self

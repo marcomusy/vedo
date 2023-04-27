@@ -63,9 +63,7 @@ class MousePan(vtk.vtkInteractorStyleUser):
         self.camera = self.renderer.GetActiveCamera()
         self.fpW = self.camera.GetFocalPoint()
         self.posW = self.camera.GetPosition()
-        self.ComputeWorldToDisplay(
-            self.renderer, self.fpW[0], self.fpW[1], self.fpW[2], self.fpD
-        )
+        self.ComputeWorldToDisplay(self.renderer, self.fpW[0], self.fpW[1], self.fpW[2], self.fpD)
         focaldepth = self.fpD[2]
         self.ComputeDisplayToWorld(
             self.renderer, self.oldpickD[0], self.oldpickD[1], focaldepth, self.oldpickW
@@ -440,9 +438,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
             move_factor * (oldPickPoint[2] - newPickPoint[2]),
         )
 
-        viewFocus = (
-            camera.GetFocalPoint()
-        )  # do we need to do this again? Already did this
+        viewFocus = camera.GetFocalPoint()  # do we need to do this again? Already did this
         viewPoint = camera.GetPosition()
 
         camera.SetFocalPoint(
@@ -754,9 +750,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         """
         renderer = self.GetCurrentRenderer()
 
-        assemblyPath = renderer.PickProp(
-            self.start_x, self.start_y, self.end_x, self.end_y
-        )
+        assemblyPath = renderer.PickProp(self.start_x, self.start_y, self.end_x, self.end_y)
 
         # re-pick in larger area if nothing is returned
         if not assemblyPath:
@@ -764,9 +758,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
             self.end_x += 2
             self.start_y -= 2
             self.end_y += 2
-            assemblyPath = renderer.PickProp(
-                self.start_x, self.start_y, self.end_x, self.end_y
-            )
+            assemblyPath = renderer.PickProp(self.start_x, self.start_y, self.end_x, self.end_y)
 
         # The nearest prop (by Z-value)
         if assemblyPath:
@@ -777,10 +769,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
 
             # all props
             collection = renderer.GetPickResultProps()
-            props = [
-                collection.GetItemAsObject(i)
-                for i in range(collection.GetNumberOfItems())
-            ]
+            props = [collection.GetItemAsObject(i) for i in range(collection.GetNumberOfItems())]
 
             props.remove(nearest_prop)
             props.insert(0, nearest_prop)
@@ -809,8 +798,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         if self.callbackEndDrag:
             # reset actor positions as actors positions will be controlled by called functions
             for pos0, actor in zip(
-                self.draginfo.dragged_actors_original_positions,
-                self.draginfo.actors_dragging,
+                self.draginfo.dragged_actors_original_positions, self.draginfo.actors_dragging
             ):
                 actor.SetPosition(pos0)
             self.callbackEndDrag(self.draginfo)
@@ -838,9 +826,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         draginfo.actors_dragging = props  # [*actors, *outlines]
 
         for a in draginfo.actors_dragging:
-            draginfo.dragged_actors_original_positions.append(
-                a.GetPosition()
-            )  # numpy ndarray
+            draginfo.dragged_actors_original_positions.append(a.GetPosition())  # numpy ndarray
 
         # Get the start position of the drag in 3d
 
@@ -891,16 +877,13 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
 
         delta = np.array(mouse_pos_3d) - self.draginfo.start_position_3d
         # print(f'Delta = {delta}')
-        view_normal = np.array(
-            self.GetCurrentRenderer().GetActiveCamera().GetViewPlaneNormal()
-        )
+        view_normal = np.array(self.GetCurrentRenderer().GetActiveCamera().GetViewPlaneNormal())
 
         delta_inplane = delta - view_normal * np.dot(delta, view_normal)
         # print(f'delta_inplane = {delta_inplane}')
 
         for pos0, actor in zip(
-            self.draginfo.dragged_actors_original_positions,
-            self.draginfo.actors_dragging,
+            self.draginfo.dragged_actors_original_positions, self.draginfo.actors_dragging
         ):
             m = actor.GetUserMatrix()
             if m:
@@ -920,8 +903,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
     def CancelDrag(self):
         """Cancels the drag and restored the original positions of all dragged actors"""
         for pos0, actor in zip(
-            self.draginfo.dragged_actors_original_positions,
-            self.draginfo.actors_dragging,
+            self.draginfo.dragged_actors_original_positions, self.draginfo.actors_dragging
         ):
             actor.SetPosition(pos0)
         self.draginfo = None
@@ -964,9 +946,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
 
             oldPickPoint = [0, 0, 0, 0]
             xp, yp = rwi.GetLastEventPosition()
-            self.ComputeDisplayToWorld(
-                CurrentRenderer, xp, yp, focalDepth, oldPickPoint
-            )
+            self.ComputeDisplayToWorld(CurrentRenderer, xp, yp, focalDepth, oldPickPoint)
             #
             #   // Camera motion is reversed
             #
@@ -976,9 +956,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
                 oldPickPoint[2] - newPickPoint[2],
             )
 
-            viewFocus = (
-                camera.GetFocalPoint()
-            )  # do we need to do this again? Already did this
+            viewFocus = camera.GetFocalPoint()  # do we need to do this again? Already did this
             viewPoint = camera.GetPosition()
 
             camera.SetFocalPoint(
@@ -1046,9 +1024,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
             if sin_elev < -0.8:
                 azi = np.arctan2(upside_down_factor * up[1], upside_down_factor * up[0])
             else:
-                azi = np.arctan2(
-                    -upside_down_factor * up[1], -upside_down_factor * up[0]
-                )
+                azi = np.arctan2(-upside_down_factor * up[1], -upside_down_factor * up[0])
 
         D = np.linalg.norm(P)  # distance from focal point to camera
 
@@ -1061,14 +1037,10 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         Hnew = D * np.cos(elev_new)
 
         # calculate new camera position relative to focal point
-        Pnew = np.array(
-            (Hnew * np.cos(azi_new), Hnew * np.sin(azi_new), D * np.sin(elev_new))
-        )
+        Pnew = np.array((Hnew * np.cos(azi_new), Hnew * np.sin(azi_new), D * np.sin(elev_new)))
 
         # calculate the up-direction of the camera
-        up_z = upside_down_factor * np.cos(
-            elev_new
-        )  # z follows directly from elevation
+        up_z = upside_down_factor * np.cos(elev_new)  # z follows directly from elevation
         up_h = upside_down_factor * np.sin(elev_new)  # horizontal component
         #
         # if upside_down:
@@ -1239,9 +1211,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         self._pixel_array.SetNumberOfTuples(size[0] * size[1])
 
         front = 1  # what does this do?
-        rwin.GetRGBACharPixelData(
-            0, 0, size[0] - 1, size[1] - 1, front, self._pixel_array
-        )
+        rwin.GetRGBACharPixelData(0, 0, size[0] - 1, size[1] - 1, front, self._pixel_array)
 
     def DrawRubberBand(self, x1, x2, y1, y2):
         rwi = self.GetInteractor()
@@ -1365,9 +1335,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         if camera.GetParallelProjection():
             print(f"Line length = {length} px = {meters} m")
         else:
-            print(
-                "Need to be in non-perspective mode to measure. Press 2 or 3 to get there"
-            )
+            print("Need to be in non-perspective mode to measure. Press 2 or 3 to get there")
 
         if self.callbackMeasure:
             self.callbackMeasure(meters)

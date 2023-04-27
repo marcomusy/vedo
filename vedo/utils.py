@@ -100,13 +100,7 @@ class OperationNode:
     # Assembly #f08080
 
     def __init__(
-        self, 
-        operation,
-        parents=(),
-        comment="",
-        shape="none",
-        c="#e9c46a",
-        style="filled",
+        self, operation, parents=(), comment="", shape="none", c="#e9c46a", style="filled"
     ):
         """
         Keep track of the operations which led to a final object.
@@ -165,7 +159,7 @@ class OperationNode:
             self.operation = operation.__class__.__name__
         self.operation_plain = str(self.operation)
 
-        pp = [] # filter out invalid stuff
+        pp = []  # filter out invalid stuff
         for p in parents:
             if hasattr(p, "pipeline"):
                 pp.append(p.pipeline)
@@ -185,8 +179,8 @@ class OperationNode:
 
     def _build_tree(self, dot):
         dot.node(
-            str(id(self)), 
-            label=self.operation, 
+            str(id(self)),
+            label=self.operation,
             shape=self.shape,
             color=self.color,
             style=self.style,
@@ -197,12 +191,13 @@ class OperationNode:
                 dot.edge(str(id(parent)), str(id(self)), label=t)
                 parent._build_tree(dot)
 
-    def __repr__(self): 
-        try:      
+    def __repr__(self):
+        try:
             from treelib import Tree
         except ImportError:
-            vedo.logger.error("To use this functionality please install treelib:"
-                              "\n pip install treelib")
+            vedo.logger.error(
+                "To use this functionality please install treelib:" "\n pip install treelib"
+            )
             return ""
 
         def _build_tree(parent):
@@ -210,15 +205,12 @@ class OperationNode:
                 if par:
                     op = par.operation_plain
                     tree.create_node(
-                        op, 
-                        op + str(par.time), 
-                        parent=parent.operation_plain + str(parent.time))
+                        op, op + str(par.time), parent=parent.operation_plain + str(parent.time)
+                    )
                     _build_tree(par)
 
         tree = Tree()
-        tree.create_node(
-            self.operation_plain, self.operation_plain + str(self.time)
-        )
+        tree.create_node(self.operation_plain, self.operation_plain + str(self.time))
         _build_tree(self)
         return tree.show(reverse=True, stdout=False)
 
@@ -226,7 +218,7 @@ class OperationNode:
         """Show the graphviz output for the pipeline of this object"""
         if not vedo.settings.enable_pipeline:
             return
-        
+
         try:
             from graphviz import Digraph
         except ImportError:
@@ -235,23 +227,15 @@ class OperationNode:
 
         # visualize the entire tree
         dot = Digraph(
-            node_attr={
-                'fontcolor':'#201010',
-                'fontname': "Helvetica",
-                'fontsize': '12',
-        },
-            edge_attr={ 
-                'fontname': "Helvetica",
-                'fontsize': '6',
-                'arrowsize': '0.4',
-            }
+            node_attr={"fontcolor": "#201010", "fontname": "Helvetica", "fontsize": "12"},
+            edge_attr={"fontname": "Helvetica", "fontsize": "6", "arrowsize": "0.4"},
         )
         dot.attr(rankdir=orientation)
-        
+
         self.counts = 0
         self._build_tree(dot)
         self.dot = dot
-        dot.render('.vedo_pipeline_graphviz', view=popup)
+        dot.render(".vedo_pipeline_graphviz", view=popup)
 
 
 ###########################################################################
@@ -259,6 +243,7 @@ class ProgressBar:
     """
     Class to print a progress bar.
     """
+
     def __init__(
         self,
         start,
@@ -324,7 +309,7 @@ class ProgressBar:
         """Print the progress bar with an optional message."""
         if not c:
             c = self.color
-        
+
         self._update(self._counts + self.step)
 
         if self.delay:
@@ -409,17 +394,9 @@ class ProgressBar:
             ps = ""
         self.pbar += ps
 
+
 #####################################
-def progressbar(
-        iterable,
-        c=None,
-        bold=True,
-        italic=False,
-        title="",
-        eta=True,
-        width=25,
-        delay=0,
-    ):
+def progressbar(iterable, c=None, bold=True, italic=False, title="", eta=True, width=25, delay=0):
     """
     Function to print a progress bar with optional text message.
 
@@ -437,17 +414,17 @@ def progressbar(
             iterable = range(total)
         else:
             total = len(iterable)
-    except TypeError: 
+    except TypeError:
         iterable = list(iterable)
         total = len(iterable)
 
     pb = ProgressBar(
-        0, total, 
-        c=c, bold=bold, italic=italic, title=title, eta=eta, delay=delay, width=width,
+        0, total, c=c, bold=bold, italic=italic, title=title, eta=eta, delay=delay, width=width
     )
     for item in iterable:
         pb.print()
         yield item
+
 
 ###########################################################
 def numpy2vtk(arr, dtype=None, deep=True, name=""):
@@ -917,6 +894,7 @@ def intersection_ray_triangle(P0, P1, V0, V1, V2):
         return False
     return I  # I is in T
 
+
 def triangle_solver(**input_dict):
     """
     Solve a triangle from any 3 known elements.
@@ -992,7 +970,7 @@ def triangle_solver(**input_dict):
             ac2 = phi + 2 * omega
             ab2 = np.pi - ac2 - bc
             return [
-                {"a": a, "b": b,  "c": c, "ab": ab,  "bc": bc, "ac": ac},
+                {"a": a, "b": b, "c": c, "ab": ab, "bc": bc, "ac": ac},
                 {"a": a, "b": b2, "c": c, "ab": ab2, "bc": bc, "ac": ac2},
             ]
 
@@ -1011,7 +989,7 @@ def triangle_solver(**input_dict):
             bc2 = phi + 2 * omega
             ab2 = np.pi - ac - bc2
             return [
-                {"a": a,  "b": b, "c": c, "ab": ab,  "bc": bc,  "ac": ac},
+                {"a": a, "b": b, "c": c, "ab": ab, "bc": bc, "ac": ac},
                 {"a": a2, "b": b, "c": c, "ab": ab2, "bc": bc2, "ac": ac},
             ]
 
@@ -1021,6 +999,7 @@ def triangle_solver(**input_dict):
 
     return [{"a": a, "b": b, "c": c, "ab": ab, "bc": bc, "ac": ac}]
 
+
 #############################################################################
 def point_line_distance(p, p1, p2):
     """
@@ -1028,6 +1007,7 @@ def point_line_distance(p, p1, p2):
     defined by `p1` and `p2`.
     """
     return np.sqrt(vtk.vtkLine.DistanceToLine(p, p1, p2))
+
 
 def closest(point, points, n=1, return_ids=False, use_tree=False):
     """
@@ -1044,13 +1024,14 @@ def closest(point, points, n=1, return_ids=False, use_tree=False):
             An already existing one can be passed to avoid rebuilding.
     """
     from scipy.spatial import distance, KDTree
+
     points = np.asarray(points)
     if n == 1:
         dists = distance.cdist([point], points)
         closest_idx = np.argmin(dists)
     else:
         if use_tree:
-            if isinstance(use_tree, KDTree): # reuse
+            if isinstance(use_tree, KDTree):  # reuse
                 tree = use_tree
             else:
                 tree = KDTree(points)
@@ -1063,6 +1044,7 @@ def closest(point, points, n=1, return_ids=False, use_tree=False):
         return dists, closest_idx
     else:
         return dists, points[closest_idx]
+
 
 #############################################################################
 def linInterpolate(x, rangeX, rangeY):
@@ -1482,15 +1464,15 @@ def print_info(obj):
                     )
 
             if ptdata.GetScalars():
-                vedo.printc("active scalars".ljust(14)+": ", c=c, bold=True, end="")
+                vedo.printc("active scalars".ljust(14) + ": ", c=c, bold=True, end="")
                 vedo.printc(ptdata.GetScalars().GetName(), "(pointdata)  ", c=c, bold=False)
 
             if ptdata.GetVectors():
-                vedo.printc("active vectors".ljust(14)+": ", c=c, bold=True, end="")
+                vedo.printc("active vectors".ljust(14) + ": ", c=c, bold=True, end="")
                 vedo.printc(ptdata.GetVectors().GetName(), "(pointdata)  ", c=c, bold=False)
 
             if ptdata.GetTensors():
-                vedo.printc("active tensors".ljust(14)+": ", c=c, bold=True, end="")
+                vedo.printc("active tensors".ljust(14) + ": ", c=c, bold=True, end="")
                 vedo.printc(ptdata.GetTensors().GetName(), "(pointdata)  ", c=c, bold=False)
 
             # same for cells
@@ -1512,11 +1494,11 @@ def print_info(obj):
                     )
 
             if cldata.GetScalars():
-                vedo.printc("active scalars".ljust(14)+": ", c=c, bold=True, end="")
+                vedo.printc("active scalars".ljust(14) + ": ", c=c, bold=True, end="")
                 vedo.printc(cldata.GetScalars().GetName(), "(celldata)", c=c, bold=False)
 
             if cldata.GetVectors():
-                vedo.printc("active vectors".ljust(14)+": ", c=c, bold=True, end="")
+                vedo.printc("active vectors".ljust(14) + ": ", c=c, bold=True, end="")
                 vedo.printc(cldata.GetVectors().GetName(), "(celldata)", c=c, bold=False)
 
             for i in range(fldata.GetNumberOfArrays()):
@@ -1557,7 +1539,7 @@ def print_info(obj):
         vedo.printc("Mesh/Points".ljust(70), c="g", bold=True, invert=True, dim=1, end="")
 
         if hasattr(actor, "info") and "legend" in actor.info.keys() and actor.info["legend"]:
-            vedo.printc("legend".ljust(14)+": ", c="g", bold=True, end="")
+            vedo.printc("legend".ljust(14) + ": ", c="g", bold=True, end="")
             vedo.printc(actor.info["legend"], c="g", bold=False)
         else:
             print()
@@ -1701,15 +1683,15 @@ def print_info(obj):
 
         img = obj.GetMapper().GetInput()
         vedo.printc("origin".ljust(14) + ": ", c="b", bold=True, end="")
-        vedo.printc(precision(obj.origin(),6), c="b", bold=False)
+        vedo.printc(precision(obj.origin(), 6), c="b", bold=False)
 
         vedo.printc("center".ljust(14) + ": ", c="b", bold=True, end="")
-        vedo.printc(precision(obj.center(),6), c="b", bold=False)
+        vedo.printc(precision(obj.center(), 6), c="b", bold=False)
 
         vedo.printc("dimensions".ljust(14) + ": ", c="b", bold=True, end="")
         vedo.printc(img.GetDimensions(), c="b", bold=False)
         vedo.printc("spacing".ljust(14) + ": ", c="b", bold=True, end="")
-        vedo.printc(precision(img.GetSpacing(),6), c="b", bold=False)
+        vedo.printc(precision(img.GetSpacing(), 6), c="b", bold=False)
         # vedo.printc("data dimension".ljust(14) + ": ", c="b", bold=True, end="")
         # vedo.printc(img.GetDataDimension(), c="b", bold=False)
 
@@ -1731,8 +1713,7 @@ def print_info(obj):
         vedo.printc("scalar range".ljust(14) + ": ", c="b", bold=True, end="")
         vedo.printc(img.GetScalarRange(), c="b", bold=False)
 
-        print_histogram(obj, horizontal=True,
-            logscale=True, bins=8, height=15, c="b", bold=True)
+        print_histogram(obj, horizontal=True, logscale=True, bins=8, height=15, c="b", bold=True)
 
     elif isinstance(obj, vedo.Plotter) and obj.interactor:  # dumps Plotter info
         axtype = {
@@ -1782,9 +1763,7 @@ def print_info(obj):
             bold=False,
             c="c",
         )
-        vedo.printc(
-            "nr. of actors".ljust(14) + ":", len(obj.actors), bold=False, c="c", end=""
-        )
+        vedo.printc("nr. of actors".ljust(14) + ":", len(obj.actors), bold=False, c="c", end="")
         vedo.printc(" (" + str(totpt), "vertices)", bold=False, c="c")
         max_bns = np.max(bns, axis=0)
         min_bns = np.min(bns, axis=0)
@@ -1798,13 +1777,7 @@ def print_info(obj):
         if isinstance(obj.axes, dict):
             obj.axes = 1
         if obj.axes:
-            vedo.printc(
-                "axes style".ljust(14) + ":",
-                obj.axes,
-                axtype[obj.axes],
-                bold=False,
-                c="c",
-            )
+            vedo.printc("axes style".ljust(14) + ":", obj.axes, axtype[obj.axes], bold=False, c="c")
 
     elif isinstance(obj, vedo.Picture):  # dumps Picture info
         vedo.printc("Picture".ljust(70), c="y", bold=True, invert=True)
@@ -1999,7 +1972,8 @@ def print_histogram(
         vedo.printc(_v(), c=c, bold=bold)
     return data
 
-def print_table(*columns, headers=None, c='g'):
+
+def print_table(*columns, headers=None, c="g"):
     """
     Print lists as tables.
 
@@ -2016,9 +1990,9 @@ def print_table(*columns, headers=None, c='g'):
         ![](https://vedo.embl.es/images/feats/)
     """
     # If headers is not provided, use default header names
-    corner='─'
+    corner = "─"
     if headers is None:
-        headers = [f"Column {i}" for i in range(1, len(columns)+1)]
+        headers = [f"Column {i}" for i in range(1, len(columns) + 1)]
     assert len(headers) == len(columns)
 
     # Find the maximum length of the elements in each column and header
@@ -2026,11 +2000,15 @@ def print_table(*columns, headers=None, c='g'):
     max_len_headers = [max(len(str(header)), max_len) for header, max_len in zip(headers, max_lens)]
 
     # Construct the table header
-    header = "│ " + " │ ".join(header.ljust(max_len) for header, max_len in zip(headers, max_len_headers)) + " │"
+    header = (
+        "│ "
+        + " │ ".join(header.ljust(max_len) for header, max_len in zip(headers, max_len_headers))
+        + " │"
+    )
 
     # Construct the line separator
-    line1 = "┌" + corner.join("─"*(max_len+2) for max_len in max_len_headers) + "┐"
-    line2 = "└" + corner.join("─"*(max_len+2) for max_len in max_len_headers) + "┘"
+    line1 = "┌" + corner.join("─" * (max_len + 2) for max_len in max_len_headers) + "┐"
+    line2 = "└" + corner.join("─" * (max_len + 2) for max_len in max_len_headers) + "┘"
 
     # Print the table header
     vedo.printc(line1, c=c)
@@ -2039,7 +2017,11 @@ def print_table(*columns, headers=None, c='g'):
 
     # Print the data rows
     for row in zip(*columns):
-        row = "│ " + " │ ".join(str(col).ljust(max_len) for col, max_len in zip(row, max_len_headers)) + " │"
+        row = (
+            "│ "
+            + " │ ".join(str(col).ljust(max_len) for col, max_len in zip(row, max_len_headers))
+            + " │"
+        )
         vedo.printc(row, bold=False, c=c)
 
     # Print the line separator again to close the table
@@ -2143,9 +2125,7 @@ def camera_from_neuroglancer(state, zoom=300):
     return camera_from_quaternion(pos_nm, orient, pzoom * zoom, ngl_correct=True)
 
 
-def oriented_camera(
-    center=(0, 0, 0), up_vector=(0, 1, 0), backoff_vector=(0, 0, 1), backoff=1
-):
+def oriented_camera(center=(0, 0, 0), up_vector=(0, 1, 0), backoff_vector=(0, 0, 1), backoff=1):
     """
     Generate a `vtkCamera` pointed at a specific location,
     oriented with a given up direction, set to a backoff.
@@ -2600,12 +2580,14 @@ def meshlab2vedo(mmesh):
         polydata.GetCellData().SetNormals(numpy2vtk(cnorms))
     return polydata
 
+
 def open3d2vedo(o3d_mesh):
     """Convert `open3d.geometry.TriangleMesh` to a `vedo.Mesh`."""
     m = vedo.Mesh([np.array(o3d_mesh.vertices), np.array(o3d_mesh.triangles)])
-    # TODO: could also check whether normals and color are present in 
+    # TODO: could also check whether normals and color are present in
     # order to port with the above vertices/faces
     return m
+
 
 def vedo2open3d(vedo_mesh):
     """
@@ -2626,6 +2608,7 @@ def vedo2open3d(vedo_mesh):
     # o3d_mesh.vertex_colors = o3d.utility.Vector3dVector(vedo_mesh.pointdata["RGB"]/255)
     # o3d_mesh.vertex_normals= o3d.utility.Vector3dVector(vedo_mesh.pointdata["Normals"])
     return o3d_mesh
+
 
 def vtk_version_at_least(major, minor=0, build=0):
     """

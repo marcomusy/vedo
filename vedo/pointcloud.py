@@ -967,7 +967,7 @@ class Points(BaseActor, vtk.vtkActor):
         Returns:
             HTML text with the image and some properties.
         """
-        import io
+        import io as system_io
         import base64
         from PIL import Image
 
@@ -976,7 +976,7 @@ class Points(BaseActor, vtk.vtkActor):
 
         arr = self.thumbnail()
         im = Image.fromarray(arr)
-        buffered = io.BytesIO()
+        buffered = system_io.BytesIO()
         im.save(buffered, format="PNG", quality=100)
         encoded = base64.b64encode(buffered.getvalue()).decode("utf-8")
         url = "data:image/png;base64," + encoded

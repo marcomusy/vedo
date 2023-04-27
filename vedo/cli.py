@@ -86,7 +86,10 @@ def execute_cli():
 
     elif len(args.files) == 0:
         system_info()
-        printc(":idea: No input files. Try:\n> vedo https://vedo.embl.es/examples/data/panther.stl.gz", c="y")
+        printc(
+            ":idea: No input files. Try:\n> vedo https://vedo.embl.es/examples/data/panther.stl.gz",
+            c="y",
+        )
 
     else:
         draw_scene(args)
@@ -183,9 +186,7 @@ def system_info():
             pr = "         "
             if m.is_primary:
                 pr = "(primary)"
-            printc(
-                f"monitor {pr} : {m.name}, resolution=({m.width}, {m.height}), x={m.x}, y={m.y}"
-            )
+            printc(f"monitor {pr} : {m.name}, resolution=({m.width}, {m.height}), x={m.x}, y={m.y}")
     except ModuleNotFoundError:
         printc('monitor           : info is unavailable. Try "pip install screeninfo".')
 
@@ -211,8 +212,11 @@ def exe_run(args):
     matching = [
         s
         for s in exfiles
-        if (f2search in os.path.basename(s).lower() 
-            and "__" not in s and "dolfin" not in s and "trimesh" not in s
+        if (
+            f2search in os.path.basename(s).lower()
+            and "__" not in s
+            and "dolfin" not in s
+            and "trimesh" not in s
         )
     ]
     matching = list(sorted(matching))
@@ -229,12 +233,14 @@ def exe_run(args):
     if args.full_screen:  # -f option not to dump the full code but just the first line
         for mat in matching[:25]:
             printc(os.path.basename(mat).replace(".py", ""), c="y", italic=1, end=" ")
-            with open(mat, 'r', encoding='UTF-8') as fm:
-                lline = ''.join(fm.readlines(60))
-                lline = lline.replace('\n',' ').replace('\'','').replace('\"','').replace('-','')
-                line = lline[:56] #cut
-                if line.startswith('from'): line=''
-                if line.startswith('import'): line=''
+            with open(mat, "r", encoding="UTF-8") as fm:
+                lline = "".join(fm.readlines(60))
+                lline = lline.replace("\n", " ").replace("'", "").replace('"', "").replace("-", "")
+                line = lline[:56]  # cut
+                if line.startswith("from"):
+                    line = ""
+                if line.startswith("import"):
+                    line = ""
                 if len(lline) > len(line):
                     line += ".."
                 if len(line) > 5:
@@ -333,13 +339,25 @@ def exe_search(args):
                             name = os.path.basename(ifile)
                             try:
                                 etype = ifile.split("/")[-2]
-                                printc("--> examples/"+etype+"/"+name+":", c='y', italic=1, invert=1)
+                                printc(
+                                    "--> examples/" + etype + "/" + name + ":",
+                                    c="y",
+                                    italic=1,
+                                    invert=1,
+                                )
                             except IndexError:
                                 etype = ifile.split("\\")[-2]
-                                printc("--> examples\\"+etype+"\\"+name+":", c='y', italic=1, invert=1)
+                                printc(
+                                    "--> examples\\" + etype + "\\" + name + ":",
+                                    c="y",
+                                    italic=1,
+                                    invert=1,
+                                )
                             fflag = False
-                        line = line.replace(pattern, "\x1b[4m\x1b[1m"+pattern+"\x1b[0m\u001b[33m")
-                        print(f"\u001b[33m{i}\t{line}\x1b[0m", end='')
+                        line = line.replace(
+                            pattern, "\x1b[4m\x1b[1m" + pattern + "\x1b[0m\u001b[33m"
+                        )
+                        print(f"\u001b[33m{i}\t{line}\x1b[0m", end="")
                         # printc(i, line, c='o', bold=False, end='')
     else:
         printc("Please use at least 4 letters in keyword search!", c="r")
@@ -411,11 +429,7 @@ def exe_search_code(args):
                 )
                 mmdoc = mmdoc.replace("``", '"').replace("`", '"')
                 mmdoc = mmdoc.replace(".. warning::", "Warning!")
-                result = highlight(
-                    mmdoc,
-                    Python3Lexer(),
-                    Terminal256Formatter(style=style),
-                )
+                result = highlight(mmdoc, Python3Lexer(), Terminal256Formatter(style=style))
                 idcomment = result.rfind('"""')
                 print(result[: idcomment + 3], "\x1b[0m\n")
 
@@ -471,7 +485,7 @@ def exe_search_vtk(args):
         try:
             kv = d[vtk_class][lang].items()
         except KeyError as e:
-            print(f'For the combination {vtk_class} and {lang}, this key does not exist: {e}')
+            print(f"For the combination {vtk_class} and {lang}, this key does not exist: {e}")
             return None, None
         total = len(kv)
         samples = list(kv)
@@ -629,9 +643,7 @@ def exe_eog(args):
             shape[0] = shape[0] / shape[1] * 1200
             shape[1] = 1200
 
-        plt = Plotter(
-            title=files[0], size=shape, bg=args.background, bg2=args.background_grad
-        )
+        plt = Plotter(title=files[0], size=shape, bg=args.background, bg2=args.background_grad)
         plt.add_callback("key press", vfunc)
         plt.add_hover_legend(c="k8", bg="k2", alpha=0.4)
         plt.show(pic, mode="image", interactive=False)
@@ -717,7 +729,7 @@ def draw_scene(args):
             return
 
         sp = vol.spacing()
-        vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
+        vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
         vol.mode(int(args.mode)).color(args.cmap).jittering(True)
         vol.lighting(args.lighting)
         plt = applications.RayCastPlotter(vol)
@@ -739,9 +751,7 @@ def draw_scene(args):
         vol = io.load(args.files[0], force=args.reload)
 
         sp = vol.spacing()
-        vol.spacing(
-            [sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing]
-        )
+        vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
 
         vedo.plotter_instance = None  # reset
 
@@ -767,7 +777,9 @@ def draw_scene(args):
         try:
             m = Mesh(args.files[0], alpha=args.alpha / 2, c=args.color)
         except AttributeError:
-            vedo.logger.critical("In edit mode, input file must be a point cloud or polygonal mesh.")
+            vedo.logger.critical(
+                "In edit mode, input file must be a point cloud or polygonal mesh."
+            )
             return
 
         plt = applications.FreeHandCutPlotter(m, splined=True)
@@ -784,8 +796,8 @@ def draw_scene(args):
             return
         vol.cmap("bone_r")
         sp = vol.spacing()
-        vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
-        vedo.plotter_instance = None # reset
+        vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
+        vedo.plotter_instance = None  # reset
 
         plt = applications.Slicer2DPlotter(vol, axes=7)
         plt.close()
@@ -794,7 +806,7 @@ def draw_scene(args):
     ########################################################################
     # normal mode for single VOXEL file with Isosurface Slider mode
     elif nfiles == 1 and (
-           ".slc" in args.files[0].lower()
+        ".slc" in args.files[0].lower()
         or ".vti" in args.files[0].lower()
         or ".tif" in args.files[0].lower()
         or ".mhd" in args.files[0].lower()
@@ -804,20 +816,11 @@ def draw_scene(args):
         # print('DEBUG normal mode for single VOXEL file with Isosurface Slider mode')
         vol = io.load(args.files[0], force=args.reload)
         sp = vol.spacing()
-        vol.spacing(
-            [sp[0] * args.x_spacing, 
-             sp[1] * args.y_spacing, 
-             sp[2] * args.z_spacing]
-        )
+        vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
         if not args.color:
             args.color = "gold"
         plt = applications.IsosurfaceBrowser(
-            vol,
-            c=args.color,
-            cmap=args.cmap,
-            precompute=False,
-            progress=True,
-            use_gpu=True,
+            vol, c=args.color, cmap=args.cmap, precompute=False, progress=True, use_gpu=True
         )
         plt.show(zoom=args.zoom, viewup="z")
         return

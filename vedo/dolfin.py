@@ -36,9 +36,7 @@ Example:
     [vedo/examples/dolfin](https://github.com/marcomusy/vedo/blob/master/examples/other/dolfin).
 """
 
-__all__ = [
-    "plot",
-]
+__all__ = ["plot"]
 
 
 ##########################################################################
@@ -63,10 +61,10 @@ def _inputsort(obj):
             if "MeshFunction" in inputtype:
                 mesh = ob.mesh()
 
-                if ob.dim()>0:
-                    printc('MeshFunction of dim>0 not supported.', c='r')
-                    printc('Try e.g.:  MeshFunction("size_t", mesh, 0)', c='r', italic=1)
-                    printc('instead of MeshFunction("size_t", mesh, 1)', c='r', strike=1)
+                if ob.dim() > 0:
+                    printc("MeshFunction of dim>0 not supported.", c="r")
+                    printc('Try e.g.:  MeshFunction("size_t", mesh, 0)', c="r", italic=1)
+                    printc('instead of MeshFunction("size_t", mesh, 1)', c="r", strike=1)
                 else:
                     # printc(ob.dim(), mesh.num_cells(), len(mesh.coordinates()), len(ob.array()))
                     V = dolfin.FunctionSpace(mesh, "CG", 1)
@@ -112,7 +110,7 @@ def _compute_uvalues(u, mesh):
 
         if u.value_rank() and u.value_dimension(0) > 1:
             l = u_values.shape[0]
-            u_values = u_values.reshape(u.value_dimension(0), int(l/u.value_dimension(0))).T
+            u_values = u_values.reshape(u.value_dimension(0), int(l / u.value_dimension(0))).T
 
     elif hasattr(u, "compute_point_values"):  # dolfinx
         u_values = u.compute_point_values()
@@ -383,19 +381,15 @@ def plot(*inputobj, **options):
                 aet[at].SetZTitle(ztitle)
 
     # change some default to emulate standard behaviours
-    if style in (0, 'vtk'):
+    if style in (0, "vtk"):
         axes = options.pop("axes", None)
         if axes is None:
-            options["axes"] = {
-                "xygrid": False,
-                "yzgrid": False,
-                "zxgrid": False,
-            }
+            options["axes"] = {"xygrid": False, "yzgrid": False, "zxgrid": False}
         else:
             options["axes"] = axes  # put back
         if cmap is None:
             cmap = "rainbow"
-    elif style in (1, 'matplotlib'):
+    elif style in (1, "matplotlib"):
         bg = options.pop("bg", None)
         if bg is None:
             options["bg"] = "white"
@@ -403,16 +397,12 @@ def plot(*inputobj, **options):
             options["bg"] = bg
         axes = options.pop("axes", None)
         if axes is None:
-            options["axes"] = {
-                "xygrid": False,
-                "yzgrid": False,
-                "zxgrid": False,
-            }
+            options["axes"] = {"xygrid": False, "yzgrid": False, "zxgrid": False}
         else:
             options["axes"] = axes  # put back
         if cmap is None:
             cmap = "viridis"
-    elif style in (2, 'paraview'):
+    elif style in (2, "paraview"):
         bg = options.pop("bg", None)
         if bg is None:
             options["bg"] = (82, 87, 110)
@@ -420,7 +410,7 @@ def plot(*inputobj, **options):
             options["bg"] = bg
         if cmap is None:
             cmap = "coolwarm"
-    elif style in (3, 'meshlab'):
+    elif style in (3, "meshlab"):
         bg = options.pop("bg", None)
         if bg is None:
             options["bg"] = (8, 8, 16)
@@ -434,7 +424,7 @@ def plot(*inputobj, **options):
             options["axes"] = axes  # put back
         if cmap is None:
             cmap = "afmhot"
-    elif style in (4, 'bw'):
+    elif style in (4, "bw"):
         bg = options.pop("bg", None)
         if bg is None:
             options["bg"] = (217, 255, 238)
@@ -442,11 +432,7 @@ def plot(*inputobj, **options):
             options["bg"] = bg
         axes = options.pop("axes", None)
         if axes is None:
-            options["axes"] = {
-                "xygrid": False,
-                "yzgrid": False,
-                "zxgrid": False,
-            }
+            options["axes"] = {"xygrid": False, "yzgrid": False, "zxgrid": False}
         else:
             options["axes"] = axes  # put back
         if cmap is None:
@@ -604,6 +590,7 @@ def plot(*inputobj, **options):
 ###################################################################################
 class MeshActor(Mesh):
     """MeshActor for dolfin support."""
+
     def __init__(self, *inputobj, **options):
         """MeshActor, a `vedo.Mesh` derived object for dolfin support."""
 
@@ -693,12 +680,7 @@ class MeshActor(Mesh):
         else:
             poly = utils.buildPolyData(coords, cells)
 
-        Mesh.__init__(
-            self,
-            poly,
-            c=c,
-            alpha=alpha,
-        )
+        Mesh.__init__(self, poly, c=c, alpha=alpha)
         if compute_normals:
             self.compute_normals()
 

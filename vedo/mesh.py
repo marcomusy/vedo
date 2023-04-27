@@ -32,12 +32,8 @@ class Mesh(Points):
     """
     Build an instance of object `Mesh` derived from `vedo.PointCloud`.
     """
-    def __init__(
-        self,
-        inputobj=None,
-        c=None,
-        alpha=1,
-    ):
+
+    def __init__(self, inputobj=None, c=None, alpha=1):
         """
         Input can be a list of vertices and their connectivity (faces of the polygonal mesh),
         or directly a `vtkPolydata` object.
@@ -68,10 +64,7 @@ class Mesh(Points):
 
         if vedo.settings.use_polygon_offset:
             self._mapper.SetResolveCoincidentTopologyToPolygonOffset()
-            pof, pou = (
-                vedo.settings.polygon_offset_factor,
-                vedo.settings.polygon_offset_units,
-            )
+            pof, pou = (vedo.settings.polygon_offset_factor, vedo.settings.polygon_offset_units)
             self._mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
 
         inputtype = str(type(inputobj))
@@ -238,7 +231,7 @@ class Mesh(Points):
 
         if alpha is not None:
             self.property.SetOpacity(alpha)
-        
+
         n = self._data.GetNumberOfPoints()
         self.pipeline = OperationNode(self, comment=f"#pts {n}")
 
@@ -266,7 +259,7 @@ class Mesh(Points):
 
         bounds = "<br/>".join(
             [
-                precision(min_x,4) + " ... " + precision(max_x,4)
+                precision(min_x, 4) + " ... " + precision(max_x, 4)
                 for min_x, max_x in zip(self.bounds()[::2], self.bounds()[1::2])
             ]
         )
@@ -275,13 +268,13 @@ class Mesh(Points):
         help_text = ""
         if self.name:
             help_text += f"<b> {self.name}: &nbsp&nbsp</b>"
-        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>" 
+        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
         if self.filename:
             dots = ""
             if len(self.filename) > 30:
                 dots = "..."
             help_text += f"<br/><code><i>({dots}{self.filename[-30:]})</i></code>"
-        
+
         pdata = ""
         if self._data.GetPointData().GetScalars():
             if self._data.GetPointData().GetScalars().GetName():
@@ -296,22 +289,29 @@ class Mesh(Points):
 
         all = [
             "<table>",
-            "<tr>", 
-            "<td>", image, "</td>",
-            "<td style='text-align: center; vertical-align: center;'><br/>", help_text,
+            "<tr>",
+            "<td>",
+            image,
+            "</td>",
+            "<td style='text-align: center; vertical-align: center;'><br/>",
+            help_text,
             "<table>",
             "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>" + str(bounds) + "</td></tr>",
-            "<tr><td><b> center of mass </b></td><td>" + precision(self.center_of_mass(),3) + "</td></tr>",
+            "<tr><td><b> center of mass </b></td><td>"
+            + precision(self.center_of_mass(), 3)
+            + "</td></tr>",
             "<tr><td><b> average size </b></td><td>" + str(average_size) + "</td></tr>",
-            "<tr><td><b> nr. points&nbsp/&nbspfaces </b></td><td>" 
-            + str(self.npoints) + "&nbsp/&nbsp" + str(self.ncells) + "</td></tr>",
+            "<tr><td><b> nr. points&nbsp/&nbspfaces </b></td><td>"
+            + str(self.npoints)
+            + "&nbsp/&nbsp"
+            + str(self.ncells)
+            + "</td></tr>",
             pdata,
             cdata,
             "</table>",
             "</table>",
         ]
         return "\n".join(all)
-
 
     def faces(self):
         """
@@ -489,9 +489,7 @@ class Mesh(Points):
             elif ".bmp" in fnl:
                 reader = vtk.vtkBMPReader()
             else:
-                vedo.logger.error(
-                    "in texture() supported files are only PNG, BMP or JPG"
-                )
+                vedo.logger.error("in texture() supported files are only PNG, BMP or JPG")
                 return self
             reader.SetFileName(fn)
             reader.Update()
@@ -830,10 +828,7 @@ class Mesh(Points):
         # mark original point and cell ids
         self.add_ids()
         toremove = self.boundaries(
-            boundary_edges=False, 
-            non_manifold_edges=True,
-            cell_edge=True,
-            return_cell_ids=True,
+            boundary_edges=False, non_manifold_edges=True, cell_edge=True, return_cell_ids=True
         )
         if len(toremove) == 0:
             return self
@@ -858,7 +853,7 @@ class Mesh(Points):
             n = n / dn
 
             p0, p1, p2 = points[faces[i]][:3]
-            v = np.cross(p1-p0, p2-p0)
+            v = np.cross(p1 - p0, p2 - p0)
             lv = np.linalg.norm(v)
             if not lv:
                 continue
@@ -873,7 +868,7 @@ class Mesh(Points):
             mean_delta = np.mean(deltas)
             err_delta = np.std(deltas)
             txt = ""
-            if tol == "auto": #automatic choice
+            if tol == "auto":  # automatic choice
                 tol = mean_delta / 5
                 txt = f"\n Automatic tol. : {tol: .4f}"
             for i, cosa in zip(deltas_i, deltas):
@@ -896,10 +891,9 @@ class Mesh(Points):
             self.celldata["NonManifoldCell"] = mark
         else:
             self.delete_cells(toremove)
- 
+
         self.pipeline = OperationNode(
-            "non_manifold_faces", parents=[self], 
-            comment=f"#cells {self._data.GetNumberOfCells()}",
+            "non_manifold_faces", parents=[self], comment=f"#cells {self._data.GetNumberOfCells()}"
         )
         return self
 
@@ -935,9 +929,7 @@ class Mesh(Points):
             for `Mesh` objects, two vectors `mesh.base`, and `mesh.top` must be defined.
         """
         if self.base is None:
-            vedo.logger.error(
-                "in stretch() must define vectors mesh.base and mesh.top at creation"
-            )
+            vedo.logger.error("in stretch() must define vectors mesh.base and mesh.top at creation")
             raise RuntimeError()
 
         p1, p2 = self.base, self.top
@@ -961,22 +953,14 @@ class Mesh(Points):
             T.RotateWXYZ(-np.rad2deg(np.arccos(cosa)), n)
         else:
             if np.dot(b, z) < 0:
-                T.RotateWXYZ(180, [1,0,0])
+                T.RotateWXYZ(180, [1, 0, 0])
 
         T.Translate(q1)
 
         self.SetUserMatrix(T.GetMatrix())
         return self
 
-    def crop(
-        self,
-        top=None,
-        bottom=None,
-        right=None,
-        left=None,
-        front=None,
-        back=None,
-    ):
+    def crop(self, top=None, bottom=None, right=None, left=None, front=None, back=None):
         """
         Crop an `Mesh` object.
         Use this method at creation (before moving the object).
@@ -1037,11 +1021,9 @@ class Mesh(Points):
         self.point_locator = None
 
         self.pipeline = OperationNode(
-            "crop", parents=[self], 
-            comment=f"#pts {self._data.GetNumberOfPoints()}",
+            "crop", parents=[self], comment=f"#pts {self._data.GetNumberOfPoints()}"
         )
         return self
-
 
     def cap(self, return_cap=False):
         """
@@ -1091,8 +1073,7 @@ class Mesh(Points):
             m.SetPosition(self.GetPosition())
 
             m.pipeline = OperationNode(
-                "cap", parents=[self], 
-                comment=f"#pts {m._data.GetNumberOfPoints()}",
+                "cap", parents=[self], comment=f"#pts {m._data.GetNumberOfPoints()}"
             )
             return m
 
@@ -1103,8 +1084,7 @@ class Mesh(Points):
         out = self._update(polyapp.GetOutput()).clean()
 
         out.pipeline = OperationNode(
-            "capped", parents=[self], 
-            comment=f"#pts {out._data.GetNumberOfPoints()}",
+            "capped", parents=[self], comment=f"#pts {out._data.GetNumberOfPoints()}"
         )
         return out
 
@@ -1167,8 +1147,8 @@ class Mesh(Points):
             return self._update(poly)
 
         out = self._update(sf.GetOutput())
-        out.pipeline = OperationNode("join", parents=[self], 
-            comment=f"#pts {out._data.GetNumberOfPoints()}",
+        out.pipeline = OperationNode(
+            "join", parents=[self], comment=f"#pts {out._data.GetNumberOfPoints()}"
         )
         return out
 
@@ -1222,7 +1202,7 @@ class Mesh(Points):
 
                     elif np.linalg.norm(p1 - pk) < tol:
                         n = len(line)
-                        for m in reversed(range(0, n-1)):
+                        for m in reversed(range(0, n - 1)):
                             joinedpts.append(pts[line[m]])
                         # joinedpts.append(p0)
                         k = id0
@@ -1234,14 +1214,16 @@ class Mesh(Points):
                 newline.clean()
                 newline.SetProperty(self.GetProperty())
                 newline.property = self.GetProperty()
-                newline.pipeline = OperationNode("join_segments", parents=[self], 
+                newline.pipeline = OperationNode(
+                    "join_segments",
+                    parents=[self],
                     comment=f"#pts {newline._data.GetNumberOfPoints()}",
                 )
                 vlines.append(newline)
 
         return vlines
 
-    def slice(self, origin=[0,0,0], normal=[1,0,0]):
+    def slice(self, origin=[0, 0, 0], normal=[1, 0, 0]):
         """
         Slice a mesh with a plane and fill the contour.
 
@@ -1262,10 +1244,8 @@ class Mesh(Points):
         mslices = vedo.pointcloud.merge(slices)
         if mslices:
             mslices.name = "MeshSlice"
-            mslices.pipeline = OperationNode(
-                "slice", parents=[self], comment=f"normal = {normal}")
+            mslices.pipeline = OperationNode("slice", parents=[self], comment=f"normal = {normal}")
         return mslices
-
 
     def triangulate(self, verts=True, lines=True):
         """
@@ -1294,7 +1274,7 @@ class Mesh(Points):
             # print("vtkContourTriangulator")
             tf = vtk.vtkContourTriangulator()
             tf.TriangulationErrorDisplayOn()
-        
+
         else:
             vedo.logger.debug("input in triangulate() seems to be void! Skip.")
             return self
@@ -1305,10 +1285,9 @@ class Mesh(Points):
         out.PickableOn()
 
         out.pipeline = OperationNode(
-            "triangulate", parents=[self], comment=f"#cells {out._data.GetNumberOfCells()}",
+            "triangulate", parents=[self], comment=f"#cells {out._data.GetNumberOfCells()}"
         )
         return out
-
 
     def compute_cell_area(self, name="Area"):
         """Add to this mesh a cell data array containing the areas of the polygonal faces"""
@@ -1415,7 +1394,6 @@ class Mesh(Points):
         varr = vald.GetOutput().GetCellData().GetArray("ValidityState")
         return vtk2numpy(varr)
 
-
     @deprecated(reason=vedo.colors.red + "Please use compute_curvature()" + vedo.colors.reset)
     def addCurvatureScalars(self, method=0):
         """Deprecated. Please use `compute_curvature()`"""
@@ -1481,15 +1459,7 @@ class Mesh(Points):
         """Please use `add_shadow()`"""
         return self.add_shadow(*a, **b)
 
-    def add_shadow(
-        self,
-        plane,
-        point,
-        direction=None,
-        c=(0.6, 0.6, 0.6),
-        alpha=1,
-        culling=0,
-    ):
+    def add_shadow(self, plane, point, direction=None, c=(0.6, 0.6, 0.6), alpha=1, culling=0):
         """
         Generate a shadow out of an `Mesh` on one of the three Cartesian planes.
         The output is a new `Mesh` representing the shadow.
@@ -1599,7 +1569,7 @@ class Mesh(Points):
         out = sdf.GetOutput()
 
         self.pipeline = OperationNode(
-            "subdivide", parents=[self], comment=f"#pts {out.GetNumberOfPoints()}",
+            "subdivide", parents=[self], comment=f"#pts {out.GetNumberOfPoints()}"
         )
         return self._update(out)
 
@@ -1646,7 +1616,7 @@ class Mesh(Points):
         out = decimate.GetOutput()
 
         self.pipeline = OperationNode(
-            "decimate", parents=[self], comment=f"#pts {out.GetNumberOfPoints()}",
+            "decimate", parents=[self], comment=f"#pts {out.GetNumberOfPoints()}"
         )
         return self._update(out)
 
@@ -1657,9 +1627,7 @@ class Mesh(Points):
         fs = min(x1 - x0, y1 - y0, z1 - z0) / 10
         d2 = distance * distance
         if distance > fs:
-            vedo.logger.error(
-                f"distance parameter is too large, should be < {fs}, skip!"
-            )
+            vedo.logger.error(f"distance parameter is too large, should be < {fs}, skip!")
             return self
         for _ in range(iterations):
             medges = self.edges()
@@ -1682,15 +1650,11 @@ class Mesh(Points):
         self.compute_normals()
 
         self.pipeline = OperationNode(
-            "collapse_edges", parents=[self], 
-            comment=f"#pts {self._data.GetNumberOfPoints()}",
+            "collapse_edges", parents=[self], comment=f"#pts {self._data.GetNumberOfPoints()}"
         )
         return self
 
-
-    def smooth(
-        self, niter=15, pass_band=0.1, edge_angle=15, feature_angle=60, boundary=False
-    ):
+    def smooth(self, niter=15, pass_band=0.1, edge_angle=15, feature_angle=60, boundary=False):
         """
         Adjust mesh point positions using the `Windowed Sinc` function interpolation kernel.
 
@@ -1728,8 +1692,8 @@ class Mesh(Points):
         smf.Update()
         out = self._update(smf.GetOutput())
 
-        out.pipeline = OperationNode("smooth", parents=[self], 
-            comment=f"#pts {out._data.GetNumberOfPoints()}",
+        out.pipeline = OperationNode(
+            "smooth", parents=[self], comment=f"#pts {out._data.GetNumberOfPoints()}"
         )
         return out
 
@@ -1759,10 +1723,9 @@ class Mesh(Points):
         fh.SetInputData(self._data)
         fh.Update()
         out = self._update(fh.GetOutput())
-        
+
         out.pipeline = OperationNode(
-            "fill_holes", parents=[self], 
-            comment=f"#pts {out._data.GetNumberOfPoints()}",
+            "fill_holes", parents=[self], comment=f"#pts {out._data.GetNumberOfPoints()}"
         )
         return out
 
@@ -1829,8 +1792,7 @@ class Mesh(Points):
         pcl.name = "InsidePoints"
 
         pcl.pipeline = OperationNode(
-            "inside_points", parents=[self, ptsa], 
-            comment=f"#pts {pcl._data.GetNumberOfPoints()}",
+            "inside_points", parents=[self, ptsa], comment=f"#pts {pcl._data.GetNumberOfPoints()}"
         )
         return pcl
 
@@ -1920,13 +1882,12 @@ class Mesh(Points):
             msh = Mesh(fe.GetOutput(), c="p").lw(5).lighting("off")
 
             msh.pipeline = OperationNode(
-                "boundaries", 
-                parents=[self], 
+                "boundaries",
+                parents=[self],
                 shape="octagon",
                 comment=f"#pts {msh._data.GetNumberOfPoints()}",
             )
             return msh
-
 
     def imprint(self, loopline, tol=0.01):
         """
@@ -1967,8 +1928,8 @@ class Mesh(Points):
         imp.Update()
         out = self._update(imp.GetOutput())
 
-        out.pipeline = OperationNode("imprint", parents=[self], 
-            comment=f"#pts {out._data.GetNumberOfPoints()}",
+        out.pipeline = OperationNode(
+            "imprint", parents=[self], comment=f"#pts {out._data.GetNumberOfPoints()}"
         )
         return out
 
@@ -2031,7 +1992,6 @@ class Mesh(Points):
         gf.SetInputData(extractSelection.GetOutput())
         gf.Update()
         return Mesh(gf.GetOutput()).lw(1)
-
 
     def silhouette(self, direction=None, border_edges=True, feature_angle=False):
         """
@@ -2124,7 +2084,7 @@ class Mesh(Points):
                 factor.SetCamera(plt.renderer.GetActiveCamera())
             else:
                 factor._isfollower = True  # postpone to show() call
-        
+
         return factor
 
     def isobands(self, n=10, vmin=None, vmax=None):
@@ -2287,22 +2247,15 @@ class Mesh(Points):
         m.SetScale(self.GetScale())
         m.SetOrientation(self.GetOrientation())
         m.SetPosition(self.GetPosition())
-        
+
         m.compute_normals(cells=False).flat().lighting("default")
 
         m.pipeline = OperationNode(
-            "extrude", parents=[self], 
-            comment=f"#pts {m._data.GetNumberOfPoints()}",
+            "extrude", parents=[self], comment=f"#pts {m._data.GetNumberOfPoints()}"
         )
         return m
 
-    def split(
-            self, 
-            maxdepth=1000, 
-            flag=False, 
-            must_share_edge=False,
-            sort_by_area=True,
-        ):
+    def split(self, maxdepth=1000, flag=False, must_share_edge=False, sort_by_area=True):
         """
         Split a mesh by connectivity and order the pieces by increasing area.
 
@@ -2340,11 +2293,11 @@ class Mesh(Points):
 
         if not out.GetNumberOfPoints():
             return [self]
-        
+
         if flag:
             self.pipeline = OperationNode("split mesh", parents=[self])
             return self._update(out)
-        
+
         a = Mesh(out)
         if must_share_edge:
             arr = a.celldata["RegionId"]
@@ -2361,7 +2314,7 @@ class Mesh(Points):
             if sort_by_area:
                 area = suba.area()
             else:
-                area = 0 # dummy 
+                area = 0  # dummy
             alist.append([suba, area])
 
         if sort_by_area:
@@ -2375,7 +2328,8 @@ class Mesh(Points):
             blist.append(l[0])
             if i < 10:
                 l[0].pipeline = OperationNode(
-                    f"split mesh {i}", parents=[self], 
+                    f"split mesh {i}",
+                    parents=[self],
                     comment=f"#pts {l[0]._data.GetNumberOfPoints()}",
                 )
         return blist
@@ -2411,8 +2365,7 @@ class Mesh(Points):
         m.mapper().SetScalarVisibility(vis)
 
         m.pipeline = OperationNode(
-            "extract_largest_region", parents=[self], 
-            comment=f"#pts {m._data.GetNumberOfPoints()}",
+            "extract_largest_region", parents=[self], comment=f"#pts {m._data.GetNumberOfPoints()}"
         )
         return m
 
@@ -2457,8 +2410,8 @@ class Mesh(Points):
         msh.name = self.name + operation + mesh2.name
 
         msh.pipeline = OperationNode(
-            "boolean " + operation, 
-            parents=[self, mesh2], 
+            "boolean " + operation,
+            parents=[self, mesh2],
             shape="cylinder",
             comment=f"#pts {msh._data.GetNumberOfPoints()}",
         )
@@ -2494,9 +2447,9 @@ class Mesh(Points):
         msh = Mesh(bf.GetOutput(), "k", 1).lighting("off")
         msh.GetProperty().SetLineWidth(3)
         msh.name = "SurfaceIntersection"
-        
+
         msh.pipeline = OperationNode(
-            "intersect_with", parents=[self, mesh2], comment=f"#pts {msh.npoints}",
+            "intersect_with", parents=[self, mesh2], comment=f"#pts {msh.npoints}"
         )
         return msh
 
@@ -2548,7 +2501,7 @@ class Mesh(Points):
 
         return pts
 
-    def intersect_with_plane(self, origin=[0,0,0], normal=[1,0,0]):
+    def intersect_with_plane(self, origin=[0, 0, 0], normal=[1, 0, 0]):
         """
         Intersect this Mesh with a plane to return a set of lines.
 
@@ -2578,12 +2531,11 @@ class Mesh(Points):
         msh.name = "PlaneIntersection"
 
         msh.pipeline = OperationNode(
-            "intersect_with_plan", parents=[self], 
-            comment=f"#pts {msh._data.GetNumberOfPoints()}",
+            "intersect_with_plan", parents=[self], comment=f"#pts {msh._data.GetNumberOfPoints()}"
         )
         return msh
 
-    def intersect_with_multiplanes(self, origin=(0,0,0), normal=(1,0,0), dmin=-1, dmax=1, n=10):
+    def intersect_with_multiplanes(self, origin=(0, 0, 0), normal=(1, 0, 0), dmin=-1, dmax=1, n=10):
         """
         Generate a set of lines from cutting a mesh in n intervals
         between a minimum and maximum distance from a plane of given origin and normal.
@@ -2606,8 +2558,8 @@ class Mesh(Points):
         plane.SetNormal(normal)
 
         bounds = np.array(self.bounds())
-        min_bound = bounds[[0,2,4]]
-        max_bound = bounds[[1,3,5]]
+        min_bound = bounds[[0, 2, 4]]
+        max_bound = bounds[[1, 3, 5]]
 
         center = np.array(poly.GetCenter())
         distance_min = np.linalg.norm(min_bound - center)
@@ -2630,7 +2582,8 @@ class Mesh(Points):
         msh.lw(2)
 
         msh.pipeline = OperationNode(
-            "intersect_with_multiplanes", parents=[self], 
+            "intersect_with_multiplanes",
+            parents=[self],
             comment=f"#pts {msh._data.GetNumberOfPoints()}",
         )
         return msh
@@ -2662,14 +2615,17 @@ class Mesh(Points):
             return bool(ipdf.GetNumberOfContacts())
 
         msh = Mesh(ipdf.GetContactsOutput(), "k", 1).lighting("off")
-        msh.metadata["ContactCells1"] = vtk2numpy(ipdf.GetOutput(0).GetFieldData().GetArray("ContactCells"))
-        msh.metadata["ContactCells2"] = vtk2numpy(ipdf.GetOutput(1).GetFieldData().GetArray("ContactCells"))
+        msh.metadata["ContactCells1"] = vtk2numpy(
+            ipdf.GetOutput(0).GetFieldData().GetArray("ContactCells")
+        )
+        msh.metadata["ContactCells2"] = vtk2numpy(
+            ipdf.GetOutput(1).GetFieldData().GetArray("ContactCells")
+        )
         msh.GetProperty().SetLineWidth(3)
         msh.name = "SurfaceCollision"
- 
+
         msh.pipeline = OperationNode(
-            "collide_with", parents=[self, mesh2], 
-            comment=f"#pts {msh._data.GetNumberOfPoints()}",
+            "collide_with", parents=[self, mesh2], comment=f"#pts {msh._data.GetNumberOfPoints()}"
         )
         return msh
 
@@ -2733,16 +2689,23 @@ class Mesh(Points):
         dmesh.name = "GeodesicLine"
 
         dmesh.pipeline = OperationNode(
-            "GeodesicLine", parents=[self], 
-            comment=f"#pts {dmesh._data.GetNumberOfPoints()}",
+            "GeodesicLine", parents=[self], comment=f"#pts {dmesh._data.GetNumberOfPoints()}"
         )
         return dmesh
 
     #####################################################################
     ### Stuff returning a Volume
     ###
-    def binarize(self, spacing=(1, 1, 1), invert=False, direction_matrix=None,
-                 image_size=None, origin=None, fg_val=255, bg_val=0):
+    def binarize(
+        self,
+        spacing=(1, 1, 1),
+        invert=False,
+        direction_matrix=None,
+        image_size=None,
+        origin=None,
+        fg_val=255,
+        bg_val=0,
+    ):
         """
         Convert a `Mesh` into a `Volume`
         where the foreground (exterior) voxels value is fg_val (255 by default)
@@ -2766,9 +2729,7 @@ class Mesh(Points):
         if not image_size:  # compute dimensions
             dim = [0, 0, 0]
             for i in [0, 1, 2]:
-                dim[i] = int(
-                    np.ceil((bounds[i * 2 + 1] - bounds[i * 2]) / spacing[i])
-                )
+                dim[i] = int(np.ceil((bounds[i * 2 + 1] - bounds[i * 2]) / spacing[i]))
 
         whiteImage.SetDimensions(dim)
         whiteImage.SetSpacing(spacing)
@@ -2806,13 +2767,12 @@ class Mesh(Points):
         vol = vedo.Volume(imgstenc.GetOutput())
 
         vol.pipeline = OperationNode(
-            "binarize", 
-            parents=[self], 
+            "binarize",
+            parents=[self],
             comment=f"dim = {tuple(vol.dimensions())}",
-            c="#e9c46a:#0096c7"
+            c="#e9c46a:#0096c7",
         )
         return vol
-
 
     @deprecated(reason=vedo.colors.red + "Please use signed_distance()" + vedo.colors.reset)
     def signedDistance(self, **k):
@@ -2871,21 +2831,15 @@ class Mesh(Points):
         vol.name = "SignedVolume"
 
         vol.pipeline = OperationNode(
-            "signed_distance", parents=[self], 
+            "signed_distance",
+            parents=[self],
             comment=f"dim = {tuple(vol.dimensions())}",
-            c="#e9c46a:#0096c7"
+            c="#e9c46a:#0096c7",
         )
         return vol
 
     def tetralize(
-        self,
-        side=0.02,
-        nmax=300_000,
-        gap=None,
-        subsample=False,
-        uniform=True,
-        seed=0,
-        debug=False,
+        self, side=0.02, nmax=300_000, gap=None, subsample=False, uniform=True, seed=0, debug=False
     ):
         """
         Tetralize a closed polygonal mesh. Return a `TetMesh`.
@@ -2929,9 +2883,7 @@ class Mesh(Points):
         else:
             disp = np.array([x0 + x1, y0 + y1, z0 + z1]) / 2
             np.random.seed(seed)
-            pts = (np.random.rand(n, 3) - 0.5) * np.array(
-                [x1 - x0, y1 - y0, z1 - z0]
-            ) + disp
+            pts = (np.random.rand(n, 3) - 0.5) * np.array([x1 - x0, y1 - y0, z1 - z0]) + disp
 
         normals = surf.celldata["Normals"]
         cc = surf.cell_centers()
@@ -2966,15 +2918,16 @@ class Mesh(Points):
             histo = vedo.pyplot.histogram(elen, xtitle="edge length", xlim=(0, 3 * side * d))
             print(".. edges min, max", elen.min(), elen.max())
             fillpts.cmap("bone")
-            vedo.show([
-                    [   f"This is a debug plot.\n\nGenerated points: {n}\ngap: {gap}",
+            vedo.show(
+                [
+                    [
+                        f"This is a debug plot.\n\nGenerated points: {n}\ngap: {gap}",
                         surf.wireframe().alpha(0.2),
                         vedo.addons.Axes(surf),
                         fillpts,
                         Points(subpts).c("r4").ps(3),
                     ],
-                    [   f"Edges mean length: {np.mean(elen)}\n\nPress q to continue", histo
-                    ],
+                    [f"Edges mean length: {np.mean(elen)}\n\nPress q to continue", histo],
                 ],
                 N=2,
                 sharecam=False,
@@ -2990,26 +2943,24 @@ class Mesh(Points):
             print(f".. tetralize() completed, ntets = {tmesh.ncells}")
 
         tmesh.pipeline = OperationNode(
-            "tetralize", 
-            parents=[self], 
-            comment=f"#tets = {tmesh.ncells}",
-            c="#e9c46a:#9e2a2b"
-        )        
+            "tetralize", parents=[self], comment=f"#tets = {tmesh.ncells}", c="#e9c46a:#9e2a2b"
+        )
         return tmesh
+
 
 ####################################################
 class Follower(vedo.base.BaseActor, vtk.vtkFollower):
-    
+
     def __init__(self, actor, camera=None):
 
         vtk.vtkFollower.__init__(self)
         vedo.base.BaseActor.__init__(self)
-        
+
         self.name = actor.name
         self._isfollower = False
 
         self.SetMapper(actor.GetMapper())
-        
+
         self.SetProperty(actor.GetProperty())
         self.SetBackfaceProperty(actor.GetBackfaceProperty())
         self.SetTexture(actor.GetTexture())
@@ -3023,9 +2974,4 @@ class Follower(vedo.base.BaseActor, vtk.vtkFollower):
 
         self.PickableOff()
 
-        self.pipeline = OperationNode(
-            "Follower", 
-            parents=[actor],
-            shape='component',
-            c="#d9ed92",
-        )        
+        self.pipeline = OperationNode("Follower", parents=[actor], shape="component", c="#d9ed92")

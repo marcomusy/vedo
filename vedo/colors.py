@@ -29,9 +29,9 @@ __all__ = [
     "color_map",
     "build_palette",
     "build_lut",
-    "getColor", # deprecated will disappear
-    "colorMap", # deprecated
-    "buildLUT", # deprecated
+    "getColor",  # deprecated will disappear
+    "colorMap",  # deprecated
+    "buildLUT",  # deprecated
 ]
 
 
@@ -413,47 +413,168 @@ color_nicks = {  # color nicknames
 
 # available colormap names:
 cmaps_names = (
-    "Accent",    "Accent_r",    "Blues",     "Blues_r",
-    "BrBG",      "BrBG_r",      "BuGn",      "BuGn_r",
-    "BuPu",      "BuPu_r",      "CMRmap",    "CMRmap_r",
-    "Dark2",     "Dark2_r",     "GnBu",      "GnBu_r",
-    "Greens",    "Greens_r",    "Greys",     "Greys_r",
-    "OrRd",      "OrRd_r",      "Oranges",   "Oranges_r",
-    "PRGn",      "PRGn_r",      "Paired",    "Paired_r",
-    "Pastel1",   "Pastel1_r",   "Pastel2",   "Pastel2_r",
-    "PiYG",      "PiYG_r",      "PuBu",      "PuBuGn",
-    "PuBuGn_r",  "PuBu_r",      "PuOr",      "PuOr_r",
-    "PuRd",      "PuRd_r",      "Purples",   "Purples_r",
-    "RdBu",      "RdBu_r",      "RdGy",      "RdGy_r",
-    "RdPu",      "RdPu_r",      "RdYlBu",    "RdYlBu_r",
-    "RdYlGn",    "RdYlGn_r",    "Reds",      "Reds_r",
-    "Set1",      "Set1_r",      "Set2",      "Set2_r",
-    "Set3",      "Set3_r",      "Spectral",  "Spectral_r",
-    "Wistia",    "Wistia_r",    "YlGn",      "YlGnBu",
-    "YlGnBu_r",  "YlGn_r",      "YlOrBr",    "YlOrBr_r",
-    "YlOrRd",    "YlOrRd_r",    "afmhot",    "afmhot_r",
-    "autumn",    "autumn_r",    "binary",    "binary_r",
-    "bone",      "bone_r",      "brg",       "brg_r",
-    "bwr",       "bwr_r",       "cividis",   "cividis_r",
-    "cool",      "cool_r",      "coolwarm",  "coolwarm_r",
-    "copper",    "copper_r",    "cubehelix", "cubehelix_r",
-    "flag",      "flag_r",      "gist_earth","gist_earth_r",
-    "gist_gray", "gist_gray_r", "gist_heat", "gist_heat_r",
-    "gist_ncar", "gist_ncar_r", "gist_rainbow", "gist_rainbow_r",
-    "gist_stern","gist_stern_r","gist_yarg",  "gist_yarg_r",
-    "gnuplot",   "gnuplot2",    "gnuplot2_r", "gnuplot_r",
-    "gray_r",      "hot",        "hot_r",
-    "hsv",       "hsv_r",       "inferno",    "inferno_r",
-    "jet",       "jet_r",       "magma",      "magma_r",
-    "nipy_spectral", "nipy_spectral_r", "ocean", "ocean_r",
-    "pink_r",      "plasma",     "plasma_r",
-    "prism",     "prism_r",     "rainbow",    "rainbow_r",
-    "seismic",   "seismic_r",   "spring",     "spring_r",
-    "summer",    "summer_r",    "tab10",      "tab10_r",
-    "tab20",     "tab20_r",     "tab20b",     "tab20b_r",
-    "tab20c",    "tab20c_r",    "terrain",    "terrain_r",
-    "twilight",  "twilight_r",  "twilight_shifted", "twilight_shifted_r",
-    "viridis",   "viridis_r",   "winter",     "winter_r"
+    "Accent",
+    "Accent_r",
+    "Blues",
+    "Blues_r",
+    "BrBG",
+    "BrBG_r",
+    "BuGn",
+    "BuGn_r",
+    "BuPu",
+    "BuPu_r",
+    "CMRmap",
+    "CMRmap_r",
+    "Dark2",
+    "Dark2_r",
+    "GnBu",
+    "GnBu_r",
+    "Greens",
+    "Greens_r",
+    "Greys",
+    "Greys_r",
+    "OrRd",
+    "OrRd_r",
+    "Oranges",
+    "Oranges_r",
+    "PRGn",
+    "PRGn_r",
+    "Paired",
+    "Paired_r",
+    "Pastel1",
+    "Pastel1_r",
+    "Pastel2",
+    "Pastel2_r",
+    "PiYG",
+    "PiYG_r",
+    "PuBu",
+    "PuBuGn",
+    "PuBuGn_r",
+    "PuBu_r",
+    "PuOr",
+    "PuOr_r",
+    "PuRd",
+    "PuRd_r",
+    "Purples",
+    "Purples_r",
+    "RdBu",
+    "RdBu_r",
+    "RdGy",
+    "RdGy_r",
+    "RdPu",
+    "RdPu_r",
+    "RdYlBu",
+    "RdYlBu_r",
+    "RdYlGn",
+    "RdYlGn_r",
+    "Reds",
+    "Reds_r",
+    "Set1",
+    "Set1_r",
+    "Set2",
+    "Set2_r",
+    "Set3",
+    "Set3_r",
+    "Spectral",
+    "Spectral_r",
+    "Wistia",
+    "Wistia_r",
+    "YlGn",
+    "YlGnBu",
+    "YlGnBu_r",
+    "YlGn_r",
+    "YlOrBr",
+    "YlOrBr_r",
+    "YlOrRd",
+    "YlOrRd_r",
+    "afmhot",
+    "afmhot_r",
+    "autumn",
+    "autumn_r",
+    "binary",
+    "binary_r",
+    "bone",
+    "bone_r",
+    "brg",
+    "brg_r",
+    "bwr",
+    "bwr_r",
+    "cividis",
+    "cividis_r",
+    "cool",
+    "cool_r",
+    "coolwarm",
+    "coolwarm_r",
+    "copper",
+    "copper_r",
+    "cubehelix",
+    "cubehelix_r",
+    "flag",
+    "flag_r",
+    "gist_earth",
+    "gist_earth_r",
+    "gist_gray",
+    "gist_gray_r",
+    "gist_heat",
+    "gist_heat_r",
+    "gist_ncar",
+    "gist_ncar_r",
+    "gist_rainbow",
+    "gist_rainbow_r",
+    "gist_stern",
+    "gist_stern_r",
+    "gist_yarg",
+    "gist_yarg_r",
+    "gnuplot",
+    "gnuplot2",
+    "gnuplot2_r",
+    "gnuplot_r",
+    "gray_r",
+    "hot",
+    "hot_r",
+    "hsv",
+    "hsv_r",
+    "inferno",
+    "inferno_r",
+    "jet",
+    "jet_r",
+    "magma",
+    "magma_r",
+    "nipy_spectral",
+    "nipy_spectral_r",
+    "ocean",
+    "ocean_r",
+    "pink_r",
+    "plasma",
+    "plasma_r",
+    "prism",
+    "prism_r",
+    "rainbow",
+    "rainbow_r",
+    "seismic",
+    "seismic_r",
+    "spring",
+    "spring_r",
+    "summer",
+    "summer_r",
+    "tab10",
+    "tab10_r",
+    "tab20",
+    "tab20_r",
+    "tab20b",
+    "tab20b_r",
+    "tab20c",
+    "tab20c_r",
+    "terrain",
+    "terrain_r",
+    "twilight",
+    "twilight_r",
+    "twilight_shifted",
+    "twilight_shifted_r",
+    "viridis",
+    "viridis_r",
+    "winter",
+    "winter_r",
 )
 
 
@@ -596,6 +717,7 @@ def getColor(rgb=None, hsv=None):
     """Deprecated. Use `get_color()`"""
     return get_color(rgb, hsv)
 
+
 def get_color(rgb=None, hsv=None):
     """
     Convert a color or list of colors to (r,g,b) format from many different input formats.
@@ -699,6 +821,7 @@ def get_color_name(c):
             kclosest = str(key)
     return kclosest
 
+
 def hsv2rgb(hsv):
     """Convert HSV to RGB color."""
     ma = vtk.vtkMath()
@@ -732,6 +855,7 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
     """Deprecated, use `color_map()`"""
     print("Deprecated call to colorMap(), use color_map() instead")
     return color_map(value, name, vmin, vmax)
+
 
 def color_map(value, name="jet", vmin=None, vmax=None):
     """
@@ -773,8 +897,10 @@ def color_map(value, name="jet", vmin=None, vmax=None):
 
     if cut:
         values = np.asarray(value)
-        if vmin is None: vmin = np.min(values)
-        if vmax is None: vmax = np.max(values)
+        if vmin is None:
+            vmin = np.min(values)
+        if vmax is None:
+            vmax = np.max(values)
         values = np.clip(values, vmin, vmax)
         values = (values - vmin) / (vmax - vmin)
     else:
@@ -855,6 +981,7 @@ def build_palette(color1, color2, n, hsv=True):
         cols.append(c)
     return np.array(cols)
 
+
 def buildLUT(
     colorlist,
     vmin=None,
@@ -881,6 +1008,7 @@ def buildLUT(
         nanAlpha,
         interpolate,
     )
+
 
 def build_lut(
     colorlist,
@@ -1121,7 +1249,7 @@ def printc(
             if box in ["_", "=", "-", "+", "~"]:
                 boxv = "|"
 
-            if box in ('_', '.'):
+            if box in ("_", "."):
                 outtxt = special + cseq + " " + box * (len(txt) + offset + 2) + " \n"
                 outtxt += boxv + " " * (len(txt) + 2) + boxv + "\n"
             else:
@@ -1166,8 +1294,8 @@ def printd(*strings, q=False):
     cfi = getframeinfo(cf)
 
     fname = os.path.basename(getframeinfo(cf).filename)
-    print("\x1b[7m\x1b[3m\x1b[37m"+fname+" line:\x1b[1m"+str(cfi.lineno)+reset, end='')
-    print('\x1b[3m\x1b[37m\x1b[2m', "\U00002501"*30, time.ctime(), reset)
+    print("\x1b[7m\x1b[3m\x1b[37m" + fname + " line:\x1b[1m" + str(cfi.lineno) + reset, end="")
+    print("\x1b[3m\x1b[37m\x1b[2m", "\U00002501" * 30, time.ctime(), reset)
     if strings:
         print("    \x1b[37m\x1b[1mMessage : ", *strings)
     print("    \x1b[37m\x1b[1mFunction:\x1b[0m\x1b[37m " + str(cfi.function))

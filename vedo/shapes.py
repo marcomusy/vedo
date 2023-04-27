@@ -160,20 +160,21 @@ class Glyph(Mesh):
     Color can be specified as a colormap which maps the size of the orientation
     vectors in `orientation_array`.
     """
+
     def __init__(
-            self,
-            mesh,
-            glyph,
-            orientation_array=None,
-            scale_by_scalar=False,
-            scale_by_vector_size=False,
-            scale_by_vector_components=False,
-            color_by_scalar=False,
-            color_by_vector_size=False,
-            c='k8',
-            alpha=1,
-            **opts,
-        ):
+        self,
+        mesh,
+        glyph,
+        orientation_array=None,
+        scale_by_scalar=False,
+        scale_by_vector_size=False,
+        scale_by_vector_components=False,
+        color_by_scalar=False,
+        color_by_vector_size=False,
+        c="k8",
+        alpha=1,
+        **opts,
+    ):
         """
         Arguments:
             orientation_array: (list, str, vtkArray)
@@ -195,15 +196,17 @@ class Glyph(Mesh):
 
             ![](https://vedo.embl.es/images/basic/glyphs.png)
         """
-        if len(opts): # Deprecations
-            printc(":noentry: Warning! In Glyph() unrecognized keywords:", opts, c='y')
+        if len(opts):  # Deprecations
+            printc(":noentry: Warning! In Glyph() unrecognized keywords:", opts, c="y")
             orientation_array = opts.pop("orientationArray", orientation_array)
             scale_by_scalar = opts.pop("scaleByScalar", scale_by_scalar)
             scale_by_vector_size = opts.pop("scaleByVectorSize", scale_by_vector_size)
-            scale_by_vector_components = opts.pop("scaleByVectorComponents", scale_by_vector_components)
+            scale_by_vector_components = opts.pop(
+                "scaleByVectorComponents", scale_by_vector_components
+            )
             color_by_scalar = opts.pop("colorByScalar", color_by_scalar)
             color_by_vector_size = opts.pop("colorByVectorSize", color_by_vector_size)
-            printc("          Please use 'snake_case' instead of 'camelCase' keywords", c='y')
+            printc("          Please use 'snake_case' instead of 'camelCase' keywords", c="y")
 
         lighting = None
         if utils.is_sequence(mesh):
@@ -312,6 +315,7 @@ class Tensors(Mesh):
     hence the need to only consider the symmetric part of the tensor,
     which is `1/2*(T+T.transposed())`.
     """
+
     def __init__(
         self,
         domain,
@@ -416,6 +420,7 @@ class Line(Mesh):
 
     A 2D set of coords can also be passed as `p0=[x..], p1=[y..]`.
     """
+
     def __init__(self, p0, p1=None, closed=False, res=2, lw=1, c="k1", alpha=1):
         """
         Arguments:
@@ -456,7 +461,7 @@ class Line(Mesh):
 
         # detect if user is passing a 2D list of points as p0=xlist, p1=ylist:
         if len(p0) > 3:
-            if not utils.is_sequence(p0[0]) and not utils.is_sequence(p1[0]) and len(p0)==len(p1):
+            if not utils.is_sequence(p0[0]) and not utils.is_sequence(p1[0]) and len(p0) == len(p1):
                 # assume input is 2D xlist, ylist
                 p0 = np.stack((p0, p1), axis=1)
                 p1 = None
@@ -747,6 +752,7 @@ class DashedLine(Mesh):
     If `p0` is a list of points returns the line connecting them.
     A 2D set of coords can also be passed as `p0=[x..], p1=[y..]`.
     """
+
     def __init__(self, p0, p1=None, spacing=0.1, closed=False, lw=2, c="k5", alpha=1):
         """
         Arguments:
@@ -766,7 +772,7 @@ class DashedLine(Mesh):
 
         # detect if user is passing a 2D list of points as p0=xlist, p1=ylist:
         if len(p0) > 3:
-            if not utils.is_sequence(p0[0]) and not utils.is_sequence(p1[0]) and len(p0)==len(p1):
+            if not utils.is_sequence(p0[0]) and not utils.is_sequence(p1[0]) and len(p0) == len(p1):
                 # assume input is 2D xlist, ylist
                 p0 = np.stack((p0, p1), axis=1)
                 p1 = None
@@ -847,6 +853,7 @@ class RoundedLine(Mesh):
     Create a 2D line of specified thickness (in absolute units) passing through
     a list of input points. Borders of the line are rounded.
     """
+
     def __init__(self, pts, lw, res=10, c="gray4", alpha=1):
         """
         Arguments:
@@ -945,16 +952,9 @@ class Lines(Mesh):
     Build the line segments between two lists of points `start_pts` and `end_pts`.
     `start_pts` can be also passed in the form `[[point1, point2], ...]`.
     """
+
     def __init__(
-        self,
-        start_pts,
-        end_pts=None,
-        dotted=False,
-        res=1,
-        scale=1,
-        lw=1,
-        c="k4",
-        alpha=1,
+        self, start_pts, end_pts=None, dotted=False, res=1, scale=1, lw=1, c="k4", alpha=1
     ):
         """
         Arguments:
@@ -1040,6 +1040,7 @@ class Spline(Line):
     Find the B-Spline curve through a set of points. This curve does not necessarily
     pass exactly through all the input points. Needs to import `scipy`.
     """
+
     def __init__(self, points, smooth=0, degree=2, closed=False, res=None, easing=""):
         """
         Arguments:
@@ -1128,6 +1129,7 @@ class KSpline(Line):
     Return a [Kochanek spline](https://en.wikipedia.org/wiki/Kochanek%E2%80%93Bartels_spline)
     which runs exactly through all the input points.
     """
+
     def __init__(self, points, continuity=0, tension=0, bias=0, closed=False, res=None):
         """
         Arguments:
@@ -1196,6 +1198,7 @@ class CSpline(Line):
     """
     Return a Cardinal spline which runs exactly through all the input points.
     """
+
     def __init__(self, points, closed=False, res=None):
         """
         Arguments:
@@ -1251,6 +1254,7 @@ class Bezier(Line):
     """
     Generate the Bezier line that links the first to the last point.
     """
+
     def __init__(self, points, res=None):
         """
         Example:
@@ -1305,6 +1309,7 @@ class NormalLines(Mesh):
         scale : (float)
             scale factor to control size.
     """
+
     def __init__(self, msh, ratio=1, on="cells", scale=1):
 
         poly = msh.clone().compute_normals().polydata()
@@ -1331,7 +1336,7 @@ class NormalLines(Mesh):
         glyph.SetVectorModeToUseNormal()
 
         b = poly.GetBounds()
-        f = max([b[1]-b[0], b[3]-b[2], b[5]-b[4]]) / 50 * scale
+        f = max([b[1] - b[0], b[3] - b[2], b[5] - b[4]]) / 50 * scale
         glyph.SetScaleFactor(f)
         glyph.OrientOn()
         glyph.Update()
@@ -1376,7 +1381,7 @@ def _interpolate2vol(mesh, kernel=None, radius=None, bounds=None, null_value=Non
     domain.SetSpacing(deltaX, deltaY, deltaZ)
 
     if radius is None:
-        radius = 2.5*np.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ)
+        radius = 2.5 * np.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ)
 
     locator = vtk.vtkStaticPointLocator()
     locator.SetDataSet(mesh)
@@ -1499,8 +1504,8 @@ def StreamLines(
 
             ![](https://vedo.embl.es/images/volumetric/56964003-9145a500-6b5a-11e9-9d9e-9736d90e1900.png)
     """
-    if len(opts): # Deprecations
-        printc(" Warning! In StreamLines() unrecognized keywords:", opts, c='y')
+    if len(opts):  # Deprecations
+        printc(" Warning! In StreamLines() unrecognized keywords:", opts, c="y")
         initial_step_size = opts.pop("initialStepSize", initial_step_size)
         max_propagation = opts.pop("maxPropagation", max_propagation)
         max_steps = opts.pop("maxSteps", max_steps)
@@ -1509,7 +1514,7 @@ def StreamLines(
         surface_constrained = opts.pop("surfaceConstrained", surface_constrained)
         compute_vorticity = opts.pop("computeVorticity", compute_vorticity)
         scalar_range = opts.pop("scalarRange", scalar_range)
-        printc("          Please use 'snake_case' instead of 'camelCase' keywords", c='y')
+        printc("          Please use 'snake_case' instead of 'camelCase' keywords", c="y")
 
     if isinstance(domain, vedo.Points):
         if extrapolate_to_box:
@@ -1588,7 +1593,7 @@ def StreamLines(
         output = scalar_surface.GetOutput()
 
     if tubes:
-        radius = tubes.pop("radius", domain.GetLength()/500)
+        radius = tubes.pop("radius", domain.GetLength() / 500)
         res = tubes.pop("res", 24)
         radfact = tubes.pop("max_radius_factor", 10)
         ratio = tubes.pop("ratio", 1)
@@ -1647,6 +1652,7 @@ class Tube(Mesh):
     """
     Build a tube along the line defined by a set of points.
     """
+
     def __init__(self, points, r=1, cap=True, res=12, c=None, alpha=1):
         """
         Arguments:
@@ -1722,6 +1728,7 @@ class Tube(Mesh):
         self.top = top
         self.name = "Tube"
 
+
 def ThickTube(pts, r1, r2, res=12, c=None, alpha=1):
     """
     Create a tube with a thickness along a line of points.
@@ -1736,17 +1743,18 @@ def ThickTube(pts, r1, r2, res=12, c=None, alpha=1):
     ```
     ![](https://vedo.embl.es/images/feats/thick_tube.png)
     """
+
     def make_cap(t1, t2):
         newpoints = t1.points().tolist() + t2.points().tolist()
         newfaces = []
-        for i in range(n-1):
-            newfaces.append([i,   i+1, i+n])
-            newfaces.append([i+n, i+1, i+n+1])
-        newfaces.append([2*n-1,   0, n])
-        newfaces.append([2*n-1, n-1, 0])
+        for i in range(n - 1):
+            newfaces.append([i, i + 1, i + n])
+            newfaces.append([i + n, i + 1, i + n + 1])
+        newfaces.append([2 * n - 1, 0, n])
+        newfaces.append([2 * n - 1, n - 1, 0])
         capm = utils.buildPolyData(newpoints, newfaces)
         return capm
-    
+
     assert r1 < r2
 
     t1 = Tube(pts, r=r1, cap=False, res=res)
@@ -1756,7 +1764,7 @@ def ThickTube(pts, r1, r2, res=12, c=None, alpha=1):
     tc2a, tc2b = t2.boundaries().split()
     n = tc1b.npoints
 
-    tc1b.join(reset=True).clean() # needed because indices are flipped
+    tc1b.join(reset=True).clean()  # needed because indices are flipped
     tc2b.join(reset=True).clean()
 
     capa = make_cap(tc1a, tc2a)
@@ -1768,6 +1776,7 @@ def ThickTube(pts, r1, r2, res=12, c=None, alpha=1):
     thick_tube.name = "ThickTube"
     return thick_tube
 
+
 class Ribbon(Mesh):
     """
     Connect two lines to generate the surface inbetween.
@@ -1776,6 +1785,7 @@ class Ribbon(Mesh):
     It also works with a single line in input. In this case the ribbon
     is formed by following the local plane of the line in space.
     """
+
     def __init__(
         self,
         line1,
@@ -1905,6 +1915,7 @@ class Arrow(Mesh):
     Build a 3D arrow from `start_pt` to `end_pt` of section size `s`,
     expressed as the fraction of the window size.
     """
+
     def __init__(
         self,
         start_pt=(0, 0, 0),
@@ -2010,6 +2021,7 @@ class Arrows(Glyph):
     """
     Build arrows between two lists of points.
     """
+
     def __init__(
         self,
         start_pts,
@@ -2099,6 +2111,7 @@ class Arrow2D(Mesh):
     """
     Build a 2D arrow.
     """
+
     def __init__(
         self,
         start_pt=(0, 0, 0),
@@ -2184,7 +2197,7 @@ class Arrow2D(Mesh):
         tf.SetTransform(t)
         tf.Update()
 
-        Mesh.__init__(self, tf.GetOutput(), c='k1')
+        Mesh.__init__(self, tf.GetOutput(), c="k1")
         self.SetPosition(start_pt)
         self.lighting("off")
         self.DragableOff()
@@ -2198,6 +2211,7 @@ class Arrows2D(Glyph):
     """
     Build 2D arrows between two lists of points.
     """
+
     def __init__(
         self,
         start_pts,
@@ -2279,6 +2293,7 @@ class FlatArrow(Ribbon):
     """
     Build a 2D arrow in 3D space by joining two close lines.
     """
+
     def __init__(self, line1, line2, tip_size=1, tip_width=1):
         """
         Build a 2D arrow in 3D space by joining two close lines.
@@ -2295,13 +2310,13 @@ class FlatArrow(Ribbon):
 
         sm1, sm2 = np.array(line1[-1], dtype=float), np.array(line2[-1], dtype=float)
 
-        v = (sm1-sm2)/3*tip_width
-        p1 = sm1+v
-        p2 = sm2-v
-        pm1 = (sm1+sm2)/2
-        pm2 = (np.array(line1[-2])+np.array(line2[-2]))/2
-        pm12 = pm1-pm2
-        tip = pm12/np.linalg.norm(pm12)*np.linalg.norm(v)*3*tip_size/tip_width + pm1
+        v = (sm1 - sm2) / 3 * tip_width
+        p1 = sm1 + v
+        p2 = sm2 - v
+        pm1 = (sm1 + sm2) / 2
+        pm2 = (np.array(line1[-2]) + np.array(line2[-2])) / 2
+        pm12 = pm1 - pm2
+        tip = pm12 / np.linalg.norm(pm12) * np.linalg.norm(v) * 3 * tip_size / tip_width + pm1
 
         line1.append(p1)
         line1.append(tip)
@@ -2318,9 +2333,10 @@ class FlatArrow(Ribbon):
 
 class Triangle(Mesh):
     """Create a triangle from 3 points in space."""
+
     def __init__(self, p1, p2, p3, c="green7", alpha=1):
         """Create a triangle from 3 points in space."""
-        Mesh.__init__(self, [[p1,p2,p3], [[0,1,2]]], c, alpha)
+        Mesh.__init__(self, [[p1, p2, p3], [[0, 1, 2]]], c, alpha)
         self.GetProperty().LightingOff()
         self.name = "Triangle"
 
@@ -2329,6 +2345,7 @@ class Polygon(Mesh):
     """
     Build a polygon in the `xy` plane.
     """
+
     def __init__(self, pos=(0, 0, 0), nsides=6, r=1, c="coral", alpha=1):
         """
         Build a polygon in the `xy` plane of `nsides` of radius `r`.
@@ -2351,6 +2368,7 @@ class Circle(Polygon):
     """
     Build a Circle of radius `r`.
     """
+
     def __init__(self, pos=(0, 0, 0), r=1, res=120, c="gray5", alpha=1):
         """
         Build a Circle of radius `r`.
@@ -2371,6 +2389,7 @@ class GeoCircle(Polygon):
     """
     Build a Circle of radius `r`.
     """
+
     def __init__(self, lat, lon, r=1, res=60, c="red4", alpha=1):
         """
         Build a Circle of radius `r` as projected on a geographic map.
@@ -2387,7 +2406,7 @@ class GeoCircle(Polygon):
         for phi in np.linspace(0, 2 * np.pi, num=res, endpoint=False):
             clat = np.arcsin(sinlat * cosr + coslat * sinr * np.cos(phi))
             clng = lon + np.arctan2(np.sin(phi) * sinr * coslat, cosr - sinlat * np.sin(clat))
-            coords.append([clng/np.pi + 1, clat*2/np.pi + 1, 0])
+            coords.append([clng / np.pi + 1, clat * 2 / np.pi + 1, 0])
 
         Polygon.__init__(self, nsides=res, c=c, alpha=alpha)
         self.points(coords)  # warp polygon points to match geo projection
@@ -2398,6 +2417,7 @@ class Star(Mesh):
     """
     Build a 2D star shape.
     """
+
     def __init__(self, pos=(0, 0, 0), n=5, r1=0.7, r2=1.0, line=False, c="blue6", alpha=1):
         """
         Build a 2D star shape of `n` cusps of inner radius `r1` and outer radius `r2`.
@@ -2445,7 +2465,10 @@ class Disc(Mesh):
     """
     Build a 2D disc.
     """
-    def __init__(self, pos=(0, 0, 0), r1=0.5, r2=1, res=(1, 120), angle_range=(), c="gray4", alpha=1):
+
+    def __init__(
+        self, pos=(0, 0, 0), r1=0.5, r2=1, res=(1, 120), angle_range=(), c="gray4", alpha=1
+    ):
         """
         Build a 2D disc of inner radius `r1` and outer radius `r2`.
 
@@ -2482,6 +2505,7 @@ class Arc(Mesh):
     """
     Build a 2D circular arc between 2 points.
     """
+
     def __init__(
         self,
         center,
@@ -2536,10 +2560,12 @@ class Arc(Mesh):
         self.lw(2).lighting("off")
         self.name = "Arc"
 
+
 class IcoSphere(Mesh):
     """
     Create a sphere made of a uniform triangle mesh.
     """
+
     def __init__(self, pos=(0, 0, 0), r=1, subdivisions=3, c="r5", alpha=1):
         """
         Create a sphere made of a uniform triangle mesh
@@ -2554,23 +2580,25 @@ class IcoSphere(Mesh):
         ```
         ![](https://vedo.embl.es/images/basic/icosphere.jpg)
         """
-        subdivisions = int(min(subdivisions, 9)) # to avoid disasters
+        subdivisions = int(min(subdivisions, 9))  # to avoid disasters
 
         t = (1.0 + np.sqrt(5.0)) / 2.0
-        points = np.array([
-            [-1,  t,  0],
-            [ 1,  t,  0],
-            [-1, -t,  0],
-            [ 1, -t,  0],
-            [ 0, -1,  t],
-            [ 0,  1,  t],
-            [ 0, -1, -t],
-            [ 0,  1, -t],
-            [ t,  0, -1],
-            [ t,  0,  1],
-            [-t,  0, -1],
-            [-t,  0,  1]
-        ])
+        points = np.array(
+            [
+                [-1, t, 0],
+                [1, t, 0],
+                [-1, -t, 0],
+                [1, -t, 0],
+                [0, -1, t],
+                [0, 1, t],
+                [0, -1, -t],
+                [0, 1, -t],
+                [t, 0, -1],
+                [t, 0, 1],
+                [-t, 0, -1],
+                [-t, 0, 1],
+            ]
+        )
         faces = [
             [0, 11, 5],
             [0, 5, 1],
@@ -2591,7 +2619,7 @@ class IcoSphere(Mesh):
             [2, 4, 11],
             [6, 2, 10],
             [8, 6, 7],
-            [9, 8, 1]
+            [9, 8, 1],
         ]
         Mesh.__init__(self, [points * r, faces], c=c, alpha=alpha)
 
@@ -2608,6 +2636,7 @@ class Sphere(Mesh):
     """
     Build a sphere.
     """
+
     def __init__(self, pos=(0, 0, 0), r=1, res=24, quads=False, c="r5", alpha=1):
         """
         Build a sphere at position `pos` of radius `r`.
@@ -2675,6 +2704,7 @@ class Spheres(Mesh):
     """
     Build a large set of spheres.
     """
+
     def __init__(self, centers, r=1, res=8, c="r5", alpha=1):
         """
         Build a (possibly large) set of spheres at `centers` of radius `r`.
@@ -2774,6 +2804,7 @@ class Earth(Mesh):
     """
     Build a textured mesh representing the Earth.
     """
+
     def __init__(self, style=1, r=1):
         """
         Build a textured mesh representing the Earth.
@@ -2802,6 +2833,7 @@ class Ellipsoid(Mesh):
     """
     Build a 3D ellipsoid.
     """
+
     def __init__(
         self,
         pos=(0, 0, 0),
@@ -2944,15 +2976,8 @@ class Grid(Mesh):
     """
     An even or uneven 2D grid.
     """
-    def __init__(
-        self,
-        pos=(0, 0, 0),
-        s=(1,1),
-        res=(10,10),
-        lw=1,
-        c="k3",
-        alpha=1,
-    ):
+
+    def __init__(self, pos=(0, 0, 0), s=(1, 1), res=(10, 10), lw=1, c="k3", alpha=1):
         """
         Create an even or uneven 2D grid.
 
@@ -3029,6 +3054,7 @@ class Plane(Mesh):
     """
     Create a plane in space.
     """
+
     def __init__(self, pos=(0, 0, 0), normal=(0, 0, 1), s=(1, 1), res=(1, 1), c="gray5", alpha=1):
         """
         Create a plane of size `s=(xsize, ysize)` oriented perpendicular to vector `normal`
@@ -3094,6 +3120,7 @@ class Rectangle(Mesh):
     """
     Build a rectangle in the xy plane.
     """
+
     def __init__(self, p1=(0, 0), p2=(1, 1), radius=None, res=12, c="gray5", alpha=1):
         """
         Build a rectangle in the xy plane identified by any two corner points.
@@ -3187,6 +3214,7 @@ class Box(Mesh):
     """
     Build a box of specified dimensions.
     """
+
     def __init__(self, pos=(0, 0, 0), length=1, width=2, height=3, size=(), c="g4", alpha=1):
         """
         Build a box of dimensions `x=length, y=width and z=height`.
@@ -3256,19 +3284,19 @@ class Box(Mesh):
 
 class Cube(Box):
     """Build a cube."""
+
     def __init__(self, pos=(0, 0, 0), side=1, c="g4", alpha=1):
-       """Build a cube of size `side`."""
-       Box.__init__(self, pos, side, side, side, (), c, alpha)
-       self.name = "Cube"
+        """Build a cube of size `side`."""
+        Box.__init__(self, pos, side, side, side, (), c, alpha)
+        self.name = "Cube"
 
 
 class TessellatedBox(Mesh):
     """
     Build a cubic `Mesh` made of quads.
     """
-    def __init__(self, pos=(0, 0, 0), n=10, spacing=(1, 1, 1), bounds=(),
-                 c="k5", alpha=0.5,
-    ):
+
+    def __init__(self, pos=(0, 0, 0), n=10, spacing=(1, 1, 1), bounds=(), c="k5", alpha=0.5):
         """
         Build a cubic `Mesh` made of `n` small quads in the 3 axis directions.
 
@@ -3312,6 +3340,7 @@ class Spring(Mesh):
     """
     Build a spring model.
     """
+
     def __init__(
         self,
         start_pt=(0, 0, 0),
@@ -3384,16 +3413,9 @@ class Cylinder(Mesh):
     """
     Build a cylinder of specified height and radius.
     """
+
     def __init__(
-        self,
-        pos=(0, 0, 0),
-        r=1,
-        height=2,
-        axis=(0, 0, 1),
-        cap=True,
-        res=24,
-        c="teal3",
-        alpha=1,
+        self, pos=(0, 0, 0), r=1, height=2, axis=(0, 0, 1), cap=True, res=24, c="teal3", alpha=1
     ):
         """
         Build a cylinder of specified height and radius `r`, centered at `pos`.
@@ -3445,9 +3467,8 @@ class Cylinder(Mesh):
 
 class Cone(Mesh):
     """Build a cone of specified radius and height."""
-    def __init__(
-        self, pos=(0, 0, 0), r=1, height=3, axis=(0, 0, 1), res=48, c="green3", alpha=1
-    ):
+
+    def __init__(self, pos=(0, 0, 0), r=1, height=3, axis=(0, 0, 1), res=48, c="green3", alpha=1):
         """Build a cone of specified radius `r` and `height`, centered at `pos`."""
         con = vtk.vtkConeSource()
         con.SetResolution(res)
@@ -3468,6 +3489,7 @@ class Cone(Mesh):
 
 class Pyramid(Cone):
     """Build a pyramidal shape."""
+
     def __init__(self, pos=(0, 0, 0), s=1, height=1, axis=(0, 0, 1), c="green3", alpha=1):
         """Build a pyramid of specified base size `s` and `height`, centered at `pos`."""
         Cone.__init__(self, pos, s, height, axis, 4, c, alpha)
@@ -3478,6 +3500,7 @@ class Torus(Mesh):
     """
     Build a toroidal shape.
     """
+
     def __init__(self, pos=(0, 0, 0), r1=1, r2=0.2, res=36, quads=False, c="yellow3", alpha=1):
         """
         Build a torus of specified outer radius `r1` internal radius `r2`, centered at `pos`.
@@ -3486,16 +3509,16 @@ class Torus(Mesh):
         if utils.is_sequence(res):
             res_u, res_v = res
         else:
-            res_u, res_v = 3*res, res
+            res_u, res_v = 3 * res, res
 
         if quads:
-            #https://github.com/marcomusy/vedo/issues/710
+            # https://github.com/marcomusy/vedo/issues/710
 
             n = res_v
             m = res_u
 
-            theta = np.linspace(0, 2.*np.pi, n)
-            phi   = np.linspace(0, 2.*np.pi, m)
+            theta = np.linspace(0, 2.0 * np.pi, n)
+            phi = np.linspace(0, 2.0 * np.pi, m)
             theta, phi = np.meshgrid(theta, phi)
             t = r1 + r2 * np.cos(theta)
             x = t * np.cos(phi)
@@ -3504,10 +3527,10 @@ class Torus(Mesh):
             pts = np.column_stack((x.ravel(), y.ravel(), z.ravel()))
 
             faces = []
-            for j in range(m-1):
-                j1n = (j+1) * n
-                for i in range(n-1):
-                    faces.append([i + j*n, i+1 + j*n, i+1 + j1n, i + j1n])
+            for j in range(m - 1):
+                j1n = (j + 1) * n
+                for i in range(n - 1):
+                    faces.append([i + j * n, i + 1 + j * n, i + 1 + j1n, i + j1n])
 
             Mesh.__init__(self, [pts, faces], c, alpha)
 
@@ -3534,6 +3557,7 @@ class Paraboloid(Mesh):
     """
     Build a paraboloid.
     """
+
     def __init__(self, pos=(0, 0, 0), height=1, res=50, c="cyan5", alpha=1):
         """
         Build a paraboloid of specified height and radius `r`, centered at `pos`.
@@ -3568,7 +3592,8 @@ class Hyperboloid(Mesh):
     """
     Build a hyperboloid.
     """
-    def __init__(self, pos=(0,0,0), a2=1, value=0.5, res=100, c="pink4", alpha=1):
+
+    def __init__(self, pos=(0, 0, 0), a2=1, value=0.5, res=100, c="pink4", alpha=1):
         """
         Build a hyperboloid of specified aperture `a2` and `height`, centered at `pos`.
 
@@ -3604,7 +3629,7 @@ def Marker(symbol, pos=(0, 0, 0), c="k", alpha=1, s=0.1, filled=True):
         return symbol.c(c).alpha(alpha).lighting("off")
 
     if isinstance(symbol, int):
-        symbs = ['.','o','O', '0', 'p','*','h','D','d','v','^','>','<','s', 'x', 'a']
+        symbs = [".", "o", "O", "0", "p", "*", "h", "D", "d", "v", "^", ">", "<", "s", "x", "a"]
         symbol = symbol % len(symbs)
         symbol = symbs[symbol]
 
@@ -3659,6 +3684,7 @@ class Brace(Mesh):
     """
     Create a brace (bracket) shape.
     """
+
     def __init__(
         self,
         q1,
@@ -3785,7 +3811,8 @@ class Star3D(Mesh):
     """
     Build a 3D starred shape.
     """
-    def __init__(self, pos=(0,0,0), r=1.0, thickness=0.1, c="blue4", alpha=1):
+
+    def __init__(self, pos=(0, 0, 0), r=1.0, thickness=0.1, c="blue4", alpha=1):
         """
         Build a 3D star shape of 5 cusps, mainly useful as a 3D marker.
         """
@@ -3812,6 +3839,7 @@ class Cross3D(Mesh):
     """
     Build a 3D cross shape.
     """
+
     def __init__(self, pos=(0, 0, 0), s=1.0, thickness=0.3, c="b", alpha=1):
         """
         Build a 3D cross shape, mainly useful as a 3D marker.
@@ -3832,6 +3860,7 @@ class ParametricShape(Mesh):
     """
     A set of built-in shapes mainly for illustration purposes.
     """
+
     def __init__(self, name, res=51, n=25, seed=1):
         """
         A set of built-in shapes mainly for illustration purposes.
@@ -3855,10 +3884,26 @@ class ParametricShape(Mesh):
             <img src="https://user-images.githubusercontent.com/32848391/69181075-bb6aae80-0b0e-11ea-92f7-d0cd3b9087bf.png" width="700">
         """
 
-        shapes = ['Boy', 'ConicSpiral', 'CrossCap', 'Enneper',
-                  'Figure8Klein', 'Klein', 'Dini', 'Mobius', 'RandomHills', 'Roman',
-                  'SuperEllipsoid', 'BohemianDome', 'Bour', 'CatalanMinimal',
-                  'Henneberg', 'Kuen', 'PluckerConoid', 'Pseudosphere']
+        shapes = [
+            "Boy",
+            "ConicSpiral",
+            "CrossCap",
+            "Enneper",
+            "Figure8Klein",
+            "Klein",
+            "Dini",
+            "Mobius",
+            "RandomHills",
+            "Roman",
+            "SuperEllipsoid",
+            "BohemianDome",
+            "Bour",
+            "CatalanMinimal",
+            "Henneberg",
+            "Kuen",
+            "PluckerConoid",
+            "Pseudosphere",
+        ]
 
         if isinstance(name, int):
             name = name % len(shapes)
@@ -4001,6 +4046,7 @@ class Text3D(Mesh):
     """
     Generate a 3D polygonal Mesh to represent a text string.
     """
+
     def __init__(
         self,
         txt,
@@ -4087,15 +4133,8 @@ class Text3D(Mesh):
                 c = (0.6, 0.6, 0.6)
 
         tpoly = self._get_text3d_poly(
-            txt,
-            s,
-            font,
-            hspacing,
-            vspacing,
-            depth,
-            italic,
-            justify,
-            literal)
+            txt, s, font, hspacing, vspacing, depth, italic, justify, literal
+        )
 
         Mesh.__init__(self, tpoly, c, alpha)
         self.lighting("off")
@@ -4125,15 +4164,7 @@ class Text3D(Mesh):
             return self.txt
 
         tpoly = self._get_text3d_poly(
-            txt,
-            s,
-            font,
-            hspacing,
-            vspacing,
-            depth,
-            italic,
-            justify,
-            literal,
+            txt, s, font, hspacing, vspacing, depth, italic, justify, literal
         )
         self._update(tpoly)
         self.txt = txt
@@ -4237,7 +4268,7 @@ class Text3D(Mesh):
                     yshift = -0.3 * fscale
                     scale = 0.5
                     continue
-                elif (t in (' ', '\\n')) and yshift:
+                elif (t in (" ", "\\n")) and yshift:
                     yshift = 0
                     scale = 1
                     save_xmax = xmax
@@ -4270,10 +4301,7 @@ class Text3D(Mesh):
                     pscale = scale * fscale / 1000
                     tr.Scale(pscale, pscale, pscale)
                     if italic:
-                        tr.Concatenate([1,italic*0.15,0,0,
-                                        0,1,0,0,
-                                        0,0,1,0,
-                                        0,0,0,1])
+                        tr.Concatenate([1, italic * 0.15, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1])
                     tf = vtk.vtkTransformPolyDataFilter()
                     tf.SetInputData(poly)
                     tf.SetTransform(tr)
@@ -4335,6 +4363,7 @@ class Text3D(Mesh):
 
 class TextBase:
     "Base class."
+
     def __init__(self):
         "Do not instantiate this base class."
 
@@ -4669,7 +4698,6 @@ class CornerAnnotation(vtk.vtkCornerAnnotation, TextBase):
         self.property.SetBold(False)
         self.property.SetItalic(False)
 
-
     def size(self, s, linear=False):
         """
         The font size is calculated as the largest possible value such that the annotations
@@ -4721,17 +4749,8 @@ class Latex(Picture):
     """
     Render Latex text and formulas.
     """
-    def __init__(
-        self,
-        formula,
-        pos=(0, 0, 0),
-        s=1,
-        bg=None,
-        res=150,
-        usetex=False,
-        c="k",
-        alpha=1,
-    ):
+
+    def __init__(self, formula, pos=(0, 0, 0), s=1, bg=None, res=150, usetex=False, c="k", alpha=1):
         """
         Render Latex text and formulas.
 
@@ -4783,11 +4802,7 @@ class Latex(Picture):
                     bbox=bx,
                 )
                 mpltib.savefig(
-                    tfile,
-                    format="png",
-                    transparent=True,
-                    bbox_inches="tight",
-                    pad_inches=0,
+                    tfile, format="png", transparent=True, bbox_inches="tight", pad_inches=0
                 )
                 mpltib.close()
 
@@ -4816,6 +4831,7 @@ class ConvexHull(Mesh):
     """
     Create the 2D/3D convex hull from a set of points.
     """
+
     def __init__(self, pts):
         """
         Create the 2D/3D convex hull from a set of input points or input Mesh.

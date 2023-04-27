@@ -357,11 +357,16 @@ def _load_file(filename, unpack):
         if unpack:
             acts = []
             for i in range(mb.GetNumberOfBlocks()):
-                b =  mb.GetBlock(i)
-                if isinstance(b, (vtk.vtkPolyData,
-                                  vtk.vtkUnstructuredGrid,
-                                  vtk.vtkStructuredGrid,
-                                  vtk.vtkRectilinearGrid)):
+                b = mb.GetBlock(i)
+                if isinstance(
+                    b,
+                    (
+                        vtk.vtkPolyData,
+                        vtk.vtkUnstructuredGrid,
+                        vtk.vtkStructuredGrid,
+                        vtk.vtkRectilinearGrid,
+                    ),
+                ):
                     acts.append(Mesh(b))
                 elif isinstance(b, vtk.vtkImageData):
                     acts.append(Volume(b))
@@ -483,7 +488,7 @@ def download(url, force=False, verbose=True):
 
         req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
         if verbose:
-            colors.printc('reading', basename, 'from', url.split('/')[2][:40],'...', end='')
+            colors.printc("reading", basename, "from", url.split("/")[2][:40], "...", end="")
     except ImportError:
         import urllib2
         import contextlib
@@ -491,12 +496,13 @@ def download(url, force=False, verbose=True):
         urlopen = lambda url_: contextlib.closing(urllib2.urlopen(url_))
         req = url
         if verbose:
-            colors.printc('reading', basename, 'from', url.split('/')[2][:40],'...', end='')
+            colors.printc("reading", basename, "from", url.split("/")[2][:40], "...", end="")
 
     with urlopen(req) as response, open(tmp_file.name, "wb") as output:
         output.write(response.read())
 
-    if verbose: colors.printc(' done.')
+    if verbose:
+        colors.printc(" done.")
     return tmp_file.name
 
 
@@ -610,7 +616,7 @@ def load3DS(filename):
 
 def loadOFF(filename):
     """Read the OFF file format (polygonal mesh)."""
-    with open(filename, "r", encoding='UTF-8') as f:
+    with open(filename, "r", encoding="UTF-8") as f:
         lines = f.readlines()
 
     vertices = []
@@ -710,7 +716,7 @@ def loadPVD(filename):
 
 def loadNeutral(filename):
     """Reads a `Neutral` tetrahedral file format. Return an `Mesh` object."""
-    with open(filename, "r", encoding='UTF-8') as f:
+    with open(filename, "r", encoding="UTF-8") as f:
         lines = f.readlines()
 
     ncoords = int(lines[0])
@@ -723,7 +729,7 @@ def loadNeutral(filename):
     idolf_tets = []
     for i in range(ncoords + 2, ncoords + ntets + 2):
         text = lines[i].split()
-        v0, v1, v2, v3 = int(text[1])-1, int(text[2])-1, int(text[3])-1, int(text[4])-1
+        v0, v1, v2, v3 = int(text[1]) - 1, int(text[2]) - 1, int(text[3]) - 1, int(text[4]) - 1
         idolf_tets.append([v0, v1, v2, v3])
 
     poly = utils.buildPolyData(coords, idolf_tets)
@@ -732,7 +738,7 @@ def loadNeutral(filename):
 
 def loadGmesh(filename):
     """Reads a `gmesh` file format. Return an `Mesh` object."""
-    with open(filename, "r", encoding='UTF-8') as f:
+    with open(filename, "r", encoding="UTF-8") as f:
         lines = f.readlines()
 
     nnodes = 0
@@ -766,7 +772,7 @@ def loadGmesh(filename):
 def loadPCD(filename):
     """Return a `Mesh` made of only vertex points
     from `Point Cloud` file format. Return an `Points` object."""
-    with open(filename, "r", encoding='UTF-8') as f:
+    with open(filename, "r", encoding="UTF-8") as f:
         lines = f.readlines()
 
     start = False
@@ -803,7 +809,7 @@ def tonumpy(obj):
         adict["rendered_at"] = obj.rendered_at
         adict["position"] = obj.pos()
         adict["info"] = obj.info
-        
+
         try:
             # GetMatrix might not exist for non linear transforms
             m = np.eye(4)
@@ -822,7 +828,6 @@ def tonumpy(obj):
             adict["transform"] = []
             adict["transform_inverse"] = []
 
-
     ########################################################
     def _fillmesh(obj, adict):
 
@@ -833,7 +838,7 @@ def tonumpy(obj):
         if poly.GetNumberOfPolys():
             try:
                 adict["cells"] = np.array(obj.faces(), dtype=np.uint32)
-            except ValueError: # in case of inhomogeneous shape
+            except ValueError:  # in case of inhomogeneous shape
                 adict["cells"] = obj.faces()
 
         adict["lines"] = None
@@ -860,9 +865,9 @@ def tonumpy(obj):
 
         adict["activedata"] = None
         if poly.GetPointData().GetScalars():
-            adict['activedata'] = ['pointdata', poly.GetPointData().GetScalars().GetName()]
+            adict["activedata"] = ["pointdata", poly.GetPointData().GetScalars().GetName()]
         elif poly.GetCellData().GetScalars():
-            adict['activedata'] = ['celldata',  poly.GetCellData().GetScalars().GetName()]
+            adict["activedata"] = ["celldata", poly.GetCellData().GetScalars().GetName()]
 
         adict["LUT"] = None
         adict["LUT_range"] = None
@@ -1000,11 +1005,14 @@ def loadnumpy(inobj):
     ######################################################
     def _load_common(obj, d):
         keys = d.keys()
-        if 'time' in keys: 
-            obj.time = d['time']
-        if 'name' in keys: obj.name = d['name']
-        if 'filename' in keys: obj.filename = d['filename']
-        if 'info' in keys: obj.info = d['info']
+        if "time" in keys:
+            obj.time = d["time"]
+        if "name" in keys:
+            obj.name = d["name"]
+        if "filename" in keys:
+            obj.filename = d["filename"]
+        if "info" in keys:
+            obj.info = d["info"]
 
         # if "transform" in keys and len(d["transform"]) == 4:
         #     vm = vtk.vtkMatrix4x4()
@@ -1279,7 +1287,7 @@ def write(objct, fileoutput, binary=True):
         return dicts2save
 
     elif fr.endswith(".obj"):
-        with open(fileoutput, "w", encoding='UTF-8') as outF:
+        with open(fileoutput, "w", encoding="UTF-8") as outF:
             outF.write("# OBJ file format with ext .obj\n")
             outF.write("# File generated by vedo\n")
 
@@ -1290,7 +1298,7 @@ def write(objct, fileoutput, binary=True):
             if ptxt:
                 ntxt = utils.vtk2numpy(ptxt)
                 for vt in ntxt:
-                    outF.write('vt '+ str(vt[0]) +" "+ str(vt[1])+ ' 0.0\n')
+                    outF.write("vt " + str(vt[0]) + " " + str(vt[1]) + " 0.0\n")
 
             if isinstance(objct, Mesh):
 
@@ -1311,12 +1319,11 @@ def write(objct, fileoutput, binary=True):
 
         return objct
 
-
     elif fr.endswith(".xml"):  # write tetrahedral dolfin xml
         vertices = objct.points().astype(str)
         faces = np.array(objct.faces()).astype(str)
         ncoords = vertices.shape[0]
-        with open(fileoutput, "w", encoding='UTF-8') as outF:
+        with open(fileoutput, "w", encoding="UTF-8") as outF:
             outF.write('<?xml version="1.0" encoding="UTF-8"?>\n')
             outF.write('<dolfin xmlns:dolfin="http://www.fenicsproject.org">\n')
 
@@ -1372,6 +1379,7 @@ def write(objct, fileoutput, binary=True):
         vedo.logger.error(f"could not save {fileoutput}")
     return objct
 
+
 def write_transform(inobj, filename="transform.mat", comment=""):
     """
     Save a transformation for a mesh or pointcloud to ASCII file.
@@ -1389,11 +1397,9 @@ def write_transform(inobj, filename="transform.mat", comment=""):
     elif isinstance(inobj, vtk.vtkMatrix4x4):
         M = inobj
     else:
-        vedo.logger.error(
-            f"in write_transform(), cannot understand input type {type(inobj)}"
-        )
+        vedo.logger.error(f"in write_transform(), cannot understand input type {type(inobj)}")
 
-    with open(filename, "w", encoding='UTF-8') as f:
+    with open(filename, "w", encoding="UTF-8") as f:
         if comment:
             f.write("# " + comment + "\n")
         for i in range(4):
@@ -1415,7 +1421,7 @@ def load_transform(filename):
             The transformation to be applied to some object (`use apply_transform()`).
         - `str`, a comment string associated to this transformation file.
     """
-    with open(filename, "r", encoding='UTF-8') as f:
+    with open(filename, "r", encoding="UTF-8") as f:
         lines = f.readlines()
         M = vtk.vtkMatrix4x4()
         i = 0
@@ -1505,9 +1511,7 @@ def export_window(fileoutput, binary=False):
 
     ####################################################################
     elif fr.endswith(".x3d"):
-        obj = list(
-            set(vedo.plotter_instance.get_meshes() + vedo.plotter_instance.actors)
-        )
+        obj = list(set(vedo.plotter_instance.get_meshes() + vedo.plotter_instance.actors))
         if vedo.plotter_instance.axes_instances:
             obj.append(vedo.plotter_instance.axes_instances[0])
 
@@ -1545,38 +1549,36 @@ def export_window(fileoutput, binary=False):
         exporter.Update()
         exporter.Write()
 
-# this can reduce the size by more than half...
-#        outstring = exporter.GetOutputString().decode("utf-8") # this fails though
-#        from vedo.utils import isInteger, isNumber, precision
-#        newlines = []
-#        for l in outstring.splitlines(True):
-#            ls = l.lstrip()
-#            content = ls.split()
-#            newls = ""
-#            for c in content:
-#                c2 = c.replace(',','')
-#                if isNumber(c2) and not isInteger(c2):
-#                    newc = precision(float(c2), 4)
-#                    if ',' in c:
-#                        newls += newc + ','
-#                    else:
-#                        newls += newc + ' '
-#                else:
-#                    newls += c + ' '
-#        newlines.append(newls.lstrip()+'\n')
-#        with open("fileoutput", 'w', encoding='UTF-8') as f:
-#            l = "".join(newlines)
-#            f.write(l)
+        # this can reduce the size by more than half...
+        #        outstring = exporter.GetOutputString().decode("utf-8") # this fails though
+        #        from vedo.utils import isInteger, isNumber, precision
+        #        newlines = []
+        #        for l in outstring.splitlines(True):
+        #            ls = l.lstrip()
+        #            content = ls.split()
+        #            newls = ""
+        #            for c in content:
+        #                c2 = c.replace(',','')
+        #                if isNumber(c2) and not isInteger(c2):
+        #                    newc = precision(float(c2), 4)
+        #                    if ',' in c:
+        #                        newls += newc + ','
+        #                    else:
+        #                        newls += newc + ' '
+        #                else:
+        #                    newls += c + ' '
+        #        newlines.append(newls.lstrip()+'\n')
+        #        with open("fileoutput", 'w', encoding='UTF-8') as f:
+        #            l = "".join(newlines)
+        #            f.write(l)
 
         x3d_html = _x3d_html.replace("~fileoutput", fileoutput)
         wsize = vedo.plotter_instance.window.GetSize()
         x3d_html = x3d_html.replace("~width", str(wsize[0]))
         x3d_html = x3d_html.replace("~height", str(wsize[1]))
-        with open(fileoutput.replace(".x3d", ".html"), "w", encoding='UTF-8') as outF:
+        with open(fileoutput.replace(".x3d", ".html"), "w", encoding="UTF-8") as outF:
             outF.write(x3d_html)
-            vedo.logger.info(
-                f"Saved files {fileoutput} and {fileoutput.replace('.x3d','.html')}"
-            )
+            vedo.logger.info(f"Saved files {fileoutput} and {fileoutput.replace('.x3d','.html')}")
 
     ####################################################################
     elif fr.endswith(".html"):
@@ -1584,10 +1586,10 @@ def export_window(fileoutput, binary=False):
         vedo.notebook_backend = "k3d"
         vedo.settings.default_backend = "k3d"
         plt = vedo.backends.get_notebook_backend(vedo.plotter_instance.actors)
- 
-        with open(fileoutput, "w", encoding='UTF-8') as fp:
-             fp.write(plt.get_snapshot())
- 
+
+        with open(fileoutput, "w", encoding="UTF-8") as fp:
+            fp.write(plt.get_snapshot())
+
         vedo.notebook_backend = savebk
         vedo.settings.default_backend = savebk
 
@@ -1735,14 +1737,14 @@ def screenshot(filename="screenshot.png", scale=None, asarray=False):
             return a numpy array of the image
     """
     if not vedo.plotter_instance or not vedo.plotter_instance.window:
-        #vedo.logger.error("in screenshot(), rendering window is not present, skip.")
+        # vedo.logger.error("in screenshot(), rendering window is not present, skip.")
         return vedo.plotter_instance  ##########
 
     if asarray:
         nx, ny = vedo.plotter_instance.window.GetSize()
         arr = vtk.vtkUnsignedCharArray()
-        vedo.plotter_instance.window.GetRGBACharPixelData(0, 0, nx-1, ny-1, 0, arr)
-        narr = vedo.vtk2numpy(arr).T[:3].T.reshape([ny,nx,3])
+        vedo.plotter_instance.window.GetRGBACharPixelData(0, 0, nx - 1, ny - 1, 0, arr)
+        narr = vedo.vtk2numpy(arr).T[:3].T.reshape([ny, nx, 3])
         narr = np.flip(narr, axis=0)
         return narr  ##########
 
@@ -1758,7 +1760,7 @@ def screenshot(filename="screenshot.png", scale=None, asarray=False):
         writer.SetFilePrefix(filename.replace(".pdf", ""))
         writer.Write()
         return vedo.plotter_instance  ##########
-    
+
     elif filename.endswith(".svg"):
         writer = vtk.vtkGL2PSExporter()
         writer.SetRenderWindow(vedo.plotter_instance.window)
@@ -1769,7 +1771,7 @@ def screenshot(filename="screenshot.png", scale=None, asarray=False):
         writer.SetFilePrefix(filename.replace(".svg", ""))
         writer.Write()
         return vedo.plotter_instance  ##########
-    
+
     elif filename.endswith(".eps"):
         writer = vtk.vtkGL2PSExporter()
         writer.SetRenderWindow(vedo.plotter_instance.window)
@@ -1877,13 +1879,8 @@ class Video:
     """
     Generate a video from a rendering window.
     """
-    def __init__(
-            self,
-            name="movie.mp4",
-            duration=None,
-            fps=24,
-            backend="imageio",
-        ):
+
+    def __init__(self, name="movie.mp4", duration=None, fps=24, backend="imageio"):
         """
         Class to generate a video from the specified rendering window.
         Program `ffmpeg` is used to create video from each generated frame.
@@ -1932,13 +1929,7 @@ class Video:
             os.system("cp -f %s %s" % (fr, fr2))
         return self
 
-    def action(
-        self,
-        elevation=(0, 80),
-        azimuth=(0, 359),
-        cameras=(),
-        resetcam=False,
-    ):
+    def action(self, elevation=(0, 80), azimuth=(0, 359), cameras=(), resetcam=False):
         """
         Automatic shooting of a static scene by specifying rotation and elevation ranges.
 
@@ -1984,8 +1975,8 @@ class Video:
         Render the video and write it to file.
         """
         if self.duration:
-            self.fps = int(len(self.frames) / float(self.duration) +0.5)
-            colors.printc("recalculated fps:", self.fps, c="m", end='')
+            self.fps = int(len(self.frames) / float(self.duration) + 0.5)
+            colors.printc("recalculated fps:", self.fps, c="m", end="")
         else:
             self.fps = int(self.fps)
 
@@ -2044,7 +2035,7 @@ class Video:
             if self.name.endswith(".mp4"):
                 writer = imageio.get_writer(self.name, fps=self.fps)
             elif self.name.endswith(".gif"):
-                writer = imageio.get_writer(self.name, mode='I', duration=1/self.fps)
+                writer = imageio.get_writer(self.name, mode="I", duration=1 / self.fps)
             elif self.name.endswith(".webm"):
                 writer = imageio.get_writer(self.name, format="webm", fps=self.fps)
             else:
@@ -2063,14 +2054,14 @@ class Video:
         # finalize cleanup
         self.tmp_dir.cleanup()
 
-    def split_frames(self, output_dir='video_frames', prefix="frame_", format="png"):
+    def split_frames(self, output_dir="video_frames", prefix="frame_", format="png"):
         """Split an existing video file into frames."""
         try:
             import imageio
         except ImportError:
             vedo.logger.error("\nPlease install imageio with:\n pip install imageio")
             return
-        
+
         # Create the output directory if it doesn't exist
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -2081,13 +2072,7 @@ class Video:
         # Loop through each frame of the video and save it as image
         print()
         for i, frame in utils.progressbar(
-                enumerate(reader), 
-                title=f"writing {format} frames",
-                c='m',
-                width=20,
-            ):
-            output_file = os.path.join(
-                output_dir, 
-                f'{prefix}{str(i).zfill(5)}.{format}'
-            )
+            enumerate(reader), title=f"writing {format} frames", c="m", width=20
+        ):
+            output_file = os.path.join(output_dir, f"{prefix}{str(i).zfill(5)}.{format}")
             imageio.imwrite(output_file, frame, format=format)

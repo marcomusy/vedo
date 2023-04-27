@@ -4,6 +4,7 @@ import os
 
 __docformat__ = "google"
 
+
 class Settings:
     """
     General settings to modify the global behavior
@@ -296,9 +297,9 @@ class Settings:
 
         # AnnotatedCube axis (type 5) customization:
         self.annotated_cube_color = (0.75, 0.75, 0.75)
-        self.annotated_cube_text_color = None # use default, otherwise specify a single color
+        self.annotated_cube_text_color = None  # use default, otherwise specify a single color
         self.annotated_cube_text_scale = 0.2
-        self.annotated_cube_texts = ["right","left ", "front","back ", " top ", "bttom"]
+        self.annotated_cube_texts = ["right", "left ", "front", "back ", " top ", "bttom"]
 
         # enable / disable color printing
         self.enable_print_color = True
@@ -649,19 +650,19 @@ class Settings:
 
     def print(self):
         """Print function."""
-        print(' ' + '-'*80)
-        s = Settings.__doc__.replace('   ','')
-        s = s.replace(".. code-block:: python\n","")
+        print(" " + "-" * 80)
+        s = Settings.__doc__.replace("   ", "")
+        s = s.replace(".. code-block:: python\n", "")
         try:
             from pygments import highlight
             from pygments.lexers import Python3Lexer
             from pygments.formatters import Terminal256Formatter
-            s = highlight(s, Python3Lexer(), Terminal256Formatter(style='zenburn'))
-            print(s, end='')
+
+            s = highlight(s, Python3Lexer(), Terminal256Formatter(style="zenburn"))
+            print(s, end="")
 
         except ModuleNotFoundError:
             print("\x1b[33;1m" + s + "\x1b[0m")
-
 
     def _warn(self, key):
         if self._level == 0:
@@ -675,7 +676,6 @@ class Settings:
         """Make the class work like a dictionary too"""
         setattr(self, key, value)
 
-
     ####################################################################################
     # Deprecations
     ####################################################################################
@@ -683,10 +683,12 @@ class Settings:
     def defaultFont(self):
         self._warn("default_font")
         return self.default_font
+
     @defaultFont.setter
     def defaultFont(self, value):
         self._warn("default_font")
         self.default_font = value
+
     ##################################
     @property
     def screeshotScale(self):
