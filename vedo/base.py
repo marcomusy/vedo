@@ -112,7 +112,7 @@ class _DataArrayHelper:
                     raise e
 
             data.AddArray(varr)
-            return ############
+            return  ############
 
         else:
             raise RuntimeError()
@@ -142,7 +142,7 @@ class _DataArrayHelper:
             data = self.actor.inputdata().GetPointData()
         elif self.association == 1:
             data = self.actor.inputdata().GetCellData()
-        elif  self.association == 2:
+        elif self.association == 2:
             data = self.actor.inputdata().GetFieldData()
         arrnames = []
         for i in range(data.GetNumberOfArrays()):
@@ -157,16 +157,16 @@ class _DataArrayHelper:
             self.actor.inputdata().GetPointData().RemoveArray(key)
         elif self.association == 1:
             self.actor.inputdata().GetCellData().RemoveArray(key)
-        elif  self.association == 2:
+        elif self.association == 2:
             self.actor.inputdata().GetFieldData().RemoveArray(key)
-    
+
     def clear(self):
         """Remove all data associated to this object"""
         if self.association == 0:
             data = self.actor.inputdata().GetPointData()
         elif self.association == 1:
             data = self.actor.inputdata().GetCellData()
-        elif  self.association == 2:
+        elif self.association == 2:
             data = self.actor.inputdata().GetFieldData()
         for i in range(data.GetNumberOfArrays()):
             name = data.GetArray(i).GetName()
@@ -183,9 +183,7 @@ class _DataArrayHelper:
         if varr:
             varr.SetName(newname)
         else:
-            vedo.logger.warning(
-                f"Cannot rename non existing array {oldname} to {newname}"
-            )
+            vedo.logger.warning(f"Cannot rename non existing array {oldname} to {newname}")
 
     def select(self, key):
         """Select one specific array by its name to make it the `active` one."""
@@ -202,9 +200,9 @@ class _DataArrayHelper:
         arr = data.GetArray(key)
         if not arr:
             return
-        
+
         nc = arr.GetNumberOfComponents()
-        if   nc == 1:
+        if nc == 1:
             data.SetActiveScalars(key)
         elif nc >= 2:
             if "rgb" in key.lower():
@@ -268,9 +266,10 @@ class _DataArrayHelper:
     def print(self, **kwargs):
         """Print the array names available to terminal"""
         colors.printc(self.keys(), **kwargs)
-    
+
     def __repr__(self) -> str:
         """Representation"""
+
         def _get_str(pd, header):
             if pd.GetNumberOfArrays():
                 out = f"\x1b[2m\x1b[1m\x1b[7m{header}"
@@ -279,11 +278,11 @@ class _DataArrayHelper:
                 out += f" contains {pd.GetNumberOfArrays()} array(s)\x1b[0m"
                 for i in range(pd.GetNumberOfArrays()):
                     varr = pd.GetArray(i)
-                    out += f"\n\x1b[1m\x1b[4mArray name    : {varr.GetName()}\x1b[0m" 
+                    out += f"\n\x1b[1m\x1b[4mArray name    : {varr.GetName()}\x1b[0m"
                     out += "\nindex".ljust(15) + f": {i}"
                     t = varr.GetDataType()
                     if t in vedo.utils.array_types:
-                        out += f"\ntype".ljust(15)  
+                        out += f"\ntype".ljust(15)
                         out += f": {vedo.utils.array_types[t][1]} ({vedo.utils.array_types[t][0]})"
                     shape = (varr.GetNumberOfTuples(), varr.GetNumberOfComponents())
                     out += "\nshape".ljust(15) + f": {shape}"
@@ -315,6 +314,7 @@ class _DataArrayHelper:
 
         return out
 
+
 ###############################################################################
 class Base3DProp:
     """
@@ -322,6 +322,7 @@ class Base3DProp:
 
     .. warning:: Do not use this class to instantiate objects
     """
+
     def __init__(self):
         """
         Base class to manage positioning and size of the objects in space and other properties.
@@ -352,7 +353,6 @@ class Base3DProp:
         self.scalarbar = None
         # self.scalarbars = dict() #TODO
         self.pipeline = None
-
 
     def address(self):
         """
@@ -533,10 +533,12 @@ class Base3DProp:
     def rotateX(self, *a, **b):
         """Deprecated. Please use `rotate_x()`."""
         return self.rotate_x(*a, **b)
+
     @deprecated(reason=vedo.colors.red + "Please use rotate_y()" + vedo.colors.reset)
     def rotateY(self, *a, **b):
         """Deprecated. Please use `rotate_y()`."""
         return self.rotate_y(*a, **b)
+
     @deprecated(reason=vedo.colors.red + "Please use rotate_z()" + vedo.colors.reset)
     def rotateZ(self, *a, **b):
         """Deprecated. Please use `rotate_z()`."""
@@ -627,7 +629,7 @@ class Base3DProp:
             T.RotateWXYZ(rotation, initaxis)
         if xyplane:
             angleph = np.arctan2(newaxis[1], newaxis[0])
-            T.RotateWXYZ(np.rad2deg(angleph + angleth), initaxis) # compensation
+            T.RotateWXYZ(np.rad2deg(angleph + angleth), initaxis)  # compensation
         T.RotateWXYZ(np.rad2deg(angleth), crossvec)
         T.Translate(p)
 
@@ -650,7 +652,6 @@ class Base3DProp:
         # T.Translate(pos)
         # self.SetUserTransform(T)
         # self.transform = T
-
 
     def scale(self, s=None, reset=False):
         """
@@ -720,11 +721,10 @@ class Base3DProp:
             tr = tr.GetInverse()
         return tr
 
-
     @deprecated(reason=vedo.colors.red + "Please use apply_transform()" + vedo.colors.reset)
     def applyTransform(self, T, reset=False, concatenate=False):
         """Deprecated. Please use `apply_transform()`"""
-        return self.apply_transform(T,reset,concatenate)
+        return self.apply_transform(T, reset, concatenate)
 
     def apply_transform(self, T, reset=False, concatenate=False):
         """
@@ -818,7 +818,7 @@ class Base3DProp:
             for sh in self.shadows:
                 sh.VisibilityOn()
         except AttributeError:
-            pass        
+            pass
         return self
 
     def off(self):
@@ -836,9 +836,9 @@ class Base3DProp:
             for sh in self.shadows:
                 sh.VisibilityOff()
         except AttributeError:
-            pass        
+            pass
         return self
-    
+
     def toggle(self):
         """Toggle object visibility on/off."""
         v = self.GetVisibility()
@@ -870,7 +870,7 @@ class Base3DProp:
         bx = vedo.shapes.Box(
             pos,
             length * scale + padding[0],
-            width  * scale + padding[1],
+            width * scale + padding[1],
             height * scale + padding[2],
             c="gray",
         )
@@ -901,7 +901,7 @@ class Base3DProp:
             pts = self.points()
             xmin, ymin, zmin = np.min(pts, axis=0)
             xmax, ymax, zmax = np.max(pts, axis=0)
-            return [xmin,xmax, ymin,ymax, zmin,zmax]
+            return [xmin, xmax, ymin, ymax, zmin, zmax]
         except (AttributeError, ValueError):
             return self.GetBounds()
 
@@ -924,8 +924,10 @@ class Base3DProp:
     def zbounds(self, i=None):
         """Get the bounds `[zmin,zmax]`. Can specify upper or lower with i (0,1)."""
         b = self.bounds()
-        if i == 0: return b[4]
-        if i == 1: return b[5]
+        if i == 0:
+            return b[4]
+        if i == 1:
+            return b[5]
         return (b[4], b[5])
 
     @deprecated(reason=vedo.colors.red + "Please use diagonal_size()" + vedo.colors.reset)
@@ -945,9 +947,9 @@ class Base3DProp:
         self._data.GetPointData().PassData(obj._data.GetPointData())
         self._data.GetCellData().PassData(obj._data.GetCellData())
         self.pipeline = utils.OperationNode(
-            f"copy_data_from\n{obj.__class__.__name__}", 
+            f"copy_data_from\n{obj.__class__.__name__}",
             parents=[self, obj],
-            shape='note',
+            shape="note",
             c="#ccc5b9",
         )
         return self
@@ -969,15 +971,7 @@ class Base3DProp:
         """
         return vedo.plotter.show(self, **options)
 
-    def thumbnail(
-            self, 
-            zoom=1.25,
-            size=(200, 200),
-            bg="white", 
-            azimuth=0, 
-            elevation=0, 
-            axes=False,
-        ):
+    def thumbnail(self, zoom=1.25, size=(200, 200), bg="white", azimuth=0, elevation=0, axes=False):
         """Build a thumbnail of the object and return it as an array."""
         # speed is about 20Hz for size=[200,200]
         ren = vtk.vtkRenderer()
@@ -1000,7 +994,7 @@ class Base3DProp:
 
         nx, ny = ren_win.GetSize()
         arr = vtk.vtkUnsignedCharArray()
-        ren_win.GetRGBACharPixelData(0, 0, nx-1, ny-1, 0, arr)
+        ren_win.GetRGBACharPixelData(0, 0, nx - 1, ny - 1, 0, arr)
         narr = utils.vtk2numpy(arr).T[:3].T.reshape([ny, nx, 3])
         narr = np.ascontiguousarray(np.flip(narr, axis=0))
 
@@ -1019,6 +1013,7 @@ class BaseActor2D(vtk.vtkActor2D):
 
     .. warning:: Do not use this class to instantiate objects.
     """
+
     def __init__(self):
         """Manage 2D objects."""
         super().__init__()
@@ -1040,8 +1035,8 @@ class BaseActor2D(vtk.vtkActor2D):
             return self
         if px is None:
             return np.array(self.GetPosition(), dtype=int)
-        if  py is not None:
-            p = [px,py]
+        if py is not None:
+            p = [px, py]
         else:
             p = px
         assert len(p) == 2, "Error: len(pos) must be 2 for BaseActor2D"
@@ -1079,7 +1074,7 @@ class BaseActor2D(vtk.vtkActor2D):
 
     def toggle(self):
         """Toggle object visibility."""
-        self.SetVisibility(not(self.GetVisibility()))
+        self.SetVisibility(not (self.GetVisibility()))
         return self
 
     def pickable(self, value=True):
@@ -1098,7 +1093,7 @@ class BaseActor2D(vtk.vtkActor2D):
             return self.GetProperty().GetPointSize()
         self.GetProperty().SetPointSize(point_size)
         return self
-    
+
     def ontop(self, value=True):
         """Keep the object always on top of everything else."""
         if value:
@@ -1115,18 +1110,18 @@ class BaseActor(Base3DProp):
 
     .. warning:: Do not use this class to instantiate objects, use one the above instead.
     """
+
     def __init__(self):
         """
         Base class to add operative and data
         functionality to `Mesh`, `Assembly`, `Volume` and `Picture` objects.
         """
-        
+
         super().__init__()
 
         self._mapper = None
         self._caption = None
         self.property = None
-
 
     def mapper(self, new_mapper=None):
         """Return the `vtkMapper` data object, or update it with a new one."""
@@ -1179,7 +1174,6 @@ class BaseActor(Base3DProp):
     def ncells(self):
         """Retrieve the number of cells."""
         return self.inputdata().GetNumberOfCells()
-
 
     def points(self, pts=None, transformed=True):
         """
@@ -1256,8 +1250,7 @@ class BaseActor(Base3DProp):
         data.Modified()
         self._mapper.Modified()
         self.pipeline = utils.OperationNode(
-            "delete_cells", parents=[self],
-            comment=f"#cells {self._data.GetNumberOfCells()}",
+            "delete_cells", parents=[self], comment=f"#cells {self._data.GetNumberOfCells()}"
         )
         return self
 
@@ -1382,9 +1375,7 @@ class BaseActor(Base3DProp):
             elif style=='default' : pars = [0.1, 1.0, 0.05, 5, c]
             else:
                 vedo.logger.error("in lighting(): Available styles are")
-                vedo.logger.error(
-                    "[default, metallic, plastic, shiny, glossy, ambient, off]"
-                )
+                vedo.logger.error("[default, metallic, plastic, shiny, glossy, ambient, off]")
                 raise RuntimeError()
             pr.SetAmbient(pars[0])
             pr.SetDiffuse(pars[1])
@@ -1509,7 +1500,6 @@ class BaseActor(Base3DProp):
         """
         return _DataArrayHelper(self, 2)
 
-
     def map_cells_to_points(self, arrays=(), move=False):
         """
         Interpolate cell data (i.e., data specified per cell or face)
@@ -1598,7 +1588,7 @@ class BaseActor(Base3DProp):
         rs = vtk.vtkResampleWithDataSet()
         rs.SetInputData(self.inputdata())
         rs.SetSourceData(source.inputdata())
-        
+
         rs.SetPassPointArrays(True)
         rs.SetPassCellArrays(True)
         rs.SetPassFieldArrays(True)
@@ -1611,8 +1601,8 @@ class BaseActor(Base3DProp):
         rs.Update()
         self._update(rs.GetOutput())
         self.pipeline = utils.OperationNode(
-            f"resample_data_from\n{source.__class__.__name__}",
-            parents=[self, source])
+            f"resample_data_from\n{source.__class__.__name__}", parents=[self, source]
+        )
         return self
 
     def add_ids(self):
@@ -1714,10 +1704,10 @@ class BaseActor(Base3DProp):
         div.SetDivergenceArrayName("Divergence")
         div.SetFasterApproximation(fast)
         div.Update()
-        if on.startswith('p'):
-            dvecs = utils.vtk2numpy(div.GetOutput().GetPointData().GetArray('Divergence'))
+        if on.startswith("p"):
+            dvecs = utils.vtk2numpy(div.GetOutput().GetPointData().GetArray("Divergence"))
         else:
-            dvecs = utils.vtk2numpy(div.GetOutput().GetCellData().GetArray('Divergence'))
+            dvecs = utils.vtk2numpy(div.GetOutput().GetCellData().GetArray("Divergence"))
         return dvecs
 
     def vorticity(self, array_name=None, on="points", fast=False):
@@ -1757,12 +1747,11 @@ class BaseActor(Base3DProp):
         vort.SetVorticityArrayName("Vorticity")
         vort.SetFasterApproximation(fast)
         vort.Update()
-        if on.startswith('p'):
-            vvecs = utils.vtk2numpy(vort.GetOutput().GetPointData().GetArray('Vorticity'))
+        if on.startswith("p"):
+            vvecs = utils.vtk2numpy(vort.GetOutput().GetPointData().GetArray("Vorticity"))
         else:
-            vvecs = utils.vtk2numpy(vort.GetOutput().GetCellData().GetArray('Vorticity'))
+            vvecs = utils.vtk2numpy(vort.GetOutput().GetCellData().GetArray("Vorticity"))
         return vvecs
-
 
     @deprecated(reason=vedo.colors.red + "Please use method add_scalarbar()" + vedo.colors.reset)
     def addScalarBar(self, *a, **b):
@@ -1770,18 +1759,18 @@ class BaseActor(Base3DProp):
         return self.add_scalarbar(*a, **b)
 
     def add_scalarbar(
-            self,
-            title="",
-            pos=(0.8,0.05),
-            title_yoffset=15,
-            font_size=12,
-            size=(None,None),
-            nlabels=None,
-            c=None,
-            horizontal=False,
-            use_alpha=True,
-            label_format=':6.3g',
-        ):
+        self,
+        title="",
+        pos=(0.8, 0.05),
+        title_yoffset=15,
+        font_size=12,
+        size=(None, None),
+        nlabels=None,
+        c=None,
+        horizontal=False,
+        use_alpha=True,
+        label_format=":6.3g",
+    ):
         """
         Add a 2D scalar bar for the specified obj.
 
@@ -1926,10 +1915,7 @@ class BaseActor(Base3DProp):
         """Write object to file."""
         out = vedo.io.write(self, filename, binary)
         out.pipeline = utils.OperationNode(
-            "write", parents=[self],
-            comment=filename[:15],
-            shape="folder",
-            c="#8a817c",
+            "write", parents=[self], comment=filename[:15], shape="folder", c="#8a817c"
         )
         return out
 
@@ -1941,6 +1927,7 @@ class BaseGrid(BaseActor):
 
     .. warning:: Do not use this class to instantiate objects.
     """
+
     def __init__(self):
         """Base class for grid datasets."""
 
@@ -1949,7 +1936,7 @@ class BaseGrid(BaseActor):
         self._data = None
         self.useCells = True
         self._color = None
-        self._alpha = [0,1]
+        self._alpha = [0, 1]
 
         # -----------------------------------------------------------
 
@@ -2001,11 +1988,9 @@ class BaseGrid(BaseActor):
             msh.mapper().SetScalarModeToUseCellData()
         else:
             msh.mapper().SetScalarModeToUsePointData()
-        
+
         msh.pipeline = utils.OperationNode(
-            "tomesh", parents=[self], 
-            comment=f"fill={fill}",
-            c="#9e2a2b:#e9c46a",
+            "tomesh", parents=[self], comment=f"fill={fill}", c="#9e2a2b:#e9c46a"
         )
         return msh
 
@@ -2126,7 +2111,7 @@ class BaseGrid(BaseActor):
 
         if utils.is_sequence(alpha):
             alpha = np.array(alpha)
-            if len(alpha.shape)==1: # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
+            if len(alpha.shape) == 1:  # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
                 for i, al in enumerate(alpha):
                     xalpha = vmin + (vmax - vmin) * i / (len(alpha) - 1)
                     # Create transfer mapping scalar value to opacity
@@ -2173,7 +2158,8 @@ class BaseGrid(BaseActor):
         sf.Update()
         self._update(sf.GetOutput())
         self.pipeline = utils.OperationNode(
-            "shrink", comment=f"by {fraction}", parents=[self], c='#9e2a2b')
+            "shrink", comment=f"by {fraction}", parents=[self], c="#9e2a2b"
+        )
         return self
 
     def isosurface(self, value=None, flying_edges=True):
@@ -2217,16 +2203,15 @@ class BaseGrid(BaseActor):
         out.mapper().SetScalarRange(scrange[0], scrange[1])
 
         out.pipeline = utils.OperationNode(
-            "isosurface", parents=[self], 
+            "isosurface",
+            parents=[self],
             comment=f"#pts {out._data.GetNumberOfPoints()}",
             c="#4cc9f0:#e9c46a",
         )
         return out
 
     def legosurface(
-        self, vmin=None, vmax=None, 
-        invert=False, boundary=False,
-        array_name='input_scalars',
+        self, vmin=None, vmax=None, invert=False, boundary=False, array_name="input_scalars"
     ):
         """
         Represent an object - typically a `Volume` - as lego blocks (voxels).
@@ -2279,9 +2264,7 @@ class BaseGrid(BaseActor):
         m.celldata.select(array_name)
 
         m.pipeline = utils.OperationNode(
-            "legosurface", parents=[self], 
-            comment=f"array: {array_name}",
-            c="#4cc9f0:#e9c46a",
+            "legosurface", parents=[self], comment=f"array: {array_name}", c="#4cc9f0:#e9c46a"
         )
         return m
 
@@ -2319,8 +2302,7 @@ class BaseGrid(BaseActor):
         clipper.Update()
         cout = clipper.GetOutput()
         self._update(cout)
-        self.pipeline = utils.OperationNode(
-            "cut_with_plane", parents=[self], c='#9e2a2b')
+        self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
         return self
 
     def cut_with_box(self, box):
@@ -2349,8 +2331,7 @@ class BaseGrid(BaseActor):
         bc.SetBoxClip(*boxb)
         bc.Update()
         self._update(bc.GetOutput())
-        self.pipeline = utils.OperationNode(
-            "cut_with_box", parents=[self, box], c='#9e2a2b')
+        self.pipeline = utils.OperationNode("cut_with_box", parents=[self, box], c="#9e2a2b")
         return self
 
     def cut_with_mesh(self, mesh, invert=False, whole_cells=False, only_boundary=False):
@@ -2401,8 +2382,7 @@ class BaseGrid(BaseActor):
                     self.pointdata.select(scalname)
 
         self._update(cug)
-        self.pipeline = utils.OperationNode(
-            "cut_with_mesh", parents=[self, mesh], c='#9e2a2b')
+        self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self, mesh], c="#9e2a2b")
         return self
 
     def extract_cells_on_plane(self, origin, normal):
@@ -2423,8 +2403,10 @@ class BaseGrid(BaseActor):
 
         self._update(bf.GetOutput())
         self.pipeline = utils.OperationNode(
-            "extract_cells_on_plane", parents=[self],
-            comment=f"#cells {self._data.GetNumberOfCells()}", c='#9e2a2b',
+            "extract_cells_on_plane",
+            parents=[self],
+            comment=f"#cells {self._data.GetNumberOfCells()}",
+            c="#9e2a2b",
         )
         return self
 
@@ -2446,8 +2428,10 @@ class BaseGrid(BaseActor):
 
         self._update(bf.GetOutput())
         self.pipeline = utils.OperationNode(
-            "extract_cells_on_sphere", parents=[self],
-            comment=f"#cells {self._data.GetNumberOfCells()}", c='#9e2a2b',
+            "extract_cells_on_sphere",
+            parents=[self],
+            comment=f"#cells {self._data.GetNumberOfCells()}",
+            c="#9e2a2b",
         )
         return self
 
@@ -2469,8 +2453,10 @@ class BaseGrid(BaseActor):
         bf.Update()
 
         self.pipeline = utils.OperationNode(
-            "extract_cells_on_cylinder", parents=[self],
-            comment=f"#cells {self._data.GetNumberOfCells()}", c='#9e2a2b',
+            "extract_cells_on_cylinder",
+            parents=[self],
+            comment=f"#cells {self._data.GetNumberOfCells()}",
+            c="#9e2a2b",
         )
         self._update(bf.GetOutput())
         return self
@@ -2485,15 +2471,12 @@ class BaseGrid(BaseActor):
         cl.ProduceMergeMapOff()
         cl.AveragePointDataOff()
         cl.Update()
-        
+
         self._update(cl.GetOutput())
         self.pipeline = utils.OperationNode(
-            "clean", parents=[self],
-            comment=f"#cells {self._data.GetNumberOfCells()}",
-            c='#9e2a2b',
+            "clean", parents=[self], comment=f"#cells {self._data.GetNumberOfCells()}", c="#9e2a2b"
         )
         return self
-
 
     def find_cell(self, p):
         """Locate the cell that contains a point and return the cell ID."""
@@ -2501,11 +2484,10 @@ class BaseGrid(BaseActor):
         cellId = vtk.mutable(0)
         tol2 = vtk.mutable(0)
         subId = vtk.mutable(0)
-        pcoords = [0,0,0]
-        weights = [0,0,0]
+        pcoords = [0, 0, 0]
+        weights = [0, 0, 0]
         cid = self._data.FindCell(p, cell, cellId, tol2, subId, pcoords, weights)
         return cid
-
 
     def extract_cells_by_id(self, idlist, use_point_ids=False):
         """Return a new UGrid composed of the specified subset of indices."""
@@ -2539,7 +2521,8 @@ class BaseGrid(BaseActor):
         ug.SetPosition(self.GetPosition())
         ug.mapper().SetLookupTable(utils.ctf2lut(self))
         ug.pipeline = utils.OperationNode(
-            "extract_cells_by_id", parents=[self],
+            "extract_cells_by_id",
+            parents=[self],
             comment=f"#cells {self._data.GetNumberOfCells()}",
             c="#9e2a2b",
         )
