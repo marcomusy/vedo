@@ -711,7 +711,7 @@ def Point(pos=(0, 0, 0), r=12, c="red", alpha=1):
     pd = utils.buildPolyData([[0, 0, 0]])
     if len(pos) == 2:
         pos = (pos[0], pos[1], 0.0)
-    pt = Points(pd, c, alpha, r)
+    pt = Points(pd, r, c, alpha)
     pt.SetPosition(pos)
     pt.name = "Point"
     return pt
@@ -722,7 +722,13 @@ class Points(BaseActor, vtk.vtkActor):
     """Work with pointclouds."""
 
     def __init__(
-        self, inputobj=None, c=(0.2, 0.2, 0.2), alpha=1, r=4,
+        self, 
+        inputobj=None, 
+        r=4,
+        c=(0.2, 0.2, 0.2), 
+        alpha=1, 
+        blur=False, 
+        emissive=True,
     ):
         """
         Build an object made of only vertex points for a list of 2D/3D points.
@@ -732,12 +738,17 @@ class Points(BaseActor, vtk.vtkActor):
 
         Arguments:
             inputobj : (list, tuple)
+            r : (int)
+                Point radius in units of pixels.
             c : (str, list)
                 Color name or rgb tuple.
             alpha : (float)
                 Transparency in range [0,1].
-            r : (int)
-                Point radius in units of pixels.
+            blur : (bool)
+                Apply a gaussian convolution filter to the points.
+                In this case the radius `r` is in absolute units of the mesh coordinates.
+            emissive : (bool)
+                Halo of point becomes emissive.
 
         Example:
             ```python
@@ -762,7 +773,29 @@ class Points(BaseActor, vtk.vtkActor):
 
         self._data = None
 
-        self._mapper = vtk.vtkPolyDataMapper()
+        if blur:
+            self._mapper = vtk.vtkPointGaussianMapper()
+            if emissive:
+                self._mapper.SetEmissive(bool(emissive))
+            self._mapper.SetScaleFactor(r * 1.4142)
+
+            # https://kitware.github.io/vtk-examples/site/Python/Meshes/PointInterpolator/
+            if alpha < 1:
+                self._mapper.SetSplatShaderCode(
+                    "//VTK::Color::Impl\n"
+                    "float dist = dot(offsetVCVSOutput.xy,offsetVCVSOutput.xy);\n"
+                    "if (dist > 1.0) {\n"
+                    "   discard;\n"
+                    "} else {\n"
+                    f"  float scale = ({alpha} - dist);\n"
+                    "   ambientColor *= scale;\n"
+                    "   diffuseColor *= scale;\n"
+                    "}\n"
+                )
+                alpha = 1
+
+        else:
+            self._mapper = vtk.vtkPolyDataMapper()
         self.SetMapper(self._mapper)
 
         self._bfprop = None  # backface property holder
@@ -773,8 +806,10 @@ class Points(BaseActor, vtk.vtkActor):
         # self.name = "Points" # better not to give it a name here
 
         self.property = self.GetProperty()
+
         try:
-            self.property.RenderPointsAsSpheresOn()
+            if not blur:
+                self.property.RenderPointsAsSpheresOn()
         except AttributeError:
             pass
 

@@ -136,13 +136,13 @@ vedo https://vedo.embl.es/examples/data/embryo.tif
 ```
 
 
-<details>
-<summary>volumetric files (slc, tiff, DICOM...) can be visualized in different modes </summary>
+<details>  
+<summary>volumetric files (slc, tiff, DICOM...) can be visualized in different modes <i><b>[click to expand]</b></i> </summary>
 
 
 |Volume 3D slicing<br>`vedo --slicer embryo.slc`| Ray-casting<br>`vedo -g`| 2D slicing<br>`vedo --slicer2d`|
-|:--------|:-----|:--------|:-----|
-| ![slicer](https://user-images.githubusercontent.com/32848391/80292484-50757180-8757-11ea-841f-2c0c5fe2c3b4.jpg)|![isohead](https://user-images.githubusercontent.com/32848391/58336107-5a09a180-7e43-11e9-8c4e-b50e4e95ae71.gif)|![viz_slicer](https://user-images.githubusercontent.com/32848391/90966778-fc955200-e4d6-11ea-8e29-215f7aea3860.png)  |
+|:--------|:-----|:--------|
+| ![slicer](https://user-images.githubusercontent.com/32848391/80292484-50757180-8757-11ea-841f-2c0c5fe2c3b4.jpg) | ![isohead](https://user-images.githubusercontent.com/32848391/58336107-5a09a180-7e43-11e9-8c4e-b50e4e95ae71.gif) | ![viz_slicer](https://user-images.githubusercontent.com/32848391/90966778-fc955200-e4d6-11ea-8e29-215f7aea3860.png)  |
 
 
 </details>

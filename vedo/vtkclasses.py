@@ -504,6 +504,7 @@ from vtkmodules.vtkRenderingCore import (
     vtkLight,
     vtkLogLookupTable,
     vtkMapper,
+    vtkPointGaussianMapper,
     vtkPolyDataMapper,
     vtkPolyDataMapper2D,
     vtkProp,

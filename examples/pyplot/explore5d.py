@@ -40,7 +40,7 @@ h4 = histogram(g4, xtitle=n4, c=4)
 pts = np.c_[g4,g2,g3] # form an array of 3d points from the columns
 
 pts_1 = pts[g0>0]                   # select only points that have g0>0
-p1 = Points(pts_1, r=4, c='red')    # create the vedo object
+p1 = Points(pts_1, r=4, c='red5')   # create the vedo object
 print("after selection nr. of points is", len(pts_1))
 
 pts_2 = pts[(g0<0) & (g1>.5)]       # select excluded points that have g1>0.5
