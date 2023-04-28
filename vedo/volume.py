@@ -24,7 +24,7 @@ Work with volumetric datasets (voxel data).
 ![](https://vedo.embl.es/images/volumetric/slicePlane2.png)
 """
 
-__all__ = ["BaseVolume", "Volume", "VolumeSlice"]  # included to generate documentation in pydoc
+__all__ = ["BaseVolume", "Volume", "VolumeSlice"]
 
 
 ##########################################################################
@@ -39,11 +39,12 @@ class BaseVolume:
         self._data = None
         self._mapper = None
         self.transform = None
+        self.pipeline = None
 
     def _repr_html_(self):
         """
         HTML representation of the Volume object for Jupyter Notebooks.
-        
+
         Returns:
             HTML text with the image and some properties.
         """
@@ -95,7 +96,7 @@ class BaseVolume:
 
         img = self.GetMapper().GetInput()
 
-        all = [
+        allt = [
             "<table>",
             "<tr>",
             "<td>",
@@ -120,7 +121,7 @@ class BaseVolume:
             "</table>",
             "</table>",
         ]
-        return "\n".join(all)
+        return "\n".join(allt)
 
     def _update(self, img):
         self._data = img
@@ -697,7 +698,7 @@ class BaseVolume:
 
         Examples:
             - [erode_dilate.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/erode_dilate.py)
-        
+
                 ![](https://vedo.embl.es/images/volumetric/erode_dilate.png)
         """
         ver = vtk.vtkImageContinuousErode3D()
@@ -903,7 +904,7 @@ class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
 
                 ![](https://vedo.embl.es/images/volumetric/read_volume2.png)
 
-        .. note:: 
+        .. note::
             if a `list` of values is used for `alphas` this is interpreted
             as a transfer function along the range of the scalar.
         """
@@ -1629,8 +1630,8 @@ class VolumeSlice(BaseVolume, Base3DProp, vtk.vtkImageSlice):
 
     def fill_background(self, value=True):
         """
-        Instead of rendering only to the image border, 
-        render out to the viewport boundary with the background color. 
+        Instead of rendering only to the image border,
+        render out to the viewport boundary with the background color.
         The background color will be the lowest color on the lookup
         table that is being used for the image."""
         self._mapper.SetBackground(value)

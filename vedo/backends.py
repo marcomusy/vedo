@@ -11,7 +11,6 @@ except ImportError:
 import vedo
 from vedo import settings
 from vedo import utils
-from vedo import shapes
 from vedo.pointcloud import Points
 from vedo.mesh import Mesh
 from vedo.volume import Volume
@@ -146,13 +145,13 @@ def start_k3d(actors2show):
             # print('scalars', ia.name, ia.npoints)
             iap = ia.GetProperty()
 
-            if ia._data.GetNumberOfPolys():
+            if ia.inputdata().GetNumberOfPolys():
                 iacloned = ia.clone()
                 iapoly = iacloned.clean().triangulate().compute_normals().polydata()
             else:
                 iapoly = ia.polydata()
 
-            if ia.mapper().GetScalarVisibility() and ia._mapper.GetColorMode() > 0:
+            if ia.mapper().GetScalarVisibility() and ia.mapper().GetColorMode() > 0:
 
                 vtkdata = iapoly.GetPointData()
                 vtkscals = vtkdata.GetScalars()
@@ -259,10 +258,10 @@ def start_k3d(actors2show):
                 color_attribute = None
 
             cols = []
-            if ia._mapper.GetColorMode() == 0:
+            if ia.mapper().GetColorMode() == 0:
                 # direct RGB colors
 
-                vcols = ia._data.GetPointData().GetScalars()
+                vcols = ia.inputdata().GetPointData().GetScalars()
                 if vcols and vcols.GetNumberOfComponents() == 3:
                     cols = utils.vtk2numpy(vcols)
                     cols = 65536 * cols[:, 0] + 256 * cols[:, 1] + cols[:, 2]
@@ -340,7 +339,7 @@ def start_trame():
     try:
         from trame.app import get_server, jupyter
         from trame.ui.vuetify import VAppLayout
-        from trame.widgets import vtk, vuetify
+        from trame.widgets import vtk as t_vtk, vuetify
     except ImportError:
         print("trame is not installed, try:\n> pip install trame")
         return None
@@ -360,7 +359,7 @@ def start_trame():
 
                 with vuetify.VContainer(fluid=True, classes="pa-0 fill-height"):
                     plt.reset_camera()
-                    view = vtk.VtkLocalView(plt.window)
+                    view = t_vtk.VtkLocalView(plt.window)
                     ctrl.view_update = view.update
                     ctrl.view_reset_camera = view.reset_camera
 

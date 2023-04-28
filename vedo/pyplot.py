@@ -251,7 +251,7 @@ class Figure(Assembly):
     def _repr_html_(self):
         """
         HTML representation of the Figure object for Jupyter Notebooks.
-        
+
         Returns:
             HTML text with the image and some properties.
         """
@@ -1934,9 +1934,9 @@ def plot(*args, **kwargs):
         - [plot_errbars.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_errbars.py)
         - [plot_errband.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_errband.py)
         - [plot_pip.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_pip.py)
-        
+
             ![](https://vedo.embl.es/images/pyplot/plot_pip.png)
-        
+
         - [scatter1.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/scatter1.py)
         - [scatter2.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/scatter2.py)
 
@@ -2176,7 +2176,7 @@ def plot(*args, **kwargs):
             # print('------------- case 2', 'plot(x)')
             if "pandas" in str(type(args[0])):
                 if "ytitle" not in kwargs:
-                    kwargs.update({"ytitle": args[0].name.replace("_", "\_")})
+                    kwargs.update({"ytitle": args[0].name.replace("_", "_ ")})
             x = np.linspace(0, len(args[0]), num=len(args[0]))
             y = np.asarray(args[0]).ravel()
 
@@ -2184,10 +2184,10 @@ def plot(*args, **kwargs):
             # print('------------- case 3', 'plot(allx,ally)',str(type(args[0])))
             if "pandas" in str(type(args[0])):
                 if "xtitle" not in kwargs:
-                    kwargs.update({"xtitle": args[0].name.replace("_", "\_")})
+                    kwargs.update({"xtitle": args[0].name.replace("_", "_ ")})
             if "pandas" in str(type(args[1])):
                 if "ytitle" not in kwargs:
-                    kwargs.update({"ytitle": args[1].name.replace("_", "\_")})
+                    kwargs.update({"ytitle": args[1].name.replace("_", "_ ")})
             x = np.asarray(args[0]).ravel()
             y = np.asarray(args[1]).ravel()
 
@@ -2487,7 +2487,7 @@ def histogram(*args, **kwargs):
             try:
                 if "pandas" in str(type(args[0])):
                     if "xtitle" not in kwargs:
-                        kwargs.update({"xtitle": args[0].name.replace("_", "\_")})
+                        kwargs.update({"xtitle": args[0].name.replace("_", "_ ")})
             except:
                 pass
             data = np.asarray(args[0])
@@ -3379,11 +3379,11 @@ def _histogram_spheric(thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", 
         newfaces.append([p1, lp, p2])
         newfaces.append([p2, lp, p3])
         newfaces.append([p3, lp, p0])
-        for j in range(5):
+        for _ in range(5):
             newvals.append(vals[i])
 
     newsg = Mesh([points, newfaces]).cmap(cmap, newvals, on="cells")
-    newsg.compute_normals().lw(0.1).flat()
+    newsg.compute_normals().flat()
     newsg.name = "HistogramSpheric"
     return newsg
 
@@ -4088,9 +4088,9 @@ class DirectedGraph(Assembly):
 
         Examples:
             - [lineage_graph.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/lineage_graph.py)
-            
+
                 ![](https://vedo.embl.es/images/pyplot/graph_lineage.png)
-            
+
             - [graph_network.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/graph_network.py)
 
                 ![](https://vedo.embl.es/images/pyplot/graph_network.png)
@@ -4217,7 +4217,7 @@ class DirectedGraph(Assembly):
 
         self.gl.SetLayoutStrategy(self.strategy)
 
-        if len(kargs):
+        if len(kargs) > 0:
             vedo.logger.error(f"Cannot understand options: {kargs}")
 
     def add_node(self, label="id"):

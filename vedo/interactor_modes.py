@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import numpy as np
 from dataclasses import dataclass
+import numpy as np
 
 try:
     import vedo.vtkclasses as vtk
@@ -43,6 +43,7 @@ class MousePan(vtk.vtkInteractorStyleUser):
         self.newpickW = np.array([0, 0, 0, 0], dtype=float)
         self.fpD = np.array([0, 0, 0], dtype=float)
         self.fpW = np.array([0, 0, 0], dtype=float)
+        self.posW = np.array([0, 0, 0], dtype=float)
         self.motionD = np.array([0, 0], dtype=float)
         self.motionW = np.array([0, 0, 0], dtype=float)
 
@@ -163,9 +164,9 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
     """
     Create an interaction style using the Blender default key-bindings.
 
-    Camera action code is largely a translation of 
+    Camera action code is largely a translation of
     [this](https://github.com/Kitware/VTK/blob/master/Interaction/Style/vtkInteractorStyleTrackballCamera.cxx)
-    Rubber band code 
+    Rubber band code
     [here](https://gitlab.kitware.com/updega2/vtk/-/blob/d324b2e898b0da080edee76159c2f92e6f71abe2/Rendering/vtkInteractorStyleRubberBandZoom.cxx)
 
     Interaction:
@@ -173,7 +174,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
     Left button: Sections
     ----------------------
     Left button: select
-    Left button drag: rubber band select or line select, depends on the dragged distance 
+    Left button drag: rubber band select or line select, depends on the dragged distance
 
     Middle button: Navigation
     --------------------------
@@ -184,7 +185,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
 
     Middle button + alt : center view on picked point
     OR
-    Middle button + alt   : zoom rubber band 
+    Middle button + alt   : zoom rubber band
     Mouse wheel : zoom
 
     Right button : context
@@ -212,14 +213,14 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
 
     callbacks / overriding keys:
 
-    if `callbackAnyKey` is assigned then this function is called on every key press. 
-    If this function returns True then further processing of events is stopped.  
+    if `callbackAnyKey` is assigned then this function is called on every key press.
+    If this function returns True then further processing of events is stopped.
 
 
     Moving actors
     --------------
     Actors can be moved interactively by the user.
-    To support custom groups of actors to be moved as a whole the following system 
+    To support custom groups of actors to be moved as a whole the following system
     is implemented:
 
     When 'g' is pressed (grab) then a `BlenderStyleDragInfo` dataclass object is assigned
@@ -231,19 +232,19 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
 
     Events:
 
-    `callbackStartDrag` is called when initializing the drag. 
-    This is when to assign actors and other data to draginfo. 
-    
+    `callbackStartDrag` is called when initializing the drag.
+    This is when to assign actors and other data to draginfo.
+
     `callbackEndDrag` is called when the drag is accepted.
 
     Responding to other events
     ---------------------------
 
     `callbackCameraDirectionChanged` : executed when camera has rotated but before re-rendering
-    
+
     This class is based on R. de Bruin's
     [DAVE](https://github.com/RubendeBruin/DAVE/blob/master/src/DAVE/visual_helpers/vtkBlenderLikeInteractionStyle.py)
-    implementation as discussed in this 
+    implementation as discussed in this
     [issue](https://github.com/marcomusy/vedo/discussions/788).
 
     Example:
@@ -566,7 +567,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
             self.end_x = self.start_x
             self.end_y = self.start_y
             self.InitializeScreenDrawing()
-        elif KEY == "2" or KEY == "3":
+        elif KEY in ('2', '3'):
             self.ToggleParallelProjection()
 
         elif KEY == "A":
@@ -612,7 +613,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         self.InitializeScreenDrawing()
 
     def RotateDiscreteStep(self, movement_direction, step=22.5):
-        """Rotates CW or CCW to the nearest 45 deg angle 
+        """Rotates CW or CCW to the nearest 45 deg angle
         - includes some fuzzyness to determine about which axis"""
 
         CurrentRenderer = self.GetCurrentRenderer()
@@ -681,7 +682,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         self.DoRender()
 
     def SetCameraPlaneDirection(self, direction):
-        """Sets the camera to display a plane of which direction is the normal 
+        """Sets the camera to display a plane of which direction is the normal
         - includes logic to reverse the direction if benificial"""
 
         CurrentRenderer = self.GetCurrentRenderer()
@@ -1249,22 +1250,22 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
             # c = round((10*i % 254)/254) * 254  # find some alternating color
             c = 0
 
-            id = (miny * size[0]) + minx + i
-            tempPA.SetTuple(id, (c, c, c, 1))
+            idx = (miny * size[0]) + minx + i
+            tempPA.SetTuple(idx, (c, c, c, 1))
 
-            id = ((miny + height) * size[0]) + minx + i
-            tempPA.SetTuple(id, (c, c, c, 1))
+            idx = ((miny + height) * size[0]) + minx + i
+            tempPA.SetTuple(idx, (c, c, c, 1))
 
         # draw left and right
         for i in range(height):
             # c = round((10 * i % 254) / 254) * 254  # find some alternating color
             c = 0
 
-            id = ((miny + i) * size[0]) + minx
-            tempPA.SetTuple(id, (c, c, c, 1))
+            idx = ((miny + i) * size[0]) + minx
+            tempPA.SetTuple(idx, (c, c, c, 1))
 
-            id = id + width
-            tempPA.SetTuple(id, (c, c, c, 1))
+            idx = idx + width
+            tempPA.SetTuple(idx, (c, c, c, 1))
 
         # and Copy back to the window
         rwin.SetRGBACharPixelData(0, 0, size[0] - 1, size[1] - 1, tempPA, 0)
@@ -1309,8 +1310,8 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
 
         xs, ys = self.LineToPixels(x1, x2, y1, y2)
         for x, y in zip(xs, ys):
-            id = (y * size[0]) + x
-            tempPA.SetTuple(id, (0, 0, 0, 1))
+            idx = (y * size[0]) + x
+            tempPA.SetTuple(idx, (0, 0, 0, 1))
 
         # and Copy back to the window
         rwin.SetRGBACharPixelData(0, 0, size[0] - 1, size[1] - 1, tempPA, 0)

@@ -481,7 +481,7 @@ def plot(*inputobj, **options):
         if "displace" in mode:
             actor.move(u)
 
-        if cmap and (actor.u_values is not None) and len(actor.u_values) and c is None:
+        if cmap and (actor.u_values is not None) and len(actor.u_values)>0 and c is None:
             if actor.u_values.ndim > 1:
                 actor.cmap(cmap, utils.mag(actor.u_values), vmin=vmin, vmax=vmax)
             else:
@@ -489,12 +489,12 @@ def plot(*inputobj, **options):
 
         if warpYfactor:
             scals = actor.pointdata[0]
-            if len(scals):
+            if len(scals) > 0:
                 pts_act = actor.points()
                 pts_act[:, 1] = scals * warpYfactor * scaleMeshFactors[1]
         if warpZfactor:
             scals = actor.pointdata[0]
-            if len(scals):
+            if len(scals) > 0:
                 pts_act = actor.points()
                 pts_act[:, 2] = scals * warpZfactor * scaleMeshFactors[2]
         if warpYfactor or warpZfactor:

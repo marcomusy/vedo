@@ -112,16 +112,16 @@ class OperationNode:
         sp.clean().subdivide()
         sp.pipeline.show()
         ```
-        
+
         Arguments:
             operation : (str, class)
-                descriptor label, if a class is passed then grab its name           
+                descriptor label, if a class is passed then grab its name
             parents : (list)
-                list of the parent classes the object comes from           
+                list of the parent classes the object comes from
             comment : (str)
-                a second-line text description      
+                a second-line text description
             shape : (str)
-                shape of the frame, check out [this link.](https://graphviz.org/doc/info/shapes.html)     
+                shape of the frame, check out [this link.](https://graphviz.org/doc/info/shapes.html)
             c : (hex)
                 hex color
             style : (str)
@@ -173,6 +173,7 @@ class OperationNode:
         self.shape = shape
         self.style = style
         self.color = c
+        self.counts = 0
 
     def add_parent(self, parent):
         self.parents.append(parent)
@@ -536,7 +537,7 @@ def extract_cells_by_type(obj, types=()):
 
     Given an input `vtkDataSet` and a list of cell types, produce an output
     containing only cells of the specified type(s).
-    
+
     Find [here](https://vtk.org/doc/nightly/html/vtkCellType_8h_source.html)
     the list of possible cell types.
 
@@ -545,7 +546,7 @@ def extract_cells_by_type(obj, types=()):
     """
     ef = vtk.vtkExtractCellsByType()
     try:
-        ef.SetInputData(obj._data)
+        ef.SetInputData(obj.inputdata())
     except:
         ef.SetInputData(obj)
 
@@ -1532,7 +1533,6 @@ def print_info(obj):
         col = precision(pro.GetColor(), 3)
         alpha = pro.GetOpacity()
         npt = poly.GetNumberOfPoints()
-        ncl = poly.GetNumberOfCells()
         npl = poly.GetNumberOfPolys()
         nln = poly.GetNumberOfLines()
 
@@ -1564,6 +1564,7 @@ def print_info(obj):
                 vedo.printc(f"{cname}, rgb={precision(bcol,3)}", c="g", bold=False)
 
         vedo.printc("points".ljust(14) + ":", npt, c="g", bold=True)
+        # ncl = poly.GetNumberOfCells()
         # vedo.printc("cells".ljust(14)+":", ncl, c="g", bold=True)
         vedo.printc("polygons".ljust(14) + ":", npl, c="g", bold=True)
         if nln:
@@ -1610,7 +1611,6 @@ def print_info(obj):
         return
 
     if isinstance(obj, np.ndarray):
-        obj = obj
         cf = "y"
         vedo.printc("Numpy Array".ljust(70), c=cf, invert=True)
         vedo.printc(obj, c=cf)
@@ -1842,7 +1842,7 @@ def print_histogram(
 ):
     """
     Ascii histogram printing.
-    
+
     Input can be a `vedo.Volume` or `vedo.Mesh`.
     Returns the raw data before binning (useful when passing vtk objects).
 
@@ -2158,7 +2158,7 @@ def camera_from_dict(camera, modify_inplace=None):
     cm_parallel_scale = camera.pop("parallel_scale", camera.pop("parallelScale", None))
     cm_thickness = camera.pop("thickness", None)
     cm_view_angle = camera.pop("view_angle", camera.pop("viewAngle", None))
-    if len(camera.keys()):
+    if len(camera.keys()) > 0:
         vedo.logger.warning(f"in camera_from_dict, key(s) not recognized: {camera.keys()}")
     if cm_pos is not None:            vcam.SetPosition(cm_pos)
     if cm_focal_point is not None:    vcam.SetFocalPoint(cm_focal_point)
@@ -2450,7 +2450,7 @@ def trimesh2vedo(inputobj):
         trim_cc, trim_al = "black", 1
         if hasattr(inputobj, "vertices_color"):
             trim_c = inputobj.vertices_color
-            if len(trim_c):
+            if len(trim_c) > 0:
                 trim_cc = trim_c[:, [0, 1, 2]] / 255
                 trim_al = trim_c[:, 3] / 255
                 trim_al = np.sum(trim_al) / len(trim_al)  # just the average
@@ -2548,7 +2548,7 @@ def meshlab2vedo(mmesh):
         mmesh = mmesh.current_mesh()
 
     mpoints, mcells = mmesh.vertex_matrix(), mmesh.face_matrix()
-    if len(mcells):
+    if len(mcells) > 0:
         polydata = buildPolyData(mpoints, mcells)
     else:
         polydata = buildPolyData(mpoints, None)
@@ -2572,11 +2572,11 @@ def meshlab2vedo(mmesh):
             polydata.GetCellData().SetActiveScalars("MeshLabScalars")
 
     pnorms = mmesh.vertex_normal_matrix()
-    if len(pnorms):
+    if len(pnorms) > 0:
         polydata.GetPointData().SetNormals(numpy2vtk(pnorms))
 
     cnorms = mmesh.face_normal_matrix()
-    if len(cnorms):
+    if len(cnorms) > 0:
         polydata.GetCellData().SetNormals(numpy2vtk(cnorms))
     return polydata
 

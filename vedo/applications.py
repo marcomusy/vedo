@@ -69,7 +69,7 @@ class Slicer3DPlotter(Plotter):
     ):
         """
         Generate a rendering window with slicing planes for the input Volume.
-     
+
         Arguments:
             alpha : (float)
                 transparency of the slicing planes
@@ -582,7 +582,7 @@ class IsosurfaceBrowser(Plotter):
     ):
         """
         Generate a `vedo.Plotter` for Volume isosurfacing using a slider.
-    
+
         Set `delayed=True` to delay slider update on mouse release.
 
         Set `res` to set the resolution, e.g. the number of desired isosurfaces to be
@@ -1701,6 +1701,3 @@ class Clock(vedo.Assembly):
             parts[4].points(pts4)
 
         return self
-
-
-

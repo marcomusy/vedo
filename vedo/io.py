@@ -1114,13 +1114,13 @@ def loadnumpy(inobj):
         # print('loadnumpy:', d['type'], d)
 
         ### Mesh
-        if "mesh" == d["type"].lower():
+        if d['type'].lower() == 'mesh':
             a = _buildmesh(d)
             if a:
                 objs.append(a)
 
         ### Assembly
-        elif "assembly" == d["type"].lower():
+        elif d['type'].lower() == 'assembly':
             assacts = []
             for ad in d["actors"]:
                 assacts.append(_buildmesh(ad))
@@ -1129,7 +1129,7 @@ def loadnumpy(inobj):
             objs.append(asse)
 
         ### Volume
-        elif "volume" == d["type"].lower():
+        elif d['type'].lower() == 'volume':
             vol = Volume(d["array"])
             _load_common(vol, d)
             if "jittering" in d.keys():
@@ -1142,13 +1142,13 @@ def loadnumpy(inobj):
             objs.append(vol)
 
         ### Picture
-        elif "picture" == d["type"].lower():
+        elif d['type'].lower() == 'picture':
             vimg = Picture(d["array"])
             _load_common(vimg, d)
             objs.append(vimg)
 
         ### Text2D
-        elif "text2d" == d["type"].lower():
+        elif d['type'].lower() == 'text2d':
             t = vedo.shapes.Text2D(d["text"], font=d["font"], c=d["color"])
             t.pos(d["position"]).size(d["size"])
             t.background(d["bgcol"], d["alpha"])
@@ -1157,7 +1157,7 @@ def loadnumpy(inobj):
             objs.append(t)
 
         ### Annotation ## backward compatibility - will disappear
-        elif "annotation" == d["type"].lower():
+        elif d['type'].lower() == 'annotation':
 
             pos = d["position"]
             if isinstance(pos, int):
@@ -2013,13 +2013,11 @@ class Video:
             w, h = w * settings.screeshot_scale, h * settings.screeshot_scale
             writer = cv2.VideoWriter(self.name, fourcc, self.fps, (w, h), True)
 
-            found = False
             while True:
                 ret, frame = cap.read()
                 if not ret:
                     break
                 writer.write(frame)
-                found = True
 
             cap.release()
             writer.release()

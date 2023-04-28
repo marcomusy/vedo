@@ -944,8 +944,8 @@ class Base3DProp:
 
     def copy_data_from(self, obj):
         """Copy all data (point and cell data) from this input object"""
-        self._data.GetPointData().PassData(obj._data.GetPointData())
-        self._data.GetCellData().PassData(obj._data.GetCellData())
+        self.inputdata().GetPointData().PassData(obj.inputdata().GetPointData())
+        self.inputdata().GetCellData().PassData(obj.inputdata().GetCellData())
         self.pipeline = utils.OperationNode(
             f"copy_data_from\n{obj.__class__.__name__}",
             parents=[self, obj],
@@ -1046,7 +1046,7 @@ class BaseActor2D(vtk.vtkActor2D):
     def coordinate_system(self, value=None):
         """
         Set/get the coordinate system which this coordinate is defined in.
-        
+
         The options are:
             0. Display
             1. Normalized Display
@@ -1074,7 +1074,7 @@ class BaseActor2D(vtk.vtkActor2D):
 
     def toggle(self):
         """Toggle object visibility."""
-        self.SetVisibility(not (self.GetVisibility()))
+        self.SetVisibility(not self.GetVisibility())
         return self
 
     def pickable(self, value=True):
@@ -1506,9 +1506,9 @@ class BaseActor(Base3DProp):
         into point data (i.e., data specified at each vertex).
         The method of transformation is based on averaging the data values
         of all cells using a particular point.
-        
+
         A custom list of arrays to be mapped can be passed in input.
- 
+
         Set `move=True` to delete the original `celldata` array.
         """
         c2p = vtk.vtkCellDataToPointData()
@@ -2149,7 +2149,7 @@ class BaseGrid(BaseActor):
     def shrink(self, fraction=0.8):
         """
         Shrink the individual cells to improve visibility.
-        
+
         ![](https://vedo.embl.es/images/feats/shrink_hex.png)
         """
         sf = vtk.vtkShrinkFilter()
@@ -2205,7 +2205,7 @@ class BaseGrid(BaseActor):
         out.pipeline = utils.OperationNode(
             "isosurface",
             parents=[self],
-            comment=f"#pts {out._data.GetNumberOfPoints()}",
+            comment=f"#pts {out.inputdata().GetNumberOfPoints()}",
             c="#4cc9f0:#e9c46a",
         )
         return out
@@ -2595,7 +2595,7 @@ def probe_line(dataset, p1, p2, res=100):
         - [probe_line1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probe_line1.py)
         - [probe_line2.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probe_line2.py)
 
-            ![](https://vedo.embl.es/images/volumetric/probeLine2.png) 
+            ![](https://vedo.embl.es/images/volumetric/probeLine2.png)
     """
     line = vtk.vtkLineSource()
     line.SetResolution(res)
@@ -2637,4 +2637,3 @@ def probe_plane(dataset, origin=(0, 0, 0), normal=(1, 0, 0)):
     cutmesh.name = "ProbePlane"
     cutmesh.pipeline = utils.OperationNode("probe_plane", parents=[dataset])
     return cutmesh
-

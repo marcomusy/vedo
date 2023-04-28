@@ -254,7 +254,7 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
     def _repr_html_(self):
         """
         HTML representation of the Assembly object for Jupyter Notebooks.
-        
+
         Returns:
             HTML text with the image and some properties.
         """
@@ -292,7 +292,7 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
                 dots = "..."
             help_text += f"<br/><code><i>({dots}{self.filename[-30:]})</i></code>"
 
-        all = [
+        allt = [
             "<table>",
             "<tr>",
             "<td>",
@@ -312,7 +312,7 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
             "</table>",
             "</table>",
         ]
-        return "\n".join(all)
+        return "\n".join(allt)
 
     def __add__(self, obj):
         """
@@ -391,9 +391,9 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
             for elem in lst:
                 if isinstance(elem, Assembly):
                     apos = elem.GetPosition()
-                    sum = np.sum(apos)
+                    asum = np.sum(apos)
                     for x in elem.unpack():
-                        if sum:
+                        if asum:
                             yield x.clone().shift(apos)
                         else:
                             yield x
@@ -401,4 +401,4 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
                     yield elem
 
         return list(_genflatten([self]))
-    
+

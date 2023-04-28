@@ -81,7 +81,7 @@ def _get_img(obj, flip=False, translate=()):
             img.GetPointData().AddArray(varb)
             img.GetPointData().SetActiveScalars("RGBA")
 
-    if len(translate):
+    if len(translate) > 0:
         translate_extent = vtk.vtkImageTranslateExtent()
         translate_extent.SetTranslation(-translate[0], -translate[1], 0)
         translate_extent.SetInputData(img)
@@ -128,7 +128,7 @@ def _set_justification(img, pos):
             pos = (0.5, 0.5)
             translate = (sx / 2, sy / 2)
 
-    if len(translate):
+    if len(translate) > 0:
         translate = np.array(translate).astype(int)
         translate_extent = vtk.vtkImageTranslateExtent()
         translate_extent.SetTranslation(-translate[0], -translate[1], 0)
@@ -153,7 +153,7 @@ class Picture2D(vedo.BaseActor2D):
             fig : Picture, matplotlib.Figure, matplotlib.pyplot, vtkImageData
                 the input image
             pos : (list)
-                2D (x,y) position in range [0,1], 
+                2D (x,y) position in range [0,1],
                 [0,0] being the bottom-left corner
             scale : (float)
                 apply a scaling factor to the image
@@ -265,7 +265,7 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         vtk.vtkImageActor.__init__(self)
         vedo.base.Base3DProp.__init__(self)
 
-        if utils.is_sequence(obj) and len(obj):  # passing array
+        if utils.is_sequence(obj) and len(obj) > 0:  # passing array
             img = _get_img(obj, flip)
 
         elif isinstance(obj, vtk.vtkImageData):
@@ -312,7 +312,7 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
     def _repr_html_(self):
         """
         HTML representation of the Picture object for Jupyter Notebooks.
-        
+
         Returns:
             HTML text with the image and some properties.
         """
@@ -356,7 +356,7 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
 
         img = self.GetMapper().GetInput()
 
-        all = [
+        allt = [
             "<table>",
             "<tr>",
             "<td>",
@@ -380,7 +380,7 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
             "</table>",
             "</table>",
         ]
-        return "\n".join(all)
+        return "\n".join(allt)
 
     def inputdata(self):
         """Return the underlying ``vtkImagaData`` object."""
@@ -1383,7 +1383,7 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
     def add_text(
         self,
         txt,
-        pos=(0, 0),  # TODO
+        # pos=(0, 0),  # TODO
         width=400,
         height=200,
         alpha=1,

@@ -110,7 +110,6 @@ def show(
     roll=0,
     camera=None,
     mode=0,
-    q=False,
     new=False,
     backend="",  # DEPRECATED
 ):
@@ -1223,9 +1222,9 @@ class Plotter:
             return [self.camera]
         else:
             vcams = []
-            for t in output_times:
+            for tt in output_times:
                 c = vtk.vtkCamera()
-                cin.InterpolateCamera(t * rng, c)
+                cin.InterpolateCamera(tt * rng, c)
                 vcams.append(c)
             return vcams
 
@@ -1355,7 +1354,7 @@ class Plotter:
         """
         Set the field of view angle for the camera.
         This is the angle of the camera frustum in the horizontal direction.
-        High values will result in a wide-angle lens (fish-eye effect), 
+        High values will result in a wide-angle lens (fish-eye effect),
         and low values will result in a telephoto lens.
 
         Default value is 30 degrees.
@@ -1431,7 +1430,7 @@ class Plotter:
         Examples:
             - [sliders1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders1.py)
             - [sliders2.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders2.py)
-            
+
             ![](https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg)
         """
         if c is None:  # automatic black or white
@@ -1574,7 +1573,7 @@ class Plotter:
                 opacity level
             angle : (float)
                 anticlockwise rotation in degrees
-        
+
         Returns:
             `vedo.addons.Button` object.
 
@@ -2026,7 +2025,7 @@ class Plotter:
         Examples:
             - [hover_legend.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/hover_legend.py)
             - [earthquake_browser.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/earthquake_browser.py)
-        
+
             ![](https://vedo.embl.es/images/pyplot/earthquake_browser.jpg)
         """
         hoverlegend = vedo.shapes.Text2D(pos=pos, font=font, c=c, s=s, alpha=alpha, bg=bg)
@@ -2036,8 +2035,8 @@ class Plotter:
 
         def _legfunc(evt):
             if not evt.actor or not self.renderer or at != evt.at:
-                if hoverlegend._mapper.GetInput():  # clear and return
-                    hoverlegend._mapper.SetInput("")
+                if hoverlegend.mapper().GetInput():  # clear and return
+                    hoverlegend.mapper().SetInput("")
                     self.interactor.Render()
                 return
 
@@ -2113,8 +2112,8 @@ class Plotter:
             # change box color if needed in 'auto' mode
             if evt.isPoints and "auto" in str(bg):
                 actcol = evt.actor.GetProperty().GetColor()
-                if hoverlegend._mapper.GetTextProperty().GetBackgroundColor() != actcol:
-                    hoverlegend._mapper.GetTextProperty().SetBackgroundColor(actcol)
+                if hoverlegend.mapper().GetTextProperty().GetBackgroundColor() != actcol:
+                    hoverlegend.mapper().GetTextProperty().SetBackgroundColor(actcol)
 
             # adapt to changes in bg color
             bgcol = self.renderers[at].GetBackground()
@@ -2126,8 +2125,8 @@ class Plotter:
                 if len(set(_bgcol).intersection(bgcol)) < 3:
                     hoverlegend.color(_bgcol)
 
-            if hoverlegend._mapper.GetInput() != t:
-                hoverlegend._mapper.SetInput(t)
+            if hoverlegend.mapper().GetInput() != t:
+                hoverlegend.mapper().SetInput(t)
                 self.interactor.Render()
 
         self.add(hoverlegend, at=at)
@@ -2367,7 +2366,7 @@ class Plotter:
             ```python
             from vedo import *
 
-            def func(evt): 
+            def func(evt):
                 # this function is called every time the mouse moves
                 # (evt is a dotted dictionary)
                 if not evt.actor:
@@ -2494,7 +2493,7 @@ class Plotter:
         Examples:
             - [timer_callback1.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/timer_callback1.py)
             - [timer_callback2.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/timer_callback2.py)
-        
+
             ![](https://vedo.embl.es/images/advanced/timer_callback1.jpg)
         """
         if action in ("create", "start"):
@@ -2546,7 +2545,7 @@ class Plotter:
         Examples:
             - [cut_freehand.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/cut_freehand.py)
             - [mousehover3.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mousehover3.py)
-        
+
             ![](https://vedo.embl.es/images/basic/mousehover3.jpg)
         """
         if at is not None:
@@ -3218,7 +3217,7 @@ class Plotter:
     def user_mode(self, mode):
         """
         Modify the user interaction mode.
-        
+
         Examples:
             ```python
             from vedo import *
@@ -3816,7 +3815,7 @@ class Plotter:
                     cmap_name = "rainbow"
                 if isinstance(ia, vedo.pointcloud.Points):
                     arnames = ia.pointdata.keys()
-                    if len(arnames):
+                    if len(arnames) > 0:
                         arnam = arnames[ia._scals_idx]
                         if arnam and ("normals" not in arnam.lower()):  # exclude normals
                             ia.cmap(cmap_name, arnam, on="points")
@@ -3826,7 +3825,7 @@ class Plotter:
                                 ia._scals_idx = 0
                     else:
                         arnames = ia.celldata.keys()
-                        if len(arnames):
+                        if len(arnames) > 0:
                             arnam = arnames[ia._scals_idx]
                             if arnam and ("normals" not in arnam.lower()):  # exclude normals
                                 ia.cmap(cmap_name, arnam, on="cells")
@@ -4094,4 +4093,3 @@ class Plotter:
 
         if iren:
             iren.Render()
-

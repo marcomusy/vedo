@@ -31,7 +31,7 @@ def delaunay3d(mesh, radius=0, tol=None):
     Create 3D Delaunay triangulation of input points.
 
     Arguments:
-    
+
         radius : (float)
             specify distance (or "alpha") value to control output.
             For a non-zero values, only tetra contained within the circumsphere
@@ -204,7 +204,7 @@ class TetMesh(BaseGrid, vtk.vtkVolume):
     def _repr_html_(self):
         """
         HTML representation of the TetMesh object for Jupyter Notebooks.
-        
+
         Returns:
             HTML text with the image and some properties.
         """
@@ -233,13 +233,13 @@ class TetMesh(BaseGrid, vtk.vtkVolume):
         help_text = ""
         if self.name:
             help_text += f"<b> {self.name}: &nbsp&nbsp</b>"
-        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>" 
+        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
         if self.filename:
             dots = ""
             if len(self.filename) > 30:
                 dots = "..."
             help_text += f"<br/><code><i>({dots}{self.filename[-30:]})</i></code>"
-        
+
         pdata = ""
         if self._data.GetPointData().GetScalars():
             if self._data.GetPointData().GetScalars().GetName():
@@ -255,23 +255,22 @@ class TetMesh(BaseGrid, vtk.vtkVolume):
         pts = self.points()
         cm = np.mean(pts, axis=0)
 
-        all = [
+        allt = [
             "<table>",
-            "<tr>", 
+            "<tr>",
             "<td>", image, "</td>",
             "<td style='text-align: center; vertical-align: center;'><br/>", help_text,
             "<table>",
             "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>" + str(bounds) + "</td></tr>",
             "<tr><td><b> center of mass </b></td><td>" + utils.precision(cm,3) + "</td></tr>",
-            # "<tr><td><b> average size </b></td><td>" + str(average_size) + "</td></tr>",
-            "<tr><td><b> nr. points&nbsp/&nbsptets </b></td><td>" 
+            "<tr><td><b> nr. points&nbsp/&nbsptets </b></td><td>"
             + str(self.npoints) + "&nbsp/&nbsp" + str(self.ncells) + "</td></tr>",
             pdata,
             cdata,
             "</table>",
             "</table>",
         ]
-        return "\n".join(all)
+        return "\n".join(allt)
 
 
     def _update(self, data):

@@ -92,7 +92,7 @@ def merge(*meshs, flag=False):
 
     msh.pipeline = utils.OperationNode(
         "merge", parents=acts,
-        comment=f"#pts {msh._data.GetNumberOfPoints()}",
+        comment=f"#pts {msh.inputdata().GetNumberOfPoints()}",
     )
     return msh
 
@@ -229,7 +229,8 @@ def delaunay2d(plist, mode="scipy", boundaries=(), tol=None, alpha=0, offset=0, 
     msh = vedo.mesh.Mesh(delny.GetOutput()).clean().lighting("off")
 
     msh.pipeline = utils.OperationNode(
-        "delaunay2d", parents=parents, comment=f"#cells {msh._data.GetNumberOfCells()}"
+        "delaunay2d", parents=parents,
+        comment=f"#cells {msh.inputdata().GetNumberOfCells()}"
     )
     return msh
 
@@ -292,7 +293,7 @@ def voronoi(pts, padding=0, fit=False, method="vtk"):
                 if x < 0:
                     flag = False
                     break
-            if flag and len(r):
+            if flag and len(r) > 0:
                 regs.append(r)
 
         m = vedo.Mesh([vor.vertices, regs], c="orange5")
@@ -542,7 +543,7 @@ def fit_sphere(coords):
     t = (C[0] * C[0]) + (C[1] * C[1]) + (C[2] * C[2]) + C[3]
     radius = np.sqrt(t)[0]
     center = np.array([C[0][0], C[1][0], C[2][0]])
-    if len(residue):
+    if len(residue) > 0:
         residue = np.sqrt(residue[0]) / n
     else:
         residue = 0
@@ -963,7 +964,7 @@ class Points(BaseActor, vtk.vtkActor):
     def _repr_html_(self):
         """
         HTML representation of the Point cloud object for Jupyter Notebooks.
-        
+
         Returns:
             HTML text with the image and some properties.
         """
@@ -1012,7 +1013,7 @@ class Points(BaseActor, vtk.vtkActor):
                 name = self._data.GetCellData().GetScalars().GetName()
                 cdata = "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
 
-        all = [
+        allt = [
             "<table>",
             "<tr>",
             "<td>",
@@ -1032,7 +1033,7 @@ class Points(BaseActor, vtk.vtkActor):
             "</table>",
             "</table>",
         ]
-        return "\n".join(all)
+        return "\n".join(allt)
 
 
     ##################################################################################
@@ -1391,7 +1392,7 @@ class Points(BaseActor, vtk.vtkActor):
 
     def compute_acoplanarity(self, n=25, radius=None, on="points"):
         """
-        Compute acoplanarity which is a measure of how much a local region of the mesh 
+        Compute acoplanarity which is a measure of how much a local region of the mesh
         differs from a plane.
         The information is stored in a `pointdata` or `celldata` array with name 'Acoplanarity'.
         Either `n` (number of neighbour points) or `radius` (radius of local search) can be specified.
@@ -1602,7 +1603,8 @@ class Points(BaseActor, vtk.vtkActor):
         out = self._update(cpd.GetOutput())
 
         out.pipeline = utils.OperationNode(
-            "clean", parents=[self], comment=f"#pts {out._data.GetNumberOfPoints()}"
+            "clean", parents=[self],
+            comment=f"#pts {out.inputdata().GetNumberOfPoints()}"
         )
         return out
 
@@ -1650,7 +1652,7 @@ class Points(BaseActor, vtk.vtkActor):
         out = self._update(cpd.GetOutput()).ps(ps)
 
         out.pipeline = utils.OperationNode(
-            "subsample", parents=[self], comment=f"#pts {out._data.GetNumberOfPoints()}"
+            "subsample", parents=[self], comment=f"#pts {out.inputdata().GetNumberOfPoints()}"
         )
         return out
 
@@ -1843,7 +1845,7 @@ class Points(BaseActor, vtk.vtkActor):
             ns = np.sqrt(self.npoints)
 
         hasnorms = False
-        if len(norms):
+        if len(norms) > 0:
             hasnorms = True
 
         if scale is None:
@@ -2278,7 +2280,7 @@ class Points(BaseActor, vtk.vtkActor):
                 internal text justification. The default is "center-left".
             vspacing : (float)
                 vertical spacing between lines.
-        
+
         Examples:
             - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/other/flag_labels2.py)
 
@@ -3412,7 +3414,7 @@ class Points(BaseActor, vtk.vtkActor):
             inputobj.SetVerts(carr)
         self._update(inputobj)
         self.mapper().ScalarVisibilityOff()
-        self.pipeline = utils.OperationNode("remove\outliers", parents=[self])
+        self.pipeline = utils.OperationNode("remove_outliers", parents=[self])
         return self
 
     def smooth_mls_1d(self, f=0.2, radius=None):
@@ -3999,19 +4001,19 @@ class Points(BaseActor, vtk.vtkActor):
     def cut_with_cookiecutter(self, lines):
         """
         Cut the current mesh with a single line or a set of lines.
-        
+
         Input `lines` can be either:
         - a `Mesh` or `Points` object
         - a list of 3D points: `[(x1,y1,z1), (x2,y2,z2), ...]`
         - a list of 2D points: `[(x1,y1), (x2,y2), ...]`
-        
+
         Example:
             ```python
             from vedo import *
             grid = Mesh(dataurl + "dolfin_fine.vtk")
             grid.compute_quality().cmap("Greens")
             pols = merge(
-                Polygon(nsides=10, r=0.3).pos(0.7, 0.3), 
+                Polygon(nsides=10, r=0.3).pos(0.7, 0.3),
                 Polygon(nsides=10, r=0.2).pos(0.3, 0.7),
             )
             lines = pols.boundaries()
@@ -4019,7 +4021,7 @@ class Points(BaseActor, vtk.vtkActor):
             show(grid, lines, axes=8, bg='blackboard').close()
             ```
             ![](https://vedo.embl.es/images/feats/cookiecutter.png)
-        
+
         Check out also:
             `cut_with_line()` and `cut_with_point_loop()`
 
@@ -4228,7 +4230,7 @@ class Points(BaseActor, vtk.vtkActor):
         cube = Cube().pos(4,0.5,0)
         assem = pts.cut_with_mesh(cube, keep=True)
         show(assem.unpack(), axes=1).close()
-        ```        
+        ```
         ![](https://vedo.embl.es/images/feats/cut_with_mesh.png)
 
        Check out also:
@@ -4319,11 +4321,11 @@ class Points(BaseActor, vtk.vtkActor):
 
         Examples:
             - [cut_with_points1.py](https://github.com/marcomusy/vedo/blob/master/examples/advanced/cut_with_points1.py)
-            
+
                 ![](https://vedo.embl.es/images/advanced/cutWithPoints1.png)
-            
+
             - [cut_with_points2.py](https://github.com/marcomusy/vedo/blob/master/examples/advanced/cut_with_points2.py)
-        
+
                 ![](https://vedo.embl.es/images/advanced/cutWithPoints2.png)
         """
         if isinstance(points, Points):
@@ -4483,7 +4485,7 @@ class Points(BaseActor, vtk.vtkActor):
                 ![](https://vedo.embl.es/images/advanced/line2mesh_tri.jpg)
 
             - [line2mesh_quads.py](https://github.com/marcomusy/vedo/blob/master/examples/advanced/line2mesh_quads.py)
-        
+
                 ![](https://vedo.embl.es/images/advanced/line2mesh_quads.png)
         """
         if line_resolution is None:
@@ -4533,7 +4535,7 @@ class Points(BaseActor, vtk.vtkActor):
             cmesh.pipeline = utils.OperationNode(
                 "generate_mesh",
                 parents=[self, contour],
-                comment=f"#quads {cmesh._data.GetNumberOfCells()}",
+                comment=f"#quads {cmesh.inputdata().GetNumberOfCells()}",
             )
             return cmesh
         #############################################
@@ -4579,7 +4581,7 @@ class Points(BaseActor, vtk.vtkActor):
         dln.pipeline = utils.OperationNode(
             "generate_mesh",
             parents=[self, contour],
-            comment=f"#cells {dln._data.GetNumberOfCells()}",
+            comment=f"#cells {dln.inputdata().GetNumberOfCells()}",
         )
         return dln
 
@@ -4676,7 +4678,8 @@ class Points(BaseActor, vtk.vtkActor):
         m = vedo.mesh.Mesh(surface.GetOutput(), c=self.color())
 
         m.pipeline = utils.OperationNode(
-            "reconstruct_surface", parents=[self], comment=f"#pts {m._data.GetNumberOfPoints()}"
+            "reconstruct_surface", parents=[self],
+            comment=f"#pts {m.inputdata().GetNumberOfPoints()}"
         )
         return m
 
@@ -4937,7 +4940,8 @@ class Points(BaseActor, vtk.vtkActor):
         cld.name = "densifiedCloud"
 
         cld.pipeline = utils.OperationNode(
-            "densify", parents=[self], c="#e9c46a:", comment=f"#pts {cld._data.GetNumberOfPoints()}"
+            "densify", parents=[self], c="#e9c46a:",
+            comment=f"#pts {cld.inputdata().GetNumberOfPoints()}"
         )
         return cld
 
@@ -5108,4 +5112,3 @@ class Points(BaseActor, vtk.vtkActor):
 
         m.pipeline = utils.OperationNode("generate\nrandom data", parents=[self])
         return m
-

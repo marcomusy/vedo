@@ -74,9 +74,9 @@ class Flagpost(vtk.vtkFlagpoleLabel):
             txt : (str)
                 Text to display. The default is the filename or the object name.
             base : (list)
-                position of the flag anchor point. 
+                position of the flag anchor point.
             top : (list)
-                a 3D displacement or offset. 
+                a 3D displacement or offset.
             s : (float)
                 size of the text to be shown
             c : (list)
@@ -95,7 +95,7 @@ class Flagpost(vtk.vtkFlagpoleLabel):
                 internal text justification. The default is "center-left".
             vspacing : (float)
                 vertical spacing between lines.
-        
+
         Examples:
             - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/other/flag_labels2.py)
 
@@ -168,7 +168,7 @@ class Flagpost(vtk.vtkFlagpoleLabel):
         return self
 
     def toggle(self):
-        self.SetVisibility(not (self.GetVisibility()))
+        self.SetVisibility(not self.GetVisibility())
         return self
 
     def use_bounds(self, value=True):
@@ -382,9 +382,9 @@ class Button:
 
         Examples:
             - [buttons.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/buttons.py)
-                
+
                 ![](https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg)
-            
+
             - [timer_callback2.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/timer_callback2.py)
 
                 ![](https://vedo.embl.es/images/advanced/timer_callback1.jpg)
@@ -1369,7 +1369,7 @@ class Slider2D(SliderWidget):
         Examples:
             - [sliders1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders1.py)
             - [sliders2.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/sliders2.py)
-            
+
             ![](https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg)
         """
         slider_length = options.pop("slider_length",  0.015)

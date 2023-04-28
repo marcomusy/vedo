@@ -196,7 +196,7 @@ class Glyph(Mesh):
 
             ![](https://vedo.embl.es/images/basic/glyphs.png)
         """
-        if len(opts):  # Deprecations
+        if len(opts) > 0:  # Deprecations
             printc(":noentry: Warning! In Glyph() unrecognized keywords:", opts, c="y")
             orientation_array = opts.pop("orientationArray", orientation_array)
             scale_by_scalar = opts.pop("scaleByScalar", scale_by_scalar)
@@ -1298,8 +1298,7 @@ class Bezier(Line):
 
 class NormalLines(Mesh):
     """
-    Build an `Glyph` to show the normals 
-    at cell centers or at mesh vertices.
+    Build an `Glyph` to show the normals at cell centers or at mesh vertices.
 
     Arguments:
         ratio : (int)

@@ -103,7 +103,7 @@ class Mesh(Points):
             self._data = tact.polydata()
 
         elif "meshio" in inputtype:
-            if len(inputobj.cells):
+            if len(inputobj.cells) > 0:
                 mcells = []
                 for cellblock in inputobj.cells:
                     if cellblock.type in ("triangle", "quad"):
@@ -113,7 +113,7 @@ class Mesh(Points):
                 self._data = buildPolyData(inputobj.points, None)
             # add arrays:
             try:
-                if len(inputobj.point_data):
+                if len(inputobj.point_data) > 0:
                     for k in inputobj.point_data.keys():
                         vdata = numpy2vtk(inputobj.point_data[k])
                         vdata.SetName(str(k))
@@ -238,7 +238,7 @@ class Mesh(Points):
     def _repr_html_(self):
         """
         HTML representation of the Mesh object for Jupyter Notebooks.
-        
+
         Returns:
             HTML text with the image and some properties.
         """
@@ -287,7 +287,7 @@ class Mesh(Points):
                 name = self._data.GetCellData().GetScalars().GetName()
                 cdata = "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
 
-        all = [
+        allt = [
             "<table>",
             "<tr>",
             "<td>",
@@ -311,7 +311,7 @@ class Mesh(Points):
             "</table>",
             "</table>",
         ]
-        return "\n".join(all)
+        return "\n".join(allt)
 
     def faces(self):
         """
@@ -819,7 +819,7 @@ class Mesh(Points):
     def non_manifold_faces(self, remove=True, tol="auto"):
         """
         Detect and (try to) remove non-manifold faces of a triangular mesh.
-        
+
         Set `remove` to `False` to mark cells without removing them.
         Set `tol=0` for zero-tolerance, the result will be manifold but with holes.
         Set `tol>0` to cut off non-manifold faces, and try to recover the good ones.
@@ -864,7 +864,7 @@ class Mesh(Points):
             deltas_i.append(i)
 
         recover = []
-        if len(deltas):
+        if len(deltas) > 0:
             mean_delta = np.mean(deltas)
             err_delta = np.std(deltas)
             txt = ""
@@ -1084,7 +1084,7 @@ class Mesh(Points):
         out = self._update(polyapp.GetOutput()).clean()
 
         out.pipeline = OperationNode(
-            "capped", parents=[self], comment=f"#pts {out._data.GetNumberOfPoints()}"
+            "capped", parents=[self], comment=f"#pts {out.inputdata().GetNumberOfPoints()}"
         )
         return out
 
@@ -1148,7 +1148,7 @@ class Mesh(Points):
 
         out = self._update(sf.GetOutput())
         out.pipeline = OperationNode(
-            "join", parents=[self], comment=f"#pts {out._data.GetNumberOfPoints()}"
+            "join", parents=[self], comment=f"#pts {out.inputdata().GetNumberOfPoints()}"
         )
         return out
 
@@ -1159,7 +1159,7 @@ class Mesh(Points):
 
         Returns:
             list of `shapes.Lines`
-        
+
         Example:
             ```python
             from vedo import *
@@ -1223,7 +1223,7 @@ class Mesh(Points):
 
         return vlines
 
-    def slice(self, origin=[0, 0, 0], normal=[1, 0, 0]):
+    def slice(self, origin=(0, 0, 0), normal=(1, 0, 0)):
         """
         Slice a mesh with a plane and fill the contour.
 
@@ -1285,7 +1285,7 @@ class Mesh(Points):
         out.PickableOn()
 
         out.pipeline = OperationNode(
-            "triangulate", parents=[self], comment=f"#cells {out._data.GetNumberOfCells()}"
+            "triangulate", parents=[self], comment=f"#cells {out.inputdata().GetNumberOfCells()}"
         )
         return out
 
@@ -1491,7 +1491,7 @@ class Mesh(Points):
         shad = self.clone()
         shad.name = "Shadow"
         pts = shad.points()
-        if "x" == plane:
+        if plane == 'x':
             # shad = shad.project_on_plane('x')
             # instead do it manually so in case of alpha<1 we dont see glitches due to coplanar points
             # we leave a small tolerance of 0.1% in thickness
@@ -1499,12 +1499,12 @@ class Mesh(Points):
             pts[:, 0] = (pts[:, 0] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[0]
             shad.points(pts)
             shad.x(point)
-        elif "y" == plane:
+        elif plane == 'y':
             x0, x1 = self.ybounds()
             pts[:, 1] = (pts[:, 1] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[1]
             shad.points(pts)
             shad.y(point)
-        elif "z" == plane:
+        elif plane == "z":
             x0, x1 = self.zbounds()
             pts[:, 2] = (pts[:, 2] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[2]
             shad.points(pts)
@@ -1693,7 +1693,7 @@ class Mesh(Points):
         out = self._update(smf.GetOutput())
 
         out.pipeline = OperationNode(
-            "smooth", parents=[self], comment=f"#pts {out._data.GetNumberOfPoints()}"
+            "smooth", parents=[self], comment=f"#pts {out.inputdata().GetNumberOfPoints()}"
         )
         return out
 
@@ -1725,7 +1725,7 @@ class Mesh(Points):
         out = self._update(fh.GetOutput())
 
         out.pipeline = OperationNode(
-            "fill_holes", parents=[self], comment=f"#pts {out._data.GetNumberOfPoints()}"
+            "fill_holes", parents=[self], comment=f"#pts {out.inputdata().GetNumberOfPoints()}"
         )
         return out
 
@@ -1792,7 +1792,8 @@ class Mesh(Points):
         pcl.name = "InsidePoints"
 
         pcl.pipeline = OperationNode(
-            "inside_points", parents=[self, ptsa], comment=f"#pts {pcl._data.GetNumberOfPoints()}"
+            "inside_points", parents=[self, ptsa], 
+            comment=f"#pts {pcl.inputdata().GetNumberOfPoints()}"
         )
         return pcl
 
@@ -1824,7 +1825,7 @@ class Mesh(Points):
             return_cell_ids : (bool)
                 return a numpy array of cell indices
             cell_edge : (bool)
-                set to `True` if a cell need to share an edge with 
+                set to `True` if a cell need to share an edge with
                 the boundary line, or `False` if a single vertex is enough
 
         Examples:
@@ -1885,7 +1886,7 @@ class Mesh(Points):
                 "boundaries",
                 parents=[self],
                 shape="octagon",
-                comment=f"#pts {msh._data.GetNumberOfPoints()}",
+                comment=f"#pts {msh.inputdata().GetNumberOfPoints()}",
             )
             return msh
 
@@ -1897,7 +1898,7 @@ class Mesh(Points):
             loopline : vedo.shapes.Line
                 a Line object to be imprinted onto the mesh.
             tol : (float), optional
-                projection tolerance which controls how close the imprint 
+                projection tolerance which controls how close the imprint
                 surface must be to the target.
 
         Example:
@@ -1929,7 +1930,7 @@ class Mesh(Points):
         out = self._update(imp.GetOutput())
 
         out.pipeline = OperationNode(
-            "imprint", parents=[self], comment=f"#pts {out._data.GetNumberOfPoints()}"
+            "imprint", parents=[self], comment=f"#pts {out.inputdata().GetNumberOfPoints()}"
         )
         return out
 
@@ -2251,7 +2252,8 @@ class Mesh(Points):
         m.compute_normals(cells=False).flat().lighting("default")
 
         m.pipeline = OperationNode(
-            "extrude", parents=[self], comment=f"#pts {m._data.GetNumberOfPoints()}"
+            "extrude", parents=[self],
+            comment=f"#pts {m.inputdata().GetNumberOfPoints()}"
         )
         return m
 
@@ -2330,7 +2332,7 @@ class Mesh(Points):
                 l[0].pipeline = OperationNode(
                     f"split mesh {i}",
                     parents=[self],
-                    comment=f"#pts {l[0]._data.GetNumberOfPoints()}",
+                    comment=f"#pts {l[0].inputdata().GetNumberOfPoints()}",
                 )
         return blist
 
@@ -2365,7 +2367,8 @@ class Mesh(Points):
         m.mapper().SetScalarVisibility(vis)
 
         m.pipeline = OperationNode(
-            "extract_largest_region", parents=[self], comment=f"#pts {m._data.GetNumberOfPoints()}"
+            "extract_largest_region", parents=[self], 
+            comment=f"#pts {m.inputdata().GetNumberOfPoints()}"
         )
         return m
 
@@ -2413,7 +2416,7 @@ class Mesh(Points):
             "boolean " + operation,
             parents=[self, mesh2],
             shape="cylinder",
-            comment=f"#pts {msh._data.GetNumberOfPoints()}",
+            comment=f"#pts {msh.inputdata().GetNumberOfPoints()}",
         )
         return msh
 
@@ -2501,7 +2504,7 @@ class Mesh(Points):
 
         return pts
 
-    def intersect_with_plane(self, origin=[0, 0, 0], normal=[1, 0, 0]):
+    def intersect_with_plane(self, origin=(0, 0, 0), normal=(1, 0, 0)):
         """
         Intersect this Mesh with a plane to return a set of lines.
 
@@ -2531,62 +2534,46 @@ class Mesh(Points):
         msh.name = "PlaneIntersection"
 
         msh.pipeline = OperationNode(
-            "intersect_with_plan", parents=[self], comment=f"#pts {msh._data.GetNumberOfPoints()}"
+            "intersect_with_plan", parents=[self],
+            comment=f"#pts {msh.inputdata().GetNumberOfPoints()}"
         )
         return msh
 
-    def intersect_with_multiplanes(self, origin=(0, 0, 0), normal=(1, 0, 0), dmin=-1, dmax=1, n=10):
-        """
-        Generate a set of lines from cutting a mesh in n intervals
-        between a minimum and maximum distance from a plane of given origin and normal.
+    # def intersect_with_multiplanes(self, origins, normals): ## WRONG
+    #     """
+    #     Generate a set of lines from cutting a mesh in n intervals
+    #     between a minimum and maximum distance from a plane of given origin and normal.
 
-        Arguments:
-            origin : (list)
-                the point of the cutting plane
-            normal : (list)
-                normal vector to the cutting plane
-            dmin : (float)
-                negative distance below the plane
-            dmax : (float)
-                positive distance above the plane
-            n : (int)
-                number of cuts
-        """
-        plane = vtk.vtkPlane()
-        poly = self.polydata()
-        plane.SetOrigin(poly.GetCenter())
-        plane.SetNormal(normal)
+    #     Arguments:
+    #         origin : (list)
+    #             the point of the cutting plane
+    #         normal : (list)
+    #             normal vector to the cutting plane
+    #         n : (int)
+    #             number of cuts
+    #     """
+    #     poly = self.polydata()
 
-        bounds = np.array(self.bounds())
-        min_bound = bounds[[0, 2, 4]]
-        max_bound = bounds[[1, 3, 5]]
+    #     planes = vtk.vtkPlanes()
+    #     planes.SetOrigin(numpy2vtk(origins))
+    #     planes.SetNormals(numpy2vtk(normals))
 
-        center = np.array(poly.GetCenter())
-        distance_min = np.linalg.norm(min_bound - center)
-        distance_max = np.linalg.norm(max_bound - center)
+    #     cutter = vtk.vtkCutter()
+    #     cutter.SetCutFunction(planes)
+    #     cutter.SetInputData(poly)
+    #     cutter.SetValue(0, 0.0)
+    #     cutter.Update()
 
-        cutter = vtk.vtkCutter()
-        cutter.SetCutFunction(plane)
-        cutter.SetInputData(poly)
-        cutter.GenerateValues(n, -distance_min, distance_max)
-        cutter.Update()
+    #     msh = Mesh(cutter.GetOutput())
+    #     msh.property.LightingOff()
+    #     msh.property.SetColor(get_color("k2"))
 
-        stripper = vtk.vtkStripper()
-        stripper.SetJoinContiguousSegments(True)
-        stripper.SetInputData(cutter.GetOutput())
-        stripper.Update()
-
-        msh = Mesh(stripper.GetOutput())
-        msh.property.LightingOff()
-        msh.property.SetColor(get_color("k2"))
-        msh.lw(2)
-
-        msh.pipeline = OperationNode(
-            "intersect_with_multiplanes",
-            parents=[self],
-            comment=f"#pts {msh._data.GetNumberOfPoints()}",
-        )
-        return msh
+    #     msh.pipeline = OperationNode(
+    #         "intersect_with_multiplanes",
+    #         parents=[self],
+    #         comment=f"#pts {msh.inputdata().GetNumberOfPoints()}",
+    #     )
+    #     return msh
 
     def collide_with(self, mesh2, tol=0, return_bool=False):
         """
@@ -2625,7 +2612,8 @@ class Mesh(Points):
         msh.name = "SurfaceCollision"
 
         msh.pipeline = OperationNode(
-            "collide_with", parents=[self, mesh2], comment=f"#pts {msh._data.GetNumberOfPoints()}"
+            "collide_with", parents=[self, mesh2],
+            comment=f"#pts {msh.inputdata().GetNumberOfPoints()}"
         )
         return msh
 
@@ -2865,7 +2853,7 @@ class Mesh(Points):
 
         Examples:
             - [tetralize_surface.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/tetralize_surface.py)
-        
+
                 ![](https://vedo.embl.es/images/volumetric/tetralize_surface.jpg)
         """
         surf = self.clone().clean().compute_normals()
