@@ -259,6 +259,7 @@ class LegendBox(shapes.TextBase, vtk.vtkLegendBoxActor):
 
         self.name = "LegendBox"
         self.entries = entries[:nmax]
+        self.property = self.GetEntryTextProperty()
 
         n = 0
         texts = []
@@ -284,7 +285,6 @@ class LegendBox(shapes.TextBase, vtk.vtkLegendBoxActor):
         self.PickableOff()
         self.SetPadding(padding)
 
-        self.property = self.GetEntryTextProperty()
         self.property.ShadowOff()
         self.property.BoldOff()
 

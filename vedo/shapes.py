@@ -4476,7 +4476,8 @@ class TextBase:
             fpath = utils.get_font_path(font)
             self.property.SetFontFamily(vtk.VTK_FONT_FILE)
             self.property.SetFontFile(fpath)
-        self.fontname = font  # io.toNumpy() uses it
+        self.fontname = font  # io.tonumpy() uses it
+
         return self
 
 
