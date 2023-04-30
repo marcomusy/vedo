@@ -28,8 +28,8 @@ fig += Arrow([5,-1], [8,-1], s=0.5, c='green3')
 
 # Add any number of polygonal Meshes.
 # Use insert() to preserve the object aspect ratio inside the Figure coord system:
-mesh = Mesh(dataurl+'cessna.vtk').c('blue5').scale(0.5).pos(4, 0.5, 0.5)
-circle = Circle([5,0.5,-0.1], c='orange5')
+mesh = Mesh(dataurl+'cessna.vtk').c('blue5').scale(0.25).pos(4, 0.5, 0.5)
+circle = Circle([5,0.5,-0.1], r=0.5, c='orange5')
 fig.insert(mesh, circle)
 
 show(fig, __doc__, size=(800,700), zoom='tight').close()

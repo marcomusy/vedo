@@ -362,7 +362,7 @@ class Figure(Assembly):
 
         return self
 
-    def insert(self, *objs, rescale=True, as3d=True, adjusted=True, cut=True):
+    def insert(self, *objs, rescale=True, as3d=True, adjusted=False, cut=True):
         """
         Insert objects into a Figure.
 
@@ -1199,6 +1199,8 @@ class Histogram2D(Figure):
             # assume [(x1,y1), (x2,y2) ...] format
             yvalues = xvalues[:, 1]
             xvalues = xvalues[:, 0]
+        else:
+            yvalues = np.asarray(yvalues)
 
         padding = [0, 0, 0, 0]
 

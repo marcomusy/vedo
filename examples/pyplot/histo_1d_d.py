@@ -30,7 +30,7 @@ fig2 = histogram(
     label='finer binning',
 )
 # let's add an asterix marker where the mean is
-fig2 += Marker('a', [fig2.mean,0.2,0.1], s=0.1).c('orange5')
+fig2 += Marker('a', [fig2.mean,0.2,0.1], s=0.02).c('orange5')
 
 # shift fig2 in vertical by 25, and in z by 0.1 (to make it show on top)
 fig2.shift(0, 25, 0.1)

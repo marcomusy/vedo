@@ -2035,8 +2035,8 @@ class Plotter:
 
         def _legfunc(evt):
             if not evt.actor or not self.renderer or at != evt.at:
-                if hoverlegend.mapper().GetInput():  # clear and return
-                    hoverlegend.mapper().SetInput("")
+                if hoverlegend._mapper.GetInput():  # clear and return
+                    hoverlegend._mapper.SetInput("")
                     self.interactor.Render()
                 return
 
@@ -2112,8 +2112,8 @@ class Plotter:
             # change box color if needed in 'auto' mode
             if evt.isPoints and "auto" in str(bg):
                 actcol = evt.actor.GetProperty().GetColor()
-                if hoverlegend.mapper().GetTextProperty().GetBackgroundColor() != actcol:
-                    hoverlegend.mapper().GetTextProperty().SetBackgroundColor(actcol)
+                if hoverlegend._mapper.GetTextProperty().GetBackgroundColor() != actcol:
+                    hoverlegend._mapper.GetTextProperty().SetBackgroundColor(actcol)
 
             # adapt to changes in bg color
             bgcol = self.renderers[at].GetBackground()
@@ -2125,8 +2125,8 @@ class Plotter:
                 if len(set(_bgcol).intersection(bgcol)) < 3:
                     hoverlegend.color(_bgcol)
 
-            if hoverlegend.mapper().GetInput() != t:
-                hoverlegend.mapper().SetInput(t)
+            if hoverlegend._mapper.GetInput() != t:
+                hoverlegend._mapper.SetInput(t)
                 self.interactor.Render()
 
         self.add(hoverlegend, at=at)
@@ -3050,8 +3050,6 @@ class Plotter:
                 self.camera.SetViewUp(viewup)
                 cpos = np.cross([0, 1, 0], viewup)
                 self.camera.SetPosition(cm - 2 * sz * cpos)
-            elif viewup == "2d":
-                mode = 12
 
         self.renderer.ResetCameraClippingRange()
 
@@ -3256,12 +3254,12 @@ class Plotter:
                 self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTerrain())
             elif mode in (9, "Unicam"):
                 self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleUnicam())
-            elif mode in (10, "Image", "image"):
+            elif mode in (10, "Image", "image", "2d"):
                 astyle = vtk.vtkInteractorStyleImage()
                 astyle.SetInteractionModeToImage3D()
                 self.interactor.SetInteractorStyle(astyle)
             else:
-                vedo.logger.warning("Unknown interaction mode:", mode)
+                vedo.logger.warning(f"Unknown interaction mode: {mode}")
 
         elif isinstance(mode, vtk.vtkInteractorStyleUser):
             # set a custom interactor style
