@@ -141,7 +141,7 @@ class MousePan(vtk.vtkInteractorStyleUser):
 
 ###################################################################################
 @dataclass
-class BlenderStyleDragInfo:
+class _BlenderStyleDragInfo:
     """Data structure containing the data required to execute dragging a node"""
 
     # Scene related
@@ -174,18 +174,23 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
     Left button: Sections
     ----------------------
     Left button: select
+
     Left button drag: rubber band select or line select, depends on the dragged distance
 
     Middle button: Navigation
     --------------------------
-
     Middle button: rotate
+
     Middle button + shift : pan
+
     Middle button + ctrl  : zoom
 
     Middle button + alt : center view on picked point
+
     OR
+
     Middle button + alt   : zoom rubber band
+
     Mouse wheel : zoom
 
     Right button : context
@@ -194,22 +199,32 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
 
 
     Keys
-    ------
+    ----
 
     2 or 3 : toggle perspective view
+
     a      : zoom all
+
     x,y,z  : view direction (toggles positive and negative)
+
     left/right arrows: rotate 45 deg clockwise/ccw about z-axis, snaps to nearest 45 deg
     b      : box zoom
+
     m      : mouse middle lock (toggles)
+
     space  : same as middle mouse button
+
     g      : grab (move actors)
+
     enter  : accept drag
+
     esc    : cancel drag, call callbackEscape
 
 
-    LAPTOP MODE:
-    Use space or 'm' as replacement for middle button (m is sticky, space is not)
+    LAPTOP MODE
+    -----------
+    Use space or `m` as replacement for middle button
+    (`m` is sticky, space is not)
 
     callbacks / overriding keys:
 
@@ -223,37 +238,37 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
     To support custom groups of actors to be moved as a whole the following system
     is implemented:
 
-    When 'g' is pressed (grab) then a `BlenderStyleDragInfo` dataclass object is assigned
+    When 'g' is pressed (grab) then a `_BlenderStyleDragInfo` dataclass object is assigned
     to style to `style.draginfo`.
 
-    `BlenderStyleDragInfo` includes a list of all the actors that are being dragged.
+    `_BlenderStyleDragInfo` includes a list of all the actors that are being dragged.
     By default this is the selection, but this may be altered.
     Drag is accepted using enter, click, or g. Drag is cancelled by esc
 
-    Events:
-
+    Events
+    ------
     `callbackStartDrag` is called when initializing the drag.
     This is when to assign actors and other data to draginfo.
 
     `callbackEndDrag` is called when the drag is accepted.
 
     Responding to other events
-    ---------------------------
-
+    --------------------------
     `callbackCameraDirectionChanged` : executed when camera has rotated but before re-rendering
 
-    This class is based on R. de Bruin's
-    [DAVE](https://github.com/RubendeBruin/DAVE/blob/master/src/DAVE/visual_helpers/vtkBlenderLikeInteractionStyle.py)
-    implementation as discussed in this
-    [issue](https://github.com/marcomusy/vedo/discussions/788).
+    .. note::
+        This class is based on R. de Bruin's
+        [DAVE](https://github.com/RubendeBruin/DAVE/blob/master/src/DAVE/visual_helpers/vtkBlenderLikeInteractionStyle.py)
+        implementation as discussed in this
+        [issue](https://github.com/marcomusy/vedo/discussions/788).
 
     Example:
         ```python
         from vedo import *
         settings.enable_default_keyboard_callbacks = False
         settings.enable_default_mouse_callbacks = False
-        mode = interactor_modes.BlenderStyle()
         mesh = Mesh(dataurl+"cow.vtk")
+        mode = interactor_modes.BlenderStyle()
         plt = Plotter().user_mode(mode)
         plt.show(mesh, axes=1)
         ```
@@ -280,8 +295,8 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         self.callbackCameraDirectionChanged = None
 
         # active drag
-        # assigned to a BlenderStyleDragInfo object when dragging is active
-        self.draginfo: BlenderStyleDragInfo or None = None
+        # assigned to a _BlenderStyleDragInfo object when dragging is active
+        self.draginfo: _BlenderStyleDragInfo or None = None
 
         # picking
         self.picked_props = []  # will be filled by latest pick
@@ -815,7 +830,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         # print('Starting drag')
 
         # create and fill drag-info
-        draginfo = BlenderStyleDragInfo()
+        draginfo = _BlenderStyleDragInfo()
 
         #
         # draginfo.dragged_node = node

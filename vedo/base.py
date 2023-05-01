@@ -1913,7 +1913,7 @@ class BaseActor(Base3DProp):
     ###################################################################################
     def write(self, filename, binary=True):
         """Write object to file."""
-        out = vedo.io.write(self, filename, binary)
+        out = vedo.file_io.write(self, filename, binary)
         out.pipeline = utils.OperationNode(
             "write", parents=[self], comment=filename[:15], shape="folder", c="#8a817c"
         )

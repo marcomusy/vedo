@@ -10,7 +10,7 @@ from vedo import settings
 from vedo import colors
 from vedo import utils
 from vedo.base import BaseGrid
-from vedo.io import download, loadUnStructuredGrid
+from vedo.file_io import download, loadUnStructuredGrid
 
 
 __docformat__ = "google"
@@ -170,7 +170,7 @@ class UGrid(BaseGrid, vtk.vtkActor):
     def _repr_html_(self):
         """
         HTML representation of the UGrid object for Jupyter Notebooks.
-        
+
         Returns:
             HTML text with the image and some properties.
         """
@@ -199,13 +199,13 @@ class UGrid(BaseGrid, vtk.vtkActor):
         help_text = ""
         if self.name:
             help_text += f"<b> {self.name}: &nbsp&nbsp</b>"
-        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>" 
+        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
         if self.filename:
             dots = ""
             if len(self.filename) > 30:
                 dots = "..."
             help_text += f"<br/><code><i>({dots}{self.filename[-30:]})</i></code>"
-        
+
         pdata = ""
         if self._data.GetPointData().GetScalars():
             if self._data.GetPointData().GetScalars().GetName():
@@ -223,14 +223,14 @@ class UGrid(BaseGrid, vtk.vtkActor):
 
         all = [
             "<table>",
-            "<tr>", 
+            "<tr>",
             "<td>", image, "</td>",
             "<td style='text-align: center; vertical-align: center;'><br/>", help_text,
             "<table>",
             "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>" + str(bounds) + "</td></tr>",
             "<tr><td><b> center of mass </b></td><td>" + utils.precision(cm,3) + "</td></tr>",
             # "<tr><td><b> average size </b></td><td>" + str(average_size) + "</td></tr>",
-            "<tr><td><b> nr. points&nbsp/&nbspcells </b></td><td>" 
+            "<tr><td><b> nr. points&nbsp/&nbspcells </b></td><td>"
             + str(self.npoints) + "&nbsp/&nbsp" + str(self.ncells) + "</td></tr>",
             pdata,
             cdata,

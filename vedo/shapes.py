@@ -2820,7 +2820,7 @@ class Earth(Mesh):
         Mesh.__init__(self, tss, c="w")
         atext = vtk.vtkTexture()
         pnm_reader = vtk.vtkJPEGReader()
-        fn = vedo.io.download(vedo.dataurl + f"textures/earth{style}.jpg", verbose=False)
+        fn = vedo.file_io.download(vedo.dataurl + f"textures/earth{style}.jpg", verbose=False)
         pnm_reader.SetFileName(fn)
         atext.SetInputConnection(pnm_reader.GetOutputPort())
         atext.InterpolateOn()
@@ -3990,7 +3990,7 @@ def _load_font(font):
 
     elif font.startswith("https"):  # user passed URL link, make it a path
         try:
-            fontfile = vedo.io.download(font, verbose=False, force=False)
+            fontfile = vedo.file_io.download(font, verbose=False, force=False)
             font = os.path.basename(font).split(".")[0]
         except:
             vedo.logger.warning(f"font {font} not found")
@@ -4014,7 +4014,7 @@ def _load_font(font):
         if not settings.font_parameters[font]["islocal"]:
             font = "https://vedo.embl.es/fonts/" + font + ".npz"
             try:
-                fontfile = vedo.io.download(font, verbose=False, force=False)
+                fontfile = vedo.file_io.download(font, verbose=False, force=False)
                 font = os.path.basename(font).split(".")[0]
             except:
                 vedo.logger.warning(f"font {font} not found")
@@ -4462,7 +4462,7 @@ class TextBase:
             font = self.fontname
             fpath = os.path.join(vedo.fonts_path, font + ".ttf")
         elif font.startswith("https"):  # user passed URL link, make it a path
-            fpath = vedo.io.download(font, verbose=False, force=False)
+            fpath = vedo.file_io.download(font, verbose=False, force=False)
         elif font.endswith(".ttf"):  # user passing a local path to font file
             fpath = font
         else:  # user passing name of preset font

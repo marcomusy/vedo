@@ -1,5 +1,7 @@
 ## Main changes
 
+- rename module `io.py` to `file_io.py` to avoid override stlib io.
+
 ### Breaking changes
 - method `plotter.add()` no more accepts keyword `render=True/False`. Please use `plotter.add().render()` explicitly. Same thing for `plotter.remove()`.
 

@@ -435,7 +435,7 @@ class Plotter:
         # mostly internal stuff:
         self.hover_legends = []
         self.backgrcol = bg
-        self.pos = pos  # used by vedo.io
+        self.pos = pos  # used by vedo.file_io
         self.justremoved = None
         self.axes_instances = []
         self.clock = 0
@@ -2079,7 +2079,7 @@ class Plotter:
                     t += f"{os.path.basename(evt.actor.filename[-maxlength:])}".ljust(maxlength)
                     t += "\n"
                     if not evt.actor.file_size:
-                        evt.actor.file_size, evt.actor.created = vedo.io.fileInfo(evt.actor.filename)
+                        evt.actor.file_size, evt.actor.created = vedo.file_io.fileInfo(evt.actor.filename)
                     if evt.actor.file_size:
                         t += "             : "
                         sz, created = evt.actor.file_size, evt.actor.created
@@ -3336,7 +3336,7 @@ class Plotter:
             asarray : (bool)
                 return a numpy array of the image instead of writing a file
         """
-        return vedo.io.screenshot(filename, scale, asarray)
+        return vedo.file_io.screenshot(filename, scale, asarray)
 
     def topicture(self, scale=None):
         """
@@ -3372,7 +3372,7 @@ class Plotter:
             - [export_x3d.py](https://github.com/marcomusy/vedo/tree/master/examples/other/export_x3d.py)
             - [export_numpy.py](https://github.com/marcomusy/vedo/tree/master/examples/other/export_numpy.py)
         """
-        vedo.io.export_window(filename, binary=binary)
+        vedo.file_io.export_window(filename, binary=binary)
         return self
 
     def color_picker(self, xy, verbose=False):
@@ -3742,7 +3742,7 @@ class Plotter:
             return
 
         elif key == "S":
-            vedo.io.screenshot("screenshot.png")
+            vedo.file_io.screenshot("screenshot.png")
             vedo.printc(r":camera: Saved rendering window to 'screenshot.png'", c="b")
             return
 
@@ -4064,11 +4064,11 @@ class Plotter:
 
         elif key == "E":
             vedo.printc(r":camera: Exporting 3D window to file", c="blue", end="")
-            vedo.io.export_window("scene.npz")
+            vedo.file_io.export_window("scene.npz")
             vedo.printc(". Try:\n> vedo scene.npz", c="blue")
 
         elif key == "F":
-            vedo.io.export_window("scene.x3d")
+            vedo.file_io.export_window("scene.x3d")
             vedo.printc(":idea: Try: firefox scene.html", c="blue")
 
         elif key == "i":  # print info

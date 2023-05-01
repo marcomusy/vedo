@@ -57,7 +57,7 @@ def start_2d():
 
     if hasattr(plt, "window") and plt.window:
         if plt.renderer == plt.renderers[-1]:
-            nn = vedo.io.screenshot(asarray=True, scale=settings.screeshot_scale)
+            nn = vedo.file_io.screenshot(asarray=True, scale=settings.screeshot_scale)
             pil_img = PIL.Image.fromarray(nn)
             notebook_plotter = IPython.display.display(pil_img)
             vedo.notebook_plotter = notebook_plotter

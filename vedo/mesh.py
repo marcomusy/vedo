@@ -155,7 +155,7 @@ class Mesh(Points):
                 self._data = gf.GetOutput()
 
         elif isinstance(inputobj, str):
-            dataset = vedo.io.load(inputobj)
+            dataset = vedo.file_io.load(inputobj)
             self.filename = inputobj
             if "TetMesh" in str(type(dataset)):
                 self._data = dataset.tomesh().polydata(False)
@@ -469,7 +469,7 @@ class Mesh(Points):
 
             if "https://" in tname:
                 try:
-                    tname = vedo.io.download(tname, verbose=False)
+                    tname = vedo.file_io.download(tname, verbose=False)
                 except:
                     vedo.logger.error(f"texture {tname} could not be downloaded")
                     return self
@@ -1792,7 +1792,7 @@ class Mesh(Points):
         pcl.name = "InsidePoints"
 
         pcl.pipeline = OperationNode(
-            "inside_points", parents=[self, ptsa], 
+            "inside_points", parents=[self, ptsa],
             comment=f"#pts {pcl.inputdata().GetNumberOfPoints()}"
         )
         return pcl
@@ -2367,7 +2367,7 @@ class Mesh(Points):
         m.mapper().SetScalarVisibility(vis)
 
         m.pipeline = OperationNode(
-            "extract_largest_region", parents=[self], 
+            "extract_largest_region", parents=[self],
             comment=f"#pts {m.inputdata().GetNumberOfPoints()}"
         )
         return m

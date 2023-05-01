@@ -28,7 +28,7 @@ from vedo.colors import *
 from vedo.utils import *
 from vedo.base import *
 from vedo.shapes import *
-from vedo.io import *
+from vedo.file_io import *
 from vedo.ugrid import *
 from vedo.assembly import *
 from vedo.pointcloud import *

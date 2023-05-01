@@ -1841,7 +1841,7 @@ def ask(*question, **kwarg):
     Example:
         ```python
         import vedo
-        res = vedo.io.ask("Continue?", options=['Y','n'], default='Y', c='g')
+        res = vedo.file_io.ask("Continue?", options=['Y','n'], default='Y', c='g')
         print(res)
         ```
     """

@@ -11,7 +11,7 @@ import vedo
 from vedo import utils
 from vedo.base import BaseGrid
 from vedo.mesh import Mesh
-from vedo.io import download, loadUnStructuredGrid
+from vedo.file_io import download, loadUnStructuredGrid
 
 
 __docformat__ = "google"

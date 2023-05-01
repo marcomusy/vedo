@@ -926,7 +926,7 @@ class Points(BaseActor, vtk.vtkActor):
             ##########
 
         elif isinstance(inputobj, str):
-            verts = vedo.io.load(inputobj)
+            verts = vedo.file_io.load(inputobj)
             self.filename = inputobj
             self._data = verts.polydata()
 

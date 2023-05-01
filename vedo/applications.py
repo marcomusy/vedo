@@ -1091,7 +1091,7 @@ class SplinePlotter(Plotter):
         self.line = None
 
         if isinstance(obj, str):
-            self.object = vedo.io.load(obj)
+            self.object = vedo.file_io.load(obj)
         else:
             self.object = obj
 

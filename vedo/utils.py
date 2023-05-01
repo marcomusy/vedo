@@ -706,13 +706,13 @@ def get_font_path(font):
             fl = os.path.join(vedo.fonts_path, f"{font}.ttf")
         else:
             try:
-                fl = vedo.io.download(f"https://vedo.embl.es/fonts/{font}.ttf", verbose=False)
+                fl = vedo.file_io.download(f"https://vedo.embl.es/fonts/{font}.ttf", verbose=False)
             except:
                 vedo.logger.warning(f"Could not download https://vedo.embl.es/fonts/{font}.ttf")
                 fl = os.path.join(vedo.fonts_path, "Normografo.ttf")
     else:
         if font.startswith("https://"):
-            fl = vedo.io.download(font, verbose=False)
+            fl = vedo.file_io.download(font, verbose=False)
         elif os.path.isfile(font):
             fl = font  # assume user is passing a valid file
         else:

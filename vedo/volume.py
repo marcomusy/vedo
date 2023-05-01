@@ -917,7 +917,7 @@ class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
         if isinstance(inputobj, str):
 
             if "https://" in inputobj:
-                inputobj = vedo.io.download(inputobj, verbose=False)  # fpath
+                inputobj = vedo.file_io.download(inputobj, verbose=False)  # fpath
             elif os.path.isfile(inputobj):
                 pass
             else:
@@ -1004,8 +1004,8 @@ class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
 
         elif isinstance(inputobj, str):
             if "https://" in inputobj:
-                inputobj = vedo.io.download(inputobj, verbose=False)
-            img = vedo.io.loadImageData(inputobj)
+                inputobj = vedo.file_io.download(inputobj, verbose=False)
+            img = vedo.file_io.loadImageData(inputobj)
 
         else:
             vedo.logger.error(f"cannot understand input type {inputtype}")
@@ -1481,7 +1481,7 @@ class VolumeSlice(BaseVolume, Base3DProp, vtk.vtkImageSlice):
         ###################
         if isinstance(inputobj, str):
             if "https://" in inputobj:
-                inputobj = vedo.io.download(inputobj, verbose=False)  # fpath
+                inputobj = vedo.file_io.download(inputobj, verbose=False)  # fpath
             elif os.path.isfile(inputobj):
                 pass
             else:
@@ -1549,8 +1549,8 @@ class VolumeSlice(BaseVolume, Base3DProp, vtk.vtkImageSlice):
 
         elif isinstance(inputobj, str):
             if "https://" in inputobj:
-                inputobj = vedo.io.download(inputobj, verbose=False)
-            img = vedo.io.loadImageData(inputobj)
+                inputobj = vedo.file_io.download(inputobj, verbose=False)
+            img = vedo.file_io.loadImageData(inputobj)
 
         else:
             vedo.logger.error(f"cannot understand input type {inputtype}")

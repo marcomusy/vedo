@@ -28,7 +28,7 @@ def _get_img(obj, flip=False, translate=()):
 
     if isinstance(obj, str):
         if "https://" in obj:
-            obj = vedo.io.download(obj, verbose=False)
+            obj = vedo.file_io.download(obj, verbose=False)
 
         fname = obj.lower()
         if fname.endswith(".png"):
@@ -1460,7 +1460,7 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
 
     def write(self, filename):
         """Write picture to file as png or jpg."""
-        vedo.io.write(self._data, filename)
+        vedo.file_io.write(self._data, filename)
         self.pipeline = utils.OperationNode(
             "write", comment=filename[:15], parents=[self], c="#8a817c", shape="cylinder"
         )

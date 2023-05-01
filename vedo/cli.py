@@ -37,7 +37,7 @@ from vedo.utils import humansort
 from vedo.utils import is_sequence
 from vedo.utils import print_info
 from vedo import __version__
-from vedo import io
+from vedo import file_io
 from vedo import load
 from vedo import settings
 from vedo.colors import get_color, printc
@@ -722,7 +722,7 @@ def draw_scene(args):
     if args.ray_cast_mode:
         # print('DEBUG special case of SLC/TIFF volumes with -g option')
 
-        vol = io.load(args.files[0], force=args.reload)
+        vol = file_io.load(args.files[0], force=args.reload)
 
         if not isinstance(vol, Volume):
             vedo.logger.error(f"expected a Volume but loaded a {type(vol)} object")
@@ -748,7 +748,7 @@ def draw_scene(args):
             args.axes_type = 1
             useSlider3D = True
 
-        vol = io.load(args.files[0], force=args.reload)
+        vol = file_io.load(args.files[0], force=args.reload)
 
         sp = vol.spacing()
         vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
@@ -791,7 +791,7 @@ def draw_scene(args):
     ########################################################################
     elif args.slicer2d:
         # print('DEBUG special case of SLC/TIFF/DICOM volumes with --slicer2d option')
-        vol = io.load(args.files[0], force=args.reload)
+        vol = file_io.load(args.files[0], force=args.reload)
         if not vol:
             return
         vol.cmap("bone_r")
@@ -814,7 +814,7 @@ def draw_scene(args):
         or ".dem" in args.files[0].lower()
     ):
         # print('DEBUG normal mode for single VOXEL file with Isosurface Slider mode')
-        vol = io.load(args.files[0], force=args.reload)
+        vol = file_io.load(args.files[0], force=args.reload)
         sp = vol.spacing()
         vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
         if not args.color:
@@ -838,7 +838,7 @@ def draw_scene(args):
         # loading a full scene
         if ".npy" in args.files[0] or ".npz" in args.files[0] and nfiles == 1:
 
-            objct = io.load(args.files[0], force=args.reload)
+            objct = file_io.load(args.files[0], force=args.reload)
             if isinstance(objct, Plotter):  # loading a full scene
                 objct.show(mode=interactor_mode)
             else:  # loading a set of meshes
