@@ -2079,7 +2079,7 @@ class Plotter:
                     t += f"{os.path.basename(evt.actor.filename[-maxlength:])}".ljust(maxlength)
                     t += "\n"
                     if not evt.actor.file_size:
-                        evt.actor.file_size, evt.actor.created = vedo.file_io.fileInfo(evt.actor.filename)
+                        evt.actor.file_size, evt.actor.created = vedo.file_io.file_info(evt.actor.filename)
                     if evt.actor.file_size:
                         t += "             : "
                         sz, created = evt.actor.file_size, evt.actor.created

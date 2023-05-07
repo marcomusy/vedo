@@ -453,7 +453,7 @@ def _load_file(filename, unpack):
                 actor.GetProperty().SetPointSize(4)
 
     actor.filename = filename
-    actor.file_size, actor.created = fileInfo(filename)
+    actor.file_size, actor.created = file_info(filename)
     return actor
 
 
@@ -489,6 +489,7 @@ def download(url, force=False, verbose=True):
         req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
         if verbose:
             colors.printc("reading", basename, "from", url.split("/")[2][:40], "...", end="")
+
     except ImportError:
         import urllib2
         import contextlib
@@ -524,7 +525,7 @@ def gunzip(filename):
     return tmp_file.name
 
 
-def fileInfo(file_path):
+def file_info(file_path):
     """Return the file size and creation time of input file"""
     sz, created = "", ""
     if os.path.isfile(file_path):

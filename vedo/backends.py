@@ -48,7 +48,7 @@ def get_notebook_backend(actors2show=()):
 def start_2d():
     try:
         import PIL.Image
-        import IPython
+        # import IPython
     except ImportError:
         print("PIL or IPython not available")
         return None
@@ -59,11 +59,11 @@ def start_2d():
         if plt.renderer == plt.renderers[-1]:
             nn = vedo.file_io.screenshot(asarray=True, scale=settings.screeshot_scale)
             pil_img = PIL.Image.fromarray(nn)
-            notebook_plotter = IPython.display.display(pil_img)
-            vedo.notebook_plotter = notebook_plotter
+            # IPython.display.display(pil_img)
+            vedo.notebook_plotter = pil_img
             if settings.backend_autoclose:
                 plt.close()
-            return notebook_plotter
+            return pil_img
 
 
 ####################################################################################
