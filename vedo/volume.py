@@ -767,7 +767,7 @@ class BaseVolume:
                 computed but set to this specified value instead.
 
         Examples:
-            - [euclidian_dist.py](examples/volumetric/euclidian_dist.py)
+            - [euclidian_dist.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/euclidian_dist.py)
         """
         euv = vtk.vtkImageEuclideanDistance()
         euv.SetInputData(self._data)

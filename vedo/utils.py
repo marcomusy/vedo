@@ -255,7 +255,7 @@ class ProgressBar:
         italic=False,
         title="",
         eta=True,
-        delay=0,
+        delay=0.0,
         width=25,
         char="\U00002501",
         char_back="\U00002500",
@@ -397,9 +397,11 @@ class ProgressBar:
 
 
 #####################################
-def progressbar(iterable, c=None, bold=True, italic=False, title="", eta=True, width=25, delay=0):
+def progressbar(iterable, c=None, bold=True, italic=False, title="", eta=True, width=25, delay=0.5):
     """
     Function to print a progress bar with optional text message.
+
+    Use delay to set a minimum time before printing anything.
 
     Example:
         ```python
@@ -1048,13 +1050,6 @@ def closest(point, points, n=1, return_ids=False, use_tree=False):
 
 
 #############################################################################
-def linInterpolate(x, rangeX, rangeY):
-    "Deprecated. Please `lin_interpolate()`"
-    m = "Warning! linInterpolate() is deprecated. Please use lin_interpolate()"
-    print("\x1b[1m\x1b[33;1m " + m + "\x1b[0m")
-    return lin_interpolate(x, rangeX, rangeY)
-
-
 def lin_interpolate(x, rangeX, rangeY):
     """
     Interpolate linearly the variable `x` in `rangeX` onto the new `rangeY`.
@@ -2125,7 +2120,7 @@ def camera_from_neuroglancer(state, zoom=300):
     return camera_from_quaternion(pos_nm, orient, pzoom * zoom, ngl_correct=True)
 
 
-def oriented_camera(center=(0, 0, 0), up_vector=(0, 1, 0), backoff_vector=(0, 0, 1), backoff=1):
+def oriented_camera(center=(0, 0, 0), up_vector=(0, 1, 0), backoff_vector=(0, 0, 1), backoff=1.0):
     """
     Generate a `vtkCamera` pointed at a specific location,
     oriented with a given up direction, set to a backoff.

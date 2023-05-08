@@ -105,9 +105,9 @@ def show(
     resetcam=True,
     zoom=None,
     viewup="",
-    azimuth=0,
-    elevation=0,
-    roll=0,
+    azimuth=0.0,
+    elevation=0.0,
+    roll=0.0,
     camera=None,
     mode=0,
     new=False,
@@ -1114,7 +1114,7 @@ class Plotter:
         """
         Reset the orientation of the camera to the closest orthogonal direction and view-up.
         """
-        vbb, sizes, _, _ = addons.compute_visible_bounds()
+        vbb = addons.compute_visible_bounds()[0]
         x0, x1, y0, y1, z0, z1 = vbb
         mx, my, mz = (x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2
         d = self.camera.GetDistance()
@@ -1476,7 +1476,7 @@ class Plotter:
         s=0.03,
         t=1,
         title="",
-        rotation=0,
+        rotation=0.0,
         c=None,
         show_value=True,
     ):
@@ -1586,12 +1586,6 @@ class Plotter:
         self.renderer.AddActor2D(bu.actor)
         self.buttons.append(bu)
         return bu
-
-
-    @deprecated(reason=vedo.colors.red + "Please use add_spline_tool()" + vedo.colors.reset)
-    def addSplineTool(self, *a, **b):
-        """Deprecated. Use `add_spline_tool()`"""
-        return self.add_spline_tool(*a, **b)
 
     def add_spline_tool(
         self, points, pc="k", ps=8, lc="r4", ac="g5", lw=2, closed=False, interactive=False
@@ -2754,9 +2748,9 @@ class Plotter:
         zoom=False,
         interactive=None,
         viewup="",
-        azimuth=0,
-        elevation=0,
-        roll=0,
+        azimuth=0.0,
+        elevation=0.0,
+        roll=0.0,
         camera=None,
         mode=0,
         rate=None,

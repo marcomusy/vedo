@@ -1449,7 +1449,7 @@ def export_window(fileoutput, binary=False):
     or Numpy file.
 
     Example:
-        - [export_x3d.py](examples/other/export_x3d.py)
+        - [export_x3d.py](https://github.com/marcomusy/vedo/tree/master/examples/other/export_x3d.py)
 
         Check out the HTML generated webpage [here](https://vedo.embl.es/examples/embryo.html).
 
@@ -1897,7 +1897,7 @@ class Video:
                 the backend engine to be used `['imageio', 'ffmpeg', 'cv']`
 
         Examples:
-            - [make_video.py](examples/other/make_video.py)
+            - [make_video.py](https://github.com/marcomusy/vedo/tree/master/examples/other/make_video.py)
 
             ![](https://user-images.githubusercontent.com/32848391/50739007-2bfc2b80-11da-11e9-97e6-620a3541a6fa.jpg)
         """

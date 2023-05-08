@@ -151,7 +151,7 @@ def visible_points(mesh, area=(), tol=None, invert=False):
     return m
 
 
-def delaunay2d(plist, mode="scipy", boundaries=(), tol=None, alpha=0, offset=0, transform=None):
+def delaunay2d(plist, mode="scipy", boundaries=(), tol=None, alpha=0.0, offset=0.0, transform=None):
     """
     Create a mesh from points in the XY plane.
     If `mode='fit'` then the filter computes a best fitting
@@ -235,7 +235,7 @@ def delaunay2d(plist, mode="scipy", boundaries=(), tol=None, alpha=0, offset=0, 
     return msh
 
 
-def voronoi(pts, padding=0, fit=False, method="vtk"):
+def voronoi(pts, padding=0.0, fit=False, method="vtk"):
     """
     Generate the 2D Voronoi convex tiling of the input points (z is ignored).
     The points are assumed to lie in a plane. The output is a Mesh. Each output cell is a convex polygon.
@@ -700,7 +700,7 @@ def pca_ellipsoid(points, pvalue=0.673):
 
 
 ###################################################
-def Point(pos=(0, 0, 0), r=12, c="red", alpha=1):
+def Point(pos=(0, 0, 0), r=12, c="red", alpha=1.0):
     """
     Create a simple point in space.
 
@@ -1091,10 +1091,6 @@ class Points(BaseActor, vtk.vtkActor):
         return self._data
 
 
-    def vertices(self, pts=None, transformed=True):
-        """Alias for `points()`."""
-        return self.points(pts, transformed)
-
     def clone(self, deep=True, transformed=False):
         """
         Clone a `PointCloud` or `Mesh` object to make an exact copy of it.
@@ -1269,7 +1265,7 @@ class Points(BaseActor, vtk.vtkActor):
         # print(act2d.GetHeight(), act2d.GetWidth(), act2d.GetLayerNumber())
         return act2d
 
-    def add_trail(self, offset=(0, 0, 0), n=50, c=None, alpha=1, lw=2):
+    def add_trail(self, offset=(0, 0, 0), n=50, c=None, alpha=1.0, lw=2):
         """
         Add a trailing line to mesh.
         This new mesh is accessible through `mesh.trail`.
@@ -1537,14 +1533,6 @@ class Points(BaseActor, vtk.vtkActor):
         self.SetForceTranslucent(value)
         return self
 
-    def occlusion(self, value=None):
-        """Occlusion strength in range [0,1]."""
-        if value is None:
-            return self.GetProperty().GetOcclusionStrength()
-        self.GetProperty().SetOcclusionStrength(value)
-        return self
-
-
     @deprecated(reason=vedo.colors.red + "Please use point_size()" + vedo.colors.reset)
     def pointSize(self, value):
         "Deprecated. Please use `point_size()`."
@@ -1776,16 +1764,16 @@ class Points(BaseActor, vtk.vtkActor):
         content=None,
         on="points",
         scale=None,
-        xrot=0,
-        yrot=0,
-        zrot=0,
+        xrot=0.0,
+        yrot=0.0,
+        zrot=0.0,
         ratio=1,
         precision=None,
         italic=False,
         font="",
         justify="bottom-left",
         c="black",
-        alpha=1,
+        alpha=1.0,
         cells=None,
     ):
         """
@@ -1969,15 +1957,15 @@ class Points(BaseActor, vtk.vtkActor):
         self,
         content="id",
         on="points",
-        scale=1,
+        scale=1.0,
         precision=4,
         font="Calco",
         justify="bottom-left",
-        angle=0,
+        angle=0.0,
         frame=False,
         c="black",
         bc=None,
-        alpha=1,
+        alpha=1.0,
     ):
         """
         Generate value or ID bi-dimensional labels for mesh cells or points.
@@ -2087,11 +2075,6 @@ class Points(BaseActor, vtk.vtkActor):
         self.info["legend"] = txt
         return self
 
-    @deprecated(reason=vedo.colors.red + "Please use flagpole() instead" + vedo.colors.reset)
-    def vignette(self, *args, **kwargs):
-        """Deprecated. Use `flagpole()`."""
-        return self.flagpole(*args, **kwargs)
-
     def flagpole(
         self,
         txt=None,
@@ -2101,9 +2084,9 @@ class Points(BaseActor, vtk.vtkActor):
         font="",
         rounded=True,
         c=None,
-        alpha=1,
+        alpha=1.0,
         lw=2,
-        italic=0,
+        italic=0.0,
         padding=0.1,
     ):
         """
@@ -2118,23 +2101,23 @@ class Points(BaseActor, vtk.vtkActor):
             txt : (str)
                 Text to display. The default is the filename or the object name.
             point : (list)
-                position of the flagpole pointer. The default is None.
+                position of the flagpole pointer. 
             offset : (list)
-                text offset wrt the application point. The default is None.
+                text offset wrt the application point. 
             s : (float)
-                size of the flagpole. The default is None.
+                size of the flagpole.
             font : (str)
                 font face. Check [available fonts here](https://vedo.embl.es/fonts).
             rounded : (bool)
-                draw a rounded or squared box around the text. The default is True.
+                draw a rounded or squared box around the text.
             c : (list)
-                text and box color. The default is None.
+                text and box color.
             alpha : (float)
-                opacity of text and box. The default is 1.
+                opacity of text and box.
             lw : (float)
-                line with of box frame. The default is 2.
+                line with of box frame.
             italic : (float)
-                italicness of text. The default is 0.
+                italicness of text.
 
         Examples:
             - [intersect2d.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/intersect2d.py)
@@ -2243,14 +2226,14 @@ class Points(BaseActor, vtk.vtkActor):
         txt=None,
         point=None,
         offset=None,
-        s=1,
+        s=1.0,
         c="k9",
         bc="k1",
         alpha=1,
         lw=0,
         font="Calco",
         justify="center-left",
-        vspacing=1,
+        vspacing=1.0,
     ):
         """
         Generate a flag post style element to describe an object.
@@ -2319,12 +2302,12 @@ class Points(BaseActor, vtk.vtkActor):
         txt=None,
         point=None,
         size=(0.30, 0.15),
-        padding=5,
+        padding=5.0,
         font="Calco",
         justify="center-right",
-        vspacing=1,
+        vspacing=1.0,
         c=None,
-        alpha=1,
+        alpha=1.0,
         lw=1,
         ontop=True,
     ):
@@ -2771,7 +2754,7 @@ class Points(BaseActor, vtk.vtkActor):
         vmin=None,
         vmax=None,
         n_colors=256,
-        alpha=1,
+        alpha=1.0,
         logscale=False,
     ):
         """
@@ -3194,7 +3177,7 @@ class Points(BaseActor, vtk.vtkActor):
         self.pipeline = utils.OperationNode("interpolate_data_from", parents=[self, source])
         return self
 
-    def add_gaussian_noise(self, sigma=1):
+    def add_gaussian_noise(self, sigma=1.0):
         """
         Add gaussian noise to point positions.
         An extra array is added named "GaussianNoise" with the shifts.
@@ -3673,7 +3656,7 @@ class Points(BaseActor, vtk.vtkActor):
         self.points(coords)
         return self
 
-    def warp(self, source, target, sigma=1, mode="3d"):
+    def warp(self, source, target, sigma=1.0, mode="3d"):
         """
         `Thin Plate Spline` transformations describe a nonlinear warp transform defined by a set
         of source and target landmarks. Any point on the mesh close to a source landmark will
@@ -4156,7 +4139,7 @@ class Points(BaseActor, vtk.vtkActor):
         self.pipeline = utils.OperationNode("cut_with_cylinder", parents=[self])
         return self
 
-    def cut_with_sphere(self, center=(0, 0, 0), r=1, invert=False):
+    def cut_with_sphere(self, center=(0, 0, 0), r=1.0, invert=False):
         """
         Cut the current mesh with an sphere.
         This is much faster than `cut_with_mesh()`.
@@ -4442,16 +4425,11 @@ class Points(BaseActor, vtk.vtkActor):
         return out
 
 
-    @deprecated(reason=vedo.colors.red + "Please use generate_mesh()" + vedo.colors.reset)
-    def tomesh(self, *args, **kwargs):
-        """Deprecated, please use `generate_mesh()`."""
-        return self.generate_mesh(*args, **kwargs)
-
     def generate_mesh(
         self,
         line_resolution=None,
         mesh_resolution=None,
-        smooth=0,
+        smooth=0.0,
         jitter=0.001,
         grid=None,
         quads=False,
@@ -4584,11 +4562,6 @@ class Points(BaseActor, vtk.vtkActor):
             comment=f"#cells {dln.inputdata().GetNumberOfCells()}",
         )
         return dln
-
-    @deprecated(reason=vedo.colors.red + "Please use reconstruct_surface()" + vedo.colors.reset)
-    def reconstructSurface(self, *a, **b):
-        "Deprecated. Please use `reconstruct_surface()`."
-        return self.reconstruct_surface(*a, **b)
 
     def reconstruct_surface(
         self,
@@ -4948,11 +4921,6 @@ class Points(BaseActor, vtk.vtkActor):
 
     ###############################################################################
     ## stuff returning Volume
-
-    @deprecated(reason=vedo.colors.red + "Please use signed_distance()" + vedo.colors.reset)
-    def signedDistance(self, bounds=None, dims=(20, 20, 20), invert=False, maxradius=None):
-        "Please use `signed_distance()`."
-        return self.signed_distance(bounds, dims, invert, maxradius)
 
     def signed_distance(self, bounds=None, dims=(20, 20, 20), invert=False, maxradius=None):
         """
