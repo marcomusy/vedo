@@ -101,7 +101,7 @@ alias ve='vedo --eog '        # to view single and multiple images
 ```
 
 ## Running in a Jupyter Notebook
-To use in jupyter notebooks use the syntax `vedo.Plotter(backend='...')` the supported backend for visualization are:
+To use in jupyter notebooks use the syntax `vedo.settings.default_backend='' ` the supported backend for visualization are:
 
 - `2d`, the default a static image is generated.
 - `vtk`, in this case a normal graphics rendering window will pop up.
