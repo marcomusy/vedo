@@ -233,7 +233,7 @@ class BaseVolume:
         imp.Update()
         self._update(imp.GetOutput())
         self.pipeline = utils.OperationNode(
-            f"permute_axes\n{tuple(x,y,z)}", parents=[self], c="#4cc9f0"
+            f"permute_axes\n{(x,y,z)}", parents=[self], c="#4cc9f0"
         )
         return self
 
