@@ -823,7 +823,8 @@ def sort_by_column(arr, nth, invert=False):
 
 def point_in_triangle(p, p1, p2, p3):
     """
-    Return True if a point is inside (or above/below) a triangle defined by 3 points in space.
+    Return True if a point is inside (or above/below)
+    a triangle defined by 3 points in space.
     """
     p1 = np.array(p1)
     u = p2 - p1

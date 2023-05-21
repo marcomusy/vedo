@@ -451,7 +451,7 @@ class Plotter:
 
         self._icol = 0
         self._clockt0 = time.time()
-        self._first_viewup = True
+        # self._first_viewup = True
         self._extralight = None
         self._cocoa_initialized = False
         self._bg = bg  # used by backend notebooks
@@ -1359,9 +1359,36 @@ class Plotter:
 
         Default value is 30 degrees.
         """
-        self.GetActiveCamera().UseHorizontalViewAngleOn()
-        self.GetActiveCamera().SetViewAngle(angle)
+        self.renderer.GetActiveCamera().UseHorizontalViewAngleOn()
+        self.renderer.GetActiveCamera().SetViewAngle(angle)
         return self
+
+    def zoom(self, zoom):
+        """Apply a zooming factor for the current camera view"""
+        self.renderer.GetActiveCamera().Zoom(zoom)
+        return self
+    
+    def azimuth(self, angle):
+        """Rotate camera around the view up vector."""
+        self.renderer.GetActiveCamera().Azimuth(angle)
+        return self
+    
+    def elevation(self, angle):
+        """Rotate the camera around the cross product of the negative
+        of the direction of projection and the view up vector."""
+        self.renderer.GetActiveCamera().Elevation(angle)
+        return self
+    
+    def roll(self, angle):
+        """Roll the camera about the direction of projection."""
+        self.renderer.GetActiveCamera().Roll(angle)
+        return self
+    
+    def dolly(self, value):
+        """Move the camera towards (value>0) or away from (value<0) the focal point."""
+        self.renderer.GetActiveCamera().Dolly(value)
+        return self
+
 
     ##################################################################
     @deprecated(reason=vedo.colors.red + "Please use add_slider()" + vedo.colors.reset)
@@ -3022,8 +3049,8 @@ class Plotter:
         if roll:
             self.camera.Roll(roll)
 
-        if self._first_viewup and len(viewup) > 0:
-            self._first_viewup = False  # gets executed only once
+        if len(viewup) > 0:
+            # self._first_viewup = False  # gets executed only once
             b = self.renderer.ComputeVisiblePropBounds()
             cm = np.array([(b[1] + b[0]) / 2, (b[3] + b[2]) / 2, (b[5] + b[4]) / 2])
             sz = np.array([(b[1] - b[0]), (b[3] - b[2]), (b[5] - b[4])])
@@ -3277,7 +3304,7 @@ class Plotter:
         self.widgets = []
         self.hover_legends = []
         self.background_renderer = None
-        self._first_viewup = True
+        # self._first_viewup = True
         self._extralight = None
 
         self.hint_widget = None

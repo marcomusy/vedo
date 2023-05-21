@@ -12,8 +12,7 @@ from vedo import settings
 from vedo import utils
 from vedo import shapes
 from vedo.assembly import Assembly, Group
-from vedo.colors import get_color
-from vedo.colors import printc
+from vedo.colors import get_color, build_lut, color_map, printc
 from vedo.mesh import Mesh
 from vedo.pointcloud import Points, Point, merge
 from vedo.tetmesh import TetMesh
@@ -868,9 +867,6 @@ def ScalarBar(
 
         ![](https://user-images.githubusercontent.com/32848391/62940174-4bdc7900-bdd3-11e9-9713-e4f3e2fdab63.png)
     """
-    if not hasattr(obj, "mapper"):
-        vedo.logger.error(f"in add_scalarbar(): input is invalid {type(obj)}. Skip.")
-        return None
 
     if isinstance(obj, Points):
         vtkscalars = obj.inputdata().GetPointData().GetScalars()
@@ -886,6 +882,18 @@ def ScalarBar(
 
     elif isinstance(obj, (Volume, TetMesh)):
         lut = utils.ctf2lut(obj)
+
+    elif utils.is_sequence(obj) and len(obj) == 2:
+        x = np.linspace(obj[0], obj[1], 256)
+        data = []
+        for i in range(256):
+            rgb = color_map(i, c, 0, 256)
+            data.append([x[i], rgb])
+        lut = build_lut(data)
+        
+    elif not hasattr(obj, "mapper"):
+        vedo.logger.error(f"in add_scalarbar(): input is invalid {type(obj)}. Skip.")
+        return None
 
     else:
         return None
