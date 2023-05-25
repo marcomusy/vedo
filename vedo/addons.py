@@ -1322,7 +1322,7 @@ class Slider2D(SliderWidget):
         value=None,
         pos=4,
         title="",
-        font="",
+        font="Calco",
         title_size=1,
         c="k",
         alpha=1,
@@ -1333,6 +1333,8 @@ class Slider2D(SliderWidget):
         """
         Add a slider which can call an external custom function.
         Set any value as float to increase the number of significant digits above the slider.
+
+        Use `play()` to start an animation between the current slider value and the last value.
 
         Arguments:
             sliderfunc : (function)
@@ -1370,7 +1372,7 @@ class Slider2D(SliderWidget):
             tube_width : (float)
                 width of the tube
             title_height : (float)
-                width of the title
+                height of the title
             tformat : (str)
                 format of the title
 
@@ -1385,7 +1387,7 @@ class Slider2D(SliderWidget):
         end_cap_length= options.pop("end_cap_length", 0.0015)
         end_cap_width = options.pop("end_cap_width",  0.0125)
         tube_width    = options.pop("tube_width",     0.0075)
-        title_height  = options.pop("title_height",   0.022)
+        title_height  = options.pop("title_height",   0.025)
         if options:
             vedo.logger.warning(f"in Slider2D unknown option(s): {options}")
 
@@ -3878,6 +3880,10 @@ def add_global_axes(axtype=None, c=None):
         axact.PickableOff()
         icn = Icon(axact, size=0.1)
         plt.axes_instances[r] = icn
+        icn.SetInteractor(plt.interactor)
+        icn.EnabledOn()
+        icn.InteractiveOff()
+        plt.widgets.append(icn)
 
     elif plt.axes == 5:
         axact = vtk.vtkAnnotatedCubeActor()
@@ -3911,6 +3917,10 @@ def add_global_axes(axtype=None, c=None):
         axact.PickableOff()
         icn = Icon(axact, size=0.06)
         plt.axes_instances[r] = icn
+        icn.SetInteractor(plt.interactor)
+        icn.EnabledOn()
+        icn.InteractiveOff()
+        plt.widgets.append(icn)
 
     elif plt.axes == 6:
         ocf = vtk.vtkOutlineCornerFilter()
@@ -3930,20 +3940,21 @@ def add_global_axes(axtype=None, c=None):
         else:
             ocf.SetInputData(largestact.GetMapper().GetInput())
         ocf.Update()
-        ocMapper = vtk.vtkHierarchicalPolyDataMapper()
-        ocMapper.SetInputConnection(0, ocf.GetOutputPort(0))
-        ocActor = vtk.vtkActor()
-        ocActor.SetMapper(ocMapper)
+        oc_mapper = vtk.vtkHierarchicalPolyDataMapper()
+        oc_mapper.SetInputConnection(0, ocf.GetOutputPort(0))
+        oc_actor = vtk.vtkActor()
+        oc_actor.SetMapper(oc_mapper)
         bc = np.array(plt.renderer.GetBackground())
         if np.sum(bc) < 1.5:
             lc = (1, 1, 1)
         else:
             lc = (0, 0, 0)
-        ocActor.GetProperty().SetColor(lc)
-        ocActor.PickableOff()
-        ocActor.UseBoundsOff()
-        plt.renderer.AddActor(ocActor)
-        plt.axes_instances[r] = ocActor
+        oc_actor.GetProperty().SetColor(lc)
+        oc_actor.PickableOff()
+        oc_actor.UseBoundsOn()
+        plt.renderer.AddActor(oc_actor)
+        plt.axes_instances[r] = oc_actor
+        plt.renderer.AddActor(oc_actor)
 
     elif plt.axes == 7:
         vbb = compute_visible_bounds()[0]
@@ -3951,7 +3962,7 @@ def add_global_axes(axtype=None, c=None):
         plt.axes_instances[r] = rulax
         if not rulax:
             return None
-        rulax.UseBoundsOff()
+        rulax.UseBoundsOn()
         rulax.PickableOff()
         plt.renderer.AddActor(rulax)
 
@@ -3971,19 +3982,10 @@ def add_global_axes(axtype=None, c=None):
         ca.SetXTitle("x")
         ca.SetYTitle("y")
         ca.SetZTitle("z")
-        #        if plt.xtitle == "":
-        #            ca.SetXAxisVisibility(0)
-        #            ca.XAxisLabelVisibilityOff()
-        #        if plt.ytitle == "":
-        #            ca.SetYAxisVisibility(0)
-        #            ca.YAxisLabelVisibilityOff()
-        #        if plt.ztitle == "":
-        #            ca.SetZAxisVisibility(0)
-        #            ca.ZAxisLabelVisibilityOff()
         ca.PickableOff()
         ca.UseBoundsOff()
-        plt.renderer.AddActor(ca)
         plt.axes_instances[r] = ca
+        plt.renderer.AddActor(ca)
 
     elif plt.axes == 9:
         vbb = compute_visible_bounds()[0]
@@ -3996,8 +3998,8 @@ def add_global_axes(axtype=None, c=None):
         ca.pos((vbb[0] + vbb[1]) / 2, (vbb[3] + vbb[2]) / 2, (vbb[5] + vbb[4]) / 2)
         ca.PickableOff()
         ca.UseBoundsOff()
-        plt.renderer.AddActor(ca)
         plt.axes_instances[r] = ca
+        plt.renderer.AddActor(ca)
 
     elif plt.axes == 10:
         vbb = compute_visible_bounds()[0]
@@ -4014,7 +4016,7 @@ def add_global_axes(axtype=None, c=None):
         zc.clean().alpha(0.5).wireframe().linewidth(2).PickableOff()
         ca = xc + yc + zc
         ca.PickableOff()
-        ca.UseBoundsOff()
+        ca.UseBoundsOn()
         plt.renderer.AddActor(ca)
         plt.axes_instances[r] = ca
 
@@ -4025,8 +4027,8 @@ def add_global_axes(axtype=None, c=None):
         gr = shapes.Grid((xpos, ypos, vbb[4]), s=(gs, gs), res=(11, 11), c=c, alpha=0.1)
         gr.lighting("off").PickableOff()
         gr.UseBoundsOff()
-        plt.renderer.AddActor(gr)
         plt.axes_instances[r] = gr
+        plt.renderer.AddActor(gr)
 
     elif plt.axes == 12:
         polaxes = vtk.vtkPolarAxesActor()
@@ -4054,10 +4056,10 @@ def add_global_axes(axtype=None, c=None):
         polaxes.SetMinimumAngle(0.0)
         polaxes.SetMaximumAngle(315.0)
         polaxes.SetNumberOfPolarAxisTicks(5)
-        polaxes.UseBoundsOff()
+        polaxes.UseBoundsOn()
         polaxes.PickableOff()
-        plt.renderer.AddActor(polaxes)
         plt.axes_instances[r] = polaxes
+        plt.renderer.AddActor(polaxes)
 
     elif plt.axes == 13:
         # draws a simple ruler at the bottom of the window
@@ -4076,8 +4078,8 @@ def add_global_axes(axtype=None, c=None):
         pr.SetFontFamily(vtk.VTK_FONT_FILE)
         pr.SetFontFile(utils.get_font_path(settings.default_font))
         ls.PickableOff()
-        plt.renderer.AddActor(ls)
         plt.axes_instances[r] = ls
+        plt.renderer.AddActor(ls)
 
     elif plt.axes == 14:
         try:
@@ -4099,13 +4101,13 @@ def add_global_axes(axtype=None, c=None):
         e += "5 = show a cube at bottom left\n"
         e += "6 = mark the corners of the bounding box\n"
         e += "7 = draw a 3D ruler at each side of the cartesian axes\n"
-        e += "8 = show the vtk default vtkCubeAxesActor object\n"
+        e += "8 = show the vtkCubeAxesActor object\n"
         e += "9 = show the bounding box outline\n"
         e += "10 = show three circles representing the maximum bounding box\n"
         e += "11 = show a large grid on the x-y plane (use with zoom=8)\n"
         e += "12 = show polar axes\n"
         e += "13 = draw a simple ruler at the bottom of the window\n"
-        e += "14 = show the vtk default vtkCameraOrientationWidget object"
+        e += "14 = show the CameraOrientationWidget object"
         vedo.logger.warning(e)
 
     if not plt.axes_instances[r]:

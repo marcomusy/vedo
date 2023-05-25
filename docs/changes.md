@@ -7,8 +7,8 @@
 
 ### Other fixes and improvements
 - added gpu acceleration for CLI volumetric visualization in #832 by @zhang-qiang-github
-- fixes for `k3d`
-- added `plotter.fov(value)` (field of view)
+- fixes for `k3d` jupyter backend
+- added `plotter.fov(value)` (field of view, the so called "fish-eye" effect)
 - fix `ploter.get_meshes()`
 - fix for `plotter.remove(unpack_assemblies=False)` method
 - fix for `io.import_window()` method
@@ -21,6 +21,10 @@
 - added `Event.timerid` attribute
 - fix to `Volume.operation` by @DanKrsi
 - fix links in `pyplot` examples by @androbaza
+- fix `screenshot_scale` and remove it from settings.
+- allow initializing `ScalarBar` with a tuple range `(min, max)`
+- Update API Documentation for Changing Backend by @bhacha
+- Add `application.Browser().play()` to autoplay a slider
 
 
 

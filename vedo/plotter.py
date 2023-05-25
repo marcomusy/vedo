@@ -3520,7 +3520,7 @@ class Plotter:
         x, y = iren.GetEventPosition()
         renderer = iren.FindPokedRenderer(x, y)
 
-        if key in ["q", "Ctrl+q", "Ctrl+w", "space", "Return", "Escape"]:
+        if key in ["q", "Ctrl+q", "Ctrl+w", "Escape"]:
             iren.ExitCallback()
             return
 

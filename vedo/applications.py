@@ -150,7 +150,7 @@ class Slicer3DPlotter(Plotter):
         visibles[2] = msh
         msh.add_scalarbar(pos=(0.04, 0.0), horizontal=True, font_size=0)
 
-        def sliderfunc_x(widget, event):
+        def slider_function_x(widget, event):
             i = int(widget.GetRepresentation().GetValue())
             msh = volume.xslice(i).alpha(alpha).lighting("", la, ld, 0)
             msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
@@ -161,7 +161,7 @@ class Slicer3DPlotter(Plotter):
                 self.renderer.AddActor(msh)
             visibles[0] = msh
 
-        def sliderfunc_y(widget, event):
+        def slider_function_y(widget, event):
             i = int(widget.GetRepresentation().GetValue())
             msh = volume.yslice(i).alpha(alpha).lighting("", la, ld, 0)
             msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
@@ -172,7 +172,7 @@ class Slicer3DPlotter(Plotter):
                 self.renderer.AddActor(msh)
             visibles[1] = msh
 
-        def sliderfunc_z(widget, event):
+        def slider_function_z(widget, event):
             i = int(widget.GetRepresentation().GetValue())
             msh = volume.zslice(i).alpha(alpha).lighting("", la, ld, 0)
             msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
@@ -190,7 +190,7 @@ class Slicer3DPlotter(Plotter):
 
         if not use_slider3d:
             self.add_slider(
-                sliderfunc_x,
+                slider_function_x,
                 0,
                 dims[0],
                 title="X",
@@ -200,7 +200,7 @@ class Slicer3DPlotter(Plotter):
                 c=cx,
             )
             self.add_slider(
-                sliderfunc_y,
+                slider_function_y,
                 0,
                 dims[1],
                 title="Y",
@@ -210,7 +210,7 @@ class Slicer3DPlotter(Plotter):
                 c=cy,
             )
             self.add_slider(
-                sliderfunc_z,
+                slider_function_z,
                 0,
                 dims[2],
                 title="Z",
@@ -223,7 +223,7 @@ class Slicer3DPlotter(Plotter):
         else:  # 3d sliders attached to the axes bounds
             bs = box.bounds()
             self.add_slider3d(
-                sliderfunc_x,
+                slider_function_x,
                 pos1=(bs[0], bs[2], bs[4]),
                 pos2=(bs[1], bs[2], bs[4]),
                 xmin=0,
@@ -233,7 +233,7 @@ class Slicer3DPlotter(Plotter):
                 show_value=False,
             )
             self.add_slider3d(
-                sliderfunc_y,
+                slider_function_y,
                 pos1=(bs[1], bs[2], bs[4]),
                 pos2=(bs[1], bs[3], bs[4]),
                 xmin=0,
@@ -243,7 +243,7 @@ class Slicer3DPlotter(Plotter):
                 show_value=False,
             )
             self.add_slider3d(
-                sliderfunc_z,
+                slider_function_z,
                 pos1=(bs[0], bs[2], bs[4]),
                 pos2=(bs[0], bs[2], bs[5]),
                 xmin=0,
@@ -737,56 +737,52 @@ class Browser(Plotter):
     """
     Browse a series of vedo objects by using a simple slider.
     """
-
     def __init__(
         self,
         objects=(),
-        sliderpos=((0.55, 0.07), (0.96, 0.07)),
+        sliderpos=((0.50, 0.07), (0.95, 0.07)),
         c=None,  # slider color
         prefix="",
-        pos=(0, 0),
-        size="auto",
-        screensize="auto",
-        title="Browser",
-        bg="white",
-        bg2=None,
-        axes=4,
-        resetcam=False,
-        interactive=True,
+        font="Calco", # slider font
+        axes=1,
+        resetcam=False, # resetcam while using the slider
+        **kwargs,
     ):
         """
         Browse a series of vedo objects by using a simple slider.
 
         Examples:
             ```python
-            import vedo
+            from vedo import load, dataurl
             from vedo.applications import Browser
-            meshes = vedo.load("data/2*0.vtk") # a python list of Meshes
-            plt = Browser(meshes, resetcam=1, axes=4) # a vedo.Plotter
-            plt.show().close()
+            meshes = load(dataurl+'timecourse1d.npy') # python list of Meshes
+            plt = Browser(meshes, bg='k')             # vedo.Plotter
+            plt.show(interactive=False, zoom='tight') # show the meshes
+            plt.play(dt=50)                           # delay in milliseconds
+            plt.close()
             ```
 
         - [morphomatics_tube.py](https://github.com/marcomusy/vedo/tree/master/examples/other/morphomatics_tube.py)
         """
-        Plotter.__init__(
-            self,
-            pos=pos,
-            size=size,
-            screensize=screensize,
-            title=title,
-            bg=bg,
-            bg2=bg2,
-            axes=axes,
-            interactive=interactive,
-        )
+        Plotter.__init__(self, axes=axes, **kwargs)
 
         self += objects
 
         self.slider = None
+        self.timer_callback_id = None
 
-        # define the slider
-        def sliderfunc(widget, event=None):
-            k = int(widget.GetRepresentation().GetValue())
+        # define the slider func ##########################
+        def slider_function(widget=None, event=None):
+
+            must_render = False
+            if isinstance(widget, vedo.plotter.Event):
+                if self.slider.value < len(self.actors)-1:
+                    self.slider.value = self.slider.value + 1
+                else:
+                    self.slider.value = 0
+                must_render = True
+
+            k = int(self.slider.value)
             ak = self.actors[k]
             for a in self.actors:
                 if a == ak:
@@ -801,19 +797,31 @@ class Browser(Plotter):
                 tx = tx.split("\\")[-1]  # windows os
             elif ak.name:
                 tx = ak.name
-            widget.GetRepresentation().SetTitleText(prefix + tx)
 
+            self.slider.title = prefix + tx
+
+            if must_render:
+                self.render()
+        ##################################################
+
+        self.slider_function = slider_function
         self.slider = self.add_slider(
-            sliderfunc,
+            slider_function,
             0.5,
             len(objects) - 0.5,
             pos=sliderpos,
-            font="courier",
+            font=font,
             c=c,
             show_value=False,
         )
         self.slider.GetRepresentation().SetTitleHeight(0.020)
-        sliderfunc(self.slider)  # init call
+        slider_function(self.slider)  # init call
+    
+    def play(self, dt=100):
+        """Start playing the slides at a given speed."""
+        self.timer_callback_id = self.add_callback("timer", self.slider_function)
+        self.timer_callback("start", dt=dt)
+        self.interactive()
 
 
 #############################################################################################
