@@ -1727,24 +1727,26 @@ def import_window(fileinput, mtl_file=None, texture_path=None):
 
 
 ##########################################################
-def screenshot(filename="screenshot.png", scale=None, asarray=False):
+def screenshot(filename="screenshot.png", scale=1, asarray=False):
     """
     Save a screenshot of the current rendering window.
 
     Arguments:
         scale : (int)
-            set image magnification as an integer multiplicative factor
+            Set image magnification as an integer multiplicative factor.
+            E.g. setting a magnification of 2 produces an image twice as large,
+            but 10x slower to generate.
         asarray : (bool)
-            return a numpy array of the image
+            Return a numpy array of the image
     """
     if not vedo.plotter_instance or not vedo.plotter_instance.window:
         # vedo.logger.error("in screenshot(), rendering window is not present, skip.")
         return vedo.plotter_instance  ##########
 
-    if asarray:
+    if asarray and scale == 1:
         nx, ny = vedo.plotter_instance.window.GetSize()
         arr = vtk.vtkUnsignedCharArray()
-        vedo.plotter_instance.window.GetRGBACharPixelData(0, 0, nx - 1, ny - 1, 0, arr)
+        vedo.plotter_instance.window.GetRGBACharPixelData(0, 0, nx-1, ny-1, 0, arr)
         narr = vedo.vtk2numpy(arr).T[:3].T.reshape([ny, nx, 3])
         narr = np.flip(narr, axis=0)
         return narr  ##########
@@ -1784,31 +1786,28 @@ def screenshot(filename="screenshot.png", scale=None, asarray=False):
         writer.Write()
         return vedo.plotter_instance  ##########
 
-    if scale is None:
-        scale = settings.screeshot_scale
-
     if settings.screeshot_large_image:
         w2if = vtk.vtkRenderLargeImage()
         w2if.SetInput(vedo.plotter_instance.renderer)
         w2if.SetMagnification(scale)
-        w2if.Update()
     else:
         w2if = vtk.vtkWindowToImageFilter()
         w2if.SetInput(vedo.plotter_instance.window)
         if hasattr(w2if, "SetScale"):
-            w2if.SetScale(scale, scale)
+            w2if.SetScale(int(scale), int(scale))
         if settings.screenshot_transparent_background:
             w2if.SetInputBufferTypeToRGBA()
         w2if.ReadFrontBufferOff()  # read from the back buffer
-        w2if.Update()
+    w2if.Update()
 
-    # if asarray:
-    #     npdata = utils.vtk2numpy(w2if.GetOutput().GetPointData().GetArray("ImageScalars"))
-    #     npdata = npdata[:, [0, 1, 2]]
-    #     ydim, xdim, _ = w2if.GetOutput().GetDimensions()
-    #     npdata = npdata.reshape([xdim, ydim, -1])
-    #     npdata = np.flip(npdata, axis=0)
-    #     return npdata
+    if asarray and scale != 1:
+        pd = w2if.GetOutput().GetPointData()
+        npdata = utils.vtk2numpy(pd.GetArray("ImageScalars"))
+        npdata = npdata[:, [0, 1, 2]]
+        ydim, xdim, _ = w2if.GetOutput().GetDimensions()
+        npdata = npdata.reshape([xdim, ydim, -1])
+        npdata = np.flip(npdata, axis=0)
+        return npdata
 
     if filename.lower().endswith(".png"):
         writer = vtk.vtkPNGWriter()
@@ -2011,7 +2010,6 @@ class Video:
             cap = cv2.VideoCapture(os.path.join(self.tmp_dir.name, "%1d.png"))
             fourcc = cv2.VideoWriter_fourcc(*"mp4v")
             w, h = vedo.plotter_instance.window.GetSize()
-            w, h = w * settings.screeshot_scale, h * settings.screeshot_scale
             writer = cv2.VideoWriter(self.name, fourcc, self.fps, (w, h), True)
 
             while True:

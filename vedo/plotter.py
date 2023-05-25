@@ -451,7 +451,6 @@ class Plotter:
 
         self._icol = 0
         self._clockt0 = time.time()
-        # self._first_viewup = True
         self._extralight = None
         self._cocoa_initialized = False
         self._bg = bg  # used by backend notebooks
@@ -3050,7 +3049,6 @@ class Plotter:
             self.camera.Roll(roll)
 
         if len(viewup) > 0:
-            # self._first_viewup = False  # gets executed only once
             b = self.renderer.ComputeVisiblePropBounds()
             cm = np.array([(b[1] + b[0]) / 2, (b[3] + b[2]) / 2, (b[5] + b[4]) / 2])
             sz = np.array([(b[1] - b[0]), (b[3] - b[2]), (b[5] - b[4])])
@@ -3304,7 +3302,6 @@ class Plotter:
         self.widgets = []
         self.hover_legends = []
         self.background_renderer = None
-        # self._first_viewup = True
         self._extralight = None
 
         self.hint_widget = None
@@ -3359,7 +3356,7 @@ class Plotter:
         """
         return vedo.file_io.screenshot(filename, scale, asarray)
 
-    def topicture(self, scale=None):
+    def topicture(self, scale=1):
         """
         Generate a Picture object from the current rendering window.
 
@@ -3367,9 +3364,6 @@ class Plotter:
             scale : (int)
                 set image magnification as an integer multiplicating factor
         """
-        if scale is None:
-            scale = settings.screeshot_scale
-
         if settings.screeshot_large_image:
             w2if = vtk.vtkRenderLargeImage()
             w2if.SetInput(self.renderer)

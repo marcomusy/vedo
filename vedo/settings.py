@@ -25,15 +25,13 @@ class Settings:
     # Palette number when using an integer to choose a color
     palette = 0
 
-    # Scale magnification of the screenshot (must be an integer)
-    screeshot_scale = 1
     screenshot_transparent_background = False
     screeshot_large_image = False # Sometimes setting this to True gives better results
 
     # [DISABLED] Allow to continuously interact with scene during interactive() execution
     allow_interaction = True
 
-    # enable tracking pipeline functionality: 
+    # Enable tracking pipeline functionality: 
     #  allows to show a graph with the pipeline of action which let to a final object
     #  this is achieved by calling "myobj.pipeline.show()" (a new window will pop up)
     self.enable_pipeline = True
@@ -136,7 +134,6 @@ class Settings:
         "default_backend",
         "palette",
         "remember_last_figure_format",
-        "screeshot_scale",
         "screenshot_transparent_background",
         "screeshot_large_image",
         "allow_interaction",
@@ -217,8 +214,6 @@ class Settings:
 
         self.remember_last_figure_format = False
 
-        # Scale magnification of the screenshot (must be an integer)
-        self.screeshot_scale = 1
         self.screenshot_transparent_background = False
         self.screeshot_large_image = False
 
@@ -683,21 +678,10 @@ class Settings:
     def defaultFont(self):
         self._warn("default_font")
         return self.default_font
-
     @defaultFont.setter
     def defaultFont(self, value):
         self._warn("default_font")
         self.default_font = value
-
-    ##################################
-    @property
-    def screeshotScale(self):
-        self._warn("screeshot_scale")
-        return self.screeshot_scale
-    @screeshotScale.setter
-    def screeshotScale(self, value):
-        self._warn("screeshot_scale")
-        self.screeshot_scale = value
     ##################################
     @property
     def screenshotTransparentBackground(self):
@@ -745,60 +729,6 @@ class Settings:
         self.enable_default_keyboard_callbacks = value
     ##################################
     @property
-    def immediateRendering(self):
-        self._warn("immediate_rendering")
-        return self.immediate_rendering
-    @immediateRendering.setter
-    def immediateRendering(self, value):
-        self._warn("immediate_rendering")
-        self.immediate_rendering = value
-    ##################################
-    @property
-    def renderLinesAsTubes(self):
-        self._warn("render_lines_as_tubes")
-        return self.render_lines_as_tubes
-    @renderLinesAsTubes.setter
-    def renderLinesAsTubes(self, value):
-        self._warn("render_lines_as_tubes")
-        self.render_lines_as_tubes = value
-    ##################################
-    @property
-    def hiddenLineRemoval(self):
-        self._warn("hidden_line_removal")
-        return self.hidden_line_removal
-    @hiddenLineRemoval.setter
-    def hiddenLineRemoval(self, value):
-        self._warn("hidden_line_removal")
-        self.hidden_line_removal = value
-    ##################################
-    @property
-    def pointSmoothing(self):
-        self._warn("point_smoothing")
-        return self.point_smoothing
-    @pointSmoothing.setter
-    def pointSmoothing(self, value):
-        self._warn("point_smoothing")
-        self.point_smoothing = value
-    ##################################
-    @property
-    def lightFollowsCamera(self):
-        self._warn("light_follows_camera")
-        return self.light_follows_camera
-    @lightFollowsCamera.setter
-    def lightFollowsCamera(self, value):
-        self._warn("light_follows_camera")
-        self.light_follows_camera = value
-    ##################################
-    @property
-    def twoSidedLighting(self):
-        self._warn("two_sided_lighting")
-        return self.two_sided_lighting
-    @twoSidedLighting.setter
-    def twoSidedLighting(self, value):
-        self._warn("two_sided_lighting")
-        self.two_sided_lighting = value
-    ##################################
-    @property
     def useDepthPeeling(self):
         self._warn("use_depth_peeling")
         return self.use_depth_peeling
@@ -817,15 +747,6 @@ class Settings:
         self.multi_samples = value
     ##################################
     @property
-    def alphaBitPlanes(self):
-        self._warn("alpha_bit_planes")
-        return self.alpha_bit_planes
-    @alphaBitPlanes.setter
-    def alphaBitPlanes(self, value):
-        self._warn("alpha_bit_planes")
-        self.alpha_bit_planes = value
-    ##################################
-    @property
     def maxNumberOfPeels(self):
         self._warn("max_number_of_peels")
         return self.max_number_of_peels
@@ -833,60 +754,6 @@ class Settings:
     def maxNumberOfPeels(self, value):
         self._warn("max_number_of_peels")
         self.max_number_of_peels = value
-    ##################################
-    @property
-    def occlusionRatio(self):
-        self._warn("occlusion_ratio")
-        return self.occlusion_ratio
-    @occlusionRatio.setter
-    def occlusionRatio(self, value):
-        self._warn("occlusion_ratio")
-        self.occlusion_ratio = value
-    ##################################
-    @property
-    def useFXAA(self):
-        self._warn("use_fxaa")
-        return self.use_fxaa
-    @useFXAA.setter
-    def useFXAA(self, value):
-        self._warn("use_fxaa")
-        self.use_fxaa = value
-    ##################################
-    @property
-    def preserveDepthBuffer(self):
-        self._warn("preserve_depth_buffer")
-        return self.preserve_depth_buffer
-    @preserveDepthBuffer.setter
-    def preserveDepthBuffer(self, value):
-        self._warn("preserve_depth_buffer")
-        self.preserve_depth_buffer = value
-    ##################################
-    @property
-    def usePolygonOffset(self):
-        self._warn("use_polygon_offset")
-        return self.use_polygon_offset
-    @usePolygonOffset.setter
-    def usePolygonOffset(self, value):
-        self._warn("use_polygon_offset")
-        self.use_polygon_offset = value
-    ##################################
-    @property
-    def polygonOffsetFactor(self):
-        self._warn("polygon_offset_factor")
-        return self.polygon_offset_factor
-    @polygonOffsetFactor.setter
-    def polygonOffsetFactor(self, value):
-        self._warn("polygon_offset_factor")
-        self.polygon_offset_factor = value
-    ##################################
-    @property
-    def polygonOffsetUnits(self):
-        self._warn("polygon_offset_units")
-        return self.polygon_offset_units
-    @polygonOffsetUnits.setter
-    def polygonOffsetUnits(self, value):
-        self._warn("polygon_offset_units")
-        self.polygon_offset_units = value
     ##################################
     @property
     def interpolateScalarsBeforeMapping(self):
@@ -905,15 +772,6 @@ class Settings:
     def useParallelProjection(self, value):
         self._warn("use_parallel_projection")
         self.use_parallel_projection = value
-    ##################################
-    @property
-    def windowSplittingPosition(self):
-        self._warn("window_splitting_position")
-        return self.window_splitting_position
-    @windowSplittingPosition.setter
-    def windowSplittingPosition(self, value):
-        self._warn("window_splitting_position")
-        self.window_splitting_position = value
     ##################################
     @property
     def tiffOrientationType(self):
