@@ -537,9 +537,9 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         Pixels can be a list formatted as [left,right,bottom,top].
 
         Arguments:
-            pixels : (int),list , optional
+            pixels : (int, list)
                 number of pixels to be added (or a list of length 4)
-            value : (int), optional
+            value : (int)
                 intensity value (gray-scale color) of the padding
         """
         x0, x1, y0, y1, _z0, _z1 = self._data.GetExtent()
@@ -548,10 +548,16 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         pf.SetConstant(value)
         if utils.is_sequence(pixels):
             pf.SetOutputWholeExtent(
-                x0 - pixels[0], x1 + pixels[1], y0 - pixels[2], y1 + pixels[3], 0, 0
+                x0 - pixels[0], x1 + pixels[1], 
+                y0 - pixels[2], y1 + pixels[3], 
+                0, 0
             )
         else:
-            pf.SetOutputWholeExtent(x0 - pixels, x1 + pixels, y0 - pixels, y1 + pixels, 0, 0)
+            pf.SetOutputWholeExtent(
+                x0 - pixels, x1 + pixels, 
+                y0 - pixels, y1 + pixels, 
+                0, 0
+            )
         pf.Update()
         self._update(pf.GetOutput())
         self.pipeline = utils.OperationNode(

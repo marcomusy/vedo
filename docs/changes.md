@@ -25,6 +25,7 @@
 - allow initializing `ScalarBar` with a tuple range `(min, max)`
 - Update API Documentation for Changing Backend by @bhacha
 - Add `application.Browser().play()` to autoplay a slider
+- Add `pad()` to padding a Volume with zeros voxels (useful to `dilate()`)
 
 
 

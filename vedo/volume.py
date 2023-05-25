@@ -419,6 +419,40 @@ class BaseVolume:
         )
         return self
 
+    def pad(self, voxels=10, value=0):
+        """
+        Add the specified number of pixels at the picture borders.
+        Pixels can be a list formatted as [left,right,bottom,top].
+
+        Arguments:
+            pixels : (int, list)
+                number of pixels to be added (or a list of length 4)
+            value : (int)
+                intensity value (gray-scale color) of the padding
+        """
+        x0, x1, y0, y1, z0, z1 = self._data.GetExtent()
+        pf = vtk.vtkImageConstantPad()
+        pf.SetInputData(self._data)
+        pf.SetConstant(value)
+        if utils.is_sequence(voxels):
+            pf.SetOutputWholeExtent(
+                x0 - voxels[0], x1 + voxels[1], 
+                y0 - voxels[2], y1 + voxels[3], 
+                z0 - voxels[4], z1 + voxels[5], 
+            )
+        else:
+            pf.SetOutputWholeExtent(
+                x0 - voxels, x1 + voxels, 
+                y0 - voxels, y1 + voxels, 
+                z0 - voxels, z1 + voxels,
+            )
+        pf.Update()
+        self._update(pf.GetOutput())
+        self.pipeline = utils.OperationNode(
+            "pad", comment=f"{voxels} voxels", parents=[self], c="#f28482"
+        )
+        return self
+
     def resize(self, *newdims):
         """Increase or reduce the number of voxels of a Volume with interpolation."""
         old_dims = np.array(self.imagedata().GetDimensions())
@@ -713,6 +747,8 @@ class BaseVolume:
         """
         Replace a voxel with the maximum over an ellipsoidal neighborhood of voxels.
         If `neighbours` of an axis is 1, no processing is done on that axis.
+
+        Check also `erode()` and `pad()`.
 
         Examples:
             - [erode_dilate.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/erode_dilate.py)

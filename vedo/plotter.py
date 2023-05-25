@@ -283,8 +283,6 @@ def show(
             # note that shape can be a string
             if plt.interactor and not offscreen and (interactive is None or interactive):
                 plt.interactor.Start()
-                if vedo.vtk_version == (9, 2, 2):
-                    plt.interactor.GetRenderWindow().SetDisplayId("_0_p_void")  ##HACK
 
     else:
 
@@ -713,14 +711,14 @@ class Plotter:
             self.wx_widget.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
             self.camera = self.renderer.GetActiveCamera()
             ########################
-            return  #################
+            return  ################
             ########################
 
         if self.qt_widget is not None:
             self.interactor = self.qt_widget.GetRenderWindow().GetInteractor()
             self.window = self.qt_widget.GetRenderWindow()  # overwrite
             ########################
-            return  #################
+            return  ################
             ########################
 
         self.window.SetPosition(pos)
@@ -735,7 +733,7 @@ class Plotter:
             self._interactive = False
             self.interactor = None
             ########################
-            return  #################
+            return  ################
             ########################
 
         self.interactor = vtk.vtkRenderWindowInteractor()
@@ -953,8 +951,6 @@ class Plotter:
         """
         if self.interactor:
             self.interactor.Start()
-            if vedo.vtk_version == (9, 2, 2):
-                self.interactor.GetRenderWindow().SetDisplayId("_0_p_void")  ##HACK
         return self
 
     def use_depth_peeling(self, at=None, value=True):
@@ -1293,7 +1289,6 @@ class Plotter:
         erec.EnabledOn()
         erec.Record()
         self.interactor.Start()
-        if vedo.vtk_version == (9,2,2): self.interactor.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
         erec.Stop()
         erec.EnabledOff()
         with open(filename, "r", encoding="UTF-8") as fl:
@@ -1661,7 +1656,6 @@ class Plotter:
         sw.Render()
         if interactive:
             self.interactor.Start()
-            if vedo.vtk_version == (9,2,2): self.interactor.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
         else:
             self.interactor.Render()
         return sw
@@ -3087,7 +3081,7 @@ class Plotter:
         self.window.SetWindowName(self.title)
 
         try:
-            # Needs pip install pyobjc
+            # Needs "pip install pyobjc" on Mac OSX
             if (
                 self._cocoa_initialized is False
                 and "Darwin" in vedo.sys_platform
@@ -3095,12 +3089,12 @@ class Plotter:
             ):
                 self._cocoa_initialized = True
                 from Cocoa import NSRunningApplication, NSApplicationActivateIgnoringOtherApps
-
                 pid = os.getpid()
                 x = NSRunningApplication.runningApplicationWithProcessIdentifier_(int(pid))
                 x.activateWithOptions_(NSApplicationActivateIgnoringOtherApps)
         except:
-            vedo.logger.debug("On Mac OSX try: pip install pyobjc")
+            pass
+            # vedo.logger.debug("On Mac OSX try: pip install pyobjc")
 
         if self.interactor:  # can be offscreen..
 
@@ -3111,19 +3105,7 @@ class Plotter:
 
             if self._interactive:
                 self.interactor.Start()
-                # vtk BUG:
-                if vedo.vtk_version == (9, 2, 2):
-                    self.interactor.GetRenderWindow().SetDisplayId("_0_p_void")  ##HACK
-            elif (
-                "Darwin" in vedo.sys_platform
-                and vedo.vtk_version == (9, 2, 5)
-                and settings.allow_interaction
-                and len(self.renderers) == 1
-            ):
-                # this causes focus problems with boolean.py and others
-                # when multirendering is present, but makes the window pop up
-                self.process_events()
-
+                
             if rate:
                 if self.clock is None:  # set clock and limit rate
                     self._clockt0 = time.time()
@@ -3706,7 +3688,6 @@ class Plotter:
             else:
                 iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
             iren.Start()
-            if vedo.vtk_version == (9,2,2): iren.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
             return
 
         elif key == "A":  # toggle antialiasing
@@ -3748,7 +3729,6 @@ class Plotter:
                 vedo.printc(" press j to go back to normal.")
                 iren.SetInteractorStyle(vtk.vtkInteractorStyleJoystickCamera())
             iren.Start()
-            if vedo.vtk_version == (9,2,2): iren.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
             return
 
         elif key == "period":
