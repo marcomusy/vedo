@@ -1300,7 +1300,10 @@ class Points(BaseActor, vtk.vtkActor):
             self.trail = tline  # holds the Line
         return self
 
-    def _update_trail(self):
+    def update_trail(self):
+        """
+        Update the trailing line of a moving object.
+        """
         if isinstance(self, vedo.shapes.Arrow):
             currentpos = self.tipPoint()  # the tip of Arrow
         else:
@@ -1314,7 +1317,87 @@ class Points(BaseActor, vtk.vtkActor):
         tpoly.GetPoints().SetData(utils.numpy2vtk(data, dtype=np.float32))
         self.trail.SetPosition(currentpos)
 
-    def _update_shadows(self):
+
+    def add_shadow(self, plane, point, direction=None, c=(0.6, 0.6, 0.6), alpha=1, culling=0):
+        """
+        Generate a shadow out of an `Mesh` on one of the three Cartesian planes.
+        The output is a new `Mesh` representing the shadow.
+        This new mesh is accessible through `mesh.shadow`.
+        By default the shadow mesh is placed on the bottom wall of the bounding box.
+
+        See also `pointcloud.project_on_plane()`.
+
+        Arguments:
+            plane : (str, Plane)
+                if plane is `str`, plane can be one of `['x', 'y', 'z']`,
+                represents x-plane, y-plane and z-plane, respectively.
+                Otherwise, plane should be an instance of `vedo.shapes.Plane`
+            point : (float, array)
+                if plane is `str`, point should be a float represents the intercept.
+                Otherwise, point is the camera point of perspective projection
+            direction : (list)
+                direction of oblique projection
+            culling : (int)
+                choose between front [1] or backface [-1] culling or None.
+
+        Examples:
+            - [shadow1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/shadow1.py)
+            - [airplane1.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplane1.py)
+            - [airplane2.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplane2.py)
+
+            ![](https://vedo.embl.es/images/simulations/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)
+        """
+        shad = self.clone()
+        shad._data.GetPointData().SetTCoords(None) # remove any texture coords
+        shad.name = "Shadow"
+
+        pts = shad.points()
+        if plane == 'x':
+            # shad = shad.project_on_plane('x')
+            # instead do it manually so in case of alpha<1 we dont see glitches due to coplanar points
+            # we leave a small tolerance of 0.1% in thickness
+            x0, x1 = self.xbounds()
+            pts[:, 0] = (pts[:, 0] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[0]
+            shad.points(pts)
+            shad.x(point)
+        elif plane == 'y':
+            x0, x1 = self.ybounds()
+            pts[:, 1] = (pts[:, 1] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[1]
+            shad.points(pts)
+            shad.y(point)
+        elif plane == "z":
+            x0, x1 = self.zbounds()
+            pts[:, 2] = (pts[:, 2] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[2]
+            shad.points(pts)
+            shad.z(point)
+        else:
+            shad = shad.project_on_plane(plane, point, direction)
+
+        shad.c(c).alpha(alpha)
+
+        try:
+            # Points dont have these methods
+            shad.flat()
+            if culling in (1, True):
+                shad.frontface_culling()
+            elif culling == -1:
+                shad.backface_culling()
+        except AttributeError:
+            pass
+
+        shad.GetProperty().LightingOff()
+        shad.SetPickable(False)
+        shad.SetUseBounds(True)
+
+        if shad not in self.shadows:
+            self.shadows.append(shad)
+            shad.info = dict(plane=plane, point=point, direction=direction)
+        return self
+
+    def update_shadows(self):
+        """
+        Update the shadows of a moving object.
+        """
         shadows = self.shadows
         self.shadows = []
         for sha in shadows:

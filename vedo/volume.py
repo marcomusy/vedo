@@ -421,14 +421,24 @@ class BaseVolume:
 
     def pad(self, voxels=10, value=0):
         """
-        Add the specified number of pixels at the picture borders.
-        Pixels can be a list formatted as [left,right,bottom,top].
+        Add the specified number of voxels at the `Volume` borders.
+        Voxels can be a list formatted as `[nx0, nx1, ny0, ny1, nz0, nz1]`.
 
         Arguments:
-            pixels : (int, list)
-                number of pixels to be added (or a list of length 4)
+            voxels : (int, list)
+                number of voxels to be added (or a list of length 4)
             value : (int)
                 intensity value (gray-scale color) of the padding
+        
+        Example:
+            ```python
+            from vedo import Volume, dataurl
+            iso = Volume(dataurl+'embryo.tif').isosurface()
+            vol = iso.binarize(spacing=(100, 100, 100)).pad(10)
+            vol.dilate([15,15,15])
+            show(iso, vol.isosurface(), N=2, axes=1)
+            ```
+            ![](https://vedo.embl.es/images/volumetric/volume_pad.png)
         """
         x0, x1, y0, y1, z0, z1 = self._data.GetExtent()
         pf = vtk.vtkImageConstantPad()

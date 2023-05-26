@@ -26,7 +26,7 @@ widget.AddObserver("ExitEvent", lambda o,e,f=frame: f.Close())
 ##################################################### vedo example
 def func(evt):
     print("Event dump:\n", evt)
-    plt.camera.Azimuth(10) # rotate one camera
+    plt.azimuth(10) # rotate by one degree the camera
 
 cone = vedo.shapes.Cone(c='green8')
 axes = vedo.Axes(cone, c='white')

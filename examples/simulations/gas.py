@@ -124,8 +124,6 @@ for i in progressbar(Nsteps):
         Atoms[i].pos(pos[i])  ### <--
     outside = np.greater_equal(mag(pos), RingRadius + RingThickness)
 
-    plt.render().reset_camera()  ### <--
-
-    plt.camera.Azimuth(0.5)
+    plt.render().reset_camera().azimuth(0.5)  ### <--
 
 plt.interactive().close()

@@ -89,6 +89,6 @@ for t in np.arange(0, 1, 0.005):
 
     plt.at(2).show(act21, resetcam=False)
     plt.at(3).show(act12)
-    plt.camera.Azimuth(2)
+    plt.azimuth(2)
 
 plt.interactive().close()

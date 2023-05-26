@@ -44,6 +44,7 @@ __all__ = [
     "Goniometer",
     "Button",
     "Flagpost",
+    "ProgressBarWindow",
 ]
 
 ########################################################################################
@@ -1967,6 +1968,98 @@ class RendererFrame(vtk.vtkActor2D):
         self.GetProperty().SetColor(c)
         self.GetProperty().SetOpacity(alpha)
         self.GetProperty().SetLineWidth(lw)
+
+#####################################################################
+class ProgressBarWindow(vtk.vtkActor2D):
+    """
+    Add a progress bar in the rendering window.
+    """
+    def __init__(self, n=None, c="blue5", alpha=0.8, lw=10, autohide=True):
+        """
+        Add a progress bar window.
+
+        Arguments:
+            n : (int)
+                number of iterations. 
+                If None, you need to call `update(fraction)` manually.
+            c : (color)
+                color of the line.
+            alpha : (float)
+                opacity of the line.
+            lw : (int)
+                line width in pixels.
+            autohide : (bool)
+                if True, hide the progress bar when completed.
+        """
+        self.n = 0
+        self.iterations = n
+        self.autohide = autohide
+
+        ppoints = vtk.vtkPoints()  # Generate the line
+        psqr = [[0, 0, 0], [1, 0, 0]]
+        for i, pt in enumerate(psqr):
+            ppoints.InsertPoint(i, *pt)
+        lines = vtk.vtkCellArray()
+        lines.InsertNextCell(len(psqr))
+        for i in range(len(psqr)):
+            lines.InsertCellPoint(i)
+        pd = vtk.vtkPolyData()
+        pd.SetPoints(ppoints)
+        pd.SetLines(lines)
+        self._data = pd
+
+        mapper = vtk.vtkPolyDataMapper2D()
+        mapper.SetInputData(pd)
+        cs = vtk.vtkCoordinate()
+        cs.SetCoordinateSystemToNormalizedViewport()
+        mapper.SetTransformCoordinate(cs)
+
+        vtk.vtkActor2D.__init__(self)
+        
+        self.SetMapper(mapper)
+        self.GetProperty().SetOpacity(alpha)
+        self.GetProperty().SetColor(get_color(c))
+        self.GetProperty().SetLineWidth(lw*2)
+
+        
+    def lw(self, value):
+        """Set width."""
+        self.GetProperty().SetLineWidth(value*2)
+        return self
+
+    def c(self, color):
+        """Set color."""
+        c = get_color(color)
+        self.GetProperty().SetColor(c)
+        return self
+    
+    def alpha(self, value):
+        """Set opacity."""
+        self.GetProperty().SetOpacity(value)
+        return self
+
+    def update(self, fraction=None):
+        """Update progress bar to fraction of the window width."""
+        if fraction is None:
+            if self.iterations is None:
+                vedo.printc("Error in ProgressBarWindow: must specify iterations", c='r')
+                return self
+            self.n += 1
+            fraction = self.n / self.iterations
+
+        if fraction >= 1 and self.autohide:
+            fraction = 0
+
+        psqr = [[0, 0, 0], [fraction, 0, 0]]
+        vpts = utils.numpy2vtk(psqr, dtype=np.float32)
+        self._data.GetPoints().SetData(vpts)
+        return self
+    
+    def reset(self):
+        """Reset progress bar."""
+        self.n = 0
+        self.update(0)
+        return self
 
 
 #####################################################################

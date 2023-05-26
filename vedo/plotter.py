@@ -2645,15 +2645,15 @@ class Plotter:
 
                 if isinstance(a, vedo.base.BaseActor):
                     if a.shadows:
-                        a._update_shadows()
+                        a.update_shadows()
                         scannedacts.extend(a.shadows)
 
                     if a.trail and a.trail not in self.actors:
-                        a._update_trail()
+                        a.update_trail()
                         scannedacts.append(a.trail)
                         # trails may also have shadows:
                         if a.trail.shadows:
-                            a.trail._update_shadows()
+                            a.trail.update_shadows()
                             scannedacts.extend(a.trail.shadows)
 
                     if a._caption and a._caption not in self.actors:
@@ -2950,7 +2950,7 @@ class Plotter:
         for a in self.actors:
             try:
                 if a.trail:
-                    a._update_trail()
+                    a.update_trail()
             except AttributeError:
                 pass
 

@@ -58,8 +58,8 @@ for i in range(0, Nsteps):
 
 # now show the same lines along z representing time
 plt.actors= [] # clean up internal list of objects to show
-plt.camera.Elevation(20)
-plt.camera.Azimuth(20)
+plt.elevation(20)
+plt.azimuth(20)
 bck.alpha(1)
 for i in range(Nsteps):
     p = [0, 0, i*size/Nsteps]  # shift along z

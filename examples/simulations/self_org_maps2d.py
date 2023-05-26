@@ -49,8 +49,8 @@ class SOM:
                     for j in range(n):
                         grdpts[i*n+j] = (x[i,j], y[i,j], z[i,j])
                 grd.points(grdpts)
-                plt.render()
-                plt.camera.Azimuth(1)
+                plt.azimuth(1.0).render()
+
         plt.interactive().close()
 
         return [self.codebook[:,i].reshape(n,n) for i in range(3)]
