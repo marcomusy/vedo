@@ -980,7 +980,7 @@ def ScalarBar3D(
     obj,
     title="",
     pos=None,
-    s=(None, None),
+    size=(None, None),
     title_font="",
     title_xoffset=-1.5,
     title_yoffset=0.0,
@@ -1011,8 +1011,8 @@ def ScalarBar3D(
         - if None the last object in the list of actors will be used.
 
     Arguments:
-        s : (list)
-            the tuple (thickness, length) of scalarbar
+        size : (list)
+            (thickness, length) of scalarbar
         title : (str)
             scalar bar title
         title_xoffset : (float)
@@ -1063,7 +1063,7 @@ def ScalarBar3D(
         return obj
 
     bns = obj.bounds()
-    sx, sy = s
+    sx, sy = size
     if sy is None:
         sy = bns[3] - bns[2]
     if sx is None:

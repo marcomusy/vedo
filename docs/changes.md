@@ -26,7 +26,6 @@
 - Update API Documentation for Changing Backend by @bhacha
 - Add `application.Browser().play()` to autoplay a slider
 - Add `pad()` to padding a Volume with zeros voxels (useful to `dilate()`)
-
 - Add `ProgressBarWindow()` to show a progress bar in the rendering window
 
 -------------------------
@@ -38,7 +37,7 @@ examples/advanced/timer_callback3.py
 examples/advanced/warp6.py
 examples/pyplot/histo_1d_e.py
 examples/other/tensor_grid2.py
-examples/simulations/lorentz.py
+examples/simulations/lorenz.py
 ```
 
 ### Broken Examples

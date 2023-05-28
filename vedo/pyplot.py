@@ -3024,7 +3024,7 @@ def _plot_spheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha
         xm = np.max([np.max(pts[0]), 1])
         ym = np.max([np.abs(np.max(pts[1])), 1])
         ssurf.mapper().SetScalarRange(np.min(newr), np.max(newr))
-        sb3d = ssurf.add_scalarbar3d(s=(xm * 0.07, ym), c="k").scalarbar
+        sb3d = ssurf.add_scalarbar3d(size=(xm * 0.07, ym), c="k").scalarbar
         sb3d.rotate_x(90).pos(xm * 1.1, 0, -0.5)
     else:
         sb3d = None

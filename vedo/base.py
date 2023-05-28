@@ -1817,7 +1817,7 @@ class BaseActor(Base3DProp):
         self,
         title="",
         pos=None,
-        s=(None, None),
+        size=(None, None),
         title_font="",
         title_xoffset=-1.5,
         title_yoffset=0.0,
@@ -1842,7 +1842,7 @@ class BaseActor(Base3DProp):
         The new scalarbar object (Assembly) will be accessible as obj.scalarbar
 
         Arguments:
-            s : (list)
+            size : (list)
                 (thickness, length) of scalarbar
             title : (str)
                 scalar bar title
@@ -1888,7 +1888,7 @@ class BaseActor(Base3DProp):
             self,
             title,
             pos,
-            s,
+            size,
             title_font,
             title_xoffset,
             title_yoffset,

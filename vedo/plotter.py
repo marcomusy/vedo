@@ -3326,7 +3326,7 @@ class Plotter:
         if vedo.plotter_instance == self:
             vedo.plotter_instance = None
 
-    def screenshot(self, filename="screenshot.png", scale=None, asarray=False):
+    def screenshot(self, filename="screenshot.png", scale=1, asarray=False):
         """
         Take a screenshot of the Plotter window.
 
