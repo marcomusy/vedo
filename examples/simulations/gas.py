@@ -4,8 +4,10 @@
 ## Adapted by M. Musy for vedo
 ## relevant points in the code are marked with '### <--'
 from random import random
-from vedo import Plotter, progressbar, mag, versor, Torus, Sphere
 import numpy as np
+from vedo import Plotter, progressbar, mag, versor, Torus, Sphere
+from vedo.addons import ProgressBarWindow
+
 
 #############################################################
 Natoms = 400  # change this to have more or fewer atoms
@@ -64,9 +66,12 @@ ds = (p / m) * (dt / 2.0)
 if "False" not in np.less_equal(mag(ds), radius).tolist():
     pos = pos + (p / mass) * (dt / 2.0)  # initial half-step
 
+pbw = ProgressBarWindow(Nsteps)
+plt += pbw
+
 plt.show()
 
-for i in progressbar(Nsteps):
+for it in range(Nsteps):
     # Update all positions
     ds = mag((p / m) * (dt / 2.0))
     if "False" not in np.less_equal(ds, radius).tolist():
@@ -120,10 +125,11 @@ for i in progressbar(Nsteps):
             p[k] = reflection(p[k], pos[k] - poscircle[k])
 
     # then update positions of display objects
-    for i in range(Natoms):
-        Atoms[i].pos(pos[i])  ### <--
+    for l in range(Natoms):
+        Atoms[l].pos(pos[l])  ### <--
     outside = np.greater_equal(mag(pos), RingRadius + RingThickness)
 
+    pbw.update()  # update progress bar
     plt.render().reset_camera().azimuth(0.5)  ### <--
 
 plt.interactive().close()

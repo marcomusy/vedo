@@ -329,7 +329,7 @@ class Settings:
                 fscale=0.75,
                 hspacing=1,
                 lspacing=0.2,
-                dotsep="~·",
+                dotsep="~×",
                 islocal=True,
             ),
             Bongas=dict(
@@ -345,7 +345,7 @@ class Settings:
                 fscale=0.8,
                 hspacing=1,
                 lspacing=0.1,
-                dotsep="·",
+                dotsep="×",
                 islocal=True,
             ),
             Comae=dict(
@@ -353,7 +353,7 @@ class Settings:
                 fscale=0.75,
                 lspacing=0.2,
                 hspacing=1,
-                dotsep="~·",
+                dotsep="~×",
                 islocal=True,
             ),
             ComicMono=dict(
@@ -361,7 +361,7 @@ class Settings:
                 fscale=0.8,
                 hspacing=1,
                 lspacing=0.1,
-                dotsep="·",
+                dotsep="x",
                 islocal=False,
             ),
             Edo=dict(
@@ -369,7 +369,7 @@ class Settings:
                 fscale=0.75,
                 hspacing=1,
                 lspacing=0.2,
-                dotsep="·~~",
+                dotsep="~x ",
                 islocal=False,
             ),
             FiraMonoMedium=dict(
@@ -377,7 +377,7 @@ class Settings:
                 fscale=0.8,
                 hspacing=1,
                 lspacing=0.1,
-                dotsep="·",
+                dotsep="×",
                 islocal=False,
             ),
             FiraMonoBold=dict(
@@ -385,7 +385,7 @@ class Settings:
                 fscale=0.8,
                 hspacing=1,
                 lspacing=0.1,
-                dotsep="·",
+                dotsep="×",
                 islocal=False,
             ),
             Glasgo=dict(
@@ -393,7 +393,7 @@ class Settings:
                 fscale=0.75,
                 lspacing=0.1,
                 hspacing=1,
-                dotsep="·",
+                dotsep="~×",
                 islocal=True,
             ),
             Kanopus=dict(
@@ -401,7 +401,7 @@ class Settings:
                 fscale=0.75,
                 lspacing=0.15,
                 hspacing=0.75,
-                dotsep="~·",
+                dotsep="~×",
                 islocal=True,
             ),
             LogoType=dict(
@@ -409,7 +409,7 @@ class Settings:
                 fscale=0.75,
                 hspacing=1,
                 lspacing=0.2,
-                dotsep="·~~",
+                dotsep="~×",
                 islocal=False,
             ),
             Quikhand=dict(
@@ -417,7 +417,7 @@ class Settings:
                 fscale=0.8,
                 hspacing=0.6,
                 lspacing=0.15,
-                dotsep="~~·~",
+                dotsep="~~×~",
                 islocal=True,
             ),
             SmartCouric=dict(
@@ -425,7 +425,7 @@ class Settings:
                 fscale=0.8,
                 hspacing=1.05,
                 lspacing=0.1,
-                dotsep="·",
+                dotsep="×",
                 islocal=True,
             ),
             Spears=dict(
@@ -433,7 +433,7 @@ class Settings:
                 fscale=0.8,
                 hspacing=0.5,
                 lspacing=0.2,
-                dotsep="·",
+                dotsep="~×",
                 islocal=False,
             ),
             Theemim=dict(
@@ -441,7 +441,7 @@ class Settings:
                 fscale=0.825,
                 hspacing=0.52,
                 lspacing=0.3,
-                dotsep="~·",
+                dotsep="~~×",
                 islocal=True,
             ),
             VictorMono=dict(
@@ -449,7 +449,7 @@ class Settings:
                 fscale=0.725,
                 hspacing=1,
                 lspacing=0.1,
-                dotsep="·",
+                dotsep="×",
                 islocal=True,
             ),
             Justino1=dict(
@@ -457,7 +457,7 @@ class Settings:
                 fscale=0.725,
                 hspacing=1,
                 lspacing=0.1,
-                dotsep="·",
+                dotsep="×",
                 islocal=False,
             ),
             Justino2=dict(
@@ -465,7 +465,7 @@ class Settings:
                 fscale=0.725,
                 hspacing=1,
                 lspacing=0.1,
-                dotsep="·",
+                dotsep="×",
                 islocal=False,
             ),
             Justino3=dict(
@@ -473,7 +473,7 @@ class Settings:
                 fscale=0.725,
                 hspacing=1,
                 lspacing=0.1,
-                dotsep="·",
+                dotsep="×",
                 islocal=False,
             ),
             Calibri=dict(
@@ -481,7 +481,7 @@ class Settings:
                 fscale=0.75,
                 hspacing=1,
                 lspacing=0.2,
-                dotsep="~·",
+                dotsep="~×",
                 islocal=False,
             ),
             Capsmall=dict(
@@ -489,7 +489,7 @@ class Settings:
                 fscale=0.8,
                 hspacing=0.75,
                 lspacing=0.15,
-                dotsep="·",
+                dotsep="~×",
                 islocal=False,
             ),
             Cartoons123=dict(
@@ -497,7 +497,7 @@ class Settings:
                 fscale=0.8,
                 hspacing=0.75,
                 lspacing=0.15,
-                dotsep="·",
+                dotsep="x",
                 islocal=False,
             ),
             Vega=dict(
@@ -505,7 +505,7 @@ class Settings:
                 fscale=0.8,
                 hspacing=0.75,
                 lspacing=0.15,
-                dotsep="·",
+                dotsep="×",
                 islocal=False,
             ),
             Meson=dict(
@@ -513,7 +513,7 @@ class Settings:
                 fscale=0.8,
                 hspacing=0.9,
                 lspacing=0.225,
-                dotsep="~^.~ ",
+                dotsep="~×",
                 islocal=False,
             ),
             Komika=dict(
@@ -521,7 +521,7 @@ class Settings:
                 fscale=0.7,
                 hspacing=0.75,
                 lspacing=0.225,
-                dotsep="~^.~ ",
+                dotsep="~×",
                 islocal=False,
             ),
             Vogue=dict(
@@ -529,7 +529,7 @@ class Settings:
                 fscale=0.7,
                 hspacing=0.75,
                 lspacing=0.225,
-                dotsep="~^.~ ",
+                dotsep="~x",
                 islocal=False,
             ),
             Brachium=dict(
@@ -537,7 +537,7 @@ class Settings:
                 fscale=0.8,
                 hspacing=1,
                 lspacing=0.1,
-                dotsep="·",
+                dotsep="x",
                 islocal=False,
             ),
             Dalim=dict(
@@ -545,7 +545,7 @@ class Settings:
                 fscale=0.75,
                 lspacing=0.2,
                 hspacing=1,
-                dotsep="~·",
+                dotsep="~×",
                 islocal=False,
             ),
             Miro=dict(
@@ -553,7 +553,7 @@ class Settings:
                 fscale=0.75,
                 lspacing=0.2,
                 hspacing=1,
-                dotsep="~·",
+                dotsep="~×",
                 islocal=False,
             ),
             Ubuntu=dict(
@@ -561,7 +561,7 @@ class Settings:
                 fscale=0.75,
                 lspacing=0.2,
                 hspacing=1,
-                dotsep="~·",
+                dotsep="~×",
                 islocal=False,
             ),
             Mizar=dict(
@@ -569,7 +569,7 @@ class Settings:
                 fscale=0.75,
                 lspacing=0.2,
                 hspacing=0.75,
-                dotsep="~·",
+                dotsep="~×",
                 islocal=False,
             ),
             LiberationSans=dict(
@@ -577,7 +577,7 @@ class Settings:
                 fscale=0.75,
                 lspacing=0.2,
                 hspacing=1,
-                dotsep="~·",
+                dotsep="~×",
                 islocal=False,
             ),
             DejavuSansMono=dict(
@@ -585,7 +585,7 @@ class Settings:
                 fscale=0.725,
                 hspacing=1,
                 lspacing=0.1,
-                dotsep="·",
+                dotsep="~×",
                 islocal=False,
             ),
             SunflowerHighway=dict(
@@ -593,7 +593,7 @@ class Settings:
                 fscale=0.75,
                 lspacing=0.2,
                 hspacing=1,
-                dotsep="~·",
+                dotsep="~×",
                 islocal=False,
             ),
             Swansea=dict(
@@ -601,7 +601,7 @@ class Settings:
                 fscale=0.75,
                 lspacing=0.2,
                 hspacing=1,
-                dotsep="~·",
+                dotsep="~×",
                 islocal=False,
             ),
             Housekeeper=dict(  # support chinese glyphs
@@ -609,7 +609,7 @@ class Settings:
                 fscale=0.75,
                 hspacing=1,
                 lspacing=0.2,
-                dotsep="~·",
+                dotsep="~×",
                 islocal=False,
             ),
             Wananti=dict(  # support chinese glyphs
@@ -617,7 +617,7 @@ class Settings:
                 fscale=0.75,
                 hspacing=1,
                 lspacing=0.2,
-                dotsep="~·",
+                dotsep="~x",
                 islocal=False,
             ),
             AnimeAce=dict(
@@ -625,7 +625,7 @@ class Settings:
                 fscale=0.75,
                 hspacing=1,
                 lspacing=0.2,
-                dotsep="~·",
+                dotsep="~x",
                 islocal=False,
             ),
             AnimeAceBold=dict(
@@ -633,7 +633,7 @@ class Settings:
                 fscale=0.75,
                 hspacing=1,
                 lspacing=0.2,
-                dotsep="~·",
+                dotsep="~x",
                 islocal=False,
             ),
         )

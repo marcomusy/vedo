@@ -1621,10 +1621,11 @@ class Points(BaseActor, vtk.vtkActor):
         "Deprecated. Please use `point_size()`."
         return self.point_size(value)
 
-    def point_size(self, value):
+    def point_size(self, value=None):
         """Set/get mesh's point size of vertices. Same as `mesh.ps()`"""
-        if not value:
-            self.GetProperty().SetRepresentationToSurface()
+        if value is None:
+            return self.GetProperty().GetPointSize()
+            #self.GetProperty().SetRepresentationToSurface()
         else:
             self.GetProperty().SetRepresentationToPoints()
             self.GetProperty().SetPointSize(value)
@@ -2033,6 +2034,7 @@ class Points(BaseActor, vtk.vtkActor):
 
         ids = vedo.mesh.Mesh(lpoly, c=c, alpha=alpha)
         ids.GetProperty().LightingOff()
+        ids.PickableOff()
         ids.SetUseBounds(False)
         return ids
 
@@ -2150,6 +2152,7 @@ class Points(BaseActor, vtk.vtkActor):
 
         mp.SetInputData(poly)
         a2d = vtk.vtkActor2D()
+        a2d.PickableOff()
         a2d.SetMapper(mp)
         return a2d
 

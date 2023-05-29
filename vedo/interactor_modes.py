@@ -132,11 +132,11 @@ class MousePan(vtk.vtkInteractorStyleUser):
 
     def _mouse_move(self, w, e):
         if self.left:
-            self.mouse_left_move()
+            self._mouse_left_move()
         if self.middle:
-            self.mouse_middle_move()
+            self._mouse_middle_move()
         if self.right:
-            self.mouse_right_move()
+            self._mouse_right_move()
 
 
 ###################################################################################

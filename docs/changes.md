@@ -27,6 +27,8 @@
 - Add `application.Browser().play()` to autoplay a slider
 - Add `pad()` to padding a Volume with zeros voxels (useful to `dilate()`)
 - Add `ProgressBarWindow()` to show a progress bar in the rendering window
+- Fix Scalarbar3D logscale and change separator symbol by @XushanLu
+- Fix `vedo/interactor_modes.mouse_left_move()` by @MiticoDan
 
 -------------------------
 ## New/Revised Examples
@@ -38,6 +40,7 @@ examples/advanced/warp6.py
 examples/pyplot/histo_1d_e.py
 examples/other/tensor_grid2.py
 examples/simulations/lorenz.py
+examples/simulations/gas.py
 ```
 
 ### Broken Examples
