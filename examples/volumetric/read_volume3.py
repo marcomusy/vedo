@@ -10,13 +10,13 @@ vsl.colorize().lighting(window=100, level=25)
 
 usage = Text2D(
     f"Image-style interactor:\n"
-    f"SHIFT+Left click   \rightarrow rotate camera for oblique slicing\n"
-    f"SHIFT+Middle click \rightarrow slice perpendicularly through image\n"
-    f"Left click & drag  \rightarrow modify luminosity and contrast\n"
-    f"X                  \rightarrow Reset to sagittal view\n"
-    f"Y                  \rightarrow Reset to coronal view\n"
-    f"Z                  \rightarrow Reset to axial view\n"
-    f"R                  \rightarrow Reset the Window/Levels",
+    f"SHIFT+Left click   :rightarrow rotate camera for oblique slicing\n"
+    f"SHIFT+Middle click :rightarrow slice perpendicularly through image\n"
+    f"Left click & drag  :rightarrow modify luminosity and contrast\n"
+    f"X                  :rightarrow Reset to sagittal view\n"
+    f"Y                  :rightarrow Reset to coronal view\n"
+    f"Z                  :rightarrow Reset to axial view\n"
+    f"R                  :rightarrow Reset the Window/Levels",
     font="Calco", pos="bottom-left", s=0.9, bg='yellow', alpha=0.25
 )
 

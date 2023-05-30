@@ -2388,7 +2388,7 @@ class Points(BaseActor, vtk.vtkActor):
         txt=None,
         point=None,
         size=(0.30, 0.15),
-        padding=5.0,
+        padding=5,
         font="Calco",
         justify="center-right",
         vspacing=1.0,
@@ -2469,7 +2469,7 @@ class Points(BaseActor, vtk.vtkActor):
         sph.Update()
         capt.SetLeaderGlyphData(sph.GetOutput())
         capt.SetMaximumLeaderGlyphSize(5)
-        capt.SetPadding(padding)
+        capt.SetPadding(int(padding))
         capt.SetCaption(txt)
         capt.SetWidth(size[0])
         capt.SetHeight(size[1])
@@ -4531,7 +4531,6 @@ class Points(BaseActor, vtk.vtkActor):
                 the contour is not resampled.
             mesh_resolution : (int)
                 resolution of the internal triangles not touching the boundary.
-                The default is None.
             smooth : (float)
                 smoothing of the contour before meshing.
             jitter : (float)

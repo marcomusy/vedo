@@ -1819,7 +1819,7 @@ class PlotXY(Figure):
                 band.c(lc)
             else:
                 band.c(ec)
-            band.lighting("off").alpha(la).z(ztol / 10)
+            band.lighting("off").alpha(la).z(ztol / 20)
             acts.append(band)
 
         else:

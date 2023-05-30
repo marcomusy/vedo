@@ -29,6 +29,10 @@ fi
 
 #################################  command line tests
 echo '---------------------------- command line tests'
+echo vedo
+vedo
+
+echo '----------------------------'
 echo vedo  ../data/2*.vtk
 vedo       ../data/2*.vtk
 
@@ -45,12 +49,8 @@ echo vedo  ../data/embryo.tif
 vedo       ../data/embryo.tif
 
 echo '----------------------------'
-echo vedo --lego --cmap afmhot_r ../data/embryo.tif
-vedo      --lego --cmap afmhot_r ../data/embryo.tif
-
-echo '----------------------------'
-echo vedo -g -c blue ../data/embryo.slc
-vedo      -g -c blue ../data/embryo.slc
+echo vedo -g ../data/embryo.slc
+vedo      -g ../data/embryo.slc
 
 echo '----------------------------'
 echo vedo --slicer2d ../data/embryo.tif
@@ -61,10 +61,7 @@ echo vedo --slicer3d ../data/embryo.tif
 vedo      --slicer3d ../data/embryo.tif
 
 echo '----------------------------'
-echo vedo --eog ../data/Wnt5a.jpg
-vedo      --eog ../data/Wnt5a.jpg
+echo vedo --eog ../data/uv_grid.jpg
+vedo      --eog ../data/uv_grid.jpg
 
-echo '---------------------------- should open a GUI'
-echo vedo
-vedo
 

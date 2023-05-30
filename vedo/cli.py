@@ -687,6 +687,8 @@ def draw_scene(args):
         args.multirenderer_mode = False
     settings.default_font = args.font
 
+    sharecam = args.no_camera_share
+
     N = None
     if args.multirenderer_mode:
         if nfiles < 201:
@@ -698,7 +700,9 @@ def draw_scene(args):
         if N > 4:
             settings.use_depth_peeling = False
 
-        plt = Plotter(size=wsize, N=N, bg=args.background, bg2=args.background_grad)
+        plt = Plotter(size=wsize, N=N, 
+                      bg=args.background, bg2=args.background_grad,
+                      sharecam=sharecam)
         settings.immediate_rendering = False
         plt.axes = args.axes_type
         for i in range(N):
@@ -710,8 +714,6 @@ def draw_scene(args):
         plt = Plotter(size=wsize, bg=args.background, bg2=args.background_grad)
         plt.axes = args.axes_type
         plt.add_hover_legend()
-
-    plt.sharecam = not args.no_camera_share
 
     wire = False
     if args.wireframe:
@@ -816,11 +818,14 @@ def draw_scene(args):
         # print('DEBUG normal mode for single VOXEL file with Isosurface Slider mode')
         vol = file_io.load(args.files[0], force=args.reload)
         sp = vol.spacing()
-        vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
+        vol.spacing([sp[0] * args.x_spacing, 
+                     sp[1] * args.y_spacing, 
+                     sp[2] * args.z_spacing])
         if not args.color:
             args.color = "gold"
         plt = applications.IsosurfaceBrowser(
-            vol, c=args.color, cmap=args.cmap, precompute=False, progress=True, use_gpu=True
+            vol, c=args.color, cmap=args.cmap, 
+            precompute=False, progress=True, use_gpu=True,
         )
         plt.show(zoom=args.zoom, viewup="z")
         return
@@ -891,7 +896,8 @@ def draw_scene(args):
                 try:
                     ds = actor.diagonal_size() * 3
                     plt.camera.SetClippingRange(0, ds)
-                    plt.show(actor, at=i, interactive=False, zoom=args.zoom, mode=interactor_mode)
+                    plt.show(actor, at=i, interactive=False,
+                             zoom=args.zoom, mode=interactor_mode)
                     plt.actors = actors
                 except AttributeError:
                     # wildcards in quotes make glob return actor as a list :(
@@ -908,7 +914,6 @@ def draw_scene(args):
             if all(a is None for a in actors):
                 vedo.logger.error("Could not load file(s). Quit.")
                 return
-
             plt.show(actors, interactive=True, zoom=args.zoom, mode=interactor_mode)
         return
 

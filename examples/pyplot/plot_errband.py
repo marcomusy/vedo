@@ -11,12 +11,12 @@ idx = np.argmax(y)
 
 # Plot the two variables, return a Plot(Assembly) object:
 fig = plot(
-    x,y,
+    x, y,
     yerrors=ye,
     xtitle='time in :museconds',
     ytitle='y oscillation [a.u.]',
     ylim=(0.5, 5),
-    aspect=5/3,      # aspect ratio (any float = xsize/ysize)
+    aspect=5/3,      # plot aspect ratio (xsize/ysize)
     error_band=True, # join errors on y into an error band
     lc="red2",       # line color
     ec="red7",       # error band color
@@ -29,7 +29,8 @@ fig = plot(
 fig += Rectangle([1,0.5], [2.7,5], c='grey5').lighting('off')
 
 # Add some text (set z=2 so it stays on top):
-fig += Text3D("Excluded\ntime range!", s=.2, c='k', font="Quikhand").rotate_z(20).pos(1.3,3.6,0.1)
+fig += Text3D("Excluded\ntime range!",
+              s=0.2, c='k', font="Quikhand").rotate_z(20).pos(1.3,3.6)
 
 # Add a star marker at maximum of function (set z=0.1, so it stays on top):
 fig += Marker('*', c='blue4').pos(x[idx], y[idx], 0.1)
@@ -37,4 +38,4 @@ fig += Marker('*', c='blue4').pos(x[idx], y[idx], 0.1)
 # Add a dashed line to indicate the minimum
 fig += Line((x[0], miny), (x[-1], miny)).pattern('- . -').lw(3)
 
-fig.show(zoom='tight', mode="image", size=(900,600)).close()
+fig.show(zoom='tight', mode='image', size=(900,600)).close()
