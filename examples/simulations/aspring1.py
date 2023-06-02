@@ -13,10 +13,8 @@ v = vector(0, 0, 0.2)
 x = vector(x0, 0, 0)
 xr = vector(L, 0, 0)
 sx0 = vector(-0.8, 0, 0)
-offx = vector(0, 0.3, 0)
 
 plt = Plotter(size=(1050, 600))
-
 plt += Box(pos=(0, -0.1, 0), size=(2.0, 0.02, 0.5))  # floor
 plt += Box(pos=(-0.82, 0.15, 0), size=(0.04,0.50,0.3))  # wall
 

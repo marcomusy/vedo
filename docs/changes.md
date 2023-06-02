@@ -29,6 +29,7 @@
 - Add `ProgressBarWindow()` to show a progress bar in the rendering window
 - Fix Scalarbar3D logscale and change separator symbol by @XushanLu
 - Fix `vedo/interactor_modes.mouse_left_move()` by @MiticoDan
+- Added `applications.AnimationPlayer` class by @mikaeltulldahl
 
 -------------------------
 ## New/Revised Examples
@@ -41,6 +42,7 @@ examples/pyplot/histo_1d_e.py
 examples/other/tensor_grid2.py
 examples/simulations/lorenz.py
 examples/simulations/gas.py
+examples/simulations/aspring2_player.py
 ```
 
 ### Broken Examples

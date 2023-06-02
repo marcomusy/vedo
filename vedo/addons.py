@@ -1314,7 +1314,6 @@ class Slider2D(SliderWidget):
     """
     Add a slider which can call an external custom function.
     """
-
     def __init__(
         self,
         sliderfunc,
