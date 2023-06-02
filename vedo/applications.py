@@ -19,6 +19,11 @@ from vedo.shapes import Ribbon
 from vedo.shapes import Spline
 from vedo.shapes import Text2D
 from vedo.pyplot import CornerHistogram
+from vedo.addons import SliderWidget
+from vedo.plotter import Event
+from vedo import BaseActor
+from typing import Callable
+
 
 __docformat__ = "google"
 
@@ -1591,6 +1596,149 @@ class Animation(Plotter):
         self.bookingMode = True
 
 
+########################################################################
+class PlayerAnimation:
+    """A media player with play/pause, step forward/backward and a slider
+    
+    Useful for simulations. func will get called at each update, and the
+    user has the responsibility to update all actors. Pay attention to that
+    the idx can both increment and decrement, as well as make large jumps.
+    """
+    PLAY_SYMBOL = "\u23F5 Play  "
+    PAUSE_SYMBOL = "\u23F8 Pause"
+    ONE_BACK_SYMBOL = "\u29CF Step"
+    ONE_FORWARD_SYMBOL = "\u29D0 Step"
+
+    def __init__(
+        self,
+        func: Callable[[int],None],
+        min_val: int = 0,
+        max_val: int = 100,
+        dt: int = 100,
+        **kwargs,
+    ):
+        self._func = func
+        self.val = min_val - 1
+        self.min_val = min_val
+        self.max_val = max_val
+        self.dt = dt
+        self.is_playing = False
+        self.timer_id = None
+        self.plotter = vedo.Plotter(**kwargs)
+        self.plotter.add_callback("timer", self._handle_timer)
+
+        self.play_pause_button = self.plotter.add_button(
+            self.play_pause,
+            pos=(0.5, 0.13),  # x,y fraction from bottom left corner
+            states=[PlayerAnimation.PLAY_SYMBOL, PlayerAnimation.PAUSE_SYMBOL],
+            font="Kanopus",
+            size=32,
+        )
+        self.button_oneback = self.plotter.add_button(
+            self.onebackward,
+            pos=(0.35, 0.13),  # x,y fraction from bottom left corner
+            states=[self.ONE_BACK_SYMBOL],
+            font="Kanopus",
+            size=32,
+        )
+        self.button_oneforward = self.plotter.add_button(
+            self.oneforward,
+            pos=(0.65, 0.13),  # x,y fraction from bottom left corner
+            states=[self.ONE_FORWARD_SYMBOL],
+            font="Kanopus",
+            size=32,
+        )
+        self.slider: SliderWidget = self.plotter.add_slider(
+            self._slider_callback,
+            self.min_val,
+            self.max_val,
+            self.min_val,
+            pos=5,
+        )
+
+    def set_play_pause_button(self, new_status: str) -> None:
+        if self.play_pause_button.status() is new_status:
+            return
+        self.play_pause_button.status(new_status)
+        self.plotter.render()
+
+    def pause(self) -> None:
+        self.is_playing = False
+        if self.timer_id is not None:
+            self.plotter.timer_callback("destroy", self.timer_id)
+        self.set_play_pause_button(self.PLAY_SYMBOL)
+
+    def resume(self) -> None:
+        if self.timer_id is not None:
+            self.plotter.timer_callback("destroy", self.timer_id)
+        self.timer_id = self.plotter.timer_callback("create", dt=self.dt)
+        self.is_playing = True
+        self.set_play_pause_button(self.PAUSE_SYMBOL)
+
+    def play_pause(self) -> None:
+        if not self.is_playing:
+            self.resume()
+        else:
+            self.pause()
+
+    def oneforward(self) -> None:
+        self.pause()
+        self.set_val(self.val + 1)
+
+    def onebackward(self) -> None:
+        self.pause()
+        self.set_val(self.val - 1)
+
+    def set_val(self, next_val: int) -> None:
+        if next_val == self.val:
+            return
+        if next_val < self.min_val or next_val > self.max_val:
+            self.pause()
+            return
+        self.val = next_val
+        self.slider.value = self.val
+        self._func(self.val)
+        self.plotter.render()
+
+    def _slider_callback(self, widget: SliderWidget, _: str) -> None:
+        self.pause()
+        self.set_val(int(round(widget.value)))
+
+    def _handle_timer(self, _: Event = None) -> None:
+        self.set_val(self.val + 1)
+
+########################################################################
+class PlayerAnimationCached:
+    """A wrapper for PlayerAnimation which handles all history caching.
+
+    simulation_func is guaranteed to only be called once per increment, without skips,
+    always increasing idx. This is useful for simulations which can not go backwards.
+    simulation_func shall return a tuple with all states needed for show_func, and
+    show_func is called with that same tuple when it is time to render a certain idx.
+    """
+    def __init__(self, simulation_func: Callable[[int], tuple], show_func: Callable[[tuple], None], actors: dict[str, BaseActor], **kwargs,):
+        self.simulation_func = simulation_func
+        self.show_func = show_func
+        self.history: dict[int, tuple] = {} # use dict instead of list to handle negative min_val
+        animation = PlayerAnimation(
+            func=self._simulate_and_show,
+            **kwargs,
+        )
+        self.simulated_step = animation.min_val - 1
+        animation.plotter += list(actors.values())
+        animation.plotter.show(
+            interactive=False,
+        )
+        animation.set_val(animation.min_val)
+        animation.plotter.interactive().close()  # execution stops here until window is closed
+
+    def _simulate_and_show(self, i: int):
+        while i > self.simulated_step:
+            self.simulated_step = self.simulated_step + 1
+            self.history[self.simulated_step] = self.simulation_func(self.simulated_step)
+        self.show_func(self.history[i])
+
+########################################################################
 class Clock(vedo.Assembly):
     """Clock animation."""
 
