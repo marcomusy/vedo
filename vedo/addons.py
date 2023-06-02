@@ -1492,7 +1492,7 @@ class Slider2D(SliderWidget):
         else:
             slider_rep.ShowSliderLabelOff()
         slider_rep.GetTubeProperty().SetColor(c)
-        slider_rep.GetTubeProperty().SetOpacity(0.6)
+        slider_rep.GetTubeProperty().SetOpacity(0.75)
         slider_rep.GetSliderProperty().SetColor(c)
         slider_rep.GetSelectedProperty().SetColor(np.sqrt(np.array(c)))
         slider_rep.GetCapProperty().SetColor(c)

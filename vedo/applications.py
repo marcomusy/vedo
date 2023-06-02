@@ -7,22 +7,13 @@ from typing import Callable
 import numpy as np
 
 import vedo
-from vedo.colors import color_map
-from vedo.colors import get_color
-from vedo.utils import is_sequence
-from vedo.utils import lin_interpolate
-from vedo.utils import mag
-from vedo.utils import precision
-from vedo.plotter import Plotter
-from vedo.pointcloud import fit_plane
-from vedo.pointcloud import Points
-from vedo.shapes import Line
-from vedo.shapes import Ribbon
-from vedo.shapes import Spline
-from vedo.shapes import Text2D
+from vedo.colors import color_map, get_color
+from vedo.utils import is_sequence, lin_interpolate, mag, precision
+from vedo.plotter import Event, Plotter
+from vedo.pointcloud import fit_plane, Points
+from vedo.shapes import Line, Ribbon, Spline, Text2D
 from vedo.pyplot import CornerHistogram
 from vedo.addons import SliderWidget
-from vedo.plotter import Event
 
 
 __docformat__ = "google"
@@ -1613,7 +1604,7 @@ class AnimationPlayer(vedo.Plotter):
         irange : (tuple)
             the range of the integer input representing the time series index
         dt : (float)
-            the time interval between two updates in milliseconds
+            the time interval between two calls to `func` in milliseconds
         loop : (bool)
             whether to loop the animation
         c : (list, str)
@@ -1621,9 +1612,15 @@ class AnimationPlayer(vedo.Plotter):
         bc : (list)
             the background color of the play/pause button and the slider
         button_size : (int)
-            the size of the play/pause button
-        ypos : (float)
-            the y position of the play/pause button and the slider
+            the size of the play/pause buttons
+        button_pos : (float, float)
+            the position of the play/pause buttons as a fraction of the window size
+        button_gap : (float)
+            the gap between the buttons
+        slider_length : (float)
+            the length of the slider as a fraction of the window size
+        slider_pos : (float, float)
+            the position of the slider as a fraction of the window size
         kwargs: (dict)
             keyword arguments to be passed to `Plotter`
 
@@ -1632,41 +1629,47 @@ class AnimationPlayer(vedo.Plotter):
     """
     # Original class contributed by @mikaeltulldahl (Mikael Tulldahl)
 
-    PLAY_SYMBOL        = "\u23F5 Play  "
-    PAUSE_SYMBOL       = "\u23F8 Pause"
-    ONE_BACK_SYMBOL    = "\u29CF"
-    ONE_FORWARD_SYMBOL = "\u29D0"
+    PLAY_SYMBOL        = "    \u23F5   "
+    PAUSE_SYMBOL       = "   \u23F8   "
+    ONE_BACK_SYMBOL    = " \u29CF"
+    ONE_FORWARD_SYMBOL = "\u29D0 "
 
     def __init__(
         self,
         func: Callable[[int],None],
         irange: tuple,
-        dt: float = 1,
+        dt: float = 1.0,
         loop: bool = True,
-        c=["white",'white'],
-        bc=["green3",'red4'],
-        button_size=32,
-        ypos=0.09,
+        c=["white", "white"],
+        bc=["green3","red4"],
+        button_size=25,
+        button_pos=(0.5,0.08),
+        button_gap=0.055,
+        slider_length=0.5,
+        slider_pos=(0.5,0.055),
         **kwargs,
     ):
         super().__init__(**kwargs)
 
-        min_value, max_value = int(irange[0]), int(irange[1])
+        min_value, max_value = np.array(irange).astype(int)
+        button_pos = np.array(button_pos)
+        slider_pos = np.array(slider_pos)
 
         self._func = func
-        self.value = min_value 
+
+        self.value = min_value
         self.min_value = min_value
         self.max_value = max_value
         self.dt = max(dt, 1)
         self.is_playing = False
-        self.loop = loop
+        self._loop = loop
 
         self.timer_callback_id = self.add_callback("timer", self._handle_timer)
         self.timer_id = None
 
         self.play_pause_button = self.add_button(
             self.toggle,
-            pos=(0.5, ypos),  # x,y fraction from bottom left corner
+            pos=button_pos,  # x,y fraction from bottom left corner
             states=[self.PLAY_SYMBOL, self.PAUSE_SYMBOL],
             font="Kanopus",
             size=button_size,
@@ -1674,7 +1677,7 @@ class AnimationPlayer(vedo.Plotter):
         )
         self.button_oneback = self.add_button(
             self.onebackward,
-            pos=(0.4, ypos),  # x,y fraction from bottom left corner
+            pos=(-button_gap, 0) + button_pos,
             states=[self.ONE_BACK_SYMBOL],
             font="Kanopus",
             size=button_size,
@@ -1683,23 +1686,23 @@ class AnimationPlayer(vedo.Plotter):
         )
         self.button_oneforward = self.add_button(
             self.oneforward,
-            pos=(0.6, ypos),  # x,y fraction from bottom left corner
+            pos=(button_gap, 0) + button_pos,
             states=[self.ONE_FORWARD_SYMBOL],
             font="Kanopus",
             size=button_size,
             bc=bc,
         )
+        d = (1-slider_length)/2
         self.slider: SliderWidget = self.add_slider(
             self.slider_callback, 
             self.min_value, 
-            self.max_value-1,
+            self.max_value - 1,
             value=self.min_value, 
-            pos=[(0.04, ypos-0.03), (0.95, ypos-0.03)],
+            pos=[(d-0.5, 0)+slider_pos, (0.5-d, 0)+slider_pos],
             show_value=False,
             c=bc[0],
+            alpha=1,
         )
-
-        self.set_frame(min_value)
 
     def pause(self) -> None:
         """Pause the animation."""
@@ -1707,6 +1710,8 @@ class AnimationPlayer(vedo.Plotter):
         if self.timer_id is not None:
             self.timer_callback("destroy", self.timer_id)
             self.timer_id = None
+            self.value -= 1
+            self.value = max(self.value, self.min_value)
         self.play_pause_button.status(self.PLAY_SYMBOL)
 
     def resume(self) -> None:
@@ -1736,88 +1741,51 @@ class AnimationPlayer(vedo.Plotter):
 
     def set_frame(self, value: int) -> None:
         """Set the current value of the animation."""
-        if value == self.value:
-            return
         if value < self.min_value:
             self.pause()
             self.value = self.min_value
             return
+
         if value >= self.max_value:
-            if self.loop:
+            if self._loop:
                 value = self.min_value
             else:
                 self.value = self.max_value - 1
                 self.pause()
                 # self.window.Render() # crashes
                 return
+
         self.value = value
-        self.slider.value = self.value
-        self._func(self.value)
+        self.slider.value = value
+        self._func(value)
 
     def slider_callback(self, widget: SliderWidget, _: str) -> None:
         self.pause()
         self.set_frame(int(round(widget.value)))
 
     def _handle_timer(self, _: Event = None) -> None:
-        self.set_frame(self.value + 1)
-
-    def start(self) -> "AnimationPlayer":
-        """Start the animation."""
-        self.show(interactive=True)
-        return self
+        self.set_frame(self.value)
+        self.value += 1
 
     def stop(self) -> "AnimationPlayer":
-        """Stop the animation, remove buttons and slider."""
+        """
+        Stop the animation timers, remove buttons and slider.
+        Behave like a normal `Plotter` after this.
+        """
         # stop timer
         if self.timer_id is not None:
             self.timer_callback("destroy", self.timer_id)
             self.timer_id = None
+
+        # remove callbacks
+        self.remove_callback(self.timer_callback_id)
+        
         # remove buttons
         self.slider.off()
         self.renderer.RemoveActor(self.play_pause_button.actor)
         self.renderer.RemoveActor(self.button_oneback.actor)
         self.renderer.RemoveActor(self.button_oneforward.actor)
-        # remove callbacks
-        self.remove_callback(self.timer_callback_id)
         return self
-
-
-########################################################################
-# class AnimationPlayerCached:
-#     """A wrapper for AnimationPlayer which handles all history caching.
-#
-#     simulation_func is guaranteed to only be called once per increment, without skips,
-#     always increasing idx. This is useful for simulations which can not go backwards.
-#     simulation_func shall return a tuple with all states needed for show_func, and
-#     show_func is called with that same tuple when it is time to render a certain idx.
-#     """
-#     # Original class contributed by @mikaeltulldahl (Mikael Tulldahl)
-#     def __init__(self, 
-#         simulation_func: Callable[[int], tuple], 
-#         show_func: Callable[[tuple], None], 
-#         actors: dict[str, BaseActor], 
-#         **kwargs,):
-#         self.simulation_func = simulation_func
-#         self.show_func = show_func
-#         # use dict instead of list to handle negative min_val
-#         self.history: dict[int, tuple] = {} 
-#         animation = AnimationPlayer(
-#             func=self._simulate_and_show,
-#             **kwargs,
-#         )
-#         self.simulated_step = animation.min_val - 1
-#         animation.plotter += list(actors.values())
-#         animation.plotter.show(
-#             interactive=False,
-#         )
-#         animation.set_val(animation.min_val)
-#         animation.plotter.interactive().close()  # execution stops here until window is closed
-#
-#     def _simulate_and_show(self, i: int):
-#         while i > self.simulated_step:
-#             self.simulated_step = self.simulated_step + 1
-#             self.history[self.simulated_step] = self.simulation_func(self.simulated_step)
-#         self.show_func(self.history[i])
 
 
 ########################################################################

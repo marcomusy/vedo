@@ -3,6 +3,7 @@
 import os.path
 import sys
 import time
+from typing import Callable
 import numpy as np
 from deprecated import deprecated
 
@@ -1391,7 +1392,7 @@ class Plotter:
 
     def add_slider(
         self,
-        sliderfunc,
+        sliderfunc: Callable,
         xmin,
         xmax,
         value=None,
@@ -1409,7 +1410,7 @@ class Plotter:
         Add a `vedo.addons.Slider2D` which can call an external custom function.
 
         Arguments:
-            sliderfunc : (function)
+            sliderfunc : (Callable)
                 external function to be called by the widget
             xmin : (float)
                 lower value of the slider
