@@ -1709,7 +1709,7 @@ class PlayerAnimation:
 
 ########################################################################
 class PlayerAnimationCached:
-    """A wrapper for PlayerAnimation which handles all history.
+    """A wrapper for PlayerAnimation which handles all history caching.
 
     simulation_func is guaranteed to only be called once per increment, without skips,
     always increasing idx. This is useful for simulations which can not go backwards.
@@ -1717,14 +1717,14 @@ class PlayerAnimationCached:
     show_func is called with that same tuple when it is time to render a certain idx.
     """
     def __init__(self, simulation_func: Callable[[int], tuple], show_func: Callable[[tuple], None], actors: dict[str, BaseActor], **kwargs,):
-        self.simulated_step = -1
         self.simulation_func = simulation_func
         self.show_func = show_func
-        self.history: list[tuple] = []
+        self.history: dict[int, tuple] = {} # use dict instead of list to handle negative min_val
         animation = PlayerAnimation(
-            func=self.update_plot,
+            func=self._simulate_and_show,
             **kwargs,
         )
+        self.simulated_step = animation.min_val - 1
         animation.plotter += list(actors.values())
         animation.plotter.show(
             interactive=False,
@@ -1732,10 +1732,10 @@ class PlayerAnimationCached:
         animation.set_val(animation.min_val)
         animation.plotter.interactive().close()  # execution stops here until window is closed
 
-    def update_plot(self, i: int):
+    def _simulate_and_show(self, i: int):
         while i > self.simulated_step:
             self.simulated_step = self.simulated_step + 1
-            self.history.append(self.simulation_func(self.simulated_step))
+            self.history[self.simulated_step] = self.simulation_func(self.simulated_step)
         self.show_func(self.history[i])
 
 ########################################################################
