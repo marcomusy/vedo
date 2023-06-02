@@ -787,7 +787,11 @@ class Mesh(Points):
         return mass.GetVolume()
 
     def area(self):
-        """Get/set the surface area of mesh."""
+        """
+        Compute the surface area of mesh.
+        The mesh must be triangular for this to work.
+        See also `mesh.triangulate()`.
+        """
         mass = vtk.vtkMassProperties()
         mass.SetGlobalWarningDisplay(0)
         mass.SetInputData(self.polydata())
@@ -2411,13 +2415,13 @@ class Mesh(Points):
             self.line_locator.SetTolerance(tol)
             self.line_locator.BuildLocator()
 
-        intersectPoints = vtk.vtkPoints()
+        vpts = vtk.vtkPoints()
         idlist = vtk.vtkIdList()
-        self.line_locator.IntersectWithLine(p0, p1, intersectPoints, idlist)
+        self.line_locator.IntersectWithLine(p0, p1, vpts, idlist)
         pts = []
-        for i in range(intersectPoints.GetNumberOfPoints()):
+        for i in range(vpts.GetNumberOfPoints()):
             intersection = [0, 0, 0]
-            intersectPoints.GetPoint(i, intersection)
+            vpts.GetPoint(i, intersection)
             pts.append(intersection)
         pts = np.array(pts)
 
