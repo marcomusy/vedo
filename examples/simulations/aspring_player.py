@@ -1,6 +1,6 @@
 """Simulation of a block connected to a spring in a viscous medium"""
 from vedo import *
-from vedo.player_animation import PlayerAnimation
+from vedo.applications import PlayerAnimation
 
 L = 0.1    # spring x position at rest
 x0 = 0.85  # initial x-coordinate of the block
@@ -18,7 +18,7 @@ offx = vector(0, 0.3, 0)
 
 
 simulated_step = -1
-def update_plot(i: int):
+def update_plot(i: int) -> None:
     global simulated_step
     diff = i - simulated_step
     if diff > 5:
@@ -35,7 +35,7 @@ def update_plot(i: int):
 
 animation = PlayerAnimation(
     func=update_plot,
-    axes=0,
+    size=(1050, 600),
 )
 
 animation.plotter += Box(pos=(0, -0.1, 0), size=(2.0, 0.02, 0.5))  # floor
@@ -48,7 +48,7 @@ animation.plotter += [block, spring, __doc__]
 history_x = []
 history_sx0 = []
 
-def update_simulation(i: int):
+def update_simulation(i: int) -> None:
     global v, x, history_x, history_sx0
     F = -k * (x - xr) - b*v  # Force and friction
     a = F / m  # acceleration
@@ -58,7 +58,7 @@ def update_simulation(i: int):
     history_x.append(x.copy())
     history_sx0.append(sx0.copy())
     
-def show_history(i: int):
+def show_history(i: int) -> None:
     global history_x, history_sx0
     # update block position and trail
     block.pos(history_x[i])  
