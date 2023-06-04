@@ -40,5 +40,6 @@ def update_scene(i: int):
 
 plt = AnimationPlayer(update_scene, irange=[0,200], loop=True)
 plt += [floor, wall, block, spring, text, __doc__]
+plt.set_frame(0)
 plt.show()
 plt.close()
