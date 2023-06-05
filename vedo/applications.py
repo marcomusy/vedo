@@ -1657,7 +1657,7 @@ class AnimationPlayer(vedo.Plotter):
 
         self._func = func
 
-        self.value = min_value
+        self.value = min_value-1
         self.min_value = min_value
         self.max_value = max_value
         self.dt = max(dt, 1)
@@ -1710,8 +1710,6 @@ class AnimationPlayer(vedo.Plotter):
         if self.timer_id is not None:
             self.timer_callback("destroy", self.timer_id)
             self.timer_id = None
-            self.value -= 1
-            self.value = max(self.value, self.min_value)
         self.play_pause_button.status(self.PLAY_SYMBOL)
 
     def resume(self) -> None:
@@ -1741,31 +1739,30 @@ class AnimationPlayer(vedo.Plotter):
 
     def set_frame(self, value: int) -> None:
         """Set the current value of the animation."""
-        if value < self.min_value:
-            self.pause()
-            self.value = self.min_value
-            return
-
-        if value >= self.max_value:
-            if self._loop:
+        if self._loop:
+            if value < self.min_value:
+                value = self.max_value - 1
+            elif value >= self.max_value:
                 value = self.min_value
-            else:
-                self.value = self.max_value - 1
+        else:
+            if value < self.min_value:
                 self.pause()
-                # self.window.Render() # crashes
-                return
+                value = self.min_value
+            elif value >= self.max_value - 1:
+                value = self.max_value - 1
+                self.pause()
 
-        self.value = value
-        self.slider.value = value
-        self._func(value)
+        if self.value != value:
+            self.value = value
+            self.slider.value = value
+            self._func(value)
 
     def slider_callback(self, widget: SliderWidget, _: str) -> None:
         self.pause()
         self.set_frame(int(round(widget.value)))
 
     def _handle_timer(self, _: Event = None) -> None:
-        self.set_frame(self.value)
-        self.value += 1
+        self.set_frame(self.value + 1)
 
     def stop(self) -> "AnimationPlayer":
         """
