@@ -22,11 +22,18 @@ pip install vedo
 <details>
 <summary>additional installation details <i><b>[click to expand]</b></i> </summary>
 
-- To install the latest _dev_ version of `vedo`: <br>
-`pip install -U git+https://github.com/marcomusy/vedo.git`
+- To install the latest _dev_ version of `vedo`:
 
-- To install from the conda-forge channel: <br>
-`conda install -c conda-forge vedo`
+```bash
+pip install -U git+https://github.com/marcomusy/vedo.git
+```
+
+
+- To install from the conda-forge channel:
+
+```bash
+conda install -c conda-forge vedo
+```
 
 </details>
 
