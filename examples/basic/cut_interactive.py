@@ -1,9 +1,23 @@
-"""Drag the sphere to cut the mesh interactively
-Use mouse buttons to zoom and pan"""
+"""Manipulate a box to cut a mesh interactively.
+Use mouse buttons to zoom and pan.
+Press r to reset the cutting box
+Press spacebar to toggle the cutting box on/off
+Press i to invert the selection"""
 from vedo import *
 
-s = Mesh(dataurl+'cow.vtk')
+# settings.enable_default_keyboard_callbacks = False
 
-plt = show(s, __doc__, bg='black', bg2='bb', interactive=False)
-plt.add_cutter_tool(s, mode='sphere') #modes= sphere, plane, box
+cow = Mesh(dataurl+'cow.vtk')
+
+plt = Plotter(bg='blackboard', interactive=False)
+plt.show(cow, __doc__, viewup='z')
+
+cutter = BoxCutter(cow)
+
+cutter.on()
+plt.interactive()
+
+cutter.off()
+plt.interactive()
+
 plt.close()

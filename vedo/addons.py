@@ -45,6 +45,7 @@ __all__ = [
     "Button",
     "Flagpost",
     "ProgressBarWindow",
+    "BoxCutter",
 ]
 
 ########################################################################################
@@ -1632,8 +1633,144 @@ class Slider3D(SliderWidget):
         self.SetAnimationModeToJump()
         self.AddObserver("InteractionEvent", sliderfunc)
 
+class BoxCutter(vtk.vtkBoxWidget):
+    """
+    Create a box widget to cut away parts of a Mesh.
+    """
+    def __init__(
+            self, 
+            mesh, 
+            invert=False, 
+            can_rotate=True, 
+            can_translate=True, 
+            can_scale=True,
+            padding=0.01,
+            c=(0.25, 0.25, 0.25), 
+            alpha=0.05,
+    ):
+        """
+        Create a box widget to cut away parts of a Mesh.
 
-def add_cutter_tool(obj=None, mode="box", invert=False):
+        Arguments:
+            mesh : Mesh
+                the input mesh
+            c : color
+                color of the box cutter widget
+            alpha : float
+                transparency of the cut-off part of the input mesh
+        """
+        self.mesh = mesh
+        self.remnant = Mesh()
+        self.remnant.name = mesh.name + "Remnant"
+
+        poly = mesh.polydata()
+
+        self._alpha = alpha
+        self._key_idev = None
+        self._init_bounds = mesh.bounds()
+
+        self._planes = vtk.vtkPlanes()
+        self._planes.SetBounds(self._init_bounds)
+
+        self.clipper = vtk.vtkClipPolyData()
+        self.clipper.GenerateClipScalarsOff()
+        self.clipper.SetInputData(poly)
+        self.clipper.SetClipFunction(self._planes)
+        self.clipper.SetInsideOut(not invert)
+        self.clipper.GenerateClippedOutputOn()
+        self.clipper.Update()
+
+        self.widget = vtk.vtkBoxWidget()
+
+        self.widget.SetRotationEnabled(can_rotate)
+        self.widget.SetTranslationEnabled(can_translate)
+        self.widget.SetScalingEnabled(can_scale)
+
+        self.widget.OutlineCursorWiresOn()
+        self.widget.GetSelectedOutlineProperty().SetColor(1, 0, 0.5)
+        self.widget.GetOutlineProperty().SetColor(c)
+        self.widget.GetOutlineProperty().SetOpacity(1)
+        self.widget.GetOutlineProperty().SetLineWidth(1)
+        self.widget.GetOutlineProperty().LightingOff()
+
+        self.widget.SetPlaceFactor(1.0 + padding)
+        self.widget.SetInputData(poly)
+        self.widget.PlaceWidget()
+        self.widget.AddObserver("InteractionEvent", self._select_polygons)
+
+    def _select_polygons(self, vobj, event):
+        vobj.GetPlanes(self._planes)
+    
+    def _keypress(self, vobj, event):
+        # reset planes
+        if vobj.GetKeySym() == "r":
+            self._planes.SetBounds(self._init_bounds)
+            self.widget.GetPlanes(self._planes)
+            self.widget.PlaceWidget()
+            self.widget.GetInteractor().Render()
+        elif vobj.GetKeySym() == "i":
+            self.invert()
+            self.widget.GetInteractor().Render()
+        elif vobj.GetKeySym() == "space":
+            if self.widget.GetEnabled():
+                self.widget.Off()
+            else:
+                self.widget.On()
+    
+    def invert(self):
+        """Invert selection."""
+        self.clipper.SetInsideOut(not self.clipper.GetInsideOut())
+        return self
+        
+    def bounds(self, value=None):
+        if value is None:
+            return self.cutter.GetBounds()
+        else:
+            self._planes.SetBounds(value)
+            return self
+    
+    def on(self, plt=None):
+        if self.widget.GetEnabled():
+            return self
+        if plt is None:
+            plt = vedo.plotter_instance
+            if plt is None:
+                vedo.logger.error("in BoxCutter() scene must be first rendered.")
+                raise RuntimeError()
+
+        self.widget.SetInteractor(plt.interactor)
+        self.widget.SetCurrentRenderer(plt.renderer)
+        if self.widget not in plt.widgets:
+            plt.widgets.append(self.widget)
+
+        cpoly = self.clipper.GetOutput()
+        self.mesh._update(cpoly)
+
+        out = self.clipper.GetClippedOutputPort()
+        self.remnant.mapper().SetInputConnection(out)  
+        self.remnant.alpha(self._alpha).color((0.5, 0.5, 0.5))
+        self.remnant.lighting('off').wireframe()
+        plt.add(self.remnant)
+        self._key_idev = plt.interactor.AddObserver("KeyPressEvent", self._keypress)
+        self.widget.On()
+        return self
+    
+    def off(self, plt=None):
+        if not self.widget.GetEnabled():
+            return self
+        if plt is None:
+            plt = vedo.plotter_instance
+            if plt is None:
+                vedo.logger.error("in BoxCutter() scene must be first rendered.")
+                raise RuntimeError()
+        self.widget.Off()
+        plt.remove(self.remnant)
+        if self._key_idev:
+            plt.interactor.RemoveObserver(self._key_idev)
+        return self
+
+
+def add_cutter_tool(obj, mode="box", invert=False):
     """
     Create an interactive tool to cut away parts of a mesh or volume.
 
@@ -1648,8 +1785,6 @@ def add_cutter_tool(obj=None, mode="box", invert=False):
 
         ![](https://user-images.githubusercontent.com/32848391/50738866-c0658e80-11d8-11e9-955b-551d4d8b0db5.jpg)
     """
-    if obj is None:
-        obj = vedo.plotter_instance.actors[0]
     try:
         if isinstance(obj, vedo.Volume):
             return _addCutterToolVolumeWithBox(obj, invert)
@@ -1761,7 +1896,8 @@ def _addCutterToolMeshWithBox(mesh, invert):
     act0.mapper().SetScalarRange(mesh.mapper().GetScalarRange())
 
     act1 = Mesh()
-    act1.mapper().SetInputConnection(clipper.GetClippedOutputPort())  # needs OutputPort
+    # needs OutputPort
+    act1.mapper().SetInputConnection(clipper.GetClippedOutputPort())  
     act1.alpha(0.04).color((0.5, 0.5, 0.5)).wireframe()
 
     plt.remove(mesh)
