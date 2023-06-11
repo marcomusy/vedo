@@ -448,7 +448,6 @@ from vtkmodules.vtkInteractionStyle import (
 )
 
 from vtkmodules.vtkInteractionWidgets import (
-    vtkInteractorObserver,
     vtkBalloonRepresentation,
     vtkBalloonWidget,
     vtkBoxWidget,
@@ -502,6 +501,7 @@ from vtkmodules.vtkRenderingCore import (
     vtkImageProperty,
     vtkImageSlice,
     vtkInteractorEventRecorder,
+    vtkInteractorObserver,
     vtkLight,
     vtkLogLookupTable,
     vtkMapper,
