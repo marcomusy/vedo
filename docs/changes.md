@@ -46,8 +46,10 @@ examples/simulations/aspring2_player.py
 ```
 
 ### Broken Examples
-
-
+```
+airplane1.py
+examples/simulations/trail.py
+```
 
 
 

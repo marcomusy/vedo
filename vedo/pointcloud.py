@@ -1354,7 +1354,8 @@ class Points(BaseActor, vtk.vtkActor):
         pts = shad.points()
         if plane == 'x':
             # shad = shad.project_on_plane('x')
-            # instead do it manually so in case of alpha<1 we dont see glitches due to coplanar points
+            # instead do it manually so in case of alpha<1 
+            # we dont see glitches due to coplanar points
             # we leave a small tolerance of 0.1% in thickness
             x0, x1 = self.xbounds()
             pts[:, 0] = (pts[:, 0] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[0]
@@ -1398,7 +1399,7 @@ class Points(BaseActor, vtk.vtkActor):
         """
         Update the shadows of a moving object.
         """
-        shadows = self.shadows
+        shadows = list(self.shadows)
         self.shadows = []
         for sha in shadows:
             color = sha.GetProperty().GetColor()

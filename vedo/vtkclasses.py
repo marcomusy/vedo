@@ -448,6 +448,7 @@ from vtkmodules.vtkInteractionStyle import (
 )
 
 from vtkmodules.vtkInteractionWidgets import (
+    vtkInteractorObserver,
     vtkBalloonRepresentation,
     vtkBalloonWidget,
     vtkBoxWidget,

@@ -1395,7 +1395,7 @@ class Animation(Plotter):
                 for a in acts:
                     newlw = lin_interpolate(tt, [t, t + duration], [a.lw(), lw])
                     inputvalues.append(newlw)
-                self.events.append((tt, self.changeLineWidth, acts, inputvalues))
+                self.events.append((tt, self.change_line_width, acts, inputvalues))
         else:
             for i, a in enumerate(self._performers):
                 a.lw(self._inputvalues[i])
@@ -1540,7 +1540,7 @@ class Animation(Plotter):
                 if d > 0:
                     ids = acts[0].closest_point(corners[corner], radius=d, return_point_id=True)
                     if len(ids) <= acts[0].npoints:
-                        self.events.append((tt, self.meshErode, acts, ids))
+                        self.events.append((tt, self.mesh_erode, acts, ids))
         return self
 
     def play(self):
@@ -1640,8 +1640,8 @@ class AnimationPlayer(vedo.Plotter):
         irange: tuple,
         dt: float = 1.0,
         loop: bool = True,
-        c=["white", "white"],
-        bc=["green3","red4"],
+        c=("white", "white"),
+        bc=("green3","red4"),
         button_size=25,
         button_pos=(0.5,0.08),
         button_gap=0.055,
@@ -1694,10 +1694,10 @@ class AnimationPlayer(vedo.Plotter):
         )
         d = (1-slider_length)/2
         self.slider: SliderWidget = self.add_slider(
-            self.slider_callback, 
-            self.min_value, 
+            self._slider_callback,
+            self.min_value,
             self.max_value - 1,
-            value=self.min_value, 
+            value=self.min_value,
             pos=[(d-0.5, 0)+slider_pos, (0.5-d, 0)+slider_pos],
             show_value=False,
             c=bc[0],
@@ -1757,7 +1757,7 @@ class AnimationPlayer(vedo.Plotter):
             self.slider.value = value
             self._func(value)
 
-    def slider_callback(self, widget: SliderWidget, _: str) -> None:
+    def _slider_callback(self, widget: SliderWidget, _: str) -> None:
         self.pause()
         self.set_frame(int(round(widget.value)))
 
@@ -1776,7 +1776,7 @@ class AnimationPlayer(vedo.Plotter):
 
         # remove callbacks
         self.remove_callback(self.timer_callback_id)
-        
+
         # remove buttons
         self.slider.off()
         self.renderer.RemoveActor(self.play_pause_button.actor)

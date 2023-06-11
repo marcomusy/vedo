@@ -4371,6 +4371,7 @@ class TextBase:
         "Do not instantiate this base class."
 
         self.rendered_at = set()
+        self.property = None
 
         if isinstance(settings.default_font, int):
             lfonts = list(settings.font_parameters.keys())

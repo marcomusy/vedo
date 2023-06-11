@@ -7,17 +7,17 @@ from vedo import *
 
 # settings.enable_default_keyboard_callbacks = False
 
-cow = Mesh(dataurl+'cow.vtk')
+cow = Mesh(dataurl+'cow.vtk').backcolor("purple8")
+# cow.cmap('jet', cow.points()[:,2])
 
 plt = Plotter(bg='blackboard', interactive=False)
 plt.show(cow, __doc__, viewup='z')
 
 cutter = BoxCutter(cow)
-
-cutter.on()
+plt.add(cutter)
 plt.interactive()
 
-cutter.off()
+plt.remove(cutter)
 plt.interactive()
 
 plt.close()

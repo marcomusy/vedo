@@ -1072,7 +1072,8 @@ def ScalarBar3D(
 
     if categories is not None:  ################################
         ncats = len(categories)
-        scale = shapes.Grid([-sx * label_offset, 0, 0], c=c, alpha=1, s=(sx, sy), res=(1, ncats))
+        scale = shapes.Grid([-float(sx) * label_offset, 0, 0],
+                            c=c, alpha=1, s=(sx, sy), res=(1, ncats))
         cols, alphas = [], []
         ticks_pos, ticks_txt = [0.0], [""]
         for i, cat in enumerate(categories):
@@ -1096,7 +1097,7 @@ def ScalarBar3D(
 
         # build the color scale part
         scale = shapes.Grid(
-            [-sx * label_offset, 0, 0],
+            [-float(sx) * label_offset, 0, 0],
             c=c,
             alpha=1,
             s=(sx, sy),
@@ -1179,6 +1180,8 @@ def ScalarBar3D(
     # build below scale
     if lut.GetUseBelowRangeColor():
         r, g, b, alfa = lut.GetBelowRangeColor()
+        sx = float(sx)
+        sy = float(sy)
         brect = shapes.Rectangle(
             [-sx * label_offset - sx / 2, -sy / 2 - sx - sx * 0.1, 0],
             [-sx * label_offset + sx / 2, -sy / 2 - sx * 0.1, 0],
@@ -1638,14 +1641,14 @@ class BoxCutter(vtk.vtkBoxWidget):
     Create a box widget to cut away parts of a Mesh.
     """
     def __init__(
-            self, 
-            mesh, 
-            invert=False, 
-            can_rotate=True, 
-            can_translate=True, 
+            self,
+            mesh,
+            invert=False,
+            can_rotate=True,
+            can_translate=True,
             can_scale=True,
             padding=0.01,
-            c=(0.25, 0.25, 0.25), 
+            c=(0.25, 0.25, 0.25),
             alpha=0.05,
     ):
         """
@@ -1663,15 +1666,14 @@ class BoxCutter(vtk.vtkBoxWidget):
         self.remnant = Mesh()
         self.remnant.name = mesh.name + "Remnant"
 
-        poly = mesh.polydata()
-
         self._alpha = alpha
-        self._key_idev = None
+        self._keypress_id = None
         self._init_bounds = mesh.bounds()
 
         self._planes = vtk.vtkPlanes()
         self._planes.SetBounds(self._init_bounds)
 
+        poly = mesh.polydata()
         self.clipper = vtk.vtkClipPolyData()
         self.clipper.GenerateClipScalarsOff()
         self.clipper.SetInputData(poly)
@@ -1687,11 +1689,18 @@ class BoxCutter(vtk.vtkBoxWidget):
         self.widget.SetScalingEnabled(can_scale)
 
         self.widget.OutlineCursorWiresOn()
-        self.widget.GetSelectedOutlineProperty().SetColor(1, 0, 0.5)
+        self.widget.GetSelectedOutlineProperty().SetColor(get_color("red3"))
+        self.widget.GetSelectedHandleProperty().SetColor(get_color("red5"))
+        # self.widget.GetSelectedHandleProperty().LightingOff()
+        # self.widget.GetHandleProperty().LightingOff()
+
         self.widget.GetOutlineProperty().SetColor(c)
         self.widget.GetOutlineProperty().SetOpacity(1)
         self.widget.GetOutlineProperty().SetLineWidth(1)
         self.widget.GetOutlineProperty().LightingOff()
+
+        self.widget.GetSelectedFaceProperty().LightingOff()
+        self.widget.GetSelectedFaceProperty().SetOpacity(0.1)
 
         self.widget.SetPlaceFactor(1.0 + padding)
         self.widget.SetInputData(poly)
@@ -1700,7 +1709,7 @@ class BoxCutter(vtk.vtkBoxWidget):
 
     def _select_polygons(self, vobj, event):
         vobj.GetPlanes(self._planes)
-    
+
     def _keypress(self, vobj, event):
         # reset planes
         if vobj.GetKeySym() == "r":
@@ -1716,28 +1725,32 @@ class BoxCutter(vtk.vtkBoxWidget):
                 self.widget.Off()
             else:
                 self.widget.On()
-    
+
     def invert(self):
         """Invert selection."""
         self.clipper.SetInsideOut(not self.clipper.GetInsideOut())
         return self
-        
+
     def bounds(self, value=None):
+        """Set or get the bounding box."""
         if value is None:
             return self.cutter.GetBounds()
         else:
             self._planes.SetBounds(value)
             return self
     
-    def on(self, plt=None):
-        if self.widget.GetEnabled():
-            return self
-        if plt is None:
-            plt = vedo.plotter_instance
-            if plt is None:
-                vedo.logger.error("in BoxCutter() scene must be first rendered.")
-                raise RuntimeError()
+    def on(self):
+        """Switch the widget on or off."""
+        self.widget.On()
+        return self
 
+    def off(self):
+        """Switch the widget on or off."""
+        self.widget.Off()
+        return self    
+
+    def add_to(self, plt):
+        """Assign the widget to the provided `Plotter` instance."""
         self.widget.SetInteractor(plt.interactor)
         self.widget.SetCurrentRenderer(plt.renderer)
         if self.widget not in plt.widgets:
@@ -1751,22 +1764,17 @@ class BoxCutter(vtk.vtkBoxWidget):
         self.remnant.alpha(self._alpha).color((0.5, 0.5, 0.5))
         self.remnant.lighting('off').wireframe()
         plt.add(self.remnant)
-        self._key_idev = plt.interactor.AddObserver("KeyPressEvent", self._keypress)
-        self.widget.On()
+        self._keypress_id = plt.interactor.AddObserver("KeyPressEvent", self._keypress)
+        if plt.interactor and plt.interactor.GetInitialized():
+            self.widget.On()
         return self
     
-    def off(self, plt=None):
-        if not self.widget.GetEnabled():
-            return self
-        if plt is None:
-            plt = vedo.plotter_instance
-            if plt is None:
-                vedo.logger.error("in BoxCutter() scene must be first rendered.")
-                raise RuntimeError()
+    def remove_from(self, plt):
+        """Remove the widget to the provided `Plotter` instance."""
         self.widget.Off()
         plt.remove(self.remnant)
-        if self._key_idev:
-            plt.interactor.RemoveObserver(self._key_idev)
+        if self._keypress_id:
+            plt.interactor.RemoveObserver(self._keypress_id)
         return self
 
 

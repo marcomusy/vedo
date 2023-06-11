@@ -814,6 +814,7 @@ class Plotter:
         self.camera = self.renderer.GetActiveCamera()
         return self
 
+
     def add(self, *actors, at=None):
         """
         Append the input objects to the internal list of actors to be shown.
@@ -832,15 +833,49 @@ class Plotter:
         actors = self._scan_input(actors)
 
         for a in actors:
+            if isinstance(a, vtk.vtkInteractorObserver):
+                a.add_to(self)
+                continue
+
             if a not in self.actors:
                 self.actors.append(a)
+
             if ren:
                 ren.AddActor(a)
+
                 if hasattr(a, "scalarbar") and a.scalarbar:
                     ren.AddActor(a.scalarbar)
+
                 if hasattr(a, "shadows") and a.shadows:
+
+                    # shad_acs = ren.GetActors()
+                    # shad_acs.InitTraversal()
+                    # for _ in range(shad_acs.GetNumberOfItems()):
+                    #     a = shad_acs.GetNextItem()
+                    #     try:
+                    #         if a.name == "Shadow":
+                    #             ren.RemoveActor(a)
+                    #     except AttributeError:
+                    #         pass
+
                     for sha in a.shadows:
-                        ren.AddActor(sha)
+                        ren.RemoveActor(sha)  # BUG?
+
+                    a.update_shadows()
+                    # print(a.shadows)
+                    # for sha in a.shadows:
+                    #     ren.AddActor(sha)
+
+                if hasattr(a, "trail") and a.trail:
+                    a.update_trail()
+                    ren.AddActor(a.trail)
+
+                    # trails may also have shadows:
+                    if a.trail.shadows:
+                        a.trail.update_shadows()
+                        for sha in a.trail.shadows:
+                            ren.AddActor(sha)
+
         return self
 
     def remove(self, *actors, at=None):
@@ -865,10 +900,15 @@ class Plotter:
         actors_r = []
         for i, a in enumerate(actors):
 
+            if isinstance(a, vtk.vtkInteractorObserver):
+                a.remove_from(self)
+                continue ###
+
             if isinstance(a, str):
                 if actors_in_ren is None:
                     actors_in_ren = self.get_meshes(
-                        include_non_pickables=True, unpack_assemblies=False
+                        include_non_pickables=True,
+                        unpack_assemblies=False,
                     )
 
                 for b in set(self.actors + actors_in_ren):
@@ -888,9 +928,16 @@ class Plotter:
                     ren.RemoveActor(a.scalarbar)
                 if hasattr(a, "_caption") and a._caption:
                     ren.RemoveActor(a._caption)
+                if hasattr(a, "shadows") and a.shadows:
+                    for sha in a.shadows:
+                        ren.RemoveActor(sha)
                 if hasattr(a, "trail") and a.trail:
                     ren.RemoveActor(a.trail)
                     a.trail_points = []
+                    if hasattr(a.trail, "shadows") and a.trail.shadows:
+                        for sha in a.trail.shadows:
+                            ren.RemoveActor(sha)
+
             if a in self.actors:
                 i = self.actors.index(a)
                 del self.actors[i]
@@ -2646,15 +2693,15 @@ class Plotter:
 
                 if isinstance(a, vedo.base.BaseActor):
                     if a.shadows:
-                        a.update_shadows()
+                        # a.update_shadows()
                         scannedacts.extend(a.shadows)
 
                     if a.trail and a.trail not in self.actors:
-                        a.update_trail()
+                        # a.update_trail()
                         scannedacts.append(a.trail)
                         # trails may also have shadows:
                         if a.trail.shadows:
-                            a.trail.update_shadows()
+                            # a.trail.update_shadows()
                             scannedacts.extend(a.trail.shadows)
 
                     if a._caption and a._caption not in self.actors:
@@ -2752,7 +2799,7 @@ class Plotter:
                 else:
                     scannedacts.append(vedo.Mesh(utils.meshlab2vedo(a)))
 
-            elif isinstance(a, vtk.vtkProp):
+            elif isinstance(a, (vtk.vtkProp, vtk.vtkInteractorObserver)):
                 scannedacts.append(a)
 
             else:
@@ -2931,29 +2978,7 @@ class Plotter:
         if self.renderer:
             self.camera = self.renderer.GetActiveCamera()
 
-        # if user passes a list of actors forget about everything and show those
-        if len(actors) == 0:
-            actors = None
-        elif len(actors) == 1:
-            actors = actors[0]
-        else:
-            actors = utils.flatten(actors)
-
-        actors2show = []
-        if actors is not None:
-            self.actors = []
-            actors2show = self._scan_input(actors)
-            for a in actors2show:
-                if a not in self.actors:
-                    self.actors.append(a)
-
-        # update all trailing lines
-        for a in self.actors:
-            try:
-                if a.trail:
-                    a.update_trail()
-            except AttributeError:
-                pass
+        self.add(actors)
 
         # Backend ###############################################################
         if settings.default_backend != "vtk":
@@ -2961,29 +2986,18 @@ class Plotter:
                 return backends.get_notebook_backend(self.actors)
         #########################################################################
 
-        # remove all old shadows from the scene
-        shad_acs = self.renderer.GetActors()
-        shad_acs.InitTraversal()
-        for _ in range(shad_acs.GetNumberOfItems()):
-            a = shad_acs.GetNextItem()
-            try:
-                if a.name == "Shadow":
-                    self.renderer.RemoveActor(a)
-            except AttributeError:
-                pass
+        # # remove all old shadows from the scene
+        # shad_acs = self.renderer.GetActors()
+        # shad_acs.InitTraversal()
+        # for _ in range(shad_acs.GetNumberOfItems()):
+        #     a = shad_acs.GetNextItem()
+        #     try:
+        #         if a.name == "Shadow":
+        #             self.renderer.RemoveActor(a)
+        #     except AttributeError:
+        #         pass
 
-        # rendering
-        for ia in actors2show:
-
-            if not ia:
-                continue
-
-            # if hasattr(ia, "shadows"):
-            #     for ias in ia.shadows:
-            #         # print([ias.name])
-            #         self.renderer.RemoveActor(ias)
-
-            self.renderer.AddActor(ia)
+        for ia in actors:
 
             if isinstance(ia, vedo.base.Base3DProp):
 
@@ -2992,17 +3006,17 @@ class Plotter:
 
                 ia.rendered_at.add(at)  # set.add()
 
-                if ia.scalarbar:
-                    self.renderer.AddActor(ia.scalarbar)
-                    # fix gray color labels and title to white or black
-                    if isinstance(ia.scalarbar, vtk.vtkScalarBarActor):
-                        ltc = np.array(ia.scalarbar.GetLabelTextProperty().GetColor())
-                        if np.linalg.norm(ltc - (0.5, 0.5, 0.5)) / 3 < 0.05:
-                            c = (0.9, 0.9, 0.9)
-                            if np.sum(self.renderer.GetBackground()) > 1.5:
-                                c = (0.1, 0.1, 0.1)
-                            ia.scalarbar.GetLabelTextProperty().SetColor(c)
-                            ia.scalarbar.GetTitleTextProperty().SetColor(c)
+                # if ia.scalarbar:
+                #     self.renderer.AddActor(ia.scalarbar)
+                #     # fix gray color labels and title to white or black
+                #     if isinstance(ia.scalarbar, vtk.vtkScalarBarActor):
+                #         ltc = np.array(ia.scalarbar.GetLabelTextProperty().GetColor())
+                #         if np.linalg.norm(ltc - (0.5, 0.5, 0.5)) / 3 < 0.05:
+                #             c = (0.9, 0.9, 0.9)
+                #             if np.sum(self.renderer.GetBackground()) > 1.5:
+                #                 c = (0.1, 0.1, 0.1)
+                #             ia.scalarbar.GetLabelTextProperty().SetColor(c)
+                #             ia.scalarbar.GetTitleTextProperty().SetColor(c)
 
         if self.sharecam:
             for r in self.renderers:
