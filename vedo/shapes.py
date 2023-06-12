@@ -4856,18 +4856,26 @@ class ConvexHull(Mesh):
         # Create the convex hull of the pointcloud
         z0, z1 = mesh.zbounds()
         d = mesh.diagonal_size()
-        if (z1 - z0) / d > 0.001:
+        if (z1 - z0) / d > 0.0001:
             delaunay = vtk.vtkDelaunay3D()
+            delaunay.SetInputData(apoly)
+            delaunay.Update()
+            surfaceFilter = vtk.vtkDataSetSurfaceFilter()
+            surfaceFilter.SetInputConnection(delaunay.GetOutputPort())
+            surfaceFilter.Update()
+            out = surfaceFilter.GetOutput()
         else:
             delaunay = vtk.vtkDelaunay2D()
+            delaunay.SetInputData(apoly)
+            delaunay.Update()
+            fe = vtk.vtkFeatureEdges()
+            fe.SetInputConnection(delaunay.GetOutputPort())
+            fe.BoundaryEdgesOn()
+            fe.Update()
+            out = fe.GetOutput()
 
-        delaunay.SetInputData(apoly)
-        delaunay.Update()
-
-        surfaceFilter = vtk.vtkDataSetSurfaceFilter()
-        surfaceFilter.SetInputConnection(delaunay.GetOutputPort())
-        surfaceFilter.Update()
-        Mesh.__init__(self, surfaceFilter.GetOutput(), alpha=0.75)
+        Mesh.__init__(self, out, c=mesh.color(), alpha=0.75)
+        # self.triangulate()
         self.flat()
         self.name = "ConvexHull"
 

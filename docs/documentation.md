@@ -113,16 +113,10 @@ Check for more examples in
 [repository](https://github.com/marcomusy/vedo/tree/master/examples/notebooks).
 
 ### Running on Google Colab
-Start your notebook with this setup:
+Start your notebook with:
 ```python
-import os
-print("setup xvfb (can take a minute)...")
-os.system('apt-get install xvfb')
-os.system('pip install pyvirtualdisplay')
-os.system('pip install vedo')
-from pyvirtualdisplay import Display
-Display(visible=0).start()
-print('setup complete.')
+import vedo
+vedo.settings.init_colab()
 ```
 
 Then test it with:
