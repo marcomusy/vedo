@@ -112,7 +112,6 @@ def show(
     camera=None,
     mode=0,
     new=False,
-    backend="",  # DEPRECATED
 ):
     """
     Create on the fly an instance of class Plotter and show the object(s) provided.
@@ -250,7 +249,6 @@ def show(
             offscreen=offscreen,
             bg=bg,
             bg2=bg2,
-            backend=backend,  # DEPRECATED
         )
 
     # use _plt_to_return because plt.show() can return a k3d plot
@@ -335,7 +333,6 @@ class Plotter:
         offscreen=False,
         qt_widget=None,
         wx_widget=None,
-        backend="",  # DEPRECATED
     ):
         """
         Arguments:
@@ -384,13 +381,6 @@ class Plotter:
                 Overrides interactive to False.
                 See examples `qt_windows1.py` and `qt_windows2.py`
         """
-
-        if backend != "":
-            vedo.logger.error(
-                f"obsolete 'backend' keyword, use settings.default_backend = '{backend}'"
-            )
-            settings.default_backend = backend
-
         vedo.plotter_instance = self
 
         if qt_widget is not None:

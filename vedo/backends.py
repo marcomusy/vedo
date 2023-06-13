@@ -123,7 +123,9 @@ def start_k3d(actors2show):
 
     for ia in actors2show2:
 
-        if isinstance(ia, (vtk.vtkCornerAnnotation, vtk.vtkAssembly)):
+        if isinstance(ia, (vtk.vtkCornerAnnotation,
+                           vtk.vtkAssembly,
+                           vtk.vtkActor2D)):
             continue
 
         iacloned = ia
@@ -228,7 +230,9 @@ def start_k3d(actors2show):
             vedo.notebook_plotter += kobj
 
         ################################################################# Lines
-        elif ia.polydata(False).GetNumberOfLines() and ia.polydata(False).GetNumberOfPolys() == 0:
+        elif (hasattr(ia, "polydata") 
+              and ia.polydata(False).GetNumberOfLines() 
+              and ia.polydata(False).GetNumberOfPolys() == 0):
 
             for i, ln_idx in enumerate(ia.lines()):
 

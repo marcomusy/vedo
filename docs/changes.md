@@ -30,6 +30,8 @@
 - Fix Scalarbar3D logscale and change separator symbol by @XushanLu
 - Fix `vedo/interactor_modes.mouse_left_move()` by @MiticoDan
 - Added `applications.AnimationPlayer` class by @mikaeltulldahl
+- fix convex hull in 2D by @ManuGraiph
+
 
 -------------------------
 ## New/Revised Examples
