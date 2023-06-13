@@ -659,10 +659,6 @@ class Settings:
         except ModuleNotFoundError:
             print("\x1b[33;1m" + s + "\x1b[0m")
 
-    def _warn(self, key):
-        if self._level == 0:
-            print(f'\x1b[1m\x1b[33;20m Warning! Please use "settings.{key}" instead!\x1b[0m')
-
     def __getitem__(self, key):
         """Make the class work like a dictionary too"""
         return getattr(self, key)
@@ -671,143 +667,37 @@ class Settings:
         """Make the class work like a dictionary too"""
         setattr(self, key, value)
 
-    ####################################################################################
-    # Deprecations
-    ####################################################################################
-    @property
-    def defaultFont(self):
-        self._warn("default_font")
-        return self.default_font
-    @defaultFont.setter
-    def defaultFont(self, value):
-        self._warn("default_font")
-        self.default_font = value
-    ##################################
-    @property
-    def screenshotTransparentBackground(self):
-        self._warn("screenshot_transparent_background")
-        return self.NAME_SNAKE
-    @screenshotTransparentBackground.setter
-    def screenshotTransparentBackground(self, value):
-        self._warn("screenshot_transparent_background")
-        self.screenshot_transparent_background = value
-    ##################################
-    @property
-    def screeshotLargeImage(self):
-        self._warn("screeshot_large_image")
-        return self.screeshot_large_image
-    @screeshotLargeImage.setter
-    def screeshotLargeImage(self, value):
-        self._warn("screeshot_large_image")
-        self.screeshot_large_image = value
-    ##################################
-    @property
-    def allowInteraction(self):
-        self._warn("allow_interaction")
-        return self.allow_interaction
-    @allowInteraction.setter
-    def allowInteraction(self, value):
-        self._warn("allow_interaction")
-        self.allow_interaction = value
-    ##################################
-    @property
-    def enableDefaultMouseCallbacks(self):
-        self._warn("enable_default_mouse_callbacks")
-        return self.enable_default_mouse_callbacks
-    @enableDefaultMouseCallbacks.setter
-    def enableDefaultMouseCallbacks(self, value):
-        self._warn("enable_default_mouse_callbacks")
-        self.enable_default_mouse_callbacks = value
-    ##################################
-    @property
-    def enableDefaultKeyboardCallbacks(self):
-        self._warn("enable_default_keyboard_callbacks")
-        return self.enable_default_keyboard_callbacks
-    @enableDefaultKeyboardCallbacks.setter
-    def enableDefaultKeyboardCallbacks(self, value):
-        self._warn("enable_default_keyboard_callbacks")
-        self.enable_default_keyboard_callbacks = value
-    ##################################
-    @property
-    def useDepthPeeling(self):
-        self._warn("use_depth_peeling")
-        return self.use_depth_peeling
-    @useDepthPeeling.setter
-    def useDepthPeeling(self, value):
-        self._warn("use_depth_peeling")
-        self.use_depth_peeling = value
-    ##################################
-    @property
-    def multiSamples(self):
-        self._warn("multi_samples")
-        return self.multi_samples
-    @multiSamples.setter
-    def multiSamples(self, value):
-        self._warn("multi_samples")
-        self.multi_samples = value
-    ##################################
-    @property
-    def maxNumberOfPeels(self):
-        self._warn("max_number_of_peels")
-        return self.max_number_of_peels
-    @maxNumberOfPeels.setter
-    def maxNumberOfPeels(self, value):
-        self._warn("max_number_of_peels")
-        self.max_number_of_peels = value
-    ##################################
-    @property
-    def interpolateScalarsBeforeMapping(self):
-        self._warn("interpolate_scalars_before_mapping")
-        return self.interpolate_scalars_before_mapping
-    @interpolateScalarsBeforeMapping.setter
-    def interpolateScalarsBeforeMapping(self, value):
-        self._warn("interpolate_scalars_before_mapping")
-        self.interpolate_scalars_before_mapping = value
-    ##################################
-    @property
-    def useParallelProjection(self):
-        self._warn("use_parallel_projection")
-        return self.use_parallel_projection
-    @useParallelProjection.setter
-    def useParallelProjection(self, value):
-        self._warn("use_parallel_projection")
-        self.use_parallel_projection = value
-    ##################################
-    @property
-    def tiffOrientationType(self):
-        self._warn("tiff_orientation_type")
-        return self.tiff_orientation_type
-    @tiffOrientationType.setter
-    def tiffOrientationType(self, value):
-        self._warn("tiff_orientation_type")
-        self.tiff_orientation_type = value
-    ##################################
-    @property
-    def enablePrintColor(self):
-        self._warn("enable_print_color")
-        return self.enable_print_color
-    @enablePrintColor.setter
-    def enablePrintColor(self, value):
-        self._warn("enable_print_color")
-        self.enable_print_color = value
 
-
-    def init_colab(self):
+    def init_colab(self, enable_k3d=True):
         """
         Initialize colab environment
         """
         print("setup colab environment for vedo (can take a minute)...", end='')
 
-        os.system('apt-get install xvfb')
+        res = os.system('which Xvfb')
+        if res:
+            os.system('apt-get install xvfb')
+
         os.system('pip install pyvirtualdisplay')
 
         from pyvirtualdisplay import Display
         Display(visible=0).start()
 
-        # os.system('pip install k3d')
+        if enable_k3d:
+            os.system('pip install k3d')
 
         from google.colab import output
         output.enable_custom_widget_manager()
+
+        if enable_k3d:
+            import k3d
+            try:
+                os.system("jupyter nbextension install --py --user k3d")
+                os.system("jupyter nbextension enable --py --user k3d")
+                k3d.switch_to_text_protocol()
+                self.default_backend = 'k3d'
+            except:
+                pass
         print(" setup complete.")
 
 
