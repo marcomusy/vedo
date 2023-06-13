@@ -5,46 +5,6 @@ import os
 __docformat__ = "google"
 
 
-def init_colab():
-    """
-    Initialize colab environment
-    """
-    print("setup colab environment for vedo (can take a minute)...", end='')
-
-    os.system('apt-get install xvfb')
-    os.system('pip install pyvirtualdisplay')
-
-    from pyvirtualdisplay import Display
-    Display(visible=0).start()
-
-    # os.system('pip install k3d')
-
-    from google.colab import output
-    output.enable_custom_widget_manager()
-    print(" setup complete.")
-
-
-def start_xvfb():
-    """
-    Start xvfb.
-
-    Xvfb or X virtual framebuffer is a display server implementing
-    the X11 display server protocol. In contrast to other display servers,
-    Xvfb performs all graphical operations in virtual memory
-    without showing any screen output.
-    """
-    print("start xvfb (can take a minute)...", end='')
-    os.system('apt-get install xvfb')
-    os.system('set -x')
-    os.system('export DISPLAY=:99.0')
-    os.system('which Xvfb')
-    os.system('Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &')
-    os.system('sleep 3')
-    os.system('set +x')
-    os.system('exec "$@"')
-    print(" xvfb started.")
-
-
 class Settings:
     """
     General settings to modify the global behavior
@@ -830,4 +790,45 @@ class Settings:
     def enablePrintColor(self, value):
         self._warn("enable_print_color")
         self.enable_print_color = value
+
+
+    def init_colab(self):
+        """
+        Initialize colab environment
+        """
+        print("setup colab environment for vedo (can take a minute)...", end='')
+
+        os.system('apt-get install xvfb')
+        os.system('pip install pyvirtualdisplay')
+
+        from pyvirtualdisplay import Display
+        Display(visible=0).start()
+
+        # os.system('pip install k3d')
+
+        from google.colab import output
+        output.enable_custom_widget_manager()
+        print(" setup complete.")
+
+
+    def start_xvfb(self):
+        """
+        Start xvfb.
+
+        Xvfb or X virtual framebuffer is a display server implementing
+        the X11 display server protocol. In contrast to other display servers,
+        Xvfb performs all graphical operations in virtual memory
+        without showing any screen output.
+        """
+        print("start xvfb (can take a minute)...", end='')
+        res = os.system('which Xvfb')
+        if res:
+            os.system('apt-get install xvfb')
+        os.system('set -x')
+        os.system('export DISPLAY=:99.0')
+        os.system('Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &')
+        os.system('sleep 3')
+        os.system('set +x')
+        os.system('exec "$@"')
+        print(" xvfb started.")
 
