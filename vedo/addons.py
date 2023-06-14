@@ -46,6 +46,7 @@ __all__ = [
     "Flagpost",
     "ProgressBarWindow",
     "BoxCutter",
+    "PlaneCutter",
 ]
 
 ########################################################################################
@@ -1636,7 +1637,7 @@ class Slider3D(SliderWidget):
         self.SetAnimationModeToJump()
         self.AddObserver("InteractionEvent", sliderfunc)
 
-class BoxCutter(vtk.vtkBoxWidget):
+class PlaneCutter(vtk.vtkBoxWidget):
     """
     Create a box widget to cut away parts of a Mesh.
     """
@@ -1644,11 +1645,10 @@ class BoxCutter(vtk.vtkBoxWidget):
             self,
             mesh,
             invert=False,
-            can_rotate=True,
             can_translate=True,
             can_scale=True,
-            padding=0.01,
             c=(0.25, 0.25, 0.25),
+            padding=0.05,
             alpha=0.05,
     ):
         """
@@ -1662,6 +1662,8 @@ class BoxCutter(vtk.vtkBoxWidget):
             alpha : float
                 transparency of the cut-off part of the input mesh
         """
+        super().__init__()
+
         self.mesh = mesh
         self.remnant = Mesh()
         self.remnant.name = mesh.name + "Remnant"
@@ -1670,37 +1672,37 @@ class BoxCutter(vtk.vtkBoxWidget):
         self._keypress_id = None
         self._init_bounds = mesh.bounds()
 
-        self._planes = vtk.vtkPlanes()
-        self._planes.SetBounds(self._init_bounds)
+        self._plane = vtk.vtkPlane()
 
         poly = mesh.polydata()
         self.clipper = vtk.vtkClipPolyData()
         self.clipper.GenerateClipScalarsOff()
         self.clipper.SetInputData(poly)
-        self.clipper.SetClipFunction(self._planes)
-        self.clipper.SetInsideOut(not invert)
+        self.clipper.SetClipFunction(self._plane)
+        self.clipper.SetInsideOut(invert)
         self.clipper.GenerateClippedOutputOn()
         self.clipper.Update()
 
-        self.widget = vtk.vtkBoxWidget()
+        self.widget = vtk.vtkImplicitPlaneWidget()
 
-        self.widget.SetRotationEnabled(can_rotate)
-        self.widget.SetTranslationEnabled(can_translate)
-        self.widget.SetScalingEnabled(can_scale)
+        self.widget.SetOriginTranslation(can_translate)
+        self.widget.SetScaleEnabled(can_scale)
 
-        self.widget.OutlineCursorWiresOn()
         self.widget.GetSelectedOutlineProperty().SetColor(get_color("red3"))
-        self.widget.GetSelectedHandleProperty().SetColor(get_color("red5"))
-        # self.widget.GetSelectedHandleProperty().LightingOff()
-        # self.widget.GetHandleProperty().LightingOff()
 
         self.widget.GetOutlineProperty().SetColor(c)
         self.widget.GetOutlineProperty().SetOpacity(1)
         self.widget.GetOutlineProperty().SetLineWidth(1)
         self.widget.GetOutlineProperty().LightingOff()
 
-        self.widget.GetSelectedFaceProperty().LightingOff()
-        self.widget.GetSelectedFaceProperty().SetOpacity(0.1)
+        self.widget.GetSelectedPlaneProperty().LightingOff()
+        self.widget.GetSelectedPlaneProperty().SetOpacity(0.1)
+
+        self.widget.SetTubing(False)
+        self.widget.SetOutlineTranslation(True)
+        self.widget.SetOriginTranslation(True)
+        self.widget.SetDrawPlane(False)
+        self.widget.GetPlaneProperty().LightingOff()
 
         self.widget.SetPlaceFactor(1.0 + padding)
         self.widget.SetInputData(poly)
@@ -1708,7 +1710,7 @@ class BoxCutter(vtk.vtkBoxWidget):
         self.widget.AddObserver("InteractionEvent", self._select_polygons)
 
     def _select_polygons(self, vobj, event):
-        vobj.GetPlanes(self._planes)
+        vobj.GetPlane(self._plane)
 
     def _keypress(self, vobj, event):
         # reset planes
@@ -1717,14 +1719,9 @@ class BoxCutter(vtk.vtkBoxWidget):
             self.widget.GetPlanes(self._planes)
             self.widget.PlaceWidget()
             self.widget.GetInteractor().Render()
-        elif vobj.GetKeySym() == "i":
+        elif vobj.GetKeySym() == "u":
             self.invert()
             self.widget.GetInteractor().Render()
-        elif vobj.GetKeySym() == "space":
-            if self.widget.GetEnabled():
-                self.widget.Off()
-            else:
-                self.widget.On()
 
     def invert(self):
         """Invert selection."""
@@ -1773,6 +1770,152 @@ class BoxCutter(vtk.vtkBoxWidget):
         """Remove the widget to the provided `Plotter` instance."""
         self.widget.Off()
         plt.remove(self.remnant)
+        if self.widget in plt.widgets:
+            plt.widgets.remove(self.widget)
+        if self._keypress_id:
+            plt.interactor.RemoveObserver(self._keypress_id)
+        return self
+
+
+class BoxCutter(vtk.vtkBoxWidget):
+    """
+    Create a box widget to cut away parts of a Mesh.
+    """
+    def __init__(
+            self,
+            mesh,
+            invert=False,
+            can_rotate=True,
+            can_translate=True,
+            can_scale=True,
+            initial_bounds=(),
+            padding=0.025,
+            c=(0.25, 0.25, 0.25),
+            alpha=0.05,
+    ):
+        """
+        Create a box widget to cut away parts of a Mesh.
+
+        Arguments:
+            mesh : Mesh
+                the input mesh
+            c : color
+                color of the box cutter widget
+            alpha : float
+                transparency of the cut-off part of the input mesh
+        """
+        super().__init__()
+
+        self.mesh = mesh
+        self.remnant = Mesh()
+        self.remnant.name = mesh.name + "Remnant"
+
+        self._alpha = alpha
+        self._keypress_id = None
+        self._init_bounds = initial_bounds
+        if len(self._init_bounds) == 0:
+            self._init_bounds = mesh.bounds()
+        else:
+            self._init_bounds = initial_bounds
+
+        self._planes = vtk.vtkPlanes()
+        self._planes.SetBounds(self._init_bounds)
+
+        poly = mesh.polydata()
+        self.clipper = vtk.vtkClipPolyData()
+        self.clipper.GenerateClipScalarsOff()
+        self.clipper.SetInputData(poly)
+        self.clipper.SetClipFunction(self._planes)
+        self.clipper.SetInsideOut(not invert)
+        self.clipper.GenerateClippedOutputOn()
+        self.clipper.Update()
+
+        self.widget = vtk.vtkBoxWidget()
+
+        self.widget.SetRotationEnabled(can_rotate)
+        self.widget.SetTranslationEnabled(can_translate)
+        self.widget.SetScalingEnabled(can_scale)
+
+        self.widget.OutlineCursorWiresOn()
+        self.widget.GetSelectedOutlineProperty().SetColor(get_color("red3"))
+        self.widget.GetSelectedHandleProperty().SetColor(get_color("red5"))
+       
+        self.widget.GetOutlineProperty().SetColor(c)
+        self.widget.GetOutlineProperty().SetOpacity(1)
+        self.widget.GetOutlineProperty().SetLineWidth(1)
+        self.widget.GetOutlineProperty().LightingOff()
+
+        self.widget.GetSelectedFaceProperty().LightingOff()
+        self.widget.GetSelectedFaceProperty().SetOpacity(0.1)
+
+        self.widget.SetPlaceFactor(1.0 + padding)
+        self.widget.SetInputData(poly)
+        self.widget.PlaceWidget()
+        self.widget.AddObserver("InteractionEvent", self._select_polygons)
+
+    def _select_polygons(self, vobj, event):
+        vobj.GetPlanes(self._planes)
+
+    def _keypress(self, vobj, event):
+        # reset planes
+        if vobj.GetKeySym() == "r":
+            self._planes.SetBounds(self._init_bounds)
+            self.widget.GetPlanes(self._planes)
+            self.widget.PlaceWidget()
+            self.widget.GetInteractor().Render()
+        elif vobj.GetKeySym() == "u":
+            self.invert()
+            self.widget.GetInteractor().Render()
+
+    def invert(self):
+        """Invert selection."""
+        self.clipper.SetInsideOut(not self.clipper.GetInsideOut())
+        return self
+
+    def bounds(self, value=None):
+        """Set or get the bounding box."""
+        if value is None:
+            return self.cutter.GetBounds()
+        else:
+            self._planes.SetBounds(value)
+            return self
+    
+    def on(self):
+        """Switch the widget on or off."""
+        self.widget.On()
+        return self
+
+    def off(self):
+        """Switch the widget on or off."""
+        self.widget.Off()
+        return self    
+
+    def add_to(self, plt):
+        """Assign the widget to the provided `Plotter` instance."""
+        self.widget.SetInteractor(plt.interactor)
+        self.widget.SetCurrentRenderer(plt.renderer)
+        if self.widget not in plt.widgets:
+            plt.widgets.append(self.widget)
+
+        cpoly = self.clipper.GetOutput()
+        self.mesh._update(cpoly)
+
+        out = self.clipper.GetClippedOutputPort()
+        self.remnant.mapper().SetInputConnection(out)  
+        self.remnant.alpha(self._alpha).color((0.5, 0.5, 0.5))
+        self.remnant.lighting('off').wireframe()
+        plt.add(self.remnant)
+        self._keypress_id = plt.interactor.AddObserver("KeyPressEvent", self._keypress)
+        if plt.interactor and plt.interactor.GetInitialized():
+            self.widget.On()
+        return self
+    
+    def remove_from(self, plt):
+        """Remove the widget to the provided `Plotter` instance."""
+        self.widget.Off()
+        plt.remove(self.remnant)
+        if self.widget in plt.widgets:
+            plt.widgets.remove(self.widget)
         if self._keypress_id:
             plt.interactor.RemoveObserver(self._keypress_id)
         return self

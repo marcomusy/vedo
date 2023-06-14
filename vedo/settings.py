@@ -672,7 +672,7 @@ class Settings:
         """
         Initialize colab environment
         """
-        print("setup colab environment for vedo (can take a minute)...", end='')
+        print("setting up colab environment (can take a minute) ...", end='')
 
         res = os.system('which Xvfb')
         if res:
@@ -692,13 +692,16 @@ class Settings:
         if enable_k3d:
             import k3d
             try:
+                print("installing k3d...", end='')
                 os.system("jupyter nbextension install --py --user k3d")
-                os.system("jupyter nbextension enable --py --user k3d")
+                os.system("jupyter nbextension enable  --py --user k3d")
                 k3d.switch_to_text_protocol()
                 self.default_backend = 'k3d'
+                self.backend_autoclose = False
             except:
-                pass
-        print(" setup complete.")
+                print("(FAILED) ... ", end='')
+
+        print(" setup completed.")
 
 
     def start_xvfb(self):
@@ -710,7 +713,7 @@ class Settings:
         Xvfb performs all graphical operations in virtual memory
         without showing any screen output.
         """
-        print("start xvfb (can take a minute)...", end='')
+        print("starting xvfb (can take a minute) ...", end='')
         res = os.system('which Xvfb')
         if res:
             os.system('apt-get install xvfb')
