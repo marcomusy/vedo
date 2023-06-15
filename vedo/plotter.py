@@ -3595,7 +3595,7 @@ class Plotter:
                 except AttributeError:
                     pass
 
-        elif key == "u":
+        elif key == "U":
             pval = renderer.GetActiveCamera().GetParallelProjection()
             renderer.GetActiveCamera().SetParallelProjection(not pval)
             if pval:
@@ -3651,7 +3651,7 @@ class Plotter:
                 " |        n     show surface mesh normals                     |\n"
                 " |        a     toggle interaction to Actor Mode              |\n"
                 " |        j     toggle interaction to Joystick Mode           |\n"
-                " |        u     toggle perspective/parallel projection        |\n"
+                " |        U     toggle perspective/parallel projection        |\n"
                 " |        r     reset camera position                         |\n"
                 " |        R     reset camera orientation to orthogonal view   |\n"
                 " |        .     fly camera towards last clicked point         |\n"
