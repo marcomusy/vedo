@@ -1816,6 +1816,21 @@ class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
         elif vobj.GetKeySym() == "u": # invert cut
             self.invert()
             self.widget.GetInteractor().Render()
+        elif vobj.GetKeySym() == "x": # set normal along x
+            self.widget.SetNormal((1, 0, 0))
+            self.widget.GetPlane(self._implicit_func)
+            self.widget.PlaceWidget()
+            self.widget.GetInteractor().Render()
+        elif vobj.GetKeySym() == "y": # set normal along y
+            self.widget.SetNormal((0, 1, 0))
+            self.widget.GetPlane(self._implicit_func)
+            self.widget.PlaceWidget()
+            self.widget.GetInteractor().Render()
+        elif vobj.GetKeySym() == "z": # set normal along z
+            self.widget.SetNormal((0, 0, 1))
+            self.widget.GetPlane(self._implicit_func)
+            self.widget.PlaceWidget()
+            self.widget.GetInteractor().Render()        
         elif vobj.GetKeySym() == "s": # Ctrl+s to save mesh
             if self.widget.GetInteractor():
                 if self.widget.GetInteractor().GetControlKey():
