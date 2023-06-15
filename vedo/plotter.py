@@ -4026,21 +4026,13 @@ class Plotter:
 
         elif key == "X":
             if self.clicked_actor:
-                cutter = BoxCutter(msh)
-                plt.add(cutter)
-                
                 if not self.cutter_widget:
-                    addons.add_cutter_tool(self.clicked_actor)
+                    self.cutter_widget = addons.BoxCutter(self.clicked_actor)
+                    self.add(self.cutter_widget)
+                    print("Press Shift+X to close the cutter box widget, Ctrl+s to save the cut section.")
                 else:
-                    if isinstance(self.clicked_actor, vtk.vtkActor):
-                        fname = "clipped.vtk"
-                        w = vtk.vtkPolyDataWriter()
-                        w.SetInputData(self.clicked_actor.polydata())
-                        w.SetFileName(fname)
-                        w.Write()
-                        vedo.printc(r":save: Saved file:", fname, c="m")
-                        self.cutter_widget.Off()
-                        self.cutter_widget = None
+                    self.remove(self.cutter_widget)
+                    self.cutter_widget = None
             else:
                 for a in self.actors:
                     if isinstance(a, vtk.vtkVolume):

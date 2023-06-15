@@ -60,7 +60,7 @@ Pressing `h` will then show a number of options to interact with your 3D scene:
     |        n     show surface mesh normals                     |
     |        a     toggle interaction to Actor Mode              |
     |        j     toggle interaction to Joystick Mode           |
-    |        u     toggle perspective/parallel projection        |
+    |        U     toggle perspective/parallel projection        |
     |        r     reset camera position                         |
     |        R     reset camera orientation to orthogonal view   |
     |        .     fly camera towards last clicked point         |

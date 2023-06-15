@@ -1071,7 +1071,7 @@ class SplinePlotter(Plotter):
     Interactive drawing of splined curves on meshes.
     """
 
-    def __init__(self, obj, init_points=(), **kwargs):
+    def __init__(self, obj, init_points=(), closed=False, splined=True, **kwargs):
         """
         Create an interactive application that allows the user to click points and
         retrieve the coordinates of such points and optionally a spline or line
@@ -1083,9 +1083,9 @@ class SplinePlotter(Plotter):
 
         self.mode = "trackball"
         self.verbose = True
-        self.splined = True
+        self.splined = splined
         self.resolution = None  # spline resolution (None = automatic)
-        self.closed = False
+        self.closed = closed
         self.lcolor = "yellow4"
         self.lwidth = 3
         self.pcolor = "purple5"

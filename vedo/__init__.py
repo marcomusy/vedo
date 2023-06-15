@@ -90,7 +90,7 @@ last_figure = None
 ######################################################################### LOGGING
 class _LoggingCustomFormatter(logging.Formatter):
 
-    logformat = "[vedo.%(filename)s:%(lineno)d] %(levelname)s: %(message)s"
+    logformat = "[vedo.%(filename)s] %(levelname)s: %(message)s"
 
     white = "\x1b[1m"
     grey = "\x1b[2m\x1b[1m\x1b[38;20m"
@@ -110,7 +110,7 @@ class _LoggingCustomFormatter(logging.Formatter):
     def format(self, record):
         log_fmt = self.FORMATS.get(record.levelno)
         formatter = logging.Formatter(log_fmt)
-        return formatter.format(record)
+        return formatter.format(record).replace(".py", "")
 
 logger = logging.getLogger("vedo")
 

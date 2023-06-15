@@ -4450,7 +4450,7 @@ class Points(BaseActor, vtk.vtkActor):
         self.pipeline = utils.OperationNode("cut_with_pointloop", parents=parents)
         return self
 
-    def cut_with_scalars(self, value, name="", invert=False):
+    def cut_with_scalar(self, value, name="", invert=False):
         """
         Cut a mesh or point cloud with some input scalar point-data.
 
@@ -4469,7 +4469,7 @@ class Points(BaseActor, vtk.vtkActor):
             pts = s.points()
             scalars = np.sin(3*pts[:,2]) + pts[:,0]
             s.pointdata["somevalues"] = scalars
-            s.cut_with_scalars(0.3)
+            s.cut_with_scalar(0.3)
             s.cmap("Spectral", "somevalues").add_scalarbar()
             s.show(axes=1).close()
             ```

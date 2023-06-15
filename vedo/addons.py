@@ -44,7 +44,7 @@ __all__ = [
     "Goniometer",
     "Button",
     "Flagpost",
-    "ProgressBarWindow",
+    "ProgressBarWidget",
     "BoxCutter",
     "PlaneCutter",
     "SphereCutter",
@@ -1698,6 +1698,7 @@ class BaseCutter:
     def remove_from(self, plt):
         """Remove the widget to the provided `Plotter` instance."""
         self.widget.Off()
+        self.RemoveAllObservers()
         plt.remove(self.remnant)
         if self.widget in plt.widgets:
             plt.widgets.remove(self.widget)
@@ -2121,7 +2122,7 @@ class RendererFrame(vtk.vtkActor2D):
         self.GetProperty().SetLineWidth(lw)
 
 #####################################################################
-class ProgressBarWindow(vtk.vtkActor2D):
+class ProgressBarWidget(vtk.vtkActor2D):
     """
     Add a progress bar in the rendering window.
     """
@@ -4310,18 +4311,23 @@ def add_global_axes(axtype=None, c=None):
         ls = vtk.vtkLegendScaleActor()
         ls.RightAxisVisibilityOff()
         ls.TopAxisVisibilityOff()
-        ls.LegendVisibilityOff()
         ls.LeftAxisVisibilityOff()
+        ls.LegendVisibilityOff()
+        ls.SetBottomBorderOffset(50)
         ls.GetBottomAxis().SetNumberOfMinorTicks(1)
+        ls.GetBottomAxis().SetFontFactor(1.1)
         ls.GetBottomAxis().GetProperty().SetColor(c)
+        ls.GetBottomAxis().GetProperty().SetOpacity(1.0)
+        ls.GetBottomAxis().GetProperty().SetLineWidth(2)
         ls.GetBottomAxis().GetLabelTextProperty().SetColor(c)
         ls.GetBottomAxis().GetLabelTextProperty().BoldOff()
         ls.GetBottomAxis().GetLabelTextProperty().ItalicOff()
-        ls.GetBottomAxis().GetLabelTextProperty().ShadowOff()
         pr = ls.GetBottomAxis().GetLabelTextProperty()
         pr.SetFontFamily(vtk.VTK_FONT_FILE)
         pr.SetFontFile(utils.get_font_path(settings.default_font))
         ls.PickableOff()
+        # if not plt.renderer.GetActiveCamera().GetParallelProjection():
+        #     vedo.logger.warning("Axes type 13 should be used with parallel projection")
         plt.axes_instances[r] = ls
         plt.renderer.AddActor(ls)
 

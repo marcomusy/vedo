@@ -6,7 +6,7 @@
 from random import random
 import numpy as np
 from vedo import Plotter, progressbar, mag, versor, Torus, Sphere
-from vedo.addons import ProgressBarWindow
+from vedo.addons import ProgressBarWidget
 
 
 #############################################################
@@ -66,7 +66,7 @@ ds = (p / m) * (dt / 2.0)
 if "False" not in np.less_equal(mag(ds), radius).tolist():
     pos = pos + (p / mass) * (dt / 2.0)  # initial half-step
 
-pbw = ProgressBarWindow(Nsteps)
+pbw = ProgressBarWidget(Nsteps)
 plt += pbw
 
 plt.show()
