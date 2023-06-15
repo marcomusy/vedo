@@ -452,6 +452,7 @@ from vtkmodules.vtkInteractionWidgets import (
     vtkBalloonWidget,
     vtkBoxWidget,
     vtkContourWidget,
+    vtkPlaneWidget,
     vtkFocalPlanePointPlacer,
     vtkImplicitPlaneWidget,
     vtkOrientationMarkerWidget,
