@@ -1638,7 +1638,7 @@ class Slider3D(SliderWidget):
         self.SetAnimationModeToJump()
         self.AddObserver("InteractionEvent", sliderfunc)
 
-class PlaneCutter(vtk.vtkBoxWidget):
+class PlaneCutter(vtk.vtkPlaneWidget):
     """
     Create a box widget to cut away parts of a Mesh.
     """
@@ -1939,7 +1939,7 @@ class BoxCutter(vtk.vtkBoxWidget):
         return self
 
 
-class SphereCutter(vtk.vtkBoxWidget):
+class SphereCutter(vtk.vtkSphereWidget):
     """
     Create a box widget to cut away parts of a Mesh.
     """
