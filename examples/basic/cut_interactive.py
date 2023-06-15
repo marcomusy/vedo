@@ -1,19 +1,22 @@
 """Manipulate a box to cut a mesh interactively.
 Use mouse buttons to zoom and pan.
 Press r to reset the cutting box
-Press spacebar to toggle the cutting box on/off
-Press i to invert the selection"""
+Press i to toggle the cutting box on/off
+Press u to invert the selection"""
 from vedo import *
 
 # settings.enable_default_keyboard_callbacks = False
+# settings.enable_default_mouse_callbacks = False
 
-cow = Mesh(dataurl+'cow.vtk').backcolor("purple8")
-# cow.cmap('jet', cow.points()[:,2])
+msh = Mesh(dataurl+'mouse_brain.stl').backcolor("purple8")
 
 plt = Plotter(bg='blackboard', interactive=False)
-plt.show(cow, __doc__, viewup='z')
+plt.show(msh, __doc__, viewup='z')
 
-cutter = BoxCutter(cow)
+cutter = PlaneCutter(msh)
+# cutter = BoxCutter(msh)
+# cutter = SphereCutter(msh)
+
 plt.add(cutter)
 plt.interactive()
 

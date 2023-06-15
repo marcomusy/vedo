@@ -1698,22 +1698,6 @@ class Plotter:
             self.interactor.Render()
         return sw
 
-    def add_cutter_tool(self, obj=None, mode="box", invert=False):
-        """Create an interactive tool to cut away parts of a mesh or volume.
-
-        Arguments:
-            mode : (str)
-                either "box", "plane" or "sphere"
-            invert : (bool)
-                invert selection (inside-out)
-
-        Examples:
-            - [cutter.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/cutter.py)
-
-            ![](https://user-images.githubusercontent.com/32848391/50738866-c0658e80-11d8-11e9-955b-551d4d8b0db5.jpg)
-        """
-        return addons.add_cutter_tool(obj, mode, invert)
-
     def add_icon(self, icon, pos=3, size=0.08):
         """Add an inset icon mesh into the same renderer.
 
@@ -4042,6 +4026,9 @@ class Plotter:
 
         elif key == "X":
             if self.clicked_actor:
+                cutter = BoxCutter(msh)
+                plt.add(cutter)
+                
                 if not self.cutter_widget:
                     addons.add_cutter_tool(self.clicked_actor)
                 else:

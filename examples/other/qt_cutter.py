@@ -2,7 +2,7 @@ import sys
 # from PySide2 import QtWidgets, QtCore
 from PyQt5 import Qt
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
-from vedo import Plotter, Mesh, dataurl
+from vedo import Plotter, Mesh, BoxCutter, dataurl
 
 class MainWindow(Qt.QMainWindow):
 
@@ -16,7 +16,8 @@ class MainWindow(Qt.QMainWindow):
         # Create renderer and add the vedo objects and callbacks
         self.plt = Plotter(qt_widget=self.vtkWidget)
         mesh = Mesh(dataurl+'cow.vtk')
-        self.plt += mesh
+        self.cutter = BoxCutter(mesh)
+        self.plt += [mesh, self.cutter]
         self.plt.show()
 
         box_cutter_button_on = Qt.QPushButton("Start the box cutter")
@@ -34,11 +35,10 @@ class MainWindow(Qt.QMainWindow):
         self.show()
 
     def ctool_start(self):
-        self.plt.add_cutter_tool(mode='box')
-        self.plt.widgets[-1].On()
+        self.cutter.on()
 
     def ctool_stop(self):
-        self.plt.widgets[-1].Off()
+        self.cutter.off()
 
     def onClose(self):
         #Disable the interactor before closing to prevent it
