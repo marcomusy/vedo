@@ -4,7 +4,7 @@ from vedo import *
 from vedo.pyplot import plot
 import vedo
 
-doshow = 0
+doshow = 1
 
 ##################################################################### addons.py
 box = Box(pos=(1,2,3), length=8, width=9, height=7).alpha(0.1)
@@ -15,6 +15,7 @@ if doshow:
     show(box, axs).close()
 
 ######################################################
+print("Test 1")
 b = Box(pos=(0, 0, 0), length=80, width=90, height=70).alpha(0.1)
 if doshow:
     show(
@@ -27,6 +28,7 @@ if doshow:
     ).close()
 
 ##################################################################### base.py
+print("Test 2")
 c1 = Cube()
 c2 = c1.clone().c('violet').alpha(0.5) # copy of c1
 v = vector(0.2,1,0)
@@ -38,6 +40,7 @@ if doshow:
 
 
 ######################################################
+print("Test 3")
 objs = []
 for i in range(-5, 5):
     p = [i/3, i/2, i]
@@ -49,6 +52,7 @@ if doshow:
 
 
 ######################################################
+print("Test 4")
 c1 = Cube()
 c2 = c1.clone().c('violet').alpha(0.5) # copy of c1
 v = vector(0.2,1,0)
@@ -64,6 +68,7 @@ if doshow:
 
 
 ######################################################
+print("Test 5")
 tetmesh = TetMesh(dataurl+'limb_ugrid.vtk')
 tetmesh.color('rainbow')
 cu = Cube(side=500).x(500) # any Mesh works
@@ -72,11 +77,13 @@ if doshow:
     show(axes=1).close()
 
 ##################################################################### mesh.py
+print("Test 6")
 s = Sphere().crop(right=0.3, left=0.1)
 if doshow:
     show(s).close()
 
 ######################################################
+print("Test 7")
 c1 = Cylinder(pos=(0,0,0), r=2, height=3, axis=(1,.0,0), alpha=.1).triangulate()
 c2 = Cylinder(pos=(0,0,2), r=1, height=2, axis=(0,.3,1), alpha=.1).triangulate()
 intersect = c1.intersect_with(c2).join(reset=True)
@@ -86,6 +93,7 @@ if doshow:
 
 
 ######################################################
+print("Test 8")
 grid = Grid()#.triangulate()
 circle = Circle(r=0.3, res=24).pos(0.11,0.12)
 line = Line(circle, closed=True, lw=4, c='r4')
@@ -95,6 +103,7 @@ if doshow:
 
 
 ##################################################################### picture.py
+print("Test 9")
 if doshow:
     pic = Picture(dataurl+'dog.jpg').pad()
     pic.append([pic,pic,pic], axis='y')
@@ -103,6 +112,7 @@ if doshow:
 
 
 ######################################################
+print("Test 10")
 if doshow:
     p = vedo.Picture(vedo.dataurl+'images/dog.jpg').bw()
     pe = p.clone().enhance()
@@ -111,6 +121,7 @@ if doshow:
 
 
 ######################################################
+print("Test 11")
 if doshow:
     pic1 = Picture("https://aws.glamour.es/prod/designs/v1/assets/620x459/547577.jpg")
     pic2 = pic1.clone().invert()
@@ -120,6 +131,7 @@ if doshow:
 
 
 ######################################################
+print("Test 12")
 if doshow:
     pic = vedo.Picture(vedo.dataurl+"images/dog.jpg")
     pic.rectangle([100,300], [100,200], c='green4', alpha=0.7)
@@ -129,12 +141,14 @@ if doshow:
 
 
 ##################################################################### plotter.py
+print("Test 13")
 cone = Cone()
 if doshow:
     cone.show(axes=1).fly_to([1,0,0])
     cone.show().close()
 
 ######################################################
+print("Test 14")
 settings.use_parallel_projection = True # or else it doesnt make sense!
 cube = Cube().alpha(0.2)
 plt = Plotter(size=(900,600), axes=dict(xtitle='x (um)'))
@@ -144,12 +158,12 @@ if doshow:
 settings.use_parallel_projection = False
 
 ######################################################
+print("Test 15")
 def func(evt): # called every time the mouse moves
     # evt is a dotted dictionary
     if not evt.actor:
         return  # no hit, return
     print("point coords =", evt.picked3d)
-    # print("full event dump:", evt)
 
 elli = Ellipsoid()
 plt = Plotter(axes=1)
@@ -159,6 +173,7 @@ if doshow:
 
 
 ##################################################################### pointcloud.py
+print("Test 16")
 s = Ellipsoid().rotate_y(30)
 #Camera options: pos, focal_point, viewup, distance,
 # clippingRange, parallelScale, thickness, viewAngle
@@ -171,6 +186,7 @@ if doshow:
 
 
 ######################################################
+print("Test 17")
 def fibonacci_sphere(n):
     s = np.linspace(0, n, num=n, endpoint=False)
     theta = s * 2.399963229728653
@@ -185,6 +201,7 @@ if doshow:
 
 
 ######################################################
+print("Test 18")
 s = Sphere(res=10).linewidth(1).c("orange").compute_normals()
 point_ids = s.labels('id', on="points").c('green')
 cell_ids  = s.labels('id', on="cells").c('black')
@@ -194,6 +211,7 @@ if doshow:
 
 
 ######################################################
+print("Test 19")
 sph = Sphere(quads=True, res=4).compute_normals().wireframe()
 sph.celldata["zvals"] = sph.cell_centers()[:,2]
 l2d = sph.labels("zvals", on="cells", precision=2).backcolor('orange9')
@@ -203,6 +221,7 @@ if doshow:
 
 
 ######################################################
+print("Test 20")
 c1 = Cube().rotate_z(5).x(2).y(1)
 print("cube1 position", c1.pos())
 T = c1.get_transform()  # rotate by 5 degrees, sum 2 to x and 1 to y
@@ -217,6 +236,7 @@ if doshow:
 
 
 ######################################################
+print("Test 21")
 disc = Disc(r1=1, r2=1.2)
 mesh = disc.extrude(3, res=50).linewidth(1)
 mesh.cut_with_cylinder([0,0,2], r=0.4, axis='y', invert=True)
@@ -225,6 +245,7 @@ if doshow:
 
 
 ######################################################
+print("Test 22")
 disc = Disc(r1=1, r2=1.2)
 mesh = disc.extrude(3, res=50).linewidth(1)
 mesh.cut_with_sphere([1,-0.7,2], r=1.5, invert=True)
@@ -233,6 +254,7 @@ if doshow:
 
 
 ######################################################
+print("Test 23")
 arr = np.random.randn(100000, 3)/2
 pts = Points(arr).c('red3').pos(5,0,0)
 cube = Cube().pos(4,0.5,0)
@@ -242,6 +264,7 @@ if doshow:
 
 
 ##################################################################### shapes.py
+print("Test 24")
 pts = [[1, 0, 0], [5, 2, 0], [3, 3, 1]]
 ln = Line(pts, c='r', lw=5).pattern('- -', repeats=10)
 if doshow:
@@ -250,6 +273,7 @@ if doshow:
 
 
 ######################################################
+print("Test 25")
 if doshow:
     shape = load(dataurl+"timecourse1d.npy")[58]
     pts = shape.rotate_x(30).points()
@@ -259,6 +283,7 @@ if doshow:
 
 
 ######################################################
+print("Test 26")
 if doshow:
     shape = load(dataurl+"timecourse1d.npy")[55]
     curvs = Line(shape.points()).curvature()
@@ -270,6 +295,7 @@ if doshow:
 
 
 ######################################################
+print("Test 27")
 aline = Line([(0,0,0),(1,3,0),(2,4,0)])
 surf1 = aline.sweep((1,0.2,0), res=3)
 surf2 = aline.sweep((0.2,0,1))
@@ -279,6 +305,7 @@ if doshow:
 
 
 ######################################################
+print("Test 28")
 pts = [(-4,-3),(1,1),(2,4),(4,1),(3,-1),(2,-5),(9,-3)]
 ln = Line(pts, c='r', lw=2).z(0.01)
 rl = RoundedLine(pts, 0.6)
@@ -287,6 +314,7 @@ if doshow:
 
 
 ######################################################
+print("Test 29")
 pts = np.random.randn(25,3)
 for i,p in enumerate(pts):
     p += [5*i, 15*sin(i/2), i*i*i/200]
@@ -295,6 +323,7 @@ if doshow:
 
 
 ######################################################
+print("Test 30")
 xcoords = np.arange(0, 2, 0.2)
 ycoords = np.arange(0, 1, 0.2)
 sqrtx = sqrt(xcoords)
@@ -310,6 +339,7 @@ if doshow:
 
 
 ######################################################
+print("Test 31")
 settings.immediate_rendering = False
 plt = Plotter(N=18)
 for i in range(18):

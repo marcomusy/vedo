@@ -125,10 +125,10 @@ class MousePan(vtk.vtkInteractorStyleUser):
         self.right = False
 
     def _wheel_forward(self, w, e):
-        self.mouse_wheel_forward()
+        self._mouse_wheel_forward()
 
     def _wheel_backward(self, w, e):
-        self.mouse_wheel_backward()
+        self._mouse_wheel_backward()
 
     def _mouse_move(self, w, e):
         if self.left:

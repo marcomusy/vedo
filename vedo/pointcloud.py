@@ -1517,11 +1517,6 @@ class Points(BaseActor, vtk.vtkActor):
             self.celldata["Acoplanarity"] = np.array(acoplanarities, dtype=float)
         return self
 
-    @deprecated(reason=vedo.colors.red + "Please use distance_to()" + vedo.colors.reset)
-    def distanceTo(self, pcloud, signed=False, invert=False, name="Distance"):
-        "Please use `distance_to()`."
-        return self.distance_to(pcloud, signed, invert, name)
-
     def distance_to(self, pcloud, signed=False, invert=False, name="Distance"):
         """
         Computes the distance from one point cloud or mesh to another point cloud or mesh.
@@ -1616,11 +1611,6 @@ class Points(BaseActor, vtk.vtkActor):
         """ Force the Mesh, Line or point cloud to be treated as translucent"""
         self.SetForceTranslucent(value)
         return self
-
-    @deprecated(reason=vedo.colors.red + "Please use point_size()" + vedo.colors.reset)
-    def pointSize(self, value):
-        "Deprecated. Please use `point_size()`."
-        return self.point_size(value)
 
     def point_size(self, value=None):
         """Set/get mesh's point size of vertices. Same as `mesh.ps()`"""
@@ -1794,12 +1784,6 @@ class Points(BaseActor, vtk.vtkActor):
             return 0.0
         cc = coords - cm
         return np.mean(np.linalg.norm(cc, axis=1))
-
-
-    @deprecated(reason=vedo.colors.red + "Please use center_of_mass()" + vedo.colors.reset)
-    def centerOfMass(self):
-        "Deprecated. Please use `center_of_mass()`"
-        return self.center_of_mass()
 
     def center_of_mass(self):
         """Get the center of mass of mesh."""
@@ -3014,11 +2998,6 @@ class Points(BaseActor, vtk.vtkActor):
         return self
 
     @deprecated(reason=vedo.colors.red + "Please use property mesh.cellcolors" + vedo.colors.reset)
-    def cellIndividualColors(self, colorlist):
-        self.cellcolors = colorlist
-        return self
-
-    @deprecated(reason=vedo.colors.red + "Please use property mesh.cellcolors" + vedo.colors.reset)
     def cell_individual_colors(self, colorlist):
         self.cellcolors = colorlist
         return self
@@ -3132,23 +3111,6 @@ class Points(BaseActor, vtk.vtkActor):
         self.pointdata["PointsRGBA"] = value.astype(np.uint8)
         self.pointdata.select("PointsRGBA")
 
-
-    @deprecated(reason=vedo.colors.red + "Please use interpolate_data_from()" + vedo.colors.reset)
-    def interpolateDataFrom(
-        self,
-        source,
-        radius=None,
-        N=None,
-        kernel="shepard",
-        exclude=("Normals",),
-        on="points",
-        nullStrategy=1,
-        nullValue=0,
-    ):
-        "Deprecated. Please use `interpolate_data_from()`."
-        return self.interpolate_data_from(
-            source, radius, N, kernel, exclude, on, nullStrategy, nullValue
-        )
 
     def interpolate_data_from(
         self,
@@ -3812,16 +3774,6 @@ class Points(BaseActor, vtk.vtkActor):
 
         self.pipeline = utils.OperationNode("warp", parents=parents)
         return self
-
-    @deprecated(reason=vedo.colors.red + "Please use cut_with_plane()" + vedo.colors.reset)
-    def cutWithPlane(self, origin=(0, 0, 0), normal=(1, 0, 0)):
-        "Deprecated. Please use `cut_with_plane()`."
-        return self.cut_with_plane(origin, normal)
-
-    @deprecated(reason=vedo.colors.red + "Please use cut_with_mesh()" + vedo.colors.reset)
-    def cutWithMesh(self, mesh, invert=False, keep=False):
-        "Deprecated. Please use `cut_with_mesh()`."
-        return self.cut_with_mesh(mesh, invert, keep)
 
     def cut_with_plane(self, origin=(0, 0, 0), normal=(1, 0, 0), invert=False):
         """
@@ -4994,7 +4946,7 @@ class Points(BaseActor, vtk.vtkActor):
             raise RuntimeError()
         dens.Update()
         pts = utils.vtk2numpy(dens.GetOutput().GetPoints().GetData())
-        cld = Points(pts, c=None).pointSize(self.GetProperty().GetPointSize())
+        cld = Points(pts, c=None).point_size(self.GetProperty().GetPointSize())
         cld.interpolate_data_from(self, n=nclosest, radius=radius)
         cld.name = "densifiedCloud"
 

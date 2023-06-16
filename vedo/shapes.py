@@ -1049,7 +1049,7 @@ class Spline(Line):
                 - 0 = interpolate points exactly [default].
                 - 1 = average point positions.
             degree : (int)
-                degree of the spline (1<degree<5)
+                degree of the spline (between 1 and 5).
             easing : (str)
                 control sensity of points along the spline.
                 Available options are

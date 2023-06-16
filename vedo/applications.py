@@ -990,7 +990,7 @@ class FreeHandCutPlotter(Plotter):
             pts = self.spline.points()
             n = fit_plane(pts, signed=True).normal  # compute normal vector to points
             rb = Ribbon(pts - tol * n, pts + tol * n, closed=True)
-            self.mesh.cutWithMesh(rb, invert=inv)  # CUT
+            self.mesh.cut_with_mesh(rb, invert=inv)  # CUT
             self.txt2d.text(self.msg)  # put back original message
             if self.drawmode:
                 self._on_right_click(evt)  # toggle mode to normal

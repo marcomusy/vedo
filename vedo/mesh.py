@@ -1398,11 +1398,6 @@ class Mesh(Points):
         varr = vald.GetOutput().GetCellData().GetArray("ValidityState")
         return vtk2numpy(varr)
 
-    @deprecated(reason=vedo.colors.red + "Please use compute_curvature()" + vedo.colors.reset)
-    def addCurvatureScalars(self, method=0):
-        """Deprecated. Please use `compute_curvature()`"""
-        return self.compute_curvature(method)
-
     def compute_curvature(self, method=0):
         """
         Add scalars to `Mesh` that contains the curvature calculated in three different ways.

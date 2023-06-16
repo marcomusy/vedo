@@ -1,6 +1,9 @@
 ## Main changes
 
-- rename module `io.py` to `file_io.py` to avoid override stlib io.
+- Rename module `io.py` to `file_io.py` to avoid override stlib io.
+- Complete revision of cutter widgets funcionatlity
+- Integration in napari thanks to @jo-mueller
+
 
 ### Breaking changes
 - method `plotter.add()` no more accepts keyword `render=True/False`. Please use `plotter.add().render()` explicitly. Same thing for `plotter.remove()`.
@@ -26,7 +29,7 @@
 - Update API Documentation for Changing Backend by @bhacha
 - Add `application.Browser().play()` to autoplay a slider
 - Add `pad()` to padding a Volume with zeros voxels (useful to `dilate()`)
-- Add `ProgressBarWindow()` to show a progress bar in the rendering window
+- Add `ProgressBarWidget()` to show a progress bar in the rendering window
 - Fix Scalarbar3D logscale and change separator symbol by @XushanLu
 - Fix `vedo/interactor_modes.mouse_left_move()` by @MiticoDan
 - Added `applications.AnimationPlayer` class by @mikaeltulldahl
@@ -51,11 +54,23 @@ examples/simulations/aspring2_player.py
 ```
 airplane1.py
 examples/simulations/trail.py
+particle_simulator.py
 ```
+align4.py
+bgImage.py
+colormap_list.py
+mousehover3.py
+cut_with_points2.py
+interpolate_field.py
+goniometer.py
+pendulum_3d.pyq
 
+graph_lineage.py
+graph_network.py
+markpoint.py
+plot_stream.py
 
-
-
+meshio_read.py
 
 
 
