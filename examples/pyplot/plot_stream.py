@@ -1,7 +1,7 @@
 """Plot streamlines of the 2D field:
 
-u(x,y) = -1 - x\^2 + y
-v(x,y) =  1 + x  - y\^2
+u(x,y) = -1 - x:^2 + y
+v(x,y) =  1 + x  - y:^2
 """
 from vedo import Points, show
 from vedo.pyplot import streamplot

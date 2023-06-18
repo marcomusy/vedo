@@ -3926,7 +3926,7 @@ def Axes(
     return asse
 
 
-def add_global_axes(axtype=None, c=None):
+def add_global_axes(axtype=None, c=None, bounds=()):
     """
     Draw axes on scene. Available axes types are
 
@@ -3993,15 +3993,31 @@ def add_global_axes(axtype=None, c=None):
     # custom grid walls
     if plt.axes == 1 or plt.axes is True or isinstance(plt.axes, dict):
 
+        if len(bounds) == 6:
+            bnds = bounds
+            xrange = (bnds[0], bnds[1])
+            yrange = (bnds[2], bnds[3])
+            zrange = (bnds[4], bnds[5])
+        else:
+            xrange=None
+            yrange=None
+            zrange=None
+
         if isinstance(plt.axes, dict):
             plt.axes.update({"use_global": True})
             # protect from invalid camelCase options from vedo<=2.3
             for k in plt.axes:
                 if k.lower() != k:
                     return
-            asse = Axes(None, **plt.axes)
+            if "xrange" in plt.axes:
+                xrange = plt.axes.pop("xrange")
+            if "yrange" in plt.axes:
+                yrange = plt.axes.pop("yrange")
+            if "zrange" in plt.axes:
+                zrange = plt.axes.pop("zrange")
+            asse = Axes(**plt.axes, xrange=xrange, yrange=yrange, zrange=zrange)
         else:
-            asse = Axes(None, use_global=True)
+            asse = Axes(xrange=xrange, yrange=yrange, zrange=zrange)
 
         plt.renderer.AddActor(asse)
         plt.axes_instances[r] = asse

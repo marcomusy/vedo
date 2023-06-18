@@ -833,38 +833,12 @@ class Plotter:
             if ren:
                 ren.AddActor(a)
 
+                if hasattr(a, "rendered_at"):
+                    ir = self.renderers.index(ren)
+                    a.rendered_at.add(ir)
+
                 if hasattr(a, "scalarbar") and a.scalarbar:
                     ren.AddActor(a.scalarbar)
-
-                if hasattr(a, "shadows") and a.shadows:
-
-                    # shad_acs = ren.GetActors()
-                    # shad_acs.InitTraversal()
-                    # for _ in range(shad_acs.GetNumberOfItems()):
-                    #     a = shad_acs.GetNextItem()
-                    #     try:
-                    #         if a.name == "Shadow":
-                    #             ren.RemoveActor(a)
-                    #     except AttributeError:
-                    #         pass
-
-                    for sha in a.shadows:
-                        ren.RemoveActor(sha)  # BUG?
-
-                    a.update_shadows()
-                    # print(a.shadows)
-                    # for sha in a.shadows:
-                    #     ren.AddActor(sha)
-
-                if hasattr(a, "trail") and a.trail:
-                    a.update_trail()
-                    ren.AddActor(a.trail)
-
-                    # trails may also have shadows:
-                    if a.trail.shadows:
-                        a.trail.update_shadows()
-                        for sha in a.trail.shadows:
-                            ren.AddActor(sha)
 
         return self
 
@@ -2884,7 +2858,6 @@ class Plotter:
                 - 10 = Image
                 - Check out `vedo.interaction_modes` for more options.
         """
-
         if self.wx_widget:
             return self
 
@@ -2960,37 +2933,24 @@ class Plotter:
                 return backends.get_notebook_backend(self.actors)
         #########################################################################
 
-        # # remove all old shadows from the scene
-        # shad_acs = self.renderer.GetActors()
-        # shad_acs.InitTraversal()
-        # for _ in range(shad_acs.GetNumberOfItems()):
-        #     a = shad_acs.GetNextItem()
-        #     try:
-        #         if a.name == "Shadow":
-        #             self.renderer.RemoveActor(a)
-        #     except AttributeError:
-        #         pass
-
-        for ia in actors:
-
+        for ia in utils.flatten(actors):
+            
             if isinstance(ia, vedo.base.Base3DProp):
 
                 if ia._isfollower:  # set by mesh.follow_camera()
                     ia.SetCamera(self.camera)
 
-                ia.rendered_at.add(at)  # set.add()
-
-                # if ia.scalarbar:
-                #     self.renderer.AddActor(ia.scalarbar)
-                #     # fix gray color labels and title to white or black
-                #     if isinstance(ia.scalarbar, vtk.vtkScalarBarActor):
-                #         ltc = np.array(ia.scalarbar.GetLabelTextProperty().GetColor())
-                #         if np.linalg.norm(ltc - (0.5, 0.5, 0.5)) / 3 < 0.05:
-                #             c = (0.9, 0.9, 0.9)
-                #             if np.sum(self.renderer.GetBackground()) > 1.5:
-                #                 c = (0.1, 0.1, 0.1)
-                #             ia.scalarbar.GetLabelTextProperty().SetColor(c)
-                #             ia.scalarbar.GetTitleTextProperty().SetColor(c)
+                try:
+                    # fix gray color labels and title to white or black
+                    ltc = np.array(ia.scalarbar.GetLabelTextProperty().GetColor())
+                    if np.linalg.norm(ltc - (0.5, 0.5, 0.5)) / 3 < 0.05:
+                        c = (0.9, 0.9, 0.9)
+                        if np.sum(self.renderer.GetBackground()) > 1.5:
+                            c = (0.1, 0.1, 0.1)
+                        ia.scalarbar.GetLabelTextProperty().SetColor(c)
+                        ia.scalarbar.GetTitleTextProperty().SetColor(c)
+                except AttributeError:
+                    pass
 
         if self.sharecam:
             for r in self.renderers:
@@ -2999,9 +2959,11 @@ class Plotter:
         if self.qt_widget is not None:
             self.qt_widget.GetRenderWindow().AddRenderer(self.renderer)
 
+
         if self.axes is not None:
             if viewup != "2d" or self.axes in [1, 8] or isinstance(self.axes, dict):
-                addons.add_global_axes(self.axes)
+                bns = self.renderer.ComputeVisiblePropBounds()
+                addons.add_global_axes(self.axes, bounds=bns)
 
         #########################################################################
         if settings.default_backend in ["ipyvtk", "trame"]:

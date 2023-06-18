@@ -1,20 +1,20 @@
-"""Draw the shadow and trailing line of a flying plane. Not really
-a simulation.. just a way to illustrate how to move objects around!"""
+"""Draw the shadow and trailing line of a moving object."""
 from vedo import *
 
 world = Box(size=(30,15,8)).wireframe()
 airplane = Mesh(dataurl+"cessna.vtk").c("green")
+airplane.pos(-15, 2.0, 0.15)
+airplane.add_trail(n=100).add_shadow('z', -4)
 
-plt = Plotter(axes=1, interactive=False)
+plt = Plotter(interactive=False)
+plt.show(world, airplane, __doc__, viewup="z")
 
-for t in np.arange(0, 3.2, 0.02):
-
-    # make up some movement
-    airplane.pos(9*t-15, 2-t, sin(3-t)).rotate_x(t)
-    if t==0:
-        airplane.add_trail(n=200).add_shadow('z', -4)
-    plt.show(world, airplane, __doc__, viewup="z", resetcam=False)
-    # plt.process_events()
+for t in np.arange(0, 3.2, 0.04):
+    pos = (9*t-15, 2-t, sin(3-t))  # make up some movement
+    airplane.pos(pos).rotate_x(t)
+    airplane.update_trail()
+    airplane.update_shadows()
+    plt.render()
 
 plt.interactive().close()
 

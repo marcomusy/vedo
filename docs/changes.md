@@ -45,31 +45,13 @@ examples/advanced/timer_callback3.py
 examples/advanced/warp6.py
 examples/pyplot/histo_1d_e.py
 examples/other/tensor_grid2.py
+examples/simulations/airplane1.py
 examples/simulations/lorenz.py
 examples/simulations/gas.py
 examples/simulations/aspring2_player.py
 ```
 
 ### Broken Examples
-```
-airplane1.py
-examples/simulations/trail.py
-particle_simulator.py
-```
-align4.py
-bgImage.py
-colormap_list.py
-mousehover3.py
-cut_with_points2.py
-interpolate_field.py
-goniometer.py
-pendulum_3d.pyq
-
-graph_lineage.py
-graph_network.py
-markpoint.py
-plot_stream.py
-
 meshio_read.py
 
 

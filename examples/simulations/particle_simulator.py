@@ -59,8 +59,12 @@ class ParticleSim:
                 a.vel += ftot / a.mass * self.dt  # update velocity and position of a
                 a.pos += a.vel * self.dt
                 a.vsphere.pos(a.pos)
-            if plt:
-                plt.show(resetcam=not i, azimuth=1)
+                a.vsphere.update_trail()
+            if plt:                
+                if i==0:
+                    plt.reset_camera()
+                plt.azimuth(1)
+                plt.render()
 
 
 class Particle:
@@ -86,7 +90,7 @@ class Particle:
         self.negligible = negligible
         self.color = color
         if plt:
-            self.vsphere = Sphere(pos, r=radius, c=color).add_trail(lw=0.1, n=100, alpha=0.2)
+            self.vsphere = Sphere(pos, r=radius, c=color).add_trail(lw=1, n=75, alpha=0.5)
             plt.add(self.vsphere)  # Sphere representing the particle
 
 

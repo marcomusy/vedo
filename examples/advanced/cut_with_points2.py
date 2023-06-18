@@ -18,4 +18,4 @@ cmesh.lw(0.1).c("tomato")
 
 line = Line(pts, closed=True).lw(5).c("green3")
 
-show([(mesh, line), (cmesh, line, __doc__)], N=2, axes=1)
+show([(mesh, line), (cmesh, line, __doc__)], N=2).close()

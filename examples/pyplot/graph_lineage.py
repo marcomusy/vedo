@@ -12,7 +12,7 @@ g = DirectedGraph(layout='cone')
 
 # Vertex generation is automatic,
 #  add a child to vertex0, so that now vertex1 exists
-g.add_child(0, edge_label="Mother giving birth\nto her baby cell")
+g.add_child(0, edge_label="Mother cell")
 g.add_child(1); g.add_child(1)
 g.add_child(2); g.add_child(2); g.add_child(2)
 g.add_child(3); g.add_child(3, edge_label="daughter_38")

@@ -16,7 +16,7 @@ plt = Plotter(axes=6, interactive=False)
 plt += [s, p, __doc__]
 
 for i in range(150):
-    p.pos(-2+i/100.0, sin(i/5.0)/15, 0)
+    p.pos(-2+i/100.0, sin(i/5.0)/15, 0).update_trail()
     plt.show(azimuth=-0.2)
 
 # stay interactive and after pressing q close

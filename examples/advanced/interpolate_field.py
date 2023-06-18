@@ -1,10 +1,5 @@
-"""Interpolate a vectorial field using:
-
-Thin Plate Spline or Radial Basis Function.
-
-Example shows how to share the same Camera
-between different Plotter windows.
-"""
+"""Interpolate a vectorial field using
+Thin Plate Spline or Radial Basis Function"""
 from scipy.interpolate import Rbf
 from vedo import Plotter, Points, Arrows, show
 import numpy as np
@@ -29,15 +24,15 @@ deltas = np.array(deltas)
 
 src = Points(sources, c="r", r=12)
 trs = Points(sources + deltas, c="v", r=12)
-arr = Arrows(sources, sources + deltas)
+arr = Arrows(sources, sources + deltas).color("k8")
 
 ################################################# warp using Thin Plate Splines
 warped = apos.clone().warp(sources, sources+deltas)
 warped.alpha(0.4).color("lg").point_size(10)
-allarr = Arrows(apos.points(), warped.points())
+allarr = Arrows(apos.points(), warped.points()).color("k8")
 
 set1 = [apos, warped, src, trs, arr, __doc__]
-plt1 = show([set1, allarr], N=2, bg='bb')  # returns the Plotter class
+plt1 = show([set1, allarr], N=2, bg='bb', interactive=0)  # returns the Plotter class
 
 
 ################################################# RBF
@@ -54,16 +49,15 @@ positions_z = itrz(xr, yr, zr) + zr
 positions_rbf = np.vstack([positions_x, positions_y, positions_z])
 
 warped_rbf = Points(positions_rbf, r=2).alpha(0.4).color("lg").point_size(10)
-allarr_rbf = Arrows(apos.points(), warped_rbf.points())
+allarr_rbf = Arrows(apos.points(), warped_rbf.points()).color("k8")
 
-arr = Arrows(sources, sources + deltas)
+arr = Arrows(sources, sources + deltas).color("k8")
 
 plt2 = Plotter(N=2, pos=(200, 300), bg='bb')
-plt2.camera = plt1.camera  # share the same camera with previous Plotter
-
 plt2.at(0).show("Radial Basis Function", apos, warped_rbf, src, trs, arr)
 plt2.at(1).show(allarr_rbf)
+plt2.interactive()
 
-plt2.interactive().close()
+plt2.close()
 plt1.close()
 

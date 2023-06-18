@@ -1316,7 +1316,37 @@ class Points(BaseActor, vtk.vtkActor):
         tpoly = self.trail.polydata(False)
         tpoly.GetPoints().SetData(utils.numpy2vtk(data, dtype=np.float32))
         self.trail.SetPosition(currentpos)
+        return self
 
+
+    def _compute_shadow(self, plane, point, direction):
+        shad = self.clone()
+        shad._data.GetPointData().SetTCoords(None) # remove any texture coords
+        shad.name = "Shadow"
+
+        pts = shad.points()
+        if plane == 'x':
+            # shad = shad.project_on_plane('x')
+            # instead do it manually so in case of alpha<1 
+            # we dont see glitches due to coplanar points
+            # we leave a small tolerance of 0.1% in thickness
+            x0, x1 = self.xbounds()
+            pts[:, 0] = (pts[:, 0] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[0]
+            shad.points(pts)
+            shad.x(point)
+        elif plane == 'y':
+            x0, x1 = self.ybounds()
+            pts[:, 1] = (pts[:, 1] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[1]
+            shad.points(pts)
+            shad.y(point)
+        elif plane == "z":
+            x0, x1 = self.zbounds()
+            pts[:, 2] = (pts[:, 2] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[2]
+            shad.points(pts)
+            shad.z(point)
+        else:
+            shad = shad.project_on_plane(plane, point, direction)
+        return shad
 
     def add_shadow(self, plane, point, direction=None, c=(0.6, 0.6, 0.6), alpha=1, culling=0):
         """
@@ -1347,33 +1377,7 @@ class Points(BaseActor, vtk.vtkActor):
 
             ![](https://vedo.embl.es/images/simulations/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)
         """
-        shad = self.clone()
-        shad._data.GetPointData().SetTCoords(None) # remove any texture coords
-        shad.name = "Shadow"
-
-        pts = shad.points()
-        if plane == 'x':
-            # shad = shad.project_on_plane('x')
-            # instead do it manually so in case of alpha<1 
-            # we dont see glitches due to coplanar points
-            # we leave a small tolerance of 0.1% in thickness
-            x0, x1 = self.xbounds()
-            pts[:, 0] = (pts[:, 0] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[0]
-            shad.points(pts)
-            shad.x(point)
-        elif plane == 'y':
-            x0, x1 = self.ybounds()
-            pts[:, 1] = (pts[:, 1] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[1]
-            shad.points(pts)
-            shad.y(point)
-        elif plane == "z":
-            x0, x1 = self.zbounds()
-            pts[:, 2] = (pts[:, 2] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[2]
-            shad.points(pts)
-            shad.z(point)
-        else:
-            shad = shad.project_on_plane(plane, point, direction)
-
+        shad = self._compute_shadow(plane, point, direction)
         shad.c(c).alpha(alpha)
 
         try:
@@ -1399,12 +1403,14 @@ class Points(BaseActor, vtk.vtkActor):
         """
         Update the shadows of a moving object.
         """
-        shadows = list(self.shadows)
-        self.shadows = []
-        for sha in shadows:
-            color = sha.GetProperty().GetColor()
-            opacity = sha.GetProperty().GetOpacity()
-            self.add_shadow(**sha.info, c=color, alpha=opacity)
+        for sha in self.shadows:
+            plane = sha.info['plane']
+            point = sha.info['point']
+            direction = sha.info['direction']
+            new_sha = self._compute_shadow(plane, point, direction)
+            sha._update(new_sha._data)
+        return self
+
 
     def delete_cells_by_point_index(self, indices):
         """
@@ -2286,7 +2292,8 @@ class Points(BaseActor, vtk.vtkActor):
 
         macts = vedo.merge(acts).c(c).alpha(alpha)
         macts.SetOrigin(pt)
-        macts.bc("t").pickable(False).GetProperty().LightingOff()
+        macts.bc("tomato").pickable(False)
+        macts.GetProperty().LightingOff()
         macts.GetProperty().SetLineWidth(lw)
         macts.UseBoundsOff()
         macts.name = "FlagPole"

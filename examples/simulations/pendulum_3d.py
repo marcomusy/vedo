@@ -1,4 +1,4 @@
-"""Double pendulum in 3D (press ESC to quit)"""
+"""Double pendulum in 3D"""
 # Original idea and solution using sympy from:
 # https://www.youtube.com/watch?v=MtG9cueB548
 from vedo import *
@@ -13,8 +13,8 @@ ball2 = Sphere(c="blue5",  r=0.1, pos=p2[0])
 ball1.add_shadow('z', -3)
 ball2.add_shadow('z', -3)
 
-ball1.add_trail(n=20)
-ball2.add_trail(n=20)
+ball1.add_trail(n=10)
+ball2.add_trail(n=10)
 ball1.trail.add_shadow('z', -3) # make trails project a shadow too
 ball2.trail.add_shadow('z', -3)
 
@@ -25,7 +25,7 @@ axes = Axes(xrange=(-3,3), yrange=(-3,3), zrange=(-3,3))
 
 # show the solution
 plt = Plotter(interactive=False)
-plt.show(axes, __doc__, viewup='z')
+plt.show(ball1, ball2, rod1, rod2, axes, __doc__, viewup='z')
 
 i = 0
 for b1, b2 in zip(p1,p2):
@@ -33,10 +33,13 @@ for b1, b2 in zip(p1,p2):
     ball2.pos(b2)
     rod1.stretch([0,0,0], b1)
     rod2.stretch(b1, b2)
-    # show at max frame rate of 15 Hz
-    plt.show(ball1, ball2, rod1, rod2, resetcam=False, rate=15)
+    ball1.update_shadows().update_trail()
+    ball2.update_shadows().update_trail()
+    ball1.trail.update_shadows()
+    ball2.trail.update_shadows()
+    plt.render()
     i+=1
-    if i > 50:
+    if i > 150:
         break
 
 plt.interactive().close()

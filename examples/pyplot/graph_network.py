@@ -33,11 +33,11 @@ labs2 = pts.labels(v2, scale=.02, precision=3).shift(.05,-.02,0).c('red')
 
 # Interpolate the node value to color the edges:
 graph.cmap('viridis', v2).add_scalarbar3d(c='k')
-graph.scalarbar.shift(.3,0,0)
+graph.scalarbar.shift(0.15,0,0).use_bounds(True)
 pts.cmap('viridis', v2)
 
 # This would colorize the edges directly with solid color based on a v3 array:
 # v3 = [sin(x) for x in range(graph.ncells)]
 # graph.cmap('jet', v3).add_scalarbar()
 
-show(pts, graph, labs1, labs2, __doc__, axes=9, mode="image").close()
+show(pts, graph, labs1, labs2, __doc__, zoom='tight').close()
