@@ -432,7 +432,7 @@ class BaseVolume:
         
         Example:
             ```python
-            from vedo import Volume, dataurl
+            from vedo import Volume, dataurl, show
             iso = Volume(dataurl+'embryo.tif').isosurface()
             vol = iso.binarize(spacing=(100, 100, 100)).pad(10)
             vol.dilate([15,15,15])

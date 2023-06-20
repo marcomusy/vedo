@@ -209,7 +209,8 @@ def load(inputobj, unpack=True, force=False):
     elif isinstance(inputobj, str) and inputobj.startswith("https://"):
         flist = [inputobj]
     else:
-        flist = sorted(glob.glob(inputobj))
+        # flist = sorted(glob.glob(inputobj))
+        flist = utils.humansort(glob.glob(inputobj))
 
     for fod in flist:
 

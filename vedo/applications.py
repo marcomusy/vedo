@@ -763,6 +763,9 @@ class Browser(Plotter):
         """
         Plotter.__init__(self, axes=axes, **kwargs)
 
+        if isinstance(objects, str):
+            objects = vedo.file_io.load(objects)
+
         self += objects
 
         self.slider = None

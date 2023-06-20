@@ -118,7 +118,7 @@ def get_parser():
     pr.add_argument("-bg2", "--background-grad",    help="use background color gradient", default='', metavar='')
     pr.add_argument("-z", "--zoom", type=float,     help="zooming factor", default=1, metavar='')
     pr.add_argument("-n", "--multirenderer-mode",   help="multi renderer mode: files go to separate renderers", action="store_true")
-    pr.add_argument("-s", "--scrolling-mode",       help="scrolling Mode: use slider to scroll files", action="store_true")
+    pr.add_argument("-s", "--sequence-mode",        help="sequence mode: use slider to browse files", action="store_true")
     pr.add_argument("-g", "--ray-cast-mode",        help="GPU Ray-casting Mode for 3D image files", action="store_true")
     pr.add_argument("-gx", "--x-spacing", type=float, help="volume x-spacing factor [1]", default=1, metavar='')
     pr.add_argument("-gy", "--y-spacing", type=float, help="volume y-spacing factor [1]", default=1, metavar='')
@@ -683,7 +683,7 @@ def draw_scene(args):
         applications.Browser(frames).show(bg=args.background, bg2=args.background_grad)
         return  ##########################################################
 
-    if args.scrolling_mode:
+    if args.sequence_mode:
         args.multirenderer_mode = False
     settings.default_font = args.font
 
@@ -832,7 +832,7 @@ def draw_scene(args):
 
     ########################################################################
     # NORMAL mode for single or multiple files, or multiren mode, or numpy scene
-    elif nfiles == 1 or (not args.scrolling_mode):
+    elif nfiles == 1 or (not args.sequence_mode):
         # print('DEBUG NORMAL mode for single or multiple files, or multiren mode')
 
         interactor_mode = 0
@@ -918,7 +918,7 @@ def draw_scene(args):
         return
 
     ########################################################################
-    # scrolling mode  -s
+    # sequence mode  -s
     else:
         # print("DEBUG simple browser mode  -s")
         if plt.axes == 4:

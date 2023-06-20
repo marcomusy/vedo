@@ -3894,7 +3894,8 @@ class Plotter:
                         except:
                             pass
                     self.axes_instances[clickedr] = None
-                addons.add_global_axes(axtype=asso[key], c=None)
+                bounds = renderer.ComputeVisiblePropBounds()
+                addons.add_global_axes(axtype=asso[key], c=None, bounds=bounds)
                 self.interactor.Render()
 
         if key == "O":

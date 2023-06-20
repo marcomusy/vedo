@@ -2042,6 +2042,10 @@ class BaseGrid(BaseActor):
                 force the max of the scalar range to be this value
         """
         # supersedes method in Points, Mesh
+
+        if col is None:
+            return self
+        
         if vmin is None:
             vmin, _ = self._data.GetScalarRange()
         if vmax is None:
