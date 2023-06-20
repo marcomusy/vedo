@@ -469,7 +469,7 @@ def plot(*inputobj, **options):
                 lw1 = min(lw, 1)
                 actor.alpha(alpha * lw1)
         if ps:
-            actor.pointSize(ps)
+            actor.point_size(ps)
         if shading:
             if shading == "phong":
                 actor.phong()
