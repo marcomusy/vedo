@@ -14,14 +14,14 @@ python3 calc_surface_area.py
 echo Running markmesh.py
 python3 markmesh.py
 
-echo Running scalemesh.py
-python3 scalemesh.py
+# echo Running scalemesh.py
+# python3 scalemesh.py
 
-echo Running pi_estimate.py
-python3 pi_estimate.py
+# echo Running pi_estimate.py
+# python3 pi_estimate.py
 
-echo Running submesh_boundary.py
-python3 submesh_boundary.py
+# echo Running submesh_boundary.py
+# python3 submesh_boundary.py
 
 echo Running demo_submesh.py
 python3 demo_submesh.py
@@ -35,14 +35,8 @@ python3 elasticbeam.py
 echo Running magnetostatics.py
 python3 magnetostatics.py
 
-echo Running curl2d.py
-python3 curl2d.py
-
 echo Running pointLoad.py
 python3 pointLoad.py
-
-echo Running meshEditor.py
-python3 meshEditor.py
 
 echo Running nodal_u.py
 python3 nodal_u.py
@@ -73,8 +67,8 @@ python3 ex07_stokes-iterative.py
 
 
 ######################################
-echo Running ft02_poisson_membrane.py
-python3 ft02_poisson_membrane.py
+# echo Running ft02_poisson_membrane.py
+# python3 ft02_poisson_membrane.py
 
 echo Running ft04_heat_gaussian.py
 python3 ft04_heat_gaussian.py
@@ -108,11 +102,4 @@ python3 awefem.py
 
 echo Running demo_eigenvalue.py
 python3 demo_eigenvalue.py
-
-echo Running demo_auto-adaptive-poisson.py
-python3 demo_auto-adaptive-poisson.py
-
-
-
-
 
