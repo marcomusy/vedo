@@ -956,6 +956,7 @@ class FreeHandCutPlotter(Plotter):
                     self.spline = Line(self.cpoints, closed=True)
                 self.spline.lw(self.linewidth).c(self.linecolor).pickable(False)
                 self.add(self.spline)
+        self.render()
 
     def _on_mouse_move(self, evt):
         if self.drawmode:
@@ -1016,7 +1017,7 @@ class FreeHandCutPlotter(Plotter):
             mcut.info = self.mesh.info
             self.mesh = mcut                            # discard old mesh by overwriting it
             self.txt2d.text(self.msg).background(self.color)   # put back original message
-            self.add(mcut)
+            self.add(mcut).render()
 
         elif evt.keypress == 'u':                       # Undo last action
             if self.drawmode:
@@ -1039,9 +1040,9 @@ class FreeHandCutPlotter(Plotter):
             try:
                 self.remove(self.axes_instances[0])
                 self.axes_instances[0] = None
-                self.add_global_axes(axtype=1, c=None)
+                self.add_global_axes(axtype=1, c=None, bounds=self.mesh.bounds())
                 self.renderer.ResetCamera()
-                self.interactor.Render()
+                self.render()
             except:
                 pass
 
