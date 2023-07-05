@@ -721,11 +721,6 @@ class Base3DProp:
             tr = tr.GetInverse()
         return tr
 
-    @deprecated(reason=vedo.colors.red + "Please use apply_transform()" + vedo.colors.reset)
-    def applyTransform(self, T, reset=False, concatenate=False):
-        """Deprecated. Please use `apply_transform()`"""
-        return self.apply_transform(T, reset, concatenate)
-
     def apply_transform(self, T, reset=False, concatenate=False):
         """
         Transform object position and orientation.
@@ -930,10 +925,6 @@ class Base3DProp:
             return b[5]
         return (b[4], b[5])
 
-    @deprecated(reason=vedo.colors.red + "Please use diagonal_size()" + vedo.colors.reset)
-    def diagonalSize(self):
-        """Deprecated. Please use `diagonal_size()`."""
-        return self.diagonal_size()
 
     def diagonal_size(self):
         """Get the length of the diagonal of mesh bounding box."""
@@ -1150,21 +1141,6 @@ class BaseActor(Base3DProp):
         self.inputdata().GetPointData().Modified()
         return self
 
-    @deprecated(reason=vedo.colors.red + "Please use property object.npoints" + vedo.colors.reset)
-    def N(self):
-        """Deprecated. Please use property object.npoints"""
-        return self.inputdata().GetNumberOfPoints()
-
-    @deprecated(reason=vedo.colors.red + "Please use property object.npoints" + vedo.colors.reset)
-    def NPoints(self):
-        """Deprecated. Please use property object.npoints"""
-        return self.inputdata().GetNumberOfPoints()
-
-    @deprecated(reason=vedo.colors.red + "Please use property object.ncells" + vedo.colors.reset)
-    def NCells(self):
-        """Deprecated. Please use property object.ncells"""
-        return self.inputdata().GetNumberOfCells()
-
     @property
     def npoints(self):
         """Retrieve the number of points."""
@@ -1217,10 +1193,6 @@ class BaseActor(Base3DProp):
             self.cell_locator = None
             return self
 
-    @deprecated(reason=vedo.colors.red + "Please use cell_centers()" + vedo.colors.reset)
-    def cellCenters(self):
-        """Deprecated. Please use `cell_centers()`"""
-        return self.cell_centers()
 
     def cell_centers(self):
         """
@@ -1753,11 +1725,6 @@ class BaseActor(Base3DProp):
             vvecs = utils.vtk2numpy(vort.GetOutput().GetCellData().GetArray("Vorticity"))
         return vvecs
 
-    @deprecated(reason=vedo.colors.red + "Please use method add_scalarbar()" + vedo.colors.reset)
-    def addScalarBar(self, *a, **b):
-        """Deprecated. Please use method `add_scalarbar()`"""
-        return self.add_scalarbar(*a, **b)
-
     def add_scalarbar(
         self,
         title="",
@@ -1807,11 +1774,6 @@ class BaseActor(Base3DProp):
         )
         self.scalarbar = sb
         return self
-
-    @deprecated(reason=vedo.colors.red + "Please use method add_scalarbar3d()" + vedo.colors.reset)
-    def addScalarBar3D(self, *a, **b):
-        """Deprecated. Please use method `add_scalarbar3d()`"""
-        return self.add_scalarbar3d(*a, **b)
 
     def add_scalarbar3d(
         self,
@@ -2271,11 +2233,6 @@ class BaseGrid(BaseActor):
             "legosurface", parents=[self], comment=f"array: {array_name}", c="#4cc9f0:#e9c46a"
         )
         return m
-
-    @deprecated(reason=vedo.colors.red + "Please use cut_with_plane()" + vedo.colors.reset)
-    def cutWithPlane(self, origin=(0, 0, 0), normal=(1, 0, 0)):
-        """Deprecated. Please use cut_with_plane()"""
-        return self.cut_with_plane(origin, normal)
 
     def cut_with_plane(self, origin=(0, 0, 0), normal="x"):
         """

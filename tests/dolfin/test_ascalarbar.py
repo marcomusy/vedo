@@ -1,8 +1,7 @@
 import numpy as np
 from dolfin import *
 from dolfin import __version__
-from vedo.dolfin import plot, screenshot, MeshActor, show
-from vedo import settings
+from vedo.dolfin import plot
 
 
 print('Test ascalarbar, dolfin version', __version__)

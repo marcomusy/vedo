@@ -34,7 +34,6 @@ __all__ = [
     "fit_sphere",
     "pca_ellipse",
     "pca_ellipsoid",
-    "pcaEllipsoid",  # deprecated
 ]
 
 
@@ -621,10 +620,6 @@ def pca_ellipse(points, pvalue=0.673, res=60):
     elli.name = "PCAEllipse"
     return elli
 
-@deprecated(reason=vedo.colors.red + "Please use pca_ellipsoid()" + vedo.colors.reset)
-def pcaEllipsoid(points, pvalue=0.673):
-    "Deprecated. Please use `pca_ellipsoid()`."
-    return pca_ellipsoid(points, pvalue)
 
 def pca_ellipsoid(points, pvalue=0.673):
     """
@@ -2497,10 +2492,6 @@ class Points(BaseActor, vtk.vtkActor):
         self._caption = capt
         return self
 
-    @deprecated(reason=vedo.colors.red + "Please use align_to()" + vedo.colors.reset)
-    def alignTo(self, *a, **b):
-        "Deprecated, Please use `align_to()`."
-        return self.align_to(*a, **b)
 
     def align_to(self, target, iters=100, rigid=False, invert=False, use_centroids=False):
         """
@@ -2632,10 +2623,6 @@ class Points(BaseActor, vtk.vtkActor):
         self.pipeline = utils.OperationNode("transform_with_landmarks", parents=[self])
         return self
 
-    @deprecated(reason=vedo.colors.red + "Please use apply_transform()" + vedo.colors.reset)
-    def applyTransform(self, *a, **b):
-        "Deprecated. Please use `apply_transform()`."
-        return self.apply_transform(*a, **b)
 
     def apply_transform(self, T, reset=False, concatenate=False):
         """
@@ -3264,10 +3251,6 @@ class Points(BaseActor, vtk.vtkActor):
         )
         return self
 
-    @deprecated(reason=vedo.colors.red + "Please use closest_point()" + vedo.colors.reset)
-    def closestPoint(self, pt, N=1, radius=None, returnPointId=False, returnCellId=False):
-        "Deprecated. Please use `closest_point()`."
-        return self.closest_point(pt, N, radius, returnPointId, returnCellId)
 
     def closest_point(self, pt, n=1, radius=None, return_point_id=False, return_cell_id=False):
         """

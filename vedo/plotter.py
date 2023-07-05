@@ -758,8 +758,6 @@ class Plotter:
     #     ):
     #         self._repeatingtimer_id = self.interactor.CreateRepeatingTimer(1)
     #         self.interactor.Start()
-    #         if vedo.vtk_version == (9,2,2):
-    #             self.interactor.GetRenderWindow().SetDisplayId("_0_p_void") ##HACK
     #         if self.interactor:
     #             self.interactor.DestroyTimer(self._repeatingtimer_id)
     #         self._repeatingtimer_id = None
@@ -839,6 +837,9 @@ class Plotter:
 
                 if hasattr(a, "scalarbar") and a.scalarbar:
                     ren.AddActor(a.scalarbar)
+
+                if hasattr(a, "_isfollower") and a._isfollower:  # set by mesh.follow_camera()
+                    a.SetCamera(self.camera)
 
         return self
 
@@ -1006,12 +1007,7 @@ class Plotter:
                 r.GradientBackgroundOff()
         return self
 
-    ####################################################
-    @deprecated(reason=vedo.colors.red + "Please use get_meshes()" + vedo.colors.reset)
-    def getMeshes(self, *a, **b):
-        """Deprecated, use get_meshes()"""
-        return self.get_meshes(*a, **b)
-
+    ##################################################################
     def get_meshes(self, at=None, include_non_pickables=False, unpack_assemblies=True):
         """
         Return a list of Meshes from the specified renderer.
@@ -1083,11 +1079,6 @@ class Plotter:
             if include_non_pickables or a.GetPickable():
                 vols.append(a)
         return vols
-
-    @deprecated(reason=vedo.colors.red + "Please use reset_camera()" + vedo.colors.reset)
-    def resetCamera(self, tight=None):
-        "Deprecated, please use reset_camera()"
-        return self.reset_camera(tight)
 
     def reset_camera(self, tight=None):
         """
@@ -1563,10 +1554,6 @@ class Plotter:
         self.sliders.append([slider3d, sliderfunc])
         return slider3d
 
-
-    @deprecated(reason=vedo.colors.red + "Please use add_button()" + vedo.colors.reset)
-    def addButton(self, *a, **b):
-        return self.add_button(*a, **b)
 
     def add_button(
         self,
@@ -2934,12 +2921,7 @@ class Plotter:
         #########################################################################
 
         for ia in utils.flatten(actors):
-            
             if isinstance(ia, vedo.base.Base3DProp):
-
-                if ia._isfollower:  # set by mesh.follow_camera()
-                    ia.SetCamera(self.camera)
-
                 try:
                     # fix gray color labels and title to white or black
                     ltc = np.array(ia.scalarbar.GetLabelTextProperty().GetColor())
@@ -2965,7 +2947,7 @@ class Plotter:
                 bns = self.renderer.ComputeVisiblePropBounds()
                 addons.add_global_axes(self.axes, bounds=bns)
 
-        #########################################################################
+        # Backend ###############################################################
         if settings.default_backend in ["ipyvtk", "trame"]:
             return backends.get_notebook_backend()
         #########################################################################

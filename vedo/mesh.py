@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import os
 import numpy as np
-from deprecated import deprecated
 
 try:
     import vedo.vtkclasses as vtk
@@ -600,11 +599,6 @@ class Mesh(Points):
         self.Modified()
         return self
 
-    @deprecated(reason=vedo.colors.red + "Please use compute_normals()" + vedo.colors.reset)
-    def computeNormals(self, points=True, cells=True, featureAngle=None, consistency=True):
-        "Deprecated. Please use compute_normals()"
-        return self.compute_normals(points, cells, featureAngle, consistency)
-
     def compute_normals(self, points=True, cells=True, feature_angle=None, consistency=True):
         """
         Compute cell and vertex normals for the mesh.
@@ -712,11 +706,6 @@ class Mesh(Points):
         self.property.SetFrontfaceCulling(value)
         return self
 
-    @deprecated(reason=vedo.colors.red + "Please use backcolor()" + vedo.colors.reset)
-    def backColor(self, bc=None):
-        "Deprecated. Please use `backcolor()`"
-        return self.backcolor(bc)
-
     def backcolor(self, bc=None):
         """
         Set/get mesh's backface color.
@@ -743,11 +732,6 @@ class Mesh(Points):
     def bc(self, backcolor=False):
         """Shortcut for `mesh.backcolor()`."""
         return self.backcolor(backcolor)
-
-    @deprecated(reason=vedo.colors.red + "Please use linewidth()" + vedo.colors.reset)
-    def lineWidth(self, lw):
-        "Deprecated: please use `linewidth()`"
-        return self.linewidth(lw)
 
     def linewidth(self, lw=None):
         """Set/get width of mesh edges. Same as `lw()`."""
@@ -1622,10 +1606,6 @@ class Mesh(Points):
         )
         return out
 
-    @deprecated(reason=vedo.colors.red + "Please use fill_holes()" + vedo.colors.reset)
-    def fillHoles(self, size=None):
-        """Deprecated. Please use `fill_holes()`"""
-        return self.fill_holes(size)
 
     def fill_holes(self, size=None):
         """
@@ -1981,10 +1961,6 @@ class Mesh(Points):
         m.pipeline = OperationNode("silhouette", parents=[self])
         return m
 
-    @deprecated(reason=vedo.colors.red + "Please use follow_camera()" + vedo.colors.reset)
-    def followCamera(self, cam=None):
-        "Deprecated. Please use `follow_camera()`"
-        return self.follow_camera(cam)
 
     def follow_camera(self, camera=None):
         """
@@ -2261,10 +2237,6 @@ class Mesh(Points):
                 )
         return blist
 
-    @deprecated(reason=vedo.colors.red + "Please use extract_largest_region()" + vedo.colors.reset)
-    def extractLargestRegion(self):
-        "Deprecated. Please use `extract_largest_region()`"
-        return self.extract_largest_region()
 
     def extract_largest_region(self):
         """
@@ -2344,16 +2316,6 @@ class Mesh(Points):
             comment=f"#pts {msh.inputdata().GetNumberOfPoints()}",
         )
         return msh
-
-    @deprecated(reason=vedo.colors.red + "Please use intersect_with()" + vedo.colors.reset)
-    def intersectWith(self, mesh2, tol=1e-06):
-        "Deprecated. Please use `intersect_with()`"
-        return self.intersect_with(mesh2, tol)
-
-    @deprecated(reason=vedo.colors.red + "Please use intersect_with_line()" + vedo.colors.reset)
-    def intersectWithLine(self, p0, p1=None, returnIds=False, tol=0):
-        "Deprecated. Please use `intersect_with_line()`"
-        return self.intersect_with_line(p0, p1, returnIds, tol)
 
     def intersect_with(self, mesh2, tol=1e-06):
         """
@@ -2686,11 +2648,6 @@ class Mesh(Points):
             c="#e9c46a:#0096c7",
         )
         return vol
-
-    @deprecated(reason=vedo.colors.red + "Please use signed_distance()" + vedo.colors.reset)
-    def signedDistance(self, **k):
-        "Deprecated. Please use `signed_distance()`"
-        return self.signed_distance(**k)
 
     def signed_distance(self, bounds=None, dims=(20, 20, 20), invert=False, maxradius=None):
         """
