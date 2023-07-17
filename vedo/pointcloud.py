@@ -145,7 +145,7 @@ def visible_points(mesh, area=(), tol=None, invert=False):
         svp.SelectInvisibleOn()
     svp.Update()
 
-    m = Points(svp.GetOutput()).pointSize(5)
+    m = Points(svp.GetOutput()).point_size(5)
     m.name = "VisiblePoints"
     return m
 
