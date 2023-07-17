@@ -794,7 +794,7 @@ def loadPCD(filename):
     if expN != N:
         vedo.logger.warning(f"Mismatch in PCD file {expN} != {len(pts)}")
     poly = utils.buildPolyData(pts)
-    return Points(poly).pointSize(4)
+    return Points(poly).point_size(4)
 
 
 def tonumpy(obj):
