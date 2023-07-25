@@ -228,7 +228,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
 
     callbacks / overriding keys:
 
-    if `callbackAnyKey` is assigned then this function is called on every key press.
+    if `callback_any_key` is assigned then this function is called on every key press.
     If this function returns True then further processing of events is stopped.
 
 
@@ -247,14 +247,14 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
 
     Events
     ------
-    `callbackStartDrag` is called when initializing the drag.
+    `callback_start_drag` is called when initializing the drag.
     This is when to assign actors and other data to draginfo.
 
-    `callbackEndDrag` is called when the drag is accepted.
+    `callback_end_drag` is called when the drag is accepted.
 
     Responding to other events
     --------------------------
-    `callbackCameraDirectionChanged` : executed when camera has rotated but before re-rendering
+    `callback_camera_direction_changed` : executed when camera has rotated but before re-rendering
 
     .. note::
         This class is based on R. de Bruin's
@@ -281,18 +281,18 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         self.interactor = None
         self.renderer = None
 
-        # callbackSelect is called whenever one or mode props are selected.
+        # callback_select is called whenever one or mode props are selected.
         # callback will be called with a list of props of which the first entry
         # is prop closest to the camera.
-        self.callbackSelect = None
-        self.callbackStartDrag = None
-        self.callbackEndDrag = None
-        self.callbackEscapeKey = None
-        self.callbackDeleteKey = None
-        self.callbackFocusKey = None
-        self.callbackAnyKey = None
-        self.callbackMeasure = None  # callback with argument float (meters)
-        self.callbackCameraDirectionChanged = None
+        self.callback_select = None
+        self.callback_start_drag = None
+        self.callback_end_drag = None
+        self.callback_escape_key = None
+        self.callback_delete_key = None
+        self.callback_focus_key = None
+        self.callback_any_key = None
+        self.callback_measure = None  # callback with argument float (meters)
+        self.callback_camera_direction_changed = None
 
         # active drag
         # assigned to a _BlenderStyleDragInfo object when dragging is active
@@ -505,7 +505,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         self.InitializeScreenDrawing()
 
     def LeftButtonRelease(self, obj, event):
-
+        # print("LeftButtonRelease")
         if self._is_box_zooming:
             self._is_box_zooming = False
             self.ZoomBox(self.start_x, self.start_y, self.end_x, self.end_y)
@@ -521,21 +521,21 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
 
         Shift = interactor.GetShiftKey()
         Ctrl = interactor.GetControlKey()
-        Alt = interactor.GetAltKey()
+        # Alt = interactor.GetAltKey()
 
         if Ctrl and Shift:
             pass  # we were drawing the measurement
 
         else:
-            if self.callbackSelect:
+            if self.callback_select:
                 props = self.PerformPickingOnSelection()
 
                 if props:  # only call back if anything was selected
                     self.picked_props = tuple(props)
-                    self.callbackSelect(props)
+                    self.callback_select(props)
 
         # remove the selection rubber band / line
-        self.DoRender()
+        self.GetInteractor().Render()
 
     def KeyPress(self, obj, event):
 
@@ -543,8 +543,8 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         KEY = key.upper()
 
         # logging.info(f"Key Press: {key}")
-        if self.callbackAnyKey:
-            if self.callbackAnyKey(key):
+        if self.callback_any_key:
+            if self.callback_any_key(key):
                 return
 
         if KEY == "M":
@@ -554,19 +554,19 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
             if self.draginfo is not None:
                 self.FinishDrag()
             else:
-                if self.callbackStartDrag:
-                    self.callbackStartDrag()
+                if self.callback_start_drag:
+                    self.callback_start_drag()
                 else:
                     self.StartDrag()
                     # internally calls end-drag if drag is already active
         elif KEY == "ESCAPE":
-            if self.callbackEscapeKey:
-                self.callbackEscapeKey()
+            if self.callback_escape_key:
+                self.callback_escape_key()
             if self.draginfo is not None:
                 self.CancelDrag()
         elif KEY == "DELETE":
-            if self.callbackDeleteKey:
-                self.callbackDeleteKey()
+            if self.callback_delete_key:
+                self.callback_delete_key()
         elif KEY == "RETURN":
             if self.draginfo:
                 self.FinishDrag()
@@ -606,8 +606,8 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         elif KEY == "MINUS":
             self.ZoomByStep(-2)
         elif KEY == "F":
-            if self.callbackFocusKey:
-                self.callbackFocusKey()
+            if self.callback_focus_key:
+                self.callback_focus_key()
 
         self.InvokeEvent("InteractionEvent", None)
 
@@ -675,13 +675,13 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
             camera.SetViewUp(up)
             camera.OrthogonalizeViewUp()
 
-            self.DoRender()
+            self.GetInteractor().Render()
 
     def ToggleParallelProjection(self):
         renderer = self.GetCurrentRenderer()
         camera = renderer.GetActiveCamera()
         camera.SetParallelProjection(not bool(camera.GetParallelProjection()))
-        self.DoRender()
+        self.GetInteractor().Render()
 
     def SetViewX(self):
         self.SetCameraPlaneDirection((1, 0, 0))
@@ -694,7 +694,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
 
     def ZoomFit(self):
         self.GetCurrentRenderer().ResetCamera()
-        self.DoRender()
+        self.GetInteractor().Render()
 
     def SetCameraPlaneDirection(self, direction):
         """Sets the camera to display a plane of which direction is the normal
@@ -750,10 +750,10 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         if rwi.GetLightFollowCamera():
             CurrentRenderer.UpdateLightsGeometryToFollowCamera()
 
-        if self.callbackCameraDirectionChanged:
-            self.callbackCameraDirectionChanged()
+        if self.callback_camera_direction_changed:
+            self.callback_camera_direction_changed()
 
-        self.DoRender()
+        self.GetInteractor().Render()
 
     def PerformPickingOnSelection(self):
         """Preforms prop3d picking on the current dragged selection
@@ -798,26 +798,26 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
     # ----------- actor dragging ------------
 
     def StartDrag(self):
-        if self.callbackStartDrag:
-            # print("Calling callbackStartDrag")
-            self.callbackStartDrag()
+        if self.callback_start_drag:
+            # print("Calling callback_start_drag")
+            self.callback_start_drag()
             return
         else:  # grab the current selection
             if self.picked_props:
                 self.StartDragOnProps(self.picked_props)
             else:
                 pass
-                # print('Can not start drag, nothing selected and callbackStartDrag not assigned')
+                # print('Can not start drag, nothing selected and callback_start_drag not assigned')
 
     def FinishDrag(self):
         # print('Finished drag')
-        if self.callbackEndDrag:
+        if self.callback_end_drag:
             # reset actor positions as actors positions will be controlled by called functions
             for pos0, actor in zip(
                 self.draginfo.dragged_actors_original_positions, self.draginfo.actors_dragging
             ):
                 actor.SetPosition(pos0)
-            self.callbackEndDrag(self.draginfo)
+            self.callback_end_drag(self.draginfo)
 
         self.draginfo = None
 
@@ -899,7 +899,8 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         # print(f'delta_inplane = {delta_inplane}')
 
         for pos0, actor in zip(
-            self.draginfo.dragged_actors_original_positions, self.draginfo.actors_dragging
+            self.draginfo.dragged_actors_original_positions, 
+            self.draginfo.actors_dragging
         ):
             m = actor.GetUserMatrix()
             if m:
@@ -910,20 +911,19 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
             actor.SetPosition(pos0 + delta_inplane)
 
         # print(f'Set position to {pos0 + delta_inplane}')
-
         self.draginfo.delta = delta_inplane  # store the current delta
 
-        # self.GetInteractor().Render()
-        self.DoRender()
+        self.GetInteractor().Render()
 
     def CancelDrag(self):
         """Cancels the drag and restored the original positions of all dragged actors"""
         for pos0, actor in zip(
-            self.draginfo.dragged_actors_original_positions, self.draginfo.actors_dragging
+            self.draginfo.dragged_actors_original_positions, 
+            self.draginfo.actors_dragging
         ):
             actor.SetPosition(pos0)
         self.draginfo = None
-        self.DoRender()
+        self.GetInteractor().Render()
 
     # ----------- end dragging --------------
 
@@ -989,7 +989,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
             if rwi.GetLightFollowCamera():
                 CurrentRenderer.UpdateLightsGeometryToFollowCamera()
 
-            self.DoRender()
+            self.GetInteractor().Render()
 
     def Rotate(self):
 
@@ -1080,10 +1080,10 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         if rwi.GetLightFollowCamera():
             CurrentRenderer.UpdateLightsGeometryToFollowCamera()
 
-        if self.callbackCameraDirectionChanged:
-            self.callbackCameraDirectionChanged()
+        if self.callback_camera_direction_changed:
+            self.callback_camera_direction_changed()
 
-        self.DoRender()
+        self.GetInteractor().Render()
 
     def ZoomBox(self, x1, y1, x2, y2):
         """Zooms to a box"""
@@ -1153,7 +1153,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
             if height:
                 camera.Zoom(size[1] / height)
 
-        self.DoRender()
+        self.GetInteractor().Render()
 
     def FocusOn(self, prop3D):
         """Move the camera to focus on this particular prop3D"""
@@ -1182,7 +1182,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         if rwi.GetLightFollowCamera():
             CurrentRenderer.UpdateLightsGeometryToFollowCamera()
 
-        self.DoRender()
+        self.GetInteractor().Render()
 
     def Dolly(self, factor):
         CurrentRenderer = self.GetCurrentRenderer()
@@ -1202,7 +1202,6 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
             #     if rwi.GetLightFollowCamera():
             #         CurrentRenderer.UpdateLightsGeometryToFollowCamera()
             #     # rwi.Render()
-            #     self.DoRender()
 
     def DrawMeasurement(self):
         rwi = self.GetInteractor()
@@ -1353,8 +1352,8 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         else:
             print("Need to be in non-perspective mode to measure. Press 2 or 3 to get there")
 
-        if self.callbackMeasure:
-            self.callbackMeasure(meters)
+        if self.callback_measure:
+            self.callback_measure(meters)
 
         #
         # # can we add something to the window here?
@@ -1401,7 +1400,4 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
             self.GetCurrentRenderer().AddActor(self.middle_mouse_lock_actor)
 
         self.middle_mouse_lock_actor.SetVisibility(self.middle_mouse_lock)
-        self.DoRender()
-
-    def DoRender(self):
         self.GetInteractor().Render()
