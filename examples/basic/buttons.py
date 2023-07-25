@@ -4,7 +4,7 @@ from vedo import Plotter, Mesh, dataurl, printc
 
 # Define a function that toggles the transparency of a mesh
 #  and changes the button state
-def buttonfunc():
+def buttonfunc(evt):
     mesh.alpha(1 - mesh.alpha())  # toggle mesh transparency
     bu.switch()                   # change to next status
     printc(bu.status(), box="_", dim=True)

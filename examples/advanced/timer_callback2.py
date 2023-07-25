@@ -30,7 +30,7 @@ class Viewer:
         plt = self.plotter.show(*args, **kwargs)
         return plt
 
-    def _buttonfunc(self):
+    def _buttonfunc(self, event):
         if self.timer_id is not None:
             self.plotter.timer_callback("destroy", self.timer_id)
         if not self.isplaying:

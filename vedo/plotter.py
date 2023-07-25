@@ -74,13 +74,14 @@ class Event:
     def __repr__(self):
         f = "---------- <vedo.plotter.Event object> ----------\n"
         for n in self.__slots__:
-            if n == "actor" and self.actor and self.actor.name:
-                try:
-                    f += f"event.{n} = {self.actor.name} ({self.actor.npoints} points)\n"
-                except AttributeError:
-                    f += f"event.{n} = {self.actor.name}\n"
-            else:
-                f += f"event.{n} = " + str(self[n]).replace("\n", "")[:60] + "\n"
+            try:
+                if n == "actor" and self.actor and self.actor.name:
+                        f += f"event.{n} = {self.actor.name} ({self.actor.npoints} points)\n"
+                else:
+                    f += f"event.{n} = " + str(self[n]).replace("\n", "")[:60] + "\n"
+            except AttributeError:
+                pass
+                
         return f
 
     def keys(self):
@@ -1602,10 +1603,12 @@ class Plotter:
 
             ![](https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg)
         """
-        bu = addons.Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
-        self.renderer.AddActor2D(bu.actor)
-        self.buttons.append(bu)
-        return bu
+        if self.interactor:
+            bu = addons.Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
+            self.renderer.AddActor2D(bu.actor)
+            self.buttons.append(bu)
+            bu.function_id = self.add_callback("LeftButtonPress", bu.function)
+            return bu
 
     def add_spline_tool(
         self, points, pc="k", ps=8, lc="r4", ac="g5", lw=2, closed=False, interactive=False
@@ -3359,20 +3362,13 @@ class Plotter:
         self.renderer = renderer
 
         clicked_actor = picker.GetActor()
+        # clicked_actor2D = picker.GetActor2D()
 
         # print('_mouseleftclick mouse at', x, y)
         # print("picked Volume:",   [picker.GetVolume()])
         # print("picked Actor2D:",  [picker.GetActor2D()])
         # print("picked Assembly:", [picker.GetAssembly()])
         # print("picked Prop3D:",   [picker.GetProp3D()])
-
-        # check if any button objects are clicked
-        clicked_actor2D = picker.GetActor2D()
-        if clicked_actor2D:
-            for bt in self.buttons:
-                if clicked_actor2D == bt.actor:
-                    bt.function()
-                    break
 
         if not clicked_actor:
             clicked_actor = picker.GetAssembly()

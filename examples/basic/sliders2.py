@@ -11,7 +11,7 @@ def slider1(widget, event):
     widget.title = get_color_name(val)
     cube.color(val)
 
-def buttonfunc():
+def buttonfunc(event):
     cube.alpha(1 - cube.alpha()) # toggle mesh transparency
     sphere.alpha(1 - sphere.alpha())
     button.switch()              # change to next status

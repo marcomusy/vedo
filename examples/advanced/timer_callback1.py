@@ -7,7 +7,7 @@ from vedo import Plotter
 from vedo.pyplot import plot
 
 
-def bfunc():
+def bfunc(event):
     global timer_id
     plotter.timer_callback("destroy", timer_id)
     if "Play" in button.status():

@@ -404,7 +404,10 @@ class Button:
         self.bcolors = bc
 
         assert len(c) == len(bc), "in Button color number mismatch!"
+
         self.function = fnc
+        self.function_id = None
+
         self.actor = vtk.vtkTextActor()
 
         self.actor.GetActualPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
@@ -452,11 +455,9 @@ class Button:
 
     def text(self, txt="", c=None):
         if txt:
-            # n = int(self.len_states)
-            # ss = "{txt: ^"+str(n)+"}"
-            # t = f"{ss}"
-            t = txt
-            self.actor.SetInput(self.spacer + t + self.spacer)
+            self.actor.SetInput(self.spacer + str(txt) + self.spacer)
+        else:
+            return self.actor.GetInput()
 
         if c is not None:
             self.text_property.SetColor(get_color(c))

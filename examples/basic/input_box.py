@@ -11,7 +11,7 @@ def kfunc(evt):
         msg = msg[:-1]
         evt.keypress = ''
     elif evt.keypress == "Return":
-        bfunc()
+        bfunc(0)
         return
     elif evt.keypress == "Escape":
         plt.close()
@@ -23,7 +23,7 @@ def kfunc(evt):
     bu.actor.SetInput(msg)
     plt.render()
 
-def bfunc():
+def bfunc(event):
     mesh.color(msg)
     plt.render()
 
