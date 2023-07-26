@@ -9,11 +9,12 @@ from vedo.pyplot import plot
 
 def bfunc(event):
     global timer_id
-    plotter.timer_callback("destroy", timer_id)
-    if "Play" in button.status():
-        # instruct to call handle_timer() every 10 msec:
-        timer_id = plotter.timer_callback("create", dt=10)
-    button.switch()
+    if event.actor and event.actor.name == "Button":
+        plotter.timer_callback("destroy", timer_id)
+        if "Play" in button.status():
+            # instruct to call handle_timer() every 10 msec:
+            timer_id = plotter.timer_callback("create", dt=10)
+        button.switch()
 
 def handle_timer(event):
     t = time.time() - t0

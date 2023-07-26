@@ -5,9 +5,10 @@ from vedo import Plotter, Mesh, dataurl, printc
 # Define a function that toggles the transparency of a mesh
 #  and changes the button state
 def buttonfunc(evt):
-    mesh.alpha(1 - mesh.alpha())  # toggle mesh transparency
-    bu.switch()                   # change to next status
-    printc(bu.status(), box="_", dim=True)
+    if evt.actor and evt.actor.name == "mybutton":
+        mesh.alpha(1 - mesh.alpha())  # toggle mesh transparency
+        bu.switch()                   # change to next status
+        printc(bu.status(), box="_", dim=True)
 
 # Load a mesh and set its color to violet
 mesh = Mesh(dataurl+"magnolia.vtk").c("violet").flat()
@@ -26,6 +27,7 @@ bu = plt.add_button(
     size=25,          # font size
     bold=True,        # bold font
     italic=False,     # non-italic font style
+    name="mybutton",
 )
 
 # Show the mesh, docstring, and button in the plot

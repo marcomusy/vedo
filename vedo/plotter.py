@@ -1558,10 +1558,10 @@ class Plotter:
 
     def add_button(
         self,
-        fnc,
+        fnc=None,
         states=("On", "Off"),
         c=("w", "w"),
-        bc=("dg", "dr"),
+        bc=("green4", "red4"),
         pos=(0.7, 0.05),
         size=24,
         font=None,
@@ -1569,6 +1569,7 @@ class Plotter:
         italic=False,
         alpha=1,
         angle=0,
+        name="Button",
     ):
         """
         Add a button to the renderer window.
@@ -1604,8 +1605,8 @@ class Plotter:
             ![](https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg)
         """
         if self.interactor:
-            bu = addons.Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
-            self.renderer.AddActor2D(bu.actor)
+            bu = addons.Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle, name)
+            self.renderer.AddActor2D(bu)
             self.buttons.append(bu)
             bu.function_id = self.add_callback("LeftButtonPress", bu.function)
             return bu

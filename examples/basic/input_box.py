@@ -20,7 +20,7 @@ def kfunc(evt):
         return
 
     msg += f"{evt.keypress}"
-    bu.actor.SetInput(msg)
+    bu.text(msg)
     plt.render()
 
 def bfunc(event):

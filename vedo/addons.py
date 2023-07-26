@@ -347,12 +347,25 @@ class LegendBox(shapes.TextBase, vtk.vtkLegendBoxActor):
         self.LockBorderOn()
 
 
-class Button:
+class Button(vtk.vtkTextActor):
     """
     Build a Button object.
     """
-
-    def __init__(self, fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle):
+    def __init__(
+            self, 
+            fnc=None, 
+            states=("Button"), 
+            c=("white"), 
+            bc=("green4"),
+            pos=(0.7, 0.05), 
+            size=24, 
+            font=None, 
+            bold=False, 
+            italic=False, 
+            alpha=1, 
+            angle=0,
+            name="Button",
+        ):
         """
         Build a Button object to be shown in the rendering window.
 
@@ -379,7 +392,9 @@ class Button:
                 opacity level
             angle : (float)
                 anticlockwise rotation in degrees
-
+            name : (str)
+                name of the button (useful for multiple buttons in callbacks)
+    
         Examples:
             - [buttons.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/buttons.py)
 
@@ -392,6 +407,8 @@ class Button:
 
                 ![](https://vedo.embl.es/images/advanced/timer_callback1.jpg)
         """
+        vtk.vtkTextActor.__init__(self)
+
         self.status_idx = 0
         self.states = states
 
@@ -407,18 +424,17 @@ class Button:
 
         self.function = fnc
         self.function_id = None
+        self.name = name
 
-        self.actor = vtk.vtkTextActor()
-
-        self.actor.GetActualPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-        self.actor.SetPosition(pos[0], pos[1])
+        self.GetActualPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+        self.SetPosition(pos[0], pos[1])
 
         self.offset = 5
         self.spacer = " "
 
         self.len_states = max([len(s) for s in states])
 
-        self.text_property = self.actor.GetTextProperty()
+        self.text_property = self.GetTextProperty()
         self.text_property.SetJustificationToCentered()
 
         if not font:
@@ -455,9 +471,9 @@ class Button:
 
     def text(self, txt="", c=None):
         if txt:
-            self.actor.SetInput(self.spacer + str(txt) + self.spacer)
+            self.SetInput(self.spacer + str(txt) + self.spacer)
         else:
-            return self.actor.GetInput()
+            return self.GetInput()
 
         if c is not None:
             self.text_property.SetColor(get_color(c))

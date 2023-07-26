@@ -12,9 +12,10 @@ def slider1(widget, event):
     cube.color(val)
 
 def buttonfunc(event):
-    cube.alpha(1 - cube.alpha()) # toggle mesh transparency
-    sphere.alpha(1 - sphere.alpha())
-    button.switch()              # change to next status
+    if event.actor and event.actor.name == "Button":
+        cube.alpha(1 - cube.alpha()) # toggle mesh transparency
+        sphere.alpha(1 - sphere.alpha())
+        button.switch()              # change to next status
 
 ######
 sphere = Sphere(r=0.6).alpha(0.9).color(0)
