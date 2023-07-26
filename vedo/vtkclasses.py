@@ -273,6 +273,7 @@ from vtkmodules.vtkFiltersSources import (
     vtkCubeSource,
     vtkCylinderSource,
     vtkDiskSource,
+    vtkFrustumSource,
     vtkGlyphSource2D,
     vtkGraphToPolyData,
     vtkLineSource,
@@ -486,6 +487,7 @@ from vtkmodules.vtkRenderingAnnotation import (
 from vtkmodules.vtkRenderingCore import (
     vtkActor,
     vtkActor2D,
+    vtkAreaPicker,
     vtkAssembly,
     vtkBillboardTextActor3D,
     vtkCamera,

@@ -5,7 +5,6 @@ import sys
 import time
 from typing import Callable
 import numpy as np
-from deprecated import deprecated
 
 try:
     import vedo.vtkclasses as vtk
@@ -1389,10 +1388,6 @@ class Plotter:
 
 
     ##################################################################
-    @deprecated(reason=vedo.colors.red + "Please use add_slider()" + vedo.colors.reset)
-    def addSlider2D(self, *a, **b):
-        return self.add_slider(*a, **b)
-
     def add_slider(
         self,
         sliderfunc: Callable,
@@ -2313,10 +2308,6 @@ class Plotter:
         event.isActor2D = isinstance(actor, vtk.vtkActor2D)
         return event
 
-    @deprecated(reason=vedo.colors.red + "Please use add_callback()" + vedo.colors.reset)
-    def addCallback(self, *a, **b):
-        """Deprecated, use `add_callback()`"""
-        return self.add_callback(*a, **b)
 
     def add_callback(self, event_name, func, priority=0.0):
         """
@@ -2614,6 +2605,58 @@ class Plotter:
             else:
                 p2d.append(cs.GetComputedViewportValue(self.renderer))
         return np.array(p2d, dtype=int)
+    
+    def pick_area(self, pos1, pos2, at=None):
+        """
+        Pick all objects within a box defined by two corner points in 2D screen coordinates.
+        
+        Returns a frustum Mesh that contains the visible field of view.
+        This can be used to select objects in a scene or select vertices.
+
+        Example:
+            ```python
+            from vedo import *
+
+            settings.enable_default_mouse_callbacks = False
+
+            def mode_select(objs):
+                print("Selected objects:", objs)
+                d0 = mode.start_x, mode.start_y # display coords
+                d1 = mode.end_x, mode.end_y
+
+                frustum = plt.pick_area(d0, d1)
+                infru = frustum.inside_points(mesh)
+                col = np.random.randint(0, 10)
+                infru.ps(10).c(col)
+                plt.add(frustum, infru).render()
+
+            mesh = Mesh(dataurl+"cow.vtk").c("k5").lw(1)
+
+            mode = interactor_modes.BlenderStyle()
+            mode.callback_select = mode_select
+
+            plt = Plotter().user_mode(mode)
+            plt.show(mesh, axes=1)
+            ```
+        """
+        if at is not None:
+            ren = self.renderers[at]
+        else:
+            ren = self.renderer
+        area_picker = vtk.vtkAreaPicker()
+        area_picker.AreaPick(pos1[0], pos1[1], pos2[0], pos2[1], ren)
+        planes = area_picker.GetFrustum()
+
+        fru = vtk.vtkFrustumSource()
+        fru.SetPlanes(planes)
+        fru.ShowLinesOff()
+        fru.Update()
+
+        afru = vedo.Mesh(fru.GetOutput())
+        afru.alpha(0.1).lw(1).pickable(False)
+        afru.name = "Frustrum"
+        return afru
+
 
     def _scan_input(self, wannabeacts):
         # scan the input of show

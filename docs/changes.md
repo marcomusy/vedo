@@ -1,5 +1,6 @@
 ## Main changes
 
+- added `plotter.pick_area()` thanks to @ZiguoAtGitHub and @RubendeBruin feedback.
 
 
 ### Breaking changes
