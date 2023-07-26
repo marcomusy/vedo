@@ -735,13 +735,6 @@ def get_font_path(font):
     return fl
 
 
-def isSequence(arg):
-    "Deprecated. Please use `is_sequence()`"
-    m = "Warning! isSequence() is deprecated. Please use is_sequence()."
-    print("\x1b[1m\x1b[33;1m " + m + "\x1b[0m")
-    return is_sequence(arg)
-
-
 def is_sequence(arg):
     """Check if the input is iterable."""
     if hasattr(arg, "strip"):

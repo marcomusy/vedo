@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from deprecated import deprecated
 import numpy as np
 
 try:
@@ -2991,9 +2990,10 @@ class Points(BaseActor, vtk.vtkActor):
 
         return self
 
-    @deprecated(reason=vedo.colors.red + "Please use property mesh.cellcolors" + vedo.colors.reset)
     def cell_individual_colors(self, colorlist):
+        # DEPRECATED
         self.cellcolors = colorlist
+        print("Please use property mesh.cellcolors=... instead of mesh.cell_individual_colors()")
         return self
 
     @property

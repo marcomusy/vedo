@@ -272,6 +272,8 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         plt = Plotter().user_mode(mode)
         plt.show(mesh, axes=1)
         ```
+
+        - [interaction_modes2.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/interaction_modes2.py)
     """
 
     def __init__(self):

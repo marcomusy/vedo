@@ -16,6 +16,7 @@ examples/advanced/timer_callback2.py
 examples/basic/buttons.py
 examples/basic/input_box.py
 examples/basic/sliders2.py
+examples/basic/interaction_modes2.py
 ```
 
 ### Broken Examples

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import time
 import numpy as np
-from deprecated import deprecated
 
 try:
     import vedo.vtkclasses as vtk
@@ -528,21 +527,6 @@ class Base3DProp:
         self.point_locator = None
         self.cell_locator = None
         return self
-
-    @deprecated(reason=vedo.colors.red + "Please use rotate_x()" + vedo.colors.reset)
-    def rotateX(self, *a, **b):
-        """Deprecated. Please use `rotate_x()`."""
-        return self.rotate_x(*a, **b)
-
-    @deprecated(reason=vedo.colors.red + "Please use rotate_y()" + vedo.colors.reset)
-    def rotateY(self, *a, **b):
-        """Deprecated. Please use `rotate_y()`."""
-        return self.rotate_y(*a, **b)
-
-    @deprecated(reason=vedo.colors.red + "Please use rotate_z()" + vedo.colors.reset)
-    def rotateZ(self, *a, **b):
-        """Deprecated. Please use `rotate_z()`."""
-        return self.rotate_z(*a, **b)
 
     def rotate_x(self, angle, rad=False, around=None):
         """

@@ -29,9 +29,6 @@ __all__ = [
     "color_map",
     "build_palette",
     "build_lut",
-    "getColor",  # deprecated will disappear
-    "colorMap",  # deprecated
-    "buildLUT",  # deprecated
 ]
 
 
@@ -713,11 +710,6 @@ def _is_sequence(arg):
     return False
 
 
-def getColor(rgb=None, hsv=None):
-    """Deprecated. Use `get_color()`"""
-    return get_color(rgb, hsv)
-
-
 def get_color(rgb=None, hsv=None):
     """
     Convert a color or list of colors to (r,g,b) format from many different input formats.
@@ -851,12 +843,6 @@ def hex2rgb(hx):
     return (rgb255[0] / 255.0, rgb255[1] / 255.0, rgb255[2] / 255.0)
 
 
-def colorMap(value, name="jet", vmin=None, vmax=None):
-    """Deprecated, use `color_map()`"""
-    print("Deprecated call to colorMap(), use color_map() instead")
-    return color_map(value, name, vmin, vmax)
-
-
 def color_map(value, name="jet", vmin=None, vmax=None):
     """
     Map a real value in range [vmin, vmax] to a (r,g,b) color scale.
@@ -980,34 +966,6 @@ def build_palette(color1, color2, n, hsv=True):
             c = np.array(hsv2rgb(c))
         cols.append(c)
     return np.array(cols)
-
-
-def buildLUT(
-    colorlist,
-    vmin=None,
-    vmax=None,
-    belowColor=None,
-    aboveColor=None,
-    nanColor=None,
-    belowAlpha=1,
-    aboveAlpha=1,
-    nanAlpha=1,
-    interpolate=False,
-):
-    """Deprecated. Please use `build_lut()`"""
-    print("Deprecated call to buildLUT(). Please use build_lut() instead")
-    return build_lut(
-        colorlist,
-        vmin,
-        vmax,
-        belowColor,
-        aboveColor,
-        nanColor,
-        belowAlpha,
-        aboveAlpha,
-        nanAlpha,
-        interpolate,
-    )
 
 
 def build_lut(
