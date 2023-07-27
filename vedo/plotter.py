@@ -2654,7 +2654,7 @@ class Plotter:
 
         afru = vedo.Mesh(fru.GetOutput())
         afru.alpha(0.1).lw(1).pickable(False)
-        afru.name = "Frustrum"
+        afru.name = "Frustum"
         return afru
 
 

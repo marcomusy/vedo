@@ -867,11 +867,18 @@ def draw_scene(args):
                 actor = actor.tomesh().shrink(0.975).c(colb).alpha(args.alpha)
 
             elif isinstance(actor, vedo.Points):
-                actor.c(colb).alpha(args.alpha).wireframe(wire).lighting(args.lighting)
-                if args.flat:
-                    actor.flat()
-                else:
-                    actor.phong()
+                actor.c(colb).alpha(args.alpha)
+
+                try:
+                    actor.wireframe(wire)
+                    if args.flat:
+                        actor.flat()
+                    else:
+                        actor.phong()
+                except AttributeError:
+                    pass
+
+                actor.lighting(args.lighting)
 
                 if i == 0 and args.texture_file:
                     actor.texture(args.texture_file)

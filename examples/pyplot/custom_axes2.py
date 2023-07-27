@@ -9,7 +9,7 @@ axs = Axes(
     [vpts1, vpts2],  # build axes for this set of objects
     xtitle="X-axis in :mum",
     ytitle="Variable Y in :mum",
-    ztitle="_inverted Z in :mum",
+    ztitle="Inverted Z in :mum",
     htitle='My :Gamma^2_ijk  plot',
     htitle_font='Kanopus',
     htitle_justify='bottom-right',

@@ -6,51 +6,58 @@ from vedo import fonts, fonts_path, settings
 import numpy as np
 
 ################################################################################## 2D
-inred = Text2D("°monospaced fonts are marked in red", c='r5', pos='bottom-center', font='VictorMono')
+inred = Text2D(
+    "°monospaced fonts are marked in red", c="r5", pos="bottom-center", font="VictorMono"
+)
 acts2d = [inred]
 
-txt = 'The quick fox jumps over the lazy dog. 1234567890 αβγδεθλμνπστφψω'
+txt = "The quick fox jumps over the lazy dog. 1234567890 αβγδεθλμνπστφψω"
 for i, f in enumerate(fonts):
     bg = None
-    if f in ['Calco', 'Glasgo', 'SmartCouric', 'VictorMono']:
-        bg = 'red5'
-    t = Text2D(f'{f}: {txt}', pos=(.015, 1-(i+3)*.06), font=f, s=1.3, c='k', bg=bg)
+    if f in ["Calco", "Glasgo", "SmartCouric", "VictorMono"]:
+        bg = "red5"
+    t = Text2D(f"{f}: {txt}", pos=(0.015, 1 - (i + 3) * 0.06), font=f, s=1.3, c="k", bg=bg)
     acts2d.append(t)
 
-acts2d.append(Text2D("List of built-in fonts", pos='top-center', bg='k', s=1.3))
-plt0a = show(acts2d, bg2='cornsilk', size=(1300,800), interactive=False)
+acts2d.append(Text2D("List of built-in fonts", pos="top-center", bg="k", s=1.3))
+plt0a = show(acts2d, bg2="cornsilk", size=(1300, 800), interactive=False)
 
 ## online fonts:
 acts2d = []
 i = 0
 for key, props in sorted(settings.font_parameters.items()):
-    if props['islocal']:
+    if props["islocal"]:
         continue
-    if key in ('Justino2', 'Justino3'):
+    if key in ("Justino2", "Justino3"):
         continue
     bg = None
-    if props['mono']:
-        bg = 'red5'
-    t = Text2D(f'{key}: {txt}', pos=(.015, 1-(i+2)*.06), font=key, s=1.3, c='k', bg=bg)
+    if props["mono"]:
+        bg = "red5"
+    t = Text2D(f"{key}: {txt}", pos=(0.015, 1 - (i + 2) * 0.03), font=key, c="k", bg=bg)
     acts2d.append(t)
-    i+=1
-plt0b = show(acts2d,
-             Text2D("Additional fonts (https://vedo.embl.es/fonts)", pos='top-center', bg='k', s=1.3),
-             bg2='lb', size=(1300,900), pos=(1200,200), new=True)
+    i += 1
+plt0b = show(
+    acts2d,
+    Text2D("Additional fonts (https://vedo.embl.es/fonts)", pos="top-center", bg="k"),
+    bg2="lb",
+    size=(1300, 1350),
+    pos=(1200, 0),
+    new=True,
+)
 
 ################################################################################ printout
 for font in fonts:
-    printc(font + " - available characters:", " "*25, bold=1, invert=1)
-    fontfile = os.path.join(fonts_path, font + '.npz')
-    font_meshes = np.load(fontfile, allow_pickle=True)['font'][0]
+    printc(font + " - available characters:", " " * 25, bold=1, invert=1)
+    fontfile = os.path.join(fonts_path, font + ".npz")
+    font_meshes = np.load(fontfile, allow_pickle=True)["font"][0]
     for k in font_meshes.keys():
-        printc(k, end=' ')
+        printc(k, end=" ")
     print()
 
-printc('\n(use the above to copy&paste any char into your python script!)', italic=1)
-printc('Symbols ~ ^ _ are reserved modifiers:', italic=1)
-printc(' use ~ to add a short space, 1/4 of the default size,', italic=1)
-printc(' use ^ and _ to start up/sub scripting, space terminates them.\n', italic=1)
+printc("\n(use the above to copy&paste any char into your python script!)", italic=1)
+printc("Symbols ~ ^ _ are reserved modifiers:", italic=1)
+printc(" use ~ to add a short space, 1/4 of the default size,", italic=1)
+printc(" use ^ and _ to start up/sub scripting, space terminates them.\n", italic=1)
 
 
 ################################################################################## 3D
@@ -69,27 +76,31 @@ LaTeX: :nabla:dotE=~4:pi~:rho, :nabla:timesE=~-1/c~~:partialB/:partialt
 Protect underscore \\\_ and \\\^ with a backslash.
 """
 
-plt = Plotter(N=4, pos=(300,0), size=(1600,950))
+plt = Plotter(N=4, pos=(300, 0), size=(1600, 950))
 
-cam = dict(pos=(3.99e+5, 8.51e+3, 6.47e+5),
-           focal_point=(2.46e+5, 1.16e+5, -9.24e+3),
-           viewup=(-0.0591, 0.983, 0.175),
-           distance=6.82e+5,
-           clipping_range=(5.26e+5, 8.92e+5))
+cam = dict(
+    pos=(3.99e5, 8.51e3, 6.47e5),
+    focal_point=(2.46e5, 1.16e5, -9.24e3),
+    viewup=(-0.0591, 0.983, 0.175),
+    distance=6.82e5,
+    clipping_range=(5.26e5, 8.92e5),
+)
 
-for i,fnt in enumerate(["Kanopus", "Normografo", "Theemim", "VictorMono"]):
-    t = Text3D(txt, font=fnt, italic=0).c('darkblue').scale(12300)
+for i, fnt in enumerate(["Kanopus", "Normografo", "Theemim", "VictorMono"]):
+    t = Text3D(txt, font=fnt, italic=0).c("darkblue").scale(12300)
     plt.at(i)
-    plt.show(t,
-             Text2D("Font: "+fnt, font=fnt, bg='r'),
-             axes=dict(xtitle='my units for L_x  (:mum)',
-                       ytitle='my Y-axis with:na long description',
-                       title_font=fnt,
-                       label_font=fnt,
-                       digits=2,
-                      ),
-             camera=cam,
-             resetcam=not bool(i),
+    plt.show(
+        t,
+        Text2D("Font: " + fnt, font=fnt, bg="r"),
+        axes=dict(
+            xtitle="my units for L_x  (:mum)",
+            ytitle="my Y-axis with:na long description",
+            title_font=fnt,
+            label_font=fnt,
+            digits=2,
+        ),
+        camera=cam,
+        resetcam=not bool(i),
     )
 plt.interactive().close()
 
