@@ -1411,6 +1411,8 @@ class Slider2D(SliderWidget):
         end_cap_width = options.pop("end_cap_width",  0.0125)
         tube_width    = options.pop("tube_width",     0.0075)
         title_height  = options.pop("title_height",   0.025)
+        tformat       = options.pop("tformat",        None)
+        
         if options:
             vedo.logger.warning(f"in Slider2D unknown option(s): {options}")
 
@@ -1498,14 +1500,13 @@ class Slider2D(SliderWidget):
             slider_rep.GetPoint2Coordinate().SetValue(0.95, 0.06)
 
         if show_value:
-            if isinstance(xmin, int) and isinstance(xmax, int) and isinstance(value, int):
-                frm = "%0.0f"
-            else:
-                frm = "%0.2f"
+            if tformat is None:
+                if isinstance(xmin, int) and isinstance(xmax, int) and isinstance(value, int):
+                    tformat = "%0.0f"
+                else:
+                    tformat = "%0.2f"
 
-            frm = options.pop("tformat", frm)
-
-            slider_rep.SetLabelFormat(frm)  # default is '%0.3g'
+            slider_rep.SetLabelFormat(tformat)  # default is '%0.3g'
             slider_rep.GetLabelProperty().SetShadow(0)
             slider_rep.GetLabelProperty().SetBold(0)
             slider_rep.GetLabelProperty().SetOpacity(alpha)
