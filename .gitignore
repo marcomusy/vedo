@@ -23,6 +23,7 @@ examples/notebooks/.ipynb_checkpoints
 untitled*.py
 bug_*.py
 prove
+store
 speed_tester.py
 data
 www

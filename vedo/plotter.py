@@ -2394,8 +2394,7 @@ class Plotter:
             elif "mid" in ln:
                 event_name = "MiddleButtonPress"
             if "release" in ln:
-                # event_name = event_name.replace("Press","Release") # vtk bug
-                event_name = "EndInteraction"
+                event_name = event_name.replace("Press", "Release")
         else:
             if "key" in ln:
                 if "release" in ln:
@@ -2426,7 +2425,7 @@ class Plotter:
             settings.allow_interaction = False
 
         cid = self.interactor.AddObserver(event_name, _func_wrap, priority)
-        vedo.logger.debug(f"registering event: {event_name} with id={cid}")
+        # print(f"Registering event: {event_name} with id={cid}")
         return cid
 
     def remove_callback(self, cid):
