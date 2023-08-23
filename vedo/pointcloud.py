@@ -1747,11 +1747,23 @@ class Points(BaseActor, vtk.vtkActor):
         thres.SetInputArrayToProcess(0, 0, 0, asso, scalars)
 
         if above is None and below is not None:
-            thres.ThresholdByLower(below)
+            try: # vtk 9.2
+                thres.ThresholdByLower(below)
+            except AttributeError: # vtk 9.3
+                thres.SetUpperThreshold(below)
+
         elif below is None and above is not None:
-            thres.ThresholdByUpper(above)
+            try:
+                thres.ThresholdByUpper(above)
+            except AttributeError:
+                thres.SetLowerThreshold(above)
         else:
-            thres.ThresholdBetween(above, below)
+            try:
+                thres.ThresholdBetween(above, below)
+            except AttributeError:
+                thres.SetUpperThreshold(below)
+                thres.SetLowerThreshold(above)
+
         thres.Update()
 
         gf = vtk.vtkGeometryFilter()
@@ -3277,8 +3289,7 @@ class Points(BaseActor, vtk.vtkActor):
             If you want to reset it use `mymesh.point_locator=None`
         """
         # NB: every time the mesh moves or is warped the locators are set to None
-        if (n > 1 or radius) or (n == 1 and return_point_id):
-
+        if ((n > 1 or radius) or (n == 1 and return_point_id)) and not return_cell_id:
             poly = None
             if not self.point_locator:
                 poly = self.polydata()
@@ -3322,7 +3333,7 @@ class Points(BaseActor, vtk.vtkActor):
 
                 # As per Miquel example with limbs the vtkStaticCellLocator doesnt work !!
                 # https://discourse.vtk.org/t/vtkstaticcelllocator-problem-vtk9-0-3/7854/4
-                if vedo.vtk_version[0] >= 9 and vedo.vtk_version[0] > 0:
+                if vedo.vtk_version[0] >= 9 and vedo.vtk_version[1] > 0:
                     self.cell_locator = vtk.vtkStaticCellLocator()
                 else:
                     self.cell_locator = vtk.vtkCellLocator()
@@ -3330,6 +3341,12 @@ class Points(BaseActor, vtk.vtkActor):
                 self.cell_locator.SetDataSet(poly)
                 self.cell_locator.BuildLocator()
 
+            if radius is not None:
+                vedo.printc("Warning: closest_point() with radius is not implemented for cells.", c='r')   
+ 
+            if n != 1:
+                vedo.printc("Warning: closest_point() with n>1 is not implemented for cells.", c='r')   
+ 
             trgp = [0, 0, 0]
             cid = vtk.mutable(0)
             dist2 = vtk.mutable(0)
@@ -4428,6 +4445,87 @@ class Points(BaseActor, vtk.vtkActor):
         self._update(clipper.GetOutput())
 
         self.pipeline = utils.OperationNode("cut_with_scalars", parents=[self])
+        return self
+
+    def crop(self, top=None, bottom=None, right=None, left=None, front=None, back=None):
+        """
+        Crop an `Mesh` object.
+        Use this method at creation (before moving the object).
+
+        Arguments:
+            top : (float)
+                fraction to crop from the top plane (positive z)
+            bottom : (float)
+                fraction to crop from the bottom plane (negative z)
+            front : (float)
+                fraction to crop from the front plane (positive y)
+            back : (float)
+                fraction to crop from the back plane (negative y)
+            right : (float)
+                fraction to crop from the right plane (positive x)
+            left : (float)
+                fraction to crop from the left plane (negative x)
+
+        Example:
+            ```python
+            from vedo import Sphere
+            Sphere().crop(right=0.3, left=0.1).show()
+            ```
+            ![](https://user-images.githubusercontent.com/32848391/57081955-0ef1e800-6cf6-11e9-99de-b45220939bc9.png)
+        """
+        cu = vtk.vtkBox()
+        pos = np.array(self.GetPosition())
+        x0, x1, y0, y1, z0, z1 = self.bounds()
+        x0, y0, z0 = [x0, y0, z0] - pos
+        x1, y1, z1 = [x1, y1, z1] - pos
+
+        dx, dy, dz = x1 - x0, y1 - y0, z1 - z0
+        if top:
+            z1 = z1 - top * dz
+        if bottom:
+            z0 = z0 + bottom * dz
+        if front:
+            y1 = y1 - front * dy
+        if back:
+            y0 = y0 + back * dy
+        if right:
+            x1 = x1 - right * dx
+        if left:
+            x0 = x0 + left * dx
+        bounds = (x0, x1, y0, y1, z0, z1)
+
+        cu.SetBounds(bounds)
+
+        clipper = vtk.vtkClipPolyData()
+        clipper.SetInputData(self.polydata())
+        clipper.SetClipFunction(cu)
+        clipper.InsideOutOn()
+        clipper.GenerateClippedOutputOff()
+        clipper.GenerateClipScalarsOff()
+        clipper.SetValue(0)
+        clipper.Update()
+        cpoly = clipper.GetOutput()
+
+        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
+            self._update(cpoly)
+        else:
+            # bring the underlying polydata to where _data is
+            M = vtk.vtkMatrix4x4()
+            M.DeepCopy(self.GetMatrix())
+            M.Invert()
+            tr = vtk.vtkTransform()
+            tr.SetMatrix(M)
+            tf = vtk.vtkTransformPolyDataFilter()
+            tf.SetTransform(tr)
+            tf.SetInputData(cpoly)
+            tf.Update()
+            self._update(tf.GetOutput())
+
+        self.point_locator = None
+
+        self.pipeline = utils.OperationNode(
+            "crop", parents=[self], comment=f"#pts {self._data.GetNumberOfPoints()}"
+        )
         return self
 
     def implicit_modeller(self, distance=0.05, res=(50, 50, 50), bounds=(), maxdist=None):

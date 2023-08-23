@@ -252,26 +252,28 @@ class Slicer3DPlotter(Plotter):
             )
 
         #################
-        def buttonfunc():
-            bu.switch()
-            self._cmap_slicer = bu.status()
-            for mesh in visibles:
-                if mesh:
-                    mesh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-                    if map2cells:
-                        mesh.mapPointsToCells()
-            self.renderer.RemoveActor(mesh.scalarbar)
-            mesh.add_scalarbar(pos=(0.04, 0.0), horizontal=True)
-            self.renderer.AddActor(mesh.scalarbar)
+        def buttonfunc(evt):
+            if evt.actor and evt.actor.name == bu.name:
+                bu.switch()
+                self._cmap_slicer = bu.status()
+                for mesh in visibles:
+                    if mesh:
+                        mesh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
+                        if map2cells:
+                            mesh.mapPointsToCells()
+                self.renderer.RemoveActor(mesh.scalarbar)
+                mesh.add_scalarbar(pos=(0.04, 0.0), horizontal=True)
+                self.renderer.AddActor(mesh.scalarbar)
 
         bu = self.add_button(
             buttonfunc,
             pos=(0.27, 0.005),
             states=cmaps,
-            c=["db"] * len(cmaps),
-            bc=["lb"] * len(cmaps),  # colors of states
+            c=["k9"] * len(cmaps),
+            bc=["k1"] * len(cmaps),  # colors of states
             size=14,
             bold=True,
+            name="slicer_button",
         )
 
         #################
@@ -510,11 +512,12 @@ class RayCastPlotter(Plotter):
         w2.GetRepresentation().SetTitleHeight(0.016)
 
         # add a button
-        def button_func_mode():
-            s = volume.mode()
-            snew = (s + 1) % 2
-            volume.mode(snew)
-            bum.switch()
+        def button_func_mode(evt):
+            if evt.actor and evt.actor.name == bum.name:
+                s = volume.mode()
+                snew = (s + 1) % 2
+                volume.mode(snew)
+                bum.switch()
 
         bum = self.add_button(
             button_func_mode,
@@ -526,7 +529,9 @@ class RayCastPlotter(Plotter):
             size=16,
             bold=0,
             italic=False,
+            name="raycast_button",
         )
+        bum.frame(c='w')
         bum.status(volume.mode())
 
         # add histogram of scalar
@@ -1678,6 +1683,7 @@ class AnimationPlayer(vedo.Plotter):
             font="Kanopus",
             size=button_size,
             bc=bc,
+            name="play_pause_button",
         )
         self.button_oneback = self.add_button(
             self.onebackward,
@@ -1687,6 +1693,7 @@ class AnimationPlayer(vedo.Plotter):
             size=button_size,
             c=c,
             bc=bc,
+            name="button_oneback",
         )
         self.button_oneforward = self.add_button(
             self.oneforward,
@@ -1695,6 +1702,7 @@ class AnimationPlayer(vedo.Plotter):
             font="Kanopus",
             size=button_size,
             bc=bc,
+            name="button_oneforward",
         )
         d = (1-slider_length)/2
         self.slider: SliderWidget = self.add_slider(
@@ -1724,22 +1732,25 @@ class AnimationPlayer(vedo.Plotter):
         self.is_playing = True
         self.play_pause_button.status(self.PAUSE_SYMBOL)
 
-    def toggle(self) -> None:
+    def toggle(self, evt) -> None:
         """Toggle between play and pause."""
-        if not self.is_playing:
-            self.resume()
-        else:
-            self.pause()
+        if evt.actor and evt.actor.name == "play_pause_button":
+            if not self.is_playing:
+                self.resume()
+            else:
+                self.pause()
 
-    def oneforward(self) -> None:
+    def oneforward(self, evt) -> None:
         """Advance the animation by one frame."""
-        self.pause()
-        self.set_frame(self.value + 1)
+        if evt.actor and evt.actor.name == "button_oneforward":
+            self.pause()
+            self.set_frame(self.value + 1)
 
-    def onebackward(self) -> None:
+    def onebackward(self, evt) -> None:
         """Go back one frame in the animation."""
-        self.pause()
-        self.set_frame(self.value - 1)
+        if evt.actor and evt.actor.name == "button_oneback":
+            self.pause()
+            self.set_frame(self.value - 1)
 
     def set_frame(self, value: int) -> None:
         """Set the current value of the animation."""
