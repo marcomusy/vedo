@@ -907,7 +907,7 @@ def tonumpy(obj):
             adict["backcolor"] = obj.GetBackfaceProperty().GetColor()
 
         adict["scalarvisibility"] = obj.mapper().GetScalarVisibility()
-        adict["texture"] = None
+        adict["texture"] = obj._texture if hasattr(obj, "_texture") else None
 
     ######################################################## Assembly
     if isinstance(obj, Assembly):
@@ -1105,7 +1105,7 @@ def loadnumpy(inobj):
                 msh.mapper().ScalarVisibilityOff()
 
         if "texture" in keys and d["texture"]:
-            msh.texture(d["texture"])
+            msh.texture(**d["texture"])
 
         return msh
 
