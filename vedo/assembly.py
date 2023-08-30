@@ -402,3 +402,12 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
 
         return list(_genflatten([self]))
 
+    def pickable(self, value=None):
+        """Set/get the pickability property of an assembly and its elements"""
+        # set property to each element
+        if value is not None:
+            for elem in self.recursive_unpack():
+                elem.SetPickable(value)
+
+        # set property for self using inherited pickable()
+        return super().pickable(value=value)
