@@ -1769,7 +1769,9 @@ class Points(BaseActor, vtk.vtkActor):
         gf = vtk.vtkGeometryFilter()
         gf.SetInputData(thres.GetOutput())
         gf.Update()
-        return self._update(gf.GetOutput())
+        out = self._update(gf.GetOutput())
+        out.pipeline = utils.OperationNode("threshold", parents=[self])
+        return out
 
     def quantize(self, value):
         """

@@ -3104,17 +3104,10 @@ def _histogram_hex_bin(
             m = bins
             n = np.rint(dx / dy * m * 1.2 + 0.5).astype(int)
 
-    src = vtk.vtkPointSource()
-    src.SetNumberOfPoints(len(xvalues))
-    src.Update()
-    poly = src.GetOutput()
-
     values = np.stack((xvalues, yvalues), axis=1)
     zs = [[0.0]] * len(values)
     values = np.append(values, zs, axis=1)
-
-    poly.GetPoints().SetData(utils.numpy2vtk(values, dtype=np.float32))
-    cloud = Mesh(poly)
+    cloud = vedo.Points(values)
 
     col = None
     if c is not None:
@@ -3137,8 +3130,7 @@ def _histogram_hex_bin(
             else:
                 p = (i / ki, j / kj + 0.45, 0)
             q = (p[0] / n * 1.2 * dx + xmin, p[1] / m * dy + ymin, 0)
-            ids = cloud.closest_point(q, radius=r, return_cell_id=True)
-            ne = len(ids)
+            ne = len(cloud.closest_point(q, radius=r))
             if fill:
                 t.Translate(p[0], p[1], ne / 2)
                 t.Scale(1, 1, ne * 10)

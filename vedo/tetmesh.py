@@ -398,22 +398,11 @@ class TetMesh(BaseGrid, vtk.vtkVolume):
             else:
                 th.SetInputArrayToProcess(0, 0, 0, 0, name)
 
-        if above is not None and below is not None:
-            if above > below:
-                if vedo.vtk_version[0] >= 9:
-                    th.SetInvert(True)
-                    th.ThresholdBetween(below, above)
-                else:
-                    vedo.logger.error("in vtk<9, above cannot be larger than below. Skip")
-                    return self
-            else:
-                th.ThresholdBetween(above, below)
+        if above is not None:
+            th.SetLowerThreshold(above)
 
-        elif above is not None:
-            th.ThresholdByUpper(above)
-
-        elif below is not None:
-            th.ThresholdByLower(below)
+        if below is not None:
+            th.SetUpperThreshold(below)
 
         th.Update()
         return self._update(th.GetOutput())

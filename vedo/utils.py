@@ -650,8 +650,6 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, tetras=False
                 source_polygons.InsertNextCell(ele)
 
             elif n == 4 and tetras:
-                # do not use vtkTetra() because it fails
-                # with dolfin faces orientation
                 ele0 = vtk.vtkTriangle()
                 ele1 = vtk.vtkTriangle()
                 ele2 = vtk.vtkTriangle()
