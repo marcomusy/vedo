@@ -3,6 +3,7 @@
 - added `plotter.pick_area()` thanks to @ZiguoAtGitHub and @RubendeBruin feedback.
 - bug fix in `closest_point()` thanks to @goncalo-pt
 - bug fix in tformat thanks to @JohnsWor  https://github.com/marcomusy/vedo/pull/913
+- add texture to npz files thanks to @zhouzq-thu https://github.com/marcomusy/vedo/pull/918
 
 
 ### Breaking changes

@@ -2776,9 +2776,9 @@ class Plotter:
                 if "MeshSet" in str(type(a)):
                     for i in range(a.number_meshes()):
                         if a.mesh_id_exists(i):
-                            scannedacts.append(vedo.Mesh(utils.meshlab2vedo(a.mesh(i))))
+                            scannedacts.append(utils.meshlab2vedo(a.mesh(i)))
                 else:
-                    scannedacts.append(vedo.Mesh(utils.meshlab2vedo(a)))
+                    scannedacts.append(utils.meshlab2vedo(a))
 
             elif isinstance(a, (vtk.vtkProp, vtk.vtkInteractorObserver)):
                 scannedacts.append(a)

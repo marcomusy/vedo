@@ -6,9 +6,8 @@
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/vedo/badges/version.svg)](https://anaconda.org/conda-forge/vedo)
 [![Ubuntu 23.04 package](https://repology.org/badge/version-for-repo/ubuntu_23_04/vedo.svg)](https://repology.org/project/vedo/versions)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7734756.svg)](https://doi.org/10.5281/zenodo.7734756)
-[![Downloads](https://pepy.tech/badge/vedo)](https://pepy.tech/project/vedo)
+[![Downloads](https://static.pepy.tech/badge/vedo)](https://pepy.tech/project/vedo)
 [![CircleCI](https://circleci.com/gh/marcomusy/vedo.svg?style=svg)](https://circleci.com/gh/marcomusy/vedo)
-
 
 A lightweight and powerful python module
 for scientific analysis and **v**isualization of **3d** **o**bjects.<br>

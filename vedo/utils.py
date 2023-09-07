@@ -2461,7 +2461,7 @@ def vedo2meshlab(vmesh):
     """Convert a `vedo.Mesh` to a Meshlab object."""
     try:
         import pymeshlab as mlab
-    except RuntimeError:
+    except ModuleNotFoundError:
         vedo.logger.error("Need pymeshlab to run:\npip install pymeshlab")
 
     vertex_matrix = vmesh.points().astype(np.float64)
@@ -2469,7 +2469,7 @@ def vedo2meshlab(vmesh):
     try:
         face_matrix = np.asarray(vmesh.faces(), dtype=np.float64)
     except:
-        print("In vedo2meshlab, need to triangulate mesh first!")
+        print("WARNING: in vedo2meshlab(), need to triangulate mesh first!")
         face_matrix = np.array(vmesh.clone().triangulate().faces(), dtype=np.float64)
 
     v_normals_matrix = vmesh.normals(cells=False, recompute=False)
@@ -2515,21 +2515,22 @@ def vedo2meshlab(vmesh):
             if data.ndim == 1:  # scalar
                 m.add_vertex_custom_scalar_attribute(data.astype(np.float64), k)
             elif data.ndim == 2:  # vectorial data
-                m.add_vertex_custom_point_attribute(data.astype(np.float64), k)
+                if "tcoord" not in k.lower() and k != "Normals":
+                    m.add_vertex_custom_point_attribute(data.astype(np.float64), k)
 
     for k in vmesh.celldata.keys():
         data = vmesh.celldata[k]
         if data is not None:
             if data.ndim == 1:  # scalar
                 m.add_face_custom_scalar_attribute(data.astype(np.float64), k)
-            elif data.ndim == 2:  # vectorial data
+            elif data.ndim == 2 and k != "Normals":  # vectorial data
                 m.add_face_custom_point_attribute(data.astype(np.float64), k)
 
     m.update_bounding_box()
     return m
 
 
-def meshlab2vedo(mmesh):
+def meshlab2vedo(mmesh, pointdata_keys=(), celldata_keys=()):
     """Convert a Meshlab object to `vedo.Mesh`."""
     inputtype = str(type(mmesh))
 
@@ -2546,28 +2547,39 @@ def meshlab2vedo(mmesh):
         parr = mmesh.vertex_scalar_array()
         parr_vtk = numpy_to_vtk(parr)
         parr_vtk.SetName("MeshLabScalars")
-        x0, x1 = parr_vtk.GetRange()
-        if x1 - x0:
-            polydata.GetPointData().AddArray(parr_vtk)
-            polydata.GetPointData().SetActiveScalars("MeshLabScalars")
+        polydata.GetPointData().AddArray(parr_vtk)
+        polydata.GetPointData().SetActiveScalars("MeshLabScalars")
 
     if mmesh.has_face_scalar():
         carr = mmesh.face_scalar_array()
         carr_vtk = numpy_to_vtk(carr)
         carr_vtk.SetName("MeshLabScalars")
         x0, x1 = carr_vtk.GetRange()
-        if x1 - x0:
-            polydata.GetCellData().AddArray(carr_vtk)
-            polydata.GetCellData().SetActiveScalars("MeshLabScalars")
+        polydata.GetCellData().AddArray(carr_vtk)
+        polydata.GetCellData().SetActiveScalars("MeshLabScalars")
+
+    for k in pointdata_keys:
+        parr = mmesh.vertex_custom_scalar_attribute_array(k)
+        parr_vtk = numpy_to_vtk(parr)
+        parr_vtk.SetName(k)
+        polydata.GetPointData().AddArray(parr_vtk)
+        polydata.GetPointData().SetActiveScalars(k)
+
+    for k in celldata_keys:
+        carr = mmesh.face_custom_scalar_attribute_array(k)
+        carr_vtk = numpy_to_vtk(carr)
+        carr_vtk.SetName(k)
+        polydata.GetCellData().AddArray(carr_vtk)
+        polydata.GetCellData().SetActiveScalars(k)
 
     pnorms = mmesh.vertex_normal_matrix()
     if len(pnorms) > 0:
-        polydata.GetPointData().SetNormals(numpy2vtk(pnorms))
+        polydata.GetPointData().SetNormals(numpy2vtk(pnorms, name="Normals"))
 
     cnorms = mmesh.face_normal_matrix()
     if len(cnorms) > 0:
-        polydata.GetCellData().SetNormals(numpy2vtk(cnorms))
-    return polydata
+        polydata.GetCellData().SetNormals(numpy2vtk(cnorms, name="Normals"))
+    return vedo.Mesh(polydata)
 
 
 def open3d2vedo(o3d_mesh):
