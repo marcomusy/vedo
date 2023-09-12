@@ -6,6 +6,8 @@
 - add texture to npz files thanks to @zhouzq-thu https://github.com/marcomusy/vedo/pull/918
 
 - Fix meshlab interface thanks to @JeffreyWardman in #924
+- Update `Slicer3DPlotter` thanks to @daniel-a-diaz in #925
+
 
 ### Breaking changes
 - in `plotter.add_button(func)`, must use `func(event)` instead of `func()`

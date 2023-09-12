@@ -54,15 +54,8 @@ class Slicer3DPlotter(Plotter):
         show_histo=True,
         show_icon=True,
         draggable=False,
-        pos=(0, 0),
-        size="auto",
-        screensize="auto",
-        title="",
-        bg="white",
-        bg2="lightblue",
-        axes=7,
-        resetcam=True,
-        interactive=True,
+        at=0,
+        **kwargs,
     ):
         """
         Generate a rendering window with slicing planes for the input Volume.
@@ -83,7 +76,9 @@ class Slicer3DPlotter(Plotter):
             show_icon : (bool)
                 show a small 3D rendering icon of the volume
             draggable : (bool)
-                make the icon draggable
+                make the 3D icon draggable
+            at : (int)
+                subwindow number to plot to
 
         Examples:
             - [slicer1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slicer1.py)
@@ -92,28 +87,17 @@ class Slicer3DPlotter(Plotter):
         """
         self._cmap_slicer = "gist_ncar_r"
 
-        if not title:
-            if volume.filename:
-                title = volume.filename
-            else:
-                title = "Volume Slicer"
+        ################################
+        Plotter.__init__(self, **kwargs)
+        self.at(at)
+        ################################
 
-        ################################
-        Plotter.__init__(
-            self,
-            pos=pos,
-            bg=bg,
-            bg2=bg2,
-            size=size,
-            screensize=screensize,
-            title=title,
-            interactive=interactive,
-            axes=axes,
-        )
-        ################################
+        if len(self.renderers) > 1: # 2d sliders do not work with multiple renderers
+            use_slider3d = True
+
         box = volume.box().wireframe().alpha(0.1)
+        self.add(box)
 
-        self.show(box, viewup="z", resetcam=resetcam, interactive=False)
         if show_icon:
             self.add_inset(volume, pos=(0.85, 0.85), size=0.15, c="w", draggable=draggable)
 
@@ -129,13 +113,8 @@ class Slicer3DPlotter(Plotter):
             meanlog = np.sum(np.multiply(edg[:-1], logdata)) / np.sum(logdata)
             rmax = min(rmax, meanlog + (meanlog - rmin) * 0.9)
             rmin = max(rmin, meanlog - (rmax - meanlog) * 0.9)
-            vedo.logger.debug(
-                "scalar range clamped to range: ("
-                + precision(rmin, 3)
-                + ", "
-                + precision(rmax, 3)
-                + ")"
-            )
+            # print("scalar range clamped to range: ("
+            #       + precision(rmin, 3) + ", " + precision(rmax, 3) + ")")
         self._cmap_slicer = cmaps[0]
         visibles = [None, None, None]
         msh = volume.zslice(int(dims[2] / 2))
@@ -284,8 +263,6 @@ class Slicer3DPlotter(Plotter):
             )
 
         self.add([msh, hist])
-        if interactive:
-            self.interactive()
 
 
 ########################################################################################

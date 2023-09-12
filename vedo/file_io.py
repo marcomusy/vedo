@@ -1744,7 +1744,7 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False):
         # vedo.logger.error("in screenshot(), rendering window is not present, skip.")
         return vedo.plotter_instance  ##########
 
-    if asarray and scale == 1:
+    if asarray and scale == 1 and not vedo.plotter_instance.offscreen:
         nx, ny = vedo.plotter_instance.window.GetSize()
         arr = vtk.vtkUnsignedCharArray()
         vedo.plotter_instance.window.GetRGBACharPixelData(0, 0, nx-1, ny-1, 0, arr)
@@ -1801,14 +1801,14 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False):
         w2if.ReadFrontBufferOff()  # read from the back buffer
     w2if.Update()
 
-    if asarray and scale != 1:
+    if asarray:
         pd = w2if.GetOutput().GetPointData()
         npdata = utils.vtk2numpy(pd.GetArray("ImageScalars"))
         npdata = npdata[:, [0, 1, 2]]
         ydim, xdim, _ = w2if.GetOutput().GetDimensions()
         npdata = npdata.reshape([xdim, ydim, -1])
         npdata = np.flip(npdata, axis=0)
-        return npdata
+        return npdata ###########################
 
     if filename.lower().endswith(".png"):
         writer = vtk.vtkPNGWriter()
