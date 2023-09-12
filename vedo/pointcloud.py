@@ -1548,7 +1548,7 @@ class Points(BaseActor, vtk.vtkActor):
         else:  # has no polygons and vtkDistancePolyDataFilter wants them (dont know why)
 
             if signed:
-                vedo.logger.warning("distanceTo() called with signed=True but input object has no polygons")
+                vedo.logger.warning("distance_to() called with signed=True but input object has no polygons")
 
             if not pcloud.point_locator:
                 pcloud.point_locator = vtk.vtkPointLocator()

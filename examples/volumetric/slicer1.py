@@ -9,12 +9,12 @@ plt = Slicer3DPlotter(
     vol,
     cmaps=("gist_ncar_r", "jet", "Spectral_r", "hot_r", "bone_r"),
     use_slider3d=False,
-    bg="white",
-    bg2="lightblue",
+    bg="blue1",
+    bg2="blue9",
 )
 
 # Can now add any other vedo object to the Plotter scene:
 plt += Text2D(__doc__)
 
-plt.show()
+plt.show(viewup='z')
 plt.close()

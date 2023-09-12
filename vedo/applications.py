@@ -85,8 +85,6 @@ class Slicer3DPlotter(Plotter):
 
             <img src="https://vedo.embl.es/images/volumetric/slicer1.jpg" width="500">
         """
-        self._cmap_slicer = "gist_ncar_r"
-
         ################################
         Plotter.__init__(self, **kwargs)
         self.at(at)
@@ -116,22 +114,24 @@ class Slicer3DPlotter(Plotter):
             # print("scalar range clamped to range: ("
             #       + precision(rmin, 3) + ", " + precision(rmax, 3) + ")")
         self._cmap_slicer = cmaps[0]
+
         visibles = [None, None, None]
         msh = volume.zslice(int(dims[2] / 2))
         msh.alpha(alpha).lighting("", la, ld, 0)
         msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
         if map2cells:
-            msh.mapPointsToCells()
+            msh.map_points_to_cells()
         self.renderer.AddActor(msh)
         visibles[2] = msh
-        msh.add_scalarbar(pos=(0.04, 0.0), horizontal=True, font_size=0)
+        if len(cmaps) > 1:
+           msh.add_scalarbar(pos=(0.04, 0.0), horizontal=True, font_size=0)
 
         def slider_function_x(widget, event):
             i = int(widget.GetRepresentation().GetValue())
             msh = volume.xslice(i).alpha(alpha).lighting("", la, ld, 0)
             msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
             if map2cells:
-                msh.mapPointsToCells()
+                msh.map_points_to_cells()
             self.renderer.RemoveActor(visibles[0])
             if i and i < dims[0]:
                 self.renderer.AddActor(msh)
@@ -142,7 +142,7 @@ class Slicer3DPlotter(Plotter):
             msh = volume.yslice(i).alpha(alpha).lighting("", la, ld, 0)
             msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
             if map2cells:
-                msh.mapPointsToCells()
+                msh.map_points_to_cells()
             self.renderer.RemoveActor(visibles[1])
             if i and i < dims[1]:
                 self.renderer.AddActor(msh)
@@ -153,7 +153,7 @@ class Slicer3DPlotter(Plotter):
             msh = volume.zslice(i).alpha(alpha).lighting("", la, ld, 0)
             msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
             if map2cells:
-                msh.mapPointsToCells()
+                msh.map_points_to_cells()
             self.renderer.RemoveActor(visibles[2])
             if i and i < dims[2]:
                 self.renderer.AddActor(msh)
@@ -239,30 +239,33 @@ class Slicer3DPlotter(Plotter):
                     if mesh:
                         mesh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
                         if map2cells:
-                            mesh.mapPointsToCells()
+                            mesh.map_points_to_cells()
                 self.renderer.RemoveActor(mesh.scalarbar)
-                mesh.add_scalarbar(pos=(0.04, 0.0), horizontal=True)
-                self.renderer.AddActor(mesh.scalarbar)
+                if len(cmaps) > 1:
+                    mesh.add_scalarbar(pos=(0.04, 0.0), horizontal=True)
+                    self.renderer.AddActor(mesh.scalarbar)
 
-        bu = self.add_button(
-            buttonfunc,
-            pos=(0.27, 0.005),
-            states=cmaps,
-            c=["k9"] * len(cmaps),
-            bc=["k1"] * len(cmaps),  # colors of states
-            size=14,
-            bold=True,
-            name="slicer_button",
-        )
-
-        #################
-        hist = None
-        if show_histo:
-            hist = CornerHistogram(
-                data, s=0.2, bins=25, logscale=1, pos=(0.02, 0.02), c=ch, bg=ch, alpha=0.7
+        if len(cmaps) > 1:
+            bu = self.add_button(
+                buttonfunc,
+                pos=(0.275, 0.005),
+                states=cmaps,
+                c=["k9"] * len(cmaps),
+                bc=["k1"] * len(cmaps),  # colors of states
+                size=14,
+                bold=True,
+                name="slicer_button",
             )
 
-        self.add([msh, hist])
+        #################
+        if show_histo:
+            hist = CornerHistogram(
+                data, s=0.2, bins=25, logscale=True,
+                pos=(0.02, 0.02), c=ch, bg=ch, alpha=0.7
+            )
+            self.add(hist)
+
+        self.add(msh)
 
 
 ########################################################################################
