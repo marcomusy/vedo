@@ -1041,6 +1041,7 @@ class BaseActor(Base3DProp):
     def points(self, pts=None, transformed=True):
         """
         Set/Get the vertex coordinates of a mesh or point cloud.
+        Keyword `pts` can also be a list of indices to be retrieved.
 
         Set `transformed=False` to ignore any previous transformation applied to the mesh.
         """
@@ -1060,22 +1061,30 @@ class BaseActor(Base3DProp):
                 return utils.vtk2numpy(vpts.GetData())
             return np.array([], dtype=np.float32)
 
-        else:  ### setter
+        else:
 
-            if len(pts) == 3 and len(pts[0]) != 3:
-                # assume plist is in the format [all_x, all_y, all_z]
-                pts = np.stack((pts[0], pts[1], pts[2]), axis=1)
             pts = np.asarray(pts, dtype=np.float32)
+
+            if pts.ndim == 1:
+                ### getter by point index ###################
+                indices = pts.astype(int)
+                vpts = self.polydata(transformed).GetPoints()
+                arr = utils.vtk2numpy(vpts.GetData())
+                return arr[indices] ###########
+
+            ### setter ####################################
             if pts.shape[1] == 2:
                 pts = np.c_[pts, np.zeros(pts.shape[0], dtype=np.float32)]
-            vpts = self.inputdata().GetPoints()
             arr = utils.numpy2vtk(pts, dtype=np.float32)
+            
+            vpts = self._data.GetPoints()
             vpts.SetData(arr)
             vpts.Modified()
             # reset mesh to identity matrix position/rotation:
             self.PokeMatrix(vtk.vtkMatrix4x4())
             self.point_locator = None
             self.cell_locator = None
+            self.transform = None
             return self
 
 

@@ -1125,8 +1125,15 @@ class Points(BaseActor, vtk.vtkActor):
 
         if not transformed:
             if self.transform:
-                # already has a transform which can be non linear, so use that
-                cloned.SetUserTransform(self.transform)
+                # already has a so use that
+                try:
+                    cloned.SetUserTransform(self.transform)
+                except TypeError:  # transform which can be non linear
+                    cloned.SetOrigin(self.GetOrigin())
+                    cloned.SetScale(self.GetScale())
+                    cloned.SetOrientation(self.GetOrientation())
+                    cloned.SetPosition(self.GetPosition())
+                   
             else:
                 # assign the same transformation to the copy
                 cloned.SetOrigin(self.GetOrigin())
