@@ -139,6 +139,9 @@ class TetMesh(BaseGrid, vtk.vtkVolume):
         elif isinstance(inputobj, vtk.vtkUnstructuredGrid):
             self._data = inputobj
 
+        elif isinstance(inputobj, vedo.UGrid):
+            self._data = inputobj._data
+
         elif isinstance(inputobj, vtk.vtkRectilinearGrid):
             r2t = vtk.vtkRectilinearGridToTetrahedra()
             r2t.SetInputData(inputobj)

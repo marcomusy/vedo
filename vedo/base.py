@@ -982,103 +982,6 @@ class Base3DProp:
 
 
 ########################################################################################
-class BaseActor2D(vtk.vtkActor2D):
-    """
-    Base class.
-
-    .. warning:: Do not use this class to instantiate objects.
-    """
-
-    def __init__(self):
-        """Manage 2D objects."""
-        super().__init__()
-        self._mapper = None
-        self.property = self.GetProperty()
-        self.filename = ""
-
-    def layer(self, value=None):
-        """Set/Get the layer number in the overlay planes into which to render."""
-        if value is None:
-            return self.GetLayerNumber()
-        self.SetLayerNumber(value)
-        return self
-
-    def pos(self, px=None, py=None):
-        """Set/Get the screen-coordinate position."""
-        if isinstance(px, str):
-            vedo.logger.error("Use string descriptors only inside the constructor")
-            return self
-        if px is None:
-            return np.array(self.GetPosition(), dtype=int)
-        if py is not None:
-            p = [px, py]
-        else:
-            p = px
-        assert len(p) == 2, "Error: len(pos) must be 2 for BaseActor2D"
-        self.SetPosition(p)
-        return self
-
-    def coordinate_system(self, value=None):
-        """
-        Set/get the coordinate system which this coordinate is defined in.
-
-        The options are:
-            0. Display
-            1. Normalized Display
-            2. Viewport
-            3. Normalized Viewport
-            4. View
-            5. Pose
-            6. World
-        """
-        coor = self.GetPositionCoordinate()
-        if value is None:
-            return coor.GetCoordinateSystem()
-        coor.SetCoordinateSystem(value)
-        return self
-
-    def on(self):
-        """Set object visibility."""
-        self.VisibilityOn()
-        return self
-
-    def off(self):
-        """Set object visibility."""
-        self.VisibilityOn()
-        return self
-
-    def toggle(self):
-        """Toggle object visibility."""
-        self.SetVisibility(not self.GetVisibility())
-        return self
-
-    def pickable(self, value=True):
-        self.SetPickable(value)
-        return self
-
-    def alpha(self, value=None):
-        """Set/Get the object opacity."""
-        if value is None:
-            return self.GetProperty().GetOpacity()
-        self.GetProperty().SetOpacity(value)
-        return self
-
-    def ps(self, point_size=None):
-        if point_size is None:
-            return self.GetProperty().GetPointSize()
-        self.GetProperty().SetPointSize(point_size)
-        return self
-
-    def ontop(self, value=True):
-        """Keep the object always on top of everything else."""
-        if value:
-            self.GetProperty().SetDisplayLocationToForeground()
-        else:
-            self.GetProperty().SetDisplayLocationToBackground()
-        return self
-
-
-########################################################################################
 class BaseActor(Base3DProp):
     """
     Base class.
@@ -1138,8 +1041,6 @@ class BaseActor(Base3DProp):
     def points(self, pts=None, transformed=True):
         """
         Set/Get the vertex coordinates of a mesh or point cloud.
-        Argument can be an index, a set of indices
-        or a complete new set of points to update the mesh.
 
         Set `transformed=False` to ignore any previous transformation applied to the mesh.
         """
@@ -2228,6 +2129,9 @@ class BaseGrid(BaseActor):
             normal : (list, str)
                 normal vector to the cutting plane
         """
+        # if isinstance(self, vedo.Volume):
+        #     raise RuntimeError("cut_with_plane() is not applicable to Volume objects.")    
+
         strn = str(normal)
         if strn   ==  "x": normal = (1, 0, 0)
         elif strn ==  "y": normal = (0, 1, 0)
@@ -2246,9 +2150,20 @@ class BaseGrid(BaseActor):
         clipper.SetValue(0)
         clipper.Update()
         cout = clipper.GetOutput()
-        self._update(cout)
-        self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
-        return self
+
+        if isinstance(cout, vtk.vtkUnstructuredGrid):
+            ug = vedo.UGrid(cout)
+            if isinstance(self, vedo.UGrid):
+                self._update(cout)
+                self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
+                return self
+            ug.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
+            return ug
+
+        else:
+            self._update(cout)
+            self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
+            return self
 
     def cut_with_box(self, box):
         """
@@ -2267,6 +2182,9 @@ class BaseGrid(BaseActor):
             ```
             ![](https://vedo.embl.es/images/feats/tet_cut_box.png)
         """
+        # if isinstance(self, vedo.Volume):
+        #     raise RuntimeError("cut_with_box() is not applicable to Volume objects.")    
+
         bc = vtk.vtkBoxClipDataSet()
         bc.SetInputData(self._data)
         if isinstance(box, vtk.vtkProp):
@@ -2275,16 +2193,32 @@ class BaseGrid(BaseActor):
             boxb = box
         bc.SetBoxClip(*boxb)
         bc.Update()
-        self._update(bc.GetOutput())
-        self.pipeline = utils.OperationNode("cut_with_box", parents=[self, box], c="#9e2a2b")
-        return self
+        cout = bc.GetOutput()
+
+        if isinstance(cout, vtk.vtkUnstructuredGrid):
+            ug = vedo.UGrid(cout)
+            if isinstance(self, vedo.UGrid):
+                self._update(cout)
+                self.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
+                return self
+            ug.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
+            return ug
+
+        else:
+            self._update(cout)
+            self.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
+            return self
+
 
     def cut_with_mesh(self, mesh, invert=False, whole_cells=False, only_boundary=False):
         """
-        Cut a UGrid, TetMesh or Volume with a Mesh.
+        Cut a UGrid or TetMesh with a Mesh.
 
         Use `invert` to return cut off part of the input object.
         """
+        # if isinstance(self, vedo.Volume):
+        #     raise RuntimeError("cut_with_mesh() is not applicable to Volume objects.")    
+
         polymesh = mesh.polydata()
         ug = self._data
 
@@ -2316,19 +2250,32 @@ class BaseGrid(BaseActor):
             clipper.SetValue(0.0)
 
         clipper.Update()
-        cug = clipper.GetOutput()
+        cout = clipper.GetOutput()
 
-        if ug.GetCellData().GetScalars():  # not working
-            scalname = ug.GetCellData().GetScalars().GetName()
-            if scalname:  # not working
-                if self.useCells:
-                    self.celldata.select(scalname)
-                else:
-                    self.pointdata.select(scalname)
+        # if ug.GetCellData().GetScalars():  # not working
+        #     scalname = ug.GetCellData().GetScalars().GetName()
+        #     if scalname:  # not working
+        #         if self.useCells:
+        #             self.celldata.select(scalname)
+        #         else:
+        #             self.pointdata.select(scalname)
+        # self._update(cout)
+        # self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self, mesh], c="#9e2a2b")
+        # return self
 
-        self._update(cug)
-        self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self, mesh], c="#9e2a2b")
-        return self
+        if isinstance(cout, vtk.vtkUnstructuredGrid):
+            ug = vedo.UGrid(cout)
+            if isinstance(self, vedo.UGrid):
+                self._update(cout)
+                self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
+                return self
+            ug.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
+            return ug
+
+        else:
+            self._update(cout)
+            self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
+            return self
 
     def extract_cells_on_plane(self, origin, normal):
         """
@@ -2472,6 +2419,103 @@ class BaseGrid(BaseActor):
             c="#9e2a2b",
         )
         return ug
+
+
+########################################################################################
+class BaseActor2D(vtk.vtkActor2D):
+    """
+    Base class.
+
+    .. warning:: Do not use this class to instantiate objects.
+    """
+
+    def __init__(self):
+        """Manage 2D objects."""
+        super().__init__()
+        self._mapper = None
+        self.property = self.GetProperty()
+        self.filename = ""
+
+    def layer(self, value=None):
+        """Set/Get the layer number in the overlay planes into which to render."""
+        if value is None:
+            return self.GetLayerNumber()
+        self.SetLayerNumber(value)
+        return self
+
+    def pos(self, px=None, py=None):
+        """Set/Get the screen-coordinate position."""
+        if isinstance(px, str):
+            vedo.logger.error("Use string descriptors only inside the constructor")
+            return self
+        if px is None:
+            return np.array(self.GetPosition(), dtype=int)
+        if py is not None:
+            p = [px, py]
+        else:
+            p = px
+        assert len(p) == 2, "Error: len(pos) must be 2 for BaseActor2D"
+        self.SetPosition(p)
+        return self
+
+    def coordinate_system(self, value=None):
+        """
+        Set/get the coordinate system which this coordinate is defined in.
+
+        The options are:
+            0. Display
+            1. Normalized Display
+            2. Viewport
+            3. Normalized Viewport
+            4. View
+            5. Pose
+            6. World
+        """
+        coor = self.GetPositionCoordinate()
+        if value is None:
+            return coor.GetCoordinateSystem()
+        coor.SetCoordinateSystem(value)
+        return self
+
+    def on(self):
+        """Set object visibility."""
+        self.VisibilityOn()
+        return self
+
+    def off(self):
+        """Set object visibility."""
+        self.VisibilityOn()
+        return self
+
+    def toggle(self):
+        """Toggle object visibility."""
+        self.SetVisibility(not self.GetVisibility())
+        return self
+
+    def pickable(self, value=True):
+        self.SetPickable(value)
+        return self
+
+    def alpha(self, value=None):
+        """Set/Get the object opacity."""
+        if value is None:
+            return self.GetProperty().GetOpacity()
+        self.GetProperty().SetOpacity(value)
+        return self
+
+    def ps(self, point_size=None):
+        if point_size is None:
+            return self.GetProperty().GetPointSize()
+        self.GetProperty().SetPointSize(point_size)
+        return self
+
+    def ontop(self, value=True):
+        """Keep the object always on top of everything else."""
+        if value:
+            self.GetProperty().SetDisplayLocationToForeground()
+        else:
+            self.GetProperty().SetDisplayLocationToBackground()
+        return self
 
 
 ############################################################################### funcs

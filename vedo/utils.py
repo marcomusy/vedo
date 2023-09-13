@@ -1665,6 +1665,25 @@ def print_info(obj):
         vedo.printc(" z=(" + bz1 + ", " + bz2 + ")", c=cf, bold=False)
         _print_data(ug, cf)
 
+    elif isinstance(obj, vedo.UGrid):
+        cf = "m"
+        vedo.printc("UGrid".ljust(70), c=cf, bold=True, invert=True)
+        pos = obj.GetPosition()
+        bnds = obj.GetBounds()
+        ug = obj.inputdata()
+        vedo.printc("nr. of cells".ljust(14) + ": ", c=cf, bold=True, end="")
+        vedo.printc(ug.GetNumberOfCells(), c=cf, bold=False)
+        vedo.printc("position".ljust(14) + ": ", c=cf, bold=True, end="")
+        vedo.printc(pos, c=cf, bold=False)
+        vedo.printc("bounds".ljust(14) + ": ", c=cf, bold=True, end="")
+        bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
+        vedo.printc("x=(" + bx1 + ", " + bx2 + ")", c=cf, bold=False, end="")
+        by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
+        vedo.printc(" y=(" + by1 + ", " + by2 + ")", c=cf, bold=False, end="")
+        bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
+        vedo.printc(" z=(" + bz1 + ", " + bz2 + ")", c=cf, bold=False)
+        _print_data(ug, cf)
+
     elif isinstance(obj, (vedo.volume.Volume, vedo.volume.VolumeSlice)):
         vedo.printc("Volume".ljust(70), c="b", bold=True, invert=True)
 
@@ -2429,7 +2448,7 @@ def trimesh2vedo(inputobj):
                     tact.c(trim_c[0, [0, 1, 2]]).alpha(trim_c[0, 3])
                 else:
                     if inputobj.visual.kind == "face":
-                        tact.cell_individual_colors(trim_c)
+                        tact.cellcolors = trim_c
         return tact
 
     if "PointCloud" in inputobj_type:
@@ -2639,26 +2658,32 @@ def vtk_version_at_least(major, minor=0, build=0):
 def ctf2lut(tvobj, logscale=False):
     """Internal use."""
     # build LUT from a color transfer function for tmesh or volume
+
     pr = tvobj.GetProperty()
-    if not isinstance(pr, vtk.vtkVolumeProperty):
+    # if not isinstance(pr, vtk.vtkVolumeProperty):
+    #     return None
+
+    try:
+        ctf = pr.GetRGBTransferFunction()
+        otf = pr.GetScalarOpacity()
+        x0, x1 = tvobj.inputdata().GetScalarRange()
+        cols, alphas = [], []
+        for x in np.linspace(x0, x1, 256):
+            cols.append(ctf.GetColor(x))
+            alphas.append(otf.GetValue(x))
+
+        if logscale:
+            lut = vtk.vtkLogLookupTable()
+        else:
+            lut = vtk.vtkLookupTable()
+
+        lut.SetRange(x0, x1)
+        lut.SetNumberOfTableValues(len(cols))
+        for i, col in enumerate(cols):
+            r, g, b = col
+            lut.SetTableValue(i, r, g, b, alphas[i])
+        lut.Build()
+        return lut
+
+    except AttributeError:
         return None
-    ctf = pr.GetRGBTransferFunction()
-    otf = pr.GetScalarOpacity()
-    x0, x1 = tvobj.inputdata().GetScalarRange()
-    cols, alphas = [], []
-    for x in np.linspace(x0, x1, 256):
-        cols.append(ctf.GetColor(x))
-        alphas.append(otf.GetValue(x))
-
-    if logscale:
-        lut = vtk.vtkLogLookupTable()
-    else:
-        lut = vtk.vtkLookupTable()
-
-    lut.SetRange(x0, x1)
-    lut.SetNumberOfTableValues(len(cols))
-    for i, col in enumerate(cols):
-        r, g, b = col
-        lut.SetTableValue(i, r, g, b, alphas[i])
-    lut.Build()
-    return lut

@@ -1074,6 +1074,11 @@ def ScalarBar3D(
     elif isinstance(obj, (Volume, TetMesh)):
         lut = utils.ctf2lut(obj)
         vmin, vmax = lut.GetRange()
+    
+    elif isinstance(obj, vedo.UGrid): # TODO
+        return None
+    #     lut = utils.ctf2lut(obj) # returns None
+    #     vmin, vmax = lut.GetRange()
 
     elif utils.is_sequence(obj):
         vmin, vmax = np.min(obj), np.max(obj)
@@ -1110,7 +1115,7 @@ def ScalarBar3D(
         ticks_pos.append(1.0)
         ticks_txt.append("")
         rgba = np.c_[np.array(cols) * 255, np.array(alphas) * 255]
-        scale.cell_individual_colors(rgba)
+        scale.cellcolors = rgba
 
     else:  ########################################################
 
