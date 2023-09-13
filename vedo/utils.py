@@ -2532,7 +2532,7 @@ def vedo2meshlab(vmesh):
             if data.ndim == 1:  # scalar
                 m.add_vertex_custom_scalar_attribute(data.astype(np.float64), k)
             elif data.ndim == 2:  # vectorial data
-                if "tcoord" not in k.lower() and k not in ["Normals", "TextureCoordinates"]
+                if "tcoord" not in k.lower() and k not in ["Normals", "TextureCoordinates"]:
                     m.add_vertex_custom_point_attribute(data.astype(np.float64), k)
 
     for k in vmesh.celldata.keys():
