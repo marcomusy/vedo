@@ -34,6 +34,5 @@ for t in np.linspace(-1.0, 1.0, 20):
     v = SSM.space.from_coords(e)
     shapes.append(vedo.Mesh([v, faces]))
 
-plt = vedo.applications.Browser(shapes, prefix="shape ", bg2='lb')
-plt += vedo.Axes(shapes[-1])
+plt = vedo.applications.Browser(shapes, slider_title="shape", bg2='lb')
 plt.show(viewup='z').close()

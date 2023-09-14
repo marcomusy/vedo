@@ -542,11 +542,21 @@ def file_info(file_path):
 
 
 ###################################################################
-def loadStructuredPoints(filename):
-    """Load and return a `vtkStructuredPoints` object from file."""
+def loadStructuredPoints(filename, as_points=True):
+    """
+    Load and return a `vtkStructuredPoints` object from file.
+    
+    If `as_points` is True, return a `Points` object instead of `vtkStructuredPoints`.
+    """
     reader = vtk.vtkStructuredPointsReader()
     reader.SetFileName(filename)
     reader.Update()
+    if as_points:
+        v2p = vtk.vtkImageToPoints()
+        v2p.SetInputData(reader.GetOutput())
+        v2p.Update()
+        pts = Points(v2p.GetOutput())
+        return pts
     return reader.GetOutput()
 
 

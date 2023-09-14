@@ -313,10 +313,12 @@ class Mesh(Points):
         ]
         return "\n".join(allt)
 
-    def faces(self):
+    def faces(self, ids=()):
         """
         Get cell polygonal connectivity ids as a python `list`.
         The output format is: `[[id0 ... idn], [id0 ... idm],  etc]`.
+
+        If ids is set, return only the faces of the given cells.
         """
         arr1d = vtk2numpy(self._data.GetPolys().GetData())
         if arr1d is None:
@@ -339,6 +341,8 @@ class Mesh(Points):
                 i += arr1d[i] + 1
                 if i >= n:
                     break
+        if len(ids):
+            return conn[ids]
         return conn  # cannot always make a numpy array of it!
 
     def cells(self):
@@ -376,8 +380,12 @@ class Mesh(Points):
 
         return conn  # cannot always make a numpy array of it!
 
-    def edges(self):
-        """Return an array containing the edges connectivity."""
+    def edges(self, ids=()):
+        """
+        Return an array containing the edges connectivity.
+        
+        If ids is set, return only the edges of the given cells.
+        """
         extractEdges = vtk.vtkExtractEdges()
         extractEdges.SetInputData(self._data)
         # eed.UseAllPointsOn()
@@ -396,6 +404,8 @@ class Mesh(Points):
             i += arr1d[i] + 1
             if i >= n:
                 break
+        if len(ids):
+            return conn[ids]
         return conn  # cannot always make a numpy array of it!
 
     def texture(

@@ -6,10 +6,10 @@ from vedo import dataurl, Sphere, settings, Mesh, TessellatedBox, show
 
 settings.use_depth_peeling = True
 
-surf = Sphere(quads=True, res=15)
+# surf = Sphere(quads=True, res=15)
 # surf = TessellatedBox()
 # surf = Mesh(dataurl+'290_closed.vtk')
-# surf = Mesh(dataurl+'bunny.obj', c='g3').fill_holes().cap().smooth()
+surf = Mesh(dataurl+'bunny.obj', c='g3').fill_holes().cap().smooth()
 
 tmesh = surf.tetralize(side=0.015, debug=True)
 #tmesh.write('mytetmesh.vtk')  # save to disk!

@@ -2679,7 +2679,7 @@ class Sphere(Mesh):
             _, theta, phi = utils.cart2spher(x, y, z)
 
             pts = utils.spher2cart(np.ones_like(phi) * r, theta, phi)
-            self.points(pts)
+            self.points(pts.T)
 
         else:
             if utils.is_sequence(res):
@@ -4484,6 +4484,15 @@ class TextBase:
 
         return self
 
+    def on(self):
+        """Make text visible"""
+        self.SetVisibility(True)
+        return self
+
+    def off(self):
+        """Make text invisible"""
+        self.SetVisibility(False)
+        return self
 
 class Text2D(TextBase, vtk.vtkActor2D):
     """

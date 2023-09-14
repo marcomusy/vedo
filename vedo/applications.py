@@ -724,7 +724,7 @@ class Browser(Plotter):
         objects=(),
         sliderpos=((0.50, 0.07), (0.95, 0.07)),
         c=None,  # slider color
-        prefix="",
+        slider_title="",
         font="Calco", # slider font
         axes=1,
         resetcam=False, # resetcam while using the slider
@@ -732,6 +732,8 @@ class Browser(Plotter):
     ):
         """
         Browse a series of vedo objects by using a simple slider.
+
+        The input object can be a list of objects or a list of lists of objects.
 
         Examples:
             ```python
@@ -746,6 +748,8 @@ class Browser(Plotter):
 
         - [morphomatics_tube.py](https://github.com/marcomusy/vedo/tree/master/examples/other/morphomatics_tube.py)
         """
+        kwargs.pop("N", 1)
+        kwargs.pop("shape", [])
         Plotter.__init__(self, axes=axes, **kwargs)
 
         if isinstance(objects, str):
@@ -753,54 +757,69 @@ class Browser(Plotter):
 
         self += objects
 
+        if is_sequence(objects[0]):
+            nobs = len(objects[0])
+        else:
+            nobs = len(objects)
+            objects = [objects]
+
         self.slider = None
         self.timer_callback_id = None
+        self._oldk = None
 
         # define the slider func ##########################
         def slider_function(widget=None, event=None):
 
-            must_render = False
-            if isinstance(widget, vedo.plotter.Event):
-                if self.slider.value < len(self.actors)-1:
-                    self.slider.value = self.slider.value + 1
-                else:
-                    self.slider.value = 0
-                must_render = True
-
             k = int(self.slider.value)
-            ak = self.actors[k]
-            for a in self.actors:
-                if a == ak:
-                    a.on()
-                else:
-                    a.off()
+
+            if k == self._oldk:
+                return # no change
+            self._oldk = k
+
+            n = len(objects)
+            m = len(objects[0])
+            for i in range(n):
+                for j in range(m):
+                    ak = objects[i][j]
+                    try:
+                        if j == k:
+                            ak.on()
+                            akon = ak
+                        else:
+                            ak.off()
+                    except AttributeError:
+                        pass
+            
+            try:
+                tx = str(k)
+                if slider_title:
+                    tx = slider_title + " " + tx
+                elif n == 1 and akon.filename:
+                    tx = akon.filename.split("/")[-1]
+                    tx = tx.split("\\")[-1]  # windows os
+                elif akon.name:
+                    tx = ak.name + " " + tx
+            except:
+                pass
+            self.slider.title = tx
+ 
             if resetcam:
                 self.reset_camera()
-            tx = str(k)
-            if ak.filename:
-                tx = ak.filename.split("/")[-1]
-                tx = tx.split("\\")[-1]  # windows os
-            elif ak.name:
-                tx = ak.name
-
-            self.slider.title = prefix + tx
-
-            if must_render:
-                self.render()
+            self.render()
         ##################################################
 
         self.slider_function = slider_function
         self.slider = self.add_slider(
             slider_function,
             0.5,
-            len(objects) - 0.5,
+            nobs - 0.5,
             pos=sliderpos,
             font=font,
             c=c,
             show_value=False,
         )
         self.slider.GetRepresentation().SetTitleHeight(0.020)
-        slider_function(self.slider)  # init call
+        slider_function()  # init call
     
     def play(self, dt=100):
         """Start playing the slides at a given speed."""
