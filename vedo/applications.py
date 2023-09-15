@@ -46,9 +46,7 @@ class Slicer3DPlotter(Plotter):
     def __init__(
         self,
         volume,
-        alpha=1,
         cmaps=("gist_ncar_r", "hot_r", "bone_r", "jet", "Spectral_r"),
-        map2cells=False,  # buggy
         clamp=True,
         use_slider3d=False,
         show_histo=True,
@@ -61,12 +59,8 @@ class Slicer3DPlotter(Plotter):
         Generate a rendering window with slicing planes for the input Volume.
 
         Arguments:
-            alpha : (float)
-                transparency of the slicing planes
             cmaps : (list)
                 list of color maps names to cycle when clicking button
-            map2cells : (bool)
-                scalars are mapped to cells, not interpolated
             clamp : (bool)
                 clamp scalar to reduce the effect of tails in color mapping
             use_slider3d : (bool)
@@ -90,10 +84,15 @@ class Slicer3DPlotter(Plotter):
         self.at(at)
         ################################
 
+        cx, cy, cz, ch = "dr", "dg", "db", (0.3, 0.3, 0.3)
+        if np.sum(self.renderer.GetBackground()) < 1.5:
+            cx, cy, cz = "lr", "lg", "lb"
+            ch = (0.8, 0.8, 0.8)
+
         if len(self.renderers) > 1: # 2d sliders do not work with multiple renderers
             use_slider3d = True
 
-        box = volume.box().wireframe().alpha(0.1)
+        box = volume.box().alpha(0.1)
         self.add(box)
 
         if show_icon:
@@ -103,7 +102,7 @@ class Slicer3DPlotter(Plotter):
         la, ld = 0.7, 0.3  # ambient, diffuse
         dims = volume.dimensions()
         data = volume.pointdata[0]
-        rmin, rmax = volume.imagedata().GetScalarRange()
+        rmin, rmax = volume.scalar_range()
         if clamp:
             hdata, edg = np.histogram(data, bins=50)
             logdata = np.log(hdata + 1)
@@ -115,57 +114,58 @@ class Slicer3DPlotter(Plotter):
             #       + precision(rmin, 3) + ", " + precision(rmax, 3) + ")")
         self._cmap_slicer = cmaps[0]
 
-        visibles = [None, None, None]
-        msh = volume.zslice(int(dims[2] / 2))
-        msh.alpha(alpha).lighting("", la, ld, 0)
+        msh = volume.zslice(int(dims[2] / 2)).lighting("", la, ld, 0)
+        msh.name = "ZSlice"
         msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-        if map2cells:
-            msh.map_points_to_cells()
-        self.renderer.AddActor(msh)
-        visibles[2] = msh
         if len(cmaps) > 1:
-           msh.add_scalarbar(pos=(0.04, 0.0), horizontal=True, font_size=0)
+            msh.add_scalarbar(pos=(0.04, 0.0), horizontal=True, font_size=0)
+            msh.scalarbar.name = "scalarbar"    
+        # self.add(msh.clone()) # BUG
+        self.add(msh)
+
+        self._oldi = None
+        self._oldj = None
+        self._oldk = None
+
 
         def slider_function_x(widget, event):
-            i = int(widget.GetRepresentation().GetValue())
-            msh = volume.xslice(i).alpha(alpha).lighting("", la, ld, 0)
+            i = int(self.xslider.value)
+            if i == self._oldi:
+                return
+            self._oldi = i
+            msh = volume.xslice(i).lighting("", la, ld, 0)
             msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-            if map2cells:
-                msh.map_points_to_cells()
-            self.renderer.RemoveActor(visibles[0])
-            if i and i < dims[0]:
-                self.renderer.AddActor(msh)
-            visibles[0] = msh
+            msh.name = "XSlice"
+            self.remove("XSlice")  # removes the old one
+            if 0 < i < dims[0]:
+                self.add(msh)
 
         def slider_function_y(widget, event):
-            i = int(widget.GetRepresentation().GetValue())
-            msh = volume.yslice(i).alpha(alpha).lighting("", la, ld, 0)
+            j = int(self.yslider.value)
+            if j == self._oldj:
+                return
+            self._oldj = j
+            msh = volume.yslice(j).lighting("", la, ld, 0)
             msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-            if map2cells:
-                msh.map_points_to_cells()
-            self.renderer.RemoveActor(visibles[1])
-            if i and i < dims[1]:
-                self.renderer.AddActor(msh)
-            visibles[1] = msh
+            msh.name = "YSlice"
+            self.remove("YSlice")
+            if 0 < j < dims[1]:
+                self.add(msh)
 
         def slider_function_z(widget, event):
-            i = int(widget.GetRepresentation().GetValue())
-            msh = volume.zslice(i).alpha(alpha).lighting("", la, ld, 0)
+            k = int(self.zslider.value)
+            if k == self._oldk:
+                return
+            self._oldk = k
+            msh = volume.zslice(k).lighting("", la, ld, 0)
             msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-            if map2cells:
-                msh.map_points_to_cells()
-            self.renderer.RemoveActor(visibles[2])
-            if i and i < dims[2]:
-                self.renderer.AddActor(msh)
-            visibles[2] = msh
-
-        cx, cy, cz, ch = "dr", "dg", "db", (0.3, 0.3, 0.3)
-        if np.sum(self.renderer.GetBackground()) < 1.5:
-            cx, cy, cz = "lr", "lg", "lb"
-            ch = (0.8, 0.8, 0.8)
+            msh.name = "ZSlice"
+            self.remove("ZSlice")
+            if 0 < k < dims[2]:
+                self.add(msh)
 
         if not use_slider3d:
-            self.add_slider(
+            self.xslider = self.add_slider(
                 slider_function_x,
                 0,
                 dims[0],
@@ -175,7 +175,7 @@ class Slicer3DPlotter(Plotter):
                 show_value=False,
                 c=cx,
             )
-            self.add_slider(
+            self.yslider = self.add_slider(
                 slider_function_y,
                 0,
                 dims[1],
@@ -185,7 +185,7 @@ class Slicer3DPlotter(Plotter):
                 show_value=False,
                 c=cy,
             )
-            self.add_slider(
+            self.zslider = self.add_slider(
                 slider_function_z,
                 0,
                 dims[2],
@@ -198,7 +198,7 @@ class Slicer3DPlotter(Plotter):
             )
         else:  # 3d sliders attached to the axes bounds
             bs = box.bounds()
-            self.add_slider3d(
+            self.xslider = self.add_slider3d(
                 slider_function_x,
                 pos1=(bs[0], bs[2], bs[4]),
                 pos2=(bs[1], bs[2], bs[4]),
@@ -208,7 +208,7 @@ class Slicer3DPlotter(Plotter):
                 c=cx,
                 show_value=False,
             )
-            self.add_slider3d(
+            self.yslider = self.add_slider3d(
                 slider_function_y,
                 pos1=(bs[1], bs[2], bs[4]),
                 pos2=(bs[1], bs[3], bs[4]),
@@ -218,7 +218,7 @@ class Slicer3DPlotter(Plotter):
                 c=cy,
                 show_value=False,
             )
-            self.add_slider3d(
+            self.zslider = self.add_slider3d(
                 slider_function_z,
                 pos1=(bs[0], bs[2], bs[4]),
                 pos2=(bs[0], bs[2], bs[5]),
@@ -235,15 +235,19 @@ class Slicer3DPlotter(Plotter):
             if evt.actor and evt.actor.name == bu.name:
                 bu.switch()
                 self._cmap_slicer = bu.status()
-                for mesh in visibles:
-                    if mesh:
-                        mesh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-                        if map2cells:
-                            mesh.map_points_to_cells()
-                self.renderer.RemoveActor(mesh.scalarbar)
-                if len(cmaps) > 1:
-                    mesh.add_scalarbar(pos=(0.04, 0.0), horizontal=True)
-                    self.renderer.AddActor(mesh.scalarbar)
+                for m in self.actors:
+                    try:
+                        if "Slice" in m.name:
+                            m.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
+                            if len(cmaps) > 1:
+                                self.remove("scalarbar")
+                                m2 = m.clone()
+                                m2.add_scalarbar(pos=(0.04, 0.0), horizontal=True, font_size=0)
+                                m2.scalarbar.name = "scalarbar"
+                                self.add(m2.scalarbar)
+                    except AttributeError:
+                        pass
+                self.render()
 
         if len(cmaps) > 1:
             bu = self.add_button(
@@ -264,8 +268,6 @@ class Slicer3DPlotter(Plotter):
                 pos=(0.02, 0.02), c=ch, bg=ch, alpha=0.7
             )
             self.add(hist)
-
-        self.add(msh)
 
 
 ########################################################################################

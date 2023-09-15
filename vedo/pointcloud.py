@@ -3145,7 +3145,7 @@ class Points(BaseActor, vtk.vtkActor):
 
         Arguments:
             kernel : (str)
-                available kernels are [shepard, gaussian, linear]
+                available kernels are [shepard, gaussian, linear, voronoi]
             null_strategy : (int)
                 specify a strategy to use when encountering a "null" point
                 during the interpolation process. Null points occur when the local neighborhood
@@ -3159,7 +3159,7 @@ class Points(BaseActor, vtk.vtkActor):
                 see above.
 
         Examples:
-            - [interpolateMeshArray.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/interpolateMeshArray.py)
+            - [interpolate_scalar3.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/interpolate_scalar3.py)
 
                 ![](https://vedo.embl.es/images/advanced/interpolateMeshArray.png)
         """
@@ -3192,8 +3192,10 @@ class Points(BaseActor, vtk.vtkActor):
             kern.SetSharpness(2)
         elif kernel.lower() == "linear":
             kern = vtk.vtkLinearKernel()
+        elif kernel.lower() == "voronoi":
+            kern = vtk.vtkProbabilisticVoronoiKernel()
         else:
-            vedo.logger.error("available kernels are: [shepard, gaussian, linear]")
+            vedo.logger.error("available kernels are: [shepard, gaussian, linear, voronoi]")
             raise RuntimeError()
 
         if n:
@@ -3201,6 +3203,7 @@ class Points(BaseActor, vtk.vtkActor):
             kern.SetKernelFootprintToNClosest()
         else:
             kern.SetRadius(radius)
+            kern.SetKernelFootprintToRadius()
 
         interpolator = vtk.vtkPointInterpolator()
         interpolator.SetInputData(self.polydata())

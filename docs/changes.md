@@ -7,6 +7,8 @@
 
 - Fix meshlab interface thanks to @JeffreyWardman in #924
 - Update `Slicer3DPlotter` thanks to @daniel-a-diaz in #925
+- Improvements on `applications.Browser`
+- Improvemnets on `applications.Slicer3DPlotter`
 
 
 ### Breaking changes

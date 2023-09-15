@@ -3159,6 +3159,8 @@ class Plotter:
         widget.SetInteractive(draggable)
         if at is not None and at < len(self.renderers):
             widget.SetCurrentRenderer(self.renderers[at])
+        else:
+            widget.SetCurrentRenderer(self.renderer)
         self.widgets.append(widget)
         return widget
 
