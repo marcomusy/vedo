@@ -527,6 +527,7 @@ from vtkmodules.vtkRenderingCore import (
     vtkTextProperty,
     vtkTextRenderer,
     vtkTexture,
+    vtkViewport,
     vtkVolume,
     vtkVolumeProperty,
     vtkWindowToImageFilter,

@@ -53,6 +53,13 @@ class Settings:
     # In multirendering mode set the position of the horizontal of vertical splitting [0,1]
     window_splitting_position = None
 
+    # Gradient orientation mode for background color
+    # 0 = VERTICAL
+    # 1 = HORIZONTAL
+    # 2 = RADIAL_VIEWPORT_FARTHEST_SIDE
+    # 3 = RADIAL_VIEWPORT_FARTHEST_CORNER
+    background_gradient_orientation = 0
+
     # Enable / disable color printing by printc()
     enable_print_color = True
 
@@ -166,6 +173,7 @@ class Settings:
         "polygon_offset_units",
         "interpolate_scalars_before_mapping",
         "use_parallel_projection",
+        "background_gradient_orientation",
         "window_splitting_position",
         "tiff_orientation_type",
         "annotated_cube_color",
@@ -237,6 +245,13 @@ class Settings:
         self.renderer_frame_alpha = 0.5
         self.renderer_frame_width = 0.5
         self.renderer_frame_padding = 0.0001
+
+        # Gradient orientation mode for background color
+        # 0 = VERTICAL
+        # 1 = HORIZONTAL
+        # 2 = RADIAL_VIEWPORT_FARTHEST_SIDE
+        # 3 = RADIAL_VIEWPORT_FARTHEST_CORNER
+        self.background_gradient_orientation = 0
 
         # Wrap lines in tubes
         self.render_lines_as_tubes = False

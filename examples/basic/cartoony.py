@@ -1,10 +1,7 @@
 """Give a cartoony appearance to a 3D mesh"""
 from vedo import dataurl, settings, Plotter, Mesh, Text2D
 
-# Enable depth peeling for rendering transparency, 
-# and set the number of antialiasing samples to 8
-settings.use_depth_peeling = True
-settings.multi_samples = 8
+settings.background_gradient_orientation = 3  # radial gradient
 
 # Create an instance of the Plotter class, 
 # which creates a default camera needed for silhouette()
@@ -29,8 +26,8 @@ plt.show(
     man,
     ted.silhouette(),  # default silhouette of the teddy bear mesh
     man.silhouette(feature_angle=40).linewidth(3).color("dr"),
-    bg="wheat",        # set the background color to wheat
-    bg2="lb",          # set the color of the gradient to light blue
+    bg="white",        # set the background color to wheat
+    bg2="blue8",       # set the color of the gradient to light blue
     elevation=-80,     # set the elevation angle of the camera
     zoom=1.2,          # zoom in on the plot
 )

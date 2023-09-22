@@ -716,6 +716,19 @@ class Plotter:
 
         for r in self.renderers:
             self.window.AddRenderer(r)
+            # set the background gradient if any
+            if settings.background_gradient_orientation > 0:
+                try:
+                    modes = [
+                        vtk.vtkViewport.GradientModes.VTK_GRADIENT_VERTICAL,
+                        vtk.vtkViewport.GradientModes.VTK_GRADIENT_HORIZONTAL,
+                        vtk.vtkViewport.GradientModes.VTK_GRADIENT_RADIAL_VIEWPORT_FARTHEST_SIDE,
+                        vtk.vtkViewport.GradientModes.VTK_GRADIENT_RADIAL_VIEWPORT_FARTHEST_CORNER,
+                    ]
+                    r.SetGradientMode(modes[settings.background_gradient_orientation])
+                    r.GradientBackgroundOn()
+                except AttributeError:
+                    pass
 
         if self.offscreen:
             if self.axes in (4, 5):
@@ -978,7 +991,7 @@ class Plotter:
         ren.SetUseDepthPeeling(value)
         return self
 
-    def background(self, c1=None, c2=None, at=None):
+    def background(self, c1=None, c2=None, at=None, mode=0):
         """Set the color of the background for the current renderer.
         A different renderer index can be specified by keyword ``at``.
 
@@ -989,6 +1002,12 @@ class Plotter:
                 background color for the upper part of the window.
             at : (int)
                 renderer index.
+            mode : (int)
+                background mode (needs vtk version >= 9.3)
+                    0 = vertical,
+                    1 = horizontal,
+                    2 = radial farthest side,
+                    3 = radia farthest corner.
         """
         if not self.renderers:
             return self
@@ -996,6 +1015,7 @@ class Plotter:
             r = self.renderer
         else:
             r = self.renderers[at]
+
         if r:
             if c1 is not None:
                 r.SetBackground(vedo.get_color(c1))
@@ -1003,6 +1023,18 @@ class Plotter:
             if c2 is not None:
                 r.GradientBackgroundOn()
                 r.SetBackground2(vedo.get_color(c2))
+                if mode:
+                    try: # only works with vtk>=9.3
+                        modes = [
+                            vtk.vtkViewport.GradientModes.VTK_GRADIENT_VERTICAL,
+                            vtk.vtkViewport.GradientModes.VTK_GRADIENT_HORIZONTAL,
+                            vtk.vtkViewport.GradientModes.VTK_GRADIENT_RADIAL_VIEWPORT_FARTHEST_SIDE,
+                            vtk.vtkViewport.GradientModes.VTK_GRADIENT_RADIAL_VIEWPORT_FARTHEST_CORNER,
+                        ]
+                        r.SetGradientMode(modes[settings.background_gradient_orientation])
+                    except AttributeError:
+                        pass
+
             else:
                 r.GradientBackgroundOff()
         return self

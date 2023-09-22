@@ -761,6 +761,10 @@ class Browser(Plotter):
 
         if is_sequence(objects[0]):
             nobs = len(objects[0])
+            for ob in objects:
+                n = len(ob)
+                msg = f"in Browser lists must have the same length but found {n} and {nobs}"
+                assert len(ob) == nobs, msg
         else:
             nobs = len(objects)
             objects = [objects]
