@@ -70,17 +70,17 @@ class _DataArrayHelper:
     def __setitem__(self, key, input_array):
 
         if self.association == 0:
-            data = self.actor.inputdata().GetPointData()
-            n = self.actor.inputdata().GetNumberOfPoints()
-            self.actor._mapper.SetScalarModeToUsePointData()
+            data = self.GetPointData()
+            n = self.GetNumberOfPoints()
+            self.mapper.SetScalarModeToUsePointData()
 
         elif self.association == 1:
-            data = self.actor.inputdata().GetCellData()
-            n = self.actor.inputdata().GetNumberOfCells()
-            self.actor._mapper.SetScalarModeToUseCellData()
+            data = self.GetCellData()
+            n = self.GetNumberOfCells()
+            self.mapper.SetScalarModeToUseCellData()
 
         elif self.association == 2:
-            data = self.actor.inputdata().GetFieldData()
+            data = self.GetFieldData()
             if not utils.is_sequence(input_array):
                 input_array = [input_array]
 
@@ -187,11 +187,11 @@ class _DataArrayHelper:
     def select(self, key):
         """Select one specific array by its name to make it the `active` one."""
         if self.association == 0:
-            data = self.actor.inputdata().GetPointData()
-            self.actor.mapper().SetScalarModeToUsePointData()
+            data = self.GetPointData()
+            self.mapper.SetScalarModeToUsePointData()
         else:
-            data = self.actor.inputdata().GetCellData()
-            self.actor.mapper().SetScalarModeToUseCellData()
+            data = self.GetCellData()
+            self.mapper.SetScalarModeToUseCellData()
 
         if isinstance(key, int):
             key = data.GetArrayName(key)
@@ -207,7 +207,7 @@ class _DataArrayHelper:
             if "rgb" in key.lower():
                 data.SetActiveScalars(key)
                 # try:
-                #     self.actor.mapper().SetColorModeToDirectScalars()
+                #     self.mapper.SetColorModeToDirectScalars()
                 # except AttributeError:
                 #     pass
             else:
@@ -216,8 +216,8 @@ class _DataArrayHelper:
             data.SetActiveTensors(key)
 
         try:
-            self.actor.mapper().SetArrayName(key)
-            self.actor.mapper().ScalarVisibilityOn()
+            self.actor.mapper.SetArrayName(key)
+            self.actor.mapper.ScalarVisibilityOn()
             # .. could be a volume mapper
         except AttributeError:
             pass
@@ -226,10 +226,10 @@ class _DataArrayHelper:
         """Select one specific scalar array by its name to make it the `active` one."""
         if self.association == 0:
             data = self.actor.inputdata().GetPointData()
-            self.actor.mapper().SetScalarModeToUsePointData()
+            self.actor.mapper.SetScalarModeToUsePointData()
         else:
             data = self.actor.inputdata().GetCellData()
-            self.actor.mapper().SetScalarModeToUseCellData()
+            self.actor.mapper.SetScalarModeToUseCellData()
 
         if isinstance(key, int):
             key = data.GetArrayName(key)
@@ -237,8 +237,8 @@ class _DataArrayHelper:
         data.SetActiveScalars(key)
 
         try:
-            self.actor.mapper().SetArrayName(key)
-            self.actor.mapper().ScalarVisibilityOn()
+            self.actor.mapper.SetArrayName(key)
+            self.actor.mapper.ScalarVisibilityOn()
         except AttributeError:
             pass
 
@@ -246,10 +246,10 @@ class _DataArrayHelper:
         """Select one specific vector array by its name to make it the `active` one."""
         if self.association == 0:
             data = self.actor.inputdata().GetPointData()
-            self.actor.mapper().SetScalarModeToUsePointData()
+            self.actor.mapper.SetScalarModeToUsePointData()
         else:
             data = self.actor.inputdata().GetCellData()
-            self.actor.mapper().SetScalarModeToUseCellData()
+            self.actor.mapper.SetScalarModeToUseCellData()
 
         if isinstance(key, int):
             key = data.GetArrayName(key)
@@ -257,8 +257,8 @@ class _DataArrayHelper:
         data.SetActiveVectors(key)
 
         try:
-            self.actor.mapper().SetArrayName(key)
-            self.actor.mapper().ScalarVisibilityOn()
+            self.actor.mapper.SetArrayName(key)
+            self.actor.mapper.ScalarVisibilityOn()
         except AttributeError:
             pass
 
@@ -348,6 +348,7 @@ class Base3DProp:
 
         self.point_locator = None
         self.cell_locator = None
+        self.line_locator = None
 
         self.scalarbar = None
         # self.scalarbars = dict() #TODO
@@ -366,14 +367,14 @@ class Base3DProp:
         """Set/get the pickability property of an object."""
         if value is None:
             return self.GetPickable()
-        self.SetPickable(value)
+        self.actor.SetPickable(value)
         return self
 
     def draggable(self, value=None):  # NOT FUNCTIONAL?
         """Set/get the draggability property of an object."""
         if value is None:
             return self.GetDragable()
-        self.SetDragable(value)
+        self.actor.SetDragable(value)
         return self
 
     def origin(self, x=None, y=None, z=None):
@@ -394,13 +395,13 @@ class Base3DProp:
                 z = 0
         elif z is None:  # assume x,y is of the form x, y
             z = 0
-        self.SetOrigin([x, y, z] - np.array(self.GetPosition()))
+        self.actor.SetOrigin([x, y, z] - np.array(self.GetPosition()))
         return self
 
     def pos(self, x=None, y=None, z=None):
         """Set/Get object position."""
         if x is None:  # get functionality
-            return np.array(self.GetPosition())
+            return np.array(self.actor.GetPosition())
 
         if z is None and y is None:  # assume x is of the form (x,y,z)
             if len(x) == 3:
@@ -410,7 +411,7 @@ class Base3DProp:
                 z = 0
         elif z is None:  # assume x,y is of the form x, y
             z = 0
-        self.SetPosition(x, y, z)
+        self.actor.SetPosition(x, y, z)
 
         self.point_locator = None
         self.cell_locator = None
@@ -418,15 +419,15 @@ class Base3DProp:
 
     def shift(self, dx=0, dy=0, dz=0):
         """Add a vector to the current object position."""
-        p = np.array(self.GetPosition())
+        p = np.array(self.actor.GetPosition())
 
         if utils.is_sequence(dx):
             if len(dx) == 2:
-                self.SetPosition(p + [dx[0], dx[1], 0])
+                self.actor.SetPosition(p + [dx[0], dx[1], 0])
             else:
-                self.SetPosition(p + dx)
+                self.actor.SetPosition(p + dx)
         else:
-            self.SetPosition(p + [dx, dy, dz])
+            self.actor.SetPosition(p + [dx, dy, dz])
 
         self.point_locator = None
         self.cell_locator = None
@@ -434,7 +435,7 @@ class Base3DProp:
 
     def x(self, val=None):
         """Set/Get object position along x axis."""
-        p = self.GetPosition()
+        p = self.actor.GetPosition()
         if val is None:
             return p[0]
         self.pos(val, p[1], p[2])
@@ -442,7 +443,7 @@ class Base3DProp:
 
     def y(self, val=None):
         """Set/Get object position along y axis."""
-        p = self.GetPosition()
+        p = self.actor.GetPosition()
         if val is None:
             return p[1]
         self.pos(p[0], val, p[2])
@@ -450,7 +451,7 @@ class Base3DProp:
 
     def z(self, val=None):
         """Set/Get object position along z axis."""
-        p = self.GetPosition()
+        p = self.actor.GetPosition()
         if val is None:
             return p[2]
         self.pos(p[0], p[1], val)
@@ -494,7 +495,7 @@ class Base3DProp:
         if rad:
             angle *= 180.0 / np.pi
         # this vtk method only rotates in the origin of the object:
-        self.RotateWXYZ(angle, axis[0], axis[1], axis[2])
+        self.actor.RotateWXYZ(angle, axis[0], axis[1], axis[2])
         self.pos(rv)
         return self
 
@@ -521,8 +522,8 @@ class Base3DProp:
             rot[a](angle)
             T.Translate(disp)
 
-        self.SetOrientation(T.GetOrientation())
-        self.SetPosition(T.GetPosition())
+        self.actor.SetOrientation(T.GetOrientation())
+        self.actor.SetPosition(T.GetPosition())
 
         self.point_locator = None
         self.cell_locator = None
@@ -617,7 +618,7 @@ class Base3DProp:
         T.RotateWXYZ(np.rad2deg(angleth), crossvec)
         T.Translate(p)
 
-        self.SetOrientation(T.GetOrientation())
+        self.actor.SetOrientation(T.GetOrientation())
 
         self.point_locator = None
         self.cell_locator = None
@@ -634,7 +635,7 @@ class Base3DProp:
         #     T.RotateWXYZ(rotation, initaxis)
         # T.RotateWXYZ(np.rad2deg(angle), crossvec)
         # T.Translate(pos)
-        # self.SetUserTransform(T)
+        # self.actor.SetUserTransform(T)
         # self.transform = T
 
     def scale(self, s=None, reset=False):
@@ -658,9 +659,9 @@ class Base3DProp:
         # assert s[2] != 0
 
         if reset:
-            self.SetScale(s)
+            self.actor.SetScale(s)
         else:
-            self.SetScale(np.multiply(self.GetScale(), s))
+            self.actor.SetScale(np.multiply(self.GetScale(), s))
 
         self.point_locator = None
         self.cell_locator = None
@@ -716,15 +717,15 @@ class Base3DProp:
                 no effect, this is superseded by `pointcloud.apply_transform()`
         """
         if isinstance(T, vtk.vtkMatrix4x4):
-            self.SetUserMatrix(T)
+            self.actor.SetUserMatrix(T)
         elif utils.is_sequence(T):
             vm = vtk.vtkMatrix4x4()
             for i in [0, 1, 2, 3]:
                 for j in [0, 1, 2, 3]:
                     vm.SetElement(i, j, T[i][j])
-            self.SetUserMatrix(vm)
+            self.actor.SetUserMatrix(vm)
         else:
-            self.SetUserTransform(T)
+            self.actor.SetUserTransform(T)
         self.transform = T
 
         self.point_locator = None
@@ -854,9 +855,9 @@ class Base3DProp:
             c="gray",
         )
         if hasattr(self, "GetProperty"):  # could be Assembly
-            if isinstance(self.GetProperty(), vtk.vtkProperty):  # could be volume
+            if isinstance(self.property, vtk.vtkProperty):  # could be volume
                 pr = vtk.vtkProperty()
-                pr.DeepCopy(self.GetProperty())
+                pr.DeepCopy(self.property)
                 bx.SetProperty(pr)
                 bx.property = pr
         bx.wireframe(not fill)
@@ -868,7 +869,7 @@ class Base3DProp:
         Instruct the current camera to either take into account or ignore
         the object bounds when resetting.
         """
-        self.SetUseBounds(ub)
+        self.actor.SetUseBounds(ub)
         return self
 
     def bounds(self):
@@ -997,26 +998,27 @@ class BaseActor(Base3DProp):
 
         super().__init__()
 
-        self._mapper = None
+        self.mapper = None
         self._caption = None
         self.property = None
+        self.mapper = None
 
-    def mapper(self, new_mapper=None):
-        """Return the `vtkMapper` data object, or update it with a new one."""
-        if new_mapper:
-            self.SetMapper(new_mapper)
-            if self._mapper:
-                iptdata = self._mapper.GetInput()
-                if iptdata:
-                    new_mapper.SetInputData(self._mapper.GetInput())
-            self._mapper = new_mapper
-            self._mapper.Modified()
-        return self._mapper
+    # def mapper(self, new_mapper=None):
+    #     """Return the `vtkMapper` data object, or update it with a new one."""
+    #     if new_mapper:
+    #         self.actor.SetMapper(new_mapper)
+    #         if self.mapper:
+    #             iptdata = self.mapper.GetInput()
+    #             if iptdata:
+    #                 new_mapper.SetInputData(self.mapper.GetInput())
+    #         self.mapper = new_mapper
+    #         self.mapper.Modified()
+    #     return self._mapper
 
     def inputdata(self):
         """Return the VTK input data object."""
-        if self._mapper:
-            return self._mapper.GetInput()
+        if self.mapper:
+            return self.mapper.GetInput()
         return self.GetMapper().GetInput()
 
     def modified(self):
@@ -1206,7 +1208,7 @@ class BaseActor(Base3DProp):
         Examples:
             - [specular.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/specular.py)
         """
-        pr = self.GetProperty()
+        pr = self.property
 
         if style:
 
@@ -1230,7 +1232,7 @@ class BaseActor(Base3DProp):
                 c = pr.GetColor()
             else:
                 c = (1, 1, 0.99)
-            mpr = self._mapper
+            mpr = self.mapper
             if hasattr(mpr, 'GetScalarVisibility') and mpr.GetScalarVisibility():
                 c = (1,1,0.99)
             if   style=='metallic': pars = [0.1, 0.3, 1.0, 10, c]
@@ -1389,7 +1391,7 @@ class BaseActor(Base3DProp):
         else:
             c2p.ProcessAllArraysOn()
         c2p.Update()
-        self._mapper.SetScalarModeToUsePointData()
+        self.mapper.SetScalarModeToUsePointData()
         out = self._update(c2p.GetOutput())
         out.pipeline = utils.OperationNode("map cell\nto point data", parents=[self])
         return out
@@ -1420,7 +1422,7 @@ class BaseActor(Base3DProp):
         else:
             p2c.ProcessAllArraysOn()
         p2c.Update()
-        self._mapper.SetScalarModeToUseCellData()
+        self.mapper.SetScalarModeToUseCellData()
         out = self._update(p2c.GetOutput())
         out.pipeline = utils.OperationNode("map point\nto cell data", parents=[self])
         return out
@@ -1797,9 +1799,8 @@ class BaseGrid(BaseActor):
         # -----------------------------------------------------------
 
     def _update(self, data):
-        self._data = data
-        self._mapper.SetInputData(self.tomesh().polydata())
-        self._mapper.Modified()
+        self.mapper.SetInputData(self.tomesh().polydata())
+        self.mapper.Modified()
         return self
 
     def tomesh(self, fill=True, shrink=1.0):
@@ -1839,11 +1840,11 @@ class BaseGrid(BaseActor):
         msh.scalarbar = self.scalarbar
         lut = utils.ctf2lut(self)
         if lut:
-            msh.mapper().SetLookupTable(lut)
+            msh.mapper.SetLookupTable(lut)
         if self.useCells:
-            msh.mapper().SetScalarModeToUseCellData()
+            msh.mapper.SetScalarModeToUseCellData()
         else:
-            msh.mapper().SetScalarModeToUsePointData()
+            msh.mapper.SetScalarModeToUsePointData()
 
         msh.pipeline = utils.OperationNode(
             "tomesh", parents=[self], comment=f"fill={fill}", c="#9e2a2b:#e9c46a"
@@ -1906,7 +1907,7 @@ class BaseGrid(BaseActor):
             vmin, _ = self._data.GetScalarRange()
         if vmax is None:
             _, vmax = self._data.GetScalarRange()
-        ctf = self.GetProperty().GetRGBTransferFunction()
+        ctf = self.property.GetRGBTransferFunction()
         ctf.RemoveAllPoints()
         self._color = col
 
@@ -1965,7 +1966,7 @@ class BaseGrid(BaseActor):
             vmin, _ = self._data.GetScalarRange()
         if vmax is None:
             _, vmax = self._data.GetScalarRange()
-        otf = self.GetProperty().GetScalarOpacity()
+        otf = self.property.GetScalarOpacity()
         otf.RemoveAllPoints()
         self._alpha = alpha
 
@@ -2002,8 +2003,8 @@ class BaseGrid(BaseActor):
         The larger you make the unit distance, the more transparent the rendering becomes.
         """
         if u is None:
-            return self.GetProperty().GetScalarOpacityUnitDistance()
-        self.GetProperty().SetScalarOpacityUnitDistance(u)
+            return self.property.GetScalarOpacityUnitDistance()
+        self.property.SetScalarOpacityUnitDistance(u)
         return self
 
     def shrink(self, fraction=0.8):
@@ -2060,7 +2061,7 @@ class BaseGrid(BaseActor):
         poly = cf.GetOutput()
 
         out = vedo.mesh.Mesh(poly, c=None).phong()
-        out.mapper().SetScalarRange(scrange[0], scrange[1])
+        out.mapper.SetScalarRange(scrange[0], scrange[1])
 
         out.pipeline = utils.OperationNode(
             "isosurface",
@@ -2411,7 +2412,7 @@ class BaseGrid(BaseActor):
 
         ug = vedo.ugrid.UGrid(es.GetOutput())
         pr = vtk.vtkProperty()
-        pr.DeepCopy(self.GetProperty())
+        pr.DeepCopy(self.property)
         ug.SetProperty(pr)
         ug.property = pr
 
@@ -2420,7 +2421,7 @@ class BaseGrid(BaseActor):
         ug.SetScale(self.GetScale())
         ug.SetOrientation(self.GetOrientation())
         ug.SetPosition(self.GetPosition())
-        ug.mapper().SetLookupTable(utils.ctf2lut(self))
+        ug.mapper.SetLookupTable(utils.ctf2lut(self))
         ug.pipeline = utils.OperationNode(
             "extract_cells_by_id",
             parents=[self],
@@ -2441,7 +2442,7 @@ class BaseActor2D(vtk.vtkActor2D):
     def __init__(self):
         """Manage 2D objects."""
         super().__init__()
-        self._mapper = None
+        self.mapper = None
         self.property = self.GetProperty()
         self.filename = ""
 
@@ -2508,22 +2509,22 @@ class BaseActor2D(vtk.vtkActor2D):
     def alpha(self, value=None):
         """Set/Get the object opacity."""
         if value is None:
-            return self.GetProperty().GetOpacity()
-        self.GetProperty().SetOpacity(value)
+            return self.property.GetOpacity()
+        self.property.SetOpacity(value)
         return self
 
     def ps(self, point_size=None):
         if point_size is None:
-            return self.GetProperty().GetPointSize()
-        self.GetProperty().SetPointSize(point_size)
+            return self.property.GetPointSize()
+        self.property.SetPointSize(point_size)
         return self
 
     def ontop(self, value=True):
         """Keep the object always on top of everything else."""
         if value:
-            self.GetProperty().SetDisplayLocationToForeground()
+            self.property.SetDisplayLocationToForeground()
         else:
-            self.GetProperty().SetDisplayLocationToBackground()
+            self.property.SetDisplayLocationToBackground()
         return self
 
 

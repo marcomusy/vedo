@@ -506,8 +506,8 @@ class Line(Mesh):
         Mesh.__init__(self, poly, c, alpha)
         self.lw(lw)
         self.property.LightingOff()
-        self.PickableOff()
-        self.DragableOff()
+        self.actor.PickableOff()
+        self.actor.DragableOff()
         self.base = base
         self.top = top
         self.name = "Line"
@@ -597,7 +597,7 @@ class Line(Mesh):
         texture.SetInputData(image)
         texture.InterpolateOff()
         texture.RepeatOn()
-        self.SetTexture(texture)
+        self.actor.SetTexture(texture)
         return self
 
     def length(self):
@@ -1343,10 +1343,10 @@ class NormalLines(Mesh):
 
         Mesh.__init__(self, glyph.GetOutput())
 
-        self.PickableOff()
+        self.actor.PickableOff()
         prop = vtk.vtkProperty()
         prop.DeepCopy(msh.GetProperty())
-        self.SetProperty(prop)
+        self.actor.SetProperty(prop)
         self.property = prop
         self.property.LightingOff()
         self.mapper().ScalarVisibilityOff()
@@ -1997,9 +1997,9 @@ class Arrow(Mesh):
         Mesh.__init__(self, tf.GetOutput(), c, alpha)
 
         self.phong().lighting("plastic")
-        self.SetPosition(start_pt)
-        self.PickableOff()
-        self.DragableOff()
+        self.actor.SetPosition(start_pt)
+        self.actor.PickableOff()
+        self.actor.DragableOff()
         self.base = np.array(start_pt, dtype=float)
         self.top = np.array(end_pt, dtype=float)
         self.tip_index = None
@@ -2198,10 +2198,10 @@ class Arrow2D(Mesh):
         tf.Update()
 
         Mesh.__init__(self, tf.GetOutput(), c="k1")
-        self.SetPosition(start_pt)
+        self.actor.SetPosition(start_pt)
         self.lighting("off")
-        self.DragableOff()
-        self.PickableOff()
+        self.actor.DragableOff()
+        self.actor.PickableOff()
         self.base = np.array(start_pt, dtype=float)
         self.top = np.array(end_pt, dtype=float)
         self.name = "Arrow2D"
@@ -2326,8 +2326,8 @@ class FlatArrow(Ribbon):
 
         Ribbon.__init__(self, line1, line2, res=(resm, 1))
         self.phong()
-        self.PickableOff()
-        self.DragableOff()
+        self.actor.PickableOff()
+        self.actor.DragableOff()
         self.name = "FlatArrow"
 
 
@@ -2359,7 +2359,7 @@ class Polygon(Mesh):
         Mesh.__init__(self, [np.c_[x, y], faces], c, alpha)
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
-        self.SetPosition(pos)
+        self.actor.SetPosition(pos)
         self.GetProperty().LightingOff()
         self.name = "Polygon " + str(nsides)
 
@@ -2456,7 +2456,7 @@ class Star(Mesh):
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
-        self.SetPosition(pos)
+        self.actor.SetPosition(pos)
         self.property.LightingOff()
         self.name = "Star"
 
@@ -2497,7 +2497,7 @@ class Disc(Mesh):
         ps.Update()
         Mesh.__init__(self, ps.GetOutput(), c, alpha)
         self.flat()
-        self.SetPosition(utils.make3d(pos))
+        self.actor.SetPosition(utils.make3d(pos))
         self.name = "Disc"
 
 
@@ -2556,7 +2556,7 @@ class Arc(Mesh):
         ar.SetResolution(res)
         ar.Update()
         Mesh.__init__(self, ar.GetOutput(), c, alpha)
-        self.SetPosition(self.base)
+        self.actor.SetPosition(self.base)
         self.lw(2).lighting("off")
         self.name = "Arc"
 
@@ -2628,7 +2628,7 @@ class IcoSphere(Mesh):
             pts = utils.versor(self.points()) * r
             self.points(pts)
 
-        self.SetPosition(pos)
+        self.actor.SetPosition(pos)
         self.name = "IcoSphere"
 
 
@@ -2696,7 +2696,7 @@ class Sphere(Mesh):
             Mesh.__init__(self, ss.GetOutput(), c, alpha)
 
         self.phong()
-        self.SetPosition(pos)
+        self.actor.SetPosition(pos)
         self.name = "Sphere"
 
 
@@ -2788,7 +2788,7 @@ class Spheres(Mesh):
         glyph.Update()
 
         Mesh.__init__(self, glyph.GetOutput(), alpha=alpha)
-        self.SetPosition(base)
+        self.actor.SetPosition(base)
         self.base = base
         self.top = centers[-1]
         self.phong()
@@ -2825,7 +2825,7 @@ class Earth(Mesh):
         pnm_reader.SetFileName(fn)
         atext.SetInputConnection(pnm_reader.GetOutputPort())
         atext.InterpolateOn()
-        self.SetTexture(atext)
+        self.actor.SetTexture(atext)
         self.name = "Earth"
 
 
@@ -2906,7 +2906,7 @@ class Ellipsoid(Mesh):
         self.phong()
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
-        self.SetPosition(pos)
+        self.actor.SetPosition(pos)
         self.name = "Ellipsoid"
 
     def asphericity(self):
@@ -3043,10 +3043,10 @@ class Grid(Mesh):
             tf0.Update()
             poly = tf0.GetOutput()
             Mesh.__init__(self, poly, c, alpha)
-            self.SetPosition(pos)
+            self.actor.SetPosition(pos)
 
         self.wireframe().lw(lw)
-        self.GetProperty().LightingOff()
+        self.property.LightingOff()
         self.name = "Grid"
 
 
@@ -3091,7 +3091,7 @@ class Plane(Mesh):
         tf.Update()
         Mesh.__init__(self, tf.GetOutput(), c, alpha)
         self.lighting("off")
-        self.SetPosition(pos)
+        self.actor.SetPosition(pos)
         self.name = "Plane"
         self.top = self.normal
         self.bottom = np.array([0.0, 0.0, 0.0])
@@ -3205,7 +3205,7 @@ class Rectangle(Mesh):
             faces = [(0, 1, 2, 3)]
 
         Mesh.__init__(self, [pts, faces], color, alpha)
-        self.SetPosition(p1)
+        self.actor.SetPosition(p1)
         self.property.LightingOff()
         self.name = "Rectangle"
 
@@ -3279,7 +3279,7 @@ class Box(Mesh):
         Mesh.__init__(self, pd, c, alpha)
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
-        self.SetPosition(pos)
+        self.actor.SetPosition(pos)
         self.name = "Box"
 
 
@@ -3330,7 +3330,7 @@ class TessellatedBox(Mesh):
             tbs.Update()
             poly = tbs.GetOutput()
         Mesh.__init__(self, poly, c=c, alpha=alpha)
-        self.SetPosition(pos)
+        self.actor.SetPosition(pos)
         self.lw(1).lighting("off")
         self.base = np.array([0.5, 0.5, 0.0])
         self.top = np.array([0.5, 0.5, 1.0])
@@ -3404,7 +3404,7 @@ class Spring(Mesh):
         tuf.Update()
         Mesh.__init__(self, tuf.GetOutput(), c, alpha)
         self.phong()
-        self.SetPosition(start_pt)
+        self.actor.SetPosition(start_pt)
         self.base = np.array(start_pt, dtype=float)
         self.top = np.array(end_pt, dtype=float)
         self.name = "Spring"
@@ -3460,7 +3460,7 @@ class Cylinder(Mesh):
 
         Mesh.__init__(self, pd, c, alpha)
         self.phong()
-        self.SetPosition(pos)
+        self.actor.SetPosition(pos)
         self.base = base + pos
         self.top = top + pos
         self.name = "Cylinder"
@@ -3482,7 +3482,7 @@ class Cone(Mesh):
         self.phong()
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
-        self.SetPosition(pos)
+        self.actor.SetPosition(pos)
         v = utils.versor(axis) * height / 2
         self.base = pos - v
         self.top = pos + v
@@ -3552,7 +3552,7 @@ class Torus(Mesh):
         self.phong()
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
-        self.SetPosition(pos)
+        self.actor.SetPosition(pos)
         self.name = "Torus"
 
 
@@ -3587,7 +3587,7 @@ class Paraboloid(Mesh):
         Mesh.__init__(self, contours.GetOutput(), c, alpha)
         self.compute_normals().phong()
         self.mapper().ScalarVisibilityOff()
-        self.SetPosition(pos)
+        self.actor.SetPosition(pos)
         self.name = "Paraboloid"
 
 
@@ -3620,7 +3620,7 @@ class Hyperboloid(Mesh):
         Mesh.__init__(self, contours.GetOutput(), c, alpha)
         self.compute_normals().phong()
         self.mapper().ScalarVisibilityOff()
-        self.SetPosition(pos)
+        self.actor.SetPosition(pos)
         self.name = "Hyperboloid"
 
 
@@ -3804,7 +3804,7 @@ class Brace(Mesh):
         poly = tf.GetOutput()
 
         Mesh.__init__(self, poly, c, alpha)
-        self.SetPosition(mq)
+        self.actor.SetPosition(mq)
         self.name = "Brace"
         self.base = q1
         self.top = q2
@@ -3834,7 +3834,7 @@ class Star3D(Mesh):
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
-        self.SetPosition(pos)
+        self.actor.SetPosition(pos)
         self.name = "Star3D"
 
 
@@ -3855,7 +3855,7 @@ class Cross3D(Mesh):
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
-        self.SetPosition(pos)
+        self.actor.SetPosition(pos)
         self.name = "Cross3D"
 
 
@@ -4141,9 +4141,9 @@ class Text3D(Mesh):
 
         Mesh.__init__(self, tpoly, c, alpha)
         self.lighting("off")
-        self.SetPosition(pos)
-        self.PickableOff()
-        self.DragableOff()
+        self.actor.SetPosition(pos)
+        self.actor.PickableOff()
+        self.actor.DragableOff()
         self.name = "Text3D"
         self.txt = txt
 
@@ -4486,12 +4486,12 @@ class TextBase:
 
     def on(self):
         """Make text visible"""
-        self.SetVisibility(True)
+        self.actor.SetVisibility(True)
         return self
 
     def off(self):
         """Make text invisible"""
-        self.SetVisibility(False)
+        self.actor.SetVisibility(False)
         return self
 
 class Text2D(TextBase, vtk.vtkActor2D):
@@ -4573,10 +4573,10 @@ class Text2D(TextBase, vtk.vtkActor2D):
         vtk.vtkActor2D.__init__(self)
         TextBase.__init__(self)
 
-        self._mapper = vtk.vtkTextMapper()
-        self.SetMapper(self._mapper)
+        self.mapper = vtk.vtkTextMapper()
+        self.actor.SetMapper(self.mapper)
 
-        self.property = self._mapper.GetTextProperty()
+        self.property = self.mapper.GetTextProperty()
 
         self.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
 
@@ -4594,7 +4594,7 @@ class Text2D(TextBase, vtk.vtkActor2D):
 
         self.font(font).color(c).background(bg, alpha).bold(bold).italic(italic)
         self.pos(pos, justify).size(s).text(txt).line_spacing(1.2).line_offset(5)
-        self.PickableOff()
+        self.actor.PickableOff()
 
     def pos(self, pos="top-left", justify=""):
         """
@@ -4650,13 +4650,13 @@ class Text2D(TextBase, vtk.vtkActor2D):
         if "right" in justify:
             self.property.SetJustificationToRight()
 
-        self.SetPosition(pos)
+        self.actor.SetPosition(pos)
         return self
 
     def text(self, txt=None):
         """Set/get the input text string."""
         if txt is None:
-            return self._mapper.GetInput()
+            return self.mapper.GetInput()
 
         if ":" in txt:
             for r in _reps:
@@ -4664,7 +4664,7 @@ class Text2D(TextBase, vtk.vtkActor2D):
         else:
             txt = str(txt)
 
-        self._mapper.SetInput(txt)
+        self.mapper.SetInput(txt)
         return self
 
     def size(self, s):
@@ -4706,8 +4706,8 @@ class CornerAnnotation(vtk.vtkCornerAnnotation, TextBase):
             else:
                 c = (0.5, 0.5, 0.5)
 
-        self.SetNonlinearFontScaleFactor(1 / 2.75)
-        self.PickableOff()
+        self.actor.SetNonlinearFontScaleFactor(1 / 2.75)
+        self.actor.PickableOff()
         self.property.SetColor(get_color(c))
         self.property.SetBold(False)
         self.property.SetItalic(False)
@@ -4722,9 +4722,9 @@ class CornerAnnotation(vtk.vtkCornerAnnotation, TextBase):
         `f' = linearScale * pow(f,nonlinearScale)`
         """
         if linear:
-            self.SetLinearFontScaleFactor(s * 5.5)
+            self.actor.SetLinearFontScaleFactor(s * 5.5)
         else:
-            self.SetNonlinearFontScaleFactor(s / 2.75)
+            self.actor.SetNonlinearFontScaleFactor(s / 2.75)
         return self
 
     def text(self, txt, pos=2):
@@ -4830,8 +4830,8 @@ class Latex(Picture):
 
             Picture.__init__(self, tmp_file.name, channels=4)
             self.alpha(alpha)
-            self.SetScale(0.25 / res * s, 0.25 / res * s, 0.25 / res * s)
-            self.SetPosition(pos)
+            self.actor.SetScale(0.25 / res * s, 0.25 / res * s, 0.25 / res * s)
+            self.actor.SetPosition(pos)
             self.name = "Latex"
 
         except:

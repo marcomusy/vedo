@@ -712,8 +712,8 @@ def Point(pos=(0, 0, 0), r=12, c="red", alpha=1.0):
 
 
 ###################################################
-class Points(BaseActor, vtk.vtkActor):
-    """Work with pointclouds."""
+class Points(BaseActor, vtk.vtkPolyData):
+    """Work with point clouds."""
 
     def __init__(self, inputobj=None, r=4, c=(0.2, 0.2, 0.2), alpha=1, blur=False, emissive=True):
         """
@@ -753,21 +753,21 @@ class Points(BaseActor, vtk.vtkActor):
             ```
             ![](https://vedo.embl.es/images/feats/fibonacci.png)
         """
+        super().__init__()
 
-        vtk.vtkActor.__init__(self)
-        BaseActor.__init__(self)
-
-        self._data = None
+        self.actor = vtk.vtkActor()
+        self.property = self.actor.GetProperty()
+        # self.name = "Points" # better not to give it a name here
 
         if blur:
-            self._mapper = vtk.vtkPointGaussianMapper()
+            self.mapper = vtk.vtkPointGaussianMapper()
             if emissive:
-                self._mapper.SetEmissive(bool(emissive))
-            self._mapper.SetScaleFactor(r * 1.4142)
+                self.mapper.SetEmissive(bool(emissive))
+            self.mapper.SetScaleFactor(r * 1.4142)
 
             # https://kitware.github.io/vtk-examples/site/Python/Meshes/PointInterpolator/
             if alpha < 1:
-                self._mapper.SetSplatShaderCode(
+                self.mapper.SetSplatShaderCode(
                     "//VTK::Color::Impl\n"
                     "float dist = dot(offsetVCVSOutput.xy,offsetVCVSOutput.xy);\n"
                     "if (dist > 1.0) {\n"
@@ -781,17 +781,12 @@ class Points(BaseActor, vtk.vtkActor):
                 alpha = 1
 
         else:
-            self._mapper = vtk.vtkPolyDataMapper()
-        self.SetMapper(self._mapper)
+            self.mapper = vtk.vtkPolyDataMapper()
 
-        self._bfprop = None  # backface property holder
-
-        self._scals_idx = 0  # index of the active scalar changed from CLI
+        self._bfprop = None   # backface property holder
+        self._scals_idx = 0   # index of the active scalar changed from CLI
         self._ligthingnr = 0  # index of the lighting mode changed from CLI
         self._cmap_name = ""  # remember the name for self._keypress
-        # self.name = "Points" # better not to give it a name here
-
-        self.property = self.GetProperty()
 
         try:
             if not blur:
@@ -800,146 +795,58 @@ class Points(BaseActor, vtk.vtkActor):
             pass
 
         if inputobj is None:  ####################
-            self._data = vtk.vtkPolyData()
             return
         ########################################
-
-        self.property.SetRepresentationToPoints()
-        self.property.SetPointSize(r)
-        self.property.LightingOff()
 
         if isinstance(inputobj, vedo.BaseActor):
             inputobj = inputobj.points()  # numpy
 
         ######
         if isinstance(inputobj, vtk.vtkActor):
-            poly_copy = vtk.vtkPolyData()
+            pd = inputobj.GetMapper().GetInput()
+            self.DeepCopy(pd)
             pr = vtk.vtkProperty()
             pr.DeepCopy(inputobj.GetProperty())
-            poly_copy.DeepCopy(inputobj.GetMapper().GetInput())
-            pr.SetRepresentationToPoints()
-            pr.SetPointSize(r)
-            self._data = poly_copy
-            self._mapper.SetInputData(poly_copy)
-            self._mapper.SetScalarVisibility(inputobj.GetMapper().GetScalarVisibility())
-            self.SetProperty(pr)
+            self.actor.SetProperty(pr)
             self.property = pr
+            self.mapper.SetScalarVisibility(inputobj.GetMapper().GetScalarVisibility())
 
         elif isinstance(inputobj, vtk.vtkPolyData):
-            if inputobj.GetNumberOfCells() == 0:
+            self.DeepCopy(inputobj)
+            if self.GetNumberOfCells() == 0:
                 carr = vtk.vtkCellArray()
-                for i in range(inputobj.GetNumberOfPoints()):
+                for i in range(self.GetNumberOfPoints()):
                     carr.InsertNextCell(1)
                     carr.InsertCellPoint(i)
-                inputobj.SetVerts(carr)
-            self._data = inputobj  # cache vtkPolyData and mapper for speed
+                self.SetVerts(carr)
 
+            
         elif utils.is_sequence(inputobj):  # passing point coords
-            plist = inputobj
-            n = len(plist)
-
-            if n == 3:  # assume plist is in the format [all_x, all_y, all_z]
-                if utils.is_sequence(plist[0]) and len(plist[0]) > 3:
-                    plist = np.stack((plist[0], plist[1], plist[2]), axis=1)
-            elif n == 2:  # assume plist is in the format [all_x, all_y, 0]
-                if utils.is_sequence(plist[0]) and len(plist[0]) > 3:
-                    plist = np.stack((plist[0], plist[1], np.zeros(len(plist[0]))), axis=1)
-
-            # if n and len(plist[0]) == 2:  # make it 3d
-            #     plist = np.c_[np.array(plist), np.zeros(len(plist))]
-            plist = utils.make3d(plist)
-
-            if (
-                utils.is_sequence(c)
-                and (len(c) > 3 or (utils.is_sequence(c[0]) and len(c[0]) == 4))
-            ) or utils.is_sequence(alpha):
-
-                cols = c
-
-                n = len(plist)
-                if n != len(cols):
-                    vedo.logger.error(f"mismatch in Points() colors array lengths {n} and {len(cols)}")
-                    raise RuntimeError()
-
-                src = vtk.vtkPointSource()
-                src.SetNumberOfPoints(n)
-                src.Update()
-
-                vgf = vtk.vtkVertexGlyphFilter()
-                vgf.SetInputData(src.GetOutput())
-                vgf.Update()
-                pd = vgf.GetOutput()
-
-                pd.GetPoints().SetData(utils.numpy2vtk(plist, dtype=np.float32))
-
-                ucols = vtk.vtkUnsignedCharArray()
-                ucols.SetNumberOfComponents(4)
-                ucols.SetName("Points_RGBA")
-                if utils.is_sequence(alpha):
-                    if len(alpha) != n:
-                        vedo.logger.error(f"mismatch in Points() alpha array lengths {n} and {len(cols)}")
-                        raise RuntimeError()
-                    alphas = alpha
-                    alpha = 1
-                else:
-                    alphas = (alpha,) * n
-
-                if utils.is_sequence(cols):
-                    c = None
-                    if len(cols[0]) == 4:
-                        for i in range(n):  # FAST
-                            rc, gc, bc, ac = cols[i]
-                            ucols.InsertNextTuple4(rc, gc, bc, ac)
-                    else:
-                        for i in range(n):  # SLOW
-                            rc, gc, bc = colors.get_color(cols[i])
-                            ucols.InsertNextTuple4(rc * 255, gc * 255, bc * 255, alphas[i] * 255)
-                else:
-                    c = cols
-
-                pd.GetPointData().AddArray(ucols)
-                pd.GetPointData().SetActiveScalars("Points_RGBA")
-                self._mapper.SetInputData(pd)
-                self._mapper.ScalarVisibilityOn()
-                self._data = pd
-
-            else:
-
-                pd = utils.buildPolyData(plist)
-                self._mapper.SetInputData(pd)
-                c = colors.get_color(c)
-                self.property.SetColor(c)
-                self.property.SetOpacity(alpha)
-                self._data = pd
-
-            ##########
-            self.pipeline = utils.OperationNode(
-                self, parents=[], comment=f"#pts {self._data.GetNumberOfPoints()}"
-            )
-            return
-            ##########
+            pd = utils.buildPolyData(utils.make3d(inputobj))
+            c = colors.get_color(c)
+            self.property.SetColor(c)
+            self.property.SetOpacity(alpha)               
+            self.DeepCopy(pd)
+            self.pipeline = utils.OperationNode(self, parents=[], comment=f"#pts {self.GetNumberOfPoints()}")
+          
 
         elif isinstance(inputobj, str):
             verts = vedo.file_io.load(inputobj)
             self.filename = inputobj
-            self._data = verts.polydata()
+            self.DeepCopy(verts)
 
         else:
-
-            # try to extract the points from the VTK input data object
+            # try to extract the points from a generic VTK input data object
             try:
                 vvpts = inputobj.GetPoints()
-                pd = vtk.vtkPolyData()
-                pd.SetPoints(vvpts)
+                self.SetPoints(vvpts)
                 for i in range(inputobj.GetPointData().GetNumberOfArrays()):
                     arr = inputobj.GetPointData().GetArray(i)
-                    pd.GetPointData().AddArray(arr)
+                    self.GetPointData().AddArray(arr)
 
-                self._mapper.SetInputData(pd)
                 c = colors.get_color(c)
                 self.property.SetColor(c)
                 self.property.SetOpacity(alpha)
-                self._data = pd
             except:
                 vedo.logger.error(f"cannot build Points from type {type(inputobj)}")
                 raise RuntimeError()
@@ -947,13 +854,17 @@ class Points(BaseActor, vtk.vtkActor):
         c = colors.get_color(c)
         self.property.SetColor(c)
         self.property.SetOpacity(alpha)
+        self.property.SetRepresentationToPoints()
+        self.property.SetPointSize(r)
+        self.property.LightingOff()
 
-        self._mapper.SetInputData(self._data)
+        self.actor.SetMapper(self.mapper)
+        self.mapper.SetInputData(self)
 
         self.pipeline = utils.OperationNode(
-            self, parents=[], comment=f"#pts {self._data.GetNumberOfPoints()}"
+            self, parents=[], comment=f"#pts {self.GetNumberOfPoints()}"
         )
-        return
+
 
     def _repr_html_(self):
         """
@@ -996,15 +907,15 @@ class Points(BaseActor, vtk.vtkActor):
             help_text += f"<br/><code><i>({dots}{self.filename[-30:]})</i></code>"
 
         pdata = ""
-        if self._data.GetPointData().GetScalars():
-            if self._data.GetPointData().GetScalars().GetName():
-                name = self._data.GetPointData().GetScalars().GetName()
+        if self.GetPointData().GetScalars():
+            if self.GetPointData().GetScalars().GetName():
+                name = self.GetPointData().GetScalars().GetName()
                 pdata = "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
 
         cdata = ""
-        if self._data.GetCellData().GetScalars():
-            if self._data.GetCellData().GetScalars().GetName():
-                name = self._data.GetCellData().GetScalars().GetName()
+        if self.GetCellData().GetScalars():
+            if self.GetCellData().GetScalars().GetName():
+                name = self.GetCellData().GetScalars().GetName()
                 cdata = "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
 
         allt = [
@@ -1033,9 +944,9 @@ class Points(BaseActor, vtk.vtkActor):
     ##################################################################################
     def _update(self, polydata):
         # Overwrite the polygonal mesh with a new vtkPolyData
-        self._data = polydata
-        self.mapper().SetInputData(polydata)
-        self.mapper().Modified()
+        # self = polydata
+        # self.mapper.SetInputData(polydata)
+        # self.mapper.Modified()
         return self
 
     def __add__(self, meshs):
@@ -1053,39 +964,31 @@ class Points(BaseActor, vtk.vtkActor):
 
         return vedo.assembly.Assembly([self, meshs])
 
-    def polydata(self, transformed=True):
-        """
-        Returns the `vtkPolyData` object associated to a `Mesh`.
-
-        .. note::
-            If `transformed=True` return a copy of polydata that corresponds
-            to the current mesh position in space.
-        """
-        if not self._data:
-            self._data = self.mapper().GetInput()
-            return self._data
-
-        if transformed:
-            # if self.GetIsIdentity() or self._data.GetNumberOfPoints()==0: # commmentd out on 15th feb 2020
-            if self._data.GetNumberOfPoints() == 0:
-                # no need to do much
-                return self._data
-
-            # otherwise make a copy that corresponds to
-            # the actual position in space of the mesh
-            M = self.GetMatrix()
-            transform = vtk.vtkTransform()
-            transform.SetMatrix(M)
-            tp = vtk.vtkTransformPolyDataFilter()
-            tp.SetTransform(transform)
-            tp.SetInputData(self._data)
-            tp.Update()
-            return tp.GetOutput()
-
-        return self._data
+    # def polydata(self):
+    #     """
+    #     Returns the `vtkPolyData` object associated to a `Mesh`.
+    #     Return a copy of polydata that corresponds
+    #     to the current mesh position in space.
+    #     """
+    #     if True:
+    #         # if self.GetIsIdentity() or self.GetNumberOfPoints()==0: # commmentd out on 15th feb 2020
+    #         if self.GetNumberOfPoints() == 0:
+    #             # no need to do much
+    #             return self
+    #         # otherwise make a copy that corresponds to
+    #         # the actual position in space of the mesh
+    #         M = self.GetMatrix()
+    #         transform = vtk.vtkTransform()
+    #         transform.SetMatrix(M)
+    #         tp = vtk.vtkTransformPolyDataFilter()
+    #         tp.SetTransform(transform)
+    #         tp.SetInputData(self)
+    #         tp.Update()
+    #         return tp.GetOutput()
+    #     return self
 
 
-    def clone(self, deep=True, transformed=False):
+    def clone(self, deep=True):
         """
         Clone a `PointCloud` or `Mesh` object to make an exact copy of it.
 
@@ -1093,20 +996,16 @@ class Points(BaseActor, vtk.vtkActor):
             deep : (bool)
                 if False only build a shallow copy of the object (faster copy).
 
-            transformed : (bool)
-                if True reset the current transformation of the copy to unit.
-
         Examples:
             - [mirror.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mirror.py)
 
                ![](https://vedo.embl.es/images/basic/mirror.png)
         """
-        poly = self.polydata(transformed)
         poly_copy = vtk.vtkPolyData()
         if deep:
-            poly_copy.DeepCopy(poly)
+            poly_copy.DeepCopy(self)
         else:
-            poly_copy.ShallowCopy(poly)
+            poly_copy.ShallowCopy(self)
 
         if isinstance(self, vedo.Mesh):
             cloned = vedo.Mesh(poly_copy)
@@ -1114,7 +1013,7 @@ class Points(BaseActor, vtk.vtkActor):
             cloned = Points(poly_copy)
 
         pr = vtk.vtkProperty()
-        pr.DeepCopy(self.GetProperty())
+        pr.DeepCopy(self.property)
         cloned.SetProperty(pr)
         cloned.property = pr
 
@@ -1123,26 +1022,25 @@ class Points(BaseActor, vtk.vtkActor):
             bfpr.DeepCopy(self.GetBackfaceProperty())
             cloned.SetBackfaceProperty(bfpr)
 
-        if not transformed:
-            if self.transform:
-                # already has a so use that
-                try:
-                    cloned.SetUserTransform(self.transform)
-                except TypeError:  # transform which can be non linear
-                    cloned.SetOrigin(self.GetOrigin())
-                    cloned.SetScale(self.GetScale())
-                    cloned.SetOrientation(self.GetOrientation())
-                    cloned.SetPosition(self.GetPosition())
-                   
-            else:
-                # assign the same transformation to the copy
+        if self.transform:
+            # already has a so use that
+            try:
+                cloned.SetUserTransform(self.transform)
+            except TypeError:  # transform which can be non linear
                 cloned.SetOrigin(self.GetOrigin())
                 cloned.SetScale(self.GetScale())
                 cloned.SetOrientation(self.GetOrientation())
                 cloned.SetPosition(self.GetPosition())
+                
+        else:
+            # assign the same transformation to the copy
+            cloned.SetOrigin(self.GetOrigin())
+            cloned.SetScale(self.GetScale())
+            cloned.SetOrientation(self.GetOrientation())
+            cloned.SetPosition(self.GetPosition())
 
-        mp = cloned.mapper()
-        sm = self.mapper()
+        mp = cloned.mapper
+        sm = self.mapper
         mp.SetScalarVisibility(sm.GetScalarVisibility())
         mp.SetScalarRange(sm.GetScalarRange())
         mp.SetColorMode(sm.GetColorMode())
@@ -1156,7 +1054,7 @@ class Points(BaseActor, vtk.vtkActor):
         if self.GetTexture():
             cloned.texture(self.GetTexture())
 
-        cloned.SetPickable(self.GetPickable())
+        cloned.actor.SetPickable(self.actor.GetPickable())
 
         cloned.base = np.array(self.base)
         cloned.top = np.array(self.top)
@@ -1167,6 +1065,7 @@ class Points(BaseActor, vtk.vtkActor):
         # better not to share the same locators with original obj
         cloned.point_locator = None
         cloned.cell_locator = None
+        cloned.line_locator = None
 
         cloned.pipeline = utils.OperationNode("clone", parents=[self], shape="diamond", c="#edede9")
         return cloned
@@ -1222,7 +1121,7 @@ class Points(BaseActor, vtk.vtkActor):
         cmsh = self.clone()
         poly = cmsh.pos(0, 0, 0).scale(scale).polydata()
 
-        mapper3d = self.mapper()
+        mapper3d = self.mapper
         cm = mapper3d.GetColorMode()
         lut = mapper3d.GetLookupTable()
         sv = mapper3d.GetScalarVisibility()
@@ -1293,7 +1192,7 @@ class Points(BaseActor, vtk.vtkActor):
             self.trail_points = [pos] * n
 
             if c is None:
-                col = self.GetProperty().GetColor()
+                col = self.property.GetColor()
             else:
                 col = colors.get_color(c)
 
@@ -1322,7 +1221,7 @@ class Points(BaseActor, vtk.vtkActor):
 
     def _compute_shadow(self, plane, point, direction):
         shad = self.clone()
-        shad._data.GetPointData().SetTCoords(None) # remove any texture coords
+        shad.GetPointData().SetTCoords(None) # remove any texture coords
         shad.name = "Shadow"
 
         pts = shad.points()
@@ -1409,7 +1308,7 @@ class Points(BaseActor, vtk.vtkActor):
             point = sha.info['point']
             direction = sha.info['direction']
             new_sha = self._compute_shadow(plane, point, direction)
-            sha._update(new_sha._data)
+            sha._update(new_sha)
         return self
 
 
@@ -1435,7 +1334,7 @@ class Points(BaseActor, vtk.vtkActor):
                 n += 1
 
         data.RemoveDeletedCells()
-        self.mapper().Modified()
+        self.mapper.Modified()
         self.pipeline = utils.OperationNode(f"delete {n} cells\nby point index", parents=[self])
         return self
 
@@ -1577,24 +1476,24 @@ class Points(BaseActor, vtk.vtkActor):
         self.inputdata().GetPointData().AddArray(scals)  # must be self.inputdata() !
         self.inputdata().GetPointData().SetActiveScalars(scals.GetName())
         rng = scals.GetRange()
-        self.mapper().SetScalarRange(rng[0], rng[1])
-        self.mapper().ScalarVisibilityOn()
+        self.mapper.SetScalarRange(rng[0], rng[1])
+        self.mapper.ScalarVisibilityOn()
 
         self.pipeline = utils.OperationNode(
             "distance_to",
             parents=[self, pcloud],
             shape="cylinder",
-            comment=f"#pts {self._data.GetNumberOfPoints()}",
+            comment=f"#pts {self.GetNumberOfPoints()}",
         )
         return dists
 
     def alpha(self, opacity=None):
         """Set/get mesh's transparency. Same as `mesh.opacity()`."""
         if opacity is None:
-            return self.GetProperty().GetOpacity()
+            return self.property.GetOpacity()
 
-        self.GetProperty().SetOpacity(opacity)
-        bfp = self.GetBackfaceProperty()
+        self.property.SetOpacity(opacity)
+        bfp = self.actor.GetBackfaceProperty()
         if bfp:
             if opacity < 1:
                 self._bfprop = bfp
@@ -1622,11 +1521,11 @@ class Points(BaseActor, vtk.vtkActor):
     def point_size(self, value=None):
         """Set/get mesh's point size of vertices. Same as `mesh.ps()`"""
         if value is None:
-            return self.GetProperty().GetPointSize()
-            #self.GetProperty().SetRepresentationToSurface()
+            return self.property.GetPointSize()
+            #self.property.SetRepresentationToSurface()
         else:
-            self.GetProperty().SetRepresentationToPoints()
-            self.GetProperty().SetPointSize(value)
+            self.property.SetRepresentationToPoints()
+            self.property.SetPointSize(value)
         return self
 
     def ps(self, pointsize=None):
@@ -1635,7 +1534,7 @@ class Points(BaseActor, vtk.vtkActor):
 
     def render_points_as_spheres(self, value=True):
         """Make points look spheric or make them look as squares."""
-        self.GetProperty().SetRenderPointsAsSpheres(value)
+        self.property.SetRenderPointsAsSpheres(value)
         return self
 
     def color(self, c=False, alpha=None):
@@ -1646,13 +1545,13 @@ class Points(BaseActor, vtk.vtkActor):
         """
         # overrides base.color()
         if c is False:
-            return np.array(self.GetProperty().GetColor())
+            return np.array(self.property.GetColor())
         if c is None:
-            self.mapper().ScalarVisibilityOn()
+            self.mapper.ScalarVisibilityOn()
             return self
-        self.mapper().ScalarVisibilityOff()
+        self.mapper.ScalarVisibilityOff()
         cc = colors.get_color(c)
-        self.GetProperty().SetColor(cc)
+        self.property.SetColor(cc)
         if self.trail:
             self.trail.GetProperty().SetColor(cc)
         if alpha is not None:
@@ -1716,8 +1615,8 @@ class Points(BaseActor, vtk.vtkActor):
         cpd.Update()
 
         ps = 2
-        if self.GetProperty().GetRepresentation() == 0:
-            ps = self.GetProperty().GetPointSize()
+        if self.property.GetRepresentation() == 0:
+            ps = self.property.GetPointSize()
 
         out = self._update(cpd.GetOutput()).ps(ps)
 
@@ -2459,7 +2358,7 @@ class Points(BaseActor, vtk.vtkActor):
             txt = txt.replace(r[0], r[1])
 
         if c is None:
-            c = np.array(self.GetProperty().GetColor()) / 2
+            c = np.array(self.property.GetColor()) / 2
         else:
             c = colors.get_color(c)
 
@@ -2560,6 +2459,7 @@ class Points(BaseActor, vtk.vtkActor):
         self.transform = self.GetUserTransform()
         self.point_locator = None
         self.cell_locator = None
+        self.line_locator = None
 
         self.pipeline = utils.OperationNode(
             "align_to", parents=[self, target], comment=f"rigid = {rigid}"
@@ -2640,6 +2540,7 @@ class Points(BaseActor, vtk.vtkActor):
         self.transform = lmt
         self.point_locator = None
         self.cell_locator = None
+        self.line_locator = None
         self.pipeline = utils.OperationNode("transform_with_landmarks", parents=[self])
         return self
 
@@ -2677,6 +2578,7 @@ class Points(BaseActor, vtk.vtkActor):
         """
         self.point_locator = None
         self.cell_locator = None
+        self.line_locator = None
 
         if isinstance(T, vtk.vtkMatrix4x4):
             tr = vtk.vtkTransform()
@@ -2754,6 +2656,7 @@ class Points(BaseActor, vtk.vtkActor):
         tf.Update()
         self.point_locator = None
         self.cell_locator = None
+        self.line_locator = None
         return self._update(tf.GetOutput())
 
     def mirror(self, axis="x", origin=(0, 0, 0), reset=False):
@@ -2801,6 +2704,7 @@ class Points(BaseActor, vtk.vtkActor):
 
         self.point_locator = None
         self.cell_locator = None
+        self.line_locator = None
 
         out = self._update(outpoly)
 
@@ -2997,17 +2901,17 @@ class Points(BaseActor, vtk.vtkActor):
             data.GetScalars().SetLookupTable(lut)
             data.GetScalars().Modified()
 
-        self._mapper.SetLookupTable(lut)
-        self._mapper.SetColorModeToMapScalars()  # so we dont need to convert uint8 scalars
+        self.mapper.SetLookupTable(lut)
+        self.mapper.SetColorModeToMapScalars()  # so we dont need to convert uint8 scalars
 
-        self._mapper.ScalarVisibilityOn()
-        self._mapper.SetScalarRange(lut.GetRange())
+        self.mapper.ScalarVisibilityOn()
+        self.mapper.SetScalarRange(lut.GetRange())
         if on.startswith("point"):
-            self._mapper.SetScalarModeToUsePointData()
+            self.mapper.SetScalarModeToUsePointData()
         else:
-            self._mapper.SetScalarModeToUseCellData()
-        if hasattr(self._mapper, "SetArrayName"):
-            self._mapper.SetArrayName(array_name)
+            self.mapper.SetScalarModeToUseCellData()
+        if hasattr(self.mapper, "SetArrayName"):
+            self.mapper.SetArrayName(array_name)
 
         return self
 
@@ -3035,8 +2939,8 @@ class Points(BaseActor, vtk.vtkActor):
             ![](https://vedo.embl.es/images/basic/colorMeshCells.png)
         """
         if "CellsRGBA" not in self.celldata.keys():
-            lut = self.mapper().GetLookupTable()
-            vscalars = self._data.GetCellData().GetScalars()
+            lut = self.mapper.GetLookupTable()
+            vscalars = self.GetCellData().GetScalars()
             if vscalars is None or lut is None:
                 arr = np.zeros([self.ncells, 4], dtype=np.uint8)
                 col = np.array(self.property.GetColor())
@@ -3087,8 +2991,8 @@ class Points(BaseActor, vtk.vtkActor):
         A point array named "PointsRGBA" is automatically created.
         """
         if "PointsRGBA" not in self.pointdata.keys():
-            lut = self.mapper().GetLookupTable()
-            vscalars = self._data.GetPointData().GetScalars()
+            lut = self.mapper.GetLookupTable()
+            vscalars = self.GetPointData().GetScalars()
             if vscalars is None or lut is None:
                 arr = np.zeros([self.npoints, 4], dtype=np.uint8)
                 col = np.array(self.property.GetColor())
@@ -3464,7 +3368,7 @@ class Points(BaseActor, vtk.vtkActor):
                 carr.InsertCellPoint(i)
             inputobj.SetVerts(carr)
         self._update(inputobj)
-        self.mapper().ScalarVisibilityOff()
+        self.mapper.ScalarVisibilityOff()
         self.pipeline = utils.OperationNode("remove_outliers", parents=[self])
         return self
 
@@ -4315,7 +4219,7 @@ class Points(BaseActor, vtk.vtkActor):
         vis = False
         if currentscals:
             cpoly.GetPointData().SetActiveScalars(currentscals)
-            vis = self.mapper().GetScalarVisibility()
+            vis = self.mapper.GetScalarVisibility()
 
         if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
             self._update(cpoly)
@@ -4333,7 +4237,7 @@ class Points(BaseActor, vtk.vtkActor):
             self._update(tf.GetOutput())
 
         self.pointdata.remove("SignedDistances")
-        self.mapper().SetScalarVisibility(vis)
+        self.mapper.SetScalarVisibility(vis)
         if keep:
             if isinstance(self, vedo.Mesh):
                 cutoff = vedo.Mesh(kpoly)
@@ -4449,7 +4353,7 @@ class Points(BaseActor, vtk.vtkActor):
         if name:
             self.pointdata.select(name)
         clipper = vtk.vtkClipPolyData()
-        clipper.SetInputData(self._data)
+        clipper.SetInputData(self)
         clipper.SetValue(value)
         clipper.GenerateClippedOutputOff()
         clipper.SetInsideOut(not invert)
@@ -4534,9 +4438,11 @@ class Points(BaseActor, vtk.vtkActor):
             self._update(tf.GetOutput())
 
         self.point_locator = None
+        self.line_locator = None
+        self.cell_locator = None
 
         self.pipeline = utils.OperationNode(
-            "crop", parents=[self], comment=f"#pts {self._data.GetNumberOfPoints()}"
+            "crop", parents=[self], comment=f"#pts {self.GetNumberOfPoints()}"
         )
         return self
 
@@ -4924,7 +4830,7 @@ class Points(BaseActor, vtk.vtkActor):
         The density is expressed as the number of counts in the radius search.
 
         Arguments:
-            dims : (int,list)
+            dims : (int, list)
                 number of voxels in x, y and z of the output Volume.
             compute_gradient : (bool)
                 Turn on/off the generation of the gradient vector,
@@ -5046,7 +4952,7 @@ class Points(BaseActor, vtk.vtkActor):
             raise RuntimeError()
         dens.Update()
         pts = utils.vtk2numpy(dens.GetOutput().GetPoints().GetData())
-        cld = Points(pts, c=None).point_size(self.GetProperty().GetPointSize())
+        cld = Points(pts, c=None).point_size(self.property.GetPointSize())
         cld.interpolate_data_from(self, n=nclosest, radius=radius)
         cld.name = "densifiedCloud"
 
@@ -5206,7 +5112,7 @@ class Points(BaseActor, vtk.vtkActor):
     def generate_random_data(self):
         """Fill a dataset with random attributes"""
         gen = vtk.vtkRandomAttributeGenerator()
-        gen.SetInputData(self._data)
+        gen.SetInputData(self)
         gen.GenerateAllDataOn()
         gen.SetDataTypeToFloat()
         gen.GeneratePointNormalsOff()

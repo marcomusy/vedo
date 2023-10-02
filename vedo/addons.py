@@ -285,7 +285,7 @@ class LegendBox(shapes.TextBase, vtk.vtkLegendBoxActor):
             return
 
         self.ScalarVisibilityOff()
-        self.PickableOff()
+        self.actor.PickableOff()
         self.SetPadding(padding)
 
         self.property.ShadowOff()
@@ -1168,7 +1168,7 @@ def ScalarBar3D(
                     italic=italic,
                     font=label_font,
                 )
-                a.RotateZ(label_rotation)
+                a.actor.RotateZ(label_rotation)
             else:
                 a = shapes.Text3D(
                     tx,
@@ -1197,7 +1197,7 @@ def ScalarBar3D(
             italic=italic,
             font=title_font,
         )
-        t.RotateZ(90 + title_rotation)
+        t.actor.RotateZ(90 + title_rotation)
         t.pos(sx * title_xoffset, title_yoffset, 0)
         tacts.append(t)
 
@@ -1227,7 +1227,7 @@ def ScalarBar3D(
                     italic=italic,
                     font=label_font,
                 )
-                btx.RotateZ(label_rotation)
+                btx.actor.RotateZ(label_rotation)
             else:
                 btx = shapes.Text3D(
                     below_text,
@@ -1266,7 +1266,7 @@ def ScalarBar3D(
                     italic=italic,
                     font=label_font,
                 )
-                atx.RotateZ(label_rotation)
+                atx.actor.RotateZ(label_rotation)
             else:
                 atx = shapes.Text3D(
                     above_text,
@@ -1305,7 +1305,7 @@ def ScalarBar3D(
                 italic=italic,
                 font=label_font,
             )
-            nantx.RotateZ(label_rotation)
+            nantx.actor.RotateZ(label_rotation)
         else:
             nantx = shapes.Text3D(
                 nan_text,
@@ -1323,11 +1323,11 @@ def ScalarBar3D(
         tacts.append(scale.box().lw(1))
 
     for a in tacts:
-        a.PickableOff()
+        a.actor.PickableOff()
 
     mtacts = merge(tacts).lighting("off")
-    mtacts.PickableOff()
-    scale.PickableOff()
+    mtacts.actor.PickableOff()
+    scale.actor.PickableOff()
 
     sact = Assembly(scales + tacts)
     sact.SetPosition(pos)
@@ -2392,7 +2392,7 @@ def Ruler(
 
     lb = shapes.Text3D(label, pos=(q1 + q2) / 2, s=s, font=font, italic=italic, justify="center")
     if label_rotation:
-        lb.RotateZ(label_rotation)
+        lb.actor.RotateZ(label_rotation)
 
     x0, x1 = lb.xbounds()
     gap = [(x1 - x0) / 2, 0, 0]
@@ -2405,8 +2405,8 @@ def Ruler(
     zs = np.array([0, d / 50 * (1 / units_scale), 0])
     ml1 = shapes.Line(-zs, zs).pos(q1)
     ml2 = shapes.Line(-zs, zs).pos(q2)
-    ml1.RotateZ(tick_angle - 90)
-    ml2.RotateZ(tick_angle - 90)
+    ml1.actor.RotateZ(tick_angle - 90)
+    ml2.actor.RotateZ(tick_angle - 90)
 
     c1 = shapes.Circle(q1, r=d / 180 * (1 / units_scale), res=20)
     c2 = shapes.Circle(q2, r=d / 180 * (1 / units_scale), res=20)
@@ -2415,7 +2415,7 @@ def Ruler(
     macts = merge(acts).pos(p1).c(c).alpha(alpha)
     macts.GetProperty().LightingOff()
     macts.GetProperty().SetLineWidth(lw)
-    macts.UseBoundsOff()
+    macts.actor.UseBoundsOff()
     macts.base = q1
     macts.top = q2
     macts.orientation(p2 - p1, rotation=axis_rotation).bc("t").pickable(False)
@@ -2551,8 +2551,8 @@ def RulerAxes(
     if not macts:
         return None
     macts.c(c).alpha(alpha).bc("t")
-    macts.UseBoundsOff()
-    macts.PickableOff()
+    macts.actor.UseBoundsOff()
+    macts.actor.PickableOff()
     return macts
 
 
@@ -3154,14 +3154,14 @@ def Axes(
     if yzgrid and ytitle and ztitle:
         if not yzgrid_transparent:
             gyz = shapes.Grid(s=(zticks_float, yticks_float))
-            gyz.alpha(yzalpha).c(yzplane_color).lw(0).RotateY(-90)
+            gyz.alpha(yzalpha).c(yzplane_color).lw(0).actor.RotateY(-90)
             if yzshift: gyz.shift(yzshift*dx,0,0)
             elif tol:   gyz.shift(-tol*gscale,0,0)
             gyz.name = "yzGrid"
             grids.append(gyz)
         if grid_linewidth:
             gyz_lines = shapes.Grid(s=(zticks_float, yticks_float))
-            gyz_lines.c(yzplane_color).lw(grid_linewidth).alpha(yzalpha).RotateY(-90)
+            gyz_lines.c(yzplane_color).lw(grid_linewidth).alpha(yzalpha).actor.RotateY(-90)
             if yzshift: gyz_lines.shift(yzshift*dx,0,0)
             elif tol:   gyz_lines.shift(-tol*gscale,0,0)
             gyz_lines.name = "yzGridLines"
@@ -3170,14 +3170,14 @@ def Axes(
     if zxgrid and ztitle and xtitle:
         if not zxgrid_transparent:
             gzx = shapes.Grid(s=(xticks_float, zticks_float))
-            gzx.alpha(zxalpha).c(zxplane_color).lw(0).RotateX(90)
+            gzx.alpha(zxalpha).c(zxplane_color).lw(0).actor.RotateX(90)
             if zxshift: gzx.shift(0,zxshift*dy,0)
             elif tol:   gzx.shift(0,-tol*gscale,0)
             gzx.name = "zxGrid"
             grids.append(gzx)
         if grid_linewidth:
             gzx_lines = shapes.Grid(s=(xticks_float, zticks_float))
-            gzx_lines.c(zxplane_color).lw(grid_linewidth).alpha(zxalpha).RotateX(90)
+            gzx_lines.c(zxplane_color).lw(grid_linewidth).alpha(zxalpha).actor.RotateX(90)
             if zxshift: gzx_lines.shift(0,zxshift*dy,0)
             elif tol:   gzx_lines.shift(0,-tol*gscale,0)
             gzx_lines.name = "zxGridLines"
@@ -3201,13 +3201,13 @@ def Axes(
     if yzgrid2 and ytitle and ztitle:
         if not yzgrid2_transparent:
             gyz2 = shapes.Grid(s=(zticks_float, yticks_float)).x(dx)
-            gyz2.alpha(yzalpha).c(yzplane_color).lw(0).RotateY(-90)
+            gyz2.alpha(yzalpha).c(yzplane_color).lw(0).actor.RotateY(-90)
             if tol: gyz2.shift(tol*gscale,0,0)
             gyz2.name = "yzGrid2"
             grids.append(gyz2)
         if grid_linewidth:
             gyz2_lines = shapes.Grid(s=(zticks_float, yticks_float)).x(dx)
-            gyz2_lines.c(yzplane_color).lw(grid_linewidth).alpha(yzalpha).RotateY(-90)
+            gyz2_lines.c(yzplane_color).lw(grid_linewidth).alpha(yzalpha).actor.RotateY(-90)
             if tol: gyz2_lines.shift(tol*gscale,0,0)
             gyz2_lines.name = "yzGrid2Lines"
             grids.append(gyz2_lines)
@@ -3215,13 +3215,13 @@ def Axes(
     if zxgrid2 and ztitle and xtitle:
         if not zxgrid2_transparent:
             gzx2 = shapes.Grid(s=(xticks_float, zticks_float)).y(dy)
-            gzx2.alpha(zxalpha).c(zxplane_color).lw(0).RotateX(90)
+            gzx2.alpha(zxalpha).c(zxplane_color).lw(0).actor.RotateX(90)
             if tol: gzx2.shift(0,tol*gscale,0)
             gzx2.name = "zxGrid2"
             grids.append(gzx2)
         if grid_linewidth:
             gzx2_lines = shapes.Grid(s=(xticks_float, zticks_float)).y(dy)
-            gzx2_lines.c(zxplane_color).lw(grid_linewidth).alpha(zxalpha).RotateX(90)
+            gzx2_lines.c(zxplane_color).lw(grid_linewidth).alpha(zxalpha).actor.RotateX(90)
             if tol: gzx2_lines.shift(0,tol*gscale,0)
             gzx2_lines.name = "zxGrid2Lines"
             grids.append(gzx2_lines)
@@ -3365,7 +3365,7 @@ def Axes(
             if len(xticks) > 1:
                 xmajticks = merge(xticks).c(xlabel_color)
                 if xaxis_rotation:
-                    xmajticks.RotateX(xaxis_rotation)
+                    xmajticks.actor.RotateX(xaxis_rotation)
                 if xyshift: xmajticks.shift(0,0,xyshift*dz)
                 if zxshift: xmajticks.shift(0,zxshift*dy,0)
                 if xshift_along_y: xmajticks.shift(0,xshift_along_y*dy,0)
@@ -3382,7 +3382,7 @@ def Axes(
             if len(yticks) > 1:
                 ymajticks = merge(yticks).c(ylabel_color)
                 if yaxis_rotation:
-                    ymajticks.RotateY(yaxis_rotation)
+                    ymajticks.actor.RotateY(yaxis_rotation)
                 if xyshift: ymajticks.shift(0,0,xyshift*dz)
                 if yzshift: ymajticks.shift(yzshift*dx,0,0)
                 if yshift_along_x: ymajticks.shift(yshift_along_x*dx,0,0)
@@ -3398,8 +3398,8 @@ def Axes(
                 zticks.append(shapes.Rectangle(v1, v2))
             if len(zticks) > 1:
                 zmajticks = merge(zticks).c(zlabel_color)
-                zmajticks.RotateZ(-45 + zaxis_rotation)
-                zmajticks.RotateY(-90)
+                zmajticks.actor.RotateZ(-45 + zaxis_rotation)
+                zmajticks.actor.RotateY(-90)
                 if yzshift: zmajticks.shift(yzshift*dx,0,0)
                 if zxshift: zmajticks.shift(0,zxshift*dy,0)
                 if zshift_along_x: zmajticks.shift(zshift_along_x*dx,0,0)
@@ -3447,7 +3447,7 @@ def Axes(
             if ticks:
                 xminticks = merge(ticks).c(xlabel_color)
                 if xaxis_rotation:
-                    xminticks.RotateX(xaxis_rotation)
+                    xminticks.actor.RotateX(xaxis_rotation)
                 if xyshift: xminticks.shift(0,0,xyshift*dz)
                 if zxshift: xminticks.shift(0,zxshift*dy,0)
                 if xshift_along_y: xminticks.shift(0,xshift_along_y*dy,0)
@@ -3494,7 +3494,7 @@ def Axes(
             if ticks:
                 yminticks = merge(ticks).c(ylabel_color)
                 if yaxis_rotation:
-                    yminticks.RotateY(yaxis_rotation)
+                    yminticks.actor.RotateY(yaxis_rotation)
                 if xyshift: yminticks.shift(0,0,xyshift*dz)
                 if yzshift: yminticks.shift(yzshift*dx,0,0)
                 if yshift_along_x: yminticks.shift(yshift_along_x*dx,0,0)
@@ -3540,8 +3540,8 @@ def Axes(
 
             if ticks:
                 zminticks = merge(ticks).c(zlabel_color)
-                zminticks.RotateZ(-45 + zaxis_rotation)
-                zminticks.RotateY(-90)
+                zminticks.actor.RotateZ(-45 + zaxis_rotation)
+                zminticks.actor.RotateY(-90)
                 if yzshift: zminticks.shift(yzshift*dx,0,0)
                 if zxshift: zminticks.shift(0,zxshift*dy,0)
                 if zshift_along_x: zminticks.shift(zshift_along_x*dx,0,0)
@@ -3593,15 +3593,15 @@ def Axes(
             xlab.pos(v + offs)
             if xaxis_rotation:
                 xlab.rotate_x(xaxis_rotation)
-            if zRot: xlab.RotateZ(zRot)
-            if xRot: xlab.RotateX(xRot)
-            if yRot: xlab.RotateY(yRot)
+            if zRot: xlab.actor.RotateZ(zRot)
+            if xRot: xlab.actor.RotateX(xRot)
+            if yRot: xlab.actor.RotateY(yRot)
             if xyshift: xlab.shift(0,0,xyshift*dz)
             if zxshift: xlab.shift(0,zxshift*dy,0)
             if xshift_along_y: xlab.shift(0,xshift_along_y*dy,0)
             if xshift_along_z: xlab.shift(0,0,xshift_along_z*dz)
             xlab.name = f"xNumericLabel{i}"
-            xlab.SetUseBounds(x_use_bounds)
+            xlab.actor.SetUseBounds(x_use_bounds)
             labels.append(xlab.c(xlabel_color))
 
     if ylabel_size and ytitle:
@@ -3644,15 +3644,15 @@ def Axes(
             ylab.pos(v + offs)
             if yaxis_rotation:
                 ylab.rotate_y(yaxis_rotation)
-            if zRot: ylab.RotateZ(zRot)
-            if yRot: ylab.RotateY(yRot)
-            if xRot: ylab.RotateX(xRot)
+            if zRot: ylab.actor.RotateZ(zRot)
+            if yRot: ylab.actor.RotateY(yRot)
+            if xRot: ylab.actor.RotateX(xRot)
             if xyshift: ylab.shift(0,0,xyshift*dz)
             if yzshift: ylab.shift(yzshift*dx,0,0)
             if yshift_along_x: ylab.shift(yshift_along_x*dx,0,0)
             if yshift_along_z: ylab.shift(0,0,yshift_along_z*dz)
             ylab.name = f"yNumericLabel{i}"
-            ylab.SetUseBounds(y_use_bounds)
+            ylab.actor.SetUseBounds(y_use_bounds)
             labels.append(ylab.c(ylabel_color))
 
     if zlabel_size and ztitle:
@@ -3694,10 +3694,10 @@ def Axes(
             angle = 90
             if dx:
                 angle = np.arctan2(dy, dx) * 57.3
-            zlab.RotateZ(angle + yRot)  # vtk inverts order of rotations
+            zlab.actor.RotateZ(angle + yRot)  # vtk inverts order of rotations
             if xRot:
-                zlab.RotateY(-xRot)  # ..second
-            zlab.RotateX(90 + zRot)  # ..first
+                zlab.actor.RotateY(-xRot)  # ..second
+            zlab.actor.RotateX(90 + zRot)  # ..first
             zlab.pos(v + offs)
             if zaxis_rotation:
                 zlab.rotate_z(zaxis_rotation)
@@ -3705,7 +3705,7 @@ def Axes(
             if zxshift: zlab.shift(0,zxshift*dy,0)
             if zshift_along_x: zlab.shift(zshift_along_x*dx,0,0)
             if zshift_along_y: zlab.shift(0,zshift_along_y*dy,0)
-            zlab.SetUseBounds(z_use_bounds)
+            zlab.actor.SetUseBounds(z_use_bounds)
             zlab.name = f"zNumericLabel{i}"
             labels.append(zlab.c(zlabel_color))
 
@@ -3752,11 +3752,11 @@ def Axes(
         if xtitle_backface_color:
             xt.backcolor(xtitle_backface_color)
         if zRot:
-            xt.RotateZ(zRot)
+            xt.actor.RotateZ(zRot)
         if xRot:
-            xt.RotateX(xRot)
+            xt.actor.RotateX(xRot)
         if yRot:
-            xt.RotateY(yRot)
+            xt.actor.RotateY(yRot)
         shift = 0
         if xlab:  # xlab is the last created numeric text label..
             lt0, lt1 = xlab.GetBounds()[2:4]
@@ -3772,9 +3772,9 @@ def Axes(
             xt.shift(0, xshift_along_y * dy, 0)
         if xshift_along_z:
             xt.shift(0, 0, xshift_along_z * dz)
-        xt.SetUseBounds(x_use_bounds)
+        xt.actor.SetUseBounds(x_use_bounds)
         if xtitle == " ":
-            xt.SetUseBounds(False)
+            xt.actor.SetUseBounds(False)
         xt.name = f"xtitle {xtitle}"
         titles.append(xt)
         if xtitle_box:
@@ -3822,9 +3822,9 @@ def Axes(
         if ytitle_backface_color:
             yt.backcolor(ytitle_backface_color)
 
-        if zRot: yt.RotateZ(zRot)
-        if yRot: yt.RotateY(yRot)
-        if xRot: yt.RotateX(xRot)
+        if zRot: yt.actor.RotateZ(zRot)
+        if yRot: yt.actor.RotateY(yRot)
+        if xRot: yt.actor.RotateX(xRot)
 
         shift = 0
         if ylab:  # this is the last created num label..
@@ -3837,9 +3837,9 @@ def Axes(
         if xyshift:        yt.shift(0, 0, xyshift*dz)
         if yshift_along_x: yt.shift(yshift_along_x*dx, 0, 0)
         if yshift_along_z: yt.shift(0, 0, yshift_along_z*dz)
-        yt.SetUseBounds(y_use_bounds)
+        yt.actor.SetUseBounds(y_use_bounds)
         if ytitle == " ":
-            yt.SetUseBounds(False)
+            yt.actor.SetUseBounds(False)
         yt.name = f"ytitle {ytitle}"
         titles.append(yt)
         if ytitle_box:
@@ -3885,10 +3885,10 @@ def Axes(
         angle = 90
         if dx:
             angle = np.arctan2(dy, dx) * 57.3
-        zt.RotateZ(angle + yRot)  # vtk inverts order of rotations
+        zt.actor.RotateZ(angle + yRot)  # vtk inverts order of rotations
         if xRot:
-            zt.RotateY(-xRot)  # ..second
-        zt.RotateX(90 + zRot)  # ..first
+            zt.actor.RotateY(-xRot)  # ..second
+        zt.actor.RotateX(90 + zRot)  # ..first
 
         shift = 0
         if zlab:  # this is the last created one..
@@ -3904,9 +3904,9 @@ def Axes(
         if zxshift: zt.shift(0,zxshift*dy,0)
         if zshift_along_x: zt.shift(zshift_along_x*dx,0,0)
         if zshift_along_y: zt.shift(0,zshift_along_y*dy,0)
-        zt.SetUseBounds(z_use_bounds)
+        zt.actor.SetUseBounds(z_use_bounds)
         if ztitle == " ":
-            zt.SetUseBounds(False)
+            zt.actor.SetUseBounds(False)
         zt.name = f"ztitle {ztitle}"
         titles.append(zt)
 
@@ -3926,7 +3926,7 @@ def Axes(
             italic=htitle_italic,
         )
         if htitle_rotation:
-            htit.RotateX(htitle_rotation)
+            htit.actor.RotateX(htitle_rotation)
         wpos = [(0.5 + htitle_offset[0]) * dx, (1 + htitle_offset[1]) * dy, htitle_offset[2] * dz]
         htit.pos(wpos)
         if xyshift:
@@ -3939,9 +3939,9 @@ def Axes(
     acts += highlights + majorticks + minorticks + cones
     orig = (min_bns[0], min_bns[2], min_bns[4])
     for a in acts:
-        a.PickableOff()
-        a.AddPosition(orig)
-        a.GetProperty().LightingOff()
+        a.actor.PickableOff()
+        a.actor.AddPosition(orig)
+        a.actor.GetProperty().LightingOff()
     asse = Assembly(acts)
     asse.SetOrigin(orig)
     asse.PickableOff()
@@ -4103,7 +4103,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
             if centered:
                 wpos = [-aves / 40 * s, (y0 + y1) / 2, 0]
             yt = shapes.Text3D("y", pos=(0, 0, 0), s=aves / 40 * s, c=ycol)
-            yt.pos(wpos).RotateZ(90)
+            yt.pos(wpos).actor.RotateZ(90)
             acts += [yl, yc, yt]
 
         if dz > aves / 100:
@@ -4121,11 +4121,11 @@ def add_global_axes(axtype=None, c=None, bounds=()):
             if centered:
                 wpos = [-aves / 50 * s, -aves / 50 * s, (z0 + z1) / 2]
             zt = shapes.Text3D("z", pos=(0, 0, 0), s=aves / 40 * s, c=zcol)
-            zt.pos(wpos).RotateZ(45)
-            zt.RotateX(90)
+            zt.pos(wpos).actor.RotateZ(45)
+            zt.actor.RotateX(90)
             acts += [zl, zc, zt]
         for a in acts:
-            a.PickableOff()
+            a.actor.PickableOff()
         ass = Assembly(acts)
         ass.PickableOff()
         plt.renderer.AddActor(ass)
@@ -4246,7 +4246,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         plt.axes_instances[r] = rulax
         if not rulax:
             return None
-        rulax.UseBoundsOn()
+        rulax.actor.UseBoundsOn()
         rulax.PickableOff()
         plt.renderer.AddActor(rulax)
 
@@ -4281,7 +4281,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         ca = Mesh(src.GetOutput(), c, 0.5).wireframe(True)
         ca.pos((vbb[0] + vbb[1]) / 2, (vbb[3] + vbb[2]) / 2, (vbb[5] + vbb[4]) / 2)
         ca.PickableOff()
-        ca.UseBoundsOff()
+        ca.actor.UseBoundsOff()
         plt.axes_instances[r] = ca
         plt.renderer.AddActor(ca)
 
@@ -4292,12 +4292,12 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         rm = max(rx, ry, rz)
         xc = shapes.Disc(x0, r1=rm, r2=rm, c="lr", res=(1, 72))
         yc = shapes.Disc(x0, r1=rm, r2=rm, c="lg", res=(1, 72))
-        yc.RotateX(90)
+        yc.actor.RotateX(90)
         zc = shapes.Disc(x0, r1=rm, r2=rm, c="lb", res=(1, 72))
-        yc.RotateY(90)
-        xc.clean().alpha(0.5).wireframe().linewidth(2).PickableOff()
-        yc.clean().alpha(0.5).wireframe().linewidth(2).PickableOff()
-        zc.clean().alpha(0.5).wireframe().linewidth(2).PickableOff()
+        yc.actor.RotateY(90)
+        xc.clean().alpha(0.5).wireframe().linewidth(2).actor.PickableOff()
+        yc.clean().alpha(0.5).wireframe().linewidth(2).actor.PickableOff()
+        zc.clean().alpha(0.5).wireframe().linewidth(2).actor.PickableOff()
         ca = xc + yc + zc
         ca.PickableOff()
         ca.UseBoundsOn()
@@ -4309,8 +4309,8 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         xpos, ypos = (vbb[1] + vbb[0]) / 2, (vbb[3] + vbb[2]) / 2
         gs = sum(ss) * 3
         gr = shapes.Grid((xpos, ypos, vbb[4]), s=(gs, gs), res=(11, 11), c=c, alpha=0.1)
-        gr.lighting("off").PickableOff()
-        gr.UseBoundsOff()
+        gr.lighting("off").actor.PickableOff()
+        gr.actor.UseBoundsOff()
         plt.axes_instances[r] = gr
         plt.renderer.AddActor(gr)
 
@@ -4341,7 +4341,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         polaxes.SetMaximumAngle(315.0)
         polaxes.SetNumberOfPolarAxisTicks(5)
         polaxes.UseBoundsOn()
-        polaxes.PickableOff()
+        polaxes.actor.PickableOff()
         plt.axes_instances[r] = polaxes
         plt.renderer.AddActor(polaxes)
 
@@ -4364,7 +4364,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         pr = ls.GetBottomAxis().GetLabelTextProperty()
         pr.SetFontFamily(vtk.VTK_FONT_FILE)
         pr.SetFontFile(utils.get_font_path(settings.default_font))
-        ls.PickableOff()
+        ls.actor.PickableOff()
         # if not plt.renderer.GetActiveCamera().GetParallelProjection():
         #     vedo.logger.warning("Axes type 13 should be used with parallel projection")
         plt.axes_instances[r] = ls
