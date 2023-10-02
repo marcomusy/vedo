@@ -144,6 +144,7 @@ def get_parser():
 
 #################################################################################################
 def system_info():
+
     for i in range(2, len(sys.argv)):
         file = sys.argv[i]
         try:
@@ -168,7 +169,6 @@ def system_info():
     printc("vedo installation :", vedo.installdir)
     try:
         import platform
-
         printc(
             "system            :",
             platform.system(),
@@ -181,7 +181,6 @@ def system_info():
 
     try:
         from screeninfo import get_monitors
-
         for m in get_monitors():
             pr = "         "
             if m.is_primary:
@@ -192,7 +191,6 @@ def system_info():
 
     try:
         import k3d
-
         printc("k3d version       :", k3d.__version__, bold=0, dim=1)
     except ModuleNotFoundError:
         pass
@@ -222,37 +220,39 @@ def exe_run(args):
     matching = list(sorted(matching))
     nmat = len(matching)
     if nmat == 0:
-        printc(f":sad: No matching example found containing string: {args.run}", c=1)
-        printc(" Current installation directory is:", vedo.installdir, c=1)
-        sys.exit(1)
+        printc(f":sad: No matching example found containing string: {args.run}", c="y")
+        # printc(f"(installation directory is {vedo.installdir})", c='y')
+        return
 
     if nmat > 1:
-        printc(f"\n:target: Found {nmat} matching scripts:", c="y", italic=1)
+        printc(f":target: Found {nmat} scripts containing string '{args.run}':", c="c")
         args.full_screen = True  # to print out the one line description
 
     if args.full_screen:  # -f option not to dump the full code but just the first line
-        for mat in matching[:25]:
-            printc(os.path.basename(mat).replace(".py", ""), c="y", italic=1, end=" ")
+        for mat in matching[:30]:
+            printc(os.path.basename(mat).replace(".py", ""), c="c", end=" ")
             with open(mat, "r", encoding="UTF-8") as fm:
                 lline = "".join(fm.readlines(60))
-                lline = lline.replace("\n", " ").replace("'", "").replace('"', "").replace("-", "")
-                line = lline[:56]  # cut
-                if line.startswith("from"):
-                    line = ""
-                if line.startswith("import"):
-                    line = ""
-                if len(lline) > len(line):
+                maxidx1 = lline.find("import ")
+                maxidx2 = lline.find("from vedo")
+                maxid = min(maxidx1, maxidx2)
+                lline = lline[:maxid] # cut where the code starts
+                lline = lline.replace("\n", " ").replace("'", "").replace('"', "")
+                lline = lline.replace("#", "").replace("-", "").replace("  ", " ")
+                line = lline[:68]  # cut long lines
+                if len(lline) > len(line)+1:
                     line += ".."
                 if len(line) > 5:
-                    printc("-", line, c="y", bold=0, italic=1)
+                    printc("-", line, c="c", bold=0, italic=1, dim=1)
                 else:
                     print()
 
-    if nmat > 25:
-        printc("...", c="y")
+    if nmat > 30:
+        printc(f"... (and {nmat-30} more)", c="c")
 
     if nmat > 1:
-        sys.exit(0)
+        printc(":idea: Type 'vedo -r <name>' to run one of them", bold=0, c="c")
+        return
 
     if not args.full_screen:  # -f option not to dump the full code
         with open(matching[0], "r", encoding="UTF-8") as fm:
@@ -275,7 +275,7 @@ def exe_run(args):
 ################################################################################################
 def exe_convert(args):
 
-    allowedexts = [
+    allowed_exts = [
         "vtk",
         "vtp",
         "vtu",
@@ -299,8 +299,8 @@ def exe_convert(args):
 
     target_ext = args.to.lower()
 
-    if target_ext not in allowedexts:
-        printc(f":sad: Sorry target cannot be {target_ext}\nMust be {allowedexts}", c=1)
+    if target_ext not in allowed_exts:
+        printc(f":sad: Sorry target cannot be {target_ext}\nMust be {allowed_exts}", c=1)
         sys.exit()
 
     for f in args.convert:

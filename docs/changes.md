@@ -22,7 +22,6 @@
 ```
 examples/advanced/timer_callback1.py
 examples/advanced/timer_callback2.py
-examples/advanced/interpolate_scalar5.py
 examples/basic/buttons.py
 examples/basic/input_box.py
 examples/basic/sliders2.py

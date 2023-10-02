@@ -1,7 +1,4 @@
-"""
-how to extract matching
-sub meshes from a common mesh.
-"""
+"""Extract matchingsub meshes from a common mesh"""
 from dolfin import *
 
 class Structure(SubDomain):
@@ -25,7 +22,7 @@ structure_mesh = SubMesh(mesh, sub_domains, 1)
 
 # Move structure mesh
 for x in structure_mesh.coordinates():
-    x[0] += 0.1*x[0]*x[1]
+    x[0] += 0.2*x[0]*x[1]
 
 # Move fluid mesh according to structure mesh
 ALE.move(fluid_mesh, structure_mesh)

@@ -1028,14 +1028,11 @@ class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
                 img.GetPointData().AddArray(varr)
                 img.GetPointData().SetActiveScalars(varr.GetName())
 
-        elif "ImageData" in inputtype:
+        elif isinstance(inputobj, vtk.vtkImageData):
             img = inputobj
 
         elif isinstance(inputobj, Volume):
             img = inputobj.inputdata()
-
-        elif "UniformGrid" in inputtype:
-            img = inputobj
 
         elif hasattr(inputobj, "GetOutput"):  # passing vtk object, try extract imagdedata
             if hasattr(inputobj, "Update"):
