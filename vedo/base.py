@@ -72,17 +72,17 @@ class _DataArrayHelper:
     def __setitem__(self, key, input_array):
 
         if self.association == 0:
-            data = self.GetPointData()
-            n = self.GetNumberOfPoints()
+            data = self.actor.GetPointData()
+            n = self.actor.GetNumberOfPoints()
             self.mapper.SetScalarModeToUsePointData()
 
         elif self.association == 1:
-            data = self.GetCellData()
-            n = self.GetNumberOfCells()
+            data = self.actor.GetCellData()
+            n = self.actor.GetNumberOfCells()
             self.mapper.SetScalarModeToUseCellData()
 
         elif self.association == 2:
-            data = self.GetFieldData()
+            data = self.actor.GetFieldData()
             if not utils.is_sequence(input_array):
                 input_array = [input_array]
 
