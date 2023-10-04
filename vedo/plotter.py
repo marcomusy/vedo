@@ -2063,8 +2063,8 @@ class Plotter:
 
         def _legfunc(evt):
             if not evt.actor or not self.renderer or at != evt.at:
-                if hoverlegend._mapper.GetInput():  # clear and return
-                    hoverlegend._mapper.SetInput("")
+                if hoverlegend.mapper.GetInput():  # clear and return
+                    hoverlegend.mapper.SetInput("")
                     self.interactor.Render()
                 return
 
@@ -2124,11 +2124,11 @@ class Plotter:
                     cdata = indata.GetCellData()
                     if pdata.GetScalars() and pdata.GetScalars().GetName():
                         t += f"\nPoint array  : {pdata.GetScalars().GetName()}"
-                        if pdata.GetScalars().GetName() == evt.actor.mapper().GetArrayName():
+                        if pdata.GetScalars().GetName() == evt.actor.mapper.GetArrayName():
                             t += " *"
                     if cdata.GetScalars() and cdata.GetScalars().GetName():
                         t += f"\nCell  array  : {cdata.GetScalars().GetName()}"
-                        if cdata.GetScalars().GetName() == evt.actor.mapper().GetArrayName():
+                        if cdata.GetScalars().GetName() == evt.actor.mapper.GetArrayName():
                             t += " *"
 
                 if evt.isPicture:
@@ -2140,8 +2140,8 @@ class Plotter:
             # change box color if needed in 'auto' mode
             if evt.isPoints and "auto" in str(bg):
                 actcol = evt.actor.GetProperty().GetColor()
-                if hoverlegend._mapper.GetTextProperty().GetBackgroundColor() != actcol:
-                    hoverlegend._mapper.GetTextProperty().SetBackgroundColor(actcol)
+                if hoverlegend.mapper.GetTextProperty().GetBackgroundColor() != actcol:
+                    hoverlegend.mapper.GetTextProperty().SetBackgroundColor(actcol)
 
             # adapt to changes in bg color
             bgcol = self.renderers[at].GetBackground()
@@ -2153,8 +2153,8 @@ class Plotter:
                 if len(set(_bgcol).intersection(bgcol)) < 3:
                     hoverlegend.color(_bgcol)
 
-            if hoverlegend._mapper.GetInput() != t:
-                hoverlegend._mapper.SetInput(t)
+            if hoverlegend.mapper.GetInput() != t:
+                hoverlegend.mapper.SetInput(t)
                 self.interactor.Render()
 
         self.add(hoverlegend, at=at)

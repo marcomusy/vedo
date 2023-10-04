@@ -189,11 +189,11 @@ class _DataArrayHelper:
     def select(self, key):
         """Select one specific array by its name to make it the `active` one."""
         if self.association == 0:
-            data = self.GetPointData()
-            self.mapper.SetScalarModeToUsePointData()
+            data = self.obj.GetPointData()
+            self.obj.mapper.SetScalarModeToUsePointData()
         else:
-            data = self.GetCellData()
-            self.mapper.SetScalarModeToUseCellData()
+            data = self.obj.GetCellData()
+            self.obj.mapper.SetScalarModeToUseCellData()
 
         if isinstance(key, int):
             key = data.GetArrayName(key)
@@ -296,11 +296,11 @@ class _DataArrayHelper:
             return out
 
         if self.association == 0:
-            out = _get_str(self.actor._data.GetPointData(), "Point Data")
+            out = _get_str(self.GetPointData(), "Point Data")
         elif self.association == 1:
-            out = _get_str(self.actor._data.GetCellData(), "Cell Data")
+            out = _get_str(self.GetCellData(), "Cell Data")
         elif self.association == 2:
-            pd = self.actor._data.GetFieldData()
+            pd = self.GetFieldData()
             if pd.GetNumberOfArrays():
                 out = f"\x1b[2m\x1b[1m\x1b[7mMeta Data"
                 if self.actor.name:
@@ -368,7 +368,7 @@ class Base3DProp:
     def pickable(self, value=None):
         """Set/get the pickability property of an object."""
         if value is None:
-            return self.GetPickable()
+            return self.actor.GetPickable()
         self.actor.SetPickable(value)
         return self
 
@@ -862,11 +862,11 @@ class BaseActor(Base3DProp):
                 pts = np.c_[pts, np.zeros(pts.shape[0], dtype=np.float32)]
             arr = utils.numpy2vtk(pts, dtype=np.float32)
             
-            vpts = self._data.GetPoints()
+            vpts = self.GetPoints()
             vpts.SetData(arr)
             vpts.Modified()
             # reset mesh to identity matrix position/rotation:
-            self.PokeMatrix(vtk.vtkMatrix4x4())
+            self.actor.PokeMatrix(vtk.vtkMatrix4x4())
             self.point_locator = None
             self.cell_locator = None
             self.transform = None
@@ -901,7 +901,7 @@ class BaseActor(Base3DProp):
         data.Modified()
         self._mapper.Modified()
         self.pipeline = utils.OperationNode(
-            "delete_cells", parents=[self], comment=f"#cells {self._data.GetNumberOfCells()}"
+            "delete_cells", parents=[self], comment=f"#cells {self.GetNumberOfCells()}"
         )
         return self
 
@@ -911,11 +911,11 @@ class BaseActor(Base3DProp):
         A new array called `BoundaryCells` is added to the mesh.
         """
         mb = vtk.vtkMarkBoundaryFilter()
-        mb.SetInputData(self._data)
+        mb.SetInputData(self)
         mb.Update()
-        out = self._update(mb.GetOutput())
-        out.pipeline = utils.OperationNode("mark_boundaries", parents=[self])
-        return out
+        self.DeepCopy(mb.GetOutput())
+        self.pipeline = utils.OperationNode("mark_boundaries", parents=[self])
+        return self
 
     def find_cells_in(self, xbounds=(), ybounds=(), zbounds=()):
         """
@@ -952,7 +952,7 @@ class BaseActor(Base3DProp):
     def count_vertices(self):
         """Count the number of vertices each cell has and return it as a numpy array"""
         vc = vtk.vtkCountVertices()
-        vc.SetInputData(self._data)
+        vc.SetInputData(self)
         vc.SetOutputArrayName("VertexCount")
         vc.Update()
         varr = vc.GetOutput().GetCellData().GetArray("VertexCount")
@@ -1175,9 +1175,9 @@ class BaseActor(Base3DProp):
             c2p.ProcessAllArraysOn()
         c2p.Update()
         self.mapper.SetScalarModeToUsePointData()
-        out = self._update(c2p.GetOutput())
-        out.pipeline = utils.OperationNode("map cell\nto point data", parents=[self])
-        return out
+        self.DeepCopy(c2p.GetOutput())
+        self.pipeline = utils.OperationNode("map cell\nto point data", parents=[self])
+        return self
 
     def map_points_to_cells(self, arrays=(), move=False):
         """
@@ -1206,9 +1206,9 @@ class BaseActor(Base3DProp):
             p2c.ProcessAllArraysOn()
         p2c.Update()
         self.mapper.SetScalarModeToUseCellData()
-        out = self._update(p2c.GetOutput())
-        out.pipeline = utils.OperationNode("map point\nto cell data", parents=[self])
-        return out
+        self.DeepCopy(p2c.GetOutput())
+        self.pipeline = utils.OperationNode("map point\nto cell data", parents=[self])
+        return self
 
     def resample_data_from(self, source, tol=None, categorical=False):
         """
@@ -1250,7 +1250,7 @@ class BaseActor(Base3DProp):
             rs.SetComputeTolerance(False)
             rs.SetTolerance(tol)
         rs.Update()
-        self._update(rs.GetOutput())
+        self.DeepCopy(rs.GetOutput())
         self.pipeline = utils.OperationNode(
             f"resample_data_from\n{source.__class__.__name__}", parents=[self, source]
         )
@@ -1266,7 +1266,7 @@ class BaseActor(Base3DProp):
         ids.SetPointIdsArrayName("PointID")
         ids.SetCellIdsArrayName("CellID")
         ids.Update()
-        self._update(ids.GetOutput())
+        self.DeepCopy(ids.GetOutput())
         self.pipeline = utils.OperationNode("add_ids", parents=[self])
         return self
 
@@ -1581,10 +1581,10 @@ class BaseGrid(BaseActor):
 
         # -----------------------------------------------------------
 
-    def _update(self, data):
-        self.mapper.SetInputData(self.tomesh())
-        self.mapper.Modified()
-        return self
+    # def _update(self, data):
+    #     self.mapper.SetInputData(self.tomesh())
+    #     self.mapper.Modified()
+    #     return self
 
     def tomesh(self, fill=True, shrink=1.0):
         """
@@ -1599,7 +1599,7 @@ class BaseGrid(BaseActor):
         gf = vtk.vtkGeometryFilter()
         if fill:
             sf = vtk.vtkShrinkFilter()
-            sf.SetInputData(self._data)
+            sf.SetInputData(self)
             sf.SetShrinkFactor(shrink)
             sf.Update()
             gf.SetInputData(sf.GetOutput())
@@ -1615,7 +1615,7 @@ class BaseGrid(BaseActor):
                 cleanPolyData.Update()
                 poly = cleanPolyData.GetOutput()
         else:
-            gf.SetInputData(self._data)
+            gf.SetInputData(self)
             gf.Update()
             poly = gf.GetOutput()
 
@@ -1640,7 +1640,7 @@ class BaseGrid(BaseActor):
 
         The output format is: `[[id0 ... idn], [id0 ... idm],  etc]`.
         """
-        arr1d = utils.vtk2numpy(self._data.GetCells().GetData())
+        arr1d = utils.vtk2numpy(self.GetCells().GetData())
         if arr1d is None:
             return []
 
@@ -1687,9 +1687,9 @@ class BaseGrid(BaseActor):
             return self
         
         if vmin is None:
-            vmin, _ = self._data.GetScalarRange()
+            vmin, _ = self.GetScalarRange()
         if vmax is None:
-            _, vmax = self._data.GetScalarRange()
+            _, vmax = self.GetScalarRange()
         ctf = self.property.GetRGBTransferFunction()
         ctf.RemoveAllPoints()
         self._color = col
@@ -1746,9 +1746,9 @@ class BaseGrid(BaseActor):
         will get an opacity of 40% and above 123 alpha is set to 90%.
         """
         if vmin is None:
-            vmin, _ = self._data.GetScalarRange()
+            vmin, _ = self.GetScalarRange()
         if vmax is None:
-            _, vmax = self._data.GetScalarRange()
+            _, vmax = self.GetScalarRange()
         otf = self.property.GetScalarOpacity()
         otf.RemoveAllPoints()
         self._alpha = alpha
@@ -1800,7 +1800,7 @@ class BaseGrid(BaseActor):
         sf.SetInputData(self)
         sf.SetShrinkFactor(fraction)
         sf.Update()
-        self._update(sf.GetOutput())
+        self.DeepCopy(sf.GetOutput())
         self.pipeline = utils.OperationNode(
             "shrink", comment=f"by {fraction}", parents=[self], c="#9e2a2b"
         )
@@ -1818,7 +1818,7 @@ class BaseGrid(BaseActor):
 
                 ![](https://vedo.embl.es/images/volumetric/isosurfaces.png)
         """
-        scrange = self._data.GetScalarRange()
+        scrange = self.GetScalarRange()
 
         if flying_edges:
             cf = vtk.vtkFlyingEdges3D()
@@ -1827,7 +1827,7 @@ class BaseGrid(BaseActor):
             cf = vtk.vtkContourFilter()
             cf.UseScalarTreeOn()
 
-        cf.SetInputData(self._data)
+        cf.SetInputData(self)
         cf.ComputeNormalsOn()
 
         if utils.is_sequence(value):
@@ -1878,11 +1878,11 @@ class BaseGrid(BaseActor):
                 ![](https://vedo.embl.es/images/volumetric/56820682-da40e500-684c-11e9-8ea3-91cbcba24b3a.png)
         """
         dataset = vtk.vtkImplicitDataSet()
-        dataset.SetDataSet(self._data)
+        dataset.SetDataSet(self)
         window = vtk.vtkImplicitWindowFunction()
         window.SetImplicitFunction(dataset)
 
-        srng = list(self._data.GetScalarRange())
+        srng = list(self.GetScalarRange())
         if vmin is not None:
             srng[0] = vmin
         if vmax is not None:
@@ -1893,7 +1893,7 @@ class BaseGrid(BaseActor):
         window.SetWindowRange(srng)
 
         extract = vtk.vtkExtractGeometry()
-        extract.SetInputData(self._data)
+        extract.SetInputData(self)
         extract.SetImplicitFunction(window)
         extract.SetExtractInside(invert)
         extract.SetExtractBoundaryCells(boundary)
@@ -1936,7 +1936,7 @@ class BaseGrid(BaseActor):
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
         clipper = vtk.vtkClipDataSet()
-        clipper.SetInputData(self._data)
+        clipper.SetInputData(self)
         clipper.SetClipFunction(plane)
         clipper.GenerateClipScalarsOff()
         clipper.GenerateClippedOutputOff()
@@ -1947,14 +1947,14 @@ class BaseGrid(BaseActor):
         if isinstance(cout, vtk.vtkUnstructuredGrid):
             ug = vedo.UGrid(cout)
             if isinstance(self, vedo.UGrid):
-                self._update(cout)
+                self.DeepCopy(cout)
                 self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
                 return self
             ug.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
             return ug
 
         else:
-            self._update(cout)
+            self.DeepCopy(cout)
             self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
             return self
 
@@ -1979,7 +1979,7 @@ class BaseGrid(BaseActor):
         #     raise RuntimeError("cut_with_box() is not applicable to Volume objects.")    
 
         bc = vtk.vtkBoxClipDataSet()
-        bc.SetInputData(self._data)
+        bc.SetInputData(self)
         if isinstance(box, vtk.vtkProp):
             boxb = box.GetBounds()
         else:
@@ -1991,14 +1991,14 @@ class BaseGrid(BaseActor):
         if isinstance(cout, vtk.vtkUnstructuredGrid):
             ug = vedo.UGrid(cout)
             if isinstance(self, vedo.UGrid):
-                self._update(cout)
+                self.DeepCopy(cout)
                 self.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
                 return self
             ug.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
             return ug
 
         else:
-            self._update(cout)
+            self.DeepCopy(cout)
             self.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
             return self
 
@@ -2012,7 +2012,7 @@ class BaseGrid(BaseActor):
         # if isinstance(self, vedo.Volume):
         #     raise RuntimeError("cut_with_mesh() is not applicable to Volume objects.")    
 
-        ug = self._data
+        ug = self
 
         ippd = vtk.vtkImplicitPolyDataDistance()
         ippd.SetInput(mesh)
@@ -2058,14 +2058,14 @@ class BaseGrid(BaseActor):
         if isinstance(cout, vtk.vtkUnstructuredGrid):
             ug = vedo.UGrid(cout)
             if isinstance(self, vedo.UGrid):
-                self._update(cout)
+                self.DeepCopy(cout)
                 self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
                 return self
             ug.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
             return ug
 
         else:
-            self._update(cout)
+            self.DeepCopy(cout)
             self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
             return self
 
@@ -2074,7 +2074,7 @@ class BaseGrid(BaseActor):
         Extract cells that are lying of the specified surface.
         """
         bf = vtk.vtk3DLinearGridCrinkleExtractor()
-        bf.SetInputData(self._data)
+        bf.SetInputData(self)
         bf.CopyPointDataOn()
         bf.CopyCellDataOn()
         bf.RemoveUnusedPointsOff()
@@ -2085,11 +2085,11 @@ class BaseGrid(BaseActor):
         bf.SetImplicitFunction(plane)
         bf.Update()
 
-        self._update(bf.GetOutput())
+        self.DeepCopy(bf.GetOutput())
         self.pipeline = utils.OperationNode(
             "extract_cells_on_plane",
             parents=[self],
-            comment=f"#cells {self._data.GetNumberOfCells()}",
+            comment=f"#cells {self.GetNumberOfCells()}",
             c="#9e2a2b",
         )
         return self
@@ -2099,7 +2099,7 @@ class BaseGrid(BaseActor):
         Extract cells that are lying of the specified surface.
         """
         bf = vtk.vtk3DLinearGridCrinkleExtractor()
-        bf.SetInputData(self._data)
+        bf.SetInputData(self)
         bf.CopyPointDataOn()
         bf.CopyCellDataOn()
         bf.RemoveUnusedPointsOff()
@@ -2110,11 +2110,11 @@ class BaseGrid(BaseActor):
         bf.SetImplicitFunction(sph)
         bf.Update()
 
-        self._update(bf.GetOutput())
+        self.DeepCopy(bf.GetOutput())
         self.pipeline = utils.OperationNode(
             "extract_cells_on_sphere",
             parents=[self],
-            comment=f"#cells {self._data.GetNumberOfCells()}",
+            comment=f"#cells {self.GetNumberOfCells()}",
             c="#9e2a2b",
         )
         return self
@@ -2124,7 +2124,7 @@ class BaseGrid(BaseActor):
         Extract cells that are lying of the specified surface.
         """
         bf = vtk.vtk3DLinearGridCrinkleExtractor()
-        bf.SetInputData(self._data)
+        bf.SetInputData(self)
         bf.CopyPointDataOn()
         bf.CopyCellDataOn()
         bf.RemoveUnusedPointsOff()
@@ -2139,10 +2139,10 @@ class BaseGrid(BaseActor):
         self.pipeline = utils.OperationNode(
             "extract_cells_on_cylinder",
             parents=[self],
-            comment=f"#cells {self._data.GetNumberOfCells()}",
+            comment=f"#cells {self.GetNumberOfCells()}",
             c="#9e2a2b",
         )
-        self._update(bf.GetOutput())
+        self.DeepCopy(bf.GetOutput())
         return self
 
     def clean(self):
@@ -2150,15 +2150,15 @@ class BaseGrid(BaseActor):
         Cleanup unused points and empty cells
         """
         cl = vtk.vtkStaticCleanUnstructuredGrid()
-        cl.SetInputData(self._data)
+        cl.SetInputData(self)
         cl.RemoveUnusedPointsOn()
         cl.ProduceMergeMapOff()
         cl.AveragePointDataOff()
         cl.Update()
 
-        self._update(cl.GetOutput())
+        self.DeepCopy(cl.GetOutput())
         self.pipeline = utils.OperationNode(
-            "clean", parents=[self], comment=f"#cells {self._data.GetNumberOfCells()}", c="#9e2a2b"
+            "clean", parents=[self], comment=f"#cells {self.GetNumberOfCells()}", c="#9e2a2b"
         )
         return self
 
@@ -2170,7 +2170,7 @@ class BaseGrid(BaseActor):
         subId = vtk.mutable(0)
         pcoords = [0, 0, 0]
         weights = [0, 0, 0]
-        cid = self._data.FindCell(p, cell, cellId, tol2, subId, pcoords, weights)
+        cid = self.FindCell(p, cell, cellId, tol2, subId, pcoords, weights)
         return cid
 
     def extract_cells_by_id(self, idlist, use_point_ids=False):
@@ -2188,7 +2188,7 @@ class BaseGrid(BaseActor):
         selection = vtk.vtkSelection()
         selection.AddNode(selectionNode)
         es = vtk.vtkExtractSelection()
-        es.SetInputData(0, self._data)
+        es.SetInputData(0, self)
         es.SetInputData(1, selection)
         es.Update()
 
@@ -2207,7 +2207,7 @@ class BaseGrid(BaseActor):
         ug.pipeline = utils.OperationNode(
             "extract_cells_by_id",
             parents=[self],
-            comment=f"#cells {self._data.GetNumberOfCells()}",
+            comment=f"#cells {self.GetNumberOfCells()}",
             c="#9e2a2b",
         )
         return ug

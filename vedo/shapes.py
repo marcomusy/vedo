@@ -211,15 +211,14 @@ class Glyph(Mesh):
         lighting = None
         if utils.is_sequence(mesh):
             # create a cloud of points
-            poly = Points(mesh).polydata()
+            poly = Points(mesh)
         elif isinstance(mesh, vtk.vtkPolyData):
             poly = mesh
         else:
-            poly = mesh.polydata()
+            poly = mesh
 
         if isinstance(glyph, Points):
             lighting = glyph.property.GetLighting()
-            glyph = glyph.polydata()
 
         cmap = ""
         if isinstance(c, str) and c in cmaps_names:
@@ -292,12 +291,12 @@ class Glyph(Mesh):
             for i in range(512):
                 r, g, b = color_map(i, cmap, 0, 512)
                 lut.SetTableValue(i, r, g, b, 1)
-            self.mapper().SetLookupTable(lut)
-            self.mapper().ScalarVisibilityOn()
-            self.mapper().SetScalarModeToUsePointData()
+            self.mapper.SetLookupTable(lut)
+            self.mapper.ScalarVisibilityOn()
+            self.mapper.SetScalarModeToUsePointData()
             if gly.GetOutput().GetPointData().GetScalars():
                 rng = gly.GetOutput().GetPointData().GetScalars().GetRange()
-                self.mapper().SetScalarRange(rng[0], rng[1])
+                self.mapper.SetScalarRange(rng[0], rng[1])
 
         self.name = "Glyph"
 
@@ -362,7 +361,7 @@ class Tensors(Mesh):
             ![](https://vedo.embl.es/images/volumetric/tensor_grid.png)
         """
         if isinstance(source, Points):
-            src = source.normalize().polydata(False)
+            src = source.normalize()
         else:
             if "ellip" in source:
                 src = vtk.vtkSphereSource()
@@ -582,7 +581,7 @@ class Line(Mesh):
                     image.SetScalarComponentFromFloat(i_dim, 0, 0, 3, 255)
                 i_dim += 1
 
-        polyData = self.polydata(False)
+        polyData = self
 
         # Create texture coordinates
         tcoords = vtk.vtkDoubleArray()
@@ -691,7 +690,7 @@ class Line(Mesh):
             ```
             ![](https://vedo.embl.es/images/feats/sweepline.png)
         """
-        line = self.polydata()
+        line = self
         rows = line.GetNumberOfPoints()
 
         spacing = 1 / res
@@ -1312,7 +1311,7 @@ class NormalLines(Mesh):
 
     def __init__(self, msh, ratio=1, on="cells", scale=1.0):
 
-        poly = msh.clone().compute_normals().polydata()
+        poly = msh.clone().compute_normals()
 
         if "cell" in on:
             centers = vtk.vtkCellCenters()
@@ -1349,7 +1348,7 @@ class NormalLines(Mesh):
         self.actor.SetProperty(prop)
         self.property = prop
         self.property.LightingOff()
-        self.mapper().ScalarVisibilityOff()
+        self.mapper.ScalarVisibilityOff()
         self.name = "NormalLines"
 
 
@@ -1518,9 +1517,9 @@ def StreamLines(
 
     if isinstance(domain, vedo.Points):
         if extrapolate_to_box:
-            grid = _interpolate2vol(domain.polydata(), **extrapolate_to_box)
+            grid = _interpolate2vol(domain, **extrapolate_to_box)
         else:
-            grid = domain.polydata()
+            grid = domain
     elif isinstance(domain, vedo.BaseVolume):
         grid = domain.inputdata()
     else:
@@ -1621,9 +1620,9 @@ def StreamLines(
 
         scals = grid.GetPointData().GetScalars()
         if scals:
-            sta.mapper().SetScalarRange(scals.GetRange())
+            sta.mapper.SetScalarRange(scals.GetRange())
         if scalar_range is not None:
-            sta.mapper().SetScalarRange(scalar_range)
+            sta.mapper.SetScalarRange(scalar_range)
 
         sta.phong()
         sta.name = "StreamLines"
@@ -1635,14 +1634,14 @@ def StreamLines(
 
     if lw is not None and len(tubes) == 0 and not ribbons:
         sta.lw(lw)
-        sta.mapper().SetResolveCoincidentTopologyToPolygonOffset()
+        sta.mapper.SetResolveCoincidentTopologyToPolygonOffset()
         sta.lighting("off")
 
     scals = grid.GetPointData().GetScalars()
     if scals:
-        sta.mapper().SetScalarRange(scals.GetRange())
+        sta.mapper.SetScalarRange(scals.GetRange())
     if scalar_range is not None:
-        sta.mapper().SetScalarRange(scalar_range)
+        sta.mapper.SetScalarRange(scalar_range)
 
     sta.name = "StreamLines"
     return sta
@@ -1719,10 +1718,10 @@ class Tube(Mesh):
         Mesh.__init__(self, tuf.GetOutput(), c, alpha)
         self.phong()
         if usingColScals:
-            self.mapper().SetScalarModeToUsePointFieldData()
-            self.mapper().ScalarVisibilityOn()
-            self.mapper().SelectColorArray("TubeColors")
-            self.mapper().Modified()
+            self.mapper.SetScalarModeToUsePointFieldData()
+            self.mapper.ScalarVisibilityOn()
+            self.mapper.SelectColorArray("TubeColors")
+            self.mapper.Modified()
 
         self.base = base
         self.top = top
@@ -1828,7 +1827,7 @@ class Ribbon(Mesh):
             #############################################
             ribbon_filter = vtk.vtkRibbonFilter()
             aline = Line(line1)
-            ribbon_filter.SetInputData(aline.polydata())
+            ribbon_filter.SetInputData(aline)
             if width is None:
                 width = aline.diagonal_size() / 20.0
             ribbon_filter.SetWidth(width)
@@ -2277,7 +2276,7 @@ class Arrows2D(Glyph):
         Glyph.__init__(
             self,
             pts,
-            arr.polydata(False),
+            arr,
             orientation_array=orients,
             scale_by_vector_size=True,
             c=c,
@@ -2793,9 +2792,9 @@ class Spheres(Mesh):
         self.top = centers[-1]
         self.phong()
         if cisseq:
-            self.mapper().ScalarVisibilityOn()
+            self.mapper.ScalarVisibilityOn()
         else:
-            self.mapper().ScalarVisibilityOff()
+            self.mapper.ScalarVisibilityOff()
             self.property.SetColor(get_color(c))
         self.name = "Spheres"
 
@@ -3386,7 +3385,7 @@ class Spring(Mesh):
         diff = diff / length
         theta = np.arccos(diff[2])
         phi = np.arctan2(diff[1], diff[0])
-        sp = Line(pts).polydata(False)
+        sp = Line(pts)
         t = vtk.vtkTransform()
         t.RotateZ(np.rad2deg(phi))
         t.RotateY(np.rad2deg(theta))
@@ -3586,7 +3585,7 @@ class Paraboloid(Mesh):
 
         Mesh.__init__(self, contours.GetOutput(), c, alpha)
         self.compute_normals().phong()
-        self.mapper().ScalarVisibilityOff()
+        self.mapper.ScalarVisibilityOff()
         self.actor.SetPosition(pos)
         self.name = "Paraboloid"
 
@@ -3619,7 +3618,7 @@ class Hyperboloid(Mesh):
 
         Mesh.__init__(self, contours.GetOutput(), c, alpha)
         self.compute_normals().phong()
-        self.mapper().ScalarVisibilityOff()
+        self.mapper.ScalarVisibilityOff()
         self.actor.SetPosition(pos)
         self.name = "Hyperboloid"
 
@@ -3787,10 +3786,10 @@ class Brace(Mesh):
             cmt.rotate_z(90 + angle)
             cmt.scale(1 / (cx1 - cx0) * s * len(comment) / 5)
             cmt.shift(x1 * (1 + padding2), 0, 0)
-            poly = merge(br, cmt).polydata()
+            poly = merge(br, cmt)
 
         else:
-            poly = br.polydata()
+            poly = br
 
         tr = vtk.vtkTransform()
         tr.RotateZ(angler)
@@ -3847,15 +3846,14 @@ class Cross3D(Mesh):
         """
         Build a 3D cross shape, mainly useful as a 3D marker.
         """
+        if len(pos) == 2:
+            pos = (pos[0], pos[1], 0)
+
         c1 = Cylinder(r=thickness * s, height=2 * s)
         c2 = Cylinder(r=thickness * s, height=2 * s).rotate_x(90)
         c3 = Cylinder(r=thickness * s, height=2 * s).rotate_y(90)
-        poly = merge(c1, c2, c3).color(c).alpha(alpha).polydata(False)
+        poly = merge(c1, c2, c3).color(c).alpha(alpha).pos(pos)
         Mesh.__init__(self, poly, c, alpha)
-
-        if len(pos) == 2:
-            pos = (pos[0], pos[1], 0)
-        self.actor.SetPosition(pos)
         self.name = "Cross3D"
 
 
@@ -4574,7 +4572,7 @@ class Text2D(TextBase, vtk.vtkActor2D):
         TextBase.__init__(self)
 
         self.mapper = vtk.vtkTextMapper()
-        self.actor.SetMapper(self.mapper)
+        self.SetMapper(self.mapper)
 
         self.property = self.mapper.GetTextProperty()
 
@@ -4594,7 +4592,7 @@ class Text2D(TextBase, vtk.vtkActor2D):
 
         self.font(font).color(c).background(bg, alpha).bold(bold).italic(italic)
         self.pos(pos, justify).size(s).text(txt).line_spacing(1.2).line_offset(5)
-        self.actor.PickableOff()
+        self.PickableOff()
 
     def pos(self, pos="top-left", justify=""):
         """
@@ -4650,7 +4648,7 @@ class Text2D(TextBase, vtk.vtkActor2D):
         if "right" in justify:
             self.property.SetJustificationToRight()
 
-        self.actor.SetPosition(pos)
+        self.SetPosition(pos)
         return self
 
     def text(self, txt=None):
@@ -4860,7 +4858,7 @@ class ConvexHull(Mesh):
             mesh = Points(pts)
         else:
             mesh = pts
-        apoly = mesh.clean().polydata()
+        apoly = mesh.clean()
 
         # Create the convex hull of the pointcloud
         z0, z1 = mesh.zbounds()

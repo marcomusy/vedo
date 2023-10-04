@@ -897,7 +897,7 @@ def ScalarBar(
             return None
         lut = vtkscalars.GetLookupTable()
         if not lut:
-            lut = obj.mapper().GetLookupTable()
+            lut = obj.mapper.GetLookupTable()
             if not lut:
                 return None
 
@@ -1064,11 +1064,11 @@ def ScalarBar3D(
     """
 
     if isinstance(obj, Points):
-        lut = obj.mapper().GetLookupTable()
+        lut = obj.mapper.GetLookupTable()
         if not lut or lut.GetTable().GetNumberOfTuples() == 0:
             # create the most similar to the default
             obj.cmap("jet_r")
-            lut = obj.mapper().GetLookupTable()
+            lut = obj.mapper.GetLookupTable()
         vmin, vmax = lut.GetRange()
 
     elif isinstance(obj, (Volume, TetMesh)):
@@ -1707,7 +1707,7 @@ class BaseCutter:
         self.mesh._update(cpoly)
 
         out = self.clipper.GetClippedOutputPort()
-        self.remnant.mapper().SetInputConnection(out)  
+        self.remnant.mapper.SetInputConnection(out)  
         self.remnant.alpha(self._alpha).color((0.5, 0.5, 0.5))
         self.remnant.lighting('off').wireframe()
         plt.add(self.remnant)
@@ -2413,8 +2413,8 @@ def Ruler(
 
     acts = [lb, lc1, lc2, c1, c2, ml1, ml2]
     macts = merge(acts).pos(p1).c(c).alpha(alpha)
-    macts.GetProperty().LightingOff()
-    macts.GetProperty().SetLineWidth(lw)
+    macts.property.LightingOff()
+    macts.property.SetLineWidth(lw)
     macts.actor.UseBoundsOff()
     macts.base = q1
     macts.top = q2
@@ -3941,7 +3941,7 @@ def Axes(
     for a in acts:
         a.actor.PickableOff()
         a.actor.AddPosition(orig)
-        a.actor.GetProperty().LightingOff()
+        a.property.LightingOff()
     asse = Assembly(acts)
     asse.SetOrigin(orig)
     asse.PickableOff()
@@ -4128,7 +4128,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
             a.actor.PickableOff()
         ass = Assembly(acts)
         ass.PickableOff()
-        plt.renderer.AddActor(ass)
+        plt.add(ass)
         plt.axes_instances[r] = ass
 
     elif plt.axes == 4:
@@ -4236,9 +4236,8 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         oc_actor.GetProperty().SetColor(lc)
         oc_actor.PickableOff()
         oc_actor.UseBoundsOn()
-        plt.renderer.AddActor(oc_actor)
         plt.axes_instances[r] = oc_actor
-        plt.renderer.AddActor(oc_actor)
+        plt.add(oc_actor)
 
     elif plt.axes == 7:
         vbb = compute_visible_bounds()[0]
@@ -4247,8 +4246,8 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         if not rulax:
             return None
         rulax.actor.UseBoundsOn()
-        rulax.PickableOff()
-        plt.renderer.AddActor(rulax)
+        rulax.actor.PickableOff()
+        plt.add(rulax)
 
     elif plt.axes == 8:
         vbb = compute_visible_bounds()[0]
@@ -4269,7 +4268,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         ca.PickableOff()
         ca.UseBoundsOff()
         plt.axes_instances[r] = ca
-        plt.renderer.AddActor(ca)
+        plt.add(ca)
 
     elif plt.axes == 9:
         vbb = compute_visible_bounds()[0]
@@ -4280,10 +4279,10 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         src.Update()
         ca = Mesh(src.GetOutput(), c, 0.5).wireframe(True)
         ca.pos((vbb[0] + vbb[1]) / 2, (vbb[3] + vbb[2]) / 2, (vbb[5] + vbb[4]) / 2)
-        ca.PickableOff()
+        ca.actor.PickableOff()
         ca.actor.UseBoundsOff()
         plt.axes_instances[r] = ca
-        plt.renderer.AddActor(ca)
+        plt.add(ca)
 
     elif plt.axes == 10:
         vbb = compute_visible_bounds()[0]
@@ -4301,7 +4300,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         ca = xc + yc + zc
         ca.PickableOff()
         ca.UseBoundsOn()
-        plt.renderer.AddActor(ca)
+        plt.add(ca)
         plt.axes_instances[r] = ca
 
     elif plt.axes == 11:
@@ -4312,7 +4311,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         gr.lighting("off").actor.PickableOff()
         gr.actor.UseBoundsOff()
         plt.axes_instances[r] = gr
-        plt.renderer.AddActor(gr)
+        plt.add(gr)
 
     elif plt.axes == 12:
         polaxes = vtk.vtkPolarAxesActor()
@@ -4343,7 +4342,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         polaxes.UseBoundsOn()
         polaxes.actor.PickableOff()
         plt.axes_instances[r] = polaxes
-        plt.renderer.AddActor(polaxes)
+        plt.add(polaxes)
 
     elif plt.axes == 13:
         # draws a simple ruler at the bottom of the window
@@ -4368,7 +4367,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         # if not plt.renderer.GetActiveCamera().GetParallelProjection():
         #     vedo.logger.warning("Axes type 13 should be used with parallel projection")
         plt.axes_instances[r] = ls
-        plt.renderer.AddActor(ls)
+        plt.add(ls)
 
     elif plt.axes == 14:
         try:

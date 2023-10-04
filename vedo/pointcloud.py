@@ -599,9 +599,9 @@ def pca_ellipse(points, pvalue=0.673, res=60):
     elli = vedo.shapes.Circle(alpha=0.75, res=res)
 
     # assign the transformation
-    elli.SetScale(vtra.GetScale())
-    elli.SetOrientation(vtra.GetOrientation())
-    elli.SetPosition(vtra.GetPosition())
+    # elli.SetScale(vtra.GetScale())
+    # elli.SetOrientation(vtra.GetOrientation())
+    # elli.SetPosition(vtra.GetPosition())
 
     elli.center = np.array(vtra.GetPosition())
     elli.nr_of_points = n
@@ -669,9 +669,9 @@ def pca_ellipsoid(points, pvalue=0.673):
     vtra.SetMatrix(matri)
 
     # assign the transformation
-    elli.SetScale(vtra.GetScale())
-    elli.SetOrientation(vtra.GetOrientation())
-    elli.SetPosition(vtra.GetPosition())
+    # elli.SetScale(vtra.GetScale())
+    # elli.SetOrientation(vtra.GetOrientation())
+    # elli.SetPosition(vtra.GetPosition())
 
     elli.center = np.array(vtra.GetPosition())
     elli.nr_of_points = n
@@ -698,11 +698,10 @@ def Point(pos=(0, 0, 0), r=12, c="red", alpha=1.0):
     """
     if isinstance(pos, vtk.vtkActor):
         pos = pos.GetPosition()
-    pd = utils.buildPolyData([[0, 0, 0]])
     if len(pos) == 2:
         pos = (pos[0], pos[1], 0.0)
+    pd = utils.buildPolyData([pos])
     pt = Points(pd, r, c, alpha)
-    pt.SetPosition(pos)
     pt.name = "Point"
     return pt
 
@@ -992,7 +991,7 @@ class Points(BaseActor, vtk.vtkPolyData):
 
         if self.actor.GetBackfaceProperty():
             bfpr = vtk.vtkProperty()
-            bfpr.DeepCopy(self.GetBackfaceProperty())
+            bfpr.DeepCopy(self.actor.GetBackfaceProperty())
             cloned.actor.SetBackfaceProperty(bfpr)
 
         cloned.transform = self.transform
@@ -1206,17 +1205,17 @@ class Points(BaseActor, vtk.vtkPolyData):
             # we dont see glitches due to coplanar points
             # we leave a small tolerance of 0.1% in thickness
             x0, x1 = self.xbounds()
-            pts[:, 0] = (pts[:, 0] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[0]
+            pts[:, 0] = (pts[:, 0] - (x0 + x1) / 2) / 1000 + self.actor.GetOrigin()[0]
             shad.points(pts)
             shad.x(point)
         elif plane == 'y':
             x0, x1 = self.ybounds()
-            pts[:, 1] = (pts[:, 1] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[1]
+            pts[:, 1] = (pts[:, 1] - (x0 + x1) / 2) / 1000 + self.actor.GetOrigin()[1]
             shad.points(pts)
             shad.y(point)
         elif plane == "z":
             x0, x1 = self.zbounds()
-            pts[:, 2] = (pts[:, 2] - (x0 + x1) / 2) / 1000 + self.GetOrigin()[2]
+            pts[:, 2] = (pts[:, 2] - (x0 + x1) / 2) / 1000 + self.actor.GetOrigin()[2]
             shad.points(pts)
             shad.z(point)
         else:
@@ -1472,9 +1471,9 @@ class Points(BaseActor, vtk.vtkPolyData):
         if bfp:
             if opacity < 1:
                 self._bfprop = bfp
-                self.SetBackfaceProperty(None)
+                self.property.SetBackfaceProperty(None)
             else:
-                self.SetBackfaceProperty(self._bfprop)
+                self.property.SetBackfaceProperty(self._bfprop)
         return self
 
     def opacity(self, alpha=None):
@@ -1485,12 +1484,12 @@ class Points(BaseActor, vtk.vtkPolyData):
         """ Force the Mesh, Line or point cloud to be treated as opaque"""
         ## force the opaque pass, fixes picking in vtk9
         # but causes other bad troubles with lines..
-        self.SetForceOpaque(value)
+        self.actor.SetForceOpaque(value)
         return self
 
     def force_translucent(self, value=True):
         """ Force the Mesh, Line or point cloud to be treated as translucent"""
-        self.SetForceTranslucent(value)
+        self.actor.SetForceTranslucent(value)
         return self
 
     def point_size(self, value=None):
@@ -2150,7 +2149,7 @@ class Points(BaseActor, vtk.vtkPolyData):
 
         cnt = [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2]
 
-        box.SetOrigin(cnt)
+        # box.SetOrigin(cnt)
         box.scale([1 + padding, 1 + 2 * padding, 1])
         acts.append(box)
 
@@ -2181,11 +2180,11 @@ class Points(BaseActor, vtk.vtkPolyData):
         acts.append(con)
 
         macts = vedo.merge(acts).c(c).alpha(alpha)
-        macts.SetOrigin(pt)
+        # macts.SetOrigin(pt)
         macts.bc("tomato").pickable(False)
-        macts.GetProperty().LightingOff()
-        macts.GetProperty().SetLineWidth(lw)
-        macts.UseBoundsOff()
+        macts.property.LightingOff()
+        macts.property.SetLineWidth(lw)
+        macts.actor.UseBoundsOff()
         macts.name = "FlagPole"
         return macts
 

@@ -66,10 +66,12 @@ class Mesh(Points):
 
         inputtype = str(type(inputobj))
 
-        if inputobj is None:
-            pass
+        _data = inputobj
 
-        elif isinstance(inputobj, (Mesh, vtk.vtkActor)):
+        if inputobj is None:
+            _data = vtk.vtkPolyData()
+
+        elif isinstance(inputobj, vtk.vtkActor):
             _data = inputobj.GetMapper().GetInput()
             self.mapper.SetInputData(self)
             self.mapper.SetScalarVisibility(inputobj.GetMapper().GetScalarVisibility())
@@ -574,7 +576,7 @@ class Mesh(Points):
 
         self.property.SetColor(1, 1, 1)
         self.mapper.ScalarVisibilityOff()
-        self.SetTexture(tu)
+        self.actor.SetTexture(tu)
 
         if seam_threshold is not None:
             tname = self.GetPointData().GetTCoords().GetName()
@@ -1436,7 +1438,7 @@ class Mesh(Points):
         self.DeepCopy(sdf.GetOutput())
 
         self.pipeline = OperationNode(
-            "subdivide", parents=[self], comment=f"#pts {out.GetNumberOfPoints()}"
+            "subdivide", parents=[self], comment=f"#pts {self.GetNumberOfPoints()}"
         )
         return self
 
@@ -2101,16 +2103,12 @@ class Mesh(Points):
         rf.SetTranslation(zshift)
         rf.SetDeltaRadius(dR)
         rf.Update()
+
         m = Mesh(rf.GetOutput(), c=self.c(), alpha=self.alpha())
         prop = vtk.vtkProperty()
         prop.DeepCopy(self.property)
-        m.SetProperty(prop)
+        m.actor.SetProperty(prop)
         m.property = prop
-        # assign the same transformation
-        m.SetOrigin(self.GetOrigin())
-        m.SetScale(self.GetScale())
-        m.SetOrientation(self.GetOrientation())
-        m.SetPosition(self.GetPosition())
 
         m.compute_normals(cells=False).flat().lighting("default")
 
@@ -2298,7 +2296,7 @@ class Mesh(Points):
         bf.SetInputData(1, poly2)
         bf.Update()
         msh = Mesh(bf.GetOutput(), "k", 1).lighting("off")
-        msh.GetProperty().SetLineWidth(3)
+        msh.property.SetLineWidth(3)
         msh.name = "SurfaceIntersection"
 
         msh.pipeline = OperationNode(
@@ -2784,17 +2782,19 @@ class Mesh(Points):
 ####################################################
 class Follower(vedo.base.BaseActor, vtk.vtkFollower):
 
-    def __init__(self, actor, camera=None):
+    def __init__(self, objt, camera=None):
+        actor = objt.actor
+        mapper = objt.mapper
 
         vtk.vtkFollower.__init__(self)
         vedo.base.BaseActor.__init__(self)
 
-        self.name = actor.name
+        self.name = objt.name
         self._isfollower = False
 
-        self.SetMapper(actor.GetMapper())
+        self.SetMapper(mapper)
 
-        self.SetProperty(actor.GetProperty())
+        self.SetProperty(objt.property)
         self.SetBackfaceProperty(actor.GetBackfaceProperty())
         self.SetTexture(actor.GetTexture())
 

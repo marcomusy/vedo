@@ -28,7 +28,7 @@ printc("First Plotter actors:", plt1.actors, '\nPress enter again')
 ##################################################################
 # Can now create a brand new Plotter and show the old object in it
 plt2 = Plotter(title='Second Plotter instance', pos=(500,0))
-plt2.show(plt1.actors[0].color('red'))
+plt2.show(plt1.actors[0].data.color('red'))
 
 ##################################################################
 # Create a third new Plotter and then close the second

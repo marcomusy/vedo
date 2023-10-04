@@ -1503,7 +1503,7 @@ def print_info(obj):
             vedo.printc("no point or cell data is present.", c=c, bold=False)
 
     ################################
-    def _printvtkactor(objt):
+    def _print_vtkactor(objt):
         poly = objt
         actor = objt.actor
         pro = objt.property
@@ -1511,15 +1511,9 @@ def print_info(obj):
         if not actor.GetPickable():
             return
 
-        # mapper = actor.GetMapper()
-        # if hasattr(actor, "polydata"):
-        #     poly = actor
-        # else:
-        #     poly = mapper.GetInput()
-
-        pro = actor.GetProperty()
-        pos = actor.GetPosition()
-        bnds = actor.bounds()
+        pro = poly.property
+        pos = poly.pos()
+        bnds = poly.bounds()
         col = precision(pro.GetColor(), 3)
         alpha = pro.GetOpacity()
         npt = poly.GetNumberOfPoints()
@@ -1623,7 +1617,7 @@ def print_info(obj):
                 vedo.printc(f"\tmean: {tmea}", c=cf)
 
     elif isinstance(obj, vedo.Points):
-        _printvtkactor(obj)
+        _print_vtkactor(obj)
 
     elif isinstance(obj, vedo.Assembly):
         vedo.printc("Assembly".ljust(75), c="g", bold=True, invert=True)
@@ -1647,7 +1641,7 @@ def print_info(obj):
         for _ in range(obj.GetNumberOfPaths()):
             act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
             if isinstance(act, vtk.vtkActor):
-                _printvtkactor(act)
+                _print_vtkactor(act)
 
     elif isinstance(obj, vedo.TetMesh):
         cf = "m"
