@@ -152,9 +152,9 @@ class Mesh(Points):
             dataset = vedo.file_io.load(inputobj)
             self.filename = inputobj
             if "TetMesh" in str(type(dataset)):
-                _data = dataset.tomesh().polydata(False)
+                _data = dataset.tomesh()
             else:
-                _data = dataset.polydata(False)
+                _data = dataset
 
         else:
             try:
@@ -273,15 +273,15 @@ class Mesh(Points):
             help_text += f"<br/><code><i>({dots}{self.filename[-30:]})</i></code>"
 
         pdata = ""
-        if self._data.GetPointData().GetScalars():
-            if self._data.GetPointData().GetScalars().GetName():
-                name = self._data.GetPointData().GetScalars().GetName()
+        if self.GetPointData().GetScalars():
+            if self.GetPointData().GetScalars().GetName():
+                name = self.GetPointData().GetScalars().GetName()
                 pdata = "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
 
         cdata = ""
-        if self._data.GetCellData().GetScalars():
-            if self._data.GetCellData().GetScalars().GetName():
-                name = self._data.GetCellData().GetScalars().GetName()
+        if self.GetCellData().GetScalars():
+            if self.GetCellData().GetScalars().GetName():
+                name = self.GetCellData().GetScalars().GetName()
                 cdata = "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
 
         allt = [
@@ -317,14 +317,14 @@ class Mesh(Points):
 
         If ids is set, return only the faces of the given cells.
         """
-        arr1d = vtk2numpy(self._data.GetPolys().GetData())
+        arr1d = vtk2numpy(self.GetPolys().GetData())
         if arr1d is None:
             return []
 
         # Get cell connettivity ids as a 1D array. vtk format is:
         # [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
         if len(arr1d) == 0:
-            arr1d = vtk2numpy(self._data.GetStrips().GetData())
+            arr1d = vtk2numpy(self.GetStrips().GetData())
             if arr1d is None:
                 return []
 
@@ -357,7 +357,7 @@ class Mesh(Points):
         """
         # Get cell connettivity ids as a 1D array. The vtk format is:
         #    [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
-        arr1d = vtk2numpy(self.polydata(False).GetLines().GetData())
+        arr1d = vtk2numpy(self.GetLines().GetData())
 
         if arr1d is None:
             return []
@@ -384,7 +384,7 @@ class Mesh(Points):
         If ids is set, return only the edges of the given cells.
         """
         extractEdges = vtk.vtkExtractEdges()
-        extractEdges.SetInputData(self._data)
+        extractEdges.SetInputData(self)
         # eed.UseAllPointsOn()
         extractEdges.Update()
         lpoly = extractEdges.GetOutput()
@@ -452,7 +452,7 @@ class Mesh(Points):
 
             ![](https://vedo.embl.es/images/basic/texturecubes.png)
         """
-        pd = self.polydata(False)
+        pd = self
         outimg = None
 
         if tname is None:  # disable texture
@@ -577,7 +577,7 @@ class Mesh(Points):
         self.SetTexture(tu)
 
         if seam_threshold is not None:
-            tname = self._data.GetPointData().GetTCoords().GetName()
+            tname = self.GetPointData().GetTCoords().GetName()
             grad = self.gradient(tname)
             ugrad, vgrad = np.split(grad, 2, axis=1)
             ugradm, vgradm = vedo.utils.mag2(ugrad), vedo.utils.mag2(vgrad)
@@ -636,7 +636,7 @@ class Mesh(Points):
             If feature_angle is set to a float the Mesh can be modified, and it
             can have a different nr. of vertices from the original.
         """
-        poly = self.polydata(False)
+        poly = self
         pdnorm = vtk.vtkPolyDataNormals()
         pdnorm.SetInputData(poly)
         pdnorm.SetComputePointNormals(points)
@@ -650,7 +650,9 @@ class Mesh(Points):
             pdnorm.SetSplitting(False)
         # print(pdnorm.GetNonManifoldTraversal())
         pdnorm.Update()
-        return self._update(pdnorm.GetOutput())
+        self.GetPointData().SetNormals(pdnorm.GetOutput().GetPointData().GetNormals())
+        self.GetCellData().SetNormals(pdnorm.GetOutput().GetCellData().GetNormals())
+        return self
 
     def reverse(self, cells=True, normals=False):
         """
@@ -664,7 +666,7 @@ class Mesh(Points):
         - `normals=True` reverses the normals by multiplying the normal vector by -1
             (both point and cell normals, if present).
         """
-        poly = self.polydata(False)
+        poly = self
 
         if is_sequence(cells):
             for cell in cells:
@@ -683,9 +685,9 @@ class Mesh(Points):
             rev.ReverseNormalsOff()
         rev.SetInputData(poly)
         rev.Update()
-        out = self._update(rev.GetOutput())
-        out.pipeline = OperationNode("reverse", parents=[self])
-        return out
+        self.DeepCopy(rev.GetOutput())
+        self.pipeline = OperationNode("reverse", parents=[self])
+        return self
 
     def wireframe(self, value=True):
         """Set mesh's representation as wireframe or solid surface."""
@@ -727,7 +729,7 @@ class Mesh(Points):
         """
         Set/get mesh's backface color.
         """
-        backProp = self.GetBackfaceProperty()
+        backProp = self.actor.GetBackfaceProperty()
 
         if bc is None:
             if backProp:
@@ -742,7 +744,7 @@ class Mesh(Points):
 
         backProp.SetDiffuseColor(get_color(bc))
         backProp.SetOpacity(self.property.GetOpacity())
-        self.SetBackfaceProperty(backProp)
+        self.actor.SetBackfaceProperty(backProp)
         self.mapper.ScalarVisibilityOff()
         return self
 
@@ -783,7 +785,7 @@ class Mesh(Points):
         """Get/set the volume occupied by mesh."""
         mass = vtk.vtkMassProperties()
         mass.SetGlobalWarningDisplay(0)
-        mass.SetInputData(self.polydata())
+        mass.SetInputData(self)
         mass.Update()
         return mass.GetVolume()
 
@@ -795,7 +797,7 @@ class Mesh(Points):
         """
         mass = vtk.vtkMassProperties()
         mass.SetGlobalWarningDisplay(0)
-        mass.SetInputData(self.polydata())
+        mass.SetInputData(self)
         mass.Update()
         return mass.GetSurfaceArea()
 
@@ -805,7 +807,7 @@ class Mesh(Points):
         fe.BoundaryEdgesOn()
         fe.FeatureEdgesOff()
         fe.NonManifoldEdgesOn()
-        fe.SetInputData(self.polydata(False))
+        fe.SetInputData(self)
         fe.Update()
         ne = fe.GetOutput().GetNumberOfCells()
         return not bool(ne)
@@ -816,7 +818,7 @@ class Mesh(Points):
         fe.BoundaryEdgesOff()
         fe.FeatureEdgesOff()
         fe.NonManifoldEdgesOn()
-        fe.SetInputData(self.polydata(False))
+        fe.SetInputData(self)
         fe.Update()
         ne = fe.GetOutput().GetNumberOfCells()
         return not bool(ne)
@@ -898,7 +900,7 @@ class Mesh(Points):
             self.delete_cells(toremove)
 
         self.pipeline = OperationNode(
-            "non_manifold_faces", parents=[self], comment=f"#cells {self._data.GetNumberOfCells()}"
+            "non_manifold_faces", parents=[self], comment=f"#cells {self.GetNumberOfCells()}"
         )
         return self
 
@@ -911,15 +913,14 @@ class Mesh(Points):
             ![](https://vedo.embl.es/images/basic/shrink.png)
         """
         shrink = vtk.vtkShrinkPolyData()
-        shrink.SetInputData(self._data)
+        shrink.SetInputData(self)
         shrink.SetShrinkFactor(fraction)
         shrink.Update()
         self.point_locator = None
         self.cell_locator = None
-        out = self._update(shrink.GetOutput())
-
-        out.pipeline = OperationNode("shrink", parents=[self])
-        return out
+        self.DeepCopy(shrink.GetOutput())
+        self.pipeline = OperationNode("shrink", parents=[self])
+        return self
 
     def stretch(self, q1, q2):
         """
@@ -977,10 +978,8 @@ class Mesh(Points):
 
         See also: `join()`, `join_segments()`, `slice()`.
         """
-        poly = self._data
-
         fe = vtk.vtkFeatureEdges()
-        fe.SetInputData(poly)
+        fe.SetInputData(self)
         fe.BoundaryEdgesOn()
         fe.FeatureEdgesOff()
         fe.NonManifoldEdgesOff()
@@ -1022,12 +1021,14 @@ class Mesh(Points):
         polyapp.AddInputData(poly)
         polyapp.AddInputData(tf.GetOutput())
         polyapp.Update()
-        out = self._update(polyapp.GetOutput()).clean()
 
-        out.pipeline = OperationNode(
-            "capped", parents=[self], comment=f"#pts {out.inputdata().GetNumberOfPoints()}"
+        self.DeepCopy(polyapp.GetOutput())
+        self.clean()
+
+        self.pipeline = OperationNode(
+            "capped", parents=[self], comment=f"#pts {self.GetNumberOfPoints()}"
         )
-        return out
+        return self
 
     def join(self, polys=True, reset=False):
         """
@@ -1071,7 +1072,7 @@ class Mesh(Points):
         sf.SetPassThroughCellIds(True)
         sf.SetPassThroughPointIds(True)
         sf.SetJoinContiguousSegments(polys)
-        sf.SetInputData(self.polydata(False))
+        sf.SetInputData(self)
         sf.Update()
         if reset:
             poly = sf.GetOutput()
@@ -1085,13 +1086,15 @@ class Mesh(Points):
             poly = cpd.GetOutput()
             vpts = poly.GetCell(0).GetPoints().GetData()
             poly.GetPoints().SetData(vpts)
-            return self._update(poly)
+        else:
+            poly = sf.GetOutput()
+        
+        self.DeepCopy(poly)
 
-        out = self._update(sf.GetOutput())
-        out.pipeline = OperationNode(
-            "join", parents=[self], comment=f"#pts {out.inputdata().GetNumberOfPoints()}"
+        self.pipeline = OperationNode(
+            "join", parents=[self], comment=f"#pts {self.GetNumberOfPoints()}"
         )
-        return out
+        return self
 
     def join_segments(self, closed=True, tol=1e-03):
         """
@@ -1153,8 +1156,8 @@ class Mesh(Points):
             if len(joinedpts) > 1:
                 newline = vedo.shapes.Line(joinedpts, closed=closed)
                 newline.clean()
-                newline.SetProperty(self.GetProperty())
-                newline.property = self.GetProperty()
+                newline.actor.SetProperty(self.property)
+                newline.property = self.property
                 newline.pipeline = OperationNode(
                     "join_segments",
                     parents=[self],
@@ -1205,13 +1208,13 @@ class Mesh(Points):
                 if True, break input polylines into line segments.
                 If False, input lines will be ignored and the output will have no lines.
         """
-        if self._data.GetNumberOfPolys() or self._data.GetNumberOfStrips():
+        if self.GetNumberOfPolys() or self.GetNumberOfStrips():
             # print("vtkTriangleFilter")
             tf = vtk.vtkTriangleFilter()
             tf.SetPassLines(lines)
             tf.SetPassVerts(verts)
 
-        elif self._data.GetNumberOfLines():
+        elif self.GetNumberOfLines():
             # print("vtkContourTriangulator")
             tf = vtk.vtkContourTriangulator()
             tf.TriangulationErrorDisplayOn()
@@ -1220,40 +1223,42 @@ class Mesh(Points):
             vedo.logger.debug("input in triangulate() seems to be void! Skip.")
             return self
 
-        tf.SetInputData(self._data)
+        tf.SetInputData(self)
         tf.Update()
-        out = self._update(tf.GetOutput()).lw(0).lighting("default")
-        out.PickableOn()
+        self.DeepCopy(tf.GetOutput())
+        self.lw(0).lighting("default").pickable()
 
-        out.pipeline = OperationNode(
-            "triangulate", parents=[self], comment=f"#cells {out.inputdata().GetNumberOfCells()}"
+        self.pipeline = OperationNode(
+            "triangulate", parents=[self], comment=f"#cells {self.GetNumberOfCells()}"
         )
-        return out
+        return self
 
     def compute_cell_area(self, name="Area"):
         """Add to this mesh a cell data array containing the areas of the polygonal faces"""
         csf = vtk.vtkCellSizeFilter()
-        csf.SetInputData(self.polydata(False))
+        csf.SetInputData(self)
         csf.SetComputeArea(True)
         csf.SetComputeVolume(False)
         csf.SetComputeLength(False)
         csf.SetComputeVertexCount(False)
         csf.SetAreaArrayName(name)
         csf.Update()
-        return self._update(csf.GetOutput())
+        self.GetCellData().AddArray(csf.GetOutput().GetCellData().GetArray(name))
+        return self
 
     def compute_cell_vertex_count(self, name="VertexCount"):
         """Add to this mesh a cell data array containing the nr of vertices
         that a polygonal face has."""
         csf = vtk.vtkCellSizeFilter()
-        csf.SetInputData(self.polydata(False))
+        csf.SetInputData(self)
         csf.SetComputeArea(False)
         csf.SetComputeVolume(False)
         csf.SetComputeLength(False)
         csf.SetComputeVertexCount(True)
         csf.SetVertexCountArrayName(name)
         csf.Update()
-        return self._update(csf.GetOutput())
+        self.GetCellData().AddArray(csf.GetOutput().GetCellData().GetArray(name))
+        return self
 
     def compute_quality(self, metric=6):
         """
@@ -1302,12 +1307,11 @@ class Mesh(Points):
             ![](https://vedo.embl.es/images/advanced/meshquality.png)
         """
         qf = vtk.vtkMeshQuality()
-        qf.SetInputData(self.polydata(False))
+        qf.SetInputData(self)
         qf.SetTriangleQualityMeasure(metric)
         qf.SaveCellQualityOn()
         qf.Update()
-        pd = qf.GetOutput()
-        self._update(pd)
+        self.DeepCopy(qf.GetOutput())
         self.pipeline = OperationNode("compute_quality", parents=[self])
         return self
 
@@ -1330,7 +1334,7 @@ class Mesh(Points):
         vald = vtk.vtkCellValidator()
         if tol:
             vald.SetTolerance(tol)
-        vald.SetInputData(self._data)
+        vald.SetInputData(self)
         vald.Update()
         varr = vald.GetOutput().GetCellData().GetArray("ValidityState")
         return vtk2numpy(varr)
@@ -1353,10 +1357,10 @@ class Mesh(Points):
             ![](https://user-images.githubusercontent.com/32848391/51934810-c2e88c00-2404-11e9-8e7e-ca0b7984bbb7.png)
         """
         curve = vtk.vtkCurvatures()
-        curve.SetInputData(self._data)
+        curve.SetInputData(self)
         curve.SetCurvatureType(method)
         curve.Update()
-        self._update(curve.GetOutput())
+        self.DeepCopy(curve.GetOutput())
         self.mapper.ScalarVisibilityOn()
         return self
 
@@ -1381,12 +1385,12 @@ class Mesh(Points):
             ![](https://user-images.githubusercontent.com/32848391/68478872-3986a580-0231-11ea-8245-b68a683aa295.png)
         """
         ef = vtk.vtkElevationFilter()
-        ef.SetInputData(self.polydata())
+        ef.SetInputData(self)
         ef.SetLowPoint(low)
         ef.SetHighPoint(high)
         ef.SetScalarRange(vrange)
         ef.Update()
-        self._update(ef.GetOutput())
+        self.DeepCopy(ef.GetOutput())
         self.mapper.ScalarVisibilityOn()
         return self
 
@@ -1403,7 +1407,7 @@ class Mesh(Points):
                 Maximum Edge Length (applicable to Adaptive method only).
         """
         triangles = vtk.vtkTriangleFilter()
-        triangles.SetInputData(self._data)
+        triangles.SetInputData(self)
         triangles.Update()
         originalMesh = triangles.GetOutput()
         if method == 0:
@@ -1413,7 +1417,7 @@ class Mesh(Points):
         elif method == 2:
             sdf = vtk.vtkAdaptiveSubdivisionFilter()
             if mel is None:
-                mel = self.diagonal_size() / np.sqrt(self._data.GetNumberOfPoints()) / n
+                mel = self.diagonal_size() / np.sqrt(self.GetNumberOfPoints()) / n
             sdf.SetMaximumEdgeLength(mel)
         elif method == 3:
             sdf = vtk.vtkButterflySubdivisionFilter()
@@ -1428,12 +1432,13 @@ class Mesh(Points):
 
         sdf.SetInputData(originalMesh)
         sdf.Update()
-        out = sdf.GetOutput()
+
+        self.DeepCopy(sdf.GetOutput())
 
         self.pipeline = OperationNode(
             "subdivide", parents=[self], comment=f"#pts {out.GetNumberOfPoints()}"
         )
-        return self._update(out)
+        return self
 
     def decimate(self, fraction=0.5, n=None, method="quadric", boundaries=False):
         """
@@ -1454,7 +1459,7 @@ class Mesh(Points):
 
         .. note:: Setting `fraction=0.1` leaves 10% of the original number of vertices
         """
-        poly = self._data
+        poly = self
         if n:  # N = desired number of points
             npt = poly.GetNumberOfPoints()
             fraction = n / npt
@@ -1475,12 +1480,13 @@ class Mesh(Points):
         decimate.SetInputData(poly)
         decimate.SetTargetReduction(1 - fraction)
         decimate.Update()
-        out = decimate.GetOutput()
+
+        self.DeepCopy(decimate.GetOutput())
 
         self.pipeline = OperationNode(
             "decimate", parents=[self], comment=f"#pts {out.GetNumberOfPoints()}"
         )
-        return self._update(out)
+        return self
 
     def collapse_edges(self, distance, iterations=1):
         """Collapse mesh edges so that are all above distance."""
@@ -1512,7 +1518,7 @@ class Mesh(Points):
         self.compute_normals()
 
         self.pipeline = OperationNode(
-            "collapse_edges", parents=[self], comment=f"#pts {self._data.GetNumberOfPoints()}"
+            "collapse_edges", parents=[self], comment=f"#pts {self.GetNumberOfPoints()}"
         )
         return self
 
@@ -1537,7 +1543,7 @@ class Mesh(Points):
 
             ![](https://vedo.embl.es/images/advanced/mesh_smoother2.png)
         """
-        poly = self._data
+        poly = self
         cl = vtk.vtkCleanPolyData()
         cl.SetInputData(poly)
         cl.Update()
@@ -1552,12 +1558,13 @@ class Mesh(Points):
         smf.FeatureEdgeSmoothingOn()
         smf.SetBoundarySmoothing(boundary)
         smf.Update()
-        out = self._update(smf.GetOutput())
 
-        out.pipeline = OperationNode(
-            "smooth", parents=[self], comment=f"#pts {out.inputdata().GetNumberOfPoints()}"
+        self.DeepCopy(smf.GetOutput())
+
+        self.pipeline = OperationNode(
+            "smooth", parents=[self], comment=f"#pts {self.GetNumberOfPoints()}"
         )
-        return out
+        return self
 
 
     def fill_holes(self, size=None):
@@ -1578,18 +1585,19 @@ class Mesh(Points):
             mb = self.diagonal_size()
             size = mb / 10
         fh.SetHoleSize(size)
-        fh.SetInputData(self._data)
+        fh.SetInputData(self)
         fh.Update()
-        out = self._update(fh.GetOutput())
+        
+        self.DeepCopy(fh.GetOutput())
 
-        out.pipeline = OperationNode(
-            "fill_holes", parents=[self], comment=f"#pts {out.inputdata().GetNumberOfPoints()}"
+        self.pipeline = OperationNode(
+            "fill_holes", parents=[self], comment=f"#pts {self.GetNumberOfPoints()}"
         )
-        return out
+        return self
 
     def is_inside(self, point, tol=1e-05):
         """Return True if point is inside a polydata closed surface."""
-        poly = self.polydata()
+        poly = self
         points = vtk.vtkPoints()
         points.InsertNextPoint(point)
         pointsPolydata = vtk.vtkPolyData()
@@ -1618,7 +1626,7 @@ class Mesh(Points):
             ![](https://vedo.embl.es/images/basic/pca.png)
         """
         if isinstance(pts, Points):
-            pointsPolydata = pts.polydata()
+            pointsPolydata = pts
             ptsa = pts.points()
         else:
             ptsa = np.asarray(pts)
@@ -1631,7 +1639,7 @@ class Mesh(Points):
         # sep = vtk.vtkExtractEnclosedPoints()
         sep.SetTolerance(tol)
         sep.SetInputData(pointsPolydata)
-        sep.SetSurfaceData(self.polydata())
+        sep.SetSurfaceData(self)
         sep.SetInsideOut(invert)
         sep.Update()
 
@@ -1704,7 +1712,7 @@ class Mesh(Points):
 
         if return_point_ids or return_cell_ids:
             idf = vtk.vtkIdFilter()
-            idf.SetInputData(self.polydata())
+            idf.SetInputData(self)
             idf.SetPointIdsArrayName("BoundaryIds")
             idf.SetPointIds(True)
             idf.Update()
@@ -1736,7 +1744,7 @@ class Mesh(Points):
 
         else:
 
-            fe.SetInputData(self.polydata())
+            fe.SetInputData(self)
             fe.Update()
             msh = Mesh(fe.GetOutput(), c="p").lw(5).lighting("off")
 
@@ -1771,7 +1779,7 @@ class Mesh(Points):
             ![](https://vedo.embl.es/images/feats/imprint.png)
         """
         loop = vtk.vtkContourLoopExtraction()
-        loop.SetInputData(loopline.polydata())
+        loop.SetInputData(loopline)
         loop.Update()
 
         clean_loop = vtk.vtkCleanPolyData()
@@ -1779,18 +1787,19 @@ class Mesh(Points):
         clean_loop.Update()
 
         imp = vtk.vtkImprintFilter()
-        imp.SetTargetData(self.polydata())
+        imp.SetTargetData(self)
         imp.SetImprintData(clean_loop.GetOutput())
         imp.SetTolerance(tol)
         imp.BoundaryEdgeInsertionOn()
         imp.TriangulateOutputOn()
         imp.Update()
-        out = self._update(imp.GetOutput())
 
-        out.pipeline = OperationNode(
-            "imprint", parents=[self], comment=f"#pts {out.inputdata().GetNumberOfPoints()}"
+        self.DeepCopy(imp.GetOutput())
+
+        self.pipeline = OperationNode(
+            "imprint", parents=[self], comment=f"#pts {self.GetNumberOfPoints()}"
         )
-        return out
+        return self
 
     def connected_vertices(self, index):
         """Find all vertices connected to an input vertex specified by its index.
@@ -1800,7 +1809,7 @@ class Mesh(Points):
 
             ![](https://vedo.embl.es/images/basic/connVtx.png)
         """
-        poly = self._data
+        poly = self
 
         cell_idlist = vtk.vtkIdList()
         poly.GetPointCells(index, cell_idlist)
@@ -1823,7 +1832,7 @@ class Mesh(Points):
         """Find all cellls connected to an input vertex specified by its index."""
 
         # Find all cells connected to point index
-        dpoly = self._data
+        dpoly = self
         idlist = vtk.vtkIdList()
         dpoly.GetPointCells(index, idlist)
 
@@ -1875,7 +1884,7 @@ class Mesh(Points):
             ![](https://vedo.embl.es/images/basic/silhouette1.png)
         """
         sil = vtk.vtkPolyDataSilhouette()
-        sil.SetInputData(self.polydata())
+        sil.SetInputData(self)
         sil.SetBorderEdges(border_edges)
         if feature_angle is False:
             sil.SetEnableFeatureAngle(0)
@@ -1959,7 +1968,7 @@ class Mesh(Points):
         Examples:
             - [isolines.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/isolines.py)
         """
-        r0, r1 = self._data.GetScalarRange()
+        r0, r1 = self.GetScalarRange()
         if vmin is None:
             vmin = r0
         if vmax is None:
@@ -1987,7 +1996,7 @@ class Mesh(Points):
             lut.SetAnnotation(i, values.GetValue(i).ToString())
 
         bcf = vtk.vtkBandedPolyDataContourFilter()
-        bcf.SetInputData(self.polydata())
+        bcf.SetInputData(self)
         # Use either the minimum or maximum value for each band.
         for i, band in enumerate(bands):
             bcf.SetValue(i, band[2])
@@ -2020,8 +2029,8 @@ class Mesh(Points):
             ![](https://vedo.embl.es/images/pyplot/isolines.png)
         """
         bcf = vtk.vtkContourFilter()
-        bcf.SetInputData(self.polydata())
-        r0, r1 = self._data.GetScalarRange()
+        bcf.SetInputData(self)
+        r0, r1 = self.GetScalarRange()
         if vmin is None:
             vmin = r0
         if vmax is None:
@@ -2070,7 +2079,7 @@ class Mesh(Points):
         """
         if is_sequence(zshift):
             # ms = [] # todo
-            # poly0 = self.clone().polydata()
+            # poly0 = self.clone()
             # for i in range(len(zshift)-1):
             #     rf = vtk.vtkRotationalExtrusionFilter()
             #     rf.SetInputData(poly0)
@@ -2085,7 +2094,7 @@ class Mesh(Points):
 
         rf = vtk.vtkRotationalExtrusionFilter()
         # rf = vtk.vtkLinearExtrusionFilter()
-        rf.SetInputData(self.polydata(False))  # must not be transformed
+        rf.SetInputData(self)  # must not be transformed
         rf.SetResolution(res)
         rf.SetCapping(cap)
         rf.SetAngle(rotation)
@@ -2131,7 +2140,7 @@ class Mesh(Points):
 
             ![](https://vedo.embl.es/images/advanced/splitmesh.png)
         """
-        pd = self.polydata(False)
+        pd = self
         if must_share_edge:
             if pd.GetNumberOfPolys() == 0:
                 vedo.logger.warning("in split(): no polygons found. Skip.")
@@ -2152,7 +2161,8 @@ class Mesh(Points):
 
         if flag:
             self.pipeline = OperationNode("split mesh", parents=[self])
-            return self._update(out)
+            self.DeepCopy(out)
+            return self
 
         a = Mesh(out)
         if must_share_edge:
@@ -2201,7 +2211,7 @@ class Mesh(Points):
         conn = vtk.vtkPolyDataConnectivityFilter()
         conn.SetExtractionModeToLargestRegion()
         conn.ScalarConnectivityOff()
-        conn.SetInputData(self._data)
+        conn.SetInputData(self)
         conn.Update()
         m = Mesh(conn.GetOutput())
         pr = vtk.vtkProperty()
@@ -2241,8 +2251,8 @@ class Mesh(Points):
         else:
             raise ValueError(f"Unknown method={method}")
 
-        poly1 = self.compute_normals().polydata()
-        poly2 = mesh2.compute_normals().polydata()
+        poly1 = self.compute_normals()
+        poly2 = mesh2.compute_normals()
 
         if operation.lower() in ("plus", "+"):
             bf.SetOperationToUnion()
@@ -2281,8 +2291,8 @@ class Mesh(Points):
         """
         bf = vtk.vtkIntersectionPolyDataFilter()
         bf.SetGlobalWarningDisplay(0)
-        poly1 = self.polydata()
-        poly2 = mesh2.polydata()
+        poly1 = self
+        poly2 = mesh2
         bf.SetTolerance(tol)
         bf.SetInputData(0, poly1)
         bf.SetInputData(1, poly2)
@@ -2319,7 +2329,7 @@ class Mesh(Points):
 
         if not self.line_locator:
             self.line_locator = vtk.vtkOBBTree()
-            self.line_locator.SetDataSet(self.polydata())
+            self.line_locator.SetDataSet(self)
             if not tol:
                 tol = mag(np.asarray(p1) - np.asarray(p0)) / 10000
             self.line_locator.SetTolerance(tol)
@@ -2363,7 +2373,7 @@ class Mesh(Points):
         plane.SetNormal(normal)
 
         cutter = vtk.vtkPolyDataPlaneCutter()
-        cutter.SetInputData(self.polydata())
+        cutter.SetInputData(self)
         cutter.SetPlane(plane)
         cutter.InterpolateAttributesOn()
         cutter.ComputeNormalsOff()
@@ -2392,7 +2402,7 @@ class Mesh(Points):
     #         n : (int)
     #             number of cuts
     #     """
-    #     poly = self.polydata()
+    #     poly = self
 
     #     planes = vtk.vtkPlanes()
     #     planes.SetOrigin(numpy2vtk(origins))
@@ -2428,8 +2438,8 @@ class Mesh(Points):
 
         # ipdf.SetBoxTolerance(tol)
         ipdf.SetCellTolerance(tol)
-        ipdf.SetInputData(0, self.polydata())
-        ipdf.SetInputData(1, mesh2.polydata())
+        ipdf.SetInputData(0, self)
+        ipdf.SetInputData(1, mesh2)
         ipdf.SetTransform(0, transform0)
         ipdf.SetTransform(1, transform1)
         if return_bool:
@@ -2480,7 +2490,7 @@ class Mesh(Points):
             end = pa.closest_point(end, return_point_id=True)
 
         dijkstra = vtk.vtkDijkstraGraphGeodesicPath()
-        dijkstra.SetInputData(self.polydata())
+        dijkstra.SetInputData(self)
         dijkstra.SetStartVertex(end)  # inverted in vtk
         dijkstra.SetEndVertex(start)
         dijkstra.Update()
@@ -2545,7 +2555,7 @@ class Mesh(Points):
                 ![](https://vedo.embl.es/images/volumetric/mesh2volume.png)
         """
         # https://vtk.org/Wiki/VTK/Examples/Cxx/PolyData/PolyDataToImageData
-        pd = self.polydata()
+        pd = self
 
         whiteImage = vtk.vtkImageData()
         if direction_matrix:
@@ -2635,7 +2645,7 @@ class Mesh(Points):
         img.AllocateScalars(vtk.VTK_FLOAT, 1)
 
         imp = vtk.vtkImplicitPolyDataDistance()
-        imp.SetInput(self.polydata())
+        imp.SetInput(self)
         b2 = bounds[2]
         b4 = bounds[4]
         d0, d1, d2 = dims

@@ -39,6 +39,16 @@ class LinearTransform:
         if T is None:
             T = vtk.vtkTransform()
 
+        elif isinstance(T, vtk.vtkMatrix4x4):
+            S = vtk.vtkTransform()
+            S.SetMatrix(T)
+            T = S
+
+        elif isinstance(T, vtk.vtkLandmarkTransform):
+            S = vtk.vtkTransform()
+            S.SetMatrix(T.GetMatrix())
+            T = S
+
         elif _is_sequence(T):
             S = vtk.vtkTransform()
             M = vtk.vtkMatrix4x4()
@@ -48,10 +58,11 @@ class LinearTransform:
                     M.SetElement(i, j, T[i][j])
             S.SetMatrix(M)
             T = S
-
+        
         self.T = T
         self.T.PostMultiply()
         self.inverse_flag = False
+
 
     def __str__(self):
         return "Transformation Matrix 4x4:\n" + str(self.matrix)
@@ -83,7 +94,7 @@ class LinearTransform:
         obj.point_locator = None
         obj.cell_locator = None
         obj.line_locator = None
-        # obj.actor.SetOrigin(self.T.GetPosition())
+
 
     def reset(self):
         """Reset transformation."""

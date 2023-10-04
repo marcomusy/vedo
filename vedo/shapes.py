@@ -730,7 +730,7 @@ class Line(Mesh):
         surface.SetPolys(polys)
         asurface = vedo.Mesh(surface)
         prop = vtk.vtkProperty()
-        prop.DeepCopy(self.GetProperty())
+        prop.DeepCopy(self.property)
         asurface.SetProperty(prop)
         asurface.property = prop
         asurface.lighting("default")
@@ -1029,8 +1029,8 @@ class Lines(Mesh):
         Mesh.__init__(self, polylns.GetOutput(), c, alpha)
         self.lw(lw).lighting("off")
         if dotted:
-            self.GetProperty().SetLineStipplePattern(0xF0F0)
-            self.GetProperty().SetLineStippleRepeatFactor(1)
+            self.property.SetLineStipplePattern(0xF0F0)
+            self.property.SetLineStippleRepeatFactor(1)
 
         self.name = "Lines"
 
@@ -1345,7 +1345,7 @@ class NormalLines(Mesh):
 
         self.actor.PickableOff()
         prop = vtk.vtkProperty()
-        prop.DeepCopy(msh.GetProperty())
+        prop.DeepCopy(msh.property)
         self.actor.SetProperty(prop)
         self.property = prop
         self.property.LightingOff()
@@ -2337,7 +2337,7 @@ class Triangle(Mesh):
     def __init__(self, p1, p2, p3, c="green7", alpha=1.0):
         """Create a triangle from 3 points in space."""
         Mesh.__init__(self, [[p1, p2, p3], [[0, 1, 2]]], c, alpha)
-        self.GetProperty().LightingOff()
+        self.property.LightingOff()
         self.name = "Triangle"
 
 
@@ -2360,7 +2360,7 @@ class Polygon(Mesh):
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
         self.actor.SetPosition(pos)
-        self.GetProperty().LightingOff()
+        self.property.LightingOff()
         self.name = "Polygon " + str(nsides)
 
 
@@ -2796,7 +2796,7 @@ class Spheres(Mesh):
             self.mapper().ScalarVisibilityOn()
         else:
             self.mapper().ScalarVisibilityOff()
-            self.GetProperty().SetColor(get_color(c))
+            self.property.SetColor(get_color(c))
         self.name = "Spheres"
 
 
@@ -3829,7 +3829,7 @@ class Star3D(Mesh):
                [10,1, 0],[10,11, 9]]
 
         Mesh.__init__(self, [pts, fcs], c, alpha)
-        self.RotateX(90)
+        self.rotate_x(90)
         self.scale(r).lighting("shiny")
 
         if len(pos) == 2:
@@ -4912,15 +4912,15 @@ def VedoLogo(distance=0.0, c=None, bc="t", version=False, frame=True):
     font = "Comae"
     vlogo = Text3D("vэdo", font=font, s=1350, depth=0.2, c=c, hspacing=0.8)
     vlogo.scale([1, 0.95, 1]).x(-2525).pickable(False).bc(bc)
-    vlogo.GetProperty().LightingOn()
+    vlogo.property.LightingOn()
 
     vr, rul = None, None
     if version:
         vr = Text3D(
             vedo.__version__, font=font, s=165, depth=0.2, c=c, hspacing=1
         ).scale([1, 0.7, 1])
-        vr.RotateZ(90)
-        vr.pos(2450, 50, 80).bc(bc).pickable(False)
+        vr.rotate_z(90).pos(2450, 50, 80)
+        vr.bc(bc).pickable(False)
     elif frame:
         rul = vedo.RulerAxes(
             (-2600, 2110, 0, 1650, 0, 0),

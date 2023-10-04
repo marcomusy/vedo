@@ -316,9 +316,9 @@ class LegendBox(shapes.TextBase, vtk.vtkLegendBoxActor):
             else:
                 marker = markers[i] if utils.is_sequence(markers) else markers
                 if isinstance(marker, vedo.Points):
-                    poly = marker.clone(deep=False).normalize().shift(0, 1, 0).polydata()
+                    poly = marker.clone(deep=False).normalize().shift(0, 1, 0)
                 else:  # assume string marker
-                    poly = vedo.shapes.Marker(marker, s=1).shift(0, 1, 0).polydata()
+                    poly = vedo.shapes.Marker(marker, s=1).shift(0, 1, 0)
 
             self.SetEntry(n, poly, ti, col)
             n += 1
@@ -1781,7 +1781,7 @@ class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
 
         self._implicit_func = vtk.vtkPlane()
 
-        poly = mesh.polydata()
+        poly = mesh
         self.clipper = vtk.vtkClipPolyData()
         self.clipper.GenerateClipScalarsOff()
         self.clipper.SetInputData(poly)
@@ -1917,7 +1917,7 @@ class BoxCutter(vtk.vtkBoxWidget, BaseCutter):
         self._implicit_func = vtk.vtkPlanes()
         self._implicit_func.SetBounds(self._init_bounds)
 
-        poly = mesh.polydata()
+        poly = mesh
         self.clipper = vtk.vtkClipPolyData()
         self.clipper.GenerateClipScalarsOff()
         self.clipper.SetInputData(poly)
@@ -2031,7 +2031,7 @@ class SphereCutter(vtk.vtkSphereWidget, BaseCutter):
             radius = mesh.average_size() * 2
             self._implicit_func.SetRadius(radius)
             
-        poly = mesh.polydata()
+        poly = mesh
         self.clipper = vtk.vtkClipPolyData()
         self.clipper.GenerateClipScalarsOff()
         self.clipper.SetInputData(poly)
@@ -4220,9 +4220,9 @@ def add_global_axes(axtype=None, c=None, bounds=()):
                     largestact = a
                     sz = d
         if isinstance(largestact, Assembly):
-            ocf.SetInputData(largestact.unpack(0).GetMapper().GetInput())
+            ocf.SetInputData(largestact.unpack(0))
         else:
-            ocf.SetInputData(largestact.GetMapper().GetInput())
+            ocf.SetInputData(largestact)
         ocf.Update()
         oc_mapper = vtk.vtkHierarchicalPolyDataMapper()
         oc_mapper.SetInputConnection(0, ocf.GetOutputPort(0))

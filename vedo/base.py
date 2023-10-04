@@ -31,23 +31,23 @@ __all__ = [
 
 ###############################################################################
 class _DataArrayHelper:
+    # Internal use only.
     # Helper class to manage data associated to either
     # points (or vertices) and cells (or faces).
-    # Internal use only.
-    def __init__(self, actor, association):
-        self.actor = actor
+    def __init__(self, obj, association):
+        self.obj = obj
         self.association = association
 
     def __getitem__(self, key):
 
         if self.association == 0:
-            data = self.actor.GetPointData()
+            data = self.obj.GetPointData()
 
         elif self.association == 1:
-            data = self.actor.GetCellData()
+            data = self.obj.GetCellData()
 
         elif self.association == 2:
-            data = self.actor.GetFieldData()
+            data = self.obj.GetFieldData()
 
             varr = data.GetAbstractArray(key)
             if isinstance(varr, vtk.vtkStringArray):
@@ -72,17 +72,17 @@ class _DataArrayHelper:
     def __setitem__(self, key, input_array):
 
         if self.association == 0:
-            data = self.actor.GetPointData()
-            n = self.actor.GetNumberOfPoints()
-            self.mapper.SetScalarModeToUsePointData()
+            data = self.obj.GetPointData()
+            n = self.obj.GetNumberOfPoints()
+            self.obj.mapper.SetScalarModeToUsePointData()
 
         elif self.association == 1:
-            data = self.actor.GetCellData()
-            n = self.actor.GetNumberOfCells()
-            self.mapper.SetScalarModeToUseCellData()
+            data = self.obj.GetCellData()
+            n = self.obj.GetNumberOfCells()
+            self.obj.mapper.SetScalarModeToUseCellData()
 
         elif self.association == 2:
-            data = self.actor.GetFieldData()
+            data = self.obj.GetFieldData()
             if not utils.is_sequence(input_array):
                 input_array = [input_array]
 
@@ -140,11 +140,11 @@ class _DataArrayHelper:
     def keys(self):
         """Return the list of available data array names"""
         if self.association == 0:
-            data = self.actor.GetPointData()
+            data = self.obj.GetPointData()
         elif self.association == 1:
-            data = self.actor.GetCellData()
+            data = self.obj.GetCellData()
         elif self.association == 2:
-            data = self.actor.GetFieldData()
+            data = self.obj.GetFieldData()
         arrnames = []
         for i in range(data.GetNumberOfArrays()):
             name = data.GetArray(i).GetName()
@@ -155,20 +155,20 @@ class _DataArrayHelper:
     def remove(self, key):
         """Remove a data array by name or number"""
         if self.association == 0:
-            self.actor.GetPointData().RemoveArray(key)
+            self.obj.GetPointData().RemoveArray(key)
         elif self.association == 1:
-            self.actor.GetCellData().RemoveArray(key)
+            self.obj.GetCellData().RemoveArray(key)
         elif self.association == 2:
-            self.actor.GetFieldData().RemoveArray(key)
+            self.obj.GetFieldData().RemoveArray(key)
 
     def clear(self):
         """Remove all data associated to this object"""
         if self.association == 0:
-            data = self.actor.GetPointData()
+            data = self.obj.GetPointData()
         elif self.association == 1:
-            data = self.actor.GetCellData()
+            data = self.obj.GetCellData()
         elif self.association == 2:
-            data = self.actor.GetFieldData()
+            data = self.obj.GetFieldData()
         for i in range(data.GetNumberOfArrays()):
             name = data.GetArray(i).GetName()
             data.RemoveArray(name)
@@ -176,11 +176,11 @@ class _DataArrayHelper:
     def rename(self, oldname, newname):
         """Rename an array"""
         if self.association == 0:
-            varr = self.actor.GetPointData().GetArray(oldname)
+            varr = self.obj.GetPointData().GetArray(oldname)
         elif self.association == 1:
-            varr = self.actor.GetCellData().GetArray(oldname)
+            varr = self.obj.GetCellData().GetArray(oldname)
         elif self.association == 2:
-            varr = self.actor.GetFieldData().GetArray(oldname)
+            varr = self.obj.GetFieldData().GetArray(oldname)
         if varr:
             varr.SetName(newname)
         else:
@@ -218,8 +218,8 @@ class _DataArrayHelper:
             data.SetActiveTensors(key)
 
         try:
-            self.actor.mapper.SetArrayName(key)
-            self.actor.mapper.ScalarVisibilityOn()
+            self.obj.mapper.SetArrayName(key)
+            self.obj.mapper.ScalarVisibilityOn()
             # .. could be a volume mapper
         except AttributeError:
             pass
@@ -227,11 +227,11 @@ class _DataArrayHelper:
     def select_scalars(self, key):
         """Select one specific scalar array by its name to make it the `active` one."""
         if self.association == 0:
-            data = self.actor.GetPointData()
-            self.actor.mapper.SetScalarModeToUsePointData()
+            data = self.obj.GetPointData()
+            self.obj.mapper.SetScalarModeToUsePointData()
         else:
-            data = self.actor.GetCellData()
-            self.actor.mapper.SetScalarModeToUseCellData()
+            data = self.obj.GetCellData()
+            self.obj.mapper.SetScalarModeToUseCellData()
 
         if isinstance(key, int):
             key = data.GetArrayName(key)
@@ -239,19 +239,19 @@ class _DataArrayHelper:
         data.SetActiveScalars(key)
 
         try:
-            self.actor.mapper.SetArrayName(key)
-            self.actor.mapper.ScalarVisibilityOn()
+            self.obj.mapper.SetArrayName(key)
+            self.obj.mapper.ScalarVisibilityOn()
         except AttributeError:
             pass
 
     def select_vectors(self, key):
         """Select one specific vector array by its name to make it the `active` one."""
         if self.association == 0:
-            data = self.actor.GetPointData()
-            self.actor.mapper.SetScalarModeToUsePointData()
+            data = self.obj.GetPointData()
+            self.obj.mapper.SetScalarModeToUsePointData()
         else:
-            data = self.actor.GetCellData()
-            self.actor.mapper.SetScalarModeToUseCellData()
+            data = self.obj.GetCellData()
+            self.obj.mapper.SetScalarModeToUseCellData()
 
         if isinstance(key, int):
             key = data.GetArrayName(key)
@@ -259,8 +259,8 @@ class _DataArrayHelper:
         data.SetActiveVectors(key)
 
         try:
-            self.actor.mapper.SetArrayName(key)
-            self.actor.mapper.ScalarVisibilityOn()
+            self.obj.mapper.SetArrayName(key)
+            self.obj.mapper.ScalarVisibilityOn()
         except AttributeError:
             pass
 
@@ -274,8 +274,8 @@ class _DataArrayHelper:
         def _get_str(pd, header):
             if pd.GetNumberOfArrays():
                 out = f"\x1b[2m\x1b[1m\x1b[7m{header}"
-                if self.actor.name:
-                    out += f" in {self.actor.name}"
+                if self.obj.name:
+                    out += f" in {self.obj.name}"
                 out += f" contains {pd.GetNumberOfArrays()} array(s)\x1b[0m"
                 for i in range(pd.GetNumberOfArrays()):
                     varr = pd.GetArray(i)
@@ -340,12 +340,12 @@ class Base3DProp:
         self.axes = None
         self.picked3d = None
         self.units = None
-        self.top = np.array([0, 0, 1])
+        self.top  = np.array([0, 0, 1])
         self.base = np.array([0, 0, 0])
         self.info = {}
         self.time = time.time()
         self.rendered_at = set()
-        self.transform = None
+        self.transform = LinearTransform()
         self._isfollower = False  # set by mesh.follow_camera()
 
         self.point_locator = None
@@ -356,7 +356,7 @@ class Base3DProp:
         # self.scalarbars = dict() #TODO
         self.pipeline = None
 
-    def address(self):
+    def memory_address(self):
         """
         Return a unique memory address integer which may serve as the ID of the
         object, or passed to c++ code.
@@ -468,7 +468,7 @@ class Base3DProp:
             ```
             ![](https://vedo.embl.es/images/feats/rotate_axis.png)
         """
-        self.transform.rotate(angle, axis, point, rad)
+        self.rotate(angle, axis, point, rad)
         return self._move()
 
     def rotate_x(self, angle, rad=False, around=None):
@@ -525,82 +525,6 @@ class Base3DProp:
             self.transform.scale(s)
         return self._move()
 
-    def get_transform(self, invert=False):
-        """Obsolete, use object.transform instead."""
-        # """
-        # Check if `object.transform` exists and returns a `vtkTransform`.
-        # Otherwise return current user transformation (where the object is currently placed).
-
-        # Use `invert` to return the inverse of the current transformation
-
-        # Example:
-        #     ```python
-        #     from vedo import *
-
-        #     c1 = Cube()
-        #     c2 = c1.clone().c('violet').alpha(0.5) # copy of c1
-        #     v = vector(0.2,1,0)
-        #     p = vector(1,0,0)  # axis passes through this point
-        #     c2.rotate(90, axis=v, point=p)
-
-        #     # get the inverse of the current transformation
-        #     T = c2.get_transform(invert=True)
-        #     c2.apply_transform(T)  # put back c2 in place
-
-        #     l = Line(p-v, p+v).lw(3).c('red')
-        #     show(c1.wireframe().lw(3), l, c2, axes=1).close()
-        #     ```
-        #     ![](https://vedo.embl.es/images/feats/get_transf.png)
-        # """
-        # if self.transform:
-        #     tr = self.transform
-        #     if invert:
-        #         tr = tr.GetInverse()
-        #     return tr
-
-        # T = self.GetMatrix()
-        # tr = vtk.vtkTransform()
-        # tr.SetMatrix(T)
-        # if invert:
-        #     tr = tr.GetInverse()
-        # return tr
-        print("Warning: get_transform() is obsolete, use object.transform instead.")
-        if invert:
-            print("Warning: use object.transform.compute_inverse()")
-            return self.transform.compute_inverse()
-        return self.transform
-
-
-    def apply_transform(self, T, reset=False, concatenate=False):
-        """Obsolete, use object.transform instead."""
-        # """
-        # Transform object position and orientation.
-
-        # Arguments:
-        #     reset : (bool)
-        #         no effect, this is superseded by `pointcloud.apply_transform()`
-        #     concatenate : (bool)
-        #         no effect, this is superseded by `pointcloud.apply_transform()`
-        # """
-        # if isinstance(T, vtk.vtkMatrix4x4):
-        #     self.actor.SetUserMatrix(T)
-        # elif utils.is_sequence(T):
-        #     vm = vtk.vtkMatrix4x4()
-        #     for i in [0, 1, 2, 3]:
-        #         for j in [0, 1, 2, 3]:
-        #             vm.SetElement(i, j, T[i][j])
-        #     self.actor.SetUserMatrix(vm)
-        # else:
-        #     self.actor.SetUserTransform(T)
-        # self.transform = T
-
-        # self.point_locator = None
-        # self.cell_locator = None
-        # return self
-        print("Warning: apply_transform() is obsolete, use object.transform instead.")
-        self.transform = T
-        return self._move()
-
 
     def align_to_bounding_box(self, msh, rigid=False):
         """
@@ -646,12 +570,9 @@ class Base3DProp:
         if rigid:
             lmt.SetModeToRigidBody()
         lmt.Update()
-        self.apply_transform(lmt)
-        self.transform = lmt
 
-        self.point_locator = None
-        self.cell_locator = None
-        self._move()
+        T = LinearTransform(lmt)
+        self.apply_transform(T)
         return self
 
     def on(self):
@@ -912,7 +833,7 @@ class BaseActor(Base3DProp):
         if pts is None:  ### getter
 
             if isinstance(self, vedo.Points):
-                vpts = self.polydata(transformed).GetPoints()
+                vpts = self.GetPoints()
             elif isinstance(self, vedo.BaseVolume):
                 v2p = vtk.vtkImageToPoints()
                 v2p.SetInputData(self.imagedata())
@@ -932,7 +853,7 @@ class BaseActor(Base3DProp):
             if pts.ndim == 1:
                 ### getter by point index ###################
                 indices = pts.astype(int)
-                vpts = self.polydata(transformed).GetPoints()
+                vpts = self.GetPoints()
                 arr = utils.vtk2numpy(vpts.GetData())
                 return arr[indices] ###########
 
@@ -961,7 +882,7 @@ class BaseActor(Base3DProp):
         """
         vcen = vtk.vtkCellCenters()
         if hasattr(self, "polydata"):
-            vcen.SetInputData(self.polydata())
+            vcen.SetInputData(self)
         else:
             vcen.SetInputData(self)
         vcen.Update()
@@ -1017,7 +938,7 @@ class BaseActor(Base3DProp):
 
         cellIds = vtk.vtkIdList()
         self.cell_locator = vtk.vtkCellTreeLocator()
-        self.cell_locator.SetDataSet(self.polydata())
+        self.cell_locator.SetDataSet(self)
         self.cell_locator.BuildLocator()
         self.cell_locator.FindCellsWithinBounds(bnds, cellIds)
 
@@ -1661,7 +1582,7 @@ class BaseGrid(BaseActor):
         # -----------------------------------------------------------
 
     def _update(self, data):
-        self.mapper.SetInputData(self.tomesh().polydata())
+        self.mapper.SetInputData(self.tomesh())
         self.mapper.Modified()
         return self
 
@@ -2091,11 +2012,10 @@ class BaseGrid(BaseActor):
         # if isinstance(self, vedo.Volume):
         #     raise RuntimeError("cut_with_mesh() is not applicable to Volume objects.")    
 
-        polymesh = mesh.polydata()
         ug = self._data
 
         ippd = vtk.vtkImplicitPolyDataDistance()
-        ippd.SetInput(polymesh)
+        ippd.SetInput(mesh)
 
         if whole_cells or only_boundary:
             clipper = vtk.vtkExtractGeometry()

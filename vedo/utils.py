@@ -1503,16 +1503,19 @@ def print_info(obj):
             vedo.printc("no point or cell data is present.", c=c, bold=False)
 
     ################################
-    def _printvtkactor(actor):
+    def _printvtkactor(objt):
+        poly = objt
+        actor = objt.actor
+        pro = objt.property
 
         if not actor.GetPickable():
             return
 
-        mapper = actor.GetMapper()
-        if hasattr(actor, "polydata"):
-            poly = actor.polydata()
-        else:
-            poly = mapper.GetInput()
+        # mapper = actor.GetMapper()
+        # if hasattr(actor, "polydata"):
+        #     poly = actor
+        # else:
+        #     poly = mapper.GetInput()
 
         pro = actor.GetProperty()
         pos = actor.GetPosition()

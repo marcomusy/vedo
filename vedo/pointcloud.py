@@ -55,19 +55,14 @@ def merge(*meshs, flag=False):
         - [value_iteration.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/value_iteration.py)
 
     """
-    acts = [a for a in utils.flatten(meshs) if a]
+    objs = [a for a in utils.flatten(meshs) if a]
 
-    if not acts:
+    if not objs:
         return None
 
     idarr = []
     polyapp = vtk.vtkAppendPolyData()
-    for i, a in enumerate(acts):
-        try:
-            poly = a.polydata()
-        except AttributeError:
-            # so a vtkPolydata can also be passed
-            poly = a
+    for i, poly in enumerate(objs):
         polyapp.AddInputData(poly)
         if flag:
             idarr += [i] * poly.GetNumberOfPoints()
@@ -78,19 +73,20 @@ def merge(*meshs, flag=False):
         varr = utils.numpy2vtk(idarr, dtype=np.uint16, name="OriginalMeshID")
         mpoly.GetPointData().AddArray(varr)
 
-    if isinstance(acts[0], vedo.Mesh):
+    if isinstance(objs[0], vedo.Mesh):
         msh = vedo.Mesh(mpoly)
     else:
         msh = Points(mpoly)
 
-    if isinstance(acts[0], vtk.vtkActor):
+    if isinstance(objs[0], vtk.vtkActor):
         cprp = vtk.vtkProperty()
-        cprp.DeepCopy(acts[0].GetProperty())
-        msh.SetProperty(cprp)
+        cprp.DeepCopy(objs[0].GetProperty())
+        msh.actor.SetProperty(cprp)
         msh.property = cprp
 
     msh.pipeline = utils.OperationNode(
-        "merge", parents=acts,
+        "merge",
+        parents=objs,
         comment=f"#pts {msh.inputdata().GetNumberOfPoints()}",
     )
     return msh
@@ -134,7 +130,7 @@ def visible_points(mesh, area=(), tol=None, invert=False):
     """
     # specify a rectangular region
     svp = vtk.vtkSelectVisiblePoints()
-    svp.SetInputData(mesh.polydata())
+    svp.SetInputData(mesh)
     svp.SetRenderer(vedo.plotter_instance.renderer)
 
     if len(area) == 4:
@@ -186,13 +182,12 @@ def delaunay2d(plist, mode="scipy", boundaries=(), tol=None, alpha=0.0, offset=0
         plist = np.ascontiguousarray(plist)
         plist = utils.make3d(plist)
 
-    #############################################
+    #########################################################
     if mode == "scipy":
         from scipy.spatial import Delaunay as scipy_delaunay
-
         tri = scipy_delaunay(plist[:, 0:2])
         return vedo.mesh.Mesh([plist, tri.simplices])
-    #############################################
+    ##########################################################
 
     pd = vtk.vtkPolyData()
     vpts = vtk.vtkPoints()
@@ -302,7 +297,7 @@ def voronoi(pts, padding=0.0, fit=False, method="vtk"):
     elif method == "vtk":
         vor = vtk.vtkVoronoi2D()
         if isinstance(pts, Points):
-            vor.SetInputData(pts.polydata())
+            vor.SetInputData(pts)
         else:
             pts = np.asarray(pts)
             if pts.shape[1] == 2:
@@ -759,6 +754,7 @@ class Points(BaseActor, vtk.vtkPolyData):
         self.actor = vtk.vtkActor()
         self.property = self.actor.GetProperty()
         self.transform = LinearTransform()
+        self.actor.data = self
         # self.name = "Points" # better not to give it a name here
 
         if blur:
@@ -943,14 +939,7 @@ class Points(BaseActor, vtk.vtkPolyData):
         return "\n".join(allt)
 
 
-    ##################################################################################
-    def _update(self, polydata):
-        # Overwrite the polygonal mesh with a new vtkPolyData
-        # self = polydata
-        # self.mapper.SetInputData(polydata)
-        # self.mapper.Modified()
-        return self
-    
+    ##################################################################################    
     def __add__(self, meshs):
         if isinstance(meshs, list):
             alist = [self]
@@ -966,8 +955,10 @@ class Points(BaseActor, vtk.vtkPolyData):
 
         return vedo.assembly.Assembly([self, meshs])
 
+
     def polydata(self, transformed=True):
         """Obsolete."""
+        print("WARNING: method polydata() is obsolete, you can remove it from your code.")
         return self
 
     def clone(self, deep=True):
@@ -996,30 +987,32 @@ class Points(BaseActor, vtk.vtkPolyData):
 
         pr = vtk.vtkProperty()
         pr.DeepCopy(self.property)
-        cloned.SetProperty(pr)
+        cloned.actor.SetProperty(pr)
         cloned.property = pr
 
-        if self.GetBackfaceProperty():
+        if self.actor.GetBackfaceProperty():
             bfpr = vtk.vtkProperty()
             bfpr.DeepCopy(self.GetBackfaceProperty())
-            cloned.SetBackfaceProperty(bfpr)
+            cloned.actor.SetBackfaceProperty(bfpr)
 
-        if self.transform:
-            # already has a so use that
-            try:
-                cloned.SetUserTransform(self.transform)
-            except TypeError:  # transform which can be non linear
-                cloned.SetOrigin(self.GetOrigin())
-                cloned.SetScale(self.GetScale())
-                cloned.SetOrientation(self.GetOrientation())
-                cloned.SetPosition(self.GetPosition())
+        cloned.transform = self.transform
+
+        # if self.transform:
+        #     # already has a so use that
+        #     try:
+        #         cloned.SetUserTransform(self.transform)
+        #     except TypeError:  # transform which can be non linear
+        #         cloned.SetOrigin(self.GetOrigin())
+        #         cloned.SetScale(self.GetScale())
+        #         cloned.SetOrientation(self.GetOrientation())
+        #         cloned.SetPosition(self.GetPosition())
                 
-        else:
-            # assign the same transformation to the copy
-            cloned.SetOrigin(self.GetOrigin())
-            cloned.SetScale(self.GetScale())
-            cloned.SetOrientation(self.GetOrientation())
-            cloned.SetPosition(self.GetPosition())
+        # else:
+        #     # assign the same transformation to the copy
+        #     cloned.SetOrigin(self.GetOrigin())
+        #     cloned.SetScale(self.GetScale())
+        #     cloned.SetOrientation(self.GetOrientation())
+        #     cloned.SetPosition(self.GetPosition())
 
         mp = cloned.mapper
         sm = self.mapper
@@ -1033,8 +1026,8 @@ class Points(BaseActor, vtk.vtkPolyData):
         if lut:
             mp.SetLookupTable(lut)
 
-        if self.GetTexture():
-            cloned.texture(self.GetTexture())
+        if self.actor.GetTexture():
+            cloned.texture(self.actor.GetTexture())
 
         cloned.actor.SetPickable(self.actor.GetPickable())
 
@@ -1101,7 +1094,7 @@ class Points(BaseActor, vtk.vtkPolyData):
                 scale = 350 / msiz
 
         cmsh = self.clone()
-        poly = cmsh.pos(0, 0, 0).scale(scale).polydata()
+        poly = cmsh.pos(0, 0, 0).scale(scale)
 
         mapper3d = self.mapper
         cm = mapper3d.GetColorMode()
@@ -1195,7 +1188,7 @@ class Points(BaseActor, vtk.vtkPolyData):
         self.trail_points.pop(0)
 
         data = np.array(self.trail_points) - currentpos + self.trail_offset
-        tpoly = self.trail.polydata(False)
+        tpoly = self.trail
         tpoly.GetPoints().SetData(utils.numpy2vtk(data, dtype=np.float32))
         self.trail.SetPosition(currentpos)
         return self
@@ -1290,7 +1283,7 @@ class Points(BaseActor, vtk.vtkPolyData):
             point = sha.info['point']
             direction = sha.info['direction']
             new_sha = self._compute_shadow(plane, point, direction)
-            sha._update(new_sha)
+            sha.DeepCopy(new_sha)
         return self
 
 
@@ -1337,7 +1330,7 @@ class Points(BaseActor, vtk.vtkPolyData):
             invert : (bool)
                 flip all normals
         """
-        poly = self.polydata()
+        poly = self
         pcan = vtk.vtkPCANormalEstimation()
         pcan.SetInputData(poly)
         pcan.SetSampleSize(n)
@@ -1421,8 +1414,8 @@ class Points(BaseActor, vtk.vtkPolyData):
         """
         if pcloud.inputdata().GetNumberOfPolys():
 
-            poly1 = self.polydata()
-            poly2 = pcloud.polydata()
+            poly1 = self
+            poly2 = pcloud
             df = vtk.vtkDistancePolyDataFilter()
             df.ComputeSecondDistanceOff()
             df.SetInputData(0, poly1)
@@ -1440,7 +1433,7 @@ class Points(BaseActor, vtk.vtkPolyData):
 
             if not pcloud.point_locator:
                 pcloud.point_locator = vtk.vtkPointLocator()
-                pcloud.point_locator.SetDataSet(pcloud.polydata())
+                pcloud.point_locator.SetDataSet(pcloud)
                 pcloud.point_locator.BuildLocator()
 
             ids = []
@@ -1551,13 +1544,12 @@ class Points(BaseActor, vtk.vtkPolyData):
         cpd.ConvertStripsToPolysOn()
         cpd.SetInputData(self.inputdata())
         cpd.Update()
-        out = self._update(cpd.GetOutput())
-
-        out.pipeline = utils.OperationNode(
+        self.DeepCopy(cpd.GetOutput())
+        self.pipeline = utils.OperationNode(
             "clean", parents=[self],
-            comment=f"#pts {out.inputdata().GetNumberOfPoints()}"
+            comment=f"#pts {self.inputdata().GetNumberOfPoints()}"
         )
-        return out
+        return self
 
     def subsample(self, fraction, absolute=False):
         """
@@ -1600,12 +1592,13 @@ class Points(BaseActor, vtk.vtkPolyData):
         if self.property.GetRepresentation() == 0:
             ps = self.property.GetPointSize()
 
-        out = self._update(cpd.GetOutput()).ps(ps)
+        self.DeepCopy(cpd.GetOutput())
+        self.ps(ps)
 
-        out.pipeline = utils.OperationNode(
-            "subsample", parents=[self], comment=f"#pts {out.inputdata().GetNumberOfPoints()}"
+        self.pipeline = utils.OperationNode(
+            "subsample", parents=[self], comment=f"#pts {self.GetNumberOfPoints()}"
         )
-        return out
+        return self
 
     def threshold(self, scalars, above=None, below=None, on="points"):
         """
@@ -1657,9 +1650,9 @@ class Points(BaseActor, vtk.vtkPolyData):
         gf = vtk.vtkGeometryFilter()
         gf.SetInputData(thres.GetOutput())
         gf.Update()
-        out = self._update(gf.GetOutput())
-        out.pipeline = utils.OperationNode("threshold", parents=[self])
-        return out
+        self.DeepCopy(gf.GetOutput())
+        self.pipeline = utils.OperationNode("threshold", parents=[self])
+        return self
 
     def quantize(self, value):
         """
@@ -1671,9 +1664,10 @@ class Points(BaseActor, vtk.vtkPolyData):
         qp.SetInputData(poly)
         qp.SetQFactor(value)
         qp.Update()
-        out = self._update(qp.GetOutput()).flat()
-        out.pipeline = utils.OperationNode("quantize", parents=[self])
-        return out
+        self.DeepCopy(qp.GetOutput())
+        self.flat()
+        self.pipeline = utils.OperationNode("quantize", parents=[self])
+        return self
 
     def average_size(self):
         """
@@ -1690,14 +1684,14 @@ class Points(BaseActor, vtk.vtkPolyData):
     def center_of_mass(self):
         """Get the center of mass of mesh."""
         cmf = vtk.vtkCenterOfMass()
-        cmf.SetInputData(self.polydata())
+        cmf.SetInputData(self)
         cmf.Update()
         c = cmf.GetCenter()
         return np.array(c)
 
     def normal_at(self, i):
         """Return the normal vector at vertex point `i`."""
-        normals = self.polydata().GetPointData().GetNormals()
+        normals = self.GetPointData().GetNormals()
         return np.array(normals.GetTuple(i))
 
     def normals(self, cells=False, recompute=True):
@@ -1712,16 +1706,16 @@ class Points(BaseActor, vtk.vtkPolyData):
                 Note that this might modify the number of mesh points.
         """
         if cells:
-            vtknormals = self.polydata().GetCellData().GetNormals()
+            vtknormals = self.GetCellData().GetNormals()
         else:
-            vtknormals = self.polydata().GetPointData().GetNormals()
+            vtknormals = self.GetPointData().GetNormals()
         if not vtknormals and recompute:
             try:
                 self.compute_normals(cells=cells)
                 if cells:
-                    vtknormals = self.polydata().GetCellData().GetNormals()
+                    vtknormals = self.GetCellData().GetNormals()
                 else:
-                    vtknormals = self.polydata().GetPointData().GetNormals()
+                    vtknormals = self.GetPointData().GetNormals()
             except AttributeError:
                 # can be that 'Points' object has no attribute 'compute_normals'
                 pass
@@ -1920,9 +1914,9 @@ class Points(BaseActor, vtk.vtkPolyData):
             lpoly = vtk.vtkPolyData()
 
         ids = vedo.mesh.Mesh(lpoly, c=c, alpha=alpha)
-        ids.GetProperty().LightingOff()
-        ids.PickableOff()
-        ids.SetUseBounds(False)
+        ids.property.LightingOff()
+        ids.actor.PickableOff()
+        ids.actor.SetUseBounds(False)
         return ids
 
     def labels2d(
@@ -1986,10 +1980,10 @@ class Points(BaseActor, vtk.vtkPolyData):
                 return None
             cellcloud = Points(self.cell_centers())
             arr = self.inputdata().GetCellData().GetScalars()
-            poly = cellcloud.polydata(False)
+            poly = cellcloud
             poly.GetPointData().SetScalars(arr)
         else:
-            poly = self.polydata()
+            poly = self
             if content != "id" and content not in self.pointdata.keys():
                 vedo.logger.error(f"In labels2d: point array {content} does not exist.")
                 return None
@@ -2422,8 +2416,8 @@ class Points(BaseActor, vtk.vtkPolyData):
                 ![](https://vedo.embl.es/images/basic/align2.png)
         """
         icp = vtk.vtkIterativeClosestPointTransform()
-        icp.SetSource(self.polydata())
-        icp.SetTarget(target.polydata())
+        icp.SetSource(self)
+        icp.SetTarget(target)
         if invert:
             icp.Inverse()
         icp.SetMaximumNumberOfIterations(iters)
@@ -2432,16 +2426,8 @@ class Points(BaseActor, vtk.vtkPolyData):
         icp.SetStartByMatchingCentroids(use_centroids)
         icp.Update()
 
-        M = icp.GetMatrix()
-        if invert:
-            M.Invert()  # icp.GetInverse() doesnt work!
-        # self.apply_transform(M)
-        self.SetUserMatrix(M)
-
-        self.transform = self.GetUserTransform()
-        self.point_locator = None
-        self.cell_locator = None
-        self.line_locator = None
+        T = LinearTransform(icp.GetMatrix())
+        self.apply_transform(T)
 
         self.pipeline = utils.OperationNode(
             "align_to", parents=[self, target], comment=f"rigid = {rigid}"
@@ -2470,7 +2456,7 @@ class Points(BaseActor, vtk.vtkPolyData):
             for p in source_landmarks:
                 ss.InsertNextPoint(p)
         else:
-            ss = source_landmarks.polydata().GetPoints()
+            ss = source_landmarks.GetPoints()
             if least_squares:
                 source_landmarks = source_landmarks.points()
 
@@ -2479,7 +2465,7 @@ class Points(BaseActor, vtk.vtkPolyData):
             for p in target_landmarks:
                 st.InsertNextPoint(p)
         else:
-            st = target_landmarks.polydata().GetPoints()
+            st = target_landmarks.GetPoints()
             if least_squares:
                 target_landmarks = target_landmarks.points()
 
@@ -2493,6 +2479,7 @@ class Points(BaseActor, vtk.vtkPolyData):
         lmt.SetSourceLandmarks(ss)
         lmt.SetTargetLandmarks(st)
         lmt.SetModeToSimilarity()
+
         if rigid:
             lmt.SetModeToRigidBody()
             lmt.Update()
@@ -2515,9 +2502,7 @@ class Points(BaseActor, vtk.vtkPolyData):
             lmt.Translate(cmt)
             lmt.Concatenate(M)
             lmt.Translate(-cms)
-            self.apply_transform(lmt, concatenate=True)
-        else:
-            self.SetUserTransform(lmt)
+            self.apply_transform(lmt)
 
         self.transform = lmt
         self.point_locator = None
@@ -2527,24 +2512,9 @@ class Points(BaseActor, vtk.vtkPolyData):
         return self
 
 
-    def apply_transform(self, T, reset=False, concatenate=False):
-        """Obsolete, use `self.transform` instead."""
+    def apply_transform(self, T):
         # """
         # Apply a linear or non-linear transformation to the mesh polygonal data.
-
-        # Arguments:
-        #     T : (matrix)
-        #         `vtkTransform`, `vtkMatrix4x4` or a 4x4 or 3x3 python or numpy matrix.
-        #     reset : (bool)
-        #         if True reset the current transformation matrix
-        #         to identity after having moved the object, otherwise the internal
-        #         matrix will stay the same (to only affect visualization).
-        #         It the input transformation has no internal defined matrix (ie. non linear)
-        #         then reset will be assumed as True.
-        #     concatenate : (bool)
-        #         concatenate the transformation with the current existing one
-
-        # Example:
         #     ```python
         #     from vedo import Cube, show
         #     c1 = Cube().rotate_z(5).x(2).y(1)
@@ -2559,63 +2529,6 @@ class Points(BaseActor, vtk.vtkPolyData):
         #     ```
         #     ![](https://vedo.embl.es/images/feats/apply_transform.png)
         # """
-        # self.point_locator = None
-        # self.cell_locator = None
-        # self.line_locator = None
-
-        # if isinstance(T, vtk.vtkMatrix4x4):
-        #     tr = vtk.vtkTransform()
-        #     tr.SetMatrix(T)
-        #     T = tr
-
-        # elif utils.is_sequence(T):
-        #     M = vtk.vtkMatrix4x4()
-        #     n = len(T[0])
-        #     for i in range(n):
-        #         for j in range(n):
-        #             M.SetElement(i, j, T[i][j])
-        #     tr = vtk.vtkTransform()
-        #     tr.SetMatrix(M)
-        #     T = tr
-
-        # if reset or not hasattr(T, "GetScale"):  # might be non-linear
-
-        #     tf = vtk.vtkTransformPolyDataFilter()
-        #     tf.SetTransform(T)
-        #     tf.SetInputData(self.polydata())
-        #     tf.Update()
-
-        #     I = vtk.vtkMatrix4x4()
-        #     self.PokeMatrix(I)  # reset to identity
-        #     self.SetUserTransform(None)
-
-        #     self._update(tf.GetOutput())  ### UPDATE
-        #     self.transform = T
-
-        # else:
-
-        #     if concatenate:
-
-        #         M = vtk.vtkTransform()
-        #         M.PostMultiply()
-        #         M.SetMatrix(self.GetMatrix())
-
-        #         M.Concatenate(T)
-
-        #         self.SetScale(M.GetScale())
-        #         self.SetOrientation(M.GetOrientation())
-        #         self.SetPosition(M.GetPosition())
-        #         self.transform = M
-        #         self.SetUserTransform(None)
-
-        #     else:
-
-        #         self.SetScale(T.GetScale())
-        #         self.SetOrientation(T.GetOrientation())
-        #         self.SetPosition(T.GetPosition())
-        #         self.SetUserTransform(None)
-
-        #         self.transform = T
         self.transform = T
         return self._move()
 
@@ -2628,19 +2541,6 @@ class Points(BaseActor, vtk.vtkPolyData):
         pts = coords - cm
         xyz2 = np.sum(pts * pts, axis=0)
         scale = 1 / np.sqrt(np.sum(xyz2) / len(pts))
-        # t = vtk.vtkTransform()
-        # t.PostMultiply()
-        # # t.Translate(-cm)
-        # t.Scale(scale, scale, scale)
-        # # t.Translate(cm)
-        # tf = vtk.vtkTransformPolyDataFilter()
-        # tf.SetInputData(self.inputdata())
-        # tf.SetTransform(t)
-        # tf.Update()
-        # self.point_locator = None
-        # self.cell_locator = None
-        # self.line_locator = None
-        # return self._update(tf.GetOutput())
         self.scale(scale).pos(cm)
         return self
 
@@ -2674,11 +2574,15 @@ class Points(BaseActor, vtk.vtkPolyData):
             rs.ReverseNormalsOn()
             rs.Update()
             outpoly = rs.GetOutput()
+        
         self.DeepCopy(outpoly)
+
+        self.point_locator = None
+        self.cell_locator = None
+        self.line_locator = None
 
         self.pipeline = utils.OperationNode(f"mirror\naxis = {axis}", parents=[self])
         return self
-
 
     def flip_normals(self):
         """Flip all mesh normals. Same as `mesh.mirror('n')`."""
@@ -2687,9 +2591,9 @@ class Points(BaseActor, vtk.vtkPolyData):
         rs.ReverseCellsOff()
         rs.ReverseNormalsOn()
         rs.Update()
-        out = self._update(rs.GetOutput())
+        self.DeepCopy(rs.GetOutput())
         self.pipeline = utils.OperationNode("flip_normals", parents=[self])
-        return out
+        return self
 
     #####################################################################################
     def cmap(
@@ -3030,10 +2934,10 @@ class Points(BaseActor, vtk.vtkPolyData):
             raise RuntimeError
 
         if on == "points":
-            points = source.polydata()
+            points = source
         elif on == "cells":
             poly2 = vtk.vtkPolyData()
-            poly2.ShallowCopy(source.polydata())
+            poly2.ShallowCopy(source)
             c2p = vtk.vtkCellDataToPointData()
             c2p.SetInputData(poly2)
             c2p.Update()
@@ -3068,7 +2972,7 @@ class Points(BaseActor, vtk.vtkPolyData):
             kern.SetKernelFootprintToRadius()
 
         interpolator = vtk.vtkPointInterpolator()
-        interpolator.SetInputData(self.polydata())
+        interpolator.SetInputData(self)
         interpolator.SetSourceData(points)
         interpolator.SetKernel(kern)
         interpolator.SetLocator(locator)
@@ -3088,23 +2992,11 @@ class Points(BaseActor, vtk.vtkPolyData):
         else:
             cpoly = interpolator.GetOutput()
 
-        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
-            self._update(cpoly)
-        else:
-            # bring the underlying polydata to where _data is
-            M = vtk.vtkMatrix4x4()
-            M.DeepCopy(self.GetMatrix())
-            M.Invert()
-            tr = vtk.vtkTransform()
-            tr.SetMatrix(M)
-            tf = vtk.vtkTransformPolyDataFilter()
-            tf.SetTransform(tr)
-            tf.SetInputData(cpoly)
-            tf.Update()
-            self._update(tf.GetOutput())
+        self.DeepCopy(cpoly)
 
         self.pipeline = utils.OperationNode("interpolate_data_from", parents=[self, source])
         return self
+
 
     def add_gaussian_noise(self, sigma=1.0):
         """
@@ -3129,8 +3021,8 @@ class Points(BaseActor, vtk.vtkPolyData):
         vpts = vtk.vtkPoints()
         vpts.SetNumberOfPoints(n)
         vpts.SetData(utils.numpy2vtk(pts + ns, dtype=np.float32))
-        self.inputdata().SetPoints(vpts)
-        self.inputdata().GetPoints().Modified()
+        self.SetPoints(vpts)
+        self.GetPoints().Modified()
         self.pointdata["GaussianNoise"] = -ns
         self.pipeline = utils.OperationNode(
             "gaussian_noise", parents=[self], shape="egg", comment=f"sigma = {sigma}"
@@ -3166,7 +3058,7 @@ class Points(BaseActor, vtk.vtkPolyData):
         if ((n > 1 or radius) or (n == 1 and return_point_id)) and not return_cell_id:
             poly = None
             if not self.point_locator:
-                poly = self.polydata()
+                poly = self
                 self.point_locator = vtk.vtkStaticPointLocator()
                 self.point_locator.SetDataSet(poly)
                 self.point_locator.BuildLocator()
@@ -3189,7 +3081,7 @@ class Points(BaseActor, vtk.vtkPolyData):
                 ########
 
             if not poly:
-                poly = self.polydata()
+                poly = self
             trgp = []
             for i in range(vtklist.GetNumberOfIds()):
                 trgp_ = [0, 0, 0]
@@ -3203,7 +3095,7 @@ class Points(BaseActor, vtk.vtkPolyData):
         else:
 
             if not self.cell_locator:
-                poly = self.polydata()
+                poly = self
 
                 # As per Miquel example with limbs the vtkStaticCellLocator doesnt work !!
                 # https://discourse.vtk.org/t/vtkstaticcelllocator-problem-vtk9-0-3/7854/4
@@ -3258,8 +3150,8 @@ class Points(BaseActor, vtk.vtkPolyData):
             ![](https://vedo.embl.es/images/feats/heart.png)
         """
         hp = vtk.vtkHausdorffDistancePointSetFilter()
-        hp.SetInputData(0, self.polydata())
-        hp.SetInputData(1, points.polydata())
+        hp.SetInputData(0, self)
+        hp.SetInputData(1, points)
         hp.SetTargetDistanceMethodToPointToCell()
         hp.Update()
         return hp.GetHausdorffDistance()
@@ -3271,11 +3163,11 @@ class Points(BaseActor, vtk.vtkPolyData):
         """
         if not pcloud.point_locator:
             pcloud.point_locator = vtk.vtkPointLocator()
-            pcloud.point_locator.SetDataSet(pcloud.polydata())
+            pcloud.point_locator.SetDataSet(pcloud)
             pcloud.point_locator.BuildLocator()
         if not self.point_locator:
             self.point_locator = vtk.vtkPointLocator()
-            self.point_locator.SetDataSet(self.polydata())
+            self.point_locator.SetDataSet(self)
             self.point_locator.BuildLocator()
 
         ps1 = self.points()
@@ -3296,6 +3188,7 @@ class Points(BaseActor, vtk.vtkPolyData):
         db = np.mean(np.linalg.norm(deltav, axis=1))
         return (da + db) / 2
 
+
     def remove_outliers(self, radius, neighbors=5):
         """
         Remove outliers from a cloud of points within the specified `radius` search.
@@ -3313,7 +3206,7 @@ class Points(BaseActor, vtk.vtkPolyData):
                 ![](https://vedo.embl.es/images/basic/clustering.png)
         """
         removal = vtk.vtkRadiusOutlierRemoval()
-        removal.SetInputData(self.polydata())
+        removal.SetInputData(self)
         removal.SetRadius(radius)
         removal.SetNumberOfNeighbors(neighbors)
         removal.GenerateOutliersOff()
@@ -3325,7 +3218,7 @@ class Points(BaseActor, vtk.vtkPolyData):
                 carr.InsertNextCell(1)
                 carr.InsertCellPoint(i)
             inputobj.SetVerts(carr)
-        self._update(inputobj)
+        self.DeepCopy(inputobj)
         self.mapper.ScalarVisibilityOff()
         self.pipeline = utils.OperationNode("remove_outliers", parents=[self])
         return self
@@ -3374,8 +3267,8 @@ class Points(BaseActor, vtk.vtkPolyData):
 
         vdata = utils.numpy2vtk(np.array(variances))
         vdata.SetName("Variances")
-        self.inputdata().GetPointData().AddArray(vdata)
-        self.inputdata().GetPointData().Modified()
+        self.GetPointData().AddArray(vdata)
+        self.GetPointData().Modified()
         self.points(newline)
         self.pipeline = utils.OperationNode("smooth_mls_1d", parents=[self])
         return self
@@ -3700,7 +3593,7 @@ class Points(BaseActor, vtk.vtkPolyData):
         plane.SetNormal(normal)
 
         clipper = vtk.vtkClipPolyData()
-        clipper.SetInputData(self.polydata(True))  # must be True
+        clipper.SetInputData(self)
         clipper.SetClipFunction(plane)
         clipper.GenerateClippedOutputOff()
         clipper.GenerateClipScalarsOff()
@@ -3709,22 +3602,11 @@ class Points(BaseActor, vtk.vtkPolyData):
         clipper.Update()
 
         cpoly = clipper.GetOutput()
+        self.DeepCopy(cpoly)
 
-        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
-            self._update(cpoly)
-        else:
-            # bring the underlying polydata to where _data is
-            M = vtk.vtkMatrix4x4()
-            M.DeepCopy(self.GetMatrix())
-            M.Invert()
-            tr = vtk.vtkTransform()
-            tr.SetMatrix(M)
-            tf = vtk.vtkTransformPolyDataFilter()
-            tf.SetTransform(tr)
-            tf.SetInputData(cpoly)
-            tf.Update()
-            self._update(tf.GetOutput())
-
+        self.point_locator = None
+        self.line_locator = None
+        self.cell_locator = None
         self.pipeline = utils.OperationNode("cut_with_plane", parents=[self])
         return self
 
@@ -3752,7 +3634,7 @@ class Points(BaseActor, vtk.vtkPolyData):
         planes.SetNormals(utils.numpy2vtk(normals, dtype=float))
 
         clipper = vtk.vtkClipPolyData()
-        clipper.SetInputData(self.polydata(True))  # must be True
+        clipper.SetInputData(self)  # must be True
         clipper.SetInsideOut(invert)
         clipper.SetClipFunction(planes)
         clipper.GenerateClippedOutputOff()
@@ -3761,22 +3643,11 @@ class Points(BaseActor, vtk.vtkPolyData):
         clipper.Update()
 
         cpoly = clipper.GetOutput()
+        self.DeepCopy(cpoly)
 
-        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
-            self._update(cpoly)
-        else:
-            # bring the underlying polydata to where _data is
-            M = vtk.vtkMatrix4x4()
-            M.DeepCopy(self.GetMatrix())
-            M.Invert()
-            tr = vtk.vtkTransform()
-            tr.SetMatrix(M)
-            tf = vtk.vtkTransformPolyDataFilter()
-            tf.SetTransform(tr)
-            tf.SetInputData(cpoly)
-            tf.Update()
-            self._update(tf.GetOutput())
-
+        self.point_locator = None
+        self.line_locator = None
+        self.cell_locator = None
         self.pipeline = utils.OperationNode("cut_with_planes", parents=[self])
         return self
 
@@ -3814,30 +3685,20 @@ class Points(BaseActor, vtk.vtkPolyData):
             box.SetBounds(bounds)
 
         clipper = vtk.vtkClipPolyData()
-        clipper.SetInputData(self.polydata(True))  # must be True
+        clipper.SetInputData(self)
         clipper.SetClipFunction(box)
         clipper.SetInsideOut(not invert)
         clipper.GenerateClippedOutputOff()
         clipper.GenerateClipScalarsOff()
         clipper.SetValue(0)
         clipper.Update()
+
         cpoly = clipper.GetOutput()
+        self.DeepCopy(cpoly)
 
-        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
-            self._update(cpoly)
-        else:
-            # bring the underlying polydata to where _data is
-            M = vtk.vtkMatrix4x4()
-            M.DeepCopy(self.GetMatrix())
-            M.Invert()
-            tr = vtk.vtkTransform()
-            tr.SetMatrix(M)
-            tf = vtk.vtkTransformPolyDataFilter()
-            tf.SetTransform(tr)
-            tf.SetInputData(cpoly)
-            tf.Update()
-            self._update(tf.GetOutput())
-
+        self.point_locator = None
+        self.line_locator = None
+        self.cell_locator = None
         self.pipeline = utils.OperationNode("cut_with_box", parents=[self])
         return self
 
@@ -3874,30 +3735,20 @@ class Points(BaseActor, vtk.vtkPolyData):
         pplane.SetPolyLine(polyline)
 
         clipper = vtk.vtkClipPolyData()
-        clipper.SetInputData(self.polydata(True))  # must be True
+        clipper.SetInputData(self)
         clipper.SetClipFunction(pplane)
         clipper.SetInsideOut(invert)
         clipper.GenerateClippedOutputOff()
         clipper.GenerateClipScalarsOff()
         clipper.SetValue(0)
         clipper.Update()
+
         cpoly = clipper.GetOutput()
+        self.DeepCopy(cpoly)
 
-        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
-            self._update(cpoly)
-        else:
-            # bring the underlying polydata to where _data is
-            M = vtk.vtkMatrix4x4()
-            M.DeepCopy(self.GetMatrix())
-            M.Invert()
-            tr = vtk.vtkTransform()
-            tr.SetMatrix(M)
-            tf = vtk.vtkTransformPolyDataFilter()
-            tf.SetTransform(tr)
-            tf.SetInputData(cpoly)
-            tf.Update()
-            self._update(tf.GetOutput())
-
+        self.point_locator = None
+        self.line_locator = None
+        self.cell_locator = None
         self.pipeline = utils.OperationNode("cut_with_line", parents=[self])
         return self
 
@@ -3947,7 +3798,7 @@ class Points(BaseActor, vtk.vtkPolyData):
             iline = list(range(len(lines))) + [0]
             poly = utils.buildPolyData(lines, lines=[iline])
         else:
-            poly = lines.polydata()
+            poly = lines
 
         # if invert: # not working
         #     rev = vtk.vtkReverseSense()
@@ -3963,30 +3814,20 @@ class Points(BaseActor, vtk.vtkPolyData):
         boundaryPoly = build_loops.GetOutput()
 
         ccut = vtk.vtkCookieCutter()
-        ccut.SetInputData(self.polydata())
+        ccut.SetInputData(self)
         ccut.SetLoopsData(boundaryPoly)
         ccut.SetPointInterpolationToMeshEdges()
         # ccut.SetPointInterpolationToLoopEdges()
         ccut.PassCellDataOn()
         # ccut.PassPointDataOn()
         ccut.Update()
+
         cpoly = ccut.GetOutput()
+        self.DeepCopy(cpoly)
 
-        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
-            self._update(cpoly)
-        else:
-            # bring the underlying polydata to where _data is
-            M = vtk.vtkMatrix4x4()
-            M.DeepCopy(self.GetMatrix())
-            M.Invert()
-            tr = vtk.vtkTransform()
-            tr.SetMatrix(M)
-            tf = vtk.vtkTransformPolyDataFilter()
-            tf.SetTransform(tr)
-            tf.SetInputData(cpoly)
-            tf.Update()
-            self._update(tf.GetOutput())
-
+        self.point_locator = None
+        self.line_locator = None
+        self.cell_locator = None
         self.pipeline = utils.OperationNode("cut_with_cookiecutter", parents=[self])
         return self
 
@@ -4032,30 +3873,20 @@ class Points(BaseActor, vtk.vtkPolyData):
         cyl.SetRadius(r)
 
         clipper = vtk.vtkClipPolyData()
-        clipper.SetInputData(self.polydata(True))  # must be True
+        clipper.SetInputData(self)
         clipper.SetClipFunction(cyl)
         clipper.SetInsideOut(not invert)
         clipper.GenerateClippedOutputOff()
         clipper.GenerateClipScalarsOff()
         clipper.SetValue(0)
         clipper.Update()
+
         cpoly = clipper.GetOutput()
+        self.DeepCopy(cpoly)
 
-        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
-            self._update(cpoly)
-        else:
-            # bring the underlying polydata to where _data is
-            M = vtk.vtkMatrix4x4()
-            M.DeepCopy(self.GetMatrix())
-            M.Invert()
-            tr = vtk.vtkTransform()
-            tr.SetMatrix(M)
-            tf = vtk.vtkTransformPolyDataFilter()
-            tf.SetTransform(tr)
-            tf.SetInputData(cpoly)
-            tf.Update()
-            self._update(tf.GetOutput())
-
+        self.point_locator = None
+        self.line_locator = None
+        self.cell_locator = None
         self.pipeline = utils.OperationNode("cut_with_cylinder", parents=[self])
         return self
 
@@ -4088,7 +3919,7 @@ class Points(BaseActor, vtk.vtkPolyData):
         sph.SetRadius(r)
 
         clipper = vtk.vtkClipPolyData()
-        clipper.SetInputData(self.polydata(True))  # must be True
+        clipper.SetInputData(self)
         clipper.SetClipFunction(sph)
         clipper.SetInsideOut(not invert)
         clipper.GenerateClippedOutputOff()
@@ -4096,22 +3927,11 @@ class Points(BaseActor, vtk.vtkPolyData):
         clipper.SetValue(0)
         clipper.Update()
         cpoly = clipper.GetOutput()
+        self.DeepCopy(cpoly)
 
-        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
-            self._update(cpoly)
-        else:
-            # bring the underlying polydata to where _data is
-            M = vtk.vtkMatrix4x4()
-            M.DeepCopy(self.GetMatrix())
-            M.Invert()
-            tr = vtk.vtkTransform()
-            tr.SetMatrix(M)
-            tf = vtk.vtkTransformPolyDataFilter()
-            tf.SetTransform(tr)
-            tf.SetInputData(cpoly)
-            tf.Update()
-            self._update(tf.GetOutput())
-
+        self.point_locator = None
+        self.line_locator = None
+        self.cell_locator = None
         self.pipeline = utils.OperationNode("cut_with_sphere", parents=[self])
         return self
 
@@ -4139,8 +3959,8 @@ class Points(BaseActor, vtk.vtkPolyData):
        Check out also:
             `cut_with_box()`, `cut_with_plane()`, `cut_with_cylinder()`
        """
-        polymesh = mesh.polydata()
-        poly = self.polydata()
+        polymesh = mesh
+        poly = self
 
         # Create an array to hold distance information
         signed_distances = vtk.vtkFloatArray()
@@ -4171,6 +3991,7 @@ class Points(BaseActor, vtk.vtkPolyData):
         clipper.SetValue(0.0)
         clipper.Update()
         cpoly = clipper.GetOutput()
+
         if keep:
             kpoly = clipper.GetOutput(1)
 
@@ -4178,21 +3999,12 @@ class Points(BaseActor, vtk.vtkPolyData):
         if currentscals:
             cpoly.GetPointData().SetActiveScalars(currentscals)
             vis = self.mapper.GetScalarVisibility()
+        
+        self.DeepCopy(cpoly)
 
-        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
-            self._update(cpoly)
-        else:
-            # bring the underlying polydata to where _data is
-            M = vtk.vtkMatrix4x4()
-            M.DeepCopy(self.GetMatrix())
-            M.Invert()
-            tr = vtk.vtkTransform()
-            tr.SetMatrix(M)
-            tf = vtk.vtkTransformPolyDataFilter()
-            tf.SetTransform(tr)
-            tf.SetInputData(cpoly)
-            tf.Update()
-            self._update(tf.GetOutput())
+        self.point_locator = None
+        self.line_locator = None
+        self.cell_locator = None
 
         self.pointdata.remove("SignedDistances")
         self.mapper.SetScalarVisibility(vis)
@@ -4203,7 +4015,7 @@ class Points(BaseActor, vtk.vtkPolyData):
                 cutoff = vedo.Points(kpoly)
             cutoff.property = vtk.vtkProperty()
             cutoff.property.DeepCopy(self.property)
-            cutoff.SetProperty(cutoff.property)
+            cutoff.actor.SetProperty(cutoff.property)
             cutoff.c("k5").alpha(0.2)
             return vedo.Assembly([self, cutoff])
 
@@ -4233,7 +4045,7 @@ class Points(BaseActor, vtk.vtkPolyData):
         """
         if isinstance(points, Points):
             parents = [points]
-            vpts = points.polydata().GetPoints()
+            vpts = points.GetPoints()
             points = points.points()
         else:
             parents = [self]
@@ -4247,7 +4059,7 @@ class Points(BaseActor, vtk.vtkPolyData):
             ippd.SetLoop(vpts)
             ippd.AutomaticNormalGenerationOn()
             clipper = vtk.vtkExtractPolyDataGeometry()
-            clipper.SetInputData(self.polydata())
+            clipper.SetInputData(self)
             clipper.SetImplicitFunction(ippd)
             clipper.SetExtractInside(not invert)
             clipper.SetExtractBoundaryCells(include_boundary)
@@ -4256,7 +4068,7 @@ class Points(BaseActor, vtk.vtkPolyData):
             spol.SetLoop(vpts)
             spol.GenerateSelectionScalarsOn()
             spol.GenerateUnselectedOutputOff()
-            spol.SetInputData(self.polydata())
+            spol.SetInputData(self)
             spol.Update()
             clipper = vtk.vtkClipPolyData()
             clipper.SetInputData(spol.GetOutput())
@@ -4265,21 +4077,11 @@ class Points(BaseActor, vtk.vtkPolyData):
         clipper.Update()
         cpoly = clipper.GetOutput()
 
-        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
-            self._update(cpoly)
-        else:
-            # bring the underlying polydata to where _data is
-            M = vtk.vtkMatrix4x4()
-            M.DeepCopy(self.GetMatrix())
-            M.Invert()
-            tr = vtk.vtkTransform()
-            tr.SetMatrix(M)
-            tf = vtk.vtkTransformPolyDataFilter()
-            tf.SetTransform(tr)
-            tf.SetInputData(clipper.GetOutput())
-            tf.Update()
-            self._update(tf.GetOutput())
+        self.DeepCopy(cpoly)
 
+        self.point_locator = None
+        self.line_locator = None
+        self.cell_locator = None
         self.pipeline = utils.OperationNode("cut_with_pointloop", parents=parents)
         return self
 
@@ -4316,8 +4118,13 @@ class Points(BaseActor, vtk.vtkPolyData):
         clipper.GenerateClippedOutputOff()
         clipper.SetInsideOut(not invert)
         clipper.Update()
-        self._update(clipper.GetOutput())
+        cpoly = clipper.GetOutput()
 
+        self.DeepCopy(cpoly)
+
+        self.point_locator = None
+        self.line_locator = None
+        self.cell_locator = None
         self.pipeline = utils.OperationNode("cut_with_scalars", parents=[self])
         return self
 
@@ -4371,7 +4178,7 @@ class Points(BaseActor, vtk.vtkPolyData):
         cu.SetBounds(bounds)
 
         clipper = vtk.vtkClipPolyData()
-        clipper.SetInputData(self.polydata())
+        clipper.SetInputData(self)
         clipper.SetClipFunction(cu)
         clipper.InsideOutOn()
         clipper.GenerateClippedOutputOff()
@@ -4380,20 +4187,7 @@ class Points(BaseActor, vtk.vtkPolyData):
         clipper.Update()
         cpoly = clipper.GetOutput()
 
-        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
-            self._update(cpoly)
-        else:
-            # bring the underlying polydata to where _data is
-            M = vtk.vtkMatrix4x4()
-            M.DeepCopy(self.GetMatrix())
-            M.Invert()
-            tr = vtk.vtkTransform()
-            tr.SetMatrix(M)
-            tf = vtk.vtkTransformPolyDataFilter()
-            tf.SetTransform(tr)
-            tf.SetInputData(cpoly)
-            tf.Update()
-            self._update(tf.GetOutput())
+        self.DeepCopy(cpoly)
 
         self.point_locator = None
         self.line_locator = None
@@ -4413,7 +4207,7 @@ class Points(BaseActor, vtk.vtkPolyData):
             maxdist = self.diagonal_size() / 2
 
         imp = vtk.vtkImplicitModeller()
-        imp.SetInputData(self.polydata())
+        imp.SetInputData(self)
         imp.SetSampleDimensions(res)
         imp.SetMaximumDistance(maxdist)
         imp.SetModelBounds(bounds)
@@ -4621,7 +4415,7 @@ class Points(BaseActor, vtk.vtkPolyData):
                 z1 + (z1 - z0) * padding,
             )
 
-        pd = self.polydata()
+        pd = self
 
         if pd.GetPointData().GetNormals():
             sdf.SetInputData(pd)
@@ -4730,7 +4524,7 @@ class Points(BaseActor, vtk.vtkPolyData):
         """
         # https://vtk.org/doc/nightly/html/classvtkConnectedPointsFilter.html
         cpf = vtk.vtkConnectedPointsFilter()
-        cpf.SetInputData(self.polydata())
+        cpf.SetInputData(self)
         cpf.SetRadius(radius)
         if mode == 0:  # Extract all regions
             pass
@@ -4761,7 +4555,8 @@ class Points(BaseActor, vtk.vtkPolyData):
             cpf.SetNormalAngle(angle)
 
         cpf.Update()
-        return self._update(cpf.GetOutput())
+        self.DeepCopy(cpf.GetOutput())
+        return self
 
     def compute_camera_distance(self):
         """
@@ -4769,12 +4564,12 @@ class Points(BaseActor, vtk.vtkPolyData):
         A pointdata array is created with name 'DistanceToCamera'.
         """
         if vedo.plotter_instance.renderer:
-            poly = self.polydata()
+            poly = self
             dc = vtk.vtkDistanceToCamera()
             dc.SetInputData(poly)
             dc.SetRenderer(vedo.plotter_instance.renderer)
             dc.Update()
-            return self._update(dc.GetOutput())
+            self.DeepCopy(dc.GetOutput())
         return self
 
     def density(
@@ -4805,7 +4600,7 @@ class Points(BaseActor, vtk.vtkPolyData):
                 ![](https://vedo.embl.es/images/pyplot/plot_density3d.png)
         """
         pdf = vtk.vtkPointDensityFilter()
-        pdf.SetInputData(self.polydata())
+        pdf.SetInputData(self)
 
         if not utils.is_sequence(dims):
             dims = [dims, dims, dims]
@@ -4949,7 +4744,7 @@ class Points(BaseActor, vtk.vtkPolyData):
         if maxradius is None:
             maxradius = self.diagonal_size() / 2
         dist = vtk.vtkSignedDistance()
-        dist.SetInputData(self.polydata())
+        dist.SetInputData(self)
         dist.SetRadius(maxradius)
         dist.SetBounds(bounds)
         dist.SetDimensions(dims)
@@ -5005,7 +4800,7 @@ class Points(BaseActor, vtk.vtkPolyData):
             vedo.logger.error("please set either radius or n")
             raise RuntimeError
 
-        poly = self.polydata()
+        poly = self
 
         # Create a probe volume
         probe = vtk.vtkImageData()
@@ -5078,7 +4873,7 @@ class Points(BaseActor, vtk.vtkPolyData):
         gen.GenerateCellScalarsOn()
         gen.Update()
 
-        m = self._update(gen.GetOutput())
+        self.DeepCopy(gen.GetOutput())
 
-        m.pipeline = utils.OperationNode("generate\nrandom data", parents=[self])
-        return m
+        self.pipeline = utils.OperationNode("generate\nrandom data", parents=[self])
+        return self
