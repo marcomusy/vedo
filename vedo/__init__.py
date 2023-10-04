@@ -25,6 +25,7 @@ from vedo.settings import Settings
 settings = Settings(level=0)
 
 from vedo.colors import *
+from vedo.transformations import *
 from vedo.utils import *
 from vedo.base import *
 from vedo.shapes import *

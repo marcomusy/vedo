@@ -11,6 +11,7 @@ import vedo
 from vedo import colors
 from vedo import utils
 from vedo.base import BaseActor
+from vedo.transformations import LinearTransform
 
 __docformat__ = "google"
 
@@ -757,6 +758,7 @@ class Points(BaseActor, vtk.vtkPolyData):
 
         self.actor = vtk.vtkActor()
         self.property = self.actor.GetProperty()
+        self.transform = LinearTransform()
         # self.name = "Points" # better not to give it a name here
 
         if blur:
@@ -948,7 +950,7 @@ class Points(BaseActor, vtk.vtkPolyData):
         # self.mapper.SetInputData(polydata)
         # self.mapper.Modified()
         return self
-
+    
     def __add__(self, meshs):
         if isinstance(meshs, list):
             alist = [self]
@@ -964,29 +966,9 @@ class Points(BaseActor, vtk.vtkPolyData):
 
         return vedo.assembly.Assembly([self, meshs])
 
-    # def polydata(self):
-    #     """
-    #     Returns the `vtkPolyData` object associated to a `Mesh`.
-    #     Return a copy of polydata that corresponds
-    #     to the current mesh position in space.
-    #     """
-    #     if True:
-    #         # if self.GetIsIdentity() or self.GetNumberOfPoints()==0: # commmentd out on 15th feb 2020
-    #         if self.GetNumberOfPoints() == 0:
-    #             # no need to do much
-    #             return self
-    #         # otherwise make a copy that corresponds to
-    #         # the actual position in space of the mesh
-    #         M = self.GetMatrix()
-    #         transform = vtk.vtkTransform()
-    #         transform.SetMatrix(M)
-    #         tp = vtk.vtkTransformPolyDataFilter()
-    #         tp.SetTransform(transform)
-    #         tp.SetInputData(self)
-    #         tp.Update()
-    #         return tp.GetOutput()
-    #     return self
-
+    def polydata(self, transformed=True):
+        """Obsolete."""
+        return self
 
     def clone(self, deep=True):
         """
@@ -2135,7 +2117,7 @@ class Points(BaseActor, vtk.vtkPolyData):
             if d:
                 point = self.closest_point([(x0 + x1) / 2, (y0 + y1) / 2, z1])
             else:  # it's a Point
-                point = self.GetPosition()
+                point = self.transform.position
 
         pt = utils.make3d(point)
 
@@ -2275,7 +2257,7 @@ class Points(BaseActor, vtk.vtkPolyData):
             if d:
                 point = self.closest_point([(x0 + x1) / 2, (y0 + y1) / 2, z1])
             else:  # it's a Point
-                point = self.GetPosition()
+                point = self.transform.position
 
         point = utils.make3d(point)
 
@@ -2546,95 +2528,96 @@ class Points(BaseActor, vtk.vtkPolyData):
 
 
     def apply_transform(self, T, reset=False, concatenate=False):
-        """
-        Apply a linear or non-linear transformation to the mesh polygonal data.
+        """Obsolete, use `self.transform` instead."""
+        # """
+        # Apply a linear or non-linear transformation to the mesh polygonal data.
 
-        Arguments:
-            T : (matrix)
-                `vtkTransform`, `vtkMatrix4x4` or a 4x4 or 3x3 python or numpy matrix.
-            reset : (bool)
-                if True reset the current transformation matrix
-                to identity after having moved the object, otherwise the internal
-                matrix will stay the same (to only affect visualization).
-                It the input transformation has no internal defined matrix (ie. non linear)
-                then reset will be assumed as True.
-            concatenate : (bool)
-                concatenate the transformation with the current existing one
+        # Arguments:
+        #     T : (matrix)
+        #         `vtkTransform`, `vtkMatrix4x4` or a 4x4 or 3x3 python or numpy matrix.
+        #     reset : (bool)
+        #         if True reset the current transformation matrix
+        #         to identity after having moved the object, otherwise the internal
+        #         matrix will stay the same (to only affect visualization).
+        #         It the input transformation has no internal defined matrix (ie. non linear)
+        #         then reset will be assumed as True.
+        #     concatenate : (bool)
+        #         concatenate the transformation with the current existing one
 
-        Example:
-            ```python
-            from vedo import Cube, show
-            c1 = Cube().rotate_z(5).x(2).y(1)
-            print("cube1 position", c1.pos())
-            T = c1.get_transform()  # rotate by 5 degrees, sum 2 to x and 1 to y
-            c2 = Cube().c('r4')
-            c2.apply_transform(T)   # ignore previous movements
-            c2.apply_transform(T, concatenate=True)
-            c2.apply_transform(T, concatenate=True)
-            print("cube2 position", c2.pos())
-            show(c1, c2, axes=1).close()
-            ```
-            ![](https://vedo.embl.es/images/feats/apply_transform.png)
-        """
-        self.point_locator = None
-        self.cell_locator = None
-        self.line_locator = None
+        # Example:
+        #     ```python
+        #     from vedo import Cube, show
+        #     c1 = Cube().rotate_z(5).x(2).y(1)
+        #     print("cube1 position", c1.pos())
+        #     T = c1.get_transform()  # rotate by 5 degrees, sum 2 to x and 1 to y
+        #     c2 = Cube().c('r4')
+        #     c2.apply_transform(T)   # ignore previous movements
+        #     c2.apply_transform(T, concatenate=True)
+        #     c2.apply_transform(T, concatenate=True)
+        #     print("cube2 position", c2.pos())
+        #     show(c1, c2, axes=1).close()
+        #     ```
+        #     ![](https://vedo.embl.es/images/feats/apply_transform.png)
+        # """
+        # self.point_locator = None
+        # self.cell_locator = None
+        # self.line_locator = None
 
-        if isinstance(T, vtk.vtkMatrix4x4):
-            tr = vtk.vtkTransform()
-            tr.SetMatrix(T)
-            T = tr
+        # if isinstance(T, vtk.vtkMatrix4x4):
+        #     tr = vtk.vtkTransform()
+        #     tr.SetMatrix(T)
+        #     T = tr
 
-        elif utils.is_sequence(T):
-            M = vtk.vtkMatrix4x4()
-            n = len(T[0])
-            for i in range(n):
-                for j in range(n):
-                    M.SetElement(i, j, T[i][j])
-            tr = vtk.vtkTransform()
-            tr.SetMatrix(M)
-            T = tr
+        # elif utils.is_sequence(T):
+        #     M = vtk.vtkMatrix4x4()
+        #     n = len(T[0])
+        #     for i in range(n):
+        #         for j in range(n):
+        #             M.SetElement(i, j, T[i][j])
+        #     tr = vtk.vtkTransform()
+        #     tr.SetMatrix(M)
+        #     T = tr
 
-        if reset or not hasattr(T, "GetScale"):  # might be non-linear
+        # if reset or not hasattr(T, "GetScale"):  # might be non-linear
 
-            tf = vtk.vtkTransformPolyDataFilter()
-            tf.SetTransform(T)
-            tf.SetInputData(self.polydata())
-            tf.Update()
+        #     tf = vtk.vtkTransformPolyDataFilter()
+        #     tf.SetTransform(T)
+        #     tf.SetInputData(self.polydata())
+        #     tf.Update()
 
-            I = vtk.vtkMatrix4x4()
-            self.PokeMatrix(I)  # reset to identity
-            self.SetUserTransform(None)
+        #     I = vtk.vtkMatrix4x4()
+        #     self.PokeMatrix(I)  # reset to identity
+        #     self.SetUserTransform(None)
 
-            self._update(tf.GetOutput())  ### UPDATE
-            self.transform = T
+        #     self._update(tf.GetOutput())  ### UPDATE
+        #     self.transform = T
 
-        else:
+        # else:
 
-            if concatenate:
+        #     if concatenate:
 
-                M = vtk.vtkTransform()
-                M.PostMultiply()
-                M.SetMatrix(self.GetMatrix())
+        #         M = vtk.vtkTransform()
+        #         M.PostMultiply()
+        #         M.SetMatrix(self.GetMatrix())
 
-                M.Concatenate(T)
+        #         M.Concatenate(T)
 
-                self.SetScale(M.GetScale())
-                self.SetOrientation(M.GetOrientation())
-                self.SetPosition(M.GetPosition())
-                self.transform = M
-                self.SetUserTransform(None)
+        #         self.SetScale(M.GetScale())
+        #         self.SetOrientation(M.GetOrientation())
+        #         self.SetPosition(M.GetPosition())
+        #         self.transform = M
+        #         self.SetUserTransform(None)
 
-            else:
+        #     else:
 
-                self.SetScale(T.GetScale())
-                self.SetOrientation(T.GetOrientation())
-                self.SetPosition(T.GetPosition())
-                self.SetUserTransform(None)
+        #         self.SetScale(T.GetScale())
+        #         self.SetOrientation(T.GetOrientation())
+        #         self.SetPosition(T.GetPosition())
+        #         self.SetUserTransform(None)
 
-                self.transform = T
-
-        return self
+        #         self.transform = T
+        self.transform = T
+        return self._move()
 
     def normalize(self):
         """Scale Mesh average size to unit."""
@@ -2645,21 +2628,23 @@ class Points(BaseActor, vtk.vtkPolyData):
         pts = coords - cm
         xyz2 = np.sum(pts * pts, axis=0)
         scale = 1 / np.sqrt(np.sum(xyz2) / len(pts))
-        t = vtk.vtkTransform()
-        t.PostMultiply()
-        # t.Translate(-cm)
-        t.Scale(scale, scale, scale)
-        # t.Translate(cm)
-        tf = vtk.vtkTransformPolyDataFilter()
-        tf.SetInputData(self.inputdata())
-        tf.SetTransform(t)
-        tf.Update()
-        self.point_locator = None
-        self.cell_locator = None
-        self.line_locator = None
-        return self._update(tf.GetOutput())
+        # t = vtk.vtkTransform()
+        # t.PostMultiply()
+        # # t.Translate(-cm)
+        # t.Scale(scale, scale, scale)
+        # # t.Translate(cm)
+        # tf = vtk.vtkTransformPolyDataFilter()
+        # tf.SetInputData(self.inputdata())
+        # tf.SetTransform(t)
+        # tf.Update()
+        # self.point_locator = None
+        # self.cell_locator = None
+        # self.line_locator = None
+        # return self._update(tf.GetOutput())
+        self.scale(scale).pos(cm)
+        return self
 
-    def mirror(self, axis="x", origin=(0, 0, 0), reset=False):
+    def mirror(self, axis="x", origin=None):
         """
         Mirror the mesh  along one of the cartesian axes
 
@@ -2669,9 +2654,6 @@ class Points(BaseActor, vtk.vtkPolyData):
                 Or any combination of those. Adding 'n' reverses mesh faces (hence normals).
             origin : (list)
                 use this point as the origin of the mirroring transformation.
-            reset : (bool)
-                if True keep into account the current position of the object,
-                and then reset its internal transformation matrix to Identity.
 
         Examples:
             - [mirror.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mirror.py)
@@ -2682,45 +2664,21 @@ class Points(BaseActor, vtk.vtkPolyData):
         if "x" in axis.lower(): sx = -1
         if "y" in axis.lower(): sy = -1
         if "z" in axis.lower(): sz = -1
-        origin = np.array(origin)
-        tr = vtk.vtkTransform()
-        tr.PostMultiply()
-        tr.Translate(-origin)
-        tr.Scale(sx, sy, sz)
-        tr.Translate(origin)
-        tf = vtk.vtkTransformPolyDataFilter()
-        tf.SetInputData(self.polydata(reset))
-        tf.SetTransform(tr)
-        tf.Update()
-        outpoly = tf.GetOutput()
-        if reset:
-            self.PokeMatrix(vtk.vtkMatrix4x4())  # reset to identity
+
+        self.transform.scale([sx, sy, sz], origin=origin)
+        
+        outpoly = self
         if sx * sy * sz < 0 or "n" in axis:
             rs = vtk.vtkReverseSense()
-            rs.SetInputData(outpoly)
-            rs.ReverseNormalsOff()
+            rs.SetInputData(self)
+            rs.ReverseNormalsOn()
             rs.Update()
             outpoly = rs.GetOutput()
+        self.DeepCopy(outpoly)
 
-        self.point_locator = None
-        self.cell_locator = None
-        self.line_locator = None
-
-        out = self._update(outpoly)
-
-        out.pipeline = utils.OperationNode(f"mirror\naxis = {axis}", parents=[self])
-        return out
-
-    def shear(self, x=0, y=0, z=0):
-        """Apply a shear deformation along one of the main axes"""
-        t = vtk.vtkTransform()
-        sx, sy, sz = self.GetScale()
-        t.SetMatrix([sx, x, 0, 0,
-                      y,sy, z, 0,
-                      0, 0,sz, 0,
-                      0, 0, 0, 1])
-        self.apply_transform(t, reset=True)
+        self.pipeline = utils.OperationNode(f"mirror\naxis = {axis}", parents=[self])
         return self
+
 
     def flip_normals(self):
         """Flip all mesh normals. Same as `mesh.mirror('n')`."""

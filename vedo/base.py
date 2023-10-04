@@ -11,6 +11,8 @@ except ImportError:
 import vedo
 from vedo import colors
 from vedo import utils
+from vedo.transformations import LinearTransform
+
 
 __docformat__ = "google"
 
@@ -39,13 +41,13 @@ class _DataArrayHelper:
     def __getitem__(self, key):
 
         if self.association == 0:
-            data = self.actor.inputdata().GetPointData()
+            data = self.actor.GetPointData()
 
         elif self.association == 1:
-            data = self.actor.inputdata().GetCellData()
+            data = self.actor.GetCellData()
 
         elif self.association == 2:
-            data = self.actor.inputdata().GetFieldData()
+            data = self.actor.GetFieldData()
 
             varr = data.GetAbstractArray(key)
             if isinstance(varr, vtk.vtkStringArray):
@@ -138,11 +140,11 @@ class _DataArrayHelper:
     def keys(self):
         """Return the list of available data array names"""
         if self.association == 0:
-            data = self.actor.inputdata().GetPointData()
+            data = self.actor.GetPointData()
         elif self.association == 1:
-            data = self.actor.inputdata().GetCellData()
+            data = self.actor.GetCellData()
         elif self.association == 2:
-            data = self.actor.inputdata().GetFieldData()
+            data = self.actor.GetFieldData()
         arrnames = []
         for i in range(data.GetNumberOfArrays()):
             name = data.GetArray(i).GetName()
@@ -153,20 +155,20 @@ class _DataArrayHelper:
     def remove(self, key):
         """Remove a data array by name or number"""
         if self.association == 0:
-            self.actor.inputdata().GetPointData().RemoveArray(key)
+            self.actor.GetPointData().RemoveArray(key)
         elif self.association == 1:
-            self.actor.inputdata().GetCellData().RemoveArray(key)
+            self.actor.GetCellData().RemoveArray(key)
         elif self.association == 2:
-            self.actor.inputdata().GetFieldData().RemoveArray(key)
+            self.actor.GetFieldData().RemoveArray(key)
 
     def clear(self):
         """Remove all data associated to this object"""
         if self.association == 0:
-            data = self.actor.inputdata().GetPointData()
+            data = self.actor.GetPointData()
         elif self.association == 1:
-            data = self.actor.inputdata().GetCellData()
+            data = self.actor.GetCellData()
         elif self.association == 2:
-            data = self.actor.inputdata().GetFieldData()
+            data = self.actor.GetFieldData()
         for i in range(data.GetNumberOfArrays()):
             name = data.GetArray(i).GetName()
             data.RemoveArray(name)
@@ -174,11 +176,11 @@ class _DataArrayHelper:
     def rename(self, oldname, newname):
         """Rename an array"""
         if self.association == 0:
-            varr = self.actor.inputdata().GetPointData().GetArray(oldname)
+            varr = self.actor.GetPointData().GetArray(oldname)
         elif self.association == 1:
-            varr = self.actor.inputdata().GetCellData().GetArray(oldname)
+            varr = self.actor.GetCellData().GetArray(oldname)
         elif self.association == 2:
-            varr = self.actor.inputdata().GetFieldData().GetArray(oldname)
+            varr = self.actor.GetFieldData().GetArray(oldname)
         if varr:
             varr.SetName(newname)
         else:
@@ -225,10 +227,10 @@ class _DataArrayHelper:
     def select_scalars(self, key):
         """Select one specific scalar array by its name to make it the `active` one."""
         if self.association == 0:
-            data = self.actor.inputdata().GetPointData()
+            data = self.actor.GetPointData()
             self.actor.mapper.SetScalarModeToUsePointData()
         else:
-            data = self.actor.inputdata().GetCellData()
+            data = self.actor.GetCellData()
             self.actor.mapper.SetScalarModeToUseCellData()
 
         if isinstance(key, int):
@@ -245,10 +247,10 @@ class _DataArrayHelper:
     def select_vectors(self, key):
         """Select one specific vector array by its name to make it the `active` one."""
         if self.association == 0:
-            data = self.actor.inputdata().GetPointData()
+            data = self.actor.GetPointData()
             self.actor.mapper.SetScalarModeToUsePointData()
         else:
-            data = self.actor.inputdata().GetCellData()
+            data = self.actor.GetCellData()
             self.actor.mapper.SetScalarModeToUseCellData()
 
         if isinstance(key, int):
@@ -361,7 +363,7 @@ class Base3DProp:
         """
         # https://www.linkedin.com/pulse/speedup-your-code-accessing-python-vtk-objects-from-c-pletzer/
         # https://github.com/tfmoraes/polydata_connectivity
-        return int(self.inputdata().GetAddressAsString("")[5:], 16)
+        return int(self.GetAddressAsString("")[5:], 16)
 
     def pickable(self, value=None):
         """Set/get the pickability property of an object."""
@@ -377,31 +379,29 @@ class Base3DProp:
         self.actor.SetDragable(value)
         return self
 
-    def origin(self, x=None, y=None, z=None):
-        """
-        Set/get object's origin.
 
-        Relevant to control the scaling with `scale()` and rotations.
-        Has no effect on position.
-        """
-        if x is None:
-            return np.array(self.GetOrigin()) + self.GetPosition()
+    def _move(self):
+        m = self.transform.T.GetMatrix()
+        M = [[m.GetElement(i, j) for j in range(4)] for i in range(4)]
+        if np.allclose(M - np.eye(4), 0):
+            return self
 
-        if z is None and y is None:  # assume x is of the form (x,y,z)
-            if len(x) == 3:
-                x, y, z = x
-            else:
-                x, y = x
-                z = 0
-        elif z is None:  # assume x,y is of the form x, y
-            z = 0
-        self.actor.SetOrigin([x, y, z] - np.array(self.GetPosition()))
+        tp = vtk.vtkTransformPolyDataFilter()
+        tp.SetTransform(self.transform.T)
+        tp.SetInputData(self)
+        tp.Update()
+        out = tp.GetOutput()
+
+        self.DeepCopy(out)
+        self.point_locator = None
+        self.cell_locator = None
+        self.line_locator = None
         return self
 
     def pos(self, x=None, y=None, z=None):
         """Set/Get object position."""
         if x is None:  # get functionality
-            return np.array(self.actor.GetPosition())
+            return self.transform.position
 
         if z is None and y is None:  # assume x is of the form (x,y,z)
             if len(x) == 3:
@@ -411,31 +411,25 @@ class Base3DProp:
                 z = 0
         elif z is None:  # assume x,y is of the form x, y
             z = 0
-        self.actor.SetPosition(x, y, z)
 
-        self.point_locator = None
-        self.cell_locator = None
-        return self  # return itself to concatenate methods
+        # try:
+        self.transform.set_position([x, y, z])
+        return self._move()
 
     def shift(self, dx=0, dy=0, dz=0):
         """Add a vector to the current object position."""
-        p = np.array(self.actor.GetPosition())
-
         if utils.is_sequence(dx):
             if len(dx) == 2:
-                self.actor.SetPosition(p + [dx[0], dx[1], 0])
+                self.transform.translate([dx[0], dx[1], 0])
             else:
-                self.actor.SetPosition(p + dx)
+                self.transform.translate(dx)
         else:
-            self.actor.SetPosition(p + [dx, dy, dz])
-
-        self.point_locator = None
-        self.cell_locator = None
-        return self
+            self.transform.translate([dx, dy, dz])
+        return self._move()
 
     def x(self, val=None):
         """Set/Get object position along x axis."""
-        p = self.actor.GetPosition()
+        p = self.transform.position
         if val is None:
             return p[0]
         self.pos(val, p[1], p[2])
@@ -443,7 +437,7 @@ class Base3DProp:
 
     def y(self, val=None):
         """Set/Get object position along y axis."""
-        p = self.actor.GetPosition()
+        p = self.transform.position
         if val is None:
             return p[1]
         self.pos(p[0], val, p[2])
@@ -451,7 +445,7 @@ class Base3DProp:
 
     def z(self, val=None):
         """Set/Get object position along z axis."""
-        p = self.actor.GetPosition()
+        p = self.transform.position
         if val is None:
             return p[2]
         self.pos(p[0], p[1], val)
@@ -474,60 +468,8 @@ class Base3DProp:
             ```
             ![](https://vedo.embl.es/images/feats/rotate_axis.png)
         """
-        if rad:
-            anglerad = angle
-        else:
-            anglerad = np.deg2rad(angle)
-        axis = utils.versor(axis)
-        a = np.cos(anglerad / 2)
-        b, c, d = -axis * np.sin(anglerad / 2)
-        aa, bb, cc, dd = a * a, b * b, c * c, d * d
-        bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
-        R = np.array(
-            [
-                [aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
-                [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
-                [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc],
-            ]
-        )
-        rv = np.dot(R, self.GetPosition() - np.asarray(point)) + point
-
-        if rad:
-            angle *= 180.0 / np.pi
-        # this vtk method only rotates in the origin of the object:
-        self.actor.RotateWXYZ(angle, axis[0], axis[1], axis[2])
-        self.pos(rv)
-        return self
-
-    def _rotatexyz(self, a, angle, rad, around):
-        if rad:
-            angle *= 180 / np.pi
-
-        T = vtk.vtkTransform()
-        T.SetMatrix(self.GetMatrix())
-        T.PostMultiply()
-
-        rot = dict(x=T.RotateX, y=T.RotateY, z=T.RotateZ)
-
-        if around is None:
-            # rotate around its origin
-            rot[a](angle)
-        else:
-            if around == "itself":
-                around = self.GetPosition()
-            # displacement needed to bring it back to the origin
-            # and disregard origin
-            disp = around - np.array(self.GetOrigin())
-            T.Translate(-disp)
-            rot[a](angle)
-            T.Translate(disp)
-
-        self.actor.SetOrientation(T.GetOrientation())
-        self.actor.SetPosition(T.GetPosition())
-
-        self.point_locator = None
-        self.cell_locator = None
-        return self
+        self.transform.rotate(angle, axis, point, rad)
+        return self._move()
 
     def rotate_x(self, angle, rad=False, around=None):
         """
@@ -535,7 +477,8 @@ class Base3DProp:
 
         Use `around` to define a pivoting point.
         """
-        return self._rotatexyz("x", angle, rad, around)
+        self.transform.rotate_x(angle, rad, around)
+        return self._move()
 
     def rotate_y(self, angle, rad=False, around=None):
         """
@@ -543,7 +486,8 @@ class Base3DProp:
 
         Use `around` to define a pivoting point.
         """
-        return self._rotatexyz("y", angle, rad, around)
+        self.transform.rotate_y(angle, rad, around)
+        return self._move()
 
     def rotate_z(self, angle, rad=False, around=None):
         """
@@ -551,92 +495,13 @@ class Base3DProp:
 
         Use `around` to define a pivoting point.
         """
-        return self._rotatexyz("z", angle, rad, around)
+        self.transform.rotate_z(angle, rad, around)
+        return self._move()
 
+    #TODO
     def orientation(self, newaxis=None, rotation=0, concatenate=False, xyplane=False, rad=False):
-        """
-        Set/Get object orientation.
-
-        Arguments:
-            rotation : (float)
-                rotate object around newaxis.
-            concatenate : (bool)
-                concatenate the orientation operation with the previous existing transform (if any)
-            xyplane : (bool)
-                make an extra rotation to keep the object aligned to the xy-plane
-            rad : (bool)
-                set to True if angle is expressed in radians.
-
-        Example:
-            ```python
-            from vedo import *
-            center = np.array([581/2,723/2,0])
-            objs = []
-            for a in np.linspace(0, 6.28, 7):
-                v = vector(cos(a), sin(a), 0)*1000
-                pic = Picture(dataurl+"images/dog.jpg").rotate_z(10)
-                pic.orientation(v, xyplane=True)
-                pic.origin(center)
-                pic.pos(v - center)
-                objs += [pic, Arrow(v, v+v)]
-            show(objs, Point(), axes=1).close()
-            ```
-            ![](https://vedo.embl.es/images/feats/orientation.png)
-
-        Examples:
-            - [gyroscope2.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/gyroscope2.py)
-
-            ![](https://vedo.embl.es/images/simulations/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif)
-        """
-        if self.top is None or self.base is None:
-            initaxis = (0, 0, 1)
-        else:
-            initaxis = utils.versor(self.top - self.base)
-
-        newaxis = utils.versor(newaxis)
-        p = np.array(self.GetPosition())
-        crossvec = np.cross(initaxis, newaxis)
-
-        angleth = np.arccos(np.dot(initaxis, newaxis))
-
-        T = vtk.vtkTransform()
-        if concatenate:
-            try:
-                M = self.GetMatrix()
-                T.SetMatrix(M)
-            except:
-                pass
-        T.PostMultiply()
-        T.Translate(-p)
-        if rotation:
-            if rad:
-                rotation *= 180.0 / np.pi
-            T.RotateWXYZ(rotation, initaxis)
-        if xyplane:
-            angleph = np.arctan2(newaxis[1], newaxis[0])
-            T.RotateWXYZ(np.rad2deg(angleph + angleth), initaxis)  # compensation
-        T.RotateWXYZ(np.rad2deg(angleth), crossvec)
-        T.Translate(p)
-
-        self.actor.SetOrientation(T.GetOrientation())
-
-        self.point_locator = None
-        self.cell_locator = None
         return self
 
-        # newaxis = utils.versor(newaxis)
-        # pos = np.array(self.GetPosition())
-        # crossvec = np.cross(initaxis, newaxis)
-        # angle = np.arccos(np.dot(initaxis, newaxis))
-        # T = vtk.vtkTransform()
-        # T.PostMultiply()
-        # T.Translate(-pos)
-        # if rotation:
-        #     T.RotateWXYZ(rotation, initaxis)
-        # T.RotateWXYZ(np.rad2deg(angle), crossvec)
-        # T.Translate(pos)
-        # self.actor.SetUserTransform(T)
-        # self.transform = T
 
     def scale(self, s=None, reset=False):
         """
@@ -652,85 +517,90 @@ class Base3DProp:
             use `s=(sx,sy,sz)` to scale differently in the three coordinates.
         """
         if s is None:
-            return np.array(self.GetScale())
-
-        # assert s[0] != 0
-        # assert s[1] != 0
-        # assert s[2] != 0
+            return np.array(self.transform.T.GetScale())
 
         if reset:
-            self.actor.SetScale(s)
+            self.transform.set_scale(s)
         else:
-            self.actor.SetScale(np.multiply(self.GetScale(), s))
-
-        self.point_locator = None
-        self.cell_locator = None
-        return self
+            self.transform.scale(s)
+        return self._move()
 
     def get_transform(self, invert=False):
-        """
-        Check if `object.transform` exists and returns a `vtkTransform`.
-        Otherwise return current user transformation (where the object is currently placed).
+        """Obsolete, use object.transform instead."""
+        # """
+        # Check if `object.transform` exists and returns a `vtkTransform`.
+        # Otherwise return current user transformation (where the object is currently placed).
 
-        Use `invert` to return the inverse of the current transformation
+        # Use `invert` to return the inverse of the current transformation
 
-        Example:
-            ```python
-            from vedo import *
+        # Example:
+        #     ```python
+        #     from vedo import *
 
-            c1 = Cube()
-            c2 = c1.clone().c('violet').alpha(0.5) # copy of c1
-            v = vector(0.2,1,0)
-            p = vector(1,0,0)  # axis passes through this point
-            c2.rotate(90, axis=v, point=p)
+        #     c1 = Cube()
+        #     c2 = c1.clone().c('violet').alpha(0.5) # copy of c1
+        #     v = vector(0.2,1,0)
+        #     p = vector(1,0,0)  # axis passes through this point
+        #     c2.rotate(90, axis=v, point=p)
 
-            # get the inverse of the current transformation
-            T = c2.get_transform(invert=True)
-            c2.apply_transform(T)  # put back c2 in place
+        #     # get the inverse of the current transformation
+        #     T = c2.get_transform(invert=True)
+        #     c2.apply_transform(T)  # put back c2 in place
 
-            l = Line(p-v, p+v).lw(3).c('red')
-            show(c1.wireframe().lw(3), l, c2, axes=1).close()
-            ```
-            ![](https://vedo.embl.es/images/feats/get_transf.png)
-        """
-        if self.transform:
-            tr = self.transform
-            if invert:
-                tr = tr.GetInverse()
-            return tr
+        #     l = Line(p-v, p+v).lw(3).c('red')
+        #     show(c1.wireframe().lw(3), l, c2, axes=1).close()
+        #     ```
+        #     ![](https://vedo.embl.es/images/feats/get_transf.png)
+        # """
+        # if self.transform:
+        #     tr = self.transform
+        #     if invert:
+        #         tr = tr.GetInverse()
+        #     return tr
 
-        T = self.GetMatrix()
-        tr = vtk.vtkTransform()
-        tr.SetMatrix(T)
+        # T = self.GetMatrix()
+        # tr = vtk.vtkTransform()
+        # tr.SetMatrix(T)
+        # if invert:
+        #     tr = tr.GetInverse()
+        # return tr
+        print("Warning: get_transform() is obsolete, use object.transform instead.")
         if invert:
-            tr = tr.GetInverse()
-        return tr
+            print("Warning: use object.transform.compute_inverse()")
+            return self.transform.compute_inverse()
+        return self.transform
+
 
     def apply_transform(self, T, reset=False, concatenate=False):
-        """
-        Transform object position and orientation.
+        """Obsolete, use object.transform instead."""
+        # """
+        # Transform object position and orientation.
 
-        Arguments:
-            reset : (bool)
-                no effect, this is superseded by `pointcloud.apply_transform()`
-            concatenate : (bool)
-                no effect, this is superseded by `pointcloud.apply_transform()`
-        """
-        if isinstance(T, vtk.vtkMatrix4x4):
-            self.actor.SetUserMatrix(T)
-        elif utils.is_sequence(T):
-            vm = vtk.vtkMatrix4x4()
-            for i in [0, 1, 2, 3]:
-                for j in [0, 1, 2, 3]:
-                    vm.SetElement(i, j, T[i][j])
-            self.actor.SetUserMatrix(vm)
-        else:
-            self.actor.SetUserTransform(T)
+        # Arguments:
+        #     reset : (bool)
+        #         no effect, this is superseded by `pointcloud.apply_transform()`
+        #     concatenate : (bool)
+        #         no effect, this is superseded by `pointcloud.apply_transform()`
+        # """
+        # if isinstance(T, vtk.vtkMatrix4x4):
+        #     self.actor.SetUserMatrix(T)
+        # elif utils.is_sequence(T):
+        #     vm = vtk.vtkMatrix4x4()
+        #     for i in [0, 1, 2, 3]:
+        #         for j in [0, 1, 2, 3]:
+        #             vm.SetElement(i, j, T[i][j])
+        #     self.actor.SetUserMatrix(vm)
+        # else:
+        #     self.actor.SetUserTransform(T)
+        # self.transform = T
+
+        # self.point_locator = None
+        # self.cell_locator = None
+        # return self
+        print("Warning: apply_transform() is obsolete, use object.transform instead.")
         self.transform = T
+        return self._move()
 
-        self.point_locator = None
-        self.cell_locator = None
-        return self
 
     def align_to_bounding_box(self, msh, rigid=False):
         """
@@ -781,6 +651,7 @@ class Base3DProp:
 
         self.point_locator = None
         self.cell_locator = None
+        self._move()
         return self
 
     def on(self):
@@ -920,8 +791,8 @@ class Base3DProp:
 
     def copy_data_from(self, obj):
         """Copy all data (point and cell data) from this input object"""
-        self.inputdata().GetPointData().PassData(obj.inputdata().GetPointData())
-        self.inputdata().GetCellData().PassData(obj.inputdata().GetCellData())
+        self.GetPointData().PassData(obj.GetPointData())
+        self.GetCellData().PassData(obj.GetCellData())
         self.pipeline = utils.OperationNode(
             f"copy_data_from\n{obj.__class__.__name__}",
             parents=[self, obj],
@@ -1003,42 +874,33 @@ class BaseActor(Base3DProp):
         self.property = None
         self.mapper = None
 
-    # def mapper(self, new_mapper=None):
-    #     """Return the `vtkMapper` data object, or update it with a new one."""
-    #     if new_mapper:
-    #         self.actor.SetMapper(new_mapper)
-    #         if self.mapper:
-    #             iptdata = self.mapper.GetInput()
-    #             if iptdata:
-    #                 new_mapper.SetInputData(self.mapper.GetInput())
-    #         self.mapper = new_mapper
-    #         self.mapper.Modified()
-    #     return self._mapper
 
     def inputdata(self):
-        """Return the VTK input data object."""
-        if self.mapper:
-            return self.mapper.GetInput()
-        return self.GetMapper().GetInput()
-
-    def modified(self):
-        """Use in conjunction with `tonumpy()`
-        to update any modifications to the volume array"""
-        sc = self.inputdata().GetPointData().GetScalars()
-        if sc:
-            sc.Modified()
-        self.inputdata().GetPointData().Modified()
+        """Obsolete, use `self` instead."""
+        # """Return the VTK input data object."""
+        # if self.mapper:
+        #     return self.mapper.GetInput()
+        # return self.GetMapper().GetInput()
         return self
+
+    # def modified(self):
+    #     """Use in conjunction with `tonumpy()`
+    #     to update any modifications to the volume array"""
+    #     sc = self.GetPointData().GetScalars()
+    #     if sc:
+    #         sc.Modified()
+    #     self.GetPointData().Modified()
+    #     return self
 
     @property
     def npoints(self):
         """Retrieve the number of points."""
-        return self.inputdata().GetNumberOfPoints()
+        return self.GetNumberOfPoints()
 
     @property
     def ncells(self):
         """Retrieve the number of cells."""
-        return self.inputdata().GetNumberOfCells()
+        return self.GetNumberOfCells()
 
     def points(self, pts=None, transformed=True):
         """
@@ -1057,7 +919,7 @@ class BaseActor(Base3DProp):
                 v2p.Update()
                 vpts = v2p.GetOutput().GetPoints()
             else:  # tetmesh et al
-                vpts = self.inputdata().GetPoints()
+                vpts = self.GetPoints()
 
             if vpts:
                 return utils.vtk2numpy(vpts.GetData())
@@ -1101,7 +963,7 @@ class BaseActor(Base3DProp):
         if hasattr(self, "polydata"):
             vcen.SetInputData(self.polydata())
         else:
-            vcen.SetInputData(self.inputdata())
+            vcen.SetInputData(self)
         vcen.Update()
         return utils.vtk2numpy(vcen.GetOutput().GetPoints().GetData())
 
@@ -1110,7 +972,7 @@ class BaseActor(Base3DProp):
         Remove cells from the mesh object by their ID.
         Points (vertices) are not removed (you may use `.clean()` to remove those).
         """
-        data = self.inputdata()
+        data = self
         data.BuildLinks()
         for cid in ids:
             data.DeleteCell(cid)
@@ -1380,7 +1242,7 @@ class BaseActor(Base3DProp):
         Set `move=True` to delete the original `celldata` array.
         """
         c2p = vtk.vtkCellDataToPointData()
-        c2p.SetInputData(self.inputdata())
+        c2p.SetInputData(self)
         if not move:
             c2p.PassCellDataOn()
         if arrays:
@@ -1411,7 +1273,7 @@ class BaseActor(Base3DProp):
             - [mesh_map2cell.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_map2cell.py)
         """
         p2c = vtk.vtkPointDataToCellData()
-        p2c.SetInputData(self.inputdata())
+        p2c.SetInputData(self)
         if not move:
             p2c.PassPointDataOn()
         if arrays:
@@ -1454,8 +1316,8 @@ class BaseActor(Base3DProp):
         ```
         """
         rs = vtk.vtkResampleWithDataSet()
-        rs.SetInputData(self.inputdata())
-        rs.SetSourceData(source.inputdata())
+        rs.SetInputData(self)
+        rs.SetSourceData(source)
 
         rs.SetPassPointArrays(True)
         rs.SetPassCellArrays(True)
@@ -1476,7 +1338,7 @@ class BaseActor(Base3DProp):
     def add_ids(self):
         """Generate point and cell ids arrays."""
         ids = vtk.vtkIdFilter()
-        ids.SetInputData(self.inputdata())
+        ids.SetInputData(self)
         ids.PointIdsOn()
         ids.CellIdsOn()
         ids.FieldDataOff()
@@ -1508,10 +1370,10 @@ class BaseActor(Base3DProp):
         """
         gra = vtk.vtkGradientFilter()
         if on.startswith("p"):
-            varr = self.inputdata().GetPointData()
+            varr = self.GetPointData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
         else:
-            varr = self.inputdata().GetCellData()
+            varr = self.GetCellData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
 
         if input_array is None:
@@ -1521,7 +1383,7 @@ class BaseActor(Base3DProp):
                 vedo.logger.error(f"in gradient: no scalars found for {on}")
                 raise RuntimeError
 
-        gra.SetInputData(self.inputdata())
+        gra.SetInputData(self)
         gra.SetInputScalars(tp, input_array)
         gra.SetResultArrayName("Gradient")
         gra.SetFasterApproximation(fast)
@@ -1551,10 +1413,10 @@ class BaseActor(Base3DProp):
         """
         div = vtk.vtkGradientFilter()
         if on.startswith("p"):
-            varr = self.inputdata().GetPointData()
+            varr = self.GetPointData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
         else:
-            varr = self.inputdata().GetCellData()
+            varr = self.GetCellData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
 
         if array_name is None:
@@ -1564,7 +1426,7 @@ class BaseActor(Base3DProp):
                 vedo.logger.error(f"in divergence(): no vectors found for {on}")
                 raise RuntimeError
 
-        div.SetInputData(self.inputdata())
+        div.SetInputData(self)
         div.SetInputScalars(tp, array_name)
         div.ComputeDivergenceOn()
         div.ComputeGradientOff()
@@ -1594,10 +1456,10 @@ class BaseActor(Base3DProp):
         """
         vort = vtk.vtkGradientFilter()
         if on.startswith("p"):
-            varr = self.inputdata().GetPointData()
+            varr = self.GetPointData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
         else:
-            varr = self.inputdata().GetCellData()
+            varr = self.GetCellData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
 
         if array_name is None:
@@ -1607,7 +1469,7 @@ class BaseActor(Base3DProp):
                 vedo.logger.error(f"in vorticity(): no vectors found for {on}")
                 raise RuntimeError
 
-        vort.SetInputData(self.inputdata())
+        vort.SetInputData(self)
         vort.SetInputScalars(tp, array_name)
         vort.ComputeDivergenceOff()
         vort.ComputeGradientOff()
@@ -2014,7 +1876,7 @@ class BaseGrid(BaseActor):
         ![](https://vedo.embl.es/images/feats/shrink_hex.png)
         """
         sf = vtk.vtkShrinkFilter()
-        sf.SetInputData(self.inputdata())
+        sf.SetInputData(self)
         sf.SetShrinkFactor(fraction)
         sf.Update()
         self._update(sf.GetOutput())
@@ -2066,7 +1928,7 @@ class BaseGrid(BaseActor):
         out.pipeline = utils.OperationNode(
             "isosurface",
             parents=[self],
-            comment=f"#pts {out.inputdata().GetNumberOfPoints()}",
+            comment=f"#pts {out.GetNumberOfPoints()}",
             c="#4cc9f0:#e9c46a",
         )
         return out
@@ -2453,20 +2315,20 @@ class BaseActor2D(vtk.vtkActor2D):
         self.SetLayerNumber(value)
         return self
 
-    def pos(self, px=None, py=None):
-        """Set/Get the screen-coordinate position."""
-        if isinstance(px, str):
-            vedo.logger.error("Use string descriptors only inside the constructor")
-            return self
-        if px is None:
-            return np.array(self.GetPosition(), dtype=int)
-        if py is not None:
-            p = [px, py]
-        else:
-            p = px
-        assert len(p) == 2, "Error: len(pos) must be 2 for BaseActor2D"
-        self.SetPosition(p)
-        return self
+    # def pos(self, px=None, py=None):
+    #     """Set/Get the screen-coordinate position."""
+    #     if isinstance(px, str):
+    #         vedo.logger.error("Use string descriptors only inside the constructor")
+    #         return self
+    #     if px is None:
+    #         return np.array(self.GetPosition(), dtype=int)
+    #     if py is not None:
+    #         p = [px, py]
+    #     else:
+    #         p = px
+    #     assert len(p) == 2, "Error: len(pos) must be 2 for BaseActor2D"
+    #     self.SetPosition(p)
+    #     return self
 
     def coordinate_system(self, value=None):
         """

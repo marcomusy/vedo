@@ -2693,9 +2693,16 @@ class Plotter:
         # scan the input of show
         if not utils.is_sequence(wannabeacts):
             wannabeacts = [wannabeacts]
+        
+        wannabeacts2 = []
+        for a in wannabeacts:
+            try:
+                wannabeacts2.append(a.actor)
+            except:
+                pass
 
         scannedacts = []
-        for a in wannabeacts:  # scan content of list
+        for a in wannabeacts2:  # scan content of list
 
             if a is None:
                 pass
