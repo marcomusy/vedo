@@ -231,23 +231,22 @@ class Slicer3DPlotter(Plotter):
             )
 
         #################
-        def buttonfunc(evt):
-            if evt.actor and evt.actor.name == bu.name:
-                bu.switch()
-                self._cmap_slicer = bu.status()
-                for m in self.actors:
-                    try:
-                        if "Slice" in m.name:
-                            m.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-                            if len(cmaps) > 1:
-                                self.remove("scalarbar")
-                                m2 = m.clone()
-                                m2.add_scalarbar(pos=(0.04, 0.0), horizontal=True, font_size=0)
-                                m2.scalarbar.name = "scalarbar"
-                                self.add(m2.scalarbar)
-                    except AttributeError:
-                        pass
-                self.render()
+        def buttonfunc(_obj, _ename):
+            bu.switch()
+            self._cmap_slicer = bu.status()
+            for m in self.actors:
+                try:
+                    if "Slice" in m.name:
+                        m.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
+                        if len(cmaps) > 1:
+                            self.remove("scalarbar")
+                            m2 = m.clone()
+                            m2.add_scalarbar(pos=(0.04, 0.0), horizontal=True, font_size=0)
+                            m2.scalarbar.name = "scalarbar"
+                            self.add(m2.scalarbar)
+                except AttributeError:
+                    pass
+            self.render()
 
         if len(cmaps) > 1:
             bu = self.add_button(
@@ -258,8 +257,8 @@ class Slicer3DPlotter(Plotter):
                 bc=["k1"] * len(cmaps),  # colors of states
                 size=14,
                 bold=True,
-                name="slicer_button",
             )
+            bu.pos([0.24, 0.005], "bottom-left")
 
         #################
         if show_histo:
@@ -494,12 +493,11 @@ class RayCastPlotter(Plotter):
         w2.GetRepresentation().SetTitleHeight(0.016)
 
         # add a button
-        def button_func_mode(evt):
-            if evt.actor and evt.actor.name == bum.name:
-                s = volume.mode()
-                snew = (s + 1) % 2
-                volume.mode(snew)
-                bum.switch()
+        def button_func_mode(_obj, _ename):
+            s = volume.mode()
+            snew = (s + 1) % 2
+            volume.mode(snew)
+            bum.switch()
 
         bum = self.add_button(
             button_func_mode,
@@ -511,7 +509,6 @@ class RayCastPlotter(Plotter):
             size=16,
             bold=0,
             italic=False,
-            name="raycast_button",
         )
         bum.frame(c='w')
         bum.status(volume.mode())
@@ -1657,7 +1654,7 @@ class AnimationPlayer(vedo.Plotter):
         c=("white", "white"),
         bc=("green3","red4"),
         button_size=25,
-        button_pos=(0.5,0.08),
+        button_pos=(0.5,0.04),
         button_gap=0.055,
         slider_length=0.5,
         slider_pos=(0.5,0.055),
@@ -1678,7 +1675,9 @@ class AnimationPlayer(vedo.Plotter):
         self.is_playing = False
         self._loop = loop
 
-        self.timer_callback_id = self.add_callback("timer", self._handle_timer)
+        self.timer_callback_id = self.add_callback(
+            "timer", self._handle_timer, enable_picking=False
+        )
         self.timer_id = None
 
         self.play_pause_button = self.add_button(
@@ -1688,7 +1687,6 @@ class AnimationPlayer(vedo.Plotter):
             font="Kanopus",
             size=button_size,
             bc=bc,
-            name="play_pause_button",
         )
         self.button_oneback = self.add_button(
             self.onebackward,
@@ -1698,7 +1696,6 @@ class AnimationPlayer(vedo.Plotter):
             size=button_size,
             c=c,
             bc=bc,
-            name="button_oneback",
         )
         self.button_oneforward = self.add_button(
             self.oneforward,
@@ -1707,7 +1704,6 @@ class AnimationPlayer(vedo.Plotter):
             font="Kanopus",
             size=button_size,
             bc=bc,
-            name="button_oneforward",
         )
         d = (1-slider_length)/2
         self.slider: SliderWidget = self.add_slider(
@@ -1737,25 +1733,22 @@ class AnimationPlayer(vedo.Plotter):
         self.is_playing = True
         self.play_pause_button.status(self.PAUSE_SYMBOL)
 
-    def toggle(self, evt) -> None:
+    def toggle(self, _obj, _evt) -> None:
         """Toggle between play and pause."""
-        if evt.actor and evt.actor.name == "play_pause_button":
-            if not self.is_playing:
-                self.resume()
-            else:
-                self.pause()
+        if not self.is_playing:
+            self.resume()
+        else:
+            self.pause()
 
-    def oneforward(self, evt) -> None:
+    def oneforward(self, _obj, _evt) -> None:
         """Advance the animation by one frame."""
-        if evt.actor and evt.actor.name == "button_oneforward":
-            self.pause()
-            self.set_frame(self.value + 1)
+        self.pause()
+        self.set_frame(self.value + 1)
 
-    def onebackward(self, evt) -> None:
+    def onebackward(self, _obj, _evt) -> None:
         """Go back one frame in the animation."""
-        if evt.actor and evt.actor.name == "button_oneback":
-            self.pause()
-            self.set_frame(self.value - 1)
+        self.pause()
+        self.set_frame(self.value - 1)
 
     def set_frame(self, value: int) -> None:
         """Set the current value of the animation."""

@@ -739,6 +739,12 @@ class Base3DProp:
         """
         return vedo.plotter.show(self, **options)
 
+    def add_observer(self, event_name, func, priority=0):
+        """Add a callback function that will be called when an event occurs."""
+        event_name = utils.get_vtk_name_event(event_name)
+        idd = self.AddObserver(event_name, func, priority)
+        return idd
+
     def thumbnail(self, zoom=1.25, size=(200, 200), bg="white", azimuth=0, elevation=0, axes=False):
         """Build a thumbnail of the object and return it as an array."""
         # speed is about 20Hz for size=[200,200]
@@ -2235,20 +2241,20 @@ class BaseActor2D(vtk.vtkActor2D):
         self.SetLayerNumber(value)
         return self
 
-    # def pos(self, px=None, py=None):
-    #     """Set/Get the screen-coordinate position."""
-    #     if isinstance(px, str):
-    #         vedo.logger.error("Use string descriptors only inside the constructor")
-    #         return self
-    #     if px is None:
-    #         return np.array(self.GetPosition(), dtype=int)
-    #     if py is not None:
-    #         p = [px, py]
-    #     else:
-    #         p = px
-    #     assert len(p) == 2, "Error: len(pos) must be 2 for BaseActor2D"
-    #     self.SetPosition(p)
-    #     return self
+    def pos(self, px=None, py=None):
+        """Set/Get the screen-coordinate position."""
+        if isinstance(px, str):
+            vedo.logger.error("Use string descriptors only inside the constructor")
+            return self
+        if px is None:
+            return np.array(self.GetPosition(), dtype=int)
+        if py is not None:
+            p = [px, py]
+        else:
+            p = px
+        assert len(p) == 2, "Error: len(pos) must be 2 for BaseActor2D"
+        self.SetPosition(p)
+        return self
 
     def coordinate_system(self, value=None):
         """
@@ -2285,6 +2291,7 @@ class BaseActor2D(vtk.vtkActor2D):
         return self
 
     def pickable(self, value=True):
+        """Set object pickability."""
         self.SetPickable(value)
         return self
 
@@ -2308,6 +2315,12 @@ class BaseActor2D(vtk.vtkActor2D):
         else:
             self.property.SetDisplayLocationToBackground()
         return self
+    
+    def add_observer(self, event_name, func, priority=0):
+        """Add a callback function that will be called when an event occurs."""
+        event_name = utils.get_vtk_name_event(event_name)
+        idd = self.AddObserver(event_name, func, priority)
+        return idd
 
 
 ############################################################################### funcs

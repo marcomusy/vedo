@@ -2455,7 +2455,7 @@ class Star(Mesh):
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
-        self.actor.SetPosition(pos)
+
         self.property.LightingOff()
         self.name = "Star"
 
@@ -2496,7 +2496,7 @@ class Disc(Mesh):
         ps.Update()
         Mesh.__init__(self, ps.GetOutput(), c, alpha)
         self.flat()
-        self.actor.SetPosition(utils.make3d(pos))
+        self.pos(utils.make3d(pos))
         self.name = "Disc"
 
 
@@ -2555,7 +2555,7 @@ class Arc(Mesh):
         ar.SetResolution(res)
         ar.Update()
         Mesh.__init__(self, ar.GetOutput(), c, alpha)
-        self.actor.SetPosition(self.base)
+        self.pos(self.base)
         self.lw(2).lighting("off")
         self.name = "Arc"
 
@@ -2627,7 +2627,7 @@ class IcoSphere(Mesh):
             pts = utils.versor(self.points()) * r
             self.points(pts)
 
-        self.actor.SetPosition(pos)
+        self.pos(pos)
         self.name = "IcoSphere"
 
 
@@ -2695,7 +2695,7 @@ class Sphere(Mesh):
             Mesh.__init__(self, ss.GetOutput(), c, alpha)
 
         self.phong()
-        self.actor.SetPosition(pos)
+        self.pos(pos)
         self.name = "Sphere"
 
 
@@ -2787,7 +2787,7 @@ class Spheres(Mesh):
         glyph.Update()
 
         Mesh.__init__(self, glyph.GetOutput(), alpha=alpha)
-        self.actor.SetPosition(base)
+        self.pos(base)
         self.base = base
         self.top = centers[-1]
         self.phong()
@@ -2795,7 +2795,7 @@ class Spheres(Mesh):
             self.mapper.ScalarVisibilityOn()
         else:
             self.mapper.ScalarVisibilityOff()
-            self.property.SetColor(get_color(c))
+            self.c(c)
         self.name = "Spheres"
 
 
@@ -2824,7 +2824,7 @@ class Earth(Mesh):
         pnm_reader.SetFileName(fn)
         atext.SetInputConnection(pnm_reader.GetOutputPort())
         atext.InterpolateOn()
-        self.actor.SetTexture(atext)
+        self.texture(atext)
         self.name = "Earth"
 
 
@@ -2905,7 +2905,7 @@ class Ellipsoid(Mesh):
         self.phong()
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
-        self.actor.SetPosition(pos)
+        self.pos(pos)
         self.name = "Ellipsoid"
 
     def asphericity(self):
@@ -3042,7 +3042,7 @@ class Grid(Mesh):
             tf0.Update()
             poly = tf0.GetOutput()
             Mesh.__init__(self, poly, c, alpha)
-            self.actor.SetPosition(pos)
+            self.pos(pos)
 
         self.wireframe().lw(lw)
         self.property.LightingOff()
@@ -3090,7 +3090,7 @@ class Plane(Mesh):
         tf.Update()
         Mesh.__init__(self, tf.GetOutput(), c, alpha)
         self.lighting("off")
-        self.actor.SetPosition(pos)
+        self.pos(pos)
         self.name = "Plane"
         self.top = self.normal
         self.bottom = np.array([0.0, 0.0, 0.0])
@@ -3204,7 +3204,7 @@ class Rectangle(Mesh):
             faces = [(0, 1, 2, 3)]
 
         Mesh.__init__(self, [pts, faces], color, alpha)
-        self.actor.SetPosition(p1)
+        self.pos(p1)
         self.property.LightingOff()
         self.name = "Rectangle"
 
@@ -3278,7 +3278,7 @@ class Box(Mesh):
         Mesh.__init__(self, pd, c, alpha)
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
-        self.actor.SetPosition(pos)
+        self.pos(pos)
         self.name = "Box"
 
 
@@ -3329,7 +3329,7 @@ class TessellatedBox(Mesh):
             tbs.Update()
             poly = tbs.GetOutput()
         Mesh.__init__(self, poly, c=c, alpha=alpha)
-        self.actor.SetPosition(pos)
+        self.pos(pos)
         self.lw(1).lighting("off")
         self.base = np.array([0.5, 0.5, 0.0])
         self.top = np.array([0.5, 0.5, 1.0])
@@ -3403,7 +3403,7 @@ class Spring(Mesh):
         tuf.Update()
         Mesh.__init__(self, tuf.GetOutput(), c, alpha)
         self.phong()
-        self.actor.SetPosition(start_pt)
+        self.pos(start_pt)
         self.base = np.array(start_pt, dtype=float)
         self.top = np.array(end_pt, dtype=float)
         self.name = "Spring"
@@ -3459,7 +3459,7 @@ class Cylinder(Mesh):
 
         Mesh.__init__(self, pd, c, alpha)
         self.phong()
-        self.actor.SetPosition(pos)
+        self.pos(pos)
         self.base = base + pos
         self.top = top + pos
         self.name = "Cylinder"
@@ -3481,7 +3481,7 @@ class Cone(Mesh):
         self.phong()
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
-        self.actor.SetPosition(pos)
+        self.pos(pos)
         v = utils.versor(axis) * height / 2
         self.base = pos - v
         self.top = pos + v
@@ -3551,7 +3551,7 @@ class Torus(Mesh):
         self.phong()
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
-        self.actor.SetPosition(pos)
+        self.pos(pos)
         self.name = "Torus"
 
 
@@ -3586,7 +3586,7 @@ class Paraboloid(Mesh):
         Mesh.__init__(self, contours.GetOutput(), c, alpha)
         self.compute_normals().phong()
         self.mapper.ScalarVisibilityOff()
-        self.actor.SetPosition(pos)
+        self.pos(pos)
         self.name = "Paraboloid"
 
 
@@ -3619,7 +3619,7 @@ class Hyperboloid(Mesh):
         Mesh.__init__(self, contours.GetOutput(), c, alpha)
         self.compute_normals().phong()
         self.mapper.ScalarVisibilityOff()
-        self.actor.SetPosition(pos)
+        self.pos(pos)
         self.name = "Hyperboloid"
 
 
@@ -3803,7 +3803,7 @@ class Brace(Mesh):
         poly = tf.GetOutput()
 
         Mesh.__init__(self, poly, c, alpha)
-        self.actor.SetPosition(mq)
+        self.pos(mq)
         self.name = "Brace"
         self.base = q1
         self.top = q2
@@ -3833,7 +3833,7 @@ class Star3D(Mesh):
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
-        self.actor.SetPosition(pos)
+        self.pos(pos)
         self.name = "Star3D"
 
 
@@ -4139,7 +4139,7 @@ class Text3D(Mesh):
 
         Mesh.__init__(self, tpoly, c, alpha)
         self.lighting("off")
-        self.actor.SetPosition(pos)
+        self.pos(pos)
         self.actor.PickableOff()
         self.actor.DragableOff()
         self.name = "Text3D"
@@ -4492,7 +4492,7 @@ class TextBase:
         self.actor.SetVisibility(False)
         return self
 
-class Text2D(TextBase, vtk.vtkActor2D):
+class Text2D(TextBase, vedo.base.BaseActor2D):
     """
     Create a 2D text object.
     """
