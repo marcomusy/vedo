@@ -14,7 +14,7 @@ class Viewer:
         self.button = None
 
         self.plotter = vedo.Plotter(*args, **kwargs) # setup the Plotter object
-        self.timerevt = self.plotter.add_callback('timer', self.handle_timer)
+        self.timerevt = self.plotter.add_callback('timer', self.handle_timer, enable_picking=False)
 
     def initialize(self):
         # initialize here extra elements like buttons etc..
@@ -30,9 +30,7 @@ class Viewer:
         plt = self.plotter.show(*args, **kwargs)
         return plt
 
-    def _buttonfunc(self, event):
-        if not event.actor or event.actor.name != "Button":
-            return
+    def _buttonfunc(self, obj, ename):
         if self.timer_id is not None:
             self.plotter.timer_callback("destroy", self.timer_id)
         if not self.isplaying:

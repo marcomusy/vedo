@@ -2687,3 +2687,62 @@ def ctf2lut(tvobj, logscale=False):
 
     except AttributeError:
         return None
+
+
+def get_vtk_name_event(name):
+    """
+    Return the name of a VTK event.
+    
+    Frequently used events are:
+    - KeyPress, KeyRelease: listen to keyboard events
+    - LeftButtonPress, LeftButtonRelease: listen to mouse clicks
+    - MiddleButtonPress, MiddleButtonRelease
+    - RightButtonPress, RightButtonRelease
+    - MouseMove: listen to mouse pointer changing position
+    - MouseWheelForward, MouseWheelBackward
+    - Enter, Leave: listen to mouse entering or leaving the window
+    - Pick, StartPick, EndPick: listen to object picking
+    - ResetCamera, ResetCameraClippingRange
+    - Error, Warning, Char, Timer
+
+    Check the complete list of events here:
+    https://vtk.org/doc/nightly/html/classvtkCommand.html
+    """
+    # as vtk names are ugly and difficult to remember:
+    ln = name.lower()
+    if "click" in ln or "button" in ln:
+        event_name = "LeftButtonPress"
+        if "right" in ln:
+            event_name = "RightButtonPress"
+        elif "mid" in ln:
+            event_name = "MiddleButtonPress"
+        if "release" in ln:
+            event_name = event_name.replace("Press", "Release")
+    else:
+        event_name = name
+        if "key" in ln:
+            if "release" in ln:
+                event_name = "KeyRelease"
+            else:
+                event_name = "KeyPress"
+
+    if ("mouse" in ln and "mov" in ln) or "over" in ln:
+        event_name = "MouseMove"
+    
+    words = [
+        "pick", "timer", "reset", "enter", "leave", "char", 
+        "error", "warning", "start", "end", "wheel", "clipping",
+        "range", "camera", "render",
+    ]
+    for w in words:
+        if w in ln:
+            event_name = event_name.replace(w, w.capitalize())
+
+    event_name = event_name.replace(" ", "")    
+
+    if not event_name.endswith("Event"):
+        event_name += "Event"
+
+    # print("event_name", event_name)
+    return event_name
+

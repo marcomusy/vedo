@@ -347,7 +347,7 @@ class LegendBox(shapes.TextBase, vtk.vtkLegendBoxActor):
         self.LockBorderOn()
 
 
-class Button(vtk.vtkTextActor):
+class Button(vedo.shapes.Text2D):
     """
     Build a Button object.
     """
@@ -357,14 +357,13 @@ class Button(vtk.vtkTextActor):
             states=("Button"), 
             c=("white"), 
             bc=("green4"),
-            pos=(0.7, 0.05), 
+            pos=(0.7, 0.1), 
             size=24, 
-            font=None, 
-            bold=False, 
+            font="Courier", 
+            bold=True, 
             italic=False, 
             alpha=1, 
             angle=0,
-            name="Button",
         ):
         """
         Build a Button object to be shown in the rendering window.
@@ -392,8 +391,6 @@ class Button(vtk.vtkTextActor):
                 opacity level
             angle : (float)
                 anticlockwise rotation in degrees
-            name : (str)
-                name of the button (useful for multiple buttons in callbacks)
     
         Examples:
             - [buttons.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/buttons.py)
@@ -407,9 +404,12 @@ class Button(vtk.vtkTextActor):
 
                 ![](https://vedo.embl.es/images/advanced/timer_callback1.jpg)
         """
-        vtk.vtkTextActor.__init__(self)
+        super().__init__()
 
         self.status_idx = 0
+
+        self.spacer = " "
+
         self.states = states
 
         if not utils.is_sequence(c):
@@ -424,78 +424,18 @@ class Button(vtk.vtkTextActor):
 
         self.function = fnc
         self.function_id = None
-        self.name = name
-
-        self.GetActualPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-        self.SetPosition(pos[0], pos[1])
-
-        self.offset = 5
-        self.spacer = " "
-
-        self.len_states = max([len(s) for s in states])
-
-        self.text_property = self.GetTextProperty()
-        self.text_property.SetJustificationToCentered()
-
-        if not font:
-            font = settings.default_font
-
-        if font.lower() == "courier":
-            self.text_property.SetFontFamilyToCourier()
-        elif font.lower() == "times":
-            self.text_property.SetFontFamilyToTimes()
-        elif font.lower() == "arial":
-            self.text_property.SetFontFamilyToArial()
-        else:
-            self.text_property.SetFontFamily(vtk.VTK_FONT_FILE)
-            self.text_property.SetFontFile(utils.get_font_path(font))
-        self.text_property.SetFontSize(size)
-
-        self.text_property.SetBackgroundOpacity(alpha)
-
-        self.text_property.BoldOff()
-        if bold:
-            self.text_property.BoldOn()
-
-        self.text_property.ItalicOff()
-        if italic:
-            self.text_property.ItalicOn()
-
-        self.text_property.ShadowOff()
-        self.text_property.SetOrientation(angle)
-        self.text_property.SetLineOffset(self.offset)
-
-        self.hasframe = hasattr(self.text_property, "FrameOn")
 
         self.status(0)
 
-    def text(self, txt="", c=None):
-        if txt:
-            self.SetInput(self.spacer + str(txt) + self.spacer)
-        else:
-            return self.GetInput()
+        if font == "courier":
+            font = font.capitalize()
+        self.font(font).bold(bold).italic(italic)
 
-        if c is not None:
-            self.text_property.SetColor(get_color(c))
-        return self
+        self.alpha(alpha).angle(angle)
+        self.size(size/20)
+        self.pos(pos, "center")
+        self.PickableOn()
 
-    def backcolor(self, c):
-        self.text_property.SetBackgroundColor(get_color(c))
-        return self
-
-    def frame(self, lw=None, c=None):
-        if self.hasframe:
-            self.text_property.FrameOn()
-            if lw is not None:
-                if lw > 0:
-                    self.text_property.FrameOn()
-                    self.text_property.SetFrameWidth(lw)
-                else:
-                    self.text_property.FrameOff()
-                    return self
-            if c is not None:
-                self.text_property.SetFrameColor(get_color(c))
-        return self
 
     def status(self, s=None):
         """
@@ -507,10 +447,10 @@ class Button(vtk.vtkTextActor):
         if isinstance(s, str):
             s = self.states.index(s)
         self.status_idx = s
-        self.text(self.states[s])
+        self.text(self.spacer + self.states[s] + self.spacer)
         s = s % len(self.bcolors)
-        self.text(c=self.colors[s])
-        self.backcolor(self.bcolors[s])
+        self.color(self.colors[s])
+        self.background(self.bcolors[s])
         return self
 
     def switch(self):

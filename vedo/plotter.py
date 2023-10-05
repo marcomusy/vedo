@@ -1589,14 +1589,13 @@ class Plotter:
         states=("On", "Off"),
         c=("w", "w"),
         bc=("green4", "red4"),
-        pos=(0.7, 0.05),
+        pos=(0.7, 0.1),
         size=24,
-        font=None,
-        bold=False,
+        font="Courier",
+        bold=True,
         italic=False,
         alpha=1,
         angle=0,
-        name="Button",
     ):
         """
         Add a button to the renderer window.
@@ -1632,10 +1631,11 @@ class Plotter:
             ![](https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg)
         """
         if self.interactor:
-            bu = addons.Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle, name)
+            bu = addons.Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
             self.renderer.AddActor2D(bu)
             self.buttons.append(bu)
-            bu.function_id = self.add_callback("LeftButtonPress", bu.function)
+            # bu.function_id = self.add_callback("LeftButtonPress", bu.function)
+            bu.function_id = bu.add_observer("pick", bu.function, priority=10)
             return bu
 
     def add_spline_tool(
@@ -2255,12 +2255,13 @@ class Plotter:
         sifunc(0, 0)
         return fractor
 
-    def fill_event(self, ename="", pos=()):
+    def fill_event(self, ename="", pos=(), enable_picking=True):
         """
-        Create an Event object.
+        Create an Event object with information of what was clicked.
 
-        A 2D screen-position can be provided to be picked.
-        """
+        If `enable_picking` is False, no picking will be performed.
+        This can be useful to avoid double picking when using buttons.
+        """    
         if not self.interactor:
             return Event()
 
@@ -2270,29 +2271,10 @@ class Plotter:
         else:
             x, y = self.interactor.GetEventPosition()
         self.renderer = self.interactor.FindPokedRenderer(x, y)
-        if not self.picker:
-            self.picker = vtk.vtkPropPicker()
+
         self.picked2d = (x, y)
-        self.picker.PickProp(x, y, self.renderer)
-        xp, yp = self.interactor.GetLastEventPosition()
-        actor = self.picker.GetProp3D()
-        delta3d = np.array([0, 0, 0])
-        if actor:
-            picked3d = np.array(self.picker.GetPickPosition())
-            if isinstance(actor, vedo.base.Base3DProp):  # needed!
-                if actor.picked3d is not None:
-                    delta3d = picked3d - actor.picked3d
-            actor.picked3d = picked3d
-        else:
-            picked3d = None
-
-        if not actor:  # try 2D
-            actor = self.picker.GetActor2D()
-
-        dx, dy = x - xp, y - yp
 
         key = self.interactor.GetKeySym()
-
         if key:
             if "_L" in key or "_R" in key:
                 # skip things like Shift_R
@@ -2314,6 +2296,29 @@ class Plotter:
                 if self.interactor.GetAltKey():
                     key = "Alt+" + key
 
+        if enable_picking:
+            if not self.picker:
+                self.picker = vtk.vtkPropPicker()
+
+            self.picker.PickProp(x, y, self.renderer)
+
+            xp, yp = self.interactor.GetLastEventPosition()
+            actor = self.picker.GetProp3D()
+            delta3d = np.array([0, 0, 0])
+            if actor:
+                picked3d = np.array(self.picker.GetPickPosition())
+                if isinstance(actor, vedo.base.Base3DProp):  # needed!
+                    if actor.picked3d is not None:
+                        delta3d = picked3d - actor.picked3d
+                actor.picked3d = picked3d
+            else:
+                picked3d = None
+
+            if not actor:  # try 2D
+                actor = self.picker.GetActor2D()
+
+            dx, dy = x - xp, y - yp
+
         event = Event()
         event.name = ename
         event.title = self.title
@@ -2322,29 +2327,29 @@ class Plotter:
         event.priority = -1  # will be set by the timer wrapper function
         event.time = time.time()
         event.at = self.renderers.index(self.renderer)
-        event.actor = actor
-        event.picked3d = picked3d
         event.keyPressed = key  # obsolete, will disappear. Use "keypress"
         event.keypress = key
-        event.picked2d = (x, y)
-        event.delta2d = (dx, dy)
-        event.angle2d = np.arctan2(dy, dx)
-        event.speed2d = np.sqrt(dx * dx + dy * dy)
-        event.delta3d = delta3d
-        event.speed3d = np.sqrt(np.dot(delta3d, delta3d))
-        event.isPoints = isinstance(actor, vedo.Points)
-        event.isMesh = isinstance(actor, vedo.Mesh)
-        event.isAssembly = isinstance(actor, vedo.Assembly)
-        event.isVolume = isinstance(actor, vedo.Volume)
-        event.isPicture = isinstance(actor, vedo.Picture)
-        event.isActor2D = isinstance(actor, vtk.vtkActor2D)
+        if enable_picking:
+            event.actor = actor
+            event.picked3d = picked3d
+            event.picked2d = (x, y)
+            event.delta2d = (dx, dy)
+            event.angle2d = np.arctan2(dy, dx)
+            event.speed2d = np.sqrt(dx * dx + dy * dy)
+            event.delta3d = delta3d
+            event.speed3d = np.sqrt(np.dot(delta3d, delta3d))
+            event.isPoints = isinstance(actor, vedo.Points)
+            event.isMesh = isinstance(actor, vedo.Mesh)
+            event.isAssembly = isinstance(actor, vedo.Assembly)
+            event.isVolume = isinstance(actor, vedo.Volume)
+            event.isPicture = isinstance(actor, vedo.Picture)
+            event.isActor2D = isinstance(actor, vtk.vtkActor2D)
         return event
 
 
-    def add_callback(self, event_name, func, priority=0.0):
+    def add_callback(self, event_name, func, priority=0.0, enable_picking=True):
         """
         Add a function to be executed while show() is active.
-        Information about the event can be acquired with method getEvent().
 
         Return a unique id for the callback.
 
@@ -2355,9 +2360,9 @@ class Plotter:
         - `priority`: event priority (float),
         - `interactor`: the interactor object,
         - `at`: renderer nr. where the event occurred
+        - `keypress`: key pressed as string
         - `actor`: object picked by the mouse
         - `picked3d`: point picked in world coordinates
-        - `keypress`: key pressed as string
         - `picked2d`: screen coords of the mouse pointer
         - `delta2d`: shift wrt previous position (to calculate speed, direction)
         - `delta3d`: ...same but in 3D world coords
@@ -2369,6 +2374,9 @@ class Plotter:
         - `isAssembly`: True if of class
         - `isVolume`: True if of class Volume
         - `isPicture`: True if of class
+
+        If `enable_picking` is False, no picking will be performed.
+        This can be useful to avoid double picking when using buttons.
 
         Frequently used events are:
         - `KeyPress`, `KeyRelease`: listen to keyboard events
@@ -2417,40 +2425,19 @@ class Plotter:
         if not self.interactor:
             return None
 
-        # as vtk names are ugly and difficult to remember:
-        ln = event_name.lower()
-        if "click" in ln or "button" in ln:
-            event_name = "LeftButtonPress"
-            if "right" in ln:
-                event_name = "RightButtonPress"
-            elif "mid" in ln:
-                event_name = "MiddleButtonPress"
-            if "release" in ln:
-                event_name = event_name.replace("Press", "Release")
-        else:
-            if "key" in ln:
-                if "release" in ln:
-                    event_name = "KeyRelease"
-                else:
-                    event_name = "KeyPress"
-
-        if ("mouse" in ln and "mov" in ln) or "over" in ln:
-            event_name = "MouseMove"
-        if "timer" in ln:
-            event_name = "Timer"
-
-        if not event_name.endswith("Event"):
-            event_name += "Event"
-
+        #########################################
         @calldata_type(vtk.VTK_INT)
         def _func_wrap(iren, ename, timerid=None):
-            event = self.fill_event(ename=ename)
+            event = self.fill_event(ename=ename, enable_picking=enable_picking)
             event.timerid = timerid
             event.id = cid
             event.priority = priority
             self.last_event = event
             func(event)
             return  ## _func_wrap
+        #########################################
+
+        event_name = utils.get_vtk_name_event(event_name)
 
         # Not compatible with ProcessEvents()
         if "MouseMove" in event_name or "Timer" in event_name:
@@ -2472,28 +2459,7 @@ class Plotter:
         """
         if self.interactor:
             if isinstance(cid, str):
-                # as vtk names are ugly and difficult to remember:
-                ln = cid.lower()
-                if "click" in ln or "button" in ln:
-                    cid = "LeftButtonPress"
-                    if "right" in ln:
-                        cid = "RightButtonPress"
-                    elif "mid" in ln:
-                        cid = "MiddleButtonPress"
-                    if "release" in ln:
-                        cid.replace("Press", "Release")
-                else:
-                    if "key" in ln:
-                        if "release" in ln:
-                            cid = "KeyRelease"
-                        else:
-                            cid = "KeyPress"
-                if ("mouse" in ln and "mov" in ln) or "over" in ln:
-                    cid = "MouseMove"
-                if "timer" in ln:
-                    cid = "Timer"
-                if not cid.endswith("Event"):
-                    cid += "Event"
+                cid = utils.get_vtk_name_event(cid)
                 self.interactor.RemoveObservers(cid)
             else:
                 self.interactor.RemoveObserver(cid)
@@ -2538,6 +2504,15 @@ class Plotter:
             e += " allowed actions are: ['start', 'stop']. Skipped."
             vedo.logger.error(e)
         return timer_id
+
+    def add_observer(self, event_name, func, priority=0):
+        """
+        Add a callback function that will be called when an event occurs.
+        Consider using `add_callback()` instead.
+        """
+        event_name = utils.get_vtk_name_event(event_name)
+        idd = self.interactor.AddObserver(event_name, func, priority)
+        return idd
 
     def compute_world_coordinate(
         self, pos2d, at=None, objs=(), bounds=(), offset=None, pixeltol=None, worldtol=None

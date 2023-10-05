@@ -7,7 +7,7 @@
 
 - Fix meshlab interface thanks to @JeffreyWardman in #924
 - Update `Slicer3DPlotter` thanks to @daniel-a-diaz in #925
-- Improvemnets on `applications.Slicer3DPlotter`
+- Improvements on `applications.Slicer3DPlotter`
 - Improvements on `applications.Browser`
 - add background radial gradients
 
@@ -24,6 +24,7 @@ examples/advanced/timer_callback1.py
 examples/advanced/timer_callback2.py
 examples/advanced/interpolate_scalar5.py
 examples/basic/buttons.py
+examples/basic/mouseclick2.py
 examples/basic/input_box.py
 examples/basic/sliders2.py
 examples/basic/interaction_modes2.py

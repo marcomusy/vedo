@@ -946,6 +946,12 @@ class Base3DProp:
         """
         return vedo.plotter.show(self, **options)
 
+    def add_observer(self, event_name, func, priority=0):
+        """Add a callback function that will be called when an event occurs."""
+        event_name = utils.get_vtk_name_event(event_name)
+        idd = self.AddObserver(event_name, func, priority)
+        return idd
+
     def thumbnail(self, zoom=1.25, size=(200, 200), bg="white", azimuth=0, elevation=0, axes=False):
         """Build a thumbnail of the object and return it as an array."""
         # speed is about 20Hz for size=[200,200]
@@ -2502,6 +2508,7 @@ class BaseActor2D(vtk.vtkActor2D):
         return self
 
     def pickable(self, value=True):
+        """Set object pickability."""
         self.SetPickable(value)
         return self
 
@@ -2525,6 +2532,12 @@ class BaseActor2D(vtk.vtkActor2D):
         else:
             self.GetProperty().SetDisplayLocationToBackground()
         return self
+    
+    def add_observer(self, event_name, func, priority=0):
+        """Add a callback function that will be called when an event occurs."""
+        event_name = utils.get_vtk_name_event(event_name)
+        idd = self.AddObserver(event_name, func, priority)
+        return idd
 
 
 ############################################################################### funcs
