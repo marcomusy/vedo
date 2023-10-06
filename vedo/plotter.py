@@ -1634,7 +1634,7 @@ class Plotter:
             bu = addons.Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
             self.renderer.AddActor2D(bu)
             self.buttons.append(bu)
-            # bu.function_id = self.add_callback("LeftButtonPress", bu.function)
+            # bu.function_id = self.add_callback("LeftButtonPress", bu.function, enable_picking=False)
             bu.function_id = bu.add_observer("pick", bu.function, priority=10)
             return bu
 
