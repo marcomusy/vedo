@@ -225,12 +225,15 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
             meshs = meshs[0]
         else:
             meshs = vedo.utils.flatten(meshs)
+        
+        self.actor = self
 
-        self.actors = [m.actor for m in meshs]
+        self.objects = meshs
+        self.actors = [m.actor for m in self.objects]
 
-        if meshs and hasattr(meshs[0], "top"):
-            self.base = meshs[0].base
-            self.top = meshs[0].top
+        if self.objects:
+            self.base = self.objects[0].base
+            self.top = self.objects[0].top
         else:
             self.base = None
             self.top = None
@@ -248,9 +251,12 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
             self.scalarbar = scalarbars[0]
 
         self.pipeline = vedo.utils.OperationNode(
-            "Assembly", parents=meshs, comment=f"#meshes {len(meshs)}", c="#f08080"
+            "Assembly",
+            parents=self.objects,
+            comment=f"#meshes {len(self.objects)}", 
+            c="#f08080",
         )
-        ###################################################################
+        ##########################################
 
     def _repr_html_(self):
         """
@@ -320,40 +326,41 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
         Add an object to the assembly
         """
         if isinstance(obj, vtk.vtkProp3D):
-            self.AddPart(obj)
 
-        self.actors.append(obj)
+            self.objects.append(obj)
+            self.actors.append(obj.actor)
+            self.AddPart(obj.actor)
 
-        if hasattr(obj, "scalarbar") and obj.scalarbar is not None:
-            if self.scalarbar is None:
-                self.scalarbar = obj.scalarbar
-                return self
+            if hasattr(obj, "scalarbar") and obj.scalarbar is not None:
+                if self.scalarbar is None:
+                    self.scalarbar = obj.scalarbar
+                    return self
 
-            def unpack_group(scalarbar):
-                if isinstance(scalarbar, Group):
-                    return scalarbar.unpack()
+                def unpack_group(scalarbar):
+                    if isinstance(scalarbar, Group):
+                        return scalarbar.unpack()
+                    else:
+                        return scalarbar
+
+                if isinstance(self.scalarbar, Group):
+                    self.scalarbar += unpack_group(obj.scalarbar)
                 else:
-                    return scalarbar
-
-            if isinstance(self.scalarbar, Group):
-                self.scalarbar += unpack_group(obj.scalarbar)
-            else:
-                self.scalarbar = Group([unpack_group(self.scalarbar), unpack_group(obj.scalarbar)])
-        self.pipeline = vedo.utils.OperationNode("add mesh", parents=[self, obj], c="#f08080")
+                    self.scalarbar = Group([unpack_group(self.scalarbar), unpack_group(obj.scalarbar)])
+            self.pipeline = vedo.utils.OperationNode("add mesh", parents=[self, obj], c="#f08080")
         return self
 
     def __contains__(self, obj):
         """Allows to use ``in`` to check if an object is in the Assembly."""
-        return obj in self.actors
+        return obj in self.objects
 
     def clone(self):
         """Make a clone copy of the object."""
         newlist = []
-        for a in self.actors:
+        for a in self.objects:
             newlist.append(a.clone())
         return Assembly(newlist)
 
-    def unpack(self, i=None, transformed=False):
+    def unpack(self, i=None):
         """Unpack the list of objects from a ``Assembly``.
 
         If `i` is given, get `i-th` object from a ``Assembly``.
@@ -363,19 +370,12 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
         Examples:
             - [custom_axes4.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/custom_axes4.py)
         """
-        if transformed:
-            actors = []
-            for a in self.actors:
-                actors.append(a.clone(transformed=True))
-        else:
-            actors = self.actors
-
         if i is None:
-            return actors
+            return self.objects
         elif isinstance(i, int):
-            return actors[i]
+            return self.objects[i]
         elif isinstance(i, str):
-            for m in actors:
+            for m in self.objects:
                 if i in m.name:
                     return m
 

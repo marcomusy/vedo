@@ -1264,9 +1264,9 @@ class Points(BaseActor, vtk.vtkPolyData):
         except AttributeError:
             pass
 
-        shad.GetProperty().LightingOff()
-        shad.SetPickable(False)
-        shad.SetUseBounds(True)
+        shad.property.LightingOff()
+        shad.actor.SetPickable(False)
+        shad.actor.SetUseBounds(True)
 
         if shad not in self.shadows:
             self.shadows.append(shad)

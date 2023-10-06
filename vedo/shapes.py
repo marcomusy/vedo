@@ -3677,7 +3677,7 @@ def Marker(symbol, pos=(0, 0, 0), c="k", alpha=1.0, s=0.1, filled=True):
     mesh.flat().lighting("off").wireframe(not filled).c(c).alpha(alpha)
     if len(pos) == 2:
         pos = (pos[0], pos[1], 0)
-    mesh.SetPosition(pos)
+    mesh.pos(pos)
     mesh.name = "Marker"
     return mesh
 

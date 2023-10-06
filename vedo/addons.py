@@ -2218,11 +2218,11 @@ def compute_visible_bounds(objs=None):
     bns = []
 
     if objs is None:
-        obj = vedo.plotter_instance.actors
+        objs = vedo.plotter_instance.actors
     elif not utils.is_sequence(objs):
-        obj = [objs]
+        objs = [objs]
     
-    actors = [ob.actor for ob in obj if hasattr(ob, 'actor') and ob.actor]
+    actors = [ob.actor for ob in objs if hasattr(ob, 'actor') and ob.actor]
 
     try:
         # this block fails for VolumeSlice as vtkImageSlice.GetBounds() returns a pointer..
@@ -3890,7 +3890,6 @@ def Axes(
     asse = Assembly(acts)
     asse.PickableOff()
     asse.name = "Axes"
-    print(asse)
     return asse
 
 

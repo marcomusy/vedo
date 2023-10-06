@@ -401,7 +401,8 @@ class Figure(Assembly):
                 py = a.base[1]
                 a.top[1] = (a.top[1] - py) * self.yscale + py
                 b = shapes.Arrow2D(a.base, a.top, s=a.s, fill=a.fill).z(a.z())
-                b.SetProperty(prop)
+                b.actor.SetProperty(prop)
+                b.property = prop
                 b.y(py * self.yscale)
                 a = b
 
@@ -452,8 +453,8 @@ class Figure(Assembly):
                     # print("insert(): cannot cut", [a])
                     pass
 
-            self.AddPart(a)
-            self.actors.append(a)
+            self.AddPart(a.actor)
+            self.objects.append(a)
 
         return self
 
@@ -600,7 +601,8 @@ class Figure(Assembly):
             box.shift(0, 0, -dy / 100).pickable(False)
             if lc:
                 box.lc(lc).lw(lw)
-            aleg.AddPart(box)
+            aleg.AddPart(box.actor)
+            aleg.objects.append(box)
 
         xlim = self.xlim
         ylim = self.ylim
@@ -1023,7 +1025,7 @@ class Histogram1D(Figure):
                 #         r.texture(texture)
                 #     c = 'w'
 
-                r.PickableOff()
+                r.actor.PickableOff()
                 maxheigth = max(maxheigth, p1[1])
                 if c in colors.cmaps_names:
                     col = colors.color_map((p0[0] + p1[0]) / 2, c, myedges[0], myedges[-1])
@@ -1494,7 +1496,7 @@ class PlotBars(Figure):
                     r.texture(texture)
                     c = "w"
 
-                r.PickableOff()
+                r.actor.PickableOff()
                 maxheigth = max(maxheigth, p1[1])
                 if c in colors.cmaps_names:
                     col = colors.color_map((p0[0] + p1[0]) / 2, c, edges[0], edges[-1])
@@ -3083,7 +3085,8 @@ def _histogram_quad_bin(x, y, **kwargs):
 
     histo.actors[2] = msh
     histo.RemovePart(gr)
-    histo.AddPart(msh)
+    histo.AddPart(msh.actor)
+    histo.objects.append(msh)
     return histo
 
 
@@ -3145,7 +3148,7 @@ def _histogram_hex_bin(
                 col = i
             h = Mesh(tf.GetOutput(), c=col, alpha=alpha).flat()
             h.lighting("plastic")
-            h.PickableOff()
+            h.actor.PickableOff()
             hexs.append(h)
             if ne > binmax:
                 binmax = ne

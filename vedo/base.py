@@ -382,6 +382,11 @@ class Base3DProp:
 
     def _move(self, LT, concatenate=True, deep_copy=True):
 
+        if isinstance(self, vedo.assembly.Assembly):
+            self.SetPosition(LT.position)
+            return self
+        # print(type(self), LT.position)
+        
         if LT.is_identity():
             return self
 
@@ -891,7 +896,7 @@ class BaseActor(Base3DProp):
             self.actor.PokeMatrix(vtk.vtkMatrix4x4())
             self.point_locator = None
             self.cell_locator = None
-            self.transform = None
+            self.transform = LinearTransform()
             return self
 
 

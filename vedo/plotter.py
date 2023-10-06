@@ -43,7 +43,6 @@ class Event:
         "at",
         "actor",
         "picked3d",
-        "keyPressed",  # obsolete, will disappear. Use "keypress"
         "keypress",
         "picked2d",
         "delta2d",
@@ -74,7 +73,7 @@ class Event:
         f = "---------- <vedo.plotter.Event object> ----------\n"
         for n in self.__slots__:
             try:
-                if n == "actor" and self.actor and self.actor.name:
+                if n == "actor" and self.actor and self.actor.data and self.actor.data.name:
                         f += f"event.{n} = {self.actor.name} ({self.actor.npoints} points)\n"
                 else:
                     f += f"event.{n} = " + str(self[n]).replace("\n", "")[:60] + "\n"
@@ -400,7 +399,8 @@ class Plotter:
             else:
                 interactive = True
 
-        self.actors = []  # list of actors to be shown
+        self.objects = []  # list of actors to be shown
+
         self.clicked_actor = None  # holds the actor that has been clicked
         self.renderer = None  # current renderer
         self.renderers = []  # list of renderers
@@ -752,29 +752,8 @@ class Plotter:
         if settings.enable_default_keyboard_callbacks:
             self.interactor.AddObserver("KeyPressEvent", self._keypress)
 
-        # self._timer_event_id = None
-        # if settings.allow_interaction:
-            # def win_interact(iren, event):  # flushing interactor events
-            #     if event == "TimerEvent":
-            #         iren.ExitCallback()
-            # self._timer_event_id = self.interactor.AddObserver("TimerEvent", win_interact)
-
     ##################################################################### ..init ends here.
 
-
-    # def allow_interaction(self):
-    #     """Call this method from inside a loop to allow mouse and keyboard interaction."""
-    #     if (
-    #         self.interactor
-    #         and self._timer_event_id is not None
-    #         and settings.immediate_rendering
-    #     ):
-    #         self._repeatingtimer_id = self.interactor.CreateRepeatingTimer(1)
-    #         self.interactor.Start()
-    #         if self.interactor:
-    #             self.interactor.DestroyTimer(self._repeatingtimer_id)
-    #         self._repeatingtimer_id = None
-    #     return self
 
     def __iadd__(self, actors):
         self.add(actors)
@@ -816,10 +795,9 @@ class Plotter:
         return self
 
 
-    def add(self, *actors, at=None):
+    def add(self, *objs, at=None):
         """
         Append the input objects to the internal list of actors to be shown.
-        This method is typically used in loops or callback functions.
 
         Arguments:
             at : (int)
@@ -830,29 +808,22 @@ class Plotter:
         else:
             ren = self.renderer
 
-        actors = utils.flatten(actors)
-        actors = self._scan_input(actors)
+        objs = utils.flatten(objs)
+        for ob in objs: 
+            if ob:
+                self.objects.append(ob)
 
-        for a in actors:
+        acts = self._scan_input(objs)
+
+        for a in acts:
             if isinstance(a, vtk.vtkInteractorObserver):
                 a.add_to(self)
                 continue
-
-            if a not in self.actors:
-                self.actors.append(a)
-
             if ren:
                 ren.AddActor(a)
-
                 if hasattr(a, "rendered_at"):
                     ir = self.renderers.index(ren)
                     a.rendered_at.add(ir)
-
-                if hasattr(a, "scalarbar") and a.scalarbar:
-                    ren.AddActor(a.scalarbar)
-
-                if hasattr(a, "_isfollower") and a._isfollower:  # set by mesh.follow_camera()
-                    a.SetCamera(self.camera)
 
         return self
 
@@ -871,33 +842,33 @@ class Plotter:
         else:
             ren = self.renderer
 
-        actors = [a.actor for a in utils.flatten(objs) if a]
+        objs = [ob for ob in utils.flatten(objs) if ob]
 
-        actors_in_ren = None
+        objects_in_ren = None
+        objects_r = []
+        for a in objs:
 
-        actors_r = []
-        for i, a in enumerate(actors):
-
-            if isinstance(a, vtk.vtkInteractorObserver):
-                a.remove_from(self)
-                continue ###
+            # if isinstance(a, vtk.vtkInteractorObserver):
+            #     a.remove_from(self)
+            #     continue ###
 
             if isinstance(a, str):
-                if actors_in_ren is None:
-                    actors_in_ren = self.get_meshes(
+                if objects_in_ren is None:
+                    objects_in_ren = self.get_meshes(
                         include_non_pickables=True,
                         unpack_assemblies=False,
                     )
 
-                for b in set(self.actors + actors_in_ren):
+                for b in set(self.objects + objects_in_ren):
                     if hasattr(b, "name") and a in b.name:
-                        actors_r.append(b)
+                        objects_r.append(b)
 
             else:
-                actors_r.append(a)
+                objects_r.append(a)
 
-        for a in set(actors_r):
+        for ob in set(objects_r):
             if ren:
+                a = ob.actor
                 ren.RemoveActor(a)
                 if hasattr(a, "rendered_at"):
                     ir = self.renderers.index(ren)
@@ -916,16 +887,17 @@ class Plotter:
                         for sha in a.trail.shadows:
                             ren.RemoveActor(sha)
 
-            if a in self.actors:
-                i = self.actors.index(a)
-                del self.actors[i]
+        for i, ob in enumerate(objs):
+            if ob in self.objects:
+                i = self.objects.index(a)
+                del self.objects[i]
 
         return self
     
-    # @property
-    # def actors(self):
-    #     """Return the list of actors."""
-    #     return self._actors
+    @property
+    def actors(self):
+        """Return the list of actors."""
+        return [ob.actor for ob in self.objects if hasattr(ob, "actor")]
 
     def remove_lights(self):
         """Remove all the present lights in the current renderer."""
@@ -943,8 +915,8 @@ class Plotter:
             vedo.logger.error("argument of pop() must be an integer")
             raise RuntimeError()
 
-        if self.actors:
-            self.remove(self.actors[-1], at)
+        if self.objects:
+            self.remove(self.objects[-1], at)
         return self
 
     def render(self, resetcam=False):
@@ -1072,7 +1044,7 @@ class Plotter:
         else:
             acs = renderer.GetViewProps()
 
-        actors = []
+        objs = []
         acs.InitTraversal()
         for _ in range(acs.GetNumberOfItems()):
 
@@ -1089,8 +1061,8 @@ class Plotter:
                     continue
                 if has_global_axes and a in self.axes_instances[at].actors:
                     continue
-                actors.append(a)
-        return actors
+                objs.append(a.data)
+        return objs
 
     def get_volumes(self, at=None, include_non_pickables=False):
         """
@@ -1114,7 +1086,7 @@ class Plotter:
         for _ in range(acs.GetNumberOfItems()):
             a = acs.GetNextItem()
             if include_non_pickables or a.GetPickable():
-                vols.append(a)
+                vols.append(a.data)
         return vols
 
     def reset_camera(self, tight=None):
@@ -2670,108 +2642,100 @@ class Plotter:
         return afru
 
 
-    def _scan_input(self, wannabeacts):
+    def _scan_input(self, wannabe_acts):
         # scan the input of show
-        if not utils.is_sequence(wannabeacts):
-            wannabeacts = [wannabeacts]
+        if not utils.is_sequence(wannabe_acts):
+            wannabe_acts = [wannabe_acts]
         
-        wannabeacts2 = []
-        for a in wannabeacts:
-            # wannabeacts2.append(a.actor)
-
+        wannabe_acts2 = []
+        for a in wannabe_acts:
             try:
-                wannabeacts2.append(a.actor)
+                wannabe_acts2.append(a.actor)
             except:
-                wannabeacts2.append(a)
+                wannabe_acts2.append(a) # already actor
 
-        scannedacts = []
-        for a in wannabeacts2:  # scan content of list
+        scanned_acts = []
+        for a in wannabe_acts2:  # scan content of list
 
             if a is None:
                 pass
 
             elif isinstance(a, vtk.vtkActor):
 
-                scannedacts.append(a)
+                scanned_acts.append(a)
 
                 if isinstance(a, vedo.base.BaseActor):
                     if a.shadows:
-                        # a.update_shadows()
-                        scannedacts.extend(a.shadows)
+                        for sh in a.shadows:
+                            scanned_acts.append(sh.actor)
 
-                    if a.trail and a.trail not in self.actors:
-                        # a.update_trail()
-                        scannedacts.append(a.trail)
+                    if a.trail:
+                        scanned_acts.append(a.trail.actor)
                         # trails may also have shadows:
                         if a.trail.shadows:
-                            # a.trail.update_shadows()
-                            scannedacts.extend(a.trail.shadows)
+                            for sh in a.trail.shadows:
+                                scanned_acts.append(sh.actor)
 
-                    if a._caption and a._caption not in self.actors:
-                        scannedacts.append(a._caption)
+                    if a._caption:
+                        scanned_acts.append(a._caption)
 
             elif isinstance(a, vtk.vtkActor2D):
-                scannedacts.append(a)
+                scanned_acts.append(a)
 
             elif isinstance(a, vtk.vtkAssembly):
-                scannedacts.append(a)
-                if a.trail and a.trail not in self.actors:
-                    scannedacts.append(a.trail)
+                scanned_acts.append(a)
+                if a.trail:
+                    scanned_acts.append(a.trail.actor)
 
             elif isinstance(a, (vedo.Volume, vedo.VolumeSlice)):
-                scannedacts.append(a)
+                scanned_acts.append(a.actor)
 
             elif isinstance(a, vtk.vtkImageData):
-                scannedacts.append(vedo.Volume(a))
+                scanned_acts.append(vedo.Volume(a).actor)
 
-            elif isinstance(a, vedo.TetMesh):
+            elif isinstance(a, (vedo.TetMesh, vedo.UGrid)):
                 # check ugrid is all made of tets
-                ugrid = a.inputdata()
-                uarr = ugrid.GetCellTypesArray()
-                celltypes = np.unique(utils.vtk2numpy(uarr))
-                ncelltypes = len(celltypes)
-                if ncelltypes > 1 or (ncelltypes == 1 and celltypes[0] != 10):
-                    scannedacts.append(a.tomesh())
-                else:
-                    if not ugrid.GetPointData().GetScalars():
-                        if not ugrid.GetCellData().GetScalars():
-                            # add dummy array for vtkProjectedTetrahedraMapper to work:
-                            a.celldata["DummyOneArray"] = np.ones(a.ncells)
-                    scannedacts.append(a)
-
-            elif isinstance(a, vedo.UGrid):
-                scannedacts.append(a.tomesh())
+                # ugrid = a
+                # uarr = ugrid.GetCellTypesArray()
+                # celltypes = np.unique(utils.vtk2numpy(uarr))
+                # ncelltypes = len(celltypes)
+                # if ncelltypes > 1 or (ncelltypes == 1 and celltypes[0] != 10):
+                #     scanned_acts.append(a.tomesh())
+                # else:
+                #     if not ugrid.GetPointData().GetScalars():
+                #         if not ugrid.GetCellData().GetScalars():
+                #             # add dummy array for vtkProjectedTetrahedraMapper to work:
+                #             a.celldata["DummyOneArray"] = np.ones(a.ncells)
+                #     scanned_acts.append(a)
+                scanned_acts.append(a.actor)
 
             elif isinstance(a, vtk.vtkVolume):  # order matters! dont move above TetMesh
-                vvol = vedo.Volume(a.GetMapper().GetInput())
-                vprop = vtk.vtkVolumeProperty()
-                vprop.DeepCopy(a.GetProperty())
-                vvol.SetProperty(vprop)
-                scannedacts.append(vvol)
+                scanned_acts.append(a)
 
             elif isinstance(a, str):
                 # assume a 2D comment was given
-                changed = False  # check if one already exists so to just update text
-                if self.renderer:  # might be jupyter
-                    acs = self.renderer.GetActors2D()
-                    acs.InitTraversal()
-                    for i in range(acs.GetNumberOfItems()):
-                        act = acs.GetNextItem()
-                        if isinstance(act, vedo.shapes.Text2D):
-                            aposx, aposy = act.GetPosition()
-                            if aposx < 0.01 and aposy > 0.99:  # "top-left"
-                                act.text(a)  # update content! no appending nada
-                                changed = True
-                                break
-                    if not changed:
-                        out = vedo.shapes.Text2D(a)  # append a new one
-                        scannedacts.append(out)
+                # changed = False  # check if one already exists so to just update text
+                # if self.renderer:  # might be jupyter
+                #     acs = self.renderer.GetActors2D()
+                #     acs.InitTraversal()
+                #     for i in range(acs.GetNumberOfItems()):
+                #         act = acs.GetNextItem()
+                #         if isinstance(act, vedo.shapes.Text2D):
+                #             aposx, aposy = act.GetPosition()
+                #             if aposx < 0.01 and aposy > 0.99:  # "top-left"
+                #                 act.text(a)  # update content! no appending nada
+                #                 changed = True
+                #                 break
+                #     if not changed:
+                #         out = vedo.shapes.Text2D(a)  # append a new one
+                #         scanned_acts.append(out)
+                scanned_acts.append(vedo.shapes.Text2D(a))
 
             elif isinstance(a, vtk.vtkImageActor):
-                scannedacts.append(a)
+                scanned_acts.append(a)
 
             elif isinstance(a, vtk.vtkBillboardTextActor3D):
-                scannedacts.append(a)
+                scanned_acts.append(a)
 
             elif isinstance(a, vtk.vtkLight):
                 self.renderer.AddLight(a)
@@ -2780,34 +2744,35 @@ class Plotter:
                 for i in range(a.GetNumberOfBlocks()):
                     b = a.GetBlock(i)
                     if isinstance(b, vtk.vtkPolyData):
-                        scannedacts.append(vedo.Mesh(b))
+                        scanned_acts.append(vedo.Mesh(b).actor)
                     elif isinstance(b, vtk.vtkImageData):
-                        scannedacts.append(vedo.Volume(b))
+                        scanned_acts.append(vedo.Volume(b).actor)
 
-            elif "PolyData" in str(type(a)):  # assume pyvista or vtkPolydata
-                scannedacts.append(vedo.Mesh(a))
+            elif isinstance(a, vtk.vtkPolyData):
+                scanned_acts.append(vedo.Mesh(a).actor)
 
-            elif "dolfin" in str(type(a)):  # assume a dolfin.Mesh object
-                import vedo.dolfin as dlf
-                scannedacts.append(dlf.MeshActor(a))
+            elif isinstance(a, (vtk.vtkProp, vtk.vtkInteractorObserver)):
+                scanned_acts.append(a)
 
             elif "trimesh" in str(type(a)):
-                scannedacts.append(utils.trimesh2vedo(a))
+                scanned_acts.append(utils.trimesh2vedo(a))
 
             elif "meshlab" in str(type(a)):
                 if "MeshSet" in str(type(a)):
                     for i in range(a.number_meshes()):
                         if a.mesh_id_exists(i):
-                            scannedacts.append(utils.meshlab2vedo(a.mesh(i)))
+                            scanned_acts.append(utils.meshlab2vedo(a.mesh(i)))
                 else:
-                    scannedacts.append(utils.meshlab2vedo(a))
+                    scanned_acts.append(utils.meshlab2vedo(a))
 
-            elif isinstance(a, (vtk.vtkProp, vtk.vtkInteractorObserver)):
-                scannedacts.append(a)
+            elif "dolfin" in str(type(a)):  # assume a dolfin.Mesh object
+                import vedo.dolfin as dlf
+                scanned_acts.append(dlf.MeshActor(a).actor)
 
             else:
                 vedo.logger.error(f"cannot understand input in show(): {type(a)}")
-        return scannedacts
+
+        return scanned_acts
 
 
     def show(
@@ -2985,7 +2950,7 @@ class Plotter:
         # Backend ###############################################################
         if settings.default_backend != "vtk":
             if settings.default_backend in ["k3d"]:
-                return backends.get_notebook_backend(self.actors)
+                return backends.get_notebook_backend(self.objects)
         #########################################################################
 
         for ia in utils.flatten(actors):
@@ -3198,16 +3163,15 @@ class Plotter:
         if deep:
             renderer.RemoveAllViewProps()
         else:
-            for a in set(self.get_meshes() + self.get_volumes() + self.actors + self.axes_instances):
-                if isinstance(a, vedo.shapes.Text2D):
+            for ob in set(self.get_meshes() + self.get_volumes() + self.objects + self.axes_instances):
+                if isinstance(ob, vedo.shapes.Text2D):
                     continue
-                self.remove(a)
+                self.remove(ob)
                 try:
-                    if a.scalarbar:
-                        self.remove(a.scalarbar)
+                    if ob.scalarbar:
+                        self.remove(ob.scalarbar)
                 except AttributeError:
                     pass
-            self.actors = []
         return self
 
     def break_interaction(self):
@@ -3325,7 +3289,6 @@ class Plotter:
     def close(self):
         """Close the Plotter instance and release resources."""
         self.close_window()
-        self.actors = []
         if vedo.plotter_instance == self:
             vedo.plotter_instance = None
 
@@ -4044,9 +4007,9 @@ class Plotter:
                     self.remove(self.cutter_widget)
                     self.cutter_widget = None
             else:
-                for a in self.actors:
-                    if isinstance(a, vtk.vtkVolume):
-                        addons.add_cutter_tool(a)
+                for ob in self.objects:
+                    if isinstance(ob, vedo.Volume):
+                        addons.add_cutter_tool(ob)
                         return
 
                 vedo.printc("Click object and press X to open the cutter box widget.", c=4)
