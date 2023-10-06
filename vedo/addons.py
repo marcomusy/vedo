@@ -3039,15 +3039,6 @@ def Axes(
             zticks_str[-1] = ""
             zhighlight_zero = False
 
-    xrange = (x0, x1)
-    yrange = (y0, y1)
-    zrange = (z0, z1)
-
-    print("xrange", xrange)
-    print("yrange", yrange)
-    print("zrange", zrange)
-    print("dx, dy, dz", dx, dy, dz)
-
     ################################################ axes lines
     lines = []
     if xtitle:
@@ -3260,10 +3251,10 @@ def Axes(
             else:
                 cx = shapes.Cone((dx,0,0), r=tip_size, height=tip_size*2,
                                  axis=(1,0,0), c=xline_color, res=12)
-            # if xyshift: cx.shift(0,0,xyshift*dz)
-            # if zxshift: cx.shift(0,zxshift*dy,0)
-            # if xshift_along_y: cx.shift(0,xshift_along_y*dy,0)
-            # if xshift_along_z: cx.shift(0,0,xshift_along_z*dz)
+            if xyshift: cx.shift(0,0,xyshift*dz)
+            if zxshift: cx.shift(0,zxshift*dy,0)
+            if xshift_along_y: cx.shift(0,xshift_along_y*dy,0)
+            if xshift_along_z: cx.shift(0,0,xshift_along_z*dz)
             cx.name = "xTipCone"
             cones.append(cx)
 
@@ -3342,8 +3333,8 @@ def Axes(
                 zticks.append(shapes.Rectangle(v1, v2))
             if len(zticks) > 1:
                 zmajticks = merge(zticks).c(zlabel_color)
-                # zmajticks.rotate_x(-90)
-                # zmajticks.rotate_z(-45 + zaxis_rotation)
+                zmajticks.rotate_y(-90)
+                zmajticks.rotate_z(-45 + zaxis_rotation)
                 if yzshift: zmajticks.shift(yzshift*dx,0,0)
                 if zxshift: zmajticks.shift(0,zxshift*dy,0)
                 if zshift_along_x: zmajticks.shift(zshift_along_x*dx,0,0)
@@ -3484,8 +3475,8 @@ def Axes(
 
             if ticks:
                 zminticks = merge(ticks).c(zlabel_color)
-                zminticks.rotate_z(-45 + zaxis_rotation)
                 zminticks.rotate_y(-90)
+                zminticks.rotate_z(-45 + zaxis_rotation)
                 if yzshift: zminticks.shift(yzshift*dx,0,0)
                 if zxshift: zminticks.shift(0,zxshift*dy,0)
                 if zshift_along_x: zminticks.shift(zshift_along_x*dx,0,0)
@@ -3594,9 +3585,9 @@ def Axes(
 
             if yaxis_rotation:
                 ylab.rotate_y(yaxis_rotation)
-            if zRot: ylab.rotate_z(zRot)
-            if yRot: ylab.rotate_y(yRot)
             if xRot: ylab.rotate_x(xRot)
+            if yRot: ylab.rotate_y(yRot)
+            if zRot: ylab.rotate_z(zRot)
 
             ylab.pos(v + offs)
             if xyshift: ylab.shift(0,0,xyshift*dz)
@@ -3646,13 +3637,14 @@ def Axes(
             angle = 90
             if dx:
                 angle = np.arctan2(dy, dx) * 57.3
-            zlab.rotate_z(angle + yRot)  # vtk inverts order of rotations
+
+            zlab.rotate_x(90 + zRot)  # ..first
             if xRot:
                 zlab.rotate_y(-xRot)  # ..second
-            zlab.rotate_x(90 + zRot)  # ..first
+            zlab.rotate_z(angle + yRot)
 
             if zaxis_rotation:
-                zlab.rotate_z(zaxis_rotation)
+                zlab.rotate_z(zaxis_rotation) ###CAN BE BUG
 
             zlab.pos(v + offs)
             if yzshift: zlab.shift(yzshift*dx,0,0)
@@ -3705,12 +3697,11 @@ def Axes(
         )
         if xtitle_backface_color:
             xt.backcolor(xtitle_backface_color)
-        if zRot:
-            xt.rotate_z(zRot)
-        if xRot:
-            xt.rotate_x(xRot)
-        if yRot:
-            xt.rotate_y(yRot)
+
+        if xRot: xt.rotate_x(xRot)
+        if yRot: xt.rotate_y(yRot)
+        if zRot: xt.rotate_z(zRot)
+
         shift = 0
         if xlab:  # xlab is the last created numeric text label..
             lt0, lt1 = xlab.GetBounds()[2:4]
@@ -3776,9 +3767,9 @@ def Axes(
         if ytitle_backface_color:
             yt.backcolor(ytitle_backface_color)
 
-        if zRot: yt.rotate_z(zRot)
-        if yRot: yt.rotate_y(yRot)
         if xRot: yt.rotate_x(xRot)
+        if yRot: yt.rotate_y(yRot)
+        if zRot: yt.rotate_z(zRot)
 
         shift = 0
         if ylab:  # this is the last created num label..
@@ -3839,10 +3830,10 @@ def Axes(
         angle = 90
         if dx:
             angle = np.arctan2(dy, dx) * 57.3
-        zt.rotate_z(angle + yRot)  # vtk inverts order of rotations
+        zt.rotate_x(90 + zRot)  # ..first
         if xRot:
             zt.rotate_y(-xRot)  # ..second
-        zt.rotate_x(90 + zRot)  # ..first
+        zt.rotate_z(angle + yRot)
 
         shift = 0
         if zlab:  # this is the last created one..
@@ -3892,16 +3883,15 @@ def Axes(
     acts = titles + lines + labels + grids + framelines
     acts += highlights + majorticks + minorticks + cones
     orig = (min_bns[0], min_bns[2], min_bns[4])
-    # print("orig", orig)
     for a in acts:
-        # a.shift(orig)
-        # a.shift(-1,0,0)
+        a.shift(orig)
         a.actor.PickableOff()
         a.property.LightingOff()
     asse = Assembly(acts)
     asse.PickableOff()
     asse.name = "Axes"
-    return acts
+    print(asse)
+    return asse
 
 
 def add_global_axes(axtype=None, c=None, bounds=()):
@@ -4058,7 +4048,8 @@ def add_global_axes(axtype=None, c=None, bounds=()):
             if centered:
                 wpos = [-aves / 40 * s, (y0 + y1) / 2, 0]
             yt = shapes.Text3D("y", pos=(0, 0, 0), s=aves / 40 * s, c=ycol)
-            yt.pos(wpos).rotate_z(90)
+            yt.rotate_z(90)
+            yt.pos(wpos)
             acts += [yl, yc, yt]
 
         if dz > aves / 100:
@@ -4076,8 +4067,9 @@ def add_global_axes(axtype=None, c=None, bounds=()):
             if centered:
                 wpos = [-aves / 50 * s, -aves / 50 * s, (z0 + z1) / 2]
             zt = shapes.Text3D("z", pos=(0, 0, 0), s=aves / 40 * s, c=zcol)
-            zt.pos(wpos).rotate_z(45)
+            zt.rotate_z(45)
             zt.rotate_x(90)
+            zt.pos(wpos)
             acts += [zl, zc, zt]
         for a in acts:
             a.actor.PickableOff()
@@ -4207,7 +4199,6 @@ def add_global_axes(axtype=None, c=None, bounds=()):
 
     elif plt.axes == 8:
         vbb = compute_visible_bounds()[0]
-        print("vbb", vbb)
         ca = vtk.vtkCubeAxesActor()
         ca.SetBounds(vbb)
         ca.SetCamera(plt.renderer.GetActiveCamera())

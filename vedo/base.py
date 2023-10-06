@@ -394,7 +394,7 @@ class Base3DProp:
         tp.Update()
         out = tp.GetOutput()
 
-        print("_move", self.transform)
+        # print("_move", self.transform)
 
         if deep_copy:
             self.DeepCopy(out)

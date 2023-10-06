@@ -2677,10 +2677,12 @@ class Plotter:
         
         wannabeacts2 = []
         for a in wannabeacts:
+            # wannabeacts2.append(a.actor)
+
             try:
                 wannabeacts2.append(a.actor)
             except:
-                pass
+                wannabeacts2.append(a)
 
         scannedacts = []
         for a in wannabeacts2:  # scan content of list

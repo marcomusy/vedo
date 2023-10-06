@@ -226,7 +226,7 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
         else:
             meshs = vedo.utils.flatten(meshs)
 
-        self.actors = meshs
+        self.actors = [m.actor for m in meshs]
 
         if meshs and hasattr(meshs[0], "top"):
             self.base = meshs[0].base
@@ -236,7 +236,7 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
             self.top = None
 
         scalarbars = []
-        for a in meshs:
+        for a in self.actors:
             if isinstance(a, vtk.vtkProp3D):  # and a.GetNumberOfPoints():
                 self.AddPart(a)
             if hasattr(a, "scalarbar") and a.scalarbar is not None:

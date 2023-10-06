@@ -153,7 +153,6 @@ class LinearTransform:
 
     def translate(self, p):
         """Translate, same as `shift`."""
-        print("translate", p)
         self.T.Translate(*p)
         return self
 
@@ -176,7 +175,6 @@ class LinearTransform:
                 self.T.Scale(*s)
 
         elif _is_sequence(origin):
-            print("sdf")
             origin = np.asarray(origin)
             self.T.Translate(-origin)
             self.T.Scale(*s)
