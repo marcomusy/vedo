@@ -856,9 +856,9 @@ class Plotter:
 
         return self
 
-    def remove(self, *actors, at=None):
+    def remove(self, *objs, at=None):
         """
-        Remove input object to the internal list of actors to be shown.
+        Remove input object to the internal list of objects to be shown.
         This method is typically used in loops or callback functions.
         Objects to be removed can be referenced by their assigned name.
 
@@ -871,7 +871,7 @@ class Plotter:
         else:
             ren = self.renderer
 
-        actors = utils.flatten(actors)
+        actors = [a.actor for a in utils.flatten(objs) if a]
 
         actors_in_ren = None
 
@@ -921,6 +921,11 @@ class Plotter:
                 del self.actors[i]
 
         return self
+    
+    # @property
+    # def actors(self):
+    #     """Return the list of actors."""
+    #     return self._actors
 
     def remove_lights(self):
         """Remove all the present lights in the current renderer."""

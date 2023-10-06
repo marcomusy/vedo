@@ -7,14 +7,13 @@ from vedo import Plotter
 from vedo.pyplot import plot
 
 
-def bfunc(event):
+def bfunc(obj, ename):
     global timer_id
-    if event.actor and event.actor.name == "Button":
-        plotter.timer_callback("destroy", timer_id)
-        if "Play" in button.status():
-            # instruct to call handle_timer() every 10 msec:
-            timer_id = plotter.timer_callback("create", dt=10)
-        button.switch()
+    plotter.timer_callback("destroy", timer_id)
+    if "Play" in button.status():
+        # instruct to call handle_timer() every 10 msec:
+        timer_id = plotter.timer_callback("create", dt=10)
+    button.switch()
 
 def handle_timer(event):
     t = time.time() - t0
@@ -33,7 +32,7 @@ timer_id = -1
 t0 = time.time()
 plotter= Plotter(size=(1200,600))
 button = plotter.add_button(bfunc, states=[" Play ","Pause"], size=40)
-evntId = plotter.add_callback("timer", handle_timer)
+evntid = plotter.add_callback("timer", handle_timer, enable_picking=False)
 
 x = np.linspace(0, 4*np.pi, 50)
 y = np.sin(x) * np.sin(x/12)

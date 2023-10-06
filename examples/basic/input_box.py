@@ -23,20 +23,20 @@ def kfunc(evt):
     bu.text(msg)
     plt.render()
 
-def bfunc(event):
+def bfunc(obj, ename=""):
     mesh.color(msg)
     plt.render()
 
 
 plt = Plotter(axes=1)
-plt.interactor.RemoveObservers("CharEvent") # might be needed
+plt.remove_callback("CharEvent") # might be needed
 
 msg = ""
 plt.add_callback("key press", kfunc)
 
 bu = plt.add_button(
     bfunc,
-    pos=(0.7, 0.05),  # x,y fraction from bottom left corner
+    pos=(0.5, 0.1),  # x,y fraction from bottom left corner
     states=["input box"],
     c=["w"],
     bc=["dg"],        # colors of states

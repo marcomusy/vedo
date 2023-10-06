@@ -1264,13 +1264,14 @@ def ScalarBar3D(
 
     for a in tacts:
         a.actor.PickableOff()
+        a.pos(pos)
+        a.lighting("off")
 
-    mtacts = merge(tacts).lighting("off")
+    mtacts = merge(tacts)
     mtacts.actor.PickableOff()
     scale.actor.PickableOff()
 
     sact = Assembly(scales + tacts)
-    sact.SetPosition(pos)
     sact.PickableOff()
     sact.UseBoundsOff()
     sact.name = "ScalarBar3D"
@@ -2212,14 +2213,16 @@ class Icon(vtk.vtkOrientationMarkerWidget):
 
 
 #####################################################################
-def compute_visible_bounds(actors=None):
-    """Calculate max meshes bounds and sizes."""
+def compute_visible_bounds(objs=None):
+    """Calculate max objects bounds and sizes."""
     bns = []
 
-    if actors is None:
-        actors = vedo.plotter_instance.actors
-    elif not utils.is_sequence(actors):
-        actors = [actors]
+    if objs is None:
+        obj = vedo.plotter_instance.actors
+    elif not utils.is_sequence(objs):
+        obj = [objs]
+    
+    actors = [ob.actor for ob in obj if hasattr(ob, 'actor') and ob.actor]
 
     try:
         # this block fails for VolumeSlice as vtkImageSlice.GetBounds() returns a pointer..
@@ -2330,9 +2333,10 @@ def Ruler(
     if units:
         label += "~" + units
 
-    lb = shapes.Text3D(label, pos=(q1 + q2) / 2, s=s, font=font, italic=italic, justify="center")
+    lb = shapes.Text3D(label, s=s, font=font, italic=italic, justify="center")
     if label_rotation:
         lb.rotate_z(label_rotation)
+    lb.pos((q1 + q2) / 2)
 
     x0, x1 = lb.xbounds()
     gap = [(x1 - x0) / 2, 0, 0]
@@ -2343,10 +2347,10 @@ def Ruler(
     lc2 = shapes.Line(q2 + v / 50, pc2)
 
     zs = np.array([0, d / 50 * (1 / units_scale), 0])
-    ml1 = shapes.Line(-zs, zs).pos(q1)
-    ml2 = shapes.Line(-zs, zs).pos(q2)
-    ml1.rotate_z(tick_angle - 90)
-    ml2.rotate_z(tick_angle - 90)
+    ml1 = shapes.Line(-zs, zs)
+    ml2 = shapes.Line(-zs, zs)
+    ml1.rotate_z(tick_angle - 90).pos(q1)
+    ml2.rotate_z(tick_angle - 90).pos(q2)
 
     c1 = shapes.Circle(q1, r=d / 180 * (1 / units_scale), res=20)
     c2 = shapes.Circle(q2, r=d / 180 * (1 / units_scale), res=20)
@@ -2988,15 +2992,6 @@ def Axes(
     if not ylabel_color:  ylabel_color = yline_color
     if not zlabel_color:  zlabel_color = zline_color
 
-    # vtk version<9 dont like depthpeeling: force switching off grids
-    if settings.use_depth_peeling and not utils.vtk_version_at_least(9):
-        xygrid = False
-        yzgrid = False
-        zxgrid = False
-        xygrid2 = False
-        yzgrid2 = False
-        zxgrid2 = False
-
     if tip_size is None:
         tip_size = 0.005 * gscale
         if not ztitle:
@@ -3043,6 +3038,15 @@ def Axes(
             zticks_str = list(reversed(zticks_str))
             zticks_str[-1] = ""
             zhighlight_zero = False
+
+    xrange = (x0, x1)
+    yrange = (y0, y1)
+    zrange = (z0, z1)
+
+    print("xrange", xrange)
+    print("yrange", yrange)
+    print("zrange", zrange)
+    print("dx, dy, dz", dx, dy, dz)
 
     ################################################ axes lines
     lines = []
@@ -3256,10 +3260,10 @@ def Axes(
             else:
                 cx = shapes.Cone((dx,0,0), r=tip_size, height=tip_size*2,
                                  axis=(1,0,0), c=xline_color, res=12)
-            if xyshift: cx.shift(0,0,xyshift*dz)
-            if zxshift: cx.shift(0,zxshift*dy,0)
-            if xshift_along_y: cx.shift(0,xshift_along_y*dy,0)
-            if xshift_along_z: cx.shift(0,0,xshift_along_z*dz)
+            # if xyshift: cx.shift(0,0,xyshift*dz)
+            # if zxshift: cx.shift(0,zxshift*dy,0)
+            # if xshift_along_y: cx.shift(0,xshift_along_y*dy,0)
+            # if xshift_along_z: cx.shift(0,0,xshift_along_z*dz)
             cx.name = "xTipCone"
             cones.append(cx)
 
@@ -3338,8 +3342,8 @@ def Axes(
                 zticks.append(shapes.Rectangle(v1, v2))
             if len(zticks) > 1:
                 zmajticks = merge(zticks).c(zlabel_color)
-                zmajticks.rotate_z(-45 + zaxis_rotation)
-                zmajticks.rotate_y(-90)
+                # zmajticks.rotate_x(-90)
+                # zmajticks.rotate_z(-45 + zaxis_rotation)
                 if yzshift: zmajticks.shift(yzshift*dx,0,0)
                 if zxshift: zmajticks.shift(0,zxshift*dy,0)
                 if zshift_along_x: zmajticks.shift(zshift_along_x*dx,0,0)
@@ -3524,25 +3528,31 @@ def Axes(
                 xoffs, yoffs, zoffs = xlabel_offset
             else:
                 xoffs, yoffs, zoffs = 0, xlabel_offset, 0
+
             xlab = shapes.Text3D(
-                t, s=xlabel_size * text_scale * gscale, font=label_font, justify=jus
+                t, s=xlabel_size * text_scale * gscale, font=label_font, justify=jus,
+                c=xlabel_color,
             )
             tb = xlab.ybounds()  # must be ybounds: height of char
+
             v = (xticks_float[i], 0, 0)
             offs = -np.array([xoffs, yoffs, zoffs]) * (tb[1] - tb[0])
-            xlab.pos(v + offs)
+
             if xaxis_rotation:
                 xlab.rotate_x(xaxis_rotation)
-            if zRot: xlab.rotate_z(zRot)
-            if xRot: xlab.rotate_x(xRot)
             if yRot: xlab.rotate_y(yRot)
+            if xRot: xlab.rotate_x(xRot)
+            if zRot: xlab.rotate_z(zRot)
+
+            xlab.pos(v + offs)
             if xyshift: xlab.shift(0,0,xyshift*dz)
             if zxshift: xlab.shift(0,zxshift*dy,0)
             if xshift_along_y: xlab.shift(0,xshift_along_y*dy,0)
             if xshift_along_z: xlab.shift(0,0,xshift_along_z*dz)
+
             xlab.name = f"xNumericLabel{i}"
-            xlab.actor.SetUseBounds(x_use_bounds)
-            labels.append(xlab.c(xlabel_color))
+            xlab.use_bounds(x_use_bounds)
+            labels.append(xlab)
 
     if ylabel_size and ytitle:
 
@@ -3581,12 +3591,14 @@ def Axes(
             tb = ylab.ybounds()  # must be ybounds: height of char
             v = (0, yticks_float[i], 0)
             offs = -np.array([xoffs, yoffs, zoffs]) * (tb[1] - tb[0])
-            ylab.pos(v + offs)
+
             if yaxis_rotation:
                 ylab.rotate_y(yaxis_rotation)
             if zRot: ylab.rotate_z(zRot)
             if yRot: ylab.rotate_y(yRot)
             if xRot: ylab.rotate_x(xRot)
+
+            ylab.pos(v + offs)
             if xyshift: ylab.shift(0,0,xyshift*dz)
             if yzshift: ylab.shift(yzshift*dx,0,0)
             if yshift_along_x: ylab.shift(yshift_along_x*dx,0,0)
@@ -3638,14 +3650,16 @@ def Axes(
             if xRot:
                 zlab.rotate_y(-xRot)  # ..second
             zlab.rotate_x(90 + zRot)  # ..first
-            zlab.pos(v + offs)
+
             if zaxis_rotation:
                 zlab.rotate_z(zaxis_rotation)
+
+            zlab.pos(v + offs)
             if yzshift: zlab.shift(yzshift*dx,0,0)
             if zxshift: zlab.shift(0,zxshift*dy,0)
             if zshift_along_x: zlab.shift(zshift_along_x*dx,0,0)
             if zshift_along_y: zlab.shift(0,zshift_along_y*dy,0)
-            zlab.actor.SetUseBounds(z_use_bounds)
+            zlab.use_bounds(z_use_bounds)
             zlab.name = f"zNumericLabel{i}"
             labels.append(zlab.c(zlabel_color))
 
@@ -3712,9 +3726,9 @@ def Axes(
             xt.shift(0, xshift_along_y * dy, 0)
         if xshift_along_z:
             xt.shift(0, 0, xshift_along_z * dz)
-        xt.actor.SetUseBounds(x_use_bounds)
+        xt.use_bounds(x_use_bounds)
         if xtitle == " ":
-            xt.actor.SetUseBounds(False)
+            xt.use_bounds(False)
         xt.name = f"xtitle {xtitle}"
         titles.append(xt)
         if xtitle_box:
@@ -3777,9 +3791,9 @@ def Axes(
         if xyshift:        yt.shift(0, 0, xyshift*dz)
         if yshift_along_x: yt.shift(yshift_along_x*dx, 0, 0)
         if yshift_along_z: yt.shift(0, 0, yshift_along_z*dz)
-        yt.actor.SetUseBounds(y_use_bounds)
+        yt.use_bounds(y_use_bounds)
         if ytitle == " ":
-            yt.actor.SetUseBounds(False)
+            yt.use_bounds(False)
         yt.name = f"ytitle {ytitle}"
         titles.append(yt)
         if ytitle_box:
@@ -3844,9 +3858,9 @@ def Axes(
         if zxshift: zt.shift(0,zxshift*dy,0)
         if zshift_along_x: zt.shift(zshift_along_x*dx,0,0)
         if zshift_along_y: zt.shift(0,zshift_along_y*dy,0)
-        zt.actor.SetUseBounds(z_use_bounds)
+        zt.use_bounds(z_use_bounds)
         if ztitle == " ":
-            zt.actor.SetUseBounds(False)
+            zt.use_bounds(False)
         zt.name = f"ztitle {ztitle}"
         titles.append(zt)
 
@@ -3866,7 +3880,7 @@ def Axes(
             italic=htitle_italic,
         )
         if htitle_rotation:
-            htit.actor.RotateX(htitle_rotation)
+            htit.rotate_x(htitle_rotation)
         wpos = [(0.5 + htitle_offset[0]) * dx, (1 + htitle_offset[1]) * dy, htitle_offset[2] * dz]
         htit.pos(wpos)
         if xyshift:
@@ -3878,15 +3892,16 @@ def Axes(
     acts = titles + lines + labels + grids + framelines
     acts += highlights + majorticks + minorticks + cones
     orig = (min_bns[0], min_bns[2], min_bns[4])
+    # print("orig", orig)
     for a in acts:
+        # a.shift(orig)
+        # a.shift(-1,0,0)
         a.actor.PickableOff()
-        a.actor.AddPosition(orig)
         a.property.LightingOff()
     asse = Assembly(acts)
-    asse.SetOrigin(orig)
     asse.PickableOff()
     asse.name = "Axes"
-    return asse
+    return acts
 
 
 def add_global_axes(axtype=None, c=None, bounds=()):
@@ -4176,6 +4191,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         oc_actor.GetProperty().SetColor(lc)
         oc_actor.PickableOff()
         oc_actor.UseBoundsOn()
+        oc_actor.LightingOff()
         plt.axes_instances[r] = oc_actor
         plt.add(oc_actor)
 
@@ -4191,6 +4207,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
 
     elif plt.axes == 8:
         vbb = compute_visible_bounds()[0]
+        print("vbb", vbb)
         ca = vtk.vtkCubeAxesActor()
         ca.SetBounds(vbb)
         ca.SetCamera(plt.renderer.GetActiveCamera())
@@ -4208,7 +4225,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         ca.PickableOff()
         ca.UseBoundsOff()
         plt.axes_instances[r] = ca
-        plt.add(ca)
+        plt.renderer.AddActor(ca)
 
     elif plt.axes == 9:
         vbb = compute_visible_bounds()[0]
@@ -4222,7 +4239,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         ca.actor.PickableOff()
         ca.actor.UseBoundsOff()
         plt.axes_instances[r] = ca
-        plt.add(ca)
+        plt.renderer.AddActor(ca)
 
     elif plt.axes == 10:
         vbb = compute_visible_bounds()[0]
@@ -4240,7 +4257,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         ca = xc + yc + zc
         ca.PickableOff()
         ca.UseBoundsOn()
-        plt.add(ca)
+        plt.renderer.AddActor(ca)
         plt.axes_instances[r] = ca
 
     elif plt.axes == 11:
@@ -4251,7 +4268,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         gr.lighting("off").actor.PickableOff()
         gr.actor.UseBoundsOff()
         plt.axes_instances[r] = gr
-        plt.add(gr)
+        plt.renderer.AddActor(gr)
 
     elif plt.axes == 12:
         polaxes = vtk.vtkPolarAxesActor()
@@ -4282,7 +4299,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         polaxes.UseBoundsOn()
         polaxes.PickableOff()
         plt.axes_instances[r] = polaxes
-        plt.add(polaxes)
+        plt.renderer.AddActor(polaxes)
 
     elif plt.axes == 13:
         # draws a simple ruler at the bottom of the window
@@ -4307,7 +4324,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         # if not plt.renderer.GetActiveCamera().GetParallelProjection():
         #     vedo.logger.warning("Axes type 13 should be used with parallel projection")
         plt.axes_instances[r] = ls
-        plt.add(ls)
+        plt.renderer.AddActor(ls)
 
     elif plt.axes == 14:
         try:

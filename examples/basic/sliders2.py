@@ -11,11 +11,10 @@ def slider1(widget, event):
     widget.title = get_color_name(val)
     cube.color(val)
 
-def buttonfunc(event):
-    if event.actor and event.actor.name == "Button":
-        cube.alpha(1 - cube.alpha()) # toggle mesh transparency
-        sphere.alpha(1 - sphere.alpha())
-        button.switch()              # change to next status
+def button_func(obj, ename):
+    cube.alpha(1 - cube.alpha()) # toggle mesh transparency
+    sphere.alpha(1 - sphere.alpha())
+    button.switch()              # change to next status
 
 ######
 sphere = Sphere(r=0.6).alpha(0.9).color(0)
@@ -46,8 +45,8 @@ plt.add_slider(
 
 ######
 button = plt.at(1).add_button(
-    buttonfunc,
-    pos=(0.5, 0.9),       # x,y fraction from bottom left corner
+    button_func,
+    pos=(0.5, 0.95),      # x,y fraction from bottom left corner
     states=["HIGH alpha (click here!)", "LOW alpha (click here!)"],
     c = ["w", "k"],       # colors of states (foreground)
     bc= ["k", "grey"],    # colors of states (background)

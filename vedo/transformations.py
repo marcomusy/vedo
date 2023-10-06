@@ -65,11 +65,13 @@ class LinearTransform:
 
 
     def __str__(self):
-        return "Transformation Matrix 4x4:\n" + str(self.matrix)
-
+        s = "Transformation Matrix 4x4:\n"
+        s+= str(self.matrix)
+        s+= f"\n({self.n_concatenated_transforms} concatenated transforms)"
+        return s
+    
     def __repr__(self):
-        return "Transformation Matrix 4x4:\n" + str(self.matrix)
-
+        return self.__str__()
 
     def apply_to(self, obj):
         """Apply transformation."""
@@ -113,6 +115,14 @@ class LinearTransform:
         self.inverse_flag = bool(self.T.GetInverseFlag())
         return self
 
+    def is_identity(self):
+        """Check if identity."""
+        m = self.T.GetMatrix()
+        M = [[m.GetElement(i, j) for j in range(4)] for i in range(4)]
+        if np.allclose(M - np.eye(4), 0):
+            return True
+        return False
+
     def compute_inverse(self):
         """Compute inverse."""
         return LinearTransform(self.T.GetInverse())
@@ -125,7 +135,10 @@ class LinearTransform:
         """Post multiply."""
         if pre_multiply:
             self.T.PreMultiply()
-        self.T.Concatenate(T.T)
+        try:
+            self.T.Concatenate(T)
+        except:
+            self.T.Concatenate(T.T)
         self.T.PostMultiply()
         return self
 
@@ -139,14 +152,20 @@ class LinearTransform:
         return self.T.GetNumberOfConcatenatedTransforms()
 
     def translate(self, p):
-        """Translate."""
+        """Translate, same as `shift`."""
+        print("translate", p)
         self.T.Translate(*p)
         return self
 
-    def scale(self, s=None, origin=True):
+    def shift(self, p):
+        """Shift, same as `translate`."""
+        return self.translate(*p)
+
+    def scale(self, s, origin=True):
         """Scale."""
         if not _is_sequence(s):
             s = [s, s, s]
+
         if origin is True:
             p = np.array(self.T.GetPosition())
             if np.linalg.norm(p) > 0:
@@ -155,11 +174,14 @@ class LinearTransform:
                 self.T.Translate(p)
             else:
                 self.T.Scale(*s)
+
         elif _is_sequence(origin):
-            p = np.array(self.T.GetPosition())
-            self.T.Translate(-p)
+            print("sdf")
+            origin = np.asarray(origin)
+            self.T.Translate(-origin)
             self.T.Scale(*s)
-            self.T.Translate(p)
+            self.T.Translate(origin)
+
         else:
             self.T.Scale(*s)
         return self
@@ -253,7 +275,7 @@ class LinearTransform:
         q = np.array(self.T.GetPosition())
         self.T.Translate(p - q)
         return self
-
+    
     def set_scale(self, s):
         """Set absolute scale."""
         if not _is_sequence(s):

@@ -380,23 +380,32 @@ class Base3DProp:
         return self
 
 
-    def _move(self):
-        m = self.transform.T.GetMatrix()
-        M = [[m.GetElement(i, j) for j in range(4)] for i in range(4)]
-        if np.allclose(M - np.eye(4), 0):
+    def _move(self, LT, concatenate=True, deep_copy=True):
+
+        if LT.is_identity():
             return self
 
+        if concatenate:
+            self.transform.concatenate(LT)
+
         tp = vtk.vtkTransformPolyDataFilter()
-        tp.SetTransform(self.transform.T)
+        tp.SetTransform(LT.T)
         tp.SetInputData(self)
         tp.Update()
         out = tp.GetOutput()
 
-        self.DeepCopy(out)
+        print("_move", self.transform)
+
+        if deep_copy:
+            self.DeepCopy(out)
+        else:
+            self.ShallowCopy(out)
+
         self.point_locator = None
         self.cell_locator = None
         self.line_locator = None
         return self
+    
 
     def pos(self, x=None, y=None, z=None):
         """Set/Get object position."""
@@ -412,20 +421,18 @@ class Base3DProp:
         elif z is None:  # assume x,y is of the form x, y
             z = 0
 
-        # try:
-        self.transform.set_position([x, y, z])
-        return self._move()
+        q = self.transform.position
+        LT = LinearTransform()
+        LT.translate([x,y,z]-q) 
+        return self._move(LT)
 
     def shift(self, dx=0, dy=0, dz=0):
         """Add a vector to the current object position."""
         if utils.is_sequence(dx):
-            if len(dx) == 2:
-                self.transform.translate([dx[0], dx[1], 0])
-            else:
-                self.transform.translate(dx)
-        else:
-            self.transform.translate([dx, dy, dz])
-        return self._move()
+            utils.make3d(dx)
+            dx, dy, dz = dx
+        LT = LinearTransform().translate([dx, dy, dz]) 
+        return self._move(LT)
 
     def x(self, val=None):
         """Set/Get object position along x axis."""
@@ -468,8 +475,10 @@ class Base3DProp:
             ```
             ![](https://vedo.embl.es/images/feats/rotate_axis.png)
         """
-        self.rotate(angle, axis, point, rad)
-        return self._move()
+        # self.rotate(angle, axis, point, rad)
+        LT = LinearTransform()
+        LT.rotate(angle, axis, point, rad)
+        return self._move(LT)
 
     def rotate_x(self, angle, rad=False, around=None):
         """
@@ -477,8 +486,8 @@ class Base3DProp:
 
         Use `around` to define a pivoting point.
         """
-        self.transform.rotate_x(angle, rad, around)
-        return self._move()
+        LT = LinearTransform().rotate_x(angle, rad, around)
+        return self._move(LT)
 
     def rotate_y(self, angle, rad=False, around=None):
         """
@@ -486,8 +495,8 @@ class Base3DProp:
 
         Use `around` to define a pivoting point.
         """
-        self.transform.rotate_y(angle, rad, around)
-        return self._move()
+        LT = LinearTransform().rotate_y(angle, rad, around)
+        return self._move(LT)
 
     def rotate_z(self, angle, rad=False, around=None):
         """
@@ -495,15 +504,15 @@ class Base3DProp:
 
         Use `around` to define a pivoting point.
         """
-        self.transform.rotate_z(angle, rad, around)
-        return self._move()
+        LT = LinearTransform().rotate_z(angle, rad, around)
+        return self._move(LT)
 
     #TODO
     def orientation(self, newaxis=None, rotation=0, concatenate=False, xyplane=False, rad=False):
         return self
 
 
-    def scale(self, s=None, reset=False):
+    def scale(self, s=None, reset=False, origin=True):
         """
         Set/get object's scaling factor.
 
@@ -512,18 +521,25 @@ class Base3DProp:
                 scaling factor(s).
             reset : (bool)
                 if True previous scaling factors are ignored.
+            origin : (bool)
+                if True scaling is applied with respect to object's position,
+                otherwise is applied respect to (0,0,0).
 
         Note:
             use `s=(sx,sy,sz)` to scale differently in the three coordinates.
         """
         if s is None:
             return np.array(self.transform.T.GetScale())
-
+        
+        LT = LinearTransform()
         if reset:
-            self.transform.set_scale(s)
+            LT.set_scale(s)
         else:
-            self.transform.scale(s)
-        return self._move()
+            if origin:
+                LT.scale(s, origin=self.transform.position)
+            else:
+                LT.scale(s, origin=False)
+        return self._move(LT)
 
 
     def align_to_bounding_box(self, msh, rigid=False):
@@ -572,8 +588,8 @@ class Base3DProp:
         lmt.Update()
 
         T = LinearTransform(lmt)
-        self.apply_transform(T)
-        return self
+        # self.apply_transform(T)
+        return self._move(LT)
 
     def on(self):
         """Switch on  object visibility. Object is not removed."""

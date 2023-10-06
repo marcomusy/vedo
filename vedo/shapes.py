@@ -1994,9 +1994,9 @@ class Arrow(Mesh):
         tf.Update()
 
         Mesh.__init__(self, tf.GetOutput(), c, alpha)
+        self.pos(start_pt)
 
         self.phong().lighting("plastic")
-        self.actor.SetPosition(start_pt)
         self.actor.PickableOff()
         self.actor.DragableOff()
         self.base = np.array(start_pt, dtype=float)
@@ -2197,7 +2197,7 @@ class Arrow2D(Mesh):
         tf.Update()
 
         Mesh.__init__(self, tf.GetOutput(), c="k1")
-        self.actor.SetPosition(start_pt)
+        self.pos(start_pt)
         self.lighting("off")
         self.actor.DragableOff()
         self.actor.PickableOff()
@@ -2358,7 +2358,7 @@ class Polygon(Mesh):
         Mesh.__init__(self, [np.c_[x, y], faces], c, alpha)
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
-        self.actor.SetPosition(pos)
+        self.pos(pos)
         self.property.LightingOff()
         self.name = "Polygon " + str(nsides)
 
@@ -4686,8 +4686,9 @@ class CornerAnnotation(vtk.vtkCornerAnnotation, TextBase):
     """
 
     def __init__(self, c=None):
-        vtk.vtkCornerAnnotation.__init__(self)
-        TextBase.__init__(self)
+        # vtk.vtkCornerAnnotation.__init__(self)
+        # TextBase.__init__(self)
+        super().__init__()
 
         self.property = self.GetTextProperty()
 
@@ -4704,8 +4705,8 @@ class CornerAnnotation(vtk.vtkCornerAnnotation, TextBase):
             else:
                 c = (0.5, 0.5, 0.5)
 
-        self.actor.SetNonlinearFontScaleFactor(1 / 2.75)
-        self.actor.PickableOff()
+        self.SetNonlinearFontScaleFactor(1 / 2.75)
+        self.PickableOff()
         self.property.SetColor(get_color(c))
         self.property.SetBold(False)
         self.property.SetItalic(False)
@@ -4720,9 +4721,9 @@ class CornerAnnotation(vtk.vtkCornerAnnotation, TextBase):
         `f' = linearScale * pow(f,nonlinearScale)`
         """
         if linear:
-            self.actor.SetLinearFontScaleFactor(s * 5.5)
+            self.SetLinearFontScaleFactor(s * 5.5)
         else:
-            self.actor.SetNonlinearFontScaleFactor(s / 2.75)
+            self.SetNonlinearFontScaleFactor(s / 2.75)
         return self
 
     def text(self, txt, pos=2):
@@ -4827,9 +4828,9 @@ class Latex(Picture):
             build_img_plt(formula, tmp_file.name)
 
             Picture.__init__(self, tmp_file.name, channels=4)
+            self.pos(pos)
             self.alpha(alpha)
-            self.actor.SetScale(0.25 / res * s, 0.25 / res * s, 0.25 / res * s)
-            self.actor.SetPosition(pos)
+            self.scale(0.25 / res * s, 0.25 / res * s, 0.25 / res * s)
             self.name = "Latex"
 
         except:
