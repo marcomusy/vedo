@@ -48,7 +48,7 @@ def procrustes_alignment(sources, rigid=False):
         if sources[0].npoints != source.npoints:
             vedo.logger.error("sources have different nr of points")
             raise RuntimeError()
-        group.AddInputData(source.polydata())
+        group.AddInputData(source)
     procrustes = vtk.vtkProcrustesAlignmentFilter()
     procrustes.StartFromCentroidOn()
     procrustes.SetInputConnection(group.GetOutputPort())

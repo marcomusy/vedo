@@ -261,9 +261,9 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
             flip : (bool)
                 flip xy axis convention (when input is a numpy array)
         """
+        super().__init__()
 
-        vtk.vtkImageActor.__init__(self)
-        vedo.base.Base3DProp.__init__(self)
+        self.actor = self
 
         if utils.is_sequence(obj) and len(obj) > 0:  # passing array
             img = _get_img(obj, flip)

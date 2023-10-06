@@ -9,7 +9,7 @@ from pyacvd import Clustering
 
 mesh = Sphere(res=50).subdivide().lw(0.2).cut_with_plane().clean()
 
-clus = Clustering(wrap(mesh.polydata()))
+clus = Clustering(wrap(mesh))
 clus.cluster(1000, maxiter=100, iso_try=10, debug=False)
 
 pvremesh = clus.create_mesh()

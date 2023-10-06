@@ -96,7 +96,7 @@ class Morpher:
             mw = self.mesh1.clone().apply_transform(warped_plane.transform).c('red4')
             output.append(mw)
 
-            T_inv = warped_plane.transform.GetInverse()
+            T_inv = warped_plane.transform.compute_inverse()
             a = Points(self.arrow_starts, r=10).apply_transform(warped_plane.transform)
             b = Points(self.arrow_stops,  r=10).apply_transform(warped_plane.transform)
             self.dottedln = Lines(a,b, res=self.n).apply_transform(T_inv).point_size(5)

@@ -3,7 +3,7 @@ from vedo import Mesh, Plotter, dataurl
 
 # Define the callback function to change the color of the clicked cell to red
 def func(evt):
-    msh = evt.actor
+    msh = evt.object
     if not msh:
         return
     pt = evt.picked3d

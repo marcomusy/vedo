@@ -41,7 +41,9 @@ class Event:
         "time",
         "priority",
         "at",
-        "actor",
+        "object",
+        "actor",  # obsolete use object instead
+        "vtk_actor",
         "picked3d",
         "keypress",
         "picked2d",
@@ -812,6 +814,7 @@ class Plotter:
         for ob in objs: 
             if ob:
                 self.objects.append(ob)
+        # self.objects = list(set(self.objects))
 
         acts = self._scan_input(objs)
 
@@ -820,7 +823,10 @@ class Plotter:
                 a.add_to(self)
                 continue
             if ren:
-                ren.AddActor(a)
+                try:
+                    ren.AddActor(a)
+                except TypeError:
+                    ren.AddActor(a.actor)
                 if hasattr(a, "rendered_at"):
                     ir = self.renderers.index(ren)
                     a.rendered_at.add(ir)
@@ -868,8 +874,13 @@ class Plotter:
 
         for ob in set(objects_r):
             if ren:
-                a = ob.actor
+                try:
+                    a = ob.actor
+                except AttributeError:
+                    a = ob
+
                 ren.RemoveActor(a)
+
                 if hasattr(a, "rendered_at"):
                     ir = self.renderers.index(ren)
                     a.rendered_at.discard(ir)
@@ -889,8 +900,11 @@ class Plotter:
 
         for i, ob in enumerate(objs):
             if ob in self.objects:
-                i = self.objects.index(a)
-                del self.objects[i]
+                try:
+                    i = self.objects.index(a)
+                    del self.objects[i]
+                except ValueError:
+                    pass
 
         return self
     
@@ -1061,7 +1075,10 @@ class Plotter:
                     continue
                 if has_global_axes and a in self.axes_instances[at].actors:
                     continue
-                objs.append(a.data)
+                try:
+                    objs.append(a.data)
+                except AttributeError:
+                    pass
         return objs
 
     def get_volumes(self, at=None, include_non_pickables=False):
@@ -1086,7 +1103,10 @@ class Plotter:
         for _ in range(acs.GetNumberOfItems()):
             a = acs.GetNextItem()
             if include_non_pickables or a.GetPickable():
-                vols.append(a.data)
+                try:
+                   vols.append(a.data)
+                except AttributeError:
+                    pass
         return vols
 
     def reset_camera(self, tight=None):
@@ -2286,14 +2306,15 @@ class Plotter:
             if actor:
                 picked3d = np.array(self.picker.GetPickPosition())
                 if isinstance(actor, vedo.base.Base3DProp):  # needed!
-                    if actor.picked3d is not None:
-                        delta3d = picked3d - actor.picked3d
-                actor.picked3d = picked3d
+                    if actor.data.picked3d is not None:
+                        delta3d = picked3d - actor.data.picked3d
+                actor.data.picked3d = picked3d
             else:
                 picked3d = None
 
             if not actor:  # try 2D
                 actor = self.picker.GetActor2D()
+            # print(enable_picking, xp, yp, picked3d, [actor] )
 
             dx, dy = x - xp, y - yp
 
@@ -2305,10 +2326,16 @@ class Plotter:
         event.priority = -1  # will be set by the timer wrapper function
         event.time = time.time()
         event.at = self.renderers.index(self.renderer)
-        event.keyPressed = key  # obsolete, will disappear. Use "keypress"
         event.keypress = key
         if enable_picking:
-            event.actor = actor
+            event.vtk_actor = actor
+            try:
+                event.actor = actor.data  # obsolete use object instead
+                event.object = actor.data
+            except AttributeError:
+                # print("Warning: actor.data is None")
+                event.actor = None
+                event.object = None
             event.picked3d = picked3d
             event.picked2d = (x, y)
             event.delta2d = (dx, dy)
@@ -2534,7 +2561,7 @@ class Plotter:
         else:
             pp = vtk.vtkPolygonalSurfacePointPlacer()
             for ob in objs:
-                pp.AddProp(ob)
+                pp.AddProp(ob.actor)
 
         if len(bounds) == 6:
             pp.SetPointBounds(bounds)

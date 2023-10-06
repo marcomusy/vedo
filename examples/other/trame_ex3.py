@@ -5,8 +5,10 @@ from trame.widgets import vtk, vuetify
 import vedo
 
 cone = vedo.Cone()
+axes = vedo.Axes(cone).unpack()
+
 plt = vedo.Plotter()
-plt += [cone, vedo.Axes(cone).unpack(transformed=True)]
+plt += [cone, axes]
 
 # -----------------------------------------------------------------------------
 # Trame setup

@@ -452,9 +452,9 @@ class Line(Mesh):
         self.res = res
 
         if isinstance(p1, Points):
-            p1 = p1.GetPosition()
+            p1 = p1.pos()
             if isinstance(p0, Points):
-                p0 = p0.GetPosition()
+                p0 = p0.pos()
         if isinstance(p0, Points):
             p0 = p0.points()
 

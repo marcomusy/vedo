@@ -129,7 +129,7 @@ Wells = Lines(wellsmin[["x", "y", "z"]].values, # start points
 Wells.name = "Pre-existing wellbores"
 plt += Wells
 
-for a in plt.actors:
+for a in plt.objects:
     # change scale to kilometers in x and y, but expand z scale by 1.5!
     a.scale([0.001, 0.001, 0.001*1.5])
 

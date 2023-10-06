@@ -24,7 +24,7 @@ for i in range(500):
 # 'data' still contains the last iteration points
 plt += Points(data, r=10, c="yellow")
 
-print("Line 0 Fit slope = ", plt.actors[0].slope)
+print("Line 0 Fit slope = ", plt.objects[0].slope)
 
 plane = fit_plane(data).c("green4")  # fit a plane
 print("Plane Fit normal =", plane.normal)

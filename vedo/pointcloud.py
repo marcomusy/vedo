@@ -696,8 +696,8 @@ def Point(pos=(0, 0, 0), r=12, c="red", alpha=1.0):
 
     .. note:: if you are creating many points you should definitely use class `Points` instead!
     """
-    if isinstance(pos, vtk.vtkActor):
-        pos = pos.GetPosition()
+    if isinstance(pos, vedo.Base3DProp):
+        pos = pos.pos()
     if len(pos) == 2:
         pos = (pos[0], pos[1], 0.0)
     pd = utils.buildPolyData([pos])
@@ -816,22 +816,36 @@ class Points(BaseActor, vtk.vtkPolyData):
                     carr.InsertNextCell(1)
                     carr.InsertCellPoint(i)
                 self.SetVerts(carr)
-
-            
-        elif utils.is_sequence(inputobj):  # passing point coords
-            pd = utils.buildPolyData(utils.make3d(inputobj))
             c = colors.get_color(c)
             self.property.SetColor(c)
-            self.property.SetOpacity(alpha)               
+            self.property.SetOpacity(alpha)
+ 
+        elif utils.is_sequence(inputobj):  # passing point coords
+            pd = utils.buildPolyData(utils.make3d(inputobj))
+            if utils.is_sequence(c) and len(c) == len(inputobj):
+                cols = vtk.vtkUnsignedCharArray()
+                cols.SetNumberOfComponents(4)
+                cols.SetName("PointsRGBA")
+                for i in range(len(inputobj)):
+                    r, g, b = c[i]
+                    cols.InsertNextTuple4(r, g, b, 255)
+                pd.GetPointData().SetScalars(cols)
+            else:
+                c = colors.get_color(c)
+                self.property.SetColor(c)
+                self.property.SetOpacity(alpha)
             self.DeepCopy(pd)
-            self.pipeline = utils.OperationNode(self, parents=[], comment=f"#pts {self.GetNumberOfPoints()}")
-          
+            self.pipeline = utils.OperationNode(
+                self, parents=[], comment=f"#pts {self.GetNumberOfPoints()}")
 
         elif isinstance(inputobj, str):
             verts = vedo.file_io.load(inputobj)
             self.filename = inputobj
             self.DeepCopy(verts)
 
+            c = colors.get_color(c)
+            self.property.SetColor(c)
+            self.property.SetOpacity(alpha)
         else:
             # try to extract the points from a generic VTK input data object
             try:
@@ -848,9 +862,6 @@ class Points(BaseActor, vtk.vtkPolyData):
                 vedo.logger.error(f"cannot build Points from type {type(inputobj)}")
                 raise RuntimeError()
 
-        c = colors.get_color(c)
-        self.property.SetColor(c)
-        self.property.SetOpacity(alpha)
         self.property.SetRepresentationToPoints()
         self.property.SetPointSize(r)
         self.property.LightingOff()
@@ -995,23 +1006,6 @@ class Points(BaseActor, vtk.vtkPolyData):
             cloned.actor.SetBackfaceProperty(bfpr)
 
         cloned.transform = self.transform
-
-        # if self.transform:
-        #     # already has a so use that
-        #     try:
-        #         cloned.SetUserTransform(self.transform)
-        #     except TypeError:  # transform which can be non linear
-        #         cloned.SetOrigin(self.GetOrigin())
-        #         cloned.SetScale(self.GetScale())
-        #         cloned.SetOrientation(self.GetOrientation())
-        #         cloned.SetPosition(self.GetPosition())
-                
-        # else:
-        #     # assign the same transformation to the copy
-        #     cloned.SetOrigin(self.GetOrigin())
-        #     cloned.SetScale(self.GetScale())
-        #     cloned.SetOrientation(self.GetOrientation())
-        #     cloned.SetPosition(self.GetPosition())
 
         mp = cloned.mapper
         sm = self.mapper
@@ -1161,7 +1155,7 @@ class Points(BaseActor, vtk.vtkPolyData):
             - [airplane2.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplane2.py)
         """
         if self.trail is None:
-            pos = self.GetPosition()
+            pos = self.pos()
             self.trail_offset = np.asarray(offset)
             self.trail_points = [pos] * n
 
@@ -1178,10 +1172,7 @@ class Points(BaseActor, vtk.vtkPolyData):
         """
         Update the trailing line of a moving object.
         """
-        if isinstance(self, vedo.shapes.Arrow):
-            currentpos = self.tipPoint()  # the tip of Arrow
-        else:
-            currentpos = np.array(self.GetPosition())
+        currentpos = self.pos()
 
         self.trail_points.append(currentpos)  # cycle
         self.trail_points.pop(0)
@@ -1189,7 +1180,7 @@ class Points(BaseActor, vtk.vtkPolyData):
         data = np.array(self.trail_points) - currentpos + self.trail_offset
         tpoly = self.trail
         tpoly.GetPoints().SetData(utils.numpy2vtk(data, dtype=np.float32))
-        self.trail.SetPosition(currentpos)
+        self.trail.pos(currentpos)
         return self
 
 
@@ -2510,27 +2501,6 @@ class Points(BaseActor, vtk.vtkPolyData):
         self.pipeline = utils.OperationNode("transform_with_landmarks", parents=[self])
         return self
 
-
-    def apply_transform(self, T):
-        # """
-        # Apply a linear or non-linear transformation to the mesh polygonal data.
-        #     ```python
-        #     from vedo import Cube, show
-        #     c1 = Cube().rotate_z(5).x(2).y(1)
-        #     print("cube1 position", c1.pos())
-        #     T = c1.get_transform()  # rotate by 5 degrees, sum 2 to x and 1 to y
-        #     c2 = Cube().c('r4')
-        #     c2.apply_transform(T)   # ignore previous movements
-        #     c2.apply_transform(T, concatenate=True)
-        #     c2.apply_transform(T, concatenate=True)
-        #     print("cube2 position", c2.pos())
-        #     show(c1, c2, axes=1).close()
-        #     ```
-        #     ![](https://vedo.embl.es/images/feats/apply_transform.png)
-        # """
-        self.transform = T
-        return self._move()
-
     def normalize(self):
         """Scale Mesh average size to unit."""
         coords = self.points()
@@ -3432,15 +3402,15 @@ class Points(BaseActor, vtk.vtkPolyData):
         coords = self.points()
 
         if plane == "x":
-            coords[:, 0] = self.GetOrigin()[0]
+            coords[:, 0] = self.transform.position[0]
             intercept = self.xbounds()[0] if point is None else point
             self.x(intercept)
         elif plane == "y":
-            coords[:, 1] = self.GetOrigin()[1]
+            coords[:, 1] = self.transform.position[1]
             intercept = self.ybounds()[0] if point is None else point
             self.y(intercept)
         elif plane == "z":
-            coords[:, 2] = self.GetOrigin()[2]
+            coords[:, 2] = self.transform.position[2]
             intercept = self.zbounds()[0] if point is None else point
             self.z(intercept)
 
@@ -3542,8 +3512,8 @@ class Points(BaseActor, vtk.vtkPolyData):
         T.SetSigma(sigma)
         T.SetSourceLandmarks(ptsou)
         T.SetTargetLandmarks(pttar)
-        self.transform = T
-        self.apply_transform(T, reset=True)
+        # self.transform = T
+        self.apply_transform(T)
 
         self.pipeline = utils.OperationNode("warp", parents=parents)
         return self
@@ -4154,7 +4124,7 @@ class Points(BaseActor, vtk.vtkPolyData):
             ![](https://user-images.githubusercontent.com/32848391/57081955-0ef1e800-6cf6-11e9-99de-b45220939bc9.png)
         """
         cu = vtk.vtkBox()
-        pos = np.array(self.GetPosition())
+        pos = np.array(self.pos())
         x0, x1, y0, y1, z0, z1 = self.bounds()
         x0, y0, z0 = [x0, y0, z0] - pos
         x1, y1, z1 = [x1, y1, z1] - pos

@@ -1645,7 +1645,7 @@ class BaseCutter:
             plt.widgets.append(self.widget)
 
         cpoly = self.clipper.GetOutput()
-        self.mesh._update(cpoly)
+        self.mesh.DeepCopy(cpoly)
 
         out = self.clipper.GetClippedOutputPort()
         self.remnant.mapper.SetInputConnection(out)  
@@ -4156,15 +4156,18 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         ocf = vtk.vtkOutlineCornerFilter()
         ocf.SetCornerFactor(0.1)
         largestact, sz = None, -1
-        for a in plt.actors:
-            if a.GetPickable():
-                b = a.GetBounds()
-                if b is None:
-                    return
-                d = max(b[1] - b[0], b[3] - b[2], b[5] - b[4])
-                if sz < d:
-                    largestact = a
-                    sz = d
+        for a in plt.objects:
+            try:
+                if a.pickable():
+                    b = a.actor.GetBounds()
+                    if b is None:
+                        return
+                    d = max(b[1] - b[0], b[3] - b[2], b[5] - b[4])
+                    if sz < d:
+                        largestact = a
+                        sz = d
+            except AttributeError:
+                pass
         if isinstance(largestact, Assembly):
             ocf.SetInputData(largestact.unpack(0))
         else:
@@ -4182,7 +4185,6 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         oc_actor.GetProperty().SetColor(lc)
         oc_actor.PickableOff()
         oc_actor.UseBoundsOn()
-        oc_actor.LightingOff()
         plt.axes_instances[r] = oc_actor
         plt.add(oc_actor)
 
@@ -4229,7 +4231,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         ca.actor.PickableOff()
         ca.actor.UseBoundsOff()
         plt.axes_instances[r] = ca
-        plt.renderer.AddActor(ca)
+        plt.add(ca)
 
     elif plt.axes == 10:
         vbb = compute_visible_bounds()[0]
@@ -4258,7 +4260,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         gr.lighting("off").actor.PickableOff()
         gr.actor.UseBoundsOff()
         plt.axes_instances[r] = gr
-        plt.renderer.AddActor(gr)
+        plt.add(gr)
 
     elif plt.axes == 12:
         polaxes = vtk.vtkPolarAxesActor()

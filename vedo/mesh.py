@@ -965,7 +965,7 @@ class Mesh(Points):
 
         T.Translate(q1)
 
-        self.SetUserMatrix(T.GetMatrix())
+        self.apply_transform(T)
         return self
 
 
@@ -1008,19 +1008,14 @@ class Mesh(Points):
 
         if return_cap:
             m = Mesh(tf.GetOutput())
-            # assign the same transformation to the copy
-            m.SetOrigin(self.GetOrigin())
-            m.SetScale(self.GetScale())
-            m.SetOrientation(self.GetOrientation())
-            m.SetPosition(self.GetPosition())
-
             m.pipeline = OperationNode(
-                "cap", parents=[self], comment=f"#pts {m._data.GetNumberOfPoints()}"
+                "cap", parents=[self], 
+                comment=f"#pts {m.GetNumberOfPoints()}"
             )
             return m
 
         polyapp = vtk.vtkAppendPolyData()
-        polyapp.AddInputData(poly)
+        polyapp.AddInputData(self)
         polyapp.AddInputData(tf.GetOutput())
         polyapp.Update()
 
@@ -1163,7 +1158,7 @@ class Mesh(Points):
                 newline.pipeline = OperationNode(
                     "join_segments",
                     parents=[self],
-                    comment=f"#pts {newline._data.GetNumberOfPoints()}",
+                    comment=f"#pts {newline.GetNumberOfPoints()}",
                 )
                 vlines.append(newline)
 
@@ -1486,7 +1481,8 @@ class Mesh(Points):
         self.DeepCopy(decimate.GetOutput())
 
         self.pipeline = OperationNode(
-            "decimate", parents=[self], comment=f"#pts {out.GetNumberOfPoints()}"
+            "decimate", parents=[self], 
+            comment=f"#pts {self.GetNumberOfPoints()}"
         )
         return self
 
@@ -2520,12 +2516,12 @@ class Mesh(Points):
         prop.DeepCopy(self.property)
         prop.SetLineWidth(3)
         prop.SetOpacity(1)
-        dmesh.SetProperty(prop)
+        dmesh.actor.SetProperty(prop)
         dmesh.property = prop
         dmesh.name = "GeodesicLine"
 
         dmesh.pipeline = OperationNode(
-            "GeodesicLine", parents=[self], comment=f"#pts {dmesh._data.GetNumberOfPoints()}"
+            "GeodesicLine", parents=[self], comment=f"#pts {dmesh.GetNumberOfPoints()}"
         )
         return dmesh
 

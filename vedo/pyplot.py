@@ -45,16 +45,14 @@ __all__ = [
 ]
 
 ##########################################################################
-def _to2d(actor, offset, scale):
-
-    poly = actor.polydata()
+def _to2d(obj, offset, scale):
 
     tp = vtk.vtkTransformPolyDataFilter()
     transform = vtk.vtkTransform()
     transform.Scale(scale, scale, scale)
     transform.Translate(-offset[0], -offset[1], 0)
     tp.SetTransform(transform)
-    tp.SetInputData(poly)
+    tp.SetInputData(obj)
     tp.Update()
 
     poly = tp.GetOutput()
@@ -65,10 +63,10 @@ def _to2d(actor, offset, scale):
     act2d = vtk.vtkActor2D()
     act2d.SetMapper(mapper2d)
 
-    act2d.GetProperty().SetColor(actor.color())
-    act2d.GetProperty().SetOpacity(actor.alpha())
-    act2d.GetProperty().SetLineWidth(actor.GetProperty().GetLineWidth())
-    act2d.GetProperty().SetPointSize(actor.GetProperty().GetPointSize())
+    act2d.GetProperty().SetColor(obj.color())
+    act2d.GetProperty().SetOpacity(obj.alpha())
+    act2d.GetProperty().SetLineWidth(obj.property.GetLineWidth())
+    act2d.GetProperty().SetPointSize(obj.property.GetPointSize())
 
     act2d.PickableOff()
 
@@ -396,7 +394,7 @@ class Figure(Assembly):
             if isinstance(a, (shapes.Arrow, shapes.Arrow2D)):
                 # discard input Arrow and substitute it with a brand new one
                 # (because scaling would fatally distort the shape)
-                prop = a.GetProperty()
+                prop = a.property
                 prop.LightingOff()
                 py = a.base[1]
                 a.top[1] = (a.top[1] - py) * self.yscale + py
@@ -734,7 +732,7 @@ class Figure(Assembly):
                 continue
             if a.npoints == 0:
                 continue
-            if a.GetProperty().GetRepresentation() == 1:
+            if a.property.GetRepresentation() == 1:
                 # wireframe is not rendered correctly in 2d
                 continue
             a2d = _to2d(a, offset, scale * 550 / (x1 - x0))
@@ -2733,13 +2731,9 @@ def _plot_fxy(
         return None
 
     if zlim[0]:
-        tmpact1 = Mesh(poly)
-        a = tmpact1.cut_with_plane((0, 0, zlim[0]), (0, 0, 1))
-        poly = a.polydata()
+        poly = Mesh(poly).cut_with_plane((0, 0, zlim[0]), (0, 0, 1))
     if zlim[1]:
-        tmpact2 = Mesh(poly)
-        a = tmpact2.cut_with_plane((0, 0, zlim[1]), (0, 0, -1))
-        poly = a.polydata()
+        poly = Mesh(poly).cut_with_plane((0, 0, zlim[1]), (0, 0, -1))
 
     cmap = ""
     if c in colors.cmaps_names:
@@ -2772,7 +2766,7 @@ def _plot_fxy(
         bcf.Update()
         zpoly = bcf.GetContourEdgesOutput()
         zbandsact = Mesh(zpoly, "k", alpha).lw(1).lighting("off")
-        zbandsact.mapper().SetResolveCoincidentTopologyToPolygonOffset()
+        zbandsact.mapper.SetResolveCoincidentTopologyToPolygonOffset()
         acts.append(zbandsact)
 
     if show_nan and todel:
@@ -2783,7 +2777,7 @@ def _plot_fxy(
             zm = (bb[4] + bb[5]) / 2
         nans = np.array(nans) + [0, 0, zm]
         nansact = shapes.Points(nans, r=2, c="red5", alpha=alpha)
-        nansact.GetProperty().RenderPointsAsSpheresOff()
+        nansact.property.RenderPointsAsSpheresOff()
         acts.append(nansact)
 
     if isinstance(axes, dict):
@@ -3025,7 +3019,7 @@ def _plot_spheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha
     if scalarbar:
         xm = np.max([np.max(pts[0]), 1])
         ym = np.max([np.abs(np.max(pts[1])), 1])
-        ssurf.mapper().SetScalarRange(np.min(newr), np.max(newr))
+        ssurf.mapper.SetScalarRange(np.min(newr), np.max(newr))
         sb3d = ssurf.add_scalarbar3d(size=(xm * 0.07, ym), c="k").scalarbar
         sb3d.rotate_x(90).pos(xm * 1.1, 0, -0.5)
     else:
@@ -3628,7 +3622,7 @@ def whisker(data, s=0.25, c="k", lw=2, bc="blue", alpha=0.25, r=5, jitter=True, 
         pts = shapes.Points([xvals, data], c=c, r=r)
 
     rec = shapes.Rectangle([-s / 2, dq25], [s / 2, dq75], c=bc, alpha=alpha)
-    rec.GetProperty().LightingOff()
+    rec.property.LightingOff()
     rl = shapes.Line([[-s / 2, dq25], [s / 2, dq25], [s / 2, dq75], [-s / 2, dq75]], closed=True)
     l1 = shapes.Line([0, dq05, 0], [0, dq25, 0], c=c, lw=lw)
     l2 = shapes.Line([0, dq75, 0], [0, dq95, 0], c=c, lw=lw)
@@ -4282,7 +4276,7 @@ class DirectedGraph(Assembly):
         if not diagsz:
             return None
 
-        dgraph.SetScale(1 / diagsz)
+        dgraph.scale(1 / diagsz)
         if self.rotX:
             dgraph.rotate_x(self.rotX)
         if self.rotY:
@@ -4305,7 +4299,7 @@ class DirectedGraph(Assembly):
             arrow_glyph.SetInputData(1, arrow_source.GetOutput())
             arrow_glyph.Update()
             arrows = Mesh(arrow_glyph.GetOutput())
-            arrows.SetScale(1 / diagsz)
+            arrows.scale(1 / diagsz)
             arrows.lighting("off").color(self._c)
             if self.rotX:
                 arrows.rotate_x(self.rotX)

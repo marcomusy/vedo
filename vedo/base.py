@@ -380,26 +380,48 @@ class Base3DProp:
         return self
 
 
-    def _move(self, LT, concatenate=True, deep_copy=True):
-
-        if isinstance(self, vedo.assembly.Assembly):
+    def apply_transform(self, LT, concatenate=True, deep_copy=True):
+        """
+        Apply a linear or non-linear transformation to the mesh polygonal data.
+            ```python
+            from vedo import Cube, show
+            c1 = Cube().rotate_z(5).x(2).y(1)
+            print("cube1 position", c1.pos())
+            T = c1.get_transform()  # rotate by 5 degrees, sum 2 to x and 1 to y
+            c2 = Cube().c('r4')
+            c2.apply_transform(T)   # ignore previous movements
+            c2.apply_transform(T, concatenate=True)
+            c2.apply_transform(T, concatenate=True)
+            print("cube2 position", c2.pos())
+            show(c1, c2, axes=1).close()
+            ```
+            ![](https://vedo.embl.es/images/feats/apply_transform.png)
+        """
+        if isinstance(self, (vedo.assembly.Assembly, vtk.vtkImageActor)):
             self.SetPosition(LT.position)
-            return self
-        # print(type(self), LT.position)
-        
-        if LT.is_identity():
+            self.SetOrientation(LT.T.GetOrientation())
+            self.SetScale(LT.T.GetScale())
             return self
 
-        if concatenate:
-            self.transform.concatenate(LT)
+        if isinstance(LT, LinearTransform):
+            tr = LT.T
+            if concatenate:
+                self.transform.concatenate(LT)
+        elif isinstance(LT, (vtk.vtkMatrix4x4, vtk.vtkTransform, np.ndarray)):
+            LT = LinearTransform(LT)
+            if LT.is_identity():
+                return self
+            tr = LT.T
+            if concatenate:
+                self.transform.concatenate(LT)
+        elif isinstance(LT, vtk.vtkThinPlateSplineTransform):
+            tr = LT
 
         tp = vtk.vtkTransformPolyDataFilter()
-        tp.SetTransform(LT.T)
+        tp.SetTransform(tr)
         tp.SetInputData(self)
         tp.Update()
         out = tp.GetOutput()
-
-        # print("_move", self.transform)
 
         if deep_copy:
             self.DeepCopy(out)
@@ -429,7 +451,7 @@ class Base3DProp:
         q = self.transform.position
         LT = LinearTransform()
         LT.translate([x,y,z]-q) 
-        return self._move(LT)
+        return self.apply_transform(LT)
 
     def shift(self, dx=0, dy=0, dz=0):
         """Add a vector to the current object position."""
@@ -437,7 +459,7 @@ class Base3DProp:
             utils.make3d(dx)
             dx, dy, dz = dx
         LT = LinearTransform().translate([dx, dy, dz]) 
-        return self._move(LT)
+        return self.apply_transform(LT)
 
     def x(self, val=None):
         """Set/Get object position along x axis."""
@@ -483,7 +505,7 @@ class Base3DProp:
         # self.rotate(angle, axis, point, rad)
         LT = LinearTransform()
         LT.rotate(angle, axis, point, rad)
-        return self._move(LT)
+        return self.apply_transform(LT)
 
     def rotate_x(self, angle, rad=False, around=None):
         """
@@ -492,7 +514,7 @@ class Base3DProp:
         Use `around` to define a pivoting point.
         """
         LT = LinearTransform().rotate_x(angle, rad, around)
-        return self._move(LT)
+        return self.apply_transform(LT)
 
     def rotate_y(self, angle, rad=False, around=None):
         """
@@ -501,7 +523,7 @@ class Base3DProp:
         Use `around` to define a pivoting point.
         """
         LT = LinearTransform().rotate_y(angle, rad, around)
-        return self._move(LT)
+        return self.apply_transform(LT)
 
     def rotate_z(self, angle, rad=False, around=None):
         """
@@ -510,7 +532,7 @@ class Base3DProp:
         Use `around` to define a pivoting point.
         """
         LT = LinearTransform().rotate_z(angle, rad, around)
-        return self._move(LT)
+        return self.apply_transform(LT)
 
     #TODO
     def orientation(self, newaxis=None, rotation=0, concatenate=False, xyplane=False, rad=False):
@@ -544,7 +566,7 @@ class Base3DProp:
                 LT.scale(s, origin=self.transform.position)
             else:
                 LT.scale(s, origin=False)
-        return self._move(LT)
+        return self.apply_transform(LT)
 
 
     def align_to_bounding_box(self, msh, rigid=False):
@@ -592,9 +614,9 @@ class Base3DProp:
             lmt.SetModeToRigidBody()
         lmt.Update()
 
-        T = LinearTransform(lmt)
-        # self.apply_transform(T)
-        return self._move(LT)
+        LT = LinearTransform(lmt)
+        self.apply_transform(LT)
+        return self
 
     def on(self):
         """Switch on  object visibility. Object is not removed."""
@@ -667,22 +689,23 @@ class Base3DProp:
             height * scale + padding[2],
             c="gray",
         )
-        if hasattr(self, "GetProperty"):  # could be Assembly
-            if isinstance(self.property, vtk.vtkProperty):  # could be volume
-                pr = vtk.vtkProperty()
-                pr.DeepCopy(self.property)
-                bx.SetProperty(pr)
-                bx.property = pr
+        try:
+            pr = vtk.vtkProperty()
+            pr.DeepCopy(self.GetProperty())
+            bx.SetProperty(pr)
+            bx.property = pr
+        except (AttributeError, TypeError):
+            pass
         bx.wireframe(not fill)
         bx.flat().lighting("off")
         return bx
 
-    def use_bounds(self, ub=True):
+    def use_bounds(self, value=True):
         """
         Instruct the current camera to either take into account or ignore
         the object bounds when resetting.
         """
-        self.actor.SetUseBounds(ub)
+        self.actor.SetUseBounds(value)
         return self
 
     def bounds(self):

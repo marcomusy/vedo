@@ -21,9 +21,9 @@ lines = Lines(l1, l2).lw(8).cmap('Accent', dist, on='cells').add_scalarbar('leng
 
 # Define a callback function to print the length of the clicked line segment
 def clickfunc(evt):
-    if evt.actor:
+    if evt.object:
         # Get the ID of the closest point on the clicked line segment
-        idl = evt.actor.closest_point(evt.picked3d, return_cell_id=True)
+        idl = evt.object.closest_point(evt.picked3d, return_cell_id=True)
         # Print the length of the line segment with 3 decimal places
         print('clicked line', idl, 'length =', precision(dist[idl],3))
 

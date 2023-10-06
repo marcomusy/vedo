@@ -451,7 +451,7 @@ def _load_file(filename, unpack):
         else:
             actor = Mesh(routput)
             if fl.endswith(".txt") or fl.endswith(".xyz"):
-                actor.GetProperty().SetPointSize(4)
+                actor.point_size(4)
 
     actor.filename = filename
     actor.file_size, actor.created = file_info(filename)
@@ -893,7 +893,7 @@ def tonumpy(obj):
             adict["LUT"] = lutvals
             adict["LUT_range"] = lut.GetRange()
 
-        prp = obj.actor.GetProperty()
+        prp = obj.property
         adict["alpha"] = prp.GetOpacity()
         adict["representation"] = prp.GetRepresentation()
         adict["pointsize"] = prp.GetPointSize()
@@ -913,8 +913,8 @@ def tonumpy(obj):
         adict["color"] = prp.GetColor()
         adict["lighting_is_on"] = prp.GetLighting()
         adict["backcolor"] = None
-        if obj.GetBackfaceProperty():
-            adict["backcolor"] = obj.GetBackfaceProperty().GetColor()
+        if obj.actor.GetBackfaceProperty():
+            adict["backcolor"] = obj.actor.GetBackfaceProperty().GetColor()
 
         adict["scalarvisibility"] = obj.mapper.GetScalarVisibility()
         adict["texture"] = obj._texture if hasattr(obj, "_texture") else None
@@ -947,7 +947,7 @@ def tonumpy(obj):
         adict["mode"] = obj.mode()
         # adict['jittering'] = obj.mapper.GetUseJittering()
 
-        prp = obj.actor.GetProperty()
+        prp = obj.property
         ctf = prp.GetRGBTransferFunction()
         otf = prp.GetScalarOpacity()
         gotf = prp.GetGradientOpacity()
@@ -1512,7 +1512,7 @@ def export_window(fileoutput, binary=False):
         allobjs = list(set(allobjs))  # make sure its unique
 
         for a in allobjs:
-            if a.GetVisibility():
+            if a.actor.GetVisibility():
                 sdict["objects"].append(tonumpy(a))
 
         if fr.endswith(".npz"):
