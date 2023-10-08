@@ -725,7 +725,7 @@ class PointsVisual:
 
         return self
 
-    def blurring(emissive=False):
+    def blurring(self, r=1, emissive=False):
         """Set point blurring.
         Apply a gaussian convolution filter to the points.
         In this case the radius `r` is in absolute units of the mesh coordinates.
@@ -4857,7 +4857,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         msh = vedo.mesh.Mesh(delny.GetOutput()).clean().lighting("off")
 
         msh.pipeline = utils.OperationNode(
-            "delaunay2d", parents=parents,
+            "delaunay2d", parents=[self],
             comment=f"#cells {msh.GetNumberOfCells()}"
         )
         return msh
