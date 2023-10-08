@@ -146,33 +146,7 @@ def visible_points(mesh, area=(), tol=None, invert=False):
 
 
 def delaunay2d(plist, mode="scipy", boundaries=(), tol=None, alpha=0.0, offset=0.0, transform=None):
-    """
-    Create a mesh from points in the XY plane.
-    If `mode='fit'` then the filter computes a best fitting
-    plane and projects the points onto it.
-
-    Arguments:
-        tol : (float)
-            specify a tolerance to control discarding of closely spaced points.
-            This tolerance is specified as a fraction of the diagonal length of the bounding box of the points.
-        alpha : (float)
-            for a non-zero alpha value, only edges or triangles contained
-            within a sphere centered at mesh vertices will be output.
-            Otherwise, only triangles will be output.
-        offset : (float)
-            multiplier to control the size of the initial, bounding Delaunay triangulation.
-        transform: vtkTransform
-            a VTK transformation (eg. a thinplate spline)
-            which is applied to points to generate a 2D problem.
-            This maps a 3D dataset into a 2D dataset where triangulation can be done on the XY plane.
-            The points are transformed and triangulated.
-            The topology of triangulated points is used as the output topology.
-
-    Examples:
-        - [delaunay2d.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/delaunay2d.py)
-
-            ![](https://vedo.embl.es/images/basic/delaunay2d.png)
-    """
+    """delaunay2d() is deprecated, use Points().generate_delaunay2d() instead"""
     if isinstance(plist, Points):
         parents = [plist]
         plist = plist.points()
@@ -180,52 +154,9 @@ def delaunay2d(plist, mode="scipy", boundaries=(), tol=None, alpha=0.0, offset=0
         parents = []
         plist = np.ascontiguousarray(plist)
         plist = utils.make3d(plist)
-
-    #########################################################
-    if mode == "scipy":
-        from scipy.spatial import Delaunay as scipy_delaunay
-        tri = scipy_delaunay(plist[:, 0:2])
-        return vedo.mesh.Mesh([plist, tri.simplices])
-    ##########################################################
-
-    pd = vtk.vtkPolyData()
-    vpts = vtk.vtkPoints()
-    vpts.SetData(utils.numpy2vtk(plist, dtype=np.float32))
-    pd.SetPoints(vpts)
-
-    delny = vtk.vtkDelaunay2D()
-    delny.SetInputData(pd)
-    if tol:
-        delny.SetTolerance(tol)
-    delny.SetAlpha(alpha)
-    delny.SetOffset(offset)
-    if transform:
-        if hasattr(transform, "transform"):
-            transform = transform.transform
-        delny.SetTransform(transform)
-
-    if mode == "xy" and boundaries:
-        boundary = vtk.vtkPolyData()
-        boundary.SetPoints(vpts)
-        cell_array = vtk.vtkCellArray()
-        for b in boundaries:
-            cpolygon = vtk.vtkPolygon()
-            for idd in b:
-                cpolygon.GetPointIds().InsertNextId(idd)
-            cell_array.InsertNextCell(cpolygon)
-        boundary.SetPolys(cell_array)
-        delny.SetSourceData(boundary)
-
-    if mode == "fit":
-        delny.SetProjectionPlaneMode(vtk.VTK_BEST_FITTING_PLANE)
-    delny.Update()
-    msh = vedo.mesh.Mesh(delny.GetOutput()).clean().lighting("off")
-
-    msh.pipeline = utils.OperationNode(
-        "delaunay2d", parents=parents,
-        comment=f"#cells {msh.GetNumberOfCells()}"
-    )
-    return msh
+    pp = Points(plist).generate_delaunay2d(**kwargs)
+    print("WARNING: delaunay2d() is deprecated, use Points().generate_delaunay2d() instead")
+    return pp
 
 
 def _rotate_points(points, n0=None, n1=(0, 0, 1)):
@@ -1267,6 +1198,670 @@ class PointsVisual:
         return self
 
 
+    def labels(
+        self,
+        content=None,
+        on="points",
+        scale=None,
+        xrot=0.0,
+        yrot=0.0,
+        zrot=0.0,
+        ratio=1,
+        precision=None,
+        italic=False,
+        font="",
+        justify="bottom-left",
+        c="black",
+        alpha=1.0,
+        cells=None,
+    ):
+        """
+        Generate value or ID labels for mesh cells or points.
+        For large nr. of labels use `font="VTK"` which is much faster.
+
+        See also:
+            `labels2d()`, `flagpole()`, `caption()` and `legend()`.
+
+        Arguments:
+            content : (list,int,str)
+                either 'id', 'cellid', array name or array number.
+                A array can also be passed (must match the nr. of points or cells).
+            on : (str)
+                generate labels for "cells" instead of "points"
+            scale : (float)
+                absolute size of labels, if left as None it is automatic
+            zrot : (float)
+                local rotation angle of label in degrees
+            ratio : (int)
+                skipping ratio, to reduce nr of labels for large meshes
+            precision : (int)
+                numeric precision of labels
+
+        ```python
+        from vedo import *
+        s = Sphere(res=10).linewidth(1).c("orange").compute_normals()
+        point_ids = s.labels('id', on="points").c('green')
+        cell_ids  = s.labels('id', on="cells" ).c('black')
+        show(s, point_ids, cell_ids)
+        ```
+        ![](https://vedo.embl.es/images/feats/labels.png)
+
+        Examples:
+            - [boundaries.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/boundaries.py)
+
+                ![](https://vedo.embl.es/images/basic/boundaries.png)
+        """
+        if cells is not None:  # deprecation message
+            vedo.logger.warning("In labels(cells=...) please use labels(on='cells') instead")
+
+        if "cell" in on or "face" in on:
+            cells = True
+
+        if isinstance(content, str):
+            if content in ("cellid", "cellsid"):
+                cells = True
+                content = "id"
+
+        if cells:
+            elems = self.cell_centers()
+            norms = self.normals(cells=True, recompute=False)
+            ns = np.sqrt(self.ncells)
+        else:
+            elems = self.points()
+            norms = self.normals(cells=False, recompute=False)
+            ns = np.sqrt(self.npoints)
+
+        hasnorms = False
+        if len(norms) > 0:
+            hasnorms = True
+
+        if scale is None:
+            if not ns:
+                ns = 100
+            scale = self.diagonal_size() / ns / 10
+
+        arr = None
+        mode = 0
+        if content is None:
+            mode = 0
+            if cells:
+                if self.GetCellData().GetScalars():
+                    name = self.GetCellData().GetScalars().GetName()
+                    arr = self.celldata[name]
+            else:
+                if self.GetPointData().GetScalars():
+                    name = self.GetPointData().GetScalars().GetName()
+                    arr = self.pointdata[name]
+        elif isinstance(content, (str, int)):
+            if content == "id":
+                mode = 1
+            elif cells:
+                mode = 0
+                arr = self.celldata[content]
+            else:
+                mode = 0
+                arr = self.pointdata[content]
+        elif utils.is_sequence(content):
+            mode = 0
+            arr = content
+            # print('WEIRD labels() test', content)
+            # exit()
+
+        if arr is None and mode == 0:
+            vedo.logger.error("in labels(), array not found for points or cells")
+            return None
+
+        tapp = vtk.vtkAppendPolyData()
+        ninputs = 0
+
+        for i, e in enumerate(elems):
+            if i % ratio:
+                continue
+
+            if mode == 1:
+                txt_lab = str(i)
+            else:
+                if precision:
+                    txt_lab = utils.precision(arr[i], precision)
+                else:
+                    txt_lab = str(arr[i])
+
+            if not txt_lab:
+                continue
+
+            if font == "VTK":
+                tx = vtk.vtkVectorText()
+                tx.SetText(txt_lab)
+                tx.Update()
+                tx_poly = tx.GetOutput()
+            else:
+                tx_poly = vedo.shapes.Text3D(txt_lab, font=font, justify=justify)
+
+            if tx_poly.GetNumberOfPoints() == 0:
+                continue  #######################
+            ninputs += 1
+
+            T = vtk.vtkTransform()
+            T.PostMultiply()
+            if italic:
+                T.Concatenate([1,0.2,0,0,
+                               0,1,0,0,
+                               0,0,1,0,
+                               0,0,0,1])
+            if hasnorms:
+                ni = norms[i]
+                if cells:  # center-justify
+                    bb = tx_poly.GetBounds()
+                    dx, dy = (bb[1] - bb[0]) / 2, (bb[3] - bb[2]) / 2
+                    T.Translate(-dx, -dy, 0)
+                if xrot:
+                    T.RotateX(xrot)
+                if yrot:
+                    T.RotateY(yrot)
+                if zrot:
+                    T.RotateZ(zrot)
+                crossvec = np.cross([0, 0, 1], ni)
+                angle = np.arccos(np.dot([0, 0, 1], ni)) * 57.3
+                T.RotateWXYZ(angle, crossvec)
+                if cells:  # small offset along normal only for cells
+                    T.Translate(ni * scale / 2)
+            else:
+                if xrot:
+                    T.RotateX(xrot)
+                if yrot:
+                    T.RotateY(yrot)
+                if zrot:
+                    T.RotateZ(zrot)
+            T.Scale(scale, scale, scale)
+            T.Translate(e)
+            tf = vtk.vtkTransformPolyDataFilter()
+            tf.SetInputData(tx_poly)
+            tf.SetTransform(T)
+            tf.Update()
+            tapp.AddInputData(tf.GetOutput())
+
+        if ninputs:
+            tapp.Update()
+            lpoly = tapp.GetOutput()
+        else:  # return an empty obj
+            lpoly = vtk.vtkPolyData()
+
+        ids = vedo.mesh.Mesh(lpoly, c=c, alpha=alpha)
+        ids.property.LightingOff()
+        ids.actor.PickableOff()
+        ids.actor.SetUseBounds(False)
+        return ids
+
+    def labels2d(
+        self,
+        content="id",
+        on="points",
+        scale=1.0,
+        precision=4,
+        font="Calco",
+        justify="bottom-left",
+        angle=0.0,
+        frame=False,
+        c="black",
+        bc=None,
+        alpha=1.0,
+    ):
+        """
+        Generate value or ID bi-dimensional labels for mesh cells or points.
+
+        See also: `labels()`, `flagpole()`, `caption()` and `legend()`.
+
+        Arguments:
+            content : (str)
+                either 'id', 'cellid', or array name
+            on : (str)
+                generate labels for "cells" instead of "points" (the default)
+            scale : (float)
+                size scaling of labels
+            precision : (int)
+                precision of numeric labels
+            angle : (float)
+                local rotation angle of label in degrees
+            frame : (bool)
+                draw a frame around the label
+            bc : (str)
+                background color of the label
+
+        ```python
+        from vedo import Sphere, show
+        sph = Sphere(quads=True, res=4).compute_normals().wireframe()
+        sph.celldata["zvals"] = sph.cell_centers()[:,2]
+        l2d = sph.labels("zvals", on="cells", precision=2).backcolor('orange9')
+        show(sph, l2d, axes=1).close()
+        ```
+        ![](https://vedo.embl.es/images/feats/labels2d.png)
+        """
+        cells = False
+        if isinstance(content, str):
+            if content in ("cellid", "cellsid"):
+                cells = True
+                content = "id"
+
+        if "cell" in on:
+            cells = True
+        elif "point" in on:
+            cells = False
+
+        if cells:
+            if content != "id" and content not in self.celldata.keys():
+                vedo.logger.error(f"In labels2d: cell array {content} does not exist.")
+                return None
+            cellcloud = Points(self.cell_centers())
+            arr = self.GetCellData().GetScalars()
+            poly = cellcloud
+            poly.GetPointData().SetScalars(arr)
+        else:
+            poly = self
+            if content != "id" and content not in self.pointdata.keys():
+                vedo.logger.error(f"In labels2d: point array {content} does not exist.")
+                return None
+            self.pointdata.select(content)
+
+        mp = vtk.vtkLabeledDataMapper()
+
+        if content == "id":
+            mp.SetLabelModeToLabelIds()
+        else:
+            mp.SetLabelModeToLabelScalars()
+            if precision is not None:
+                mp.SetLabelFormat(f"%-#.{precision}g")
+
+        pr = mp.GetLabelTextProperty()
+        c = colors.get_color(c)
+        pr.SetColor(c)
+        pr.SetOpacity(alpha)
+        pr.SetFrame(frame)
+        pr.SetFrameColor(c)
+        pr.SetItalic(False)
+        pr.BoldOff()
+        pr.ShadowOff()
+        pr.UseTightBoundingBoxOn()
+        pr.SetOrientation(angle)
+        pr.SetFontFamily(vtk.VTK_FONT_FILE)
+        fl = utils.get_font_path(font)
+        pr.SetFontFile(fl)
+        pr.SetFontSize(int(20 * scale))
+
+        if "cent" in justify or "mid" in justify:
+            pr.SetJustificationToCentered()
+        elif "rig" in justify:
+            pr.SetJustificationToRight()
+        elif "left" in justify:
+            pr.SetJustificationToLeft()
+        # ------
+        if "top" in justify:
+            pr.SetVerticalJustificationToTop()
+        else:
+            pr.SetVerticalJustificationToBottom()
+
+        if bc is not None:
+            bc = colors.get_color(bc)
+            pr.SetBackgroundColor(bc)
+            pr.SetBackgroundOpacity(alpha)
+
+        mp.SetInputData(poly)
+        a2d = vtk.vtkActor2D()
+        a2d.PickableOff()
+        a2d.SetMapper(mp)
+        return a2d
+
+    def legend(self, txt):
+        """Book a legend text."""
+        self.info["legend"] = txt
+        return self
+
+    def flagpole(
+        self,
+        txt=None,
+        point=None,
+        offset=None,
+        s=None,
+        font="",
+        rounded=True,
+        c=None,
+        alpha=1.0,
+        lw=2,
+        italic=0.0,
+        padding=0.1,
+    ):
+        """
+        Generate a flag pole style element to describe an object.
+        Returns a `Mesh` object.
+
+        Use flagpole.follow_camera() to make it face the camera in the scene.
+
+        See also `flagpost()`.
+
+        Arguments:
+            txt : (str)
+                Text to display. The default is the filename or the object name.
+            point : (list)
+                position of the flagpole pointer. 
+            offset : (list)
+                text offset wrt the application point. 
+            s : (float)
+                size of the flagpole.
+            font : (str)
+                font face. Check [available fonts here](https://vedo.embl.es/fonts).
+            rounded : (bool)
+                draw a rounded or squared box around the text.
+            c : (list)
+                text and box color.
+            alpha : (float)
+                opacity of text and box.
+            lw : (float)
+                line with of box frame.
+            italic : (float)
+                italicness of text.
+
+        Examples:
+            - [intersect2d.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/intersect2d.py)
+
+                ![](https://vedo.embl.es/images/pyplot/intersect2d.png)
+
+            - [goniometer.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/goniometer.py)
+            - [flag_labels1.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels1.py)
+            - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels2.py)
+        """
+        acts = []
+
+        if txt is None:
+            if self.filename:
+                txt = self.filename.split("/")[-1]
+            elif self.name:
+                txt = self.name
+            else:
+                return None
+
+        x0, x1, y0, y1, z0, z1 = self.bounds()
+        d = self.diagonal_size()
+        if point is None:
+            if d:
+                point = self.closest_point([(x0 + x1) / 2, (y0 + y1) / 2, z1])
+            else:  # it's a Point
+                point = self.transform.position
+
+        pt = utils.make3d(point)
+
+        if offset is None:
+            offset = [(x1 - x0) / 2, (y1 - y0) / 6, 0]
+        offset = utils.make3d(offset)
+
+        if s is None:
+            s = d / 20
+
+        sph = None
+        if d and (z1 - z0) / d > 0.1:
+            sph = vedo.shapes.Sphere(pt, r=s * 0.4, res=6)
+
+        if c is None:
+            c = np.array(self.color()) / 1.4
+
+        lb = vedo.shapes.Text3D(
+            txt, pos=pt + offset, s=s, font=font, italic=italic, justify="center-left"
+        )
+        acts.append(lb)
+
+        if d and not sph:
+            sph = vedo.shapes.Circle(pt, r=s / 3, res=15)
+        acts.append(sph)
+
+        x0, x1, y0, y1, z0, z1 = lb.GetBounds()
+        if rounded:
+            box = vedo.shapes.KSpline(
+                [(x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0)], closed=True
+            )
+        else:
+            box = vedo.shapes.Line(
+                [(x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0), (x0, y0, z0)]
+            )
+
+        cnt = [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2]
+
+        # box.SetOrigin(cnt)
+        box.scale([1 + padding, 1 + 2 * padding, 1])
+        acts.append(box)
+
+        # pts = box.points()
+        # bfaces = []
+        # for i, pt in enumerate(pts):
+        #     if i:
+        #         face = [i-1, i, 0]
+        #         bfaces.append(face)
+        # bpts = [cnt] + pts.tolist()
+        # box2 = vedo.Mesh([bpts, bfaces]).z(-cnt[0]/10)#.c('w').alpha(0.1)
+        # #should be made assembly otherwise later merge() nullifies it
+        # box2.SetOrigin(cnt)
+        # acts.append(box2)
+
+        x0, x1, y0, y1, z0, z1 = box.bounds()
+        if x0 < pt[0] < x1:
+            c0 = box.closest_point(pt)
+            c1 = [c0[0], c0[1] + (pt[1] - y0) / 4, pt[2]]
+        elif (pt[0] - x0) < (x1 - pt[0]):
+            c0 = [x0, (y0 + y1) / 2, pt[2]]
+            c1 = [x0 + (pt[0] - x0) / 4, (y0 + y1) / 2, pt[2]]
+        else:
+            c0 = [x1, (y0 + y1) / 2, pt[2]]
+            c1 = [x1 + (pt[0] - x1) / 4, (y0 + y1) / 2, pt[2]]
+
+        con = vedo.shapes.Line([c0, c1, pt])
+        acts.append(con)
+
+        macts = vedo.merge(acts).c(c).alpha(alpha)
+        # macts.SetOrigin(pt)
+        macts.bc("tomato").pickable(False)
+        macts.property.LightingOff()
+        macts.property.SetLineWidth(lw)
+        macts.actor.UseBoundsOff()
+        macts.name = "FlagPole"
+        return macts
+
+    def flagpost(
+        self,
+        txt=None,
+        point=None,
+        offset=None,
+        s=1.0,
+        c="k9",
+        bc="k1",
+        alpha=1,
+        lw=0,
+        font="Calco",
+        justify="center-left",
+        vspacing=1.0,
+    ):
+        """
+        Generate a flag post style element to describe an object.
+
+        Arguments:
+            txt : (str)
+                Text to display. The default is the filename or the object name.
+            point : (list)
+                position of the flag anchor point. The default is None.
+            offset : (list)
+                a 3D displacement or offset. The default is None.
+            s : (float)
+                size of the text to be shown
+            c : (list)
+                color of text and line
+            bc : (list)
+                color of the flag background
+            alpha : (float)
+                opacity of text and box.
+            lw : (int)
+                line with of box frame. The default is 0.
+            font : (str)
+                font name. Use a monospace font for better rendering. The default is "Calco".
+                Type `vedo -r fonts` for a font demo.
+                Check [available fonts here](https://vedo.embl.es/fonts).
+            justify : (str)
+                internal text justification. The default is "center-left".
+            vspacing : (float)
+                vertical spacing between lines.
+
+        Examples:
+            - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/other/flag_labels2.py)
+
+            ![](https://vedo.embl.es/images/other/flag_labels2.png)
+        """
+        if txt is None:
+            if self.filename:
+                txt = self.filename.split("/")[-1]
+            elif self.name:
+                txt = self.name
+            else:
+                return None
+
+        x0, x1, y0, y1, z0, z1 = self.bounds()
+        d = self.diagonal_size()
+        if point is None:
+            if d:
+                point = self.closest_point([(x0 + x1) / 2, (y0 + y1) / 2, z1])
+            else:  # it's a Point
+                point = self.transform.position
+
+        point = utils.make3d(point)
+
+        if offset is None:
+            offset = [0, 0, (z1 - z0) / 2]
+        offset = utils.make3d(offset)
+
+        fpost = vedo.addons.Flagpost(
+            txt, point, point + offset, s, c, bc, alpha, lw, font, justify, vspacing
+        )
+        self._caption = fpost
+        return fpost
+
+    def caption(
+        self,
+        txt=None,
+        point=None,
+        size=(0.30, 0.15),
+        padding=5,
+        font="Calco",
+        justify="center-right",
+        vspacing=1.0,
+        c=None,
+        alpha=1.0,
+        lw=1,
+        ontop=True,
+    ):
+        """
+        Add a 2D caption to an object which follows the camera movements.
+        Latex is not supported. Returns the same input object for concatenation.
+
+        See also `flagpole()`, `flagpost()`, `labels()` and `legend()`
+        with similar functionality.
+
+        Arguments:
+            txt : (str)
+                text to be rendered. The default is the file name.
+            point : (list)
+                anchoring point. The default is None.
+            size : (list)
+                (width, height) of the caption box. The default is (0.30, 0.15).
+            padding : (float)
+                padding space of the caption box in pixels. The default is 5.
+            font : (str)
+                font name. Use a monospace font for better rendering. The default is "VictorMono".
+                Type `vedo -r fonts` for a font demo.
+                Check [available fonts here](https://vedo.embl.es/fonts).
+            justify : (str)
+                internal text justification. The default is "center-right".
+            vspacing : (float)
+                vertical spacing between lines. The default is 1.
+            c : (str)
+                text and box color. The default is 'lb'.
+            alpha : (float)
+                text and box transparency. The default is 1.
+            lw : (int)
+                line width in pixels. The default is 1.
+            ontop : (bool)
+                keep the 2d caption always on top. The default is True.
+
+        Examples:
+            - [caption.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/caption.py)
+
+                ![](https://vedo.embl.es/images/pyplot/caption.png)
+
+            - [flag_labels1.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels1.py)
+            - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels2.py)
+        """
+        if txt is None:
+            if self.filename:
+                txt = self.filename.split("/")[-1]
+            elif self.name:
+                txt = self.name
+
+        if not txt:  # disable it
+            self._caption = None
+            return self
+
+        for r in vedo.shapes._reps:
+            txt = txt.replace(r[0], r[1])
+
+        if c is None:
+            c = np.array(self.property.GetColor()) / 2
+        else:
+            c = colors.get_color(c)
+
+        if point is None:
+            x0, x1, y0, y1, _, z1 = self.GetBounds()
+            pt = [(x0 + x1) / 2, (y0 + y1) / 2, z1]
+            point = self.closest_point(pt)
+
+        capt = vtk.vtkCaptionActor2D()
+        capt.SetAttachmentPoint(point)
+        capt.SetBorder(True)
+        capt.SetLeader(True)
+        sph = vtk.vtkSphereSource()
+        sph.Update()
+        capt.SetLeaderGlyphData(sph.GetOutput())
+        capt.SetMaximumLeaderGlyphSize(5)
+        capt.SetPadding(int(padding))
+        capt.SetCaption(txt)
+        capt.SetWidth(size[0])
+        capt.SetHeight(size[1])
+        capt.SetThreeDimensionalLeader(not ontop)
+
+        pra = capt.GetProperty()
+        pra.SetColor(c)
+        pra.SetOpacity(alpha)
+        pra.SetLineWidth(lw)
+
+        pr = capt.GetCaptionTextProperty()
+        pr.SetFontFamily(vtk.VTK_FONT_FILE)
+        fl = utils.get_font_path(font)
+        pr.SetFontFile(fl)
+        pr.ShadowOff()
+        pr.BoldOff()
+        pr.FrameOff()
+        pr.SetColor(c)
+        pr.SetOpacity(alpha)
+        pr.SetJustificationToLeft()
+        if "top" in justify:
+            pr.SetVerticalJustificationToTop()
+        if "bottom" in justify:
+            pr.SetVerticalJustificationToBottom()
+        if "cent" in justify:
+            pr.SetVerticalJustificationToCentered()
+            pr.SetJustificationToCentered()
+        if "left" in justify:
+            pr.SetJustificationToLeft()
+        if "right" in justify:
+            pr.SetJustificationToRight()
+        pr.SetLineSpacing(vspacing)
+        self._caption = capt
+        return self
+
+
+
 ###################################################
 class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
     """>Work with point clouds."""
@@ -2020,669 +2615,6 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         if not vtknormals:
             return np.array([])
         return utils.vtk2numpy(vtknormals)
-
-    def labels(
-        self,
-        content=None,
-        on="points",
-        scale=None,
-        xrot=0.0,
-        yrot=0.0,
-        zrot=0.0,
-        ratio=1,
-        precision=None,
-        italic=False,
-        font="",
-        justify="bottom-left",
-        c="black",
-        alpha=1.0,
-        cells=None,
-    ):
-        """
-        Generate value or ID labels for mesh cells or points.
-        For large nr. of labels use `font="VTK"` which is much faster.
-
-        See also:
-            `labels2d()`, `flagpole()`, `caption()` and `legend()`.
-
-        Arguments:
-            content : (list,int,str)
-                either 'id', 'cellid', array name or array number.
-                A array can also be passed (must match the nr. of points or cells).
-            on : (str)
-                generate labels for "cells" instead of "points"
-            scale : (float)
-                absolute size of labels, if left as None it is automatic
-            zrot : (float)
-                local rotation angle of label in degrees
-            ratio : (int)
-                skipping ratio, to reduce nr of labels for large meshes
-            precision : (int)
-                numeric precision of labels
-
-        ```python
-        from vedo import *
-        s = Sphere(res=10).linewidth(1).c("orange").compute_normals()
-        point_ids = s.labels('id', on="points").c('green')
-        cell_ids  = s.labels('id', on="cells" ).c('black')
-        show(s, point_ids, cell_ids)
-        ```
-        ![](https://vedo.embl.es/images/feats/labels.png)
-
-        Examples:
-            - [boundaries.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/boundaries.py)
-
-                ![](https://vedo.embl.es/images/basic/boundaries.png)
-        """
-        if cells is not None:  # deprecation message
-            vedo.logger.warning("In labels(cells=...) please use labels(on='cells') instead")
-
-        if "cell" in on or "face" in on:
-            cells = True
-
-        if isinstance(content, str):
-            if content in ("cellid", "cellsid"):
-                cells = True
-                content = "id"
-
-        if cells:
-            elems = self.cell_centers()
-            norms = self.normals(cells=True, recompute=False)
-            ns = np.sqrt(self.ncells)
-        else:
-            elems = self.points()
-            norms = self.normals(cells=False, recompute=False)
-            ns = np.sqrt(self.npoints)
-
-        hasnorms = False
-        if len(norms) > 0:
-            hasnorms = True
-
-        if scale is None:
-            if not ns:
-                ns = 100
-            scale = self.diagonal_size() / ns / 10
-
-        arr = None
-        mode = 0
-        if content is None:
-            mode = 0
-            if cells:
-                if self.GetCellData().GetScalars():
-                    name = self.GetCellData().GetScalars().GetName()
-                    arr = self.celldata[name]
-            else:
-                if self.GetPointData().GetScalars():
-                    name = self.GetPointData().GetScalars().GetName()
-                    arr = self.pointdata[name]
-        elif isinstance(content, (str, int)):
-            if content == "id":
-                mode = 1
-            elif cells:
-                mode = 0
-                arr = self.celldata[content]
-            else:
-                mode = 0
-                arr = self.pointdata[content]
-        elif utils.is_sequence(content):
-            mode = 0
-            arr = content
-            # print('WEIRD labels() test', content)
-            # exit()
-
-        if arr is None and mode == 0:
-            vedo.logger.error("in labels(), array not found for points or cells")
-            return None
-
-        tapp = vtk.vtkAppendPolyData()
-        ninputs = 0
-
-        for i, e in enumerate(elems):
-            if i % ratio:
-                continue
-
-            if mode == 1:
-                txt_lab = str(i)
-            else:
-                if precision:
-                    txt_lab = utils.precision(arr[i], precision)
-                else:
-                    txt_lab = str(arr[i])
-
-            if not txt_lab:
-                continue
-
-            if font == "VTK":
-                tx = vtk.vtkVectorText()
-                tx.SetText(txt_lab)
-                tx.Update()
-                tx_poly = tx.GetOutput()
-            else:
-                tx_poly = vedo.shapes.Text3D(txt_lab, font=font, justify=justify)
-
-            if tx_poly.GetNumberOfPoints() == 0:
-                continue  #######################
-            ninputs += 1
-
-            T = vtk.vtkTransform()
-            T.PostMultiply()
-            if italic:
-                T.Concatenate([1,0.2,0,0,
-                               0,1,0,0,
-                               0,0,1,0,
-                               0,0,0,1])
-            if hasnorms:
-                ni = norms[i]
-                if cells:  # center-justify
-                    bb = tx_poly.GetBounds()
-                    dx, dy = (bb[1] - bb[0]) / 2, (bb[3] - bb[2]) / 2
-                    T.Translate(-dx, -dy, 0)
-                if xrot:
-                    T.RotateX(xrot)
-                if yrot:
-                    T.RotateY(yrot)
-                if zrot:
-                    T.RotateZ(zrot)
-                crossvec = np.cross([0, 0, 1], ni)
-                angle = np.arccos(np.dot([0, 0, 1], ni)) * 57.3
-                T.RotateWXYZ(angle, crossvec)
-                if cells:  # small offset along normal only for cells
-                    T.Translate(ni * scale / 2)
-            else:
-                if xrot:
-                    T.RotateX(xrot)
-                if yrot:
-                    T.RotateY(yrot)
-                if zrot:
-                    T.RotateZ(zrot)
-            T.Scale(scale, scale, scale)
-            T.Translate(e)
-            tf = vtk.vtkTransformPolyDataFilter()
-            tf.SetInputData(tx_poly)
-            tf.SetTransform(T)
-            tf.Update()
-            tapp.AddInputData(tf.GetOutput())
-
-        if ninputs:
-            tapp.Update()
-            lpoly = tapp.GetOutput()
-        else:  # return an empty obj
-            lpoly = vtk.vtkPolyData()
-
-        ids = vedo.mesh.Mesh(lpoly, c=c, alpha=alpha)
-        ids.property.LightingOff()
-        ids.actor.PickableOff()
-        ids.actor.SetUseBounds(False)
-        return ids
-
-    def labels2d(
-        self,
-        content="id",
-        on="points",
-        scale=1.0,
-        precision=4,
-        font="Calco",
-        justify="bottom-left",
-        angle=0.0,
-        frame=False,
-        c="black",
-        bc=None,
-        alpha=1.0,
-    ):
-        """
-        Generate value or ID bi-dimensional labels for mesh cells or points.
-
-        See also: `labels()`, `flagpole()`, `caption()` and `legend()`.
-
-        Arguments:
-            content : (str)
-                either 'id', 'cellid', or array name
-            on : (str)
-                generate labels for "cells" instead of "points" (the default)
-            scale : (float)
-                size scaling of labels
-            precision : (int)
-                precision of numeric labels
-            angle : (float)
-                local rotation angle of label in degrees
-            frame : (bool)
-                draw a frame around the label
-            bc : (str)
-                background color of the label
-
-        ```python
-        from vedo import Sphere, show
-        sph = Sphere(quads=True, res=4).compute_normals().wireframe()
-        sph.celldata["zvals"] = sph.cell_centers()[:,2]
-        l2d = sph.labels("zvals", on="cells", precision=2).backcolor('orange9')
-        show(sph, l2d, axes=1).close()
-        ```
-        ![](https://vedo.embl.es/images/feats/labels2d.png)
-        """
-        cells = False
-        if isinstance(content, str):
-            if content in ("cellid", "cellsid"):
-                cells = True
-                content = "id"
-
-        if "cell" in on:
-            cells = True
-        elif "point" in on:
-            cells = False
-
-        if cells:
-            if content != "id" and content not in self.celldata.keys():
-                vedo.logger.error(f"In labels2d: cell array {content} does not exist.")
-                return None
-            cellcloud = Points(self.cell_centers())
-            arr = self.GetCellData().GetScalars()
-            poly = cellcloud
-            poly.GetPointData().SetScalars(arr)
-        else:
-            poly = self
-            if content != "id" and content not in self.pointdata.keys():
-                vedo.logger.error(f"In labels2d: point array {content} does not exist.")
-                return None
-            self.pointdata.select(content)
-
-        mp = vtk.vtkLabeledDataMapper()
-
-        if content == "id":
-            mp.SetLabelModeToLabelIds()
-        else:
-            mp.SetLabelModeToLabelScalars()
-            if precision is not None:
-                mp.SetLabelFormat(f"%-#.{precision}g")
-
-        pr = mp.GetLabelTextProperty()
-        c = colors.get_color(c)
-        pr.SetColor(c)
-        pr.SetOpacity(alpha)
-        pr.SetFrame(frame)
-        pr.SetFrameColor(c)
-        pr.SetItalic(False)
-        pr.BoldOff()
-        pr.ShadowOff()
-        pr.UseTightBoundingBoxOn()
-        pr.SetOrientation(angle)
-        pr.SetFontFamily(vtk.VTK_FONT_FILE)
-        fl = utils.get_font_path(font)
-        pr.SetFontFile(fl)
-        pr.SetFontSize(int(20 * scale))
-
-        if "cent" in justify or "mid" in justify:
-            pr.SetJustificationToCentered()
-        elif "rig" in justify:
-            pr.SetJustificationToRight()
-        elif "left" in justify:
-            pr.SetJustificationToLeft()
-        # ------
-        if "top" in justify:
-            pr.SetVerticalJustificationToTop()
-        else:
-            pr.SetVerticalJustificationToBottom()
-
-        if bc is not None:
-            bc = colors.get_color(bc)
-            pr.SetBackgroundColor(bc)
-            pr.SetBackgroundOpacity(alpha)
-
-        mp.SetInputData(poly)
-        a2d = vtk.vtkActor2D()
-        a2d.PickableOff()
-        a2d.SetMapper(mp)
-        return a2d
-
-    def legend(self, txt):
-        """Book a legend text."""
-        self.info["legend"] = txt
-        return self
-
-    def flagpole(
-        self,
-        txt=None,
-        point=None,
-        offset=None,
-        s=None,
-        font="",
-        rounded=True,
-        c=None,
-        alpha=1.0,
-        lw=2,
-        italic=0.0,
-        padding=0.1,
-    ):
-        """
-        Generate a flag pole style element to describe an object.
-        Returns a `Mesh` object.
-
-        Use flagpole.follow_camera() to make it face the camera in the scene.
-
-        See also `flagpost()`.
-
-        Arguments:
-            txt : (str)
-                Text to display. The default is the filename or the object name.
-            point : (list)
-                position of the flagpole pointer. 
-            offset : (list)
-                text offset wrt the application point. 
-            s : (float)
-                size of the flagpole.
-            font : (str)
-                font face. Check [available fonts here](https://vedo.embl.es/fonts).
-            rounded : (bool)
-                draw a rounded or squared box around the text.
-            c : (list)
-                text and box color.
-            alpha : (float)
-                opacity of text and box.
-            lw : (float)
-                line with of box frame.
-            italic : (float)
-                italicness of text.
-
-        Examples:
-            - [intersect2d.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/intersect2d.py)
-
-                ![](https://vedo.embl.es/images/pyplot/intersect2d.png)
-
-            - [goniometer.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/goniometer.py)
-            - [flag_labels1.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels1.py)
-            - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels2.py)
-        """
-        acts = []
-
-        if txt is None:
-            if self.filename:
-                txt = self.filename.split("/")[-1]
-            elif self.name:
-                txt = self.name
-            else:
-                return None
-
-        x0, x1, y0, y1, z0, z1 = self.bounds()
-        d = self.diagonal_size()
-        if point is None:
-            if d:
-                point = self.closest_point([(x0 + x1) / 2, (y0 + y1) / 2, z1])
-            else:  # it's a Point
-                point = self.transform.position
-
-        pt = utils.make3d(point)
-
-        if offset is None:
-            offset = [(x1 - x0) / 2, (y1 - y0) / 6, 0]
-        offset = utils.make3d(offset)
-
-        if s is None:
-            s = d / 20
-
-        sph = None
-        if d and (z1 - z0) / d > 0.1:
-            sph = vedo.shapes.Sphere(pt, r=s * 0.4, res=6)
-
-        if c is None:
-            c = np.array(self.color()) / 1.4
-
-        lb = vedo.shapes.Text3D(
-            txt, pos=pt + offset, s=s, font=font, italic=italic, justify="center-left"
-        )
-        acts.append(lb)
-
-        if d and not sph:
-            sph = vedo.shapes.Circle(pt, r=s / 3, res=15)
-        acts.append(sph)
-
-        x0, x1, y0, y1, z0, z1 = lb.GetBounds()
-        if rounded:
-            box = vedo.shapes.KSpline(
-                [(x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0)], closed=True
-            )
-        else:
-            box = vedo.shapes.Line(
-                [(x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0), (x0, y0, z0)]
-            )
-
-        cnt = [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2]
-
-        # box.SetOrigin(cnt)
-        box.scale([1 + padding, 1 + 2 * padding, 1])
-        acts.append(box)
-
-        # pts = box.points()
-        # bfaces = []
-        # for i, pt in enumerate(pts):
-        #     if i:
-        #         face = [i-1, i, 0]
-        #         bfaces.append(face)
-        # bpts = [cnt] + pts.tolist()
-        # box2 = vedo.Mesh([bpts, bfaces]).z(-cnt[0]/10)#.c('w').alpha(0.1)
-        # #should be made assembly otherwise later merge() nullifies it
-        # box2.SetOrigin(cnt)
-        # acts.append(box2)
-
-        x0, x1, y0, y1, z0, z1 = box.bounds()
-        if x0 < pt[0] < x1:
-            c0 = box.closest_point(pt)
-            c1 = [c0[0], c0[1] + (pt[1] - y0) / 4, pt[2]]
-        elif (pt[0] - x0) < (x1 - pt[0]):
-            c0 = [x0, (y0 + y1) / 2, pt[2]]
-            c1 = [x0 + (pt[0] - x0) / 4, (y0 + y1) / 2, pt[2]]
-        else:
-            c0 = [x1, (y0 + y1) / 2, pt[2]]
-            c1 = [x1 + (pt[0] - x1) / 4, (y0 + y1) / 2, pt[2]]
-
-        con = vedo.shapes.Line([c0, c1, pt])
-        acts.append(con)
-
-        macts = vedo.merge(acts).c(c).alpha(alpha)
-        # macts.SetOrigin(pt)
-        macts.bc("tomato").pickable(False)
-        macts.property.LightingOff()
-        macts.property.SetLineWidth(lw)
-        macts.actor.UseBoundsOff()
-        macts.name = "FlagPole"
-        return macts
-
-    def flagpost(
-        self,
-        txt=None,
-        point=None,
-        offset=None,
-        s=1.0,
-        c="k9",
-        bc="k1",
-        alpha=1,
-        lw=0,
-        font="Calco",
-        justify="center-left",
-        vspacing=1.0,
-    ):
-        """
-        Generate a flag post style element to describe an object.
-
-        Arguments:
-            txt : (str)
-                Text to display. The default is the filename or the object name.
-            point : (list)
-                position of the flag anchor point. The default is None.
-            offset : (list)
-                a 3D displacement or offset. The default is None.
-            s : (float)
-                size of the text to be shown
-            c : (list)
-                color of text and line
-            bc : (list)
-                color of the flag background
-            alpha : (float)
-                opacity of text and box.
-            lw : (int)
-                line with of box frame. The default is 0.
-            font : (str)
-                font name. Use a monospace font for better rendering. The default is "Calco".
-                Type `vedo -r fonts` for a font demo.
-                Check [available fonts here](https://vedo.embl.es/fonts).
-            justify : (str)
-                internal text justification. The default is "center-left".
-            vspacing : (float)
-                vertical spacing between lines.
-
-        Examples:
-            - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/other/flag_labels2.py)
-
-            ![](https://vedo.embl.es/images/other/flag_labels2.png)
-        """
-        if txt is None:
-            if self.filename:
-                txt = self.filename.split("/")[-1]
-            elif self.name:
-                txt = self.name
-            else:
-                return None
-
-        x0, x1, y0, y1, z0, z1 = self.bounds()
-        d = self.diagonal_size()
-        if point is None:
-            if d:
-                point = self.closest_point([(x0 + x1) / 2, (y0 + y1) / 2, z1])
-            else:  # it's a Point
-                point = self.transform.position
-
-        point = utils.make3d(point)
-
-        if offset is None:
-            offset = [0, 0, (z1 - z0) / 2]
-        offset = utils.make3d(offset)
-
-        fpost = vedo.addons.Flagpost(
-            txt, point, point + offset, s, c, bc, alpha, lw, font, justify, vspacing
-        )
-        self._caption = fpost
-        return fpost
-
-    def caption(
-        self,
-        txt=None,
-        point=None,
-        size=(0.30, 0.15),
-        padding=5,
-        font="Calco",
-        justify="center-right",
-        vspacing=1.0,
-        c=None,
-        alpha=1.0,
-        lw=1,
-        ontop=True,
-    ):
-        """
-        Add a 2D caption to an object which follows the camera movements.
-        Latex is not supported. Returns the same input object for concatenation.
-
-        See also `flagpole()`, `flagpost()`, `labels()` and `legend()`
-        with similar functionality.
-
-        Arguments:
-            txt : (str)
-                text to be rendered. The default is the file name.
-            point : (list)
-                anchoring point. The default is None.
-            size : (list)
-                (width, height) of the caption box. The default is (0.30, 0.15).
-            padding : (float)
-                padding space of the caption box in pixels. The default is 5.
-            font : (str)
-                font name. Use a monospace font for better rendering. The default is "VictorMono".
-                Type `vedo -r fonts` for a font demo.
-                Check [available fonts here](https://vedo.embl.es/fonts).
-            justify : (str)
-                internal text justification. The default is "center-right".
-            vspacing : (float)
-                vertical spacing between lines. The default is 1.
-            c : (str)
-                text and box color. The default is 'lb'.
-            alpha : (float)
-                text and box transparency. The default is 1.
-            lw : (int)
-                line width in pixels. The default is 1.
-            ontop : (bool)
-                keep the 2d caption always on top. The default is True.
-
-        Examples:
-            - [caption.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/caption.py)
-
-                ![](https://vedo.embl.es/images/pyplot/caption.png)
-
-            - [flag_labels1.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels1.py)
-            - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels2.py)
-        """
-        if txt is None:
-            if self.filename:
-                txt = self.filename.split("/")[-1]
-            elif self.name:
-                txt = self.name
-
-        if not txt:  # disable it
-            self._caption = None
-            return self
-
-        for r in vedo.shapes._reps:
-            txt = txt.replace(r[0], r[1])
-
-        if c is None:
-            c = np.array(self.property.GetColor()) / 2
-        else:
-            c = colors.get_color(c)
-
-        if point is None:
-            x0, x1, y0, y1, _, z1 = self.GetBounds()
-            pt = [(x0 + x1) / 2, (y0 + y1) / 2, z1]
-            point = self.closest_point(pt)
-
-        capt = vtk.vtkCaptionActor2D()
-        capt.SetAttachmentPoint(point)
-        capt.SetBorder(True)
-        capt.SetLeader(True)
-        sph = vtk.vtkSphereSource()
-        sph.Update()
-        capt.SetLeaderGlyphData(sph.GetOutput())
-        capt.SetMaximumLeaderGlyphSize(5)
-        capt.SetPadding(int(padding))
-        capt.SetCaption(txt)
-        capt.SetWidth(size[0])
-        capt.SetHeight(size[1])
-        capt.SetThreeDimensionalLeader(not ontop)
-
-        pra = capt.GetProperty()
-        pra.SetColor(c)
-        pra.SetOpacity(alpha)
-        pra.SetLineWidth(lw)
-
-        pr = capt.GetCaptionTextProperty()
-        pr.SetFontFamily(vtk.VTK_FONT_FILE)
-        fl = utils.get_font_path(font)
-        pr.SetFontFile(fl)
-        pr.ShadowOff()
-        pr.BoldOff()
-        pr.FrameOff()
-        pr.SetColor(c)
-        pr.SetOpacity(alpha)
-        pr.SetJustificationToLeft()
-        if "top" in justify:
-            pr.SetVerticalJustificationToTop()
-        if "bottom" in justify:
-            pr.SetVerticalJustificationToBottom()
-        if "cent" in justify:
-            pr.SetVerticalJustificationToCentered()
-            pr.SetJustificationToCentered()
-        if "left" in justify:
-            pr.SetJustificationToLeft()
-        if "right" in justify:
-            pr.SetJustificationToRight()
-        pr.SetLineSpacing(vspacing)
-        self._caption = capt
-        return self
-
 
     def align_to(self, target, iters=100, rigid=False, invert=False, use_centroids=False):
         """
@@ -4854,6 +4786,83 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
 
         self.pipeline = utils.OperationNode("generate\nrandom data", parents=[self])
         return self
+
+
+    def generate_delaunay2d(self, mode="scipy", boundaries=(), tol=None, alpha=0.0, offset=0.0, transform=None):
+        """
+        Create a mesh from points in the XY plane.
+        If `mode='fit'` then the filter computes a best fitting
+        plane and projects the points onto it.
+
+        Arguments:
+            tol : (float)
+                specify a tolerance to control discarding of closely spaced points.
+                This tolerance is specified as a fraction of the diagonal length of the bounding box of the points.
+            alpha : (float)
+                for a non-zero alpha value, only edges or triangles contained
+                within a sphere centered at mesh vertices will be output.
+                Otherwise, only triangles will be output.
+            offset : (float)
+                multiplier to control the size of the initial, bounding Delaunay triangulation.
+            transform: vtkTransform
+                a VTK transformation (eg. a thinplate spline)
+                which is applied to points to generate a 2D problem.
+                This maps a 3D dataset into a 2D dataset where triangulation can be done on the XY plane.
+                The points are transformed and triangulated.
+                The topology of triangulated points is used as the output topology.
+
+        Examples:
+            - [delaunay2d.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/delaunay2d.py)
+
+                ![](https://vedo.embl.es/images/basic/delaunay2d.png)
+        """
+        plist = self.points()
+
+        #########################################################
+        if mode == "scipy":
+            from scipy.spatial import Delaunay as scipy_delaunay
+            tri = scipy_delaunay(plist[:, 0:2])
+            return vedo.mesh.Mesh([plist, tri.simplices])
+        ##########################################################
+
+        pd = vtk.vtkPolyData()
+        vpts = vtk.vtkPoints()
+        vpts.SetData(utils.numpy2vtk(plist, dtype=np.float32))
+        pd.SetPoints(vpts)
+
+        delny = vtk.vtkDelaunay2D()
+        delny.SetInputData(pd)
+        if tol:
+            delny.SetTolerance(tol)
+        delny.SetAlpha(alpha)
+        delny.SetOffset(offset)
+        if transform:
+            if hasattr(transform, "transform"):
+                transform = transform.transform
+            delny.SetTransform(transform)
+
+        if mode == "xy" and boundaries:
+            boundary = vtk.vtkPolyData()
+            boundary.SetPoints(vpts)
+            cell_array = vtk.vtkCellArray()
+            for b in boundaries:
+                cpolygon = vtk.vtkPolygon()
+                for idd in b:
+                    cpolygon.GetPointIds().InsertNextId(idd)
+                cell_array.InsertNextCell(cpolygon)
+            boundary.SetPolys(cell_array)
+            delny.SetSourceData(boundary)
+
+        if mode == "fit":
+            delny.SetProjectionPlaneMode(vtk.VTK_BEST_FITTING_PLANE)
+        delny.Update()
+        msh = vedo.mesh.Mesh(delny.GetOutput()).clean().lighting("off")
+
+        msh.pipeline = utils.OperationNode(
+            "delaunay2d", parents=parents,
+            comment=f"#cells {msh.GetNumberOfCells()}"
+        )
+        return msh
 
 
     def generate_voronoi(self, padding=0.0, fit=False, method="vtk"):
