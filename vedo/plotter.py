@@ -834,6 +834,8 @@ class Plotter:
                 if hasattr(a, "rendered_at"):
                     ir = self.renderers.index(ren)
                     a.rendered_at.add(ir)
+                if isinstance(a, vtk.vtkFollower):
+                    a.SetCamera(self.camera)
 
         return self
 

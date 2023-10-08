@@ -28,6 +28,53 @@ __all__ = ["Mesh"]
 class MeshVisual:
     """Class to manage the visual aspects of a ``Maesh`` object."""
 
+    def follow_camera(self, camera=None):
+        """
+        Return an object that will follow camera movements and stay locked to it.
+        Use `mesh.follow_camera(False)` to disable it.
+
+        A `vtkCamera` object can also be passed.
+        """
+        if camera is False:
+            try:
+                self.SetCamera(None)
+                return self
+            except AttributeError:
+                return self
+
+        factor = vtk.vtkFollower()
+        factor.SetMapper(self.mapper)
+        factor.SetProperty(self.property)
+        factor.SetBackfaceProperty(self.actor.GetBackfaceProperty())
+        factor.SetTexture(self.actor.GetTexture())
+        factor.SetOrigin(self.actor.GetOrigin())
+        factor.SetScale(self.actor.GetScale())
+        factor.SetOrientation(self.actor.GetOrientation())
+        factor.SetPosition(self.actor.GetPosition())
+        factor.SetUseBounds(self.actor.GetUseBounds())
+        factor.PickableOff()
+
+        # factor = vtk.vtkFollower() # not working
+        # self.mapper = vtk.vtkPolyDataMapper()
+        # self.mapper.SetInputData(self)
+
+        if isinstance(camera, vtk.vtkCamera):
+            factor.SetCamera(camera)
+        else:
+            plt = vedo.plotter_instance
+            if plt and plt.renderer and plt.renderer.GetActiveCamera():
+                factor.SetCamera(plt.renderer.GetActiveCamera())
+
+        factor.pipeline = OperationNode(
+            "Follower", parents=[self], shape="component", c="#d9ed92")
+        # factor.SetMapper(self.mapper)
+        # self.actor = factor # not working
+        # self.actor.Modified()
+        # self.mapper.Modified()
+        # return self
+        return factor
+
+
     def wireframe(self, value=True):
         """Set mesh's representation as wireframe or solid surface."""
         if value:
@@ -1926,34 +1973,6 @@ class Mesh(MeshVisual, Points):
         m.pipeline = OperationNode("silhouette", parents=[self])
         return m
 
-
-    def follow_camera(self, camera=None):
-        """
-        Return an object that will follow camera movements and stay locked to it.
-        Use `mesh.follow_camera(False)` to disable it.
-
-        A `vtkCamera` object can also be passed.
-        """
-        if camera is False:
-            try:
-                self.SetCamera(None)
-                return self
-            except AttributeError:
-                return self
-
-        factor = Follower(self, camera)
-
-        if isinstance(camera, vtk.vtkCamera):
-            factor.SetCamera(camera)
-        else:
-            plt = vedo.plotter_instance
-            if plt and plt.renderer and plt.renderer.GetActiveCamera():
-                factor.SetCamera(plt.renderer.GetActiveCamera())
-            else:
-                factor._isfollower = True  # postpone to show() call
-
-        return factor
-
     def isobands(self, n=10, vmin=None, vmax=None):
         """
         Return a new `Mesh` representing the isobands of the active scalars.
@@ -2778,35 +2797,3 @@ class Mesh(MeshVisual, Points):
             "tetralize", parents=[self], comment=f"#tets = {tmesh.ncells}", c="#e9c46a:#9e2a2b"
         )
         return tmesh
-
-
-####################################################
-class Follower(vedo.base.BaseActor, vtk.vtkFollower):
-
-    def __init__(self, objt, camera=None):
-        actor = objt.actor
-        mapper = objt.mapper
-
-        #vtk.vtkFollower.__init__(self)
-        #vedo.base.BaseActor.__init__(self)
-        super().__inint__()
-
-        self.name = objt.name
-        self._isfollower = False
-
-        self.SetMapper(mapper)
-
-        self.SetProperty(objt.property)
-        self.SetBackfaceProperty(actor.GetBackfaceProperty())
-        self.SetTexture(actor.GetTexture())
-
-        self.SetCamera(camera)
-        self.SetOrigin(actor.GetOrigin())
-        self.SetScale(actor.GetScale())
-        self.SetOrientation(actor.GetOrientation())
-        self.SetPosition(actor.GetPosition())
-        self.SetUseBounds(actor.GetUseBounds())
-
-        self.PickableOff()
-
-        self.pipeline = OperationNode("Follower", parents=[actor], shape="component", c="#d9ed92")
