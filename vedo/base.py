@@ -836,15 +836,11 @@ class BaseActor(Base3DProp):
         self.mapper = None
         self._caption = None
         self.property = None
-        self.mapper = None
 
 
     def inputdata(self):
         """Obsolete, use `self` instead."""
-        # """Return the VTK input data object."""
-        # if self.mapper:
-        #     return self.mapper.GetInput()
-        # return self.GetMapper().GetInput()
+        print("WARNING: inputdata() is obsolete, use self instead.")
         return self
 
     @property
@@ -1033,13 +1029,6 @@ class BaseActor(Base3DProp):
             self, bins, height, logscale, minbin, horizontal, char, c, bold, title
         )
         return self
-
-    def c(self, color=False, alpha=None):
-        """
-        Shortcut for `color()`.
-        If None is passed as input, will use colors from current active scalars.
-        """
-        return self.color(color, alpha)
 
     @property
     def pointdata(self):

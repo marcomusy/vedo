@@ -27,7 +27,6 @@ __all__ = [
     "merge",
     "visible_points",
     "delaunay2d",
-    "voronoi",
     "fit_line",
     "fit_circle",
     "fit_plane",
@@ -87,7 +86,7 @@ def merge(*meshs, flag=False):
     msh.pipeline = utils.OperationNode(
         "merge",
         parents=objs,
-        comment=f"#pts {msh.inputdata().GetNumberOfPoints()}",
+        comment=f"#pts {msh.GetNumberOfPoints()}",
     )
     return msh
 
@@ -224,110 +223,9 @@ def delaunay2d(plist, mode="scipy", boundaries=(), tol=None, alpha=0.0, offset=0
 
     msh.pipeline = utils.OperationNode(
         "delaunay2d", parents=parents,
-        comment=f"#cells {msh.inputdata().GetNumberOfCells()}"
+        comment=f"#cells {msh.GetNumberOfCells()}"
     )
     return msh
-
-
-def voronoi(pts, padding=0.0, fit=False, method="vtk"):
-    """
-    Generate the 2D Voronoi convex tiling of the input points (z is ignored).
-    The points are assumed to lie in a plane. The output is a Mesh. Each output cell is a convex polygon.
-
-    The 2D Voronoi tessellation is a tiling of space, where each Voronoi tile represents the region nearest
-    to one of the input points. Voronoi tessellations are important in computational geometry
-    (and many other fields), and are the dual of Delaunay triangulations.
-
-    Thus the triangulation is constructed in the x-y plane, and the z coordinate is ignored
-    (although carried through to the output).
-    If you desire to triangulate in a different plane, you can use fit=True.
-
-    A brief summary is as follows. Each (generating) input point is associated with
-    an initial Voronoi tile, which is simply the bounding box of the point set.
-    A locator is then used to identify nearby points: each neighbor in turn generates a
-    clipping line positioned halfway between the generating point and the neighboring point,
-    and orthogonal to the line connecting them. Clips are readily performed by evaluationg the
-    vertices of the convex Voronoi tile as being on either side (inside,outside) of the clip line.
-    If two intersections of the Voronoi tile are found, the portion of the tile "outside" the clip
-    line is discarded, resulting in a new convex, Voronoi tile. As each clip occurs,
-    the Voronoi "Flower" error metric (the union of error spheres) is compared to the extent of the region
-    containing the neighboring clip points. The clip region (along with the points contained in it) is grown
-    by careful expansion (e.g., outward spiraling iterator over all candidate clip points).
-    When the Voronoi Flower is contained within the clip region, the algorithm terminates and the Voronoi
-    tile is output. Once complete, it is possible to construct the Delaunay triangulation from the Voronoi
-    tessellation. Note that topological and geometric information is used to generate a valid triangulation
-    (e.g., merging points and validating topology).
-
-    Arguments:
-        pts : (list)
-            list of input points.
-        padding : (float)
-            padding distance. The default is 0.
-        fit : (bool)
-            detect automatically the best fitting plane. The default is False.
-
-    Examples:
-        - [voronoi1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/voronoi1.py)
-
-            ![](https://vedo.embl.es/images/basic/voronoi1.png)
-
-        - [voronoi2.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/voronoi2.py)
-
-            ![](https://vedo.embl.es/images/advanced/voronoi2.png)
-    """
-    if method == "scipy":
-        from scipy.spatial import Voronoi as scipy_voronoi
-
-        pts = np.asarray(pts)[:, (0, 1)]
-        vor = scipy_voronoi(pts)
-        regs = []  # filter out invalid indices
-        for r in vor.regions:
-            flag = True
-            for x in r:
-                if x < 0:
-                    flag = False
-                    break
-            if flag and len(r) > 0:
-                regs.append(r)
-
-        m = vedo.Mesh([vor.vertices, regs], c="orange5")
-        m.celldata["VoronoiID"] = np.array(list(range(len(regs)))).astype(int)
-        m.locator = None
-
-    elif method == "vtk":
-        vor = vtk.vtkVoronoi2D()
-        if isinstance(pts, Points):
-            vor.SetInputData(pts)
-        else:
-            pts = np.asarray(pts)
-            if pts.shape[1] == 2:
-                pts = np.c_[pts, np.zeros(len(pts))]
-            pd = vtk.vtkPolyData()
-            vpts = vtk.vtkPoints()
-            vpts.SetData(utils.numpy2vtk(pts, dtype=np.float32))
-            pd.SetPoints(vpts)
-            vor.SetInputData(pd)
-        vor.SetPadding(padding)
-        vor.SetGenerateScalarsToPointIds()
-        if fit:
-            vor.SetProjectionPlaneModeToBestFittingPlane()
-        else:
-            vor.SetProjectionPlaneModeToXYPlane()
-        vor.Update()
-        poly = vor.GetOutput()
-        arr = poly.GetCellData().GetArray(0)
-        if arr:
-            arr.SetName("VoronoiID")
-        m = vedo.Mesh(poly, c="orange5")
-        m.locator = vor.GetLocator()
-
-    else:
-        vedo.logger.error(f"Unknown method {method} in voronoi()")
-        raise RuntimeError
-
-    m.lw(2).lighting("off").wireframe()
-    m.name = "Voronoi"
-    return m
 
 
 def _rotate_points(points, n0=None, n1=(0, 0, 1)):
@@ -748,6 +646,13 @@ class PointsVisual:
             self.alpha(alpha)
         return self
 
+    def c(self, color=False, alpha=None):
+        """
+        Shortcut for `color()`.
+        If None is passed as input, will use colors from current active scalars.
+        """
+        return self.color(color, alpha)
+
     def alpha(self, opacity=None):
         """Set/get mesh's transparency. Same as `mesh.opacity()`."""
         if opacity is None:
@@ -1083,20 +988,19 @@ class PointsVisual:
                 ![](https://vedo.embl.es/images/basic/mesh_custom.png)
         """
         self._cmap_name = input_cmap
-        poly = self.inputdata()
 
         if input_array is None:
             if not self.pointdata.keys() and self.celldata.keys():
                 on = "cells"
-                if not poly.GetCellData().GetScalars():
+                if not self.GetCellData().GetScalars():
                     input_array = 0  # pick the first at hand
 
         if on.startswith("point"):
-            data = poly.GetPointData()
-            n = poly.GetNumberOfPoints()
+            data = self.GetPointData()
+            n = self.GetNumberOfPoints()
         elif on.startswith("cell"):
-            data = poly.GetCellData()
-            n = poly.GetNumberOfCells()
+            data = self.GetCellData()
+            n = self.GetNumberOfCells()
         else:
             vedo.logger.error("Must specify in cmap(on=...) to either 'cells' or 'points'")
             raise RuntimeError()
@@ -1765,16 +1669,15 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
                 ![](https://vedo.embl.es/images/basic/deleteMeshPoints.png)
         """
         cell_ids = vtk.vtkIdList()
-        data = self.inputdata()
-        data.BuildLinks()
+        self.BuildLinks()
         n = 0
         for i in np.unique(indices):
-            data.GetPointCells(i, cell_ids)
+            self.GetPointCells(i, cell_ids)
             for j in range(cell_ids.GetNumberOfIds()):
-                data.DeleteCell(cell_ids.GetId(j))  # flag cell
+                self.DeleteCell(cell_ids.GetId(j))  # flag cell
                 n += 1
 
-        data.RemoveDeletedCells()
+        self.RemoveDeletedCells()
         self.mapper.Modified()
         self.pipeline = utils.OperationNode(f"delete {n} cells\nby point index", parents=[self])
         return self
@@ -1813,8 +1716,8 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
 
         varr = pcan.GetOutput().GetPointData().GetNormals()
         varr.SetName("Normals")
-        self.inputdata().GetPointData().SetNormals(varr)
-        self.inputdata().GetPointData().Modified()
+        self.GetPointData().SetNormals(varr)
+        self.GetPointData().Modified()
         return self
 
     def compute_acoplanarity(self, n=25, radius=None, on="points"):
@@ -1878,7 +1781,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
 
                 ![](https://vedo.embl.es/images/basic/distance2mesh.png)
         """
-        if pcloud.inputdata().GetNumberOfPolys():
+        if pcloud.GetNumberOfPolys():
 
             poly1 = self
             poly2 = pcloud
@@ -1914,8 +1817,8 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             scals = utils.numpy2vtk(dists)
 
         scals.SetName(name)
-        self.inputdata().GetPointData().AddArray(scals)  # must be self.inputdata() !
-        self.inputdata().GetPointData().SetActiveScalars(scals.GetName())
+        self.GetPointData().AddArray(scals)
+        self.GetPointData().SetActiveScalars(scals.GetName())
         rng = scals.GetRange()
         self.mapper.SetScalarRange(rng[0], rng[1])
         self.mapper.ScalarVisibilityOn()
@@ -1937,12 +1840,12 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         cpd.ConvertLinesToPointsOn()
         cpd.ConvertPolysToLinesOn()
         cpd.ConvertStripsToPolysOn()
-        cpd.SetInputData(self.inputdata())
+        cpd.SetInputData(self)
         cpd.Update()
         self.DeepCopy(cpd.GetOutput())
         self.pipeline = utils.OperationNode(
             "clean", parents=[self],
-            comment=f"#pts {self.inputdata().GetNumberOfPoints()}"
+            comment=f"#pts {self.GetNumberOfPoints()}"
         )
         return self
 
@@ -1975,7 +1878,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         cpd.ConvertLinesToPointsOn()
         cpd.ConvertPolysToLinesOn()
         cpd.ConvertStripsToPolysOn()
-        cpd.SetInputData(self.inputdata())
+        cpd.SetInputData(self)
         if absolute:
             cpd.SetTolerance(fraction / self.diagonal_size())
             # cpd.SetToleranceIsAbsolute(absolute)
@@ -2013,7 +1916,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             - [mesh_threshold.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_threshold.py)
         """
         thres = vtk.vtkThreshold()
-        thres.SetInputData(self.inputdata())
+        thres.SetInputData(self)
 
         if on.startswith("c"):
             asso = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
@@ -2054,9 +1957,8 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         The user should input a value and all {x,y,z} coordinates
         will be quantized to that absolute grain size.
         """
-        poly = self.inputdata()
         qp = vtk.vtkQuantizePolyDataPoints()
-        qp.SetInputData(poly)
+        qp.SetInputData(self)
         qp.SetQFactor(value)
         qp.Update()
         self.DeepCopy(qp.GetOutput())
@@ -2206,12 +2108,12 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         if content is None:
             mode = 0
             if cells:
-                if self.inputdata().GetCellData().GetScalars():
-                    name = self.inputdata().GetCellData().GetScalars().GetName()
+                if self.GetCellData().GetScalars():
+                    name = self.GetCellData().GetScalars().GetName()
                     arr = self.celldata[name]
             else:
-                if self.inputdata().GetPointData().GetScalars():
-                    name = self.inputdata().GetPointData().GetScalars().GetName()
+                if self.GetPointData().GetScalars():
+                    name = self.GetPointData().GetScalars().GetName()
                     arr = self.pointdata[name]
         elif isinstance(content, (str, int)):
             if content == "id":
@@ -2257,7 +2159,6 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
                 tx_poly = tx.GetOutput()
             else:
                 tx_poly = vedo.shapes.Text3D(txt_lab, font=font, justify=justify)
-                tx_poly = tx_poly.inputdata()
 
             if tx_poly.GetNumberOfPoints() == 0:
                 continue  #######################
@@ -2374,7 +2275,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
                 vedo.logger.error(f"In labels2d: cell array {content} does not exist.")
                 return None
             cellcloud = Points(self.cell_centers())
-            arr = self.inputdata().GetCellData().GetScalars()
+            arr = self.GetCellData().GetScalars()
             poly = cellcloud
             poly.GetPointData().SetScalars(arr)
         else:
@@ -2961,7 +2862,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
     def flip_normals(self):
         """Flip all mesh normals. Same as `mesh.mirror('n')`."""
         rs = vtk.vtkReverseSense()
-        rs.SetInputData(self.inputdata())
+        rs.SetInputData(self)
         rs.ReverseCellsOff()
         rs.ReverseNormalsOn()
         rs.Update()
@@ -4385,7 +4286,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             cmesh.pipeline = utils.OperationNode(
                 "generate_mesh",
                 parents=[self, contour],
-                comment=f"#quads {cmesh.inputdata().GetNumberOfCells()}",
+                comment=f"#quads {cmesh.GetNumberOfCells()}",
             )
             return cmesh
         #############################################
@@ -4431,7 +4332,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         dln.pipeline = utils.OperationNode(
             "generate_mesh",
             parents=[self, contour],
-            comment=f"#cells {dln.inputdata().GetNumberOfCells()}",
+            comment=f"#cells {dln.GetNumberOfCells()}",
         )
         return dln
 
@@ -4524,7 +4425,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
 
         m.pipeline = utils.OperationNode(
             "reconstruct_surface", parents=[self],
-            comment=f"#pts {m.inputdata().GetNumberOfPoints()}"
+            comment=f"#pts {m.GetNumberOfPoints()}"
         )
         return m
 
@@ -4539,13 +4440,13 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
                 ![](https://vedo.embl.es/images/basic/clustering.png)
         """
         cluster = vtk.vtkEuclideanClusterExtraction()
-        cluster.SetInputData(self.inputdata())
+        cluster.SetInputData(self)
         cluster.SetExtractionModeToAllClusters()
         cluster.SetRadius(radius)
         cluster.ColorClustersOn()
         cluster.Update()
         idsarr = cluster.GetOutput().GetPointData().GetArray("ClusterId")
-        self.inputdata().GetPointData().AddArray(idsarr)
+        self.GetPointData().AddArray(idsarr)
 
         self.pipeline = utils.OperationNode(
             "compute_clustering", parents=[self], comment=f"radius = {radius}"
@@ -4787,7 +4688,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
 
         cld.pipeline = utils.OperationNode(
             "densify", parents=[self], c="#e9c46a:",
-            comment=f"#pts {cld.inputdata().GetNumberOfPoints()}"
+            comment=f"#pts {cld.GetNumberOfPoints()}"
         )
         return cld
 
@@ -4953,3 +4854,106 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
 
         self.pipeline = utils.OperationNode("generate\nrandom data", parents=[self])
         return self
+
+
+    def generate_voronoi(self, padding=0.0, fit=False, method="vtk"):
+        """
+        Generate the 2D Voronoi convex tiling of the input points (z is ignored).
+        The points are assumed to lie in a plane. The output is a Mesh. Each output cell is a convex polygon.
+
+        The 2D Voronoi tessellation is a tiling of space, where each Voronoi tile represents the region nearest
+        to one of the input points. Voronoi tessellations are important in computational geometry
+        (and many other fields), and are the dual of Delaunay triangulations.
+
+        Thus the triangulation is constructed in the x-y plane, and the z coordinate is ignored
+        (although carried through to the output).
+        If you desire to triangulate in a different plane, you can use fit=True.
+
+        A brief summary is as follows. Each (generating) input point is associated with
+        an initial Voronoi tile, which is simply the bounding box of the point set.
+        A locator is then used to identify nearby points: each neighbor in turn generates a
+        clipping line positioned halfway between the generating point and the neighboring point,
+        and orthogonal to the line connecting them. Clips are readily performed by evaluationg the
+        vertices of the convex Voronoi tile as being on either side (inside,outside) of the clip line.
+        If two intersections of the Voronoi tile are found, the portion of the tile "outside" the clip
+        line is discarded, resulting in a new convex, Voronoi tile. As each clip occurs,
+        the Voronoi "Flower" error metric (the union of error spheres) is compared to the extent of the region
+        containing the neighboring clip points. The clip region (along with the points contained in it) is grown
+        by careful expansion (e.g., outward spiraling iterator over all candidate clip points).
+        When the Voronoi Flower is contained within the clip region, the algorithm terminates and the Voronoi
+        tile is output. Once complete, it is possible to construct the Delaunay triangulation from the Voronoi
+        tessellation. Note that topological and geometric information is used to generate a valid triangulation
+        (e.g., merging points and validating topology).
+
+        Arguments:
+            pts : (list)
+                list of input points.
+            padding : (float)
+                padding distance. The default is 0.
+            fit : (bool)
+                detect automatically the best fitting plane. The default is False.
+
+        Examples:
+            - [voronoi1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/voronoi1.py)
+
+                ![](https://vedo.embl.es/images/basic/voronoi1.png)
+
+            - [voronoi2.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/voronoi2.py)
+
+                ![](https://vedo.embl.es/images/advanced/voronoi2.png)
+        """
+        pts = self.points()
+
+        if method == "scipy":
+            from scipy.spatial import Voronoi as scipy_voronoi
+
+            pts = np.asarray(pts)[:, (0, 1)]
+            vor = scipy_voronoi(pts)
+            regs = []  # filter out invalid indices
+            for r in vor.regions:
+                flag = True
+                for x in r:
+                    if x < 0:
+                        flag = False
+                        break
+                if flag and len(r) > 0:
+                    regs.append(r)
+
+            m = vedo.Mesh([vor.vertices, regs], c="orange5")
+            m.celldata["VoronoiID"] = np.array(list(range(len(regs)))).astype(int)
+            m.locator = None
+
+        elif method == "vtk":
+            vor = vtk.vtkVoronoi2D()
+            if isinstance(pts, Points):
+                vor.SetInputData(pts)
+            else:
+                pts = np.asarray(pts)
+                if pts.shape[1] == 2:
+                    pts = np.c_[pts, np.zeros(len(pts))]
+                pd = vtk.vtkPolyData()
+                vpts = vtk.vtkPoints()
+                vpts.SetData(utils.numpy2vtk(pts, dtype=np.float32))
+                pd.SetPoints(vpts)
+                vor.SetInputData(pd)
+            vor.SetPadding(padding)
+            vor.SetGenerateScalarsToPointIds()
+            if fit:
+                vor.SetProjectionPlaneModeToBestFittingPlane()
+            else:
+                vor.SetProjectionPlaneModeToXYPlane()
+            vor.Update()
+            poly = vor.GetOutput()
+            arr = poly.GetCellData().GetArray(0)
+            if arr:
+                arr.SetName("VoronoiID")
+            m = vedo.Mesh(poly, c="orange5")
+            m.locator = vor.GetLocator()
+
+        else:
+            vedo.logger.error(f"Unknown method {method} in voronoi()")
+            raise RuntimeError
+
+        m.lw(2).lighting("off").wireframe()
+        m.name = "Voronoi"
+        return m
