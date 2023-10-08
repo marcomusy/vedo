@@ -425,7 +425,7 @@ class Base3DProp:
         self.cell_locator = None
         self.line_locator = None
         return self
-    
+
 
     def pos(self, x=None, y=None, z=None):
         """Set/Get object position."""
@@ -443,7 +443,7 @@ class Base3DProp:
 
         q = self.transform.position
         LT = LinearTransform()
-        LT.translate([x,y,z] - q) 
+        LT.translate([x,y,z] - q)
         return self.apply_transform(LT)
 
     def shift(self, dx=0, dy=0, dz=0):
@@ -451,7 +451,7 @@ class Base3DProp:
         if utils.is_sequence(dx):
             utils.make3d(dx)
             dx, dy, dz = dx
-        LT = LinearTransform().translate([dx, dy, dz]) 
+        LT = LinearTransform().translate([dx, dy, dz])
         return self.apply_transform(LT)
 
     def x(self, val=None):
@@ -550,7 +550,7 @@ class Base3DProp:
         """
         if s is None:
             return np.array(self.transform.T.GetScale())
-        
+
         LT = LinearTransform()
         if reset:
             LT.set_scale(s)
@@ -833,8 +833,6 @@ class BaseActor(Base3DProp):
 
         super().__init__()
 
-        print("BaseActor __init__")
-
         self.mapper = None
         self._caption = None
         self.property = None
@@ -897,7 +895,7 @@ class BaseActor(Base3DProp):
             if pts.shape[1] == 2:
                 pts = np.c_[pts, np.zeros(pts.shape[0], dtype=np.float32)]
             arr = utils.numpy2vtk(pts, dtype=np.float32)
-            
+
             vpts = self.GetPoints()
             vpts.SetData(arr)
             vpts.Modified()
@@ -1628,7 +1626,7 @@ class BaseGrid(BaseActor):
 
         if col is None:
             return self
-        
+
         if vmin is None:
             vmin, _ = self.GetScalarRange()
         if vmax is None:
@@ -1866,7 +1864,7 @@ class BaseGrid(BaseActor):
                 normal vector to the cutting plane
         """
         # if isinstance(self, vedo.Volume):
-        #     raise RuntimeError("cut_with_plane() is not applicable to Volume objects.")    
+        #     raise RuntimeError("cut_with_plane() is not applicable to Volume objects.")
 
         strn = str(normal)
         if strn   ==  "x": normal = (1, 0, 0)
@@ -1919,7 +1917,7 @@ class BaseGrid(BaseActor):
             ![](https://vedo.embl.es/images/feats/tet_cut_box.png)
         """
         # if isinstance(self, vedo.Volume):
-        #     raise RuntimeError("cut_with_box() is not applicable to Volume objects.")    
+        #     raise RuntimeError("cut_with_box() is not applicable to Volume objects.")
 
         bc = vtk.vtkBoxClipDataSet()
         bc.SetInputData(self)
@@ -1953,7 +1951,7 @@ class BaseGrid(BaseActor):
         Use `invert` to return cut off part of the input object.
         """
         # if isinstance(self, vedo.Volume):
-        #     raise RuntimeError("cut_with_mesh() is not applicable to Volume objects.")    
+        #     raise RuntimeError("cut_with_mesh() is not applicable to Volume objects.")
 
         ug = self
 
@@ -2254,7 +2252,7 @@ class BaseActor2D(vtk.vtkActor2D):
         else:
             self.property.SetDisplayLocationToBackground()
         return self
-    
+
     def add_observer(self, event_name, func, priority=0):
         """Add a callback function that will be called when an event occurs."""
         event_name = utils.get_vtk_name_event(event_name)

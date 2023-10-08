@@ -223,7 +223,7 @@ class Assembly(vtk.vtkAssembly):
             meshs = meshs[0]
         else:
             meshs = vedo.utils.flatten(meshs)
-        
+
         self.actor = self
 
         self.name = ""
@@ -263,7 +263,7 @@ class Assembly(vtk.vtkAssembly):
         self.pipeline = vedo.utils.OperationNode(
             "Assembly",
             parents=self.objects,
-            comment=f"#meshes {len(self.objects)}", 
+            comment=f"#meshes {len(self.objects)}",
             c="#f08080",
         )
         ##########################################
@@ -372,7 +372,7 @@ class Assembly(vtk.vtkAssembly):
         self.SetOrientation(self.transform.T.GetOrientation())
         self.SetScale(self.transform.T.GetScale())
         return self
-    
+
     # TODO ####
     def propagate_transform(self):
         """Propagate the transformation to all parts."""
@@ -396,7 +396,7 @@ class Assembly(vtk.vtkAssembly):
             z = 0
 
         q = self.transform.position
-        LT = LinearTransform().translate([x,y,z]-q) 
+        LT = LinearTransform().translate([x,y,z]-q)
         return self.apply_transform(LT)
 
     def shift(self, dx, dy=0, dz=0):
@@ -404,9 +404,9 @@ class Assembly(vtk.vtkAssembly):
         if vedo.utils.is_sequence(dx):
             vedo.utils.make3d(dx)
             dx, dy, dz = dx
-        LT = LinearTransform().translate([dx, dy, dz]) 
+        LT = LinearTransform().translate([dx, dy, dz])
         return self.apply_transform(LT)
-    
+
     def scale(self, s):
         """Multiply object size by `s` factor."""
         LT = LinearTransform().scale(s)
@@ -435,12 +435,12 @@ class Assembly(vtk.vtkAssembly):
             return p[2]
         self.pos(p[0], p[1], val)
         return self
-    
+
     def rotate_x(self, angle):
         """Rotate object around x axis."""
         LT = LinearTransform().rotate_x(angle)
         return self.apply_transform(LT)
-    
+
     def rotate_y(self, angle):
         """Rotate object around y axis."""
         LT = LinearTransform().rotate_y(angle)
@@ -450,7 +450,7 @@ class Assembly(vtk.vtkAssembly):
         """Rotate object around z axis."""
         LT = LinearTransform().rotate_z(angle)
         return self.apply_transform(LT)
-    
+
 
     def bounds(self):
         """
@@ -483,7 +483,7 @@ class Assembly(vtk.vtkAssembly):
         if i == 1:
             return b[5]
         return (b[4], b[5])
-    
+
     def clone(self):
         """Make a clone copy of the object."""
         newlist = []

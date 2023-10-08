@@ -165,7 +165,7 @@ class Picture2D(vedo.BaseActor2D):
             justify : (str)
                 define the anchor point ("top-left", "top-center", ...)
         """
-        vedo.BaseActor2D.__init__(self)
+        super().__init__()
         # print("input type:", fig.__class__)
 
         self.array = None
@@ -548,14 +548,14 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
         pf.SetConstant(value)
         if utils.is_sequence(pixels):
             pf.SetOutputWholeExtent(
-                x0 - pixels[0], x1 + pixels[1], 
-                y0 - pixels[2], y1 + pixels[3], 
+                x0 - pixels[0], x1 + pixels[1],
+                y0 - pixels[2], y1 + pixels[3],
                 0, 0
             )
         else:
             pf.SetOutputWholeExtent(
-                x0 - pixels, x1 + pixels, 
-                y0 - pixels, y1 + pixels, 
+                x0 - pixels, x1 + pixels,
+                y0 - pixels, y1 + pixels,
                 0, 0
             )
         pf.Update()

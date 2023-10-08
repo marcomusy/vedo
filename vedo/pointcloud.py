@@ -706,25 +706,668 @@ def Point(pos=(0, 0, 0), r=12, c="red", alpha=1.0):
     return pt
 
 
-
+###################################################
 class PointsVisual:
     """Class to manage the visual aspects of a ``Points`` object."""
-    pass
-    # def __init__(self):
-    #     self.actor = vtk.vtkActor()
 
-    #     self.data = None
-    #     self.mapper = None
-    #     self.property = None
-        
-    #     print("PPP")
+    def __init__(self):
+
+        self.actor = vtk.vtkActor()
+        self.property = self.actor.GetProperty()
+        self.mapper = vtk.vtkPolyDataMapper()
+
+        self._bfprop = None   # backface property holder
+        self._scals_idx = 0   # index of the active scalar changed from CLI
+        self._ligthingnr = 0  # index of the lighting mode changed from CLI
+        self._cmap_name = ""  # remember the name for self._keypress
+
+        try:
+            self.property.RenderPointsAsSpheresOn()
+        except AttributeError:
+            pass
+
+
+    def color(self, c=False, alpha=None):
+        """
+        Set/get mesh's color.
+        If None is passed as input, will use colors from active scalars.
+        Same as `mesh.c()`.
+        """
+        # overrides base.color()
+        if c is False:
+            return np.array(self.property.GetColor())
+        if c is None:
+            self.mapper.ScalarVisibilityOn()
+            return self
+        self.mapper.ScalarVisibilityOff()
+        cc = colors.get_color(c)
+        self.property.SetColor(cc)
+        if self.trail:
+            self.trail.GetProperty().SetColor(cc)
+        if alpha is not None:
+            self.alpha(alpha)
+        return self
+
+    def alpha(self, opacity=None):
+        """Set/get mesh's transparency. Same as `mesh.opacity()`."""
+        if opacity is None:
+            return self.property.GetOpacity()
+
+        self.property.SetOpacity(opacity)
+        bfp = self.actor.GetBackfaceProperty()
+        if bfp:
+            if opacity < 1:
+                self._bfprop = bfp
+                self.property.SetBackfaceProperty(None)
+            else:
+                self.property.SetBackfaceProperty(self._bfprop)
+        return self
+
+
+    def opacity(self, alpha=None):
+        """Set/get mesh's transparency. Same as `mesh.alpha()`."""
+        return self.alpha(alpha)
+
+    def force_opaque(self, value=True):
+        """ Force the Mesh, Line or point cloud to be treated as opaque"""
+        ## force the opaque pass, fixes picking in vtk9
+        # but causes other bad troubles with lines..
+        self.actor.SetForceOpaque(value)
+        return self
+
+    def force_translucent(self, value=True):
+        """ Force the Mesh, Line or point cloud to be treated as translucent"""
+        self.actor.SetForceTranslucent(value)
+        return self
+
+    def point_size(self, value=None):
+        """Set/get mesh's point size of vertices. Same as `mesh.ps()`"""
+        if value is None:
+            return self.property.GetPointSize()
+            #self.property.SetRepresentationToSurface()
+        else:
+            self.property.SetRepresentationToPoints()
+            self.property.SetPointSize(value)
+        return self
+
+    def ps(self, pointsize=None):
+        """Set/get mesh's point size of vertices. Same as `mesh.point_size()`"""
+        return self.point_size(pointsize)
+
+    def render_points_as_spheres(self, value=True):
+        """Make points look spheric or make them look as squares."""
+        self.property.SetRenderPointsAsSpheres(value)
+        return self
+
+    def lighting(
+        self,
+        style="",
+        ambient=None,
+        diffuse=None,
+        specular=None,
+        specular_power=None,
+        specular_color=None,
+        metallicity=None,
+        roughness=None,
+    ):
+        """
+        Set the ambient, diffuse, specular and specular_power lighting constants.
+
+        Arguments:
+            style : (str)
+                preset style, options are `[metallic, plastic, shiny, glossy, ambient, off]`
+            ambient : (float)
+                ambient fraction of emission [0-1]
+            diffuse : (float)
+                emission of diffused light in fraction [0-1]
+            specular : (float)
+                fraction of reflected light [0-1]
+            specular_power : (float)
+                precision of reflection [1-100]
+            specular_color : (color)
+                color that is being reflected by the surface
+
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png" alt="", width=700px>
+
+        Examples:
+            - [specular.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/specular.py)
+        """
+        pr = self.property
+
+        if style:
+
+            if isinstance(pr, vtk.vtkVolumeProperty):
+                self.shade(True)
+                if style == "off":
+                    self.shade(False)
+                elif style == "ambient":
+                    style = "default"
+                    self.shade(False)
+            else:
+                if style != "off":
+                    pr.LightingOn()
+
+            if style == "off":
+                pr.SetInterpolationToFlat()
+                pr.LightingOff()
+                return self  ##############
+
+            if hasattr(pr, "GetColor"):  # could be Volume
+                c = pr.GetColor()
+            else:
+                c = (1, 1, 0.99)
+            mpr = self.mapper
+            if hasattr(mpr, 'GetScalarVisibility') and mpr.GetScalarVisibility():
+                c = (1,1,0.99)
+            if   style=='metallic': pars = [0.1, 0.3, 1.0, 10, c]
+            elif style=='plastic' : pars = [0.3, 0.4, 0.3,  5, c]
+            elif style=='shiny'   : pars = [0.2, 0.6, 0.8, 50, c]
+            elif style=='glossy'  : pars = [0.1, 0.7, 0.9, 90, (1,1,0.99)]
+            elif style=='ambient' : pars = [0.8, 0.1, 0.0,  1, (1,1,1)]
+            elif style=='default' : pars = [0.1, 1.0, 0.05, 5, c]
+            else:
+                vedo.logger.error("in lighting(): Available styles are")
+                vedo.logger.error("[default, metallic, plastic, shiny, glossy, ambient, off]")
+                raise RuntimeError()
+            pr.SetAmbient(pars[0])
+            pr.SetDiffuse(pars[1])
+            pr.SetSpecular(pars[2])
+            pr.SetSpecularPower(pars[3])
+            if hasattr(pr, "GetColor"):
+                pr.SetSpecularColor(pars[4])
+
+        if ambient is not None: pr.SetAmbient(ambient)
+        if diffuse is not None: pr.SetDiffuse(diffuse)
+        if specular is not None: pr.SetSpecular(specular)
+        if specular_power is not None: pr.SetSpecularPower(specular_power)
+        if specular_color is not None: pr.SetSpecularColor(colors.get_color(specular_color))
+        if utils.vtk_version_at_least(9):
+            if metallicity is not None:
+                pr.SetInterpolationToPBR()
+                pr.SetMetallic(metallicity)
+            if roughness is not None:
+                pr.SetInterpolationToPBR()
+                pr.SetRoughness(roughness)
+
+        return self
+
+    def blurring(emissive=False):
+        """Set point blurring.
+        Apply a gaussian convolution filter to the points.
+        In this case the radius `r` is in absolute units of the mesh coordinates.
+        With emissive set, the halo of point becomes light-emissive.
+        """
+        if emissive:
+            self.mapper.SetEmissive(bool(emissive))
+        self.mapper.SetScaleFactor(r * 1.4142)
+
+        # https://kitware.github.io/vtk-examples/site/Python/Meshes/PointInterpolator/
+        if alpha < 1:
+            self.mapper.SetSplatShaderCode(
+                "//VTK::Color::Impl\n"
+                "float dist = dot(offsetVCVSOutput.xy,offsetVCVSOutput.xy);\n"
+                "if (dist > 1.0) {\n"
+                "   discard;\n"
+                "} else {\n"
+                f"  float scale = ({alpha} - dist);\n"
+                "   ambientColor *= scale;\n"
+                "   diffuseColor *= scale;\n"
+                "}\n"
+            )
+            alpha = 1
+
+        self.mapper.Modified()
+        self.actor.Modified()
+        self.property.SetOpacity(alpha)
+        self.actor.SetMapper(self.mapper)
+        return self
+
+
+    def cell_individual_colors(self, colorlist):
+        self.cellcolors = colorlist
+        print("Please use property mesh.cellcolors=... instead of mesh.cell_individual_colors()")
+        return self
+
+    @property
+    def cellcolors(self):
+        """
+        Colorize each cell (face) of a mesh by passing
+        a 1-to-1 list of colors in format [R,G,B] or [R,G,B,A].
+        Colors levels and opacities must be in the range [0,255].
+
+        A single constant color can also be passed as string or RGBA.
+
+        A cell array named "CellsRGBA" is automatically created.
+
+        Examples:
+            - [color_mesh_cells1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/color_mesh_cells1.py)
+            - [color_mesh_cells2.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/color_mesh_cells2.py)
+
+            ![](https://vedo.embl.es/images/basic/colorMeshCells.png)
+        """
+        if "CellsRGBA" not in self.celldata.keys():
+            lut = self.mapper.GetLookupTable()
+            vscalars = self.GetCellData().GetScalars()
+            if vscalars is None or lut is None:
+                arr = np.zeros([self.ncells, 4], dtype=np.uint8)
+                col = np.array(self.property.GetColor())
+                col = np.round(col * 255).astype(np.uint8)
+                alf = self.property.GetOpacity()
+                alf = np.round(alf * 255).astype(np.uint8)
+                arr[:, (0, 1, 2)] = col
+                arr[:, 3] = alf
+            else:
+                cols = lut.MapScalars(vscalars, 0, 0)
+                arr = utils.vtk2numpy(cols)
+            self.celldata["CellsRGBA"] = arr
+        self.celldata.select("CellsRGBA")
+        return self.celldata["CellsRGBA"]
+
+    @cellcolors.setter
+    def cellcolors(self, value):
+        if isinstance(value, str):
+            c = colors.get_color(value)
+            value = np.array([*c, 1]) * 255
+            value = np.round(value)
+
+        value = np.asarray(value)
+        n = self.ncells
+
+        if value.ndim == 1:
+            value = np.repeat([value], n, axis=0)
+
+        if value.shape[1] == 3:
+            z = np.zeros((n, 1), dtype=np.uint8)
+            value = np.append(value, z + 255, axis=1)
+
+        assert n == value.shape[0]
+
+        self.celldata["CellsRGBA"] = value.astype(np.uint8)
+        self.celldata.select("CellsRGBA")
+
+
+    @property
+    def pointcolors(self):
+        """
+        Colorize each point (or vertex of a mesh) by passing
+        a 1-to-1 list of colors in format [R,G,B] or [R,G,B,A].
+        Colors levels and opacities must be in the range [0,255].
+
+        A single constant color can also be passed as string or RGBA.
+
+        A point array named "PointsRGBA" is automatically created.
+        """
+        if "PointsRGBA" not in self.pointdata.keys():
+            lut = self.mapper.GetLookupTable()
+            vscalars = self.GetPointData().GetScalars()
+            if vscalars is None or lut is None:
+                arr = np.zeros([self.npoints, 4], dtype=np.uint8)
+                col = np.array(self.property.GetColor())
+                col = np.round(col * 255).astype(np.uint8)
+                alf = self.property.GetOpacity()
+                alf = np.round(alf * 255).astype(np.uint8)
+                arr[:, (0, 1, 2)] = col
+                arr[:, 3] = alf
+            else:
+                cols = lut.MapScalars(vscalars, 0, 0)
+                arr = utils.vtk2numpy(cols)
+            self.pointdata["PointsRGBA"] = arr
+        self.pointdata.select("PointsRGBA")
+        return self.pointdata["PointsRGBA"]
+
+    @pointcolors.setter
+    def pointcolors(self, value):
+        if isinstance(value, str):
+            c = colors.get_color(value)
+            value = np.array([*c, 1]) * 255
+            value = np.round(value)
+
+        value = np.asarray(value)
+        n = self.npoints
+
+        if value.ndim == 1:
+            value = np.repeat([value], n, axis=0)
+
+        if value.shape[1] == 3:
+            z = np.zeros((n, 1), dtype=np.uint8)
+            value = np.append(value, z + 255, axis=1)
+
+        assert n == value.shape[0]
+
+        self.pointdata["PointsRGBA"] = value.astype(np.uint8)
+        self.pointdata.select("PointsRGBA")
+
+    #####################################################################################
+    def cmap(
+        self,
+        input_cmap,
+        input_array=None,
+        on="points",
+        name="Scalars",
+        vmin=None,
+        vmax=None,
+        n_colors=256,
+        alpha=1.0,
+        logscale=False,
+    ):
+        """
+        Set individual point/cell colors by providing a list of scalar values and a color map.
+
+        Arguments:
+            input_cmap : (str, list, vtkLookupTable, matplotlib.colors.LinearSegmentedColormap)
+                color map scheme to transform a real number into a color.
+            input_array : (str, list, vtkArray)
+                can be the string name of an existing array, a numpy array or a `vtkArray`.
+            on : (str)
+                either 'points' or 'cells'.
+                Apply the color map to data which is defined on either points or cells.
+            name : (str)
+                give a name to the provided numpy array (if input_array is a numpy array)
+            vmin : (float)
+                clip scalars to this minimum value
+            vmax : (float)
+                clip scalars to this maximum value
+            n_colors : (int)
+                number of distinct colors to be used in colormap table.
+            alpha : (float, list)
+                Mesh transparency. Can be a `list` of values one for each vertex.
+            logscale : (bool)
+                Use logscale
+
+        Examples:
+            - [mesh_coloring.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_coloring.py)
+            - [mesh_alphas.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_alphas.py)
+            - [mesh_custom.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_custom.py)
+            (and many others)
+
+                ![](https://vedo.embl.es/images/basic/mesh_custom.png)
+        """
+        self._cmap_name = input_cmap
+        poly = self.inputdata()
+
+        if input_array is None:
+            if not self.pointdata.keys() and self.celldata.keys():
+                on = "cells"
+                if not poly.GetCellData().GetScalars():
+                    input_array = 0  # pick the first at hand
+
+        if on.startswith("point"):
+            data = poly.GetPointData()
+            n = poly.GetNumberOfPoints()
+        elif on.startswith("cell"):
+            data = poly.GetCellData()
+            n = poly.GetNumberOfCells()
+        else:
+            vedo.logger.error("Must specify in cmap(on=...) to either 'cells' or 'points'")
+            raise RuntimeError()
+
+        if input_array is None:  # if None try to fetch the active scalars
+            arr = data.GetScalars()
+            if not arr:
+                vedo.logger.error(f"in cmap(), cannot find any {on} active array ...skip coloring.")
+                return self
+
+            if not arr.GetName():  # sometimes arrays dont have a name..
+                arr.SetName(name)
+
+        elif isinstance(input_array, str):  # if a string is passed
+            arr = data.GetArray(input_array)
+            if not arr:
+                vedo.logger.error(f"in cmap(), cannot find {on} array {input_array} ...skip coloring.")
+                return self
+
+        elif isinstance(input_array, int):  # if an int is passed
+            if input_array < data.GetNumberOfArrays():
+                arr = data.GetArray(input_array)
+            else:
+                vedo.logger.error(f"in cmap(), cannot find {on} array at {input_array} ...skip coloring.")
+                return self
+
+        elif utils.is_sequence(input_array):  # if a numpy array is passed
+            npts = len(input_array)
+            if npts != n:
+                vedo.logger.error(f"in cmap(), nr. of input {on} scalars {npts} != {n} ...skip coloring.")
+                return self
+            arr = utils.numpy2vtk(input_array, name=name, dtype=float)
+            data.AddArray(arr)
+            data.Modified()
+
+        elif isinstance(input_array, vtk.vtkArray):  # if a vtkArray is passed
+            arr = input_array
+            data.AddArray(arr)
+            data.Modified()
+
+        else:
+            vedo.logger.error(f"in cmap(), cannot understand input type {type(input_array)}")
+            raise RuntimeError()
+
+        # Now we have array "arr"
+        array_name = arr.GetName()
+
+        if arr.GetNumberOfComponents() == 1:
+            if vmin is None:
+                vmin = arr.GetRange()[0]
+            if vmax is None:
+                vmax = arr.GetRange()[1]
+        else:
+            if vmin is None or vmax is None:
+                vn = utils.mag(utils.vtk2numpy(arr))
+            if vmin is None:
+                vmin = vn.min()
+            if vmax is None:
+                vmax = vn.max()
+
+        # interpolate alphas if they are not constant
+        if not utils.is_sequence(alpha):
+            alpha = [alpha] * n_colors
+        else:
+            v = np.linspace(0, 1, n_colors, endpoint=True)
+            xp = np.linspace(0, 1, len(alpha), endpoint=True)
+            alpha = np.interp(v, xp, alpha)
+
+        ########################### build the look-up table
+        if isinstance(input_cmap, vtk.vtkLookupTable):  # vtkLookupTable
+            lut = input_cmap
+
+        elif utils.is_sequence(input_cmap):  # manual sequence of colors
+            lut = vtk.vtkLookupTable()
+            if logscale:
+                lut.SetScaleToLog10()
+            lut.SetRange(vmin, vmax)
+            ncols = len(input_cmap)
+            lut.SetNumberOfTableValues(ncols)
+
+            for i, c in enumerate(input_cmap):
+                r, g, b = colors.get_color(c)
+                lut.SetTableValue(i, r, g, b, alpha[i])
+            lut.Build()
+
+        else:  # assume string cmap name OR matplotlib.colors.LinearSegmentedColormap
+            lut = vtk.vtkLookupTable()
+            if logscale:
+                lut.SetScaleToLog10()
+            lut.SetVectorModeToMagnitude()
+            lut.SetRange(vmin, vmax)
+            lut.SetNumberOfTableValues(n_colors)
+            mycols = colors.color_map(range(n_colors), input_cmap, 0, n_colors)
+            for i, c in enumerate(mycols):
+                r, g, b = c
+                lut.SetTableValue(i, r, g, b, alpha[i])
+            lut.Build()
+
+        arr.SetLookupTable(lut)
+
+        data.SetActiveScalars(array_name)
+        # data.SetScalars(arr)  # wrong! it deletes array in position 0, never use SetScalars
+        # data.SetActiveAttribute(array_name, 0) # boh!
+
+        if data.GetScalars():
+            data.GetScalars().SetLookupTable(lut)
+            data.GetScalars().Modified()
+
+        self.mapper.SetLookupTable(lut)
+        self.mapper.SetColorModeToMapScalars()  # so we dont need to convert uint8 scalars
+
+        self.mapper.ScalarVisibilityOn()
+        self.mapper.SetScalarRange(lut.GetRange())
+        if on.startswith("point"):
+            self.mapper.SetScalarModeToUsePointData()
+        else:
+            self.mapper.SetScalarModeToUseCellData()
+        if hasattr(self.mapper, "SetArrayName"):
+            self.mapper.SetArrayName(array_name)
+
+        return self
+
+    def add_trail(self, offset=(0, 0, 0), n=50, c=None, alpha=1.0, lw=2):
+        """
+        Add a trailing line to mesh.
+        This new mesh is accessible through `mesh.trail`.
+
+        Arguments:
+            offset : (float)
+                set an offset vector from the object center.
+            n : (int)
+                number of segments
+            lw : (float)
+                line width of the trail
+
+        Examples:
+            - [trail.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/trail.py)
+
+                ![](https://vedo.embl.es/images/simulations/trail.gif)
+
+            - [airplane1.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplane1.py)
+            - [airplane2.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplane2.py)
+        """
+        if self.trail is None:
+            pos = self.pos()
+            self.trail_offset = np.asarray(offset)
+            self.trail_points = [pos] * n
+
+            if c is None:
+                col = self.property.GetColor()
+            else:
+                col = colors.get_color(c)
+
+            tline = vedo.shapes.Line(pos, pos, res=n, c=col, alpha=alpha, lw=lw)
+            self.trail = tline  # holds the Line
+        return self
+
+    def update_trail(self):
+        """
+        Update the trailing line of a moving object.
+        """
+        currentpos = self.pos()
+
+        self.trail_points.append(currentpos)  # cycle
+        self.trail_points.pop(0)
+
+        data = np.array(self.trail_points) - currentpos + self.trail_offset
+        tpoly = self.trail
+        tpoly.GetPoints().SetData(utils.numpy2vtk(data, dtype=np.float32))
+        self.trail.pos(currentpos)
+        return self
+
+
+    def _compute_shadow(self, plane, point, direction):
+        shad = self.clone()
+        shad.GetPointData().SetTCoords(None) # remove any texture coords
+        shad.name = "Shadow"
+
+        pts = shad.points()
+        if plane == 'x':
+            # shad = shad.project_on_plane('x')
+            # instead do it manually so in case of alpha<1 
+            # we dont see glitches due to coplanar points
+            # we leave a small tolerance of 0.1% in thickness
+            x0, x1 = self.xbounds()
+            pts[:, 0] = (pts[:, 0] - (x0 + x1) / 2) / 1000 + self.actor.GetOrigin()[0]
+            shad.points(pts)
+            shad.x(point)
+        elif plane == 'y':
+            x0, x1 = self.ybounds()
+            pts[:, 1] = (pts[:, 1] - (x0 + x1) / 2) / 1000 + self.actor.GetOrigin()[1]
+            shad.points(pts)
+            shad.y(point)
+        elif plane == "z":
+            x0, x1 = self.zbounds()
+            pts[:, 2] = (pts[:, 2] - (x0 + x1) / 2) / 1000 + self.actor.GetOrigin()[2]
+            shad.points(pts)
+            shad.z(point)
+        else:
+            shad = shad.project_on_plane(plane, point, direction)
+        return shad
+
+    def add_shadow(self, plane, point, direction=None, c=(0.6, 0.6, 0.6), alpha=1, culling=0):
+        """
+        Generate a shadow out of an `Mesh` on one of the three Cartesian planes.
+        The output is a new `Mesh` representing the shadow.
+        This new mesh is accessible through `mesh.shadow`.
+        By default the shadow mesh is placed on the bottom wall of the bounding box.
+
+        See also `pointcloud.project_on_plane()`.
+
+        Arguments:
+            plane : (str, Plane)
+                if plane is `str`, plane can be one of `['x', 'y', 'z']`,
+                represents x-plane, y-plane and z-plane, respectively.
+                Otherwise, plane should be an instance of `vedo.shapes.Plane`
+            point : (float, array)
+                if plane is `str`, point should be a float represents the intercept.
+                Otherwise, point is the camera point of perspective projection
+            direction : (list)
+                direction of oblique projection
+            culling : (int)
+                choose between front [1] or backface [-1] culling or None.
+
+        Examples:
+            - [shadow1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/shadow1.py)
+            - [airplane1.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplane1.py)
+            - [airplane2.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplane2.py)
+
+            ![](https://vedo.embl.es/images/simulations/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)
+        """
+        shad = self._compute_shadow(plane, point, direction)
+        shad.c(c).alpha(alpha)
+
+        try:
+            # Points dont have these methods
+            shad.flat()
+            if culling in (1, True):
+                shad.frontface_culling()
+            elif culling == -1:
+                shad.backface_culling()
+        except AttributeError:
+            pass
+
+        shad.property.LightingOff()
+        shad.actor.SetPickable(False)
+        shad.actor.SetUseBounds(True)
+
+        if shad not in self.shadows:
+            self.shadows.append(shad)
+            shad.info = dict(plane=plane, point=point, direction=direction)
+        return self
+
+    def update_shadows(self):
+        """
+        Update the shadows of a moving object.
+        """
+        for sha in self.shadows:
+            plane = sha.info['plane']
+            point = sha.info['point']
+            direction = sha.info['direction']
+            new_sha = self._compute_shadow(plane, point, direction)
+            sha.DeepCopy(new_sha)
+        return self
 
 
 ###################################################
 class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
-    """Work with point clouds."""
+    """>Work with point clouds."""
 
-    def __init__(self, inputobj=None, r=4, c=(0.2, 0.2, 0.2), alpha=1, blur=False, emissive=True):
+    def __init__(self, inputobj=None, r=4, c=(0.2, 0.2, 0.2), alpha=1):
         """
         Build an object made of only vertex points for a list of 2D/3D points.
         Both shapes (N, 3) or (3, N) are accepted as input, if N>3.
@@ -739,11 +1382,6 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
                 Color name or rgb tuple.
             alpha : (float)
                 Transparency in range [0,1].
-            blur : (bool)
-                Apply a gaussian convolution filter to the points.
-                In this case the radius `r` is in absolute units of the mesh coordinates.
-            emissive : (bool)
-                Halo of point becomes emissive.
 
         Example:
             ```python
@@ -762,49 +1400,14 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             ```
             ![](https://vedo.embl.es/images/feats/fibonacci.png)
         """
-        super().__init__()
-
-        self.actor = vtk.vtkActor()
-        self.property = self.actor.GetProperty()
+        # super().__init__()  ## super is not working here
+        vtk.vtkPolyData.__init__(self)
+        BaseActor.__init__(self)
+        PointsVisual.__init__(self)
 
         self.transform = LinearTransform()
         self.actor.data = self
         # self.name = "Points" # better not to give it a name here
-
-        if blur:
-            self.mapper = vtk.vtkPointGaussianMapper()
-            if emissive:
-                self.mapper.SetEmissive(bool(emissive))
-            self.mapper.SetScaleFactor(r * 1.4142)
-
-            # https://kitware.github.io/vtk-examples/site/Python/Meshes/PointInterpolator/
-            if alpha < 1:
-                self.mapper.SetSplatShaderCode(
-                    "//VTK::Color::Impl\n"
-                    "float dist = dot(offsetVCVSOutput.xy,offsetVCVSOutput.xy);\n"
-                    "if (dist > 1.0) {\n"
-                    "   discard;\n"
-                    "} else {\n"
-                    f"  float scale = ({alpha} - dist);\n"
-                    "   ambientColor *= scale;\n"
-                    "   diffuseColor *= scale;\n"
-                    "}\n"
-                )
-                alpha = 1
-
-        else:
-            self.mapper = vtk.vtkPolyDataMapper()
-
-        self._bfprop = None   # backface property holder
-        self._scals_idx = 0   # index of the active scalar changed from CLI
-        self._ligthingnr = 0  # index of the lighting mode changed from CLI
-        self._cmap_name = ""  # remember the name for self._keypress
-
-        try:
-            if not blur:
-                self.property.RenderPointsAsSpheresOn()
-        except AttributeError:
-            pass
 
         if inputobj is None:  ####################
             return
@@ -981,9 +1584,11 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         return vedo.assembly.Assembly([self, meshs])
 
 
-    def polydata(self, transformed=True):
-        """Obsolete."""
-        print("WARNING: method polydata() is obsolete, you can remove it from your code.")
+    def polydata(self, **kwargs):
+        """Obsolete.
+        You can remove it anywhere from your code.
+        """
+        print("WARNING: call to .polydata() is obsolete, you can remove it from your code.")
         return self
 
     def clone(self, deep=True):
@@ -1147,150 +1752,6 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         # print(csys.GetCoordinateSystemAsString())
         # print(act2d.GetHeight(), act2d.GetWidth(), act2d.GetLayerNumber())
         return act2d
-
-    def add_trail(self, offset=(0, 0, 0), n=50, c=None, alpha=1.0, lw=2):
-        """
-        Add a trailing line to mesh.
-        This new mesh is accessible through `mesh.trail`.
-
-        Arguments:
-            offset : (float)
-                set an offset vector from the object center.
-            n : (int)
-                number of segments
-            lw : (float)
-                line width of the trail
-
-        Examples:
-            - [trail.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/trail.py)
-
-                ![](https://vedo.embl.es/images/simulations/trail.gif)
-
-            - [airplane1.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplane1.py)
-            - [airplane2.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplane2.py)
-        """
-        if self.trail is None:
-            pos = self.pos()
-            self.trail_offset = np.asarray(offset)
-            self.trail_points = [pos] * n
-
-            if c is None:
-                col = self.property.GetColor()
-            else:
-                col = colors.get_color(c)
-
-            tline = vedo.shapes.Line(pos, pos, res=n, c=col, alpha=alpha, lw=lw)
-            self.trail = tline  # holds the Line
-        return self
-
-    def update_trail(self):
-        """
-        Update the trailing line of a moving object.
-        """
-        currentpos = self.pos()
-
-        self.trail_points.append(currentpos)  # cycle
-        self.trail_points.pop(0)
-
-        data = np.array(self.trail_points) - currentpos + self.trail_offset
-        tpoly = self.trail
-        tpoly.GetPoints().SetData(utils.numpy2vtk(data, dtype=np.float32))
-        self.trail.pos(currentpos)
-        return self
-
-
-    def _compute_shadow(self, plane, point, direction):
-        shad = self.clone()
-        shad.GetPointData().SetTCoords(None) # remove any texture coords
-        shad.name = "Shadow"
-
-        pts = shad.points()
-        if plane == 'x':
-            # shad = shad.project_on_plane('x')
-            # instead do it manually so in case of alpha<1 
-            # we dont see glitches due to coplanar points
-            # we leave a small tolerance of 0.1% in thickness
-            x0, x1 = self.xbounds()
-            pts[:, 0] = (pts[:, 0] - (x0 + x1) / 2) / 1000 + self.actor.GetOrigin()[0]
-            shad.points(pts)
-            shad.x(point)
-        elif plane == 'y':
-            x0, x1 = self.ybounds()
-            pts[:, 1] = (pts[:, 1] - (x0 + x1) / 2) / 1000 + self.actor.GetOrigin()[1]
-            shad.points(pts)
-            shad.y(point)
-        elif plane == "z":
-            x0, x1 = self.zbounds()
-            pts[:, 2] = (pts[:, 2] - (x0 + x1) / 2) / 1000 + self.actor.GetOrigin()[2]
-            shad.points(pts)
-            shad.z(point)
-        else:
-            shad = shad.project_on_plane(plane, point, direction)
-        return shad
-
-    def add_shadow(self, plane, point, direction=None, c=(0.6, 0.6, 0.6), alpha=1, culling=0):
-        """
-        Generate a shadow out of an `Mesh` on one of the three Cartesian planes.
-        The output is a new `Mesh` representing the shadow.
-        This new mesh is accessible through `mesh.shadow`.
-        By default the shadow mesh is placed on the bottom wall of the bounding box.
-
-        See also `pointcloud.project_on_plane()`.
-
-        Arguments:
-            plane : (str, Plane)
-                if plane is `str`, plane can be one of `['x', 'y', 'z']`,
-                represents x-plane, y-plane and z-plane, respectively.
-                Otherwise, plane should be an instance of `vedo.shapes.Plane`
-            point : (float, array)
-                if plane is `str`, point should be a float represents the intercept.
-                Otherwise, point is the camera point of perspective projection
-            direction : (list)
-                direction of oblique projection
-            culling : (int)
-                choose between front [1] or backface [-1] culling or None.
-
-        Examples:
-            - [shadow1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/shadow1.py)
-            - [airplane1.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplane1.py)
-            - [airplane2.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplane2.py)
-
-            ![](https://vedo.embl.es/images/simulations/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)
-        """
-        shad = self._compute_shadow(plane, point, direction)
-        shad.c(c).alpha(alpha)
-
-        try:
-            # Points dont have these methods
-            shad.flat()
-            if culling in (1, True):
-                shad.frontface_culling()
-            elif culling == -1:
-                shad.backface_culling()
-        except AttributeError:
-            pass
-
-        shad.property.LightingOff()
-        shad.actor.SetPickable(False)
-        shad.actor.SetUseBounds(True)
-
-        if shad not in self.shadows:
-            self.shadows.append(shad)
-            shad.info = dict(plane=plane, point=point, direction=direction)
-        return self
-
-    def update_shadows(self):
-        """
-        Update the shadows of a moving object.
-        """
-        for sha in self.shadows:
-            plane = sha.info['plane']
-            point = sha.info['point']
-            direction = sha.info['direction']
-            new_sha = self._compute_shadow(plane, point, direction)
-            sha.DeepCopy(new_sha)
-        return self
-
 
     def delete_cells_by_point_index(self, indices):
         """
@@ -1466,169 +1927,6 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             comment=f"#pts {self.GetNumberOfPoints()}",
         )
         return dists
-
-    def lighting(
-        self,
-        style="",
-        ambient=None,
-        diffuse=None,
-        specular=None,
-        specular_power=None,
-        specular_color=None,
-        metallicity=None,
-        roughness=None,
-    ):
-        """
-        Set the ambient, diffuse, specular and specular_power lighting constants.
-
-        Arguments:
-            style : (str)
-                preset style, options are `[metallic, plastic, shiny, glossy, ambient, off]`
-            ambient : (float)
-                ambient fraction of emission [0-1]
-            diffuse : (float)
-                emission of diffused light in fraction [0-1]
-            specular : (float)
-                fraction of reflected light [0-1]
-            specular_power : (float)
-                precision of reflection [1-100]
-            specular_color : (color)
-                color that is being reflected by the surface
-
-        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png" alt="", width=700px>
-
-        Examples:
-            - [specular.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/specular.py)
-        """
-        pr = self.property
-
-        if style:
-
-            if isinstance(pr, vtk.vtkVolumeProperty):
-                self.shade(True)
-                if style == "off":
-                    self.shade(False)
-                elif style == "ambient":
-                    style = "default"
-                    self.shade(False)
-            else:
-                if style != "off":
-                    pr.LightingOn()
-
-            if style == "off":
-                pr.SetInterpolationToFlat()
-                pr.LightingOff()
-                return self  ##############
-
-            if hasattr(pr, "GetColor"):  # could be Volume
-                c = pr.GetColor()
-            else:
-                c = (1, 1, 0.99)
-            mpr = self.mapper
-            if hasattr(mpr, 'GetScalarVisibility') and mpr.GetScalarVisibility():
-                c = (1,1,0.99)
-            if   style=='metallic': pars = [0.1, 0.3, 1.0, 10, c]
-            elif style=='plastic' : pars = [0.3, 0.4, 0.3,  5, c]
-            elif style=='shiny'   : pars = [0.2, 0.6, 0.8, 50, c]
-            elif style=='glossy'  : pars = [0.1, 0.7, 0.9, 90, (1,1,0.99)]
-            elif style=='ambient' : pars = [0.8, 0.1, 0.0,  1, (1,1,1)]
-            elif style=='default' : pars = [0.1, 1.0, 0.05, 5, c]
-            else:
-                vedo.logger.error("in lighting(): Available styles are")
-                vedo.logger.error("[default, metallic, plastic, shiny, glossy, ambient, off]")
-                raise RuntimeError()
-            pr.SetAmbient(pars[0])
-            pr.SetDiffuse(pars[1])
-            pr.SetSpecular(pars[2])
-            pr.SetSpecularPower(pars[3])
-            if hasattr(pr, "GetColor"):
-                pr.SetSpecularColor(pars[4])
-
-        if ambient is not None: pr.SetAmbient(ambient)
-        if diffuse is not None: pr.SetDiffuse(diffuse)
-        if specular is not None: pr.SetSpecular(specular)
-        if specular_power is not None: pr.SetSpecularPower(specular_power)
-        if specular_color is not None: pr.SetSpecularColor(colors.get_color(specular_color))
-        if utils.vtk_version_at_least(9):
-            if metallicity is not None:
-                pr.SetInterpolationToPBR()
-                pr.SetMetallic(metallicity)
-            if roughness is not None:
-                pr.SetInterpolationToPBR()
-                pr.SetRoughness(roughness)
-
-        return self
-
-    def alpha(self, opacity=None):
-        """Set/get mesh's transparency. Same as `mesh.opacity()`."""
-        if opacity is None:
-            return self.property.GetOpacity()
-
-        self.property.SetOpacity(opacity)
-        bfp = self.actor.GetBackfaceProperty()
-        if bfp:
-            if opacity < 1:
-                self._bfprop = bfp
-                self.property.SetBackfaceProperty(None)
-            else:
-                self.property.SetBackfaceProperty(self._bfprop)
-        return self
-
-    def opacity(self, alpha=None):
-        """Set/get mesh's transparency. Same as `mesh.alpha()`."""
-        return self.alpha(alpha)
-
-    def force_opaque(self, value=True):
-        """ Force the Mesh, Line or point cloud to be treated as opaque"""
-        ## force the opaque pass, fixes picking in vtk9
-        # but causes other bad troubles with lines..
-        self.actor.SetForceOpaque(value)
-        return self
-
-    def force_translucent(self, value=True):
-        """ Force the Mesh, Line or point cloud to be treated as translucent"""
-        self.actor.SetForceTranslucent(value)
-        return self
-
-    def point_size(self, value=None):
-        """Set/get mesh's point size of vertices. Same as `mesh.ps()`"""
-        if value is None:
-            return self.property.GetPointSize()
-            #self.property.SetRepresentationToSurface()
-        else:
-            self.property.SetRepresentationToPoints()
-            self.property.SetPointSize(value)
-        return self
-
-    def ps(self, pointsize=None):
-        """Set/get mesh's point size of vertices. Same as `mesh.point_size()`"""
-        return self.point_size(pointsize)
-
-    def render_points_as_spheres(self, value=True):
-        """Make points look spheric or make them look as squares."""
-        self.property.SetRenderPointsAsSpheres(value)
-        return self
-
-    def color(self, c=False, alpha=None):
-        """
-        Set/get mesh's color.
-        If None is passed as input, will use colors from active scalars.
-        Same as `mesh.c()`.
-        """
-        # overrides base.color()
-        if c is False:
-            return np.array(self.property.GetColor())
-        if c is None:
-            self.mapper.ScalarVisibilityOn()
-            return self
-        self.mapper.ScalarVisibilityOff()
-        cc = colors.get_color(c)
-        self.property.SetColor(cc)
-        if self.trail:
-            self.trail.GetProperty().SetColor(cc)
-        if alpha is not None:
-            self.alpha(alpha)
-        return self
 
     def clean(self):
         """
@@ -2670,304 +2968,6 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         self.DeepCopy(rs.GetOutput())
         self.pipeline = utils.OperationNode("flip_normals", parents=[self])
         return self
-
-    #####################################################################################
-    def cmap(
-        self,
-        input_cmap,
-        input_array=None,
-        on="points",
-        name="Scalars",
-        vmin=None,
-        vmax=None,
-        n_colors=256,
-        alpha=1.0,
-        logscale=False,
-    ):
-        """
-        Set individual point/cell colors by providing a list of scalar values and a color map.
-
-        Arguments:
-            input_cmap : (str, list, vtkLookupTable, matplotlib.colors.LinearSegmentedColormap)
-                color map scheme to transform a real number into a color.
-            input_array : (str, list, vtkArray)
-                can be the string name of an existing array, a numpy array or a `vtkArray`.
-            on : (str)
-                either 'points' or 'cells'.
-                Apply the color map to data which is defined on either points or cells.
-            name : (str)
-                give a name to the provided numpy array (if input_array is a numpy array)
-            vmin : (float)
-                clip scalars to this minimum value
-            vmax : (float)
-                clip scalars to this maximum value
-            n_colors : (int)
-                number of distinct colors to be used in colormap table.
-            alpha : (float, list)
-                Mesh transparency. Can be a `list` of values one for each vertex.
-            logscale : (bool)
-                Use logscale
-
-        Examples:
-            - [mesh_coloring.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_coloring.py)
-            - [mesh_alphas.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_alphas.py)
-            - [mesh_custom.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_custom.py)
-            (and many others)
-
-                ![](https://vedo.embl.es/images/basic/mesh_custom.png)
-        """
-        self._cmap_name = input_cmap
-        poly = self.inputdata()
-
-        if input_array is None:
-            if not self.pointdata.keys() and self.celldata.keys():
-                on = "cells"
-                if not poly.GetCellData().GetScalars():
-                    input_array = 0  # pick the first at hand
-
-        if on.startswith("point"):
-            data = poly.GetPointData()
-            n = poly.GetNumberOfPoints()
-        elif on.startswith("cell"):
-            data = poly.GetCellData()
-            n = poly.GetNumberOfCells()
-        else:
-            vedo.logger.error("Must specify in cmap(on=...) to either 'cells' or 'points'")
-            raise RuntimeError()
-
-        if input_array is None:  # if None try to fetch the active scalars
-            arr = data.GetScalars()
-            if not arr:
-                vedo.logger.error(f"in cmap(), cannot find any {on} active array ...skip coloring.")
-                return self
-
-            if not arr.GetName():  # sometimes arrays dont have a name..
-                arr.SetName(name)
-
-        elif isinstance(input_array, str):  # if a string is passed
-            arr = data.GetArray(input_array)
-            if not arr:
-                vedo.logger.error(f"in cmap(), cannot find {on} array {input_array} ...skip coloring.")
-                return self
-
-        elif isinstance(input_array, int):  # if an int is passed
-            if input_array < data.GetNumberOfArrays():
-                arr = data.GetArray(input_array)
-            else:
-                vedo.logger.error(f"in cmap(), cannot find {on} array at {input_array} ...skip coloring.")
-                return self
-
-        elif utils.is_sequence(input_array):  # if a numpy array is passed
-            npts = len(input_array)
-            if npts != n:
-                vedo.logger.error(f"in cmap(), nr. of input {on} scalars {npts} != {n} ...skip coloring.")
-                return self
-            arr = utils.numpy2vtk(input_array, name=name, dtype=float)
-            data.AddArray(arr)
-            data.Modified()
-
-        elif isinstance(input_array, vtk.vtkArray):  # if a vtkArray is passed
-            arr = input_array
-            data.AddArray(arr)
-            data.Modified()
-
-        else:
-            vedo.logger.error(f"in cmap(), cannot understand input type {type(input_array)}")
-            raise RuntimeError()
-
-        # Now we have array "arr"
-        array_name = arr.GetName()
-
-        if arr.GetNumberOfComponents() == 1:
-            if vmin is None:
-                vmin = arr.GetRange()[0]
-            if vmax is None:
-                vmax = arr.GetRange()[1]
-        else:
-            if vmin is None or vmax is None:
-                vn = utils.mag(utils.vtk2numpy(arr))
-            if vmin is None:
-                vmin = vn.min()
-            if vmax is None:
-                vmax = vn.max()
-
-        # interpolate alphas if they are not constant
-        if not utils.is_sequence(alpha):
-            alpha = [alpha] * n_colors
-        else:
-            v = np.linspace(0, 1, n_colors, endpoint=True)
-            xp = np.linspace(0, 1, len(alpha), endpoint=True)
-            alpha = np.interp(v, xp, alpha)
-
-        ########################### build the look-up table
-        if isinstance(input_cmap, vtk.vtkLookupTable):  # vtkLookupTable
-            lut = input_cmap
-
-        elif utils.is_sequence(input_cmap):  # manual sequence of colors
-            lut = vtk.vtkLookupTable()
-            if logscale:
-                lut.SetScaleToLog10()
-            lut.SetRange(vmin, vmax)
-            ncols = len(input_cmap)
-            lut.SetNumberOfTableValues(ncols)
-
-            for i, c in enumerate(input_cmap):
-                r, g, b = colors.get_color(c)
-                lut.SetTableValue(i, r, g, b, alpha[i])
-            lut.Build()
-
-        else:  # assume string cmap name OR matplotlib.colors.LinearSegmentedColormap
-            lut = vtk.vtkLookupTable()
-            if logscale:
-                lut.SetScaleToLog10()
-            lut.SetVectorModeToMagnitude()
-            lut.SetRange(vmin, vmax)
-            lut.SetNumberOfTableValues(n_colors)
-            mycols = colors.color_map(range(n_colors), input_cmap, 0, n_colors)
-            for i, c in enumerate(mycols):
-                r, g, b = c
-                lut.SetTableValue(i, r, g, b, alpha[i])
-            lut.Build()
-
-        arr.SetLookupTable(lut)
-
-        data.SetActiveScalars(array_name)
-        # data.SetScalars(arr)  # wrong! it deletes array in position 0, never use SetScalars
-        # data.SetActiveAttribute(array_name, 0) # boh!
-
-        if data.GetScalars():
-            data.GetScalars().SetLookupTable(lut)
-            data.GetScalars().Modified()
-
-        self.mapper.SetLookupTable(lut)
-        self.mapper.SetColorModeToMapScalars()  # so we dont need to convert uint8 scalars
-
-        self.mapper.ScalarVisibilityOn()
-        self.mapper.SetScalarRange(lut.GetRange())
-        if on.startswith("point"):
-            self.mapper.SetScalarModeToUsePointData()
-        else:
-            self.mapper.SetScalarModeToUseCellData()
-        if hasattr(self.mapper, "SetArrayName"):
-            self.mapper.SetArrayName(array_name)
-
-        return self
-
-    def cell_individual_colors(self, colorlist):
-        # DEPRECATED
-        self.cellcolors = colorlist
-        print("Please use property mesh.cellcolors=... instead of mesh.cell_individual_colors()")
-        return self
-
-    @property
-    def cellcolors(self):
-        """
-        Colorize each cell (face) of a mesh by passing
-        a 1-to-1 list of colors in format [R,G,B] or [R,G,B,A].
-        Colors levels and opacities must be in the range [0,255].
-
-        A single constant color can also be passed as string or RGBA.
-
-        A cell array named "CellsRGBA" is automatically created.
-
-        Examples:
-            - [color_mesh_cells1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/color_mesh_cells1.py)
-            - [color_mesh_cells2.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/color_mesh_cells2.py)
-
-            ![](https://vedo.embl.es/images/basic/colorMeshCells.png)
-        """
-        if "CellsRGBA" not in self.celldata.keys():
-            lut = self.mapper.GetLookupTable()
-            vscalars = self.GetCellData().GetScalars()
-            if vscalars is None or lut is None:
-                arr = np.zeros([self.ncells, 4], dtype=np.uint8)
-                col = np.array(self.property.GetColor())
-                col = np.round(col * 255).astype(np.uint8)
-                alf = self.property.GetOpacity()
-                alf = np.round(alf * 255).astype(np.uint8)
-                arr[:, (0, 1, 2)] = col
-                arr[:, 3] = alf
-            else:
-                cols = lut.MapScalars(vscalars, 0, 0)
-                arr = utils.vtk2numpy(cols)
-            self.celldata["CellsRGBA"] = arr
-        self.celldata.select("CellsRGBA")
-        return self.celldata["CellsRGBA"]
-
-    @cellcolors.setter
-    def cellcolors(self, value):
-        if isinstance(value, str):
-            c = colors.get_color(value)
-            value = np.array([*c, 1]) * 255
-            value = np.round(value)
-
-        value = np.asarray(value)
-        n = self.ncells
-
-        if value.ndim == 1:
-            value = np.repeat([value], n, axis=0)
-
-        if value.shape[1] == 3:
-            z = np.zeros((n, 1), dtype=np.uint8)
-            value = np.append(value, z + 255, axis=1)
-
-        assert n == value.shape[0]
-
-        self.celldata["CellsRGBA"] = value.astype(np.uint8)
-        self.celldata.select("CellsRGBA")
-
-
-    @property
-    def pointcolors(self):
-        """
-        Colorize each point (or vertex of a mesh) by passing
-        a 1-to-1 list of colors in format [R,G,B] or [R,G,B,A].
-        Colors levels and opacities must be in the range [0,255].
-
-        A single constant color can also be passed as string or RGBA.
-
-        A point array named "PointsRGBA" is automatically created.
-        """
-        if "PointsRGBA" not in self.pointdata.keys():
-            lut = self.mapper.GetLookupTable()
-            vscalars = self.GetPointData().GetScalars()
-            if vscalars is None or lut is None:
-                arr = np.zeros([self.npoints, 4], dtype=np.uint8)
-                col = np.array(self.property.GetColor())
-                col = np.round(col * 255).astype(np.uint8)
-                alf = self.property.GetOpacity()
-                alf = np.round(alf * 255).astype(np.uint8)
-                arr[:, (0, 1, 2)] = col
-                arr[:, 3] = alf
-            else:
-                cols = lut.MapScalars(vscalars, 0, 0)
-                arr = utils.vtk2numpy(cols)
-            self.pointdata["PointsRGBA"] = arr
-        self.pointdata.select("PointsRGBA")
-        return self.pointdata["PointsRGBA"]
-
-    @pointcolors.setter
-    def pointcolors(self, value):
-        if isinstance(value, str):
-            c = colors.get_color(value)
-            value = np.array([*c, 1]) * 255
-            value = np.round(value)
-
-        value = np.asarray(value)
-        n = self.npoints
-
-        if value.ndim == 1:
-            value = np.repeat([value], n, axis=0)
-
-        if value.shape[1] == 3:
-            z = np.zeros((n, 1), dtype=np.uint8)
-            value = np.append(value, z + 255, axis=1)
-
-        assert n == value.shape[0]
-
-        self.pointdata["PointsRGBA"] = value.astype(np.uint8)
-        self.pointdata.select("PointsRGBA")
-
 
     def interpolate_data_from(
         self,

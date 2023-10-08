@@ -194,7 +194,7 @@ class Figure(Assembly):
         self.axes = None
         if xlim[0] >= xlim[1] or ylim[0] >= ylim[1]:
             vedo.logger.warning(f"Null range for Figure {self.title}... returning an empty Assembly.")
-            Assembly.__init__(self)
+            super.__init__()
             self.yscale = 0
             return
 
@@ -240,7 +240,7 @@ class Figure(Assembly):
 
             self.axes = addons.Axes(**axes_opts)
 
-        Assembly.__init__(self, [self.axes])
+        super().__init__([self.axes])
         self.name = "Figure"
 
         vedo.last_figure = self if settings.remember_last_figure_format else None
@@ -969,7 +969,7 @@ class Histogram1D(Figure):
             fig_kwargs["label"] = nlab
 
         ############################################### Figure init
-        Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
+        super().__init__(xlim, ylim, aspect, padding, **fig_kwargs)
         if not self.yscale:
             return
 
@@ -1284,7 +1284,7 @@ class Histogram2D(Figure):
             axes_opts["htitle_offset"] = [-0.49, 0.01, 0]
 
         ############################################### Figure init
-        Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
+        super.__init__(xlim, ylim, aspect, padding, **fig_kwargs)
 
         if self.yscale:
             ##################### the grid
@@ -1467,7 +1467,7 @@ class PlotBars(Figure):
         self.edges = edges
         self.centers = centers
         self.bins = edges  # internal used by "like"
-        Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
+        super().__init__(xlim, ylim, aspect, padding, **fig_kwargs)
         if not self.yscale:
             return
 
@@ -1743,7 +1743,7 @@ class PlotXY(Figure):
             fig_kwargs["label"] = nlab
 
         ############################################### Figure init
-        Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
+        super().__init__(xlim, ylim, aspect, padding, **fig_kwargs)
 
         if not self.yscale:
             return
@@ -4088,7 +4088,7 @@ class DirectedGraph(Assembly):
                 ![](https://vedo.embl.es/images/pyplot/graph_network.png)
         """
 
-        vedo.Assembly.__init__(self)
+        super().__init__()
 
         self.nodes = []
         self.edges = []
@@ -4326,6 +4326,6 @@ class DirectedGraph(Assembly):
         edge_labels.color(self._c).pickable(True)
         edge_labels.name = "DirectedGraphEdgeLabels"
 
-        Assembly.__init__(self, [dgraph, node_labels, edge_labels, arrows])
+        super().__init__([dgraph, node_labels, edge_labels, arrows])
         self.name = "DirectedGraphAssembly"
         return self

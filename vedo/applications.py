@@ -80,7 +80,7 @@ class Slicer3DPlotter(Plotter):
             <img src="https://vedo.embl.es/images/volumetric/slicer1.jpg" width="500">
         """
         ################################
-        Plotter.__init__(self, **kwargs)
+        super().__init__(**kwargs)
         self.at(at)
         ################################
 
@@ -119,7 +119,7 @@ class Slicer3DPlotter(Plotter):
         msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
         if len(cmaps) > 1:
             msh.add_scalarbar(pos=(0.04, 0.0), horizontal=True, font_size=0)
-            msh.scalarbar.name = "scalarbar"    
+            msh.scalarbar.name = "scalarbar"
         # self.add(msh.clone()) # BUG
         self.add(msh)
 
@@ -296,7 +296,8 @@ class Slicer2DPlotter(Plotter):
             ]
             kwargs["shape"] = custom_shape
 
-        Plotter.__init__(self, **kwargs)
+#        Plotter.__init__(self, **kwargs)
+        super().__init__(**kwargs)
 
         # reuse the same underlying data as in vol
         vsl = vedo.volume.VolumeSlice(volume)
@@ -375,7 +376,7 @@ class RayCastPlotter(Plotter):
             ![](https://vedo.embl.es/images/advanced/app_raycaster.gif)
         """
 
-        Plotter.__init__(self, **kwargs)
+        super().__init__(**kwargs)
 
         self.alphaslider0 = 0.33
         self.alphaslider1 = 0.66
@@ -577,8 +578,7 @@ class IsosurfaceBrowser(Plotter):
                 ![](https://vedo.embl.es/images/advanced/app_isobrowser.gif)
         """
 
-        Plotter.__init__(
-            self,
+        super().__init__(
             pos=pos,
             bg=bg,
             bg2=bg2,
@@ -749,7 +749,8 @@ class Browser(Plotter):
         """
         kwargs.pop("N", 1)
         kwargs.pop("shape", [])
-        Plotter.__init__(self, axes=axes, **kwargs)
+        kwargs.pop("axes", 1)
+        super().__init__(**kwargs)
 
         if isinstance(objects, str):
             objects = vedo.file_io.load(objects)
@@ -792,7 +793,7 @@ class Browser(Plotter):
                             ak.off()
                     except AttributeError:
                         pass
-            
+
             try:
                 tx = str(k)
                 if slider_title:
@@ -805,7 +806,7 @@ class Browser(Plotter):
             except:
                 pass
             self.slider.title = tx
- 
+
             if resetcam:
                 self.reset_camera()
             self.render()
@@ -823,7 +824,7 @@ class Browser(Plotter):
         )
         self.slider.GetRepresentation().SetTitleHeight(0.020)
         slider_function()  # init call
-    
+
     def play(self, dt=100):
         """Start playing the slides at a given speed."""
         self.timer_callback_id = self.add_callback("timer", self.slider_function)
@@ -1225,7 +1226,7 @@ class Animation(Plotter):
         video_filename="animation.mp4",
         video_fps=12,
     ):
-        Plotter.__init__(self)
+        super().__init__()
         self.resetcam = True
 
         self.events = []
@@ -1603,12 +1604,12 @@ class Animation(Plotter):
 class AnimationPlayer(vedo.Plotter):
     """
     A Plotter with play/pause, step forward/backward and slider functionalties.
-    Useful for inspecting time series. 
+    Useful for inspecting time series.
 
-    The user has the responsibility to update all actors in the callback function. 
+    The user has the responsibility to update all actors in the callback function.
     Pay attention to that the idx can both increment and decrement,
     as well as make large jumps.
-    
+
     Arguments:
         func :  (Callable)
             a function that passes an integer as input and updates the scene
@@ -1875,7 +1876,7 @@ class Clock(vedo.Assembly):
         txt.pos(0, -0.25, 0.001)
         labels.z(0.001)
         minu.z(0.002)
-        vedo.Assembly.__init__(self, [back1, labels, ore, minu, secs, txt])
+        super().__init__([back1, labels, ore, minu, secs, txt])
         self.name = "Clock"
 
     def update(self, h=None, m=None, s=None):

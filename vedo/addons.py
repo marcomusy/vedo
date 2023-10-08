@@ -105,7 +105,7 @@ class Flagpost(vtk.vtkFlagpoleLabel):
             ![](https://vedo.embl.es/images/other/flag_labels2.png)
         """
 
-        vtk.vtkFlagpoleLabel.__init__(self)
+        super().__init__()
 
         base = utils.make3d(base)
         top = utils.make3d(top)
@@ -257,8 +257,9 @@ class LegendBox(shapes.TextBase, vtk.vtkLegendBoxActor):
 
                 ![](https://vedo.embl.es/images/other/flag_labels.png)
         """
-        vtk.vtkLegendBoxActor.__init__(self)
-        shapes.TextBase.__init__(self)
+#        vtk.vtkLegendBoxActor.__init__(self)
+#        shapes.TextBase.__init__(self)
+        super().__init__()
 
         self.name = "LegendBox"
         self.entries = entries[:nmax]
@@ -352,17 +353,17 @@ class Button(vedo.shapes.Text2D):
     Build a Button object.
     """
     def __init__(
-            self, 
-            fnc=None, 
-            states=("Button"), 
-            c=("white"), 
+            self,
+            fnc=None,
+            states=("Button"),
+            c=("white"),
             bc=("green4"),
-            pos=(0.7, 0.1), 
-            size=24, 
-            font="Courier", 
-            bold=True, 
-            italic=False, 
-            alpha=1, 
+            pos=(0.7, 0.1),
+            size=24,
+            font="Courier",
+            bold=True,
+            italic=False,
+            alpha=1,
             angle=0,
         ):
         """
@@ -391,7 +392,7 @@ class Button(vedo.shapes.Text2D):
                 opacity level
             angle : (float)
                 anticlockwise rotation in degrees
-    
+
         Examples:
             - [buttons.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/buttons.py)
 
@@ -495,7 +496,7 @@ class SplineTool(vtk.vtkContourWidget):
 
                 ![](https://vedo.embl.es/images/basic/spline_tool.png)
         """
-        vtk.vtkContourWidget.__init__(self)
+        super().__init__()
 
         self.representation = vtk.vtkOrientedGlyphContourRepresentation()
         self.representation.SetAlwaysOnTop(ontop)
@@ -584,7 +585,7 @@ class SliderWidget(vtk.vtkSliderWidget):
     """Helper class for vtkSliderWidget"""
 
     def __init__(self):
-        vtk.vtkSliderWidget.__init__(self)
+        super().__init__()
 
     @property
     def interactor(self):
@@ -851,7 +852,7 @@ def ScalarBar(
             rgb = color_map(i, c, 0, 256)
             data.append([x[i], rgb])
         lut = build_lut(data)
-        
+
     elif not hasattr(obj, "mapper"):
         vedo.logger.error(f"in add_scalarbar(): input is invalid {type(obj)}. Skip.")
         return None
@@ -1014,7 +1015,7 @@ def ScalarBar3D(
     elif isinstance(obj, (Volume, TetMesh)):
         lut = utils.ctf2lut(obj)
         vmin, vmax = lut.GetRange()
-    
+
     elif isinstance(obj, vedo.UGrid): # TODO
         return None
     #     lut = utils.ctf2lut(obj) # returns None
@@ -1358,7 +1359,7 @@ class Slider2D(SliderWidget):
         tube_width    = options.pop("tube_width",     0.0075)
         title_height  = options.pop("title_height",   0.025)
         tformat       = options.pop("tformat",        None)
-        
+
         if options:
             vedo.logger.warning(f"in Slider2D unknown option(s): {options}")
 
@@ -1497,7 +1498,9 @@ class Slider2D(SliderWidget):
                 if abs(pos[0][0] - pos[1][0]) < 0.1:
                     slider_rep.GetTitleProperty().SetOrientation(90)
 
-        SliderWidget.__init__(self)
+#        SliderWidget.__init__(self)
+        super().__init__()
+
 
         self.SetAnimationModeToJump()
         self.SetRepresentation(slider_rep)
@@ -1596,7 +1599,8 @@ class Slider3D(SliderWidget):
 
         slider_rep.GetTubeProperty().SetColor(c)
 
-        SliderWidget.__init__(self)
+#        SliderWidget.__init__(self)
+        super().__init__()
 
         self.SetRepresentation(slider_rep)
         self.SetAnimationModeToJump()
@@ -1626,7 +1630,7 @@ class BaseCutter:
         else:
             self._implicit_func.SetBounds(value)
             return self
-    
+
     def on(self):
         """Switch the widget on or off."""
         self.widget.On()
@@ -1635,7 +1639,7 @@ class BaseCutter:
     def off(self):
         """Switch the widget on or off."""
         self.widget.Off()
-        return self    
+        return self
 
     def add_to(self, plt):
         """Assign the widget to the provided `Plotter` instance."""
@@ -1648,7 +1652,7 @@ class BaseCutter:
         self.mesh.DeepCopy(cpoly)
 
         out = self.clipper.GetClippedOutputPort()
-        self.remnant.mapper.SetInputConnection(out)  
+        self.remnant.mapper.SetInputConnection(out)
         self.remnant.alpha(self._alpha).color((0.5, 0.5, 0.5))
         self.remnant.lighting('off').wireframe()
         plt.add(self.remnant)
@@ -1658,7 +1662,7 @@ class BaseCutter:
             self._select_polygons(self.widget, "InteractionEvent")
             plt.interactor.Render()
         return self
-    
+
     def remove_from(self, plt):
         """Remove the widget to the provided `Plotter` instance."""
         self.widget.Off()
@@ -1716,7 +1720,7 @@ class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
         self.remnant = Mesh()
         self.remnant.name = mesh.name + "Remnant"
         self.remnant.pickable(False)
-        
+
         self._alpha = alpha
         self._keypress_id = None
 
@@ -1763,13 +1767,13 @@ class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
             self.widget.SetOrigin(origin)
         else:
             self.widget.SetOrigin(mesh.center_of_mass())
-        
+
         if len(normal) == 3:
             self.widget.SetNormal(normal)
         else:
             self.widget.SetNormal((1, 0, 0))
 
-        
+
     def _select_polygons(self, vobj, event):
         vobj.GetPlane(self._implicit_func)
 
@@ -1795,7 +1799,7 @@ class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
             self.widget.SetNormal((0, 0, 1))
             self.widget.GetPlane(self._implicit_func)
             self.widget.PlaceWidget()
-            self.widget.GetInteractor().Render()        
+            self.widget.GetInteractor().Render()
         elif vobj.GetKeySym() == "s": # Ctrl+s to save mesh
             if self.widget.GetInteractor():
                 if self.widget.GetInteractor().GetControlKey():
@@ -1876,7 +1880,7 @@ class BoxCutter(vtk.vtkBoxWidget, BaseCutter):
         self.widget.OutlineCursorWiresOn()
         self.widget.GetSelectedOutlineProperty().SetColor(get_color("red3"))
         self.widget.GetSelectedHandleProperty().SetColor(get_color("red5"))
-       
+
         self.widget.GetOutlineProperty().SetColor(c)
         self.widget.GetOutlineProperty().SetOpacity(1)
         self.widget.GetOutlineProperty().SetLineWidth(1)
@@ -1965,13 +1969,13 @@ class SphereCutter(vtk.vtkSphereWidget, BaseCutter):
         else:
             origin = mesh.center_of_mass()
             self._implicit_func.SetCenter(origin)
-        
+
         if radius > 0:
             self._implicit_func.SetRadius(radius)
         else:
             radius = mesh.average_size() * 2
             self._implicit_func.SetRadius(radius)
-            
+
         poly = mesh
         self.clipper = vtk.vtkClipPolyData()
         self.clipper.GenerateClipScalarsOff()
@@ -2076,7 +2080,8 @@ class RendererFrame(vtk.vtkActor2D):
         cs.SetCoordinateSystemToNormalizedViewport()
         mapper.SetTransformCoordinate(cs)
 
-        vtk.vtkActor2D.__init__(self)
+#        vtk.vtkActor2D.__init__(self)
+        super().__init__()
 
         self.GetPositionCoordinate().SetValue(0, 0)
         self.GetPosition2Coordinate().SetValue(1, 1)
@@ -2096,7 +2101,7 @@ class ProgressBarWidget(vtk.vtkActor2D):
 
         Arguments:
             n : (int)
-                number of iterations. 
+                number of iterations.
                 If None, you need to call `update(fraction)` manually.
             c : (color)
                 color of the line.
@@ -2130,14 +2135,15 @@ class ProgressBarWidget(vtk.vtkActor2D):
         cs.SetCoordinateSystemToNormalizedViewport()
         mapper.SetTransformCoordinate(cs)
 
-        vtk.vtkActor2D.__init__(self)
-        
+#        vtk.vtkActor2D.__init__(self)
+        super().__init__()
+
         self.SetMapper(mapper)
         self.GetProperty().SetOpacity(alpha)
         self.GetProperty().SetColor(get_color(c))
         self.GetProperty().SetLineWidth(lw*2)
 
-        
+
     def lw(self, value):
         """Set width."""
         self.GetProperty().SetLineWidth(value*2)
@@ -2148,7 +2154,7 @@ class ProgressBarWidget(vtk.vtkActor2D):
         c = get_color(color)
         self.GetProperty().SetColor(c)
         return self
-    
+
     def alpha(self, value):
         """Set opacity."""
         self.GetProperty().SetOpacity(value)
@@ -2170,7 +2176,7 @@ class ProgressBarWidget(vtk.vtkActor2D):
         vpts = utils.numpy2vtk(psqr, dtype=np.float32)
         self._data.GetPoints().SetData(vpts)
         return self
-    
+
     def reset(self):
         """Reset progress bar."""
         self.n = 0
@@ -2196,7 +2202,8 @@ class Icon(vtk.vtkOrientationMarkerWidget):
         Examples:
             - [icon.py](https://github.com/marcomusy/vedo/tree/master/examples/other/icon.py)
         """
-        vtk.vtkOrientationMarkerWidget.__init__(self)
+        super().__init__()
+
         self.SetOrientationMarker(mesh)
 
         if utils.is_sequence(pos):
@@ -2221,7 +2228,7 @@ def compute_visible_bounds(objs=None):
         objs = vedo.plotter_instance.actors
     elif not utils.is_sequence(objs):
         objs = [objs]
-    
+
     actors = [ob.actor for ob in objs if hasattr(ob, 'actor') and ob.actor]
 
     try:
@@ -2566,7 +2573,7 @@ class Ruler2D(vtk.vtkAxisActor2D):
             ```
             ![](https://vedo.embl.es/images/feats/dist_tool.png)
         """
-        vtk.vtkAxisActor2D.__init__(self)
+        super().__init__()
 
         plt = vedo.plotter_instance
         if not plt:
@@ -2683,7 +2690,7 @@ class DistanceTool(Group):
             ```
             ![](https://vedo.embl.es/images/feats/dist_tool.png)
         """
-        Group.__init__(self)
+        super().__init__()
 
         self.p0 = [0, 0, 0]
         self.p1 = [0, 0, 0]

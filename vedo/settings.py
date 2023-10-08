@@ -31,7 +31,7 @@ class Settings:
     # [DISABLED] Allow to continuously interact with scene during interactive() execution
     allow_interaction = True
 
-    # Enable tracking pipeline functionality: 
+    # Enable tracking pipeline functionality:
     #  allows to show a graph with the pipeline of action which let to a final object
     #  this is achieved by calling "myobj.pipeline.show()" (a new window will pop up)
     self.enable_pipeline = True

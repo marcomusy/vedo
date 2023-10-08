@@ -32,7 +32,7 @@ Example:
 ![](https://user-images.githubusercontent.com/32848391/53026243-d2d31900-3462-11e9-9dde-518218c241b6.jpg)
 
 .. note::
-    Find many more examples in directory    
+    Find many more examples in directory
     [vedo/examples/dolfin](https://github.com/marcomusy/vedo/blob/master/examples/other/dolfin).
 """
 
@@ -680,7 +680,7 @@ class MeshActor(Mesh):
         else:
             poly = utils.buildPolyData(coords, cells)
 
-        Mesh.__init__(self, poly, c=c, alpha=alpha)
+        super().__init__(poly, c, alpha)
         if compute_normals:
             self.compute_normals()
 

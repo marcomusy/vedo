@@ -382,7 +382,7 @@ class Mesh(Points):
     def edges(self, ids=()):
         """
         Return an array containing the edges connectivity.
-        
+
         If ids is set, return only the edges of the given cells.
         """
         extractEdges = vtk.vtkExtractEdges()
@@ -1009,7 +1009,7 @@ class Mesh(Points):
         if return_cap:
             m = Mesh(tf.GetOutput())
             m.pipeline = OperationNode(
-                "cap", parents=[self], 
+                "cap", parents=[self],
                 comment=f"#pts {m.GetNumberOfPoints()}"
             )
             return m
@@ -1085,7 +1085,7 @@ class Mesh(Points):
             poly.GetPoints().SetData(vpts)
         else:
             poly = sf.GetOutput()
-        
+
         self.DeepCopy(poly)
 
         self.pipeline = OperationNode(
@@ -1481,7 +1481,7 @@ class Mesh(Points):
         self.DeepCopy(decimate.GetOutput())
 
         self.pipeline = OperationNode(
-            "decimate", parents=[self], 
+            "decimate", parents=[self],
             comment=f"#pts {self.GetNumberOfPoints()}"
         )
         return self
@@ -1585,7 +1585,7 @@ class Mesh(Points):
         fh.SetHoleSize(size)
         fh.SetInputData(self)
         fh.Update()
-        
+
         self.DeepCopy(fh.GetOutput())
 
         self.pipeline = OperationNode(
@@ -2782,8 +2782,9 @@ class Follower(vedo.base.BaseActor, vtk.vtkFollower):
         actor = objt.actor
         mapper = objt.mapper
 
-        vtk.vtkFollower.__init__(self)
-        vedo.base.BaseActor.__init__(self)
+        #vtk.vtkFollower.__init__(self)
+        #vedo.base.BaseActor.__init__(self)
+        super().__inint__()
 
         self.name = objt.name
         self._isfollower = False
