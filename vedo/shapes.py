@@ -17,7 +17,7 @@ from vedo import utils
 from vedo.pointcloud import Points, merge
 from vedo.mesh import Mesh
 from vedo.picture import Picture
-
+from vedo.transformations import pol2cart
 
 __docformat__ = "google"
 
@@ -435,7 +435,7 @@ class Line(Mesh):
             alpha : (float)
                 opacity in range [0,1]
         """
-        self.slope = []  # populated by analysis.fitLine
+        self.slope = []  # populated by analysis.fit_line
         self.center = []
         self.variances = []
 
@@ -467,7 +467,10 @@ class Line(Mesh):
             p0 = utils.make3d(p0)
 
         # detect if user is passing a list of points:
-        if utils.is_sequence(p0[0]):
+        if isinstance(p0, vtk.vtkPolyData):
+            poly = p0
+
+        elif utils.is_sequence(p0[0]):
             p0 = utils.make3d(p0)
 
             ppoints = vtk.vtkPoints()  # Generate the polyline
@@ -510,6 +513,37 @@ class Line(Mesh):
         self.base = base
         self.top = top
         self.name = "Line"
+
+    def clone(self):
+        """
+        Return a copy of the ``Line`` object.
+
+        Example:
+            ```python
+            from vedo import Line
+            ln = Line([0,0,0], [1,1,1])
+            ln2 = ln.clone().c('red')
+            ln2.show(axes=1)
+            ```
+            ![](https://vedo.embl.es/images/feats/line_clone.png)
+        """
+        name = self.name
+        base = self.base
+        top = self.top
+        pickable = self.actor.GetPickable()
+        drg = self.actor.GetDragable()
+        prop = vtk.vtkProperty()
+        prop.DeepCopy(self.property)
+
+        ln = Line(self)
+        ln.actor.SetProperty(prop)
+        ln.property = prop
+        ln.name = name
+        ln.base = base
+        ln.top = top
+        ln.actor.SetPickable(pickable)
+        ln.actor.SetDragable(drg)
+        return ln
 
     def linecolor(self, lc=None):
         """Assign a color to the line"""
@@ -2352,7 +2386,7 @@ class Polygon(Mesh):
         ![](https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestRegularPolygonSource.png)
         """
         t = np.linspace(np.pi / 2, 5 / 2 * np.pi, num=nsides, endpoint=False)
-        x, y = utils.pol2cart(np.ones_like(t) * r, t)
+        x, y = pol2cart(np.ones_like(t) * r, t)
         faces = [list(range(nsides))]
         # do not use: vtkRegularPolygonSource
         super().__init__([np.c_[x, y], faces], c, alpha)
@@ -3066,8 +3100,7 @@ class Plane(Mesh):
         pos = utils.make3d(pos)
         sx, sy = s
 
-        self.normal = np.asarray(normal, dtype=float)
-        self.center = np.asarray(pos, dtype=float)
+        normal = np.asarray(normal, dtype=float)
         self.variance = 0
 
         ps = vtk.vtkPlaneSource()
@@ -3075,8 +3108,9 @@ class Plane(Mesh):
         tri = vtk.vtkTriangleFilter()
         tri.SetInputConnection(ps.GetOutputPort())
         tri.Update()
+
         poly = tri.GetOutput()
-        axis = self.normal / np.linalg.norm(normal)
+        axis = normal / np.linalg.norm(normal)
         theta = np.arccos(axis[2])
         phi = np.arctan2(axis[1], axis[0])
         t = vtk.vtkTransform()
@@ -3088,12 +3122,38 @@ class Plane(Mesh):
         tf.SetInputData(poly)
         tf.SetTransform(t)
         tf.Update()
+
         super().__init__(tf.GetOutput(), c, alpha)
         self.lighting("off")
         self.pos(pos)
         self.name = "Plane"
-        self.top = self.normal
-        self.bottom = np.array([0.0, 0.0, 0.0])
+        self.top = normal
+        self.base = np.array([0.0, 0.0, 0.0])
+    
+    def clone(self):
+        newplane = Plane()
+        prop = vtk.vtkProperty()
+        prop.DeepCopy(self.property)
+        newplane.actor.SetProperty(prop)
+        newplane.property = prop
+        newplane.variance = 0
+        newplane.top = self.normal
+        newplane.base = self.base
+        return newplane
+    
+    @property
+    def normal(self):
+        pts = self.points()
+        AB = pts[1] - pts[0]
+        AC = pts[2] - pts[0]
+        normal = np.cross(AB, AC)
+        normal = normal / np.linalg.norm(normal)
+        return normal
+
+    @property
+    def center(self):
+        pts = self.points()
+        return np.mean(pts, axis=0)
 
     def contains(self, points):
         """
