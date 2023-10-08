@@ -145,13 +145,11 @@ def visible_points(mesh, area=(), tol=None, invert=False):
     return m
 
 
-def delaunay2d(plist, mode="scipy", boundaries=(), tol=None, alpha=0.0, offset=0.0, transform=None):
+def delaunay2d(plist, **kwargs):
     """delaunay2d() is deprecated, use Points().generate_delaunay2d() instead"""
     if isinstance(plist, Points):
-        parents = [plist]
         plist = plist.points()
     else:
-        parents = []
         plist = np.ascontiguousarray(plist)
         plist = utils.make3d(plist)
     pp = Points(plist).generate_delaunay2d(**kwargs)

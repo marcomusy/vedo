@@ -25,9 +25,104 @@ Submodule to work with polygonal meshes
 
 __all__ = ["Mesh"]
 
+class MeshVisual:
+    """Class to manage the visual aspects of a ``Maesh`` object."""
+
+    def wireframe(self, value=True):
+        """Set mesh's representation as wireframe or solid surface."""
+        if value:
+            self.property.SetRepresentationToWireframe()
+        else:
+            self.property.SetRepresentationToSurface()
+        return self
+
+    def flat(self):
+        """Set surface interpolation to flat.
+
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png" width="700">
+        """
+        self.property.SetInterpolationToFlat()
+        return self
+
+    def phong(self):
+        """Set surface interpolation to "phong"."""
+        self.property.SetInterpolationToPhong()
+        return self
+
+    def backface_culling(self, value=True):
+        """Set culling of polygons based on orientation of normal with respect to camera."""
+        self.property.SetBackfaceCulling(value)
+        return self
+
+    def render_lines_as_tubes(self, value=True):
+        """Wrap a fake tube around a simple line for visualization"""
+        self.property.SetRenderLinesAsTubes(value)
+        return self
+
+    def frontface_culling(self, value=True):
+        """Set culling of polygons based on orientation of normal with respect to camera."""
+        self.property.SetFrontfaceCulling(value)
+        return self
+
+    def backcolor(self, bc=None):
+        """
+        Set/get mesh's backface color.
+        """
+        backProp = self.actor.GetBackfaceProperty()
+
+        if bc is None:
+            if backProp:
+                return backProp.GetDiffuseColor()
+            return self
+
+        if self.property.GetOpacity() < 1:
+            return self
+
+        if not backProp:
+            backProp = vtk.vtkProperty()
+
+        backProp.SetDiffuseColor(get_color(bc))
+        backProp.SetOpacity(self.property.GetOpacity())
+        self.actor.SetBackfaceProperty(backProp)
+        self.mapper.ScalarVisibilityOff()
+        return self
+
+    def bc(self, backcolor=False):
+        """Shortcut for `mesh.backcolor()`."""
+        return self.backcolor(backcolor)
+
+    def linewidth(self, lw=None):
+        """Set/get width of mesh edges. Same as `lw()`."""
+        if lw is not None:
+            if lw == 0:
+                self.property.EdgeVisibilityOff()
+                self.property.SetRepresentationToSurface()
+                return self
+            self.property.EdgeVisibilityOn()
+            self.property.SetLineWidth(lw)
+        else:
+            return self.property.GetLineWidth()
+        return self
+
+    def lw(self, linewidth=None):
+        """Set/get width of mesh edges. Same as `linewidth()`."""
+        return self.linewidth(linewidth)
+
+    def linecolor(self, lc=None):
+        """Set/get color of mesh edges. Same as `lc()`."""
+        if lc is None:
+            return self.property.GetEdgeColor()
+        self.property.EdgeVisibilityOn()
+        self.property.SetEdgeColor(get_color(lc))
+        return self
+
+    def lc(self, linecolor=None):
+        """Set/get color of mesh edges. Same as `linecolor()`."""
+        return self.linecolor(linecolor)
+
 
 ####################################################
-class Mesh(Points):
+class Mesh(MeshVisual, Points):
     """
     Build an instance of object `Mesh` derived from `vedo.PointCloud`.
     """
@@ -54,6 +149,8 @@ class Mesh(Points):
             ![](https://vedo.embl.es/images/basic/buildmesh.png)
         """
         super().__init__()
+        # MeshVisual.__init__(self)
+        # Points.__init__(self)
 
         self.mapper.SetInterpolateScalarsBeforeMapping(
             vedo.settings.interpolate_scalars_before_mapping
@@ -690,98 +787,6 @@ class Mesh(Points):
         self.DeepCopy(rev.GetOutput())
         self.pipeline = OperationNode("reverse", parents=[self])
         return self
-
-    def wireframe(self, value=True):
-        """Set mesh's representation as wireframe or solid surface."""
-        if value:
-            self.property.SetRepresentationToWireframe()
-        else:
-            self.property.SetRepresentationToSurface()
-        return self
-
-    def flat(self):
-        """Set surface interpolation to flat.
-
-        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png" width="700">
-        """
-        self.property.SetInterpolationToFlat()
-        return self
-
-    def phong(self):
-        """Set surface interpolation to "phong"."""
-        self.property.SetInterpolationToPhong()
-        return self
-
-    def backface_culling(self, value=True):
-        """Set culling of polygons based on orientation of normal with respect to camera."""
-        self.property.SetBackfaceCulling(value)
-        return self
-
-    def render_lines_as_tubes(self, value=True):
-        """Wrap a fake tube around a simple line for visualization"""
-        self.property.SetRenderLinesAsTubes(value)
-        return self
-
-    def frontface_culling(self, value=True):
-        """Set culling of polygons based on orientation of normal with respect to camera."""
-        self.property.SetFrontfaceCulling(value)
-        return self
-
-    def backcolor(self, bc=None):
-        """
-        Set/get mesh's backface color.
-        """
-        backProp = self.actor.GetBackfaceProperty()
-
-        if bc is None:
-            if backProp:
-                return backProp.GetDiffuseColor()
-            return self
-
-        if self.property.GetOpacity() < 1:
-            return self
-
-        if not backProp:
-            backProp = vtk.vtkProperty()
-
-        backProp.SetDiffuseColor(get_color(bc))
-        backProp.SetOpacity(self.property.GetOpacity())
-        self.actor.SetBackfaceProperty(backProp)
-        self.mapper.ScalarVisibilityOff()
-        return self
-
-    def bc(self, backcolor=False):
-        """Shortcut for `mesh.backcolor()`."""
-        return self.backcolor(backcolor)
-
-    def linewidth(self, lw=None):
-        """Set/get width of mesh edges. Same as `lw()`."""
-        if lw is not None:
-            if lw == 0:
-                self.property.EdgeVisibilityOff()
-                self.property.SetRepresentationToSurface()
-                return self
-            self.property.EdgeVisibilityOn()
-            self.property.SetLineWidth(lw)
-        else:
-            return self.property.GetLineWidth()
-        return self
-
-    def lw(self, linewidth=None):
-        """Set/get width of mesh edges. Same as `linewidth()`."""
-        return self.linewidth(linewidth)
-
-    def linecolor(self, lc=None):
-        """Set/get color of mesh edges. Same as `lc()`."""
-        if lc is None:
-            return self.property.GetEdgeColor()
-        self.property.EdgeVisibilityOn()
-        self.property.SetEdgeColor(get_color(lc))
-        return self
-
-    def lc(self, linecolor=None):
-        """Set/get color of mesh edges. Same as `linecolor()`."""
-        return self.linecolor(linecolor)
 
     def volume(self):
         """Get/set the volume occupied by mesh."""
