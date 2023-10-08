@@ -25,8 +25,7 @@ __all__ = [
     "Points",
     "Point",
     "merge",
-    "visible_points",
-    "delaunay2d",
+    "delaunay2d",  # deprecated
     "fit_line",
     "fit_circle",
     "fit_plane",
@@ -89,60 +88,6 @@ def merge(*meshs, flag=False):
         comment=f"#pts {msh.GetNumberOfPoints()}",
     )
     return msh
-
-
-####################################################
-def visible_points(mesh, area=(), tol=None, invert=False):
-    """
-    Extract points based on whether they are visible or not.
-    Visibility is determined by accessing the z-buffer of a rendering window.
-    The position of each input point is converted into display coordinates,
-    and then the z-value at that point is obtained.
-    If within the user-specified tolerance, the point is considered visible.
-    Associated data attributes are passed to the output as well.
-
-    This filter also allows you to specify a rectangular window in display (pixel)
-    coordinates in which the visible points must lie.
-
-    Arguments:
-        area : (list)
-            specify a rectangular region as (xmin,xmax,ymin,ymax)
-        tol : (float)
-            a tolerance in normalized display coordinate system
-        invert : (bool)
-            select invisible points instead.
-
-    Example:
-        ```python
-        from vedo import Ellipsoid, show, visible_points
-        s = Ellipsoid().rotate_y(30)
-
-        #Camera options: pos, focal_point, viewup, distance,
-        camopts = dict(pos=(0,0,25), focal_point=(0,0,0))
-        show(s, camera=camopts, offscreen=True)
-
-        m = visible_points(s)
-        #print('visible pts:', m.points()) # numpy array
-        show(m, new=True, axes=1) # optionally draw result on a new window
-        ```
-        ![](https://vedo.embl.es/images/feats/visible_points.png)
-    """
-    # specify a rectangular region
-    svp = vtk.vtkSelectVisiblePoints()
-    svp.SetInputData(mesh)
-    svp.SetRenderer(vedo.plotter_instance.renderer)
-
-    if len(area) == 4:
-        svp.SetSelection(area[0], area[1], area[2], area[3])
-    if tol is not None:
-        svp.SetTolerance(tol)
-    if invert:
-        svp.SelectInvisibleOn()
-    svp.Update()
-
-    m = Points(svp.GetOutput()).point_size(5)
-    m.name = "VisiblePoints"
-    return m
 
 
 def delaunay2d(plist, **kwargs):
@@ -4963,4 +4908,57 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
 
         m.lw(2).lighting("off").wireframe()
         m.name = "Voronoi"
+        return m
+
+    ####################################################
+    def visible_points(self, area=(), tol=None, invert=False):
+        """
+        Extract points based on whether they are visible or not.
+        Visibility is determined by accessing the z-buffer of a rendering window.
+        The position of each input point is converted into display coordinates,
+        and then the z-value at that point is obtained.
+        If within the user-specified tolerance, the point is considered visible.
+        Associated data attributes are passed to the output as well.
+
+        This filter also allows you to specify a rectangular window in display (pixel)
+        coordinates in which the visible points must lie.
+
+        Arguments:
+            area : (list)
+                specify a rectangular region as (xmin,xmax,ymin,ymax)
+            tol : (float)
+                a tolerance in normalized display coordinate system
+            invert : (bool)
+                select invisible points instead.
+
+        Example:
+            ```python
+            from vedo import Ellipsoid, show, visible_points
+            s = Ellipsoid().rotate_y(30)
+
+            #Camera options: pos, focal_point, viewup, distance,
+            camopts = dict(pos=(0,0,25), focal_point=(0,0,0))
+            show(s, camera=camopts, offscreen=True)
+
+            m = s.visible_points()
+            #print('visible pts:', m.points()) # numpy array
+            show(m, new=True, axes=1) # optionally draw result on a new window
+            ```
+            ![](https://vedo.embl.es/images/feats/visible_points.png)
+        """
+        svp = vtk.vtkSelectVisiblePoints()
+        svp.SetInputData(self)
+        svp.SetRenderer(vedo.plotter_instance.renderer)
+
+        if len(area) == 4:
+            # specify a rectangular region
+            svp.SetSelection(area[0], area[1], area[2], area[3])
+        if tol is not None:
+            svp.SetTolerance(tol)
+        if invert:
+            svp.SelectInvisibleOn()
+        svp.Update()
+
+        m = Points(svp.GetOutput()).point_size(5)
+        m.name = "VisiblePoints"
         return m
