@@ -279,7 +279,7 @@ class Glyph(Mesh):
 
         gly.Update()
 
-        Mesh.__init__(self, gly.GetOutput(), c, alpha)
+        super().__init__(gly.GetOutput(), c, alpha)
         self.flat()
         if lighting is not None:
             self.property.SetLighting(lighting)
@@ -407,7 +407,7 @@ class Tensors(Mesh):
         tgn = vtk.vtkPolyDataNormals()
         tgn.SetInputData(tg.GetOutput())
         tgn.Update()
-        Mesh.__init__(self, tgn.GetOutput(), c, alpha)
+        super().__init__(tgn.GetOutput(), c, alpha)
         self.name = "Tensors"
 
 
@@ -502,7 +502,7 @@ class Line(Mesh):
             top = np.asarray(p1, dtype=float)
             base = np.asarray(p0, dtype=float)
 
-        Mesh.__init__(self, poly, c, alpha)
+        super().__init__(poly, c, alpha)
         self.lw(lw)
         self.property.LightingOff()
         self.actor.PickableOff()
@@ -799,7 +799,7 @@ class DashedLine(Mesh):
         xmx = np.max(listp, axis=0)
         dlen = np.linalg.norm(xmx - xmn) * np.clip(spacing, 0.01, 1.0) / 10
         if not dlen:
-            Mesh.__init__(self, vtk.vtkPolyData(), c, alpha)
+            super().__init__(vtk.vtkPolyData(), c, alpha)
             self.name = "DashedLine (void)"
             return
 
@@ -837,7 +837,7 @@ class DashedLine(Mesh):
             polylns.AddInputData(line_source.GetOutput())
         polylns.Update()
 
-        Mesh.__init__(self, polylns.GetOutput(), c, alpha)
+        super().__init__(polylns.GetOutput(), c, alpha)
         self.lw(lw).lighting("off")
         self.base = listp[0]
         if closed:
@@ -938,7 +938,7 @@ class RoundedLine(Mesh):
         vct = vtk.vtkContourTriangulator()
         vct.SetInputData(poly)
         vct.Update()
-        Mesh.__init__(self, vct.GetOutput(), c, alpha)
+        super().__init__(vct.GetOutput(), c, alpha)
         self.flat()
         self.property.LightingOff()
         self.name = "RoundedLine"
@@ -1025,7 +1025,7 @@ class Lines(Mesh):
 
         polylns.Update()
 
-        Mesh.__init__(self, polylns.GetOutput(), c, alpha)
+        super().__init__(polylns.GetOutput(), c, alpha)
         self.lw(lw).lighting("off")
         if dotted:
             self.property.SetLineStipplePattern(0xF0F0)
@@ -1340,7 +1340,7 @@ class NormalLines(Mesh):
         glyph.OrientOn()
         glyph.Update()
 
-        Mesh.__init__(self, glyph.GetOutput())
+        super().__init__(glyph.GetOutput())
 
         self.actor.PickableOff()
         prop = vtk.vtkProperty()
@@ -1715,7 +1715,7 @@ class Tube(Mesh):
             c = None
         tuf.Update()
 
-        Mesh.__init__(self, tuf.GetOutput(), c, alpha)
+        super().__init__(tuf.GetOutput(), c, alpha)
         self.phong()
         if usingColScals:
             self.mapper.SetScalarModeToUsePointFieldData()
@@ -1832,7 +1832,7 @@ class Ribbon(Mesh):
                 width = aline.diagonal_size() / 20.0
             ribbon_filter.SetWidth(width)
             ribbon_filter.Update()
-            Mesh.__init__(self, ribbon_filter.GetOutput(), c, alpha)
+            super().__init__(ribbon_filter.GetOutput(), c, alpha)
             self.name = "Ribbon"
             ##############################################
             return  ######################################
@@ -1905,7 +1905,7 @@ class Ribbon(Mesh):
         rsf.SetInputData(merged_pd.GetOutput())
         rsf.Update()
 
-        Mesh.__init__(self, rsf.GetOutput(), c, alpha)
+        super().__init__(rsf.GetOutput(), c, alpha)
         self.name = "Ribbon"
 
 
@@ -1993,7 +1993,7 @@ class Arrow(Mesh):
         tf.SetTransform(t)
         tf.Update()
 
-        Mesh.__init__(self, tf.GetOutput(), c, alpha)
+        super().__init__(tf.GetOutput(), c, alpha)
         self.pos(start_pt)
 
         self.phong().lighting("plastic")
@@ -2196,7 +2196,7 @@ class Arrow2D(Mesh):
         tf.SetTransform(t)
         tf.Update()
 
-        Mesh.__init__(self, tf.GetOutput(), c="k1")
+        super().__init__(tf.GetOutput(), c="k1")
         self.pos(start_pt)
         self.lighting("off")
         self.actor.DragableOff()
@@ -2335,7 +2335,7 @@ class Triangle(Mesh):
 
     def __init__(self, p1, p2, p3, c="green7", alpha=1.0):
         """Create a triangle from 3 points in space."""
-        Mesh.__init__(self, [[p1, p2, p3], [[0, 1, 2]]], c, alpha)
+        super().__init__([[p1, p2, p3], [[0, 1, 2]]], c, alpha)
         self.property.LightingOff()
         self.name = "Triangle"
 
@@ -2355,7 +2355,7 @@ class Polygon(Mesh):
         x, y = utils.pol2cart(np.ones_like(t) * r, t)
         faces = [list(range(nsides))]
         # do not use: vtkRegularPolygonSource
-        Mesh.__init__(self, [np.c_[x, y], faces], c, alpha)
+        super().__init__([np.c_[x, y], faces], c, alpha)
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
         self.pos(pos)
@@ -2442,7 +2442,7 @@ class Star(Mesh):
         if line:
             apts.append(pts[0])
             poly = utils.buildPolyData(apts, lines=list(range(len(apts))))
-            Mesh.__init__(self, poly, c, alpha)
+            super().__init__(poly, c, alpha)
             self.lw(2)
         else:
             apts.append((0, 0, 0))
@@ -2451,7 +2451,7 @@ class Star(Mesh):
                 cell = [2 * n, i, i + 1]
                 cells.append(cell)
             cells.append([2 * n, i + 1, 0])
-            Mesh.__init__(self, [apts, cells], c, alpha)
+            super().__init__([apts, cells], c, alpha)
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
@@ -2494,7 +2494,7 @@ class Disc(Mesh):
         ps.SetRadialResolution(res_r)
         ps.SetCircumferentialResolution(res_phi)
         ps.Update()
-        Mesh.__init__(self, ps.GetOutput(), c, alpha)
+        super().__init__(ps.GetOutput(), c, alpha)
         self.flat()
         self.pos(utils.make3d(pos))
         self.name = "Disc"
@@ -2554,7 +2554,7 @@ class Arc(Mesh):
         ar.SetNegative(invert)
         ar.SetResolution(res)
         ar.Update()
-        Mesh.__init__(self, ar.GetOutput(), c, alpha)
+        super().__init__(ar.GetOutput(), c, alpha)
         self.pos(self.base)
         self.lw(2).lighting("off")
         self.name = "Arc"
@@ -2620,7 +2620,7 @@ class IcoSphere(Mesh):
             [8, 6, 7],
             [9, 8, 1],
         ]
-        Mesh.__init__(self, [points * r, faces], c=c, alpha=alpha)
+        super().__init__([points * r, faces], c=c, alpha=alpha)
 
         for _ in range(subdivisions):
             self.subdivide(method=1)
@@ -2666,7 +2666,7 @@ class Sphere(Mesh):
             gf = vtk.vtkGeometryFilter()
             gf.SetInputData(img)
             gf.Update()
-            Mesh.__init__(self, gf.GetOutput(), c, alpha)
+            super().__init__(gf.GetOutput(), c, alpha)
             self.lw(0.1)
 
             cgpts = self.points() - (0.5, 0.5, 0.5)
@@ -2692,7 +2692,7 @@ class Sphere(Mesh):
             ss.SetPhiResolution(res_phi)
             ss.Update()
 
-            Mesh.__init__(self, ss.GetOutput(), c, alpha)
+            super().__init__(ss.GetOutput(), c, alpha)
 
         self.phong()
         self.pos(pos)
@@ -2786,7 +2786,7 @@ class Spheres(Mesh):
         glyph.SetInputData(pd)
         glyph.Update()
 
-        Mesh.__init__(self, glyph.GetOutput(), alpha=alpha)
+        super().__init__(glyph.GetOutput(), alpha=alpha)
         self.pos(base)
         self.base = base
         self.top = centers[-1]
@@ -2817,7 +2817,7 @@ class Earth(Mesh):
         tss.SetRadius(r)
         tss.SetThetaResolution(72)
         tss.SetPhiResolution(36)
-        Mesh.__init__(self, tss, c="w")
+        super().__init__(tss, c="w")
         atext = vtk.vtkTexture()
         pnm_reader = vtk.vtkJPEGReader()
         fn = vedo.file_io.download(vedo.dataurl + f"textures/earth{style}.jpg", verbose=False)
@@ -2901,7 +2901,7 @@ class Ellipsoid(Mesh):
         pd = tf.GetOutput()
         self.transformation = t
 
-        Mesh.__init__(self, pd, c, alpha)
+        super().__init__(pd, c, alpha)
         self.phong()
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
@@ -3027,7 +3027,7 @@ class Grid(Mesh):
                     faces.append([i + j * n, i + 1 + j * n, i + 1 + j1n, i + j1n])
 
             verts = np.array(verts)
-            Mesh.__init__(self, [verts, faces], c, alpha)
+            super().__init__([verts, faces], c, alpha)
 
         else:
             ps = vtk.vtkPlaneSource()
@@ -3041,7 +3041,7 @@ class Grid(Mesh):
             tf0.SetTransform(t0)
             tf0.Update()
             poly = tf0.GetOutput()
-            Mesh.__init__(self, poly, c, alpha)
+            super().__init__(poly, c, alpha)
             self.pos(pos)
 
         self.wireframe().lw(lw)
@@ -3088,7 +3088,7 @@ class Plane(Mesh):
         tf.SetInputData(poly)
         tf.SetTransform(t)
         tf.Update()
-        Mesh.__init__(self, tf.GetOutput(), c, alpha)
+        super().__init__(tf.GetOutput(), c, alpha)
         self.lighting("off")
         self.pos(pos)
         self.name = "Plane"
@@ -3203,7 +3203,7 @@ class Rectangle(Mesh):
             pts = ([0.0, 0.0, 0.0], p1r - p1, p2 - p1, p2l - p1)
             faces = [(0, 1, 2, 3)]
 
-        Mesh.__init__(self, [pts, faces], color, alpha)
+        super().__init__([pts, faces], color, alpha)
         self.pos(p1)
         self.property.LightingOff()
         self.name = "Rectangle"
@@ -3275,7 +3275,7 @@ class Box(Mesh):
         ]
         vtc = utils.numpy2vtk(tc)
         pd.GetPointData().SetTCoords(vtc)
-        Mesh.__init__(self, pd, c, alpha)
+        super().__init__(pd, c, alpha)
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
         self.pos(pos)
@@ -3328,7 +3328,7 @@ class TessellatedBox(Mesh):
             tbs.SetOutputPointsPrecision(vtk.vtkAlgorithm.SINGLE_PRECISION)
             tbs.Update()
             poly = tbs.GetOutput()
-        Mesh.__init__(self, poly, c=c, alpha=alpha)
+        super().__init__(poly, c=c, alpha=alpha)
         self.pos(pos)
         self.lw(1).lighting("off")
         self.base = np.array([0.5, 0.5, 0.0])
@@ -3401,7 +3401,7 @@ class Spring(Mesh):
             thickness = r1 / 10
         tuf.SetRadius(thickness)
         tuf.Update()
-        Mesh.__init__(self, tuf.GetOutput(), c, alpha)
+        super().__init__(tuf.GetOutput(), c, alpha)
         self.phong()
         self.pos(start_pt)
         self.base = np.array(start_pt, dtype=float)
@@ -3457,7 +3457,7 @@ class Cylinder(Mesh):
         tf.Update()
         pd = tf.GetOutput()
 
-        Mesh.__init__(self, pd, c, alpha)
+        super().__init__(pd, c, alpha)
         self.phong()
         self.pos(pos)
         self.base = base + pos
@@ -3477,7 +3477,7 @@ class Cone(Mesh):
         con.SetHeight(height)
         con.SetDirection(axis)
         con.Update()
-        Mesh.__init__(self, con.GetOutput(), c, alpha)
+        super().__init__(con.GetOutput(), c, alpha)
         self.phong()
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
@@ -3534,7 +3534,7 @@ class Torus(Mesh):
                 for i in range(n - 1):
                     faces.append([i + j * n, i + 1 + j * n, i + 1 + j1n, i + j1n])
 
-            Mesh.__init__(self, [pts, faces], c, alpha)
+            super().__init__([pts, faces], c, alpha)
 
         else:
 
@@ -3546,7 +3546,7 @@ class Torus(Mesh):
             pfs.SetUResolution(res_u)
             pfs.SetVResolution(res_v)
             pfs.Update()
-            Mesh.__init__(self, pfs.GetOutput(), c, alpha)
+            super().__init__(pfs.GetOutput(), c, alpha)
 
         self.phong()
         if len(pos) == 2:
@@ -3583,7 +3583,7 @@ class Paraboloid(Mesh):
         contours.GenerateValues(1, 0.01, 0.01)
         contours.Update()
 
-        Mesh.__init__(self, contours.GetOutput(), c, alpha)
+        super().__init__(contours.GetOutput(), c, alpha)
         self.compute_normals().phong()
         self.mapper.ScalarVisibilityOff()
         self.pos(pos)
@@ -3616,7 +3616,7 @@ class Hyperboloid(Mesh):
         contours.GenerateValues(1, value, value)
         contours.Update()
 
-        Mesh.__init__(self, contours.GetOutput(), c, alpha)
+        super().__init__(contours.GetOutput(), c, alpha)
         self.compute_normals().phong()
         self.mapper.ScalarVisibilityOff()
         self.pos(pos)
@@ -3802,7 +3802,7 @@ class Brace(Mesh):
         tf.Update()
         poly = tf.GetOutput()
 
-        Mesh.__init__(self, poly, c, alpha)
+        super().__init__(poly, c, alpha)
         self.pos(mq)
         self.name = "Brace"
         self.base = q1
@@ -3827,7 +3827,7 @@ class Star3D(Mesh):
                [7, 1, 8], [7, 11, 6], [8, 1, 9], [8, 11, 7], [9, 1,10], [9, 11, 8],
                [10,1, 0],[10,11, 9]]
 
-        Mesh.__init__(self, [pts, fcs], c, alpha)
+        super().__init__([pts, fcs], c, alpha)
         self.rotate_x(90)
         self.scale(r).lighting("shiny")
 
@@ -3853,7 +3853,7 @@ class Cross3D(Mesh):
         c2 = Cylinder(r=thickness * s, height=2 * s).rotate_x(90)
         c3 = Cylinder(r=thickness * s, height=2 * s).rotate_y(90)
         poly = merge(c1, c2, c3).color(c).alpha(alpha).pos(pos)
-        Mesh.__init__(self, poly, c, alpha)
+        super().__init__(poly, c, alpha)
         self.name = "Cross3D"
 
 
@@ -3970,7 +3970,7 @@ class ParametricShape(Mesh):
         pfs.SetScalarModeToZ()
         pfs.Update()
 
-        Mesh.__init__(self, pfs.GetOutput())
+        super().__init__(pfs.GetOutput())
 
         if name != 'Kuen': self.normalize()
         if name == 'Dini': self.scale(0.4)
@@ -4137,7 +4137,7 @@ class Text3D(Mesh):
             txt, s, font, hspacing, vspacing, depth, italic, justify, literal
         )
 
-        Mesh.__init__(self, tpoly, c, alpha)
+        super().__init__(tpoly, c, alpha)
         self.lighting("off")
         self.pos(pos)
         self.actor.PickableOff()
@@ -4882,7 +4882,7 @@ class ConvexHull(Mesh):
             fe.Update()
             out = fe.GetOutput()
 
-        Mesh.__init__(self, out, c=mesh.color(), alpha=0.75)
+        super().__init__(out, c=mesh.color(), alpha=0.75)
         # self.triangulate()
         self.flat()
         self.name = "ConvexHull"

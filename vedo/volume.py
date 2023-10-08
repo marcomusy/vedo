@@ -423,7 +423,7 @@ class BaseVolume:
                 number of voxels to be added (or a list of length 4)
             value : (int)
                 intensity value (gray-scale color) of the padding
-        
+
         Example:
             ```python
             from vedo import Volume, dataurl, show
@@ -440,14 +440,14 @@ class BaseVolume:
         pf.SetConstant(value)
         if utils.is_sequence(voxels):
             pf.SetOutputWholeExtent(
-                x0 - voxels[0], x1 + voxels[1], 
-                y0 - voxels[2], y1 + voxels[3], 
-                z0 - voxels[4], z1 + voxels[5], 
+                x0 - voxels[0], x1 + voxels[1],
+                y0 - voxels[2], y1 + voxels[3],
+                z0 - voxels[4], z1 + voxels[5],
             )
         else:
             pf.SetOutputWholeExtent(
-                x0 - voxels, x1 + voxels, 
-                y0 - voxels, y1 + voxels, 
+                x0 - voxels, x1 + voxels,
+                y0 - voxels, y1 + voxels,
                 z0 - voxels, z1 + voxels,
             )
         pf.Update()
@@ -948,10 +948,10 @@ class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
             if a `list` of values is used for `alphas` this is interpreted
             as a transfer function along the range of the scalar.
         """
-        vtk.vtkVolume.__init__(self)
-        BaseGrid.__init__(self)
-        BaseVolume.__init__(self)
-        # super().__init__()
+        #vtk.vtkVolume.__init__(self)
+        #BaseGrid.__init__(self)
+        #BaseVolume.__init__(self)
+        super().__init__()
 
         ###################
         if isinstance(inputobj, str):

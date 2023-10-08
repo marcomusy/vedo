@@ -364,15 +364,22 @@ class Assembly(vtk.vtkAssembly):
         return obj in self.objects
 
 
-    def apply_transform(self, LT, concatenate=False):
-        """
-        """
-        self.SetPosition(LT.T.GetPosition())
-        self.SetOrientation(LT.T.GetOrientation())
-        self.SetScale(LT.T.GetScale())
+    def apply_transform(self, LT, concatenate=1):
+        """Apply a linear transformation to the object."""
         if concatenate:
             self.transform.concatenate(LT)
+        self.SetPosition(self.transform.T.GetPosition())
+        self.SetOrientation(self.transform.T.GetOrientation())
+        self.SetScale(self.transform.T.GetScale())
         return self
+    
+    # TODO ####
+    def propagate_transform(self):
+        """Propagate the transformation to all parts."""
+        # navigate the assembly and apply the transform to all parts
+        # and reset position, orientation and scale of the assembly
+        raise NotImplementedError()
+
 
     def pos(self, x=None, y=None, z=None):
         """Set/Get object position."""
@@ -389,8 +396,7 @@ class Assembly(vtk.vtkAssembly):
             z = 0
 
         q = self.transform.position
-        LT = LinearTransform()
-        LT.translate([x,y,z]-q) 
+        LT = LinearTransform().translate([x,y,z]-q) 
         return self.apply_transform(LT)
 
     def shift(self, dx, dy=0, dz=0):
@@ -430,6 +436,16 @@ class Assembly(vtk.vtkAssembly):
         self.pos(p[0], p[1], val)
         return self
     
+    def rotate_x(self, angle):
+        """Rotate object around x axis."""
+        LT = LinearTransform().rotate_x(angle)
+        return self.apply_transform(LT)
+    
+    def rotate_y(self, angle):
+        """Rotate object around y axis."""
+        LT = LinearTransform().rotate_y(angle)
+        return self.apply_transform(LT)
+
     def rotate_z(self, angle):
         """Rotate object around z axis."""
         LT = LinearTransform().rotate_z(angle)

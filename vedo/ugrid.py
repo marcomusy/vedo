@@ -44,8 +44,9 @@ class UGrid(BaseGrid, vtk.vtkActor):
             - VTK_PENTAGONAL_PRISM = 16
         """
 
-        vtk.vtkActor.__init__(self)
-        BaseGrid.__init__(self)
+        #vtk.vtkActor.__init__(self)
+        #BaseGrid.__init__(self)
+        super().__init__()
 
         inputtype = str(type(inputobj))
         self._data = None

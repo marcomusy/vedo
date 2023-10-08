@@ -30,7 +30,7 @@ __all__ = [
 
 
 ###############################################################################
-class _DataArrayHelper:
+class DataArrayHelper:
     # Internal use only.
     # Helper class to manage data associated to either
     # points (or vertices) and cells (or faces).
@@ -443,7 +443,7 @@ class Base3DProp:
 
         q = self.transform.position
         LT = LinearTransform()
-        LT.translate([x,y,z]-q) 
+        LT.translate([x,y,z] - q) 
         return self.apply_transform(LT)
 
     def shift(self, dx=0, dy=0, dz=0):
@@ -710,7 +710,7 @@ class Base3DProp:
             pts = self.points()
             xmin, ymin, zmin = np.min(pts, axis=0)
             xmax, ymax, zmax = np.max(pts, axis=0)
-            return [xmin, xmax, ymin, ymax, zmin, zmax]
+            return (xmin, xmax, ymin, ymax, zmin, zmax)
         except (AttributeError, ValueError):
             return self.GetBounds()
 
@@ -833,6 +833,8 @@ class BaseActor(Base3DProp):
 
         super().__init__()
 
+        print("BaseActor __init__")
+
         self.mapper = None
         self._caption = None
         self.property = None
@@ -846,15 +848,6 @@ class BaseActor(Base3DProp):
         #     return self.mapper.GetInput()
         # return self.GetMapper().GetInput()
         return self
-
-    # def modified(self):
-    #     """Use in conjunction with `tonumpy()`
-    #     to update any modifications to the volume array"""
-    #     sc = self.GetPointData().GetScalars()
-    #     if sc:
-    #         sc.Modified()
-    #     self.GetPointData().Modified()
-    #     return self
 
     @property
     def npoints(self):
@@ -909,9 +902,9 @@ class BaseActor(Base3DProp):
             vpts.SetData(arr)
             vpts.Modified()
             # reset mesh to identity matrix position/rotation:
-            self.actor.PokeMatrix(vtk.vtkMatrix4x4())
             self.point_locator = None
             self.cell_locator = None
+            self.actor.PokeMatrix(vtk.vtkMatrix4x4())
             self.transform = LinearTransform()
             return self
 
@@ -936,13 +929,12 @@ class BaseActor(Base3DProp):
         Remove cells from the mesh object by their ID.
         Points (vertices) are not removed (you may use `.clean()` to remove those).
         """
-        data = self
-        data.BuildLinks()
+        self.BuildLinks()
         for cid in ids:
-            data.DeleteCell(cid)
-        data.RemoveDeletedCells()
-        data.Modified()
-        self._mapper.Modified()
+            self.DeleteCell(cid)
+        self.RemoveDeletedCells()
+        self.Modified()
+        self.mapper.Modified()
         self.pipeline = utils.OperationNode(
             "delete_cells", parents=[self], comment=f"#cells {self.GetNumberOfCells()}"
         )
@@ -1000,98 +992,6 @@ class BaseActor(Base3DProp):
         vc.Update()
         varr = vc.GetOutput().GetCellData().GetArray("VertexCount")
         return utils.vtk2numpy(varr)
-
-    def lighting(
-        self,
-        style="",
-        ambient=None,
-        diffuse=None,
-        specular=None,
-        specular_power=None,
-        specular_color=None,
-        metallicity=None,
-        roughness=None,
-    ):
-        """
-        Set the ambient, diffuse, specular and specular_power lighting constants.
-
-        Arguments:
-            style : (str)
-                preset style, options are `[metallic, plastic, shiny, glossy, ambient, off]`
-            ambient : (float)
-                ambient fraction of emission [0-1]
-            diffuse : (float)
-                emission of diffused light in fraction [0-1]
-            specular : (float)
-                fraction of reflected light [0-1]
-            specular_power : (float)
-                precision of reflection [1-100]
-            specular_color : (color)
-                color that is being reflected by the surface
-
-        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png" alt="", width=700px>
-
-        Examples:
-            - [specular.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/specular.py)
-        """
-        pr = self.property
-
-        if style:
-
-            if isinstance(pr, vtk.vtkVolumeProperty):
-                self.shade(True)
-                if style == "off":
-                    self.shade(False)
-                elif style == "ambient":
-                    style = "default"
-                    self.shade(False)
-            else:
-                if style != "off":
-                    pr.LightingOn()
-
-            if style == "off":
-                pr.SetInterpolationToFlat()
-                pr.LightingOff()
-                return self  ##############
-
-            if hasattr(pr, "GetColor"):  # could be Volume
-                c = pr.GetColor()
-            else:
-                c = (1, 1, 0.99)
-            mpr = self.mapper
-            if hasattr(mpr, 'GetScalarVisibility') and mpr.GetScalarVisibility():
-                c = (1,1,0.99)
-            if   style=='metallic': pars = [0.1, 0.3, 1.0, 10, c]
-            elif style=='plastic' : pars = [0.3, 0.4, 0.3,  5, c]
-            elif style=='shiny'   : pars = [0.2, 0.6, 0.8, 50, c]
-            elif style=='glossy'  : pars = [0.1, 0.7, 0.9, 90, (1,1,0.99)]
-            elif style=='ambient' : pars = [0.8, 0.1, 0.0,  1, (1,1,1)]
-            elif style=='default' : pars = [0.1, 1.0, 0.05, 5, c]
-            else:
-                vedo.logger.error("in lighting(): Available styles are")
-                vedo.logger.error("[default, metallic, plastic, shiny, glossy, ambient, off]")
-                raise RuntimeError()
-            pr.SetAmbient(pars[0])
-            pr.SetDiffuse(pars[1])
-            pr.SetSpecular(pars[2])
-            pr.SetSpecularPower(pars[3])
-            if hasattr(pr, "GetColor"):
-                pr.SetSpecularColor(pars[4])
-
-        if ambient is not None: pr.SetAmbient(ambient)
-        if diffuse is not None: pr.SetDiffuse(diffuse)
-        if specular is not None: pr.SetSpecular(specular)
-        if specular_power is not None: pr.SetSpecularPower(specular_power)
-        if specular_color is not None: pr.SetSpecularColor(colors.get_color(specular_color))
-        if utils.vtk_version_at_least(9):
-            if metallicity is not None:
-                pr.SetInterpolationToPBR()
-                pr.SetMetallic(metallicity)
-            if roughness is not None:
-                pr.SetInterpolationToPBR()
-                pr.SetRoughness(roughness)
-
-        return self
 
     def print_histogram(
         self,
@@ -1158,7 +1058,7 @@ class BaseActor(Base3DProp):
 
             `myobj.pointdata.remove(name)` to remove this array
         """
-        return _DataArrayHelper(self, 0)
+        return DataArrayHelper(self, 0)
 
     @property
     def celldata(self):
@@ -1175,7 +1075,7 @@ class BaseActor(Base3DProp):
 
             `myobj.celldata.remove(name)` to remove this array
         """
-        return _DataArrayHelper(self, 1)
+        return DataArrayHelper(self, 1)
 
     @property
     def metadata(self):
@@ -1192,7 +1092,7 @@ class BaseActor(Base3DProp):
 
             `myobj.metadata.remove(name)` to remove this array
         """
-        return _DataArrayHelper(self, 2)
+        return DataArrayHelper(self, 2)
 
     def map_cells_to_points(self, arrays=(), move=False):
         """
@@ -2267,9 +2167,11 @@ class BaseActor2D(vtk.vtkActor2D):
     def __init__(self):
         """Manage 2D objects."""
         super().__init__()
+
         self.mapper = None
         self.property = self.GetProperty()
         self.filename = ""
+
 
     def layer(self, value=None):
         """Set/Get the layer number in the overlay planes into which to render."""
@@ -2361,12 +2263,6 @@ class BaseActor2D(vtk.vtkActor2D):
 
 
 ############################################################################### funcs
-def _getinput(obj):
-    if isinstance(obj, (vtk.vtkVolume, vtk.vtkActor)):
-        return obj.GetMapper().GetInput()
-    return obj
-
-
 def probe_points(dataset, pts):
     """
     Takes a `Volume` (or any other vtk data set)
@@ -2400,7 +2296,7 @@ def probe_points(dataset, pts):
     src = vtk.vtkProgrammableSource()
     src.SetExecuteMethod(_readpoints)
     src.Update()
-    img = _getinput(dataset)
+    img = dataset
     probeFilter = vtk.vtkProbeFilter()
     probeFilter.SetSourceData(img)
     probeFilter.SetInputConnection(src.GetOutputPort())
@@ -2432,9 +2328,8 @@ def probe_line(dataset, p1, p2, res=100):
     line.SetResolution(res)
     line.SetPoint1(p1)
     line.SetPoint2(p2)
-    img = _getinput(dataset)
     probeFilter = vtk.vtkProbeFilter()
-    probeFilter.SetSourceData(img)
+    probeFilter.SetSourceData(dataset)
     probeFilter.SetInputConnection(line.GetOutputPort())
     probeFilter.Update()
     poly = probeFilter.GetOutput()
@@ -2455,12 +2350,11 @@ def probe_plane(dataset, origin=(0, 0, 0), normal=(1, 0, 0)):
 
             ![](https://vedo.embl.es/images/volumetric/slicePlane2.png)
     """
-    img = _getinput(dataset)
     plane = vtk.vtkPlane()
     plane.SetOrigin(origin)
     plane.SetNormal(normal)
     planeCut = vtk.vtkCutter()
-    planeCut.SetInputData(img)
+    planeCut.SetInputData(dataset)
     planeCut.SetCutFunction(plane)
     planeCut.Update()
     poly = planeCut.GetOutput()

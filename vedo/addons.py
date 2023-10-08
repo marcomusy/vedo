@@ -1260,12 +1260,12 @@ def ScalarBar3D(
         tacts.append(nantx)
 
     if draw_box:
-        tacts.append(scale.box().lw(1))
+        tacts.append(scale.box().lw(1).c(c))
 
-    for a in tacts:
+    for a in tacts+scales:
+        a.shift(pos)
         a.actor.PickableOff()
-        a.pos(pos)
-        a.lighting("off")
+        a.property.LightingOff()
 
     mtacts = merge(tacts)
     mtacts.actor.PickableOff()

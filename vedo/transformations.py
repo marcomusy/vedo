@@ -16,7 +16,17 @@ Submodule to work with transformations <br>
 ![](https://vedo.embl.es/images/basic/pca.png)
 """
 
-__all__ = ["LinearTransform"]
+__all__ = [
+    "LinearTransform",
+    "spher2cart",
+    "cart2spher",
+    "cart2cyl",
+    "cyl2cart",
+    "cyl2spher",
+    "spher2cyl",
+    "cart2pol",
+    "pol2cart",
+]
 
 ###################################################
 def _is_sequence(arg):
@@ -399,3 +409,71 @@ class LinearTransform:
     #     self.point_locator = None
     #     self.cell_locator = None
         return self
+
+
+
+########################################################################
+# 2d ######
+def cart2pol(x, y):
+    """2D Cartesian to Polar coordinates conversion."""
+    theta = np.arctan2(y, x)
+    rho = np.hypot(x, y)
+    return np.array([rho, theta])
+
+
+def pol2cart(rho, theta):
+    """2D Polar to Cartesian coordinates conversion."""
+    x = rho * np.cos(theta)
+    y = rho * np.sin(theta)
+    return np.array([x, y])
+
+# 3d ######
+def cart2spher(x, y, z):
+    """3D Cartesian to Spherical coordinate conversion."""
+    hxy = np.hypot(x, y)
+    rho = np.hypot(hxy, z)
+    theta = np.arctan2(hxy, z)
+    phi = np.arctan2(y, x)
+    return np.array([rho, theta, phi])
+
+
+def spher2cart(rho, theta, phi):
+    """3D Spherical to Cartesian coordinate conversion."""
+    st = np.sin(theta)
+    sp = np.sin(phi)
+    ct = np.cos(theta)
+    cp = np.cos(phi)
+    rst = rho * st
+    x = rst * cp
+    y = rst * sp
+    z = rho * ct
+    return np.array([x, y, z])
+
+
+def cart2cyl(x, y, z):
+    """3D Cartesian to Cylindrical coordinate conversion."""
+    rho = np.sqrt(x * x + y * y)
+    theta = np.arctan2(y, x)
+    return np.array([rho, theta, z])
+
+
+def cyl2cart(rho, theta, z):
+    """3D Cylindrical to Cartesian coordinate conversion."""
+    x = rho * np.cos(theta)
+    y = rho * np.sin(theta)
+    return np.array([x, y, z])
+
+
+def cyl2spher(rho, theta, z):
+    """3D Cylindrical to Spherical coordinate conversion."""
+    rhos = np.sqrt(rho * rho + z * z)
+    phi = np.arctan2(rho, z)
+    return np.array([rhos, phi, theta])
+
+
+def spher2cyl(rho, theta, phi):
+    """3D Spherical to Cylindrical coordinate conversion."""
+    rhoc = rho * np.sin(theta)
+    z = rho * np.cos(theta)
+    return np.array([rhoc, phi, z])
+

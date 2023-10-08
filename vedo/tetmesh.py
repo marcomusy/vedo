@@ -126,8 +126,9 @@ class TetMesh(BaseGrid, vtk.vtkVolume):
             mapper : (str)
                 choose a visualization style in `['tetra', 'raycast', 'zsweep']`
         """
-        vtk.vtkVolume.__init__(self)
-        BaseGrid.__init__(self)
+#        vtk.vtkVolume.__init__(self)
+#        BaseGrid.__init__(self)
+        super().__init__()
 
         # inputtype = str(type(inputobj))
         # print('TetMesh inputtype', inputtype)

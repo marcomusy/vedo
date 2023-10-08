@@ -2682,49 +2682,51 @@ class Plotter:
 
 
     def _scan_input_return_acts(self, wannabe_acts):
-        # scan the input of show
+        # scan the input and return a list of actors
         if not utils.is_sequence(wannabe_acts):
             wannabe_acts = [wannabe_acts]
         
         wannabe_acts2 = []
         for a in wannabe_acts:
-            try:
+
+            try: 
                 wannabe_acts2.append(a.actor)
-            except:
+            except AttributeError: 
                 wannabe_acts2.append(a) # already actor
+
+            try: 
+                wannabe_acts2.append(a.scalarbar) 
+            except AttributeError: pass
+
+            try: 
+                for sh in a.shadows:
+                    wannabe_acts2.append(sh.actor)
+            except AttributeError: pass
+
+            try:
+                wannabe_acts2.append(a.trail.actor)
+                if a.trail.shadows: # trails may also have shadows
+                    for sh in a.trail.shadows:
+                        wannabe_acts2.append(sh.actor)
+            except AttributeError: pass
+
+            # try: wannabe_acts2.append(a.axes)
+            # except AttributeError: pass
 
         scanned_acts = []
         for a in wannabe_acts2:  # scan content of list
 
             if a is None:
-                pass
+                continue
 
             elif isinstance(a, vtk.vtkActor):
-
                 scanned_acts.append(a)
-
-                # if isinstance(a, vedo.base.BaseActor):
-                #     if a.shadows:
-                #         for sh in a.shadows:
-                #             scanned_acts.append(sh.actor)
-
-                #     if a.trail:
-                #         scanned_acts.append(a.trail.actor)
-                #         # trails may also have shadows:
-                #         if a.trail.shadows:
-                #             for sh in a.trail.shadows:
-                #                 scanned_acts.append(sh.actor)
-
-                #     if a._caption:
-                #         scanned_acts.append(a._caption)
 
             elif isinstance(a, vtk.vtkActor2D):
                 scanned_acts.append(a)
 
             elif isinstance(a, vtk.vtkAssembly):
                 scanned_acts.append(a)
-                # if a.trail:
-                #     scanned_acts.append(a.trail.actor)
 
             elif isinstance(a, (vedo.Volume, vedo.VolumeSlice)):
                 scanned_acts.append(a.actor)
@@ -2779,6 +2781,9 @@ class Plotter:
             elif isinstance(a, vtk.vtkLight):
                 self.renderer.AddLight(a)
 
+            elif isinstance(a, vtk.vtkPolyData):
+                scanned_acts.append(vedo.Mesh(a).actor)
+
             elif isinstance(a, vtk.vtkMultiBlockDataSet):
                 for i in range(a.GetNumberOfBlocks()):
                     b = a.GetBlock(i)
@@ -2786,9 +2791,6 @@ class Plotter:
                         scanned_acts.append(vedo.Mesh(b).actor)
                     elif isinstance(b, vtk.vtkImageData):
                         scanned_acts.append(vedo.Volume(b).actor)
-
-            elif isinstance(a, vtk.vtkPolyData):
-                scanned_acts.append(vedo.Mesh(a).actor)
 
             elif isinstance(a, (vtk.vtkProp, vtk.vtkInteractorObserver)):
                 scanned_acts.append(a)

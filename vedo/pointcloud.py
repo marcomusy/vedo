@@ -706,8 +706,22 @@ def Point(pos=(0, 0, 0), r=12, c="red", alpha=1.0):
     return pt
 
 
+
+class PointsVisual:
+    """Class to manage the visual aspects of a ``Points`` object."""
+    pass
+    # def __init__(self):
+    #     self.actor = vtk.vtkActor()
+
+    #     self.data = None
+    #     self.mapper = None
+    #     self.property = None
+        
+    #     print("PPP")
+
+
 ###################################################
-class Points(BaseActor, vtk.vtkPolyData):
+class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
     """Work with point clouds."""
 
     def __init__(self, inputobj=None, r=4, c=(0.2, 0.2, 0.2), alpha=1, blur=False, emissive=True):
@@ -752,6 +766,7 @@ class Points(BaseActor, vtk.vtkPolyData):
 
         self.actor = vtk.vtkActor()
         self.property = self.actor.GetProperty()
+
         self.transform = LinearTransform()
         self.actor.data = self
         # self.name = "Points" # better not to give it a name here
@@ -1451,6 +1466,98 @@ class Points(BaseActor, vtk.vtkPolyData):
             comment=f"#pts {self.GetNumberOfPoints()}",
         )
         return dists
+
+    def lighting(
+        self,
+        style="",
+        ambient=None,
+        diffuse=None,
+        specular=None,
+        specular_power=None,
+        specular_color=None,
+        metallicity=None,
+        roughness=None,
+    ):
+        """
+        Set the ambient, diffuse, specular and specular_power lighting constants.
+
+        Arguments:
+            style : (str)
+                preset style, options are `[metallic, plastic, shiny, glossy, ambient, off]`
+            ambient : (float)
+                ambient fraction of emission [0-1]
+            diffuse : (float)
+                emission of diffused light in fraction [0-1]
+            specular : (float)
+                fraction of reflected light [0-1]
+            specular_power : (float)
+                precision of reflection [1-100]
+            specular_color : (color)
+                color that is being reflected by the surface
+
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png" alt="", width=700px>
+
+        Examples:
+            - [specular.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/specular.py)
+        """
+        pr = self.property
+
+        if style:
+
+            if isinstance(pr, vtk.vtkVolumeProperty):
+                self.shade(True)
+                if style == "off":
+                    self.shade(False)
+                elif style == "ambient":
+                    style = "default"
+                    self.shade(False)
+            else:
+                if style != "off":
+                    pr.LightingOn()
+
+            if style == "off":
+                pr.SetInterpolationToFlat()
+                pr.LightingOff()
+                return self  ##############
+
+            if hasattr(pr, "GetColor"):  # could be Volume
+                c = pr.GetColor()
+            else:
+                c = (1, 1, 0.99)
+            mpr = self.mapper
+            if hasattr(mpr, 'GetScalarVisibility') and mpr.GetScalarVisibility():
+                c = (1,1,0.99)
+            if   style=='metallic': pars = [0.1, 0.3, 1.0, 10, c]
+            elif style=='plastic' : pars = [0.3, 0.4, 0.3,  5, c]
+            elif style=='shiny'   : pars = [0.2, 0.6, 0.8, 50, c]
+            elif style=='glossy'  : pars = [0.1, 0.7, 0.9, 90, (1,1,0.99)]
+            elif style=='ambient' : pars = [0.8, 0.1, 0.0,  1, (1,1,1)]
+            elif style=='default' : pars = [0.1, 1.0, 0.05, 5, c]
+            else:
+                vedo.logger.error("in lighting(): Available styles are")
+                vedo.logger.error("[default, metallic, plastic, shiny, glossy, ambient, off]")
+                raise RuntimeError()
+            pr.SetAmbient(pars[0])
+            pr.SetDiffuse(pars[1])
+            pr.SetSpecular(pars[2])
+            pr.SetSpecularPower(pars[3])
+            if hasattr(pr, "GetColor"):
+                pr.SetSpecularColor(pars[4])
+
+        if ambient is not None: pr.SetAmbient(ambient)
+        if diffuse is not None: pr.SetDiffuse(diffuse)
+        if specular is not None: pr.SetSpecular(specular)
+        if specular_power is not None: pr.SetSpecularPower(specular_power)
+        if specular_color is not None: pr.SetSpecularColor(colors.get_color(specular_color))
+        if utils.vtk_version_at_least(9):
+            if metallicity is not None:
+                pr.SetInterpolationToPBR()
+                pr.SetMetallic(metallicity)
+            if roughness is not None:
+                pr.SetInterpolationToPBR()
+                pr.SetRoughness(roughness)
+
+        return self
 
     def alpha(self, opacity=None):
         """Set/get mesh's transparency. Same as `mesh.opacity()`."""
