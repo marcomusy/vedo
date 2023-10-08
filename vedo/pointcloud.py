@@ -25,7 +25,7 @@ __all__ = [
     "Points",
     "Point",
     "merge",
-    "delaunay2d",  # deprecated
+    "delaunay2d",  # deprecated, use .generate_delaunay2d()
     "fit_line",
     "fit_circle",
     "fit_plane",
@@ -488,7 +488,8 @@ class PointsVisual:
         self.property = self.actor.GetProperty()
         self.mapper = vtk.vtkPolyDataMapper()
 
-        self._bfprop = None   # backface property holder
+        self.property_backface = None        
+
         self._scals_idx = 0   # index of the active scalar changed from CLI
         self._ligthingnr = 0  # index of the lighting mode changed from CLI
         self._cmap_name = ""  # remember the name for self._keypress
@@ -536,10 +537,10 @@ class PointsVisual:
         bfp = self.actor.GetBackfaceProperty()
         if bfp:
             if opacity < 1:
-                self._bfprop = bfp
+                self.property_backface = bfp
                 self.property.SetBackfaceProperty(None)
             else:
-                self.property.SetBackfaceProperty(self._bfprop)
+                self.property.SetBackfaceProperty(self.property_backface)
         return self
 
 
@@ -4909,6 +4910,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         m.lw(2).lighting("off").wireframe()
         m.name = "Voronoi"
         return m
+
 
     ####################################################
     def visible_points(self, area=(), tol=None, invert=False):
