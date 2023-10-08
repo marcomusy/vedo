@@ -469,7 +469,10 @@ class Plotter:
         self.window = vtk.vtkRenderWindow()
 
         self.window.GlobalWarningDisplayOff()
-        self.window.SetWindowName(self.title)
+
+        if self.title == "vedo":  # check if dev version
+            if "dev" in vedo.__version__:
+                self.title = f"vedo ({vedo.__version__})"
 
         # more settings
         if settings.use_depth_peeling:
@@ -812,16 +815,17 @@ class Plotter:
 
         objs = utils.flatten(objs)
         for ob in objs: 
-            if ob:
+            if ob and ob not in self.objects:
                 self.objects.append(ob)
-        # self.objects = list(set(self.objects))
 
-        acts = self._scan_input(objs)
+        acts = self._scan_input_return_acts(objs)
 
         for a in acts:
-            if isinstance(a, vtk.vtkInteractorObserver):
-                a.add_to(self)
-                continue
+
+            # if isinstance(a, vtk.vtkInteractorObserver):
+            #     a.add_to(self)
+            #     continue
+
             if ren:
                 try:
                     ren.AddActor(a)
@@ -836,7 +840,6 @@ class Plotter:
     def remove(self, *objs, at=None):
         """
         Remove input object to the internal list of objects to be shown.
-        This method is typically used in loops or callback functions.
         Objects to be removed can be referenced by their assigned name.
 
         Arguments:
@@ -850,64 +853,73 @@ class Plotter:
 
         objs = [ob for ob in utils.flatten(objs) if ob]
 
-        objects_in_ren = None
-        objects_r = []
-        for a in objs:
+        has_str = False
+        for ob in objs:
+            if isinstance(ob, str):
+                has_str = True
+                break
+        
+        has_actor = False
+        for ob in objs:
+            if isinstance(ob, vedo.base.Base3DProp):
+                has_actor = True
+                break
 
-            # if isinstance(a, vtk.vtkInteractorObserver):
-            #     a.remove_from(self)
-            #     continue ###
-
-            if isinstance(a, str):
-                if objects_in_ren is None:
-                    objects_in_ren = self.get_meshes(
-                        include_non_pickables=True,
-                        unpack_assemblies=False,
-                    )
-
-                for b in set(self.objects + objects_in_ren):
-                    if hasattr(b, "name") and a in b.name:
-                        objects_r.append(b)
-
-            else:
-                objects_r.append(a)
-
-        for ob in set(objects_r):
-            if ren:
+        if has_str or has_actor:
+            # need to get the actors
+            acts = self.get_meshes(include_non_pickables=True, 
+                                   unpack_assemblies=False)
+            for a in acts:
                 try:
-                    a = ob.actor
+                    if a.data.name:
+                        objs.append(a)
                 except AttributeError:
-                    a = ob
+                    pass        
+        
+        ids = []
+        ir = self.renderers.index(ren)
 
-                ren.RemoveActor(a)
-
-                if hasattr(a, "rendered_at"):
-                    ir = self.renderers.index(ren)
-                    a.rendered_at.discard(ir)
-                if hasattr(a, "scalarbar") and a.scalarbar:
-                    ren.RemoveActor(a.scalarbar)
-                if hasattr(a, "_caption") and a._caption:
-                    ren.RemoveActor(a._caption)
-                if hasattr(a, "shadows") and a.shadows:
-                    for sha in a.shadows:
-                        ren.RemoveActor(sha)
-                if hasattr(a, "trail") and a.trail:
-                    ren.RemoveActor(a.trail)
-                    a.trail_points = []
-                    if hasattr(a.trail, "shadows") and a.trail.shadows:
-                        for sha in a.trail.shadows:
-                            ren.RemoveActor(sha)
-
-        for i, ob in enumerate(objs):
-            if ob in self.objects:
+        for ob in set(objs):
+            # remove it from internal list if possible
+            if ob in list(self.objects):
                 try:
-                    i = self.objects.index(a)
-                    del self.objects[i]
+                    idx = self.objects.index(ob)
+                    ids.append(idx)
                 except ValueError:
                     pass
+            
+            if ren:  ### remove it from the renderer
+
+                try:
+                    ren.RemoveActor(ob)
+                except TypeError:
+                    try:
+                        ren.RemoveActor(ob.actor)
+                    except AttributeError:
+                        pass
+
+                if hasattr(ob, "rendered_at"):
+                    ob.rendered_at.discard(ir)
+                    
+                if hasattr(ob, "scalarbar") and ob.scalarbar:
+                    ren.RemoveActor(ob.scalarbar.actor)
+                if hasattr(ob, "_caption") and ob._caption:
+                    ren.RemoveActor(ob._caption.actor)
+                if hasattr(ob, "shadows") and ob.shadows:
+                    for sha in ob.shadows:
+                        ren.RemoveActor(sha.actor)
+                if hasattr(ob, "trail") and ob.trail:
+                    ren.RemoveActor(ob.trail.actor)
+                    ob.trail_points = []
+                    if hasattr(ob.trail, "shadows") and ob.trail.shadows:
+                        for sha in ob.trail.shadows:
+                            ren.RemoveActor(sha.actor)
+            
+        for i in ids:
+            del self.objects[i]
 
         return self
-    
+
     @property
     def actors(self):
         """Return the list of actors."""
@@ -2136,7 +2148,7 @@ class Plotter:
 
             # change box color if needed in 'auto' mode
             if evt.isPoints and "auto" in str(bg):
-                actcol = evt.actor.GetProperty().GetColor()
+                actcol = evt.actor.property.GetColor()
                 if hoverlegend.mapper.GetTextProperty().GetBackgroundColor() != actcol:
                     hoverlegend.mapper.GetTextProperty().SetBackgroundColor(actcol)
 
@@ -2669,7 +2681,7 @@ class Plotter:
         return afru
 
 
-    def _scan_input(self, wannabe_acts):
+    def _scan_input_return_acts(self, wannabe_acts):
         # scan the input of show
         if not utils.is_sequence(wannabe_acts):
             wannabe_acts = [wannabe_acts]
@@ -2691,28 +2703,28 @@ class Plotter:
 
                 scanned_acts.append(a)
 
-                if isinstance(a, vedo.base.BaseActor):
-                    if a.shadows:
-                        for sh in a.shadows:
-                            scanned_acts.append(sh.actor)
+                # if isinstance(a, vedo.base.BaseActor):
+                #     if a.shadows:
+                #         for sh in a.shadows:
+                #             scanned_acts.append(sh.actor)
 
-                    if a.trail:
-                        scanned_acts.append(a.trail.actor)
-                        # trails may also have shadows:
-                        if a.trail.shadows:
-                            for sh in a.trail.shadows:
-                                scanned_acts.append(sh.actor)
+                #     if a.trail:
+                #         scanned_acts.append(a.trail.actor)
+                #         # trails may also have shadows:
+                #         if a.trail.shadows:
+                #             for sh in a.trail.shadows:
+                #                 scanned_acts.append(sh.actor)
 
-                    if a._caption:
-                        scanned_acts.append(a._caption)
+                #     if a._caption:
+                #         scanned_acts.append(a._caption)
 
             elif isinstance(a, vtk.vtkActor2D):
                 scanned_acts.append(a)
 
             elif isinstance(a, vtk.vtkAssembly):
                 scanned_acts.append(a)
-                if a.trail:
-                    scanned_acts.append(a.trail.actor)
+                # if a.trail:
+                #     scanned_acts.append(a.trail.actor)
 
             elif isinstance(a, (vedo.Volume, vedo.VolumeSlice)):
                 scanned_acts.append(a.actor)
@@ -3499,41 +3511,41 @@ class Plotter:
 
         elif key == "Down":
             if self.clicked_actor in self.get_meshes():
-                self.clicked_actor.GetProperty().SetOpacity(0.02)
-                bfp = self.clicked_actor.GetBackfaceProperty()
+                self.clicked_actor.property.SetOpacity(0.02)
+                bfp = self.clicked_actor.actor.GetBackfaceProperty()
                 if bfp and hasattr(self.clicked_actor, "_bfprop"):
                     self.clicked_actor._bfprop = bfp  # save it
-                    self.clicked_actor.SetBackfaceProperty(None)
+                    self.clicked_actor.actor.SetBackfaceProperty(None)
             else:
                 for a in self.get_meshes():
-                    a.GetProperty().SetOpacity(0.02)
-                    bfp = a.GetBackfaceProperty()
+                    a.property.SetOpacity(0.02)
+                    bfp = a.actor.GetBackfaceProperty()
                     if bfp and hasattr(a, "_bfprop"):
                         a._bfprop = bfp
-                        a.SetBackfaceProperty(None)
+                        a.actor.SetBackfaceProperty(None)
 
         elif key == "Left":
             if self.clicked_actor in self.get_meshes():
-                ap = self.clicked_actor.GetProperty()
+                ap = self.clicked_actor.property
                 aal = max([ap.GetOpacity() * 0.75, 0.01])
                 ap.SetOpacity(aal)
-                bfp = self.clicked_actor.GetBackfaceProperty()
+                bfp = self.clicked_actor.actor.GetBackfaceProperty()
                 if bfp and hasattr(self.clicked_actor, "_bfprop"):
                     self.clicked_actor._bfprop = bfp
-                    self.clicked_actor.SetBackfaceProperty(None)
+                    self.clicked_actor.actor.SetBackfaceProperty(None)
             else:
                 for a in self.get_meshes():
-                    ap = a.GetProperty()
+                    ap = a.property
                     aal = max([ap.GetOpacity() * 0.75, 0.01])
                     ap.SetOpacity(aal)
-                    bfp = a.GetBackfaceProperty()
+                    bfp = a.actor.GetBackfaceProperty()
                     if bfp and hasattr(a, "_bfprop"):
                         a._bfprop = bfp
-                        a.SetBackfaceProperty(None)
+                        a.actor.SetBackfaceProperty(None)
 
         elif key == "Right":
             if self.clicked_actor in self.get_meshes():
-                ap = self.clicked_actor.GetProperty()
+                ap = self.clicked_actor.property
                 aal = min([ap.GetOpacity() * 1.25, 1.0])
                 ap.SetOpacity(aal)
                 if (
@@ -3542,25 +3554,25 @@ class Plotter:
                     and self.clicked_actor._bfprop
                 ):
                     # put back
-                    self.clicked_actor.SetBackfaceProperty(self.clicked_actor._bfprop)
+                    self.clicked_actor.actor.SetBackfaceProperty(self.clicked_actor._bfprop)
             else:
                 for a in self.get_meshes():
-                    ap = a.GetProperty()
+                    ap = a.property
                     aal = min([ap.GetOpacity() * 1.25, 1.0])
                     ap.SetOpacity(aal)
                     if aal == 1 and hasattr(a, "_bfprop") and a._bfprop:
-                        a.SetBackfaceProperty(a._bfprop)
+                        a.actor.SetBackfaceProperty(a._bfprop)
 
         elif key in ("slash", "Up"):
             if self.clicked_actor in self.get_meshes():
-                self.clicked_actor.GetProperty().SetOpacity(1)
+                self.clicked_actor.property.SetOpacity(1)
                 if hasattr(self.clicked_actor, "_bfprop") and self.clicked_actor._bfprop:
-                    self.clicked_actor.SetBackfaceProperty(self.clicked_actor._bfprop)
+                    self.clicked_actor.actor.SetBackfaceProperty(self.clicked_actor._bfprop)
             else:
                 for a in self.get_meshes():
-                    a.GetProperty().SetOpacity(1)
+                    a.property.SetOpacity(1)
                     if hasattr(a, "_bfprop") and a._bfprop:
-                        a.SetBackfaceProperty(a._bfprop)
+                        a.actor.SetBackfaceProperty(a._bfprop)
 
         elif key == "P":
             if self.clicked_actor in self.get_meshes():
@@ -3569,18 +3581,12 @@ class Plotter:
                 acts = self.get_meshes()
             for ia in acts:
                 try:
-                    ps = ia.GetProperty().GetPointSize()
+                    ps = ia.property.GetPointSize()
                     if ps > 1:
-                        ia.GetProperty().SetPointSize(ps - 1)
-                    ia.GetProperty().SetRepresentationToPoints()
+                        ia.property.SetPointSize(ps - 1)
+                    ia.property.SetRepresentationToPoints()
                 except AttributeError:
                     pass
-
-        elif key == "U":
-            pval = renderer.GetActiveCamera().GetParallelProjection()
-            renderer.GetActiveCamera().SetParallelProjection(not pval)
-            if pval:
-                renderer.ResetCamera()
 
         elif key == "p":
             if self.clicked_actor in self.get_meshes():
@@ -3589,21 +3595,27 @@ class Plotter:
                 acts = self.get_meshes()
             for ia in acts:
                 try:
-                    ps = ia.GetProperty().GetPointSize()
-                    ia.GetProperty().SetPointSize(ps + 2)
-                    ia.GetProperty().SetRepresentationToPoints()
+                    ps = ia.property.GetPointSize()
+                    ia.property.SetPointSize(ps + 2)
+                    ia.property.SetRepresentationToPoints()
                 except AttributeError:
                     pass
 
         elif key == "w":
             if self.clicked_actor and self.clicked_actor in self.get_meshes():
-                self.clicked_actor.GetProperty().SetRepresentationToWireframe()
+                self.clicked_actor.property.SetRepresentationToWireframe()
             else:
                 for a in self.get_meshes():
-                    if a.GetProperty().GetRepresentation() == 1:  # toggle
-                        a.GetProperty().SetRepresentationToSurface()
+                    if a.property.GetRepresentation() == 1:  # toggle
+                        a.property.SetRepresentationToSurface()
                     else:
-                        a.GetProperty().SetRepresentationToWireframe()
+                        a.property.SetRepresentationToWireframe()
+
+        elif key == "U":
+            pval = renderer.GetActiveCamera().GetParallelProjection()
+            renderer.GetActiveCamera().SetParallelProjection(not pval)
+            if pval:
+                renderer.ResetCamera()
 
         elif key == "r":
             renderer.ResetCamera()
@@ -3753,17 +3765,17 @@ class Plotter:
 
         elif key == "s":
             if self.clicked_actor and self.clicked_actor in self.get_meshes():
-                self.clicked_actor.GetProperty().SetRepresentationToSurface()
+                self.clicked_actor.property.SetRepresentationToSurface()
             else:
                 for a in self.get_meshes():
-                    a.GetProperty().SetRepresentationToSurface()
+                    a.property.SetRepresentationToSurface()
 
         elif key == "1":
             self._icol += 1
             if isinstance(self.clicked_actor, vedo.Points):
                 self.clicked_actor.GetMapper().ScalarVisibilityOff()
                 pal = vedo.colors.palettes[settings.palette % len(vedo.colors.palettes)]
-                self.clicked_actor.GetProperty().SetColor(pal[(self._icol) % 10])
+                self.clicked_actor.property.SetColor(pal[(self._icol) % 10])
 
         elif key == "2":
             self._icol += 1
@@ -3772,14 +3784,14 @@ class Plotter:
             if isinstance(self.clicked_actor, vedo.Points):
                 self.clicked_actor.GetMapper().ScalarVisibilityOff()
                 pal = vedo.colors.palettes[settings.palette % len(vedo.colors.palettes)]
-                self.clicked_actor.GetProperty().SetColor(pal[(self._icol) % 10])
+                self.clicked_actor.property.SetColor(pal[(self._icol) % 10])
 
         elif key == "3":
             bsc = ["b5", "cyan5", "g4", "o5", "p5", "r4", "teal4", "yellow4"]
             self._icol += 1
             if isinstance(self.clicked_actor, vedo.Points):
                 self.clicked_actor.GetMapper().ScalarVisibilityOff()
-                self.clicked_actor.GetProperty().SetColor(vedo.get_color(bsc[(self._icol) % len(bsc)]))
+                self.clicked_actor.property.SetColor(vedo.get_color(bsc[(self._icol) % len(bsc)]))
 
         elif key == "4":
             if self.clicked_actor:
@@ -3968,10 +3980,10 @@ class Plotter:
                 acts = self.get_meshes()
             for ia in acts:
                 try:
-                    ev = ia.GetProperty().GetEdgeVisibility()
-                    ia.GetProperty().SetEdgeVisibility(not ev)
-                    ia.GetProperty().SetRepresentationToSurface()
-                    ia.GetProperty().SetLineWidth(0.1)
+                    ev = ia.property.GetEdgeVisibility()
+                    ia.property.SetEdgeVisibility(not ev)
+                    ia.property.SetRepresentationToSurface()
+                    ia.property.SetLineWidth(0.1)
                 except AttributeError:
                     pass
 
@@ -3997,12 +4009,12 @@ class Plotter:
             for ia in acts:
                 if isinstance(ia, vedo.Mesh):
                     ia.compute_normals(cells=False)
-                    intrp = ia.GetProperty().GetInterpolation()
-                    # print(intrp, ia.GetProperty().GetInterpolationAsString())
+                    intrp = ia.property.GetInterpolation()
+                    # print(intrp, ia.property.GetInterpolationAsString())
                     if intrp > 0:
-                        ia.GetProperty().SetInterpolation(0)  # flat
+                        ia.property.SetInterpolation(0)  # flat
                     else:
-                        ia.GetProperty().SetInterpolation(2)  # phong
+                        ia.property.SetInterpolation(2)  # phong
 
         elif key == "n":  # show normals to an actor
             if self.clicked_actor in self.get_meshes():

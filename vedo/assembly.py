@@ -8,6 +8,8 @@ except ImportError:
     import vtkmodules.all as vtk
 
 import vedo
+from vedo.transformations import LinearTransform
+
 
 __docformat__ = "google"
 
@@ -78,10 +80,9 @@ class Group(vtk.vtkPropAssembly):
     def __init__(self, objects=()):
         """Form groups of generic objects (not necessarily meshes)."""
 
-        vtk.vtkPropAssembly.__init__(self)
+        super().__init__()
 
         self.name = ""
-        self.created = ""
         self.trail = None
         self.trail_points = []
         self.trail_segment_size = 0
@@ -89,14 +90,16 @@ class Group(vtk.vtkPropAssembly):
         self.shadows = []
         self.info = {}
         self.rendered_at = set()
-        self.transform = None
         self.scalarbar = None
+
+        self.transform = LinearTransform()
 
         for a in vedo.utils.flatten(objects):
             if a:
                 self.AddPart(a)
 
         self.PickableOff()
+
 
     def __iadd__(self, obj):
         """
@@ -184,10 +187,6 @@ class Group(vtk.vtkPropAssembly):
         """
         return self.GetBounds()
 
-    def diagonal_size(self):
-        """Get the length of the diagonal"""
-        b = self.GetBounds()
-        return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2)
 
     def show(self, **options):
         """
@@ -203,7 +202,7 @@ class Group(vtk.vtkPropAssembly):
 
 
 #################################################
-class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
+class Assembly(vtk.vtkAssembly):
     """
     Group many objects and treat them as a single new object.
     """
@@ -218,8 +217,7 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
 
             ![](https://vedo.embl.es/images/simulations/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)
         """
-        vtk.vtkAssembly.__init__(self)
-        vedo.base.Base3DProp.__init__(self)
+        super().__init__()
 
         if len(meshs) == 1:
             meshs = meshs[0]
@@ -227,6 +225,18 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
             meshs = vedo.utils.flatten(meshs)
         
         self.actor = self
+
+        self.name = ""
+        self.trail = None
+        self.trail_points = []
+        self.trail_segment_size = 0
+        self.trail_offset = None
+        self.shadows = []
+        self.info = {}
+        self.rendered_at = set()
+        self.scalarbar = None
+
+        self.transform = LinearTransform()
 
         self.objects = meshs
         self.actors = [m.actor for m in self.objects]
@@ -350,9 +360,114 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
         return self
 
     def __contains__(self, obj):
-        """Allows to use ``in`` to check if an object is in the Assembly."""
+        """Allows to use ``in`` to check if an object is in the `Assembly`."""
         return obj in self.objects
 
+
+    def apply_transform(self, LT, concatenate=False):
+        """
+        """
+        self.SetPosition(LT.T.GetPosition())
+        self.SetOrientation(LT.T.GetOrientation())
+        self.SetScale(LT.T.GetScale())
+        if concatenate:
+            self.transform.concatenate(LT)
+        return self
+
+    def pos(self, x=None, y=None, z=None):
+        """Set/Get object position."""
+        if x is None:  # get functionality
+            return self.transform.position
+
+        if z is None and y is None:  # assume x is of the form (x,y,z)
+            if len(x) == 3:
+                x, y, z = x
+            else:
+                x, y = x
+                z = 0
+        elif z is None:  # assume x,y is of the form x, y
+            z = 0
+
+        q = self.transform.position
+        LT = LinearTransform()
+        LT.translate([x,y,z]-q) 
+        return self.apply_transform(LT)
+
+    def shift(self, dx, dy=0, dz=0):
+        """Add a vector to the current object position."""
+        if vedo.utils.is_sequence(dx):
+            vedo.utils.make3d(dx)
+            dx, dy, dz = dx
+        LT = LinearTransform().translate([dx, dy, dz]) 
+        return self.apply_transform(LT)
+    
+    def scale(self, s):
+        """Multiply object size by `s` factor."""
+        LT = LinearTransform().scale(s)
+        return self.apply_transform(LT)
+
+    def x(self, val=None):
+        """Set/Get object position along x axis."""
+        p = self.transform.position
+        if val is None:
+            return p[0]
+        self.pos(val, p[1], p[2])
+        return self
+
+    def y(self, val=None):
+        """Set/Get object position along y axis."""
+        p = self.transform.position
+        if val is None:
+            return p[1]
+        self.pos(p[0], val, p[2])
+        return self
+
+    def z(self, val=None):
+        """Set/Get object position along z axis."""
+        p = self.transform.position
+        if val is None:
+            return p[2]
+        self.pos(p[0], p[1], val)
+        return self
+    
+    def rotate_z(self, angle):
+        """Rotate object around z axis."""
+        LT = LinearTransform().rotate_z(angle)
+        return self.apply_transform(LT)
+    
+
+    def bounds(self):
+        """
+        Get the object bounds.
+        Returns a list in format `[xmin,xmax, ymin,ymax, zmin,zmax]`.
+        """
+        return self.GetBounds()
+
+    def xbounds(self, i=None):
+        """Get the bounds `[xmin,xmax]`. Can specify upper or lower with i (0,1)."""
+        b = self.bounds()
+        if i is not None:
+            return b[i]
+        return (b[0], b[1])
+
+    def ybounds(self, i=None):
+        """Get the bounds `[ymin,ymax]`. Can specify upper or lower with i (0,1)."""
+        b = self.bounds()
+        if i == 0:
+            return b[2]
+        if i == 1:
+            return b[3]
+        return (b[2], b[3])
+
+    def zbounds(self, i=None):
+        """Get the bounds `[zmin,zmax]`. Can specify upper or lower with i (0,1)."""
+        b = self.bounds()
+        if i == 0:
+            return b[4]
+        if i == 1:
+            return b[5]
+        return (b[4], b[5])
+    
     def clone(self):
         """Make a clone copy of the object."""
         newlist = []
@@ -412,3 +527,15 @@ class Assembly(vedo.base.Base3DProp, vtk.vtkAssembly):
 
         # set property for self using inherited pickable()
         return super().pickable(value=value)
+
+    def show(self, **options):
+        """
+        Create on the fly an instance of class ``Plotter`` or use the last existing one to
+        show one single object.
+
+        This method is meant as a shortcut. If more than one object needs to be visualised
+        please use the syntax `show(mesh1, mesh2, volume, ..., options)`.
+
+        Returns the ``Plotter`` class instance.
+        """
+        return vedo.plotter.show(self, **options)

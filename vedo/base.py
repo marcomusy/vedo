@@ -331,7 +331,6 @@ class Base3DProp:
         self.filename = ""
         self.name = ""
         self.file_size = ""
-        self.created = ""
         self.trail = None
         self.trail_points = []
         self.trail_segment_size = 0
@@ -339,7 +338,7 @@ class Base3DProp:
         self.shadows = []
         self.axes = None
         self.picked3d = None
-        self.units = None
+
         self.top  = np.array([0, 0, 1])
         self.base = np.array([0, 0, 0])
         self.info = {}
@@ -397,12 +396,6 @@ class Base3DProp:
             ```
             ![](https://vedo.embl.es/images/feats/apply_transform.png)
         """
-        if isinstance(self, (vedo.assembly.Assembly, vtk.vtkImageActor)):
-            self.SetPosition(LT.position)
-            self.SetOrientation(LT.T.GetOrientation())
-            self.SetScale(LT.T.GetScale())
-            return self
-
         if isinstance(LT, LinearTransform):
             tr = LT.T
             if concatenate:

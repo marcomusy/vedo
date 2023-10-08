@@ -380,13 +380,13 @@ class Figure(Assembly):
         """
         for a in objs:
 
-            if a in self.actors:
+            if a in self.objects:
                 # should not add twice the same object in plot
                 continue
 
             if isinstance(a, vedo.Points):  # hacky way to identify Points
                 if a.ncells == a.npoints:
-                    poly = a.polydata(False)
+                    poly = a
                     if poly.GetNumberOfPolys() == 0 and poly.GetNumberOfLines() == 0:
                         as3d = False
                         rescale = True
@@ -412,7 +412,7 @@ class Figure(Assembly):
             #     rx2,ry2,rz2 = a.corner2
             #     ry2 = (ry2-py) * self.yscale + py
             #     b = shapes.Rectangle([rx1,0,rz1], [rx2,ry2,rz2], radius=a.radius).z(a.z())
-            #     b.SetProperty(a.GetProperty())
+            #     b.SetProperty(a.property)
             #     b.y(py / self.yscale)
             #     a = b
 
@@ -650,7 +650,8 @@ class Figure(Assembly):
                 px, py = pos[0], pos[1]
             shx, shy = x0, y1
 
-        aleg.pos(px - shx, py * self.yscale - shy, self.z() + sx / 50 + z)
+        zpos = aleg.GetPosition()[2]
+        aleg.SetPosition(px - shx, py * self.yscale - shy, zpos + sx / 50 + z)
 
         self.insert(aleg, rescale=False, cut=False)
         self.legend = aleg
