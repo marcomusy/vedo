@@ -372,8 +372,11 @@ class LinearTransform:
 
             ![](https://vedo.embl.es/images/simulations/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif)
         """
-        newaxis  = np.asarray(newaxis) / np.linalg.norm(newaxis)
+        newaxis  = np.asarray(newaxis)  / np.linalg.norm(newaxis)
         initaxis = np.asarray(initaxis) / np.linalg.norm(initaxis)
+
+        if not np.any(initaxis - newaxis):
+            return self
 
         if not np.any(initaxis + newaxis):
             print("Warning: in reorient() initaxis and newaxis are parallel")
@@ -393,7 +396,7 @@ class LinearTransform:
         self.T.RotateWXYZ(np.rad2deg(angleth), crossvec)
 
         if xyplane:
-            self.T.RotateWXYZ(self.orientation[0]*1.4142, newaxis)
+            self.T.RotateWXYZ(-self.orientation[0]*1.4142, newaxis)
 
         self.T.Translate(p)
         return self
