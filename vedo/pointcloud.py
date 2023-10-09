@@ -2054,7 +2054,8 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             bfpr.DeepCopy(self.actor.GetBackfaceProperty())
             cloned.actor.SetBackfaceProperty(bfpr)
 
-        cloned.transform = self.transform
+        # do not copy the transform, otherwise it will be applied twice
+        # cloned.transform = self.transform ## NO!
 
         mp = cloned.mapper
         sm = self.mapper
