@@ -2774,7 +2774,7 @@ class Plotter:
                 #         scanned_acts.append(out)
                 scanned_acts.append(vedo.shapes.Text2D(a))
 
-            elif isinstance(a, vtk.vtkImageActor):
+            elif isinstance(a, (vtk.vtkImageActor, vtkLegendBoxActor)):
                 scanned_acts.append(a)
 
             elif isinstance(a, vtk.vtkBillboardTextActor3D):

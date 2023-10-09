@@ -274,9 +274,6 @@ class LegendBox(shapes.TextBase, vtk.vtkLegendBoxActor):
                     ename = ""
                 else:
                     ename = str(e.info["legend"])
-
-            if not isinstance(e, vtk.vtkActor):
-                ename = ""
             if ename:
                 n += 1
             texts.append(ename)
@@ -286,7 +283,7 @@ class LegendBox(shapes.TextBase, vtk.vtkLegendBoxActor):
             return
 
         self.ScalarVisibilityOff()
-        self.actor.PickableOff()
+        self.PickableOff()
         self.SetPadding(padding)
 
         self.property.ShadowOff()
@@ -307,13 +304,13 @@ class LegendBox(shapes.TextBase, vtk.vtkLegendBoxActor):
                 continue
             e = entries[i]
             if c is None:
-                col = e.GetProperty().GetColor()
+                col = e.property.GetColor()
                 if col == (1, 1, 1):
                     col = (0.2, 0.2, 0.2)
             else:
                 col = get_color(c)
             if markers is None:  # default
-                poly = e.inputdata()
+                poly = e
             else:
                 marker = markers[i] if utils.is_sequence(markers) else markers
                 if isinstance(marker, vedo.Points):
@@ -831,9 +828,9 @@ def ScalarBar(
     """
 
     if isinstance(obj, Points):
-        vtkscalars = obj.inputdata().GetPointData().GetScalars()
+        vtkscalars = obj.GetPointData().GetScalars()
         if vtkscalars is None:
-            vtkscalars = obj.inputdata().GetCellData().GetScalars()
+            vtkscalars = obj.GetCellData().GetScalars()
         if not vtkscalars:
             return None
         lut = vtkscalars.GetLookupTable()
