@@ -12,6 +12,7 @@ except ImportError:
     import vtkmodules.all as vtk
 
 import vedo
+from vedo import transformations
 from vedo import settings
 from vedo import utils
 from vedo import backends
@@ -3973,12 +3974,12 @@ class Plotter:
             else:
                 cpos = utils.vector(self._extralight.GetPosition())
                 x, y, z = self._extralight.GetPosition() - cm
-                r, th, ph = utils.cart2spher(x, y, z)
+                r, th, ph = transformations.cart2spher(x, y, z)
                 th += 0.2
                 if th > np.pi:
                     th = np.random.random() * np.pi / 2
                 ph += 0.3
-                cpos = utils.spher2cart(r, th, ph) + cm
+                cpos = transformations.spher2cart(r, th, ph) + cm
                 self._extralight.SetPosition(cpos)
 
             self.window.Render()

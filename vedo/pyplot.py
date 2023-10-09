@@ -10,6 +10,7 @@ except ImportError:
 
 import vedo
 from vedo import settings
+from vedo.transformations import cart2spher, spher2cart
 from vedo import addons
 from vedo import colors
 from vedo import utils
@@ -2981,7 +2982,7 @@ def _plot_spheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha
     sg.alpha(alpha).c(c).wireframe()
 
     cgpts = sg.points()
-    r, theta, phi = utils.cart2spher(*cgpts.T)
+    r, theta, phi = cart2spher(*cgpts.T)
 
     newr, inans = [], []
     for i in range(len(r)):
@@ -3003,10 +3004,10 @@ def _plot_spheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha
 
     nanpts = []
     if inans:
-        redpts = utils.spher2cart(newr[inans], theta[inans], phi[inans])
+        redpts = spher2cart(newr[inans], theta[inans], phi[inans])
         nanpts.append(shapes.Points(redpts, r=4, c="r"))
 
-    pts = utils.spher2cart(newr, theta, phi)
+    pts = spher2cart(newr, theta, phi)
 
     ssurf = sg.clone().points(pts)
     if inans:
@@ -3331,7 +3332,7 @@ def _histogram_polar(
 
 def _histogram_spheric(thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", gap=0.1):
 
-    x, y, z = utils.spher2cart(np.ones_like(thetavalues) * 1.1, thetavalues, phivalues)
+    x, y, z = spher2cart(np.ones_like(thetavalues) * 1.1, thetavalues, phivalues)
     ptsvals = np.c_[x, y, z]
 
     sg = shapes.Sphere(res=res, quads=True).shrink(1 - gap)
@@ -3351,8 +3352,8 @@ def _histogram_spheric(thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", 
             continue
         fs = sgfaces[cell]
         pts = sgpts[fs]
-        _, t1, p1 = utils.cart2spher(pts[:, 0], pts[:, 1], pts[:, 2])
-        x, y, z = utils.spher2cart(1 + cn, t1, p1)
+        _, t1, p1 = cart2spher(pts[:, 0], pts[:, 1], pts[:, 2])
+        x, y, z = spher2cart(1 + cn, t1, p1)
         sgpts[fs] = np.c_[x, y, z]
 
     sg.points(sgpts)

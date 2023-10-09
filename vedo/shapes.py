@@ -12,12 +12,12 @@ except ImportError:
 
 import vedo
 from vedo import settings
+from vedo.transformations import pol2cart, cart2spher, spher2cart
 from vedo.colors import cmaps_names, color_map, get_color, printc
 from vedo import utils
 from vedo.pointcloud import Points, merge
 from vedo.mesh import Mesh
 from vedo.picture import Picture
-from vedo.transformations import pol2cart
 
 __docformat__ = "google"
 
@@ -2711,9 +2711,9 @@ class Sphere(Mesh):
             x = x * (1 + x * x) / 2
             y = y * (1 + y * y) / 2
             z = z * (1 + z * z) / 2
-            _, theta, phi = utils.cart2spher(x, y, z)
+            _, theta, phi = cart2spher(x, y, z)
 
-            pts = utils.spher2cart(np.ones_like(phi) * r, theta, phi)
+            pts = spher2cart(np.ones_like(phi) * r, theta, phi)
             self.points(pts.T)
 
         else:
