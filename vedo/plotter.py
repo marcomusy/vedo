@@ -2073,15 +2073,15 @@ class Plotter:
             at = self.renderers.index(self.renderer)
 
         def _legfunc(evt):
-            if not evt.actor or not self.renderer or at != evt.at:
+            if not evt.object or not self.renderer or at != evt.at:
                 if hoverlegend.mapper.GetInput():  # clear and return
                     hoverlegend.mapper.SetInput("")
-                    self.interactor.Render()
+                    self.render()
                 return
 
             if use_info:
-                if hasattr(evt.actor, "info"):
-                    t = str(evt.actor.info)
+                if hasattr(evt.object, "info"):
+                    t = str(evt.object.info)
                 else:
                     return
             else:
@@ -2090,8 +2090,8 @@ class Plotter:
                     tp = "Mesh "
                 elif evt.isPoints:
                     tp = "Points "
-                # elif evt.isVolume:
-                #     tp = "Volume "
+                elif evt.isVolume:
+                    tp = "Volume "
                 elif evt.isPicture:
                     tp = "Pict "
                 elif evt.isAssembly:
@@ -2100,32 +2100,32 @@ class Plotter:
                     return
 
                 if evt.isAssembly:
-                    if not evt.actor.name:
-                        t += f"Assembly object of {len(evt.actor.unpack())} parts\n"
+                    if not evt.object.name:
+                        t += f"Assembly object of {len(evt.object.unpack())} parts\n"
                     else:
-                        t += f"Assembly name: {evt.actor.name} ({len(evt.actor.unpack())} parts)\n"
+                        t += f"Assembly name: {evt.object.name} ({len(evt.object.unpack())} parts)\n"
                 else:
-                    if evt.actor.name:
+                    if evt.object.name:
                         t += f"{tp}name"
                         if evt.isPoints:
                             t += "  "
                         if evt.isMesh:
                             t += "  "
-                        t += f": {evt.actor.name[:maxlength]}".ljust(maxlength) + "\n"
+                        t += f": {evt.object.name[:maxlength]}".ljust(maxlength) + "\n"
 
-                if evt.actor.filename:
+                if evt.object.filename:
                     t += f"{tp}filename: "
-                    t += f"{os.path.basename(evt.actor.filename[-maxlength:])}".ljust(maxlength)
+                    t += f"{os.path.basename(evt.object.filename[-maxlength:])}".ljust(maxlength)
                     t += "\n"
-                    if not evt.actor.file_size:
-                        evt.actor.file_size, evt.actor.created = vedo.file_io.file_info(evt.actor.filename)
-                    if evt.actor.file_size:
+                    if not evt.object.file_size:
+                        evt.object.file_size, evt.object.created = vedo.file_io.file_info(evt.object.filename)
+                    if evt.object.file_size:
                         t += "             : "
-                        sz, created = evt.actor.file_size, evt.actor.created
+                        sz, created = evt.object.file_size, evt.object.created
                         t += f"{created[4:-5]} ({sz})" + "\n"
 
                 if evt.isPoints:
-                    indata = evt.actor.polydata(False)
+                    indata = evt.object
                     if indata.GetNumberOfPoints():
                         t += (
                             f"#points/cells: {indata.GetNumberOfPoints()}"
@@ -2135,22 +2135,22 @@ class Plotter:
                     cdata = indata.GetCellData()
                     if pdata.GetScalars() and pdata.GetScalars().GetName():
                         t += f"\nPoint array  : {pdata.GetScalars().GetName()}"
-                        if pdata.GetScalars().GetName() == evt.actor.mapper.GetArrayName():
+                        if pdata.GetScalars().GetName() == evt.object.mapper.GetArrayName():
                             t += " *"
                     if cdata.GetScalars() and cdata.GetScalars().GetName():
                         t += f"\nCell  array  : {cdata.GetScalars().GetName()}"
-                        if cdata.GetScalars().GetName() == evt.actor.mapper.GetArrayName():
+                        if cdata.GetScalars().GetName() == evt.object.mapper.GetArrayName():
                             t += " *"
 
                 if evt.isPicture:
-                    t = f"{os.path.basename(evt.actor.filename[:maxlength+10])}".ljust(maxlength+10)
-                    t += f"\nImage shape: {evt.actor.shape}"
+                    t = f"{os.path.basename(evt.object.filename[:maxlength+10])}".ljust(maxlength+10)
+                    t += f"\nImage shape: {evt.object.shape}"
                     pcol = self.color_picker(evt.picked2d)
                     t += f"\nPixel color: {vedo.colors.rgb2hex(pcol/255)} {pcol}"
 
             # change box color if needed in 'auto' mode
             if evt.isPoints and "auto" in str(bg):
-                actcol = evt.actor.property.GetColor()
+                actcol = evt.object.property.GetColor()
                 if hoverlegend.mapper.GetTextProperty().GetBackgroundColor() != actcol:
                     hoverlegend.mapper.GetTextProperty().SetBackgroundColor(actcol)
 
@@ -2357,12 +2357,12 @@ class Plotter:
             event.speed2d = np.sqrt(dx * dx + dy * dy)
             event.delta3d = delta3d
             event.speed3d = np.sqrt(np.dot(delta3d, delta3d))
-            event.isPoints = isinstance(actor, vedo.Points)
-            event.isMesh = isinstance(actor, vedo.Mesh)
-            event.isAssembly = isinstance(actor, vedo.Assembly)
-            event.isVolume = isinstance(actor, vedo.Volume)
-            event.isPicture = isinstance(actor, vedo.Picture)
-            event.isActor2D = isinstance(actor, vtk.vtkActor2D)
+            event.isPoints = isinstance(event.object, vedo.Points)
+            event.isMesh = isinstance(event.object, vedo.Mesh)
+            event.isAssembly = isinstance(event.object, vedo.Assembly)
+            event.isVolume = isinstance(event.object, vedo.Volume)
+            event.isPicture = isinstance(event.object, vedo.Picture)
+            event.isActor2D = isinstance(event.object, vtk.vtkActor2D)
         return event
 
 
@@ -2420,7 +2420,7 @@ class Plotter:
             def func(evt):
                 # this function is called every time the mouse moves
                 # (evt is a dotted dictionary)
-                if not evt.actor:
+                if not evt.object:
                     return  # no hit, return
                 print("point coords =", evt.picked3d)
                 # print("full event dump:", evt)
