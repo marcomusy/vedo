@@ -2326,12 +2326,17 @@ def Ruler3D(
         p1 = [p1[0], p1[1], 0.0]
     if len(p2) == 2:
         p2 = [p2[0], p2[1], 0.0]
+    
 
     p1, p2 = np.asarray(p1), np.asarray(p2)
     q1, q2 = [0, 0, 0], [utils.mag(p2 - p1), 0, 0]
     q1, q2 = np.array(q1), np.array(q2)
     v = q2 - q1
     d = utils.mag(v) * units_scale
+
+    pos = np.array(p1)
+    p1 = p1 - pos
+    p2 = p2 - pos
 
     if s is None:
         s = d * 0.02 * (1 / units_scale)
@@ -2355,27 +2360,27 @@ def Ruler3D(
     pc1 = (v / 2 - gap) * 0.9 + q1
     pc2 = q2 - (v / 2 - gap) * 0.9
 
-    lc1 = shapes.Line(q1 - v / 50, pc1)
-    lc2 = shapes.Line(q2 + v / 50, pc2)
+    lc1 = shapes.Line(q1 - v / 50, pc1).lw(lw)
+    lc2 = shapes.Line(q2 + v / 50, pc2).lw(lw)
 
     zs = np.array([0, d / 50 * (1 / units_scale), 0])
-    ml1 = shapes.Line(-zs, zs)
-    ml2 = shapes.Line(-zs, zs)
+    ml1 = shapes.Line(-zs, zs).lw(lw)
+    ml2 = shapes.Line(-zs, zs).lw(lw)
     ml1.rotate_z(tick_angle - 90).pos(q1)
     ml2.rotate_z(tick_angle - 90).pos(q2)
 
-    c1 = shapes.Circle(q1, r=d / 180 * (1 / units_scale), res=20)
-    c2 = shapes.Circle(q2, r=d / 180 * (1 / units_scale), res=20)
+    c1 = shapes.Circle(q1, r=d / 180 * (1 / units_scale), res=24)
+    c2 = shapes.Circle(q2, r=d / 180 * (1 / units_scale), res=24)
 
-    acts = [lb, lc1, lc2, c1, c2, ml1, ml2]
-    macts = merge(acts)
-    macts.c(c).alpha(alpha).lw(lw)
+    macts = merge(lb, lc1, lc2, c1, c2, ml1, ml2)
+    macts.c(c).alpha(alpha)
+    macts.property.SetLineWidth(lw)
     macts.property.LightingOff()
     macts.actor.UseBoundsOff()
-    # macts.base = q1
-    # macts.top = q2
-    # print(p2,p1, p2-p1)
-    macts.reorient(q2-q1, p2 - p1, rotation=axis_rotation)
+    macts.base = q1
+    macts.top  = q2
+    macts.reorient(p2 - p1, rotation=axis_rotation)
+    macts.pos(pos)
     macts.bc("tomato").pickable(False)
     return macts
 
@@ -2465,6 +2470,7 @@ def RulerAxes(
             units=units,
         )
         acts.append(rx)
+
     if ytitle is not None and (y1 - y0) / d > 0.1:
         ry = Ruler3D(
             [x1 + dy, y0, z0],
@@ -2481,6 +2487,7 @@ def RulerAxes(
             units=units,
         )
         acts.append(ry)
+
     if ztitle is not None and (z1 - z0) / d > 0.1:
         rz = Ruler3D(
             [x0 - dy, y0 + dz, z0],

@@ -10,6 +10,8 @@
 - Improvemnets on `applications.Slicer3DPlotter`
 - Improvements on `applications.Browser`
 - add background radial gradients
+- add `utils.line_line_distance()`
+- add `utils.segment_segment_distance()`
 
 
 ### Breaking changes
