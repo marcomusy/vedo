@@ -23,9 +23,9 @@ __all__ = [
     "BaseActor",
     "BaseActor2D",
     "BaseGrid",
-    "probe_points",
-    "probe_line",
-    "probe_plane",
+    # "probe_points",
+    # "probe_line",
+    # "probe_plane",
 ]
 
 

@@ -995,6 +995,38 @@ def point_line_distance(p, p1, p2):
     """
     return np.sqrt(vtk.vtkLine.DistanceToLine(p, p1, p2))
 
+def line_line_distance(p1, p2, q1, q2):
+    """
+    Compute the distance of a line to a line (not the segment)
+    defined by `p1` and `p2` and `q1` and `q2`.
+
+    Returns the distance, 
+    the closest point on line 1, the closest point on line 2.
+    Their parametric coords (-inf <= t0, t1 <= inf) are also returned.
+    """
+    closest_pt1 = [0,0,0]
+    closest_pt2 = [0,0,0]
+    t1, t2 = 0.0, 0.0
+    d = vtk.vtkLine.DistanceBetweenLines(
+        p1, p2, q1, q2, closest_pt1, closest_pt2, t1, t2)
+    return np.sqrt(d), closest_pt1, closest_pt2, t1, t2
+
+def segment_segment_distance(p1, p2, q1, q2):
+    """
+    Compute the distance of a segment to a segment
+    defined by `p1` and `p2` and `q1` and `q2`.
+
+    Returns the distance, 
+    the closest point on line 1, the closest point on line 2.
+    Their parametric coords (-inf <= t0, t1 <= inf) are also returned.
+    """
+    closest_pt1 = [0,0,0]
+    closest_pt2 = [0,0,0]
+    t1, t2 = 0.0, 0.0
+    d = vtk.vtkLine.DistanceBetweenLineSegments(
+        p1, p2, q1, q2, closest_pt1, closest_pt2, t1, t2)
+    return np.sqrt(d), closest_pt1, closest_pt2, t1, t2
+
 
 def closest(point, points, n=1, return_ids=False, use_tree=False):
     """
