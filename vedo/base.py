@@ -573,9 +573,13 @@ class Base3DProp:
         if s is None:
             return np.array(self.transform.T.GetScale())
 
+        if not utils.is_sequence(s):
+          s = [s, s, s]
+
         LT = LinearTransform()
         if reset:
-            LT.set_scale(s)
+            old_s = np.array(self.transform.T.GetScale())
+            LT.scale(s / old_s)
         else:
             if origin is True:
                 LT.scale(s, origin=self.transform.position)
@@ -583,6 +587,7 @@ class Base3DProp:
                 LT.scale(s, origin=False)
             else:
                 LT.scale(s, origin=origin)
+
         return self.apply_transform(LT)
 
 

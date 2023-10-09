@@ -39,7 +39,12 @@ glyphs1.py
 lights.py
 mesh_lut.py
 mirror.py
-
+mousehover1.py
+mousehover2.py
+pca_ellipse.py
+pca_ellipsoid.py
+shadow2.py
+sliders3d.py
 
 ```
 

@@ -284,20 +284,22 @@ class LinearTransform:
         self.T.Translate(p - q)
         return self
     
-    def set_scale(self, s):
-        """Set absolute scale."""
-        if not _is_sequence(s):
-            s = [s, s, s]
-        s0, s1, s2 = 1, 1, 1
-        b = self.T.GetScale()
-        if b[0]:
-            s0 = s[0] / b[0]
-        if b[1]:
-            s1 = s[1] / b[1]
-        if b[2]:
-            s2 = s[2] / b[2]
-        self.T.Scale(s0, s1, s2)
-        return self
+    # def set_scale(self, s):
+    #     """Set absolute scale."""
+    #     if not _is_sequence(s):
+    #         s = [s, s, s]
+    #     s0, s1, s2 = 1, 1, 1
+    #     b = self.T.GetScale()
+    #     print(b)
+    #     if b[0]:
+    #         s0 = s[0] / b[0]
+    #     if b[1]:
+    #         s1 = s[1] / b[1]
+    #     if b[2]:
+    #         s2 = s[2] / b[2]
+    #     self.T.Scale(s0, s1, s2)
+    #     print()
+    #     return self
     
     def get_scale(self):
         """Get current scale."""
