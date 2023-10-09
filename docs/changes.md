@@ -31,6 +31,8 @@ examples/volumetric/slicer1.py
 
 ### Broken Examples
 ```
+background_image.py
+
 ```
 
 

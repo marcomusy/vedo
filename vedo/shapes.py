@@ -536,6 +536,8 @@ class Line(Mesh):
         prop.DeepCopy(self.property)
 
         ln = Line(self)
+        ln.DeepCopy(self)
+        ln.transform = self.transform
         ln.actor.SetProperty(prop)
         ln.property = prop
         ln.name = name
@@ -3132,6 +3134,8 @@ class Plane(Mesh):
     
     def clone(self):
         newplane = Plane()
+        newplane.DeepCopy(self)
+        newplane.transform = self.transform
         prop = vtk.vtkProperty()
         prop.DeepCopy(self.property)
         newplane.actor.SetProperty(prop)

@@ -4080,7 +4080,7 @@ class Plotter:
 
         elif key == "i":  # print info
             if self.clicked_object:
-                utils.print_info(self.clicked_object)
+                utils.print_info(self.clicked_object.data)
             else:
                 utils.print_info(self)
 
@@ -4090,10 +4090,6 @@ class Plotter:
 
         elif key == "y":
             if self.clicked_object and self.clicked_object.pipeline:
-                # self.clicked_object.pipeline =  utils.OperationNode(
-                #         "show", parents=[self.clicked_object],
-                #         shape="circle",
-                # )
                 self.clicked_object.pipeline.show()
 
         if iren:
