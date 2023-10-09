@@ -323,7 +323,6 @@ class Mesh(MeshVisual, Points):
         self.mapper.SetInputData(self)
         self.actor.SetMapper(self.mapper)
 
-        # self.property = self.actor.GetProperty()
         self.property.SetInterpolationToPhong()
 
         # set the color by c or by scalar

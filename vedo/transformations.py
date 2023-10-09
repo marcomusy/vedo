@@ -69,6 +69,16 @@ class LinearTransform:
             S.SetMatrix(M)
             T = S
         
+        elif isinstance(T, vtk.vtkLinearTransform):
+            S = vtk.vtkTransform()
+            S.DeepCopy(T)
+            T = S
+        
+        elif isinstance(T, LinearTransform):
+            S = vtk.vtkTransform()
+            S.DeepCopy(T.T)
+            T = S
+        
         self.T = T
         self.T.PostMultiply()
         self.inverse_flag = False
@@ -82,6 +92,7 @@ class LinearTransform:
     
     def __repr__(self):
         return self.__str__()
+    
 
     def apply_to(self, obj):
         """Apply transformation."""
@@ -139,7 +150,7 @@ class LinearTransform:
 
     def clone(self):
         """Clone."""
-        return LinearTransform(self.T.Clone())
+        return LinearTransform(self.T)
 
     def concatenate(self, T, pre_multiply=False):
         """Post multiply."""

@@ -2033,16 +2033,10 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
 
                ![](https://vedo.embl.es/images/basic/mirror.png)
         """
-        poly_copy = vtk.vtkPolyData()
-        if deep:
-            poly_copy.DeepCopy(self)
-        else:
-            poly_copy.ShallowCopy(self)
-
         if isinstance(self, vedo.Mesh):
-            cloned = vedo.Mesh(poly_copy)
+            cloned = vedo.Mesh(self)
         else:
-            cloned = Points(poly_copy)
+            cloned = Points(self)
 
         pr = vtk.vtkProperty()
         pr.DeepCopy(self.property)
@@ -2053,9 +2047,9 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             bfpr = vtk.vtkProperty()
             bfpr.DeepCopy(self.actor.GetBackfaceProperty())
             cloned.actor.SetBackfaceProperty(bfpr)
-
-        # do not copy the transform, otherwise it will be applied twice
-        # cloned.transform = self.transform ## NO!
+            cloned.property_backface = bfpr
+    
+        cloned.transform = self.transform.clone()
 
         mp = cloned.mapper
         sm = self.mapper
@@ -2080,7 +2074,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         cloned.filename = str(self.filename)
         cloned.info = dict(self.info)
 
-        # better not to share the same locators with original obj
+        # dont share the same locators with original obj
         cloned.point_locator = None
         cloned.cell_locator = None
         cloned.line_locator = None
