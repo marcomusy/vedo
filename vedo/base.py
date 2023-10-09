@@ -397,17 +397,20 @@ class Base3DProp:
         """
         if isinstance(LT, LinearTransform):
             tr = LT.T
+            if LT.is_identity():
+                return self
             if concatenate:
                 self.transform.concatenate(LT)
-        elif isinstance(LT, (vtk.vtkMatrix4x4, vtk.vtkTransform, np.ndarray)):
+        elif isinstance(LT, (vtk.vtkMatrix4x4, vtk.vtkLinearTransform, np.ndarray)):
             LT = LinearTransform(LT)
             if LT.is_identity():
                 return self
             tr = LT.T
             if concatenate:
                 self.transform.concatenate(LT)
-        elif isinstance(LT, vtk.vtkThinPlateSplineTransform):
+        elif isinstance(LT, (vtk.vtkThinPlateSplineTransform)):
             tr = LT
+            # cannot concatenate here
 
         tp = vtk.vtkTransformPolyDataFilter()
         tp.SetTransform(tr)
@@ -420,6 +423,7 @@ class Base3DProp:
         else:
             self.ShallowCopy(out)
 
+        # reset the locators
         self.point_locator = None
         self.cell_locator = None
         self.line_locator = None

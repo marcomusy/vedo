@@ -2647,6 +2647,12 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             vedo.logger.error(f"source and target have different nr of points {n1} vs {n2}")
             raise RuntimeError()
 
+        if int(rigid) + int(affine) + int(least_squares) > 1:
+            vedo.logger.error(
+                "only one of rigid, affine, least_squares can be True at a time"
+            )
+            raise RuntimeError()
+
         lmt = vtk.vtkLandmarkTransform()
         lmt.SetSourceLandmarks(ss)
         lmt.SetTargetLandmarks(st)
@@ -2655,12 +2661,10 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         if rigid:
             lmt.SetModeToRigidBody()
             lmt.Update()
-            self.SetUserTransform(lmt)
 
         elif affine:
             lmt.SetModeToAffine()
             lmt.Update()
-            self.SetUserTransform(lmt)
 
         elif least_squares:
             cms = source_landmarks.mean(axis=0)
@@ -2674,12 +2678,11 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             lmt.Translate(cmt)
             lmt.Concatenate(M)
             lmt.Translate(-cms)
-            self.apply_transform(lmt)
 
-        self.transform = lmt
-        self.point_locator = None
-        self.cell_locator = None
-        self.line_locator = None
+        else:
+            lmt.Update()
+
+        self.apply_transform(lmt)
         self.pipeline = utils.OperationNode("transform_with_landmarks", parents=[self])
         return self
 

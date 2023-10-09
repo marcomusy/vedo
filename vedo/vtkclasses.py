@@ -102,8 +102,9 @@ from vtkmodules.vtkCommonMath import vtkMatrix4x4, vtkQuaternion
 from vtkmodules.vtkCommonTransforms import (
     vtkHomogeneousTransform,
     vtkLandmarkTransform,
+    vtkLinearTransform,
     vtkThinPlateSplineTransform,
-    vtkTransform
+    vtkTransform,
 )
 
 from vtkmodules.vtkFiltersCore import (
