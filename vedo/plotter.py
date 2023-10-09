@@ -4084,8 +4084,8 @@ class Plotter:
             self.color_picker([x, y], verbose=True)
 
         elif key == "y":
-            if self.clicked_object and self.clicked_object.pipeline:
-                self.clicked_object.pipeline.show()
+            if self.clicked_object and self.clicked_object.data.pipeline:
+                self.clicked_object.data.pipeline.show()
 
         if iren:
             iren.Render()

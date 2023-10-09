@@ -1533,7 +1533,7 @@ class PointsVisual:
         pt = utils.make3d(point)
 
         if offset is None:
-            offset = [(x1 - x0) / 2, (y1 - y0) / 6, 0]
+            offset = [(x1 - x0) / 1.75, (y1 - y0) / 5, 0]
         offset = utils.make3d(offset)
 
         if s is None:
@@ -1546,42 +1546,28 @@ class PointsVisual:
         if c is None:
             c = np.array(self.color()) / 1.4
 
-        lb = vedo.shapes.Text3D(
-            txt, pos=pt + offset, s=s, font=font, italic=italic, justify="center-left"
+        lab = vedo.shapes.Text3D(
+            txt, pos=pt+offset, s=s, 
+            font=font, italic=italic, justify="center"
         )
-        acts.append(lb)
+        acts.append(lab)
 
         if d and not sph:
             sph = vedo.shapes.Circle(pt, r=s / 3, res=15)
         acts.append(sph)
 
-        x0, x1, y0, y1, z0, z1 = lb.GetBounds()
+        x0, x1, y0, y1, z0, z1 = lab.bounds()
+        aline = [(x0,y0,z0), (x1,y0,z0), (x1,y1,z0), (x0,y1,z0)]
         if rounded:
-            box = vedo.shapes.KSpline(
-                [(x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0)], closed=True
-            )
+            box = vedo.shapes.KSpline(aline, closed=True)
         else:
-            box = vedo.shapes.Line(
-                [(x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0), (x0, y0, z0)]
-            )
+            box = vedo.shapes.Line(aline, closed=True)
 
         cnt = [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2]
 
-        # box.SetOrigin(cnt)
-        box.scale([1 + padding, 1 + 2 * padding, 1])
+        box.actor.SetOrigin(cnt)
+        box.scale([1 + padding, 1 + 2 * padding, 1], origin=cnt)
         acts.append(box)
-
-        # pts = box.points()
-        # bfaces = []
-        # for i, pt in enumerate(pts):
-        #     if i:
-        #         face = [i-1, i, 0]
-        #         bfaces.append(face)
-        # bpts = [cnt] + pts.tolist()
-        # box2 = vedo.Mesh([bpts, bfaces]).z(-cnt[0]/10)#.c('w').alpha(0.1)
-        # #should be made assembly otherwise later merge() nullifies it
-        # box2.SetOrigin(cnt)
-        # acts.append(box2)
 
         x0, x1, y0, y1, z0, z1 = box.bounds()
         if x0 < pt[0] < x1:
@@ -1598,7 +1584,7 @@ class PointsVisual:
         acts.append(con)
 
         macts = vedo.merge(acts).c(c).alpha(alpha)
-        # macts.SetOrigin(pt)
+        macts.actor.SetOrigin(pt)
         macts.bc("tomato").pickable(False)
         macts.property.LightingOff()
         macts.property.SetLineWidth(lw)

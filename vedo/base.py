@@ -577,10 +577,12 @@ class Base3DProp:
         if reset:
             LT.set_scale(s)
         else:
-            if origin:
+            if origin is True:
                 LT.scale(s, origin=self.transform.position)
-            else:
+            elif origin is True:
                 LT.scale(s, origin=False)
+            else:
+                LT.scale(s, origin=origin)
         return self.apply_transform(LT)
 
 
@@ -635,43 +637,43 @@ class Base3DProp:
 
     def on(self):
         """Switch on  object visibility. Object is not removed."""
-        self.VisibilityOn()
+        self.actor.VisibilityOn()
         try:
-            self.scalarbar.VisibilityOn()
+            self.scalarbar.actor.VisibilityOn()
         except AttributeError:
             pass
         try:
-            self.trail.VisibilityOn()
+            self.trail.actor.VisibilityOn()
         except AttributeError:
             pass
         try:
             for sh in self.shadows:
-                sh.VisibilityOn()
+                sh.actor.VisibilityOn()
         except AttributeError:
             pass
         return self
 
     def off(self):
         """Switch off object visibility. Object is not removed."""
-        self.VisibilityOff()
+        self.actor.VisibilityOff()
         try:
-            self.scalarbar.VisibilityOff()
+            self.scalarbar.actor.VisibilityOff()
         except AttributeError:
             pass
         try:
-            self.trail.VisibilityOff()
+            self.trail.actor.VisibilityOff()
         except AttributeError:
             pass
         try:
             for sh in self.shadows:
-                sh.VisibilityOff()
+                sh.actor.VisibilityOff()
         except AttributeError:
             pass
         return self
 
     def toggle(self):
         """Toggle object visibility on/off."""
-        v = self.GetVisibility()
+        v = self.actor.GetVisibility()
         if v:
             self.off()
         else:

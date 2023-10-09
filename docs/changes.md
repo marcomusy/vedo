@@ -37,6 +37,8 @@ background_image.py
 cut_interactive.py
 glyphs1.py
 lights.py
+mesh_lut.py
+mirror.py
 
 
 ```

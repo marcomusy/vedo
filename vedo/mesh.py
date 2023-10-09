@@ -28,7 +28,7 @@ __all__ = ["Mesh"]
 class MeshVisual:
     """Class to manage the visual aspects of a ``Maesh`` object."""
 
-    def follow_camera(self, camera=None):
+    def follow_camera(self, camera=None, origin=None):
         """
         Return an object that will follow camera movements and stay locked to it.
         Use `mesh.follow_camera(False)` to disable it.
@@ -64,6 +64,13 @@ class MeshVisual:
             plt = vedo.plotter_instance
             if plt and plt.renderer and plt.renderer.GetActiveCamera():
                 factor.SetCamera(plt.renderer.GetActiveCamera())
+        
+        if origin is not None:
+            factor.SetOrigin(origin)
+        # else:
+        #     x0, x1, y0, y1, z0, z1 = self.bounds()
+        #     center = (x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2
+        #     factor.SetOrigin(center)
 
         factor.pipeline = OperationNode(
             "Follower", parents=[self], shape="component", c="#d9ed92")
