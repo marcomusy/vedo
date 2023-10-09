@@ -611,7 +611,7 @@ class Mesh(MeshVisual, Points):
 
         elif isinstance(tname, vedo.Picture):
             tu = vtk.vtkTexture()
-            outimg = tname.inputdata()
+            outimg = tname
 
         elif is_sequence(tname):
             tu = vtk.vtkTexture()
@@ -1699,7 +1699,7 @@ class Mesh(MeshVisual, Points):
 
         if isinstance(pts, Points):
             varr.SetName("IsInside")
-            pts.inputdata().GetPointData().AddArray(varr)
+            pts.GetPointData().AddArray(varr)
 
         if return_ids:
             return ids
@@ -1709,7 +1709,7 @@ class Mesh(MeshVisual, Points):
 
         pcl.pipeline = OperationNode(
             "inside_points", parents=[self, ptsa],
-            comment=f"#pts {pcl.inputdata().GetNumberOfPoints()}"
+            comment=f"#pts {pcl.GetNumberOfPoints()}"
         )
         return pcl
 
@@ -1802,7 +1802,7 @@ class Mesh(MeshVisual, Points):
                 "boundaries",
                 parents=[self],
                 shape="octagon",
-                comment=f"#pts {msh.inputdata().GetNumberOfPoints()}",
+                comment=f"#pts {msh.GetNumberOfPoints()}",
             )
             return msh
 
@@ -2071,7 +2071,7 @@ class Mesh(MeshVisual, Points):
         msh.pipeline = OperationNode("isolines", parents=[self])
         return msh
 
-    def extrude(self, zshift=1, rotation=0, dR=0, cap=True, res=1):
+    def extrude(self, zshift=1, rotation=0, dr=0, cap=True, res=1):
         """
         Sweep a polygonal data creating a "skirt" from free edges and lines, and lines from vertices.
         The input dataset is swept around the z-axis to create new polygonal primitives.
@@ -2121,7 +2121,7 @@ class Mesh(MeshVisual, Points):
         rf.SetCapping(cap)
         rf.SetAngle(rotation)
         rf.SetTranslation(zshift)
-        rf.SetDeltaRadius(dR)
+        rf.SetDeltaRadius(dr)
         rf.Update()
 
         m = Mesh(rf.GetOutput(), c=self.c(), alpha=self.alpha())
@@ -2134,7 +2134,7 @@ class Mesh(MeshVisual, Points):
 
         m.pipeline = OperationNode(
             "extrude", parents=[self],
-            comment=f"#pts {m.inputdata().GetNumberOfPoints()}"
+            comment=f"#pts {m.GetNumberOfPoints()}"
         )
         return m
 
@@ -2214,7 +2214,7 @@ class Mesh(MeshVisual, Points):
                 l[0].pipeline = OperationNode(
                     f"split mesh {i}",
                     parents=[self],
-                    comment=f"#pts {l[0].inputdata().GetNumberOfPoints()}",
+                    comment=f"#pts {l[0].GetNumberOfPoints()}",
                 )
         return blist
 
@@ -2246,7 +2246,7 @@ class Mesh(MeshVisual, Points):
 
         m.pipeline = OperationNode(
             "extract_largest_region", parents=[self],
-            comment=f"#pts {m.inputdata().GetNumberOfPoints()}"
+            comment=f"#pts {m.GetNumberOfPoints()}"
         )
         return m
 
@@ -2294,7 +2294,7 @@ class Mesh(MeshVisual, Points):
             "boolean " + operation,
             parents=[self, mesh2],
             shape="cylinder",
-            comment=f"#pts {msh.inputdata().GetNumberOfPoints()}",
+            comment=f"#pts {msh.GetNumberOfPoints()}",
         )
         return msh
 
@@ -2403,7 +2403,7 @@ class Mesh(MeshVisual, Points):
 
         msh.pipeline = OperationNode(
             "intersect_with_plan", parents=[self],
-            comment=f"#pts {msh.inputdata().GetNumberOfPoints()}"
+            comment=f"#pts {msh.GetNumberOfPoints()}"
         )
         return msh
 
@@ -2439,7 +2439,7 @@ class Mesh(MeshVisual, Points):
     #     msh.pipeline = OperationNode(
     #         "intersect_with_multiplanes",
     #         parents=[self],
-    #         comment=f"#pts {msh.inputdata().GetNumberOfPoints()}",
+    #         comment=f"#pts {msh.GetNumberOfPoints()}",
     #     )
     #     return msh
 
@@ -2481,7 +2481,7 @@ class Mesh(MeshVisual, Points):
 
         msh.pipeline = OperationNode(
             "collide_with", parents=[self, mesh2],
-            comment=f"#pts {msh.inputdata().GetNumberOfPoints()}"
+            comment=f"#pts {msh.GetNumberOfPoints()}"
         )
         return msh
 

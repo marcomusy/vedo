@@ -32,6 +32,10 @@ examples/volumetric/slicer1.py
 ### Broken Examples
 ```
 background_image.py
+cut_interactive.py
+glyphs1.py
+
+
 
 ```
 

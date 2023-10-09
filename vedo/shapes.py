@@ -191,8 +191,8 @@ class Glyph(Mesh):
                 glyph mesh is colored based on the vector size
 
         Examples:
-            - [glyphs1.py](]https://github.com/marcomusy/vedo/tree/master/examples/basic/glyphs1.py)
-            - [glyphs_arrows.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/glyphs_arrows.py)
+            - [glyphs1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/glyphs1.py)
+            - [glyphs2.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/glyphs2.py)
 
             ![](https://vedo.embl.es/images/basic/glyphs.png)
         """
@@ -1557,7 +1557,7 @@ def StreamLines(
         else:
             grid = domain
     elif isinstance(domain, vedo.BaseVolume):
-        grid = domain.inputdata()
+        grid = domain
     else:
         grid = domain
 
@@ -2087,7 +2087,7 @@ class Arrows(Glyph):
                 set arrow resolution
 
         Examples:
-            - [glyphs_arrows.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/glyphs_arrows.py)
+            - [glyphs2.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/glyphs2.py)
 
             ![](https://user-images.githubusercontent.com/32848391/55897850-a1a0da80-5bc1-11e9-81e0-004c8f396b43.jpg)
         """
@@ -2465,7 +2465,7 @@ class Star(Mesh):
                 ![](https://vedo.embl.es/images/basic/extrude.png)
         """
         t = np.linspace(np.pi / 2, 5 / 2 * np.pi, num=n, endpoint=False)
-        x, y = utils.pol2cart(np.ones_like(t) * r2, t)
+        x, y = pol2cart(np.ones_like(t) * r2, t)
         pts = np.c_[x, y, np.zeros_like(x)]
 
         apts = []
