@@ -338,79 +338,65 @@ class LinearTransform:
         return np.array(M)
 
 
-    # TODO: implement this
-    def set_orientation(self, newaxis=None, rotation=0, concatenate=False, xyplane=False, rad=False):
-    #     """
-    #     Set/Get object orientation.
+    def reorient(self, newaxis, initaxis, around=(0,0,0), rotation=0, rad=False, xyplane=True):
+        """
+        Set/Get object orientation.
 
-    #     Arguments:
-    #         rotation : (float)
-    #             rotate object around newaxis.
-    #         concatenate : (bool)
-    #             concatenate the orientation operation with the previous existing transform (if any)
-    #         xyplane : (bool)
-    #             make an extra rotation to keep the object aligned to the xy-plane
-    #         rad : (bool)
-    #             set to True if angle is expressed in radians.
+        Arguments:
+            rotation : (float)
+                rotate object around newaxis.
+            concatenate : (bool)
+                concatenate the orientation operation with the previous existing transform (if any)
+            rad : (bool)
+                set to True if angle is expressed in radians.
+            xyplane : (bool)
+                make an extra rotation to keep the object aligned to the xy-plane
 
-    #     Example:
-    #         ```python
-    #         from vedo import *
-    #         center = np.array([581/2,723/2,0])
-    #         objs = []
-    #         for a in np.linspace(0, 6.28, 7):
-    #             v = vector(cos(a), sin(a), 0)*1000
-    #             pic = Picture(dataurl+"images/dog.jpg").rotate_z(10)
-    #             pic.orientation(v, xyplane=True)
-    #             pic.origin(center)
-    #             pic.pos(v - center)
-    #             objs += [pic, Arrow(v, v+v)]
-    #         show(objs, Point(), axes=1).close()
-    #         ```
-    #         ![](https://vedo.embl.es/images/feats/orientation.png)
+        Example:
+            ```python
+            from vedo import *
+            center = np.array([581/2,723/2,0])
+            objs = []
+            for a in np.linspace(0, 6.28, 7):
+                v = vector(cos(a), sin(a), 0)*1000
+                pic = Picture(dataurl+"images/dog.jpg").rotate_z(10)
+                pic.reorient(v)
+                pic.pos(v - center)
+                objs += [pic, Arrow(v, v+v)]
+            show(objs, Point(), axes=1).close()
+            ```
+            ![](https://vedo.embl.es/images/feats/orientation.png)
 
-    #     Examples:
-    #         - [gyroscope2.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/gyroscope2.py)
+        Examples:
+            - [gyroscope2.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/gyroscope2.py)
 
-    #         ![](https://vedo.embl.es/images/simulations/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif)
-    #     """
-    #     if self.top is None or self.base is None:
-    #         initaxis = (0, 0, 1)
-    #     else:
-    #         initaxis = utils.versor(self.top - self.base)
+            ![](https://vedo.embl.es/images/simulations/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif)
+        """
+        newaxis  = np.asarray(newaxis) / np.linalg.norm(newaxis)
+        initaxis = np.asarray(initaxis) / np.linalg.norm(initaxis)
 
-    #     newaxis = utils.versor(newaxis)
-    #     p = np.array(self.GetPosition())
-    #     crossvec = np.cross(initaxis, newaxis)
+        if not np.any(initaxis + newaxis):
+            print("Warning: in reorient() initaxis and newaxis are parallel")
+            newaxis += np.array([0.0000001, 0.0000002, 0])
+            angleth  = np.pi
+        else:
+            angleth  = np.arccos(np.dot(initaxis, newaxis))
+        crossvec = np.cross(initaxis, newaxis)
 
-    #     angleth = np.arccos(np.dot(initaxis, newaxis))
+        p = np.asarray(around)
+        self.T.Translate(-p)
+        if rotation:
+            if rad:
+                rotation = np.rad2deg(rotation)
+            self.T.RotateWXYZ(rotation, initaxis)
 
-    #     T = vtk.vtkTransform()
-    #     if concatenate:
-    #         try:
-    #             M = self.GetMatrix()
-    #             T.SetMatrix(M)
-    #         except:
-    #             pass
-    #     T.PostMultiply()
-    #     T.Translate(-p)
-    #     if rotation:
-    #         if rad:
-    #             rotation *= 180.0 / np.pi
-    #         T.RotateWXYZ(rotation, initaxis)
-    #     if xyplane:
-    #         angleph = np.arctan2(newaxis[1], newaxis[0])
-    #         T.RotateWXYZ(np.rad2deg(angleph + angleth), initaxis)  # compensation
-    #     T.RotateWXYZ(np.rad2deg(angleth), crossvec)
-    #     T.Translate(p)
+        self.T.RotateWXYZ(np.rad2deg(angleth), crossvec)
 
-    #     self.actor.SetOrientation(T.GetOrientation())
+        if xyplane:
+            self.T.RotateWXYZ(self.orientation[0]*1.4142, newaxis)
 
-    #     self.point_locator = None
-    #     self.cell_locator = None
+        self.T.Translate(p)
         return self
-
-
 
 ########################################################################
 # 2d ######

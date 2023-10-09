@@ -2721,13 +2721,7 @@ class Plotter:
             if a is None:
                 continue
 
-            elif isinstance(a, vtk.vtkActor):
-                scanned_acts.append(a)
-
-            elif isinstance(a, vtk.vtkActor2D):
-                scanned_acts.append(a)
-
-            elif isinstance(a, vtk.vtkAssembly):
+            elif isinstance(a, (vtk.vtkActor, vtk.vtkActor2D)):
                 scanned_acts.append(a)
 
             elif isinstance(a, (vedo.Volume, vedo.VolumeSlice)):
@@ -2752,32 +2746,32 @@ class Plotter:
                 #     scanned_acts.append(a)
                 scanned_acts.append(a.actor)
 
-            elif isinstance(a, vtk.vtkVolume):  # order matters! dont move above TetMesh
-                scanned_acts.append(a)
-
             elif isinstance(a, str):
                 # assume a 2D comment was given
-                # changed = False  # check if one already exists so to just update text
-                # if self.renderer:  # might be jupyter
-                #     acs = self.renderer.GetActors2D()
-                #     acs.InitTraversal()
-                #     for i in range(acs.GetNumberOfItems()):
-                #         act = acs.GetNextItem()
-                #         if isinstance(act, vedo.shapes.Text2D):
-                #             aposx, aposy = act.GetPosition()
-                #             if aposx < 0.01 and aposy > 0.99:  # "top-left"
-                #                 act.text(a)  # update content! no appending nada
-                #                 changed = True
-                #                 break
-                #     if not changed:
-                #         out = vedo.shapes.Text2D(a)  # append a new one
-                #         scanned_acts.append(out)
-                scanned_acts.append(vedo.shapes.Text2D(a))
+                changed = False  # check if one already exists so to just update text
+                if self.renderer:  # might be jupyter
+                    acs = self.renderer.GetActors2D()
+                    acs.InitTraversal()
+                    for i in range(acs.GetNumberOfItems()):
+                        act = acs.GetNextItem()
+                        if isinstance(act, vedo.shapes.Text2D):
+                            aposx, aposy = act.GetPosition()
+                            if aposx < 0.01 and aposy > 0.99:  # "top-left"
+                                act.text(a)  # update content! no appending nada
+                                changed = True
+                                break
+                    if not changed:
+                        out = vedo.shapes.Text2D(a)  # append a new one
+                        scanned_acts.append(out)
+                # scanned_acts.append(vedo.shapes.Text2D(a)) # naive version
 
-            elif isinstance(a, (vtk.vtkImageActor, vtkLegendBoxActor)):
-                scanned_acts.append(a)
-
-            elif isinstance(a, vtk.vtkBillboardTextActor3D):
+            elif isinstance(a, (
+                    vtk.vtkAssembly,
+                    vtk.vtkVolume,  # order matters! dont move above TetMesh
+                    vtk.vtkImageActor, 
+                    vtk.vtkLegendBoxActor,
+                    vtk.vtkBillboardTextActor3D,
+                )):
                 scanned_acts.append(a)
 
             elif isinstance(a, vtk.vtkLight):

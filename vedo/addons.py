@@ -36,9 +36,9 @@ __all__ = [
     "Light",
     "Axes",
     "RendererFrame",
-    "Ruler",
-    "RulerAxes",
     "Ruler2D",
+    "Ruler3D",
+    "RulerAxes",
     "DistanceTool",
     "SplineTool",
     "Goniometer",
@@ -695,9 +695,9 @@ def Goniometer(
 
             ![](https://vedo.embl.es/images/pyplot/goniometer.png)
     """
-    if isinstance(p1, Points): p1 = p1.GetPosition()
-    if isinstance(p2, Points): p2 = p2.GetPosition()
-    if isinstance(p3, Points): p3 = p3.GetPosition()
+    if isinstance(p1, Points): p1 = p1.pos()
+    if isinstance(p2, Points): p2 = p2.pos()
+    if isinstance(p3, Points): p3 = p3.pos()
     if len(p1)==2: p1=[p1[0], p1[1], 0.0]
     if len(p2)==2: p2=[p2[0], p2[1], 0.0]
     if len(p3)==2: p3=[p3[0], p3[1], 0.0]
@@ -725,13 +725,14 @@ def Goniometer(
 
     lb = shapes.Text3D(
         prefix + utils.precision(angle, precision) + "º",
-        s=r / 12 * s,
+        s=r/12 * s,
         font=font,
         italic=italic,
         justify="center",
     )
     cr = np.cross(va, vb)
-    lb.pos(p2 + vc * r / 1.75).orientation(cr * np.sign(cr[2]), rotation=rotation)
+    lb.pos(p2 + vc * r / 1.75)
+    lb.reorient(None, cr * np.sign(cr[2]), rotation=rotation)
     lb.c(c).bc("tomato").lighting("off")
     acts.append(lb)
 
@@ -744,6 +745,7 @@ def Goniometer(
         acts.append(msh)
 
     asse = Assembly(acts)
+    asse.name = "Goniometer"
     return asse
 
 
@@ -2253,7 +2255,7 @@ def compute_visible_bounds(objs=None):
 
 
 #####################################################################
-def Ruler(
+def Ruler3D(
     p1,
     p2,
     units_scale=1,
@@ -2303,23 +2305,29 @@ def Ruler(
 
         ![](https://vedo.embl.es/images/pyplot/goniometer.png)
     """
+
     if units_scale != 1.0 and units == "":
         raise ValueError(
             "When setting 'units_scale' to a value other than 1, "
             + "a 'units' arguments must be specified."
         )
 
-    if isinstance(p1, Points):
-        p1 = p1.GetPosition()
-    if isinstance(p2, Points):
-        p2 = p2.GetPosition()
+    try:
+        p1 = p1.pos()
+    except AttributeError:
+        pass
+
+    try:
+        p2 = p2.pos()
+    except AttributeError:
+        pass
 
     if len(p1) == 2:
         p1 = [p1[0], p1[1], 0.0]
     if len(p2) == 2:
         p2 = [p2[0], p2[1], 0.0]
 
-    p1, p2 = np.array(p1), np.array(p2)
+    p1, p2 = np.asarray(p1), np.asarray(p2)
     q1, q2 = [0, 0, 0], [utils.mag(p2 - p1), 0, 0]
     q1, q2 = np.array(q1), np.array(q2)
     v = q2 - q1
@@ -2360,13 +2368,15 @@ def Ruler(
     c2 = shapes.Circle(q2, r=d / 180 * (1 / units_scale), res=20)
 
     acts = [lb, lc1, lc2, c1, c2, ml1, ml2]
-    macts = merge(acts).pos(p1).c(c).alpha(alpha)
+    macts = merge(acts)
+    macts.c(c).alpha(alpha).lw(lw)
     macts.property.LightingOff()
-    macts.property.SetLineWidth(lw)
     macts.actor.UseBoundsOff()
-    macts.base = q1
-    macts.top = q2
-    macts.orientation(p2 - p1, rotation=axis_rotation).bc("t").pickable(False)
+    # macts.base = q1
+    # macts.top = q2
+    # print(p2,p1, p2-p1)
+    macts.reorient(q2-q1, p2 - p1, rotation=axis_rotation)
+    macts.bc("tomato").pickable(False)
     return macts
 
 
@@ -2440,7 +2450,7 @@ def RulerAxes(
 
     acts, rx, ry = [], None, None
     if xtitle is not None and (x1 - x0) / d > 0.1:
-        rx = Ruler(
+        rx = Ruler3D(
             [x0, y0 - dx, z0],
             [x1, y0 - dx, z0],
             s=s,
@@ -2456,7 +2466,7 @@ def RulerAxes(
         )
         acts.append(rx)
     if ytitle is not None and (y1 - y0) / d > 0.1:
-        ry = Ruler(
+        ry = Ruler3D(
             [x1 + dy, y0, z0],
             [x1 + dy, y1, z0],
             s=s,
@@ -2472,7 +2482,7 @@ def RulerAxes(
         )
         acts.append(ry)
     if ztitle is not None and (z1 - z0) / d > 0.1:
-        rz = Ruler(
+        rz = Ruler3D(
             [x0 - dy, y0 + dz, z0],
             [x0 - dy, y0 + dz, z1],
             s=s,

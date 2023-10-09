@@ -530,10 +530,29 @@ class Base3DProp:
         LT = LinearTransform().rotate_z(angle, rad, around)
         return self.apply_transform(LT)
 
-    #TODO
-    def orientation(self, newaxis=None, rotation=0, concatenate=False, xyplane=False, rad=False):
-        return self
+    def reorient(self, 
+            newaxis, 
+            initaxis=None,
+            around=(0,0,0),
+            rotation=0,
+            rad=False, 
+            xyplane=True,
+        ):
+        """
+        Reorient the object to point to a new direction from an initial one.
+        If `initaxis` is None, the object will be assumed in its "default" orientation.
+        If `xyplane` is True, the object will be rotated to lie on the xy plane.
+        
+        Use `rotation` to first rotate the object around its `initaxis`.
+        """
+        if initaxis is None:
+            initaxis = np.asarray(self.top) - self.base
+ 
+        q = self.transform.position
 
+        LT = LinearTransform()
+        LT.reorient(newaxis, initaxis, q, rotation, rad, xyplane)
+        return self.apply_transform(LT)
 
     def scale(self, s=None, reset=False, origin=True):
         """
