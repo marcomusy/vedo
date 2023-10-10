@@ -881,15 +881,7 @@ class Plotter:
         
         ir = self.renderers.index(ren)
 
-        # print("\nhas_str, has_actor", has_str , has_actor)
-        # print(acts)
-        # for a in acts:
-        #     print("actorname: ", a.name)
-        # for o in objs:
-        #     print("objectname: ", [o])
-
         ids = []
-
         for ob in set(objs):
             # remove it from internal list if possible
             if ob in list(self.objects):
@@ -900,7 +892,6 @@ class Plotter:
                     pass
             
             if ren:  ### remove it from the renderer
-
                 try:
                     ren.RemoveActor(ob)
                 except TypeError:

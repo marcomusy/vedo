@@ -33,12 +33,8 @@ examples/volumetric/slicer1.py
 
 ### Broken Examples
 ```
-background_image.py
-cut_interactive.py
 lights.py
 mesh_lut.py
-mousehover1.py
-mousehover2.py
 pca_ellipse.py
 pca_ellipsoid.py
 shadow2.py
