@@ -404,7 +404,9 @@ class Plotter:
 
         self.objects = []  # list of actors to be shown
 
-        self.clicked_object = None  # holds the actor that has been clicked
+        self.clicked_object = None  # holds the object that has been clicked
+        self.clicked_actor = None   # holds the actor that has been clicked
+
         self.renderer = None  # current renderer
         self.renderers = []  # list of renderers
         self.shape = shape  # don't remove this line
@@ -474,6 +476,7 @@ class Plotter:
         if self.title == "vedo":  # check if dev version
             if "dev" in vedo.__version__:
                 self.title = f"vedo ({vedo.__version__})"
+        self.window.SetWindowName(self.title)
 
         # more settings
         if settings.use_depth_peeling:
@@ -3426,36 +3429,38 @@ class Plotter:
 
         self.renderer = renderer
 
-        clicked_object = picker.GetActor()
-        # clicked_object2D = picker.GetActor2D()
+        clicked_actor = picker.GetActor()
+        # clicked_actor2D = picker.GetActor2D()
 
-        # print('_mouseleftclick mouse at', x, y)
-        # print("picked Volume:",   [picker.GetVolume()])
-        # print("picked Actor2D:",  [picker.GetActor2D()])
-        # print("picked Assembly:", [picker.GetAssembly()])
-        # print("picked Prop3D:",   [picker.GetProp3D()])
+        print('_mouseleftclick mouse at', x, y)
+        print("picked Volume:",   [picker.GetVolume()])
+        print("picked Actor2D:",  [picker.GetActor2D()])
+        print("picked Assembly:", [picker.GetAssembly()])
+        print("picked Prop3D:",   [picker.GetProp3D()])
 
-        if not clicked_object:
-            clicked_object = picker.GetAssembly()
+        if not clicked_actor:
+            clicked_actor = picker.GetAssembly()
 
-        if not clicked_object:
-            clicked_object = picker.GetProp3D()
+        if not clicked_actor:
+            clicked_actor = picker.GetProp3D()
 
-        if not hasattr(clicked_object, "GetPickable") or not clicked_object.GetPickable():
+        if not hasattr(clicked_actor, "GetPickable") or not clicked_actor.GetPickable():
             return
 
         self.picked3d = picker.GetPickPosition()
         self.picked2d = np.array([x, y])
 
-        if not clicked_object:
+        if not clicked_actor:
             return
 
         self.justremoved = None
+        self.clicked_actor = clicked_actor
 
-        self.clicked_object = clicked_object
-        if hasattr(clicked_object, "picked3d"):  # might be not a vedo obj
-            clicked_object.picked3d = picker.GetPickPosition()
-            x, y = iren.GetEventPosition()
+        if hasattr(clicked_actor, "data"):  # might be not a vedo obj
+            self.clicked_object = clicked_actor.data
+            # save this info in the object itself
+            self.clicked_object.picked3d = self.picked3d
+            self.clicked_object.picked2d = self.picked2d
 
         # -----------
         if "Histogram1D" in picker.GetAssembly().__class__.__name__:
@@ -3463,14 +3468,13 @@ class Plotter:
             if histo.verbose:
                 x = self.picked3d[0]
                 idx = np.digitize(x, histo.edges) - 1
-                f = histo.frequencies[idx]
-                cn = histo.centers[idx]
+                f = histo.data.frequencies[idx]
+                cn = histo.data.centers[idx]
                 vedo.colors.printc(f"{histo.name}, bin={idx}, center={cn}, value={f}")
 
 
     #######################################################################
     def _keypress(self, iren, event):
-
         # NB: qt creates and passes a vtkGenericRenderWindowInteractor
 
         key = iren.GetKeySym()
@@ -3487,11 +3491,9 @@ class Plotter:
         if iren.GetAltKey():
             key = "Alt+" + key
 
-        # utils.vedo.printc('Pressed key:', key, c='y', box='-')
+        utils.vedo.printc('Pressed key:', key, c='y', box='-')
         # print(key, iren.GetShiftKey(), iren.GetAltKey(), iren.GetControlKey(),
         #       iren.GetKeyCode(), iren.GetRepeatCount())
-        # iren.ExitCallback()
-        # return
 
         x, y = iren.GetEventPosition()
         renderer = iren.FindPokedRenderer(x, y)
@@ -3507,28 +3509,28 @@ class Plotter:
 
         elif key == "Down":
             if self.clicked_object in self.get_meshes():
-                self.clicked_object.property.SetOpacity(0.02)
-                bfp = self.clicked_object.actor.GetBackfaceProperty()
-                if bfp and hasattr(self.clicked_object, "property_backface"):
+                self.clicked_object.alpha(0.02)
+                if hasattr(self.clicked_object, "property_backface"):
+                    bfp = self.clicked_actor.GetBackfaceProperty()
                     self.clicked_object.property_backface = bfp  # save it
-                    self.clicked_object.actor.SetBackfaceProperty(None)
+                    self.clicked_actor.SetBackfaceProperty(None)
             else:
-                for a in self.get_meshes():
-                    a.property.SetOpacity(0.02)
-                    bfp = a.actor.GetBackfaceProperty()
-                    if bfp and hasattr(a, "property_backface"):
-                        a.property_backface = bfp
-                        a.actor.SetBackfaceProperty(None)
+                for obj in self.get_meshes():
+                    obj.alpha(0.02)
+                    bfp = obj.actor.GetBackfaceProperty()
+                    if bfp and hasattr(obj, "property_backface"):
+                        obj.property_backface = bfp
+                        obj.actor.SetBackfaceProperty(None)
 
         elif key == "Left":
             if self.clicked_object in self.get_meshes():
                 ap = self.clicked_object.property
                 aal = max([ap.GetOpacity() * 0.75, 0.01])
                 ap.SetOpacity(aal)
-                bfp = self.clicked_object.actor.GetBackfaceProperty()
+                bfp = self.clicked_actor.GetBackfaceProperty()
                 if bfp and hasattr(self.clicked_object, "property_backface"):
                     self.clicked_object.property_backface = bfp
-                    self.clicked_object.actor.SetBackfaceProperty(None)
+                    self.clicked_actor.SetBackfaceProperty(None)
             else:
                 for a in self.get_meshes():
                     ap = a.property
@@ -3550,7 +3552,8 @@ class Plotter:
                     and self.clicked_object.property_backface
                 ):
                     # put back
-                    self.clicked_object.actor.SetBackfaceProperty(self.clicked_object.property_backface)
+                    self.clicked_actor.SetBackfaceProperty(
+                        self.clicked_object.property_backface)
             else:
                 for a in self.get_meshes():
                     ap = a.property
@@ -3559,7 +3562,7 @@ class Plotter:
                     if aal == 1 and hasattr(a, "property_backface") and a.property_backface:
                         a.actor.SetBackfaceProperty(a.property_backface)
 
-        elif key in ("slash", "Up"):
+        elif key == "Up":
             if self.clicked_object in self.get_meshes():
                 self.clicked_object.property.SetOpacity(1)
                 if hasattr(self.clicked_object, "property_backface") and self.clicked_object.property_backface:
@@ -3572,10 +3575,10 @@ class Plotter:
 
         elif key == "P":
             if self.clicked_object in self.get_meshes():
-                acts = [self.clicked_object]
+                objs = [self.clicked_object]
             else:
-                acts = self.get_meshes()
-            for ia in acts:
+                objs = self.get_meshes()
+            for ia in objs:
                 try:
                     ps = ia.property.GetPointSize()
                     if ps > 1:
@@ -3586,10 +3589,10 @@ class Plotter:
 
         elif key == "p":
             if self.clicked_object in self.get_meshes():
-                acts = [self.clicked_object]
+                objs = [self.clicked_object]
             else:
-                acts = self.get_meshes()
-            for ia in acts:
+                objs = self.get_meshes()
+            for ia in objs:
                 try:
                     ps = ia.property.GetPointSize()
                     ia.property.SetPointSize(ps + 2)
@@ -3760,17 +3763,17 @@ class Plotter:
 
         elif key == "s":
             if self.clicked_object and self.clicked_object in self.get_meshes():
-                self.clicked_object.property.SetRepresentationToSurface()
+                self.clicked_object.wireframe(False)
             else:
                 for a in self.get_meshes():
-                    a.property.SetRepresentationToSurface()
+                    a.wireframe()
 
         elif key == "1":
             self._icol += 1
-            if isinstance(self.clicked_object, vtk.vtkActor):
-                self.clicked_object.GetMapper().ScalarVisibilityOff()
+            if self.clicked_object:
+                self.clicked_object.mapper.ScalarVisibilityOff()
                 pal = vedo.colors.palettes[settings.palette % len(vedo.colors.palettes)]
-                self.clicked_object.GetProperty().SetColor(pal[(self._icol) % 10])
+                self.clicked_object.c(pal[(self._icol) % 10])
 
         elif key == "2":
             bsc = ["k1", "k2", "k3", "k4",
@@ -3781,10 +3784,10 @@ class Plotter:
                    "o1", "o2", "o3", "o4",
                    "y1", "y2", "y3", "y4"]
             self._icol += 1
-            if isinstance(self.clicked_object, vtk.vtkActor):
-                self.clicked_object.GetMapper().ScalarVisibilityOff()
+            if self.clicked_object:
+                self.clicked_object.mapper.ScalarVisibilityOff()
                 newcol = vedo.get_color(bsc[(self._icol) % len(bsc)])
-                self.clicked_object.GetProperty().SetColor(newcol)
+                self.clicked_object.c(newcol)
 
         elif key == "3":
             bsc = ["k6", "k7", "k8", "k9",
@@ -3795,42 +3798,44 @@ class Plotter:
                    "o6", "o7", "o8", "o9",
                    "y6", "y7", "y8", "y9"]
             self._icol += 1
-            if isinstance(self.clicked_object, vtk.vtkActor):
-                self.clicked_object.GetMapper().ScalarVisibilityOff()
+            if self.clicked_object:
+                self.clicked_object.mapper.ScalarVisibilityOff()
                 newcol = vedo.get_color(bsc[(self._icol) % len(bsc)])
-                self.clicked_object.GetProperty().SetColor(newcol)
+                self.clicked_object.c(newcol)
 
         elif key == "4":
             if self.clicked_object:
-                acts = [self.clicked_object]
+                objs = [self.clicked_object]
             else:
-                acts = self.get_meshes()
-            for ia in acts:
-                if not hasattr(ia, "_cmap_name"):
-                    continue
-                cmap_name = ia._cmap_name
-                if not cmap_name:
-                    cmap_name = "rainbow"
-                if isinstance(ia, vedo.pointcloud.Points):
-                    arnames = ia.pointdata.keys()
-                    if len(arnames) > 0:
-                        arnam = arnames[ia._scals_idx]
-                        if arnam and ("normals" not in arnam.lower()):  # exclude normals
-                            ia.cmap(cmap_name, arnam, on="points")
-                            vedo.printc("..active point data set to:", arnam, c="g", bold=0)
-                            ia._scals_idx += 1
-                            if ia._scals_idx >= len(arnames):
-                                ia._scals_idx = 0
-                    else:
-                        arnames = ia.celldata.keys()
-                        if len(arnames) > 0:
-                            arnam = arnames[ia._scals_idx]
-                            if arnam and ("normals" not in arnam.lower()):  # exclude normals
-                                ia.cmap(cmap_name, arnam, on="cells")
-                                vedo.printc("..active cell array set to:", arnam, c="g", bold=0)
-                                ia._scals_idx += 1
-                                if ia._scals_idx >= len(arnames):
-                                    ia._scals_idx = 0
+                objs = self.get_meshes()
+            # TODO: this is not working
+            # print("objs", objs._cmap_name)
+            # for ia in objs:
+            #     if not hasattr(ia, "_cmap_name"):
+            #         continue
+            #     cmap_name = ia._cmap_name
+            #     if not cmap_name:
+            #         cmap_name = "rainbow"
+            #     if isinstance(ia, vedo.pointcloud.Points):
+            #         arnames = ia.pointdata.keys()
+            #         if len(arnames) > 0:
+            #             arnam = arnames[ia._scals_idx]
+            #             if arnam and ("normals" not in arnam.lower()):  # exclude normals
+            #                 ia.cmap(cmap_name, arnam, on="points")
+            #                 vedo.printc("..active point data set to:", arnam, c="g", bold=0)
+            #                 ia._scals_idx += 1
+            #                 if ia._scals_idx >= len(arnames):
+            #                     ia._scals_idx = 0
+            #         else:
+            #             arnames = ia.celldata.keys()
+            #             if len(arnames) > 0:
+            #                 arnam = arnames[ia._scals_idx]
+            #                 if arnam and ("normals" not in arnam.lower()):  # exclude normals
+            #                     ia.cmap(cmap_name, arnam, on="cells")
+            #                     vedo.printc("..active cell array set to:", arnam, c="g", bold=0)
+            #                     ia._scals_idx += 1
+            #                     if ia._scals_idx >= len(arnames):
+            #                         ia._scals_idx = 0
 
         elif key == "5":
             bgc = np.array(renderer.GetBackground()).sum() / 3
@@ -3893,7 +3898,7 @@ class Plotter:
                     self.axes += 1  # jump ruler doesnt make sense in perspective mode
                 bns = self.renderer.ComputeVisiblePropBounds()
                 addons.add_global_axes(axtype=(self.axes + 1) % 15, c=None, bounds=bns)
-            self.interactor.Render()
+            self.render()
 
         elif "KP_" in key or key in [
             "Insert",
@@ -3982,10 +3987,10 @@ class Plotter:
 
         elif key == "l":
             if self.clicked_object in self.get_meshes():
-                acts = [self.clicked_object]
+                objs = [self.clicked_object]
             else:
-                acts = self.get_meshes()
-            for ia in acts:
+                objs = self.get_meshes()
+            for ia in objs:
                 try:
                     ev = ia.property.GetEdgeVisibility()
                     ia.property.SetEdgeVisibility(not ev)
@@ -3996,11 +4001,11 @@ class Plotter:
 
         elif key == "k":  # lightings
             if self.clicked_object in self.get_meshes():
-                acts = [self.clicked_object]
+                objs = [self.clicked_object]
             else:
-                acts = self.get_meshes()
+                objs = self.get_meshes()
             shds = ("default", "metallic", "plastic", "shiny", "glossy", "off")
-            for ia in acts:
+            for ia in objs:
                 try:
                     lnr = (ia._ligthingnr + 1) % 6
                     ia.lighting(shds[lnr])
@@ -4010,10 +4015,10 @@ class Plotter:
 
         elif key == "K":  # shading
             if self.clicked_object in self.get_meshes():
-                acts = [self.clicked_object]
+                objs = [self.clicked_object]
             else:
-                acts = self.get_meshes()
-            for ia in acts:
+                objs = self.get_meshes()
+            for ia in objs:
                 if isinstance(ia, vedo.Mesh):
                     ia.compute_normals(cells=False)
                     intrp = ia.property.GetInterpolation()
@@ -4024,19 +4029,19 @@ class Plotter:
 
         elif key == "n":  # show normals to an actor
             if self.clicked_object in self.get_meshes():
-                if self.clicked_object.GetPickable():
-                    self.renderer.AddActor(vedo.shapes.NormalLines(self.clicked_object))
+                if self.clicked_actor.GetPickable():
+                    norml = vedo.shapes.NormalLines(self.clicked_object)
+                    self.add(norml)
                     iren.Render()
-            else:
-                print("Click an actor and press n to add normals.")
 
         elif key == "x":
             if self.justremoved is None:
+                print(self.get_meshes())
                 if self.clicked_object in self.get_meshes() or isinstance(
                     self.clicked_object, vtk.vtkAssembly
                 ):
-                    self.justremoved = self.clicked_object
-                    self.renderer.RemoveActor(self.clicked_object)
+                    self.justremoved = self.clicked_actor
+                    self.renderer.RemoveActor(self.clicked_actor)
             else:
                 self.renderer.AddActor(self.justremoved)
                 self.renderer.Render()
@@ -4070,7 +4075,7 @@ class Plotter:
 
         elif key == "i":  # print info
             if self.clicked_object:
-                utils.print_info(self.clicked_object.data)
+                utils.print_info(self.clicked_object)
             else:
                 utils.print_info(self)
 

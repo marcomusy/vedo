@@ -539,9 +539,9 @@ class PointsVisual:
         if bfp:
             if opacity < 1:
                 self.property_backface = bfp
-                self.property.SetBackfaceProperty(None)
+                self.actor.SetBackfaceProperty(None)
             else:
-                self.property.SetBackfaceProperty(self.property_backface)
+                self.actor.SetBackfaceProperty(self.property_backface)
         return self
 
 

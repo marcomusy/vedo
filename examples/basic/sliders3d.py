@@ -20,7 +20,7 @@ plt.add_slider3d(
     s=0.04,
     c="r",
     rotation=45,
-    title="y position",
+    title="position",
 )
 
 plt.show(mesh, __doc__, axes=11, bg='bb', bg2='navy')

@@ -1460,12 +1460,13 @@ def print_info(obj):
             vedo.printc("no point or cell data is present.", c=c, bold=False)
 
     ################################
-    def _print_vtkactor(objt):
-        poly = objt
-        actor = objt.actor
-        pro = objt.property
+    def _print_vtkactor(obj):
+        poly = obj
+        actor = obj
+        mapper = obj.mapper
+        pro = obj.property
 
-        if not actor.GetPickable():
+        if not obj.actor.GetPickable():
             return
 
         pro = poly.property
@@ -1493,13 +1494,13 @@ def print_info(obj):
             vedo.printc("file name".ljust(14) + ": ", c="g", bold=True, end="")
             vedo.printc(actor.filename, c="g", bold=False)
 
-        if not actor.GetMapper().GetScalarVisibility():
+        if not mapper.GetScalarVisibility():
             vedo.printc("color".ljust(14) + ": ", c="g", bold=True, end="")
             cname = vedo.colors.get_color_name(pro.GetColor())
             vedo.printc(f"{cname}, rgb={col}, alpha={alpha}", c="g", bold=False)
 
-            if actor.GetBackfaceProperty():
-                bcol = actor.GetBackfaceProperty().GetDiffuseColor()
+            if obj.actor.GetBackfaceProperty():
+                bcol = obj.actor.GetBackfaceProperty().GetDiffuseColor()
                 cname = vedo.colors.get_color_name(bcol)
                 vedo.printc("back color".ljust(14) + ": ", c="g", bold=True, end="")
                 vedo.printc(f"{cname}, rgb={precision(bcol,3)}", c="g", bold=False)
@@ -1516,16 +1517,16 @@ def print_info(obj):
             vedo.printc("scale".ljust(14) + ":", c="g", bold=True, end=" ")
             vedo.printc(precision(actor.GetScale(), 3), c="g", bold=False)
 
-        if hasattr(actor, "polydata") and actor.npoints:
+        if obj.npoints:
             vedo.printc("center of mass".ljust(14) + ":", c="g", bold=True, end=" ")
-            cm = tuple(actor.center_of_mass())
+            cm = tuple(obj.center_of_mass())
             vedo.printc(precision(cm, 3), c="g", bold=False)
 
             vedo.printc("average size".ljust(14) + ":", c="g", bold=True, end=" ")
-            vedo.printc(precision(actor.average_size(), 6), c="g", bold=False)
+            vedo.printc(precision(obj.average_size(), 6), c="g", bold=False)
 
             vedo.printc("diagonal size".ljust(14) + ":", c="g", bold=True, end=" ")
-            vedo.printc(precision(actor.diagonal_size(), 6), c="g", bold=False)
+            vedo.printc(precision(obj.diagonal_size(), 6), c="g", bold=False)
 
         vedo.printc("bounds".ljust(14) + ":", c="g", bold=True, end=" ")
         bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
@@ -1537,12 +1538,12 @@ def print_info(obj):
 
         _print_data(poly, "g")
 
-        if hasattr(actor, "picked3d") and actor.picked3d is not None:
-            idpt = actor.closest_point(actor.picked3d, return_point_id=True)
-            idcell = actor.closest_point(actor.picked3d, return_cell_id=True)
+        if hasattr(obj, "picked3d") and obj.picked3d is not None:
+            idpt = obj.closest_point(obj.picked3d, return_point_id=True)
+            idcell = obj.closest_point(obj.picked3d, return_cell_id=True)
             vedo.printc(
                 "clicked point".ljust(14) + ":",
-                precision(actor.picked3d, 6),
+                precision(obj.picked3d, 6),
                 f"pointID={idpt}, cellID={idcell}",
                 c="g",
                 bold=True,
