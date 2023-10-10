@@ -2129,7 +2129,7 @@ class Plotter:
                         t += f"{created[4:-5]} ({sz})" + "\n"
 
                 if evt.isPoints:
-                    indata = evt.object
+                    indata = evt.object.dataset
                     if indata.GetNumberOfPoints():
                         t += (
                             f"#points/cells: {indata.GetNumberOfPoints()}"

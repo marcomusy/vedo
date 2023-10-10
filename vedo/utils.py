@@ -1461,17 +1461,17 @@ def print_info(obj):
 
     ################################
     def _print_vtkactor(obj):
-        poly = obj
-        actor = obj
+        poly = obj.dataset
+        actor = obj.dataset
         mapper = obj.mapper
         pro = obj.property
 
         if not obj.actor.GetPickable():
             return
 
-        pro = poly.property
-        pos = poly.pos()
-        bnds = poly.bounds()
+        pro = obj.property
+        pos = obj.pos()
+        bnds = obj.bounds()
         col = precision(pro.GetColor(), 3)
         alpha = pro.GetOpacity()
         npt = poly.GetNumberOfPoints()

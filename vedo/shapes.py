@@ -197,9 +197,9 @@ class Glyph(Mesh):
         """
         if utils.is_sequence(mesh):
             # create a cloud of points
-            poly = Points(mesh)
+            poly = Points(mesh).dataset
         else:
-            poly = mesh
+            poly = mesh.dataset
 
         cmap = ""
         if isinstance(c, str) and c in cmaps_names:
@@ -219,7 +219,7 @@ class Glyph(Mesh):
         gly = vtk.vtkGlyph3D()
         gly.GeneratePointIdsOn()
         gly.SetInputData(poly)
-        gly.SetSourceData(glyph)
+        gly.SetSourceData(glyph.dataset)
 
         if scale_by_scalar:
             gly.SetScaleModeToScaleByScalar()
@@ -504,7 +504,7 @@ class Line(Mesh):
         prop.DeepCopy(self.property)
 
         ln = Line(self)
-        ln.DeepCopy(self)
+        ln.dataset.DeepCopy(self.dataset)
         ln.transform = self.transform
         ln.actor.SetProperty(prop)
         ln.property = prop
@@ -3104,7 +3104,7 @@ class Plane(Mesh):
     
     def clone(self):
         newplane = Plane()
-        newplane.DeepCopy(self)
+        newplane.dataset.DeepCopy(self.dataset)
         newplane.transform = self.transform
         prop = vtk.vtkProperty()
         prop.DeepCopy(self.property)

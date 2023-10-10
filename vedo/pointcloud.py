@@ -724,7 +724,7 @@ class PointsVisual:
         """
         if "CellsRGBA" not in self.celldata.keys():
             lut = self.mapper.GetLookupTable()
-            vscalars = self.GetCellData().GetScalars()
+            vscalars = self.dataset.GetCellData().GetScalars()
             if vscalars is None or lut is None:
                 arr = np.zeros([self.ncells, 4], dtype=np.uint8)
                 col = np.array(self.property.GetColor())
@@ -776,7 +776,7 @@ class PointsVisual:
         """
         if "PointsRGBA" not in self.pointdata.keys():
             lut = self.mapper.GetLookupTable()
-            vscalars = self.GetPointData().GetScalars()
+            vscalars = self.dataset.GetPointData().GetScalars()
             if vscalars is None or lut is None:
                 arr = np.zeros([self.npoints, 4], dtype=np.uint8)
                 col = np.array(self.property.GetColor())
@@ -864,15 +864,15 @@ class PointsVisual:
         if input_array is None:
             if not self.pointdata.keys() and self.celldata.keys():
                 on = "cells"
-                if not self.GetCellData().GetScalars():
+                if not self.dataset.GetCellData().GetScalars():
                     input_array = 0  # pick the first at hand
 
         if on.startswith("point"):
-            data = self.GetPointData()
-            n = self.dataset.GetPointData()
+            data = self.dataset.GetPointData()
+            n = self.dataset.GetNumberOfPoints()
         elif on.startswith("cell"):
-            data = self.GetCellData()
-            n = self.GetNumberOfCells()
+            data = self.dataset.GetCellData()
+            n = self.dataset.GetNumberOfCells()
         else:
             vedo.logger.error("Must specify in cmap(on=...) to either 'cells' or 'points'")
             raise RuntimeError()
@@ -1227,12 +1227,12 @@ class PointsVisual:
         if content is None:
             mode = 0
             if cells:
-                if self.GetCellData().GetScalars():
-                    name = self.GetCellData().GetScalars().GetName()
+                if self.dataset.GetCellData().GetScalars():
+                    name = self.dataset.GetCellData().GetScalars().GetName()
                     arr = self.celldata[name]
             else:
-                if self.GetPointData().GetScalars():
-                    name = self.GetPointData().GetScalars().GetName()
+                if self.dataset.GetPointData().GetScalars():
+                    name = self.dataset.GetPointData().GetScalars().GetName()
                     arr = self.pointdata[name]
         elif isinstance(content, (str, int)):
             if content == "id":
@@ -1277,9 +1277,9 @@ class PointsVisual:
                 tx.Update()
                 tx_poly = tx.GetOutput()
             else:
-                tx_poly = vedo.shapes.Text3D(txt_lab, font=font, justify=justify)
+                tx_poly = vedo.shapes.Text3D(txt_lab, font=font, justify=justify).dataset
 
-            if tx_poly.dataset.GetPointData() == 0:
+            if tx_poly.GetPointData() == 0:
                 continue  #######################
             ninputs += 1
 
@@ -1394,7 +1394,7 @@ class PointsVisual:
                 vedo.logger.error(f"In labels2d: cell array {content} does not exist.")
                 return None
             cellcloud = Points(self.cell_centers())
-            arr = self.GetCellData().GetScalars()
+            arr = self.dataset.GetCellData().GetScalars()
             poly = cellcloud
             poly.GetPointData().SetScalars(arr)
         else:
@@ -1744,7 +1744,7 @@ class PointsVisual:
             c = colors.get_color(c)
 
         if point is None:
-            x0, x1, y0, y1, _, z1 = self.GetBounds()
+            x0, x1, y0, y1, _, z1 = self.dataset.GetBounds()
             pt = [(x0 + x1) / 2, (y0 + y1) / 2, z1]
             point = self.closest_point(pt)
 
@@ -1851,7 +1851,7 @@ class Points(PointsVisual, BaseActor):
 
         ######
         if isinstance(inputobj, vtk.vtkActor):
-            self.dataset = inputobj.GetMapper().GetInput()
+            self.dataset.DeepCopy(inputobj.GetMapper().GetInput())
             pr = vtk.vtkProperty()
             pr.DeepCopy(inputobj.GetProperty())
             self.actor.SetProperty(pr)
@@ -1859,8 +1859,8 @@ class Points(PointsVisual, BaseActor):
             self.mapper.SetScalarVisibility(inputobj.GetMapper().GetScalarVisibility())
 
         elif isinstance(inputobj, vtk.vtkPolyData):
-            self.dataset = inputobj
-            if self.GetNumberOfCells() == 0:
+            self.dataset.DeepCopy(inputobj)
+            if self.dataset.GetNumberOfCells() == 0:
                 carr = vtk.vtkCellArray()
                 for i in range(self.dataset.GetPointData()):
                     carr.InsertNextCell(1)
@@ -1980,15 +1980,15 @@ class Points(PointsVisual, BaseActor):
             help_text += f"<br/><code><i>({dots}{self.filename[-30:]})</i></code>"
 
         pdata = ""
-        if self.GetPointData().GetScalars():
-            if self.GetPointData().GetScalars().GetName():
-                name = self.GetPointData().GetScalars().GetName()
+        if self.dataset.GetPointData().GetScalars():
+            if self.dataset.GetPointData().GetScalars().GetName():
+                name = self.dataset.GetPointData().GetScalars().GetName()
                 pdata = "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
 
         cdata = ""
-        if self.GetCellData().GetScalars():
-            if self.GetCellData().GetScalars().GetName():
-                name = self.GetCellData().GetScalars().GetName()
+        if self.dataset.GetCellData().GetScalars():
+            if self.dataset.GetCellData().GetScalars().GetName():
+                name = self.dataset.GetCellData().GetScalars().GetName()
                 cdata = "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
 
         allt = [
@@ -2052,9 +2052,9 @@ class Points(PointsVisual, BaseActor):
                ![](https://vedo.embl.es/images/basic/mirror.png)
         """
         if isinstance(self, vedo.Mesh):
-            cloned = vedo.Mesh(self)
+            cloned = vedo.Mesh(self.dataset)
         else:
-            cloned = Points(self)
+            cloned = Points(self.dataset)
 
         pr = vtk.vtkProperty()
         pr.DeepCopy(self.property)
@@ -2207,15 +2207,15 @@ class Points(PointsVisual, BaseActor):
                 ![](https://vedo.embl.es/images/basic/deleteMeshPoints.png)
         """
         cell_ids = vtk.vtkIdList()
-        self.BuildLinks()
+        self.dataset.BuildLinks()
         n = 0
         for i in np.unique(indices):
-            self.GetPointCells(i, cell_ids)
+            self.dataset.GetPointCells(i, cell_ids)
             for j in range(cell_ids.GetNumberOfIds()):
-                self.DeleteCell(cell_ids.GetId(j))  # flag cell
+                self.dataset.DeleteCell(cell_ids.GetId(j))  # flag cell
                 n += 1
 
-        self.RemoveDeletedCells()
+        self.dataset.RemoveDeletedCells()
         self.mapper.Modified()
         self.pipeline = utils.OperationNode(f"delete {n} cells\nby point index", parents=[self])
         return self
@@ -2237,7 +2237,7 @@ class Points(PointsVisual, BaseActor):
             invert : (bool)
                 flip all normals
         """
-        poly = self
+        poly = self.dataset
         pcan = vtk.vtkPCANormalEstimation()
         pcan.SetInputData(poly)
         pcan.SetSampleSize(n)
@@ -2254,8 +2254,8 @@ class Points(PointsVisual, BaseActor):
 
         varr = pcan.GetOutput().GetPointData().GetNormals()
         varr.SetName("Normals")
-        self.GetPointData().SetNormals(varr)
-        self.GetPointData().Modified()
+        self.dataset.GetPointData().SetNormals(varr)
+        self.dataset.GetPointData().Modified()
         return self
 
     def compute_acoplanarity(self, n=25, radius=None, on="points"):
@@ -2319,10 +2319,10 @@ class Points(PointsVisual, BaseActor):
 
                 ![](https://vedo.embl.es/images/basic/distance2mesh.png)
         """
-        if pcloud.GetNumberOfPolys():
+        if pcloud.dataset.GetNumberOfPolys():
 
-            poly1 = self
-            poly2 = pcloud
+            poly1 = self.dataset
+            poly2 = pcloud.dataset
             df = vtk.vtkDistancePolyDataFilter()
             df.ComputeSecondDistanceOff()
             df.SetInputData(0, poly1)
@@ -2355,8 +2355,8 @@ class Points(PointsVisual, BaseActor):
             scals = utils.numpy2vtk(dists)
 
         scals.SetName(name)
-        self.GetPointData().AddArray(scals)
-        self.GetPointData().SetActiveScalars(scals.GetName())
+        self.dataset.GetPointData().AddArray(scals)
+        self.dataset.GetPointData().SetActiveScalars(scals.GetName())
         rng = scals.GetRange()
         self.mapper.SetScalarRange(rng[0], rng[1])
         self.mapper.ScalarVisibilityOn()
@@ -2378,7 +2378,7 @@ class Points(PointsVisual, BaseActor):
         cpd.ConvertLinesToPointsOn()
         cpd.ConvertPolysToLinesOn()
         cpd.ConvertStripsToPolysOn()
-        cpd.SetInputData(self)
+        cpd.SetInputData(self.dataset)
         cpd.Update()
         self.dataset.DeepCopy(cpd.GetOutput())
         self.pipeline = utils.OperationNode(
@@ -2416,7 +2416,7 @@ class Points(PointsVisual, BaseActor):
         cpd.ConvertLinesToPointsOn()
         cpd.ConvertPolysToLinesOn()
         cpd.ConvertStripsToPolysOn()
-        cpd.SetInputData(self)
+        cpd.SetInputData(self.dataset)
         if absolute:
             cpd.SetTolerance(fraction / self.diagonal_size())
             # cpd.SetToleranceIsAbsolute(absolute)
@@ -2454,7 +2454,7 @@ class Points(PointsVisual, BaseActor):
             - [mesh_threshold.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_threshold.py)
         """
         thres = vtk.vtkThreshold()
-        thres.SetInputData(self)
+        thres.SetInputData(self.dataset)
 
         if on.startswith("c"):
             asso = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
@@ -2496,7 +2496,7 @@ class Points(PointsVisual, BaseActor):
         will be quantized to that absolute grain size.
         """
         qp = vtk.vtkQuantizePolyDataPoints()
-        qp.SetInputData(self)
+        qp.SetInputData(self.dataset)
         qp.SetQFactor(value)
         qp.Update()
         self.dataset.DeepCopy(qp.GetOutput())
@@ -2519,14 +2519,14 @@ class Points(PointsVisual, BaseActor):
     def center_of_mass(self):
         """Get the center of mass of mesh."""
         cmf = vtk.vtkCenterOfMass()
-        cmf.SetInputData(self)
+        cmf.SetInputData(self.dataset)
         cmf.Update()
         c = cmf.GetCenter()
         return np.array(c)
 
     def normal_at(self, i):
         """Return the normal vector at vertex point `i`."""
-        normals = self.GetPointData().GetNormals()
+        normals = self.dataset.GetPointData().GetNormals()
         return np.array(normals.GetTuple(i))
 
     def normals(self, cells=False, recompute=True):
@@ -2541,16 +2541,16 @@ class Points(PointsVisual, BaseActor):
                 Note that this might modify the number of mesh points.
         """
         if cells:
-            vtknormals = self.GetCellData().GetNormals()
+            vtknormals = self.dataset.GetCellData().GetNormals()
         else:
-            vtknormals = self.GetPointData().GetNormals()
+            vtknormals = self.dataset.GetPointData().GetNormals()
         if not vtknormals and recompute:
             try:
                 self.compute_normals(cells=cells)
                 if cells:
-                    vtknormals = self.GetCellData().GetNormals()
+                    vtknormals = self.dataset.GetCellData().GetNormals()
                 else:
-                    vtknormals = self.GetPointData().GetNormals()
+                    vtknormals = self.dataset.GetPointData().GetNormals()
             except AttributeError:
                 # can be that 'Points' object has no attribute 'compute_normals'
                 pass
@@ -2588,7 +2588,7 @@ class Points(PointsVisual, BaseActor):
         """
         icp = vtk.vtkIterativeClosestPointTransform()
         icp.SetSource(self.dataset)
-        icp.SetTarget(target)
+        icp.SetTarget(target.dataset)
         if invert:
             icp.Inverse()
         icp.SetMaximumNumberOfIterations(iters)
@@ -2627,7 +2627,7 @@ class Points(PointsVisual, BaseActor):
             for p in source_landmarks:
                 ss.InsertNextPoint(p)
         else:
-            ss = source_landmarks.GetPoints()
+            ss = source_landmarks.dataset.GetPoints()
             if least_squares:
                 source_landmarks = source_landmarks.points()
 
@@ -2865,8 +2865,8 @@ class Points(PointsVisual, BaseActor):
         vpts = vtk.vtkPoints()
         vpts.SetNumberOfPoints(n)
         vpts.SetData(utils.numpy2vtk(pts + ns, dtype=np.float32))
-        self.SetPoints(vpts)
-        self.GetPoints().Modified()
+        self.dataset.SetPoints(vpts)
+        self.dataset.GetPoints().Modified()
         self.pointdata["GaussianNoise"] = -ns
         self.pipeline = utils.OperationNode(
             "gaussian_noise", parents=[self], shape="egg", comment=f"sigma = {sigma}"
@@ -2902,7 +2902,7 @@ class Points(PointsVisual, BaseActor):
         if ((n > 1 or radius) or (n == 1 and return_point_id)) and not return_cell_id:
             poly = None
             if not self.point_locator:
-                poly = self
+                poly = self.dataset
                 self.point_locator = vtk.vtkStaticPointLocator()
                 self.point_locator.SetDataSet(poly)
                 self.point_locator.BuildLocator()
@@ -2925,7 +2925,7 @@ class Points(PointsVisual, BaseActor):
                 ########
 
             if not poly:
-                poly = self
+                poly = self.dataset
             trgp = []
             for i in range(vtklist.GetNumberOfIds()):
                 trgp_ = [0, 0, 0]
@@ -2939,7 +2939,7 @@ class Points(PointsVisual, BaseActor):
         else:
 
             if not self.cell_locator:
-                poly = self
+                poly = self.dataset
 
                 # As per Miquel example with limbs the vtkStaticCellLocator doesnt work !!
                 # https://discourse.vtk.org/t/vtkstaticcelllocator-problem-vtk9-0-3/7854/4
@@ -3111,8 +3111,8 @@ class Points(PointsVisual, BaseActor):
 
         vdata = utils.numpy2vtk(np.array(variances))
         vdata.SetName("Variances")
-        self.GetPointData().AddArray(vdata)
-        self.GetPointData().Modified()
+        self.dataset.GetPointData().AddArray(vdata)
+        self.dataset.GetPointData().Modified()
         self.points(newline)
         self.pipeline = utils.OperationNode("smooth_mls_1d", parents=[self])
         return self
@@ -4263,7 +4263,7 @@ class Points(PointsVisual, BaseActor):
         cluster.ColorClustersOn()
         cluster.Update()
         idsarr = cluster.GetOutput().GetPointData().GetArray("ClusterId")
-        self.GetPointData().AddArray(idsarr)
+        self.dataset.GetPointData().AddArray(idsarr)
 
         self.pipeline = utils.OperationNode(
             "compute_clustering", parents=[self], comment=f"radius = {radius}"
@@ -4358,7 +4358,7 @@ class Points(PointsVisual, BaseActor):
         A pointdata array is created with name 'DistanceToCamera'.
         """
         if vedo.plotter_instance.renderer:
-            poly = self
+            poly = self.dataset
             dc = vtk.vtkDistanceToCamera()
             dc.SetInputData(poly)
             dc.SetRenderer(vedo.plotter_instance.renderer)
@@ -4594,7 +4594,7 @@ class Points(PointsVisual, BaseActor):
             vedo.logger.error("please set either radius or n")
             raise RuntimeError
 
-        poly = self
+        poly = self.dataset
 
         # Create a probe volume
         probe = vtk.vtkImageData()
@@ -4745,7 +4745,7 @@ class Points(PointsVisual, BaseActor):
 
         msh.pipeline = utils.OperationNode(
             "delaunay2d", parents=[self],
-            comment=f"#cells {msh.GetNumberOfCells()}"
+            comment=f"#cells {msh.dataset.GetNumberOfCells()}"
         )
         return msh
 

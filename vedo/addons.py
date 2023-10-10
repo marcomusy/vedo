@@ -830,9 +830,9 @@ def ScalarBar(
     """
 
     if isinstance(obj, Points):
-        vtkscalars = obj.GetPointData().GetScalars()
+        vtkscalars = obj.dataset.GetPointData().GetScalars()
         if vtkscalars is None:
-            vtkscalars = obj.GetCellData().GetScalars()
+            vtkscalars = obj.dataset.GetCellData().GetScalars()
         if not vtkscalars:
             return None
         lut = vtkscalars.GetLookupTable()

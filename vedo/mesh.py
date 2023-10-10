@@ -294,14 +294,14 @@ class Mesh(MeshVisual, Points):
             _data = dataset
 
         else:
-            try:
-                gf = vtk.vtkGeometryFilter()
-                gf.SetInputData(inputobj)
-                gf.Update()
-                _data = gf.GetOutput()
-            except:
-                vedo.logger.error(f"cannot build mesh from type {inputtype}")
-                raise RuntimeError()
+            # try:
+            #     gf = vtk.vtkGeometryFilter()
+            #     gf.SetInputData(inputobj)
+            #     gf.Update()
+            #     _data = gf.GetOutput()
+            # except:
+            vedo.logger.error(f"cannot build mesh from type {inputtype}")
+            raise RuntimeError()
 
         self.dataset = _data
 
@@ -454,14 +454,14 @@ class Mesh(MeshVisual, Points):
 
         If ids is set, return only the faces of the given cells.
         """
-        arr1d = vtk2numpy(self.GetPolys().GetData())
+        arr1d = vtk2numpy(self.dataset.GetPolys().GetData())
         if arr1d is None:
             return []
 
         # Get cell connettivity ids as a 1D array. vtk format is:
         # [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
         if len(arr1d) == 0:
-            arr1d = vtk2numpy(self.GetStrips().GetData())
+            arr1d = vtk2numpy(self.dataset.GetStrips().GetData())
             if arr1d is None:
                 return []
 
@@ -494,7 +494,7 @@ class Mesh(MeshVisual, Points):
         """
         # Get cell connettivity ids as a 1D array. The vtk format is:
         #    [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
-        arr1d = vtk2numpy(self.GetLines().GetData())
+        arr1d = vtk2numpy(self.dataset.GetLines().GetData())
 
         if arr1d is None:
             return []
@@ -773,7 +773,7 @@ class Mesh(MeshVisual, Points):
             If feature_angle is set to a float the Mesh can be modified, and it
             can have a different nr. of vertices from the original.
         """
-        poly = self
+        poly = self.dataset
         pdnorm = vtk.vtkPolyDataNormals()
         pdnorm.SetInputData(poly)
         pdnorm.SetComputePointNormals(points)
@@ -822,7 +822,7 @@ class Mesh(MeshVisual, Points):
             rev.ReverseNormalsOff()
         rev.SetInputData(poly)
         rev.Update()
-        self.DeepCopy(rev.GetOutput())
+        self._update(rev.GetOutput(), reset_locators=False)
         self.pipeline = OperationNode("reverse", parents=[self])
         return self
 
@@ -945,7 +945,7 @@ class Mesh(MeshVisual, Points):
             self.delete_cells(toremove)
 
         self.pipeline = OperationNode(
-            "non_manifold_faces", parents=[self], comment=f"#cells {self.GetNumberOfCells()}"
+            "non_manifold_faces", parents=[self], comment=f"#cells {self.dataset.GetNumberOfCells()}"
         )
         return self
 
@@ -963,7 +963,7 @@ class Mesh(MeshVisual, Points):
         shrink.Update()
         self.point_locator = None
         self.cell_locator = None
-        self.DeepCopy(shrink.GetOutput())
+        self._update(shrink.GetOutput())
         self.pipeline = OperationNode("shrink", parents=[self])
         return self
 
@@ -1053,7 +1053,7 @@ class Mesh(MeshVisual, Points):
             m = Mesh(tf.GetOutput())
             m.pipeline = OperationNode(
                 "cap", parents=[self],
-                comment=f"#pts {m.GetNumberOfPoints()}"
+                comment=f"#pts {m.dataset.GetNumberOfPoints()}"
             )
             return m
 
@@ -1062,11 +1062,11 @@ class Mesh(MeshVisual, Points):
         polyapp.AddInputData(tf.GetOutput())
         polyapp.Update()
 
-        self.DeepCopy(polyapp.GetOutput())
+        self._update(polyapp.GetOutput())
         self.clean()
 
         self.pipeline = OperationNode(
-            "capped", parents=[self], comment=f"#pts {self.GetNumberOfPoints()}"
+            "capped", parents=[self], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
         )
         return self
 
@@ -1129,10 +1129,10 @@ class Mesh(MeshVisual, Points):
         else:
             poly = sf.GetOutput()
 
-        self.DeepCopy(poly)
+        self._update(poly)
 
         self.pipeline = OperationNode(
-            "join", parents=[self], comment=f"#pts {self.GetNumberOfPoints()}"
+            "join", parents=[self], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
         )
         return self
 
@@ -1201,7 +1201,7 @@ class Mesh(MeshVisual, Points):
                 newline.pipeline = OperationNode(
                     "join_segments",
                     parents=[self],
-                    comment=f"#pts {newline.GetNumberOfPoints()}",
+                    comment=f"#pts {newline.dataset.GetNumberOfPoints()}",
                 )
                 vlines.append(newline)
 
@@ -1248,13 +1248,13 @@ class Mesh(MeshVisual, Points):
                 if True, break input polylines into line segments.
                 If False, input lines will be ignored and the output will have no lines.
         """
-        if self.GetNumberOfPolys() or self.GetNumberOfStrips():
+        if self.dataset.GetNumberOfPolys() or self.dataset.GetNumberOfStrips():
             # print("vtkTriangleFilter")
             tf = vtk.vtkTriangleFilter()
             tf.SetPassLines(lines)
             tf.SetPassVerts(verts)
 
-        elif self.GetNumberOfLines():
+        elif self.dataset.GetNumberOfLines():
             # print("vtkContourTriangulator")
             tf = vtk.vtkContourTriangulator()
             tf.TriangulationErrorDisplayOn()
@@ -1265,11 +1265,11 @@ class Mesh(MeshVisual, Points):
 
         tf.SetInputData(self.dataset)
         tf.Update()
-        self.DeepCopy(tf.GetOutput())
+        self._update(tf.GetOutput(), reset_locators=False)
         self.lw(0).lighting("default").pickable()
 
         self.pipeline = OperationNode(
-            "triangulate", parents=[self], comment=f"#cells {self.GetNumberOfCells()}"
+            "triangulate", parents=[self], comment=f"#cells {self.dataset.GetNumberOfCells()}"
         )
         return self
 
@@ -1351,7 +1351,7 @@ class Mesh(MeshVisual, Points):
         qf.SetTriangleQualityMeasure(metric)
         qf.SaveCellQualityOn()
         qf.Update()
-        self.DeepCopy(qf.GetOutput())
+        self._update(qf.GetOutput(), reset_locators=False)
         self.pipeline = OperationNode("compute_quality", parents=[self])
         return self
 
@@ -1400,7 +1400,7 @@ class Mesh(MeshVisual, Points):
         curve.SetInputData(self.dataset)
         curve.SetCurvatureType(method)
         curve.Update()
-        self.DeepCopy(curve.GetOutput())
+        self._update(curve.GetOutput(), reset_locators=False)
         self.mapper.ScalarVisibilityOn()
         return self
 
@@ -1430,7 +1430,7 @@ class Mesh(MeshVisual, Points):
         ef.SetHighPoint(high)
         ef.SetScalarRange(vrange)
         ef.Update()
-        self.DeepCopy(ef.GetOutput())
+        self._update(ef.GetOutput(), reset_locators=False)
         self.mapper.ScalarVisibilityOn()
         return self
 
@@ -1457,7 +1457,7 @@ class Mesh(MeshVisual, Points):
         elif method == 2:
             sdf = vtk.vtkAdaptiveSubdivisionFilter()
             if mel is None:
-                mel = self.diagonal_size() / np.sqrt(self.GetNumberOfPoints()) / n
+                mel = self.diagonal_size() / np.sqrt(self.dataset.GetNumberOfPoints()) / n
             sdf.SetMaximumEdgeLength(mel)
         elif method == 3:
             sdf = vtk.vtkButterflySubdivisionFilter()
@@ -1473,10 +1473,10 @@ class Mesh(MeshVisual, Points):
         sdf.SetInputData(originalMesh)
         sdf.Update()
 
-        self.DeepCopy(sdf.GetOutput())
+        self._update(sdf.GetOutput())
 
         self.pipeline = OperationNode(
-            "subdivide", parents=[self], comment=f"#pts {self.GetNumberOfPoints()}"
+            "subdivide", parents=[self], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
         )
         return self
 
@@ -1521,11 +1521,11 @@ class Mesh(MeshVisual, Points):
         decimate.SetTargetReduction(1 - fraction)
         decimate.Update()
 
-        self.DeepCopy(decimate.GetOutput())
+        self._update(decimate.GetOutput())
 
         self.pipeline = OperationNode(
             "decimate", parents=[self],
-            comment=f"#pts {self.GetNumberOfPoints()}"
+            comment=f"#pts {self.dataset.GetNumberOfPoints()}"
         )
         return self
 
@@ -1559,7 +1559,7 @@ class Mesh(MeshVisual, Points):
         self.compute_normals()
 
         self.pipeline = OperationNode(
-            "collapse_edges", parents=[self], comment=f"#pts {self.GetNumberOfPoints()}"
+            "collapse_edges", parents=[self], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
         )
         return self
 
@@ -1600,10 +1600,10 @@ class Mesh(MeshVisual, Points):
         smf.SetBoundarySmoothing(boundary)
         smf.Update()
 
-        self.DeepCopy(smf.GetOutput())
+        self._update(smf.GetOutput())
 
         self.pipeline = OperationNode(
-            "smooth", parents=[self], comment=f"#pts {self.GetNumberOfPoints()}"
+            "smooth", parents=[self], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
         )
         return self
 
@@ -1629,10 +1629,10 @@ class Mesh(MeshVisual, Points):
         fh.SetInputData(self.dataset)
         fh.Update()
 
-        self.DeepCopy(fh.GetOutput())
+        self._update(fh.GetOutput())
 
         self.pipeline = OperationNode(
-            "fill_holes", parents=[self], comment=f"#pts {self.GetNumberOfPoints()}"
+            "fill_holes", parents=[self], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
         )
         return self
 
@@ -1700,7 +1700,7 @@ class Mesh(MeshVisual, Points):
 
         pcl.pipeline = OperationNode(
             "inside_points", parents=[self, ptsa],
-            comment=f"#pts {pcl.GetNumberOfPoints()}"
+            comment=f"#pts {pcl.dataset.GetNumberOfPoints()}"
         )
         return pcl
 
@@ -1793,7 +1793,7 @@ class Mesh(MeshVisual, Points):
                 "boundaries",
                 parents=[self],
                 shape="octagon",
-                comment=f"#pts {msh.GetNumberOfPoints()}",
+                comment=f"#pts {msh.dataset.GetNumberOfPoints()}",
             )
             return msh
 
@@ -1835,10 +1835,10 @@ class Mesh(MeshVisual, Points):
         imp.TriangulateOutputOn()
         imp.Update()
 
-        self.DeepCopy(imp.GetOutput())
+        self._update(imp.GetOutput())
 
         self.pipeline = OperationNode(
-            "imprint", parents=[self], comment=f"#pts {self.GetNumberOfPoints()}"
+            "imprint", parents=[self], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
         )
         return self
 
@@ -1850,7 +1850,7 @@ class Mesh(MeshVisual, Points):
 
             ![](https://vedo.embl.es/images/basic/connVtx.png)
         """
-        poly = self
+        poly = self.dataset
 
         cell_idlist = vtk.vtkIdList()
         poly.GetPointCells(index, cell_idlist)
@@ -1873,7 +1873,7 @@ class Mesh(MeshVisual, Points):
         """Find all cellls connected to an input vertex specified by its index."""
 
         # Find all cells connected to point index
-        dpoly = self
+        dpoly = self.dataset
         idlist = vtk.vtkIdList()
         dpoly.GetPointCells(index, idlist)
 
@@ -1981,7 +1981,7 @@ class Mesh(MeshVisual, Points):
         Examples:
             - [isolines.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/isolines.py)
         """
-        r0, r1 = self.GetScalarRange()
+        r0, r1 = self.dataset.GetScalarRange()
         if vmin is None:
             vmin = r0
         if vmax is None:
@@ -2043,7 +2043,7 @@ class Mesh(MeshVisual, Points):
         """
         bcf = vtk.vtkContourFilter()
         bcf.SetInputData(self.dataset)
-        r0, r1 = self.GetScalarRange()
+        r0, r1 = self.dataset.GetScalarRange()
         if vmin is None:
             vmin = r0
         if vmax is None:
@@ -2125,7 +2125,7 @@ class Mesh(MeshVisual, Points):
 
         m.pipeline = OperationNode(
             "extrude", parents=[self],
-            comment=f"#pts {m.GetNumberOfPoints()}"
+            comment=f"#pts {m.dataset.GetNumberOfPoints()}"
         )
         return m
 
@@ -2149,7 +2149,7 @@ class Mesh(MeshVisual, Points):
 
             ![](https://vedo.embl.es/images/advanced/splitmesh.png)
         """
-        pd = self
+        pd = self.dataset
         if must_share_edge:
             if pd.GetNumberOfPolys() == 0:
                 vedo.logger.warning("in split(): no polygons found. Skip.")
@@ -2170,7 +2170,7 @@ class Mesh(MeshVisual, Points):
 
         if flag:
             self.pipeline = OperationNode("split mesh", parents=[self])
-            self.DeepCopy(out)
+            self._update(out)
             return self
 
         a = Mesh(out)
@@ -2205,7 +2205,7 @@ class Mesh(MeshVisual, Points):
                 l[0].pipeline = OperationNode(
                     f"split mesh {i}",
                     parents=[self],
-                    comment=f"#pts {l[0].GetNumberOfPoints()}",
+                    comment=f"#pts {l[0].dataset.GetNumberOfPoints()}",
                 )
         return blist
 
@@ -2232,7 +2232,7 @@ class Mesh(MeshVisual, Points):
 
         m.pipeline = OperationNode(
             "extract_largest_region", parents=[self],
-            comment=f"#pts {m.GetNumberOfPoints()}"
+            comment=f"#pts {m.dataset.GetNumberOfPoints()}"
         )
         return m
 
@@ -2255,8 +2255,8 @@ class Mesh(MeshVisual, Points):
         else:
             raise ValueError(f"Unknown method={method}")
 
-        poly1 = self.compute_normals()
-        poly2 = mesh2.compute_normals()
+        poly1 = self.compute_normals().dataset
+        poly2 = mesh2.compute_normals().dataset
 
         if operation.lower() in ("plus", "+"):
             bf.SetOperationToUnion()
@@ -2280,7 +2280,7 @@ class Mesh(MeshVisual, Points):
             "boolean " + operation,
             parents=[self, mesh2],
             shape="cylinder",
-            comment=f"#pts {msh.GetNumberOfPoints()}",
+            comment=f"#pts {msh.dataset.GetNumberOfPoints()}",
         )
         return msh
 
@@ -2389,7 +2389,7 @@ class Mesh(MeshVisual, Points):
 
         msh.pipeline = OperationNode(
             "intersect_with_plan", parents=[self],
-            comment=f"#pts {msh.GetNumberOfPoints()}"
+            comment=f"#pts {msh.dataset.GetNumberOfPoints()}"
         )
         return msh
 
@@ -2425,7 +2425,7 @@ class Mesh(MeshVisual, Points):
     #     msh.pipeline = OperationNode(
     #         "intersect_with_multiplanes",
     #         parents=[self],
-    #         comment=f"#pts {msh.GetNumberOfPoints()}",
+    #         comment=f"#pts {msh.dataset.GetNumberOfPoints()}",
     #     )
     #     return msh
 
@@ -2467,7 +2467,7 @@ class Mesh(MeshVisual, Points):
 
         msh.pipeline = OperationNode(
             "collide_with", parents=[self, mesh2],
-            comment=f"#pts {msh.GetNumberOfPoints()}"
+            comment=f"#pts {msh.dataset.GetNumberOfPoints()}"
         )
         return msh
 
@@ -2531,7 +2531,8 @@ class Mesh(MeshVisual, Points):
         dmesh.name = "GeodesicLine"
 
         dmesh.pipeline = OperationNode(
-            "GeodesicLine", parents=[self], comment=f"#pts {dmesh.GetNumberOfPoints()}"
+            "GeodesicLine", parents=[self], 
+            comment=f"#pts {dmesh.dataset.GetNumberOfPoints()}"
         )
         return dmesh
 

@@ -41,13 +41,13 @@ class DataArrayHelper:
     def __getitem__(self, key):
 
         if self.association == 0:
-            data = self.obj.GetPointData()
+            data = self.obj.dataset.GetPointData()
 
         elif self.association == 1:
-            data = self.obj.GetCellData()
+            data = self.obj.dataset.GetCellData()
 
         elif self.association == 2:
-            data = self.obj.GetFieldData()
+            data = self.obj.dataset.GetFieldData()
 
             varr = data.GetAbstractArray(key)
             if isinstance(varr, vtk.vtkStringArray):
@@ -72,17 +72,17 @@ class DataArrayHelper:
     def __setitem__(self, key, input_array):
 
         if self.association == 0:
-            data = self.obj.GetPointData()
-            n = self.obj.GetNumberOfPoints()
+            data = self.obj.dataset.GetPointData()
+            n = self.obj.dataset.GetNumberOfPoints()
             self.obj.mapper.SetScalarModeToUsePointData()
 
         elif self.association == 1:
-            data = self.obj.GetCellData()
-            n = self.obj.GetNumberOfCells()
+            data = self.obj.dataset.GetCellData()
+            n = self.obj.dataset.GetNumberOfCells()
             self.obj.mapper.SetScalarModeToUseCellData()
 
         elif self.association == 2:
-            data = self.obj.GetFieldData()
+            data = self.obj.dataset.GetFieldData()
             if not utils.is_sequence(input_array):
                 input_array = [input_array]
 
@@ -140,11 +140,11 @@ class DataArrayHelper:
     def keys(self):
         """Return the list of available data array names"""
         if self.association == 0:
-            data = self.obj.GetPointData()
+            data = self.obj.dataset.GetPointData()
         elif self.association == 1:
-            data = self.obj.GetCellData()
+            data = self.obj.dataset.GetCellData()
         elif self.association == 2:
-            data = self.obj.GetFieldData()
+            data = self.obj.dataset.GetFieldData()
         arrnames = []
         for i in range(data.GetNumberOfArrays()):
             name = data.GetArray(i).GetName()
@@ -155,20 +155,20 @@ class DataArrayHelper:
     def remove(self, key):
         """Remove a data array by name or number"""
         if self.association == 0:
-            self.obj.GetPointData().RemoveArray(key)
+            self.obj.dataset.GetPointData().RemoveArray(key)
         elif self.association == 1:
-            self.obj.GetCellData().RemoveArray(key)
+            self.obj.dataset.GetCellData().RemoveArray(key)
         elif self.association == 2:
-            self.obj.GetFieldData().RemoveArray(key)
+            self.obj.dataset.GetFieldData().RemoveArray(key)
 
     def clear(self):
         """Remove all data associated to this object"""
         if self.association == 0:
-            data = self.obj.GetPointData()
+            data = self.obj.dataset.GetPointData()
         elif self.association == 1:
-            data = self.obj.GetCellData()
+            data = self.obj.dataset.GetCellData()
         elif self.association == 2:
-            data = self.obj.GetFieldData()
+            data = self.obj.dataset.GetFieldData()
         for i in range(data.GetNumberOfArrays()):
             name = data.GetArray(i).GetName()
             data.RemoveArray(name)
@@ -176,11 +176,11 @@ class DataArrayHelper:
     def rename(self, oldname, newname):
         """Rename an array"""
         if self.association == 0:
-            varr = self.obj.GetPointData().GetArray(oldname)
+            varr = self.obj.dataset.GetPointData().GetArray(oldname)
         elif self.association == 1:
-            varr = self.obj.GetCellData().GetArray(oldname)
+            varr = self.obj.dataset.GetCellData().GetArray(oldname)
         elif self.association == 2:
-            varr = self.obj.GetFieldData().GetArray(oldname)
+            varr = self.obj.dataset.GetFieldData().GetArray(oldname)
         if varr:
             varr.SetName(newname)
         else:
@@ -189,10 +189,10 @@ class DataArrayHelper:
     def select(self, key):
         """Select one specific array by its name to make it the `active` one."""
         if self.association == 0:
-            data = self.obj.GetPointData()
+            data = self.obj.dataset.GetPointData()
             self.obj.mapper.SetScalarModeToUsePointData()
         else:
-            data = self.obj.GetCellData()
+            data = self.obj.dataset.GetCellData()
             self.obj.mapper.SetScalarModeToUseCellData()
 
         if isinstance(key, int):
@@ -227,10 +227,10 @@ class DataArrayHelper:
     def select_scalars(self, key):
         """Select one specific scalar array by its name to make it the `active` one."""
         if self.association == 0:
-            data = self.obj.GetPointData()
+            data = self.obj.dataset.GetPointData()
             self.obj.mapper.SetScalarModeToUsePointData()
         else:
-            data = self.obj.GetCellData()
+            data = self.obj.dataset.GetCellData()
             self.obj.mapper.SetScalarModeToUseCellData()
 
         if isinstance(key, int):
@@ -247,10 +247,10 @@ class DataArrayHelper:
     def select_vectors(self, key):
         """Select one specific vector array by its name to make it the `active` one."""
         if self.association == 0:
-            data = self.obj.GetPointData()
+            data = self.obj.dataset.GetPointData()
             self.obj.mapper.SetScalarModeToUsePointData()
         else:
-            data = self.obj.GetCellData()
+            data = self.obj.dataset.GetCellData()
             self.obj.mapper.SetScalarModeToUseCellData()
 
         if isinstance(key, int):
@@ -778,8 +778,8 @@ class Base3DProp:
 
     def copy_data_from(self, obj):
         """Copy all data (point and cell data) from this input object"""
-        self.dataset.GetPointData().PassData(obj.GetPointData())
-        self.dataset.GetCellData().PassData(obj.GetCellData())
+        self.dataset.GetPointData().PassData(obj.dataset.GetPointData())
+        self.dataset.GetCellData().PassData(obj.dataset.GetCellData())
         self.pipeline = utils.OperationNode(
             f"copy_data_from\n{obj.__class__.__name__}",
             parents=[self, obj],
@@ -938,10 +938,7 @@ class BaseActor(Base3DProp):
             - [delaunay2d.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/delaunay2d.py)
         """
         vcen = vtk.vtkCellCenters()
-        if hasattr(self, "polydata"):
-            vcen.SetInputData(self)
-        else:
-            vcen.SetInputData(self)
+        vcen.SetInputData(self.dataset)
         vcen.Update()
         return utils.vtk2numpy(vcen.GetOutput().GetPoints().GetData())
 
@@ -967,7 +964,7 @@ class BaseActor(Base3DProp):
         A new array called `BoundaryCells` is added to the mesh.
         """
         mb = vtk.vtkMarkBoundaryFilter()
-        mb.SetInputData(self)
+        mb.SetInputData(self.datset)
         mb.Update()
         self.DeepCopy(mb.GetOutput())
         self.pipeline = utils.OperationNode("mark_boundaries", parents=[self])
@@ -994,7 +991,7 @@ class BaseActor(Base3DProp):
 
         cellIds = vtk.vtkIdList()
         self.cell_locator = vtk.vtkCellTreeLocator()
-        self.cell_locator.SetDataSet(self)
+        self.cell_locator.SetDataSet(self.dataset)
         self.cell_locator.BuildLocator()
         self.cell_locator.FindCellsWithinBounds(bnds, cellIds)
 
@@ -1008,7 +1005,7 @@ class BaseActor(Base3DProp):
     def count_vertices(self):
         """Count the number of vertices each cell has and return it as a numpy array"""
         vc = vtk.vtkCountVertices()
-        vc.SetInputData(self)
+        vc.SetInputData(self.datset)
         vc.SetOutputArrayName("VertexCount")
         vc.Update()
         varr = vc.GetOutput().GetCellData().GetArray("VertexCount")
@@ -1120,7 +1117,7 @@ class BaseActor(Base3DProp):
         Set `move=True` to delete the original `celldata` array.
         """
         c2p = vtk.vtkCellDataToPointData()
-        c2p.SetInputData(self)
+        c2p.SetInputData(self.datset)
         if not move:
             c2p.PassCellDataOn()
         if arrays:
@@ -1151,7 +1148,7 @@ class BaseActor(Base3DProp):
             - [mesh_map2cell.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_map2cell.py)
         """
         p2c = vtk.vtkPointDataToCellData()
-        p2c.SetInputData(self)
+        p2c.SetInputData(self.dataset)
         if not move:
             p2c.PassPointDataOn()
         if arrays:
@@ -1163,7 +1160,7 @@ class BaseActor(Base3DProp):
             p2c.ProcessAllArraysOn()
         p2c.Update()
         self.mapper.SetScalarModeToUseCellData()
-        self.DeepCopy(p2c.GetOutput())
+        self._update(p2c.GetOutput())        
         self.pipeline = utils.OperationNode("map point\nto cell data", parents=[self])
         return self
 
@@ -1194,7 +1191,7 @@ class BaseActor(Base3DProp):
         ```
         """
         rs = vtk.vtkResampleWithDataSet()
-        rs.SetInputData(self)
+        rs.SetInputData(self.datset)
         rs.SetSourceData(source)
 
         rs.SetPassPointArrays(True)
@@ -1207,7 +1204,7 @@ class BaseActor(Base3DProp):
             rs.SetComputeTolerance(False)
             rs.SetTolerance(tol)
         rs.Update()
-        self.DeepCopy(rs.GetOutput())
+        self._update(rs.GetOutput(), reset_locators=False)        
         self.pipeline = utils.OperationNode(
             f"resample_data_from\n{source.__class__.__name__}", parents=[self, source]
         )
@@ -1216,14 +1213,14 @@ class BaseActor(Base3DProp):
     def add_ids(self):
         """Generate point and cell ids arrays."""
         ids = vtk.vtkIdFilter()
-        ids.SetInputData(self)
+        ids.SetInputData(self.datset)
         ids.PointIdsOn()
         ids.CellIdsOn()
         ids.FieldDataOff()
         ids.SetPointIdsArrayName("PointID")
         ids.SetCellIdsArrayName("CellID")
         ids.Update()
-        self.DeepCopy(ids.GetOutput())
+        self._update(ids.GetOutput(), reset_locators=False)        
         self.pipeline = utils.OperationNode("add_ids", parents=[self])
         return self
 
@@ -1261,7 +1258,7 @@ class BaseActor(Base3DProp):
                 vedo.logger.error(f"in gradient: no scalars found for {on}")
                 raise RuntimeError
 
-        gra.SetInputData(self)
+        gra.SetInputData(self.datset)
         gra.SetInputScalars(tp, input_array)
         gra.SetResultArrayName("Gradient")
         gra.SetFasterApproximation(fast)
@@ -1304,7 +1301,7 @@ class BaseActor(Base3DProp):
                 vedo.logger.error(f"in divergence(): no vectors found for {on}")
                 raise RuntimeError
 
-        div.SetInputData(self)
+        div.SetInputData(self.datset)
         div.SetInputScalars(tp, array_name)
         div.ComputeDivergenceOn()
         div.ComputeGradientOff()
@@ -1347,7 +1344,7 @@ class BaseActor(Base3DProp):
                 vedo.logger.error(f"in vorticity(): no vectors found for {on}")
                 raise RuntimeError
 
-        vort.SetInputData(self)
+        vort.SetInputData(self.datset)
         vort.SetInputScalars(tp, array_name)
         vort.ComputeDivergenceOff()
         vort.ComputeGradientOff()
@@ -1556,7 +1553,7 @@ class BaseGrid(BaseActor):
         gf = vtk.vtkGeometryFilter()
         if fill:
             sf = vtk.vtkShrinkFilter()
-            sf.SetInputData(self)
+            sf.SetInputData(self.datset)
             sf.SetShrinkFactor(shrink)
             sf.Update()
             gf.SetInputData(sf.GetOutput())
@@ -1572,7 +1569,7 @@ class BaseGrid(BaseActor):
                 cleanPolyData.Update()
                 poly = cleanPolyData.GetOutput()
         else:
-            gf.SetInputData(self)
+            gf.SetInputData(self.datset)
             gf.Update()
             poly = gf.GetOutput()
 
@@ -1754,10 +1751,10 @@ class BaseGrid(BaseActor):
         ![](https://vedo.embl.es/images/feats/shrink_hex.png)
         """
         sf = vtk.vtkShrinkFilter()
-        sf.SetInputData(self)
+        sf.SetInputData(self.datset)
         sf.SetShrinkFactor(fraction)
         sf.Update()
-        self.DeepCopy(sf.GetOutput())
+        self._update(sf.GetOutput())        
         self.pipeline = utils.OperationNode(
             "shrink", comment=f"by {fraction}", parents=[self], c="#9e2a2b"
         )
@@ -1784,7 +1781,7 @@ class BaseGrid(BaseActor):
             cf = vtk.vtkContourFilter()
             cf.UseScalarTreeOn()
 
-        cf.SetInputData(self)
+        cf.SetInputData(self.datset)
         cf.ComputeNormalsOn()
 
         if utils.is_sequence(value):
@@ -1850,7 +1847,7 @@ class BaseGrid(BaseActor):
         window.SetWindowRange(srng)
 
         extract = vtk.vtkExtractGeometry()
-        extract.SetInputData(self)
+        extract.SetInputData(self.datset)
         extract.SetImplicitFunction(window)
         extract.SetExtractInside(invert)
         extract.SetExtractBoundaryCells(boundary)
@@ -1893,7 +1890,7 @@ class BaseGrid(BaseActor):
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
         clipper = vtk.vtkClipDataSet()
-        clipper.SetInputData(self)
+        clipper.SetInputData(self.datset)
         clipper.SetClipFunction(plane)
         clipper.GenerateClipScalarsOff()
         clipper.GenerateClippedOutputOff()
@@ -1904,14 +1901,14 @@ class BaseGrid(BaseActor):
         if isinstance(cout, vtk.vtkUnstructuredGrid):
             ug = vedo.UGrid(cout)
             if isinstance(self, vedo.UGrid):
-                self.DeepCopy(cout)
+                self._update(cout)        
                 self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
                 return self
             ug.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
             return ug
 
         else:
-            self.DeepCopy(cout)
+            self._update(cout)        
             self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
             return self
 
@@ -1936,7 +1933,7 @@ class BaseGrid(BaseActor):
         #     raise RuntimeError("cut_with_box() is not applicable to Volume objects.")
 
         bc = vtk.vtkBoxClipDataSet()
-        bc.SetInputData(self)
+        bc.SetInputData(self.datset)
         if isinstance(box, vtk.vtkProp):
             boxb = box.GetBounds()
         else:
@@ -1948,14 +1945,14 @@ class BaseGrid(BaseActor):
         if isinstance(cout, vtk.vtkUnstructuredGrid):
             ug = vedo.UGrid(cout)
             if isinstance(self, vedo.UGrid):
-                self.DeepCopy(cout)
+                self._update(cout)        
                 self.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
                 return self
             ug.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
             return ug
 
         else:
-            self.DeepCopy(cout)
+            self._update(cout)        
             self.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
             return self
 
@@ -2015,14 +2012,14 @@ class BaseGrid(BaseActor):
         if isinstance(cout, vtk.vtkUnstructuredGrid):
             ug = vedo.UGrid(cout)
             if isinstance(self, vedo.UGrid):
-                self.DeepCopy(cout)
+                self._update(cout)        
                 self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
                 return self
             ug.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
             return ug
 
         else:
-            self.DeepCopy(cout)
+            self._update(cout)        
             self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
             return self
 
@@ -2031,7 +2028,7 @@ class BaseGrid(BaseActor):
         Extract cells that are lying of the specified surface.
         """
         bf = vtk.vtk3DLinearGridCrinkleExtractor()
-        bf.SetInputData(self)
+        bf.SetInputData(self.datset)
         bf.CopyPointDataOn()
         bf.CopyCellDataOn()
         bf.RemoveUnusedPointsOff()
@@ -2042,7 +2039,7 @@ class BaseGrid(BaseActor):
         bf.SetImplicitFunction(plane)
         bf.Update()
 
-        self.DeepCopy(bf.GetOutput())
+        self._update(bf.GetOutput(), reset_locators=False)        
         self.pipeline = utils.OperationNode(
             "extract_cells_on_plane",
             parents=[self],
@@ -2056,7 +2053,7 @@ class BaseGrid(BaseActor):
         Extract cells that are lying of the specified surface.
         """
         bf = vtk.vtk3DLinearGridCrinkleExtractor()
-        bf.SetInputData(self)
+        bf.SetInputData(self.datset)
         bf.CopyPointDataOn()
         bf.CopyCellDataOn()
         bf.RemoveUnusedPointsOff()
@@ -2067,7 +2064,7 @@ class BaseGrid(BaseActor):
         bf.SetImplicitFunction(sph)
         bf.Update()
 
-        self.DeepCopy(bf.GetOutput())
+        self._update(bf.GetOutput())        
         self.pipeline = utils.OperationNode(
             "extract_cells_on_sphere",
             parents=[self],
@@ -2081,7 +2078,7 @@ class BaseGrid(BaseActor):
         Extract cells that are lying of the specified surface.
         """
         bf = vtk.vtk3DLinearGridCrinkleExtractor()
-        bf.SetInputData(self)
+        bf.SetInputData(self.datset)
         bf.CopyPointDataOn()
         bf.CopyCellDataOn()
         bf.RemoveUnusedPointsOff()
@@ -2099,7 +2096,7 @@ class BaseGrid(BaseActor):
             comment=f"#cells {self.dataset.GetNumberOfCells()}",
             c="#9e2a2b",
         )
-        self.DeepCopy(bf.GetOutput())
+        self._update(bf.GetOutput())        
         return self
 
     def clean(self):
@@ -2107,13 +2104,13 @@ class BaseGrid(BaseActor):
         Cleanup unused points and empty cells
         """
         cl = vtk.vtkStaticCleanUnstructuredGrid()
-        cl.SetInputData(self)
+        cl.SetInputData(self.datset)
         cl.RemoveUnusedPointsOn()
         cl.ProduceMergeMapOff()
         cl.AveragePointDataOff()
         cl.Update()
 
-        self.DeepCopy(cl.GetOutput())
+        self._update(cl.GetOutput())        
         self.pipeline = utils.OperationNode(
             "clean", parents=[self], comment=f"#cells {self.dataset.GetNumberOfCells()}", c="#9e2a2b"
         )
