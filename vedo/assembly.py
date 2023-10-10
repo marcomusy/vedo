@@ -238,8 +238,8 @@ class Assembly(vtk.vtkAssembly):
 
         self.transform = LinearTransform()
 
-        self.objects = meshs
-        self.actors = [m.actor for m in self.objects]
+        self.objects = [m for m in meshs if m]
+        self.actors  = [m.actor for m in self.objects]
 
         if self.objects:
             self.base = self.objects[0].base
@@ -364,7 +364,7 @@ class Assembly(vtk.vtkAssembly):
         return obj in self.objects
 
 
-    def apply_transform(self, LT, concatenate=1):
+    def apply_transform(self, LT, concatenate=True):
         """Apply a linear transformation to the object."""
         if concatenate:
             self.transform.concatenate(LT)

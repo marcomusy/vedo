@@ -13,7 +13,7 @@ __docformat__ = "google"
 __doc__ = """
 Submodule to work with transformations <br>
 
-![](https://vedo.embl.es/images/basic/pca.png)
+![](https://vedo.embl.es/images/feats/transforms.png)
 """
 
 __all__ = [

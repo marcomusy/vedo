@@ -493,7 +493,7 @@ class PointsVisual:
 
         self._scals_idx = 0   # index of the active scalar changed from CLI
         self._ligthingnr = 0  # index of the lighting mode changed from CLI
-        self._cmap_name = ""  # remember the name for self._keypress
+        self._cmap_name = ""  # remember the cmap name for self._keypress
 
         try:
             self.property.RenderPointsAsSpheresOn()
@@ -576,7 +576,7 @@ class PointsVisual:
         return self.point_size(pointsize)
 
     def render_points_as_spheres(self, value=True):
-        """Make points look spheric or make them look as squares."""
+        """Make points look spheric or else make them look as squares."""
         self.property.SetRenderPointsAsSpheres(value)
         return self
 
@@ -672,12 +672,13 @@ class PointsVisual:
 
         return self
 
-    def blurring(self, r=1, emissive=False):
+    def point_blurring(self, r=1, emissive=False):
         """Set point blurring.
         Apply a gaussian convolution filter to the points.
         In this case the radius `r` is in absolute units of the mesh coordinates.
         With emissive set, the halo of point becomes light-emissive.
         """
+        self.property.SetRepresentationToPoints()
         if emissive:
             self.mapper.SetEmissive(bool(emissive))
         self.mapper.SetScaleFactor(r * 1.4142)
@@ -703,11 +704,6 @@ class PointsVisual:
         self.actor.SetMapper(self.mapper)
         return self
 
-
-    def cell_individual_colors(self, colorlist):
-        self.cellcolors = colorlist
-        print("Please use property mesh.cellcolors=... instead of mesh.cell_individual_colors()")
-        return self
 
     @property
     def cellcolors(self):
