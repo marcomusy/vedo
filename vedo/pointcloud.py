@@ -369,11 +369,7 @@ def pca_ellipse(points, pvalue=0.673, res=60):
     vtra.SetMatrix(matri)
 
     elli = vedo.shapes.Circle(alpha=0.75, res=res)
-
-    # assign the transformation
-    # elli.SetScale(vtra.GetScale())
-    # elli.SetOrientation(vtra.GetOrientation())
-    # elli.SetPosition(vtra.GetPosition())
+    elli.apply_transform(vtra)
 
     elli.center = np.array(vtra.GetPosition())
     elli.nr_of_points = n
@@ -416,7 +412,7 @@ def pca_ellipsoid(points, pvalue=0.673):
     else:
         coords = points
     if len(coords) < 4:
-        vedo.logger.warning("in pcaEllipsoid(), there are not enough points!")
+        vedo.logger.warning("in pca_ellipsoid(), there are not enough points!")
         return None
 
     P = np.array(coords, ndmin=2, dtype=float)
@@ -428,8 +424,6 @@ def pca_ellipsoid(points, pvalue=0.673):
     ua, ub, uc = np.sqrt(s*fppf)/cfac  # semi-axes (largest first)
     center = np.mean(P, axis=0)   # centroid of the hyperellipsoid
 
-    elli = vedo.shapes.Ellipsoid((0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1), alpha=0.25)
-
     matri = vtk.vtkMatrix4x4()
     matri.DeepCopy((
         R[0][0] * ua*2, R[1][0] * ub*2, R[2][0] * uc*2, center[0],
@@ -440,10 +434,9 @@ def pca_ellipsoid(points, pvalue=0.673):
     vtra = vtk.vtkTransform()
     vtra.SetMatrix(matri)
 
-    # assign the transformation
-    # elli.SetScale(vtra.GetScale())
-    # elli.SetOrientation(vtra.GetOrientation())
-    # elli.SetPosition(vtra.GetPosition())
+    elli = vedo.shapes.Ellipsoid(
+        (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1), alpha=0.25)
+    elli = elli.apply_transform(vtra)
 
     elli.center = np.array(vtra.GetPosition())
     elli.nr_of_points = n

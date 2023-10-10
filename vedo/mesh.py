@@ -193,8 +193,6 @@ class Mesh(MeshVisual, Points):
             ![](https://vedo.embl.es/images/basic/buildmesh.png)
         """
         super().__init__()
-        # MeshVisual.__init__(self)
-        # Points.__init__(self)
 
         self.mapper.SetInterpolateScalarsBeforeMapping(
             vedo.settings.interpolate_scalars_before_mapping
