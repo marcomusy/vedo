@@ -2679,14 +2679,14 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         self.scale(scale).pos(cm)
         return self
 
-    def mirror(self, axis="x", origin=None):
+    def mirror(self, axis="x", origin=True):
         """
         Mirror the mesh  along one of the cartesian axes
 
         Arguments:
             axis : (str)
-                axis to use for mirroring, must be set to x, y, z or n.
-                Or any combination of those. Adding 'n' reverses mesh faces (hence normals).
+                axis to use for mirroring, must be set to `x, y, z`.
+                Or any combination of those.
             origin : (list)
                 use this point as the origin of the mirroring transformation.
 
@@ -2700,23 +2700,12 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         if "y" in axis.lower(): sy = -1
         if "z" in axis.lower(): sz = -1
 
-        self.transform.scale([sx, sy, sz], origin=origin)
+        self.scale([sx, sy, sz], origin=origin)
         
-        outpoly = self
-        if sx * sy * sz < 0 or "n" in axis:
-            rs = vtk.vtkReverseSense()
-            rs.SetInputData(self)
-            rs.ReverseNormalsOn()
-            rs.Update()
-            outpoly = rs.GetOutput()
-        
-        self.DeepCopy(outpoly)
-
-        self.point_locator = None
-        self.cell_locator = None
-        self.line_locator = None
-
         self.pipeline = utils.OperationNode(f"mirror\naxis = {axis}", parents=[self])
+
+        if sx * sy * sz < 0:
+            self.reverse()
         return self
 
     def flip_normals(self):
