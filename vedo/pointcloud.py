@@ -371,15 +371,16 @@ def pca_ellipse(points, pvalue=0.673, res=60):
     elli = vedo.shapes.Circle(alpha=0.75, res=res)
     elli.apply_transform(vtra)
 
-    elli.center = np.array(vtra.GetPosition())
+    elli.pvalue = pvalue
+    elli.center = np.array([center[0], center[1], 0])
     elli.nr_of_points = n
     elli.va = ua
     elli.vb = ub
+    # we subtract center because it's in M
     elli.axis1 = np.array(vtra.TransformPoint([1, 0, 0])) - elli.center
     elli.axis2 = np.array(vtra.TransformPoint([0, 1, 0])) - elli.center
     elli.axis1 /= np.linalg.norm(elli.axis1)
     elli.axis2 /= np.linalg.norm(elli.axis2)
-    elli.transformation = vtra
     elli.name = "PCAEllipse"
     return elli
 
@@ -424,32 +425,34 @@ def pca_ellipsoid(points, pvalue=0.673):
     ua, ub, uc = np.sqrt(s*fppf)/cfac  # semi-axes (largest first)
     center = np.mean(P, axis=0)   # centroid of the hyperellipsoid
 
-    matri = vtk.vtkMatrix4x4()
-    matri.DeepCopy((
+    M = vtk.vtkMatrix4x4()
+    M.DeepCopy((
         R[0][0] * ua*2, R[1][0] * ub*2, R[2][0] * uc*2, center[0],
         R[0][1] * ua*2, R[1][1] * ub*2, R[2][1] * uc*2, center[1],
         R[0][2] * ua*2, R[1][2] * ub*2, R[2][2] * uc*2, center[2],
         0, 0, 0, 1)
     )
     vtra = vtk.vtkTransform()
-    vtra.SetMatrix(matri)
+    vtra.SetMatrix(M)
 
     elli = vedo.shapes.Ellipsoid(
         (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1), alpha=0.25)
-    elli = elli.apply_transform(vtra)
+    elli.property.LightingOff()
+    elli.apply_transform(vtra)
 
-    elli.center = np.array(vtra.GetPosition())
+    elli.pvalue = pvalue
     elli.nr_of_points = n
+    elli.center = center
     elli.va = ua
     elli.vb = ub
     elli.vc = uc
-    elli.axis1 = np.array(vtra.TransformPoint([1, 0, 0])) - elli.center
-    elli.axis2 = np.array(vtra.TransformPoint([0, 1, 0])) - elli.center
-    elli.axis3 = np.array(vtra.TransformPoint([0, 0, 1])) - elli.center
+    # we subtract center because it's in M
+    elli.axis1 = np.array(vtra.TransformPoint([1, 0, 0])) - center
+    elli.axis2 = np.array(vtra.TransformPoint([0, 1, 0])) - center
+    elli.axis3 = np.array(vtra.TransformPoint([0, 0, 1])) - center
     elli.axis1 /= np.linalg.norm(elli.axis1)
     elli.axis2 /= np.linalg.norm(elli.axis2)
     elli.axis3 /= np.linalg.norm(elli.axis3)
-    elli.transformation = vtra
     elli.name = "PCAEllipsoid"
     return elli
 
