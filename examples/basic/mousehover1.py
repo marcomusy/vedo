@@ -18,7 +18,8 @@ def func(evt):                       ### called every time mouse moves!
     arw = Arrow(pt - evt.delta3d, pt, s=0.001, c='orange5')
     fpo = msh.flagpole(
         txt, point=pt, offset=(0.4,0.6), s=0.04, c='k', font="VictorMono",
-    ).follow_camera()                # make it always face the camera
+    )
+    fpo.follow_camera()              # make it always face the camera
     plt.remove("FlagPole")           # remove the old flagpole
     plt.add(arw, fpo)                # add Arrow and the new flagpole
     plt.render()

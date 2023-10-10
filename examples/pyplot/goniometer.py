@@ -14,7 +14,7 @@ fp = mesh.flagpole(
     + "~μm^3",
     s=0.1,
 )
-fp.color("r3").scale(0.7)
+fp.color("r3").scale(0.7).follow_camera()
 
 # measure the angle formed by 3 points
 gon = Goniometer(
@@ -35,4 +35,4 @@ rul = Ruler3D(
 # make 3d rulers along the bounding box (similar to set axes=7)
 ax3 = RulerAxes(mesh, units="μm")
 
-show(mesh, fp.follow_camera(), gon, rul, ax3, __doc__, bg2="lb", viewup="z").close()
+show(mesh, fp, gon, rul, ax3, __doc__, bg2="lb", viewup="z").close()

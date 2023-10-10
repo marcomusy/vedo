@@ -37,8 +37,6 @@ lights.py
 mesh_lut.py
 pca_ellipse.py
 pca_ellipsoid.py
-shadow2.py
-sliders3d.py
 
 ```
 

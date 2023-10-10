@@ -1479,6 +1479,9 @@ class PointsVisual:
 
         Use flagpole.follow_camera() to make it face the camera in the scene.
 
+        Consider using `settings.use_parallel_projection = True` 
+        to avoid perspective distortions.
+
         See also `flagpost()`.
 
         Arguments:
@@ -1527,6 +1530,7 @@ class PointsVisual:
         if point is None:
             if d:
                 point = self.closest_point([(x0 + x1) / 2, (y0 + y1) / 2, z1])
+                # point = self.closest_point([x1, y0, z1])
             else:  # it's a Point
                 point = self.transform.position
 

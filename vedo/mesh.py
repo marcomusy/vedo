@@ -69,7 +69,7 @@ class MeshVisual:
         self.actor = None
         factor.data = self
         self.actor = factor
-        return factor
+        return self
 
 
     def wireframe(self, value=True):

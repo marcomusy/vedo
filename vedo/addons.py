@@ -732,7 +732,7 @@ def Goniometer(
     )
     cr = np.cross(va, vb)
     lb.pos(p2 + vc * r / 1.75)
-    lb.reorient(None, cr * np.sign(cr[2]), rotation=rotation)
+    lb.reorient(cr * np.sign(cr[2]), rotation=rotation)
     lb.c(c).bc("tomato").lighting("off")
     acts.append(lb)
 
