@@ -3725,7 +3725,7 @@ def Axes(
 
         shift = 0
         if xlab:  # xlab is the last created numeric text label..
-            lt0, lt1 = xlab.GetBounds()[2:4]
+            lt0, lt1 = xlab.bounds()[2:4]
             shift = lt1 - lt0
         xt.pos(
             [(xoffs + xtitle_position) * dx, -(yoffs + xtick_length / 2) * dy - shift, zoffs * dz]
@@ -3794,7 +3794,7 @@ def Axes(
 
         shift = 0
         if ylab:  # this is the last created num label..
-            lt0, lt1 = ylab.GetBounds()[0:2]
+            lt0, lt1 = ylab.bounds()[0:2]
             shift = lt1 - lt0
 
         yt.pos(-(xoffs + ytick_length / 2) * dx - shift, (yoffs + ytitle_position) * dy, zoffs * dz)
@@ -3858,7 +3858,7 @@ def Axes(
 
         shift = 0
         if zlab:  # this is the last created one..
-            lt0, lt1 = zlab.GetBounds()[0:2]
+            lt0, lt1 = zlab.bounds()[0:2]
             shift = lt1 - lt0
         zt.pos(
             -(ztitle_offset + ztick_length / 5) * dx - shift,
@@ -4180,7 +4180,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         for a in plt.objects:
             try:
                 if a.pickable():
-                    b = a.actor.GetBounds()
+                    b = a.bounds()
                     if b is None:
                         return
                     d = max(b[1] - b[0], b[3] - b[2], b[5] - b[4])

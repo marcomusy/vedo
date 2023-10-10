@@ -296,11 +296,11 @@ class DataArrayHelper:
             return out
 
         if self.association == 0:
-            out = _get_str(self.GetPointData(), "Point Data")
+            out = _get_str(self.dataset.GetPointData(), "Point Data")
         elif self.association == 1:
-            out = _get_str(self.GetCellData(), "Cell Data")
+            out = _get_str(self.dataset.GetCellData(), "Cell Data")
         elif self.association == 2:
-            pd = self.GetFieldData()
+            pd = self.dataset.GetFieldData()
             if pd.GetNumberOfArrays():
                 out = f"\x1b[2m\x1b[1m\x1b[7mMeta Data"
                 if self.actor.name:
@@ -373,7 +373,7 @@ class Base3DProp:
     def draggable(self, value=None):  # NOT FUNCTIONAL?
         """Set/get the draggability property of an object."""
         if value is None:
-            return self.GetDragable()
+            return self.actor.GetDragable()
         self.actor.SetDragable(value)
         return self
 
@@ -414,14 +414,14 @@ class Base3DProp:
 
         tp = vtk.vtkTransformPolyDataFilter()
         tp.SetTransform(tr)
-        tp.SetInputData(self)
+        tp.SetInputData(self.dataset)
         tp.Update()
         out = tp.GetOutput()
 
         if deep_copy:
-            self.DeepCopy(out)
+            self.dataset.DeepCopy(out)
         else:
-            self.ShallowCopy(out)
+            self.dataset.ShallowCopy(out)
 
         # reset the locators
         self.point_locator = None
@@ -713,7 +713,7 @@ class Base3DProp:
         )
         try:
             pr = vtk.vtkProperty()
-            pr.DeepCopy(self.GetProperty())
+            pr.DeepCopy(self.property)
             bx.SetProperty(pr)
             bx.property = pr
         except (AttributeError, TypeError):
@@ -741,7 +741,7 @@ class Base3DProp:
             xmax, ymax, zmax = np.max(pts, axis=0)
             return (xmin, xmax, ymin, ymax, zmin, zmax)
         except (AttributeError, ValueError):
-            return self.GetBounds()
+            return self.dataset.GetBounds()
 
     def xbounds(self, i=None):
         """Get the bounds `[xmin,xmax]`. Can specify upper or lower with i (0,1)."""
@@ -773,13 +773,13 @@ class Base3DProp:
         """Get the length of the diagonal of mesh bounding box."""
         b = self.bounds()
         return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
-        # return self.GetLength() # ???different???
+        # return self.dataset.GetLength() # ???different???
 
 
     def copy_data_from(self, obj):
         """Copy all data (point and cell data) from this input object"""
-        self.GetPointData().PassData(obj.GetPointData())
-        self.GetCellData().PassData(obj.GetCellData())
+        self.dataset.GetPointData().PassData(obj.GetPointData())
+        self.dataset.GetCellData().PassData(obj.GetCellData())
         self.pipeline = utils.OperationNode(
             f"copy_data_from\n{obj.__class__.__name__}",
             parents=[self, obj],
@@ -875,12 +875,12 @@ class BaseActor(Base3DProp):
     @property
     def npoints(self):
         """Retrieve the number of points."""
-        return self.GetNumberOfPoints()
+        return self.dataset.GetNumberOfPoints()
 
     @property
     def ncells(self):
         """Retrieve the number of cells."""
-        return self.GetNumberOfCells()
+        return self.dataset.GetNumberOfCells()
 
     def points(self, pts=None):
         """
@@ -890,14 +890,14 @@ class BaseActor(Base3DProp):
         if pts is None:  ### getter
 
             if isinstance(self, vedo.Points):
-                vpts = self.GetPoints()
+                vpts = self.dataset.GetPoints()
             elif isinstance(self, vedo.BaseVolume):
                 v2p = vtk.vtkImageToPoints()
                 v2p.SetInputData(self.imagedata())
                 v2p.Update()
                 vpts = v2p.GetOutput().GetPoints()
             else:  # tetmesh et al
-                vpts = self.GetPoints()
+                vpts = self.dataset.GetPoints()
 
             if vpts:
                 return utils.vtk2numpy(vpts.GetData())
@@ -910,7 +910,7 @@ class BaseActor(Base3DProp):
             if pts.ndim == 1:
                 ### getter by point index ###################
                 indices = pts.astype(int)
-                vpts = self.GetPoints()
+                vpts = self.dataset.GetPoints()
                 arr = utils.vtk2numpy(vpts.GetData())
                 return arr[indices] ###########
 
@@ -919,7 +919,7 @@ class BaseActor(Base3DProp):
                 pts = np.c_[pts, np.zeros(pts.shape[0], dtype=np.float32)]
             arr = utils.numpy2vtk(pts, dtype=np.float32)
 
-            vpts = self.GetPoints()
+            vpts = self.dataset.GetPoints()
             vpts.SetData(arr)
             vpts.Modified()
             # reset mesh to identity matrix position/rotation:
@@ -957,7 +957,7 @@ class BaseActor(Base3DProp):
         self.Modified()
         self.mapper.Modified()
         self.pipeline = utils.OperationNode(
-            "delete_cells", parents=[self], comment=f"#cells {self.GetNumberOfCells()}"
+            "delete_cells", parents=[self], comment=f"#cells {self.dataset.GetNumberOfCells()}"
         )
         return self
 
@@ -1248,10 +1248,10 @@ class BaseActor(Base3DProp):
         """
         gra = vtk.vtkGradientFilter()
         if on.startswith("p"):
-            varr = self.GetPointData()
+            varr = self.dataset.GetPointData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
         else:
-            varr = self.GetCellData()
+            varr = self.dataset.GetCellData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
 
         if input_array is None:
@@ -1291,10 +1291,10 @@ class BaseActor(Base3DProp):
         """
         div = vtk.vtkGradientFilter()
         if on.startswith("p"):
-            varr = self.GetPointData()
+            varr = self.dataset.GetPointData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
         else:
-            varr = self.GetCellData()
+            varr = self.dataset.GetCellData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
 
         if array_name is None:
@@ -1334,10 +1334,10 @@ class BaseActor(Base3DProp):
         """
         vort = vtk.vtkGradientFilter()
         if on.startswith("p"):
-            varr = self.GetPointData()
+            varr = self.dataset.GetPointData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
         else:
-            varr = self.GetCellData()
+            varr = self.dataset.GetCellData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
 
         if array_name is None:
@@ -1597,7 +1597,7 @@ class BaseGrid(BaseActor):
 
         The output format is: `[[id0 ... idn], [id0 ... idm],  etc]`.
         """
-        arr1d = utils.vtk2numpy(self.GetCells().GetData())
+        arr1d = utils.vtk2numpy(self.dataset.GetCells().GetData())
         if arr1d is None:
             return []
 
@@ -1644,9 +1644,9 @@ class BaseGrid(BaseActor):
             return self
 
         if vmin is None:
-            vmin, _ = self.GetScalarRange()
+            vmin, _ = self.dataset.GetScalarRange()
         if vmax is None:
-            _, vmax = self.GetScalarRange()
+            _, vmax = self.dataset.GetScalarRange()
         ctf = self.property.GetRGBTransferFunction()
         ctf.RemoveAllPoints()
         self._color = col
@@ -1703,9 +1703,9 @@ class BaseGrid(BaseActor):
         will get an opacity of 40% and above 123 alpha is set to 90%.
         """
         if vmin is None:
-            vmin, _ = self.GetScalarRange()
+            vmin, _ = self.dataset.GetScalarRange()
         if vmax is None:
-            _, vmax = self.GetScalarRange()
+            _, vmax = self.dataset.GetScalarRange()
         otf = self.property.GetScalarOpacity()
         otf.RemoveAllPoints()
         self._alpha = alpha
@@ -1775,7 +1775,7 @@ class BaseGrid(BaseActor):
 
                 ![](https://vedo.embl.es/images/volumetric/isosurfaces.png)
         """
-        scrange = self.GetScalarRange()
+        scrange = self.dataset.GetScalarRange()
 
         if flying_edges:
             cf = vtk.vtkFlyingEdges3D()
@@ -1839,7 +1839,7 @@ class BaseGrid(BaseActor):
         window = vtk.vtkImplicitWindowFunction()
         window.SetImplicitFunction(dataset)
 
-        srng = list(self.GetScalarRange())
+        srng = list(self.dataset.GetScalarRange())
         if vmin is not None:
             srng[0] = vmin
         if vmax is not None:
@@ -2046,7 +2046,7 @@ class BaseGrid(BaseActor):
         self.pipeline = utils.OperationNode(
             "extract_cells_on_plane",
             parents=[self],
-            comment=f"#cells {self.GetNumberOfCells()}",
+            comment=f"#cells {self.dataset.GetNumberOfCells()}",
             c="#9e2a2b",
         )
         return self
@@ -2071,7 +2071,7 @@ class BaseGrid(BaseActor):
         self.pipeline = utils.OperationNode(
             "extract_cells_on_sphere",
             parents=[self],
-            comment=f"#cells {self.GetNumberOfCells()}",
+            comment=f"#cells {self.dataset.GetNumberOfCells()}",
             c="#9e2a2b",
         )
         return self
@@ -2096,7 +2096,7 @@ class BaseGrid(BaseActor):
         self.pipeline = utils.OperationNode(
             "extract_cells_on_cylinder",
             parents=[self],
-            comment=f"#cells {self.GetNumberOfCells()}",
+            comment=f"#cells {self.dataset.GetNumberOfCells()}",
             c="#9e2a2b",
         )
         self.DeepCopy(bf.GetOutput())
@@ -2115,7 +2115,7 @@ class BaseGrid(BaseActor):
 
         self.DeepCopy(cl.GetOutput())
         self.pipeline = utils.OperationNode(
-            "clean", parents=[self], comment=f"#cells {self.GetNumberOfCells()}", c="#9e2a2b"
+            "clean", parents=[self], comment=f"#cells {self.dataset.GetNumberOfCells()}", c="#9e2a2b"
         )
         return self
 
@@ -2155,16 +2155,11 @@ class BaseGrid(BaseActor):
         ug.SetProperty(pr)
         ug.property = pr
 
-        # assign the same transformation to the copy
-        ug.SetOrigin(self.GetOrigin())
-        ug.SetScale(self.GetScale())
-        ug.SetOrientation(self.GetOrientation())
-        ug.SetPosition(self.GetPosition())
         ug.mapper.SetLookupTable(utils.ctf2lut(self))
         ug.pipeline = utils.OperationNode(
             "extract_cells_by_id",
             parents=[self],
-            comment=f"#cells {self.GetNumberOfCells()}",
+            comment=f"#cells {self.dataset.GetNumberOfCells()}",
             c="#9e2a2b",
         )
         return ug

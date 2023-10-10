@@ -60,10 +60,10 @@ def merge(*meshs, flag=False):
 
     idarr = []
     polyapp = vtk.vtkAppendPolyData()
-    for i, poly in enumerate(objs):
-        polyapp.AddInputData(poly)
+    for i, ob in enumerate(objs):
+        polyapp.AddInputData(ob.dataset)
         if flag:
-            idarr += [i] * poly.GetNumberOfPoints()
+            idarr += [i] * ob.dataset.GetNumberOfPoints()
     polyapp.Update()
     mpoly = polyapp.GetOutput()
 
@@ -90,7 +90,7 @@ def merge(*meshs, flag=False):
     msh.pipeline = utils.OperationNode(
         "merge",
         parents=objs,
-        comment=f"#pts {msh.GetNumberOfPoints()}",
+        comment=f"#pts {msh.dataset.GetNumberOfPoints()}",
     )
     return msh
 
@@ -869,7 +869,7 @@ class PointsVisual:
 
         if on.startswith("point"):
             data = self.GetPointData()
-            n = self.GetNumberOfPoints()
+            n = self.dataset.GetPointData()
         elif on.startswith("cell"):
             data = self.GetCellData()
             n = self.GetNumberOfCells()
@@ -1135,7 +1135,8 @@ class PointsVisual:
             point = sha.info['point']
             direction = sha.info['direction']
             new_sha = self._compute_shadow(plane, point, direction)
-            sha.DeepCopy(new_sha)
+            # sha.DeepCopy(new_sha)
+            sha._update(new_sha.dataset)
         return self
 
 
@@ -1278,7 +1279,7 @@ class PointsVisual:
             else:
                 tx_poly = vedo.shapes.Text3D(txt_lab, font=font, justify=justify)
 
-            if tx_poly.GetNumberOfPoints() == 0:
+            if tx_poly.dataset.GetPointData() == 0:
                 continue  #######################
             ninputs += 1
 
@@ -1794,8 +1795,8 @@ class PointsVisual:
 
 
 ###################################################
-class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
-    """>Work with point clouds."""
+class Points(PointsVisual, BaseActor):
+    """Work with point clouds."""
 
     def __init__(self, inputobj=None, r=4, c=(0.2, 0.2, 0.2), alpha=1):
         """
@@ -1831,9 +1832,11 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             ![](https://vedo.embl.es/images/feats/fibonacci.png)
         """
         # super().__init__()  ## super is not working here
-        vtk.vtkPolyData.__init__(self)
+        # vtk.vtkPolyData.__init__(self)
         BaseActor.__init__(self)
         PointsVisual.__init__(self)
+
+        self.dataset = vtk.vtkPolyData()
 
         self.transform = LinearTransform()
         self.actor.data = self
@@ -1848,8 +1851,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
 
         ######
         if isinstance(inputobj, vtk.vtkActor):
-            pd = inputobj.GetMapper().GetInput()
-            self.DeepCopy(pd)
+            self.dataset = inputobj.GetMapper().GetInput()
             pr = vtk.vtkProperty()
             pr.DeepCopy(inputobj.GetProperty())
             self.actor.SetProperty(pr)
@@ -1857,10 +1859,10 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             self.mapper.SetScalarVisibility(inputobj.GetMapper().GetScalarVisibility())
 
         elif isinstance(inputobj, vtk.vtkPolyData):
-            self.DeepCopy(inputobj)
+            self.dataset = inputobj
             if self.GetNumberOfCells() == 0:
                 carr = vtk.vtkCellArray()
-                for i in range(self.GetNumberOfPoints()):
+                for i in range(self.dataset.GetPointData()):
                     carr.InsertNextCell(1)
                     carr.InsertCellPoint(i)
                 self.SetVerts(carr)
@@ -1882,14 +1884,14 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
                 c = colors.get_color(c)
                 self.property.SetColor(c)
                 self.property.SetOpacity(alpha)
-            self.DeepCopy(pd)
+            self.dataset = pd
             self.pipeline = utils.OperationNode(
-                self, parents=[], comment=f"#pts {self.GetNumberOfPoints()}")
+                self, parents=[], comment=f"#pts {self.dataset.GetPointData()}")
 
         elif isinstance(inputobj, str):
             verts = vedo.file_io.load(inputobj)
             self.filename = inputobj
-            self.DeepCopy(verts)
+            self.dataset = verts.dataset
 
             c = colors.get_color(c)
             self.property.SetColor(c)
@@ -1898,10 +1900,10 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             # try to extract the points from a generic VTK input data object
             try:
                 vvpts = inputobj.GetPoints()
-                self.SetPoints(vvpts)
+                self.dataset.SetPoints(vvpts)
                 for i in range(inputobj.GetPointData().GetNumberOfArrays()):
                     arr = inputobj.GetPointData().GetArray(i)
-                    self.GetPointData().AddArray(arr)
+                    self.dataset.GetPointData().AddArray(arr)
 
                 c = colors.get_color(c)
                 self.property.SetColor(c)
@@ -1915,12 +1917,27 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         self.property.LightingOff()
 
         self.actor.SetMapper(self.mapper)
-        self.mapper.SetInputData(self)
+        self.mapper.SetInputData(self.dataset)
 
         self.pipeline = utils.OperationNode(
-            self, parents=[], comment=f"#pts {self.GetNumberOfPoints()}"
+            self, parents=[], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
         )
 
+    def _update(self, polydata, reset_locators=True):
+        """Overwrite the polygonal dataset with a new vtkPolyData."""
+        self.dataset = polydata
+        self.mapper.SetInputData(self.dataset)
+        self.mapper.Modified()
+        if reset_locators:
+            self.point_locator = None
+            self.line_locator = None
+            self.cell_locator = None
+        return self
+    
+    def polydata(self):
+        """Return the underlying ``vtkPolyData`` object."""
+        print("WARNING: call to .polydata() is obsolete, you can use property `dataset`.")
+        return self.dataset
 
     def _repr_html_(self):
         """
@@ -2348,7 +2365,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             "distance_to",
             parents=[self, pcloud],
             shape="cylinder",
-            comment=f"#pts {self.GetNumberOfPoints()}",
+            comment=f"#pts {self.dataset.GetPointData()}",
         )
         return dists
 
@@ -2363,10 +2380,10 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         cpd.ConvertStripsToPolysOn()
         cpd.SetInputData(self)
         cpd.Update()
-        self.DeepCopy(cpd.GetOutput())
+        self.dataset.DeepCopy(cpd.GetOutput())
         self.pipeline = utils.OperationNode(
             "clean", parents=[self],
-            comment=f"#pts {self.GetNumberOfPoints()}"
+            comment=f"#pts {self.dataset.GetPointData()}"
         )
         return self
 
@@ -2411,11 +2428,11 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         if self.property.GetRepresentation() == 0:
             ps = self.property.GetPointSize()
 
-        self.DeepCopy(cpd.GetOutput())
+        self.dataset.DeepCopy(cpd.GetOutput())
         self.ps(ps)
 
         self.pipeline = utils.OperationNode(
-            "subsample", parents=[self], comment=f"#pts {self.GetNumberOfPoints()}"
+            "subsample", parents=[self], comment=f"#pts {self.dataset.GetPointData()}"
         )
         return self
 
@@ -2469,7 +2486,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         gf = vtk.vtkGeometryFilter()
         gf.SetInputData(thres.GetOutput())
         gf.Update()
-        self.DeepCopy(gf.GetOutput())
+        self.dataset.DeepCopy(gf.GetOutput())
         self.pipeline = utils.OperationNode("threshold", parents=[self])
         return self
 
@@ -2482,7 +2499,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         qp.SetInputData(self)
         qp.SetQFactor(value)
         qp.Update()
-        self.DeepCopy(qp.GetOutput())
+        self.dataset.DeepCopy(qp.GetOutput())
         self.flat()
         self.pipeline = utils.OperationNode("quantize", parents=[self])
         return self
@@ -2570,7 +2587,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
                 ![](https://vedo.embl.es/images/basic/align2.png)
         """
         icp = vtk.vtkIterativeClosestPointTransform()
-        icp.SetSource(self)
+        icp.SetSource(self.dataset)
         icp.SetTarget(target)
         if invert:
             icp.Inverse()
@@ -2712,11 +2729,11 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
     def flip_normals(self):
         """Flip all mesh normals. Same as `mesh.mirror('n')`."""
         rs = vtk.vtkReverseSense()
-        rs.SetInputData(self)
+        rs.SetInputData(self.dataset)
         rs.ReverseCellsOff()
         rs.ReverseNormalsOn()
         rs.Update()
-        self.DeepCopy(rs.GetOutput())
+        self.dataset.DeepCopy(rs.GetOutput())
         self.pipeline = utils.OperationNode("flip_normals", parents=[self])
         return self
 
@@ -2799,7 +2816,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             kern.SetKernelFootprintToRadius()
 
         interpolator = vtk.vtkPointInterpolator()
-        interpolator.SetInputData(self)
+        interpolator.SetInputData(self.dataset)
         interpolator.SetSourceData(points)
         interpolator.SetKernel(kern)
         interpolator.SetLocator(locator)
@@ -2819,7 +2836,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         else:
             cpoly = interpolator.GetOutput()
 
-        self.DeepCopy(cpoly)
+        self.dataset.DeepCopy(cpoly)
 
         self.pipeline = utils.OperationNode("interpolate_data_from", parents=[self, source])
         return self
@@ -2994,7 +3011,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             pcloud.point_locator.BuildLocator()
         if not self.point_locator:
             self.point_locator = vtk.vtkPointLocator()
-            self.point_locator.SetDataSet(self)
+            self.point_locator.SetDataSet(self.dataset)
             self.point_locator.BuildLocator()
 
         ps1 = self.points()
@@ -3033,7 +3050,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
                 ![](https://vedo.embl.es/images/basic/clustering.png)
         """
         removal = vtk.vtkRadiusOutlierRemoval()
-        removal.SetInputData(self)
+        removal.SetInputData(self.dataset)
         removal.SetRadius(radius)
         removal.SetNumberOfNeighbors(neighbors)
         removal.GenerateOutliersOff()
@@ -3045,7 +3062,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
                 carr.InsertNextCell(1)
                 carr.InsertCellPoint(i)
             inputobj.SetVerts(carr)
-        self.DeepCopy(inputobj)
+        self.dataset.DeepCopy(inputobj)
         self.mapper.ScalarVisibilityOff()
         self.pipeline = utils.OperationNode("remove_outliers", parents=[self])
         return self
@@ -3420,7 +3437,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         plane.SetNormal(normal)
 
         clipper = vtk.vtkClipPolyData()
-        clipper.SetInputData(self)
+        clipper.SetInputData(self.dataset)
         clipper.SetClipFunction(plane)
         clipper.GenerateClippedOutputOff()
         clipper.GenerateClipScalarsOff()
@@ -3428,12 +3445,8 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         clipper.SetValue(0)
         clipper.Update()
 
-        cpoly = clipper.GetOutput()
-        self.DeepCopy(cpoly)
+        self._update(clipper.GetOutput())
 
-        self.point_locator = None
-        self.line_locator = None
-        self.cell_locator = None
         self.pipeline = utils.OperationNode("cut_with_plane", parents=[self])
         return self
 
@@ -3461,7 +3474,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         planes.SetNormals(utils.numpy2vtk(normals, dtype=float))
 
         clipper = vtk.vtkClipPolyData()
-        clipper.SetInputData(self)  # must be True
+        clipper.SetInputData(self.dataset)  # must be True
         clipper.SetInsideOut(invert)
         clipper.SetClipFunction(planes)
         clipper.GenerateClippedOutputOff()
@@ -3469,12 +3482,8 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         clipper.SetValue(0)
         clipper.Update()
 
-        cpoly = clipper.GetOutput()
-        self.DeepCopy(cpoly)
+        self._update(clipper.GetOutput())
 
-        self.point_locator = None
-        self.line_locator = None
-        self.cell_locator = None
         self.pipeline = utils.OperationNode("cut_with_planes", parents=[self])
         return self
 
@@ -3512,20 +3521,15 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             box.SetBounds(bounds)
 
         clipper = vtk.vtkClipPolyData()
-        clipper.SetInputData(self)
+        clipper.SetInputData(self.dataset)
         clipper.SetClipFunction(box)
         clipper.SetInsideOut(not invert)
         clipper.GenerateClippedOutputOff()
         clipper.GenerateClipScalarsOff()
         clipper.SetValue(0)
         clipper.Update()
+        self._update(clipper.GetOutput())
 
-        cpoly = clipper.GetOutput()
-        self.DeepCopy(cpoly)
-
-        self.point_locator = None
-        self.line_locator = None
-        self.cell_locator = None
         self.pipeline = utils.OperationNode("cut_with_box", parents=[self])
         return self
 
@@ -3562,20 +3566,15 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         pplane.SetPolyLine(polyline)
 
         clipper = vtk.vtkClipPolyData()
-        clipper.SetInputData(self)
+        clipper.SetInputData(self.dataset)
         clipper.SetClipFunction(pplane)
         clipper.SetInsideOut(invert)
         clipper.GenerateClippedOutputOff()
         clipper.GenerateClipScalarsOff()
         clipper.SetValue(0)
         clipper.Update()
+        self._update(clipper.GetOutput())
 
-        cpoly = clipper.GetOutput()
-        self.DeepCopy(cpoly)
-
-        self.point_locator = None
-        self.line_locator = None
-        self.cell_locator = None
         self.pipeline = utils.OperationNode("cut_with_line", parents=[self])
         return self
 
@@ -3641,20 +3640,15 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         boundaryPoly = build_loops.GetOutput()
 
         ccut = vtk.vtkCookieCutter()
-        ccut.SetInputData(self)
+        ccut.SetInputData(self.dataset)
         ccut.SetLoopsData(boundaryPoly)
         ccut.SetPointInterpolationToMeshEdges()
         # ccut.SetPointInterpolationToLoopEdges()
         ccut.PassCellDataOn()
         # ccut.PassPointDataOn()
         ccut.Update()
+        self._update(ccut.GetOutput())
 
-        cpoly = ccut.GetOutput()
-        self.DeepCopy(cpoly)
-
-        self.point_locator = None
-        self.line_locator = None
-        self.cell_locator = None
         self.pipeline = utils.OperationNode("cut_with_cookiecutter", parents=[self])
         return self
 
@@ -3700,20 +3694,15 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         cyl.SetRadius(r)
 
         clipper = vtk.vtkClipPolyData()
-        clipper.SetInputData(self)
+        clipper.SetInputData(self.dataset)
         clipper.SetClipFunction(cyl)
         clipper.SetInsideOut(not invert)
         clipper.GenerateClippedOutputOff()
         clipper.GenerateClipScalarsOff()
         clipper.SetValue(0)
         clipper.Update()
+        self._update(clipper.GetOutput())
 
-        cpoly = clipper.GetOutput()
-        self.DeepCopy(cpoly)
-
-        self.point_locator = None
-        self.line_locator = None
-        self.cell_locator = None
         self.pipeline = utils.OperationNode("cut_with_cylinder", parents=[self])
         return self
 
@@ -3746,19 +3735,14 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         sph.SetRadius(r)
 
         clipper = vtk.vtkClipPolyData()
-        clipper.SetInputData(self)
+        clipper.SetInputData(self.dataset)
         clipper.SetClipFunction(sph)
         clipper.SetInsideOut(not invert)
         clipper.GenerateClippedOutputOff()
         clipper.GenerateClipScalarsOff()
         clipper.SetValue(0)
-        clipper.Update()
-        cpoly = clipper.GetOutput()
-        self.DeepCopy(cpoly)
-
-        self.point_locator = None
-        self.line_locator = None
-        self.cell_locator = None
+        clipper.Update()        
+        self._update(clipper.GetOutput())
         self.pipeline = utils.OperationNode("cut_with_sphere", parents=[self])
         return self
 
@@ -3786,8 +3770,8 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
        Check out also:
             `cut_with_box()`, `cut_with_plane()`, `cut_with_cylinder()`
        """
-        polymesh = mesh
-        poly = self
+        polymesh = mesh.dataset
+        poly = self.dataset
 
         # Create an array to hold distance information
         signed_distances = vtk.vtkFloatArray()
@@ -3827,11 +3811,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             cpoly.GetPointData().SetActiveScalars(currentscals)
             vis = self.mapper.GetScalarVisibility()
         
-        self.DeepCopy(cpoly)
-
-        self.point_locator = None
-        self.line_locator = None
-        self.cell_locator = None
+        self._update(cpoly)
 
         self.pointdata.remove("SignedDistances")
         self.mapper.SetScalarVisibility(vis)
@@ -3886,7 +3866,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             ippd.SetLoop(vpts)
             ippd.AutomaticNormalGenerationOn()
             clipper = vtk.vtkExtractPolyDataGeometry()
-            clipper.SetInputData(self)
+            clipper.SetInputData(self.dataset)
             clipper.SetImplicitFunction(ippd)
             clipper.SetExtractInside(not invert)
             clipper.SetExtractBoundaryCells(include_boundary)
@@ -3895,7 +3875,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             spol.SetLoop(vpts)
             spol.GenerateSelectionScalarsOn()
             spol.GenerateUnselectedOutputOff()
-            spol.SetInputData(self)
+            spol.SetInputData(self.dataset)
             spol.Update()
             clipper = vtk.vtkClipPolyData()
             clipper.SetInputData(spol.GetOutput())
@@ -3903,12 +3883,8 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             clipper.SetValue(0.0)
         clipper.Update()
         cpoly = clipper.GetOutput()
+        self._update(clipper.GetOutput())
 
-        self.DeepCopy(cpoly)
-
-        self.point_locator = None
-        self.line_locator = None
-        self.cell_locator = None
         self.pipeline = utils.OperationNode("cut_with_pointloop", parents=parents)
         return self
 
@@ -3940,18 +3916,14 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         if name:
             self.pointdata.select(name)
         clipper = vtk.vtkClipPolyData()
-        clipper.SetInputData(self)
+        clipper.SetInputData(self.dataset)
         clipper.SetValue(value)
         clipper.GenerateClippedOutputOff()
         clipper.SetInsideOut(not invert)
         clipper.Update()
         cpoly = clipper.GetOutput()
+        self._update(clipper.GetOutput())
 
-        self.DeepCopy(cpoly)
-
-        self.point_locator = None
-        self.line_locator = None
-        self.cell_locator = None
         self.pipeline = utils.OperationNode("cut_with_scalars", parents=[self])
         return self
 
@@ -4005,7 +3977,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         cu.SetBounds(bounds)
 
         clipper = vtk.vtkClipPolyData()
-        clipper.SetInputData(self)
+        clipper.SetInputData(self.dataset)
         clipper.SetClipFunction(cu)
         clipper.InsideOutOn()
         clipper.GenerateClippedOutputOff()
@@ -4013,15 +3985,10 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         clipper.SetValue(0)
         clipper.Update()
         cpoly = clipper.GetOutput()
-
-        self.DeepCopy(cpoly)
-
-        self.point_locator = None
-        self.line_locator = None
-        self.cell_locator = None
+        self._update(clipper.GetOutput())
 
         self.pipeline = utils.OperationNode(
-            "crop", parents=[self], comment=f"#pts {self.GetNumberOfPoints()}"
+            "crop", parents=[self], comment=f"#pts {self.dataset.GetPointData()}"
         )
         return self
 
@@ -4034,7 +4001,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             maxdist = self.diagonal_size() / 2
 
         imp = vtk.vtkImplicitModeller()
-        imp.SetInputData(self)
+        imp.SetInputData(self.dataset)
         imp.SetSampleDimensions(res)
         imp.SetMaximumDistance(maxdist)
         imp.SetModelBounds(bounds)
@@ -4242,7 +4209,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
                 z1 + (z1 - z0) * padding,
             )
 
-        pd = self
+        pd = self.dataset
 
         if pd.GetPointData().GetNormals():
             sdf.SetInputData(pd)
@@ -4275,7 +4242,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
 
         m.pipeline = utils.OperationNode(
             "reconstruct_surface", parents=[self],
-            comment=f"#pts {m.GetNumberOfPoints()}"
+            comment=f"#pts {m.dataset.GetPointData()}"
         )
         return m
 
@@ -4290,7 +4257,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
                 ![](https://vedo.embl.es/images/basic/clustering.png)
         """
         cluster = vtk.vtkEuclideanClusterExtraction()
-        cluster.SetInputData(self)
+        cluster.SetInputData(self.dataset)
         cluster.SetExtractionModeToAllClusters()
         cluster.SetRadius(radius)
         cluster.ColorClustersOn()
@@ -4351,7 +4318,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         """
         # https://vtk.org/doc/nightly/html/classvtkConnectedPointsFilter.html
         cpf = vtk.vtkConnectedPointsFilter()
-        cpf.SetInputData(self)
+        cpf.SetInputData(self.dataset)
         cpf.SetRadius(radius)
         if mode == 0:  # Extract all regions
             pass
@@ -4382,7 +4349,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             cpf.SetNormalAngle(angle)
 
         cpf.Update()
-        self.DeepCopy(cpf.GetOutput())
+        self._update(cpf.GetOutput(), reset_locators=False)
         return self
 
     def compute_camera_distance(self):
@@ -4396,7 +4363,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             dc.SetInputData(poly)
             dc.SetRenderer(vedo.plotter_instance.renderer)
             dc.Update()
-            self.DeepCopy(dc.GetOutput())
+            self._update(dc.GetOutput(), reset_locators=False)
         return self
 
     def density(
@@ -4427,7 +4394,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
                 ![](https://vedo.embl.es/images/pyplot/plot_density3d.png)
         """
         pdf = vtk.vtkPointDensityFilter()
-        pdf.SetInputData(self)
+        pdf.SetInputData(self.dataset)
 
         if not utils.is_sequence(dims):
             dims = [dims, dims, dims]
@@ -4538,7 +4505,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
 
         cld.pipeline = utils.OperationNode(
             "densify", parents=[self], c="#e9c46a:",
-            comment=f"#pts {cld.GetNumberOfPoints()}"
+            comment=f"#pts {cld.dataset.GetPointData()}"
         )
         return cld
 
@@ -4571,7 +4538,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         if maxradius is None:
             maxradius = self.diagonal_size() / 2
         dist = vtk.vtkSignedDistance()
-        dist.SetInputData(self)
+        dist.SetInputData(self.dataset)
         dist.SetRadius(maxradius)
         dist.SetBounds(bounds)
         dist.SetDimensions(dims)
@@ -4692,7 +4659,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
     def generate_random_data(self):
         """Fill a dataset with random attributes"""
         gen = vtk.vtkRandomAttributeGenerator()
-        gen.SetInputData(self)
+        gen.SetInputData(self.dataset)
         gen.GenerateAllDataOn()
         gen.SetDataTypeToFloat()
         gen.GeneratePointNormalsOff()
@@ -4700,7 +4667,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
         gen.GenerateCellScalarsOn()
         gen.Update()
 
-        self.DeepCopy(gen.GetOutput())
+        self._update(gen.GetOutput(), reset_locators=False)
 
         self.pipeline = utils.OperationNode("generate\nrandom data", parents=[self])
         return self
@@ -4923,7 +4890,7 @@ class Points(PointsVisual, BaseActor, vtk.vtkPolyData):
             ![](https://vedo.embl.es/images/feats/visible_points.png)
         """
         svp = vtk.vtkSelectVisiblePoints()
-        svp.SetInputData(self)
+        svp.SetInputData(self.dataset)
         svp.SetRenderer(vedo.plotter_instance.renderer)
 
         if len(area) == 4:
