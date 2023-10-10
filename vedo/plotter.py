@@ -3432,11 +3432,11 @@ class Plotter:
         clicked_actor = picker.GetActor()
         # clicked_actor2D = picker.GetActor2D()
 
-        print('_mouseleftclick mouse at', x, y)
-        print("picked Volume:",   [picker.GetVolume()])
-        print("picked Actor2D:",  [picker.GetActor2D()])
-        print("picked Assembly:", [picker.GetAssembly()])
-        print("picked Prop3D:",   [picker.GetProp3D()])
+        # print('_mouseleftclick mouse at', x, y)
+        # print("picked Volume:",   [picker.GetVolume()])
+        # print("picked Actor2D:",  [picker.GetActor2D()])
+        # print("picked Assembly:", [picker.GetAssembly()])
+        # print("picked Prop3D:",   [picker.GetProp3D()])
 
         if not clicked_actor:
             clicked_actor = picker.GetAssembly()
@@ -3491,7 +3491,7 @@ class Plotter:
         if iren.GetAltKey():
             key = "Alt+" + key
 
-        utils.vedo.printc('Pressed key:', key, c='y', box='-')
+        # utils.vedo.printc('Pressed key:', key, c='y', box='-')
         # print(key, iren.GetShiftKey(), iren.GetAltKey(), iren.GetControlKey(),
         #       iren.GetKeyCode(), iren.GetRepeatCount())
 
