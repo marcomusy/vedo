@@ -2125,7 +2125,9 @@ class Arrow2D(Mesh):
         head_length=0.225,
         head_width=0.175,
         fill=True,
-    ):
+        c="red4",
+        alpha=1.0,
+   ):
         """
         Build a 2D arrow from `start_pt` to `end_pt`.
 
@@ -2200,7 +2202,7 @@ class Arrow2D(Mesh):
         tf.SetTransform(t)
         tf.Update()
 
-        super().__init__(tf.GetOutput(), c="k1")
+        super().__init__(tf.GetOutput(), c, alpha)
         self.pos(start_pt)
         self.lighting("off")
         self.actor.DragableOff()
@@ -2708,7 +2710,7 @@ class Spheres(Mesh):
     Build a large set of spheres.
     """
 
-    def __init__(self, centers, r=1.0, res=8, c="r5", alpha=1):
+    def __init__(self, centers, r=1.0, res=8, c="red5", alpha=1):
         """
         Build a (possibly large) set of spheres at `centers` of radius `r`.
 
@@ -3246,8 +3248,9 @@ class Box(Mesh):
     Build a box of specified dimensions.
     """
 
-    def __init__(self, pos=(0, 0, 0), 
-                 length=1.0, width=2.0, height=3.0, size=(), c="g4", alpha=1.0):
+    def __init__(
+            self, pos=(0, 0, 0), 
+            length=1.0, width=2.0, height=3.0, size=(), c="g4", alpha=1.0):
         """
         Build a box of dimensions `x=length, y=width and z=height`.
         Alternatively dimensions can be defined by setting `size` keyword with a tuple.
@@ -3447,7 +3450,8 @@ class Cylinder(Mesh):
     """
 
     def __init__(
-        self, pos=(0, 0, 0), r=1.0, height=2.0, axis=(0, 0, 1), cap=True, res=24, c="teal3", alpha=1.0
+        self, pos=(0, 0, 0), r=1.0, height=2.0, axis=(0, 0, 1),
+        cap=True, res=24, c="teal3", alpha=1.0
     ):
         """
         Build a cylinder of specified height and radius `r`, centered at `pos`.

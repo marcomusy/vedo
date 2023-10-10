@@ -71,16 +71,21 @@ def merge(*meshs, flag=False):
         varr = utils.numpy2vtk(idarr, dtype=np.uint16, name="OriginalMeshID")
         mpoly.GetPointData().AddArray(varr)
 
-    if isinstance(objs[0], vedo.Mesh):
+    has_mesh = False
+    for ob in objs:
+        if isinstance(ob, vedo.Mesh):
+            has_mesh = True
+            break
+
+    if has_mesh:
         msh = vedo.Mesh(mpoly)
     else:
         msh = Points(mpoly)
 
-    if isinstance(objs[0], vtk.vtkActor):
-        cprp = vtk.vtkProperty()
-        cprp.DeepCopy(objs[0].GetProperty())
-        msh.actor.SetProperty(cprp)
-        msh.property = cprp
+    cprp = vtk.vtkProperty()
+    cprp.DeepCopy(objs[0].property)
+    msh.actor.SetProperty(cprp)
+    msh.property = cprp
 
     msh.pipeline = utils.OperationNode(
         "merge",
@@ -468,8 +473,8 @@ def Point(pos=(0, 0, 0), r=12, c="red", alpha=1.0):
         pos = pos.pos()
     if len(pos) == 2:
         pos = (pos[0], pos[1], 0.0)
-    pd = utils.buildPolyData([pos])
-    pt = Points(pd, r, c, alpha)
+    pt = Points([[0,0,0]], r, c, alpha)
+    pt.pos(pos)
     pt.name = "Point"
     return pt
 

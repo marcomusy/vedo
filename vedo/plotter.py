@@ -760,7 +760,6 @@ class Plotter:
 
     ##################################################################### ..init ends here.
 
-
     def __iadd__(self, actors):
         self.add(actors)
         return self
@@ -2688,6 +2687,7 @@ class Plotter:
         if not utils.is_sequence(wannabe_acts):
             wannabe_acts = [wannabe_acts]
         
+        #################
         wannabe_acts2 = []
         for a in wannabe_acts:
 
@@ -2712,9 +2712,7 @@ class Plotter:
                         wannabe_acts2.append(sh.actor)
             except AttributeError: pass
 
-            # try: wannabe_acts2.append(a.axes)
-            # except AttributeError: pass
-
+        #################
         scanned_acts = []
         for a in wannabe_acts2:  # scan content of list
 
