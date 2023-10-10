@@ -173,7 +173,6 @@ class Glyph(Mesh):
         color_by_vector_size=False,
         c="k8",
         alpha=1.0,
-        **opts,
     ):
         """
         Arguments:
@@ -196,29 +195,11 @@ class Glyph(Mesh):
 
             ![](https://vedo.embl.es/images/basic/glyphs.png)
         """
-        if len(opts) > 0:  # Deprecations
-            printc(":noentry: Warning! In Glyph() unrecognized keywords:", opts, c="y")
-            orientation_array = opts.pop("orientationArray", orientation_array)
-            scale_by_scalar = opts.pop("scaleByScalar", scale_by_scalar)
-            scale_by_vector_size = opts.pop("scaleByVectorSize", scale_by_vector_size)
-            scale_by_vector_components = opts.pop(
-                "scaleByVectorComponents", scale_by_vector_components
-            )
-            color_by_scalar = opts.pop("colorByScalar", color_by_scalar)
-            color_by_vector_size = opts.pop("colorByVectorSize", color_by_vector_size)
-            printc("          Please use 'snake_case' instead of 'camelCase' keywords", c="y")
-
-        lighting = None
         if utils.is_sequence(mesh):
             # create a cloud of points
             poly = Points(mesh)
-        elif isinstance(mesh, vtk.vtkPolyData):
-            poly = mesh
         else:
             poly = mesh
-
-        if isinstance(glyph, Points):
-            lighting = glyph.property.GetLighting()
 
         cmap = ""
         if isinstance(c, str) and c in cmaps_names:
@@ -281,22 +262,9 @@ class Glyph(Mesh):
 
         super().__init__(gly.GetOutput(), c, alpha)
         self.flat()
-        if lighting is not None:
-            self.property.SetLighting(lighting)
 
         if cmap:
-            lut = vtk.vtkLookupTable()
-            lut.SetNumberOfTableValues(512)
-            lut.Build()
-            for i in range(512):
-                r, g, b = color_map(i, cmap, 0, 512)
-                lut.SetTableValue(i, r, g, b, 1)
-            self.mapper.SetLookupTable(lut)
-            self.mapper.ScalarVisibilityOn()
-            self.mapper.SetScalarModeToUsePointData()
-            if gly.GetOutput().GetPointData().GetScalars():
-                rng = gly.GetOutput().GetPointData().GetScalars().GetRange()
-                self.mapper.SetScalarRange(rng[0], rng[1])
+            self.cmap(cmap, "VectorMagnitude")
 
         self.name = "Glyph"
 
