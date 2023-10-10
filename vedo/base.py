@@ -882,12 +882,10 @@ class BaseActor(Base3DProp):
         """Retrieve the number of cells."""
         return self.GetNumberOfCells()
 
-    def points(self, pts=None, transformed=True):
+    def points(self, pts=None):
         """
         Set/Get the vertex coordinates of a mesh or point cloud.
         Keyword `pts` can also be a list of indices to be retrieved.
-
-        Set `transformed=False` to ignore any previous transformation applied to the mesh.
         """
         if pts is None:  ### getter
 

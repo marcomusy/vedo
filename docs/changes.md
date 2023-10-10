@@ -34,9 +34,6 @@ examples/volumetric/slicer1.py
 ### Broken Examples
 ```
 lights.py
-mesh_lut.py
-pca_ellipse.py
-pca_ellipsoid.py
 
 ```
 

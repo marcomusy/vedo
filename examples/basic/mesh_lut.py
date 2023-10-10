@@ -1,18 +1,16 @@
 """Build a custom colormap, including
 out-of-range and NaN colors and labels"""
-from vedo import build_lut, Sphere, show, settings
+from vedo import build_lut, Sphere, show
 
-settings.use_depth_peeling = True # might help with transparencies
+# Generate a sphere and stretch it, so it sits between z=-2 and z=+2
+mesh = Sphere(quads=True).scale([1,1,1.8]).linewidth(1)
 
-# generate a sphere and stretch it, so it sits between z=-2 and z=+2
-mesh = Sphere(quads=True).scale([1,1,2]).linewidth(0.1)
-
-# create some dummy data array to be associated to points
-data = mesh.points()[:,2]  # pick z-coords, use them as scalar data
+# Create some dummy data array to be associated to points
+data = mesh.points()[:,2].copy()  # pick z-coords, use them as scalar data
 data[10:70] = float('nan') # make some values invalid by setting to NaN
 data[300:600] = 100        # send some values very far above-scale
 
-# build a custom Look-Up-Table of colors:
+# Build a custom Look-Up-Table of colors:
 #     value, color, alpha
 lut = build_lut(
     [
@@ -31,12 +29,14 @@ lut = build_lut(
 )
 # 3D scalarbar:
 mesh.cmap(lut, data).add_scalarbar3d(title='My 3D scalarbar', c='white')
-mesh.scalarbar.scale(1.5).rotate_x(90).y(1) # make it bigger and place it
+mesh.scalarbar.scale(1.5).rotate_x(90).shift(-0.5,-2) # make it bigger and place it
 
 # 2D scalarbar:
 # mesh.cmap(lut, data).add_scalarbar()
 
-show(mesh, __doc__,
+show(mesh,
+     __doc__,
      axes=dict(zlabel_size=.04, number_of_divisions=10),
-     elevation=-80, bg='blackboard',
+     elevation=-80, 
+     bg='blackboard',
 ).close()
