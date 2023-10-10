@@ -47,16 +47,14 @@ class MeshVisual:
         factor.SetProperty(self.property)
         factor.SetBackfaceProperty(self.actor.GetBackfaceProperty())
         factor.SetTexture(self.actor.GetTexture())
-        factor.SetOrigin(self.actor.GetOrigin())
         factor.SetScale(self.actor.GetScale())
         factor.SetOrientation(self.actor.GetOrientation())
         factor.SetPosition(self.actor.GetPosition())
         factor.SetUseBounds(self.actor.GetUseBounds())
-        factor.PickableOff()
 
-        # factor = vtk.vtkFollower() # not working
-        # self.mapper = vtk.vtkPolyDataMapper()
-        # self.mapper.SetInputData(self)
+        factor.SetOrigin(self.actor.GetOrigin())
+
+        factor.PickableOff()
 
         if isinstance(camera, vtk.vtkCamera):
             factor.SetCamera(camera)
@@ -67,18 +65,10 @@ class MeshVisual:
         
         if origin is not None:
             factor.SetOrigin(origin)
-        # else:
-        #     x0, x1, y0, y1, z0, z1 = self.bounds()
-        #     center = (x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2
-        #     factor.SetOrigin(center)
 
-        factor.pipeline = OperationNode(
-            "Follower", parents=[self], shape="component", c="#d9ed92")
-        # factor.SetMapper(self.mapper)
-        # self.actor = factor # not working
-        # self.actor.Modified()
-        # self.mapper.Modified()
-        # return self
+        self.actor = None
+        factor.data = self
+        self.actor = factor
         return factor
 
 

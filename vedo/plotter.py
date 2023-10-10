@@ -874,13 +874,21 @@ class Plotter:
                                    unpack_assemblies=False)
             for a in acts:
                 try:
-                    if a.data.name:
+                    if a.name and a.name in objs:
                         objs.append(a)
                 except AttributeError:
                     pass        
         
-        ids = []
         ir = self.renderers.index(ren)
+
+        # print("\nhas_str, has_actor", has_str , has_actor)
+        # print(acts)
+        # for a in acts:
+        #     print("actorname: ", a.name)
+        # for o in objs:
+        #     print("objectname: ", [o])
+
+        ids = []
 
         for ob in set(objs):
             # remove it from internal list if possible
@@ -896,7 +904,7 @@ class Plotter:
                 try:
                     ren.RemoveActor(ob)
                 except TypeError:
-                    try:
+                    try:                        
                         ren.RemoveActor(ob.actor)
                     except AttributeError:
                         pass
@@ -905,9 +913,9 @@ class Plotter:
                     ob.rendered_at.discard(ir)
                     
                 if hasattr(ob, "scalarbar") and ob.scalarbar:
-                    ren.RemoveActor(ob.scalarbar.actor)
+                    ren.RemoveActor(ob.scalarbar)
                 if hasattr(ob, "_caption") and ob._caption:
-                    ren.RemoveActor(ob._caption.actor)
+                    ren.RemoveActor(ob._caption)
                 if hasattr(ob, "shadows") and ob.shadows:
                     for sha in ob.shadows:
                         ren.RemoveActor(sha.actor)
@@ -917,9 +925,11 @@ class Plotter:
                     if hasattr(ob.trail, "shadows") and ob.trail.shadows:
                         for sha in ob.trail.shadows:
                             ren.RemoveActor(sha.actor)
-            
-        for i in ids:
-            del self.objects[i]
+        
+        # for i in ids: # wrong way of doing it
+        #     del self.objects[i]
+        # instead:
+        self.objects = [ele for i, ele in enumerate(self.objects) if i not in ids]
 
         return self
 
@@ -2314,13 +2324,12 @@ class Plotter:
                 self.picker = vtk.vtkPropPicker()
 
             self.picker.PickProp(x, y, self.renderer)
-
-            xp, yp = self.interactor.GetLastEventPosition()
             actor = self.picker.GetProp3D()
+
             delta3d = np.array([0, 0, 0])
             if actor:
                 picked3d = np.array(self.picker.GetPickPosition())
-                if isinstance(actor, vedo.base.Base3DProp):  # needed!
+                if isinstance(actor.data, vedo.base.Base3DProp):  # needed!
                     if actor.data.picked3d is not None:
                         delta3d = picked3d - actor.data.picked3d
                 actor.data.picked3d = picked3d
@@ -2329,8 +2338,8 @@ class Plotter:
 
             if not actor:  # try 2D
                 actor = self.picker.GetActor2D()
-            # print(enable_picking, xp, yp, picked3d, [actor] )
 
+            xp, yp = self.interactor.GetLastEventPosition()
             dx, dy = x - xp, y - yp
 
         event = Event()
@@ -2348,7 +2357,6 @@ class Plotter:
                 event.actor = actor.data  # obsolete use object instead
                 event.object = actor.data
             except AttributeError:
-                # print("Warning: actor.data is None")
                 event.actor = None
                 event.object = None
             event.picked3d = picked3d
@@ -3703,7 +3711,6 @@ class Plotter:
             udp = not renderer.GetUseDepthPeeling()
             renderer.SetUseDepthPeeling(udp)
             # self.renderer.SetUseDepthPeelingForVolumes(udp)
-            # print(self.window.GetAlphaBitPlanes())
             if udp:
                 self.window.SetAlphaBitPlanes(1)
                 renderer.SetMaximumNumberOfPeels(settings.max_number_of_peels)
@@ -4021,7 +4028,6 @@ class Plotter:
                 if isinstance(ia, vedo.Mesh):
                     ia.compute_normals(cells=False)
                     intrp = ia.property.GetInterpolation()
-                    # print(intrp, ia.property.GetInterpolationAsString())
                     if intrp > 0:
                         ia.property.SetInterpolation(0)  # flat
                     else:

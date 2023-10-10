@@ -37,7 +37,6 @@ background_image.py
 cut_interactive.py
 lights.py
 mesh_lut.py
-mirror.py
 mousehover1.py
 mousehover2.py
 pca_ellipse.py
