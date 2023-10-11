@@ -1117,7 +1117,7 @@ class BaseActor(Base3DProp):
         Set `move=True` to delete the original `celldata` array.
         """
         c2p = vtk.vtkCellDataToPointData()
-        c2p.SetInputData(self.datset)
+        c2p.SetInputData(self.dataset)
         if not move:
             c2p.PassCellDataOn()
         if arrays:
@@ -1129,7 +1129,7 @@ class BaseActor(Base3DProp):
             c2p.ProcessAllArraysOn()
         c2p.Update()
         self.mapper.SetScalarModeToUsePointData()
-        self.DeepCopy(c2p.GetOutput())
+        self._update(c2p.GetOutput(), reset_locators=False)
         self.pipeline = utils.OperationNode("map cell\nto point data", parents=[self])
         return self
 
@@ -1160,7 +1160,7 @@ class BaseActor(Base3DProp):
             p2c.ProcessAllArraysOn()
         p2c.Update()
         self.mapper.SetScalarModeToUseCellData()
-        self._update(p2c.GetOutput())        
+        self._update(p2c.GetOutput(), reset_locators=False)        
         self.pipeline = utils.OperationNode("map point\nto cell data", parents=[self])
         return self
 

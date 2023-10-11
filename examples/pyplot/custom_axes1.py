@@ -10,8 +10,9 @@ world = Box(pos=(2.7,0,0), size=(12,10,8), alpha=0)
 
 # a dummy spline with its shadow on the xy plane
 pts = Points([(-2,-3.2,-1.5), (3,-1.2,-2), (7,3,4)], r=12)
-spl = Spline(pts, res=50).add_shadow(plane='z', point=-4) # make spline and add its shadow at z=-4
-lns = Lines(spl, spl.shadows[0])                          # join spline points with its own shadow
+spl = Spline(pts, res=50)            # make a spline from points
+spl.add_shadow(plane='z', point=-4)  # add its shadow at z=-4
+lns = Lines(spl, spl.shadows[0])     # join spline points with its own shadow
 
 # make a dictionary of axes options
 axes_opts = dict(

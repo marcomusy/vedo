@@ -265,7 +265,7 @@ class Mesh(MeshVisual, Points):
                 gf.Update()
                 self.dataset = gf.GetOutput()
             except:
-                vedo.logger.error(f"cannot build mesh from type {inputtype}")
+                vedo.logger.error(f"cannot build mesh from type {type(inputobj)}")
                 raise RuntimeError()
 
         self.mapper.SetInputData(self.dataset)

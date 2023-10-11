@@ -14,7 +14,7 @@ def capping(amsh, bias=0, invert=False, res=50):
         cutm = amsh.clone().cut_with_plane(origin=pln.center, normal=pln.normal)
         invert = cutm.npoints > amsh.npoints
 
-    pts2 = pts.clone().orientation([0,0,1]).project_on_plane('z')
+    pts2 = pts.clone().reorient([0,0,1]).project_on_plane('z')
     msh2 = pts2.generate_mesh(invert=invert, mesh_resolution=res)
 
     source = pts2.points().tolist()

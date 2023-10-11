@@ -1,6 +1,7 @@
 """Recreate a model of a geothermal reservoir, Utah
 (Credits: A. Pollack, SCRF)"""
-from vedo import printc, dataurl, settings, delaunay2d, Line, Lines, Points, Plotter
+from vedo import printc, dataurl, settings, generate_delaunay2d
+from vedo import Line, Lines, Points, Plotter
 import pandas as pd
 
 settings.use_depth_peeling = True
@@ -36,7 +37,7 @@ border = pd.read_csv(url+"FORGE_Border.csv")
 printc("analyzing...", invert=1, end='')
 
 # create a mesh object from the 2D Delaunay triangulation of the point cloud
-landSurface = delaunay2d(landSurfacePD.values)
+landSurface = generate_delaunay2d(landSurfacePD.values)
 
 # in order to color it by the elevation, we use the z values of the mesh
 zvals = landSurface.points()[:, 2]
@@ -52,28 +53,28 @@ plt += landSurface.isolines(5).lw(1).c('k')
 #############################################
 ## Different meshes with constant colors
 # Mesh of 175 C isotherm
-vertices_175C = delaunay2d(vertices_175CPD.values)
+vertices_175C = generate_delaunay2d(vertices_175CPD.values)
 vertices_175C.name = "175C temperature isosurface"
 plt += vertices_175C.c("orange").opacity(0.3)
 
 # Mesh of 225 C isotherm
-vertices_225CT = delaunay2d(vertices_225CPD.values)
+vertices_225CT = generate_delaunay2d(vertices_225CPD.values)
 vertices_225CT.name = "225C temperature isosurface"
 plt += vertices_225CT.c("red").opacity(0.4)
 
 # Negro fault, mode=fit is used because point cloud is not in xy plane
-Negro_Mag_Fault_vertices = delaunay2d(Negro_Mag_Fault_verticesPD.values, mode='fit')
+Negro_Mag_Fault_vertices = generate_delaunay2d(Negro_Mag_Fault_verticesPD.values, mode='fit')
 Negro_Mag_Fault_vertices.name = "Negro Fault"
 plt += Negro_Mag_Fault_vertices.c("f").opacity(0.6)
 
 # Opal fault
-Opal_Mound_Fault_vertices = delaunay2d(Opal_Mound_Fault_verticesPD.values, mode='fit')
+Opal_Mound_Fault_vertices = generate_delaunay2d(Opal_Mound_Fault_verticesPD.values, mode='fit')
 Opal_Mound_Fault_vertices.name = "Opal Mound Fault"
 plt += Opal_Mound_Fault_vertices.c("g").opacity(0.6)
 
 # Top Granite, (shift it a bit to avoid overlapping)
 xyz = top_granitoid_verticesPD.values - [0,0,20]
-top_granitoid_vertices = delaunay2d(xyz).texture(dataurl+'textures/paper2.jpg')
+top_granitoid_vertices = generate_delaunay2d(xyz).texture(dataurl+'textures/paper2.jpg')
 top_granitoid_vertices.name = "Top of granite surface"
 plt += top_granitoid_vertices
 

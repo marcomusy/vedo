@@ -3598,16 +3598,6 @@ class Plotter:
                 except AttributeError:
                     pass
 
-        elif key == "w":
-            if self.clicked_object and self.clicked_object in self.get_meshes():
-                self.clicked_object.property.SetRepresentationToWireframe()
-            else:
-                for a in self.get_meshes():
-                    if a.property.GetRepresentation() == 1:  # toggle
-                        a.property.SetRepresentationToSurface()
-                    else:
-                        a.property.SetRepresentationToWireframe()
-
         elif key == "U":
             pval = renderer.GetActiveCamera().GetParallelProjection()
             renderer.GetActiveCamera().SetParallelProjection(not pval)
@@ -3760,11 +3750,24 @@ class Plotter:
             self.reset_viewup()
 
         elif key == "s":
+            try:
+                if self.clicked_object and self.clicked_object in self.get_meshes():
+                    self.clicked_object.wireframe(False)
+                else:
+                    for a in self.get_meshes():
+                            a.wireframe()
+            except AttributeError:
+                pass # Points dont have wireframe
+
+        elif key == "w":
             if self.clicked_object and self.clicked_object in self.get_meshes():
-                self.clicked_object.wireframe(False)
+                self.clicked_object.property.SetRepresentationToWireframe()
             else:
                 for a in self.get_meshes():
-                    a.wireframe()
+                    if a.property.GetRepresentation() == 1:  # toggle
+                        a.property.SetRepresentationToSurface()
+                    else:
+                        a.property.SetRepresentationToWireframe()
 
         elif key == "1":
             self._icol += 1
@@ -3978,7 +3981,7 @@ class Plotter:
                 if th > np.pi:
                     th = np.random.random() * np.pi / 2
                 ph += 0.3
-                cpos = transformations.spher2cart(r, th, ph) + cm
+                cpos = transformations.spher2cart(r, th, ph).T + cm
                 self._extralight.SetPosition(cpos)
 
             self.window.Render()

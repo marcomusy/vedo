@@ -53,7 +53,7 @@ def _to2d(obj, offset, scale):
     transform.Scale(scale, scale, scale)
     transform.Translate(-offset[0], -offset[1], 0)
     tp.SetTransform(transform)
-    tp.SetInputData(obj)
+    tp.SetInputData(obj.dataset)
     tp.Update()
 
     poly = tp.GetOutput()
@@ -195,7 +195,7 @@ class Figure(Assembly):
         self.axes = None
         if xlim[0] >= xlim[1] or ylim[0] >= ylim[1]:
             vedo.logger.warning(f"Null range for Figure {self.title}... returning an empty Assembly.")
-            super.__init__()
+            super().__init__()
             self.yscale = 0
             return
 
@@ -387,7 +387,7 @@ class Figure(Assembly):
 
             if isinstance(a, vedo.Points):  # hacky way to identify Points
                 if a.ncells == a.npoints:
-                    poly = a
+                    poly = a.dataset
                     if poly.GetNumberOfPolys() == 0 and poly.GetNumberOfLines() == 0:
                         as3d = False
                         rescale = True
@@ -1285,7 +1285,7 @@ class Histogram2D(Figure):
             axes_opts["htitle_offset"] = [-0.49, 0.01, 0]
 
         ############################################### Figure init
-        super.__init__(xlim, ylim, aspect, padding, **fig_kwargs)
+        super().__init__(xlim, ylim, aspect, padding, **fig_kwargs)
 
         if self.yscale:
             ##################### the grid
@@ -2733,9 +2733,9 @@ def _plot_fxy(
         return None
 
     if zlim[0]:
-        poly = Mesh(poly).cut_with_plane((0, 0, zlim[0]), (0, 0, 1))
+        poly = Mesh(poly).cut_with_plane((0, 0, zlim[0]), (0, 0, 1)).dataset
     if zlim[1]:
-        poly = Mesh(poly).cut_with_plane((0, 0, zlim[1]), (0, 0, -1))
+        poly = Mesh(poly).cut_with_plane((0, 0, zlim[1]), (0, 0, -1)).dataset
 
     cmap = ""
     if c in colors.cmaps_names:
@@ -2772,7 +2772,7 @@ def _plot_fxy(
         acts.append(zbandsact)
 
     if show_nan and todel:
-        bb = mesh.GetBounds()
+        bb = mesh.bounds()
         if bb[4] <= 0 and bb[5] >= 0:
             zm = 0.0
         else:
@@ -3004,11 +3004,10 @@ def _plot_spheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha
 
     nanpts = []
     if inans:
-        redpts = spher2cart(newr[inans], theta[inans], phi[inans])
+        redpts = spher2cart(newr[inans], theta[inans], phi[inans]).T
         nanpts.append(shapes.Points(redpts, r=4, c="r"))
 
-    pts = spher2cart(newr, theta, phi)
-
+    pts = spher2cart(newr, theta, phi).T
     ssurf = sg.clone().points(pts)
     if inans:
         ssurf.delete_cells_by_point_index(inans)
@@ -3151,7 +3150,7 @@ def _histogram_hex_bin(
 
     if cmap is not None:
         for h in hexs:
-            z = h.GetBounds()[5]
+            z = h.bounds()[5]
             col = colors.color_map(z, cmap, 0, binmax)
             h.color(col)
 

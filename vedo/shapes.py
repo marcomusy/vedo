@@ -13,7 +13,7 @@ except ImportError:
 import vedo
 from vedo import settings
 from vedo.transformations import pol2cart, cart2spher, spher2cart
-from vedo.colors import cmaps_names, color_map, get_color, printc
+from vedo.colors import cmaps_names, get_color, printc
 from vedo import utils
 from vedo.pointcloud import Points, merge
 from vedo.mesh import Mesh
@@ -588,17 +588,17 @@ class Line(Mesh):
                     image.SetScalarComponentFromFloat(i_dim, 0, 0, 3, 255)
                 i_dim += 1
 
-        polyData = self
+        poly = self.dataset
 
         # Create texture coordinates
         tcoords = vtk.vtkDoubleArray()
         tcoords.SetName("TCoordsStippledLine")
         tcoords.SetNumberOfComponents(1)
-        tcoords.SetNumberOfTuples(polyData.GetNumberOfPoints())
-        for i in range(polyData.GetNumberOfPoints()):
+        tcoords.SetNumberOfTuples(poly.GetNumberOfPoints())
+        for i in range(poly.GetNumberOfPoints()):
             tcoords.SetTypedTuple(i, [i / 2])
-        polyData.GetPointData().SetTCoords(tcoords)
-        polyData.GetPointData().Modified()
+        poly.GetPointData().SetTCoords(tcoords)
+        poly.GetPointData().Modified()
         texture = vtk.vtkTexture()
         texture.SetInputData(image)
         texture.InterpolateOff()
@@ -2686,8 +2686,8 @@ class Sphere(Mesh):
             z = z * (1 + z * z) / 2
             _, theta, phi = cart2spher(x, y, z)
 
-            pts = spher2cart(np.ones_like(phi) * r, theta, phi)
-            self.points(pts.T)
+            pts = spher2cart(np.ones_like(phi) * r, theta, phi).T
+            self.points(pts)
 
         else:
             if utils.is_sequence(res):
@@ -2826,7 +2826,7 @@ class Earth(Mesh):
         tss.SetRadius(r)
         tss.SetThetaResolution(72)
         tss.SetPhiResolution(36)
-        super().__init__(tss, c="w")
+        super().__init__(tss.GetOutput(), c="w")
         atext = vtk.vtkTexture()
         pnm_reader = vtk.vtkJPEGReader()
         fn = vedo.file_io.download(vedo.dataurl + f"textures/earth{style}.jpg", verbose=False)
@@ -3428,7 +3428,7 @@ class Spring(Mesh):
         t.RotateZ(np.rad2deg(phi))
         t.RotateY(np.rad2deg(theta))
         tf = vtk.vtkTransformPolyDataFilter()
-        tf.SetInputData(sp)
+        tf.SetInputData(sp.dataset)
         tf.SetTransform(t)
         tf.Update()
         tuf = vtk.vtkTubeFilter()
@@ -3825,10 +3825,10 @@ class Brace(Mesh):
             cmt.rotate_z(90 + angle)
             cmt.scale(1 / (cx1 - cx0) * s * len(comment) / 5)
             cmt.shift(x1 * (1 + padding2), 0, 0)
-            poly = merge(br, cmt)
+            poly = merge(br, cmt).dataset
 
         else:
-            poly = br
+            poly = br.dataset
 
         tr = vtk.vtkTransform()
         tr.RotateZ(angler)
@@ -4898,7 +4898,7 @@ class ConvexHull(Mesh):
             mesh = Points(pts)
         else:
             mesh = pts
-        apoly = mesh.clean()
+        apoly = mesh.clean().dataset
 
         # Create the convex hull of the pointcloud
         z0, z1 = mesh.zbounds()
@@ -4922,7 +4922,6 @@ class ConvexHull(Mesh):
             out = fe.GetOutput()
 
         super().__init__(out, c=mesh.color(), alpha=0.75)
-        # self.triangulate()
         self.flat()
         self.name = "ConvexHull"
 

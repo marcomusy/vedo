@@ -271,8 +271,6 @@ def fit_plane(points, signed=False):
     xyz_max = data.max(axis=0)
     s = np.linalg.norm(xyz_max - xyz_min)
     pla = vedo.shapes.Plane(datamean, n, s=[s, s])
-    pla.normal = n
-    pla.center = datamean
     pla.variance = dd[2]
     pla.name = "FitPlane"
     pla.top = n
@@ -1073,7 +1071,7 @@ class PointsVisual:
         self.trail_points.pop(0)
 
         data = np.array(self.trail_points) - currentpos + self.trail_offset
-        tpoly = self.trail
+        tpoly = self.trail.dataset
         tpoly.GetPoints().SetData(utils.numpy2vtk(data, dtype=np.float32))
         self.trail.pos(currentpos)
         return self
@@ -1894,40 +1892,19 @@ class Points(PointsVisual, BaseActor):
             self.dataset.DeepCopy(inputobj)
             if self.dataset.GetNumberOfCells() == 0:
                 carr = vtk.vtkCellArray()
-                for i in range(self.dataset.GetPointData()):
+                for i in range(self.dataset.GetNumberOfPoints()):
                     carr.InsertNextCell(1)
                     carr.InsertCellPoint(i)
-                self.SetVerts(carr)
-            c = colors.get_color(c)
-            self.property.SetColor(c)
-            self.property.SetOpacity(alpha)
+                self.dataset.SetVerts(carr)
  
         elif utils.is_sequence(inputobj):  # passing point coords
-            pd = utils.buildPolyData(utils.make3d(inputobj))
-            if utils.is_sequence(c) and len(c) == len(inputobj):
-                cols = vtk.vtkUnsignedCharArray()
-                cols.SetNumberOfComponents(4)
-                cols.SetName("PointsRGBA")
-                for i in range(len(inputobj)):
-                    r, g, b = c[i]
-                    cols.InsertNextTuple4(r, g, b, 255)
-                pd.GetPointData().SetScalars(cols)
-            else:
-                c = colors.get_color(c)
-                self.property.SetColor(c)
-                self.property.SetOpacity(alpha)
-            self.dataset = pd
-            self.pipeline = utils.OperationNode(
-                self, parents=[], comment=f"#pts {self.dataset.GetPointData()}")
-
+            self.dataset = utils.buildPolyData(utils.make3d(inputobj))
+        
         elif isinstance(inputobj, str):
             verts = vedo.file_io.load(inputobj)
             self.filename = inputobj
             self.dataset = verts.dataset
 
-            c = colors.get_color(c)
-            self.property.SetColor(c)
-            self.property.SetOpacity(alpha)
         else:
             # try to extract the points from a generic VTK input data object
             try:
@@ -1936,10 +1913,6 @@ class Points(PointsVisual, BaseActor):
                 for i in range(inputobj.GetPointData().GetNumberOfArrays()):
                     arr = inputobj.GetPointData().GetArray(i)
                     self.dataset.GetPointData().AddArray(arr)
-
-                c = colors.get_color(c)
-                self.property.SetColor(c)
-                self.property.SetOpacity(alpha)
             except:
                 vedo.logger.error(f"cannot build Points from type {type(inputobj)}")
                 raise RuntimeError()
@@ -1947,6 +1920,8 @@ class Points(PointsVisual, BaseActor):
         self.actor.SetMapper(self.mapper)
         self.mapper.SetInputData(self.dataset)
 
+        self.property.SetColor(colors.get_color(c))
+        self.property.SetOpacity(alpha)
         self.property.SetRepresentationToPoints()
         self.property.SetPointSize(r)
         self.property.LightingOff()
@@ -2784,10 +2759,10 @@ class Points(PointsVisual, BaseActor):
             raise RuntimeError
 
         if on == "points":
-            points = source
+            points = source.dataset
         elif on == "cells":
             poly2 = vtk.vtkPolyData()
-            poly2.ShallowCopy(source)
+            poly2.ShallowCopy(source.dataset)
             c2p = vtk.vtkCellDataToPointData()
             c2p.SetInputData(poly2)
             c2p.Update()
@@ -3858,7 +3833,7 @@ class Points(PointsVisual, BaseActor):
         """
         if isinstance(points, Points):
             parents = [points]
-            vpts = points.GetPoints()
+            vpts = points.dataset.GetPoints()
             points = points.points()
         else:
             parents = [self]
@@ -4109,7 +4084,7 @@ class Points(PointsVisual, BaseActor):
             cmesh.pipeline = utils.OperationNode(
                 "generate_mesh",
                 parents=[self, contour],
-                comment=f"#quads {cmesh.GetNumberOfCells()}",
+                comment=f"#quads {cmesh.dataset.GetNumberOfCells()}",
             )
             return cmesh
         #############################################
@@ -4148,14 +4123,14 @@ class Points(PointsVisual, BaseActor):
         else:
             boundary = range(contour.npoints)
 
-        dln = delaunay2d(points, mode="xy", boundaries=[boundary])
+        dln = Points(points).generate_delaunay2d(mode="xy", boundaries=[boundary])
         dln.compute_normals(points=False)  # fixes reversd faces
         dln.lw(0.5)
 
         dln.pipeline = utils.OperationNode(
             "generate_mesh",
             parents=[self, contour],
-            comment=f"#cells {dln.GetNumberOfCells()}",
+            comment=f"#cells {dln.dataset.GetNumberOfCells()}",
         )
         return dln
 

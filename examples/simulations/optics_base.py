@@ -32,7 +32,7 @@ class OpticalElement:
 class Lens(vedo.Mesh, OpticalElement):
     """A refractive object of arbitrary shape defined by an arbitrary mesh"""
     def __init__(self, obj, ref_index="glass"):
-        vedo.Mesh.__init__(self, obj, "blue8", 0.5)
+        vedo.Mesh.__init__(self, obj.dataset, "blue8", 0.5)
         OpticalElement.__init__(self)
         self.name = obj.name
         self.type = "lens"
@@ -59,7 +59,7 @@ class Lens(vedo.Mesh, OpticalElement):
 class Mirror(vedo.Mesh, OpticalElement):
     """A mirror surface defined by an arbitrary Mesh"""
     def __init__(self, obj):
-        vedo.Mesh.__init__(self, obj, "blue8", 0.5)
+        vedo.Mesh.__init__(self, obj.dataset, "blue8", 0.5)
         OpticalElement.__init__(self)
         self.compute_normals(cells=True, points=True)
         self.name = obj.name
@@ -93,7 +93,7 @@ class Absorber(vedo.Grid, OpticalElement):
 class Detector(vedo.Mesh, OpticalElement):
     """A detector surface defined by an arbitrary Mesh"""
     def __init__(self, obj):
-        vedo.Mesh.__init__(self, obj, "k5", 0.5)
+        vedo.Mesh.__init__(self, obj.dataset, "k5", 0.5)
         OpticalElement.__init__(self)
         self.compute_normals()
         self.name = "Detector"

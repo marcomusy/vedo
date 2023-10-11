@@ -33,7 +33,29 @@ examples/volumetric/slicer1.py
 
 ### Broken Examples
 ```
+~/Projects/vedo/examples/advanced
+interpolate_scalar3.py
+recosurface.py
+spline_draw.py
+timer_callback2.py
+warp4.py
+warp6.py
+
+~/Projects/vedo/examples/pyplot
 glyphs2.py
+explore5d.py
+goniometer.py
+histo_2d_a.py
+histo_2d_b.py
+isolines.py
+
+
+~/Projects/vedo/examples/simulations
+airplane1.py
+aspring1.py
+brownian2d.py
+gyroscope1.py
+gyroscope2.py
 
 ```
 

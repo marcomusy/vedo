@@ -483,6 +483,17 @@ class Assembly(vtk.vtkAssembly):
         if i == 1:
             return b[5]
         return (b[4], b[5])
+    
+    def diagonal_size(self):
+        """Get the diagonal size of the bounding box."""
+        b = self.bounds()
+        return np.sqrt((b[1]-b[0])**2 + (b[3]-b[2])**2 + (b[5]-b[4])**2)
+
+    def use_bounds(self, value):
+        """Consider object bounds in rendering."""
+        self.SetUseBounds(value)
+        return self
+
 
     def clone(self):
         """Make a clone copy of the object."""

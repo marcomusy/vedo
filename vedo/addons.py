@@ -4192,7 +4192,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         if isinstance(largestact, Assembly):
             ocf.SetInputData(largestact.unpack(0))
         else:
-            ocf.SetInputData(largestact)
+            ocf.SetInputData(largestact.dataset)
         ocf.Update()
         oc_mapper = vtk.vtkHierarchicalPolyDataMapper()
         oc_mapper.SetInputConnection(0, ocf.GetOutputPort(0))
