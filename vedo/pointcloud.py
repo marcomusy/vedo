@@ -82,10 +82,7 @@ def merge(*meshs, flag=False):
     else:
         msh = Points(mpoly)
 
-    cprp = vtk.vtkProperty()
-    cprp.DeepCopy(objs[0].property)
-    msh.actor.SetProperty(cprp)
-    msh.property = cprp
+    msh.copy_properties_from(objs[0])
 
     msh.pipeline = utils.OperationNode(
         "merge",
@@ -488,8 +485,8 @@ class PointsVisual:
         self.actor = vtk.vtkActor()
         self.property = self.actor.GetProperty()
         self.mapper = vtk.vtkPolyDataMapper()
-
-        self.property_backface = None        
+        
+        self.property_backface = self.actor.GetBackfaceProperty()     
 
         self._scals_idx = 0   # index of the active scalar changed from CLI
         self._ligthingnr = 0  # index of the lighting mode changed from CLI
@@ -500,7 +497,43 @@ class PointsVisual:
         except AttributeError:
             pass
 
+    ##################################################
+    def copy_properties_from(self, source, deep=True, actor_related=True):
+        """
+        Copy properties from another ``Points`` object.
+        """
+        pr = vtk.vtkProperty()
+        if deep:
+            pr.DeepCopy(source.property)
+        else:
+            pr.ShallowCopy(source.property)
+        self.actor.SetProperty(pr)
+        self.property = pr
 
+        if self.actor.GetBackfaceProperty():
+            bfpr = vtk.vtkProperty()
+            bfpr.DeepCopy(source.actor.GetBackfaceProperty())
+            self.actor.SetBackfaceProperty(bfpr)
+            self.property_backface = bfpr
+    
+        if not actor_related:
+            return self
+        
+        # mapper related:
+        self.mapper.SetScalarVisibility(source.mapper.GetScalarVisibility())
+        self.mapper.SetScalarMode(source.mapper.GetScalarMode())
+        self.mapper.SetScalarRange(source.mapper.GetScalarRange())
+        self.mapper.SetLookupTable(source.mapper.GetLookupTable())
+        self.mapper.SetColorMode(source.mapper.GetColorMode())
+        self.mapper.SetInterpolateScalarsBeforeMapping(source.mapper.GetInterpolateScalarsBeforeMapping())
+        self.mapper.SetUseLookupTableScalarRange(source.mapper.GetUseLookupTableScalarRange())
+
+        self.actor.SetPickable(source.actor.GetPickable())
+        self.actor.SetDragable(source.actor.GetDragable())
+        self.actor.SetTexture(source.actor.GetTexture())
+        self.actor.SetVisibility(source.actor.GetVisibility())
+        return self
+    
     def color(self, c=False, alpha=None):
         """
         Set/get mesh's color.
@@ -1048,7 +1081,7 @@ class PointsVisual:
 
     def _compute_shadow(self, plane, point, direction):
         shad = self.clone()
-        shad.GetPointData().SetTCoords(None) # remove any texture coords
+        shad.dataset.GetPointData().SetTCoords(None) # remove any texture coords
         shad.name = "Shadow"
 
         pts = shad.points()
@@ -1793,7 +1826,6 @@ class PointsVisual:
         return self
 
 
-
 ###################################################
 class Points(PointsVisual, BaseActor):
     """Work with point clouds."""
@@ -1832,7 +1864,6 @@ class Points(PointsVisual, BaseActor):
             ![](https://vedo.embl.es/images/feats/fibonacci.png)
         """
         # super().__init__()  ## super is not working here
-        # vtk.vtkPolyData.__init__(self)
         BaseActor.__init__(self)
         PointsVisual.__init__(self)
 
@@ -1840,11 +1871,12 @@ class Points(PointsVisual, BaseActor):
 
         self.transform = LinearTransform()
         self.actor.data = self
-        # self.name = "Points" # better not to give it a name here
 
         if inputobj is None:  ####################
             return
         ########################################
+
+        self.name = "Points" # better not to give it a name here?
 
         if isinstance(inputobj, vedo.BaseActor):
             inputobj = inputobj.points()  # numpy
@@ -1912,12 +1944,12 @@ class Points(PointsVisual, BaseActor):
                 vedo.logger.error(f"cannot build Points from type {type(inputobj)}")
                 raise RuntimeError()
 
+        self.actor.SetMapper(self.mapper)
+        self.mapper.SetInputData(self.dataset)
+
         self.property.SetRepresentationToPoints()
         self.property.SetPointSize(r)
         self.property.LightingOff()
-
-        self.actor.SetMapper(self.mapper)
-        self.mapper.SetInputData(self.dataset)
 
         self.pipeline = utils.OperationNode(
             self, parents=[], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
@@ -2055,36 +2087,10 @@ class Points(PointsVisual, BaseActor):
             cloned = vedo.Mesh(self.dataset)
         else:
             cloned = Points(self.dataset)
-
-        pr = vtk.vtkProperty()
-        pr.DeepCopy(self.property)
-        cloned.actor.SetProperty(pr)
-        cloned.property = pr
-
-        if self.actor.GetBackfaceProperty():
-            bfpr = vtk.vtkProperty()
-            bfpr.DeepCopy(self.actor.GetBackfaceProperty())
-            cloned.actor.SetBackfaceProperty(bfpr)
-            cloned.property_backface = bfpr
     
         cloned.transform = self.transform.clone()
 
-        mp = cloned.mapper
-        sm = self.mapper
-        mp.SetScalarVisibility(sm.GetScalarVisibility())
-        mp.SetScalarRange(sm.GetScalarRange())
-        mp.SetColorMode(sm.GetColorMode())
-        lsr = sm.GetUseLookupTableScalarRange()
-        mp.SetUseLookupTableScalarRange(lsr)
-        mp.SetScalarMode(sm.GetScalarMode())
-        lut = sm.GetLookupTable()
-        if lut:
-            mp.SetLookupTable(lut)
-
-        if self.actor.GetTexture():
-            cloned.texture(self.actor.GetTexture())
-
-        cloned.actor.SetPickable(self.actor.GetPickable())
+        cloned.copy_properties_from(self)
 
         cloned.base = np.array(self.base)
         cloned.top = np.array(self.top)
@@ -2383,7 +2389,7 @@ class Points(PointsVisual, BaseActor):
         self.dataset.DeepCopy(cpd.GetOutput())
         self.pipeline = utils.OperationNode(
             "clean", parents=[self],
-            comment=f"#pts {self.dataset.GetPointData()}"
+            comment=f"#pts {self.dataset.GetNumberOfPoints()}"
         )
         return self
 

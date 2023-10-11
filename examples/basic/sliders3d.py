@@ -23,5 +23,5 @@ plt.add_slider3d(
     title="position",
 )
 
-plt.show(mesh, __doc__, axes=11, bg='bb', bg2='navy')
+plt.show(mesh, __doc__, axes=11, bg='bb', bg2='navy', elevation=-30)
 plt.close()

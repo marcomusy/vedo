@@ -43,8 +43,7 @@ class Event:
         "priority",
         "at",
         "object",
-        "actor",  # obsolete use object instead
-        "vtk_actor",
+        "actor",
         "picked3d",
         "keypress",
         "picked2d",
@@ -1693,7 +1692,7 @@ class Plotter:
             vedo.logger.error("in add_spline_tool(), No interactor found.")
             raise RuntimeError
         sw.On()
-        sw.Initialize(sw.points.polydata())
+        sw.Initialize(sw.points.dataset)
         if sw.closed:
             sw.representation.ClosedLoopOn()
         sw.representation.SetRenderer(self.renderer)
@@ -2345,7 +2344,6 @@ class Plotter:
         event.at = self.renderers.index(self.renderer)
         event.keypress = key
         if enable_picking:
-            event.vtk_actor = actor
             try:
                 event.actor = actor.data  # obsolete use object instead
                 event.object = actor.data
@@ -4036,7 +4034,6 @@ class Plotter:
 
         elif key == "x":
             if self.justremoved is None:
-                print(self.get_meshes())
                 if self.clicked_object in self.get_meshes() or isinstance(
                     self.clicked_object, vtk.vtkAssembly
                 ):
@@ -4084,8 +4081,8 @@ class Plotter:
             self.color_picker([x, y], verbose=True)
 
         elif key == "y":
-            if self.clicked_object and self.clicked_object.data.pipeline:
-                self.clicked_object.data.pipeline.show()
+            if self.clicked_object and self.clicked_object.pipeline:
+                self.clicked_object.pipeline.show()
 
         if iren:
             iren.Render()

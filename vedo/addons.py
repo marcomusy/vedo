@@ -310,13 +310,13 @@ class LegendBox(shapes.TextBase, vtk.vtkLegendBoxActor):
             else:
                 col = get_color(c)
             if markers is None:  # default
-                poly = e
+                poly = e.dataset
             else:
                 marker = markers[i] if utils.is_sequence(markers) else markers
                 if isinstance(marker, vedo.Points):
-                    poly = marker.clone(deep=False).normalize().shift(0, 1, 0)
+                    poly = marker.clone(deep=False).normalize().shift(0, 1, 0).dataset
                 else:  # assume string marker
-                    poly = vedo.shapes.Marker(marker, s=1).shift(0, 1, 0)
+                    poly = vedo.shapes.Marker(marker, s=1).shift(0, 1, 0).dataset
 
             self.SetEntry(n, poly, ti, col)
             n += 1
@@ -768,7 +768,7 @@ def Light(pos, focal_point=(0, 0, 0), angle=180, c=None, intensity=1):
         `plotter.Plotter.remove_lights()`
 
     Examples:
-        - [lights.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/lights.py)
+        - [light_sources.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/light_sources.py)
 
             ![](https://vedo.embl.es/images/basic/lights.png)
     """

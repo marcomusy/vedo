@@ -197,7 +197,7 @@ class Glyph(Mesh):
         """
         if utils.is_sequence(mesh):
             # create a cloud of points
-            poly = Points(mesh).dataset
+            poly = utils.buildPolyData(mesh)
         else:
             poly = mesh.dataset
 
@@ -219,7 +219,10 @@ class Glyph(Mesh):
         gly = vtk.vtkGlyph3D()
         gly.GeneratePointIdsOn()
         gly.SetInputData(poly)
-        gly.SetSourceData(glyph.dataset)
+        try:
+            gly.SetSourceData(glyph)
+        except TypeError:
+            gly.SetSourceData(glyph.dataset)
 
         if scale_by_scalar:
             gly.SetScaleModeToScaleByScalar()
@@ -1315,7 +1318,7 @@ class NormalLines(Mesh):
 
     def __init__(self, msh, ratio=1, on="cells", scale=1.0):
 
-        poly = msh.clone().compute_normals()
+        poly = msh.clone().compute_normals().dataset
 
         if "cell" in on:
             centers = vtk.vtkCellCenters()
@@ -1831,7 +1834,7 @@ class Ribbon(Mesh):
             #############################################
             ribbon_filter = vtk.vtkRibbonFilter()
             aline = Line(line1)
-            ribbon_filter.SetInputData(aline)
+            ribbon_filter.SetInputData(aline.dataset)
             if width is None:
                 width = aline.diagonal_size() / 20.0
             ribbon_filter.SetWidth(width)

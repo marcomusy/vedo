@@ -33,6 +33,7 @@ examples/volumetric/slicer1.py
 
 ### Broken Examples
 ```
+glyphs2.py
 
 ```
 

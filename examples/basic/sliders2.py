@@ -11,14 +11,14 @@ def slider1(widget, event):
     widget.title = get_color_name(val)
     cube.color(val)
 
-def button_func(obj, ename):
+def button_func(obj, event):
     cube.alpha(1 - cube.alpha()) # toggle mesh transparency
     sphere.alpha(1 - sphere.alpha())
     button.switch()              # change to next status
 
 ######
-sphere = Sphere(r=0.6).alpha(0.9).color(0)
-cube = Cube().alpha(0.9).color(0)
+sphere = Sphere(r=0.6).lw(1).color(0).alpha(0.8)
+cube = Cube().lw(1).color(0).alpha(0.8)
 
 plt = Plotter(N=2, axes=True)
 

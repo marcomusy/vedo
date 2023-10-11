@@ -1258,7 +1258,7 @@ class BaseActor(Base3DProp):
                 vedo.logger.error(f"in gradient: no scalars found for {on}")
                 raise RuntimeError
 
-        gra.SetInputData(self.datset)
+        gra.SetInputData(self.dataset)
         gra.SetInputScalars(tp, input_array)
         gra.SetResultArrayName("Gradient")
         gra.SetFasterApproximation(fast)

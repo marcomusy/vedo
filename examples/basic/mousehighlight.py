@@ -10,9 +10,9 @@ for i in range(25):
     spheres.append(s)
 
 def func(evt):
-    if not evt.actor:
+    if not evt.object:
         return
-    sil = evt.actor.silhouette().linewidth(6).c('red5')
+    sil = evt.object.silhouette().linewidth(6).c('red5')
     sil.name = "silu" # give it a name so we can remove the old one
     msg.text("You clicked: "+evt.actor.name)
     plt.remove('silu').add(sil)

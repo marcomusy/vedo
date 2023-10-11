@@ -112,22 +112,22 @@ class MeshVisual:
         """
         Set/get mesh's backface color.
         """
-        backProp = self.actor.GetBackfaceProperty()
+        back_prop = self.actor.GetBackfaceProperty()
 
         if bc is None:
-            if backProp:
-                return backProp.GetDiffuseColor()
+            if back_prop:
+                return back_prop.GetDiffuseColor()
             return self
 
         if self.property.GetOpacity() < 1:
             return self
 
-        if not backProp:
-            backProp = vtk.vtkProperty()
+        if not back_prop:
+            back_prop = vtk.vtkProperty()
 
-        backProp.SetDiffuseColor(get_color(bc))
-        backProp.SetOpacity(self.property.GetOpacity())
-        self.actor.SetBackfaceProperty(backProp)
+        back_prop.SetDiffuseColor(get_color(bc))
+        back_prop.SetOpacity(self.property.GetOpacity())
+        self.actor.SetBackfaceProperty(back_prop)
         self.mapper.ScalarVisibilityOff()
         return self
 
@@ -171,7 +171,7 @@ class Mesh(MeshVisual, Points):
     Build an instance of object `Mesh` derived from `vedo.PointCloud`.
     """
 
-    def __init__(self, inputobj=None, c=None, alpha=1):
+    def __init__(self, inputobj=None, c='gold', alpha=1):
         """
         Input can be a list of vertices and their connectivity (faces of the polygonal mesh),
         or directly a `vtkPolydata` object.
@@ -194,176 +194,98 @@ class Mesh(MeshVisual, Points):
         """
         super().__init__()
 
-        self.mapper.SetInterpolateScalarsBeforeMapping(
-            vedo.settings.interpolate_scalars_before_mapping
-        )
-
-        if vedo.settings.use_polygon_offset:
-            self.mapper.SetResolveCoincidentTopologyToPolygonOffset()
-            pof, pou = (vedo.settings.polygon_offset_factor, vedo.settings.polygon_offset_units)
-            self.mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
-
-        inputtype = str(type(inputobj))
-
-        _data = inputobj
-
         if inputobj is None:
-            _data = vtk.vtkPolyData()
+            pass
 
         elif isinstance(inputobj, vtk.vtkActor):
-            _data = inputobj.GetMapper().GetInput()
-            self.mapper.SetScalarVisibility(inputobj.GetMapper().GetScalarVisibility())
+            self.dataset.DeepCopy(inputobj.GetMapper().GetInput())
+            v = inputobj.GetMapper().GetScalarVisibility()
+            self.mapper.SetScalarVisibility(v)
             pr = vtk.vtkProperty()
             pr.DeepCopy(inputobj.GetProperty())
             self.actor.SetProperty(pr)
             self.property = pr
 
         elif isinstance(inputobj, vtk.vtkPolyData):
-            _data = inputobj
             if inputobj.GetNumberOfCells() == 0:
                 carr = vtk.vtkCellArray()
                 for i in range(inputobj.GetNumberOfPoints()):
                     carr.InsertNextCell(1)
                     carr.InsertCellPoint(i)
                 inputobj.SetVerts(carr)
+            self.dataset.DeepCopy(inputobj)
+
+        elif is_sequence(inputobj):
+            ninp = len(inputobj)
+            if ninp == 2:  # assume input is [vertices, faces]
+                self.dataset = buildPolyData(inputobj[0], inputobj[1])
+            else:          # assume input is [vertices]
+                self.dataset = buildPolyData(inputobj, None)
+
+        elif isinstance(inputobj, str):
+            self.dataset = vedo.file_io.load(inputobj).dataset
+            self.filename = inputobj
 
         elif isinstance(inputobj, (vtk.vtkStructuredGrid, vtk.vtkRectilinearGrid)):
             gf = vtk.vtkGeometryFilter()
             gf.SetInputData(inputobj)
             gf.Update()
-            _data = gf.GetOutput()
+            self.dataset = gf.GetOutput()
 
-        elif "meshlab" in inputtype:
-            _data = vedo.utils.meshlab2vedo(inputobj)
+        elif "meshlab" in str(type(inputobj)):
+            self.dataset = vedo.utils.meshlab2vedo(inputobj)
 
-        elif "trimesh" in inputtype:
-            _data = vedo.utils.trimesh2vedo(inputobj)
+        elif "trimesh" in str(type(inputobj)):
+            self.dataset = vedo.utils.trimesh2vedo(inputobj)
 
-        elif "meshio" in inputtype:
+        elif "meshio" in str(type(inputobj)):
+            # self.dataset = vedo.utils.meshio2vedo(inputobj) ##TODO
             if len(inputobj.cells) > 0:
                 mcells = []
                 for cellblock in inputobj.cells:
                     if cellblock.type in ("triangle", "quad"):
                         mcells += cellblock.data.tolist()
-                _data = buildPolyData(inputobj.points, mcells)
+                self.dataset = buildPolyData(inputobj.points, mcells)
             else:
-                _data = buildPolyData(inputobj.points, None)
+                self.dataset = buildPolyData(inputobj.points, None)
             # add arrays:
             try:
                 if len(inputobj.point_data) > 0:
                     for k in inputobj.point_data.keys():
                         vdata = numpy2vtk(inputobj.point_data[k])
                         vdata.SetName(str(k))
-                        _data.GetPointData().AddArray(vdata)
+                        self.dataset.GetPointData().AddArray(vdata)
             except AssertionError:
                 print("Could not add meshio point data, skip.")
-            # try:
-            #     if len(inputobj.cell_data):
-            #         for k in inputobj.cell_data.keys():
-            #             #print(inputobj.cell_data)
-            #             exit()
-            #             vdata = numpy2vtk(inputobj.cell_data[k])
-            #             vdata.SetName(str(k))
-            #             _data.GetCellData().AddArray(vdata)
-            # except AssertionError:
-            #     print("Could not add meshio cell data, skip.")
-
-        elif is_sequence(inputobj):
-            ninp = len(inputobj)
-            if ninp == 0:
-                _data = vtk.vtkPolyData()
-            elif ninp == 2:  # assume [vertices, faces]
-                _data = buildPolyData(inputobj[0], inputobj[1])
-            else:  # assume [vertices] or vertices
-                _data = buildPolyData(inputobj, None)
-
-        elif hasattr(inputobj, "GetOutput"):  # passing a vtk algorithm
-            if hasattr(inputobj, "Update"):
-                inputobj.Update()
-            if isinstance(inputobj.GetOutput(), vtk.vtkPolyData):
-                _data = inputobj.GetOutput()
-            else:
-                gf = vtk.vtkGeometryFilter()
-                gf.SetInputData(inputobj.GetOutput())
-                gf.Update()
-                _data = gf.GetOutput()
-
-        elif isinstance(inputobj, str):
-            dataset = vedo.file_io.load(inputobj).dataset
-            self.filename = inputobj
-            _data = dataset
 
         else:
-            # try:
-            #     gf = vtk.vtkGeometryFilter()
-            #     gf.SetInputData(inputobj)
-            #     gf.Update()
-            #     _data = gf.GetOutput()
-            # except:
-            vedo.logger.error(f"cannot build mesh from type {inputtype}")
-            raise RuntimeError()
-
-        self.dataset = _data
+            try:
+                gf = vtk.vtkGeometryFilter()
+                gf.SetInputData(inputobj)
+                gf.Update()
+                self.dataset = gf.GetOutput()
+            except:
+                vedo.logger.error(f"cannot build mesh from type {inputtype}")
+                raise RuntimeError()
 
         self.mapper.SetInputData(self.dataset)
         self.actor.SetMapper(self.mapper)
 
         self.property.SetInterpolationToPhong()
-
-        # set the color by c or by scalar
-        if _data:
-
-            arrexists = False
-
-            if c is None:
-                ptdata = self.dataset.GetPointData()
-                cldata = self.dataset.GetCellData()
-                exclude = ["normals", "tcoord"]
-
-                if cldata.GetNumberOfArrays():
-                    for i in range(cldata.GetNumberOfArrays()):
-                        iarr = cldata.GetArray(i)
-                        if iarr:
-                            icname = iarr.GetName()
-                            if icname and all(s not in icname.lower() for s in exclude):
-                                cldata.SetActiveScalars(icname)
-                                self.mapper.ScalarVisibilityOn()
-                                self.mapper.SetScalarModeToUseCellData()
-                                self.mapper.SetScalarRange(iarr.GetRange())
-                                arrexists = True
-                                break  # stop at first good one
-
-                # point come after so it has priority
-                if ptdata.GetNumberOfArrays():
-                    for i in range(ptdata.GetNumberOfArrays()):
-                        iarr = ptdata.GetArray(i)
-                        if iarr:
-                            ipname = iarr.GetName()
-                            if ipname and all(s not in ipname.lower() for s in exclude):
-                                ptdata.SetActiveScalars(ipname)
-                                self.mapper.ScalarVisibilityOn()
-                                self.mapper.SetScalarModeToUsePointData()
-                                self.mapper.SetScalarRange(iarr.GetRange())
-                                arrexists = True
-                                break  # stop at first good one
-
-            if not arrexists:
-                if c is None:
-                    c = "gold"
-                    c = get_color(c)
-                elif isinstance(c, float) and c <= 1:
-                    c = color_map(c, "rainbow", 0, 1)
-                else:
-                    c = get_color(c)
-                self.property.SetColor(c)
-                self.property.SetAmbient(0.1)
-                self.property.SetDiffuse(1)
-                self.property.SetSpecular(0.05)
-                self.property.SetSpecularPower(5)
-                self.mapper.ScalarVisibilityOff()
+        self.property.SetColor(get_color(c))
 
         if alpha is not None:
             self.property.SetOpacity(alpha)
+
+        self.mapper.SetInterpolateScalarsBeforeMapping(
+            vedo.settings.interpolate_scalars_before_mapping
+        )
+
+        if vedo.settings.use_polygon_offset:
+            self.mapper.SetResolveCoincidentTopologyToPolygonOffset()
+            pof = vedo.settings.polygon_offset_factor
+            pou = vedo.settings.polygon_offset_units
+            self.mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
 
         n = self.dataset.GetNumberOfPoints()
         self.pipeline = OperationNode(self, comment=f"#pts {n}")
@@ -589,8 +511,8 @@ class Mesh(MeshVisual, Points):
 
             ![](https://vedo.embl.es/images/basic/texturecubes.png)
         """
-        pd = self
-        outimg = None
+        pd = self.dataset
+        out_img = None
 
         if tname is None:  # disable texture
             pd.GetPointData().SetTCoords(None)
@@ -602,11 +524,11 @@ class Mesh(MeshVisual, Points):
 
         elif isinstance(tname, vedo.Picture):
             tu = vtk.vtkTexture()
-            outimg = tname
+            out_img = tname
 
         elif is_sequence(tname):
             tu = vtk.vtkTexture()
-            outimg = vedo.picture._get_img(tname)
+            out_img = vedo.picture._get_img(tname)
 
         elif isinstance(tname, str):
             tu = vtk.vtkTexture()
@@ -637,7 +559,7 @@ class Mesh(MeshVisual, Points):
                 return self
             reader.SetFileName(fn)
             reader.Update()
-            outimg = reader.GetOutput()
+            out_img = reader.GetOutput()
 
         else:
             vedo.logger.error(f"in texture() cannot understand input {type(tname)}")
@@ -703,8 +625,8 @@ class Mesh(MeshVisual, Points):
                 pd.GetPointData().SetTCoords(tc)
                 pd.GetPointData().Modified()
 
-        if outimg:
-            tu.SetInputData(outimg)
+        if out_img:
+            tu.SetInputData(out_img)
         tu.SetInterpolate(interpolate)
         tu.SetRepeat(repeat)
         tu.SetEdgeClamp(edge_clamp)
@@ -739,7 +661,7 @@ class Mesh(MeshVisual, Points):
                         new_points[id3] = new_points[id1]
             self.points(new_points)
 
-        self.Modified()
+        self.dataset.Modified()
         self._texture = {
             "tname": tname,
             "tcoords": tcoords,
@@ -803,7 +725,7 @@ class Mesh(MeshVisual, Points):
         - `normals=True` reverses the normals by multiplying the normal vector by -1
             (both point and cell normals, if present).
         """
-        poly = self
+        poly = self.dataset
 
         if is_sequence(cells):
             for cell in cells:
@@ -1641,12 +1563,12 @@ class Mesh(MeshVisual, Points):
         poly = self
         points = vtk.vtkPoints()
         points.InsertNextPoint(point)
-        pointsPolydata = vtk.vtkPolyData()
-        pointsPolydata.SetPoints(points)
+        poly = vtk.vtkPolyData()
+        poly.SetPoints(points)
         sep = vtk.vtkSelectEnclosedPoints()
         sep.SetTolerance(tol)
         sep.CheckSurfaceOff()
-        sep.SetInputData(pointsPolydata)
+        sep.SetInputData(poly)
         sep.SetSurfaceData(poly)
         sep.Update()
         return sep.IsInside(0)
@@ -1667,19 +1589,19 @@ class Mesh(MeshVisual, Points):
             ![](https://vedo.embl.es/images/basic/pca.png)
         """
         if isinstance(pts, Points):
-            pointsPolydata = pts
+            poly = pts.dataset
             ptsa = pts.points()
         else:
             ptsa = np.asarray(pts)
             vpoints = vtk.vtkPoints()
             vpoints.SetData(numpy2vtk(ptsa, dtype=np.float32))
-            pointsPolydata = vtk.vtkPolyData()
-            pointsPolydata.SetPoints(vpoints)
+            poly = vtk.vtkPolyData()
+            poly.SetPoints(vpoints)
 
         sep = vtk.vtkSelectEnclosedPoints()
         # sep = vtk.vtkExtractEnclosedPoints()
         sep.SetTolerance(tol)
-        sep.SetInputData(pointsPolydata)
+        sep.SetInputData(poly)
         sep.SetSurfaceData(self.dataset)
         sep.SetInsideOut(invert)
         sep.Update()
@@ -1690,7 +1612,7 @@ class Mesh(MeshVisual, Points):
 
         if isinstance(pts, Points):
             varr.SetName("IsInside")
-            pts.GetPointData().AddArray(varr)
+            pts.dataset.GetPointData().AddArray(varr)
 
         if return_ids:
             return ids
@@ -2296,15 +2218,14 @@ class Mesh(MeshVisual, Points):
         bf = vtk.vtkIntersectionPolyDataFilter()
         bf.SetGlobalWarningDisplay(0)
         poly1 = self.dataset
-        poly2 = mesh2
+        poly2 = mesh2.dataset
         bf.SetTolerance(tol)
         bf.SetInputData(0, poly1)
         bf.SetInputData(1, poly2)
         bf.Update()
-        msh = Mesh(bf.GetOutput(), "k", 1).lighting("off")
+        msh = Mesh(bf.GetOutput(), c="k", alpha=1).lighting("off")
         msh.property.SetLineWidth(3)
         msh.name = "SurfaceIntersection"
-
         msh.pipeline = OperationNode(
             "intersect_with", parents=[self, mesh2], comment=f"#pts {msh.npoints}"
         )
