@@ -512,8 +512,9 @@ class Base3DProp:
             # rotate around its origin
             rot[a](angle)
         else:
-            if around == "itself":
-                around = self.GetPosition()
+            if not utils.is_sequence(around):
+                if around == "itself":
+                    around = self.GetPosition()
             # displacement needed to bring it back to the origin
             # and disregard origin
             disp = around - np.array(self.GetOrigin())
@@ -2216,6 +2217,13 @@ class BaseGrid(BaseActor):
                 self._update(cout)
                 self.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
                 return self
+            elif isinstance(self, vedo.TetMesh):
+                # This is just to make sure if the input is a TetMesh, the code 
+                #   will still work
+                self._update(cout)
+                self.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
+                return self
+
             ug.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
             return ug
 
