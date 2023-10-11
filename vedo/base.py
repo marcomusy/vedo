@@ -533,7 +533,6 @@ class Base3DProp:
     def reorient(self, 
             newaxis, 
             initaxis=None,
-            around=(0,0,0),
             rotation=0,
             rad=False, 
             xyplane=True,
@@ -549,7 +548,6 @@ class Base3DProp:
             initaxis = np.asarray(self.top) - self.base
  
         q = self.transform.position
-
         LT = LinearTransform()
         LT.reorient(newaxis, initaxis, q, rotation, rad, xyplane)
         return self.apply_transform(LT)
@@ -583,7 +581,7 @@ class Base3DProp:
         else:
             if origin is True:
                 LT.scale(s, origin=self.transform.position)
-            elif origin is True:
+            elif origin is False:
                 LT.scale(s, origin=False)
             else:
                 LT.scale(s, origin=origin)

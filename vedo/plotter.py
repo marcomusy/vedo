@@ -2607,7 +2607,7 @@ class Plotter:
             plt = Plotter()
             plt.show(elli)
 
-            xyscreen = plt.compute_screen_positions(elli)
+            xyscreen = plt.compute_screen_coordinates(elli)
             print('xyscreen coords:', xyscreen)
 
             # simulate an event happening at one point

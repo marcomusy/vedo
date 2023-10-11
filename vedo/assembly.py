@@ -23,6 +23,18 @@ __all__ = ["Group", "Assembly", "procrustes_alignment"]
 
 
 #################################################
+def _is_sequence(arg):
+    """Check if the input is iterable."""
+    if hasattr(arg, "strip"):
+        return False
+    if hasattr(arg, "__getslice__"):
+        return True
+    if hasattr(arg, "__iter__"):
+        return True
+    return False
+
+
+#################################################
 def procrustes_alignment(sources, rigid=False):
     """
     Return an ``Assembly`` of aligned source meshes with the `Procrustes` algorithm.
@@ -96,7 +108,7 @@ class Group(vtk.vtkPropAssembly):
 
         for a in vedo.utils.flatten(objects):
             if a:
-                self.AddPart(a)
+                self.AddPart(a.actor)
 
         self.PickableOff()
 
@@ -227,12 +239,6 @@ class Assembly(vtk.vtkAssembly):
         self.actor = self
 
         self.name = ""
-        self.trail = None
-        self.trail_points = []
-        self.trail_segment_size = 0
-        self.trail_offset = None
-        self.shadows = []
-        self.info = {}
         self.rendered_at = set()
         self.scalarbar = None
 
@@ -374,11 +380,18 @@ class Assembly(vtk.vtkAssembly):
         return self
 
     # TODO ####
-    def propagate_transform(self):
-        """Propagate the transformation to all parts."""
-        # navigate the assembly and apply the transform to all parts
-        # and reset position, orientation and scale of the assembly
-        raise NotImplementedError()
+    # def propagate_transform(self):
+    #     """Propagate the transformation to all parts."""
+    #     # navigate the assembly and apply the transform to all parts
+    #     # and reset position, orientation and scale of the assembly
+    #     for i in range(self.GetNumberOfPaths()):
+    #         path = self.GetPath(i)
+    #         obj = path.GetLastNode().GetViewProp()
+    #         obj.SetUserTransform(self.transform.T)
+    #         obj.SetPosition(0, 0, 0)
+    #         obj.SetOrientation(0, 0, 0)
+    #         obj.SetScale(1, 1, 1)
+    #     raise NotImplementedError()
 
 
     def pos(self, x=None, y=None, z=None):
@@ -450,7 +463,6 @@ class Assembly(vtk.vtkAssembly):
         """Rotate object around z axis."""
         LT = LinearTransform().rotate_z(angle)
         return self.apply_transform(LT)
-
 
     def bounds(self):
         """
@@ -553,7 +565,7 @@ class Assembly(vtk.vtkAssembly):
                 elem.SetPickable(value)
 
         # set property for self using inherited pickable()
-        return super().pickable(value=value)
+        return self
 
     def show(self, **options):
         """
@@ -566,3 +578,408 @@ class Assembly(vtk.vtkAssembly):
         Returns the ``Plotter`` class instance.
         """
         return vedo.plotter.show(self, **options)
+
+
+###############################################################################
+class Gruppo:
+
+    def __init__(self, *meshes):
+        """
+        Group many and treat them as a single new object.
+        """
+
+        self.actor = vtk.vtkPropAssembly()
+        self.actor.data = self #reference to this object
+
+        self.rendered_at = set()
+
+        self.name = "Gruppo"
+
+        self.objects = []
+
+        self.transform = LinearTransform()
+
+        for m in vedo.utils.flatten(meshes):
+            if m:
+                self.objects.append(m)
+                self.actor.AddPart(m.actor)
+                if hasattr(m, "scalarbar") and m.scalarbar is not None:
+                    self.objects.append(m.scalarbar)
+                    self.actor.AddPart(m.scalarbar.actor)
+
+        self.actor.PickableOff()
+
+        if self.objects:
+            self.base = self.objects[0].base
+            self.top = self.objects[0].top
+        else:
+            self.base = None
+            self.top = None
+
+        self.pipeline = vedo.utils.OperationNode(
+            "Gruppo",
+            parents=self.objects,
+            comment=f"#objects {len(self.objects)}",
+            c="#f08080",
+        )
+        ##########################################
+
+    def _repr_html_(self):
+        """
+        HTML representation of the Gruppo object for Jupyter Notebooks.
+
+        Returns:
+            HTML text with the image and some properties.
+        """
+        import io
+        import base64
+        from PIL import Image
+
+        library_name = "vedo.assembly.Gruppo"
+        help_url = "https://vedo.embl.es/docs/vedo/assembly.html"
+
+        arr = self.thumbnail(zoom=1.1, elevation=-60)
+
+        im = Image.fromarray(arr)
+        buffered = io.BytesIO()
+        im.save(buffered, format="PNG", quality=100)
+        encoded = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        url = "data:image/png;base64," + encoded
+        image = f"<img src='{url}'></img>"
+
+        # statisitics
+        bounds = "<br/>".join(
+            [
+                vedo.utils.precision(min_x, 4) + " ... " + vedo.utils.precision(max_x, 4)
+                for min_x, max_x in zip(self.bounds()[::2], self.bounds()[1::2])
+            ]
+        )
+
+        help_text = ""
+        if self.name:
+            help_text += f"<b> {self.name}: &nbsp&nbsp</b>"
+        help_text += '<b><a href="' + help_url + '" target="_blank">' + library_name + "</a></b>"
+        if self.filename:
+            dots = ""
+            if len(self.filename) > 30:
+                dots = "..."
+            help_text += f"<br/><code><i>({dots}{self.filename[-30:]})</i></code>"
+
+        allt = [
+            "<table>",
+            "<tr>",
+            "<td>",
+            image,
+            "</td>",
+            "<td style='text-align: center; vertical-align: center;'><br/>",
+            help_text,
+            "<table>",
+            "<tr><td><b> nr. of objects </b></td><td>"
+            + str(self.GetNumberOfPaths())
+            + "</td></tr>",
+            "<tr><td><b> position </b></td><td>" + str(self.transformation.position) + "</td></tr>",
+            "<tr><td><b> diagonal size </b></td><td>"
+            + vedo.utils.precision(self.diagonal_size(), 5)
+            + "</td></tr>",
+            "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>" + str(bounds) + "</td></tr>",
+            "</table>",
+            "</table>",
+        ]
+        return "\n".join(allt)
+
+    def __add__(self, obj):
+        """
+        Add an object to the `Gruppo`
+        """
+        self.objects.append(obj)
+        self.AddPart(obj.actor)
+
+        if hasattr(obj, "scalarbar") and obj.scalarbar is not None:
+            self.objects.append(obj.scalarbar)
+            self.AddPart(obj.scalarbar.actor)
+        return self
+
+    def __iadd__(self, *obj):
+        """
+        Add an object to the group
+        """
+        for ob in obj:
+            if ob:
+                self.objects.append(ob)
+                self.AddPart(ob.actor)
+            if hasattr(ob, "scalarbar") and ob.scalarbar is not None:
+                self.objects.append(ob.scalarbar)
+                self.AddPart(ob.scalarbar.actor)
+        return self
+    
+    def __contains__(self, obj):
+        """Allows to use ``in`` to check if an object is in the `Gruppo`."""
+        return obj in self.objects
+
+    def pickable(self, value):
+        """Set/get the pickability property of an assembly and its elements"""
+        # set property to each element
+        for elem in self.recursive_unpack():
+            elem.pickable(value)
+        self.actor.SetPickable(value)
+        return self
+
+    def use_bounds(self, value):
+        """Consider object bounds in rendering."""
+        self.actor.SetUseBounds(value)
+        return self
+
+    def unpack(self):
+        """Unpack the group into its elements"""
+        elements = []
+        self.actor.InitPathTraversal()
+        parts = self.actor.GetParts()
+        parts.InitTraversal()
+        for i in range(parts.GetNumberOfItems()):
+            ele = parts.GetItemAsObject(i)
+            elements.append(ele)
+        return elements
+
+    def clone(self):
+        """Make a clone copy of the object."""
+        newlist = []
+        for a in self.objects:
+            newlist.append(a.clone())
+        newg = Gruppo(newlist)
+        newg.name = self.name
+        newg.transform = self.transform.clone()
+        return newg
+
+    def diagonal_size(self):
+        """Get the diagonal size of the bounding box."""
+        b = self.bounds()
+        return np.sqrt((b[1]-b[0])**2 + (b[3]-b[2])**2 + (b[5]-b[4])**2)
+
+    # def g_unpack(self):
+    #     """Unpack the group into its elements"""
+        
+    #     return self.objects
+
+    # def r_unpack(self):
+    #     """Flatten out an Gruppo."""
+
+    #     def _genflatten(lst):
+    #         if not lst:
+    #             return []
+    #         ##
+    #         # if isinstance(lst[-1], Gruppo):
+    #         #     lst = lst[-1].g_unpack()
+    #         ##
+
+    #         for elem in lst:
+    #             if isinstance(elem, Gruppo):
+    #                 for x in elem.g_unpack():
+    #                     yield x
+    #             else:
+    #                 yield elem
+
+    #     l1 = list(_genflatten(self.objects))
+    #     return l1
+
+    def recursive_unpack(self):
+        """Flatten out an Gruppo."""
+        flatlist = []
+        for o1 in self.objects:
+            if isinstance(o1, Gruppo):
+                for o2 in o1.objects:
+                    if isinstance(o2, Gruppo):
+                        for o3 in o2.objects:
+                            if isinstance(o3, Gruppo):
+                                for o4 in o3.objects:
+                                    if isinstance(o3, Gruppo):
+                                        print("Warning: Gruppo.recursive_unpack() is limited to 4 levels")
+                                    else:
+                                        flatlist.append(o4)
+                            else:
+                                flatlist.append(o3)
+                    else:
+                        flatlist.append(o2)
+            else:
+                flatlist.append(o1)
+        return flatlist
+
+    def unpack(self, i=None):
+        """Unpack the list of objects from a ``Gruppo``.
+
+        If `i` is given, get `i-th` object from a ``Gruppo``.
+        Input can be a string, in this case returns the first object
+        whose name contains the given string.
+
+        Examples:
+            - [custom_axes4.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/custom_axes4.py)
+        """
+        if i is None:
+            return self.objects
+        elif isinstance(i, int):
+            return self.objects[i]
+        elif isinstance(i, str):
+            for m in self.objects:
+                if i in m.name:
+                    return m
+
+    def pos(self, *p):
+        """Set object position."""
+        if len(p) == 0:
+            return self.transform.position
+        q = self.transform.position
+        LT = LinearTransform().translate(-q +p)
+        self.transform.concatenate(LT)
+        for o in self.recursive_unpack():
+            o.apply_transform(LT)
+        return self
+
+    def rotate_x(self, angle, rad=False, around=None):
+        """
+        Rotate around x-axis. If angle is in radians set `rad=True`.
+
+        Use `around` to define a pivoting point.
+        """
+        LT = LinearTransform().rotate_x(angle, rad, around)
+        for o in self.recursive_unpack():
+            o.apply_transform(LT)
+        return self
+
+    def rotate_y(self, angle, rad=False, around=None):
+        """
+        Rotate around y-axis. If angle is in radians set `rad=True`.
+
+        Use `around` to define a pivoting point.
+        """
+        LT = LinearTransform().rotate_y(angle, rad, around)
+        for o in self.recursive_unpack():
+            o.apply_transform(LT)
+        return self
+
+    def rotate_z(self, angle, rad=False, around=None):
+        """
+        Rotate around z-axis. If angle is in radians set `rad=True`.
+
+        Use `around` to define a pivoting point.
+        """
+        LT = LinearTransform().rotate_z(angle, rad, around)
+        for o in self.recursive_unpack():
+            o.apply_transform(LT)
+        return self
+
+    def x(self, val=None):
+        """Set/Get object position along x axis."""
+        p = self.transform.position
+        if val is None:
+            return p[0]
+        self.pos(val, p[1], p[2])
+        return self
+
+    def y(self, val=None):
+        """Set/Get object position along y axis."""
+        p = self.transform.position
+        if val is None:
+            return p[1]
+        self.pos(p[0], val, p[2])
+        return self
+
+    def z(self, val=None):
+        """Set/Get object position along z axis."""
+        p = self.transform.position
+        if val is None:
+            return p[2]
+        self.pos(p[0], p[1], val)
+        return self
+
+    def shift(self, *ds):
+        """Add a shift to the current object position."""
+        LT = LinearTransform().translate(ds)
+        self.transform.concatenate(LT)
+        for o in self.recursive_unpack():
+            o.apply_transform(LT)
+        return self
+
+    def scale(self, s=None, reset=False, origin=True):
+        """
+        Set/get object's scaling factor.
+
+        Arguments:
+            s : (list, float)
+                scaling factor(s).
+            reset : (bool)
+                if True previous scaling factors are ignored.
+            origin : (bool)
+                if True scaling is applied with respect to object's position,
+                otherwise is applied respect to (0,0,0).
+
+        Note:
+            use `s=(sx,sy,sz)` to scale differently in the three coordinates.
+        """
+        if s is None:
+            return np.array(self.transform.T.GetScale())
+
+        if not _is_sequence(s):
+          s = [s, s, s]
+
+        LT = LinearTransform()
+        if reset:
+            old_s = np.array(self.transform.T.GetScale())
+            LT.scale(s / old_s)
+        else:
+            if origin is True:
+                LT.scale(s, origin=self.transform.position)
+            elif origin is False:
+                LT.scale(s, origin=False)
+            else:
+                LT.scale(s, origin=origin)
+        
+        self.transform.concatenate(LT)
+        for o in self.recursive_unpack():
+            o.apply_transform(LT)
+        return self
+
+
+    def bounds(self):
+        """
+        Get the object bounds.
+        Returns a list in format [xmin,xmax, ymin,ymax].
+        """
+        return self.actor.GetBounds()
+
+    def xbounds(self, i=None):
+        """Get the bounds `[xmin,xmax]`. Can specify upper or lower with i (0,1)."""
+        b = self.bounds()
+        if i is not None:
+            return b[i]
+        return (b[0], b[1])
+
+    def ybounds(self, i=None):
+        """Get the bounds `[ymin,ymax]`. Can specify upper or lower with i (0,1)."""
+        b = self.bounds()
+        if i == 0:
+            return b[2]
+        if i == 1:
+            return b[3]
+        return (b[2], b[3])
+
+    def zbounds(self, i=None):
+        """Get the bounds `[zmin,zmax]`. Can specify upper or lower with i (0,1)."""
+        b = self.bounds()
+        if i == 0:
+            return b[4]
+        if i == 1:
+            return b[5]
+        return (b[4], b[5])
+    
+
+    def show(self, **options):
+        """
+        Create on the fly an instance of class ``Plotter`` or use the last existing one to
+        show one single object.
+
+        This method is meant as a shortcut. If more than one object needs to be visualised
+        please use the syntax `show(mesh1, mesh2, volume, ..., options)`.
+
+        Returns the ``Plotter`` class instance.
+        """
+        return vedo.plotter.show(self, **options)
+

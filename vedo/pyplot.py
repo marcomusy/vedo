@@ -758,7 +758,7 @@ class Histogram1D(Figure):
         fill=True,
         radius=0.075,
         c="olivedrab",
-        gap=0.02,
+        gap=0.0,
         alpha=1,
         outline=False,
         lw=2,
