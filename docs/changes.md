@@ -18,6 +18,11 @@
 - in `plotter.add_button(func)`, must use `func(event)` instead of `func()`
 (thanks to @smoothumut for spotting the bug)
 - change .points() to .vertices everywhere
+- change .cell_centers() to .cell_centers everywhere
+- change .faces() to .cells everywhere
+- change .lines() to .lines everywhere
+
+
 
 -------------------------
 ## New/Revised Examples

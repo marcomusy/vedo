@@ -855,7 +855,7 @@ def tonumpy(obj):
 
         adict["lines"] = None
         if poly.GetNumberOfLines():
-            adict["lines"] = obj.lines()
+            adict["lines"] = obj.lines
 
         adict["pointdata"] = []
         for iname in obj.pointdata.keys():
@@ -1322,7 +1322,7 @@ def write(objct, fileoutput, binary=True):
                             fs += f" {fi+1}"
                     outF.write(f"f{fs}\n")
 
-                for l in objct.lines():
+                for l in objct.lines:
                     ls = ""
                     for li in l:
                         ls += str(li + 1) + " "

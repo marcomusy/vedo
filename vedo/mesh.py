@@ -1107,7 +1107,7 @@ class Mesh(MeshVisual, Points):
             if len(pts) < 3:
                 continue
             avesize = outline.average_size()
-            lines = outline.lines()
+            lines = outline.lines
             # print("---lines", lines, "in piece", ipiece)
             tol = avesize / pts.shape[0] * tol
 
@@ -2311,7 +2311,7 @@ class Mesh(MeshVisual, Points):
             from vedo import *
             sph = Sphere()
             mi = sph.clone().intersect_with_plane().join()
-            print(mi.lines())
+            print(mi.lines)
             show(sph, mi, axes=1).close()
             ```
             ![](https://vedo.embl.es/images/feats/intersect_plane.png)

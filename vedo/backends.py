@@ -234,7 +234,7 @@ def start_k3d(actors2show):
               and ia.polydata(False).GetNumberOfLines() 
               and ia.polydata(False).GetNumberOfPolys() == 0):
 
-            for i, ln_idx in enumerate(ia.lines()):
+            for i, ln_idx in enumerate(ia.lines):
 
                 if i > 200:
                     vedo.logger.warning("in k3d, nr. of lines is limited to 200.")
