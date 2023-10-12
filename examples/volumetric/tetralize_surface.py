@@ -17,7 +17,7 @@ tmesh = surf.tetralize(side=0.015, debug=True)
 # Assign an id to each tetrahedron to visualize regions
 seeds = surf.clone().subsample(0.3)
 cids = []
-for p in tmesh.cell_centers():
+for p in tmesh.cell_centers:
 	cid = seeds.closest_point(p, return_point_id=True)
 	cids.append(cid)
 tmesh.celldata["fragments"] = cids

@@ -17,7 +17,7 @@ mesh1 = mesh0.clone(deep=False).map_points_to_cells()
 printc('Mesh cell arrays :', mesh1.celldata.keys())
 
 gvecs = mesh1.gradient(on='cells')
-cc = mesh1.cell_centers()
+cc = mesh1.cell_centers
 ars = Arrows(cc, cc + gvecs*0.01, c='bone_r').lighting('off')
 ars.add_scalarbar3d(title='|:nablaH|:dot0.01 [arb.units]')
 

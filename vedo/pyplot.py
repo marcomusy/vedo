@@ -3342,7 +3342,7 @@ def _histogram_spheric(thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", 
     sgfaces = sg.faces()
     sgpts = sg.vertices
 
-    cntrs = sg.cell_centers()
+    cntrs = sg.cell_centers
     counts = np.zeros(len(cntrs))
     for p in ptsvals:
         cell = sg.closest_point(p, return_cell_id=True)

@@ -1403,7 +1403,7 @@ class PointsVisual:
         ```python
         from vedo import Sphere, show
         sph = Sphere(quads=True, res=4).compute_normals().wireframe()
-        sph.celldata["zvals"] = sph.cell_centers()[:,2]
+        sph.celldata["zvals"] = sph.cell_centers[:,2]
         l2d = sph.labels("zvals", on="cells", precision=2).backcolor('orange9')
         show(sph, l2d, axes=1).close()
         ```
@@ -1424,7 +1424,7 @@ class PointsVisual:
             if content != "id" and content not in self.celldata.keys():
                 vedo.logger.error(f"In labels2d: cell array {content} does not exist.")
                 return None
-            cellcloud = Points(self.cell_centers())
+            cellcloud = Points(self.cell_centers)
             arr = self.dataset.GetCellData().GetScalars()
             poly = cellcloud
             poly.GetPointData().SetScalars(arr)
@@ -2296,7 +2296,7 @@ class Points(PointsVisual, BaseActor):
         if "point" in on:
             pts = self.vertices
         elif "cell" in on:
-            pts = self.cell_centers()
+            pts = self.cell_centers
         else:
             raise ValueError(f"In compute_acoplanarity() set on to either 'cells' or 'points', not {on}")
 
