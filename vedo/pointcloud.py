@@ -1428,10 +1428,10 @@ class PointsVisual:
                 return None
             cellcloud = Points(self.cell_centers)
             arr = self.dataset.GetCellData().GetScalars()
-            poly = cellcloud
+            poly = cellcloud.dataset
             poly.GetPointData().SetScalars(arr)
         else:
-            poly = self
+            poly = self.dataset
             if content != "id" and content not in self.pointdata.keys():
                 vedo.logger.error(f"In labels2d: point array {content} does not exist.")
                 return None
@@ -2167,7 +2167,7 @@ class Points(PointsVisual, BaseActor):
                 scale = 350 / msiz
 
         cmsh = self.clone()
-        poly = cmsh.pos(0, 0, 0).scale(scale)
+        poly = cmsh.pos(0, 0, 0).scale(scale).dataset
 
         mapper3d = self.mapper
         cm = mapper3d.GetColorMode()

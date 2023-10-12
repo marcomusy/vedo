@@ -844,7 +844,7 @@ def tonumpy(obj):
     def _fillmesh(obj, adict):
 
         adict["points"] = obj.vertices.astype(float)
-        poly = obj
+        poly = obj.dataset
 
         adict["cells"] = None
         if poly.GetNumberOfPolys():
@@ -1512,7 +1512,7 @@ def export_window(fileoutput, binary=False):
         allobjs = list(set(allobjs))  # make sure its unique
 
         for a in allobjs:
-            if a.actor.GetVisibility():
+            if a.GetVisibility():
                 sdict["objects"].append(tonumpy(a))
 
         if fr.endswith(".npz"):

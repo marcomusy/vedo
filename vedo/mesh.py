@@ -233,10 +233,10 @@ class Mesh(MeshVisual, Points):
             self.dataset = gf.GetOutput()
 
         elif "meshlab" in str(type(inputobj)):
-            self.dataset = vedo.utils.meshlab2vedo(inputobj)
+            self.dataset = vedo.utils.meshlab2vedo(inputobj).dataset
 
         elif "trimesh" in str(type(inputobj)):
-            self.dataset = vedo.utils.trimesh2vedo(inputobj)
+            self.dataset = vedo.utils.trimesh2vedo(inputobj).dataset
 
         elif "meshio" in str(type(inputobj)):
             # self.dataset = vedo.utils.meshio2vedo(inputobj) ##TODO

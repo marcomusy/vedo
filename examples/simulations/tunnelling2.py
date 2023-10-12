@@ -57,7 +57,7 @@ for i in range(0, Nsteps):
     lines.append([Aline, A])   # store objects
 
 # now show the same lines along z representing time
-plt.actors= [] # clean up internal list of objects to show
+plt.objects= [] # clean up internal list of objects to show
 plt.elevation(20)
 plt.azimuth(20)
 bck.alpha(1)

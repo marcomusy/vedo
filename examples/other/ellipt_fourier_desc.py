@@ -8,7 +8,7 @@ shapes = vedo.load(vedo.dataurl+'timecourse1d.npy')
 sh = shapes[55]
 sr = vedo.Line(sh).mirror('x').reverse()
 sm = vedo.merge(sh, sr).c('red5').lw(3)
-pts = sm.points()[:,(0,1)]
+pts = sm.vertices[:,(0,1)]
 
 rlines = []
 for order in range(5,30, 5):

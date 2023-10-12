@@ -69,16 +69,6 @@ def solve(Z, start, goal):
 
     return P, G
 
-def print_solution(S, start, goal):
-    for y,line in enumerate(Z):
-        for x,c in enumerate(line):
-            if   (y,x) == start: print("[]", end='')
-            elif (y,x) == goal:  print("[]", end='')
-            elif (y,x) in S[0]:  print("..", end='')
-            elif c:              print("██", end='')
-            else:                print("  ", end='')
-        print()
-
 def show_solution3d(S, start, goal):
     from vedo import Text3D, Cube, Line, Grid, merge, show
 
@@ -110,8 +100,5 @@ if __name__ == '__main__':
     Z = maze(shape=(50, 70))
 
     start, goal = (1,1), (Z.shape[0]-2, Z.shape[1]-2)
-    print("Please wait..")
     S = solve(Z, start, goal)
-
-    #print_solution(S, start, goal)
     show_solution3d(S, start, goal).close()

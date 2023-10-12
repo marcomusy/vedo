@@ -4,7 +4,7 @@ import vedo
 
 m = vedo.Mesh(vedo.dataurl+"bunny.obj").c("green9")
 
-geoalg = geodesic.PyGeodesicAlgorithmExact(m.points(), m.cells)
+geoalg = geodesic.PyGeodesicAlgorithmExact(m.vertices, m.cells)
 
 # Use source and target point ids
 distance, path = geoalg.geodesicDistance(639, 834)

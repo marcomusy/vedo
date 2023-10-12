@@ -13,7 +13,7 @@ shape = Spline([
 n = 5  # nr. of points to use for the fit
 npt = shape.npoints
 
-points = shape.points()
+points = shape.vertices
 fitpts, circles, curvs = [], [], [0]*npt
 
 for i in range(n, npt - n-1):

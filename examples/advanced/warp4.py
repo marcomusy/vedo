@@ -110,7 +110,7 @@ class Morpher:
             if not self.dottedln:
                 return
             intermediates = []
-            allpts = self.dottedln.points()
+            allpts = self.dottedln.vertices
             allpts = allpts.reshape(len(self.arrow_starts), self.n+1, 3)
             for i in range(self.n + 1):
                 pi = allpts[:,i,:]

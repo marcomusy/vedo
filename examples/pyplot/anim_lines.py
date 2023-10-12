@@ -26,7 +26,7 @@ for i in range(50):
     data[:, 1:] = data[:, :-1]                      # Shift data to the right
     data[:, 0] = np.random.uniform(0, 1, len(data)) # Fill-in new values
     for line, d in zip(lines, data):                    # Update data
-        newpts = line.points()
+        newpts = line.vertices
         newpts[:,2] = G * d
         line.points(newpts).cmap('gist_heat_r', newpts[:,2])
     plt.render()

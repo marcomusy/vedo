@@ -19,7 +19,7 @@ volume = vedo.Volume(
 )
 
 # compute B-field and add as pointdata to volume
-volume.pointdata['B'] = coil1.getB(volume.points())
+volume.pointdata['B'] = coil1.getB(volume.vertices)
 
 # compute field lines
 seeds = vedo.Disc(r1=1, r2=5.2, res=(3,12))

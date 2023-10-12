@@ -14,7 +14,7 @@ def func(evt):                   # this is the callback function
     if mag(pt3d) < 0.01:
         return
     newpt = Point(pt3d).color(i)
-    txt.text(f'2D coords: {pt2d}\n3D coords: {pt3d}\nNpt = {len(plt.actors)}')
+    txt.text(f'2D coords: {pt2d}\n3D coords: {pt3d}\nNpt = {len(plt.objects)}')
     txt.color(i)                  # update text and color on the fly
     plt.at(i).add(newpt).render() # add new point and render i
 

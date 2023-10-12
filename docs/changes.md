@@ -15,6 +15,7 @@
 
 
 ### Breaking changes
+- plt.actors must become plt.objects
 - in `plotter.add_button(func)`, must use `func(event)` instead of `func()`
 (thanks to @smoothumut for spotting the bug)
 - change .points() to .vertices everywhere
@@ -59,19 +60,29 @@ gyroid.py
 interpolate_scalar3.py
 mesh_smoother1.py
 splitmesh.py
-
 spline_draw.py
 timer_callback2.py
 warp4.py
 warp6.py
 
+
 ~/Projects/vedo/examples/pyplot
+custom_axes1.py
+caption.py
+embed_matplotlib.py
 glyphs2.py
 explore5d.py
 goniometer.py
 histo_2d_a.py
 histo_2d_b.py
+histo_hexagonal.py
 isolines.py
+latex.py
+plot_density2d.py
+plot_density3d.py
+plot_density4d.py
+plot_stream.py
+scatter_large.py
 
 
 ~/Projects/vedo/examples/simulations
@@ -80,6 +91,17 @@ aspring1.py
 brownian2d.py
 gyroscope1.py
 gyroscope2.py
+lorenz.py
+mag_field1.py
+pendulum_3d.py
+trail.py
+
+
+~/Projects/vedo/examples/other
+ellipt_fourier_desc.py
+export_numpy.py
+flag_labels1.py
+
 
 ```
 

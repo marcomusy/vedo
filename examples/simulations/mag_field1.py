@@ -11,7 +11,7 @@ def func(evt):
     txt.c('red5').background('yellow7')
     plt.render()
 
-    pts = sptool.spline().points() # extract the current spline
+    pts = sptool.spline().vertices # extract the current spline
     field = []
     for probe in probes:
         B = np.zeros(3)

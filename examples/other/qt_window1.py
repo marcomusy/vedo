@@ -38,7 +38,7 @@ class MainWindow(Qt.QMainWindow):
     @Qt.pyqtSlot()
     def onClick(self):
         printc("..calling onClick")
-        self.plt.actors[0].color('red').rotate_z(40)
+        self.plt.objects[0].color('red').rotate_z(40)
         self.plt.interactor.Render()
 
     def onClose(self):

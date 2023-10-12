@@ -20,6 +20,6 @@ ps = Points(pint, r=15).c('red')
 # lets fill the convex area between the first 2 hits:
 id0 = line1.closest_point(pint[0], return_point_id=True)
 id1 = line1.closest_point(pint[1], return_point_id=True)
-msh = Line(line1.points()[id0:id1]).triangulate().lw(0).shift(0,0,-0.01)
+msh = Line(line1.vertices[id0:id1]).triangulate().lw(0).shift(0,0,-0.01)
 
 show(line1, line2, ps, msh, __doc__+f"\narea = {msh.area()} cm:^2", axes=1).close()

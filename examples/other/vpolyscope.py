@@ -14,7 +14,7 @@ polyscope.init()
 ps_mesh = polyscope.register_surface_mesh(
     "My vedo mesh", m.vertices, m.cells, color=[0.5, 0, 0], smooth_shade=True
 )
-ps_mesh.add_scalar_quantity("heights", m.points()[:, 2], defined_on="vertices")
+ps_mesh.add_scalar_quantity("heights", m.vertices[:, 2], defined_on="vertices")
 ps_mesh.set_material("wax")  # wax, mud, jade, candy
 polyscope.show()
 

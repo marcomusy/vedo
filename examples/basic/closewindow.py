@@ -22,13 +22,13 @@ plt1.close_window()
 # window should now close, the Plotter instance becomes unusable
 # but mesh objects still exist in it:
 
-printc("First Plotter actors:", plt1.actors, '\nPress enter again')
+printc("First Plotter:", plt1.objects, '\nPress enter again')
 # plt1.show()  # error here: window does not exist anymore. Cannot reopen.
 
 ##################################################################
 # Can now create a brand new Plotter and show the old object in it
 plt2 = Plotter(title='Second Plotter instance', pos=(500,0))
-plt2.show(plt1.actors[0].data.color('red'))
+plt2.show(plt1.objects[0].color('red'))
 
 ##################################################################
 # Create a third new Plotter and then close the second

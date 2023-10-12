@@ -350,7 +350,7 @@ class Tensors(Mesh):
         if isinstance(domain, vtk.vtkPolyData):
             tg.SetInputData(domain)
         else:
-            tg.SetInputData(domain.GetMapper().GetInput())
+            tg.SetInputData(domain.dataset)
         tg.SetSourceData(src.GetOutput())
 
         if c is None:

@@ -1725,7 +1725,7 @@ class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
 
         self._implicit_func = vtk.vtkPlane()
 
-        poly = mesh
+        poly = mesh.dataset
         self.clipper = vtk.vtkClipPolyData()
         self.clipper.GenerateClipScalarsOff()
         self.clipper.SetInputData(poly)
@@ -1861,7 +1861,7 @@ class BoxCutter(vtk.vtkBoxWidget, BaseCutter):
         self._implicit_func = vtk.vtkPlanes()
         self._implicit_func.SetBounds(self._init_bounds)
 
-        poly = mesh
+        poly = mesh.dataset
         self.clipper = vtk.vtkClipPolyData()
         self.clipper.GenerateClipScalarsOff()
         self.clipper.SetInputData(poly)
@@ -1975,7 +1975,7 @@ class SphereCutter(vtk.vtkSphereWidget, BaseCutter):
             radius = mesh.average_size() * 2
             self._implicit_func.SetRadius(radius)
 
-        poly = mesh
+        poly = mesh.dataset
         self.clipper = vtk.vtkClipPolyData()
         self.clipper.GenerateClipScalarsOff()
         self.clipper.SetInputData(poly)

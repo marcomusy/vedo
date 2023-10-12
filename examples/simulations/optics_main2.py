@@ -26,7 +26,7 @@ elements = [lens1, lens2, lens3, lens4, lens5, mirror, screen]
 
 # Generate photons and trace them through the optical elements
 lines = []
-source = Grid(res=[20,20]).points() # a numpy array
+source = Grid(res=[20,20]).vertices # a numpy array
 for pt in source:
     λ = np.random.uniform(low=450, high=750)*1e-09  # nanometers
     ray = Ray(pt, direction=(0,0,1), wave_length=λ)

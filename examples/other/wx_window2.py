@@ -22,11 +22,12 @@ def func(event):
     txt = f"Probed point:\n{vedo.utils.precision(event.picked3d, 3)}\n" \
           f"value = {vedo.utils.precision(arr[ptid], 2)}"
 
-    vpt = vedo.shapes.Sphere(mesh.points(ptid), r=0.01, c='orange2').pickable(False)
+    spt = mesh.vertices[ptid]
+    vpt = vedo.shapes.Sphere(spt, r=0.01, c='orange2').pickable(False)
     vig = vpt.flagpole(txt, s=.05, offset=(0.5,0.5), font="VictorMono").follow_camera()
 
     msg.text(txt)               # update the 2d text message
-    plt.remove(plt.actors[-2:]).add([vpt, vig]) # remove last 2 objects, add the new ones
+    plt.remove(plt.objects[-2:]).add([vpt, vig]) # remove last 2 objects, add the new ones
     widget.Render()             # need to manually call Render
 
 msg = vedo.Text2D(pos='bottom-left', font="VictorMono")
@@ -36,7 +37,7 @@ arr = msh.pointdata["Scalars"]
 
 plt = vedo.Plotter(bg='moccasin', bg2='blue9', wx_widget=widget)
 plt.add([msh, axs, msg]).reset_camera()
-plt.actors += [None,None,None]  # place holder for sphere, flagpole, text2d
+plt.objects += [None,None,None]  # place holder for sphere, flagpole, text2d
 plt.add_callback('MouseMove', func)
 
 #####################################################

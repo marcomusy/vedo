@@ -10,7 +10,7 @@ lens  = Lens(shape, ref_index=1.52).color("orange9")
 screen= Screen(3,3).z(5)
 
 elements = [lens, screen]
-source = vedo.Disc(r1=0, r2=0.7, res=4).points()  # numpy 3d points
+source = vedo.Disc(r1=0, r2=0.7, res=4).vertices  # numpy 3d points
 lines = [Ray(pt).trace(elements).asLine() for pt in source]  # list of vedo.Line
 
 vedo.show("Test of  1/f = (n-1) \dot (1/R1-1/R2) \approx 1/2",
@@ -39,7 +39,7 @@ m2 = Mirror(s2)
 screen = Screen(5,5).z(9)
 elements = [m2, m1, m2,  m1, screen] ## NOTE ordering!
 source= vedo.Disc(r1=1, r2=3, res=[20,60]).cut_with_plane().cut_with_plane(normal='y').z(1)
-lines = [Ray(pt).trace(elements).asLine(2) for pt in source.points()]
+lines = [Ray(pt).trace(elements).asLine(2) for pt in source.vertices]
 vedo.show("Reflection from spherical mirrors", elements, lines, axes=1).close()
 
 
@@ -47,7 +47,7 @@ vedo.show("Reflection from spherical mirrors", elements, lines, axes=1).close()
 s = vedo.Paraboloid(res=200).cut_with_plane([0,0,-0.4], 'z').scale([1,1,0.1]).z(1)
 elements = [Mirror(s), Screen(0.2,0.2).z(0.35)]
 source= vedo.Disc(r1=.1, r2=.3, res=[10,30]).cut_with_plane().cut_with_plane(normal='y')
-lines = [Ray(pt).trace(elements).asLine() for pt in source.points()]
+lines = [Ray(pt).trace(elements).asLine() for pt in source.vertices]
 vedo.show("Reflection from a parabolic mirror", elements, lines, axes=2, azimuth=-90).close()
 
 
@@ -63,7 +63,7 @@ detector = Detector(sd).color("white").alpha(1).lw(1)
 
 source = vedo.Grid(res=[30,30]).rotate_x(90).y(-1)
 lines=[]
-for pt in source.points():
+for pt in source.vertices:
     ray = Ray(pt, direction=(0,1,0)).trace([mirror, detector])
     line = ray.asLine(min_hits=2, max_hits=4)
     lines.append(line)
@@ -72,30 +72,4 @@ detector.count().cmap("Reds", on='cells', vmax=10).add_scalarbar("Counts")
 
 vedo.show(mirror, detector, lines, "A Mesh mirror and a spherical detector",
           elevation=-90, axes=1, bg='bb', bg2='blue9').close()
-
-
-# ################################################################# interference
-s1 = vedo.Sphere(res=100).rotate_y(90).cut_with_plane([0,0,0.9], normal='z').y(-.5)
-s2 = vedo.Sphere(res=100).rotate_y(90).cut_with_plane([0,0,0.9], normal='z').y(+.5)
-src = vedo.merge(s1,s2).clean().compute_normals()
-dirs = src.pointdata["Normals"]
-screen= Screen(3,3).z(4)
-
-grid = vedo.Grid(res=[40,40], s=[4,4]).rotate_z(90)
-detector = Detector(grid).z(3.5)
-
-elements = [detector]
-rays, lines, pols = [], [], []
-for i,pt in enumerate(src.points()):
-    ray = Ray(pt, direction=dirs[i], wave_length=1).trace(elements) # radio waves
-    line = ray.asLine()
-    if not i%20:
-        lines.append(line)
-    pols.append(ray.polarizations[-1])
-
-detector.integrate(pols).cmap("brg", on='cells').add_scalarbar("Prob.")
-
-vedo.show("Interference on a detector surface", s1,s2, lines, elements,
-          zoom=1.5, size=(1100,700), elevation=180, azimuth=90, axes=1).close()
-
 

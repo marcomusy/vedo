@@ -1,7 +1,7 @@
 '''
 Mesh objects can be combined with
 (1) `mesh.merge` - creates a new mesh object; this new mesh inherits properties (color, etc.) of the first mesh.
-(2) `assembly.Assembly` - groups meshes (or other actors); preserves properties
+(2) `assembly.Assembly` - groups meshes (or other objects); preserves properties
 (3) `+` - equivalent to `Assembly`
 '''
 # credits: https://github.com/icemtel

@@ -50,7 +50,7 @@ def epicycles(time, rotation, fourier, order):
 shape  = vedo.load(vedo.dataurl+'timecourse1d.npy')[55]
 shaper = vedo.Line(shape).mirror('x').reverse()
 shape = vedo.merge(shape, shaper)
-x, y, _ = shape.points().T
+x, y, _ = shape.vertices.T
 
 # Compute Fourier Discrete Transform in x and y separately:
 fourierX = DFT(x)

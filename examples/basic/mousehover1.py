@@ -31,7 +31,7 @@ arr = hil.pointdata["Scalars"]       # numpy array with heights
 settings.use_parallel_projection = True # avoid perspective effects
 plt = Plotter(axes=1, bg2='lightblue')
 plt.add_callback('mouse move', func) # add the callback function
-plt.add_callback('keyboard', lambda evt: plt.remove(plt.actors[3:]).render())
+plt.add_callback('keyboard', lambda evt: plt.remove(plt.objects[3:]).render())
 plt.show(hil, msg, __doc__, viewup='z')
 plt.close()
 
