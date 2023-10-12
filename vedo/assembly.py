@@ -214,7 +214,7 @@ class Group(vtk.vtkPropAssembly):
 
 
 #################################################
-class Assembly:
+class Assembly(vtk.vtkAssembly):
     """
     Group many objects and treat them as a single new object.
     """
@@ -229,13 +229,14 @@ class Assembly:
 
             ![](https://vedo.embl.es/images/simulations/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)
         """
+        super().__init__()
+
         if len(meshs) == 1:
             meshs = meshs[0]
         else:
             meshs = vedo.utils.flatten(meshs)
 
-        self.actor = vtk.vtkAssembly()
-        self.actor.data = self #reference to this object
+        self.actor = self
 
         self.name = ""
         self.rendered_at = set()
@@ -244,6 +245,7 @@ class Assembly:
         self.transform = LinearTransform()
 
         self.objects = [m for m in meshs if m]
+        self.actors  = [m.actor for m in self.objects]
 
         if self.objects:
             self.base = self.objects[0].base
@@ -252,17 +254,17 @@ class Assembly:
             self.base = None
             self.top = None
 
-        # scalarbars = []
-        # for a in self.actors:
-        #     if isinstance(a, vtk.vtkProp3D):  # and a.actor.GetNumberOfPoints():
-        #         self.actor.AddPart(a)
-        #     if hasattr(a, "scalarbar") and a.scalarbar is not None:
-        #         scalarbars.append(a.scalarbar)
+        scalarbars = []
+        for a in self.actors:
+            if isinstance(a, vtk.vtkProp3D):  # and a.GetNumberOfPoints():
+                self.AddPart(a)
+            if hasattr(a, "scalarbar") and a.scalarbar is not None:
+                scalarbars.append(a.scalarbar)
 
-        # if len(scalarbars) > 1:
-        #     self.scalarbar = Group(scalarbars)
-        # elif len(scalarbars) == 1:
-        #     self.scalarbar = scalarbars[0]
+        if len(scalarbars) > 1:
+            self.scalarbar = Group(scalarbars)
+        elif len(scalarbars) == 1:
+            self.scalarbar = scalarbars[0]
 
         self.pipeline = vedo.utils.OperationNode(
             "Assembly",
@@ -271,11 +273,6 @@ class Assembly:
             c="#f08080",
         )
         ##########################################
-
-    # @property
-    # def actors(self):
-    #     """Get the list of ``vtkActor``."""
-    #     return  [m.actor for m in self.objects]
 
     def _repr_html_(self):
         """
@@ -328,9 +325,9 @@ class Assembly:
             help_text,
             "<table>",
             "<tr><td><b> nr. of objects </b></td><td>"
-            + str(self.actor.GetNumberOfPaths())
+            + str(self.GetNumberOfPaths())
             + "</td></tr>",
-            "<tr><td><b> position </b></td><td>" + str(self.actor.GetPosition()) + "</td></tr>",
+            "<tr><td><b> position </b></td><td>" + str(self.GetPosition()) + "</td></tr>",
             "<tr><td><b> diagonal size </b></td><td>"
             + vedo.utils.precision(self.diagonal_size(), 5)
             + "</td></tr>",
@@ -344,26 +341,28 @@ class Assembly:
         """
         Add an object to the assembly
         """
+        if isinstance(obj, vtk.vtkProp3D):
 
-        self.objects.append(obj)
-        self.actor.AddPart(obj.actor)
+            self.objects.append(obj)
+            self.actors.append(obj.actor)
+            self.AddPart(obj.actor)
 
-        if hasattr(obj, "scalarbar") and obj.scalarbar is not None:
-            if self.scalarbar is None:
-                self.scalarbar = obj.scalarbar
-                return self
+            if hasattr(obj, "scalarbar") and obj.scalarbar is not None:
+                if self.scalarbar is None:
+                    self.scalarbar = obj.scalarbar
+                    return self
 
-            def unpack_group(scalarbar):
-                if isinstance(scalarbar, Group):
-                    return scalarbar.unpack()
+                def unpack_group(scalarbar):
+                    if isinstance(scalarbar, Group):
+                        return scalarbar.unpack()
+                    else:
+                        return scalarbar
+
+                if isinstance(self.scalarbar, Group):
+                    self.scalarbar += unpack_group(obj.scalarbar)
                 else:
-                    return scalarbar
-
-            if isinstance(self.scalarbar, Group):
-                self.scalarbar += unpack_group(obj.scalarbar)
-            else:
-                self.scalarbar = Group([unpack_group(self.scalarbar), unpack_group(obj.scalarbar)])
-        self.pipeline = vedo.utils.OperationNode("add mesh", parents=[self, obj], c="#f08080")
+                    self.scalarbar = Group([unpack_group(self.scalarbar), unpack_group(obj.scalarbar)])
+            self.pipeline = vedo.utils.OperationNode("add mesh", parents=[self, obj], c="#f08080")
         return self
 
     def __contains__(self, obj):
@@ -375,10 +374,25 @@ class Assembly:
         """Apply a linear transformation to the object."""
         if concatenate:
             self.transform.concatenate(LT)
-        self.actor.SetPosition(self.transform.T.GetPosition())
-        self.actor.SetOrientation(self.transform.T.GetOrientation())
-        self.actor.SetScale(self.transform.T.GetScale())
+        self.SetPosition(self.transform.T.GetPosition())
+        self.SetOrientation(self.transform.T.GetOrientation())
+        self.SetScale(self.transform.T.GetScale())
         return self
+
+    # TODO ####
+    # def propagate_transform(self):
+    #     """Propagate the transformation to all parts."""
+    #     # navigate the assembly and apply the transform to all parts
+    #     # and reset position, orientation and scale of the assembly
+    #     for i in range(self.GetNumberOfPaths()):
+    #         path = self.GetPath(i)
+    #         obj = path.GetLastNode().GetViewProp()
+    #         obj.SetUserTransform(self.transform.T)
+    #         obj.SetPosition(0, 0, 0)
+    #         obj.SetOrientation(0, 0, 0)
+    #         obj.SetScale(1, 1, 1)
+    #     raise NotImplementedError()
+
 
     def pos(self, x=None, y=None, z=None):
         """Set/Get object position."""
@@ -455,7 +469,7 @@ class Assembly:
         Get the object bounds.
         Returns a list in format `[xmin,xmax, ymin,ymax, zmin,zmax]`.
         """
-        return self.actor.GetBounds()
+        return self.GetBounds()
 
     def xbounds(self, i=None):
         """Get the bounds `[xmin,xmax]`. Can specify upper or lower with i (0,1)."""
@@ -489,7 +503,7 @@ class Assembly:
 
     def use_bounds(self, value):
         """Consider object bounds in rendering."""
-        self.actor.SetUseBounds(value)
+        self.SetUseBounds(value)
         return self
 
 
@@ -531,7 +545,7 @@ class Assembly:
             ##
             for elem in lst:
                 if isinstance(elem, Assembly):
-                    apos = elem.actor.GetPosition()
+                    apos = elem.GetPosition()
                     asum = np.sum(apos)
                     for x in elem.unpack():
                         if asum:
@@ -572,36 +586,6 @@ class Gruppo:
     def __init__(self, *meshes):
         """
         Group many and treat them as a single new object.
-
-
-        from vedo import *
-
-        c.pos(2, 1, 0)
-
-        c1 = Cone().pos(4, 0, 0).rotate_x(90)
-        c2 = Gruppo(Cone().pos(5, 0, 0), Cube())
-        c1.vertices[:,2] += 10
-        # print(c1.vertices)
-        ass1 = Gruppo([c1, c2])
-
-        gigi = Gruppo(s, c, ass1, Ellipsoid([2,-1]))  # .pos([10,0,])
-
-        gigi.pos(10, 0, 0)#.pos(20, 10, 0).shift(3,4,5)
-        gigi.scale(0.2).x(1)
-        gigi.pickable(1)
-        print(gigi.pos(), gigi.bounds())
-
-        objs = gigi.recursive_unpack()
-
-        show(gigi, Point(), axes=1)
-
-        Sitauzione:
-        Gruppo e' un tentativo di fare un assembly che non si basa su vtkAssembly
-        ma su vtkPropAssembly che e' piu' generale.
-        il problema e' che anche usando vtkAssembly come membro non si riesce a 
-        visualizzare gli assi nellesempio di pyplot/histo_1d_a.py
-
-
         """
 
         self.actor = vtk.vtkPropAssembly()

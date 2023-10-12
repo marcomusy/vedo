@@ -117,11 +117,9 @@ class Figure(Assembly):
                 show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
             axes : (dict)
                 an extra dictionary of options for the `vedo.addons.Axes` object
-        """        
-        super().__init__()
+        """
 
         self.verbose = True  # printing to stdout on every mouse click
-        self.name = "Figure"
 
         self.xlim = np.asarray(xlim)
         self.ylim = np.asarray(ylim)
@@ -243,9 +241,9 @@ class Figure(Assembly):
                 axes_opts["c"] = options["ac"]
 
             self.axes = addons.Axes(**axes_opts)
-            self.actor.AddPart(self.axes.actor)
-            self.objects.append(self.axes)
-            print("axes in Figure", self.axes, [self.actor])
+
+        super().__init__([self.axes])
+        self.name = "Figure"
 
         vedo.last_figure = self if settings.remember_last_figure_format else None
 
@@ -456,7 +454,7 @@ class Figure(Assembly):
                     # print("insert(): cannot cut", [a])
                     pass
 
-            self.actor.AddPart(a.actor)
+            self.AddPart(a.actor)
             self.objects.append(a)
 
         return self
@@ -583,7 +581,7 @@ class Figure(Assembly):
         acts = texts + mks
 
         aleg = Assembly(acts)  # .show(axes=1).close()
-        x0, x1, y0, y1, _, _ = aleg.bounds()
+        x0, x1, y0, y1, _, _ = aleg.GetBounds()
 
         if alpha:
             dx = x1 - x0
@@ -604,7 +602,7 @@ class Figure(Assembly):
             box.shift(0, 0, -dy / 100).pickable(False)
             if lc:
                 box.lc(lc).lw(lw)
-            aleg.actor.AddPart(box.actor)
+            aleg.AddPart(box.actor)
             aleg.objects.append(box)
 
         xlim = self.xlim
@@ -655,8 +653,8 @@ class Figure(Assembly):
                 px, py = pos[0], pos[1]
             shx, shy = x0, y1
 
-        zpos = aleg.actor.GetPosition()[2]
-        aleg.actor.SetPosition(px - shx, py * self.yscale - shy, zpos + sx / 50 + z)
+        zpos = aleg.GetPosition()[2]
+        aleg.SetPosition(px - shx, py * self.yscale - shy, zpos + sx / 50 + z)
 
         self.insert(aleg, rescale=False, cut=False)
         self.legend = aleg
@@ -3084,8 +3082,8 @@ def _histogram_quad_bin(x, y, **kwargs):
     msh.lw(1).lighting("ambient")
 
     histo.actors[2] = msh
-    histo.actor.RemovePart(gr)
-    histo.actor.AddPart(msh.actor)
+    histo.RemovePart(gr)
+    histo.AddPart(msh.actor)
     histo.objects.append(msh)
     return histo
 
