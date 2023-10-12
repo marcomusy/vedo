@@ -1941,9 +1941,30 @@ class Points(PointsVisual, BaseActor):
             self.cell_locator = None
         return self
     
+    @property
+    def vertices(self):
+        """Return the vertices (points) coordinates."""
+        return utils.vtk2numpy(self.dataset.GetPoints().GetData())
+
+    #setter
+    @vertices.setter
+    def vertices(self):
+        """Set vertices (points) coordinates."""
+        arr = utils.numpy2vtk(pts, dtype=np.float32)
+        vpts = self.dataset.GetPoints()
+        vpts.SetData(arr)
+        vpts.Modified()
+        # reset mesh to identity matrix position/rotation:
+        self.point_locator = None
+        self.cell_locator = None
+        self.line_locator = None
+        self.actor.PokeMatrix(vtk.vtkMatrix4x4())
+        self.transform = LinearTransform()
+        return self
+
     def polydata(self):
         """Return the underlying ``vtkPolyData`` object."""
-        print("WARNING: call to .polydata() is obsolete, you can use property `dataset`.")
+        print("WARNING: call to .polydata() is obsolete, you can use property `.dataset`.")
         return self.dataset
 
     def _repr_html_(self):

@@ -493,7 +493,6 @@ class Plotter:
             ### BUG in GetScreenSize in VTK 9.1.0
             ### https://discourse.vtk.org/t/vtk9-1-0-problems/7094/3
             if settings.hack_call_screen_size:  # True
-
                 vtkvers = vedo.vtk_version
                 if not self.offscreen and (vtkvers[0] < 9 or vtkvers[0] == 9 and vtkvers[1] == 0):
                     aus = self.window.GetScreenSize()
@@ -595,7 +594,7 @@ class Plotter:
             # passing a sequence of dicts for renderers specifications
 
             if self.size == "auto":
-                self.size = (1200, 900)
+                self.size = (800, 1000)
 
             for rd in shape:
                 x0, y0 = rd["bottomleft"]
@@ -3466,8 +3465,8 @@ class Plotter:
             if histo.verbose:
                 x = self.picked3d[0]
                 idx = np.digitize(x, histo.edges) - 1
-                f = histo.data.frequencies[idx]
-                cn = histo.data.centers[idx]
+                f = histo.frequencies[idx]
+                cn = histo.centers[idx]
                 vedo.colors.printc(f"{histo.name}, bin={idx}, center={cn}, value={f}")
 
 

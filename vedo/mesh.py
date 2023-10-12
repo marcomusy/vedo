@@ -371,21 +371,19 @@ class Mesh(MeshVisual, Points):
 
     def faces(self, ids=()):
         """
+        DEPRECATED. Use property `mesh.faces` instead.
+
         Get cell polygonal connectivity ids as a python `list`.
         The output format is: `[[id0 ... idn], [id0 ... idm],  etc]`.
 
         If ids is set, return only the faces of the given cells.
         """
         arr1d = vtk2numpy(self.dataset.GetPolys().GetData())
-        if arr1d is None:
-            return []
 
         # Get cell connettivity ids as a 1D array. vtk format is:
         # [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
         if len(arr1d) == 0:
             arr1d = vtk2numpy(self.dataset.GetStrips().GetData())
-            if arr1d is None:
-                return []
 
         i = 0
         conn = []
@@ -401,11 +399,37 @@ class Mesh(MeshVisual, Points):
             return conn[ids]
         return conn  # cannot always make a numpy array of it!
 
+    @property
     def cells(self):
-        """Alias for `faces()`."""
-        return self.faces()
+        """
+        Get cell polygonal connectivity ids as a python `list`.
+        The output format is: `[[id0 ... idn], [id0 ... idm],  etc]`.
 
-    def lines(self, flat=False):
+        If ids is set, return only the faces of the given cells.
+        """
+        arr1d = vtk2numpy(self.dataset.GetPolys().GetData())
+
+        # Get cell connettivity ids as a 1D array. vtk format is:
+        # [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
+        if len(arr1d) == 0:
+            arr1d = vtk2numpy(self.dataset.GetStrips().GetData())
+
+        i = 0
+        conn = []
+        n = len(arr1d)
+        if n:
+            while True:
+                cell = [arr1d[i + k] for k in range(1, arr1d[i] + 1)]
+                conn.append(cell)
+                i += arr1d[i] + 1
+                if i >= n:
+                    break
+        if len(ids):
+            return conn[ids]
+        return conn  # cannot always make a numpy array of it!
+
+    @property
+    def lines(self):
         """
         Get lines connectivity ids as a numpy array.
         Default format is `[[id0,id1], [id3,id4], ...]`
@@ -417,13 +441,6 @@ class Mesh(MeshVisual, Points):
         # Get cell connettivity ids as a 1D array. The vtk format is:
         #    [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
         arr1d = vtk2numpy(self.dataset.GetLines().GetData())
-
-        if arr1d is None:
-            return []
-
-        if flat:
-            return arr1d
-
         i = 0
         conn = []
         n = len(arr1d)
@@ -436,7 +453,16 @@ class Mesh(MeshVisual, Points):
 
         return conn  # cannot always make a numpy array of it!
 
-    def edges(self, ids=()):
+    @property
+    def lines_as_flat_array(self):
+        """
+        Get lines connectivity ids as a numpy array.
+        Format is e.g. [2,  10,20,  3, 10,11,12,  2, 70,80, ...]
+        """
+        return vtk2numpy(self.dataset.GetLines().GetData())
+
+    @property
+    def edges(self):
         """
         Return an array containing the edges connectivity.
 
@@ -460,8 +486,6 @@ class Mesh(MeshVisual, Points):
             i += arr1d[i] + 1
             if i >= n:
                 break
-        if len(ids):
-            return conn[ids]
         return conn  # cannot always make a numpy array of it!
 
     def texture(

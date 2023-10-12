@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import math
 import os
 import time
-
 import numpy as np
 
 try:
@@ -11,9 +9,8 @@ try:
 except ImportError:
     import vtkmodules.all as vtk
 
-from vtkmodules.util.numpy_support import numpy_to_vtk
+from vtkmodules.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 from vtkmodules.util.numpy_support import numpy_to_vtkIdTypeArray
-from vtkmodules.util.numpy_support import vtk_to_numpy
 
 import vedo
 
@@ -80,7 +77,7 @@ array_types[vtk.VTK_ID_TYPE]       = ("ID",             "np.int64")
 ###########################################################################
 class OperationNode:
     """
-    Keep track of the operations which led to a final object.
+    Keep track of the operations which led to a final state.
     """
     # https://www.graphviz.org/doc/info/shapes.html#html
     # Mesh     #e9c46a
@@ -189,7 +186,8 @@ class OperationNode:
             from treelib import Tree
         except ImportError:
             vedo.logger.error(
-                "To use this functionality please install treelib:" "\n pip install treelib"
+                "To use this functionality please install treelib:" 
+                "\n pip install treelib"
             )
             return ""
 
@@ -448,6 +446,8 @@ def numpy2vtk(arr, dtype=None, deep=True, name=""):
 
 def vtk2numpy(varr):
     """Convert a `vtkDataArray`, `vtkIdList` or `vtTransform` into a numpy array."""
+    if varr is None:
+        return np.array([])
     if isinstance(varr, vtk.vtkIdList):
         return np.array([varr.GetId(i) for i in range(varr.GetNumberOfIds())])
     elif isinstance(varr, vtk.vtkBitArray):
@@ -462,7 +462,6 @@ def vtk2numpy(varr):
         n = 4
         M = [[varr.GetElement(i, j) for j in range(n)] for i in range(n)]
         return np.array(M)
-
     return vtk_to_numpy(varr)
 
 
@@ -1323,19 +1322,23 @@ def precision(x, p, vrange=None, delimiter="e"):
         out.append("-")
         x = -x
 
-    e = int(math.log10(x))
-    tens = math.pow(10, e - p + 1)
-    n = math.floor(x / tens)
+    e = int(np.log10(x))
+    # tens = np.power(10, e - p + 1)
+    tens = 10 ** (e - p + 1)
+    n = np.floor(x / tens)
 
-    if n < math.pow(10, p - 1):
+    # if n < np.power(10, p - 1):
+    if n < 10 ** (p - 1):
         e = e - 1
-        tens = math.pow(10, e - p + 1)
-        n = math.floor(x / tens)
+        # tens = np.power(10, e - p + 1)
+        tens = 10 ** (e - p + 1)
+        n = np.floor(x / tens)
 
     if abs((n + 1.0) * tens - x) <= abs(n * tens - x):
         n = n + 1
 
-    if n >= math.pow(10, p):
+    # if n >= np.power(10, p):
+    if n >= 10 ** p:
         n = n / 10.0
         e = e + 1
 

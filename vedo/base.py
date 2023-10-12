@@ -377,7 +377,6 @@ class Base3DProp:
         self.actor.SetDragable(value)
         return self
 
-
     def apply_transform(self, LT, concatenate=True, deep_copy=True):
         """
         Apply a linear or non-linear transformation to the mesh polygonal data.
