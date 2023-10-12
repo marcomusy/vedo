@@ -2688,8 +2688,17 @@ class Plotter:
             wannabe_acts = [wannabe_acts]
         
         #################
+        print("wannabe_acts", wannabe_acts)
         wannabe_acts2 = []
         for a in wannabe_acts:
+
+            # print(a.name, a.unpack())
+            if isinstance(a, vedo.Assembly):
+                parts = a.recursive_unpack()
+                # parts = a.unpack()
+                for p in parts:
+                    wannabe_acts2.append(p.actor)
+                continue
 
             try: 
                 wannabe_acts2.append(a.actor)
@@ -2713,6 +2722,7 @@ class Plotter:
             except AttributeError: pass
 
         #################
+        print("wannabe_acts2", len(wannabe_acts2))
         scanned_acts = []
         for a in wannabe_acts2:  # scan content of list
 
@@ -2764,13 +2774,16 @@ class Plotter:
                 # scanned_acts.append(vedo.shapes.Text2D(a)) # naive version
 
             elif isinstance(a, (
-                    vtk.vtkAssembly,
+                    # vtk.vtkAssembly,
                     vtk.vtkVolume,  # order matters! dont move above TetMesh
                     vtk.vtkImageActor, 
                     vtk.vtkLegendBoxActor,
                     vtk.vtkBillboardTextActor3D,
                 )):
                 scanned_acts.append(a)
+
+            # elif isinstance(a, vedo.Assembly):
+            #     scanned_acts.append(a.actor)
 
             elif isinstance(a, vtk.vtkLight):
                 self.renderer.AddLight(a)

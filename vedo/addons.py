@@ -3909,7 +3909,7 @@ def Axes(
         a.actor.PickableOff()
         a.property.LightingOff()
     asse = Assembly(acts)
-    asse.PickableOff()
+    asse.actor.PickableOff()
     asse.name = "Axes"
     return asse
 
@@ -4006,8 +4006,8 @@ def add_global_axes(axtype=None, c=None, bounds=()):
             asse = Axes(**plt.axes, xrange=xrange, yrange=yrange, zrange=zrange)
         else:
             asse = Axes(xrange=xrange, yrange=yrange, zrange=zrange)
-
-        plt.renderer.AddActor(asse)
+        
+        plt.add(asse)
         plt.axes_instances[r] = asse
 
     elif plt.axes in (2, 3):
@@ -4093,8 +4093,8 @@ def add_global_axes(axtype=None, c=None, bounds=()):
             acts += [zl, zc, zt]
         for a in acts:
             a.actor.PickableOff()
-        ass = Assembly(acts)
-        ass.PickableOff()
+        asse = Assembly(acts)
+        asse.actor.PickableOff()
         plt.add(ass)
         plt.axes_instances[r] = ass
 

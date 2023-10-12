@@ -117,9 +117,11 @@ class Figure(Assembly):
                 show the background grid for the axes, can also be set using `axes=dict(xygrid=True)`
             axes : (dict)
                 an extra dictionary of options for the `vedo.addons.Axes` object
-        """
+        """        
+        super().__init__()
 
         self.verbose = True  # printing to stdout on every mouse click
+        self.name = "Figure"
 
         self.xlim = np.asarray(xlim)
         self.ylim = np.asarray(ylim)
@@ -222,7 +224,8 @@ class Figure(Assembly):
             if self.axopts is True or self.axopts == 1:
                 axes_opts = {}
 
-            tp, ts = utils.make_ticks(y0lim / self.yscale, y1lim / self.yscale, number_of_divisions)
+            tp, ts = utils.make_ticks(y0lim / self.yscale, 
+                                      y1lim / self.yscale, number_of_divisions)
             labs = []
             for i in range(1, len(tp) - 1):
                 ynew = utils.lin_interpolate(tp[i], [0, 1], [y0lim, y1lim])
@@ -240,13 +243,14 @@ class Figure(Assembly):
                 axes_opts["c"] = options["ac"]
 
             self.axes = addons.Axes(**axes_opts)
-
-        super().__init__([self.axes])
-        self.name = "Figure"
+            self.actor.AddPart(self.axes.actor)
+            self.objects.append(self.axes)
+            print("axes in Figure", self.axes, [self.actor])
 
         vedo.last_figure = self if settings.remember_last_figure_format else None
-        return
 
+
+    ##################################################################
     def _repr_html_(self):
         """
         HTML representation of the Figure object for Jupyter Notebooks.
@@ -452,7 +456,7 @@ class Figure(Assembly):
                     # print("insert(): cannot cut", [a])
                     pass
 
-            self.AddPart(a.actor)
+            self.actor.AddPart(a.actor)
             self.objects.append(a)
 
         return self
@@ -579,7 +583,7 @@ class Figure(Assembly):
         acts = texts + mks
 
         aleg = Assembly(acts)  # .show(axes=1).close()
-        x0, x1, y0, y1, _, _ = aleg.GetBounds()
+        x0, x1, y0, y1, _, _ = aleg.bounds()
 
         if alpha:
             dx = x1 - x0
@@ -600,7 +604,7 @@ class Figure(Assembly):
             box.shift(0, 0, -dy / 100).pickable(False)
             if lc:
                 box.lc(lc).lw(lw)
-            aleg.AddPart(box.actor)
+            aleg.actor.AddPart(box.actor)
             aleg.objects.append(box)
 
         xlim = self.xlim
@@ -651,8 +655,8 @@ class Figure(Assembly):
                 px, py = pos[0], pos[1]
             shx, shy = x0, y1
 
-        zpos = aleg.GetPosition()[2]
-        aleg.SetPosition(px - shx, py * self.yscale - shy, zpos + sx / 50 + z)
+        zpos = aleg.actor.GetPosition()[2]
+        aleg.actor.SetPosition(px - shx, py * self.yscale - shy, zpos + sx / 50 + z)
 
         self.insert(aleg, rescale=False, cut=False)
         self.legend = aleg
@@ -971,6 +975,7 @@ class Histogram1D(Figure):
 
         ############################################### Figure init
         super().__init__(xlim, ylim, aspect, padding, **fig_kwargs)
+
         if not self.yscale:
             return
 
@@ -3079,8 +3084,8 @@ def _histogram_quad_bin(x, y, **kwargs):
     msh.lw(1).lighting("ambient")
 
     histo.actors[2] = msh
-    histo.RemovePart(gr)
-    histo.AddPart(msh.actor)
+    histo.actor.RemovePart(gr)
+    histo.actor.AddPart(msh.actor)
     histo.objects.append(msh)
     return histo
 
