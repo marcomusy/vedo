@@ -3251,7 +3251,7 @@ class Points(PointsVisual, BaseActor):
             vor = scipy_voronoi(pts, qhull_options=options)
             _constrain_points(vor.vertices)
             pts = _relax(vor)
-        # m = vedo.Mesh([pts, self.faces()]) # not yet working properly
+        # m = vedo.Mesh([pts, self.cells]) # not yet working properly
         out = Points(pts, c="k")
         out.pipeline = utils.OperationNode("smooth_lloyd", parents=[self])
         return out

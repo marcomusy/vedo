@@ -667,7 +667,7 @@ class Mesh(MeshVisual, Points):
             uvmap = self.pointdata[tname]
             # collapse triangles that have large gradient
             new_points = self.vertices.copy()
-            for f in self.faces():
+            for f in self.cells:
                 if np.isin(f, largegrad_ids).all():
                     id1, id2, id3 = f
                     uv1, uv2, uv3 = uvmap[f]
@@ -830,7 +830,7 @@ class Mesh(MeshVisual, Points):
             return self
 
         points = self.vertices
-        faces = self.faces()
+        faces = self.cells
         centers = self.cell_centers
 
         copy = self.clone()
@@ -1714,7 +1714,7 @@ class Mesh(MeshVisual, Points):
             if return_cell_ids:
                 n = 1 if cell_edge else 0
                 inface = []
-                for i, face in enumerate(self.faces()):
+                for i, face in enumerate(self.cells):
                     # isin = np.any([vtx in npid for vtx in face])
                     isin = 0
                     for vtx in face:

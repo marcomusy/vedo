@@ -256,7 +256,7 @@ def start_k3d(actors2show):
 
         ################################################################## Mesh
         elif isinstance(ia, Mesh) and ia.npoints and ia.polydata(False).GetNumberOfPolys():
-            # print('Mesh', ia.name, ia.npoints, len(ia.faces()))
+            # print('Mesh', ia.name, ia.npoints, len(ia.cells))
 
             if not vtkscals:
                 color_attribute = None
@@ -278,7 +278,7 @@ def start_k3d(actors2show):
 
                 kobj = k3d.mesh(
                     iacloned.vertices,
-                    iacloned.faces(),
+                    iacloned.cells,
                     colors=cols,
                     name=name,
                     color=_rgb2int(iap.GetColor()),

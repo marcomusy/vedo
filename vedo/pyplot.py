@@ -3052,7 +3052,7 @@ def _histogram_quad_bin(x, y, **kwargs):
         gr.shrink(1 - gap - tol)
     gr.map_cells_to_points()
 
-    faces = np.array(gr.faces())
+    faces = np.array(gr.cells)
     s = 1 / histo.entries * len(faces) * zscale
     zvals = gr.pointdata["Scalars"] * s
 
@@ -3339,7 +3339,7 @@ def _histogram_spheric(thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", 
     ptsvals = np.c_[x, y, z]
 
     sg = shapes.Sphere(res=res, quads=True).shrink(1 - gap)
-    sgfaces = sg.faces()
+    sgfaces = sg.cells
     sgpts = sg.vertices
 
     cntrs = sg.cell_centers
@@ -3363,7 +3363,7 @@ def _histogram_spheric(thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", 
     sg.cmap(cmap, acounts, on="cells")
     vals = sg.celldata["Scalars"]
 
-    faces = sg.faces()
+    faces = sg.cells
     points = sg.vertices.tolist() + [[0.0, 0.0, 0.0]]
     lp = len(points) - 1
     newfaces = []

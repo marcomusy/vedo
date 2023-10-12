@@ -1117,7 +1117,7 @@ def get_uv(p, x, v):
         cb = Mesh(dataurl+"coloured_cube.obj").lighting("off").texture(pic)
 
         cbpts = cb.vertices
-        faces = cb.faces()
+        faces = cb.cells
         uv = cb.pointdata["Material"]
 
         pt = [-0.2, 0.75, 2]
@@ -2363,7 +2363,7 @@ def vedo2trimesh(mesh):
 
     from trimesh import Trimesh
 
-    tris = mesh.faces()
+    tris = mesh.cells
     carr = mesh.celldata["CellIndividualColors"]
     ccols = carr
 
@@ -2442,10 +2442,10 @@ def vedo2meshlab(vmesh):
     vertex_matrix = vmesh.vertices.astype(np.float64)
 
     try:
-        face_matrix = np.asarray(vmesh.faces(), dtype=np.float64)
+        face_matrix = np.asarray(vmesh.cells, dtype=np.float64)
     except:
         print("WARNING: in vedo2meshlab(), need to triangulate mesh first!")
-        face_matrix = np.array(vmesh.clone().triangulate().faces(), dtype=np.float64)
+        face_matrix = np.array(vmesh.clone().triangulate().cells, dtype=np.float64)
 
     v_normals_matrix = vmesh.normals(cells=False, recompute=False)
     if not v_normals_matrix.shape[0]:
@@ -2577,7 +2577,7 @@ def vedo2open3d(vedo_mesh):
     # create from numpy arrays
     o3d_mesh = o3d.geometry.TriangleMesh(
         vertices=o3d.utility.Vector3dVector(vedo_mesh.vertices),
-        triangles=o3d.utility.Vector3iVector(vedo_mesh.faces()),
+        triangles=o3d.utility.Vector3iVector(vedo_mesh.cells),
     )
     # TODO: need to add some if check here in case color and normals
     #  info are not existing

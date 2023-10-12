@@ -849,9 +849,9 @@ def tonumpy(obj):
         adict["cells"] = None
         if poly.GetNumberOfPolys():
             try:
-                adict["cells"] = np.array(obj.faces(), dtype=np.uint32)
+                adict["cells"] = np.array(obj.cells, dtype=np.uint32)
             except ValueError:  # in case of inhomogeneous shape
-                adict["cells"] = obj.faces()
+                adict["cells"] = obj.cells
 
         adict["lines"] = None
         if poly.GetNumberOfLines():
@@ -1313,7 +1313,7 @@ def write(objct, fileoutput, binary=True):
 
             if isinstance(objct, Mesh):
 
-                for i, f in enumerate(objct.faces()):
+                for i, f in enumerate(objct.cells):
                     fs = ""
                     for fi in f:
                         if ptxt:
@@ -1332,7 +1332,7 @@ def write(objct, fileoutput, binary=True):
 
     elif fr.endswith(".xml"):  # write tetrahedral dolfin xml
         vertices = objct.vertices.astype(str)
-        faces = np.array(objct.faces()).astype(str)
+        faces = np.array(objct.cells).astype(str)
         ncoords = vertices.shape[0]
         with open(fileoutput, "w", encoding="UTF-8") as outF:
             outF.write('<?xml version="1.0" encoding="UTF-8"?>\n')
