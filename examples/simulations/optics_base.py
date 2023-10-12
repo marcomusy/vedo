@@ -183,8 +183,8 @@ class Ray:
         return (a*a + b*b)/2
 
     # def intersect(self, element, p0,p1): # not working (but no need to)
-    #     points = element.points()
-    #     faces = element.faces()
+    #     points = element.vertices
+    #     faces = element.cells
     #     cids = []
     #     for i,f in enumerate(faces):
     #         v0,v1,v2 = points[f]

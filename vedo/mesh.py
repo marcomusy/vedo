@@ -378,6 +378,7 @@ class Mesh(MeshVisual, Points):
 
         If ids is set, return only the faces of the given cells.
         """
+        print("WARNING: use property mesh.cells instead of mesh.faces()")
         arr1d = vtk2numpy(self.dataset.GetPolys().GetData())
 
         # Get cell connettivity ids as a 1D array. vtk format is:

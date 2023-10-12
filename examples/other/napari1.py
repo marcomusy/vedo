@@ -7,7 +7,7 @@ surf = vedo.Mesh(vedo.dataurl+"beethoven.ply").triangulate().compute_normals()
 surf.rotate_x(180).rotate_y(60)
 
 vertices = surf.points()
-faces    = np.array(surf.faces())
+faces    = np.array(surf.cells)
 normals  = surf.normals()
 # generate vertex values by projecting normals on a "lighting vector"
 values   = np.dot(normals, [-1, 1, 1])

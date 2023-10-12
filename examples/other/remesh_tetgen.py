@@ -10,10 +10,10 @@ f2 = 0.15  # control the nr of seeds
 
 # repair and tetralize the closed surface
 amesh = Mesh(dataurl + "bunny.obj")
-meshfix = pymeshfix.MeshFix(amesh.points(), amesh.faces())
+meshfix = pymeshfix.MeshFix(amesh.vertices, amesh.cells)
 meshfix.repair()  # will make it manifold
 repaired = Mesh(meshfix.mesh)
-tet = tetgen.TetGen(repaired.points(), repaired.faces())
+tet = tetgen.TetGen(repaired.vertices, repaired.cells)
 tet.tetrahedralize(order=1, mindihedral=50, minratio=1.5)
 tmesh = TetMesh(tet.grid)
 
