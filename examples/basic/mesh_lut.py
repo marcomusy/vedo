@@ -6,7 +6,7 @@ from vedo import build_lut, Sphere, show
 mesh = Sphere(quads=True).scale([1,1,1.8]).linewidth(1)
 
 # Create some dummy data array to be associated to points
-data = mesh.points()[:,2].copy()  # pick z-coords, use them as scalar data
+data = mesh.vertices[:,2].copy()  # pick z-coords, use them as scalar data
 data[10:70] = float('nan') # make some values invalid by setting to NaN
 data[300:600] = 100        # send some values very far above-scale
 

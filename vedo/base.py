@@ -733,7 +733,7 @@ class Base3DProp:
         Returns a list in format `[xmin,xmax, ymin,ymax, zmin,zmax]`.
         """
         try:
-            pts = self.points()
+            pts = self.vertices
             xmin, ymin, zmin = np.min(pts, axis=0)
             xmax, ymax, zmax = np.max(pts, axis=0)
             return (xmin, xmax, ymin, ymax, zmin, zmax)
@@ -881,9 +881,11 @@ class BaseActor(Base3DProp):
 
     def points(self, pts=None):
         """
+        Obsolete, use `self.vertices` instead.
+
         Set/Get the vertex coordinates of a mesh or point cloud.
-        Keyword `pts` can also be a list of indices to be retrieved.
         """
+        print("WARNING: .points() is obsolete, use .vertices instead.")
         if pts is None:  ### getter
 
             if isinstance(self, vedo.Points):
@@ -926,7 +928,7 @@ class BaseActor(Base3DProp):
             self.transform = LinearTransform()
             return self
 
-
+    @property
     def cell_centers(self):
         """
         Get the coordinates of the cell centers.
@@ -1177,8 +1179,8 @@ class BaseActor(Base3DProp):
         ```python
         from vedo import *
         m1 = Mesh(dataurl+'bunny.obj')#.add_gaussian_noise(0.1)
-        pts = m1.points()
-        ces = m1.cell_centers()
+        pts = m1.vertices
+        ces = m1.cell_centers
         m1.pointdata["xvalues"] = np.power(pts[:,0], 3)
         m1.celldata["yvalues"]  = np.power(ces[:,1], 3)
         m2 = Mesh(dataurl+'bunny.obj')
@@ -2280,7 +2282,7 @@ class BaseActor2D(vtk.vtkActor2D):
 #             ![](https://vedo.embl.es/images/volumetric/probePoints.png)
 #     """
 #     if isinstance(pts, vedo.pointcloud.Points):
-#         pts = pts.points()
+#         pts = pts.vertices
 
 #     def _readpoints():
 #         output = src.GetPolyDataOutput()

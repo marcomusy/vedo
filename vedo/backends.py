@@ -240,7 +240,7 @@ def start_k3d(actors2show):
                     vedo.logger.warning("in k3d, nr. of lines is limited to 200.")
                     break
 
-                pts = ia.points()[ln_idx]
+                pts = ia.vertices[ln_idx]
 
                 aves = ia.diagonal_size() * iap.GetLineWidth() / 100
 
@@ -277,7 +277,7 @@ def start_k3d(actors2show):
                 # https://k3d-jupyter.org/reference/factory.mesh.html#colormap
 
                 kobj = k3d.mesh(
-                    iacloned.points(),
+                    iacloned.vertices,
                     iacloned.faces(),
                     colors=cols,
                     name=name,
@@ -318,7 +318,7 @@ def start_k3d(actors2show):
             aves = ia.average_size() * iap.GetPointSize() / 200
 
             kobj = k3d.points(
-                ia.points().astype(np.float32),
+                ia.vertices.astype(np.float32),
                 color=_rgb2int(iap.GetColor()),
                 colors=kcols,
                 opacity=iap.GetOpacity(),

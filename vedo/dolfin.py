@@ -490,15 +490,16 @@ def plot(*inputobj, **options):
         if warpYfactor:
             scals = actor.pointdata[0]
             if len(scals) > 0:
-                pts_act = actor.points()
+                pts_act = actor.vertices
                 pts_act[:, 1] = scals * warpYfactor * scaleMeshFactors[1]
         if warpZfactor:
             scals = actor.pointdata[0]
             if len(scals) > 0:
-                pts_act = actor.points()
+                pts_act = actor.vertices
                 pts_act[:, 2] = scals * warpZfactor * scaleMeshFactors[2]
         if warpYfactor or warpZfactor:
-            actor.points(pts_act)
+            # actor.points(pts_act)
+            actor.vertices = pts_act
             if vmin is not None and vmax is not None:
                 actor.mapper().SetScalarRange(vmin, vmax)
 
@@ -873,9 +874,9 @@ def MeshStreamLines(*inputobj, **options):
         pass  # it's already it
     elif tol:
         print("decimating mesh points to use them as seeds...")
-        probes = meshact.clone().subsample(tol).points()
+        probes = meshact.clone().subsample(tol).vertices
     else:
-        probes = meshact.points()
+        probes = meshact.vertices
     if len(probes) > 500:
         printc("Probing domain with n =", len(probes), "points")
         printc(" ..this may take time (or choose a larger tol value)")

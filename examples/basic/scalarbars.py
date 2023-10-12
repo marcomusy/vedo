@@ -9,8 +9,8 @@ cmaps = ("jet", "PuOr", "viridis")
 for i in range(3):
     s = shape.clone(deep=False).pos(0, i * 2.2, 0)
     # colorize mesh
-    scals = s.points()[:, 2]
-    s.cmap(cmaps[i], scals)
+    scalars = s.vertices[:, 2]
+    s.cmap(cmaps[i], scalars)
     ms.append(s)
 
 # add 2D scalar bar to first mesh

@@ -241,6 +241,7 @@ class Assembly(vtk.vtkAssembly):
         self.name = ""
         self.rendered_at = set()
         self.scalarbar = None
+        self.info = {}
 
         self.transform = LinearTransform()
 

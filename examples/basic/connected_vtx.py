@@ -7,11 +7,11 @@ s = Sphere(c="y", res=12).wireframe()
 
 # select one point on the sphere using its index
 index = 12
-pt = s.points()[index]
+pt = s.vertices[index]
 
 # find all the vertices that are connected to the selected point
 ids = s.connected_vertices(index)
-vtxs = s.points()[ids]
+vtxs = s.vertices[ids]
 
 # create a red point at the selected point's location
 apt = Point(pt, c="r", r=15)

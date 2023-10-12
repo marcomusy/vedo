@@ -12,7 +12,7 @@ rim2 = rim.clone().align_to(limb, rigid=True).c("green5").lw(5)
 
 # Calculate the average squared distance between the aligned rim and the limb
 d = 0
-for p in rim2.points():
+for p in rim2.vertices:
     cpt = limb.closest_point(p)
     d += mag2(p - cpt)  # square of residual distance
 average_squared_distance = d / rim2.npoints

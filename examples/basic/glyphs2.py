@@ -8,14 +8,15 @@ s1 = Sphere(r=10, res=8).wireframe().c('white')
 s2 = Sphere(r=20, res=8).wireframe().c('white',0.1).pos(0,4,0)
 
 # Get the coordinates of the vertices of each sphere
-coords1 = s1.points() 
-coords2 = s2.points()
+coords1 = s1.vertices 
+coords2 = s2.vertices
 
 # --- color can be a colormap which maps arrow sizes
 # Define a title for the first set of arrows,
 #  and create an Arrows object with coordinates and a colormap for color
 t1 = 'Color arrows by size\nusing a color map'
-a1 = Arrows(coords1, coords2, c='coolwarm', alpha=0.4).add_scalarbar(c='w')
+a1 = Arrows(coords1, coords2, c='coolwarm', alpha=0.4)
+a1.add_scalarbar(c='w')
 
 # --- get a list of random rgb colors
 # Generate a list of random RGB colors for each arrow 

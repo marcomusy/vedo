@@ -2572,7 +2572,7 @@ def fit(
         ![](https://vedo.embl.es/images/pyplot/fitPolynomial1.png)
     """
     if isinstance(points, vedo.pointcloud.Points):
-        points = points.points()
+        points = points.vertices
     points = np.asarray(points)
     if len(points) == 2:  # assume user is passing [x,y]
         points = np.c_[points[0], points[1]]
@@ -2667,8 +2667,8 @@ def fit(
         el.name = "ErrorLine for sigma=" + str(i)
 
     fitl.error_lines = error_lines
-    l1 = error_lines[0].points().tolist()
-    cband = l1 + list(reversed(error_lines[1].points().tolist())) + [l1[0]]
+    l1 = error_lines[0].vertices.tolist()
+    cband = l1 + list(reversed(error_lines[1].vertices.tolist())) + [l1[0]]
     fitl.error_band = shapes.Line(cband).triangulate().lw(0).c("k", 0.15)
     fitl.error_band.name = "PolynomialFitErrorBand"
     return fitl
@@ -2919,7 +2919,7 @@ def _plot_polar(
     filling = None
     if fill and lw:
         faces = []
-        coords = [[0, 0, 0]] + lines.points().tolist()
+        coords = [[0, 0, 0]] + lines.vertices.tolist()
         for i in range(1, lines.npoints):
             faces.append([0, i, i + 1])
         filling = Mesh([coords, faces]).c(c).alpha(alpha)
@@ -2984,7 +2984,7 @@ def _plot_spheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha
     sg = shapes.Sphere(res=res, quads=True)
     sg.alpha(alpha).c(c).wireframe()
 
-    cgpts = sg.points()
+    cgpts = sg.vertices
     r, theta, phi = cart2spher(*cgpts.T)
 
     newr, inans = [], []
@@ -3011,7 +3011,8 @@ def _plot_spheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha
         nanpts.append(shapes.Points(redpts, r=4, c="r"))
 
     pts = spher2cart(newr, theta, phi).T
-    ssurf = sg.clone().points(pts)
+    ssurf = sg.clone()
+    ssurf.vertices = pts
     if inans:
         ssurf.delete_cells_by_point_index(inans)
 
@@ -3055,7 +3056,7 @@ def _histogram_quad_bin(x, y, **kwargs):
     s = 1 / histo.entries * len(faces) * zscale
     zvals = gr.pointdata["Scalars"] * s
 
-    pts1 = gr.points()
+    pts1 = gr.vertices
     pts2 = np.copy(pts1)
     pts2[:, 2] = zvals + tol
     newpts = np.vstack([pts1, pts2])
@@ -3339,7 +3340,7 @@ def _histogram_spheric(thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", 
 
     sg = shapes.Sphere(res=res, quads=True).shrink(1 - gap)
     sgfaces = sg.faces()
-    sgpts = sg.points()
+    sgpts = sg.vertices
 
     cntrs = sg.cell_centers()
     counts = np.zeros(len(cntrs))
@@ -3358,12 +3359,12 @@ def _histogram_spheric(thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", 
         x, y, z = spher2cart(1 + cn, t1, p1)
         sgpts[fs] = np.c_[x, y, z]
 
-    sg.points(sgpts)
+    sg.vertices = sgpts
     sg.cmap(cmap, acounts, on="cells")
     vals = sg.celldata["Scalars"]
 
     faces = sg.faces()
-    points = sg.points().tolist() + [[0.0, 0.0, 0.0]]
+    points = sg.vertices.tolist() + [[0.0, 0.0, 0.0]]
     lp = len(points) - 1
     newfaces = []
     newvals = []
@@ -3692,7 +3693,7 @@ def streamplot(
         probe = shapes.Grid(pos=((n - 1) / 2, (n - 1) / 2, 0), s=(n - 1, n - 1), res=(n - 1, n - 1))
     else:
         if isinstance(probes, vedo.Points):
-            probes = probes.points()
+            probes = probes.vertices
         else:
             probes = np.array(probes, dtype=float)
             if len(probes[0]) == 2:

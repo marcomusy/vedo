@@ -9,11 +9,8 @@ b.compute_normals().clean().linewidth(0.1)
 # Get the point IDs on the boundary of the mesh
 pids = b.boundaries(return_point_ids=True)
 
-# Get the points corresponding to the boundary IDs
-bpts = b.points()
-
 # Create a Points object to represent the boundary points
-pts = Points(bpts[pids], r=10, c='red5')
+pts = Points(b.vertices[pids], r=10, c='red5')
 
 # Create a Label object for all the vertices in the mesh
 labels = b.labels('id', scale=10).c('green2')

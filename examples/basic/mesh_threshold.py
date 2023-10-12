@@ -4,7 +4,7 @@ from vedo import *
 
 man = Mesh(dataurl+"man.vtk")
 
-scals = man.points()[:, 0] + 37  # pick y coords of vertices
+scals = man.vertices[:, 0] + 37  # pick y coords of vertices
 
 # scals data is added to mesh points with automatic name PointScalars
 man.cmap("cool", scals).add_scalarbar(title="threshold", horizontal=True)

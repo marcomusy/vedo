@@ -1116,7 +1116,7 @@ def get_uv(p, x, v):
         pic = Picture(dataurl+"coloured_cube_faces.jpg")
         cb = Mesh(dataurl+"coloured_cube.obj").lighting("off").texture(pic)
 
-        cbpts = cb.points()
+        cbpts = cb.vertices
         faces = cb.faces()
         uv = cb.pointdata["Material"]
 
@@ -2367,7 +2367,7 @@ def vedo2trimesh(mesh):
     carr = mesh.celldata["CellIndividualColors"]
     ccols = carr
 
-    points = mesh.points()
+    points = mesh.vertices
     varr = mesh.pointdata["VertexColors"]
     vcols = varr
 
@@ -2439,7 +2439,7 @@ def vedo2meshlab(vmesh):
     except ModuleNotFoundError:
         vedo.logger.error("Need pymeshlab to run:\npip install pymeshlab")
 
-    vertex_matrix = vmesh.points().astype(np.float64)
+    vertex_matrix = vmesh.vertices.astype(np.float64)
 
     try:
         face_matrix = np.asarray(vmesh.faces(), dtype=np.float64)
@@ -2576,7 +2576,7 @@ def vedo2open3d(vedo_mesh):
 
     # create from numpy arrays
     o3d_mesh = o3d.geometry.TriangleMesh(
-        vertices=o3d.utility.Vector3dVector(vedo_mesh.points()),
+        vertices=o3d.utility.Vector3dVector(vedo_mesh.vertices),
         triangles=o3d.utility.Vector3iVector(vedo_mesh.faces()),
     )
     # TODO: need to add some if check here in case color and normals

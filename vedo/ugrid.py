@@ -219,7 +219,7 @@ class UGrid(BaseGrid, vtk.vtkActor):
                 name = self._data.GetCellData().GetScalars().GetName()
                 cdata = "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
 
-        pts = self.points()
+        pts = self.vertices
         cm = np.mean(pts, axis=0)
 
         all = [

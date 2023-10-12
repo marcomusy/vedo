@@ -424,8 +424,6 @@ class Mesh(MeshVisual, Points):
                 i += arr1d[i] + 1
                 if i >= n:
                     break
-        if len(ids):
-            return conn[ids]
         return conn  # cannot always make a numpy array of it!
 
     @property
@@ -668,7 +666,7 @@ class Mesh(MeshVisual, Points):
             largegrad_ids = np.arange(len(grad))[gradm > seam_threshold * 4]
             uvmap = self.pointdata[tname]
             # collapse triangles that have large gradient
-            new_points = self.points(transformed=False)
+            new_points = self.vertices.copy()
             for f in self.faces():
                 if np.isin(f, largegrad_ids).all():
                     id1, id2, id3 = f
@@ -683,7 +681,7 @@ class Mesh(MeshVisual, Points):
                     elif idm == 1:
                         new_points[id2] = new_points[id1]
                         new_points[id3] = new_points[id1]
-            self.points(new_points)
+            self.vertices = new_points
 
         self.dataset.Modified()
         self._texture = {
@@ -831,9 +829,9 @@ class Mesh(MeshVisual, Points):
         if len(toremove) == 0:
             return self
 
-        points = self.points()
+        points = self.vertices
         faces = self.faces()
-        centers = self.cell_centers()
+        centers = self.cell_centers
 
         copy = self.clone()
         copy.delete_cells(toremove).clean()
@@ -1104,7 +1102,7 @@ class Mesh(MeshVisual, Points):
         for ipiece, outline in enumerate(self.split(must_share_edge=False)):
 
             outline.clean()
-            pts = outline.points()
+            pts = outline.vertices
             if len(pts) < 3:
                 continue
             avesize = outline.average_size()
@@ -1486,7 +1484,7 @@ class Mesh(MeshVisual, Points):
             return self
         for _ in range(iterations):
             medges = self.edges()
-            pts = self.points()
+            pts = self.vertices
             newpts = np.array(pts)
             moved = []
             for e in medges:
@@ -1500,7 +1498,7 @@ class Mesh(MeshVisual, Points):
                         newpts[id1] = p
                         moved += [id0, id1]
 
-            self.points(newpts)
+            self.vertices = newpts
             self.clean()
         self.compute_normals()
 
@@ -1614,7 +1612,7 @@ class Mesh(MeshVisual, Points):
         """
         if isinstance(pts, Points):
             poly = pts.dataset
-            ptsa = pts.points()
+            ptsa = pts.vertices
         else:
             ptsa = np.asarray(pts)
             vpoints = vtk.vtkPoints()
@@ -2274,7 +2272,7 @@ class Mesh(MeshVisual, Points):
             ![](https://user-images.githubusercontent.com/32848391/55967065-eee08300-5c79-11e9-8933-265e1bab9f7e.png)
         """
         if isinstance(p0, Points):
-            p0, p1 = p0.points()
+            p0, p1 = p0.vertices
 
         if not self.line_locator:
             self.line_locator = vtk.vtkOBBTree()
@@ -2433,7 +2431,7 @@ class Mesh(MeshVisual, Points):
                 ![](https://vedo.embl.es/images/advanced/geodesic.png)
         """
         if is_sequence(start):
-            cc = self.points()
+            cc = self.vertices
             pa = Points(cc)
             start = pa.closest_point(start, return_point_id=True)
             end = pa.closest_point(end, return_point_id=True)
@@ -2669,7 +2667,7 @@ class Mesh(MeshVisual, Points):
             pts = (np.random.rand(n, 3) - 0.5) * np.array([x1 - x0, y1 - y0, z1 - z0]) + disp
 
         normals = surf.celldata["Normals"]
-        cc = surf.cell_centers()
+        cc = surf.cell_centers
         subpts = cc - normals * gap * 1.05
         pts = pts.tolist() + subpts.tolist()
 
@@ -2687,7 +2685,7 @@ class Mesh(MeshVisual, Points):
             surf.subsample(side)
 
         tmesh = vedo.tetmesh.delaunay3d(vedo.merge(fillpts, surf))
-        tcenters = tmesh.cell_centers()
+        tcenters = tmesh.cell_centers
 
         ids = surf.inside_points(tcenters, return_ids=True)
         ins = np.zeros(tmesh.ncells)
@@ -2695,8 +2693,8 @@ class Mesh(MeshVisual, Points):
 
         if debug:
             # vedo.pyplot.histogram(fillpts.pointdata["Distance"], xtitle=f"gap={gap}").show().close()
-            edges = self.edges()
-            points = self.points()
+            edges = self.edges
+            points = self.vertices
             elen = mag(points[edges][:, 0, :] - points[edges][:, 1, :])
             histo = vedo.pyplot.histogram(elen, xtitle="edge length", xlim=(0, 3 * side * d))
             print(".. edges min, max", elen.min(), elen.max())

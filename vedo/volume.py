@@ -1379,9 +1379,9 @@ class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
                 fit/adapt the old bounding box to the warped geometry
         """
         if isinstance(source, vedo.Points):
-            source = source.points()
+            source = source.vertices
         if isinstance(target, vedo.Points):
-            target = target.points()
+            target = target.vertices
 
         ns = len(source)
         ptsou = vtk.vtkPoints()

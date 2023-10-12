@@ -1066,10 +1066,10 @@ class Picture(vedo.base.Base3DProp, vtk.vtkImageActor):
             parents = [self]
             if isinstance(source_pts, vedo.Points):
                 parents.append(source_pts)
-                source_pts = source_pts.points()
+                source_pts = source_pts.vertices
             if isinstance(target_pts, vedo.Points):
                 parents.append(target_pts)
-                target_pts = target_pts.points()
+                target_pts = target_pts.vertices
 
             ns = len(source_pts)
             nt = len(target_pts)

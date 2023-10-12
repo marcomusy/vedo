@@ -15,7 +15,7 @@ plt.at(0).show(man1, __doc__, elevation=-60)
 
 ##################################### Point coloring
 man2 = Mesh(dataurl+"man_low.vtk")
-scals = man2.points()[:, 0] + 37           # pick x coordinates of vertices
+scals = man2.vertices[:, 0] + 37           # pick x coordinates of vertices
 
 man2.cmap("hot", scals)
 man2.add_scalarbar(horizontal=True)

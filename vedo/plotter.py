@@ -2615,7 +2615,7 @@ class Plotter:
             ```
         """
         if isinstance(obj, vedo.base.Base3DProp):
-            pts = obj.points()
+            pts = obj.vertices
         elif utils.is_sequence(obj):
             pts = obj
         p2d = []

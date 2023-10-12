@@ -13,7 +13,7 @@ l2 = l1.clone().rotate_z(180).shift(1,0,0)
 
 # Calculate a scalar value for each line segment as 
 # the distance between the corresponding points on the two lines
-dist = mag(l1.points()-l2.points())
+dist = mag(l1.vertices - l2.vertices)
 
 # Color the lines based on the scalar value using the 'Accent' colormap,
 #  and add a scalar bar to the plot

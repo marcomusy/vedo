@@ -5,7 +5,7 @@ from vedo import *
 man = Mesh(dataurl + "man.vtk")
 
 # let the scalar be the z coordinate of the mesh vertices
-scals = man.points()[:, 2]
+scals = man.vertices[:, 2]
 
 # assign color map with specified opacities
 try:

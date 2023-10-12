@@ -13,13 +13,13 @@ elli = pca_ellipsoid(pts, pvalue=0.50) # 50% of points inside
 
 ids  = elli.inside_points(pts, return_ids=True)
 pts.print()  # a new "IsInside" array now exists in pts
-pin = pts.points()[ids]
+pin = pts.vertices[ids]
 print("inside  points #", len(pin))
 
 # Create an inverted mask instead of calling insidePoints(invert=True)
 mask = np.ones(pts.npoints, dtype=bool)
 mask[ids] = False
-pout = pts.points()[mask]
+pout = pts.vertices[mask]
 print("outside  points #", len(pout))
 
 # Extra info can be retrieved with:

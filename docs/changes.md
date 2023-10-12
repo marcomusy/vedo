@@ -17,7 +17,7 @@
 ### Breaking changes
 - in `plotter.add_button(func)`, must use `func(event)` instead of `func()`
 (thanks to @smoothumut for spotting the bug)
-
+- change .points() to .vertices everywhere
 
 -------------------------
 ## New/Revised Examples
@@ -33,6 +33,18 @@ examples/volumetric/slicer1.py
 
 ### Broken Examples
 ```
+~/Projects/vedo/examples/basic
+align5.py
+background_image.py
+cut_freehand.py
+cut_interactive.py
+glyphs2.py
+largestregion.py
+rotate_image.py
+slider_browser.py
+ssao.py
+
+
 ~/Projects/vedo/examples/advanced
 interpolate_scalar3.py
 recosurface.py

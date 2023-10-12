@@ -95,7 +95,7 @@ def merge(*meshs, flag=False):
 def delaunay2d(plist, **kwargs):
     """delaunay2d() is deprecated, use Points().generate_delaunay2d() instead"""
     if isinstance(plist, Points):
-        plist = plist.points()
+        plist = plist.vertices
     else:
         plist = np.ascontiguousarray(plist)
         plist = utils.make3d(plist)
@@ -156,7 +156,7 @@ def fit_line(points):
             ![](https://vedo.embl.es/images/advanced/fitline.png)
     """
     if isinstance(points, Points):
-        points = points.points()
+        points = points.vertices
     data = np.array(points)
     datamean = data.mean(axis=0)
     _, dd, vv = np.linalg.svd(data - datamean)
@@ -252,7 +252,7 @@ def fit_plane(points, signed=False):
             ![](https://vedo.embl.es/images/advanced/fitline.png)
     """
     if isinstance(points, Points):
-        points = points.points()
+        points = points.vertices
     data = np.asarray(points)
     datamean = data.mean(axis=0)
     pts = data - datamean
@@ -289,7 +289,7 @@ def fit_sphere(coords):
             ![](https://vedo.embl.es/images/advanced/fitspheres1.jpg)
     """
     if isinstance(coords, Points):
-        coords = coords.points()
+        coords = coords.vertices
     coords = np.array(coords)
     n = len(coords)
     A = np.zeros((n, 4))
@@ -343,7 +343,7 @@ def pca_ellipse(points, pvalue=0.673, res=60):
     from scipy.stats import f
 
     if isinstance(points, Points):
-        coords = points.points()
+        coords = points.vertices
     else:
         coords = points
     if len(coords) < 4:
@@ -409,7 +409,7 @@ def pca_ellipsoid(points, pvalue=0.673):
     from scipy.stats import f
 
     if isinstance(points, Points):
-        coords = points.points()
+        coords = points.vertices
     else:
         coords = points
     if len(coords) < 4:
@@ -1082,7 +1082,7 @@ class PointsVisual:
         shad.dataset.GetPointData().SetTCoords(None) # remove any texture coords
         shad.name = "Shadow"
 
-        pts = shad.points()
+        pts = shad.vertices
         if plane == 'x':
             # shad = shad.project_on_plane('x')
             # instead do it manually so in case of alpha<1 
@@ -1090,17 +1090,17 @@ class PointsVisual:
             # we leave a small tolerance of 0.1% in thickness
             x0, x1 = self.xbounds()
             pts[:, 0] = (pts[:, 0] - (x0 + x1) / 2) / 1000 + self.actor.GetOrigin()[0]
-            shad.points(pts)
+            shad.vertices = pts
             shad.x(point)
         elif plane == 'y':
             x0, x1 = self.ybounds()
             pts[:, 1] = (pts[:, 1] - (x0 + x1) / 2) / 1000 + self.actor.GetOrigin()[1]
-            shad.points(pts)
+            shad.vertices = pts
             shad.y(point)
         elif plane == "z":
             x0, x1 = self.zbounds()
             pts[:, 2] = (pts[:, 2] - (x0 + x1) / 2) / 1000 + self.actor.GetOrigin()[2]
-            shad.points(pts)
+            shad.vertices = pts
             shad.z(point)
         else:
             shad = shad.project_on_plane(plane, point, direction)
@@ -1236,11 +1236,11 @@ class PointsVisual:
                 content = "id"
 
         if cells:
-            elems = self.cell_centers()
+            elems = self.cell_centers
             norms = self.normals(cells=True, recompute=False)
             ns = np.sqrt(self.ncells)
         else:
-            elems = self.points()
+            elems = self.vertices
             norms = self.normals(cells=False, recompute=False)
             ns = np.sqrt(self.npoints)
 
@@ -1877,7 +1877,7 @@ class Points(PointsVisual, BaseActor):
         self.name = "Points" # better not to give it a name here?
 
         if isinstance(inputobj, vedo.BaseActor):
-            inputobj = inputobj.points()  # numpy
+            inputobj = inputobj.vertices  # numpy
 
         ######
         if isinstance(inputobj, vtk.vtkActor):
@@ -1944,11 +1944,13 @@ class Points(PointsVisual, BaseActor):
     @property
     def vertices(self):
         """Return the vertices (points) coordinates."""
-        return utils.vtk2numpy(self.dataset.GetPoints().GetData())
+        varr = self.dataset.GetPoints().GetData()
+        narr = utils.vtk2numpy(varr)
+        return narr
 
     #setter
     @vertices.setter
-    def vertices(self):
+    def vertices(self, pts):
         """Set vertices (points) coordinates."""
         arr = utils.numpy2vtk(pts, dtype=np.float32)
         vpts = self.dataset.GetPoints()
@@ -1960,6 +1962,18 @@ class Points(PointsVisual, BaseActor):
         self.line_locator = None
         self.actor.PokeMatrix(vtk.vtkMatrix4x4())
         self.transform = LinearTransform()
+        # BUG
+        # from vedo import *
+        # plt = Plotter(interactive=False, axes=7)
+        # s = Disc(res=(8,120)).linewidth(0.1)
+        # print([s.dataset.GetPoints().GetData()])
+        # # plt.show(s)  # depends if I show it or not..
+        # # plt.renderer.AddActor(s.actor)
+        # print([s.dataset.GetPoints().GetData()])
+        # for i in progressbar(100):
+        #     s.vertices[:,2] = sin(i/10.*s.vertices[:,0])/5 # move vertices in z
+        # show(s, interactive=1)
+        # exit()
         return self
 
     def polydata(self):
@@ -2280,7 +2294,7 @@ class Points(PointsVisual, BaseActor):
         """
         acoplanarities = []
         if "point" in on:
-            pts = self.points()
+            pts = self.vertices
         elif "cell" in on:
             pts = self.cell_centers()
         else:
@@ -2346,8 +2360,8 @@ class Points(PointsVisual, BaseActor):
                 pcloud.point_locator.BuildLocator()
 
             ids = []
-            ps1 = self.points()
-            ps2 = pcloud.points()
+            ps1 = self.vertices
+            ps2 = pcloud.vertices
             for p in ps1:
                 pid = pcloud.point_locator.FindClosestPoint(p)
                 ids.append(pid)
@@ -2511,7 +2525,7 @@ class Points(PointsVisual, BaseActor):
         Calculate the average size of a mesh.
         This is the mean of the vertex distances from the center of mass.
         """
-        coords = self.points()
+        coords = self.vertices
         cm = np.mean(coords, axis=0)
         if coords.shape[0] == 0:
             return 0.0
@@ -2631,7 +2645,7 @@ class Points(PointsVisual, BaseActor):
         else:
             ss = source_landmarks.dataset.GetPoints()
             if least_squares:
-                source_landmarks = source_landmarks.points()
+                source_landmarks = source_landmarks.vertices
 
         if utils.is_sequence(target_landmarks):
             st = vtk.vtkPoints()
@@ -2640,7 +2654,7 @@ class Points(PointsVisual, BaseActor):
         else:
             st = target_landmarks.GetPoints()
             if least_squares:
-                target_landmarks = target_landmarks.points()
+                target_landmarks = target_landmarks.vertices
 
         if ss.GetNumberOfPoints() != st.GetNumberOfPoints():
             n1 = ss.GetNumberOfPoints()
@@ -2689,7 +2703,7 @@ class Points(PointsVisual, BaseActor):
 
     def normalize(self):
         """Scale Mesh average size to unit."""
-        coords = self.points()
+        coords = self.vertices
         if not coords.shape[0]:
             return self
         cm = np.mean(coords, axis=0)
@@ -2861,7 +2875,7 @@ class Points(PointsVisual, BaseActor):
             ```
         """
         sz = self.diagonal_size()
-        pts = self.points()
+        pts = self.vertices
         n = len(pts)
         ns = (np.random.randn(n, 3) * sigma) * (sz / 100)
         vpts = vtk.vtkPoints()
@@ -3016,8 +3030,8 @@ class Points(PointsVisual, BaseActor):
             self.point_locator.SetDataSet(self.dataset)
             self.point_locator.BuildLocator()
 
-        ps1 = self.points()
-        ps2 = pcloud.points()
+        ps1 = self.vertices
+        ps2 = pcloud.vertices
 
         ids12 = []
         for p in ps1:
@@ -3087,7 +3101,7 @@ class Points(PointsVisual, BaseActor):
 
             ![](https://vedo.embl.es/images/advanced/moving_least_squares1D.png)
         """
-        coords = self.points()
+        coords = self.vertices
         ncoords = len(coords)
 
         if radius:
@@ -3115,7 +3129,7 @@ class Points(PointsVisual, BaseActor):
         vdata.SetName("Variances")
         self.dataset.GetPointData().AddArray(vdata)
         self.dataset.GetPointData().Modified()
-        self.points(newline)
+        self.vertices = newline
         self.pipeline = utils.OperationNode("smooth_mls_1d", parents=[self])
         return self
 
@@ -3138,7 +3152,7 @@ class Points(PointsVisual, BaseActor):
 
                 ![](https://vedo.embl.es/images/advanced/recosurface.png)
         """
-        coords = self.points()
+        coords = self.vertices
         ncoords = len(coords)
 
         if radius:
@@ -3175,7 +3189,7 @@ class Points(PointsVisual, BaseActor):
 
         self.info["variances"] = np.array(variances)
         self.info["is_valid"] = np.array(valid)
-        self.points(newpts)
+        self.vertices = newpts
 
         self.pipeline = utils.OperationNode("smooth_mls_2d", parents=[self])
         return self
@@ -3232,7 +3246,7 @@ class Points(PointsVisual, BaseActor):
         if bounds is None:
             bounds = self.bounds()
 
-        pts = self.points()[:, (0, 1)]
+        pts = self.vertices[:, (0, 1)]
         for i in range(iterations):
             vor = scipy_voronoi(pts, qhull_options=options)
             _constrain_points(vor.vertices)
@@ -3276,7 +3290,7 @@ class Points(PointsVisual, BaseActor):
 
                 ![](https://vedo.embl.es/images/basic/silhouette2.png)
         """
-        coords = self.points()
+        coords = self.vertices
 
         if plane == "x":
             coords[:, 0] = self.transform.position[0]
@@ -3322,7 +3336,7 @@ class Points(PointsVisual, BaseActor):
             raise RuntimeError()
 
         self.alpha(0.1)
-        self.points(coords)
+        self.vertices = coords
         return self
 
     def warp(self, source, target, sigma=1.0, mode="3d"):
@@ -3351,13 +3365,13 @@ class Points(PointsVisual, BaseActor):
         parents = [self]
         if isinstance(source, Points):
             parents.append(source)
-            source = source.points()
+            source = source.vertices
         else:
             source = utils.make3d(source)
 
         if isinstance(target, Points):
             parents.append(target)
-            target = target.points()
+            target = target.vertices
         else:
             target = utils.make3d(target)
 
@@ -3546,7 +3560,7 @@ class Points(PointsVisual, BaseActor):
         """
         pplane = vtk.vtkPolyPlane()
         if isinstance(points, Points):
-            points = points.points().tolist()
+            points = points.vertices.tolist()
 
         if closed:
             if isinstance(points, np.ndarray):
@@ -3855,7 +3869,7 @@ class Points(PointsVisual, BaseActor):
         if isinstance(points, Points):
             parents = [points]
             vpts = points.dataset.GetPoints()
-            points = points.points()
+            points = points.vertices
         else:
             parents = [self]
             vpts = vtk.vtkPoints()
@@ -3906,7 +3920,7 @@ class Points(PointsVisual, BaseActor):
             ```python
             from vedo import *
             s = Sphere().lw(1)
-            pts = s.points()
+            pts = s.vertices
             scalars = np.sin(3*pts[:,2]) + pts[:,0]
             s.pointdata["somevalues"] = scalars
             s.cut_with_scalar(0.3)
@@ -4059,9 +4073,9 @@ class Points(PointsVisual, BaseActor):
                 ![](https://vedo.embl.es/images/advanced/line2mesh_quads.png)
         """
         if line_resolution is None:
-            contour = vedo.shapes.Line(self.points())
+            contour = vedo.shapes.Line(self.vertices)
         else:
-            contour = vedo.shapes.Spline(self.points(), smooth=smooth, res=line_resolution)
+            contour = vedo.shapes.Spline(self.vertices, smooth=smooth, res=line_resolution)
         contour.clean()
 
         length = contour.length()
@@ -4090,7 +4104,7 @@ class Points(PointsVisual, BaseActor):
         else:
             grid = grid.clone()
 
-        cpts = contour.points()
+        cpts = contour.vertices
 
         # make sure it's closed
         p0, p1 = cpts[0], cpts[-1]
@@ -4110,7 +4124,7 @@ class Points(PointsVisual, BaseActor):
             return cmesh
         #############################################
 
-        grid_tmp = grid.points()
+        grid_tmp = grid.vertices
 
         if jitter:
             np.random.seed(0)
@@ -4123,10 +4137,10 @@ class Points(PointsVisual, BaseActor):
         density /= np.sqrt(3)
         vgrid_tmp = Points(grid_tmp)
 
-        for p in contour.points():
+        for p in contour.vertices:
             out = vgrid_tmp.closest_point(p, radius=density, return_point_id=True)
             todel += out.tolist()
-        # cpoints = contour.points()
+        # cpoints = contour.vertices
         # for i, p in enumerate(cpoints):
         #     if i:
         #         den = utils.mag(p-cpoints[i-1])/1.732
@@ -4138,7 +4152,7 @@ class Points(PointsVisual, BaseActor):
         for index in sorted(list(set(todel)), reverse=True):
             del grid_tmp[index]
 
-        points = contour.points().tolist() + grid_tmp
+        points = contour.vertices.tolist() + grid_tmp
         if invert:
             boundary = reversed(range(contour.npoints))
         else:
@@ -4471,7 +4485,7 @@ class Points(PointsVisual, BaseActor):
 
         """
         src = vtk.vtkProgrammableSource()
-        opts = self.points()
+        opts = self.vertices
 
         def _readPoints():
             output = src.GetPolyDataOutput()
@@ -4703,7 +4717,7 @@ class Points(PointsVisual, BaseActor):
 
                 ![](https://vedo.embl.es/images/basic/delaunay2d.png)
         """
-        plist = self.points()
+        plist = self.vertices
 
         #########################################################
         if mode == "scipy":
@@ -4798,7 +4812,7 @@ class Points(PointsVisual, BaseActor):
 
                 ![](https://vedo.embl.es/images/advanced/voronoi2.png)
         """
-        pts = self.points()
+        pts = self.vertices
 
         if method == "scipy":
             from scipy.spatial import Voronoi as scipy_voronoi
@@ -4886,7 +4900,7 @@ class Points(PointsVisual, BaseActor):
             show(s, camera=camopts, offscreen=True)
 
             m = s.visible_points()
-            #print('visible pts:', m.points()) # numpy array
+            #print('visible pts:', m.vertices) # numpy array
             show(m, new=True, axes=1) # optionally draw result on a new window
             ```
             ![](https://vedo.embl.es/images/feats/visible_points.png)
