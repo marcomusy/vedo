@@ -32,7 +32,7 @@ class Morpher(Plotter):
         self.morphed_source = self.source.clone().warp(
             self.ptsource, self.ptsource + shift, sigma=self.sigma, mode="2d"
         )
-        d = self.morphed_source.points() - self.target.points()
+        d = self.morphed_source.vertices - self.target.vertices
         chi2 = np.sum(np.multiply(d, d))  # /len(d)
         if chi2 < self.chi2:
             printc("new minimum ->", chi2)
@@ -44,8 +44,8 @@ class Morpher(Plotter):
         print("\n..minimizing with " + self.method)
         self.morphed_source = self.source.clone()
 
-        self.ptsource = self.source.points()[: self.npts]  # pick the first npts points
-        self.pttarget = self.target.points()[: self.npts]
+        self.ptsource = self.source.vertices[: self.npts]  # pick the first npts points
+        self.pttarget = self.target.vertices[: self.npts]
 
         delta = self.pttarget - self.ptsource
         x0 = delta[:, (0, 1)].T.ravel()  # initial guess, a flat list of x and y shifts

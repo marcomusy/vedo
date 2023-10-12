@@ -12,7 +12,7 @@ def on_keypress(event):
 
         txt.orientation(n).pos(pt)
 
-        tpts = txt.clone().subsample(0.05).points()
+        tpts = txt.clone().subsample(0.05).vertices
         kpts = [mesh.closest_point(tp) for tp in tpts]
         warped = txt.clone().warp(tpts, kpts, sigma=0.01, mode="2d")
         warped.c("purple5")
@@ -25,8 +25,8 @@ txt = Text3D("Text3D\n01-ABCD", s=0.1, justify="centered", c="red5")
 
 mesh = ParametricShape("RandomHills").scale([1,1,0.5])
 mesh.c("gray5").alpha(0.25)
-points = mesh.points()
-normals = mesh.normals()
+points = mesh.vertices
+normals = mesh.vertex_normals
 
 plt = Plotter()
 plt.add_callback("key press", on_keypress)

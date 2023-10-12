@@ -1237,11 +1237,13 @@ class PointsVisual:
 
         if cells:
             elems = self.cell_centers
-            norms = self.normals(cells=True, recompute=False)
+            # norms = self.normals(cells=True, recompute=False)
+            norms = self.cell_normals
             ns = np.sqrt(self.ncells)
         else:
             elems = self.vertices
-            norms = self.normals(cells=False, recompute=False)
+            # norms = self.normals(cells=False, recompute=False)
+            norms = self.vertex_normals
             ns = np.sqrt(self.npoints)
 
         hasnorms = False
@@ -2540,39 +2542,22 @@ class Points(PointsVisual, BaseActor):
         c = cmf.GetCenter()
         return np.array(c)
 
-    def normal_at(self, i):
-        """Return the normal vector at vertex point `i`."""
-        normals = self.dataset.GetPointData().GetNormals()
-        return np.array(normals.GetTuple(i))
-
-    def normals(self, cells=False, recompute=True):
-        """Retrieve vertex normals as a numpy array.
-
-        Arguments:
-            cells : (bool)
-                if `True` return cell normals.
-
-            recompute : (bool)
-                if `True` normals are recalculated if not already present.
-                Note that this might modify the number of mesh points.
+    @property
+    def vertex_normals(self):
         """
-        if cells:
-            vtknormals = self.dataset.GetCellData().GetNormals()
-        else:
-            vtknormals = self.dataset.GetPointData().GetNormals()
-        if not vtknormals and recompute:
-            try:
-                self.compute_normals(cells=cells)
-                if cells:
-                    vtknormals = self.dataset.GetCellData().GetNormals()
-                else:
-                    vtknormals = self.dataset.GetPointData().GetNormals()
-            except AttributeError:
-                # can be that 'Points' object has no attribute 'compute_normals'
-                pass
+        Retrieve vertex normals as a numpy array.
+        Check out also `compute_normals()` and `compute_normals_with_pca()`.
+        """
+        vtknormals = self.dataset.GetPointData().GetNormals()
+        return utils.vtk2numpy(vtknormals)
 
-        if not vtknormals:
-            return np.array([])
+    @property
+    def cell_normals(self):
+        """
+        Retrieve vertex normals as a numpy array.
+        Check out also `compute_normals(cells=True)` and `compute_normals_with_pca()`.
+        """
+        vtknormals = self.dataset.GetCellData().GetNormals()
         return utils.vtk2numpy(vtknormals)
 
     def align_to(self, target, iters=100, rigid=False, invert=False, use_centroids=False):

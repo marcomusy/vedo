@@ -6,7 +6,7 @@ def capping(amsh, bias=0, invert=False, res=50):
     bn =  amsh.boundaries().join(reset=True)
 
     pln = fit_plane(bn)
-    cp = [pln.closest_point(p) for p in bn.points()]
+    cp = [pln.closest_point(p) for p in bn.vertices]
     pts = Points(cp)
     pts.top = pln.normal
 
@@ -17,8 +17,8 @@ def capping(amsh, bias=0, invert=False, res=50):
     pts2 = pts.clone().reorient([0,0,1]).project_on_plane('z')
     msh2 = pts2.generate_mesh(invert=invert, mesh_resolution=res)
 
-    source = pts2.points().tolist()
-    target = bn.points().tolist()
+    source = pts2.vertices.tolist()
+    target = bn.vertices.tolist()
     printc(f"..warping {len(source)} points")
     msh3 = msh2.clone().warp(source, target, mode='3d')
 
@@ -28,7 +28,7 @@ def capping(amsh, bias=0, invert=False, res=50):
 
     if bias:
         newpts = []
-        for p in msh3.points():
+        for p in msh3.vertices:
             q = bn.closest_point(p)
             d = mag(p-q)
             newpt = p + d * pln.normal * bias

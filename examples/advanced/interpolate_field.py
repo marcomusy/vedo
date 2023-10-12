@@ -15,7 +15,7 @@ deltas = [(1, 1, 0.2), (1, 0, -0.8), (1, -1, 0.2)]
 
 apos = Points(positions, r=2)
 
-# for p in apos.points(): ####### Uncomment to fix some points.
+# for p in apos.vertices: ####### Uncomment to fix some points.
 #    if abs(p[2]-5) > 4.999:  # differences btw RBF and thinplate
 #        sources.append(p)    # will become much smaller.
 #        deltas.append(np.zeros(3))
@@ -29,7 +29,7 @@ arr = Arrows(sources, sources + deltas).color("k8")
 ################################################# warp using Thin Plate Splines
 warped = apos.clone().warp(sources, sources+deltas)
 warped.alpha(0.4).color("lg").point_size(10)
-allarr = Arrows(apos.points(), warped.points()).color("k8")
+allarr = Arrows(apos.vertices, warped.vertices).color("k8")
 
 set1 = [apos, warped, src, trs, arr, __doc__]
 plt1 = show([set1, allarr], N=2, bg='bb', interactive=0)  # returns the Plotter class
@@ -49,7 +49,7 @@ positions_z = itrz(xr, yr, zr) + zr
 positions_rbf = np.vstack([positions_x, positions_y, positions_z])
 
 warped_rbf = Points(positions_rbf, r=2).alpha(0.4).color("lg").point_size(10)
-allarr_rbf = Arrows(apos.points(), warped_rbf.points()).color("k8")
+allarr_rbf = Arrows(apos.vertices, warped_rbf.vertices).color("k8")
 
 arr = Arrows(sources, sources + deltas).color("k8")
 

@@ -7,7 +7,7 @@ mesh = Mesh(dataurl+"bunny.obj")
 
 # pick 100 points where we assume that some scalar value is known
 # (can be ANY points, not necessarily taken from the mesh)
-pts2 = mesh.points()[:100]
+pts2 = mesh.vertices[:100]
 # assume the value is random
 scalars = np.random.randint(45,123, 100)
 # create a set of points with this scalar values

@@ -7,9 +7,9 @@ plt = Plotter()
 
 msh = Mesh(dataurl+"cow.vtk").c("cyan7")
 
-pts1, pts2, vals, cols = [], [], [], []
+pts1, pts2, vals = [], [], []
 
-msh_points = msh.points()
+msh_points = msh.vertices
 for i in range(0, msh.npoints, 10):
     p = msh_points[i]
     pts = msh.closest_point(p, n=12)  # find the n-closest points to p
@@ -18,17 +18,12 @@ for i in range(0, msh.npoints, 10):
         continue
 
     value = sph.radius * 10
-    color = color_map(value, "jet", 0, 1)  # map value to a RGB color
     n = versor(p - sph.center)  # unit vector from sphere center to p
     vals.append(value)
-    cols.append(color)
     pts1.append(p)
     pts2.append(p + n / 8)
 
-plt += msh
-plt += Points(pts1, c=cols)
-plt += Lines(pts1, pts2, c="black")
+plt += msh, Points(pts1), Lines(pts1, pts2, c="black")
 plt += histogram(vals, xtitle='radius', xlim=[0,2]).as2d(pos="bottom-left")
 plt += __doc__
-
 plt.show().close()

@@ -48,7 +48,7 @@ class Morpher:
 
         #calculate chi2
         d2sum, n = 0.0, self.source.npoints
-        srcpts = self.source.points()
+        srcpts = self.source.vertices
         rng = range(0, n, int(n / self.subsample))
         for i in rng:
             p1 = srcpts[i]
@@ -77,7 +77,7 @@ class Morpher:
         print("\n..minimizing with " + self.method)
         self.msource = self.source.clone()
 
-        self.s_size = avesize(self.source.points())
+        self.s_size = avesize(self.source.vertices)
         bnds = [(-self.bound, self.bound)] * 18
         x0 = [0.0] * 18  # initial guess
         x0 += [1.0]  # the optional scale
@@ -101,13 +101,13 @@ class Morpher:
         sphere0 = Sphere(pos, c="gray", r=sz, res=10, quads=True).wireframe()
 
         newpts = []
-        for p in self.msource.points():
+        for p in self.msource.vertices:
             newp = self.transform(p)
             newpts.append(newp)
         self.msource.points(newpts)
 
         arrs = []
-        for p in sphere0.points():
+        for p in sphere0.vertices:
             newp = self.transform(p)
             arrs.append([p, newp])
         hair = Arrows(arrs, s=0.3, c='jet')

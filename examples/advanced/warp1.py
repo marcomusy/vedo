@@ -10,7 +10,7 @@ np.random.seed(1)
 
 surf = Grid([0,0,0], res=[25,25])
 ids = np.random.randint(0, surf.npoints, 10)  # pick 10 indices
-pts = surf.points()[ids]
+pts = surf.vertices[ids]
 
 ptsource, pttarget = [], []
 for pt in pts:

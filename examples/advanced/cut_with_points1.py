@@ -7,7 +7,7 @@ settings.use_depth_peeling = True
 s = Sphere().alpha(0.2).lw(0.1)
 
 # pick a few points on the sphere
-sc = s.points()
+sc = s.vertices
 pts = Points([sc[10], sc[15], sc[129], sc[165]], r=12)
 
 #cut loop region identified by the points

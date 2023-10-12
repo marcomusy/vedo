@@ -2447,11 +2447,13 @@ def vedo2meshlab(vmesh):
         print("WARNING: in vedo2meshlab(), need to triangulate mesh first!")
         face_matrix = np.array(vmesh.clone().triangulate().cells, dtype=np.float64)
 
-    v_normals_matrix = vmesh.normals(cells=False, recompute=False)
+    # v_normals_matrix = vmesh.normals(cells=False, recompute=False)
+    v_normals_matrix = vmesh.vertex_normals
     if not v_normals_matrix.shape[0]:
         v_normals_matrix = np.empty((0, 3), dtype=np.float64)
 
-    f_normals_matrix = vmesh.normals(cells=True, recompute=False)
+    # f_normals_matrix = vmesh.normals(cells=True, recompute=False)
+    f_normals_matrix = vmesh.cell_normals
     if not f_normals_matrix.shape[0]:
         f_normals_matrix = np.empty((0, 3), dtype=np.float64)
 

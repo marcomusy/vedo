@@ -21,6 +21,8 @@
 - change .cell_centers() to .cell_centers everywhere
 - change .faces() to .cells everywhere
 - change .lines() to .lines everywhere
+- change .edges() to .edges everywhere
+- change .normals() to .vertex_normals and .cell_normals everywhere
 
 
 
@@ -51,8 +53,13 @@ ssao.py
 
 
 ~/Projects/vedo/examples/advanced
+cut_with_mesh1.py
+fitspheres2.py
+gyroid.py
 interpolate_scalar3.py
-recosurface.py
+mesh_smoother1.py
+splitmesh.py
+
 spline_draw.py
 timer_callback2.py
 warp4.py

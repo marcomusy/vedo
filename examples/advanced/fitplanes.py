@@ -9,7 +9,7 @@ plt = Plotter()
 plt += apple.alpha(0.1)
 
 variances = []
-for i, p in enumerate(apple.points()):
+for i, p in enumerate(apple.vertices):
     pts = apple.closest_point(p, n=12) # find the N closest points to p
     plane = fit_plane(pts)             # find the fitting plane
     variances.append(plane.variance)

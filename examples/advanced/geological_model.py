@@ -40,7 +40,7 @@ printc("analyzing...", invert=1, end='')
 landSurface = generate_delaunay2d(landSurfacePD.values)
 
 # in order to color it by the elevation, we use the z values of the mesh
-zvals = landSurface.points()[:, 2]
+zvals = landSurface.vertices[:, 2]
 landSurface.cmap("terrain", zvals, vmin=1100)
 landSurface.name = "Land Surface" # give the object a name
 

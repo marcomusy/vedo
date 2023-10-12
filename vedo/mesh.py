@@ -837,7 +837,7 @@ class Mesh(MeshVisual, Points):
         copy = self.clone()
         copy.delete_cells(toremove).clean()
         copy.compute_normals(cells=False)
-        normals = copy.normals()
+        normals = copy.vertex_normals
         deltas, deltas_i = [], []
 
         for i in vedo.utils.progressbar(toremove, delay=3, title="recover faces"):
@@ -1484,7 +1484,7 @@ class Mesh(MeshVisual, Points):
             vedo.logger.error(f"distance parameter is too large, should be < {fs}, skip!")
             return self
         for _ in range(iterations):
-            medges = self.edges()
+            medges = self.edges
             pts = self.vertices
             newpts = np.array(pts)
             moved = []
