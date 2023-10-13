@@ -16,12 +16,20 @@ __docformat__ = "google"
 
 __doc__ = "Base classes to manage positioning and size of the objects in space and other properties"
 
-# __all__ = [
-# ]
+__all__ = [
+    "CommonVisual",
+    "PointsVisual",
+    "VolumeVisual",
+    "MeshVisual",
+    "PictureVisual",
+    "ActorTransforms",
+    "BaseActor2D",
+]
 
 
 ###################################################
 class CommonVisual:
+    """Class to manage the visual aspects common to all objects."""
 
     def show(self, **options):
         """
@@ -400,6 +408,7 @@ class CommonVisual:
 
         return self
 
+
 ###################################################
 class PointsVisual(CommonVisual):
     """Class to manage the visual aspects of a ``Points`` object."""
@@ -422,25 +431,29 @@ class PointsVisual(CommonVisual):
             bfpr.DeepCopy(source.actor.GetBackfaceProperty())
             self.actor.SetBackfaceProperty(bfpr)
             self.property_backface = bfpr
-    
+
         if not actor_related:
             return self
-        
+
         # mapper related:
         self.mapper.SetScalarVisibility(source.mapper.GetScalarVisibility())
         self.mapper.SetScalarMode(source.mapper.GetScalarMode())
         self.mapper.SetScalarRange(source.mapper.GetScalarRange())
         self.mapper.SetLookupTable(source.mapper.GetLookupTable())
         self.mapper.SetColorMode(source.mapper.GetColorMode())
-        self.mapper.SetInterpolateScalarsBeforeMapping(source.mapper.GetInterpolateScalarsBeforeMapping())
-        self.mapper.SetUseLookupTableScalarRange(source.mapper.GetUseLookupTableScalarRange())
+        self.mapper.SetInterpolateScalarsBeforeMapping(
+            source.mapper.GetInterpolateScalarsBeforeMapping()
+        )
+        self.mapper.SetUseLookupTableScalarRange(
+            source.mapper.GetUseLookupTableScalarRange()
+        )
 
         self.actor.SetPickable(source.actor.GetPickable())
         self.actor.SetDragable(source.actor.GetDragable())
         self.actor.SetTexture(source.actor.GetTexture())
         self.actor.SetVisibility(source.actor.GetVisibility())
         return self
-    
+
     def color(self, c=False, alpha=None):
         """
         Set/get mesh's color.
@@ -484,7 +497,6 @@ class PointsVisual(CommonVisual):
                 self.actor.SetBackfaceProperty(self.property_backface)
         return self
 
-
     def opacity(self, alpha=None):
         """Set/get mesh's transparency. Same as `mesh.alpha()`."""
         return self.alpha(alpha)
@@ -505,7 +517,7 @@ class PointsVisual(CommonVisual):
         """Set/get mesh's point size of vertices. Same as `mesh.ps()`"""
         if value is None:
             return self.property.GetPointSize()
-            #self.property.SetRepresentationToSurface()
+            # self.property.SetRepresentationToSurface()
         else:
             self.property.SetRepresentationToPoints()
             self.property.SetPointSize(value)
@@ -644,7 +656,6 @@ class PointsVisual(CommonVisual):
         self.actor.SetMapper(self.mapper)
         return self
 
-
     @property
     def cellcolors(self):
         """
@@ -701,7 +712,6 @@ class PointsVisual(CommonVisual):
 
         self.celldata["CellsRGBA"] = value.astype(np.uint8)
         self.celldata.select("CellsRGBA")
-
 
     @property
     def pointcolors(self):
@@ -985,23 +995,22 @@ class PointsVisual(CommonVisual):
         self.trail.pos(currentpos)
         return self
 
-
     def _compute_shadow(self, plane, point, direction):
         shad = self.clone()
-        shad.dataset.GetPointData().SetTCoords(None) # remove any texture coords
+        shad.dataset.GetPointData().SetTCoords(None)  # remove any texture coords
         shad.name = "Shadow"
 
         pts = shad.vertices
-        if plane == 'x':
+        if plane == "x":
             # shad = shad.project_on_plane('x')
-            # instead do it manually so in case of alpha<1 
+            # instead do it manually so in case of alpha<1
             # we dont see glitches due to coplanar points
             # we leave a small tolerance of 0.1% in thickness
             x0, x1 = self.xbounds()
             pts[:, 0] = (pts[:, 0] - (x0 + x1) / 2) / 1000 + self.actor.GetOrigin()[0]
             shad.vertices = pts
             shad.x(point)
-        elif plane == 'y':
+        elif plane == "y":
             x0, x1 = self.ybounds()
             pts[:, 1] = (pts[:, 1] - (x0 + x1) / 2) / 1000 + self.actor.GetOrigin()[1]
             shad.vertices = pts
@@ -1071,14 +1080,13 @@ class PointsVisual(CommonVisual):
         Update the shadows of a moving object.
         """
         for sha in self.shadows:
-            plane = sha.info['plane']
-            point = sha.info['point']
-            direction = sha.info['direction']
+            plane = sha.info["plane"]
+            point = sha.info["point"]
+            direction = sha.info["direction"]
             new_sha = self._compute_shadow(plane, point, direction)
             # sha.DeepCopy(new_sha)
             sha._update(new_sha.dataset)
         return self
-
 
     def labels(
         self,
@@ -1491,8 +1499,7 @@ class PointsVisual(CommonVisual):
             c = np.array(self.color()) / 1.4
 
         lab = vedo.shapes.Text3D(
-            txt, pos=pt+offset, s=s, 
-            font=font, italic=italic, justify="center"
+            txt, pos=pt + offset, s=s, font=font, italic=italic, justify="center"
         )
         acts.append(lab)
 
@@ -1773,7 +1780,7 @@ class MeshVisual:
             plt = vedo.plotter_instance
             if plt and plt.renderer and plt.renderer.GetActiveCamera():
                 factor.SetCamera(plt.renderer.GetActiveCamera())
-        
+
         if origin is not None:
             factor.SetOrigin(origin)
 
@@ -1781,7 +1788,6 @@ class MeshVisual:
         factor.data = self
         self.actor = factor
         return self
-
 
     def wireframe(self, value=True):
         """Set mesh's representation as wireframe or solid surface."""
@@ -1876,10 +1882,8 @@ class MeshVisual:
         return self.linecolor(linecolor)
 
 
-
 ########################################################################################
 class VolumeVisual(CommonVisual):
-    
     def alpha_unit(self, u=None):
         """
         Defines light attenuation per unit length. Default is 1.
@@ -1898,14 +1902,13 @@ class VolumeVisual(CommonVisual):
 
 ########################################################################################
 class ActorTransforms:
-
     def pos(self, point=None):
         """Set/get position of object."""
         if point is None:
             return self.actor.GetPosition()
         self.actor.SetPosition(point)
         return self
-    
+
     def origin(self, point=None):
         """Set/get origin of object."""
         if point is None:
@@ -1920,7 +1923,7 @@ class ActorTransforms:
         p = self.actor.GetPosition()
         self.actor.SetPosition(x, p[1], p[2])
         return self
-    
+
     def y(self, y=None):
         """Set/get y coordinate of object."""
         if y is None:
@@ -1928,7 +1931,7 @@ class ActorTransforms:
         p = self.actor.GetPosition()
         self.actor.SetPosition(p[0], y, p[2])
         return self
-    
+
     def z(self, z=None):
         """Set/get z coordinate of object."""
         if z is None:
@@ -1936,22 +1939,22 @@ class ActorTransforms:
         p = self.actor.GetPosition()
         self.actor.SetPosition(p[0], p[1], z)
         return self
-    
+
     def rotate_x(self, angle):
         """Rotate around x axis."""
         self.actor.RotateX(angle)
         return self
-    
+
     def rotate_y(self, angle):
         """Rotate around y axis."""
         self.actor.RotateY(angle)
         return self
-    
+
     def rotate_z(self, angle):
         """Rotate around z axis."""
         self.actor.RotateZ(angle)
         return self
-    
+
     def reorient(self, old_axis, new_axis):
         """Rotate object to a new orientation."""
         axis = utils.versor(old_axis)
@@ -1959,13 +1962,13 @@ class ActorTransforms:
         angle = np.arccos(np.dot(axis, direction)) * 57.3
         self.actor.RotateWXYZ(angle, np.cross(axis, direction))
         return self
-    
+
     def shift(self, dp):
         """Add vector to current position."""
         p = self.actor.GetPosition()
         self.actor.SetPosition(p[0] + dp[0], p[1] + dp[1], p[2] + dp[2])
         return self
-    
+
     def scale(self, s=None, absolute=False):
         """Set/get scaling factor."""
         if s is None:
@@ -1975,11 +1978,10 @@ class ActorTransforms:
         else:
             self.actor.SetScale(self.GetScale() * s)
         return self
-    
+
 
 ########################################################################################
 class PictureVisual(ActorTransforms, CommonVisual):
-    
     def alpha(self, a=None):
         """Set/get picture's transparency in the rendering scene."""
         if a is not None:
@@ -2004,7 +2006,7 @@ class PictureVisual(ActorTransforms, CommonVisual):
     def bounds(self):
         """Get the bounding box."""
         return self.actor.GetBounds()
-    
+
     def xbounds(self, i=None):
         """Get the bounds `[xmin,xmax]`. Can specify upper or lower with i (0,1)."""
         b = self.bounds()
@@ -2033,8 +2035,7 @@ class PictureVisual(ActorTransforms, CommonVisual):
     def diagonal_size(self):
         """Get the length of the diagonal of mesh bounding box."""
         b = self.bounds()
-        return np.sqrt(
-            (b[1] - b[0])**2 + (b[3] - b[2])**2 + (b[5] - b[4])**2)
+        return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
 
     def memory_size(self):
         """
@@ -2062,7 +2063,6 @@ class BaseActor2D(vtk.vtkActor2D):
         self.mapper = None
         self.property = self.GetProperty()
         self.filename = ""
-
 
     def layer(self, value=None):
         """Set/Get the layer number in the overlay planes into which to render."""
@@ -2151,4 +2151,3 @@ class BaseActor2D(vtk.vtkActor2D):
         event_name = utils.get_vtk_name_event(event_name)
         idd = self.AddObserver(event_name, func, priority)
         return idd
-
