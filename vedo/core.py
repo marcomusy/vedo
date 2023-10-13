@@ -96,6 +96,12 @@ class CommonAlgorithms:
         """
         return self.GetActualMemorySize()
     
+    def modified(self):
+        """Use in conjunction with ``tonumpy()`` to update any modifications to the picture array"""
+        self.dataset.GetPointData().Modified()
+        self.dataset.GetPointData().GetScalars().Modified()
+        return self
+
     def box(self, scale=1, padding=0, fill=False):
         """
         Return the bounding box as a new `Mesh`.
@@ -215,24 +221,20 @@ class CommonAlgorithms:
 
         Set/Get the vertex coordinates of a mesh or point cloud.
         """
-        print("WARNING: .points() is obsolete, use .vertices instead.")
         if pts is None:  ### getter
-
-            if isinstance(self, vedo.Points):
-                vpts = self.dataset.GetPoints()
-            elif isinstance(self, vedo.BaseVolume):
-                v2p = vtk.vtkImageToPoints()
-                v2p.SetInputData(self.imagedata())
-                v2p.Update()
-                vpts = v2p.GetOutput().GetPoints()
-            else:  # tetmesh et al
-                vpts = self.dataset.GetPoints()
-
-            if vpts:
-                return utils.vtk2numpy(vpts.GetData())
-            return np.array([], dtype=np.float32)
+            msg = (
+                "WARNING: points() is deprecated, use vertices instead. E.g.:\n"
+                "         mesh.points() -> mesh.vertices"
+            )
+            colors.printc(msg, c='y')
+            return self.vertices
 
         else:
+            msg = (
+                "WARNING: points() is deprecated, use vertices instead. E.g.:\n"
+                "         mesh.points([[x,y,z]]) -> mesh.vertices = [[x,y,z]]"
+            )
+            colors.printc(msg, c='y')
 
             pts = np.asarray(pts, dtype=np.float32)
 
@@ -343,6 +345,41 @@ class CommonAlgorithms:
         self.mapper.SetScalarModeToUsePointData()
         self._update(c2p.GetOutput(), reset_locators=False)
         self.pipeline = utils.OperationNode("map cell\nto point data", parents=[self])
+        return self
+    
+    @property
+    def vertices(self):
+        """Return the vertices (points) coordinates."""
+        varr = self.dataset.GetPoints().GetData()
+        narr = utils.vtk2numpy(varr)
+        return narr
+
+    #setter
+    @vertices.setter
+    def vertices(self, pts):
+        """Set vertices (points) coordinates."""
+        arr = utils.numpy2vtk(pts, dtype=np.float32)
+        vpts = self.dataset.GetPoints()
+        vpts.SetData(arr)
+        vpts.Modified()
+        # reset mesh to identity matrix position/rotation:
+        self.point_locator = None
+        self.cell_locator = None
+        self.line_locator = None
+        self.actor.PokeMatrix(vtk.vtkMatrix4x4())
+        self.transform = LinearTransform()
+        # BUG
+        # from vedo import *
+        # plt = Plotter(interactive=False, axes=7)
+        # s = Disc(res=(8,120)).linewidth(0.1)
+        # print([s.dataset.GetPoints().GetData()])
+        # # plt.show(s)  # depends if I show it or not..
+        # # plt.renderer.AddActor(s.actor)
+        # print([s.dataset.GetPoints().GetData()])
+        # for i in progressbar(100):
+        #     s.vertices[:,2] = sin(i/10.*s.vertices[:,0])/5 # move vertices in z
+        # show(s, interactive=1)
+        # exit()
         return self
 
     @property

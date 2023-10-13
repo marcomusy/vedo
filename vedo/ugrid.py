@@ -9,7 +9,8 @@ import vedo
 from vedo import settings
 from vedo import colors
 from vedo import utils
-from vedo.base import BaseGrid
+# from vedo.base import BaseGrid
+from vedo.core import VolumeAlgorithms
 from vedo.file_io import download, loadUnStructuredGrid
 
 
@@ -22,7 +23,7 @@ Work with unstructured grid datasets
 __all__ = ["UGrid"]
 
 #########################################################################
-class UGrid(BaseGrid, vtk.vtkActor):
+class UGrid(VolumeAlgorithms, vtk.vtkActor):
     """Support for UnstructuredGrid objects."""
 
     def __init__(self, inputobj=None):
@@ -43,9 +44,6 @@ class UGrid(BaseGrid, vtk.vtkActor):
             - VTK_HEXAGONAL_PRISM = 15
             - VTK_PENTAGONAL_PRISM = 16
         """
-
-        #vtk.vtkActor.__init__(self)
-        #BaseGrid.__init__(self)
         super().__init__()
 
         inputtype = str(type(inputobj))

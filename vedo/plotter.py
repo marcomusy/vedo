@@ -652,7 +652,7 @@ class Plotter:
                 self.background_renderer.SetLayer(0)
                 self.background_renderer.InteractiveOff()
                 self.background_renderer.SetBackground(vedo.get_color(bg2))
-                image_actor = vedo.Picture(self.backgrcol)
+                image_actor = vedo.Picture(self.backgrcol).actor
                 self.window.AddRenderer(self.background_renderer)
                 self.background_renderer.AddActor(image_actor)
 
@@ -2320,7 +2320,6 @@ class Plotter:
             delta3d = np.array([0, 0, 0])
             if actor:
                 picked3d = np.array(self.picker.GetPickPosition())
-                # if isinstance(actor.data, vedo.base.Base3DProp):  # needed!
                 if hasattr(actor.data, "picked3d"):
                     if actor.data.picked3d is not None:
                         delta3d = picked3d - actor.data.picked3d

@@ -21,7 +21,7 @@ __doc__ = "Base classes to manage positioning and size of the objects in space a
 
 
 ###################################################
-class CoreVisual:
+class CommonVisual:
 
     def show(self, **options):
         """
@@ -401,7 +401,7 @@ class CoreVisual:
         return self
 
 ###################################################
-class PointsVisual(CoreVisual):
+class PointsVisual(CommonVisual):
     """Class to manage the visual aspects of a ``Points`` object."""
 
     ##################################################
@@ -1878,7 +1878,7 @@ class MeshVisual:
 
 
 ########################################################################################
-class VolumeVisual(CoreVisual):
+class VolumeVisual(CommonVisual):
     
     def alpha_unit(self, u=None):
         """
@@ -1896,12 +1896,155 @@ class VolumeVisual(CoreVisual):
         return self
 
 
-# class PictureVisual(CoreVisual):
-    
-#     pass
+########################################################################################
+class ActorTransforms:
 
-# class AssemblyVisual(CoreVisual):
+    def pos(self, point=None):
+        """Set/get position of object."""
+        if point is None:
+            return self.actor.GetPosition()
+        self.actor.SetPosition(point)
+        return self
     
+    def origin(self, point=None):
+        """Set/get origin of object."""
+        if point is None:
+            return np.array(self.actor.GetOrigin())
+        self.actor.SetOrigin(point)
+        return self
+
+    def x(self, x=None):
+        """Set/get x coordinate of object."""
+        if x is None:
+            return self.actor.GetPosition()[0]
+        p = self.actor.GetPosition()
+        self.actor.SetPosition(x, p[1], p[2])
+        return self
+    
+    def y(self, y=None):
+        """Set/get y coordinate of object."""
+        if y is None:
+            return self.actor.GetPosition()[1]
+        p = self.actor.GetPosition()
+        self.actor.SetPosition(p[0], y, p[2])
+        return self
+    
+    def z(self, z=None):
+        """Set/get z coordinate of object."""
+        if z is None:
+            return self.actor.GetPosition()[2]
+        p = self.actor.GetPosition()
+        self.actor.SetPosition(p[0], p[1], z)
+        return self
+    
+    def rotate_x(self, angle):
+        """Rotate around x axis."""
+        self.actor.RotateX(angle)
+        return self
+    
+    def rotate_y(self, angle):
+        """Rotate around y axis."""
+        self.actor.RotateY(angle)
+        return self
+    
+    def rotate_z(self, angle):
+        """Rotate around z axis."""
+        self.actor.RotateZ(angle)
+        return self
+    
+    def reorient(self, old_axis, new_axis):
+        """Rotate object to a new orientation."""
+        axis = utils.versor(old_axis)
+        direction = utils.versor(new_axis)
+        angle = np.arccos(np.dot(axis, direction)) * 57.3
+        self.actor.RotateWXYZ(angle, np.cross(axis, direction))
+        return self
+    
+    def shift(self, dp):
+        """Add vector to current position."""
+        p = self.actor.GetPosition()
+        self.actor.SetPosition(p[0] + dp[0], p[1] + dp[1], p[2] + dp[2])
+        return self
+    
+    def scale(self, s=None, absolute=False):
+        """Set/get scaling factor."""
+        if s is None:
+            return self.actor.GetScale()
+        if absolute:
+            self.actor.SetScale(s, s, s)
+        else:
+            self.actor.SetScale(self.GetScale() * s)
+        return self
+    
+
+########################################################################################
+class PictureVisual(ActorTransforms, CommonVisual):
+    
+    def alpha(self, a=None):
+        """Set/get picture's transparency in the rendering scene."""
+        if a is not None:
+            self.property.SetOpacity(a)
+            return self
+        return self.property.GetOpacity()
+
+    def level(self, value=None):
+        """Get/Set the image color level (brightness) in the rendering scene."""
+        if value is None:
+            return self.property.GetColorLevel()
+        self.property.SetColorLevel(value)
+        return self
+
+    def window(self, value=None):
+        """Get/Set the image color window (contrast) in the rendering scene."""
+        if value is None:
+            return self.property.GetColorWindow()
+        self.property.SetColorWindow(value)
+        return self
+
+    def bounds(self):
+        """Get the bounding box."""
+        return self.actor.GetBounds()
+    
+    def xbounds(self, i=None):
+        """Get the bounds `[xmin,xmax]`. Can specify upper or lower with i (0,1)."""
+        b = self.bounds()
+        if i is not None:
+            return b[i]
+        return (b[0], b[1])
+
+    def ybounds(self, i=None):
+        """Get the bounds `[ymin,ymax]`. Can specify upper or lower with i (0,1)."""
+        b = self.bounds()
+        if i == 0:
+            return b[2]
+        if i == 1:
+            return b[3]
+        return (b[2], b[3])
+
+    def zbounds(self, i=None):
+        """Get the bounds `[zmin,zmax]`. Can specify upper or lower with i (0,1)."""
+        b = self.bounds()
+        if i == 0:
+            return b[4]
+        if i == 1:
+            return b[5]
+        return (b[4], b[5])
+
+    def diagonal_size(self):
+        """Get the length of the diagonal of mesh bounding box."""
+        b = self.bounds()
+        return np.sqrt(
+            (b[1] - b[0])**2 + (b[3] - b[2])**2 + (b[5] - b[4])**2)
+
+    def memory_size(self):
+        """
+        Return the size in bytes of the object in memory.
+        """
+        return self.GetActualMemorySize()
+
+
+########################################################################################
+# class AssemblyVisual(CommonVisual):
 #     pass
 
 ########################################################################################

@@ -624,41 +624,6 @@ class Points(PointsVisual, PointAlgorithms):
             self.line_locator = None
             self.cell_locator = None
         return self
-    
-    @property
-    def vertices(self):
-        """Return the vertices (points) coordinates."""
-        varr = self.dataset.GetPoints().GetData()
-        narr = utils.vtk2numpy(varr)
-        return narr
-
-    #setter
-    @vertices.setter
-    def vertices(self, pts):
-        """Set vertices (points) coordinates."""
-        arr = utils.numpy2vtk(pts, dtype=np.float32)
-        vpts = self.dataset.GetPoints()
-        vpts.SetData(arr)
-        vpts.Modified()
-        # reset mesh to identity matrix position/rotation:
-        self.point_locator = None
-        self.cell_locator = None
-        self.line_locator = None
-        self.actor.PokeMatrix(vtk.vtkMatrix4x4())
-        self.transform = LinearTransform()
-        # BUG
-        # from vedo import *
-        # plt = Plotter(interactive=False, axes=7)
-        # s = Disc(res=(8,120)).linewidth(0.1)
-        # print([s.dataset.GetPoints().GetData()])
-        # # plt.show(s)  # depends if I show it or not..
-        # # plt.renderer.AddActor(s.actor)
-        # print([s.dataset.GetPoints().GetData()])
-        # for i in progressbar(100):
-        #     s.vertices[:,2] = sin(i/10.*s.vertices[:,0])/5 # move vertices in z
-        # show(s, interactive=1)
-        # exit()
-        return self
 
     def polydata(self):
         """Return the underlying ``vtkPolyData`` object."""

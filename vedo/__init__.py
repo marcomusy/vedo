@@ -27,7 +27,7 @@ settings = Settings(level=0)
 from vedo.colors import *
 from vedo.transformations import *
 from vedo.utils import *
-from vedo.base import *
+from vedo.core import *
 from vedo.shapes import *
 from vedo.file_io import *
 from vedo.ugrid import *
@@ -39,6 +39,7 @@ from vedo.volume import *
 from vedo.tetmesh import *
 from vedo.addons import *
 from vedo.plotter import *
+from vedo.visuals import *
 
 from vedo import applications
 from vedo import interactor_modes

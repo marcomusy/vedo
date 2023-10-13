@@ -10,9 +10,10 @@ except ImportError:
 
 import vedo
 from vedo import utils
-from vedo.base import Base3DProp
-from vedo.base import BaseGrid
+# from vedo.base import Base3DProp
+# from vedo.base import BaseGrid
 from vedo.mesh import Mesh
+from vedo.core import VolumeAlgorithms
 
 
 __docformat__ = "google"
@@ -854,7 +855,7 @@ class BaseVolume:
 
 
 ##########################################################################
-class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
+class Volume(BaseVolume, vtk.vtkVolume):
     """
     Class to describe dataset that are defined on "voxels":
     the 3D equivalent of 2D pixels.
@@ -948,9 +949,6 @@ class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
             if a `list` of values is used for `alphas` this is interpreted
             as a transfer function along the range of the scalar.
         """
-        #vtk.vtkVolume.__init__(self)
-        #BaseGrid.__init__(self)
-        #BaseVolume.__init__(self)
         super().__init__()
 
         ###################
@@ -1482,7 +1480,7 @@ class Volume(BaseVolume, BaseGrid, vtk.vtkVolume):
 
 
 ##########################################################################
-class VolumeSlice(BaseVolume, Base3DProp, vtk.vtkImageSlice):
+class VolumeSlice(BaseVolume, VolumeAlgorithms, vtk.vtkImageSlice):
     """
     Derived class of `vtkImageSlice`.
     """
@@ -1494,9 +1492,6 @@ class VolumeSlice(BaseVolume, Base3DProp, vtk.vtkImageSlice):
         for visualization using `mode="image"`.
         """
         vtk.vtkImageSlice.__init__(self)
-        Base3DProp.__init__(self)
-        BaseVolume.__init__(self)
-        # super().__init__()
 
         self._mapper = vtk.vtkImageResliceMapper()
         self._mapper.SliceFacesCameraOn()

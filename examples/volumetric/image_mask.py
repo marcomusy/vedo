@@ -28,7 +28,7 @@ total  = len(rgb) - len(ids_r[0]) - len(ids_w[0])
 gvalue = int(ngreen/total*100 + 0.5)
 
 show([
-      [pic, pic.box().lw(3), "Original image. How much grass is there?"],
+      [pic, "Original image. How much grass is there?"],
       histogram(ratio_g, logscale=True, xtitle='ratio of green'),
       [msh.clone().cmap('Greens', data_g), f'Ratio of green is \approx {gvalue}%'],
       [msh.clone().cmap('Reds',   data_r), 'Masking the vase region'],

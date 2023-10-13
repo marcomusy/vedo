@@ -9,7 +9,8 @@ except ImportError:
 import numpy as np
 import vedo
 from vedo import utils
-from vedo.base import BaseGrid
+# from vedo.base import BaseGrid
+from vedo.core import VolumeAlgorithms
 from vedo.mesh import Mesh
 from vedo.file_io import download, loadUnStructuredGrid
 
@@ -106,7 +107,7 @@ def _buildtetugrid(points, cells):
 
 
 ##########################################################################
-class TetMesh(BaseGrid, vtk.vtkVolume):
+class TetMesh(VolumeAlgorithms, vtk.vtkVolume):
     """The class describing tetrahedral meshes."""
 
     def __init__(
@@ -126,8 +127,6 @@ class TetMesh(BaseGrid, vtk.vtkVolume):
             mapper : (str)
                 choose a visualization style in `['tetra', 'raycast', 'zsweep']`
         """
-#        vtk.vtkVolume.__init__(self)
-#        BaseGrid.__init__(self)
         super().__init__()
 
         # inputtype = str(type(inputobj))
