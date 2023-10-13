@@ -437,6 +437,8 @@ def numpy2vtk(arr, dtype=None, deep=True, name=""):
         varr = numpy_to_vtk(arr.astype(dtype), deep=deep)
     else:
         # let numpy_to_vtk() decide what is best type based on arr type
+        if arr.dtype == np.bool_:
+            arr = arr.astype(np.uint8)
         varr = numpy_to_vtk(arr, deep=deep)
 
     if name:
