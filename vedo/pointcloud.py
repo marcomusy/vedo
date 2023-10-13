@@ -718,10 +718,12 @@ class Points(PointsVisual, PointAlgorithms):
         return vedo.assembly.Assembly([self, meshs])
 
     def polydata(self, **kwargs):
-        """Obsolete.
-        You can remove it anywhere from your code.
         """
-        print("WARNING: call to .polydata() is obsolete, you can remove it from your code.")
+        Obsolete. Use property `.dataset` instead.
+
+        Returns the underlying ``vtkPolyData`` object.
+        """
+        print("WARNING: call to .polydata() is obsolete, use property .dataset instead.")
         return self
 
     def clone(self, deep=True):

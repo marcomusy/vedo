@@ -465,6 +465,18 @@ class Assembly(vtk.vtkAssembly):
         LT = LinearTransform().rotate_z(angle)
         return self.apply_transform(LT)
 
+    def reorient(self, new_axis, old_axis=None, rotation=0, rad=False):
+        """Rotate object to a new orientation."""
+        if old_axis is None:
+            old_axis = self.top - self.base
+        axis = old_axis / np.linalg.norm(old_axis)
+        direction = new_axis / np.linalg.norm(new_axis)
+        angle = np.arccos(np.dot(axis, direction)) * 57.3
+        self.RotateZ(rotation*57.3)
+        a,b,c = np.cross(axis, direction)
+        self.RotateWXYZ(angle, c,b,a)
+        return self
+
     def bounds(self):
         """
         Get the object bounds.

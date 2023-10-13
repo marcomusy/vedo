@@ -2341,10 +2341,14 @@ class Plotter:
             delta3d = np.array([0, 0, 0])
             if actor:
                 picked3d = np.array(self.picker.GetPickPosition())
-                if hasattr(actor.data, "picked3d"):
-                    if actor.data.picked3d is not None:
-                        delta3d = picked3d - actor.data.picked3d
-                actor.data.picked3d = picked3d
+                # if hasattr(actor.data, "picked3d"):
+                #     if actor.data.picked3d is not None:
+                #         delta3d = picked3d - actor.data.picked3d
+                try:
+                    delta3d = picked3d - actor.data.picked3d
+                    actor.data.picked3d = picked3d
+                except (AttributeError, TypeError):
+                    pass
             else:
                 picked3d = None
 

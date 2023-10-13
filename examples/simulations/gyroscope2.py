@@ -37,7 +37,7 @@ pedestal = Box([0, -0.63, 0], height=0.1, length=0.1, width=1).texture(dataurl+'
 pedbase = Box([0, -1.13, 0], height=0.5, length=0.5, width=0.05).texture(dataurl+'textures/wood1.jpg')
 pedpin = Pyramid([0, -0.08, 0], axis=[0, 1, 0], s=0.05, height=0.12).texture(dataurl+'textures/wood1.jpg')
 formulas = Picture(dataurl+"images/gyro_formulas.png").alpha(0.9)
-formulas.scale(0.0035).pos(-1.4, -1.1, -1.1)
+formulas.scale(0.0035).pos([-1.4, -1.1, -1.1])
 plt += [pedestal + pedbase + pedpin + formulas]
 
 # ############################################################ the physics
@@ -58,7 +58,7 @@ def loop_func(event):
 
     gaxis = (Lshaft + 0.03) * vector(st * sp, ct, st * cp)
     # set orientation along gaxis and rotate it around its axis by psidot*t degrees
-    gyro.reorient(None, gaxis, rotation=psidot * t, rad=True)
+    gyro.reorient(gaxis, rotation=psidot * t, rad=True)
     plt.add(Point(gaxis, r=3, c="red4"))
     plt.render()
 
