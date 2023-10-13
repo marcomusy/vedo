@@ -15,10 +15,299 @@ from vedo.transformations import LinearTransform
 
 __docformat__ = "google"
 
-__doc__ = "Base classes. Do not instantiate."
+__doc__ = "Base classes providing functionality to all vedo objects."
 
-# __all__ = [
-# ]
+__all__ = ["CommonAlgorithms", "PointAlgorithms", "VolumeAlgorithms"]
+
+
+###############################################################################
+class DataArrayHelper:
+    # Internal use only.
+    # Helper class to manage data associated to either
+    # points (or vertices) and cells (or faces).
+    def __init__(self, obj, association):
+        self.obj = obj
+        self.association = association
+
+    def __getitem__(self, key):
+
+        if self.association == 0:
+            data = self.obj.dataset.GetPointData()
+
+        elif self.association == 1:
+            data = self.obj.dataset.GetCellData()
+
+        elif self.association == 2:
+            data = self.obj.dataset.GetFieldData()
+
+            varr = data.GetAbstractArray(key)
+            if isinstance(varr, vtk.vtkStringArray):
+                if isinstance(key, int):
+                    key = data.GetArrayName(key)
+                n = varr.GetNumberOfValues()
+                narr = [varr.GetValue(i) for i in range(n)]
+                return narr
+                ###########
+
+        else:
+            raise RuntimeError()
+
+        if isinstance(key, int):
+            key = data.GetArrayName(key)
+
+        arr = data.GetArray(key)
+        if not arr:
+            return None
+        return utils.vtk2numpy(arr)
+
+    def __setitem__(self, key, input_array):
+
+        if self.association == 0:
+            data = self.obj.dataset.GetPointData()
+            n = self.obj.dataset.GetNumberOfPoints()
+            self.obj.mapper.SetScalarModeToUsePointData()
+
+        elif self.association == 1:
+            data = self.obj.dataset.GetCellData()
+            n = self.obj.dataset.GetNumberOfCells()
+            self.obj.mapper.SetScalarModeToUseCellData()
+
+        elif self.association == 2:
+            data = self.obj.dataset.GetFieldData()
+            if not utils.is_sequence(input_array):
+                input_array = [input_array]
+
+            if isinstance(input_array[0], str):
+                varr = vtk.vtkStringArray()
+                varr.SetName(key)
+                varr.SetNumberOfComponents(1)
+                varr.SetNumberOfTuples(len(input_array))
+                for i, iarr in enumerate(input_array):
+                    if isinstance(iarr, np.ndarray):
+                        iarr = iarr.tolist()  # better format
+                        # Note: a string k can be converted to numpy with
+                        # import json; k = np.array(json.loads(k))
+                    varr.InsertValue(i, str(iarr))
+            else:
+                try:
+                    varr = utils.numpy2vtk(input_array, name=key)
+                except TypeError as e:
+                    vedo.logger.error(
+                        f"cannot create metadata with input object:\n"
+                        f"{input_array}"
+                        f"\n\nAllowed content examples are:\n"
+                        f"- flat list of strings ['a','b', 1, [1,2,3], ...]"
+                        f" (first item must be a string in this case)\n"
+                        f"  hint: use k = np.array(json.loads(k)) to convert strings\n"
+                        f"- numpy arrays of any shape"
+                    )
+                    raise e
+
+            data.AddArray(varr)
+            return  ############
+
+        else:
+            raise RuntimeError()
+
+        if len(input_array) != n:
+            vedo.logger.error(
+                f"Error in point/cell data: length of input {len(input_array)}"
+                f" !=  {n} nr. of elements"
+            )
+            raise RuntimeError()
+
+        input_array = np.asarray(input_array)
+        varr = utils.numpy2vtk(input_array, name=key)
+        data.AddArray(varr)
+
+        if len(input_array.shape) == 1:  # scalars
+            data.SetActiveScalars(key)
+        elif len(input_array.shape) == 2 and input_array.shape[1] == 3:  # vectors
+            if key.lower() == "normals":
+                data.SetActiveNormals(key)
+            else:
+                data.SetActiveVectors(key)
+
+    def keys(self):
+        """Return the list of available data array names"""
+        if self.association == 0:
+            data = self.obj.dataset.GetPointData()
+        elif self.association == 1:
+            data = self.obj.dataset.GetCellData()
+        elif self.association == 2:
+            data = self.obj.dataset.GetFieldData()
+        arrnames = []
+        for i in range(data.GetNumberOfArrays()):
+            name = data.GetArray(i).GetName()
+            if name:
+                arrnames.append(name)
+        return arrnames
+
+    def remove(self, key):
+        """Remove a data array by name or number"""
+        if self.association == 0:
+            self.obj.dataset.GetPointData().RemoveArray(key)
+        elif self.association == 1:
+            self.obj.dataset.GetCellData().RemoveArray(key)
+        elif self.association == 2:
+            self.obj.dataset.GetFieldData().RemoveArray(key)
+
+    def clear(self):
+        """Remove all data associated to this object"""
+        if self.association == 0:
+            data = self.obj.dataset.GetPointData()
+        elif self.association == 1:
+            data = self.obj.dataset.GetCellData()
+        elif self.association == 2:
+            data = self.obj.dataset.GetFieldData()
+        for i in range(data.GetNumberOfArrays()):
+            name = data.GetArray(i).GetName()
+            data.RemoveArray(name)
+
+    def rename(self, oldname, newname):
+        """Rename an array"""
+        if self.association == 0:
+            varr = self.obj.dataset.GetPointData().GetArray(oldname)
+        elif self.association == 1:
+            varr = self.obj.dataset.GetCellData().GetArray(oldname)
+        elif self.association == 2:
+            varr = self.obj.dataset.GetFieldData().GetArray(oldname)
+        if varr:
+            varr.SetName(newname)
+        else:
+            vedo.logger.warning(
+                f"Cannot rename non existing array {oldname} to {newname}"
+            )
+
+    def select(self, key):
+        """Select one specific array by its name to make it the `active` one."""
+        if self.association == 0:
+            data = self.obj.dataset.GetPointData()
+            self.obj.mapper.SetScalarModeToUsePointData()
+        else:
+            data = self.obj.dataset.GetCellData()
+            self.obj.mapper.SetScalarModeToUseCellData()
+
+        if isinstance(key, int):
+            key = data.GetArrayName(key)
+
+        arr = data.GetArray(key)
+        if not arr:
+            return
+
+        nc = arr.GetNumberOfComponents()
+        if nc == 1:
+            data.SetActiveScalars(key)
+        elif nc >= 2:
+            if "rgb" in key.lower():
+                data.SetActiveScalars(key)
+                # try:
+                #     self.mapper.SetColorModeToDirectScalars()
+                # except AttributeError:
+                #     pass
+            else:
+                data.SetActiveVectors(key)
+        elif nc >= 4:
+            data.SetActiveTensors(key)
+
+        try:
+            self.obj.mapper.SetArrayName(key)
+            self.obj.mapper.ScalarVisibilityOn()
+            # .. could be a volume mapper
+        except AttributeError:
+            pass
+
+    def select_scalars(self, key):
+        """Select one specific scalar array by its name to make it the `active` one."""
+        if self.association == 0:
+            data = self.obj.dataset.GetPointData()
+            self.obj.mapper.SetScalarModeToUsePointData()
+        else:
+            data = self.obj.dataset.GetCellData()
+            self.obj.mapper.SetScalarModeToUseCellData()
+
+        if isinstance(key, int):
+            key = data.GetArrayName(key)
+
+        data.SetActiveScalars(key)
+
+        try:
+            self.obj.mapper.SetArrayName(key)
+            self.obj.mapper.ScalarVisibilityOn()
+        except AttributeError:
+            pass
+
+    def select_vectors(self, key):
+        """Select one specific vector array by its name to make it the `active` one."""
+        if self.association == 0:
+            data = self.obj.dataset.GetPointData()
+            self.obj.mapper.SetScalarModeToUsePointData()
+        else:
+            data = self.obj.dataset.GetCellData()
+            self.obj.mapper.SetScalarModeToUseCellData()
+
+        if isinstance(key, int):
+            key = data.GetArrayName(key)
+
+        data.SetActiveVectors(key)
+
+        try:
+            self.obj.mapper.SetArrayName(key)
+            self.obj.mapper.ScalarVisibilityOn()
+        except AttributeError:
+            pass
+
+    def print(self, **kwargs):
+        """Print the array names available to terminal"""
+        colors.printc(self.keys(), **kwargs)
+
+    def __repr__(self) -> str:
+        """Representation"""
+
+        def _get_str(pd, header):
+            if pd.GetNumberOfArrays():
+                out = f"\x1b[2m\x1b[1m\x1b[7m{header}"
+                if self.obj.name:
+                    out += f" in {self.obj.name}"
+                out += f" contains {pd.GetNumberOfArrays()} array(s)\x1b[0m"
+                for i in range(pd.GetNumberOfArrays()):
+                    varr = pd.GetArray(i)
+                    out += f"\n\x1b[1m\x1b[4mArray name    : {varr.GetName()}\x1b[0m"
+                    out += "\nindex".ljust(15) + f": {i}"
+                    t = varr.GetDataType()
+                    if t in vedo.utils.array_types:
+                        out += f"\ntype".ljust(15)
+                        out += f": {vedo.utils.array_types[t][1]} ({vedo.utils.array_types[t][0]})"
+                    shape = (varr.GetNumberOfTuples(), varr.GetNumberOfComponents())
+                    out += "\nshape".ljust(15) + f": {shape}"
+                    out += "\nrange".ljust(15) + f": {np.array(varr.GetRange())}"
+                    out += "\nmax id".ljust(15) + f": {varr.GetMaxId()}"
+                    out += "\nlook up table".ljust(15) + f": {bool(varr.GetLookupTable())}"
+                    out += "\nin-memory size".ljust(15) + f": {varr.GetActualMemorySize()} KB"
+            else:
+                out += " has no associated data."
+            return out
+
+        if self.association == 0:
+            out = _get_str(self.dataset.GetPointData(), "Point Data")
+        elif self.association == 1:
+            out = _get_str(self.dataset.GetCellData(), "Cell Data")
+        elif self.association == 2:
+            pd = self.dataset.GetFieldData()
+            if pd.GetNumberOfArrays():
+                out = f"\x1b[2m\x1b[1m\x1b[7mMeta Data"
+                if self.actor.name:
+                    out += f" in {self.actor.name}"
+                out += f" contains {pd.GetNumberOfArrays()} entries\x1b[0m"
+                for i in range(pd.GetNumberOfArrays()):
+                    varr = pd.GetAbstractArray(i)
+                    out += f"\n\x1b[1m\x1b[4mEntry name    : {varr.GetName()}\x1b[0m"
+                    out += "\nindex".ljust(15) + f": {i}"
+                    shape = (varr.GetNumberOfTuples(), varr.GetNumberOfComponents())
+                    out += "\nshape".ljust(15) + f": {shape}"
+
+        return out
+
 
 ###############################################################################
 class CommonAlgorithms:
@@ -95,7 +384,7 @@ class CommonAlgorithms:
         Return the size in bytes of the object in memory.
         """
         return self.GetActualMemorySize()
-    
+
     def modified(self):
         """Use in conjunction with ``tonumpy()`` to update any modifications to the picture array"""
         self.dataset.GetPointData().Modified()
@@ -180,8 +469,7 @@ class CommonAlgorithms:
     def diagonal_size(self):
         """Get the length of the diagonal of mesh bounding box."""
         b = self.bounds()
-        return np.sqrt(
-            (b[1] - b[0])**2 + (b[3] - b[2])**2 + (b[5] - b[4])**2)
+        return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
 
     def copy_data_from(self, obj):
         """Copy all data (point and cell data) from this input object"""
@@ -226,7 +514,7 @@ class CommonAlgorithms:
                 "WARNING: points() is deprecated, use vertices instead. E.g.:\n"
                 "         mesh.points() -> mesh.vertices"
             )
-            colors.printc(msg, c='y')
+            colors.printc(msg, c="y")
             return self.vertices
 
         else:
@@ -234,7 +522,7 @@ class CommonAlgorithms:
                 "WARNING: points() is deprecated, use vertices instead. E.g.:\n"
                 "         mesh.points([[x,y,z]]) -> mesh.vertices = [[x,y,z]]"
             )
-            colors.printc(msg, c='y')
+            colors.printc(msg, c="y")
 
             pts = np.asarray(pts, dtype=np.float32)
 
@@ -243,7 +531,7 @@ class CommonAlgorithms:
                 indices = pts.astype(int)
                 vpts = self.dataset.GetPoints()
                 arr = utils.vtk2numpy(vpts.GetData())
-                return arr[indices] ###########
+                return arr[indices]  ###########
 
             ### setter ####################################
             if pts.shape[1] == 2:
@@ -285,7 +573,6 @@ class CommonAlgorithms:
         self.pipeline = utils.OperationNode("mark_boundaries", parents=[self])
         return self
 
-
     def find_cells_in(self, xbounds=(), ybounds=(), zbounds=()):
         """
         Find cells that are within the specified bounds.
@@ -318,7 +605,6 @@ class CommonAlgorithms:
 
         return np.array(cids)
 
-
     def map_cells_to_points(self, arrays=(), move=False):
         """
         Interpolate cell data (i.e., data specified per cell or face)
@@ -346,7 +632,7 @@ class CommonAlgorithms:
         self._update(c2p.GetOutput(), reset_locators=False)
         self.pipeline = utils.OperationNode("map cell\nto point data", parents=[self])
         return self
-    
+
     @property
     def vertices(self):
         """Return the vertices (points) coordinates."""
@@ -354,7 +640,7 @@ class CommonAlgorithms:
         narr = utils.vtk2numpy(varr)
         return narr
 
-    #setter
+    # setter
     @vertices.setter
     def vertices(self, pts):
         """Set vertices (points) coordinates."""
@@ -405,7 +691,6 @@ class CommonAlgorithms:
                     break
         return conn
 
-
     def map_points_to_cells(self, arrays=(), move=False):
         """
         Interpolate point data (i.e., data specified per point or vertex)
@@ -433,7 +718,7 @@ class CommonAlgorithms:
             p2c.ProcessAllArraysOn()
         p2c.Update()
         self.mapper.SetScalarModeToUseCellData()
-        self._update(p2c.GetOutput(), reset_locators=False)        
+        self._update(p2c.GetOutput(), reset_locators=False)
         self.pipeline = utils.OperationNode("map point\nto cell data", parents=[self])
         return self
 
@@ -477,7 +762,7 @@ class CommonAlgorithms:
             rs.SetComputeTolerance(False)
             rs.SetTolerance(tol)
         rs.Update()
-        self._update(rs.GetOutput(), reset_locators=False)        
+        self._update(rs.GetOutput(), reset_locators=False)
         self.pipeline = utils.OperationNode(
             f"resample_data_from\n{source.__class__.__name__}", parents=[self, source]
         )
@@ -493,7 +778,7 @@ class CommonAlgorithms:
         ids.SetPointIdsArrayName("PointID")
         ids.SetCellIdsArrayName("CellID")
         ids.Update()
-        self._update(ids.GetOutput(), reset_locators=False)        
+        self._update(ids.GetOutput(), reset_locators=False)
         self.pipeline = utils.OperationNode("add_ids", parents=[self])
         return self
 
@@ -693,15 +978,11 @@ class CommonAlgorithms:
         sf.SetInputData(self.datset)
         sf.SetShrinkFactor(fraction)
         sf.Update()
-        self._update(sf.GetOutput())        
+        self._update(sf.GetOutput())
         self.pipeline = utils.OperationNode(
             "shrink", comment=f"by {fraction}", parents=[self], c="#9e2a2b"
         )
         return self
-    
-
-
-
 
 
 ###############################################################################
@@ -759,7 +1040,6 @@ class PointAlgorithms(CommonAlgorithms):
         self.line_locator = None
         return self
 
-
     def pos(self, x=None, y=None, z=None):
         """Set/Get object position."""
         if x is None:  # get functionality
@@ -776,7 +1056,7 @@ class PointAlgorithms(CommonAlgorithms):
 
         q = self.transform.position
         LT = LinearTransform()
-        LT.translate([x,y,z] - q)
+        LT.translate([x, y, z] - q)
         return self.apply_transform(LT)
 
     def shift(self, dx=0, dy=0, dz=0):
@@ -860,23 +1140,17 @@ class PointAlgorithms(CommonAlgorithms):
         LT = LinearTransform().rotate_z(angle, rad, around)
         return self.apply_transform(LT)
 
-    def reorient(self, 
-            newaxis, 
-            initaxis=None,
-            rotation=0,
-            rad=False, 
-            xyplane=True,
-        ):
+    def reorient(self, newaxis, initaxis=None, rotation=0, rad=False, xyplane=True):
         """
         Reorient the object to point to a new direction from an initial one.
         If `initaxis` is None, the object will be assumed in its "default" orientation.
         If `xyplane` is True, the object will be rotated to lie on the xy plane.
-        
+
         Use `rotation` to first rotate the object around its `initaxis`.
         """
         if initaxis is None:
             initaxis = np.asarray(self.top) - self.base
- 
+
         q = self.transform.position
         LT = LinearTransform()
         LT.reorient(newaxis, initaxis, q, rotation, rad, xyplane)
@@ -902,7 +1176,7 @@ class PointAlgorithms(CommonAlgorithms):
             return np.array(self.transform.T.GetScale())
 
         if not utils.is_sequence(s):
-          s = [s, s, s]
+            s = [s, s, s]
 
         LT = LinearTransform()
         if reset:
@@ -971,9 +1245,13 @@ class VolumeAlgorithms(CommonAlgorithms):
         )
         return out
 
-
     def legosurface(
-        self, vmin=None, vmax=None, invert=False, boundary=False, array_name="input_scalars"
+        self,
+        vmin=None,
+        vmax=None,
+        invert=False,
+        boundary=False,
+        array_name="input_scalars",
     ):
         """
         Represent an object - typically a `Volume` - as lego blocks (voxels).
@@ -1026,7 +1304,10 @@ class VolumeAlgorithms(CommonAlgorithms):
         m.celldata.select(array_name)
 
         m.pipeline = utils.OperationNode(
-            "legosurface", parents=[self], comment=f"array: {array_name}", c="#4cc9f0:#e9c46a"
+            "legosurface",
+            parents=[self],
+            comment=f"array: {array_name}",
+            c="#4cc9f0:#e9c46a",
         )
         return m
 
@@ -1065,18 +1346,16 @@ class VolumeAlgorithms(CommonAlgorithms):
         if isinstance(cout, vtk.vtkUnstructuredGrid):
             ug = vedo.UGrid(cout)
             if isinstance(self, vedo.UGrid):
-                self._update(cout)        
+                self._update(cout)
                 self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
                 return self
             ug.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
             return ug
 
         else:
-            self._update(cout)        
+            self._update(cout)
             self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
             return self
-
-
 
     def cut_with_box(self, box):
         """
@@ -1111,17 +1390,16 @@ class VolumeAlgorithms(CommonAlgorithms):
         if isinstance(cout, vtk.vtkUnstructuredGrid):
             ug = vedo.UGrid(cout)
             if isinstance(self, vedo.UGrid):
-                self._update(cout)        
+                self._update(cout)
                 self.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
                 return self
             ug.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
             return ug
 
         else:
-            self._update(cout)        
+            self._update(cout)
             self.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
             return self
-
 
     def cut_with_mesh(self, mesh, invert=False, whole_cells=False, only_boundary=False):
         """
@@ -1178,14 +1456,14 @@ class VolumeAlgorithms(CommonAlgorithms):
         if isinstance(cout, vtk.vtkUnstructuredGrid):
             ug = vedo.UGrid(cout)
             if isinstance(self, vedo.UGrid):
-                self._update(cout)        
+                self._update(cout)
                 self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
                 return self
             ug.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
             return ug
 
         else:
-            self._update(cout)        
+            self._update(cout)
             self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
             return self
 
@@ -1205,7 +1483,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         bf.SetImplicitFunction(plane)
         bf.Update()
 
-        self._update(bf.GetOutput(), reset_locators=False)        
+        self._update(bf.GetOutput(), reset_locators=False)
         self.pipeline = utils.OperationNode(
             "extract_cells_on_plane",
             parents=[self],
@@ -1230,7 +1508,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         bf.SetImplicitFunction(sph)
         bf.Update()
 
-        self._update(bf.GetOutput())        
+        self._update(bf.GetOutput())
         self.pipeline = utils.OperationNode(
             "extract_cells_on_sphere",
             parents=[self],
@@ -1262,7 +1540,7 @@ class VolumeAlgorithms(CommonAlgorithms):
             comment=f"#cells {self.dataset.GetNumberOfCells()}",
             c="#9e2a2b",
         )
-        self._update(bf.GetOutput())        
+        self._update(bf.GetOutput())
         return self
 
     def clean(self):
@@ -1276,9 +1554,12 @@ class VolumeAlgorithms(CommonAlgorithms):
         cl.AveragePointDataOff()
         cl.Update()
 
-        self._update(cl.GetOutput())        
+        self._update(cl.GetOutput())
         self.pipeline = utils.OperationNode(
-            "clean", parents=[self], comment=f"#cells {self.dataset.GetNumberOfCells()}", c="#9e2a2b"
+            "clean",
+            parents=[self],
+            comment=f"#cells {self.dataset.GetNumberOfCells()}",
+            c="#9e2a2b",
         )
         return self
 
@@ -1326,295 +1607,3 @@ class VolumeAlgorithms(CommonAlgorithms):
             c="#9e2a2b",
         )
         return ug
-
-
-
-
-###############################################################################
-class DataArrayHelper:
-    # Internal use only.
-    # Helper class to manage data associated to either
-    # points (or vertices) and cells (or faces).
-    def __init__(self, obj, association):
-        self.obj = obj
-        self.association = association
-
-    def __getitem__(self, key):
-
-        if self.association == 0:
-            data = self.obj.dataset.GetPointData()
-
-        elif self.association == 1:
-            data = self.obj.dataset.GetCellData()
-
-        elif self.association == 2:
-            data = self.obj.dataset.GetFieldData()
-
-            varr = data.GetAbstractArray(key)
-            if isinstance(varr, vtk.vtkStringArray):
-                if isinstance(key, int):
-                    key = data.GetArrayName(key)
-                n = varr.GetNumberOfValues()
-                narr = [varr.GetValue(i) for i in range(n)]
-                return narr
-                ###########
-
-        else:
-            raise RuntimeError()
-
-        if isinstance(key, int):
-            key = data.GetArrayName(key)
-
-        arr = data.GetArray(key)
-        if not arr:
-            return None
-        return utils.vtk2numpy(arr)
-
-    def __setitem__(self, key, input_array):
-
-        if self.association == 0:
-            data = self.obj.dataset.GetPointData()
-            n = self.obj.dataset.GetNumberOfPoints()
-            self.obj.mapper.SetScalarModeToUsePointData()
-
-        elif self.association == 1:
-            data = self.obj.dataset.GetCellData()
-            n = self.obj.dataset.GetNumberOfCells()
-            self.obj.mapper.SetScalarModeToUseCellData()
-
-        elif self.association == 2:
-            data = self.obj.dataset.GetFieldData()
-            if not utils.is_sequence(input_array):
-                input_array = [input_array]
-
-            if isinstance(input_array[0], str):
-                varr = vtk.vtkStringArray()
-                varr.SetName(key)
-                varr.SetNumberOfComponents(1)
-                varr.SetNumberOfTuples(len(input_array))
-                for i, iarr in enumerate(input_array):
-                    if isinstance(iarr, np.ndarray):
-                        iarr = iarr.tolist()  # better format
-                        # Note: a string k can be converted to numpy with
-                        # import json; k = np.array(json.loads(k))
-                    varr.InsertValue(i, str(iarr))
-            else:
-                try:
-                    varr = utils.numpy2vtk(input_array, name=key)
-                except TypeError as e:
-                    vedo.logger.error(
-                        f"cannot create metadata with input object:\n"
-                        f"{input_array}"
-                        f"\n\nAllowed content examples are:\n"
-                        f"- flat list of strings ['a','b', 1, [1,2,3], ...]"
-                        f" (first item must be a string in this case)\n"
-                        f"  hint: use k = np.array(json.loads(k)) to convert strings\n"
-                        f"- numpy arrays of any shape"
-                    )
-                    raise e
-
-            data.AddArray(varr)
-            return  ############
-
-        else:
-            raise RuntimeError()
-
-        if len(input_array) != n:
-            vedo.logger.error(
-                f"Error in point/cell data: length of input {len(input_array)}"
-                f" !=  {n} nr. of elements"
-            )
-            raise RuntimeError()
-
-        input_array = np.asarray(input_array)
-        varr = utils.numpy2vtk(input_array, name=key)
-        data.AddArray(varr)
-
-        if len(input_array.shape) == 1:  # scalars
-            data.SetActiveScalars(key)
-        elif len(input_array.shape) == 2 and input_array.shape[1] == 3:  # vectors
-            if key.lower() == "normals":
-                data.SetActiveNormals(key)
-            else:
-                data.SetActiveVectors(key)
-
-    def keys(self):
-        """Return the list of available data array names"""
-        if self.association == 0:
-            data = self.obj.dataset.GetPointData()
-        elif self.association == 1:
-            data = self.obj.dataset.GetCellData()
-        elif self.association == 2:
-            data = self.obj.dataset.GetFieldData()
-        arrnames = []
-        for i in range(data.GetNumberOfArrays()):
-            name = data.GetArray(i).GetName()
-            if name:
-                arrnames.append(name)
-        return arrnames
-
-    def remove(self, key):
-        """Remove a data array by name or number"""
-        if self.association == 0:
-            self.obj.dataset.GetPointData().RemoveArray(key)
-        elif self.association == 1:
-            self.obj.dataset.GetCellData().RemoveArray(key)
-        elif self.association == 2:
-            self.obj.dataset.GetFieldData().RemoveArray(key)
-
-    def clear(self):
-        """Remove all data associated to this object"""
-        if self.association == 0:
-            data = self.obj.dataset.GetPointData()
-        elif self.association == 1:
-            data = self.obj.dataset.GetCellData()
-        elif self.association == 2:
-            data = self.obj.dataset.GetFieldData()
-        for i in range(data.GetNumberOfArrays()):
-            name = data.GetArray(i).GetName()
-            data.RemoveArray(name)
-
-    def rename(self, oldname, newname):
-        """Rename an array"""
-        if self.association == 0:
-            varr = self.obj.dataset.GetPointData().GetArray(oldname)
-        elif self.association == 1:
-            varr = self.obj.dataset.GetCellData().GetArray(oldname)
-        elif self.association == 2:
-            varr = self.obj.dataset.GetFieldData().GetArray(oldname)
-        if varr:
-            varr.SetName(newname)
-        else:
-            vedo.logger.warning(f"Cannot rename non existing array {oldname} to {newname}")
-
-    def select(self, key):
-        """Select one specific array by its name to make it the `active` one."""
-        if self.association == 0:
-            data = self.obj.dataset.GetPointData()
-            self.obj.mapper.SetScalarModeToUsePointData()
-        else:
-            data = self.obj.dataset.GetCellData()
-            self.obj.mapper.SetScalarModeToUseCellData()
-
-        if isinstance(key, int):
-            key = data.GetArrayName(key)
-
-        arr = data.GetArray(key)
-        if not arr:
-            return
-
-        nc = arr.GetNumberOfComponents()
-        if nc == 1:
-            data.SetActiveScalars(key)
-        elif nc >= 2:
-            if "rgb" in key.lower():
-                data.SetActiveScalars(key)
-                # try:
-                #     self.mapper.SetColorModeToDirectScalars()
-                # except AttributeError:
-                #     pass
-            else:
-                data.SetActiveVectors(key)
-        elif nc >= 4:
-            data.SetActiveTensors(key)
-
-        try:
-            self.obj.mapper.SetArrayName(key)
-            self.obj.mapper.ScalarVisibilityOn()
-            # .. could be a volume mapper
-        except AttributeError:
-            pass
-
-    def select_scalars(self, key):
-        """Select one specific scalar array by its name to make it the `active` one."""
-        if self.association == 0:
-            data = self.obj.dataset.GetPointData()
-            self.obj.mapper.SetScalarModeToUsePointData()
-        else:
-            data = self.obj.dataset.GetCellData()
-            self.obj.mapper.SetScalarModeToUseCellData()
-
-        if isinstance(key, int):
-            key = data.GetArrayName(key)
-
-        data.SetActiveScalars(key)
-
-        try:
-            self.obj.mapper.SetArrayName(key)
-            self.obj.mapper.ScalarVisibilityOn()
-        except AttributeError:
-            pass
-
-    def select_vectors(self, key):
-        """Select one specific vector array by its name to make it the `active` one."""
-        if self.association == 0:
-            data = self.obj.dataset.GetPointData()
-            self.obj.mapper.SetScalarModeToUsePointData()
-        else:
-            data = self.obj.dataset.GetCellData()
-            self.obj.mapper.SetScalarModeToUseCellData()
-
-        if isinstance(key, int):
-            key = data.GetArrayName(key)
-
-        data.SetActiveVectors(key)
-
-        try:
-            self.obj.mapper.SetArrayName(key)
-            self.obj.mapper.ScalarVisibilityOn()
-        except AttributeError:
-            pass
-
-    def print(self, **kwargs):
-        """Print the array names available to terminal"""
-        colors.printc(self.keys(), **kwargs)
-
-    def __repr__(self) -> str:
-        """Representation"""
-
-        def _get_str(pd, header):
-            if pd.GetNumberOfArrays():
-                out = f"\x1b[2m\x1b[1m\x1b[7m{header}"
-                if self.obj.name:
-                    out += f" in {self.obj.name}"
-                out += f" contains {pd.GetNumberOfArrays()} array(s)\x1b[0m"
-                for i in range(pd.GetNumberOfArrays()):
-                    varr = pd.GetArray(i)
-                    out += f"\n\x1b[1m\x1b[4mArray name    : {varr.GetName()}\x1b[0m"
-                    out += "\nindex".ljust(15) + f": {i}"
-                    t = varr.GetDataType()
-                    if t in vedo.utils.array_types:
-                        out += f"\ntype".ljust(15)
-                        out += f": {vedo.utils.array_types[t][1]} ({vedo.utils.array_types[t][0]})"
-                    shape = (varr.GetNumberOfTuples(), varr.GetNumberOfComponents())
-                    out += "\nshape".ljust(15) + f": {shape}"
-                    out += "\nrange".ljust(15) + f": {np.array(varr.GetRange())}"
-                    out += "\nmax id".ljust(15) + f": {varr.GetMaxId()}"
-                    out += "\nlook up table".ljust(15) + f": {bool(varr.GetLookupTable())}"
-                    out += "\nin-memory size".ljust(15) + f": {varr.GetActualMemorySize()} KB"
-            else:
-                out += " has no associated data."
-            return out
-
-        if self.association == 0:
-            out = _get_str(self.dataset.GetPointData(), "Point Data")
-        elif self.association == 1:
-            out = _get_str(self.dataset.GetCellData(), "Cell Data")
-        elif self.association == 2:
-            pd = self.dataset.GetFieldData()
-            if pd.GetNumberOfArrays():
-                out = f"\x1b[2m\x1b[1m\x1b[7mMeta Data"
-                if self.actor.name:
-                    out += f" in {self.actor.name}"
-                out += f" contains {pd.GetNumberOfArrays()} entries\x1b[0m"
-                for i in range(pd.GetNumberOfArrays()):
-                    varr = pd.GetAbstractArray(i)
-                    out += f"\n\x1b[1m\x1b[4mEntry name    : {varr.GetName()}\x1b[0m"
-                    out += "\nindex".ljust(15) + f": {i}"
-                    shape = (varr.GetNumberOfTuples(), varr.GetNumberOfComponents())
-                    out += "\nshape".ljust(15) + f": {shape}"
-
-        return out
-
-
-

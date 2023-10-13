@@ -10,8 +10,6 @@ except ImportError:
 
 import vedo
 from vedo import utils
-# from vedo.base import Base3DProp
-# from vedo.base import BaseGrid
 from vedo.mesh import Mesh
 from vedo.core import VolumeAlgorithms
 

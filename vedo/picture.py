@@ -42,7 +42,7 @@ def _get_img(obj, flip=False, translate=()):
             picr.SetOrientationType(vedo.settings.tiff_orientation_type)
         else:
             colors.printc("Cannot understand picture format", obj, c="r")
-            return
+            return vtk.vtkImage()
         picr.SetFileName(obj)
         picr.Update()
         img = picr.GetOutput()
@@ -140,7 +140,7 @@ def _set_justification(img, pos):
 
 
 #################################################
-class Picture2D(vedo.visuals.BaseActor2D):
+class Picture2D(vedo.visual.BaseActor2D):
     """
     Embed an image as a static 2D image in the canvas.
     """
@@ -194,9 +194,9 @@ class Picture2D(vedo.visuals.BaseActor2D):
             # self.array = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
             # self.array = self.array.reshape(fig.canvas.get_width_height()[::-1] + (3,))
             width, height = fig.get_size_inches() * fig.get_dpi()
-            self.array = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8).reshape(
-                (int(height), int(width), 4)
-            )
+            self.array = np.frombuffer(
+                fig.canvas.buffer_rgba(), dtype=np.uint8
+            ).reshape((int(height), int(width), 4))
             self.array = self.array[:, :, :3]
 
             self.dataset = _get_img(self.array)
@@ -240,7 +240,7 @@ class Picture2D(vedo.visuals.BaseActor2D):
 
 
 #################################################
-class Picture(vedo.visuals.PictureVisual, vedo.visuals.ActorTransforms):
+class Picture(vedo.visual.PictureVisual, vedo.visual.ActorTransforms):
     """
     Class used to represent 2D pictures in a 3D world.
     """
@@ -261,7 +261,8 @@ class Picture(vedo.visuals.PictureVisual, vedo.visuals.ActorTransforms):
                 flip xy axis convention (when input is a numpy array)
         """
         self.name = "Picture"
-        self.filename = ''
+        self.filename = ""
+        self.pipeline = None
 
         self.actor = vtk.vtkImageActor()
         self.property = self.actor.GetProperty()
@@ -353,7 +354,7 @@ class Picture(vedo.visuals.PictureVisual, vedo.visuals.ActorTransforms):
                 name = self.dataset.GetCellData().GetScalars().GetName()
                 cdata = "<tr><td><b> voxel data array </b></td><td>" + name + "</td></tr>"
 
-        img = self.GetMapper().GetInput()
+        img = self.dataset
 
         allt = [
             "<table>",
@@ -388,7 +389,7 @@ class Picture(vedo.visuals.PictureVisual, vedo.visuals.ActorTransforms):
         self.mapper.SetInputData(data)
         self.mapper.Modified()
         return self
-    
+
     def dimensions(self):
         """Return the picture dimension as number of pixels in x and y"""
         nx, ny, _ = self.dataset.GetDimensions()
@@ -450,7 +451,7 @@ class Picture(vedo.visuals.PictureVisual, vedo.visuals.ActorTransforms):
         extractVOI.SetInputData(self.dataset)
         extractVOI.IncludeBoundaryOn()
 
-        d = self.GetInput().GetDimensions()
+        d = self.dataset.GetDimensions()
         if pixels:
             extractVOI.SetVOI(left, d[0] - right - 1, bottom, d[1] - top - 1, 0, 0)
         else:
@@ -462,7 +463,6 @@ class Picture(vedo.visuals.PictureVisual, vedo.visuals.ActorTransforms):
             extractVOI.SetVOI(bx0, bx1, by0, by1, 0, 0)
         extractVOI.Update()
 
-        # shape = extractVOI.GetOutput().GetDimensions()[:2]
         self._update(extractVOI.GetOutput())
         self.pipeline = utils.OperationNode(
             "crop", comment=f"shape={tuple(self.shape)}", parents=[self], c="#f28482"
@@ -635,7 +635,6 @@ class Picture(vedo.visuals.PictureVisual, vedo.visuals.ActorTransforms):
     def flip(self, axis="y"):
         """Mirror picture along x or y axis. Same as `mirror()`."""
         return self.mirror(axis=axis)
-
 
     def select(self, component):
         """Select one single component of the rgb image."""
@@ -999,7 +998,6 @@ class Picture(vedo.visuals.PictureVisual, vedo.visuals.ActorTransforms):
         c = np.array(colors.get_color(bc)) * 255
         reslice.SetBackgroundColor([c[0], c[1], c[2], alpha * 255])
         reslice.Update()
-        self.transform = transform
         self._update(reslice.GetOutput())
         self.pipeline = utils.OperationNode("warp", parents=parents, c="#f28482")
         return self
@@ -1187,7 +1185,6 @@ class Picture(vedo.visuals.PictureVisual, vedo.visuals.ActorTransforms):
             "rotate", comment=f"angle={angle}", parents=[self], c="#f28482"
         )
         return self
-    
 
     def tomesh(self):
         """
@@ -1448,6 +1445,10 @@ class Picture(vedo.visuals.PictureVisual, vedo.visuals.ActorTransforms):
         """Write picture to file as png or jpg."""
         vedo.file_io.write(self.dataset, filename)
         self.pipeline = utils.OperationNode(
-            "write", comment=filename[:15], parents=[self], c="#8a817c", shape="cylinder"
+            "write",
+            comment=filename[:15],
+            parents=[self],
+            c="#8a817c",
+            shape="cylinder",
         )
         return self

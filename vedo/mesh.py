@@ -13,7 +13,7 @@ from vedo.colors import get_color
 from vedo.pointcloud import Points
 from vedo.utils import buildPolyData, is_sequence, mag, mag2, precision
 from vedo.utils import numpy2vtk, vtk2numpy, OperationNode
-from vedo.visuals import MeshVisual
+from vedo.visual import MeshVisual
 
 __docformat__ = "google"
 
@@ -32,7 +32,7 @@ class Mesh(MeshVisual, Points):
     Build an instance of object `Mesh` derived from `vedo.PointCloud`.
     """
 
-    def __init__(self, inputobj=None, c='gold', alpha=1):
+    def __init__(self, inputobj=None, c="gold", alpha=1):
         """
         Input can be a list of vertices and their connectivity (faces of the polygonal mesh),
         or directly a `vtkPolydata` object.
@@ -68,13 +68,14 @@ class Mesh(MeshVisual, Points):
             self.property = pr
 
         elif isinstance(inputobj, vtk.vtkPolyData):
-            if inputobj.GetNumberOfCells() == 0:
+            # self.dataset.DeepCopy(inputobj) # NO
+            self.dataset = inputobj
+            if self.dataset.GetNumberOfCells() == 0:
                 carr = vtk.vtkCellArray()
                 for i in range(inputobj.GetNumberOfPoints()):
                     carr.InsertNextCell(1)
                     carr.InsertCellPoint(i)
-                inputobj.SetVerts(carr)
-            self.dataset.DeepCopy(inputobj)
+                self.dataset.SetVerts(carr)
 
         elif is_sequence(inputobj):
             ninp = len(inputobj)
@@ -555,7 +556,7 @@ class Mesh(MeshVisual, Points):
             "scale": scale,
             "ushift": ushift,
             "vshift": vshift,
-            "seam_threshold": seam_threshold
+            "seam_threshold": seam_threshold,
         }
         return self
 
@@ -686,7 +687,10 @@ class Mesh(MeshVisual, Points):
         # mark original point and cell ids
         self.add_ids()
         toremove = self.boundaries(
-            boundary_edges=False, non_manifold_edges=True, cell_edge=True, return_cell_ids=True
+            boundary_edges=False,
+            non_manifold_edges=True,
+            cell_edge=True,
+            return_cell_ids=True,
         )
         if len(toremove) == 0:
             return self
@@ -751,7 +755,9 @@ class Mesh(MeshVisual, Points):
             self.delete_cells(toremove)
 
         self.pipeline = OperationNode(
-            "non_manifold_faces", parents=[self], comment=f"#cells {self.dataset.GetNumberOfCells()}"
+            "non_manifold_faces",
+            parents=[self],
+            comment=f"#cells {self.dataset.GetNumberOfCells()}",
         )
         return self
 
@@ -817,7 +823,6 @@ class Mesh(MeshVisual, Points):
         self.apply_transform(T)
         return self
 
-
     def cap(self, return_cap=False):
         """
         Generate a "cap" on a clipped mesh, or caps sharp edges.
@@ -858,8 +863,7 @@ class Mesh(MeshVisual, Points):
         if return_cap:
             m = Mesh(tf.GetOutput())
             m.pipeline = OperationNode(
-                "cap", parents=[self],
-                comment=f"#pts {m.dataset.GetNumberOfPoints()}"
+                "cap", parents=[self], comment=f"#pts {m.dataset.GetNumberOfPoints()}"
             )
             return m
 
@@ -1291,7 +1295,9 @@ class Mesh(MeshVisual, Points):
         self._update(sdf.GetOutput())
 
         self.pipeline = OperationNode(
-            "subdivide", parents=[self], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
+            "subdivide",
+            parents=[self],
+            comment=f"#pts {self.dataset.GetNumberOfPoints()}",
         )
         return self
 
@@ -1339,8 +1345,9 @@ class Mesh(MeshVisual, Points):
         self._update(decimate.GetOutput())
 
         self.pipeline = OperationNode(
-            "decimate", parents=[self],
-            comment=f"#pts {self.dataset.GetNumberOfPoints()}"
+            "decimate",
+            parents=[self],
+            comment=f"#pts {self.dataset.GetNumberOfPoints()}",
         )
         return self
 
@@ -1356,7 +1363,9 @@ class Mesh(MeshVisual, Points):
         self.Modified()
         self.mapper.Modified()
         self.pipeline = OperationNode(
-            "delete_cells", parents=[self], comment=f"#cells {self.dataset.GetNumberOfCells()}"
+            "delete_cells",
+            parents=[self],
+            comment=f"#cells {self.dataset.GetNumberOfCells()}",
         )
         return self
 
@@ -1390,7 +1399,9 @@ class Mesh(MeshVisual, Points):
         self.compute_normals()
 
         self.pipeline = OperationNode(
-            "collapse_edges", parents=[self], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
+            "collapse_edges",
+            parents=[self],
+            comment=f"#pts {self.dataset.GetNumberOfPoints()}",
         )
         return self
 
@@ -1438,7 +1449,6 @@ class Mesh(MeshVisual, Points):
         )
         return self
 
-
     def fill_holes(self, size=None):
         """
         Identifies and fills holes in input mesh.
@@ -1463,7 +1473,9 @@ class Mesh(MeshVisual, Points):
         self._update(fh.GetOutput())
 
         self.pipeline = OperationNode(
-            "fill_holes", parents=[self], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
+            "fill_holes",
+            parents=[self],
+            comment=f"#pts {self.dataset.GetNumberOfPoints()}",
         )
         return self
 
@@ -1530,8 +1542,9 @@ class Mesh(MeshVisual, Points):
         pcl.name = "InsidePoints"
 
         pcl.pipeline = OperationNode(
-            "inside_points", parents=[self, ptsa],
-            comment=f"#pts {pcl.dataset.GetNumberOfPoints()}"
+            "inside_points",
+            parents=[self, ptsa],
+            comment=f"#pts {pcl.dataset.GetNumberOfPoints()}",
         )
         return pcl
 
@@ -1669,7 +1682,9 @@ class Mesh(MeshVisual, Points):
         self._update(imp.GetOutput())
 
         self.pipeline = OperationNode(
-            "imprint", parents=[self], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
+            "imprint",
+            parents=[self],
+            comment=f"#pts {self.dataset.GetNumberOfPoints()}",
         )
         return self
 
@@ -1955,12 +1970,13 @@ class Mesh(MeshVisual, Points):
         m.compute_normals(cells=False).flat().lighting("default")
 
         m.pipeline = OperationNode(
-            "extrude", parents=[self],
-            comment=f"#pts {m.dataset.GetNumberOfPoints()}"
+            "extrude", parents=[self], comment=f"#pts {m.dataset.GetNumberOfPoints()}"
         )
         return m
 
-    def split(self, maxdepth=1000, flag=False, must_share_edge=False, sort_by_area=True):
+    def split(
+        self, maxdepth=1000, flag=False, must_share_edge=False, sort_by_area=True
+    ):
         """
         Split a mesh by connectivity and order the pieces by increasing area.
 
@@ -2040,7 +2056,6 @@ class Mesh(MeshVisual, Points):
                 )
         return blist
 
-
     def extract_largest_region(self):
         """
         Extract the largest connected part of a mesh and discard all the smaller pieces.
@@ -2062,8 +2077,9 @@ class Mesh(MeshVisual, Points):
         m.mapper.SetScalarVisibility(vis)
 
         m.pipeline = OperationNode(
-            "extract_largest_region", parents=[self],
-            comment=f"#pts {m.dataset.GetNumberOfPoints()}"
+            "extract_largest_region",
+            parents=[self],
+            comment=f"#pts {m.dataset.GetNumberOfPoints()}",
         )
         return m
 
@@ -2218,8 +2234,9 @@ class Mesh(MeshVisual, Points):
         msh.name = "PlaneIntersection"
 
         msh.pipeline = OperationNode(
-            "intersect_with_plan", parents=[self],
-            comment=f"#pts {msh.dataset.GetNumberOfPoints()}"
+            "intersect_with_plan",
+            parents=[self],
+            comment=f"#pts {msh.dataset.GetNumberOfPoints()}",
         )
         return msh
 
@@ -2296,8 +2313,9 @@ class Mesh(MeshVisual, Points):
         msh.name = "SurfaceCollision"
 
         msh.pipeline = OperationNode(
-            "collide_with", parents=[self, mesh2],
-            comment=f"#pts {msh.dataset.GetNumberOfPoints()}"
+            "collide_with",
+            parents=[self, mesh2],
+            comment=f"#pts {msh.dataset.GetNumberOfPoints()}",
         )
         return msh
 
@@ -2361,8 +2379,9 @@ class Mesh(MeshVisual, Points):
         dmesh.name = "GeodesicLine"
 
         dmesh.pipeline = OperationNode(
-            "GeodesicLine", parents=[self], 
-            comment=f"#pts {dmesh.dataset.GetNumberOfPoints()}"
+            "GeodesicLine",
+            parents=[self],
+            comment=f"#pts {dmesh.dataset.GetNumberOfPoints()}",
         )
         return dmesh
 
@@ -2507,7 +2526,14 @@ class Mesh(MeshVisual, Points):
         return vol
 
     def tetralize(
-        self, side=0.02, nmax=300_000, gap=None, subsample=False, uniform=True, seed=0, debug=False
+        self,
+        side=0.02,
+        nmax=300_000,
+        gap=None,
+        subsample=False,
+        uniform=True,
+        seed=0,
+        debug=False,
     ):
         """
         Tetralize a closed polygonal mesh. Return a `TetMesh`.
@@ -2611,6 +2637,9 @@ class Mesh(MeshVisual, Points):
             print(f".. tetralize() completed, ntets = {tmesh.ncells}")
 
         tmesh.pipeline = OperationNode(
-            "tetralize", parents=[self], comment=f"#tets = {tmesh.ncells}", c="#e9c46a:#9e2a2b"
+            "tetralize",
+            parents=[self],
+            comment=f"#tets = {tmesh.ncells}",
+            c="#e9c46a:#9e2a2b",
         )
         return tmesh

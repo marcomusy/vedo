@@ -39,7 +39,7 @@ from vedo.volume import *
 from vedo.tetmesh import *
 from vedo.addons import *
 from vedo.plotter import *
-from vedo.visuals import *
+from vedo.visual import *
 
 from vedo import applications
 from vedo import interactor_modes

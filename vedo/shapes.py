@@ -4534,7 +4534,7 @@ class TextBase:
         self.actor.SetVisibility(False)
         return self
 
-class Text2D(TextBase, vedo.visuals.BaseActor2D):
+class Text2D(TextBase, vedo.visual.BaseActor2D):
     """
     Create a 2D text object.
     """

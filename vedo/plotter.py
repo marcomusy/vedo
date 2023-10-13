@@ -34,6 +34,7 @@ class Event:
     """
     This class holds the info from an event in the window, works as dictionary too
     """
+
     __slots__ = [
         "name",
         "title",
@@ -81,7 +82,7 @@ class Event:
                     f += f"event.{n} = " + str(self[n]).replace("\n", "")[:60] + "\n"
             except AttributeError:
                 pass
-                
+
         return f
 
     def keys(self):
@@ -317,6 +318,7 @@ def close():
 ########################################################################
 class Plotter:
     """Main class to manage actors."""
+
     def __init__(
         self,
         shape=(1, 1),
@@ -800,7 +802,6 @@ class Plotter:
         self.camera = self.renderer.GetActiveCamera()
         return self
 
-
     def add(self, *objs, at=None):
         """
         Append the input objects to the internal list of actors to be shown.
@@ -815,7 +816,7 @@ class Plotter:
             ren = self.renderer
 
         objs = utils.flatten(objs)
-        for ob in objs: 
+        for ob in objs:
             if ob and ob not in self.objects:
                 self.objects.append(ob)
 
@@ -861,7 +862,7 @@ class Plotter:
             if isinstance(ob, str):
                 has_str = True
                 break
-        
+
         has_actor = False
         for ob in objs:
             if hasattr(ob, "actor") and ob.actor:
@@ -870,15 +871,14 @@ class Plotter:
 
         if has_str or has_actor:
             # need to get the actors
-            acts = self.get_meshes(include_non_pickables=True, 
-                                   unpack_assemblies=False)
+            acts = self.get_meshes(include_non_pickables=True, unpack_assemblies=False)
             for a in acts:
                 try:
                     if a.name and a.name in objs:
                         objs.append(a)
                 except AttributeError:
-                    pass        
-        
+                    pass
+
         ir = self.renderers.index(ren)
 
         ids = []
@@ -890,19 +890,19 @@ class Plotter:
                     ids.append(idx)
                 except ValueError:
                     pass
-            
+
             if ren:  ### remove it from the renderer
                 try:
                     ren.RemoveActor(ob)
                 except TypeError:
-                    try:                        
+                    try:
                         ren.RemoveActor(ob.actor)
                     except AttributeError:
                         pass
 
                 if hasattr(ob, "rendered_at"):
                     ob.rendered_at.discard(ir)
-                    
+
                 if hasattr(ob, "scalarbar") and ob.scalarbar:
                     ren.RemoveActor(ob.scalarbar)
                 if hasattr(ob, "_caption") and ob._caption:
@@ -916,7 +916,7 @@ class Plotter:
                     if hasattr(ob.trail, "shadows") and ob.trail.shadows:
                         for sha in ob.trail.shadows:
                             ren.RemoveActor(sha.actor)
-        
+
         # for i in ids: # wrong way of doing it
         #     del self.objects[i]
         # instead:
@@ -1031,7 +1031,7 @@ class Plotter:
                 r.GradientBackgroundOn()
                 r.SetBackground2(vedo.get_color(c2))
                 if mode:
-                    try: # only works with vtk>=9.3
+                    try:  # only works with vtk>=9.3
                         modes = [
                             vtk.vtkViewport.GradientModes.VTK_GRADIENT_VERTICAL,
                             vtk.vtkViewport.GradientModes.VTK_GRADIENT_HORIZONTAL,
@@ -1120,7 +1120,7 @@ class Plotter:
             a = acs.GetNextItem()
             if include_non_pickables or a.GetPickable():
                 try:
-                   vols.append(a.data)
+                    vols.append(a.data)
                 except AttributeError:
                     pass
         return vols
@@ -1409,28 +1409,27 @@ class Plotter:
         """Apply a zooming factor for the current camera view"""
         self.renderer.GetActiveCamera().Zoom(zoom)
         return self
-    
+
     def azimuth(self, angle):
         """Rotate camera around the view up vector."""
         self.renderer.GetActiveCamera().Azimuth(angle)
         return self
-    
+
     def elevation(self, angle):
         """Rotate the camera around the cross product of the negative
         of the direction of projection and the view up vector."""
         self.renderer.GetActiveCamera().Elevation(angle)
         return self
-    
+
     def roll(self, angle):
         """Roll the camera about the direction of projection."""
         self.renderer.GetActiveCamera().Roll(angle)
         return self
-    
+
     def dolly(self, value):
         """Move the camera towards (value>0) or away from (value<0) the focal point."""
         self.renderer.GetActiveCamera().Dolly(value)
         return self
-
 
     ##################################################################
     def add_slider(
@@ -1529,7 +1528,6 @@ class Plotter:
                 self.sliders.append([slider2d, sliderfunc])
         return slider2d
 
-
     def add_slider3d(
         self,
         sliderfunc,
@@ -1587,14 +1585,24 @@ class Plotter:
             c = vedo.get_color(c)
 
         slider3d = addons.Slider3D(
-            sliderfunc, pos1, pos2, xmin, xmax, value, s, t, title, rotation, c, show_value
+            sliderfunc,
+            pos1,
+            pos2,
+            xmin,
+            xmax,
+            value,
+            s,
+            t,
+            title,
+            rotation,
+            c,
+            show_value,
         )
         slider3d.renderer = self.renderer
         slider3d.interactor = self.interactor
         slider3d.on()
         self.sliders.append([slider3d, sliderfunc])
         return slider3d
-
 
     def add_button(
         self,
@@ -1652,7 +1660,15 @@ class Plotter:
             return bu
 
     def add_spline_tool(
-        self, points, pc="k", ps=8, lc="r4", ac="g5", lw=2, closed=False, interactive=False
+        self,
+        points,
+        pc="k",
+        ps=8,
+        lc="r4",
+        ac="g5",
+        lw=2,
+        closed=False,
+        interactive=False,
     ):
         """
         Add a spline tool to the current plotter.
@@ -1723,7 +1739,6 @@ class Plotter:
         iconw.InteractiveOff()
         self.widgets.append(iconw)
         return iconw
-
 
     def add_global_axes(self, axtype=None, c=None):
         """Draw axes on scene. Available axes types:
@@ -1870,7 +1885,6 @@ class Plotter:
             self.hint_widget.AddBalloon(obj, text)
 
         return self
-
 
     def add_shadows(self):
         """Add shadows at the current renderer."""
@@ -2175,10 +2189,17 @@ class Plotter:
         self.add_callback("MouseMove", _legfunc)
         return self
 
-
     #####################################################################
     def add_scale_indicator(
-        self, pos=(0.7, 0.05), s=0.02, length=2, lw=4, c="k1", alpha=1, units="", gap=0.05
+        self,
+        pos=(0.7, 0.05),
+        s=0.02,
+        length=2,
+        lw=4,
+        c="k1",
+        alpha=1,
+        units="",
+        gap=0.05,
     ):
         """
         Add a Scale Indicator. Only works in parallel mode (no perspective).
@@ -2274,11 +2295,11 @@ class Plotter:
 
         If `enable_picking` is False, no picking will be performed.
         This can be useful to avoid double picking when using buttons.
-        """    
+        """
         if not self.interactor:
             return Event()
 
-        if len(pos):
+        if len(pos) > 0:
             x, y = pos
             self.interactor.SetEventPosition(pos)
         else:
@@ -2363,7 +2384,6 @@ class Plotter:
             event.isPicture = isinstance(event.object, vedo.Picture)
             event.isActor2D = isinstance(event.object, vtk.vtkActor2D)
         return event
-
 
     def add_callback(self, event_name, func, priority=0.0, enable_picking=True):
         """
@@ -2452,7 +2472,7 @@ class Plotter:
             event.priority = priority
             self.last_event = event
             func(event)
-            return  ## _func_wrap
+
         #########################################
 
         event_name = utils.get_vtk_name_event(event_name)
@@ -2533,7 +2553,14 @@ class Plotter:
         return idd
 
     def compute_world_coordinate(
-        self, pos2d, at=None, objs=(), bounds=(), offset=None, pixeltol=None, worldtol=None
+        self,
+        pos2d,
+        at=None,
+        objs=(),
+        bounds=(),
+        offset=None,
+        pixeltol=None,
+        worldtol=None,
     ):
         """
         Transform a 2D point on the screen into a 3D point inside the rendering scene.
@@ -2618,7 +2645,7 @@ class Plotter:
             obj = obj.vertices
         except AttributeError:
             pass
-        
+
         if utils.is_sequence(obj):
             pts = obj
         p2d = []
@@ -2632,7 +2659,7 @@ class Plotter:
             else:
                 p2d.append(cs.GetComputedViewportValue(self.renderer))
         return np.array(p2d, dtype=int)
-    
+
     def pick_area(self, pos1, pos2, at=None):
         """
         Pick all objects within a box defined by two corner points in 2D screen coordinates.
@@ -2684,43 +2711,45 @@ class Plotter:
         afru.name = "Frustum"
         return afru
 
-
     def _scan_input_return_acts(self, wannabe_acts):
         # scan the input and return a list of actors
         if not utils.is_sequence(wannabe_acts):
             wannabe_acts = [wannabe_acts]
-        
+
         #################
         wannabe_acts2 = []
         for a in wannabe_acts:
 
-            try: 
+            try:
                 wannabe_acts2.append(a.actor)
-            except AttributeError: 
-                wannabe_acts2.append(a) # already actor
+            except AttributeError:
+                wannabe_acts2.append(a)  # already actor
 
-            try: 
-                wannabe_acts2.append(a.scalarbar) 
-            except AttributeError: pass
+            try:
+                wannabe_acts2.append(a.scalarbar)
+            except AttributeError:
+                pass
 
-            try: 
+            try:
                 for sh in a.shadows:
                     wannabe_acts2.append(sh.actor)
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
             try:
                 wannabe_acts2.append(a.trail.actor)
-                if a.trail.shadows: # trails may also have shadows
+                if a.trail.shadows:  # trails may also have shadows
                     for sh in a.trail.shadows:
                         wannabe_acts2.append(sh.actor)
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
         #################
         scanned_acts = []
         for a in wannabe_acts2:  # scan content of list
 
             if a is None:
-                continue
+                pass
 
             elif isinstance(a, (vtk.vtkActor, vtk.vtkActor2D)):
                 scanned_acts.append(a)
@@ -2769,10 +2798,11 @@ class Plotter:
             elif isinstance(a, (
                     vtk.vtkAssembly,
                     vtk.vtkVolume,  # order matters! dont move above TetMesh
-                    vtk.vtkImageActor, 
+                    vtk.vtkImageActor,
                     vtk.vtkLegendBoxActor,
                     vtk.vtkBillboardTextActor3D,
-                )):
+                ),
+            ):
                 scanned_acts.append(a)
 
             elif isinstance(a, vtk.vtkLight):
@@ -2805,13 +2835,13 @@ class Plotter:
 
             elif "dolfin" in str(type(a)):  # assume a dolfin.Mesh object
                 import vedo.dolfin as dlf
+
                 scanned_acts.append(dlf.MeshActor(a).actor)
 
             else:
                 vedo.logger.error(f"cannot understand input in show(): {type(a)}")
 
         return scanned_acts
-
 
     def show(
         self,
@@ -3011,7 +3041,6 @@ class Plotter:
         if self.qt_widget is not None:
             self.qt_widget.GetRenderWindow().AddRenderer(self.renderer)
 
-
         if self.axes is not None:
             if viewup != "2d" or self.axes in [1, 8] or isinstance(self.axes, dict):
                 bns = self.renderer.ComputeVisiblePropBounds()
@@ -3108,7 +3137,7 @@ class Plotter:
 
             if self._interactive:
                 self.interactor.Start()
-                
+
             if rate:
                 if self.clock is None:  # set clock and limit rate
                     self._clockt0 = time.time()
@@ -3122,7 +3151,6 @@ class Plotter:
                     self.clock = time.time() - self._clockt0
 
         return self
-
 
     def add_inset(self, *actors, **options):
         """Add a draggable inset space into a renderer.
@@ -3200,7 +3228,12 @@ class Plotter:
         if deep:
             renderer.RemoveAllViewProps()
         else:
-            for ob in set(self.get_meshes() + self.get_volumes() + self.objects + self.axes_instances):
+            for ob in set(
+                self.get_meshes()
+                + self.get_volumes()
+                + self.objects
+                + self.axes_instances
+            ):
                 if isinstance(ob, vedo.shapes.Text2D):
                     continue
                 self.remove(ob)
@@ -3409,7 +3442,10 @@ class Plotter:
                     vedo.printc("  -> " + cnm, invert=1, c="w")
                 else:
                     vedo.printc(
-                        rgb.tolist(), vedo.colors.rgb2hex(np.array(rgb) / 255), c=rgb, end=""
+                        rgb.tolist(),
+                        vedo.colors.rgb2hex(np.array(rgb) / 255),
+                        c=rgb,
+                        end="",
                     )
                     vedo.printc("  -> " + cnm, c=cnm)
 
@@ -3470,7 +3506,6 @@ class Plotter:
                 f = histo.frequencies[idx]
                 cn = histo.centers[idx]
                 vedo.colors.printc(f"{histo.name}, bin={idx}, center={cn}, value={f}")
-
 
     #######################################################################
     def _keypress(self, iren, event):
@@ -3756,9 +3791,9 @@ class Plotter:
                     self.clicked_object.wireframe(False)
                 else:
                     for a in self.get_meshes():
-                            a.wireframe()
+                        a.wireframe()
             except AttributeError:
-                pass # Points dont have wireframe
+                pass  # Points dont have wireframe
 
         elif key == "w":
             if self.clicked_object and self.clicked_object in self.get_meshes():
@@ -3944,7 +3979,6 @@ class Plotter:
                 "Right": 6,
                 "Home": 7,
                 "Up": 8,
-                "Prior": 9,
             }
             clickedr = self.renderers.index(renderer)
             if key in asso:

@@ -13,7 +13,7 @@ from vedo import colors
 from vedo import utils
 from vedo.transformations import LinearTransform
 from vedo.core import PointAlgorithms
-from vedo.visuals import PointsVisual
+from vedo.visual import PointsVisual
 
 __docformat__ = "google"
 
@@ -87,9 +87,7 @@ def merge(*meshs, flag=False):
     msh.copy_properties_from(objs[0])
 
     msh.pipeline = utils.OperationNode(
-        "merge",
-        parents=objs,
-        comment=f"#pts {msh.dataset.GetNumberOfPoints()}",
+        "merge", parents=objs, comment=f"#pts {msh.dataset.GetNumberOfPoints()}"
     )
     return msh
 
@@ -352,13 +350,13 @@ def pca_ellipse(points, pvalue=0.673, res=60):
         vedo.logger.warning("in pca_ellipse(), there are not enough points!")
         return None
 
-    P = np.array(coords, dtype=float)[:,(0,1)]
-    cov = np.cov(P, rowvar=0)     # covariance matrix
+    P = np.array(coords, dtype=float)[:, (0, 1)]
+    cov = np.cov(P, rowvar=0)  # covariance matrix
     _, s, R = np.linalg.svd(cov)  # singular value decomposition
     p, n = s.size, P.shape[0]
-    fppf = f.ppf(pvalue, p, n-p)  # f % point function
-    ua, ub = np.sqrt(s*fppf/2)*2  # semi-axes (largest first)
-    center = np.mean(P, axis=0)   # centroid of the ellipse
+    fppf = f.ppf(pvalue, p, n - p)  # f % point function
+    ua, ub = np.sqrt(s * fppf / 2) * 2  # semi-axes (largest first)
+    center = np.mean(P, axis=0)  # centroid of the ellipse
 
     matri = vtk.vtkMatrix4x4()
     matri.DeepCopy((
@@ -437,8 +435,7 @@ def pca_ellipsoid(points, pvalue=0.673):
     vtra = vtk.vtkTransform()
     vtra.SetMatrix(M)
 
-    elli = vedo.shapes.Ellipsoid(
-        (0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1), alpha=0.25)
+    elli = vedo.shapes.Ellipsoid((0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1), alpha=0.25)
     elli.property.LightingOff()
     elli.apply_transform(vtra)
 
@@ -470,7 +467,7 @@ def Point(pos=(0, 0, 0), r=12, c="red", alpha=1.0):
         pos = pos.pos()
     except AttributeError:
         pass
-    pt = Points([[0,0,0]], r, c, alpha)
+    pt = Points([[0, 0, 0]], r, c, alpha)
     pt.pos(pos)
     pt.name = "Point"
     return pt
@@ -542,13 +539,13 @@ class Points(PointsVisual, PointAlgorithms):
 
         self.actor = vtk.vtkActor()
         self.property = self.actor.GetProperty()
-        self.property_backface = self.actor.GetBackfaceProperty()     
-        self.mapper = vtk.vtkPolyDataMapper()      
+        self.property_backface = self.actor.GetBackfaceProperty()
+        self.mapper = vtk.vtkPolyDataMapper()
         self.dataset = vtk.vtkPolyData()
         self.transform = LinearTransform()
-        self.actor.data = self # so Actor can access this object
+        self.actor.data = self  # so Actor can access this object
 
-        self._scals_idx = 0   # index of the active scalar changed from CLI
+        self._scals_idx = 0  # index of the active scalar changed from CLI
         self._ligthingnr = 0  # index of the lighting mode changed from CLI
         self._cmap_name = ""  # remember the cmap name for self._keypress
         self._caption = None
@@ -557,7 +554,7 @@ class Points(PointsVisual, PointAlgorithms):
             return
         ########################################
 
-        self.name = "Points" # better not to give it a name here?
+        self.name = "Points"  # better not to give it a name here?
 
         ######
         if isinstance(inputobj, vtk.vtkActor):
@@ -569,17 +566,17 @@ class Points(PointsVisual, PointAlgorithms):
             self.mapper.SetScalarVisibility(inputobj.GetMapper().GetScalarVisibility())
 
         elif isinstance(inputobj, vtk.vtkPolyData):
-            self.dataset.DeepCopy(inputobj)
+            self.dataset = inputobj
             if self.dataset.GetNumberOfCells() == 0:
                 carr = vtk.vtkCellArray()
                 for i in range(self.dataset.GetNumberOfPoints()):
                     carr.InsertNextCell(1)
                     carr.InsertCellPoint(i)
                 self.dataset.SetVerts(carr)
- 
+
         elif utils.is_sequence(inputobj):  # passing point coords
             self.dataset = utils.buildPolyData(utils.make3d(inputobj))
-        
+
         elif isinstance(inputobj, str):
             verts = vedo.file_io.load(inputobj)
             self.filename = inputobj
@@ -704,8 +701,7 @@ class Points(PointsVisual, PointAlgorithms):
         ]
         return "\n".join(allt)
 
-
-    ##################################################################################    
+    ##################################################################################
     def __add__(self, meshs):
         if isinstance(meshs, list):
             alist = [self]
@@ -721,7 +717,6 @@ class Points(PointsVisual, PointAlgorithms):
 
         return vedo.assembly.Assembly([self, meshs])
 
-
     def polydata(self, **kwargs):
         """Obsolete.
         You can remove it anywhere from your code.
@@ -735,18 +730,24 @@ class Points(PointsVisual, PointAlgorithms):
 
         Arguments:
             deep : (bool)
-                if False only build a shallow copy of the object (faster copy).
+                if False return a shallow copy of the mesh without copying the points array.
 
         Examples:
             - [mirror.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mirror.py)
 
                ![](https://vedo.embl.es/images/basic/mirror.png)
         """
-        if isinstance(self, vedo.Mesh):
-            cloned = vedo.Mesh(self.dataset)
+        poly = vtk.vtkPolyData()
+        if deep:
+            poly.DeepCopy(self.dataset)
         else:
-            cloned = Points(self.dataset)
-    
+            poly.ShallowCopy(self.dataset)
+
+        if isinstance(self, vedo.Mesh):
+            cloned = vedo.Mesh(poly)
+        else:
+            cloned = Points(poly)
+
         cloned.transform = self.transform.clone()
 
         cloned.copy_properties_from(self)
@@ -756,11 +757,6 @@ class Points(PointsVisual, PointAlgorithms):
         cloned.name = str(self.name)
         cloned.filename = str(self.filename)
         cloned.info = dict(self.info)
-
-        # dont share the same locators with original obj
-        cloned.point_locator = None
-        cloned.cell_locator = None
-        cloned.line_locator = None
 
         cloned.pipeline = utils.OperationNode("clone", parents=[self], shape="diamond", c="#edede9")
         return cloned
@@ -1047,8 +1043,7 @@ class Points(PointsVisual, PointAlgorithms):
         cpd.Update()
         self.dataset.DeepCopy(cpd.GetOutput())
         self.pipeline = utils.OperationNode(
-            "clean", parents=[self],
-            comment=f"#pts {self.dataset.GetNumberOfPoints()}"
+            "clean", parents=[self], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
         )
         return self
 
@@ -1129,9 +1124,9 @@ class Points(PointsVisual, PointAlgorithms):
         thres.SetInputArrayToProcess(0, 0, 0, asso, scalars)
 
         if above is None and below is not None:
-            try: # vtk 9.2
+            try:  # vtk 9.2
                 thres.ThresholdByLower(below)
-            except AttributeError: # vtk 9.3
+            except AttributeError:  # vtk 9.3
                 thres.SetUpperThreshold(below)
 
         elif below is None and above is not None:
@@ -1303,7 +1298,12 @@ class Points(PointsVisual, PointAlgorithms):
         return self
 
     def transform_with_landmarks(
-        self, source_landmarks, target_landmarks, rigid=False, affine=False, least_squares=False
+        self,
+        source_landmarks,
+        target_landmarks,
+        rigid=False,
+        affine=False,
+        least_squares=False,
     ):
         """
         Transform mesh orientation and position based on a set of landmarks points.
@@ -1416,7 +1416,7 @@ class Points(PointsVisual, PointAlgorithms):
         if "z" in axis.lower(): sz = -1
 
         self.scale([sx, sy, sz], origin=origin)
-        
+
         self.pipeline = utils.OperationNode(f"mirror\naxis = {axis}", parents=[self])
 
         if sx * sy * sz < 0:
@@ -1538,7 +1538,6 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("interpolate_data_from", parents=[self, source])
         return self
 
-
     def add_gaussian_noise(self, sigma=1.0):
         """
         Add gaussian noise to point positions.
@@ -1570,8 +1569,9 @@ class Points(PointsVisual, PointAlgorithms):
         )
         return self
 
-
-    def closest_point(self, pt, n=1, radius=None, return_point_id=False, return_cell_id=False):
+    def closest_point(
+        self, pt, n=1, radius=None, return_point_id=False, return_cell_id=False
+    ):
         """
         Find the closest point(s) on a mesh given from the input point `pt`.
 
@@ -1665,7 +1665,6 @@ class Points(PointsVisual, PointAlgorithms):
 
             return np.array(trgp)
 
-
     def hausdorff_distance(self, points):
         """
         Compute the Hausdorff distance to the input point set.
@@ -1728,7 +1727,6 @@ class Points(PointsVisual, PointAlgorithms):
         deltav = ps1[ids21] - ps2
         db = np.mean(np.linalg.norm(deltav, axis=1))
         return (da + db) / 2
-
 
     def remove_outliers(self, radius, neighbors=5):
         """
@@ -2438,7 +2436,7 @@ class Points(PointsVisual, PointAlgorithms):
         clipper.GenerateClippedOutputOff()
         clipper.GenerateClipScalarsOff()
         clipper.SetValue(0)
-        clipper.Update()        
+        clipper.Update()
         self._update(clipper.GetOutput())
         self.pipeline = utils.OperationNode("cut_with_sphere", parents=[self])
         return self
@@ -2507,7 +2505,7 @@ class Points(PointsVisual, PointAlgorithms):
         if currentscals:
             cpoly.GetPointData().SetActiveScalars(currentscals)
             vis = self.mapper.GetScalarVisibility()
-        
+
         self._update(cpoly)
 
         self.pointdata.remove("SignedDistances")
@@ -2526,7 +2524,9 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self, mesh])
         return self
 
-    def cut_with_point_loop(self, points, invert=False, on="points", include_boundary=False):
+    def cut_with_point_loop(
+        self, points, invert=False, on="points", include_boundary=False
+    ):
         """
         Cut an `Mesh` object with a set of points forming a closed loop.
 
@@ -2711,7 +2711,6 @@ class Points(PointsVisual, PointAlgorithms):
 
         out.pipeline = utils.OperationNode("implicit_modeller", parents=[self])
         return out
-
 
     def generate_mesh(
         self,
@@ -2938,8 +2937,9 @@ class Points(PointsVisual, PointAlgorithms):
         m = vedo.mesh.Mesh(surface.GetOutput(), c=self.color())
 
         m.pipeline = utils.OperationNode(
-            "reconstruct_surface", parents=[self],
-            comment=f"#pts {m.dataset.GetPointData()}"
+            "reconstruct_surface",
+            parents=[self],
+            comment=f"#pts {m.dataset.GetPointData()}",
         )
         return m
 
@@ -3201,11 +3201,12 @@ class Points(PointsVisual, PointAlgorithms):
         cld.name = "densifiedCloud"
 
         cld.pipeline = utils.OperationNode(
-            "densify", parents=[self], c="#e9c46a:",
-            comment=f"#pts {cld.dataset.GetPointData()}"
+            "densify",
+            parents=[self],
+            c="#e9c46a:",
+            comment=f"#pts {cld.dataset.GetPointData()}",
         )
         return cld
-
 
     ###############################################################################
     ## stuff returning Volume
@@ -3261,7 +3262,13 @@ class Points(PointsVisual, PointAlgorithms):
         return vol
 
     def tovolume(
-        self, kernel="shepard", radius=None, n=None, bounds=None, null_value=None, dims=(25, 25, 25)
+        self,
+        kernel="shepard",
+        radius=None,
+        n=None,
+        bounds=None,
+        null_value=None,
+        dims=(25, 25, 25),
     ):
         """
         Generate a `Volume` by interpolating a scalar
@@ -3369,8 +3376,15 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("generate\nrandom data", parents=[self])
         return self
 
-
-    def generate_delaunay2d(self, mode="scipy", boundaries=(), tol=None, alpha=0.0, offset=0.0, transform=None):
+    def generate_delaunay2d(
+        self,
+        mode="scipy",
+        boundaries=(),
+        tol=None,
+        alpha=0.0,
+        offset=0.0,
+        transform=None,
+    ):
         """
         Create a mesh from points in the XY plane.
         If `mode='fit'` then the filter computes a best fitting
@@ -3403,6 +3417,7 @@ class Points(PointsVisual, PointAlgorithms):
         #########################################################
         if mode == "scipy":
             from scipy.spatial import Delaunay as scipy_delaunay
+
             tri = scipy_delaunay(plist[:, 0:2])
             return vedo.mesh.Mesh([plist, tri.simplices])
         ##########################################################
@@ -3441,11 +3456,11 @@ class Points(PointsVisual, PointAlgorithms):
         msh = vedo.mesh.Mesh(delny.GetOutput()).clean().lighting("off")
 
         msh.pipeline = utils.OperationNode(
-            "delaunay2d", parents=[self],
-            comment=f"#cells {msh.dataset.GetNumberOfCells()}"
+            "delaunay2d",
+            parents=[self],
+            comment=f"#cells {msh.dataset.GetNumberOfCells()}",
         )
         return msh
-
 
     def generate_voronoi(self, padding=0.0, fit=False, method="vtk"):
         """
@@ -3548,7 +3563,6 @@ class Points(PointsVisual, PointAlgorithms):
         m.lw(2).lighting("off").wireframe()
         m.name = "Voronoi"
         return m
-
 
     ####################################################
     def visible_points(self, area=(), tol=None, invert=False):
