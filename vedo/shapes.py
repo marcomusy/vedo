@@ -1374,8 +1374,11 @@ def _interpolate2vol(mesh, kernel=None, radius=None, bounds=None, null_value=Non
 
     if bounds is None:
         bounds = mesh.bounds()
-    elif isinstance(bounds, vedo.base.Base3DProp):
-        bounds = bounds.bounds()
+    else:
+        try:
+            bounds = bounds.bounds()
+        except AttributeError:
+            pass # assume it's a list at this point
 
     # Create a domain volume
     domain = vtk.vtkImageData()

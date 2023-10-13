@@ -850,20 +850,6 @@ class BaseActor(Base3DProp):
 
     .. warning:: Do not use this class to instantiate objects, use one the above instead.
     """
-
-    def __init__(self):
-        """
-        Base class to add operative and data
-        functionality to `Mesh`, `Assembly`, `Volume` and `Picture` objects.
-        """
-
-        super().__init__()
-
-        self.mapper = None
-        self._caption = None
-        self.property = None
-
-
     def inputdata(self):
         """Obsolete, use `self` instead."""
         print("WARNING: inputdata() is obsolete, use self instead.")

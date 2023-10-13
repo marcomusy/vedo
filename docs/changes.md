@@ -55,7 +55,6 @@ ssao.py
 
 ~/Projects/vedo/examples/advanced
 cut_with_mesh1.py
-fitspheres2.py
 gyroid.py
 interpolate_scalar3.py
 mesh_smoother1.py

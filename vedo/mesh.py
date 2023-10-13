@@ -14,6 +14,7 @@ from vedo.colors import get_color
 from vedo.pointcloud import Points
 from vedo.utils import buildPolyData, is_sequence, mag, mag2, precision
 from vedo.utils import numpy2vtk, vtk2numpy, OperationNode
+from vedo.visuals import MeshVisual
 
 __docformat__ = "google"
 
@@ -24,145 +25,6 @@ Submodule to work with polygonal meshes
 """
 
 __all__ = ["Mesh"]
-
-class MeshVisual:
-    """Class to manage the visual aspects of a ``Maesh`` object."""
-
-    def follow_camera(self, camera=None, origin=None):
-        """
-        Return an object that will follow camera movements and stay locked to it.
-        Use `mesh.follow_camera(False)` to disable it.
-
-        A `vtkCamera` object can also be passed.
-        """
-        if camera is False:
-            try:
-                self.SetCamera(None)
-                return self
-            except AttributeError:
-                return self
-
-        factor = vtk.vtkFollower()
-        factor.SetMapper(self.mapper)
-        factor.SetProperty(self.property)
-        factor.SetBackfaceProperty(self.actor.GetBackfaceProperty())
-        factor.SetTexture(self.actor.GetTexture())
-        factor.SetScale(self.actor.GetScale())
-        factor.SetOrientation(self.actor.GetOrientation())
-        factor.SetPosition(self.actor.GetPosition())
-        factor.SetUseBounds(self.actor.GetUseBounds())
-
-        factor.SetOrigin(self.actor.GetOrigin())
-
-        factor.PickableOff()
-
-        if isinstance(camera, vtk.vtkCamera):
-            factor.SetCamera(camera)
-        else:
-            plt = vedo.plotter_instance
-            if plt and plt.renderer and plt.renderer.GetActiveCamera():
-                factor.SetCamera(plt.renderer.GetActiveCamera())
-        
-        if origin is not None:
-            factor.SetOrigin(origin)
-
-        self.actor = None
-        factor.data = self
-        self.actor = factor
-        return self
-
-
-    def wireframe(self, value=True):
-        """Set mesh's representation as wireframe or solid surface."""
-        if value:
-            self.property.SetRepresentationToWireframe()
-        else:
-            self.property.SetRepresentationToSurface()
-        return self
-
-    def flat(self):
-        """Set surface interpolation to flat.
-
-        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png" width="700">
-        """
-        self.property.SetInterpolationToFlat()
-        return self
-
-    def phong(self):
-        """Set surface interpolation to "phong"."""
-        self.property.SetInterpolationToPhong()
-        return self
-
-    def backface_culling(self, value=True):
-        """Set culling of polygons based on orientation of normal with respect to camera."""
-        self.property.SetBackfaceCulling(value)
-        return self
-
-    def render_lines_as_tubes(self, value=True):
-        """Wrap a fake tube around a simple line for visualization"""
-        self.property.SetRenderLinesAsTubes(value)
-        return self
-
-    def frontface_culling(self, value=True):
-        """Set culling of polygons based on orientation of normal with respect to camera."""
-        self.property.SetFrontfaceCulling(value)
-        return self
-
-    def backcolor(self, bc=None):
-        """
-        Set/get mesh's backface color.
-        """
-        back_prop = self.actor.GetBackfaceProperty()
-
-        if bc is None:
-            if back_prop:
-                return back_prop.GetDiffuseColor()
-            return self
-
-        if self.property.GetOpacity() < 1:
-            return self
-
-        if not back_prop:
-            back_prop = vtk.vtkProperty()
-
-        back_prop.SetDiffuseColor(get_color(bc))
-        back_prop.SetOpacity(self.property.GetOpacity())
-        self.actor.SetBackfaceProperty(back_prop)
-        self.mapper.ScalarVisibilityOff()
-        return self
-
-    def bc(self, backcolor=False):
-        """Shortcut for `mesh.backcolor()`."""
-        return self.backcolor(backcolor)
-
-    def linewidth(self, lw=None):
-        """Set/get width of mesh edges. Same as `lw()`."""
-        if lw is not None:
-            if lw == 0:
-                self.property.EdgeVisibilityOff()
-                self.property.SetRepresentationToSurface()
-                return self
-            self.property.EdgeVisibilityOn()
-            self.property.SetLineWidth(lw)
-        else:
-            return self.property.GetLineWidth()
-        return self
-
-    def lw(self, linewidth=None):
-        """Set/get width of mesh edges. Same as `linewidth()`."""
-        return self.linewidth(linewidth)
-
-    def linecolor(self, lc=None):
-        """Set/get color of mesh edges. Same as `lc()`."""
-        if lc is None:
-            return self.property.GetEdgeColor()
-        self.property.EdgeVisibilityOn()
-        self.property.SetEdgeColor(get_color(lc))
-        return self
-
-    def lc(self, linecolor=None):
-        """Set/get color of mesh edges. Same as `linecolor()`."""
-        return self.linecolor(linecolor)
 
 
 ####################################################
@@ -400,32 +262,32 @@ class Mesh(MeshVisual, Points):
             return conn[ids]
         return conn  # cannot always make a numpy array of it!
 
-    @property
-    def cells(self):
-        """
-        Get cell polygonal connectivity ids as a python `list`.
-        The output format is: `[[id0 ... idn], [id0 ... idm],  etc]`.
+    # @property
+    # def cells(self):
+    #     """
+    #     Get cell polygonal connectivity ids as a python `list`.
+    #     The output format is: `[[id0 ... idn], [id0 ... idm],  etc]`.
 
-        If ids is set, return only the faces of the given cells.
-        """
-        arr1d = vtk2numpy(self.dataset.GetPolys().GetData())
+    #     If ids is set, return only the faces of the given cells.
+    #     """
+    #     arr1d = vtk2numpy(self.dataset.GetPolys().GetData())
 
-        # Get cell connettivity ids as a 1D array. vtk format is:
-        # [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
-        if len(arr1d) == 0:
-            arr1d = vtk2numpy(self.dataset.GetStrips().GetData())
+    #     # Get cell connettivity ids as a 1D array. vtk format is:
+    #     # [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
+    #     if len(arr1d) == 0:
+    #         arr1d = vtk2numpy(self.dataset.GetStrips().GetData())
 
-        i = 0
-        conn = []
-        n = len(arr1d)
-        if n:
-            while True:
-                cell = [arr1d[i + k] for k in range(1, arr1d[i] + 1)]
-                conn.append(cell)
-                i += arr1d[i] + 1
-                if i >= n:
-                    break
-        return conn  # cannot always make a numpy array of it!
+    #     i = 0
+    #     conn = []
+    #     n = len(arr1d)
+    #     if n:
+    #         while True:
+    #             cell = [arr1d[i + k] for k in range(1, arr1d[i] + 1)]
+    #             conn.append(cell)
+    #             i += arr1d[i] + 1
+    #             if i >= n:
+    #                 break
+    #     return conn  # cannot always make a numpy array of it!
 
     @property
     def lines(self):
@@ -1300,6 +1162,15 @@ class Mesh(MeshVisual, Points):
         self.pipeline = OperationNode("compute_quality", parents=[self])
         return self
 
+    def count_vertices(self):
+        """Count the number of vertices each cell has and return it as a numpy array"""
+        vc = vtk.vtkCountVertices()
+        vc.SetInputData(self.datset)
+        vc.SetOutputArrayName("VertexCount")
+        vc.Update()
+        varr = vc.GetOutput().GetCellData().GetArray("VertexCount")
+        return vtk2numpy(varr)
+
     def check_validity(self, tol=0):
         """
         Return an array of possible problematic faces following this convention:
@@ -1471,6 +1342,22 @@ class Mesh(MeshVisual, Points):
         self.pipeline = OperationNode(
             "decimate", parents=[self],
             comment=f"#pts {self.dataset.GetNumberOfPoints()}"
+        )
+        return self
+
+    def delete_cells(self, ids):
+        """
+        Remove cells from the mesh object by their ID.
+        Points (vertices) are not removed (you may use `.clean()` to remove those).
+        """
+        self.BuildLinks()
+        for cid in ids:
+            self.DeleteCell(cid)
+        self.RemoveDeletedCells()
+        self.Modified()
+        self.mapper.Modified()
+        self.pipeline = OperationNode(
+            "delete_cells", parents=[self], comment=f"#cells {self.dataset.GetNumberOfCells()}"
         )
         return self
 
