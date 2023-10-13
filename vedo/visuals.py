@@ -401,7 +401,7 @@ class CoreVisual:
         return self
 
 ###################################################
-class PointsVisual:
+class PointsVisual(CoreVisual):
     """Class to manage the visual aspects of a ``Points`` object."""
 
     ##################################################

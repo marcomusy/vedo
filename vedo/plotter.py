@@ -864,7 +864,7 @@ class Plotter:
         
         has_actor = False
         for ob in objs:
-            if isinstance(ob, vedo.base.Base3DProp):
+            if hasattr(ob, "actor") and ob.actor:
                 has_actor = True
                 break
 
@@ -2320,7 +2320,8 @@ class Plotter:
             delta3d = np.array([0, 0, 0])
             if actor:
                 picked3d = np.array(self.picker.GetPickPosition())
-                if isinstance(actor.data, vedo.base.Base3DProp):  # needed!
+                # if isinstance(actor.data, vedo.base.Base3DProp):  # needed!
+                if hasattr(actor.data, "picked3d"):
                     if actor.data.picked3d is not None:
                         delta3d = picked3d - actor.data.picked3d
                 actor.data.picked3d = picked3d
@@ -2614,9 +2615,12 @@ class Plotter:
             print(event)
             ```
         """
-        if isinstance(obj, vedo.base.Base3DProp):
-            pts = obj.vertices
-        elif utils.is_sequence(obj):
+        try:
+            obj = obj.vertices
+        except AttributeError:
+            pass
+        
+        if utils.is_sequence(obj):
             pts = obj
         p2d = []
         cs = vtk.vtkCoordinate()
@@ -2989,18 +2993,17 @@ class Plotter:
         #########################################################################
 
         for ia in utils.flatten(actors):
-            if isinstance(ia, vedo.base.Base3DProp):
-                try:
-                    # fix gray color labels and title to white or black
-                    ltc = np.array(ia.scalarbar.GetLabelTextProperty().GetColor())
-                    if np.linalg.norm(ltc - (0.5, 0.5, 0.5)) / 3 < 0.05:
-                        c = (0.9, 0.9, 0.9)
-                        if np.sum(self.renderer.GetBackground()) > 1.5:
-                            c = (0.1, 0.1, 0.1)
-                        ia.scalarbar.GetLabelTextProperty().SetColor(c)
-                        ia.scalarbar.GetTitleTextProperty().SetColor(c)
-                except AttributeError:
-                    pass
+            try:
+                # fix gray color labels and title to white or black
+                ltc = np.array(ia.scalarbar.GetLabelTextProperty().GetColor())
+                if np.linalg.norm(ltc - (0.5, 0.5, 0.5)) / 3 < 0.05:
+                    c = (0.9, 0.9, 0.9)
+                    if np.sum(self.renderer.GetBackground()) > 1.5:
+                        c = (0.1, 0.1, 0.1)
+                    ia.scalarbar.GetLabelTextProperty().SetColor(c)
+                    ia.scalarbar.GetTitleTextProperty().SetColor(c)
+            except AttributeError:
+                pass
 
         if self.sharecam:
             for r in self.renderers:

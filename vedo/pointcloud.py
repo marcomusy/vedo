@@ -11,9 +11,9 @@ except ImportError:
 import vedo
 from vedo import colors
 from vedo import utils
-from vedo.base import BaseActor
-from vedo.visuals import PointsVisual
 from vedo.transformations import LinearTransform
+from vedo.core import PointAlgorithms
+from vedo.visuals import PointsVisual
 
 __docformat__ = "google"
 
@@ -477,7 +477,7 @@ def Point(pos=(0, 0, 0), r=12, c="red", alpha=1.0):
 
 
 ###################################################
-class Points(PointsVisual, BaseActor):
+class Points(PointsVisual, PointAlgorithms):
     """Work with point clouds."""
 
     def __init__(self, inputobj=None, r=4, c=(0.2, 0.2, 0.2), alpha=1):

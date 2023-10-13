@@ -22,7 +22,7 @@ __doc__ = "Base classes. Do not instantiate."
 
 ###############################################################################
 class CommonAlgorithms:
-
+    """Common algorithms."""
 
     @property
     def pointdata(self):
@@ -90,6 +90,12 @@ class CommonAlgorithms:
         # https://github.com/tfmoraes/polydata_connectivity
         return int(self.GetAddressAsString("")[5:], 16)
 
+    def memory_size(self):
+        """
+        Return the size in bytes of the object in memory.
+        """
+        return self.GetActualMemorySize()
+    
     def box(self, scale=1, padding=0, fill=False):
         """
         Return the bounding box as a new `Mesh`.
@@ -662,7 +668,8 @@ class CommonAlgorithms:
 
 
 ###############################################################################
-class CorePoints(CommonAlgorithms):
+class PointAlgorithms(CommonAlgorithms):
+    """Methods for point clouds."""
 
     def apply_transform(self, LT, concatenate=True, deep_copy=True):
         """
@@ -876,7 +883,8 @@ class CorePoints(CommonAlgorithms):
 
 
 ###############################################################################
-class CoreVolumetric(CommonAlgorithms):
+class VolumeAlgorithms(CommonAlgorithms):
+    """Methods for Volume objects."""
 
     def isosurface(self, value=None, flying_edges=True):
         """

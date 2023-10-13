@@ -9,7 +9,6 @@ except ImportError:
     import vtkmodules.all as vtk
 
 import vedo
-from vedo.colors import color_map
 from vedo.colors import get_color
 from vedo.pointcloud import Points
 from vedo.utils import buildPolyData, is_sequence, mag, mag2, precision

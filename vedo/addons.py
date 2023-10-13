@@ -778,11 +778,15 @@ def Light(pos, focal_point=(0, 0, 0), angle=180, c=None, intensity=1):
         except AttributeError:
             c = "white"
 
-    if isinstance(pos, vedo.Base3DProp):
+    try:
         pos = pos.pos()
-
-    if isinstance(focal_point, vedo.Base3DProp):
+    except AttributeError:
+        pass
+    
+    try:
         focal_point = focal_point.pos()
+    except AttributeError:
+        pass
 
     light = vtk.vtkLight()
     light.SetLightTypeToSceneLight()
