@@ -1,14 +1,15 @@
 """Density field as a Volume from a point cloud"""
 from vedo import *
 
-s = Mesh(dataurl+'bunny.obj').normalize().subdivide(2).point_size(3).c("black")
+surf = Mesh(dataurl+'bunny.obj').normalize().subdivide(2)
+surf.color("k5").point_size(2)
 
-vol = s.density().print()
+vol = surf.density()
 
-plane = probe_plane(vol, normal=(1,1,1)).alpha(0.5)
+plane = vol.probe_plane(normal=(1,1,1)).alpha(0.5)
 
 show([
-      ("Point cloud", s),
+      ("Point cloud", surf),
       ("Point density as Volume", vol, vol.box(), plane)
      ], N=2,
 ).close()

@@ -31,8 +31,9 @@ for q in progressbar(range(qn), c='r'):
     volf = fftshift(abs(volf))
     volf = np.log(12*volf/volf.max()+ 1) / 2.5
 
-    vb = Volume(volf).mode(1).c("rainbow").alpha([0, 0.8, 1])
-    vb.name = "MyVolume"
-    plt.remove("MyVolume").add(vb).render()
+    volb = Volume(volf)
+    volb.mode(1).cmap("rainbow").alpha([0, 0.8, 1])
+    volb.name = "MyVolume"
+    plt.remove("MyVolume").add(volb).render()
 
 plt.interactive().close()

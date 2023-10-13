@@ -22,7 +22,7 @@ from vedo import addons
 __docformat__ = "google"
 
 __doc__ = """
-This module defines the main class Plotter to manage actors and 3D rendering.
+This module defines the main class Plotter to manage objects and 3D rendering.
 
 ![](https://vedo.embl.es/images/basic/multirenderers.png)
 """
@@ -91,7 +91,7 @@ class Event:
 
 ##############################################################################################
 def show(
-    *actors,
+    *objects,
     at=None,
     shape=(1, 1),
     N=None,
@@ -205,12 +205,12 @@ def show(
             if set to `True`, a call to show will instantiate
             a new Plotter object (a new window) instead of reusing the first created.
     """
-    if len(actors) == 0:
-        actors = None
-    elif len(actors) == 1:
-        actors = actors[0]
+    if len(objects) == 0:
+        objects = None
+    elif len(objects) == 1:
+        objects = objects[0]
     else:
-        actors = utils.flatten(actors)
+        objects = utils.flatten(objects)
 
     if vedo.plotter_instance and not new:  # Plotter exists
         plt = vedo.plotter_instance
@@ -219,10 +219,10 @@ def show(
 
         if utils.is_sequence(at):  # user passed a sequence for "at"
 
-            if not utils.is_sequence(actors):
+            if not utils.is_sequence(objects):
                 vedo.logger.error("in show() input must be a list.")
                 raise RuntimeError()
-            if len(at) != len(actors):
+            if len(at) != len(objects):
                 vedo.logger.error("in show() lists 'input' and 'at' must have equal lengths")
                 raise RuntimeError()
             if shape == (1, 1) and N is None:
@@ -230,12 +230,12 @@ def show(
 
         elif at is None and (N or shape != (1, 1)):
 
-            if not utils.is_sequence(actors):
+            if not utils.is_sequence(objects):
                 e = "in show(), N or shape is set, but input is not a sequence\n"
                 e += "              you may need to specify e.g. at=0"
                 vedo.logger.error(e)
                 raise RuntimeError()
-            at = list(range(len(actors)))
+            at = list(range(len(objects)))
 
         plt = Plotter(
             shape=shape,
@@ -258,7 +258,7 @@ def show(
 
     if utils.is_sequence(at):
 
-        for i, act in enumerate(actors):
+        for i, act in enumerate(objects):
             _plt_to_return = plt.show(
                 act,
                 at=i,
@@ -288,7 +288,7 @@ def show(
     else:
 
         _plt_to_return = plt.show(
-            actors,
+            objects,
             at=at,
             zoom=zoom,
             resetcam=resetcam,
@@ -317,7 +317,7 @@ def close():
 
 ########################################################################
 class Plotter:
-    """Main class to manage actors."""
+    """Main class to manage objects."""
 
     def __init__(
         self,
@@ -403,7 +403,7 @@ class Plotter:
             else:
                 interactive = True
 
-        self.objects = []  # list of actors to be shown
+        self.objects = []  # list of objects to be shown
 
         self.clicked_object = None  # holds the object that has been clicked
         self.clicked_actor = None   # holds the actor that has been clicked
@@ -763,12 +763,12 @@ class Plotter:
 
     ##################################################################### ..init ends here.
 
-    def __iadd__(self, actors):
-        self.add(actors)
+    def __iadd__(self, objects):
+        self.add(objects)
         return self
 
-    def __isub__(self, actors):
-        self.remove(actors)
+    def __isub__(self, objects):
+        self.remove(objects)
         return self
 
     def __enter__(self):
@@ -804,7 +804,7 @@ class Plotter:
 
     def add(self, *objs, at=None):
         """
-        Append the input objects to the internal list of actors to be shown.
+        Append the input objects to the internal list of objects to be shown.
 
         Arguments:
             at : (int)
@@ -2711,14 +2711,14 @@ class Plotter:
         afru.name = "Frustum"
         return afru
 
-    def _scan_input_return_acts(self, wannabe_acts):
+    def _scan_input_return_acts(self, objs):
         # scan the input and return a list of actors
-        if not utils.is_sequence(wannabe_acts):
-            wannabe_acts = [wannabe_acts]
+        if not utils.is_sequence(objs):
+            objs = [objs]
 
         #################
         wannabe_acts2 = []
-        for a in wannabe_acts:
+        for a in objs:
 
             try:
                 wannabe_acts2.append(a.actor)
@@ -2753,12 +2753,6 @@ class Plotter:
 
             elif isinstance(a, (vtk.vtkActor, vtk.vtkActor2D)):
                 scanned_acts.append(a)
-
-            elif isinstance(a, (vedo.Volume, vedo.VolumeSlice)):
-                scanned_acts.append(a.actor)
-
-            elif isinstance(a, vtk.vtkImageData):
-                scanned_acts.append(vedo.Volume(a).actor)
 
             elif isinstance(a, (vedo.TetMesh, vedo.UGrid)):
                 # check ugrid is all made of tets
@@ -2811,6 +2805,9 @@ class Plotter:
             elif isinstance(a, vtk.vtkPolyData):
                 scanned_acts.append(vedo.Mesh(a).actor)
 
+            elif isinstance(a, vtk.vtkImageData):
+                scanned_acts.append(vedo.Volume(a).actor)
+
             elif isinstance(a, vtk.vtkMultiBlockDataSet):
                 for i in range(a.GetNumberOfBlocks()):
                     b = a.GetBlock(i)
@@ -2845,7 +2842,7 @@ class Plotter:
 
     def show(
         self,
-        *actors,
+        *objects,
         at=None,
         axes=None,
         resetcam=None,
@@ -2988,8 +2985,8 @@ class Plotter:
 
         if axes is not None:
             if isinstance(axes, vedo.Assembly):  # user passing show(..., axes=myaxes)
-                actors = list(actors)
-                actors.append(axes)  # move it into the list of normal things to show
+                objects = list(objects)
+                objects.append(axes)  # move it into the list of normal things to show
                 axes = 0
             self.axes = axes
 
@@ -3013,7 +3010,7 @@ class Plotter:
         if self.renderer:
             self.camera = self.renderer.GetActiveCamera()
 
-        self.add(actors)
+        self.add(objects)
 
         # Backend ###############################################################
         if settings.default_backend != "vtk":
@@ -3021,7 +3018,7 @@ class Plotter:
                 return backends.get_notebook_backend(self.objects)
         #########################################################################
 
-        for ia in utils.flatten(actors):
+        for ia in utils.flatten(objects):
             try:
                 # fix gray color labels and title to white or black
                 ltc = np.array(ia.scalarbar.GetLabelTextProperty().GetColor())
@@ -3152,7 +3149,7 @@ class Plotter:
 
         return self
 
-    def add_inset(self, *actors, **options):
+    def add_inset(self, *objects, **options):
         """Add a draggable inset space into a renderer.
 
         Arguments:
@@ -3189,10 +3186,10 @@ class Plotter:
         widget = vtk.vtkOrientationMarkerWidget()
         r, g, b = vedo.get_color(c)
         widget.SetOutlineColor(r, g, b)
-        if len(actors) == 1:
-            widget.SetOrientationMarker(actors[0])
+        if len(objects) == 1:
+            widget.SetOrientationMarker(objects[0].actor)
         else:
-            widget.SetOrientationMarker(vedo.Assembly(actors))
+            widget.SetOrientationMarker(vedo.Assembly(objects))
 
         widget.SetInteractor(self.interactor)
 
@@ -3677,7 +3674,7 @@ class Plotter:
                 " |        q     return control to python script               |\n"
                 " |        Esc   abort execution and exit python kernel        |\n"
                 " |------------------------------------------------------------|\n"
-                " | Mouse: Left-click    rotate scene / pick actors            |\n"
+                " | Mouse: Left-click    rotate scene / pick objects            |\n"
                 " |        Middle-click  pan scene                             |\n"
                 " |        Right-click   zoom scene in or out                  |\n"
                 " |        Cntrl-click   rotate scene                          |\n"

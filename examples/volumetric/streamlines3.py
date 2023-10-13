@@ -19,7 +19,7 @@ stream = StreamLines(
 
 # Make a cloud of points form the ugrid, in order to draw arrows
 domain = Points(ugrid)
-coords = domain.points()
+coords = domain.vertices
 vects  = domain.pointdata['U']/200
 arrows = Arrows(coords-vects, coords+vects, c='jet_r') # use colormap
 box    = domain.box().c('k')  # build a box frame of the domain

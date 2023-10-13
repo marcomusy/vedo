@@ -8,7 +8,7 @@ for i in range(60):  # probe scalars on 60 parallel lines
     step = (i - 30) * 2
     p1 = vol.center() + vector(-100, step, step)
     p2 = vol.center() + vector( 100, step, step)
-    pl = probe_line(vol, p1, p2).cmap('hot', vmin=0, vmax=110)
+    pl = vol.probe_line(p1, p2).cmap('hot', vmin=0, vmax=110)
     pl.alpha(0.5).linewidth(4)
     lines.append(pl)
     #print(pl.pointdata.keys()) # numpy scalars can be accessed here

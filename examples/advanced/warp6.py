@@ -10,7 +10,7 @@ def on_keypress(event):
         n = normals[idx]
         pt = pt + n / 5
 
-        txt.orientation(n).pos(pt)
+        txt.pos(pt).reorient(n)
 
         tpts = txt.clone().subsample(0.05).vertices
         kpts = [mesh.closest_point(tp) for tp in tpts]

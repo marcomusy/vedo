@@ -8,13 +8,15 @@ def func(evt):
     pid = evt.actor.closest_point(evt.picked3d, return_point_id=True)
     txt = f"Probing:\n{precision(evt.actor.picked3d, 3)}\nvalue = {arr[pid]}"
 
-    pts = evt.actor.points()
+    pts = evt.actor.vertices
     sph = Sphere(pts[pid], c='orange7').pickable(False)
     fp = sph.flagpole(txt, s=7, offset=(-150,15), font=2).follow_camera()
     # remove old and add the two new objects
     plt.remove('Sphere', 'FlagPole').add(sph, fp).render()
 
-vol = Volume(dataurl+'embryo.slc').alpha([0,0,0.8]).c('w').pickable(False)
+vol = Volume(dataurl+'embryo.slc')
+vol.cmap('white').alpha([0,0,0.8]).pickable(False)
+
 vslice = vol.slice_plane(origin=vol.center(), normal=(0,1,1))
 vslice.cmap('Purples_r').lighting('off').add_scalarbar('Slice', c='w')
 arr = vslice.pointdata[0] # retrieve vertex array data

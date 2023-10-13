@@ -9,7 +9,7 @@ printc(__doc__)
 
 plt = Plotter(N=6)
 
-v0 = Volume(dataurl+'embryo.slc').c(0)
+v0 = Volume(dataurl+'embryo.slc').cmap(0)
 v0.add_scalarbar3d()
 plt.at(0).show("original", v0)
 
@@ -18,19 +18,19 @@ v1.add_scalarbar3d()
 # print(v1.pointdata.keys())
 plt.at(1).show("gradient", v1)
 
-v2 = v0.clone().operation("divergence").c(2)
+v2 = v0.clone().operation("divergence").cmap(2)
 v2.add_scalarbar3d()
 plt.at(2).show("divergence", v2)
 
-v3 = v0.clone().operation("laplacian").c(3)
+v3 = v0.clone().operation("laplacian").cmap(3)
 v3.add_scalarbar3d()
 plt.at(3).show("laplacian", v3)
 
-v4 = v0.clone().operation("median").c(4)
+v4 = v0.clone().operation("median").cmap(4)
 v4.add_scalarbar3d()
 plt.at(4).show("median", v4)
 
-v5 = v0.clone().operation("dot", v0).c(7)
+v5 = v0.clone().operation("dot", v0).cmap(7)
 v5.add_scalarbar3d()
 plt.at(5).show("dot(v0,v0)", v5, zoom=1.3)
 
@@ -43,7 +43,7 @@ msh = Ellipsoid()
 
 vol = msh.signed_distance(dims=(20, 20, 20))
 vol.threshold(above=0.0, replace=0.0)  # replacing all values outside to 0
-vol.c("blue").alpha([0.9, 0.0]).alpha_unit(0.1).add_scalarbar3d()
+vol.cmap("blue").alpha([0.9, 0.0]).alpha_unit(0.1).add_scalarbar3d()
 
 vgrad = vol.operation("gradient")
 printc(vgrad.pointdata.keys(), c='g')
@@ -53,7 +53,7 @@ pts = vol.points()  # coords as numpy array
 arrs = Arrows(pts, pts + grd*0.1).lighting('off')
 
 pts_probes = [[0.2,0.5,0.5], [0.2,0.3,0.4]]
-vects = probe_points(vgrad, pts_probes).pointdata['ImageScalarsGradient']
+vects = vgrad.probe_points(pts_probes).pointdata['ImageScalarsGradient']
 arrs_pts_probe = Arrows(pts_probes, pts_probes+vects)
 
 plt = Plotter(axes=1, N=2)

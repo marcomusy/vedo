@@ -269,6 +269,201 @@ class Slicer3DPlotter(Plotter):
             self.add(hist)
 
 
+##########################################################################
+class VolumeSlice(vedo.Volume):
+    """
+    Derived class of `vtkImageSlice`.
+    """
+
+    def __init__(self, inputobj=None):
+        """
+        This class is equivalent to `Volume` except for its representation.
+        The main purpose of this class is to be used in conjunction with `Volume`
+        for visualization using `mode="image"`.
+        """
+        self.actor = vtk.vtkImageSlice()
+        # vtk.vtkImageSlice.__init__(self)
+
+        self._mapper = vtk.vtkImageResliceMapper()
+        self._mapper.SliceFacesCameraOn()
+        self._mapper.SliceAtFocalPointOn()
+        self._mapper.SetAutoAdjustImageQuality(False)
+        self._mapper.BorderOff()
+
+        self.lut = None
+
+        self.property = vtk.vtkImageProperty()
+        self.property.SetInterpolationTypeToLinear()
+        self.SetProperty(self.property)
+
+        ###################
+        if isinstance(inputobj, str):
+            if "https://" in inputobj:
+                inputobj = vedo.file_io.download(inputobj, verbose=False)  # fpath
+            elif os.path.isfile(inputobj):
+                pass
+            else:
+                inputobj = sorted(glob.glob(inputobj))
+
+        ###################
+        inputtype = str(type(inputobj))
+
+        if inputobj is None:
+            img = vtk.vtkImageData()
+
+        if isinstance(inputobj, Volume):
+            img = inputobj.dataset
+            self.lut = utils.ctf2lut(inputobj)
+
+        elif utils.is_sequence(inputobj):
+
+            if isinstance(inputobj[0], str):  # scan sequence of BMP files
+                ima = vtk.vtkImageAppend()
+                ima.SetAppendAxis(2)
+                pb = utils.ProgressBar(0, len(inputobj))
+                for i in pb.range():
+                    f = inputobj[i]
+                    picr = vtk.vtkBMPReader()
+                    picr.SetFileName(f)
+                    picr.Update()
+                    mgf = vtk.vtkImageMagnitude()
+                    mgf.SetInputData(picr.GetOutput())
+                    mgf.Update()
+                    ima.AddInputData(mgf.GetOutput())
+                    pb.print("loading...")
+                ima.Update()
+                img = ima.GetOutput()
+
+            else:
+                if "ndarray" not in inputtype:
+                    inputobj = np.array(inputobj)
+
+                if len(inputobj.shape) == 1:
+                    varr = utils.numpy2vtk(inputobj, dtype=float)
+                else:
+                    if len(inputobj.shape) > 2:
+                        inputobj = np.transpose(inputobj, axes=[2, 1, 0])
+                    varr = utils.numpy2vtk(inputobj.ravel(order="F"), dtype=float)
+                varr.SetName("input_scalars")
+
+                img = vtk.vtkImageData()
+                img.SetDimensions(inputobj.shape)
+                img.GetPointData().AddArray(varr)
+                img.GetPointData().SetActiveScalars(varr.GetName())
+
+        elif "ImageData" in inputtype:
+            img = inputobj
+
+        elif isinstance(inputobj, Volume):
+            img = inputobj.inputdata()
+
+        elif "UniformGrid" in inputtype:
+            img = inputobj
+
+        elif hasattr(inputobj, "GetOutput"):  # passing vtk object, try extract imagdedata
+            if hasattr(inputobj, "Update"):
+                inputobj.Update()
+            img = inputobj.GetOutput()
+
+        elif isinstance(inputobj, str):
+            if "https://" in inputobj:
+                inputobj = vedo.file_io.download(inputobj, verbose=False)
+            img = vedo.file_io.loadImageData(inputobj)
+
+        else:
+            vedo.logger.error(f"cannot understand input type {inputtype}")
+            return
+
+        self._data = img
+        self._mapper.SetInputData(img)
+        self.SetMapper(self._mapper)
+
+    def bounds(self):
+        """Return the bounding box as [x0,x1, y0,y1, z0,z1]"""
+        bns = [0, 0, 0, 0, 0, 0]
+        self.GetBounds(bns)
+        return bns
+
+    def colorize(self, lut=None, fix_scalar_range=False):
+        """
+        Assign a LUT (Look Up Table) to colorize the slice, leave it `None`
+        to reuse an existing Volume color map.
+        Use "bw" for automatic black and white.
+        """
+        if lut is None and self.lut:
+            self.property.SetLookupTable(self.lut)
+        elif isinstance(lut, vtk.vtkLookupTable):
+            self.property.SetLookupTable(lut)
+        elif lut == "bw":
+            self.property.SetLookupTable(None)
+        self.property.SetUseLookupTableScalarRange(fix_scalar_range)
+        return self
+
+    def alpha(self, value):
+        """Set opacity to the slice"""
+        self.property.SetOpacity(value)
+        return self
+
+    def auto_adjust_quality(self, value=True):
+        """Automatically reduce the rendering quality for greater speed when interacting"""
+        self._mapper.SetAutoAdjustImageQuality(value)
+        return self
+
+    def slab(self, thickness=0, mode=0, sample_factor=2):
+        """
+        Make a thick slice (slab).
+
+        Arguments:
+            thickness : (float)
+                set the slab thickness, for thick slicing
+            mode : (int)
+                The slab type:
+                    0 = min
+                    1 = max
+                    2 = mean
+                    3 = sum
+            sample_factor : (float)
+                Set the number of slab samples to use as a factor of the number of input slices
+                within the slab thickness. The default value is 2, but 1 will increase speed
+                with very little loss of quality.
+        """
+        self._mapper.SetSlabThickness(thickness)
+        self._mapper.SetSlabType(mode)
+        self._mapper.SetSlabSampleFactor(sample_factor)
+        return self
+
+    def face_camera(self, value=True):
+        """Make the slice always face the camera or not."""
+        self._mapper.SetSliceFacesCameraOn(value)
+        return self
+
+    def jump_to_nearest_slice(self, value=True):
+        """
+        This causes the slicing to occur at the closest slice to the focal point,
+        instead of the default behavior where a new slice is interpolated between
+        the original slices.
+        Nothing happens if the plane is oblique to the original slices."""
+        self.SetJumpToNearestSlice(value)
+        return self
+
+    def fill_background(self, value=True):
+        """
+        Instead of rendering only to the image border,
+        render out to the viewport boundary with the background color.
+        The background color will be the lowest color on the lookup
+        table that is being used for the image."""
+        self._mapper.SetBackground(value)
+        return self
+
+    def lighting(self, window, level, ambient=1.0, diffuse=0.0):
+        """Assign the values for window and color level."""
+        self.property.SetColorWindow(window)
+        self.property.SetColorLevel(level)
+        self.property.SetAmbient(ambient)
+        self.property.SetDiffuse(diffuse)
+        return self
+
+
 ########################################################################################
 class Slicer2DPlotter(Plotter):
     """
@@ -300,7 +495,7 @@ class Slicer2DPlotter(Plotter):
         super().__init__(**kwargs)
 
         # reuse the same underlying data as in vol
-        vsl = vedo.volume.VolumeSlice(volume)
+        vsl = VolumeSlice(volume)
 
         # no argument will grab the existing cmap in vol (or use build_lut())
         vsl.colorize()
@@ -383,7 +578,7 @@ class RayCastPlotter(Plotter):
         self.alphaslider2 = 1
 
         self.property = volume.GetProperty()
-        img = volume.imagedata()
+        img = volume.dataset
 
         if volume.dimensions()[2] < 3:
             vedo.logger.error("RayCastPlotter: not enough z slices.")

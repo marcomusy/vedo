@@ -489,9 +489,9 @@ class CommonAlgorithms:
         return self
 
     def inputdata(self):
-        """Obsolete, use `self` instead."""
-        print("WARNING: inputdata() is obsolete, use self instead.")
-        return self
+        """Obsolete, use `.dataset` instead."""
+        print("WARNING: inputdata() is obsolete, use .dataset instead.")
+        return self.dataset
 
     @property
     def npoints(self):
@@ -567,7 +567,7 @@ class CommonAlgorithms:
         A new array called `BoundaryCells` is added to the mesh.
         """
         mb = vtk.vtkMarkBoundaryFilter()
-        mb.SetInputData(self.datset)
+        mb.SetInputData(self.dataset)
         mb.Update()
         self.DeepCopy(mb.GetOutput())
         self.pipeline = utils.OperationNode("mark_boundaries", parents=[self])
@@ -749,7 +749,7 @@ class CommonAlgorithms:
         ```
         """
         rs = vtk.vtkResampleWithDataSet()
-        rs.SetInputData(self.datset)
+        rs.SetInputData(self.dataset)
         rs.SetSourceData(source)
 
         rs.SetPassPointArrays(True)
@@ -771,7 +771,7 @@ class CommonAlgorithms:
     def add_ids(self):
         """Generate point and cell ids arrays."""
         ids = vtk.vtkIdFilter()
-        ids.SetInputData(self.datset)
+        ids.SetInputData(self.dataset)
         ids.PointIdsOn()
         ids.CellIdsOn()
         ids.FieldDataOff()
@@ -859,7 +859,7 @@ class CommonAlgorithms:
                 vedo.logger.error(f"in divergence(): no vectors found for {on}")
                 raise RuntimeError
 
-        div.SetInputData(self.datset)
+        div.SetInputData(self.dataset)
         div.SetInputScalars(tp, array_name)
         div.ComputeDivergenceOn()
         div.ComputeGradientOff()
@@ -902,7 +902,7 @@ class CommonAlgorithms:
                 vedo.logger.error(f"in vorticity(): no vectors found for {on}")
                 raise RuntimeError
 
-        vort.SetInputData(self.datset)
+        vort.SetInputData(self.dataset)
         vort.SetInputScalars(tp, array_name)
         vort.ComputeDivergenceOff()
         vort.ComputeGradientOff()
@@ -937,7 +937,7 @@ class CommonAlgorithms:
         gf = vtk.vtkGeometryFilter()
         if fill:
             sf = vtk.vtkShrinkFilter()
-            sf.SetInputData(self.datset)
+            sf.SetInputData(self.dataset)
             sf.SetShrinkFactor(shrink)
             sf.Update()
             gf.SetInputData(sf.GetOutput())
@@ -953,7 +953,7 @@ class CommonAlgorithms:
                 cleanPolyData.Update()
                 poly = cleanPolyData.GetOutput()
         else:
-            gf.SetInputData(self.datset)
+            gf.SetInputData(self.dataset)
             gf.Update()
             poly = gf.GetOutput()
 
@@ -975,7 +975,7 @@ class CommonAlgorithms:
         ![](https://vedo.embl.es/images/feats/shrink_hex.png)
         """
         sf = vtk.vtkShrinkFilter()
-        sf.SetInputData(self.datset)
+        sf.SetInputData(self.dataset)
         sf.SetShrinkFactor(fraction)
         sf.Update()
         self._update(sf.GetOutput())
@@ -1006,6 +1006,9 @@ class PointAlgorithms(CommonAlgorithms):
             ```
             ![](https://vedo.embl.es/images/feats/apply_transform.png)
         """
+        if self.dataset.GetNumberOfPoints() == 0:
+            return self
+
         if isinstance(LT, LinearTransform):
             tr = LT.T
             if LT.is_identity():
@@ -1218,7 +1221,7 @@ class VolumeAlgorithms(CommonAlgorithms):
             cf = vtk.vtkContourFilter()
             cf.UseScalarTreeOn()
 
-        cf.SetInputData(self.datset)
+        cf.SetInputData(self.dataset)
         cf.ComputeNormalsOn()
 
         if utils.is_sequence(value):
@@ -1240,7 +1243,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         out.pipeline = utils.OperationNode(
             "isosurface",
             parents=[self],
-            comment=f"#pts {out.GetNumberOfPoints()}",
+            comment=f"#pts {out.dataset.GetNumberOfPoints()}",
             c="#4cc9f0:#e9c46a",
         )
         return out
@@ -1273,10 +1276,10 @@ class VolumeAlgorithms(CommonAlgorithms):
 
                 ![](https://vedo.embl.es/images/volumetric/56820682-da40e500-684c-11e9-8ea3-91cbcba24b3a.png)
         """
-        dataset = vtk.vtkImplicitDataSet()
-        dataset.SetDataSet(self)
+        imp_dataset = vtk.vtkImplicitDataSet()
+        imp_dataset.SetDataSet(self.dataset)
         window = vtk.vtkImplicitWindowFunction()
-        window.SetImplicitFunction(dataset)
+        window.SetImplicitFunction(imp_dataset)
 
         srng = list(self.dataset.GetScalarRange())
         if vmin is not None:
@@ -1289,7 +1292,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         window.SetWindowRange(srng)
 
         extract = vtk.vtkExtractGeometry()
-        extract.SetInputData(self.datset)
+        extract.SetInputData(self.dataset)
         extract.SetImplicitFunction(window)
         extract.SetExtractInside(invert)
         extract.SetExtractBoundaryCells(boundary)
@@ -1335,7 +1338,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
         clipper = vtk.vtkClipDataSet()
-        clipper.SetInputData(self.datset)
+        clipper.SetInputData(self.dataset)
         clipper.SetClipFunction(plane)
         clipper.GenerateClipScalarsOff()
         clipper.GenerateClippedOutputOff()
@@ -1378,7 +1381,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         #     raise RuntimeError("cut_with_box() is not applicable to Volume objects.")
 
         bc = vtk.vtkBoxClipDataSet()
-        bc.SetInputData(self.datset)
+        bc.SetInputData(self.dataset)
         if isinstance(box, vtk.vtkProp):
             boxb = box.GetBounds()
         else:
@@ -1472,7 +1475,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         Extract cells that are lying of the specified surface.
         """
         bf = vtk.vtk3DLinearGridCrinkleExtractor()
-        bf.SetInputData(self.datset)
+        bf.SetInputData(self.dataset)
         bf.CopyPointDataOn()
         bf.CopyCellDataOn()
         bf.RemoveUnusedPointsOff()
@@ -1497,7 +1500,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         Extract cells that are lying of the specified surface.
         """
         bf = vtk.vtk3DLinearGridCrinkleExtractor()
-        bf.SetInputData(self.datset)
+        bf.SetInputData(self.dataset)
         bf.CopyPointDataOn()
         bf.CopyCellDataOn()
         bf.RemoveUnusedPointsOff()
@@ -1522,7 +1525,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         Extract cells that are lying of the specified surface.
         """
         bf = vtk.vtk3DLinearGridCrinkleExtractor()
-        bf.SetInputData(self.datset)
+        bf.SetInputData(self.dataset)
         bf.CopyPointDataOn()
         bf.CopyCellDataOn()
         bf.RemoveUnusedPointsOff()
@@ -1548,7 +1551,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         Cleanup unused points and empty cells
         """
         cl = vtk.vtkStaticCleanUnstructuredGrid()
-        cl.SetInputData(self.datset)
+        cl.SetInputData(self.dataset)
         cl.RemoveUnusedPointsOn()
         cl.ProduceMergeMapOff()
         cl.AveragePointDataOff()
@@ -1607,3 +1610,103 @@ class VolumeAlgorithms(CommonAlgorithms):
             c="#9e2a2b",
         )
         return ug
+
+    def probe_points(self, pts):
+        """
+        Takes a `Volume` (or any other vtk data set)
+        and probes its scalars at the specified points in space.
+
+        Note that a mask is also output with valid/invalid points which can be accessed
+        with `mesh.pointdata['vtkValidPointMask']`.
+
+        Examples:
+            - [probe_points.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probe_points.py)
+
+                ![](https://vedo.embl.es/images/volumetric/probePoints.png)
+        """
+        if isinstance(pts, vedo.pointcloud.Points):
+            pts = pts.vertices
+
+        def _readpoints():
+            output = src.GetPolyDataOutput()
+            points = vtk.vtkPoints()
+            for p in pts:
+                x, y, z = p
+                points.InsertNextPoint(x, y, z)
+            output.SetPoints(points)
+
+            cells = vtk.vtkCellArray()
+            cells.InsertNextCell(len(pts))
+            for i in range(len(pts)):
+                cells.InsertCellPoint(i)
+            output.SetVerts(cells)
+
+        src = vtk.vtkProgrammableSource()
+        src.SetExecuteMethod(_readpoints)
+        src.Update()
+        img = self.dataset
+        probeFilter = vtk.vtkProbeFilter()
+        probeFilter.SetSourceData(img)
+        probeFilter.SetInputConnection(src.GetOutputPort())
+        probeFilter.Update()
+        poly = probeFilter.GetOutput()
+        pm = vedo.mesh.Mesh(poly)
+        pm.name = "ProbePoints"
+        pm.pipeline = utils.OperationNode("probe_points", parents=[self])
+        return pm
+
+
+    def probe_line(self, p1, p2, res=100):
+        """
+        Takes a `Volume`  (or any other vtk data set)
+        and probes its scalars along a line defined by 2 points `p1` and `p2`.
+
+        Note that a mask is also output with valid/invalid points which can be accessed
+        with `mesh.pointdata['vtkValidPointMask']`.
+
+        Use `res` to set the nr of points along the line
+
+        Examples:
+            - [probe_line1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probe_line1.py)
+            - [probe_line2.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probe_line2.py)
+
+                ![](https://vedo.embl.es/images/volumetric/probeLine2.png)
+        """
+        line = vtk.vtkLineSource()
+        line.SetResolution(res)
+        line.SetPoint1(p1)
+        line.SetPoint2(p2)
+        probeFilter = vtk.vtkProbeFilter()
+        probeFilter.SetSourceData(self.dataset)
+        probeFilter.SetInputConnection(line.GetOutputPort())
+        probeFilter.Update()
+        poly = probeFilter.GetOutput()
+        lnn = vedo.mesh.Mesh(poly)
+        lnn.name = "ProbeLine"
+        lnn.pipeline = utils.OperationNode("probe_line", parents=[self])
+        return lnn
+
+
+    def probe_plane(self, origin=(0, 0, 0), normal=(1, 0, 0)):
+        """
+        Takes a `Volume` (or any other vtk data set)
+        and probes its scalars on a plane defined by a point and a normal.
+
+        Examples:
+            - [slice_plane1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slice_plane1.py)
+            - [slice_plane2.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slice_plane2.py)
+
+                ![](https://vedo.embl.es/images/volumetric/slicePlane2.png)
+        """
+        plane = vtk.vtkPlane()
+        plane.SetOrigin(origin)
+        plane.SetNormal(normal)
+        planeCut = vtk.vtkCutter()
+        planeCut.SetInputData(self.dataset)
+        planeCut.SetCutFunction(plane)
+        planeCut.Update()
+        poly = planeCut.GetOutput()
+        cutmesh = vedo.mesh.Mesh(poly)
+        cutmesh.name = "ProbePlane"
+        cutmesh.pipeline = utils.OperationNode("probe_plane", parents=[self])
+        return cutmesh

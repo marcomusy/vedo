@@ -18,6 +18,6 @@ histo = histogram(
 f = r'f(x, y)=A \exp \left(-\left(\frac{\left(x-x_{o}\right)^{2}}'
 f+= r'{2 \sigma_{x}^{2}}+\frac{\left(y-y_{o}\right)^{2}}'
 f+= r'{2 \sigma_{y}^{2}}\right)\right)'
-formula = Latex(f, c='k', s=1.5).rotate_x(90).rotate_z(90).pos(-4,-5,2)
+formula = Latex(f, c='k', s=1.5).rotate_x(90).rotate_z(90).pos([-4,-5,2])
 
 show(histo, formula, axes=1, viewup='z')

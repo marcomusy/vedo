@@ -265,6 +265,7 @@ class Picture(vedo.visual.PictureVisual, vedo.visual.ActorTransforms):
         self.pipeline = None
 
         self.actor = vtk.vtkImageActor()
+        self.actor.data = self  # so it can be picked
         self.property = self.actor.GetProperty()
 
         if utils.is_sequence(obj) and len(obj) > 0:  # passing array

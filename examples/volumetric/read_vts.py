@@ -6,7 +6,7 @@ settings.use_depth_peeling = True
 
 g = load(dataurl+'structgrid.vts')
 
-coords = g.points()
+coords = g.vertices
 
 # g.print() gives the list of point and cell data contained in g
 vects  = g.pointdata['Momentum']/600

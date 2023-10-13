@@ -1644,10 +1644,10 @@ def print_info(obj):
         vedo.printc(" z=(" + bz1 + ", " + bz2 + ")", c=cf, bold=False)
         _print_data(ug, cf)
 
-    elif isinstance(obj, (vedo.volume.Volume, vedo.volume.VolumeSlice)):
+    elif isinstance(obj, vedo.volume.Volume):
         vedo.printc("Volume".ljust(70), c="b", bold=True, invert=True)
 
-        img = obj.GetMapper().GetInput()
+        img = obj.dataset
         vedo.printc("origin".ljust(14) + ": ", c="b", bold=True, end="")
         vedo.printc(precision(obj.origin(), 6), c="b", bold=False)
 
@@ -1667,7 +1667,7 @@ def print_info(obj):
         vedo.printc("scalar #bytes".ljust(14) + ": ", c="b", bold=True, end="")
         vedo.printc(img.GetScalarSize(), c="b", bold=False)
 
-        bnds = obj.GetBounds()
+        bnds = obj.bounds()
         vedo.printc("bounds".ljust(14) + ": ", c="b", bold=True, end="")
         bx1, bx2 = precision(bnds[0], 4), precision(bnds[1], 4)
         vedo.printc("x=(" + bx1 + ", " + bx2 + ")", c="b", bold=False, end="")
@@ -1679,7 +1679,7 @@ def print_info(obj):
         vedo.printc("scalar range".ljust(14) + ": ", c="b", bold=True, end="")
         vedo.printc(img.GetScalarRange(), c="b", bold=False)
 
-        print_histogram(obj, horizontal=True, logscale=True, bins=8, height=15, c="b", bold=True)
+        # print_histogram(obj, horizontal=True, logscale=True, bins=8, height=15, c="b", bold=True)
 
     elif isinstance(obj, vedo.Plotter) and obj.interactor:  # dumps Plotter info
         axtype = {
@@ -1853,7 +1853,7 @@ def print_histogram(
     isvol = isinstance(data, vtk.vtkVolume)
     if isimg or isvol:
         if isvol:
-            img = data.imagedata()
+            img = data.dataset
         else:
             img = data
         dims = img.GetDimensions()
@@ -2617,38 +2617,30 @@ def vtk_version_at_least(major, minor=0, build=0):
     return vtk_version_number >= needed_version
 
 
-def ctf2lut(tvobj, logscale=False):
+def ctf2lut(vol, logscale=False):
     """Internal use."""
     # build LUT from a color transfer function for tmesh or volume
 
-    pr = tvobj.GetProperty()
-    # if not isinstance(pr, vtk.vtkVolumeProperty):
-    #     return None
+    ctf = vol.property.GetRGBTransferFunction()
+    otf = vol.property.GetScalarOpacity()
+    x0, x1 = vol.dataset.GetScalarRange()
+    cols, alphas = [], []
+    for x in np.linspace(x0, x1, 256):
+        cols.append(ctf.GetColor(x))
+        alphas.append(otf.GetValue(x))
 
-    try:
-        ctf = pr.GetRGBTransferFunction()
-        otf = pr.GetScalarOpacity()
-        x0, x1 = tvobj.inputdata().GetScalarRange()
-        cols, alphas = [], []
-        for x in np.linspace(x0, x1, 256):
-            cols.append(ctf.GetColor(x))
-            alphas.append(otf.GetValue(x))
+    if logscale:
+        lut = vtk.vtkLogLookupTable()
+    else:
+        lut = vtk.vtkLookupTable()
 
-        if logscale:
-            lut = vtk.vtkLogLookupTable()
-        else:
-            lut = vtk.vtkLookupTable()
-
-        lut.SetRange(x0, x1)
-        lut.SetNumberOfTableValues(len(cols))
-        for i, col in enumerate(cols):
-            r, g, b = col
-            lut.SetTableValue(i, r, g, b, alphas[i])
-        lut.Build()
-        return lut
-
-    except AttributeError:
-        return None
+    lut.SetRange(x0, x1)
+    lut.SetNumberOfTableValues(len(cols))
+    for i, col in enumerate(cols):
+        r, g, b = col
+        lut.SetTableValue(i, r, g, b, alphas[i])
+    lut.Build()
+    return lut
 
 
 def get_vtk_name_event(name):

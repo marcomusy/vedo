@@ -17,7 +17,7 @@ pts.pointdata["scals"] = scals
 # available interpolation kernels are: shepard, gaussian, voronoi, linear.
 vol = pts.tovolume(kernel='shepard', n=4, dims=(90,90,90))
 
-vol.c(["maroon","g","b"])        # set color   transfer function
+vol.cmap(["maroon","g","b"])     # set color   transfer function
 vol.alpha([0.3, 0.9])            # set opacity transfer function
 #vol.alpha([(0.3,0.3), (0.9,0.9)]) # alternative way, by specifying (xscalar, alpha)
 vol.alpha_unit(0.5)              # make the whole object less transparent (default is 1)

@@ -13,7 +13,7 @@ p[ int(n*2/3):] += [1.7, 0.4]
 pts = Points(p).color('k', 0.2)
 
 # radius of local search can be specified (None=automatic)
-vol = pts.density(radius=None).c('Paired_r') # returns a Volume
+vol = pts.density(radius=None).cmap('Paired_r') # returns a Volume
 
 # Other cool color mapping: Set1_r, Dark2. Or you can build your own, e.g.:
 # vol.c(['w','w','y','y','r','r','g','g','b','k']).alpha([0,1])

@@ -5,7 +5,7 @@ from vedo import Mesh, dataurl, Plotter
 surf = Mesh(dataurl+"bunny.obj").normalize().wireframe()
 
 vol = surf.binarize(spacing=(0.02,0.02,0.02))
-vol.alpha([0,0.6]).c('blue')
+vol.alpha([0,0.6]).cmap('blue')
 
 iso = vol.isosurface().color("blue5")
 

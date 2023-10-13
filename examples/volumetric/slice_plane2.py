@@ -2,7 +2,8 @@
 Make low values of the scalar completely transparent"""
 from vedo import *
 
-vol = Volume(dataurl+'embryo.slc').alpha([0,0,0.5]).c('k')
+vol = Volume(dataurl+'embryo.slc')
+vol.cmap('bone').alpha([0,0,0.5])
 
 slices = []
 for i in range(4):

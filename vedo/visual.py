@@ -325,7 +325,6 @@ class CommonVisual:
             _, vmax = self.dataset.GetScalarRange()
         ctf = self.property.GetRGBTransferFunction()
         ctf.RemoveAllPoints()
-        self._color = col
 
         if utils.is_sequence(col):
             if utils.is_sequence(col[0]) and len(col[0]) == 2:
@@ -384,7 +383,6 @@ class CommonVisual:
             _, vmax = self.dataset.GetScalarRange()
         otf = self.property.GetScalarOpacity()
         otf.RemoveAllPoints()
-        self._alpha = alpha
 
         if utils.is_sequence(alpha):
             alpha = np.array(alpha)
@@ -460,7 +458,6 @@ class PointsVisual(CommonVisual):
         If None is passed as input, will use colors from active scalars.
         Same as `mesh.c()`.
         """
-        # overrides base.color()
         if c is False:
             return np.array(self.property.GetColor())
         if c is None:
@@ -1884,6 +1881,8 @@ class MeshVisual:
 
 ########################################################################################
 class VolumeVisual(CommonVisual):
+    """Class to manage the visual aspects of a ``Volume`` object."""
+
     def alpha_unit(self, u=None):
         """
         Defines light attenuation per unit length. Default is 1.
@@ -1897,6 +1896,213 @@ class VolumeVisual(CommonVisual):
         if u is None:
             return self.property.GetScalarOpacityUnitDistance()
         self.property.SetScalarOpacityUnitDistance(u)
+        return self
+
+    def alpha_gradient(self, alpha_grad, vmin=None, vmax=None):
+        """
+        Assign a set of tranparencies to a volume's gradient
+        along the range of the scalar value.
+        A single constant value can also be assigned.
+        The gradient function is used to decrease the opacity
+        in the "flat" regions of the volume while maintaining the opacity
+        at the boundaries between material types.  The gradient is measured
+        as the amount by which the intensity changes over unit distance.
+
+        The format for alpha_grad is the same as for method `volume.alpha()`.
+        """
+        if vmin is None:
+            vmin, _ = self.dataset.GetScalarRange()
+        if vmax is None:
+            _, vmax = self.dataset.GetScalarRange()
+
+        if alpha_grad is None:
+            self.property.DisableGradientOpacityOn()
+            return self
+
+        self.property.DisableGradientOpacityOff()
+
+        gotf = self.property.GetGradientOpacity()
+        if utils.is_sequence(alpha_grad):
+            alpha_grad = np.array(alpha_grad)
+            if len(alpha_grad.shape) == 1:  # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
+                for i, al in enumerate(alpha_grad):
+                    xalpha = vmin + (vmax - vmin) * i / (len(alpha_grad) - 1)
+                    # Create transfer mapping scalar value to gradient opacity
+                    gotf.AddPoint(xalpha, al)
+            elif len(alpha_grad.shape) == 2:  # user passing [(x0,alpha0), ...]
+                gotf.AddPoint(vmin, alpha_grad[0][1])
+                for xalpha, al in alpha_grad:
+                    # Create transfer mapping scalar value to opacity
+                    gotf.AddPoint(xalpha, al)
+                gotf.AddPoint(vmax, alpha_grad[-1][1])
+            # print("alpha_grad at", round(xalpha, 1), "\tset to", al)
+        else:
+            gotf.AddPoint(vmin, alpha_grad)  # constant alpha_grad
+            gotf.AddPoint(vmax, alpha_grad)
+        return self
+
+    def cmap(self, c, alpha=None, vmin=None, vmax=None):
+        """Same as `color()`.
+
+        Arguments:
+            alpha : (list)
+                use a list to specify transparencies along the scalar range
+            vmin : (float)
+                force the min of the scalar range to be this value
+            vmax : (float)
+                force the max of the scalar range to be this value
+        """
+        return self.color(c, alpha, vmin, vmax)
+
+    def jittering(self, status=None):
+        """
+        If `True`, each ray traversal direction will be perturbed slightly
+        using a noise-texture to get rid of wood-grain effects.
+        """
+        if hasattr(self.mapper, "SetUseJittering"):  # tetmesh doesnt have it
+            if status is None:
+                return self.mapper.GetUseJittering()
+            self.mapper.SetUseJittering(status)
+        return self
+
+    def hide_voxels(self, ids):
+        """
+        Hide voxels (cells) from visualization.
+
+        Example:
+            ```python
+            from vedo import *
+            embryo = Volume(dataurl+'embryo.tif')
+            embryo.hide_voxels(list(range(10000)))
+            show(embryo, axes=1).close()
+            ```
+
+        See also:
+            `volume.mask()`
+        """
+        ghost_mask = np.zeros(self.ncells, dtype=np.uint8)
+        ghost_mask[ids] = vtk.vtkDataSetAttributes.HIDDENCELL
+        name = vtk.vtkDataSetAttributes.GhostArrayName()
+        garr = utils.numpy2vtk(ghost_mask, name=name, dtype=np.uint8)
+        self.dataset.GetCellData().AddArray(garr)
+        self.dataset.GetCellData().Modified()
+        return self
+
+
+    def mode(self, mode=None):
+        """
+        Define the volumetric rendering mode following this:
+            - 0, composite rendering
+            - 1, maximum projection rendering
+            - 2, minimum projection rendering
+            - 3, average projection rendering
+            - 4, additive mode
+
+        The default mode is "composite" where the scalar values are sampled through
+        the volume and composited in a front-to-back scheme through alpha blending.
+        The final color and opacity is determined using the color and opacity transfer
+        functions specified in alpha keyword.
+
+        Maximum and minimum intensity blend modes use the maximum and minimum
+        scalar values, respectively, along the sampling ray.
+        The final color and opacity is determined by passing the resultant value
+        through the color and opacity transfer functions.
+
+        Additive blend mode accumulates scalar values by passing each value
+        through the opacity transfer function and then adding up the product
+        of the value and its opacity. In other words, the scalar values are scaled
+        using the opacity transfer function and summed to derive the final color.
+        Note that the resulting image is always grayscale i.e. aggregated values
+        are not passed through the color transfer function.
+        This is because the final value is a derived value and not a real data value
+        along the sampling ray.
+
+        Average intensity blend mode works similar to the additive blend mode where
+        the scalar values are multiplied by opacity calculated from the opacity
+        transfer function and then added.
+        The additional step here is to divide the sum by the number of samples
+        taken through the volume.
+        As is the case with the additive intensity projection, the final image will
+        always be grayscale i.e. the aggregated values are not passed through the
+        color transfer function.
+        """
+        if mode is None:
+            return self.mapper.GetBlendMode()
+
+        if isinstance(mode, str):
+            if "comp" in mode:
+                mode = 0
+            elif "proj" in mode:
+                if "max" in mode:
+                    mode = 1
+                elif "min" in mode:
+                    mode = 2
+                elif "ave" in mode:
+                    mode = 3
+                else:
+                    vedo.logger.warning(f"unknown mode {mode}")
+                    mode = 0
+            elif "add" in mode:
+                mode = 4
+            else:
+                vedo.logger.warning(f"unknown mode {mode}")
+                mode = 0
+
+        self.mapper.SetBlendMode(mode)
+        return self
+
+    def shade(self, status=None):
+        """
+        Set/Get the shading of a Volume.
+        Shading can be further controlled with `volume.lighting()` method.
+
+        If shading is turned on, the mapper may perform shading calculations.
+        In some cases shading does not apply
+        (for example, in maximum intensity projection mode).
+        """
+        if status is None:
+            return self.property.GetShade()
+        self.property.SetShade(status)
+        return self
+
+
+    def mask(self, data):
+        """
+        Mask a volume visualization with a binary value.
+        Needs to specify keyword mapper='gpu'.
+
+        Example:
+        ```python
+            from vedo import np, Volume, show
+            data_matrix = np.zeros([75, 75, 75], dtype=np.uint8)
+            # all voxels have value zero except:
+            data_matrix[0:35,   0:35,  0:35] = 1
+            data_matrix[35:55, 35:55, 35:55] = 2
+            data_matrix[55:74, 55:74, 55:74] = 3
+            vol = Volume(data_matrix, c=['white','b','g','r'], mapper='gpu')
+            data_mask = np.zeros_like(data_matrix)
+            data_mask[10:65, 10:45, 20:75] = 1
+            vol.mask(data_mask)
+            show(vol, axes=1).close()
+        ```
+        See also:
+            `volume.hide_voxels()`
+        """
+        mask = Volume(data.astype(np.uint8))
+        try:
+            self.mapper.SetMaskTypeToBinary()
+            self.mapper.SetMaskInput(mask.dataset)
+        except AttributeError:
+            vedo.logger.error("volume.mask() must create the volume with Volume(..., mapper='gpu')")
+        return self
+
+    def interpolation(self, itype):
+        """
+        Set interpolation type.
+
+        0=nearest neighbour, 1=linear
+        """
+        self.property.SetInterpolationType(itype)
         return self
 
 
@@ -1972,11 +2178,11 @@ class ActorTransforms:
     def scale(self, s=None, absolute=False):
         """Set/get scaling factor."""
         if s is None:
-            return self.actor.GetScale()
+            return np.array(self.actor.GetScale())
         if absolute:
             self.actor.SetScale(s, s, s)
         else:
-            self.actor.SetScale(self.GetScale() * s)
+            self.actor.SetScale(np.array(self.actor.GetScale()) * s)
         return self
 
 

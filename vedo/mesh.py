@@ -2071,7 +2071,7 @@ class Mesh(MeshVisual, Points):
         m = Mesh(conn.GetOutput())
         pr = vtk.vtkProperty()
         pr.DeepCopy(self.property)
-        m.SetProperty(pr)
+        m.actor.SetProperty(pr)
         m.property = pr
         vis = self.mapper.GetScalarVisibility()
         m.mapper.SetScalarVisibility(vis)
@@ -2480,7 +2480,7 @@ class Mesh(MeshVisual, Points):
                 flip the sign
 
         Examples:
-            - [volumeFromMesh.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/volumeFromMesh.py)
+            - [volume_from_mesh.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/volume_from_mesh.py)
         """
         if maxradius is not None:
             vedo.logger.warning(

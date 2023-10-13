@@ -1393,7 +1393,7 @@ def _interpolate2vol(mesh, kernel=None, radius=None, bounds=None, null_value=Non
         radius = 2.5 * np.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ)
 
     locator = vtk.vtkStaticPointLocator()
-    locator.SetDataSet(mesh)
+    locator.SetDataSet(mesh.dataset)
     locator.BuildLocator()
 
     if kernel == "gaussian":
@@ -1411,7 +1411,7 @@ def _interpolate2vol(mesh, kernel=None, radius=None, bounds=None, null_value=Non
 
     interpolator = vtk.vtkPointInterpolator()
     interpolator.SetInputData(domain)
-    interpolator.SetSourceData(mesh)
+    interpolator.SetSourceData(mesh.dataset)
     interpolator.SetKernel(kern)
     interpolator.SetLocator(locator)
     if null_value is not None:
@@ -1530,8 +1530,8 @@ def StreamLines(
             grid = _interpolate2vol(domain, **extrapolate_to_box)
         else:
             grid = domain
-    elif isinstance(domain, vedo.BaseVolume):
-        grid = domain
+    elif isinstance(domain, vedo.Volume):
+        grid = domain.dataset
     else:
         grid = domain
 
@@ -1602,7 +1602,7 @@ def StreamLines(
         output = scalar_surface.GetOutput()
 
     if tubes:
-        radius = tubes.pop("radius", domain.GetLength() / 500)
+        radius = tubes.pop("radius", domain.diagonal_size() / 500)
         res = tubes.pop("res", 24)
         radfact = tubes.pop("max_radius_factor", 10)
         ratio = tubes.pop("ratio", 1)
@@ -4014,6 +4014,7 @@ class ParametricShape(Mesh):
 
         super().__init__(pfs.GetOutput())
 
+        if name == "RandomHills": self.shift([0,-10,-2.25])
         if name != 'Kuen': self.normalize()
         if name == 'Dini': self.scale(0.4)
         if name == 'Enneper': self.scale(0.4)
