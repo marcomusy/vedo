@@ -27,7 +27,7 @@
 - removed `Volume.probe_points()`
 - removed `Volume.probe_line()`
 - removed `Volume.probe_plane()`
-
+- `Slicer2DPlotter` moved to application module
 
 
 

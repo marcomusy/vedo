@@ -6,6 +6,11 @@ from typing import Callable
 
 import numpy as np
 
+try:
+    import vedo.vtkclasses as vtk
+except ImportError:
+    import vtkmodules.all as vtk
+
 import vedo
 from vedo.colors import color_map, get_color
 from vedo.utils import is_sequence, lin_interpolate, mag, precision
@@ -269,145 +274,148 @@ class Slicer3DPlotter(Plotter):
             self.add(hist)
 
 
-##########################################################################
-class VolumeSlice(vedo.Volume):
+########################################################################################
+class Slicer2DPlotter(Plotter):
     """
-    Derived class of `vtkImageSlice`.
+    A single slice of a Volume which always faces the camera,
+    but at the same time can be oriented arbitrarily in space.
     """
 
-    def __init__(self, inputobj=None):
+    def __init__(self, vol, levels=(None, None), histo_color="red5", **kwargs):
         """
-        This class is equivalent to `Volume` except for its representation.
-        The main purpose of this class is to be used in conjunction with `Volume`
-        for visualization using `mode="image"`.
+        A single slice of a Volume which always faces the camera,
+        but at the same time can be oriented arbitrarily in space.
+
+        Arguments:
+            levels : (list)
+                window and color levels
+            histo_color : (color)
+                histogram color, use `None` to disable it
+
+        <img src="https://vedo.embl.es/images/volumetric/read_volume3.jpg" width="500">
         """
-        super().__init__()
 
-        self.actor = vtk.vtkImageSlice()
+        if "shape" not in kwargs:
+            custom_shape = [  # define here the 2 rendering rectangle spaces
+                dict(bottomleft=(0.0, 0.0), topright=(1, 1), bg="k9"),  # the full window
+                dict(bottomleft=(0.8, 0.8), topright=(1, 1), bg="k8", bg2="lb"),
+            ]
+            kwargs["shape"] = custom_shape
+        
+        if "interactive" not in kwargs:
+            kwargs["interactive"] = True
 
-        self._mapper = vtk.vtkImageResliceMapper()
-        self._mapper.SliceFacesCameraOn()
-        self._mapper.SliceAtFocalPointOn()
-        self._mapper.SetAutoAdjustImageQuality(False)
-        self._mapper.BorderOff()
+        super().__init__(**kwargs)
 
+        self.interactor.RemoveAllObservers()
+        self.add_callback("on key press", self.on_key_press)
+
+        orig_volume = vol.clone(deep=False)
+        self.volume = vol
+
+        self.volume.actor = vtk.vtkImageSlice()
+        self.volume.property = self.volume.actor.GetProperty()
+
+        self.volume.mapper = vtk.vtkImageResliceMapper()
+        self.volume.mapper.SliceFacesCameraOn()
+        self.volume.mapper.SliceAtFocalPointOn()
+        self.volume.mapper.SetAutoAdjustImageQuality(False)
+        self.volume.mapper.BorderOff()
+        self.volume.property.SetInterpolationTypeToLinear()
+
+        self.volume.mapper.SetInputData(self.volume.dataset)
+        self.volume.actor.SetMapper(self.volume.mapper)
+
+        # no argument will grab the existing cmap in vol (or use build_lut())
         self.lut = None
+        self.cmap()
 
-        self.property = vtk.vtkImageProperty()
-        self.property.SetInterpolationTypeToLinear()
-        self.SetProperty(self.property)
+        if levels[0] and levels[1]:
+            vsl.lighting(window=levels[0], level=levels[1])
 
-        ###################
-        if isinstance(inputobj, str):
-            if "https://" in inputobj:
-                inputobj = vedo.file_io.download(inputobj, verbose=False)  # fpath
-            elif os.path.isfile(inputobj):
-                pass
+        self.usage_txt = (
+            "H                  :rightarrow toggle this banner off\n"
+            "Left click & drag  :rightarrow modify luminosity and contrast\n"
+            "SHIFT+Left click   :rightarrow slice image obliquely\n"
+            "SHIFT+Middle click :rightarrow slice image perpendicularly\n"
+            "R                  :rightarrow Reset the Window/Color levels\n"
+            "X                  :rightarrow Reset to sagittal view\n"
+            "Y                  :rightarrow Reset to coronal view\n"
+            "Z                  :rightarrow Reset to axial view"
+        )
+
+        self.usage = Text2D(
+            self.usage_txt,
+            font="Calco",
+            pos="top-left",
+            s=0.8,
+            bg="yellow",
+            alpha=0.25,
+        )
+
+        hist = None
+        if histo_color is not None:
+            # try to reduce the number of values to histogram
+            dims = self.volume.dimensions()
+            n = (dims[0]-1) * (dims[1]-1) * (dims[2]-1)
+            n = min(1_000_000, n)
+            arr = np.random.choice(self.volume.pointdata[0], n)
+
+            hist = vedo.pyplot.histogram(
+                arr,
+                bins=12,
+                logscale=True,
+                c=histo_color,
+                ytitle="log_10 (counts)",
+                axes=dict(text_scale=1.9),
+            ).as2d(pos="bottom-left", scale=0.4)
+
+        axes = kwargs.pop("axes", 7)
+        if axes == 7:
+            axe = vedo.addons.RulerAxes(
+                orig_volume, xtitle="x - ", ytitle="y - ", ztitle="z - "
+            )
+
+        box = orig_volume.box().alpha(0.25)
+        self.user_mode("image")
+        self.at(0).add(self.volume.actor, box, axe, self.usage, hist)
+        self.at(1).add(orig_volume)
+
+    ####################################################################
+    def on_key_press(self, evt):
+        if evt.keypress == "q":
+            self.break_interaction()
+        elif evt.keypress.lower() == "h":
+            t = self.usage
+            if len(t.text()) > 50:
+                self.usage.text("Press H to show help")
             else:
-                inputobj = sorted(glob.glob(inputobj))
+                self.usage.text(self.usage_txt)
+            self.render()
 
-        ###################
-        inputtype = str(type(inputobj))
-
-        if inputobj is None:
-            img = vtk.vtkImageData()
-
-        if isinstance(inputobj, Volume):
-            img = inputobj.dataset
-            self.lut = utils.ctf2lut(inputobj)
-
-        elif utils.is_sequence(inputobj):
-
-            if isinstance(inputobj[0], str):  # scan sequence of BMP files
-                ima = vtk.vtkImageAppend()
-                ima.SetAppendAxis(2)
-                pb = utils.ProgressBar(0, len(inputobj))
-                for i in pb.range():
-                    f = inputobj[i]
-                    picr = vtk.vtkBMPReader()
-                    picr.SetFileName(f)
-                    picr.Update()
-                    mgf = vtk.vtkImageMagnitude()
-                    mgf.SetInputData(picr.GetOutput())
-                    mgf.Update()
-                    ima.AddInputData(mgf.GetOutput())
-                    pb.print("loading...")
-                ima.Update()
-                img = ima.GetOutput()
-
-            else:
-                if "ndarray" not in inputtype:
-                    inputobj = np.array(inputobj)
-
-                if len(inputobj.shape) == 1:
-                    varr = utils.numpy2vtk(inputobj, dtype=float)
-                else:
-                    if len(inputobj.shape) > 2:
-                        inputobj = np.transpose(inputobj, axes=[2, 1, 0])
-                    varr = utils.numpy2vtk(inputobj.ravel(order="F"), dtype=float)
-                varr.SetName("input_scalars")
-
-                img = vtk.vtkImageData()
-                img.SetDimensions(inputobj.shape)
-                img.GetPointData().AddArray(varr)
-                img.GetPointData().SetActiveScalars(varr.GetName())
-
-        elif "ImageData" in inputtype:
-            img = inputobj
-
-        elif isinstance(inputobj, Volume):
-            img = inputobj.inputdata()
-
-        elif "UniformGrid" in inputtype:
-            img = inputobj
-
-        elif hasattr(inputobj, "GetOutput"):  # passing vtk object, try extract imagdedata
-            if hasattr(inputobj, "Update"):
-                inputobj.Update()
-            img = inputobj.GetOutput()
-
-        elif isinstance(inputobj, str):
-            if "https://" in inputobj:
-                inputobj = vedo.file_io.download(inputobj, verbose=False)
-            img = vedo.file_io.loadImageData(inputobj)
-
-        else:
-            vedo.logger.error(f"cannot understand input type {inputtype}")
-            return
-
-        self._data = img
-        self._mapper.SetInputData(img)
-        self.SetMapper(self._mapper)
-
-    def bounds(self):
-        """Return the bounding box as [x0,x1, y0,y1, z0,z1]"""
-        bns = [0, 0, 0, 0, 0, 0]
-        self.GetBounds(bns)
-        return bns
-
-    def colorize(self, lut=None, fix_scalar_range=False):
+    def cmap(self, lut=None, fix_scalar_range=False):
         """
         Assign a LUT (Look Up Table) to colorize the slice, leave it `None`
         to reuse an existing Volume color map.
         Use "bw" for automatic black and white.
         """
         if lut is None and self.lut:
-            self.property.SetLookupTable(self.lut)
+            self.volume.property.SetLookupTable(self.lut)
         elif isinstance(lut, vtk.vtkLookupTable):
-            self.property.SetLookupTable(lut)
+            self.volume.property.SetLookupTable(lut)
         elif lut == "bw":
-            self.property.SetLookupTable(None)
-        self.property.SetUseLookupTableScalarRange(fix_scalar_range)
+            self.volume.property.SetLookupTable(None)
+        self.volume.property.SetUseLookupTableScalarRange(fix_scalar_range)
         return self
 
     def alpha(self, value):
         """Set opacity to the slice"""
-        self.property.SetOpacity(value)
+        self.volume.property.SetOpacity(value)
         return self
 
     def auto_adjust_quality(self, value=True):
         """Automatically reduce the rendering quality for greater speed when interacting"""
-        self._mapper.SetAutoAdjustImageQuality(value)
+        self.volume.mapper.SetAutoAdjustImageQuality(value)
         return self
 
     def slab(self, thickness=0, mode=0, sample_factor=2):
@@ -428,14 +436,14 @@ class VolumeSlice(vedo.Volume):
                 within the slab thickness. The default value is 2, but 1 will increase speed
                 with very little loss of quality.
         """
-        self._mapper.SetSlabThickness(thickness)
-        self._mapper.SetSlabType(mode)
-        self._mapper.SetSlabSampleFactor(sample_factor)
+        self.volume.mapper.SetSlabThickness(thickness)
+        self.volume.mapper.SetSlabType(mode)
+        self.volume.mapper.SetSlabSampleFactor(sample_factor)
         return self
 
     def face_camera(self, value=True):
         """Make the slice always face the camera or not."""
-        self._mapper.SetSliceFacesCameraOn(value)
+        self.volume.mapper.SetSliceFacesCameraOn(value)
         return self
 
     def jump_to_nearest_slice(self, value=True):
@@ -444,7 +452,7 @@ class VolumeSlice(vedo.Volume):
         instead of the default behavior where a new slice is interpolated between
         the original slices.
         Nothing happens if the plane is oblique to the original slices."""
-        self.SetJumpToNearestSlice(value)
+        self.volume.SetJumpToNearestSlice(value)
         return self
 
     def fill_background(self, value=True):
@@ -453,103 +461,16 @@ class VolumeSlice(vedo.Volume):
         render out to the viewport boundary with the background color.
         The background color will be the lowest color on the lookup
         table that is being used for the image."""
-        self._mapper.SetBackground(value)
+        self.volume.mapper.SetBackground(value)
         return self
 
     def lighting(self, window, level, ambient=1.0, diffuse=0.0):
         """Assign the values for window and color level."""
-        self.property.SetColorWindow(window)
-        self.property.SetColorLevel(level)
-        self.property.SetAmbient(ambient)
-        self.property.SetDiffuse(diffuse)
+        self.volume.property.SetColorWindow(window)
+        self.volume.property.SetColorLevel(level)
+        self.volume.property.SetAmbient(ambient)
+        self.volume.property.SetDiffuse(diffuse)
         return self
-
-
-########################################################################################
-class Slicer2DPlotter(Plotter):
-    """
-    A single slice of a Volume which always faces the camera,
-    but at the same time can be oriented arbitrarily in space.
-    """
-
-    def __init__(self, volume, levels=(None, None), histo_color="red5", **kwargs):
-        """
-        A single slice of a Volume which always faces the camera,
-        but at the same time can be oriented arbitrarily in space.
-
-        Arguments:
-            levels : (list)
-                window and color levels
-            histo_color : (color)
-                histogram color, use `None` to disable it
-
-        <img src="https://vedo.embl.es/images/volumetric/read_volume3.jpg" width="500">
-        """
-        if "shape" not in kwargs:
-            custom_shape = [  # define here the 2 rendering rectangle spaces
-                dict(bottomleft=(0.0, 0.0), topright=(1, 1), bg="k9"),  # the full window
-                dict(bottomleft=(0.8, 0.8), topright=(1, 1), bg="k8", bg2="lb"),
-            ]
-            kwargs["shape"] = custom_shape
-
-        super().__init__(**kwargs)
-
-        # reuse the same underlying data as in vol
-        vsl = VolumeSlice(volume)
-
-        # no argument will grab the existing cmap in vol (or use build_lut())
-        vsl.colorize()
-
-        if levels[0] and levels[1]:
-            vsl.lighting(window=levels[0], level=levels[1])
-
-        usage = Text2D(
-            (
-                "Left click & drag  :rightarrow modify luminosity and contrast\n"
-                "SHIFT+Left click   :rightarrow slice image obliquely\n"
-                "SHIFT+Middle click :rightarrow slice image perpendicularly\n"
-                "R                  :rightarrow Reset the Window/Color levels\n"
-                "X                  :rightarrow Reset to sagittal view\n"
-                "Y                  :rightarrow Reset to coronal view\n"
-                "Z                  :rightarrow Reset to axial view"
-            ),
-            font="Calco",
-            pos="top-left",
-            s=0.8,
-            bg="yellow",
-            alpha=0.25,
-        )
-
-        hist = None
-        if histo_color is not None:
-            # hist = CornerHistogram(
-            #     volume.pointdata[0],
-            #     bins=25,
-            #     logscale=1,
-            #     pos=(0.02, 0.02),
-            #     s=0.175,
-            #     c="dg",
-            #     bg="k",
-            #     alpha=1,
-            # )
-            hist = vedo.pyplot.histogram(
-                volume.pointdata[0],
-                bins=10,
-                logscale=True,
-                c=histo_color,
-                ytitle="log_10 (counts)",
-                axes=dict(text_scale=1.9),
-            )
-            hist = hist.as2d(pos="bottom-left", scale=0.5)
-
-        axes = kwargs.pop("axes", 7)
-        interactive = kwargs.pop("interactive", True)
-        if axes == 7:
-            ax = vedo.addons.RulerAxes(vsl, xtitle="x - ", ytitle="y - ", ztitle="z - ")
-
-        box = vsl.box().alpha(0.2)
-        self.at(0).show(vsl, box, ax, usage, hist, mode="image")
-        self.at(1).show(volume, interactive=interactive)
 
 
 ########################################################################

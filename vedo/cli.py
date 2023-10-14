@@ -802,10 +802,8 @@ def draw_scene(args):
         vol.cmap("bone_r")
         sp = vol.spacing()
         vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
-        vedo.plotter_instance = None  # reset
-
-        plt = applications.Slicer2DPlotter(vol, axes=7)
-        plt.close()
+        vedo.plotter_instance = applications.Slicer2DPlotter(vol)
+        vedo.plotter_instance.show().close()
         return
 
     ########################################################################

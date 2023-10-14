@@ -434,7 +434,7 @@ class CommonAlgorithms:
         Get the object bounds.
         Returns a list in format `[xmin,xmax, ymin,ymax, zmin,zmax]`.
         """
-        try:
+        try: # this is very slow for large meshes
             pts = self.vertices
             xmin, ymin, zmin = np.min(pts, axis=0)
             xmax, ymax, zmax = np.max(pts, axis=0)
@@ -1492,6 +1492,14 @@ class PointAlgorithms(CommonAlgorithms):
 ###############################################################################
 class VolumeAlgorithms(CommonAlgorithms):
     """Methods for Volume objects."""
+
+    def bounds(self):
+        """
+        Get the object bounds.
+        Returns a list in format `[xmin,xmax, ymin,ymax, zmin,zmax]`.
+        """
+        # OVERRIDE CommonAlgorithms.bounds() which is too slow
+        return self.dataset.GetBounds()
 
     def isosurface(self, value=None, flying_edges=True):
         """

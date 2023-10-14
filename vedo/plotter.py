@@ -596,7 +596,7 @@ class Plotter:
             # passing a sequence of dicts for renderers specifications
 
             if self.size == "auto":
-                self.size = (800, 1000)
+                self.size = (1000, 800)
 
             for rd in shape:
                 x0, y0 = rd["bottomleft"]

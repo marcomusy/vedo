@@ -130,7 +130,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         self.info = {}
         self.name = "Volume"
         self.filename = ""
-        
+
         ###################
         if isinstance(inputobj, str):
             if "https://" in inputobj:
@@ -334,13 +334,15 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         ]
         return "\n".join(allt)
 
-    def clone(self):
+    def clone(self, deep=True):
         """Return a clone copy of the Volume."""
-        newimg = vtk.vtkImageData()
-        newimg.CopyStructure(self.dataset)
-        newimg.CopyAttributes(self.dataset)
-
-        newvol = Volume(newimg)
+        if deep:
+            newimg = vtk.vtkImageData()
+            newimg.CopyStructure(self.dataset)
+            newimg.CopyAttributes(self.dataset)
+            newvol = Volume(newimg)
+        else:
+            newvol = Volume(self.dataset)
 
         prop = vtk.vtkVolumeProperty()
         prop.DeepCopy(self.property)
