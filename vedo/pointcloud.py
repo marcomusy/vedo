@@ -1443,8 +1443,8 @@ class Points(PointsVisual, PointAlgorithms):
             ![](https://vedo.embl.es/images/feats/heart.png)
         """
         hp = vtk.vtkHausdorffDistancePointSetFilter()
-        hp.SetInputData(0, self)
-        hp.SetInputData(1, points)
+        hp.SetInputData(0, self.dataset)
+        hp.SetInputData(1, points.dataset)
         hp.SetTargetDistanceMethodToPointToCell()
         hp.Update()
         return hp.GetHausdorffDistance()
@@ -1452,11 +1452,22 @@ class Points(PointsVisual, PointAlgorithms):
     def chamfer_distance(self, pcloud):
         """
         Compute the Chamfer distance to the input point set.
-        Returns a single `float`.
+
+        Example:
+            ```python
+            from vedo import *
+            cloud1 = np.random.randn(1000, 3)
+            cloud2 = np.random.randn(1000, 3) + [1, 2, 3]
+            c1 = Points(cloud1, r=5, c="red")
+            c2 = Points(cloud2, r=5, c="green")
+            print(c1.chamfer_distance(c2))
+            show(c1, c2, axes=1, viewup="z").close()
+            ```
         """
+        # Definition of Chamfer distance may vary, here we use the average
         if not pcloud.point_locator:
             pcloud.point_locator = vtk.vtkPointLocator()
-            pcloud.point_locator.SetDataSet(pcloud)
+            pcloud.point_locator.SetDataSet(pcloud.dataset)
             pcloud.point_locator.BuildLocator()
         if not self.point_locator:
             self.point_locator = vtk.vtkPointLocator()
@@ -2933,14 +2944,14 @@ class Points(PointsVisual, PointAlgorithms):
         src = vtk.vtkProgrammableSource()
         opts = self.vertices
 
-        def _readPoints():
+        def _read_points():
             output = src.GetPolyDataOutput()
             points = vtk.vtkPoints()
             for p in opts:
                 points.InsertNextPoint(p)
             output.SetPoints(points)
 
-        src.SetExecuteMethod(_readPoints)
+        src.SetExecuteMethod(_read_points)
 
         dens = vtk.vtkDensifyPointCloudFilter()
         dens.SetInputConnection(src.GetOutputPort())
@@ -2963,7 +2974,7 @@ class Points(PointsVisual, PointAlgorithms):
         pts = utils.vtk2numpy(dens.GetOutput().GetPoints().GetData())
         cld = Points(pts, c=None).point_size(self.property.GetPointSize())
         cld.interpolate_data_from(self, n=nclosest, radius=radius)
-        cld.name = "densifiedCloud"
+        cld.name = "DensifiedCloud"
 
         cld.pipeline = utils.OperationNode(
             "densify",
@@ -3357,7 +3368,7 @@ class Points(PointsVisual, PointAlgorithms):
 
         Example:
             ```python
-            from vedo import Ellipsoid, show, visible_points
+            from vedo import Ellipsoid, show
             s = Ellipsoid().rotate_y(30)
 
             #Camera options: pos, focal_point, viewup, distance,
@@ -3372,8 +3383,20 @@ class Points(PointsVisual, PointAlgorithms):
         """
         svp = vtk.vtkSelectVisiblePoints()
         svp.SetInputData(self.dataset)
-        svp.SetRenderer(vedo.plotter_instance.renderer)
 
+        ren = None
+        if vedo.plotter_instance:
+            if vedo.plotter_instance.renderer:
+                ren = vedo.plotter_instance.renderer
+                svp.SetRenderer(ren)
+        if not ren:
+            vedo.logger.warning(
+                "visible_points() can only be used after a rendering step"
+            )
+            return None
+
+        if len(area) == 2:
+            area = utils.flatten(area)
         if len(area) == 4:
             # specify a rectangular region
             svp.SetSelection(area[0], area[1], area[2], area[3])
@@ -3383,6 +3406,6 @@ class Points(PointsVisual, PointAlgorithms):
             svp.SelectInvisibleOn()
         svp.Update()
 
-        m = Points(svp.GetOutput()).point_size(5)
+        m = Points(svp.GetOutput())#.point_size(5)
         m.name = "VisiblePoints"
         return m
