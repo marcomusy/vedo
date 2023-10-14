@@ -220,8 +220,11 @@ def exe_run(args):
     matching = list(sorted(matching))
     nmat = len(matching)
     if nmat == 0:
-        printc(f":sad: No matching example found containing string: {args.run}", c="y")
-        # printc(f"(installation directory is {vedo.installdir})", c='y')
+        printc(f":sad: No matching example with name: {args.run}", c="y")
+        # Nothing found, try to search for a script content:
+        args.search = args.run
+        args.run = ""
+        exe_search(args)
         return
 
     if nmat > 1:

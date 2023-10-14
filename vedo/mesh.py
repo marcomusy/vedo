@@ -290,44 +290,9 @@ class Mesh(MeshVisual, Points):
     #     return conn  # cannot always make a numpy array of it!
 
     @property
-    def lines(self):
-        """
-        Get lines connectivity ids as a numpy array.
-        Default format is `[[id0,id1], [id3,id4], ...]`
-
-        Arguments:
-            flat : (bool)
-                return a 1D numpy array as e.g. [2, 10,20, 3, 10,11,12, 2, 70,80, ...]
-        """
-        # Get cell connettivity ids as a 1D array. The vtk format is:
-        #    [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
-        arr1d = vtk2numpy(self.dataset.GetLines().GetData())
-        i = 0
-        conn = []
-        n = len(arr1d)
-        for _ in range(n):
-            cell = [arr1d[i + k + 1] for k in range(arr1d[i])]
-            conn.append(cell)
-            i += arr1d[i] + 1
-            if i >= n:
-                break
-
-        return conn  # cannot always make a numpy array of it!
-
-    @property
-    def lines_as_flat_array(self):
-        """
-        Get lines connectivity ids as a numpy array.
-        Format is e.g. [2,  10,20,  3, 10,11,12,  2, 70,80, ...]
-        """
-        return vtk2numpy(self.dataset.GetLines().GetData())
-
-    @property
     def edges(self):
         """
         Return an array containing the edges connectivity.
-
-        If ids is set, return only the edges of the given cells.
         """
         extractEdges = vtk.vtkExtractEdges()
         extractEdges.SetInputData(self.dataset)
@@ -348,6 +313,15 @@ class Mesh(MeshVisual, Points):
             if i >= n:
                 break
         return conn  # cannot always make a numpy array of it!
+
+    @property
+    def cell_normals(self):
+        """
+        Retrieve face normals as a numpy array.
+        Check out also `compute_normals(cells=True)` and `compute_normals_with_pca()`.
+        """
+        vtknormals = self.dataset.GetCellData().GetNormals()
+        return utils.vtk2numpy(vtknormals)
 
     def texture(
         self,
@@ -580,9 +554,8 @@ class Mesh(MeshVisual, Points):
             If feature_angle is set to a float the Mesh can be modified, and it
             can have a different nr. of vertices from the original.
         """
-        poly = self.dataset
         pdnorm = vtk.vtkPolyDataNormals()
-        pdnorm.SetInputData(poly)
+        pdnorm.SetInputData(self.dataset)
         pdnorm.SetComputePointNormals(points)
         pdnorm.SetComputeCellNormals(cells)
         pdnorm.SetConsistency(consistency)
@@ -592,7 +565,7 @@ class Mesh(MeshVisual, Points):
             pdnorm.SetFeatureAngle(feature_angle)
         else:
             pdnorm.SetSplitting(False)
-        # print(pdnorm.GetNonManifoldTraversal())
+        # print("GetNonManifoldTraversal", pdnorm.GetNonManifoldTraversal())
         pdnorm.Update()
         self.dataset.GetPointData().SetNormals(pdnorm.GetOutput().GetPointData().GetNormals())
         self.dataset.GetCellData().SetNormals(pdnorm.GetOutput().GetCellData().GetNormals())
@@ -643,7 +616,7 @@ class Mesh(MeshVisual, Points):
 
     def area(self):
         """
-        Compute the surface area of mesh.
+        Compute the surface area of the mesh.
         The mesh must be triangular for this to work.
         See also `mesh.triangulate()`.
         """
@@ -769,12 +742,11 @@ class Mesh(MeshVisual, Points):
 
             ![](https://vedo.embl.es/images/basic/shrink.png)
         """
+        # Overriding base class method core.shrink()
         shrink = vtk.vtkShrinkPolyData()
         shrink.SetInputData(self.dataset)
         shrink.SetShrinkFactor(fraction)
         shrink.Update()
-        self.point_locator = None
-        self.cell_locator = None
         self._update(shrink.GetOutput())
         self.pipeline = OperationNode("shrink", parents=[self])
         return self
@@ -847,13 +819,13 @@ class Mesh(MeshVisual, Points):
         stripper.JoinContiguousSegmentsOn()
         stripper.Update()
 
-        boundaryPoly = vtk.vtkPolyData()
-        boundaryPoly.SetPoints(stripper.GetOutput().GetPoints())
-        boundaryPoly.SetPolys(stripper.GetOutput().GetLines())
+        boundary_poly = vtk.vtkPolyData()
+        boundary_poly.SetPoints(stripper.GetOutput().GetPoints())
+        boundary_poly.SetPolys(stripper.GetOutput().GetLines())
 
         rev = vtk.vtkReverseSense()
         rev.ReverseCellsOn()
-        rev.SetInputData(boundaryPoly)
+        rev.SetInputData(boundary_poly)
         rev.Update()
 
         tf = vtk.vtkTriangleFilter()
@@ -1083,20 +1055,7 @@ class Mesh(MeshVisual, Points):
         )
         return self
 
-    def compute_cell_area(self, name="Area"):
-        """Add to this mesh a cell data array containing the areas of the polygonal faces"""
-        csf = vtk.vtkCellSizeFilter()
-        csf.SetInputData(self.dataset)
-        csf.SetComputeArea(True)
-        csf.SetComputeVolume(False)
-        csf.SetComputeLength(False)
-        csf.SetComputeVertexCount(False)
-        csf.SetAreaArrayName(name)
-        csf.Update()
-        self.dataset.GetCellData().AddArray(csf.GetOutput().GetCellData().GetArray(name))
-        return self
-
-    def compute_cell_vertex_count(self, name="VertexCount"):
+    def compute_cell_vertex_count(self):
         """Add to this mesh a cell data array containing the nr of vertices
         that a polygonal face has."""
         csf = vtk.vtkCellSizeFilter()
@@ -1105,9 +1064,11 @@ class Mesh(MeshVisual, Points):
         csf.SetComputeVolume(False)
         csf.SetComputeLength(False)
         csf.SetComputeVertexCount(True)
-        csf.SetVertexCountArrayName(name)
+        csf.SetVertexCountArrayName("VertexCount")
         csf.Update()
-        self.dataset.GetCellData().AddArray(csf.GetOutput().GetCellData().GetArray(name))
+        self.dataset.GetCellData().AddArray(
+            csf.GetOutput().GetCellData().GetArray("VertexCount")
+        )
         return self
 
     def compute_quality(self, metric=6):
@@ -1176,7 +1137,7 @@ class Mesh(MeshVisual, Points):
 
     def check_validity(self, tol=0):
         """
-        Return an array of possible problematic faces following this convention:
+        Return a numpy array of possible problematic faces following this convention:
         - Valid               =  0
         - WrongNumberOfPoints =  1
         - IntersectingEdges   =  2
@@ -1268,7 +1229,7 @@ class Mesh(MeshVisual, Points):
         triangles = vtk.vtkTriangleFilter()
         triangles.SetInputData(self.dataset)
         triangles.Update()
-        originalMesh = triangles.GetOutput()
+        tri_mesh = triangles.GetOutput()
         if method == 0:
             sdf = vtk.vtkLoopSubdivisionFilter()
         elif method == 1:
@@ -1289,7 +1250,7 @@ class Mesh(MeshVisual, Points):
         if method != 2:
             sdf.SetNumberOfSubdivisions(n)
 
-        sdf.SetInputData(originalMesh)
+        sdf.SetInputData(tri_mesh)
         sdf.Update()
 
         self._update(sdf.GetOutput())
@@ -1426,9 +1387,8 @@ class Mesh(MeshVisual, Points):
 
             ![](https://vedo.embl.es/images/advanced/mesh_smoother2.png)
         """
-        poly = self.dataset
         cl = vtk.vtkCleanPolyData()
-        cl.SetInputData(poly)
+        cl.SetInputData(self.dataset)
         cl.Update()
         smf = vtk.vtkWindowedSincPolyDataFilter()
         smf.SetInputData(cl.GetOutput())
@@ -1481,7 +1441,7 @@ class Mesh(MeshVisual, Points):
 
     def is_inside(self, point, tol=1e-05):
         """Return True if point is inside a polydata closed surface."""
-        poly = self
+        poly = self.dataset
         points = vtk.vtkPoints()
         points.InsertNextPoint(point)
         poly = vtk.vtkPolyData()
@@ -1588,7 +1548,10 @@ class Mesh(MeshVisual, Points):
         fe.SetBoundaryEdges(boundary_edges)
         fe.SetNonManifoldEdges(non_manifold_edges)
         fe.SetManifoldEdges(manifold_edges)
-        # fe.SetPassLines(True) # vtk9.2
+        try:
+            fe.SetPassLines(True) # vtk9.2
+        except AttributeError:
+            pass
         fe.ColoringOff()
         fe.SetFeatureEdges(False)
         if feature_angle is not None:
@@ -1714,6 +1677,35 @@ class Mesh(MeshVisual, Points):
                 idxs.append(idj)
 
         return idxs
+
+    def extract_cells(self, ids):
+        """
+        Extract a subset of cells from a mesh and return it as a new mesh.
+        """
+        selectCells = vtk.vtkSelectionNode()
+        selectCells.SetFieldType(vtk.vtkSelectionNode.CELL)
+        selectCells.SetContentType(vtk.vtkSelectionNode.INDICES)
+        idarr = vtk.vtkIdTypeArray()
+        idarr.SetNumberOfComponents(1)
+        idarr.SetNumberOfValues(len(ids))
+        for i, v in enumerate(ids):
+            idarr.SetValue(i, v)
+        selectCells.SetSelectionList(idarr)
+
+        selection = vtk.vtkSelection()
+        selection.AddNode(selectCells)
+
+        extractSelection = vtk.vtkExtractSelection()
+        extractSelection.SetInputData(0, self.dataset)
+        extractSelection.SetInputData(1, selection)
+        extractSelection.Update()
+
+        gf = vtk.vtkGeometryFilter()
+        gf.SetInputData(extractSelection.GetOutput())
+        gf.Update()
+        msh = Mesh(gf.GetOutput())
+        msh.copy_properties_from(self)
+        return msh
 
     def connected_cells(self, index, return_ids=False):
         """Find all cellls connected to an input vertex specified by its index."""
@@ -1938,7 +1930,7 @@ class Mesh(MeshVisual, Points):
         """
         if is_sequence(zshift):
             # ms = [] # todo
-            # poly0 = self.clone()
+            # poly0 = self.clone().dataset
             # for i in range(len(zshift)-1):
             #     rf = vtk.vtkRotationalExtrusionFilter()
             #     rf.SetInputData(poly0)
@@ -1949,6 +1941,7 @@ class Mesh(MeshVisual, Points):
             #     rf.SetDeltaRadius(dR)
             #     rf.Update()
             #     poly1 = rf.GetOutput()
+            raise NotImplementedError("todo")
             return self
 
         rf = vtk.vtkRotationalExtrusionFilter()
@@ -1961,14 +1954,9 @@ class Mesh(MeshVisual, Points):
         rf.SetDeltaRadius(dr)
         rf.Update()
 
-        m = Mesh(rf.GetOutput(), c=self.c(), alpha=self.alpha())
-        prop = vtk.vtkProperty()
-        prop.DeepCopy(self.property)
-        m.actor.SetProperty(prop)
-        m.property = prop
-
+        m = Mesh(rf.GetOutput())
+        m.copy_properties_from(self)
         m.compute_normals(cells=False).flat().lighting("default")
-
         m.pipeline = OperationNode(
             "extrude", parents=[self], comment=f"#pts {m.dataset.GetNumberOfPoints()}"
         )
@@ -2020,19 +2008,19 @@ class Mesh(MeshVisual, Points):
             self._update(out)
             return self
 
-        a = Mesh(out)
+        msh = Mesh(out)
         if must_share_edge:
-            arr = a.celldata["RegionId"]
+            arr = msh.celldata["RegionId"]
             on = "cells"
         else:
-            arr = a.pointdata["RegionId"]
+            arr = msh.pointdata["RegionId"]
             on = "points"
 
         alist = []
         for t in range(max(arr) + 1):
             if t == maxdepth:
                 break
-            suba = a.clone().threshold("RegionId", t, t, on=on)
+            suba = msh.clone().threshold("RegionId", t, t, on=on)
             if sort_by_area:
                 area = suba.area()
             else:
@@ -2068,14 +2056,9 @@ class Mesh(MeshVisual, Points):
         conn.ScalarConnectivityOff()
         conn.SetInputData(self.dataset)
         conn.Update()
-        m = Mesh(conn.GetOutput())
-        pr = vtk.vtkProperty()
-        pr.DeepCopy(self.property)
-        m.actor.SetProperty(pr)
-        m.property = pr
-        vis = self.mapper.GetScalarVisibility()
-        m.mapper.SetScalarVisibility(vis)
 
+        m = Mesh(conn.GetOutput())
+        m.copy_properties_from(self)
         m.pipeline = OperationNode(
             "extract_largest_region",
             parents=[self],
@@ -2142,11 +2125,9 @@ class Mesh(MeshVisual, Points):
         """
         bf = vtk.vtkIntersectionPolyDataFilter()
         bf.SetGlobalWarningDisplay(0)
-        poly1 = self.dataset
-        poly2 = mesh2.dataset
         bf.SetTolerance(tol)
-        bf.SetInputData(0, poly1)
-        bf.SetInputData(1, poly2)
+        bf.SetInputData(0, self.dataset)
+        bf.SetInputData(1, mesh2.dataset)
         bf.Update()
         msh = Mesh(bf.GetOutput(), c="k", alpha=1).lighting("off")
         msh.property.SetLineWidth(3)
@@ -2229,52 +2210,15 @@ class Mesh(MeshVisual, Points):
         cutter.ComputeNormalsOff()
         cutter.Update()
 
-        msh = Mesh(cutter.GetOutput(), "k", 1).lighting("off")
-        msh.GetProperty().SetLineWidth(3)
+        msh = Mesh(cutter.GetOutput())
+        msh.c('k').lw(3).lighting("off")
         msh.name = "PlaneIntersection"
-
         msh.pipeline = OperationNode(
             "intersect_with_plan",
             parents=[self],
             comment=f"#pts {msh.dataset.GetNumberOfPoints()}",
         )
         return msh
-
-    # def intersect_with_multiplanes(self, origins, normals): ## WRONG
-    #     """
-    #     Generate a set of lines from cutting a mesh in n intervals
-    #     between a minimum and maximum distance from a plane of given origin and normal.
-
-    #     Arguments:
-    #         origin : (list)
-    #             the point of the cutting plane
-    #         normal : (list)
-    #             normal vector to the cutting plane
-    #         n : (int)
-    #             number of cuts
-    #     """
-    #     poly = self.dataset
-
-    #     planes = vtk.vtkPlanes()
-    #     planes.SetOrigin(numpy2vtk(origins))
-    #     planes.SetNormals(numpy2vtk(normals))
-
-    #     cutter = vtk.vtkCutter()
-    #     cutter.SetCutFunction(planes)
-    #     cutter.SetInputData(poly)
-    #     cutter.SetValue(0, 0.0)
-    #     cutter.Update()
-
-    #     msh = Mesh(cutter.GetOutput())
-    #     msh.property.LightingOff()
-    #     msh.property.SetColor(get_color("k2"))
-
-    #     msh.pipeline = OperationNode(
-    #         "intersect_with_multiplanes",
-    #         parents=[self],
-    #         comment=f"#pts {msh.dataset.GetNumberOfPoints()}",
-    #     )
-    #     return msh
 
     def collide_with(self, mesh2, tol=0, return_bool=False):
         """
@@ -2290,7 +2234,7 @@ class Mesh(MeshVisual, Points):
         # ipdf.SetBoxTolerance(tol)
         ipdf.SetCellTolerance(tol)
         ipdf.SetInputData(0, self.dataset)
-        ipdf.SetInputData(1, mesh2)
+        ipdf.SetInputData(1, mesh2.dataset)
         ipdf.SetTransform(0, transform0)
         ipdf.SetTransform(1, transform1)
         if return_bool:
@@ -2324,6 +2268,9 @@ class Mesh(MeshVisual, Points):
         Dijkstra algorithm to compute the geodesic line.
         Takes as input a polygonal mesh and performs a single source shortest path calculation.
 
+        The output mesh contains the array "VertexIDs" that contains the ordered list of vertices
+        traversed to get from the start vertex to the end vertex.
+        
         Arguments:
             start : (int, list)
                 start vertex index or close point `[x,y,z]`
@@ -2331,7 +2278,7 @@ class Mesh(MeshVisual, Points):
                 end vertex index or close point `[x,y,z]`
 
         Examples:
-            - [geodesic.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/geodesic.py)
+            - [geodesic_curve.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/geodesic_curve.py)
 
                 ![](https://vedo.embl.es/images/advanced/geodesic.png)
         """
@@ -2369,25 +2316,20 @@ class Mesh(MeshVisual, Points):
         poly.GetPointData().AddArray(vdata2)
         poly.GetPointData().Modified()
 
-        dmesh = Mesh(poly, c="k")
-        prop = vtk.vtkProperty()
-        prop.DeepCopy(self.property)
-        prop.SetLineWidth(3)
-        prop.SetOpacity(1)
-        dmesh.actor.SetProperty(prop)
-        dmesh.property = prop
+        dmesh = Mesh(poly).copy_properties_from(self)
+        dmesh.lw(3).alpha(1).lighting("off")
         dmesh.name = "GeodesicLine"
 
         dmesh.pipeline = OperationNode(
             "GeodesicLine",
             parents=[self],
-            comment=f"#pts {dmesh.dataset.GetNumberOfPoints()}",
+            comment=f"#steps {poly.GetNumberOfPoints()}",
         )
         return dmesh
 
     #####################################################################
-    ### Stuff returning a Volume
-    ###
+    ### Stuff returning a Volume object
+    #####################################################################
     def binarize(
         self,
         spacing=(1, 1, 1),
@@ -2395,13 +2337,13 @@ class Mesh(MeshVisual, Points):
         direction_matrix=None,
         image_size=None,
         origin=None,
-        fg_val=255,
-        bg_val=0,
+        fg_value=255,
+        bg_value=0,
     ):
         """
-        Convert a `Mesh` into a `Volume`
-        where the foreground (exterior) voxels value is fg_val (255 by default)
-        and the background (interior) voxels value is bg_val (0 by default).
+        Convert a `Mesh` into a `Volume` where
+        the foreground (exterior) voxels value is `fg_value` (255 by default)
+        and the background (interior) voxels value is `bg_value` (0 by default).
 
         Examples:
             - [mesh2volume.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/mesh2volume.py)
@@ -2436,7 +2378,7 @@ class Mesh(MeshVisual, Points):
         whiteImage.AllocateScalars(vtk.VTK_UNSIGNED_CHAR, 1)
 
         # fill the image with foreground voxels:
-        inval = bg_val if invert else fg_val
+        inval = bg_value if invert else fg_value
         whiteImage.GetPointData().GetScalars().Fill(inval)
 
         # polygonal data --> image stencil:
@@ -2448,7 +2390,7 @@ class Mesh(MeshVisual, Points):
         pol2stenc.Update()
 
         # cut the corresponding white image and set the background:
-        outval = fg_val if invert else bg_val
+        outval = fg_value if invert else bg_value
 
         imgstenc = vtk.vtkImageStencil()
         imgstenc.SetInputData(whiteImage)
@@ -2468,8 +2410,8 @@ class Mesh(MeshVisual, Points):
 
     def signed_distance(self, bounds=None, dims=(20, 20, 20), invert=False, maxradius=None):
         """
-        Compute the `Volume` object whose voxels contains the signed distance from
-        the mesh.
+        Compute the `Volume` object whose voxels contains 
+        the signed distance from the mesh.
 
         Arguments:
             bounds : (list)

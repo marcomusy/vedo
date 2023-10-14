@@ -2821,7 +2821,7 @@ class Earth(Mesh):
         Build a textured mesh representing the Earth.
 
         Example:
-            - [geodesic.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/geodesic.py)
+            - [geodesic_curve.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/geodesic_curve.py)
 
                 ![](https://vedo.embl.es/images/advanced/geodesic.png)
         """

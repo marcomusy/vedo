@@ -42,6 +42,16 @@ class CommonVisual:
         Returns the `Plotter` class instance.
         """
         return vedo.plotter.show(self, **options)
+    
+    @property
+    def LUT(self):
+        """Return the lookup table of the object."""
+        return self.mapper.GetLookupTable()
+    
+    @LUT.setter
+    def LUT(self, lut):
+        """Set the lookup table of the object."""
+        self.mapper.SetLookupTable(lut)
 
     def thumbnail(self, zoom=1.25, size=(200, 200), bg="white", azimuth=0, elevation=0, axes=False):
         """Build a thumbnail of the object and return it as an array."""
@@ -410,6 +420,101 @@ class CommonVisual:
 ###################################################
 class PointsVisual(CommonVisual):
     """Class to manage the visual aspects of a ``Points`` object."""
+
+    def clone2d(
+        self,
+        pos=(0, 0),
+        coordsys=4,
+        scale=None,
+        c=None,
+        alpha=None,
+        ps=2,
+        lw=1,
+        sendback=False,
+        layer=0,
+    ):
+        """
+        Copy a 3D Mesh into a static 2D image. Returns a `vtkActor2D`.
+
+        Arguments:
+            coordsys : (int)
+                the coordinate system, options are
+                - 0 = Displays
+                - 1 = Normalized Display
+                - 2 = Viewport (origin is the bottom-left corner of the window)
+                - 3 = Normalized Viewport
+                - 4 = View (origin is the center of the window)
+                - 5 = World (anchor the 2d image to mesh)
+
+            ps : (int)
+                point size in pixel units
+
+            lw : (int)
+                line width in pixel units
+
+            sendback : (bool)
+                put it behind any other 3D object
+
+        Examples:
+            - [clone2d.py](https://github.com/marcomusy/vedo/tree/master/examples/other/clone2d.py)
+
+                ![](https://vedo.embl.es/images/other/clone2d.png)
+        """
+        if scale is None:
+            msiz = self.diagonal_size()
+            if vedo.plotter_instance and vedo.plotter_instance.window:
+                sz = vedo.plotter_instance.window.GetSize()
+                dsiz = utils.mag(sz)
+                scale = dsiz / msiz / 10
+            else:
+                scale = 350 / msiz
+
+        cmsh = self.clone()
+        poly = cmsh.pos(0, 0, 0).scale(scale).dataset
+
+        mapper3d = self.mapper
+        cm = mapper3d.GetColorMode()
+        lut = mapper3d.GetLookupTable()
+        sv = mapper3d.GetScalarVisibility()
+        use_lut = mapper3d.GetUseLookupTableScalarRange()
+        vrange = mapper3d.GetScalarRange()
+        sm = mapper3d.GetScalarMode()
+
+        mapper2d = vtk.vtkPolyDataMapper2D()
+        mapper2d.ShallowCopy(mapper3d)
+        mapper2d.SetInputData(poly)
+        mapper2d.SetColorMode(cm)
+        mapper2d.SetLookupTable(lut)
+        mapper2d.SetScalarVisibility(sv)
+        mapper2d.SetUseLookupTableScalarRange(use_lut)
+        mapper2d.SetScalarRange(vrange)
+        mapper2d.SetScalarMode(sm)
+
+        act2d = vtk.vtkActor2D()
+        act2d.SetMapper(mapper2d)
+        act2d.SetLayerNumber(layer)
+        csys = act2d.GetPositionCoordinate()
+        csys.SetCoordinateSystem(coordsys)
+        act2d.SetPosition(pos)
+        if c is not None:
+            c = colors.get_color(c)
+            act2d.GetProperty().SetColor(c)
+            mapper2d.SetScalarVisibility(False)
+        else:
+            act2d.GetProperty().SetColor(cmsh.color())
+        if alpha is not None:
+            act2d.GetProperty().SetOpacity(alpha)
+        else:
+            act2d.GetProperty().SetOpacity(cmsh.alpha())
+        act2d.GetProperty().SetPointSize(ps)
+        act2d.GetProperty().SetLineWidth(lw)
+        act2d.GetProperty().SetDisplayLocationToForeground()
+        if sendback:
+            act2d.GetProperty().SetDisplayLocationToBackground()
+
+        # print(csys.GetCoordinateSystemAsString())
+        # print(act2d.GetHeight(), act2d.GetWidth(), act2d.GetLayerNumber())
+        return act2d
 
     ##################################################
     def copy_properties_from(self, source, deep=True, actor_related=True):
@@ -2188,6 +2293,19 @@ class ActorTransforms:
 
 ########################################################################################
 class PictureVisual(ActorTransforms, CommonVisual):
+
+    def memory_size(self):
+        """
+        Return the size in bytes of the object in memory.
+        """
+        return self.dataset.GetActualMemorySize()
+
+    def scalar_range(self):
+        """
+        Return the scalar range of the image.
+        """
+        return self.dataset.GetScalarRange()
+
     def alpha(self, a=None):
         """Set/get picture's transparency in the rendering scene."""
         if a is not None:
@@ -2242,12 +2360,6 @@ class PictureVisual(ActorTransforms, CommonVisual):
         """Get the length of the diagonal of mesh bounding box."""
         b = self.bounds()
         return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
-
-    def memory_size(self):
-        """
-        Return the size in bytes of the object in memory.
-        """
-        return self.GetActualMemorySize()
 
 
 ########################################################################################

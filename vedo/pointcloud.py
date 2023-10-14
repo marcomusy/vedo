@@ -763,126 +763,6 @@ class Points(PointsVisual, PointAlgorithms):
         cloned.pipeline = utils.OperationNode("clone", parents=[self], shape="diamond", c="#edede9")
         return cloned
 
-    def clone2d(
-        self,
-        pos=(0, 0),
-        coordsys=4,
-        scale=None,
-        c=None,
-        alpha=None,
-        ps=2,
-        lw=1,
-        sendback=False,
-        layer=0,
-    ):
-        """
-        Copy a 3D Mesh into a static 2D image. Returns a `vtkActor2D`.
-
-        Arguments:
-            coordsys : (int)
-                the coordinate system, options are
-                - 0 = Displays
-                - 1 = Normalized Display
-                - 2 = Viewport (origin is the bottom-left corner of the window)
-                - 3 = Normalized Viewport
-                - 4 = View (origin is the center of the window)
-                - 5 = World (anchor the 2d image to mesh)
-
-            ps : (int)
-                point size in pixel units
-
-            lw : (int)
-                line width in pixel units
-
-            sendback : (bool)
-                put it behind any other 3D object
-
-        Examples:
-            - [clone2d.py](https://github.com/marcomusy/vedo/tree/master/examples/other/clone2d.py)
-
-                ![](https://vedo.embl.es/images/other/clone2d.png)
-        """
-        if scale is None:
-            msiz = self.diagonal_size()
-            if vedo.plotter_instance and vedo.plotter_instance.window:
-                sz = vedo.plotter_instance.window.GetSize()
-                dsiz = utils.mag(sz)
-                scale = dsiz / msiz / 10
-            else:
-                scale = 350 / msiz
-
-        cmsh = self.clone()
-        poly = cmsh.pos(0, 0, 0).scale(scale).dataset
-
-        mapper3d = self.mapper
-        cm = mapper3d.GetColorMode()
-        lut = mapper3d.GetLookupTable()
-        sv = mapper3d.GetScalarVisibility()
-        use_lut = mapper3d.GetUseLookupTableScalarRange()
-        vrange = mapper3d.GetScalarRange()
-        sm = mapper3d.GetScalarMode()
-
-        mapper2d = vtk.vtkPolyDataMapper2D()
-        mapper2d.ShallowCopy(mapper3d)
-        mapper2d.SetInputData(poly)
-        mapper2d.SetColorMode(cm)
-        mapper2d.SetLookupTable(lut)
-        mapper2d.SetScalarVisibility(sv)
-        mapper2d.SetUseLookupTableScalarRange(use_lut)
-        mapper2d.SetScalarRange(vrange)
-        mapper2d.SetScalarMode(sm)
-
-        act2d = vtk.vtkActor2D()
-        act2d.SetMapper(mapper2d)
-        act2d.SetLayerNumber(layer)
-        csys = act2d.GetPositionCoordinate()
-        csys.SetCoordinateSystem(coordsys)
-        act2d.SetPosition(pos)
-        if c is not None:
-            c = colors.get_color(c)
-            act2d.GetProperty().SetColor(c)
-            mapper2d.SetScalarVisibility(False)
-        else:
-            act2d.GetProperty().SetColor(cmsh.color())
-        if alpha is not None:
-            act2d.GetProperty().SetOpacity(alpha)
-        else:
-            act2d.GetProperty().SetOpacity(cmsh.alpha())
-        act2d.GetProperty().SetPointSize(ps)
-        act2d.GetProperty().SetLineWidth(lw)
-        act2d.GetProperty().SetDisplayLocationToForeground()
-        if sendback:
-            act2d.GetProperty().SetDisplayLocationToBackground()
-
-        # print(csys.GetCoordinateSystemAsString())
-        # print(act2d.GetHeight(), act2d.GetWidth(), act2d.GetLayerNumber())
-        return act2d
-
-    def delete_cells_by_point_index(self, indices):
-        """
-        Delete a list of vertices identified by any of their vertex index.
-
-        See also `delete_cells()`.
-
-        Examples:
-            - [elete_mesh_pts.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/elete_mesh_pts.py)
-
-                ![](https://vedo.embl.es/images/basic/deleteMeshPoints.png)
-        """
-        cell_ids = vtk.vtkIdList()
-        self.dataset.BuildLinks()
-        n = 0
-        for i in np.unique(indices):
-            self.dataset.GetPointCells(i, cell_ids)
-            for j in range(cell_ids.GetNumberOfIds()):
-                self.dataset.DeleteCell(cell_ids.GetId(j))  # flag cell
-                n += 1
-
-        self.dataset.RemoveDeletedCells()
-        self.mapper.Modified()
-        self.pipeline = utils.OperationNode(f"delete {n} cells\nby point index", parents=[self])
-        return self
-
     def compute_normals_with_pca(self, n=20, orientation_point=None, invert=False):
         """
         Generate point normals using PCA (principal component analysis).
@@ -925,7 +805,9 @@ class Points(PointsVisual, PointAlgorithms):
         """
         Compute acoplanarity which is a measure of how much a local region of the mesh
         differs from a plane.
+        
         The information is stored in a `pointdata` or `celldata` array with name 'Acoplanarity'.
+        
         Either `n` (number of neighbour points) or `radius` (radius of local search) can be specified.
         If a radius value is given and not enough points fall inside it, then a -1 is stored.
 
@@ -1166,26 +1048,6 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("quantize", parents=[self])
         return self
 
-    def average_size(self):
-        """
-        Calculate the average size of a mesh.
-        This is the mean of the vertex distances from the center of mass.
-        """
-        coords = self.vertices
-        cm = np.mean(coords, axis=0)
-        if coords.shape[0] == 0:
-            return 0.0
-        cc = coords - cm
-        return np.mean(np.linalg.norm(cc, axis=1))
-
-    def center_of_mass(self):
-        """Get the center of mass of mesh."""
-        cmf = vtk.vtkCenterOfMass()
-        cmf.SetInputData(self.dataset)
-        cmf.Update()
-        c = cmf.GetCenter()
-        return np.array(c)
-
     @property
     def vertex_normals(self):
         """
@@ -1193,15 +1055,6 @@ class Points(PointsVisual, PointAlgorithms):
         Check out also `compute_normals()` and `compute_normals_with_pca()`.
         """
         vtknormals = self.dataset.GetPointData().GetNormals()
-        return utils.vtk2numpy(vtknormals)
-
-    @property
-    def cell_normals(self):
-        """
-        Retrieve vertex normals as a numpy array.
-        Check out also `compute_normals(cells=True)` and `compute_normals_with_pca()`.
-        """
-        vtknormals = self.dataset.GetCellData().GetNormals()
         return utils.vtk2numpy(vtknormals)
 
     def align_to(self, target, iters=100, rigid=False, invert=False, use_centroids=False):
@@ -1299,7 +1152,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.apply_transform(LT)
         return self
 
-    def transform_with_landmarks(
+    def align_with_landmarks(
         self,
         source_landmarks,
         target_landmarks,
@@ -1432,112 +1285,8 @@ class Points(PointsVisual, PointAlgorithms):
         rs.ReverseCellsOff()
         rs.ReverseNormalsOn()
         rs.Update()
-        self.dataset.DeepCopy(rs.GetOutput())
+        self._update(rs.GetOutput())
         self.pipeline = utils.OperationNode("flip_normals", parents=[self])
-        return self
-
-    def interpolate_data_from(
-        self,
-        source,
-        radius=None,
-        n=None,
-        kernel="shepard",
-        exclude=("Normals",),
-        on="points",
-        null_strategy=1,
-        null_value=0,
-    ):
-        """
-        Interpolate over source to port its data onto the current object using various kernels.
-
-        If n (number of closest points to use) is set then radius value is ignored.
-
-        Arguments:
-            kernel : (str)
-                available kernels are [shepard, gaussian, linear, voronoi]
-            null_strategy : (int)
-                specify a strategy to use when encountering a "null" point
-                during the interpolation process. Null points occur when the local neighborhood
-                (of nearby points to interpolate from) is empty.
-
-                - Case 0: an output array is created that marks points
-                  as being valid (=1) or null (invalid =0), and the null_value is set as well
-                - Case 1: the output data value(s) are set to the provided null_value
-                - Case 2: simply use the closest point to perform the interpolation.
-            null_value : (float)
-                see above.
-
-        Examples:
-            - [interpolate_scalar3.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/interpolate_scalar3.py)
-
-                ![](https://vedo.embl.es/images/advanced/interpolateMeshArray.png)
-        """
-        if radius is None and not n:
-            vedo.logger.error("in interpolate_data_from(): please set either radius or n")
-            raise RuntimeError
-
-        if on == "points":
-            points = source.dataset
-        elif on == "cells":
-            poly2 = vtk.vtkPolyData()
-            poly2.ShallowCopy(source.dataset)
-            c2p = vtk.vtkCellDataToPointData()
-            c2p.SetInputData(poly2)
-            c2p.Update()
-            points = c2p.GetOutput()
-        else:
-            vedo.logger.error("in interpolate_data_from(), on must be on points or cells")
-            raise RuntimeError()
-
-        locator = vtk.vtkPointLocator()
-        locator.SetDataSet(points)
-        locator.BuildLocator()
-
-        if kernel.lower() == "shepard":
-            kern = vtk.vtkShepardKernel()
-            kern.SetPowerParameter(2)
-        elif kernel.lower() == "gaussian":
-            kern = vtk.vtkGaussianKernel()
-            kern.SetSharpness(2)
-        elif kernel.lower() == "linear":
-            kern = vtk.vtkLinearKernel()
-        elif kernel.lower() == "voronoi":
-            kern = vtk.vtkProbabilisticVoronoiKernel()
-        else:
-            vedo.logger.error("available kernels are: [shepard, gaussian, linear, voronoi]")
-            raise RuntimeError()
-
-        if n:
-            kern.SetNumberOfPoints(n)
-            kern.SetKernelFootprintToNClosest()
-        else:
-            kern.SetRadius(radius)
-            kern.SetKernelFootprintToRadius()
-
-        interpolator = vtk.vtkPointInterpolator()
-        interpolator.SetInputData(self.dataset)
-        interpolator.SetSourceData(points)
-        interpolator.SetKernel(kern)
-        interpolator.SetLocator(locator)
-        interpolator.PassFieldArraysOff()
-        interpolator.SetNullPointsStrategy(null_strategy)
-        interpolator.SetNullValue(null_value)
-        interpolator.SetValidPointsMaskArrayName("ValidPointMask")
-        for ex in exclude:
-            interpolator.AddExcludedArray(ex)
-        interpolator.Update()
-
-        if on == "cells":
-            p2c = vtk.vtkPointDataToCellData()
-            p2c.SetInputData(interpolator.GetOutput())
-            p2c.Update()
-            cpoly = p2c.GetOutput()
-        else:
-            cpoly = interpolator.GetOutput()
-
-        self.dataset.DeepCopy(cpoly)
-
-        self.pipeline = utils.OperationNode("interpolate_data_from", parents=[self, source])
         return self
 
     def add_gaussian_noise(self, sigma=1.0):
@@ -2691,8 +2440,17 @@ class Points(PointsVisual, PointAlgorithms):
         )
         return self
 
-    def implicit_modeller(self, distance=0.05, res=(50, 50, 50), bounds=(), maxdist=None):
-        """Find the surface which sits at the specified distance from the input one."""
+    def generate_surface_halo(
+            self, 
+            distance=0.05,
+            res=(50, 50, 50),
+            bounds=(),
+            maxdist=None,
+    ):
+        """
+        Generate the surface halo which sits at 
+        the specified distance from the input one.
+        """
         if not bounds:
             bounds = self.bounds()
 
@@ -2702,16 +2460,17 @@ class Points(PointsVisual, PointAlgorithms):
         imp = vtk.vtkImplicitModeller()
         imp.SetInputData(self.dataset)
         imp.SetSampleDimensions(res)
-        imp.SetMaximumDistance(maxdist)
-        imp.SetModelBounds(bounds)
+        if maxdist:
+            imp.SetMaximumDistance(maxdist)
+        if len(bounds) == 6:
+            imp.SetModelBounds(bounds)
         contour = vtk.vtkContourFilter()
         contour.SetInputConnection(imp.GetOutputPort())
         contour.SetValue(0, distance)
         contour.Update()
-        poly = contour.GetOutput()
-        out = vedo.Mesh(poly, c="lb")
-
-        out.pipeline = utils.OperationNode("implicit_modeller", parents=[self])
+        out = vedo.Mesh(contour.GetOutput())
+        out.c("lightblue").alpha(0.25).lighting("off")
+        out.pipeline = utils.OperationNode("generate_surface_halo", parents=[self])
         return out
 
     def generate_mesh(
@@ -2727,6 +2486,8 @@ class Points(PointsVisual, PointAlgorithms):
         """
         Generate a polygonal Mesh from a closed contour line.
         If line is not closed it will be closed with a straight segment.
+
+        Check also `generate_delaunay2d()`.
 
         Arguments:
             line_resolution : (int)
@@ -2948,7 +2709,8 @@ class Points(PointsVisual, PointAlgorithms):
     def compute_clustering(self, radius):
         """
         Cluster points in space. The `radius` is the radius of local search.
-        An array named "ClusterId" is added to the vertex points.
+        
+        An array named "ClusterId" is added to `pointdata`.
 
         Examples:
             - [clustering.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/clustering.py)
@@ -3054,6 +2816,7 @@ class Points(PointsVisual, PointAlgorithms):
     def compute_camera_distance(self):
         """
         Calculate the distance from points to the camera.
+        
         A pointdata array is created with name 'DistanceToCamera'.
         """
         if vedo.plotter_instance.renderer:
@@ -3127,7 +2890,6 @@ class Points(PointsVisual, PointAlgorithms):
         vol.name = "PointDensity"
         vol.info["radius"] = radius
         vol.locator = pdf.GetLocator()
-
         vol.pipeline = utils.OperationNode(
             "density", parents=[self], comment=f"dims = {tuple(vol.dimensions())}"
         )
@@ -3392,6 +3154,8 @@ class Points(PointsVisual, PointAlgorithms):
         If `mode='fit'` then the filter computes a best fitting
         plane and projects the points onto it.
 
+        Check also `generate_mesh()`.
+
         Arguments:
             tol : (float)
                 specify a tolerance to control discarding of closely spaced points.
@@ -3455,8 +3219,9 @@ class Points(PointsVisual, PointAlgorithms):
         if mode == "fit":
             delny.SetProjectionPlaneMode(vtk.VTK_BEST_FITTING_PLANE)
         delny.Update()
-        msh = vedo.mesh.Mesh(delny.GetOutput()).clean().lighting("off")
 
+        msh = vedo.mesh.Mesh(delny.GetOutput())
+        msh.clean().lighting("off")
         msh.pipeline = utils.OperationNode(
             "delaunay2d",
             parents=[self],
@@ -3468,6 +3233,8 @@ class Points(PointsVisual, PointAlgorithms):
         """
         Generate the 2D Voronoi convex tiling of the input points (z is ignored).
         The points are assumed to lie in a plane. The output is a Mesh. Each output cell is a convex polygon.
+
+        A cell array named "VoronoiID" is added to the output Mesh.
 
         The 2D Voronoi tessellation is a tiling of space, where each Voronoi tile represents the region nearest
         to one of the input points. Voronoi tessellations are important in computational geometry
@@ -3527,7 +3294,7 @@ class Points(PointsVisual, PointAlgorithms):
                 if flag and len(r) > 0:
                     regs.append(r)
 
-            m = vedo.Mesh([vor.vertices, regs], c="orange5")
+            m = vedo.Mesh([vor.vertices, regs])
             m.celldata["VoronoiID"] = np.array(list(range(len(regs)))).astype(int)
             m.locator = None
 

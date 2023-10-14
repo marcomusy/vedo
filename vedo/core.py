@@ -26,6 +26,7 @@ class DataArrayHelper:
     # Helper class to manage data associated to either
     # points (or vertices) and cells (or faces).
     def __init__(self, obj, association):
+
         self.obj = obj
         self.association = association
 
@@ -265,8 +266,8 @@ class DataArrayHelper:
         """Representation"""
 
         def _get_str(pd, header):
+            out = f"\x1b[2m\x1b[1m\x1b[7m{header}"
             if pd.GetNumberOfArrays():
-                out = f"\x1b[2m\x1b[1m\x1b[7m{header}"
                 if self.obj.name:
                     out += f" in {self.obj.name}"
                 out += f" contains {pd.GetNumberOfArrays()} array(s)\x1b[0m"
@@ -285,15 +286,15 @@ class DataArrayHelper:
                     out += "\nlook up table".ljust(15) + f": {bool(varr.GetLookupTable())}"
                     out += "\nin-memory size".ljust(15) + f": {varr.GetActualMemorySize()} KB"
             else:
-                out += " has no associated data."
+                out += " is empty.\x1b[0m"
             return out
 
         if self.association == 0:
-            out = _get_str(self.dataset.GetPointData(), "Point Data")
+            out = _get_str(self.obj.dataset.GetPointData(), "Point Data")
         elif self.association == 1:
-            out = _get_str(self.dataset.GetCellData(), "Cell Data")
+            out = _get_str(self.obj.dataset.GetCellData(), "Cell Data")
         elif self.association == 2:
-            pd = self.dataset.GetFieldData()
+            pd = self.obj.dataset.GetFieldData()
             if pd.GetNumberOfArrays():
                 out = f"\x1b[2m\x1b[1m\x1b[7mMeta Data"
                 if self.actor.name:
@@ -383,7 +384,7 @@ class CommonAlgorithms:
         """
         Return the size in bytes of the object in memory.
         """
-        return self.GetActualMemorySize()
+        return self.dataset.GetActualMemorySize()
 
     def modified(self):
         """Use in conjunction with ``tonumpy()`` to update any modifications to the picture array"""
@@ -471,6 +472,26 @@ class CommonAlgorithms:
         b = self.bounds()
         return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
 
+    def average_size(self):
+        """
+        Calculate the average size of a mesh.
+        This is the mean of the vertex distances from the center of mass.
+        """
+        coords = self.vertices
+        cm = np.mean(coords, axis=0)
+        if coords.shape[0] == 0:
+            return 0.0
+        cc = coords - cm
+        return np.mean(np.linalg.norm(cc, axis=1))
+
+    def center_of_mass(self):
+        """Get the center of mass of mesh."""
+        cmf = vtk.vtkCenterOfMass()
+        cmf.SetInputData(self.dataset)
+        cmf.Update()
+        c = cmf.GetCenter()
+        return np.array(c)
+
     def copy_data_from(self, obj):
         """Copy all data (point and cell data) from this input object"""
         self.dataset.GetPointData().PassData(obj.dataset.GetPointData())
@@ -490,7 +511,7 @@ class CommonAlgorithms:
 
     def inputdata(self):
         """Obsolete, use `.dataset` instead."""
-        print("WARNING: inputdata() is obsolete, use .dataset instead.")
+        colors.printc("WARNING: 'inputdata()' is obsolete, use '.dataset' instead.", c="y")
         return self.dataset
 
     @property
@@ -561,6 +582,39 @@ class CommonAlgorithms:
         vcen.Update()
         return utils.vtk2numpy(vcen.GetOutput().GetPoints().GetData())
 
+    @property
+    def lines(self):
+        """
+        Get lines connectivity ids as a numpy array.
+        Default format is `[[id0,id1], [id3,id4], ...]`
+
+        Arguments:
+            flat : (bool)
+                return a 1D numpy array as e.g. [2, 10,20, 3, 10,11,12, 2, 70,80, ...]
+        """
+        # Get cell connettivity ids as a 1D array. The vtk format is:
+        #    [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
+        arr1d = vtk2numpy(self.dataset.GetLines().GetData())
+        i = 0
+        conn = []
+        n = len(arr1d)
+        for _ in range(n):
+            cell = [arr1d[i + k + 1] for k in range(arr1d[i])]
+            conn.append(cell)
+            i += arr1d[i] + 1
+            if i >= n:
+                break
+
+        return conn  # cannot always make a numpy array of it!
+
+    @property
+    def lines_as_flat_array(self):
+        """
+        Get lines connectivity ids as a numpy array.
+        Format is e.g. [2,  10,20,  3, 10,11,12,  2, 70,80, ...]
+        """
+        return vtk2numpy(self.dataset.GetLines().GetData())
+
     def mark_boundaries(self):
         """
         Mark cells and vertices of the mesh if they lie on a boundary.
@@ -573,10 +627,9 @@ class CommonAlgorithms:
         self.pipeline = utils.OperationNode("mark_boundaries", parents=[self])
         return self
 
-    def find_cells_in(self, xbounds=(), ybounds=(), zbounds=()):
+    def find_cells_in_bounds(self, xbounds=(), ybounds=(), zbounds=()):
         """
         Find cells that are within the specified bounds.
-        Setting a color will add a vtk array to colorize these cells.
         """
         if len(xbounds) == 6:
             bnds = xbounds
@@ -593,17 +646,75 @@ class CommonAlgorithms:
                 bnds[5] = zbounds[1]
 
         cellIds = vtk.vtkIdList()
-        self.cell_locator = vtk.vtkCellTreeLocator()
-        self.cell_locator.SetDataSet(self.dataset)
-        self.cell_locator.BuildLocator()
+        if not self.cell_locator:
+            self.cell_locator = vtk.vtkCellTreeLocator()
+            self.cell_locator.SetDataSet(self.dataset)
+            self.cell_locator.BuildLocator()
         self.cell_locator.FindCellsWithinBounds(bnds, cellIds)
-
         cids = []
         for i in range(cellIds.GetNumberOfIds()):
             cid = cellIds.GetId(i)
             cids.append(cid)
-
         return np.array(cids)
+
+    def find_cells_along_line(self, p0, p1, tol=0.001):
+        """
+        Find cells that are intersected by a line segment.
+        """
+        cellIds = vtk.vtkIdList()
+        if not self.cell_locator:
+            self.cell_locator = vtk.vtkCellTreeLocator()
+            self.cell_locator.SetDataSet(self.dataset)
+            self.cell_locator.BuildLocator()
+        self.cell_locator.FindCellsWithinBounds(bnds, cellIds)
+        self.cell_locator.FindCellsAlongLine(p0, p1, tol, cellsIds)   
+        cids = []
+        for i in range(cellIds.GetNumberOfIds()):
+            cid = cellIds.GetId(i)
+            cids.append(cid)
+        return np.array(cids)
+
+    def find_cells_along_plane(self, origin, normal, tol=0.001):
+        """
+        Find cells that are intersected by a plane.
+        """
+        cellIds = vtk.vtkIdList()
+        if not self.cell_locator:
+            self.cell_locator = vtk.vtkCellTreeLocator()
+            self.cell_locator.SetDataSet(self.dataset)
+            self.cell_locator.BuildLocator()
+        self.cell_locator.FindCellsWithinBounds(bnds, cellIds)
+        self.cell_locator.FindCellsAlongPlane(origin, normal, tol, cellsIds)   
+        cids = []
+        for i in range(cellIds.GetNumberOfIds()):
+            cid = cellIds.GetId(i)
+            cids.append(cid)
+        return np.array(cids)
+
+    def delete_cells_by_point_index(self, indices):
+        """
+        Delete a list of vertices identified by any of their vertex index.
+
+        See also `delete_cells()`.
+
+        Examples:
+            - [delete_mesh_pts.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/delete_mesh_pts.py)
+
+                ![](https://vedo.embl.es/images/basic/deleteMeshPoints.png)
+        """
+        cell_ids = vtk.vtkIdList()
+        self.dataset.BuildLinks()
+        n = 0
+        for i in np.unique(indices):
+            self.dataset.GetPointCells(i, cell_ids)
+            for j in range(cell_ids.GetNumberOfIds()):
+                self.dataset.DeleteCell(cell_ids.GetId(j))  # flag cell
+                n += 1
+
+        self.dataset.RemoveDeletedCells()
+        self.mapper.Modified()
+        self.pipeline = utils.OperationNode(f"delete {n} cells\nby point index", parents=[self])
+        return self
 
     def map_cells_to_points(self, arrays=(), move=False):
         """
@@ -750,7 +861,7 @@ class CommonAlgorithms:
         """
         rs = vtk.vtkResampleWithDataSet()
         rs.SetInputData(self.dataset)
-        rs.SetSourceData(source)
+        rs.SetSourceData(source.dataset)
 
         rs.SetPassPointArrays(True)
         rs.SetPassCellArrays(True)
@@ -766,6 +877,110 @@ class CommonAlgorithms:
         self.pipeline = utils.OperationNode(
             f"resample_data_from\n{source.__class__.__name__}", parents=[self, source]
         )
+        return self
+
+    def interpolate_data_from(
+        self,
+        source,
+        radius=None,
+        n=None,
+        kernel="shepard",
+        exclude=("Normals",),
+        on="points",
+        null_strategy=1,
+        null_value=0,
+    ):
+        """
+        Interpolate over source to port its data onto the current object using various kernels.
+
+        If n (number of closest points to use) is set then radius value is ignored.
+
+        Arguments:
+            kernel : (str)
+                available kernels are [shepard, gaussian, linear, voronoi]
+            null_strategy : (int)
+                specify a strategy to use when encountering a "null" point
+                during the interpolation process. Null points occur when the local neighborhood
+                (of nearby points to interpolate from) is empty.
+
+                - Case 0: an output array is created that marks points
+                  as being valid (=1) or null (invalid =0), and the null_value is set as well
+                - Case 1: the output data value(s) are set to the provided null_value
+                - Case 2: simply use the closest point to perform the interpolation.
+            null_value : (float)
+                see above.
+
+        Examples:
+            - [interpolate_scalar3.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/interpolate_scalar3.py)
+
+                ![](https://vedo.embl.es/images/advanced/interpolateMeshArray.png)
+        """
+        if radius is None and not n:
+            vedo.logger.error("in interpolate_data_from(): please set either radius or n")
+            raise RuntimeError
+
+        if on == "points":
+            points = source.dataset
+        elif on == "cells":
+            poly2 = vtk.vtkPolyData()
+            poly2.ShallowCopy(source.dataset)
+            c2p = vtk.vtkCellDataToPointData()
+            c2p.SetInputData(poly2)
+            c2p.Update()
+            points = c2p.GetOutput()
+        else:
+            vedo.logger.error("in interpolate_data_from(), on must be on points or cells")
+            raise RuntimeError()
+
+        locator = vtk.vtkPointLocator()
+        locator.SetDataSet(points)
+        locator.BuildLocator()
+
+        if kernel.lower() == "shepard":
+            kern = vtk.vtkShepardKernel()
+            kern.SetPowerParameter(2)
+        elif kernel.lower() == "gaussian":
+            kern = vtk.vtkGaussianKernel()
+            kern.SetSharpness(2)
+        elif kernel.lower() == "linear":
+            kern = vtk.vtkLinearKernel()
+        elif kernel.lower() == "voronoi":
+            kern = vtk.vtkProbabilisticVoronoiKernel()
+        else:
+            vedo.logger.error("available kernels are: [shepard, gaussian, linear, voronoi]")
+            raise RuntimeError()
+
+        if n:
+            kern.SetNumberOfPoints(n)
+            kern.SetKernelFootprintToNClosest()
+        else:
+            kern.SetRadius(radius)
+            kern.SetKernelFootprintToRadius()
+
+        interpolator = vtk.vtkPointInterpolator()
+        interpolator.SetInputData(self.dataset)
+        interpolator.SetSourceData(points)
+        interpolator.SetKernel(kern)
+        interpolator.SetLocator(locator)
+        interpolator.PassFieldArraysOff()
+        interpolator.SetNullPointsStrategy(null_strategy)
+        interpolator.SetNullValue(null_value)
+        interpolator.SetValidPointsMaskArrayName("ValidPointMask")
+        for ex in exclude:
+            interpolator.AddExcludedArray(ex)
+        interpolator.Update()
+
+        if on == "cells":
+            p2c = vtk.vtkPointDataToCellData()
+            p2c.SetInputData(interpolator.GetOutput())
+            p2c.Update()
+            cpoly = p2c.GetOutput()
+        else:
+            cpoly = interpolator.GetOutput()
+
+        self.dataset.DeepCopy(cpoly)
+
+        self.pipeline = utils.OperationNode("interpolate_data_from", parents=[self, source])
         return self
 
     def add_ids(self):
@@ -805,9 +1020,12 @@ class CommonAlgorithms:
         if on.startswith("p"):
             varr = self.dataset.GetPointData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
-        else:
+        elif on.startswith("c"):
             varr = self.dataset.GetCellData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
+        else:
+            vedo.logger.error(f"in gradient: unknown option {on}")
+            raise RuntimeError
 
         if input_array is None:
             if varr.GetScalars():
@@ -848,9 +1066,12 @@ class CommonAlgorithms:
         if on.startswith("p"):
             varr = self.dataset.GetPointData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
-        else:
+        elif on.startswith("c"):
             varr = self.dataset.GetCellData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
+        else:
+            vedo.logger.error(f"in divergence(): unknown option {on}")
+            raise RuntimeError
 
         if array_name is None:
             if varr.GetVectors():
@@ -891,9 +1112,12 @@ class CommonAlgorithms:
         if on.startswith("p"):
             varr = self.dataset.GetPointData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
-        else:
+        elif on.startswith("c"):
             varr = self.dataset.GetCellData()
             tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
+        else:
+            vedo.logger.error(f"in vorticity(): unknown option {on}")
+            raise RuntimeError
 
         if array_name is None:
             if varr.GetVectors():
@@ -915,6 +1139,21 @@ class CommonAlgorithms:
         else:
             vvecs = utils.vtk2numpy(vort.GetOutput().GetCellData().GetArray("Vorticity"))
         return vvecs
+
+    def compute_cell_size(self):
+        """Add to this mesh a cell data array containing the areas of the polygonal faces"""
+        csf = vtk.vtkCellSizeFilter()
+        csf.SetInputData(self.dataset)
+        csf.SetComputeArea(1)
+        csf.SetComputeVolume(1)
+        csf.SetComputeLength(1)
+        csf.SetComputeVertexCount(0)
+        csf.SetAreaArrayName("Area")
+        csf.SetVolumeArrayName("Volume")
+        csf.SetLengthArrayName("Length")
+        csf.Update()
+        self._update(csf.GetOutput(), reset_locators=False)
+        return self
 
     def write(self, filename, binary=True):
         """Write object to file."""
@@ -966,6 +1205,24 @@ class CommonAlgorithms:
         msh.pipeline = utils.OperationNode(
             "tomesh", parents=[self], comment=f"fill={fill}", c="#9e2a2b:#e9c46a"
         )
+        return msh
+
+    def tomesh(self, bounds=()):
+        """Extract boundary geometry from dataset (or convert data to polygonal type)."""
+        geo = vtk.vtkGeometryFilter()
+        geo.SetInputData(self.dataset)
+        geo.SetPassThroughCellIds(1)
+        geo.SetPassThroughPointIds(1)
+        geo.SetOriginalCellIdsName("OriginalCellIds")
+        geo.SetOriginalPointIdsName("OriginalPointIds")
+        geo.SetNonlinearSubdivisionLevel(1)
+        geo.MergingOff()
+        if bounds:
+            geo.SetExtent(bounds)
+            geo.ExtentClippingOn()
+        geo.Update()
+        msh = vedo.mesh.Mesh(geo.GetOutput())
+        msh.pipeline = utils.OperationNode("tomesh", parents=[self], c="#9e2a2b")
         return msh
 
     def shrink(self, fraction=0.8):
