@@ -927,7 +927,7 @@ class Points(PointsVisual, PointAlgorithms):
         cpd.ConvertStripsToPolysOn()
         cpd.SetInputData(self.dataset)
         cpd.Update()
-        self.dataset.DeepCopy(cpd.GetOutput())
+        self._update(cpd.GetOutput())
         self.pipeline = utils.OperationNode(
             "clean", parents=[self], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
         )
@@ -974,7 +974,7 @@ class Points(PointsVisual, PointAlgorithms):
         if self.property.GetRepresentation() == 0:
             ps = self.property.GetPointSize()
 
-        self.dataset.DeepCopy(cpd.GetOutput())
+        self._update(self.dataset)
         self.ps(ps)
 
         self.pipeline = utils.OperationNode(
@@ -1032,7 +1032,7 @@ class Points(PointsVisual, PointAlgorithms):
         gf = vtk.vtkGeometryFilter()
         gf.SetInputData(thres.GetOutput())
         gf.Update()
-        self.dataset.DeepCopy(gf.GetOutput())
+        self._update(gf.GetOutput())
         self.pipeline = utils.OperationNode("threshold", parents=[self])
         return self
 
@@ -1045,7 +1045,7 @@ class Points(PointsVisual, PointAlgorithms):
         qp.SetInputData(self.dataset)
         qp.SetQFactor(value)
         qp.Update()
-        self.dataset.DeepCopy(qp.GetOutput())
+        self._update(qp.GetOutput())
         self.flat()
         self.pipeline = utils.OperationNode("quantize", parents=[self])
         return self
@@ -1510,8 +1510,7 @@ class Points(PointsVisual, PointAlgorithms):
                 carr.InsertNextCell(1)
                 carr.InsertCellPoint(i)
             inputobj.SetVerts(carr)
-        self.dataset.DeepCopy(inputobj)
-        self.mapper.ScalarVisibilityOff()
+        self._update(removal.GetOutput())
         self.pipeline = utils.OperationNode("remove_outliers", parents=[self])
         return self
 
@@ -1601,7 +1600,7 @@ class Points(PointsVisual, PointAlgorithms):
             pb = utils.ProgressBar(0, ncoords)
         for p in coords:
             if pb:
-                pb.print("smoothMLS2D working ...")
+                pb.print("smooth_mls_2d working ...")
             pts = self.closest_point(p, n=Ncp, radius=radius)
             if len(pts) > 3:
                 ptsmean = pts.mean(axis=0)  # plane center
@@ -1622,7 +1621,6 @@ class Points(PointsVisual, PointAlgorithms):
         self.info["variances"] = np.array(variances)
         self.info["is_valid"] = np.array(valid)
         self.vertices = newpts
-
         self.pipeline = utils.OperationNode("smooth_mls_2d", parents=[self])
         return self
 
@@ -1684,7 +1682,8 @@ class Points(PointsVisual, PointAlgorithms):
             _constrain_points(vor.vertices)
             pts = _relax(vor)
         # m = vedo.Mesh([pts, self.cells]) # not yet working properly
-        out = Points(pts, c="k")
+        # m.vertices = pts # not yet working properly
+        out = Points(pts)
         out.pipeline = utils.OperationNode("smooth_lloyd", parents=[self])
         return out
 
