@@ -337,11 +337,11 @@ class Slicer2DPlotter(Plotter):
             "H                  :rightarrow toggle this banner off\n"
             "Left click & drag  :rightarrow modify luminosity and contrast\n"
             "SHIFT+Left click   :rightarrow slice image obliquely\n"
-            "SHIFT+Middle click :rightarrow slice image perpendicularly\n"
-            "R                  :rightarrow Reset the Window/Color levels\n"
-            "X                  :rightarrow Reset to sagittal view\n"
-            "Y                  :rightarrow Reset to coronal view\n"
-            "Z                  :rightarrow Reset to axial view"
+            "SHIFT+Middle click :rightarrow slice image perpendicularly"
+            # "R                  :rightarrow Reset the Window/Color levels\n"
+            # "X                  :rightarrow Reset to sagittal view\n"
+            # "Y                  :rightarrow Reset to coronal view\n"
+            # "Z                  :rightarrow Reset to axial view"
         )
 
         self.usage = Text2D(
