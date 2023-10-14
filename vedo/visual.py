@@ -2213,11 +2213,13 @@ class VolumeVisual(CommonVisual):
 
 ########################################################################################
 class ActorTransforms:
-    def pos(self, point=None):
+    def pos(self, *p):
         """Set/get position of object."""
-        if point is None:
-            return self.actor.GetPosition()
-        self.actor.SetPosition(point)
+        if len(p)==0:
+            return np.array(self.actor.GetPosition())
+        if len(p)==2:
+            p = (p[0], p[1], 0)
+        self.actor.SetPosition(*p)
         return self
 
     def origin(self, point=None):
@@ -2277,6 +2279,8 @@ class ActorTransforms:
     def shift(self, dp):
         """Add vector to current position."""
         p = self.actor.GetPosition()
+        if len(dp)==2:
+            dp = (dp[0], dp[1], 0)
         self.actor.SetPosition(p[0] + dp[0], p[1] + dp[1], p[2] + dp[2])
         return self
 

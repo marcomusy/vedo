@@ -900,6 +900,9 @@ class CommonAlgorithms:
 
         If n (number of closest points to use) is set then radius value is ignored.
 
+        Check out also:
+            `probe()` which in many cases can be faster.
+
         Arguments:
             kernel : (str)
                 available kernels are [shepard, gaussian, linear, voronoi]

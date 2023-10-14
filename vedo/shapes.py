@@ -1126,7 +1126,7 @@ class Spline(Line):
         # evaluate spLine, including interpolated points:
         xnew, ynew, znew = splev(x, tckp)
 
-        Line.__init__(self, np.c_[xnew, ynew, znew], lw=2)
+        super().__init__(np.c_[xnew, ynew, znew], lw=2)
         self.name = "Spline"
 
 
@@ -1193,7 +1193,7 @@ class KSpline(Line):
                 z = zspline.Evaluate(pos)
             ln.append((x, y, z))
 
-        Line.__init__(self, ln, lw=2)
+        super().__init__(ln, lw=2)
         self.clean()
         self.lighting("off")
         self.name = "KSpline"
@@ -1249,7 +1249,7 @@ class CSpline(Line):
                 z = zspline.Evaluate(pos)
             ln.append((x, y, z))
 
-        Line.__init__(self, ln, lw=2)
+        super().__init__(ln, lw=2)
         self.clean()
         self.lighting("off")
         self.name = "CSpline"
@@ -1299,7 +1299,7 @@ class Bezier(Line):
         for ii in range(N):
             b = bernstein(N - 1, ii)(t)
             bcurve += np.outer(b, points[ii])
-        Line.__init__(self, bcurve, lw=2)
+        super().__init__(bcurve, lw=2)
         self.name = "BezierLine"
 
 
@@ -2335,7 +2335,7 @@ class FlatArrow(Ribbon):
         line2.append(tip)
         resm = max(100, len(line1))
 
-        Ribbon.__init__(self, line1, line2, res=(resm, 1))
+        super().__init__(line1, line2, res=(resm, 1))
         self.phong()
         self.actor.PickableOff()
         self.actor.DragableOff()
@@ -2384,7 +2384,7 @@ class Circle(Polygon):
         """
         Build a Circle of radius `r`.
         """
-        Polygon.__init__(self, pos, nsides=res, r=r)
+        super().__init__(pos, nsides=res, r=r)
 
         self.center = []  # filled by pointcloud.pcaEllipse
         self.nr_of_points = 0
@@ -2419,7 +2419,7 @@ class GeoCircle(Polygon):
             clng = lon + np.arctan2(np.sin(phi) * sinr * coslat, cosr - sinlat * np.sin(clat))
             coords.append([clng / np.pi + 1, clat * 2 / np.pi + 1, 0])
 
-        Polygon.__init__(self, nsides=res, c=c, alpha=alpha)
+        super().__init__(nsides=res, c=c, alpha=alpha)
         self.vertices = coords # warp polygon points to match geo projection
         self.name = "Circle"
 
@@ -3328,7 +3328,7 @@ class Cube(Box):
 
     def __init__(self, pos=(0, 0, 0), side=1.0, c="g4", alpha=1.0):
         """Build a cube of size `side`."""
-        Box.__init__(self, pos, side, side, side, (), c, alpha)
+        super().__init__(pos, side, side, side, (), c, alpha)
         self.name = "Cube"
 
 
@@ -3536,7 +3536,7 @@ class Pyramid(Cone):
     def __init__(self, pos=(0, 0, 0), s=1.0, height=1.0, axis=(0, 0, 1),
                  c="green3", alpha=1):
         """Build a pyramid of specified base size `s` and `height`, centered at `pos`."""
-        Cone.__init__(self, pos, s, height, axis, 4, c, alpha)
+        super().__init__(pos, s, height, axis, 4, c, alpha)
         self.name = "Pyramid"
 
 
@@ -3894,7 +3894,7 @@ class Cross3D(Mesh):
         c1 = Cylinder(r=thickness * s, height=2 * s)
         c2 = Cylinder(r=thickness * s, height=2 * s).rotate_x(90)
         c3 = Cylinder(r=thickness * s, height=2 * s).rotate_y(90)
-        poly = merge(c1, c2, c3).color(c).alpha(alpha).pos(pos)
+        poly = merge(c1, c2, c3).color(c).alpha(alpha).pos(pos).dataset
         super().__init__(poly, c, alpha)
         self.name = "Cross3D"
 
@@ -4611,8 +4611,7 @@ class Text2D(TextBase, vedo.visual.BaseActor2D):
 
                 ![](https://vedo.embl.es/images/basic/colorcubes.png)
         """
-        vtk.vtkActor2D.__init__(self)
-        TextBase.__init__(self)
+        super().__init__()
 
         self.mapper = vtk.vtkTextMapper()
         self.SetMapper(self.mapper)
@@ -4714,7 +4713,7 @@ class Text2D(TextBase, vedo.visual.BaseActor2D):
         return self
 
 
-class CornerAnnotation(vtk.vtkCornerAnnotation, TextBase):
+class CornerAnnotation(TextBase, vtk.vtkCornerAnnotation):
     # PROBABLY USELESS given that Text2D does pretty much the same ...
     """
     Annotate the window corner with 2D text.
@@ -4729,8 +4728,7 @@ class CornerAnnotation(vtk.vtkCornerAnnotation, TextBase):
     """
 
     def __init__(self, c=None):
-        # vtk.vtkCornerAnnotation.__init__(self)
-        # TextBase.__init__(self)
+
         super().__init__()
 
         self.property = self.GetTextProperty()
@@ -4831,56 +4829,56 @@ class Latex(Picture):
         """
         self.formula = formula
 
-        try:
-            from tempfile import NamedTemporaryFile
-            import matplotlib.pyplot as mpltib
+        # try:
+        from tempfile import NamedTemporaryFile
+        import matplotlib.pyplot as mpltib
 
-            def build_img_plt(formula, tfile):
+        def build_img_plt(formula, tfile):
 
-                mpltib.rc("text", usetex=usetex)
+            mpltib.rc("text", usetex=usetex)
 
-                formula1 = "$" + formula + "$"
-                mpltib.axis("off")
-                col = get_color(c)
-                if bg:
-                    bx = dict(boxstyle="square", ec=col, fc=get_color(bg))
-                else:
-                    bx = None
-                mpltib.text(
-                    0.5,
-                    0.5,
-                    formula1,
-                    size=res,
-                    color=col,
-                    alpha=alpha,
-                    ha="center",
-                    va="center",
-                    bbox=bx,
-                )
-                mpltib.savefig(
-                    tfile, format="png", transparent=True, bbox_inches="tight", pad_inches=0
-                )
-                mpltib.close()
+            formula1 = "$" + formula + "$"
+            mpltib.axis("off")
+            col = get_color(c)
+            if bg:
+                bx = dict(boxstyle="square", ec=col, fc=get_color(bg))
+            else:
+                bx = None
+            mpltib.text(
+                0.5,
+                0.5,
+                formula1,
+                size=res,
+                color=col,
+                alpha=alpha,
+                ha="center",
+                va="center",
+                bbox=bx,
+            )
+            mpltib.savefig(
+                tfile, format="png", transparent=True, bbox_inches="tight", pad_inches=0
+            )
+            mpltib.close()
 
-            if len(pos) == 2:
-                pos = (pos[0], pos[1], 0)
+        if len(pos) == 2:
+            pos = (pos[0], pos[1], 0)
 
-            tmp_file = NamedTemporaryFile(delete=True)
-            tmp_file.name = tmp_file.name + ".png"
+        tmp_file = NamedTemporaryFile(delete=True)
+        tmp_file.name = tmp_file.name + ".png"
 
-            build_img_plt(formula, tmp_file.name)
+        build_img_plt(formula, tmp_file.name)
 
-            Picture.__init__(self, tmp_file.name, channels=4)
-            self.pos(pos)
-            self.alpha(alpha)
-            self.scale(0.25 / res * s, 0.25 / res * s, 0.25 / res * s)
-            self.name = "Latex"
+        super().__init__(tmp_file.name, channels=4)
+        self.pos(pos)
+        self.alpha(alpha)
+        self.scale(0.25 / res * s, 0.25 / res * s, 0.25 / res * s)
+        self.name = "Latex"
 
-        except:
-            printc("Error in Latex()\n", formula, c="r")
-            printc(" latex or dvipng not installed?", c="r")
-            printc(" Try: usetex=False", c="r")
-            printc(" Try: sudo apt install dvipng", c="r")
+        # except:
+        #     printc("Error in Latex()\n", formula, c="r")
+        #     printc(" latex or dvipng not installed?", c="r")
+        #     printc(" Try: usetex=False", c="r")
+        #     printc(" Try: sudo apt install dvipng", c="r")
 
 
 class ConvexHull(Mesh):

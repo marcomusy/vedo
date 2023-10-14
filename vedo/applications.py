@@ -281,8 +281,9 @@ class VolumeSlice(vedo.Volume):
         The main purpose of this class is to be used in conjunction with `Volume`
         for visualization using `mode="image"`.
         """
+        super().__init__()
+
         self.actor = vtk.vtkImageSlice()
-        # vtk.vtkImageSlice.__init__(self)
 
         self._mapper = vtk.vtkImageResliceMapper()
         self._mapper.SliceFacesCameraOn()
@@ -491,7 +492,6 @@ class Slicer2DPlotter(Plotter):
             ]
             kwargs["shape"] = custom_shape
 
-#        Plotter.__init__(self, **kwargs)
         super().__init__(**kwargs)
 
         # reuse the same underlying data as in vol

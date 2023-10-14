@@ -257,8 +257,6 @@ class LegendBox(shapes.TextBase, vtk.vtkLegendBoxActor):
 
                 ![](https://vedo.embl.es/images/other/flag_labels.png)
         """
-#        vtk.vtkLegendBoxActor.__init__(self)
-#        shapes.TextBase.__init__(self)
         super().__init__()
 
         self.name = "LegendBox"
@@ -1501,9 +1499,7 @@ class Slider2D(SliderWidget):
                 if abs(pos[0][0] - pos[1][0]) < 0.1:
                     slider_rep.GetTitleProperty().SetOrientation(90)
 
-#        SliderWidget.__init__(self)
         super().__init__()
-
 
         self.SetAnimationModeToJump()
         self.SetRepresentation(slider_rep)
@@ -1602,7 +1598,6 @@ class Slider3D(SliderWidget):
 
         slider_rep.GetTubeProperty().SetColor(c)
 
-#        SliderWidget.__init__(self)
         super().__init__()
 
         self.SetRepresentation(slider_rep)
@@ -2083,7 +2078,6 @@ class RendererFrame(vtk.vtkActor2D):
         cs.SetCoordinateSystemToNormalizedViewport()
         mapper.SetTransformCoordinate(cs)
 
-#        vtk.vtkActor2D.__init__(self)
         super().__init__()
 
         self.GetPositionCoordinate().SetValue(0, 0)
@@ -2138,7 +2132,6 @@ class ProgressBarWidget(vtk.vtkActor2D):
         cs.SetCoordinateSystemToNormalizedViewport()
         mapper.SetTransformCoordinate(cs)
 
-#        vtk.vtkActor2D.__init__(self)
         super().__init__()
 
         self.SetMapper(mapper)

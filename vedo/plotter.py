@@ -3678,7 +3678,7 @@ class Plotter:
                 " |        q     return control to python script               |\n"
                 " |        Esc   abort execution and exit python kernel        |\n"
                 " |------------------------------------------------------------|\n"
-                " | Mouse: Left-click    rotate scene / pick objects            |\n"
+                " | Mouse: Left-click    rotate scene / pick objects           |\n"
                 " |        Middle-click  pan scene                             |\n"
                 " |        Right-click   zoom scene in or out                  |\n"
                 " |        Cntrl-click   rotate scene                          |\n"
