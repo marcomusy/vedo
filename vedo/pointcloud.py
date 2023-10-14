@@ -723,7 +723,9 @@ class Points(PointsVisual, PointAlgorithms):
 
         Returns the underlying ``vtkPolyData`` object.
         """
-        print("WARNING: call to .polydata() is obsolete, use property .dataset instead.")
+        colors.printc(
+            "WARNING: call to .polydata() is obsolete, use property .dataset instead.",
+            c="y")
         return self
 
     def clone(self, deep=True):

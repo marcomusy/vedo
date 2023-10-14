@@ -922,10 +922,10 @@ class CommonAlgorithms:
         if on == "points":
             points = source.dataset
         elif on == "cells":
-            poly2 = vtk.vtkPolyData()
-            poly2.ShallowCopy(source.dataset)
             c2p = vtk.vtkCellDataToPointData()
-            c2p.SetInputData(poly2)
+            # poly2 = vtk.vtkPolyData()
+            # poly2.ShallowCopy(source.dataset)
+            c2p.SetInputData(source.dataset)
             c2p.Update()
             points = c2p.GetOutput()
         else:
@@ -978,7 +978,7 @@ class CommonAlgorithms:
         else:
             cpoly = interpolator.GetOutput()
 
-        self.dataset.DeepCopy(cpoly)
+        self._update(self.dataset, reset_locators=False)
 
         self.pipeline = utils.OperationNode("interpolate_data_from", parents=[self, source])
         return self
