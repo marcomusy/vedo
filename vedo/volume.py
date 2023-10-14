@@ -128,7 +128,9 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         self.mapper = None
         self.pipeline = None
         self.info = {}
-
+        self.name = "Volume"
+        self.filename = ""
+        
         ###################
         if isinstance(inputobj, str):
             if "https://" in inputobj:
@@ -543,8 +545,13 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         return self
 
     def imagedata(self):
-        """Return the underlying `vtkImagaData` object."""
-        print("Volume.dataset is deprecated, use Volume.dataset instead")
+        """
+        DEPRECATED:
+        Use `Volume.dataset` instead.
+
+        Return the underlying `vtkImagaData` object.
+        """
+        print("Volume.imagedata() is deprecated, use Volume.dataset instead")
         return self.dataset
 
     def tonumpy(self):

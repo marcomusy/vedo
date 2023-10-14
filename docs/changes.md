@@ -24,6 +24,10 @@
 - change .lines() to .lines everywhere
 - change .edges() to .edges everywhere
 - change .normals() to .vertex_normals and .cell_normals everywhere
+- removed `Volume.probe_points()`
+- removed `Volume.probe_line()`
+- removed `Volume.probe_plane()`
+
 
 
 

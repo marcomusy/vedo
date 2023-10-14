@@ -68,31 +68,29 @@ class LinearTransform:
                     M.SetElement(i, j, T[i][j])
             S.SetMatrix(M)
             T = S
-        
+
         elif isinstance(T, vtk.vtkLinearTransform):
             S = vtk.vtkTransform()
             S.DeepCopy(T)
             T = S
-        
+
         elif isinstance(T, LinearTransform):
             S = vtk.vtkTransform()
             S.DeepCopy(T.T)
             T = S
-        
+
         self.T = T
         self.T.PostMultiply()
         self.inverse_flag = False
 
-
     def __str__(self):
         s = "Transformation Matrix 4x4:\n"
-        s+= str(self.matrix)
-        s+= f"\n({self.n_concatenated_transforms} concatenated transforms)"
+        s += str(self.matrix)
+        s += f"\n({self.n_concatenated_transforms} concatenated transforms)"
         return s
-    
+
     def __repr__(self):
         return self.__str__()
-    
 
     def apply_to(self, obj):
         """Apply transformation."""
@@ -117,7 +115,6 @@ class LinearTransform:
         obj.point_locator = None
         obj.cell_locator = None
         obj.line_locator = None
-
 
     def reset(self):
         """Reset transformation."""
@@ -294,7 +291,7 @@ class LinearTransform:
         q = np.array(self.T.GetPosition())
         self.T.Translate(p - q)
         return self
-    
+
     # def set_scale(self, s):
     #     """Set absolute scale."""
     #     if not _is_sequence(s):
@@ -311,7 +308,7 @@ class LinearTransform:
     #     self.T.Scale(s0, s1, s2)
     #     print()
     #     return self
-    
+
     def get_scale(self):
         """Get current scale."""
         return np.array(self.T.GetScale())
@@ -350,8 +347,9 @@ class LinearTransform:
         M = [[m.GetElement(i, j) for j in range(3)] for i in range(3)]
         return np.array(M)
 
-
-    def reorient(self, newaxis, initaxis, around=(0,0,0), rotation=0, rad=False, xyplane=True):
+    def reorient(
+        self, newaxis, initaxis, around=(0, 0, 0), rotation=0, rad=False, xyplane=True
+    ):
         """
         Set/Get object orientation.
 
@@ -385,7 +383,7 @@ class LinearTransform:
 
             ![](https://vedo.embl.es/images/simulations/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif)
         """
-        newaxis  = np.asarray(newaxis)  / np.linalg.norm(newaxis)
+        newaxis  = np.asarray(newaxis) / np.linalg.norm(newaxis)
         initaxis = np.asarray(initaxis) / np.linalg.norm(initaxis)
 
         if not np.any(initaxis - newaxis):
@@ -394,9 +392,9 @@ class LinearTransform:
         if not np.any(initaxis + newaxis):
             print("Warning: in reorient() initaxis and newaxis are parallel")
             newaxis += np.array([0.0000001, 0.0000002, 0])
-            angleth  = np.pi
+            angleth = np.pi
         else:
-            angleth  = np.arccos(np.dot(initaxis, newaxis))
+            angleth = np.arccos(np.dot(initaxis, newaxis))
         crossvec = np.cross(initaxis, newaxis)
 
         p = np.asarray(around)
@@ -409,10 +407,11 @@ class LinearTransform:
         self.T.RotateWXYZ(np.rad2deg(angleth), crossvec)
 
         if xyplane:
-            self.T.RotateWXYZ(-self.orientation[0]*1.4142, newaxis)
+            self.T.RotateWXYZ(-self.orientation[0] * 1.4142, newaxis)
 
         self.T.Translate(p)
         return self
+
 
 ########################################################################
 # 2d ######
@@ -429,6 +428,8 @@ def pol2cart(rho, theta):
     y = rho * np.sin(theta)
     return np.array([x, y])
 
+
+########################################################################
 # 3d ######
 def cart2spher(x, y, z):
     """3D Cartesian to Spherical coordinate conversion."""
@@ -478,4 +479,3 @@ def spher2cyl(rho, theta, phi):
     rhoc = rho * np.sin(theta)
     z = rho * np.cos(theta)
     return np.array([rhoc, phi, z])
-

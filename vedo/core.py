@@ -747,7 +747,20 @@ class CommonAlgorithms:
     @property
     def vertices(self):
         """Return the vertices (points) coordinates."""
-        varr = self.dataset.GetPoints().GetData()
+        try:
+            # valid for polydata and unstructured grid
+            varr = self.dataset.GetPoints().GetData()
+
+        except AttributeError:
+            try:
+                # valid for rectilinear/structured grid, image data
+                v2p = vtk.vtkImageToPoints()
+                v2p.SetInputData(self.dataset)
+                v2p.Update()
+                varr = v2p.GetOutput().GetPoints().GetData()
+            except AttributeError:
+                return np.array([])
+        
         narr = utils.vtk2numpy(varr)
         return narr
 
@@ -756,27 +769,19 @@ class CommonAlgorithms:
     def vertices(self, pts):
         """Set vertices (points) coordinates."""
         arr = utils.numpy2vtk(pts, dtype=np.float32)
-        vpts = self.dataset.GetPoints()
-        vpts.SetData(arr)
-        vpts.Modified()
+        try:
+            vpts = self.dataset.GetPoints()
+            vpts.SetData(arr)
+            vpts.Modified()
+        except AttributeError:
+            vedo.logger.error(f"Cannot set vertices for object {type(self)}")
+            return self
         # reset mesh to identity matrix position/rotation:
         self.point_locator = None
         self.cell_locator = None
         self.line_locator = None
         self.actor.PokeMatrix(vtk.vtkMatrix4x4())
         self.transform = LinearTransform()
-        # BUG
-        # from vedo import *
-        # plt = Plotter(interactive=False, axes=7)
-        # s = Disc(res=(8,120)).linewidth(0.1)
-        # print([s.dataset.GetPoints().GetData()])
-        # # plt.show(s)  # depends if I show it or not..
-        # # plt.renderer.AddActor(s.actor)
-        # print([s.dataset.GetPoints().GetData()])
-        # for i in progressbar(100):
-        #     s.vertices[:,2] = sin(i/10.*s.vertices[:,0])/5 # move vertices in z
-        # show(s, interactive=1)
-        # exit()
         return self
 
     @property
@@ -1142,6 +1147,31 @@ class CommonAlgorithms:
         else:
             vvecs = utils.vtk2numpy(vort.GetOutput().GetCellData().GetArray("Vorticity"))
         return vvecs
+
+    def probe(self, source):
+        """
+        Takes a `Volume` (or any other data set)
+        and probes its scalars at the specified points in space.
+
+        Note that a mask is also output with valid/invalid points which can be accessed
+        with `mesh.pointdata['ValidPointMask']`.
+
+        Check out also:
+            `interpolate_data_from()`
+
+        Examples:
+            - [probe_points.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probe_points.py)
+
+                ![](https://vedo.embl.es/images/volumetric/probePoints.png)
+        """
+        probe_filter = vtk.vtkProbeFilter()
+        probe_filter.SetSourceData(source.dataset)
+        probe_filter.SetInputData(self.dataset)
+        probe_filter.Update()
+        self.pipeline = utils.OperationNode("probe", parents=[self, source])
+        self._update(probe_filter.GetOutput(), reset_locators=False)
+        self.pointdata.rename("vtkValidPointMask", "ValidPointMask")
+        return self
 
     def compute_cell_size(self):
         """Add to this mesh a cell data array containing the areas of the polygonal faces"""
@@ -1870,103 +1900,3 @@ class VolumeAlgorithms(CommonAlgorithms):
             c="#9e2a2b",
         )
         return ug
-
-    def probe_points(self, pts):
-        """
-        Takes a `Volume` (or any other vtk data set)
-        and probes its scalars at the specified points in space.
-
-        Note that a mask is also output with valid/invalid points which can be accessed
-        with `mesh.pointdata['vtkValidPointMask']`.
-
-        Examples:
-            - [probe_points.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probe_points.py)
-
-                ![](https://vedo.embl.es/images/volumetric/probePoints.png)
-        """
-        if isinstance(pts, vedo.pointcloud.Points):
-            pts = pts.vertices
-
-        def _readpoints():
-            output = src.GetPolyDataOutput()
-            points = vtk.vtkPoints()
-            for p in pts:
-                x, y, z = p
-                points.InsertNextPoint(x, y, z)
-            output.SetPoints(points)
-
-            cells = vtk.vtkCellArray()
-            cells.InsertNextCell(len(pts))
-            for i in range(len(pts)):
-                cells.InsertCellPoint(i)
-            output.SetVerts(cells)
-
-        src = vtk.vtkProgrammableSource()
-        src.SetExecuteMethod(_readpoints)
-        src.Update()
-        img = self.dataset
-        probeFilter = vtk.vtkProbeFilter()
-        probeFilter.SetSourceData(img)
-        probeFilter.SetInputConnection(src.GetOutputPort())
-        probeFilter.Update()
-        poly = probeFilter.GetOutput()
-        pm = vedo.mesh.Mesh(poly)
-        pm.name = "ProbePoints"
-        pm.pipeline = utils.OperationNode("probe_points", parents=[self])
-        return pm
-
-
-    def probe_line(self, p1, p2, res=100):
-        """
-        Takes a `Volume`  (or any other vtk data set)
-        and probes its scalars along a line defined by 2 points `p1` and `p2`.
-
-        Note that a mask is also output with valid/invalid points which can be accessed
-        with `mesh.pointdata['vtkValidPointMask']`.
-
-        Use `res` to set the nr of points along the line
-
-        Examples:
-            - [probe_line1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probe_line1.py)
-            - [probe_line2.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/probe_line2.py)
-
-                ![](https://vedo.embl.es/images/volumetric/probeLine2.png)
-        """
-        line = vtk.vtkLineSource()
-        line.SetResolution(res)
-        line.SetPoint1(p1)
-        line.SetPoint2(p2)
-        probeFilter = vtk.vtkProbeFilter()
-        probeFilter.SetSourceData(self.dataset)
-        probeFilter.SetInputConnection(line.GetOutputPort())
-        probeFilter.Update()
-        poly = probeFilter.GetOutput()
-        lnn = vedo.mesh.Mesh(poly)
-        lnn.name = "ProbeLine"
-        lnn.pipeline = utils.OperationNode("probe_line", parents=[self])
-        return lnn
-
-
-    def probe_plane(self, origin=(0, 0, 0), normal=(1, 0, 0)):
-        """
-        Takes a `Volume` (or any other vtk data set)
-        and probes its scalars on a plane defined by a point and a normal.
-
-        Examples:
-            - [slice_plane1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slice_plane1.py)
-            - [slice_plane2.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slice_plane2.py)
-
-                ![](https://vedo.embl.es/images/volumetric/slicePlane2.png)
-        """
-        plane = vtk.vtkPlane()
-        plane.SetOrigin(origin)
-        plane.SetNormal(normal)
-        planeCut = vtk.vtkCutter()
-        planeCut.SetInputData(self.dataset)
-        planeCut.SetCutFunction(plane)
-        planeCut.Update()
-        poly = planeCut.GetOutput()
-        cutmesh = vedo.mesh.Mesh(poly)
-        cutmesh.name = "ProbePlane"
-        cutmesh.pipeline = utils.OperationNode("probe_plane", parents=[self])
-        return cutmesh
