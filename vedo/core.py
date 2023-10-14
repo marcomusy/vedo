@@ -978,7 +978,7 @@ class CommonAlgorithms:
         else:
             cpoly = interpolator.GetOutput()
 
-        self._update(self.dataset, reset_locators=False)
+        self._update(cpoly, reset_locators=False)
 
         self.pipeline = utils.OperationNode("interpolate_data_from", parents=[self, source])
         return self
