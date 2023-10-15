@@ -104,7 +104,7 @@ class Morpher:
         for p in self.msource.vertices:
             newp = self.transform(p)
             newpts.append(newp)
-        self.msource.points(newpts)
+        self.msource.vertices = newpts
 
         arrs = []
         for p in sphere0.vertices:

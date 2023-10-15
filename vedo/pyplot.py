@@ -1304,8 +1304,12 @@ class Histogram2D(Figure):
             if scalarbar:
                 sc = g.add_scalarbar3d(ztitle, c=ac).scalarbar
                 sc.scale([self.yscale, 1, 1])  ## prescale trick
-                sbnds = sc.xbounds()
-                sc.x(self.x1lim + (sbnds[1] - sbnds[0]) * 0.75)
+
+                # sbnds = sc.xbounds()
+                # sc.scale([self.yscale, 1, 1])
+                # sc.x(sbnds[1])
+                # sc.x(self.x1lim + (sbnds[1] - sbnds[0]) * 0.75)
+                
                 acts.append(sc)
             acts.append(g)
 

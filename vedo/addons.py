@@ -1274,6 +1274,8 @@ def ScalarBar3D(
     scale.actor.PickableOff()
 
     sact = Assembly(scales + tacts)
+    sact.SetOrigin(sact.GetBounds()[0],0,0)
+
     sact.PickableOff()
     sact.UseBoundsOff()
     sact.name = "ScalarBar3D"
