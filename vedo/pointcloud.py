@@ -574,6 +574,10 @@ class Points(PointsVisual, PointAlgorithms):
                     carr.InsertCellPoint(i)
                 self.dataset.SetVerts(carr)
 
+        elif isinstance(inputobj, PointAlgorithms):
+            self.dataset = inputobj.dataset
+            self.copy_properties_from(inputobj)
+
         elif utils.is_sequence(inputobj):  # passing point coords
             self.dataset = utils.buildPolyData(utils.make3d(inputobj))
 
@@ -1240,7 +1244,7 @@ class Points(PointsVisual, PointAlgorithms):
         return self
 
     def normalize(self):
-        """Scale Mesh average size to unit."""
+        """Scale average size to unit."""
         coords = self.vertices
         if not coords.shape[0]:
             return self
@@ -1248,12 +1252,13 @@ class Points(PointsVisual, PointAlgorithms):
         pts = coords - cm
         xyz2 = np.sum(pts * pts, axis=0)
         scale = 1 / np.sqrt(np.sum(xyz2) / len(pts))
-        self.scale(scale).pos(cm)
+        self.scale(scale, origin=cm)
+        self.pipeline = utils.OperationNode("normalize", parents=[self])
         return self
 
     def mirror(self, axis="x", origin=True):
         """
-        Mirror the mesh  along one of the cartesian axes
+        Mirror reflect along one of the cartesian axes
 
         Arguments:
             axis : (str)
@@ -1281,7 +1286,7 @@ class Points(PointsVisual, PointAlgorithms):
         return self
 
     def flip_normals(self):
-        """Flip all mesh normals. Same as `mesh.mirror('n')`."""
+        """Flip all normals."""
         rs = vtk.vtkReverseSense()
         rs.SetInputData(self.dataset)
         rs.ReverseCellsOff()

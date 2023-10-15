@@ -11,7 +11,7 @@ mesh.color('aqua').linewidth(1)
 z1, z2 = -1.5, -0.5
 
 # Find the cell IDs of cells within the z-axis bounds
-ids = mesh.find_cells_in(zbounds=(z1,z2))
+ids = mesh.find_cells_in_bounds(zbounds=(z1,z2))
 
 # Print the cell IDs in green to the console
 printc('IDs of cells within bounds:\n', ids, c='g')

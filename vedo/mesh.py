@@ -321,7 +321,7 @@ class Mesh(MeshVisual, Points):
         Check out also `compute_normals(cells=True)` and `compute_normals_with_pca()`.
         """
         vtknormals = self.dataset.GetCellData().GetNormals()
-        return utils.vtk2numpy(vtknormals)
+        return vtk2numpy(vtknormals)
 
     def texture(
         self,
@@ -498,7 +498,7 @@ class Mesh(MeshVisual, Points):
             tname = self.dataset.GetPointData().GetTCoords().GetName()
             grad = self.gradient(tname)
             ugrad, vgrad = np.split(grad, 2, axis=1)
-            ugradm, vgradm = vedo.utils.mag2(ugrad), vedo.utils.mag2(vgrad)
+            ugradm, vgradm = mag2(ugrad), mag2(vgrad)
             gradm = np.log(ugradm + vgradm)
             largegrad_ids = np.arange(len(grad))[gradm > seam_threshold * 4]
             uvmap = self.pointdata[tname]
@@ -508,9 +508,9 @@ class Mesh(MeshVisual, Points):
                 if np.isin(f, largegrad_ids).all():
                     id1, id2, id3 = f
                     uv1, uv2, uv3 = uvmap[f]
-                    d12 = vedo.mag2(uv1 - uv2)
-                    d23 = vedo.mag2(uv2 - uv3)
-                    d31 = vedo.mag2(uv3 - uv1)
+                    d12 = mag2(uv1 - uv2)
+                    d23 = mag2(uv2 - uv3)
+                    d31 = mag2(uv3 - uv1)
                     idm = np.argmin([d12, d23, d31])
                     if idm == 0:
                         new_points[id1] = new_points[id3]

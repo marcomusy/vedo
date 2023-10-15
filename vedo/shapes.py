@@ -2577,7 +2577,7 @@ class IcoSphere(Mesh):
     Create a sphere made of a uniform triangle mesh.
     """
 
-    def __init__(self, pos=(0, 0, 0), r=1.0, subdivisions=3, c="r5", alpha=1.0):
+    def __init__(self, pos=(0, 0, 0), r=1.0, subdivisions=4, c="r5", alpha=1.0):
         """
         Create a sphere made of a uniform triangle mesh
         (from recursive subdivision of an icosahedron).
@@ -2829,6 +2829,7 @@ class Earth(Mesh):
         tss.SetRadius(r)
         tss.SetThetaResolution(72)
         tss.SetPhiResolution(36)
+        tss.Update()
         super().__init__(tss.GetOutput(), c="w")
         atext = vtk.vtkTexture()
         pnm_reader = vtk.vtkJPEGReader()
