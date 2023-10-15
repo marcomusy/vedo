@@ -9,6 +9,6 @@ pcl = Points(dataurl+"man.vtk").subsample(0.02)
 plt = Plotter(N=N, axes=1)
 for i in range(N):
     pcl = pcl.clone().smooth_mls_1d(f=f).color(i)
-    plt.at(i).show(f"iteration {i}", pcl, elevation=-5)
+    plt.at(i).show(f"iteration {i}", pcl, elevation=-8)
 
 plt.interactive().close()

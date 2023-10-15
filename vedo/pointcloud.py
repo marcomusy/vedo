@@ -978,7 +978,7 @@ class Points(PointsVisual, PointAlgorithms):
         if self.property.GetRepresentation() == 0:
             ps = self.property.GetPointSize()
 
-        self._update(self.dataset)
+        self._update(cpd.GetOutput())
         self.ps(ps)
 
         self.pipeline = utils.OperationNode(
@@ -2540,8 +2540,8 @@ class Points(PointsVisual, PointAlgorithms):
 
         length = contour.length()
         density = length / contour.npoints
-        vedo.logger.debug(f"tomesh():\n\tline length = {length}")
-        vedo.logger.debug(f"\tdensity = {density} length/pt_separation")
+        # print(f"tomesh():\n\tline length = {length}")
+        # print(f"\tdensity = {density} length/pt_separation")
 
         x0, x1 = contour.xbounds()
         y0, y1 = contour.ybounds()
@@ -2550,7 +2550,7 @@ class Points(PointsVisual, PointAlgorithms):
             if mesh_resolution is None:
                 resx = int((x1 - x0) / density + 0.5)
                 resy = int((y1 - y0) / density + 0.5)
-                vedo.logger.debug(f"tmesh_resolution = {[resx, resy]}")
+                # print(f"tmesh_resolution = {[resx, resy]}")
             else:
                 if utils.is_sequence(mesh_resolution):
                     resx, resy = mesh_resolution
@@ -2584,12 +2584,12 @@ class Points(PointsVisual, PointAlgorithms):
             return cmesh
         #############################################
 
-        grid_tmp = grid.vertices
+        grid_tmp = grid.vertices.copy()
 
         if jitter:
             np.random.seed(0)
             sigma = 1.0 / np.sqrt(grid.npoints) * grid.diagonal_size() * jitter
-            vedo.logger.debug(f"\tsigma jittering = {sigma}")
+            # print(f"\tsigma jittering = {sigma}")
             grid_tmp += np.random.rand(grid.npoints, 3) * sigma
             grid_tmp[:, 2] = 0.0
 
@@ -2600,13 +2600,6 @@ class Points(PointsVisual, PointAlgorithms):
         for p in contour.vertices:
             out = vgrid_tmp.closest_point(p, radius=density, return_point_id=True)
             todel += out.tolist()
-        # cpoints = contour.vertices
-        # for i, p in enumerate(cpoints):
-        #     if i:
-        #         den = utils.mag(p-cpoints[i-1])/1.732
-        #     else:
-        #         den = density
-        #     todel += vgrid_tmp.closest_point(p, radius=den, return_point_id=True)
 
         grid_tmp = grid_tmp.tolist()
         for index in sorted(list(set(todel)), reverse=True):
@@ -2614,13 +2607,13 @@ class Points(PointsVisual, PointAlgorithms):
 
         points = contour.vertices.tolist() + grid_tmp
         if invert:
-            boundary = reversed(range(contour.npoints))
+            boundary = list(reversed(range(contour.npoints)))
         else:
-            boundary = range(contour.npoints)
+            boundary = list(range(contour.npoints))
 
         dln = Points(points).generate_delaunay2d(mode="xy", boundaries=[boundary])
         dln.compute_normals(points=False)  # fixes reversd faces
-        dln.lw(0.5)
+        dln.lw(1)
 
         dln.pipeline = utils.OperationNode(
             "generate_mesh",
@@ -3195,7 +3188,7 @@ class Points(PointsVisual, PointAlgorithms):
 
                 ![](https://vedo.embl.es/images/basic/delaunay2d.png)
         """
-        plist = self.vertices
+        plist = self.vertices.copy()
 
         #########################################################
         if mode == "scipy":
