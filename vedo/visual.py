@@ -36,6 +36,45 @@ class CommonVisual:
         self.property = None
         self.actor = None
 
+    # @property
+    # def LUT(self):
+    #     """Return the lookup table of the object as a vtk object."""
+    #     return self.mapper.GetLookupTable()
+    
+    # @LUT.setter
+    # def LUT(self, lut):
+    #     """Set the lookup table of the object from a vtk object."""
+    #     self.mapper.SetLookupTable(lut)
+
+
+    @property
+    def LUT(self):
+        """Return the lookup table of the object as a numpy object."""
+        _lut = self.mapper.GetLookupTable()
+        values = []
+        for i in range(_lut.GetTable().GetNumberOfTuples()):
+            # print("LUT i =", i, "value =", _lut.GetTableValue(i))
+            values.append(_lut.GetTableValue(i))
+        return np.array(values)
+
+    @LUT.setter
+    def LUT(self, arr):
+        """
+        Set the lookup table of the object from a numpy object.
+        Consider using `cmap()` or `build_lut()` instead as it allows
+        to set the range of the LUT and to use a string name for the color map.
+        """
+        _newlut = vtk.vtkLookupTable()
+        _newlut.SetNumberOfTableValues(len(arr))
+        if len(arr[0]) == 3:
+            arr = np.insert(arr, 3, 1, axis=1)
+        for i, v in enumerate(arr):
+            _newlut.SetTableValue(i, v)
+        _newlut.SetRange(self.mapper.GetScalarRange())
+        _newlut.Build()
+        self.mapper.SetLookupTable(_newlut)
+        self.mapper.ScalarVisibilityOn()
+
     def show(self, **options):
         """
         Create on the fly an instance of class `Plotter` or use the last existing one to
@@ -47,25 +86,15 @@ class CommonVisual:
         Returns the `Plotter` class instance.
         """
         return vedo.plotter.show(self, **options)
-    
-    @property
-    def LUT(self):
-        """Return the lookup table of the object."""
-        return self.mapper.GetLookupTable()
-    
-    @LUT.setter
-    def LUT(self, lut):
-        """Set the lookup table of the object."""
-        self.mapper.SetLookupTable(lut)
 
     def thumbnail(self, zoom=1.25, size=(200, 200), bg="white", azimuth=0, elevation=0, axes=False):
         """Build a thumbnail of the object and return it as an array."""
         # speed is about 20Hz for size=[200,200]
         ren = vtk.vtkRenderer()
-        ren.AddActor(self)
+        ren.AddActor(self.actor)
         if axes:
             axes = vedo.addons.Axes(self)
-            ren.AddActor(axes)
+            ren.AddActor(axes.actor)
         ren.ResetCamera()
         cam = ren.GetActiveCamera()
         cam.Zoom(zoom)
@@ -85,9 +114,9 @@ class CommonVisual:
         narr = utils.vtk2numpy(arr).T[:3].T.reshape([ny, nx, 3])
         narr = np.ascontiguousarray(np.flip(narr, axis=0))
 
-        ren.RemoveActor(self)
+        ren.RemoveActor(self.actor)
         if axes:
-            ren.RemoveActor(axes)
+            ren.RemoveActor(axes.actor)
         ren_win.Finalize()
         del ren_win
         return narr
@@ -1027,28 +1056,30 @@ class PointsVisual(CommonVisual):
                 lut.SetTableValue(i, r, g, b, alpha[i])
             lut.Build()
 
-        arr.SetLookupTable(lut)
+        # arr.SetLookupTable(lut) # wrong! causes weird instabilities with LUT
 
         data.SetActiveScalars(array_name)
         # data.SetScalars(arr)  # wrong! it deletes array in position 0, never use SetScalars
         # data.SetActiveAttribute(array_name, 0) # boh!
 
-        if data.GetScalars():
-            data.GetScalars().SetLookupTable(lut)
-            data.GetScalars().Modified()
+        # if data.GetScalars():
+        #     data.GetScalars().SetLookupTable(lut)
+        #     data.GetScalars().Modified()
 
         self.mapper.SetLookupTable(lut)
         self.mapper.SetColorModeToMapScalars()  # so we dont need to convert uint8 scalars
 
         self.mapper.ScalarVisibilityOn()
         self.mapper.SetScalarRange(lut.GetRange())
-        if on.startswith("point"):
-            self.mapper.SetScalarModeToUsePointData()
-        else:
-            self.mapper.SetScalarModeToUseCellData()
-        if hasattr(self.mapper, "SetArrayName"):
-            self.mapper.SetArrayName(array_name)
 
+        # this seems unnecessary
+        # if on.startswith("point"):
+        #     self.mapper.SetScalarModeToUsePointData()
+        # else:
+        #     self.mapper.SetScalarModeToUseCellData()
+        # if hasattr(self.mapper, "SetArrayName"):
+        #     self.mapper.SetArrayName(array_name)
+        # self.mapper.Modified()
         return self
 
     def add_trail(self, offset=(0, 0, 0), n=50, c=None, alpha=1.0, lw=2):

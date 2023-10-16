@@ -1068,18 +1068,22 @@ def ScalarBar3D(
             s=(sx, sy),
             res=(1, lut.GetTable().GetNumberOfTuples()),
         )
-        cscals = np.linspace(vmin, vmax, lut.GetTable().GetNumberOfTuples())
+        cscals = np.linspace(vmin, vmax, lut.GetTable().GetNumberOfTuples(), endpoint=True)
 
         if lut.GetScale():  # logarithmic scale
             lut10 = vtk.vtkLookupTable()
             lut10.DeepCopy(lut)
             lut10.SetScaleToLinear()
+            lut10.Build()
             scale.cmap(lut10, cscals, on="cells")
             tk = utils.make_ticks(vmin, vmax, nlabels, logscale=True, useformat=label_format)
         else:
+            # for i in range(lut.GetTable().GetNumberOfTuples()):
+            #     print("LUT i=", i, lut.GetTableValue(i))
             scale.cmap(lut, cscals, on="cells")
             tk = utils.make_ticks(vmin, vmax, nlabels, logscale=False, useformat=label_format)
         ticks_pos, ticks_txt = tk
+    
     scale.lw(0).wireframe(False).lighting("off")
 
     scales = [scale]
@@ -1614,8 +1618,9 @@ class BaseCutter:
     def __init__(self):
         self._implicit_func = None
         self.widget = None
-        self.clipper=None
-        self.cutter=None
+        self.clipper = None
+        self.cutter = None
+        self.remnant = None
         self._alpha = 0.5
         self._keypress_id = None
 
