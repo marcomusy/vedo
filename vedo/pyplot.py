@@ -1302,14 +1302,17 @@ class Histogram2D(Figure):
 
             if scalarbar:
                 sc = g.add_scalarbar3d(ztitle, c=ac).scalarbar
-                sc.SetOrigin(sc.GetBounds()[0],0,0)
-                sc.scale([self.yscale, 1, 1])  ## prescale trick
 
-                # sbnds = sc.xbounds()
-                # sc.scale([self.yscale, 1, 1])
-                # sc.x(sbnds[1])
-                # sc.x(self.x1lim + (sbnds[1] - sbnds[0]) * 0.75)
-                
+                # print(" g.GetBounds()[0]", g.bounds()[:2])
+                # print("sc.GetBounds()[0]",sc.GetBounds()[:2])
+                delta = sc.GetBounds()[0] - g.bounds()[1]
+
+                sc_size = sc.GetBounds()[1] - sc.GetBounds()[0]
+
+                sc.SetOrigin(sc.GetBounds()[0], 0, 0)
+                sc.scale([self.yscale, 1, 1])  ## prescale trick
+                sc.shift(-delta + 0.25*sc_size*self.yscale)
+
                 acts.append(sc)
             acts.append(g)
 

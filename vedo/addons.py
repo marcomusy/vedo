@@ -864,7 +864,7 @@ def ScalarBar(
     c = get_color(c)
     sb = vtk.vtkScalarBarActor()
 
-    # print(sb.GetLabelFormat())
+    # print("GetLabelFormat", sb.GetLabelFormat())
     label_format = label_format.replace(":", "%-#")
     sb.SetLabelFormat(label_format)
 
@@ -944,7 +944,7 @@ def ScalarBar3D(
     pos=None,
     size=(0, 0),
     title_font="",
-    title_xoffset=-1.5,
+    title_xoffset=0,
     title_yoffset=0.0,
     title_size=1.5,
     title_rotation=0.0,
@@ -1065,7 +1065,6 @@ def ScalarBar3D(
         scale = shapes.Grid(
             [-float(sx) * label_offset, 0, 0],
             c=c,
-            alpha=1,
             s=(sx, sy),
             res=(1, lut.GetTable().GetNumberOfTuples()),
         )
@@ -1086,11 +1085,6 @@ def ScalarBar3D(
     scales = [scale]
 
     xbns = scale.xbounds()
-    if pos is None:
-        d = sx / 2
-        if title:
-            d = np.sqrt((bns[1] - bns[0]) ** 2 + sy * sy) / 20
-        pos = (bns[1] - xbns[0] + d, (bns[2] + bns[3]) / 2, bns[4])
 
     lsize = sy / 60 * label_size
 
@@ -1135,13 +1129,20 @@ def ScalarBar3D(
             pos=(0, 0, 0),
             s=sy / 50 * title_size,
             c=c,
-            justify="centered",
+            justify="centered-bottom",
             italic=italic,
             font=title_font,
         )
         t.rotate_z(90 + title_rotation)
         t.pos(sx * title_xoffset, title_yoffset, 0)
         tacts.append(t)
+
+    if pos is None:
+        tsize = 0
+        if title:
+            bbt = t.bounds()
+            tsize = bbt[1] - bbt[0]
+        pos = (bns[1] + tsize + sx*1.5, (bns[2]+bns[3])/2, bns[4])
 
     # build below scale
     if lut.GetUseBelowRangeColor():
@@ -1266,9 +1267,7 @@ def ScalarBar3D(
 
     for m in tacts+scales:
         m.shift(pos)
-        m.actor.PickableOff()
         m.property.LightingOff()
-        m.property.SetInterpolationToFlat()
 
     asse = Assembly(scales + tacts)
 
@@ -1276,7 +1275,7 @@ def ScalarBar3D(
     # print("ScalarBar3D pos",pos, bb)
     # asse.SetOrigin(pos)
     asse.SetOrigin(bb[0], bb[2], bb[4])
-    # asse.SetOrigin(asse.GetBounds()[0],0,0) #in pyplot
+    # asse.SetOrigin(bb[0],0,0) #in pyplot line 1312
 
     asse.PickableOff()
     asse.UseBoundsOff()

@@ -215,7 +215,7 @@ class CommonVisual:
         pos=None,
         size=(0, 0),
         title_font="",
-        title_xoffset=-1.5,
+        title_xoffset=-1.2,
         title_yoffset=0.0,
         title_size=1.5,
         title_rotation=0.0,
