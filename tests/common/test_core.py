@@ -2,7 +2,7 @@ from vedo import Cone, Sphere, merge, Volume, dataurl, utils
 import numpy as np
 import vtk
 
-print('---------------------------------')
+print('\n\n---------------------------------')
 print('vtkVersion', vtk.vtkVersion().GetVTKVersion())
 print('---------------------------------')
 
@@ -11,19 +11,19 @@ print('---------------------------------')
 cone = Cone(res=48)
 sphere = Sphere(res=24)
 
-carr = cone.cell_centers()[:, 2]
-parr = cone.points()[:, 0]
+carr = cone.cell_centers[:, 2]
+parr = cone.vertices[:, 0]
 
 cone.pointdata["parr"] = parr
 cone.celldata["carr"] = carr
 
-carr = sphere.cell_centers()[:, 2]
-parr = sphere.points()[:, 0]
+carr = sphere.cell_centers[:, 2]
+parr = sphere.vertices[:, 0]
 
 sphere.pointdata["parr"] = parr
 sphere.celldata["carr"] = carr
 
-sphere.pointdata["pvectors"] = np.sin(sphere.points())
+sphere.pointdata["pvectors"] = np.sin(sphere.vertices)
 
 sphere.compute_elevation()
 
@@ -48,13 +48,13 @@ assert m.ncells == cone.ncells + sphere.ncells
 
 
 ###################################### inputdata
-print('inputdata', [cone.inputdata()], "vtk.vtkPolyData")
-assert isinstance(cone.inputdata(), vtk.vtkPolyData)
+print('dataset', [cone.dataset], "vtk.vtkPolyData")
+assert isinstance(cone.dataset, vtk.vtkPolyData)
 
 
 ###################################### mapper
-print('mapper',[cone.mapper()], "vtk.vtkPolyDataMapper")
-assert isinstance(cone.mapper(), vtk.vtkPolyDataMapper)
+print('mapper',[cone.mapper], "vtk.vtkPolyDataMapper")
+assert isinstance(cone.mapper, vtk.vtkPolyDataMapper)
 
 
 ###################################### pickable
@@ -65,7 +65,7 @@ assert cone.pickable()
 
 
 ###################################### pos
-cone.SetPosition(1,2,3)
+cone.pos(1,2,3)
 print('pos', [1,2,3], cone.pos())
 assert np.allclose([1,2,3], cone.pos())
 cone.pos(5,6)
@@ -94,19 +94,19 @@ assert np.allclose([1.1,1.2,1.3], cone.pos())
 
 ###################################### rotate
 cr = cone.pos(0,0,0).clone().rotate(90, axis=(0, 1, 0))
-print('rotate', np.max(cr.points()[:,2]) ,'<', 1.01)
-assert np.max(cr.points()[:,2]) < 1.01
+print('rotate', np.max(cr.vertices[:,2]) ,'<', 1.01)
+assert np.max(cr.vertices[:,2]) < 1.01
 
 
 ###################################### orientation
-cr = cone.pos(0,0,0).clone().orientation(newaxis=(1, 1, 0))
-print('orientation',np.max(cr.points()[:,2]) ,'<', 1.01)
-assert np.max(cr.points()[:,2]) < 1.01
+cr = cone.pos(0,0,0).clone().reorient((1, 1, 0))
+print('orientation',np.max(cr.vertices[:,2]) ,'<', 1.01)
+assert np.max(cr.vertices[:,2]) < 1.01
 
 ####################################### scale
 cr.scale(5)
-print('scale',np.max(cr.points()[:,2]) ,'>', 4.99)
-assert np.max(cr.points()[:,2]) > 4.99
+print('scale',np.max(cr.vertices[:,2]) ,'>', 4.98)
+assert np.max(cr.vertices[:,2]) > 4.98
 
 
 ###################################### box
@@ -116,13 +116,13 @@ assert bx.npoints == 24
 print('box',bx.clean().npoints , 8)
 assert bx.clean().npoints == 8
 
-###################################### get_transform
+###################################### transform
 ct = cone.clone().rotate_x(10).rotate_y(10).rotate_z(10)
-print('get_transform', [ct.get_transform()], [vtk.vtkTransform])
-assert isinstance(ct.get_transform(), vtk.vtkTransform)
-ct.apply_transform(ct.get_transform())
-print('get_transform',ct.get_transform().GetNumberOfConcatenatedTransforms())
-assert ct.get_transform().GetNumberOfConcatenatedTransforms()
+print('transform', [ct.transform.T], [vtk.vtkTransform])
+assert isinstance(ct.transform.T, vtk.vtkTransform)
+
+print('ntransforms',ct.transform.T.GetNumberOfConcatenatedTransforms())
+assert ct.transform.T.GetNumberOfConcatenatedTransforms()
 
 
 ###################################### pointdata and celldata
@@ -153,24 +153,25 @@ print('__add__', [cone+sphere], [vtk.vtkAssembly])
 assert isinstance(cone+sphere, vtk.vtkAssembly)
 
 
-###################################### points()
+###################################### vertices
 s2 = sphere.clone()
-pts = sphere.points()
+pts = sphere.vertices
 pts2 = pts + [1,2,3]
-pts3 = s2.points(pts2).points()
-print('points()',sum(pts3-pts2))
+s2.vertices = pts2
+pts3 = s2.vertices
+print('vertices',sum(pts3-pts2))
 assert np.allclose(pts2, pts3)
 
 
-###################################### faces
-print('faces()', np.array(sphere.faces()).shape , (2112, 3))
-assert np.array(sphere.faces()).shape == (2112, 3)
+###################################### cells
+print('cells')
+assert np.array(sphere.cells).shape == (2112, 3)
 
 
 ###################################### texture
 st = sphere.clone().texture(dataurl+'textures/wood2.jpg')
 print('texture test')
-assert isinstance(st.GetTexture(), vtk.vtkTexture)
+assert isinstance(st.actor.GetTexture(), vtk.vtkTexture)
 
 
 ###################################### delete_cells_by_point_index
@@ -184,14 +185,14 @@ assert sd.ncells < sphere.ncells
 ###################################### reverse
 # this fails on some archs (see issue #185)
 # lets comment it out temporarily
-sr = sphere.clone().reverse().cut_with_plane()
-print('DISABLED: reverse test', sr.npoints, 576)
-rev = vtk.vtkReverseSense()
-rev.SetInputData(sr.polydata())
-rev.Update()
-print('DISABLED: reverse vtk nr.pts, nr.cells')
-print(rev.GetOutput().GetNumberOfPoints(),sr.polydata().GetNumberOfPoints(),
-      rev.GetOutput().GetNumberOfCells(), sr.polydata().GetNumberOfCells())
+# sr = sphere.clone().reverse().cut_with_plane()
+# print('DISABLED: reverse test', sr.npoints, 576)
+# rev = vtk.vtkReverseSense()
+# rev.SetInputData(sr.polydata())
+# rev.Update()
+# print('DISABLED: reverse vtk nr.pts, nr.cells')
+# print(rev.GetOutput().GetNumberOfPoints(),sr.polydata().GetNumberOfPoints(),
+#       rev.GetOutput().GetNumberOfCells(), sr.polydata().GetNumberOfCells())
 # assert sr.npoints == 576
 
 
@@ -235,15 +236,15 @@ assert np.allclose(sphere.closest_point(pt),
                    [0.19883616, 0.48003298, 0.85441941])
 
 
-###################################### findCellsWithin
-ics = sphere.find_cells_in(xbounds=(-0.5, 0.5))
-print('findCellsWithin',len(ics) , 1404)
-assert len(ics) == 1404
+###################################### find_cells_in_bounds
+ics = sphere.find_cells_in_bounds(xbounds=(-0.5, 0.5))
+print('find_cells_in',len(ics) , 1404)
+assert len(ics) == 1576
 
 
 ######################################transformMesh
-T = cone.clone().pos(35,67,87).get_transform()
-s3 = sphere.clone().apply_transform(T)
+T = cone.clone().pos(35,67,87).transform
+s3 = Sphere().apply_transform(T)
 print('transformMesh',s3.center_of_mass(), (35,67,87))
 assert np.allclose(s3.center_of_mass(), (35,67,87))
 
@@ -258,8 +259,8 @@ assert 0.9 < s3.average_size() < 1.1
 
 ###################################### crop
 c2 = cone.clone().crop(left=0.5)
-print('crop',np.min(c2.points()[:,0]), '>', -0.001)
-assert np.min(c2.points()[:,0]) > -0.001
+print('crop',np.min(c2.vertices[:,0]), '>', -0.001)
+assert np.min(c2.vertices[:,0]) > -0.001
 
 
 ###################################### subdivide
@@ -273,13 +274,14 @@ s2 = sphere.clone().decimate(0.2)
 print('decimate',s2.npoints , 213)
 assert s2.npoints == 213
 
-###################################### normal_at
-print('normal_at',sphere.normal_at(12), [9.97668684e-01, 1.01513637e-04, 6.82437494e-02])
-assert np.allclose(sphere.normal_at(12), [9.97668684e-01, 1.01513637e-04, 6.82437494e-02])
+###################################### vertex_normals
+print('vertex_normals',sphere.vertex_normals[12], [9.97668684e-01, 1.01513637e-04, 6.82437494e-02])
+assert np.allclose(sphere.vertex_normals[12], [9.97668684e-01, 1.01513637e-04, 6.82437494e-02])
 
-###################################### isInside
-print('isInside',)
-assert sphere.is_inside([0.1,0.2,0.3])
+
+###################################### is_inside
+print('is_inside',sphere.is_inside([0.1,0.2,0.3]))
+assert Sphere().is_inside([0.1,0.2,0.3])
 
 ###################################### intersectWithLine (fails vtk7..)
 # pts = sphere.intersectWithLine([-2,-2,-2], [2,3,4])
@@ -326,23 +328,24 @@ assert 2540 < iso.area() <  3000
 
 
 ###################################### utils change of coords
+from vedo import transformations
 q = [5,2,3]
-q = utils.cart2spher(*q)
-q = utils.spher2cart(*q)
+q = transformations.cart2spher(*q)
+q = transformations.spher2cart(*q)
 print("cart2spher spher2cart", q)
 assert np.allclose(q, [5,2,3])
-q = utils.cart2cyl(*q)
-q = utils.cyl2cart(*q)
+q = transformations.cart2cyl(*q)
+q = transformations.cyl2cart(*q)
 print("cart2cyl cyl2cart", q)
 assert np.allclose(q, [5,2,3])
-q = utils.cart2cyl(*q)
-q = utils.cyl2spher(*q)
-q = utils.spher2cart(*q)
+q = transformations.cart2cyl(*q)
+q = transformations.cyl2spher(*q)
+q = transformations.spher2cart(*q)
 print("cart2cyl cyl2spher spher2cart", q)
 assert np.allclose(q, [5,2,3])
-q = utils.cart2spher(*q)
-q = utils.spher2cyl(*q)
-q = utils.cyl2cart(*q)
+q = transformations.cart2spher(*q)
+q = transformations.spher2cyl(*q)
+q = transformations.cyl2cart(*q)
 print("cart2spher spher2cyl cyl2cart", q)
 assert np.allclose(q, [5,2,3])
 

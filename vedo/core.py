@@ -791,7 +791,9 @@ class CommonAlgorithms:
 
         The output format is: `[[id0 ... idn], [id0 ... idm],  etc]`.
         """
-        arr1d = utils.vtk2numpy(self.dataset.GetCells().GetData())
+        arr1d = utils.vtk2numpy(self.dataset.GetPolys().GetData())
+        if arr1d.size == 0:
+            arr1d = utils.vtk2numpy(self.dataset.GetStrips().GetData())
 
         # Get cell connettivity ids as a 1D array. vtk format is:
         # [nids1, id0 ... idn, niids2, id0 ... idm,  etc].

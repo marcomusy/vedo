@@ -1512,8 +1512,15 @@ def export_window(fileoutput, binary=False):
         allobjs = list(set(allobjs))  # make sure its unique
 
         for a in allobjs:
-            if a.GetVisibility():
-                sdict["objects"].append(tonumpy(a))
+            try:
+                if a.actor.GetVisibility():
+                    sdict["objects"].append(tonumpy(a))
+            except AttributeError:
+                try:
+                    if a.GetVisibility():
+                        sdict["objects"].append(tonumpy(a))
+                except AttributeError:
+                    pass
 
         if fr.endswith(".npz"):
             np.savez_compressed(fileoutput, vedo_scenes=[sdict])
@@ -1696,7 +1703,6 @@ def import_window(fileinput, mtl_file=None, texture_path=None):
             # colors.printc(" -> try to load a single object with load().", c='r')
             objs = [loadnumpy(fileinput)]
 
-        plt.actors = objs
         plt.add(objs)
         return plt
 

@@ -12,7 +12,8 @@ x = np.random.rand(N)
 y = np.random.rand(N)
 RGBA = np.c_[x*255, y*255, np.zeros(N), y*255]
 
-pts = Points([x,y]).point_size(1)
+pts = np.array([x,y]).T
+pts = Points(pts).point_size(1)
 pts.pointcolors = RGBA
 
 # use mouse to zoom, press r to reset

@@ -1440,8 +1440,12 @@ class Mesh(MeshVisual, Points):
         return self
 
     def is_inside(self, point, tol=1e-05):
-        """Return True if point is inside a polydata closed surface."""
-        poly = self.dataset
+        """
+        Return True if point is inside a polydata closed surface.
+        
+        Note:
+            if you have many points to check use `inside_points()` instead.
+        """
         points = vtk.vtkPoints()
         points.InsertNextPoint(point)
         poly = vtk.vtkPolyData()
@@ -1450,9 +1454,9 @@ class Mesh(MeshVisual, Points):
         sep.SetTolerance(tol)
         sep.CheckSurfaceOff()
         sep.SetInputData(poly)
-        sep.SetSurfaceData(poly)
+        sep.SetSurfaceData(self.dataset)
         sep.Update()
-        return sep.IsInside(0)
+        return bool(sep.IsInside(0))
 
     def inside_points(self, pts, invert=False, tol=1e-05, return_ids=False):
         """

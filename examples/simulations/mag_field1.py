@@ -46,7 +46,7 @@ def func(evt):
     )
     streamlines.c('black').linewidth(2)
     plt.remove("Arrows", "StreamLines", "Isosurfaces", "Axes")
-    plt.add(arrows, streamlines, isos,  Axes(streamlines))
+    plt.add(arrows, streamlines, isos,  Axes(streamlines)).render()
 
 
 probes = utils.pack_spheres([-2,2, -2,2, -2,2], radius=0.7)

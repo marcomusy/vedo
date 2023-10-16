@@ -15,7 +15,7 @@ fig = Figure([-1,12], [-2,14], aspect=16/9, padding=0,
 )
 print(f"yscale = {fig.yscale}")
 
-man = Mesh(dataurl+'man.vtk').scale(1.4).pos(7,4).rotate_x(-90, around='itself')
+man = Mesh(dataurl+'man.vtk').scale(1.4).pos(7,4).rotate_x(-90, around=[7,4,0])
 fig += man
 
 pic = Picture("https://vedo.embl.es/examples/data/textures/bricks.jpg")
@@ -66,9 +66,9 @@ fig += shapes.Grid().scale(2).pos(7,11)
 
 fig += shapes.Rectangle([2,6], [4,8], radius=0.1).c('b5')
 
-fig += shapes.Cone().scale(2).pos(10,6).rotate_y(90, around='itself')
+fig += shapes.Cone().scale(2).pos(10,6).rotate_y(90, around=[10,6,0])
 fig += shapes.Text3D("MyTest3D", c='k', justify='center', font="Quikhand")\
-    .pos(5,11).scale(0.5).rotate_z(20, around='itself')
+    .pos(5,11).scale(0.5).rotate_z(20, around=[5,11,0])
 
 fig += shapes.Latex('sin(x^2)', res=150).scale(3).pos(10,0)
 

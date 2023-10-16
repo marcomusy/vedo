@@ -467,19 +467,53 @@ def vtk2numpy(varr):
     return vtk_to_numpy(varr)
 
 
-def make3d(pts, transpose=False):
+# def make3d(pts):
+#     """
+#     Make an array which might be 2D to 3D.
+
+#     Array can also be in the form `[allx, ally, allz]`.
+#     """
+#     pts = np.asarray(pts)
+
+#     if pts.dtype == "object":
+#         raise ValueError("Cannot form a valid numpy array, input may be non-homogenous")
+
+#     if pts.size == 0:  # empty list
+#         return pts
+
+#     if pts.ndim == 1:
+#         if pts.shape[0] == 2:
+#             return np.hstack([pts, [0]]).astype(pts.dtype)
+#         elif pts.shape[0] == 3:
+#             return pts
+#         else:
+#             raise ValueError
+
+#     if pts.shape[1] == 3:
+#         return pts
+
+#     if 2 <= pts.shape[0] <= 3 and pts.shape[1] > 3:
+#         pts = pts.T
+
+#     if pts.shape[1] == 2:
+#         return np.c_[pts, np.zeros(pts.shape[0], dtype=pts.dtype)]
+
+#     if pts.shape[1] != 3:
+#         raise ValueError("input shape is not supported.")
+#     return pts
+
+def make3d(pts):
     """
     Make an array which might be 2D to 3D.
 
     Array can also be in the form `[allx, ally, allz]`.
-    Use `transpose` to resolve ambiguous cases (eg, shapes like `[3,3]`).
     """
     pts = np.asarray(pts)
 
     if pts.dtype == "object":
         raise ValueError("Cannot form a valid numpy array, input may be non-homogenous")
 
-    if pts.shape[0] == 0:  # empty list
+    if pts.size == 0:  # empty list
         return pts
 
     if pts.ndim == 1:
@@ -493,8 +527,8 @@ def make3d(pts, transpose=False):
     if pts.shape[1] == 3:
         return pts
 
-    if transpose or (2 <= pts.shape[0] <= 3 and pts.shape[1] > 3):
-        pts = pts.T
+    # if 2 <= pts.shape[0] <= 3 and pts.shape[1] > 3:
+    #     pts = pts.T
 
     if pts.shape[1] == 2:
         return np.c_[pts, np.zeros(pts.shape[0], dtype=pts.dtype)]

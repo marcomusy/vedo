@@ -8,7 +8,7 @@ import numpy as np
 ls = np.linspace(0, 10, 8)
 X, Y, Z = np.meshgrid(ls, ls, ls)
 xr, yr, zr = X.ravel(), Y.ravel(), Z.ravel()
-positions = np.vstack([xr, yr, zr])
+positions = np.vstack([xr, yr, zr]).T
 
 sources = [(5, 8, 5), (8, 5, 5), (5, 2, 5)]
 deltas = [(1, 1, 0.2), (1, 0, -0.8), (1, -1, 0.2)]
@@ -46,7 +46,7 @@ itrz = Rbf(x, y, z, dz)  #  cartesian dimension
 positions_x = itrx(xr, yr, zr) + xr
 positions_y = itry(xr, yr, zr) + yr
 positions_z = itrz(xr, yr, zr) + zr
-positions_rbf = np.vstack([positions_x, positions_y, positions_z])
+positions_rbf = np.vstack([positions_x, positions_y, positions_z]).T
 
 warped_rbf = Points(positions_rbf, r=2).alpha(0.4).color("lg").point_size(10)
 allarr_rbf = Arrows(apos.vertices, warped_rbf.vertices).color("k8")

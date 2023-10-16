@@ -2202,7 +2202,10 @@ class Icon(vtk.vtkOrientationMarkerWidget):
         """
         super().__init__()
 
-        self.SetOrientationMarker(mesh)
+        try:
+            self.SetOrientationMarker(mesh.actor)
+        except AttributeError:
+            self.SetOrientationMarker(mesh)
 
         if utils.is_sequence(pos):
             self.SetViewport(pos[0] - size, pos[1] - size, pos[0] + size, pos[1] + size)

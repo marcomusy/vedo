@@ -3628,7 +3628,7 @@ def whisker(data, s=0.25, c="k", lw=2, bc="blue", alpha=0.25, r=5, jitter=True, 
 
     pts = None
     if r:
-        pts = shapes.Points([xvals, data], c=c, r=r)
+        pts = shapes.Points(np.array([xvals, data]).T, c=c, r=r)
 
     rec = shapes.Rectangle([-s / 2, dq25], [s / 2, dq75], c=bc, alpha=alpha)
     rec.property.LightingOff()

@@ -1602,7 +1602,12 @@ def StreamLines(
         output = scalar_surface.GetOutput()
 
     if tubes:
-        radius = tubes.pop("radius", domain.diagonal_size() / 500)
+        try:
+            dd = domain.GetBounds()
+            dd = np.sqrt((dd[1] - dd[0]) ** 2 + (dd[3] - dd[2]) ** 2 + (dd[5] - dd[4]) ** 2)
+        except AttributeError:
+            dd = domain.diagonal_size()
+        radius = tubes.pop("radius", dd / 500)
         res = tubes.pop("res", 24)
         radfact = tubes.pop("max_radius_factor", 10)
         ratio = tubes.pop("ratio", 1)
@@ -4872,7 +4877,7 @@ class Latex(Picture):
         super().__init__(tmp_file.name, channels=4)
         self.pos(pos)
         self.alpha(alpha)
-        self.scale(0.25 / res * s, 0.25 / res * s, 0.25 / res * s)
+        self.scale([0.25 / res * s, 0.25 / res * s, 0.25 / res * s])
         self.name = "Latex"
 
         # except:

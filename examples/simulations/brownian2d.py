@@ -4,15 +4,12 @@ The spheres collide elastically with themselves and
 with the walls of the box. The masses of the spheres
 are proportional to their radius**3 (as in 3D)"""
 # Adapted by M. Musy from E. Velasco (2009)
-from vedo import Plotter, progressbar, dot, Grid, Sphere, Point
+from vedo import *
 import random
-import numpy as np
-print(__doc__)
 
 screen_w = 800
 screen_h = 800
 
-plt = Plotter(size=(screen_w, screen_h), axes=0, interactive=0)
 
 # Constants and time step
 Nsp = 200  # Number of small spheres
@@ -57,16 +54,9 @@ for s in range(1, Nsp):
     ListVel.append((Rb * random.uniform(-1, 1), Rb * random.uniform(-1, 1)))
 Vel = np.array(ListVel)
 
-# Create the spheres
-Spheres = [Sphere(pos=(Pos[0][0], Pos[0][1], 0), r=Radius[0], c="red", res=12).phong()]
-for s in range(1, Nsp):
-    a = Sphere(pos=(Pos[s][0], Pos[s][1], 0), r=Radius[s], c="blue", res=6).phong()
-    Spheres.append(a)
-plt += Spheres
-
+plt = Plotter(size=(screen_w, screen_h), interactive=0)
 plt += Grid(s=[screen_w,screen_w])
-
-plt.show()
+plt.show(zoom='tight')
 
 # Auxiliary variables
 Id = np.identity(Nsp)
@@ -127,14 +117,16 @@ for i in progressbar(1000, c="r"):
         Vel[s1] += x2 * DV0
         Vel[s2] -= x1 * DV0
 
-    # Update the location of the spheres
-    for s in range(Nsp):
-        Spheres[s].pos([Pos[s][0], Pos[s][1], 0])
-
-    if not int(i) % 10:  # every ten steps:
+    # spheres = Spheres(Pos, r=30, c="blue4", res=6).phong()
+    spheres = Points(Pos, r=20, c="blue4")
+    # print(Pos, Radius[0])
+    # spheres.show().interactive()
+    # exit()
+    if not int(i) % 20:  # every 20 steps:
         rsp = [Pos[0][0], Pos[0][1], 0]
-        rsv = [Vel[0][0], Vel[0][1], 0]
-        plt += Point(rsp, c="r", r=5, alpha=0.1)  # leave a point trace
-        plt.render()  # render scene
+        plt.add(Point(rsp, c="r", r=5, alpha=0.1))  # leave a point trace
+
+    spheres.name = "particles"
+    plt.remove("particles").add(spheres).render()
 
 plt.interactive().close()

@@ -498,7 +498,7 @@ class RayCastPlotter(Plotter):
         self.alphaslider1 = 0.66
         self.alphaslider2 = 1
 
-        self.property = volume.GetProperty()
+        self.property = volume.property
         img = volume.dataset
 
         if volume.dimensions()[2] < 3:
@@ -706,7 +706,7 @@ class IsosurfaceBrowser(Plotter):
         )
 
         ### GPU ################################
-        if use_gpu and hasattr(volume.GetProperty(), "GetIsoSurfaceValues"):
+        if use_gpu and hasattr(volume.property, "GetIsoSurfaceValues"):
 
             scrange = volume.scalar_range()
             delta = scrange[1] - scrange[0]
@@ -721,9 +721,9 @@ class IsosurfaceBrowser(Plotter):
                 value = widget.GetRepresentation().GetValue()
                 isovals.SetValue(0, value)
 
-            isovals = volume.GetProperty().GetIsoSurfaceValues()
+            isovals = volume.property.GetIsoSurfaceValues()
             isovals.SetValue(0, isovalue)
-            self.renderer.AddActor(volume.mode(5).alpha(alpha).c(c))
+            self.add(volume.mode(5).alpha(alpha).cmap(c))
 
             self.add_slider(
                 slider_isovalue,
@@ -1568,7 +1568,7 @@ class Animation(Plotter):
             for tt in rng:
                 inputvalues = []
                 for a in acts:
-                    pr = a.GetProperty()
+                    pr = a.property
                     aa = pr.GetAmbient()
                     ad = pr.GetDiffuse()
                     asp = pr.GetSpecular()
@@ -1581,7 +1581,7 @@ class Animation(Plotter):
                 self.events.append((tt, self.change_lighting, acts, inputvalues))
         else:
             for i, a in enumerate(self._performers):
-                pr = a.GetProperty()
+                pr = a.property
                 vals = self._inputvalues[i]
                 pr.SetAmbient(vals[0])
                 pr.SetDiffuse(vals[1])
