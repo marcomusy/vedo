@@ -297,8 +297,8 @@ class DataArrayHelper:
             pd = self.obj.dataset.GetFieldData()
             if pd.GetNumberOfArrays():
                 out = "\x1b[2m\x1b[1m\x1b[7mMeta Data"
-                if self.actor.name:
-                    out += f" in {self.actor.name}"
+                if self.obj.name:
+                    out += f" in {self.obj.name}"
                 out += f" contains {pd.GetNumberOfArrays()} entries\x1b[0m"
                 for i in range(pd.GetNumberOfArrays()):
                     varr = pd.GetAbstractArray(i)
@@ -313,6 +313,14 @@ class DataArrayHelper:
 ###############################################################################
 class CommonAlgorithms:
     """Common algorithms."""
+
+    def __init__(self):
+
+        self.dataset = None
+        # self._update = lambda a, reset_locators=0: a
+        self.pipeline = None
+        self.top = np.array([0, 0, 1])
+        self.base = np.array([0, 0, 0])
 
     @property
     def pointdata(self):
@@ -365,12 +373,6 @@ class CommonAlgorithms:
         """
         return DataArrayHelper(self, 2)
 
-    def add_observer(self, event_name, func, priority=0):
-        """Add a callback function that will be called when an event occurs."""
-        event_name = utils.get_vtk_name_event(event_name)
-        idd = self.AddObserver(event_name, func, priority)
-        return idd
-
     def memory_address(self):
         """
         Return a unique memory address integer which may serve as the ID of the
@@ -378,7 +380,7 @@ class CommonAlgorithms:
         """
         # https://www.linkedin.com/pulse/speedup-your-code-accessing-python-vtk-objects-from-c-pletzer/
         # https://github.com/tfmoraes/polydata_connectivity
-        return int(self.GetAddressAsString("")[5:], 16)
+        return int(self.dataset.GetAddressAsString("")[5:], 16)
 
     def memory_size(self):
         """
@@ -565,7 +567,6 @@ class CommonAlgorithms:
             # reset mesh to identity matrix position/rotation:
             self.point_locator = None
             self.cell_locator = None
-            self.actor.PokeMatrix(vtk.vtkMatrix4x4())
             self.transform = LinearTransform()
             return self
 
@@ -594,7 +595,7 @@ class CommonAlgorithms:
         """
         # Get cell connettivity ids as a 1D array. The vtk format is:
         #    [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
-        arr1d = vtk2numpy(self.dataset.GetLines().GetData())
+        arr1d = utils.vtk2numpy(self.dataset.GetLines().GetData())
         i = 0
         conn = []
         n = len(arr1d)
@@ -613,7 +614,7 @@ class CommonAlgorithms:
         Get lines connectivity ids as a numpy array.
         Format is e.g. [2,  10,20,  3, 10,11,12,  2, 70,80, ...]
         """
-        return vtk2numpy(self.dataset.GetLines().GetData())
+        return utils.vtk2numpy(self.dataset.GetLines().GetData())
 
     def mark_boundaries(self):
         """
@@ -623,7 +624,7 @@ class CommonAlgorithms:
         mb = vtk.vtkMarkBoundaryFilter()
         mb.SetInputData(self.dataset)
         mb.Update()
-        self.DeepCopy(mb.GetOutput())
+        self.dataset.DeepCopy(mb.GetOutput())
         self.pipeline = utils.OperationNode("mark_boundaries", parents=[self])
         return self
 
@@ -645,15 +646,15 @@ class CommonAlgorithms:
                 bnds[4] = zbounds[0]
                 bnds[5] = zbounds[1]
 
-        cellIds = vtk.vtkIdList()
+        cell_ids = vtk.vtkIdList()
         if not self.cell_locator:
             self.cell_locator = vtk.vtkCellTreeLocator()
             self.cell_locator.SetDataSet(self.dataset)
             self.cell_locator.BuildLocator()
-        self.cell_locator.FindCellsWithinBounds(bnds, cellIds)
+        self.cell_locator.FindCellsWithinBounds(bnds, cell_ids)
         cids = []
-        for i in range(cellIds.GetNumberOfIds()):
-            cid = cellIds.GetId(i)
+        for i in range(cell_ids.GetNumberOfIds()):
+            cid = cell_ids.GetId(i)
             cids.append(cid)
         return np.array(cids)
 
@@ -661,16 +662,15 @@ class CommonAlgorithms:
         """
         Find cells that are intersected by a line segment.
         """
-        cellIds = vtk.vtkIdList()
+        cell_ids = vtk.vtkIdList()
         if not self.cell_locator:
             self.cell_locator = vtk.vtkCellTreeLocator()
             self.cell_locator.SetDataSet(self.dataset)
             self.cell_locator.BuildLocator()
-        self.cell_locator.FindCellsWithinBounds(bnds, cellIds)
-        self.cell_locator.FindCellsAlongLine(p0, p1, tol, cellsIds)   
+        self.cell_locator.FindCellsAlongLine(p0, p1, tol, cell_ids)   
         cids = []
-        for i in range(cellIds.GetNumberOfIds()):
-            cid = cellIds.GetId(i)
+        for i in range(cell_ids.GetNumberOfIds()):
+            cid = cell_ids.GetId(i)
             cids.append(cid)
         return np.array(cids)
 
@@ -678,16 +678,15 @@ class CommonAlgorithms:
         """
         Find cells that are intersected by a plane.
         """
-        cellIds = vtk.vtkIdList()
+        cell_ids = vtk.vtkIdList()
         if not self.cell_locator:
             self.cell_locator = vtk.vtkCellTreeLocator()
             self.cell_locator.SetDataSet(self.dataset)
             self.cell_locator.BuildLocator()
-        self.cell_locator.FindCellsWithinBounds(bnds, cellIds)
-        self.cell_locator.FindCellsAlongPlane(origin, normal, tol, cellsIds)   
+        self.cell_locator.FindCellsAlongPlane(origin, normal, tol, cell_ids)   
         cids = []
-        for i in range(cellIds.GetNumberOfIds()):
-            cid = cellIds.GetId(i)
+        for i in range(cell_ids.GetNumberOfIds()):
+            cid = cell_ids.GetId(i)
             cids.append(cid)
         return np.array(cids)
 
@@ -712,7 +711,7 @@ class CommonAlgorithms:
                 n += 1
 
         self.dataset.RemoveDeletedCells()
-        self.mapper.Modified()
+        self.dataset.Modified()
         self.pipeline = utils.OperationNode(f"delete {n} cells\nby point index", parents=[self])
         return self
 
@@ -739,7 +738,6 @@ class CommonAlgorithms:
         else:
             c2p.ProcessAllArraysOn()
         c2p.Update()
-        self.mapper.SetScalarModeToUsePointData()
         self._update(c2p.GetOutput(), reset_locators=False)
         self.pipeline = utils.OperationNode("map cell\nto point data", parents=[self])
         return self
@@ -780,7 +778,6 @@ class CommonAlgorithms:
         self.point_locator = None
         self.cell_locator = None
         self.line_locator = None
-        self.actor.PokeMatrix(vtk.vtkMatrix4x4())
         self.transform = LinearTransform()
         return self
 
@@ -835,7 +832,6 @@ class CommonAlgorithms:
         else:
             p2c.ProcessAllArraysOn()
         p2c.Update()
-        self.mapper.SetScalarModeToUseCellData()
         self._update(p2c.GetOutput(), reset_locators=False)
         self.pipeline = utils.OperationNode("map point\nto cell data", parents=[self])
         return self
@@ -907,7 +903,7 @@ class CommonAlgorithms:
 
         Arguments:
             kernel : (str)
-                available kernels are [shepard, gaussian, linear, voronoi]
+                available kernels are [shepard, gaussian, linear]
             null_strategy : (int)
                 specify a strategy to use when encountering a "null" point
                 during the interpolation process. Null points occur when the local neighborhood
@@ -957,8 +953,8 @@ class CommonAlgorithms:
             kern.SetSharpness(2)
         elif kernel.lower() == "linear":
             kern = vtk.vtkLinearKernel()
-        elif kernel.lower() == "voronoi":
-            kern = vtk.vtkProbabilisticVoronoiKernel()
+        # elif kernel.lower() == "voronoi":
+        #     kern = vtk.vtkProbabilisticVoronoiKernel()
         else:
             vedo.logger.error("available kernels are: [shepard, gaussian, linear, voronoi]")
             raise RuntimeError()
@@ -1201,49 +1197,49 @@ class CommonAlgorithms:
         )
         return out
 
-    def tomesh(self, fill=True, shrink=1.0):
-        """
-        Build a polygonal Mesh from the current object.
+    # def tomesh(self, fill=True, shrink=1.0):
+    #     """
+    #     Build a polygonal Mesh from the current object.
 
-        If `fill=True`, the interior faces of all the cells are created.
-        (setting a `shrink` value slightly smaller than the default 1.0
-        can avoid flickering due to internal adjacent faces).
+    #     If `fill=True`, the interior faces of all the cells are created.
+    #     (setting a `shrink` value slightly smaller than the default 1.0
+    #     can avoid flickering due to internal adjacent faces).
 
-        If `fill=False`, only the boundary faces will be generated.
-        """
-        gf = vtk.vtkGeometryFilter()
-        if fill:
-            sf = vtk.vtkShrinkFilter()
-            sf.SetInputData(self.dataset)
-            sf.SetShrinkFactor(shrink)
-            sf.Update()
-            gf.SetInputData(sf.GetOutput())
-            gf.Update()
-            poly = gf.GetOutput()
-            if shrink == 1.0:
-                cleanPolyData = vtk.vtkCleanPolyData()
-                cleanPolyData.PointMergingOn()
-                cleanPolyData.ConvertLinesToPointsOn()
-                cleanPolyData.ConvertPolysToLinesOn()
-                cleanPolyData.ConvertStripsToPolysOn()
-                cleanPolyData.SetInputData(poly)
-                cleanPolyData.Update()
-                poly = cleanPolyData.GetOutput()
-        else:
-            gf.SetInputData(self.dataset)
-            gf.Update()
-            poly = gf.GetOutput()
+    #     If `fill=False`, only the boundary faces will be generated.
+    #     """
+    #     gf = vtk.vtkGeometryFilter()
+    #     if fill:
+    #         sf = vtk.vtkShrinkFilter()
+    #         sf.SetInputData(self.dataset)
+    #         sf.SetShrinkFactor(shrink)
+    #         sf.Update()
+    #         gf.SetInputData(sf.GetOutput())
+    #         gf.Update()
+    #         poly = gf.GetOutput()
+    #         if shrink == 1.0:
+    #             cleanPolyData = vtk.vtkCleanPolyData()
+    #             cleanPolyData.PointMergingOn()
+    #             cleanPolyData.ConvertLinesToPointsOn()
+    #             cleanPolyData.ConvertPolysToLinesOn()
+    #             cleanPolyData.ConvertStripsToPolysOn()
+    #             cleanPolyData.SetInputData(poly)
+    #             cleanPolyData.Update()
+    #             poly = cleanPolyData.GetOutput()
+    #     else:
+    #         gf.SetInputData(self.dataset)
+    #         gf.Update()
+    #         poly = gf.GetOutput()
 
-        msh = vedo.mesh.Mesh(poly).flat()
-        msh.scalarbar = self.scalarbar
-        lut = utils.ctf2lut(self)
-        if lut:
-            msh.mapper.SetLookupTable(lut)
+    #     msh = vedo.mesh.Mesh(poly).flat()
+    #     msh.scalarbar = self.scalarbar
+    #     lut = utils.ctf2lut(self)
+    #     if lut:
+    #         msh.mapper.SetLookupTable(lut)
 
-        msh.pipeline = utils.OperationNode(
-            "tomesh", parents=[self], comment=f"fill={fill}", c="#9e2a2b:#e9c46a"
-        )
-        return msh
+    #     msh.pipeline = utils.OperationNode(
+    #         "tomesh", parents=[self], comment=f"fill={fill}", c="#9e2a2b:#e9c46a"
+    #     )
+    #     return msh
 
     def tomesh(self, bounds=()):
         """Extract boundary geometry from dataset (or convert data to polygonal type)."""
@@ -1283,6 +1279,13 @@ class CommonAlgorithms:
 ###############################################################################
 class PointAlgorithms(CommonAlgorithms):
     """Methods for point clouds."""
+
+    def __init__(self):
+
+        self.transform = None
+        self.point_locator = None
+        self.cell_locator = None
+        self.line_locator = None
 
     def apply_transform(self, LT, concatenate=True, deep_copy=True):
         """
@@ -1716,7 +1719,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         # if isinstance(self, vedo.Volume):
         #     raise RuntimeError("cut_with_mesh() is not applicable to Volume objects.")
 
-        ug = self
+        ug = self.dataset
 
         ippd = vtk.vtkImplicitPolyDataDistance()
         ippd.SetInput(mesh)
@@ -1872,28 +1875,29 @@ class VolumeAlgorithms(CommonAlgorithms):
     def find_cell(self, p):
         """Locate the cell that contains a point and return the cell ID."""
         cell = vtk.vtkTetra()
-        cellId = vtk.mutable(0)
+        cell_id = vtk.mutable(0)
         tol2 = vtk.mutable(0)
-        subId = vtk.mutable(0)
+        sub_id = vtk.mutable(0)
         pcoords = [0, 0, 0]
         weights = [0, 0, 0]
-        cid = self.FindCell(p, cell, cellId, tol2, subId, pcoords, weights)
+        cid = self.dataset.FindCell(
+            p, cell, cell_id, tol2, sub_id, pcoords, weights)
         return cid
 
     def extract_cells_by_id(self, idlist, use_point_ids=False):
         """Return a new UGrid composed of the specified subset of indices."""
-        selectionNode = vtk.vtkSelectionNode()
+        selection_node = vtk.vtkSelectionNode()
         if use_point_ids:
-            selectionNode.SetFieldType(vtk.vtkSelectionNode.POINT)
+            selection_node.SetFieldType(vtk.vtkSelectionNode.POINT)
             contcells = vtk.vtkSelectionNode.CONTAINING_CELLS()
-            selectionNode.GetProperties().Set(contcells, 1)
+            selection_node.GetProperties().Set(contcells, 1)
         else:
-            selectionNode.SetFieldType(vtk.vtkSelectionNode.CELL)
-        selectionNode.SetContentType(vtk.vtkSelectionNode.INDICES)
+            selection_node.SetFieldType(vtk.vtkSelectionNode.CELL)
+        selection_node.SetContentType(vtk.vtkSelectionNode.INDICES)
         vidlist = utils.numpy2vtk(idlist, dtype="id")
-        selectionNode.SetSelectionList(vidlist)
+        selection_node.SetSelectionList(vidlist)
         selection = vtk.vtkSelection()
-        selection.AddNode(selectionNode)
+        selection.AddNode(selection_node)
         es = vtk.vtkExtractSelection()
         es.SetInputData(0, self)
         es.SetInputData(1, selection)

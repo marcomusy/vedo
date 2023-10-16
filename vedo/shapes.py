@@ -485,7 +485,7 @@ class Line(Mesh):
         self.top = top
         self.name = "Line"
 
-    def clone(self):
+    def clone(self, deep=True):
         """
         Return a copy of the ``Line`` object.
 
@@ -501,21 +501,16 @@ class Line(Mesh):
         name = self.name
         base = self.base
         top = self.top
-        pickable = self.actor.GetPickable()
-        drg = self.actor.GetDragable()
         prop = vtk.vtkProperty()
         prop.DeepCopy(self.property)
 
         ln = Line(self)
-        ln.dataset.DeepCopy(self.dataset)
         ln.transform = self.transform
-        ln.actor.SetProperty(prop)
-        ln.property = prop
+        ln.copy_properties_from(self)
+        ln.dataset.DeepCopy(self.dataset)
         ln.name = name
         ln.base = base
         ln.top = top
-        ln.actor.SetPickable(pickable)
-        ln.actor.SetDragable(drg)
         return ln
 
     def linecolor(self, lc=None):
@@ -697,7 +692,7 @@ class Line(Mesh):
             ```
             ![](https://vedo.embl.es/images/feats/sweepline.png)
         """
-        line = self
+        line = self.dataset
         rows = line.GetNumberOfPoints()
 
         spacing = 1 / res
@@ -735,10 +730,7 @@ class Line(Mesh):
         surface.SetPoints(points)
         surface.SetPolys(polys)
         asurface = vedo.Mesh(surface)
-        prop = vtk.vtkProperty()
-        prop.DeepCopy(self.property)
-        asurface.SetProperty(prop)
-        asurface.property = prop
+        asurface.copy_properties_from(self)
         asurface.lighting("default")
         self.vertices = self.vertices + direction
         return asurface
@@ -2045,8 +2037,8 @@ class Arrows(Glyph):
         head_radius=None,
         head_length=None,
         thickness=1.0,
-        res=12,
-        c=None,
+        res=6,
+        c='k3',
         alpha=1.0,
     ):
         """
@@ -2117,7 +2109,9 @@ class Arrows(Glyph):
             c=c,
             alpha=alpha,
         )
-        self.flat().lighting("plastic")
+        if c not in cmaps_names:
+            self.c(c)
+        self.flat().lighting("off")
         self.name = "Arrows"
 
 

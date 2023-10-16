@@ -626,11 +626,6 @@ class Points(PointsVisual, PointAlgorithms):
             self.cell_locator = None
         return self
 
-    def polydata(self):
-        """Return the underlying ``vtkPolyData`` object."""
-        print("WARNING: call to .polydata() is obsolete, you can use property `.dataset`.")
-        return self.dataset
-
     def _repr_html_(self):
         """
         HTML representation of the Point cloud object for Jupyter Notebooks.
@@ -731,6 +726,7 @@ class Points(PointsVisual, PointAlgorithms):
             "WARNING: call to .polydata() is obsolete, use property .dataset instead.",
             c="y")
         return self
+
 
     def clone(self, deep=True):
         """
@@ -1050,7 +1046,6 @@ class Points(PointsVisual, PointAlgorithms):
         qp.SetQFactor(value)
         qp.Update()
         self._update(qp.GetOutput())
-        self.flat()
         self.pipeline = utils.OperationNode("quantize", parents=[self])
         return self
 

@@ -424,8 +424,6 @@ def _load_file(filename, unpack):
             reader = vtk.vtkXMLUnstructuredGridReader()
         elif fl.endswith(".vtr"):
             reader = vtk.vtkXMLRectilinearGridReader()
-        elif fl.endswith(".pvtk"):
-            reader = vtk.vtkPDataSetReader()
         elif fl.endswith(".pvtr"):
             reader = vtk.vtkXMLPRectilinearGridReader()
         elif fl.endswith("pvtu"):

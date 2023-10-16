@@ -476,7 +476,7 @@ def plot(*inputobj, **options):
             elif shading == "flat":
                 actor.flat()
             elif shading[0] == "g":
-                actor.gouraud()
+                actor.phong()
 
         if "displace" in mode:
             actor.move(u)
@@ -716,8 +716,8 @@ class MeshActor(Mesh):
         movedpts = coords + deltas
         if movedpts.shape[1] == 2:  # 2d
             movedpts = np.c_[movedpts, np.zeros(movedpts.shape[0])]
-        self.polydata(False).GetPoints().SetData(utils.numpy2vtk(movedpts, dtype=np.float32))
-        self.polydata(False).GetPoints().Modified()
+        self.dataset.GetPoints().SetData(utils.numpy2vtk(movedpts, dtype=np.float32))
+        self.dataset.GetPoints().Modified()
 
 
 def MeshPoints(*inputobj, **options):

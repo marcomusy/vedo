@@ -42,7 +42,7 @@ def _get_img(obj, flip=False, translate=()):
             picr.SetOrientationType(vedo.settings.tiff_orientation_type)
         else:
             colors.printc("Cannot understand picture format", obj, c="r")
-            return vtk.vtkImage()
+            return vtk.vtkImageData()
         picr.SetFileName(obj)
         picr.Update()
         img = picr.GetOutput()
@@ -1138,7 +1138,7 @@ class Picture(vedo.visual.PictureVisual, vedo.visual.ActorTransforms):
         imap.Update()
         self._update(imap.GetOutput())
         self.pipeline = utils.OperationNode(
-            f"cmap", comment=f'"{name}"', parents=[self], c="#f28482"
+            "cmap", comment=f'"{name}"', parents=[self], c="#f28482"
         )
         return self
 
@@ -1367,7 +1367,6 @@ class Picture(vedo.visual.PictureVisual, vedo.visual.ActorTransforms):
     def add_text(
         self,
         txt,
-        # pos=(0, 0),  # TODO
         width=400,
         height=200,
         alpha=1,

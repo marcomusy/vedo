@@ -601,8 +601,8 @@ class Plotter:
             for rd in shape:
                 x0, y0 = rd["bottomleft"]
                 x1, y1 = rd["topright"]
-                bg_ = rd.pop("bg", "white")
-                bg2_ = rd.pop("bg2", None)
+                bg_    = rd.pop("bg", "white")
+                bg2_   = rd.pop("bg2", None)
 
                 arenderer = vtk.vtkRenderer()
                 arenderer.SetUseHiddenLineRemoval(settings.hidden_line_removal)
@@ -824,9 +824,9 @@ class Plotter:
 
         for a in acts:
 
-            # if isinstance(a, vtk.vtkInteractorObserver):
-            #     a.add_to(self)
-            #     continue
+            if isinstance(a, vtk.vtkInteractorObserver):
+                a.add_to(self)  # from cutters
+                continue
 
             if ren:
                 try:

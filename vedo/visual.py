@@ -35,6 +35,13 @@ class CommonVisual:
         self.mapper = None
         self.property = None
         self.actor = None
+        self.scalarbar = None
+
+        self.dataset = None
+        self.pointdata = {}
+        self.celldata = {}
+        
+        self.shadows = []
 
     # @property
     # def LUT(self):
@@ -74,6 +81,12 @@ class CommonVisual:
         _newlut.Build()
         self.mapper.SetLookupTable(_newlut)
         self.mapper.ScalarVisibilityOn()
+
+    def add_observer(self, event_name, func, priority=0):
+        """Add a callback function that will be called when an event occurs."""
+        event_name = utils.get_vtk_name_event(event_name)
+        idd = self.actor.AddObserver(event_name, func, priority)
+        return idd
 
     def show(self, **options):
         """
@@ -348,7 +361,7 @@ class CommonVisual:
 
         You can also assign a specific color to a aspecific value with eg.:
 
-        `volume.color([(0,'red', (0.5,'violet'), (1,'green')])`
+        `volume.color([(0,'red'), (0.5,'violet'), (1,'green')])`
 
         Arguments:
             alpha : (list)
@@ -453,6 +466,9 @@ class CommonVisual:
 ###################################################
 class PointsVisual(CommonVisual):
     """Class to manage the visual aspects of a ``Points`` object."""
+
+    def __init__(self):
+        pass
 
     def clone2d(
         self,
@@ -704,16 +720,8 @@ class PointsVisual(CommonVisual):
 
         if style:
 
-            if isinstance(pr, vtk.vtkVolumeProperty):
-                self.shade(True)
-                if style == "off":
-                    self.shade(False)
-                elif style == "ambient":
-                    style = "default"
-                    self.shade(False)
-            else:
-                if style != "off":
-                    pr.LightingOn()
+            if style != "off":
+                pr.LightingOn()
 
             if style == "off":
                 pr.SetInterpolationToFlat()

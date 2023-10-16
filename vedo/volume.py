@@ -305,7 +305,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
                 name = self.dataset.GetCellData().GetScalars().GetName()
                 cdata = "<tr><td><b> voxel data array </b></td><td>" + name + "</td></tr>"
 
-        img = self.GetMapper().GetInput()
+        img = self.mapper.GetInput()
 
         allt = [
             "<table>",

@@ -1620,6 +1620,7 @@ class BaseCutter:
         self.widget = None
         self.clipper = None
         self.cutter = None
+        self.mesh = None
         self.remnant = None
         self._alpha = 0.5
         self._keypress_id = None
@@ -1655,7 +1656,7 @@ class BaseCutter:
             plt.widgets.append(self.widget)
 
         cpoly = self.clipper.GetOutput()
-        self.mesh.DeepCopy(cpoly)
+        self.mesh.dataset.DeepCopy(cpoly)
 
         out = self.clipper.GetClippedOutputPort()
         self.remnant.mapper.SetInputConnection(out)
@@ -1672,7 +1673,7 @@ class BaseCutter:
     def remove_from(self, plt):
         """Remove the widget to the provided `Plotter` instance."""
         self.widget.Off()
-        self.RemoveAllObservers()
+        self.widget.RemoveAllObservers() ### NOT SURE
         plt.remove(self.remnant)
         if self.widget in plt.widgets:
             plt.widgets.remove(self.widget)

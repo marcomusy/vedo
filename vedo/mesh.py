@@ -1129,7 +1129,7 @@ class Mesh(MeshVisual, Points):
     def count_vertices(self):
         """Count the number of vertices each cell has and return it as a numpy array"""
         vc = vtk.vtkCountVertices()
-        vc.SetInputData(self.datset)
+        vc.SetInputData(self.dataset)
         vc.SetOutputArrayName("VertexCount")
         vc.Update()
         varr = vc.GetOutput().GetCellData().GetArray("VertexCount")
@@ -1317,11 +1317,11 @@ class Mesh(MeshVisual, Points):
         Remove cells from the mesh object by their ID.
         Points (vertices) are not removed (you may use `.clean()` to remove those).
         """
-        self.BuildLinks()
+        self.dataset.BuildLinks()
         for cid in ids:
-            self.DeleteCell(cid)
-        self.RemoveDeletedCells()
-        self.Modified()
+            self.dataset.DeleteCell(cid)
+        self.dataset.RemoveDeletedCells()
+        self.dataset.Modified()
         self.mapper.Modified()
         self.pipeline = OperationNode(
             "delete_cells",
@@ -1439,7 +1439,7 @@ class Mesh(MeshVisual, Points):
         )
         return self
 
-    def is_inside(self, point, tol=1e-05):
+    def contains(self, point, tol=1e-05):
         """
         Return True if point is inside a polydata closed surface.
         
@@ -1946,7 +1946,6 @@ class Mesh(MeshVisual, Points):
             #     rf.Update()
             #     poly1 = rf.GetOutput()
             raise NotImplementedError("todo")
-            return self
 
         rf = vtk.vtkRotationalExtrusionFilter()
         # rf = vtk.vtkLinearExtrusionFilter()
@@ -2257,7 +2256,7 @@ class Mesh(MeshVisual, Points):
         msh.metadata["ContactCells2"] = vtk2numpy(
             ipdf.GetOutput(1).GetFieldData().GetArray("ContactCells")
         )
-        msh.GetProperty().SetLineWidth(3)
+        msh.property.SetLineWidth(3)
         msh.name = "SurfaceCollision"
 
         msh.pipeline = OperationNode(

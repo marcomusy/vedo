@@ -469,10 +469,12 @@ class Assembly(vtk.vtkAssembly):
         """Rotate object to a new orientation."""
         if old_axis is None:
             old_axis = self.top - self.base
+        if rad:
+            rotation *= 57.3
         axis = old_axis / np.linalg.norm(old_axis)
         direction = new_axis / np.linalg.norm(new_axis)
         angle = np.arccos(np.dot(axis, direction)) * 57.3
-        self.RotateZ(rotation*57.3)
+        self.RotateZ(rotation)
         a,b,c = np.cross(axis, direction)
         self.RotateWXYZ(angle, c,b,a)
         return self
