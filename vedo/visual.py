@@ -31,6 +31,11 @@ __all__ = [
 class CommonVisual:
     """Class to manage the visual aspects common to all objects."""
 
+    def __init__(self):
+        self.mapper = None
+        self.property = None
+        self.actor = None
+
     def show(self, **options):
         """
         Create on the fly an instance of class `Plotter` or use the last existing one to
@@ -208,7 +213,7 @@ class CommonVisual:
         self,
         title="",
         pos=None,
-        size=(None, None),
+        size=(0, 0),
         title_font="",
         title_xoffset=-1.5,
         title_yoffset=0.0,
@@ -343,8 +348,7 @@ class CommonVisual:
                     r, g, b = colors.get_color(ci)
                     ctf.AddRGBPoint(x, r, g, b)
                     # colors.printc('color at', round(x, 1),
-                    #               'set to', colors.get_color_name((r, g, b)),
-                    #               c='w', bold=0)
+                    #               'set to', colors.get_color_name((r, g, b)), bold=0)
             else:
                 # user passing [color1, color2, ..]
                 for i, ci in enumerate(col):
@@ -401,7 +405,7 @@ class CommonVisual:
                     xalpha = vmin + (vmax - vmin) * i / (len(alpha) - 1)
                     # Create transfer mapping scalar value to opacity
                     otf.AddPoint(xalpha, al)
-                    # colors.printc("alpha at", round(xalpha, 1), "\tset to", al)
+                    # print("alpha at", round(xalpha, 1), "\tset to", al)
             elif len(alpha.shape) == 2:  # user passing [(x0,alpha0), ...]
                 otf.AddPoint(vmin, alpha[0][1])
                 for xalpha, al in alpha:
@@ -2365,10 +2369,6 @@ class PictureVisual(ActorTransforms, CommonVisual):
         b = self.bounds()
         return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
 
-
-########################################################################################
-# class AssemblyVisual(CommonVisual):
-#     pass
 
 ########################################################################################
 class BaseActor2D(vtk.vtkActor2D):

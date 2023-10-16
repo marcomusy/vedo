@@ -29,7 +29,7 @@ man3.cmap("afmhot", scals, on='cells')
 
 # add a fancier 3D scalar bar embedded in the scene
 man3.add_scalarbar3d(size=[0.2,3])
-man3.scalarbar.rotate_x(90).shift(0,-2,-0.5)
+man3.scalarbar.scale(1.1).rotate_x(90).shift([0,2,0])
 
 plt.at(2).show(man3, "mesh.cmap(on='cells')")
 plt.interactive()

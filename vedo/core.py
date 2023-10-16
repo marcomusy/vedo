@@ -277,7 +277,7 @@ class DataArrayHelper:
                     out += "\nindex".ljust(15) + f": {i}"
                     t = varr.GetDataType()
                     if t in vedo.utils.array_types:
-                        out += f"\ntype".ljust(15)
+                        out += "\ntype".ljust(15)
                         out += f": {vedo.utils.array_types[t][1]} ({vedo.utils.array_types[t][0]})"
                     shape = (varr.GetNumberOfTuples(), varr.GetNumberOfComponents())
                     out += "\nshape".ljust(15) + f": {shape}"
@@ -296,7 +296,7 @@ class DataArrayHelper:
         elif self.association == 2:
             pd = self.obj.dataset.GetFieldData()
             if pd.GetNumberOfArrays():
-                out = f"\x1b[2m\x1b[1m\x1b[7mMeta Data"
+                out = "\x1b[2m\x1b[1m\x1b[7mMeta Data"
                 if self.actor.name:
                     out += f" in {self.actor.name}"
                 out += f" contains {pd.GetNumberOfArrays()} entries\x1b[0m"

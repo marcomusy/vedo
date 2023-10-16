@@ -326,8 +326,7 @@ class Figure(Assembly):
 
         if abs(self.yscale - fig.yscale) > 0.0001:
 
-            colors.printc(":bomb:ERROR: adding incompatible Figure. Y-scales are different:",
-                          c='r', invert=True)
+            colors.printc(":bomb:ERROR: adding incompatible Figure. Y-scales are different:", c='r', invert=True)
             colors.printc("  first  figure:", self.yscale, c='r')
             colors.printc("  second figure:", fig.yscale, c='r')
 
@@ -1303,6 +1302,7 @@ class Histogram2D(Figure):
 
             if scalarbar:
                 sc = g.add_scalarbar3d(ztitle, c=ac).scalarbar
+                sc.SetOrigin(sc.GetBounds()[0],0,0)
                 sc.scale([self.yscale, 1, 1])  ## prescale trick
 
                 # sbnds = sc.xbounds()
@@ -3973,8 +3973,8 @@ def CornerHistogram(
         - 4, bottomright,
         - (x, y), as fraction of the rendering window
     """
-    if hasattr(values, "inputdata"):
-        values = utils.vtk2numpy(values.inputdata().GetPointData().GetScalars())
+    if hasattr(values, "dataset"):
+        values = utils.vtk2numpy(values.dataset.GetPointData().GetScalars())
 
     n = values.shape[0]
     if nmax and nmax < n:

@@ -942,7 +942,7 @@ def ScalarBar3D(
     obj,
     title="",
     pos=None,
-    size=(None, None),
+    size=(0, 0),
     title_font="",
     title_xoffset=-1.5,
     title_yoffset=0.0,
@@ -1031,9 +1031,9 @@ def ScalarBar3D(
 
     bns = obj.bounds()
     sx, sy = size
-    if sy is None:
+    if sy == 0 or sy is None:
         sy = bns[3] - bns[2]
-    if sx is None:
+    if sx == 0 or sx is None:
         sx = sy / 18
 
     if categories is not None:  ################################
@@ -1132,7 +1132,7 @@ def ScalarBar3D(
     if title:
         t = shapes.Text3D(
             title,
-            (0, 0, 0),
+            pos=(0, 0, 0),
             s=sy / 50 * title_size,
             c=c,
             justify="centered",
@@ -1162,7 +1162,7 @@ def ScalarBar3D(
             if label_rotation:
                 btx = shapes.Text3D(
                     below_text,
-                    (0, 0, 0),
+                    pos=(0, 0, 0),
                     s=lsize,
                     c=c,
                     justify="center-top",
@@ -1173,7 +1173,7 @@ def ScalarBar3D(
             else:
                 btx = shapes.Text3D(
                     below_text,
-                    (0, 0, 0),
+                    pos=(0, 0, 0),
                     s=lsize,
                     c=c,
                     justify="center-left",
@@ -1201,7 +1201,7 @@ def ScalarBar3D(
             if label_rotation:
                 atx = shapes.Text3D(
                     above_text,
-                    (0, 0, 0),
+                    pos=(0, 0, 0),
                     s=lsize,
                     c=c,
                     justify="center-top",
@@ -1212,7 +1212,7 @@ def ScalarBar3D(
             else:
                 atx = shapes.Text3D(
                     above_text,
-                    (0, 0, 0),
+                    pos=(0, 0, 0),
                     s=lsize,
                     c=c,
                     justify="center-left",
@@ -1240,7 +1240,7 @@ def ScalarBar3D(
         if label_rotation:
             nantx = shapes.Text3D(
                 nan_text,
-                (0, 0, 0),
+                pos=(0, 0, 0),
                 s=lsize,
                 c=c,
                 justify="center-left",
@@ -1251,7 +1251,7 @@ def ScalarBar3D(
         else:
             nantx = shapes.Text3D(
                 nan_text,
-                (0, 0, 0),
+                pos=(0, 0, 0),
                 s=lsize,
                 c=c,
                 justify="center-left",
@@ -1264,22 +1264,24 @@ def ScalarBar3D(
     if draw_box:
         tacts.append(scale.box().lw(1).c(c))
 
-    for a in tacts+scales:
-        a.shift(pos)
-        a.actor.PickableOff()
-        a.property.LightingOff()
+    for m in tacts+scales:
+        m.shift(pos)
+        m.actor.PickableOff()
+        m.property.LightingOff()
+        m.property.SetInterpolationToFlat()
 
-    mtacts = merge(tacts)
-    mtacts.actor.PickableOff()
-    scale.actor.PickableOff()
+    asse = Assembly(scales + tacts)
 
-    sact = Assembly(scales + tacts)
-    sact.SetOrigin(sact.GetBounds()[0],0,0)
+    bb = asse.GetBounds()
+    # print("ScalarBar3D pos",pos, bb)
+    # asse.SetOrigin(pos)
+    asse.SetOrigin(bb[0], bb[2], bb[4])
+    # asse.SetOrigin(asse.GetBounds()[0],0,0) #in pyplot
 
-    sact.PickableOff()
-    sact.UseBoundsOff()
-    sact.name = "ScalarBar3D"
-    return sact
+    asse.PickableOff()
+    asse.UseBoundsOff()
+    asse.name = "ScalarBar3D"
+    return asse
 
 
 #####################################################################

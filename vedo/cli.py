@@ -159,7 +159,7 @@ def system_info():
         except:
             vedo.logger.error(f"Could not load {file}, skip.")
 
-    printc("_" * 65, bold=0)
+    printc("_" * 65, bold=False)
     printc("vedo version      :", __version__, invert=1, end="   ")
     printc("https://vedo.embl.es", underline=1, italic=1)
     printc("vtk version       :", vtk.vtkVersion().GetVTKVersion())
@@ -303,7 +303,7 @@ def exe_convert(args):
     target_ext = args.to.lower()
 
     if target_ext not in allowed_exts:
-        printc(f":sad: Sorry target cannot be {target_ext}\nMust be {allowed_exts}", c=1)
+        printc(f":sad: Sorry target cannot be {target_ext}\nMust be {allowed_exts}", c='r')
         sys.exit()
 
     for f in args.convert:
@@ -361,7 +361,7 @@ def exe_search(args):
                             pattern, "\x1b[4m\x1b[1m" + pattern + "\x1b[0m\u001b[33m"
                         )
                         print(f"\u001b[33m{i}\t{line}\x1b[0m", end="")
-                        # printc(i, line, c='o', bold=False, end='')
+                        # printc(i, line, c='y', bold=False, end='')
     else:
         printc("Please use at least 4 letters in keyword search!", c="r")
 
@@ -697,8 +697,8 @@ def draw_scene(args):
         if nfiles < 201:
             N = nfiles
         if nfiles > 200:
-            printc(":lightning: Warning: option '-n' allows a maximum of 200 files", c=1)
-            printc("         you are trying to load ", nfiles, " files.\n", c=1)
+            printc(":lightning: Warning: option '-n' allows a maximum of 200 files", c="y")
+            printc("         you are trying to load ", nfiles, " files.\n", c="y")
             N = 200
         if N > 4:
             settings.use_depth_peeling = False
