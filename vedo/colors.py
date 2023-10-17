@@ -1096,6 +1096,7 @@ def printc(
     box="",
     end="\n",
     flush=True,
+    return_string=False,
 ):
     """
     Print to terminal in color (any color!).
@@ -1123,6 +1124,8 @@ def printc(
             print a box with specified text character ['']
         flush : (bool)
             flush buffer after printing [True]
+        return_string : (bool)
+            return the string without printing it [False]
         end : (str)
             the end character to be printed [newline]
 
@@ -1237,9 +1240,15 @@ def printc(
         else:
 
             out = special + cseq + txt + reset
-            sys.stdout.write(out + end)
+            if return_string:
+                return out + end
+            else:
+                sys.stdout.write(out + end)
 
-    except:  # ------------------------------------------------------------- fallback
+    except:  # --------------------------------------------------- fallback
+
+        if return_string:
+            return ''.join(strings)
 
         try:
             print(*strings, end=end)

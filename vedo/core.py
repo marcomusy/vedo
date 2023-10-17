@@ -791,9 +791,14 @@ class CommonAlgorithms:
 
         The output format is: `[[id0 ... idn], [id0 ... idm],  etc]`.
         """
-        arr1d = utils.vtk2numpy(self.dataset.GetPolys().GetData())
-        if arr1d.size == 0:
-            arr1d = utils.vtk2numpy(self.dataset.GetStrips().GetData())
+        try:
+            # valid for unstructured grid
+            arr1d = utils.vtk2numpy(self.dataset.GetCells().GetData())
+        except AttributeError:
+            # valid for polydata
+            arr1d = utils.vtk2numpy(self.dataset.GetCells().GetData())
+            if arr1d.size == 0:
+                arr1d = utils.vtk2numpy(self.dataset.GetStrips().GetData())
 
         # Get cell connettivity ids as a 1D array. vtk format is:
         # [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
@@ -1576,161 +1581,218 @@ class VolumeAlgorithms(CommonAlgorithms):
         )
         return m
 
-    def cut_with_plane(self, origin=(0, 0, 0), normal="x"):
+    def tomesh(self, fill=True, shrink=1.0):
         """
-        Cut the object with the plane defined by a point and a normal.
+        Build a polygonal Mesh from the current object.
 
-        Arguments:
-            origin : (list)
-                the cutting plane goes through this point
-            normal : (list, str)
-                normal vector to the cutting plane
+        If `fill=True`, the interior faces of all the cells are created.
+        (setting a `shrink` value slightly smaller than the default 1.0
+        can avoid flickering due to internal adjacent faces).
+
+        If `fill=False`, only the boundary faces will be generated.
         """
-        # if isinstance(self, vedo.Volume):
-        #     raise RuntimeError("cut_with_plane() is not applicable to Volume objects.")
-
-        strn = str(normal)
-        if strn   ==  "x": normal = (1, 0, 0)
-        elif strn ==  "y": normal = (0, 1, 0)
-        elif strn ==  "z": normal = (0, 0, 1)
-        elif strn == "-x": normal = (-1, 0, 0)
-        elif strn == "-y": normal = (0, -1, 0)
-        elif strn == "-z": normal = (0, 0, -1)
-        plane = vtk.vtkPlane()
-        plane.SetOrigin(origin)
-        plane.SetNormal(normal)
-        clipper = vtk.vtkClipDataSet()
-        clipper.SetInputData(self.dataset)
-        clipper.SetClipFunction(plane)
-        clipper.GenerateClipScalarsOff()
-        clipper.GenerateClippedOutputOff()
-        clipper.SetValue(0)
-        clipper.Update()
-        cout = clipper.GetOutput()
-
-        if isinstance(cout, vtk.vtkUnstructuredGrid):
-            ug = vedo.UGrid(cout)
-            if isinstance(self, vedo.UGrid):
-                self._update(cout)
-                self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
-                return self
-            ug.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
-            return ug
-
+        gf = vtk.vtkGeometryFilter()
+        if fill:
+            sf = vtk.vtkShrinkFilter()
+            sf.SetInputData(self.dataset)
+            sf.SetShrinkFactor(shrink)
+            sf.Update()
+            gf.SetInputData(sf.GetOutput())
+            gf.Update()
+            poly = gf.GetOutput()
+            if shrink == 1.0:
+                clean_poly = vtk.vtkCleanPolyData()
+                clean_poly.PointMergingOn()
+                clean_poly.ConvertLinesToPointsOn()
+                clean_poly.ConvertPolysToLinesOn()
+                clean_poly.ConvertStripsToPolysOn()
+                clean_poly.SetInputData(poly)
+                clean_poly.Update()
+                poly = clean_poly.GetOutput()
         else:
-            self._update(cout)
-            self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
-            return self
+            gf.SetInputData(self.dataset)
+            gf.Update()
+            poly = gf.GetOutput()
 
-    def cut_with_box(self, box):
+        msh = vedo.mesh.Mesh(poly).flat()
+        msh.scalarbar = self.scalarbar
+        lut = utils.ctf2lut(self)
+        if lut:
+            msh.mapper.SetLookupTable(lut)
+
+        msh.pipeline = utils.OperationNode(
+            "tomesh", parents=[self], comment=f"fill={fill}", c="#9e2a2b:#e9c46a"
+        )
+        return msh
+
+class UGridAlgorithms(CommonAlgorithms):
+
+    def bounds(self):
         """
-        Cut the grid with the specified bounding box.
-
-        Parameter box has format [xmin, xmax, ymin, ymax, zmin, zmax].
-        If an object is passed, its bounding box are used.
-
-        Example:
-            ```python
-            from vedo import *
-            tetmesh = TetMesh(dataurl+'limb_ugrid.vtk')
-            tetmesh.color('rainbow')
-            cu = Cube(side=500).x(500) # any Mesh works
-            tetmesh.cut_with_box(cu).show(axes=1)
-            ```
-            ![](https://vedo.embl.es/images/feats/tet_cut_box.png)
+        Get the object bounds.
+        Returns a list in format `[xmin,xmax, ymin,ymax, zmin,zmax]`.
         """
-        # if isinstance(self, vedo.Volume):
-        #     raise RuntimeError("cut_with_box() is not applicable to Volume objects.")
+        # OVERRIDE CommonAlgorithms.bounds() which is too slow
+        return self.dataset.GetBounds()
 
-        bc = vtk.vtkBoxClipDataSet()
-        bc.SetInputData(self.dataset)
-        if isinstance(box, vtk.vtkProp):
-            boxb = box.GetBounds()
-        else:
-            boxb = box
-        bc.SetBoxClip(*boxb)
-        bc.Update()
-        cout = bc.GetOutput()
-
-        if isinstance(cout, vtk.vtkUnstructuredGrid):
-            ug = vedo.UGrid(cout)
-            if isinstance(self, vedo.UGrid):
-                self._update(cout)
-                self.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
-                return self
-            ug.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
-            return ug
-
-        else:
-            self._update(cout)
-            self.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
-            return self
-
-    def cut_with_mesh(self, mesh, invert=False, whole_cells=False, only_boundary=False):
+    def isosurface(self, value=None, flying_edges=True):
         """
-        Cut a UGrid or TetMesh with a Mesh.
+        Return an `Mesh` isosurface extracted from the `Volume` object.
 
-        Use `invert` to return cut off part of the input object.
+        Set `value` as single float or list of values to draw the isosurface(s).
+        Use flying_edges for faster results (but sometimes can interfere with `smooth()`).
+
+        Examples:
+            - [isosurfaces.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/isosurfaces.py)
+
+                ![](https://vedo.embl.es/images/volumetric/isosurfaces.png)
         """
-        # if isinstance(self, vedo.Volume):
-        #     raise RuntimeError("cut_with_mesh() is not applicable to Volume objects.")
+        scrange = self.dataset.GetScalarRange()
 
-        ug = self.dataset
-
-        ippd = vtk.vtkImplicitPolyDataDistance()
-        ippd.SetInput(mesh)
-
-        if whole_cells or only_boundary:
-            clipper = vtk.vtkExtractGeometry()
-            clipper.SetInputData(ug)
-            clipper.SetImplicitFunction(ippd)
-            clipper.SetExtractInside(not invert)
-            clipper.SetExtractBoundaryCells(False)
-            if only_boundary:
-                clipper.SetExtractBoundaryCells(True)
-                clipper.SetExtractOnlyBoundaryCells(True)
+        if flying_edges:
+            cf = vtk.vtkFlyingEdges3D()
+            cf.InterpolateAttributesOn()
         else:
-            signedDistances = vtk.vtkFloatArray()
-            signedDistances.SetNumberOfComponents(1)
-            signedDistances.SetName("SignedDistances")
-            for pointId in range(ug.GetNumberOfPoints()):
-                p = ug.GetPoint(pointId)
-                signedDistance = ippd.EvaluateFunction(p)
-                signedDistances.InsertNextValue(signedDistance)
-            ug.GetPointData().AddArray(signedDistances)
-            ug.GetPointData().SetActiveScalars("SignedDistances")
-            clipper = vtk.vtkClipDataSet()
-            clipper.SetInputData(ug)
-            clipper.SetInsideOut(not invert)
-            clipper.SetValue(0.0)
+            cf = vtk.vtkContourFilter()
+            cf.UseScalarTreeOn()
 
-        clipper.Update()
-        cout = clipper.GetOutput()
+        cf.SetInputData(self.dataset)
+        cf.ComputeNormalsOn()
 
-        # if ug.GetCellData().GetScalars():  # not working
-        #     scalname = ug.GetCellData().GetScalars().GetName()
-        #     if scalname:  # not working
-        #         if self.useCells:
-        #             self.celldata.select(scalname)
-        #         else:
-        #             self.pointdata.select(scalname)
-        # self._update(cout)
-        # self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self, mesh], c="#9e2a2b")
-        # return self
-
-        if isinstance(cout, vtk.vtkUnstructuredGrid):
-            ug = vedo.UGrid(cout)
-            if isinstance(self, vedo.UGrid):
-                self._update(cout)
-                self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
-                return self
-            ug.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
-            return ug
-
+        if utils.is_sequence(value):
+            cf.SetNumberOfContours(len(value))
+            for i, t in enumerate(value):
+                cf.SetValue(i, t)
         else:
-            self._update(cout)
-            self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
-            return self
+            if value is None:
+                value = (2 * scrange[0] + scrange[1]) / 3.0
+                # print("automatic isosurface value =", value)
+            cf.SetValue(0, value)
+
+        cf.Update()
+        poly = cf.GetOutput()
+
+        out = vedo.mesh.Mesh(poly, c=None).phong()
+        out.mapper.SetScalarRange(scrange[0], scrange[1])
+
+        out.pipeline = utils.OperationNode(
+            "isosurface",
+            parents=[self],
+            comment=f"#pts {out.dataset.GetNumberOfPoints()}",
+            c="#4cc9f0:#e9c46a",
+        )
+        return out
+
+    def tomesh(self, fill=True, shrink=1.0):
+        """
+        Build a polygonal Mesh from the current object.
+
+        If `fill=True`, the interior faces of all the cells are created.
+        (setting a `shrink` value slightly smaller than the default 1.0
+        can avoid flickering due to internal adjacent faces).
+
+        If `fill=False`, only the boundary faces will be generated.
+        """
+        gf = vtk.vtkGeometryFilter()
+        if fill:
+            sf = vtk.vtkShrinkFilter()
+            sf.SetInputData(self.dataset)
+            sf.SetShrinkFactor(shrink)
+            sf.Update()
+            gf.SetInputData(sf.GetOutput())
+            gf.Update()
+            poly = gf.GetOutput()
+            if shrink == 1.0:
+                clean_poly = vtk.vtkCleanPolyData()
+                clean_poly.PointMergingOn()
+                clean_poly.ConvertLinesToPointsOn()
+                clean_poly.ConvertPolysToLinesOn()
+                clean_poly.ConvertStripsToPolysOn()
+                clean_poly.SetInputData(poly)
+                clean_poly.Update()
+                poly = clean_poly.GetOutput()
+        else:
+            gf.SetInputData(self.dataset)
+            gf.Update()
+            poly = gf.GetOutput()
+
+        msh = vedo.mesh.Mesh(poly).flat()
+        msh.scalarbar = self.scalarbar
+        lut = utils.ctf2lut(self)
+        if lut:
+            msh.mapper.SetLookupTable(lut)
+
+        msh.pipeline = utils.OperationNode(
+            "tomesh", parents=[self], comment=f"fill={fill}", c="#9e2a2b:#e9c46a"
+        )
+        return msh
+
+
+    def extract_cells_by_id(self, idlist, use_point_ids=False):
+        """Return a new UGrid composed of the specified subset of indices."""
+        selection_node = vtk.vtkSelectionNode()
+        if use_point_ids:
+            selection_node.SetFieldType(vtk.vtkSelectionNode.POINT)
+            contcells = vtk.vtkSelectionNode.CONTAINING_CELLS()
+            selection_node.GetProperties().Set(contcells, 1)
+        else:
+            selection_node.SetFieldType(vtk.vtkSelectionNode.CELL)
+        selection_node.SetContentType(vtk.vtkSelectionNode.INDICES)
+        vidlist = utils.numpy2vtk(idlist, dtype="id")
+        selection_node.SetSelectionList(vidlist)
+        selection = vtk.vtkSelection()
+        selection.AddNode(selection_node)
+        es = vtk.vtkExtractSelection()
+        es.SetInputData(0, self)
+        es.SetInputData(1, selection)
+        es.Update()
+
+        ug = vedo.ugrid.UGrid(es.GetOutput())
+        pr = vtk.vtkProperty()
+        pr.DeepCopy(self.property)
+        ug.SetProperty(pr)
+        ug.property = pr
+
+        ug.mapper.SetLookupTable(utils.ctf2lut(self))
+        ug.pipeline = utils.OperationNode(
+            "extract_cells_by_id",
+            parents=[self],
+            comment=f"#cells {self.dataset.GetNumberOfCells()}",
+            c="#9e2a2b",
+        )
+        return ug
+
+    def find_cell(self, p):
+        """Locate the cell that contains a point and return the cell ID."""
+        cell = vtk.vtkTetra()
+        cell_id = vtk.mutable(0)
+        tol2 = vtk.mutable(0)
+        sub_id = vtk.mutable(0)
+        pcoords = [0, 0, 0]
+        weights = [0, 0, 0]
+        cid = self.dataset.FindCell(
+            p, cell, cell_id, tol2, sub_id, pcoords, weights)
+        return cid
+
+    def clean(self):
+        """
+        Cleanup unused points and empty cells
+        """
+        cl = vtk.vtkStaticCleanUnstructuredGrid()
+        cl.SetInputData(self.dataset)
+        cl.RemoveUnusedPointsOn()
+        cl.ProduceMergeMapOff()
+        cl.AveragePointDataOff()
+        cl.Update()
+
+        self._update(cl.GetOutput())
+        self.pipeline = utils.OperationNode(
+            "clean",
+            parents=[self],
+            comment=f"#cells {self.dataset.GetNumberOfCells()}",
+            c="#9e2a2b",
+        )
+        return self
 
     def extract_cells_on_plane(self, origin, normal):
         """
@@ -1807,113 +1869,133 @@ class VolumeAlgorithms(CommonAlgorithms):
         )
         self._update(bf.GetOutput())
         return self
-
-    def clean(self):
+    
+    def cut_with_plane(self, origin=(0, 0, 0), normal="x"):
         """
-        Cleanup unused points and empty cells
+        Cut the object with the plane defined by a point and a normal.
+
+        Arguments:
+            origin : (list)
+                the cutting plane goes through this point
+            normal : (list, str)
+                normal vector to the cutting plane
         """
-        cl = vtk.vtkStaticCleanUnstructuredGrid()
-        cl.SetInputData(self.dataset)
-        cl.RemoveUnusedPointsOn()
-        cl.ProduceMergeMapOff()
-        cl.AveragePointDataOff()
-        cl.Update()
+        # if isinstance(self, vedo.Volume):
+        #     raise RuntimeError("cut_with_plane() is not applicable to Volume objects.")
 
-        self._update(cl.GetOutput())
-        self.pipeline = utils.OperationNode(
-            "clean",
-            parents=[self],
-            comment=f"#cells {self.dataset.GetNumberOfCells()}",
-            c="#9e2a2b",
-        )
-        return self
+        strn = str(normal)
+        if strn   ==  "x": normal = (1, 0, 0)
+        elif strn ==  "y": normal = (0, 1, 0)
+        elif strn ==  "z": normal = (0, 0, 1)
+        elif strn == "-x": normal = (-1, 0, 0)
+        elif strn == "-y": normal = (0, -1, 0)
+        elif strn == "-z": normal = (0, 0, -1)
+        plane = vtk.vtkPlane()
+        plane.SetOrigin(origin)
+        plane.SetNormal(normal)
+        clipper = vtk.vtkClipDataSet()
+        clipper.SetInputData(self.dataset)
+        clipper.SetClipFunction(plane)
+        clipper.GenerateClipScalarsOff()
+        clipper.GenerateClippedOutputOff()
+        clipper.SetValue(0)
+        clipper.Update()
+        cout = clipper.GetOutput()
 
-    def find_cell(self, p):
-        """Locate the cell that contains a point and return the cell ID."""
-        cell = vtk.vtkTetra()
-        cell_id = vtk.mutable(0)
-        tol2 = vtk.mutable(0)
-        sub_id = vtk.mutable(0)
-        pcoords = [0, 0, 0]
-        weights = [0, 0, 0]
-        cid = self.dataset.FindCell(
-            p, cell, cell_id, tol2, sub_id, pcoords, weights)
-        return cid
+        if isinstance(cout, vtk.vtkUnstructuredGrid):
+            ug = vedo.UGrid(cout)
+            if isinstance(self, vedo.UGrid):
+                self._update(cout)
+                self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
+                return self
+            ug.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
+            return ug
 
-    def extract_cells_by_id(self, idlist, use_point_ids=False):
-        """Return a new UGrid composed of the specified subset of indices."""
-        selection_node = vtk.vtkSelectionNode()
-        if use_point_ids:
-            selection_node.SetFieldType(vtk.vtkSelectionNode.POINT)
-            contcells = vtk.vtkSelectionNode.CONTAINING_CELLS()
-            selection_node.GetProperties().Set(contcells, 1)
         else:
-            selection_node.SetFieldType(vtk.vtkSelectionNode.CELL)
-        selection_node.SetContentType(vtk.vtkSelectionNode.INDICES)
-        vidlist = utils.numpy2vtk(idlist, dtype="id")
-        selection_node.SetSelectionList(vidlist)
-        selection = vtk.vtkSelection()
-        selection.AddNode(selection_node)
-        es = vtk.vtkExtractSelection()
-        es.SetInputData(0, self)
-        es.SetInputData(1, selection)
-        es.Update()
+            self._update(cout)
+            self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
+            return self
 
-        ug = vedo.ugrid.UGrid(es.GetOutput())
-        pr = vtk.vtkProperty()
-        pr.DeepCopy(self.property)
-        ug.SetProperty(pr)
-        ug.property = pr
+    def cut_with_box(self, box):
+        """
+        Cut the grid with the specified bounding box.
 
-        ug.mapper.SetLookupTable(utils.ctf2lut(self))
-        ug.pipeline = utils.OperationNode(
-            "extract_cells_by_id",
-            parents=[self],
-            comment=f"#cells {self.dataset.GetNumberOfCells()}",
-            c="#9e2a2b",
-        )
+        Parameter box has format [xmin, xmax, ymin, ymax, zmin, zmax].
+        If an object is passed, its bounding box are used.
+
+        This method always returns a TetMesh object.
+
+        Example:
+            ```python
+            from vedo import *
+            tetmesh = TetMesh(dataurl+'limb_ugrid.vtk')
+            tetmesh.color('rainbow')
+            cu = Cube(side=500).x(500) # any Mesh works
+            tetmesh.cut_with_box(cu).show(axes=1)
+            ```
+            ![](https://vedo.embl.es/images/feats/tet_cut_box.png)
+        """
+        bc = vtk.vtkBoxClipDataSet()
+        bc.SetInputData(self.dataset)
+        try:
+            boxb = box.bounds()
+        except AttributeError:
+            boxb = box
+
+        bc.SetBoxClip(*boxb)
+        bc.Update()
+        cout = bc.GetOutput()
+
+        # output of vtkBoxClipDataSet is always tetrahedrons
+        tm = vedo.TetMesh(cout)
+        tm.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
+        return tm
+
+
+    def cut_with_mesh(
+            self, mesh, invert=False, whole_cells=False, only_boundary=False
+        ):
+        """
+        Cut a UGrid or TetMesh with a Mesh.
+
+        Use `invert` to return cut off part of the input object.
+        """
+        ug = self.dataset
+
+        ippd = vtk.vtkImplicitPolyDataDistance()
+        ippd.SetInput(mesh.dataset)
+
+        if whole_cells or only_boundary:
+            clipper = vtk.vtkExtractGeometry()
+            clipper.SetInputData(ug)
+            clipper.SetImplicitFunction(ippd)
+            clipper.SetExtractInside(not invert)
+            clipper.SetExtractBoundaryCells(False)
+            if only_boundary:
+                clipper.SetExtractBoundaryCells(True)
+                clipper.SetExtractOnlyBoundaryCells(True)
+        else:
+            signed_dists = vtk.vtkFloatArray()
+            signed_dists.SetNumberOfComponents(1)
+            signed_dists.SetName("SignedDistance")
+            for pointId in range(ug.GetNumberOfPoints()):
+                p = ug.GetPoint(pointId)
+                signed_dist = ippd.EvaluateFunction(p)
+                signed_dists.InsertNextValue(signed_dist)
+            ug.GetPointData().AddArray(signed_dists)
+            ug.GetPointData().SetActiveScalars("SignedDistance")
+            clipper = vtk.vtkClipDataSet()
+            clipper.SetInputData(ug)
+            clipper.SetInsideOut(not invert)
+            clipper.SetValue(0.0)
+
+        clipper.Update()
+        cout = clipper.GetOutput()
+
+        ug = vedo.UGrid(cout)
+        if isinstance(self, vedo.UGrid):
+            self._update(cout)
+            self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
+            return self
+        ug.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
         return ug
-
-    def tomesh(self, fill=True, shrink=1.0):
-        """
-        Build a polygonal Mesh from the current object.
-
-        If `fill=True`, the interior faces of all the cells are created.
-        (setting a `shrink` value slightly smaller than the default 1.0
-        can avoid flickering due to internal adjacent faces).
-
-        If `fill=False`, only the boundary faces will be generated.
-        """
-        gf = vtk.vtkGeometryFilter()
-        if fill:
-            sf = vtk.vtkShrinkFilter()
-            sf.SetInputData(self.dataset)
-            sf.SetShrinkFactor(shrink)
-            sf.Update()
-            gf.SetInputData(sf.GetOutput())
-            gf.Update()
-            poly = gf.GetOutput()
-            if shrink == 1.0:
-                cleanPolyData = vtk.vtkCleanPolyData()
-                cleanPolyData.PointMergingOn()
-                cleanPolyData.ConvertLinesToPointsOn()
-                cleanPolyData.ConvertPolysToLinesOn()
-                cleanPolyData.ConvertStripsToPolysOn()
-                cleanPolyData.SetInputData(poly)
-                cleanPolyData.Update()
-                poly = cleanPolyData.GetOutput()
-        else:
-            gf.SetInputData(self.dataset)
-            gf.Update()
-            poly = gf.GetOutput()
-
-        msh = vedo.mesh.Mesh(poly).flat()
-        msh.scalarbar = self.scalarbar
-        lut = utils.ctf2lut(self)
-        if lut:
-            msh.mapper.SetLookupTable(lut)
-
-        msh.pipeline = utils.OperationNode(
-            "tomesh", parents=[self], comment=f"fill={fill}", c="#9e2a2b:#e9c46a"
-        )
-        return msh

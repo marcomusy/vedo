@@ -9,8 +9,7 @@ except ImportError:
 import numpy as np
 import vedo
 from vedo import utils
-# from vedo.base import BaseGrid
-from vedo.core import PointAlgorithms, VolumeAlgorithms
+from vedo.core import UGridAlgorithms
 from vedo.mesh import Mesh
 from vedo.file_io import download, loadUnStructuredGrid
 from vedo.visual import VolumeVisual
@@ -108,7 +107,7 @@ def _buildtetugrid(points, cells):
 
 
 ##########################################################################
-class TetMesh(VolumeVisual, VolumeAlgorithms):
+class TetMesh(VolumeVisual, UGridAlgorithms):
     """The class describing tetrahedral meshes."""
 
     def __init__(
@@ -173,8 +172,6 @@ class TetMesh(VolumeVisual, VolumeAlgorithms):
             self.dataset = tt.GetOutput()
 
         elif utils.is_sequence(inputobj):
-            # if "ndarray" not in inputtype:
-            #     inputobj = np.array(inputobj)
             self.dataset = _buildtetugrid(inputobj[0], inputobj[1])
 
         ###################
@@ -184,8 +181,6 @@ class TetMesh(VolumeVisual, VolumeAlgorithms):
             self.mapper = vtk.vtkUnstructuredGridVolumeRayCastMapper()
         elif "zs" in mapper:
             self.mapper = vtk.vtkUnstructuredGridVolumeZSweepMapper()
-        # elif "mesh" in mapper:
-        #     self.mapper = vtk.vtkDataSetMapper()#vtkAbstractVolumeMapper,
         elif isinstance(mapper, vtk.vtkMapper):
             self.mapper = mapper
         else:
@@ -211,6 +206,24 @@ class TetMesh(VolumeVisual, VolumeAlgorithms):
         )
         # -----------------------------------------------------------
 
+    def __str__(self):
+        """Print a string summary of the `TetMesh` object."""
+        opts = dict(c='m', return_string=True)
+        bnds = self.bounds()
+        ug = self.dataset
+        bx1, bx2 = utils.precision(bnds[0], 3), utils.precision(bnds[1], 3)
+        by1, by2 = utils.precision(bnds[2], 3), utils.precision(bnds[3], 3)
+        bz1, bz2 = utils.precision(bnds[4], 3), utils.precision(bnds[5], 3)
+        s = vedo.printc("TetMesh".ljust(70), bold=True, invert=True, **opts)
+        s+= vedo.printc("nr. of tetras".ljust(14) + ": ", bold=True, end="", **opts)
+        s+= vedo.printc(ug.GetNumberOfCells(), bold=False, **opts)
+        s+= vedo.printc("bounds".ljust(14) + ": ", bold=True, end="", **opts)
+        s+= vedo.printc("x=(" + bx1 + ", " + bx2 + ")", bold=False, end="", **opts)
+        s+= vedo.printc(" y=(" + by1 + ", " + by2 + ")", bold=False, end="", **opts)
+        s+= vedo.printc(" z=(" + bz1 + ", " + bz2 + ")", bold=False, **opts)
+        # _print_data(ug, cf) #TODO
+        return s
+
     def _repr_html_(self):
         """
         HTML representation of the TetMesh object for Jupyter Notebooks.
@@ -235,7 +248,7 @@ class TetMesh(VolumeVisual, VolumeAlgorithms):
 
         bounds = "<br/>".join(
             [
-                utils.precision(min_x,4) + " ... " + utils.precision(max_x,4)
+                utils.utils.precision(min_x,4) + " ... " + utils.utils.precision(max_x,4)
                 for min_x, max_x in zip(self.bounds()[::2], self.bounds()[1::2])
             ]
         )
@@ -272,7 +285,7 @@ class TetMesh(VolumeVisual, VolumeAlgorithms):
             "<td style='text-align: center; vertical-align: center;'><br/>", help_text,
             "<table>",
             "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>" + str(bounds) + "</td></tr>",
-            "<tr><td><b> center of mass </b></td><td>" + utils.precision(cm,3) + "</td></tr>",
+            "<tr><td><b> center of mass </b></td><td>" + utils.utils.precision(cm,3) + "</td></tr>",
             "<tr><td><b> nr. points&nbsp/&nbsptets </b></td><td>"
             + str(self.npoints) + "&nbsp/&nbsp" + str(self.ncells) + "</td></tr>",
             pdata,
@@ -283,7 +296,7 @@ class TetMesh(VolumeVisual, VolumeAlgorithms):
         return "\n".join(allt)
 
 
-    def _update(self, data):
+    def _update(self, data, reset_locators=False):
         self.dataset = data
         self.mapper.SetInputData(data)
         self.mapper.Modified()
