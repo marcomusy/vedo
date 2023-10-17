@@ -34,8 +34,9 @@ __all__ = [
     "IsosurfaceBrowser",
     "FreeHandCutPlotter",
     "RayCastPlotter",
-    "Slicer3DPlotter",
     "Slicer2DPlotter",
+    "Slicer3DPlotter",
+    "Slicer3DTwinPlotter",
     "SplinePlotter",
     "AnimationPlayer",
     "Clock",
@@ -273,6 +274,142 @@ class Slicer3DPlotter(Plotter):
             )
             self.add(hist)
 
+class Slicer3DTwinPlotter(Plotter):
+    """
+    Create a window with two side-by-side 3D slicers for two Volumes.
+
+    Example:
+        ```python
+        from vedo import dataurl, Volume
+
+        vol1 = Volume(dataurl + "embryo.slc")
+        vol2 = Volume(dataurl + "embryo.slc")
+
+        plt = Slicer3DTwinPlotter(
+            vol1, vol2, 
+            shape=(1, 2), 
+            sharecam=True,
+            bg="white", 
+            bg2="lightblue",
+        )
+
+        plt.at(0).add(Text2D("Volume 1", pos="top-center"))
+        plt.at(1).add(Text2D("Volume 2", pos="top-center"))
+
+        plt.show(viewup='z')
+        plt.at(0).reset_camera()
+        plt.interactive().close()
+        ```
+        ![](https://user-images.githubusercontent.com/32848391/268638466-525114bc-7ce8-480b-9c45-af9ea0d93203.png)
+    """
+
+    def __init__(self, vol1, vol2, clamp=True, **kwargs):
+
+        Plotter.__init__(self, **kwargs)
+
+        cmap = "gist_ncar_r"
+        cx, cy, cz = "dr", "dg", "db" # slider colors
+        ambient, diffuse = 0.7, 0.3   # lighting params
+
+        self.at(0)
+        box1 = vol1.box().alpha(0.1)
+        box2 = vol2.box().alpha(0.1)
+        self.add(box1)
+        
+        self.at(1).add(box2)
+        self.add_inset(vol2, pos=(0.85, 0.15), size=0.15, c="white", draggable=0)
+
+        dims = vol1.dimensions()
+        data = vol1.pointdata[0]
+        rmin, rmax = vol1.scalar_range()
+        if clamp:
+            hdata, edg = np.histogram(data, bins=50)
+            logdata = np.log(hdata + 1)
+            meanlog = np.sum(np.multiply(edg[:-1], logdata)) / np.sum(logdata)
+            rmax = min(rmax, meanlog + (meanlog - rmin) * 0.9)
+            rmin = max(rmin, meanlog - (rmax - meanlog) * 0.9)
+
+
+        def slider_function_x(widget, event):
+            i = int(self.xslider.value)
+            msh1 = vol1.xslice(i).lighting("", ambient, diffuse, 0)
+            msh1.cmap(cmap, vmin=rmin, vmax=rmax)
+            msh1.name = "XSlice"
+            self.at(0).remove("XSlice")  # removes the old one
+            msh2 = vol2.xslice(i).lighting("", ambient, diffuse, 0)
+            msh2.cmap(cmap, vmin=rmin, vmax=rmax)
+            msh2.name = "XSlice"
+            self.at(1).remove("XSlice")
+            if 0 < i < dims[0]:
+                self.at(0).add(msh1)
+                self.at(1).add(msh2)
+
+        def slider_function_y(widget, event):
+            i = int(self.yslider.value)
+            msh1 = vol1.yslice(i).lighting("", ambient, diffuse, 0)
+            msh1.cmap(cmap, vmin=rmin, vmax=rmax)
+            msh1.name = "YSlice"
+            self.at(0).remove("YSlice")
+            msh2 = vol2.yslice(i).lighting("", ambient, diffuse, 0)
+            msh2.cmap(cmap, vmin=rmin, vmax=rmax)
+            msh2.name = "YSlice"
+            self.at(1).remove("YSlice")
+            if 0 < i < dims[1]:
+                self.at(0).add(msh1)
+                self.at(1).add(msh2)
+
+        def slider_function_z(widget, event):
+            i = int(self.zslider.value)
+            msh1 = vol1.zslice(i).lighting("", ambient, diffuse, 0)
+            msh1.cmap(cmap, vmin=rmin, vmax=rmax)
+            msh1.name = "ZSlice"
+            self.at(0).remove("ZSlice")
+            msh2 = vol2.zslice(i).lighting("", ambient, diffuse, 0)
+            msh2.cmap(cmap, vmin=rmin, vmax=rmax)
+            msh2.name = "ZSlice"
+            self.at(1).remove("ZSlice")
+            if 0 < i < dims[2]:
+                self.at(0).add(msh1)
+                self.at(1).add(msh2)
+
+        self.at(0)
+        bs = box1.bounds()
+        self.xslider = self.add_slider3d(
+            slider_function_x,
+            pos1=(bs[0], bs[2], bs[4]),
+            pos2=(bs[1], bs[2], bs[4]),
+            xmin=0,
+            xmax=dims[0],
+            t=box1.diagonal_size() / mag(box1.xbounds()) * 0.6,
+            c=cx,
+            show_value=False,
+        )
+        self.yslider = self.add_slider3d(
+            slider_function_y,
+            pos1=(bs[1], bs[2], bs[4]),
+            pos2=(bs[1], bs[3], bs[4]),
+            xmin=0,
+            xmax=dims[1],
+            t=box1.diagonal_size() / mag(box1.ybounds()) * 0.6,
+            c=cy,
+            show_value=False,
+        )
+        self.zslider = self.add_slider3d(
+            slider_function_z,
+            pos1=(bs[0], bs[2], bs[4]),
+            pos2=(bs[0], bs[2], bs[5]),
+            xmin=0,
+            xmax=dims[2],
+            value=int(dims[2] / 2),
+            t=box1.diagonal_size() / mag(box1.zbounds()) * 0.6,
+            c=cz,
+            show_value=False,
+        )
+
+        #################
+        hist = CornerHistogram(data, s=0.2, bins=25, logscale=True, c='k')
+        self.add(hist)
+        slider_function_z(0,0) ## init call
 
 ########################################################################################
 class Slicer2DPlotter(Plotter):

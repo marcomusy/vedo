@@ -1256,7 +1256,8 @@ class PointAlgorithms(CommonAlgorithms):
             T = c1.transform  # rotate by 5 degrees, place at (2,1)
             c2 = Cube().c('red4').wireframe().lw(10).lighting('off')
             c2.apply_transform(T)
-            show(c1, c2, axes=1).close()            ```
+            show(c1, c2, axes=1).close()
+            ```
             ![](https://vedo.embl.es/images/feats/apply_transform.png)
         """
         if self.dataset.GetNumberOfPoints() == 0:

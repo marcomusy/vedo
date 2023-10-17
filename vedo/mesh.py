@@ -1445,6 +1445,15 @@ class Mesh(MeshVisual, Points):
         
         Note:
             if you have many points to check use `inside_points()` instead.
+        
+        Example:
+            ```python
+            from vedo import *
+            s = Sphere().c('green5').alpha(0.5)
+            pt  = [0.1, 0.2, 0.3]
+            print("Sphere contains", pt, s.contains(pt))
+            show(s, Point(pt), axes=1).close()
+            ```      
         """
         points = vtk.vtkPoints()
         points.InsertNextPoint(point)

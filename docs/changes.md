@@ -28,6 +28,9 @@
 - removed `Volume.probe_line()`
 - removed `Volume.probe_plane()`
 - `Slicer2DPlotter` moved to application module
+- `mesh.is_inside(pt)` moved to `mesh.contains(pt)`
+- added `applications.Slicer3DTwinPlotter` thanks to @daniel-a-diaz
+
 
 
 
