@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import numpy as np
 
 try:
@@ -7,11 +9,10 @@ except ImportError:
 
 import vedo
 from vedo import settings
-from vedo import colors
 from vedo import utils
-# from vedo.base import BaseGrid
 from vedo.core import VolumeAlgorithms
 from vedo.file_io import download, loadUnStructuredGrid
+from vedo.visual import MeshVisual
 
 
 __docformat__ = "google"
@@ -23,7 +24,7 @@ Work with unstructured grid datasets
 __all__ = ["UGrid"]
 
 #########################################################################
-class UGrid(VolumeAlgorithms, vtk.vtkActor):
+class UGrid(MeshVisual, VolumeAlgorithms):
     """Support for UnstructuredGrid objects."""
 
     def __init__(self, inputobj=None):
@@ -46,21 +47,23 @@ class UGrid(VolumeAlgorithms, vtk.vtkActor):
         """
         super().__init__()
 
-        inputtype = str(type(inputobj))
-        self._data = None
-        self._polydata = None
-        self._bfprop = None
+        self.dataset = None
+        self.actor = vtk.vtkActor()
+        self.property = self.actor.GetProperty()
+
         self.name = "UGrid"
 
         ###################
+        inputtype = str(type(inputobj))
+
         if inputobj is None:
-            self._data = vtk.vtkUnstructuredGrid()
+            self.dataset = vtk.vtkUnstructuredGrid()
 
         elif utils.is_sequence(inputobj):
 
             pts, cells, celltypes = inputobj
 
-            self._data = vtk.vtkUnstructuredGrid()
+            self.dataset = vtk.vtkUnstructuredGrid()
 
             if not utils.is_sequence(cells[0]):
                 tets = []
@@ -77,14 +80,14 @@ class UGrid(VolumeAlgorithms, vtk.vtkActor):
             vpts = utils.numpy2vtk(pts, dtype=np.float32)
             points = vtk.vtkPoints()
             points.SetData(vpts)
-            self._data.SetPoints(points)
+            self.dataset.SetPoints(points)
 
             # This fill the points and use cells to define orientation
             # points = vtk.vtkPoints()
             # for c in cells:
             #       for pid in c:
             #           points.InsertNextPoint(pts[pid])
-            # self._data.SetPoints(points)
+            # self.dataset.SetPoints(points)
 
             # Fill cells
             # https://vtk.org/doc/nightly/html/vtkCellType_8h_source.html
@@ -110,62 +113,54 @@ class UGrid(VolumeAlgorithms, vtk.vtkActor):
                 cpids = cell.GetPointIds()
                 for j, pid in enumerate(cell_conn):
                     cpids.SetId(j, pid)
-                self._data.InsertNextCell(ct, cpids)
+                self.dataset.InsertNextCell(ct, cpids)
 
         elif "UnstructuredGrid" in inputtype:
-            self._data = inputobj
+            self.dataset = inputobj
 
         elif isinstance(inputobj, str):
-            if "https://" in inputobj:
-                inputobj = download(inputobj, verbose=False)
-            self._data = loadUnStructuredGrid(inputobj)
             self.filename = inputobj
+            if "https://" in inputobj:
+                self.filename = inputobj
+                inputobj = download(inputobj, verbose=False)
+            self.dataset = loadUnStructuredGrid(inputobj)
 
         else:
             vedo.logger.error(f"cannot understand input type {inputtype}")
             return
 
-        # self._mapper = vtk.vtkDataSetMapper()
-        self._mapper = vtk.vtkPolyDataMapper()
-        self._mapper.SetInterpolateScalarsBeforeMapping(settings.interpolate_scalars_before_mapping)
+        # self.mapper = vtk.vtkDataSetMapper()
+        self.mapper = vtk.vtkPolyDataMapper()
+        self.mapper.SetInterpolateScalarsBeforeMapping(settings.interpolate_scalars_before_mapping)
 
         if settings.use_polygon_offset:
-            self._mapper.SetResolveCoincidentTopologyToPolygonOffset()
+            self.mapper.SetResolveCoincidentTopologyToPolygonOffset()
             pof, pou = settings.polygon_offset_factor, settings.polygon_offset_units
-            self._mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
-        self.GetProperty().SetInterpolationToFlat()
+            self.mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
+        self.property.SetInterpolationToFlat()
 
-        if not self._data:
+        if not self.dataset:
             return
 
         # now fill the representation of the vtk unstr grid
-        sf = vtk.vtkShrinkFilter()
-        sf.SetInputData(self._data)
-        sf.SetShrinkFactor(1.0)
-        sf.Update()
-        gf = vtk.vtkGeometryFilter()
-        gf.SetInputData(sf.GetOutput())
-        gf.Update()
-        self._polydata = gf.GetOutput()
+        # sf = vtk.vtkShrinkFilter()
+        # sf.SetInputData(self.dataset)
+        # sf.SetShrinkFactor(1.0)
+        # sf.Update()
+        # gf = vtk.vtkGeometryFilter()
+        # gf.SetInputData(sf.GetOutput())
+        # gf.Update()
+        # self._polydata = gf.GetOutput()
 
-        self._mapper.SetInputData(self._polydata)
-        sc = None
-        if self.useCells:
-            sc = self._polydata.GetCellData().GetScalars()
-        else:
-            sc = self._polydata.GetPointData().GetScalars()
-        if sc:
-            self._mapper.SetScalarRange(sc.GetRange())
-
-        self.SetMapper(self._mapper)
-        self.property = self.GetProperty()
+        self.mapper.SetInputData(self.dataset)
+        self.actor.SetMapper(self.mapper)
 
         self.pipeline = utils.OperationNode(
-            self, comment=f"#cells {self._data.GetNumberOfCells()}",
+            self, comment=f"#cells {self.dataset.GetNumberOfCells()}",
             c="#4cc9f0",
         )
-    # ------------------------------------------------------------------
 
+    # ------------------------------------------------------------------
     def _repr_html_(self):
         """
         HTML representation of the UGrid object for Jupyter Notebooks.
@@ -206,15 +201,15 @@ class UGrid(VolumeAlgorithms, vtk.vtkActor):
             help_text += f"<br/><code><i>({dots}{self.filename[-30:]})</i></code>"
 
         pdata = ""
-        if self._data.GetPointData().GetScalars():
-            if self._data.GetPointData().GetScalars().GetName():
-                name = self._data.GetPointData().GetScalars().GetName()
+        if self.dataset.GetPointData().GetScalars():
+            if self.dataset.GetPointData().GetScalars().GetName():
+                name = self.dataset.GetPointData().GetScalars().GetName()
                 pdata = "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
 
         cdata = ""
-        if self._data.GetCellData().GetScalars():
-            if self._data.GetCellData().GetScalars().GetName():
-                name = self._data.GetCellData().GetScalars().GetName()
+        if self.dataset.GetCellData().GetScalars():
+            if self.dataset.GetCellData().GetScalars().GetName():
+                name = self.dataset.GetCellData().GetScalars().GetName()
                 cdata = "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
 
         pts = self.vertices
@@ -238,118 +233,25 @@ class UGrid(VolumeAlgorithms, vtk.vtkActor):
         ]
         return "\n".join(all)
 
-    def clone(self):
+    def clone(self, deep=True):
         """Clone the UGrid object to yield an exact copy."""
-        ugCopy = vtk.vtkUnstructuredGrid()
-        ugCopy.DeepCopy(self._data)
+        ug = vtk.vtkUnstructuredGrid()
+        ug.DeepCopy(self.dataset)
 
-        cloned = UGrid(ugCopy)
-        pr = self.GetProperty()
-        if isinstance(pr, vtk.vtkVolumeProperty):
-            prv = vtk.vtkVolumeProperty()
-        else:
-            prv = vtk.vtkProperty()
-        prv.DeepCopy(pr)
-        cloned.SetProperty(prv)
-        cloned.property = prv
-
-        # assign the same transformation to the copy
-        cloned.SetOrigin(self.GetOrigin())
-        cloned.SetScale(self.GetScale())
-        cloned.SetOrientation(self.GetOrientation())
-        cloned.SetPosition(self.GetPosition())
-        cloned.name = self.name
+        cloned = UGrid(ug)
+        pr = vtk.vtkProperty()
+        pr.DeepCopy(self.property)
+        cloned.dataset.SetProperty(pr)
+        cloned.property = pr
 
         cloned.pipeline = utils.OperationNode(
             "clone", parents=[self], shape='diamond', c='#bbe1ed',
         )
         return cloned
 
-    def color(self, c=False, alpha=None):
-        """
-        Set/get UGrid color.
-        If None is passed as input, will use colors from active scalars.
-        Same as `ugrid.c()`.
-        """
-        if c is False:
-            return np.array(self.GetProperty().GetColor())
-        if c is None:
-            self._mapper.ScalarVisibilityOn()
-            return self
-        self._mapper.ScalarVisibilityOff()
-        cc = colors.get_color(c)
-        self.property.SetColor(cc)
-        if self.trail:
-            self.trail.GetProperty().SetColor(cc)
-        if alpha is not None:
-            self.alpha(alpha)
-        return self
-
-    def alpha(self, opacity=None):
-        """Set/get mesh's transparency. Same as `mesh.opacity()`."""
-        if opacity is None:
-            return self.property.GetOpacity()
-
-        self.property.SetOpacity(opacity)
-        bfp = self.GetBackfaceProperty()
-        if bfp:
-            if opacity < 1:
-                self._bfprop = bfp
-                self.SetBackfaceProperty(None)
-            else:
-                self.SetBackfaceProperty(self._bfprop)
-        return self
-
-    def opacity(self, alpha=None):
-        """Set/get mesh's transparency. Same as `mesh.alpha()`."""
-        return self.alpha(alpha)
-
-    def wireframe(self, value=True):
-        """Set mesh's representation as wireframe or solid surface.
-        Same as `mesh.wireframe()`."""
-        if value:
-            self.property.SetRepresentationToWireframe()
-        else:
-            self.property.SetRepresentationToSurface()
-        return self
-
-    def linewidth(self, lw=None):
-        """Set/get width of mesh edges. Same as `lw()`."""
-        if lw is not None:
-            if lw == 0:
-                self.property.EdgeVisibilityOff()
-                self.property.SetRepresentationToSurface()
-                return self
-            self.property.EdgeVisibilityOn()
-            self.property.SetLineWidth(lw)
-        else:
-            return self.property.GetLineWidth()
-        return self
-
-    def lw(self, linewidth=None):
-        """Set/get width of mesh edges. Same as `linewidth()`."""
-        return self.linewidth(linewidth)
-
-    def linecolor(self, lc=None):
-        """Set/get color of mesh edges. Same as `lc()`."""
-        if lc is not None:
-            if "ireframe" in self.property.GetRepresentationAsString():
-                self.property.EdgeVisibilityOff()
-                self.color(lc)
-                return self
-            self.property.EdgeVisibilityOn()
-            self.property.SetEdgeColor(colors.get_color(lc))
-        else:
-            return self.property.GetEdgeColor()
-        return self
-
-    def lc(self, linecolor=None):
-        """Set/get color of mesh edges. Same as `linecolor()`."""
-        return self.linecolor(linecolor)
-
     def extract_cell_type(self, ctype):
         """Extract a specific cell type and return a new `UGrid`."""
-        uarr = self._data.GetCellTypesArray()
+        uarr = self.dataset.GetCellTypesArray()
         ctarrtyp = np.where(utils.vtk2numpy(uarr) == ctype)[0]
         uarrtyp = utils.numpy2vtk(ctarrtyp, deep=False, dtype="id")
         selection_node = vtk.vtkSelectionNode()
@@ -359,9 +261,10 @@ class UGrid(VolumeAlgorithms, vtk.vtkActor):
         selection = vtk.vtkSelection()
         selection.AddNode(selection_node)
         es = vtk.vtkExtractSelection()
-        es.SetInputData(0, self._data)
+        es.SetInputData(0, self.dataset)
         es.SetInputData(1, selection)
         es.Update()
+
         ug = UGrid(es.GetOutput())
 
         ug.pipeline = utils.OperationNode(

@@ -575,8 +575,8 @@ def extract_cells_by_type(obj, types=()):
     """
     ef = vtk.vtkExtractCellsByType()
     try:
-        ef.SetInputData(obj.inputdata())
-    except:
+        ef.SetInputData(obj.dataset)
+    except AttributeError:
         ef.SetInputData(obj)
 
     for ct in types:
@@ -1643,9 +1643,9 @@ def print_info(obj):
     elif isinstance(obj, vedo.TetMesh):
         cf = "m"
         vedo.printc("TetMesh".ljust(70), c=cf, bold=True, invert=True)
-        pos = obj.GetPosition()
-        bnds = obj.GetBounds()
-        ug = obj.inputdata()
+        pos = obj.pos()
+        bnds = obj.bounds()
+        ug = obj.dataset
         vedo.printc("nr. of tetras".ljust(14) + ": ", c=cf, bold=True, end="")
         vedo.printc(ug.GetNumberOfCells(), c=cf, bold=False)
         vedo.printc("position".ljust(14) + ": ", c=cf, bold=True, end="")
@@ -2072,7 +2072,7 @@ def camera_from_quaternion(pos, quaternion, distance=10000, ngl_correct=True):
     camera = vtk.vtkCamera()
     # define the quaternion in vtk, note the swapped order
     # w,x,y,z instead of x,y,z,w
-    quat_vtk = vtk.vtkQuaterniond(quaternion[3], quaternion[0], quaternion[1], quaternion[2])
+    quat_vtk = vtk.vtkQuaternion(quaternion[3], quaternion[0], quaternion[1], quaternion[2])
     # use this to define a rotation matrix in x,y,z
     # right handed units
     M = np.zeros((3, 3), dtype=np.float32)
@@ -2395,8 +2395,12 @@ def vedo2trimesh(mesh):
             tms.append(vedo2trimesh(a))
         return tms
 
-    from trimesh import Trimesh
-
+    try:
+        from trimesh import Trimesh
+    except ModuleNotFoundError:
+        vedo.logger.error("Need trimesh to run:\npip install trimesh")
+        return None
+    
     tris = mesh.cells
     carr = mesh.celldata["CellIndividualColors"]
     ccols = carr

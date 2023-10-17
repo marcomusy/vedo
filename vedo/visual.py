@@ -38,8 +38,8 @@ class CommonVisual:
         self.scalarbar = None
 
         self.dataset = None
-        self.pointdata = {}
-        self.celldata = {}
+        # self.pointdata = {}
+        # self.celldata = {}
         
         self.shadows = []
 
@@ -1888,7 +1888,7 @@ class PointsVisual(CommonVisual):
 
 
 #####################################################################
-class MeshVisual:
+class MeshVisual(PointsVisual):
     """Class to manage the visual aspects of a ``Maesh`` object."""
 
     def follow_camera(self, camera=None, origin=None):

@@ -10,10 +10,11 @@ import numpy as np
 import vedo
 from vedo import utils
 # from vedo.base import BaseGrid
-from vedo.core import VolumeAlgorithms
+from vedo.core import PointAlgorithms, VolumeAlgorithms
 from vedo.mesh import Mesh
 from vedo.file_io import download, loadUnStructuredGrid
-
+from vedo.visual import VolumeVisual
+from vedo.transformations import LinearTransform
 
 __docformat__ = "google"
 
@@ -51,7 +52,7 @@ def delaunay3d(mesh, radius=0, tol=None):
         pd.SetPoints(vpts)
         deln.SetInputData(pd)
     else:
-        deln.SetInputData(mesh.GetMapper().GetInput())
+        deln.SetInputData(mesh.dataset)
     deln.SetAlpha(radius)
     deln.AlphaTetsOn()
     deln.AlphaTrisOff()
@@ -107,7 +108,7 @@ def _buildtetugrid(points, cells):
 
 
 ##########################################################################
-class TetMesh(VolumeAlgorithms, vtk.vtkVolume):
+class TetMesh(VolumeVisual, VolumeAlgorithms):
     """The class describing tetrahedral meshes."""
 
     def __init__(
@@ -129,18 +130,22 @@ class TetMesh(VolumeAlgorithms, vtk.vtkVolume):
         """
         super().__init__()
 
+        self.actor = vtk.vtkVolume()
+
+        self.transform = LinearTransform()
+
         # inputtype = str(type(inputobj))
         # print('TetMesh inputtype', inputtype)
 
         ###################
         if inputobj is None:
-            self._data = vtk.vtkUnstructuredGrid()
+            self.dataset = vtk.vtkUnstructuredGrid()
 
         elif isinstance(inputobj, vtk.vtkUnstructuredGrid):
-            self._data = inputobj
+            self.dataset = inputobj
 
         elif isinstance(inputobj, vedo.UGrid):
-            self._data = inputobj._data
+            self.dataset = inputobj.dataset
 
         elif isinstance(inputobj, vtk.vtkRectilinearGrid):
             r2t = vtk.vtkRectilinearGridToTetrahedra()
@@ -148,14 +153,14 @@ class TetMesh(VolumeAlgorithms, vtk.vtkVolume):
             r2t.RememberVoxelIdOn()
             r2t.SetTetraPerCellTo6()
             r2t.Update()
-            self._data = r2t.GetOutput()
+            self.dataset = r2t.GetOutput()
 
         elif isinstance(inputobj, vtk.vtkDataSet):
             r2t = vtk.vtkDataSetTriangleFilter()
             r2t.SetInputData(inputobj)
             # r2t.TetrahedraOnlyOn()
             r2t.Update()
-            self._data = r2t.GetOutput()
+            self.dataset = r2t.GetOutput()
 
         elif isinstance(inputobj, str):
             if "https://" in inputobj:
@@ -165,31 +170,35 @@ class TetMesh(VolumeAlgorithms, vtk.vtkVolume):
             tt.SetInputData(ug)
             tt.SetTetrahedraOnly(True)
             tt.Update()
-            self._data = tt.GetOutput()
+            self.dataset = tt.GetOutput()
 
         elif utils.is_sequence(inputobj):
             # if "ndarray" not in inputtype:
             #     inputobj = np.array(inputobj)
-            self._data = _buildtetugrid(inputobj[0], inputobj[1])
+            self.dataset = _buildtetugrid(inputobj[0], inputobj[1])
 
         ###################
         if "tetra" in mapper:
-            self._mapper = vtk.vtkProjectedTetrahedraMapper()
+            self.mapper = vtk.vtkProjectedTetrahedraMapper()
         elif "ray" in mapper:
-            self._mapper = vtk.vtkUnstructuredGridVolumeRayCastMapper()
+            self.mapper = vtk.vtkUnstructuredGridVolumeRayCastMapper()
         elif "zs" in mapper:
-            self._mapper = vtk.vtkUnstructuredGridVolumeZSweepMapper()
+            self.mapper = vtk.vtkUnstructuredGridVolumeZSweepMapper()
+        # elif "mesh" in mapper:
+        #     self.mapper = vtk.vtkDataSetMapper()#vtkAbstractVolumeMapper,
         elif isinstance(mapper, vtk.vtkMapper):
-            self._mapper = mapper
+            self.mapper = mapper
         else:
             vedo.logger.error(f"Unknown mapper type {type(mapper)}")
             raise RuntimeError()
 
-        self._mapper.SetInputData(self._data)
-        self.SetMapper(self._mapper)
-        self.color(c).alpha(alpha)
+        self.property = self.actor.GetProperty()
+
+        self.mapper.SetInputData(self.dataset)
+        self.actor.SetMapper(self.mapper)
+        self.cmap(c).alpha(alpha)
         if alpha_unit:
-            self.GetProperty().SetScalarOpacityUnitDistance(alpha_unit)
+            self.property.SetScalarOpacityUnitDistance(alpha_unit)
 
         # remember stuff:
         self._color = c
@@ -197,7 +206,7 @@ class TetMesh(VolumeAlgorithms, vtk.vtkVolume):
         self._alpha_unit = alpha_unit
 
         self.pipeline = utils.OperationNode(
-            self, comment=f"#tets {self._data.GetNumberOfCells()}",
+            self, comment=f"#tets {self.dataset.GetNumberOfCells()}",
             c="#9e2a2b",
         )
         # -----------------------------------------------------------
@@ -242,15 +251,15 @@ class TetMesh(VolumeAlgorithms, vtk.vtkVolume):
             help_text += f"<br/><code><i>({dots}{self.filename[-30:]})</i></code>"
 
         pdata = ""
-        if self._data.GetPointData().GetScalars():
-            if self._data.GetPointData().GetScalars().GetName():
-                name = self._data.GetPointData().GetScalars().GetName()
+        if self.dataset.GetPointData().GetScalars():
+            if self.dataset.GetPointData().GetScalars().GetName():
+                name = self.dataset.GetPointData().GetScalars().GetName()
                 pdata = "<tr><td><b> point data array </b></td><td>" + name + "</td></tr>"
 
         cdata = ""
-        if self._data.GetCellData().GetScalars():
-            if self._data.GetCellData().GetScalars().GetName():
-                name = self._data.GetCellData().GetScalars().GetName()
+        if self.dataset.GetCellData().GetScalars():
+            if self.dataset.GetCellData().GetScalars().GetName():
+                name = self.dataset.GetCellData().GetScalars().GetName()
                 cdata = "<tr><td><b> cell data array </b></td><td>" + name + "</td></tr>"
 
         pts = self.vertices
@@ -275,29 +284,23 @@ class TetMesh(VolumeAlgorithms, vtk.vtkVolume):
 
 
     def _update(self, data):
-        self._data = data
-        self.mapper().SetInputData(data)
-        self.mapper().Modified()
+        self.dataset = data
+        self.mapper.SetInputData(data)
+        self.mapper.Modified()
         return self
 
-    def clone(self):
+    def clone(self, mapper="tetra"):
         """Clone the `TetMesh` object to yield an exact copy."""
-        ugCopy = vtk.vtkUnstructuredGrid()
-        ugCopy.DeepCopy(self._data)
+        ug = vtk.vtkUnstructuredGrid()
+        ug.DeepCopy(self.dataset)
 
-        cloned = TetMesh(ugCopy)
+        cloned = TetMesh(ug, mapper=mapper)
         pr = vtk.vtkVolumeProperty()
-        pr.DeepCopy(self.GetProperty())
-        cloned.SetProperty(pr)
+        pr.DeepCopy(self.property)
+        cloned.actor.SetProperty(pr)
 
-        # assign the same transformation to the copy
-        cloned.SetOrigin(self.GetOrigin())
-        cloned.SetScale(self.GetScale())
-        cloned.SetOrientation(self.GetOrientation())
-        cloned.SetPosition(self.GetPosition())
-
-        cloned.mapper().SetScalarMode(self.mapper().GetScalarMode())
-        cloned.name = self.name
+        cloned.mapper.SetScalarMode(self.mapper.GetScalarMode())
+        # cloned.name = self.name
 
         cloned.pipeline = utils.OperationNode(
             "clone", c="#edabab", shape="diamond", parents=[self],
@@ -326,7 +329,7 @@ class TetMesh(VolumeAlgorithms, vtk.vtkVolume):
         for an explanation of the meaning of each metric..
         """
         qf = vtk.vtkMeshQuality()
-        qf.SetInputData(self._data)
+        qf.SetInputData(self.dataset)
         qf.SetTetQualityMeasure(metric)
         qf.SaveCellQualityOn()
         qf.Update()
@@ -336,7 +339,7 @@ class TetMesh(VolumeAlgorithms, vtk.vtkVolume):
     def compute_tets_volume(self):
         """Add to this mesh a cell data array containing the tetrahedron volume."""
         csf = vtk.vtkCellSizeFilter()
-        csf.SetInputData(self._data)
+        csf.SetInputData(self.dataset)
         csf.SetComputeArea(False)
         csf.SetComputeVolume(True)
         csf.SetComputeLength(False)
@@ -367,7 +370,7 @@ class TetMesh(VolumeAlgorithms, vtk.vtkVolume):
         vald = vtk.vtkCellValidator()
         if tol:
             vald.SetTolerance(tol)
-        vald.SetInputData(self._data)
+        vald.SetInputData(self.dataset)
         vald.Update()
         varr = vald.GetOutput().GetCellData().GetArray("ValidityState")
         return utils.vtk2numpy(varr)
@@ -383,7 +386,7 @@ class TetMesh(VolumeAlgorithms, vtk.vtkVolume):
         Set keyword "on" to either "cells" or "points".
         """
         th = vtk.vtkThreshold()
-        th.SetInputData(self._data)
+        th.SetInputData(self.dataset)
 
         if name is None:
             if self.celldata.keys():
@@ -424,7 +427,7 @@ class TetMesh(VolumeAlgorithms, vtk.vtkVolume):
         .. note:: setting `fraction=0.1` leaves 10% of the original nr of tets.
         """
         decimate = vtk.vtkUnstructuredGridQuadricDecimation()
-        decimate.SetInputData(self._data)
+        decimate.SetInputData(self.dataset)
         decimate.SetScalarsName(scalars_name)
 
         if n:  # n = desired number of points
@@ -445,7 +448,7 @@ class TetMesh(VolumeAlgorithms, vtk.vtkVolume):
         Subdivide one tetrahedron into twelve for every tetra.
         """
         sd = vtk.vtkSubdivideTetra()
-        sd.SetInputData(self._data)
+        sd.SetInputData(self.dataset)
         sd.Update()
         self._update(sd.GetOutput())
         self.pipeline = utils.OperationNode(
@@ -459,11 +462,11 @@ class TetMesh(VolumeAlgorithms, vtk.vtkVolume):
 
         Set `value` to a single value or list of values to compute the isosurface(s).
         """
-        if not self._data.GetPointData().GetScalars():
+        if not self.dataset.GetPointData().GetScalars():
             self.map_cells_to_points()
-        scrange = self._data.GetPointData().GetScalars().GetRange()
+        scrange = self.dataset.GetPointData().GetScalars().GetRange()
         cf = vtk.vtkContourFilter()  # vtk.vtkContourGrid()
-        cf.SetInputData(self._data)
+        cf.SetInputData(self.dataset)
 
         if utils.is_sequence(value):
             cf.SetNumberOfContours(len(value))
@@ -480,7 +483,7 @@ class TetMesh(VolumeAlgorithms, vtk.vtkVolume):
         clp.SetInputData(cf.GetOutput())
         clp.Update()
         msh = Mesh(clp.GetOutput(), c=None).phong()
-        msh.mapper().SetLookupTable(utils.ctf2lut(self))
+        msh.mapper.SetLookupTable(utils.ctf2lut(self))
         msh.pipeline = utils.OperationNode("isosurface", c="#edabab", parents=[self])
         return msh
 
@@ -500,10 +503,10 @@ class TetMesh(VolumeAlgorithms, vtk.vtkVolume):
         plane.SetNormal(normal)
 
         cc = vtk.vtkCutter()
-        cc.SetInputData(self._data)
+        cc.SetInputData(self.dataset)
         cc.SetCutFunction(plane)
         cc.Update()
         msh = Mesh(cc.GetOutput()).flat().lighting("ambient")
-        msh.mapper().SetLookupTable(utils.ctf2lut(self))
+        msh.mapper.SetLookupTable(utils.ctf2lut(self))
         msh.pipeline = utils.OperationNode("slice", c="#edabab", parents=[self])
         return msh

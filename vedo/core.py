@@ -322,6 +322,9 @@ class CommonAlgorithms:
         self.top = np.array([0, 0, 1])
         self.base = np.array([0, 0, 0])
 
+        self.name = ""
+        self.filename = ""
+
     @property
     def pointdata(self):
         """
@@ -1197,50 +1200,6 @@ class CommonAlgorithms:
         )
         return out
 
-    # def tomesh(self, fill=True, shrink=1.0):
-    #     """
-    #     Build a polygonal Mesh from the current object.
-
-    #     If `fill=True`, the interior faces of all the cells are created.
-    #     (setting a `shrink` value slightly smaller than the default 1.0
-    #     can avoid flickering due to internal adjacent faces).
-
-    #     If `fill=False`, only the boundary faces will be generated.
-    #     """
-    #     gf = vtk.vtkGeometryFilter()
-    #     if fill:
-    #         sf = vtk.vtkShrinkFilter()
-    #         sf.SetInputData(self.dataset)
-    #         sf.SetShrinkFactor(shrink)
-    #         sf.Update()
-    #         gf.SetInputData(sf.GetOutput())
-    #         gf.Update()
-    #         poly = gf.GetOutput()
-    #         if shrink == 1.0:
-    #             cleanPolyData = vtk.vtkCleanPolyData()
-    #             cleanPolyData.PointMergingOn()
-    #             cleanPolyData.ConvertLinesToPointsOn()
-    #             cleanPolyData.ConvertPolysToLinesOn()
-    #             cleanPolyData.ConvertStripsToPolysOn()
-    #             cleanPolyData.SetInputData(poly)
-    #             cleanPolyData.Update()
-    #             poly = cleanPolyData.GetOutput()
-    #     else:
-    #         gf.SetInputData(self.dataset)
-    #         gf.Update()
-    #         poly = gf.GetOutput()
-
-    #     msh = vedo.mesh.Mesh(poly).flat()
-    #     msh.scalarbar = self.scalarbar
-    #     lut = utils.ctf2lut(self)
-    #     if lut:
-    #         msh.mapper.SetLookupTable(lut)
-
-    #     msh.pipeline = utils.OperationNode(
-    #         "tomesh", parents=[self], comment=f"fill={fill}", c="#9e2a2b:#e9c46a"
-    #     )
-    #     return msh
-
     def tomesh(self, bounds=()):
         """Extract boundary geometry from dataset (or convert data to polygonal type)."""
         geo = vtk.vtkGeometryFilter()
@@ -1917,3 +1876,47 @@ class VolumeAlgorithms(CommonAlgorithms):
             c="#9e2a2b",
         )
         return ug
+
+    def tomesh(self, fill=True, shrink=1.0):
+        """
+        Build a polygonal Mesh from the current object.
+
+        If `fill=True`, the interior faces of all the cells are created.
+        (setting a `shrink` value slightly smaller than the default 1.0
+        can avoid flickering due to internal adjacent faces).
+
+        If `fill=False`, only the boundary faces will be generated.
+        """
+        gf = vtk.vtkGeometryFilter()
+        if fill:
+            sf = vtk.vtkShrinkFilter()
+            sf.SetInputData(self.dataset)
+            sf.SetShrinkFactor(shrink)
+            sf.Update()
+            gf.SetInputData(sf.GetOutput())
+            gf.Update()
+            poly = gf.GetOutput()
+            if shrink == 1.0:
+                cleanPolyData = vtk.vtkCleanPolyData()
+                cleanPolyData.PointMergingOn()
+                cleanPolyData.ConvertLinesToPointsOn()
+                cleanPolyData.ConvertPolysToLinesOn()
+                cleanPolyData.ConvertStripsToPolysOn()
+                cleanPolyData.SetInputData(poly)
+                cleanPolyData.Update()
+                poly = cleanPolyData.GetOutput()
+        else:
+            gf.SetInputData(self.dataset)
+            gf.Update()
+            poly = gf.GetOutput()
+
+        msh = vedo.mesh.Mesh(poly).flat()
+        msh.scalarbar = self.scalarbar
+        lut = utils.ctf2lut(self)
+        if lut:
+            msh.mapper.SetLookupTable(lut)
+
+        msh.pipeline = utils.OperationNode(
+            "tomesh", parents=[self], comment=f"fill={fill}", c="#9e2a2b:#e9c46a"
+        )
+        return msh
