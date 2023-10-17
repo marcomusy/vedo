@@ -245,7 +245,7 @@ class Picture(vedo.visual.PictureVisual, vedo.visual.ActorTransforms):
     Class used to represent 2D pictures in a 3D world.
     """
 
-    def __init__(self, obj=None, channels=3, flip=False):
+    def __init__(self, obj=None, channels=3):
         """
         Can be instantiated with a path file name or with a numpy array.
 
@@ -257,11 +257,10 @@ class Picture(vedo.visual.PictureVisual, vedo.visual.ActorTransforms):
         Arguments:
             channels :  (int, list)
                 only select these specific rgba channels (useful to remove alpha)
-            flip : (bool)
-                flip xy axis convention (when input is a numpy array)
         """
         self.name = "Picture"
         self.filename = ""
+        self.file_size = 0
         self.pipeline = None
 
         self.actor = vtk.vtkImageActor()
@@ -269,7 +268,7 @@ class Picture(vedo.visual.PictureVisual, vedo.visual.ActorTransforms):
         self.property = self.actor.GetProperty()
 
         if utils.is_sequence(obj) and len(obj) > 0:  # passing array
-            img = _get_img(obj, flip)
+            img = _get_img(obj, False)
 
         elif isinstance(obj, vtk.vtkImageData):
             img = obj

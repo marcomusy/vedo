@@ -1250,17 +1250,13 @@ class PointAlgorithms(CommonAlgorithms):
         """
         Apply a linear or non-linear transformation to the mesh polygonal data.
             ```python
-            from vedo import Cube, show
-            c1 = Cube().rotate_z(5).x(2).y(1)
-            print("cube1 position", c1.pos())
-            T = c1.get_transform()  # rotate by 5 degrees, sum 2 to x and 1 to y
-            c2 = Cube().c('r4')
-            c2.apply_transform(T)   # ignore previous movements
-            c2.apply_transform(T, concatenate=True)
-            c2.apply_transform(T, concatenate=True)
-            print("cube2 position", c2.pos())
-            show(c1, c2, axes=1).close()
-            ```
+            from vedo import Cube, show, settings
+            settings.use_parallel_projection = True
+            c1 = Cube().rotate_z(25).pos(2,1).mirror()
+            T = c1.transform  # rotate by 5 degrees, place at (2,1)
+            c2 = Cube().c('red4').wireframe().lw(10).lighting('off')
+            c2.apply_transform(T)
+            show(c1, c2, axes=1).close()            ```
             ![](https://vedo.embl.es/images/feats/apply_transform.png)
         """
         if self.dataset.GetNumberOfPoints() == 0:

@@ -331,7 +331,7 @@ class Slicer2DPlotter(Plotter):
         self.cmap()
 
         if levels[0] and levels[1]:
-            vsl.lighting(window=levels[0], level=levels[1])
+            self.lighting(window=levels[0], level=levels[1])
 
         self.usage_txt = (
             "H                  :rightarrow toggle this banner off\n"

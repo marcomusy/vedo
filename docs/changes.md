@@ -43,20 +43,18 @@ examples/basic/interaction_modes2.py
 examples/volumetric/slicer1.py
 ```
 
+
+
 ### Broken Examples
 ```
 ~/Projects/vedo/examples/basic
-align5.py
 background_image.py
 cut_interactive.py
 glyphs2.py
 
 
 ~/Projects/vedo/examples/advanced
-cut_with_mesh1.py
-timer_callback2.py
 warp4.py
-warp6.py
 
 
 ~/Projects/vedo/examples/pyplot
@@ -64,7 +62,6 @@ custom_axes1.py
 caption.py
 embed_matplotlib.py
 goniometer.py
-histo_2d_a.py
 histo_2d_b.py
 histo_hexagonal.py
 isolines.py
@@ -77,7 +74,6 @@ brownian2d.py
 gyroscope1.py
 gyroscope2.py
 lorenz.py
-mag_field1.py
 pendulum_3d.py
 trail.py
 

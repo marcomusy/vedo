@@ -44,7 +44,32 @@ class LinearTransform:
     """Work with linear transformations."""
 
     def __init__(self, T=None):
-        """Init."""
+        """Define a linear transformation.
+        
+        Arguments:
+            T : (vtk.vtkTransform, numpy array)
+                vtk transformation. Defaults to None.
+        
+        Example:
+            ```python
+            from vedo import *
+            settings.use_parallel_projection = True
+
+            LT = LinearTransform()
+            LT.translate([3,0,1]).rotate_z(45)
+            print(LT)
+
+            sph = Sphere(r=0.2)
+            print("Sphere before", s1.transform)
+            s1.apply_transform(LT)
+            # same as:
+            # LT.apply_to(s1)
+            print("Sphere after ", s1.transform)
+
+            zero = Point([0,0,0])
+            show(s1, zero, axes=1).close()
+            ```
+       """
 
         if T is None:
             T = vtk.vtkTransform()
@@ -107,11 +132,11 @@ class LinearTransform:
 
         tp = vtk.vtkTransformPolyDataFilter()
         tp.SetTransform(self.T)
-        tp.SetInputData(obj)
+        tp.SetInputData(obj.dataset)
         tp.Update()
         out = tp.GetOutput()
 
-        obj.DeepCopy(out)
+        obj.dataset.DeepCopy(out)
         obj.point_locator = None
         obj.cell_locator = None
         obj.line_locator = None
@@ -143,14 +168,38 @@ class LinearTransform:
 
     def compute_inverse(self):
         """Compute inverse."""
-        return LinearTransform(self.T.GetInverse())
+        t = self.clone()
+        t.invert()
+        return t
 
     def clone(self):
-        """Clone."""
+        """Clone transformation to make an exact copy."""
         return LinearTransform(self.T)
 
     def concatenate(self, T, pre_multiply=False):
-        """Post multiply."""
+        """
+        Post-multiply (by default) 2 transfomations.
+        
+        Example:
+            ```python
+            from vedo import *
+
+            A = LinearTransform()
+            A.rotate_x(45)
+            A.translate([7,8,9])
+            A.translate([10,10,10])
+            print("A", A)
+
+            B = A.compute_inverse()
+            B.shift([1,2,3])
+
+            # A is applied first, then B
+            print("A.concatenate(B)", A.concatenate(B))
+
+            # B is applied first, then A
+            # print("B*A", B*A)
+            ```
+        """
         if pre_multiply:
             self.T.PreMultiply()
         try:
@@ -159,6 +208,10 @@ class LinearTransform:
             self.T.Concatenate(T.T)
         self.T.PostMultiply()
         return self
+    
+    def __mul__(self, A):
+        """Pre-multiply 2 transfomations."""
+        return self.concatenate(A, pre_multiply=True)
 
     def get_concatenated_transform(self, i):
         """Get intermediate matrix by concatenation index."""
@@ -169,12 +222,12 @@ class LinearTransform:
         """Get number of concatenated transforms."""
         return self.T.GetNumberOfConcatenatedTransforms()
 
-    def translate(self, p):
+    def translate(self, *p):
         """Translate, same as `shift`."""
         self.T.Translate(*p)
         return self
 
-    def shift(self, p):
+    def shift(self, *p):
         """Shift, same as `translate`."""
         return self.translate(*p)
 
