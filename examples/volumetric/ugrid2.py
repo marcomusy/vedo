@@ -2,9 +2,9 @@
 from vedo import *
 
 ug = UGrid(dataurl+'ugrid.vtk')
+ug.cmap('k5')
 
-ug.c('g',0.2).lc('r').lw(2)
-ug.cut_with_plane(origin=(5,0,1), normal=(1,1,5))
+ug = ug.cut_with_plane(origin=(5,0,1), normal=(1,1,5))
 
 msh = ug.tomesh(shrink=0.8) # return a polygonal Mesh
 

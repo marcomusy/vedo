@@ -43,16 +43,6 @@ class CommonVisual:
         
         self.shadows = []
 
-    # @property
-    # def LUT(self):
-    #     """Return the lookup table of the object as a vtk object."""
-    #     return self.mapper.GetLookupTable()
-    
-    # @LUT.setter
-    # def LUT(self, lut):
-    #     """Set the lookup table of the object from a vtk object."""
-    #     self.mapper.SetLookupTable(lut)
-
 
     @property
     def LUT(self):

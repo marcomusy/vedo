@@ -1656,14 +1656,16 @@ class BaseCutter:
             plt.widgets.append(self.widget)
 
         cpoly = self.clipper.GetOutput()
-        self.mesh.dataset.DeepCopy(cpoly)
+        self.mesh._update(cpoly)
 
         out = self.clipper.GetClippedOutputPort()
         self.remnant.mapper.SetInputConnection(out)
         self.remnant.alpha(self._alpha).color((0.5, 0.5, 0.5))
         self.remnant.lighting('off').wireframe()
-        plt.add(self.remnant)
-        self._keypress_id = plt.interactor.AddObserver("KeyPressEvent", self._keypress)
+        plt.add(self.mesh, self.remnant)
+        self._keypress_id = plt.interactor.AddObserver(
+            "KeyPressEvent", self._keypress
+        )
         if plt.interactor and plt.interactor.GetInitialized():
             self.widget.On()
             self._select_polygons(self.widget, "InteractionEvent")
@@ -1692,10 +1694,11 @@ class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
             invert=False,
             can_translate=True,
             can_scale=True,
-            c=(0.25, 0.25, 0.25),
             origin=(),
             normal=(),
             padding=0.05,
+            delayed=False,
+            c=(0.25, 0.25, 0.25),
             alpha=0.05,
     ):
         """
@@ -1716,6 +1719,9 @@ class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
                 normal to the plane
             padding : (float)
                 padding around the input mesh
+            delayed : (bool)
+                if True the callback is delayed until
+                when the mouse button is released (useful for large meshes)
             c : (color)
                 color of the box cutter widget
             alpha : (float)
@@ -1768,7 +1774,10 @@ class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
         self.widget.SetPlaceFactor(1.0 + padding)
         self.widget.SetInputData(poly)
         self.widget.PlaceWidget()
-        self.widget.AddObserver("InteractionEvent", self._select_polygons)
+        if delayed:
+            self.widget.AddObserver("EndInteractionEvent", self._select_polygons)
+        else:
+            self.widget.AddObserver("InteractionEvent", self._select_polygons)
 
         if len(origin) == 3:
             self.widget.SetOrigin(origin)
@@ -1827,6 +1836,7 @@ class BoxCutter(vtk.vtkBoxWidget, BaseCutter):
             can_scale=True,
             initial_bounds=(),
             padding=0.025,
+            delayed=False,
             c=(0.25, 0.25, 0.25),
             alpha=0.05,
     ):
@@ -1846,6 +1856,11 @@ class BoxCutter(vtk.vtkBoxWidget, BaseCutter):
                 enable scaling of the widget
             initial_bounds : (list)
                 initial bounds of the box widget
+            padding : (float)
+                padding space around the input mesh
+            delayed : (bool)
+                if True the callback is delayed until
+                when the mouse button is released (useful for large meshes)
             c : (color)
                 color of the box cutter widget
             alpha : (float)
@@ -1899,7 +1914,10 @@ class BoxCutter(vtk.vtkBoxWidget, BaseCutter):
         self.widget.SetPlaceFactor(1.0 + padding)
         self.widget.SetInputData(poly)
         self.widget.PlaceWidget()
-        self.widget.AddObserver("InteractionEvent", self._select_polygons)
+        if delayed:
+            self.widget.AddObserver("EndInteractionEvent", self._select_polygons)
+        else:
+            self.widget.AddObserver("InteractionEvent", self._select_polygons)
 
     def _select_polygons(self, vobj, event):
         vobj.GetPlanes(self._implicit_func)
@@ -1933,6 +1951,7 @@ class SphereCutter(vtk.vtkSphereWidget, BaseCutter):
             origin=(),
             radius=0,
             res=60,
+            delayed=False,
             c='white',
             alpha=0.05,
     ):
@@ -1954,6 +1973,9 @@ class SphereCutter(vtk.vtkSphereWidget, BaseCutter):
                 initial radius of the sphere widget
             res : int
                 resolution of the sphere widget
+            delayed : bool
+                if True the cutting callback is delayed until
+                when the mouse button is released (useful for large meshes)
             c : color
                 color of the box cutter widget
             alpha : float
@@ -2013,7 +2035,10 @@ class SphereCutter(vtk.vtkSphereWidget, BaseCutter):
         self.widget.SetPlaceFactor(1.0)
         self.widget.SetInputData(poly)
         self.widget.PlaceWidget()
-        self.widget.AddObserver("InteractionEvent", self._select_polygons)
+        if delayed:
+            self.widget.AddObserver("EndInteractionEvent", self._select_polygons)
+        else:
+            self.widget.AddObserver("InteractionEvent", self._select_polygons)
 
     def _select_polygons(self, vobj, event):
         vobj.GetSphere(self._implicit_func)

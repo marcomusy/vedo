@@ -10,9 +10,9 @@ except ImportError:
 import vedo
 from vedo import settings
 from vedo import utils
-from vedo.core import VolumeAlgorithms
+from vedo.core import UGridAlgorithms
 from vedo.file_io import download, loadUnStructuredGrid
-from vedo.visual import MeshVisual
+from vedo.visual import VolumeVisual
 
 
 __docformat__ = "google"
@@ -24,7 +24,7 @@ Work with unstructured grid datasets
 __all__ = ["UGrid"]
 
 #########################################################################
-class UGrid(MeshVisual, VolumeAlgorithms):
+class UGrid(VolumeVisual, UGridAlgorithms):
     """Support for UnstructuredGrid objects."""
 
     def __init__(self, inputobj=None):
@@ -48,10 +48,11 @@ class UGrid(MeshVisual, VolumeAlgorithms):
         super().__init__()
 
         self.dataset = None
-        self.actor = vtk.vtkActor()
+        self.actor = vtk.vtkVolume()
         self.property = self.actor.GetProperty()
 
         self.name = "UGrid"
+        self.filename = ""
 
         ###################
         inputtype = str(type(inputobj))
@@ -62,6 +63,7 @@ class UGrid(MeshVisual, VolumeAlgorithms):
         elif utils.is_sequence(inputobj):
 
             pts, cells, celltypes = inputobj
+            assert len(cells) == len(celltypes)
 
             self.dataset = vtk.vtkUnstructuredGrid()
 
@@ -108,7 +110,7 @@ class UGrid(MeshVisual, VolumeAlgorithms):
                 elif ct == vtk.VTK_PENTAGONAL_PRISM:
                     cell = vtk.vtkPentagonalPrism()
                 else:
-                    print("UGrid: cell type", ct, "not implemented. Skip.")
+                    print("UGrid: cell type", ct, "not supported. Skip.")
                     continue
                 cpids = cell.GetPointIds()
                 for j, pid in enumerate(cell_conn):
@@ -129,31 +131,10 @@ class UGrid(MeshVisual, VolumeAlgorithms):
             vedo.logger.error(f"cannot understand input type {inputtype}")
             return
 
-        # self.mapper = vtk.vtkDataSetMapper()
-        self.mapper = vtk.vtkPolyDataMapper()
-        self.mapper.SetInterpolateScalarsBeforeMapping(settings.interpolate_scalars_before_mapping)
-
-        if settings.use_polygon_offset:
-            self.mapper.SetResolveCoincidentTopologyToPolygonOffset()
-            pof, pou = settings.polygon_offset_factor, settings.polygon_offset_units
-            self.mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
-        self.property.SetInterpolationToFlat()
-
-        if not self.dataset:
-            return
-
-        # now fill the representation of the vtk unstr grid
-        # sf = vtk.vtkShrinkFilter()
-        # sf.SetInputData(self.dataset)
-        # sf.SetShrinkFactor(1.0)
-        # sf.Update()
-        # gf = vtk.vtkGeometryFilter()
-        # gf.SetInputData(sf.GetOutput())
-        # gf.Update()
-        # self._polydata = gf.GetOutput()
-
-        self.mapper.SetInputData(self.dataset)
+        self.mapper = vtk.vtkUnstructuredGridVolumeRayCastMapper()
         self.actor.SetMapper(self.mapper)
+
+        # self.mapper.SetInputData(self.dataset) ###NOT HERE!
 
         self.pipeline = utils.OperationNode(
             self, comment=f"#cells {self.dataset.GetNumberOfCells()}",
@@ -236,12 +217,15 @@ class UGrid(MeshVisual, VolumeAlgorithms):
     def clone(self, deep=True):
         """Clone the UGrid object to yield an exact copy."""
         ug = vtk.vtkUnstructuredGrid()
-        ug.DeepCopy(self.dataset)
+        if deep:
+            ug.DeepCopy(self.dataset)
+        else:
+            ug.ShallowCopy(self.dataset)
 
         cloned = UGrid(ug)
-        pr = vtk.vtkProperty()
+        pr = vtk.vtkVolumeProperty()
         pr.DeepCopy(self.property)
-        cloned.dataset.SetProperty(pr)
+        cloned.actor.SetProperty(pr)
         cloned.property = pr
 
         cloned.pipeline = utils.OperationNode(

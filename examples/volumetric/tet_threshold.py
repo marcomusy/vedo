@@ -5,7 +5,7 @@ from vedo import *
 settings.use_depth_peeling = True
 
 tetm = TetMesh(dataurl+'limb_ugrid.vtk')
-tetm.color('prism').alpha([0,1])
+tetm.cmap('prism').alpha([0,1])
 
 # Threshold the tetrahedral mesh for values in the range:
 tetm.threshold(above=0.9, below=1)

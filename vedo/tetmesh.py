@@ -296,12 +296,6 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
         return "\n".join(allt)
 
 
-    def _update(self, data, reset_locators=False):
-        self.dataset = data
-        self.mapper.SetInputData(data)
-        self.mapper.Modified()
-        return self
-
     def clone(self, mapper="tetra"):
         """Clone the `TetMesh` object to yield an exact copy."""
         ug = vtk.vtkUnstructuredGrid()
@@ -313,7 +307,6 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
         cloned.actor.SetProperty(pr)
 
         cloned.mapper.SetScalarMode(self.mapper.GetScalarMode())
-        # cloned.name = self.name
 
         cloned.pipeline = utils.OperationNode(
             "clone", c="#edabab", shape="diamond", parents=[self],

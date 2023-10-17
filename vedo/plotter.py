@@ -883,6 +883,11 @@ class Plotter:
 
         ids = []
         for ob in set(objs):
+ 
+            if isinstance(ob, vtk.vtkInteractorObserver):
+                ob.remove_from(self)  # from cutters
+                continue
+ 
             # remove it from internal list if possible
             if ob in list(self.objects):
                 try:
@@ -917,9 +922,9 @@ class Plotter:
                         for sha in ob.trail.shadows:
                             ren.RemoveActor(sha.actor)
 
-        # for i in ids: # wrong way of doing it
+        # for i in ids: # WRONG way of doing it!
         #     del self.objects[i]
-        # instead:
+        # instead we do:
         self.objects = [ele for i, ele in enumerate(self.objects) if i not in ids]
 
         return self

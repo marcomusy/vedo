@@ -796,7 +796,7 @@ class CommonAlgorithms:
             arr1d = utils.vtk2numpy(self.dataset.GetCells().GetData())
         except AttributeError:
             # valid for polydata
-            arr1d = utils.vtk2numpy(self.dataset.GetCells().GetData())
+            arr1d = utils.vtk2numpy(self.dataset.GetPolys().GetData())
             if arr1d.size == 0:
                 arr1d = utils.vtk2numpy(self.dataset.GetStrips().GetData())
 
@@ -1625,7 +1625,14 @@ class VolumeAlgorithms(CommonAlgorithms):
         )
         return msh
 
+
 class UGridAlgorithms(CommonAlgorithms):
+
+    def _update(self, data, reset_locators=False):
+        self.dataset = data
+        self.mapper.SetInputData(data)
+        self.mapper.Modified()
+        return self
 
     def bounds(self):
         """
@@ -1717,7 +1724,6 @@ class UGridAlgorithms(CommonAlgorithms):
             poly = gf.GetOutput()
 
         msh = vedo.mesh.Mesh(poly).flat()
-        msh.scalarbar = self.scalarbar
         lut = utils.ctf2lut(self)
         if lut:
             msh.mapper.SetLookupTable(lut)
@@ -1990,12 +1996,7 @@ class UGridAlgorithms(CommonAlgorithms):
             clipper.SetValue(0.0)
 
         clipper.Update()
-        cout = clipper.GetOutput()
 
-        ug = vedo.UGrid(cout)
-        if isinstance(self, vedo.UGrid):
-            self._update(cout)
-            self.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
-            return self
-        ug.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
-        return ug
+        out = vedo.UGrid(clipper.GetOutput())
+        out.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
+        return out

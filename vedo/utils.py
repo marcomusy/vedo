@@ -1449,15 +1449,15 @@ def print_info(obj):
 
             if ptdata.GetScalars():
                 vedo.printc("active scalars".ljust(14) + ": ", c=c, bold=True, end="")
-                vedo.printc(ptdata.GetScalars().GetName(), "(pointdata)  ", c=c, bold=False)
+                vedo.printc(f'"{ptdata.GetScalars().GetName()}"', "(pointdata)  ", c=c, bold=False)
 
             if ptdata.GetVectors():
                 vedo.printc("active vectors".ljust(14) + ": ", c=c, bold=True, end="")
-                vedo.printc(ptdata.GetVectors().GetName(), "(pointdata)  ", c=c, bold=False)
+                vedo.printc(f'"{ptdata.GetVectors().GetName()}"', "(pointdata)  ", c=c, bold=False)
 
             if ptdata.GetTensors():
                 vedo.printc("active tensors".ljust(14) + ": ", c=c, bold=True, end="")
-                vedo.printc(ptdata.GetTensors().GetName(), "(pointdata)  ", c=c, bold=False)
+                vedo.printc(f'"{ptdata.GetTensors().GetName()}"', "(pointdata)  ", c=c, bold=False)
 
             # same for cells
             for i in range(cldata.GetNumberOfArrays()):
@@ -1479,11 +1479,11 @@ def print_info(obj):
 
             if cldata.GetScalars():
                 vedo.printc("active scalars".ljust(14) + ": ", c=c, bold=True, end="")
-                vedo.printc(cldata.GetScalars().GetName(), "(celldata)", c=c, bold=False)
+                vedo.printc(f'"{cldata.GetScalars().GetName()}"', "(celldata)", c=c, bold=False)
 
             if cldata.GetVectors():
                 vedo.printc("active vectors".ljust(14) + ": ", c=c, bold=True, end="")
-                vedo.printc(cldata.GetVectors().GetName(), "(celldata)", c=c, bold=False)
+                vedo.printc(f'"{cldata.GetVectors().GetName()}"', "(celldata)", c=c, bold=False)
 
             for i in range(fldata.GetNumberOfArrays()):
                 name = fldata.GetArrayName(i)
@@ -1544,12 +1544,12 @@ def print_info(obj):
                 vedo.printc("back color".ljust(14) + ": ", c="g", bold=True, end="")
                 vedo.printc(f"{cname}, rgb={precision(bcol,3)}", c="g", bold=False)
 
-        vedo.printc("points".ljust(14) + ":", npt, c="g", bold=True)
+        vedo.printc("points".ljust(14) + ":", f"{npt:,}", c="g", bold=True)
         # ncl = poly.GetNumberOfCells()
-        # vedo.printc("cells".ljust(14)+":", ncl, c="g", bold=True)
-        vedo.printc("polygons".ljust(14) + ":", npl, c="g", bold=True)
+        # vedo.printc("cells".ljust(14)+":", f"{ncl:,}", c="g", bold=True)
+        vedo.printc("polygons".ljust(14) + ":", f"{npl:,}", c="g", bold=True)
         if nln:
-            vedo.printc("lines".ljust(14) + ":", nln, c="g", bold=True)
+            vedo.printc("lines".ljust(14) + ":", f"{nln:,}", c="g", bold=True)
         vedo.printc("position".ljust(14) + ":", pos, c="g", bold=True)
 
         if hasattr(actor, "GetScale"):
@@ -1567,12 +1567,12 @@ def print_info(obj):
             vedo.printc("diagonal size".ljust(14) + ":", c="g", bold=True, end=" ")
             vedo.printc(precision(obj.diagonal_size(), 6), c="g", bold=False)
 
-        vedo.printc("bounds".ljust(14) + ":", c="g", bold=True, end=" ")
         bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
-        vedo.printc("x=(" + bx1 + ", " + bx2 + ")", c="g", bold=False, end="")
         by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
-        vedo.printc(" y=(" + by1 + ", " + by2 + ")", c="g", bold=False, end="")
         bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
+        vedo.printc("bounds".ljust(14) + ":", c="g", bold=True, end=" ")
+        vedo.printc( "x=(" + bx1 + ", " + bx2 + ")", c="g", bold=False, end="")
+        vedo.printc(" y=(" + by1 + ", " + by2 + ")", c="g", bold=False, end="")
         vedo.printc(" z=(" + bz1 + ", " + bz2 + ")", c="g", bold=False)
 
         _print_data(poly, "g")
