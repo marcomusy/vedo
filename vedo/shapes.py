@@ -975,12 +975,13 @@ class Lines(Mesh):
 
             ![](https://user-images.githubusercontent.com/32848391/52503049-ac9cb600-2be4-11e9-86af-72a538af14ef.png)
         """
-        if len(start_pts)>1 and isinstance(start_pts[0], Line):
+        if utils.is_sequence(start_pts) and len(start_pts)>1 and isinstance(start_pts[0], Line):
             # passing a list of Line, see tests/issues/issue_950.py
             polylns = vtk.vtkAppendPolyData()
             for ln in start_pts:
                 polylns.AddInputData(ln.dataset)
             polylns.Update()
+
             super().__init__(polylns.GetOutput(), c, alpha)
             self.lw(lw).lighting("off")
             if dotted:

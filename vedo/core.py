@@ -10,7 +10,7 @@ except ImportError:
 import vedo
 from vedo import colors
 from vedo import utils
-from vedo.transformations import LinearTransform
+from vedo.transformations import LinearTransform, NonLinearTransform
 
 
 __docformat__ = "google"
@@ -1277,24 +1277,45 @@ class PointAlgorithms(CommonAlgorithms):
         """
         if self.dataset.GetNumberOfPoints() == 0:
             return self
-
+        
         if isinstance(LT, LinearTransform):
+            LT_is_linear = True
             tr = LT.T
             if LT.is_identity():
                 return self
-            if concatenate:
-                self.transform.concatenate(LT)
+        
         elif isinstance(LT, (vtk.vtkMatrix4x4, vtk.vtkLinearTransform, np.ndarray)):
+            LT_is_linear = True
             LT = LinearTransform(LT)
+            tr = LT.T
             if LT.is_identity():
                 return self
+        
+        elif isinstance(LT, NonLinearTransform):
+            LT_is_linear = False
             tr = LT.T
-            if concatenate:
-                self.transform.concatenate(LT)
-        elif isinstance(LT, (vtk.vtkThinPlateSplineTransform)):
-            tr = LT
-            # cannot concatenate here
+            self.transform = LT # reset
 
+        elif isinstance(LT, vtk.vtkThinPlateSplineTransform):
+            LT_is_linear = False
+            tr = LT
+            self.transform = NonLinearTransform(LT) # reset
+        
+        else:
+            vedo.logger.error("apply_transform(), unknown input type", type(LT))
+            return self
+        
+        ################
+        if LT_is_linear:
+            if concatenate:
+                try:
+                    # self.transform might still not be linear
+                    self.transform.concatenate(LT)
+                except AttributeError:
+                    # in that case reset it
+                    self.transform = LinearTransform()
+
+        ################
         tp = vtk.vtkTransformPolyDataFilter()
         tp.SetTransform(tr)
         tp.SetInputData(self.dataset)
@@ -1311,6 +1332,7 @@ class PointAlgorithms(CommonAlgorithms):
         self.cell_locator = None
         self.line_locator = None
         return self
+
 
     def pos(self, x=None, y=None, z=None):
         """Set/Get object position."""

@@ -18,6 +18,7 @@ Submodule to work with transformations <br>
 
 __all__ = [
     "LinearTransform",
+    "NonLinearTransform",
     "spher2cart",
     "cart2spher",
     "cart2cyl",
@@ -152,12 +153,6 @@ class LinearTransform:
         self.T.Pop()
         return self
 
-    def invert(self):
-        """Invert transformation."""
-        self.T.Inverse()
-        self.inverse_flag = bool(self.T.GetInverseFlag())
-        return self
-
     def is_identity(self):
         """Check if identity."""
         m = self.T.GetMatrix()
@@ -165,6 +160,12 @@ class LinearTransform:
         if np.allclose(M - np.eye(4), 0):
             return True
         return False
+
+    def invert(self):
+        """Invert transformation."""
+        self.T.Inverse()
+        self.inverse_flag = bool(self.T.GetInverseFlag())
+        return self
 
     def compute_inverse(self):
         """Compute inverse."""
@@ -465,6 +466,127 @@ class LinearTransform:
         self.T.Translate(p)
         return self
 
+
+###################################################
+class NonLinearTransform:
+    """Work with non-linear transformations."""
+    
+    def __init__(self, T=None):
+
+        if T is None:
+            T = vtk.vtkThinPlateSplineTransform()
+
+        elif isinstance(T, vtk.vtkThinPlateSplineTransform):
+            S = vtk.vtkThinPlateSplineTransform()
+            S.DeepCopy(T)
+            T = S
+
+        elif isinstance(T, NonLinearTransform):
+            S = vtk.vtkThinPlateSplineTransform()
+            S.DeepCopy(T.T)
+            T = S
+
+        self.T = T
+        self.inverse_flag = False
+
+    @property
+    def source_points(self):
+        """Get source points."""
+        pts = self.T.GetSourceLandmarks()
+        vpts = []
+        for i in range(pts.GetNumberOfPoints()):
+            vpts.append(pts.GetPoint(i))
+        return np.array(vpts)
+    
+    @property
+    def target_points(self):
+        """Get target points."""
+        pts = self.T.GetTargetLandmarks()
+        vpts = []
+        for i in range(pts.GetNumberOfPoints()):
+            vpts.append(pts.GetPoint(i))
+        return np.array(vpts)
+ 
+    @source_points.setter
+    def source_points(self, pts):
+        """Set source points."""
+        if _is_sequence(pts):
+            pass
+        else:
+            pts = pts.vertices
+        vpts = vtk.vtkPoints()
+        for p in pts:
+            vpts.InsertNextPoint(p[0], p[1], p[2])
+        self.T.SetSourceLandmarks(vpts)
+    
+    @target_points.setter
+    def target_points(self, pts):
+        """Set target points."""
+        if _is_sequence(pts):
+            pass
+        else:
+            pts = pts.vertices
+        vpts = vtk.vtkPoints()
+        for p in pts:
+            vpts.InsertNextPoint(p[0], p[1], p[2])
+        self.T.SetTargetLandmarks(vpts)
+        return self
+       
+    @property
+    def sigma(self):
+        """Set sigma."""
+        return self.T.GetSigma()
+
+    @sigma.setter
+    def sigma(self, s):
+        """Get sigma."""
+        self.T.SetSigma(s)
+
+    @property
+    def mode(self, m):
+        if m=='3d':
+            self.T.SetBasisToR()
+        elif m=='2d':
+            self.T.SetBasisToR2LogR()
+        else:
+            vedo.logger.error('mode can be either "2d" or "3d"')
+        return self
+
+    def clone(self):
+        """Clone transformation to make an exact copy."""
+        return NonLinearTransform(self.T)
+        
+    def invert(self):
+        """Invert transformation."""
+        self.T.Inverse()
+        self.inverse_flag = bool(self.T.GetInverseFlag())
+        return self
+    
+    def compute_inverse(self):
+        """Compute inverse."""
+        t = self.clone()
+        t.invert()
+        return t   
+    
+    def apply_to(self, obj):
+        """Apply transformation."""
+        if _is_sequence(obj):
+            v = self.T.TransformFloatPoint(obj)
+            return np.array(v)
+
+        obj.transform = self
+
+        tp = vtk.vtkTransformPolyDataFilter()
+        tp.SetTransform(self.T)
+        tp.SetInputData(obj.dataset)
+        tp.Update()
+        out = tp.GetOutput()
+
+        obj.dataset.DeepCopy(out)
+        obj.point_locator = None
+        obj.cell_locator = None
+        obj.line_locator = None
+     
 
 ########################################################################
 # 2d ######

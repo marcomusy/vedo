@@ -11,7 +11,7 @@ except ImportError:
 import vedo
 from vedo import colors
 from vedo import utils
-from vedo.transformations import LinearTransform
+from vedo.transformations import LinearTransform, NonLinearTransform
 from vedo.core import PointAlgorithms
 from vedo.visual import PointsVisual
 
@@ -1850,8 +1850,8 @@ class Points(PointsVisual, PointAlgorithms):
         T.SetSigma(sigma)
         T.SetSourceLandmarks(ptsou)
         T.SetTargetLandmarks(pttar)
-        # self.transform = T
         self.apply_transform(T)
+        # self.transform = NonLinearTransform(T)
 
         self.pipeline = utils.OperationNode("warp", parents=parents)
         return self
