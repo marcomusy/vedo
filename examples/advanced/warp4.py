@@ -88,23 +88,27 @@ class Morpher:
                 printc("You must select your end point first!", c='y')
                 return
 
-            output = [self.mesh1.clone().c('grey4'), self.mesh2, self.msg2]
             warped_plane = self.plane1.clone().pickable(False)
             warped_plane.warp(self.arrow_starts, self.arrow_stops, mode=self.mode)
-            output.append(warped_plane + Axes(warped_plane, xygrid=0, text_scale=0.6))
+            T = warped_plane.transform
 
-            mw = self.mesh1.clone().apply_transform(warped_plane.transform).c('red4')
-            output.append(mw)
+            mw = self.mesh1.clone().apply_transform(T).c('red4')
 
-            T_inv = warped_plane.transform.compute_inverse()
-            a = Points(self.arrow_starts, r=10).apply_transform(warped_plane.transform)
-            b = Points(self.arrow_stops,  r=10).apply_transform(warped_plane.transform)
+            a = Points(self.arrow_starts, r=10).apply_transform(T)
+            b = Points(self.arrow_stops,  r=10).apply_transform(T)
+
+            T_inv = T.compute_inverse()
             self.dottedln = Lines(a,b, res=self.n).apply_transform(T_inv).point_size(5)
-            output.append(self.dottedln)
 
             self.msg1.text(self.instructions)
             self.msg2.text("Morphed output:")
-            self.plotter.at(1).clear().add_renderer_frame().add(output).reset_camera()
+            axes = Axes(warped_plane, xygrid=0, text_scale=0.6)
+
+            self.plotter.at(1).clear()
+            self.plotter.add_renderer_frame()
+            self.plotter.add(self.mesh1.clone().c('grey4'), self.mesh2, self.msg2)
+            self.plotter.add(warped_plane, axes, mw, self.dottedln)
+            self.plotter.reset_camera().render()
 
         elif evt.keypress == 'g':  ##------- generate intermediate shapes
             if not self.dottedln:
@@ -114,7 +118,8 @@ class Morpher:
             allpts = allpts.reshape(len(self.arrow_starts), self.n+1, 3)
             for i in range(self.n + 1):
                 pi = allpts[:,i,:]
-                m_nterp = self.mesh1.clone().warp(self.arrow_starts, pi, mode=self.mode).c('b3').lw(1)
+                m_nterp = self.mesh1.clone().warp(self.arrow_starts, pi, mode=self.mode)
+                m_nterp.c('blue3').lw(1)
                 intermediates.append(m_nterp)
             self.msg2.text("Morphed output + Interpolation:")
             self.plotter.at(1).add(intermediates).render()
@@ -128,14 +133,14 @@ class Morpher:
             self.msg1.text(self.instructions)
             self.msg2.text("[output will show here]")
             self.plotter.at(0).clear()
-            self.plotter.add([self.plane1, self.msg1, self.mesh1, self.mesh2])
+            self.plotter.add(self.plane1, self.msg1, self.mesh1, self.mesh2)
             self.plotter.at(1).clear().add_renderer_frame()
-            self.plotter.add([self.plane2, self.msg2]).render()
+            self.plotter.add(self.plane2, self.msg2).render()
 
 
 ######################################################################################## MAIN
 if __name__ == "__main__":
-    outlines = load(dataurl+"timecourse1d.npy") # load a set of 2d shapes
+    outlines = load(dataurl + "timecourse1d.npy") # load a set of 2d shapes
     mesh1 = outlines[25]
     mesh2 = outlines[35].scale(1.3).shift(-2,0,0)
     morpher = Morpher(mesh1, mesh2, 10)  # generate 10 intermediate outlines
