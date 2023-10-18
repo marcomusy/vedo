@@ -2879,6 +2879,7 @@ def Axes(
     - `xygrid`,                [True], show a gridded wall on plane xy
     - `yzgrid`,                [True], show a gridded wall on plane yz
     - `zxgrid`,                [True], show a gridded wall on plane zx
+    - `yzgrid2`,              [False], show yz plane on opposite side of the bounding box
     - `zxgrid2`,              [False], show zx plane on opposite side of the bounding box
     - `xygrid_transparent`    [False], make grid plane completely transparent
     - `xygrid2_transparent`   [False], make grid plane completely transparent on opposite side box
@@ -3190,28 +3191,32 @@ def Axes(
 
     if yzgrid2 and ytitle and ztitle:
         if not yzgrid2_transparent:
-            gyz2 = shapes.Grid(s=(zticks_float, yticks_float)).x(dx)
-            gyz2.alpha(yzalpha).c(yzplane_color).lw(0).rotate_y(-90)
+            gyz2 = shapes.Grid(s=(zticks_float, yticks_float))
+            gyz2.rotate_y(-90).x(dx)
+            gyz2.alpha(yzalpha).c(yzplane_color).lw(0)
             if tol: gyz2.shift(tol*gscale,0,0)
             gyz2.name = "yzGrid2"
             grids.append(gyz2)
         if grid_linewidth:
-            gyz2_lines = shapes.Grid(s=(zticks_float, yticks_float)).x(dx)
-            gyz2_lines.c(yzplane_color).lw(grid_linewidth).alpha(yzalpha).rotate_y(-90)
+            gyz2_lines = shapes.Grid(s=(zticks_float, yticks_float))
+            gyz2_lines.rotate_y(-90).x(dx)
+            gyz2_lines.c(yzplane_color).lw(grid_linewidth).alpha(yzalpha)
             if tol: gyz2_lines.shift(tol*gscale,0,0)
             gyz2_lines.name = "yzGrid2Lines"
             grids.append(gyz2_lines)
 
     if zxgrid2 and ztitle and xtitle:
         if not zxgrid2_transparent:
-            gzx2 = shapes.Grid(s=(xticks_float, zticks_float)).y(dy)
-            gzx2.alpha(zxalpha).c(zxplane_color).lw(0).rotate_x(90)
+            gzx2 = shapes.Grid(s=(xticks_float, zticks_float))
+            gzx2.rotate_x(90).y(dy)
+            gzx2.alpha(zxalpha).c(zxplane_color).lw(0)
             if tol: gzx2.shift(0,tol*gscale,0)
             gzx2.name = "zxGrid2"
             grids.append(gzx2)
         if grid_linewidth:
-            gzx2_lines = shapes.Grid(s=(xticks_float, zticks_float)).y(dy)
-            gzx2_lines.c(zxplane_color).lw(grid_linewidth).alpha(zxalpha).rotate_x(90)
+            gzx2_lines = shapes.Grid(s=(xticks_float, zticks_float))
+            gzx2_lines.rotate_x(90).y(dy)
+            gzx2_lines.c(zxplane_color).lw(grid_linewidth).alpha(zxalpha)
             if tol: gzx2_lines.shift(0,tol*gscale,0)
             gzx2_lines.name = "zxGrid2Lines"
             grids.append(gzx2_lines)

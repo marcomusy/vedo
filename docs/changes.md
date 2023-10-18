@@ -52,7 +52,6 @@ examples/volumetric/slicer1.py
 ```
 ~/Projects/vedo/examples/basic
 background_image.py
-cut_interactive.py
 glyphs2.py
 
 
@@ -61,9 +60,7 @@ warp4.py
 
 
 ~/Projects/vedo/examples/pyplot
-custom_axes1.py
 caption.py
-embed_matplotlib.py
 goniometer.py
 histo_2d_b.py
 histo_hexagonal.py
@@ -86,6 +83,11 @@ ellipt_fourier_desc.py
 export_numpy.py
 flag_labels1.py
 
+property -> properties
+dolfin
+notebook
+backends
+release on master as branch?
 
 ```
 
