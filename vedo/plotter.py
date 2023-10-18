@@ -75,13 +75,13 @@ class Event:
     def __repr__(self):
         f = "---------- <vedo.plotter.Event object> ----------\n"
         for n in self.__slots__:
-            try:
-                if n == "actor" and self.actor and self.actor.data and self.actor.data.name:
-                        f += f"event.{n} = {self.actor.name} ({self.actor.npoints} points)\n"
+            if n == "object" and self.object:
+                if self.object.name:
+                    f += f"event.{n} = {self.object.name}\n"
                 else:
-                    f += f"event.{n} = " + str(self[n]).replace("\n", "")[:60] + "\n"
-            except AttributeError:
-                pass
+                    f += f"event.{n} = {self.object.__class__.__name__} \n"
+            else:
+                f += f"event.{n} = " + str(self[n]).replace("\n", "")[:60] + "\n"
 
         return f
 
@@ -824,11 +824,12 @@ class Plotter:
 
         for a in acts:
 
-            if isinstance(a, vtk.vtkInteractorObserver):
-                a.add_to(self)  # from cutters
-                continue
-
             if ren:
+
+                if isinstance(a, vtk.vtkInteractorObserver):
+                    a.add_to(self)  # from cutters
+                    continue
+
                 try:
                     ren.AddActor(a)
                 except TypeError:
@@ -870,33 +871,42 @@ class Plotter:
                 break
 
         if has_str or has_actor:
-            # need to get the actors
-            acts = self.get_meshes(include_non_pickables=True, unpack_assemblies=False)
-            for a in acts:
+            # need to get the actors to search for
+            # acts = self.get_meshes(include_non_pickables=True, unpack_assemblies=False)
+            # acts+= self.get_volumes(include_non_pickables=True)
+            acts = self.get_actors(include_non_pickables=True)
+            for a in set(acts):
+                # print("PARSING", [a])
                 try:
-                    if a.name and a.name in objs:
+                    if (a.name and a.name in objs) or a in objs:
+                        # print('a.name',a.name)
                         objs.append(a)
                 except AttributeError:
-                    pass
+                    try:
+                        if (a.data.name and a.data.name in objs) or a.data in objs:
+                            # print('a.data.name',a.data.name)
+                            objs.append(a.data)
+                    except AttributeError:
+                        pass
 
         ir = self.renderers.index(ren)
 
         ids = []
         for ob in set(objs):
  
-            if isinstance(ob, vtk.vtkInteractorObserver):
-                ob.remove_from(self)  # from cutters
-                continue
- 
-            # remove it from internal list if possible
-            if ob in list(self.objects):
-                try:
-                    idx = self.objects.index(ob)
-                    ids.append(idx)
-                except ValueError:
-                    pass
+            # will remove it from internal list if possible
+            try:
+                idx = self.objects.index(ob)
+                ids.append(idx)
+            except ValueError:
+                pass
 
             if ren:  ### remove it from the renderer
+
+                if isinstance(ob, vtk.vtkInteractorObserver):
+                    ob.remove_from(self)  # from cutters
+                    continue
+
                 try:
                     ren.RemoveActor(ob)
                 except TypeError:
@@ -1129,6 +1139,34 @@ class Plotter:
                 except AttributeError:
                     pass
         return vols
+
+    def get_actors(self, at=None, include_non_pickables=False):
+        """
+        Return a list of Volumes from the specified renderer.
+
+        Arguments:
+            at : (int)
+                specify which renderer to look at
+            include_non_pickables : (bool)
+                include non-pickable objects
+        """
+        if at is None:
+            renderer = self.renderer
+            at = self.renderers.index(renderer)
+        elif isinstance(at, int):
+            renderer = self.renderers[at]
+
+        acts = []
+        acs = renderer.GetViewProps()
+        acs.InitTraversal()
+        for _ in range(acs.GetNumberOfItems()):
+            a = acs.GetNextProp()
+            if include_non_pickables or a.GetPickable():
+                # try:
+                #     acts.append(a.data)
+                # except AttributeError:
+                    acts.append(a)
+        return acts
 
     def reset_camera(self, tight=None):
         """
@@ -2342,6 +2380,8 @@ class Plotter:
 
             self.picker.PickProp(x, y, self.renderer)
             actor = self.picker.GetProp3D()
+            # if not actor: # GetProp3D already picks Assembly
+            #     actor = picker.GetAssembly()
 
             delta3d = np.array([0, 0, 0])
             if actor:
@@ -2374,11 +2414,13 @@ class Plotter:
         event.keypress = key
         if enable_picking:
             try:
-                event.actor = actor.data  # obsolete use object instead
                 event.object = actor.data
             except AttributeError:
-                event.actor = None
-                event.object = None
+                event.object = actor
+            try:
+                event.actor = actor.data  # obsolete use object instead
+            except AttributeError:
+                event.actor = actor
             event.picked3d = picked3d
             event.picked2d = (x, y)
             event.delta2d = (dx, dy)

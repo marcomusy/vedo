@@ -1225,7 +1225,7 @@ def write(objct, fileoutput, binary=True):
     Possile extensions are:
         - `vtk, vti, npy, npz, ply, obj, stl, byu, vtp, vti, mhd, xyz, tif, png, bmp`
     """
-    obj = objct
+    obj = objct.dataset
     # if isinstance(obj, Points):  # picks transformation
     #     obj = objct
     # elif isinstance(obj, (vtk.vtkActor, vtk.vtkVolume)):

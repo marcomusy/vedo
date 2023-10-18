@@ -574,14 +574,13 @@ class Assembly(CommonVisual, vtk.vtkAssembly):
 
         return list(_genflatten([self]))
 
-    def pickable(self, value=None):
-        """Set/get the pickability property of an assembly and its elements"""
-        # set property to each element
-        if value is not None:
-            for elem in self.recursive_unpack():
-                elem.SetPickable(value)
 
-        # set property for self using inherited pickable()
+    def pickable(self, value=True):
+        """Set/get the pickability property of an assembly and its elements"""
+        self.SetPickable(value)
+        # set property to each element
+        for elem in self.recursive_unpack():
+            elem.pickable(value)
         return self
 
     def show(self, **options):

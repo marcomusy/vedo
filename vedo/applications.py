@@ -764,7 +764,7 @@ class RayCastPlotter(Plotter):
             bold=0,
             italic=False,
         )
-        bum.frame(c='w')
+        bum.frame(color='w')
         bum.status(volume.mode())
 
         # add histogram of scalar

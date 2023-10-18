@@ -577,7 +577,7 @@ class SplineTool(vtk.vtkContourWidget):
 
 #####################################################################
 class SliderWidget(vtk.vtkSliderWidget):
-    """Helper class for vtkSliderWidget"""
+    """Helper class for `vtkSliderWidget`"""
 
     def __init__(self):
         super().__init__()
@@ -636,6 +636,9 @@ class SliderWidget(vtk.vtkSliderWidget):
 
     def off(self):
         self.EnabledOff()
+
+    def toggle(self):
+        self.SetEnabled(not self.GetEnabled())
 
 
 #####################################################################

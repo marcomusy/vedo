@@ -86,8 +86,11 @@ ex06_elasticity2.py
 
 
 release on master as branch?
-tests/issues/issue_871.py
+tests/issues/issue_871a.py
 
+
+staging
+clonala analysis
 ```
 
 
