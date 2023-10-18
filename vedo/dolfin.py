@@ -501,7 +501,7 @@ def plot(*inputobj, **options):
             # actor.points(pts_act)
             actor.vertices = pts_act
             if vmin is not None and vmax is not None:
-                actor.mapper().SetScalarRange(vmin, vmax)
+                actor.mapper.SetScalarRange(vmin, vmax)
 
         if scbar and c is None:
             if "3d" in scbar:
@@ -632,7 +632,7 @@ class MeshActor(Mesh):
             # print(cells[0])
             # print(coords[cells[0]])
             # poly = utils.geometry(_buildtetugrid(coords, cells))
-            # poly = utils.geometry(vedo.TetMesh([coords, cells]).inputdata())
+            # poly = utils.geometry(vedo.TetMesh([coords, cells]).dataset)
 
             poly = vtk.vtkPolyData()
 
@@ -805,10 +805,11 @@ def MeshLines(*inputobj, **options):
 def MeshArrows(*inputobj, **options):
     """Build arrows representing displacements."""
     s = options.pop("s", None)
-    c = options.pop("c", "gray")
+    c = options.pop("c", "k3")
     scale = options.pop("scale", 1)
     alpha = options.pop("alpha", 1)
     res = options.pop("res", 12)
+    # print("Building arrows...",c)
 
     mesh, u = _inputsort(inputobj)
     if not mesh:
@@ -830,12 +831,13 @@ def MeshArrows(*inputobj, **options):
         start_points = np.insert(start_points, 2, 0, axis=1)  # make it 3d
         end_points = np.insert(end_points, 2, 0, axis=1)  # make it 3d
 
-    actor = shapes.Arrows(start_points, end_points, s=s, alpha=alpha, res=res)
-    actor.color(c)
-    actor.mesh = mesh
-    actor.u = u
-    actor.u_values = u_values
-    return actor
+    obj = shapes.Arrows(
+        start_points, end_points, s=s, alpha=alpha, c=c, res=res
+    )
+    obj.mesh = mesh
+    obj.u = u
+    obj.u_values = u_values
+    return obj
 
 
 def MeshStreamLines(*inputobj, **options):

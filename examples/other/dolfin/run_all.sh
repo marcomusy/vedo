@@ -32,9 +32,6 @@ python3 elastodynamics.py
 echo Running elasticbeam.py
 python3 elasticbeam.py
 
-echo Running magnetostatics.py
-python3 magnetostatics.py
-
 echo Running pointLoad.py
 python3 pointLoad.py
 
@@ -93,9 +90,6 @@ python3 turing_pattern.py
 
 echo Running heatconv.py
 python3 heatconv.py
-
-echo Running wavy_1d.py
-python3 wavy_1d.py
 
 echo Running awefem.py
 python3 awefem.py

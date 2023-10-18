@@ -82,8 +82,9 @@ trail.py
 ellipt_fourier_desc.py
 export_numpy.py
 flag_labels1.py
+ex06_elasticity2.py
 
-property -> properties
+
 dolfin
 notebook
 backends

@@ -534,7 +534,6 @@ class Points(PointsVisual, PointAlgorithms):
         self.line_locator = None
 
         self.scalarbar = None
-        # self.scalarbars = dict() #TODO
         self.pipeline = None
 
         self.actor = vtk.vtkActor()
@@ -550,9 +549,15 @@ class Points(PointsVisual, PointAlgorithms):
         self._cmap_name = ""  # remember the cmap name for self._keypress
         self._caption = None
 
+        try:
+            self.properties.RenderPointsAsSpheresOn()
+        except AttributeError:
+            pass
+        # self.properties.LightingOff()
+
         if inputobj is None:  ####################
             return
-        ########################################
+        ##########################################
 
         self.name = "Points"  # better not to give it a name here?
 
