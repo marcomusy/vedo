@@ -1503,12 +1503,12 @@ def print_info(obj):
         poly = obj.dataset
         actor = obj.dataset
         mapper = obj.mapper
-        pro = obj.property
+        pro = obj.properties
 
         if not obj.actor.GetPickable():
             return
 
-        pro = obj.property
+        pro = obj.properties
         pos = obj.pos()
         bnds = obj.bounds()
         col = precision(pro.GetColor(), 3)
@@ -2657,8 +2657,8 @@ def ctf2lut(vol, logscale=False):
     """Internal use."""
     # build LUT from a color transfer function for tmesh or volume
 
-    ctf = vol.property.GetRGBTransferFunction()
-    otf = vol.property.GetScalarOpacity()
+    ctf = vol.properties.GetRGBTransferFunction()
+    otf = vol.properties.GetScalarOpacity()
     x0, x1 = vol.dataset.GetScalarRange()
     cols, alphas = [], []
     for x in np.linspace(x0, x1, 256):

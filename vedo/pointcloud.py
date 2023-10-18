@@ -436,7 +436,7 @@ def pca_ellipsoid(points, pvalue=0.673):
     vtra.SetMatrix(M)
 
     elli = vedo.shapes.Ellipsoid((0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1), alpha=0.25)
-    elli.property.LightingOff()
+    elli.properties.LightingOff()
     elli.apply_transform(vtra)
 
     elli.pvalue = pvalue
@@ -538,8 +538,8 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = None
 
         self.actor = vtk.vtkActor()
-        self.property = self.actor.GetProperty()
-        self.property_backface = self.actor.GetBackfaceProperty()
+        self.properties = self.actor.GetProperty()
+        self.properties_backface = self.actor.GetBackfaceProperty()
         self.mapper = vtk.vtkPolyDataMapper()
         self.dataset = vtk.vtkPolyData()
         self.transform = LinearTransform()
@@ -562,7 +562,7 @@ class Points(PointsVisual, PointAlgorithms):
             pr = vtk.vtkProperty()
             pr.DeepCopy(inputobj.GetProperty())
             self.actor.SetProperty(pr)
-            self.property = pr
+            self.properties = pr
             self.mapper.SetScalarVisibility(inputobj.GetMapper().GetScalarVisibility())
 
         elif isinstance(inputobj, vtk.vtkPolyData):
@@ -601,13 +601,13 @@ class Points(PointsVisual, PointAlgorithms):
         self.actor.SetMapper(self.mapper)
         self.mapper.SetInputData(self.dataset)
 
-        self.property.SetColor(colors.get_color(c))
-        self.property.SetOpacity(alpha)
-        self.property.SetRepresentationToPoints()
-        self.property.SetPointSize(r)
-        self.property.LightingOff()
+        self.properties.SetColor(colors.get_color(c))
+        self.properties.SetOpacity(alpha)
+        self.properties.SetRepresentationToPoints()
+        self.properties.SetPointSize(r)
+        self.properties.LightingOff()
         try:
-            self.property.RenderPointsAsSpheresOn()
+            self.properties.RenderPointsAsSpheresOn()
         except AttributeError:
             pass
 
@@ -971,8 +971,8 @@ class Points(PointsVisual, PointAlgorithms):
         cpd.Update()
 
         ps = 2
-        if self.property.GetRepresentation() == 0:
-            ps = self.property.GetPointSize()
+        if self.properties.GetRepresentation() == 0:
+            ps = self.properties.GetPointSize()
 
         self._update(cpd.GetOutput())
         self.ps(ps)
@@ -2278,9 +2278,9 @@ class Points(PointsVisual, PointAlgorithms):
                 cutoff = vedo.Mesh(kpoly)
             else:
                 cutoff = vedo.Points(kpoly)
-            cutoff.property = vtk.vtkProperty()
-            cutoff.property.DeepCopy(self.property)
-            cutoff.actor.SetProperty(cutoff.property)
+            cutoff.properties = vtk.vtkProperty()
+            cutoff.properties.DeepCopy(self.properties)
+            cutoff.actor.SetProperty(cutoff.properties)
             cutoff.c("k5").alpha(0.2)
             return vedo.Assembly([self, cutoff])
 
@@ -2965,7 +2965,7 @@ class Points(PointsVisual, PointAlgorithms):
             raise RuntimeError()
         dens.Update()
         pts = utils.vtk2numpy(dens.GetOutput().GetPoints().GetData())
-        cld = Points(pts, c=None).point_size(self.property.GetPointSize())
+        cld = Points(pts, c=None).point_size(self.properties.GetPointSize())
         cld.interpolate_data_from(self, n=nclosest, radius=radius)
         cld.name = "DensifiedCloud"
 

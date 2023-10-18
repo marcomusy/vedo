@@ -261,7 +261,7 @@ class LegendBox(shapes.TextBase, vtk.vtkLegendBoxActor):
 
         self.name = "LegendBox"
         self.entries = entries[:nmax]
-        self.property = self.GetEntryTextProperty()
+        self.properties = self.GetEntryTextProperty()
 
         n = 0
         texts = []
@@ -284,11 +284,11 @@ class LegendBox(shapes.TextBase, vtk.vtkLegendBoxActor):
         self.PickableOff()
         self.SetPadding(padding)
 
-        self.property.ShadowOff()
-        self.property.BoldOff()
+        self.properties.ShadowOff()
+        self.properties.BoldOff()
 
-        # self.property.SetJustificationToLeft() # no effect
-        # self.property.SetVerticalJustificationToTop()
+        # self.properties.SetJustificationToLeft() # no effect
+        # self.properties.SetVerticalJustificationToTop()
 
         if not font:
             font = settings.default_font
@@ -302,7 +302,7 @@ class LegendBox(shapes.TextBase, vtk.vtkLegendBoxActor):
                 continue
             e = entries[i]
             if c is None:
-                col = e.property.GetColor()
+                col = e.properties.GetColor()
                 if col == (1, 1, 1):
                     col = (0.2, 0.2, 0.2)
             else:
@@ -1271,7 +1271,7 @@ def ScalarBar3D(
 
     for m in tacts+scales:
         m.shift(pos)
-        m.property.LightingOff()
+        m.properties.LightingOff()
 
     asse = Assembly(scales + tacts)
 
@@ -2408,8 +2408,8 @@ def Ruler3D(
 
     macts = merge(lb, lc1, lc2, c1, c2, ml1, ml2)
     macts.c(c).alpha(alpha)
-    macts.property.SetLineWidth(lw)
-    macts.property.LightingOff()
+    macts.properties.SetLineWidth(lw)
+    macts.properties.LightingOff()
     macts.actor.UseBoundsOff()
     macts.base = q1
     macts.top  = q2
@@ -3946,7 +3946,7 @@ def Axes(
     for a in acts:
         a.shift(orig)
         a.actor.PickableOff()
-        a.property.LightingOff()
+        a.properties.LightingOff()
     asse = Assembly(acts)
     asse.PickableOff()
     asse.name = "Axes"

@@ -2171,7 +2171,7 @@ class Plotter:
 
             # change box color if needed in 'auto' mode
             if evt.isPoints and "auto" in str(bg):
-                actcol = evt.object.property.GetColor()
+                actcol = evt.object.properties.GetColor()
                 if hoverlegend.mapper.GetTextProperty().GetBackgroundColor() != actcol:
                     hoverlegend.mapper.GetTextProperty().SetBackgroundColor(actcol)
 
@@ -3550,68 +3550,68 @@ class Plotter:
         elif key == "Down":
             if self.clicked_object in self.get_meshes():
                 self.clicked_object.alpha(0.02)
-                if hasattr(self.clicked_object, "property_backface"):
+                if hasattr(self.clicked_object, "properties_backface"):
                     bfp = self.clicked_actor.GetBackfaceProperty()
-                    self.clicked_object.property_backface = bfp  # save it
+                    self.clicked_object.properties_backface = bfp  # save it
                     self.clicked_actor.SetBackfaceProperty(None)
             else:
                 for obj in self.get_meshes():
                     obj.alpha(0.02)
                     bfp = obj.actor.GetBackfaceProperty()
-                    if bfp and hasattr(obj, "property_backface"):
-                        obj.property_backface = bfp
+                    if bfp and hasattr(obj, "properties_backface"):
+                        obj.properties_backface = bfp
                         obj.actor.SetBackfaceProperty(None)
 
         elif key == "Left":
             if self.clicked_object in self.get_meshes():
-                ap = self.clicked_object.property
+                ap = self.clicked_object.properties
                 aal = max([ap.GetOpacity() * 0.75, 0.01])
                 ap.SetOpacity(aal)
                 bfp = self.clicked_actor.GetBackfaceProperty()
-                if bfp and hasattr(self.clicked_object, "property_backface"):
-                    self.clicked_object.property_backface = bfp
+                if bfp and hasattr(self.clicked_object, "properties_backface"):
+                    self.clicked_object.properties_backface = bfp
                     self.clicked_actor.SetBackfaceProperty(None)
             else:
                 for a in self.get_meshes():
-                    ap = a.property
+                    ap = a.properties
                     aal = max([ap.GetOpacity() * 0.75, 0.01])
                     ap.SetOpacity(aal)
                     bfp = a.actor.GetBackfaceProperty()
-                    if bfp and hasattr(a, "property_backface"):
-                        a.property_backface = bfp
+                    if bfp and hasattr(a, "properties_backface"):
+                        a.properties_backface = bfp
                         a.actor.SetBackfaceProperty(None)
 
         elif key == "Right":
             if self.clicked_object in self.get_meshes():
-                ap = self.clicked_object.property
+                ap = self.clicked_object.properties
                 aal = min([ap.GetOpacity() * 1.25, 1.0])
                 ap.SetOpacity(aal)
                 if (
                     aal == 1
-                    and hasattr(self.clicked_object, "property_backface")
-                    and self.clicked_object.property_backface
+                    and hasattr(self.clicked_object, "properties_backface")
+                    and self.clicked_object.properties_backface
                 ):
                     # put back
                     self.clicked_actor.SetBackfaceProperty(
-                        self.clicked_object.property_backface)
+                        self.clicked_object.properties_backface)
             else:
                 for a in self.get_meshes():
-                    ap = a.property
+                    ap = a.properties
                     aal = min([ap.GetOpacity() * 1.25, 1.0])
                     ap.SetOpacity(aal)
-                    if aal == 1 and hasattr(a, "property_backface") and a.property_backface:
-                        a.actor.SetBackfaceProperty(a.property_backface)
+                    if aal == 1 and hasattr(a, "properties_backface") and a.properties_backface:
+                        a.actor.SetBackfaceProperty(a.properties_backface)
 
         elif key == "Up":
             if self.clicked_object in self.get_meshes():
-                self.clicked_object.property.SetOpacity(1)
-                if hasattr(self.clicked_object, "property_backface") and self.clicked_object.property_backface:
-                    self.clicked_object.actor.SetBackfaceProperty(self.clicked_object.property_backface)
+                self.clicked_object.properties.SetOpacity(1)
+                if hasattr(self.clicked_object, "properties_backface") and self.clicked_object.properties_backface:
+                    self.clicked_object.actor.SetBackfaceProperty(self.clicked_object.properties_backface)
             else:
                 for a in self.get_meshes():
-                    a.property.SetOpacity(1)
-                    if hasattr(a, "property_backface") and a.property_backface:
-                        a.actor.SetBackfaceProperty(a.property_backface)
+                    a.properties.SetOpacity(1)
+                    if hasattr(a, "properties_backface") and a.properties_backface:
+                        a.actor.SetBackfaceProperty(a.properties_backface)
 
         elif key == "P":
             if self.clicked_object in self.get_meshes():
@@ -3620,10 +3620,10 @@ class Plotter:
                 objs = self.get_meshes()
             for ia in objs:
                 try:
-                    ps = ia.property.GetPointSize()
+                    ps = ia.properties.GetPointSize()
                     if ps > 1:
-                        ia.property.SetPointSize(ps - 1)
-                    ia.property.SetRepresentationToPoints()
+                        ia.properties.SetPointSize(ps - 1)
+                    ia.properties.SetRepresentationToPoints()
                 except AttributeError:
                     pass
 
@@ -3634,9 +3634,9 @@ class Plotter:
                 objs = self.get_meshes()
             for ia in objs:
                 try:
-                    ps = ia.property.GetPointSize()
-                    ia.property.SetPointSize(ps + 2)
-                    ia.property.SetRepresentationToPoints()
+                    ps = ia.properties.GetPointSize()
+                    ia.properties.SetPointSize(ps + 2)
+                    ia.properties.SetRepresentationToPoints()
                 except AttributeError:
                     pass
 
@@ -3803,13 +3803,13 @@ class Plotter:
 
         elif key == "w":
             if self.clicked_object and self.clicked_object in self.get_meshes():
-                self.clicked_object.property.SetRepresentationToWireframe()
+                self.clicked_object.properties.SetRepresentationToWireframe()
             else:
                 for a in self.get_meshes():
-                    if a.property.GetRepresentation() == 1:  # toggle
-                        a.property.SetRepresentationToSurface()
+                    if a.properties.GetRepresentation() == 1:  # toggle
+                        a.properties.SetRepresentationToSurface()
                     else:
-                        a.property.SetRepresentationToWireframe()
+                        a.properties.SetRepresentationToWireframe()
 
         elif key == "1":
             self._icol += 1
@@ -4034,10 +4034,10 @@ class Plotter:
                 objs = self.get_meshes()
             for ia in objs:
                 try:
-                    ev = ia.property.GetEdgeVisibility()
-                    ia.property.SetEdgeVisibility(not ev)
-                    ia.property.SetRepresentationToSurface()
-                    ia.property.SetLineWidth(0.1)
+                    ev = ia.properties.GetEdgeVisibility()
+                    ia.properties.SetEdgeVisibility(not ev)
+                    ia.properties.SetRepresentationToSurface()
+                    ia.properties.SetLineWidth(0.1)
                 except AttributeError:
                     pass
 
@@ -4063,11 +4063,11 @@ class Plotter:
             for ia in objs:
                 if isinstance(ia, vedo.Mesh):
                     ia.compute_normals(cells=False)
-                    intrp = ia.property.GetInterpolation()
+                    intrp = ia.properties.GetInterpolation()
                     if intrp > 0:
-                        ia.property.SetInterpolation(0)  # flat
+                        ia.properties.SetInterpolation(0)  # flat
                     else:
-                        ia.property.SetInterpolation(2)  # phong
+                        ia.properties.SetInterpolation(2)  # phong
 
         elif key == "n":  # show normals to an actor
             if self.clicked_object in self.get_meshes():

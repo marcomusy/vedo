@@ -425,9 +425,9 @@ class CommonAlgorithms:
         )
         try:
             pr = vtk.vtkProperty()
-            pr.DeepCopy(self.property)
+            pr.DeepCopy(self.properties)
             bx.SetProperty(pr)
-            bx.property = pr
+            bx.properties = pr
         except (AttributeError, TypeError):
             pass
         bx.wireframe(not fill)
@@ -1755,9 +1755,9 @@ class UGridAlgorithms(CommonAlgorithms):
 
         ug = vedo.ugrid.UGrid(es.GetOutput())
         pr = vtk.vtkProperty()
-        pr.DeepCopy(self.property)
+        pr.DeepCopy(self.properties)
         ug.SetProperty(pr)
-        ug.property = pr
+        ug.properties = pr
 
         ug.mapper.SetLookupTable(utils.ctf2lut(self))
         ug.pipeline = utils.OperationNode(

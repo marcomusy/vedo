@@ -66,8 +66,8 @@ def _to2d(obj, offset, scale):
 
     act2d.GetProperty().SetColor(obj.color())
     act2d.GetProperty().SetOpacity(obj.alpha())
-    act2d.GetProperty().SetLineWidth(obj.property.GetLineWidth())
-    act2d.GetProperty().SetPointSize(obj.property.GetPointSize())
+    act2d.GetProperty().SetLineWidth(obj.properties.GetLineWidth())
+    act2d.GetProperty().SetPointSize(obj.properties.GetPointSize())
 
     act2d.PickableOff()
 
@@ -396,13 +396,13 @@ class Figure(Assembly):
             if isinstance(a, (shapes.Arrow, shapes.Arrow2D)):
                 # discard input Arrow and substitute it with a brand new one
                 # (because scaling would fatally distort the shape)
-                prop = a.property
+                prop = a.properties
                 prop.LightingOff()
                 py = a.base[1]
                 a.top[1] = (a.top[1] - py) * self.yscale + py
                 b = shapes.Arrow2D(a.base, a.top, s=a.s, fill=a.fill).z(a.z())
                 b.actor.SetProperty(prop)
-                b.property = prop
+                b.properties = prop
                 b.y(py * self.yscale)
                 a = b
 
@@ -414,7 +414,7 @@ class Figure(Assembly):
             #     rx2,ry2,rz2 = a.corner2
             #     ry2 = (ry2-py) * self.yscale + py
             #     b = shapes.Rectangle([rx1,0,rz1], [rx2,ry2,rz2], radius=a.radius).z(a.z())
-            #     b.SetProperty(a.property)
+            #     b.SetProperty(a.properties)
             #     b.y(py / self.yscale)
             #     a = b
 
@@ -735,7 +735,7 @@ class Figure(Assembly):
                 continue
             if a.npoints == 0:
                 continue
-            if a.property.GetRepresentation() == 1:
+            if a.properties.GetRepresentation() == 1:
                 # wireframe is not rendered correctly in 2d
                 continue
             a2d = _to2d(a, offset, scale * 550 / (x1 - x0))
@@ -2789,7 +2789,7 @@ def _plot_fxy(
             zm = (bb[4] + bb[5]) / 2
         nans = np.array(nans) + [0, 0, zm]
         nansact = shapes.Points(nans, r=2, c="red5", alpha=alpha)
-        nansact.property.RenderPointsAsSpheresOff()
+        nansact.properties.RenderPointsAsSpheresOff()
         acts.append(nansact)
 
     if isinstance(axes, dict):
@@ -3634,7 +3634,7 @@ def whisker(data, s=0.25, c="k", lw=2, bc="blue", alpha=0.25, r=5, jitter=True, 
         pts = shapes.Points(np.array([xvals, data]).T, c=c, r=r)
 
     rec = shapes.Rectangle([-s / 2, dq25], [s / 2, dq75], c=bc, alpha=alpha)
-    rec.property.LightingOff()
+    rec.properties.LightingOff()
     rl = shapes.Line([[-s / 2, dq25], [s / 2, dq25], [s / 2, dq75], [-s / 2, dq75]], closed=True)
     l1 = shapes.Line([0, dq05, 0], [0, dq25, 0], c=c, lw=lw)
     l2 = shapes.Line([0, dq75, 0], [0, dq95, 0], c=c, lw=lw)

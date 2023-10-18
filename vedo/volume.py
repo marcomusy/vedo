@@ -123,7 +123,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         """
         self.actor = vtk.vtkVolume()
         self.actor.data = self
-        self.property = self.actor.GetProperty()
+        self.properties = self.actor.GetProperty()
         self.dataset = None
         self.mapper = None
         self.pipeline = None
@@ -233,9 +233,9 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         if img.GetPointData().GetScalars():
             if img.GetPointData().GetScalars().GetNumberOfComponents() == 1:
                 self.mode(mode).color(c).alpha(alpha).alpha_gradient(alpha_gradient)
-                self.property.SetShade(True)
-                self.property.SetInterpolationType(1)
-                self.property.SetScalarOpacityUnitDistance(alpha_unit)
+                self.properties.SetShade(True)
+                self.properties.SetInterpolationType(1)
+                self.properties.SetScalarOpacityUnitDistance(alpha_unit)
 
 
         self.pipeline = utils.OperationNode(
@@ -345,16 +345,16 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             newvol = Volume(self.dataset)
 
         prop = vtk.vtkVolumeProperty()
-        prop.DeepCopy(self.property)
+        prop.DeepCopy(self.properties)
         newvol.actor.SetProperty(prop)
-        newvol.property = prop
+        newvol.properties = prop
 
         newvol.pipeline = utils.OperationNode("clone", parents=[self], c="#bbd0ff", shape="diamond")
         return newvol
     
     def component_weight(self, i, weight):
         """Set the scalar component weight in range [0,1]."""
-        self.property.SetComponentWeight(i, weight)
+        self.properties.SetComponentWeight(i, weight)
         return self
 
     def xslice(self, i):

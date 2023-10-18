@@ -65,7 +65,7 @@ class Mesh(MeshVisual, Points):
             pr = vtk.vtkProperty()
             pr.DeepCopy(inputobj.GetProperty())
             self.actor.SetProperty(pr)
-            self.property = pr
+            self.properties = pr
 
         elif isinstance(inputobj, vtk.vtkPolyData):
             # self.dataset.DeepCopy(inputobj) # NO
@@ -133,11 +133,11 @@ class Mesh(MeshVisual, Points):
         self.mapper.SetInputData(self.dataset)
         self.actor.SetMapper(self.mapper)
 
-        self.property.SetInterpolationToPhong()
-        self.property.SetColor(get_color(c))
+        self.properties.SetInterpolationToPhong()
+        self.properties.SetColor(get_color(c))
 
         if alpha is not None:
-            self.property.SetOpacity(alpha)
+            self.properties.SetOpacity(alpha)
 
         self.mapper.SetInterpolateScalarsBeforeMapping(
             vedo.settings.interpolate_scalars_before_mapping
@@ -490,7 +490,7 @@ class Mesh(MeshVisual, Points):
         tu.SetRepeat(repeat)
         tu.SetEdgeClamp(edge_clamp)
 
-        self.property.SetColor(1, 1, 1)
+        self.properties.SetColor(1, 1, 1)
         self.mapper.ScalarVisibilityOff()
         self.actor.SetTexture(tu)
 
@@ -978,8 +978,8 @@ class Mesh(MeshVisual, Points):
             if len(joinedpts) > 1:
                 newline = vedo.shapes.Line(joinedpts, closed=closed)
                 newline.clean()
-                newline.actor.SetProperty(self.property)
-                newline.property = self.property
+                newline.actor.SetProperty(self.properties)
+                newline.properties = self.properties
                 newline.pipeline = OperationNode(
                     "join_segments",
                     parents=[self],
@@ -2142,7 +2142,7 @@ class Mesh(MeshVisual, Points):
         bf.SetInputData(1, mesh2.dataset)
         bf.Update()
         msh = Mesh(bf.GetOutput(), c="k", alpha=1).lighting("off")
-        msh.property.SetLineWidth(3)
+        msh.properties.SetLineWidth(3)
         msh.name = "SurfaceIntersection"
         msh.pipeline = OperationNode(
             "intersect_with", parents=[self, mesh2], comment=f"#pts {msh.npoints}"
@@ -2265,7 +2265,7 @@ class Mesh(MeshVisual, Points):
         msh.metadata["ContactCells2"] = vtk2numpy(
             ipdf.GetOutput(1).GetFieldData().GetArray("ContactCells")
         )
-        msh.property.SetLineWidth(3)
+        msh.properties.SetLineWidth(3)
         msh.name = "SurfaceCollision"
 
         msh.pipeline = OperationNode(

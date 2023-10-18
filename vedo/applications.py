@@ -451,14 +451,14 @@ class Slicer2DPlotter(Plotter):
         self.volume = vol
 
         self.volume.actor = vtk.vtkImageSlice()
-        self.volume.property = self.volume.actor.GetProperty()
+        self.volume.properties = self.volume.actor.GetProperty()
 
         self.volume.mapper = vtk.vtkImageResliceMapper()
         self.volume.mapper.SliceFacesCameraOn()
         self.volume.mapper.SliceAtFocalPointOn()
         self.volume.mapper.SetAutoAdjustImageQuality(False)
         self.volume.mapper.BorderOff()
-        self.volume.property.SetInterpolationTypeToLinear()
+        self.volume.properties.SetInterpolationTypeToLinear()
 
         self.volume.mapper.SetInputData(self.volume.dataset)
         self.volume.actor.SetMapper(self.volume.mapper)
@@ -537,17 +537,17 @@ class Slicer2DPlotter(Plotter):
         Use "bw" for automatic black and white.
         """
         if lut is None and self.lut:
-            self.volume.property.SetLookupTable(self.lut)
+            self.volume.properties.SetLookupTable(self.lut)
         elif isinstance(lut, vtk.vtkLookupTable):
-            self.volume.property.SetLookupTable(lut)
+            self.volume.properties.SetLookupTable(lut)
         elif lut == "bw":
-            self.volume.property.SetLookupTable(None)
-        self.volume.property.SetUseLookupTableScalarRange(fix_scalar_range)
+            self.volume.properties.SetLookupTable(None)
+        self.volume.properties.SetUseLookupTableScalarRange(fix_scalar_range)
         return self
 
     def alpha(self, value):
         """Set opacity to the slice"""
-        self.volume.property.SetOpacity(value)
+        self.volume.properties.SetOpacity(value)
         return self
 
     def auto_adjust_quality(self, value=True):
@@ -603,10 +603,10 @@ class Slicer2DPlotter(Plotter):
 
     def lighting(self, window, level, ambient=1.0, diffuse=0.0):
         """Assign the values for window and color level."""
-        self.volume.property.SetColorWindow(window)
-        self.volume.property.SetColorLevel(level)
-        self.volume.property.SetAmbient(ambient)
-        self.volume.property.SetDiffuse(diffuse)
+        self.volume.properties.SetColorWindow(window)
+        self.volume.properties.SetColorLevel(level)
+        self.volume.properties.SetAmbient(ambient)
+        self.volume.properties.SetDiffuse(diffuse)
         return self
 
 
@@ -635,7 +635,7 @@ class RayCastPlotter(Plotter):
         self.alphaslider1 = 0.66
         self.alphaslider2 = 1
 
-        self.property = volume.property
+        self.properties = volume.properties
         img = volume.dataset
 
         if volume.dimensions()[2] < 3:
@@ -690,7 +690,7 @@ class RayCastPlotter(Plotter):
 
         ############################## alpha sliders
         # Create transfer mapping scalar value to opacity
-        opacityTransferFunction = self.property.GetScalarOpacity()
+        opacityTransferFunction = self.properties.GetScalarOpacity()
 
         def setOTF():
             opacityTransferFunction.RemoveAllPoints()
@@ -843,7 +843,7 @@ class IsosurfaceBrowser(Plotter):
         )
 
         ### GPU ################################
-        if use_gpu and hasattr(volume.property, "GetIsoSurfaceValues"):
+        if use_gpu and hasattr(volume.properties, "GetIsoSurfaceValues"):
 
             scrange = volume.scalar_range()
             delta = scrange[1] - scrange[0]
@@ -858,7 +858,7 @@ class IsosurfaceBrowser(Plotter):
                 value = widget.GetRepresentation().GetValue()
                 isovals.SetValue(0, value)
 
-            isovals = volume.property.GetIsoSurfaceValues()
+            isovals = volume.properties.GetIsoSurfaceValues()
             isovals.SetValue(0, isovalue)
             self.add(volume.mode(5).alpha(alpha).cmap(c))
 
@@ -1705,7 +1705,7 @@ class Animation(Plotter):
             for tt in rng:
                 inputvalues = []
                 for a in acts:
-                    pr = a.property
+                    pr = a.properties
                     aa = pr.GetAmbient()
                     ad = pr.GetDiffuse()
                     asp = pr.GetSpecular()
@@ -1718,7 +1718,7 @@ class Animation(Plotter):
                 self.events.append((tt, self.change_lighting, acts, inputvalues))
         else:
             for i, a in enumerate(self._performers):
-                pr = a.property
+                pr = a.properties
                 vals = self._inputvalues[i]
                 pr.SetAmbient(vals[0])
                 pr.SetDiffuse(vals[1])

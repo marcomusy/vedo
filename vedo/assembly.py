@@ -75,7 +75,7 @@ def procrustes_alignment(sources, rigid=False):
         poly = procrustes.GetOutput().GetBlock(i)
         mesh = vedo.mesh.Mesh(poly)
         mesh.actor.SetProperty(s.actor.GetProperty())
-        mesh.property = s.actor.GetProperty()
+        mesh.properties = s.actor.GetProperty()
         if hasattr(s, "name"):
             mesh.name = s.name
         acts.append(mesh)

@@ -49,7 +49,7 @@ class UGrid(VolumeVisual, UGridAlgorithms):
 
         self.dataset = None
         self.actor = vtk.vtkVolume()
-        self.property = self.actor.GetProperty()
+        self.properties = self.actor.GetProperty()
 
         self.name = "UGrid"
         self.filename = ""
@@ -224,9 +224,9 @@ class UGrid(VolumeVisual, UGridAlgorithms):
 
         cloned = UGrid(ug)
         pr = vtk.vtkVolumeProperty()
-        pr.DeepCopy(self.property)
+        pr.DeepCopy(self.properties)
         cloned.actor.SetProperty(pr)
-        cloned.property = pr
+        cloned.properties = pr
 
         cloned.pipeline = utils.OperationNode(
             "clone", parents=[self], shape='diamond', c='#bbe1ed',

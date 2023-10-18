@@ -478,7 +478,7 @@ class Line(Mesh):
 
         super().__init__(poly, c, alpha)
         self.lw(lw)
-        self.property.LightingOff()
+        self.properties.LightingOff()
         self.actor.PickableOff()
         self.actor.DragableOff()
         self.base = base
@@ -502,7 +502,7 @@ class Line(Mesh):
         base = self.base
         top = self.top
         prop = vtk.vtkProperty()
-        prop.DeepCopy(self.property)
+        prop.DeepCopy(self.properties)
 
         ln = Line(self)
         ln.transform = self.transform
@@ -939,7 +939,7 @@ class RoundedLine(Mesh):
         vct.Update()
         super().__init__(vct.GetOutput(), c, alpha)
         self.flat()
-        self.property.LightingOff()
+        self.properties.LightingOff()
         self.name = "RoundedLine"
         self.base = ptsnew[0]
         self.top = ptsnew[-1]
@@ -1027,8 +1027,8 @@ class Lines(Mesh):
         super().__init__(polylns.GetOutput(), c, alpha)
         self.lw(lw).lighting("off")
         if dotted:
-            self.property.SetLineStipplePattern(0xF0F0)
-            self.property.SetLineStippleRepeatFactor(1)
+            self.properties.SetLineStipplePattern(0xF0F0)
+            self.properties.SetLineStippleRepeatFactor(1)
 
         self.name = "Lines"
 
@@ -1343,10 +1343,10 @@ class NormalLines(Mesh):
 
         self.actor.PickableOff()
         prop = vtk.vtkProperty()
-        prop.DeepCopy(msh.property)
+        prop.DeepCopy(msh.properties)
         self.actor.SetProperty(prop)
-        self.property = prop
-        self.property.LightingOff()
+        self.properties = prop
+        self.properties.LightingOff()
         self.mapper.ScalarVisibilityOff()
         self.name = "NormalLines"
 
@@ -2347,7 +2347,7 @@ class Triangle(Mesh):
     def __init__(self, p1, p2, p3, c="green7", alpha=1.0):
         """Create a triangle from 3 points in space."""
         super().__init__([[p1, p2, p3], [[0, 1, 2]]], c, alpha)
-        self.property.LightingOff()
+        self.properties.LightingOff()
         self.name = "Triangle"
 
 
@@ -2370,7 +2370,7 @@ class Polygon(Mesh):
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
         self.pos(pos)
-        self.property.LightingOff()
+        self.properties.LightingOff()
         self.name = "Polygon " + str(nsides)
 
 
@@ -2467,7 +2467,7 @@ class Star(Mesh):
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
 
-        self.property.LightingOff()
+        self.properties.LightingOff()
         self.name = "Star"
 
 
@@ -3057,7 +3057,7 @@ class Grid(Mesh):
             self.pos(pos)
 
         self.wireframe().lw(lw)
-        self.property.LightingOff()
+        self.properties.LightingOff()
         self.name = "Grid"
 
 
@@ -3113,9 +3113,9 @@ class Plane(Mesh):
         newplane.dataset.DeepCopy(self.dataset)
         newplane.transform = self.transform
         prop = vtk.vtkProperty()
-        prop.DeepCopy(self.property)
+        prop.DeepCopy(self.properties)
         newplane.actor.SetProperty(prop)
-        newplane.property = prop
+        newplane.properties = prop
         newplane.variance = 0
         newplane.top = self.normal
         newplane.base = self.base
@@ -3245,7 +3245,7 @@ class Rectangle(Mesh):
 
         super().__init__([pts, faces], color, alpha)
         self.pos(p1)
-        self.property.LightingOff()
+        self.properties.LightingOff()
         self.name = "Rectangle"
 
 
@@ -4412,7 +4412,7 @@ class TextBase:
         "Do not instantiate this base class."
 
         self.rendered_at = set()
-        self.property = None
+        self.properties = None
 
         if isinstance(settings.default_font, int):
             lfonts = list(settings.font_parameters.keys())
@@ -4424,76 +4424,76 @@ class TextBase:
 
     def angle(self, a):
         """Orientation angle in degrees"""
-        self.property.SetOrientation(a)
+        self.properties.SetOrientation(a)
         return self
 
     def line_spacing(self, ls):
         """Set the extra spacing between lines, expressed as a text height multiplication factor."""
-        self.property.SetLineSpacing(ls)
+        self.properties.SetLineSpacing(ls)
         return self
 
     def line_offset(self, lo):
         """Set/Get the vertical offset (measured in pixels)."""
-        self.property.SetLineOffset(lo)
+        self.properties.SetLineOffset(lo)
         return self
 
     def bold(self, value=True):
         """Set bold face"""
-        self.property.SetBold(value)
+        self.properties.SetBold(value)
         return self
 
     def italic(self, value=True):
         """Set italic face"""
-        self.property.SetItalic(value)
+        self.properties.SetItalic(value)
         return self
 
     def shadow(self, offset=(1, -1)):
         """Text shadowing. Set to `None` to disable it."""
         if offset is None:
-            self.property.ShadowOff()
+            self.properties.ShadowOff()
         else:
-            self.property.ShadowOn()
-            self.property.SetShadowOffset(offset)
+            self.properties.ShadowOn()
+            self.properties.SetShadowOffset(offset)
         return self
 
     def color(self, c=None):
         """Set the text color"""
         if c is None:
-            return get_color(self.property.GetColor())
-        self.property.SetColor(get_color(c))
+            return get_color(self.properties.GetColor())
+        self.properties.SetColor(get_color(c))
         return self
 
     def c(self, color=None):
         """Set the text color"""
         if color is None:
-            return get_color(self.property.GetColor())
+            return get_color(self.properties.GetColor())
         return self.color(color)
 
     def alpha(self, value):
         """Set the text opacity"""
-        self.property.SetBackgroundOpacity(value)
+        self.properties.SetBackgroundOpacity(value)
         return self
 
     def background(self, color="k9", alpha=1.0):
         """Text background. Set to `None` to disable it."""
         bg = get_color(color)
         if color is None:
-            self.property.SetBackgroundOpacity(0)
+            self.properties.SetBackgroundOpacity(0)
         else:
-            self.property.SetBackgroundColor(bg)
+            self.properties.SetBackgroundColor(bg)
             if alpha:
-                self.property.SetBackgroundOpacity(alpha)
+                self.properties.SetBackgroundOpacity(alpha)
         return self
 
     def frame(self, color="k1", lw=2):
         """Border color and width"""
         if color is None:
-            self.property.FrameOff()
+            self.properties.FrameOff()
         else:
             c = get_color(color)
-            self.property.FrameOn()
-            self.property.SetFrameColor(c)
-            self.property.SetFrameWidth(lw)
+            self.properties.FrameOn()
+            self.properties.SetFrameColor(c)
+            self.properties.SetFrameWidth(lw)
         return self
 
     def font(self, font):
@@ -4514,13 +4514,13 @@ class TextBase:
         else:  # user passing name of preset font
             fpath = os.path.join(vedo.fonts_path, font + ".ttf")
 
-        if   font == "Courier": self.property.SetFontFamilyToCourier()
-        elif font == "Times":   self.property.SetFontFamilyToTimes()
-        elif font == "Arial":   self.property.SetFontFamilyToArial()
+        if   font == "Courier": self.properties.SetFontFamilyToCourier()
+        elif font == "Times":   self.properties.SetFontFamilyToTimes()
+        elif font == "Arial":   self.properties.SetFontFamilyToArial()
         else:
             fpath = utils.get_font_path(font)
-            self.property.SetFontFamily(vtk.VTK_FONT_FILE)
-            self.property.SetFontFile(fpath)
+            self.properties.SetFontFamily(vtk.VTK_FONT_FILE)
+            self.properties.SetFontFile(fpath)
         self.fontname = font  # io.tonumpy() uses it
 
         return self
@@ -4616,7 +4616,7 @@ class Text2D(TextBase, vedo.visual.BaseActor2D):
         self.mapper = vtk.vtkTextMapper()
         self.SetMapper(self.mapper)
 
-        self.property = self.mapper.GetTextProperty()
+        self.properties = self.mapper.GetTextProperty()
 
         self.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
 
@@ -4678,17 +4678,17 @@ class Text2D(TextBase, vedo.visual.BaseActor2D):
         if not justify:
             justify = ajustify
 
-        self.property.SetJustificationToLeft()
+        self.properties.SetJustificationToLeft()
         if "top" in justify:
-            self.property.SetVerticalJustificationToTop()
+            self.properties.SetVerticalJustificationToTop()
         if "bottom" in justify:
-            self.property.SetVerticalJustificationToBottom()
+            self.properties.SetVerticalJustificationToBottom()
         if "cent" in justify or "mid" in justify:
-            self.property.SetJustificationToCentered()
+            self.properties.SetJustificationToCentered()
         if "left" in justify:
-            self.property.SetJustificationToLeft()
+            self.properties.SetJustificationToLeft()
         if "right" in justify:
-            self.property.SetJustificationToRight()
+            self.properties.SetJustificationToRight()
 
         self.SetPosition(pos)
         return self
@@ -4709,7 +4709,7 @@ class Text2D(TextBase, vedo.visual.BaseActor2D):
 
     def size(self, s):
         """Set the font size."""
-        self.property.SetFontSize(int(s * 22.5))
+        self.properties.SetFontSize(int(s * 22.5))
         return self
 
 
@@ -4731,7 +4731,7 @@ class CornerAnnotation(TextBase, vtk.vtkCornerAnnotation):
 
         super().__init__()
 
-        self.property = self.GetTextProperty()
+        self.properties = self.GetTextProperty()
 
         # automatic black or white
         if c is None:
@@ -4748,9 +4748,9 @@ class CornerAnnotation(TextBase, vtk.vtkCornerAnnotation):
 
         self.SetNonlinearFontScaleFactor(1 / 2.75)
         self.PickableOff()
-        self.property.SetColor(get_color(c))
-        self.property.SetBold(False)
-        self.property.SetItalic(False)
+        self.properties.SetColor(get_color(c))
+        self.properties.SetBold(False)
+        self.properties.SetItalic(False)
 
     def size(self, s, linear=False):
         """
@@ -4951,7 +4951,7 @@ def VedoLogo(distance=0.0, c=None, bc="t", version=False, frame=True):
     font = "Comae"
     vlogo = Text3D("vэdo", font=font, s=1350, depth=0.2, c=c, hspacing=0.8)
     vlogo.scale([1, 0.95, 1]).x(-2525).pickable(False).bc(bc)
-    vlogo.property.LightingOn()
+    vlogo.properties.LightingOn()
 
     vr, rul = None, None
     if version:

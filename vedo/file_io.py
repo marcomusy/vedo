@@ -891,7 +891,7 @@ def tonumpy(obj):
             adict["LUT"] = lutvals
             adict["LUT_range"] = lut.GetRange()
 
-        prp = obj.property
+        prp = obj.properties
         adict["alpha"] = prp.GetOpacity()
         adict["representation"] = prp.GetRepresentation()
         adict["pointsize"] = prp.GetPointSize()
@@ -945,7 +945,7 @@ def tonumpy(obj):
         adict["mode"] = obj.mode()
         # adict['jittering'] = obj.mapper.GetUseJittering()
 
-        prp = obj.property
+        prp = obj.properties
         ctf = prp.GetRGBTransferFunction()
         otf = prp.GetScalarOpacity()
         gotf = prp.GetGradientOpacity()
@@ -973,12 +973,12 @@ def tonumpy(obj):
         adict["rendered_at"] = obj.rendered_at
         adict["text"] = obj.text()
         adict["position"] = obj.GetPosition()
-        adict["color"] = obj.property.GetColor()
+        adict["color"] = obj.properties.GetColor()
         adict["font"] = obj.fontname
-        adict["size"] = obj.property.GetFontSize() / 22.5
-        adict["bgcol"] = obj.property.GetBackgroundColor()
-        adict["alpha"] = obj.property.GetBackgroundOpacity()
-        adict["frame"] = obj.property.GetFrame()
+        adict["size"] = obj.properties.GetFontSize() / 22.5
+        adict["bgcol"] = obj.properties.GetBackgroundColor()
+        adict["alpha"] = obj.properties.GetBackgroundOpacity()
+        adict["frame"] = obj.properties.GetFrame()
         # print('tonumpy(): vedo.Text2D', obj.text()[:10], obj.font(), obj.GetPosition())
 
     else:

@@ -33,7 +33,7 @@ class CommonVisual:
 
     def __init__(self):
         self.mapper = None
-        self.property = None
+        self.properties = None
         self.actor = None
         self.scalarbar = None
 
@@ -370,7 +370,7 @@ class CommonVisual:
             vmin, _ = self.dataset.GetScalarRange()
         if vmax is None:
             _, vmax = self.dataset.GetScalarRange()
-        ctf = self.property.GetRGBTransferFunction()
+        ctf = self.properties.GetRGBTransferFunction()
         ctf.RemoveAllPoints()
 
         if utils.is_sequence(col):
@@ -427,7 +427,7 @@ class CommonVisual:
             vmin, _ = self.dataset.GetScalarRange()
         if vmax is None:
             _, vmax = self.dataset.GetScalarRange()
-        otf = self.property.GetScalarOpacity()
+        otf = self.properties.GetScalarOpacity()
         otf.RemoveAllPoints()
 
         if utils.is_sequence(alpha):
@@ -562,17 +562,17 @@ class PointsVisual(CommonVisual):
         """
         pr = vtk.vtkProperty()
         if deep:
-            pr.DeepCopy(source.property)
+            pr.DeepCopy(source.properties)
         else:
-            pr.ShallowCopy(source.property)
+            pr.ShallowCopy(source.properties)
         self.actor.SetProperty(pr)
-        self.property = pr
+        self.properties = pr
 
         if self.actor.GetBackfaceProperty():
             bfpr = vtk.vtkProperty()
             bfpr.DeepCopy(source.actor.GetBackfaceProperty())
             self.actor.SetBackfaceProperty(bfpr)
-            self.property_backface = bfpr
+            self.properties_backface = bfpr
 
         if not actor_related:
             return self
@@ -603,13 +603,13 @@ class PointsVisual(CommonVisual):
         Same as `mesh.c()`.
         """
         if c is False:
-            return np.array(self.property.GetColor())
+            return np.array(self.properties.GetColor())
         if c is None:
             self.mapper.ScalarVisibilityOn()
             return self
         self.mapper.ScalarVisibilityOff()
         cc = colors.get_color(c)
-        self.property.SetColor(cc)
+        self.properties.SetColor(cc)
         if self.trail:
             self.trail.GetProperty().SetColor(cc)
         if alpha is not None:
@@ -626,16 +626,16 @@ class PointsVisual(CommonVisual):
     def alpha(self, opacity=None):
         """Set/get mesh's transparency. Same as `mesh.opacity()`."""
         if opacity is None:
-            return self.property.GetOpacity()
+            return self.properties.GetOpacity()
 
-        self.property.SetOpacity(opacity)
+        self.properties.SetOpacity(opacity)
         bfp = self.actor.GetBackfaceProperty()
         if bfp:
             if opacity < 1:
-                self.property_backface = bfp
+                self.properties_backface = bfp
                 self.actor.SetBackfaceProperty(None)
             else:
-                self.actor.SetBackfaceProperty(self.property_backface)
+                self.actor.SetBackfaceProperty(self.properties_backface)
         return self
 
     def opacity(self, alpha=None):
@@ -657,11 +657,11 @@ class PointsVisual(CommonVisual):
     def point_size(self, value=None):
         """Set/get mesh's point size of vertices. Same as `mesh.ps()`"""
         if value is None:
-            return self.property.GetPointSize()
-            # self.property.SetRepresentationToSurface()
+            return self.properties.GetPointSize()
+            # self.properties.SetRepresentationToSurface()
         else:
-            self.property.SetRepresentationToPoints()
-            self.property.SetPointSize(value)
+            self.properties.SetRepresentationToPoints()
+            self.properties.SetPointSize(value)
         return self
 
     def ps(self, pointsize=None):
@@ -670,7 +670,7 @@ class PointsVisual(CommonVisual):
 
     def render_points_as_spheres(self, value=True):
         """Make points look spheric or else make them look as squares."""
-        self.property.SetRenderPointsAsSpheres(value)
+        self.properties.SetRenderPointsAsSpheres(value)
         return self
 
     def lighting(
@@ -706,7 +706,7 @@ class PointsVisual(CommonVisual):
         Examples:
             - [specular.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/specular.py)
         """
-        pr = self.property
+        pr = self.properties
 
         if style:
 
@@ -763,7 +763,7 @@ class PointsVisual(CommonVisual):
         In this case the radius `r` is in absolute units of the mesh coordinates.
         With emissive set, the halo of point becomes light-emissive.
         """
-        self.property.SetRepresentationToPoints()
+        self.properties.SetRepresentationToPoints()
         if emissive:
             self.mapper.SetEmissive(bool(emissive))
         self.mapper.SetScaleFactor(r * 1.4142)
@@ -785,7 +785,7 @@ class PointsVisual(CommonVisual):
 
         self.mapper.Modified()
         self.actor.Modified()
-        self.property.SetOpacity(alpha)
+        self.properties.SetOpacity(alpha)
         self.actor.SetMapper(self.mapper)
         return self
 
@@ -811,9 +811,9 @@ class PointsVisual(CommonVisual):
             vscalars = self.dataset.GetCellData().GetScalars()
             if vscalars is None or lut is None:
                 arr = np.zeros([self.ncells, 4], dtype=np.uint8)
-                col = np.array(self.property.GetColor())
+                col = np.array(self.properties.GetColor())
                 col = np.round(col * 255).astype(np.uint8)
-                alf = self.property.GetOpacity()
+                alf = self.properties.GetOpacity()
                 alf = np.round(alf * 255).astype(np.uint8)
                 arr[:, (0, 1, 2)] = col
                 arr[:, 3] = alf
@@ -862,9 +862,9 @@ class PointsVisual(CommonVisual):
             vscalars = self.dataset.GetPointData().GetScalars()
             if vscalars is None or lut is None:
                 arr = np.zeros([self.npoints, 4], dtype=np.uint8)
-                col = np.array(self.property.GetColor())
+                col = np.array(self.properties.GetColor())
                 col = np.round(col * 255).astype(np.uint8)
-                alf = self.property.GetOpacity()
+                alf = self.properties.GetOpacity()
                 alf = np.round(alf * 255).astype(np.uint8)
                 arr[:, (0, 1, 2)] = col
                 arr[:, 3] = alf
@@ -1107,7 +1107,7 @@ class PointsVisual(CommonVisual):
             self.trail_points = [pos] * n
 
             if c is None:
-                col = self.property.GetColor()
+                col = self.properties.GetColor()
             else:
                 col = colors.get_color(c)
 
@@ -1201,7 +1201,7 @@ class PointsVisual(CommonVisual):
         except AttributeError:
             pass
 
-        shad.property.LightingOff()
+        shad.properties.LightingOff()
         shad.actor.SetPickable(False)
         shad.actor.SetUseBounds(True)
 
@@ -1414,7 +1414,7 @@ class PointsVisual(CommonVisual):
             lpoly = vtk.vtkPolyData()
 
         ids = vedo.mesh.Mesh(lpoly, c=c, alpha=alpha)
-        ids.property.LightingOff()
+        ids.properties.LightingOff()
         ids.actor.PickableOff()
         ids.actor.SetUseBounds(False)
         return ids
@@ -1672,8 +1672,8 @@ class PointsVisual(CommonVisual):
         macts = vedo.merge(acts).c(c).alpha(alpha)
         macts.actor.SetOrigin(pt)
         macts.bc("tomato").pickable(False)
-        macts.property.LightingOff()
-        macts.property.SetLineWidth(lw)
+        macts.properties.LightingOff()
+        macts.properties.SetLineWidth(lw)
         macts.actor.UseBoundsOff()
         macts.name = "FlagPole"
         return macts
@@ -1823,7 +1823,7 @@ class PointsVisual(CommonVisual):
             txt = txt.replace(r[0], r[1])
 
         if c is None:
-            c = np.array(self.property.GetColor()) / 2
+            c = np.array(self.properties.GetColor()) / 2
         else:
             c = colors.get_color(c)
 
@@ -1897,7 +1897,7 @@ class MeshVisual(PointsVisual):
 
         factor = vtk.vtkFollower()
         factor.SetMapper(self.mapper)
-        factor.SetProperty(self.property)
+        factor.SetProperty(self.properties)
         factor.SetBackfaceProperty(self.actor.GetBackfaceProperty())
         factor.SetTexture(self.actor.GetTexture())
         factor.SetScale(self.actor.GetScale())
@@ -1927,9 +1927,9 @@ class MeshVisual(PointsVisual):
     def wireframe(self, value=True):
         """Set mesh's representation as wireframe or solid surface."""
         if value:
-            self.property.SetRepresentationToWireframe()
+            self.properties.SetRepresentationToWireframe()
         else:
-            self.property.SetRepresentationToSurface()
+            self.properties.SetRepresentationToSurface()
         return self
 
     def flat(self):
@@ -1937,27 +1937,27 @@ class MeshVisual(PointsVisual):
 
         <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png" width="700">
         """
-        self.property.SetInterpolationToFlat()
+        self.properties.SetInterpolationToFlat()
         return self
 
     def phong(self):
         """Set surface interpolation to "phong"."""
-        self.property.SetInterpolationToPhong()
+        self.properties.SetInterpolationToPhong()
         return self
 
     def backface_culling(self, value=True):
         """Set culling of polygons based on orientation of normal with respect to camera."""
-        self.property.SetBackfaceCulling(value)
+        self.properties.SetBackfaceCulling(value)
         return self
 
     def render_lines_as_tubes(self, value=True):
         """Wrap a fake tube around a simple line for visualization"""
-        self.property.SetRenderLinesAsTubes(value)
+        self.properties.SetRenderLinesAsTubes(value)
         return self
 
     def frontface_culling(self, value=True):
         """Set culling of polygons based on orientation of normal with respect to camera."""
-        self.property.SetFrontfaceCulling(value)
+        self.properties.SetFrontfaceCulling(value)
         return self
 
     def backcolor(self, bc=None):
@@ -1971,14 +1971,14 @@ class MeshVisual(PointsVisual):
                 return back_prop.GetDiffuseColor()
             return self
 
-        if self.property.GetOpacity() < 1:
+        if self.properties.GetOpacity() < 1:
             return self
 
         if not back_prop:
             back_prop = vtk.vtkProperty()
 
         back_prop.SetDiffuseColor(colors.get_color(bc))
-        back_prop.SetOpacity(self.property.GetOpacity())
+        back_prop.SetOpacity(self.properties.GetOpacity())
         self.actor.SetBackfaceProperty(back_prop)
         self.mapper.ScalarVisibilityOff()
         return self
@@ -1991,13 +1991,13 @@ class MeshVisual(PointsVisual):
         """Set/get width of mesh edges. Same as `lw()`."""
         if lw is not None:
             if lw == 0:
-                self.property.EdgeVisibilityOff()
-                self.property.SetRepresentationToSurface()
+                self.properties.EdgeVisibilityOff()
+                self.properties.SetRepresentationToSurface()
                 return self
-            self.property.EdgeVisibilityOn()
-            self.property.SetLineWidth(lw)
+            self.properties.EdgeVisibilityOn()
+            self.properties.SetLineWidth(lw)
         else:
-            return self.property.GetLineWidth()
+            return self.properties.GetLineWidth()
         return self
 
     def lw(self, linewidth=None):
@@ -2007,9 +2007,9 @@ class MeshVisual(PointsVisual):
     def linecolor(self, lc=None):
         """Set/get color of mesh edges. Same as `lc()`."""
         if lc is None:
-            return self.property.GetEdgeColor()
-        self.property.EdgeVisibilityOn()
-        self.property.SetEdgeColor(colors.get_color(lc))
+            return self.properties.GetEdgeColor()
+        self.properties.EdgeVisibilityOn()
+        self.properties.SetEdgeColor(colors.get_color(lc))
         return self
 
     def lc(self, linecolor=None):
@@ -2032,8 +2032,8 @@ class VolumeVisual(CommonVisual):
         The larger you make the unit distance, the more transparent the rendering becomes.
         """
         if u is None:
-            return self.property.GetScalarOpacityUnitDistance()
-        self.property.SetScalarOpacityUnitDistance(u)
+            return self.properties.GetScalarOpacityUnitDistance()
+        self.properties.SetScalarOpacityUnitDistance(u)
         return self
 
     def alpha_gradient(self, alpha_grad, vmin=None, vmax=None):
@@ -2054,12 +2054,12 @@ class VolumeVisual(CommonVisual):
             _, vmax = self.dataset.GetScalarRange()
 
         if alpha_grad is None:
-            self.property.DisableGradientOpacityOn()
+            self.properties.DisableGradientOpacityOn()
             return self
 
-        self.property.DisableGradientOpacityOff()
+        self.properties.DisableGradientOpacityOff()
 
-        gotf = self.property.GetGradientOpacity()
+        gotf = self.properties.GetGradientOpacity()
         if utils.is_sequence(alpha_grad):
             alpha_grad = np.array(alpha_grad)
             if len(alpha_grad.shape) == 1:  # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
@@ -2199,8 +2199,8 @@ class VolumeVisual(CommonVisual):
         (for example, in maximum intensity projection mode).
         """
         if status is None:
-            return self.property.GetShade()
-        self.property.SetShade(status)
+            return self.properties.GetShade()
+        self.properties.SetShade(status)
         return self
 
 
@@ -2240,7 +2240,7 @@ class VolumeVisual(CommonVisual):
 
         0=nearest neighbour, 1=linear
         """
-        self.property.SetInterpolationType(itype)
+        self.properties.SetInterpolationType(itype)
         return self
 
 
@@ -2346,22 +2346,22 @@ class PictureVisual(ActorTransforms, CommonVisual):
     def alpha(self, a=None):
         """Set/get picture's transparency in the rendering scene."""
         if a is not None:
-            self.property.SetOpacity(a)
+            self.properties.SetOpacity(a)
             return self
-        return self.property.GetOpacity()
+        return self.properties.GetOpacity()
 
     def level(self, value=None):
         """Get/Set the image color level (brightness) in the rendering scene."""
         if value is None:
-            return self.property.GetColorLevel()
-        self.property.SetColorLevel(value)
+            return self.properties.GetColorLevel()
+        self.properties.SetColorLevel(value)
         return self
 
     def window(self, value=None):
         """Get/Set the image color window (contrast) in the rendering scene."""
         if value is None:
-            return self.property.GetColorWindow()
-        self.property.SetColorWindow(value)
+            return self.properties.GetColorWindow()
+        self.properties.SetColorWindow(value)
         return self
 
     def bounds(self):
@@ -2412,7 +2412,7 @@ class BaseActor2D(vtk.vtkActor2D):
         super().__init__()
 
         self.mapper = None
-        self.property = self.GetProperty()
+        self.properties = self.GetProperty()
         self.filename = ""
 
     def layer(self, value=None):
@@ -2479,22 +2479,22 @@ class BaseActor2D(vtk.vtkActor2D):
     def alpha(self, value=None):
         """Set/Get the object opacity."""
         if value is None:
-            return self.property.GetOpacity()
-        self.property.SetOpacity(value)
+            return self.properties.GetOpacity()
+        self.properties.SetOpacity(value)
         return self
 
     def ps(self, point_size=None):
         if point_size is None:
-            return self.property.GetPointSize()
-        self.property.SetPointSize(point_size)
+            return self.properties.GetPointSize()
+        self.properties.SetPointSize(point_size)
         return self
 
     def ontop(self, value=True):
         """Keep the object always on top of everything else."""
         if value:
-            self.property.SetDisplayLocationToForeground()
+            self.properties.SetDisplayLocationToForeground()
         else:
-            self.property.SetDisplayLocationToBackground()
+            self.properties.SetDisplayLocationToBackground()
         return self
 
     def add_observer(self, event_name, func, priority=0):

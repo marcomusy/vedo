@@ -223,8 +223,8 @@ def start_k3d(actors2show):
                 position=pos,
                 color=_rgb2int(vedo.get_color(ia.c())),
                 is_html=True,
-                size=ia.property.GetFontSize() / 22.5 * 1.5,
-                label_box=bool(ia.property.GetFrame()),
+                size=ia.properties.GetFontSize() / 22.5 * 1.5,
+                label_box=bool(ia.properties.GetFrame()),
                 # reference_point='bl',
             )
             vedo.notebook_plotter += kobj

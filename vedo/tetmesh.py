@@ -187,13 +187,13 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
             vedo.logger.error(f"Unknown mapper type {type(mapper)}")
             raise RuntimeError()
 
-        self.property = self.actor.GetProperty()
+        self.properties = self.actor.GetProperty()
 
         self.mapper.SetInputData(self.dataset)
         self.actor.SetMapper(self.mapper)
         self.cmap(c).alpha(alpha)
         if alpha_unit:
-            self.property.SetScalarOpacityUnitDistance(alpha_unit)
+            self.properties.SetScalarOpacityUnitDistance(alpha_unit)
 
         # remember stuff:
         self._color = c
@@ -303,7 +303,7 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
 
         cloned = TetMesh(ug, mapper=mapper)
         pr = vtk.vtkVolumeProperty()
-        pr.DeepCopy(self.property)
+        pr.DeepCopy(self.properties)
         cloned.actor.SetProperty(pr)
 
         cloned.mapper.SetScalarMode(self.mapper.GetScalarMode())
