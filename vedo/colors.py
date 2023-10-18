@@ -1094,6 +1094,7 @@ def printc(
     dim=False,
     invert=False,
     box="",
+    link="",
     end="\n",
     flush=True,
     return_string=False,
@@ -1122,6 +1123,9 @@ def printc(
             invert background and forward colors [False]
         box : (bool)
             print a box with specified text character ['']
+        link : (str)
+            print a clickable url link (works on Linux)
+            (must press Ctrl+click to open the link)
         flush : (bool)
             flush buffer after printing [True]
         return_string : (bool)
@@ -1240,6 +1244,11 @@ def printc(
         else:
 
             out = special + cseq + txt + reset
+
+            if link:
+                # embed a link in the terminal
+                out = f"\x1b]8;;{link}\x1b\\{out}\x1b]8;;\x1b\\"
+
             if return_string:
                 return out + end
             else:
