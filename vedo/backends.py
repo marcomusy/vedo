@@ -123,9 +123,12 @@ def start_k3d(actors2show):
 
     for ia in actors2show2:
 
-        if isinstance(ia, (vtk.vtkCornerAnnotation,
-                           vtk.vtkAssembly,
-                           vtk.vtkActor2D)):
+        if isinstance(ia, 
+            (vtk.vtkCornerAnnotation, vtk.vtkAssembly, vtk.vtkActor2D)):
+            continue
+
+        if hasattr(ia, 'actor') and isinstance(ia.actor, 
+            (vtk.vtkCornerAnnotation, vtk.vtkAssembly, vtk.vtkActor2D)):
             continue
 
         iacloned = ia
@@ -145,15 +148,15 @@ def start_k3d(actors2show):
         # work out scalars first, Points Lines are also Mesh objs
         if isinstance(ia, Points):
             # print('scalars', ia.name, ia.npoints)
-            iap = ia.GetProperty()
+            iap = ia.properties
 
-            if ia.inputdata().GetNumberOfPolys():
+            if ia.dataset.GetNumberOfPolys():
                 iacloned = ia.clone()
-                iapoly = iacloned.clean().triangulate().compute_normals().polydata()
+                iapoly = iacloned.clean().triangulate().compute_normals().dataset
             else:
-                iapoly = ia.polydata()
+                iapoly = ia.dataset
 
-            if ia.mapper().GetScalarVisibility() and ia.mapper().GetColorMode() > 0:
+            if ia.mapper.GetScalarVisibility() and ia.mapper.GetColorMode() > 0:
 
                 vtkdata = iapoly.GetPointData()
                 vtkscals = vtkdata.GetScalars()
@@ -173,9 +176,9 @@ def start_k3d(actors2show):
 
                     if not vtkscals.GetName():
                         vtkscals.SetName("scalars")
-                    scals_min, scals_max = ia.mapper().GetScalarRange()
+                    scals_min, scals_max = ia.mapper.GetScalarRange()
                     color_attribute = (vtkscals.GetName(), scals_min, scals_max)
-                    lut = ia.mapper().GetLookupTable()
+                    lut = ia.mapper.GetLookupTable()
                     lut.Build()
                     kcmap = []
                     nlut = lut.GetNumberOfTableValues()
@@ -193,20 +196,20 @@ def start_k3d(actors2show):
             arr = ia.pointdata[0]
             kimage = arr.reshape(-1, ky, kx)
 
-            colorTransferFunction = ia.GetProperty().GetRGBTransferFunction()
+            colorTransferFunction = ia.properties.GetRGBTransferFunction()
             kcmap = []
             for i in range(128):
                 r, g, b = colorTransferFunction.GetColor(i / 127)
                 kcmap += [i / 127, r, g, b]
 
-            kbounds = np.array(ia.imagedata().GetBounds()) + np.repeat(
-                np.array(ia.imagedata().GetSpacing()) / 2.0, 2
+            kbounds = np.array(ia.dataset.GetBounds()) + np.repeat(
+                np.array(ia.dataset.GetSpacing()) / 2.0, 2
             ) * np.array([-1, 1] * 3)
 
             kobj = k3d.volume(
                 kimage.astype(np.float32),
                 color_map=kcmap,
-                # color_range=ia.imagedata().GetScalarRange(),
+                # color_range=ia.dataset.GetScalarRange(),
                 alpha_coef=10,
                 bounds=kbounds,
                 name=name,
@@ -230,9 +233,9 @@ def start_k3d(actors2show):
             vedo.notebook_plotter += kobj
 
         ################################################################# Lines
-        elif (hasattr(ia, "polydata") 
-              and ia.polydata(False).GetNumberOfLines() 
-              and ia.polydata(False).GetNumberOfPolys() == 0):
+        elif (hasattr(ia, "lines") 
+              and ia.dataset.GetNumberOfLines() 
+              and ia.dataset.GetNumberOfPolys() == 0):
 
             for i, ln_idx in enumerate(ia.lines):
 
@@ -255,17 +258,17 @@ def start_k3d(actors2show):
                 vedo.notebook_plotter += kobj
 
         ################################################################## Mesh
-        elif isinstance(ia, Mesh) and ia.npoints and ia.polydata(False).GetNumberOfPolys():
+        elif isinstance(ia, Mesh) and ia.npoints and ia.dataset.GetNumberOfPolys():
             # print('Mesh', ia.name, ia.npoints, len(ia.cells))
 
             if not vtkscals:
                 color_attribute = None
 
             cols = []
-            if ia.mapper().GetColorMode() == 0:
+            if ia.mapper.GetColorMode() == 0:
                 # direct RGB colors
 
-                vcols = ia.inputdata().GetPointData().GetScalars()
+                vcols = ia.dataset.GetPointData().GetScalars()
                 if vcols and vcols.GetNumberOfComponents() == 3:
                     cols = utils.vtk2numpy(vcols)
                     cols = 65536 * cols[:, 0] + 256 * cols[:, 1] + cols[:, 2]
@@ -345,7 +348,7 @@ def start_trame():
         from trame.ui.vuetify import VAppLayout
         from trame.widgets import vtk as t_vtk, vuetify
     except ImportError:
-        print("trame is not installed, try:\n> pip install trame")
+        print("trame is not installed, try:\n> pip install trame==2.5.2")
         return None
 
     plt = vedo.plotter_instance

@@ -133,6 +133,9 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
 
         self.transform = LinearTransform()
 
+        self.name = "TetMesh"
+        self.filename = ""
+
         # inputtype = str(type(inputobj))
         # print('TetMesh inputtype', inputtype)
 
@@ -162,6 +165,7 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
             self.dataset = r2t.GetOutput()
 
         elif isinstance(inputobj, str):
+            self.filename = inputobj
             if "https://" in inputobj:
                 inputobj = download(inputobj, verbose=False)
             ug = loadUnStructuredGrid(inputobj)
@@ -248,7 +252,7 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
 
         bounds = "<br/>".join(
             [
-                utils.utils.precision(min_x,4) + " ... " + utils.utils.precision(max_x,4)
+                utils.precision(min_x,4) + " ... " + utils.precision(max_x,4)
                 for min_x, max_x in zip(self.bounds()[::2], self.bounds()[1::2])
             ]
         )
@@ -285,7 +289,7 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
             "<td style='text-align: center; vertical-align: center;'><br/>", help_text,
             "<table>",
             "<tr><td><b> bounds </b> <br/> (x/y/z) </td><td>" + str(bounds) + "</td></tr>",
-            "<tr><td><b> center of mass </b></td><td>" + utils.utils.precision(cm,3) + "</td></tr>",
+            "<tr><td><b> center of mass </b></td><td>" + utils.precision(cm,3) + "</td></tr>",
             "<tr><td><b> nr. points&nbsp/&nbsptets </b></td><td>"
             + str(self.npoints) + "&nbsp/&nbsp" + str(self.ncells) + "</td></tr>",
             pdata,

@@ -17,8 +17,13 @@ __docformat__ = "google"
 
 __doc__ = "Base classes providing functionality to all vedo objects."
 
-__all__ = ["CommonAlgorithms", "PointAlgorithms", "VolumeAlgorithms"]
-
+__all__ = [
+    "CommonAlgorithms",
+    "PointAlgorithms",
+    "VolumeAlgorithms",
+    "UGridAlgorithms",
+]
+    
 
 ###############################################################################
 class DataArrayHelper:

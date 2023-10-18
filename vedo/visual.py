@@ -34,7 +34,7 @@ class CommonVisual:
     def __init__(self):
         self.mapper = None
         self.properties = None
-        self.actor = None
+        # self.actor = None
         self.scalarbar = None
 
         self.dataset = None
@@ -94,7 +94,15 @@ class CommonVisual:
         """Build a thumbnail of the object and return it as an array."""
         # speed is about 20Hz for size=[200,200]
         ren = vtk.vtkRenderer()
-        ren.AddActor(self.actor)
+
+        actor = self.actor
+        if isinstance(self, vedo.UGrid):
+            geo = vtk.vtkGeometryFilter()
+            geo.SetInputData(self.dataset)
+            geo.Update()
+            actor = vedo.Mesh(geo.GetOutput()).cmap("rainbow").actor
+
+        ren.AddActor(actor)
         if axes:
             axes = vedo.addons.Axes(self)
             ren.AddActor(axes.actor)
@@ -117,7 +125,7 @@ class CommonVisual:
         narr = utils.vtk2numpy(arr).T[:3].T.reshape([ny, nx, 3])
         narr = np.ascontiguousarray(np.flip(narr, axis=0))
 
-        ren.RemoveActor(self.actor)
+        ren.RemoveActor(actor)
         if axes:
             ren.RemoveActor(axes.actor)
         ren_win.Finalize()

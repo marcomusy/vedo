@@ -8,7 +8,6 @@ except ImportError:
     import vtkmodules.all as vtk
 
 import vedo
-from vedo import settings
 from vedo import utils
 from vedo.core import UGridAlgorithms
 from vedo.file_io import download, loadUnStructuredGrid
@@ -134,7 +133,7 @@ class UGrid(VolumeVisual, UGridAlgorithms):
         self.mapper = vtk.vtkUnstructuredGridVolumeRayCastMapper()
         self.actor.SetMapper(self.mapper)
 
-        # self.mapper.SetInputData(self.dataset) ###NOT HERE!
+        self.mapper.SetInputData(self.dataset) ###NOT HERE?
 
         self.pipeline = utils.OperationNode(
             self, comment=f"#cells {self.dataset.GetNumberOfCells()}",
@@ -156,6 +155,7 @@ class UGrid(VolumeVisual, UGridAlgorithms):
         library_name = "vedo.ugrid.UGrid"
         help_url = "https://vedo.embl.es/docs/vedo/ugrid.html"
 
+        # self.mapper.SetInputData(self.dataset)
         arr = self.thumbnail()
         im = Image.fromarray(arr)
         buffered = io.BytesIO()

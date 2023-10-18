@@ -730,7 +730,7 @@ class Points(PointsVisual, PointAlgorithms):
         colors.printc(
             "WARNING: call to .polydata() is obsolete, use property .dataset instead.",
             c="y")
-        return self
+        return self.dataset
 
 
     def clone(self, deep=True):

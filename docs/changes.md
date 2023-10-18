@@ -85,9 +85,6 @@ flag_labels1.py
 ex06_elasticity2.py
 
 
-dolfin
-notebook
-backends
 release on master as branch?
 
 ```

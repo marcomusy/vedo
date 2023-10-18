@@ -9,7 +9,7 @@ except ImportError:
 
 import vedo
 from vedo.transformations import LinearTransform
-
+from vedo.visual import CommonVisual
 
 __docformat__ = "google"
 
@@ -86,7 +86,7 @@ def procrustes_alignment(sources, rigid=False):
 
 
 #################################################
-class Group(vtk.vtkPropAssembly):
+class Group(CommonVisual, vtk.vtkPropAssembly):
     """Form groups of generic objects (not necessarily meshes)."""
 
     def __init__(self, objects=()):
@@ -94,7 +94,8 @@ class Group(vtk.vtkPropAssembly):
 
         super().__init__()
 
-        self.name = ""
+        self.name = "Group"
+        self.filename = ""
         self.trail = None
         self.trail_points = []
         self.trail_segment_size = 0
@@ -214,7 +215,7 @@ class Group(vtk.vtkPropAssembly):
 
 
 #################################################
-class Assembly(vtk.vtkAssembly):
+class Assembly(CommonVisual, vtk.vtkAssembly):
     """
     Group many objects and treat them as a single new object.
     """
@@ -238,7 +239,8 @@ class Assembly(vtk.vtkAssembly):
 
         self.actor = self
 
-        self.name = ""
+        self.name = "Assembly"
+        self.filename = ""
         self.rendered_at = set()
         self.scalarbar = None
         self.info = {}

@@ -964,6 +964,8 @@ class Lines(Mesh):
                 opacity in range [0,1]
             lw : (int)
                 line width in pixel units
+            dotted : (bool)
+                draw a dotted line
             res : (int)
                 resolution, number of points along the line
                 (only relevant if only 2 points are specified)
@@ -973,6 +975,20 @@ class Lines(Mesh):
 
             ![](https://user-images.githubusercontent.com/32848391/52503049-ac9cb600-2be4-11e9-86af-72a538af14ef.png)
         """
+        if len(start_pts)>1 and isinstance(start_pts[0], Line):
+            # passing a list of Line, see tests/issues/issue_950.py
+            polylns = vtk.vtkAppendPolyData()
+            for ln in start_pts:
+                polylns.AddInputData(ln.dataset)
+            polylns.Update()
+            super().__init__(polylns.GetOutput(), c, alpha)
+            self.lw(lw).lighting("off")
+            if dotted:
+                self.properties.SetLineStipplePattern(0xF0F0)
+                self.properties.SetLineStippleRepeatFactor(1)
+            self.name = "Lines"
+            return
+
         if isinstance(start_pts, Points):
             start_pts = start_pts.vertices
         if isinstance(end_pts, Points):
