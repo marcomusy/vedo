@@ -526,7 +526,12 @@ class CommonAlgorithms:
 
     @property
     def npoints(self):
-        """Retrieve the number of points."""
+        """Retrieve the number of points (or vertices)."""
+        return self.dataset.GetNumberOfPoints()
+
+    @property
+    def nvertices(self):
+        """Retrieve the number of vertices (or points)."""
         return self.dataset.GetNumberOfPoints()
 
     @property
