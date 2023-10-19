@@ -1134,14 +1134,11 @@ class PointsVisual(CommonVisual):
         Update the trailing line of a moving object.
         """
         currentpos = self.pos()
-
         self.trail_points.append(currentpos)  # cycle
         self.trail_points.pop(0)
-
-        data = np.array(self.trail_points) - currentpos + self.trail_offset
+        data = np.array(self.trail_points) + self.trail_offset
         tpoly = self.trail.dataset
         tpoly.GetPoints().SetData(utils.numpy2vtk(data, dtype=np.float32))
-        self.trail.pos(currentpos)
         return self
 
     def _compute_shadow(self, plane, point, direction):

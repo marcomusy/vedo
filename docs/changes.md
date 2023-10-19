@@ -58,7 +58,6 @@ tests/issues/issue_905.py
 
 examples/pyplot/goniometer.py
 
-examples/simulations/airplane1.py
 examples/simulations/aspring1.py
 examples/simulations/brownian2d.py
 examples/simulations/gyroscope1.py
