@@ -1063,14 +1063,13 @@ class PointsVisual(CommonVisual):
             lut.Build()
 
         # arr.SetLookupTable(lut) # wrong! causes weird instabilities with LUT
+        # if data.GetScalars():
+        #     data.GetScalars().SetLookupTable(lut)
+        #     data.GetScalars().Modified()
 
         data.SetActiveScalars(array_name)
         # data.SetScalars(arr)  # wrong! it deletes array in position 0, never use SetScalars
         # data.SetActiveAttribute(array_name, 0) # boh!
-
-        # if data.GetScalars():
-        #     data.GetScalars().SetLookupTable(lut)
-        #     data.GetScalars().Modified()
 
         self.mapper.SetLookupTable(lut)
         self.mapper.SetColorModeToMapScalars()  # so we dont need to convert uint8 scalars
@@ -1078,14 +1077,12 @@ class PointsVisual(CommonVisual):
         self.mapper.ScalarVisibilityOn()
         self.mapper.SetScalarRange(lut.GetRange())
 
-        # this seems unnecessary
-        # if on.startswith("point"):
-        #     self.mapper.SetScalarModeToUsePointData()
-        # else:
-        #     self.mapper.SetScalarModeToUseCellData()
-        # if hasattr(self.mapper, "SetArrayName"):
-        #     self.mapper.SetArrayName(array_name)
-        # self.mapper.Modified()
+        if on.startswith("point"):
+            self.mapper.SetScalarModeToUsePointData()
+        else:
+            self.mapper.SetScalarModeToUseCellData()
+        if hasattr(self.mapper, "SetArrayName"):
+            self.mapper.SetArrayName(array_name)
         return self
 
     def add_trail(self, offset=(0, 0, 0), n=50, c=None, alpha=1.0, lw=2):

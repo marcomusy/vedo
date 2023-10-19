@@ -752,6 +752,7 @@ class CommonAlgorithms:
             c2p.ProcessAllArraysOn()
         c2p.Update()
         self._update(c2p.GetOutput(), reset_locators=False)
+        self.mapper.SetScalarModeToUsePointData()
         self.pipeline = utils.OperationNode("map cell\nto point data", parents=[self])
         return self
 
@@ -851,6 +852,7 @@ class CommonAlgorithms:
             p2c.ProcessAllArraysOn()
         p2c.Update()
         self._update(p2c.GetOutput(), reset_locators=False)
+        self.mapper.SetScalarModeToUseCellData()
         self.pipeline = utils.OperationNode("map point\nto cell data", parents=[self])
         return self
 

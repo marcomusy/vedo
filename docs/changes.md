@@ -56,7 +56,6 @@ glyphs2.py
 
 
 ~/Projects/vedo/examples/advanced
-warp4.py
 
 
 ~/Projects/vedo/examples/pyplot

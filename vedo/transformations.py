@@ -105,6 +105,8 @@ class LinearTransform:
             S.DeepCopy(T.T)
             T = S
 
+        self.name = "LinearTransform"
+        self.comment = ""
         self.T = T
         self.T.PostMultiply()
         self.inverse_flag = False
@@ -488,6 +490,10 @@ class NonLinearTransform:
 
         self.T = T
         self.inverse_flag = False
+
+        self.name = "NonLinearTransform"
+        self.comment = ""
+
 
     @property
     def source_points(self):
