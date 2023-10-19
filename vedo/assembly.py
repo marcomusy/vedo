@@ -94,6 +94,8 @@ class Group(CommonVisual, vtk.vtkPropAssembly):
 
         super().__init__()
 
+        self.actor = self
+
         self.name = "Group"
         self.filename = ""
         self.trail = None
