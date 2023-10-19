@@ -13,7 +13,7 @@ except ImportError:
 import vedo
 from vedo import settings
 from vedo.transformations import pol2cart, cart2spher, spher2cart
-from vedo.colors import cmaps_names, get_color, printc
+from vedo.colors import cmaps_names, get_color, printc, color_map
 from vedo import utils
 from vedo.pointcloud import Points, merge
 from vedo.mesh import Mesh
@@ -208,12 +208,12 @@ class Glyph(Mesh):
         elif utils.is_sequence(c):  # user passing an array of point colors
             ucols = vtk.vtkUnsignedCharArray()
             ucols.SetNumberOfComponents(3)
-            ucols.SetName("glyph_RGB")
+            ucols.SetName("GlyphRGB")
             for col in c:
                 cl = get_color(col)
                 ucols.InsertNextTuple3(cl[0] * 255, cl[1] * 255, cl[2] * 255)
             poly.GetPointData().AddArray(ucols)
-            poly.GetPointData().SetActiveScalars("glyph_RGB")
+            poly.GetPointData().SetActiveScalars("GlyphRGB")
             c = None
 
         gly = vtk.vtkGlyph3D()
@@ -268,6 +268,8 @@ class Glyph(Mesh):
 
         if cmap:
             self.cmap(cmap, "VectorMagnitude")
+        elif c is None:
+            self.pointdata.select("GlyphRGB")
 
         self.name = "Glyph"
 
@@ -2030,14 +2032,14 @@ class Arrow(Mesh):
         self.s = s if s is not None else 1  ## used by pyplot.__iadd()
         self.name = "Arrow"
 
-    def tip_point(self, return_index=False):
-        """Return the coordinates of the tip of the Arrow, or the point index."""
-        if self.tip_index is None:
-            arrpts = utils.vtk2numpy(self.source.GetOutput().GetPoints().GetData())
-            self.tip_index = np.argmax(arrpts[:, 0])
-        if return_index:
-            return self.tip_index
-        return self.vertices[self.tip_index]
+    # def tip_point(self, return_index=False):
+    #     """Return the coordinates of the tip of the Arrow, or the point index."""
+    #     if self.tip_index is None:
+    #         arrpts = utils.vtk2numpy(self.source.GetOutput().GetPoints().GetData())
+    #         self.tip_index = np.argmax(arrpts[:, 0])
+    #     if return_index:
+    #         return self.tip_index
+    #     return self.vertices[self.tip_index]
 
 
 class Arrows(Glyph):
@@ -2126,8 +2128,6 @@ class Arrows(Glyph):
             c=c,
             alpha=alpha,
         )
-        if c not in cmaps_names:
-            self.c(c)
         self.flat().lighting("off")
         self.name = "Arrows"
 

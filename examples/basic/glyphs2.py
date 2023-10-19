@@ -1,6 +1,5 @@
 """Draw color arrow glyphs"""
 from vedo import *
-import numpy as np
 
 # Create two spheres with different radii, wireframes, 
 # and colors, and set the position of one of them
