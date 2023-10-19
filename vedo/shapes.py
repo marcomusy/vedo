@@ -2306,8 +2306,7 @@ class Arrows2D(Glyph):
         orients = utils.make3d(orients)
 
         pts = Points(start_pts)
-        Glyph.__init__(
-            self,
+        super().__init__(
             pts,
             arr,
             orientation_array=orients,

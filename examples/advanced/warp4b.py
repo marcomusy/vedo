@@ -93,7 +93,8 @@ plt.add_callback("click", click)
 plt.add_callback("keypress", keypress)
 plt.at(0).show(source, msg0, __doc__)
 plt.at(1).show(f"Reference {target.filename}", msg1, target)
-plt.at(2).show("Morphing Output", ref, Axes(ref), camera=plt.camera, bg="k9")
+cam1 = plt.camera  # will share the same camera btw renderers 1 and 2
+plt.at(2).show("Morphing Output", ref, Axes(ref), camera=cam1, bg="k9")
 plt.interactive()
 plt.close()
 
