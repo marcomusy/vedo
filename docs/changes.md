@@ -37,12 +37,14 @@
 -------------------------
 ## New/Revised Examples
 ```
-examples/advanced/timer_callback1.py
-examples/advanced/timer_callback2.py
 examples/basic/buttons.py
 examples/basic/input_box.py
 examples/basic/sliders2.py
 examples/basic/interaction_modes2.py
+examples/advanced/timer_callback1.py
+examples/advanced/timer_callback2.py
+examples/advanced/warp4a.py
+examples/advanced/warp4b.py
 examples/volumetric/slicer1.py
 ```
 

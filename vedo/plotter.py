@@ -442,7 +442,6 @@ class Plotter:
         self.background_renderer = None
         self.size = size
         self.interactor = None
-        self.camera = None
 
         self._icol = 0
         self._clockt0 = time.time()
@@ -461,7 +460,6 @@ class Plotter:
                 self._interactive = False
                 self.interactor = None
                 self.window = None
-                self.camera = None  # let the backend choose
                 if self.size == "auto":
                     self.size = (1000, 1000)
                 #############################################################
@@ -692,7 +690,6 @@ class Plotter:
 
         if self.renderers:
             self.renderer = self.renderers[0]
-            self.camera = self.renderer.GetActiveCamera()
             self.camera.SetParallelProjection(settings.use_parallel_projection)
 
         if self.size[0] == "f":  # full screen
@@ -709,7 +706,6 @@ class Plotter:
             for r in self.renderers:
                 self.window.AddRenderer(r)
             self.wx_widget.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
-            self.camera = self.renderer.GetActiveCamera()
             ########################
             return  ################
             ########################
@@ -799,7 +795,6 @@ class Plotter:
                 raise RuntimeError
 
         self.renderer = self.renderers[nren]
-        self.camera = self.renderer.GetActiveCamera()
         return self
 
     def add(self, *objs, at=None):
@@ -985,7 +980,6 @@ class Plotter:
             if not self.interactor.GetInitialized():
                 self.interactor.Initialize()
 
-        self.camera = self.renderer.GetActiveCamera()
         if resetcam:
             self.renderer.ResetCamera()
 
@@ -1335,7 +1329,6 @@ class Plotter:
         if self.interactor:
             self.resetcam = False
             self.interactor.FlyTo(self.renderer, point)
-            self.camera = self.renderer.GetActiveCamera()
         return self
 
     def look_at(self, plane="xy"):
@@ -3058,9 +3051,6 @@ class Plotter:
             if self.renderer:
                 self.renderer.SetActiveCamera(self.camera)
 
-        if self.renderer:
-            self.camera = self.renderer.GetActiveCamera()
-
         self.add(objects)
 
         # Backend ###############################################################
@@ -3400,7 +3390,6 @@ class Plotter:
 
         self.renderer = None  # current renderer
         self.renderers = []
-        self.camera = None
         self.skybox = None
         return self
 
@@ -3409,6 +3398,15 @@ class Plotter:
         self.close_window()
         if vedo.plotter_instance == self:
             vedo.plotter_instance = None
+
+    @property
+    def camera(self):
+        """Return the current active camera."""
+        return self.renderer.GetActiveCamera()
+    
+    @camera.setter
+    def camera(self, cam):
+        self.renderer.SetActiveCamera(cam)
 
     def screenshot(self, filename="screenshot.png", scale=1, asarray=False):
         """

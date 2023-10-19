@@ -1,4 +1,5 @@
-# Morph one shape into another interactively (can work in 3d too!)
+# Morph one shape into another interactively
+# (can work in 3d too! see example warp4b.py)
 #
 from vedo import Plotter, Axes, dataurl, load, printc, merge
 from vedo.shapes import Text2D, Points, Lines, Arrows2D, Grid
