@@ -756,6 +756,7 @@ class Histogram1D(Figure):
         errors=False,
         density=False,
         logscale=False,
+        max_entries=None,
         fill=True,
         radius=0.075,
         c="olivedrab",
@@ -797,6 +798,8 @@ class Histogram1D(Figure):
                 normalize the area to 1 by dividing by the nr of entries and bin size
             logscale : (bool)
                 use logscale on y-axis
+            max_entries : (int)
+                if `data` is larger than `max_entries`, a random sample of `max_entries` is used
             fill : (bool)
                 fill bars with solid color `c`
             gap : (float)
@@ -831,6 +834,9 @@ class Histogram1D(Figure):
 
             ![](https://vedo.embl.es/images/pyplot/histo_1D.png)
         """
+
+        if max_entries and data.shape[0] > max_entries:
+            data = np.random.choice(data, max_entries)
 
         # purge NaN from data
         valid_ids = np.all(np.logical_not(np.isnan(data)))
@@ -3052,7 +3058,7 @@ def _histogram_quad_bin(x, y, **kwargs):
     zscale = kwargs.pop("zscale", 1)
     cmap = kwargs.pop("cmap", "Blues_r")
 
-    gr = histo.actors[2]
+    gr = histo.objects[2]
     d = gr.diagonal_size()
     tol = d / 1_000_000  # tolerance
     if gap >= 0:
@@ -3089,8 +3095,8 @@ def _histogram_quad_bin(x, y, **kwargs):
     msh.cmap(cmap, newzvals, name="Frequency")
     msh.lw(1).lighting("ambient")
 
-    histo.actors[2] = msh
-    histo.RemovePart(gr)
+    histo.objects[2] = msh
+    histo.RemovePart(gr.actor)
     histo.AddPart(msh.actor)
     histo.objects.append(msh)
     return histo

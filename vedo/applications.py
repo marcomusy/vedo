@@ -17,7 +17,7 @@ from vedo.utils import is_sequence, lin_interpolate, mag, precision
 from vedo.plotter import Event, Plotter
 from vedo.pointcloud import fit_plane, Points
 from vedo.shapes import Line, Ribbon, Spline, Text2D
-from vedo.pyplot import CornerHistogram
+from vedo.pyplot import CornerHistogram, histogram
 from vedo.addons import SliderWidget
 
 
@@ -52,7 +52,7 @@ class Slicer3DPlotter(Plotter):
     def __init__(
         self,
         volume,
-        cmaps=("gist_ncar_r", "hot_r", "bone_r", "jet", "Spectral_r"),
+        cmaps=("gist_ncar_r", "hot_r", "bone", "bone_r", "jet", "Spectral_r"),
         clamp=True,
         use_slider3d=False,
         show_histo=True,
@@ -68,7 +68,7 @@ class Slicer3DPlotter(Plotter):
             cmaps : (list)
                 list of color maps names to cycle when clicking button
             clamp : (bool)
-                clamp scalar to reduce the effect of tails in color mapping
+                clamp scalar range to reduce the effect of tails in color mapping
             use_slider3d : (bool)
                 show sliders attached along the axes
             show_histo : (bool)
@@ -95,14 +95,18 @@ class Slicer3DPlotter(Plotter):
             cx, cy, cz = "lr", "lg", "lb"
             ch = (0.8, 0.8, 0.8)
 
-        if len(self.renderers) > 1: # 2d sliders do not work with multiple renderers
+        if len(self.renderers) > 1:
+            # 2d sliders do not work with multiple renderers
             use_slider3d = True
 
-        box = volume.box().alpha(0.1)
+        self.volume = volume
+        box = volume.box().alpha(0.2)
         self.add(box)
 
         if show_icon:
-            self.add_inset(volume, pos=(0.85, 0.85), size=0.15, c="w", draggable=draggable)
+            self.add_inset(
+                volume, pos=(0.9, 0.9), size=0.15, c="w", draggable=draggable
+            )
 
         # inits
         la, ld = 0.7, 0.3  # ambient, diffuse
@@ -118,57 +122,76 @@ class Slicer3DPlotter(Plotter):
             rmin = max(rmin, meanlog - (rmax - meanlog) * 0.9)
             # print("scalar range clamped to range: ("
             #       + precision(rmin, 3) + ", " + precision(rmax, 3) + ")")
-        self._cmap_slicer = cmaps[0]
 
-        msh = volume.zslice(int(dims[2] / 2)).lighting("", la, ld, 0)
-        msh.name = "ZSlice"
-        msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-        if len(cmaps) > 1:
-            msh.add_scalarbar(pos=(0.04, 0.0), horizontal=True, font_size=0)
-            msh.scalarbar.name = "scalarbar"
-        # self.add(msh.clone()) # BUG
-        self.add(msh)
+        self.cmap_slicer = cmaps[0]
 
-        self._oldi = None
-        self._oldj = None
-        self._oldk = None
+        self.current_i = None
+        self.current_j = None
+        self.current_k = int(dims[2] / 2)
 
+        self.xslice = None
+        self.yslice = None
+        self.zslice = None
 
+        self.zslice = volume.zslice(self.current_k).lighting("", la, ld, 0)
+        self.zslice.name = "ZSlice"
+        self.zslice.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
+        self.add(self.zslice)
+
+        if show_histo:
+            # try to reduce the number of values to histogram
+            dims = self.volume.dimensions()
+            n = (dims[0]-1) * (dims[1]-1) * (dims[2]-1)
+            n = min(1_000_000, n)
+            data_reduced = np.random.choice(data, n)
+            self.histogram = histogram(
+                data_reduced,
+                # title=volume.filename,
+                bins=20, logscale=True,
+                c=self.cmap_slicer, bg=ch, alpha=1,
+                axes=dict(text_scale=2),
+            ).as2d(pos=[-0.925,-0.88], scale=0.4)
+            self.add(self.histogram)
+        
+        #################
         def slider_function_x(widget, event):
             i = int(self.xslider.value)
-            if i == self._oldi:
+            if i == self.current_i:
                 return
-            self._oldi = i
-            msh = volume.xslice(i).lighting("", la, ld, 0)
-            msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-            msh.name = "XSlice"
+            self.current_i = i
+            self.xslice = volume.xslice(i).lighting("", la, ld, 0)
+            self.xslice.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
+            self.xslice.name = "XSlice"
             self.remove("XSlice")  # removes the old one
             if 0 < i < dims[0]:
-                self.add(msh)
+                self.add(self.xslice)
+            self.render()
 
         def slider_function_y(widget, event):
             j = int(self.yslider.value)
-            if j == self._oldj:
+            if j == self.current_j:
                 return
-            self._oldj = j
-            msh = volume.yslice(j).lighting("", la, ld, 0)
-            msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-            msh.name = "YSlice"
+            self.current_j = j
+            self.yslice = volume.yslice(j).lighting("", la, ld, 0)
+            self.yslice.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
+            self.yslice.name = "YSlice"
             self.remove("YSlice")
             if 0 < j < dims[1]:
-                self.add(msh)
+                self.add(self.yslice)
+            self.render()
 
         def slider_function_z(widget, event):
             k = int(self.zslider.value)
-            if k == self._oldk:
+            if k == self.current_k:
                 return
-            self._oldk = k
-            msh = volume.zslice(k).lighting("", la, ld, 0)
-            msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-            msh.name = "ZSlice"
+            self.current_k = k
+            self.zslice = volume.zslice(k).lighting("", la, ld, 0)
+            self.zslice.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
+            self.zslice.name = "ZSlice"
             self.remove("ZSlice")
             if 0 < k < dims[2]:
-                self.add(msh)
+                self.add(self.zslice)
+            self.render()
 
         if not use_slider3d:
             self.xslider = self.add_slider(
@@ -202,6 +225,7 @@ class Slicer3DPlotter(Plotter):
                 show_value=False,
                 c=cz,
             )
+
         else:  # 3d sliders attached to the axes bounds
             bs = box.bounds()
             self.xslider = self.add_slider3d(
@@ -237,42 +261,35 @@ class Slicer3DPlotter(Plotter):
             )
 
         #################
-        def buttonfunc(_obj, _ename):
+        def button_func(obj, ename):
             bu.switch()
-            self._cmap_slicer = bu.status()
-            for m in self.actors:
-                try:
-                    if "Slice" in m.name:
-                        m.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-                        if len(cmaps) > 1:
-                            self.remove("scalarbar")
-                            m2 = m.clone()
-                            m2.add_scalarbar(pos=(0.04, 0.0), horizontal=True, font_size=0)
-                            m2.scalarbar.name = "scalarbar"
-                            self.add(m2.scalarbar)
-                except AttributeError:
-                    pass
+            self.cmap_slicer = bu.status()
+            for m in self.objects:
+                if "Slice" in m.name:
+                    m.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
+            self.remove(self.histogram)
+            if show_histo:
+                self.histogram = histogram(
+                    data_reduced,
+                    # title=volume.filename,
+                    bins=20, logscale=True, 
+                    c=self.cmap_slicer, bg=ch, alpha=1,
+                    axes=dict(text_scale=2),
+                ).as2d(pos=[-0.925,-0.88], scale=0.4)
+                self.add(self.histogram)
             self.render()
 
         if len(cmaps) > 1:
             bu = self.add_button(
-                buttonfunc,
-                pos=(0.275, 0.005),
+                button_func,
                 states=cmaps,
                 c=["k9"] * len(cmaps),
                 bc=["k1"] * len(cmaps),  # colors of states
-                size=14,
+                size=16,
                 bold=True,
             )
-            bu.pos([0.24, 0.005], "bottom-left")
+            bu.pos([0.04, 0.01], "bottom-left")
 
-        #################
-        if show_histo:
-            hist = CornerHistogram(
-                data, s=0.2, bins=25, logscale=True,
-                pos=(0.02, 0.02), c=ch, bg=ch, alpha=0.7
-            )
-            self.add(hist)
 
 class Slicer3DTwinPlotter(Plotter):
     """

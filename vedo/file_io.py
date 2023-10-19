@@ -621,7 +621,16 @@ def load3DS(filename):
         a = actors.GetItemAsObject(i)
         acts.append(a)
     del renWin
-    return Assembly(acts)
+
+    wrapped_acts = acts
+    # wrapped_acts = []
+    # for a in acts:
+    #     newa = Mesh(a.GetMapper().GetInput())
+    #     newa.pos(a.GetPosition())
+    #     newa.copy_properties_from(a)
+    #     wrapped_acts.append(newa)
+
+    return wrapped_acts
 
 
 def loadOFF(filename):

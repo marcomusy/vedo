@@ -13,7 +13,7 @@ plt = Plotter(
 )
 
 # Load a 3D model of a flamingo and rotate it so it is upright
-a1 = load(dataurl+"flamingo.3ds").rotate_x(-90)
+a1 = Cube().rotate_z(20)
 
 # Display a docstring on the second subrenderer
 plt.at(2).show(__doc__)

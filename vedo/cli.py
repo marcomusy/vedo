@@ -765,12 +765,11 @@ def draw_scene(args):
             bg="white",
             bg2="lb",
             use_slider3d=useSlider3D,
-            cmaps=[args.cmap, "Spectral_r", "hot_r", "bone_r", "gist_ncar_r"],
-            alpha=args.alpha,
             axes=args.axes_type,
             clamp=True,
-            size=(1000, 800),
+            size=(1350, 1000),
         )
+        plt.show()
         return
 
     ########################################################################

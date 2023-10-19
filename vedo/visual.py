@@ -569,16 +569,25 @@ class PointsVisual(CommonVisual):
         Copy properties from another ``Points`` object.
         """
         pr = vtk.vtkProperty()
+        try:
+            sp = source.properties
+            mp = source.mapper
+            sa = source.actor
+        except AttributeError:
+            sp = source.GetProperty()
+            mp = source.GetMapper()
+            sa = source
+            
         if deep:
-            pr.DeepCopy(source.properties)
+            pr.DeepCopy(sp)
         else:
-            pr.ShallowCopy(source.properties)
+            pr.ShallowCopy(sp)
         self.actor.SetProperty(pr)
         self.properties = pr
 
         if self.actor.GetBackfaceProperty():
             bfpr = vtk.vtkProperty()
-            bfpr.DeepCopy(source.actor.GetBackfaceProperty())
+            bfpr.DeepCopy(sa.GetBackfaceProperty())
             self.actor.SetBackfaceProperty(bfpr)
             self.properties_backface = bfpr
 
@@ -586,22 +595,22 @@ class PointsVisual(CommonVisual):
             return self
 
         # mapper related:
-        self.mapper.SetScalarVisibility(source.mapper.GetScalarVisibility())
-        self.mapper.SetScalarMode(source.mapper.GetScalarMode())
-        self.mapper.SetScalarRange(source.mapper.GetScalarRange())
-        self.mapper.SetLookupTable(source.mapper.GetLookupTable())
-        self.mapper.SetColorMode(source.mapper.GetColorMode())
+        self.mapper.SetScalarVisibility(mp.GetScalarVisibility())
+        self.mapper.SetScalarMode(mp.GetScalarMode())
+        self.mapper.SetScalarRange(mp.GetScalarRange())
+        self.mapper.SetLookupTable(mp.GetLookupTable())
+        self.mapper.SetColorMode(mp.GetColorMode())
         self.mapper.SetInterpolateScalarsBeforeMapping(
-            source.mapper.GetInterpolateScalarsBeforeMapping()
+            mp.GetInterpolateScalarsBeforeMapping()
         )
         self.mapper.SetUseLookupTableScalarRange(
-            source.mapper.GetUseLookupTableScalarRange()
+            mp.GetUseLookupTableScalarRange()
         )
 
-        self.actor.SetPickable(source.actor.GetPickable())
-        self.actor.SetDragable(source.actor.GetDragable())
-        self.actor.SetTexture(source.actor.GetTexture())
-        self.actor.SetVisibility(source.actor.GetVisibility())
+        self.actor.SetPickable(sa.GetPickable())
+        self.actor.SetDragable(sa.GetDragable())
+        self.actor.SetTexture(sa.GetTexture())
+        self.actor.SetVisibility(sa.GetVisibility())
         return self
 
     def color(self, c=False, alpha=None):

@@ -767,6 +767,8 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         self.start_x, self.start_y, self.end_x, self.end_y
         """
         renderer = self.GetCurrentRenderer()
+        if not renderer:
+            return []
 
         assemblyPath = renderer.PickProp(self.start_x, self.start_y, self.end_x, self.end_y)
 

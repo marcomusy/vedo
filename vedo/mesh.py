@@ -1869,11 +1869,18 @@ class Mesh(MeshVisual, Points):
         bcf.GenerateContourEdgesOff()
         bcf.Update()
         bcf.GetOutput().GetCellData().GetScalars().SetName("IsoBands")
+
         m1 = Mesh(bcf.GetOutput()).compute_normals(cells=True)
         m1.mapper.SetLookupTable(lut)
-
+        m1.mapper.SetScalarRange(lut.GetRange())
         m1.pipeline = OperationNode("isobands", parents=[self])
         return m1
+
+        # self._update(bcf.GetOutput())
+        # self.mapper.SetLookupTable(lut)
+        # self.mapper.SetScalarRange(lut.GetRange())
+        # self.pipeline = OperationNode("isobands", parents=[self])
+        # return self
 
     def isolines(self, n=10, vmin=None, vmax=None):
         """
