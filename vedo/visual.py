@@ -1783,7 +1783,7 @@ class PointsVisual(CommonVisual):
         ontop=True,
     ):
         """
-        Add a 2D caption to an object which follows the camera movements.
+        Create a 2D caption to an object which follows the camera movements.
         Latex is not supported. Returns the same input object for concatenation.
 
         See also `flagpole()`, `flagpost()`, `labels()` and `legend()`
@@ -1887,8 +1887,7 @@ class PointsVisual(CommonVisual):
         if "right" in justify:
             pr.SetJustificationToRight()
         pr.SetLineSpacing(vspacing)
-        self._caption = capt
-        return self
+        return capt
 
 
 #####################################################################

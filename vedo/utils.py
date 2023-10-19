@@ -2417,14 +2417,11 @@ def trimesh2vedo(inputobj):
 
     if "PointCloud" in inputobj_type:
 
-        trim_cc, trim_al = "black", 1
+        vdpts = vedo.shapes.Points(inputobj.vertices, r=8, c='k')
         if hasattr(inputobj, "vertices_color"):
-            trim_c = inputobj.vertices_color
-            if len(trim_c) > 0:
-                trim_cc = trim_c[:, [0, 1, 2]] / 255
-                trim_al = trim_c[:, 3] / 255
-                trim_al = np.sum(trim_al) / len(trim_al)  # just the average
-        return vedo.shapes.Points(inputobj.vertices, r=8, c=trim_cc, alpha=trim_al)
+            vcols = (inputobj.vertices_color * 1).astype(np.uint8)
+            vdpts.pointcolors = vcols
+        return vdpts
 
     if "path" in inputobj_type:
 

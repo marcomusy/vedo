@@ -4231,11 +4231,13 @@ def add_global_axes(axtype=None, c=None, bounds=()):
                         sz = d
             except AttributeError:
                 pass
-        # if isinstance(largestact, Assembly):
-        #     ocf.SetInputData(largestact.unpack(0).actor.data)
-        # else:
-        ocf.SetInputData(largestact.dataset)
+
+        try:
+            ocf.SetInputData(largestact)
+        except AttributeError:
+            ocf.SetInputData(largestact.dataset)
         ocf.Update()
+
         oc_mapper = vtk.vtkHierarchicalPolyDataMapper()
         oc_mapper.SetInputConnection(0, ocf.GetOutputPort(0))
         oc_actor = vtk.vtkActor()
