@@ -2124,8 +2124,7 @@ class Arrows(Glyph):
         out = arr.GetOutput()
 
         orients = end_pts - start_pts
-        Glyph.__init__(
-            self,
+        super().__init__(
             start_pts,
             out,
             orientation_array=orients,

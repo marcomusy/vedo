@@ -15,7 +15,11 @@ from vedo.transformations import LinearTransform, NonLinearTransform
 
 __docformat__ = "google"
 
-__doc__ = "Base classes providing functionality to all vedo objects."
+__doc__ = """
+Base classes providing functionality to all vedo objects.
+
+![](https://media.gcflearnfree.org/content/5be1de13686707122ccd266f_11_06_2018/algorithms_illustration.jpg)
+"""
 
 __all__ = [
     "CommonAlgorithms",
@@ -1258,6 +1262,8 @@ class PointAlgorithms(CommonAlgorithms):
 
     def __init__(self):
 
+        super().__init__()
+
         self.transform = None
         self.point_locator = None
         self.cell_locator = None
@@ -1493,6 +1499,10 @@ class PointAlgorithms(CommonAlgorithms):
 class VolumeAlgorithms(CommonAlgorithms):
     """Methods for Volume objects."""
 
+    def __init__(self):
+       super().__init__()
+       pass
+
     def bounds(self):
         """
         Get the object bounds.
@@ -1661,6 +1671,10 @@ class VolumeAlgorithms(CommonAlgorithms):
 
 
 class UGridAlgorithms(CommonAlgorithms):
+
+    def __init__(self):
+        super().__init__()
+        pass
 
     def _update(self, data, reset_locators=False):
         self.dataset = data

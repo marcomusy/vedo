@@ -14,7 +14,11 @@ from vedo import utils
 
 __docformat__ = "google"
 
-__doc__ = "Base classes to manage positioning and size of the objects in space and other properties"
+__doc__ = """
+Base classes to manage visualization and apperance of objects and their properties"
+
+
+"""
 
 __all__ = [
     "CommonVisual",
@@ -32,17 +36,12 @@ class CommonVisual:
     """Class to manage the visual aspects common to all objects."""
 
     def __init__(self):
+
         self.mapper = None
         self.properties = None
-        # self.actor = None
-        self.scalarbar = None
-
-        self.dataset = None
-        # self.pointdata = {}
-        # self.celldata = {}
+        self.actor = None
+        self.scalarbar = None        
         
-        self.shadows = []
-
 
     @property
     def LUT(self):
@@ -466,7 +465,8 @@ class PointsVisual(CommonVisual):
     """Class to manage the visual aspects of a ``Points`` object."""
 
     def __init__(self):
-        pass
+        # print("init PointsVisual")
+        super().__init__()
 
     def clone2d(
         self,
@@ -1896,6 +1896,10 @@ class PointsVisual(CommonVisual):
 class MeshVisual(PointsVisual):
     """Class to manage the visual aspects of a ``Maesh`` object."""
 
+    def __init__(self) -> None:
+        # print("INIT MeshVisual", super())
+        super().__init__()
+
     def follow_camera(self, camera=None, origin=None):
         """
         Return an object that will follow camera movements and stay locked to it.
@@ -2035,6 +2039,10 @@ class MeshVisual(PointsVisual):
 ########################################################################################
 class VolumeVisual(CommonVisual):
     """Class to manage the visual aspects of a ``Volume`` object."""
+
+    def __init__(self) -> None:
+        # print("INIT VolumeVisual")
+        super().__init__()
 
     def alpha_unit(self, u=None):
         """
@@ -2261,6 +2269,11 @@ class VolumeVisual(CommonVisual):
 
 ########################################################################################
 class ActorTransforms:
+
+    def __init__(self) -> None:
+        # print("init ActorTransforms")
+        pass
+
     def pos(self, *p):
         """Set/get position of object."""
         if len(p)==0:
@@ -2345,6 +2358,10 @@ class ActorTransforms:
 
 ########################################################################################
 class PictureVisual(ActorTransforms, CommonVisual):
+
+    def __init__(self) -> None:
+        # print("init PictureVisual")
+        super().__init__()
 
     def memory_size(self):
         """

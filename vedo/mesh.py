@@ -53,6 +53,7 @@ class Mesh(MeshVisual, Points):
 
             ![](https://vedo.embl.es/images/basic/buildmesh.png)
         """
+        # print("INIT MESH", super())
         super().__init__()
 
         if inputobj is None:

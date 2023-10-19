@@ -42,6 +42,7 @@ __all__ = [
     "pack_spheres",
     "humansort",
     "print_histogram",
+    "print_inheritance_tree",
     "camera_from_quaternion",
     "camera_from_neuroglancer",
     "oriented_camera",
@@ -1992,6 +1993,29 @@ def print_table(*columns, headers=None, c="g"):
 
     # Print the line separator again to close the table
     vedo.printc(line2, c=c)
+
+def print_inheritance_tree(C):
+    """Prints the inheritance tree of class C."""
+    # Adapted from: https://stackoverflow.com/questions/26568976/
+    def class_tree(cls):
+        subc = [class_tree(sub_class) for sub_class in cls.__subclasses__()]
+        return {cls.__name__: subc}
+
+    def print_tree(tree, indent=8, current_ind=0):
+        for k, v in tree.items():
+            if current_ind:
+                before_dashes = current_ind - indent
+                m = " " * before_dashes + "└" + "─" * (indent - 1) + " " + k
+                vedo.printc(m)
+            else:
+                vedo.printc(k)
+            for sub_tree in v:
+                print_tree(sub_tree, indent=indent, current_ind=current_ind + indent)
+
+    if str(C.__class__) != "<class 'type'>":
+        C = C.__class__
+    ct = class_tree(C)
+    print_tree(ct)
 
 
 def make_bands(inputlist, n):

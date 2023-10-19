@@ -66,8 +66,6 @@ examples/simulations/pendulum_3d.py
 examples/simulations/trail.py
 
 examples/other/ellipt_fourier_desc.py
-examples/other/export_numpy.py
-examples/other/dolfin/ex06_elasticity2.py
 ```
 
 

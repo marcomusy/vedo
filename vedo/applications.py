@@ -322,7 +322,7 @@ class Slicer3DTwinPlotter(Plotter):
 
     def __init__(self, vol1, vol2, clamp=True, **kwargs):
 
-        Plotter.__init__(self, **kwargs)
+        super().__init__(**kwargs)
 
         cmap = "gist_ncar_r"
         cx, cy, cz = "dr", "dg", "db" # slider colors

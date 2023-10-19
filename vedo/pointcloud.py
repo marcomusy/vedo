@@ -510,6 +510,8 @@ class Points(PointsVisual, PointAlgorithms):
             ```
             ![](https://vedo.embl.es/images/feats/fibonacci.png)
         """
+        # print("INIT POINTS")
+        super().__init__()
 
         self.filename = ""
         self.name = ""
