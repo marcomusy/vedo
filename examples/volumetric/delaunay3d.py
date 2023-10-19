@@ -17,6 +17,6 @@ cmesh = tmesh.cut_with_plane(normal=(1,2,-1))
 # cmesh.pipeline.show()  # to show the graph of operations
 
 show([(s, pin, "Generate points in a Sphere"),
-      (cmesh, __doc__),
+      (cmesh.tomesh(), __doc__),
      ], N=2, axes=1,
 ).close()

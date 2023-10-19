@@ -2,15 +2,17 @@
 import vtk
 from vedo import *
 
-# Create a volume with tensors
+# Create a test volume with tensors
 pl = vtk.vtkPointLoad()
 pl.SetLoadValue(50)
 pl.SetSampleDimensions(6,6,6)
 pl.ComputeEffectiveStressOn()
 pl.SetPoissonsRatio(0.2)
 pl.SetModelBounds(-10,10,-10,10,-10,10)
+pl.Update()
 
-vol = Volume(pl, mode=1)
+vol = Volume(pl.GetOutput(), mode=1)
+print(vol.pointdata)
 
 # Extract a slice of the volume data at index 3
 zsl = vol.zslice(3)

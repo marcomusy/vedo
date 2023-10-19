@@ -1547,7 +1547,7 @@ def StreamLines(
     if active_vectors:
         grid.GetPointData().SetActiveVectors(active_vectors)
 
-    b = grid.GetBounds()
+    b = grid.bounds()
     size = (b[5] - b[4] + b[3] - b[2] + b[1] - b[0]) / 3
     if initial_step_size is None:
         initial_step_size = size / 500.0
@@ -1572,7 +1572,7 @@ def StreamLines(
     src.Update()
 
     st = vtk.vtkStreamTracer()
-    st.SetInputDataObject(grid)
+    st.SetInputDataObject(grid.dataset)
     st.SetSourceConnection(src.GetOutputPort())
 
     st.SetInitialIntegrationStep(initial_step_size)
@@ -1661,7 +1661,7 @@ def StreamLines(
         sta.mapper.SetResolveCoincidentTopologyToPolygonOffset()
         sta.lighting("off")
 
-    scals = grid.GetPointData().GetScalars()
+    scals = grid.dataset.GetPointData().GetScalars()
     if scals:
         sta.mapper.SetScalarRange(scals.GetRange())
     if scalar_range is not None:
