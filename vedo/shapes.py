@@ -1549,7 +1549,10 @@ def StreamLines(
     if active_vectors:
         grid.GetPointData().SetActiveVectors(active_vectors)
 
-    b = grid.bounds()
+    try:
+        b = grid.bounds()
+    except AttributeError:
+        b = grid.GetBounds()
     size = (b[5] - b[4] + b[3] - b[2] + b[1] - b[0]) / 3
     if initial_step_size is None:
         initial_step_size = size / 500.0
@@ -1574,7 +1577,10 @@ def StreamLines(
     src.Update()
 
     st = vtk.vtkStreamTracer()
-    st.SetInputDataObject(grid.dataset)
+    try:
+        st.SetInputDataObject(grid.dataset)
+    except AttributeError:
+        st.SetInputData(grid)
     st.SetSourceConnection(src.GetOutputPort())
 
     st.SetInitialIntegrationStep(initial_step_size)

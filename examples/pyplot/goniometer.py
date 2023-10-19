@@ -4,7 +4,8 @@ from vedo import *
 
 settings.use_parallel_projection = True  # avoid parallax effects
 
-mesh = Cone().c("steelblue").rotate_y(90).pos(1, 2, 3)
+mesh = Cone().rotate_y(90).pos([1, 2, 3])
+mesh.c("steelblue")
 
 # add a flagpole-style comment
 a, v = precision(mesh.area(), 4), precision(mesh.volume(), 4)

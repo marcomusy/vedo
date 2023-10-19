@@ -279,9 +279,9 @@ print('vertex_normals',sphere.vertex_normals[12], [9.97668684e-01, 1.01513637e-0
 assert np.allclose(sphere.vertex_normals[12], [9.97668684e-01, 1.01513637e-04, 6.82437494e-02])
 
 
-###################################### is_inside
-print('is_inside',sphere.is_inside([0.1,0.2,0.3]))
-assert Sphere().is_inside([0.1,0.2,0.3])
+###################################### contains
+print('is_inside',sphere.contains([0.1,0.2,0.3]))
+assert Sphere().contains([0.1,0.2,0.3])
 
 ###################################### intersectWithLine (fails vtk7..)
 # pts = sphere.intersectWithLine([-2,-2,-2], [2,3,4])

@@ -47,49 +47,27 @@ examples/volumetric/slicer1.py
 ```
 
 
-
 ### Broken Examples
 ```
-~/Projects/vedo/examples/basic
-background_image.py
-glyphs2.py
+tests/issues/discussion_751.py
+tests/issues/discussion_800.py
+tests/issues/issue_893.py
+tests/issues/issue_905.py
 
+examples/pyplot/goniometer.py
 
-~/Projects/vedo/examples/advanced
+examples/simulations/airplane1.py
+examples/simulations/aspring1.py
+examples/simulations/brownian2d.py
+examples/simulations/gyroscope1.py
+examples/simulations/gyroscope2.py
+examples/simulations/lorenz.py
+examples/simulations/pendulum_3d.py
+examples/simulations/trail.py
 
-
-~/Projects/vedo/examples/pyplot
-caption.py
-goniometer.py
-histo_2d_b.py
-histo_hexagonal.py
-isolines.py
-
-
-~/Projects/vedo/examples/simulations
-airplane1.py
-aspring1.py
-brownian2d.py
-gyroscope1.py
-gyroscope2.py
-lorenz.py
-pendulum_3d.py
-trail.py
-
-
-~/Projects/vedo/examples/other
-ellipt_fourier_desc.py
-export_numpy.py
-flag_labels1.py
-ex06_elasticity2.py
-
-
-release on master as branch?
-tests/issues/issue_871a.py
-
-
-staging
-clonala analysis
+examples/other/ellipt_fourier_desc.py
+examples/other/export_numpy.py
+examples/other/dolfin/ex06_elasticity2.py
 ```
 
 

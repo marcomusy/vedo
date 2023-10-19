@@ -1612,7 +1612,7 @@ class PointsVisual(CommonVisual):
             - [flag_labels1.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels1.py)
             - [flag_labels2.py](https://github.com/marcomusy/vedo/tree/master/examples/other/flag_labels2.py)
         """
-        acts = []
+        objs = []
 
         if txt is None:
             if self.filename:
@@ -1650,11 +1650,11 @@ class PointsVisual(CommonVisual):
         lab = vedo.shapes.Text3D(
             txt, pos=pt + offset, s=s, font=font, italic=italic, justify="center"
         )
-        acts.append(lab)
+        objs.append(lab)
 
         if d and not sph:
             sph = vedo.shapes.Circle(pt, r=s / 3, res=15)
-        acts.append(sph)
+        objs.append(sph)
 
         x0, x1, y0, y1, z0, z1 = lab.bounds()
         aline = [(x0,y0,z0), (x1,y0,z0), (x1,y1,z0), (x0,y1,z0)]
@@ -1665,9 +1665,9 @@ class PointsVisual(CommonVisual):
 
         cnt = [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2]
 
-        box.actor.SetOrigin(cnt)
+        # box.actor.SetOrigin(cnt)
         box.scale([1 + padding, 1 + 2 * padding, 1], origin=cnt)
-        acts.append(box)
+        objs.append(box)
 
         x0, x1, y0, y1, z0, z1 = box.bounds()
         if x0 < pt[0] < x1:
@@ -1681,16 +1681,18 @@ class PointsVisual(CommonVisual):
             c1 = [x1 + (pt[0] - x1) / 4, (y0 + y1) / 2, pt[2]]
 
         con = vedo.shapes.Line([c0, c1, pt])
-        acts.append(con)
+        objs.append(con)
 
-        macts = vedo.merge(acts).c(c).alpha(alpha)
-        macts.actor.SetOrigin(pt)
-        macts.bc("tomato").pickable(False)
-        macts.properties.LightingOff()
-        macts.properties.SetLineWidth(lw)
-        macts.actor.UseBoundsOff()
-        macts.name = "FlagPole"
-        return macts
+        mobjs = vedo.merge(objs).c(c).alpha(alpha)
+        mobjs.name = "FlagPole"
+        mobjs.bc("tomato").pickable(False)
+        mobjs.properties.LightingOff()
+        mobjs.properties.SetLineWidth(lw)
+        mobjs.actor.UseBoundsOff()
+        mobjs.actor.SetPosition([0,0,0])
+        mobjs.actor.SetOrigin(pt)
+        # print(pt)
+        return mobjs
 
     def flagpost(
         self,
@@ -1914,11 +1916,14 @@ class MeshVisual(PointsVisual):
         factor.SetBackfaceProperty(self.actor.GetBackfaceProperty())
         factor.SetTexture(self.actor.GetTexture())
         factor.SetScale(self.actor.GetScale())
-        factor.SetOrientation(self.actor.GetOrientation())
+        # factor.SetOrientation(self.actor.GetOrientation())
         factor.SetPosition(self.actor.GetPosition())
         factor.SetUseBounds(self.actor.GetUseBounds())
 
-        factor.SetOrigin(self.actor.GetOrigin())
+        if origin is None:
+            factor.SetOrigin(self.actor.GetOrigin())
+        else:
+            factor.SetOrigin(origin)
 
         factor.PickableOff()
 
@@ -1928,9 +1933,6 @@ class MeshVisual(PointsVisual):
             plt = vedo.plotter_instance
             if plt and plt.renderer and plt.renderer.GetActiveCamera():
                 factor.SetCamera(plt.renderer.GetActiveCamera())
-
-        if origin is not None:
-            factor.SetOrigin(origin)
 
         self.actor = None
         factor.data = self

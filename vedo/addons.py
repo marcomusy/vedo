@@ -1104,7 +1104,6 @@ def ScalarBar3D(
             if label_rotation:
                 a = shapes.Text3D(
                     tx,
-                    pos=[sx * label_offset, y, 0],
                     s=lsize,
                     justify="center-top",
                     c=c,
@@ -1112,6 +1111,7 @@ def ScalarBar3D(
                     font=label_font,
                 )
                 a.rotate_z(label_rotation)
+                a.pos(sx * label_offset, y, 0)
             else:
                 a = shapes.Text3D(
                     tx,
