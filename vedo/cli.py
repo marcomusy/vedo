@@ -736,7 +736,6 @@ def draw_scene(args):
         sp = vol.spacing()
         vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
         vol.mode(int(args.mode)).color(args.cmap).jittering(True)
-        vol.lighting(args.lighting)
         plt = applications.RayCastPlotter(vol)
         plt.show(viewup="z", interactive=True).close()
         return
@@ -911,9 +910,11 @@ def draw_scene(args):
                 try:
                     ds = actor.diagonal_size() * 3
                     plt.camera.SetClippingRange(0, ds)
+                    plt.reset_camera()
+                    # plt.render()
                     plt.show(actor, at=i, interactive=False,
                              zoom=args.zoom, mode=interactor_mode)
-                    plt.actors = actors
+                    
                 except AttributeError:
                     # wildcards in quotes make glob return actor as a list :(
                     vedo.logger.error("Please do not use wildcards within single or double quotes")

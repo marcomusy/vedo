@@ -2044,15 +2044,6 @@ class Arrow(Mesh):
         self.s = s if s is not None else 1  ## used by pyplot.__iadd()
         self.name = "Arrow"
 
-    # def tip_point(self, return_index=False):
-    #     """Return the coordinates of the tip of the Arrow, or the point index."""
-    #     if self.tip_index is None:
-    #         arrpts = utils.vtk2numpy(self.source.GetOutput().GetPoints().GetData())
-    #         self.tip_index = np.argmax(arrpts[:, 0])
-    #     if return_index:
-    #         return self.tip_index
-    #     return self.vertices[self.tip_index]
-
 
 class Arrows(Glyph):
     """
@@ -2130,16 +2121,24 @@ class Arrows(Glyph):
         out = arr.GetOutput()
 
         orients = end_pts - start_pts
+
+        color_by_vector_size = c in cmaps_names
+
         super().__init__(
             start_pts,
             out,
             orientation_array=orients,
             scale_by_vector_size=True,
-            color_by_vector_size=True,
+            color_by_vector_size=color_by_vector_size,
             c=c,
             alpha=alpha,
         )
-        self.flat().lighting("off")
+        self.lighting("off")
+        if color_by_vector_size:
+            vals = np.linalg.norm(orients, axis=1)
+            self.mapper.SetScalarRange(vals.min(), vals.max())
+        else:
+            self.c(c)
         self.name = "Arrows"
 
 

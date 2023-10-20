@@ -57,10 +57,22 @@ tests/issues/issue_905.py
 
 examples/pyplot/goniometer.py
 
+closewindow.py
+
+brownian2d.py
+gyro
+particle_simulator.py
+slice_plane1.py
+volume_operations.py
+
+fit_polynomial1.py
+nearest.py
+
 ```
 
 ### TODO
 TextBase maybe useless can go into Actor2D
 Mesh([points, faces, lines])
 reimplement actor rotations
+save and load a transform
 

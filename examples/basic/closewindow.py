@@ -8,7 +8,6 @@ from vedo import *
 mesh = Paraboloid()
 
 plt1 = show(mesh, __doc__, title='First Plotter instance')
-
 # Now press 'q' to exit the window interaction,
 # windows stays open but not reactive anymore.
 
@@ -22,7 +21,7 @@ plt1.close_window()
 # window should now close, the Plotter instance becomes unusable
 # but mesh objects still exist in it:
 
-printc("First Plotter:", plt1.objects, '\nPress enter again')
+printc("First Plotter:", plt1.objects, '\nPress q again')
 # plt1.show()  # error here: window does not exist anymore. Cannot reopen.
 
 ##################################################################

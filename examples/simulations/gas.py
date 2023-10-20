@@ -2,22 +2,21 @@
 ## Based on gas.py by Bruce Sherwood for a cube as a container
 ## Slightly modified by Andrey Antonov for a torus.
 ## Adapted by M. Musy for vedo
-## relevant points in the code are marked with '### <--'
 from random import random
 import numpy as np
-from vedo import Plotter, progressbar, mag, versor, Torus, Sphere
+from vedo import Plotter, mag, versor, Torus, Spheres
 from vedo.addons import ProgressBarWidget
 
 
 #############################################################
 Natoms = 400  # change this to have more or fewer atoms
-Nsteps = 150  # nr of steps in the simulation
+Nsteps = 200  # nr of steps in the simulation
 Matom = 4e-3 / 6e23  # helium mass
-Ratom = 0.025  # wildly exaggerated size of helium atom
+Ratom = 0.025 
 RingThickness = 0.3  # thickness of the toroid
 RingRadius = 1
 k = 1.4e-23  # Boltzmann constant
-T = 300  # room temperature
+T = 300      # room temperature
 dt = 1.5e-5
 
 ############################################################
@@ -28,31 +27,28 @@ def reflection(p, pos):
 
 plt = Plotter(title="gas in toroid", interactive=0, axes=0)
 plt += __doc__
-plt += Torus(c="g", r1=RingRadius, r2=RingThickness, alpha=0.1).wireframe(1)  ### <--
+plt += Torus(c="g", r1=RingRadius, r2=RingThickness, alpha=0.1).wireframe(1) 
 
-Atoms = []
 poslist = []
 plist, mlist, rlist = [], [], []
-mass = Matom * Ratom ** 3 / Ratom ** 3
+mass = Matom
 pavg = np.sqrt(2.0 * mass * 1.5 * k * T)  # average kinetic energy p**2/(2mass) = (3/2)kT
+colors = np.random.rand(Natoms)
 
 for i in range(Natoms):
     alpha = 2 * np.pi * random()
     x = RingRadius * np.cos(alpha) * 0.9
     y = RingRadius * np.sin(alpha) * 0.9
     z = 0
-    atm = Sphere(pos=(x, y, z), r=Ratom, c=i, res=6).phong()
-    plt += atm
-    Atoms = Atoms + [atm]  ### <--
     theta = np.pi * random()
     phi = 2 * np.pi * random()
     px = pavg * np.sin(theta) * np.cos(phi)
     py = pavg * np.sin(theta) * np.sin(phi)
     pz = pavg * np.cos(theta)
     poslist.append((x, y, z))
-    plist.append((px, py, pz))
+    plist.append((px, py, pz))    
     mlist.append(mass)
-    rlist.append(Ratom)
+    rlist.append(np.abs(Ratom + Ratom*np.random.rand() / 2))
 
 pos = np.array(poslist)
 poscircle = pos
@@ -68,7 +64,6 @@ if "False" not in np.less_equal(mag(ds), radius).tolist():
 
 pbw = ProgressBarWidget(Nsteps)
 plt += pbw
-
 plt.show()
 
 for it in range(Nsteps):
@@ -125,11 +120,10 @@ for it in range(Nsteps):
             p[k] = reflection(p[k], pos[k] - poscircle[k])
 
     # then update positions of display objects
-    for l in range(Natoms):
-        Atoms[l].pos(pos[l])  ### <--
     outside = np.greater_equal(mag(pos), RingRadius + RingThickness)
 
     pbw.update()  # update progress bar
-    plt.render().reset_camera().azimuth(0.5)  ### <--
+    plt.remove("Spheres").add(Spheres(pos, r=radius, c='b6'))
+    plt.render().reset_camera().azimuth(0.5)
 
 plt.interactive().close()
