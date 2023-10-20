@@ -74,5 +74,4 @@ nearest.py
 TextBase maybe useless can go into Actor2D
 Mesh([points, faces, lines])
 reimplement actor rotations
-save and load a transform
 

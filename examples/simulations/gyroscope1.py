@@ -48,7 +48,7 @@ def loop_func(event):
     gpos = cm - 1/2 * Ls * versor(Lrot)
 
     # set orientation along gaxis and rotate it around its axis by omega*t degrees
-    gyro.reorient(Lrot, rotation=omega*t, rad=True).pos(gpos)
+    gyro.reorient([0,0,1], Lrot, rotation=omega*t, rad=True).pos(gpos)
     spring = Spring(top, gpos, r1=0.06, thickness=0.01, c="gray")
     plt.remove("Spring").add(spring)
     plt.render()

@@ -10,7 +10,7 @@ def on_keypress(event):
         p = verts[idx] + n / 5
 
         txt = Text3D("Text3D\nABCDEF", s=0.1, justify="centered", c="red5")
-        txt.reorient(n).pos(p)
+        txt.reorient([0,0,1], n).pos(p)
 
         tpts = txt.clone().subsample(0.05).vertices
         kpts = [mesh.closest_point(tp) for tp in tpts]

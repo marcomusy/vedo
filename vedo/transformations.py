@@ -45,7 +45,9 @@ class LinearTransform:
     """Work with linear transformations."""
 
     def __init__(self, T=None):
-        """Define a linear transformation.
+        """
+        Define a linear transformation.
+        Can be saved to file and reloaded.
         
         Arguments:
             T : (vtk.vtkTransform, numpy array)
@@ -71,6 +73,9 @@ class LinearTransform:
             show(s1, zero, axes=1).close()
             ```
        """
+
+        self.name = "LinearTransform"
+        self.comment = ""
 
         if T is None:
             T = vtk.vtkTransform()
@@ -104,9 +109,21 @@ class LinearTransform:
             S = vtk.vtkTransform()
             S.DeepCopy(T.T)
             T = S
+        
+        elif isinstance(T, str):
+            import json
+            with open(T, "r") as read_file:
+                D = json.load(read_file)
+            self.name = D["name"]
+            self.comment = D["comment"]
+            matrix = np.array(D["matrix"])
+            T = vtk.vtkTransform()
+            m = vtk.vtkMatrix4x4()
+            for i in range(4):
+                for j in range(4):
+                    m.SetElement(i, j, matrix[i][j])
+            T.SetMatrix(m)
 
-        self.name = "LinearTransform"
-        self.comment = ""
         self.T = T
         self.T.PostMultiply()
         self.inverse_flag = False
@@ -403,6 +420,21 @@ class LinearTransform:
         M = [[m.GetElement(i, j) for j in range(3)] for i in range(3)]
         return np.array(M)
 
+    def write(self, filename):  # eg. filename="transform.mat"
+        """Save transformation to ASCII file."""
+        import json
+        m = self.T.GetMatrix()
+        M = [[m.GetElement(i, j) for j in range(4)] for i in range(4)]
+        arr = np.array(M)
+        dictionary = {
+            "name": self.name,
+            "comment": self.comment,
+            "matrix": arr.astype(float).tolist(),
+            "n_concatenated_transforms": self.n_concatenated_transforms,
+        }
+        with open(filename, "w") as outfile:
+            json.dump(dictionary, outfile, sort_keys=True, indent=2)
+
     def reorient(
         self, initaxis, newaxis, around=(0, 0, 0), rotation=0, rad=False, xyplane=True
     ):
@@ -427,7 +459,7 @@ class LinearTransform:
             for a in np.linspace(0, 6.28, 7):
                 v = vector(cos(a), sin(a), 0)*1000
                 pic = Picture(dataurl+"images/dog.jpg").rotate_z(10)
-                pic.reorient(v)
+                pic.reorient([0,0,1], v)
                 pic.pos(v - center)
                 objs += [pic, Arrow(v, v+v)]
             show(objs, Point(), axes=1).close()
@@ -470,6 +502,10 @@ class NonLinearTransform:
     
     def __init__(self, T=None):
 
+        self.name = "NonLinearTransform"
+        self.filename = ""
+        self.comment = ""
+
         if T is None:
             T = vtk.vtkThinPlateSplineTransform()
 
@@ -483,11 +519,39 @@ class NonLinearTransform:
             S.DeepCopy(T.T)
             T = S
 
+        elif isinstance(T, str):
+            import json
+            filename = str(T)
+            self.filename = filename
+            with open(filename, "r") as read_file:
+                D = json.load(read_file)
+            self.name = D["name"]
+            self.comment = D["comment"]
+            source = D["source_points"]
+            target = D["target_points"]
+            mode = D["mode"]
+            sigma = D["sigma"]
+
+            T = vtk.vtkThinPlateSplineTransform()
+            vptss = vtk.vtkPoints()
+            for p in source:
+                vptss.InsertNextPoint(p[0], p[1], p[2])
+            T.SetSourceLandmarks(vptss)
+            vptst = vtk.vtkPoints()
+            for p in target:
+                vptst.InsertNextPoint(p[0], p[1], p[2])
+            T.SetTargetLandmarks(vptst)
+            T.SetSigma(sigma)
+            # mode
+            if mode == "2d":
+                T.SetBasisToR2LogR()
+            elif mode == "3d":
+                T.SetBasisToR()
+            else:
+                print(f'In {filename} mode can be either "2d" or "3d"')
+
         self.T = T
         self.inverse_flag = False
-
-        self.name = "NonLinearTransform"
-        self.comment = ""
 
 
     @property
@@ -534,7 +598,7 @@ class NonLinearTransform:
         return self
        
     @property
-    def sigma(self):
+    def sigma(self) -> float:
         """Set sigma."""
         return self.T.GetSigma()
 
@@ -544,18 +608,41 @@ class NonLinearTransform:
         self.T.SetSigma(s)
 
     @property
+    def mode(self) -> str:
+        """Get mode."""
+        m = self.T.GetBasis()
+        if m == 0:
+            return "2d"
+        elif m == 1:
+            return "3d"
+
+    @mode.setter
     def mode(self, m):
+        """Set mode."""
         if m=='3d':
             self.T.SetBasisToR()
         elif m=='2d':
             self.T.SetBasisToR2LogR()
         else:
-            vedo.logger.error('mode can be either "2d" or "3d"')
-        return self
+            print('In NonLinearTransform mode can be either "2d" or "3d"')
 
     def clone(self):
         """Clone transformation to make an exact copy."""
         return NonLinearTransform(self.T)
+        
+    def write(self, filename):
+        """Save transformation to ASCII file."""
+        import json
+        dictionary = {
+            "name": self.name,
+            "comment": self.comment,
+            "mode": self.mode,
+            "sigma": self.sigma,
+            "source_points": self.source_points.astype(float).tolist(),
+            "target_points": self.target_points.astype(float).tolist(),
+        }
+        with open(filename, "w") as outfile:
+            json.dump(dictionary, outfile, sort_keys=True, indent=2)
         
     def invert(self):
         """Invert transformation."""

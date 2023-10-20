@@ -23,7 +23,7 @@ for i in range(n, npt - n-1):
     curvs[i] = sqrt(1/R) * z/abs(z)
     if R < 0.75:
         circle = Circle(center, r=R).wireframe()
-        circle.reorient(normal)
+        circle.reorient([0,0,1], normal)
         circles.append(circle)
         fitpts.append(center)
 
