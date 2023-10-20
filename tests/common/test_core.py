@@ -99,7 +99,7 @@ assert np.max(cr.vertices[:,2]) < 1.01
 
 
 ###################################### orientation
-cr = cone.pos(0,0,0).clone().reorient((1, 1, 0))
+cr = cone.pos(0,0,0).clone().reorient([0,0,1], (1, 1, 0))
 print('orientation',np.max(cr.vertices[:,2]) ,'<', 1.01)
 assert np.max(cr.vertices[:,2]) < 1.01
 
