@@ -6,7 +6,7 @@ import pyefd
 shapes = vedo.load(vedo.dataurl+'timecourse1d.npy')
 
 sh = shapes[55]
-sr = vedo.Line(sh).mirror('x').reverse()
+sr = vedo.Line(sh).mirror('x')
 sm = vedo.merge(sh, sr).c('red5').lw(3)
 pts = sm.vertices[:,(0,1)]
 

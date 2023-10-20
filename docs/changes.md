@@ -57,16 +57,6 @@ tests/issues/issue_893.py
 tests/issues/issue_905.py
 
 examples/pyplot/goniometer.py
-
-examples/simulations/aspring1.py
-examples/simulations/brownian2d.py
-examples/simulations/gyroscope1.py
-examples/simulations/gyroscope2.py
-examples/simulations/lorenz.py
-examples/simulations/pendulum_3d.py
-examples/simulations/trail.py
-
-examples/other/ellipt_fourier_desc.py
 ```
 
 

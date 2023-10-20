@@ -234,62 +234,11 @@ class Mesh(MeshVisual, Points):
 
     def faces(self, ids=()):
         """
-        DEPRECATED. Use property `mesh.faces` instead.
-
-        Get cell polygonal connectivity ids as a python `list`.
-        The output format is: `[[id0 ... idn], [id0 ... idm],  etc]`.
-
-        If ids is set, return only the faces of the given cells.
+        DEPRECATED. Use property `mesh.cells` instead.
         """
-        print("WARNING: use property mesh.cells instead of mesh.faces()")
-        arr1d = vtk2numpy(self.dataset.GetPolys().GetData())
-
-        # Get cell connettivity ids as a 1D array. vtk format is:
-        # [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
-        if len(arr1d) == 0:
-            arr1d = vtk2numpy(self.dataset.GetStrips().GetData())
-
-        i = 0
-        conn = []
-        n = len(arr1d)
-        if n:
-            while True:
-                cell = [arr1d[i + k] for k in range(1, arr1d[i] + 1)]
-                conn.append(cell)
-                i += arr1d[i] + 1
-                if i >= n:
-                    break
-        if len(ids):
-            return conn[ids]
-        return conn  # cannot always make a numpy array of it!
-
-    # @property
-    # def cells(self):
-    #     """
-    #     Get cell polygonal connectivity ids as a python `list`.
-    #     The output format is: `[[id0 ... idn], [id0 ... idm],  etc]`.
-
-    #     If ids is set, return only the faces of the given cells.
-    #     """
-    #     arr1d = vtk2numpy(self.dataset.GetPolys().GetData())
-
-    #     # Get cell connettivity ids as a 1D array. vtk format is:
-    #     # [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
-    #     if len(arr1d) == 0:
-    #         arr1d = vtk2numpy(self.dataset.GetStrips().GetData())
-
-    #     i = 0
-    #     conn = []
-    #     n = len(arr1d)
-    #     if n:
-    #         while True:
-    #             cell = [arr1d[i + k] for k in range(1, arr1d[i] + 1)]
-    #             conn.append(cell)
-    #             i += arr1d[i] + 1
-    #             if i >= n:
-    #                 break
-    #     return conn  # cannot always make a numpy array of it!
-
+        vedo.printc("WARNING: use property mesh.cells instead of mesh.faces()",c='y')
+        return self.cells
+    
     @property
     def edges(self):
         """

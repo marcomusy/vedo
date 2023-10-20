@@ -21,8 +21,8 @@ def loop_func(event):
     x = x + v*dt + 1/2 * a * dt**2  # position
 
     block.pos(x)  # update block position and trail
-    spring.stretch(x0, x)  # stretch helix accordingly
-    plt.render()
+    spr = Spring(x0, x, r1=0.06, thickness=0.01)
+    plt.remove("Spring").add(spr).render()
 
 block = Cube(pos=x, side=0.2, c="tomato")
 spring = Spring(x0, x, r1=0.06, thickness=0.01)

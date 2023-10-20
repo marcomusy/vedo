@@ -4231,10 +4231,10 @@ def add_global_axes(axtype=None, c=None, bounds=()):
                         sz = d
             except AttributeError:
                 pass
-
+        
         try:
             ocf.SetInputData(largestact)
-        except AttributeError:
+        except TypeError:
             ocf.SetInputData(largestact.dataset)
         ocf.Update()
 

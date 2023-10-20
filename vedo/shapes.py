@@ -408,21 +408,6 @@ class Line(Mesh):
             alpha : (float)
                 opacity in range [0,1]
         """
-        self.slope = []  # populated by analysis.fit_line
-        self.center = []
-        self.variances = []
-
-        self.coefficients = []  # populated by pyplot.fit()
-        self.covariance_matrix = []
-        self.coefficients = []
-        self.coefficient_errors = []
-        self.monte_carlo_coefficients = []
-        self.reduced_chi2 = -1
-        self.ndof = 0
-        self.data_sigma = 0
-        self.error_lines = []
-        self.error_band = None
-        self.res = res
 
         if isinstance(p1, Points):
             p1 = p1.pos()
@@ -432,16 +417,18 @@ class Line(Mesh):
             p0 = p0.vertices
 
         # detect if user is passing a 2D list of points as p0=xlist, p1=ylist:
-        if len(p0) > 3:
-            if not utils.is_sequence(p0[0]) and not utils.is_sequence(p1[0]) and len(p0) == len(p1):
-                # assume input is 2D xlist, ylist
-                p0 = np.stack((p0, p1), axis=1)
-                p1 = None
-            p0 = utils.make3d(p0)
+        # if utils.is_sequence(p0) and len(p0) > 3:
+        #     if not utils.is_sequence(p0[0]) and not utils.is_sequence(p1[0]) and len(p0) == len(p1):
+        #         # assume input is 2D xlist, ylist
+        #         p0 = np.stack((p0, p1), axis=1)
+        #         p1 = None
+        #     p0 = utils.make3d(p0)
 
         # detect if user is passing a list of points:
         if isinstance(p0, vtk.vtkPolyData):
             poly = p0
+            top  = np.array([0,0,1])
+            base = np.array([0,0,0])
 
         elif utils.is_sequence(p0[0]):
             p0 = utils.make3d(p0)
@@ -463,7 +450,7 @@ class Line(Mesh):
             poly.SetLines(lines)
             top = p0[-1]
             base = p0[0]
-            self.res = 2
+            res = 2
 
         else:  # or just 2 points to link
 
@@ -479,6 +466,23 @@ class Line(Mesh):
             base = np.asarray(p0, dtype=float)
 
         super().__init__(poly, c, alpha)
+
+        self.slope = []  # populated by analysis.fit_line
+        self.center = []
+        self.variances = []
+
+        self.coefficients = []  # populated by pyplot.fit()
+        self.covariance_matrix = []
+        self.coefficients = []
+        self.coefficient_errors = []
+        self.monte_carlo_coefficients = []
+        self.reduced_chi2 = -1
+        self.ndof = 0
+        self.data_sigma = 0
+        self.error_lines = []
+        self.error_band = None
+        self.res = res
+
         self.lw(lw)
         self.properties.LightingOff()
         self.actor.PickableOff()
@@ -500,19 +504,18 @@ class Line(Mesh):
             ```
             ![](https://vedo.embl.es/images/feats/line_clone.png)
         """
-        name = self.name
-        base = self.base
-        top = self.top
-        prop = vtk.vtkProperty()
-        prop.DeepCopy(self.properties)
+        poly = vtk.vtkPolyData()
+        if deep:
+            poly.DeepCopy(self.dataset)
+        else:
+            poly.ShallowCopy(self.dataset)
 
-        ln = Line(self)
-        ln.transform = self.transform
+        ln = Line(poly)
         ln.copy_properties_from(self)
-        ln.dataset.DeepCopy(self.dataset)
-        ln.name = name
-        ln.base = base
-        ln.top = top
+        # ln.transform = self.transform # WRONG
+        ln.name = self.name
+        ln.base = self.base
+        ln.top = self.top
         return ln
 
     def linecolor(self, lc=None):
@@ -1669,7 +1672,10 @@ def StreamLines(
         sta.mapper.SetResolveCoincidentTopologyToPolygonOffset()
         sta.lighting("off")
 
-    scals = grid.dataset.GetPointData().GetScalars()
+    try:
+        scals = grid.dataset.GetPointData().GetScalars()
+    except AttributeError:
+        scals = grid.GetPointData().GetScalars()
     if scals:
         sta.mapper.SetScalarRange(scals.GetRange())
     if scalar_range is not None:
@@ -3097,10 +3103,7 @@ class Plane(Mesh):
                 normal vector to the plane
         """
         pos = utils.make3d(pos)
-        sx, sy = s
-
         normal = np.asarray(normal, dtype=float)
-        self.variance = 0
 
         ps = vtk.vtkPlaneSource()
         ps.SetResolution(res[0], res[1])
@@ -3108,17 +3111,16 @@ class Plane(Mesh):
         tri.SetInputConnection(ps.GetOutputPort())
         tri.Update()
 
-        poly = tri.GetOutput()
         axis = normal / np.linalg.norm(normal)
         theta = np.arccos(axis[2])
         phi = np.arctan2(axis[1], axis[0])
         t = vtk.vtkTransform()
         t.PostMultiply()
-        t.Scale(sx, sy, 1)
+        t.Scale(s[0], s[1], 1)
         t.RotateY(np.rad2deg(theta))
         t.RotateZ(np.rad2deg(phi))
         tf = vtk.vtkTransformPolyDataFilter()
-        tf.SetInputData(poly)
+        tf.SetInputData(tri.GetOutput())
         tf.SetTransform(t)
         tf.Update()
 
@@ -3128,15 +3130,13 @@ class Plane(Mesh):
         self.name = "Plane"
         self.top = normal
         self.base = np.array([0.0, 0.0, 0.0])
-    
+        self.variance = 0
+
     def clone(self):
         newplane = Plane()
         newplane.dataset.DeepCopy(self.dataset)
-        newplane.transform = self.transform
-        prop = vtk.vtkProperty()
-        prop.DeepCopy(self.properties)
-        newplane.actor.SetProperty(prop)
-        newplane.properties = prop
+        newplane.copy_properties_from(self)
+        # newplane.transform = self.transform
         newplane.variance = 0
         newplane.top = self.normal
         newplane.base = self.base

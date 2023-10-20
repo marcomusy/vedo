@@ -433,11 +433,6 @@ class LinearTransform:
             show(objs, Point(), axes=1).close()
             ```
             ![](https://vedo.embl.es/images/feats/orientation.png)
-
-        Examples:
-            - [gyroscope2.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/gyroscope2.py)
-
-            ![](https://vedo.embl.es/images/simulations/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif)
         """
         newaxis  = np.asarray(newaxis) / np.linalg.norm(newaxis)
         initaxis = np.asarray(initaxis) / np.linalg.norm(initaxis)

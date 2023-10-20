@@ -1,6 +1,6 @@
 import numpy as np
 from vedo import Plotter, mag, versor, vector
-from vedo import Cylinder, Spring, Box, Sphere
+from vedo import Cylinder, Spring, Line, Box, Sphere
 
 ############## Constants
 N = 5  # number of bobs
@@ -31,14 +31,6 @@ for k in range(1, N + 1):
     c = Cylinder(pos=(bob_x[k], bob_y[k], 0), r=R, height=0.3, c=k)
     plt += c
     bob.append(c)
-
-# Create the springs out of N links
-link = [None] * N
-for k in range(N):
-    p0 = bob[k].pos()
-    p1 = bob[k + 1].pos()
-    link[k] = Spring(p0, p1, thickness=0.015, r1=R / 3, c="gray")
-    plt += link[k]
 
 # Create some auxiliary variables
 x_dot_m = np.zeros(N+1)
@@ -106,9 +98,11 @@ def loop_func(evt):
                 y_dot[j] -= DV[1]  # DV.y
 
     # Update the loations of the bobs and the stretching of the springs
+    plt.remove("Line")
     for k in range(1, N + 1):
         bob[k].pos([bob_x[k], bob_y[k], 0])
-        link[k - 1].stretch(bob[k - 1].pos(), bob[k].pos())
+        sp = Line(bob[k - 1].pos(), bob[k].pos(), lw=8, c="gray")
+        plt.add(sp)
 
     plt.render()
 

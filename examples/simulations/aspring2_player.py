@@ -34,9 +34,9 @@ text  = Text2D(font="Calco", c='white', bg='k', alpha=1, pos='top-right')
 def update_scene(i: int):
     # update block and spring position at frame i
     block.pos(history_x[i])
-    spring.stretch(x0, history_x[i])
+    spring = Spring(x0, history_x[i], r1=0.05, thickness=0.005)
     text.text(f"Frame number {i}\nx = {history_x[i][0]:.4f}")
-    plt.render()
+    plt.remove("Spring").add(spring).render()
 
 plt = AnimationPlayer(update_scene, irange=[0,200], loop=True)
 plt += [floor, wall, block, spring, text, __doc__]

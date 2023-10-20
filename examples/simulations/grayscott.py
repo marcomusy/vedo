@@ -59,7 +59,10 @@ def loop_func(event):
 
     grd.cmap('ocean_r', V.ravel(), on='cells', name="escals")
     grd.map_cells_to_points()                # interpolate cell data to point data
-    grd.vertices[:,2] = grd.pointdata['escals']*25 # assign z elevation
+    z = grd.pointdata['escals']*25 
+    newverts = grd.vertices.copy()           # get the original vertices
+    newverts[:,2] = z                        # assign z elevation
+    grd.vertices = newverts                  # update the mesh vertices
     plt.render()
 
 plt = Plotter(bg='linen')
