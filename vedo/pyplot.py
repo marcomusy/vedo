@@ -660,7 +660,7 @@ class Figure(Assembly):
         aleg.name = "Legend"
         return self
 
-    def as2d(self, pos="bottom-left", scale=1, padding=0.05):
+    def clone2d(self, pos="bottom-left", scale=1, padding=0.05):
         """
         Convert the Figure into a 2D static object (a 2D Assembly).
 

@@ -769,6 +769,13 @@ def draw_scene(args):
             clamp=True,
             size=(1350, 1000),
         )
+        plt += vedo.Text2D(
+            args.files[0],
+            pos="top-left",
+            font="VictorMono",
+            s=1,
+            c="k",
+        )
         plt.show()
         return
 
@@ -802,6 +809,7 @@ def draw_scene(args):
         sp = vol.spacing()
         vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
         vedo.plotter_instance = applications.Slicer2DPlotter(vol)
+        # vedo.plotter_instance.window.SetWindowName(f"vedo - {args.files[0]}")
         vedo.plotter_instance.show().close()
         return
 

@@ -252,12 +252,12 @@ class Assembly(CommonVisual, vtk.vtkAssembly):
         self.objects = [m for m in meshs if m]
         self.actors  = [m.actor for m in self.objects]
 
-        if self.objects:
-            self.base = self.objects[0].base
-            self.top = self.objects[0].top
-        else:
-            self.base = None
-            self.top = None
+        # if self.objects:
+        #     self.base = self.objects[0].base
+        #     self.top = self.objects[0].top
+        # else:
+        #     self.base = None
+        #     self.top = None
 
         scalarbars = []
         for a in self.actors:

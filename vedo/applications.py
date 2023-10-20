@@ -103,9 +103,19 @@ class Slicer3DPlotter(Plotter):
         box = volume.box().alpha(0.2)
         self.add(box)
 
+        volume_axes_inset = vedo.addons.Axes(
+            box,
+            xtitle=' ', ytitle=' ', ztitle=' ',
+            yzgrid=False, 
+            xlabel_size=0, ylabel_size=0, zlabel_size=0, tip_size=0.08,
+            axes_linewidth=3, 
+            xline_color='dr', yline_color='dg', zline_color='db',
+        )
+
         if show_icon:
             self.add_inset(
-                volume, pos=(0.9, 0.9), size=0.15, c="w", draggable=draggable
+                volume, volume_axes_inset,
+                pos=(0.9, 0.9), size=0.15, c="w", draggable=draggable
             )
 
         # inits
@@ -150,7 +160,7 @@ class Slicer3DPlotter(Plotter):
                 bins=20, logscale=True,
                 c=self.cmap_slicer, bg=ch, alpha=1,
                 axes=dict(text_scale=2),
-            ).as2d(pos=[-0.925,-0.88], scale=0.4)
+            ).clone2d(pos=[-0.925,-0.88], scale=0.4)
             self.add(self.histogram)
         
         #################
@@ -198,7 +208,7 @@ class Slicer3DPlotter(Plotter):
                 slider_function_x,
                 0,
                 dims[0],
-                title="X",
+                title="",
                 title_size=0.5,
                 pos=[(0.8, 0.12), (0.95, 0.12)],
                 show_value=False,
@@ -208,7 +218,7 @@ class Slicer3DPlotter(Plotter):
                 slider_function_y,
                 0,
                 dims[1],
-                title="Y",
+                title="",
                 title_size=0.5,
                 pos=[(0.8, 0.08), (0.95, 0.08)],
                 show_value=False,
@@ -218,7 +228,7 @@ class Slicer3DPlotter(Plotter):
                 slider_function_z,
                 0,
                 dims[2],
-                title="Z",
+                title="",
                 title_size=0.6,
                 value=int(dims[2] / 2),
                 pos=[(0.8, 0.04), (0.95, 0.04)],
@@ -275,7 +285,7 @@ class Slicer3DPlotter(Plotter):
                     bins=20, logscale=True, 
                     c=self.cmap_slicer, bg=ch, alpha=1,
                     axes=dict(text_scale=2),
-                ).as2d(pos=[-0.925,-0.88], scale=0.4)
+                ).clone2d(pos=[-0.925,-0.88], scale=0.4)
                 self.add(self.histogram)
             self.render()
 
@@ -522,7 +532,7 @@ class Slicer2DPlotter(Plotter):
                 c=histo_color,
                 ytitle="log_10 (counts)",
                 axes=dict(text_scale=1.9),
-            ).as2d(pos="bottom-left", scale=0.4)
+            ).clone2d(pos="bottom-left", scale=0.4)
 
         axes = kwargs.pop("axes", 7)
         if axes == 7:
@@ -531,9 +541,21 @@ class Slicer2DPlotter(Plotter):
             )
 
         box = orig_volume.box().alpha(0.25)
+
+        volume_axes_inset = vedo.addons.Axes(
+            box,
+            yzgrid=False, 
+            xlabel_size=0, ylabel_size=0, zlabel_size=0, tip_size=0.08,
+            axes_linewidth=3, 
+            xline_color='dr',  yline_color='dg',  zline_color='db',
+            xtitle_color='dr', ytitle_color='dg', ztitle_color='db',
+            xtitle_size=0.1, ytitle_size=0.1, ztitle_size=0.1,
+            title_font='VictorMono',
+        )
+
         self.user_mode("image")
         self.at(0).add(self.volume.actor, box, axe, self.usage, hist)
-        self.at(1).add(orig_volume)
+        self.at(1).add(orig_volume, volume_axes_inset)
 
     ####################################################################
     def on_key_press(self, evt):

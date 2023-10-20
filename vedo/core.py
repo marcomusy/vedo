@@ -784,6 +784,7 @@ class CommonAlgorithms:
     @vertices.setter
     def vertices(self, pts):
         """Set vertices (points) coordinates."""
+        pts = utils.make3d(pts)
         arr = utils.numpy2vtk(pts, dtype=np.float32)
         try:
             vpts = self.dataset.GetPoints()

@@ -53,11 +53,13 @@ examples/volumetric/slicer1.py
 ```
 tests/issues/discussion_751.py
 tests/issues/discussion_800.py
-tests/issues/issue_893.py
 tests/issues/issue_905.py
 
 examples/pyplot/goniometer.py
+
 ```
 
-
+### TODO
+TextBase maybe useless can go into Actor2D
+Mesh([points, faces, lines])
 
