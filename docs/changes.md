@@ -62,4 +62,5 @@ examples/pyplot/goniometer.py
 ### TODO
 TextBase maybe useless can go into Actor2D
 Mesh([points, faces, lines])
+reimplement actor rotations
 
