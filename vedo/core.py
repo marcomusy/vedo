@@ -326,11 +326,7 @@ class CommonAlgorithms:
     def __init__(self):
 
         self.dataset = None
-        # self._update = lambda a, reset_locators=0: a
         self.pipeline = None
-        self.top = np.array([0, 0, 1])
-        self.base = np.array([0, 0, 0])
-
         self.name = ""
         self.filename = ""
 
@@ -1443,7 +1439,7 @@ class PointAlgorithms(CommonAlgorithms):
         LT = LinearTransform().rotate_z(angle, rad, around)
         return self.apply_transform(LT)
 
-    def reorient(self, newaxis, initaxis=None, rotation=0, rad=False, xyplane=True):
+    def reorient(self, initaxis, newaxis, rotation=0, rad=False, xyplane=False):
         """
         Reorient the object to point to a new direction from an initial one.
         If `initaxis` is None, the object will be assumed in its "default" orientation.
@@ -1451,12 +1447,9 @@ class PointAlgorithms(CommonAlgorithms):
 
         Use `rotation` to first rotate the object around its `initaxis`.
         """
-        if initaxis is None:
-            initaxis = np.asarray(self.top) - self.base
-
         q = self.transform.position
         LT = LinearTransform()
-        LT.reorient(newaxis, initaxis, q, rotation, rad, xyplane)
+        LT.reorient(initaxis, newaxis, q, rotation, rad, xyplane)
         return self.apply_transform(LT)
 
     def scale(self, s=None, reset=False, origin=True):

@@ -404,7 +404,7 @@ class LinearTransform:
         return np.array(M)
 
     def reorient(
-        self, newaxis, initaxis, around=(0, 0, 0), rotation=0, rad=False, xyplane=True
+        self, initaxis, newaxis, around=(0, 0, 0), rotation=0, rad=False, xyplane=True
     ):
         """
         Set/Get object orientation.

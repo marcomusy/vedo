@@ -2591,8 +2591,8 @@ class Arc(Mesh):
         ar.SetNegative(invert)
         ar.SetResolution(res)
         ar.Update()
+
         super().__init__(ar.GetOutput(), c, alpha)
-        self.pos(self.base)
         self.lw(2).lighting("off")
         self.name = "Arc"
 
@@ -2825,8 +2825,6 @@ class Spheres(Mesh):
 
         super().__init__(glyph.GetOutput(), alpha=alpha)
         self.pos(base)
-        self.base = base
-        self.top = centers[-1]
         self.phong()
         if cisseq:
             self.mapper.ScalarVisibilityOn()
@@ -3127,8 +3125,6 @@ class Plane(Mesh):
         self.lighting("off")
         self.pos(pos)
         self.name = "Plane"
-        self.top = normal
-        self.base = np.array([0.0, 0.0, 0.0])
         self.variance = 0
 
     def clone(self):
@@ -3137,8 +3133,6 @@ class Plane(Mesh):
         newplane.copy_properties_from(self)
         # newplane.transform = self.transform
         newplane.variance = 0
-        newplane.top = self.normal
-        newplane.base = self.base
         return newplane
     
     @property
@@ -3392,8 +3386,8 @@ class TessellatedBox(Mesh):
         super().__init__(poly, c=c, alpha=alpha)
         self.pos(pos)
         self.lw(1).lighting("off")
-        self.base = np.array([0.5, 0.5, 0.0])
-        self.top = np.array([0.5, 0.5, 1.0])
+        # self.base = np.array([0.5, 0.5, 0.0])
+        # self.top = np.array([0.5, 0.5, 1.0])
         self.name = "TessellatedBox"
 
 
@@ -3464,9 +3458,9 @@ class Spring(Mesh):
         tuf.Update()
         super().__init__(tuf.GetOutput(), c, alpha)
         self.phong()
-        self.pos(start_pt)
         self.base = np.array(start_pt, dtype=float)
         self.top = np.array(end_pt, dtype=float)
+        self.pos(start_pt)
         self.name = "Spring"
 
 
@@ -3521,9 +3515,9 @@ class Cylinder(Mesh):
 
         super().__init__(pd, c, alpha)
         self.phong()
+        self.base = base
+        self.top = top
         self.pos(pos)
-        self.base = base + pos
-        self.top = top + pos
         self.name = "Cylinder"
 
 

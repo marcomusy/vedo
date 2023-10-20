@@ -732,8 +732,8 @@ def Goniometer(
         justify="center",
     )
     cr = np.cross(va, vb)
+    lb.reorient([0,0,1], cr * np.sign(cr[2]), rotation=rotation, xyplane=False)
     lb.pos(p2 + vc * r / 1.75)
-    lb.reorient(cr * np.sign(cr[2]), rotation=rotation)
     lb.c(c).bc("tomato").lighting("off")
     acts.append(lb)
 
@@ -2414,9 +2414,7 @@ def Ruler3D(
     macts.properties.SetLineWidth(lw)
     macts.properties.LightingOff()
     macts.actor.UseBoundsOff()
-    macts.base = q1
-    macts.top  = q2
-    macts.reorient(p2 - p1, rotation=axis_rotation)
+    macts.reorient(q2 - q1, p2 - p1, rotation=axis_rotation)
     macts.pos(pos)
     macts.bc("tomato").pickable(False)
     return macts

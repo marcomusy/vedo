@@ -273,7 +273,6 @@ def fit_plane(points, signed=False):
     pla = vedo.shapes.Plane(datamean, n, s=[s, s])
     pla.variance = dd[2]
     pla.name = "FitPlane"
-    pla.top = n
     return pla
 
 
@@ -524,8 +523,6 @@ class Points(PointsVisual, PointAlgorithms):
         self.axes = None
         self.picked3d = None
 
-        self.top  = np.array([0, 0, 1])
-        self.base = np.array([0, 0, 0])
         self.info = {}
         self.time = time.time()
         self.rendered_at = set()
@@ -763,8 +760,6 @@ class Points(PointsVisual, PointAlgorithms):
 
         cloned.copy_properties_from(self)
 
-        cloned.base = np.array(self.base)
-        cloned.top = np.array(self.top)
         cloned.name = str(self.name)
         cloned.filename = str(self.filename)
         cloned.info = dict(self.info)
