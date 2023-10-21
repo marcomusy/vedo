@@ -307,7 +307,8 @@ class Slicer3DTwinPlotter(Plotter):
 
     Example:
         ```python
-        from vedo import dataurl, Volume
+        from vedo import *
+        from vedo.applications import Slicer3DTwinPlotter
 
         vol1 = Volume(dataurl + "embryo.slc")
         vol2 = Volume(dataurl + "embryo.slc")
@@ -471,9 +472,6 @@ class Slicer2DPlotter(Plotter):
 
         super().__init__(**kwargs)
 
-        self.interactor.RemoveAllObservers()
-        self.add_callback("on key press", self.on_key_press)
-
         orig_volume = vol.clone(deep=False)
         self.volume = vol
 
@@ -498,14 +496,12 @@ class Slicer2DPlotter(Plotter):
             self.lighting(window=levels[0], level=levels[1])
 
         self.usage_txt = (
-            "H                  :rightarrow toggle this banner off\n"
-            "Left click & drag  :rightarrow modify luminosity and contrast\n"
-            "SHIFT+Left click   :rightarrow slice image obliquely\n"
-            "SHIFT+Middle click :rightarrow slice image perpendicularly"
-            # "R                  :rightarrow Reset the Window/Color levels\n"
-            # "X                  :rightarrow Reset to sagittal view\n"
-            # "Y                  :rightarrow Reset to coronal view\n"
-            # "Z                  :rightarrow Reset to axial view"
+            "H                  :rightarrow Toggle this banner on/5off\n"
+            "Left click & drag  :rightarrow Modify luminosity and contrast\n"
+            "SHIFT+Left click   :rightarrow Slice image obliquely\n"
+            "SHIFT+Middle click :rightarrow Slice image perpendicularly\n"
+            "SHIFT+R            :rightarrow Fly to closest cartesian view\n"
+            "SHIFT+U            :rightarrow Toggle parallel projection"
         )
 
         self.usage = Text2D(
@@ -535,6 +531,7 @@ class Slicer2DPlotter(Plotter):
             ).clone2d(pos="bottom-left", scale=0.4)
 
         axes = kwargs.pop("axes", 7)
+        axe = None
         if axes == 7:
             axe = vedo.addons.RulerAxes(
                 orig_volume, xtitle="x - ", ytitle="y - ", ztitle="z - "
@@ -556,6 +553,7 @@ class Slicer2DPlotter(Plotter):
         self.user_mode("image")
         self.at(0).add(self.volume.actor, box, axe, self.usage, hist)
         self.at(1).add(orig_volume, volume_axes_inset)
+        self.at(0) # set focus here
 
     ####################################################################
     def on_key_press(self, evt):

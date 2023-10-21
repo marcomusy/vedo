@@ -22,4 +22,7 @@ vlabs = c.clone().clean().labels2d(font="ComicMono", scale=3, bc="orange7")
 # create a custom entry to the legend
 lbox = LegendBox([b, c], font="Bongas", width=0.25, bg='blue6')
 
-show(b, c, cap, flabs, vlabs, lbox, __doc__, axes=11, bg2="linen").close()
+with Plotter(axes=11, bg2="linen") as plt:
+    plt.add(b, c, cap, flabs, vlabs, lbox, __doc__)
+    plt.add_hint(b, "My fave bunny")
+    plt.show()

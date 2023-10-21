@@ -28,9 +28,6 @@ class Settings:
     screenshot_transparent_background = False
     screeshot_large_image = False # Sometimes setting this to True gives better results
 
-    # [DISABLED] Allow to continuously interact with scene during interactive() execution
-    allow_interaction = True
-
     # Enable tracking pipeline functionality:
     #  allows to show a graph with the pipeline of action which let to a final object
     #  this is achieved by calling "myobj.pipeline.show()" (a new window will pop up)
@@ -143,7 +140,6 @@ class Settings:
         "remember_last_figure_format",
         "screenshot_transparent_background",
         "screeshot_large_image",
-        "allow_interaction",
         "hack_call_screen_size",
         "enable_default_mouse_callbacks",
         "enable_default_keyboard_callbacks",
@@ -224,9 +220,6 @@ class Settings:
 
         self.screenshot_transparent_background = False
         self.screeshot_large_image = False
-
-        # [DISABLED] Allow to continuously interact with scene during interactor.Start() execution
-        self.allow_interaction = True
 
         # BUG in vtk9.0 (if true close works but sometimes vtk crashes, if false doesnt crash but cannot close)
         # see plotter.py line 555

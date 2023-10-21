@@ -31,6 +31,7 @@ txt = Text2D(font="Calco", pos='top-right')
 
 # Create a plotter object with axes
 plt = Plotter(axes=1)
+# plt.initialize_interactor() # on windows this is needed
 
 # Add the two callback functions to the plotter's timer events
 id1 = plt.add_callback("timer", func1)

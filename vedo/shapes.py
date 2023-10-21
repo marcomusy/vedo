@@ -416,23 +416,16 @@ class Line(Mesh):
         if isinstance(p0, Points):
             p0 = p0.vertices
 
-        # detect if user is passing a 2D list of points as p0=xlist, p1=ylist:
-        # if utils.is_sequence(p0) and len(p0) > 3:
-        #     if not utils.is_sequence(p0[0]) and not utils.is_sequence(p1[0]) and len(p0) == len(p1):
-        #         # assume input is 2D xlist, ylist
-        #         p0 = np.stack((p0, p1), axis=1)
-        #         p1 = None
-        #     p0 = utils.make3d(p0)
-
         # detect if user is passing a list of points:
         if isinstance(p0, vtk.vtkPolyData):
+
             poly = p0
             top  = np.array([0,0,1])
             base = np.array([0,0,0])
 
         elif utils.is_sequence(p0[0]):
-            p0 = utils.make3d(p0)
 
+            p0 = utils.make3d(p0)
             ppoints = vtk.vtkPoints()  # Generate the polyline
             ppoints.SetData(utils.numpy2vtk(np.asarray(p0), dtype=np.float32))
             lines = vtk.vtkCellArray()
@@ -2122,7 +2115,7 @@ class Arrows(Glyph):
 
         orients = end_pts - start_pts
 
-        color_by_vector_size = c in cmaps_names
+        color_by_vector_size = utils.is_sequence(c) or c in cmaps_names
 
         super().__init__(
             start_pts,

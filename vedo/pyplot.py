@@ -2631,7 +2631,7 @@ def fit(
 
     p1d = np.poly1d(coeffs)
     theor = p1d(xr)
-    fitl = shapes.Line(xr, theor, lw=lw, c=c).z(tol * 2)
+    fitl = shapes.Line(np.c_[xr, theor], lw=lw, c=c).z(tol * 2)
     fitl.coefficients = coeffs
     fitl.covariance_matrix = V
     residuals2_sum = np.sum(np.power(p1d(x) - y, 2)) / ndof
@@ -2677,7 +2677,8 @@ def fit(
 
     error_lines = []
     for i in [nstd, -nstd]:
-        el = shapes.Line(xr, theor + stds * i, lw=1, alpha=0.2, c="k").z(tol)
+        pp = np.c_[xr, theor + stds * i]
+        el = shapes.Line(pp, lw=1, alpha=0.2, c="k").z(tol)
         error_lines.append(el)
         el.name = "ErrorLine for sigma=" + str(i)
 

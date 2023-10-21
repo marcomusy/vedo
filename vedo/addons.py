@@ -493,7 +493,7 @@ class SplineTool(vtk.vtkContourWidget):
         """
         super().__init__()
 
-        self.representation = vtk.vtkOrientedGlyphContourRepresentation()
+        self.representation = self.GetRepresentation()
         self.representation.SetAlwaysOnTop(ontop)
 
         self.representation.GetLinesProperty().SetColor(get_color(lc))
@@ -506,6 +506,8 @@ class SplineTool(vtk.vtkContourWidget):
         self.representation.GetActiveProperty().SetColor(get_color(ac))
         self.representation.GetActiveProperty().SetLineWidth(lw + 1)
 
+        # self.representation.BuildRepresentation() # crashes
+
         self.SetRepresentation(self.representation)
 
         if utils.is_sequence(points):
@@ -514,6 +516,16 @@ class SplineTool(vtk.vtkContourWidget):
             self.points = points
 
         self.closed = closed
+
+    @property
+    def interactor(self):
+        """Return the current interactor."""
+        return self.GetInteractor()
+    
+    @interactor.setter
+    def interactor(self, iren):
+        """Set the current interactor."""
+        self.SetInteractor(iren)
 
     def add(self, pt):
         """
@@ -525,6 +537,12 @@ class SplineTool(vtk.vtkContourWidget):
         else:
             self.representation.AddNodeAtWorldPosition(pt)
         return self
+    
+    def add_observer(self, event, func, priority=1):
+        """Add an observer to the widget."""
+        event = utils.get_vtk_name_event(event)
+        cid = self.AddObserver(event, func, priority)
+        return cid
 
     def remove(self, i):
         """Remove specific node by its index"""

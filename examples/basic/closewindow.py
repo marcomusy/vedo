@@ -18,10 +18,10 @@ printc('\nControl returned to terminal shell:', c='tomato', invert=1)
 ask('window is now unresponsive (press Enter here)', c='tomato', invert=1)
 
 plt1.close_window()
+
 # window should now close, the Plotter instance becomes unusable
 # but mesh objects still exist in it:
-
-printc("First Plotter:", plt1.objects, '\nPress q again')
+printc("Objects in first Plotter:", len(plt1.objects), '\nPress q again')
 # plt1.show()  # error here: window does not exist anymore. Cannot reopen.
 
 ##################################################################

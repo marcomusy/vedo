@@ -18,7 +18,6 @@ vpts2 = Points(pts2, r=10, c="red5")
 # Find best alignment between the 2 sets of Points,
 # e.i. find how to move vpts1 to best match vpts2
 aligned_pts1 = vpts1.clone().align_to(vpts2, invert=False)
-print(aligned_pts1.transform)
 txt = aligned_pts1.transform.__str__()
 
 # Create arrows to visualize how the points move during alignment

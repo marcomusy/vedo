@@ -43,6 +43,7 @@ from vtkmodules.vtkCommonCore import (
     vtkVariant,
     vtkVariantArray,
     vtkVersion,
+    vtkCommand,
 )
 
 from vtkmodules.vtkCommonDataModel import (
@@ -450,7 +451,6 @@ from vtkmodules.vtkInteractionStyle import (
 )
 
 from vtkmodules.vtkInteractionWidgets import (
-    vtkBalloonRepresentation,
     vtkBalloonWidget,
     vtkBoxWidget,
     vtkContourWidget,
@@ -458,7 +458,6 @@ from vtkmodules.vtkInteractionWidgets import (
     vtkFocalPlanePointPlacer,
     vtkImplicitPlaneWidget,
     vtkOrientationMarkerWidget,
-    vtkOrientedGlyphContourRepresentation,
     vtkPolygonalSurfacePointPlacer,
     vtkSliderRepresentation2D,
     vtkSliderRepresentation3D,

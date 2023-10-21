@@ -37,13 +37,13 @@ printc(vgrad.pointdata, c='g')
 
 grd = vgrad.pointdata['ImageScalarsGradient']
 pts = vol.vertices  # coords as numpy array
-arrs = Arrows(pts, pts + grd*0.1)
+arrs = Arrows(pts, pts + grd*0.1, c="jet")
 
 pts_probes = [[0.2,0.5,0.5], [0.2,0.3,0.4]]
 vpts_probes = Points(pts_probes).probe(vgrad)
 vects = vpts_probes.pointdata['ImageScalarsGradient']
 
-arrs_pts_probe = Arrows(pts_probes, pts_probes + vects)
+arrs_pts_probe = Arrows(pts_probes, pts_probes + vects, c='black')
 
 plt = Plotter(axes=1, N=2)
 plt.at(0).show("A masked Volume", vol)

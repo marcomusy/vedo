@@ -7,7 +7,7 @@ from vedo import dataurl, printc, Plotter, Point, Mesh
 
 #############################################################
 def myfnc(evt):
-    mesh = evt.actor
+    mesh = evt.object
     # printc('dump event info', evt)
     if not mesh or evt.keypress != "c":
         printc("click mesh and press c", c="r")

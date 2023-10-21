@@ -12,6 +12,10 @@
 - add background radial gradients
 - add `utils.line_line_distance()`
 - add `utils.segment_segment_distance()`
+- addressed bug on windows OS in timers callbacks thanks to @jonaslindemann
+- add `plotter.initialize_interactor()`
+- add object hinting (flag_labels1.py) by hovering mouse
+
 
 
 ### Breaking changes
@@ -40,12 +44,14 @@
 examples/basic/buttons.py
 examples/basic/input_box.py
 examples/basic/sliders2.py
+examples/basic/spline_tool.py
 examples/basic/interaction_modes2.py
 examples/advanced/timer_callback1.py
 examples/advanced/timer_callback2.py
 examples/advanced/warp4a.py
 examples/advanced/warp4b.py
 examples/volumetric/slicer1.py
+examples/other/flag_labels1.py
 ```
 
 
@@ -55,18 +61,6 @@ tests/issues/discussion_751.py
 tests/issues/discussion_800.py
 tests/issues/issue_905.py
 
-examples/pyplot/goniometer.py
-
-closewindow.py
-
-brownian2d.py
-gyro
-particle_simulator.py
-slice_plane1.py
-volume_operations.py
-
-fit_polynomial1.py
-nearest.py
 
 ```
 

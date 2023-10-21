@@ -13,6 +13,17 @@ plt = show(pts, __doc__, interactive=False, axes=1)
 
 # Add the spline tool using the same points and interact with it
 sptool = plt.add_spline_tool(pts, closed=True)
+
+# Add a callback to print the center of mass of the spline
+sptool.add_observer(
+    "end of interaction", 
+    lambda o, e: (
+        print(f"Spline changed! CM = {sptool.spline().center_of_mass()}"),
+        print(f"\tNumber of points: {sptool.spline().vertices.size}"),
+    )
+)
+
+# Stay in the loop until the user presses q
 plt.interactive()
 
 # Switch off the tool

@@ -2711,17 +2711,25 @@ def get_vtk_name_event(name):
     words = [
         "pick", "timer", "reset", "enter", "leave", "char",
         "error", "warning", "start", "end", "wheel", "clipping",
-        "range", "camera", "render",
+        "range", "camera", "render", "interaction", "modified",
     ]
     for w in words:
         if w in ln:
             event_name = event_name.replace(w, w.capitalize())
-
-    event_name = event_name.replace(" ", "")
+    
+    event_name = event_name.replace("REnd ", "Rend")
+    event_name = event_name.replace("the ", "")
+    event_name = event_name.replace(" of ", "").replace(" ", "")
 
     if not event_name.endswith("Event"):
         event_name += "Event"
 
-    # print("event_name", event_name)
+    if vtk.vtkCommand.GetEventIdFromString(event_name) == 0:
+        vedo.printc(
+            f"Error: '{name}' is not a valid event name.", c='r')
+        vedo.printc("Check the list of events here:", c='r')
+        vedo.printc("\thttps://vtk.org/doc/nightly/html/classvtkCommand.html", c='r')
+        # raise RuntimeError
+    
     return event_name
 

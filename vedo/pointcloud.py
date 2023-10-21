@@ -2674,6 +2674,14 @@ class Points(PointsVisual, PointAlgorithms):
                 z0 - (z1 - z0) * padding,
                 z1 + (z1 - z0) * padding,
             )
+        
+        bb = sdf.GetBounds()
+        if bb[0]==bb[1]:
+            vedo.logger.warning("reconstruct_surface(): zero x-range")
+        if bb[2]==bb[3]:
+            vedo.logger.warning("reconstruct_surface(): zero y-range")
+        if bb[4]==bb[5]:
+            vedo.logger.warning("reconstruct_surface(): zero z-range")
 
         pd = self.dataset
 

@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Command Line Interface module
 -----------------------------
@@ -808,7 +806,6 @@ def draw_scene(args):
         sp = vol.spacing()
         vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
         vedo.plotter_instance = applications.Slicer2DPlotter(vol)
-        # vedo.plotter_instance.window.SetWindowName(f"vedo - {args.files[0]}")
         vedo.plotter_instance.show().close()
         return
 

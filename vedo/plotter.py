@@ -711,8 +711,8 @@ class Plotter:
             ########################
 
         if self.qt_widget is not None:
-            self.interactor = self.qt_widget.GetRenderWindow().GetInteractor()
             self.window = self.qt_widget.GetRenderWindow()  # overwrite
+            self.interactor = self.qt_widget.GetRenderWindow().GetInteractor()
             ########################
             return  ################
             ########################
@@ -751,13 +751,13 @@ class Plotter:
         vsty = vtk.vtkInteractorStyleTrackballCamera()
         self.interactor.SetInteractorStyle(vsty)
 
+        if settings.enable_default_keyboard_callbacks:
+            self.interactor.AddObserver("KeyPressEvent", self._keypress)
         if settings.enable_default_mouse_callbacks:
             self.interactor.AddObserver("LeftButtonPressEvent", self._mouseleftclick)
 
-        if settings.enable_default_keyboard_callbacks:
-            self.interactor.AddObserver("KeyPressEvent", self._keypress)
-
     ##################################################################### ..init ends here.
+
 
     def __iadd__(self, objects):
         self.add(objects)
@@ -775,7 +775,20 @@ class Plotter:
         # context manager like in "with Plotter() as plt:"
         self.close()
 
+
+    def initialize_interactor(self):
+        """Initialize the interactor if not already initialized."""
+        if self.offscreen:
+            return self
+        if self.interactor:
+            if not self.interactor.GetInitialized():
+                self.interactor.Initialize()
+                self.interactor.RemoveObservers("CharEvent")
+        return self
+
     def process_events(self):
+        """Process all pending events."""
+        self.initialize_interactor()
         if self.interactor:
             try:
                 self.interactor.ProcessEvents()
@@ -970,15 +983,14 @@ class Plotter:
             self.wx_widget.Render()
             return self
 
+        self.initialize_interactor()
+
         if self.qt_widget:
             if resetcam:
                 self.renderer.ResetCamera()
             self.qt_widget.Render()
             return self
 
-        if self.interactor:
-            if not self.interactor.GetInitialized():
-                self.interactor.Initialize()
 
         if resetcam:
             self.renderer.ResetCamera()
@@ -991,6 +1003,7 @@ class Plotter:
         Start window interaction.
         Analogous to `show(..., interactive=True)`.
         """
+        self.initialize_interactor()
         if self.interactor:
             self.interactor.Start()
         return self
@@ -1366,6 +1379,9 @@ class Plotter:
         Examples:
             - [record_play.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/record_play.py)
         """
+        if not self.interactor:
+            vedo.logger.warning("Cannot record events, no interactor defined.")
+            return self
         erec = vtk.vtkInteractorEventRecorder()
         erec.SetInteractor(self.interactor)
         erec.SetFileName(filename)
@@ -1393,6 +1409,10 @@ class Plotter:
         Examples:
             - [record_play.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/record_play.py)
         """
+        if not self.interactor:
+            vedo.logger.warning("Cannot play events, no interactor defined.")
+            return self
+
         erec = vtk.vtkInteractorEventRecorder()
         erec.SetInteractor(self.interactor)
 
@@ -1704,7 +1724,6 @@ class Plotter:
         ac="g5",
         lw=2,
         closed=False,
-        interactive=False,
     ):
         """
         Add a spline tool to the current plotter.
@@ -1737,22 +1756,19 @@ class Plotter:
             ![](https://vedo.embl.es/images/basic/spline_tool.png)
         """
         sw = addons.SplineTool(points, pc, ps, lc, ac, lw, closed)
-        if self.interactor:
-            sw.SetInteractor(self.interactor)
-        else:
-            vedo.logger.error("in add_spline_tool(), No interactor found.")
-            raise RuntimeError
-        sw.On()
+        sw.interactor = self.interactor
+        sw.on()
         sw.Initialize(sw.points.dataset)
-        if sw.closed:
-            sw.representation.ClosedLoopOn()
         sw.representation.SetRenderer(self.renderer)
+        # closed:
+        sw.representation.SetClosedLoop(closed)
+        # if closed:
+        #     sw.representation.ClosedOn()
+        # else:
+        #     sw.representation.ClosedOff()
         sw.representation.BuildRepresentation()
-        sw.Render()
-        if interactive:
-            self.interactor.Start()
-        else:
-            self.interactor.Render()
+        self.widgets.append(sw)
+        # sw.Render()
         return sw
 
     def add_icon(self, icon, pos=3, size=0.08):
@@ -1841,16 +1857,17 @@ class Plotter:
         obj,
         text="",
         c="k",
-        bc="yellow8",
+        bg="yellow9",
         font="Calco",
         size=18,
         justify=0,
         angle=0,
-        delay=100,
+        delay=500,
     ):
         """
         Create a pop-up hint style message when hovering an object.
-        Use add_hint(False) to disable all hints.
+        Use `add_hint(obj, False)` to disable a hinting a specific object.
+        Use `add_hint(None)` to disable all hints.
 
         Arguments:
             obj : (Mesh, Points)
@@ -1860,15 +1877,19 @@ class Plotter:
             delay : (int)
                 milliseconds to wait before pop-up occurs
         """
-        if self.offscreen:
+        if self.offscreen or not self.interactor:
             return self
 
-        if vedo.vtk_version[0] == 9 and "Linux" in vedo.sys_platform:  # Linux vtk9 is bugged
-            vedo.logger.warning("add_hint() is not available on Linux platforms.")
+        if vedo.vtk_version[:2] == (9,0) and "Linux" in vedo.sys_platform:  
+            # Linux vtk9.0 is bugged
+            vedo.logger.warning(
+                f"add_hint() is not available on Linux platforms for vtk{vedo.vtk_version}."
+            )
             return self
 
-        if obj is False:
+        if obj is None:
             self.hint_widget.EnabledOff()
+            self.hint_widget.SetInteractor(None)
             self.hint_widget = None
             return self
 
@@ -1887,7 +1908,7 @@ class Plotter:
         if not self.hint_widget:
             self.hint_widget = vtk.vtkBalloonWidget()
 
-            rep = vtk.vtkBalloonRepresentation()
+            rep = self.hint_widget.GetRepresentation()
             rep.SetBalloonLayoutToImageRight()
 
             trep = rep.GetTextProperty()
@@ -1895,7 +1916,7 @@ class Plotter:
             trep.SetFontFile(utils.get_font_path(font))
             trep.SetFontSize(size)
             trep.SetColor(vedo.get_color(c))
-            trep.SetBackgroundColor(vedo.get_color(bc))
+            trep.SetBackgroundColor(vedo.get_color(bg))
             trep.SetShadow(False)
             trep.SetJustification(justify)
             trep.UseTightBoundingBoxOn()
@@ -1908,31 +1929,28 @@ class Plotter:
                 rep.SetBackgroundOpacity(0)
             self.hint_widget.SetRepresentation(rep)
             self.widgets.append(self.hint_widget)
-            if self.interactor.GetInitialized():
-                self.hint_widget.EnabledOn()
-            else:
-                vedo.logger.warning("add_hint() must be called after show(). Skip.")
-                return self
+            self.hint_widget.EnabledOn()
 
-        bst = self.hint_widget.GetBalloonString(obj)
+        bst = self.hint_widget.GetBalloonString(obj.actor)
         if bst:
-            self.hint_widget.UpdateBalloonString(obj, text)
+            self.hint_widget.UpdateBalloonString(obj.actor, text)
         else:
-            self.hint_widget.AddBalloon(obj, text)
+            self.hint_widget.AddBalloon(obj.actor, text)
 
         return self
 
     def add_shadows(self):
         """Add shadows at the current renderer."""
-        shadows = vtk.vtkShadowMapPass()
-        seq = vtk.vtkSequencePass()
-        passes = vtk.vtkRenderPassCollection()
-        passes.AddItem(shadows.GetShadowMapBakerPass())
-        passes.AddItem(shadows)
-        seq.SetPasses(passes)
-        camerapass = vtk.vtkCameraPass()
-        camerapass.SetDelegatePass(seq)
-        self.renderer.SetPass(camerapass)
+        if self.renderer:
+            shadows = vtk.vtkShadowMapPass()
+            seq = vtk.vtkSequencePass()
+            passes = vtk.vtkRenderPassCollection()
+            passes.AddItem(shadows.GetShadowMapBakerPass())
+            passes.AddItem(shadows)
+            seq.SetPasses(passes)
+            camerapass = vtk.vtkCameraPass()
+            camerapass.SetDelegatePass(seq)
+            self.renderer.SetPass(camerapass)
         return self
 
     def add_ambient_occlusion(self, radius, bias=0.01, blur=True, samples=100):
@@ -2225,7 +2243,6 @@ class Plotter:
         self.add_callback("MouseMove", _legfunc)
         return self
 
-    #####################################################################
     def add_scale_indicator(
         self,
         pos=(0.7, 0.05),
@@ -2263,6 +2280,11 @@ class Plotter:
             ```
             ![](https://vedo.embl.es/images/feats/scale_indicator.png)
         """
+        # Note that this cannot go in addons.py 
+        # because it needs callbacks and window size
+        if not self.interactor:
+            return self
+
         ppoints = vtk.vtkPoints()  # Generate the polyline
         psqr = [[0.0, gap], [length / 10, gap]]
         dd = psqr[1][0] - psqr[0][0]
@@ -2521,10 +2543,6 @@ class Plotter:
 
         event_name = utils.get_vtk_name_event(event_name)
 
-        # Not compatible with ProcessEvents()
-        if "MouseMove" in event_name or "Timer" in event_name:
-            settings.allow_interaction = False
-
         cid = self.interactor.AddObserver(event_name, _func_wrap, priority)
         # print(f"Registering event: {event_name} with id={cid}")
         return cid
@@ -2592,6 +2610,8 @@ class Plotter:
         Add a callback function that will be called when an event occurs.
         Consider using `add_callback()` instead.
         """
+        if not self.interactor:
+            return self
         event_name = utils.get_vtk_name_event(event_name)
         idd = self.interactor.AddObserver(event_name, func, priority)
         return idd
@@ -3136,9 +3156,10 @@ class Plotter:
 
         self.renderer.ResetCameraClippingRange()
 
-        if self.interactor and not self.interactor.GetInitialized():
-            self.interactor.Initialize()
-            self.interactor.RemoveObservers("CharEvent")
+        # if self.interactor and not self.interactor.GetInitialized():
+        #     self.interactor.Initialize()
+        #     self.interactor.RemoveObservers("CharEvent")
+        self.initialize_interactor()
 
         if settings.immediate_rendering:
             self.window.Render()  ##################### <-------------- Render
@@ -3213,6 +3234,7 @@ class Plotter:
         """
         if not self.interactor:
             return None
+
         pos = options.pop("pos", 0)
         size = options.pop("size", 0.1)
         c = options.pop("c", "lb")
@@ -4137,12 +4159,6 @@ class Plotter:
                 else:
                     self.remove(self.cutter_widget)
                     self.cutter_widget = None
-            else:
-                for ob in self.objects:
-                    if isinstance(ob, vedo.Volume):
-                        addons.add_cutter_tool(ob)
-                        return
-
                 vedo.printc("Click object and press X to open the cutter box widget.", c=4)
 
         elif key == "E":
