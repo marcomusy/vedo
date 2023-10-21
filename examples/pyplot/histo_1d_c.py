@@ -1,5 +1,6 @@
 """Uniform distribution weighted by sin^2 12x + :onehalf"""
-from vedo import Line, settings, np
+import numpy as np
+from vedo import Line, settings
 from vedo.pyplot import histogram
 
 settings.default_font = "DejavuSansMono"
@@ -22,7 +23,7 @@ fig = histogram(
 
 x = np.linspace(0,1, 200)
 y = 200*np.sin(12*x)**2 + 100
-fig += Line(x, y, c='red5', lw=3).z(0.001)
+fig += Line(np.c_[x, y], c='red5', lw=3).z(0.001)
 
 fig.add_label('my function', marker='-', mc='red5')
 fig.add_legend(pos=[0.7,1.33], alpha=0.2)

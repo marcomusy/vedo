@@ -10,7 +10,6 @@ import random
 screen_w = 800
 screen_h = 800
 
-
 # Constants and time step
 Nsp = 200  # Number of small spheres
 Rb = screen_w / 32  # Radius of the big sphere
@@ -63,7 +62,7 @@ Id = np.identity(Nsp)
 Dij = (Radius + Radius[:, np.newaxis]) ** 2  # Matrix Dij=(Ri+Rj)**2
 
 # The main loop
-for i in progressbar(1000, c="r"):
+for i in progressbar(500, c="r"):
     # Update all positions
     np.add(Pos, Vel * Dt, Pos)  # Fast version of Pos = Pos + Vel*Dt
 
@@ -124,7 +123,7 @@ for i in progressbar(1000, c="r"):
     # exit()
     if not int(i) % 20:  # every 20 steps:
         rsp = [Pos[0][0], Pos[0][1], 0]
-        plt.add(Point(rsp, c="r", r=5, alpha=0.1))  # leave a point trace
+        plt.add(Point(rsp, c="r", r=4))  # leave a point trace
 
     spheres.name = "particles"
     plt.remove("particles").add(spheres).render()

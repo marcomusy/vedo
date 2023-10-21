@@ -3424,7 +3424,8 @@ class Plotter:
     @property
     def camera(self):
         """Return the current active camera."""
-        return self.renderer.GetActiveCamera()
+        if self.renderer:
+            return self.renderer.GetActiveCamera()
     
     @camera.setter
     def camera(self, cam):

@@ -50,8 +50,10 @@ examples/advanced/timer_callback1.py
 examples/advanced/timer_callback2.py
 examples/advanced/warp4a.py
 examples/advanced/warp4b.py
+examples/simulations/lorenz.py
 examples/volumetric/slicer1.py
 examples/other/flag_labels1.py
+
 ```
 
 
@@ -61,11 +63,11 @@ tests/issues/discussion_751.py
 tests/issues/discussion_800.py
 tests/issues/issue_905.py
 
-
+slice_plane1.py
 ```
 
 ### TODO
-TextBase maybe useless can go into Actor2D
-Mesh([points, faces, lines])
-reimplement actor rotations
+- TextBase maybe useless can go into Actor2D
+- Mesh([points, faces, lines])
+- reimplement actor rotations
 

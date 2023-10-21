@@ -13,7 +13,7 @@ fig+= plot(xvals, alpha*max(fig.frequencies), '--ow', like=fig).z(1)
 
 show([
       (vol, Axes(vol, c='w'), f"Original Volume\ncolor map: {cmap}"),
-      (fig, "Voxel scalar histogram\nand opacity transfer function")
+      (fig.clone2d("center"), "Voxel scalar histogram\nand opacity transfer function")
      ],
      N=2, sharecam=False, bg=(82,87,110), zoom=1.1,
 ).close()

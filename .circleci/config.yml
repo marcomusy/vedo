@@ -43,47 +43,6 @@ jobs:
           destination: test-reports
 
 
-  ##############################################################
-  test-dolfinx:
-    docker:
-      - image: quay.io/fenicsproject/dolfinx:dev-env-real
-    environment:
-      MPLBACKEND: "agg"
-      DEBIAN_FRONTEND: "noninteractive"
-
-    steps:
-      - checkout
-
-      - run:
-          name: install vedo et al
-          command: |
-            pip3 install vtk
-            pip3 install .
-
-      - run:
-          name: Get dolfinx cmake compile and install
-          command: |
-            pip3 install git+https://github.com/FEniCS/fiat.git --upgrade
-            pip3 install git+https://github.com/FEniCS/ufl.git  --upgrade
-            pip3 install git+https://github.com/FEniCS/ffcx.git --upgrade
-            rm -rf /usr/local/include/dolfin /usr/local/include/dolfin.h
-            git clone https://github.com/FEniCS/dolfinx.git
-            cd dolfinx
-            mkdir -p build && cd build && cmake -G Ninja -DCMAKE_BUILD_TYPE=Developer ../cpp/
-            ninja -j3 install
-            cd ../python
-            pip3 -v install . --user
-
-      - run:
-          name: Run tests
-          command: |
-            cd
-            cd project/tests/dolfinx
-            source run_all.sh
-
-      - store_artifacts:
-          path: test-reports
-          destination: test-reports
 
 ######################################################
 workflows:
@@ -91,7 +50,6 @@ workflows:
   build-stuff:
     jobs:
       - test-vedo
-      #- test-dolfinx
 
 
 

@@ -12,14 +12,15 @@ sphere = Sphere(r=500).x(400).c('green', 0.1)
 tetm1 = tetm.clone().cut_with_mesh(sphere, invert=True)
 
 # Make it a polygonal Mesh for visualization
-msh1 = tetm1.tomesh().linewidth(0.1).color('lb')
+msh1 = tetm1.tomesh().linewidth(0.1).cmap('Blues')
 
 # Cut tetm, but the output will keep only the whole tets (NOT the polygonal boundary!):
-tetm2 = tetm.clone().cut_with_mesh(sphere, invert=True, whole_cells=True)
+tetm2 = tetm.clone().cut_with_mesh(sphere, invert=True, whole_cells=True).cmap("jet")
+
 
 # Cut tetm, but the output will keep only the tets on the boundary:
 tetm3 = tetm.clone().cut_with_mesh(sphere, only_boundary=True)
-tetm3.add_scalarbar3d(c='k')
+tetm3.cmap("jet").add_scalarbar3d(c='k')
 
 show([
       (msh1, sphere, __doc__),
