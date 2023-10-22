@@ -555,22 +555,42 @@ class NonLinearTransform:
 
 
     @property
+    def position(self):
+        """
+        Trying to get the position of a `NonLinearTransform` always returns [0,0,0].
+        """
+        return np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    
+    @position.setter
+    def position(self, p):
+        """
+        Trying to set position of a `NonLinearTransform` 
+        has no effect and prints a warning.
+
+        Use clone() method to create a copy of the object,
+        or reset it with 'object.transform = vedo.LinearTransform()'
+        """
+        print("Warning: NonLinearTransform has no position.")
+        print("  Use clone() method to create a copy of the object,")
+        print("  or reset it with 'object.transform = vedo.LinearTransform()'")
+
+    @property
     def source_points(self):
-        """Get source points."""
+        """Get the source points."""
         pts = self.T.GetSourceLandmarks()
         vpts = []
         for i in range(pts.GetNumberOfPoints()):
             vpts.append(pts.GetPoint(i))
-        return np.array(vpts)
+        return np.array(vpts, dtype=np.float32)
     
     @property
     def target_points(self):
-        """Get target points."""
+        """Get the target points."""
         pts = self.T.GetTargetLandmarks()
         vpts = []
         for i in range(pts.GetNumberOfPoints()):
             vpts.append(pts.GetPoint(i))
-        return np.array(vpts)
+        return np.array(vpts, dtype=np.float32)
  
     @source_points.setter
     def source_points(self, pts):
@@ -595,7 +615,6 @@ class NonLinearTransform:
         for p in pts:
             vpts.InsertNextPoint(p[0], p[1], p[2])
         self.T.SetTargetLandmarks(vpts)
-        return self
        
     @property
     def sigma(self) -> float:
