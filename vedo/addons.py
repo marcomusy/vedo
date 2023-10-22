@@ -2993,6 +2993,20 @@ def Axes(
     else:
         c = get_color(c)
 
+    # Check if obj has bounds, if so use those
+    if obj is not None:
+        try:
+            bb = obj.bounds()
+        except AttributeError:
+            try:
+                bb = obj.GetBounds()
+                if xrange is None: xrange = (bb[0], bb[1])
+                if yrange is None: yrange = (bb[2], bb[3])
+                if zrange is None: zrange = (bb[4], bb[5])
+                obj = None # dont need it anymore
+            except AttributeError:
+                pass            
+
     if use_global:
         vbb, drange, min_bns, max_bns = compute_visible_bounds()
     else:
@@ -3005,7 +3019,7 @@ def Axes(
                 zrange = (0, 0)
             if xrange is None or yrange is None:
                 vedo.logger.error("in Axes() must specify axes ranges!")
-                raise RuntimeError()
+                return None  ###########################################
 
     if xrange is not None:
         if xrange[1] < xrange[0]:

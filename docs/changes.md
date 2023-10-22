@@ -2,8 +2,8 @@
 
 - added `plotter.pick_area()` thanks to @ZiguoAtGitHub and @RubendeBruin feedback.
 - bug fix in `closest_point()` thanks to @goncalo-pt
-- bug fix in tformat thanks to @JohnsWor  https://github.com/marcomusy/vedo/pull/913
-- add texture to npz files thanks to @zhouzq-thu https://github.com/marcomusy/vedo/pull/918
+- bug fix in tformat thanks to @JohnsWor in #913
+- add texture to npz files thanks to @zhouzq-thu in #918
 
 - Fix meshlab interface thanks to @JeffreyWardman in #924
 - Update `Slicer3DPlotter` thanks to @daniel-a-diaz in #925
@@ -20,14 +20,12 @@
 
 ### Breaking changes
 - plt.actors must become plt.objects
-- in `plotter.add_button(func)`, must use `func(event)` instead of `func()`
-(thanks to @smoothumut for spotting the bug)
-- change .points() to .vertices everywhere
-- change .cell_centers() to .cell_centers everywhere
-- change .faces() to .cells everywhere
-- change .lines() to .lines everywhere
-- change .edges() to .edges everywhere
-- change .normals() to .vertex_normals and .cell_normals everywhere
+- change .points() to .vertices
+- change .cell_centers() to .cell_centers
+- change .faces() to .cells
+- change .lines() to .lines
+- change .edges() to .edges
+- change .normals() to .vertex_normals and .cell_normals
 - removed `Volume.probe_points()`
 - removed `Volume.probe_line()`
 - removed `Volume.probe_plane()`

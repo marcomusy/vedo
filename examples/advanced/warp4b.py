@@ -2,9 +2,9 @@
 Pick a point on the source surface, 
 then pick the corresponding point on the target surface.
 Pick at least 4 point pairs.
-Press 'c' to clear the selection.
-Press 'd' to delete the last selection.
-Press 'q' to quit."""
+Press c to clear the selection.
+Press d to delete the last selection.
+Press q to quit."""
 from vedo import Plotter, Mesh, Points, Text2D, Axes, settings, dataurl
 
 ################################################
@@ -37,14 +37,14 @@ def click(evt):
         sources.append(evt.picked3d)
         source.pickable(False)
         target.pickable(True)
-        msg0.text("->")
+        msg0.text("--->")
         msg1.text("now pick a target point")
     elif evt.actor == target:
         targets.append(evt.picked3d)
         source.pickable(True)
         target.pickable(False)
         msg0.text("now pick a source point")
-        msg1.text("<-")
+        msg1.text("<---")
     update()
 
 def keypress(evt):
@@ -79,7 +79,7 @@ target.pickable(False).c("yellow5")
 ref = target.clone().pickable(False).alpha(0.75)
 
 source = Mesh(dataurl + "limb_surface.vtk")
-source.pickable(True).c("k5").alpha(0.8)
+source.pickable(True).c("k5").alpha(1)
 
 clicked = []
 sources = []
