@@ -3010,6 +3010,8 @@ class Grid(Mesh):
         Create an even or uneven 2D grid.
 
         Arguments:
+            pos : (list, Points, Mesh)
+                position in space, can also be passed as a bounding box [xmin,xmax, ymin,ymax].
             s : (float, list)
                 if a float is provided it is interpreted as the total size along x and y,
                 if a list of coords is provided they are interpreted as the vertices of the grid along x and y.
@@ -3038,9 +3040,24 @@ class Grid(Mesh):
         """
         resx, resy = res
         sx, sy = s
+        
+        try:
+            bb = pos.bounds()
+            pos = [(bb[0] + bb[1])/2, (bb[2] + bb[3])/2, (bb[4] + bb[5])/2]
+            sx = bb[1] - bb[0]
+            sy = bb[3] - bb[2]
+        except AttributeError:
+            pass        
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
+        elif len(pos) in [4,6]: # passing a bounding box
+            bb = pos
+            pos = [(bb[0] + bb[1])/2, (bb[2] + bb[3])/2, 0]
+            sx = bb[1] - bb[0]
+            sy = bb[3] - bb[2]
+            if len(pos)==6:
+                pos[2] = bb[4] - bb[5]
 
         if utils.is_sequence(sx) and utils.is_sequence(sy):
             verts = []
