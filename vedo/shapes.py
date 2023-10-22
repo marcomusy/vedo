@@ -92,7 +92,7 @@ _reps = (
     (":nabla", "∇"),
     (":inf", "∞"),
     (":rightarrow", "→"),
-    (":lefttarrow", "←"),
+    (":leftarrow", "←"),
     (":partial", "∂"),
     (":sqrt", "√"),
     (":approx", "≈"),
