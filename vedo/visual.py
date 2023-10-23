@@ -655,6 +655,18 @@ class PointsVisual(CommonVisual):
                 self.actor.SetBackfaceProperty(self.properties_backface)
         return self
 
+    def lut_color_at(self, value):
+        """
+        Return the color of the lookup table at value.
+        """
+        lut = self.mapper.GetLookupTable()
+        if not lut:
+            return None
+        rgb = [0,0,0]
+        lut.GetColor(value, rgb)
+        alpha = lut.GetOpacity(value)
+        return np.array(rgb + [alpha])
+
     def opacity(self, alpha=None):
         """Set/get mesh's transparency. Same as `mesh.alpha()`."""
         return self.alpha(alpha)
@@ -1559,7 +1571,7 @@ class PointsVisual(CommonVisual):
         point=None,
         offset=None,
         s=None,
-        font="",
+        font="Calco",
         rounded=True,
         c=None,
         alpha=1.0,
@@ -1650,7 +1662,7 @@ class PointsVisual(CommonVisual):
         objs.append(lab)
 
         if d and not sph:
-            sph = vedo.shapes.Circle(pt, r=s / 3, res=15)
+            sph = vedo.shapes.Circle(pt, r=s / 3, res=16)
         objs.append(sph)
 
         x0, x1, y0, y1, z0, z1 = lab.bounds()
@@ -1690,6 +1702,17 @@ class PointsVisual(CommonVisual):
         mobjs.actor.SetOrigin(pt)
         # print(pt)
         return mobjs
+
+        # mobjs = vedo.Assembly(objs)#.c(c).alpha(alpha)
+        # mobjs.name = "FlagPole"
+        # # mobjs.bc("tomato").pickable(False)
+        # # mobjs.properties.LightingOff()
+        # # mobjs.properties.SetLineWidth(lw)
+        # # mobjs.actor.UseBoundsOff()
+        # # mobjs.actor.SetPosition([0,0,0])
+        # # mobjs.actor.SetOrigin(pt)
+        # # print(pt)
+        # return mobjs
 
     def flagpost(
         self,

@@ -15,6 +15,7 @@
 - addressed bug on windows OS in timers callbacks thanks to @jonaslindemann
 - add `plotter.initialize_interactor()`
 - add object hinting (flag_labels1.py) by hovering mouse
+- add `colors.lut_color_at(value)` the color of the lookup table at value.
 
 
 
