@@ -2835,9 +2835,11 @@ def Axes(
         htitle_rotation=0,
         htitle_offset=(0, 0.01, 0),
         xtitle_position=0.95, ytitle_position=0.95, ztitle_position=0.95,
-        xtitle_offset=0.025,  ytitle_offset=0.0275, ztitle_offset=0.02, # can be a list (dx,dy,dz)
+        # xtitle_offset can be a list (dx,dy,dz)
+        xtitle_offset=0.025,  ytitle_offset=0.0275, ztitle_offset=0.02,
         xtitle_justify=None,  ytitle_justify=None,  ztitle_justify=None,
-        xtitle_rotation=0, ytitle_rotation=0, ztitle_rotation=0,         # can be a list (rx,ry,rz)
+        # xtitle_rotation can be a list (rx,ry,rz)
+        xtitle_rotation=0, ytitle_rotation=0, ztitle_rotation=0,
         xtitle_box=False,  ytitle_box=False,
         xtitle_size=0.025, ytitle_size=0.025, ztitle_size=0.025,
         xtitle_color=None, ytitle_color=None, ztitle_color=None,

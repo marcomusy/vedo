@@ -67,5 +67,8 @@ slice_plane1.py
 ### TODO
 - TextBase maybe useless can go into Actor2D
 - Mesh([points, faces, lines])
-- reimplement actor rotations
+- reimplement actor rotations, 
+    try disable .position .rotations to check
+- revisit splines and other widgets
+
 
