@@ -1196,7 +1196,13 @@ class CommonAlgorithms:
         return self
 
     def compute_cell_size(self):
-        """Add to this mesh a cell data array containing the areas of the polygonal faces"""
+        """
+        Add to this object a cell data array 
+        containing the area, volume and edge length
+        of the cells (when applicable to the object type).
+
+        Array names are: `Area`, `Volume`, `Length`.
+        """
         csf = vtk.vtkCellSizeFilter()
         csf.SetInputData(self.dataset)
         csf.SetComputeArea(1)

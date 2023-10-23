@@ -662,6 +662,13 @@ class Figure(Assembly):
         aleg.name = "Legend"
         return self
 
+    def as2d(self, **kwargs):
+        """
+        Deprecated. Use `clone2d()` instead.
+        """
+        vedo.printc("WARNING: as2d() is deprecated. Use clone2d() instead.", c="y")
+        return self.clone2d(**kwargs)
+
     def clone2d(self, pos="bottom-left", scale=1, padding=0.05):
         """
         Convert the Figure into a 2D static object (a 2D Assembly).

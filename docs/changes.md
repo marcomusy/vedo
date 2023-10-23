@@ -71,5 +71,7 @@ slice_plane1.py
 - reimplement actor rotations, 
     try disable .position .rotations to check
 - revisit splines and other widgets
+- merge does something strange with flagpost
+- analysis_plots.visualize_clones_as_timecourse_with_fit not working
 
 
