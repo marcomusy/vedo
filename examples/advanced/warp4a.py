@@ -66,7 +66,7 @@ class Morpher:
             self.plotter.add(points)
 
     def onleftclick(self, evt):  ############################################ add points
-        msh = evt.actor
+        msh = evt.object
         if not msh or msh.name!="Grid": return
         pt = self.merged_meshes.closest_point(evt.picked3d) # get the closest pt on the line
         self.arrow_stops.append(pt) if self.toggle else self.arrow_starts.append(pt)

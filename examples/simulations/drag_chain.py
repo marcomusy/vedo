@@ -5,7 +5,7 @@ n = 15  # number of points
 l =  3  # length of one segment
 
 def func(evt):
-    if not evt.actor:
+    if not evt.object:
         return
     coords = line.vertices
     coords[0] = evt.picked3d

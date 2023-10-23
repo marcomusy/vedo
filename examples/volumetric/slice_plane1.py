@@ -3,12 +3,12 @@ hover the plane to get the scalar values"""
 from vedo import dataurl, precision, Sphere, Volume, Plotter
 
 def func(evt):
-    if not evt.actor:
+    if not evt.object:
         return
-    pid = evt.actor.closest_point(evt.picked3d, return_point_id=True)
-    txt = f"Probing:\n{precision(evt.actor.picked3d, 3)}\nvalue = {arr[pid]}"
+    pid = evt.object.closest_point(evt.picked3d, return_point_id=True)
+    txt = f"Probing:\n{precision(evt.object.picked3d, 3)}\nvalue = {arr[pid]}"
 
-    pts = evt.actor.vertices
+    pts = evt.object.vertices
     sph = Sphere(pts[pid], c='orange7').pickable(False)
     fp = sph.flagpole(txt, s=7, offset=(-150,15), font=2).follow_camera()
     # remove old and add the two new objects

@@ -33,13 +33,13 @@ def update():
         plt.render()
 
 def click(evt):
-    if evt.actor == source:
+    if evt.object == source:
         sources.append(evt.picked3d)
         source.pickable(False)
         target.pickable(True)
         msg0.text("--->")
         msg1.text("now pick a target point")
-    elif evt.actor == target:
+    elif evt.object == target:
         targets.append(evt.picked3d)
         source.pickable(True)
         target.pickable(False)

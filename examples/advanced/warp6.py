@@ -3,7 +3,7 @@ from vedo import *
 
 
 def on_keypress(event):
-    if event.actor and event.keypress == "c":
+    if event.object and event.keypress == "c":
         picked = event.picked3d
         idx = mesh.closest_point(picked, return_point_id=True)
         n = normals[idx]

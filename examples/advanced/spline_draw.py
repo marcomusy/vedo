@@ -21,7 +21,7 @@ print("Npts =", len(plt.cpoints), "NSpline =", plt.line.npoints)
 #         self.spline = None
 
 #     def on_left_click(self, evt):
-#         if not evt.actor:
+#         if not evt.object:
 #             return
 #         p = evt.picked3d + [0, 0, 1]
 #         self.cpoints.append(p)
@@ -29,7 +29,7 @@ print("Npts =", len(plt.cpoints), "NSpline =", plt.line.npoints)
 #         printc("Added point:", precision(p[:2], 4), c="g")
 
 #     def on_right_click(self, evt):
-#         if evt.actor and len(self.cpoints) > 0:
+#         if evt.object and len(self.cpoints) > 0:
 #             self.cpoints.pop()  # pop removes the last point
 #             self.update()
 #             printc("Deleted last point", c="r")

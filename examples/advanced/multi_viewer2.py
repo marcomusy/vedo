@@ -4,11 +4,11 @@ settings.renderer_frame_width = 1
 
 ##############################################################################
 def on_left_click(evt):
-    if not evt.actor: return
-    shapename.text(f'This is called: {evt.actor.name}, on renderer nr.{evt.at}')
-    plt.at(1).remove(actsonshow).add(evt.actor).reset_camera()
-    actsonshow.clear()
-    actsonshow.append(evt.actor)
+    if not evt.object: return
+    shapename.text(f'This is called: {evt.object.name}, on renderer nr.{evt.at}')
+    plt.at(1).remove(objs).add(evt.object).reset_camera()
+    objs.clear()
+    objs.append(evt.object)
 
 ##############################################################################
 sy, sx, dx = 0.12, 0.12, 0.01
@@ -37,7 +37,7 @@ for i in range(2,9):
 shapename = Text2D(pos='top-center', c='r', bg='y', font='Calco') # empty text
 
 vlogo = VedoLogo(distance=5)
-actsonshow = [vlogo]
+objs = [vlogo]
 
 title = "My Multi Viewer 1.0"
 instr = "Click on the left panel to select a shape\n"
