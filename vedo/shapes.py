@@ -13,7 +13,7 @@ except ImportError:
 import vedo
 from vedo import settings
 from vedo.transformations import pol2cart, cart2spher, spher2cart
-from vedo.colors import cmaps_names, get_color, printc, color_map
+from vedo.colors import cmaps_names, get_color, printc
 from vedo import utils
 from vedo.pointcloud import Points, merge
 from vedo.mesh import Mesh
@@ -443,7 +443,9 @@ class Line(Mesh):
             poly.SetLines(lines)
             top = p0[-1]
             base = p0[0]
-            res = 2
+            if res != 2:
+                printc(f"Warning: calling Line(res={res}), try remove []?", c='y')
+                res = 2
 
         else:  # or just 2 points to link
 
@@ -3126,13 +3128,13 @@ class Plane(Mesh):
         self.variance = 0
 
     # breaks examples/basic/cells_within_bounds.py
-    # def clone(self):
-    #     newplane = Plane()
-    #     newplane.dataset.DeepCopy(self.dataset)
-    #     newplane.copy_properties_from(self)
-    #     # newplane.transform = self.transform
-    #     newplane.variance = 0
-    #     return newplane
+    def clone(self):
+        newplane = Plane()
+        newplane.dataset.DeepCopy(self.dataset)
+        newplane.copy_properties_from(self)
+        newplane.transform = self.transform
+        newplane.variance = 0
+        return newplane
     
     @property
     def normal(self):

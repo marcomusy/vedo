@@ -965,7 +965,7 @@ def ScalarBar3D(
     pos=None,
     size=(0, 0),
     title_font="",
-    title_xoffset=0,
+    title_xoffset=0.0,
     title_yoffset=0.0,
     title_size=1.5,
     title_rotation=0.0,
@@ -976,7 +976,7 @@ def ScalarBar3D(
     label_rotation=0,
     label_format="",
     italic=0,
-    c=None,
+    c='k',
     draw_box=True,
     above_text=None,
     below_text=None,
@@ -1037,11 +1037,6 @@ def ScalarBar3D(
     elif isinstance(obj, (Volume, TetMesh)):
         lut = utils.ctf2lut(obj)
         vmin, vmax = lut.GetRange()
-
-    elif isinstance(obj, vedo.UGrid): # TODO
-        return None
-    #     lut = utils.ctf2lut(obj) # returns None
-    #     vmin, vmax = lut.GetRange()
 
     elif utils.is_sequence(obj):
         vmin, vmax = np.min(obj), np.max(obj)
@@ -1159,7 +1154,7 @@ def ScalarBar3D(
             font=title_font,
         )
         t.rotate_z(90 + title_rotation)
-        t.pos(sx * title_xoffset, title_yoffset, 0)
+        t.pos(sx * (title_xoffset-1.2), title_yoffset, 0)
         tacts.append(t)
 
     if pos is None:
