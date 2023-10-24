@@ -966,7 +966,7 @@ def ScalarBar3D(
     pos=None,
     size=(0, 0),
     title_font="",
-    title_xoffset=0.0,
+    title_xoffset=-1.2,
     title_yoffset=0.0,
     title_size=1.5,
     title_rotation=0.0,
@@ -1155,7 +1155,7 @@ def ScalarBar3D(
             font=title_font,
         )
         t.rotate_z(90 + title_rotation)
-        t.pos(sx * (title_xoffset-1.2), title_yoffset, 0)
+        t.pos(sx * title_xoffset, title_yoffset, 0)
         tacts.append(t)
 
     if pos is None:

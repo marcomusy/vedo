@@ -447,6 +447,7 @@ class Plotter:
         self._clockt0 = time.time()
         self._extralight = None
         self._cocoa_initialized = False
+        self._cocoa_process_events = True  # make one call in show()
         self._bg = bg  # used by backend notebooks
 
         #####################################################################
@@ -3156,9 +3157,6 @@ class Plotter:
 
         self.renderer.ResetCameraClippingRange()
 
-        # if self.interactor and not self.interactor.GetInitialized():
-        #     self.interactor.Initialize()
-        #     self.interactor.RemoveObservers("CharEvent")
         self.initialize_interactor()
 
         if settings.immediate_rendering:
@@ -3169,25 +3167,30 @@ class Plotter:
             return backends.get_notebook_backend()
         #########################################################################
 
-        self.window.SetWindowName(self.title)
-
-        try:
-            # Needs "pip install pyobjc" on Mac OSX
-            if (
-                self._cocoa_initialized is False
-                and "Darwin" in vedo.sys_platform
-                and not self.offscreen
-            ):
-                self._cocoa_initialized = True
-                from Cocoa import NSRunningApplication, NSApplicationActivateIgnoringOtherApps
-                pid = os.getpid()
-                x = NSRunningApplication.runningApplicationWithProcessIdentifier_(int(pid))
-                x.activateWithOptions_(NSApplicationActivateIgnoringOtherApps)
-        except:
-            pass
-            # vedo.logger.debug("On Mac OSX try: pip install pyobjc")
-
         if self.interactor:  # can be offscreen..
+
+            self.window.SetWindowName(self.title)
+
+            try:
+                # Needs "pip install pyobjc" on Mac OSX
+                if (
+                    self._cocoa_initialized is False
+                    and "Darwin" in vedo.sys_platform
+                    and not self.offscreen
+                ):
+                    self._cocoa_initialized = True
+                    from Cocoa import NSRunningApplication, NSApplicationActivateIgnoringOtherApps
+                    pid = os.getpid()
+                    x = NSRunningApplication.runningApplicationWithProcessIdentifier_(int(pid))
+                    x.activateWithOptions_(NSApplicationActivateIgnoringOtherApps)
+            except:
+                pass
+                # vedo.logger.debug("On Mac OSX try: pip install pyobjc")
+
+            if "Darwin" in vedo.sys_platform and not self.offscreen:
+                if self.interactor.GetInitialized() and self._osx_process_events:
+                    self.interactor.ProcessEvents()
+                    self._cocoa_process_events = False
 
             if interactive is not None:
                 self._interactive = interactive
