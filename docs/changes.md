@@ -19,7 +19,7 @@
 - remove `picture.Picture2D(...)` which becomes `Image(...).clone2d()`
 see `examples/pyplot/embed_matplotlib.py`.
 - improvements to method `mesh.clone2d()`
-- name change from `Picture` to `Image`
+- name change from `Picture` to `Image`, renamed `vedo.picture` to `vedo.image`
 
 
 

@@ -34,7 +34,7 @@ from vedo.ugrid import *
 from vedo.assembly import *
 from vedo.pointcloud import *
 from vedo.mesh import *
-from vedo.picture import *
+from vedo.image import *
 from vedo.volume import *
 from vedo.tetmesh import *
 from vedo.addons import *
