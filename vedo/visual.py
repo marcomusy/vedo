@@ -873,7 +873,7 @@ class PointsVisual(CommonVisual):
         assert n == value.shape[0]
 
         self.celldata["CellsRGBA"] = value.astype(np.uint8)
-        self.mapper.SetColorModeToDirectScalars()
+        # self.mapper.SetColorModeToDirectScalars() # done in select()
         self.celldata.select("CellsRGBA")
 
     @property
@@ -891,6 +891,7 @@ class PointsVisual(CommonVisual):
             lut = self.mapper.GetLookupTable()
             vscalars = self.dataset.GetPointData().GetScalars()
             if vscalars is None or lut is None:
+                # create a constant array
                 arr = np.zeros([self.npoints, 4], dtype=np.uint8)
                 col = np.array(self.properties.GetColor())
                 col = np.round(col * 255).astype(np.uint8)
@@ -925,7 +926,7 @@ class PointsVisual(CommonVisual):
         assert n == value.shape[0]
 
         self.pointdata["PointsRGBA"] = value.astype(np.uint8)
-        self.mapper.SetColorModeToDirectScalars()
+        # self.mapper.SetColorModeToDirectScalars() # done in select()
         self.pointdata.select("PointsRGBA")
 
     #####################################################################################
@@ -981,10 +982,10 @@ class PointsVisual(CommonVisual):
                 if not self.dataset.GetCellData().GetScalars():
                     input_array = 0  # pick the first at hand
 
-        if on.startswith("point"):
+        if "point" in on.lower():
             data = self.dataset.GetPointData()
             n = self.dataset.GetNumberOfPoints()
-        elif on.startswith("cell"):
+        elif "cell" in on.lower():
             data = self.dataset.GetCellData()
             n = self.dataset.GetNumberOfCells()
         else:
@@ -1072,7 +1073,8 @@ class PointsVisual(CommonVisual):
                 lut.SetTableValue(i, r, g, b, alpha[i])
             lut.Build()
 
-        else:  # assume string cmap name OR matplotlib.colors.LinearSegmentedColormap
+        else:  
+            # assume string cmap name OR matplotlib.colors.LinearSegmentedColormap
             lut = vtk.vtkLookupTable()
             if logscale:
                 lut.SetScaleToLog10()
@@ -1085,28 +1087,40 @@ class PointsVisual(CommonVisual):
                 lut.SetTableValue(i, r, g, b, alpha[i])
             lut.Build()
 
-        # arr.SetLookupTable(lut) # wrong! causes weird instabilities with LUT
-        # if data.GetScalars():
-        #     data.GetScalars().SetLookupTable(lut)
-        #     data.GetScalars().Modified()
-
-        data.SetActiveScalars(array_name)
-        # data.SetScalars(arr)  # wrong! it deletes array in position 0, never use SetScalars
-        # data.SetActiveAttribute(array_name, 0) # boh!
-
+        # TEST NEW WAY
         self.mapper.SetLookupTable(lut)
-        self.mapper.SetColorModeToMapScalars()  # so we dont need to convert uint8 scalars
-
         self.mapper.ScalarVisibilityOn()
+        self.mapper.SetColorModeToMapScalars()
         self.mapper.SetScalarRange(lut.GetRange())
-
-        if on.startswith("point"):
-            self.mapper.SetScalarModeToUsePointData()
+        if "point" in on.lower():
+            self.pointdata.select(array_name)
         else:
-            self.mapper.SetScalarModeToUseCellData()
-        if hasattr(self.mapper, "SetArrayName"):
-            self.mapper.SetArrayName(array_name)
+            self.celldata.select(array_name)
         return self
+
+        # # TEST this is the old way:
+        # # arr.SetLookupTable(lut) # wrong! causes weird instabilities with LUT
+        # # if data.GetScalars():
+        # #     data.GetScalars().SetLookupTable(lut)
+        # #     data.GetScalars().Modified()
+
+        # data.SetActiveScalars(array_name)
+        # # data.SetScalars(arr)  # wrong! it deletes array in position 0, never use SetScalars
+        # # data.SetActiveAttribute(array_name, 0) # boh!
+
+        # self.mapper.SetLookupTable(lut)
+        # self.mapper.SetColorModeToMapScalars()  # so we dont need to convert uint8 scalars
+
+        # self.mapper.ScalarVisibilityOn()
+        # self.mapper.SetScalarRange(lut.GetRange())
+
+        # if on.startswith("point"):
+        #     self.mapper.SetScalarModeToUsePointData()
+        # else:
+        #     self.mapper.SetScalarModeToUseCellData()
+        # if hasattr(self.mapper, "SetArrayName"):
+        #     self.mapper.SetArrayName(array_name)
+        # return self
 
     def add_trail(self, offset=(0, 0, 0), n=50, c=None, alpha=1.0, lw=2):
         """

@@ -63,6 +63,7 @@ tests/issues/discussion_800.py
 tests/issues/issue_905.py
 
 slice_plane1.py
+examples/basic/cells_within_bounds.py because of clone()
 ```
 
 ### TODO

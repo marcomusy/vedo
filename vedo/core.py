@@ -153,6 +153,21 @@ class DataArrayHelper:
                 arrnames.append(name)
         return arrnames
 
+    def rename(self, oldname, newname):
+        """Rename an array"""
+        if self.association == 0:
+            varr = self.obj.dataset.GetPointData().GetArray(oldname)
+        elif self.association == 1:
+            varr = self.obj.dataset.GetCellData().GetArray(oldname)
+        elif self.association == 2:
+            varr = self.obj.dataset.GetFieldData().GetArray(oldname)
+        if varr:
+            varr.SetName(newname)
+        else:
+            vedo.logger.warning(
+                f"Cannot rename non existing array {oldname} to {newname}"
+            )
+
     def remove(self, key):
         """Remove a data array by name or number"""
         if self.association == 0:
@@ -174,23 +189,17 @@ class DataArrayHelper:
             name = data.GetArray(i).GetName()
             data.RemoveArray(name)
 
-    def rename(self, oldname, newname):
-        """Rename an array"""
-        if self.association == 0:
-            varr = self.obj.dataset.GetPointData().GetArray(oldname)
-        elif self.association == 1:
-            varr = self.obj.dataset.GetCellData().GetArray(oldname)
-        elif self.association == 2:
-            varr = self.obj.dataset.GetFieldData().GetArray(oldname)
-        if varr:
-            varr.SetName(newname)
-        else:
-            vedo.logger.warning(
-                f"Cannot rename non existing array {oldname} to {newname}"
-            )
-
     def select(self, key):
         """Select one specific array by its name to make it the `active` one."""
+        # Default (ColorModeToDefault): unsigned char scalars are treated as colors,
+        # and NOT mapped through the lookup table, while everything else is.
+        # ColorModeToDirectScalar extends ColorModeToDefault such that all integer
+        # types are treated as colors with values in the range 0-255
+        # and floating types are treated as colors with values in the range 0.0-1.0.
+        # Setting ColorModeToMapScalars means that all scalar data will be mapped
+        # through the lookup table.
+        # (Note that for multi-component scalars, the particular component 
+        # to use for mapping can be specified using the SelectColorArray() method.)
         if self.association == 0:
             data = self.obj.dataset.GetPointData()
             self.obj.mapper.SetScalarModeToUsePointData()
@@ -205,27 +214,52 @@ class DataArrayHelper:
         if not arr:
             return
 
+        # NEW
         nc = arr.GetNumberOfComponents()
         if nc == 1:
             data.SetActiveScalars(key)
         elif nc >= 2:
-            if "rgb" in key.lower():
+            if "rgb" in key.lower() and nc != 2:
                 data.SetActiveScalars(key)
-                # try:
-                #     self.mapper.SetColorModeToDirectScalars()
-                # except AttributeError:
-                #     pass
+                try:
+                    # could be a volume mapper
+                    self.obj.mapper.SetColorModeToDirectScalars()
+                except AttributeError:
+                    pass
             else:
                 data.SetActiveVectors(key)
         elif nc >= 4:
             data.SetActiveTensors(key)
 
         try:
+            # could be a volume mapper
             self.obj.mapper.SetArrayName(key)
             self.obj.mapper.ScalarVisibilityOn()
-            # .. could be a volume mapper
         except AttributeError:
             pass
+
+        # # OLD
+        # nc = arr.GetNumberOfComponents()
+        # if nc == 1:
+        #     data.SetActiveScalars(key)
+        # elif nc >= 2:
+        #     if "rgb" in key.lower():
+        #         data.SetActiveScalars(key)
+        #         # try:
+        #         #     self.mapper.SetColorModeToDirectScalars()
+        #         # except AttributeError:
+        #         #     pass
+        #     else:
+        #         data.SetActiveVectors(key)
+        # elif nc >= 4:
+        #     data.SetActiveTensors(key)
+
+        # try:
+        #     # could be a volume mapper
+        #     self.obj.mapper.SetArrayName(key)
+        #     self.obj.mapper.ScalarVisibilityOn()
+        # except AttributeError:
+        #     pass
 
     def select_scalars(self, key):
         """Select one specific scalar array by its name to make it the `active` one."""
