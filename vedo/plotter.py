@@ -992,6 +992,10 @@ class Plotter:
             self.qt_widget.Render()
             return self
 
+        if self._cocoa_process_events and self.interactor.GetInitialized():
+            if "Darwin" in vedo.sys_platform and not self.offscreen:
+                self.interactor.ProcessEvents()
+                self._cocoa_process_events = False
 
         if resetcam:
             self.renderer.ResetCamera()
@@ -3186,11 +3190,6 @@ class Plotter:
             except:
                 pass
                 # vedo.logger.debug("On Mac OSX try: pip install pyobjc")
-
-            if "Darwin" in vedo.sys_platform and not self.offscreen:
-                if self.interactor.GetInitialized() and self._osx_process_events:
-                    self.interactor.ProcessEvents()
-                    self._cocoa_process_events = False
 
             if interactive is not None:
                 self._interactive = interactive
