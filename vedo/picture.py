@@ -19,7 +19,7 @@ Submodule to work with common format images.
 ![](https://vedo.embl.es/images/basic/rotateImage.png)
 """
 
-__all__ = ["Picture", "Picture2D"]
+__all__ = ["Picture"]
 
 
 #################################################
@@ -140,106 +140,6 @@ def _set_justification(img, pos):
 
 
 #################################################
-class Picture2D(vedo.visual.Actor2D):
-    """
-    Embed an image as a static 2D image in the canvas.
-    """
-
-    def __init__(self, fig, pos=(0, 0), scale=1, ontop=False, padding=1, justify=""):
-        """
-        Embed an image as a static 2D image in the canvas.
-
-        Arguments:
-            fig : Picture, matplotlib.Figure, matplotlib.pyplot, vtkImageData
-                the input image
-            pos : (list)
-                2D (x,y) position in range [0,1],
-                [0,0] being the bottom-left corner
-            scale : (float)
-                apply a scaling factor to the image
-            ontop : (bool)
-                keep image on top or not
-            padding : (int)
-                an internal padding space as a fraction of size
-                (matplotlib only)
-            justify : (str)
-                define the anchor point ("top-left", "top-center", ...)
-        """
-        super().__init__()
-        # print("input type:", fig.__class__)
-
-        self.array = None
-
-        if utils.is_sequence(fig):
-            self.array = fig
-            self.dataset = _get_img(self.array)
-
-        elif isinstance(fig, Picture):
-            self.dataset = fig.dataset
-
-        elif isinstance(fig, vtk.vtkImageData):
-            assert fig.GetDimensions()[2] == 1, "Cannot create an Picture2D from Volume"
-            self.dataset = fig
-
-        elif isinstance(fig, str):
-            self.dataset = _get_img(fig)
-            self.filename = fig
-
-        elif "matplotlib" in str(fig.__class__):
-            if hasattr(fig, "gcf"):
-                fig = fig.gcf()
-            fig.tight_layout(pad=padding)
-            fig.canvas.draw()
-
-            # self.array = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
-            # self.array = self.array.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-            width, height = fig.get_size_inches() * fig.get_dpi()
-            self.array = np.frombuffer(
-                fig.canvas.buffer_rgba(), dtype=np.uint8
-            ).reshape((int(height), int(width), 4))
-            self.array = self.array[:, :, :3]
-
-            self.dataset = _get_img(self.array)
-
-        #############
-        if scale != 1:
-            newsize = np.array(self.dataset.GetDimensions()[:2]) * scale
-            newsize = newsize.astype(int)
-            rsz = vtk.vtkImageResize()
-            rsz.SetInputData(self.dataset)
-            rsz.SetResizeMethodToOutputDimensions()
-            rsz.SetOutputDimensions(newsize[0], newsize[1], 1)
-            rsz.Update()
-            self.dataset = rsz.GetOutput()
-
-        if padding:
-            pass  # TODO
-
-        if justify:
-            self.dataset, pos = _set_justification(self.dataset, justify)
-        else:
-            self.dataset, pos = _set_justification(self.dataset, pos)
-
-        self.mapper = vtk.vtkImageMapper()
-        self.mapper.SetInputData(self.dataset)
-        self.mapper.SetColorWindow(255)
-        self.mapper.SetColorLevel(127.5)
-        self.SetMapper(self.mapper)
-
-        self.GetPositionCoordinate().SetCoordinateSystem(3)
-        self.SetPosition(pos)
-
-        if ontop:
-            self.GetProperty().SetDisplayLocationToForeground()
-        else:
-            self.GetProperty().SetDisplayLocationToBackground()
-
-    @property
-    def shape(self):
-        return np.array(self.dataset.GetDimensions()[:2]).astype(int)
-
-
-#################################################
 class Picture(vedo.visual.PictureVisual):
     """
     Class used to represent 2D pictures in a 3D world.
@@ -248,6 +148,7 @@ class Picture(vedo.visual.PictureVisual):
     def __init__(self, obj=None, channels=3):
         """
         Can be instantiated with a path file name or with a numpy array.
+        Can also be instantiated with a matplotlib figure.
 
         By default the transparency channel is disabled.
         To enable it set channels=4.
@@ -276,6 +177,23 @@ class Picture(vedo.visual.PictureVisual):
         elif isinstance(obj, str):
             img = _get_img(obj)
             self.filename = obj
+
+        elif "matplotlib" in str(obj.__class__):
+            fig = obj
+            if hasattr(fig, "gcf"):
+                fig = fig.gcf()
+            fig.tight_layout(pad=1)
+            fig.canvas.draw()
+
+            # self.array = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
+            # self.array = self.array.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+            width, height = fig.get_size_inches() * fig.get_dpi()
+            self.array = np.frombuffer(
+                fig.canvas.buffer_rgba(), dtype=np.uint8
+            ).reshape((int(height), int(width), 4))
+            self.array = self.array[:, :, :3]
+
+            img = _get_img(self.array)
 
         else:
             img = vtk.vtkImageData()
@@ -419,6 +337,62 @@ class Picture(vedo.visual.PictureVisual):
 
         pic.pipeline = utils.OperationNode("clone", parents=[self], c="#f7dada", shape="diamond")
         return pic
+    
+    def clone2d(self, pos=(0, 0), scale=1, justify=""):
+        """
+        Embed an image as a static 2D image in the canvas.
+        
+        Return a 2D (an `Actor2D`) copy of the input Picture.
+        
+        Arguments:
+            pos : (list, str)
+                2D (x,y) position in range [0,1],
+                [0,0] being the bottom-left corner  
+            scale : (float)
+                apply a scaling factor to the image
+            justify : (str)
+                define the anchor point ("top-left", "top-center", ...)
+        """
+        pic = vedo.visual.Actor2D()
+
+        pic.name = self.name
+        pic.filename = self.filename
+        pic.file_size = self.file_size
+        
+        pic.dataset = self.dataset
+
+        pic.properties = pic.GetProperty()
+        pic.properties.SetDisplayLocationToBackground()
+
+        if scale != 1:
+            newsize = np.array(self.dataset.GetDimensions()[:2]) * scale
+            newsize = newsize.astype(int)
+            rsz = vtk.vtkImageResize()
+            rsz.SetInputData(self.dataset)
+            rsz.SetResizeMethodToOutputDimensions()
+            rsz.SetOutputDimensions(newsize[0], newsize[1], 1)
+            rsz.Update()
+            pic.dataset = rsz.GetOutput()
+
+        if justify:
+            pic.dataset, pos = _set_justification(pic.dataset, justify)
+        else:
+            pic.dataset, pos = _set_justification(pic.dataset, pos)
+
+        pic.mapper = vtk.vtkImageMapper()
+        pic.SetMapper(pic.mapper)
+        pic.mapper.SetInputData(pic.dataset)
+        pic.mapper.SetColorWindow(255)
+        pic.mapper.SetColorLevel(127.5)
+
+        pic.GetPositionCoordinate().SetCoordinateSystem(3)
+        pic.SetPosition(pos)
+
+        pic.shape = tuple(self.dataset.GetDimensions()[:2])
+
+        pic.pipeline = utils.OperationNode("clone2d", parents=[self], c="#f7dada", shape="diamond")
+        return pic
+
 
     def extent(self, ext=None):
         """

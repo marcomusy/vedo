@@ -16,6 +16,9 @@
 - add `plotter.initialize_interactor()`
 - add object hinting (flag_labels1.py) by hovering mouse
 - add `colors.lut_color_at(value)` the color of the lookup table at value.
+- remove `picture.Picture2D(...)` which becomes `Picture(...).clone2d()`
+see `examples/pyplot/embed_matplotlib.py`.
+
 
 
 
@@ -52,7 +55,7 @@ examples/advanced/warp4b.py
 examples/simulations/lorenz.py
 examples/volumetric/slicer1.py
 examples/other/flag_labels1.py
-
+examples/pyplot/embed_matplotlib.py
 ```
 
 

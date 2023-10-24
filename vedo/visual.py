@@ -2467,6 +2467,7 @@ class Actor2D(vtk.vtkActor2D):
         self.mapper = self.GetMapper()
         self.properties = self.GetProperty()
         self.filename = ""
+        self.shape = []
 
     def layer(self, value=None):
         """Set/Get the layer number in the overlay planes into which to render."""
