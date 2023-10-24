@@ -1,9 +1,9 @@
 """Probe image intensities along a set of radii"""
-from vedo import Picture, dataurl, Circle, Lines, show
+from vedo import Image, dataurl, Circle, Lines, show
 from vedo.pyplot import plot
 import numpy as np
 
-pic = Picture(dataurl+'images/spheroid.jpg')
+pic = Image(dataurl+'images/spheroid.jpg')
 cpt = [580,600,0]
 circle = Circle(cpt, r=500, res=36).wireframe()
 

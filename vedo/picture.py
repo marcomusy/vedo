@@ -19,7 +19,7 @@ Submodule to work with common format images.
 ![](https://vedo.embl.es/images/basic/rotateImage.png)
 """
 
-__all__ = ["Picture"]
+__all__ = ["Image", "Picture"]
 
 
 #################################################
@@ -139,8 +139,7 @@ def _set_justification(img, pos):
     return img, pos
 
 
-#################################################
-class Picture(vedo.visual.PictureVisual):
+class Image(vedo.visual.ImageVisual):
     """
     Class used to represent 2D pictures in a 3D world.
     """
@@ -153,13 +152,13 @@ class Picture(vedo.visual.PictureVisual):
         By default the transparency channel is disabled.
         To enable it set channels=4.
 
-        Use `Picture.dimensions()` to access the number of pixels in x and y.
+        Use `Image.dimensions()` to access the number of pixels in x and y.
 
         Arguments:
             channels :  (int, list)
                 only select these specific rgba channels (useful to remove alpha)
         """
-        self.name = "Picture"
+        self.name = "Image"
         self.filename = ""
         self.file_size = 0
         self.pipeline = None
@@ -224,12 +223,12 @@ class Picture(vedo.visual.PictureVisual):
 
         sx, sy, _ = self.dataset.GetDimensions()
         shape = np.array([sx, sy])
-        self.pipeline = utils.OperationNode("Picture", comment=f"#shape {shape}", c="#f28482")
+        self.pipeline = utils.OperationNode("Image", comment=f"#shape {shape}", c="#f28482")
         ######################################################################
 
     def _repr_html_(self):
         """
-        HTML representation of the Picture object for Jupyter Notebooks.
+        HTML representation of the Image object for Jupyter Notebooks.
 
         Returns:
             HTML text with the image and some properties.
@@ -238,7 +237,7 @@ class Picture(vedo.visual.PictureVisual):
         import base64
         from PIL import Image
 
-        library_name = "vedo.picture.Picture"
+        library_name = "vedo.picture.Image"
         help_url = "https://vedo.embl.es/docs/vedo/picture.html"
 
         arr = self.thumbnail(zoom=1.1)
@@ -302,7 +301,6 @@ class Picture(vedo.visual.PictureVisual):
 
     ######################################################################
     def _update(self, data):
-        """Overwrite the Picture data mesh with a new data."""
         self.dataset = data
         self.mapper.SetInputData(data)
         self.mapper.Modified()
@@ -323,12 +321,12 @@ class Picture(vedo.visual.PictureVisual):
         return self.dataset.GetPointData().GetScalars().GetNumberOfComponents()
 
     def clone(self):
-        """Return an exact copy of the input Picture.
+        """Return an exact copy of the input Image.
         If transform is True, it is given the same scaling and position."""
         img = vtk.vtkImageData()
         img.DeepCopy(self.dataset)
 
-        pic = Picture(img)
+        pic = Image(img)
         # assign the same transformation to the copy
         pic.actor.SetOrigin(self.actor.GetOrigin())
         pic.actor.SetScale(self.actor.GetScale())
@@ -342,7 +340,7 @@ class Picture(vedo.visual.PictureVisual):
         """
         Embed an image as a static 2D image in the canvas.
         
-        Return a 2D (an `Actor2D`) copy of the input Picture.
+        Return a 2D (an `Actor2D`) copy of the input Image.
         
         Arguments:
             pos : (list, str)
@@ -501,7 +499,7 @@ class Picture(vedo.visual.PictureVisual):
             z1,
         )
         constant_pad.Update()
-        pic = Picture(constant_pad.GetOutput())
+        pic = Image(constant_pad.GetOutput())
 
         pic.pipeline = utils.OperationNode(
             "tile", comment=f"by {nx}x{ny}", parents=[self], c="#f28482"
@@ -528,8 +526,8 @@ class Picture(vedo.visual.PictureVisual):
 
         Example:
             ```python
-            from vedo import Picture, dataurl
-            pic = Picture(dataurl+'dog.jpg').pad()
+            from vedo import Image, dataurl
+            pic = Image(dataurl+'dog.jpg').pad()
             pic.append([pic,pic], axis='y')
             pic.append([pic,pic,pic], axis='x')
             pic.show(axes=1).close()
@@ -616,7 +614,7 @@ class Picture(vedo.visual.PictureVisual):
         ec.SetInputData(self.dataset)
         ec.SetComponents(component)
         ec.Update()
-        pic = Picture(ec.GetOutput())
+        pic = Image(ec.GetOutput())
         pic.pipeline = utils.OperationNode(
             "select", comment=f"component {component}", parents=[self], c="#f28482"
         )
@@ -643,7 +641,7 @@ class Picture(vedo.visual.PictureVisual):
 
     def smooth(self, sigma=3, radius=None):
         """
-        Smooth a Picture with Gaussian kernel.
+        Smooth a `Image` with Gaussian kernel.
 
         Arguments:
             sigma : (int)
@@ -694,7 +692,7 @@ class Picture(vedo.visual.PictureVisual):
         Example:
             ```python
             from vedo import *
-            pic = Picture(vedo.dataurl+'images/dog.jpg').bw()
+            pic = Image(vedo.dataurl+'images/dog.jpg').bw()
             show(pic, pic.clone().enhance(), N=2, mode='image', zoom='tight')
             ```
             ![](https://vedo.embl.es/images/feats/pict_enhance.png)
@@ -784,7 +782,7 @@ class Picture(vedo.visual.PictureVisual):
                 ils.Update()
                 out = ils.GetOutput()
 
-        pic = Picture(out)
+        pic = Image(out)
         pic.pipeline = utils.OperationNode("FFT", parents=[self], c="#f28482")
         return pic
 
@@ -818,7 +816,7 @@ class Picture(vedo.visual.PictureVisual):
             colors.printc("Error in rfft(): unknown mode", mode)
             raise RuntimeError()
 
-        pic = Picture(out)
+        pic = Image(out)
         pic.pipeline = utils.OperationNode("rFFT", parents=[self], c="#f28482")
         return pic
 
@@ -988,7 +986,7 @@ class Picture(vedo.visual.PictureVisual):
 
     def binarize(self, threshold=None, invert=False):
         """
-        Return a new Picture where pixel above threshold are set to 255
+        Return a new Image where pixel above threshold are set to 255
         and pixels below are set to 0.
 
         Arguments:
@@ -999,8 +997,8 @@ class Picture(vedo.visual.PictureVisual):
 
         Example:
             ```python
-            from vedo import Picture, show
-            pic1 = Picture("https://aws.glamour.es/prod/designs/v1/assets/620x459/547577.jpg")
+            from vedo import Image, show
+            pic1 = Image("https://aws.glamour.es/prod/designs/v1/assets/620x459/547577.jpg")
             pic2 = pic1.clone().invert()
             pic3 = pic1.clone().binarize()
             show(pic1, pic2, pic3, N=3, bg="blue9").close()
@@ -1034,7 +1032,7 @@ class Picture(vedo.visual.PictureVisual):
 
     def threshold(self, value=None, flip=False):
         """
-        Create a polygonal Mesh from a Picture by filling regions with pixels
+        Create a polygonal Mesh from a Image by filling regions with pixels
         luminosity above a specified value.
 
         Arguments:
@@ -1181,7 +1179,7 @@ class Picture(vedo.visual.PictureVisual):
 
     def tonumpy(self):
         """
-        Get read-write access to pixels of a Picture object as a numpy array.
+        Get read-write access to pixels of a Image object as a numpy array.
         Note that the shape is (nrofchannels, nx, ny).
 
         When you set values in the output image, you don't want numpy to reallocate the array
@@ -1204,7 +1202,7 @@ class Picture(vedo.visual.PictureVisual):
         Example:
             ```python
             import vedo
-            pic = vedo.Picture(vedo.dataurl+"images/dog.jpg")
+            pic = vedo.Image(vedo.dataurl+"images/dog.jpg")
             pic.rectangle([100,300], [100,200], c='green4', alpha=0.7)
             pic.line([100,100],[400,500], lw=2, alpha=1)
             pic.triangle([250,300], [100,300], [200,400], c='blue5')
@@ -1425,3 +1423,11 @@ class Picture(vedo.visual.PictureVisual):
             shape="cylinder",
         )
         return self
+
+#################################################
+class Picture(Image):
+    def __init__(self, obj=None, channels=3):
+        """Deprecated. Use `Image` instead."""
+        colors.printc("Picture() is deprecated, use Image() instead.", c='y')
+        super().__init__(obj=obj, channels=channels)
+

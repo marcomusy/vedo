@@ -39,7 +39,7 @@ def d_dt(psi):  # find Psi(t+dt)-Psi(t) /dt with 4th order Runge-Kutta method
 
 
 plt = Plotter(interactive=False)
-pic = Picture(dataurl+"images/schrod.png").pos(0, -5, -0.1).scale(0.0255)
+pic = Image(dataurl+"images/schrod.png").pos(0, -5, -0.1).scale(0.0255)
 barrier = Line(np.stack((x, V*15, np.zeros_like(x)), axis=1), c="black", lw=2)
 barrier.name = "barrier"
 plt.show(pic, barrier, __doc__)

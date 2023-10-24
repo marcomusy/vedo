@@ -458,7 +458,7 @@ class LinearTransform:
             objs = []
             for a in np.linspace(0, 6.28, 7):
                 v = vector(cos(a), sin(a), 0)*1000
-                pic = Picture(dataurl+"images/dog.jpg").rotate_z(10)
+                pic = Image(dataurl+"images/dog.jpg").rotate_z(10)
                 pic.reorient([0,0,1], v)
                 pic.pos(v - center)
                 objs += [pic, Arrow(v, v+v)]

@@ -1,7 +1,7 @@
-from vedo import dataurl, Picture 
+from vedo import dataurl, Image 
 from vedo.applications import SplinePlotter  # ready to use class!
 
-pic = Picture(dataurl + "images/embryo.jpg")
+pic = Image(dataurl + "images/embryo.jpg")
 
 plt = SplinePlotter(pic)
 plt.show(mode="image", zoom='tightest')

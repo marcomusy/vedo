@@ -86,7 +86,7 @@ class OperationNode:
     # Volume, UGrid #4cc9f0
     # TetMesh  #9e2a2b
     # File     #8a817c
-    # Picture  #f28482
+    # Image  #f28482
     # Assembly #f08080
 
     def __init__(
@@ -1115,7 +1115,7 @@ def get_uv(p, x, v):
         ```python
         from vedo import *
 
-        pic = Picture(dataurl+"coloured_cube_faces.jpg")
+        pic = Image(dataurl+"coloured_cube_faces.jpg")
         cb = Mesh(dataurl+"coloured_cube.obj").lighting("off").texture(pic)
 
         cbpts = cb.vertices
@@ -1748,8 +1748,8 @@ def print_info(obj):
         if obj.axes:
             vedo.printc("axes style".ljust(14) + ":", obj.axes, axtype[obj.axes], bold=False, c="c")
 
-    elif isinstance(obj, vedo.Picture):  # dumps Picture info
-        vedo.printc("Picture".ljust(70), c="y", bold=True, invert=True)
+    elif isinstance(obj, vedo.Image):  # dumps Image info
+        vedo.printc("Image".ljust(70), c="y", bold=True, invert=True)
         # try:
         #     # generate a print thumbnail
         #     width, height = obj.dimensions()

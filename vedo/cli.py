@@ -40,7 +40,7 @@ from vedo import load
 from vedo import settings
 from vedo.colors import get_color, printc
 from vedo.mesh import Mesh
-from vedo.picture import Picture
+from vedo.picture import Image
 from vedo.plotter import Plotter
 from vedo.tetmesh import TetMesh
 from vedo.ugrid import UGrid
@@ -577,7 +577,7 @@ def exe_eog(args):
                 ahl = plt.hover_legends[-1]
                 plt.remove(ahl)
                 plt.screenshot()  # writer
-                printc(":camera: Picture saved as screenshot.png")
+                printc(":camera: Image saved as screenshot.png")
                 plt.add(ahl)
                 return
             elif event.keypress == "h":
@@ -602,7 +602,7 @@ def exe_eog(args):
     for f in files:
         if os.path.isfile(f):
             try:
-                pic = Picture(f)
+                pic = Image(f)
                 if pic:
                     pics.append(pic)
             except:
@@ -940,7 +940,7 @@ def draw_scene(args):
         acts = load(args.files, force=args.reload)
         plt += acts
         for a in acts:
-            if hasattr(a, "c"):  # Picture doesnt have it
+            if hasattr(a, "c"):  # Image doesnt have it
                 a.c(args.color)
 
             if args.point_size > 0:

@@ -93,7 +93,7 @@ plt += line_rk
 
 # let's also add a fancy background image from wikipedia
 img = dataurl + "images/wave_wiki.png"
-plt += Picture(img).alpha(0.8).scale(0.4).pos(0,-100,-1)
+plt += Image(img).alpha(0.8).scale(0.4).pos(0,-100,-1)
 plt += __doc__
 plt.show(zoom=1.5)
 

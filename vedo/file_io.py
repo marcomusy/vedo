@@ -15,7 +15,7 @@ from vedo import settings
 from vedo import colors
 from vedo import utils
 from vedo.assembly import Assembly
-from vedo.picture import Picture
+from vedo.picture import Image
 from vedo.pointcloud import Points
 from vedo.mesh import Mesh
 from vedo.volume import Volume
@@ -342,12 +342,12 @@ def _load_file(filename, unpack):
             for frame in ImageSequence.Iterator(img):
                 a = np.array(frame.convert("RGB").getdata(), dtype=np.uint8)
                 a = a.reshape([frame.size[1], frame.size[0], 3])
-                frames.append(Picture(a))
+                frames.append(Image(a))
             return frames
 
         picr.SetFileName(filename)
         picr.Update()
-        actor = Picture(picr.GetOutput())  # object derived from vtk.vtkImageActor()
+        actor = Image(picr.GetOutput())  # object derived from vtk.vtkImageActor()
 
         ################################################################# multiblock:
     elif fl.endswith(".vtm") or fl.endswith(".vtmb"):
@@ -970,9 +970,9 @@ def tonumpy(obj):
         adict["alpha"] = als
         adict["alphagrad"] = algrs
 
-    ######################################################## Picture
-    elif isinstance(obj, Picture):
-        adict["type"] = "Picture"
+    ######################################################## Image
+    elif isinstance(obj, Image):
+        adict["type"] = "Image"
         _fillcommon(obj, adict)
         adict["array"] = obj.tonumpy()
 
@@ -1160,9 +1160,9 @@ def loadnumpy(inobj):
             vol.alpha_gradient(d["alphagrad"])
             objs.append(vol)
 
-        ### Picture
+        ### Image
         elif d['type'].lower() == 'picture':
-            vimg = Picture(d["array"])
+            vimg = Image(d["array"])
             _load_common(vimg, d)
             objs.append(vimg)
 

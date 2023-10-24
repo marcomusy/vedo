@@ -23,7 +23,7 @@ __all__ = [
     "PointsVisual",
     "VolumeVisual",
     "MeshVisual",
-    "PictureVisual",
+    "ImageVisual",
     "Actor2D",
 ]
 
@@ -2258,10 +2258,10 @@ class VolumeVisual(CommonVisual):
 
 
 ########################################################################################
-class PictureVisual(CommonVisual):
+class ImageVisual(CommonVisual):
 
     def __init__(self) -> None:
-        # print("init PictureVisual")
+        # print("init ImageVisual")
         super().__init__()
 
     def memory_size(self):

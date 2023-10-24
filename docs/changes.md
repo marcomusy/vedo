@@ -16,9 +16,10 @@
 - add `plotter.initialize_interactor()`
 - add object hinting (flag_labels1.py) by hovering mouse
 - add `colors.lut_color_at(value)` the color of the lookup table at value.
-- remove `picture.Picture2D(...)` which becomes `Picture(...).clone2d()`
+- remove `picture.Picture2D(...)` which becomes `Image(...).clone2d()`
 see `examples/pyplot/embed_matplotlib.py`.
 - improvements to method `mesh.clone2d()`
+- name change from `Picture` to `Image`
 
 
 

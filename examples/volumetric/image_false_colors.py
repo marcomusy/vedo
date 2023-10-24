@@ -1,6 +1,6 @@
-"""Generate the Mandelbrot set as a color-mapped Picture object"""
+"""Generate the Mandelbrot set as a color-mapped Image object"""
 import numpy as np
-from vedo import Picture, dataurl, show
+from vedo import Image, dataurl, show
 
 
 def mandelbrot(h=400, w=400, maxit=20, r=2):
@@ -19,8 +19,8 @@ def mandelbrot(h=400, w=400, maxit=20, r=2):
         z[diverge] = r                          # avoid diverging too much
     return divtime
 
-pic = Picture(mandelbrot()).cmap("RdGy")
+pic = Image(mandelbrot()).cmap("RdGy")
 show(pic, __doc__, axes=1, size=[800,600], zoom=1.4).close()
 
 # Also:
-# Picture(dataurl+"images/dog.jpg").cmap("RdGy").show().close()
+# Image(dataurl+"images/dog.jpg").cmap("RdGy").show().close()

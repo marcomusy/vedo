@@ -1,8 +1,8 @@
 # Transform a picture into a mesh
-from vedo import Picture, dataurl, show
+from vedo import Image, dataurl, show
 import numpy as np
 
-pic = Picture(dataurl+"images/dog.jpg").smooth(5)
+pic = Image(dataurl+"images/dog.jpg").smooth(5)
 msh = pic.tomesh()  # make a quad-mesh out of it
 
 # build a scalar array with intensities

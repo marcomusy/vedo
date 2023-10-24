@@ -57,7 +57,7 @@ class Event:
         "isMesh",
         "isAssembly",
         "isVolume",
-        "isPicture",
+        "isImage",
         "isActor2D",
     ]
 
@@ -119,7 +119,7 @@ def show(
     Create on the fly an instance of class Plotter and show the object(s) provided.
 
     Allowed input objects types are:
-        ``str, Mesh, Volume, Picture, Assembly
+        ``str, Mesh, Volume, Image, Assembly
         vtkPolyData, vtkActor, vtkActor2D, vtkImageActor,
         vtkAssembly or vtkVolume``
 
@@ -653,7 +653,7 @@ class Plotter:
                 self.background_renderer.SetLayer(0)
                 self.background_renderer.InteractiveOff()
                 self.background_renderer.SetBackground(vedo.get_color(bg2))
-                image_actor = vedo.Picture(self.backgrcol).actor
+                image_actor = vedo.Image(self.backgrcol).actor
                 self.window.AddRenderer(self.background_renderer)
                 self.background_renderer.AddActor(image_actor)
 
@@ -2167,7 +2167,7 @@ class Plotter:
                     tp = "Points "
                 elif evt.isVolume:
                     tp = "Volume "
-                elif evt.isPicture:
+                elif evt.isImage:
                     tp = "Pict "
                 elif evt.isAssembly:
                     tp = "Assembly "
@@ -2217,7 +2217,7 @@ class Plotter:
                         if cdata.GetScalars().GetName() == evt.object.mapper.GetArrayName():
                             t += " *"
 
-                if evt.isPicture:
+                if evt.isImage:
                     t = f"{os.path.basename(evt.object.filename[:maxlength+10])}".ljust(maxlength+10)
                     t += f"\nImage shape: {evt.object.shape}"
                     pcol = self.color_picker(evt.picked2d)
@@ -2452,7 +2452,7 @@ class Plotter:
             event.isMesh = isinstance(event.object, vedo.Mesh)
             event.isAssembly = isinstance(event.object, vedo.Assembly)
             event.isVolume = isinstance(event.object, vedo.Volume)
-            event.isPicture = isinstance(event.object, vedo.Picture)
+            event.isImage = isinstance(event.object, vedo.Image)
             event.isActor2D = isinstance(event.object, vtk.vtkActor2D)
         return event
 
@@ -2482,7 +2482,7 @@ class Plotter:
         - `isMesh`: True if of class
         - `isAssembly`: True if of class
         - `isVolume`: True if of class Volume
-        - `isPicture`: True if of class
+        - `isImage`: True if of class
 
         If `enable_picking` is False, no picking will be performed.
         This can be useful to avoid double picking when using buttons.
@@ -3445,9 +3445,9 @@ class Plotter:
         """
         return vedo.file_io.screenshot(filename, scale, asarray)
 
-    def topicture(self, scale=1):
+    def toimage(self, scale=1):
         """
-        Generate a Picture object from the current rendering window.
+        Generate a `Image` object from the current rendering window.
 
         Arguments:
             scale : (int)
@@ -3466,7 +3466,7 @@ class Plotter:
                 w2if.SetInputBufferTypeToRGBA()
             w2if.ReadFrontBufferOff()  # read from the back buffer
         w2if.Update()
-        return vedo.picture.Picture(w2if.GetOutput())
+        return vedo.picture.Image(w2if.GetOutput())
 
     def export(self, filename="scene.npz", binary=False):
         """
