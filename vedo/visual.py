@@ -873,6 +873,7 @@ class PointsVisual(CommonVisual):
         assert n == value.shape[0]
 
         self.celldata["CellsRGBA"] = value.astype(np.uint8)
+        self.mapper.SetColorModeToDirectScalars()
         self.celldata.select("CellsRGBA")
 
     @property
@@ -924,6 +925,7 @@ class PointsVisual(CommonVisual):
         assert n == value.shape[0]
 
         self.pointdata["PointsRGBA"] = value.astype(np.uint8)
+        self.mapper.SetColorModeToDirectScalars()
         self.pointdata.select("PointsRGBA")
 
     #####################################################################################
