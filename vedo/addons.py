@@ -8,6 +8,7 @@ except ImportError:
     import vtkmodules.all as vtk
 
 import vedo
+from vedo.transformations import LinearTransform
 from vedo import settings
 from vedo import utils
 from vedo import shapes
@@ -1285,15 +1286,19 @@ def ScalarBar3D(
     if draw_box:
         tacts.append(scale.box().lw(1).c(c))
 
-    for m in tacts+scales:
+    for m in tacts + scales:
         m.shift(pos)
+        m.actor.PickableOff()
         m.properties.LightingOff()
 
     asse = Assembly(scales + tacts)
 
+    # asse.transform = LinearTransform().shift(pos)
+
     bb = asse.GetBounds()
     # print("ScalarBar3D pos",pos, bb)
     # asse.SetOrigin(pos)
+
     asse.SetOrigin(bb[0], bb[2], bb[4])
     # asse.SetOrigin(bb[0],0,0) #in pyplot line 1312
 
@@ -4041,10 +4046,10 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         c = get_color(c)  # for speed
 
     if not plt.renderer:
-        return None
+        return
 
     if plt.axes_instances[r]:
-        return None
+        return
 
     ############################################################
     # custom grid walls
@@ -4262,7 +4267,10 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         try:
             ocf.SetInputData(largestact)
         except TypeError:
-            ocf.SetInputData(largestact.dataset)
+            try:
+                ocf.SetInputData(largestact.dataset)
+            except TypeError:
+                return
         ocf.Update()
 
         oc_mapper = vtk.vtkHierarchicalPolyDataMapper()
@@ -4285,7 +4293,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         rulax = RulerAxes(vbb, c=c, xtitle="x - ", ytitle="y - ", ztitle="z - ")
         plt.axes_instances[r] = rulax
         if not rulax:
-            return None
+            return
         rulax.actor.UseBoundsOn()
         rulax.actor.PickableOff()
         plt.add(rulax)
@@ -4441,4 +4449,4 @@ def add_global_axes(axtype=None, c=None, bounds=()):
 
     if not plt.axes_instances[r]:
         plt.axes_instances[r] = True
-    return None
+    return

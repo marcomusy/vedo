@@ -2372,10 +2372,10 @@ class Polygon(Mesh):
         ![](https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestRegularPolygonSource.png)
         """
         t = np.linspace(np.pi / 2, 5 / 2 * np.pi, num=nsides, endpoint=False)
-        x, y = pol2cart(np.ones_like(t) * r, t)
+        pts = pol2cart(np.ones_like(t) * r, t).T
         faces = [list(range(nsides))]
         # do not use: vtkRegularPolygonSource
-        super().__init__([np.c_[x, y], faces], c, alpha)
+        super().__init__([pts, faces], c, alpha)
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
         self.pos(pos)
@@ -2562,7 +2562,7 @@ class Arc(Mesh):
             ar.UseNormalAndAngleOff()
             ar.SetPoint1([0, 0, 0])
             ar.SetPoint2(point2)
-            ar.SetCenter(center)
+            # ar.SetCenter(center)
         elif normal is not None and angle is not None:
             ar.UseNormalAndAngleOn()
             ar.SetAngle(angle)
@@ -2576,6 +2576,7 @@ class Arc(Mesh):
         ar.Update()
 
         super().__init__(ar.GetOutput(), c, alpha)
+        self.pos(center)
         self.lw(2).lighting("off")
         self.name = "Arc"
 

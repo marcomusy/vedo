@@ -62,7 +62,6 @@ scalarbar = ScalarBar3D(
     # c="white",
     title="E (:muV/m)",
     title_size=3,
-    title_xoffset=3,
     label_rotation=90,
     label_offset=.5,
     label_size=2,
