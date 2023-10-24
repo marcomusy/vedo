@@ -465,10 +465,10 @@ class PointsVisual(CommonVisual):
         # print("init PointsVisual")
         super().__init__()
 
-    def clone2d(self, scale=1):
+    def clone2d(self, scale=None):
         """
         Copy a 3D Mesh into a flat 2D image.
-        Returns a new `Actor2D`.
+        Returns a `Actor2D`.
 
         Examples:
             - [clone2d.py](https://github.com/marcomusy/vedo/tree/master/examples/other/clone2d.py)
@@ -476,6 +476,7 @@ class PointsVisual(CommonVisual):
                 ![](https://vedo.embl.es/images/other/clone2d.png)
         """
         if scale is None:
+            # work out a reasonable scale
             msiz = self.diagonal_size()
             if vedo.plotter_instance and vedo.plotter_instance.window:
                 sz = vedo.plotter_instance.window.GetSize()
@@ -484,8 +485,8 @@ class PointsVisual(CommonVisual):
             else:
                 scale = 350 / msiz
 
-        cmsh = self.clone().pos([0, 0, 0]).scale(scale)
-        poly = cmsh.dataset
+        cmsh = self.clone()
+        poly = cmsh.pos([0, 0, 0]).scale(scale).dataset
 
         cm = self.mapper.GetColorMode()
         lut = self.mapper.GetLookupTable()
