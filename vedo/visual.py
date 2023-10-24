@@ -16,8 +16,6 @@ __docformat__ = "google"
 
 __doc__ = """
 Base classes to manage visualization and apperance of objects and their properties"
-
-
 """
 
 __all__ = [
@@ -26,7 +24,7 @@ __all__ = [
     "VolumeVisual",
     "MeshVisual",
     "PictureVisual",
-    "BaseActor2D",
+    "Actor2D",
 ]
 
 
@@ -2459,12 +2457,8 @@ class PictureVisual(CommonVisual):
 
 
 ########################################################################################
-class BaseActor2D(vtk.vtkActor2D):
-    """
-    Base class.
-
-    .. warning:: Do not use this class to instantiate objects.
-    """
+class Actor2D(vtk.vtkActor2D):
+    """Wrapping of `vtkActor2D`."""
 
     def __init__(self):
         """Manage 2D objects."""
@@ -2492,7 +2486,7 @@ class BaseActor2D(vtk.vtkActor2D):
             p = [px, py]
         else:
             p = px
-        assert len(p) == 2, "Error: len(pos) must be 2 for BaseActor2D"
+        assert len(p) == 2, "Error: len(pos) must be 2 for Actor2D"
         self.SetPosition(p)
         return self
 

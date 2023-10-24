@@ -140,7 +140,7 @@ def _set_justification(img, pos):
 
 
 #################################################
-class Picture2D(vedo.visual.BaseActor2D):
+class Picture2D(vedo.visual.Actor2D):
     """
     Embed an image as a static 2D image in the canvas.
     """

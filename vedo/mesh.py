@@ -1478,7 +1478,7 @@ class Mesh(MeshVisual, Points):
     ):
         """
         Return the boundary lines of an input mesh.
-        Check also `vedo.base.BaseActor.mark_boundaries()` method.
+        Check also `vedo.core.CommonAlgorithms.mark_boundaries()` method.
 
         Arguments:
             boundary_edges : (bool)
