@@ -3125,13 +3125,14 @@ class Plane(Mesh):
         self.name = "Plane"
         self.variance = 0
 
-    def clone(self):
-        newplane = Plane()
-        newplane.dataset.DeepCopy(self.dataset)
-        newplane.copy_properties_from(self)
-        # newplane.transform = self.transform
-        newplane.variance = 0
-        return newplane
+    # breaks examples/basic/cells_within_bounds.py
+    # def clone(self):
+    #     newplane = Plane()
+    #     newplane.dataset.DeepCopy(self.dataset)
+    #     newplane.copy_properties_from(self)
+    #     # newplane.transform = self.transform
+    #     newplane.variance = 0
+    #     return newplane
     
     @property
     def normal(self):
