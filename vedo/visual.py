@@ -465,39 +465,10 @@ class PointsVisual(CommonVisual):
         # print("init PointsVisual")
         super().__init__()
 
-    def clone2d(
-        self,
-        pos=(0, 0),
-        coordsys=4,
-        scale=None,
-        c=None,
-        alpha=None,
-        ps=2,
-        lw=1,
-        sendback=False,
-        layer=0,
-    ):
+    def clone2d(self, scale=1):
         """
-        Copy a 3D Mesh into a static 2D image. Returns a `vtkActor2D`.
-
-        Arguments:
-            coordsys : (int)
-                the coordinate system, options are
-                - 0 = Displays
-                - 1 = Normalized Display
-                - 2 = Viewport (origin is the bottom-left corner of the window)
-                - 3 = Normalized Viewport
-                - 4 = View (origin is the center of the window)
-                - 5 = World (anchor the 2d image to mesh)
-
-            ps : (int)
-                point size in pixel units
-
-            lw : (int)
-                line width in pixel units
-
-            sendback : (bool)
-                put it behind any other 3D object
+        Copy a 3D Mesh into a flat 2D image.
+        Returns a new `Actor2D`.
 
         Examples:
             - [clone2d.py](https://github.com/marcomusy/vedo/tree/master/examples/other/clone2d.py)
@@ -513,19 +484,18 @@ class PointsVisual(CommonVisual):
             else:
                 scale = 350 / msiz
 
-        cmsh = self.clone()
-        poly = cmsh.pos(0, 0, 0).scale(scale).dataset
+        cmsh = self.clone().pos([0, 0, 0]).scale(scale)
+        poly = cmsh.dataset
 
-        mapper3d = self.mapper
-        cm = mapper3d.GetColorMode()
-        lut = mapper3d.GetLookupTable()
-        sv = mapper3d.GetScalarVisibility()
-        use_lut = mapper3d.GetUseLookupTableScalarRange()
-        vrange = mapper3d.GetScalarRange()
-        sm = mapper3d.GetScalarMode()
+        cm = self.mapper.GetColorMode()
+        lut = self.mapper.GetLookupTable()
+        sv = self.mapper.GetScalarVisibility()
+        use_lut = self.mapper.GetUseLookupTableScalarRange()
+        vrange = self.mapper.GetScalarRange()
+        sm = self.mapper.GetScalarMode()
 
         mapper2d = vtk.vtkPolyDataMapper2D()
-        mapper2d.ShallowCopy(mapper3d)
+        mapper2d.ShallowCopy(self.mapper)
         mapper2d.SetInputData(poly)
         mapper2d.SetColorMode(cm)
         mapper2d.SetLookupTable(lut)
@@ -534,30 +504,16 @@ class PointsVisual(CommonVisual):
         mapper2d.SetScalarRange(vrange)
         mapper2d.SetScalarMode(sm)
 
-        act2d = vtk.vtkActor2D()
-        act2d.SetMapper(mapper2d)
-        act2d.SetLayerNumber(layer)
-        csys = act2d.GetPositionCoordinate()
-        csys.SetCoordinateSystem(coordsys)
-        act2d.SetPosition(pos)
-        if c is not None:
-            c = colors.get_color(c)
-            act2d.GetProperty().SetColor(c)
-            mapper2d.SetScalarVisibility(False)
-        else:
-            act2d.GetProperty().SetColor(cmsh.color())
-        if alpha is not None:
-            act2d.GetProperty().SetOpacity(alpha)
-        else:
-            act2d.GetProperty().SetOpacity(cmsh.alpha())
-        act2d.GetProperty().SetPointSize(ps)
-        act2d.GetProperty().SetLineWidth(lw)
-        act2d.GetProperty().SetDisplayLocationToForeground()
-        if sendback:
-            act2d.GetProperty().SetDisplayLocationToBackground()
+        act2d = Actor2D()
+        act2d.properties = act2d.GetProperty()
+        act2d.mapper = mapper2d
+        act2d.dataset = poly
 
-        # print(csys.GetCoordinateSystemAsString())
-        # print(act2d.GetHeight(), act2d.GetWidth(), act2d.GetLayerNumber())
+        act2d.SetMapper(mapper2d)
+        csys = act2d.GetPositionCoordinate()
+        csys.SetCoordinateSystem(4)
+        act2d.properties.SetColor(cmsh.color())
+        act2d.properties.SetOpacity(cmsh.alpha())
         return act2d
 
     ##################################################
@@ -625,7 +581,7 @@ class PointsVisual(CommonVisual):
         cc = colors.get_color(c)
         self.properties.SetColor(cc)
         if self.trail:
-            self.trail.GetProperty().SetColor(cc)
+            self.trail.properties.SetColor(cc)
         if alpha is not None:
             self.alpha(alpha)
         return self
@@ -2529,6 +2485,17 @@ class Actor2D(vtk.vtkActor2D):
         """Set object pickability."""
         self.SetPickable(value)
         return self
+
+    def color(self, value=None):
+        """Set/Get the object color."""
+        if value is None:
+            return self.properties.GetColor()
+        self.properties.SetColor(colors.get_color(value))
+        return self
+
+    def c(self, value=None):
+        """Set/Get the object color."""
+        return self.color(value)
 
     def alpha(self, value=None):
         """Set/Get the object opacity."""

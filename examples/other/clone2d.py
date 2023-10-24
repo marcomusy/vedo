@@ -15,7 +15,7 @@ man3d.c('darkgreen').lighting('glossy')
 #     5. World (anchor the 2d image to mesh)
 # (returns a vtkActor2D)
 
-man2d = man3d.clone2d(pos=[0.4,0.4], coordsys=4, c='r', alpha=1)
+man2d = man3d.clone2d().pos([0.4,0.4]).c('red4')
 
 show(man3d, man2d, __doc__, axes=1).close()
 

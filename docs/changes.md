@@ -18,7 +18,7 @@
 - add `colors.lut_color_at(value)` the color of the lookup table at value.
 - remove `picture.Picture2D(...)` which becomes `Picture(...).clone2d()`
 see `examples/pyplot/embed_matplotlib.py`.
-
+- improvements to method `mesh.clone2d()`
 
 
 
