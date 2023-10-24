@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from vedo import shapes, show, dataurl, settings
-from vedo import Picture, Mesh, Points, Point
+from vedo import Image, Mesh, Points, Point
 from vedo.pyplot import Figure, donut
 
 
@@ -18,7 +18,7 @@ print(f"yscale = {fig.yscale}")
 man = Mesh(dataurl+'man.vtk').scale(1.4).pos(7,4).rotate_x(-90, around=[7,4,0])
 fig += man
 
-pic = Picture("https://vedo.embl.es/examples/data/textures/bricks.jpg")
+pic = Image("https://vedo.embl.es/examples/data/textures/bricks.jpg")
 fig += pic.scale(0.005).pos(2,10)
 
 fig += Points([[8,1],[10,3]], r=15)

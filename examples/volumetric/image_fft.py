@@ -1,4 +1,4 @@
-# 2D Fast Fourier Transform of a picture
+# 2D Fast Fourier Transform of a image
 from vedo import Image, show
 
 # url = 'https://comps.canstockphoto.com/a-capital-silhouette-stock-illustrations_csp31110154.jpg'

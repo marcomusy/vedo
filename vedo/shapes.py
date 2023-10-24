@@ -17,7 +17,7 @@ from vedo.colors import cmaps_names, get_color, printc
 from vedo import utils
 from vedo.pointcloud import Points, merge
 from vedo.mesh import Mesh
-from vedo.picture import Picture
+from vedo.image import Image
 
 __docformat__ = "google"
 
@@ -4815,7 +4815,7 @@ class CornerAnnotation(TextBase, vtk.vtkCornerAnnotation):
         return self
 
 
-class Latex(Picture):
+class Latex(Image):
     """
     Render Latex text and formulas.
     """

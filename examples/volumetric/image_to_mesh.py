@@ -1,4 +1,4 @@
-# Transform a picture into a mesh
+# Transform a image into a mesh
 from vedo import Image, dataurl, show
 import numpy as np
 

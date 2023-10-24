@@ -2277,7 +2277,7 @@ class ImageVisual(CommonVisual):
         return self.dataset.GetScalarRange()
 
     def alpha(self, a=None):
-        """Set/get picture's transparency in the rendering scene."""
+        """Set/get image's transparency in the rendering scene."""
         if a is not None:
             self.properties.SetOpacity(a)
             return self

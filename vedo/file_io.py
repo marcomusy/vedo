@@ -15,7 +15,7 @@ from vedo import settings
 from vedo import colors
 from vedo import utils
 from vedo.assembly import Assembly
-from vedo.picture import Image
+from vedo.image import Image
 from vedo.pointcloud import Points
 from vedo.mesh import Mesh
 from vedo.volume import Volume
@@ -1161,7 +1161,7 @@ def loadnumpy(inobj):
             objs.append(vol)
 
         ### Image
-        elif d['type'].lower() == 'picture':
+        elif d['type'].lower() == 'picture' or d['type'].lower() == 'image':
             vimg = Image(d["array"])
             _load_common(vimg, d)
             objs.append(vimg)

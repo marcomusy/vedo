@@ -1,4 +1,4 @@
-"""Normal jpg/png pictures can be loaded,
+"""Normal jpg/png image formats can be loaded,
 cropped, rotated and positioned in 3D."""
 from vedo import Plotter, Image, dataurl
 

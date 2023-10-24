@@ -41,7 +41,7 @@ def _get_img(obj, flip=False, translate=()):
             picr = vtk.vtkTIFFReader()
             picr.SetOrientationType(vedo.settings.tiff_orientation_type)
         else:
-            colors.printc("Cannot understand picture format", obj, c="r")
+            colors.printc("Cannot understand image format", obj, c="r")
             return vtk.vtkImageData()
         picr.SetFileName(obj)
         picr.Update()
@@ -141,7 +141,7 @@ def _set_justification(img, pos):
 
 class Image(vedo.visual.ImageVisual):
     """
-    Class used to represent 2D pictures in a 3D world.
+    Class used to represent 2D images in a 3D world.
     """
 
     def __init__(self, obj=None, channels=3):
@@ -237,8 +237,8 @@ class Image(vedo.visual.ImageVisual):
         import base64
         from PIL import Image
 
-        library_name = "vedo.picture.Image"
-        help_url = "https://vedo.embl.es/docs/vedo/picture.html"
+        library_name = "vedo.image.Image"
+        help_url = "https://vedo.embl.es/docs/vedo/image.html"
 
         arr = self.thumbnail(zoom=1.1)
 
@@ -307,17 +307,17 @@ class Image(vedo.visual.ImageVisual):
         return self
 
     def dimensions(self):
-        """Return the picture dimension as number of pixels in x and y"""
+        """Return the image dimension as number of pixels in x and y"""
         nx, ny, _ = self.dataset.GetDimensions()
         return np.array([nx, ny])
 
     @property
     def shape(self):
-        """Return the picture shape as number of pixels in x and y"""
+        """Return the image shape as number of pixels in x and y"""
         return self.dimensions()
 
     def channels(self):
-        """Return the number of channels in picture"""
+        """Return the number of channels in image"""
         return self.dataset.GetPointData().GetScalars().GetNumberOfComponents()
 
     def clone(self):
@@ -394,7 +394,7 @@ class Image(vedo.visual.ImageVisual):
 
     def extent(self, ext=None):
         """
-        Get or set the physical extent that the picture spans.
+        Get or set the physical extent that the image spans.
         Format is `ext=[minx, maxx, miny, maxy]`.
         """
         if ext is None:
@@ -405,7 +405,7 @@ class Image(vedo.visual.ImageVisual):
         return self
 
     def crop(self, top=None, bottom=None, right=None, left=None, pixels=False):
-        """Crop picture.
+        """Crop image.
 
         Arguments:
             top : (float)
@@ -443,7 +443,7 @@ class Image(vedo.visual.ImageVisual):
 
     def pad(self, pixels=10, value=255):
         """
-        Add the specified number of pixels at the picture borders.
+        Add the specified number of pixels at the image borders.
         Pixels can be a list formatted as [left,right,bottom,top].
 
         Arguments:
@@ -477,7 +477,7 @@ class Image(vedo.visual.ImageVisual):
 
     def tile(self, nx=4, ny=4, shift=(0, 0)):
         """
-        Generate a tiling from the current picture by mirroring and repeating it.
+        Generate a tiling from the current image by mirroring and repeating it.
 
         Arguments:
             nx : (float)
@@ -506,7 +506,7 @@ class Image(vedo.visual.ImageVisual):
         )
         return pic
 
-    def append(self, pictures, axis="z", preserve_extents=False):
+    def append(self, images, axis="z", preserve_extents=False):
         """
         Append the input images to the current one along the specified axis.
         Except for the append axis, all inputs must have the same extent.
@@ -536,9 +536,9 @@ class Image(vedo.visual.ImageVisual):
         """
         ima = vtk.vtkImageAppend()
         ima.SetInputData(self.dataset)
-        if not utils.is_sequence(pictures):
-            pictures = [pictures]
-        for p in pictures:
+        if not utils.is_sequence(images):
+            images = [images]
+        for p in images:
             if isinstance(p, vtk.vtkImageData):
                 ima.AddInputData(p)
             else:
@@ -552,7 +552,7 @@ class Image(vedo.visual.ImageVisual):
         ima.Update()
         self._update(ima.GetOutput())
         self.pipeline = utils.OperationNode(
-            "append", comment=f"axis={axis}", parents=[self, *pictures], c="#f28482"
+            "append", comment=f"axis={axis}", parents=[self, *images], c="#f28482"
         )
         return self
 
@@ -560,7 +560,7 @@ class Image(vedo.visual.ImageVisual):
         """Resize the image resolution by specifying the number of pixels in width and height.
         If left to zero, it will be automatically calculated to keep the original aspect ratio.
 
-        newsize is the shape of picture as [npx, npy], or it can be also expressed as a fraction.
+        newsize is the shape of image as [npx, npy], or it can be also expressed as a fraction.
         """
         old_dims = np.array(self.dataset.GetDimensions())
 
@@ -589,7 +589,7 @@ class Image(vedo.visual.ImageVisual):
         return self
 
     def mirror(self, axis="x"):
-        """Mirror picture along x or y axis. Same as `flip()`."""
+        """Mirror image along x or y axis. Same as `flip()`."""
         ff = vtk.vtkImageFlip()
         ff.SetInputData(self.dataset)
         if axis.lower() == "x":
@@ -605,7 +605,7 @@ class Image(vedo.visual.ImageVisual):
         return self
 
     def flip(self, axis="y"):
-        """Mirror picture along x or y axis. Same as `mirror()`."""
+        """Mirror image along x or y axis. Same as `mirror()`."""
         return self.mirror(axis=axis)
 
     def select(self, component):
@@ -687,7 +687,7 @@ class Image(vedo.visual.ImageVisual):
 
     def enhance(self):
         """
-        Enhance a b&w picture using the laplacian, enhancing high-freq edges.
+        Enhance a b&w image using the laplacian, enhancing high-freq edges.
 
         Example:
             ```python
@@ -730,7 +730,7 @@ class Image(vedo.visual.ImageVisual):
 
     def fft(self, mode="magnitude", logscale=12, center=True):
         """
-        Fast Fourier transform of a picture.
+        Fast Fourier transform of a image.
 
         Arguments:
             logscale : (float)
@@ -787,7 +787,7 @@ class Image(vedo.visual.ImageVisual):
         return pic
 
     def rfft(self, mode="magnitude"):
-        """Reverse Fast Fourier transform of a picture."""
+        """Reverse Fast Fourier transform of a image."""
 
         ffti = vtk.vtkImageRFFT()
         ffti.SetInputData(self.dataset)
@@ -939,7 +939,7 @@ class Image(vedo.visual.ImageVisual):
             ns = len(source_pts)
             nt = len(target_pts)
             if ns != nt:
-                colors.printc("Error in picture.warp(): #source != #target points", ns, nt, c="r")
+                colors.printc("Error in image.warp(): #source != #target points", ns, nt, c="r")
                 raise RuntimeError()
 
             ptsou = vtk.vtkPoints()
@@ -976,7 +976,7 @@ class Image(vedo.visual.ImageVisual):
 
     def invert(self):
         """
-        Return an inverted picture (inverted in each color channel).
+        Return an inverted image (inverted in each color channel).
         """
         rgb = self.tonumpy()
         data = 255 - np.array(rgb)
@@ -1074,7 +1074,7 @@ class Image(vedo.visual.ImageVisual):
         return out
 
     def cmap(self, name, vmin=None, vmax=None):
-        """Colorize a picture with a colormap representing pixel intensity"""
+        """Colorize a image with a colormap representing pixel intensity"""
         n = self.dataset.GetPointData().GetNumberOfComponents()
         if n > 1:
             ecr = vtk.vtkImageExtractComponents()
@@ -1187,7 +1187,7 @@ class Image(vedo.visual.ImageVisual):
         Example: arr[:] = arr - 15
 
         If the array is modified call:
-        ``picture.modified()``
+        ``image.modified()``
         when all your modifications are completed.
         """
         nx, ny, _ = self.dataset.GetDimensions()
@@ -1408,12 +1408,12 @@ class Image(vedo.visual.ImageVisual):
         return self
 
     def modified(self):
-        """Use in conjunction with ``tonumpy()`` to update any modifications to the picture array"""
+        """Use in conjunction with ``tonumpy()`` to update any modifications to the image array"""
         self.dataset.GetPointData().GetScalars().Modified()
         return self
 
     def write(self, filename):
-        """Write picture to file as png or jpg."""
+        """Write image to file as png or jpg."""
         vedo.file_io.write(self.dataset, filename)
         self.pipeline = utils.OperationNode(
             "write",

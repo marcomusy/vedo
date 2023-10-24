@@ -40,7 +40,7 @@ from vedo import load
 from vedo import settings
 from vedo.colors import get_color, printc
 from vedo.mesh import Mesh
-from vedo.picture import Image
+from vedo.image import Image
 from vedo.plotter import Plotter
 from vedo.tetmesh import TetMesh
 from vedo.ugrid import UGrid

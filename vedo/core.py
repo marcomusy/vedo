@@ -431,7 +431,7 @@ class CommonAlgorithms:
         return self.dataset.GetActualMemorySize()
 
     def modified(self):
-        """Use in conjunction with ``tonumpy()`` to update any modifications to the picture array"""
+        """Use in conjunction with ``tonumpy()`` to update any modifications to the image array"""
         self.dataset.GetPointData().Modified()
         self.dataset.GetPointData().GetScalars().Modified()
         return self

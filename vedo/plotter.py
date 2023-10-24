@@ -3466,7 +3466,7 @@ class Plotter:
                 w2if.SetInputBufferTypeToRGBA()
             w2if.ReadFrontBufferOff()  # read from the back buffer
         w2if.Update()
-        return vedo.picture.Image(w2if.GetOutput())
+        return vedo.image.Image(w2if.GetOutput())
 
     def export(self, filename="scene.npz", binary=False):
         """

@@ -1402,7 +1402,7 @@ class SplinePlotter(Plotter):
         else:
             self.object = obj
 
-        if isinstance(self.object, vedo.Picture):
+        if isinstance(self.object, vedo.Image):
             self.mode = "image"
             self.parallel_projection(True)
 

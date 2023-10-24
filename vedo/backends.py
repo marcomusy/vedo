@@ -332,8 +332,8 @@ def start_k3d(actors2show):
             vedo.notebook_plotter += kobj
 
         #####################################################################
-        elif isinstance(ia, vedo.Picture):
-            vedo.logger.error("Sorry Picture objects are not supported in k3d.")
+        elif isinstance(ia, vedo.Image):
+            vedo.logger.error("Sorry Image objects are not supported in k3d.")
 
     if plt and settings.backend_autoclose:
         plt.close()

@@ -291,9 +291,9 @@ class Mesh(MeshVisual, Points):
         Input tname can also be an array or a `vtkTexture`.
 
         Arguments:
-            tname : (numpy.array, str, Picture, vtkTexture, None)
+            tname : (numpy.array, str, Image, vtkTexture, None)
                 the input texture to be applied. Can be a numpy array, a path to an image file,
-                a vedo Picture. The None value disables texture.
+                a vedo Image. The None value disables texture.
             tcoords : (numpy.array, str)
                 this is the (u,v) texture coordinate array. Can also be a string of an existing array
                 in the mesh.
@@ -331,13 +331,13 @@ class Mesh(MeshVisual, Points):
         if isinstance(tname, vtk.vtkTexture):
             tu = tname
 
-        elif isinstance(tname, vedo.Picture):
+        elif isinstance(tname, vedo.Image):
             tu = vtk.vtkTexture()
             out_img = tname
 
         elif is_sequence(tname):
             tu = vtk.vtkTexture()
-            out_img = vedo.picture._get_img(tname)
+            out_img = vedo.image._get_img(tname)
 
         elif isinstance(tname, str):
             tu = vtk.vtkTexture()
