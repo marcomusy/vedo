@@ -240,7 +240,7 @@ class Picture2D(vedo.visual.BaseActor2D):
 
 
 #################################################
-class Picture(vedo.visual.PictureVisual, vedo.visual.ActorTransforms):
+class Picture(vedo.visual.PictureVisual):
     """
     Class used to represent 2D pictures in a 3D world.
     """

@@ -26,7 +26,6 @@ __all__ = [
     "VolumeVisual",
     "MeshVisual",
     "PictureVisual",
-    "ActorTransforms",
     "BaseActor2D",
 ]
 
@@ -2304,11 +2303,78 @@ class VolumeVisual(CommonVisual):
 
 
 ########################################################################################
-class ActorTransforms:
+class PictureVisual(CommonVisual):
 
     def __init__(self) -> None:
-        # print("init ActorTransforms")
-        pass
+        # print("init PictureVisual")
+        super().__init__()
+
+    def memory_size(self):
+        """
+        Return the size in bytes of the object in memory.
+        """
+        return self.dataset.GetActualMemorySize()
+
+    def scalar_range(self):
+        """
+        Return the scalar range of the image.
+        """
+        return self.dataset.GetScalarRange()
+
+    def alpha(self, a=None):
+        """Set/get picture's transparency in the rendering scene."""
+        if a is not None:
+            self.properties.SetOpacity(a)
+            return self
+        return self.properties.GetOpacity()
+
+    def level(self, value=None):
+        """Get/Set the image color level (brightness) in the rendering scene."""
+        if value is None:
+            return self.properties.GetColorLevel()
+        self.properties.SetColorLevel(value)
+        return self
+
+    def window(self, value=None):
+        """Get/Set the image color window (contrast) in the rendering scene."""
+        if value is None:
+            return self.properties.GetColorWindow()
+        self.properties.SetColorWindow(value)
+        return self
+
+    def bounds(self):
+        """Get the bounding box."""
+        return self.actor.GetBounds()
+
+    def xbounds(self, i=None):
+        """Get the bounds `[xmin,xmax]`. Can specify upper or lower with i (0,1)."""
+        b = self.bounds()
+        if i is not None:
+            return b[i]
+        return (b[0], b[1])
+
+    def ybounds(self, i=None):
+        """Get the bounds `[ymin,ymax]`. Can specify upper or lower with i (0,1)."""
+        b = self.bounds()
+        if i == 0:
+            return b[2]
+        if i == 1:
+            return b[3]
+        return (b[2], b[3])
+
+    def zbounds(self, i=None):
+        """Get the bounds `[zmin,zmax]`. Can specify upper or lower with i (0,1)."""
+        b = self.bounds()
+        if i == 0:
+            return b[4]
+        if i == 1:
+            return b[5]
+        return (b[4], b[5])
+
+    def diagonal_size(self):
+        """Get the length of the diagonal of mesh bounding box."""
+        b = self.bounds()
+        return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
 
     def pos(self, *p):
         """Set/get position of object."""
@@ -2390,81 +2456,6 @@ class ActorTransforms:
         else:
             self.actor.SetScale(np.array(self.actor.GetScale()) * s)
         return self
-
-
-########################################################################################
-class PictureVisual(ActorTransforms, CommonVisual):
-
-    def __init__(self) -> None:
-        # print("init PictureVisual")
-        super().__init__()
-
-    def memory_size(self):
-        """
-        Return the size in bytes of the object in memory.
-        """
-        return self.dataset.GetActualMemorySize()
-
-    def scalar_range(self):
-        """
-        Return the scalar range of the image.
-        """
-        return self.dataset.GetScalarRange()
-
-    def alpha(self, a=None):
-        """Set/get picture's transparency in the rendering scene."""
-        if a is not None:
-            self.properties.SetOpacity(a)
-            return self
-        return self.properties.GetOpacity()
-
-    def level(self, value=None):
-        """Get/Set the image color level (brightness) in the rendering scene."""
-        if value is None:
-            return self.properties.GetColorLevel()
-        self.properties.SetColorLevel(value)
-        return self
-
-    def window(self, value=None):
-        """Get/Set the image color window (contrast) in the rendering scene."""
-        if value is None:
-            return self.properties.GetColorWindow()
-        self.properties.SetColorWindow(value)
-        return self
-
-    def bounds(self):
-        """Get the bounding box."""
-        return self.actor.GetBounds()
-
-    def xbounds(self, i=None):
-        """Get the bounds `[xmin,xmax]`. Can specify upper or lower with i (0,1)."""
-        b = self.bounds()
-        if i is not None:
-            return b[i]
-        return (b[0], b[1])
-
-    def ybounds(self, i=None):
-        """Get the bounds `[ymin,ymax]`. Can specify upper or lower with i (0,1)."""
-        b = self.bounds()
-        if i == 0:
-            return b[2]
-        if i == 1:
-            return b[3]
-        return (b[2], b[3])
-
-    def zbounds(self, i=None):
-        """Get the bounds `[zmin,zmax]`. Can specify upper or lower with i (0,1)."""
-        b = self.bounds()
-        if i == 0:
-            return b[4]
-        if i == 1:
-            return b[5]
-        return (b[4], b[5])
-
-    def diagonal_size(self):
-        """Get the length of the diagonal of mesh bounding box."""
-        b = self.bounds()
-        return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
 
 
 ########################################################################################
