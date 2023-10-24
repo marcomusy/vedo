@@ -992,15 +992,15 @@ class Plotter:
             self.qt_widget.Render()
             return self
 
-        if self._cocoa_process_events and self.interactor.GetInitialized():
-            if "Darwin" in vedo.sys_platform and not self.offscreen:
-                self.interactor.ProcessEvents()
-                self._cocoa_process_events = False
-
         if resetcam:
             self.renderer.ResetCamera()
 
         self.window.Render()
+
+        if self._cocoa_process_events and self.interactor.GetInitialized():
+            if "Darwin" in vedo.sys_platform and not self.offscreen:
+                self.interactor.ProcessEvents()
+                self._cocoa_process_events = False
         return self
 
     def interactive(self):
