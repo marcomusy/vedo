@@ -4,10 +4,7 @@ import os
 import time
 import numpy as np
 
-try:
-    import vedo.vtkclasses as vtk
-except ImportError:
-    import vtkmodules.all as vtk
+import vedo.vtkclasses as vtk
 
 from vtkmodules.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 from vtkmodules.util.numpy_support import numpy_to_vtkIdTypeArray
@@ -2064,7 +2061,7 @@ def camera_from_quaternion(pos, quaternion, distance=10000, ngl_correct=True):
     camera = vtk.vtkCamera()
     # define the quaternion in vtk, note the swapped order
     # w,x,y,z instead of x,y,z,w
-    quat_vtk = vtk.vtkQuaternion(quaternion[3], quaternion[0], quaternion[1], quaternion[2])
+    quat_vtk = vtk.get("Quaternion")(quaternion[3], quaternion[0], quaternion[1], quaternion[2])
     # use this to define a rotation matrix in x,y,z
     # right handed units
     M = np.zeros((3, 3), dtype=np.float32)

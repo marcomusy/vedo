@@ -4420,11 +4420,11 @@ def add_global_axes(axtype=None, c=None, bounds=()):
 
     elif plt.axes == 14:
         try:
-            cow = vtk.vtkCameraOrientationWidget()
+            cow = vtk.get("CameraOrientationWidget")()
             cow.SetParentRenderer(plt.renderer)
             cow.On()
             plt.axes_instances[r] = cow
-        except AttributeError:
+        except ImportError:
             vedo.logger.warning("axes mode 14 is unavailable in this vtk version")
 
     else:

@@ -2,10 +2,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-try:
-    import vedo.vtkclasses as vtk
-except ImportError:
-    import vtkmodules.all as vtk
+import vedo.vtkclasses as vtk
 
 import vedo
 from vedo import colors
@@ -1350,7 +1347,7 @@ class PointsVisual(CommonVisual):
                 continue
 
             if font == "VTK":
-                tx = vtk.vtkVectorText()
+                tx = vtk.get("VectorText")()
                 tx.SetText(txt_lab)
                 tx.Update()
                 tx_poly = tx.GetOutput()
@@ -1482,7 +1479,7 @@ class PointsVisual(CommonVisual):
                 return None
             self.pointdata.select(content)
 
-        mp = vtk.vtkLabeledDataMapper()
+        mp = vtk.get("LabeledDataMapper")()
 
         if content == "id":
             mp.SetLabelModeToLabelIds()

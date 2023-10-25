@@ -6,10 +6,7 @@ import time
 from typing import Callable
 import numpy as np
 
-try:
-    import vedo.vtkclasses as vtk
-except ImportError:
-    import vtkmodules.all as vtk
+import vedo.vtkclasses as vtk
 
 import vedo
 from vedo import transformations
@@ -706,7 +703,7 @@ class Plotter:
             self.interactor = self.window.GetInteractor()
             for r in self.renderers:
                 self.window.AddRenderer(r)
-            self.wx_widget.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
+            self.wx_widget.SetInteractorStyle(vtk.get("InteractorStyleTrackballCamera()"))
             ########################
             return  ################
             ########################
@@ -749,7 +746,7 @@ class Plotter:
         self.interactor = vtk.vtkRenderWindowInteractor()
 
         self.interactor.SetRenderWindow(self.window)
-        vsty = vtk.vtkInteractorStyleTrackballCamera()
+        vsty = vtk.get("InteractorStyleTrackballCamera")()
         self.interactor.SetInteractorStyle(vsty)
 
         if settings.enable_default_keyboard_callbacks:
@@ -835,7 +832,7 @@ class Plotter:
 
             if ren:
 
-                if isinstance(a, vtk.vtkInteractorObserver):
+                if isinstance(a, vtk.get("InteractorObserver")):
                     a.add_to(self)  # from cutters
                     continue
 
@@ -912,7 +909,7 @@ class Plotter:
 
             if ren:  ### remove it from the renderer
 
-                if isinstance(ob, vtk.vtkInteractorObserver):
+                if isinstance(ob, vtk.get("InteractorObserver")):
                     ob.remove_from(self)  # from cutters
                     continue
 
@@ -2049,7 +2046,7 @@ class Plotter:
         # many hdr files are at https://polyhaven.com/all
 
         if utils.vtk_version_at_least(9):
-            reader = vtk.vtkHDRReader()
+            reader = vtk.get("HDRReader")()
             # Check the image can be read.
             if not reader.CanReadFile(hdrfile):
                 vedo.logger.error(f"Cannot read HDR file {hdrfile}")
@@ -2308,7 +2305,7 @@ class Plotter:
             vedo.logger.warning("add_scale_indicator called with use_parallel_projection OFF. Skip.")
             return None
 
-        rlabel = vtk.vtkVectorText()
+        rlabel = vtk.get("VectorText")()
         rlabel.SetText("scale")
         tf = vtk.vtkTransformPolyDataFilter()
         tf.SetInputConnection(rlabel.GetOutputPort())
@@ -2885,7 +2882,7 @@ class Plotter:
                     elif isinstance(b, vtk.vtkImageData):
                         scanned_acts.append(vedo.Volume(b).actor)
 
-            elif isinstance(a, (vtk.vtkProp, vtk.vtkInteractorObserver)):
+            elif isinstance(a, (vtk.vtkProp, vtk.get("InteractorObserver"))):
                 scanned_acts.append(a)
 
             elif "trimesh" in str(type(a)):
@@ -3335,33 +3332,33 @@ class Plotter:
             # see https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html
             if mode in (0, "TrackballCamera"):
                 if self.qt_widget:
-                    self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
+                    self.interactor.SetInteractorStyle(vtk.get("InteractorStyleTrackballCamera")())
             elif mode in (1, "TrackballActor"):
-                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballActor())
+                self.interactor.SetInteractorStyle(vtk.get("InteractorStyleTrackballActor")())
             elif mode in (2, "JoystickCamera"):
-                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleJoystickCamera())
+                self.interactor.SetInteractorStyle(vtk.get("InteractorStyleJoystickCamera")())
             elif mode in (3, "JoystickActor"):
-                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleJoystickActor())
+                self.interactor.SetInteractorStyle(vtk.get("InteractorStyleJoystickActor")())
             elif mode in (4, "Flight"):
-                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleFlight())
+                self.interactor.SetInteractorStyle(vtk.get("InteractorStyleFlight")())
             elif mode in (5, "RubberBand2D"):
-                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBand2D())
+                self.interactor.SetInteractorStyle(vtk.get("InteractorStyleRubberBand2D")())
             elif mode in (6, "RubberBand3D"):
-                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBand3D())
+                self.interactor.SetInteractorStyle(vtk.get("InteractorStyleRubberBand3D")())
             elif mode in (7, "RubberBandZoom"):
-                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBandZoom())
+                self.interactor.SetInteractorStyle(vtk.get("InteractorStyleRubberBandZoom")())
             elif mode in (8, "Terrain"):
-                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTerrain())
+                self.interactor.SetInteractorStyle(vtk.get("InteractorStyleTerrain")())
             elif mode in (9, "Unicam"):
-                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleUnicam())
+                self.interactor.SetInteractorStyle(vtk.get("InteractorStyleUnicam")())
             elif mode in (10, "Image", "image", "2d"):
-                astyle = vtk.vtkInteractorStyleImage()
+                astyle = vtk.get("InteractorStyleImage")()
                 astyle.SetInteractionModeToImage3D()
                 self.interactor.SetInteractorStyle(astyle)
             else:
                 vedo.logger.warning(f"Unknown interaction mode: {mode}")
 
-        elif isinstance(mode, vtk.vtkInteractorStyleUser):
+        elif isinstance(mode, vtk.get("InteractorStyleUser")):
             # set a custom interactor style
             mode.interactor = self.interactor
             mode.renderer = self.renderer
@@ -3770,15 +3767,15 @@ class Plotter:
         elif key == "a":
             iren.ExitCallback()
             cur = iren.GetInteractorStyle()
-            if isinstance(cur, vtk.vtkInteractorStyleTrackballCamera):
+            if isinstance(cur, vtk.get("InteractorStyleTrackballCamera")):
                 msg = "\nInteractor style changed to TrackballActor\n"
                 msg += "  you can now move and rotate individual meshes:\n"
                 msg += "  press X twice to save the repositioned mesh\n"
                 msg += "  press 'a' to go back to normal style"
                 vedo.printc(msg)
-                iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballActor())
+                iren.SetInteractorStyle(vtk.get("InteractorStyleTrackballActor")())
             else:
-                iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
+                iren.SetInteractorStyle(vtk.get("InteractorStyleTrackballCamera")())
             iren.Start()
             return
 
@@ -3813,12 +3810,12 @@ class Plotter:
         elif key == "j":
             iren.ExitCallback()
             cur = iren.GetInteractorStyle()
-            if isinstance(cur, vtk.vtkInteractorStyleJoystickCamera):
-                iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
+            if isinstance(cur, vtk.get("InteractorStyleJoystickCamera")):
+                iren.SetInteractorStyle(vtk.get("InteractorStyleTrackballCamera")())
             else:
                 vedo.printc("\nInteractor style changed to Joystick,", end="")
                 vedo.printc(" press j to go back to normal.")
-                iren.SetInteractorStyle(vtk.vtkInteractorStyleJoystickCamera())
+                iren.SetInteractorStyle(vtk.get("InteractorStyleJoystickCamera")())
             iren.Start()
             return
 

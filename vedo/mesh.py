@@ -3,10 +3,7 @@
 import os
 import numpy as np
 
-try:
-    import vedo.vtkclasses as vtk
-except ImportError:
-    import vtkmodules.all as vtk
+import vedo.vtkclasses as vtk
 
 import vedo
 from vedo.colors import get_color
@@ -358,11 +355,11 @@ class Mesh(MeshVisual, Points):
 
             fnl = fn.lower()
             if ".jpg" in fnl or ".jpeg" in fnl:
-                reader = vtk.vtkJPEGReader()
+                reader = vtk.get("JPEGReader")()
             elif ".png" in fnl:
-                reader = vtk.vtkPNGReader()
+                reader = vtk.get("PNGReader")()
             elif ".bmp" in fnl:
-                reader = vtk.vtkBMPReader()
+                reader = vtk.get("BMPReader")()
             else:
                 vedo.logger.error("in texture() supported files are only PNG, BMP or JPG")
                 return self
@@ -417,7 +414,7 @@ class Mesh(MeshVisual, Points):
 
             else:
                 # last resource is automatic mapping
-                tmapper = vtk.vtkTextureMapToPlane()
+                tmapper = vtk.get("vtkTextureMapToPlane")()
                 tmapper.AutomaticPlaneGenerationOn()
                 tmapper.SetInputData(pd)
                 tmapper.Update()
@@ -1003,7 +1000,7 @@ class Mesh(MeshVisual, Points):
     def compute_cell_vertex_count(self):
         """Add to this mesh a cell data array containing the nr of vertices
         that a polygonal face has."""
-        csf = vtk.vtkCellSizeFilter()
+        csf = vtk.get("CellSizeFilter")()
         csf.SetInputData(self.dataset)
         csf.SetComputeArea(False)
         csf.SetComputeVolume(False)
@@ -1062,7 +1059,7 @@ class Mesh(MeshVisual, Points):
 
             ![](https://vedo.embl.es/images/advanced/meshquality.png)
         """
-        qf = vtk.vtkMeshQuality()
+        qf = vtk.get("MeshQuality")()
         qf.SetInputData(self.dataset)
         qf.SetTriangleQualityMeasure(metric)
         qf.SaveCellQualityOn()
@@ -2167,7 +2164,7 @@ class Mesh(MeshVisual, Points):
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
 
-        cutter = vtk.vtkPolyDataPlaneCutter()
+        cutter = vtk.get("PolyDataPlaneCutter")()
         cutter.SetInputData(self.dataset)
         cutter.SetPlane(plane)
         cutter.InterpolateAttributesOn()
@@ -2346,7 +2343,7 @@ class Mesh(MeshVisual, Points):
         whiteImage.GetPointData().GetScalars().Fill(inval)
 
         # polygonal data --> image stencil:
-        pol2stenc = vtk.vtkPolyDataToImageStencil()
+        pol2stenc = vtk.get("PolyDataToImageStencil")()
         pol2stenc.SetInputData(pd)
         pol2stenc.SetOutputOrigin(whiteImage.GetOrigin())
         pol2stenc.SetOutputSpacing(whiteImage.GetSpacing())
@@ -2356,7 +2353,7 @@ class Mesh(MeshVisual, Points):
         # cut the corresponding white image and set the background:
         outval = fg_value if invert else bg_value
 
-        imgstenc = vtk.vtkImageStencil()
+        imgstenc = vtk.get("ImageStencil")()
         imgstenc.SetInputData(whiteImage)
         imgstenc.SetStencilConnection(pol2stenc.GetOutputPort())
         imgstenc.SetReverseStencil(invert)

@@ -3,10 +3,7 @@ import os
 
 import numpy as np
 
-try:
-    import vedo.vtkclasses as vtk
-except ImportError:
-    import vtkmodules.all as vtk
+import vedo.vtkclasses as vtk
 
 import vedo
 from vedo import utils
@@ -176,7 +173,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
                     f = inputobj[i]
                     if "_rec_spr.bmp" in f:
                         continue
-                    picr = vtk.vtkBMPReader()
+                    picr = vtk.get("BMPReader")()
                     picr.SetFileName(f)
                     picr.Update()
                     mgf = vtk.vtkImageMagnitude()
@@ -1132,7 +1129,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
 
                 ![](https://vedo.embl.es/images/volumetric/erode_dilate.png)
         """
-        ver = vtk.vtkImageContinuousErode3D()
+        ver = vtk.get("ImageContinuousErode3D")()
         ver.SetInputData(self.dataset)
         ver.SetKernelSize(neighbours[0], neighbours[1], neighbours[2])
         ver.Update()
@@ -1150,7 +1147,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         Examples:
             - [erode_dilate.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/erode_dilate.py)
         """
-        ver = vtk.vtkImageContinuousDilate3D()
+        ver = vtk.get("ImageContinuousDilate3D")()
         ver.SetInputData(self.dataset)
         ver.SetKernelSize(neighbours[0], neighbours[1], neighbours[2])
         ver.Update()

@@ -2,10 +2,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-try:
-    import vedo.vtkclasses as vtk
-except ImportError:
-    import vtkmodules.all as vtk
+import vedo.vtkclasses as vtk
 
 import vedo
 from vedo import colors
@@ -1237,7 +1234,7 @@ class CommonAlgorithms:
 
         Array names are: `Area`, `Volume`, `Length`.
         """
-        csf = vtk.vtkCellSizeFilter()
+        csf = vtk.get("CellSizeFilter")()
         csf.SetInputData(self.dataset)
         csf.SetComputeArea(1)
         csf.SetComputeVolume(1)
@@ -1866,7 +1863,7 @@ class UGridAlgorithms(CommonAlgorithms):
         """
         Cleanup unused points and empty cells
         """
-        cl = vtk.vtkStaticCleanUnstructuredGrid()
+        cl = vtk.get("StaticCleanUnstructuredGrid")()
         cl.SetInputData(self.dataset)
         cl.RemoveUnusedPointsOn()
         cl.ProduceMergeMapOff()

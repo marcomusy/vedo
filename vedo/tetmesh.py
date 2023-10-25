@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-try:
-    import vedo.vtkclasses as vtk
-except ImportError:
-    import vtkmodules.all as vtk
+import vedo.vtkclasses as vtk
 
 import numpy as np
 import vedo
@@ -338,7 +335,7 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
         See class [vtkMeshQuality](https://vtk.org/doc/nightly/html/classvtkMeshQuality.html)
         for an explanation of the meaning of each metric..
         """
-        qf = vtk.vtkMeshQuality()
+        qf = vtk.get("MeshQuality")()
         qf.SetInputData(self.dataset)
         qf.SetTetQualityMeasure(metric)
         qf.SaveCellQualityOn()
@@ -348,7 +345,7 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
 
     def compute_tets_volume(self):
         """Add to this mesh a cell data array containing the tetrahedron volume."""
-        csf = vtk.vtkCellSizeFilter()
+        csf = vtk.get("CellSizeFilter")()
         csf.SetInputData(self.dataset)
         csf.SetComputeArea(False)
         csf.SetComputeVolume(True)

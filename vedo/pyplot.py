@@ -4137,7 +4137,7 @@ class DirectedGraph(Assembly):
 
         self.edge_label_scale = None
 
-        self.mdg = vtk.vtkMutableDirectedGraph()
+        self.mdg = vtk.get("MutableDirectedGraph")()
 
         n = kargs.pop("n", 0)
         for _ in range(n):
@@ -4145,7 +4145,7 @@ class DirectedGraph(Assembly):
 
         self._c = kargs.pop("c", (0.3, 0.3, 0.3))
 
-        self.gl = vtk.vtkGraphLayout()
+        self.gl = vtk.get("GraphLayout")()
 
         self.font = kargs.pop("font", "")
 
@@ -4157,11 +4157,11 @@ class DirectedGraph(Assembly):
 
         if "2d" in s:
             if "clustering" in s:
-                self.strategy = vtk.vtkClustering2DLayoutStrategy()
+                self.strategy = vtk.get("Clustering2DLayoutStrategy")()
             elif "fast" in s:
-                self.strategy = vtk.vtkFast2DLayoutStrategy()
+                self.strategy = vtk.get("Fast2DLayoutStrategy")()
             else:
-                self.strategy = vtk.vtkSimple2DLayoutStrategy()
+                self.strategy = vtk.get("Simple2DLayoutStrategy")()
             self.rotX = 180
             opt = kargs.pop("rest_distance", None)
             if opt is not None:
@@ -4176,7 +4176,7 @@ class DirectedGraph(Assembly):
 
         elif "circ" in s:
             if "3d" in s:
-                self.strategy = vtk.vtkSimple3DCirclesStrategy()
+                self.strategy = vtk.get("Simple3DCirclesStrategy")()
                 self.strategy.SetDirection(0, 0, -1)
                 self.strategy.SetAutoHeight(True)
                 self.strategy.SetMethod(1)
@@ -4190,11 +4190,11 @@ class DirectedGraph(Assembly):
                     self.strategy.SetAutoHeight(False)
                     self.strategy.SetHeight(opt)  # float
             else:
-                self.strategy = vtk.vtkCircularLayoutStrategy()
+                self.strategy = vtk.get("CircularLayoutStrategy")()
                 self.zrange = kargs.pop("zrange", 0)
 
         elif "cone" in s:
-            self.strategy = vtk.vtkConeLayoutStrategy()
+            self.strategy = vtk.get("ConeLayoutStrategy")()
             self.rotX = 180
             opt = kargs.pop("compactness", None)
             if opt is not None:
@@ -4207,7 +4207,7 @@ class DirectedGraph(Assembly):
                 self.strategy.SetSpacing(opt)
 
         elif "force" in s:
-            self.strategy = vtk.vtkForceDirectedLayoutStrategy()
+            self.strategy = vtk.get("ForceDirectedLayoutStrategy")()
             opt = kargs.pop("seed", None)
             if opt is not None:
                 self.strategy.SetRandomSeed(opt)
@@ -4226,7 +4226,7 @@ class DirectedGraph(Assembly):
                 self.strategy.SetRandomInitialPoints(opt)  # bool
 
         elif "tree" in s:
-            self.strategy = vtk.vtkSpanTreeLayoutStrategy()
+            self.strategy = vtk.get("SpanTreeLayoutStrategy")()
             self.rotX = 180
 
         else:
@@ -4289,7 +4289,7 @@ class DirectedGraph(Assembly):
         self.gl.SetInputData(self.mdg)
         self.gl.Update()
 
-        gr2poly = vtk.vtkGraphToPolyData()
+        gr2poly = vtk.get("GraphToPolyData")()
         gr2poly.EdgeGlyphOutputOn()
         gr2poly.SetEdgeGlyphPosition(self.edge_glyph_position)
         gr2poly.SetInputData(self.gl.GetOutput())

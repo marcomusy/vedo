@@ -6,10 +6,7 @@ from typing import Callable
 
 import numpy as np
 
-try:
-    import vedo.vtkclasses as vtk
-except ImportError:
-    import vtkmodules.all as vtk
+import vedo.vtkclasses as vtk
 
 import vedo
 from vedo.colors import color_map, get_color
@@ -478,7 +475,7 @@ class Slicer2DPlotter(Plotter):
         self.volume.actor = vtk.vtkImageSlice()
         self.volume.properties = self.volume.actor.GetProperty()
 
-        self.volume.mapper = vtk.vtkImageResliceMapper()
+        self.volume.mapper = vtk.get("ImageResliceMapper")()
         self.volume.mapper.SliceFacesCameraOn()
         self.volume.mapper.SliceAtFocalPointOn()
         self.volume.mapper.SetAutoAdjustImageQuality(False)

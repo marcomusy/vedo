@@ -32,13 +32,13 @@ def _get_img(obj, flip=False, translate=()):
 
         fname = obj.lower()
         if fname.endswith(".png"):
-            picr = vtk.vtkPNGReader()
+            picr = vtk.get("PNGReader")()
         elif fname.endswith(".jpg") or fname.endswith(".jpeg"):
-            picr = vtk.vtkJPEGReader()
+            picr = vtk.get("JPEGReader")()
         elif fname.endswith(".bmp"):
-            picr = vtk.vtkBMPReader()
+            picr = vtk.get("BMPReader")()
         elif fname.endswith(".tif") or fname.endswith(".tiff"):
-            picr = vtk.vtkTIFFReader()
+            picr = vtk.get("TIFFReader")()
             picr.SetOrientationType(vedo.settings.tiff_orientation_type)
         else:
             colors.printc("Cannot understand image format", obj, c="r")
@@ -1232,7 +1232,7 @@ class Image(vedo.visual.ImageVisual):
         nchan = self.channels()
         narrayA = self.tonumpy()
 
-        canvas_source = vtk.vtkImageCanvasSource2D()
+        canvas_source = vtk.get("ImageCanvasSource2D")()
         canvas_source.SetExtent(0, nx - 1, 0, ny - 1, 0, 0)
         canvas_source.SetScalarTypeToUnsignedChar()
         canvas_source.SetNumberOfScalarComponents(nchan)
@@ -1273,7 +1273,7 @@ class Image(vedo.visual.ImageVisual):
         nchan = self.channels()
         narrayA = self.tonumpy()
 
-        canvas_source = vtk.vtkImageCanvasSource2D()
+        canvas_source = vtk.get("ImageCanvasSource2D")()
         canvas_source.SetExtent(0, nx - 1, 0, ny - 1, 0, 0)
         canvas_source.SetScalarTypeToUnsignedChar()
         canvas_source.SetNumberOfScalarComponents(nchan)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Subset of vtk classes to be imported directly
+Subset of vtk classes to be imported directly or lazily.
 """
 from importlib import import_module
 
@@ -10,7 +10,7 @@ location = dict()
 module_cache = {}
 
 
-def get(module_name="", cls_name=""):
+def get(cls_name="", module_name=""):
     """
     Get a vtk class from its name.
     
@@ -20,11 +20,12 @@ def get(module_name="", cls_name=""):
     print(vtk.vtkActor)
     print(vtk.location["vtkActor"])
     print(vtk.get("vtkActor"))
-    print(vtk.get("vtkRenderingCore","vtkActor"))
+    print(vtk.get("vtkActor", "vtkRenderingCore"))
     ```
     """
-    if not cls_name:
-        cls_name = module_name
+    if cls_name and not cls_name.startswith("vtk"):
+        cls_name = "vtk" + cls_name
+    if not module_name:
         module_name = location[cls_name]
     module_name = "vtkmodules." + module_name
     if module_name not in module_cache:
@@ -35,13 +36,14 @@ def get(module_name="", cls_name=""):
     else:
         return module_cache[module_name]
 
-def dump_hierarchy_to_file():
+def dump_hierarchy_to_file(fname=""):
     """
     Print all available vtk classes.
     Dumps the list to a file named `vtkmodules_<version>_hierarchy.txt`
     """
     try:
         import pkgutil
+        import vtkmodules
         from vtkmodules.all import vtkVersion
         ver = vtkVersion()
     except AttributeError:
@@ -51,8 +53,8 @@ def dump_hierarchy_to_file():
     minor = ver.GetVTKMinorVersion()
     patch = ver.GetVTKBuildVersion()
     vtkvers = f"{major}.{minor}.{patch}"
-
-    fname = f"vtkmodules_{vtkvers}_hierarchy.txt"
+    if not fname:
+        fname = f"vtkmodules_{vtkvers}_hierarchy.txt"
     with open(fname,"w") as w:
         for pkg in pkgutil.walk_packages(
             vtkmodules.__path__, vtkmodules.__name__ + "."):
@@ -73,13 +75,39 @@ def dump_hierarchy_to_file():
                     continue
                 w.write(f"{module.__name__}.{subitem}\n")
 
-####################################################
+######################################################################
+as_strings = [
+    "vtkKochanekSpline",
+    "vtkCardinalSpline",
+    "vtkParametricSpline",
+    "vtkParametricFunctionSource",
+    "vtkParametricTorus",
+    "vtkParametricBoy",
+    "vtkParametricConicSpiral",
+    "vtkParametricCrossCap",
+    "vtkParametricDini",
+    "vtkParametricEllipsoid",
+    "vtkParametricEnneper",
+    "vtkParametricFigure8Klein",
+    "vtkParametricKlein",
+    "vtkParametricMobius",
+    "vtkParametricRandomHills",
+    "vtkParametricRoman",
+    "vtkParametricSuperEllipsoid",
+    "vtkParametricSuperToroid",
+    "vtkParametricBohemianDome",
+    "vtkParametricBour",
+    "vtkParametricCatalanMinimal",
+    "vtkParametricHenneberg",
+    "vtkParametricKuen",
+    "vtkParametricPluckerConoid",
+    "vtkParametricPseudosphere",
+]
+for name in as_strings:
+    location[name] = "vtkCommonComputationalGeometry"
 
-
-import vtkmodules.vtkCommonComputationalGeometry
 
 from vtkmodules.vtkCommonColor import vtkNamedColors
-
 location["vtkNamedColors"] = "vtkCommonColor"
 
 
@@ -119,7 +147,6 @@ from vtkmodules.vtkCommonCore import (
     vtkVariantArray,
     vtkVersion,
 )
-
 as_strings = [
     "mutable",
     "VTK_UNSIGNED_CHAR",
@@ -159,6 +186,11 @@ as_strings = [
 for name in as_strings:
     location[name] = "vtkCommonCore"
 
+from vtkmodules.vtkCommonDataModel import (
+    vtkPolyData,
+    vtkImageData,
+    vtkUnstructuredGrid,
+)
 
 from vtkmodules.vtkCommonDataModel import (
     VTK_HEXAHEDRON,
@@ -178,7 +210,6 @@ from vtkmodules.vtkCommonDataModel import (
     vtkFieldData,
     vtkHexagonalPrism,
     vtkHexahedron,
-    vtkImageData,
     vtkImplicitDataSet,
     vtkImplicitSelectionLoop,
     vtkImplicitWindowFunction,
@@ -190,7 +221,6 @@ from vtkmodules.vtkCommonDataModel import (
     vtkPlane,
     vtkPlanes,
     vtkPointLocator,
-    vtkPolyData,
     vtkPolyLine,
     vtkPolyPlane,
     vtkPolygon,
@@ -205,11 +235,9 @@ from vtkmodules.vtkCommonDataModel import (
     vtkStructuredGrid,
     vtkTetra,
     vtkTriangle,
-    vtkUnstructuredGrid,
     vtkVoxel,
     vtkWedge,
 )
-
 as_strings = [
     "VTK_HEXAHEDRON",
     "VTK_TETRA",
@@ -262,11 +290,7 @@ as_strings = [
 for name in as_strings:
     location[name] = "vtkCommonDataModel"
 
-
-from vtkmodules.vtkCommonExecutionModel import vtkAlgorithm
-location["vtkAlgorithm"] = "vtkCommonExecutionModel"
-
-from vtkmodules.vtkCommonMath import vtkMatrix4x4, vtkQuaternion
+from vtkmodules.vtkCommonMath import vtkMatrix4x4
 location["vtkMatrix4x4"] = "vtkCommonMath"
 location["vtkQuaternion"] = "vtkCommonMath"
 
@@ -277,11 +301,15 @@ from vtkmodules.vtkCommonTransforms import (
     vtkThinPlateSplineTransform,
     vtkTransform,
 )
-location["vtkHomogeneousTransform"] = "vtkCommonTransforms"
-location["vtkLandmarkTransform"] = "vtkCommonTransforms"
-location["vtkLinearTransform"] = "vtkCommonTransforms"
-location["vtkThinPlateSplineTransform"] = "vtkCommonTransforms"
-location["vtkTransform"] = "vtkCommonTransforms"
+as_strings = [
+    "vtkHomogeneousTransform",
+    "vtkLandmarkTransform",
+    "vtkLinearTransform",
+    "vtkThinPlateSplineTransform",
+    "vtkTransform",
+]
+for name in as_strings:
+    location[name] = "vtkCommonTransforms"
 
 from vtkmodules.vtkFiltersCore import (
     VTK_BEST_FITTING_PLANE,
@@ -325,7 +353,6 @@ from vtkmodules.vtkFiltersCore import (
     vtkVoronoi2D,
     vtkWindowedSincPolyDataFilter,
 )
-
 as_strings = [
     "VTK_BEST_FITTING_PLANE",
     "vtk3DLinearGridCrinkleExtractor",
@@ -371,17 +398,8 @@ as_strings = [
 for name in as_strings:
     location[name] = "vtkFiltersCore"
 
-
-try:
-    from vtkmodules.vtkFiltersCore import (
-        vtkStaticCleanUnstructuredGrid,
-        vtkPolyDataPlaneCutter,
-    )
-    location["vtkStaticCleanUnstructuredGrid"] = "vtkFiltersCore"
-    location["vtkPolyDataPlaneCutter"] = "vtkFiltersCore"
-except ImportError:
-    pass
-
+location["vtkStaticCleanUnstructuredGrid"] = "vtkFiltersCore"
+location["vtkPolyDataPlaneCutter"] = "vtkFiltersCore"
 
 from vtkmodules.vtkFiltersExtraction import (
     vtkExtractCellsByType,
@@ -484,11 +502,9 @@ except ImportError:
 
 
 from vtkmodules.vtkFiltersHybrid import (
-    vtkFacetReader,
     vtkImplicitModeller,
     vtkPolyDataSilhouette,
     vtkProcrustesAlignmentFilter,
-    vtkRenderLargeImage,
 )
 as_strings = [
     "vtkFacetReader",
@@ -604,7 +620,6 @@ from vtkmodules.vtkFiltersSources import (
     vtkGraphToPolyData,
     vtkLineSource,
     vtkOutlineCornerFilter,
-    vtkParametricFunctionSource,
     vtkPlaneSource,
     vtkPointSource,
     vtkProgrammableSource,
@@ -635,32 +650,17 @@ as_strings = [
 for name in as_strings:
     location[name] = "vtkFiltersSources"
 
-
-from vtkmodules.vtkFiltersTexture import vtkTextureMapToPlane
 location["vtkTextureMapToPlane"] = "vtkFiltersTexture"
 
-from vtkmodules.vtkFiltersVerdict import vtkMeshQuality, vtkCellSizeFilter
 location["vtkMeshQuality"] = "vtkFiltersVerdict"
 location["vtkCellSizeFilter"] = "vtkFiltersVerdict"
 
-from vtkmodules.vtkImagingStencil import vtkPolyDataToImageStencil
 location["vtkPolyDataToImageStencil"] = "vtkImagingStencil"
 
-from vtkmodules.vtkIOExport import vtkX3DExporter
 location["vtkX3DExporter"] = "vtkIOExport"
 
-from vtkmodules.vtkIOExportGL2PS import vtkGL2PSExporter
 location["vtkGL2PSExporter"] = "vtkIOExportGL2PS"
 
-from vtkmodules.vtkIOGeometry import (
-    vtkBYUReader,
-    vtkFacetWriter,
-    vtkOBJReader,
-    vtkOpenFOAMReader,
-    vtkParticleReader,
-    vtkSTLReader,
-    vtkSTLWriter,
-)
 as_strings = [
     "vtkBYUReader",
     "vtkFacetWriter",
@@ -673,26 +673,6 @@ as_strings = [
 for name in as_strings:
     location[name] = "vtkIOGeometry"
 
-
-from vtkmodules.vtkIOImage import (
-    vtkBMPReader,
-    vtkBMPWriter,
-    vtkDEMReader,
-    vtkDICOMImageReader,
-    vtkHDRReader,
-    vtkJPEGReader,
-    vtkJPEGWriter,
-    vtkMetaImageReader,
-    vtkMetaImageWriter,
-    vtkNIFTIImageReader,
-    vtkNIFTIImageWriter,
-    vtkNrrdReader,
-    vtkPNGReader,
-    vtkPNGWriter,
-    vtkSLCReader,
-    vtkTIFFReader,
-    vtkTIFFWriter,
-)
 as_strings = [
     "vtkBMPReader",
     "vtkBMPWriter",
@@ -715,26 +695,10 @@ as_strings = [
 for name in as_strings:
     location[name] = "vtkIOImage"
 
-from vtkmodules.vtkIOImport import (
-    vtk3DSImporter,
-    vtkOBJImporter,
-    vtkVRMLImporter,
-)
 location["vtk3DSImporter"] = "vtkIOImport"
 location["vtkOBJImporter"] = "vtkIOImport"
 location["vtkVRMLImporter"] = "vtkIOImport"
 
-
-from vtkmodules.vtkIOLegacy import (
-    vtkSimplePointsWriter,
-    vtkStructuredGridReader,
-    vtkStructuredPointsReader,
-    vtkDataSetReader,
-    vtkDataSetWriter,
-    vtkPolyDataWriter,
-    vtkRectilinearGridReader,
-    vtkUnstructuredGridReader,
-)
 as_strings = [
     "vtkSimplePointsWriter",
     "vtkStructuredGridReader",
@@ -749,25 +713,9 @@ for name in as_strings:
     location[name] = "vtkIOLegacy"
 
 
-from vtkmodules.vtkIOPLY import vtkPLYReader, vtkPLYWriter
 location["vtkPLYReader"] = "vtkIOPLY"
 location["vtkPLYWriter"] = "vtkIOPLY"
 
-from vtkmodules.vtkIOXML import (
-    vtkXMLGenericDataObjectReader,
-    vtkXMLImageDataReader,
-    vtkXMLImageDataWriter,
-    vtkXMLMultiBlockDataReader,
-    vtkXMLMultiBlockDataWriter,
-    vtkXMLPRectilinearGridReader,
-    vtkXMLPUnstructuredGridReader,
-    vtkXMLPolyDataReader,
-    vtkXMLPolyDataWriter,
-    vtkXMLRectilinearGridReader,
-    vtkXMLStructuredGridReader,
-    vtkXMLUnstructuredGridReader,
-    vtkXMLUnstructuredGridWriter,
-)
 as_strings = [
     "vtkXMLGenericDataObjectReader",
     "vtkXMLImageDataReader",
@@ -871,6 +819,10 @@ for name in as_strings:
     location[name] = "vtkImagingGeneral"
 
 from vtkmodules.vtkImagingHybrid import vtkImageToPoints, vtkSampleFunction
+as_strings = ["vtkImageToPoints", "vtkSampleFunction"]
+for name in as_strings:
+    location[name] = "vtkImagingHybrid"
+
 from vtkmodules.vtkImagingMath import (
     vtkImageDivergence,
     vtkImageDotProduct,
@@ -888,10 +840,6 @@ as_strings = [
 for name in as_strings:
     location[name] = "vtkImagingMath"
 
-from vtkmodules.vtkImagingMorphological import (
-    vtkImageContinuousDilate3D,
-    vtkImageContinuousErode3D,
-)
 as_strings = [
     "vtkImageContinuousDilate3D",
     "vtkImageContinuousErode3D",
@@ -899,23 +847,10 @@ as_strings = [
 for name in as_strings:
     location[name] = "vtkImagingMorphological"
 
-from vtkmodules.vtkImagingSources import vtkImageCanvasSource2D
 location["vtkImageCanvasSource2D"] = "vtkImagingSources"
 
-from vtkmodules.vtkImagingStencil import vtkImageStencil
 location["vtkImageStencil"] = "vtkImagingStencil"
 
-from vtkmodules.vtkInfovisLayout import (
-    vtkCircularLayoutStrategy,
-    vtkClustering2DLayoutStrategy,
-    vtkConeLayoutStrategy,
-    vtkFast2DLayoutStrategy,
-    vtkForceDirectedLayoutStrategy,
-    vtkGraphLayout,
-    vtkSimple2DLayoutStrategy,
-    vtkSimple3DCirclesStrategy,
-    vtkSpanTreeLayoutStrategy,
-)
 as_strings = [
     "vtkCircularLayoutStrategy",
     "vtkClustering2DLayoutStrategy",
@@ -929,21 +864,6 @@ as_strings = [
 ]
 for name in as_strings:
     location[name] = "vtkInfovisLayout"
-
-from vtkmodules.vtkInteractionStyle import (
-    vtkInteractorStyleFlight,
-    vtkInteractorStyleImage,
-    vtkInteractorStyleJoystickActor,
-    vtkInteractorStyleJoystickCamera,
-    vtkInteractorStyleRubberBand2D,
-    vtkInteractorStyleRubberBand3D,
-    vtkInteractorStyleRubberBandZoom,
-    vtkInteractorStyleTerrain,
-    vtkInteractorStyleTrackballActor,
-    vtkInteractorStyleTrackballCamera,
-    vtkInteractorStyleUnicam,
-    vtkInteractorStyleUser,
-)
 
 as_strings = [
     "vtkInteractorStyleFlight",
@@ -978,7 +898,6 @@ from vtkmodules.vtkInteractionWidgets import (
     vtkSliderWidget,
     vtkSphereWidget,
 )
-
 as_strings = [
     "vtkBalloonRepresentation",
     "vtkBalloonWidget",
@@ -998,11 +917,8 @@ as_strings = [
 for name in as_strings:
     location[name] = "vtkInteractionWidgets"
 
-try:
-    from vtkmodules.vtkInteractionWidgets import vtkCameraOrientationWidget
-    location["vtkCameraOrientationWidget"] = "vtkInteractionWidgets"
-except ImportError:
-    pass
+location["vtkCameraOrientationWidget"] = "vtkInteractionWidgets"
+
 
 from vtkmodules.vtkRenderingAnnotation import (
     vtkAnnotatedCubeActor,
@@ -1133,13 +1049,10 @@ as_strings = [
 for name in as_strings:
     location[name] = "vtkRenderingCore"
 
-from vtkmodules.vtkRenderingFreeType import vtkVectorText
 location["vtkVectorText"] = "vtkRenderingFreeType"
 
-from vtkmodules.vtkRenderingImage import vtkImageResliceMapper
 location["vtkImageResliceMapper"] = "vtkRenderingImage"
 
-from vtkmodules.vtkRenderingLabel import vtkLabeledDataMapper
 location["vtkLabeledDataMapper"] = "vtkRenderingLabel"
 
 from vtkmodules.vtkRenderingOpenGL2 import (

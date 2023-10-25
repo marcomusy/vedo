@@ -4,11 +4,7 @@ import os
 from functools import lru_cache
 
 import numpy as np
-
-try:
-    import vedo.vtkclasses as vtk
-except ImportError:
-    import vtkmodules.all as vtk
+import vedo.vtkclasses as vtk
 
 import vedo
 from vedo import settings
@@ -937,6 +933,7 @@ class RoundedLine(Mesh):
         vct = vtk.vtkContourTriangulator()
         vct.SetInputData(poly)
         vct.Update()
+
         super().__init__(vct.GetOutput(), c, alpha)
         self.flat()
         self.properties.LightingOff()
@@ -1173,9 +1170,10 @@ class KSpline(Line):
 
         points = utils.make3d(points).astype(float)
 
-        xspline = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkKochanekSpline()
-        yspline = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkKochanekSpline()
-        zspline = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkKochanekSpline()
+        vtkKochanekSpline = vtk.get("KochanekSpline")
+        xspline = vtkKochanekSpline()
+        yspline = vtkKochanekSpline()
+        zspline = vtkKochanekSpline()
         for s in [xspline, yspline, zspline]:
             if bias:
                 s.SetDefaultBias(bias)
@@ -1235,9 +1233,10 @@ class CSpline(Line):
 
         points = utils.make3d(points).astype(float)
 
-        xspline = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkCardinalSpline()
-        yspline = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkCardinalSpline()
-        zspline = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkCardinalSpline()
+        vtkCardinalSpline = vtk.get("CardinalSpline")
+        xspline = vtkCardinalSpline()
+        yspline = vtkCardinalSpline()
+        zspline = vtkCardinalSpline()
         for s in [xspline, yspline, zspline]:
             s.SetClosed(closed)
 
@@ -2839,7 +2838,7 @@ class Earth(Mesh):
         tss.Update()
         super().__init__(tss.GetOutput(), c="w")
         atext = vtk.vtkTexture()
-        pnm_reader = vtk.vtkJPEGReader()
+        pnm_reader = vtk.get("JPEGReader")()
         fn = vedo.file_io.download(vedo.dataurl + f"textures/earth{style}.jpg", verbose=False)
         pnm_reader.SetFileName(fn)
         atext.SetInputConnection(pnm_reader.GetOutputPort())
@@ -3382,7 +3381,7 @@ class TessellatedBox(Mesh):
             else:
                 tbs.SetBounds(0, n * spacing[0], 0, n * spacing[1], 0, n * spacing[2])
             tbs.QuadsOn()
-            tbs.SetOutputPointsPrecision(vtk.vtkAlgorithm.SINGLE_PRECISION)
+            #tbs.SetOutputPointsPrecision(vtk.vtkAlgorithm.SINGLE_PRECISION)
             tbs.Update()
             poly = tbs.GetOutput()
         super().__init__(poly, c=c, alpha=alpha)
@@ -3595,8 +3594,8 @@ class Torus(Mesh):
             super().__init__([pts, faces], c, alpha)
 
         else:
-
-            rs = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkParametricTorus()
+            vtkParametricTorus = vtk.get('vtkParametricTorus')
+            rs = vtkParametricTorus()
             rs.SetRingRadius(r1)
             rs.SetCrossSectionRadius(r2)
             pfs = vtk.vtkParametricFunctionSource()
@@ -3604,6 +3603,7 @@ class Torus(Mesh):
             pfs.SetUResolution(res_u)
             pfs.SetVResolution(res_v)
             pfs.Update()
+
             super().__init__(pfs.GetOutput(), c, alpha)
 
         self.phong()
@@ -3969,58 +3969,58 @@ class ParametricShape(Mesh):
             name = shapes[name]
 
         if name == "Boy":
-            ps = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkParametricBoy()
+            ps = vtk.get("ParametricBoy")()
         elif name == "ConicSpiral":
-            ps = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkParametricConicSpiral()
+            ps = vtk.get("ParametricConicSpiral")()
         elif name == "CrossCap":
-            ps = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkParametricCrossCap()
+            ps = vtk.get("ParametricCrossCap")()
         elif name == "Dini":
-            ps = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkParametricDini()
+            ps = vtk.get("ParametricDini")()
         elif name == "Enneper":
-            ps = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkParametricEnneper()
+            ps = vtk.get("ParametricEnneper")()
         elif name == "Figure8Klein":
-            ps = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkParametricFigure8Klein()
+            ps = vtk.get("ParametricFigure8Klein")()
         elif name == "Klein":
-            ps = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkParametricKlein()
+            ps = vtk.get("ParametricKlein")()
         elif name == "Mobius":
-            ps = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkParametricMobius()
+            ps = vtk.get("ParametricMobius")()
             ps.SetRadius(2.0)
             ps.SetMinimumV(-0.5)
             ps.SetMaximumV(0.5)
         elif name == "RandomHills":
-            ps = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkParametricRandomHills()
+            ps = vtk.get("ParametricRandomHills")()
             ps.AllowRandomGenerationOn()
             ps.SetRandomSeed(seed)
             ps.SetNumberOfHills(n)
         elif name == "Roman":
-            ps = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkParametricRoman()
+            ps = vtk.get("ParametricRoman")()
         elif name == "SuperEllipsoid":
-            ps = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkParametricSuperEllipsoid()
+            ps = vtk.get("ParametricSuperEllipsoid")()
             ps.SetN1(0.5)
             ps.SetN2(0.4)
         elif name == "BohemianDome":
-            ps = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkParametricBohemianDome()
+            ps = vtk.get("ParametricBohemianDome")()
             ps.SetA(5.0)
             ps.SetB(1.0)
             ps.SetC(2.0)
         elif name == "Bour":
-            ps = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkParametricBour()
+            ps = vtk.get("ParametricBour")()
         elif name == "CatalanMinimal":
-            ps = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkParametricCatalanMinimal()
+            ps = vtk.get("ParametricCatalanMinimal")()
         elif name == "Henneberg":
-            ps = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkParametricHenneberg()
+            ps = vtk.get("ParametricHenneberg")()
         elif name == "Kuen":
-            ps = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkParametricKuen()
+            ps = vtk.get("ParametricKuen")()
             ps.SetDeltaV0(0.001)
         elif name == "PluckerConoid":
-            ps = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkParametricPluckerConoid()
+            ps = vtk.get("ParametricPluckerConoid")()
         elif name == "Pseudosphere":
-            ps = vtk.vtkmodules.vtkCommonComputationalGeometry.vtkParametricPseudosphere()
+            ps = vtk.get("ParametricPseudosphere")()
         else:
             vedo.logger.error(f"unknown ParametricShape {name}")
             return
 
-        pfs = vtk.vtkParametricFunctionSource()
+        pfs = vtk.get("ParametricFunctionSource")()
         pfs.SetParametricFunction(ps)
         pfs.SetUResolution(res)
         pfs.SetVResolution(res)
@@ -4248,7 +4248,7 @@ class Text3D(Mesh):
         txt = str(txt)
 
         if font == "VTK":  #######################################
-            vtt = vtk.vtkVectorText()
+            vtt = vtk.get("vtkVectorText")()
             vtt.SetText(txt)
             vtt.Update()
             tpoly = vtt.GetOutput()

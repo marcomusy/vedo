@@ -3,17 +3,14 @@
 from dataclasses import dataclass
 import numpy as np
 
-try:
-    import vedo.vtkclasses as vtk
-except ImportError:
-    import vtkmodules.all as vtk
+import vedo.vtkclasses as vtk
 
 __docformat__ = "google"
 
 __doc__ = """Submodule to customize interaction modes."""
 
 
-class MousePan(vtk.vtkInteractorStyleUser):
+class MousePan(vtk.get("InteractorStyleUser")):
     """
     Interaction mode to pan the scene by dragging the mouse.
 
@@ -160,7 +157,7 @@ class _BlenderStyleDragInfo:
 
 
 ###############################################
-class BlenderStyle(vtk.vtkInteractorStyleUser):
+class BlenderStyle(vtk.get("InteractorStyleUser")):
     """
     Create an interaction style using the Blender default key-bindings.
 
