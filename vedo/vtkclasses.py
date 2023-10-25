@@ -3,7 +3,7 @@
 """
 Subset of vtk classes to be imported directly
 """
-import importlib
+from importlib import import_module
 
 
 location = dict()
@@ -11,18 +11,67 @@ module_cache = {}
 
 
 def get(module_name="", cls_name=""):
+    """
+    Get a vtk class from its name.
+    
+    Example:
+    ```python
+    from vedo import vtkclasses as vtk
+    print(vtk.vtkActor)
+    print(vtk.location["vtkActor"])
+    print(vtk.get("vtkActor"))
+    print(vtk.get("vtkRenderingCore","vtkActor"))
+    ```
+    """
     if not cls_name:
         cls_name = module_name
         module_name = location[cls_name]
     module_name = "vtkmodules." + module_name
     if module_name not in module_cache:
-        module = importlib.import_module(module_name)
+        module = import_module(module_name)
         module_cache[module_name] = module
     if cls_name:
         return getattr(module_cache[module_name], cls_name)
     else:
         return module_cache[module_name]
 
+def dump_hierarchy_to_file():
+    """
+    Print all available vtk classes.
+    Dumps the list to a file named `vtkmodules_<version>_hierarchy.txt`
+    """
+    try:
+        import pkgutil
+        from vtkmodules.all import vtkVersion
+        ver = vtkVersion()
+    except AttributeError:
+        print("Unable to detect VTK version.")
+        return
+    major = ver.GetVTKMajorVersion()
+    minor = ver.GetVTKMinorVersion()
+    patch = ver.GetVTKBuildVersion()
+    vtkvers = f"{major}.{minor}.{patch}"
+
+    fname = f"vtkmodules_{vtkvers}_hierarchy.txt"
+    with open(fname,"w") as w:
+        for pkg in pkgutil.walk_packages(
+            vtkmodules.__path__, vtkmodules.__name__ + "."):
+            try:
+                module = import_module(pkg.name)
+            except ImportError:
+                continue
+            for subitem in sorted(dir(module)):
+                if "all" in module.__name__:
+                    continue
+                if ".web." in module.__name__:
+                    continue
+                if ".test." in module.__name__:
+                    continue
+                if ".tk." in module.__name__:
+                    continue
+                if "__" in module.__name__ or "__" in subitem:
+                    continue
+                w.write(f"{module.__name__}.{subitem}\n")
 
 ####################################################
 
