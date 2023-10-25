@@ -1,2 +1,2 @@
-vtk
+vtk>=9.0
 Pygments

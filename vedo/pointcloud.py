@@ -3,10 +3,7 @@
 import time
 import numpy as np
 
-try:
-    import vedo.vtkclasses as vtk
-except ImportError:
-    import vtkmodules.all as vtk
+import vedo.vtkclasses as vtk
 
 import vedo
 from vedo import colors
@@ -2471,7 +2468,7 @@ class Points(PointsVisual, PointAlgorithms):
         if not maxdist:
             maxdist = self.diagonal_size() / 2
 
-        imp = vtk.vtkImplicitModeller()
+        imp = vtk.get("ImplicitModeller")()
         imp.SetInputData(self.dataset)
         imp.SetSampleDimensions(res)
         if maxdist:

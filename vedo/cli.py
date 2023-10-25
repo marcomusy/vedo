@@ -25,19 +25,9 @@ import os
 import sys
 import numpy as np
 
-try:
-    import vedo.vtkclasses as vtk
-except ImportError:
-    import vtkmodules.all as vtk
+import vedo.vtkclasses as vtk
 
-import vedo
-from vedo.utils import humansort
-from vedo.utils import is_sequence
-from vedo.utils import print_info
-from vedo import __version__
-from vedo import file_io
-from vedo import load
-from vedo import settings
+from vedo.utils import humansort, is_sequence, print_info
 from vedo.colors import get_color, printc
 from vedo.mesh import Mesh
 from vedo.image import Image
@@ -45,6 +35,10 @@ from vedo.plotter import Plotter
 from vedo.tetmesh import TetMesh
 from vedo.ugrid import UGrid
 from vedo.volume import Volume
+
+import vedo
+from vedo import __version__
+from vedo import file_io, load, settings
 from vedo import applications
 
 __all__ = []

@@ -20,10 +20,12 @@
 see `examples/pyplot/embed_matplotlib.py`.
 - improvements to method `mesh.clone2d()`
 - name change from `Picture` to `Image`, renamed `vedo.picture` to `vedo.image`
+- reformat how vtk classes are imported (allow some laziness)
 
 
 
 ### Breaking changes
+- requires vtk=>9.0
 - plt.actors must become plt.objects
 - change .points() to .vertices
 - change .cell_centers() to .cell_centers
@@ -78,5 +80,6 @@ examples/basic/cells_within_bounds.py because of clone()
 - revisit splines and other widgets
 - merge does something strange with flagpost
 - analysis_plots.visualize_clones_as_timecourse_with_fit not working
+
 
 

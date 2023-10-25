@@ -5,11 +5,12 @@ Subset of vtk classes to be imported directly or lazily.
 """
 from importlib import import_module
 
+######################################################################
 
-location = dict()
+location = {}
 module_cache = {}
 
-
+######################################################################
 def get(cls_name="", module_name=""):
     """
     Get a vtk class from its name.
@@ -76,7 +77,7 @@ def dump_hierarchy_to_file(fname=""):
                 w.write(f"{module.__name__}.{subitem}\n")
 
 ######################################################################
-as_strings = [
+for name in [
     "vtkKochanekSpline",
     "vtkCardinalSpline",
     "vtkParametricSpline",
@@ -102,12 +103,10 @@ as_strings = [
     "vtkParametricKuen",
     "vtkParametricPluckerConoid",
     "vtkParametricPseudosphere",
-]
-for name in as_strings:
+]:
     location[name] = "vtkCommonComputationalGeometry"
 
 
-from vtkmodules.vtkCommonColor import vtkNamedColors
 location["vtkNamedColors"] = "vtkCommonColor"
 
 
@@ -148,7 +147,7 @@ from vtkmodules.vtkCommonCore import (
     vtkVariantArray,
     vtkVersion,
 )
-as_strings = [
+for name in [
     "mutable",
     "VTK_UNSIGNED_CHAR",
     "VTK_UNSIGNED_SHORT",
@@ -184,14 +183,15 @@ as_strings = [
     "vtkVariant",
     "vtkVariantArray",
     "vtkVersion",
-]
-for name in as_strings:
+]:
     location[name] = "vtkCommonCore"
 
 from vtkmodules.vtkCommonDataModel import (
     vtkPolyData,
     vtkImageData,
     vtkUnstructuredGrid,
+    vtkRectilinearGrid,
+    vtkStructuredGrid,
 )
 
 from vtkmodules.vtkCommonDataModel import (
@@ -228,19 +228,17 @@ from vtkmodules.vtkCommonDataModel import (
     vtkPolygon,
     vtkPyramid,
     vtkQuadric,
-    vtkRectilinearGrid,
     vtkSelection,
     vtkSelectionNode,
     vtkSphere,
     vtkStaticCellLocator,
     vtkStaticPointLocator,
-    vtkStructuredGrid,
     vtkTetra,
     vtkTriangle,
     vtkVoxel,
     vtkWedge,
 )
-as_strings = [
+for name in [
     "VTK_HEXAHEDRON",
     "VTK_TETRA",
     "VTK_VOXEL",
@@ -288,8 +286,7 @@ as_strings = [
     "vtkUnstructuredGrid",
     "vtkVoxel",
     "vtkWedge",
-]
-for name in as_strings:
+]:
     location[name] = "vtkCommonDataModel"
 
 from vtkmodules.vtkCommonMath import vtkMatrix4x4
@@ -303,14 +300,13 @@ from vtkmodules.vtkCommonTransforms import (
     vtkThinPlateSplineTransform,
     vtkTransform,
 )
-as_strings = [
+for name in [
     "vtkHomogeneousTransform",
     "vtkLandmarkTransform",
     "vtkLinearTransform",
     "vtkThinPlateSplineTransform",
     "vtkTransform",
-]
-for name in as_strings:
+]:
     location[name] = "vtkCommonTransforms"
 
 from vtkmodules.vtkFiltersCore import (
@@ -355,7 +351,7 @@ from vtkmodules.vtkFiltersCore import (
     vtkVoronoi2D,
     vtkWindowedSincPolyDataFilter,
 )
-as_strings = [
+for name in [
     "VTK_BEST_FITTING_PLANE",
     "vtk3DLinearGridCrinkleExtractor",
     "vtkAppendPolyData",
@@ -396,8 +392,7 @@ as_strings = [
     "vtkUnstructuredGridQuadricDecimation",
     "vtkVoronoi2D",
     "vtkWindowedSincPolyDataFilter",
-]
-for name in as_strings:
+]:
     location[name] = "vtkFiltersCore"
 
 location["vtkStaticCleanUnstructuredGrid"] = "vtkFiltersCore"
@@ -409,13 +404,12 @@ from vtkmodules.vtkFiltersExtraction import (
     vtkExtractPolyDataGeometry,
     vtkExtractSelection,
 )
-as_strings = [
+for name in [
     "vtkExtractCellsByType",
     "vtkExtractGeometry",
     "vtkExtractPolyDataGeometry",
     "vtkExtractSelection",
-]
-for name in as_strings:
+]:
     location[name] = "vtkFiltersExtraction"
 
 try:
@@ -425,7 +419,7 @@ except ImportError:
     from vtkmodules.vtkFiltersCore import vtkExtractEdges  # vtk9.2
     location["vtkExtractEdges"] = "vtkFiltersCore"
 
-from vtkmodules.vtkFiltersFlowPaths import vtkStreamTracer
+
 location["vtkStreamTracer"] = "vtkFiltersFlowPaths"
 
 
@@ -443,7 +437,6 @@ from vtkmodules.vtkFiltersGeneral import (
     vtkGradientFilter,
     vtkIntersectionPolyDataFilter,
     vtkLoopBooleanPolyDataFilter,
-    vtkMultiBlockDataGroupFilter,
     vtkTransformPolyDataFilter,
     vtkOBBTree,
     vtkQuantizePolyDataPoints,
@@ -453,7 +446,7 @@ from vtkmodules.vtkFiltersGeneral import (
     vtkRectilinearGridToTetrahedra,
     vtkVertexGlyphFilter,
 )
-as_strings = [
+for name in [
     "vtkBooleanOperationPolyDataFilter",
     "vtkBoxClipDataSet",
     "vtkCellValidator",
@@ -476,8 +469,7 @@ as_strings = [
     "vtkShrinkPolyData",
     "vtkRectilinearGridToTetrahedra",
     "vtkVertexGlyphFilter",
-]
-for name in as_strings:
+]:
     location[name] = "vtkFiltersGeneral"
 
 try:
@@ -503,19 +495,13 @@ except ImportError:
     pass
 
 
-from vtkmodules.vtkFiltersHybrid import (
-    vtkImplicitModeller,
-    vtkPolyDataSilhouette,
-    vtkProcrustesAlignmentFilter,
-)
-as_strings = [
+for name in [
     "vtkFacetReader",
     "vtkImplicitModeller",
     "vtkPolyDataSilhouette",
     "vtkProcrustesAlignmentFilter",
     "vtkRenderLargeImage",
-]
-for name in as_strings:
+]:
     location[name] = "vtkFiltersHybrid"
 
 
@@ -539,7 +525,7 @@ from vtkmodules.vtkFiltersModeling import (
     vtkSelectPolyData,
     vtkSubdivideTetra,
 )
-as_strings = [
+for name in [
     "vtkAdaptiveSubdivisionFilter",
     "vtkBandedPolyDataContourFilter",
     "vtkButterflySubdivisionFilter",
@@ -558,8 +544,7 @@ as_strings = [
     "vtkSelectEnclosedPoints",
     "vtkSelectPolyData",
     "vtkSubdivideTetra",
-]
-for name in as_strings:
+]:
     location[name] = "vtkFiltersModeling"
 
 try:
@@ -590,7 +575,7 @@ from vtkmodules.vtkFiltersPoints import (
     vtkSignedDistance,
     vtkVoronoiKernel,
 )
-as_strings = [
+for name in [
     "vtkConnectedPointsFilter",
     "vtkDensifyPointCloudFilter",
     "vtkEuclideanClusterExtraction",
@@ -605,8 +590,7 @@ as_strings = [
     "vtkShepardKernel",
     "vtkSignedDistance",
     "vtkVoronoiKernel",
-]
-for name in as_strings:
+]:
     location[name] = "vtkFiltersPoints"
 
 
@@ -629,7 +613,7 @@ from vtkmodules.vtkFiltersSources import (
     vtkTexturedSphereSource,
     vtkTessellatedBoxSource,
 )
-as_strings = [
+for name in [
     "vtkArcSource",
     "vtkArrowSource",
     "vtkConeSource",
@@ -648,8 +632,7 @@ as_strings = [
     "vtkSphereSource",
     "vtkTexturedSphereSource",
     "vtkTessellatedBoxSource",
-]
-for name in as_strings:
+]:
     location[name] = "vtkFiltersSources"
 
 location["vtkTextureMapToPlane"] = "vtkFiltersTexture"
@@ -663,7 +646,7 @@ location["vtkX3DExporter"] = "vtkIOExport"
 
 location["vtkGL2PSExporter"] = "vtkIOExportGL2PS"
 
-as_strings = [
+for name in [
     "vtkBYUReader",
     "vtkFacetWriter",
     "vtkOBJReader",
@@ -671,11 +654,10 @@ as_strings = [
     "vtkParticleReader",
     "vtkSTLReader",
     "vtkSTLWriter",
-]
-for name in as_strings:
+]:
     location[name] = "vtkIOGeometry"
 
-as_strings = [
+for name in [
     "vtkBMPReader",
     "vtkBMPWriter",
     "vtkDEMReader",
@@ -693,15 +675,14 @@ as_strings = [
     "vtkSLCReader",
     "vtkTIFFReader",
     "vtkTIFFWriter",
-]
-for name in as_strings:
+]:
     location[name] = "vtkIOImage"
 
 location["vtk3DSImporter"] = "vtkIOImport"
 location["vtkOBJImporter"] = "vtkIOImport"
 location["vtkVRMLImporter"] = "vtkIOImport"
 
-as_strings = [
+for name in [
     "vtkSimplePointsWriter",
     "vtkStructuredGridReader",
     "vtkStructuredPointsReader",
@@ -710,15 +691,14 @@ as_strings = [
     "vtkPolyDataWriter",
     "vtkRectilinearGridReader",
     "vtkUnstructuredGridReader",
-]
-for name in as_strings:
+]:
     location[name] = "vtkIOLegacy"
 
 
 location["vtkPLYReader"] = "vtkIOPLY"
 location["vtkPLYWriter"] = "vtkIOPLY"
 
-as_strings = [
+for name in [
     "vtkXMLGenericDataObjectReader",
     "vtkXMLImageDataReader",
     "vtkXMLImageDataWriter",
@@ -732,8 +712,7 @@ as_strings = [
     "vtkXMLStructuredGridReader",
     "vtkXMLUnstructuredGridReader",
     "vtkXMLUnstructuredGridWriter",
-]
-for name in as_strings:
+]:
     location[name] = "vtkIOXML"
 
 
@@ -761,7 +740,7 @@ from vtkmodules.vtkImagingCore import (
     vtkImageThreshold,
     vtkImageTranslateExtent,
 )
-as_strings = [
+for name in [
     "vtkImageAppendComponents",
     "vtkImageBlend",
     "vtkImageCast",
@@ -776,8 +755,7 @@ as_strings = [
     "vtkImageReslice",
     "vtkImageThreshold",
     "vtkImageTranslateExtent",
-]
-for name in as_strings:
+]:
     location[name] = "vtkImagingCore"
 
 from vtkmodules.vtkImagingFourier import (
@@ -787,14 +765,13 @@ from vtkmodules.vtkImagingFourier import (
     vtkImageFourierCenter,
     vtkImageRFFT,
 )
-as_strings = [
+for name in [
     "vtkImageButterworthHighPass",
     "vtkImageButterworthLowPass",
     "vtkImageFFT",
     "vtkImageFourierCenter",
     "vtkImageRFFT",
-]
-for name in as_strings:
+]:
     location[name] = "vtkImagingFourier"
 
 from vtkmodules.vtkImagingGeneral import (
@@ -807,7 +784,7 @@ from vtkmodules.vtkImagingGeneral import (
     vtkImageMedian3D,
     vtkImageNormalize,
 )
-as_strings = [
+for name in [
     "vtkImageCorrelation",
     "vtkImageEuclideanDistance",
     "vtkImageGaussianSmooth",
@@ -816,13 +793,11 @@ as_strings = [
     "vtkImageLaplacian",
     "vtkImageMedian3D",
     "vtkImageNormalize",
-]
-for name in as_strings:
+]:
     location[name] = "vtkImagingGeneral"
 
 from vtkmodules.vtkImagingHybrid import vtkImageToPoints, vtkSampleFunction
-as_strings = ["vtkImageToPoints", "vtkSampleFunction"]
-for name in as_strings:
+for name in ["vtkImageToPoints", "vtkSampleFunction"]:
     location[name] = "vtkImagingHybrid"
 
 from vtkmodules.vtkImagingMath import (
@@ -832,28 +807,26 @@ from vtkmodules.vtkImagingMath import (
     vtkImageMagnitude,
     vtkImageMathematics,
 )
-as_strings = [
+for name in [
     "vtkImageDivergence",
     "vtkImageDotProduct",
     "vtkImageLogarithmicScale",
     "vtkImageMagnitude",
     "vtkImageMathematics",
-]
-for name in as_strings:
+]:
     location[name] = "vtkImagingMath"
 
-as_strings = [
+for name in [
     "vtkImageContinuousDilate3D",
     "vtkImageContinuousErode3D",
-]
-for name in as_strings:
+]:
     location[name] = "vtkImagingMorphological"
 
 location["vtkImageCanvasSource2D"] = "vtkImagingSources"
 
 location["vtkImageStencil"] = "vtkImagingStencil"
 
-as_strings = [
+for name in [
     "vtkCircularLayoutStrategy",
     "vtkClustering2DLayoutStrategy",
     "vtkConeLayoutStrategy",
@@ -863,11 +836,10 @@ as_strings = [
     "vtkSimple2DLayoutStrategy",
     "vtkSimple3DCirclesStrategy",
     "vtkSpanTreeLayoutStrategy",
-]
-for name in as_strings:
+]:
     location[name] = "vtkInfovisLayout"
 
-as_strings = [
+for name in [
     "vtkInteractorStyleFlight",
     "vtkInteractorStyleImage",
     "vtkInteractorStyleJoystickActor",
@@ -880,8 +852,7 @@ as_strings = [
     "vtkInteractorStyleTrackballCamera",
     "vtkInteractorStyleUnicam",
     "vtkInteractorStyleUser",
-]
-for name in as_strings:
+]:
     location[name] = "vtkInteractionStyle"
 
 from vtkmodules.vtkInteractionWidgets import (
@@ -900,7 +871,7 @@ from vtkmodules.vtkInteractionWidgets import (
     vtkSliderWidget,
     vtkSphereWidget,
 )
-as_strings = [
+for name in [
     "vtkBalloonRepresentation",
     "vtkBalloonWidget",
     "vtkBoxWidget",
@@ -915,8 +886,7 @@ as_strings = [
     "vtkSliderRepresentation3D",
     "vtkSliderWidget",
     "vtkSphereWidget",
-]
-for name in as_strings:
+]:
     location[name] = "vtkInteractionWidgets"
 
 location["vtkCameraOrientationWidget"] = "vtkInteractionWidgets"
@@ -935,7 +905,7 @@ from vtkmodules.vtkRenderingAnnotation import (
     vtkScalarBarActor,
     vtkXYPlotActor,
 )
-as_strings = [
+for name in [
     "vtkAnnotatedCubeActor",
     "vtkAxesActor",
     "vtkAxisActor2D",
@@ -947,8 +917,7 @@ as_strings = [
     "vtkPolarAxesActor",
     "vtkScalarBarActor",
     "vtkXYPlotActor",
-]
-for name in as_strings:
+]:
     location[name] = "vtkRenderingAnnotation"
 
 
@@ -980,7 +949,6 @@ from vtkmodules.vtkRenderingCore import (
     vtkPolyDataMapper,
     vtkPolyDataMapper2D,
     vtkProp,
-    vtkProp3D,
     vtkPropAssembly,
     vtkPropCollection,
     vtkPropPicker,
@@ -1000,7 +968,7 @@ from vtkmodules.vtkRenderingCore import (
     vtkVolumeProperty,
     vtkWindowToImageFilter,
 )
-as_strings = [
+for name in [
     "vtkActor",
     "vtkActor2D",
     "vtkAreaPicker",
@@ -1047,8 +1015,7 @@ as_strings = [
     "vtkVolume",
     "vtkVolumeProperty",
     "vtkWindowToImageFilter",
-]
-for name in as_strings:
+]:
     location[name] = "vtkRenderingCore"
 
 location["vtkVectorText"] = "vtkRenderingFreeType"
@@ -1073,7 +1040,7 @@ from vtkmodules.vtkRenderingOpenGL2 import (
     vtkTranslucentPass,
     vtkVolumetricPass,
 )
-as_strings = [
+for name in [
     "vtkDepthOfFieldPass",
     "vtkCameraPass",
     "vtkDualDepthPeelingPass",
@@ -1088,8 +1055,7 @@ as_strings = [
     "vtkShadowMapPass",
     "vtkTranslucentPass",
     "vtkVolumetricPass",
-]
-for name in as_strings:
+]:
     location[name] = "vtkRenderingOpenGL2"
 
 from vtkmodules.vtkRenderingVolume import (
@@ -1099,28 +1065,25 @@ from vtkmodules.vtkRenderingVolume import (
     vtkUnstructuredGridVolumeRayCastMapper,
     vtkUnstructuredGridVolumeZSweepMapper,
 )
-as_strings = [
+for name in [
     "vtkFixedPointVolumeRayCastMapper",
     "vtkGPUVolumeRayCastMapper",
     "vtkProjectedTetrahedraMapper",
     "vtkUnstructuredGridVolumeRayCastMapper",
     "vtkUnstructuredGridVolumeZSweepMapper",
-]
-for name in as_strings:
+]:
     location[name] = "vtkRenderingVolume"
 
 from vtkmodules.vtkRenderingVolumeOpenGL2 import (
     vtkOpenGLGPUVolumeRayCastMapper,
     vtkSmartVolumeMapper,
 )
-as_strings = [
+for name in [
     "vtkOpenGLGPUVolumeRayCastMapper",
     "vtkSmartVolumeMapper",
-]
-for name in as_strings:
+]:
     location[name] = "vtkRenderingVolumeOpenGL2"
 
 #########################################################
 # print("successfully finished importing vtkmodules")
-del as_strings
-del name
+#########################################################

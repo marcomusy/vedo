@@ -2,11 +2,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-try:
-    import vedo.vtkclasses as vtk
-except ImportError:
-    import vtkmodules.all as vtk
-
+import vedo.vtkclasses as vtk
 
 __docformat__ = "google"
 

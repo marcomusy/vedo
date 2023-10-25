@@ -3,17 +3,15 @@
 import os
 import numpy as np
 
-try:
-    import vedo.vtkclasses as vtk
-except ImportError:
-    import vtkmodules.all as vtk
+import vedo.vtkclasses as vtk
+
+from vedo.pointcloud import Points
+from vedo.mesh import Mesh
+from vedo.volume import Volume
 
 import vedo
 from vedo import settings
 from vedo import utils
-from vedo.pointcloud import Points
-from vedo.mesh import Mesh
-from vedo.volume import Volume
 
 __doc__ = """Submodule to delegate jupyter notebook rendering"""
 

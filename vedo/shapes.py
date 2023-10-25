@@ -1561,7 +1561,7 @@ def StreamLines(
     src.SetExecuteMethod(read_points)
     src.Update()
 
-    st = vtk.vtkStreamTracer()
+    st = vtk.get("StreamTracer")()
     try:
         st.SetInputDataObject(grid.dataset)
     except AttributeError:

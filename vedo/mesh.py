@@ -1717,7 +1717,7 @@ class Mesh(MeshVisual, Points):
 
             ![](https://vedo.embl.es/images/basic/silhouette1.png)
         """
-        sil = vtk.vtkPolyDataSilhouette()
+        sil = vtk.get("PolyDataSilhouette")()
         sil.SetInputData(self.dataset)
         sil.SetBorderEdges(border_edges)
         if feature_angle is False:
