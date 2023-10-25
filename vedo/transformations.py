@@ -146,7 +146,7 @@ class LinearTransform:
         if np.allclose(M - np.eye(4), 0):
             return
 
-        tp = vtk.vtkTransformPolyDataFilter()
+        tp = vtk.get("TransformPolyDataFilter")()
         tp.SetTransform(self.T)
         tp.SetInputData(obj.dataset)
         tp.Update()
@@ -679,7 +679,7 @@ class NonLinearTransform:
 
         obj.transform = self
 
-        tp = vtk.vtkTransformPolyDataFilter()
+        tp = vtk.get("TransformPolyDataFilter")()
         tp.SetTransform(self.T)
         tp.SetInputData(obj.dataset)
         tp.Update()
