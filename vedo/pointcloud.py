@@ -535,7 +535,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.actor = vtk.vtkActor()
         self.properties = self.actor.GetProperty()
         self.properties_backface = self.actor.GetBackfaceProperty()
-        self.mapper = vtk.vtkPolyDataMapper()
+        self.mapper = vtk.get("PolyDataMapper")()
         self.dataset = vtk.vtkPolyData()
         self.transform = LinearTransform()
         self.actor.data = self  # so Actor can access this object

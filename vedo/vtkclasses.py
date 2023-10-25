@@ -112,7 +112,6 @@ location["vtkNamedColors"] = "vtkCommonColor"
 
 from vtkmodules.vtkCommonCore import (
     mutable,
-    VTK_UNSIGNED_CHAR,
     VTK_UNSIGNED_SHORT,
     VTK_UNSIGNED_INT,
     VTK_UNSIGNED_LONG,
