@@ -40,7 +40,7 @@ def delaunay3d(mesh, radius=0, tol=None):
             This tolerance is specified as a fraction of the diagonal length of
             the bounding box of the points.
     """
-    deln = vtk.vtkDelaunay3D()
+    deln = vtk.get("Delaunay3D")()
     if utils.is_sequence(mesh):
         pd = vtk.vtkPolyData()
         vpts = vtk.vtkPoints()
@@ -147,7 +147,7 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
             self.dataset = inputobj.dataset
 
         elif isinstance(inputobj, vtk.vtkRectilinearGrid):
-            r2t = vtk.vtkRectilinearGridToTetrahedra()
+            r2t = vtk.get("RectilinearGridToTetrahedra")()
             r2t.SetInputData(inputobj)
             r2t.RememberVoxelIdOn()
             r2t.SetTetraPerCellTo6()
@@ -155,7 +155,7 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
             self.dataset = r2t.GetOutput()
 
         elif isinstance(inputobj, vtk.vtkDataSet):
-            r2t = vtk.vtkDataSetTriangleFilter()
+            r2t = vtk.get("DataSetTriangleFilter")()
             r2t.SetInputData(inputobj)
             # r2t.TetrahedraOnlyOn()
             r2t.Update()
@@ -166,7 +166,7 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
             if "https://" in inputobj:
                 inputobj = download(inputobj, verbose=False)
             ug = loadUnStructuredGrid(inputobj)
-            tt = vtk.vtkDataSetTriangleFilter()
+            tt = vtk.get("DataSetTriangleFilter")()
             tt.SetInputData(ug)
             tt.SetTetrahedraOnly(True)
             tt.Update()
@@ -177,12 +177,12 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
 
         ###################
         if "tetra" in mapper:
-            self.mapper = vtk.vtkProjectedTetrahedraMapper()
+            self.mapper = vtk.get("ProjectedTetrahedraMapper")()
         elif "ray" in mapper:
-            self.mapper = vtk.vtkUnstructuredGridVolumeRayCastMapper()
+            self.mapper = vtk.get("UnstructuredGridVolumeRayCastMapper")()
         elif "zs" in mapper:
-            self.mapper = vtk.vtkUnstructuredGridVolumeZSweepMapper()
-        elif isinstance(mapper, vtk.vtkMapper):
+            self.mapper = vtk.get("UnstructuredGridVolumeZSweepMapper")()
+        elif isinstance(mapper, vtk.get("Mapper")):
             self.mapper = mapper
         else:
             vedo.logger.error(f"Unknown mapper type {type(mapper)}")
@@ -374,7 +374,7 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
                 This value is used as an epsilon for floating point
                 equality checks throughout the cell checking process.
         """
-        vald = vtk.vtkCellValidator()
+        vald = vtk.get("CellValidator")()
         if tol:
             vald.SetTolerance(tol)
         vald.SetInputData(self.dataset)
@@ -392,7 +392,7 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
 
         Set keyword "on" to either "cells" or "points".
         """
-        th = vtk.vtkThreshold()
+        th = vtk.get("Threshold")()
         th.SetInputData(self.dataset)
 
         if name is None:
@@ -433,7 +433,7 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
 
         .. note:: setting `fraction=0.1` leaves 10% of the original nr of tets.
         """
-        decimate = vtk.vtkUnstructuredGridQuadricDecimation()
+        decimate = vtk.get("UnstructuredGridQuadricDecimation")()
         decimate.SetInputData(self.dataset)
         decimate.SetScalarsName(scalars_name)
 
@@ -454,7 +454,7 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
         Increase the number of tets of a `TetMesh`.
         Subdivide one tetrahedron into twelve for every tetra.
         """
-        sd = vtk.vtkSubdivideTetra()
+        sd = vtk.get("SubdivideTetra")()
         sd.SetInputData(self.dataset)
         sd.Update()
         self._update(sd.GetOutput())
@@ -472,7 +472,7 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
         if not self.dataset.GetPointData().GetScalars():
             self.map_cells_to_points()
         scrange = self.dataset.GetPointData().GetScalars().GetRange()
-        cf = vtk.vtkContourFilter()  # vtk.vtkContourGrid()
+        cf = vtk.get("ContourFilter")()  # vtk.get("ContourGrid")()
         cf.SetInputData(self.dataset)
 
         if utils.is_sequence(value):
@@ -486,7 +486,7 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
             cf.SetValue(0, value)
             cf.Update()
 
-        clp = vtk.vtkCleanPolyData()
+        clp = vtk.get("CleanPolyData")()
         clp.SetInputData(cf.GetOutput())
         clp.Update()
         msh = Mesh(clp.GetOutput(), c=None).phong()
@@ -505,11 +505,11 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
         elif strn == "-x": normal = (-1, 0, 0)
         elif strn == "-y": normal = (0, -1, 0)
         elif strn == "-z": normal = (0, 0, -1)
-        plane = vtk.vtkPlane()
+        plane = vtk.get("Plane")()
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
 
-        cc = vtk.vtkCutter()
+        cc = vtk.get("Cutter")()
         cc.SetInputData(self.dataset)
         cc.SetCutFunction(plane)
         cc.Update()
