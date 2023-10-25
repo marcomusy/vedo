@@ -515,7 +515,7 @@ def geometry(obj, extent=None):
 
     Set `extent` as the `[xmin,xmax, ymin,ymax, zmin,zmax]` bounding box to clip data.
     """
-    gf = vtk.vtkGeometryFilter()
+    gf = vtk.get("GeometryFilter")()
     gf.SetInputData(obj)
     if extent is not None:
         gf.SetExtent(extent)
@@ -536,7 +536,7 @@ def extract_cells_by_type(obj, types=()):
     Return:
         a `vtkDataSet` object which can be wrapped.
     """
-    ef = vtk.vtkExtractCellsByType()
+    ef = vtk.get("ExtractCellsByType")()
     try:
         ef.SetInputData(obj.dataset)
     except AttributeError:
