@@ -90,7 +90,7 @@ class CommonVisual:
 
         actor = self.actor
         if isinstance(self, vedo.UGrid):
-            geo = vtk.vtkGeometryFilter()
+            geo = vtk.get("GeometryFilter")()
             geo.SetInputData(self.dataset)
             geo.Update()
             actor = vedo.Mesh(geo.GetOutput()).cmap("rainbow").actor
@@ -492,7 +492,7 @@ class PointsVisual(CommonVisual):
         vrange = self.mapper.GetScalarRange()
         sm = self.mapper.GetScalarMode()
 
-        mapper2d = vtk.vtkPolyDataMapper2D()
+        mapper2d = vtk.get("PolyDataMapper2D")()
         mapper2d.ShallowCopy(self.mapper)
         mapper2d.SetInputData(poly)
         mapper2d.SetColorMode(cm)
@@ -1328,7 +1328,7 @@ class PointsVisual(CommonVisual):
             vedo.logger.error("in labels(), array not found for points or cells")
             return None
 
-        tapp = vtk.vtkAppendPolyData()
+        tapp = vtk.get("AppendPolyData")()
         ninputs = 0
 
         for i, e in enumerate(elems):
@@ -1391,7 +1391,7 @@ class PointsVisual(CommonVisual):
                     T.RotateZ(zrot)
             T.Scale(scale, scale, scale)
             T.Translate(e)
-            tf = vtk.vtkTransformPolyDataFilter()
+            tf = vtk.get("TransformPolyDataFilter")()
             tf.SetInputData(tx_poly)
             tf.SetTransform(T)
             tf.Update()
@@ -1839,7 +1839,7 @@ class PointsVisual(CommonVisual):
         capt.SetAttachmentPoint(point)
         capt.SetBorder(True)
         capt.SetLeader(True)
-        sph = vtk.vtkSphereSource()
+        sph = vtk.get("SphereSource")()
         sph.Update()
         capt.SetLeaderGlyphData(sph.GetOutput())
         capt.SetMaximumLeaderGlyphSize(5)
