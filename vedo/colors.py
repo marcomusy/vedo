@@ -796,7 +796,7 @@ def get_color(rgb=None, hsv=None):
             return tuple(rgbh)
 
         else:  # vtk name color
-            namedColors = vtk.get("NamedColors")
+            namedColors = vtk.get("NamedColors")()
             rgba = [0, 0, 0, 0]
             namedColors.GetColor(c, rgba)
             return (rgba[0] / 255.0, rgba[1] / 255.0, rgba[2] / 255.0)

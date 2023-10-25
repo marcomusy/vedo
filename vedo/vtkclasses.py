@@ -77,6 +77,10 @@ def dump_hierarchy_to_file(fname=""):
                 w.write(f"{module.__name__}.{subitem}\n")
 
 ######################################################################
+
+import vtkmodules.vtkRenderingOpenGL2
+
+
 for name in [
     "vtkKochanekSpline",
     "vtkCardinalSpline",
@@ -335,11 +339,12 @@ for name in [
     "vtkUnstructuredGridQuadricDecimation",
     "vtkVoronoi2D",
     "vtkWindowedSincPolyDataFilter",
+    "vtkStaticCleanUnstructuredGrid",
+    "vtkPolyDataPlaneCutter"
 ]:
     location[name] = "vtkFiltersCore"
+from vtkmodules.vtkFiltersCore import vtkGlyph3D
 
-location["vtkStaticCleanUnstructuredGrid"] = "vtkFiltersCore"
-location["vtkPolyDataPlaneCutter"] = "vtkFiltersCore"
 
 for name in [
     "vtkExtractCellsByType",
@@ -567,6 +572,7 @@ for name in [
     "vtkImageReslice",
     "vtkImageThreshold",
     "vtkImageTranslateExtent",
+    "vtkExtractVOI",
 ]:
     location[name] = "vtkImagingCore"
 
@@ -687,7 +693,6 @@ from vtkmodules.vtkRenderingAnnotation import (
     vtkLegendBoxActor,
     vtkLegendScaleActor,
     vtkScalarBarActor,
-    vtkXYPlotActor,
 )
 for name in [
     "vtkAnnotatedCubeActor",
@@ -811,6 +816,7 @@ for name in [
 ]:
     location[name] = "vtkRenderingOpenGL2"
 
+
 for name in [
     "vtkFixedPointVolumeRayCastMapper",
     "vtkGPUVolumeRayCastMapper",
@@ -820,7 +826,10 @@ for name in [
 ]:
     location[name] = "vtkRenderingVolume"
 
-
+from vtkmodules.vtkRenderingVolumeOpenGL2 import (
+    vtkOpenGLGPUVolumeRayCastMapper,
+    vtkSmartVolumeMapper,
+)
 for name in [
     "vtkOpenGLGPUVolumeRayCastMapper",
     "vtkSmartVolumeMapper",

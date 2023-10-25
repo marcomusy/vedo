@@ -2010,7 +2010,7 @@ class Plotter:
         sequence = vtk.get("SequencePass")()
         sequence.SetPasses(collection)
 
-        cam = vtk.get("")()
+        cam = vtk.get("CameraPass")()
         cam.SetDelegatePass(sequence)
 
         self.renderer.SetPass(cam)

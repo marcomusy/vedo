@@ -45,7 +45,7 @@ __all__ = [
 ##########################################################################
 def _to2d(obj, offset, scale):
 
-    tp = vtk.vtkTransformPolyDataFilter()
+    tp = vtk.get("TransformPolyDataFilter")()
     transform = vtk.vtkTransform()
     transform.Scale(scale, scale, scale)
     transform.Translate(-offset[0], -offset[1], 0)
@@ -55,7 +55,7 @@ def _to2d(obj, offset, scale):
 
     poly = tp.GetOutput()
 
-    mapper2d = vtk.vtkPolyDataMapper2D()
+    mapper2d = vtk.get("PolyDataMapper2D")()
     mapper2d.SetInputData(poly)
 
     act2d = vtk.vtkActor2D()
@@ -2711,7 +2711,7 @@ def _plot_fxy(
     if c is not None:
         texture = None  # disable
 
-    ps = vtk.vtkPlaneSource()
+    ps = vtk.get("PlaneSource")()
     ps.SetResolution(bins[0], bins[1])
     ps.SetNormal([0, 0, 1])
     ps.Update()
@@ -2746,7 +2746,7 @@ def _plot_fxy(
             for j in range(cellIds.GetNumberOfIds()):
                 poly.DeleteCell(cellIds.GetId(j))  # flag cell
         poly.RemoveDeletedCells()
-        cl = vtk.vtkCleanPolyData()
+        cl = vtk.get("CleanPolyData")()
         cl.SetInputData(poly)
         cl.Update()
         poly = cl.GetOutput()
@@ -2777,13 +2777,13 @@ def _plot_fxy(
 
     acts = [mesh]
     if zlevels:
-        elevation = vtk.vtkElevationFilter()
+        elevation = vtk.get("ElevationFilter")()
         elevation.SetInputData(poly)
         bounds = poly.GetBounds()
         elevation.SetLowPoint(0, 0, bounds[4])
         elevation.SetHighPoint(0, 0, bounds[5])
         elevation.Update()
-        bcf = vtk.vtkBandedPolyDataContourFilter()
+        bcf = vtk.get("BandedPolyDataContourFilter")()
         bcf.SetInputData(elevation.GetOutput())
         bcf.SetScalarModeToValue()
         bcf.GenerateContourEdgesOn()
@@ -2828,7 +2828,7 @@ def _plot_fz(
     bins=(75, 75),
     axes=True,
 ):
-    ps = vtk.vtkPlaneSource()
+    ps = vtk.get("PlaneSource")()
     ps.SetResolution(bins[0], bins[1])
     ps.SetNormal([0, 0, 1])
     ps.Update()
@@ -3140,7 +3140,7 @@ def _histogram_hex_bin(
     r = 0.47 / n * 1.2 * dx
     for i in range(n + 3):
         for j in range(m + 2):
-            cyl = vtk.vtkCylinderSource()
+            cyl = vtk.get("CylinderSource")()
             cyl.SetResolution(6)
             cyl.CappingOn()
             cyl.SetRadius(0.5)
@@ -3159,7 +3159,7 @@ def _histogram_hex_bin(
             else:
                 t.Translate(p[0], p[1], ne)
             t.RotateX(90)  # put it along Z
-            tf = vtk.vtkTransformPolyDataFilter()
+            tf = vtk.get("TransformPolyDataFilter")()
             tf.SetInputData(cyl.GetOutput())
             tf.SetTransform(t)
             tf.Update()
@@ -3908,7 +3908,7 @@ def CornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True, dots=T
     data = vtk.vtkDataObject()
     data.SetFieldData(field)
 
-    xyplot = vtk.vtkXYPlotActor()
+    xyplot = vtk.get("XYPlotActor")()
     xyplot.AddDataObjectInput(data)
     xyplot.SetDataObjectXComponent(0, 0)
     xyplot.SetDataObjectYComponent(0, 1)
@@ -4315,7 +4315,7 @@ class DirectedGraph(Assembly):
         # Use Glyph3D to repeat the glyph on all edges.
         arrows = None
         if self.arrow_scale:
-            arrow_source = vtk.vtkGlyphSource2D()
+            arrow_source = vtk.get("GlyphSource2D")()
             arrow_source.SetGlyphTypeToEdgeArrow()
             arrow_source.SetScale(self.arrow_scale)
             arrow_source.Update()
