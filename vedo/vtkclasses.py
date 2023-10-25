@@ -224,11 +224,13 @@ location["vtkQuaternion"] = "vtkCommonMath"
 from vtkmodules.vtkCommonTransforms import (
     vtkHomogeneousTransform,
     vtkLandmarkTransform,
+    vtkLinearTransform,
     vtkThinPlateSplineTransform,
     vtkTransform,
 )
 location["vtkHomogeneousTransform"] = "vtkCommonTransforms"
 location["vtkLandmarkTransform"] = "vtkCommonTransforms"
+location["vtkLinearTransform"] = "vtkCommonTransforms"
 location["vtkThinPlateSplineTransform"] = "vtkCommonTransforms"
 location["vtkTransform"] = "vtkCommonTransforms"
 
