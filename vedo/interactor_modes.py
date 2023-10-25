@@ -1358,7 +1358,7 @@ class BlenderStyle(vtk.get("InteractorStyleUser")):
 
         #
         # # can we add something to the window here?
-        # freeType = vtk.vtkFreeTypeTools.GetInstance()
+        # freeType = vtk.get("FreeTypeTools.GetInstance()
         # textProperty = vtk.vtkTextProperty()
         # textProperty.SetJustificationToLeft()
         # textProperty.SetFontSize(24)
@@ -1381,7 +1381,7 @@ class BlenderStyle(vtk.get("InteractorStyleUser")):
         if self.middle_mouse_lock_actor is None:
             # create the actor
             # Create a text on the top-rightcenter
-            textMapper = vtk.vtkTextMapper()
+            textMapper = vtk.get("TextMapper")()
             textMapper.SetInput("Middle mouse lock [m or space] active")
             textProp = textMapper.GetTextProperty()
             textProp.SetFontSize(12)
