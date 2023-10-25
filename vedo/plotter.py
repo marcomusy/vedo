@@ -832,7 +832,7 @@ class Plotter:
 
             if ren:
 
-                if isinstance(a, vtk.get("InteractorObserver")):
+                if isinstance(a, vtk.vtkInteractorObserver):
                     a.add_to(self)  # from cutters
                     continue
 
@@ -909,7 +909,7 @@ class Plotter:
 
             if ren:  ### remove it from the renderer
 
-                if isinstance(ob, vtk.get("InteractorObserver")):
+                if isinstance(ob, vtk.vtkInteractorObserver):
                     ob.remove_from(self)  # from cutters
                     continue
 
@@ -1296,7 +1296,7 @@ class Plotter:
 
         assert len(times) == nc
 
-        cin = vtk.vtkCameraInterpolator()
+        cin = vtk.get("CameraInterpolator")()
 
         # cin.SetInterpolationTypeToLinear() # bugged?
         if nc > 2 and smooth:
@@ -1384,7 +1384,7 @@ class Plotter:
         if not self.interactor:
             vedo.logger.warning("Cannot record events, no interactor defined.")
             return self
-        erec = vtk.vtkInteractorEventRecorder()
+        erec = vtk.get("InteractorEventRecorder")()
         erec.SetInteractor(self.interactor)
         erec.SetFileName(filename)
         erec.SetKeyPressActivationValue("R")
@@ -1415,7 +1415,7 @@ class Plotter:
             vedo.logger.warning("Cannot play events, no interactor defined.")
             return self
 
-        erec = vtk.vtkInteractorEventRecorder()
+        erec = vtk.get("InteractorEventRecorder")()
         erec.SetInteractor(self.interactor)
 
         if events.endswith(".log"):
@@ -1944,13 +1944,13 @@ class Plotter:
     def add_shadows(self):
         """Add shadows at the current renderer."""
         if self.renderer:
-            shadows = vtk.vtkShadowMapPass()
-            seq = vtk.vtkSequencePass()
-            passes = vtk.vtkRenderPassCollection()
+            shadows = vtk.get("ShadowMapPass")()
+            seq = vtk.get("SequencePass")()
+            passes = vtk.get("RenderPassCollection")()
             passes.AddItem(shadows.GetShadowMapBakerPass())
             passes.AddItem(shadows)
             seq.SetPasses(passes)
-            camerapass = vtk.vtkCameraPass()
+            camerapass = vtk.get("CameraPass")()
             camerapass.SetDelegatePass(seq)
             self.renderer.SetPass(camerapass)
         return self
@@ -1978,39 +1978,39 @@ class Plotter:
 
             ![](https://vedo.embl.es/images/basic/ssao.jpg)
         """
-        lights = vtk.vtkLightsPass()
+        lights = vtk.get("LightsPass")()
 
-        opaque = vtk.vtkOpaquePass()
+        opaque = vtk.get("OpaquePass")()
 
-        ssaoCam = vtk.vtkCameraPass()
+        ssaoCam = vtk.get("CameraPass")()
         ssaoCam.SetDelegatePass(opaque)
 
-        ssao = vtk.vtkSSAOPass()
+        ssao = vtk.get("SSAOPass")()
         ssao.SetRadius(radius)
         ssao.SetBias(bias)
         ssao.SetBlur(blur)
         ssao.SetKernelSize(samples)
         ssao.SetDelegatePass(ssaoCam)
 
-        translucent = vtk.vtkTranslucentPass()
+        translucent = vtk.get("TranslucentPass")()
 
-        volpass = vtk.vtkVolumetricPass()
-        ddp = vtk.vtkDualDepthPeelingPass()
+        volpass = vtk.get("VolumetricPass")()
+        ddp = vtk.get("DualDepthPeelingPass")()
         ddp.SetTranslucentPass(translucent)
         ddp.SetVolumetricPass(volpass)
 
-        over = vtk.vtkOverlayPass()
+        over = vtk.get("OverlayPass")()
 
-        collection = vtk.vtkRenderPassCollection()
+        collection = vtk.get("RenderPassCollection")()
         collection.AddItem(lights)
         collection.AddItem(ssao)
         collection.AddItem(ddp)
         collection.AddItem(over)
 
-        sequence = vtk.vtkSequencePass()
+        sequence = vtk.get("SequencePass")()
         sequence.SetPasses(collection)
 
-        cam = vtk.vtkCameraPass()
+        cam = vtk.get("")()
         cam.SetDelegatePass(sequence)
 
         self.renderer.SetPass(cam)
@@ -2018,25 +2018,25 @@ class Plotter:
 
     def add_depth_of_field(self, autofocus=True):
         """Add a depth of field effect in the scene."""
-        lights = vtk.vtkLightsPass()
+        lights = vtk.get("LightsPass")()
 
-        opaque = vtk.vtkOpaquePass()
+        opaque = vtk.get("OpaquePass")()
 
-        dofCam = vtk.vtkCameraPass()
+        dofCam = vtk.get("CameraPass")()
         dofCam.SetDelegatePass(opaque)
 
-        dof = vtk.vtkDepthOfFieldPass()
+        dof = vtk.get("DepthOfFieldPass")()
         dof.SetAutomaticFocalDistance(autofocus)
         dof.SetDelegatePass(dofCam)
 
-        collection = vtk.vtkRenderPassCollection()
+        collection = vtk.get("RenderPassCollection")()
         collection.AddItem(lights)
         collection.AddItem(dof)
 
-        sequence = vtk.vtkSequencePass()
+        sequence = vtk.get("SequencePass")()
         sequence.SetPasses(collection)
 
-        cam = vtk.vtkCameraPass()
+        cam = vtk.get("CameraPass")()
         cam.SetDelegatePass(sequence)
 
         self.renderer.SetPass(cam)
@@ -2059,7 +2059,7 @@ class Plotter:
             texture.SetInputData(reader.GetOutput())
 
             # Convert to a cube map
-            tcm = vtk.vtkEquirectangularToCubeMapTexture()
+            tcm = vtk.get("EquirectangularToCubeMapTexture")()
             tcm.SetInputTexture(texture)
             # Enable mipmapping to handle HDR image
             tcm.MipmapOn()
@@ -2067,7 +2067,7 @@ class Plotter:
 
             self.renderer.SetEnvironmentTexture(tcm)
             self.renderer.UseImageBasedLightingOn()
-            self.skybox = vtk.vtkSkybox()
+            self.skybox = vtk.get("Skybox")()
             self.skybox.SetTexture(tcm)
             self.renderer.AddActor(self.skybox)
 
@@ -2307,17 +2307,17 @@ class Plotter:
 
         rlabel = vtk.get("VectorText")()
         rlabel.SetText("scale")
-        tf = vtk.vtkTransformPolyDataFilter()
+        tf = vtk.get("TransformPolyDataFilter")()
         tf.SetInputConnection(rlabel.GetOutputPort())
         t = vtk.vtkTransform()
         t.Scale(s * wsy / wsx, s, 1)
         tf.SetTransform(t)
 
-        app = vtk.vtkAppendPolyData()
+        app = vtk.get("AppendPolyData")()
         app.AddInputConnection(tf.GetOutputPort())
         app.AddInputData(pd)
 
-        mapper = vtk.vtkPolyDataMapper2D()
+        mapper = vtk.get("PolyDataMapper2D")()
         mapper.SetInputConnection(app.GetOutputPort())
         cs = vtk.vtkCoordinate()
         cs.SetCoordinateSystem(1)
@@ -2767,7 +2767,7 @@ class Plotter:
         area_picker.AreaPick(pos1[0], pos1[1], pos2[0], pos2[1], ren)
         planes = area_picker.GetFrustum()
 
-        fru = vtk.vtkFrustumSource()
+        fru = vtk.get("FrustumSource")()
         fru.SetPlanes(planes)
         fru.ShowLinesOff()
         fru.Update()
@@ -2874,7 +2874,7 @@ class Plotter:
             elif isinstance(a, vtk.vtkImageData):
                 scanned_acts.append(vedo.Volume(a).actor)
 
-            elif isinstance(a, vtk.vtkMultiBlockDataSet):
+            elif isinstance(a, vtk.get("MultiBlockDataSet")):
                 for i in range(a.GetNumberOfBlocks()):
                     b = a.GetBlock(i)
                     if isinstance(b, vtk.vtkPolyData):
@@ -2882,7 +2882,7 @@ class Plotter:
                     elif isinstance(b, vtk.vtkImageData):
                         scanned_acts.append(vedo.Volume(b).actor)
 
-            elif isinstance(a, (vtk.vtkProp, vtk.get("InteractorObserver"))):
+            elif isinstance(a, (vtk.vtkProp, vtk.vtkInteractorObserver)):
                 scanned_acts.append(a)
 
             elif "trimesh" in str(type(a)):
@@ -3451,11 +3451,11 @@ class Plotter:
                 set image magnification as an integer multiplicating factor
         """
         if settings.screeshot_large_image:
-            w2if = vtk.vtkRenderLargeImage()
+            w2if = vtk.get("RenderLargeImage")()
             w2if.SetInput(self.renderer)
             w2if.SetMagnification(scale)
         else:
-            w2if = vtk.vtkWindowToImageFilter()
+            w2if = vtk.get("WindowToImageFilter")()
             w2if.SetInput(self.window)
             if hasattr(w2if, "SetScale"):
                 w2if.SetScale(scale, scale)
@@ -3478,7 +3478,7 @@ class Plotter:
 
     def color_picker(self, xy, verbose=False):
         """Pick color of specific (x,y) pixel on the screen."""
-        w2if = vtk.vtkWindowToImageFilter()
+        w2if = vtk.get("WindowToImageFilter")()
         w2if.SetInput(self.window)
         w2if.ReadFrontBufferOff()
         w2if.Update()
