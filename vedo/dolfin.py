@@ -366,15 +366,15 @@ def plot(*inputobj, **options):
     if vedo.plotter_instance:
         if xtitle != "x":
             aet = vedo.plotter_instance.axes_instances
-            if len(aet) > at and isinstance(aet[at], vtk.vtkCubeAxesActor):
+            if len(aet) > at and isinstance(aet[at], vtk.get("CubeAxesActor")):
                 aet[at].SetXTitle(xtitle)
         if ytitle != "y":
             aet = vedo.plotter_instance.axes_instances
-            if len(aet) > at and isinstance(aet[at], vtk.vtkCubeAxesActor):
+            if len(aet) > at and isinstance(aet[at], vtk.get("CubeAxesActor")):
                 aet[at].SetYTitle(ytitle)
         if ztitle != "z":
             aet = vedo.plotter_instance.axes_instances
-            if len(aet) > at and isinstance(aet[at], vtk.vtkCubeAxesActor):
+            if len(aet) > at and isinstance(aet[at], vtk.get("CubeAxesActor")):
                 aet[at].SetZTitle(ztitle)
 
     # change some default to emulate standard behaviours
