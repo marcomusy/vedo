@@ -472,7 +472,7 @@ class Slicer2DPlotter(Plotter):
         orig_volume = vol.clone(deep=False)
         self.volume = vol
 
-        self.volume.actor = vtk.vtkImageSlice()
+        self.volume.actor = vtk.get("ImageSlice")()
         self.volume.properties = self.volume.actor.GetProperty()
 
         self.volume.mapper = vtk.get("ImageResliceMapper")()
