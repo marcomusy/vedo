@@ -1397,7 +1397,7 @@ class Slider2D(SliderWidget):
         if value is None or value < xmin:
             value = xmin
 
-        slider_rep = vtk.vtkSliderRepresentation2D()
+        slider_rep = vtk.get("SliderRepresentation2D")()
         slider_rep.SetMinimumValue(xmin)
         slider_rep.SetMaximumValue(xmax)
         slider_rep.SetValue(value)
@@ -1595,7 +1595,7 @@ class Slider3D(SliderWidget):
         if value is None or value < xmin:
             value = xmin
 
-        slider_rep = vtk.vtkSliderRepresentation3D()
+        slider_rep = vtk.get("SliderRepresentation3D")()
         slider_rep.SetMinimumValue(xmin)
         slider_rep.SetMaximumValue(xmax)
         slider_rep.SetValue(value)
@@ -1758,10 +1758,10 @@ class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
         self._alpha = alpha
         self._keypress_id = None
 
-        self._implicit_func = vtk.vtkPlane()
+        self._implicit_func = vtk.get("Plane")()
 
         poly = mesh.dataset
-        self.clipper = vtk.vtkClipPolyData()
+        self.clipper = vtk.get("ClipPolyData")()
         self.clipper.GenerateClipScalarsOff()
         self.clipper.SetInputData(poly)
         self.clipper.SetClipFunction(self._implicit_func)
@@ -1769,7 +1769,7 @@ class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
         self.clipper.GenerateClippedOutputOn()
         self.clipper.Update()
 
-        self.widget = vtk.vtkImplicitPlaneWidget()
+        self.widget = vtk.get("ImplicitPlaneWidget")()
 
         # self.widget.KeyPressActivationOff()
         # self.widget.SetKeyPressActivationValue('i')
@@ -1902,11 +1902,11 @@ class BoxCutter(vtk.vtkBoxWidget, BaseCutter):
         else:
             self._init_bounds = initial_bounds
 
-        self._implicit_func = vtk.vtkPlanes()
+        self._implicit_func = vtk.get("Planes")()
         self._implicit_func.SetBounds(self._init_bounds)
 
         poly = mesh.dataset
-        self.clipper = vtk.vtkClipPolyData()
+        self.clipper = vtk.get("ClipPolyData")()
         self.clipper.GenerateClipScalarsOff()
         self.clipper.SetInputData(poly)
         self.clipper.SetClipFunction(self._implicit_func)
@@ -2012,7 +2012,7 @@ class SphereCutter(vtk.vtkSphereWidget, BaseCutter):
         self._alpha = alpha
         self._keypress_id = None
 
-        self._implicit_func = vtk.vtkSphere()
+        self._implicit_func = vtk.get("Sphere")()
 
         if len(origin) == 3:
             self._implicit_func.SetCenter(origin)
@@ -2027,7 +2027,7 @@ class SphereCutter(vtk.vtkSphereWidget, BaseCutter):
             self._implicit_func.SetRadius(radius)
 
         poly = mesh.dataset
-        self.clipper = vtk.vtkClipPolyData()
+        self.clipper = vtk.get("ClipPolyData")()
         self.clipper.GenerateClipScalarsOff()
         self.clipper.SetInputData(poly)
         self.clipper.SetClipFunction(self._implicit_func)
@@ -2127,9 +2127,9 @@ class RendererFrame(vtk.vtkActor2D):
         pd.SetPoints(ppoints)
         pd.SetLines(lines)
 
-        mapper = vtk.vtkPolyDataMapper2D()
+        mapper = vtk.get("PolyDataMapper2D")()
         mapper.SetInputData(pd)
-        cs = vtk.vtkCoordinate()
+        cs = vtk.get("Coordinate")()
         cs.SetCoordinateSystemToNormalizedViewport()
         mapper.SetTransformCoordinate(cs)
 
@@ -2181,7 +2181,7 @@ class ProgressBarWidget(vtk.vtkActor2D):
         pd.SetLines(lines)
         self._data = pd
 
-        mapper = vtk.vtkPolyDataMapper2D()
+        mapper = vtk.get("PolyDataMapper2D")()
         mapper.SetInputData(pd)
         cs = vtk.vtkCoordinate()
         cs.SetCoordinateSystemToNormalizedViewport()
@@ -4211,7 +4211,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         plt.widgets.append(icn)
 
     elif plt.axes == 5:
-        axact = vtk.vtkAnnotatedCubeActor()
+        axact = vtk.get("AnnotatedCubeActor")()
         axact.GetCubeProperty().SetColor(get_color(settings.annotated_cube_color))
         axact.SetTextEdgesVisibility(0)
         axact.SetFaceTextScale(settings.annotated_cube_text_scale)
@@ -4248,7 +4248,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         plt.widgets.append(icn)
 
     elif plt.axes == 6:
-        ocf = vtk.vtkOutlineCornerFilter()
+        ocf = vtk.get("OutlineCornerFilter")()
         ocf.SetCornerFactor(0.1)
         largestact, sz = None, -1
         for a in plt.objects:
@@ -4273,7 +4273,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
                 return
         ocf.Update()
 
-        oc_mapper = vtk.vtkHierarchicalPolyDataMapper()
+        oc_mapper = vtk.get("HierarchicalPolyDataMapper")()
         oc_mapper.SetInputConnection(0, ocf.GetOutputPort(0))
         oc_actor = vtk.vtkActor()
         oc_actor.SetMapper(oc_mapper)
@@ -4300,7 +4300,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
 
     elif plt.axes == 8:
         vbb = compute_visible_bounds()[0]
-        ca = vtk.vtkCubeAxesActor()
+        ca = vtk.get("CubeAxesActor")()
         ca.SetBounds(vbb)
         ca.SetCamera(plt.renderer.GetActiveCamera())
         ca.GetXAxesLinesProperty().SetColor(c)
@@ -4321,7 +4321,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
 
     elif plt.axes == 9:
         vbb = compute_visible_bounds()[0]
-        src = vtk.vtkCubeSource()
+        src = vtk.get("CubeSource")()
         src.SetXLength(vbb[1] - vbb[0])
         src.SetYLength(vbb[3] - vbb[2])
         src.SetZLength(vbb[5] - vbb[4])
@@ -4363,7 +4363,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         plt.add(gr)
 
     elif plt.axes == 12:
-        polaxes = vtk.vtkPolarAxesActor()
+        polaxes = vtk.get("PolarAxesActor")()
         vbb = compute_visible_bounds()[0]
 
         polaxes.SetPolarAxisTitle("radial distance")
@@ -4395,7 +4395,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
 
     elif plt.axes == 13:
         # draws a simple ruler at the bottom of the window
-        ls = vtk.vtkLegendScaleActor()
+        ls = vtk.get("LegendScaleActor")()
         ls.RightAxisVisibilityOff()
         ls.TopAxisVisibilityOff()
         ls.LeftAxisVisibilityOff()
