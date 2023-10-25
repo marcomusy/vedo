@@ -550,7 +550,7 @@ def loadStructuredPoints(filename, as_points=True):
     reader.SetFileName(filename)
     reader.Update()
     if as_points:
-        v2p = vtk.vtkImageToPoints()
+        v2p = vtk.get("ImageToPoints")()
         v2p.SetInputData(reader.GetOutput())
         v2p.Update()
         pts = Points(v2p.GetOutput())
@@ -699,7 +699,7 @@ def loadDolfin(filename, exterior=False):
     else:
         polyb = utils.buildPolyData(bm.coordinates(), bm.cells(), tetras=True)
         polym = utils.buildPolyData(m.coordinates(), m.cells(), tetras=True)
-        app = vtk.vtkAppendPolyData()
+        app = vtk.get("AppendPolyData")()
         app.AddInputData(polym)
         app.AddInputData(polyb)
         app.Update()
@@ -1814,7 +1814,7 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False):
         w2if.SetInput(vedo.plotter_instance.renderer)
         w2if.SetMagnification(scale)
     else:
-        w2if = vtk.vtkWindowToImageFilter()
+        w2if = vtk.get("WindowToImageFilter")()
         w2if.SetInput(vedo.plotter_instance.window)
         if hasattr(w2if, "SetScale"):
             w2if.SetScale(int(scale), int(scale))
