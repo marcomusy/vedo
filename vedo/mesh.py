@@ -2120,7 +2120,7 @@ class Mesh(MeshVisual, Points):
             p0, p1 = p0.vertices
 
         if not self.line_locator:
-            self.line_locator = vtk.vtkOBBTree()
+            self.line_locator = vtk.get("OBBTree")()
             self.line_locator.SetDataSet(self.dataset)
             if not tol:
                 tol = mag(np.asarray(p1) - np.asarray(p0)) / 10000

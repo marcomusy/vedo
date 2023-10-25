@@ -139,7 +139,6 @@ from vtkmodules.vtkCommonCore import (
     vtkIdList,
     vtkIntArray,
     vtkLookupTable,
-    vtkMath,
     vtkPoints,
     vtkStringArray,
     vtkUnsignedCharArray,
@@ -203,22 +202,13 @@ from vtkmodules.vtkCommonDataModel import (
     VTK_HEXAGONAL_PRISM,
     VTK_PENTAGONAL_PRISM,
     vtkCellArray,
-    vtkBox,
-    vtkCellLocator,
-    vtkCylinder,
     vtkDataSetAttributes,
     vtkDataObject,
     vtkDataSet,
     vtkFieldData,
     vtkHexagonalPrism,
     vtkHexahedron,
-    vtkImplicitDataSet,
-    vtkImplicitSelectionLoop,
-    vtkImplicitWindowFunction,
-    vtkIterativeClosestPointTransform,
     vtkLine,
-    vtkMultiBlockDataSet,
-    vtkMutableDirectedGraph,
     vtkPentagonalPrism,
     vtkPlane,
     vtkPlanes,
@@ -228,11 +218,6 @@ from vtkmodules.vtkCommonDataModel import (
     vtkPolygon,
     vtkPyramid,
     vtkQuadric,
-    vtkSelection,
-    vtkSelectionNode,
-    vtkSphere,
-    vtkStaticCellLocator,
-    vtkStaticPointLocator,
     vtkTetra,
     vtkTriangle,
     vtkVoxel,
@@ -309,48 +294,7 @@ for name in [
 ]:
     location[name] = "vtkCommonTransforms"
 
-from vtkmodules.vtkFiltersCore import (
-    VTK_BEST_FITTING_PLANE,
-    vtk3DLinearGridCrinkleExtractor,
-    vtkAppendPolyData,
-    vtkCellCenters,
-    vtkCellDataToPointData,
-    vtkCenterOfMass,
-    vtkCleanPolyData,
-    vtkClipPolyData,
-    vtkPolyDataConnectivityFilter,
-    vtkPolyDataEdgeConnectivityFilter,
-    vtkContourFilter,
-    vtkContourGrid,
-    vtkCutter,
-    vtkDecimatePro,
-    vtkDelaunay2D,
-    vtkDelaunay3D,
-    vtkElevationFilter,
-    vtkFeatureEdges,
-    vtkFlyingEdges3D,
-    vtkGlyph3D,
-    vtkIdFilter,
-    vtkImageAppend,
-    vtkImplicitPolyDataDistance,
-    vtkMarchingSquares,
-    vtkMaskPoints,
-    vtkMassProperties,
-    vtkPointDataToCellData,
-    vtkPolyDataNormals,
-    vtkProbeFilter,
-    vtkQuadricDecimation,
-    vtkResampleWithDataSet,
-    vtkReverseSense,
-    vtkStripper,
-    vtkTensorGlyph,
-    vtkThreshold,
-    vtkTriangleFilter,
-    vtkTubeFilter,
-    vtkUnstructuredGridQuadricDecimation,
-    vtkVoronoi2D,
-    vtkWindowedSincPolyDataFilter,
-)
+
 for name in [
     "VTK_BEST_FITTING_PLANE",
     "vtk3DLinearGridCrinkleExtractor",
@@ -398,12 +342,6 @@ for name in [
 location["vtkStaticCleanUnstructuredGrid"] = "vtkFiltersCore"
 location["vtkPolyDataPlaneCutter"] = "vtkFiltersCore"
 
-from vtkmodules.vtkFiltersExtraction import (
-    vtkExtractCellsByType,
-    vtkExtractGeometry,
-    vtkExtractPolyDataGeometry,
-    vtkExtractSelection,
-)
 for name in [
     "vtkExtractCellsByType",
     "vtkExtractGeometry",
@@ -412,40 +350,12 @@ for name in [
 ]:
     location[name] = "vtkFiltersExtraction"
 
-try:
-    from vtkmodules.vtkFiltersExtraction import vtkExtractEdges  # vtk9.0
-    location["vtkExtractEdges"] = "vtkFiltersExtraction"
-except ImportError:
-    from vtkmodules.vtkFiltersCore import vtkExtractEdges  # vtk9.2
-    location["vtkExtractEdges"] = "vtkFiltersCore"
 
+location["vtkExtractEdges"] = "vtkFiltersCore"
 
 location["vtkStreamTracer"] = "vtkFiltersFlowPaths"
 
 
-from vtkmodules.vtkFiltersGeneral import (
-    vtkBooleanOperationPolyDataFilter,
-    vtkBoxClipDataSet,
-    vtkCellValidator,
-    vtkClipDataSet,
-    vtkCountVertices,
-    vtkContourTriangulator,
-    vtkCurvatures,
-    vtkDataSetTriangleFilter,
-    vtkDensifyPolyData,
-    vtkDistancePolyDataFilter,
-    vtkGradientFilter,
-    vtkIntersectionPolyDataFilter,
-    vtkLoopBooleanPolyDataFilter,
-    vtkTransformPolyDataFilter,
-    vtkOBBTree,
-    vtkQuantizePolyDataPoints,
-    vtkRandomAttributeGenerator,
-    vtkShrinkFilter,
-    vtkShrinkPolyData,
-    vtkRectilinearGridToTetrahedra,
-    vtkVertexGlyphFilter,
-)
 for name in [
     "vtkBooleanOperationPolyDataFilter",
     "vtkBoxClipDataSet",
@@ -479,20 +389,10 @@ except ImportError:
     from vtkmodules.vtkFiltersGeneral import vtkCellTreeLocator
     location["vtkCellTreeLocator"] = "vtkFiltersGeneral"
 
-from vtkmodules.vtkFiltersGeometry import (
-    vtkGeometryFilter,
-    vtkDataSetSurfaceFilter,
-    vtkImageDataGeometryFilter,
-)
+
 location["vtkGeometryFilter"] = "vtkFiltersGeometry"
 location["vtkDataSetSurfaceFilter"] = "vtkFiltersGeometry"
 location["vtkImageDataGeometryFilter"] = "vtkFiltersGeometry"
-
-try:
-    from vtkmodules.vtkFiltersGeometry import vtkMarkBoundaryFilter
-    location["vtkMarkBoundaryFilter"] = "vtkFiltersGeometry"
-except ImportError:
-    pass
 
 
 for name in [
@@ -505,26 +405,6 @@ for name in [
     location[name] = "vtkFiltersHybrid"
 
 
-from vtkmodules.vtkFiltersModeling import (
-    vtkAdaptiveSubdivisionFilter,
-    vtkBandedPolyDataContourFilter,
-    vtkButterflySubdivisionFilter,
-    vtkContourLoopExtraction,
-    vtkCookieCutter,
-    vtkDijkstraGraphGeodesicPath,
-    vtkFillHolesFilter,
-    vtkHausdorffDistancePointSetFilter,
-    vtkLinearExtrusionFilter,
-    vtkLinearSubdivisionFilter,
-    vtkLoopSubdivisionFilter,
-    vtkRibbonFilter,
-    vtkRotationalExtrusionFilter,
-    vtkRuledSurfaceFilter,
-    vtkSectorSource,
-    vtkSelectEnclosedPoints,
-    vtkSelectPolyData,
-    vtkSubdivideTetra,
-)
 for name in [
     "vtkAdaptiveSubdivisionFilter",
     "vtkBandedPolyDataContourFilter",
@@ -547,34 +427,7 @@ for name in [
 ]:
     location[name] = "vtkFiltersModeling"
 
-try:
-    from vtkmodules.vtkFiltersModeling import vtkCollisionDetectionFilter
-    location["vtkCollisionDetectionFilter"] = "vtkFiltersModeling"
-except ImportError:
-    pass
 
-try:
-    from vtkmodules.vtkFiltersModeling import vtkImprintFilter
-    location["vtkImprintFilter"] = "vtkFiltersModeling"
-except ImportError:
-    pass
-
-from vtkmodules.vtkFiltersPoints import (
-    vtkConnectedPointsFilter,
-    vtkDensifyPointCloudFilter,
-    vtkEuclideanClusterExtraction,
-    vtkExtractEnclosedPoints,
-    vtkExtractSurface,
-    vtkGaussianKernel,
-    vtkLinearKernel,
-    vtkPCANormalEstimation,
-    vtkPointDensityFilter,
-    vtkPointInterpolator,
-    vtkRadiusOutlierRemoval,
-    vtkShepardKernel,
-    vtkSignedDistance,
-    vtkVoronoiKernel,
-)
 for name in [
     "vtkConnectedPointsFilter",
     "vtkDensifyPointCloudFilter",
@@ -594,25 +447,6 @@ for name in [
     location[name] = "vtkFiltersPoints"
 
 
-from vtkmodules.vtkFiltersSources import (
-    vtkArcSource,
-    vtkArrowSource,
-    vtkConeSource,
-    vtkCubeSource,
-    vtkCylinderSource,
-    vtkDiskSource,
-    vtkFrustumSource,
-    vtkGlyphSource2D,
-    vtkGraphToPolyData,
-    vtkLineSource,
-    vtkOutlineCornerFilter,
-    vtkPlaneSource,
-    vtkPointSource,
-    vtkProgrammableSource,
-    vtkSphereSource,
-    vtkTexturedSphereSource,
-    vtkTessellatedBoxSource,
-)
 for name in [
     "vtkArcSource",
     "vtkArrowSource",
@@ -716,30 +550,9 @@ for name in [
     location[name] = "vtkIOXML"
 
 
-from vtkmodules.vtkImagingColor import (
-    vtkImageLuminance,
-    vtkImageMapToWindowLevelColors,
-)
 location["vtkImageLuminance"] = "vtkImagingColor"
 location["vtkImageMapToWindowLevelColors"] = "vtkImagingColor"
 
-from vtkmodules.vtkImagingCore import (
-    vtkExtractVOI,
-    vtkImageAppendComponents,
-    vtkImageBlend,
-    vtkImageCast,
-    vtkImageConstantPad,
-    vtkImageExtractComponents,
-    vtkImageFlip,
-    vtkImageMapToColors,
-    vtkImageMirrorPad,
-    vtkImagePermute,
-    vtkImageResample,
-    vtkImageResize,
-    vtkImageReslice,
-    vtkImageThreshold,
-    vtkImageTranslateExtent,
-)
 for name in [
     "vtkImageAppendComponents",
     "vtkImageBlend",
@@ -758,13 +571,7 @@ for name in [
 ]:
     location[name] = "vtkImagingCore"
 
-from vtkmodules.vtkImagingFourier import (
-    vtkImageButterworthHighPass,
-    vtkImageButterworthLowPass,
-    vtkImageFFT,
-    vtkImageFourierCenter,
-    vtkImageRFFT,
-)
+
 for name in [
     "vtkImageButterworthHighPass",
     "vtkImageButterworthLowPass",
@@ -774,16 +581,7 @@ for name in [
 ]:
     location[name] = "vtkImagingFourier"
 
-from vtkmodules.vtkImagingGeneral import (
-    vtkImageCorrelation,
-    vtkImageEuclideanDistance,
-    vtkImageGaussianSmooth,
-    vtkImageGradient,
-    vtkImageHybridMedian2D,
-    vtkImageLaplacian,
-    vtkImageMedian3D,
-    vtkImageNormalize,
-)
+
 for name in [
     "vtkImageCorrelation",
     "vtkImageEuclideanDistance",
@@ -796,17 +594,10 @@ for name in [
 ]:
     location[name] = "vtkImagingGeneral"
 
-from vtkmodules.vtkImagingHybrid import vtkImageToPoints, vtkSampleFunction
 for name in ["vtkImageToPoints", "vtkSampleFunction"]:
     location[name] = "vtkImagingHybrid"
 
-from vtkmodules.vtkImagingMath import (
-    vtkImageDivergence,
-    vtkImageDotProduct,
-    vtkImageLogarithmicScale,
-    vtkImageMagnitude,
-    vtkImageMathematics,
-)
+
 for name in [
     "vtkImageDivergence",
     "vtkImageDotProduct",
@@ -856,7 +647,6 @@ for name in [
     location[name] = "vtkInteractionStyle"
 
 from vtkmodules.vtkInteractionWidgets import (
-    vtkBalloonRepresentation,
     vtkBalloonWidget,
     vtkBoxWidget,
     vtkContourWidget,
@@ -866,8 +656,6 @@ from vtkmodules.vtkInteractionWidgets import (
     vtkOrientationMarkerWidget,
     vtkOrientedGlyphContourRepresentation,
     vtkPolygonalSurfacePointPlacer,
-    vtkSliderRepresentation2D,
-    vtkSliderRepresentation3D,
     vtkSliderWidget,
     vtkSphereWidget,
 )
@@ -893,15 +681,12 @@ location["vtkCameraOrientationWidget"] = "vtkInteractionWidgets"
 
 
 from vtkmodules.vtkRenderingAnnotation import (
-    vtkAnnotatedCubeActor,
     vtkAxesActor,
     vtkAxisActor2D,
     vtkCaptionActor2D,
     vtkCornerAnnotation,
-    vtkCubeAxesActor,
     vtkLegendBoxActor,
     vtkLegendScaleActor,
-    vtkPolarAxesActor,
     vtkScalarBarActor,
     vtkXYPlotActor,
 )
@@ -928,26 +713,16 @@ from vtkmodules.vtkRenderingCore import (
     vtkAssembly,
     vtkBillboardTextActor3D,
     vtkCamera,
-    vtkCameraInterpolator,
-    vtkColorTransferFunction,
     vtkCoordinate,
     vtkDataSetMapper,
-    vtkDistanceToCamera,
     vtkFlagpoleLabel,
     vtkFollower,
-    vtkHierarchicalPolyDataMapper,
     vtkImageActor,
-    vtkImageMapper,
     vtkImageProperty,
     vtkImageSlice,
-    vtkInteractorEventRecorder,
     vtkInteractorObserver,
     vtkLight,
     vtkLogLookupTable,
-    vtkMapper,
-    vtkPointGaussianMapper,
-    vtkPolyDataMapper,
-    vtkPolyDataMapper2D,
     vtkProp,
     vtkPropAssembly,
     vtkPropCollection,
@@ -956,17 +731,12 @@ from vtkmodules.vtkRenderingCore import (
     vtkRenderWindow,
     vtkRenderer,
     vtkRenderWindowInteractor,
-    vtkSelectVisiblePoints,
-    vtkSkybox,
     vtkTextActor,
-    vtkTextMapper,
     vtkTextProperty,
-    vtkTextRenderer,
     vtkTexture,
     vtkViewport,
     vtkVolume,
     vtkVolumeProperty,
-    vtkWindowToImageFilter,
 )
 for name in [
     "vtkActor",
@@ -1024,22 +794,6 @@ location["vtkImageResliceMapper"] = "vtkRenderingImage"
 
 location["vtkLabeledDataMapper"] = "vtkRenderingLabel"
 
-from vtkmodules.vtkRenderingOpenGL2 import (
-    vtkDepthOfFieldPass,
-    vtkCameraPass,
-    vtkDualDepthPeelingPass,
-    vtkEquirectangularToCubeMapTexture,
-    vtkLightsPass,
-    vtkOpaquePass,
-    vtkOverlayPass,
-    vtkRenderPassCollection,
-    vtkSSAOPass,
-    vtkSequencePass,
-    vtkShader,
-    vtkShadowMapPass,
-    vtkTranslucentPass,
-    vtkVolumetricPass,
-)
 for name in [
     "vtkDepthOfFieldPass",
     "vtkCameraPass",
@@ -1058,13 +812,6 @@ for name in [
 ]:
     location[name] = "vtkRenderingOpenGL2"
 
-from vtkmodules.vtkRenderingVolume import (
-    vtkFixedPointVolumeRayCastMapper,
-    vtkGPUVolumeRayCastMapper,
-    vtkProjectedTetrahedraMapper,
-    vtkUnstructuredGridVolumeRayCastMapper,
-    vtkUnstructuredGridVolumeZSweepMapper,
-)
 for name in [
     "vtkFixedPointVolumeRayCastMapper",
     "vtkGPUVolumeRayCastMapper",
@@ -1074,10 +821,7 @@ for name in [
 ]:
     location[name] = "vtkRenderingVolume"
 
-from vtkmodules.vtkRenderingVolumeOpenGL2 import (
-    vtkOpenGLGPUVolumeRayCastMapper,
-    vtkSmartVolumeMapper,
-)
+
 for name in [
     "vtkOpenGLGPUVolumeRayCastMapper",
     "vtkSmartVolumeMapper",

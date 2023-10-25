@@ -3229,7 +3229,7 @@ class Points(PointsVisual, PointAlgorithms):
             delny.SetSourceData(boundary)
 
         if mode == "fit":
-            delny.SetProjectionPlaneMode(vtk.VTK_BEST_FITTING_PLANE)
+            delny.SetProjectionPlaneMode(vtk.get("VTK_BEST_FITTING_PLANE"))
         delny.Update()
 
         msh = vedo.mesh.Mesh(delny.GetOutput())
