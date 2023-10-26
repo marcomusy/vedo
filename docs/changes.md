@@ -21,6 +21,7 @@ see `examples/pyplot/embed_matplotlib.py`.
 - improvements to method `mesh.clone2d()`
 - name change from `Picture` to `Image`, renamed `vedo.picture` to `vedo.image`
 - reformat how vtk classes are imported (allow some laziness)
+- add `.show(..., screenshot="myfile.png")` keyword
 
 
 
@@ -59,6 +60,7 @@ examples/simulations/lorenz.py
 examples/volumetric/slicer1.py
 examples/other/flag_labels1.py
 examples/pyplot/embed_matplotlib.py
+examples/pyplot/plot_fxy2.py
 ```
 
 

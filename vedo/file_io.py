@@ -335,9 +335,9 @@ def _load_file(filename, unpack):
         elif ".bmp" in fl:
             picr = vtk.get("vtkBMPReader")()
         elif ".gif" in fl:
-            from PIL import Image, ImageSequence
+            from PIL import Image as PILImage, ImageSequence
 
-            img = Image.open(filename)
+            img = PILImage.open(filename)
             frames = []
             for frame in ImageSequence.Iterator(img):
                 a = np.array(frame.convert("RGB").getdata(), dtype=np.uint8)

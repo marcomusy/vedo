@@ -110,6 +110,7 @@ def show(
     roll=0.0,
     camera=None,
     mode=0,
+    screenshot="",
     new=False,
 ):
     """
@@ -268,6 +269,7 @@ def show(
                 camera=camera,
                 interactive=False,
                 mode=mode,
+                screenshot=screenshot,
                 bg=bg,
                 bg2=bg2,
                 axes=axes,
@@ -296,6 +298,7 @@ def show(
             camera=camera,
             interactive=interactive,
             mode=mode,
+            screenshot=screenshot,
             bg=bg,
             bg2=bg2,
             axes=axes,
@@ -2925,6 +2928,7 @@ class Plotter:
         bg2=None,
         size=None,
         title=None,
+        screenshot="",
     ):
         """
         Render a list of objects.
@@ -3008,6 +3012,21 @@ class Plotter:
                 - 9 = Unicam
                 - 10 = Image
                 - Check out `vedo.interaction_modes` for more options.
+            
+            bg : (str, list)
+                background color in RGB format, or string name
+            
+            bg2 : (str, list)
+                second background color to create a gradient background
+            
+            size : (str, list)
+                size of the window, e.g. size="fullscreen", or size=[600,400]
+            
+            title : (str)
+                window title text
+            
+            screenshot : (str)
+                save a screenshot of the window to file
         """
         if self.wx_widget:
             return self
@@ -3192,6 +3211,9 @@ class Plotter:
                 self._interactive = interactive
 
             self.user_mode(mode)
+
+            if screenshot:
+                self.screenshot(screenshot)
 
             if self._interactive:
                 self.interactor.Start()
@@ -3432,13 +3454,23 @@ class Plotter:
 
     def screenshot(self, filename="screenshot.png", scale=1, asarray=False):
         """
-        Take a screenshot of the Plotter window.
+        Take a screenshot of the Plotter window.       
 
         Arguments:
             scale : (int)
                 set image magnification as an integer multiplicating factor
             asarray : (bool)
                 return a numpy array of the image instead of writing a file
+             
+        Example:
+        ```py
+        from vedo import *
+        sphere = Sphere().linewidth(1)
+        plt = show(sphere, interactive=False)
+        plt.screenhot('anotherimage.png')
+        plt.interactive()
+        plt.close()
+        ```
         """
         return vedo.file_io.screenshot(filename, scale, asarray)
 

@@ -2035,9 +2035,11 @@ def plot(*args, **kwargs):
             number of bins in x and y
 
     Examples:
-        - [plot_fxy.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_fxy.py)
+        - [plot_fxy1.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_fxy1.py)
 
             ![](https://vedo.embl.es/images/pyplot/plot_fxy.png)
+        
+        - [plot_fxy2.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_fxy2.py)
 
 
     --------------------------------------------------------------------
