@@ -1039,9 +1039,6 @@ def ScalarBar3D(
         lut = utils.ctf2lut(obj)
         vmin, vmax = lut.GetRange()
 
-    elif utils.is_sequence(obj):
-        vmin, vmax = np.min(obj), np.max(obj)
-
     else:
         vedo.logger.error("in ScalarBar3D(): input must be a vedo object with bounds.")
         return obj
