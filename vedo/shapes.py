@@ -3421,7 +3421,10 @@ class Spring(Mesh):
             thickness : (float)
                 thickness of the coil section
         """
-        diff = end_pt - np.array(start_pt, dtype=float)
+        start_pt = utils.make3d(start_pt)
+        end_pt = utils.make3d(end_pt)
+
+        diff = end_pt - start_pt
         length = np.linalg.norm(diff)
         if not length:
             return

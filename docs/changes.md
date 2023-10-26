@@ -61,6 +61,7 @@ examples/volumetric/slicer1.py
 examples/other/flag_labels1.py
 examples/pyplot/embed_matplotlib.py
 examples/pyplot/plot_fxy2.py
+examples/simulations/springs_fem.py
 ```
 
 
