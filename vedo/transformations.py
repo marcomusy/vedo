@@ -496,13 +496,33 @@ class LinearTransform:
 class NonLinearTransform:
     """Work with non-linear transformations."""
     
-    def __init__(self, T=None):
+    def __init__(self, T=None, **kwargs):
+        """
+        Define a non-linear transformation.
+        Can be saved to file and reloaded.
+
+        Arguments:
+            T : (vtk.vtkThinPlateSplineTransform, str, dict)
+                vtk transformation.
+                If T is a string, it is assumed to be a filename.
+                If T is a dictionary, it is assumed to be a set of keyword arguments.
+                Defaults to None.
+            **kwargs : (dict)
+                keyword arguments to define the transformation.
+                The following keywords are accepted:
+                - name : (str) name of the transformation
+                - comment : (str) comment
+                - source_points : (list) source points
+                - target_points : (list) target points
+                - mode : (str) either '2d' or '3d'
+                - sigma : (float) sigma parameter        
+        """
 
         self.name = "NonLinearTransform"
         self.filename = ""
         self.comment = ""
 
-        if T is None:
+        if T is None and len(kwargs) == 0:
             T = vtk.vtkThinPlateSplineTransform()
 
         elif isinstance(T, vtk.vtkThinPlateSplineTransform):
@@ -531,14 +551,50 @@ class NonLinearTransform:
             T = vtk.vtkThinPlateSplineTransform()
             vptss = vtk.vtkPoints()
             for p in source:
-                vptss.InsertNextPoint(p[0], p[1], p[2])
+                if len(p) == 2:
+                    p = [p[0], p[1], 0.0]
+                vptss.InsertNextPoint(p)
             T.SetSourceLandmarks(vptss)
             vptst = vtk.vtkPoints()
             for p in target:
-                vptst.InsertNextPoint(p[0], p[1], p[2])
+                if len(p) == 2:
+                    p = [p[0], p[1], 0.0]
+                vptst.InsertNextPoint(p)
             T.SetTargetLandmarks(vptst)
             T.SetSigma(sigma)
-            # mode
+            if mode == "2d":
+                T.SetBasisToR2LogR()
+            elif mode == "3d":
+                T.SetBasisToR()
+            else:
+                print(f'In {filename} mode can be either "2d" or "3d"')
+
+        elif len(kwargs) > 0:
+            T = kwargs.copy()
+            self.name = T.pop("name", "NonLinearTransform")
+            self.comment = T.pop("comment", "")
+            source = T.pop("source_points", [])
+            target = T.pop("target_points", [])
+            mode = T.pop("mode", "3d")
+            sigma = T.pop("sigma", 1.0)
+            if len(T) > 0:
+                print("Warning: NonLinearTransform got unexpected keyword arguments:")
+                print(T)
+
+            T = vtk.vtkThinPlateSplineTransform()
+            vptss = vtk.vtkPoints()
+            for p in source:
+                if len(p) == 2:
+                    p = [p[0], p[1], 0.0]
+                vptss.InsertNextPoint(p)
+            T.SetSourceLandmarks(vptss)
+            vptst = vtk.vtkPoints()
+            for p in target:
+                if len(p) == 2:
+                    p = [p[0], p[1], 0.0]
+                vptst.InsertNextPoint(p)
+            T.SetTargetLandmarks(vptst)
+            T.SetSigma(sigma)
             if mode == "2d":
                 T.SetBasisToR2LogR()
             elif mode == "3d":
@@ -575,8 +631,9 @@ class NonLinearTransform:
         """Get the source points."""
         pts = self.T.GetSourceLandmarks()
         vpts = []
-        for i in range(pts.GetNumberOfPoints()):
-            vpts.append(pts.GetPoint(i))
+        if pts:
+            for i in range(pts.GetNumberOfPoints()):
+                vpts.append(pts.GetPoint(i))
         return np.array(vpts, dtype=np.float32)
     
     @property
@@ -597,7 +654,9 @@ class NonLinearTransform:
             pts = pts.vertices
         vpts = vtk.vtkPoints()
         for p in pts:
-            vpts.InsertNextPoint(p[0], p[1], p[2])
+            if len(p) == 2:
+                p = [p[0], p[1], 0.0]
+            vpts.InsertNextPoint(p)
         self.T.SetSourceLandmarks(vpts)
     
     @target_points.setter
@@ -609,7 +668,9 @@ class NonLinearTransform:
             pts = pts.vertices
         vpts = vtk.vtkPoints()
         for p in pts:
-            vpts.InsertNextPoint(p[0], p[1], p[2])
+            if len(p) == 2:
+                p = [p[0], p[1], 0.0]
+            vpts.InsertNextPoint(p)
         self.T.SetTargetLandmarks(vpts)
        
     @property
@@ -626,10 +687,13 @@ class NonLinearTransform:
     def mode(self) -> str:
         """Get mode."""
         m = self.T.GetBasis()
-        if m == 0:
+        # print("T.GetBasis()", m, self.T.GetBasisAsString())
+        if m == 2:
             return "2d"
         elif m == 1:
             return "3d"
+        else:
+            print("Warning: NonLinearTransform has no valid mode.")
 
     @mode.setter
     def mode(self, m):
@@ -689,7 +753,14 @@ class NonLinearTransform:
         obj.point_locator = None
         obj.cell_locator = None
         obj.line_locator = None
-     
+    
+    def eval(self, pt):
+        """Evaluate the transformation at point `pt`."""
+        if len(pt) == 2:
+            pt = [pt[0], pt[1], 0]
+        q = self.T.TransformDoublePoint(pt)
+        return np.array(q)
+
 
 ########################################################################
 # 2d ######

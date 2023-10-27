@@ -827,6 +827,18 @@ class CommonAlgorithms:
         self.transform = LinearTransform()
         return self
 
+
+    @property
+    def coordinates(self):
+        """Return the vertices (points) coordinates. Same as `vertices`."""
+        return self.vertices
+
+    @coordinates.setter
+    def coordinates(self, pts):
+        """Set vertices (points) coordinates. Same as `vertices`."""
+        self.vertices = pts
+    
+
     @property
     def cells(self):
         """

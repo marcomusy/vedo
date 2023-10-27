@@ -22,6 +22,9 @@ see `examples/pyplot/embed_matplotlib.py`.
 - name change from `Picture` to `Image`, renamed `vedo.picture` to `vedo.image`
 - reformat how vtk classes are imported (allow some laziness)
 - add `.show(..., screenshot="myfile.png")` keyword
+- add `object.coordinates` same as `object.vertices`
+- fixing to non linear tranforms mode. Now it can be instantiated with a dictionary
+    add `eval()` to evaluate single points
 
 
 

@@ -3461,7 +3461,19 @@ class Plotter:
                 set image magnification as an integer multiplicating factor
             asarray : (bool)
                 return a numpy array of the image instead of writing a file
-             
+            
+        Warning:
+            If you get black screenshots try to set `interactive=False` in `show()`
+            then call `screenshot()` and `plt.interactive()`:
+            ```python
+            from vedo import *
+            sphere = Sphere().linewidth(1)
+            plt = show(sphere, interactive=False)
+            plt.screenhot('image.png')
+            plt.interactive()
+            plt.close()
+            ```
+
         Example:
         ```py
         from vedo import *
