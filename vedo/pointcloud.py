@@ -2084,7 +2084,7 @@ class Points(PointsVisual, PointAlgorithms):
             iline = list(range(len(lines))) + [0]
             poly = utils.buildPolyData(lines, lines=[iline])
         else:
-            poly = lines
+            poly = lines.dataset
 
         # if invert: # not working
         #     rev = vtk.get("ReverseSense")()
@@ -2095,17 +2095,18 @@ class Points(PointsVisual, PointAlgorithms):
 
         # Build loops from the polyline
         build_loops = vtk.get("ContourLoopExtraction")()
+        build_loops.SetGlobalWarningDisplay(0)
         build_loops.SetInputData(poly)
         build_loops.Update()
-        boundaryPoly = build_loops.GetOutput()
+        boundary_poly = build_loops.GetOutput()
 
         ccut = vtk.get("CookieCutter")()
         ccut.SetInputData(self.dataset)
-        ccut.SetLoopsData(boundaryPoly)
+        ccut.SetLoopsData(boundary_poly)
         ccut.SetPointInterpolationToMeshEdges()
         # ccut.SetPointInterpolationToLoopEdges()
         ccut.PassCellDataOn()
-        # ccut.PassPointDataOn()
+        ccut.PassPointDataOn()
         ccut.Update()
         self._update(ccut.GetOutput())
 

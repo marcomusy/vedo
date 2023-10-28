@@ -176,7 +176,7 @@ class LinearTransform:
             return np.array(self.T.TransformFloatPoint(obj))
 
         obj.apply_transform(self)
-        return
+        return obj
 
     def reset(self):
         """Reset transformation."""
@@ -813,7 +813,7 @@ class NonLinearTransform:
             return np.array(self.T.TransformFloatPoint(obj))
 
         obj.apply_transform(self)
-        return
+        return obj
 
 ########################################################################
 # 2d ######
