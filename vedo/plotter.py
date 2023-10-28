@@ -1027,7 +1027,7 @@ class Plotter:
 
     def background(self, c1=None, c2=None, at=None, mode=0):
         """Set the color of the background for the current renderer.
-        A different renderer index can be specified by keyword ``at``.
+        A different renderer index can be specified by keyword `at`.
 
         Arguments:
             c1 : (list)
@@ -2967,7 +2967,7 @@ class Plotter:
 
             camera : (dict, vtkCamera)
                 camera parameters can further be specified with a dictionary
-                assigned to the ``camera`` keyword (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`):
+                assigned to the `camera` keyword (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`):
                 - pos, `(list)`,  the position of the camera in world coordinates
                 - focal_point `(list)`, the focal point of the camera in world coordinates
                 - viewup `(list)`, the view up direction for the camera

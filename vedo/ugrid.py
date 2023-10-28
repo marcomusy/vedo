@@ -211,6 +211,10 @@ class UGrid(VolumeVisual, UGridAlgorithms):
         ]
         return "\n".join(all)
 
+    def copy(self, deep=True):
+        """Return a copy of the object. Alias of `clone()`."""
+        return self.clone(deep=deep)
+
     def clone(self, deep=True):
         """Clone the UGrid object to yield an exact copy."""
         ug = vtk.vtkUnstructuredGrid()

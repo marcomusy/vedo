@@ -24,8 +24,8 @@ see `examples/pyplot/embed_matplotlib.py`.
 - add `.show(..., screenshot="myfile.png")` keyword
 - add `object.coordinates` same as `object.vertices`
 - fixing to non linear tranforms mode. Now it can be instantiated with a dictionary
-    add `eval()` to evaluate single points
-
+    add `move()` to move single points or objects
+- add `copy()` as alias to `clone()`
 
 
 ### Breaking changes

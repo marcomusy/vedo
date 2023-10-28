@@ -331,8 +331,12 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         ]
         return "\n".join(allt)
 
+    def copy(self, deep=True):
+        """Return a copy of the Volume. Alias of `clone()`."""
+        return self.clone(deep=deep)
+
     def clone(self, deep=True):
-        """Return a clone copy of the Volume."""
+        """Return a clone copy of the Volume. Alias of `copy()`."""
         if deep:
             newimg = vtk.vtkImageData()
             newimg.CopyStructure(self.dataset)

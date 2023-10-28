@@ -296,6 +296,9 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
         ]
         return "\n".join(allt)
 
+    def copy(self, mapper="tetra"):
+        """Return a copy of the mesh. Alias of `clone()`."""
+        return self.clone(mapper=mapper)
 
     def clone(self, mapper="tetra"):
         """Clone the `TetMesh` object to yield an exact copy."""

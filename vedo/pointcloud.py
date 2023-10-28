@@ -721,17 +721,20 @@ class Points(PointsVisual, PointAlgorithms):
         """
         Obsolete. Use property `.dataset` instead.
 
-        Returns the underlying ``vtkPolyData`` object.
+        Returns the underlying `vtkPolyData` object.
         """
         colors.printc(
             "WARNING: call to .polydata() is obsolete, use property .dataset instead.",
             c="y")
         return self.dataset
 
+    def copy(self, deep=True):
+        """Return a copy of the object. Alias of `clone()`."""
+        return self.clone(deep=deep)
 
     def clone(self, deep=True):
         """
-        Clone a `PointCloud` or `Mesh` object to make an exact copy of it.
+        Clone a `PointCloud` or `Mesh` object to make an exact copy of it. Alias of `copy()`.
 
         Arguments:
             deep : (bool)

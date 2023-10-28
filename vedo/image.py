@@ -317,6 +317,10 @@ class Image(vedo.visual.ImageVisual):
         """Return the number of channels in image"""
         return self.dataset.GetPointData().GetScalars().GetNumberOfComponents()
 
+    def copy(self):
+        """Return a copy of the image. Alias of `clone()`."""
+        return self.clone()
+
     def clone(self):
         """Return an exact copy of the input Image.
         If transform is True, it is given the same scaling and position."""
@@ -1184,7 +1188,7 @@ class Image(vedo.visual.ImageVisual):
         Example: arr[:] = arr - 15
 
         If the array is modified call:
-        ``image.modified()``
+        `image.modified()`
         when all your modifications are completed.
         """
         nx, ny, _ = self.dataset.GetDimensions()
@@ -1405,7 +1409,7 @@ class Image(vedo.visual.ImageVisual):
         return self
 
     def modified(self):
-        """Use in conjunction with ``tonumpy()`` to update any modifications to the image array"""
+        """Use in conjunction with `tonumpy()` to update any modifications to the image array"""
         self.dataset.GetPointData().GetScalars().Modified()
         return self
 

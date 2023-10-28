@@ -62,7 +62,7 @@ class LinearTransform:
             print("Sphere before", s1.transform)
             s1.apply_transform(LT)
             # same as:
-            # LT.apply_to(s1)
+            # LT.move(s1)
             print("Sphere after ", s1.transform)
 
             zero = Point([0,0,0])
@@ -133,29 +133,15 @@ class LinearTransform:
     def __repr__(self):
         return self.__str__()
 
-    def apply_to(self, obj):
+    def move(self, obj):
         """Apply transformation."""
         if _is_sequence(obj):
-            v = self.T.TransformFloatPoint(obj)
-            return np.array(v)
+            if len(obj) == 2:
+                obj = [obj[0], obj[1], 0]
+            return np.array(self.T.TransformFloatPoint(obj))
 
-        obj.transform = self
-
-        m = self.T.GetMatrix()
-        M = [[m.GetElement(i, j) for j in range(4)] for i in range(4)]
-        if np.allclose(M - np.eye(4), 0):
-            return
-
-        tp = vtk.get("TransformPolyDataFilter")()
-        tp.SetTransform(self.T)
-        tp.SetInputData(obj.dataset)
-        tp.Update()
-        out = tp.GetOutput()
-
-        obj.dataset.DeepCopy(out)
-        obj.point_locator = None
-        obj.cell_locator = None
-        obj.line_locator = None
+        obj.apply_transform(self)
+        return
 
     def reset(self):
         """Reset transformation."""
@@ -187,6 +173,10 @@ class LinearTransform:
         t = self.clone()
         t.invert()
         return t
+
+    def copy(self):
+        """Return a copy of the transformation. Alias of `clone()`."""
+        return self.clone()
 
     def clone(self):
         """Clone transformation to make an exact copy."""
@@ -605,6 +595,22 @@ class NonLinearTransform:
         self.T = T
         self.inverse_flag = False
 
+    def __str__(self):
+        s = "Non Linear Transformation: " + self.__class__.__name__ + "\n"
+        if self.filename:
+            s += "  filename: " + self.filename + "\n"
+        if self.name:
+            s += "  name    : " + self.name + "\n"
+        if self.comment:
+            s += "  comment : " + self.comment + "\n"
+        s += f"  mode    : {self.mode}\n"
+        s += f"  sigma   : {self.sigma}\n"
+        s += f"  sources : {self.source_points.size}\n"
+        s += f"  targets : {self.source_points.size}"
+        return s
+
+    def __repr__(self):
+        return self.__str__()
 
     @property
     def position(self):
@@ -735,32 +741,15 @@ class NonLinearTransform:
         t.invert()
         return t   
     
-    def apply_to(self, obj):
-        """Apply transformation."""
+    def move(self, obj):
+        """Apply transformation to object or single point."""
         if _is_sequence(obj):
-            v = self.T.TransformFloatPoint(obj)
-            return np.array(v)
+            if len(obj) == 2:
+                obj = [obj[0], obj[1], 0]
+            return np.array(self.T.TransformFloatPoint(obj))
 
-        obj.transform = self
-
-        tp = vtk.get("TransformPolyDataFilter")()
-        tp.SetTransform(self.T)
-        tp.SetInputData(obj.dataset)
-        tp.Update()
-        out = tp.GetOutput()
-
-        obj.dataset.DeepCopy(out)
-        obj.point_locator = None
-        obj.cell_locator = None
-        obj.line_locator = None
-    
-    def eval(self, pt):
-        """Evaluate the transformation at point `pt`."""
-        if len(pt) == 2:
-            pt = [pt[0], pt[1], 0]
-        q = self.T.TransformDoublePoint(pt)
-        return np.array(q)
-
+        obj.apply_transform(self)
+        return
 
 ########################################################################
 # 2d ######
