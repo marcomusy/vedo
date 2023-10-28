@@ -1415,7 +1415,7 @@ class Image(vedo.visual.ImageVisual):
 
     def write(self, filename):
         """Write image to file as png or jpg."""
-        vedo.file_io.write(self.dataset, filename)
+        vedo.file_io.write(self, filename)
         self.pipeline = utils.OperationNode(
             "write",
             comment=filename[:15],

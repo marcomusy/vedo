@@ -3191,6 +3191,13 @@ class Plotter:
 
             self.window.SetWindowName(self.title)
 
+            # pic = vedo.Image(vedo.dataurl+'images/vtk_logo.png')
+            # pic = vedo.Image('/home/musy/Downloads/icons8-3d-96.png')
+            # Array 0 name PNGImage 
+            # /home/musy/Downloads/icons8-3d-96.png
+            # print(pic.dataset)
+            # self.window.SetIcon(pic.dataset)
+
             try:
                 # Needs "pip install pyobjc" on Mac OSX
                 if (
