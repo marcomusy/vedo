@@ -71,6 +71,7 @@ class LinearTransform:
        """
 
         self.name = "LinearTransform"
+        self.filename = ""
         self.comment = ""
 
         if T is None:
@@ -108,7 +109,8 @@ class LinearTransform:
         
         elif isinstance(T, str):
             import json
-            with open(T, "r") as read_file:
+            self.filename = str(T)
+            with open(self.filename, "r") as read_file:
                 D = json.load(read_file)
             self.name = D["name"]
             self.comment = D["comment"]
@@ -125,8 +127,16 @@ class LinearTransform:
         self.inverse_flag = False
 
     def __str__(self):
-        s = "Transformation Matrix 4x4:\n"
-        s += str(self.matrix)
+        s = f"Linear Transformation {self.__class__}"
+        if self.name:
+            s += "\nName: " + self.name
+        if self.filename:
+            s += "\nFilename: " + self.filename
+        if self.comment:
+            s += "\nComment: " + self.comment
+        if self.inverse_flag:
+            s += "\nInverse transformation flag is True"
+        s += "\n" + str(self.matrix)
         s += f"\n({self.n_concatenated_transforms} concatenated transforms)"
         return s
 
@@ -134,9 +144,34 @@ class LinearTransform:
         return self.__str__()
 
     def move(self, obj):
-        """Apply transformation."""
+        """
+        Apply transformation to object or single point.
+
+        Note:
+            When applying a transformation to a mesh, the mesh is modified in place.
+            If you want to keep the original mesh unchanged, use `clone()` method.
+        
+        Example:
+            ```python
+            from vedo import *
+            settings.use_parallel_projection = True
+
+            LT = LinearTransform()
+            LT.translate([3,0,1]).rotate_z(45)
+            print(LT)
+
+            s = Sphere(r=0.2)
+            LT.move(s)
+            # same as:
+            # s.apply_transform(LT)
+
+            zero = Point([0,0,0])
+            show(s, zero, axes=1).close()
+            ```
+        """
         if _is_sequence(obj):
-            if len(obj) == 2:
+            n = len(obj)
+            if n == 2:
                 obj = [obj[0], obj[1], 0]
             return np.array(self.T.TransformFloatPoint(obj))
 
@@ -596,7 +631,7 @@ class NonLinearTransform:
         self.inverse_flag = False
 
     def __str__(self):
-        s = "Non Linear Transformation: " + self.__class__.__name__ + "\n"
+        s = self.__class__.__name__ + ":\n"
         if self.filename:
             s += "  filename: " + self.filename + "\n"
         if self.name:
@@ -605,8 +640,10 @@ class NonLinearTransform:
             s += "  comment : " + self.comment + "\n"
         s += f"  mode    : {self.mode}\n"
         s += f"  sigma   : {self.sigma}\n"
-        s += f"  sources : {self.source_points.size}\n"
-        s += f"  targets : {self.source_points.size}"
+        p = self.source_points
+        q = self.target_points
+        s += f"  sources : {p.size}, bounds {np.min(p, axis=0)}, {np.max(p, axis=0)}\n"
+        s += f"  targets : {q.size}, bounds {np.min(q, axis=0)}, {np.max(q, axis=0)}"
         return s
 
     def __repr__(self):
@@ -742,7 +779,34 @@ class NonLinearTransform:
         return t   
     
     def move(self, obj):
-        """Apply transformation to object or single point."""
+        """
+        Apply transformation to object or single point.
+        
+        Note:
+            When applying a transformation to a mesh, the mesh is modified in place.
+            If you want to keep the original mesh unchanged, use `clone()` method.
+        
+        Example:
+            ```python
+            from vedo import *
+            np.random.seed(0)
+            settings.use_parallel_projection = True
+
+            NLT = NonLinearTransform()
+            NLT.source_points = [[-2,0,0], [1,2,1], [2,-2,2]]
+            NLT.target_points = NLT.source_points + np.random.randn(3,3)*0.5
+            NLT.mode = '3d'
+            print(NLT)
+
+            s1 = Sphere()
+            NLT.move(s1)
+            # same as:
+            # s1.apply_transform(NLT)
+
+            arrs = Arrows(NLT.source_points, NLT.target_points)
+            show(s1, arrs, Sphere().alpha(0.1), axes=1).close()
+            ```
+        """
         if _is_sequence(obj):
             if len(obj) == 2:
                 obj = [obj[0], obj[1], 0]
