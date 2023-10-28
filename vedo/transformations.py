@@ -110,11 +110,34 @@ class LinearTransform:
         elif isinstance(T, str):
             import json
             self.filename = str(T)
-            with open(self.filename, "r") as read_file:
-                D = json.load(read_file)
-            self.name = D["name"]
-            self.comment = D["comment"]
-            matrix = np.array(D["matrix"])
+            try:
+                with open(self.filename, "r") as read_file:
+                    D = json.load(read_file)
+                self.name = D["name"]
+                self.comment = D["comment"]
+                matrix = np.array(D["matrix"])
+            except json.decoder.JSONDecodeError:
+                ### assuming legacy vedo format E.g.:
+                #aligned by manual_align.py
+                # 0.8026854838223 -0.0789823873914 -0.508476844097  38.17377632072
+                # 0.0679734082661  0.9501827489452 -0.040289803376 -69.53864247951
+                # 0.5100652300642 -0.0023313569781  0.805555043665 -81.20317788519
+                # 0.0 0.0 0.0 1.0
+                with open(self.filename, "r", encoding="UTF-8") as read_file:
+                    lines = read_file.readlines()
+                    i = 0
+                    matrix = np.eye(4)
+                    for l in lines:
+                        if l.startswith("#"):
+                            self.comment = l.replace("#", "").replace("\n", "")
+                            continue
+                        vals = l.split(" ")
+                        if len(vals) == 4:
+                            for j in range(4):
+                                v = vals[j].replace("\n", "")
+                                matrix[i, j] = float(v)
+                            i += 1
+
             T = vtk.vtkTransform()
             m = vtk.vtkMatrix4x4()
             for i in range(4):
@@ -127,13 +150,13 @@ class LinearTransform:
         self.inverse_flag = False
 
     def __str__(self):
-        s = f"Linear Transformation {self.__class__}"
+        s = f"\x1b[7m\x1b[1mLinear Transformation\x1b[0m \x1b[3m({self.__module__})\x1b[0m"
         if self.name:
             s += "\nName: " + self.name
         if self.filename:
             s += "\nFilename: " + self.filename
         if self.comment:
-            s += "\nComment: " + self.comment
+            s += f'\nComment: \x1b[3m"{self.comment}"\x1b[0m'
         if self.inverse_flag:
             s += "\nInverse transformation flag is True"
         s += "\n" + str(self.matrix)
@@ -631,19 +654,20 @@ class NonLinearTransform:
         self.inverse_flag = False
 
     def __str__(self):
+        s = f"\x1b[7m\x1b[1mNon-Linear Transformation\x1b[0m \x1b[3m({self.__module__})\x1b[0m"
         s = self.__class__.__name__ + ":\n"
         if self.filename:
-            s += "  filename: " + self.filename + "\n"
+            s += "Filename: " + self.filename + "\n"
         if self.name:
-            s += "  name    : " + self.name + "\n"
+            s += "Name    : " + self.name + "\n"
         if self.comment:
-            s += "  comment : " + self.comment + "\n"
-        s += f"  mode    : {self.mode}\n"
-        s += f"  sigma   : {self.sigma}\n"
+            s += f'\nComment: \x1b[3m"{self.comment}"\x1b[0m'
+        s += f"Mode   : {self.mode}\n"
+        s += f"Sigma  : {self.sigma}\n"
         p = self.source_points
         q = self.target_points
-        s += f"  sources : {p.size}, bounds {np.min(p, axis=0)}, {np.max(p, axis=0)}\n"
-        s += f"  targets : {q.size}, bounds {np.min(q, axis=0)}, {np.max(q, axis=0)}"
+        s += f"Sources: {p.size}, bounds {np.min(p, axis=0)}, {np.max(p, axis=0)}\n"
+        s += f"Targets: {q.size}, bounds {np.min(q, axis=0)}, {np.max(q, axis=0)}"
         return s
 
     def __repr__(self):

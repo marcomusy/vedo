@@ -35,8 +35,7 @@ __all__ = [
     "loadStructuredGrid",
     "loadRectilinearGrid",
     "loadUnStructuredGrid",
-    "load_transform",
-    "write_transform",
+    # "load_transform", # LinearTransform("file.mat") substitutes this
     "write",
     "export_window",
     "import_window",
@@ -1428,35 +1427,6 @@ def write_transform(inobj, filename="transform.mat", comment=""):
                 str(M.GetElement(i,3))+'\n',
             )
         f.write('\n')
-
-
-def load_transform(filename):
-    """
-    Load a transformation from a file `.mat`.
-
-    Returns:
-        - `vtkTransform`
-            The transformation to be applied to some object (`use apply_transform()`).
-        - `str`, a comment string associated to this transformation file.
-    """
-    with open(filename, "r", encoding="UTF-8") as f:
-        lines = f.readlines()
-        M = vtk.vtkMatrix4x4()
-        i = 0
-        comment = ""
-        for l in lines:
-            if l.startswith("#"):
-                comment = l.replace("#", "").replace("\n", "")
-                continue
-            vals = l.split(" ")
-            if len(vals) == 4:
-                for j in range(4):
-                    v = vals[j].replace("\n", "")
-                    M.SetElement(i, j, float(v))
-                i += 1
-        T = vtk.vtkTransform()
-        T.SetMatrix(M)
-    return (T, comment)
 
 
 ###############################################################################

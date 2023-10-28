@@ -26,6 +26,7 @@ see `examples/pyplot/embed_matplotlib.py`.
 - fixing to non linear tranforms mode. Now it can be instantiated with a dictionary
     add `move()` to move single points or objects
 - add `copy()` as alias to `clone()`
+- remove `file_io.load_transform()` LinearTransform("file.mat") substitutes this
 
 
 ### Breaking changes
