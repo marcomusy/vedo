@@ -881,16 +881,15 @@ class Plotter:
 
         if has_str or has_actor:
             # need to get the actors to search for
-            # acts = self.get_meshes(include_non_pickables=True, unpack_assemblies=False)
-            # acts+= self.get_volumes(include_non_pickables=True)
-            acts = self.get_actors(include_non_pickables=True)
-            for a in set(acts):
+            for a in self.get_actors(include_non_pickables=True):
                 # print("PARSING", [a])
                 try:
                     if (a.name and a.name in objs) or a in objs:
+                    # if (a.name and any(x in a.name for x in objs)) or a in objs:
                         # print('a.name',a.name)
-                        objs.append(a)
-                except AttributeError:
+                        objs.append(a)                    
+                except AttributeError: # no .name
+                    # passing the actor so get back the object with .data
                     try:
                         if (a.data.name and a.data.name in objs) or a.data in objs:
                             # print('a.data.name',a.data.name)
