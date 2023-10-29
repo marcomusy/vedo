@@ -2176,7 +2176,7 @@ class ProgressBarWidget(vtk.vtkActor2D):
         pd = vtk.vtkPolyData()
         pd.SetPoints(ppoints)
         pd.SetLines(lines)
-        self._data = pd
+        self.dataset = pd
 
         mapper = vtk.get("PolyDataMapper2D")()
         mapper.SetInputData(pd)
@@ -2222,7 +2222,7 @@ class ProgressBarWidget(vtk.vtkActor2D):
 
         psqr = [[0, 0, 0], [fraction, 0, 0]]
         vpts = utils.numpy2vtk(psqr, dtype=np.float32)
-        self._data.GetPoints().SetData(vpts)
+        self.dataset.GetPoints().SetData(vpts)
         return self
 
     def reset(self):

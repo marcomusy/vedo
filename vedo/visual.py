@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
+from weakref import ref as weak_ref_to
 
 import vedo.vtkclasses as vtk
 
@@ -1926,7 +1927,7 @@ class MeshVisual(PointsVisual):
                 factor.SetCamera(plt.renderer.GetActiveCamera())
 
         self.actor = None
-        factor.data = self
+        factor.retrieve_object = weak_ref_to(self)
         self.actor = factor
         return self
 

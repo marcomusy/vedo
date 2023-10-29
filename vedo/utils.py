@@ -1630,7 +1630,7 @@ def print_info(obj):
         vedo.printc("UGrid".ljust(70), c=cf, bold=True, invert=True)
         pos = obj.GetPosition()
         bnds = obj.GetBounds()
-        ug = obj.inputdata()
+        ug = obj.dataset
         vedo.printc("nr. of cells".ljust(14) + ": ", c=cf, bold=True, end="")
         vedo.printc(ug.GetNumberOfCells(), c=cf, bold=False)
         vedo.printc("position".ljust(14) + ": ", c=cf, bold=True, end="")
@@ -1798,7 +1798,7 @@ def print_histogram(
     logscale=False,
     minbin=0,
     horizontal=False,
-    char="\u2588",
+    char=" ",
     c=None,
     bold=True,
     title="histogram",
@@ -1847,27 +1847,28 @@ def print_histogram(
     if not horizontal:  # better aspect ratio
         bins *= 2
 
-    isimg = isinstance(data, vtk.vtkImageData)
-    isvol = isinstance(data, vtk.vtkVolume)
-    if isimg or isvol:
-        if isvol:
-            img = data.dataset
-        else:
-            img = data
-        dims = img.GetDimensions()
+    try:
+        data = data.dataset
+    except AttributeError:
+        # already an array
+        data = np.asarray(data)
+
+    if isinstance(data, vtk.vtkImageData):
+        dims = data.GetDimensions()
         nvx = min(100000, dims[0] * dims[1] * dims[2])
         idxs = np.random.randint(0, min(dims), size=(nvx, 3))
         data = []
         for ix, iy, iz in idxs:
-            d = img.GetScalarComponentAsFloat(ix, iy, iz, 0)
+            d = data.GetScalarComponentAsFloat(ix, iy, iz, 0)
             data.append(d)
-    elif isinstance(data, vtk.vtkActor):
-        arr = data.polydata().GetPointData().GetScalars()
+        data = np.array(data)
+
+    elif isinstance(data, vtk.vtkPolydata):
+        arr = data.dataset.GetPointData().GetScalars()
         if not arr:
-            arr = data.polydata().GetCellData().GetScalars()
+            arr = data.dataset.GetCellData().GetScalars()
             if not arr:
                 return None
-
         data = vtk2numpy(arr)
 
     try:

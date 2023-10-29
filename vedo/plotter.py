@@ -889,11 +889,12 @@ class Plotter:
                         # print('a.name',a.name)
                         objs.append(a)                    
                 except AttributeError: # no .name
-                    # passing the actor so get back the object with .data
+                    # passing the actor so get back the object with .retrieve_object()
                     try:
-                        if (a.data.name and a.data.name in objs) or a.data in objs:
-                            # print('a.data.name',a.data.name)
-                            objs.append(a.data)
+                        vobj = a.retrieve_object()
+                        if (vobj.name and vobj.name in objs) or vobj in objs:
+                            # print('vobj.name', vobj.name)
+                            objs.append(vobj)
                     except AttributeError:
                         pass
 
@@ -1118,7 +1119,7 @@ class Plotter:
                 if has_global_axes and a in self.axes_instances[at].actors:
                     continue
                 try:
-                    objs.append(a.data)
+                    objs.append(a.retrieve_object())
                 except AttributeError:
                     pass
         return objs
@@ -1146,7 +1147,7 @@ class Plotter:
             a = acs.GetNextItem()
             if include_non_pickables or a.GetPickable():
                 try:
-                    vols.append(a.data)
+                    vols.append(a.retrieve_object())
                 except AttributeError:
                     pass
         return vols
@@ -1174,7 +1175,7 @@ class Plotter:
             a = acs.GetNextProp()
             if include_non_pickables or a.GetPickable():
                 # try:
-                #     acts.append(a.data)
+                #     acts.append(a.retrieve_object())
                 # except AttributeError:
                     acts.append(a)
         return acts
@@ -2399,28 +2400,29 @@ class Plotter:
 
             self.picker.PickProp(x, y, self.renderer)
             actor = self.picker.GetProp3D()
-            # if not actor: # GetProp3D already picks Assembly
-            #     actor = picker.GetAssembly()
+            #Note that GetProp3D already picks Assembly
+
+            xp, yp = self.interactor.GetLastEventPosition()
+            dx, dy = x - xp, y - yp
 
             delta3d = np.array([0, 0, 0])
+
             if actor:
                 picked3d = np.array(self.picker.GetPickPosition())
-                # if hasattr(actor.data, "picked3d"):
-                #     if actor.data.picked3d is not None:
-                #         delta3d = picked3d - actor.data.picked3d
+
                 try:
-                    delta3d = picked3d - actor.data.picked3d
-                    actor.data.picked3d = picked3d
+                    vobj = actor.retrieve_object()
+                    old_pt = np.asarray(vobj.picked3d)
+                    vobj.picked3d = picked3d
+                    delta3d = picked3d - old_pt
                 except (AttributeError, TypeError):
                     pass
+
             else:
                 picked3d = None
 
             if not actor:  # try 2D
                 actor = self.picker.GetActor2D()
-
-            xp, yp = self.interactor.GetLastEventPosition()
-            dx, dy = x - xp, y - yp
 
         event = Event()
         event.name = ename
@@ -2433,11 +2435,11 @@ class Plotter:
         event.keypress = key
         if enable_picking:
             try:
-                event.object = actor.data
+                event.object = actor.retrieve_object()
             except AttributeError:
                 event.object = actor
             try:
-                event.actor = actor.data  # obsolete use object instead
+                event.actor = actor.retrieve_object()  # obsolete use object instead
             except AttributeError:
                 event.actor = actor
             event.picked3d = picked3d
@@ -3610,7 +3612,7 @@ class Plotter:
         self.clicked_actor = clicked_actor
 
         if hasattr(clicked_actor, "data"):  # might be not a vedo obj
-            self.clicked_object = clicked_actor.data
+            self.clicked_object = clicked_actor.retrieve_object()
             # save this info in the object itself
             self.clicked_object.picked3d = self.picked3d
             self.clicked_object.picked2d = self.picked2d

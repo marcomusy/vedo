@@ -1,5 +1,6 @@
 import glob
 import os
+from weakref import ref as weak_ref_to
 
 import numpy as np
 
@@ -119,7 +120,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             as a transfer function along the range of the scalar.
         """
         self.actor = vtk.vtkVolume()
-        self.actor.data = self
+        self.actor.retrieve_object = weak_ref_to(self)
         self.properties = self.actor.GetProperty()
         self.dataset = None
         self.mapper = None

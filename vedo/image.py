@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
+from weakref import ref as weak_ref_to
 
 import vedo.vtkclasses as vtk
 
@@ -161,7 +162,7 @@ class Image(vedo.visual.ImageVisual):
         self.pipeline = None
 
         self.actor = vtk.vtkImageActor()
-        self.actor.data = self  # so it can be picked
+        self.actor.retrieve_object = weak_ref_to(self)
         self.properties = self.actor.GetProperty()
 
         if utils.is_sequence(obj) and len(obj) > 0:  # passing array

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import time
 import numpy as np
+from weakref import ref as weak_ref_to
 
 import vedo.vtkclasses as vtk
 
@@ -538,7 +539,9 @@ class Points(PointsVisual, PointAlgorithms):
         self.mapper = vtk.get("PolyDataMapper")()
         self.dataset = vtk.vtkPolyData()
         self.transform = LinearTransform()
-        self.actor.data = self  # so Actor can access this object
+        
+        # Create weakref so actor can access this object (eg to pick/remove):
+        self.actor.retrieve_object = weak_ref_to(self)
 
         self._scals_idx = 0  # index of the active scalar changed from CLI
         self._ligthingnr = 0  # index of the lighting mode changed from CLI

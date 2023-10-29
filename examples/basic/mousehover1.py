@@ -15,13 +15,11 @@ def func(evt):                       ### called every time mouse moves!
           f"Ground speed: {precision(evt.speed3d*100,2)}")
     msg.text(txt)                    # update text message
 
-    arw = Arrow(pt - evt.delta3d, pt, s=0.001, c='orange5')
-    fpo = msh.flagpole(
+    ar = Arrow(pt - evt.delta3d, pt, s=0.001, c='orange5')
+    fp = msh.flagpole(
         txt, point=pt, offset=(0.4,0.6), s=0.04, c='k', font="VictorMono",
-    )
-    fpo.follow_camera()              # make it always face the camera
-    plt.remove("FlagPole")           # remove the old flagpole
-    plt.add(arw, fpo)                # add Arrow and the new flagpole
+    ).follow_camera()                  # make it always face the camera
+    plt.remove("FlagPole").add(ar, fp) # remove the old flagpole, add the new
     plt.render()
 
 msg = Text2D(pos='bottom-left', font="VictorMono") # an empty text
@@ -31,7 +29,7 @@ arr = hil.pointdata["Scalars"]       # numpy array with heights
 settings.use_parallel_projection = True # avoid perspective effects
 plt = Plotter(axes=1, bg2='lightblue')
 plt.add_callback('mouse move', func) # add the callback function
-plt.add_callback('keyboard', lambda evt: plt.remove(plt.objects[3:]).render())
+plt.add_callback('keyboard', lambda _: plt.remove("Arrow").render())
 plt.show(hil, msg, __doc__, viewup='z')
 plt.close()
 
