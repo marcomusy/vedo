@@ -706,7 +706,7 @@ class Plotter:
             self.interactor = self.window.GetInteractor()
             for r in self.renderers:
                 self.window.AddRenderer(r)
-            self.wx_widget.SetInteractorStyle(vtk.get("InteractorStyleTrackballCamera()"))
+            self.wx_widget.SetInteractorStyle(vtk.new("InteractorStyleTrackballCamera"))
             ########################
             return  ################
             ########################
@@ -749,7 +749,7 @@ class Plotter:
         self.interactor = vtk.vtkRenderWindowInteractor()
 
         self.interactor.SetRenderWindow(self.window)
-        vsty = vtk.get("InteractorStyleTrackballCamera")()
+        vsty = vtk.new("InteractorStyleTrackballCamera")
         self.interactor.SetInteractorStyle(vsty)
 
         if settings.enable_default_keyboard_callbacks:
@@ -1299,7 +1299,7 @@ class Plotter:
 
         assert len(times) == nc
 
-        cin = vtk.get("CameraInterpolator")()
+        cin = vtk.new("CameraInterpolator")
 
         # cin.SetInterpolationTypeToLinear() # bugged?
         if nc > 2 and smooth:
@@ -1387,7 +1387,7 @@ class Plotter:
         if not self.interactor:
             vedo.logger.warning("Cannot record events, no interactor defined.")
             return self
-        erec = vtk.get("InteractorEventRecorder")()
+        erec = vtk.new("InteractorEventRecorder")
         erec.SetInteractor(self.interactor)
         erec.SetFileName(filename)
         erec.SetKeyPressActivationValue("R")
@@ -1418,7 +1418,7 @@ class Plotter:
             vedo.logger.warning("Cannot play events, no interactor defined.")
             return self
 
-        erec = vtk.get("InteractorEventRecorder")()
+        erec = vtk.new("InteractorEventRecorder")
         erec.SetInteractor(self.interactor)
 
         if events.endswith(".log"):
@@ -1947,13 +1947,13 @@ class Plotter:
     def add_shadows(self):
         """Add shadows at the current renderer."""
         if self.renderer:
-            shadows = vtk.get("ShadowMapPass")()
-            seq = vtk.get("SequencePass")()
-            passes = vtk.get("RenderPassCollection")()
+            shadows = vtk.new("ShadowMapPass")
+            seq = vtk.new("SequencePass")
+            passes = vtk.new("RenderPassCollection")
             passes.AddItem(shadows.GetShadowMapBakerPass())
             passes.AddItem(shadows)
             seq.SetPasses(passes)
-            camerapass = vtk.get("CameraPass")()
+            camerapass = vtk.new("CameraPass")
             camerapass.SetDelegatePass(seq)
             self.renderer.SetPass(camerapass)
         return self
@@ -1981,39 +1981,39 @@ class Plotter:
 
             ![](https://vedo.embl.es/images/basic/ssao.jpg)
         """
-        lights = vtk.get("LightsPass")()
+        lights = vtk.new("LightsPass")
 
-        opaque = vtk.get("OpaquePass")()
+        opaque = vtk.new("OpaquePass")
 
-        ssaoCam = vtk.get("CameraPass")()
+        ssaoCam = vtk.new("CameraPass")
         ssaoCam.SetDelegatePass(opaque)
 
-        ssao = vtk.get("SSAOPass")()
+        ssao = vtk.new("SSAOPass")
         ssao.SetRadius(radius)
         ssao.SetBias(bias)
         ssao.SetBlur(blur)
         ssao.SetKernelSize(samples)
         ssao.SetDelegatePass(ssaoCam)
 
-        translucent = vtk.get("TranslucentPass")()
+        translucent = vtk.new("TranslucentPass")
 
-        volpass = vtk.get("VolumetricPass")()
-        ddp = vtk.get("DualDepthPeelingPass")()
+        volpass = vtk.new("VolumetricPass")
+        ddp = vtk.new("DualDepthPeelingPass")
         ddp.SetTranslucentPass(translucent)
         ddp.SetVolumetricPass(volpass)
 
-        over = vtk.get("OverlayPass")()
+        over = vtk.new("OverlayPass")
 
-        collection = vtk.get("RenderPassCollection")()
+        collection = vtk.new("RenderPassCollection")
         collection.AddItem(lights)
         collection.AddItem(ssao)
         collection.AddItem(ddp)
         collection.AddItem(over)
 
-        sequence = vtk.get("SequencePass")()
+        sequence = vtk.new("SequencePass")
         sequence.SetPasses(collection)
 
-        cam = vtk.get("CameraPass")()
+        cam = vtk.new("CameraPass")
         cam.SetDelegatePass(sequence)
 
         self.renderer.SetPass(cam)
@@ -2021,25 +2021,25 @@ class Plotter:
 
     def add_depth_of_field(self, autofocus=True):
         """Add a depth of field effect in the scene."""
-        lights = vtk.get("LightsPass")()
+        lights = vtk.new("LightsPass")
 
-        opaque = vtk.get("OpaquePass")()
+        opaque = vtk.new("OpaquePass")
 
-        dofCam = vtk.get("CameraPass")()
+        dofCam = vtk.new("CameraPass")
         dofCam.SetDelegatePass(opaque)
 
-        dof = vtk.get("DepthOfFieldPass")()
+        dof = vtk.new("DepthOfFieldPass")
         dof.SetAutomaticFocalDistance(autofocus)
         dof.SetDelegatePass(dofCam)
 
-        collection = vtk.get("RenderPassCollection")()
+        collection = vtk.new("RenderPassCollection")
         collection.AddItem(lights)
         collection.AddItem(dof)
 
-        sequence = vtk.get("SequencePass")()
+        sequence = vtk.new("SequencePass")
         sequence.SetPasses(collection)
 
-        cam = vtk.get("CameraPass")()
+        cam = vtk.new("CameraPass")
         cam.SetDelegatePass(sequence)
 
         self.renderer.SetPass(cam)
@@ -2049,7 +2049,7 @@ class Plotter:
         # many hdr files are at https://polyhaven.com/all
 
         if utils.vtk_version_at_least(9):
-            reader = vtk.get("HDRReader")()
+            reader = vtk.new("HDRReader")
             # Check the image can be read.
             if not reader.CanReadFile(hdrfile):
                 vedo.logger.error(f"Cannot read HDR file {hdrfile}")
@@ -2062,7 +2062,7 @@ class Plotter:
             texture.SetInputData(reader.GetOutput())
 
             # Convert to a cube map
-            tcm = vtk.get("EquirectangularToCubeMapTexture")()
+            tcm = vtk.new("EquirectangularToCubeMapTexture")
             tcm.SetInputTexture(texture)
             # Enable mipmapping to handle HDR image
             tcm.MipmapOn()
@@ -2070,7 +2070,7 @@ class Plotter:
 
             self.renderer.SetEnvironmentTexture(tcm)
             self.renderer.UseImageBasedLightingOn()
-            self.skybox = vtk.get("Skybox")()
+            self.skybox = vtk.new("Skybox")
             self.skybox.SetTexture(tcm)
             self.renderer.AddActor(self.skybox)
 
@@ -2308,19 +2308,19 @@ class Plotter:
             vedo.logger.warning("add_scale_indicator called with use_parallel_projection OFF. Skip.")
             return None
 
-        rlabel = vtk.get("VectorText")()
+        rlabel = vtk.new("VectorText")
         rlabel.SetText("scale")
-        tf = vtk.get("TransformPolyDataFilter")()
+        tf = vtk.new("TransformPolyDataFilter")
         tf.SetInputConnection(rlabel.GetOutputPort())
         t = vtk.vtkTransform()
         t.Scale(s * wsy / wsx, s, 1)
         tf.SetTransform(t)
 
-        app = vtk.get("AppendPolyData")()
+        app = vtk.new("AppendPolyData")
         app.AddInputConnection(tf.GetOutputPort())
         app.AddInputData(pd)
 
-        mapper = vtk.get("PolyDataMapper2D")()
+        mapper = vtk.new("PolyDataMapper2D")
         mapper.SetInputConnection(app.GetOutputPort())
         cs = vtk.vtkCoordinate()
         cs.SetCoordinateSystem(1)
@@ -2771,7 +2771,7 @@ class Plotter:
         area_picker.AreaPick(pos1[0], pos1[1], pos2[0], pos2[1], ren)
         planes = area_picker.GetFrustum()
 
-        fru = vtk.get("FrustumSource")()
+        fru = vtk.new("FrustumSource")
         fru.SetPlanes(planes)
         fru.ShowLinesOff()
         fru.Update()
@@ -2878,7 +2878,7 @@ class Plotter:
             elif isinstance(a, vtk.vtkImageData):
                 scanned_acts.append(vedo.Volume(a).actor)
 
-            elif isinstance(a, vtk.get("MultiBlockDataSet")):
+            elif isinstance(a, vtk.get_class("MultiBlockDataSet")):
                 for i in range(a.GetNumberOfBlocks()):
                     b = a.GetBlock(i)
                     if isinstance(b, vtk.vtkPolyData):
@@ -3362,33 +3362,33 @@ class Plotter:
             # see https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html
             if mode in (0, "TrackballCamera"):
                 if self.qt_widget:
-                    self.interactor.SetInteractorStyle(vtk.get("InteractorStyleTrackballCamera")())
+                    self.interactor.SetInteractorStyle(vtk.new("InteractorStyleTrackballCamera"))
             elif mode in (1, "TrackballActor"):
-                self.interactor.SetInteractorStyle(vtk.get("InteractorStyleTrackballActor")())
+                self.interactor.SetInteractorStyle(vtk.new("InteractorStyleTrackballActor"))
             elif mode in (2, "JoystickCamera"):
-                self.interactor.SetInteractorStyle(vtk.get("InteractorStyleJoystickCamera")())
+                self.interactor.SetInteractorStyle(vtk.new("InteractorStyleJoystickCamera"))
             elif mode in (3, "JoystickActor"):
-                self.interactor.SetInteractorStyle(vtk.get("InteractorStyleJoystickActor")())
+                self.interactor.SetInteractorStyle(vtk.new("InteractorStyleJoystickActor"))
             elif mode in (4, "Flight"):
-                self.interactor.SetInteractorStyle(vtk.get("InteractorStyleFlight")())
+                self.interactor.SetInteractorStyle(vtk.new("InteractorStyleFlight"))
             elif mode in (5, "RubberBand2D"):
-                self.interactor.SetInteractorStyle(vtk.get("InteractorStyleRubberBand2D")())
+                self.interactor.SetInteractorStyle(vtk.new("InteractorStyleRubberBand2D"))
             elif mode in (6, "RubberBand3D"):
-                self.interactor.SetInteractorStyle(vtk.get("InteractorStyleRubberBand3D")())
+                self.interactor.SetInteractorStyle(vtk.new("InteractorStyleRubberBand3D"))
             elif mode in (7, "RubberBandZoom"):
-                self.interactor.SetInteractorStyle(vtk.get("InteractorStyleRubberBandZoom")())
+                self.interactor.SetInteractorStyle(vtk.new("InteractorStyleRubberBandZoom"))
             elif mode in (8, "Terrain"):
-                self.interactor.SetInteractorStyle(vtk.get("InteractorStyleTerrain")())
+                self.interactor.SetInteractorStyle(vtk.new("InteractorStyleTerrain"))
             elif mode in (9, "Unicam"):
-                self.interactor.SetInteractorStyle(vtk.get("InteractorStyleUnicam")())
+                self.interactor.SetInteractorStyle(vtk.new("InteractorStyleUnicam"))
             elif mode in (10, "Image", "image", "2d"):
-                astyle = vtk.get("InteractorStyleImage")()
+                astyle = vtk.new("InteractorStyleImage")
                 astyle.SetInteractionModeToImage3D()
                 self.interactor.SetInteractorStyle(astyle)
             else:
                 vedo.logger.warning(f"Unknown interaction mode: {mode}")
 
-        elif isinstance(mode, vtk.get("InteractorStyleUser")):
+        elif isinstance(mode, vtk.get_class("InteractorStyleUser")):
             # set a custom interactor style
             mode.interactor = self.interactor
             mode.renderer = self.renderer
@@ -3503,11 +3503,11 @@ class Plotter:
                 set image magnification as an integer multiplicating factor
         """
         if settings.screeshot_large_image:
-            w2if = vtk.get("RenderLargeImage")()
+            w2if = vtk.new("RenderLargeImage")
             w2if.SetInput(self.renderer)
             w2if.SetMagnification(scale)
         else:
-            w2if = vtk.get("WindowToImageFilter")()
+            w2if = vtk.new("WindowToImageFilter")
             w2if.SetInput(self.window)
             if hasattr(w2if, "SetScale"):
                 w2if.SetScale(scale, scale)
@@ -3530,7 +3530,7 @@ class Plotter:
 
     def color_picker(self, xy, verbose=False):
         """Pick color of specific (x,y) pixel on the screen."""
-        w2if = vtk.get("WindowToImageFilter")()
+        w2if = vtk.new("WindowToImageFilter")
         w2if.SetInput(self.window)
         w2if.ReadFrontBufferOff()
         w2if.Update()
@@ -3819,15 +3819,15 @@ class Plotter:
         elif key == "a":
             iren.ExitCallback()
             cur = iren.GetInteractorStyle()
-            if isinstance(cur, vtk.get("InteractorStyleTrackballCamera")):
+            if isinstance(cur, vtk.get_class("InteractorStyleTrackballCamera")):
                 msg = "\nInteractor style changed to TrackballActor\n"
                 msg += "  you can now move and rotate individual meshes:\n"
                 msg += "  press X twice to save the repositioned mesh\n"
                 msg += "  press 'a' to go back to normal style"
                 vedo.printc(msg)
-                iren.SetInteractorStyle(vtk.get("InteractorStyleTrackballActor")())
+                iren.SetInteractorStyle(vtk.new("InteractorStyleTrackballActor"))
             else:
-                iren.SetInteractorStyle(vtk.get("InteractorStyleTrackballCamera")())
+                iren.SetInteractorStyle(vtk.new("InteractorStyleTrackballCamera"))
             iren.Start()
             return
 
@@ -3862,12 +3862,12 @@ class Plotter:
         elif key == "j":
             iren.ExitCallback()
             cur = iren.GetInteractorStyle()
-            if isinstance(cur, vtk.get("InteractorStyleJoystickCamera")):
-                iren.SetInteractorStyle(vtk.get("InteractorStyleTrackballCamera")())
+            if isinstance(cur, vtk.get_class("InteractorStyleJoystickCamera")):
+                iren.SetInteractorStyle(vtk.new("InteractorStyleTrackballCamera"))
             else:
                 vedo.printc("\nInteractor style changed to Joystick,", end="")
                 vedo.printc(" press j to go back to normal.")
-                iren.SetInteractorStyle(vtk.get("InteractorStyleJoystickCamera")())
+                iren.SetInteractorStyle(vtk.new("InteractorStyleJoystickCamera"))
             iren.Start()
             return
 

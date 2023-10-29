@@ -10,7 +10,7 @@ __docformat__ = "google"
 __doc__ = """Submodule to customize interaction modes."""
 
 
-class MousePan(vtk.get("InteractorStyleUser")):
+class MousePan(vtk.get_class("InteractorStyleUser")):
     """
     Interaction mode to pan the scene by dragging the mouse.
 
@@ -157,7 +157,7 @@ class _BlenderStyleDragInfo:
 
 
 ###############################################
-class BlenderStyle(vtk.get("InteractorStyleUser")):
+class BlenderStyle(vtk.get_class("InteractorStyleUser")):
     """
     Create an interaction style using the Blender default key-bindings.
 
@@ -1356,9 +1356,8 @@ class BlenderStyle(vtk.get("InteractorStyleUser")):
         if self.callback_measure:
             self.callback_measure(meters)
 
-        #
         # # can we add something to the window here?
-        # freeType = vtk.get("FreeTypeTools.GetInstance()
+        # freeType = vtk.FreeTypeTools.GetInstance()
         # textProperty = vtk.vtkTextProperty()
         # textProperty.SetJustificationToLeft()
         # textProperty.SetFontSize(24)
@@ -1381,7 +1380,7 @@ class BlenderStyle(vtk.get("InteractorStyleUser")):
         if self.middle_mouse_lock_actor is None:
             # create the actor
             # Create a text on the top-rightcenter
-            textMapper = vtk.get("TextMapper")()
+            textMapper = vtk.new("TextMapper")
             textMapper.SetInput("Middle mouse lock [m or space] active")
             textProp = textMapper.GetTextProperty()
             textProp.SetFontSize(12)
