@@ -45,7 +45,7 @@ __all__ = [
 ##########################################################################
 def _to2d(obj, offset, scale):
 
-    tp = vtk.get("TransformPolyDataFilter")()
+    tp = vtk.new("TransformPolyDataFilter")
     transform = vtk.vtkTransform()
     transform.Scale(scale, scale, scale)
     transform.Translate(-offset[0], -offset[1], 0)
@@ -55,7 +55,7 @@ def _to2d(obj, offset, scale):
 
     poly = tp.GetOutput()
 
-    mapper2d = vtk.get("PolyDataMapper2D")()
+    mapper2d = vtk.new("PolyDataMapper2D")
     mapper2d.SetInputData(poly)
 
     act2d = vtk.vtkActor2D()
@@ -2713,7 +2713,7 @@ def _plot_fxy(
     if c is not None:
         texture = None  # disable
 
-    ps = vtk.get("PlaneSource")()
+    ps = vtk.new("PlaneSource")
     ps.SetResolution(bins[0], bins[1])
     ps.SetNormal([0, 0, 1])
     ps.Update()
@@ -2748,7 +2748,7 @@ def _plot_fxy(
             for j in range(cellIds.GetNumberOfIds()):
                 poly.DeleteCell(cellIds.GetId(j))  # flag cell
         poly.RemoveDeletedCells()
-        cl = vtk.get("CleanPolyData")()
+        cl = vtk.new("CleanPolyData")
         cl.SetInputData(poly)
         cl.Update()
         poly = cl.GetOutput()
@@ -2779,13 +2779,13 @@ def _plot_fxy(
 
     acts = [mesh]
     if zlevels:
-        elevation = vtk.get("ElevationFilter")()
+        elevation = vtk.new("ElevationFilter")
         elevation.SetInputData(poly)
         bounds = poly.GetBounds()
         elevation.SetLowPoint(0, 0, bounds[4])
         elevation.SetHighPoint(0, 0, bounds[5])
         elevation.Update()
-        bcf = vtk.get("BandedPolyDataContourFilter")()
+        bcf = vtk.new("BandedPolyDataContourFilter")
         bcf.SetInputData(elevation.GetOutput())
         bcf.SetScalarModeToValue()
         bcf.GenerateContourEdgesOn()
@@ -2830,7 +2830,7 @@ def _plot_fz(
     bins=(75, 75),
     axes=True,
 ):
-    ps = vtk.get("PlaneSource")()
+    ps = vtk.new("PlaneSource")
     ps.SetResolution(bins[0], bins[1])
     ps.SetNormal([0, 0, 1])
     ps.Update()
@@ -3142,7 +3142,7 @@ def _histogram_hex_bin(
     r = 0.47 / n * 1.2 * dx
     for i in range(n + 3):
         for j in range(m + 2):
-            cyl = vtk.get("CylinderSource")()
+            cyl = vtk.new("CylinderSource")
             cyl.SetResolution(6)
             cyl.CappingOn()
             cyl.SetRadius(0.5)
@@ -3161,7 +3161,7 @@ def _histogram_hex_bin(
             else:
                 t.Translate(p[0], p[1], ne)
             t.RotateX(90)  # put it along Z
-            tf = vtk.get("TransformPolyDataFilter")()
+            tf = vtk.new("TransformPolyDataFilter")
             tf.SetInputData(cyl.GetOutput())
             tf.SetTransform(t)
             tf.Update()
@@ -3910,7 +3910,7 @@ def CornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True, dots=T
     data = vtk.vtkDataObject()
     data.SetFieldData(field)
 
-    xyplot = vtk.get("XYPlotActor")()
+    xyplot = vtk.new("XYPlotActor")
     xyplot.AddDataObjectInput(data)
     xyplot.SetDataObjectXComponent(0, 0)
     xyplot.SetDataObjectYComponent(0, 1)
@@ -4136,7 +4136,7 @@ class DirectedGraph(Assembly):
 
         self.edge_label_scale = None
 
-        self.mdg = vtk.get("MutableDirectedGraph")()
+        self.mdg = vtk.new("MutableDirectedGraph")
 
         n = kargs.pop("n", 0)
         for _ in range(n):
@@ -4144,7 +4144,7 @@ class DirectedGraph(Assembly):
 
         self._c = kargs.pop("c", (0.3, 0.3, 0.3))
 
-        self.gl = vtk.get("GraphLayout")()
+        self.gl = vtk.new("GraphLayout")
 
         self.font = kargs.pop("font", "")
 
@@ -4156,11 +4156,11 @@ class DirectedGraph(Assembly):
 
         if "2d" in s:
             if "clustering" in s:
-                self.strategy = vtk.get("Clustering2DLayoutStrategy")()
+                self.strategy = vtk.new("Clustering2DLayoutStrategy")
             elif "fast" in s:
-                self.strategy = vtk.get("Fast2DLayoutStrategy")()
+                self.strategy = vtk.new("Fast2DLayoutStrategy")
             else:
-                self.strategy = vtk.get("Simple2DLayoutStrategy")()
+                self.strategy = vtk.new("Simple2DLayoutStrategy")
             self.rotX = 180
             opt = kargs.pop("rest_distance", None)
             if opt is not None:
@@ -4175,7 +4175,7 @@ class DirectedGraph(Assembly):
 
         elif "circ" in s:
             if "3d" in s:
-                self.strategy = vtk.get("Simple3DCirclesStrategy")()
+                self.strategy = vtk.new("Simple3DCirclesStrategy")
                 self.strategy.SetDirection(0, 0, -1)
                 self.strategy.SetAutoHeight(True)
                 self.strategy.SetMethod(1)
@@ -4189,11 +4189,11 @@ class DirectedGraph(Assembly):
                     self.strategy.SetAutoHeight(False)
                     self.strategy.SetHeight(opt)  # float
             else:
-                self.strategy = vtk.get("CircularLayoutStrategy")()
+                self.strategy = vtk.new("CircularLayoutStrategy")
                 self.zrange = kargs.pop("zrange", 0)
 
         elif "cone" in s:
-            self.strategy = vtk.get("ConeLayoutStrategy")()
+            self.strategy = vtk.new("ConeLayoutStrategy")
             self.rotX = 180
             opt = kargs.pop("compactness", None)
             if opt is not None:
@@ -4206,7 +4206,7 @@ class DirectedGraph(Assembly):
                 self.strategy.SetSpacing(opt)
 
         elif "force" in s:
-            self.strategy = vtk.get("ForceDirectedLayoutStrategy")()
+            self.strategy = vtk.new("ForceDirectedLayoutStrategy")
             opt = kargs.pop("seed", None)
             if opt is not None:
                 self.strategy.SetRandomSeed(opt)
@@ -4225,7 +4225,7 @@ class DirectedGraph(Assembly):
                 self.strategy.SetRandomInitialPoints(opt)  # bool
 
         elif "tree" in s:
-            self.strategy = vtk.get("SpanTreeLayoutStrategy")()
+            self.strategy = vtk.new("SpanTreeLayoutStrategy")
             self.rotX = 180
 
         else:
@@ -4288,7 +4288,7 @@ class DirectedGraph(Assembly):
         self.gl.SetInputData(self.mdg)
         self.gl.Update()
 
-        gr2poly = vtk.get("GraphToPolyData")()
+        gr2poly = vtk.new("GraphToPolyData")
         gr2poly.EdgeGlyphOutputOn()
         gr2poly.SetEdgeGlyphPosition(self.edge_glyph_position)
         gr2poly.SetInputData(self.gl.GetOutput())
@@ -4317,7 +4317,7 @@ class DirectedGraph(Assembly):
         # Use Glyph3D to repeat the glyph on all edges.
         arrows = None
         if self.arrow_scale:
-            arrow_source = vtk.get("GlyphSource2D")()
+            arrow_source = vtk.new("GlyphSource2D")
             arrow_source.SetGlyphTypeToEdgeArrow()
             arrow_source.SetScale(self.arrow_scale)
             arrow_source.Update()
