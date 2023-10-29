@@ -796,7 +796,7 @@ def get_color(rgb=None, hsv=None):
             return tuple(rgbh)
 
         else:  # vtk name color
-            namedColors = vtk.get("NamedColors")()
+            namedColors = vtk.new("NamedColors")
             rgba = [0, 0, 0, 0]
             namedColors.GetColor(c, rgba)
             return (rgba[0] / 255.0, rgba[1] / 255.0, rgba[2] / 255.0)
@@ -823,7 +823,7 @@ def get_color_name(c):
 
 def hsv2rgb(hsv):
     """Convert HSV to RGB color."""
-    ma = vtk.get("Math")()
+    ma = vtk.new("Math")
     rgb = [0, 0, 0]
     ma.HSVToRGB(hsv, rgb)
     return rgb
@@ -831,7 +831,7 @@ def hsv2rgb(hsv):
 
 def rgb2hsv(rgb):
     """Convert RGB to HSV color."""
-    ma = vtk.get("Math")()
+    ma = vtk.new("Math")
     hsv = [0, 0, 0]
     ma.RGBToHSV(get_color(rgb), hsv)
     return hsv
@@ -1019,7 +1019,7 @@ def build_lut(
 
             ![](https://vedo.embl.es/images/basic/mesh_lut.png)
     """
-    ctf = vtk.get("ColorTransferFunction")()
+    ctf = vtk.new("ColorTransferFunction")
     ctf.SetColorSpaceToRGB()
     ctf.SetScaleToLinear()
     alpha_x, alpha_vals = [], []
@@ -1034,7 +1034,7 @@ def build_lut(
         alpha_x.append(scalar)
         alpha_vals.append(alf)
 
-    lut = vtk.get("LookupTable")()
+    lut = vtk.new("LookupTable")
     lut.SetNumberOfTableValues(256)
 
     x0, x1 = ctf.GetRange()  # range of the introduced values

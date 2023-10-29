@@ -163,7 +163,7 @@ def start_k3d(actors2show):
                     vtkdata = iapoly.GetCellData()
                     vtkscals = vtkdata.GetScalars()
                     if vtkscals is not None:
-                        c2p = vtk.get("CellDataToPointData")()
+                        c2p = vtk.new("CellDataToPointData")
                         c2p.SetInputData(iapoly)
                         c2p.Update()
                         iapoly = c2p.GetOutput()

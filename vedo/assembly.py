@@ -45,13 +45,13 @@ def procrustes_alignment(sources, rigid=False):
         ![](https://vedo.embl.es/images/basic/align4.png)
     """
 
-    group = vtk.get("MultiBlockDataGroupFilter")()
+    group = vtk.new("MultiBlockDataGroupFilter")
     for source in sources:
         if sources[0].npoints != source.npoints:
             vedo.logger.error("sources have different nr of points")
             raise RuntimeError()
         group.AddInputData(source.dataset)
-    procrustes = vtk.get("ProcrustesAlignmentFilter")()
+    procrustes = vtk.new("ProcrustesAlignmentFilter")
     procrustes.StartFromCentroidOn()
     procrustes.SetInputConnection(group.GetOutputPort())
     if rigid:
@@ -242,7 +242,7 @@ class Assembly(CommonVisual, vtk.vtkAssembly):
 
         scalarbars = []
         for a in self.actors:
-            if isinstance(a, vtk.get("Prop3D")):  # and a.GetNumberOfPoints():
+            if isinstance(a, vtk.get_class("Prop3D")): # and a.GetNumberOfPoints():
                 self.AddPart(a)
             if hasattr(a, "scalarbar") and a.scalarbar is not None:
                 scalarbars.append(a.scalarbar)
@@ -327,7 +327,7 @@ class Assembly(CommonVisual, vtk.vtkAssembly):
         """
         Add an object to the assembly
         """
-        if isinstance(obj, vtk.get("Prop3D")):
+        if isinstance(obj, vtk.get_class("Prop3D")):
 
             self.objects.append(obj)
             self.actors.append(obj.actor)
