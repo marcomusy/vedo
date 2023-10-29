@@ -127,7 +127,7 @@ class UGrid(VolumeVisual, UGridAlgorithms):
             vedo.logger.error(f"cannot understand input type {inputtype}")
             return
 
-        self.mapper = vtk.get("UnstructuredGridVolumeRayCastMapper")()
+        self.mapper = vtk.new("UnstructuredGridVolumeRayCastMapper")
         self.actor.SetMapper(self.mapper)
 
         self.mapper.SetInputData(self.dataset) ###NOT HERE?
@@ -239,13 +239,13 @@ class UGrid(VolumeVisual, UGridAlgorithms):
         uarr = self.dataset.GetCellTypesArray()
         ctarrtyp = np.where(utils.vtk2numpy(uarr) == ctype)[0]
         uarrtyp = utils.numpy2vtk(ctarrtyp, deep=False, dtype="id")
-        selection_node = vtk.get("SelectionNode")()
-        selection_node.SetFieldType(vtk.get("SelectionNode").CELL)
-        selection_node.SetContentType(vtk.get("SelectionNode").INDICES)
+        selection_node = vtk.new("SelectionNode")
+        selection_node.SetFieldType(vtk.get_class("SelectionNode").CELL)
+        selection_node.SetContentType(vtk.get_class("SelectionNode").INDICES)
         selection_node.SetSelectionList(uarrtyp)
-        selection = vtk.get("Selection")()
+        selection = vtk.new("Selection")
         selection.AddNode(selection_node)
-        es = vtk.get("ExtractSelection")()
+        es = vtk.new("ExtractSelection")
         es.SetInputData(0, self.dataset)
         es.SetInputData(1, selection)
         es.Update()

@@ -1903,7 +1903,7 @@ class Video:
         self.frames = []
         self.tmp_dir = TemporaryDirectory()
         self.get_filename = lambda x: os.path.join(self.tmp_dir.name, x)
-        colors.printc(":video: Video file", self.name, "is open... ", c="m", end="")
+        colors.printc(":video:  Video file", self.name, "is open... ", c="m", end="")
 
     def add_frame(self):
         """Add frame to current video."""

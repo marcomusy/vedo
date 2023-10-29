@@ -37,8 +37,6 @@ def get_class(cls_name="", module_name=""):
     else:
         return module_cache[module_name]
 
-def get(*args):
-    return get_class(*args)
 
 def new(cls_name="", module_name=""):
     """
@@ -96,6 +94,17 @@ def dump_hierarchy_to_file(fname=""):
 
 import vtkmodules.vtkRenderingOpenGL2
 
+from vtkmodules.vtkRenderingVolumeOpenGL2 import (
+    vtkOpenGLGPUVolumeRayCastMapper,
+    vtkSmartVolumeMapper,
+)
+for name in [
+    "vtkOpenGLGPUVolumeRayCastMapper",
+    "vtkSmartVolumeMapper",
+]:
+    location[name] = "vtkRenderingVolumeOpenGL2"
+
+######################################################################
 
 for name in [
     "vtkKochanekSpline",
@@ -359,6 +368,7 @@ for name in [
     "vtkPolyDataPlaneCutter"
 ]:
     location[name] = "vtkFiltersCore"
+
 from vtkmodules.vtkFiltersCore import vtkGlyph3D
 
 
@@ -841,16 +851,6 @@ for name in [
     "vtkUnstructuredGridVolumeZSweepMapper",
 ]:
     location[name] = "vtkRenderingVolume"
-
-from vtkmodules.vtkRenderingVolumeOpenGL2 import (
-    vtkOpenGLGPUVolumeRayCastMapper,
-    vtkSmartVolumeMapper,
-)
-for name in [
-    "vtkOpenGLGPUVolumeRayCastMapper",
-    "vtkSmartVolumeMapper",
-]:
-    location[name] = "vtkRenderingVolumeOpenGL2"
 
 #########################################################
 # print("successfully finished importing vtkmodules")

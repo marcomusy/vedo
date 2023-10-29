@@ -18,6 +18,7 @@ def func(evt):
 
 surf = Plane(s=[60, 60])
 line = Line([l*n/2, 0], [-l*n/2, 0], res=n, lw=12)
+line.render_lines_as_tubes()
 nodes= line.clone().c('red3').point_size(15)
 
 plt = Plotter()

@@ -1,4 +1,5 @@
 """Solving a system of springs using the finite element method."""
+# https://www.youtube.com/watch?v=YqpIEDWJCwc
 import numpy as np
 from vedo import *
 # np.random.seed(0)
@@ -41,6 +42,7 @@ F = np.c_[F, yvals]
 
 nodes_displaced = nodes + u
 
+# Visualize the solution
 vnodes1 = Points(nodes, r=20, c="k", alpha=0.25)
 vline1  = Line(nodes, c="k", alpha=0.25)
 

@@ -3597,7 +3597,7 @@ class Torus(Mesh):
             super().__init__([pts, faces], c, alpha)
 
         else:
-            rs = vtk.new("vtkParametricTorus")
+            rs = vtk.new("ParametricTorus")
             rs.SetRingRadius(r1)
             rs.SetCrossSectionRadius(r2)
             pfs = vtk.new("ParametricFunctionSource")
@@ -4250,7 +4250,7 @@ class Text3D(Mesh):
         txt = str(txt)
 
         if font == "VTK":  #######################################
-            vtt = vtk.new("vtkVectorText")
+            vtt = vtk.new("VectorText")
             vtt.SetText(txt)
             vtt.Update()
             tpoly = vtt.GetOutput()

@@ -414,7 +414,7 @@ class Mesh(MeshVisual, Points):
 
             else:
                 # last resource is automatic mapping
-                tmapper = vtk.new("vtkTextureMapToPlane")
+                tmapper = vtk.new("TextureMapToPlane")
                 tmapper.AutomaticPlaneGenerationOn()
                 tmapper.SetInputData(pd)
                 tmapper.Update()

@@ -1837,8 +1837,8 @@ class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
         elif vobj.GetKeySym() == "s": # Ctrl+s to save mesh
             if self.widget.GetInteractor():
                 if self.widget.GetInteractor().GetControlKey():
-                    printc(":save: saving mesh to vedo_clipped.vtk")
                     self.mesh.write("vedo_clipped.vtk")
+                    printc(":save: saved mesh to vedo_clipped.vtk")
 
 
 class BoxCutter(vtk.vtkBoxWidget, BaseCutter):
@@ -1952,8 +1952,8 @@ class BoxCutter(vtk.vtkBoxWidget, BaseCutter):
         elif vobj.GetKeySym() == "s": # Ctrl+s to save mesh
             if self.widget.GetInteractor():
                 if self.widget.GetInteractor().GetControlKey():
-                    printc(":save: saving mesh to vedo_clipped.vtk")
                     self.mesh.write("vedo_clipped.vtk")
+                    printc(":save: saved mesh to vedo_clipped.vtk")
 
 
 class SphereCutter(vtk.vtkSphereWidget, BaseCutter):
@@ -2073,8 +2073,8 @@ class SphereCutter(vtk.vtkSphereWidget, BaseCutter):
         elif vobj.GetKeySym() == "s": # Ctrl+s to save mesh
             if self.widget.GetInteractor():
                 if self.widget.GetInteractor().GetControlKey():
-                    printc(":save: saving mesh to vedo_clipped.vtk")
                     self.mesh.write("vedo_clipped.vtk")
+                    printc(":save: saved mesh to vedo_clipped.vtk")
 
 
 #####################################################################

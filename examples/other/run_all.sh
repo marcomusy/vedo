@@ -25,9 +25,6 @@ python3 iminuit1.py
 echo Running inset.py
 python3 inset.py
 
-echo Running vpolyscope.py
-python3 vpolyscope.py
-
 echo Running meshio_read.py
 python3 meshio_read.py
 

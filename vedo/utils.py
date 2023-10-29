@@ -515,7 +515,7 @@ def geometry(obj, extent=None):
 
     Set `extent` as the `[xmin,xmax, ymin,ymax, zmin,zmax]` bounding box to clip data.
     """
-    gf = vtk.get("GeometryFilter")()
+    gf = vtk.new("GeometryFilter")
     gf.SetInputData(obj)
     if extent is not None:
         gf.SetExtent(extent)
@@ -536,7 +536,7 @@ def extract_cells_by_type(obj, types=()):
     Return:
         a `vtkDataSet` object which can be wrapped.
     """
-    ef = vtk.get("ExtractCellsByType")()
+    ef = vtk.new("ExtractCellsByType")
     try:
         ef.SetInputData(obj.dataset)
     except AttributeError:
@@ -2062,7 +2062,8 @@ def camera_from_quaternion(pos, quaternion, distance=10000, ngl_correct=True):
     camera = vtk.vtkCamera()
     # define the quaternion in vtk, note the swapped order
     # w,x,y,z instead of x,y,z,w
-    quat_vtk = vtk.get("Quaternion")(quaternion[3], quaternion[0], quaternion[1], quaternion[2])
+    quat_vtk = vtk.get_class("Quaternion")(
+        quaternion[3], quaternion[0], quaternion[1], quaternion[2])
     # use this to define a rotation matrix in x,y,z
     # right handed units
     M = np.zeros((3, 3), dtype=np.float32)

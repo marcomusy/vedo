@@ -79,6 +79,11 @@ slice_plane1.py
 
 background_image.py
 
+gyroscope1.py broken
+tet_cut2.py broken
+markpoint.py
+plot_spheric.py
+
 ```
 
 ### TODO
@@ -89,6 +94,4 @@ background_image.py
 - revisit splines and other widgets
 - merge does something strange with flagpost
 - analysis_plots.visualize_clones_as_timecourse_with_fit not working
-
-
-
+- load series as animation viewer

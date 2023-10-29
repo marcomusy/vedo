@@ -3611,11 +3611,13 @@ class Plotter:
         self.justremoved = None
         self.clicked_actor = clicked_actor
 
-        if hasattr(clicked_actor, "data"):  # might be not a vedo obj
+        try: # might not be a vedo obj
             self.clicked_object = clicked_actor.retrieve_object()
             # save this info in the object itself
             self.clicked_object.picked3d = self.picked3d
             self.clicked_object.picked2d = self.picked2d
+        except AttributeError:
+            pass
 
         # -----------
         if "Histogram1D" in picker.GetAssembly().__class__.__name__:
@@ -3768,12 +3770,12 @@ class Plotter:
                 "  ============================================================\n"
                 " | Press: i     print info about selected object              |\n"
                 " |        I     print the RGB color under the mouse           |\n"
-                " |        y     show the pipeline for this object as a graph  |\n"
+                " |        Y     show the pipeline for this object as a graph  |\n"
                 " |        <-->  use arrows to reduce/increase opacity         |\n"
-                " |        w/s   toggle wireframe/surface style                |\n"
-                " |        p/P   change point size of vertices                 |\n"
-                " |        l     toggle edges visibility                       |\n"
                 " |        x     toggle mesh visibility                        |\n"
+                " |        w     toggle wireframe/surface style                |\n"
+                " |        l     toggle edges visibility                       |\n"
+                " |        p/P   change size of vertices                       |\n"
                 " |        X     invoke a cutter widget tool                   |\n"
                 " |        1-3   change mesh color                             |\n"
                 " |        4     use data array as colors, if present          |\n"
@@ -3786,7 +3788,6 @@ class Plotter:
                 " |        o/O   add/remove light to scene and rotate it       |\n"
                 " |        n     show surface mesh normals                     |\n"
                 " |        a     toggle interaction to Actor Mode              |\n"
-                " |        j     toggle interaction to Joystick Mode           |\n"
                 " |        U     toggle perspective/parallel projection        |\n"
                 " |        r     reset camera position                         |\n"
                 " |        R     reset camera orientation to orthogonal view   |\n"
@@ -3834,14 +3835,14 @@ class Plotter:
         elif key == "A":  # toggle antialiasing
             msam = self.window.GetMultiSamples()
             if not msam:
-                self.window.SetMultiSamples(8)
+                self.window.SetMultiSamples(16)
             else:
                 self.window.SetMultiSamples(0)
             msam = self.window.GetMultiSamples()
             if msam:
-                vedo.printc(f"Antialiasing is now set to {msam} samples", c=bool(msam))
+                vedo.printc(f"Antialiasing set to {msam} samples", c=bool(msam))
             else:
-                vedo.printc("Antialiasing is now disabled", c=bool(msam))
+                vedo.printc("Antialiasing disabled", c=bool(msam))
 
         elif key == "D":  # toggle depthpeeling
             udp = not renderer.GetUseDepthPeeling()
@@ -3854,21 +3855,9 @@ class Plotter:
             self.interactor.Render()
             wasUsed = renderer.GetLastRenderingUsedDepthPeeling()
             rnr = self.renderers.index(renderer)
-            vedo.printc(f"Depth peeling is now set to {udp} for renderer nr.{rnr}", c=udp)
+            vedo.printc(f"Depth peeling set to {udp} for renderer nr.{rnr}", c=udp)
             if not wasUsed and udp:
                 vedo.printc("\t...but last rendering did not actually used it!", c=udp, invert=True)
-            return
-
-        elif key == "j":
-            iren.ExitCallback()
-            cur = iren.GetInteractorStyle()
-            if isinstance(cur, vtk.get_class("InteractorStyleJoystickCamera")):
-                iren.SetInteractorStyle(vtk.new("InteractorStyleTrackballCamera"))
-            else:
-                vedo.printc("\nInteractor style changed to Joystick,", end="")
-                vedo.printc(" press j to go back to normal.")
-                iren.SetInteractorStyle(vtk.new("InteractorStyleJoystickCamera"))
-            iren.Start()
             return
 
         elif key == "period":
@@ -3905,19 +3894,13 @@ class Plotter:
         elif key == "R":
             self.reset_viewup()
 
-        elif key == "s":
-            try:
-                if self.clicked_object and self.clicked_object in self.get_meshes():
-                    self.clicked_object.wireframe(False)
-                else:
-                    for a in self.get_meshes():
-                        a.wireframe()
-            except AttributeError:
-                pass  # Points dont have wireframe
-
         elif key == "w":
             if self.clicked_object and self.clicked_object in self.get_meshes():
-                self.clicked_object.properties.SetRepresentationToWireframe()
+                # self.clicked_object.properties.SetRepresentationToWireframe()
+                if self.clicked_object.properties.GetRepresentation() == 1:  # toggle
+                    self.clicked_object.properties.SetRepresentationToSurface()
+                else:
+                    self.clicked_object.properties.SetRepresentationToWireframe()
             else:
                 for a in self.get_meshes():
                     if a.properties.GetRepresentation() == 1:  # toggle
@@ -4125,9 +4108,9 @@ class Plotter:
             if not self._extralight:
                 vup = renderer.GetActiveCamera().GetViewUp()
                 pos = cm + utils.vector(vup) * utils.mag(sizes)
-                self._extralight = addons.Light(pos, focal_point=cm)
+                self._extralight = addons.Light(pos, focal_point=cm, intensity=0.4)
                 renderer.AddLight(self._extralight)
-                print("Press again o to rotate light source, or O to remove it.")
+                vedo.printc("Press 'o' again to rotate light source, or 'O' to remove it.", c='y')
             else:
                 cpos = utils.vector(self._extralight.GetPosition())
                 x, y, z = self._extralight.GetPosition() - cm
@@ -4138,8 +4121,6 @@ class Plotter:
                 ph += 0.3
                 cpos = transformations.spher2cart(r, th, ph).T + cm
                 self._extralight.SetPosition(cpos)
-
-            self.window.Render()
 
         elif key == "l":
             if self.clicked_object in self.get_meshes():
@@ -4184,11 +4165,12 @@ class Plotter:
                         ia.properties.SetInterpolation(2)  # phong
 
         elif key == "n":  # show normals to an actor
+            self.remove("added_auto_normals")
             if self.clicked_object in self.get_meshes():
                 if self.clicked_actor.GetPickable():
                     norml = vedo.shapes.NormalLines(self.clicked_object)
+                    norml.name = "added_auto_normals"
                     self.add(norml)
-                    iren.Render()
 
         elif key == "x":
             if self.justremoved is None:
@@ -4199,7 +4181,6 @@ class Plotter:
                     self.renderer.RemoveActor(self.clicked_actor)
             else:
                 self.renderer.AddActor(self.justremoved)
-                self.renderer.Render()
                 self.justremoved = None
 
         elif key == "X":
@@ -4207,20 +4188,25 @@ class Plotter:
                 if not self.cutter_widget:
                     self.cutter_widget = addons.BoxCutter(self.clicked_object)
                     self.add(self.cutter_widget)
-                    print("Press Shift+X to close the cutter box widget, Ctrl+s to save the cut section.")
+                    vedo.printc("Press i to toggle the cutter on/off", c='g', dim=1)
+                    vedo.printc("      u to flip selection", c='g', dim=1)
+                    vedo.printc("      r to reset cutting planes", c='g', dim=1)
+                    vedo.printc("      Shift+X to close the cutter box widget", c='g', dim=1)
+                    vedo.printc("      Ctrl+S to save the cut section to file.", c='g', dim=1)
                 else:
                     self.remove(self.cutter_widget)
                     self.cutter_widget = None
-                vedo.printc("Click object and press X to open the cutter box widget.", c=4)
+                vedo.printc("Click object and press X to open the cutter box widget.", c='g')
 
         elif key == "E":
-            vedo.printc(r":camera: Exporting 3D window to file", c="blue", end="")
+            vedo.printc(r":camera: Exporting 3D window to file", c="b", end="")
             vedo.file_io.export_window("scene.npz")
-            vedo.printc(". Try:\n> vedo scene.npz", c="blue")
+            vedo.printc(". Try:\n> vedo scene.npz", c="b")
+            return
 
         elif key == "F":
             vedo.file_io.export_window("scene.x3d")
-            vedo.printc(":idea: Try: firefox scene.html", c="blue")
+            vedo.printc(":idea: Try: firefox scene.html", c="b")
 
         elif key == "i":  # print info
             if self.clicked_object:
@@ -4232,7 +4218,7 @@ class Plotter:
             x, y = iren.GetEventPosition()
             self.color_picker([x, y], verbose=True)
 
-        elif key == "y":
+        elif key == "Y":
             if self.clicked_object and self.clicked_object.pipeline:
                 self.clicked_object.pipeline.show()
 

@@ -91,7 +91,7 @@ class CommonVisual:
 
         actor = self.actor
         if isinstance(self, vedo.UGrid):
-            geo = vtk.get("GeometryFilter")()
+            geo = vtk.new("GeometryFilter")
             geo.SetInputData(self.dataset)
             geo.Update()
             actor = vedo.Mesh(geo.GetOutput()).cmap("rainbow").actor
@@ -493,7 +493,7 @@ class PointsVisual(CommonVisual):
         vrange = self.mapper.GetScalarRange()
         sm = self.mapper.GetScalarMode()
 
-        mapper2d = vtk.get("PolyDataMapper2D")()
+        mapper2d = vtk.new("PolyDataMapper2D")
         mapper2d.ShallowCopy(self.mapper)
         mapper2d.SetInputData(poly)
         mapper2d.SetColorMode(cm)
@@ -1329,7 +1329,7 @@ class PointsVisual(CommonVisual):
             vedo.logger.error("in labels(), array not found for points or cells")
             return None
 
-        tapp = vtk.get("AppendPolyData")()
+        tapp = vtk.new("AppendPolyData")
         ninputs = 0
 
         for i, e in enumerate(elems):
@@ -1348,7 +1348,7 @@ class PointsVisual(CommonVisual):
                 continue
 
             if font == "VTK":
-                tx = vtk.get("VectorText")()
+                tx = vtk.new("VectorText")
                 tx.SetText(txt_lab)
                 tx.Update()
                 tx_poly = tx.GetOutput()
@@ -1392,7 +1392,7 @@ class PointsVisual(CommonVisual):
                     T.RotateZ(zrot)
             T.Scale(scale, scale, scale)
             T.Translate(e)
-            tf = vtk.get("TransformPolyDataFilter")()
+            tf = vtk.new("TransformPolyDataFilter")
             tf.SetInputData(tx_poly)
             tf.SetTransform(T)
             tf.Update()
@@ -1480,7 +1480,7 @@ class PointsVisual(CommonVisual):
                 return None
             self.pointdata.select(content)
 
-        mp = vtk.get("LabeledDataMapper")()
+        mp = vtk.new("LabeledDataMapper")
 
         if content == "id":
             mp.SetLabelModeToLabelIds()
@@ -1840,7 +1840,7 @@ class PointsVisual(CommonVisual):
         capt.SetAttachmentPoint(point)
         capt.SetBorder(True)
         capt.SetLeader(True)
-        sph = vtk.get("SphereSource")()
+        sph = vtk.new("SphereSource")
         sph.Update()
         capt.SetLeaderGlyphData(sph.GetOutput())
         capt.SetMaximumLeaderGlyphSize(5)
