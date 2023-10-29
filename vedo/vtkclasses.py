@@ -11,7 +11,7 @@ location = {}
 module_cache = {}
 
 ######################################################################
-def get(cls_name="", module_name=""):
+def get_class(cls_name="", module_name=""):
     """
     Get a vtk class from its name.
     
@@ -20,8 +20,8 @@ def get(cls_name="", module_name=""):
     from vedo import vtkclasses as vtk
     print(vtk.vtkActor)
     print(vtk.location["vtkActor"])
-    print(vtk.get("vtkActor"))
-    print(vtk.get("vtkActor", "vtkRenderingCore"))
+    print(vtk.get_class("vtkActor"))
+    print(vtk.get_class("vtkActor", "vtkRenderingCore"))
     ```
     """
     if cls_name and not cls_name.startswith("vtk"):
@@ -36,6 +36,22 @@ def get(cls_name="", module_name=""):
         return getattr(module_cache[module_name], cls_name)
     else:
         return module_cache[module_name]
+
+def get(*args):
+    return get_class(*args)
+
+def new(cls_name="", module_name=""):
+    """
+    Create a new vtk object from its name.
+    
+    Example:
+    ```python
+    from vedo import vtkclasses as vtk
+    a = vtk.new("Actor")
+    ```
+    """
+    return get_class(cls_name, module_name)()
+
 
 def dump_hierarchy_to_file(fname=""):
     """
