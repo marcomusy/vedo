@@ -251,6 +251,9 @@ def show(
             bg2=bg2,
         )
 
+    if settings.dry_run_mode >= 2:
+        return plt
+
     # use _plt_to_return because plt.show() can return a k3d plot
     _plt_to_return = None
 
@@ -975,6 +978,10 @@ class Plotter:
 
     def render(self, resetcam=False):
         """Render the scene. This method is typically used in loops or callback functions."""
+
+        if settings.dry_run_mode >= 2:
+            return self
+
         if not self.window:
             return self
 
@@ -1008,6 +1015,8 @@ class Plotter:
         Start window interaction.
         Analogous to `show(..., interactive=True)`.
         """
+        if settings.dry_run_mode >= 1:
+            return self
         self.initialize_interactor()
         if self.interactor:
             self.interactor.Start()
@@ -2533,7 +2542,10 @@ class Plotter:
         from vtkmodules.util.misc import calldata_type
 
         if not self.interactor:
-            return None
+            return 0
+
+        if settings.dry_run_mode >= 1:
+            return 0
 
         #########################################
         @calldata_type(vtk.VTK_INT)
@@ -3029,6 +3041,10 @@ class Plotter:
             screenshot : (str)
                 save a screenshot of the window to file
         """
+
+        if settings.dry_run_mode >= 2:
+            return self
+
         if self.wx_widget:
             return self
 
@@ -3415,6 +3431,9 @@ class Plotter:
         self.hint_widget = None
         self.cutter_widget = None
 
+        if settings.dry_run_mode >= 2:
+            return self
+
         for r in self.renderers:
             r.RemoveAllObservers()
         if hasattr(self, "window") and self.window:
@@ -3425,7 +3444,6 @@ class Plotter:
                 except AttributeError:
                     pass
                 self.interactor.TerminateApp()
-
                 # self.interactor = None
             self.window.Finalize()  # this must be done here
 

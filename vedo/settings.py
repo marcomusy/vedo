@@ -133,7 +133,6 @@ class Settings:
 
     # Restrict the attributes so accidental typos will generate an AttributeError exception
     __slots__ = [
-        "_level",
         "default_font",
         "default_backend",
         "palette",
@@ -189,11 +188,16 @@ class Settings:
         "k3d_point_shader",
         "k3d_line_shader",
         "font_parameters",
+        "dry_run_mode",
     ]
 
-    def __init__(self, level=0):
+    def __init__(self):
 
-        self._level = level
+        # Dry run mode (for test purposes only)
+        # 0 = normal
+        # 1 = do not hold execution
+        # 2 = do not show any window
+        self.dry_run_mode = 0
 
         # Default font
         self.default_font = "Normografo"

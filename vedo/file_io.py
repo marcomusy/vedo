@@ -1506,32 +1506,19 @@ def export_window(fileoutput, binary=False):
 
     ####################################################################
     elif fr.endswith(".x3d"):
-        obj = list(set(vedo.plotter_instance.get_meshes() + vedo.plotter_instance.actors))
-        if vedo.plotter_instance.axes_instances:
-            obj.append(vedo.plotter_instance.axes_instances[0])
+        obj = vedo.plotter_instance.get_actors()
+        # if vedo.plotter_instance.axes_instances:
+        #     obj.append(vedo.plotter_instance.axes_instances[0])
 
         for a in obj:
             if isinstance(a, Mesh):
-                newa = a.clone(transformed=True)
-                vedo.plotter_instance.remove(a).add(newa)
+                # newa = a.clone()
+                # vedo.plotter_instance.remove(a).add(newa)
+                pass
 
             elif isinstance(a, Assembly):
                 vedo.plotter_instance.remove(a)
-                for b in a.unpack():
-                    if b:
-                        if a.name == "Axes":
-                            newb = b.clone(transformed=True)
-                        else:
-                            # newb = b.clone(transformed=True) # BUG??
-
-                            newb = b.clone(transformed=False)
-                            tt = vtk.vtkTransform()
-                            tt.Concatenate(a.GetMatrix())
-                            tt.Concatenate(b.GetMatrix())
-                            newb.PokeMatrix(vtk.vtkMatrix4x4())
-                            newb.SetUserTransform(tt)
-
-                        vedo.plotter_instance.add(newb)
+                vedo.plotter_instance.add(a.unpack())
 
         vedo.plotter_instance.render()
 
