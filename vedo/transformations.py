@@ -129,15 +129,15 @@ class LinearTransform:
                     matrix = np.eye(4)
                     for l in lines:
                         if l.startswith("#"):
-                            self.comment = l.replace("#", "").replace("\n", "")
+                            self.comment = l.replace("#", "").strip()
                             continue
                         vals = l.split(" ")
-                        if len(vals) == 4:
-                            for j in range(4):
-                                v = vals[j].replace("\n", "")
+                        print(vals)
+                        for j in range(len(vals)):
+                            v = vals[j].replace("\n", "")
+                            if v != "":
                                 matrix[i, j] = float(v)
-                            i += 1
-
+                        i += 1
             T = vtk.vtkTransform()
             m = vtk.vtkMatrix4x4()
             for i in range(4):
@@ -157,10 +157,11 @@ class LinearTransform:
             s += "\nFilename: " + self.filename
         if self.comment:
             s += f'\nComment: \x1b[3m"{self.comment}"\x1b[0m'
+        if self.n_concatenated_transforms > 1:
+            s += f"\Concatenations: {self.n_concatenated_transforms}"
         if self.inverse_flag:
             s += "\nInverse transformation flag is True"
         s += "\n" + str(self.matrix)
-        s += f"\n({self.n_concatenated_transforms} concatenated transforms)"
         return s
 
     def __repr__(self):
@@ -550,7 +551,7 @@ class NonLinearTransform:
         Can be saved to file and reloaded.
 
         Arguments:
-            T : (vtk.vtkThinPlateSplineTransform, str, dict)
+            T : (vtkThinPlateSplineTransform, str, dict)
                 vtk transformation.
                 If T is a string, it is assumed to be a filename.
                 If T is a dictionary, it is assumed to be a set of keyword arguments.
@@ -563,7 +564,27 @@ class NonLinearTransform:
                 - source_points : (list) source points
                 - target_points : (list) target points
                 - mode : (str) either '2d' or '3d'
-                - sigma : (float) sigma parameter        
+                - sigma : (float) sigma parameter
+        
+        Example:
+            ```python
+            from vedo import *
+            settings.use_parallel_projection = True
+
+            NLT = NonLinearTransform()
+            NLT.source_points = [[-2,0,0], [1,2,1], [2,-2,2]]
+            NLT.target_points = NLT.source_points + np.random.randn(3,3)*0.5
+            NLT.mode = '3d'
+            print(NLT)
+
+            s1 = Sphere()
+            NLT.move(s1)
+            # same as:
+            # s1.apply_transform(NLT)
+
+            arrs = Arrows(NLT.source_points, NLT.target_points)
+            show(s1, arrs, Sphere().alpha(0.1), axes=1).close()
+            ```
         """
 
         self.name = "NonLinearTransform"
@@ -654,20 +675,19 @@ class NonLinearTransform:
         self.inverse_flag = False
 
     def __str__(self):
-        s = f"\x1b[7m\x1b[1mNon-Linear Transformation\x1b[0m \x1b[3m({self.__module__})\x1b[0m"
-        s = self.__class__.__name__ + ":\n"
+        s = f"\x1b[7m\x1b[1mNon-Linear Transformation\x1b[0m \x1b[3m({self.__module__})\x1b[0m\n"
         if self.filename:
             s += "Filename: " + self.filename + "\n"
         if self.name:
             s += "Name    : " + self.name + "\n"
         if self.comment:
             s += f'\nComment: \x1b[3m"{self.comment}"\x1b[0m'
-        s += f"Mode   : {self.mode}\n"
-        s += f"Sigma  : {self.sigma}\n"
+        s += f"Mode    : {self.mode}\n"
+        s += f"Sigma   : {self.sigma}\n"
         p = self.source_points
         q = self.target_points
-        s += f"Sources: {p.size}, bounds {np.min(p, axis=0)}, {np.max(p, axis=0)}\n"
-        s += f"Targets: {q.size}, bounds {np.min(q, axis=0)}, {np.max(q, axis=0)}"
+        s += f"Sources : {p.size}, bounds {np.min(p, axis=0)}, {np.max(p, axis=0)}\n"
+        s += f"Targets : {q.size}, bounds {np.min(q, axis=0)}, {np.max(q, axis=0)}"
         return s
 
     def __repr__(self):
