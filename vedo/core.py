@@ -1338,7 +1338,7 @@ class PointAlgorithms(CommonAlgorithms):
             if LT.is_identity():
                 return self
         
-        elif isinstance(LT, (vtk.vtkMatrix4x4, vtk.vtkLinearTransform, np.ndarray)):
+        elif isinstance(LT, (vtk.vtkMatrix4x4, vtk.vtkLinearTransform)) or utils.is_sequence(LT):
             LT_is_linear = True
             LT = LinearTransform(LT)
             tr = LT.T
@@ -1356,7 +1356,7 @@ class PointAlgorithms(CommonAlgorithms):
             self.transform = NonLinearTransform(LT) # reset
         
         else:
-            vedo.logger.error("apply_transform(), unknown input type", type(LT))
+            vedo.logger.error(f"apply_transform(), unknown input type:\n{LT}")
             return self
         
         ################

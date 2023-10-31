@@ -1311,7 +1311,7 @@ def write(objct, fileoutput, binary=True):
             for p in objct.vertices:
                 outF.write("v {:.5g} {:.5g} {:.5g}\n".format(*p))
 
-            ptxt = objct.GetPointData().GetTCoords()
+            ptxt = objct.dataset.GetPointData().GetTCoords()
             if ptxt:
                 ntxt = utils.vtk2numpy(ptxt)
                 for vt in ntxt:
