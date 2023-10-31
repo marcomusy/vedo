@@ -3415,11 +3415,7 @@ class Plotter:
         return self
 
     def close_window(self):
-        """Close the current or the input rendering window.
-
-        Examples:
-            - [closewindow.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/closewindow.py)
-        """
+        """Close the current or the input rendering window."""
         vedo.last_figure = None
         self.sliders = []
         self.buttons = []
@@ -4224,7 +4220,15 @@ class Plotter:
 
         elif key == "F":
             vedo.file_io.export_window("scene.x3d")
-            vedo.printc(":idea: Try: firefox scene.html", c="b")
+            vedo.printc(r":camera: Exporting 3D window to file", c="b", end="")
+            vedo.file_io.export_window("scene.npz")
+            vedo.printc(". Try:\n> firefox scene.html", c="b")
+
+        # elif key == "G":  # not working with last version of k3d
+        #     vedo.file_io.export_window("scene.html")
+        #     vedo.printc(r":camera: Exporting K3D window to file", c="b", end="")
+        #     vedo.file_io.export_window("scene.html")
+        #     vedo.printc(". Try:\n> firefox scene.html", c="b")
 
         elif key == "i":  # print info
             if self.clicked_object:

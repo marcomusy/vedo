@@ -98,15 +98,7 @@ def start_k3d(actors2show):
         grid_color=_rgb2int(vedo.get_color(settings.k3d_axes_color)),
         label_color=_rgb2int(vedo.get_color(settings.k3d_axes_color)),
         axes_helper=settings.k3d_axes_helper,
-        # axes_helper_colors=[_rgb2int(vedo.get_color("red5")), # not working
-        #                     _rgb2int(vedo.get_color("green5")),
-        #                     _rgb2int(vedo.get_color("blue5"))],
     )
-    # vedo.notebook_plotter.axes_helper_colors = [
-    #     vedo.backends._rgb2int(vedo.get_color("red5")), # not working
-    #     vedo.backends._rgb2int(vedo.get_color("green5")),
-    #     vedo.backends._rgb2int(vedo.get_color("blue5"))
-    # ]
 
     # set k3d camera
     vedo.notebook_plotter.camera_auto_fit = settings.k3d_camera_autofit

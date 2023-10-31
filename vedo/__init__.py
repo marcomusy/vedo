@@ -22,7 +22,7 @@ from vtkmodules.vtkCommonCore import vtkVersion
 from vedo.version import _version as __version__
 
 from vedo.settings import Settings
-settings = Settings(level=0)
+settings = Settings()
 
 from vedo.colors import *
 from vedo.transformations import *

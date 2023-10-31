@@ -865,7 +865,7 @@ def ScalarBar(
             if not lut:
                 return None
 
-    elif isinstance(obj, (Volume, TetMesh)):
+    elif isinstance(obj, (Volume, TetMesh, vedo.UGrid)):
         lut = utils.ctf2lut(obj)
 
     elif utils.is_sequence(obj) and len(obj) == 2:
@@ -1035,13 +1035,13 @@ def ScalarBar3D(
             lut = obj.mapper.GetLookupTable()
         vmin, vmax = lut.GetRange()
 
-    elif isinstance(obj, (Volume, TetMesh)):
+    elif isinstance(obj, (Volume, TetMesh, vedo.UGrid)):
         lut = utils.ctf2lut(obj)
         vmin, vmax = lut.GetRange()
 
     else:
         vedo.logger.error("in ScalarBar3D(): input must be a vedo object with bounds.")
-        return obj
+        return None
 
     bns = obj.bounds()
     sx, sy = size

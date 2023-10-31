@@ -46,7 +46,7 @@ __all__ = [
 
 
 # example web page for X3D
-_x3d_html = """
+_x3d_html_template = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1510,15 +1510,10 @@ def export_window(fileoutput, binary=False):
         # if vedo.plotter_instance.axes_instances:
         #     obj.append(vedo.plotter_instance.axes_instances[0])
 
-        for a in obj:
-            if isinstance(a, Mesh):
-                # newa = a.clone()
-                # vedo.plotter_instance.remove(a).add(newa)
-                pass
-
-            elif isinstance(a, Assembly):
-                vedo.plotter_instance.remove(a)
-                vedo.plotter_instance.add(a.unpack())
+        # for a in obj:
+        #     if isinstance(a, Assembly):
+        #         vedo.plotter_instance.remove(a)
+        #         vedo.plotter_instance.add(a.unpack())
 
         vedo.plotter_instance.render()
 
@@ -1531,43 +1526,20 @@ def export_window(fileoutput, binary=False):
         exporter.Update()
         exporter.Write()
 
-        # this can reduce the size by more than half...
-        #        outstring = exporter.GetOutputString().decode("utf-8") # this fails though
-        #        from vedo.utils import isInteger, isNumber, precision
-        #        newlines = []
-        #        for l in outstring.splitlines(True):
-        #            ls = l.lstrip()
-        #            content = ls.split()
-        #            newls = ""
-        #            for c in content:
-        #                c2 = c.replace(',','')
-        #                if isNumber(c2) and not isInteger(c2):
-        #                    newc = precision(float(c2), 4)
-        #                    if ',' in c:
-        #                        newls += newc + ','
-        #                    else:
-        #                        newls += newc + ' '
-        #                else:
-        #                    newls += c + ' '
-        #        newlines.append(newls.lstrip()+'\n')
-        #        with open("fileoutput", 'w', encoding='UTF-8') as f:
-        #            l = "".join(newlines)
-        #            f.write(l)
-
-        x3d_html = _x3d_html.replace("~fileoutput", fileoutput)
+        x3d_html = _x3d_html_template.replace("~fileoutput", fileoutput)
         wsize = vedo.plotter_instance.window.GetSize()
         x3d_html = x3d_html.replace("~width", str(wsize[0]))
         x3d_html = x3d_html.replace("~height", str(wsize[1]))
         with open(fileoutput.replace(".x3d", ".html"), "w", encoding="UTF-8") as outF:
             outF.write(x3d_html)
-            vedo.logger.info(f"Saved files {fileoutput} and {fileoutput.replace('.x3d','.html')}")
 
     ####################################################################
     elif fr.endswith(".html"):
         savebk = vedo.notebook_backend
         vedo.notebook_backend = "k3d"
         vedo.settings.default_backend = "k3d"
-        plt = vedo.backends.get_notebook_backend(vedo.plotter_instance.actors)
+        # acts = vedo.plotter_instance.get_actors()
+        plt = vedo.backends.get_notebook_backend(vedo.plotter_instance.objects)
 
         with open(fileoutput, "w", encoding="UTF-8") as fp:
             fp.write(plt.get_snapshot())
