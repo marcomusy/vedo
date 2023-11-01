@@ -7,6 +7,7 @@ import numpy as np
 import vedo.vtkclasses as vtk
 
 import vedo
+from vedo import transformations
 from vedo import utils
 from vedo.mesh import Mesh
 from vedo.core import VolumeAlgorithms
@@ -27,77 +28,27 @@ __all__ = ["Volume"]
 ##########################################################################
 class Volume(VolumeVisual, VolumeAlgorithms):
     """
-    Class to describe dataset that are defined on "voxels":
+    Class to describe dataset that are defined on "voxels",
     the 3D equivalent of 2D pixels.
     """
-
     def __init__(
         self,
         inputobj=None,
-        c="RdBu_r",
-        alpha=(0.0, 0.0, 0.2, 0.4, 0.8, 1.0),
-        alpha_gradient=None,
-        alpha_unit=1,
-        mode=0,
-        spacing=None,
         dims=None,
         origin=None,
-        mapper="smart",
+        spacing=None,
     ):
         """
-        This class can be initialized with a numpy object, a `vtkImageData`
-        or a list of 2D bmp files.
+        This class can be initialized with a numpy object,
+        a `vtkImageData` or a list of 2D bmp files.
 
         Arguments:
-            c : (list, str)
-                sets colors along the scalar range, or a matplotlib color map name
-            alphas : (float, list)
-                sets transparencies along the scalar range
-            alpha_unit : (float)
-                low values make composite rendering look brighter and denser
             origin : (list)
                 set volume origin coordinates
             spacing : (list)
                 voxel dimensions in x, y and z.
             dims : (list)
                 specify the dimensions of the volume.
-            mapper : (str)
-                either 'gpu', 'opengl_gpu', 'fixed' or 'smart'
-            mode : (int)
-                define the volumetric rendering style:
-                    - 0, composite rendering
-                    - 1, maximum projection
-                    - 2, minimum projection
-                    - 3, average projection
-                    - 4, additive mode
-
-                <br>The default mode is "composite" where the scalar values are sampled through
-                the volume and composited in a front-to-back scheme through alpha blending.
-                The final color and opacity is determined using the color and opacity transfer
-                functions specified in alpha keyword.
-
-                Maximum and minimum intensity blend modes use the maximum and minimum
-                scalar values, respectively, along the sampling ray.
-                The final color and opacity is determined by passing the resultant value
-                through the color and opacity transfer functions.
-
-                Additive blend mode accumulates scalar values by passing each value
-                through the opacity transfer function and then adding up the product
-                of the value and its opacity. In other words, the scalar values are scaled
-                using the opacity transfer function and summed to derive the final color.
-                Note that the resulting image is always grayscale i.e. aggregated values
-                are not passed through the color transfer function.
-                This is because the final value is a derived value and not a real data value
-                along the sampling ray.
-
-                Average intensity blend mode works similar to the additive blend mode where
-                the scalar values are multiplied by opacity calculated from the opacity
-                transfer function and then added.
-                The additional step here is to divide the sum by the number of samples
-                taken through the volume.
-                As is the case with the additive intensity projection, the final image will
-                always be grayscale i.e. the aggregated values are not passed through the
-                color transfer function.
 
         Example:
             ```python
@@ -119,41 +70,22 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             if a `list` of values is used for `alphas` this is interpreted
             as a transfer function along the range of the scalar.
         """
+        self.name = "Volume"
+        self.filename = ""
+        self.info = {}
+
         self.actor = vtk.vtkVolume()
         self.actor.retrieve_object = weak_ref_to(self)
         self.properties = self.actor.GetProperty()
-        self.dataset = None
-        self.mapper = None
-        self.pipeline = None
-        self.info = {}
-        self.name = "Volume"
-        self.filename = ""
 
         ###################
         if isinstance(inputobj, str):
             if "https://" in inputobj:
                 inputobj = vedo.file_io.download(inputobj, verbose=False)  # fpath
             elif os.path.isfile(inputobj):
-                pass
+                self.filename = inputobj
             else:
                 inputobj = sorted(glob.glob(inputobj))
-
-        ###################
-        if "gpu" in mapper:
-            self.mapper = vtk.new("GPUVolumeRayCastMapper")
-        elif "opengl_gpu" in mapper:
-            self.mapper = vtk.new("OpenGLGPUVolumeRayCastMapper")
-        elif "smart" in mapper:
-            self.mapper = vtk.new("SmartVolumeMapper")
-        elif "fixed" in mapper:
-            self.mapper = vtk.new("FixedPointVolumeRayCastMapper")
-        elif isinstance(mapper, vtk.get_class("Mapper")):
-            self.mapper = mapper
-        else:
-            print("Error unknown mapper type", [mapper])
-            raise RuntimeError()
-
-        self.actor.SetMapper(self.mapper)
 
         ###################
         inputtype = str(type(inputobj))
@@ -172,7 +104,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
                 pb = utils.ProgressBar(0, len(inputobj))
                 for i in pb.range():
                     f = inputobj[i]
-                    if "_rec_spr.bmp" in f:
+                    if "_rec_spr" in f: # OPT specific
                         continue
                     picr = vtk.new("BMPReader")
                     picr.SetFileName(f)
@@ -220,26 +152,62 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             img.SetDimensions(dims)
 
         if origin is not None:
-            img.SetOrigin(origin)  ### DIFFERENT from volume.origin()!
+            img.SetOrigin(origin)
 
         if spacing is not None:
             img.SetSpacing(spacing)
 
         self.dataset = img
-        self.mapper.SetInputData(img)
+        self.transform = None
+
+        #####################################
+        mapper = vtk.new("SmartVolumeMapper")
+        mapper.SetInputData(img)
+        self.actor.SetMapper(mapper)
 
         if img.GetPointData().GetScalars():
             if img.GetPointData().GetScalars().GetNumberOfComponents() == 1:
-                self.mode(mode).color(c).alpha(alpha).alpha_gradient(alpha_gradient)
                 self.properties.SetShade(True)
                 self.properties.SetInterpolationType(1)
-                self.properties.SetScalarOpacityUnitDistance(alpha_unit)
-
+                self.cmap("RdBu_r")
+                self.alpha([0.0, 0.0, 0.2, 0.4, 0.8, 1.0])
+                self.alpha_gradient(None)
+                self.properties.SetScalarOpacityUnitDistance(1.0)
 
         self.pipeline = utils.OperationNode(
             "Volume", comment=f"dims={tuple(self.dimensions())}", c="#4cc9f0"
         )
         #######################################################################
+
+    @property
+    def mapper(self):
+        """Return the underlying `vtkMapper` object."""
+        return self.actor.GetMapper()
+    
+    @mapper.setter
+    def mapper(self, mapper):
+        """
+        Set the underlying `vtkMapper` object.
+        
+        Arguments:
+            mapper : (str, vtkMapper)
+                either 'gpu', 'opengl_gpu', 'fixed' or 'smart'
+        """
+        if "gpu" in mapper:
+            mapper = vtk.new("GPUVolumeRayCastMapper")
+        elif "opengl_gpu" in mapper:
+            mapper = vtk.new("OpenGLGPUVolumeRayCastMapper")
+        elif "smart" in mapper:
+            mapper = vtk.new("SmartVolumeMapper")
+        elif "fixed" in mapper:
+            mapper = vtk.new("FixedPointVolumeRayCastMapper")
+        elif isinstance(mapper, vtk.get_class("Mapper")):
+            pass
+        else:
+            print("Error unknown mapper type", [mapper])
+            raise RuntimeError()
+        self.actor.SetMapper(mapper)
+
 
     def _update(self, data):
         self.dataset = data
@@ -303,7 +271,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
                 name = self.dataset.GetCellData().GetScalars().GetName()
                 cdata = "<tr><td><b> voxel data array </b></td><td>" + name + "</td></tr>"
 
-        img = self.mapper.GetInput()
+        img = self.dataset
 
         allt = [
             "<table>",
@@ -428,8 +396,6 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         vslice.SetInputData(reslice.GetOutput())
         vslice.Update()
         msh = Mesh(vslice.GetOutput())
-        # msh.SetOrientation(T.GetOrientation())
-        # msh.SetPosition(pos)
         msh.apply_transform(T)
         msh.pipeline = utils.OperationNode("slice_plane", parents=[self], c="#4cc9f0:#e9c46a")
         return msh
@@ -452,36 +418,14 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         if isinstance(target, vedo.Points):
             target = target.vertices
 
-        ns = len(source)
-        ptsou = vtk.vtkPoints()
-        ptsou.SetNumberOfPoints(ns)
-        for i in range(ns):
-            ptsou.SetPoint(i, source[i])
+        NLT = transformations.NonLinearTransform()
+        NLT.source_points = source
+        NLT.target_points = target
+        NLT.sigma = sigma
+        NLT.mode = mode
+        NLT.invert()
 
-        nt = len(target)
-        if ns != nt:
-            vedo.logger.error(f"#source {ns} != {nt} #target points")
-            raise RuntimeError()
-
-        pttar = vtk.vtkPoints()
-        pttar.SetNumberOfPoints(nt)
-        for i in range(ns):
-            pttar.SetPoint(i, target[i])
-
-        T = vtk.vtkThinPlateSplineTransform()
-        if mode.lower() == "3d":
-            T.SetBasisToR()
-        elif mode.lower() == "2d":
-            T.SetBasisToR2LogR()
-        else:
-            vedo.logger.error(f"unknown mode {mode}")
-            raise RuntimeError()
-
-        T.SetSigma(sigma)
-        T.SetSourceLandmarks(ptsou)
-        T.SetTargetLandmarks(pttar)
-        T.Inverse()
-        self.apply_transform(T, fit=fit)
+        self.apply_transform(NLT, fit=fit)
         self.pipeline = utils.OperationNode("warp", parents=[self], c="#4cc9f0")
         return self
 
@@ -495,6 +439,9 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             fit : (bool)
                 fit/adapt the old bounding box to the warped geometry
         """
+        if isinstance(T, transformations.NonLinearTransform):
+            T = T.T
+
         if isinstance(T, vtk.vtkMatrix4x4):
             tr = vtk.vtkTransform()
             tr.SetMatrix(T)
@@ -513,6 +460,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         reslice = vtk.new("ImageReslice")
         reslice.SetInputData(self.dataset)
         reslice.SetResliceTransform(T)
+        self.transform = T
         reslice.SetOutputDimensionality(3)
         reslice.SetInterpolationModeToLinear()
 
@@ -557,6 +505,22 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         """
         print("Volume.imagedata() is deprecated, use Volume.dataset instead")
         return self.dataset
+    
+    def modified(self):
+        """
+        Mark the object as modified.
+
+        Example:
+        ```python
+        from vedo import Volume
+        vol = Volume("path/to/mydata/data.tif")
+        arr = vol.tonumpy()
+        arr[:] = arr*2 + 15
+        vol.modified()
+        ```
+        """
+        self.dataset.GetPointData().GetScalars().Modified()
+        return self
 
     def tonumpy(self):
         """
@@ -569,7 +533,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             `arr[:] = arr*2 + 15`
 
         If the array is modified add a call to:
-        `volume.dataset.GetPointData().GetScalars().Modified()`
+        `volume.modified()`
         when all your modifications are completed.
         """
         narray_shape = tuple(reversed(self.dataset.GetDimensions()))
@@ -588,6 +552,11 @@ class Volume(VolumeVisual, VolumeAlgorithms):
 
         return narray
 
+    @property
+    def shape(self):
+        """Return the nr. of voxels in the 3 dimensions."""
+        return np.array(self.dataset.GetDimensions())
+
     def dimensions(self):
         """Return the nr. of voxels in the 3 dimensions."""
         return np.array(self.dataset.GetDimensions())
@@ -604,9 +573,15 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         return np.array(self.dataset.GetSpacing())
 
     def origin(self, s=None):
-        """Set/get the origin of the volumetric dataset."""
-        ### supersedes base.origin()
-        ### DIFFERENT from base.origin()!
+        """
+        Set/get the origin of the volumetric dataset.
+
+        The origin is the position in world coordinates of the point index (0,0,0).
+        This point does not have to be part of the dataset, in other words,
+        the dataset extent does not have to start at (0,0,0) and the origin 
+        can be outside of the dataset bounding box. 
+        The origin plus spacing determine the position in space of the points.
+        """
         if s is not None:
             self.dataset.SetOrigin(s)
             return self
@@ -618,6 +593,26 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             self.dataset.SetCenter(p)
             return self
         return np.array(self.dataset.GetCenter())
+    
+    def get_cell_from_ijk(self, ijk):
+        """
+        Get the voxel id number at the given ijk coordinates.
+
+        Arguments:
+            ijk : (list)
+                the ijk coordinates of the voxel
+        """
+        return self.ComputeCellId(ijk)
+    
+    def get_point_from_ijk(self, ijk):
+        """
+        Get the point id number at the given ijk coordinates.
+
+        Arguments:
+            ijk : (list)
+                the ijk coordinates of the voxel
+        """
+        return self.ComputePointId(ijk)
 
     def permute_axes(self, x, y, z):
         """

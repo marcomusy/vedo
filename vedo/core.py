@@ -1456,7 +1456,6 @@ class PointAlgorithms(CommonAlgorithms):
             ```
             ![](https://vedo.embl.es/images/feats/rotate_axis.png)
         """
-        # self.rotate(angle, axis, point, rad)
         LT = LinearTransform()
         LT.rotate(angle, axis, point, rad)
         return self.apply_transform(LT)
