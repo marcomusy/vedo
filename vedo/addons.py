@@ -4266,7 +4266,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         except TypeError:
             try:
                 ocf.SetInputData(largestact.dataset)
-            except TypeError:
+            except (TypeError, AttributeError):
                 return
         ocf.Update()
 

@@ -7,7 +7,6 @@ def func(evt):                       ### called every time mouse moves!
     msh = evt.object                 # get the mesh that triggered the event
     if not msh:
         return                       # mouse hits nothing, return.
-
     pt  = evt.picked3d               # 3d coords of point under mouse
     pid = msh.closest_point(pt, return_point_id=True)
     txt =(f"Point:  {precision(pt[:2]  ,2)}\n"
@@ -17,8 +16,9 @@ def func(evt):                       ### called every time mouse moves!
 
     ar = Arrow(pt - evt.delta3d, pt, s=0.001, c='orange5')
     fp = msh.flagpole(
-        txt, point=pt, offset=(0.4,0.6), s=0.04, c='k', font="VictorMono",
-    ).follow_camera()                  # make it always face the camera
+        txt, point=pt,s=0.04, c='k', font="VictorMono",
+    )
+    fp.follow_camera()                 # make it always face the camera
     plt.remove("FlagPole").add(ar, fp) # remove the old flagpole, add the new
     plt.render()
 
@@ -26,7 +26,6 @@ msg = Text2D(pos='bottom-left', font="VictorMono") # an empty text
 hil = ParametricShape('RandomHills').cmap('terrain').add_scalarbar()
 arr = hil.pointdata["Scalars"]       # numpy array with heights
 
-settings.use_parallel_projection = True # avoid perspective effects
 plt = Plotter(axes=1, bg2='lightblue')
 plt.add_callback('mouse move', func) # add the callback function
 plt.add_callback('keyboard', lambda _: plt.remove("Arrow").render())

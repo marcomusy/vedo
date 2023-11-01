@@ -693,6 +693,11 @@ class NonLinearTransform:
     def __repr__(self):
         return self.__str__()
 
+    def update(self):
+        """Update transformation."""
+        self.T.Update()
+        return self
+
     @property
     def position(self):
         """
