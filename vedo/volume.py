@@ -217,6 +217,47 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         self.mapper.Update()
         return self
 
+    def __str__(self):
+        """Print a summary for the Volume object."""
+        module = self.__class__.__module__
+        name = self.__class__.__name__
+        out = vedo.printc(
+            f"{module}.{name} at ({hex(self.memory_address())})".ljust(75),
+            c="b", bold=True, invert=True, return_string=True,
+        )
+        out += "\x1b[34;1m"
+
+        out+= "dimensions".ljust(14) + ": " + str(self.shape) + "\n"
+
+        out+= "origin".ljust(14) + ": "
+        out+= utils.precision(self.origin(), 6) + "\n"
+
+        out+= "center".ljust(14) + ": "
+        out+= utils.precision(self.center(), 6) + "\n"
+
+        out+= "spacing".ljust(14)    + ": "
+        out+= utils.precision(self.spacing(), 6) + "\n"
+
+        bnds = self.bounds()
+        bx1, bx2 = utils.precision(bnds[0], 3), utils.precision(bnds[1], 3)
+        by1, by2 = utils.precision(bnds[2], 3), utils.precision(bnds[3], 3)
+        bz1, bz2 = utils.precision(bnds[4], 3), utils.precision(bnds[5], 3)
+        out+= "bounds".ljust(14) + ":"
+        out+= " x=(" + bx1 + ", " + bx2 + "),"
+        out+= " y=(" + by1 + ", " + by2 + "),"
+        out+= " z=(" + bz1 + ", " + bz2 + ")\n"
+
+        out+= "memory size".ljust(14) + ": "
+        out+= str(int(self.dataset.GetActualMemorySize()/1024+0.5))+" MB\n"
+
+        out+= "scalar size".ljust(14) + ": "
+        out+= str(self.dataset.GetScalarSize()) + " bytes\n"
+        out+= "scalar range".ljust(14) + ": "
+        out+= str(self.dataset.GetScalarRange()) + "\n"
+
+        #utils.print_histogram(self, logscale=True, bins=8, height=15, c="b", bold=True)
+        return out.rstrip() + "\x1b[0m"
+
 
     def _repr_html_(self):
         """
