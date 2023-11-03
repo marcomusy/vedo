@@ -27,7 +27,7 @@ import numpy as np
 
 import vedo.vtkclasses as vtk
 
-from vedo.utils import humansort, is_sequence, print_info
+from vedo.utils import humansort, is_sequence
 from vedo.colors import get_color, printc
 from vedo.mesh import Mesh
 from vedo.image import Image
@@ -141,13 +141,17 @@ def system_info():
         file = sys.argv[i]
         try:
             A = load(file)
-            if isinstance(A, np.ndarray):
-                print_info(A)
-            elif is_sequence(A):
+            if is_sequence(A):
                 for a in A:
-                    print_info(a)
+                    try:
+                        a.print()
+                    except:
+                        pass
             else:
-                print_info(A)
+                try:
+                    A.print()
+                except:
+                    pass
         except:
             vedo.logger.error(f"Could not load {file}, skip.")
 

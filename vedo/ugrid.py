@@ -138,6 +138,72 @@ class UGrid(VolumeVisual, UGridAlgorithms):
         )
 
     # ------------------------------------------------------------------
+
+    def __str__(self):
+        """Print a string summary of the `UGrid` object."""
+        module = self.__class__.__module__
+        name = self.__class__.__name__
+        out = vedo.printc(
+            f"{module}.{name} at ({hex(self.memory_address())})".ljust(75),
+            c="m", bold=True, invert=True, return_string=True,
+        )
+        out += "\x1b[0m\u001b[35m"
+
+        out += "nr. of verts".ljust(14) + ": " + str(self.npoints) + "\n"
+        out += "nr. of cells".ljust(14)+ ": " + str(self.ncells) + "\n"
+
+        if self.npoints:
+            out+="size".ljust(14)+ ": average=" + utils.precision(self.average_size(),6)
+            out+=", diagonal="+ utils.precision(self.diagonal_size(), 6)+ "\n"
+            out+="center of mass".ljust(14) + ": " + utils.precision(self.center_of_mass(),6)+"\n"
+
+        bnds = self.bounds()
+        bx1, bx2 = utils.precision(bnds[0], 3), utils.precision(bnds[1], 3)
+        by1, by2 = utils.precision(bnds[2], 3), utils.precision(bnds[3], 3)
+        bz1, bz2 = utils.precision(bnds[4], 3), utils.precision(bnds[5], 3)
+        out += "bounds".ljust(14) + ":"
+        out += " x=(" + bx1 + ", " + bx2 + "),"
+        out += " y=(" + by1 + ", " + by2 + "),"
+        out += " z=(" + bz1 + ", " + bz2 + ")\n"
+
+        for key in self.pointdata.keys():
+            arr = self.pointdata[key]
+            rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
+            mark_active = "pointdata"
+            if self.dataset.GetPointData().GetScalars().GetName() == key:
+                mark_active += " *"
+            elif self.dataset.GetPointData().GetVectors().GetName() == key:
+                mark_active += " **"
+            elif self.dataset.GetPointData().GetTensors().GetName() == key:
+                mark_active += " ***"
+            out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), ndim={arr.ndim}'
+            out += f", range=({rng})\n"
+
+        for key in self.celldata.keys():
+            arr = self.celldata[key]
+            rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
+            mark_active = "celldata"
+            if self.dataset.GetCellData().GetScalars().GetName() == key:
+                mark_active += " *"
+            elif self.dataset.GetCellData().GetVectors().GetName() == key:
+                mark_active += " **"
+            elif self.dataset.GetCellData().GetTensors().GetName() == key:
+                mark_active += " ***"
+            out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), ndim={arr.ndim}'
+            out += f", range=({rng})\n"
+
+        for key in self.metadata.keys():
+            arr = self.metadata[key]
+            out+= "metadata".ljust(14) + ": " + f'"{key}" ({len(arr)} values)\n'
+
+        return out.rstrip() + "\x1b[0m"
+
+    def print(self):
+        """Print a description of the UGrid."""
+        print(self.__str__())
+        return self
+
+
     def _repr_html_(self):
         """
         HTML representation of the UGrid object for Jupyter Notebooks.

@@ -545,11 +545,6 @@ class CommonAlgorithms:
         )
         return self
 
-    def print(self):
-        """Print information about an object."""
-        utils.print_info(self)
-        return self
-
     def inputdata(self):
         """Obsolete, use `.dataset` instead."""
         colors.printc("WARNING: 'inputdata()' is obsolete, use '.dataset' instead.", c="y")

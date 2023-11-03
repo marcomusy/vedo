@@ -34,7 +34,6 @@ __all__ = [
     "point_line_distance",
     "closest",
     "grep",
-    "print_info",
     "make_bands",
     "pack_spheres",
     "humansort",
@@ -1386,52 +1385,6 @@ def grep(filename, tag, column=None, first_occurrence_only=False):
                     break
     return content
 
-
-def print_info(obj):
-    """Print information about a `vedo` object."""
-
-    if obj is None:
-        return
-
-    if isinstance(obj, vedo.TetMesh):
-        ug = obj.dataset
-        # cf = "m"
-        # vedo.printc("TetMesh".ljust(70), c=cf, bold=True, invert=True)
-        # bnds = obj.bounds()
-        # vedo.printc("nr. of tetras".ljust(14) + ": ", c=cf, bold=True, end="")
-        # vedo.printc(ug.GetNumberOfCells(), c=cf, bold=False)
-        # # vedo.printc("position".ljust(14) + ": ", c=cf, bold=True, end="")
-        # # vedo.printc(pos, c=cf, bold=False)
-        # vedo.printc("bounds".ljust(14) + ": ", c=cf, bold=True, end="")
-        # bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
-        # vedo.printc("x=(" + bx1 + ", " + bx2 + ")", c=cf, bold=False, end="")
-        # by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
-        # vedo.printc(" y=(" + by1 + ", " + by2 + ")", c=cf, bold=False, end="")
-        # bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
-        # vedo.printc(" z=(" + bz1 + ", " + bz2 + ")", c=cf, bold=False)
-        obj.__str__()
-        # _print_data(ug, 'm')
-
-    elif isinstance(obj, vedo.UGrid):
-        cf = "m"
-        vedo.printc("UGrid".ljust(70), c=cf, bold=True, invert=True)
-        pos = obj.GetPosition()
-        bnds = obj.GetBounds()
-        ug = obj.dataset
-        vedo.printc("nr. of cells".ljust(14) + ": ", c=cf, bold=True, end="")
-        vedo.printc(ug.GetNumberOfCells(), c=cf, bold=False)
-        vedo.printc("position".ljust(14) + ": ", c=cf, bold=True, end="")
-        vedo.printc(pos, c=cf, bold=False)
-        vedo.printc("bounds".ljust(14) + ": ", c=cf, bold=True, end="")
-        bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
-        vedo.printc("x=(" + bx1 + ", " + bx2 + ")", c=cf, bold=False, end="")
-        by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
-        vedo.printc(" y=(" + by1 + ", " + by2 + ")", c=cf, bold=False, end="")
-        bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
-        vedo.printc(" z=(" + bz1 + ", " + bz2 + ")", c=cf, bold=False)
-        # _print_data(ug, cf)
-
-
 def print_histogram(
     data,
     bins=10,
@@ -1476,8 +1429,8 @@ def print_histogram(
         from vedo import print_histogram
         import numpy as np
         d = np.random.normal(size=1000)
-        data = print_histogram(d, c='blue', logscale=True, title='my scalars')
-        data = print_histogram(d, c=1, horizontal=1)
+        data = print_histogram(d, c='b', logscale=True, title='my scalars')
+        data = print_histogram(d, c='o')
         print(np.mean(data)) # data here is same as d
         ```
         ![](https://vedo.embl.es/images/feats/print_histogram.png)

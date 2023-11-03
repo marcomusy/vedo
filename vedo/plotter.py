@@ -4302,9 +4302,9 @@ class Plotter:
 
         elif key == "i":  # print info
             if self.clicked_object:
-                utils.print_info(self.clicked_object)
+                print(self.clicked_object)
             else:
-                utils.print_info(self)
+                print(self)
 
         elif key == "I":  # print color under the mouse
             x, y = iren.GetEventPosition()

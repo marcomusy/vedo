@@ -227,50 +227,49 @@ class Image(vedo.visual.ImageVisual):
 
     def __str__(self):
         """Print a description of the Image class."""
+
         module = self.__class__.__module__
         name = self.__class__.__name__
         out = vedo.printc(
             f"{module}.{name} at ({hex(id(self))})".ljust(75),
             c="y", bold=True, invert=True, return_string=True,
         )
-        out += "\x1b[0m\x1b[33;1m"
 
-        out+= "dimensions".ljust(14) + f": {self.shape}\n"
-        out+= "memory size".ljust(14) + ": "
-        out+= str(int(self.memory_size())) + " kB\n"
+        if vedo.colors._terminal_has_colors:
+            thumb = ""
+            try: # to generate a terminal thumbnail
+                w = 75
+                width, height = self.shape
+                h = int(height / width * (w - 1) * 0.5 + 0.5)
+                img_arr = self.clone().resize([w, h]).tonumpy()
+                h, w = img_arr.shape[:2]
+                for x in range(h):
+                    for y in range(w):
+                        pix = img_arr[x][y]
+                        r, g, b = pix[:3]
+                        thumb += f"\x1b[48;2;{r};{g};{b}m "
+                    thumb += "\x1b[0m\n"
+            except:
+                pass
+            out += thumb
+        
+        out += "\x1b[0m\x1b[33;1m"
+        out += "dimensions".ljust(14) + f": {self.shape}\n"
+        out += "memory size".ljust(14) + ": "
+        out += str(int(self.memory_size())) + " kB\n"
 
         bnds = self.bounds()
         bx1, bx2 = utils.precision(bnds[0], 3), utils.precision(bnds[1], 3)
         by1, by2 = utils.precision(bnds[2], 3), utils.precision(bnds[3], 3)
         bz1, bz2 = utils.precision(bnds[4], 3), utils.precision(bnds[5], 3)
-        out+= "position".ljust(14) + f": {self.pos()}\n"
-        out+= "bounds".ljust(14) + ":"
-        out+= " x=(" + bx1 + ", " + bx2 + "),"
-        out+= " y=(" + by1 + ", " + by2 + "),"
-        out+= " z=(" + bz1 + ", " + bz2 + ")\n"
-
-        out+= "intensty range".ljust(14) + f": {self.scalar_range()}\n"
-        out+= "level/window".ljust(14) + ": "
-        out+= str(self.level()) + " / " + str(self.window()) + "\n"
-
-        thumb = ""
-        try:
-            # generate a print thumbnail
-            w = 75
-            width, height = self.shape
-            h = int(height / width * (w - 1) * 0.5 + 0.5)
-            img_arr = self.clone().resize([w, h]).tonumpy()
-            h, w = img_arr.shape[:2]
-            for x in range(h):
-                for y in range(w):
-                    pix = img_arr[x][y]
-                    r, g, b = pix[:3]
-                    thumb+= f"\x1b[48;2;{r};{g};{b}m "
-                thumb+= "\x1b[0m\n"
-        except:
-            pass
-        
-        out += thumb
+        out += "position".ljust(14) + f": {self.pos()}\n"
+        out += "bounds".ljust(14) + ":"
+        out += " x=(" + bx1 + ", " + bx2 + "),"
+        out += " y=(" + by1 + ", " + by2 + "),"
+        out += " z=(" + bz1 + ", " + bz2 + ")\n"
+        out += "intensty range".ljust(14) + f": {self.scalar_range()}\n"
+        out += "level/window".ljust(14) + ": "
+        out += str(self.level()) + " / " + str(self.window()) + "\n"
         return out.rstrip() + "\x1b[0m"
 
     def print(self):
