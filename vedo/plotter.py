@@ -762,6 +762,76 @@ class Plotter:
 
     ##################################################################### ..init ends here.
 
+    def __str__(self):
+        """Return Plotter info."""
+        axtype = {
+            0: "(no axes)",
+            1: "(customizable grid walls)",
+            2: "(cartesian axes from origin",
+            3: "(positive range of cartesian axes from origin",
+            4: "(axes triad at bottom left)",
+            5: "(oriented cube at bottom left)",
+            6: "(mark the corners of the bounding box)",
+            7: "(3D ruler at each side of the cartesian axes)",
+            8: "(the vtkCubeAxesActor object)",
+            9: "(the bounding box outline)",
+            10: "(circles of maximum bounding box range)",
+            11: "(show a large grid on the x-y plane)",
+            12: "(show polar axes)",
+            13: "(simple ruler at the bottom of the window)",
+            14: "(the vtkCameraOrientationWidget object)",
+        }
+        
+        module = self.__class__.__module__
+        name = self.__class__.__name__
+        out = vedo.printc(
+            f"{module}.{name} at ({hex(id(self))})".ljust(75),
+            c="c", bold=True, invert=True, return_string=True,
+        )
+        out += "\x1b[0m\u001b[36m"
+        if self.interactor:
+            out+= "window title".ljust(14) + ": " + self.title + "\n"
+            out+= "window size".ljust(14) + f": {self.window.GetSize()}"
+            out+= f", full_screen={self.window.GetScreenSize()}\n"
+            out+= "activ renderer".ljust(14) + ": nr." + str(self.renderers.index(self.renderer))
+            out+= f" (out of {len(self.renderers)} renderers)\n"
+
+        bns, totpt = [], 0
+        for a in self.objects:
+            print([a.bounds()])
+            try:
+                b = a.bounds()
+                bns.append(b)
+            except AttributeError:
+                pass
+            try:
+                totpt += a.npoints
+            except AttributeError:
+                pass
+        out+= "n. of objects".ljust(14) + f": {len(self.objects)}"
+        out+= f" ({totpt} vertices)\n" if totpt else "\n"
+
+        if len(bns)>0:
+            min_bns = np.min(bns, axis=0)
+            max_bns = np.max(bns, axis=0)
+            bx1, bx2 = utils.precision(min_bns[0], 3), utils.precision(max_bns[1], 3)
+            by1, by2 = utils.precision(min_bns[2], 3), utils.precision(max_bns[3], 3)
+            bz1, bz2 = utils.precision(min_bns[4], 3), utils.precision(max_bns[5], 3)
+            out+= "bounds".ljust(14) + ": "
+            out+= " x=(" + bx1 + ", " + bx2 + "),"
+            out+= " y=(" + by1 + ", " + by2 + "),"
+            out+= " z=(" + bz1 + ", " + bz2 + ")\n"
+
+        if utils.is_integer(self.axes):
+            out+= "axes style".ljust(14) + f": {self.axes} {axtype[self.axes]}\n"
+        else:
+            out+= "axes style".ljust(14) + f": {[self.axes]}\n"
+        return out.rstrip() + "\x1b[0m"        
+
+    def print(self):
+        """Print information about the current instance."""
+        print(self.__str__())
+        return self
 
     def __iadd__(self, objects):
         self.add(objects)
