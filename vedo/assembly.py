@@ -260,6 +260,47 @@ class Assembly(CommonVisual, vtk.vtkAssembly):
         )
         ##########################################
 
+    def __str__(self):
+        """Print info about Assembly object."""
+        module = self.__class__.__module__
+        name = self.__class__.__name__
+        out = vedo.printc(
+            f"{module}.{name} at ({hex(id(self))})".ljust(75),
+            bold=True, invert=True, return_string=True,
+        )
+        out += "\x1b[0m"
+
+        if self.name:
+            out += "name".ljust(14) + ": " + self.name
+            if "legend" in self.info.keys() and self.info["legend"]:
+                out+= f", legend='{self.info['legend']}'"
+            out += "\n"
+
+        n = len(self.unpack())
+        out += "n. of objects".ljust(14) + ": " + str(n) + " "
+        names = [a.name for a in self.unpack() if a.name]
+        if names:
+            out += str(names).replace("'","")[:56]
+        out += "\n"
+
+        pos = self.GetPosition()
+        out += "position".ljust(14) + ": " + str(pos) + "\n"
+
+        bnds = self.GetBounds()
+        bx1, bx2 = vedo.utils.precision(bnds[0], 3), vedo.utils.precision(bnds[1], 3)
+        by1, by2 = vedo.utils.precision(bnds[2], 3), vedo.utils.precision(bnds[3], 3)
+        bz1, bz2 = vedo.utils.precision(bnds[4], 3), vedo.utils.precision(bnds[5], 3)
+        out+= "bounds".ljust(14) + ":"
+        out+= " x=(" + bx1 + ", " + bx2 + "),"
+        out+= " y=(" + by1 + ", " + by2 + "),"
+        out+= " z=(" + bz1 + ", " + bz2 + ")\n"
+        return out.rstrip() + "\x1b[0m"
+
+    def print(self):
+        """Print info about Assembly object."""
+        print(self.__str__())
+        return self
+
     def _repr_html_(self):
         """
         HTML representation of the Assembly object for Jupyter Notebooks.

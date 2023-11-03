@@ -1468,22 +1468,6 @@ def print_info(obj):
     if obj is None:
         return
 
-    # if isinstance(obj, vedo.Assembly):
-    #     vedo.printc("Assembly".ljust(75), c="g", bold=True, invert=True)
-
-    #     pos = obj.GetPosition()
-    #     bnds = obj.GetBounds()
-    #     vedo.printc("position".ljust(14) + ": ", c="g", bold=True, end="")
-    #     vedo.printc(pos, c="g", bold=False)
-
-    #     vedo.printc("bounds".ljust(14) + ": ", c="g", bold=True, end="")
-    #     bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
-    #     vedo.printc("x=(" + bx1 + ", " + bx2 + ")", c="g", bold=False, end="")
-    #     by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
-    #     vedo.printc(" y=(" + by1 + ", " + by2 + ")", c="g", bold=False, end="")
-    #     bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
-    #     vedo.printc(" z=(" + bz1 + ", " + bz2 + ")", c="g", bold=False)
-
     if isinstance(obj, vedo.TetMesh):
         ug = obj.dataset
         # cf = "m"
