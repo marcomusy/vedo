@@ -1431,51 +1431,6 @@ def print_info(obj):
         vedo.printc(" z=(" + bz1 + ", " + bz2 + ")", c=cf, bold=False)
         # _print_data(ug, cf)
 
-    elif isinstance(obj, vedo.Image):  # dumps Image info
-        vedo.printc("Image".ljust(70), c="y", bold=True, invert=True)
-        # try:
-        #     # generate a print thumbnail
-        #     width, height = obj.dimensions()
-        #     w = 45
-        #     h = int(height / width * (w - 1) * 0.5 + 0.5)
-        #     img_arr = obj.clone().resize([w, h]).tonumpy()
-        #     h, w = img_arr.shape[:2]
-        #     for x in range(h):
-        #         for y in range(w):
-        #             pix = img_arr[x][y]
-        #             r, g, b = pix[:3]
-        #             print(f"\x1b[48;2;{r};{g};{b}m", end=" ")
-        #         print("\x1b[0m")
-        # except:
-        #     pass
-
-        vedo.printc("position".ljust(14) + ": ", c="y", bold=True, end="")
-        vedo.printc(obj.pos(), c="y", bold=False)
-
-        vedo.printc("dimensions".ljust(14) + ": ", c="y", bold=True, end="")
-        vedo.printc(obj.shape, c="y", bold=False)
-
-        vedo.printc("memory size".ljust(14) + ": ", c="y", bold=True, end="")
-        vedo.printc(int(obj.memory_size()), "kB", c="y", bold=False)
-
-        bnds = obj.bounds()
-        vedo.printc("bounds".ljust(14) + ": ", c="y", bold=True, end="")
-        bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
-        vedo.printc("x=(" + bx1 + ", " + bx2 + ")", c="y", bold=False, end="")
-        by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
-        vedo.printc(" y=(" + by1 + ", " + by2 + ")", c="y", bold=False, end="")
-        bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
-        vedo.printc(" z=(" + bz1 + ", " + bz2 + ")", c="y", bold=False)
-
-        vedo.printc("intensty range".ljust(14) + ": ", c="y", bold=True, end="")
-        vedo.printc(obj.scalar_range(), c="y", bold=False)
-        vedo.printc("level / window".ljust(14) + ": ", c="y", bold=True, end="")
-        vedo.printc(obj.level(), "/", obj.window(), c="y", bold=False)
-
-    else:
-        vedo.printc(str(type(obj)).ljust(70), invert=True)
-        vedo.printc(obj)
-
 
 def print_histogram(
     data,
