@@ -25,9 +25,7 @@ import os
 import sys
 import numpy as np
 
-import vedo.vtkclasses as vtk
-
-from vedo.utils import humansort, is_sequence
+from vedo.utils import humansort
 from vedo.colors import get_color, printc
 from vedo.mesh import Mesh
 from vedo.image import Image
@@ -136,29 +134,12 @@ def get_parser():
 
 #################################################################################################
 def system_info():
-
-    for i in range(2, len(sys.argv)):
-        file = sys.argv[i]
-        try:
-            A = load(file)
-            if is_sequence(A):
-                for a in A:
-                    try:
-                        a.print()
-                    except:
-                        pass
-            else:
-                try:
-                    A.print()
-                except:
-                    pass
-        except:
-            vedo.logger.error(f"Could not load {file}, skip.")
+    from vtkmodules.all import vtkVersion
 
     printc("_" * 65, bold=False)
     printc("vedo version      :", __version__, invert=1, end="   ")
     printc("https://vedo.embl.es", underline=1, italic=1)
-    printc("vtk version       :", vtk.vtkVersion().GetVTKVersion())
+    printc("vtk version       :", vtkVersion().GetVTKVersion())
     printc("numpy version     :", np.__version__)
     printc("python version    :", sys.version.replace("\n", ""))
     printc("python interpreter:", sys.executable)
