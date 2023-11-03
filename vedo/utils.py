@@ -1464,149 +1464,27 @@ def print_info(obj):
             vedo.printc("mesh data".ljust(14) + ":", c=c, bold=True, end=" ")
             vedo.printc("no point or cell data is present.", c=c, bold=False)
 
-    ################################
-    def _print_vtkactor(obj):
-        poly = obj.dataset
-        actor = obj.dataset
-        mapper = obj.mapper
-        pro = obj.properties
-
-        if not obj.actor.GetPickable():
-            return
-
-        pro = obj.properties
-        pos = obj.pos()
-        bnds = obj.bounds()
-        col = precision(pro.GetColor(), 3)
-        alpha = pro.GetOpacity()
-        npt = poly.GetNumberOfPoints()
-        npl = poly.GetNumberOfPolys()
-        nln = poly.GetNumberOfLines()
-
-        vedo.printc("Mesh/Points".ljust(70), c="g", bold=True, invert=True, dim=1, end="")
-
-        if hasattr(actor, "info") and "legend" in actor.info.keys() and actor.info["legend"]:
-            vedo.printc("legend".ljust(14) + ": ", c="g", bold=True, end="")
-            vedo.printc(actor.info["legend"], c="g", bold=False)
-        else:
-            print()
-
-        if hasattr(actor, "name") and actor.name:
-            vedo.printc("name".ljust(14) + ": ", c="g", bold=True, end="")
-            vedo.printc(actor.name, c="g", bold=False)
-
-        if hasattr(actor, "filename") and actor.filename:
-            vedo.printc("file name".ljust(14) + ": ", c="g", bold=True, end="")
-            vedo.printc(actor.filename, c="g", bold=False)
-
-        if not mapper.GetScalarVisibility():
-            vedo.printc("color".ljust(14) + ": ", c="g", bold=True, end="")
-            cname = vedo.colors.get_color_name(pro.GetColor())
-            vedo.printc(f"{cname}, rgb={col}, alpha={alpha}", c="g", bold=False)
-
-            if obj.actor.GetBackfaceProperty():
-                bcol = obj.actor.GetBackfaceProperty().GetDiffuseColor()
-                cname = vedo.colors.get_color_name(bcol)
-                vedo.printc("back color".ljust(14) + ": ", c="g", bold=True, end="")
-                vedo.printc(f"{cname}, rgb={precision(bcol,3)}", c="g", bold=False)
-
-        vedo.printc("points".ljust(14) + ":", f"{npt:,}", c="g", bold=True)
-        # ncl = poly.GetNumberOfCells()
-        # vedo.printc("cells".ljust(14)+":", f"{ncl:,}", c="g", bold=True)
-        vedo.printc("polygons".ljust(14) + ":", f"{npl:,}", c="g", bold=True)
-        if nln:
-            vedo.printc("lines".ljust(14) + ":", f"{nln:,}", c="g", bold=True)
-        vedo.printc("position".ljust(14) + ":", pos, c="g", bold=True)
-
-        if hasattr(actor, "GetScale"):
-            vedo.printc("scale".ljust(14) + ":", c="g", bold=True, end=" ")
-            vedo.printc(precision(actor.GetScale(), 3), c="g", bold=False)
-
-        if obj.npoints:
-            vedo.printc("center of mass".ljust(14) + ":", c="g", bold=True, end=" ")
-            cm = tuple(obj.center_of_mass())
-            vedo.printc(precision(cm, 3), c="g", bold=False)
-
-            vedo.printc("average size".ljust(14) + ":", c="g", bold=True, end=" ")
-            vedo.printc(precision(obj.average_size(), 6), c="g", bold=False)
-
-            vedo.printc("diagonal size".ljust(14) + ":", c="g", bold=True, end=" ")
-            vedo.printc(precision(obj.diagonal_size(), 6), c="g", bold=False)
-
-        bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
-        by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
-        bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
-        vedo.printc("bounds".ljust(14) + ":", c="g", bold=True, end=" ")
-        vedo.printc( "x=(" + bx1 + ", " + bx2 + ")", c="g", bold=False, end="")
-        vedo.printc(" y=(" + by1 + ", " + by2 + ")", c="g", bold=False, end="")
-        vedo.printc(" z=(" + bz1 + ", " + bz2 + ")", c="g", bold=False)
-
-        _print_data(poly, "g")
-
-        if hasattr(obj, "picked3d") and obj.picked3d is not None:
-            idpt = obj.closest_point(obj.picked3d, return_point_id=True)
-            idcell = obj.closest_point(obj.picked3d, return_cell_id=True)
-            vedo.printc(
-                "clicked point".ljust(14) + ":",
-                precision(obj.picked3d, 6),
-                f"pointID={idpt}, cellID={idcell}",
-                c="g",
-                bold=True,
-            )
 
     if obj is None:
         return
 
-    if isinstance(obj, np.ndarray):
-        cf = "y"
-        vedo.printc("Numpy Array".ljust(70), c=cf, invert=True)
-        vedo.printc(obj, c=cf)
-        vedo.printc("shape".ljust(8) + ":", obj.shape, c=cf)
-        vedo.printc("range".ljust(8) + f": ({np.min(obj)}, {np.max(obj)})", c=cf)
-        vedo.printc("mean".ljust(8) + ":", np.mean(obj), c=cf)
-        vedo.printc("std_dev".ljust(8) + ":", np.std(obj), c=cf)
-        if len(obj.shape) >= 2:
-            vedo.printc("Axis 0".ljust(8) + ":", c=cf, italic=1)
-            vedo.printc("\tmin :", np.min(obj, axis=0), c=cf)
-            vedo.printc("\tmax :", np.max(obj, axis=0), c=cf)
-            vedo.printc("\tmean:", np.mean(obj, axis=0), c=cf)
-            if obj.shape[1] > 3:
-                vedo.printc("Axis 1".ljust(8) + ":", c=cf, italic=1)
-                tmin = str(np.min(obj, axis=1).tolist()[:2]).replace("]", ", ...")
-                tmax = str(np.max(obj, axis=1).tolist()[:2]).replace("]", ", ...")
-                tmea = str(np.mean(obj, axis=1).tolist()[:2]).replace("]", ", ...")
-                vedo.printc(f"\tmin : {tmin}", c=cf)
-                vedo.printc(f"\tmax : {tmax}", c=cf)
-                vedo.printc(f"\tmean: {tmea}", c=cf)
+    # if isinstance(obj, vedo.Assembly):
+    #     vedo.printc("Assembly".ljust(75), c="g", bold=True, invert=True)
 
-    elif isinstance(obj, vedo.Points):
-        _print_vtkactor(obj)
+    #     pos = obj.GetPosition()
+    #     bnds = obj.GetBounds()
+    #     vedo.printc("position".ljust(14) + ": ", c="g", bold=True, end="")
+    #     vedo.printc(pos, c="g", bold=False)
 
-    elif isinstance(obj, vedo.Assembly):
-        vedo.printc("Assembly".ljust(75), c="g", bold=True, invert=True)
+    #     vedo.printc("bounds".ljust(14) + ": ", c="g", bold=True, end="")
+    #     bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
+    #     vedo.printc("x=(" + bx1 + ", " + bx2 + ")", c="g", bold=False, end="")
+    #     by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
+    #     vedo.printc(" y=(" + by1 + ", " + by2 + ")", c="g", bold=False, end="")
+    #     bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
+    #     vedo.printc(" z=(" + bz1 + ", " + bz2 + ")", c="g", bold=False)
 
-        pos = obj.GetPosition()
-        bnds = obj.GetBounds()
-        vedo.printc("position".ljust(14) + ": ", c="g", bold=True, end="")
-        vedo.printc(pos, c="g", bold=False)
-
-        vedo.printc("bounds".ljust(14) + ": ", c="g", bold=True, end="")
-        bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
-        vedo.printc("x=(" + bx1 + ", " + bx2 + ")", c="g", bold=False, end="")
-        by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
-        vedo.printc(" y=(" + by1 + ", " + by2 + ")", c="g", bold=False, end="")
-        bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
-        vedo.printc(" z=(" + bz1 + ", " + bz2 + ")", c="g", bold=False)
-
-        cl = vtk.vtkPropCollection()
-        obj.GetActors(cl)
-        cl.InitTraversal()
-        for _ in range(obj.GetNumberOfPaths()):
-            act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
-            if isinstance(act, vtk.vtkActor):
-                _print_vtkactor(act)
-
-    elif isinstance(obj, vedo.TetMesh):
+    if isinstance(obj, vedo.TetMesh):
         ug = obj.dataset
         # cf = "m"
         # vedo.printc("TetMesh".ljust(70), c=cf, bold=True, invert=True)
@@ -1797,8 +1675,8 @@ def print_histogram(
     height=10,
     logscale=False,
     minbin=0,
-    horizontal=False,
-    char=" ",
+    horizontal=True,
+    char="\U00002589",
     c=None,
     bold=True,
     title="histogram",
@@ -1863,7 +1741,7 @@ def print_histogram(
             data.append(d)
         data = np.array(data)
 
-    elif isinstance(data, vtk.vtkPolydata):
+    elif isinstance(data, vtk.vtkPolyData):
         arr = data.dataset.GetPointData().GetScalars()
         if not arr:
             arr = data.dataset.GetCellData().GetScalars()

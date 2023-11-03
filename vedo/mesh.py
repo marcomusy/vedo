@@ -698,45 +698,6 @@ class Mesh(MeshVisual, Points):
         self.pipeline = OperationNode("shrink", parents=[self])
         return self
 
-    # def stretch(self, q1, q2):
-    #     """
-    #     Stretch mesh between points `q1` and `q2`.
-
-    #     .. note::
-    #         for `Mesh` objects, two vectors `mesh.base`, and `mesh.top` must be defined.
-    #     """
-    #     if self.base is None:
-    #         vedo.logger.error("in stretch() must define vectors mesh.base and mesh.top at creation")
-    #         raise RuntimeError()
-
-    #     p1, p2 = self.base, self.top
-    #     q1, q2, z = np.asarray(q1), np.asarray(q2), np.array([0, 0, 1])
-    #     a = p2 - p1
-    #     b = q2 - q1
-    #     plength = np.linalg.norm(a)
-    #     qlength = np.linalg.norm(b)
-    #     T = vtk.vtkTransform()
-    #     T.PostMultiply()
-    #     T.Translate(-p1)
-    #     cosa = np.dot(a, z) / plength
-    #     n = np.cross(a, z)
-    #     if np.linalg.norm(n):
-    #         T.RotateWXYZ(np.rad2deg(np.arccos(cosa)), n)
-    #     T.Scale(1, 1, qlength / plength)
-
-    #     cosa = np.dot(b, z) / qlength
-    #     n = np.cross(b, z)
-    #     if np.linalg.norm(n):
-    #         T.RotateWXYZ(-np.rad2deg(np.arccos(cosa)), n)
-    #     else:
-    #         if np.dot(b, z) < 0:
-    #             T.RotateWXYZ(180, [1, 0, 0])
-
-    #     T.Translate(q1)
-
-    #     self.apply_transform(T)
-    #     return self
-
     def cap(self, return_cap=False):
         """
         Generate a "cap" on a clipped mesh, or caps sharp edges.

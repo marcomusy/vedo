@@ -46,8 +46,6 @@ see `examples/pyplot/embed_matplotlib.py`.
 - added `applications.Slicer3DTwinPlotter` thanks to @daniel-a-diaz
 
 
-
-
 -------------------------
 ## New/Revised Examples
 ```
@@ -71,27 +69,11 @@ examples/simulations/springs_fem.py
 
 ### Broken Examples
 ```
-tests/issues/discussion_751.py
 tests/issues/discussion_800.py
 tests/issues/issue_905.py
-
-slice_plane1.py
-
-background_image.py
 
 gyroscope1.py broken
 tet_cut2.py broken
 markpoint.py
 plot_spheric.py
-
 ```
-
-### TODO
-- TextBase maybe useless can go into Actor2D
-- Mesh([points, faces, lines])
-- reimplement actor rotations, 
-    try disable .position .rotations to check
-- revisit splines and other widgets
-- merge does something strange with flagpost
-- analysis_plots.visualize_clones_as_timecourse_with_fit not working
-- load series as animation viewer

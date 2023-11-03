@@ -9,7 +9,7 @@ import vedo.vtkclasses as vtk
 import vedo
 from vedo import colors
 from vedo import utils
-from vedo.transformations import LinearTransform, NonLinearTransform
+from vedo.transformations import LinearTransform
 from vedo.core import PointAlgorithms
 from vedo.visual import PointsVisual
 
@@ -628,6 +628,101 @@ class Points(PointsVisual, PointAlgorithms):
             self.point_locator = None
             self.line_locator = None
             self.cell_locator = None
+        return self
+
+    def __str__(self):
+        """Print a description of the Points/Mesh."""
+        module = self.__class__.__module__
+        name = self.__class__.__name__
+        out = vedo.printc(
+            f"{module}.{name} at ({hex(self.memory_address())})".ljust(75),
+            c="g", bold=True, invert=True, return_string=True,
+        )
+        out += "\x1b[0m\x1b[32;1m"
+
+        if self.name:
+            out += "name".ljust(14) + ": " + self.name
+            if "legend" in self.info.keys() and self.info["legend"]:
+                out+= f", legend='{self.info['legend']}'"
+            out += "\n"
+ 
+        if self.filename:
+            out+= "file name".ljust(14) + ": " + self.filename + "\n"
+
+        if not self.mapper.GetScalarVisibility():
+            col = utils.precision(self.properties.GetColor(), 3)
+            cname = vedo.colors.get_color_name(self.properties.GetColor())
+            out+= "color".ljust(14) + ": " + cname 
+            out+= f", rgb={col}, alpha={self.properties.GetOpacity()}\n"
+            if self.actor.GetBackfaceProperty():
+                bcol = self.actor.GetBackfaceProperty().GetDiffuseColor()
+                cname = vedo.colors.get_color_name(bcol)
+                out+= "backface color".ljust(14) + ": " 
+                out+= f"{cname}, rgb={utils.precision(bcol,3)}\n"
+
+        npt = self.dataset.GetNumberOfPoints()
+        npo, nln = self.dataset.GetNumberOfPolys(), self.dataset.GetNumberOfLines()
+        out+= "elements".ljust(14) + f": vertices={npt:,} polys={npo:,} lines={nln:,}\n"
+
+        out+= "position".ljust(14) + ": " + f"{utils.precision(self.pos(), 6)}\n"
+        out+= "scaling".ljust(14)  + ": "
+        out+= utils.precision(self.transform.get_scale(), 6) + "\n"
+
+        if self.npoints:
+            out+="size".ljust(14)+ ": average=" + utils.precision(self.average_size(),6)
+            out+=", diagonal="+ utils.precision(self.diagonal_size(), 6)+ "\n"
+            out+="center of mass".ljust(14) + ": " + utils.precision(self.center_of_mass(),6)+"\n"
+
+        bnds = self.bounds()
+        bx1, bx2 = utils.precision(bnds[0], 3), utils.precision(bnds[1], 3)
+        by1, by2 = utils.precision(bnds[2], 3), utils.precision(bnds[3], 3)
+        bz1, bz2 = utils.precision(bnds[4], 3), utils.precision(bnds[5], 3)
+        out+= "bounds".ljust(14) + ":"
+        out+= " x=(" + bx1 + ", " + bx2 + "),"
+        out+= " y=(" + by1 + ", " + by2 + "),"
+        out+= " z=(" + bz1 + ", " + bz2 + ")\n"
+
+        for key in self.pointdata.keys():
+            arr = self.pointdata[key]
+            rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
+            mark_active = "pointdata"
+            if self.dataset.GetPointData().GetScalars().GetName() == key:
+                mark_active += " *"
+            elif self.dataset.GetPointData().GetVectors().GetName() == key:
+                mark_active += " **"
+            elif self.dataset.GetPointData().GetTensors().GetName() == key:
+                mark_active += " ***"
+            out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), ndim={arr.ndim}'
+            out += f", range=({rng})\n"
+
+        for key in self.celldata.keys():
+            arr = self.celldata[key]
+            rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
+            mark_active = "celldata"
+            if self.dataset.GetCellData().GetScalars().GetName() == key:
+                mark_active += " *"
+            elif self.dataset.GetCellData().GetVectors().GetName() == key:
+                mark_active += " **"
+            elif self.dataset.GetCellData().GetTensors().GetName() == key:
+                mark_active += " ***"
+            out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), ndim={arr.ndim}'
+            out += f", range=({rng})\n"
+
+        for key in self.metadata.keys():
+            arr = self.metadata[key]
+            out+= "metadata".ljust(14) + ": " + f'"{key}" ({len(arr)} values)\n'
+
+        if self.picked3d is not None:
+            idp = self.closest_point(self.picked3d, return_point_id=True)
+            idc = self.closest_point(self.picked3d, return_cell_id=True)
+            out+= "clicked point".ljust(14) + ": " + utils.precision(self.picked3d, 6)
+            out+= f", pointID={idp}, cellID={idc}\n"
+
+        return out.rstrip() + "\x1b[0m"
+    
+    def print(self):
+        """Print a description of the Points/Mesh."""
+        print(self.__str__())
         return self
 
     def _repr_html_(self):
