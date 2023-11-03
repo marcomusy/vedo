@@ -239,11 +239,14 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
             arr = self.pointdata[key]
             rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
             mark_active = "pointdata"
-            if self.dataset.GetPointData().GetScalars().GetName() == key:
+            a_scalars = self.dataset.GetPointData().GetScalars()
+            a_vectors = self.dataset.GetPointData().GetVectors()
+            a_tensors = self.dataset.GetPointData().GetTensors()
+            if   a_scalars and a_scalars.GetName() == key:
                 mark_active += " *"
-            elif self.dataset.GetPointData().GetVectors().GetName() == key:
+            elif a_vectors and a_vectors.GetName() == key:
                 mark_active += " **"
-            elif self.dataset.GetPointData().GetTensors().GetName() == key:
+            elif a_tensors and a_tensors.GetName() == key:
                 mark_active += " ***"
             out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), ndim={arr.ndim}'
             out += f", range=({rng})\n"
@@ -252,11 +255,14 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
             arr = self.celldata[key]
             rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
             mark_active = "celldata"
-            if self.dataset.GetCellData().GetScalars().GetName() == key:
+            a_scalars = self.dataset.GetCellData().GetScalars()
+            a_vectors = self.dataset.GetCellData().GetVectors()
+            a_tensors = self.dataset.GetCellData().GetTensors()
+            if   a_scalars and a_scalars.GetName() == key:
                 mark_active += " *"
-            elif self.dataset.GetCellData().GetVectors().GetName() == key:
+            elif a_vectors and a_vectors.GetName() == key:
                 mark_active += " **"
-            elif self.dataset.GetCellData().GetTensors().GetName() == key:
+            elif a_tensors and a_tensors.GetName() == key:
                 mark_active += " ***"
             out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), ndim={arr.ndim}'
             out += f", range=({rng})\n"

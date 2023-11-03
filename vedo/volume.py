@@ -193,7 +193,12 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             mapper : (str, vtkMapper)
                 either 'gpu', 'opengl_gpu', 'fixed' or 'smart'
         """
-        if "gpu" in mapper:
+        if isinstance(mapper, 
+            (vtk.get_class("Mapper"),
+                vtk.get_class("ImageResliceMapper",
+            ) )):
+            pass
+        elif "gpu" in mapper:
             mapper = vtk.new("GPUVolumeRayCastMapper")
         elif "opengl_gpu" in mapper:
             mapper = vtk.new("OpenGLGPUVolumeRayCastMapper")
@@ -201,8 +206,6 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             mapper = vtk.new("SmartVolumeMapper")
         elif "fixed" in mapper:
             mapper = vtk.new("FixedPointVolumeRayCastMapper")
-        elif isinstance(mapper, vtk.get_class("Mapper")):
-            pass
         else:
             print("Error unknown mapper type", [mapper])
             raise RuntimeError()
