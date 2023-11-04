@@ -235,23 +235,23 @@ class Image(vedo.visual.ImageVisual):
             c="y", bold=True, invert=True, return_string=True,
         )
 
-        if vedo.colors._terminal_has_colors:
-            thumb = ""
-            try: # to generate a terminal thumbnail
-                w = 75
-                width, height = self.shape
-                h = int(height / width * (w - 1) * 0.5 + 0.5)
-                img_arr = self.clone().resize([w, h]).tonumpy()
-                h, w = img_arr.shape[:2]
-                for x in range(h):
-                    for y in range(w):
-                        pix = img_arr[x][y]
-                        r, g, b = pix[:3]
-                        thumb += f"\x1b[48;2;{r};{g};{b}m "
-                    thumb += "\x1b[0m\n"
-            except:
-                pass
-            out += thumb
+        # if vedo.colors._terminal_has_colors:
+        #     thumb = ""
+        #     try: # to generate a terminal thumbnail
+        #         w = 75
+        #         width, height = self.shape
+        #         h = int(height / width * (w - 1) * 0.5 + 0.5)
+        #         img_arr = self.clone().resize([w, h]).tonumpy()
+        #         h, w = img_arr.shape[:2]
+        #         for x in range(h):
+        #             for y in range(w):
+        #                 pix = img_arr[x][y]
+        #                 r, g, b = pix[:3]
+        #                 thumb += f"\x1b[48;2;{r};{g};{b}m "
+        #             thumb += "\x1b[0m\n"
+        #     except:
+        #         pass
+        #     out += thumb
         
         out += "\x1b[0m\x1b[33;1m"
         out += "dimensions".ljust(14) + f": {self.shape}\n"

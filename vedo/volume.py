@@ -143,6 +143,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             if "https://" in inputobj:
                 inputobj = vedo.file_io.download(inputobj, verbose=False)
             img = vedo.file_io.loadImageData(inputobj)
+            self.filename = inputobj
 
         else:
             vedo.logger.error(f"cannot understand input type {inputtype}")
@@ -226,9 +227,12 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         name = self.__class__.__name__
         out = vedo.printc(
             f"{module}.{name} at ({hex(self.memory_address())})".ljust(75),
-            c="b", bold=True, invert=True, return_string=True,
+            c="c", bold=True, invert=True, return_string=True,
         )
-        out += "\x1b[34;1m"
+        out += "\x1b[0m\x1b[36;1m"
+
+        out+= "name".ljust(14) + ": " + str(self.name) + "\n"
+        out+= "filename".ljust(14) + ": " + str(self.filename) + "\n"
 
         out+= "dimensions".ljust(14) + ": " + str(self.shape) + "\n"
 
@@ -253,8 +257,9 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         out+= "memory size".ljust(14) + ": "
         out+= str(int(self.dataset.GetActualMemorySize()/1024+0.5))+" MB\n"
 
+        st = self.dataset.GetScalarTypeAsString()
         out+= "scalar size".ljust(14) + ": "
-        out+= str(self.dataset.GetScalarSize()) + " bytes\n"
+        out+= str(self.dataset.GetScalarSize()) + f" bytes ({st})\n"
         out+= "scalar range".ljust(14) + ": "
         out+= str(self.dataset.GetScalarRange()) + "\n"
 

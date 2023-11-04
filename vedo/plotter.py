@@ -786,9 +786,9 @@ class Plotter:
         name = self.__class__.__name__
         out = vedo.printc(
             f"{module}.{name} at ({hex(id(self))})".ljust(75),
-            c="c", bold=True, invert=True, return_string=True,
+            c="w", bold=True, invert=True, return_string=True,
         )
-        out += "\x1b[0m\u001b[36m"
+        out += "\x1b[0m"
         if self.interactor:
             out+= "window title".ljust(14) + ": " + self.title + "\n"
             out+= "window size".ljust(14) + f": {self.window.GetSize()}"
@@ -798,7 +798,6 @@ class Plotter:
 
         bns, totpt = [], 0
         for a in self.objects:
-            print([a.bounds()])
             try:
                 b = a.bounds()
                 bns.append(b)
@@ -817,7 +816,7 @@ class Plotter:
             bx1, bx2 = utils.precision(min_bns[0], 3), utils.precision(max_bns[1], 3)
             by1, by2 = utils.precision(min_bns[2], 3), utils.precision(max_bns[3], 3)
             bz1, bz2 = utils.precision(min_bns[4], 3), utils.precision(max_bns[5], 3)
-            out+= "bounds".ljust(14) + ": "
+            out+= "bounds".ljust(14) + ":"
             out+= " x=(" + bx1 + ", " + bx2 + "),"
             out+= " y=(" + by1 + ", " + by2 + "),"
             out+= " z=(" + bz1 + ", " + bz2 + ")\n"
