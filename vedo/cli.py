@@ -157,16 +157,6 @@ def system_info():
         pass
 
     try:
-        from screeninfo import get_monitors
-        for m in get_monitors():
-            pr = "         "
-            if m.is_primary:
-                pr = "(primary)"
-            printc(f"monitor {pr} : {m.name}, resolution=({m.width}, {m.height}), x={m.x}, y={m.y}")
-    except ModuleNotFoundError:
-        printc('monitor           : info is unavailable. Try "pip install screeninfo".')
-
-    try:
         import k3d
         printc("k3d version       :", k3d.__version__, bold=0, dim=1)
     except ModuleNotFoundError:
@@ -824,13 +814,9 @@ def draw_scene(args):
 
         ##########################################################
         # loading a full scene
-        if ".npy" in args.files[0] or ".npz" in args.files[0] and nfiles == 1:
-
-            objct = file_io.load(args.files[0], force=args.reload)
-            if isinstance(objct, Plotter):  # loading a full scene
-                objct.show(mode=interactor_mode)
-            else:  # loading a set of meshes
-                plt.show(objct, mode=interactor_mode)
+        if ".npy" in args.files[0] or ".npz" in args.files[0]:
+            plt = file_io.import_window(args.files[0])
+            plt.show(mode=interactor_mode).close()
             return
         #########################################################
 

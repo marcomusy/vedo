@@ -7,7 +7,7 @@ import vedo.vtkclasses as vtk
 import vedo
 from vedo import utils
 from vedo.core import UGridAlgorithms
-from vedo.file_io import download, loadUnStructuredGrid
+from vedo.file_io import download
 from vedo.visual import VolumeVisual
 
 
@@ -117,11 +117,17 @@ class UGrid(VolumeVisual, UGridAlgorithms):
             self.dataset = inputobj
 
         elif isinstance(inputobj, str):
-            self.filename = inputobj
             if "https://" in inputobj:
-                self.filename = inputobj
                 inputobj = download(inputobj, verbose=False)
-            self.dataset = loadUnStructuredGrid(inputobj)
+            self.filename = inputobj
+            if inputobj.endswith(".vtu"):
+                reader = vtk.new("XMLUnstructuredGridReader")
+            else:
+                reader = vtk.new("UnstructuredGridReader")
+            self.filename = inputobj
+            reader.SetFileName(inputobj)
+            reader.Update()
+            self.dataset = reader.GetOutput()
 
         else:
             vedo.logger.error(f"cannot understand input type {inputtype}")

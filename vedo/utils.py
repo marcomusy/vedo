@@ -735,9 +735,10 @@ def is_sequence(arg):
 
 def is_ragged(arr, deep=False):
     """
-    A ragged array in Python is an array with arrays of different
-    lengths as its elements. To check if an array is ragged,
-    we iterate through the elements and check if their lengths are the same.
+    A ragged or inhomogeneous array in Python is an array 
+    with arrays of different lengths as its elements. 
+    To check if an array is ragged,we iterate through the elements
+    and check if their lengths are the same.
 
     Example:
     ```python
@@ -745,9 +746,12 @@ def is_ragged(arr, deep=False):
     print(is_ragged(arr, deep=True))  # output: True
     ```
     """
+    n = len(arr)
+    if n == 0:
+        return False
     if is_sequence(arr[0]):
         length = len(arr[0])
-        for i in range(1, len(arr)):
+        for i in range(1, n):
             if len(arr[i]) != length or (deep and is_ragged(arr[i])):
                 return True
         return False

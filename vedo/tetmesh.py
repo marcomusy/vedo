@@ -8,7 +8,7 @@ import vedo
 from vedo import utils
 from vedo.core import UGridAlgorithms
 from vedo.mesh import Mesh
-from vedo.file_io import download, loadUnStructuredGrid
+from vedo.file_io import download
 from vedo.visual import VolumeVisual
 from vedo.transformations import LinearTransform
 
@@ -162,10 +162,16 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
             self.dataset = r2t.GetOutput()
 
         elif isinstance(inputobj, str):
-            self.filename = inputobj
             if "https://" in inputobj:
                 inputobj = download(inputobj, verbose=False)
-            ug = loadUnStructuredGrid(inputobj)
+            if inputobj.endswith(".vtu"):
+                reader = vtk.new("XMLUnstructuredGridReader")
+            else:
+                reader = vtk.new("UnstructuredGridReader")
+            self.filename = inputobj
+            reader.SetFileName(inputobj)
+            reader.Update()
+            ug = reader.GetOutput()
             tt = vtk.new("DataSetTriangleFilter")
             tt.SetInputData(ug)
             tt.SetTetrahedraOnly(True)
