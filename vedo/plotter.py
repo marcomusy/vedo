@@ -3,7 +3,6 @@
 import os.path
 import sys
 import time
-from typing import Callable
 import numpy as np
 
 import vedo.vtkclasses as vtk
@@ -1573,7 +1572,7 @@ class Plotter:
     ##################################################################
     def add_slider(
         self,
-        sliderfunc: Callable,
+        sliderfunc,
         xmin,
         xmax,
         value=None,

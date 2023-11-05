@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import time
 import os
-from typing import Callable
 
 import numpy as np
 
@@ -1935,7 +1934,7 @@ class AnimationPlayer(vedo.Plotter):
 
     def __init__(
         self,
-        func: Callable[[int],None],
+        func,
         irange: tuple,
         dt: float = 1.0,
         loop: bool = True,
