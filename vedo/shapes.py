@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 from functools import lru_cache
+from weakref import ref as weak_ref_to
 
 import numpy as np
 import vedo.vtkclasses as vtk
@@ -4432,13 +4433,17 @@ class TextBase:
         self.rendered_at = set()
         self.properties = None
 
+        self.name = "Text"
+        self.filename = ""
+        self.time = 0
+        self.info = {}
+
         if isinstance(settings.default_font, int):
             lfonts = list(settings.font_parameters.keys())
             font = settings.default_font % len(lfonts)
             self.fontname = lfonts[font]
         else:
             self.fontname = settings.default_font
-        self.name = "Text"
 
     def angle(self, a):
         """Orientation angle in degrees"""
@@ -4630,11 +4635,14 @@ class Text2D(TextBase, vedo.visual.Actor2D):
                 ![](https://vedo.embl.es/images/basic/colorcubes.png)
         """
         super().__init__()
+        self.name = "Text2D"
 
         self.mapper = vtk.new("TextMapper")
         self.SetMapper(self.mapper)
 
         self.properties = self.mapper.GetTextProperty()
+        self.actor = self
+        # self.actor.retrieve_object = weak_ref_to(self)
 
         self.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
 

@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
+from weakref import ref as weak_ref_to
 
-try:
-    import vedo.vtkclasses as vtk
-except ImportError:
-    import vtkmodules.all as vtk
+import vedo.vtkclasses as vtk
 
 import vedo
 from vedo.transformations import LinearTransform
@@ -228,12 +226,14 @@ class Assembly(CommonVisual, vtk.vtkAssembly):
             meshs = vedo.utils.flatten(meshs)
 
         self.actor = self
+        self.actor.retrieve_object = weak_ref_to(self)
 
         self.name = "Assembly"
         self.filename = ""
         self.rendered_at = set()
         self.scalarbar = None
         self.info = {}
+        self.time = 0
 
         self.transform = LinearTransform()
 

@@ -73,6 +73,8 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         self.name = "Volume"
         self.filename = ""
         self.info = {}
+        self.time = 0
+        self.rendered_at = set()
 
         self.actor = vtk.vtkVolume()
         self.actor.retrieve_object = weak_ref_to(self)
