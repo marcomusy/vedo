@@ -650,7 +650,7 @@ class CommonAlgorithms:
     @property
     def lines_as_flat_array(self):
         """
-        Get lines connectivity ids as a numpy array.
+        Get lines connectivity ids as a 1D numpy array.
         Format is e.g. [2,  10,20,  3, 10,11,12,  2, 70,80, ...]
         """
         return utils.vtk2numpy(self.dataset.GetLines().GetData())
@@ -833,6 +833,21 @@ class CommonAlgorithms:
         """Set vertices (points) coordinates. Same as `vertices`."""
         self.vertices = pts
     
+    @property
+    def cells_as_flat_array(self):
+        """
+        Get cell connectivity ids as a 1D numpy array.
+        Format is e.g. [3,  10,20,30  4, 10,11,12,13  ...]
+        """
+        try:
+            # valid for unstructured grid
+            arr1d = utils.vtk2numpy(self.dataset.GetCells().GetData())
+        except AttributeError:
+            # valid for polydata
+            arr1d = utils.vtk2numpy(self.dataset.GetPolys().GetData())
+            # if arr1d.size == 0:
+            #     arr1d = utils.vtk2numpy(self.dataset.GetStrips().GetData())
+        return arr1d
 
     @property
     def cells(self):
@@ -847,8 +862,8 @@ class CommonAlgorithms:
         except AttributeError:
             # valid for polydata
             arr1d = utils.vtk2numpy(self.dataset.GetPolys().GetData())
-            if arr1d.size == 0:
-                arr1d = utils.vtk2numpy(self.dataset.GetStrips().GetData())
+            # if arr1d.size == 0:
+            #     arr1d = utils.vtk2numpy(self.dataset.GetStrips().GetData())
 
         # Get cell connettivity ids as a 1D array. vtk format is:
         # [nids1, id0 ... idn, niids2, id0 ... idm,  etc].

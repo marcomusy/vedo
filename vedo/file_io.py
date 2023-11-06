@@ -874,7 +874,7 @@ def _import_npy(fileinput):
         msh = Mesh(poly)
         _load_common(msh, d)
 
-        prp = msh.actor.GetProperty()
+        prp = msh.properties
         if 'ambient' in keys:        prp.SetAmbient(d['ambient'])
         if 'diffuse' in keys:        prp.SetDiffuse(d['diffuse'])
         if 'specular' in keys:       prp.SetSpecular(d['specular'])
@@ -997,8 +997,82 @@ def _import_hdf5(fileinput):
     except ImportError as e:
         vedo.logger.error(f"{e}. Try: 'pip install h5py'")
         return
-    plt = vedo.Plotter()
     hfile = h5py.File(fileinput, "r")
+
+    scene = hfile["scene"]
+
+    settings.use_depth_peeling = scene["use_depth_peeling"][()]
+    settings.render_lines_as_tubes = scene["render_lines_as_tubes"][()]
+    settings.hidden_line_removal = scene["hidden_line_removal"][()]
+    settings.use_parallel_projection = scene["use_parallel_projection"][()]
+    settings.default_font = scene["default_font"][()].decode("utf-8")
+
+    plt = vedo.Plotter(
+        pos=scene["position"][()], 
+        size=scene["size"][()],
+        axes=scene["axes"][()],
+        title=scene["title"][()].decode("utf-8"), 
+        bg=scene["background_color"][()],
+        bg2=scene["background_color2"][()],
+    )
+    
+    objects = scene["objects"]
+
+    for name, hob in objects.items():
+
+        if hob["type"][()].decode("utf-8") == 'Mesh':
+            # print(name, hob, hob["type"][()])
+
+            dataset = hob["dataset"]
+            props = hob["properties"]
+
+            vertices = dataset["points"][()]
+            cells = dataset["cells"][()]
+            lines = dataset["lines"][()]
+
+            msh = Mesh([vertices, cells, lines])
+            msh.name = hob["name"][()].decode("utf-8")
+            # msh.info = hob["info"]
+            msh.filename = hob["filename"][()].decode("utf-8")
+            msh.transform = vedo.LinearTransform(dataset["transform"][()])
+
+            msh.properties.SetRepresentation(props["representation"][()])
+            msh.properties.SetPointSize(props["pointsize"][()])
+
+            msh.properties.SetEdgeVisibility(props["linewidth"][()]>0)
+            if props["linewidth"][()]:
+                msh.linewidth(props["linewidth"][()])
+                msh.properties.SetEdgeColor(props["linecolor"][()])
+
+            msh.properties.SetAmbient(props["ambient"][()])
+            msh.properties.SetDiffuse(props["diffuse"][()])
+            msh.properties.SetSpecular(props["specular"][()])
+            msh.properties.SetSpecularPower(props["specularpower"][()])
+            msh.properties.SetSpecularColor(props["specularcolor"][()])
+            msh.properties.SetInterpolation(props["shading"][()])  # flat, phong
+            msh.properties.SetColor(props["color"][()])
+            msh.properties.SetOpacity(props["alpha"][()])
+            msh.properties.SetLighting(props["lighting_is_on"][()])
+            if props["backcolor"][()]:
+                bfp = msh.actor.GetBackfaceProperty()
+                bfp.SetColor(props["backcolor"][()])
+            msh.mapper.SetScalarVisibility(props["scalar_visibility"][()])
+
+            plt.add(msh)
+
+    cam = scene["camera"]
+    if cam:
+        if "pos" in cam.keys():
+            plt.camera.SetPosition(cam["pos"][()])
+        if "focal_point" in cam.keys():
+            plt.camera.SetFocalPoint(cam["focal_point"][()])
+        if "viewup" in cam.keys():
+            plt.camera.SetViewUp(cam["viewup"][()])
+        if "distance" in cam.keys():
+            plt.camera.SetDistance(cam["distance"][()])
+        if "clipping_range" in cam.keys():
+            plt.camera.SetClippingRange(cam["clipping_range"][()])
+        plt.resetcam = False
 
     hfile.close()
     return plt
@@ -1523,7 +1597,7 @@ def _export_hdf5(plt, fileoutput="scene.h5"):
     scene["position"] = plt.pos
     scene["size"] = plt.size
     scene["axes"] = plt.axes if plt.axes else ""
-    scene["title"] = plt.title
+    scene["title"] = str(plt.title)
     scene["background_color"] = colors.get_color(plt.renderer.GetBackground())
     if plt.renderer.GetGradientBackground():
         scene["background_color2"] = plt.renderer.GetBackground2()
@@ -1557,6 +1631,7 @@ def _export_hdf5(plt, fileoutput="scene.h5"):
 
         cname = vob.__class__.__name__
         hmesh = objects.create_group(f"{cname}_{vob.name}_{i}")
+        hmesh["type"] = "Mesh" if vob.ncells else "Points"
 
         hmesh["filename"] = vob.filename
         hmesh["name"] = vob.name
@@ -1569,24 +1644,33 @@ def _export_hdf5(plt, fileoutput="scene.h5"):
         props = hmesh.create_group("properties")
 
         dataset = hmesh.create_group("dataset")
+
+        copt = dict(compression="gzip", compression_opts=9)
+        dataset.create_dataset("points", data=vob.vertices, dtype=np.float32, **copt)
+
+        cells = np.array([])
         try:
-            cells = vob.cells
-            if utils.is_ragged(cells):
-                dataset.create_dataset("cells", data=cells, dtype=h5py.vlen_dtype(np.uint32))
-            elif vob.nvertices <   256: #careful, vertices not cells!
-                dataset.create_dataset("cells", data=np.array(cells, dtype=np.uint8))
+            cells = vob.cells_as_flat_array
+            if vob.nvertices <     256: #careful, vertices not cells!
+                dataset.create_dataset("cells", data=cells, dtype=np.uint8, **copt)
             elif vob.nvertices < 65535: #careful, vertices not cells!
-                dataset.create_dataset("cells", data=np.array(cells, dtype=np.uint16))
+                dataset.create_dataset("cells", data=cells, dtype=np.uint16, **copt)
             else:
-                dataset.create_dataset("cells", data=np.array(cells, dtype=np.uint32))
-
-            dataset.create_dataset("points", data=vob.vertices.astype(float))
-            dataset.create_dataset("lines", data=vob.lines)
-
+                dataset.create_dataset("cells", data=cells, dtype=np.uint32, **copt)
         except AttributeError as e:
-            # print("pts-cells fails for", e)
+            print("cells fails for", e)
             pass
-    
+            dataset.create_dataset("cells", data=cells, dtype=np.uint32, **copt)
+
+        lns = np.array([])
+        try:
+            if vob.dataset.GetNumberOfLines():
+                lns = vob.lines_as_flat_array
+        except AttributeError as e:
+            print("lines fails for", e)
+            pass
+        dataset.create_dataset("lines", data=lns, dtype=np.uint32, **copt)
+
         ######################################################## Points-Mesh
         try:
             dataset.create_dataset("transform",  data=vob.transform.matrix)

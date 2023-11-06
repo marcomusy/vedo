@@ -77,10 +77,15 @@ class Mesh(MeshVisual, Points):
 
         elif is_sequence(inputobj):
             ninp = len(inputobj)
-            if ninp == 2:  # assume input is [vertices, faces]
+            if   ninp == 3:  # assume input is [vertices, faces, lines]
+                self.dataset = buildPolyData(inputobj[0], inputobj[1], inputobj[2])
+            elif ninp == 2:  # assume input is [vertices, faces]
                 self.dataset = buildPolyData(inputobj[0], inputobj[1])
-            else:          # assume input is [vertices]
+            elif ninp == 1:  # assume input is [vertices]
                 self.dataset = buildPolyData(inputobj, None)
+            else:
+                vedo.logger.error("input must be a list of max 3 elements.", c=1)
+                raise ValueError()
 
         elif isinstance(inputobj, str):
             self.dataset = vedo.file_io.load(inputobj).dataset

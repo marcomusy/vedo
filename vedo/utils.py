@@ -561,12 +561,14 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, tetras=False
 
     If `tetras=True`, interpret 4-point faces as tetrahedrons instead of surface quads.
     """
+    if is_sequence(faces) and len(faces) == 0:
+        faces=None
+    if is_sequence(lines) and len(lines) == 0:
+        lines=None
+
     poly = vtk.vtkPolyData()
 
     if len(vertices) == 0:
-        return poly
-
-    if not is_sequence(vertices[0]):
         return poly
 
     vertices = make3d(vertices)
@@ -593,7 +595,6 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, tetras=False
                 vline.GetPointIds().SetId(0, lines[i])
                 vline.GetPointIds().SetId(1, lines[i + 1])
                 linesarr.InsertNextCell(vline)
-            # print('Wrong format for lines in utils.buildPolydata(), skip.')
         poly.SetLines(linesarr)
 
     if faces is None:
@@ -616,18 +617,15 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, tetras=False
 
         if faces.ndim > 1:
             nf, nc = faces.shape
-            hs = np.hstack((np.zeros(nf)[:, None] + nc, faces)).astype(ast).ravel()
-            arr = numpy_to_vtkIdTypeArray(hs, deep=True)
-            source_polygons.SetCells(nf, arr)
+            hs = np.hstack((np.zeros(nf)[:, None] + nc, faces))
+        else:
+            nf = faces.shape[0]
+            hs = faces
+        arr = numpy_to_vtkIdTypeArray(hs.astype(ast).ravel(), deep=True)
+        source_polygons.SetCells(nf, arr)
 
     else:
         ############################# manually add faces, SLOW
-
-        showbar = False
-        if len(faces) > 25000:
-            showbar = True
-            pb = ProgressBar(0, len(faces), eta=False)
-
         for f in faces:
             n = len(f)
 
@@ -680,8 +678,6 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, tetras=False
                 for i in range(n):
                     pids.SetId(i, f[i] - index_offset)
                 source_polygons.InsertNextCell(ele)
-            if showbar:
-                pb.print("converting mesh...    ")
 
     poly.SetPolys(source_polygons)
     return poly
