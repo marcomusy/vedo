@@ -24,7 +24,19 @@ __all__ = [
     "VolumeAlgorithms",
     "UGridAlgorithms",
 ]
-    
+
+warnings = dict(
+    points_getter=(
+        "WARNING: points() is deprecated, use vertices instead. Change:\n"
+        "         mesh.points() -> mesh.vertices\n"
+        "         (silence this with vedo.core.warnings['points_getter']=False)"
+    ),
+    points_setter=(
+        "WARNING: points() is deprecated, use vertices instead. Change:\n"
+        "         mesh.points([[x,y,z], ...]) -> mesh.vertices = [[x,y,z], ...]\n"
+        "         (silence this with vedo.core.warnings['points_getter']=False)"
+    ),
+)
 
 ###############################################################################
 class DataArrayHelper:
@@ -572,19 +584,17 @@ class CommonAlgorithms:
         Set/Get the vertex coordinates of a mesh or point cloud.
         """
         if pts is None:  ### getter
-            msg = (
-                "WARNING: points() is deprecated, use vertices instead. E.g.:\n"
-                "         mesh.points() -> mesh.vertices"
-            )
-            colors.printc(msg, c="y")
+
+            if warnings["points_getter"]:
+                colors.printc(warnings["points_getter"], c="y")
+                warnings["points_getter"] = ""
             return self.vertices
 
-        else:
-            msg = (
-                "WARNING: points() is deprecated, use vertices instead. E.g.:\n"
-                "         mesh.points([[x,y,z]]) -> mesh.vertices = [[x,y,z]]"
-            )
-            colors.printc(msg, c="y")
+        else:  ### setter
+
+            if warnings["points_setter"]:
+                colors.printc(warnings["points_setter"], c="y")
+                warnings["points_setter"] = ""
 
             pts = np.asarray(pts, dtype=np.float32)
 
