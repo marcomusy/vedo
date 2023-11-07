@@ -590,6 +590,8 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, tetras=False
                         vline.GetPointIds().SetId(1, i2)
                         linesarr.InsertNextCell(vline)
         else:  # assume format [id0,id1,...]
+            # print("buildPolyData: assuming lines format [id0,id1,...]", lines)
+            # TODO CORRECT THIS CASE [2id0,id1,...]
             for i in range(0, len(lines) - 1):
                 vline = vtk.vtkLine()
                 vline.GetPointIds().SetId(0, lines[i])

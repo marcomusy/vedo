@@ -552,7 +552,6 @@ class Points(PointsVisual, PointAlgorithms):
             self.properties.RenderPointsAsSpheresOn()
         except AttributeError:
             pass
-        # self.properties.LightingOff()
 
         if inputobj is None:  ####################
             return
@@ -662,7 +661,7 @@ class Points(PointsVisual, PointAlgorithms):
 
         npt = self.dataset.GetNumberOfPoints()
         npo, nln = self.dataset.GetNumberOfPolys(), self.dataset.GetNumberOfLines()
-        out+= "elements".ljust(14) + f": vertices={npt:,} polys={npo:,} lines={nln:,}\n"
+        out+= "elements".ljust(14) + f": vertices={npt:,}, polys={npo:,}, lines={nln:,}\n"
 
         out+= "position".ljust(14) + ": " + f"{utils.precision(self.pos(), 6)}\n"
         out+= "scaling".ljust(14)  + ": "

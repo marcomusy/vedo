@@ -440,10 +440,11 @@ def _load_file(filename, unpack):
 def download(url, force=False, verbose=True):
     """
     Retrieve a file from a URL, save it locally and return its path.
-    Use `force` to force reload and discard cached copies.
+    Use `force=True` to force a reload and discard cached copies.
     """
     if not url.startswith("https://"):
-        vedo.logger.error(f"Invalid URL (must start with https):\n{url}")
+        # vedo.logger.error(f"Invalid URL (must start with https):\n{url}")
+        # assume it's a file so no need to download
         return url
     url = url.replace("www.dropbox", "dl.dropbox")
 
@@ -524,7 +525,8 @@ def loadStructuredPoints(filename, as_points=True):
     """
     Load and return a `vtkStructuredPoints` object from file.
     
-    If `as_points` is True, return a `Points` object instead of `vtkStructuredPoints`.
+    If `as_points` is True, return a `Points` object
+    instead of a `vtkStructuredPoints`.
     """
     reader = vtk.new("StructuredPointsReader")
     reader.SetFileName(filename)
@@ -569,10 +571,7 @@ def loadXMLData(filename):
 
 ###################################################################
 def load3DS(filename):
-    """Load `3DS` file format from file.
-    Returns:
-        `Assembly(vtkAssembly)` object.
-    """
+    """Load `3DS` file format from file."""
     renderer = vtk.vtkRenderer()
     renWin = vtk.vtkRenderWindow()
     renWin.AddRenderer(renderer)
@@ -590,13 +589,15 @@ def load3DS(filename):
         acts.append(a)
     del renWin
 
-    wrapped_acts = acts
-    # wrapped_acts = []
-    # for a in acts:
-    #     newa = Mesh(a.GetMapper().GetInput())
-    #     newa.pos(a.GetPosition())
-    #     newa.copy_properties_from(a)
-    #     wrapped_acts.append(newa)
+    wrapped_acts = []
+    for a in acts:
+        try:
+            newa = Mesh(a.GetMapper().GetInput())
+            newa.apply_transform(a.GetMatrix())
+            newa.copy_properties_from(a)
+            wrapped_acts.append(newa)
+        except:
+            print("ERROR: cannot load 3DS object", [a])
     return wrapped_acts
 
 ########################################################################
@@ -671,7 +672,7 @@ def loadDolfin(filename, exterior=False):
         app.AddInputData(polyb)
         app.Update()
         poly = app.GetOutput()
-    return Mesh(poly).lw(0.1)
+    return Mesh(poly).lw(1)
 
 ########################################################################
 def loadPVD(filename):
@@ -790,6 +791,7 @@ def loadPCD(filename):
 def _import_npy(fileinput):
     """Import a vedo scene from numpy format."""
     # make sure the numpy file is not containing a scene
+    fileinput = download(fileinput, verbose=False, force=True)
     if fileinput.endswith(".npy"):
         data = np.load(fileinput, allow_pickle=True, encoding="latin1").flatten()[0]
     elif fileinput.endswith(".npz"):
@@ -799,8 +801,6 @@ def _import_npy(fileinput):
         settings.render_lines_as_tubes = data["render_lines_as_tubes"]
     if "hidden_line_removal" in data.keys():
         settings.hidden_line_removal = data["hidden_line_removal"]
-    if "visible_grid_edges" in data.keys():
-        settings.visible_grid_edges = data["visible_grid_edges"]
     if "use_parallel_projection" in data.keys():
         settings.use_parallel_projection = data["use_parallel_projection"]
     if "use_polygon_offset" in data.keys():
@@ -827,7 +827,6 @@ def _import_npy(fileinput):
 
     plt = vedo.Plotter(
         size=data["size"],  # not necessarily a good idea to set it
-        # shape=data['shape'], # will need to create a Renderer class first
         axes=axes,
         title=title,
         bg=backgrcol,
@@ -849,6 +848,8 @@ def _import_npy(fileinput):
             plt.camera.SetClippingRange(cam["clippingRange"])
         if "clipping_range" in cam.keys():
             plt.camera.SetClippingRange(cam["clipping_range"])
+        if "parallel_scale" in cam.keys():
+            plt.camera.SetParallelScale(cam["parallel_scale"])
         plt.resetcam = False
 
     ##########################
@@ -858,7 +859,6 @@ def _import_npy(fileinput):
         if "name" in keys: obj.name = d["name"]
         if "info" in keys: obj.info = d["info"]
         if "filename" in keys: obj.filename = d["filename"]
-        if "position" in keys: obj.pos(d["position"])
 
     ###########################
     def _buildmesh(d):
@@ -870,8 +870,7 @@ def _import_npy(fileinput):
         cells = d["cells"] if "cells" in keys else None
         lines = d["lines"] if "lines" in keys else None
 
-        poly = utils.buildPolyData(vertices, cells, lines)
-        msh = Mesh(poly)
+        msh = Mesh([vertices, cells, lines])
         _load_common(msh, d)
 
         prp = msh.properties
@@ -883,7 +882,6 @@ def _import_npy(fileinput):
         if 'lighting_is_on' in keys: prp.SetLighting(d['lighting_is_on'])
         if 'shading' in keys:        prp.SetInterpolation(d['shading'])
         if 'alpha' in keys:          prp.SetOpacity(d['alpha'])
-        if 'opacity' in keys:        prp.SetOpacity(d['opacity']) # synonym
         if 'representation' in keys: prp.SetRepresentation(d['representation'])
         if 'pointsize' in keys and d['pointsize']: prp.SetPointSize(d['pointsize'])
         if 'linewidth' in keys and d['linewidth']: msh.linewidth(d['linewidth'])
@@ -893,15 +891,27 @@ def _import_npy(fileinput):
         if 'backcolor' in keys and d['backcolor'] is not None:
             msh.backcolor(d['backcolor'])
 
-        if "celldata" in keys:
-            for csc, cscname in d["celldata"]:
-                msh.celldata[cscname] = csc
-        if "pointdata" in keys:
-            for psc, pscname in d["pointdata"]:
-                msh.pointdata[pscname] = psc
+        # print("XXXXX n",
+        #     msh.dataset.GetNumberOfPoints(),
+        #     msh.dataset.GetNumberOfCells(),
+        #     msh.dataset.GetNumberOfLines(),
+        #     msh.dataset.GetNumberOfPolys(),
+        #     msh.dataset.GetNumberOfStrips(),
+        #     msh.dataset.GetNumberOfVerts(),
+        # )
 
+        if "celldata" in keys and isinstance(d["celldata"], dict):
+            for arrname, arr in d["celldata"].items():
+                msh.celldata[arrname] = arr
+        if "pointdata" in keys and isinstance(d["pointdata"], dict):
+            for arrname, arr in d["pointdata"].items():
+                msh.pointdata[arrname] = arr
+
+        # print(msh)
+
+
+        msh.mapper.ScalarVisibilityOff()
         if "LUT" in keys and "activedata" in keys and d["activedata"]:
-            # print(d['activedata'],'', msh.filename)
             lut_list = d["LUT"]
             ncols = len(lut_list)
             lut = vtk.vtkLookupTable()
@@ -915,22 +925,22 @@ def _import_npy(fileinput):
             msh.mapper.ScalarVisibilityOn()  # activate scalars
             msh.mapper.SetScalarRange(d["LUT_range"])
             if d["activedata"][0] == "celldata":
-                poly.GetCellData().SetActiveScalars(d["activedata"][1])
+                msh.dataset.GetCellData().SetActiveScalars(d["activedata"][1])
+                # msh.celldata.select(d["activedata"][1])
             if d["activedata"][0] == "pointdata":
-                poly.GetPointData().SetActiveScalars(d["activedata"][1])
+                msh.dataset.GetPointData().SetActiveScalars(d["activedata"][1])
+                # msh.pointdata.select(d["activedata"][1])
 
+        # print("shading", int(d["shading"]),d["scalarvisibility"], d["activedata"][1])
         if "shading" in keys and int(d["shading"]) > 0:
             msh.compute_normals(cells=0)  # otherwise cannot renderer phong
-
-        msh.mapper.ScalarVisibilityOff()  # deactivate scalars
+            
         if "scalarvisibility" in keys:
             if d["scalarvisibility"]:
                 msh.mapper.ScalarVisibilityOn()
             else:
                 msh.mapper.ScalarVisibilityOff()
 
-        if "texture" in keys and d["texture"]:
-            msh.texture(**d["texture"])
         return msh
 
     ##############################################
@@ -1336,7 +1346,7 @@ def export_window(fileoutput, binary=False, plt=None):
 #########################################################################
 def _export_npy(plt, fileoutput="scene.npz"):
 
-    def _tonumpy(obj):
+    def _tonumpy(act):
         """Dump a vedo object to numpy format."""
 
         adict = {}
@@ -1371,38 +1381,29 @@ def _export_npy(plt, fileoutput="scene.npz"):
 
         ########################################################
         def _fillmesh(obj, adict):
-
-            adict["points"] = obj.vertices.astype(float)
             poly = obj.dataset
+            adict["points"] = obj.vertices.astype(float)
 
             adict["cells"] = None
             if poly.GetNumberOfPolys():
-                try:
-                    adict["cells"] = np.array(obj.cells, dtype=np.uint32)
-                except ValueError:  # in case of inhomogeneous shape
-                    adict["cells"] = obj.cells
+                adict["cells"] = obj.cells_as_flat_array
 
             adict["lines"] = None
             if poly.GetNumberOfLines():
-                adict["lines"] = obj.lines
+                adict["lines"] = obj.lines#_as_flat_array
+            # print("adict[lines]", adict["lines"])
 
-            adict["pointdata"] = []
+            adict["pointdata"] = {}
             for iname in obj.pointdata.keys():
-                if not iname:
+                if "normals" in iname.lower():
                     continue
-                if "Normals" in iname.lower():
-                    continue
-                arr = poly.GetPointData().GetArray(iname)
-                adict["pointdata"].append([utils.vtk2numpy(arr), iname])
+                adict["pointdata"][iname] = obj.pointdata[iname]
 
-            adict["celldata"] = []
+            adict["celldata"] = {}
             for iname in obj.celldata.keys():
-                if not iname:
+                if "normals" in iname.lower():
                     continue
-                if "Normals" in iname.lower():
-                    continue
-                arr = poly.GetCellData().GetArray(iname)
-                adict["celldata"].append([utils.vtk2numpy(arr), iname])
+                adict["celldata"][iname] = obj.celldata[iname]
 
             adict["activedata"] = None
             if poly.GetPointData().GetScalars():
@@ -1446,19 +1447,13 @@ def _export_npy(plt, fileoutput="scene.npz"):
                 adict["backcolor"] = obj.actor.GetBackfaceProperty().GetColor()
 
             adict["scalarvisibility"] = obj.mapper.GetScalarVisibility()
-            adict["texture"] = obj._texture if hasattr(obj, "_texture") else None
+
+        #####################################################################
+        obj = act.retrieve_object()
 
         ######################################################## Assembly
         if isinstance(obj, Assembly):
             pass
-            # adict['type'] = 'Assembly'
-            # _fillcommon(obj, adict)
-            # adict['actors'] = []
-            # for a in obj.unpack():
-            #     assdict = dict()
-            #     if isinstance(a, Mesh):
-            #         _fillmesh(a, assdict)
-            #         adict['actors'].append(assdict)
 
         ######################################################## Points/Mesh
         elif isinstance(obj, Points):
@@ -1474,7 +1469,6 @@ def _export_npy(plt, fileoutput="scene.npz"):
             arr = utils.vtk2numpy(imgdata.GetPointData().GetScalars())
             adict["array"] = arr.reshape(imgdata.GetDimensions())
             adict["mode"] = obj.mode()
-            # adict['jittering'] = obj.mapper.GetUseJittering()
 
             prp = obj.properties
             ctf = prp.GetRGBTransferFunction()
@@ -1510,11 +1504,9 @@ def _export_npy(plt, fileoutput="scene.npz"):
             adict["bgcol"] = obj.properties.GetBackgroundColor()
             adict["alpha"] = obj.properties.GetBackgroundOpacity()
             adict["frame"] = obj.properties.GetFrame()
-            # print('tonumpy(): vedo.Text2D', obj.text()[:10], obj.font(), obj.GetPosition())
 
         else:
             pass
-            # colors.printc('Unknown object type in tonumpy()', [obj], c='r')
         return adict
 
     sdict = {}
@@ -1526,6 +1518,7 @@ def _export_npy(plt, fileoutput="scene.npz"):
         viewup=plt.camera.GetViewUp(),
         distance=plt.camera.GetDistance(),
         clipping_range=plt.camera.GetClippingRange(),
+        parallel_scale=plt.camera.GetParallelScale(),
     )
     sdict["position"] = plt.pos
     sdict["size"] = plt.size
@@ -1535,12 +1528,12 @@ def _export_npy(plt, fileoutput="scene.npz"):
     sdict["backgrcol2"] = None
     if plt.renderer.GetGradientBackground():
         sdict["backgrcol2"] = plt.renderer.GetBackground2()
-    sdict["use_depth_peeling"] = plt.camera.GetParallelProjection()
+    sdict["use_depth_peeling"] = plt.renderer.GetUseDepthPeeling()
     sdict["render_lines_as_tubes"] = settings.render_lines_as_tubes
     sdict["hidden_line_removal"] = settings.hidden_line_removal
-    sdict["visible_grid_edges"] = settings.visible_grid_edges
-    sdict["use_parallel_projection"] = settings.use_parallel_projection
+    sdict["use_parallel_projection"] = plt.camera.GetParallelProjection()
     sdict["default_font"] = settings.default_font
+
     sdict["objects"] = []
 
     allobjs = plt.get_actors()
@@ -1548,10 +1541,8 @@ def _export_npy(plt, fileoutput="scene.npz"):
     acts2d.InitTraversal()
     for _ in range(acts2d.GetNumberOfItems()):
         a = acts2d.GetNextItem()
-        if isinstance(a, vedo.Text2D):
-            allobjs.append(a)
-    allobjs += plt.objects
-    allobjs = list(set(allobjs))  # make sure its unique
+        # if isinstance(a, vedo.Text2D):
+        allobjs.append(a)
 
     for a in allobjs:
         try:
@@ -1743,8 +1734,7 @@ def _export_hdf5(plt, fileoutput="scene.h5"):
             bfp = vob.actor.GetBackfaceProperty()
             props["backcolor"] = bfp.GetColor() if bfp else ""
             props["scalar_visibility"] = vob.mapper.GetScalarVisibility()
-            hastxt = hasattr(vob, "_texture") and vob._texture
-            props["texture"] = vob._texture if hastxt else ""
+
         except AttributeError:
             pass
 

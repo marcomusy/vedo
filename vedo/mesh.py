@@ -154,7 +154,6 @@ class Mesh(MeshVisual, Points):
 
         n = self.dataset.GetNumberOfPoints()
         self.pipeline = OperationNode(self, comment=f"#pts {n}")
-        self._texture = None
 
     def _repr_html_(self):
         """
@@ -473,17 +472,6 @@ class Mesh(MeshVisual, Points):
             self.vertices = new_points
 
         self.dataset.Modified()
-        self._texture = {
-            "tname": tname,
-            "tcoords": tcoords,
-            "interpolate": interpolate,
-            "repeat": repeat,
-            "edge_clamp": edge_clamp,
-            "scale": scale,
-            "ushift": ushift,
-            "vshift": vshift,
-            "seam_threshold": seam_threshold,
-        }
         return self
 
     def compute_normals(self, points=True, cells=True, feature_angle=None, consistency=True):

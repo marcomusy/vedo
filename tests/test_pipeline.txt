@@ -1,16 +1,27 @@
 # Test Pipeline ################################
-For internal use only
+Internal use only
 
 # SITES ########################################
 https://vedo.embl.es/
+https://vedo.embl.es/docs
 https://github.com/marcomusy/vedo
 https://forum.image.sc/search?q=vedo%20order%3Alatest
 
-## INSTALL #####################################
+# INSTALL ######################################
 cd ~/Projects/vedo
 pip install -e .
 pip install nevergrad -U
-
+pip install pyefd -U
+pip install iminuit -U
+pip install meshio -U
+pip install morphomatics -U
+pip install pygeodesic -U
+pip install pygmsh -U
+pip install pyacvd -U
+pip install pymeshfix -U
+pip install tetgen -U
+pip install pyshtools -U
+pip install trimesh -U
 
 # DRY RUN ######################################
 cd ~/Projects/vedo/
@@ -35,8 +46,7 @@ cd ~/Projects/vedo/examples/other/dolfin
 conda activate fenics
 ./run_all.sh
 conda deactivate
-
-pip install trimesh -U
+################
 cd ~/Projects/vedo/examples/other/trimesh
 ./run_all.sh
 
@@ -117,5 +127,6 @@ cd ~/Projects/vedo/docs/pdoc
 ./build_html.py 
 
 # check web page examples
+cd ~/Projects/vedo/
 code www/examples_db.js
 code www/index.html

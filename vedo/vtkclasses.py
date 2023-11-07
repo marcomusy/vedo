@@ -49,7 +49,12 @@ def new(cls_name="", module_name=""):
     a = vtk.new("Actor")
     ```
     """
-    return get_class(cls_name, module_name)()
+    try:
+        instance = get_class(cls_name, module_name)()
+    except NotImplementedError as e:
+        print(e, cls_name)
+        return None
+    return instance
 
 
 def dump_hierarchy_to_file(fname=""):

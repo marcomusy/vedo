@@ -1251,10 +1251,7 @@ class Plotter:
         for _ in range(acs.GetNumberOfItems()):
             a = acs.GetNextProp()
             if include_non_pickables or a.GetPickable():
-                # try:
-                #     acts.append(a.retrieve_object())
-                # except AttributeError:
-                    acts.append(a)
+                acts.append(a)
         return acts
 
     def reset_camera(self, tight=None):

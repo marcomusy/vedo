@@ -4642,7 +4642,7 @@ class Text2D(TextBase, vedo.visual.Actor2D):
 
         self.properties = self.mapper.GetTextProperty()
         self.actor = self
-        # self.actor.retrieve_object = weak_ref_to(self)
+        self.actor.retrieve_object = weak_ref_to(self)
 
         self.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
 

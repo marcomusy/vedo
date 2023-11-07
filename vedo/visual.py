@@ -940,6 +940,7 @@ class PointsVisual(CommonVisual):
         elif "cell" in on.lower():
             data = self.dataset.GetCellData()
             n = self.dataset.GetNumberOfCells()
+            # print("XXXX", n, self.dataset.GetNumberOfVerts())
         else:
             vedo.logger.error("Must specify in cmap(on=...) to either 'cells' or 'points'")
             raise RuntimeError()
