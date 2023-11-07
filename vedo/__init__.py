@@ -123,12 +123,3 @@ _chsh.setFormatter(_LoggingCustomFormatter())
 logger.addHandler(_chsh)
 logger.setLevel(logging.INFO)
 
-################################################# silence annoying messages
-# import warnings
-# warnings.simplefilter(action="ignore", category=FutureWarning)
-# try:
-#     np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
-# except AttributeError:
-#     pass
-
-

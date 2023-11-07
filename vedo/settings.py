@@ -7,7 +7,7 @@ __docformat__ = "google"
 
 class Settings:
     """
-    General settings to modify the global behavior
+    General settings to modify the global behavior and style.
 
     Usage Example:
         ```python
@@ -319,8 +319,8 @@ class Settings:
         # k3d settings for jupyter notebooks
         self.k3d_menu_visibility = True
         self.k3d_plot_height = 512
-        self.k3d_antialias  = True
-        self.k3d_lighting   = 1.5
+        self.k3d_antialias   = True
+        self.k3d_lighting    = 1.5
         self.k3d_camera_autofit = True
         self.k3d_grid_autofit= True
         self.k3d_axes_color  = "k4"

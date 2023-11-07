@@ -1461,6 +1461,8 @@ class Plotter:
         Examples:
             - [record_play.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/record_play.py)
         """
+        if settings.dry_run_mode >= 1:
+            return self
         if not self.interactor:
             vedo.logger.warning("Cannot record events, no interactor defined.")
             return self
@@ -1491,6 +1493,8 @@ class Plotter:
         Examples:
             - [record_play.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/record_play.py)
         """
+        if settings.dry_run_mode >= 1:
+            return self
         if not self.interactor:
             vedo.logger.warning("Cannot play events, no interactor defined.")
             return self
@@ -1506,7 +1510,7 @@ class Plotter:
             erec.SetInputString(events)
 
         erec.Play()
-        for _i in range(repeats):
+        for _ in range(repeats):
             erec.Rewind()
             erec.Play()
         erec.EnabledOff()

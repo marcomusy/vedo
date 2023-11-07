@@ -4,6 +4,7 @@
 Subset of vtk classes to be imported directly or lazily.
 """
 from importlib import import_module
+from vedo import settings
 
 ######################################################################
 
@@ -91,13 +92,16 @@ def dump_hierarchy_to_file(fname=""):
                 w.write(f"{module.__name__}.{subitem}\n")
 
 ######################################################################
-
-import vtkmodules.vtkRenderingOpenGL2
-
-from vtkmodules.vtkRenderingVolumeOpenGL2 import (
-    vtkOpenGLGPUVolumeRayCastMapper,
-    vtkSmartVolumeMapper,
-)
+if settings.dry_run_mode < 2:
+    #https://vtk.org/doc/nightly/html
+    # /md__builds_gitlab_kitware_sciviz_ci_Documentation_Doxygen_PythonWrappers.html
+    import vtkmodules.vtkRenderingOpenGL2
+    import vtkmodules.vtkInteractionStyle
+    import vtkmodules.vtkRenderingFreeType
+    from vtkmodules.vtkRenderingVolumeOpenGL2 import (
+        vtkOpenGLGPUVolumeRayCastMapper,
+        vtkSmartVolumeMapper,
+    )
 for name in [
     "vtkOpenGLGPUVolumeRayCastMapper",
     "vtkSmartVolumeMapper",
