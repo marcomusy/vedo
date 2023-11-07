@@ -34,8 +34,8 @@ zeros = np.zeros_like(x)
 
 plt = Plotter(interactive=False, size=(1000,500))
 
-barrier = Line(np.c_[x, V * 15], c="red3", lw=3)
-wpacket = Line(np.c_[x, zeros], c='blue4', lw=2)
+barrier = Line(np.c_[x, V * 15]).c("red3").lw(3)
+wpacket = Line(np.c_[x,  zeros]).c('blue4').lw(2)
 plt.show(barrier, wpacket, __doc__, zoom=2)
 
 for j in range(150):

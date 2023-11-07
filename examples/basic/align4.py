@@ -13,7 +13,8 @@ alignedsplines = procus.unpack()
 
 # Obtain the mean spline and create a Line object with thicker width and blue color
 mean = procus.info['mean']
-lmean = Line(mean, lw=4, c='b').z(0.001) # z-shift it to make it visible
+lmean = Line(mean).z(0.001) # z-shift it to make it visible
+lmean.linewidth(4).c('blue')
 
 # Color the aligned splines based on their distance from the mean spline
 for l in alignedsplines:

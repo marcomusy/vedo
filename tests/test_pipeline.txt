@@ -1,0 +1,121 @@
+# Test Pipeline ################################
+For internal use only
+
+# SITES ########################################
+https://vedo.embl.es/
+https://github.com/marcomusy/vedo
+https://forum.image.sc/search?q=vedo%20order%3Alatest
+
+## INSTALL #####################################
+cd ~/Projects/vedo
+pip install -e .
+pip install nevergrad -U
+
+
+# DRY RUN ######################################
+cd ~/Projects/vedo/
+sed -i "s/dry_run_mode = 0/dry_run_mode = 2/g" vedo/settings.py
+cd ~/Projects/vedo/examples/ &&  ./run_all.sh | tee logfile.txt
+cd ~/Projects/vedo/
+sed -i "s/dry_run_mode = 2/dry_run_mode = 0/g" vedo/settings.py
+
+code examples/logfile.txt  ##### inspect logfile
+# try normal run too with viz to make sure all is ok.
+
+# TUTORIALS ####################################
+cd ~/Projects/server/vedo-embo-course/scripts
+cd ~/Projects/server/vedo-bias-course/scripts
+
+# EXAMPLES #####################################
+cd ~/Projects/vedo/tests/common && ./run_all.sh 
+cd ~/Projects/vedo/tests/issues && ./run_all.sh 
+
+# DOLFIN/TRIMESH ###############################
+cd ~/Projects/vedo/examples/other/dolfin
+conda activate fenics
+./run_all.sh
+conda deactivate
+
+pip install trimesh -U
+cd ~/Projects/vedo/examples/other/trimesh
+./run_all.sh
+
+# Various other ###############################
+python ~/Dropbox/documents/Medical/RESONANCIA.py
+vedo https://vedo.embl.es/examples/data/panther.stl.gz
+vedo https://vedo.embl.es/examples/geo_scene.npz
+# check vedo convert cli:
+cd ~/Projects/vedo
+vedo --convert data/290.vtk --to ply && vedo data/290.ply
+
+# NOTEBOOKS #####################################
+cd ~/Projects/vedo/examples/notebooks/
+jupyter notebook > /dev/null 2>&1
+
+# Check on OSX and windows
+
+
+# VEDO PROJECTS #################################
+cd ~/Projects/server/trackviewer
+    ./main_test.py
+################
+cd /g/sharpe/software/clone_viewer2
+    ./clone_viewer3d.py
+################
+cd ~/Projects/rio_organoid
+    python main4.py
+    python piv_read_fw2_C3.py
+################
+cd ~/Projects/server/cell_density
+   analyse_density.py test_image.png test_image_gfp.png
+   edu_histogram.py test_image.png
+################
+cd ~/Projects/new_yalla/limb_opti_here
+   python result_viz3.py
+################
+cd ~/Projects/server/welsh_embryo_stager
+   python stager.py pics/E14.5_L3-03_HL2.5X.jpg
+################
+cd ~/Projects/oocytes
+   python main4b.py
+################
+cd ~/Projects/umap_viewer3d
+   python main6.py
+################
+cd ~/Projects/napari-vedo-bridge 
+    conda activate napari-env
+    napari
+    conda deactivate
+################
+cd ~/Projects/clonal_analysis2d_splines
+    python -m analysis_plots
+
+
+# RELEASE #################################
+cd ~/Projects/vedo
+
+# check version and status
+code vedo/version.py
+git status
+git commit -am 'comment'
+git push
+
+# upload to pypi
+python setup.py sdist bdist_wheel
+twine upload dist/vedo-?.?.?.tar.gz -r pypi
+
+# make github release
+cd ~/Projects/vedo
+code docs/changes.md
+code vedo/version.py  # to add .dev0
+https://repology.org/project/vedo/badges
+
+
+# DOCUMETATION #############################
+mount_staging
+cd ~/Projects/vedo/docs/pdoc
+./build_html.py 
+
+# check web page examples
+code www/examples_db.js
+code www/index.html

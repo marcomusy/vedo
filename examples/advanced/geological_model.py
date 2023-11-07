@@ -98,7 +98,7 @@ boundary.name = "FORGE area boundary"
 plt += boundary
 
 # The path of well 58_32
-Well1 = Line(well_5832_path[["X", "Y", "Z"]].values, lw=2, c='k')
+Well1 = Line(well_5832_path[["X", "Y", "Z"]].values).c("k").lw(2)
 Well1.name = "Well 58-32"
 plt += Well1
 
@@ -124,9 +124,11 @@ Well4.name = "Temperature log well 58-32"
 plt += Well4
 
 # defining the start and end of the lines that will be representing the wellbores
-Wells = Lines(wellsmin[["x", "y", "z"]].values, # start points
-              wellsmax[["x", "y", "z"]].values, # end points
-              c="gray", alpha=1, lw=3)
+Wells = Lines(
+    wellsmin[["x", "y", "z"]].values, # start points
+    wellsmax[["x", "y", "z"]].values, # end points
+)
+Wells.color("gray").lw(3)
 Wells.name = "Pre-existing wellbores"
 plt += Wells
 

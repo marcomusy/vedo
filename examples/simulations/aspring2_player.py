@@ -24,9 +24,9 @@ for i in range(200):
     history_x.append(x)
 
 # Create the objects to be shown in the animation
-floor = Box(pos=(0, -0.1, 0), size=(2.0, 0.02, 0.5), c='yellow2')
-wall  = Box(pos=(-0.82, 0.15, 0), size=(0.04, 0.50, 0.3), c='yellow2')
-block = Cube(pos=x, side=0.2, c="tomato")
+floor = Box(pos=(0, -0.1, 0), size=(2.0, 0.02, 0.5)).c('yellow2')
+wall  = Box(pos=(-0.82, 0.15, 0), size=(0.04, 0.50, 0.3)).c('yellow2')
+block = Cube(pos=x, side=0.2).c("tomato")
 spring= Spring(x0, x, r1=0.05, thickness=0.005)
 text  = Text2D(font="Calco", c='white', bg='k', alpha=1, pos='top-right')
 

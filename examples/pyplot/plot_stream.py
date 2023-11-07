@@ -22,6 +22,6 @@ sp = streamplot(
     probes=prob_pts,
 )
 
-pts = Points(prob_pts, r=5, c='white')
+pts = Points(prob_pts).ps(5).c('white')
 
 show(sp, pts, __doc__, axes=1, bg='bb').close()

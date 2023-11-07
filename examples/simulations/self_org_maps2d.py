@@ -66,7 +66,7 @@ if __name__ == "__main__":
     s = Sphere(res=90).cut_with_plane(origin=(0,-.3,0), normal='y').subsample(0.01)
 
     plt = Plotter(axes=6, interactive=False)
-    grd = Grid(res=[n-1,n-1], c='green2')
+    grd = Grid(res=[n-1, n-1]).c('green2')
     plt.show(__doc__, s.ps(1), grd)
 
     som = SOM((len(P), 3), D)

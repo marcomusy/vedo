@@ -5,7 +5,7 @@ from vedo.pyplot import Figure, histogram
 
 data = np.random.randn(1000, 3)
 
-pts = Points(data, r=6, c='#1f77b4')
+pts = Points(data).color('#1f77b4').ps(6)
 pts.scale([2,1,0.01]).rotate_z(45).shift(5,1)  # rotate and shift!
 
 # Recover the rotation pretending we only know the points

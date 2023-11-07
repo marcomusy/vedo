@@ -25,9 +25,9 @@ def reflection(p, pos):
     return np.dot(np.identity(3) - 2 * n * n[:, np.newaxis], p)
 
 
-plt = Plotter(title="gas in toroid", interactive=0, axes=0)
+plt = Plotter(title="gas in toroid", interactive=False)
 plt += __doc__
-plt += Torus(c="g", r1=RingRadius, r2=RingThickness, alpha=0.1).wireframe(1) 
+plt += Torus(r1=RingRadius, r2=RingThickness).c("green",0.1).wireframe(True) 
 
 poslist = []
 plist, mlist, rlist = [], [], []

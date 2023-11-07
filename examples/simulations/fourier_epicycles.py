@@ -38,9 +38,9 @@ def epicycles(time, rotation, fourier, order):
         path.append([x,y])
 
     if len(points)>0:
-        hline = vedo.Line([x,y], points[-1], c='red5', lw=0.1)
-        pline = vedo.Line(path, c='green5', lw=2)
-        oline = vedo.Line(points, c='red4', lw=5)
+        hline = vedo.Line([x,y], points[-1]).c('red5').lw(1)
+        pline = vedo.Line(path).c('green5').lw(2)
+        oline = vedo.Line(points).c('red4').lw(5)
         objs += [hline, pline, oline]
         plt.add(objs).render()
     return [x, y]

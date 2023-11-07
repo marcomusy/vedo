@@ -9,7 +9,7 @@ def func(evt):
     txt = f"Probing:\n{precision(evt.object.picked3d, 3)}\nvalue = {arr[pid]}"
 
     pts = evt.object.vertices
-    sph = Sphere(pts[pid], c='orange7').pickable(False)
+    sph = Sphere(pts[pid]).c('orange7').pickable(False)
     fp = sph.flagpole(txt, s=7, offset=(-150,15), font=2).follow_camera()
     # remove old and add the two new objects
     plt.remove('Sphere', 'FlagPole').add(sph, fp).render()

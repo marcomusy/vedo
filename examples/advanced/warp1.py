@@ -22,7 +22,7 @@ for pt in pts:
 warped = surf.warp(ptsource, pttarget, mode='2d')
 warped.color("b4").lc('lightblue').lw(0.1).wireframe(False)
 
-apts = Points(pttarget, r=15, c="red5")
-arrs = Arrows(ptsource, pttarget, c='k')
+apts = Points(pttarget).point_size(15).c("red5")
+arrs = Arrows(ptsource, pttarget).c("black")
 
 show(warped, apts, arrs, __doc__, axes=1, viewup="z").close()

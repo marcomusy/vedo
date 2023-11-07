@@ -3,7 +3,8 @@ from vedo import *
 
 tetmesh = TetMesh(dataurl+'limb_ugrid.vtk')
 
-sphere = Sphere(r=500, c='green5', alpha=0.2).x(400)
+sphere = Sphere(r=500).x(400)
+sphere.c('green5').alpha(0.2)
 
 ugrid = tetmesh.cut_with_mesh(sphere, invert=True)
 tetmesh_cut = TetMesh(ugrid)

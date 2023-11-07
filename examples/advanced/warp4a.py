@@ -55,13 +55,13 @@ class Morpher:
             self.msg1.text("Choose start point or press:\nm to morph the shapes\ng to interpolate")
             self.plotter.at(0).remove("displacementArrows")
             if len(self.arrow_starts)==0: return
-            arrows = Arrows2D(self.arrow_starts, self.arrow_stops, c='red4')
+            arrows = Arrows2D(self.arrow_starts, self.arrow_stops).c('red4')
             arrows.name = "displacementArrows"
             self.plotter.add(arrows)
         else:
             self.msg1.text("Click to choose an end point")
             self.plotter.at(0).remove("displacementPoints")
-            points = Points(self.arrow_starts, r=15, c='green3', alpha=0.5)
+            points = Points(self.arrow_starts).ps(15).c('green3',0.5)
             points.name = "displacementPoints"
             self.plotter.add(points)
 

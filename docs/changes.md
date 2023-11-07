@@ -77,3 +77,6 @@ tet_cut2.py broken
 markpoint.py
 plot_spheric.py
 ```
+
+test offline screenshot
+- multiblock instead of npy

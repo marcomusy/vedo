@@ -3286,9 +3286,8 @@ class Points(PointsVisual, PointAlgorithms):
                 Otherwise, only triangles will be output.
             offset : (float)
                 multiplier to control the size of the initial, bounding Delaunay triangulation.
-            transform: vtkTransform
-                a VTK transformation (eg. a thinplate spline)
-                which is applied to points to generate a 2D problem.
+            transform: (LinearTransform, NonLinearTransform)
+                a transformation which is applied to points to generate a 2D problem.
                 This maps a 3D dataset into a 2D dataset where triangulation can be done on the XY plane.
                 The points are transformed and triangulated.
                 The topology of triangulated points is used as the output topology.
@@ -3319,12 +3318,12 @@ class Points(PointsVisual, PointAlgorithms):
             delny.SetTolerance(tol)
         delny.SetAlpha(alpha)
         delny.SetOffset(offset)
-        if transform:
-            if hasattr(transform, "transform"):
-                transform = transform.transform
-            delny.SetTransform(transform)
 
-        if mode == "xy" and boundaries:
+        if transform:
+            delny.SetTransform(transform.T)
+        elif mode == "fit":
+            delny.SetProjectionPlaneMode(vtk.get_class("VTK_BEST_FITTING_PLANE"))
+        elif mode == "xy" and boundaries:
             boundary = vtk.vtkPolyData()
             boundary.SetPoints(vpts)
             cell_array = vtk.vtkCellArray()
@@ -3336,8 +3335,6 @@ class Points(PointsVisual, PointAlgorithms):
             boundary.SetPolys(cell_array)
             delny.SetSourceData(boundary)
 
-        if mode == "fit":
-            delny.SetProjectionPlaneMode(vtk.get_class("VTK_BEST_FITTING_PLANE"))
         delny.Update()
 
         msh = vedo.mesh.Mesh(delny.GetOutput())
