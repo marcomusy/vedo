@@ -2652,6 +2652,39 @@ class Plotter:
                 self.interactor.RemoveObserver(cid)
         return self
 
+    def remove_all_observers(self):
+        """
+        Remove all observers.
+        
+        Example:
+        ```python
+        from vedo import *
+
+        def kfunc(event):
+            print("Key pressed:", event.keypress)
+            if event.keypress == 'q':
+                plt.close()
+
+        def rfunc(event):
+            if event.isImage:
+                printc("Right-clicked!\n", event)
+                plt.render()
+
+        img = Image(dataurl+"images/embryo.jpg")
+
+        plt = Plotter(size=(1050, 600))
+        plt.parallel_projection(True)
+        plt.remove_all_observers()
+        plt.add_callback("key press", kfunc)
+        plt.add_callback("mouse right click", rfunc)
+        plt.show("Right-Click Me!\nPrees q to exit.", img)
+        plt.close()
+        ```
+        """
+        if self.interactor:
+            self.interactor.RemoveAllObservers()
+        return self
+
     def timer_callback(self, action, timer_id=None, dt=1, one_shot=False):
         """
         Start or stop an existing timer.
@@ -3473,7 +3506,7 @@ class Plotter:
             else:
                 vedo.logger.warning(f"Unknown interaction mode: {mode}")
 
-        elif isinstance(mode, vtk.get_class("InteractorStyleUser")):
+        elif isinstance(mode, vtk.vtkInteractorStyleUser):
             # set a custom interactor style
             mode.interactor = self.interactor
             mode.renderer = self.renderer

@@ -7,7 +7,6 @@ from importlib import import_module
 from vedo import settings
 
 ######################################################################
-
 location = {}
 module_cache = {}
 
@@ -106,17 +105,19 @@ if settings.dry_run_mode < 2:
     # noinspection PyUnresolvedReferences
     import vtkmodules.vtkInteractionStyle
     # noinspection PyUnresolvedReferences
+    from vtkmodules.vtkInteractionStyle import vtkInteractorStyleUser
+    # noinspection PyUnresolvedReferences
     import vtkmodules.vtkRenderingFreeType
     # noinspection PyUnresolvedReferences
     from vtkmodules.vtkRenderingVolumeOpenGL2 import (
         vtkOpenGLGPUVolumeRayCastMapper,
         vtkSmartVolumeMapper,
     )
+
 for name in [
     "vtkOpenGLGPUVolumeRayCastMapper",
     "vtkSmartVolumeMapper",
-]:
-    location[name] = "vtkRenderingVolumeOpenGL2"
+]: location[name] = "vtkRenderingVolumeOpenGL2"
 
 ######################################################################
 
@@ -146,13 +147,12 @@ for name in [
     "vtkParametricKuen",
     "vtkParametricPluckerConoid",
     "vtkParametricPseudosphere",
-]:
-    location[name] = "vtkCommonComputationalGeometry"
+]: location[name] = "vtkCommonComputationalGeometry"
 
 
 location["vtkNamedColors"] = "vtkCommonColor"
 
-
+# noinspection PyUnresolvedReferences
 from vtkmodules.vtkCommonCore import (
     mutable,
     VTK_UNSIGNED_SHORT,
@@ -224,9 +224,9 @@ for name in [
     "vtkVariant",
     "vtkVariantArray",
     "vtkVersion",
-]:
-    location[name] = "vtkCommonCore"
+]: location[name] = "vtkCommonCore"
 
+# noinspection PyUnresolvedReferences
 from vtkmodules.vtkCommonDataModel import (
     vtkPolyData,
     vtkImageData,
@@ -235,6 +235,7 @@ from vtkmodules.vtkCommonDataModel import (
     vtkStructuredGrid,
 )
 
+# noinspection PyUnresolvedReferences
 from vtkmodules.vtkCommonDataModel import (
     VTK_HEXAHEDRON,
     VTK_TETRA,
@@ -313,13 +314,14 @@ for name in [
     "vtkUnstructuredGrid",
     "vtkVoxel",
     "vtkWedge",
-]:
-    location[name] = "vtkCommonDataModel"
+]: location[name] = "vtkCommonDataModel"
 
+# noinspection PyUnresolvedReferences
 from vtkmodules.vtkCommonMath import vtkMatrix4x4
 location["vtkMatrix4x4"] = "vtkCommonMath"
 location["vtkQuaternion"] = "vtkCommonMath"
 
+# noinspection PyUnresolvedReferences
 from vtkmodules.vtkCommonTransforms import (
     vtkHomogeneousTransform,
     vtkLandmarkTransform,
@@ -333,8 +335,7 @@ for name in [
     "vtkLinearTransform",
     "vtkThinPlateSplineTransform",
     "vtkTransform",
-]:
-    location[name] = "vtkCommonTransforms"
+]: location[name] = "vtkCommonTransforms"
 
 
 for name in [
@@ -380,9 +381,9 @@ for name in [
     "vtkWindowedSincPolyDataFilter",
     "vtkStaticCleanUnstructuredGrid",
     "vtkPolyDataPlaneCutter"
-]:
-    location[name] = "vtkFiltersCore"
+]: location[name] = "vtkFiltersCore"
 
+# noinspection PyUnresolvedReferences
 from vtkmodules.vtkFiltersCore import vtkGlyph3D
 
 
@@ -391,8 +392,7 @@ for name in [
     "vtkExtractGeometry",
     "vtkExtractPolyDataGeometry",
     "vtkExtractSelection",
-]:
-    location[name] = "vtkFiltersExtraction"
+]: location[name] = "vtkFiltersExtraction"
 
 
 location["vtkExtractEdges"] = "vtkFiltersCore"
@@ -423,8 +423,7 @@ for name in [
     "vtkShrinkPolyData",
     "vtkRectilinearGridToTetrahedra",
     "vtkVertexGlyphFilter",
-]:
-    location[name] = "vtkFiltersGeneral"
+]: location[name] = "vtkFiltersGeneral"
 
 try:
     from vtkmodules.vtkCommonDataModel import vtkCellTreeLocator
@@ -445,8 +444,7 @@ for name in [
     "vtkPolyDataSilhouette",
     "vtkProcrustesAlignmentFilter",
     "vtkRenderLargeImage",
-]:
-    location[name] = "vtkFiltersHybrid"
+]: location[name] = "vtkFiltersHybrid"
 
 
 for name in [
@@ -468,8 +466,7 @@ for name in [
     "vtkSelectEnclosedPoints",
     "vtkSelectPolyData",
     "vtkSubdivideTetra",
-]:
-    location[name] = "vtkFiltersModeling"
+]: location[name] = "vtkFiltersModeling"
 
 
 for name in [
@@ -487,8 +484,7 @@ for name in [
     "vtkShepardKernel",
     "vtkSignedDistance",
     "vtkVoronoiKernel",
-]:
-    location[name] = "vtkFiltersPoints"
+]: location[name] = "vtkFiltersPoints"
 
 
 for name in [
@@ -510,8 +506,7 @@ for name in [
     "vtkSphereSource",
     "vtkTexturedSphereSource",
     "vtkTessellatedBoxSource",
-]:
-    location[name] = "vtkFiltersSources"
+]: location[name] = "vtkFiltersSources"
 
 location["vtkTextureMapToPlane"] = "vtkFiltersTexture"
 
@@ -532,8 +527,7 @@ for name in [
     "vtkParticleReader",
     "vtkSTLReader",
     "vtkSTLWriter",
-]:
-    location[name] = "vtkIOGeometry"
+]: location[name] = "vtkIOGeometry"
 
 for name in [
     "vtkBMPReader",
@@ -553,8 +547,7 @@ for name in [
     "vtkSLCReader",
     "vtkTIFFReader",
     "vtkTIFFWriter",
-]:
-    location[name] = "vtkIOImage"
+]: location[name] = "vtkIOImage"
 
 location["vtk3DSImporter"] = "vtkIOImport"
 location["vtkOBJImporter"] = "vtkIOImport"
@@ -569,8 +562,7 @@ for name in [
     "vtkPolyDataWriter",
     "vtkRectilinearGridReader",
     "vtkUnstructuredGridReader",
-]:
-    location[name] = "vtkIOLegacy"
+]: location[name] = "vtkIOLegacy"
 
 
 location["vtkPLYReader"] = "vtkIOPLY"
@@ -590,8 +582,7 @@ for name in [
     "vtkXMLStructuredGridReader",
     "vtkXMLUnstructuredGridReader",
     "vtkXMLUnstructuredGridWriter",
-]:
-    location[name] = "vtkIOXML"
+]: location[name] = "vtkIOXML"
 
 
 location["vtkImageLuminance"] = "vtkImagingColor"
@@ -613,8 +604,7 @@ for name in [
     "vtkImageThreshold",
     "vtkImageTranslateExtent",
     "vtkExtractVOI",
-]:
-    location[name] = "vtkImagingCore"
+]: location[name] = "vtkImagingCore"
 
 
 for name in [
@@ -623,8 +613,7 @@ for name in [
     "vtkImageFFT",
     "vtkImageFourierCenter",
     "vtkImageRFFT",
-]:
-    location[name] = "vtkImagingFourier"
+]: location[name] = "vtkImagingFourier"
 
 
 for name in [
@@ -636,8 +625,7 @@ for name in [
     "vtkImageLaplacian",
     "vtkImageMedian3D",
     "vtkImageNormalize",
-]:
-    location[name] = "vtkImagingGeneral"
+]: location[name] = "vtkImagingGeneral"
 
 for name in ["vtkImageToPoints", "vtkSampleFunction"]:
     location[name] = "vtkImagingHybrid"
@@ -649,14 +637,12 @@ for name in [
     "vtkImageLogarithmicScale",
     "vtkImageMagnitude",
     "vtkImageMathematics",
-]:
-    location[name] = "vtkImagingMath"
+]: location[name] = "vtkImagingMath"
 
 for name in [
     "vtkImageContinuousDilate3D",
     "vtkImageContinuousErode3D",
-]:
-    location[name] = "vtkImagingMorphological"
+]: location[name] = "vtkImagingMorphological"
 
 location["vtkImageCanvasSource2D"] = "vtkImagingSources"
 
@@ -672,8 +658,7 @@ for name in [
     "vtkSimple2DLayoutStrategy",
     "vtkSimple3DCirclesStrategy",
     "vtkSpanTreeLayoutStrategy",
-]:
-    location[name] = "vtkInfovisLayout"
+]: location[name] = "vtkInfovisLayout"
 
 for name in [
     "vtkInteractorStyleFlight",
@@ -688,9 +673,9 @@ for name in [
     "vtkInteractorStyleTrackballCamera",
     "vtkInteractorStyleUnicam",
     "vtkInteractorStyleUser",
-]:
-    location[name] = "vtkInteractionStyle"
+]: location[name] = "vtkInteractionStyle"
 
+# noinspection PyUnresolvedReferences
 from vtkmodules.vtkInteractionWidgets import (
     vtkBalloonWidget,
     vtkBoxWidget,
@@ -719,12 +704,11 @@ for name in [
     "vtkSliderRepresentation3D",
     "vtkSliderWidget",
     "vtkSphereWidget",
-]:
-    location[name] = "vtkInteractionWidgets"
+]: location[name] = "vtkInteractionWidgets"
 
 location["vtkCameraOrientationWidget"] = "vtkInteractionWidgets"
 
-
+# noinspection PyUnresolvedReferences
 from vtkmodules.vtkRenderingAnnotation import (
     vtkAxesActor,
     vtkAxisActor2D,
@@ -746,10 +730,10 @@ for name in [
     "vtkPolarAxesActor",
     "vtkScalarBarActor",
     "vtkXYPlotActor",
-]:
-    location[name] = "vtkRenderingAnnotation"
+]: location[name] = "vtkRenderingAnnotation"
 
 
+# noinspection PyUnresolvedReferences
 from vtkmodules.vtkRenderingCore import (
     vtkActor,
     vtkActor2D,
@@ -829,8 +813,7 @@ for name in [
     "vtkVolume",
     "vtkVolumeProperty",
     "vtkWindowToImageFilter",
-]:
-    location[name] = "vtkRenderingCore"
+]: location[name] = "vtkRenderingCore"
 
 location["vtkVectorText"] = "vtkRenderingFreeType"
 
@@ -853,8 +836,7 @@ for name in [
     "vtkShadowMapPass",
     "vtkTranslucentPass",
     "vtkVolumetricPass",
-]:
-    location[name] = "vtkRenderingOpenGL2"
+]: location[name] = "vtkRenderingOpenGL2"
 
 
 for name in [
@@ -863,8 +845,7 @@ for name in [
     "vtkProjectedTetrahedraMapper",
     "vtkUnstructuredGridVolumeRayCastMapper",
     "vtkUnstructuredGridVolumeZSweepMapper",
-]:
-    location[name] = "vtkRenderingVolume"
+]: location[name] = "vtkRenderingVolume"
 
 #########################################################
 # print("successfully finished importing vtkmodules")

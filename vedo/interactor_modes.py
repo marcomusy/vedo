@@ -10,7 +10,7 @@ __docformat__ = "google"
 __doc__ = """Submodule to customize interaction modes."""
 
 
-class MousePan(vtk.get_class("InteractorStyleUser")):
+class MousePan(vtk.vtkInteractorStyleUser):
     """
     Interaction mode to pan the scene by dragging the mouse.
 
@@ -44,6 +44,7 @@ class MousePan(vtk.get_class("InteractorStyleUser")):
         self.motionD = np.array([0, 0], dtype=float)
         self.motionW = np.array([0, 0, 0], dtype=float)
 
+        # print("MousePan: Left mouse button to pan the scene.")
         self.AddObserver("LeftButtonPressEvent", self._left_down)
         self.AddObserver("LeftButtonReleaseEvent", self._left_up)
         self.AddObserver("MiddleButtonPressEvent", self._middle_down)
@@ -157,7 +158,7 @@ class _BlenderStyleDragInfo:
 
 
 ###############################################
-class BlenderStyle(vtk.get_class("InteractorStyleUser")):
+class BlenderStyle(vtk.vtkInteractorStyleUser):
     """
     Create an interaction style using the Blender default key-bindings.
 
@@ -325,52 +326,50 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
         self._left_button_down = False
         self._middle_button_down = False
 
-        self.AddObserver("RightButtonPressEvent", self.RightButtonPress)
-        self.AddObserver("RightButtonReleaseEvent", self.RightButtonRelease)
-        self.AddObserver("MiddleButtonPressEvent", self.MiddleButtonPress)
-        self.AddObserver("MiddleButtonReleaseEvent", self.MiddleButtonRelease)
-        self.AddObserver("MouseWheelForwardEvent", self.MouseWheelForward)
-        self.AddObserver("MouseWheelBackwardEvent", self.MouseWheelBackward)
-        self.AddObserver("LeftButtonPressEvent", self.LeftButtonPress)
-        self.AddObserver("LeftButtonReleaseEvent", self.LeftButtonRelease)
-        self.AddObserver("MouseMoveEvent", self.MouseMove)
-        self.AddObserver("WindowResizeEvent", self.WindowResized)
+        self.AddObserver("RightButtonPressEvent", self.right_button_press)
+        self.AddObserver("RightButtonReleaseEvent", self.right_button_release)
+        self.AddObserver("MiddleButtonPressEvent", self.middle_button_press)
+        self.AddObserver("MiddleButtonReleaseEvent", self.middle_button_release)
+        self.AddObserver("MouseWheelForwardEvent", self.mouse_wheel_forward)
+        self.AddObserver("MouseWheelBackwardEvent", self.mouse_wheel_backward)
+        self.AddObserver("LeftButtonPressEvent", self.left_button_press)
+        self.AddObserver("LeftButtonReleaseEvent", self.left_button_release)
+        self.AddObserver("MouseMoveEvent", self.mouse_move)
+        self.AddObserver("WindowResizeEvent", self.window_resized)
         # ^does not seem to fire!
-        self.AddObserver("KeyPressEvent", self.KeyPress)
-        self.AddObserver("KeyReleaseEvent", self.KeyRelease)
+        self.AddObserver("KeyPressEvent", self.key_press)
+        self.AddObserver("KeyReleaseEvent", self.key_release)
 
-    def RightButtonPress(self, obj, event):
+    def right_button_press(self, obj, event):
         pass
 
-    def RightButtonRelease(self, obj, event):
+    def right_button_release(self, obj, event):
         pass
 
-    def MiddleButtonPress(self, obj, event):
+    def middle_button_press(self, obj, event):
         self._middle_button_down = True
 
-    def MiddleButtonRelease(self, obj, event):
+    def middle_button_release(self, obj, event):
         self._middle_button_down = False
 
         # perform middle button focus event if ALT is down
         if self.GetInteractor().GetAltKey():
             # print("Middle button released while ALT is down")
-
             # try to pick an object at the current mouse position
             rwi = self.GetInteractor()
             self.start_x, self.start_y = rwi.GetEventPosition()
-            props = self.PerformPickingOnSelection()
+            props = self.perform_picking_on_selection()
 
             if props:
-                self.FocusOn(props[0])
+                self.focus_on(props[0])
 
-    def MouseWheelBackward(self, obj, event):
-        self.MoveMouseWheel(-1)
+    def mouse_wheel_backward(self, obj, event):
+        self.move_mouse_wheel(-1)
 
-    def MouseWheelForward(self, obj, event):
-        self.MoveMouseWheel(1)
+    def mouse_wheel_forward(self, obj, event):
+        self.move_mouse_wheel(1)
 
-    def MouseMove(self, obj, event):
-
+    def mouse_move(self, obj, event):
         interactor = self.GetInteractor()
 
         # Find the renderer that is active below the current mouse position
@@ -387,23 +386,23 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
 
         # start with the special modes
         if self._is_box_zooming:
-            self.DrawDraggedSelection()
+            self.draw_dragged_selection()
         elif MiddleButton and not Shift and not Ctrl and not Alt:
-            self.Rotate()
+            self.rotate()
         elif MiddleButton and Shift and not Ctrl and not Alt:
-            self.Pan()
+            self.pan()
         elif MiddleButton and Ctrl and not Shift and not Alt:
-            self.Zoom()  # Dolly
+            self.zoom()  # Dolly
         elif self.draginfo is not None:
-            self.ExecuteDrag()
+            self.execute_drag()
         elif self._left_button_down and Ctrl and Shift:
-            self.DrawMeasurement()
+            self.draw_measurement()
         elif self._left_button_down:
-            self.DrawDraggedSelection()
+            self.draw_dragged_selection()
 
         self.InvokeEvent("InteractionEvent", None)
 
-    def MoveMouseWheel(self, direction):
+    def move_mouse_wheel(self, direction):
         rwi = self.GetInteractor()
 
         # Find the renderer that is active below the current mouse position
@@ -413,26 +412,24 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
         # [this->SetCurrentRenderer(this->Interactor->FindPokedRenderer(x, y));]
 
         # The movement
-
-        CurrentRenderer = self.GetCurrentRenderer()
+        ren = self.GetCurrentRenderer()
 
         #   // Calculate the focal depth since we'll be using it a lot
-        camera = CurrentRenderer.GetActiveCamera()
+        camera = ren.GetActiveCamera()
         viewFocus = camera.GetFocalPoint()
 
         temp_out = [0, 0, 0]
         self.ComputeWorldToDisplay(
-            CurrentRenderer, viewFocus[0], viewFocus[1], viewFocus[2], temp_out
+            ren, viewFocus[0], viewFocus[1], viewFocus[2], temp_out
         )
         focalDepth = temp_out[2]
 
         newPickPoint = [0, 0, 0, 0]
         x, y = rwi.GetEventPosition()
-        self.ComputeDisplayToWorld(CurrentRenderer, x, y, focalDepth, newPickPoint)
+        self.ComputeDisplayToWorld(ren, x, y, focalDepth, newPickPoint)
 
-        #   // Has to recalc old mouse point since the viewport has moved,
-        #   // so can't move it outside the loop
-
+        # Has to recalc old mouse point since the viewport has moved,
+        # so can't move it outside the loop
         oldPickPoint = [0, 0, 0, 0]
         # xp, yp = rwi.GetLastEventPosition()
 
@@ -441,10 +438,8 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
         xp = size[0] / 2
         yp = size[1] / 2
 
-        self.ComputeDisplayToWorld(CurrentRenderer, xp, yp, focalDepth, oldPickPoint)
-        #
-        #   // Camera motion is reversed
-        #
+        self.ComputeDisplayToWorld(ren, xp, yp, focalDepth, oldPickPoint)
+        # Camera motion is reversed
         move_factor = -1 * self.zoom_motion_factor * direction
 
         motionVector = (
@@ -467,20 +462,17 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
             motionVector[2] + viewPoint[2],
         )
 
-        # the Zooming
+        # the zooming
         factor = self.mouse_motion_factor * self.mouse_wheel_motion_factor
-        self.ZoomByStep(direction * factor)
+        self.zoom_by_step(direction * factor)
 
-    def ZoomByStep(self, step):
-        CurrentRenderer = self.GetCurrentRenderer()
-
-        if CurrentRenderer:
+    def zoom_by_step(self, step):
+        if self.GetCurrentRenderer():
             self.StartDolly()
-            self.Dolly(pow(1.1, step))
+            self.dolly(pow(1.1, step))
             self.EndDolly()
 
-    def LeftButtonPress(self, obj, event):
-
+    def left_button_press(self, obj, event):
         if self._is_box_zooming:
             return
         if self.draginfo:
@@ -494,24 +486,24 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
 
         if Shift and Ctrl:
             if not self.GetCurrentRenderer().GetActiveCamera().GetParallelProjection():
-                self.ToggleParallelProjection()
+                self.toggle_parallel_projection()
 
         rwi = self.GetInteractor()
         self.start_x, self.start_y = rwi.GetEventPosition()
         self.end_x = self.start_x
         self.end_y = self.start_y
 
-        self.InitializeScreenDrawing()
+        self.initialize_screen_drawing()
 
-    def LeftButtonRelease(self, obj, event):
+    def left_button_release(self, obj, event):
         # print("LeftButtonRelease")
         if self._is_box_zooming:
             self._is_box_zooming = False
-            self.ZoomBox(self.start_x, self.start_y, self.end_x, self.end_y)
+            self.zoom_box(self.start_x, self.start_y, self.end_x, self.end_y)
             return
 
         if self.draginfo:
-            self.FinishDrag()
+            self.finish_drag()
             return
 
         self._left_button_down = False
@@ -527,8 +519,7 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
 
         else:
             if self.callback_select:
-                props = self.PerformPickingOnSelection()
-
+                props = self.perform_picking_on_selection()
                 if props:  # only call back if anything was selected
                     self.picked_props = tuple(props)
                     self.callback_select(props)
@@ -536,7 +527,7 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
         # remove the selection rubber band / line
         self.GetInteractor().Render()
 
-    def KeyPress(self, obj, event):
+    def key_press(self, obj, event):
 
         key = obj.GetKeySym()
         KEY = key.upper()
@@ -548,30 +539,30 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
 
         if KEY == "M":
             self.middle_mouse_lock = not self.middle_mouse_lock
-            self.UpdateMiddleMouseButtonLockActor()
+            self._update_middle_mouse_button_lock_actor()
         elif KEY == "G":
             if self.draginfo is not None:
-                self.FinishDrag()
+                self.finish_drag()
             else:
                 if self.callback_start_drag:
                     self.callback_start_drag()
                 else:
-                    self.StartDrag()
+                    self.start_drag()
                     # internally calls end-drag if drag is already active
         elif KEY == "ESCAPE":
             if self.callback_escape_key:
                 self.callback_escape_key()
             if self.draginfo is not None:
-                self.CancelDrag()
+                self.cancel_drag()
         elif KEY == "DELETE":
             if self.callback_delete_key:
                 self.callback_delete_key()
         elif KEY == "RETURN":
             if self.draginfo:
-                self.FinishDrag()
+                self.finish_drag()
         elif KEY == "SPACE":
             self.middle_mouse_lock = True
-            # self.UpdateMiddleMouseButtonLockActor()
+            # self._update_middle_mouse_button_lock_actor()
             # self.GrabFocus("MouseMoveEvent", self)
             # # TODO: grab and release focus; possible from python?
         elif KEY == "B":
@@ -580,58 +571,54 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
             self.start_x, self.start_y = rwi.GetEventPosition()
             self.end_x = self.start_x
             self.end_y = self.start_y
-            self.InitializeScreenDrawing()
+            self.initialize_screen_drawing()
         elif KEY in ('2', '3'):
-            self.ToggleParallelProjection()
-
+            self.toggle_parallel_projection()
         elif KEY == "A":
-            self.ZoomFit()
+            self.zoom_fit()
         elif KEY == "X":
-            self.SetViewX()
+            self.set_view_x()
         elif KEY == "Y":
-            self.SetViewY()
+            self.set_view_y()
         elif KEY == "Z":
-            self.SetViewZ()
+            self.set_view_z()
         elif KEY == "LEFT":
-            self.RotateDiscreteStep(1)
+            self.rotate_discrete_step(1)
         elif KEY == "RIGHT":
-            self.RotateDiscreteStep(-1)
+            self.rotate_discrete_step(-1)
         elif KEY == "UP":
-            self.RotateTurtableBy(0, 10)
+            self.rotate_turtable_by(0, 10)
         elif KEY == "DOWN":
-            self.RotateTurtableBy(0, -10)
+            self.rotate_turtable_by(0, -10)
         elif KEY == "PLUS":
-            self.ZoomByStep(2)
+            self.zoom_by_step(2)
         elif KEY == "MINUS":
-            self.ZoomByStep(-2)
+            self.zoom_by_step(-2)
         elif KEY == "F":
             if self.callback_focus_key:
                 self.callback_focus_key()
 
         self.InvokeEvent("InteractionEvent", None)
 
-    def KeyRelease(self, obj, event):
-
+    def key_release(self, obj, event):
         key = obj.GetKeySym()
         KEY = key.upper()
-
         # print(f"Key release: {key}")
-
         if KEY == "SPACE":
             if self.middle_mouse_lock:
                 self.middle_mouse_lock = False
-                self.UpdateMiddleMouseButtonLockActor()
+                self._update_middle_mouse_button_lock_actor()
 
-    def WindowResized(self):
+    def window_resized(self):
         # print("window resized")
-        self.InitializeScreenDrawing()
+        self.initialize_screen_drawing()
 
-    def RotateDiscreteStep(self, movement_direction, step=22.5):
-        """Rotates CW or CCW to the nearest 45 deg angle
-        - includes some fuzzyness to determine about which axis"""
-
-        CurrentRenderer = self.GetCurrentRenderer()
-        camera = CurrentRenderer.GetActiveCamera()
+    def rotate_discrete_step(self, movement_direction, step=22.5):
+        """
+        Rotates CW or CCW to the nearest 45 deg angle
+        - includes some fuzzyness to determine about which axis
+        """
+        camera = self.GetCurrentRenderer().GetActiveCamera()
 
         step = np.deg2rad(step)
 
@@ -648,16 +635,14 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
                 angle = -step * np.floor(-(angle - 0.1 * step) / step) - step
 
             dist = np.linalg.norm(direction[:2])
-
             direction[0] = np.cos(angle) * dist
             direction[1] = np.sin(angle) * dist
 
-            self.SetCameraDirection(direction)
+            self.set_camera_direction(direction)
 
         else:  # Top or bottom like view - rotate camera "up" direction
 
             up = np.array(camera.GetViewUp())
-
             angle = np.arctan2(up[1], up[0])
 
             # find the nearest angle that is an integer number of steps
@@ -667,49 +652,44 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
                 angle = -step * np.floor(-(angle - 0.1 * step) / step) - step
 
             dist = np.linalg.norm(up[:2])
-
             up[0] = np.cos(angle) * dist
             up[1] = np.sin(angle) * dist
 
             camera.SetViewUp(up)
             camera.OrthogonalizeViewUp()
-
             self.GetInteractor().Render()
 
-    def ToggleParallelProjection(self):
+    def toggle_parallel_projection(self):
         renderer = self.GetCurrentRenderer()
         camera = renderer.GetActiveCamera()
         camera.SetParallelProjection(not bool(camera.GetParallelProjection()))
         self.GetInteractor().Render()
 
-    def SetViewX(self):
-        self.SetCameraPlaneDirection((1, 0, 0))
+    def set_view_x(self):
+        self.set_camera_plane_direction((1, 0, 0))
 
-    def SetViewY(self):
-        self.SetCameraPlaneDirection((0, 1, 0))
+    def set_view_y(self):
+        self.set_camera_plane_direction((0, 1, 0))
 
-    def SetViewZ(self):
-        self.SetCameraPlaneDirection((0, 0, 1))
+    def set_view_z(self):
+        self.set_camera_plane_direction((0, 0, 1))
 
-    def ZoomFit(self):
+    def zoom_fit(self):
         self.GetCurrentRenderer().ResetCamera()
         self.GetInteractor().Render()
 
-    def SetCameraPlaneDirection(self, direction):
-        """Sets the camera to display a plane of which direction is the normal
-        - includes logic to reverse the direction if benificial"""
-
-        CurrentRenderer = self.GetCurrentRenderer()
-        camera = CurrentRenderer.GetActiveCamera()
+    def set_camera_plane_direction(self, direction):
+        """
+        Sets the camera to display a plane of which direction is the normal
+        - includes logic to reverse the direction if benificial
+        """
+        camera = self.GetCurrentRenderer().GetActiveCamera()
 
         direction = np.array(direction)
-
         normal = camera.GetViewPlaneNormal()
         # can not set the normal, need to change the position to do that
 
         current_alignment = np.dot(normal, -direction)
-        # print(f"Current alignment = {current_alignment}")
-
         if abs(current_alignment) > 0.9999:
             # print("toggling")
             direction = -np.array(normal)
@@ -717,14 +697,14 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
             # print("reversing to find nearest")
             direction = -direction
 
-        self.SetCameraDirection(-direction)
+        self.set_camera_direction(-direction)
 
-    def SetCameraDirection(self, direction):
+    def set_camera_direction(self, direction):
         """Sets the camera to this direction, sets view up if horizontal enough"""
         direction = np.array(direction)
 
-        CurrentRenderer = self.GetCurrentRenderer()
-        camera = CurrentRenderer.GetActiveCamera()
+        ren = self.GetCurrentRenderer()
+        camera = ren.GetActiveCamera()
         rwi = self.GetInteractor()
 
         pos = np.array(camera.GetPosition())
@@ -744,24 +724,25 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
         camera.OrthogonalizeViewUp()
 
         if self.GetAutoAdjustCameraClippingRange():
-            CurrentRenderer.ResetCameraClippingRange()
+            ren.ResetCameraClippingRange()
 
         if rwi.GetLightFollowCamera():
-            CurrentRenderer.UpdateLightsGeometryToFollowCamera()
+            ren.UpdateLightsGeometryToFollowCamera()
 
         if self.callback_camera_direction_changed:
             self.callback_camera_direction_changed()
 
         self.GetInteractor().Render()
 
-    def PerformPickingOnSelection(self):
-        """Preforms prop3d picking on the current dragged selection
+    def perform_picking_on_selection(self):
+        """
+        Performs 3d picking on the current dragged selection
 
         If the distance between the start and endpoints is less than the threshold
-        then a SINGLE prop3d is picked along the line
+        then a SINGLE 3d prop is picked along the line.
 
-        the selection area is drawn by the rubber band and is defined by
-        self.start_x, self.start_y, self.end_x, self.end_y
+        The selection area is drawn by the rubber band and is defined by
+        `self.start_x, self.start_y, self.end_x, self.end_y`
         """
         renderer = self.GetCurrentRenderer()
         if not renderer:
@@ -790,103 +771,93 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
 
             props.remove(nearest_prop)
             props.insert(0, nearest_prop)
-
             return props
 
         else:
             return []
 
     # ----------- actor dragging ------------
-
-    def StartDrag(self):
+    def start_drag(self):
         if self.callback_start_drag:
             # print("Calling callback_start_drag")
             self.callback_start_drag()
             return
         else:  # grab the current selection
             if self.picked_props:
-                self.StartDragOnProps(self.picked_props)
+                self.start_drag_on_props(self.picked_props)
             else:
                 pass
-                # print('Can not start drag, nothing selected and callback_start_drag not assigned')
+                # print('Can not start drag, 
+                # nothing selected and callback_start_drag not assigned')
 
-    def FinishDrag(self):
+    def finish_drag(self):
         # print('Finished drag')
         if self.callback_end_drag:
-            # reset actor positions as actors positions will be controlled by called functions
+            # reset actor positions as actors positions will be controlled
+            # by called functions
             for pos0, actor in zip(
-                self.draginfo.dragged_actors_original_positions, self.draginfo.actors_dragging
+                self.draginfo.dragged_actors_original_positions,
+                self.draginfo.actors_dragging
             ):
                 actor.SetPosition(pos0)
             self.callback_end_drag(self.draginfo)
 
         self.draginfo = None
 
-    def StartDragOnProps(self, props):
-        """Starts drag on the provided props (actors) by filling self.draginfo"""
+    def start_drag_on_props(self, props):
+        """
+        Starts drag on the provided props (actors) by filling self.draginfo"""
         if self.draginfo is not None:
-            self.FinishDrag()
+            self.finish_drag()
             return
-
-        # print('Starting drag')
 
         # create and fill drag-info
         draginfo = _BlenderStyleDragInfo()
-
-        #
-        # draginfo.dragged_node = node
-        #
-        # # find all actors and outlines corresponding to this node
-        # actors = [*self.actor_from_node(node).actors.values()]
-        # outlines = [ol.outline_actor for ol in self.node_outlines if ol.parent_vp_actor in actors]
-
         draginfo.actors_dragging = props  # [*actors, *outlines]
 
         for a in draginfo.actors_dragging:
             draginfo.dragged_actors_original_positions.append(a.GetPosition())  # numpy ndarray
 
         # Get the start position of the drag in 3d
-
         rwi = self.GetInteractor()
-        CurrentRenderer = self.GetCurrentRenderer()
-        camera = CurrentRenderer.GetActiveCamera()
+        ren = self.GetCurrentRenderer()
+        camera = ren.GetActiveCamera()
         viewFocus = camera.GetFocalPoint()
 
         temp_out = [0, 0, 0]
         self.ComputeWorldToDisplay(
-            CurrentRenderer, viewFocus[0], viewFocus[1], viewFocus[2], temp_out
+            ren, viewFocus[0], viewFocus[1], viewFocus[2],
+            temp_out
         )
         focalDepth = temp_out[2]
 
         newPickPoint = [0, 0, 0, 0]
         x, y = rwi.GetEventPosition()
-        self.ComputeDisplayToWorld(CurrentRenderer, x, y, focalDepth, newPickPoint)
+        self.ComputeDisplayToWorld(
+            ren, x, y, focalDepth, newPickPoint)
 
         mouse_pos_3d = np.array(newPickPoint[:3])
-
         draginfo.start_position_3d = mouse_pos_3d
-
         self.draginfo = draginfo
 
-    def ExecuteDrag(self):
+    def execute_drag(self):
 
         rwi = self.GetInteractor()
-        CurrentRenderer = self.GetCurrentRenderer()
+        ren = self.GetCurrentRenderer()
 
-        camera = CurrentRenderer.GetActiveCamera()
+        camera = ren.GetActiveCamera()
         viewFocus = camera.GetFocalPoint()
 
         # Get the picked point in 3d
-
         temp_out = [0, 0, 0]
         self.ComputeWorldToDisplay(
-            CurrentRenderer, viewFocus[0], viewFocus[1], viewFocus[2], temp_out
+            ren, viewFocus[0], viewFocus[1], viewFocus[2], temp_out
         )
         focalDepth = temp_out[2]
 
         newPickPoint = [0, 0, 0, 0]
         x, y = rwi.GetEventPosition()
-        self.ComputeDisplayToWorld(CurrentRenderer, x, y, focalDepth, newPickPoint)
+        self.ComputeDisplayToWorld(ren, x, y, focalDepth, newPickPoint)
 
         mouse_pos_3d = np.array(newPickPoint[:3])
 
@@ -894,7 +865,7 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
 
         delta = np.array(mouse_pos_3d) - self.draginfo.start_position_3d
         # print(f'Delta = {delta}')
-        view_normal = np.array(self.GetCurrentRenderer().GetActiveCamera().GetViewPlaneNormal())
+        view_normal = np.array(ren.GetActiveCamera().GetViewPlaneNormal())
 
         delta_inplane = delta - view_normal * np.dot(delta, view_normal)
         # print(f'delta_inplane = {delta_inplane}')
@@ -916,7 +887,7 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
 
         self.GetInteractor().Render()
 
-    def CancelDrag(self):
+    def cancel_drag(self):
         """Cancels the drag and restored the original positions of all dragged actors"""
         for pos0, actor in zip(
             self.draginfo.dragged_actors_original_positions, 
@@ -928,42 +899,41 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
 
     # ----------- end dragging --------------
 
-    def Zoom(self):
+    def zoom(self):
         rwi = self.GetInteractor()
         x, y = rwi.GetEventPosition()
         xp, yp = rwi.GetLastEventPosition()
 
         direction = y - yp
-        self.MoveMouseWheel(direction / 10)
+        self.move_mouse_wheel(direction / 10)
 
-    def Pan(self):
+    def pan(self):
 
-        CurrentRenderer = self.GetCurrentRenderer()
+        ren = self.GetCurrentRenderer()
 
-        if CurrentRenderer:
-
+        if ren:
             rwi = self.GetInteractor()
 
             #   // Calculate the focal depth since we'll be using it a lot
-            camera = CurrentRenderer.GetActiveCamera()
+            camera = ren.GetActiveCamera()
             viewFocus = camera.GetFocalPoint()
 
             temp_out = [0, 0, 0]
             self.ComputeWorldToDisplay(
-                CurrentRenderer, viewFocus[0], viewFocus[1], viewFocus[2], temp_out
+                ren, viewFocus[0], viewFocus[1], viewFocus[2], temp_out
             )
             focalDepth = temp_out[2]
 
             newPickPoint = [0, 0, 0, 0]
             x, y = rwi.GetEventPosition()
-            self.ComputeDisplayToWorld(CurrentRenderer, x, y, focalDepth, newPickPoint)
+            self.ComputeDisplayToWorld(ren, x, y, focalDepth, newPickPoint)
 
             #   // Has to recalc old mouse point since the viewport has moved,
             #   // so can't move it outside the loop
 
             oldPickPoint = [0, 0, 0, 0]
             xp, yp = rwi.GetLastEventPosition()
-            self.ComputeDisplayToWorld(CurrentRenderer, xp, yp, focalDepth, oldPickPoint)
+            self.ComputeDisplayToWorld(ren, xp, yp, focalDepth, oldPickPoint)
             #
             #   // Camera motion is reversed
             #
@@ -988,38 +958,38 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
             )
 
             if rwi.GetLightFollowCamera():
-                CurrentRenderer.UpdateLightsGeometryToFollowCamera()
+                ren.UpdateLightsGeometryToFollowCamera()
 
             self.GetInteractor().Render()
 
-    def Rotate(self):
+    def rotate(self):
 
-        CurrentRenderer = self.GetCurrentRenderer()
+        ren = self.GetCurrentRenderer()
 
-        if CurrentRenderer:
+        if ren:
 
             rwi = self.GetInteractor()
             dx = rwi.GetEventPosition()[0] - rwi.GetLastEventPosition()[0]
             dy = rwi.GetEventPosition()[1] - rwi.GetLastEventPosition()[1]
 
-            size = CurrentRenderer.GetRenderWindow().GetSize()
+            size = ren.GetRenderWindow().GetSize()
             delta_elevation = -20.0 / size[1]
             delta_azimuth = -20.0 / size[0]
 
             rxf = dx * delta_azimuth * self.mouse_motion_factor
             ryf = dy * delta_elevation * self.mouse_motion_factor
 
-            self.RotateTurtableBy(rxf, ryf)
+            self.rotate_turtable_by(rxf, ryf)
 
-    def RotateTurtableBy(self, rxf, ryf):
+    def rotate_turtable_by(self, rxf, ryf):
 
-        CurrentRenderer = self.GetCurrentRenderer()
+        ren = self.GetCurrentRenderer()
         rwi = self.GetInteractor()
 
         # rfx is rotation about the global Z vector (turn-table mode)
         # rfy is rotation about the side vector
 
-        camera = CurrentRenderer.GetActiveCamera()
+        camera = ren.GetActiveCamera()
         campos = np.array(camera.GetPosition())
         focal = np.array(camera.GetFocalPoint())
         up = camera.GetViewUp()
@@ -1076,17 +1046,17 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
         # Update
 
         if self.GetAutoAdjustCameraClippingRange():
-            CurrentRenderer.ResetCameraClippingRange()
+            ren.ResetCameraClippingRange()
 
         if rwi.GetLightFollowCamera():
-            CurrentRenderer.UpdateLightsGeometryToFollowCamera()
+            ren.UpdateLightsGeometryToFollowCamera()
 
         if self.callback_camera_direction_changed:
             self.callback_camera_direction_changed()
 
         self.GetInteractor().Render()
 
-    def ZoomBox(self, x1, y1, x2, y2):
+    def zoom_box(self, x1, y1, x2, y2):
         """Zooms to a box"""
         # int width, height;
         #   width = abs(this->EndPosition[0] - this->StartPosition[0]);
@@ -1104,30 +1074,30 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
         width = x2 - x1
         height = y2 - y1
 
-        #   int *size = this->CurrentRenderer->GetSize();
-        CurrentRenderer = self.GetCurrentRenderer()
-        size = CurrentRenderer.GetSize()
-        origin = CurrentRenderer.GetOrigin()
-        camera = CurrentRenderer.GetActiveCamera()
+        #   int *size = this->ren->GetSize();
+        ren = self.GetCurrentRenderer()
+        size = ren.GetSize()
+        origin = ren.GetOrigin()
+        camera = ren.GetActiveCamera()
 
         # Assuming we're drawing the band on the view-plane
         rbcenter = (x1 + width / 2, y1 + height / 2, 0)
 
-        CurrentRenderer.SetDisplayPoint(rbcenter)
-        CurrentRenderer.DisplayToView()
-        CurrentRenderer.ViewToWorld()
+        ren.SetDisplayPoint(rbcenter)
+        ren.DisplayToView()
+        ren.ViewToWorld()
 
-        worldRBCenter = CurrentRenderer.GetWorldPoint()
+        worldRBCenter = ren.GetWorldPoint()
 
         invw = 1.0 / worldRBCenter[3]
         worldRBCenter = [c * invw for c in worldRBCenter]
         winCenter = [origin[0] + 0.5 * size[0], origin[1] + 0.5 * size[1], 0]
 
-        CurrentRenderer.SetDisplayPoint(winCenter)
-        CurrentRenderer.DisplayToView()
-        CurrentRenderer.ViewToWorld()
+        ren.SetDisplayPoint(winCenter)
+        ren.DisplayToView()
+        ren.ViewToWorld()
 
-        worldWinCenter = CurrentRenderer.GetWorldPoint()
+        worldWinCenter = ren.GetWorldPoint()
         invw = 1.0 / worldWinCenter[3]
         worldWinCenter = [c * invw for c in worldWinCenter]
 
@@ -1156,15 +1126,15 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
 
         self.GetInteractor().Render()
 
-    def FocusOn(self, prop3D):
+    def focus_on(self, prop3D):
         """Move the camera to focus on this particular prop3D"""
 
         position = prop3D.GetPosition()
 
         # print(f"Focus on {position}")
 
-        CurrentRenderer = self.GetCurrentRenderer()
-        camera = CurrentRenderer.GetActiveCamera()
+        ren = self.GetCurrentRenderer()
+        camera = ren.GetActiveCamera()
 
         fp = camera.GetFocalPoint()
         pos = camera.GetPosition()
@@ -1177,44 +1147,44 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
         )
 
         if self.GetAutoAdjustCameraClippingRange():
-            CurrentRenderer.ResetCameraClippingRange()
+            ren.ResetCameraClippingRange()
 
         rwi = self.GetInteractor()
         if rwi.GetLightFollowCamera():
-            CurrentRenderer.UpdateLightsGeometryToFollowCamera()
+            ren.UpdateLightsGeometryToFollowCamera()
 
         self.GetInteractor().Render()
 
-    def Dolly(self, factor):
-        CurrentRenderer = self.GetCurrentRenderer()
+    def dolly(self, factor):
+        ren = self.GetCurrentRenderer()
 
-        if CurrentRenderer:
-            camera = CurrentRenderer.GetActiveCamera()
+        if ren:
+            camera = ren.GetActiveCamera()
 
             if camera.GetParallelProjection():
                 camera.SetParallelScale(camera.GetParallelScale() / factor)
             else:
                 camera.Dolly(factor)
                 if self.GetAutoAdjustCameraClippingRange():
-                    CurrentRenderer.ResetCameraClippingRange()
+                    ren.ResetCameraClippingRange()
 
             # if not do_not_update:
             #     rwi = self.GetInteractor()
             #     if rwi.GetLightFollowCamera():
-            #         CurrentRenderer.UpdateLightsGeometryToFollowCamera()
+            #         ren.UpdateLightsGeometryToFollowCamera()
             #     # rwi.Render()
 
-    def DrawMeasurement(self):
+    def draw_measurement(self):
         rwi = self.GetInteractor()
         self.end_x, self.end_y = rwi.GetEventPosition()
-        self.DrawLine(self.start_x, self.end_x, self.start_y, self.end_y)
+        self.draw_line(self.start_x, self.end_x, self.start_y, self.end_y)
 
-    def DrawDraggedSelection(self):
+    def draw_dragged_selection(self):
         rwi = self.GetInteractor()
         self.end_x, self.end_y = rwi.GetEventPosition()
-        self.DrawRubberBand(self.start_x, self.end_x, self.start_y, self.end_y)
+        self.draw_rubber_band(self.start_x, self.end_x, self.start_y, self.end_y)
 
-    def InitializeScreenDrawing(self):
+    def initialize_screen_drawing(self):
         # make an image of the currently rendered image
 
         rwi = self.GetInteractor()
@@ -1229,7 +1199,7 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
         front = 1  # what does this do?
         rwin.GetRGBACharPixelData(0, 0, size[0] - 1, size[1] - 1, front, self._pixel_array)
 
-    def DrawRubberBand(self, x1, x2, y1, y2):
+    def draw_rubber_band(self, x1, x2, y1, y2):
         rwi = self.GetInteractor()
         rwin = rwi.GetRenderWindow()
 
@@ -1243,8 +1213,8 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
             # print(
             #     "Starting new screen-image - viewport has resized without us knowing"
             # )
-            self.InitializeScreenDrawing()
-            self.DrawRubberBand(x1, x2, y1, y2)
+            self.initialize_screen_drawing()
+            self.draw_rubber_band(x1, x2, y1, y2)
             return
 
         x2 = min(x2, size[0] - 1)
@@ -1286,7 +1256,7 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
         rwin.SetRGBACharPixelData(0, 0, size[0] - 1, size[1] - 1, tempPA, 0)
         rwin.Frame()
 
-    def LineToPixels(self, x1, x2, y1, y2):
+    def line2pixels(self, x1, x2, y1, y2):
         """Returns the x and y values of the pixels on a line between x1,y1 and x2,y2.
         If start and end are identical then a single point is returned"""
 
@@ -1309,7 +1279,7 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
 
         return x, y
 
-    def DrawLine(self, x1, x2, y1, y2):
+    def draw_line(self, x1, x2, y1, y2):
         rwi = self.GetInteractor()
         rwin = rwi.GetRenderWindow()
 
@@ -1323,7 +1293,7 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
         tempPA = vtk.vtkUnsignedCharArray()
         tempPA.DeepCopy(self._pixel_array)
 
-        xs, ys = self.LineToPixels(x1, x2, y1, y2)
+        xs, ys = self.line2pixels(x1, x2, y1, y2)
         for x, y in zip(xs, ys):
             idx = (y * size[0]) + x
             tempPA.SetTuple(idx, (0, 0, 0, 1))
@@ -1375,7 +1345,7 @@ class BlenderStyle(vtk.get_class("InteractorStyleUser")):
 
         rwin.Frame()
 
-    def UpdateMiddleMouseButtonLockActor(self):
+    def _update_middle_mouse_button_lock_actor(self):
 
         if self.middle_mouse_lock_actor is None:
             # create the actor
