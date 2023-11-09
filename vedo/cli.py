@@ -494,6 +494,9 @@ def exe_search_vtk(args):
 #################################################################################################################
 def exe_eog(args):
     # print("EOG emulator")
+    if settings.dry_run_mode >= 2:
+        print(f"EOG emulator in dry run mode {settings.dry_run_mode}. Skip.")
+        return
     settings.immediate_rendering = False
     settings.use_parallel_projection = True
     settings.enable_default_mouse_callbacks = False
@@ -627,6 +630,9 @@ def exe_eog(args):
 
 #################################################################################################################
 def draw_scene(args):
+    if settings.dry_run_mode >= 2:
+        print(f"draw_scene called in dry run mode {settings.dry_run_mode}. Skip.")
+        return
 
     nfiles = len(args.files)
     if nfiles == 0:
@@ -684,10 +690,6 @@ def draw_scene(args):
         plt = Plotter(size=wsize, bg=args.background, bg2=args.background_grad)
         plt.axes = args.axes_type
         plt.add_hover_legend()
-
-    wire = False
-    if args.wireframe:
-        wire = True
 
     ##########################################################
     # special case of SLC/TIFF volumes with -g option
@@ -821,7 +823,7 @@ def draw_scene(args):
         #########################################################
 
         ds = 0
-        actors = []
+        objs = []
 
         for i in range(N):
             f = args.files[i]
@@ -830,55 +832,55 @@ def draw_scene(args):
             if args.color is None and N > 1:
                 colb = i
 
-            actor = load(f, force=args.reload)
+            obj = load(f, force=args.reload)
 
-            if isinstance(actor, (TetMesh, UGrid)):
-                actor = actor.tomesh().shrink(0.975).c(colb).alpha(args.alpha)
+            if isinstance(obj, (TetMesh, UGrid)):
+                obj = obj.tomesh().shrink(0.975).c(colb).alpha(args.alpha)
 
-            elif isinstance(actor, vedo.Points):
-                actor.c(colb).alpha(args.alpha)
+            elif isinstance(obj, vedo.Points):
+                obj.c(colb).alpha(args.alpha)
 
                 try:
-                    actor.wireframe(wire)
+                    obj.wireframe(args.wireframe)
                     if args.flat:
-                        actor.flat()
+                        obj.flat()
                     else:
-                        actor.phong()
+                        obj.phong()
                 except AttributeError:
                     pass
 
-                actor.lighting(args.lighting)
+                obj.lighting(args.lighting)
 
                 if i == 0 and args.texture_file:
-                    actor.texture(args.texture_file)
+                    obj.texture(args.texture_file)
 
                 if args.point_size > 0:
-                    actor.ps(args.point_size)
+                    obj.ps(args.point_size)
 
                 if args.cmap != "jet":
-                    actor.cmap(args.cmap)
+                    obj.cmap(args.cmap)
 
                 if args.showedges:
                     try:
-                        actor.GetProperty().SetEdgeVisibility(1)
-                        actor.GetProperty().SetLineWidth(0.1)
-                        actor.GetProperty().SetRepresentationToSurface()
+                        obj.GetProperty().SetEdgeVisibility(1)
+                        obj.GetProperty().SetLineWidth(0.1)
+                        obj.GetProperty().SetRepresentationToSurface()
                     except AttributeError:
                         pass
 
-            actors.append(actor)
+            objs.append(obj)
 
             if args.multirenderer_mode:
                 try:
-                    ds = actor.diagonal_size() * 3
+                    ds = obj.diagonal_size() * 3
                     plt.camera.SetClippingRange(0, ds)
                     plt.reset_camera()
                     # plt.render()
-                    plt.show(actor, at=i, interactive=False,
+                    plt.show(obj, at=i, interactive=False,
                              zoom=args.zoom, mode=interactor_mode)
                     
                 except AttributeError:
-                    # wildcards in quotes make glob return actor as a list :(
+                    # wildcards in quotes make glob return obj as a list :(
                     vedo.logger.error("Please do not use wildcards within single or double quotes")
 
         if args.multirenderer_mode:
@@ -889,10 +891,10 @@ def draw_scene(args):
         else:
 
             # scene is empty
-            if all(a is None for a in actors):
+            if all(a is None for a in objs):
                 vedo.logger.error("Could not load file(s). Quit.")
                 return
-            plt.show(actors, interactive=True, zoom=args.zoom, mode=interactor_mode)
+            plt.show(objs, interactive=True, zoom=args.zoom, mode=interactor_mode)
         return
 
     ########################################################################
