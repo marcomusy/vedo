@@ -31,7 +31,7 @@ class CommonVisual:
     """Class to manage the visual aspects common to all objects."""
 
     def __init__(self):
-
+        # print("init CommonVisual")
         self.mapper = None
         self.properties = None
         self.actor = None
@@ -454,6 +454,259 @@ class CommonVisual:
 
         return self
 
+
+########################################################################################
+class Actor2D(vtk.vtkActor2D):
+    """Wrapping of `vtkActor2D`."""
+
+    def __init__(self):
+        """Manage 2D objects."""
+        super().__init__()
+
+        self.mapper = self.GetMapper()
+        self.properties = self.GetProperty()
+        self.filename = ""
+        self.shape = []
+
+    def layer(self, value=None):
+        """Set/Get the layer number in the overlay planes into which to render."""
+        if value is None:
+            return self.GetLayerNumber()
+        self.SetLayerNumber(value)
+        return self
+
+    def pos(self, px=None, py=None):
+        """Set/Get the screen-coordinate position."""
+        if isinstance(px, str):
+            vedo.logger.error("Use string descriptors only inside the constructor")
+            return self
+        if px is None:
+            return np.array(self.GetPosition(), dtype=int)
+        if py is not None:
+            p = [px, py]
+        else:
+            p = px
+        assert len(p) == 2, "Error: len(pos) must be 2 for Actor2D"
+        self.SetPosition(p)
+        return self
+
+    def coordinate_system(self, value=None):
+        """
+        Set/get the coordinate system which this coordinate is defined in.
+
+        The options are:
+            0. Display
+            1. Normalized Display
+            2. Viewport
+            3. Normalized Viewport
+            4. View
+            5. Pose
+            6. World
+        """
+        coor = self.GetPositionCoordinate()
+        if value is None:
+            return coor.GetCoordinateSystem()
+        coor.SetCoordinateSystem(value)
+        return self
+
+    def on(self):
+        """Set object visibility."""
+        self.VisibilityOn()
+        return self
+
+    def off(self):
+        """Set object visibility."""
+        self.VisibilityOn()
+        return self
+
+    def toggle(self):
+        """Toggle object visibility."""
+        self.SetVisibility(not self.GetVisibility())
+        return self
+
+    def pickable(self, value=True):
+        """Set object pickability."""
+        self.SetPickable(value)
+        return self
+
+    def color(self, value=None):
+        """Set/Get the object color."""
+        if value is None:
+            return self.properties.GetColor()
+        self.properties.SetColor(colors.get_color(value))
+        return self
+
+    def c(self, value=None):
+        """Set/Get the object color."""
+        return self.color(value)
+
+    def alpha(self, value=None):
+        """Set/Get the object opacity."""
+        if value is None:
+            return self.properties.GetOpacity()
+        self.properties.SetOpacity(value)
+        return self
+
+    def ps(self, point_size=None):
+        if point_size is None:
+            return self.properties.GetPointSize()
+        self.properties.SetPointSize(point_size)
+        return self
+
+    def ontop(self, value=True):
+        """Keep the object always on top of everything else."""
+        if value:
+            self.properties.SetDisplayLocationToForeground()
+        else:
+            self.properties.SetDisplayLocationToBackground()
+        return self
+
+    def add_observer(self, event_name, func, priority=0):
+        """Add a callback function that will be called when an event occurs."""
+        event_name = utils.get_vtk_name_event(event_name)
+        idd = self.AddObserver(event_name, func, priority)
+        return idd
+
+########################################################################################
+class Actor3DHelper:
+
+    def apply_transform(self, LT, concatenate=True):
+        """Apply a linear transformation to the actor."""
+        if concatenate:
+            self.transform.concatenate(LT)
+        self.actor.SetPosition(self.transform.T.GetPosition())
+        self.actor.SetOrientation(self.transform.T.GetOrientation())
+        self.actor.SetScale(self.transform.T.GetScale())
+        return self
+
+    def pos(self, x=None, y=None, z=None):
+        """Set/Get object position."""
+        if x is None:  # get functionality
+            return self.transform.position
+
+        if z is None and y is None:  # assume x is of the form (x,y,z)
+            if len(x) == 3:
+                x, y, z = x
+            else:
+                x, y = x
+                z = 0
+        elif z is None:  # assume x,y is of the form x, y
+            z = 0
+
+        q = self.transform.position
+        LT = vedo.LinearTransform().translate([x,y,z]-q)
+        return self.apply_transform(LT)
+
+    def shift(self, dx, dy=0, dz=0):
+        """Add a vector to the current object position."""
+        if vedo.utils.is_sequence(dx):
+            vedo.utils.make3d(dx)
+            dx, dy, dz = dx
+        LT = vedo.LinearTransform().translate([dx, dy, dz])
+        return self.apply_transform(LT)
+
+    def origin(self, point=None):
+        """
+        Set/get origin of object.
+        Useful for defining pivoting point when rotating and/or scaling.
+        """
+        if point is None:
+            return np.array(self.actor.GetOrigin())
+        self.actor.SetOrigin(point)
+        return self
+
+    def scale(self, s):
+        """Multiply object size by `s` factor."""
+        LT = vedo.LinearTransform().scale(s)
+        return self.apply_transform(LT)
+
+    def x(self, val=None):
+        """Set/Get object position along x axis."""
+        p = self.transform.position
+        if val is None:
+            return p[0]
+        self.pos(val, p[1], p[2])
+        return self
+
+    def y(self, val=None):
+        """Set/Get object position along y axis."""
+        p = self.transform.position
+        if val is None:
+            return p[1]
+        self.pos(p[0], val, p[2])
+        return self
+
+    def z(self, val=None):
+        """Set/Get object position along z axis."""
+        p = self.transform.position
+        if val is None:
+            return p[2]
+        self.pos(p[0], p[1], val)
+        return self
+
+    def rotate_x(self, angle):
+        """Rotate object around x axis."""
+        LT = vedo.LinearTransform().rotate_x(angle)
+        return self.apply_transform(LT)
+
+    def rotate_y(self, angle):
+        """Rotate object around y axis."""
+        LT = vedo.LinearTransform().rotate_y(angle)
+        return self.apply_transform(LT)
+
+    def rotate_z(self, angle):
+        """Rotate object around z axis."""
+        LT = vedo.LinearTransform().rotate_z(angle)
+        return self.apply_transform(LT)
+
+    def reorient(self, old_axis, new_axis, rotation=0, rad=False):
+        """Rotate object to a new orientation."""
+        if rad:
+            rotation *= 180 / np.pi
+        axis = old_axis / np.linalg.norm(old_axis)
+        direction = new_axis / np.linalg.norm(new_axis)
+        angle = np.arccos(np.dot(axis, direction)) * 180 / np.pi
+        self.actor.RotateZ(rotation)
+        a,b,c = np.cross(axis, direction)
+        self.actor.RotateWXYZ(angle, c,b,a)
+        return self
+
+    def bounds(self):
+        """
+        Get the object bounds.
+        Returns a list in format `[xmin,xmax, ymin,ymax, zmin,zmax]`.
+        """
+        return self.actor.GetBounds()
+
+    def xbounds(self, i=None):
+        """Get the bounds `[xmin,xmax]`. Can specify upper or lower with i (0,1)."""
+        b = self.bounds()
+        if i is not None:
+            return b[i]
+        return (b[0], b[1])
+
+    def ybounds(self, i=None):
+        """Get the bounds `[ymin,ymax]`. Can specify upper or lower with i (0,1)."""
+        b = self.bounds()
+        if i == 0:
+            return b[2]
+        if i == 1:
+            return b[3]
+        return (b[2], b[3])
+
+    def zbounds(self, i=None):
+        """Get the bounds `[zmin,zmax]`. Can specify upper or lower with i (0,1)."""
+        b = self.bounds()
+        if i == 0:
+            return b[4]
+        if i == 1:
+            return b[5]
+        return (b[4], b[5])
+    
+    def diagonal_size(self):
+        """Get the diagonal size of the bounding box."""
+        b = self.bounds()
+        return np.sqrt((b[1]-b[0])**2 + (b[3]-b[2])**2 + (b[5]-b[4])**2)
 
 ###################################################
 class PointsVisual(CommonVisual):
@@ -2238,7 +2491,7 @@ class VolumeVisual(CommonVisual):
         See also:
             `volume.hide_voxels()`
         """
-        mask = Volume(data.astype(np.uint8))
+        mask = vedo.Volume(data.astype(np.uint8))
         try:
             self.mapper.SetMaskTypeToBinary()
             self.mapper.SetMaskInput(mask.dataset)
@@ -2257,7 +2510,7 @@ class VolumeVisual(CommonVisual):
 
 
 ########################################################################################
-class ImageVisual(CommonVisual):
+class ImageVisual(CommonVisual, Actor3DHelper):
 
     def __init__(self) -> None:
         # print("init ImageVisual")
@@ -2296,230 +2549,5 @@ class ImageVisual(CommonVisual):
         self.properties.SetColorWindow(value)
         return self
 
-    def bounds(self):
-        """Get the bounding box."""
-        return self.actor.GetBounds()
-
-    def xbounds(self, i=None):
-        """Get the bounds `[xmin,xmax]`. Can specify upper or lower with i (0,1)."""
-        b = self.bounds()
-        if i is not None:
-            return b[i]
-        return (b[0], b[1])
-
-    def ybounds(self, i=None):
-        """Get the bounds `[ymin,ymax]`. Can specify upper or lower with i (0,1)."""
-        b = self.bounds()
-        if i == 0:
-            return b[2]
-        if i == 1:
-            return b[3]
-        return (b[2], b[3])
-
-    def zbounds(self, i=None):
-        """Get the bounds `[zmin,zmax]`. Can specify upper or lower with i (0,1)."""
-        b = self.bounds()
-        if i == 0:
-            return b[4]
-        if i == 1:
-            return b[5]
-        return (b[4], b[5])
-
-    def diagonal_size(self):
-        """Get the length of the diagonal of mesh bounding box."""
-        b = self.bounds()
-        return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
-
-    def pos(self, *p):
-        """Set/get position of object."""
-        if len(p)==0:
-            return np.array(self.actor.GetPosition())
-        if len(p)==2:
-            p = (p[0], p[1], 0)
-        self.actor.SetPosition(*p)
-        return self
-
-    def origin(self, point=None):
-        """Set/get origin of object."""
-        if point is None:
-            return np.array(self.actor.GetOrigin())
-        self.actor.SetOrigin(point)
-        return self
-
-    def x(self, x=None):
-        """Set/get x coordinate of object."""
-        if x is None:
-            return self.actor.GetPosition()[0]
-        p = self.actor.GetPosition()
-        self.actor.SetPosition(x, p[1], p[2])
-        return self
-
-    def y(self, y=None):
-        """Set/get y coordinate of object."""
-        if y is None:
-            return self.actor.GetPosition()[1]
-        p = self.actor.GetPosition()
-        self.actor.SetPosition(p[0], y, p[2])
-        return self
-
-    def z(self, z=None):
-        """Set/get z coordinate of object."""
-        if z is None:
-            return self.actor.GetPosition()[2]
-        p = self.actor.GetPosition()
-        self.actor.SetPosition(p[0], p[1], z)
-        return self
-
-    def rotate_x(self, angle):
-        """Rotate around x axis."""
-        self.actor.RotateX(angle)
-        return self
-
-    def rotate_y(self, angle):
-        """Rotate around y axis."""
-        self.actor.RotateY(angle)
-        return self
-
-    def rotate_z(self, angle):
-        """Rotate around z axis."""
-        self.actor.RotateZ(angle)
-        return self
-
-    def reorient(self, old_axis, new_axis):
-        """Rotate object to a new orientation."""
-        axis = utils.versor(old_axis)
-        direction = utils.versor(new_axis)
-        angle = np.arccos(np.dot(axis, direction)) * 57.3
-        self.actor.RotateWXYZ(angle, np.cross(axis, direction))
-        return self
-
-    def shift(self, dp):
-        """Add vector to current position."""
-        p = self.actor.GetPosition()
-        if len(dp)==2:
-            dp = (dp[0], dp[1], 0)
-        self.actor.SetPosition(p[0] + dp[0], p[1] + dp[1], p[2] + dp[2])
-        return self
-
-    def scale(self, s=None, absolute=False):
-        """Set/get scaling factor."""
-        if s is None:
-            return np.array(self.actor.GetScale())
-        if absolute:
-            self.actor.SetScale(s, s, s)
-        else:
-            self.actor.SetScale(np.array(self.actor.GetScale()) * s)
-        return self
 
 
-########################################################################################
-class Actor2D(vtk.vtkActor2D):
-    """Wrapping of `vtkActor2D`."""
-
-    def __init__(self):
-        """Manage 2D objects."""
-        super().__init__()
-
-        self.mapper = self.GetMapper()
-        self.properties = self.GetProperty()
-        self.filename = ""
-        self.shape = []
-
-    def layer(self, value=None):
-        """Set/Get the layer number in the overlay planes into which to render."""
-        if value is None:
-            return self.GetLayerNumber()
-        self.SetLayerNumber(value)
-        return self
-
-    def pos(self, px=None, py=None):
-        """Set/Get the screen-coordinate position."""
-        if isinstance(px, str):
-            vedo.logger.error("Use string descriptors only inside the constructor")
-            return self
-        if px is None:
-            return np.array(self.GetPosition(), dtype=int)
-        if py is not None:
-            p = [px, py]
-        else:
-            p = px
-        assert len(p) == 2, "Error: len(pos) must be 2 for Actor2D"
-        self.SetPosition(p)
-        return self
-
-    def coordinate_system(self, value=None):
-        """
-        Set/get the coordinate system which this coordinate is defined in.
-
-        The options are:
-            0. Display
-            1. Normalized Display
-            2. Viewport
-            3. Normalized Viewport
-            4. View
-            5. Pose
-            6. World
-        """
-        coor = self.GetPositionCoordinate()
-        if value is None:
-            return coor.GetCoordinateSystem()
-        coor.SetCoordinateSystem(value)
-        return self
-
-    def on(self):
-        """Set object visibility."""
-        self.VisibilityOn()
-        return self
-
-    def off(self):
-        """Set object visibility."""
-        self.VisibilityOn()
-        return self
-
-    def toggle(self):
-        """Toggle object visibility."""
-        self.SetVisibility(not self.GetVisibility())
-        return self
-
-    def pickable(self, value=True):
-        """Set object pickability."""
-        self.SetPickable(value)
-        return self
-
-    def color(self, value=None):
-        """Set/Get the object color."""
-        if value is None:
-            return self.properties.GetColor()
-        self.properties.SetColor(colors.get_color(value))
-        return self
-
-    def c(self, value=None):
-        """Set/Get the object color."""
-        return self.color(value)
-
-    def alpha(self, value=None):
-        """Set/Get the object opacity."""
-        if value is None:
-            return self.properties.GetOpacity()
-        self.properties.SetOpacity(value)
-        return self
-
-    def ps(self, point_size=None):
-        if point_size is None:
-            return self.properties.GetPointSize()
-        self.properties.SetPointSize(point_size)
-        return self
-
-    def ontop(self, value=True):
-        """Keep the object always on top of everything else."""
-        if value:
-            self.properties.SetDisplayLocationToForeground()
-        else:
-            self.properties.SetDisplayLocationToBackground()
-        return self
-
-    def add_observer(self, event_name, func, priority=0):
-        """Add a callback function that will be called when an event occurs."""
-        event_name = utils.get_vtk_name_event(event_name)
-        idd = self.AddObserver(event_name, func, priority)
-        return idd

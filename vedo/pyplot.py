@@ -11,11 +11,11 @@ from vedo.transformations import cart2spher, spher2cart
 from vedo import addons
 from vedo import colors
 from vedo import utils
+from vedo import shapes
+from vedo.visual import Actor2D
 from vedo.pointcloud import merge
 from vedo.mesh import Mesh
 from vedo.assembly import Assembly, Group
-from vedo import shapes
-
 
 __docformat__ = "google"
 
@@ -58,7 +58,7 @@ def _to2d(obj, offset, scale):
     mapper2d = vtk.new("PolyDataMapper2D")
     mapper2d.SetInputData(poly)
 
-    act2d = vtk.vtkActor2D()
+    act2d = Actor2D()
     act2d.SetMapper(mapper2d)
 
     act2d.GetProperty().SetColor(obj.color())
@@ -651,8 +651,8 @@ class Figure(Assembly):
                 px, py = pos[0], pos[1]
             shx, shy = x0, y1
 
-        zpos = aleg.GetPosition()[2]
-        aleg.SetPosition(px - shx, py * self.yscale - shy, zpos + sx / 50 + z)
+        zpos = aleg.pos()[2]
+        aleg.pos(px - shx, py * self.yscale - shy, zpos + sx / 50 + z)
 
         self.insert(aleg, rescale=False, cut=False)
         self.legend = aleg
@@ -745,7 +745,7 @@ class Figure(Assembly):
                 # wireframe is not rendered correctly in 2d
                 continue
             a2d = _to2d(a, offset, scale * 550 / (x1 - x0))
-            a2d.SetPosition(position)
+            a2d.pos(position)
             group += a2d
         return group
 
@@ -3181,8 +3181,8 @@ def _histogram_hex_bin(
             h.color(col)
 
     asse = Assembly(hexs)
-    asse.SetScale(1.2 / n * dx, 1 / m * dy, norm / binmax * (dx + dy) / 4)
-    asse.SetPosition(xmin, ymin, 0)
+    asse.scale([1.2 / n * dx, 1 / m * dy, norm / binmax * (dx + dy) / 4])
+    asse.pos([xmin, ymin, 0])
     # asse.base = np.array([0, 0, 0], dtype=float)
     # asse.top = np.array([0, 0, 1], dtype=float)
     asse.name = "HistogramHexBin"

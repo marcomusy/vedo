@@ -165,6 +165,8 @@ class Image(vedo.visual.ImageVisual):
         self.actor.retrieve_object = weak_ref_to(self)
         self.properties = self.actor.GetProperty()
 
+        self.transform = vedo.LinearTransform()
+
         if utils.is_sequence(obj) and len(obj) > 0:  # passing array
             img = _get_img(obj, False)
 

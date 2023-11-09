@@ -1158,6 +1158,19 @@ def write(objct, fileoutput, binary=True):
         writer = vtk.new("FacetWriter")
     elif fr.endswith(".vti"):
         writer = vtk.new("XMLImageDataWriter")
+    elif fr.endswith(".vtm"):
+        g = vtk.new("MultiBlockDataGroupFilter")
+        for ob in objct:
+            if isinstance(ob, (Points, Volume)):  # picks transformation
+                ob = ob.polydata(True)
+                g.AddInputData(ob)
+        g.Update()
+        mb = g.GetOutputDataObject(0)
+        wri = vtk.vtkXMLMultiBlockDataWriter()
+        wri.SetInputData(mb)
+        wri.SetFileName(fileoutput)
+        wri.Write()
+        return objct
     elif fr.endswith(".mhd"):
         writer = vtk.new("MetaImageWriter")
     elif fr.endswith(".nii"):
@@ -1362,22 +1375,9 @@ def _export_npy(plt, fileoutput="scene.npz"):
             adict["info"] = obj.info
 
             try:
-                # GetMatrix might not exist for non linear transforms
-                m = np.eye(4)
-                vm = obj.get_transform().GetMatrix()
-                for i in [0, 1, 2, 3]:
-                    for j in [0, 1, 2, 3]:
-                        m[i, j] = vm.GetElement(i, j)
-                adict["transform"] = m
-                minv = np.eye(4)
-                vm.Invert()
-                for i in [0, 1, 2, 3]:
-                    for j in [0, 1, 2, 3]:
-                        minv[i, j] = vm.GetElement(i, j)
-                adict["transform_inverse"] = minv
+                adict["transform"] = obj.transform.matrix
             except AttributeError:
-                adict["transform"] = []
-                adict["transform_inverse"] = []
+                adict["transform"] = np.eye(4)
 
         ########################################################
         def _fillmesh(obj, adict):

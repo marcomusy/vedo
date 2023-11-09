@@ -7,7 +7,7 @@ import vedo.vtkclasses as vtk
 
 import vedo
 from vedo.transformations import LinearTransform
-from vedo.visual import CommonVisual
+from vedo.visual import CommonVisual, Actor3DHelper
 
 __docformat__ = "google"
 
@@ -93,7 +93,7 @@ class Group(CommonVisual, vtk.vtkPropAssembly):
         self.rendered_at = set()
         self.scalarbar = None
 
-        self.transform = LinearTransform()
+        # self.transform = LinearTransform()
 
         for a in vedo.utils.flatten(objects):
             if a:
@@ -165,7 +165,7 @@ class Group(CommonVisual, vtk.vtkPropAssembly):
         return self
 
     def pos(self, x=None, y=None):
-        """Set/Get object position."""
+        """Set/Get object 2D position on the screen."""
         if x is None:  # get functionality
             return np.array(self.GetPosition())
 
@@ -175,35 +175,21 @@ class Group(CommonVisual, vtk.vtkPropAssembly):
         return self
 
     def shift(self, ds):
-        """Add a shift to the current object position."""
+        """Add a shift to the current object position on the screen."""
         p = np.array(self.GetPosition())
-
         self.SetPosition(p + ds)
         return self
 
     def bounds(self):
         """
-        Get the object bounds.
+        Get the object 2D bounds.
         Returns a list in format [xmin,xmax, ymin,ymax].
         """
         return self.GetBounds()
 
 
-    def show(self, **options):
-        """
-        Create on the fly an instance of class `Plotter` or use the last existing one to
-        show one single object.
-
-        This method is meant as a shortcut. If more than one object needs to be visualised
-        please use the syntax `show(mesh1, mesh2, volume, ..., options)`.
-
-        Returns the `Plotter` class instance.
-        """
-        return vedo.plotter.show(self, **options)
-
-
 #################################################
-class Assembly(CommonVisual, vtk.vtkAssembly):
+class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
     """
     Group many objects and treat them as a single new object.
     """
@@ -396,16 +382,6 @@ class Assembly(CommonVisual, vtk.vtkAssembly):
         """Allows to use `in` to check if an object is in the `Assembly`."""
         return obj in self.objects
 
-
-    def apply_transform(self, LT, concatenate=True):
-        """Apply a linear transformation to the object."""
-        if concatenate:
-            self.transform.concatenate(LT)
-        self.SetPosition(self.transform.T.GetPosition())
-        self.SetOrientation(self.transform.T.GetOrientation())
-        self.SetScale(self.transform.T.GetScale())
-        return self
-
     # TODO ####
     # def propagate_transform(self):
     #     """Propagate the transformation to all parts."""
@@ -419,132 +395,6 @@ class Assembly(CommonVisual, vtk.vtkAssembly):
     #         obj.SetOrientation(0, 0, 0)
     #         obj.SetScale(1, 1, 1)
     #     raise NotImplementedError()
-
-
-    def pos(self, x=None, y=None, z=None):
-        """Set/Get object position."""
-        if x is None:  # get functionality
-            return self.transform.position
-
-        if z is None and y is None:  # assume x is of the form (x,y,z)
-            if len(x) == 3:
-                x, y, z = x
-            else:
-                x, y = x
-                z = 0
-        elif z is None:  # assume x,y is of the form x, y
-            z = 0
-
-        q = self.transform.position
-        LT = LinearTransform().translate([x,y,z]-q)
-        return self.apply_transform(LT)
-
-    def shift(self, dx, dy=0, dz=0):
-        """Add a vector to the current object position."""
-        if vedo.utils.is_sequence(dx):
-            vedo.utils.make3d(dx)
-            dx, dy, dz = dx
-        LT = LinearTransform().translate([dx, dy, dz])
-        return self.apply_transform(LT)
-
-    def scale(self, s):
-        """Multiply object size by `s` factor."""
-        LT = LinearTransform().scale(s)
-        return self.apply_transform(LT)
-
-    def x(self, val=None):
-        """Set/Get object position along x axis."""
-        p = self.transform.position
-        if val is None:
-            return p[0]
-        self.pos(val, p[1], p[2])
-        return self
-
-    def y(self, val=None):
-        """Set/Get object position along y axis."""
-        p = self.transform.position
-        if val is None:
-            return p[1]
-        self.pos(p[0], val, p[2])
-        return self
-
-    def z(self, val=None):
-        """Set/Get object position along z axis."""
-        p = self.transform.position
-        if val is None:
-            return p[2]
-        self.pos(p[0], p[1], val)
-        return self
-
-    def rotate_x(self, angle):
-        """Rotate object around x axis."""
-        LT = LinearTransform().rotate_x(angle)
-        return self.apply_transform(LT)
-
-    def rotate_y(self, angle):
-        """Rotate object around y axis."""
-        LT = LinearTransform().rotate_y(angle)
-        return self.apply_transform(LT)
-
-    def rotate_z(self, angle):
-        """Rotate object around z axis."""
-        LT = LinearTransform().rotate_z(angle)
-        return self.apply_transform(LT)
-
-    def reorient(self, old_axis, new_axis, rotation=0, rad=False):
-        """Rotate object to a new orientation."""
-        if rad:
-            rotation *= 57.3
-        axis = old_axis / np.linalg.norm(old_axis)
-        direction = new_axis / np.linalg.norm(new_axis)
-        angle = np.arccos(np.dot(axis, direction)) * 57.3
-        self.RotateZ(rotation)
-        a,b,c = np.cross(axis, direction)
-        self.RotateWXYZ(angle, c,b,a)
-        return self
-
-    def bounds(self):
-        """
-        Get the object bounds.
-        Returns a list in format `[xmin,xmax, ymin,ymax, zmin,zmax]`.
-        """
-        return self.GetBounds()
-
-    def xbounds(self, i=None):
-        """Get the bounds `[xmin,xmax]`. Can specify upper or lower with i (0,1)."""
-        b = self.bounds()
-        if i is not None:
-            return b[i]
-        return (b[0], b[1])
-
-    def ybounds(self, i=None):
-        """Get the bounds `[ymin,ymax]`. Can specify upper or lower with i (0,1)."""
-        b = self.bounds()
-        if i == 0:
-            return b[2]
-        if i == 1:
-            return b[3]
-        return (b[2], b[3])
-
-    def zbounds(self, i=None):
-        """Get the bounds `[zmin,zmax]`. Can specify upper or lower with i (0,1)."""
-        b = self.bounds()
-        if i == 0:
-            return b[4]
-        if i == 1:
-            return b[5]
-        return (b[4], b[5])
-    
-    def diagonal_size(self):
-        """Get the diagonal size of the bounding box."""
-        b = self.bounds()
-        return np.sqrt((b[1]-b[0])**2 + (b[3]-b[2])**2 + (b[5]-b[4])**2)
-
-    def use_bounds(self, value):
-        """Consider object bounds in rendering."""
-        self.SetUseBounds(value)
-        return self
-
 
     def copy(self):
         """Return a copy of the object. Alias of `clone()`."""
@@ -600,7 +450,6 @@ class Assembly(CommonVisual, vtk.vtkAssembly):
 
         return list(_genflatten([self]))
 
-
     def pickable(self, value=True):
         """Set/get the pickability property of an assembly and its elements"""
         self.SetPickable(value)
@@ -608,16 +457,3 @@ class Assembly(CommonVisual, vtk.vtkAssembly):
         for elem in self.recursive_unpack():
             elem.pickable(value)
         return self
-
-    def show(self, **options):
-        """
-        Create on the fly an instance of class `Plotter` or use the last existing one to
-        show one single object.
-
-        This method is meant as a shortcut. If more than one object needs to be visualised
-        please use the syntax `show(mesh1, mesh2, volume, ..., options)`.
-
-        Returns the `Plotter` class instance.
-        """
-        return vedo.plotter.show(self, **options)
-

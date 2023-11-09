@@ -100,9 +100,14 @@ def dump_hierarchy_to_file(fname=""):
 if settings.dry_run_mode < 2:
     #https://vtk.org/doc/nightly/html
     # /md__builds_gitlab_kitware_sciviz_ci_Documentation_Doxygen_PythonWrappers.html
+
+    # noinspection PyUnresolvedReferences
     import vtkmodules.vtkRenderingOpenGL2
+    # noinspection PyUnresolvedReferences
     import vtkmodules.vtkInteractionStyle
+    # noinspection PyUnresolvedReferences
     import vtkmodules.vtkRenderingFreeType
+    # noinspection PyUnresolvedReferences
     from vtkmodules.vtkRenderingVolumeOpenGL2 import (
         vtkOpenGLGPUVolumeRayCastMapper,
         vtkSmartVolumeMapper,
