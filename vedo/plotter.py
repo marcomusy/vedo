@@ -2404,7 +2404,8 @@ class Plotter:
         cs.SetCoordinateSystem(1)
         mapper.SetTransformCoordinate(cs)
 
-        fractor = vtk.vtkActor2D()
+        # fractor = vtk.vtkActor2D()
+        fractor = vedo.core.Actor2D()
         csys = fractor.GetPositionCoordinate()
         csys.SetCoordinateSystem(3)
         fractor.SetPosition(pos)

@@ -1465,7 +1465,8 @@ class Image(vedo.visual.ImageVisual):
         return self
 
     def modified(self):
-        """Use in conjunction with `tonumpy()` to update any modifications to the image array"""
+        """Use this method in conjunction with `tonumpy()`
+        to update any modifications to the image array."""
         self.dataset.GetPointData().GetScalars().Modified()
         return self
 
@@ -1485,6 +1486,7 @@ class Image(vedo.visual.ImageVisual):
 class Picture(Image):
     def __init__(self, obj=None, channels=3):
         """Deprecated. Use `Image` instead."""
-        colors.printc("Picture() is deprecated, use Image() instead.", c='y')
+        vedo.logger.warning(
+            "Picture() is deprecated, use Image() instead.")
         super().__init__(obj=obj, channels=channels)
 

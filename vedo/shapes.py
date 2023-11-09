@@ -4358,6 +4358,9 @@ class Text3D(Mesh):
                         notfounds.add(t)
                         xmax += hspacing * scale * fscale
                         continue
+                    
+                    if poly.GetNumberOfPoints() == 0:
+                        continue
 
                     tr = vtk.vtkTransform()
                     tr.Translate(xmax, ymax + yshift, 0)
@@ -4390,8 +4393,8 @@ class Text3D(Mesh):
                 tpoly = polyapp.GetOutput()
 
             if notfounds:
-                wmsg = f"These characters are not available in font name {font}: {notfounds}. "
-                wmsg += 'Type "vedo -r fonts" for a demo.'
+                wmsg = f"unavailable characters in font name '{font}': {notfounds}."
+                wmsg += '\nType "vedo -r fonts" for a demo.'
                 vedo.logger.warning(wmsg)
 
         bb = tpoly.GetBounds()
@@ -4402,24 +4405,25 @@ class Text3D(Mesh):
         if "left"   in justify: shift += np.array([ dx,  0, 0.])
         if "right"  in justify: shift += np.array([-dx,  0, 0.])
 
-        t = vtk.vtkTransform()
-        t.PostMultiply()
-        t.Scale(s, s, s)
-        t.Translate(shift)
-        tf = vtk.new("TransformPolyDataFilter")
-        tf.SetInputData(tpoly)
-        tf.SetTransform(t)
-        tf.Update()
-        tpoly = tf.GetOutput()
+        if tpoly.GetNumberOfPoints():
+            t = vtk.vtkTransform()
+            t.PostMultiply()
+            t.Scale(s, s, s)
+            t.Translate(shift)
+            tf = vtk.new("TransformPolyDataFilter")
+            tf.SetInputData(tpoly)
+            tf.SetTransform(t)
+            tf.Update()
+            tpoly = tf.GetOutput()
 
-        if depth:
-            extrude = vtk.new("LinearExtrusionFilter")
-            extrude.SetInputData(tpoly)
-            extrude.SetExtrusionTypeToVectorExtrusion()
-            extrude.SetVector(0, 0, 1)
-            extrude.SetScaleFactor(depth * dy)
-            extrude.Update()
-            tpoly = extrude.GetOutput()
+            if depth:
+                extrude = vtk.new("LinearExtrusionFilter")
+                extrude.SetInputData(tpoly)
+                extrude.SetExtrusionTypeToVectorExtrusion()
+                extrude.SetVector(0, 0, 1)
+                extrude.SetScaleFactor(depth * dy)
+                extrude.Update()
+                tpoly = extrude.GetOutput()
 
         return tpoly
 
