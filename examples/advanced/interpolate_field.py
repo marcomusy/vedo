@@ -22,8 +22,8 @@ apos = Points(positions, r=2)
 sources = np.array(sources)
 deltas = np.array(deltas)
 
-src = Points(sources, c="r", r=12)
-trs = Points(sources + deltas, c="v", r=12)
+src = Points(sources).color("r").ps(12)
+trs = Points(sources + deltas).color("v").ps(12)
 arr = Arrows(sources, sources + deltas).color("k8")
 
 ################################################# warp using Thin Plate Splines
@@ -32,7 +32,9 @@ warped.alpha(0.4).color("lg").point_size(10)
 allarr = Arrows(apos.vertices, warped.vertices).color("k8")
 
 set1 = [apos, warped, src, trs, arr, __doc__]
-plt1 = show([set1, allarr], N=2, bg='bb', interactive=0)  # returns the Plotter class
+plt1 = Plotter(N=2, bg='bb')
+plt1.at(0).show(apos, warped, src, trs, arr, __doc__)
+plt1.at(1).show(allarr)
 
 
 ################################################# RBF
@@ -48,7 +50,7 @@ positions_y = itry(xr, yr, zr) + yr
 positions_z = itrz(xr, yr, zr) + zr
 positions_rbf = np.vstack([positions_x, positions_y, positions_z]).T
 
-warped_rbf = Points(positions_rbf, r=2).alpha(0.4).color("lg").point_size(10)
+warped_rbf = Points(positions_rbf).color("lg",0.4).point_size(10)
 allarr_rbf = Arrows(apos.vertices, warped_rbf.vertices).color("k8")
 
 arr = Arrows(sources, sources + deltas).color("k8")

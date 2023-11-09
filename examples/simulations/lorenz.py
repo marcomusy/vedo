@@ -20,7 +20,7 @@ line.cmap("winter", vel).add_scalarbar("speed")
 line.add_shadow("x",   3, alpha=0.2)
 line.add_shadow("z", -25, alpha=0.2)
 
-pt = Point(pts[0], c="red4", r=12)
+pt = Point(pts[0]).color("red4").ps(12)
 pt.add_trail(lw=4).add_shadow("x", 3, alpha=0.5)
 pt.trail.add_shadow("x", 3, alpha=0.5)
 

@@ -23,12 +23,12 @@ for k in range(1, N + 1):
     bob_y.append(bob_y[k - 1] + np.sin(alpha) + np.random.normal(0, 0.1))
 
 plt = Plotter(title="Multiple Pendulum", bg2='ly')
-plt += Box(pos=(0, -5, 0), length=12, width=12, height=0.7, c="k").wireframe(1)
-sph = Sphere(pos=(bob_x[0], bob_y[0], 0), r=R / 2, c="gray")
+plt += Box(pos=(0, -5, 0), length=12, width=12, height=0.7).color("k").wireframe(1)
+sph = Sphere(pos=(bob_x[0], bob_y[0], 0), r=R / 2).color("gray")
 plt += sph
 bob = [sph]
 for k in range(1, N + 1):
-    c = Cylinder(pos=(bob_x[k], bob_y[k], 0), r=R, height=0.3, c=k)
+    c = Cylinder(pos=(bob_x[k], bob_y[k], 0), r=R, height=0.3).color(k)
     plt += c
     bob.append(c)
 
@@ -101,7 +101,7 @@ def loop_func(evt):
     plt.remove("Line")
     for k in range(1, N + 1):
         bob[k].pos([bob_x[k], bob_y[k], 0])
-        sp = Line(bob[k - 1].pos(), bob[k].pos(), lw=8, c="gray")
+        sp = Line(bob[k - 1].pos(), bob[k].pos()).color("gray").lw(8)
         plt.add(sp)
 
     plt.render()

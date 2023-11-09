@@ -15,7 +15,7 @@ pl3d.Update()
 domain = pl3d.GetOutput().GetBlock(0)
 
 ######################## vedo
-box = Mesh(domain, c="white", alpha=0.1)
+box = Mesh(domain).c("white", 0.1)
 
 probe = Line([9,0,28], [11,0,33], res=11).color('k').lw(4)
 

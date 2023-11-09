@@ -43,16 +43,16 @@ F = np.c_[F, yvals]
 nodes_displaced = nodes + u
 
 # Visualize the solution
-vnodes1 = Points(nodes, r=20, c="k", alpha=0.25)
-vline1  = Line(nodes, c="k", alpha=0.25)
+vnodes1 = Points(nodes).color("k", 0.25).ps(20)
+vline1  = Line(nodes).color("k", 0.25)
 
 arr_disp = Arrows2D(nodes, nodes_displaced).y(0.4)
 arr_force= Arrows2D(nodes, nodes + F).y(-0.25)
-arr_disp.c("red4").alpha(0.8).legend('Displacements')
-arr_force.c("blue4").alpha(0.8).legend('Forces')
+arr_disp.c("red4",0.8).legend('Displacements')
+arr_force.c("blue4",0.8).legend('Forces')
 
-vnodes2 = Points(nodes_displaced, r=20, c="k").y(0.1)
-vline2  = Lines(vnodes1, vnodes2, c="k", alpha=0.25)
+vnodes2 = Points(nodes_displaced).color("k").ps(20).y(0.1)
+vline2  = Lines(vnodes1, vnodes2).color("k", 0.25)
 
 springs = []
 for i in range(num_springs):

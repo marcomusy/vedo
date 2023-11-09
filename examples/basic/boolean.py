@@ -8,8 +8,8 @@ settings.use_depth_peeling = True
 plt = Plotter(shape=(2, 2), interactive=False, axes=3)
 
 # Create two sphere meshes
-s1 = Sphere(pos=[-0.7, 0, 0], c="red5", alpha=0.5)
-s2 = Sphere(pos=[0.7, 0, 0], c="green5", alpha=0.5)
+s1 = Sphere(pos=[-0.7, 0, 0]).c("red5",0.5)
+s2 = Sphere(pos=[0.7, 0, 0]).c("green5",0.5)
 
 # Show the spheres on the first renderer, and display the docstring as the title
 plt.at(0).show(s1, s2, __doc__)

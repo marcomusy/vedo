@@ -13,8 +13,8 @@ settings.enable_default_mouse_callbacks = False
 
 ################################################
 def update():
-    source_pts = Points(sources, r=12, c="purple5")
-    target_pts = Points(targets, r=12, c="purple5")
+    source_pts = Points(sources).color("purple5").ps(12)
+    target_pts = Points(targets).color("purple5").ps(12)
     source_pts.name = "source_pts"
     target_pts.name = "target_pts"
     slabels = source_pts.labels2d("id", c="purple3")
@@ -85,8 +85,8 @@ clicked = []
 sources = []
 targets = []
 
-msg0 = Text2D("Pick a point on the surface", c='white', alpha=1, bg="blue4", pos="bottom-center")
-msg1 = Text2D("", c='white', bg="blue4", alpha=1, pos="bottom-center")
+msg0 = Text2D("Pick a point on the surface", pos="bottom-center", c='white', alpha=1, bg="blue4")
+msg1 = Text2D("", pos="bottom-center", c='white', bg="blue4", alpha=1)
 
 plt = Plotter(N=3, axes=0, sharecam=0, size=(2490, 810))
 plt.add_callback("click", click)

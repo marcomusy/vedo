@@ -8,8 +8,8 @@ from vedo import *
 x1, y1, z1,  x2, y2, z2 = np.load(download(dataurl+'3Dpen.npy'))
 p1, p2 = np.c_[x1,y1,z1], np.c_[x2,y2,z2]
 
-ball1 = Sphere(c="green5", r=0.1, pos=p1[0])
-ball2 = Sphere(c="blue5",  r=0.1, pos=p2[0])
+ball1 = Sphere(p1[0], r=0.1).color("green5")
+ball2 = Sphere(p2[0], r=0.1).color("blue5")
 
 ball1.add_shadow('z', -3)
 ball2.add_shadow('z', -3)

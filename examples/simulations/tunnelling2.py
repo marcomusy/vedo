@@ -50,7 +50,7 @@ for i in range(nsteps):
         Psi += d_dt(Psi) * dt  # integrate for a while before showing things
     A = np.real(Psi * np.conj(Psi)) * 1.5  # psi squared, probability(x)
     coords = np.stack((x, A), axis=1)
-    Aline = Line(coords, c="db", lw=3)
+    Aline = Line(coords).color("db").linewidth(3)
     lines.append([Aline, A])   # store objects
     plt.remove("Line").add(Aline).render()
 
@@ -58,9 +58,10 @@ for i in range(nsteps):
 plt.objects= [] # clean up internal list of objects to show
 plt.elevation(20).azimuth(20)
 
-barrier.alpha(0.3).c('k')
+barrier.color('black', 0.3)
 barrier_end = barrier.clone().pos([0,0,20])
-plt.add(Ribbon(barrier, barrier_end, c="k", alpha=0.1))
+rib = Ribbon(barrier, barrier_end).c("black",0.1)
+plt.add(rib)
 plt.reset_camera()
 
 for i in range(nsteps):

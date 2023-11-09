@@ -23,7 +23,7 @@ for i in range(0, msh.npoints, 10):
     pts1.append(p)
     pts2.append(p + n / 8)
 
-plt += msh, Points(pts1), Lines(pts1, pts2, c="black")
+plt += msh, Points(pts1), Lines(pts1, pts2).c("black")
 plt += histogram(vals, xtitle='radius', xlim=[0,2]).clone2d(pos="bottom-left")
 plt += __doc__
 plt.show().close()

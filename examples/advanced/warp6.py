@@ -9,7 +9,7 @@ def on_keypress(event):
         n = normals[idx]
         p = verts[idx] + n / 5
 
-        txt = Text3D("Text3D\nABCDEF", s=0.1, justify="centered", c="red5")
+        txt = Text3D("Text3D\nABCDEF", s=0.1, justify="centered").c("red5")
         txt.reorient([0,0,1], n).pos(p)
 
         tpts = txt.clone().subsample(0.05).vertices

@@ -21,6 +21,6 @@ histo = histogram(
 print(histo.frequencies)
 
 # Add also the original points on top
-histo += Points(np.c_[x, y], r=4, c="red5").z(3)
+histo += Points(np.c_[x, y]).z(3).c("red5").point_size(4)
 
 show(histo, __doc__, elevation=-80).close()

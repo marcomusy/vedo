@@ -36,7 +36,7 @@ lines = list(filter(None, lines)) # remove possible None to add a scalar bar to 
 lines[0].add_scalarbar("Ampl.")
 
 # Grab the coords of photons exiting the conic lens3 (hits_type==-1)
-cone_hits = Points(lens3.hits[lens3.hits_type==-1], r=8, c="green1")
+cone_hits = Points(lens3.hits[lens3.hits_type==-1]).color("green1").point_size(8)
 
 # Show everything
 show(__doc__, elements, lines, lens5.boundaries().lw(2), cone_hits,

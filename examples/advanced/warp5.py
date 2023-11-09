@@ -11,8 +11,6 @@ import scipy.optimize as opt
 
 print(__doc__)
 
-plt = Plotter(shape=[1, 3], interactive=0, axes=1)
-
 
 class Morpher:
     def __init__(self):
@@ -24,11 +22,11 @@ class Morpher:
         self.subsample = 200  # pick only subsample pts
         self.allow_scaling = False
         self.params = []
-
         self.msource = None
         self.s_size = ([0, 0, 0], 1)  # ave position and ave size
         self.fitResult = None
         self.chi2 = 1.0e10
+        self.plt = None
 
     # -------------------------------------------------------- fit function
     def transform(self, p):
@@ -45,7 +43,6 @@ class Morpher:
 
     def _func(self, pars):
         self.params = pars
-
         #calculate chi2
         d2sum, n = 0.0, self.source.npoints
         srcpts = self.source.vertices
@@ -56,7 +53,6 @@ class Morpher:
             tp = self.target.closest_point(p2)
             d2sum += mag2(p2 - tp)
         d2sum /= len(rng)
-
         if d2sum < self.chi2:
             if d2sum < self.chi2 * 0.99:
                 print("Emin ->", d2sum)
@@ -96,10 +92,6 @@ class Morpher:
     # ------------------------------------------------------- Visualization
     def draw_shapes(self):
 
-        pos, sz = self.s_size[0], self.s_size[1]
-
-        sphere0 = Sphere(pos, c="gray", r=sz, res=10, quads=True).wireframe()
-
         newpts = []
         for p in self.msource.vertices:
             newp = self.transform(p)
@@ -107,30 +99,33 @@ class Morpher:
         self.msource.vertices = newpts
 
         arrs = []
+        pos, sz = self.s_size[0], self.s_size[1]
+        sphere0 = Sphere(pos, r=sz, res=10, quads=True).wireframe().c("gray")
         for p in sphere0.vertices:
             newp = self.transform(p)
             arrs.append([p, newp])
-        hair = Arrows(arrs, s=0.3, c='jet')
+        hair = Arrows(arrs, s=0.3, c='jet').add_scalarbar()
 
-        zero = Point(pos, c="black")
+        zero = Point(pos).c("black")
         x1, x2, y1, y2, z1, z2 = self.target.bounds()
         tpos = [x1, y2, z1]
-        text1 = Text3D("source vs target", tpos, s=sz / 10, c="dg")
-        text2 = Text3D("morphed vs target", tpos, s=sz / 10, c="dg")
-        text3 = Text3D("deformation", tpos, s=sz / 10, c="dr")
+        text1 = Text3D("source vs target",  tpos, s=sz/10).color("dg")
+        text2 = Text3D("morphed vs target", tpos, s=sz/10).color("db")
+        text3 = Text3D("deformation",       tpos, s=sz/10).color("dr")
 
-        plt.at(2).show(sphere0, zero, text3, hair)
-        plt.at(1).show(self.msource, self.target, text2)
-        plt.at(0).show(self.source, self.target, text1, zoom=1.2, interactive=True)
-        plt.close()
+        self.plt = Plotter(shape=[1, 3], axes=1)
+        self.plt.at(2).show(sphere0, zero, text3, hair)
+        self.plt.at(1).show(self.msource, self.target, text2)
+        self.plt.at(0).show(self.source, self.target, text1, zoom=1.2)
+        self.plt.interactive().close()
 
 
 #################################
 if __name__ == "__main__":
 
     mr = Morpher()
-    mr.source = Mesh(dataurl+"270.vtk").color("g").alpha(0.4)
-    mr.target = Mesh(dataurl+"290.vtk").color("b").alpha(0.3)
+    mr.source = Mesh(dataurl+"270.vtk").color("g",0.4)
+    mr.target = Mesh(dataurl+"290.vtk").color("b",0.3)
     mr.target.wireframe()
     mr.allow_scaling = True
     mr.bound = 0.4  # limits the parameter value

@@ -87,8 +87,8 @@ if __name__ == "__main__":
     pts_t = pts_s + np.sin(2 * pts_s) / 5  # and distort it
 
     mr = Morpher(N=2)
-    mr.source = Points(pts_s, r=20, c="g", alpha=0.5)
-    mr.target = Points(pts_t, r=10, c="r", alpha=1.0)
+    mr.source = Points(pts_s).color("g",0.5).ps(20)
+    mr.target = Points(pts_t).color("r",1.0).ps(10)
 
     mr.bound = 2  # limits the x and y shift
     # allow move only a subset of points (implicitly sets the NDF of the fit)

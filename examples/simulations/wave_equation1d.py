@@ -85,10 +85,10 @@ for i in progressbar(nsteps, c="b", title="integrating RK4 and Euler"):
 ####################################################
 plt = Plotter(interactive=False, axes=2, size=(1400,1000))
 
-line_eu = Line([0,0,0], [len(x)-1,0,0], res=len(x), c="red5", lw=5)
+line_eu = Line([0,0,0], [len(x)-1,0,0], res=len(x)).c("red5").lw(5)
 plt += line_eu
 
-line_rk = Line([0,0,0], [len(x)-1,0,0], res=len(x), c="green5", lw=5)
+line_rk = Line([0,0,0], [len(x)-1,0,0], res=len(x)).c("green5").lw(5)
 plt += line_rk
 
 # let's also add a fancy background image from wikipedia
@@ -97,7 +97,7 @@ plt += Image(img).alpha(0.8).scale(0.4).pos(0,-100,-1)
 plt += __doc__
 plt.show(zoom=1.5)
 
-for i in progressbar(nsteps, c='y', title="visualize the result"):
+for i in progressbar(nsteps, title="visualize the result", c='y'):
     if i%10 != 0:
         continue
     y_eu = positions_eu[i]  # retrieve the list of y positions at step i

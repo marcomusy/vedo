@@ -2,18 +2,16 @@
 as seen along a specified direction
 
 Axes font: """
-# Source: Zhi-Qiang Zhou (https://github.com/zhouzq-thu)
+# Author: Zhi-Qiang Zhou (https://github.com/zhouzq-thu)
 from vedo import *
 
 settings.default_font = "Kanopus"
-settings.use_depth_peeling = False
-
-plt = Plotter(title="Example of project_on_plane()")
 
 s = Hyperboloid().rotate_x(20)
 pts = s.vertices
 n = len(pts)
 
+plt = Plotter(title="Example of project_on_plane()")
 plt += [s, __doc__ + settings.default_font]
 
 # orthogonal projection ###############################
@@ -36,9 +34,9 @@ pts2 = sob.silhouette("2d").vertices
 
 # draw the lines
 for i in range(0, n, int(n / 20)):
-    plt += Line(pts1[i], pts[i], c="k", alpha=0.2)
-    plt += Line(point, pts[i], c="k", alpha=0.2)
-    plt += Line(pts2[i], pts[i], c="k", alpha=0.2)
+    plt += Line(pts1[i], pts[i]).color("black",0.2)
+    plt += Line(point,   pts[i]).color("black",0.2)
+    plt += Line(pts2[i], pts[i]).color("black",0.2)
 
 plt.show(
     axes=dict(

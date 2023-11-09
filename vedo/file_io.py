@@ -906,7 +906,7 @@ def _import_npy(fileinput):
 
     axes = data.pop("axes", 4)
     title = data.pop("title", "")
-    backgrcol = data.pop("backgrcol", "white")
+    backgrcol  = data.pop("backgrcol", "white")
     backgrcol2 = data.pop("backgrcol2", None)
     cam = data.pop("camera", None)
 

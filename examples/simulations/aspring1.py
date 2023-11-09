@@ -24,7 +24,7 @@ def loop_func(event):
     spr = Spring(x0, x, r1=0.06, thickness=0.01)
     plt.remove("Spring").add(spr).render()
 
-block = Cube(pos=x, side=0.2, c="tomato")
+block = Cube(pos=x, side=0.2).color("tomato")
 spring = Spring(x0, x, r1=0.06, thickness=0.01)
 
 plt = Plotter(size=(1050, 600))

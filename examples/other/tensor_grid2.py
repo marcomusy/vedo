@@ -84,8 +84,8 @@ for i in range(x.shape[0]):
             axis2=ellipsoid_axes[1],
             axis3=[0, 0, 0.01],
             pos=(*pt, 0),
-            c="blue5",
-        ).lighting("off")
+        )
+        ellipsoid_C.lighting("off").color("blue5")
 
         E = green_lagrange(C)
         # E = almansi(F)
@@ -96,8 +96,8 @@ for i in range(x.shape[0]):
             axis2=ellipsoid_axes[1],
             axis3=[0, 0, 0.01],
             pos=(*pt, 0),
-            c="purple5",
-        ).z(0.01).lighting("off")
+        ).z(0.01)
+        ellipsoid_E.lighting("off").color("purple5")
         if stretches[0] < 0 or stretches[1] < 0:
             ellipsoid_E.c("red4")
 
@@ -105,12 +105,12 @@ for i in range(x.shape[0]):
         # principal stretches and directions of the deformation gradient
         # tensor because it is not a symmetric tensor.
         # F = deformation_gradient(*pt)
-        # circle = vedo.Circle(r=0.05, c="black").pos(*pt)
+        # circle = vedo.Circle(r=0.05).pos(*pt).color("black")
         # cpts = circle.vertices
         # cpts_defo = F @ cpts.T[:2]
         # circle.vertices = cpts_defo.T
         # Same as:
-        circle = vedo.Circle(r=0.06, c="black").pos(*pt)
+        circle = vedo.Circle(r=0.06).pos(*pt).color("black")
         cpts = circle.vertices
         cpts_defo = deform(cpts[:,0], cpts[:,1])
         circle.vertices = cpts_defo.T
@@ -120,7 +120,7 @@ for i in range(x.shape[0]):
 pts  = np.array([x, y]).T.reshape(-1, 2)
 defo_pts = deform(x, y).T.reshape(-1, 2)
 
-plotter += vedo.Arrows2D(pts, defo_pts, s=0.2, c="blue5")
+plotter += vedo.Arrows2D(pts, defo_pts, s=0.2).color("blue5")
 plotter += grid_defo
 plotter += __doc__
 plotter.show(axes=8, zoom=1.2)

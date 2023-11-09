@@ -116,14 +116,11 @@ for i in progressbar(500, c="r"):
         Vel[s1] += x2 * DV0
         Vel[s2] -= x1 * DV0
 
-    # spheres = Spheres(Pos, r=30, c="blue4", res=6).phong()
-    spheres = Points(Pos, r=20, c="blue4")
-    # print(Pos, Radius[0])
-    # spheres.show().interactive()
-    # exit()
+    spheres = Points(Pos).c("blue4").point_size(20)
     if not int(i) % 20:  # every 20 steps:
         rsp = [Pos[0][0], Pos[0][1], 0]
-        plt.add(Point(rsp, c="r", r=4))  # leave a point trace
+        trace = Points(rsp).c("red").point_size(4)
+        plt.add(trace)   # leave a point trace
 
     spheres.name = "particles"
     plt.remove("particles").add(spheres).render()
