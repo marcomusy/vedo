@@ -47,7 +47,7 @@ def epicycles(time, rotation, fourier, order):
 
 
 # Load some 2D shape and make it symmetric
-shape  = vedo.load(vedo.dataurl+'timecourse1d.npy')[55]
+shape  = vedo.Assembly(vedo.dataurl+'timecourse1d.npy')[55]
 shaper = vedo.Line(shape).mirror('x')
 shape = vedo.merge(shape, shaper)
 x, y, _ = shape.vertices.T

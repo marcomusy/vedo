@@ -1,7 +1,7 @@
 # Morph one shape into another interactively
 # (can work in 3d too! see example warp4b.py)
 #
-from vedo import Plotter, Axes, dataurl, load, printc, merge
+from vedo import Plotter, Axes, dataurl, Assembly, printc, merge
 from vedo.shapes import Text2D, Points, Lines, Arrows2D, Grid
 
 class Morpher:
@@ -141,7 +141,7 @@ class Morpher:
 
 ######################################################################################## MAIN
 if __name__ == "__main__":
-    outlines = load(dataurl + "timecourse1d.npy") # load a set of 2d shapes
+    outlines = Assembly(dataurl + "timecourse1d.npy") # load a set of 2d shapes
     mesh1 = outlines[25]
     mesh2 = outlines[35].scale(1.3).shift(-2,0,0)
     morpher = Morpher(mesh1, mesh2, 10)  # generate 10 intermediate outlines

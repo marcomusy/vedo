@@ -3,7 +3,7 @@ parametrizing a closed contour (in red)"""
 import vedo
 import pyefd
 
-shapes = vedo.load(vedo.dataurl+'timecourse1d.npy')
+shapes = vedo.Assembly(vedo.dataurl+'timecourse1d.npy')
 
 sh = shapes[55]
 sr = vedo.Line(sh).mirror('x')

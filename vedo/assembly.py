@@ -206,6 +206,12 @@ class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
         """
         super().__init__()
 
+        # Init by filename
+        if len(meshs) == 1 and isinstance(meshs[0], str):
+            filename = vedo.file_io.download(meshs[0], verbose=False)
+            data = np.load(filename, allow_pickle=True)
+            meshs = [vedo.file_io._from_numpy(dd) for dd in data]
+
         if len(meshs) == 1:
             meshs = meshs[0]
         else:
@@ -382,6 +388,20 @@ class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
         """Allows to use `in` to check if an object is in the `Assembly`."""
         return obj in self.objects
 
+    def __getitem__(self, i):
+        """Return i-th object."""
+        if isinstance(i, int):
+            return self.objects[i]
+        elif isinstance(i, str):
+            for m in self.objects:
+                if i in m.name:
+                    return m
+        return None
+
+    def __len__(self):
+        """Return nr. of objects in the assembly."""
+        return len(self.objects)
+
     # TODO ####
     # def propagate_transform(self):
     #     """Propagate the transformation to all parts."""
@@ -395,17 +415,6 @@ class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
     #         obj.SetOrientation(0, 0, 0)
     #         obj.SetScale(1, 1, 1)
     #     raise NotImplementedError()
-
-    def copy(self):
-        """Return a copy of the object. Alias of `clone()`."""
-        return self.clone()
-
-    def clone(self):
-        """Make a clone copy of the object."""
-        newlist = []
-        for a in self.objects:
-            newlist.append(a.clone())
-        return Assembly(newlist)
 
     def unpack(self, i=None):
         """Unpack the list of objects from a `Assembly`.
@@ -456,4 +465,26 @@ class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
         # set property to each element
         for elem in self.recursive_unpack():
             elem.pickable(value)
+        return self
+
+    def clone(self):
+        """Make a clone copy of the object. Same as `copy()`."""
+        newlist = []
+        for a in self.objects:
+            newlist.append(a.clone())
+        return Assembly(newlist)
+    
+    def copy(self):
+        """Return a copy of the object. Alias of `clone()`."""
+        return self.clone()
+
+    def write(self, filename="assembly.npy"):
+        """
+        Write the object to file in `numpy` format.
+        """
+        objs = []
+        for ob in self.unpack():
+            d = vedo.file_io._to_numpy(ob)
+            objs.append(d)
+        np.save(filename, objs)
         return self

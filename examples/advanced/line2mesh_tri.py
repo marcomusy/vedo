@@ -1,8 +1,8 @@
 """Generate a polygonal Mesh from a contour line"""
-from vedo import dataurl, load, Line, show
+from vedo import dataurl, Assembly, Line, show
 from vedo.pyplot import histogram
 
-shapes = load(dataurl + "timecourse1d.npy")  # list of lines
+shapes = Assembly(dataurl + "timecourse1d.npy")  # group of lines
 shape = shapes[56]  # pick one
 cmap = "RdYlBu"
 
@@ -22,4 +22,4 @@ histo = histogram(
     c=cmap,
 ).clone2d("bottom-right")
 
-show(contour, labels, msh, histo, __doc__, sharecam=0).close()
+show(contour, labels, msh, histo, __doc__).close()

@@ -2,8 +2,8 @@
 with Procrustes method"""
 from vedo import *
 
-# Load splines from a file (returns a list of vedo.Lines)
-splines = load(dataurl+'splines.npy')
+# Load splines from a file (returns a group of vedo.Lines, like a list)
+splines = Assembly(dataurl+'splines.npy')
 
 # Perform Procrustes alignment on the splines, allowing for non-rigid transformations
 procus = procrustes_alignment(splines, rigid=False)

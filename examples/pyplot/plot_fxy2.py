@@ -61,8 +61,8 @@ p1 = plot(
     axes=axes_opts,
 )
 
-# Unpack the surface from the plot to customize it
-msh = p1.unpack(0).triangulate().lighting('glossy')
+# Unpack the 0-element (the surface of the plot) to customize it
+msh = p1[0].lighting('glossy')
 
 pts = msh.vertices   # get the points
 zvals = pts[:,2]     # get the z values

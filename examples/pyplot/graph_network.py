@@ -21,8 +21,9 @@ for i in range(3): g.add_child(12) # add 3 children to node 12
 g.add_edge(1,16)
 
 ##################### build and draw
-graph = g.build().unpack(0).linewidth(4) # get the vedo 3d graph lines
-nodes = graph.vertices                   # get the 3d points of the nodes
+g.build()
+graph = g[0].linewidth(4)          # get the vedo 3d graph lines
+nodes = graph.vertices             # get the 3d points of the nodes
 
 pts = Points(nodes, r=10).lighting('off')
 

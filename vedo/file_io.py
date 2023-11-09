@@ -26,6 +26,7 @@ and other I/O functionalities.
 
 __all__ = [
     "load",
+    "read",
     "download",
     "gunzip",
     "loadStructuredPoints",
@@ -33,6 +34,7 @@ __all__ = [
     "loadRectilinearGrid",
     # "load_transform", # LinearTransform("file.mat") substitutes this
     "write",
+    "save",
     "export_window",
     "import_window",
     "screenshot",
@@ -788,6 +790,92 @@ def loadPCD(filename):
     return Points(poly).point_size(4)
 
 #########################################################################
+def _from_numpy(d):
+
+    keys = d.keys()
+
+    vertices = d["points"]
+    if len(vertices) == 0:
+        return None
+    cells = d["cells"] if "cells" in keys else None
+    lines = d["lines"] if "lines" in keys else None
+
+    msh = Mesh([vertices, cells, lines])
+
+    prp = msh.properties
+    if 'ambient' in keys:        prp.SetAmbient(d['ambient'])
+    if 'diffuse' in keys:        prp.SetDiffuse(d['diffuse'])
+    if 'specular' in keys:       prp.SetSpecular(d['specular'])
+    if 'specularpower' in keys:  prp.SetSpecularPower(d['specularpower'])
+    if 'specularcolor' in keys:  prp.SetSpecularColor(d['specularcolor'])
+    if 'lighting_is_on' in keys: prp.SetLighting(d['lighting_is_on'])
+    if 'shading' in keys:        prp.SetInterpolation(d['shading'])
+    if 'alpha' in keys:          prp.SetOpacity(d['alpha'])
+    if 'representation' in keys: prp.SetRepresentation(d['representation'])
+    if 'pointsize' in keys and d['pointsize']: prp.SetPointSize(d['pointsize'])
+    if 'linewidth' in keys and d['linewidth']: msh.linewidth(d['linewidth'])
+    if 'linecolor' in keys and d['linecolor']: msh.linecolor(d['linecolor'])
+    if 'color' in keys and d['color'] is not None:
+        msh.color(d['color'])
+    if 'backcolor' in keys and d['backcolor'] is not None:
+        msh.backcolor(d['backcolor'])
+
+    # print("XXXXX n",
+    #     msh.dataset.GetNumberOfPoints(),
+    #     msh.dataset.GetNumberOfCells(),
+    #     msh.dataset.GetNumberOfLines(),
+    #     msh.dataset.GetNumberOfPolys(),
+    #     msh.dataset.GetNumberOfStrips(),
+    #     msh.dataset.GetNumberOfVerts(),
+    # )
+
+    if "celldata" in keys and isinstance(d["celldata"], dict):
+        for arrname, arr in d["celldata"].items():
+            msh.celldata[arrname] = arr
+    if "pointdata" in keys and isinstance(d["pointdata"], dict):
+        for arrname, arr in d["pointdata"].items():
+            msh.pointdata[arrname] = arr
+
+    # print(msh)
+
+    msh.mapper.ScalarVisibilityOff()
+    if "LUT" in keys and "activedata" in keys and d["activedata"]:
+        lut_list = d["LUT"]
+        ncols = len(lut_list)
+        lut = vtk.vtkLookupTable()
+        lut.SetNumberOfTableValues(ncols)
+        lut.SetRange(d["LUT_range"])
+        for i in range(ncols):
+            r, g, b, a = lut_list[i]
+            lut.SetTableValue(i, r, g, b, a)
+        lut.Build()
+        msh.mapper.SetLookupTable(lut)
+        msh.mapper.ScalarVisibilityOn()  # activate scalars
+        msh.mapper.SetScalarRange(d["LUT_range"])
+        if d["activedata"][0] == "celldata":
+            msh.dataset.GetCellData().SetActiveScalars(d["activedata"][1])
+            # msh.celldata.select(d["activedata"][1])
+        if d["activedata"][0] == "pointdata":
+            msh.dataset.GetPointData().SetActiveScalars(d["activedata"][1])
+            # msh.pointdata.select(d["activedata"][1])
+
+    # print("shading", int(d["shading"]),d["scalarvisibility"], d["activedata"][1])
+    if "shading" in keys and int(d["shading"]) > 0:
+        msh.compute_normals(cells=0)  # otherwise cannot renderer phong
+        
+    if "scalarvisibility" in keys:
+        if d["scalarvisibility"]:
+            msh.mapper.ScalarVisibilityOn()
+        else:
+            msh.mapper.ScalarVisibilityOff()
+
+    if "time" in keys: msh.time = d["time"]
+    if "name" in keys: msh.name = d["name"]
+    if "info" in keys: msh.info = d["info"]
+    if "filename" in keys: msh.filename = d["filename"]
+    return msh
+
+#############################################################################
 def _import_npy(fileinput):
     """Import a vedo scene from numpy format."""
     # make sure the numpy file is not containing a scene
@@ -853,149 +941,77 @@ def _import_npy(fileinput):
         plt.resetcam = False
 
     ##########################
-    def _load_common(obj, d):
-        keys = d.keys()
-        if "time" in keys: obj.time = d["time"]
-        if "name" in keys: obj.name = d["name"]
-        if "info" in keys: obj.info = d["info"]
-        if "filename" in keys: obj.filename = d["filename"]
-
-    ###########################
-    def _buildmesh(d):
-        keys = d.keys()
-
-        vertices = d["points"]
-        if len(vertices) == 0:
-            return None
-        cells = d["cells"] if "cells" in keys else None
-        lines = d["lines"] if "lines" in keys else None
-
-        msh = Mesh([vertices, cells, lines])
-        _load_common(msh, d)
-
-        prp = msh.properties
-        if 'ambient' in keys:        prp.SetAmbient(d['ambient'])
-        if 'diffuse' in keys:        prp.SetDiffuse(d['diffuse'])
-        if 'specular' in keys:       prp.SetSpecular(d['specular'])
-        if 'specularpower' in keys:  prp.SetSpecularPower(d['specularpower'])
-        if 'specularcolor' in keys:  prp.SetSpecularColor(d['specularcolor'])
-        if 'lighting_is_on' in keys: prp.SetLighting(d['lighting_is_on'])
-        if 'shading' in keys:        prp.SetInterpolation(d['shading'])
-        if 'alpha' in keys:          prp.SetOpacity(d['alpha'])
-        if 'representation' in keys: prp.SetRepresentation(d['representation'])
-        if 'pointsize' in keys and d['pointsize']: prp.SetPointSize(d['pointsize'])
-        if 'linewidth' in keys and d['linewidth']: msh.linewidth(d['linewidth'])
-        if 'linecolor' in keys and d['linecolor']: msh.linecolor(d['linecolor'])
-        if 'color' in keys and d['color'] is not None:
-            msh.color(d['color'])
-        if 'backcolor' in keys and d['backcolor'] is not None:
-            msh.backcolor(d['backcolor'])
-
-        # print("XXXXX n",
-        #     msh.dataset.GetNumberOfPoints(),
-        #     msh.dataset.GetNumberOfCells(),
-        #     msh.dataset.GetNumberOfLines(),
-        #     msh.dataset.GetNumberOfPolys(),
-        #     msh.dataset.GetNumberOfStrips(),
-        #     msh.dataset.GetNumberOfVerts(),
-        # )
-
-        if "celldata" in keys and isinstance(d["celldata"], dict):
-            for arrname, arr in d["celldata"].items():
-                msh.celldata[arrname] = arr
-        if "pointdata" in keys and isinstance(d["pointdata"], dict):
-            for arrname, arr in d["pointdata"].items():
-                msh.pointdata[arrname] = arr
-
-        # print(msh)
-
-
-        msh.mapper.ScalarVisibilityOff()
-        if "LUT" in keys and "activedata" in keys and d["activedata"]:
-            lut_list = d["LUT"]
-            ncols = len(lut_list)
-            lut = vtk.vtkLookupTable()
-            lut.SetNumberOfTableValues(ncols)
-            lut.SetRange(d["LUT_range"])
-            for i in range(ncols):
-                r, g, b, a = lut_list[i]
-                lut.SetTableValue(i, r, g, b, a)
-            lut.Build()
-            msh.mapper.SetLookupTable(lut)
-            msh.mapper.ScalarVisibilityOn()  # activate scalars
-            msh.mapper.SetScalarRange(d["LUT_range"])
-            if d["activedata"][0] == "celldata":
-                msh.dataset.GetCellData().SetActiveScalars(d["activedata"][1])
-                # msh.celldata.select(d["activedata"][1])
-            if d["activedata"][0] == "pointdata":
-                msh.dataset.GetPointData().SetActiveScalars(d["activedata"][1])
-                # msh.pointdata.select(d["activedata"][1])
-
-        # print("shading", int(d["shading"]),d["scalarvisibility"], d["activedata"][1])
-        if "shading" in keys and int(d["shading"]) > 0:
-            msh.compute_normals(cells=0)  # otherwise cannot renderer phong
-            
-        if "scalarvisibility" in keys:
-            if d["scalarvisibility"]:
-                msh.mapper.ScalarVisibilityOn()
-            else:
-                msh.mapper.ScalarVisibilityOff()
-
-        return msh
+    # def _load_common(obj, d):
+    #     keys = d.keys()
+    #     if "time" in keys: obj.time = d["time"]
+    #     if "name" in keys: obj.name = d["name"]
+    #     if "info" in keys: obj.info = d["info"]
+    #     if "filename" in keys: obj.filename = d["filename"]
 
     ##############################################
     objs = []
     for d in data["objects"]:
         ### Mesh
         if d['type'].lower() == 'mesh':
-            a = _buildmesh(d)
-            if a:
-                objs.append(a)
+            obj = _from_numpy(d)
+            objs.append(obj)
 
         ### Assembly
         elif d['type'].lower() == 'assembly':
             assacts = []
             for ad in d["actors"]:
-                assacts.append(_buildmesh(ad))
-            asse = Assembly(assacts)
-            _load_common(asse, d)
-            objs.append(asse)
+                assacts.append(_from_numpy(ad))
+            obj = Assembly(assacts)
+            # _load_common(asse, d)
+            objs.append(obj)
 
         ### Volume
         elif d['type'].lower() == 'volume':
-            vol = Volume(d["array"])
-            _load_common(vol, d)
-            if "jittering" in d.keys(): vol.jittering(d["jittering"])
-            vol.mode(d["mode"])
-            vol.color(d["color"])
-            vol.alpha(d["alpha"])
-            vol.alpha_gradient(d["alphagrad"])
-            objs.append(vol)
+            obj = Volume(d["array"])
+            # _load_common(vol, d)
+            if "jittering" in d.keys(): obj.jittering(d["jittering"])
+            obj.mode(d["mode"])
+            obj.color(d["color"])
+            obj.alpha(d["alpha"])
+            obj.alpha_gradient(d["alphagrad"])
+            objs.append(obj)
+
+        ### TetMesh
+        elif d['type'].lower() == 'tetmesh':
+            raise NotImplementedError("TetMesh not supported yet")
+            # obj = vedo.TetMesh(d["array"])
+            # objs.append(obj)
 
         ### Image
         elif d['type'].lower() == 'picture' or d['type'].lower() == 'image':
-            vimg = Image(d["array"])
-            _load_common(vimg, d)
-            objs.append(vimg)
+            obj = Image(d["array"])
+            # _load_common(vimg, d)
+            objs.append(obj)
 
         ### Text2D
         elif d['type'].lower() == 'text2d':
-            t = vedo.shapes.Text2D(d["text"], font=d["font"], c=d["color"])
-            t.pos(d["position"]).size(d["size"])
-            t.background(d["bgcol"], d["alpha"])
+            obj = vedo.shapes.Text2D(d["text"], font=d["font"], c=d["color"])
+            obj.pos(d["position"]).size(d["size"])
+            obj.background(d["bgcol"], d["alpha"])
             if d["frame"]:
-                t.frame(d["bgcol"])
-            objs.append(t)
+                obj.frame(d["bgcol"])
+            objs.append(obj)
 
-        ### Annotation     ## backward compatibility - will disappear
+        ### Annotation      ## backward compatibility - will disappear
         elif d['type'].lower() == 'annotation':
             pos = d["position"]
             if isinstance(pos, int):
                 pos = "top-left"
                 d["size"] *= 2.7
-            t = vedo.shapes.Text2D(d["text"], font=d["font"], c=d["color"]).pos(pos)
-            t.background(d["bgcol"], d["alpha"]).size(d["size"]).frame(d["bgcol"])
-            objs.append(t)  ## backward compatibility - will disappear
+            obj = vedo.shapes.Text2D(d["text"], font=d["font"], c=d["color"]).pos(pos)
+            obj.background(d["bgcol"], d["alpha"]).size(d["size"]).frame(d["bgcol"])
+            objs.append(obj) ## backward compatibility - will disappear
+
+        keys = d.keys()
+        if "time" in keys: obj.time = d["time"]
+        if "name" in keys: obj.name = d["name"]
+        if "info" in keys: obj.info = d["info"]
+        if "filename" in keys: obj.filename = d["filename"]
 
     plt.add(objs)
     return plt
@@ -1161,9 +1177,10 @@ def write(objct, fileoutput, binary=True):
     elif fr.endswith(".vtm"):
         g = vtk.new("MultiBlockDataGroupFilter")
         for ob in objct:
-            if isinstance(ob, (Points, Volume)):  # picks transformation
-                ob = ob.polydata(True)
+            try:
                 g.AddInputData(ob)
+            except TypeError:
+                vedo.logger.warning("Cannot save object of type", type(ob))
         g.Update()
         mb = g.GetOutputDataObject(0)
         wri = vtk.vtkXMLMultiBlockDataWriter()
@@ -1279,6 +1296,10 @@ def save(obj, fileoutput="out.png", binary=True):
     """Save an object to file. Same as `write()`."""
     return write(obj, fileoutput, binary)
 
+def read(inputobj, unpack=True, force=False):
+    """Read an object from file. Same as `load()`."""
+    return load(inputobj, unpack, force)
+
 ###############################################################################
 def export_window(fileoutput, binary=False, plt=None):
     """
@@ -1357,157 +1378,162 @@ def export_window(fileoutput, binary=False, plt=None):
     return plt
 
 #########################################################################
-def _export_npy(plt, fileoutput="scene.npz"):
+def _to_numpy(act):
+    """Encode a vedo object to numpy format."""
 
-    def _tonumpy(act):
-        """Dump a vedo object to numpy format."""
+    adict = {}
+    adict["type"] = "unknown"
 
-        adict = {}
-        adict["type"] = "unknown"
+    ########################################################
+    def _fillcommon(obj, adict):
+        adict["filename"] = obj.filename
+        adict["name"] = obj.name
+        adict["time"] = obj.time
+        adict["rendered_at"] = obj.rendered_at
+        adict["position"] = obj.pos()
+        adict["info"] = obj.info
 
-        ########################################################
-        def _fillcommon(obj, adict):
-            adict["filename"] = obj.filename
-            adict["name"] = obj.name
-            adict["time"] = obj.time
-            adict["rendered_at"] = obj.rendered_at
-            adict["position"] = obj.pos()
-            adict["info"] = obj.info
+        try:
+            adict["transform"] = obj.transform.matrix
+        except AttributeError:
+            adict["transform"] = np.eye(4)
 
-            try:
-                adict["transform"] = obj.transform.matrix
-            except AttributeError:
-                adict["transform"] = np.eye(4)
+    ########################################################
+    def _fillmesh(obj, adict):
+        poly = obj.dataset
+        adict["points"] = obj.vertices.astype(float)
 
-        ########################################################
-        def _fillmesh(obj, adict):
-            poly = obj.dataset
-            adict["points"] = obj.vertices.astype(float)
+        adict["cells"] = None
+        if poly.GetNumberOfPolys():
+            adict["cells"] = obj.cells_as_flat_array
 
-            adict["cells"] = None
-            if poly.GetNumberOfPolys():
-                adict["cells"] = obj.cells_as_flat_array
+        adict["lines"] = None
+        if poly.GetNumberOfLines():
+            adict["lines"] = obj.lines#_as_flat_array
+        # print("adict[lines]", adict["lines"])
 
-            adict["lines"] = None
-            if poly.GetNumberOfLines():
-                adict["lines"] = obj.lines#_as_flat_array
-            # print("adict[lines]", adict["lines"])
+        adict["pointdata"] = {}
+        for iname in obj.pointdata.keys():
+            if "normals" in iname.lower():
+                continue
+            adict["pointdata"][iname] = obj.pointdata[iname]
 
-            adict["pointdata"] = {}
-            for iname in obj.pointdata.keys():
-                if "normals" in iname.lower():
-                    continue
-                adict["pointdata"][iname] = obj.pointdata[iname]
+        adict["celldata"] = {}
+        for iname in obj.celldata.keys():
+            if "normals" in iname.lower():
+                continue
+            adict["celldata"][iname] = obj.celldata[iname]
 
-            adict["celldata"] = {}
-            for iname in obj.celldata.keys():
-                if "normals" in iname.lower():
-                    continue
-                adict["celldata"][iname] = obj.celldata[iname]
+        adict["activedata"] = None
+        if poly.GetPointData().GetScalars():
+            adict["activedata"] = ["pointdata", poly.GetPointData().GetScalars().GetName()]
+        elif poly.GetCellData().GetScalars():
+            adict["activedata"] = ["celldata", poly.GetCellData().GetScalars().GetName()]
 
-            adict["activedata"] = None
-            if poly.GetPointData().GetScalars():
-                adict["activedata"] = ["pointdata", poly.GetPointData().GetScalars().GetName()]
-            elif poly.GetCellData().GetScalars():
-                adict["activedata"] = ["celldata", poly.GetCellData().GetScalars().GetName()]
+        adict["LUT"] = None
+        adict["LUT_range"] = None
+        lut = obj.mapper.GetLookupTable()
+        if lut:
+            nlut = lut.GetNumberOfTableValues()
+            lutvals = []
+            for i in range(nlut):
+                v4 = lut.GetTableValue(i)  # r, g, b, alpha
+                lutvals.append(v4)
+            adict["LUT"] = np.array(lutvals, dtype=np.float32)
+            adict["LUT_range"] = np.array(lut.GetRange())
 
-            adict["LUT"] = None
-            adict["LUT_range"] = None
-            lut = obj.mapper.GetLookupTable()
-            if lut:
-                nlut = lut.GetNumberOfTableValues()
-                lutvals = []
-                for i in range(nlut):
-                    v4 = lut.GetTableValue(i)  # r, g, b, alpha
-                    lutvals.append(v4)
-                adict["LUT"] = np.array(lutvals, dtype=np.float32)
-                adict["LUT_range"] = np.array(lut.GetRange())
+        prp = obj.properties
+        adict["alpha"] = prp.GetOpacity()
+        adict["representation"] = prp.GetRepresentation()
+        adict["pointsize"] = prp.GetPointSize()
 
-            prp = obj.properties
-            adict["alpha"] = prp.GetOpacity()
-            adict["representation"] = prp.GetRepresentation()
-            adict["pointsize"] = prp.GetPointSize()
+        adict["linecolor"] = None
+        adict["linewidth"] = None
+        if prp.GetEdgeVisibility():
+            adict["linewidth"] = obj.linewidth()
+            adict["linecolor"] = prp.GetEdgeColor()
 
-            adict["linecolor"] = None
-            adict["linewidth"] = None
-            if prp.GetEdgeVisibility():
-                adict["linewidth"] = obj.linewidth()
-                adict["linecolor"] = prp.GetEdgeColor()
+        adict["ambient"] = prp.GetAmbient()
+        adict["diffuse"] = prp.GetDiffuse()
+        adict["specular"] = prp.GetSpecular()
+        adict["specularpower"] = prp.GetSpecularPower()
+        adict["specularcolor"] = prp.GetSpecularColor()
+        adict["shading"] = prp.GetInterpolation()  # flat phong..:
+        adict["color"] = prp.GetColor()
+        adict["lighting_is_on"] = prp.GetLighting()
+        adict["backcolor"] = None
+        if obj.actor.GetBackfaceProperty():
+            adict["backcolor"] = obj.actor.GetBackfaceProperty().GetColor()
 
-            adict["ambient"] = prp.GetAmbient()
-            adict["diffuse"] = prp.GetDiffuse()
-            adict["specular"] = prp.GetSpecular()
-            adict["specularpower"] = prp.GetSpecularPower()
-            adict["specularcolor"] = prp.GetSpecularColor()
-            adict["shading"] = prp.GetInterpolation()  # flat phong..:
-            adict["color"] = prp.GetColor()
-            adict["lighting_is_on"] = prp.GetLighting()
-            adict["backcolor"] = None
-            if obj.actor.GetBackfaceProperty():
-                adict["backcolor"] = obj.actor.GetBackfaceProperty().GetColor()
+        adict["scalarvisibility"] = obj.mapper.GetScalarVisibility()
 
-            adict["scalarvisibility"] = obj.mapper.GetScalarVisibility()
-
-        #####################################################################
+    #####################################################################
+    try:
         obj = act.retrieve_object()
+    except AttributeError:
+        obj = act
 
-        ######################################################## Assembly
-        if isinstance(obj, Assembly):
-            pass
+    ######################################################## Assembly
+    if isinstance(obj, Assembly):
+        pass
 
-        ######################################################## Points/Mesh
-        elif isinstance(obj, Points):
-            adict["type"] = "Mesh"
-            _fillcommon(obj, adict)
-            _fillmesh(obj, adict)
+    ######################################################## Points/Mesh
+    elif isinstance(obj, Points):
+        adict["type"] = "Mesh"
+        _fillcommon(obj, adict)
+        _fillmesh(obj, adict)
 
-        ######################################################## Volume
-        elif isinstance(obj, Volume):
-            adict["type"] = "Volume"
-            _fillcommon(obj, adict)
-            imgdata = obj.dataset
-            arr = utils.vtk2numpy(imgdata.GetPointData().GetScalars())
-            adict["array"] = arr.reshape(imgdata.GetDimensions())
-            adict["mode"] = obj.mode()
+    ######################################################## Volume
+    elif isinstance(obj, Volume):
+        adict["type"] = "Volume"
+        _fillcommon(obj, adict)
+        imgdata = obj.dataset
+        arr = utils.vtk2numpy(imgdata.GetPointData().GetScalars())
+        adict["array"] = arr.reshape(imgdata.GetDimensions())
+        adict["mode"] = obj.mode()
 
-            prp = obj.properties
-            ctf = prp.GetRGBTransferFunction()
-            otf = prp.GetScalarOpacity()
-            gotf = prp.GetGradientOpacity()
-            smin, smax = ctf.GetRange()
-            xs = np.linspace(smin, smax, num=100, endpoint=True)
-            cols, als, algrs = [], [], []
-            for x in xs:
-                cols.append(ctf.GetColor(x))
-                als.append(otf.GetValue(x))
-                if gotf:
-                    algrs.append(gotf.GetValue(x))
-            adict["color"] = cols
-            adict["alpha"] = als
-            adict["alphagrad"] = algrs
+        prp = obj.properties
+        ctf = prp.GetRGBTransferFunction()
+        otf = prp.GetScalarOpacity()
+        gotf = prp.GetGradientOpacity()
+        smin, smax = ctf.GetRange()
+        xs = np.linspace(smin, smax, num=100, endpoint=True)
+        cols, als, algrs = [], [], []
+        for x in xs:
+            cols.append(ctf.GetColor(x))
+            als.append(otf.GetValue(x))
+            if gotf:
+                algrs.append(gotf.GetValue(x))
+        adict["color"] = cols
+        adict["alpha"] = als
+        adict["alphagrad"] = algrs
 
-        ######################################################## Image
-        elif isinstance(obj, Image):
-            adict["type"] = "Image"
-            _fillcommon(obj, adict)
-            adict["array"] = obj.tonumpy()
+    ######################################################## Image
+    elif isinstance(obj, Image):
+        adict["type"] = "Image"
+        _fillcommon(obj, adict)
+        adict["array"] = obj.tonumpy()
 
-        ######################################################## Text2D
-        elif isinstance(obj, vedo.Text2D):
-            adict["type"] = "Text2D"
-            adict["rendered_at"] = obj.rendered_at
-            adict["text"] = obj.text()
-            adict["position"] = obj.GetPosition()
-            adict["color"] = obj.properties.GetColor()
-            adict["font"] = obj.fontname
-            adict["size"] = obj.properties.GetFontSize() / 22.5
-            adict["bgcol"] = obj.properties.GetBackgroundColor()
-            adict["alpha"] = obj.properties.GetBackgroundOpacity()
-            adict["frame"] = obj.properties.GetFrame()
+    ######################################################## Text2D
+    elif isinstance(obj, vedo.Text2D):
+        adict["type"] = "Text2D"
+        adict["rendered_at"] = obj.rendered_at
+        adict["text"] = obj.text()
+        adict["position"] = obj.GetPosition()
+        adict["color"] = obj.properties.GetColor()
+        adict["font"] = obj.fontname
+        adict["size"] = obj.properties.GetFontSize() / 22.5
+        adict["bgcol"] = obj.properties.GetBackgroundColor()
+        adict["alpha"] = obj.properties.GetBackgroundOpacity()
+        adict["frame"] = obj.properties.GetFrame()
 
-        else:
-            pass
-        return adict
+    else:
+        pass
+    return adict
+
+
+#########################################################################
+def _export_npy(plt, fileoutput="scene.npz"):
 
     sdict = {}
     sdict["shape"] = plt.shape
@@ -1547,11 +1573,11 @@ def _export_npy(plt, fileoutput="scene.npz"):
     for a in allobjs:
         try:
             if a.actor.GetVisibility():
-                sdict["objects"].append(_tonumpy(a))
+                sdict["objects"].append(_to_numpy(a))
         except AttributeError:
             try:
                 if a.GetVisibility():
-                    sdict["objects"].append(_tonumpy(a))
+                    sdict["objects"].append(_to_numpy(a))
             except AttributeError:
                 pass
 
@@ -1784,7 +1810,7 @@ def _export_hdf5(plt, fileoutput="scene.h5"):
 
     hfile.close()
 
-
+########################################################################
 def import_window(fileinput, mtl_file=None, texture_path=None):
     """Import a whole scene from a Numpy, HDF5 or OBJ wavefront file.
 
