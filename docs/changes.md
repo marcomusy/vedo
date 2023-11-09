@@ -44,6 +44,8 @@ see `examples/pyplot/embed_matplotlib.py`.
 - `Slicer2DPlotter` moved to application module
 - `mesh.is_inside(pt)` moved to `mesh.contains(pt)`
 - added `applications.Slicer3DTwinPlotter` thanks to @daniel-a-diaz
+- passing a `vtkCamera` to `show(camera=...)` triggers a copy of the input which is
+therefore not muted by any subsequent interaction (thanks @baba-yaga )
 
 
 -------------------------

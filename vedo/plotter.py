@@ -3089,24 +3089,20 @@ class Plotter:
                 - viewup `(list)`, the view up direction for the camera
                 - distance `(float)`, set the focal point to the specified distance from the camera position.
                 - clipping_range `(float)`, distance of the near and far clipping planes along the direction of projection.
-                - parallel_scale `(float)`,
-                scaling used for a parallel projection, i.e. the height of the viewport
-                in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
-                an "inverse scale", larger numbers produce smaller images.
+                - parallel_scale `(float)`, scaling used for a parallel projection, i.e. the height of the viewport
+                in world-coordinate distances. The default is 1. 
+                Note that the "scale" parameter works as an "inverse scale", larger numbers produce smaller images.
                 This method has no effect in perspective projection mode.
 
-                - thickness `(float)`,
-                set the distance between clipping planes. This method adjusts the far clipping
+                - thickness `(float)`, set the distance between clipping planes. This method adjusts the far clipping
                 plane to be set a distance 'thickness' beyond the near clipping plane.
 
-                - view_angle `(float)`,
-                the camera view angle, which is the angular height of the camera view
+                - view_angle `(float)`, the camera view angle, which is the angular height of the camera view
                 measured in degrees. The default angle is 30 degrees.
                 This method has no effect in parallel projection mode.
                 The formula for setting the angle up for perfect perspective viewing is:
                 angle = 2*atan((h/2)/d) where h is the height of the RenderWindow
-                (measured by holding a ruler up to your screen) and d is the distance
-                from your eyes to the screen.
+                (measured by holding a ruler up to your screen) and d is the distance from your eyes to the screen.
 
             interactive : (bool)
                 pause and interact with window (True) or continue execution (False)
@@ -3206,7 +3202,9 @@ class Plotter:
         if camera is not None:
             self.resetcam = False
             if isinstance(camera, vtk.vtkCamera):
-                self.camera = camera
+                cameracopy = vtk.vtkCamera()
+                cameracopy.DeepCopy(camera)
+                self.camera = cameracopy
             else:
                 self.camera = utils.camera_from_dict(camera)
             if self.renderer:
