@@ -2956,7 +2956,10 @@ class Plotter:
         if camera is not None:
             self.resetcam = False
             if isinstance(camera, vtk.vtkCamera):
-                self.camera = camera
+                # see discussion #961
+                cameracopy = vtk.vtkCamera()
+                cameracopy.DeepCopy(camera)
+                self.camera = cameracopy
             else:
                 self.camera = utils.camera_from_dict(camera)
             if self.renderer:
