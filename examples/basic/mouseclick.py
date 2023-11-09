@@ -9,7 +9,7 @@ def on_left_click(event):
     if not event.object:
         return
     printc("Left button pressed on", [event.object], c=event.object.color())
-    # printc('Full dump of Event:', event)
+    printc(event)  # dump the full event info
 
 def on_drag(event):
     printc(event.name, 'happened at mouse position', event.picked2d)

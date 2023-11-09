@@ -80,5 +80,12 @@ markpoint.py
 plot_spheric.py
 ```
 
+broken in npz dump:
+boundaries.py
+examples/basic/cartoony.py
+
+
+
+
 test offline screenshot
 - multiblock instead of npy

@@ -68,18 +68,25 @@ class Event:
         """Make the class work like a dictionary too"""
         setattr(self, key, value)
 
-    def __repr__(self):
-        f = "---------- <vedo.plotter.Event object> ----------\n"
+    def __str__(self):
+        module = self.__class__.__module__
+        name = self.__class__.__name__
+        out = vedo.printc(
+            f"{module}.{name} at ({hex(id(self))})".ljust(75),
+            bold=True, invert=True, return_string=True,
+        )
+        out += "\x1b[0m"
         for n in self.__slots__:
-            if n == "object" and self.object:
-                if self.object.name:
-                    f += f"event.{n} = {self.object.name}\n"
-                else:
-                    f += f"event.{n} = {self.object.__class__.__name__} \n"
-            else:
-                f += f"event.{n} = " + str(self[n]).replace("\n", "")[:60] + "\n"
-
-        return f
+            if n == "actor":
+                continue 
+            out += f"{n}".ljust(11) + ": "
+            val = str(self[n]).replace("\n", "")[:65].rstrip()
+            if val == "True":
+                out += "\x1b[32;1m"
+            elif val == "False":
+                out += "\x1b[31;1m"
+            out += val + "\x1b[0m\n"
+        return out.rstrip()
 
     def keys(self):
         return self.__slots__
@@ -785,7 +792,7 @@ class Plotter:
         name = self.__class__.__name__
         out = vedo.printc(
             f"{module}.{name} at ({hex(id(self))})".ljust(75),
-            c="w", bold=True, invert=True, return_string=True,
+            bold=True, invert=True, return_string=True,
         )
         out += "\x1b[0m"
         if self.interactor:
