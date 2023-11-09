@@ -2389,7 +2389,7 @@ class Plotter:
         pd.SetLines(lines)
 
         wsx, wsy = self.window.GetSize()
-        if not settings.use_parallel_projection:
+        if not self.camera.GetParallelProjection():
             vedo.logger.warning("add_scale_indicator called with use_parallel_projection OFF. Skip.")
             return None
 
@@ -4003,7 +4003,8 @@ class Plotter:
             vedo.printc("    position=" + utils.precision(cam.GetPosition(), 6) + ",", c="y")
             vedo.printc("    focal_point=" + utils.precision(cam.GetFocalPoint(), 6) + ",", c="y")
             vedo.printc("    viewup=" + utils.precision(cam.GetViewUp(), 6) + ",", c="y")
-            if settings.use_parallel_projection:
+            vedo.printc("    roll=" + utils.precision(cam.GetRoll(), 6) + ",", c="y")
+            if cam.GetParallelProjection():
                 vedo.printc('    parallel_scale='+utils.precision(cam.GetParallelScale(),6)+',', c='y')
             else:
                 vedo.printc('    distance='     +utils.precision(cam.GetDistance(),6)+',', c='y')
@@ -4151,12 +4152,12 @@ class Plotter:
             if isinstance(self.axes, dict):
                 self.axes = 1
             if key in ["minus", "KP_Subtract"]:
-                if not settings.use_parallel_projection and self.axes == 0:
+                if not self.camera.GetParallelProjection() and self.axes == 0:
                     self.axes -= 1  # jump ruler doesnt make sense in perspective mode
                 bns = self.renderer.ComputeVisiblePropBounds()
                 addons.add_global_axes(axtype=(self.axes - 1) % 15, c=None, bounds=bns)
             else:
-                if not settings.use_parallel_projection and self.axes == 12:
+                if not self.camera.GetParallelProjection() and self.axes == 12:
                     self.axes += 1  # jump ruler doesnt make sense in perspective mode
                 bns = self.renderer.ComputeVisiblePropBounds()
                 addons.add_global_axes(axtype=(self.axes + 1) % 15, c=None, bounds=bns)

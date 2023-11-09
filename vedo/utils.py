@@ -556,6 +556,9 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, tetras=False
         - `vertices=[[x1,y1,z1],[x2,y2,z2], ...]`
         - `faces=[[0,1,2], [1,2,3], ...]`
         - `lines=[[0,1], [1,2,3,4], ...]`
+    
+    A flat list of faces can be passed as `faces=[3, 0,1,2, 4, 1,2,3,4, ...]`.
+    For lines use `lines=[2, 0,1, 4, 1,2,3,4, ...]`.
 
     Use `index_offset=1` if face numbering starts from 1 instead of 0.
 
@@ -572,7 +575,6 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, tetras=False
         return poly
 
     vertices = make3d(vertices)
-
     source_points = vtk.vtkPoints()
     source_points.SetData(numpy2vtk(vertices, dtype=np.float32))
     poly.SetPoints(source_points)
@@ -591,7 +593,7 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, tetras=False
                         linesarr.InsertNextCell(vline)
         else:  # assume format [id0,id1,...]
             # print("buildPolyData: assuming lines format [id0,id1,...]", lines)
-            # TODO CORRECT THIS CASE [2id0,id1,...]
+            # TODO CORRECT THIS CASE, MUST BE [2, id0,id1,...]
             for i in range(0, len(lines) - 1):
                 vline = vtk.vtkLine()
                 vline.GetPointIds().SetId(0, lines[i])
@@ -599,89 +601,96 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, tetras=False
                 linesarr.InsertNextCell(vline)
         poly.SetLines(linesarr)
 
-    if faces is None:
+    if faces is not None:
+        source_polygons = vtk.vtkCellArray()
+        if isinstance(faces, np.ndarray) or not is_ragged(faces):
+            ##### all faces are composed of equal nr of vtxs, FAST
+            faces = np.asarray(faces)
+            ast = np.int32
+            if vtk.vtkIdTypeArray().GetDataTypeSize() != 4:
+                ast = np.int64
+
+            if faces.ndim > 1:
+                nf, nc = faces.shape
+                hs = np.hstack((np.zeros(nf)[:, None] + nc, faces))
+            else:
+                nf = faces.shape[0]
+                hs = faces
+            arr = numpy_to_vtkIdTypeArray(hs.astype(ast).ravel(), deep=True)
+            source_polygons.SetCells(nf, arr)
+
+        else:
+            ############################# manually add faces, SLOW
+            for f in faces:
+                n = len(f)
+
+                if n == 3:
+                    ele = vtk.vtkTriangle()
+                    pids = ele.GetPointIds()
+                    for i in range(3):
+                        pids.SetId(i, f[i] - index_offset)
+                    source_polygons.InsertNextCell(ele)
+
+                elif n == 4 and tetras:
+                    ele0 = vtk.vtkTriangle()
+                    ele1 = vtk.vtkTriangle()
+                    ele2 = vtk.vtkTriangle()
+                    ele3 = vtk.vtkTriangle()
+                    if index_offset:
+                        for i in [0, 1, 2, 3]:
+                            f[i] -= index_offset
+                    f0, f1, f2, f3 = f
+                    pid0 = ele0.GetPointIds()
+                    pid1 = ele1.GetPointIds()
+                    pid2 = ele2.GetPointIds()
+                    pid3 = ele3.GetPointIds()
+
+                    pid0.SetId(0, f0)
+                    pid0.SetId(1, f1)
+                    pid0.SetId(2, f2)
+
+                    pid1.SetId(0, f0)
+                    pid1.SetId(1, f1)
+                    pid1.SetId(2, f3)
+
+                    pid2.SetId(0, f1)
+                    pid2.SetId(1, f2)
+                    pid2.SetId(2, f3)
+
+                    pid3.SetId(0, f2)
+                    pid3.SetId(1, f3)
+                    pid3.SetId(2, f0)
+
+                    source_polygons.InsertNextCell(ele0)
+                    source_polygons.InsertNextCell(ele1)
+                    source_polygons.InsertNextCell(ele2)
+                    source_polygons.InsertNextCell(ele3)
+
+                else:
+                    ele = vtk.vtkPolygon()
+                    pids = ele.GetPointIds()
+                    pids.SetNumberOfIds(n)
+                    for i in range(n):
+                        pids.SetId(i, f[i] - index_offset)
+                    source_polygons.InsertNextCell(ele)
+
+        poly.SetPolys(source_polygons)
+
+    if faces is None and lines is None:
         source_vertices = vtk.vtkCellArray()
         for i in range(len(vertices)):
             source_vertices.InsertNextCell(1)
             source_vertices.InsertCellPoint(i)
         poly.SetVerts(source_vertices)
-        return poly  ###################
 
-    # faces exist
-    source_polygons = vtk.vtkCellArray()
-
-    if isinstance(faces, np.ndarray) or not is_ragged(faces):
-        ##### all faces are composed of equal nr of vtxs, FAST
-        faces = np.asarray(faces)
-        ast = np.int32
-        if vtk.vtkIdTypeArray().GetDataTypeSize() != 4:
-            ast = np.int64
-
-        if faces.ndim > 1:
-            nf, nc = faces.shape
-            hs = np.hstack((np.zeros(nf)[:, None] + nc, faces))
-        else:
-            nf = faces.shape[0]
-            hs = faces
-        arr = numpy_to_vtkIdTypeArray(hs.astype(ast).ravel(), deep=True)
-        source_polygons.SetCells(nf, arr)
-
-    else:
-        ############################# manually add faces, SLOW
-        for f in faces:
-            n = len(f)
-
-            if n == 3:
-                ele = vtk.vtkTriangle()
-                pids = ele.GetPointIds()
-                for i in range(3):
-                    pids.SetId(i, f[i] - index_offset)
-                source_polygons.InsertNextCell(ele)
-
-            elif n == 4 and tetras:
-                ele0 = vtk.vtkTriangle()
-                ele1 = vtk.vtkTriangle()
-                ele2 = vtk.vtkTriangle()
-                ele3 = vtk.vtkTriangle()
-                if index_offset:
-                    for i in [0, 1, 2, 3]:
-                        f[i] -= index_offset
-                f0, f1, f2, f3 = f
-                pid0 = ele0.GetPointIds()
-                pid1 = ele1.GetPointIds()
-                pid2 = ele2.GetPointIds()
-                pid3 = ele3.GetPointIds()
-
-                pid0.SetId(0, f0)
-                pid0.SetId(1, f1)
-                pid0.SetId(2, f2)
-
-                pid1.SetId(0, f0)
-                pid1.SetId(1, f1)
-                pid1.SetId(2, f3)
-
-                pid2.SetId(0, f1)
-                pid2.SetId(1, f2)
-                pid2.SetId(2, f3)
-
-                pid3.SetId(0, f2)
-                pid3.SetId(1, f3)
-                pid3.SetId(2, f0)
-
-                source_polygons.InsertNextCell(ele0)
-                source_polygons.InsertNextCell(ele1)
-                source_polygons.InsertNextCell(ele2)
-                source_polygons.InsertNextCell(ele3)
-
-            else:
-                ele = vtk.vtkPolygon()
-                pids = ele.GetPointIds()
-                pids.SetNumberOfIds(n)
-                for i in range(n):
-                    pids.SetId(i, f[i] - index_offset)
-                source_polygons.InsertNextCell(ele)
-
-    poly.SetPolys(source_polygons)
+    # print("buildPolyData \n",
+    #     poly.GetNumberOfPoints(),
+    #     poly.GetNumberOfCells(), # grand total
+    #     poly.GetNumberOfLines(),
+    #     poly.GetNumberOfPolys(),
+    #     poly.GetNumberOfStrips(),
+    #     poly.GetNumberOfVerts(),
+    # )
     return poly
 
 
@@ -1727,7 +1736,30 @@ def oriented_camera(center=(0, 0, 0), up_vector=(0, 1, 0), backoff_vector=(0, 0,
 
 def camera_from_dict(camera, modify_inplace=None):
     """
-    Generate a `vtkCamera` from a dictionary.
+    Generate a `vtkCamera` object from a python dictionary.
+
+    Parameters of the camera are:
+        - `position` or `pos` (3-tuple)
+        - `focal_point` (3-tuple)
+        - `viewup` (3-tuple)
+        - `distance` (float)
+        - `clipping_range` (2-tuple)
+        - `parallel_scale` (float)
+        - `thickness` (float)
+        - `view_angle` (float)
+        - `roll` (float)
+
+    Exaplanation of the parameters can be found in the
+    [vtkCamera documentation](https://vtk.org/doc/nightly/html/classvtkCamera.html).
+
+    Arguments:
+        camera: (dict)
+            a python dictionary containing camera parameters.
+        modify_inplace: (vtkCamera)
+            an existing `vtkCamera` object to modify in place.
+    
+    Returns:
+        `vtk.vtkCamera`, a vtk camera setup that matches this state.
     """
     if modify_inplace:
         vcam = modify_inplace
@@ -1735,14 +1767,17 @@ def camera_from_dict(camera, modify_inplace=None):
         vcam = vtk.vtkCamera()
 
     camera = dict(camera)  # make a copy so input is not emptied by pop()
-    cm_pos = camera.pop("position", camera.pop("pos", None))
+    
+    cm_pos         = camera.pop("position", camera.pop("pos", None))
     cm_focal_point = camera.pop("focal_point", camera.pop("focalPoint", None))
-    cm_viewup = camera.pop("viewup", None)
-    cm_distance = camera.pop("distance", None)
+    cm_viewup      = camera.pop("viewup", None)
+    cm_distance    = camera.pop("distance", None)
     cm_clipping_range = camera.pop("clipping_range", camera.pop("clippingRange", None))
     cm_parallel_scale = camera.pop("parallel_scale", camera.pop("parallelScale", None))
-    cm_thickness = camera.pop("thickness", None)
-    cm_view_angle = camera.pop("view_angle", camera.pop("viewAngle", None))
+    cm_thickness   = camera.pop("thickness", None)
+    cm_view_angle  = camera.pop("view_angle", camera.pop("viewAngle", None))
+    cm_roll        = camera.pop("roll", None)
+
     if len(camera.keys()) > 0:
         vedo.logger.warning(f"in camera_from_dict, key(s) not recognized: {camera.keys()}")
     if cm_pos is not None:            vcam.SetPosition(cm_pos)
@@ -1753,6 +1788,7 @@ def camera_from_dict(camera, modify_inplace=None):
     if cm_parallel_scale is not None: vcam.SetParallelScale(cm_parallel_scale)
     if cm_thickness is not None:      vcam.SetThickness(cm_thickness)
     if cm_view_angle is not None:     vcam.SetViewAngle(cm_view_angle)
+    if cm_roll is not None:           vcam.SetRoll(cm_roll)
     return vcam
 
 

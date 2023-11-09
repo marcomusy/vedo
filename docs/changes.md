@@ -27,6 +27,7 @@ see `examples/pyplot/embed_matplotlib.py`.
     add `move()` to move single points or objects
 - add `copy()` as alias to `clone()`
 - remove `file_io.load_transform()` LinearTransform("file.mat") substitutes this
+- add "Roll" to camera settings (thanks @baba-yaga )
 
 
 ### Breaking changes
@@ -83,7 +84,7 @@ plot_spheric.py
 broken in npz dump:
 boundaries.py
 examples/basic/cartoony.py
-
+color_mesh_cells2.py
 
 
 
