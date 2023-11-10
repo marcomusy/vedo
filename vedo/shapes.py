@@ -1522,6 +1522,11 @@ def StreamLines(
 
             ![](https://vedo.embl.es/images/volumetric/56964003-9145a500-6b5a-11e9-9d9e-9736d90e1900.png)
     """
+    try:
+        domain = domain.dataset
+    except AttributeError:
+        pass
+
     if isinstance(domain, vedo.Points):
         if extrapolate_to_box:
             grid = _interpolate2vol(domain, **extrapolate_to_box)
@@ -4577,7 +4582,7 @@ class Text2D(TextBase, vedo.visual.Actor2D):
         bold=False,
         italic=False,
         c=None,
-        alpha=0.2,
+        alpha=0.5,
     ):
         """
         Create a 2D text object.

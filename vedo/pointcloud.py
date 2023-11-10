@@ -591,6 +591,8 @@ class Points(PointsVisual, PointAlgorithms):
 
         else:
             # try to extract the points from a generic VTK input data object
+            if hasattr(inputobj, "dataset"):
+                inputobj = inputobj.dataset
             try:
                 vvpts = inputobj.GetPoints()
                 self.dataset.SetPoints(vvpts)

@@ -470,6 +470,8 @@ def make3d(pts):
 
     Array can also be in the form `[allx, ally, allz]`.
     """
+    if pts is None:
+        return np.array([])
     pts = np.asarray(pts)
 
     if pts.dtype == "object":

@@ -214,6 +214,10 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             raise RuntimeError()
         self.actor.SetMapper(mapper)
 
+    def c(self, *args, **kwargs):
+        """Deprecated. Use `Volume.cmap()` instead."""
+        vedo.logger.warning("Volume.c() is deprecated, use Volume.cmap() instead")
+        return self.cmap(*args, **kwargs)
 
     def _update(self, data):
         self.dataset = data

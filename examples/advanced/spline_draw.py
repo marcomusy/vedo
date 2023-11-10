@@ -5,7 +5,9 @@ pic = Image(dataurl + "images/embryo.jpg")
 
 plt = SplinePlotter(pic)
 plt.show(mode="image", zoom='tightest')
-print("Npts =", len(plt.cpoints), "NSpline =", plt.line.npoints)
+
+if plt.line:
+    print("Npts =", len(plt.cpoints), "NSpline =", plt.line.npoints)
 
 
 #####################################################################

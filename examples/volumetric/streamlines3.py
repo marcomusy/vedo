@@ -1,9 +1,8 @@
 """Draw streamlines for the cavity case from OpenFOAM tutorial"""
 from vedo import *
 
-# Load file as type vtkUnStructuredGrid
-fpath = download(dataurl+"cavity.vtk")
-ugrid = loadUnStructuredGrid(fpath)
+# Load an UnStructuredGrid
+ugrid = UGrid(dataurl+"cavity.vtk")
 
 # Make a grid of points to probe as type Mesh
 probe = Grid(s=[0.1,0.01], res=[20,4], c='k')

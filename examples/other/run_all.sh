@@ -8,6 +8,7 @@ for f in *.py; do
     case $f in wx*.py) continue;; esac
     case $f in trame*.py)  continue;; esac
     case $f in *video*.py) continue;; esac
+    case $f in *napari*.py) continue;; esac
     echo "Processing: examples/other/$f"
     python "$f"
 done
