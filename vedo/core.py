@@ -157,7 +157,10 @@ class DataArrayHelper:
             data = self.obj.dataset.GetFieldData()
         arrnames = []
         for i in range(data.GetNumberOfArrays()):
-            name = data.GetArray(i).GetName()
+            if self.association == 2:
+                name = data.GetAbstractArray(i).GetName()
+            else:
+                name = data.GetArray(i).GetName()
             if name:
                 arrnames.append(name)
         return arrnames
@@ -169,7 +172,7 @@ class DataArrayHelper:
         elif self.association == 1:
             varr = self.obj.dataset.GetCellData().GetArray(oldname)
         elif self.association == 2:
-            varr = self.obj.dataset.GetFieldData().GetArray(oldname)
+            varr = self.obj.dataset.GetFieldData().GetAbstractArray(oldname)
         if varr:
             varr.SetName(newname)
         else:
@@ -195,7 +198,10 @@ class DataArrayHelper:
         elif self.association == 2:
             data = self.obj.dataset.GetFieldData()
         for i in range(data.GetNumberOfArrays()):
-            name = data.GetArray(i).GetName()
+            if self.association == 2:
+                name = data.GetAbstractArray(i).GetName()
+            else:
+                name = data.GetArray(i).GetName()
             data.RemoveArray(name)
 
     def select(self, key):

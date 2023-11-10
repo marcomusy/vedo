@@ -153,6 +153,7 @@ class Mesh(MeshVisual, Points):
             self.mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
 
         n = self.dataset.GetNumberOfPoints()
+        self.name = "Mesh"
         self.pipeline = OperationNode(self, comment=f"#pts {n}")
 
     def _repr_html_(self):
@@ -733,6 +734,7 @@ class Mesh(MeshVisual, Points):
             m.pipeline = OperationNode(
                 "cap", parents=[self], comment=f"#pts {m.dataset.GetNumberOfPoints()}"
             )
+            m.name = "MeshCap"
             return m
 
         polyapp = vtk.new("AppendPolyData")
@@ -1504,6 +1506,7 @@ class Mesh(MeshVisual, Points):
             fe.SetInputData(self.dataset)
             fe.Update()
             msh = Mesh(fe.GetOutput(), c="p").lw(5).lighting("off")
+            msh.name = "MeshBoundaries"
 
             msh.pipeline = OperationNode(
                 "boundaries",
@@ -1647,7 +1650,8 @@ class Mesh(MeshVisual, Points):
         gf = vtk.new("GeometryFilter")
         gf.SetInputData(extractSelection.GetOutput())
         gf.Update()
-        return Mesh(gf.GetOutput()).lw(1)
+        m = Mesh(gf.GetOutput()).lw(1)
+        return m
 
     def silhouette(self, direction=None, border_edges=True, feature_angle=False):
         """
@@ -1709,6 +1713,7 @@ class Mesh(MeshVisual, Points):
         m.lw(2).c((0, 0, 0)).lighting("off")
         m.mapper.SetResolveCoincidentTopologyToPolygonOffset()
         m.pipeline = OperationNode("silhouette", parents=[self])
+        m.name = "Silhouette"
         return m
 
     def isobands(self, n=10, vmin=None, vmax=None):
@@ -1770,6 +1775,7 @@ class Mesh(MeshVisual, Points):
         m1.mapper.SetLookupTable(lut)
         m1.mapper.SetScalarRange(lut.GetRange())
         m1.pipeline = OperationNode("isobands", parents=[self])
+        m1.name = "IsoBands"
         return m1
 
         # self._update(bcf.GetOutput())
@@ -1814,6 +1820,7 @@ class Mesh(MeshVisual, Points):
         msh = Mesh(cl.GetOutput(), c="k").lighting("off")
         msh.mapper.SetResolveCoincidentTopologyToPolygonOffset()
         msh.pipeline = OperationNode("isolines", parents=[self])
+        msh.name = "IsoLines"
         return msh
 
     def extrude(self, zshift=1, rotation=0, dr=0, cap=True, res=1):
@@ -1875,6 +1882,7 @@ class Mesh(MeshVisual, Points):
         m.pipeline = OperationNode(
             "extrude", parents=[self], comment=f"#pts {m.dataset.GetNumberOfPoints()}"
         )
+        m.name = "ExtrudedMesh"
         return m
 
     def split(
@@ -1940,6 +1948,7 @@ class Mesh(MeshVisual, Points):
                 area = suba.area()
             else:
                 area = 0  # dummy
+            suba.name = "MeshRegion" + str(t)
             alist.append([suba, area])
 
         if sort_by_area:
@@ -1979,6 +1988,7 @@ class Mesh(MeshVisual, Points):
             parents=[self],
             comment=f"#pts {m.dataset.GetNumberOfPoints()}",
         )
+        m.name = "MeshLargestRegion"
         return m
 
     def boolean(self, operation, mesh2, method=0, tol=None):
@@ -2019,7 +2029,6 @@ class Mesh(MeshVisual, Points):
 
         msh = Mesh(bf.GetOutput(), c=None)
         msh.flat()
-        msh.name = self.name + operation + mesh2.name
 
         msh.pipeline = OperationNode(
             "boolean " + operation,
@@ -2027,6 +2036,7 @@ class Mesh(MeshVisual, Points):
             shape="cylinder",
             comment=f"#pts {msh.dataset.GetNumberOfPoints()}",
         )
+        msh.name = self.name + operation + mesh2.name
         return msh
 
     def intersect_with(self, mesh2, tol=1e-06):
@@ -2046,10 +2056,10 @@ class Mesh(MeshVisual, Points):
         bf.Update()
         msh = Mesh(bf.GetOutput(), c="k", alpha=1).lighting("off")
         msh.properties.SetLineWidth(3)
-        msh.name = "SurfaceIntersection"
         msh.pipeline = OperationNode(
             "intersect_with", parents=[self, mesh2], comment=f"#pts {msh.npoints}"
         )
+        msh.name = "SurfaceIntersection"
         return msh
 
     def intersect_with_line(self, p0, p1=None, return_ids=False, tol=0):
@@ -2127,12 +2137,12 @@ class Mesh(MeshVisual, Points):
 
         msh = Mesh(cutter.GetOutput())
         msh.c('k').lw(3).lighting("off")
-        msh.name = "PlaneIntersection"
         msh.pipeline = OperationNode(
             "intersect_with_plan",
             parents=[self],
             comment=f"#pts {msh.dataset.GetNumberOfPoints()}",
         )
+        msh.name = "PlaneIntersection"
         return msh
 
     def collide_with(self, mesh2, tol=0, return_bool=False):
@@ -2169,13 +2179,13 @@ class Mesh(MeshVisual, Points):
             ipdf.GetOutput(1).GetFieldData().GetArray("ContactCells")
         )
         msh.properties.SetLineWidth(3)
-        msh.name = "SurfaceCollision"
 
         msh.pipeline = OperationNode(
             "collide_with",
             parents=[self, mesh2],
             comment=f"#pts {msh.dataset.GetNumberOfPoints()}",
         )
+        msh.name = "SurfaceCollision"
         return msh
 
     def geodesic(self, start, end):
@@ -2314,6 +2324,7 @@ class Mesh(MeshVisual, Points):
         imgstenc.SetBackgroundValue(outval)
         imgstenc.Update()
         vol = vedo.Volume(imgstenc.GetOutput())
+        vol.name = "BinarizedVolume"
 
         vol.pipeline = OperationNode(
             "binarize",

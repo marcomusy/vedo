@@ -82,11 +82,13 @@ plot_spheric.py
 ```
 
 broken in npz dump:
-boundaries.py
-examples/basic/cartoony.py
-color_mesh_cells2.py
+boolean.py
+cartoony.py
+flatarrow.py
+mesh_lut.py
+mesh_map2cell.py
+rotate_image.py (miss transform)
 
 
 
 test offline screenshot
-- multiblock instead of npy

@@ -4322,9 +4322,9 @@ class Plotter:
                 vedo.printc("Click object and press X to open the cutter box widget.", c='g')
 
         elif key == "E":
-            vedo.printc(r":camera: Exporting 3D window to file", c="b", end="")
+            vedo.printc(r":camera: Exporting 3D window to file scene.npz, ", c="b", end="")
             vedo.file_io.export_window("scene.npz")
-            vedo.printc(". Try:\n> vedo scene.npz", c="b")
+            vedo.printc("try:\n> vedo scene.npz", c="b")
             return
 
         elif key == "F":

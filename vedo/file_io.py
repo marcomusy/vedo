@@ -794,20 +794,18 @@ def _from_numpy(d):
     # recreate a mesh from numpy arrays
     keys = d.keys()
 
-    vertices = d["points"]
-    if len(vertices) == 0:
-        return None
+    points = d["points"]
     cells = d["cells"] if "cells" in keys else None
     lines = d["lines"] if "lines" in keys else None
 
-    msh = Mesh([vertices, cells, lines])
+    msh = Mesh([points, cells, lines])
 
-    if "celldata" in keys and isinstance(d["celldata"], dict):
-        for arrname, arr in d["celldata"].items():
-            msh.celldata[arrname] = arr
     if "pointdata" in keys and isinstance(d["pointdata"], dict):
         for arrname, arr in d["pointdata"].items():
             msh.pointdata[arrname] = arr
+    if "celldata" in keys and isinstance(d["celldata"], dict):
+        for arrname, arr in d["celldata"].items():
+            msh.celldata[arrname] = arr
     if "metadata" in keys and isinstance(d["metadata"], dict):
         for arrname, arr in d["metadata"].items():
             msh.metadata[arrname] = arr
@@ -818,16 +816,27 @@ def _from_numpy(d):
     prp.SetSpecular(d['specular'])
     prp.SetSpecularPower(d['specularpower'])
     prp.SetSpecularColor(d['specularcolor'])
-    prp.SetLighting(d['lighting_is_on'])
+
     prp.SetInterpolation(0)
     # prp.SetInterpolation(d['shading'])
+
     prp.SetOpacity(d['alpha'])
     prp.SetRepresentation(d['representation'])
     prp.SetPointSize(d['pointsize'])
-    if d['linewidth'] is not None: msh.linewidth(d['linewidth'])
-    if d['linecolor'] is not None: msh.linecolor(d['linecolor'])
-    if d['color']     is not None: msh.color(d['color'])
-    if d['backcolor'] is not None: msh.backcolor(d['backcolor'])
+    if d['color'] is not None:
+        msh.color(d['color'])
+    if "lighting_is_on" in d.keys(): 
+        prp.SetLighting(d['lighting_is_on'])
+    # Must check keys for backwards compatibility:
+    if "linecolor" in d.keys() and d['linecolor'] is not None:
+        msh.linecolor(d['linecolor'])
+    if "backcolor" in d.keys() and d['backcolor'] is not None:
+        msh.backcolor(d['backcolor'])
+
+    if d['linewidth'] is not None:
+        msh.linewidth(d['linewidth'])
+    if "edge_visibility" in d.keys(): 
+        prp.SetEdgeVisibility(d['edge_visibility']) # new
 
     lut_list  = d["LUT"]
     lut_range = d["LUT_range"]
@@ -843,14 +852,26 @@ def _from_numpy(d):
     msh.mapper.SetScalarRange(lut_range)
 
     try: # NEW in vedo 5.0
-        msh.mapper.SetScalarMode(d["scalar_mode"])
-        msh.mapper.SetArrayName(d["array_name_to_color_by"])
-        msh.mapper.SetColorMode(d["color_mode"])
+        arname = d["array_name_to_color_by"]
+        msh.mapper.SetArrayName(arname)
         msh.mapper.SetInterpolateScalarsBeforeMapping(
             d["interpolate_scalars_before_mapping"])
-        msh.mapper.SetUseLookupTableScalarRange(d["use_lookup_table_scalar_range"])
+        msh.mapper.SetUseLookupTableScalarRange(
+            d["use_lookup_table_scalar_range"])
         msh.mapper.SetScalarRange(d["scalar_range"])
         msh.mapper.SetScalarVisibility(d["scalar_visibility"])
+        msh.mapper.SetScalarMode(d["scalar_mode"])
+        msh.mapper.SetColorMode(d["color_mode"])
+        if d["scalar_visibility"]:
+            if d["scalar_mode"] == 1:
+                msh.dataset.GetPointData().SetActiveScalars(arname)
+            if d["scalar_mode"] == 2:
+                msh.dataset.GetCellData().SetActiveScalars(arname)
+        # print("color_mode", d["color_mode"])
+        # print("scalar_mode", d["scalar_mode"])
+        # print("scalar_range", d["scalar_range"])
+        # print("scalar_visibility", d["scalar_visibility"])
+        # print("array_name_to_color_by", arname)
     except KeyError:
         pass
 
@@ -858,6 +879,8 @@ def _from_numpy(d):
     if "name" in keys: msh.name = d["name"]
     if "info" in keys: msh.info = d["info"]
     if "filename" in keys: msh.filename = d["filename"]
+    if "pickable" in keys: msh.pickable(d["pickable"])
+    if "dragable" in keys: msh.draggable(d["dragable"])
     return msh
 
 #############################################################################
@@ -889,7 +912,7 @@ def _import_npy(fileinput):
     if "use_depth_peeling" in data.keys():
         settings.use_depth_peeling = data["use_depth_peeling"]
 
-    axes = data.pop("axes", 4)
+    axes = data.pop("axes", 4) # UNUSED
     title = data.pop("title", "")
     backgrcol  = data.pop("backgrcol", "white")
     backgrcol2 = data.pop("backgrcol2", None)
@@ -900,7 +923,7 @@ def _import_npy(fileinput):
 
     plt = vedo.Plotter(
         size=data["size"],  # not necessarily a good idea to set it
-        axes=axes,
+        axes=axes,          # must be zero to avoid recreating the axes
         title=title,
         bg=backgrcol,
         bg2=backgrcol2,
@@ -923,7 +946,6 @@ def _import_npy(fileinput):
             plt.camera.SetClippingRange(cam["clipping_range"])
         if "parallel_scale" in cam.keys():
             plt.camera.SetParallelScale(cam["parallel_scale"])
-        plt.resetcam = False
 
     ##############################################
     objs = []
@@ -931,7 +953,6 @@ def _import_npy(fileinput):
         ### Mesh
         if d['type'].lower() == 'mesh':
             obj = _from_numpy(d)
-            objs.append(obj)
 
         ### Assembly
         elif d['type'].lower() == 'assembly':
@@ -939,31 +960,27 @@ def _import_npy(fileinput):
             for ad in d["actors"]:
                 assacts.append(_from_numpy(ad))
             obj = Assembly(assacts)
-            # _load_common(asse, d)
-            objs.append(obj)
 
         ### Volume
         elif d['type'].lower() == 'volume':
             obj = Volume(d["array"])
-            # _load_common(vol, d)
             if "jittering" in d.keys(): obj.jittering(d["jittering"])
             obj.mode(d["mode"])
             obj.color(d["color"])
             obj.alpha(d["alpha"])
             obj.alpha_gradient(d["alphagrad"])
-            objs.append(obj)
 
         ### TetMesh
         elif d['type'].lower() == 'tetmesh':
             raise NotImplementedError("TetMesh not supported yet")
-            # obj = vedo.TetMesh(d["array"])
-            # objs.append(obj)
+
+        ### ScalarBar2D
+        elif d['type'].lower() == 'scalarbar2d':
+            raise NotImplementedError("ScalarBar2D not supported yet")
 
         ### Image
         elif d['type'].lower() == 'picture' or d['type'].lower() == 'image':
             obj = Image(d["array"])
-            # _load_common(vimg, d)
-            objs.append(obj)
 
         ### Text2D
         elif d['type'].lower() == 'text2d':
@@ -972,25 +989,21 @@ def _import_npy(fileinput):
             obj.background(d["bgcol"], d["alpha"])
             if d["frame"]:
                 obj.frame(d["bgcol"])
+        
+        else:
+            obj = None
+            vedo.logger.warning(f"Cannot import object {d}")
+
+        if obj:
+            keys = d.keys()
+            if "time" in keys: obj.time = d["time"]
+            if "name" in keys: obj.name = d["name"]
+            if "info" in keys: obj.info = d["info"]
+            if "filename" in keys: obj.filename = d["filename"]
             objs.append(obj)
 
-        ### Annotation      ## backward compatibility - will disappear
-        elif d['type'].lower() == 'annotation':
-            pos = d["position"]
-            if isinstance(pos, int):
-                pos = "top-left"
-                d["size"] *= 2.7
-            obj = vedo.shapes.Text2D(d["text"], font=d["font"], c=d["color"]).pos(pos)
-            obj.background(d["bgcol"], d["alpha"]).size(d["size"]).frame(d["bgcol"])
-            objs.append(obj) ## backward compatibility - will disappear
-
-        keys = d.keys()
-        if "time" in keys: obj.time = d["time"]
-        if "name" in keys: obj.name = d["name"]
-        if "info" in keys: obj.info = d["info"]
-        if "filename" in keys: obj.filename = d["filename"]
-
     plt.add(objs)
+    plt.resetcam = False
     return plt
 
 ###########################################################
@@ -1280,8 +1293,7 @@ def read(inputobj, unpack=True, force=False):
 ###############################################################################
 def export_window(fileoutput, binary=False, plt=None):
     """
-    Exporter which writes out the rendered scene into an HTML, X3D
-    HDF5 or Numpy file.
+    Exporter which writes out the rendered scene into an HTML, X3D or Numpy file.
 
     Example:
         - [export_x3d.py](https://github.com/marcomusy/vedo/tree/master/examples/other/export_x3d.py)
@@ -1303,8 +1315,8 @@ def export_window(fileoutput, binary=False, plt=None):
         _export_npy(plt, fileoutput)
 
     ####################################################################
-    elif fr.endswith(".v3d") or fr.endswith(".h5") or fr.endswith(".hdf5"):
-        _export_hdf5(plt, fileoutput)
+    # elif fr.endswith(".h5") or fr.endswith(".hdf5"):
+    #     _export_hdf5(plt, fileoutput)
 
     ####################################################################
     elif fr.endswith(".x3d"):
@@ -1413,9 +1425,23 @@ def _to_numpy(act):
         adict["use_lookup_table_scalar_range"] = mapper.GetUseLookupTableScalarRange()
         adict["scalar_range"] = mapper.GetScalarRange()
         adict["scalar_visibility"] = mapper.GetScalarVisibility()
-        # adict["color_map_colors"] = mapper.GetColorMapColors() #vtkUnsignedCharArray
+        adict["pickable"] = obj.actor.GetPickable()
+        adict["dragable"] = obj.actor.GetDragable()
+
+        # adict["color_map_colors"]  = mapper.GetColorMapColors()   #vtkUnsignedCharArray
         # adict["color_coordinates"] = mapper.GetColorCoordinates() #vtkFloatArray
-        # adict["color_texture_map"] = mapper.GetColorTextureMap() #vtkImageData
+        texmap = mapper.GetColorTextureMap()  #vtkImageData
+        if texmap:
+            adict["color_texture_map"] = vedo.Image(texmap).tonumpy()
+            # print("color_texture_map", adict["color_texture_map"].shape)
+        texture = obj.actor.GetTexture()
+        if texture:
+            adict["texture_array"] = vedo.Image(texture.GetInput()).tonumpy()
+            adict["texture_interpolate"] = texture.GetInterpolate()
+            adict["texture_repeat"] = texture.GetRepeat()
+            adict["texture_quality"] = texture.GetQuality()
+            adict["texture_color_mode"] = texture.GetColorMode()
+            # print("texture", adict["texture_array"].shape)
 
         adict["LUT"] = None
         adict["LUT_range"] = None
@@ -1424,7 +1450,7 @@ def _to_numpy(act):
             nlut = lut.GetNumberOfTableValues()
             lutvals = []
             for i in range(nlut):
-                v4 = lut.GetTableValue(i)  # r, g, b, alpha
+                v4 = lut.GetTableValue(i)  # (r, g, b, alpha)
                 lutvals.append(v4)
             adict["LUT"] = np.array(lutvals, dtype=np.float32)
             adict["LUT_range"] = np.array(lut.GetRange())
@@ -1436,8 +1462,9 @@ def _to_numpy(act):
 
         adict["linecolor"] = None
         adict["linewidth"] = None
+        adict["edge_visibility"] = prp.GetEdgeVisibility() # new in vedo 5.0
         if prp.GetEdgeVisibility():
-            adict["linewidth"] = obj.linewidth()
+            adict["linewidth"] = prp.GetLineWidth()
             adict["linecolor"] = prp.GetEdgeColor()
 
         adict["ambient"] = prp.GetAmbient()
@@ -1458,12 +1485,8 @@ def _to_numpy(act):
     except AttributeError:
         obj = act
 
-    ######################################################## Assembly
-    if isinstance(obj, Assembly):
-        pass
-
     ######################################################## Points/Mesh
-    elif isinstance(obj, Points):
+    if isinstance(obj, Points):
         adict["type"] = "Mesh"
         _fillcommon(obj, adict)
         _fillmesh(obj, adict)
@@ -1513,7 +1536,9 @@ def _to_numpy(act):
         adict["frame"] = obj.properties.GetFrame()
 
     else:
+        vedo.logger.warning(f"Cannot export object of type {type(obj)}")
         pass
+
     return adict
 
 
@@ -1533,7 +1558,7 @@ def _export_npy(plt, fileoutput="scene.npz"):
     )
     sdict["position"] = plt.pos
     sdict["size"] = plt.size
-    sdict["axes"] = plt.axes
+    sdict["axes"] = 0
     sdict["title"] = plt.title
     sdict["backgrcol"] = colors.get_color(plt.renderer.GetBackground())
     sdict["backgrcol2"] = None
@@ -1547,24 +1572,41 @@ def _export_npy(plt, fileoutput="scene.npz"):
 
     sdict["objects"] = []
 
-    allobjs = plt.get_actors()
-    acts2d = plt.renderer.GetActors2D()
-    acts2d.InitTraversal()
-    for _ in range(acts2d.GetNumberOfItems()):
-        a = acts2d.GetNextItem()
-        # if isinstance(a, vedo.Text2D):
-        allobjs.append(a)
+    actors = plt.get_actors(include_non_pickables=True)
+    # this ^ also retrieves Actors2D
+    allobjs = []
+    for i, a in enumerate(actors):
+
+        if not a.GetVisibility():
+            continue
+
+        try:
+            ob = a.retrieve_object()
+            # print("get_actors",[ob], ob.name)
+            if isinstance(ob, Assembly):
+                # T = ob.transform
+                # pp = ob.GetPosition()
+                for elem in ob.recursive_unpack():
+                    # elem = e.clone()
+                    # elem.apply_transform(T)
+                    # elem.SetPosition(pp)
+                    # elem.pos(pp)
+                    elem.name = f"ASSEMBLY{i}_{ob.name}_{elem.name}"
+                    allobjs.append(elem)
+            else:
+                allobjs.append(ob)
+
+        except AttributeError:
+            print()
+            vedo.logger.warning(f"Cannot retrieve object of type {type(a)}")
 
     for a in allobjs:
+        print("to_numpy: dumping", [a], a.name)
         try:
-            if a.actor.GetVisibility():
-                sdict["objects"].append(_to_numpy(a))
+            npobj = _to_numpy(a)
+            sdict["objects"].append(npobj)
         except AttributeError:
-            try:
-                if a.GetVisibility():
-                    sdict["objects"].append(_to_numpy(a))
-            except AttributeError:
-                pass
+            vedo.logger.warning(f"Cannot export object of type {type(a)}")
 
     if fileoutput.endswith(".npz"):
         np.savez_compressed(fileoutput, vedo_scenes=[sdict])

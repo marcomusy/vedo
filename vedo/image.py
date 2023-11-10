@@ -160,6 +160,9 @@ class Image(vedo.visual.ImageVisual):
         self.filename = ""
         self.file_size = 0
         self.pipeline = None
+        self.time = 0
+        self.rendered_at = set()
+        self.info = {}
 
         self.actor = vtk.vtkImageActor()
         self.actor.retrieve_object = weak_ref_to(self)

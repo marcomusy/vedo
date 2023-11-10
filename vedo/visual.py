@@ -1662,6 +1662,7 @@ class PointsVisual(CommonVisual):
         ids.properties.LightingOff()
         ids.actor.PickableOff()
         ids.actor.SetUseBounds(False)
+        ids.name = "Labels"
         return ids
 
     def labels2d(
