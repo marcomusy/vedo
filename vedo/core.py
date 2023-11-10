@@ -315,6 +315,20 @@ class DataArrayHelper:
             self.obj.mapper.ScalarVisibilityOn()
         except AttributeError:
             pass
+    
+    def select_texture_coords(self, key):
+        """Select one specific array to be used as texture coordinates."""
+        if self.association == 0:
+            data = self.obj.dataset.GetPointData()
+        else:
+            vedo.logger.warning("texture coordinates are only available for point data")
+            return
+
+        if isinstance(key, int):
+            key = data.GetArrayName(key)
+        
+        data.SetTCoords(data.GetArray(key))
+
 
     def print(self, **kwargs):
         """Print the array names available to terminal"""

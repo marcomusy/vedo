@@ -867,6 +867,28 @@ def _from_numpy(d):
                 msh.dataset.GetPointData().SetActiveScalars(arname)
             if d["scalar_mode"] == 2:
                 msh.dataset.GetCellData().SetActiveScalars(arname)
+
+        if "texture_array" in keys and d["texture_array"] is not None:
+            # recreate a vtkTexture object from numpy arrays:
+            t = vtk.vtkTexture()
+            t.SetInterpolate(d["texture_interpolate"])
+            t.SetRepeat(d["texture_repeat"])
+            t.SetQuality(d["texture_quality"])
+            t.SetColorMode(d["texture_color_mode"])
+            t.SetMipmap(d["texture_mipmap"])
+            t.SetBlendingMode(d["texture_blending_mode"])
+            t.SetEdgeClamp(d["texture_edge_clamp"])
+            t.SetBorderColor(d["texture_border_color"])
+            msh.actor.SetTexture(t)
+            tcarray = None
+            for arrname in msh.pointdata.keys():
+                if "Texture" in arrname or "TCoord" in arrname:
+                    tcarray = arrname
+                    break
+            if tcarray is not None:
+                t.SetInputData(vedo.Image(d["texture_array"]).dataset)
+                msh.pointdata.select_texture_coords(tcarray)
+
         # print("color_mode", d["color_mode"])
         # print("scalar_mode", d["scalar_mode"])
         # print("scalar_range", d["scalar_range"])
@@ -960,6 +982,10 @@ def _import_npy(fileinput):
             for ad in d["actors"]:
                 assacts.append(_from_numpy(ad))
             obj = Assembly(assacts)
+            obj.SetScale(d["scale"])
+            obj.SetPosition(d["position"])
+            obj.SetOrientation(d["orientation"])
+            obj.SetOrigin(d["origin"])
 
         ### Volume
         elif d['type'].lower() == 'volume':
@@ -979,8 +1005,13 @@ def _import_npy(fileinput):
             raise NotImplementedError("ScalarBar2D not supported yet")
 
         ### Image
-        elif d['type'].lower() == 'picture' or d['type'].lower() == 'image':
+        elif d['type'].lower() == 'image':
             obj = Image(d["array"])
+            obj.alpha(d["alpha"])
+            obj.actor.SetScale(d["scale"])
+            obj.actor.SetPosition(d["position"])
+            obj.actor.SetOrientation(d["orientation"])
+            obj.actor.SetOrigin(d["origin"])
 
         ### Text2D
         elif d['type'].lower() == 'text2d':
@@ -992,7 +1023,8 @@ def _import_npy(fileinput):
         
         else:
             obj = None
-            vedo.logger.warning(f"Cannot import object {d}")
+            # vedo.logger.warning(f"Cannot import object {d}")
+            pass
 
         if obj:
             keys = d.keys()
@@ -1005,94 +1037,6 @@ def _import_npy(fileinput):
     plt.add(objs)
     plt.resetcam = False
     return plt
-
-###########################################################
-# def _import_hdf5(fileinput):
-#     try:
-#         import h5py
-#     except ImportError as e:
-#         vedo.logger.error(f"{e}. Try: 'pip install h5py'")
-#         return
-#     hfile = h5py.File(fileinput, "r")
-
-#     scene = hfile["scene"]
-
-#     settings.use_depth_peeling = scene["use_depth_peeling"][()]
-#     settings.render_lines_as_tubes = scene["render_lines_as_tubes"][()]
-#     settings.hidden_line_removal = scene["hidden_line_removal"][()]
-#     settings.use_parallel_projection = scene["use_parallel_projection"][()]
-#     settings.default_font = scene["default_font"][()].decode("utf-8")
-
-#     plt = vedo.Plotter(
-#         pos=scene["position"][()], 
-#         size=scene["size"][()],
-#         axes=scene["axes"][()],
-#         title=scene["title"][()].decode("utf-8"), 
-#         bg=scene["background_color"][()],
-#         bg2=scene["background_color2"][()],
-#     )
-    
-#     objects = scene["objects"]
-
-#     for name, hob in objects.items():
-
-#         if hob["type"][()].decode("utf-8") == 'Mesh':
-#             # print(name, hob, hob["type"][()])
-
-#             dataset = hob["dataset"]
-#             props = hob["properties"]
-
-#             vertices = dataset["points"][()]
-#             cells = dataset["cells"][()]
-#             lines = dataset["lines"][()]
-
-#             msh = Mesh([vertices, cells, lines])
-#             msh.name = hob["name"][()].decode("utf-8")
-#             # msh.info = hob["info"]
-#             msh.filename = hob["filename"][()].decode("utf-8")
-#             msh.transform = vedo.LinearTransform(dataset["transform"][()])
-
-#             msh.properties.SetRepresentation(props["representation"][()])
-#             msh.properties.SetPointSize(props["pointsize"][()])
-
-#             msh.properties.SetEdgeVisibility(props["linewidth"][()]>0)
-#             if props["linewidth"][()]:
-#                 msh.linewidth(props["linewidth"][()])
-#                 msh.properties.SetEdgeColor(props["linecolor"][()])
-
-#             msh.properties.SetAmbient(props["ambient"][()])
-#             msh.properties.SetDiffuse(props["diffuse"][()])
-#             msh.properties.SetSpecular(props["specular"][()])
-#             msh.properties.SetSpecularPower(props["specularpower"][()])
-#             msh.properties.SetSpecularColor(props["specularcolor"][()])
-#             msh.properties.SetInterpolation(props["shading"][()])  # flat, phong
-#             msh.properties.SetColor(props["color"][()])
-#             msh.properties.SetOpacity(props["alpha"][()])
-#             msh.properties.SetLighting(props["lighting_is_on"][()])
-#             if props["backcolor"][()]:
-#                 bfp = msh.actor.GetBackfaceProperty()
-#                 bfp.SetColor(props["backcolor"][()])
-#             msh.mapper.SetScalarVisibility(props["scalar_visibility"][()])
-
-#             plt.add(msh)
-
-#     cam = scene["camera"]
-#     if cam:
-#         if "pos" in cam.keys():
-#             plt.camera.SetPosition(cam["pos"][()])
-#         if "focal_point" in cam.keys():
-#             plt.camera.SetFocalPoint(cam["focal_point"][()])
-#         if "viewup" in cam.keys():
-#             plt.camera.SetViewUp(cam["viewup"][()])
-#         if "distance" in cam.keys():
-#             plt.camera.SetDistance(cam["distance"][()])
-#         if "clipping_range" in cam.keys():
-#             plt.camera.SetClippingRange(cam["clipping_range"][()])
-#         plt.resetcam = False
-
-#     hfile.close()
-#     return plt
-
 
 ###########################################################
 def loadImageData(filename):
@@ -1120,7 +1064,7 @@ def loadImageData(filename):
             vedo.logger.error(f"sorry, bad NRRD file {filename}")
             return None
     else:
-        vedo.logger.error(f"sorry, cannot read file {filename}")
+        vedo.logger.error(f"cannot read file {filename}")
         return None
     reader.SetFileName(filename)
     reader.Update()
@@ -1170,7 +1114,7 @@ def write(objct, fileoutput, binary=True):
             try:
                 g.AddInputData(ob)
             except TypeError:
-                vedo.logger.warning("Cannot save object of type", type(ob))
+                vedo.logger.warning("cannot save object of type", type(ob))
         g.Update()
         mb = g.GetOutputDataObject(0)
         wri = vtk.vtkXMLMultiBlockDataWriter()
@@ -1370,24 +1314,32 @@ def export_window(fileoutput, binary=False, plt=None):
 def _to_numpy(act):
     """Encode a vedo object to numpy format."""
 
-    adict = {}
-    adict["type"] = "unknown"
-
     ########################################################
     def _fillcommon(obj, adict):
         adict["filename"] = obj.filename
         adict["name"] = obj.name
         adict["time"] = obj.time
         adict["rendered_at"] = obj.rendered_at
-        adict["position"] = obj.pos()
         adict["info"] = obj.info
         try:
             adict["transform"] = obj.transform.matrix
         except AttributeError:
             adict["transform"] = np.eye(4)
 
-    ########################################################
-    def _fillmesh(obj, adict):
+    ####################################################################
+    try:
+        obj = act.retrieve_object()
+    except AttributeError:
+        obj = act
+
+    adict = {}
+    adict["type"] = "unknown"
+
+    ######################################################## Points/Mesh
+    if isinstance(obj, Points):
+        adict["type"] = "Mesh"
+        _fillcommon(obj, adict)
+
         poly = obj.dataset
         mapper = obj.mapper
 
@@ -1434,6 +1386,8 @@ def _to_numpy(act):
         if texmap:
             adict["color_texture_map"] = vedo.Image(texmap).tonumpy()
             # print("color_texture_map", adict["color_texture_map"].shape)
+
+        adict["texture_array"] = None
         texture = obj.actor.GetTexture()
         if texture:
             adict["texture_array"] = vedo.Image(texture.GetInput()).tonumpy()
@@ -1441,7 +1395,11 @@ def _to_numpy(act):
             adict["texture_repeat"] = texture.GetRepeat()
             adict["texture_quality"] = texture.GetQuality()
             adict["texture_color_mode"] = texture.GetColorMode()
-            # print("texture", adict["texture_array"].shape)
+            adict["texture_mipmap"] = texture.GetMipmap()
+            adict["texture_blending_mode"] = texture.GetBlendingMode()
+            adict["texture_edge_clamp"] = texture.GetEdgeClamp()
+            adict["texture_border_color"] = texture.GetBorderColor()
+            # print("tonumpy: texture", obj.name, adict["texture_array"].shape)
 
         adict["LUT"] = None
         adict["LUT_range"] = None
@@ -1479,25 +1437,11 @@ def _to_numpy(act):
         if obj.actor.GetBackfaceProperty():
             adict["backcolor"] = obj.actor.GetBackfaceProperty().GetColor()
 
-    #######################################################################
-    try:
-        obj = act.retrieve_object()
-    except AttributeError:
-        obj = act
-
-    ######################################################## Points/Mesh
-    if isinstance(obj, Points):
-        adict["type"] = "Mesh"
-        _fillcommon(obj, adict)
-        _fillmesh(obj, adict)
-
     ######################################################## Volume
     elif isinstance(obj, Volume):
         adict["type"] = "Volume"
         _fillcommon(obj, adict)
-        imgdata = obj.dataset
-        arr = utils.vtk2numpy(imgdata.GetPointData().GetScalars())
-        adict["array"] = arr.reshape(imgdata.GetDimensions())
+        adict["array"] = obj.tonumpy()
         adict["mode"] = obj.mode()
 
         prp = obj.properties
@@ -1505,7 +1449,7 @@ def _to_numpy(act):
         otf = prp.GetScalarOpacity()
         gotf = prp.GetGradientOpacity()
         smin, smax = ctf.GetRange()
-        xs = np.linspace(smin, smax, num=100, endpoint=True)
+        xs = np.linspace(smin, smax, num=256, endpoint=True)
         cols, als, algrs = [], [], []
         for x in xs:
             cols.append(ctf.GetColor(x))
@@ -1521,6 +1465,11 @@ def _to_numpy(act):
         adict["type"] = "Image"
         _fillcommon(obj, adict)
         adict["array"] = obj.tonumpy()
+        adict["scale"] = obj.actor.GetScale()
+        adict["position"] = obj.actor.GetPosition()
+        adict["orientation"] = obj.actor.GetOrientation()
+        adict['origin'] = obj.actor.GetOrigin()
+        adict["alpha"] = obj.alpha()
 
     ######################################################## Text2D
     elif isinstance(obj, vedo.Text2D):
@@ -1536,7 +1485,7 @@ def _to_numpy(act):
         adict["frame"] = obj.properties.GetFrame()
 
     else:
-        vedo.logger.warning(f"Cannot export object of type {type(obj)}")
+        # vedo.logger.warning(f"to_numpy: cannot export object of type {type(obj)}")
         pass
 
     return adict
@@ -1584,258 +1533,39 @@ def _export_npy(plt, fileoutput="scene.npz"):
             ob = a.retrieve_object()
             # print("get_actors",[ob], ob.name)
             if isinstance(ob, Assembly):
-                # T = ob.transform
-                # pp = ob.GetPosition()
-                for elem in ob.recursive_unpack():
-                    # elem = e.clone()
-                    # elem.apply_transform(T)
-                    # elem.SetPosition(pp)
-                    # elem.pos(pp)
+                asse_scale = ob.GetScale()
+                asse_pos = ob.GetPosition()
+                asse_ori = ob.GetOrientation()
+                asse_org = ob.GetOrigin()
+                for elem in ob.unpack():
                     elem.name = f"ASSEMBLY{i}_{ob.name}_{elem.name}"
+                    elem.info.update({"assembly": ob.name}) # TODO
+                    elem.info.update({"assembly_scale": asse_scale})
+                    elem.info.update({"assembly_position": asse_pos})
+                    elem.info.update({"assembly_orientation": asse_ori})
+                    elem.info.update({"assembly_origin": asse_org})
                     allobjs.append(elem)
             else:
                 allobjs.append(ob)
 
         except AttributeError:
-            print()
-            vedo.logger.warning(f"Cannot retrieve object of type {type(a)}")
+            # print()
+            # vedo.logger.warning(f"Cannot retrieve object of type {type(a)}")
+            pass
 
     for a in allobjs:
-        print("to_numpy: dumping", [a], a.name)
-        try:
-            npobj = _to_numpy(a)
-            sdict["objects"].append(npobj)
-        except AttributeError:
-            vedo.logger.warning(f"Cannot export object of type {type(a)}")
+        # print("to_numpy(): dumping", [a], a.name)
+        # try:
+        npobj = _to_numpy(a)
+        sdict["objects"].append(npobj)
+        # except AttributeError:
+        #     vedo.logger.warning(f"Cannot export object of type {type(a)}")
 
     if fileoutput.endswith(".npz"):
         np.savez_compressed(fileoutput, vedo_scenes=[sdict])
     else:
         np.save(fileoutput, [sdict])
 
-#########################################################################
-# def _export_hdf5(plt, fileoutput="scene.h5"):
-#     try:
-#         import h5py
-#     except ImportError as e:
-#         vedo.logger.error(f"{e}. Try: 'pip install h5py'")
-#         return
-    
-#     hfile = h5py.File(fileoutput, "w")
-
-#     scene = hfile.create_group("scene")
-
-#     scene["shape"] = plt.shape
-#     scene["sharecam"] = plt.sharecam
-
-#     camera = scene.create_group("camera")
-#     cdict = dict(
-#         pos=plt.camera.GetPosition(),
-#         focal_point=plt.camera.GetFocalPoint(),
-#         viewup=plt.camera.GetViewUp(),
-#         distance=plt.camera.GetDistance(),
-#         clipping_range=plt.camera.GetClippingRange(),
-#     )
-#     camera.attrs.update(cdict)
-
-#     scene["position"] = plt.pos
-#     scene["size"] = plt.size
-#     scene["axes"] = plt.axes if plt.axes else ""
-#     scene["title"] = str(plt.title)
-#     scene["background_color"] = colors.get_color(plt.renderer.GetBackground())
-#     if plt.renderer.GetGradientBackground():
-#         scene["background_color2"] = plt.renderer.GetBackground2()
-#     else:
-#         scene["background_color2"] = ""
-#     scene["use_depth_peeling"] = settings.use_depth_peeling
-#     scene["render_lines_as_tubes"] = settings.render_lines_as_tubes
-#     scene["hidden_line_removal"] = settings.hidden_line_removal
-#     scene["use_parallel_projection"] = plt.camera.GetParallelProjection()
-#     scene["default_font"] = settings.default_font
-
-#     onscreen = []
-#     for a in plt.get_actors():
-#         onscreen.append(a.retrieve_object())
-
-#     vobjs = []
-#     for i, vob in enumerate(set(plt.objects + onscreen)):
-#         if isinstance(vob, str):
-#             vobjs.append(vedo.Text2D(vob))
-#         elif not vob.actor.GetVisibility():
-#             continue
-#         elif not hasattr(vob, "name"):
-#             continue
-#         elif isinstance(vob, Assembly):
-#             vobjs += vob.recursive_unpack()
-#         else:
-#             vobjs.append(vob)
-
-#     objects = scene.create_group("objects")
-#     for i, vob in enumerate(set(vobjs)):
-
-#         cname = vob.__class__.__name__
-#         hmesh = objects.create_group(f"{cname}_{vob.name}_{i}")
-#         hmesh["type"] = "Mesh" if vob.ncells else "Points"
-
-#         hmesh["filename"] = vob.filename
-#         hmesh["name"] = vob.name
-#         hmesh["time"] = vob.time
-#         hmesh["rendered_at"] = list(vob.rendered_at)
-
-#         info = hmesh.create_group("info")
-#         info.attrs.update(vob.info)
-
-#         props = hmesh.create_group("properties")
-
-#         dataset = hmesh.create_group("dataset")
-
-#         copt = dict(compression="gzip", compression_opts=9)
-#         dataset.create_dataset("points", data=vob.vertices, dtype=np.float32, **copt)
-
-#         cells = np.array([])
-#         try:
-#             cells = vob.cells_as_flat_array
-#             if vob.nvertices <     256: #careful, vertices not cells!
-#                 dataset.create_dataset("cells", data=cells, dtype=np.uint8, **copt)
-#             elif vob.nvertices < 65535: #careful, vertices not cells!
-#                 dataset.create_dataset("cells", data=cells, dtype=np.uint16, **copt)
-#             else:
-#                 dataset.create_dataset("cells", data=cells, dtype=np.uint32, **copt)
-#         except AttributeError as e:
-#             print("cells fails for", e)
-#             pass
-#             dataset.create_dataset("cells", data=cells, dtype=np.uint32, **copt)
-
-#         lns = np.array([])
-#         try:
-#             if vob.dataset.GetNumberOfLines():
-#                 lns = vob.lines_as_flat_array
-#         except AttributeError as e:
-#             print("lines fails for", e)
-#             pass
-#         dataset.create_dataset("lines", data=lns, dtype=np.uint32, **copt)
-
-#         ######################################################## Points-Mesh
-#         try:
-#             dataset.create_dataset("transform",  data=vob.transform.matrix)
-#         except AttributeError:
-#             dataset.create_dataset("transform",  data=np.eye(4))
-
-#         try:
-#             dataset.create_group("pointdata")
-#             for key in vob.pointdata.keys():
-#                 if "Normals" in key:
-#                     continue
-#                 dataset["pointdata"].create_dataset(key, data=vob.pointdata[key])
-#             dataset.create_group("celldata")
-#             for key in vob.celldata.keys():
-#                 if "Normals" in key:
-#                     continue
-#                 dataset["celldata"].create_dataset(key, data=vob.celldata[key])        
-#             dataset.create_group("metadata")
-#             for key in vob.metadata.keys():
-#                 dataset["metadata"].create_dataset(key, data=vob.metadata[key])
-
-#             v = vob.dataset.GetPointData().GetScalars()
-#             dataset["pointdata"]["active_scalars"] = v.GetName() if v else ""
-#             v = vob.dataset.GetPointData().GetVectors()
-#             dataset["pointdata"]["active_vectors"] = v.GetName() if v else ""
-#             v = vob.dataset.GetPointData().GetTensors()
-#             dataset["pointdata"]["active_tensors"] = v.GetName() if v else ""
-
-#             v = vob.dataset.GetCellData().GetScalars()
-#             dataset["celldata"]["active_scalars"] = v.GetName() if v else ""
-#             v = vob.dataset.GetCellData().GetVectors()
-#             dataset["celldata"]["active_vectors"] = v.GetName() if v else ""
-#             v = vob.dataset.GetCellData().GetTensors()
-#             dataset["celldata"]["active_tensors"] = v.GetName() if v else ""
-
-#         except AttributeError as e:
-#             # print("pointcelldata fails for", e)
-#             pass
-
-#         try:
-#             lut = vob.mapper.GetLookupTable()
-#             if lut:
-#                 nlut = lut.GetNumberOfTableValues()
-#                 lutvals = []
-#                 for i in range(nlut):
-#                     v4 = lut.GetTableValue(i)  # r, g, b, alpha
-#                     lutvals.append(v4)
-#                 props["lut"] = lutvals
-#                 props["lut_range"] = lut.GetRange()
-#             else:
-#                 props["lut"] = None
-#                 props["lut_range"] = None
-
-#             props["representation"] = vob.properties.GetRepresentation()
-#             props["pointsize"] = vob.properties.GetPointSize()
-
-#             evis = vob.properties.GetEdgeVisibility()
-#             props["linewidth"] = vob.linewidth() if evis else 0
-#             props["linecolor"] = vob.properties.GetEdgeColor() if evis else ""
-
-#             props["ambient"] = vob.properties.GetAmbient()
-#             props["diffuse"] = vob.properties.GetDiffuse()
-#             props["specular"] = vob.properties.GetSpecular()
-#             props["specularpower"] = vob.properties.GetSpecularPower()
-#             props["specularcolor"] = vob.properties.GetSpecularColor()
-#             props["shading"] = vob.properties.GetInterpolation()  # flat, phong
-#             props["color"] = vob.properties.GetColor()
-#             props["alpha"] = vob.properties.GetOpacity()
-#             props["lighting_is_on"] = vob.properties.GetLighting()
-#             bfp = vob.actor.GetBackfaceProperty()
-#             props["backcolor"] = bfp.GetColor() if bfp else ""
-#             props["scalar_visibility"] = vob.mapper.GetScalarVisibility()
-
-#         except AttributeError:
-#             pass
-
-#         ######################################################## Volume
-#         if isinstance(vob, vedo.Volume):
-#             try:
-#                 # arr = utils.vtk2numpy(vob.dataset.GetPointData().GetScalars())
-#                 # arr = arr.reshape(vob.dataset.GetDimensions())
-#                 # dataset.create_dataset("array", data=arr)
-#                 ctf = vob.properties.GetRGBTransferFunction()
-#                 otf = vob.properties.GetScalarOpacity()
-#                 gotf = vob.properties.GetGradientOpacity()
-#                 smin, smax = ctf.GetRange()
-#                 xs = np.linspace(smin, smax, num=100, endpoint=True)
-#                 cols, als, algrs = [], [], []
-#                 for x in xs:
-#                     cols.append(ctf.GetColor(x))
-#                     als.append(otf.GetValue(x))
-#                     if gotf:
-#                         algrs.append(gotf.GetValue(x))
-#                 props["color"] = cols
-#                 props["alpha"] = als
-#                 props["alphagrad"] = algrs
-#                 props["mode"] = vob.mode()
-#             except AttributeError as e:
-#                 # print("vol fails for", e)
-#                 pass
-
-#         ######################################################## Image
-#         if isinstance(vob, vedo.Image):
-#             try:
-#                 dataset["array"] = vob.tonumpy()
-#             except AttributeError as e:
-#                 # print("img fails for", e)
-#                 pass
-
-#         ######################################################## Text2D
-#         if isinstance(vob, vedo.Text2D):
-#             props["text"] = vob.text()
-#             props["position"] = vob.GetPosition()
-#             props["color"] = vob.properties.GetColor()
-#             props["font"] = vob.fontname
-#             props["size"] = vob.properties.GetFontSize() / 22.5
-#             props["bgcol"] = vob.properties.GetBackgroundColor()
-#             props["alpha"] = vob.properties.GetBackgroundOpacity()
-#             props["frame"] = vob.properties.GetFrame()
-
-#     hfile.close()
 
 ########################################################################
 def import_window(fileinput, mtl_file=None, texture_path=None):

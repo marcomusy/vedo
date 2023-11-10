@@ -4324,7 +4324,7 @@ class Plotter:
         elif key == "E":
             vedo.printc(r":camera: Exporting 3D window to file scene.npz, ", c="b", end="")
             vedo.file_io.export_window("scene.npz")
-            vedo.printc("try:\n> vedo scene.npz", c="b")
+            vedo.printc("try:\n> vedo scene.npz  # (this is experimental!)", c="b")
             return
 
         elif key == "F":

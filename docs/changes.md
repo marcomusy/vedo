@@ -81,14 +81,15 @@ markpoint.py
 plot_spheric.py
 ```
 
-broken in npz dump:
+### broken in npz dump:
 boolean.py
 cartoony.py
 flatarrow.py
 mesh_lut.py
 mesh_map2cell.py
 rotate_image.py (miss transform)
-
+texturecubes.py
+meshquality.py
 
 
 test offline screenshot

@@ -24,7 +24,7 @@ def get_class(cls_name="", module_name=""):
     print(vtk.get_class("vtkActor", "vtkRenderingCore"))
     ```
     """
-    if cls_name and not cls_name.startswith("vtk"):
+    if cls_name and not cls_name.lower().startswith("vtk"):
         cls_name = "vtk" + cls_name
     if not module_name:
         module_name = location[cls_name]
