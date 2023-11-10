@@ -990,6 +990,8 @@ def _import_npy(fileinput):
         ### Volume
         elif d['type'].lower() == 'volume':
             obj = Volume(d["array"])
+            obj.spacing(d["spacing"])
+            obj.origin(d["origin"])
             if "jittering" in d.keys(): obj.jittering(d["jittering"])
             obj.mode(d["mode"])
             obj.color(d["color"])
@@ -1443,6 +1445,8 @@ def _to_numpy(act):
         _fillcommon(obj, adict)
         adict["array"] = obj.tonumpy()
         adict["mode"] = obj.mode()
+        adict["spacing"] = obj.spacing()
+        adict["origin"] = obj.origin()        
 
         prp = obj.properties
         ctf = prp.GetRGBTransferFunction()
