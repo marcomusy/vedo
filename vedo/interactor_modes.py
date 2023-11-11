@@ -257,21 +257,10 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
     .. note::
         This class is based on R. de Bruin's
         [DAVE](https://github.com/RubendeBruin/DAVE/blob/master/src/DAVE/visual_helpers/vtkBlenderLikeInteractionStyle.py)
-        implementation as discussed in this
-        [issue](https://github.com/marcomusy/vedo/discussions/788).
+        implementation as discussed [in this issue](https://github.com/marcomusy/vedo/discussions/788).
 
     Example:
-        ```python
-        from vedo import *
-        settings.enable_default_keyboard_callbacks = False
-        settings.enable_default_mouse_callbacks = False
-        mesh = Mesh(dataurl+"cow.vtk")
-        mode = interactor_modes.BlenderStyle()
-        plt = Plotter().user_mode(mode)
-        plt.show(mesh, axes=1)
-        ```
-
-        - [interaction_modes2.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/interaction_modes2.py)
+        [interaction_modes2.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/interaction_modes2.py)
     """
 
     def __init__(self):

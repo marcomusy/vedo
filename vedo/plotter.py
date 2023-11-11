@@ -2411,8 +2411,7 @@ class Plotter:
         cs.SetCoordinateSystem(1)
         mapper.SetTransformCoordinate(cs)
 
-        # fractor = vtk.vtkActor2D()
-        fractor = vedo.core.Actor2D()
+        fractor = vedo.visual.Actor2D()
         csys = fractor.GetPositionCoordinate()
         csys.SetCoordinateSystem(3)
         fractor.SetPosition(pos)
@@ -2600,7 +2599,7 @@ class Plotter:
                 if not evt.object:
                     return  # no hit, return
                 print("point coords =", evt.picked3d)
-                # print("full event dump:", evt)
+                # print(evt) # full event dump
 
             elli = Ellipsoid()
             plt = Plotter(axes=1)
@@ -2675,7 +2674,7 @@ class Plotter:
 
         def rfunc(event):
             if event.isImage:
-                printc("Right-clicked!\n", event)
+                printc("Right-clicked!", event)
                 plt.render()
 
         img = Image(dataurl+"images/embryo.jpg")
@@ -2685,7 +2684,7 @@ class Plotter:
         plt.remove_all_observers()
         plt.add_callback("key press", kfunc)
         plt.add_callback("mouse right click", rfunc)
-        plt.show("Right-Click Me!\nPrees q to exit.", img)
+        plt.show("Right-Click Me! Press q to exit.", img)
         plt.close()
         ```
         """
@@ -2820,10 +2819,10 @@ class Plotter:
             ```python
             from vedo import *
 
-            elli = Ellipsoid().rotate_y(30)
+            elli = Ellipsoid().point_size(5)
 
             plt = Plotter()
-            plt.show(elli)
+            plt.show(elli, "Press q to continue and print the info")
 
             xyscreen = plt.compute_screen_coordinates(elli)
             print('xyscreen coords:', xyscreen)
@@ -2871,12 +2870,13 @@ class Plotter:
                 d1 = mode.end_x, mode.end_y
 
                 frustum = plt.pick_area(d0, d1)
-                infru = frustum.inside_points(mesh)
                 col = np.random.randint(0, 10)
-                infru.ps(10).c(col)
+                infru = frustum.inside_points(mesh)
+                infru.point_size(10).color(col)
                 plt.add(frustum, infru).render()
 
-            mesh = Mesh(dataurl+"cow.vtk").c("k5").lw(1)
+            mesh = Mesh(dataurl+"cow.vtk")
+            mesh.color("k5").linewidth(1)
 
             mode = interactor_modes.BlenderStyle()
             mode.callback_select = mode_select
@@ -3594,8 +3594,10 @@ class Plotter:
             
         Warning:
             If you get black screenshots try to set `interactive=False` in `show()`
-            then call `screenshot()` and `plt.interactive()`:
-            ```python
+            then call `screenshot()` and `plt.interactive()` afterwards.
+        
+        Example:
+            ```py
             from vedo import *
             sphere = Sphere().linewidth(1)
             plt = show(sphere, interactive=False)
@@ -3605,14 +3607,14 @@ class Plotter:
             ```
 
         Example:
-        ```py
-        from vedo import *
-        sphere = Sphere().linewidth(1)
-        plt = show(sphere, interactive=False)
-        plt.screenhot('anotherimage.png')
-        plt.interactive()
-        plt.close()
-        ```
+            ```py
+            from vedo import *
+            sphere = Sphere().linewidth(1)
+            plt = show(sphere, interactive=False)
+            plt.screenhot('anotherimage.png')
+            plt.interactive()
+            plt.close()
+            ```
         """
         return vedo.file_io.screenshot(filename, scale, asarray)
 

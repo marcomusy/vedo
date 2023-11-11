@@ -1949,10 +1949,14 @@ def plot(*args, **kwargs):
 
     Example:
         ```python
-        from vedo.pyplot import plot
         import numpy as np
+        from vedo.pyplot import plot
+        from vedo import settings
+        settings.remember_last_figure_format = True #############
         x = np.linspace(0, 6.28, num=50)
-        plot(np.sin(x), 'r').plot(np.cos(x), 'bo-').show().close()
+        fig = plot(np.sin(x), 'r-')
+        fig+= plot(np.cos(x), 'bo-') # no need to specify like=...
+        fig.show().close()
         ```
         <img src="https://user-images.githubusercontent.com/32848391/74363882-c3638300-4dcb-11ea-8a78-eb492ad9711f.png" width="600">
 

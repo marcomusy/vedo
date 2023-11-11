@@ -46,8 +46,8 @@ class LinearTransform:
         Can be saved to file and reloaded.
         
         Arguments:
-            T : (vtk.vtkTransform, numpy array)
-                vtk transformation. Defaults to None.
+            T : (vtkTransform, numpy array)
+                input transformation. Defaults to unit.
         
         Example:
             ```python
@@ -56,20 +56,16 @@ class LinearTransform:
 
             LT = LinearTransform()
             LT.translate([3,0,1]).rotate_z(45)
+            LT.comment = "shifting by (3,0,1) and rotating by 45 deg"
             print(LT)
 
             sph = Sphere(r=0.2)
-            print("Sphere before", s1.transform)
-            s1.apply_transform(LT)
-            # same as:
-            # LT.move(s1)
-            print("Sphere after ", s1.transform)
+            sph.apply_transform(LT) # same as: LT.move(s1)
+            print(sph.transform)
 
-            zero = Point([0,0,0])
-            show(s1, zero, axes=1).close()
+            show(Point([0,0,0]), sph, str(LT.matrix), axes=1).close()
             ```
-       """
-
+        """
         self.name = "LinearTransform"
         self.filename = ""
         self.comment = ""
@@ -150,18 +146,18 @@ class LinearTransform:
         self.inverse_flag = False
 
     def __str__(self):
-        s = f"\x1b[7m\x1b[1mLinear Transformation\x1b[0m \x1b[3m({self.__module__})\x1b[0m"
-        if self.name:
-            s += "\nName: " + self.name
+        module = self.__class__.__module__
+        name = self.__class__.__name__
+        s = f"\x1b[7m\x1b[1m{module}.{name} at ({hex(id(self))})".ljust(75) + "\x1b[0m"
+        s += "\nname".ljust(15) + ": "  + self.name
         if self.filename:
-            s += "\nFilename: " + self.filename
+            s += "\nfilename".ljust(15) + ": "  + self.filename
         if self.comment:
-            s += f'\nComment: \x1b[3m"{self.comment}"\x1b[0m'
-        if self.n_concatenated_transforms > 1:
-            s += f"\Concatenations: {self.n_concatenated_transforms}"
-        if self.inverse_flag:
-            s += "\nInverse transformation flag is True"
-        s += "\n" + str(self.matrix)
+            s += "\ncomment".ljust(15) + f': \x1b[3m"{self.comment}"\x1b[0m'
+        s += f"\nconcatenations".ljust(15) + f": {self.n_concatenated_transforms}"
+        s += "\ninverse flag".ljust(15) + f": {bool(self.inverse_flag)}"
+        arr = np.array2string(self.matrix, separator=', ')
+        s += "\nmatrix 4x4".ljust(15) + f":\n{arr}"
         return s
 
     def __repr__(self):
@@ -247,22 +243,25 @@ class LinearTransform:
         
         Example:
             ```python
-            from vedo import *
+            from vedo import LinearTransform
 
             A = LinearTransform()
             A.rotate_x(45)
             A.translate([7,8,9])
             A.translate([10,10,10])
-            print("A", A)
+            A.name = "My transformation A"
+            print(A)
 
             B = A.compute_inverse()
             B.shift([1,2,3])
+            B.name = "My transformation B (shifted inverse of A)"
+            print(B)
 
             # A is applied first, then B
-            print("A.concatenate(B)", A.concatenate(B))
+            # print("A.concatenate(B)", A.concatenate(B))
 
             # B is applied first, then A
-            # print("B*A", B*A)
+            print(B*A)
             ```
         """
         if pre_multiply:
@@ -329,10 +328,10 @@ class LinearTransform:
             from vedo import *
             c1 = Cube()
             c2 = c1.clone().c('violet').alpha(0.5) # copy of c1
-            v = vector(0.2,1,0)
-            p = vector(1,0,0)  # axis passes through this point
+            v = vector(0.2, 1, 0)
+            p = vector(1.0, 0, 0)  # axis passes through this point
             c2.rotate(90, axis=v, point=p)
-            l = Line(-v+p, v+p).lw(3).c('red')
+            l = Line(p-v, p+v).c('red5').lw(3)
             show(c1, l, c2, axes=1).close()
             ```
             ![](https://vedo.embl.es/images/feats/rotate_axis.png)
@@ -495,21 +494,6 @@ class LinearTransform:
                 set to True if angle is expressed in radians.
             xyplane : (bool)
                 make an extra rotation to keep the object aligned to the xy-plane
-
-        Example:
-            ```python
-            from vedo import *
-            center = np.array([581/2,723/2,0])
-            objs = []
-            for a in np.linspace(0, 6.28, 7):
-                v = vector(cos(a), sin(a), 0)*1000
-                pic = Image(dataurl+"images/dog.jpg").rotate_z(10)
-                pic.reorient([0,0,1], v)
-                pic.pos(v - center)
-                objs += [pic, Arrow(v, v+v)]
-            show(objs, Point(), axes=1).close()
-            ```
-            ![](https://vedo.embl.es/images/feats/orientation.png)
         """
         newaxis  = np.asarray(newaxis) / np.linalg.norm(newaxis)
         initaxis = np.asarray(initaxis) / np.linalg.norm(initaxis)
@@ -675,21 +659,22 @@ class NonLinearTransform:
         self.inverse_flag = False
 
     def __str__(self):
-        s = f"\x1b[7m\x1b[1mNon-Linear Transformation\x1b[0m \x1b[3m({self.__module__})\x1b[0m\n"
+        module = self.__class__.__module__
+        name = self.__class__.__name__
+        s = f"\x1b[7m\x1b[1m{module}.{name} at ({hex(id(self))})".ljust(75) + "\x1b[0m\n"
+        s += "name".ljust(9) + ": "  + self.name + "\n"
         if self.filename:
-            s += "Filename: " + self.filename + "\n"
-        if self.name:
-            s += "Name    : " + self.name + "\n"
+            s += "filename".ljust(9) + ": "  + self.filename + "\n"
         if self.comment:
-            s += f'\nComment: \x1b[3m"{self.comment}"\x1b[0m'
-        s += f"Mode    : {self.mode}\n"
-        s += f"Sigma   : {self.sigma}\n"
+            s += "comment".ljust(9) + f': \x1b[3m"{self.comment}"\x1b[0m\n'
+        s += f"mode".ljust(9)  + f": {self.mode}\n"
+        s += f"sigma".ljust(9) + f": {self.sigma}\n"
         p = self.source_points
         q = self.target_points
-        s += f"Sources : {p.size}, bounds {np.min(p, axis=0)}, {np.max(p, axis=0)}\n"
-        s += f"Targets : {q.size}, bounds {np.min(q, axis=0)}, {np.max(q, axis=0)}"
+        s += f"sources".ljust(9) + f": {p.size}, bounds {np.min(p, axis=0)}, {np.max(p, axis=0)}\n"
+        s += f"targets".ljust(9) + f": {q.size}, bounds {np.min(q, axis=0)}, {np.max(q, axis=0)}"
         return s
-
+    
     def __repr__(self):
         return self.__str__()
 

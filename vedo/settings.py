@@ -13,6 +13,7 @@ class Settings:
         ```python
         from vedo import settings, Cube
         settings.use_parallel_projection = True
+        # settings["use_parallel_projection"] = True  # this is equivalent
         Cube().color('g').show().close()
         ```
 
@@ -675,26 +676,6 @@ class Settings:
         )
 
     ####################################################################################
-    def reset(self):
-        """Reset all settings to their default status."""
-        self.__init__()
-
-    def print(self):
-        """Print function."""
-        print(" " + "-" * 80)
-        s = Settings.__doc__.replace("   ", "")
-        s = s.replace(".. code-block:: python\n", "")
-        try:
-            from pygments import highlight
-            from pygments.lexers import Python3Lexer
-            from pygments.formatters import Terminal256Formatter
-
-            s = highlight(s, Python3Lexer(), Terminal256Formatter(style="zenburn"))
-            print(s, end="")
-
-        except ModuleNotFoundError:
-            print("\x1b[33;1m" + s + "\x1b[0m")
-
     def __getitem__(self, key):
         """Make the class work like a dictionary too"""
         return getattr(self, key)
@@ -702,8 +683,49 @@ class Settings:
     def __setitem__(self, key, value):
         """Make the class work like a dictionary too"""
         setattr(self, key, value)
+    
+    def __str__(self) -> str:
+        """Return a string representation of the object"""
+        s = Settings.__doc__.replace("   ", "")
+        s = s.replace(".. code-block:: python\n", "")
+        s = s.replace("```python\n", "")
+        s = s.replace("```\n", "")
+        s = s.replace("\n\n", "\n #------------------------------------------------------\n")
+        s = s.replace("\n  ", "\n")
+        s = s.replace("\n ", "\n")
+        s = s.replace(" from", "from")
+        try:
+            from pygments import highlight
+            from pygments.lexers import Python3Lexer
+            from pygments.formatters import Terminal256Formatter
+            s = highlight(s, Python3Lexer(), Terminal256Formatter(style="zenburn"))
+        except (ModuleNotFoundError, ImportError):
+            pass
 
+        module = self.__class__.__module__
+        name = self.__class__.__name__
+        header = f"{module}.{name} at ({hex(id(self))})".ljust(75)
+        s = f"\x1b[1m\x1b[7m{header}\x1b[0m\n" + s
+        return s.strip()
+    
+    ############################################################
+    def keys(self):
+        """Return all keys"""
+        return self.__slots__
+    
+    def values(self):
+        """Return all values"""
+        return [getattr(self, key) for key in self.__slots__]
+    
+    def items(self):
+        """Return all items"""
+        return [(key, getattr(self, key)) for key in self.__slots__]
 
+    def reset(self):
+        """Reset all settings to their default status."""
+        self.__init__()
+
+    ############################################################
     def init_colab(self, enable_k3d=True):
         """
         Initialize colab environment
@@ -739,7 +761,7 @@ class Settings:
 
         print(" setup completed.")
 
-
+    ############################################################
     def start_xvfb(self):
         """
         Start xvfb.

@@ -501,7 +501,7 @@ class Points(PointsVisual, PointAlgorithms):
                 r = np.sqrt(1 - y * y)
                 x = np.cos(theta) * r
                 z = np.sin(theta) * r
-                return [x,y,z]
+                return np._c[x,y,z]
 
             Points(fibonacci_sphere(1000)).show(axes=1).close()
             ```
@@ -1567,8 +1567,8 @@ class Points(PointsVisual, PointAlgorithms):
             cloud2 = np.random.randn(1000, 3) + [1, 2, 3]
             c1 = Points(cloud1, r=5, c="red")
             c2 = Points(cloud2, r=5, c="green")
-            print(c1.chamfer_distance(c2))
-            show(c1, c2, axes=1, viewup="z").close()
+            d = c1.chamfer_distance(c2)
+            show(f"Chamfer distance = {d}", c1, c2, axes=1).close()
             ```
         """
         # Definition of Chamfer distance may vary, here we use the average
@@ -1972,7 +1972,7 @@ class Points(PointsVisual, PointAlgorithms):
             ```python
             from vedo import Cube
             cube = Cube().cut_with_plane(normal=(1,1,1))
-            cube.back_color('pink').show()
+            cube.back_color('pink').show().close()
             ```
             ![](https://vedo.embl.es/images/feats/cut_with_plane_cube.png)
 
@@ -2068,7 +2068,7 @@ class Points(PointsVisual, PointAlgorithms):
             mesh = Sphere(r=1, res=50)
             box  = Cube(side=1.5).wireframe()
             mesh.cut_with_box(box)
-            show(mesh, box, axes=1)
+            show(mesh, box, axes=1).close()
             ```
             ![](https://vedo.embl.es/images/feats/cut_with_box_cube.png)
 
@@ -2162,8 +2162,9 @@ class Points(PointsVisual, PointAlgorithms):
                 Polygon(nsides=10, r=0.2).pos(0.3, 0.7),
             )
             lines = pols.boundaries()
-            grid.cut_with_cookiecutter(lines)
-            show(grid, lines, axes=8, bg='blackboard').close()
+            cgrid = grid.clone().cut_with_cookiecutter(lines)
+            grid.alpha(0.1).wireframe()
+            show(grid, cgrid, lines, axes=8, bg='blackboard').close()
             ```
             ![](https://vedo.embl.es/images/feats/cookiecutter.png)
 
@@ -2237,7 +2238,7 @@ class Points(PointsVisual, PointAlgorithms):
             disc = Disc(r1=1, r2=1.2)
             mesh = disc.extrude(3, res=50).linewidth(1)
             mesh.cut_with_cylinder([0,0,2], r=0.4, axis='y', invert=True)
-            show(mesh, axes=1)
+            show(mesh, axes=1).close()
             ```
             ![](https://vedo.embl.es/images/feats/cut_with_cylinder.png)
 
@@ -2289,7 +2290,7 @@ class Points(PointsVisual, PointAlgorithms):
             disc = Disc(r1=1, r2=1.2)
             mesh = disc.extrude(3, res=50).linewidth(1)
             mesh.cut_with_sphere([1,-0.7,2], r=1.5, invert=True)
-            show(mesh, axes=1)
+            show(mesh, axes=1).close()
             ```
             ![](https://vedo.embl.es/images/feats/cut_with_sphere.png)
 
@@ -3482,8 +3483,8 @@ class Points(PointsVisual, PointAlgorithms):
             show(s, camera=camopts, offscreen=True)
 
             m = s.visible_points()
-            #print('visible pts:', m.vertices) # numpy array
-            show(m, new=True, axes=1) # optionally draw result on a new window
+            # print('visible pts:', m.vertices)  # numpy array
+            show(m, new=True, axes=1).close() # optionally draw result in a new window
             ```
             ![](https://vedo.embl.es/images/feats/visible_points.png)
         """

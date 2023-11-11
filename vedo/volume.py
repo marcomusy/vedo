@@ -570,13 +570,8 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         Mark the object as modified.
 
         Example:
-        ```python
-        from vedo import Volume
-        vol = Volume("path/to/mydata/data.tif")
-        arr = vol.tonumpy()
-        arr[:] = arr*2 + 15
-        vol.modified()
-        ```
+
+        - [numpy2volume0.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/numpy2volume0.py)
         """
         self.dataset.GetPointData().GetScalars().Modified()
         return self

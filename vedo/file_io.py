@@ -1573,7 +1573,7 @@ def _export_npy(plt, fileoutput="scene.npz"):
 
 ########################################################################
 def import_window(fileinput, mtl_file=None, texture_path=None):
-    """Import a whole scene from a Numpy, HDF5 or OBJ wavefront file.
+    """Import a whole scene from a Numpy, OBJ wavefront file.
 
     Arguments:
         mtl_file : (str)
@@ -1587,8 +1587,8 @@ def import_window(fileinput, mtl_file=None, texture_path=None):
     if fileinput.endswith(".npy") or fileinput.endswith(".npz"):
         return _import_npy(fileinput)
     
-    elif fileinput.endswith(".h5") or fileinput.endswith(".hdf5"):
-        return _import_hdf5(fileinput)
+    # elif fileinput.endswith(".h5") or fileinput.endswith(".hdf5"):
+    #     return _import_hdf5(fileinput) # in store/file_io_HDF5.py
 
     elif ".obj" in fileinput.lower():
 
@@ -1738,11 +1738,11 @@ def ask(*question, **kwarg):
             the default answer when just hitting return.
 
     Example:
-        ```python
-        import vedo
-        res = vedo.file_io.ask("Continue?", options=['Y','n'], default='Y', c='g')
-        print(res)
-        ```
+    ```python
+    import vedo
+    res = vedo.ask("Continue?", options=['Y','n'], default='Y', c='g')
+    print(res)
+    ```
     """
     kwarg.update({"end": " "})
     if "invert" not in kwarg:

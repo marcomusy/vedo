@@ -1358,16 +1358,19 @@ class PointAlgorithms(CommonAlgorithms):
     def apply_transform(self, LT, concatenate=True, deep_copy=True):
         """
         Apply a linear or non-linear transformation to the mesh polygonal data.
-            ```python
-            from vedo import Cube, show, settings
-            settings.use_parallel_projection = True
-            c1 = Cube().rotate_z(25).pos(2,1).mirror()
-            T = c1.transform  # rotate by 5 degrees, place at (2,1)
-            c2 = Cube().c('red4').wireframe().lw(10).lighting('off')
-            c2.apply_transform(T)
-            show(c1, c2, axes=1).close()
-            ```
-            ![](https://vedo.embl.es/images/feats/apply_transform.png)
+
+        Example:
+        ```python
+        from vedo import Cube, show, settings
+        settings.use_parallel_projection = True
+        c1 = Cube().rotate_z(25).pos(2,1).mirror().alpha(0.5)
+        T = c1.transform  # rotate by 5 degrees, place at (2,1)
+        c2 = Cube().c('red4').wireframe().lw(10).lighting('off')
+        c2.apply_transform(T)
+        show(c1, c2, "The 2 cubes should overlap!", axes=1).close()
+        ```
+
+        ![](https://vedo.embl.es/images/feats/apply_transform.png)
         """
         if self.dataset.GetNumberOfPoints() == 0:
             return self
@@ -1484,17 +1487,18 @@ class PointAlgorithms(CommonAlgorithms):
         Rotate around an arbitrary `axis` passing through `point`.
 
         Example:
-            ```python
-            from vedo import *
-            c1 = Cube()
-            c2 = c1.clone().c('violet').alpha(0.5) # copy of c1
-            v = vector(0.2,1,0)
-            p = vector(1,0,0)  # axis passes through this point
-            c2.rotate(90, axis=v, point=p)
-            l = Line(-v+p, v+p).lw(3).c('red')
-            show(c1, l, c2, axes=1).close()
-            ```
-            ![](https://vedo.embl.es/images/feats/rotate_axis.png)
+        ```python
+        from vedo import *
+        c1 = Cube()
+        c2 = c1.clone().c('violet').alpha(0.5) # copy of c1
+        v = vector(0.2,1,0)
+        p = vector(1,0,0)  # axis passes through this point
+        c2.rotate(90, axis=v, point=p)
+        l = Line(-v+p, v+p).lw(3).c('red')
+        show(c1, l, c2, axes=1).close()
+        ```
+
+        ![](https://vedo.embl.es/images/feats/rotate_axis.png)
         """
         LT = LinearTransform()
         LT.rotate(angle, axis, point, rad)
@@ -2062,14 +2066,15 @@ class UGridAlgorithms(CommonAlgorithms):
         This method always returns a TetMesh object.
 
         Example:
-            ```python
-            from vedo import *
-            tetmesh = TetMesh(dataurl+'limb_ugrid.vtk')
-            tetmesh.color('rainbow')
-            cu = Cube(side=500).x(500) # any Mesh works
-            tetmesh.cut_with_box(cu).show(axes=1)
-            ```
-            ![](https://vedo.embl.es/images/feats/tet_cut_box.png)
+        ```python
+        from vedo import *
+        tetmesh = TetMesh(dataurl+'limb_ugrid.vtk')
+        tetmesh.color('rainbow')
+        cu = Cube(side=500).x(500) # any Mesh works
+        tetmesh.cut_with_box(cu).show(axes=1)
+        ```
+
+        ![](https://vedo.embl.es/images/feats/tet_cut_box.png)
         """
         bc = vtk.new("BoxClipDataSet")
         bc.SetInputData(self.dataset)

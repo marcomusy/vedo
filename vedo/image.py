@@ -504,7 +504,7 @@ class Image(vedo.visual.ImageVisual):
     def pad(self, pixels=10, value=255):
         """
         Add the specified number of pixels at the image borders.
-        Pixels can be a list formatted as [left,right,bottom,top].
+        Pixels can be a list formatted as `[left, right, bottom, top]`.
 
         Arguments:
             pixels : (int, list)
@@ -752,7 +752,7 @@ class Image(vedo.visual.ImageVisual):
         Example:
             ```python
             from vedo import *
-            pic = Image(vedo.dataurl+'images/dog.jpg').bw()
+            pic = Image(dataurl+'images/dog.jpg').bw()
             show(pic, pic.clone().enhance(), N=2, mode='image', zoom='tight')
             ```
             ![](https://vedo.embl.es/images/feats/pict_enhance.png)
@@ -1056,14 +1056,14 @@ class Image(vedo.visual.ImageVisual):
                 invert threshold direction
 
         Example:
-            ```python
-            from vedo import Image, show
-            pic1 = Image("https://aws.glamour.es/prod/designs/v1/assets/620x459/547577.jpg")
-            pic2 = pic1.clone().invert()
-            pic3 = pic1.clone().binarize()
-            show(pic1, pic2, pic3, N=3, bg="blue9").close()
-            ```
-            ![](https://vedo.embl.es/images/feats/pict_binarize.png)
+        ```python
+        from vedo import Image, show
+        pic1 = Image("https://aws.glamour.es/prod/designs/v1/assets/620x459/547577.jpg")
+        pic2 = pic1.clone().invert()
+        pic3 = pic1.clone().binarize()
+        show(pic1, pic2, pic3, N=3, bg="blue9").close()
+        ```
+        ![](https://vedo.embl.es/images/feats/pict_binarize.png)
         """
         rgb = self.tonumpy()
         if rgb.ndim == 3:
@@ -1263,9 +1263,9 @@ class Image(vedo.visual.ImageVisual):
             ```python
             import vedo
             pic = vedo.Image(vedo.dataurl+"images/dog.jpg")
-            pic.rectangle([100,300], [100,200], c='green4', alpha=0.7)
-            pic.line([100,100],[400,500], lw=2, alpha=1)
-            pic.triangle([250,300], [100,300], [200,400], c='blue5')
+            pic.add_rectangle([100,300], [100,200], c='green4', alpha=0.7)
+            pic.add_line([100,100],[400,500], lw=2, alpha=1)
+            pic.add_triangle([250,300], [100,300], [200,400], c='blue5')
             vedo.show(pic, axes=1).close()
             ```
             ![](https://vedo.embl.es/images/feats/pict_drawon.png)

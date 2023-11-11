@@ -16,7 +16,7 @@ Major internal refactoring.
 - passing a `vtkCamera` to `show(camera=...)` triggers a copy of the input which is 
     therefore not muted by any subsequent interaction (thanks @baba-yaga )
 
-
+- add brand new `transformations` module.
 - add `plotter.pick_area()` thanks to @ZiguoAtGitHub and @RubendeBruin feedback.
 - add texture to npz files thanks to @zhouzq-thu in #918
 - add background radial gradients
@@ -67,6 +67,7 @@ examples/advanced/timer_callback2.py
 examples/advanced/warp4a.py
 examples/advanced/warp4b.py
 examples/simulations/lorenz.py
+examples/volumetric/numpy2volume0.py
 examples/volumetric/slicer1.py
 examples/other/flag_labels1.py
 examples/pyplot/embed_matplotlib.py

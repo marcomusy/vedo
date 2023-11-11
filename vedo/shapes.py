@@ -613,7 +613,7 @@ class Line(Mesh):
         Example:
             ```python
             from vedo import *
-            shape = load(dataurl+"timecourse1d.npy")[58]
+            shape = Assembly(dataurl+"timecourse1d.npy")[58]
             pts = shape.rotate_x(30).vertices
             tangents = Line(pts).tangents()
             arrs = Arrows(pts, pts+tangents, c='blue9')
@@ -635,7 +635,7 @@ class Line(Mesh):
             ```python
             from vedo import *
             from vedo.pyplot import plot
-            shape = load(dataurl+"timecourse1d.npy")[55]
+            shape = Assembly(dataurl+"timecourse1d.npy")[55]
             curvs = Line(shape.vertices).curvature()
             shape.cmap('coolwarm', curvs, vmin=-2,vmax=2).add_scalarbar3d(c='w')
             shape.render_lines_as_tubes().lw(12)
@@ -683,7 +683,7 @@ class Line(Mesh):
             from vedo import Line, show
             aline = Line([(0,0,0),(1,3,0),(2,4,0)])
             surf1 = aline.sweep((1,0.2,0), res=3)
-            surf2 = aline.sweep((0.2,0,1))
+            surf2 = aline.sweep((0.2,0,1)).alpha(0.5)
             aline.color('r').linewidth(4)
             show(surf1, surf2, aline, axes=1).close()
             ```
@@ -863,7 +863,8 @@ class RoundedLine(Mesh):
             ```python
             from vedo import *
             pts = [(-4,-3),(1,1),(2,4),(4,1),(3,-1),(2,-5),(9,-3)]
-            ln = Line(pts, c='r', lw=2).z(0.01)
+            ln = Line(pts).z(0.01)
+            ln.color("red5").linewidth(2)
             rl = RoundedLine(pts, 0.6)
             show(Points(pts), ln, rl, axes=1).close()
             ```
@@ -3004,6 +3005,7 @@ class Grid(Mesh):
     def __init__(self, pos=(0, 0, 0), s=(1, 1), res=(10, 10), lw=1, c="k3", alpha=1.0):
         """
         Create an even or uneven 2D grid.
+        Can also be created from a `np.mgrid` object (see example).
 
         Arguments:
             pos : (list, Points, Mesh)
@@ -3020,17 +3022,16 @@ class Grid(Mesh):
         Example:
             ```python
             from vedo import *
-            import numpy as np
             xcoords = np.arange(0, 2, 0.2)
             ycoords = np.arange(0, 1, 0.2)
             sqrtx = sqrt(xcoords)
             grid = Grid(s=(sqrtx, ycoords)).lw(2)
-            grid.show(axes=8)
+            grid.show(axes=8).close()
 
-            # can also create a grid from np.mgrid:
-            X, Y = np.mgrid[-12:12:1000*1j, 0:15:1000*1j]
+            # Can also create a grid from a np.mgrid:
+            X, Y = np.mgrid[-12:12:10*1j, 200:215:10*1j]
             vgrid = Grid(s=(X[:,0], Y[0]))
-            vgrid.show(axes=1).close()
+            vgrid.show(axes=8).close()
             ```
             ![](https://vedo.embl.es/images/feats/uneven_grid.png)
         """

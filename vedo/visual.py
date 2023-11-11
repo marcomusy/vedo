@@ -2345,7 +2345,7 @@ class MeshVisual(PointsVisual):
 
         elif isinstance(tname, vedo.Image):
             tu = vtk.vtkTexture()
-            out_img = tname
+            out_img = tname.dataset
 
         elif utils.is_sequence(tname):
             tu = vtk.vtkTexture()

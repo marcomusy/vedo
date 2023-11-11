@@ -894,12 +894,12 @@ class Mesh(MeshVisual, Points):
                 set the range of the scalar
 
         Example:
-            ```python
-            from vedo import Sphere
-            s = Sphere().compute_elevation(low=(0,0,0), high=(1,1,1))
-            s.add_scalarbar().show(axes=1).close()
-            ```
-            ![](https://user-images.githubusercontent.com/32848391/68478872-3986a580-0231-11ea-8245-b68a683aa295.png)
+        ```python
+        from vedo import Sphere
+        s = Sphere().compute_elevation(low=(0,0,0), high=(1,1,1))
+        s.add_scalarbar().show(axes=1).close()
+        ```
+        ![](https://user-images.githubusercontent.com/32848391/68478872-3986a580-0231-11ea-8245-b68a683aa295.png)
         """
         ef = vtk.new("ElevationFilter")
         ef.SetInputData(self.dataset)

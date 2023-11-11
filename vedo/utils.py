@@ -255,10 +255,11 @@ class ProgressBar:
         Example:
             ```python
             import time
-            pb = ProgressBar(0,400, c='red')
+            from vedo import ProgressBar
+            pb = ProgressBar(0,40, c='r')
             for i in pb.range():
                 time.sleep(0.1)
-                pb.print('some message')
+                pb.print()
             ```
             ![](https://user-images.githubusercontent.com/32848391/51858823-ed1f4880-2335-11e9-8788-2d102ace2578.png)
         """
@@ -393,7 +394,7 @@ def progressbar(iterable, c=None, bold=True, italic=False, title="", eta=True, w
     Example:
         ```python
         import time
-        for i in progressbar(range(100), c='red'):
+        for i in progressbar(range(100), c='r'):
             time.sleep(0.1)
         ```
         ![](https://user-images.githubusercontent.com/32848391/51858823-ed1f4880-2335-11e9-8788-2d102ace2578.png)
