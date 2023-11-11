@@ -19,7 +19,6 @@ for p in tmesh.cell_centers:
     cid = seeds.closest_point(p, return_point_id=True)
     cids.append(cid)
 tmesh.celldata["fragment"] = cids
-# tmesh.celldata.select("fragment")# bug, has no effect, needs name=...
 
 pieces = []
 for i in range(seeds.npoints):

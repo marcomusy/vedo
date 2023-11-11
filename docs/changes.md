@@ -66,13 +66,16 @@ examples/advanced/timer_callback1.py
 examples/advanced/timer_callback2.py
 examples/advanced/warp4a.py
 examples/advanced/warp4b.py
-examples/simulations/lorenz.py
-examples/volumetric/numpy2volume0.py
-examples/volumetric/slicer1.py
-examples/other/flag_labels1.py
 examples/pyplot/embed_matplotlib.py
 examples/pyplot/plot_fxy2.py
 examples/simulations/springs_fem.py
+examples/simulations/lorenz.py
+examples/volumetric/numpy2volume0.py
+examples/volumetric/slicer1.py
+examples/volumetric/tet_astyle.py
+examples/volumetric/tet_cut1.py
+examples/volumetric/tet_cut2.py
+examples/other/flag_labels1.py
 ```
 
 

@@ -1762,12 +1762,55 @@ class UGridAlgorithms(CommonAlgorithms):
         super().__init__()
         pass
 
+    @property
+    def actor(self):
+        """Return the `vtkActor` of the object."""
+        # print("building actor")
+        gf = vtk.new("GeometryFilter")
+        gf.SetInputData(self.dataset)
+        gf.Update()
+        out = gf.GetOutput()
+        self.mapper.SetInputData(out)
+        self.mapper.Modified()
+        return self._actor
+
+    @actor.setter
+    def actor(self, _):
+        pass
+
     def _update(self, data, reset_locators=False):
         self.dataset = data
         # self.mapper.SetInputData(data)
         # self.mapper.Modified()
         ## self.actor.Modified()
         return self
+
+    def copy(self, deep=True):
+        """Return a copy of the object. Alias of `clone()`."""
+        return self.clone(deep=deep)
+
+    def clone(self, deep=True):
+        """Clone the UnstructuredGrid object to yield an exact copy."""
+        ug = vtk.vtkUnstructuredGrid()
+        if deep:
+            ug.DeepCopy(self.dataset)
+        else:
+            ug.ShallowCopy(self.dataset)
+        if isinstance(self, vedo.UnstructuredGrid):
+            cloned = vedo.UnstructuredGrid(ug)
+        else:
+            cloned = vedo.TetMesh(ug)
+        pr = vtk.vtkProperty()
+        pr.DeepCopy(self.properties)
+        cloned._actor.SetProperty(pr)
+        cloned.properties = pr
+        # there is no deep copy for mapper
+        cloned.mapper.ShallowCopy(self.mapper)
+
+        cloned.pipeline = utils.OperationNode(
+            "clone", parents=[self], shape='diamond', c='#bbe1ed',
+        )
+        return cloned
 
     def bounds(self):
         """
@@ -2119,7 +2162,7 @@ class UGridAlgorithms(CommonAlgorithms):
 
 
     def cut_with_mesh(
-            self, mesh, invert=False, whole_cells=False, only_boundary=False
+            self, mesh, invert=False, whole_cells=False, on_boundary=False
         ):
         """
         Cut a UnstructuredGrid or TetMesh with a Mesh.
@@ -2131,13 +2174,13 @@ class UGridAlgorithms(CommonAlgorithms):
         ippd = vtk.new("ImplicitPolyDataDistance")
         ippd.SetInput(mesh.dataset)
 
-        if whole_cells or only_boundary:
+        if whole_cells or on_boundary:
             clipper = vtk.new("ExtractGeometry")
             clipper.SetInputData(ug)
             clipper.SetImplicitFunction(ippd)
             clipper.SetExtractInside(not invert)
             clipper.SetExtractBoundaryCells(False)
-            if only_boundary:
+            if on_boundary:
                 clipper.SetExtractBoundaryCells(True)
                 clipper.SetExtractOnlyBoundaryCells(True)
         else:
@@ -2149,7 +2192,7 @@ class UGridAlgorithms(CommonAlgorithms):
                 signed_dist = ippd.EvaluateFunction(p)
                 signed_dists.InsertNextValue(signed_dist)
             ug.GetPointData().AddArray(signed_dists)
-            ug.GetPointData().SetActiveScalars("SignedDistance")
+            ug.GetPointData().SetActiveScalars("SignedDistance") # NEEDED
             clipper = vtk.new("ClipDataSet")
             clipper.SetInputData(ug)
             clipper.SetInsideOut(not invert)

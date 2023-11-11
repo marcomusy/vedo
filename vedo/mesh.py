@@ -2264,7 +2264,8 @@ class Mesh(MeshVisual, Points):
         if subsample:
             surf.subsample(side)
 
-        tmesh = vedo.tetmesh.delaunay3d(vedo.merge(fillpts, surf))
+        merged_fs = vedo.merge(fillpts, surf)
+        tmesh = merged_fs.generate_delaunay3d()
         tcenters = tmesh.cell_centers
 
         ids = surf.inside_points(tcenters, return_ids=True)

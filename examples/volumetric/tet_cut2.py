@@ -1,31 +1,36 @@
-"""Cut a TetMesh with a Mesh
-(note the presence of polygonal boundary)"""
+"""Cut a TetMesh with a Mesh 
+to generate an UnstructuredGrid"""
 from vedo import *
 
-settings.use_depth_peeling = True
-
-tetm = TetMesh(dataurl+'limb_ugrid.vtk')
+settings.default_font = 'Calco'
 
 sphere = Sphere(r=500).x(400).c('green', 0.1)
 
-# Clone and cut tetm, keep the outside:
-tetm1 = tetm.clone().cut_with_mesh(sphere, invert=True)
+tetm1 = TetMesh(dataurl+'limb_ugrid.vtk')
+tetm1.cmap('jet', tetm1.vertices[:, 2], name="ProximoDistal")
 
-# Make it a polygonal Mesh for visualization
-msh1 = tetm1.tomesh().linewidth(0.1).cmap('Blues')
+# Clone and cut the TetMesh, this returns a UnstructuredGrid:
+ugrid1 = tetm1.clone().cut_with_mesh(sphere, invert=True)
+print(ugrid1)
+ugrid1.cmap("Greens_r", "SignedDistance")
+show(ugrid1, sphere, axes=1, viewup='z').close()
 
 # Cut tetm, but the output will keep only the whole tets (NOT the polygonal boundary!):
-tetm2 = tetm.clone().cut_with_mesh(sphere, invert=True, whole_cells=True)
+ugrid2 = tetm1.clone().cut_with_mesh(sphere, invert=True, whole_cells=True)
+tetm2 = TetMesh(ugrid2).cmap("Greens_r", "ProximoDistal")
+print(tetm2)
+# show(tetm2, sphere, axes=1, viewup='z').close()
 
 # Cut tetm, but the output will keep only the tets on the boundary:
-tetm3 = tetm.clone().cut_with_mesh(sphere, only_boundary=True)
-# tetm3.cmap("bone").add_scalarbar3d()
+ugrid3 = tetm1.clone().cut_with_mesh(sphere, on_boundary=True)
+tetm3 = TetMesh(ugrid3).cmap("Reds", "chem_0", on="cells")
+print(tetm3)
+# show(tetm3, sphere, axes=1, viewup='z').close()
 
 show([
-      (msh1, sphere, __doc__),
-      (tetm2.tomesh(), "Keep only tets that lie\ncompletely outside the Sphere"),
+      (tetm1, __doc__),
+      (tetm2, sphere, "Keep only tets that lie\ncompletely outside the Sphere"),
       (tetm3, sphere, "Keep only tets that lie\nexactly on the Sphere"),
      ], 
-     N=3, 
-     axes=dict(xtitle='x in :mum'),
+     N=3, axes=dict(xtitle='x in :mum'),
 ).close()
