@@ -2,7 +2,7 @@
 from vedo import *
 
 # Load an UnStructuredGrid
-ugrid = UGrid(dataurl+"cavity.vtk")
+ugrid = UnstructuredGrid(dataurl+"cavity.vtk")
 
 # Make a grid of points to probe as type Mesh
 probe = Grid(s=[0.1,0.01], res=[20,4], c='k')

@@ -1,7 +1,7 @@
 from vedo import *
 
 f = download('https://github.com/marcomusy/vedo/files/4602353/domain_unstruct.vtk.gz')
-ug = UGrid(gunzip(f))
+ug = UnstructuredGrid(gunzip(f))
 
 # make up some custom vector field
 pts   = ug.vertices
