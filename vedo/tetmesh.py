@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from weakref import ref as weak_ref_to
 
 import vedo.vtkclasses as vtk
 
@@ -9,7 +10,7 @@ from vedo import utils
 from vedo.core import UGridAlgorithms
 from vedo.mesh import Mesh
 from vedo.file_io import download
-from vedo.visual import VolumeVisual
+from vedo.visual import MeshVisual, VolumeVisual
 from vedo.transformations import LinearTransform
 
 __docformat__ = "google"
@@ -22,8 +23,7 @@ Work with tetrahedral meshes.
 
 __all__ = ["UnstructuredGrid", "TetMesh"]
 
-
-
+#########################################################################
 def _buildtetugrid(points, cells):
     ug = vtk.vtkUnstructuredGrid()
 
@@ -63,7 +63,7 @@ def _buildtetugrid(points, cells):
 
 
 #########################################################################
-class UnstructuredGrid(UGridAlgorithms):
+class UnstructuredGrid(MeshVisual, UGridAlgorithms):
     """Support for UnstructuredGrid objects."""
 
     def __init__(self, inputobj=None):
@@ -75,18 +75,22 @@ class UnstructuredGrid(UGridAlgorithms):
                 A list in the form `[points, cells, celltypes]`,
                 or a vtkUnstructuredGrid object, or a filename
 
-        Celltypes are identified by the following convention:
-
-        https://vtk.org/doc/nightly/html/vtkCellType_8h_source.html
+        Celltypes are identified by the following 
+        [convention](https://vtk.org/doc/nightly/html/vtkCellType_8h_source.html).
         """
         super().__init__()
 
         self.dataset = None
-        self.actor = vtk.vtkVolume()
-        self.properties = self.actor.GetProperty()
+
+        self.mapper = vtk.new("PolyDataMapper")
+        self._actor = vtk.vtkActor()
+        self._actor.retrieve_object = weak_ref_to(self)
+        self._actor.SetMapper(self.mapper)
+        self.properties = self._actor.GetProperty()
 
         self.name = "UnstructuredGrid"
         self.filename = ""
+        self.info = {}
 
         ###################
         inputtype = str(type(inputobj))
@@ -171,18 +175,29 @@ class UnstructuredGrid(UGridAlgorithms):
             vedo.logger.error(f"cannot understand input type {inputtype}")
             return
 
-        self.mapper = vtk.new("UnstructuredGridVolumeRayCastMapper")
-        self.actor.SetMapper(self.mapper)
-
-        self.mapper.SetInputData(self.dataset) ###NOT HERE?
-
         self.pipeline = utils.OperationNode(
             self, comment=f"#cells {self.dataset.GetNumberOfCells()}",
             c="#4cc9f0",
         )
 
     # ------------------------------------------------------------------
+    @property
+    def actor(self):
+        """Return the `vtkActor` of the object."""
+        # print("building actor")
+        gf = vtk.new("GeometryFilter")
+        gf.SetInputData(self.dataset)
+        gf.Update()
+        out = gf.GetOutput()
+        self.mapper.SetInputData(out)
+        self.mapper.Modified()
+        return self._actor
 
+    @actor.setter
+    def actor(self, _):
+        pass
+
+    # ------------------------------------------------------------------
     def __str__(self):
         """Print a string summary of the `UnstructuredGrid` object."""
         module = self.__class__.__module__
@@ -335,10 +350,12 @@ class UnstructuredGrid(UGridAlgorithms):
             ug.ShallowCopy(self.dataset)
 
         cloned = UnstructuredGrid(ug)
-        pr = vtk.vtkVolumeProperty()
+        pr = vtk.vtkProperty()
         pr.DeepCopy(self.properties)
-        cloned.actor.SetProperty(pr)
+        cloned._actor.SetProperty(pr)
         cloned.properties = pr
+        # there is no deep copy for mapper
+        cloned.mapper.ShallowCopy(self.mapper)
 
         cloned.pipeline = utils.OperationNode(
             "clone", parents=[self], shape='diamond', c='#bbe1ed',

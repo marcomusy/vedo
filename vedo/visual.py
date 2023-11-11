@@ -36,7 +36,9 @@ class CommonVisual:
         self.mapper = None
         self.properties = None
         self.actor = None
-        self.scalarbar = None        
+        self.scalarbar = None       
+        self.trail = None
+        self.shadows = [] 
     
     def print(self):
         """Print object info."""

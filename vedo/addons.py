@@ -850,7 +850,7 @@ def ScalarBar(
         ![](https://user-images.githubusercontent.com/32848391/62940174-4bdc7900-bdd3-11e9-9713-e4f3e2fdab63.png)
     """
 
-    if isinstance(obj, Points):
+    if isinstance(obj, (Points, TetMesh, vedo.UnstructuredGrid)):
         vtkscalars = obj.dataset.GetPointData().GetScalars()
         if vtkscalars is None:
             vtkscalars = obj.dataset.GetCellData().GetScalars()
@@ -862,7 +862,7 @@ def ScalarBar(
             if not lut:
                 return None
 
-    elif isinstance(obj, (Volume, TetMesh, vedo.UnstructuredGrid)):
+    elif isinstance(obj, Volume):
         lut = utils.ctf2lut(obj)
 
     elif utils.is_sequence(obj) and len(obj) == 2:
@@ -1024,7 +1024,7 @@ def ScalarBar3D(
         - [scalarbars.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/scalarbars.py)
     """
 
-    if isinstance(obj, Points):
+    if isinstance(obj, (Points, TetMesh, vedo.UnstructuredGrid)):
         lut = obj.mapper.GetLookupTable()
         if not lut or lut.GetTable().GetNumberOfTuples() == 0:
             # create the most similar to the default
@@ -1032,7 +1032,7 @@ def ScalarBar3D(
             lut = obj.mapper.GetLookupTable()
         vmin, vmax = lut.GetRange()
 
-    elif isinstance(obj, (Volume, TetMesh, vedo.UnstructuredGrid)):
+    elif isinstance(obj, Volume):
         lut = utils.ctf2lut(obj)
         vmin, vmax = lut.GetRange()
 

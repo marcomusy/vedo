@@ -1,10 +1,11 @@
-"""Cut an UnstructuredGrid with a mesh"""
+"""Cut an UnstructuredGrid with a Mesh"""
 from vedo import *
 
-ug1 = UGrid(dataurl+'ugrid.vtk')
-ms1 = ug1.clone().tomesh().wireframe()
+ug1 = UnstructuredGrid(dataurl+'ugrid.vtk')
+print(ug1)
 
 cyl = Cylinder(r=3, height=7).x(3).wireframe()
-ms2 = ug1.cut_with_mesh(cyl).tomesh().cmap('jet')
+ug2 = ug1.clone().cut_with_mesh(cyl)
 
-show(ms1, ms2, cyl, __doc__, axes=1).close()
+ug1.wireframe()
+show(ug1, ug2, cyl, __doc__, axes=1).close()

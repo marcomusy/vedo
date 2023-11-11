@@ -845,8 +845,6 @@ for name in [
     "vtkFixedPointVolumeRayCastMapper",
     "vtkGPUVolumeRayCastMapper",
     "vtkProjectedTetrahedraMapper",
-    "vtkUnstructuredGridVolumeRayCastMapper",
-    "vtkUnstructuredGridVolumeZSweepMapper",
 ]: location[name] = "vtkRenderingVolume"
 
 #########################################################

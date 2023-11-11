@@ -1764,8 +1764,9 @@ class UGridAlgorithms(CommonAlgorithms):
 
     def _update(self, data, reset_locators=False):
         self.dataset = data
-        self.mapper.SetInputData(data)
-        self.mapper.Modified()
+        # self.mapper.SetInputData(data)
+        # self.mapper.Modified()
+        ## self.actor.Modified()
         return self
 
     def bounds(self):

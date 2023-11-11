@@ -2946,22 +2946,6 @@ class Plotter:
             elif isinstance(a, (vtk.vtkActor, vtk.vtkActor2D)):
                 scanned_acts.append(a)
 
-            elif isinstance(a, (vedo.TetMesh, vedo.UnstructuredGrid)):
-                # check ugrid is all made of tets
-                # ugrid = a
-                # uarr = ugrid.GetCellTypesArray()
-                # celltypes = np.unique(utils.vtk2numpy(uarr))
-                # ncelltypes = len(celltypes)
-                # if ncelltypes > 1 or (ncelltypes == 1 and celltypes[0] != 10):
-                #     scanned_acts.append(a.tomesh())
-                # else:
-                #     if not ugrid.GetPointData().GetScalars():
-                #         if not ugrid.GetCellData().GetScalars():
-                #             # add dummy array for vtkProjectedTetrahedraMapper to work:
-                #             a.celldata["DummyOneArray"] = np.ones(a.ncells)
-                #     scanned_acts.append(a)
-                scanned_acts.append(a.actor)
-
             elif isinstance(a, str):
                 # assume a 2D comment was given
                 changed = False  # check if one already exists so to just update text
@@ -2983,7 +2967,7 @@ class Plotter:
 
             elif isinstance(a, (
                     vtk.vtkAssembly,
-                    vtk.vtkVolume,  # order matters! dont move above TetMesh
+                    vtk.vtkVolume,
                     vtk.vtkImageActor,
                     vtk.vtkLegendBoxActor,
                     vtk.vtkBillboardTextActor3D,
