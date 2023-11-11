@@ -79,7 +79,7 @@ class OperationNode:
     # https://www.graphviz.org/doc/info/shapes.html#html
     # Mesh     #e9c46a
     # Follower #d9ed92
-    # Volume, UGrid #4cc9f0
+    # Volume, UnstructuredGrid #4cc9f0
     # TetMesh  #9e2a2b
     # File     #8a817c
     # Image  #f28482

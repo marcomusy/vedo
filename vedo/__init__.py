@@ -30,7 +30,6 @@ from vedo.utils import *
 from vedo.core import *
 from vedo.shapes import *
 from vedo.file_io import *
-from vedo.ugrid import *
 from vedo.assembly import *
 from vedo.pointcloud import *
 from vedo.mesh import *

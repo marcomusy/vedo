@@ -3447,6 +3447,39 @@ class Points(PointsVisual, PointAlgorithms):
         m.name = "Voronoi"
         return m
 
+    ##########################################################################
+    def generate_delaunay3d(self, radius=0, tol=None):
+        """
+        Create 3D Delaunay triangulation of input points.
+
+        Arguments:
+            radius : (float)
+                specify distance (or "alpha") value to control output.
+                For a non-zero values, only tetra contained within the circumsphere
+                will be output.
+            tol : (float)
+                Specify a tolerance to control discarding of closely spaced points.
+                This tolerance is specified as a fraction of the diagonal length of
+                the bounding box of the points.
+        """
+        deln = vtk.new("Delaunay3D")
+        deln.SetInputData(self.dataset)
+        deln.SetAlpha(radius)
+        deln.AlphaTetsOn()
+        deln.AlphaTrisOff()
+        deln.AlphaLinesOff()
+        deln.AlphaVertsOff()
+        deln.BoundingTriangulationOff()
+        if tol:
+            deln.SetTolerance(tol)
+        deln.Update()
+        m = vedo.TetMesh(deln.GetOutput())
+        m.pipeline = utils.OperationNode(
+            "generate_delaunay3d", c="#e9c46a:#edabab", parents=[self],
+        )
+        m.name = "Delaunay3D"
+        return m
+
     ####################################################
     def visible_points(self, area=(), tol=None, invert=False):
         """

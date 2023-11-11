@@ -1826,7 +1826,7 @@ class UGridAlgorithms(CommonAlgorithms):
 
     def tomesh(self, fill=True, shrink=1.0):
         """
-        Build a polygonal Mesh from the current object.
+        Build a polygonal `Mesh` from the current object.
 
         If `fill=True`, the interior faces of all the cells are created.
         (setting a `shrink` value slightly smaller than the default 1.0
@@ -1858,9 +1858,9 @@ class UGridAlgorithms(CommonAlgorithms):
             poly = gf.GetOutput()
 
         msh = vedo.mesh.Mesh(poly).flat()
-        lut = utils.ctf2lut(self)
-        if lut:
-            msh.mapper.SetLookupTable(lut)
+        # lut = utils.ctf2lut(self)
+        # if lut:
+        #     msh.mapper.SetLookupTable(lut)
 
         msh.pipeline = utils.OperationNode(
             "tomesh", parents=[self], comment=f"fill={fill}", c="#9e2a2b:#e9c46a"
@@ -1868,8 +1868,32 @@ class UGridAlgorithms(CommonAlgorithms):
         return msh
 
 
+    def extract_cell_type(self, ctype):
+        """Extract a specific cell type and return a new `UnstructuredGrid`."""
+        uarr = self.dataset.GetCellTypesArray()
+        ctarrtyp = np.where(utils.vtk2numpy(uarr) == ctype)[0]
+        uarrtyp = utils.numpy2vtk(ctarrtyp, deep=False, dtype="id")
+        selection_node = vtk.new("SelectionNode")
+        selection_node.SetFieldType(vtk.get_class("SelectionNode").CELL)
+        selection_node.SetContentType(vtk.get_class("SelectionNode").INDICES)
+        selection_node.SetSelectionList(uarrtyp)
+        selection = vtk.new("Selection")
+        selection.AddNode(selection_node)
+        es = vtk.new("ExtractSelection")
+        es.SetInputData(0, self.dataset)
+        es.SetInputData(1, selection)
+        es.Update()
+
+        ug = UnstructuredGrid(es.GetOutput())
+
+        ug.pipeline = utils.OperationNode(
+            "extract_cell_type", comment=f"type {ctype}",
+            c="#edabab", parents=[self],
+        )
+        return ug
+
     def extract_cells_by_id(self, idlist, use_point_ids=False):
-        """Return a new UGrid composed of the specified subset of indices."""
+        """Return a new `UnstructuredGrid` composed of the specified subset of indices."""
         selection_node = vtk.new("SelectionNode")
         if use_point_ids:
             selection_node.SetFieldType(vtk.get_class("SelectionNode").POINT)
@@ -1887,7 +1911,7 @@ class UGridAlgorithms(CommonAlgorithms):
         es.SetInputData(1, selection)
         es.Update()
 
-        ug = vedo.ugrid.UGrid(es.GetOutput())
+        ug = vedo.tetmesh.UnstructuredGrid(es.GetOutput())
         pr = vtk.vtkProperty()
         pr.DeepCopy(self.properties)
         ug.SetProperty(pr)
@@ -2043,8 +2067,8 @@ class UGridAlgorithms(CommonAlgorithms):
         cout = clipper.GetOutput()
 
         if isinstance(cout, vtk.vtkUnstructuredGrid):
-            ug = vedo.UGrid(cout)
-            if isinstance(self, vedo.UGrid):
+            ug = vedo.UnstructuredGrid(cout)
+            if isinstance(self, vedo.UnstructuredGrid):
                 self._update(cout)
                 self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
                 return self
@@ -2097,7 +2121,7 @@ class UGridAlgorithms(CommonAlgorithms):
             self, mesh, invert=False, whole_cells=False, only_boundary=False
         ):
         """
-        Cut a UGrid or TetMesh with a Mesh.
+        Cut a UnstructuredGrid or TetMesh with a Mesh.
 
         Use `invert` to return cut off part of the input object.
         """
@@ -2132,6 +2156,6 @@ class UGridAlgorithms(CommonAlgorithms):
 
         clipper.Update()
 
-        out = vedo.UGrid(clipper.GetOutput())
+        out = vedo.UnstructuredGrid(clipper.GetOutput())
         out.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
         return out

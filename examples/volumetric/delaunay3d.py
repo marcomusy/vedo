@@ -11,7 +11,7 @@ pin = s.inside_points(pts)
 pin.subsample(0.05)  # impose min separation (5% of bounding box)
 printc("# of points inside the sphere:", pin.npoints)
 
-tmesh = delaunay3d(pin).shrink(0.95)
+tmesh = pin.generate_delaunay3d().shrink(0.95)
 
 cmesh = tmesh.cut_with_plane(normal=(1,2,-1))
 # cmesh.pipeline.show()  # to show the graph of operations

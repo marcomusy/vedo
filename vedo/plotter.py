@@ -2946,7 +2946,7 @@ class Plotter:
             elif isinstance(a, (vtk.vtkActor, vtk.vtkActor2D)):
                 scanned_acts.append(a)
 
-            elif isinstance(a, (vedo.TetMesh, vedo.UGrid)):
+            elif isinstance(a, (vedo.TetMesh, vedo.UnstructuredGrid)):
                 # check ugrid is all made of tets
                 # ugrid = a
                 # uarr = ugrid.GetCellTypesArray()

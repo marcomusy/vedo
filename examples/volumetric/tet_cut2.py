@@ -15,11 +15,11 @@ tetm1 = tetm.clone().cut_with_mesh(sphere, invert=True)
 msh1 = tetm1.tomesh().linewidth(0.1).cmap('Blues')
 
 # Cut tetm, but the output will keep only the whole tets (NOT the polygonal boundary!):
-tetm2 = tetm.clone().cut_with_mesh(sphere, invert=True, whole_cells=True).cmap("jet")
+tetm2 = tetm.clone().cut_with_mesh(sphere, invert=True, whole_cells=True)
 
 # Cut tetm, but the output will keep only the tets on the boundary:
 tetm3 = tetm.clone().cut_with_mesh(sphere, only_boundary=True)
-tetm3.cmap("bone").add_scalarbar3d()
+# tetm3.cmap("bone").add_scalarbar3d()
 
 show([
       (msh1, sphere, __doc__),

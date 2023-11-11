@@ -31,7 +31,7 @@ from vedo.mesh import Mesh
 from vedo.image import Image
 from vedo.plotter import Plotter
 from vedo.tetmesh import TetMesh
-from vedo.ugrid import UGrid
+from vedo.tetmesh import UnstructuredGrid
 from vedo.volume import Volume
 
 import vedo
@@ -834,7 +834,7 @@ def draw_scene(args):
 
             obj = load(f, force=args.reload)
 
-            if isinstance(obj, (TetMesh, UGrid)):
+            if isinstance(obj, (TetMesh, UnstructuredGrid)):
                 obj = obj.tomesh().shrink(0.975).c(colb).alpha(args.alpha)
 
             elif isinstance(obj, vedo.Points):

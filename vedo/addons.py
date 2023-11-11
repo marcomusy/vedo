@@ -862,7 +862,7 @@ def ScalarBar(
             if not lut:
                 return None
 
-    elif isinstance(obj, (Volume, TetMesh, vedo.UGrid)):
+    elif isinstance(obj, (Volume, TetMesh, vedo.UnstructuredGrid)):
         lut = utils.ctf2lut(obj)
 
     elif utils.is_sequence(obj) and len(obj) == 2:
@@ -1032,7 +1032,7 @@ def ScalarBar3D(
             lut = obj.mapper.GetLookupTable()
         vmin, vmax = lut.GetRange()
 
-    elif isinstance(obj, (Volume, TetMesh, vedo.UGrid)):
+    elif isinstance(obj, (Volume, TetMesh, vedo.UnstructuredGrid)):
         lut = utils.ctf2lut(obj)
         vmin, vmax = lut.GetRange()
 

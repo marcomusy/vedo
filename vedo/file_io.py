@@ -366,7 +366,7 @@ def _load_file(filename, unpack):
                 elif isinstance(b, vtk.vtkImageData):
                     acts.append(Volume(b))
                 elif isinstance(b, vtk.vtkUnstructuredGrid):
-                    acts.append(vedo.UGrid(b))
+                    acts.append(vedo.UnstructuredGrid(b))
             return acts
         return mb
 

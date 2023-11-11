@@ -95,7 +95,7 @@ class CommonVisual:
         ren = vtk.vtkRenderer()
 
         actor = self.actor
-        if isinstance(self, vedo.UGrid):
+        if isinstance(self, vedo.UnstructuredGrid):
             geo = vtk.new("GeometryFilter")
             geo.SetInputData(self.dataset)
             geo.Update()
