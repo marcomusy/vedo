@@ -272,11 +272,6 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         #utils.print_histogram(self, logscale=True, bins=8, height=15, c="b", bold=True)
         return out.rstrip() + "\x1b[0m"
 
-    def print(self):
-        """Print a description of the Volume."""
-        print(self.__str__())
-        return self
-
     def _repr_html_(self):
         """
         HTML representation of the Volume object for Jupyter Notebooks.

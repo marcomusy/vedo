@@ -726,11 +726,6 @@ class Points(PointsVisual, PointAlgorithms):
             out+= f", pointID={idp}, cellID={idc}\n"
 
         return out.rstrip() + "\x1b[0m"
-    
-    def print(self):
-        """Print a description of the Points/Mesh."""
-        print(self.__str__())
-        return self
 
     def _repr_html_(self):
         """

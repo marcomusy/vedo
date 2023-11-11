@@ -37,7 +37,11 @@ class CommonVisual:
         self.properties = None
         self.actor = None
         self.scalarbar = None        
-        
+    
+    def print(self):
+        """Print object info."""
+        print(self.__str__())
+        return self
 
     @property
     def LUT(self):

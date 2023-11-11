@@ -288,11 +288,6 @@ class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
         out+= " z=(" + bz1 + ", " + bz2 + ")\n"
         return out.rstrip() + "\x1b[0m"
 
-    def print(self):
-        """Print info about Assembly object."""
-        print(self.__str__())
-        return self
-
     def _repr_html_(self):
         """
         HTML representation of the Assembly object for Jupyter Notebooks.

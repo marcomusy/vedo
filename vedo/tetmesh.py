@@ -279,10 +279,6 @@ class TetMesh(VolumeVisual, UGridAlgorithms):
 
         return out.rstrip() + "\x1b[0m"
 
-    def print(self):
-        """Print a description of the TetMesh."""
-        print(self.__str__())
-        return self
 
     def _repr_html_(self):
         """

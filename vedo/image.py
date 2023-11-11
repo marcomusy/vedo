@@ -277,11 +277,6 @@ class Image(vedo.visual.ImageVisual):
         out += str(self.level()) + " / " + str(self.window()) + "\n"
         return out.rstrip() + "\x1b[0m"
 
-    def print(self):
-        """Print a description of the Image class."""
-        print(self.__str__())
-        return self
-
     def _repr_html_(self):
         """
         HTML representation of the Image object for Jupyter Notebooks.
