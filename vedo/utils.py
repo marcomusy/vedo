@@ -242,7 +242,7 @@ class ProgressBar:
         italic=False,
         title="",
         eta=True,
-        delay=0.0,
+        delay=-1,
         width=25,
         char="\U00002501",
         char_back="\U00002500",
@@ -251,6 +251,30 @@ class ProgressBar:
         Class to print a progress bar with optional text message.
 
         Check out also function `progressbar()`.
+
+        Arguments:
+            start : (int)
+                starting value
+            stop : (int)
+                stopping value
+            step : (int)
+                step value
+            c : (str)
+                color in hex format
+            title : (str)
+                title text
+            eta : (bool)
+                estimate time of arrival
+            delay : (float)
+                minimum time before printing anything,
+                if negative use the default value 
+                as set in `vedo.settings.progressbar_delay`
+            width : (int)
+                width of the progress bar
+            char : (str)
+                character to use for the progress bar
+            char_back : (str)
+                character to use for the background of the progress bar
 
         Example:
             ```python
@@ -269,6 +293,9 @@ class ProgressBar:
         self.title = title + " "
         if title:
             self.title = " " + self.title
+
+        if delay < 0:
+            delay = vedo.settings.progressbar_delay
 
         self.start = start
         self.stop = stop
@@ -385,11 +412,41 @@ class ProgressBar:
 
 
 #####################################
-def progressbar(iterable, c=None, bold=True, italic=False, title="", eta=True, width=25, delay=0.5):
+def progressbar(
+        iterable,
+        c=None, bold=True, italic=False, title="",
+        eta=True, width=25, delay=-1,
+    ):
     """
     Function to print a progress bar with optional text message.
 
     Use delay to set a minimum time before printing anything.
+    If delay is negative, then use the default value
+    as set in `vedo.settings.progressbar_delay`.
+
+    Arguments:
+        start : (int)
+            starting value
+        stop : (int)
+            stopping value
+        step : (int)
+            step value
+        c : (str)
+            color in hex format
+        title : (str)
+            title text
+        eta : (bool)
+            estimate time of arrival
+        delay : (float)
+            minimum time before printing anything,
+            if negative use the default value 
+            set in `vedo.settings.progressbar_delay`
+        width : (int)
+            width of the progress bar
+        char : (str)
+            character to use for the progress bar
+        char_back : (str)
+            character to use for the background of the progress bar
 
     Example:
         ```python
@@ -410,7 +467,8 @@ def progressbar(iterable, c=None, bold=True, italic=False, title="", eta=True, w
         total = len(iterable)
 
     pb = ProgressBar(
-        0, total, c=c, bold=bold, italic=italic, title=title, eta=eta, delay=delay, width=width
+        0, total, c=c, bold=bold, italic=italic, title=title,
+        eta=eta, delay=delay, width=width,
     )
     for item in iterable:
         pb.print()

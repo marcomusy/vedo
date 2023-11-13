@@ -3879,55 +3879,48 @@ class Plotter:
             renderer.ResetCamera()
 
         elif key == "h":
+            msg  = f" vedo {vedo.__version__}"
+            msg += f" | vtk {vtk.vtkVersion().GetVTKVersion()}"
+            msg += f" | numpy {np.__version__}"
+            msg += f" | python {sys.version_info[0]}.{sys.version_info[1]} "
+            vedo.printc(msg.ljust(62), invert=True)
             msg = (
-                "  ============================================================\n"
-                " | Press: i     print info about selected object              |\n"
-                " |        I     print the RGB color under the mouse           |\n"
-                " |        Y     show the pipeline for this object as a graph  |\n"
-                " |        <-->  use arrows to reduce/increase opacity         |\n"
-                " |        x     toggle mesh visibility                        |\n"
-                " |        w     toggle wireframe/surface style                |\n"
-                " |        l     toggle edges visibility                       |\n"
-                " |        p/P   change size of vertices                       |\n"
-                " |        X     invoke a cutter widget tool                   |\n"
-                " |        1-3   change mesh color                             |\n"
-                " |        4     use data array as colors, if present          |\n"
-                " |        5-6   change background color(s)                    |\n"
-                " |        09+-  (on keypad) or +/- to cycle axes style        |\n"
-                " |        k     cycle available lighting styles               |\n"
-                " |        K     cycle available shading styles                |\n"
-                " |        A     toggle anti-aliasing                          |\n"
-                " |        D     toggle depth-peeling (for transparencies)     |\n"
-                " |        o/O   add/remove light to scene and rotate it       |\n"
-                " |        n     show surface mesh normals                     |\n"
-                " |        a     toggle interaction to Actor Mode              |\n"
-                " |        U     toggle perspective/parallel projection        |\n"
-                " |        r     reset camera position                         |\n"
-                " |        R     reset camera orientation to orthogonal view   |\n"
-                " |        .     fly camera towards last clicked point         |\n"
-                " |        C     print current camera settings                 |\n"
-                " |        S     save a screenshot                             |\n"
-                " |        E/F   export 3D scene to numpy file or X3D          |\n"
-                " |        q     return control to python script               |\n"
-                " |        Esc   abort execution and exit python kernel        |\n"
-                " |------------------------------------------------------------|\n"
-                " | Mouse: Left-click    rotate scene / pick objects           |\n"
-                " |        Middle-click  pan scene                             |\n"
-                " |        Right-click   zoom scene in or out                  |\n"
-                " |        Cntrl-click   rotate scene                          |\n"
-                " |------------------------------------------------------------|\n"
-                " |   Check out the documentation at:  https://vedo.embl.es    |\n"
-                "  ============================================================"
+                " Press: i     print info about the last clicked object     \n"
+                "        I     print color of the pixel under the mouse     \n"
+                "        Y     show the pipeline for this object as a graph \n"
+                "        <- -> use arrows to reduce/increase opacity        \n"
+                "        x     toggle mesh visibility                       \n"
+                "        w     toggle wireframe/surface style               \n"
+                "        l     toggle surface edges visibility              \n"
+                "        p/P   hide surface faces and show it as points     \n"
+                "        1-3   cycle surface color (2=light, 3=dark)        \n"
+                "        4     cycle color map (shift-4 to go back)         \n"
+                "        5-6   cycle point-cell arrays (shift to go back)   \n"
+                "        7-8   change background and gradient color         \n"
+                "        09+-  cycle axes style (on keypad) or press +/-    \n"
+                "        k     cycle available lighting styles              \n"
+                "        K     toggle shading as flat or phong              \n"
+                "        A     toggle anti-aliasing                         \n"
+                "        D     toggle depth-peeling (for transparencies)    \n"
+                "        U     toggle perspective/parallel projection       \n"
+                "        o/O   toggle extra light to scene and rotate it    \n"
+                "        n     toggle surface normals                       \n"
+                "        r     reset camera position                        \n"
+                "        R     reset camera to the closest orthogonal view  \n"
+                "        .     fly camera to the last clicked point         \n"
+                "        C     print current camera settings                \n"
+                "        a     toggle interaction to Actor Mode             \n"
+                "        X     invoke a cutter widget tool                  \n"
+                "        S     save a screenshot of the current scene       \n"
+                "        E/F   export 3D scene to numpy file or X3D         \n"
+                "        q     return control to python script              \n"
+                "        Esc   abort execution and exit python kernel       "
             )
-            vedo.printc(msg, dim=True)
-
-            msg = " vedo " + vedo.__version__ + " "
-            vedo.printc(msg, invert=True, dim=True, end="")
-            vtkVers = vtk.vtkVersion().GetVTKVersion()
-            msg = "| vtk " + str(vtkVers)
-            msg += " | numpy " + str(np.__version__)
-            msg += " | python " + str(sys.version_info[0]) + "." + str(sys.version_info[1])
-            vedo.printc(msg, invert=False, dim=True)
+            vedo.printc(msg, dim=True, italic=True, bold=True)
+            vedo.printc(
+                " Check out the documentation at:  https://vedo.embl.es ".ljust(62),
+                invert=True, bold=True,
+            )
             return
 
         elif key == "a":
@@ -4028,8 +4021,9 @@ class Plotter:
                 self.clicked_object.mapper.ScalarVisibilityOff()
                 pal = vedo.colors.palettes[settings.palette % len(vedo.colors.palettes)]
                 self.clicked_object.c(pal[(self._icol) % 10])
+                self.remove(self.clicked_object.scalarbar)
 
-        elif key == "2":
+        elif key == "2": # dark colors
             bsc = ["k1", "k2", "k3", "k4",
                    "b1", "b2", "b3", "b4",
                    "p1", "p2", "p3", "p4",
@@ -4042,8 +4036,9 @@ class Plotter:
                 self.clicked_object.mapper.ScalarVisibilityOff()
                 newcol = vedo.get_color(bsc[(self._icol) % len(bsc)])
                 self.clicked_object.c(newcol)
+                self.remove(self.clicked_object.scalarbar)
 
-        elif key == "3":
+        elif key == "3": # light colors
             bsc = ["k6", "k7", "k8", "k9",
                    "b6", "b7", "b8", "b9",
                    "p6", "p7", "p8", "p9",
@@ -4056,42 +4051,165 @@ class Plotter:
                 self.clicked_object.mapper.ScalarVisibilityOff()
                 newcol = vedo.get_color(bsc[(self._icol) % len(bsc)])
                 self.clicked_object.c(newcol)
+                self.remove(self.clicked_object.scalarbar)
 
-        elif key == "4":
-            if self.clicked_object:
-                objs = [self.clicked_object]
+        elif key == "4": # cmap name cycle
+            ob = self.clicked_object
+            if not isinstance(ob, (vedo.Points, vedo.UnstructuredGrid)):
+                return
+            if not ob.mapper.GetScalarVisibility():
+                return
+            onwhat = ob.mapper.GetScalarModeAsString() # UsePointData/UseCellData
+
+            cmap_names = [
+                "Accent", "Paired",
+                "rainbow", "rainbow_r",
+                "Spectral", "Spectral_r",
+                "gist_ncar", "gist_ncar_r",
+                "viridis", "viridis_r",
+                "hot", "hot_r",
+                "terrain","ocean",
+                "coolwarm", "seismic", "PuOr", "RdYlGn",
+            ]            
+            try:
+                i = cmap_names.index(ob._cmap_name)
+                if iren.GetShiftKey():
+                    i -= 1
+                else:
+                    i += 1
+                if i >= len(cmap_names):
+                    i = 0
+                if i < 0:
+                    i = len(cmap_names) - 1
+            except ValueError:
+                i = 0
+
+            ob._cmap_name = cmap_names[i]
+            ob.cmap(ob._cmap_name, on=onwhat)
+            if ob.scalarbar:
+                if isinstance(ob.scalarbar, vtk.vtkActor2D):
+                    self.remove(ob.scalarbar)
+                    title = ob.scalarbar.GetTitle()
+                    ob.add_scalarbar(title=title)
+                    self.add(ob.scalarbar).render()
+                elif isinstance(ob.scalarbar, vedo.Assembly):
+                    self.remove(ob.scalarbar)
+                    ob.add_scalarbar3d(title=ob._cmap_name)
+                    self.add(ob.scalarbar)
+
+            vedo.printc(
+                f"Name:'{ob.name}'," if ob.name else '',
+                f"range:{utils.precision(ob.mapper.GetScalarRange(),3)},",
+                f"colormap:'{ob._cmap_name}'", c="g", bold=False,
+            )
+
+        elif key == "5": # cycle pointdata array
+            ob = self.clicked_object
+            if not isinstance(ob, (vedo.Points, vedo.UnstructuredGrid)):
+                return
+
+            arrnames = ob.pointdata.keys()
+            arrnames = [a for a in arrnames if "normal" not in a.lower()]
+            arrnames = [a for a in arrnames if "tcoord" not in a.lower()]
+            arrnames = [a for a in arrnames if "textur" not in a.lower()]
+            if len(arrnames) == 0:
+                return
+            ob.mapper.SetScalarVisibility(1)
+
+            if not ob._cmap_name:
+                ob._cmap_name = "rainbow"
+                       
+            try:
+                curr_name = ob.dataset.GetPointData().GetScalars().GetName()
+                i = arrnames.index(curr_name)
+                if "normals" in curr_name.lower():
+                    return
+                if iren.GetShiftKey():
+                    i -= 1
+                else:
+                    i += 1
+                if i >= len(arrnames):
+                    i = 0
+                if i < 0:
+                    i = len(arrnames) - 1
+            except ValueError:
+                i = 0
+
+            ob.cmap(ob._cmap_name, arrnames[i], on="points")
+            if ob.scalarbar:
+                if isinstance(ob.scalarbar, vtk.vtkActor2D):
+                    self.remove(ob.scalarbar)
+                    title = ob.scalarbar.GetTitle()
+                    ob.scalarbar = None
+                    ob.add_scalarbar(title=arrnames[i])
+                    self.add(ob.scalarbar)
+                elif isinstance(ob.scalarbar, vedo.Assembly):
+                    self.remove(ob.scalarbar)
+                    ob.scalarbar = None
+                    ob.add_scalarbar3d(title=arrnames[i])
+                    self.add(ob.scalarbar)
             else:
-                objs = self.get_meshes()
-            # TODO: this is not working
-            # print("objs", objs._cmap_name)
-            # for ia in objs:
-            #     if not hasattr(ia, "_cmap_name"):
-            #         continue
-            #     cmap_name = ia._cmap_name
-            #     if not cmap_name:
-            #         cmap_name = "rainbow"
-            #     if isinstance(ia, vedo.pointcloud.Points):
-            #         arnames = ia.pointdata.keys()
-            #         if len(arnames) > 0:
-            #             arnam = arnames[ia._scals_idx]
-            #             if arnam and ("normals" not in arnam.lower()):  # exclude normals
-            #                 ia.cmap(cmap_name, arnam, on="points")
-            #                 vedo.printc("..active point data set to:", arnam, c="g", bold=0)
-            #                 ia._scals_idx += 1
-            #                 if ia._scals_idx >= len(arnames):
-            #                     ia._scals_idx = 0
-            #         else:
-            #             arnames = ia.celldata.keys()
-            #             if len(arnames) > 0:
-            #                 arnam = arnames[ia._scals_idx]
-            #                 if arnam and ("normals" not in arnam.lower()):  # exclude normals
-            #                     ia.cmap(cmap_name, arnam, on="cells")
-            #                     vedo.printc("..active cell array set to:", arnam, c="g", bold=0)
-            #                     ia._scals_idx += 1
-            #                     if ia._scals_idx >= len(arnames):
-            #                         ia._scals_idx = 0
+                vedo.printc(f"Active pointdata array: '{arrnames[i]}'", c="g", bold=0)
+            vedo.printc(
+                f"Name:'{ob.name}'," if ob.name else '',
+                f"active pointdata array: '{arrnames[i]}'",
+                c="g", bold=False,
+            )
 
-        elif key == "5":
+        elif key == "6": # cycle celldata array
+            ob = self.clicked_object
+            if not isinstance(ob, (vedo.Points, vedo.UnstructuredGrid)):
+                return
+
+            arrnames = ob.celldata.keys()
+            arrnames = [a for a in arrnames if "normal" not in a.lower()]
+            arrnames = [a for a in arrnames if "tcoord" not in a.lower()]
+            arrnames = [a for a in arrnames if "textur" not in a.lower()]
+            if len(arrnames) == 0:
+                return
+            ob.mapper.SetScalarVisibility(1)
+
+            if not ob._cmap_name:
+                ob._cmap_name = "rainbow"
+                       
+            try:
+                curr_name = ob.dataset.GetCellData().GetScalars().GetName()
+                i = arrnames.index(curr_name)
+                if "normals" in curr_name.lower():
+                    return
+                if iren.GetShiftKey():
+                    i -= 1
+                else:
+                    i += 1
+                if i >= len(arrnames):
+                    i = 0
+                if i < 0:
+                    i = len(arrnames) - 1
+            except ValueError:
+                i = 0
+
+            ob.cmap(ob._cmap_name, arrnames[i], on="cells")
+            if ob.scalarbar:
+                if isinstance(ob.scalarbar, vtk.vtkActor2D):
+                    self.remove(ob.scalarbar)
+                    title = ob.scalarbar.GetTitle()
+                    ob.scalarbar = None
+                    ob.add_scalarbar(title=arrnames[i])
+                    self.add(ob.scalarbar)
+                elif isinstance(ob.scalarbar, vedo.Assembly):
+                    self.remove(ob.scalarbar)
+                    ob.scalarbar = None
+                    ob.add_scalarbar3d(title=arrnames[i])
+                    self.add(ob.scalarbar)
+            else:
+                vedo.printc(f"Active celldata array: '{arrnames[i]}'", c="g", bold=0)
+            vedo.printc(
+                f"Name:'{ob.name}'," if ob.name else '',
+                f"active celldata array: '{arrnames[i]}'",
+                c="g", bold=False,
+            )
+
+        elif key == "7":
             bgc = np.array(renderer.GetBackground()).sum() / 3
             if bgc <= 0:
                 bgc = 0.223
@@ -4101,7 +4219,7 @@ class Plotter:
                 bgc = 0
             renderer.SetBackground(bgc, bgc, bgc)
 
-        elif key == "6":
+        elif key == "8":
             bg2cols = [
                 "lightyellow",
                 "darkseagreen",

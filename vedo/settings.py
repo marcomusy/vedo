@@ -21,7 +21,7 @@ class Settings:
 
     ```python
     # Set a default for the font to be used for axes, comments etc.
-    default_font = 'Normografo' # check font options in shapes.Text
+    default_font = 'Normografo' # check font options in vedo.shapes.Text3D
 
     # Palette number when using an integer to choose a color
     palette = 0
@@ -37,6 +37,9 @@ class Settings:
     # Set up default mouse and keyboard functionalities
     enable_default_mouse_callbacks = True
     enable_default_keyboard_callbacks = True
+
+    # Progress bar delay before showing up [sec]
+    self.progressbar_delay = 0.5
 
     # If False, when multiple renderers are present do not render each one for separate
     #  but do it just once at the end (when interactive() is called)
@@ -79,7 +82,7 @@ class Settings:
     # Turn on/off rendering of translucent material with depth peeling technique.
     use_depth_peeling = False
     alpha_bit_planes  = True   # options only active if useDepthPeeling=True
-    multi_samples     = 8      # force to not pick a framebuffer with a multisample buffer
+    multi_samples     = 16     # antialiasing multisample buffer
     max_number_of_peels= 4     # maximum number of rendering passes
     occlusion_ratio   = 0.0    # occlusion ratio, 0 = exact image.
 
@@ -118,17 +121,17 @@ class Settings:
     # setting it to False will keep the current Plotter instance active
     backend_autoclose = True
 
-    # k3d settings for jupyter notebooks
+    # settings for the K3D backend in jupyter notebooks
     k3d_menu_visibility = True
-    k3d_plot_height = 512
-    k3d_antialias   = True
-    k3d_lighting    = 1.5
-    k3d_camera_autofit = True
-    k3d_grid_autofit= True
-    k3d_axes_color  = "gray4"
-    k3d_axes_helper = 1.0     # size of the small triad of axes on the bottom right
-    k3d_point_shader= "mesh"  # others are '3d', '3dSpecular', 'dot', 'flat'
-    k3d_line_shader = "thick" # others are 'flat', 'mesh'
+    k3d_plot_height   = 512
+    k3d_antialias     = True
+    k3d_lighting      = 1.5
+    k3d_camera_autofit= True
+    k3d_grid_autofit  = True
+    k3d_axes_color    = "gray4"
+    k3d_axes_helper   = 1.0     # size of the small triad of axes on the bottom right
+    k3d_point_shader  = "mesh"  # others are '3d', '3dSpecular', 'dot', 'flat'
+    k3d_line_shader   = "thick" # others are 'flat', 'mesh'
     ```
     """
 
@@ -144,6 +147,7 @@ class Settings:
         "enable_default_mouse_callbacks",
         "enable_default_keyboard_callbacks",
         "enable_pipeline",
+        "progressbar_delay",
         "immediate_rendering",
         "renderer_frame_color",
         "renderer_frame_alpha",
@@ -197,7 +201,7 @@ class Settings:
         # Dry run mode (for test purposes only)
         # 0 = normal
         # 1 = do not hold execution
-        # 2 = do not show any window
+        # 2 = do not hold execution and do not show any window
         self.dry_run_mode = 0
 
         # Default font
@@ -206,8 +210,11 @@ class Settings:
         # Default backend engine in jupyter notebooks
         self.default_backend = "vtk"
 
-        # enable tracking pipeline functionality
+        # Enable tracking pipeline functionality
         self.enable_pipeline = True
+
+        # Progress bar delay before showing up [sec]
+        self.progressbar_delay = 0.5
 
         if any(["SPYDER" in name for name in os.environ]):
             self.default_backend = "vtk"
@@ -271,7 +278,8 @@ class Settings:
 
         # Turn on/off rendering of translucent material with depth peeling technique.
         self.use_depth_peeling = False
-        self.multi_samples = 8
+        # antialiasing
+        self.multi_samples = 16
         self.alpha_bit_planes = 1
         self.max_number_of_peels = 4
         self.occlusion_ratio = 0.1
@@ -329,7 +337,7 @@ class Settings:
         self.k3d_point_shader= "mesh"  # others are '3d', '3dSpecular', 'dot', 'flat'
         self.k3d_line_shader = "thick" # others are 'flat', 'mesh'
 
-        ####################################################################################
+
         ####################################################################################
         # mono       # means that all letters occupy the same space slot horizontally
         # hspacing   # an horizontal stretching factor (affects both letters and words)
@@ -617,7 +625,7 @@ class Settings:
                 dotsep="~×",
                 islocal=False,
             ),
-            Housekeeper=dict(  # support chinese glyphs
+            Housekeeper=dict(  # supports chinese glyphs
                 mono=False,
                 fscale=0.75,
                 hspacing=1,
@@ -625,7 +633,7 @@ class Settings:
                 dotsep="~×",
                 islocal=False,
             ),
-            Wananti=dict(  # support chinese glyphs
+            Wananti=dict(  # supports chinese glyphs
                 mono=False,
                 fscale=0.75,
                 hspacing=1,

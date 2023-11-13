@@ -1,11 +1,6 @@
-# Test Pipeline ################################
+# TEST PIPELINE ################################
 Internal use only
 
-# SITES ########################################
-https://vedo.embl.es/
-https://vedo.embl.es/docs
-https://github.com/marcomusy/vedo
-https://forum.image.sc/search?q=vedo%20order%3Alatest
 
 # INSTALL ######################################
 cd ~/Projects/vedo
@@ -23,39 +18,45 @@ pip install tetgen -U
 pip install pyshtools -U
 pip install trimesh -U
 
-# DRY RUN ######################################
-cd ~/Projects/vedo/
-sed -i "s/dry_run_mode = 0/dry_run_mode = 2/g" vedo/settings.py  ### DISABLE VIZ
-sed -i "s/dry_run_mode = 2/dry_run_mode = 0/g" vedo/settings.py  ### ENABLE VIZ
+
+# ENABLE/DISABLE DRY RUN ######################################
+cd ~/Projects/vedo
+sed -i "s/dry_run_mode = 0/dry_run_mode = 2/g" vedo/settings.py  ### DISABLE
+sed -i "s/dry_run_mode = 2/dry_run_mode = 0/g" vedo/settings.py  ### ENABLE
+###############################################################
 
 cd ~/Projects/vedo/tests/common && ./run_all.sh 
 cd ~/Projects/vedo/examples/ &&  time ./run_all.sh  2>&1 | tee ~/Dropbox/vedo_test.txt
 
 grep -A 1 "Error" ~/Dropbox/vedo_test.txt
 grep -A 3 "Trace" ~/Dropbox/vedo_test.txt
-code ~/Dropbox/vedo_test.txt   #### inspect logfile (search "Traceback", "Error") ####
-# (Try normal run too with visualization to make sure all is ok.)
+code ~/Dropbox/vedo_test.txt   #### inspect logfile
+# (Try normal run too with visualization to make sure all is ok)
+
 
 # EXAMPLES #####################################
 cd ~/Projects/vedo/tests/issues && ./run_all.sh 
+
 
 # TUTORIALS ####################################
 cd ~/Projects/server/vedo-embo-course/scripts && ./run_all.sh 
 cd ~/Projects/server/vedo-bias-course/scripts && ./run_all.sh 
 
-# DOLFIN/TRIMESH ###############################
-cd ~/Projects/vedo/
-conda activate fenics
-pip install .
-cd examples/other/dolfin
-./run_all.sh
-conda deactivate
-################
+
+# TRIMESH #######################################
 cd ~/Projects/vedo/examples/other/trimesh
 ./run_all.sh
 
-# Various other ###############################
-cd ~/Projects/vedo/
+# DOLFIN #######################################
+cd ~/Projects/vedo
+conda activate fenics
+pip install -e .
+cd examples/other/dolfin
+./run_all.sh
+conda deactivate
+
+# OTHERS #######################################
+cd ~/Projects/vedo
 python ~/Dropbox/documents/Medical/RESONANCIA.py
 vedo https://vedo.embl.es/examples/data/panther.stl.gz
 vedo https://vedo.embl.es/examples/geo_scene.npz
@@ -65,8 +66,9 @@ vedo --convert data/290.vtk --to ply && vedo data/290.ply
 cd ~/Projects/vedo/examples/notebooks/
 jupyter notebook > /dev/null 2>&1
 
-#################################################
+##########################
 # Check on OSX and windows
+
 
 # VEDO PROJECTS #################################
 cd ~/Projects/server/trackviewer
@@ -95,23 +97,29 @@ cd ~/Projects/oocytes
 cd ~/Projects/umap_viewer3d
    python main6.py
 ################
-cd ~/Projects/napari-vedo-bridge 
+cd ~/Projects/napari-vedo-bridge
+    # conda create -y -n napari-env -c conda-forge python=3.9
+    # conda activate napari-env
+    # python -m pip install "napari[all]"
     conda activate napari-env
     python ~/Projects/vedo/examples/other/napari1.py
     napari
     conda deactivate
 ################
+cd ~/Projects/welleng/examples
+    python 
+################
 cd ~/Projects/clonal_analysis2d_splines
     python -m analysis_plots
 
-
-# RELEASE #################################
+################################################################
+# RELEASE
 cd ~/Projects/vedo
 
 # check version and status
 code vedo/version.py
 git status
-git commit -am 'comment'
+git commit -am '...'
 git push
 
 # upload to pypi
@@ -121,16 +129,25 @@ twine upload dist/vedo-?.?.?.tar.gz -r pypi
 # make github release
 cd ~/Projects/vedo
 code docs/changes.md
-code vedo/version.py  # to add .dev0
+code vedo/version.py  # edit to add .dev0
 https://repology.org/project/vedo/badges
 
 
-# DOCUMETATION #############################
+# DOCUMETATION #################################
 mount_staging
 cd ~/Projects/vedo/docs/pdoc
 ./build_html.py 
 
 # check web page examples
-cd ~/Projects/vedo/
+cd ~/Projects/vedo
 code www/examples_db.js
 code www/index.html
+
+
+# SITES ########################################
+https://vedo.embl.es/
+https://vedo.embl.es/docs
+https://github.com/marcomusy/vedo
+https://forum.image.sc/search?q=vedo%20order%3Alatest
+
+
