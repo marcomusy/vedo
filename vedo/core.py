@@ -937,7 +937,7 @@ class CommonAlgorithms:
         p2c.Update()
         self._update(p2c.GetOutput(), reset_locators=False)
         self.mapper.SetScalarModeToUseCellData()
-        self.pipeline = utils.OperationNode("map point\nto cell data", parents=[self])
+        self.pipeline = utils.OperationNode("map_points_to_cells", parents=[self])
         return self
 
     def resample_data_from(self, source, tol=None, categorical=False):

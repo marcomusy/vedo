@@ -37,47 +37,39 @@ vedo https://vedo.embl.es/examples/data/panther.stl.gz
 ![](https://vedo.embl.es/images/feats/vedo_cli_panther.png)
 
 Pressing `h` will then show a number of options to interact with your 3D scene:
+```
+    i     print info about the last clicked object     
+    I     print color of the pixel under the mouse     
+    Y     show the pipeline for this object as a graph 
+    <- -> use arrows to reduce/increase opacity        
+    x     toggle mesh visibility                       
+    w     toggle wireframe/surface style               
+    l     toggle surface edges visibility              
+    p/P   hide surface faces and show only points      
+    1-3   cycle surface color (2=light, 3=dark)        
+    4     cycle color map (press shift-4 to go back)   
+    5-6   cycle point-cell arrays (shift to go back)   
+    7-8   cycle background and gradient color          
+    09+-  cycle axes styles (on keypad, or press +/-)  
+    k     cycle available lighting styles              
+    K     toggle shading as flat or phong              
+    A     toggle anti-aliasing                         
+    D     toggle depth-peeling (for transparencies)    
+    U     toggle perspective/parallel projection       
+    o/O   toggle extra light to scene and rotate it    
+    a     toggle interaction to Actor Mode             
+    n     toggle surface normals                       
+    r     reset camera position                        
+    R     reset camera to the closest orthogonal view  
+    .     fly camera to the last clicked point         
+    C     print current camera settings                
+    X     invoke a cutter widget tool                  
+    S     save a screenshot of the current scene       
+    E/F   export 3D scene to numpy file or X3D         
+    q     return control to python script              
+    Esc   abort execution and exit python kernel       
+```
 
-     ============================================================
-    | Press: i     print info about selected object              |
-    |        I     print the RGB color under the mouse           |
-    |        y     show the pipeline for this object as a graph  |
-    |        <-->  use arrows to reduce/increase opacity         |
-    |        w/s   toggle wireframe/surface style                |
-    |        p/P   change point size of vertices                 |
-    |        l     toggle edges visibility                       |
-    |        x     toggle mesh visibility                        |
-    |        X     invoke a cutter widget tool                   |
-    |        1-3   change mesh color                             |
-    |        4     use data array as colors, if present          |
-    |        5-6   change background color(s)                    |
-    |        09+-  (on keypad) or +/- to cycle axes style        |
-    |        k     cycle available lighting styles               |
-    |        K     cycle available shading styles                |
-    |        A     toggle anti-aliasing                          |
-    |        D     toggle depth-peeling (for transparencies)     |
-    |        o/O   add/remove light to scene and rotate it       |
-    |        n     show surface mesh normals                     |
-    |        a     toggle interaction to Actor Mode              |
-    |        j     toggle interaction to Joystick Mode           |
-    |        U     toggle perspective/parallel projection        |
-    |        r     reset camera position                         |
-    |        R     reset camera orientation to orthogonal view   |
-    |        .     fly camera towards last clicked point         |
-    |        C     print current camera settings                 |
-    |        S     save a screenshot                             |
-    |        E/F   export 3D scene to numpy file or X3D          |
-    |        q     return control to python script               |
-    |        Esc   abort execution and exit python kernel        |
-    |------------------------------------------------------------|
-    | Mouse: Left-click    rotate scene / pick actors            |
-    |        Middle-click  pan scene                             |
-    |        Right-click   zoom scene in or out                  |
-    |        Cntrl-click   rotate scene                          |
-    |------------------------------------------------------------|
-    |   Check out the documentation at:  https://vedo.embl.es    |
-     ============================================================
-   
 
 ## Export your 3D scene to file
 You can export it to a vedo file, which is actually a normal `numpy` file by pressing `E`
@@ -291,4 +283,20 @@ Check out the [**Github repository**](https://github.com/marcomusy/vedo)
 for more information, where you can ask questions and report issues.
 You are also welcome to post specific questions on the [**image.sc**](https://forum.image.sc/) forum,
 or simply browse the [**examples gallery**](https://vedo.embl.es/#gallery).
+
+You can also find online tutorials at:
+
+- [Summer School on Computational Modelling of Multicellular Systems](https://github.com/LauAvinyo/vedo-embo-course) with [slides](https://github.com/LauAvinyo/vedo-embo-course/blob/main/vedo-embo-presentation.pdf) by Laura Avinyo (EMBL).
+
+- Youtube video tutorials: 
+[Visualizing Multiple 3D Objects in Medical Imaging](https://www.youtube.com/watch?v=LVoj3poN2WI),
+[Capture 3D Mesh Screenshots in Medical Imaging](https://www.youtube.com/watch?v=8Qn14WMUamA),
+[Slice 'n Dice: Precision 3D Mesh Cutting](https://www.youtube.com/watch?v=dmXC078ZOR4&t=195s),
+[3D Visualization of STL Files](https://www.youtube.com/watch?v=llq9-oJXepQ)
+by [M. El Amine](https://github.com/amine0110/pycad).
+
+- [Creating an interactive 3D geological model](https://www.youtube.com/watch?v=raiIft8VeRU&t=1s) by A. Pollack.
+
+- ["vedo", a python module for scientific analysis and visualization of 3D data](https://www.youtube.com/watch?v=MhIoetdxwc0&t=39s), I2K Conference, by M. Musy (EMBL).
+
 

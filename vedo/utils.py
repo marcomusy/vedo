@@ -178,7 +178,7 @@ class OperationNode:
                 dot.edge(str(id(parent)), str(id(self)), label=t)
                 parent._build_tree(dot)
 
-    def __repr__(self):
+    def __str__(self):
         try:
             from treelib import Tree
         except ImportError:
@@ -201,6 +201,10 @@ class OperationNode:
         tree.create_node(self.operation_plain, self.operation_plain + str(self.time))
         _build_tree(self)
         return tree.show(reverse=True, stdout=False)
+
+    def print(self):
+        """Print the tree of operations."""
+        print(self.__str__())
 
     def show(self, orientation="LR", popup=True):
         """Show the graphviz output for the pipeline of this object"""
