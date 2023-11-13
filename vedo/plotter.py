@@ -3909,7 +3909,7 @@ class Plotter:
                 "    r     reset camera position                        \n"
                 "    R     reset camera to the closest orthogonal view  \n"
                 "    .     fly camera to the last clicked point         \n"
-                "    C     print current camera settings                \n"
+                "    C     print the current camera parameters state    \n"
                 "    X     invoke a cutter widget tool                  \n"
                 "    S     save a screenshot of the current scene       \n"
                 "    E/F   export 3D scene to numpy file or X3D         \n"
@@ -4246,20 +4246,24 @@ class Plotter:
                 renderer.SetBackground2(vedo.get_color(bg2name_next))
 
         elif key in ["plus", "equal", "KP_Add", "minus", "KP_Subtract"]:  # cycle axes style
-            clickedr = self.renderers.index(renderer)
-            if self.axes_instances[clickedr]:
-                if hasattr(self.axes_instances[clickedr], "EnabledOff"):  # widget
-                    self.axes_instances[clickedr].EnabledOff()
-                else:
-                    try:
-                        renderer.RemoveActor(self.axes_instances[clickedr])
-                    except:
-                        pass
-                self.axes_instances[clickedr] = None
+            i = self.renderers.index(renderer)
+            try:
+                self.axes_instances[i].EnabledOff()
+                self.axes_instances[i].SetInteractor(None)
+            except AttributeError:
+                # print("Cannot remove widget", [self.axes_instances[i]])
+                try:
+                    self.remove(self.axes_instances[i])
+                except:
+                    print("Cannot remove axes", [self.axes_instances[i]])
+                    return            
+            self.axes_instances[i] = None
+
             if not self.axes:
                 self.axes = 0
             if isinstance(self.axes, dict):
                 self.axes = 1
+
             if key in ["minus", "KP_Subtract"]:
                 if not self.camera.GetParallelProjection() and self.axes == 0:
                     self.axes -= 1  # jump ruler doesnt make sense in perspective mode
