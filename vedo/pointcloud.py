@@ -2446,7 +2446,6 @@ class Points(PointsVisual, PointAlgorithms):
             clipper.SetInsideOut(not invert)
             clipper.SetValue(0.0)
         clipper.Update()
-        cpoly = clipper.GetOutput()
         self._update(clipper.GetOutput())
 
         self.pipeline = utils.OperationNode("cut_with_pointloop", parents=parents)

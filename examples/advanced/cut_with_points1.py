@@ -2,16 +2,21 @@
 to cut a region of the mesh"""
 from vedo import *
 
-settings.use_depth_peeling = True
+# This affects how colors are interpolated between points
+settings.interpolate_scalars_before_mapping = True
 
-s = Sphere().alpha(0.2).lw(0.1)
+s = Sphere()
+s.color("white").alpha(0.25).backface_culling(True)
+s.pointdata['scalars1'] = np.sqrt(range(s.npoints))
+print(s)
 
-# pick a few points on the sphere
-sc = s.vertices
-pts = Points([sc[10], sc[15], sc[129], sc[165]], r=12)
+# Pick a few points on the sphere
+sv = s.vertices[[10, 15, 129, 165]]
+pts = Points(sv).ps(12)
 
-#cut loop region identified by the points
-scut = s.clone().cut_with_point_loop(pts, invert=False)
-scut.c('blue',0.7).lw(0).scale(1.03)
+# Cut the loop region identified by the points
+scut = s.clone().cut_with_point_loop(sv, invert=False).scale(1.01)
+scut.cmap("Paired", "scalars1").alpha(1).add_scalarbar()
+print(scut)
 
-show(s, pts, scut, __doc__, axes=1)
+show(s, pts, scut, __doc__, axes=1, viewup="z")
