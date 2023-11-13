@@ -31,6 +31,8 @@ sed -i "s/dry_run_mode = 2/dry_run_mode = 0/g" vedo/settings.py  ### ENABLE VIZ
 cd ~/Projects/vedo/tests/common && ./run_all.sh 
 cd ~/Projects/vedo/examples/ &&  time ./run_all.sh  2>&1 | tee ~/Dropbox/vedo_test.txt
 
+grep -A 1 "Error" ~/Dropbox/vedo_test.txt
+grep -A 3 "Trace" ~/Dropbox/vedo_test.txt
 code ~/Dropbox/vedo_test.txt   #### inspect logfile (search "Traceback", "Error") ####
 # (Try normal run too with visualization to make sure all is ok.)
 

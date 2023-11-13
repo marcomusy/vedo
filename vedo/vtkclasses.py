@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Subset of vtk classes to be imported directly or lazily.
+Subset of the vtk classes to be imported eagerly or lazily.
 """
 from importlib import import_module
 from vedo import settings
+
+__all__ = []
 
 ######################################################################
 location = {}
@@ -40,7 +42,7 @@ def get_class(cls_name="", module_name=""):
 
 def new(cls_name="", module_name=""):
     """
-    Create a new vtk object from its name.
+    Create a new vtk object instance from its name.
     
     Example:
     ```python
@@ -97,7 +99,7 @@ def dump_hierarchy_to_file(fname=""):
 
 ######################################################################
 if settings.dry_run_mode < 2:
-    #https://vtk.org/doc/nightly/html
+    # https://vtk.org/doc/nightly/html
     # /md__builds_gitlab_kitware_sciviz_ci_Documentation_Doxygen_PythonWrappers.html
     # noinspection PyUnresolvedReferences
     import vtkmodules.vtkRenderingOpenGL2
@@ -105,24 +107,18 @@ if settings.dry_run_mode < 2:
     import vtkmodules.vtkInteractionStyle
     # noinspection PyUnresolvedReferences
     import vtkmodules.vtkRenderingFreeType
+    # noinspection PyUnresolvedReferences
+    import vtkmodules.vtkRenderingVolumeOpenGL2
 
 # noinspection PyUnresolvedReferences
 from vtkmodules.vtkInteractionStyle import vtkInteractorStyleUser
-
-# noinspection PyUnresolvedReferences
-from vtkmodules.vtkRenderingVolumeOpenGL2 import (
-    vtkOpenGLGPUVolumeRayCastMapper,
-    vtkSmartVolumeMapper,
-)
 
 for name in [
     "vtkOpenGLGPUVolumeRayCastMapper",
     "vtkSmartVolumeMapper",
 ]: location[name] = "vtkRenderingVolumeOpenGL2"
 
-
 ######################################################################
-
 for name in [
     "vtkKochanekSpline",
     "vtkCardinalSpline",
@@ -418,6 +414,7 @@ for name in [
     "vtkLoopBooleanPolyDataFilter",
     "vtkMultiBlockDataGroupFilter",
     "vtkTransformPolyDataFilter",
+    "vtkTransformFilter",
     "vtkOBBTree",
     "vtkQuantizePolyDataPoints",
     "vtkRandomAttributeGenerator",
@@ -844,7 +841,6 @@ for name in [
 for name in [
     "vtkFixedPointVolumeRayCastMapper",
     "vtkGPUVolumeRayCastMapper",
-    "vtkProjectedTetrahedraMapper",
 ]: location[name] = "vtkRenderingVolume"
 
 #########################################################

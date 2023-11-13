@@ -835,7 +835,8 @@ def draw_scene(args):
             obj = load(f, force=args.reload)
 
             if isinstance(obj, (TetMesh, UnstructuredGrid)):
-                obj = obj.tomesh().shrink(0.975).c(colb).alpha(args.alpha)
+                #obj = obj#.shrink(0.95)
+                obj.c(colb).alpha(args.alpha)
 
             elif isinstance(obj, vedo.Points):
                 obj.c(colb).alpha(args.alpha)

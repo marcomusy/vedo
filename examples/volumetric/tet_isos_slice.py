@@ -1,16 +1,16 @@
 # Thresholding and slicing a TetMesh
 from vedo import TetMesh, dataurl, show
 
-tetmesh = TetMesh(dataurl+'limb_ugrid.vtk').color('Spectral')
-tetmesh.add_scalarbar3d('chem_0  expression', c='k')
+tmsh = TetMesh(dataurl+'limb_ugrid.vtk').color('Spectral')
+tmsh.cmap('hot').add_scalarbar3d('chem_0  expression', c='k')
 
-thrslist = [0.2, 0.3, 0.8]
-isos = tetmesh.isosurface(thrslist)
+vals = [0.2, 0.3, 0.8]
+isos = tmsh.isosurface(vals)
 
-slce = tetmesh.slice(normal=(1,1,1)).lw(0.1)
+slce = tmsh.slice(normal=(1,1,1)).lighting("off").lw(1)
 
 show([
-      (tetmesh, "A TetMesh"),
-      (isos, "Isosurfaces for thresholds:\n"+str(thrslist)),
+      (tmsh, "A TetMesh"),
+      (isos, "Isosurfaces for values:\n"+str(vals)),
       (slce, "Slice TetMesh with plane"),
-     ], N=3, axes=1, viewup='z').close()
+      ], N=3, axes=1).close()

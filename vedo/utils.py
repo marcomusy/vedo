@@ -1399,6 +1399,62 @@ def grep(filename, tag, column=None, first_occurrence_only=False):
                     break
     return content
 
+def parse_pattern(query, strings_to_parse) -> list:
+    """
+    Parse a pattern query to a list of strings.
+    The query string can contain wildcards like * and ?.
+
+    Arguments:
+        query : (str)
+            the query to parse
+        strings_to_parse : (str/list)
+            the string or list of strings to parse
+        
+    Returns:
+        a list of booleans, one for each string in strings_to_parse
+    
+    Example:
+        >>> query = r'*Sphere 1?3*'
+        >>> strings = ["Sphere 143 red", "Sphere 13 red", "Sphere 123", "ASphere 173"]
+        >>> parse_pattern(query, strings)
+        [True, True, False, False]
+    """
+    from re import findall as re_findall
+    if not isinstance(query, str):
+        return [False]
+
+    if not is_sequence(strings_to_parse):
+        strings_to_parse = [strings_to_parse]
+    
+    outs = []
+    for sp in strings_to_parse:
+        if not isinstance(sp, str):
+            outs.append(False)
+            continue
+
+        s = query
+        if s.startswith("*"):
+            s = s[1:]
+        else:
+            s = "^" + s
+
+        t = ""
+        if not s.endswith("*"):
+            t = "$"
+        else:
+            s = s[:-1]
+
+        pattern = s.replace('?', r'\w').replace(' ', r'\s').replace("*", r"\w+") + t
+
+        # Search for the pattern in the input string
+        match = re_findall(pattern, sp)
+        out = bool(match)
+        outs.append(out)
+        # Print the matches for debugging
+        print("pattern", pattern, "in:", strings_to_parse)
+        print("matches", match, "result:", out)
+    return outs
+
 def print_histogram(
     data,
     bins=10,

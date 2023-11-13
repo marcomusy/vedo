@@ -11,24 +11,21 @@ tetm1.cmap('jet', tetm1.vertices[:, 2], name="ProximoDistal")
 
 # Clone and cut the TetMesh, this returns a UnstructuredGrid:
 ugrid1 = tetm1.clone().cut_with_mesh(sphere, invert=True)
+ugrid1.cmap("Purples_r", "SignedDistance")
 print(ugrid1)
-ugrid1.cmap("Greens_r", "SignedDistance")
-show(ugrid1, sphere, axes=1, viewup='z').close()
 
 # Cut tetm, but the output will keep only the whole tets (NOT the polygonal boundary!):
 ugrid2 = tetm1.clone().cut_with_mesh(sphere, invert=True, whole_cells=True)
 tetm2 = TetMesh(ugrid2).cmap("Greens_r", "ProximoDistal")
 print(tetm2)
-# show(tetm2, sphere, axes=1, viewup='z').close()
 
 # Cut tetm, but the output will keep only the tets on the boundary:
 ugrid3 = tetm1.clone().cut_with_mesh(sphere, on_boundary=True)
 tetm3 = TetMesh(ugrid3).cmap("Reds", "chem_0", on="cells")
 print(tetm3)
-# show(tetm3, sphere, axes=1, viewup='z').close()
 
 show([
-      (tetm1, __doc__),
+      (ugrid1,sphere,  __doc__),
       (tetm2, sphere, "Keep only tets that lie\ncompletely outside the Sphere"),
       (tetm3, sphere, "Keep only tets that lie\nexactly on the Sphere"),
      ], 

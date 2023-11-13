@@ -932,12 +932,14 @@ class Plotter:
     def remove(self, *objs, at=None):
         """
         Remove input object to the internal list of objects to be shown.
-        Objects to be removed can be referenced by their assigned name.
+
+        Objects to be removed can be referenced by their assigned name,
 
         Arguments:
             at : (int)
                 remove the object at the specified renderer
         """
+        #TODO and you can also use wildcards like `*` and `?`.
         if at is not None:
             ren = self.renderers[at]
         else:
@@ -963,9 +965,13 @@ class Plotter:
                 # print("PARSING", [a])
                 try:
                     if (a.name and a.name in objs) or a in objs:
-                    # if (a.name and any(x in a.name for x in objs)) or a in objs:
-                        # print('a.name',a.name)
-                        objs.append(a)                    
+                        objs.append(a)
+                        pass           
+                    # if a.name:
+                    #     bools = [utils.parse_pattern(ob, a.name)[0] for ob in objs]
+                    #     if any(bools) or a in objs:
+                    #         objs.append(a)
+                    #     print('a.name',a.name, objs,any(bools))
                 except AttributeError: # no .name
                     # passing the actor so get back the object with .retrieve_object()
                     try:
@@ -1023,7 +1029,6 @@ class Plotter:
         #     del self.objects[i]
         # instead we do:
         self.objects = [ele for i, ele in enumerate(self.objects) if i not in ids]
-
         return self
 
     @property

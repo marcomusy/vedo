@@ -7,7 +7,7 @@ import vedo.vtkclasses as vtk
 import numpy as np
 import vedo
 from vedo import utils
-from vedo.core import UGridAlgorithms
+from vedo.core import PointAlgorithms
 from vedo.mesh import Mesh
 from vedo.file_io import download
 from vedo.visual import MeshVisual
@@ -24,7 +24,7 @@ Work with tetrahedral meshes.
 __all__ = ["UnstructuredGrid", "TetMesh"]
 
 #########################################################################
-class UnstructuredGrid(MeshVisual, UGridAlgorithms):
+class UnstructuredGrid(MeshVisual, PointAlgorithms):
     """Support for UnstructuredGrid objects."""
 
     def __init__(self, inputobj=None):
@@ -54,6 +54,8 @@ class UnstructuredGrid(MeshVisual, UGridAlgorithms):
         self.name = "UnstructuredGrid"
         self.filename = ""
         self.info = {}
+        self.time = 0
+        self.rendered_at = set()
 
         ###################
         inputtype = str(type(inputobj))
@@ -84,13 +86,6 @@ class UnstructuredGrid(MeshVisual, UGridAlgorithms):
             points = vtk.vtkPoints()
             points.SetData(vpts)
             self.dataset.SetPoints(points)
-
-            # This fill the points and use cells to define orientation
-            # points = vtk.vtkPoints()
-            # for c in cells:
-            #       for pid in c:
-            #           points.InsertNextPoint(pts[pid])
-            # self.dataset.SetPoints(points)
 
             # Fill cells
             # https://vtk.org/doc/nightly/html/vtkCellType_8h_source.html
@@ -155,7 +150,7 @@ class UnstructuredGrid(MeshVisual, UGridAlgorithms):
         out += "\x1b[0m\u001b[35m"
 
         out += "nr. of verts".ljust(14) + ": " + str(self.npoints) + "\n"
-        out += "nr. of cells".ljust(14)+ ": " + str(self.ncells) + "\n"
+        out += "nr. of cells".ljust(14) + ": " + str(self.ncells)  + "\n"
 
         if self.npoints:
             out+="size".ljust(14)+ ": average=" + utils.precision(self.average_size(),6)
@@ -283,8 +278,472 @@ class UnstructuredGrid(MeshVisual, UGridAlgorithms):
         ]
         return "\n".join(all)
 
+    @property
+    def actor(self):
+        """Return the `vtkActor` of the object."""
+        # print("building actor")
+        gf = vtk.new("GeometryFilter")
+        gf.SetInputData(self.dataset)
+        gf.Update()
+        out = gf.GetOutput()
+        self.mapper.SetInputData(out)
+        self.mapper.Modified()
+        return self._actor
+
+    @actor.setter
+    def actor(self, _):
+        pass
+
+    def _update(self, data, reset_locators=False):
+        self.dataset = data
+        # self.mapper.SetInputData(data)
+        # self.mapper.Modified()
+        ## self.actor.Modified()
+        return self
+
+    def copy(self, deep=True):
+        """Return a copy of the object. Alias of `clone()`."""
+        return self.clone(deep=deep)
+
+    def clone(self, deep=True):
+        """Clone the UnstructuredGrid object to yield an exact copy."""
+        ug = vtk.vtkUnstructuredGrid()
+        if deep:
+            ug.DeepCopy(self.dataset)
+        else:
+            ug.ShallowCopy(self.dataset)
+        if isinstance(self, vedo.UnstructuredGrid):
+            cloned = vedo.UnstructuredGrid(ug)
+        else:
+            cloned = vedo.TetMesh(ug)
+
+        cloned.copy_properties_from(self)
+
+        cloned.pipeline = utils.OperationNode(
+            "clone", parents=[self], shape='diamond', c='#bbe1ed',
+        )
+        return cloned
+
+    def bounds(self):
+        """
+        Get the object bounds.
+        Returns a list in format `[xmin,xmax, ymin,ymax, zmin,zmax]`.
+        """
+        # OVERRIDE CommonAlgorithms.bounds() which is too slow
+        return self.dataset.GetBounds()
+
+    def threshold(self, name=None, above=None, below=None, on="cells"):
+        """
+        Threshold the tetrahedral mesh by a cell scalar value.
+        Reduce to only tets which satisfy the threshold limits.
+
+        - if `above = below` will only select tets with that specific value.
+        - if `above > below` selection range is flipped.
+
+        Set keyword "on" to either "cells" or "points".
+        """
+        th = vtk.new("Threshold")
+        th.SetInputData(self.dataset)
+
+        if name is None:
+            if self.celldata.keys():
+                name = self.celldata.keys()[0]
+                th.SetInputArrayToProcess(0, 0, 0, 1, name)
+            elif self.pointdata.keys():
+                name = self.pointdata.keys()[0]
+                th.SetInputArrayToProcess(0, 0, 0, 0, name)
+            if name is None:
+                vedo.logger.warning("cannot find active array. Skip.")
+                return self
+        else:
+            if on.startswith("c"):
+                th.SetInputArrayToProcess(0, 0, 0, 1, name)
+            else:
+                th.SetInputArrayToProcess(0, 0, 0, 0, name)
+
+        if above is not None:
+            th.SetLowerThreshold(above)
+
+        if below is not None:
+            th.SetUpperThreshold(below)
+
+        th.Update()
+        return self._update(th.GetOutput())
+
+    def isosurface(self, value=None, flying_edges=True):
+        """
+        Return an `Mesh` isosurface extracted from the `Volume` object.
+
+        Set `value` as single float or list of values to draw the isosurface(s).
+        Use flying_edges for faster results (but sometimes can interfere with `smooth()`).
+
+        Examples:
+            - [isosurfaces.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/isosurfaces.py)
+
+                ![](https://vedo.embl.es/images/volumetric/isosurfaces.png)
+        """
+        scrange = self.dataset.GetScalarRange()
+
+        if flying_edges:
+            cf = vtk.new("FlyingEdges3D")
+            cf.InterpolateAttributesOn()
+        else:
+            cf = vtk.new("ContourFilter")
+            cf.UseScalarTreeOn()
+
+        cf.SetInputData(self.dataset)
+        cf.ComputeNormalsOn()
+
+        if utils.is_sequence(value):
+            cf.SetNumberOfContours(len(value))
+            for i, t in enumerate(value):
+                cf.SetValue(i, t)
+        else:
+            if value is None:
+                value = (2 * scrange[0] + scrange[1]) / 3.0
+                # print("automatic isosurface value =", value)
+            cf.SetValue(0, value)
+
+        cf.Update()
+        poly = cf.GetOutput()
+
+        out = vedo.mesh.Mesh(poly, c=None).phong()
+        out.mapper.SetScalarRange(scrange[0], scrange[1])
+
+        out.pipeline = utils.OperationNode(
+            "isosurface",
+            parents=[self],
+            comment=f"#pts {out.dataset.GetNumberOfPoints()}",
+            c="#4cc9f0:#e9c46a",
+        )
+        return out
+
+    def tomesh(self, fill=True, shrink=1.0):
+        """
+        Build a polygonal `Mesh` from the current object.
+
+        If `fill=True`, the interior faces of all the cells are created.
+        (setting a `shrink` value slightly smaller than the default 1.0
+        can avoid flickering due to internal adjacent faces).
+
+        If `fill=False`, only the boundary faces will be generated.
+        """
+        gf = vtk.new("GeometryFilter")
+        if fill:
+            sf = vtk.new("ShrinkFilter")
+            sf.SetInputData(self.dataset)
+            sf.SetShrinkFactor(shrink)
+            sf.Update()
+            gf.SetInputData(sf.GetOutput())
+            gf.Update()
+            poly = gf.GetOutput()
+        else:
+            gf.SetInputData(self.dataset)
+            gf.Update()
+            poly = gf.GetOutput()
+
+        msh = vedo.mesh.Mesh(poly)
+        msh.copy_properties_from(self)
+
+        msh.pipeline = utils.OperationNode(
+            "tomesh", parents=[self], comment=f"fill={fill}", c="#9e2a2b:#e9c46a"
+        )
+        return msh
+
+    def extract_cell_by_type(self, ctype):
+        """Extract a specific cell type and return a new `UnstructuredGrid`."""
+        uarr = self.dataset.GetCellTypesArray()
+        ctarrtyp = np.where(utils.vtk2numpy(uarr) == ctype)[0]
+        uarrtyp = utils.numpy2vtk(ctarrtyp, deep=False, dtype="id")
+        selection_node = vtk.new("SelectionNode")
+        selection_node.SetFieldType(vtk.get_class("SelectionNode").CELL)
+        selection_node.SetContentType(vtk.get_class("SelectionNode").INDICES)
+        selection_node.SetSelectionList(uarrtyp)
+        selection = vtk.new("Selection")
+        selection.AddNode(selection_node)
+        es = vtk.new("ExtractSelection")
+        es.SetInputData(0, self.dataset)
+        es.SetInputData(1, selection)
+        es.Update()
+
+        ug = UnstructuredGrid(es.GetOutput())
+
+        ug.pipeline = utils.OperationNode(
+            "extract_cell_type", comment=f"type {ctype}",
+            c="#edabab", parents=[self],
+        )
+        return ug
+
+    def extract_cells_by_id(self, idlist, use_point_ids=False):
+        """Return a new `UnstructuredGrid` composed of the specified subset of indices."""
+        selection_node = vtk.new("SelectionNode")
+        if use_point_ids:
+            selection_node.SetFieldType(vtk.get_class("SelectionNode").POINT)
+            contcells = vtk.get_class("SelectionNode").CONTAINING_CELLS()
+            selection_node.GetProperties().Set(contcells, 1)
+        else:
+            selection_node.SetFieldType(vtk.get_class("SelectionNode").CELL)
+        selection_node.SetContentType(vtk.get_class("SelectionNode").INDICES)
+        vidlist = utils.numpy2vtk(idlist, dtype="id")
+        selection_node.SetSelectionList(vidlist)
+        selection = vtk.new("Selection")
+        selection.AddNode(selection_node)
+        es = vtk.new("ExtractSelection")
+        es.SetInputData(0, self)
+        es.SetInputData(1, selection)
+        es.Update()
+
+        ug = vedo.tetmesh.UnstructuredGrid(es.GetOutput())
+        pr = vtk.vtkProperty()
+        pr.DeepCopy(self.properties)
+        ug.SetProperty(pr)
+        ug.properties = pr
+
+        ug.mapper.SetLookupTable(utils.ctf2lut(self))
+        ug.pipeline = utils.OperationNode(
+            "extract_cells_by_id",
+            parents=[self],
+            comment=f"#cells {self.dataset.GetNumberOfCells()}",
+            c="#9e2a2b",
+        )
+        return ug
+
+    def find_cell(self, p):
+        """Locate the cell that contains a point and return the cell ID."""
+        cell = vtk.vtkTetra()
+        cell_id = vtk.mutable(0)
+        tol2 = vtk.mutable(0)
+        sub_id = vtk.mutable(0)
+        pcoords = [0, 0, 0]
+        weights = [0, 0, 0]
+        cid = self.dataset.FindCell(
+            p, cell, cell_id, tol2, sub_id, pcoords, weights)
+        return cid
+
+    def clean(self):
+        """
+        Cleanup unused points and empty cells
+        """
+        cl = vtk.new("StaticCleanUnstructuredGrid")
+        cl.SetInputData(self.dataset)
+        cl.RemoveUnusedPointsOn()
+        cl.ProduceMergeMapOff()
+        cl.AveragePointDataOff()
+        cl.Update()
+
+        self._update(cl.GetOutput())
+        self.pipeline = utils.OperationNode(
+            "clean",
+            parents=[self],
+            comment=f"#cells {self.dataset.GetNumberOfCells()}",
+            c="#9e2a2b",
+        )
+        return self
+
+    def extract_cells_on_plane(self, origin, normal):
+        """
+        Extract cells that are lying of the specified surface.
+        """
+        bf = vtk.new("3DLinearGridCrinkleExtractor")
+        bf.SetInputData(self.dataset)
+        bf.CopyPointDataOn()
+        bf.CopyCellDataOn()
+        bf.RemoveUnusedPointsOff()
+
+        plane = vtk.new("Plane")
+        plane.SetOrigin(origin)
+        plane.SetNormal(normal)
+        bf.SetImplicitFunction(plane)
+        bf.Update()
+
+        self._update(bf.GetOutput(), reset_locators=False)
+        self.pipeline = utils.OperationNode(
+            "extract_cells_on_plane",
+            parents=[self],
+            comment=f"#cells {self.dataset.GetNumberOfCells()}",
+            c="#9e2a2b",
+        )
+        return self
+
+    def extract_cells_on_sphere(self, center, radius):
+        """
+        Extract cells that are lying of the specified surface.
+        """
+        bf = vtk.new("3DLinearGridCrinkleExtractor")
+        bf.SetInputData(self.dataset)
+        bf.CopyPointDataOn()
+        bf.CopyCellDataOn()
+        bf.RemoveUnusedPointsOff()
+
+        sph = vtk.new("Sphere")
+        sph.SetRadius(radius)
+        sph.SetCenter(center)
+        bf.SetImplicitFunction(sph)
+        bf.Update()
+
+        self._update(bf.GetOutput())
+        self.pipeline = utils.OperationNode(
+            "extract_cells_on_sphere",
+            parents=[self],
+            comment=f"#cells {self.dataset.GetNumberOfCells()}",
+            c="#9e2a2b",
+        )
+        return self
+
+    def extract_cells_on_cylinder(self, center, axis, radius):
+        """
+        Extract cells that are lying of the specified surface.
+        """
+        bf = vtk.new("3DLinearGridCrinkleExtractor")
+        bf.SetInputData(self.dataset)
+        bf.CopyPointDataOn()
+        bf.CopyCellDataOn()
+        bf.RemoveUnusedPointsOff()
+
+        cyl = vtk.new("Cylinder")
+        cyl.SetRadius(radius)
+        cyl.SetCenter(center)
+        cyl.SetAxis(axis)
+        bf.SetImplicitFunction(cyl)
+        bf.Update()
+
+        self.pipeline = utils.OperationNode(
+            "extract_cells_on_cylinder",
+            parents=[self],
+            comment=f"#cells {self.dataset.GetNumberOfCells()}",
+            c="#9e2a2b",
+        )
+        self._update(bf.GetOutput())
+        return self
+    
+    def cut_with_plane(self, origin=(0, 0, 0), normal="x"):
+        """
+        Cut the object with the plane defined by a point and a normal.
+
+        Arguments:
+            origin : (list)
+                the cutting plane goes through this point
+            normal : (list, str)
+                normal vector to the cutting plane
+        """
+        # if isinstance(self, vedo.Volume):
+        #     raise RuntimeError("cut_with_plane() is not applicable to Volume objects.")
+
+        strn = str(normal)
+        if strn   ==  "x": normal = (1, 0, 0)
+        elif strn ==  "y": normal = (0, 1, 0)
+        elif strn ==  "z": normal = (0, 0, 1)
+        elif strn == "-x": normal = (-1, 0, 0)
+        elif strn == "-y": normal = (0, -1, 0)
+        elif strn == "-z": normal = (0, 0, -1)
+        plane = vtk.new("Plane")
+        plane.SetOrigin(origin)
+        plane.SetNormal(normal)
+        clipper = vtk.new("ClipDataSet")
+        clipper.SetInputData(self.dataset)
+        clipper.SetClipFunction(plane)
+        clipper.GenerateClipScalarsOff()
+        clipper.GenerateClippedOutputOff()
+        clipper.SetValue(0)
+        clipper.Update()
+        cout = clipper.GetOutput()
+
+        if isinstance(cout, vtk.vtkUnstructuredGrid):
+            ug = vedo.UnstructuredGrid(cout)
+            if isinstance(self, vedo.UnstructuredGrid):
+                self._update(cout)
+                self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
+                return self
+            ug.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
+            return ug
+
+        else:
+            self._update(cout)
+            self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
+            return self
+
+    def cut_with_box(self, box):
+        """
+        Cut the grid with the specified bounding box.
+
+        Parameter box has format [xmin, xmax, ymin, ymax, zmin, zmax].
+        If an object is passed, its bounding box are used.
+
+        This method always returns a TetMesh object.
+
+        Example:
+        ```python
+        from vedo import *
+        tetmesh = TetMesh(dataurl+'limb_ugrid.vtk')
+        tetmesh.color('rainbow')
+        cu = Cube(side=500).x(500) # any Mesh works
+        tetmesh.cut_with_box(cu).show(axes=1)
+        ```
+
+        ![](https://vedo.embl.es/images/feats/tet_cut_box.png)
+        """
+        bc = vtk.new("BoxClipDataSet")
+        bc.SetInputData(self.dataset)
+        try:
+            boxb = box.bounds()
+        except AttributeError:
+            boxb = box
+
+        bc.SetBoxClip(*boxb)
+        bc.Update()
+        cout = bc.GetOutput()
+
+        # output of vtkBoxClipDataSet is always tetrahedrons
+        tm = vedo.TetMesh(cout)
+        tm.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
+        return tm
+
+
+    def cut_with_mesh(
+            self, mesh, invert=False, whole_cells=False, on_boundary=False
+        ):
+        """
+        Cut a UnstructuredGrid or TetMesh with a Mesh.
+
+        Use `invert` to return cut off part of the input object.
+        """
+        ug = self.dataset
+
+        ippd = vtk.new("ImplicitPolyDataDistance")
+        ippd.SetInput(mesh.dataset)
+
+        if whole_cells or on_boundary:
+            clipper = vtk.new("ExtractGeometry")
+            clipper.SetInputData(ug)
+            clipper.SetImplicitFunction(ippd)
+            clipper.SetExtractInside(not invert)
+            clipper.SetExtractBoundaryCells(False)
+            if on_boundary:
+                clipper.SetExtractBoundaryCells(True)
+                clipper.SetExtractOnlyBoundaryCells(True)
+        else:
+            signed_dists = vtk.vtkFloatArray()
+            signed_dists.SetNumberOfComponents(1)
+            signed_dists.SetName("SignedDistance")
+            for pointId in range(ug.GetNumberOfPoints()):
+                p = ug.GetPoint(pointId)
+                signed_dist = ippd.EvaluateFunction(p)
+                signed_dists.InsertNextValue(signed_dist)
+            ug.GetPointData().AddArray(signed_dists)
+            ug.GetPointData().SetActiveScalars("SignedDistance") # NEEDED
+            clipper = vtk.new("ClipDataSet")
+            clipper.SetInputData(ug)
+            clipper.SetInsideOut(not invert)
+            clipper.SetValue(0.0)
+
+        clipper.Update()
+
+        out = vedo.UnstructuredGrid(clipper.GetOutput())
+        out.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
+        return out
+
 ##########################################################################
-class TetMesh(MeshVisual, UGridAlgorithms):
+class TetMesh(UnstructuredGrid):
     """The class describing tetrahedral meshes."""
 
     def __init__(self, inputobj=None):
@@ -405,9 +864,9 @@ class TetMesh(MeshVisual, UGridAlgorithms):
         name = self.__class__.__name__
         out = vedo.printc(
             f"{module}.{name} at ({hex(self.memory_address())})".ljust(75),
-            c="m", bold=True, invert=True, return_string=True,
+            c="c", bold=True, invert=True, return_string=True,
         )
-        out += "\x1b[0m\u001b[35m"
+        out += "\x1b[0m\u001b[36m"
 
         out += "nr. of verts".ljust(14) + ": " + str(self.npoints) + "\n"
         out += "nr. of tetras".ljust(14)+ ": " + str(self.ncells) + "\n"
@@ -590,44 +1049,6 @@ class TetMesh(MeshVisual, UGridAlgorithms):
         vald.Update()
         varr = vald.GetOutput().GetCellData().GetArray("ValidityState")
         return utils.vtk2numpy(varr)
-
-    def threshold(self, name=None, above=None, below=None, on="cells"):
-        """
-        Threshold the tetrahedral mesh by a cell scalar value.
-        Reduce to only tets which satisfy the threshold limits.
-
-        - if `above = below` will only select tets with that specific value.
-        - if `above > below` selection range is flipped.
-
-        Set keyword "on" to either "cells" or "points".
-        """
-        th = vtk.new("Threshold")
-        th.SetInputData(self.dataset)
-
-        if name is None:
-            if self.celldata.keys():
-                name = self.celldata.keys()[0]
-                th.SetInputArrayToProcess(0, 0, 0, 1, name)
-            elif self.pointdata.keys():
-                name = self.pointdata.keys()[0]
-                th.SetInputArrayToProcess(0, 0, 0, 0, name)
-            if name is None:
-                vedo.logger.warning("cannot find active array. Skip.")
-                return self
-        else:
-            if on.startswith("c"):
-                th.SetInputArrayToProcess(0, 0, 0, 1, name)
-            else:
-                th.SetInputArrayToProcess(0, 0, 0, 0, name)
-
-        if above is not None:
-            th.SetLowerThreshold(above)
-
-        if below is not None:
-            th.SetUpperThreshold(below)
-
-        th.Update()
-        return self._update(th.GetOutput())
 
     def decimate(self, scalars_name, fraction=0.5, n=0):
         """

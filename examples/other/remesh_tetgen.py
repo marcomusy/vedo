@@ -1,8 +1,8 @@
-"""Segment a TetMesh with a custom scalar.
-Press q to make it explode"""
-from vedo import Mesh, TetMesh, Plotter, Text2D, dataurl, settings
-import tetgen
+"""Create a TetMesh from a closed surface and explode it into pieces.
+Press q to make it explode."""
+from vedo import Points, Mesh, TetMesh, Plotter, Text2D, dataurl, settings
 import pymeshfix
+import tetgen
 
 settings.default_font = "Brachium"
 
@@ -19,11 +19,10 @@ tet = tetgen.TetGen(repaired.vertices, repaired.cells)
 tet.tetrahedralize(order=1, mindihedral=50, minratio=1.5)
 tmesh = TetMesh(tet.grid)
 
-surf = tmesh.tomesh(fill=False)
 txt = Text2D(__doc__)
 
 # pick points on the surface and use subsample to make them uniform
-seeds = surf.clone().subsample(f2).ps(10).c("black")
+seeds = Points(tmesh.cell_centers).subsample(f2)
 
 # assign to each tetrahedron the id of the closest seed point
 cids = []

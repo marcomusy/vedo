@@ -1338,12 +1338,18 @@ def _to_numpy(act):
     adict["type"] = "unknown"
 
     ######################################################## Points/Mesh
-    if isinstance(obj, Points):
+    if isinstance(obj, (Points, vedo.UnstructuredGrid)):
         adict["type"] = "Mesh"
         _fillcommon(obj, adict)
 
-        poly = obj.dataset
-        mapper = obj.mapper
+        if isinstance(obj, vedo.UnstructuredGrid):
+            # adict["type"] = "UnstructuredGrid"
+            # adict["cells"] = obj.cells_as_flat_array
+            poly = obj._actor.GetMapper().GetInput()
+            mapper = obj._actor.GetMapper()
+        else:
+            poly = obj.dataset
+            mapper = obj.mapper
 
         adict["points"] = obj.vertices.astype(float)
 

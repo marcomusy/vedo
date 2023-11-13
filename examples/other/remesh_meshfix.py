@@ -12,8 +12,6 @@ import pymeshfix
 import tetgen
 import vedo
 
-vedo.settings.use_depth_peeling = True
-
 amesh = vedo.Mesh(vedo.dataurl+'290.vtk')
 
 # repairing also closes the mesh in a nice way
@@ -27,7 +25,7 @@ tet.tetrahedralize(order=1, mindihedral=20, minratio=1.5)
 tmesh = vedo.TetMesh(tet.grid)
 
 # save it to disk
-#tmesh.write("my_tetmesh.vtk")
+# tmesh.write("my_tetmesh.vtu")
 
 plt = vedo.Plotter(N=3, axes=1)
 plt.at(0).show("Original mesh", amesh)
