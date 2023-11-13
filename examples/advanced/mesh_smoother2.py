@@ -1,7 +1,7 @@
 """Smoothing a mesh"""
 from vedo import dataurl, Mesh, show
 
-s1 = Mesh(dataurl+'panther.stl').lw(0.1)
+s1 = Mesh(dataurl+'panther.stl').lw(1)
 
 s2 = s1.clone().x(50)  # place at x=50
 s2.subdivide(3).smooth().compute_normals()

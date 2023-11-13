@@ -36,7 +36,7 @@ def capping(amsh, bias=0, invert=False, res=50):
     return msh3
 
 
-msh = Mesh(dataurl+"260_flank.vtp").c('orange5').bc('purple7').lw(0.1)
+msh = Mesh(dataurl+"260_flank.vtp").c('orange5').bc('purple7').lw(1)
 
 # mcap = msh.cap()  # automatic
 mcap = capping(msh, invert=True)

@@ -31,7 +31,7 @@ def epicycles(time, rotation, fourier, order):
     for i in range(len(fourier[:order])):
         re, im, freq, amp, phase = fourier[i]
         if amp > 0.2:
-            c = vedo.Circle([x,y], amp).wireframe().lw(0.1)
+            c = vedo.Circle([x,y], amp).wireframe().lw(1)
             objs.append(c)
         x += amp * np.cos(freq * time + phase + rotation)
         y += amp * np.sin(freq * time + phase + rotation)

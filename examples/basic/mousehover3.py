@@ -25,7 +25,7 @@ txt = Text2D("", s=1.4, font='Brachium', c='white', bg='green8')
 # create two polygonal meshes
 mesh1 = TessellatedBox()
 mesh2 = ParametricShape('ConicSpiral')
-mesh2.c('indigo1').lc('grey9').lw(0.1)
+mesh2.c('indigo1').lc('grey9').lw(1)
 objs = [mesh1, mesh2]
 
 plt = Plotter(N=2, bg='blackboard', axes=1, sharecam=False)

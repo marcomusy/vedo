@@ -77,7 +77,7 @@ def execute_cli():
     elif len(args.files) == 0:
         system_info()
         printc(
-            ":idea: No input files. Try:\n> vedo https://vedo.embl.es/examples/data/panther.stl.gz",
+            ":idea: No input files? Try:\n vedo https://vedo.embl.es/examples/data/panther.stl.gz",
             c="y",
         )
 
@@ -136,14 +136,12 @@ def get_parser():
 def system_info():
     from vtkmodules.all import vtkVersion
 
-    printc("_" * 65, bold=False)
-    printc("vedo version      :", __version__, invert=1, end="   ")
-    printc("https://vedo.embl.es", underline=1, italic=1)
+    printc(f"vedo version      : {__version__}  (https://vedo.embl.es) ".ljust(65), invert=1)
     printc("vtk version       :", vtkVersion().GetVTKVersion())
     printc("numpy version     :", np.__version__)
     printc("python version    :", sys.version.replace("\n", ""))
     printc("python interpreter:", sys.executable)
-    printc("vedo installation :", vedo.installdir)
+    printc("installation point:", vedo.installdir[:70])
     try:
         import platform
         printc(
