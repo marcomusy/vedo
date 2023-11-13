@@ -674,7 +674,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         imp.Update()
         self._update(imp.GetOutput())
         self.pipeline = utils.OperationNode(
-            f"permute_axes\n{(x,y,z)}", parents=[self], c="#4cc9f0"
+            f"permute_axes({(x,y,z)})", parents=[self], c="#4cc9f0"
         )
         return self
 
@@ -702,7 +702,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         rsp.Update()
         self._update(rsp.GetOutput())
         self.pipeline = utils.OperationNode(
-            f"resample\n{tuple(new_spacing)}", parents=[self], c="#4cc9f0"
+            "resample", comment=f"spacing: {tuple(new_spacing)}", parents=[self], c="#4cc9f0"
         )
         return self
 
@@ -990,7 +990,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             mf.Update()
             vol = Volume(mf.GetOutput())
             vol.pipeline = utils.OperationNode(
-                f"operation\n{op}", parents=[self], c="#4cc9f0", shape="cylinder"
+                "operation", comment=f"{op}", parents=[self], c="#4cc9f0", shape="cylinder"
             )
             return vol  ###########################
 
@@ -1066,7 +1066,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         self._update(mat.GetOutput())
 
         self.pipeline = utils.OperationNode(
-            f"operation\n{op}", parents=[self, volume2], shape="cylinder", c="#4cc9f0"
+            "operation", comment=f"{op}", parents=[self, volume2], shape="cylinder", c="#4cc9f0"
         )
         return self
 
@@ -1287,7 +1287,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         rsl.Update()
         self._update(rsl.GetOutput())
         self.pipeline = utils.OperationNode(
-            f"scale_voxels\nscale={scale}", parents=[self], c="#4cc9f0"
+            "scale_voxels", comment=f"scale={scale}", parents=[self], c="#4cc9f0"
         )
         return self
 

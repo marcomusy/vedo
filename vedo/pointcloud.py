@@ -1376,7 +1376,8 @@ class Points(PointsVisual, PointAlgorithms):
 
         self.scale([sx, sy, sz], origin=origin)
 
-        self.pipeline = utils.OperationNode(f"mirror\naxis = {axis}", parents=[self])
+        self.pipeline = utils.OperationNode(
+            "mirror", comment=f"axis = {axis}", parents=[self])
 
         if sx * sy * sz < 0:
             self.reverse()
@@ -3253,7 +3254,7 @@ class Points(PointsVisual, PointAlgorithms):
 
         self._update(gen.GetOutput(), reset_locators=False)
 
-        self.pipeline = utils.OperationNode("generate\nrandom data", parents=[self])
+        self.pipeline = utils.OperationNode("generate_random_data", parents=[self])
         return self
 
     def generate_delaunay2d(

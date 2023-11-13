@@ -570,8 +570,9 @@ class CommonAlgorithms:
         self.dataset.GetPointData().PassData(obj.dataset.GetPointData())
         self.dataset.GetCellData().PassData(obj.dataset.GetCellData())
         self.pipeline = utils.OperationNode(
-            f"copy_data_from\n{obj.__class__.__name__}",
+            "copy_data_from",
             parents=[self, obj],
+            comment=f"{obj.__class__.__name__}",
             shape="note",
             c="#ccc5b9",
         )
@@ -781,7 +782,8 @@ class CommonAlgorithms:
 
         self.dataset.RemoveDeletedCells()
         self.dataset.Modified()
-        self.pipeline = utils.OperationNode(f"delete {n} cells\nby point index", parents=[self])
+        self.pipeline = utils.OperationNode(
+            "delete_cells_by_point_index", parents=[self])
         return self
 
     def map_cells_to_points(self, arrays=(), move=False):
@@ -809,7 +811,7 @@ class CommonAlgorithms:
         c2p.Update()
         self._update(c2p.GetOutput(), reset_locators=False)
         self.mapper.SetScalarModeToUsePointData()
-        self.pipeline = utils.OperationNode("map cell\nto point data", parents=[self])
+        self.pipeline = utils.OperationNode("map_cells_to_points", parents=[self])
         return self
 
     @property
@@ -982,7 +984,9 @@ class CommonAlgorithms:
         rs.Update()
         self._update(rs.GetOutput(), reset_locators=False)
         self.pipeline = utils.OperationNode(
-            f"resample_data_from\n{source.__class__.__name__}", parents=[self, source]
+            "resample_data_from",
+            comment=f"{source.__class__.__name__}",
+            parents=[self, source]
         )
         return self
 
