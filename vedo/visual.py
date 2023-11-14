@@ -1466,18 +1466,29 @@ class PointsVisual(CommonVisual):
         if shad not in self.shadows:
             self.shadows.append(shad)
             shad.info = dict(plane=plane, point=point, direction=direction)
+            # shad.metadata["plane"] = plane
+            # shad.metadata["point"] = point
+            # print("AAAA", direction, plane, point)
+            # if direction is None:
+            #     direction = [0,0,0]
+            # shad.metadata["direction"] = direction
         return self
 
     def update_shadows(self):
-        """
-        Update the shadows of a moving object.
-        """
+        """Update the shadows of a moving object."""
         for sha in self.shadows:
             plane = sha.info["plane"]
             point = sha.info["point"]
             direction = sha.info["direction"]
+            # print("update_shadows direction", direction,plane,point )
+            # plane = sha.metadata["plane"]
+            # point = sha.metadata["point"]
+            # direction = sha.metadata["direction"]
+            # if direction[0]==0 and direction[1]==0 and direction[2]==0:
+            #     direction = None
+            # print("BBBB", sha.metadata["direction"], 
+            #       sha.metadata["plane"], sha.metadata["point"])
             new_sha = self._compute_shadow(plane, point, direction)
-            # sha.DeepCopy(new_sha)
             sha._update(new_sha.dataset)
         return self
 
@@ -1799,6 +1810,7 @@ class PointsVisual(CommonVisual):
     def legend(self, txt):
         """Book a legend text."""
         self.info["legend"] = txt
+        # self.metadata["legend"] = txt
         return self
 
     def flagpole(

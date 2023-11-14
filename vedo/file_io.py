@@ -230,21 +230,24 @@ def load(inputobj, unpack=True, force=False):
                 reader.Update()
                 image = reader.GetOutput()
                 vol = Volume(image)
-                vol.info["PixelSpacing"] = reader.GetPixelSpacing()
-                vol.info["Width"] = reader.GetWidth()
-                vol.info["Height"] = reader.GetHeight()
-                vol.info["PositionPatient"] = reader.GetImagePositionPatient()
-                vol.info["OrientationPatient"] = reader.GetImageOrientationPatient()
-                vol.info["BitsAllocated"] = reader.GetBitsAllocated()
-                vol.info["PixelRepresentation"] = reader.GetPixelRepresentation()
-                vol.info["NumberOfComponents"] = reader.GetNumberOfComponents()
-                vol.info["TransferSyntaxUID"] = reader.GetTransferSyntaxUID()
-                vol.info["RescaleSlope"] = reader.GetRescaleSlope()
-                vol.info["RescaleOffset"] = reader.GetRescaleOffset()
-                vol.info["PatientName"] = reader.GetPatientName()
-                vol.info["StudyUID"] = reader.GetStudyUID()
-                vol.info["StudyID"] = reader.GetStudyID()
-                vol.info["GantryAngle"] = reader.GetGantryAngle()
+                try:
+                    vol.metadata["PixelSpacing"] = reader.GetPixelSpacing()
+                    vol.metadata["Width"] = reader.GetWidth()
+                    vol.metadata["Height"] = reader.GetHeight()
+                    vol.metadata["PositionPatient"] = reader.GetImagePositionPatient()
+                    vol.metadata["OrientationPatient"] = reader.GetImageOrientationPatient()
+                    vol.metadata["BitsAllocated"] = reader.GetBitsAllocated()
+                    vol.metadata["PixelRepresentation"] = reader.GetPixelRepresentation()
+                    vol.metadata["NumberOfComponents"] = reader.GetNumberOfComponents()
+                    vol.metadata["TransferSyntaxUID"] = reader.GetTransferSyntaxUID()
+                    vol.metadata["RescaleSlope"] = reader.GetRescaleSlope()
+                    vol.metadata["RescaleOffset"] = reader.GetRescaleOffset()
+                    vol.metadata["PatientName"] = reader.GetPatientName()
+                    vol.metadata["StudyUID"] = reader.GetStudyUID()
+                    vol.metadata["StudyID"] = reader.GetStudyID()
+                    vol.metadata["GantryAngle"] = reader.GetGantryAngle()
+                except Exception as e:
+                    vedo.logger.warning(f"Cannot read DICOM metadata: {e}")
                 acts.append(vol)
 
             else:  ### it's a normal directory
@@ -899,7 +902,7 @@ def _from_numpy(d):
 
     if "time" in keys: msh.time = d["time"]
     if "name" in keys: msh.name = d["name"]
-    if "info" in keys: msh.info = d["info"]
+    # if "info" in keys: msh.info = d["info"]
     if "filename" in keys: msh.filename = d["filename"]
     if "pickable" in keys: msh.pickable(d["pickable"])
     if "dragable" in keys: msh.draggable(d["dragable"])
@@ -1032,7 +1035,7 @@ def _import_npy(fileinput):
             keys = d.keys()
             if "time" in keys: obj.time = d["time"]
             if "name" in keys: obj.name = d["name"]
-            if "info" in keys: obj.info = d["info"]
+            # if "info" in keys: obj.info = d["info"]
             if "filename" in keys: obj.filename = d["filename"]
             objs.append(obj)
 
@@ -1322,7 +1325,6 @@ def _to_numpy(act):
         adict["name"] = obj.name
         adict["time"] = obj.time
         adict["rendered_at"] = obj.rendered_at
-        adict["info"] = obj.info
         try:
             adict["transform"] = obj.transform.matrix
         except AttributeError:
@@ -1549,11 +1551,16 @@ def _export_npy(plt, fileoutput="scene.npz"):
                 asse_org = ob.GetOrigin()
                 for elem in ob.unpack():
                     elem.name = f"ASSEMBLY{i}_{ob.name}_{elem.name}"
-                    elem.info.update({"assembly": ob.name}) # TODO
-                    elem.info.update({"assembly_scale": asse_scale})
-                    elem.info.update({"assembly_position": asse_pos})
-                    elem.info.update({"assembly_orientation": asse_ori})
-                    elem.info.update({"assembly_origin": asse_org})
+                    # elem.info.update({"assembly": ob.name}) # TODO
+                    # elem.info.update({"assembly_scale": asse_scale})
+                    # elem.info.update({"assembly_position": asse_pos})
+                    # elem.info.update({"assembly_orientation": asse_ori})
+                    # elem.info.update({"assembly_origin": asse_org})
+                    elem.metadata["assembly"] = ob.name
+                    elem.metadata["assembly_scale"] = asse_scale
+                    elem.metadata["assembly_position"] = asse_pos
+                    elem.metadata["assembly_orientation"] = asse_ori
+                    elem.metadata["assembly_origin"] = asse_org
                     allobjs.append(elem)
             else:
                 allobjs.append(ob)

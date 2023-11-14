@@ -178,7 +178,7 @@ class OperationNode:
                 dot.edge(str(id(parent)), str(id(self)), label=t)
                 parent._build_tree(dot)
 
-    def __str__(self):
+    def __repr__(self):
         try:
             from treelib import Tree
         except ImportError:
