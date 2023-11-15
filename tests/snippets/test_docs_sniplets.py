@@ -45,7 +45,7 @@ objs = []
 for i in range(-5, 5):
     p = [i/3, i/2, i]
     v = vector(i/10, i/20, 1)
-    c = Circle(r=i/5+1.2).pos(p).orientation(v).lw(3)
+    c = Circle(r=i/5+1.2).pos(p).lw(3)
     objs += [c, Arrow(p,p+v)]
 if doshow:
     show(objs, axes=1).close()
@@ -59,7 +59,7 @@ v = vector(0.2,1,0)
 p = vector(1,0,0)  # axis passes through this point
 c2.rotate(90, axis=v, point=p)
 # get the inverse of the current transformation
-T = c2.get_transform(invert=True)
+T = c2.transform.compute_inverse()
 c2.apply_transform(T)  # put back c2 in place
 l = Line(p-v, p+v).lw(3).c('red')
 if doshow:
@@ -102,10 +102,10 @@ if doshow:
     show(grid, line, axes=1).close()
 
 
-##################################################################### picture.py
+##################################################################### Image.py
 print("Test 9")
 if doshow:
-    pic = Picture(dataurl+'dog.jpg').pad()
+    pic = Image(dataurl+'dog.jpg').pad()
     pic.append([pic,pic,pic], axis='y')
     pic.append([pic,pic,pic,pic], axis='x')
     pic.show(axes=1).close()
@@ -114,7 +114,7 @@ if doshow:
 ######################################################
 print("Test 10")
 if doshow:
-    p = vedo.Picture(vedo.dataurl+'images/dog.jpg').bw()
+    p = vedo.Image(vedo.dataurl+'images/dog.jpg').bw()
     pe = p.clone().enhance()
     show(p, pe, N=2, mode='image', zoom='tight').close()
 
@@ -123,7 +123,7 @@ if doshow:
 ######################################################
 print("Test 11")
 if doshow:
-    pic1 = Picture("https://aws.glamour.es/prod/designs/v1/assets/620x459/547577.jpg")
+    pic1 = Image("https://aws.glamour.es/prod/designs/v1/assets/620x459/547577.jpg")
     pic2 = pic1.clone().invert()
     pic3 = pic1.clone().binarize()
     show(pic1, pic2, pic3, N=3, bg="blue9").close()
@@ -133,10 +133,10 @@ if doshow:
 ######################################################
 print("Test 12")
 if doshow:
-    pic = vedo.Picture(vedo.dataurl+"images/dog.jpg")
-    pic.rectangle([100,300], [100,200], c='green4', alpha=0.7)
-    pic.line([100,100],[400,500], lw=2, alpha=1)
-    pic.triangle([250,300], [100,300], [200,400])
+    pic = vedo.Image(vedo.dataurl+"images/dog.jpg")
+    pic.add_rectangle([100,300], [100,200], c='green4', alpha=0.7)
+    pic.add_line([100,100],[400,500], lw=2, alpha=1)
+    pic.add_triangle([250,300], [100,300], [200,400])
     show(pic, axes=1).close()
 
 
@@ -173,16 +173,16 @@ if doshow:
 
 
 ##################################################################### pointcloud.py
-print("Test 16")
-s = Ellipsoid().rotate_y(30)
-#Camera options: pos, focal_point, viewup, distance,
-# clippingRange, parallelScale, thickness, viewAngle
-camopts = dict(pos=(0,0,25), focal_point=(0,0,0))
-if doshow:
-    show(s, camera=camopts, offscreen=True).close()
-    m = visible_points(s)
-    #print('visible pts:', m.points()) # numpy array
-    show(m, new=True, axes=1).close() # optionally draw result on a new window
+# print("Test 16")
+# s = Ellipsoid().rotate_y(30)
+# #Camera options: pos, focal_point, viewup, distance,
+# # clippingRange, parallelScale, thickness, viewAngle
+# camopts = dict(pos=(0,0,25), focal_point=(0,0,0))
+# if doshow:
+#     show(s, camera=camopts, offscreen=True).close()
+#     m = s.visible_points()
+#     #print('visible pts:', m.points()) # numpy array
+#     show(m, new=True, axes=1).close() # optionally draw result on a new window
 
 
 ######################################################
@@ -195,7 +195,8 @@ def fibonacci_sphere(n):
     x = np.cos(theta) * r
     z = np.sin(theta) * r
     return [x,y,z]
-fpoints = Points(fibonacci_sphere(1000))
+# print(np.c_[fibonacci_sphere(10)].T)
+fpoints = Points(np.c_[fibonacci_sphere(1000)].T)
 if doshow:
     fpoints.show(axes=1).close()
 
@@ -213,7 +214,7 @@ if doshow:
 ######################################################
 print("Test 19")
 sph = Sphere(quads=True, res=4).compute_normals().wireframe()
-sph.celldata["zvals"] = sph.cell_centers()[:,2]
+sph.celldata["zvals"] = sph.cell_centers[:,2]
 l2d = sph.labels("zvals", on="cells", precision=2).backcolor('orange9')
 if doshow:
     show(sph, l2d, axes=1).close()
@@ -224,7 +225,7 @@ if doshow:
 print("Test 20")
 c1 = Cube().rotate_z(5).x(2).y(1)
 print("cube1 position", c1.pos())
-T = c1.get_transform()  # rotate by 5 degrees, sum 2 to x and 1 to y
+T = c1.transform  # rotate by 5 degrees, sum 2 to x and 1 to y
 c2 = Cube().c('r4')
 c2.apply_transform(T)   # ignore previous movements
 c2.apply_transform(T, concatenate=True)
@@ -275,8 +276,8 @@ if doshow:
 ######################################################
 print("Test 25")
 if doshow:
-    shape = load(dataurl+"timecourse1d.npy")[58]
-    pts = shape.rotate_x(30).points()
+    shape = Assembly(dataurl+"timecourse1d.npy")[58]
+    pts = shape.rotate_x(30).coordinates
     tangents = Line(pts).tangents()
     arrs = Arrows(pts, pts+tangents, c='blue9')
     show(shape.c('red5').lw(5), arrs, bg='bb', axes=1).close()
@@ -285,8 +286,8 @@ if doshow:
 ######################################################
 print("Test 26")
 if doshow:
-    shape = load(dataurl+"timecourse1d.npy")[55]
-    curvs = Line(shape.points()).curvature()
+    shape = Assembly(dataurl+"timecourse1d.npy")[55]
+    curvs = Line(shape.coordinates).curvature()
     shape.cmap('coolwarm', curvs, vmin=-2,vmax=2).add_scalarbar3d(c='w')
     shape.render_lines_as_tubes().lw(12)
     pp = plot(curvs, ac='white', lc='yellow5')

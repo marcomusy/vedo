@@ -21,6 +21,7 @@ class Settings:
 
     ```python
     # Set the default font to be used for axes, comments etc.
+    # Check out the available fonts at http://vedo.embl.es/fonts
     # For example:
     default_font = 'Normografo'
     # To customize the font parameters use:
@@ -39,9 +40,9 @@ class Settings:
     # lspacing: horizontal spacing inbetween letters (not words)
     # dotsep  : a string of characters to be interpreted as dot separator
     # islocal : if locally stored in /fonts, otherwise it's on vedo.embl.es/fonts
+    #
     # To run a demo try:
     # vedo --run fonts
-    # Check out the available fonts at http://vedo.embl.es/fonts
 
     # Palette number when using an integer to choose a color
     palette = 0
@@ -233,7 +234,8 @@ class Settings:
         # 2 = do not hold execution and do not show any window
         self.dry_run_mode = 0
 
-        # BUG in vtk9.0 (if true close works but sometimes vtk crashes, if false doesnt crash but cannot close)
+        # BUG in vtk9.0
+        # if true close works but sometimes vtk crashes, if false doesnt crash but cannot close
         # see plotter.py line 555
         self.hack_call_screen_size = True
 

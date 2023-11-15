@@ -3,7 +3,10 @@ Internal use only
 
 
 # INSTALL ######################################
-cd ~/Projects/vedo
+export VDIR=$HOME/Projects/vedo
+export VLOGFILE=$HOME/Dropbox/vedo_test.txt
+
+cd $VDIR
 pip install -e .
 pip install nevergrad -U
 pip install pyefd -U
@@ -19,23 +22,24 @@ pip install pyshtools -U
 pip install trimesh -U
 
 
-# ENABLE/DISABLE DRY RUN ######################################
-cd ~/Projects/vedo
-sed -i "s/dry_run_mode = 0/dry_run_mode = 2/g" vedo/settings.py  ### DISABLE
-sed -i "s/dry_run_mode = 2/dry_run_mode = 0/g" vedo/settings.py  ### ENABLE
-###############################################################
+# ENABLE/DISABLE DRY RUN ########################################################
+sed -i "s/dry_run_mode = 0/dry_run_mode = 2/g" $VDIR/vedo/settings.py  #->DISABLE
+sed -i "s/dry_run_mode = 2/dry_run_mode = 0/g" $VDIR/vedo/settings.py  #->ENABLE
+#################################################################################
 
-cd ~/Projects/vedo/tests/common && ./run_all.sh 
-cd ~/Projects/vedo/examples/ &&  time ./run_all.sh  2>&1 | tee ~/Dropbox/vedo_test.txt
+pytest tests
 
-grep -A 1 "Error" ~/Dropbox/vedo_test.txt
-grep -A 3 "Trace" ~/Dropbox/vedo_test.txt
-code ~/Dropbox/vedo_test.txt   #### inspect logfile
+cd $VDIR/tests/common  && ./run_all.sh 
+cd $VDIR/examples && time ./run_all.sh 2>&1 | tee $VLOGFILE
+
+grep -aA 1 "Error" $VLOGFILE
+grep -aA 3 "Trace" $VLOGFILE
+code $VLOGFILE  #### inspect logfile
 # (Try normal run too with visualization to make sure all is ok)
 
 
 # EXAMPLES #####################################
-cd ~/Projects/vedo/tests/issues && ./run_all.sh 
+cd $VDIR/tests/issues && ./run_all.sh 
 
 
 # TUTORIALS ####################################
@@ -44,26 +48,24 @@ cd ~/Projects/server/vedo-bias-course/scripts && ./run_all.sh
 
 
 # TRIMESH #######################################
-cd ~/Projects/vedo/examples/other/trimesh
-./run_all.sh
+cd $VDIR/examples/other/trimesh && ./run_all.sh
 
 # DOLFIN #######################################
-cd ~/Projects/vedo
+cd $VDIR
 conda activate fenics
 pip install -e .
-cd examples/other/dolfin
-./run_all.sh
+cd $VDIR/examples/other/dolfin && ./run_all.sh
 conda deactivate
 
 # OTHERS #######################################
-cd ~/Projects/vedo
+cd $VDIR
 python ~/Dropbox/documents/Medical/RESONANCIA.py
 vedo https://vedo.embl.es/examples/data/panther.stl.gz
 vedo https://vedo.embl.es/examples/geo_scene.npz
 vedo --convert data/290.vtk --to ply && vedo data/290.ply
 
 # NOTEBOOKS #####################################
-cd ~/Projects/vedo/examples/notebooks/
+cd $VDIR/examples/notebooks/
 jupyter notebook > /dev/null 2>&1
 
 ##########################
@@ -102,7 +104,7 @@ cd ~/Projects/napari-vedo-bridge
     # conda activate napari-env
     # python -m pip install "napari[all]"
     conda activate napari-env
-    python ~/Projects/vedo/examples/other/napari1.py
+    python $VDIR/examples/other/napari1.py
     napari
     conda deactivate
 ################
@@ -114,7 +116,7 @@ cd ~/Projects/clonal_analysis2d_splines
 
 ################################################################
 # RELEASE
-cd ~/Projects/vedo
+cd $VDIR
 
 # check version and status
 code vedo/version.py
@@ -127,19 +129,20 @@ python setup.py sdist bdist_wheel
 twine upload dist/vedo-?.?.?.tar.gz -r pypi
 
 # make github release
-cd ~/Projects/vedo
+cd $VDIR
 code docs/changes.md
 code vedo/version.py  # edit to add .dev0
 https://repology.org/project/vedo/badges
+rm $VLOGFILE
 
 
 # DOCUMETATION #################################
 mount_staging
-cd ~/Projects/vedo/docs/pdoc
+cd $VDIR/docs/pdoc
 ./build_html.py 
 
 # check web page examples
-cd ~/Projects/vedo
+cd $VDIR
 code www/examples_db.js
 code www/index.html
 

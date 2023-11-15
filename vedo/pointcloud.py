@@ -577,7 +577,7 @@ class Points(PointsVisual, PointAlgorithms):
                     carr.InsertCellPoint(i)
                 self.dataset.SetVerts(carr)
 
-        elif isinstance(inputobj, PointAlgorithms):
+        elif isinstance(inputobj, Points):
             self.dataset = inputobj.dataset
             self.copy_properties_from(inputobj)
 
@@ -595,6 +595,7 @@ class Points(PointsVisual, PointAlgorithms):
                 inputobj = inputobj.dataset
             try:
                 vvpts = inputobj.GetPoints()
+                self.dataset = vtk.vtkPolyData()
                 self.dataset.SetPoints(vvpts)
                 for i in range(inputobj.GetPointData().GetNumberOfArrays()):
                     arr = inputobj.GetPointData().GetArray(i)
@@ -1681,15 +1682,17 @@ class Points(PointsVisual, PointAlgorithms):
     def smooth_mls_2d(self, f=0.2, radius=None):
         """
         Smooth mesh or points with a `Moving Least Squares` algorithm variant.
-        The list `mesh.info['variances']` contains the residue calculated for each point.
-        When a radius is specified points that are isolated will not be moved and will get
-        a False entry in array `mesh.info['is_valid']`.
+
+        The `mesh.pointdata['MLSVariance']` array will contain the residue calculated for each point.
+        When a radius is specified, points that are isolated will not be moved and will get
+        a 0 entry in array `mesh.pointdata['MLSValidPoint']`.
 
         Arguments:
             f : (float)
-                smoothing factor - typical range is [0,2].
-            radius : (float)
-                radius search in absolute units. If set then `f` is ignored.
+                smoothing factor - typical range is [0, 2].
+            radius : (float | array)
+                radius search in absolute units. Can be single value (float) or sequence
+                for adaptive smoothing. If set then `f` is ignored.
 
         Examples:
             - [moving_least_squares2D.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/moving_least_squares2D.py)
@@ -1700,41 +1703,52 @@ class Points(PointsVisual, PointAlgorithms):
         coords = self.vertices
         ncoords = len(coords)
 
-        if radius:
+        if radius is not None:
             Ncp = 1
         else:
             Ncp = int(ncoords * f / 100)
             if Ncp < 4:
-                vedo.logger.error(f"MLS2D: Please choose a fraction higher than {f}")
+                vedo.logger.error(f"please choose a f-value higher than {f}")
                 Ncp = 4
 
         variances, newpts, valid = [], [], []
+        radius_is_sequence = utils.is_sequence(radius)
+
         pb = None
         if ncoords > 10000:
-            pb = utils.ProgressBar(0, ncoords)
-        for p in coords:
+            pb = utils.ProgressBar(0, ncoords, delay=3)
+
+        for i, p in enumerate(coords):
             if pb:
                 pb.print("smooth_mls_2d working ...")
-            pts = self.closest_point(p, n=Ncp, radius=radius)
+            
+            # if a radius was provided for each point
+            if radius_is_sequence:
+                pts = self.closest_point(p, n=Ncp, radius=radius[i])
+            else:
+                pts = self.closest_point(p, n=Ncp, radius=radius)
+
             if len(pts) > 3:
                 ptsmean = pts.mean(axis=0)  # plane center
                 _, dd, vv = np.linalg.svd(pts - ptsmean)
                 cv = np.cross(vv[0], vv[1])
                 t = (np.dot(cv, ptsmean) - np.dot(cv, p)) / np.dot(cv, cv)
-                newp = p + cv * t
-                newpts.append(newp)
+                newpts.append(p + cv * t)
                 variances.append(dd[2])
-                if radius:
-                    valid.append(True)
+                if radius is not None:
+                    valid.append(1)
             else:
                 newpts.append(p)
                 variances.append(0)
-                if radius:
-                    valid.append(False)
+                if radius is not None:
+                    valid.append(0)
 
-        self.info["variances"] = np.array(variances)
-        self.info["is_valid"] = np.array(valid)
+        if radius is not None:
+            self.pointdata["MLSValidPoint"] = np.array(valid).astype(np.uint8)
+        self.pointdata["MLSVariance"] = np.array(variances).astype(np.float32)
+
         self.vertices = newpts
+
         self.pipeline = utils.OperationNode("smooth_mls_2d", parents=[self])
         return self
 
@@ -1798,6 +1812,7 @@ class Points(PointsVisual, PointAlgorithms):
         # m = vedo.Mesh([pts, self.cells]) # not yet working properly
         # m.vertices = pts # not yet working properly
         out = Points(pts)
+        out.name = "MeshSmoothLloyd2D"
         out.pipeline = utils.OperationNode("smooth_lloyd", parents=[self])
         return out
 
@@ -2953,6 +2968,8 @@ class Points(PointsVisual, PointAlgorithms):
         Output is a `Volume`.
 
         The local neighborhood is specified as the `radius` around each sample position (each voxel).
+        If left to None, the radius is automatically computed as the diagonal of the bounding box
+        and can be accessed via `vol.metadata["radius"]`.
         The density is expressed as the number of counts in the radius search.
 
         Arguments:
@@ -3005,7 +3022,7 @@ class Points(PointsVisual, PointAlgorithms):
         img = pdf.GetOutput()
         vol = vedo.volume.Volume(img).mode(1)
         vol.name = "PointDensity"
-        vol.info["radius"] = radius
+        vol.metadata["radius"] = radius
         vol.locator = pdf.GetLocator()
         vol.pipeline = utils.OperationNode(
             "density", parents=[self], comment=f"dims = {tuple(vol.dimensions())}"

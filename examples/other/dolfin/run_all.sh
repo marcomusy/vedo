@@ -14,15 +14,6 @@ python3 calc_surface_area.py
 echo Running markmesh.py
 python3 markmesh.py
 
-# echo Running scalemesh.py
-# python3 scalemesh.py
-
-# echo Running pi_estimate.py
-# python3 pi_estimate.py
-
-# echo Running submesh_boundary.py
-# python3 submesh_boundary.py
-
 echo Running demo_submesh.py
 python3 demo_submesh.py
 
@@ -50,9 +41,6 @@ python3 ex03_poisson.py
 echo Running ex04_mixed-poisson.py
 python3 ex04_mixed-poisson.py
 
-echo Running ex05_non-matching-meshes.py
-python3 ex05_non-matching-meshes.py
-
 echo Running ex06_elasticity1.py
 python3 ex06_elasticity1.py
 
@@ -64,8 +52,6 @@ python3 ex07_stokes-iterative.py
 
 
 ######################################
-# echo Running ft02_poisson_membrane.py
-# python3 ft02_poisson_membrane.py
 
 echo Running ft04_heat_gaussian.py
 python3 ft04_heat_gaussian.py
@@ -76,17 +62,8 @@ python3 navier-stokes_lshape.py
 echo Running ft09_reaction_system.py
 python3 ft09_reaction_system.py
 
-echo Running stokes.py
-python3 stokes.py
-
-echo Running stokes2.py
-python3 stokes2.py
-
 echo Running demo_cahn-hilliard.py
 python3 demo_cahn-hilliard.py
-
-echo Running turing_pattern.py
-python3 turing_pattern.py
 
 echo Running heatconv.py
 python3 heatconv.py

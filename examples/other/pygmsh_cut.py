@@ -28,7 +28,7 @@ plt.show(
     vmsh,
     "Drag the sphere,\nright-click&drag to zoom",
 )
-cutter = SphereCutter(msh)
+cutter = SphereCutter(vmsh)
 plt.add(cutter)
 plt.interactive()
 plt.close()

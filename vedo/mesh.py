@@ -53,16 +53,8 @@ class Mesh(MeshVisual, Points):
         super().__init__()
 
         if inputobj is None:
+            # self.dataset = vtk.vtkPolyData()
             pass
-
-        elif isinstance(inputobj, vtk.vtkActor):
-            self.dataset.DeepCopy(inputobj.GetMapper().GetInput())
-            v = inputobj.GetMapper().GetScalarVisibility()
-            self.mapper.SetScalarVisibility(v)
-            pr = vtk.vtkProperty()
-            pr.DeepCopy(inputobj.GetProperty())
-            self.actor.SetProperty(pr)
-            self.properties = pr
 
         elif isinstance(inputobj, vtk.vtkPolyData):
             # self.dataset.DeepCopy(inputobj) # NO
@@ -73,6 +65,10 @@ class Mesh(MeshVisual, Points):
                     carr.InsertNextCell(1)
                     carr.InsertCellPoint(i)
                 self.dataset.SetVerts(carr)
+
+        elif isinstance(inputobj, str):
+            self.dataset = vedo.file_io.load(inputobj).dataset
+            self.filename = inputobj
 
         elif is_sequence(inputobj):
             ninp = len(inputobj)
@@ -86,9 +82,14 @@ class Mesh(MeshVisual, Points):
                 vedo.logger.error("input must be a list of max 3 elements.", c=1)
                 raise ValueError()
 
-        elif isinstance(inputobj, str):
-            self.dataset = vedo.file_io.load(inputobj).dataset
-            self.filename = inputobj
+        elif isinstance(inputobj, vtk.vtkActor):
+            self.dataset.DeepCopy(inputobj.GetMapper().GetInput())
+            v = inputobj.GetMapper().GetScalarVisibility()
+            self.mapper.SetScalarVisibility(v)
+            pr = vtk.vtkProperty()
+            pr.DeepCopy(inputobj.GetProperty())
+            self.actor.SetProperty(pr)
+            self.properties = pr
 
         elif isinstance(inputobj, (vtk.vtkStructuredGrid, vtk.vtkRectilinearGrid)):
             gf = vtk.new("GeometryFilter")
@@ -152,7 +153,6 @@ class Mesh(MeshVisual, Points):
             self.mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
 
         n = self.dataset.GetNumberOfPoints()
-        self.name = "Mesh"
         self.pipeline = OperationNode(self, comment=f"#pts {n}")
 
     def _repr_html_(self):

@@ -31,13 +31,13 @@ plt1.at(2).show(mls2, "MLS second pass, radius=0.1")
 #################################### draw errors
 plt2 = Plotter(pos=(300, 400), N=2, axes=1)
 
-variances = mls2.info["variances"]
+variances = mls2.pointdata["MLSVariance"]
 vmin, vmax = np.min(variances), np.max(variances)
 print("min and max of variances:", vmin, vmax)
 vcols = [color_map(v, "jet", vmin, vmax) for v in variances]  # scalars->colors
 
-sp0 = Spheres(mls2.vertices, c=vcols, r=0.02) # error as color
-sp1 = Spheres(mls2.vertices, c="red", r=variances/4) # error as point size
+sp0 = Spheres(mls2.vertices, c=vcols, r=0.02)         # error as color
+sp1 = Spheres(mls2.vertices, c="red5", r=variances/4) # error as point size
 
 mesh.color("k").alpha(0.05).wireframe()
 
