@@ -4,7 +4,7 @@
 .vedo_pipeline_graphviz*
 
 docs/examples_db.js
-docs/index.html
+docs/pdoc/html
 
 vedo.egg-info
 build
@@ -18,7 +18,7 @@ examples/notebooks/.ipynb_checkpoints
 *jpg
 *tiff
 *tif
-*npz
+# *npz
 
 untitled*.py
 bug_*.py
@@ -27,3 +27,7 @@ store
 speed_tester.py
 data
 www
+
+dev_*.py
+z?.py
+v?.py

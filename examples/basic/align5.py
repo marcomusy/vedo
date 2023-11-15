@@ -25,10 +25,10 @@ s1 = Mesh(dataurl + "bunny.obj").c("gold")
 s2 = s1.clone().c('orange4')
 
 # Transform the cloned mesh by moving the landmarks from landmarks1 to landmarks2
-s2.transform_with_landmarks(landmarks1, landmarks2)
+s2.align_with_landmarks(landmarks1, landmarks2)
 
 # Create arrows to visualize the movement of the landmark points
-arrows = Arrows(landmarks1, landmarks2, s=0.5, c='black')
+arrows = Arrows(landmarks1, landmarks2, s=0.5).c('black')
 
 # Show the original mesh, transformed mesh, arrows, and script description
 show(s1, s2, arrows, __doc__, axes=True).close()

@@ -43,12 +43,10 @@ grd.linewidth(0).wireframe(False).lighting(ambient=0.5)
 formula = r'(u,v)=(D_u\cdot\Delta u -u v v+F(1-u), D_v\cdot\Delta v +u v v -(F+k)v)'
 print('Du, Dv, F, k, name =', Du, Dv, F, k, name)
 
-plt = Plotter(bg='linen')
 
 def loop_func(event):
     global u, v
-
-    for i in range(25):
+    for _ in range(25):
         Lu = (                  U[0:-2, 1:-1] +
               U[1:-1, 0:-2] - 4*U[1:-1, 1:-1] + U[1:-1, 2:] +
                                 U[2:  , 1:-1])
@@ -61,11 +59,13 @@ def loop_func(event):
 
     grd.cmap('ocean_r', V.ravel(), on='cells', name="escals")
     grd.map_cells_to_points()                # interpolate cell data to point data
-    newpts = grd.points()
-    newpts[:,2] = grd.pointdata['escals']*25 # assign z elevation
-    grd.points(newpts)                       # set the new points
+    z = grd.pointdata['escals']*25 
+    newverts = grd.vertices.copy()           # get the original vertices
+    newverts[:,2] = z                        # assign z elevation
+    grd.vertices = newverts                  # update the mesh vertices
     plt.render()
 
+plt = Plotter(bg='linen')
 plt.add_callback("timer", loop_func)
 plt.timer_callback("start")
 plt.show(grd, __doc__, zoom=1.25, elevation=-30)

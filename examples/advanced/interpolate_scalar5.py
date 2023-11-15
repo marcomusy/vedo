@@ -15,24 +15,24 @@ surf = Grid(res=[25,25])
 
 # Pick n random points on the surface
 ids = np.random.randint(0, surf.npoints, 10)
-pts = surf.points(ids)
+pts = surf.vertices[ids]
 
 # Create a set of random scalars
 scals1 = np.random.randn(10) * 0.1 
 
 ptss1 = pts.copy()
 ptss1[:,2] = scals1   # assign scalars as z-coords
-pts1 = Points(ptss1, r=15, c="red5")
+pts1 = Points(ptss1).color("red5").point_size(15)
 
 # Compute an interpolated (smoothed) set of scalars
 scals2 = harmonic_shepard(pts, scals1, radius=0.1)
 ptss2 = pts.copy()
 ptss2[:,2] = scals2
-pts2 = Points(ptss2, r=15, c="purple5")
+pts2 = Points(ptss2).color("purple5").point_size(15)
 
 # Warp the surface to match the interpolated points
 ptsource, pttarget = [], []
-for pt in pts2.points():
+for pt in pts2.vertices:
     pt_surf = surf.closest_point(pt)
     ptsource.append(pt_surf)
     pttarget.append(pt)

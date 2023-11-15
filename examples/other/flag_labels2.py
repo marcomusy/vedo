@@ -3,7 +3,7 @@ from vedo import ParametricShape, precision, color_map, show
 
 s = ParametricShape("RandomHills").cmap("coolwarm")
 
-pts = s.clone().decimate(n=10).points()
+pts = s.clone().decimate(n=10).vertices
 
 fss = []
 for p in pts:

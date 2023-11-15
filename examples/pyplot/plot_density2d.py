@@ -13,12 +13,12 @@ p[ int(n*2/3):] += [1.7, 0.4]
 pts = Points(p).color('k', 0.2)
 
 # radius of local search can be specified (None=automatic)
-vol = pts.density(radius=None).c('Paired_r') # returns a Volume
+vol = pts.density(radius=None).cmap('Paired_r') # returns a Volume
 
 # Other cool color mapping: Set1_r, Dark2. Or you can build your own, e.g.:
 # vol.c(['w','w','y','y','r','r','g','g','b','k']).alpha([0,1])
 
-r = precision(vol.info['radius'], 2) # retrieve automatic radius value
+r = precision(vol.metadata['radius'], 2) # retrieve automatic radius value
 vol.add_scalarbar3d(title='Density (counts in r_search ='+r+')', c='k', italic=1)
 
 show([(pts,__doc__), vol], N=2, axes=True).close()

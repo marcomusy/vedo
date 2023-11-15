@@ -1,6 +1,6 @@
 from vedo import Grid, Tensors, show
 
-domain = Grid(res=[5,5], c='gray')
+domain = Grid(res=[5,5])
 
 # Generate random attributes on this mesh
 domain.generate_random_data()

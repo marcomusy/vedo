@@ -14,7 +14,7 @@ def func(evt):                   # this is the callback function
     if mag(pt3d) < 0.01:
         return
     newpt = Point(pt3d).color(i)
-    txt.text(f'2D coords: {pt2d}\n3D coords: {pt3d}\nNpt = {len(plt.actors)}')
+    txt.text(f'2D coords: {pt2d}\n3D coords: {pt3d}\nNpt = {len(plt.objects)}')
     txt.color(i)                  # update text and color on the fly
     plt.at(i).add(newpt).render() # add new point and render i
 
@@ -25,7 +25,7 @@ txt = Text2D("", s=1.4, font='Brachium', c='white', bg='green8')
 # create two polygonal meshes
 mesh1 = TessellatedBox()
 mesh2 = ParametricShape('ConicSpiral')
-mesh2.c('indigo1').lc('grey9').lw(0.1)
+mesh2.c('indigo1').lc('grey9').lw(1)
 objs = [mesh1, mesh2]
 
 plt = Plotter(N=2, bg='blackboard', axes=1, sharecam=False)

@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 import time
 import os
-from typing import Callable
 
 import numpy as np
+
+import vedo.vtkclasses as vtk
 
 import vedo
 from vedo.colors import color_map, get_color
@@ -12,7 +13,7 @@ from vedo.utils import is_sequence, lin_interpolate, mag, precision
 from vedo.plotter import Event, Plotter
 from vedo.pointcloud import fit_plane, Points
 from vedo.shapes import Line, Ribbon, Spline, Text2D
-from vedo.pyplot import CornerHistogram
+from vedo.pyplot import CornerHistogram, histogram
 from vedo.addons import SliderWidget
 
 
@@ -29,8 +30,9 @@ __all__ = [
     "IsosurfaceBrowser",
     "FreeHandCutPlotter",
     "RayCastPlotter",
-    "Slicer3DPlotter",
     "Slicer2DPlotter",
+    "Slicer3DPlotter",
+    "Slicer3DTwinPlotter",
     "SplinePlotter",
     "AnimationPlayer",
     "Clock",
@@ -46,7 +48,7 @@ class Slicer3DPlotter(Plotter):
     def __init__(
         self,
         volume,
-        cmaps=("gist_ncar_r", "hot_r", "bone_r", "jet", "Spectral_r"),
+        cmaps=("gist_ncar_r", "hot_r", "bone", "bone_r", "jet", "Spectral_r"),
         clamp=True,
         use_slider3d=False,
         show_histo=True,
@@ -62,7 +64,7 @@ class Slicer3DPlotter(Plotter):
             cmaps : (list)
                 list of color maps names to cycle when clicking button
             clamp : (bool)
-                clamp scalar to reduce the effect of tails in color mapping
+                clamp scalar range to reduce the effect of tails in color mapping
             use_slider3d : (bool)
                 show sliders attached along the axes
             show_histo : (bool)
@@ -80,7 +82,7 @@ class Slicer3DPlotter(Plotter):
             <img src="https://vedo.embl.es/images/volumetric/slicer1.jpg" width="500">
         """
         ################################
-        Plotter.__init__(self, **kwargs)
+        super().__init__(**kwargs)
         self.at(at)
         ################################
 
@@ -89,14 +91,28 @@ class Slicer3DPlotter(Plotter):
             cx, cy, cz = "lr", "lg", "lb"
             ch = (0.8, 0.8, 0.8)
 
-        if len(self.renderers) > 1: # 2d sliders do not work with multiple renderers
+        if len(self.renderers) > 1:
+            # 2d sliders do not work with multiple renderers
             use_slider3d = True
 
-        box = volume.box().alpha(0.1)
+        self.volume = volume
+        box = volume.box().alpha(0.2)
         self.add(box)
 
+        volume_axes_inset = vedo.addons.Axes(
+            box,
+            xtitle=' ', ytitle=' ', ztitle=' ',
+            yzgrid=False, 
+            xlabel_size=0, ylabel_size=0, zlabel_size=0, tip_size=0.08,
+            axes_linewidth=3, 
+            xline_color='dr', yline_color='dg', zline_color='db',
+        )
+
         if show_icon:
-            self.add_inset(volume, pos=(0.85, 0.85), size=0.15, c="w", draggable=draggable)
+            self.add_inset(
+                volume, volume_axes_inset,
+                pos=(0.9, 0.9), size=0.15, c="w", draggable=draggable
+            )
 
         # inits
         la, ld = 0.7, 0.3  # ambient, diffuse
@@ -112,64 +128,83 @@ class Slicer3DPlotter(Plotter):
             rmin = max(rmin, meanlog - (rmax - meanlog) * 0.9)
             # print("scalar range clamped to range: ("
             #       + precision(rmin, 3) + ", " + precision(rmax, 3) + ")")
-        self._cmap_slicer = cmaps[0]
 
-        msh = volume.zslice(int(dims[2] / 2)).lighting("", la, ld, 0)
-        msh.name = "ZSlice"
-        msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-        if len(cmaps) > 1:
-            msh.add_scalarbar(pos=(0.04, 0.0), horizontal=True, font_size=0)
-            msh.scalarbar.name = "scalarbar"    
-        # self.add(msh.clone()) # BUG
-        self.add(msh)
+        self.cmap_slicer = cmaps[0]
 
-        self._oldi = None
-        self._oldj = None
-        self._oldk = None
+        self.current_i = None
+        self.current_j = None
+        self.current_k = int(dims[2] / 2)
 
+        self.xslice = None
+        self.yslice = None
+        self.zslice = None
 
+        self.zslice = volume.zslice(self.current_k).lighting("", la, ld, 0)
+        self.zslice.name = "ZSlice"
+        self.zslice.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
+        self.add(self.zslice)
+
+        if show_histo:
+            # try to reduce the number of values to histogram
+            dims = self.volume.dimensions()
+            n = (dims[0]-1) * (dims[1]-1) * (dims[2]-1)
+            n = min(1_000_000, n)
+            data_reduced = np.random.choice(data, n)
+            self.histogram = histogram(
+                data_reduced,
+                # title=volume.filename,
+                bins=20, logscale=True,
+                c=self.cmap_slicer, bg=ch, alpha=1,
+                axes=dict(text_scale=2),
+            ).clone2d(pos=[-0.925,-0.88], scale=0.4)
+            self.add(self.histogram)
+        
+        #################
         def slider_function_x(widget, event):
             i = int(self.xslider.value)
-            if i == self._oldi:
+            if i == self.current_i:
                 return
-            self._oldi = i
-            msh = volume.xslice(i).lighting("", la, ld, 0)
-            msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-            msh.name = "XSlice"
+            self.current_i = i
+            self.xslice = volume.xslice(i).lighting("", la, ld, 0)
+            self.xslice.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
+            self.xslice.name = "XSlice"
             self.remove("XSlice")  # removes the old one
             if 0 < i < dims[0]:
-                self.add(msh)
+                self.add(self.xslice)
+            self.render()
 
         def slider_function_y(widget, event):
             j = int(self.yslider.value)
-            if j == self._oldj:
+            if j == self.current_j:
                 return
-            self._oldj = j
-            msh = volume.yslice(j).lighting("", la, ld, 0)
-            msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-            msh.name = "YSlice"
+            self.current_j = j
+            self.yslice = volume.yslice(j).lighting("", la, ld, 0)
+            self.yslice.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
+            self.yslice.name = "YSlice"
             self.remove("YSlice")
             if 0 < j < dims[1]:
-                self.add(msh)
+                self.add(self.yslice)
+            self.render()
 
         def slider_function_z(widget, event):
             k = int(self.zslider.value)
-            if k == self._oldk:
+            if k == self.current_k:
                 return
-            self._oldk = k
-            msh = volume.zslice(k).lighting("", la, ld, 0)
-            msh.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-            msh.name = "ZSlice"
+            self.current_k = k
+            self.zslice = volume.zslice(k).lighting("", la, ld, 0)
+            self.zslice.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
+            self.zslice.name = "ZSlice"
             self.remove("ZSlice")
             if 0 < k < dims[2]:
-                self.add(msh)
+                self.add(self.zslice)
+            self.render()
 
         if not use_slider3d:
             self.xslider = self.add_slider(
                 slider_function_x,
                 0,
                 dims[0],
-                title="X",
+                title="",
                 title_size=0.5,
                 pos=[(0.8, 0.12), (0.95, 0.12)],
                 show_value=False,
@@ -179,7 +214,7 @@ class Slicer3DPlotter(Plotter):
                 slider_function_y,
                 0,
                 dims[1],
-                title="Y",
+                title="",
                 title_size=0.5,
                 pos=[(0.8, 0.08), (0.95, 0.08)],
                 show_value=False,
@@ -189,13 +224,14 @@ class Slicer3DPlotter(Plotter):
                 slider_function_z,
                 0,
                 dims[2],
-                title="Z",
+                title="",
                 title_size=0.6,
                 value=int(dims[2] / 2),
                 pos=[(0.8, 0.04), (0.95, 0.04)],
                 show_value=False,
                 c=cz,
             )
+
         else:  # 3d sliders attached to the axes bounds
             bs = box.bounds()
             self.xslider = self.add_slider3d(
@@ -231,43 +267,173 @@ class Slicer3DPlotter(Plotter):
             )
 
         #################
-        def buttonfunc(_obj, _ename):
+        def button_func(obj, ename):
             bu.switch()
-            self._cmap_slicer = bu.status()
-            for m in self.actors:
-                try:
-                    if "Slice" in m.name:
-                        m.cmap(self._cmap_slicer, vmin=rmin, vmax=rmax)
-                        if len(cmaps) > 1:
-                            self.remove("scalarbar")
-                            m2 = m.clone()
-                            m2.add_scalarbar(pos=(0.04, 0.0), horizontal=True, font_size=0)
-                            m2.scalarbar.name = "scalarbar"
-                            self.add(m2.scalarbar)
-                except AttributeError:
-                    pass
+            self.cmap_slicer = bu.status()
+            for m in self.objects:
+                if "Slice" in m.name:
+                    m.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
+            self.remove(self.histogram)
+            if show_histo:
+                self.histogram = histogram(
+                    data_reduced,
+                    # title=volume.filename,
+                    bins=20, logscale=True, 
+                    c=self.cmap_slicer, bg=ch, alpha=1,
+                    axes=dict(text_scale=2),
+                ).clone2d(pos=[-0.925,-0.88], scale=0.4)
+                self.add(self.histogram)
             self.render()
 
         if len(cmaps) > 1:
             bu = self.add_button(
-                buttonfunc,
-                pos=(0.275, 0.005),
+                button_func,
                 states=cmaps,
                 c=["k9"] * len(cmaps),
                 bc=["k1"] * len(cmaps),  # colors of states
-                size=14,
+                size=16,
                 bold=True,
             )
-            bu.pos([0.24, 0.005], "bottom-left")
+            bu.pos([0.04, 0.01], "bottom-left")
+
+
+class Slicer3DTwinPlotter(Plotter):
+    """
+    Create a window with two side-by-side 3D slicers for two Volumes.
+
+    Example:
+        ```python
+        from vedo import *
+        from vedo.applications import Slicer3DTwinPlotter
+
+        vol1 = Volume(dataurl + "embryo.slc")
+        vol2 = Volume(dataurl + "embryo.slc")
+
+        plt = Slicer3DTwinPlotter(
+            vol1, vol2, 
+            shape=(1, 2), 
+            sharecam=True,
+            bg="white", 
+            bg2="lightblue",
+        )
+
+        plt.at(0).add(Text2D("Volume 1", pos="top-center"))
+        plt.at(1).add(Text2D("Volume 2", pos="top-center"))
+
+        plt.show(viewup='z')
+        plt.at(0).reset_camera()
+        plt.interactive().close()
+        ```
+        ![](https://user-images.githubusercontent.com/32848391/268638466-525114bc-7ce8-480b-9c45-af9ea0d93203.png)
+    """
+
+    def __init__(self, vol1, vol2, clamp=True, **kwargs):
+
+        super().__init__(**kwargs)
+
+        cmap = "gist_ncar_r"
+        cx, cy, cz = "dr", "dg", "db" # slider colors
+        ambient, diffuse = 0.7, 0.3   # lighting params
+
+        self.at(0)
+        box1 = vol1.box().alpha(0.1)
+        box2 = vol2.box().alpha(0.1)
+        self.add(box1)
+        
+        self.at(1).add(box2)
+        self.add_inset(vol2, pos=(0.85, 0.15), size=0.15, c="white", draggable=0)
+
+        dims = vol1.dimensions()
+        data = vol1.pointdata[0]
+        rmin, rmax = vol1.scalar_range()
+        if clamp:
+            hdata, edg = np.histogram(data, bins=50)
+            logdata = np.log(hdata + 1)
+            meanlog = np.sum(np.multiply(edg[:-1], logdata)) / np.sum(logdata)
+            rmax = min(rmax, meanlog + (meanlog - rmin) * 0.9)
+            rmin = max(rmin, meanlog - (rmax - meanlog) * 0.9)
+
+
+        def slider_function_x(widget, event):
+            i = int(self.xslider.value)
+            msh1 = vol1.xslice(i).lighting("", ambient, diffuse, 0)
+            msh1.cmap(cmap, vmin=rmin, vmax=rmax)
+            msh1.name = "XSlice"
+            self.at(0).remove("XSlice")  # removes the old one
+            msh2 = vol2.xslice(i).lighting("", ambient, diffuse, 0)
+            msh2.cmap(cmap, vmin=rmin, vmax=rmax)
+            msh2.name = "XSlice"
+            self.at(1).remove("XSlice")
+            if 0 < i < dims[0]:
+                self.at(0).add(msh1)
+                self.at(1).add(msh2)
+
+        def slider_function_y(widget, event):
+            i = int(self.yslider.value)
+            msh1 = vol1.yslice(i).lighting("", ambient, diffuse, 0)
+            msh1.cmap(cmap, vmin=rmin, vmax=rmax)
+            msh1.name = "YSlice"
+            self.at(0).remove("YSlice")
+            msh2 = vol2.yslice(i).lighting("", ambient, diffuse, 0)
+            msh2.cmap(cmap, vmin=rmin, vmax=rmax)
+            msh2.name = "YSlice"
+            self.at(1).remove("YSlice")
+            if 0 < i < dims[1]:
+                self.at(0).add(msh1)
+                self.at(1).add(msh2)
+
+        def slider_function_z(widget, event):
+            i = int(self.zslider.value)
+            msh1 = vol1.zslice(i).lighting("", ambient, diffuse, 0)
+            msh1.cmap(cmap, vmin=rmin, vmax=rmax)
+            msh1.name = "ZSlice"
+            self.at(0).remove("ZSlice")
+            msh2 = vol2.zslice(i).lighting("", ambient, diffuse, 0)
+            msh2.cmap(cmap, vmin=rmin, vmax=rmax)
+            msh2.name = "ZSlice"
+            self.at(1).remove("ZSlice")
+            if 0 < i < dims[2]:
+                self.at(0).add(msh1)
+                self.at(1).add(msh2)
+
+        self.at(0)
+        bs = box1.bounds()
+        self.xslider = self.add_slider3d(
+            slider_function_x,
+            pos1=(bs[0], bs[2], bs[4]),
+            pos2=(bs[1], bs[2], bs[4]),
+            xmin=0,
+            xmax=dims[0],
+            t=box1.diagonal_size() / mag(box1.xbounds()) * 0.6,
+            c=cx,
+            show_value=False,
+        )
+        self.yslider = self.add_slider3d(
+            slider_function_y,
+            pos1=(bs[1], bs[2], bs[4]),
+            pos2=(bs[1], bs[3], bs[4]),
+            xmin=0,
+            xmax=dims[1],
+            t=box1.diagonal_size() / mag(box1.ybounds()) * 0.6,
+            c=cy,
+            show_value=False,
+        )
+        self.zslider = self.add_slider3d(
+            slider_function_z,
+            pos1=(bs[0], bs[2], bs[4]),
+            pos2=(bs[0], bs[2], bs[5]),
+            xmin=0,
+            xmax=dims[2],
+            value=int(dims[2] / 2),
+            t=box1.diagonal_size() / mag(box1.zbounds()) * 0.6,
+            c=cz,
+            show_value=False,
+        )
 
         #################
-        if show_histo:
-            hist = CornerHistogram(
-                data, s=0.2, bins=25, logscale=True,
-                pos=(0.02, 0.02), c=ch, bg=ch, alpha=0.7
-            )
-            self.add(hist)
-
+        hist = CornerHistogram(data, s=0.2, bins=25, logscale=True, c='k')
+        self.add(hist)
+        slider_function_z(0,0) ## init call
 
 ########################################################################################
 class Slicer2DPlotter(Plotter):
@@ -276,7 +442,7 @@ class Slicer2DPlotter(Plotter):
     but at the same time can be oriented arbitrarily in space.
     """
 
-    def __init__(self, volume, levels=(None, None), histo_color="red5", **kwargs):
+    def __init__(self, vol, levels=(None, None), histo_color="red5", **kwargs):
         """
         A single slice of a Volume which always faces the camera,
         but at the same time can be oriented arbitrarily in space.
@@ -289,34 +455,53 @@ class Slicer2DPlotter(Plotter):
 
         <img src="https://vedo.embl.es/images/volumetric/read_volume3.jpg" width="500">
         """
+
         if "shape" not in kwargs:
             custom_shape = [  # define here the 2 rendering rectangle spaces
                 dict(bottomleft=(0.0, 0.0), topright=(1, 1), bg="k9"),  # the full window
                 dict(bottomleft=(0.8, 0.8), topright=(1, 1), bg="k8", bg2="lb"),
             ]
             kwargs["shape"] = custom_shape
+        
+        if "interactive" not in kwargs:
+            kwargs["interactive"] = True
 
-        Plotter.__init__(self, **kwargs)
+        super().__init__(**kwargs)
 
-        # reuse the same underlying data as in vol
-        vsl = vedo.volume.VolumeSlice(volume)
+        orig_volume = vol.clone(deep=False)
+        self.volume = vol
+
+        self.volume.actor = vtk.new("ImageSlice")
+        self.volume.properties = self.volume.actor.GetProperty()
+
+        self.volume.mapper = vtk.new("ImageResliceMapper")
+        self.volume.mapper.SliceFacesCameraOn()
+        self.volume.mapper.SliceAtFocalPointOn()
+        self.volume.mapper.SetAutoAdjustImageQuality(False)
+        self.volume.mapper.BorderOff()
+        self.volume.properties.SetInterpolationTypeToLinear()
+
+        self.volume.mapper.SetInputData(self.volume.dataset)
+        self.volume.actor.SetMapper(self.volume.mapper)
 
         # no argument will grab the existing cmap in vol (or use build_lut())
-        vsl.colorize()
+        self.lut = None
+        self.cmap()
 
         if levels[0] and levels[1]:
-            vsl.lighting(window=levels[0], level=levels[1])
+            self.lighting(window=levels[0], level=levels[1])
 
-        usage = Text2D(
-            (
-                "Left click & drag  :rightarrow modify luminosity and contrast\n"
-                "SHIFT+Left click   :rightarrow slice image obliquely\n"
-                "SHIFT+Middle click :rightarrow slice image perpendicularly\n"
-                "R                  :rightarrow Reset the Window/Color levels\n"
-                "X                  :rightarrow Reset to sagittal view\n"
-                "Y                  :rightarrow Reset to coronal view\n"
-                "Z                  :rightarrow Reset to axial view"
-            ),
+        self.usage_txt = (
+            "H                  :rightarrow Toggle this banner on/5off\n"
+            "Left click & drag  :rightarrow Modify luminosity and contrast\n"
+            "SHIFT+Left click   :rightarrow Slice image obliquely\n"
+            "SHIFT+Middle click :rightarrow Slice image perpendicularly\n"
+            "SHIFT+R            :rightarrow Fly to closest cartesian view\n"
+            "SHIFT+U            :rightarrow Toggle parallel projection"
+        )
+
+        self.usage = Text2D(
+            self.usage_txt,
             font="Calco",
             pos="top-left",
             s=0.8,
@@ -326,34 +511,136 @@ class Slicer2DPlotter(Plotter):
 
         hist = None
         if histo_color is not None:
-            # hist = CornerHistogram(
-            #     volume.pointdata[0],
-            #     bins=25,
-            #     logscale=1,
-            #     pos=(0.02, 0.02),
-            #     s=0.175,
-            #     c="dg",
-            #     bg="k",
-            #     alpha=1,
-            # )
+            # try to reduce the number of values to histogram
+            dims = self.volume.dimensions()
+            n = (dims[0]-1) * (dims[1]-1) * (dims[2]-1)
+            n = min(1_000_000, n)
+            arr = np.random.choice(self.volume.pointdata[0], n)
+
             hist = vedo.pyplot.histogram(
-                volume.pointdata[0],
-                bins=10,
+                arr,
+                bins=12,
                 logscale=True,
                 c=histo_color,
                 ytitle="log_10 (counts)",
                 axes=dict(text_scale=1.9),
-            )
-            hist = hist.as2d(pos="bottom-left", scale=0.5)
+            ).clone2d(pos="bottom-left", scale=0.4)
 
         axes = kwargs.pop("axes", 7)
-        interactive = kwargs.pop("interactive", True)
+        axe = None
         if axes == 7:
-            ax = vedo.addons.RulerAxes(vsl, xtitle="x - ", ytitle="y - ", ztitle="z - ")
+            axe = vedo.addons.RulerAxes(
+                orig_volume, xtitle="x - ", ytitle="y - ", ztitle="z - "
+            )
 
-        box = vsl.box().alpha(0.2)
-        self.at(0).show(vsl, box, ax, usage, hist, mode="image")
-        self.at(1).show(volume, interactive=interactive)
+        box = orig_volume.box().alpha(0.25)
+
+        volume_axes_inset = vedo.addons.Axes(
+            box,
+            yzgrid=False, 
+            xlabel_size=0, ylabel_size=0, zlabel_size=0, tip_size=0.08,
+            axes_linewidth=3, 
+            xline_color='dr',  yline_color='dg',  zline_color='db',
+            xtitle_color='dr', ytitle_color='dg', ztitle_color='db',
+            xtitle_size=0.1, ytitle_size=0.1, ztitle_size=0.1,
+            title_font='VictorMono',
+        )
+
+        self.user_mode("image")
+        self.at(0).add(self.volume.actor, box, axe, self.usage, hist)
+        self.at(1).add(orig_volume, volume_axes_inset)
+        self.at(0) # set focus here
+
+    ####################################################################
+    def on_key_press(self, evt):
+        if evt.keypress == "q":
+            self.break_interaction()
+        elif evt.keypress.lower() == "h":
+            t = self.usage
+            if len(t.text()) > 50:
+                self.usage.text("Press H to show help")
+            else:
+                self.usage.text(self.usage_txt)
+            self.render()
+
+    def cmap(self, lut=None, fix_scalar_range=False):
+        """
+        Assign a LUT (Look Up Table) to colorize the slice, leave it `None`
+        to reuse an existing Volume color map.
+        Use "bw" for automatic black and white.
+        """
+        if lut is None and self.lut:
+            self.volume.properties.SetLookupTable(self.lut)
+        elif isinstance(lut, vtk.vtkLookupTable):
+            self.volume.properties.SetLookupTable(lut)
+        elif lut == "bw":
+            self.volume.properties.SetLookupTable(None)
+        self.volume.properties.SetUseLookupTableScalarRange(fix_scalar_range)
+        return self
+
+    def alpha(self, value):
+        """Set opacity to the slice"""
+        self.volume.properties.SetOpacity(value)
+        return self
+
+    def auto_adjust_quality(self, value=True):
+        """Automatically reduce the rendering quality for greater speed when interacting"""
+        self.volume.mapper.SetAutoAdjustImageQuality(value)
+        return self
+
+    def slab(self, thickness=0, mode=0, sample_factor=2):
+        """
+        Make a thick slice (slab).
+
+        Arguments:
+            thickness : (float)
+                set the slab thickness, for thick slicing
+            mode : (int)
+                The slab type:
+                    0 = min
+                    1 = max
+                    2 = mean
+                    3 = sum
+            sample_factor : (float)
+                Set the number of slab samples to use as a factor of the number of input slices
+                within the slab thickness. The default value is 2, but 1 will increase speed
+                with very little loss of quality.
+        """
+        self.volume.mapper.SetSlabThickness(thickness)
+        self.volume.mapper.SetSlabType(mode)
+        self.volume.mapper.SetSlabSampleFactor(sample_factor)
+        return self
+
+    def face_camera(self, value=True):
+        """Make the slice always face the camera or not."""
+        self.volume.mapper.SetSliceFacesCameraOn(value)
+        return self
+
+    def jump_to_nearest_slice(self, value=True):
+        """
+        This causes the slicing to occur at the closest slice to the focal point,
+        instead of the default behavior where a new slice is interpolated between
+        the original slices.
+        Nothing happens if the plane is oblique to the original slices."""
+        self.volume.SetJumpToNearestSlice(value)
+        return self
+
+    def fill_background(self, value=True):
+        """
+        Instead of rendering only to the image border,
+        render out to the viewport boundary with the background color.
+        The background color will be the lowest color on the lookup
+        table that is being used for the image."""
+        self.volume.mapper.SetBackground(value)
+        return self
+
+    def lighting(self, window, level, ambient=1.0, diffuse=0.0):
+        """Assign the values for window and color level."""
+        self.volume.properties.SetColorWindow(window)
+        self.volume.properties.SetColorLevel(level)
+        self.volume.properties.SetAmbient(ambient)
+        self.volume.properties.SetDiffuse(diffuse)
+        return self
 
 
 ########################################################################
@@ -375,14 +662,14 @@ class RayCastPlotter(Plotter):
             ![](https://vedo.embl.es/images/advanced/app_raycaster.gif)
         """
 
-        Plotter.__init__(self, **kwargs)
+        super().__init__(**kwargs)
 
         self.alphaslider0 = 0.33
         self.alphaslider1 = 0.66
         self.alphaslider2 = 1
 
-        self.property = volume.GetProperty()
-        img = volume.imagedata()
+        self.properties = volume.properties
+        img = volume.dataset
 
         if volume.dimensions()[2] < 3:
             vedo.logger.error("RayCastPlotter: not enough z slices.")
@@ -436,7 +723,7 @@ class RayCastPlotter(Plotter):
 
         ############################## alpha sliders
         # Create transfer mapping scalar value to opacity
-        opacityTransferFunction = self.property.GetScalarOpacity()
+        opacityTransferFunction = self.properties.GetScalarOpacity()
 
         def setOTF():
             opacityTransferFunction.RemoveAllPoints()
@@ -509,9 +796,8 @@ class RayCastPlotter(Plotter):
             size=16,
             bold=0,
             italic=False,
-            # name="raycast_button",
         )
-        bum.frame(c='w')
+        bum.frame(color='w')
         bum.status(volume.mode())
 
         # add histogram of scalar
@@ -578,8 +864,7 @@ class IsosurfaceBrowser(Plotter):
                 ![](https://vedo.embl.es/images/advanced/app_isobrowser.gif)
         """
 
-        Plotter.__init__(
-            self,
+        super().__init__(
             pos=pos,
             bg=bg,
             bg2=bg2,
@@ -591,7 +876,7 @@ class IsosurfaceBrowser(Plotter):
         )
 
         ### GPU ################################
-        if use_gpu and hasattr(volume.GetProperty(), "GetIsoSurfaceValues"):
+        if use_gpu and hasattr(volume.properties, "GetIsoSurfaceValues"):
 
             scrange = volume.scalar_range()
             delta = scrange[1] - scrange[0]
@@ -606,9 +891,9 @@ class IsosurfaceBrowser(Plotter):
                 value = widget.GetRepresentation().GetValue()
                 isovals.SetValue(0, value)
 
-            isovals = volume.GetProperty().GetIsoSurfaceValues()
+            isovals = volume.properties.GetIsoSurfaceValues()
             isovals.SetValue(0, isovalue)
-            self.renderer.AddActor(volume.mode(5).alpha(alpha).c(c))
+            self.add(volume.mode(5).alpha(alpha).cmap(c))
 
             self.add_slider(
                 slider_isovalue,
@@ -750,7 +1035,8 @@ class Browser(Plotter):
         """
         kwargs.pop("N", 1)
         kwargs.pop("shape", [])
-        Plotter.__init__(self, axes=axes, **kwargs)
+        kwargs.pop("axes", 1)
+        super().__init__(**kwargs)
 
         if isinstance(objects, str):
             objects = vedo.file_io.load(objects)
@@ -793,7 +1079,7 @@ class Browser(Plotter):
                             ak.off()
                     except AttributeError:
                         pass
-            
+
             try:
                 tx = str(k)
                 if slider_title:
@@ -806,7 +1092,7 @@ class Browser(Plotter):
             except:
                 pass
             self.slider.title = tx
- 
+
             if resetcam:
                 self.reset_camera()
             self.render()
@@ -824,7 +1110,7 @@ class Browser(Plotter):
         )
         self.slider.GetRepresentation().SetTitleHeight(0.020)
         slider_function()  # init call
-    
+
     def play(self, dt=100):
         """Start playing the slides at a given speed."""
         self.timer_callback_id = self.add_callback("timer", self.slider_function)
@@ -937,7 +1223,7 @@ class FreeHandCutPlotter(Plotter):
     def init(self, init_points):
         """Set an initial number of points to define a region"""
         if isinstance(init_points, Points):
-            self.cpoints = init_points.points()
+            self.cpoints = init_points.vertices
         else:
             self.cpoints = np.array(init_points)
         self.points = Points(self.cpoints, r=self.linewidth).c(self.pointcolor).pickable(0)
@@ -999,7 +1285,7 @@ class FreeHandCutPlotter(Plotter):
             self.render()
             self.mesh_prev = self.mesh.clone()
             tol = self.mesh.diagonal_size() / 2  # size of ribbon (not shown)
-            pts = self.spline.points()
+            pts = self.spline.vertices
             n = fit_plane(pts, signed=True).normal  # compute normal vector to points
             rb = Ribbon(pts - tol * n, pts + tol * n, closed=True)
             self.mesh.cut_with_mesh(rb, invert=inv)  # CUT
@@ -1112,7 +1398,7 @@ class SplinePlotter(Plotter):
         else:
             self.object = obj
 
-        if isinstance(self.object, vedo.Picture):
+        if isinstance(self.object, vedo.Image):
             self.mode = "image"
             self.parallel_projection(True)
 
@@ -1226,7 +1512,7 @@ class Animation(Plotter):
         video_filename="animation.mp4",
         video_fps=12,
     ):
-        Plotter.__init__(self)
+        super().__init__()
         self.resetcam = True
 
         self.events = []
@@ -1452,7 +1738,7 @@ class Animation(Plotter):
             for tt in rng:
                 inputvalues = []
                 for a in acts:
-                    pr = a.GetProperty()
+                    pr = a.properties
                     aa = pr.GetAmbient()
                     ad = pr.GetDiffuse()
                     asp = pr.GetSpecular()
@@ -1465,7 +1751,7 @@ class Animation(Plotter):
                 self.events.append((tt, self.change_lighting, acts, inputvalues))
         else:
             for i, a in enumerate(self._performers):
-                pr = a.GetProperty()
+                pr = a.properties
                 vals = self._inputvalues[i]
                 pr.SetAmbient(vals[0])
                 pr.SetDiffuse(vals[1])
@@ -1604,12 +1890,12 @@ class Animation(Plotter):
 class AnimationPlayer(vedo.Plotter):
     """
     A Plotter with play/pause, step forward/backward and slider functionalties.
-    Useful for inspecting time series. 
+    Useful for inspecting time series.
 
-    The user has the responsibility to update all actors in the callback function. 
+    The user has the responsibility to update all actors in the callback function.
     Pay attention to that the idx can both increment and decrement,
     as well as make large jumps.
-    
+
     Arguments:
         func :  (Callable)
             a function that passes an integer as input and updates the scene
@@ -1648,7 +1934,7 @@ class AnimationPlayer(vedo.Plotter):
 
     def __init__(
         self,
-        func: Callable[[int],None],
+        func,
         irange: tuple,
         dt: float = 1.0,
         loop: bool = True,
@@ -1876,7 +2162,7 @@ class Clock(vedo.Assembly):
         txt.pos(0, -0.25, 0.001)
         labels.z(0.001)
         minu.z(0.002)
-        vedo.Assembly.__init__(self, [back1, labels, ore, minu, secs, txt])
+        super().__init__([back1, labels, ore, minu, secs, txt])
         self.name = "Clock"
 
     def update(self, h=None, m=None, s=None):
@@ -1904,17 +2190,17 @@ class Clock(vedo.Assembly):
             gamma = s * 2 * np.pi / 60 + np.pi / 2
             x3, y3 = np.cos(gamma), np.sin(gamma)
 
-        pts2 = parts[2].points()
+        pts2 = parts[2].vertices
         pts2[1] = [-x1 * 0.5, y1 * 0.5, 0.001]
-        parts[2].points(pts2)
+        parts[2].vertices = pts2
 
-        pts3 = parts[3].points()
+        pts3 = parts[3].vertices
         pts3[1] = [-x2 * 0.75, y2 * 0.75, 0.002]
-        parts[3].points(pts3)
+        parts[3].vertices = pts3
 
         if s is not None:
-            pts4 = parts[4].points()
+            pts4 = parts[4].vertices
             pts4[1] = [-x3 * 0.95, y3 * 0.95, 0.003]
-            parts[4].points(pts4)
+            parts[4].vertices = pts4
 
         return self

@@ -2,10 +2,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-try:
-    import vedo.vtkclasses as vtk
-except ImportError:
-    import vtkmodules.all as vtk
+import vedo.vtkclasses as vtk
 
 import vedo
 from vedo.colors import printc
@@ -32,7 +29,7 @@ Example:
 ![](https://user-images.githubusercontent.com/32848391/53026243-d2d31900-3462-11e9-9dde-518218c241b6.jpg)
 
 .. note::
-    Find many more examples in directory    
+    Find many more examples in directory
     [vedo/examples/dolfin](https://github.com/marcomusy/vedo/blob/master/examples/other/dolfin).
 """
 
@@ -369,15 +366,15 @@ def plot(*inputobj, **options):
     if vedo.plotter_instance:
         if xtitle != "x":
             aet = vedo.plotter_instance.axes_instances
-            if len(aet) > at and isinstance(aet[at], vtk.vtkCubeAxesActor):
+            if len(aet) > at and isinstance(aet[at], vtk.get_class("CubeAxesActor")):
                 aet[at].SetXTitle(xtitle)
         if ytitle != "y":
             aet = vedo.plotter_instance.axes_instances
-            if len(aet) > at and isinstance(aet[at], vtk.vtkCubeAxesActor):
+            if len(aet) > at and isinstance(aet[at], vtk.get_class("CubeAxesActor")):
                 aet[at].SetYTitle(ytitle)
         if ztitle != "z":
             aet = vedo.plotter_instance.axes_instances
-            if len(aet) > at and isinstance(aet[at], vtk.vtkCubeAxesActor):
+            if len(aet) > at and isinstance(aet[at], vtk.get_class("CubeAxesActor")):
                 aet[at].SetZTitle(ztitle)
 
     # change some default to emulate standard behaviours
@@ -476,7 +473,7 @@ def plot(*inputobj, **options):
             elif shading == "flat":
                 actor.flat()
             elif shading[0] == "g":
-                actor.gouraud()
+                actor.phong()
 
         if "displace" in mode:
             actor.move(u)
@@ -490,17 +487,18 @@ def plot(*inputobj, **options):
         if warpYfactor:
             scals = actor.pointdata[0]
             if len(scals) > 0:
-                pts_act = actor.points()
+                pts_act = actor.vertices
                 pts_act[:, 1] = scals * warpYfactor * scaleMeshFactors[1]
         if warpZfactor:
             scals = actor.pointdata[0]
             if len(scals) > 0:
-                pts_act = actor.points()
+                pts_act = actor.vertices
                 pts_act[:, 2] = scals * warpZfactor * scaleMeshFactors[2]
         if warpYfactor or warpZfactor:
-            actor.points(pts_act)
+            # actor.points(pts_act)
+            actor.vertices = pts_act
             if vmin is not None and vmax is not None:
-                actor.mapper().SetScalarRange(vmin, vmax)
+                actor.mapper.SetScalarRange(vmin, vmax)
 
         if scbar and c is None:
             if "3d" in scbar:
@@ -631,7 +629,7 @@ class MeshActor(Mesh):
             # print(cells[0])
             # print(coords[cells[0]])
             # poly = utils.geometry(_buildtetugrid(coords, cells))
-            # poly = utils.geometry(vedo.TetMesh([coords, cells]).inputdata())
+            # poly = utils.geometry(vedo.TetMesh([coords, cells]).dataset)
 
             poly = vtk.vtkPolyData()
 
@@ -680,7 +678,7 @@ class MeshActor(Mesh):
         else:
             poly = utils.buildPolyData(coords, cells)
 
-        Mesh.__init__(self, poly, c=c, alpha=alpha)
+        super().__init__(poly, c, alpha)
         if compute_normals:
             self.compute_normals()
 
@@ -715,8 +713,8 @@ class MeshActor(Mesh):
         movedpts = coords + deltas
         if movedpts.shape[1] == 2:  # 2d
             movedpts = np.c_[movedpts, np.zeros(movedpts.shape[0])]
-        self.polydata(False).GetPoints().SetData(utils.numpy2vtk(movedpts, dtype=np.float32))
-        self.polydata(False).GetPoints().Modified()
+        self.dataset.GetPoints().SetData(utils.numpy2vtk(movedpts, dtype=np.float32))
+        self.dataset.GetPoints().Modified()
 
 
 def MeshPoints(*inputobj, **options):
@@ -804,10 +802,11 @@ def MeshLines(*inputobj, **options):
 def MeshArrows(*inputobj, **options):
     """Build arrows representing displacements."""
     s = options.pop("s", None)
-    c = options.pop("c", "gray")
+    c = options.pop("c", "k3")
     scale = options.pop("scale", 1)
     alpha = options.pop("alpha", 1)
     res = options.pop("res", 12)
+    # print("Building arrows...",c)
 
     mesh, u = _inputsort(inputobj)
     if not mesh:
@@ -829,12 +828,13 @@ def MeshArrows(*inputobj, **options):
         start_points = np.insert(start_points, 2, 0, axis=1)  # make it 3d
         end_points = np.insert(end_points, 2, 0, axis=1)  # make it 3d
 
-    actor = shapes.Arrows(start_points, end_points, s=s, alpha=alpha, res=res)
-    actor.color(c)
-    actor.mesh = mesh
-    actor.u = u
-    actor.u_values = u_values
-    return actor
+    obj = shapes.Arrows(
+        start_points, end_points, s=s, alpha=alpha, c=c, res=res
+    )
+    obj.mesh = mesh
+    obj.u = u
+    obj.u_values = u_values
+    return obj
 
 
 def MeshStreamLines(*inputobj, **options):
@@ -873,9 +873,9 @@ def MeshStreamLines(*inputobj, **options):
         pass  # it's already it
     elif tol:
         print("decimating mesh points to use them as seeds...")
-        probes = meshact.clone().subsample(tol).points()
+        probes = meshact.clone().subsample(tol).vertices
     else:
-        probes = meshact.points()
+        probes = meshact.vertices
     if len(probes) > 500:
         printc("Probing domain with n =", len(probes), "points")
         printc(" ..this may take time (or choose a larger tol value)")

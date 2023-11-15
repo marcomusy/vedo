@@ -31,10 +31,10 @@ class OpticalElement:
 
 class Lens(vedo.Mesh, OpticalElement):
     """A refractive object of arbitrary shape defined by an arbitrary mesh"""
-    def __init__(self, actor, ref_index="glass"):
-        vedo.Mesh.__init__(self, actor.polydata(), "blue8", 0.5)
+    def __init__(self, obj, ref_index="glass"):
+        vedo.Mesh.__init__(self, obj.dataset, "blue8", 0.5)
         OpticalElement.__init__(self)
-        self.name = actor.name
+        self.name = obj.name
         self.type = "lens"
         self.compute_normals(cells=True, points=False)
         self.lighting('off')
@@ -58,11 +58,11 @@ class Lens(vedo.Mesh, OpticalElement):
 
 class Mirror(vedo.Mesh, OpticalElement):
     """A mirror surface defined by an arbitrary Mesh"""
-    def __init__(self, actor):
-        vedo.Mesh.__init__(self, actor.polydata(), "blue8", 0.5)
+    def __init__(self, obj):
+        vedo.Mesh.__init__(self, obj.dataset, "blue8", 0.5)
         OpticalElement.__init__(self)
         self.compute_normals(cells=True, points=True)
-        self.name = actor.name
+        self.name = obj.name
         self.type = "mirror"
         self.normals = self.celldata["Normals"]
         self.color('silver').lw(0).wireframe(False).alpha(1).phong()
@@ -92,8 +92,8 @@ class Absorber(vedo.Grid, OpticalElement):
 
 class Detector(vedo.Mesh, OpticalElement):
     """A detector surface defined by an arbitrary Mesh"""
-    def __init__(self, actor):
-        vedo.Mesh.__init__(self, actor.polydata(), "k5", 0.5)
+    def __init__(self, obj):
+        vedo.Mesh.__init__(self, obj.dataset, "k5", 0.5)
         OpticalElement.__init__(self)
         self.compute_normals()
         self.name = "Detector"
@@ -183,8 +183,8 @@ class Ray:
         return (a*a + b*b)/2
 
     # def intersect(self, element, p0,p1): # not working (but no need to)
-    #     points = element.points()
-    #     faces = element.faces()
+    #     points = element.vertices
+    #     faces = element.cells
     #     cids = []
     #     for i,f in enumerate(faces):
     #         v0,v1,v2 = points[f]

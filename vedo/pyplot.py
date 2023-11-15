@@ -3,21 +3,19 @@
 import warnings
 import numpy as np
 
-try:
-    import vedo.vtkclasses as vtk
-except ImportError:
-    import vtkmodules.all as vtk
+import vedo.vtkclasses as vtk
 
 import vedo
 from vedo import settings
+from vedo.transformations import cart2spher, spher2cart
 from vedo import addons
 from vedo import colors
 from vedo import utils
+from vedo import shapes
+from vedo.visual import Actor2D
 from vedo.pointcloud import merge
 from vedo.mesh import Mesh
 from vedo.assembly import Assembly, Group
-from vedo import shapes
-
 
 __docformat__ = "google"
 
@@ -45,30 +43,28 @@ __all__ = [
 ]
 
 ##########################################################################
-def _to2d(actor, offset, scale):
+def _to2d(obj, offset, scale):
 
-    poly = actor.polydata()
-
-    tp = vtk.vtkTransformPolyDataFilter()
+    tp = vtk.new("TransformPolyDataFilter")
     transform = vtk.vtkTransform()
     transform.Scale(scale, scale, scale)
     transform.Translate(-offset[0], -offset[1], 0)
     tp.SetTransform(transform)
-    tp.SetInputData(poly)
+    tp.SetInputData(obj.dataset)
     tp.Update()
 
     poly = tp.GetOutput()
 
-    mapper2d = vtk.vtkPolyDataMapper2D()
+    mapper2d = vtk.new("PolyDataMapper2D")
     mapper2d.SetInputData(poly)
 
-    act2d = vtk.vtkActor2D()
+    act2d = Actor2D()
     act2d.SetMapper(mapper2d)
 
-    act2d.GetProperty().SetColor(actor.color())
-    act2d.GetProperty().SetOpacity(actor.alpha())
-    act2d.GetProperty().SetLineWidth(actor.GetProperty().GetLineWidth())
-    act2d.GetProperty().SetPointSize(actor.GetProperty().GetPointSize())
+    act2d.GetProperty().SetColor(obj.color())
+    act2d.GetProperty().SetOpacity(obj.alpha())
+    act2d.GetProperty().SetLineWidth(obj.properties.GetLineWidth())
+    act2d.GetProperty().SetPointSize(obj.properties.GetPointSize())
 
     act2d.PickableOff()
 
@@ -196,7 +192,7 @@ class Figure(Assembly):
         self.axes = None
         if xlim[0] >= xlim[1] or ylim[0] >= ylim[1]:
             vedo.logger.warning(f"Null range for Figure {self.title}... returning an empty Assembly.")
-            Assembly.__init__(self)
+            super().__init__()
             self.yscale = 0
             return
 
@@ -223,7 +219,8 @@ class Figure(Assembly):
             if self.axopts is True or self.axopts == 1:
                 axes_opts = {}
 
-            tp, ts = utils.make_ticks(y0lim / self.yscale, y1lim / self.yscale, number_of_divisions)
+            tp, ts = utils.make_ticks(y0lim / self.yscale, 
+                                      y1lim / self.yscale, number_of_divisions)
             labs = []
             for i in range(1, len(tp) - 1):
                 ynew = utils.lin_interpolate(tp[i], [0, 1], [y0lim, y1lim])
@@ -242,12 +239,13 @@ class Figure(Assembly):
 
             self.axes = addons.Axes(**axes_opts)
 
-        Assembly.__init__(self, [self.axes])
+        super().__init__([self.axes])
         self.name = "Figure"
 
         vedo.last_figure = self if settings.remember_last_figure_format else None
-        return
 
+
+    ##################################################################
     def _repr_html_(self):
         """
         HTML representation of the Figure object for Jupyter Notebooks.
@@ -325,8 +323,7 @@ class Figure(Assembly):
 
         if abs(self.yscale - fig.yscale) > 0.0001:
 
-            colors.printc(":bomb:ERROR: adding incompatible Figure. Y-scales are different:",
-                          c='r', invert=True)
+            colors.printc(":bomb:ERROR: adding incompatible Figure. Y-scales are different:", c='r', invert=True)
             colors.printc("  first  figure:", self.yscale, c='r')
             colors.printc("  second figure:", fig.yscale, c='r')
 
@@ -382,13 +379,13 @@ class Figure(Assembly):
         """
         for a in objs:
 
-            if a in self.actors:
+            if a in self.objects:
                 # should not add twice the same object in plot
                 continue
 
             if isinstance(a, vedo.Points):  # hacky way to identify Points
                 if a.ncells == a.npoints:
-                    poly = a.polydata(False)
+                    poly = a.dataset
                     if poly.GetNumberOfPolys() == 0 and poly.GetNumberOfLines() == 0:
                         as3d = False
                         rescale = True
@@ -396,12 +393,15 @@ class Figure(Assembly):
             if isinstance(a, (shapes.Arrow, shapes.Arrow2D)):
                 # discard input Arrow and substitute it with a brand new one
                 # (because scaling would fatally distort the shape)
-                prop = a.GetProperty()
-                prop.LightingOff()
+                
                 py = a.base[1]
                 a.top[1] = (a.top[1] - py) * self.yscale + py
                 b = shapes.Arrow2D(a.base, a.top, s=a.s, fill=a.fill).z(a.z())
-                b.SetProperty(prop)
+
+                prop = a.properties
+                prop.LightingOff()
+                b.actor.SetProperty(prop)
+                b.properties = prop
                 b.y(py * self.yscale)
                 a = b
 
@@ -413,7 +413,7 @@ class Figure(Assembly):
             #     rx2,ry2,rz2 = a.corner2
             #     ry2 = (ry2-py) * self.yscale + py
             #     b = shapes.Rectangle([rx1,0,rz1], [rx2,ry2,rz2], radius=a.radius).z(a.z())
-            #     b.SetProperty(a.GetProperty())
+            #     b.SetProperty(a.properties)
             #     b.y(py / self.yscale)
             #     a = b
 
@@ -452,8 +452,8 @@ class Figure(Assembly):
                     # print("insert(): cannot cut", [a])
                     pass
 
-            self.AddPart(a)
-            self.actors.append(a)
+            self.AddPart(a.actor)
+            self.objects.append(a)
 
         return self
 
@@ -600,7 +600,8 @@ class Figure(Assembly):
             box.shift(0, 0, -dy / 100).pickable(False)
             if lc:
                 box.lc(lc).lw(lw)
-            aleg.AddPart(box)
+            aleg.AddPart(box.actor)
+            aleg.objects.append(box)
 
         xlim = self.xlim
         ylim = self.ylim
@@ -650,14 +651,22 @@ class Figure(Assembly):
                 px, py = pos[0], pos[1]
             shx, shy = x0, y1
 
-        aleg.pos(px - shx, py * self.yscale - shy, self.z() + sx / 50 + z)
+        zpos = aleg.pos()[2]
+        aleg.pos(px - shx, py * self.yscale - shy, zpos + sx / 50 + z)
 
         self.insert(aleg, rescale=False, cut=False)
         self.legend = aleg
         aleg.name = "Legend"
         return self
 
-    def as2d(self, pos="bottom-left", scale=1, padding=0.05):
+    def as2d(self, **kwargs):
+        """
+        Deprecated. Use `clone2d()` instead.
+        """
+        vedo.printc("WARNING: as2d() is deprecated. Use clone2d() instead.", c="y")
+        return self.clone2d(**kwargs)
+
+    def clone2d(self, pos="bottom-left", scale=1, padding=0.05):
         """
         Convert the Figure into a 2D static object (a 2D Assembly).
 
@@ -732,11 +741,11 @@ class Figure(Assembly):
                 continue
             if a.npoints == 0:
                 continue
-            if a.GetProperty().GetRepresentation() == 1:
+            if a.properties.GetRepresentation() == 1:
                 # wireframe is not rendered correctly in 2d
                 continue
             a2d = _to2d(a, offset, scale * 550 / (x1 - x0))
-            a2d.SetPosition(position)
+            a2d.pos(position)
             group += a2d
         return group
 
@@ -753,10 +762,11 @@ class Histogram1D(Figure):
         errors=False,
         density=False,
         logscale=False,
+        max_entries=None,
         fill=True,
         radius=0.075,
         c="olivedrab",
-        gap=0.02,
+        gap=0.0,
         alpha=1,
         outline=False,
         lw=2,
@@ -794,6 +804,8 @@ class Histogram1D(Figure):
                 normalize the area to 1 by dividing by the nr of entries and bin size
             logscale : (bool)
                 use logscale on y-axis
+            max_entries : (int)
+                if `data` is larger than `max_entries`, a random sample of `max_entries` is used
             fill : (bool)
                 fill bars with solid color `c`
             gap : (float)
@@ -828,6 +840,9 @@ class Histogram1D(Figure):
 
             ![](https://vedo.embl.es/images/pyplot/histo_1D.png)
         """
+
+        if max_entries and data.shape[0] > max_entries:
+            data = np.random.choice(data, max_entries)
 
         # purge NaN from data
         valid_ids = np.all(np.logical_not(np.isnan(data)))
@@ -968,7 +983,8 @@ class Histogram1D(Figure):
             fig_kwargs["label"] = nlab
 
         ############################################### Figure init
-        Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
+        super().__init__(xlim, ylim, aspect, padding, **fig_kwargs)
+
         if not self.yscale:
             return
 
@@ -1023,7 +1039,7 @@ class Histogram1D(Figure):
                 #         r.texture(texture)
                 #     c = 'w'
 
-                r.PickableOff()
+                r.actor.PickableOff()
                 maxheigth = max(maxheigth, p1[1])
                 if c in colors.cmaps_names:
                     col = colors.color_map((p0[0] + p1[0]) / 2, c, myedges[0], myedges[-1])
@@ -1283,7 +1299,7 @@ class Histogram2D(Figure):
             axes_opts["htitle_offset"] = [-0.49, 0.01, 0]
 
         ############################################### Figure init
-        Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
+        super().__init__(xlim, ylim, aspect, padding, **fig_kwargs)
 
         if self.yscale:
             ##################### the grid
@@ -1298,9 +1314,17 @@ class Histogram2D(Figure):
 
             if scalarbar:
                 sc = g.add_scalarbar3d(ztitle, c=ac).scalarbar
+
+                # print(" g.GetBounds()[0]", g.bounds()[:2])
+                # print("sc.GetBounds()[0]",sc.GetBounds()[:2])
+                delta = sc.GetBounds()[0] - g.bounds()[1]
+
+                sc_size = sc.GetBounds()[1] - sc.GetBounds()[0]
+
+                sc.SetOrigin(sc.GetBounds()[0], 0, 0)
                 sc.scale([self.yscale, 1, 1])  ## prescale trick
-                sbnds = sc.xbounds()
-                sc.x(self.x1lim + (sbnds[1] - sbnds[0]) * 0.75)
+                sc.shift(-delta + 0.25*sc_size*self.yscale)
+
                 acts.append(sc)
             acts.append(g)
 
@@ -1466,7 +1490,7 @@ class PlotBars(Figure):
         self.edges = edges
         self.centers = centers
         self.bins = edges  # internal used by "like"
-        Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
+        super().__init__(xlim, ylim, aspect, padding, **fig_kwargs)
         if not self.yscale:
             return
 
@@ -1494,7 +1518,7 @@ class PlotBars(Figure):
                     r.texture(texture)
                     c = "w"
 
-                r.PickableOff()
+                r.actor.PickableOff()
                 maxheigth = max(maxheigth, p1[1])
                 if c in colors.cmaps_names:
                     col = colors.color_map((p0[0] + p1[0]) / 2, c, edges[0], edges[-1])
@@ -1742,7 +1766,7 @@ class PlotXY(Figure):
             fig_kwargs["label"] = nlab
 
         ############################################### Figure init
-        Figure.__init__(self, xlim, ylim, aspect, padding, **fig_kwargs)
+        super().__init__(xlim, ylim, aspect, padding, **fig_kwargs)
 
         if not self.yscale:
             return
@@ -1925,10 +1949,14 @@ def plot(*args, **kwargs):
 
     Example:
         ```python
-        from vedo.pyplot import plot
         import numpy as np
+        from vedo.pyplot import plot
+        from vedo import settings
+        settings.remember_last_figure_format = True #############
         x = np.linspace(0, 6.28, num=50)
-        plot(np.sin(x), 'r').plot(np.cos(x), 'bo-').show().close()
+        fig = plot(np.sin(x), 'r-')
+        fig+= plot(np.cos(x), 'bo-') # no need to specify like=...
+        fig.show().close()
         ```
         <img src="https://user-images.githubusercontent.com/32848391/74363882-c3638300-4dcb-11ea-8a78-eb492ad9711f.png" width="600">
 
@@ -2011,9 +2039,11 @@ def plot(*args, **kwargs):
             number of bins in x and y
 
     Examples:
-        - [plot_fxy.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_fxy.py)
+        - [plot_fxy1.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_fxy1.py)
 
             ![](https://vedo.embl.es/images/pyplot/plot_fxy.png)
+        
+        - [plot_fxy2.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_fxy2.py)
 
 
     --------------------------------------------------------------------
@@ -2567,7 +2597,7 @@ def fit(
         ![](https://vedo.embl.es/images/pyplot/fitPolynomial1.png)
     """
     if isinstance(points, vedo.pointcloud.Points):
-        points = points.points()
+        points = points.vertices
     points = np.asarray(points)
     if len(points) == 2:  # assume user is passing [x,y]
         points = np.c_[points[0], points[1]]
@@ -2611,7 +2641,7 @@ def fit(
 
     p1d = np.poly1d(coeffs)
     theor = p1d(xr)
-    fitl = shapes.Line(xr, theor, lw=lw, c=c).z(tol * 2)
+    fitl = shapes.Line(np.c_[xr, theor], lw=lw, c=c).z(tol * 2)
     fitl.coefficients = coeffs
     fitl.covariance_matrix = V
     residuals2_sum = np.sum(np.power(p1d(x) - y, 2)) / ndof
@@ -2657,13 +2687,14 @@ def fit(
 
     error_lines = []
     for i in [nstd, -nstd]:
-        el = shapes.Line(xr, theor + stds * i, lw=1, alpha=0.2, c="k").z(tol)
+        pp = np.c_[xr, theor + stds * i]
+        el = shapes.Line(pp, lw=1, alpha=0.2, c="k").z(tol)
         error_lines.append(el)
         el.name = "ErrorLine for sigma=" + str(i)
 
     fitl.error_lines = error_lines
-    l1 = error_lines[0].points().tolist()
-    cband = l1 + list(reversed(error_lines[1].points().tolist())) + [l1[0]]
+    l1 = error_lines[0].vertices.tolist()
+    cband = l1 + list(reversed(error_lines[1].vertices.tolist())) + [l1[0]]
     fitl.error_band = shapes.Line(cband).triangulate().lw(0).c("k", 0.15)
     fitl.error_band.name = "PolynomialFitErrorBand"
     return fitl
@@ -2686,7 +2717,7 @@ def _plot_fxy(
     if c is not None:
         texture = None  # disable
 
-    ps = vtk.vtkPlaneSource()
+    ps = vtk.new("PlaneSource")
     ps.SetResolution(bins[0], bins[1])
     ps.SetNormal([0, 0, 1])
     ps.Update()
@@ -2721,7 +2752,7 @@ def _plot_fxy(
             for j in range(cellIds.GetNumberOfIds()):
                 poly.DeleteCell(cellIds.GetId(j))  # flag cell
         poly.RemoveDeletedCells()
-        cl = vtk.vtkCleanPolyData()
+        cl = vtk.new("CleanPolyData")
         cl.SetInputData(poly)
         cl.Update()
         poly = cl.GetOutput()
@@ -2731,13 +2762,9 @@ def _plot_fxy(
         return None
 
     if zlim[0]:
-        tmpact1 = Mesh(poly)
-        a = tmpact1.cut_with_plane((0, 0, zlim[0]), (0, 0, 1))
-        poly = a.polydata()
+        poly = Mesh(poly).cut_with_plane((0, 0, zlim[0]), (0, 0, 1)).dataset
     if zlim[1]:
-        tmpact2 = Mesh(poly)
-        a = tmpact2.cut_with_plane((0, 0, zlim[1]), (0, 0, -1))
-        poly = a.polydata()
+        poly = Mesh(poly).cut_with_plane((0, 0, zlim[1]), (0, 0, -1)).dataset
 
     cmap = ""
     if c in colors.cmaps_names:
@@ -2756,13 +2783,13 @@ def _plot_fxy(
 
     acts = [mesh]
     if zlevels:
-        elevation = vtk.vtkElevationFilter()
+        elevation = vtk.new("ElevationFilter")
         elevation.SetInputData(poly)
         bounds = poly.GetBounds()
         elevation.SetLowPoint(0, 0, bounds[4])
         elevation.SetHighPoint(0, 0, bounds[5])
         elevation.Update()
-        bcf = vtk.vtkBandedPolyDataContourFilter()
+        bcf = vtk.new("BandedPolyDataContourFilter")
         bcf.SetInputData(elevation.GetOutput())
         bcf.SetScalarModeToValue()
         bcf.GenerateContourEdgesOn()
@@ -2770,18 +2797,18 @@ def _plot_fxy(
         bcf.Update()
         zpoly = bcf.GetContourEdgesOutput()
         zbandsact = Mesh(zpoly, "k", alpha).lw(1).lighting("off")
-        zbandsact.mapper().SetResolveCoincidentTopologyToPolygonOffset()
+        zbandsact.mapper.SetResolveCoincidentTopologyToPolygonOffset()
         acts.append(zbandsact)
 
     if show_nan and todel:
-        bb = mesh.GetBounds()
+        bb = mesh.bounds()
         if bb[4] <= 0 and bb[5] >= 0:
             zm = 0.0
         else:
             zm = (bb[4] + bb[5]) / 2
         nans = np.array(nans) + [0, 0, zm]
         nansact = shapes.Points(nans, r=2, c="red5", alpha=alpha)
-        nansact.GetProperty().RenderPointsAsSpheresOff()
+        nansact.properties.RenderPointsAsSpheresOff()
         acts.append(nansact)
 
     if isinstance(axes, dict):
@@ -2807,7 +2834,7 @@ def _plot_fz(
     bins=(75, 75),
     axes=True,
 ):
-    ps = vtk.vtkPlaneSource()
+    ps = vtk.new("PlaneSource")
     ps.SetResolution(bins[0], bins[1])
     ps.SetNormal([0, 0, 1])
     ps.Update()
@@ -2918,7 +2945,7 @@ def _plot_polar(
     filling = None
     if fill and lw:
         faces = []
-        coords = [[0, 0, 0]] + lines.points().tolist()
+        coords = [[0, 0, 0]] + lines.vertices.tolist()
         for i in range(1, lines.npoints):
             faces.append([0, i, i + 1])
         filling = Mesh([coords, faces]).c(c).alpha(alpha)
@@ -2973,8 +3000,8 @@ def _plot_polar(
     if mrg:
         mrg.color(bc).alpha(alpha).lighting("off")
     rh = Assembly([lines, ptsact, filling] + [mrg])
-    rh.base = np.array([0, 0, 0], dtype=float)
-    rh.top = np.array([0, 0, 1], dtype=float)
+    # rh.base = np.array([0, 0, 0], dtype=float)
+    # rh.top = np.array([0, 0, 1], dtype=float)
     rh.name = "PlotPolar"
     return rh
 
@@ -2983,8 +3010,8 @@ def _plot_spheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha
     sg = shapes.Sphere(res=res, quads=True)
     sg.alpha(alpha).c(c).wireframe()
 
-    cgpts = sg.points()
-    r, theta, phi = utils.cart2spher(*cgpts.T)
+    cgpts = sg.vertices
+    r, theta, phi = cart2spher(*cgpts.T)
 
     newr, inans = [], []
     for i in range(len(r)):
@@ -3006,12 +3033,12 @@ def _plot_spheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha
 
     nanpts = []
     if inans:
-        redpts = utils.spher2cart(newr[inans], theta[inans], phi[inans])
+        redpts = spher2cart(newr[inans], theta[inans], phi[inans]).T
         nanpts.append(shapes.Points(redpts, r=4, c="r"))
 
-    pts = utils.spher2cart(newr, theta, phi)
-
-    ssurf = sg.clone().points(pts)
+    pts = spher2cart(newr, theta, phi).T
+    ssurf = sg.clone()
+    ssurf.vertices = pts
     if inans:
         ssurf.delete_cells_by_point_index(inans)
 
@@ -3023,7 +3050,7 @@ def _plot_spheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha
     if scalarbar:
         xm = np.max([np.max(pts[0]), 1])
         ym = np.max([np.abs(np.max(pts[1])), 1])
-        ssurf.mapper().SetScalarRange(np.min(newr), np.max(newr))
+        ssurf.mapper.SetScalarRange(np.min(newr), np.max(newr))
         sb3d = ssurf.add_scalarbar3d(size=(xm * 0.07, ym), c="k").scalarbar
         sb3d.rotate_x(90).pos(xm * 1.1, 0, -0.5)
     else:
@@ -3044,18 +3071,18 @@ def _histogram_quad_bin(x, y, **kwargs):
     zscale = kwargs.pop("zscale", 1)
     cmap = kwargs.pop("cmap", "Blues_r")
 
-    gr = histo.actors[2]
+    gr = histo.objects[2]
     d = gr.diagonal_size()
     tol = d / 1_000_000  # tolerance
     if gap >= 0:
         gr.shrink(1 - gap - tol)
     gr.map_cells_to_points()
 
-    faces = np.array(gr.faces())
+    faces = np.array(gr.cells)
     s = 1 / histo.entries * len(faces) * zscale
     zvals = gr.pointdata["Scalars"] * s
 
-    pts1 = gr.points()
+    pts1 = gr.vertices
     pts2 = np.copy(pts1)
     pts2[:, 2] = zvals + tol
     newpts = np.vstack([pts1, pts2])
@@ -3081,9 +3108,10 @@ def _histogram_quad_bin(x, y, **kwargs):
     msh.cmap(cmap, newzvals, name="Frequency")
     msh.lw(1).lighting("ambient")
 
-    histo.actors[2] = msh
-    histo.RemovePart(gr)
-    histo.AddPart(msh)
+    histo.objects[2] = msh
+    histo.RemovePart(gr.actor)
+    histo.AddPart(msh.actor)
+    histo.objects.append(msh)
     return histo
 
 
@@ -3118,7 +3146,7 @@ def _histogram_hex_bin(
     r = 0.47 / n * 1.2 * dx
     for i in range(n + 3):
         for j in range(m + 2):
-            cyl = vtk.vtkCylinderSource()
+            cyl = vtk.new("CylinderSource")
             cyl.SetResolution(6)
             cyl.CappingOn()
             cyl.SetRadius(0.5)
@@ -3137,7 +3165,7 @@ def _histogram_hex_bin(
             else:
                 t.Translate(p[0], p[1], ne)
             t.RotateX(90)  # put it along Z
-            tf = vtk.vtkTransformPolyDataFilter()
+            tf = vtk.new("TransformPolyDataFilter")
             tf.SetInputData(cyl.GetOutput())
             tf.SetTransform(t)
             tf.Update()
@@ -3145,22 +3173,22 @@ def _histogram_hex_bin(
                 col = i
             h = Mesh(tf.GetOutput(), c=col, alpha=alpha).flat()
             h.lighting("plastic")
-            h.PickableOff()
+            h.actor.PickableOff()
             hexs.append(h)
             if ne > binmax:
                 binmax = ne
 
     if cmap is not None:
         for h in hexs:
-            z = h.GetBounds()[5]
+            z = h.bounds()[5]
             col = colors.color_map(z, cmap, 0, binmax)
             h.color(col)
 
     asse = Assembly(hexs)
-    asse.SetScale(1.2 / n * dx, 1 / m * dy, norm / binmax * (dx + dy) / 4)
-    asse.SetPosition(xmin, ymin, 0)
-    asse.base = np.array([0, 0, 0], dtype=float)
-    asse.top = np.array([0, 0, 1], dtype=float)
+    asse.scale([1.2 / n * dx, 1 / m * dy, norm / binmax * (dx + dy) / 4])
+    asse.pos([xmin, ymin, 0])
+    # asse.base = np.array([0, 0, 0], dtype=float)
+    # asse.top = np.array([0, 0, 1], dtype=float)
     asse.name = "HistogramHexBin"
     return asse
 
@@ -3333,14 +3361,14 @@ def _histogram_polar(
 
 def _histogram_spheric(thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", gap=0.1):
 
-    x, y, z = utils.spher2cart(np.ones_like(thetavalues) * 1.1, thetavalues, phivalues)
+    x, y, z = spher2cart(np.ones_like(thetavalues) * 1.1, thetavalues, phivalues)
     ptsvals = np.c_[x, y, z]
 
     sg = shapes.Sphere(res=res, quads=True).shrink(1 - gap)
-    sgfaces = sg.faces()
-    sgpts = sg.points()
+    sgfaces = sg.cells
+    sgpts = sg.vertices
 
-    cntrs = sg.cell_centers()
+    cntrs = sg.cell_centers
     counts = np.zeros(len(cntrs))
     for p in ptsvals:
         cell = sg.closest_point(p, return_cell_id=True)
@@ -3353,16 +3381,16 @@ def _histogram_spheric(thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", 
             continue
         fs = sgfaces[cell]
         pts = sgpts[fs]
-        _, t1, p1 = utils.cart2spher(pts[:, 0], pts[:, 1], pts[:, 2])
-        x, y, z = utils.spher2cart(1 + cn, t1, p1)
+        _, t1, p1 = cart2spher(pts[:, 0], pts[:, 1], pts[:, 2])
+        x, y, z = spher2cart(1 + cn, t1, p1)
         sgpts[fs] = np.c_[x, y, z]
 
-    sg.points(sgpts)
+    sg.vertices = sgpts
     sg.cmap(cmap, acounts, on="cells")
     vals = sg.celldata["Scalars"]
 
-    faces = sg.faces()
-    points = sg.points().tolist() + [[0.0, 0.0, 0.0]]
+    faces = sg.cells
+    points = sg.vertices.tolist() + [[0.0, 0.0, 0.0]]
     lp = len(points) - 1
     newfaces = []
     newvals = []
@@ -3622,10 +3650,10 @@ def whisker(data, s=0.25, c="k", lw=2, bc="blue", alpha=0.25, r=5, jitter=True, 
 
     pts = None
     if r:
-        pts = shapes.Points([xvals, data], c=c, r=r)
+        pts = shapes.Points(np.array([xvals, data]).T, c=c, r=r)
 
     rec = shapes.Rectangle([-s / 2, dq25], [s / 2, dq75], c=bc, alpha=alpha)
-    rec.GetProperty().LightingOff()
+    rec.properties.LightingOff()
     rl = shapes.Line([[-s / 2, dq25], [s / 2, dq25], [s / 2, dq75], [-s / 2, dq75]], closed=True)
     l1 = shapes.Line([0, dq05, 0], [0, dq25, 0], c=c, lw=lw)
     l2 = shapes.Line([0, dq75, 0], [0, dq95, 0], c=c, lw=lw)
@@ -3691,7 +3719,7 @@ def streamplot(
         probe = shapes.Grid(pos=((n - 1) / 2, (n - 1) / 2, 0), s=(n - 1, n - 1), res=(n - 1, n - 1))
     else:
         if isinstance(probes, vedo.Points):
-            probes = probes.points()
+            probes = probes.vertices
         else:
             probes = np.array(probes, dtype=float)
             if len(probes[0]) == 2:
@@ -3886,7 +3914,7 @@ def CornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True, dots=T
     data = vtk.vtkDataObject()
     data.SetFieldData(field)
 
-    xyplot = vtk.vtkXYPlotActor()
+    xyplot = vtk.new("XYPlotActor")
     xyplot.AddDataObjectInput(data)
     xyplot.SetDataObjectXComponent(0, 0)
     xyplot.SetDataObjectYComponent(0, 1)
@@ -3967,8 +3995,8 @@ def CornerHistogram(
         - 4, bottomright,
         - (x, y), as fraction of the rendering window
     """
-    if hasattr(values, "inputdata"):
-        values = utils.vtk2numpy(values.inputdata().GetPointData().GetScalars())
+    if hasattr(values, "dataset"):
+        values = utils.vtk2numpy(values.dataset.GetPointData().GetScalars())
 
     n = values.shape[0]
     if nmax and nmax < n:
@@ -4090,7 +4118,7 @@ class DirectedGraph(Assembly):
                 ![](https://vedo.embl.es/images/pyplot/graph_network.png)
         """
 
-        vedo.Assembly.__init__(self)
+        super().__init__()
 
         self.nodes = []
         self.edges = []
@@ -4112,7 +4140,7 @@ class DirectedGraph(Assembly):
 
         self.edge_label_scale = None
 
-        self.mdg = vtk.vtkMutableDirectedGraph()
+        self.mdg = vtk.new("MutableDirectedGraph")
 
         n = kargs.pop("n", 0)
         for _ in range(n):
@@ -4120,7 +4148,7 @@ class DirectedGraph(Assembly):
 
         self._c = kargs.pop("c", (0.3, 0.3, 0.3))
 
-        self.gl = vtk.vtkGraphLayout()
+        self.gl = vtk.new("GraphLayout")
 
         self.font = kargs.pop("font", "")
 
@@ -4132,11 +4160,11 @@ class DirectedGraph(Assembly):
 
         if "2d" in s:
             if "clustering" in s:
-                self.strategy = vtk.vtkClustering2DLayoutStrategy()
+                self.strategy = vtk.new("Clustering2DLayoutStrategy")
             elif "fast" in s:
-                self.strategy = vtk.vtkFast2DLayoutStrategy()
+                self.strategy = vtk.new("Fast2DLayoutStrategy")
             else:
-                self.strategy = vtk.vtkSimple2DLayoutStrategy()
+                self.strategy = vtk.new("Simple2DLayoutStrategy")
             self.rotX = 180
             opt = kargs.pop("rest_distance", None)
             if opt is not None:
@@ -4151,7 +4179,7 @@ class DirectedGraph(Assembly):
 
         elif "circ" in s:
             if "3d" in s:
-                self.strategy = vtk.vtkSimple3DCirclesStrategy()
+                self.strategy = vtk.new("Simple3DCirclesStrategy")
                 self.strategy.SetDirection(0, 0, -1)
                 self.strategy.SetAutoHeight(True)
                 self.strategy.SetMethod(1)
@@ -4165,11 +4193,11 @@ class DirectedGraph(Assembly):
                     self.strategy.SetAutoHeight(False)
                     self.strategy.SetHeight(opt)  # float
             else:
-                self.strategy = vtk.vtkCircularLayoutStrategy()
+                self.strategy = vtk.new("CircularLayoutStrategy")
                 self.zrange = kargs.pop("zrange", 0)
 
         elif "cone" in s:
-            self.strategy = vtk.vtkConeLayoutStrategy()
+            self.strategy = vtk.new("ConeLayoutStrategy")
             self.rotX = 180
             opt = kargs.pop("compactness", None)
             if opt is not None:
@@ -4182,7 +4210,7 @@ class DirectedGraph(Assembly):
                 self.strategy.SetSpacing(opt)
 
         elif "force" in s:
-            self.strategy = vtk.vtkForceDirectedLayoutStrategy()
+            self.strategy = vtk.new("ForceDirectedLayoutStrategy")
             opt = kargs.pop("seed", None)
             if opt is not None:
                 self.strategy.SetRandomSeed(opt)
@@ -4201,7 +4229,7 @@ class DirectedGraph(Assembly):
                 self.strategy.SetRandomInitialPoints(opt)  # bool
 
         elif "tree" in s:
-            self.strategy = vtk.vtkSpanTreeLayoutStrategy()
+            self.strategy = vtk.new("SpanTreeLayoutStrategy")
             self.rotX = 180
 
         else:
@@ -4264,7 +4292,7 @@ class DirectedGraph(Assembly):
         self.gl.SetInputData(self.mdg)
         self.gl.Update()
 
-        gr2poly = vtk.vtkGraphToPolyData()
+        gr2poly = vtk.new("GraphToPolyData")
         gr2poly.EdgeGlyphOutputOn()
         gr2poly.SetEdgeGlyphPosition(self.edge_glyph_position)
         gr2poly.SetInputData(self.gl.GetOutput())
@@ -4279,7 +4307,7 @@ class DirectedGraph(Assembly):
         if not diagsz:
             return None
 
-        dgraph.SetScale(1 / diagsz)
+        dgraph.scale(1 / diagsz)
         if self.rotX:
             dgraph.rotate_x(self.rotX)
         if self.rotY:
@@ -4293,7 +4321,7 @@ class DirectedGraph(Assembly):
         # Use Glyph3D to repeat the glyph on all edges.
         arrows = None
         if self.arrow_scale:
-            arrow_source = vtk.vtkGlyphSource2D()
+            arrow_source = vtk.new("GlyphSource2D")
             arrow_source.SetGlyphTypeToEdgeArrow()
             arrow_source.SetScale(self.arrow_scale)
             arrow_source.Update()
@@ -4302,7 +4330,7 @@ class DirectedGraph(Assembly):
             arrow_glyph.SetInputData(1, arrow_source.GetOutput())
             arrow_glyph.Update()
             arrows = Mesh(arrow_glyph.GetOutput())
-            arrows.SetScale(1 / diagsz)
+            arrows.scale(1 / diagsz)
             arrows.lighting("off").color(self._c)
             if self.rotX:
                 arrows.rotate_x(self.rotX)
@@ -4328,6 +4356,6 @@ class DirectedGraph(Assembly):
         edge_labels.color(self._c).pickable(True)
         edge_labels.name = "DirectedGraphEdgeLabels"
 
-        Assembly.__init__(self, [dgraph, node_labels, edge_labels, arrows])
+        super().__init__([dgraph, node_labels, edge_labels, arrows])
         self.name = "DirectedGraphAssembly"
         return self

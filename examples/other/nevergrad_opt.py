@@ -31,7 +31,7 @@ optimizer.register_callback("tell", callbk)
 res = optimizer.minimize(func)  # best value
 printc('Minimum at:', res.value)
 
-ln = Line(pts, lw=3, c='r')
+ln = Line(pts).lw(3).c("red5")
 fu = plot(f, xlim=[-3,4], ylim=[-3,4])
 
 show(fu, ln, __doc__)

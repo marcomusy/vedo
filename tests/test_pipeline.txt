@@ -1,0 +1,156 @@
+# TEST PIPELINE ################################
+Internal use only
+
+
+# INSTALL ######################################
+export VDIR=$HOME/Projects/vedo
+export VLOGFILE=$HOME/Dropbox/vedo_test.txt
+
+cd $VDIR
+pip install -e .
+pip install nevergrad -U
+pip install pyefd -U
+pip install iminuit -U
+pip install meshio -U
+pip install morphomatics -U
+pip install pygeodesic -U
+pip install pygmsh -U
+pip install pyacvd -U
+pip install pymeshfix -U
+pip install tetgen -U
+pip install pyshtools -U
+pip install trimesh -U
+
+
+# ENABLE/DISABLE DRY RUN ########################################################
+sed -i "s/dry_run_mode = 0/dry_run_mode = 2/g" $VDIR/vedo/settings.py  #->DISABLE
+sed -i "s/dry_run_mode = 2/dry_run_mode = 0/g" $VDIR/vedo/settings.py  #->ENABLE
+#################################################################################
+
+pytest tests
+
+cd $VDIR/tests/common  && ./run_all.sh 
+cd $VDIR/examples && time ./run_all.sh 2>&1 | tee $VLOGFILE
+
+grep -aA 1 "Error" $VLOGFILE
+grep -aA 3 "Trace" $VLOGFILE
+code $VLOGFILE  #### inspect logfile
+# (Try normal run too with visualization to make sure all is ok)
+
+
+# EXAMPLES #####################################
+cd $VDIR/tests/issues && ./run_all.sh 
+
+
+# TUTORIALS ####################################
+cd ~/Projects/server/vedo-embo-course/scripts && ./run_all.sh 
+cd ~/Projects/server/vedo-bias-course/scripts && ./run_all.sh 
+
+
+# TRIMESH #######################################
+cd $VDIR/examples/other/trimesh && ./run_all.sh
+
+# DOLFIN #######################################
+cd $VDIR
+conda activate fenics
+pip install -e .
+cd $VDIR/examples/other/dolfin && ./run_all.sh
+conda deactivate
+
+# OTHERS #######################################
+cd $VDIR
+python ~/Dropbox/documents/Medical/RESONANCIA.py
+vedo https://vedo.embl.es/examples/data/panther.stl.gz
+vedo https://vedo.embl.es/examples/geo_scene.npz
+vedo --convert data/290.vtk --to ply && vedo data/290.ply
+
+# NOTEBOOKS #####################################
+cd $VDIR/examples/notebooks/
+jupyter notebook > /dev/null 2>&1
+
+##########################
+# Check on OSX and windows
+
+
+# VEDO PROJECTS #################################
+cd ~/Projects/server/trackviewer
+    ./main_test.py
+################
+cd /g/sharpe/software/clone_viewer2
+    ./clone_viewer3d.py
+################
+cd ~/Projects/rio_organoid
+    python main4.py
+    python piv_read_fw2_C3.py
+################
+cd ~/Projects/server/cell_density
+   analyse_density.py test_image.png test_image_gfp.png
+   edu_histogram.py test_image.png
+################
+cd ~/Projects/new_yalla/limb_opti_here
+   python result_viz3.py
+################
+cd ~/Projects/server/welsh_embryo_stager
+   python stager.py pics/E14.5_L3-03_HL2.5X.jpg
+################
+cd ~/Projects/oocytes
+   python main4b.py
+################
+cd ~/Projects/umap_viewer3d
+   python main6.py
+################
+cd ~/Projects/napari-vedo-bridge
+    # conda create -y -n napari-env -c conda-forge python=3.9
+    # conda activate napari-env
+    # python -m pip install "napari[all]"
+    conda activate napari-env
+    python $VDIR/examples/other/napari1.py
+    napari
+    conda deactivate
+################
+cd ~/Projects/welleng/examples
+    python 
+################
+cd ~/Projects/clonal_analysis2d_splines
+    python -m analysis_plots
+
+################################################################
+# RELEASE
+cd $VDIR
+
+# check version and status
+code vedo/version.py
+git status
+git commit -am '...'
+git push
+
+# upload to pypi
+python setup.py sdist bdist_wheel
+twine upload dist/vedo-?.?.?.tar.gz -r pypi
+
+# make github release
+cd $VDIR
+code docs/changes.md
+code vedo/version.py  # edit to add .dev0
+https://repology.org/project/vedo/badges
+rm $VLOGFILE
+
+
+# DOCUMETATION #################################
+mount_staging
+cd $VDIR/docs/pdoc
+./build_html.py 
+
+# check web page examples
+cd $VDIR
+code www/examples_db.js
+code www/index.html
+
+
+# SITES ########################################
+https://vedo.embl.es/
+https://vedo.embl.es/docs
+https://github.com/marcomusy/vedo
+https://forum.image.sc/search?q=vedo%20order%3Alatest
+
+

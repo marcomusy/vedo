@@ -7,66 +7,93 @@ __docformat__ = "google"
 
 class Settings:
     """
-    General settings to modify the global behavior
+    General settings to modify the global behavior and style.
 
-    Usage Example:
+    Example:
         ```python
         from vedo import settings, Cube
         settings.use_parallel_projection = True
+        # settings["use_parallel_projection"] = True  # this is equivalent!
         Cube().color('g').show().close()
         ```
 
     List of available properties:
 
     ```python
-    # Set a default for the font to be used for axes, comments etc.
-    default_font = 'Normografo' # check font options in shapes.Text
+    # Set the default font to be used for axes, comments etc.
+    # Check out the available fonts at http://vedo.embl.es/fonts
+    # For example:
+    default_font = 'Normografo'
+    # To customize the font parameters use:
+    settings.font_parameters["Normografo"] = dict(
+        mono=False,
+        fscale=0.75,
+        hspacing=1,
+        lspacing=0.2,
+        dotsep="~×",
+        islocal=True,
+    )
+    # Where
+    # mono    : if True all letters occupy the same space slot horizontally
+    # fscale  : sets the general scaling factor for the size of the font
+    # hspacing: horizontal stretching factor (affects both letters and words)
+    # lspacing: horizontal spacing inbetween letters (not words)
+    # dotsep  : a string of characters to be interpreted as dot separator
+    # islocal : if locally stored in /fonts, otherwise it's on vedo.embl.es/fonts
+    #
+    # To run a demo try:
+    # vedo --run fonts
 
     # Palette number when using an integer to choose a color
     palette = 0
 
+    # Options for saving window screenshots:
     screenshot_transparent_background = False
-    screeshot_large_image = False # Sometimes setting this to True gives better results
+    screeshot_large_image = False # sometimes setting this to True gives better results
 
-    # [DISABLED] Allow to continuously interact with scene during interactive() execution
-    allow_interaction = True
-
-    # Enable tracking pipeline functionality: 
-    #  allows to show a graph with the pipeline of action which let to a final object
-    #  this is achieved by calling "myobj.pipeline.show()" (a new window will pop up)
+    # Enable tracking pipeline functionality:
+    # allows to show a graph with the pipeline of action which let to a final object
+    # this is achieved by calling "myobj.pipeline.show()" (a new window will pop up)
     self.enable_pipeline = True
 
-    # Set up default mouse and keyboard functionalities
+    # Remember the last format used when creating new figures in vedo.pyplot
+    # this is useful when creating multiple figures of the same kind
+    # and avoid to specify the format each time in plot(..., like=...)
+    remember_last_figure_format = False
+
+    # Set up default mouse and keyboard callbacks
     enable_default_mouse_callbacks = True
     enable_default_keyboard_callbacks = True
 
-    # If False, when multiple renderers are present do not render each one for separate
-    #  but do it just once at the end (when interactive() is called)
+    # Progress bar delay before showing up [sec]
+    self.progressbar_delay = 0.5
+
+    # If False, when multiple renderers are present, render only once at the end
     immediate_rendering = True
 
-    # Show a gray frame margin in multirendering windows
+    # In multirendering mode, show a grey frame margin (set width=0 to disable)
     renderer_frame_color = None
     renderer_frame_alpha = 0.5
     renderer_frame_width = 0.5
     renderer_frame_padding = 0.0001
 
-    # In multirendering mode set the position of the horizontal of vertical splitting [0,1]
+    # In multirendering mode, set the position of the horizontal of vertical splitting [0,1]
     window_splitting_position = None
 
-    # Gradient orientation mode for background color
-    # 0 = VERTICAL
-    # 1 = HORIZONTAL
-    # 2 = RADIAL_VIEWPORT_FARTHEST_SIDE
-    # 3 = RADIAL_VIEWPORT_FARTHEST_CORNER
+    # Gradient orientation mode for background window color
+    # 0 = Vertical
+    # 1 = Horizontal
+    # 2 = Radial viewport farthest side
+    # 3 = Radial viewport farthest corner
     background_gradient_orientation = 0
 
     # Enable / disable color printing by printc()
     enable_print_color = True
 
-    # Wrap lines in tubes
+    # Wrap lines in tubes by default
     render_lines_as_tubes = False
 
-    # Smoothing options
+    # Smoothing options for points, lines and polygons
     point_smoothing = False
     line_smoothing = False
     polygon_smoothing = False
@@ -74,21 +101,21 @@ class Settings:
     # Remove hidden lines when in wireframe mode
     hidden_line_removal = False
 
-    # Turn on/off the automatic repositioning of lights as the camera moves.
+    # Turn on/off the automatic repositioning of lights as the camera moves
     light_follows_camera = False
     two_sided_lighting = True
 
-    # Turn on/off rendering of translucent material with depth peeling technique.
+    # Turn on/off rendering of translucent material with depth peeling technique
     use_depth_peeling = False
     alpha_bit_planes  = True   # options only active if useDepthPeeling=True
-    multi_samples     = 8      # force to not pick a framebuffer with a multisample buffer
+    multi_samples     = 16     # antialiasing multisample buffer
     max_number_of_peels= 4     # maximum number of rendering passes
     occlusion_ratio   = 0.0    # occlusion ratio, 0 = exact image.
 
-    # Turn on/off nvidia FXAA post-process anti-aliasing, if supported.
+    # Turn on/off nvidia FXAA post-process anti-aliasing, if supported
     use_fxaa = False           # either True or False
 
-    # By default, the depth buffer is reset for each renderer.
+    # By default, the depth buffer is reset for each renderer
     #  If True, use the existing depth buffer
     preserve_depth_buffer = False
 
@@ -103,11 +130,11 @@ class Settings:
     # Set parallel projection On or Off (place camera to infinity, no perspective effects)
     use_parallel_projection = False
 
-    # Set orientation type when reading TIFF files (volumes):
-    # TOPLEFT  1 (row 0 top, col 0 lhs)    TOPRIGHT 2 (row 0 top, col 0 rhs)
-    # BOTRIGHT 3 (row 0 bottom, col 0 rhs) BOTLEFT  4 (row 0 bottom, col 0 lhs)
-    # LEFTTOP  5 (row 0 lhs, col 0 top)    RIGHTTOP 6 (row 0 rhs, col 0 top)
-    # RIGHTBOT 7 (row 0 rhs, col 0 bottom) LEFTBOT  8 (row 0 lhs, col 0 bottom)
+    # Set orientation type when reading TIFF files:
+    # TOPLEFT  1 (row 0 top,    col 0 lhs)    TOPRIGHT 2 (row 0 top,    col 0 rhs)
+    # BOTRIGHT 3 (row 0 bottom, col 0 rhs)    BOTLEFT  4 (row 0 bottom, col 0 lhs)
+    # LEFTTOP  5 (row 0 lhs,    col 0 top)    RIGHTTOP 6 (row 0 rhs,    col 0 top)
+    # RIGHTBOT 7 (row 0 rhs,    col 0 bottom) LEFTBOT  8 (row 0 lhs,    col 0 bottom)
     tiff_orientation_type = 1
 
     # Annotated cube axis type nr. 5 options:
@@ -116,38 +143,42 @@ class Settings:
     annotated_cube_text_scale = 0.2
     annotated_cube_texts      = ["right","left ", "front","back ", " top ", "bttom"]
 
+    # Set the default backend for plotting in jupyter notebooks.
+    # If a jupyter environment is detected, the default is automatically switched to "2d"
+    default_backend = "vtk"
+
     # Automatically close the Plotter instance after show() in jupyter sessions
     # setting it to False will keep the current Plotter instance active
     backend_autoclose = True
 
-    # k3d settings for jupyter notebooks
+    # Settings specific to the K3D backend in jupyter notebooks
     k3d_menu_visibility = True
-    k3d_plot_height = 512
-    k3d_antialias   = True
-    k3d_lighting    = 1.5
-    k3d_camera_autofit = True
-    k3d_grid_autofit= True
-    k3d_axes_color  = "gray4"
-    k3d_axes_helper = 1.0     # size of the small triad of axes on the bottom right
-    k3d_point_shader= "mesh"  # others are '3d', '3dSpecular', 'dot', 'flat'
-    k3d_line_shader = "thick" # others are 'flat', 'mesh'
+    k3d_plot_height   = 512
+    k3d_antialias     = True
+    k3d_lighting      = 1.5
+    k3d_camera_autofit= True
+    k3d_grid_autofit  = True
+    k3d_axes_color    = "gray4"
+    k3d_axes_helper   = 1.0     # size of the small triad of axes on the bottom right
+    k3d_point_shader  = "mesh"  # others are '3d', '3dSpecular', 'dot', 'flat'
+    k3d_line_shader   = "thick" # others are 'flat', 'mesh'
     ```
     """
 
-    # Restrict the attributes so accidental typos will generate an AttributeError exception
+    # Restrict the attributes so accidental typos will generate
+    # an AttributeError exception
     __slots__ = [
-        "_level",
         "default_font",
         "default_backend",
         "palette",
         "remember_last_figure_format",
         "screenshot_transparent_background",
         "screeshot_large_image",
-        "allow_interaction",
         "hack_call_screen_size",
         "enable_default_mouse_callbacks",
         "enable_default_keyboard_callbacks",
         "enable_pipeline",
+        "progressbar_delay",
         "immediate_rendering",
         "renderer_frame_color",
         "renderer_frame_alpha",
@@ -158,7 +189,6 @@ class Settings:
         "point_smoothing",
         "line_smoothing",
         "polygon_smoothing",
-        "visible_grid_edges",
         "light_follows_camera",
         "two_sided_lighting",
         "use_depth_peeling",
@@ -193,151 +223,101 @@ class Settings:
         "k3d_point_shader",
         "k3d_line_shader",
         "font_parameters",
+        "dry_run_mode",
     ]
 
-    def __init__(self, level=0):
+    def __init__(self):
 
-        self._level = level
+        # Dry run mode (for test purposes only)
+        # 0 = normal
+        # 1 = do not hold execution
+        # 2 = do not hold execution and do not show any window
+        self.dry_run_mode = 0
 
-        # Default font
+        # BUG in vtk9.0
+        # if true close works but sometimes vtk crashes, if false doesnt crash but cannot close
+        # see plotter.py line 555
+        self.hack_call_screen_size = True
+
+        self.default_backend = "vtk"
+        try:
+            get_ipython()
+            self.default_backend = "2d"
+        except NameError:
+            pass
+
         self.default_font = "Normografo"
 
-        # Default backend engine in jupyter notebooks
-        self.default_backend = "vtk"
-
-        # enable tracking pipeline functionality
         self.enable_pipeline = True
-
-        if any(["SPYDER" in name for name in os.environ]):
-            self.default_backend = "vtk"
-        else:
-            try:
-                get_ipython()
-                self.default_backend = "2d"
-            except NameError:
-                pass
-
-        # Palette number when using an integer to choose a color
+        self.progressbar_delay = 0.5
         self.palette = 0
-
         self.remember_last_figure_format = False
 
         self.screenshot_transparent_background = False
         self.screeshot_large_image = False
 
-        # [DISABLED] Allow to continuously interact with scene during interactor.Start() execution
-        self.allow_interaction = True
-
-        # BUG in vtk9.0 (if true close works but sometimes vtk crashes, if false doesnt crash but cannot close)
-        # see plotter.py line 555
-        self.hack_call_screen_size = True
-
-        # Set up default mouse and keyboard functionalities
         self.enable_default_mouse_callbacks = True
         self.enable_default_keyboard_callbacks = True
-
-        # When multiple renderers are present do not render each one for separate.
-        # but do it just once at the end (when interactive() is called)
         self.immediate_rendering = True
 
-        # Show a gray frame margin in multirendering windows
         self.renderer_frame_color = None
         self.renderer_frame_alpha = 0.5
         self.renderer_frame_width = 0.5
         self.renderer_frame_padding = 0.0001
-
-        # Gradient orientation mode for background color
-        # 0 = VERTICAL
-        # 1 = HORIZONTAL
-        # 2 = RADIAL_VIEWPORT_FARTHEST_SIDE
-        # 3 = RADIAL_VIEWPORT_FARTHEST_CORNER
         self.background_gradient_orientation = 0
 
-        # Wrap lines in tubes
         self.render_lines_as_tubes = False
-
-        # Remove hidden lines when in wireframe mode
         self.hidden_line_removal = False
 
-        # Smoothing options
         self.point_smoothing = False
         self.line_smoothing = False
         self.polygon_smoothing = False
 
-        # For Structured and RectilinearGrid: show internal edges not only outline
-        self.visible_grid_edges = False
-
-        # Turn on/off the automatic repositioning of lights as the camera moves.
         self.light_follows_camera = False
         self.two_sided_lighting = True
 
-        # Turn on/off rendering of translucent material with depth peeling technique.
         self.use_depth_peeling = False
-        self.multi_samples = 8
+        self.multi_samples = 16
         self.alpha_bit_planes = 1
         self.max_number_of_peels = 4
         self.occlusion_ratio = 0.1
 
-        # Turn on/off nvidia FXAA anti-aliasing, if supported.
-        self.use_fxaa = False  # either True or False
+        self.use_fxaa = False
 
-        # By default, the depth buffer is reset for each renderer. If true, use the existing depth buffer
         self.preserve_depth_buffer = False
 
-        # Use a polygon/edges offset to possibly resolve conflicts in rendering
         self.use_polygon_offset = True
         self.polygon_offset_factor = 0.1
         self.polygon_offset_units  = 0.1
 
-        # Interpolate scalars to render them smoothly
         self.interpolate_scalars_before_mapping = True
 
-        # Set parallel projection On or Off (place camera to infinity, no perspective effects)
         self.use_parallel_projection = False
 
-        # In multirendering mode set the position of the horizontal of vertical splitting [0,1]
         self.window_splitting_position = None
 
-        # Set orientation type when reading TIFF files (volumes):
-        # TOPLEFT  1 (row 0 top, col 0 lhs)    TOPRIGHT 2 (row 0 top, col 0 rhs)
-        # BOTRIGHT 3 (row 0 bottom, col 0 rhs) BOTLEFT  4 (row 0 bottom, col 0 lhs)
-        # LEFTTOP  5 (row 0 lhs, col 0 top)    RIGHTTOP 6 (row 0 rhs, col 0 top)
-        # RIGHTBOT 7 (row 0 rhs, col 0 bottom) LEFTBOT  8 (row 0 lhs, col 0 bottom)
         self.tiff_orientation_type = 1
 
-        # AnnotatedCube axis (type 5) customization:
         self.annotated_cube_color = (0.75, 0.75, 0.75)
-        self.annotated_cube_text_color = None  # use default, otherwise specify a single color
+        self.annotated_cube_text_color = None
         self.annotated_cube_text_scale = 0.2
         self.annotated_cube_texts = ["right", "left ", "front", "back ", " top ", "bttom"]
 
-        # enable / disable color printing
         self.enable_print_color = True
 
-        ####################################################################################
-        # Automatically close the Plotter instance after show() in jupyter sessions,
-        #  setting it to False will keep the current Plotter instance active
         self.backend_autoclose = True
 
-        # k3d settings for jupyter notebooks
         self.k3d_menu_visibility = True
         self.k3d_plot_height = 512
-        self.k3d_antialias  = True
-        self.k3d_lighting   = 1.5
+        self.k3d_antialias   = True
+        self.k3d_lighting    = 1.5
         self.k3d_camera_autofit = True
         self.k3d_grid_autofit= True
         self.k3d_axes_color  = "k4"
-        self.k3d_axes_helper = 1.0     # size of the small triad of axes on the bottom right
-        self.k3d_point_shader= "mesh"  # others are '3d', '3dSpecular', 'dot', 'flat'
-        self.k3d_line_shader = "thick" # others are 'flat', 'mesh'
+        self.k3d_axes_helper = 1.0
+        self.k3d_point_shader= "mesh"
+        self.k3d_line_shader = "thick"
 
-        ####################################################################################
-        ####################################################################################
-        # mono       # means that all letters occupy the same space slot horizontally
-        # hspacing   # an horizontal stretching factor (affects both letters and words)
-        # lspacing   # horizontal spacing inbetween letters (not words)
-        # islocal    # is locally stored in /fonts, otherwise it's on vedo.embl.es/fonts
-        #
         self.font_parameters = dict(
             Normografo=dict(
                 mono=False,
@@ -619,7 +599,7 @@ class Settings:
                 dotsep="~×",
                 islocal=False,
             ),
-            Housekeeper=dict(  # support chinese glyphs
+            Housekeeper=dict(  # supports chinese glyphs
                 mono=False,
                 fscale=0.75,
                 hspacing=1,
@@ -627,7 +607,7 @@ class Settings:
                 dotsep="~×",
                 islocal=False,
             ),
-            Wananti=dict(  # support chinese glyphs
+            Wananti=dict(  # supports chinese glyphs
                 mono=False,
                 fscale=0.75,
                 hspacing=1,
@@ -678,26 +658,6 @@ class Settings:
         )
 
     ####################################################################################
-    def reset(self):
-        """Reset all settings to their default status."""
-        self.__init__()
-
-    def print(self):
-        """Print function."""
-        print(" " + "-" * 80)
-        s = Settings.__doc__.replace("   ", "")
-        s = s.replace(".. code-block:: python\n", "")
-        try:
-            from pygments import highlight
-            from pygments.lexers import Python3Lexer
-            from pygments.formatters import Terminal256Formatter
-
-            s = highlight(s, Python3Lexer(), Terminal256Formatter(style="zenburn"))
-            print(s, end="")
-
-        except ModuleNotFoundError:
-            print("\x1b[33;1m" + s + "\x1b[0m")
-
     def __getitem__(self, key):
         """Make the class work like a dictionary too"""
         return getattr(self, key)
@@ -705,8 +665,49 @@ class Settings:
     def __setitem__(self, key, value):
         """Make the class work like a dictionary too"""
         setattr(self, key, value)
+    
+    def __str__(self) -> str:
+        """Return a string representation of the object"""
+        s = Settings.__doc__.replace("   ", "")
+        s = s.replace(".. code-block:: python\n", "")
+        s = s.replace("```python\n", "")
+        s = s.replace("```\n", "")
+        s = s.replace("\n\n", "\n #------------------------------------------------------\n")
+        s = s.replace("\n  ", "\n")
+        s = s.replace("\n ", "\n")
+        s = s.replace(" from", "from")
+        try:
+            from pygments import highlight
+            from pygments.lexers import Python3Lexer
+            from pygments.formatters import Terminal256Formatter
+            s = highlight(s, Python3Lexer(), Terminal256Formatter(style="zenburn"))
+        except (ModuleNotFoundError, ImportError):
+            pass
 
+        module = self.__class__.__module__
+        name = self.__class__.__name__
+        header = f"{module}.{name} at ({hex(id(self))})".ljust(75)
+        s = f"\x1b[1m\x1b[7m{header}\x1b[0m\n" + s
+        return s.strip()
+    
+    ############################################################
+    def keys(self):
+        """Return all keys"""
+        return self.__slots__
+    
+    def values(self):
+        """Return all values"""
+        return [getattr(self, key) for key in self.__slots__]
+    
+    def items(self):
+        """Return all items"""
+        return [(key, getattr(self, key)) for key in self.__slots__]
 
+    def reset(self):
+        """Reset all settings to their default status."""
+        self.__init__()
+
+    ############################################################
     def init_colab(self, enable_k3d=True):
         """
         Initialize colab environment
@@ -742,7 +743,7 @@ class Settings:
 
         print(" setup completed.")
 
-
+    ############################################################
     def start_xvfb(self):
         """
         Start xvfb.

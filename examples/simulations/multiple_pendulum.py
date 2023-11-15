@@ -1,6 +1,6 @@
 import numpy as np
 from vedo import Plotter, mag, versor, vector
-from vedo import Cylinder, Spring, Box, Sphere
+from vedo import Cylinder, Spring, Line, Box, Sphere
 
 ############## Constants
 N = 5  # number of bobs
@@ -23,22 +23,14 @@ for k in range(1, N + 1):
     bob_y.append(bob_y[k - 1] + np.sin(alpha) + np.random.normal(0, 0.1))
 
 plt = Plotter(title="Multiple Pendulum", bg2='ly')
-plt += Box(pos=(0, -5, 0), length=12, width=12, height=0.7, c="k").wireframe(1)
-sph = Sphere(pos=(bob_x[0], bob_y[0], 0), r=R / 2, c="gray")
+plt += Box(pos=(0, -5, 0), length=12, width=12, height=0.7).color("k").wireframe(1)
+sph = Sphere(pos=(bob_x[0], bob_y[0], 0), r=R / 2).color("gray")
 plt += sph
 bob = [sph]
 for k in range(1, N + 1):
-    c = Cylinder(pos=(bob_x[k], bob_y[k], 0), r=R, height=0.3, c=k)
+    c = Cylinder(pos=(bob_x[k], bob_y[k], 0), r=R, height=0.3).color(k)
     plt += c
     bob.append(c)
-
-# Create the springs out of N links
-link = [None] * N
-for k in range(N):
-    p0 = bob[k].pos()
-    p1 = bob[k + 1].pos()
-    link[k] = Spring(p0, p1, thickness=0.015, r1=R / 3, c="gray")
-    plt += link[k]
 
 # Create some auxiliary variables
 x_dot_m = np.zeros(N+1)
@@ -106,9 +98,11 @@ def loop_func(evt):
                 y_dot[j] -= DV[1]  # DV.y
 
     # Update the loations of the bobs and the stretching of the springs
+    plt.remove("Line")
     for k in range(1, N + 1):
         bob[k].pos([bob_x[k], bob_y[k], 0])
-        link[k - 1].stretch(bob[k - 1].pos(), bob[k].pos())
+        sp = Line(bob[k - 1].pos(), bob[k].pos()).color("gray").lw(8)
+        plt.add(sp)
 
     plt.render()
 

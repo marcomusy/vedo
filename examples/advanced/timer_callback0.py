@@ -11,6 +11,7 @@ msh = Cube()
 txt = Text2D(bg='yellow', font="Calco")
 
 plt = Plotter(axes=1)
+# plt.initialize_interactor() # on windows this is needed
 plt.add_callback("timer", loop_func)
 plt.timer_callback("start")
 plt.show(msh, txt)

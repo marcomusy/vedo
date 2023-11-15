@@ -24,13 +24,16 @@ def handle_timer(event):
         xtitle="time window [s]", ytitle="intensity [a.u.]",
     )
     fig.shift(-x[0]) # put the whole plot object back at (0,0)
-    # pop (remove) the old plot and add the new one
+    # Pop (remove) the old plot and add the new one
     plotter.pop().add(fig).render()
 
 
 timer_id = -1
 t0 = time.time()
+
 plotter= Plotter(size=(1200,600))
+# plt.initialize_interactor() # on windows this is needed
+
 button = plotter.add_button(bfunc, states=[" Play ","Pause"], size=40)
 evntid = plotter.add_callback("timer", handle_timer, enable_picking=False)
 

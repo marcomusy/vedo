@@ -34,15 +34,15 @@ zeros = np.zeros_like(x)
 
 plt = Plotter(interactive=False, size=(1000,500))
 
-barrier = Line(np.c_[x, V * 15], c="red3", lw=3)
-wpacket = Line(np.c_[x, zeros], c='blue4', lw=2)
+barrier = Line(np.c_[x, V * 15]).c("red3").lw(3)
+wpacket = Line(np.c_[x,  zeros]).c('blue4').lw(2)
 plt.show(barrier, wpacket, __doc__, zoom=2)
 
 for j in range(150):
     for i in range(500):
         Psi += d_dt(Psi) * dt                # integrate for a while
     amp = np.real(Psi * np.conj(Psi)) * 1.5  # psi squared, probability(x)
-    wpacket.points(np.c_[x, amp, zeros])     # update points
+    wpacket.vertices = np.c_[x, amp, zeros]  # update vertices
     plt.render()
 
 plt.interactive().close()

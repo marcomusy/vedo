@@ -1,7 +1,7 @@
 """Simulate a discrete collection of oscillators
 We will use this as a model of a vibrating string and
-compare two methods of integration: Euler and Runge-Kutta4.
-For too large values of dt the simple Euler can diverge."""
+compare two methods of integration: Euler (red) and Runge-Kutta4 (green).
+For too large values of dt the simple Euler will diverge."""
 # To model 'N' oscillators, we will use N+2 Points, numbered
 # 0, 1, 2, 3, ... N+1.  Points 0 and N+1 are actually the boundaries.
 # We will keep them fixed, but adding them in as if they were
@@ -10,9 +10,9 @@ For too large values of dt the simple Euler can diverge."""
 from vedo import *
 
 ####################################################
-N = 400   # Number of coupled oscillators
-dt = 0.5  # Time step
-nsteps = 1500  # Number of steps in the simulation
+N = 400        # Number of coupled oscillators
+dt = 0.5       # Time step
+nsteps = 2000  # Number of steps in the simulation
 
 
 ####################################################
@@ -73,7 +73,7 @@ y_eu, y_rk = np.array(y), np.array(y)
 v_eu, v_rk = np.array(v), np.array(v)
 
 t = 0 
-for i in progressbar(nsteps, c="blue", title="integrating RK4 and Euler"):
+for i in progressbar(nsteps, c="b", title="integrating RK4 and Euler"):
     y_eu, v_eu = euler(y_eu, v_eu, t, dt)
     y_rk, v_rk = runge_kutta4(y_rk, v_rk, t, dt)
     t += dt
@@ -85,31 +85,31 @@ for i in progressbar(nsteps, c="blue", title="integrating RK4 and Euler"):
 ####################################################
 plt = Plotter(interactive=False, axes=2, size=(1400,1000))
 
-line_eu = Line([0,0,0], [len(x)-1,0,0], res=len(x), c="red5", lw=5)
+line_eu = Line([0,0,0], [len(x)-1,0,0], res=len(x)).c("red5").lw(5)
 plt += line_eu
 
-line_rk = Line([0,0,0], [len(x)-1,0,0], res=len(x), c="green5", lw=5)
+line_rk = Line([0,0,0], [len(x)-1,0,0], res=len(x)).c("green5").lw(5)
 plt += line_rk
 
 # let's also add a fancy background image from wikipedia
 img = dataurl + "images/wave_wiki.png"
-plt += Picture(img).alpha(0.8).scale(0.4).pos(0,-100,-20)
+plt += Image(img).alpha(0.8).scale(0.4).pos(0,-100,-1)
 plt += __doc__
 plt.show(zoom=1.5)
 
-for i in progressbar(nsteps, c='red', title="visualize the result"):
+for i in progressbar(nsteps, title="visualize the result", c='y'):
     if i%10 != 0:
         continue
     y_eu = positions_eu[i]  # retrieve the list of y positions at step i
     y_rk = positions_rk[i]
 
-    pts = line_eu.points()
+    pts = line_eu.vertices
     pts[:,1] = y_eu
-    line_eu.points(pts)
+    line_eu.vertices = pts
 
-    pts = line_rk.points()
+    pts = line_rk.vertices
     pts[:,1] = y_rk
-    line_rk.points(pts)
+    line_rk.vertices = pts
     plt.render()
 
 plt.interactive().close()

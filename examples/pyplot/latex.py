@@ -9,6 +9,6 @@ latex4 = r'\Gamma_{\epsilon}(x)=\left[1-e^{-2 \pi \epsilon}\right]^{1-x} \prod_{
 
 ltx = Latex(latex4, s=1, c='darkblue', bg='', usetex=False, res=40)
 ltx.crop(0.3, 0.3) # crop top and bottom 30%
-ltx.pos(2,0,0)
+ltx.pos([2,0,0])
 
 ltx.show(axes=8, size=(1400,700), bg2='lb', zoom='tight').close()

@@ -1,13 +1,16 @@
 """Cut a TetMesh with an arbitrary polygonal Mesh"""
 from vedo import *
 
-settings.use_depth_peeling = True
+sphere = Sphere(r=500).x(400).color('green5',0.2).wireframe()
 
-tetmesh = TetMesh(dataurl+'limb_ugrid.vtk')
+tmesh = TetMesh(dataurl + 'limb_ugrid.vtk')
+print(tmesh)
 
-sphere = Sphere(r=500, c='g').x(400).alpha(0.2)
+ugrid = tmesh.cut_with_mesh(sphere, invert=True).cmap("Reds_r")
+print(ugrid)
 
-ugrid = tetmesh.cut_with_mesh(sphere, invert=True)
-tetmesh_cut = TetMesh(ugrid)
+# We may cast the output to a new TetMesh:
+# tmesh_cut = TetMesh(ugrid)
+# print(tmesh_cut)
 
-show(tetmesh_cut, sphere, __doc__, axes=dict(xtitle='x [:mum]')).close()
+show(ugrid, sphere, __doc__, axes=1).close()

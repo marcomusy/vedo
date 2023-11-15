@@ -1,10 +1,10 @@
-# 2D Fast Fourier Transform of a picture
-from vedo import Picture, show
+# 2D Fast Fourier Transform of a image
+from vedo import Image, show
 
 # url = 'https://comps.canstockphoto.com/a-capital-silhouette-stock-illustrations_csp31110154.jpg'
 url = 'https://vedo.embl.es/examples/data/images/dog.jpg'
 
-pic = Picture(url).resize([200,None])  # resize so that x has 200 pixels, but keep y aspect-ratio
+pic = Image(url).resize([200,None])  # resize so that x has 200 pixels, but keep y aspect-ratio
 picfft = pic.fft(logscale=12)
 picfft = picfft.tomesh().cmap('Set1',"RGBA").add_scalarbar("12\dotlog(fft)")  # optional step
 

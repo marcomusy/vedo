@@ -8,7 +8,7 @@ from vedo import *
 from scipy.interpolate import Rbf, NearestNDInterpolator as Near
 
 mesh = Mesh(dataurl+"bunny.obj").normalize()
-pts = mesh.points()
+pts = mesh.vertices
 
 # pick a subset of 100 points where a scalar descriptor is known
 ptsubset = pts[:100]
@@ -27,6 +27,6 @@ xi, yi, zi = np.split(pts, 3, axis=1)
 interpolated_desc = itr(xi, yi, zi)
 
 mesh.cmap('rainbow', interpolated_desc).add_scalarbar(title='3sin(4y)')
-rpts = Points(ptsubset, r=8, c='white')
+rpts = Points(ptsubset).point_size(8).c('white')
 
 show(mesh, rpts, __doc__, axes=1).close()

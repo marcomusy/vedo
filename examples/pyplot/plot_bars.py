@@ -24,7 +24,7 @@ fig = plot(
 
 for i in range(len(percent)):
     val = precision(percent[i], 3)+'%'
-    txt = Text3D(val, pos=(fig.centers[i], counts[i]), justify="bottom-center", c="blue2")
+    txt = Text3D(val, pos=(fig.centers[i], counts[i]), justify="bottom-center").c("blue2")
     fig += txt.scale(200).shift(0,170,0)
 
 fig.show(size=(1000,750), zoom='tight').close()

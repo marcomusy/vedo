@@ -2,7 +2,7 @@
 from vedo import ParametricShape, Plotter, precision
 
 def func(evt):  ### called every time mouse moves!
-    if not evt.actor:
+    if not evt.object:
         return  # mouse hits nothing, return.
 
     pt = evt.picked3d  # 3d coords of point under mouse

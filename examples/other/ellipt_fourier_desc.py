@@ -3,12 +3,12 @@ parametrizing a closed contour (in red)"""
 import vedo
 import pyefd
 
-shapes = vedo.load(vedo.dataurl+'timecourse1d.npy')
+shapes = vedo.Assembly(vedo.dataurl+'timecourse1d.npy')
 
 sh = shapes[55]
-sr = vedo.Line(sh).mirror('x').reverse()
+sr = vedo.Line(sh).mirror('x')
 sm = vedo.merge(sh, sr).c('red5').lw(3)
-pts = sm.points()[:,(0,1)]
+pts = sm.vertices[:,(0,1)]
 
 rlines = []
 for order in range(5,30, 5):

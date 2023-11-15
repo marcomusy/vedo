@@ -1,8 +1,8 @@
-# Transform a picture into a mesh
-from vedo import Picture, dataurl, show
+# Transform a image into a mesh
+from vedo import Image, dataurl, show
 import numpy as np
 
-pic = Picture(dataurl+"images/dog.jpg").smooth(5)
+pic = Image(dataurl+"images/dog.jpg").smooth(5)
 msh = pic.tomesh()  # make a quad-mesh out of it
 
 # build a scalar array with intensities
@@ -12,8 +12,7 @@ intensityz = np.zeros_like(rgb)
 intensityz[:,2] = intensity / 10
 
 # set the new vertex points
-pts = msh.points() + intensityz
-msh.points(pts)
+msh.vertices += intensityz
 
 # more cosmetics
 msh.triangulate().smooth()

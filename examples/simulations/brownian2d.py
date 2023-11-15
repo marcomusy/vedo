@@ -4,15 +4,11 @@ The spheres collide elastically with themselves and
 with the walls of the box. The masses of the spheres
 are proportional to their radius**3 (as in 3D)"""
 # Adapted by M. Musy from E. Velasco (2009)
-from vedo import Plotter, progressbar, dot, Grid, Sphere, Point
+from vedo import *
 import random
-import numpy as np
-print(__doc__)
 
 screen_w = 800
 screen_h = 800
-
-plt = Plotter(size=(screen_w, screen_h), axes=0, interactive=0)
 
 # Constants and time step
 Nsp = 200  # Number of small spheres
@@ -57,23 +53,16 @@ for s in range(1, Nsp):
     ListVel.append((Rb * random.uniform(-1, 1), Rb * random.uniform(-1, 1)))
 Vel = np.array(ListVel)
 
-# Create the spheres
-Spheres = [Sphere(pos=(Pos[0][0], Pos[0][1], 0), r=Radius[0], c="red", res=12).phong()]
-for s in range(1, Nsp):
-    a = Sphere(pos=(Pos[s][0], Pos[s][1], 0), r=Radius[s], c="blue", res=6).phong()
-    Spheres.append(a)
-plt += Spheres
-
+plt = Plotter(size=(screen_w, screen_h), interactive=0)
 plt += Grid(s=[screen_w,screen_w])
-
-plt.show()
+plt.show(zoom='tight')
 
 # Auxiliary variables
 Id = np.identity(Nsp)
 Dij = (Radius + Radius[:, np.newaxis]) ** 2  # Matrix Dij=(Ri+Rj)**2
 
 # The main loop
-for i in progressbar(1000, c="r"):
+for i in progressbar(500, c="r"):
     # Update all positions
     np.add(Pos, Vel * Dt, Pos)  # Fast version of Pos = Pos + Vel*Dt
 
@@ -127,14 +116,13 @@ for i in progressbar(1000, c="r"):
         Vel[s1] += x2 * DV0
         Vel[s2] -= x1 * DV0
 
-    # Update the location of the spheres
-    for s in range(Nsp):
-        Spheres[s].pos([Pos[s][0], Pos[s][1], 0])
-
-    if not int(i) % 10:  # every ten steps:
+    spheres = Points(Pos).c("blue4").point_size(20)
+    if not int(i) % 20:  # every 20 steps:
         rsp = [Pos[0][0], Pos[0][1], 0]
-        rsv = [Vel[0][0], Vel[0][1], 0]
-        plt += Point(rsp, c="r", r=5, alpha=0.1)  # leave a point trace
-        plt.render()  # render scene
+        trace = Points(rsp).c("red").point_size(4)
+        plt.add(trace)   # leave a point trace
+
+    spheres.name = "particles"
+    plt.remove("particles").add(spheres).render()
 
 plt.interactive().close()

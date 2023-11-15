@@ -1,10 +1,16 @@
-"""Slice/probe a Volume with a Mesh"""
+"""Probe a Volume with a Mesh"""
 from vedo import *
 
-vol = Volume(dataurl+'embryo.slc').mode(1).c('bone')
-msh = Paraboloid(res=200).scale(200).pos(100,100,200)
+# Load a Volume
+vol = Volume(dataurl + 'embryo.slc')
+vol.cmap('bone').mode(1)
 
-scals = probe_points(vol, msh).pointdata[0]
-msh.cmap('Spectral', scals).add_scalarbar()
+# Create a Mesh (can be any mesh)
+msh = Paraboloid(res=200).scale(200).pos([100,100,200])
 
-show(vol, msh, __doc__, axes=True).close()
+# Probe the Volume with the Mesh
+# and colorize it with the probed values
+msh.probe(vol)
+msh.cmap('Spectral').add_scalarbar().print()
+
+show(vol, msh, __doc__, axes=1).close()

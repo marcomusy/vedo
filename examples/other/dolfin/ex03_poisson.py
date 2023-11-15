@@ -34,7 +34,7 @@ from vedo.dolfin import plot
 from vedo.pyplot import histogram
 from vedo import Latex
 
-l = Latex(f, s=0.2, c='w').shift(.6,.6,.1)
+l = Latex(f, s=0.2, c='k3').shift([.3,.6,.1])
 
 plot(u, l, cmap='jet', scalarbar='h', text=__doc__).clear()
 

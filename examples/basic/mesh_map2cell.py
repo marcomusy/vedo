@@ -8,7 +8,7 @@ mesh1 = Mesh(dataurl+'icosahedron.vtk').linewidth(0.1).flat()
 
 # let the scalar be the z coordinate of the mesh vertices
 msg1 = Text2D("Scalars originally defined on points..", pos="bottom-center")
-mesh1.pointdata["myzscalars"] = mesh1.points()[:, 2]
+mesh1.pointdata["myzscalars"] = mesh1.vertices[:, 2]
 
 mesh1.cmap("jet", "myzscalars", on="points")
 

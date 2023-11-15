@@ -42,7 +42,7 @@ class MainWindow(Qt.QMainWindow):
 
     @Qt.pyqtSlot()
     def onClick(self):
-        self.plt.actors[0].color("red5").rotate_z(40)
+        self.plt.objects[0].color("red5").rotate_z(40)
         self.plt.render()
 
     def onClose(self):

@@ -5,19 +5,20 @@ n = 15  # number of points
 l =  3  # length of one segment
 
 def func(evt):
-    if not evt.actor:
+    if not evt.object:
         return
-    coords = line.points()
+    coords = line.vertices
     coords[0] = evt.picked3d
     for i in range(1, n):
         v = versor(coords[i] - coords[i-1])
         coords[i] = coords[i-1] + v * l
-    line.points(coords)  # update positions
-    nodes.points(coords)
+    line.vertices = coords  # update positions
+    nodes.vertices = coords
     plt.render()
 
 surf = Plane(s=[60, 60])
 line = Line([l*n/2, 0], [-l*n/2, 0], res=n, lw=12)
+line.render_lines_as_tubes()
 nodes= line.clone().c('red3').point_size(15)
 
 plt = Plotter()

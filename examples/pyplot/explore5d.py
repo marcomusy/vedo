@@ -40,18 +40,19 @@ h4 = histogram(g4, xtitle=n4, c=4)
 pts = np.c_[g4,g2,g3] # form an array of 3d points from the columns
 
 pts_1 = pts[g0>0]                   # select only points that have g0>0
-p1 = Points(pts_1, r=4, c='red5')   # create the vedo object
+p1 = Points(pts_1).ps(4).c('red5')  # create the vedo object (ps=point size)
 print("after selection nr. of points is", len(pts_1))
 
 pts_2 = pts[(g0<0) & (g1>.5)]       # select excluded points that have g1>0.5
-p2 = Points(pts_2, r=8, c='green')  # create the vedo object
+p2 = Points(pts_2).ps(8).c('green') # create the vedo object
 
 axes = Axes(p1+p2, xtitle='gene4', ytitle='gene2', ztitle='gene3', c='k')
 
 # Show the two clouds superposed on a new plotter window:
 show([h0, h1, h2, h3, h4, (p1,p2, axes, __doc__)],
       shape="1/5", # 1 spaces above and 5 below
-      sharecam=0, axes=0, zoom=1.4, interactive=True).close()
+      sharecam=0, axes=0, zoom=1.4, interactive=True,
+).close()
 
 
 

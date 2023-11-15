@@ -1,10 +1,10 @@
-"""Normal jpg/png pictures can be loaded,
+"""Normal jpg/png image formats can be loaded,
 cropped, rotated and positioned in 3D."""
-from vedo import Plotter, Picture, dataurl
+from vedo import Plotter, Image, dataurl
 
 plt = Plotter(axes=7)
 
-pic = Picture(dataurl+"images/dog.jpg")
+pic = Image(dataurl+"images/dog.jpg")
 
 for i in range(5):
     p = pic.clone()

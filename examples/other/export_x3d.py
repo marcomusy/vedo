@@ -5,7 +5,7 @@ from vedo import dataurl, Plotter, Volume, Text3D
 plt = Plotter(size=(800,600), bg='GhostWhite')
 
 embryo = Volume(dataurl+'embryo.tif').isosurface().decimate(0.5)
-coords = embryo.points()
+coords = embryo.vertices
 embryo.cmap('PRGn', coords[:,1]) # add dummy colors along y
 
 txt = Text3D(__doc__, font='Bongas', s=350, c='red2', depth=0.05)

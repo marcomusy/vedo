@@ -21,14 +21,14 @@ with pygmsh.occ.Geometry() as geom:
 
 lines, triangles, tetras, vertices = msh.cells
 
-msh = TetMesh([msh.points, tetras.data]).tomesh()
+vmsh = TetMesh([msh.points, tetras.data]).tomesh()
 
 plt = Plotter(axes=1, interactive=False)
 plt.show(
-    msh,
+    vmsh,
     "Drag the sphere,\nright-click&drag to zoom",
 )
-cutter = SphereCutter(msh)
+cutter = SphereCutter(vmsh)
 plt.add(cutter)
 plt.interactive()
 plt.close()

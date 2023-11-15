@@ -13,7 +13,7 @@ l2 = l1.clone().rotate_z(180).shift(1,0,0)
 
 # Calculate a scalar value for each line segment as 
 # the distance between the corresponding points on the two lines
-dist = mag(l1.points()-l2.points())
+dist = mag(l1.vertices - l2.vertices)
 
 # Color the lines based on the scalar value using the 'Accent' colormap,
 #  and add a scalar bar to the plot
@@ -21,9 +21,9 @@ lines = Lines(l1, l2).lw(8).cmap('Accent', dist, on='cells').add_scalarbar('leng
 
 # Define a callback function to print the length of the clicked line segment
 def clickfunc(evt):
-    if evt.actor:
+    if evt.object:
         # Get the ID of the closest point on the clicked line segment
-        idl = evt.actor.closest_point(evt.picked3d, return_cell_id=True)
+        idl = evt.object.closest_point(evt.picked3d, return_cell_id=True)
         # Print the length of the line segment with 3 decimal places
         print('clicked line', idl, 'length =', precision(dist[idl],3))
 

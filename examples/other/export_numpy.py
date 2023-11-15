@@ -11,7 +11,7 @@ printc("Window exported to numpy file: scene.npz", c='g')
 plt.close()
 
 ################################################
-plt = load('scene.npz')
+plt = import_window('scene.npz')
 
 plt += Text2D("Imported scene", c='k', bg='b')
 

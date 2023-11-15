@@ -18,6 +18,7 @@ histo = histogram(
 histo += Marker('*', s=0.2, c='r').pos(xm, ym, 0.2)
 
 # Add also the original points
-histo += Points([x,y], r=2).z(0.1)
+pts = np.array([x,y]).T
+histo += Points(pts, r=2).z(0.1)
 
 histo.show(zoom='tight', bg='light yellow').close()

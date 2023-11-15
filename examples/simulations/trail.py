@@ -5,7 +5,7 @@ from vedo import Plotter, sin, Sphere, Point
 s = Sphere().c("green").bc("tomato")
 s.cut_with_plane([-0.8, 0, 0])  # cut left part of sphere
 
-p = Point([-2,0,0], r=12, c="black")
+p = Point([-2,0,0]).ps(12).color("black")
 
 # add a trail to point p with 50 segments
 p.add_trail(lw=3, n=50)

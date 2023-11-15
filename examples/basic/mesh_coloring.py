@@ -15,7 +15,7 @@ plt.at(0).show(man1, __doc__, elevation=-60)
 
 ##################################### Point coloring
 man2 = Mesh(dataurl+"man_low.vtk")
-scals = man2.points()[:, 0] + 37           # pick x coordinates of vertices
+scals = man2.vertices[:, 0] + 37           # pick x coordinates of vertices
 
 man2.cmap("hot", scals)
 man2.add_scalarbar(horizontal=True)
@@ -24,12 +24,13 @@ plt.at(1).show(man2, "mesh.cmap()")
 
 ##################################### Cell coloring
 man3 = Mesh(dataurl+"man_low.vtk")
-scals = man3.cell_centers()[:, 2] + 37     # pick z coordinates of cells
+scals = man3.cell_centers[:, 2] + 37     # pick z coordinates of cells
 man3.cmap("afmhot", scals, on='cells')
 
 # add a fancier 3D scalar bar embedded in the scene
-man3.add_scalarbar3d(size=[None,3])
-man3.scalarbar.rotate_x(90).y(0.2)
-plt.at(2).show(man3, "mesh.cmap(on='cells')")
+man3.add_scalarbar3d(size=[0.2,3])
+man3.scalarbar.scale(1.1).rotate_x(90).shift([0,2,0])
 
-plt.interactive().close()
+plt.at(2).show(man3, "mesh.cmap(on='cells')")
+plt.interactive()
+plt.close()

@@ -37,8 +37,7 @@ for i in idx:
          show_errors=False,
     )
     rh.scale(0.15)            # scale histogram to make it small
-    rh.pos(hyp.points()[i])   # set its position on the surface
-    rh.orientation(hyp.normal_at(i)) # orient it along normal
+    rh.pos(hyp.vertices[i])   # set its position on the surface
     radhistos.append(rh)
 
 show(hyp, radhistos, at=1).interactive().close()

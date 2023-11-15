@@ -5,12 +5,7 @@ import sys
 import time
 
 import numpy as np
-
-try:
-    import vedo.vtkclasses as vtk
-except ImportError:
-    import vtkmodules.all as vtk
-
+import vedo.vtkclasses as vtk
 import vedo
 
 __docformat__ = "google"
@@ -33,7 +28,6 @@ __all__ = [
 
 
 try:
-    # import matplotlib.cm as _cm_mpl
     import matplotlib
     _has_matplotlib = True
     cmaps = {}
@@ -579,6 +573,18 @@ cmaps_names = (
 # default color palettes when using an index
 palettes = (
     (
+       [1.        , 0.75686275, 0.02745098], # yellow5
+       [0.99215686, 0.49411765, 0.07843137], # orange5
+       [0.8627451 , 0.20784314, 0.27058824], # red5
+       [0.83921569, 0.2       , 0.51764706], # pink5
+       [0.1254902 , 0.78823529, 0.59215686], # teal5
+       [0.15686275, 0.65490196, 0.27058824], # green5
+       [0.09019608, 0.63529412, 0.72156863], # cyan5
+       [0.05098039, 0.43137255, 0.99215686], # blue5
+       [0.4       , 0.0627451 , 0.94901961], # indigo5
+       [0.67843137, 0.70980392, 0.74117647], # gray5
+    ),
+    (
         (1.0, 0.832, 0.000),  # gold
         (0.960, 0.509, 0.188),
         (0.901, 0.098, 0.194),
@@ -790,7 +796,7 @@ def get_color(rgb=None, hsv=None):
             return tuple(rgbh)
 
         else:  # vtk name color
-            namedColors = vtk.vtkNamedColors()
+            namedColors = vtk.new("NamedColors")
             rgba = [0, 0, 0, 0]
             namedColors.GetColor(c, rgba)
             return (rgba[0] / 255.0, rgba[1] / 255.0, rgba[2] / 255.0)
@@ -817,7 +823,7 @@ def get_color_name(c):
 
 def hsv2rgb(hsv):
     """Convert HSV to RGB color."""
-    ma = vtk.vtkMath()
+    ma = vtk.new("Math")
     rgb = [0, 0, 0]
     ma.HSVToRGB(hsv, rgb)
     return rgb
@@ -825,7 +831,7 @@ def hsv2rgb(hsv):
 
 def rgb2hsv(rgb):
     """Convert RGB to HSV color."""
-    ma = vtk.vtkMath()
+    ma = vtk.new("Math")
     hsv = [0, 0, 0]
     ma.RGBToHSV(get_color(rgb), hsv)
     return hsv
@@ -902,7 +908,6 @@ def color_map(value, name="jet", vmin=None, vmax=None):
     if _has_matplotlib:
         # matplotlib is available, use it! ###########################
         if isinstance(name, str):
-            # mp = _cm_mpl.get_cmap(name=name)
             mp = matplotlib.colormaps[name]
         else:
             mp = name  # assume matplotlib.colors.LinearSegmentedColormap
@@ -1014,7 +1019,7 @@ def build_lut(
 
             ![](https://vedo.embl.es/images/basic/mesh_lut.png)
     """
-    ctf = vtk.vtkColorTransferFunction()
+    ctf = vtk.new("ColorTransferFunction")
     ctf.SetColorSpaceToRGB()
     ctf.SetScaleToLinear()
     alpha_x, alpha_vals = [], []
@@ -1029,7 +1034,7 @@ def build_lut(
         alpha_x.append(scalar)
         alpha_vals.append(alf)
 
-    lut = vtk.vtkLookupTable()
+    lut = vtk.new("LookupTable")
     lut.SetNumberOfTableValues(256)
 
     x0, x1 = ctf.GetRange()  # range of the introduced values
@@ -1084,8 +1089,10 @@ def printc(
     dim=False,
     invert=False,
     box="",
+    link="",
     end="\n",
     flush=True,
+    return_string=False,
 ):
     """
     Print to terminal in color (any color!).
@@ -1111,8 +1118,13 @@ def printc(
             invert background and forward colors [False]
         box : (bool)
             print a box with specified text character ['']
+        link : (str)
+            print a clickable url link (works on Linux)
+            (must press Ctrl+click to open the link)
         flush : (bool)
             flush buffer after printing [True]
+        return_string : (bool)
+            return the string without printing it [False]
         end : (str)
             the end character to be printed [newline]
 
@@ -1227,9 +1239,20 @@ def printc(
         else:
 
             out = special + cseq + txt + reset
-            sys.stdout.write(out + end)
 
-    except:  # ------------------------------------------------------------- fallback
+            if link:
+                # embed a link in the terminal
+                out = f"\x1b]8;;{link}\x1b\\{out}\x1b]8;;\x1b\\"
+
+            if return_string:
+                return out + end
+            else:
+                sys.stdout.write(out + end)
+
+    except:  # --------------------------------------------------- fallback
+
+        if return_string:
+            return ''.join(strings)
 
         try:
             print(*strings, end=end)

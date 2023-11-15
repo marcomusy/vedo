@@ -1,11 +1,10 @@
-"""Cut UGrid with plane"""
-from vedo import *
+"""Cut an UnstructuredGrid with a plane"""
+from vedo import UnstructuredGrid, dataurl, show
 
-ug = UGrid(dataurl+'ugrid.vtk')
+ug = UnstructuredGrid(dataurl+'ugrid.vtk').cmap("jet")
+ug = ug.cut_with_plane(origin=(5,0,1), normal=(1,1,5))
+show(repr(ug), ug, axes=1, viewup='z').close()
 
-ug.c('g',0.2).lc('r').lw(2)
-ug.cut_with_plane(origin=(5,0,1), normal=(1,1,5))
-
-msh = ug.tomesh(shrink=0.8) # return a polygonal Mesh
-
-show([(ug, __doc__), msh], N=2, axes=1, viewup='z').close()
+# Create a polygonal Mesh from the UGrid and shrink it
+msh = ug.shrink(0.9).tomesh().c('gold',0.2)
+show(repr(msh), msh, axes=1, viewup='z').close()

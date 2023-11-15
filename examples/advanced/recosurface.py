@@ -1,5 +1,4 @@
-"""
-Reconstruct a polygonal surface
+"""Reconstruct a polygonal surface
 from a point cloud:
 
  1. An object is loaded and

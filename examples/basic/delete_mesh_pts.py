@@ -7,7 +7,7 @@ settings.use_depth_peeling = True
 
 # Load the apple mesh from a url, set the colors and line width
 msh = Mesh(dataurl+'apple.ply')
-msh.c('lightgreen').bc('tomato').lw(0.1)
+msh.c('lightgreen').bc('tomato').lw(1)
 
 # Set a point and a radius to find the closest points in the mesh to it
 pt = [1, 0.5, 1]

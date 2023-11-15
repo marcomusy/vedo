@@ -8,7 +8,8 @@ fpath = download(dataurl + 'office.binary.vtk')
 sgrid = loadStructuredGrid(fpath)
 
 # Create a grid of points and use those as integration seeds
-seeds = Grid(res=[2,3], c="gray").rotate_y(90).pos(2,2,1)
+seeds = Grid(res=[2,3]).rotate_y(90).pos(2,2,1)
+seeds.color("gray")
 
 # Now we will generate multiple streamlines in the data
 slines = StreamLines(
@@ -19,6 +20,6 @@ slines = StreamLines(
     tubes=dict(radius=0.005, mode=2, ratio=1),
 )
 slines.cmap("Reds").add_scalarbar3d(c='white')
-slines.scalarbar.x(5) # reposition scalarbar at x=5
+slines.scalarbar.shift([1,0,0])  # move scalarbar to the right
 
 show(slines, seeds, furniture(), __doc__, axes=1, bg='bb').close()

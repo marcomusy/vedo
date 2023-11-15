@@ -1,11 +1,13 @@
-from vedo import dataurl, Picture 
+from vedo import dataurl, Image 
 from vedo.applications import SplinePlotter  # ready to use class!
 
-pic = Picture(dataurl + "images/embryo.jpg")
+pic = Image(dataurl + "images/embryo.jpg")
 
 plt = SplinePlotter(pic)
 plt.show(mode="image", zoom='tightest')
-print("Npts =", len(plt.cpoints), "NSpline =", plt.line.npoints)
+
+if plt.line:
+    print("Npts =", len(plt.cpoints), "NSpline =", plt.line.npoints)
 
 
 #####################################################################
@@ -21,7 +23,7 @@ print("Npts =", len(plt.cpoints), "NSpline =", plt.line.npoints)
 #         self.spline = None
 
 #     def on_left_click(self, evt):
-#         if not evt.actor:
+#         if not evt.object:
 #             return
 #         p = evt.picked3d + [0, 0, 1]
 #         self.cpoints.append(p)
@@ -29,7 +31,7 @@ print("Npts =", len(plt.cpoints), "NSpline =", plt.line.npoints)
 #         printc("Added point:", precision(p[:2], 4), c="g")
 
 #     def on_right_click(self, evt):
-#         if evt.actor and len(self.cpoints) > 0:
+#         if evt.object and len(self.cpoints) > 0:
 #             self.cpoints.pop()  # pop removes the last point
 #             self.update()
 #             printc("Deleted last point", c="r")

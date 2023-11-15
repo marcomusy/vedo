@@ -23,7 +23,7 @@ fig = histogram(
 )
 
 # Extract the 11th bin and color it purple
-fig.unpack(10).c('purple4')
+fig[10].c('purple4')
 fig.add_label("special bin", marker='s', mc='purple4')
 
 # Add a second histogram to be superimposed

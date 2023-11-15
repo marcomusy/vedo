@@ -2,8 +2,8 @@
 with Procrustes method"""
 from vedo import *
 
-# Load splines from a file (returns a list of vedo.Lines)
-splines = load(dataurl+'splines.npy')
+# Load splines from a file (returns a group of vedo.Lines, like a list)
+splines = Assembly(dataurl+'splines.npy')
 
 # Perform Procrustes alignment on the splines, allowing for non-rigid transformations
 procus = procrustes_alignment(splines, rigid=False)
@@ -13,11 +13,12 @@ alignedsplines = procus.unpack()
 
 # Obtain the mean spline and create a Line object with thicker width and blue color
 mean = procus.info['mean']
-lmean = Line(mean, lw=4, c='b').z(0.001) # z-shift it to make it visible
+lmean = Line(mean).z(0.001) # z-shift it to make it visible
+lmean.linewidth(4).c('blue')
 
 # Color the aligned splines based on their distance from the mean spline
 for l in alignedsplines:
-    darr = mag(l.points()-mean)  # distance array
+    darr = mag(l.vertices - mean)  # distance array
     l.cmap('hot_r', darr, vmin=0, vmax=0.007)
 
 # Add the mean spline and script description to the list of aligned splines

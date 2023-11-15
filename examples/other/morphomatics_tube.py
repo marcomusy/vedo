@@ -17,9 +17,9 @@ rads= [0.4*(np.cos(6*ir/len(ln2)))**2+0.1 for ir in range(len(ln2))]
 vmesh1 = vedo.Tube(ln1, r=0.08).triangulate().clean()
 vmesh2 = vedo.Tube(ln2, r=rads).triangulate().clean()
 
-verts1 = vmesh1.points()
-verts2 = vmesh2.points()
-faces  = np.array(vmesh1.faces())
+verts1 = vmesh1.vertices
+verts2 = vmesh2.vertices
+faces  = np.array(vmesh1.cells)
 
 # construct model
 SSM = StatisticalShapeModel(lambda ref: FundamentalCoords(ref))

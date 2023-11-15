@@ -6,9 +6,9 @@ volumes = load(volumes)
 cmaps = ['hot_r', 'gist_ncar_r', 'bone_r']
 
 ########################################################################
-def initfunc(iren, data):
+def initfunc(iren, vol):
 
-    vol = data.mode(1).c('k').alpha([0, 0, 0.15, 0, 0])
+    vol.mode(1).cmap('k').alpha([0, 0, 0.15, 0, 0])
     txt = Text2D(data.filename[-20:], font='Calco')
     plt.at(iren).show(vol, vol.box(), txt)
 

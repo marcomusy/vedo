@@ -8,7 +8,7 @@ txt += "Chinese\n這是一個藍錐\n"
 txt += "Russian\nЭто синий конус\n"
 txt += "English\nThis is a blue cone"
 
-cone.caption(txt, size=(0.4,0.3), font="LogoType", c='lb')
+capt = cone.caption(txt, size=(0.4,0.3), font="LogoType", c='lb')
 
 axes = Axes(
     cone,
@@ -20,5 +20,4 @@ axes = Axes(
     c='white',
 )
 
-show(cone, axes, __doc__, viewup='z', bg='k', bg2='bb').close()
-
+show(cone, capt, axes, __doc__, viewup='z', bg='k', bg2='bb').close()

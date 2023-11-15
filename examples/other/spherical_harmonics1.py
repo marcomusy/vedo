@@ -1,13 +1,13 @@
 """Expand and reconstruct any surface
 (here a simple box) into spherical harmonics"""
-# Expand an arbitrary closed shape in spherical harmonics
-# using SHTOOLS (https://shtools.oca.eu/shtools/)
+# Expand an arbitrary closed shape into spherical harmonics
+# using SHTOOLS (https://shtools.github.io/SHTOOLS)
 # and then truncate the expansion to a specific lmax and
-# reconstruct the projected points in red
+# reconstruct the projected points on a finer grid.
+import pyshtools
 import numpy as np
 from scipy.interpolate import griddata
-import pyshtools
-from vedo import spher2cart, mag, Box, Point, Points, show
+from vedo import spher2cart, mag, Box, Point, Points, Plotter
 
 ###########################################################################
 lmax = 8              # maximum degree of the spherical harm. expansion
@@ -17,7 +17,8 @@ x0 = [250, 250, 250]  # set SPH sphere at this position
 ###########################################################################
 
 x0 = np.array(x0)
-surface = Box(pos=x0+[10,20,30], size=(300,150,100)).color('grey').alpha(0.2)
+surface = Box(pos=x0+[10,20,30], size=(300,150,100))
+surface.color('grey').alpha(0.2)
 
 ############################################################
 # cast rays from the sphere center and find intersections
@@ -38,8 +39,8 @@ for th in np.linspace(0, np.pi, N, endpoint=True):
     agrid.append(longs)
 agrid = np.array(agrid)
 
-hits = Points(pts).cmap('jet', agrid.ravel()).add_scalarbar3d('scalar distance to x_0')
-show([surface, hits, Point(x0), __doc__], at=0, N=2, axes=1)
+hits = Points(pts)
+hits.cmap('jet', agrid.ravel()).add_scalarbar3d('scalar distance to x_0')
 
 #############################################################
 grid = pyshtools.SHGrid.from_array(agrid)
@@ -71,9 +72,12 @@ for i, long in enumerate(np.linspace(0, 360, num=grid_reco_finer.shape[1], endpo
         p = spher2cart(grid_reco_finer[j][i], th, ph)
         pts2.append(p+x0)
 
-show(f'Spherical harmonics expansion of order {lmax}',
-     Points(pts2, c="r", alpha=0.5),
-     surface,
-     at=1,
-).interactive().close()
+plt = Plotter(N=2, axes=1)
+plt.at(0).show(surface, hits, Point(x0), __doc__)
+plt.at(1).show(
+    f'Spherical harmonics expansion of order {lmax}',
+    Points(pts2).c("red5").alpha(0.5),
+    surface,
+)
+plt.interactive().close()
 

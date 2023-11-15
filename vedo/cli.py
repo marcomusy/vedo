@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Command Line Interface module
 -----------------------------
@@ -27,26 +25,18 @@ import os
 import sys
 import numpy as np
 
-try:
-    import vedo.vtkclasses as vtk
-except ImportError:
-    import vtkmodules.all as vtk
-
-import vedo
 from vedo.utils import humansort
-from vedo.utils import is_sequence
-from vedo.utils import print_info
-from vedo import __version__
-from vedo import file_io
-from vedo import load
-from vedo import settings
 from vedo.colors import get_color, printc
 from vedo.mesh import Mesh
-from vedo.picture import Picture
+from vedo.image import Image
 from vedo.plotter import Plotter
 from vedo.tetmesh import TetMesh
-from vedo.ugrid import UGrid
+from vedo.tetmesh import UnstructuredGrid
 from vedo.volume import Volume
+
+import vedo
+from vedo import __version__
+from vedo import file_io, load, settings
 from vedo import applications
 
 __all__ = []
@@ -87,7 +77,7 @@ def execute_cli():
     elif len(args.files) == 0:
         system_info()
         printc(
-            ":idea: No input files. Try:\n> vedo https://vedo.embl.es/examples/data/panther.stl.gz",
+            ":idea: No input files? Try:\n vedo https://vedo.embl.es/examples/data/panther.stl.gz",
             c="y",
         )
 
@@ -144,31 +134,16 @@ def get_parser():
 
 #################################################################################################
 def system_info():
-    for i in range(2, len(sys.argv)):
-        file = sys.argv[i]
-        try:
-            A = load(file)
-            if isinstance(A, np.ndarray):
-                print_info(A)
-            elif is_sequence(A):
-                for a in A:
-                    print_info(a)
-            else:
-                print_info(A)
-        except:
-            vedo.logger.error(f"Could not load {file}, skip.")
+    from vtkmodules.all import vtkVersion
 
-    printc("_" * 65, bold=0)
-    printc("vedo version      :", __version__, invert=1, end="   ")
-    printc("https://vedo.embl.es", underline=1, italic=1)
-    printc("vtk version       :", vtk.vtkVersion().GetVTKVersion())
+    printc(f"vedo version      : {__version__}  (https://vedo.embl.es) ".ljust(65), invert=1)
+    printc("vtk version       :", vtkVersion().GetVTKVersion())
     printc("numpy version     :", np.__version__)
     printc("python version    :", sys.version.replace("\n", ""))
     printc("python interpreter:", sys.executable)
-    printc("vedo installation :", vedo.installdir)
+    printc("installation point:", vedo.installdir[:70])
     try:
         import platform
-
         printc(
             "system            :",
             platform.system(),
@@ -180,19 +155,7 @@ def system_info():
         pass
 
     try:
-        from screeninfo import get_monitors
-
-        for m in get_monitors():
-            pr = "         "
-            if m.is_primary:
-                pr = "(primary)"
-            printc(f"monitor {pr} : {m.name}, resolution=({m.width}, {m.height}), x={m.x}, y={m.y}")
-    except ModuleNotFoundError:
-        printc('monitor           : info is unavailable. Try "pip install screeninfo".')
-
-    try:
         import k3d
-
         printc("k3d version       :", k3d.__version__, bold=0, dim=1)
     except ModuleNotFoundError:
         pass
@@ -222,37 +185,42 @@ def exe_run(args):
     matching = list(sorted(matching))
     nmat = len(matching)
     if nmat == 0:
-        printc(f":sad: No matching example found containing string: {args.run}", c=1)
-        printc(" Current installation directory is:", vedo.installdir, c=1)
-        sys.exit(1)
+        printc(f":sad: No matching example with name: {args.run}", c="y")
+        # Nothing found, try to search for a script content:
+        args.search = args.run
+        args.run = ""
+        exe_search(args)
+        return
 
     if nmat > 1:
-        printc(f"\n:target: Found {nmat} matching scripts:", c="y", italic=1)
+        printc(f":target: Found {nmat} scripts containing string '{args.run}':", c="c")
         args.full_screen = True  # to print out the one line description
 
     if args.full_screen:  # -f option not to dump the full code but just the first line
-        for mat in matching[:25]:
-            printc(os.path.basename(mat).replace(".py", ""), c="y", italic=1, end=" ")
+        for mat in matching[:30]:
+            printc(os.path.basename(mat).replace(".py", ""), c="c", end=" ")
             with open(mat, "r", encoding="UTF-8") as fm:
                 lline = "".join(fm.readlines(60))
-                lline = lline.replace("\n", " ").replace("'", "").replace('"', "").replace("-", "")
-                line = lline[:56]  # cut
-                if line.startswith("from"):
-                    line = ""
-                if line.startswith("import"):
-                    line = ""
-                if len(lline) > len(line):
+                maxidx1 = lline.find("import ")
+                maxidx2 = lline.find("from vedo")
+                maxid = min(maxidx1, maxidx2)
+                lline = lline[:maxid] # cut where the code starts
+                lline = lline.replace("\n", " ").replace("'", "").replace('"', "")
+                lline = lline.replace("#", "").replace("-", "").replace("  ", " ")
+                line = lline[:68]  # cut long lines
+                if len(lline) > len(line)+1:
                     line += ".."
                 if len(line) > 5:
-                    printc("-", line, c="y", bold=0, italic=1)
+                    printc("-", line, c="c", bold=0, italic=1, dim=1)
                 else:
                     print()
 
-    if nmat > 25:
-        printc("...", c="y")
+    if nmat > 30:
+        printc(f"... (and {nmat-30} more)", c="c")
 
     if nmat > 1:
-        sys.exit(0)
+        printc(":idea: Type 'vedo -r <name>' to run one of them", bold=0, c="c")
+        return
 
     if not args.full_screen:  # -f option not to dump the full code
         with open(matching[0], "r", encoding="UTF-8") as fm:
@@ -275,7 +243,7 @@ def exe_run(args):
 ################################################################################################
 def exe_convert(args):
 
-    allowedexts = [
+    allowed_exts = [
         "vtk",
         "vtp",
         "vtu",
@@ -299,8 +267,8 @@ def exe_convert(args):
 
     target_ext = args.to.lower()
 
-    if target_ext not in allowedexts:
-        printc(f":sad: Sorry target cannot be {target_ext}\nMust be {allowedexts}", c=1)
+    if target_ext not in allowed_exts:
+        printc(f":sad: Sorry target cannot be {target_ext}\nMust be {allowed_exts}", c='r')
         sys.exit()
 
     for f in args.convert:
@@ -358,7 +326,7 @@ def exe_search(args):
                             pattern, "\x1b[4m\x1b[1m" + pattern + "\x1b[0m\u001b[33m"
                         )
                         print(f"\u001b[33m{i}\t{line}\x1b[0m", end="")
-                        # printc(i, line, c='o', bold=False, end='')
+                        # printc(i, line, c='y', bold=False, end='')
     else:
         printc("Please use at least 4 letters in keyword search!", c="r")
 
@@ -524,6 +492,9 @@ def exe_search_vtk(args):
 #################################################################################################################
 def exe_eog(args):
     # print("EOG emulator")
+    if settings.dry_run_mode >= 2:
+        print(f"EOG emulator in dry run mode {settings.dry_run_mode}. Skip.")
+        return
     settings.immediate_rendering = False
     settings.use_parallel_projection = True
     settings.enable_default_mouse_callbacks = False
@@ -576,7 +547,7 @@ def exe_eog(args):
                 ahl = plt.hover_legends[-1]
                 plt.remove(ahl)
                 plt.screenshot()  # writer
-                printc(":camera: Picture saved as screenshot.png")
+                printc(":camera: Image saved as screenshot.png")
                 plt.add(ahl)
                 return
             elif event.keypress == "h":
@@ -601,7 +572,7 @@ def exe_eog(args):
     for f in files:
         if os.path.isfile(f):
             try:
-                pic = Picture(f)
+                pic = Image(f)
                 if pic:
                     pics.append(pic)
             except:
@@ -657,6 +628,9 @@ def exe_eog(args):
 
 #################################################################################################################
 def draw_scene(args):
+    if settings.dry_run_mode >= 2:
+        print(f"draw_scene called in dry run mode {settings.dry_run_mode}. Skip.")
+        return
 
     nfiles = len(args.files)
     if nfiles == 0:
@@ -694,8 +668,8 @@ def draw_scene(args):
         if nfiles < 201:
             N = nfiles
         if nfiles > 200:
-            printc(":lightning: Warning: option '-n' allows a maximum of 200 files", c=1)
-            printc("         you are trying to load ", nfiles, " files.\n", c=1)
+            printc(":lightning: Warning: option '-n' allows a maximum of 200 files", c="y")
+            printc("         you are trying to load ", nfiles, " files.\n", c="y")
             N = 200
         if N > 4:
             settings.use_depth_peeling = False
@@ -715,10 +689,6 @@ def draw_scene(args):
         plt.axes = args.axes_type
         plt.add_hover_legend()
 
-    wire = False
-    if args.wireframe:
-        wire = True
-
     ##########################################################
     # special case of SLC/TIFF volumes with -g option
     if args.ray_cast_mode:
@@ -733,7 +703,6 @@ def draw_scene(args):
         sp = vol.spacing()
         vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
         vol.mode(int(args.mode)).color(args.cmap).jittering(True)
-        vol.lighting(args.lighting)
         plt = applications.RayCastPlotter(vol)
         plt.show(viewup="z", interactive=True).close()
         return
@@ -762,12 +731,18 @@ def draw_scene(args):
             bg="white",
             bg2="lb",
             use_slider3d=useSlider3D,
-            cmaps=[args.cmap, "Spectral_r", "hot_r", "bone_r", "gist_ncar_r"],
-            alpha=args.alpha,
             axes=args.axes_type,
             clamp=True,
-            size=(1000, 800),
+            size=(1350, 1000),
         )
+        plt += vedo.Text2D(
+            args.files[0],
+            pos="top-left",
+            font="VictorMono",
+            s=1,
+            c="k",
+        )
+        plt.show()
         return
 
     ########################################################################
@@ -799,10 +774,8 @@ def draw_scene(args):
         vol.cmap("bone_r")
         sp = vol.spacing()
         vol.spacing([sp[0] * args.x_spacing, sp[1] * args.y_spacing, sp[2] * args.z_spacing])
-        vedo.plotter_instance = None  # reset
-
-        plt = applications.Slicer2DPlotter(vol, axes=7)
-        plt.close()
+        vedo.plotter_instance = applications.Slicer2DPlotter(vol)
+        vedo.plotter_instance.show().close()
         return
 
     ########################################################################
@@ -841,18 +814,14 @@ def draw_scene(args):
 
         ##########################################################
         # loading a full scene
-        if ".npy" in args.files[0] or ".npz" in args.files[0] and nfiles == 1:
-
-            objct = file_io.load(args.files[0], force=args.reload)
-            if isinstance(objct, Plotter):  # loading a full scene
-                objct.show(mode=interactor_mode)
-            else:  # loading a set of meshes
-                plt.show(objct, mode=interactor_mode)
+        if ".npy" in args.files[0] or ".npz" in args.files[0]:
+            plt = file_io.import_window(args.files[0])
+            plt.show(mode=interactor_mode).close()
             return
         #########################################################
 
         ds = 0
-        actors = []
+        objs = []
 
         for i in range(N):
             f = args.files[i]
@@ -861,53 +830,56 @@ def draw_scene(args):
             if args.color is None and N > 1:
                 colb = i
 
-            actor = load(f, force=args.reload)
+            obj = load(f, force=args.reload)
 
-            if isinstance(actor, (TetMesh, UGrid)):
-                actor = actor.tomesh().shrink(0.975).c(colb).alpha(args.alpha)
+            if isinstance(obj, (TetMesh, UnstructuredGrid)):
+                #obj = obj#.shrink(0.95)
+                obj.c(colb).alpha(args.alpha)
 
-            elif isinstance(actor, vedo.Points):
-                actor.c(colb).alpha(args.alpha)
+            elif isinstance(obj, vedo.Points):
+                obj.c(colb).alpha(args.alpha)
 
                 try:
-                    actor.wireframe(wire)
+                    obj.wireframe(args.wireframe)
                     if args.flat:
-                        actor.flat()
+                        obj.flat()
                     else:
-                        actor.phong()
+                        obj.phong()
                 except AttributeError:
                     pass
 
-                actor.lighting(args.lighting)
+                obj.lighting(args.lighting)
 
                 if i == 0 and args.texture_file:
-                    actor.texture(args.texture_file)
+                    obj.texture(args.texture_file)
 
                 if args.point_size > 0:
-                    actor.ps(args.point_size)
+                    obj.ps(args.point_size)
 
                 if args.cmap != "jet":
-                    actor.cmap(args.cmap)
+                    obj.cmap(args.cmap)
 
                 if args.showedges:
                     try:
-                        actor.GetProperty().SetEdgeVisibility(1)
-                        actor.GetProperty().SetLineWidth(0.1)
-                        actor.GetProperty().SetRepresentationToSurface()
+                        obj.GetProperty().SetEdgeVisibility(1)
+                        obj.GetProperty().SetLineWidth(0.1)
+                        obj.GetProperty().SetRepresentationToSurface()
                     except AttributeError:
                         pass
 
-            actors.append(actor)
+            objs.append(obj)
 
             if args.multirenderer_mode:
                 try:
-                    ds = actor.diagonal_size() * 3
+                    ds = obj.diagonal_size() * 3
                     plt.camera.SetClippingRange(0, ds)
-                    plt.show(actor, at=i, interactive=False,
+                    plt.reset_camera()
+                    # plt.render()
+                    plt.show(obj, at=i, interactive=False,
                              zoom=args.zoom, mode=interactor_mode)
-                    plt.actors = actors
+                    
                 except AttributeError:
-                    # wildcards in quotes make glob return actor as a list :(
+                    # wildcards in quotes make glob return obj as a list :(
                     vedo.logger.error("Please do not use wildcards within single or double quotes")
 
         if args.multirenderer_mode:
@@ -918,10 +890,10 @@ def draw_scene(args):
         else:
 
             # scene is empty
-            if all(a is None for a in actors):
+            if all(a is None for a in objs):
                 vedo.logger.error("Could not load file(s). Quit.")
                 return
-            plt.show(actors, interactive=True, zoom=args.zoom, mode=interactor_mode)
+            plt.show(objs, interactive=True, zoom=args.zoom, mode=interactor_mode)
         return
 
     ########################################################################
@@ -934,7 +906,7 @@ def draw_scene(args):
         acts = load(args.files, force=args.reload)
         plt += acts
         for a in acts:
-            if hasattr(a, "c"):  # Picture doesnt have it
+            if hasattr(a, "c"):  # Image doesnt have it
                 a.c(args.color)
 
             if args.point_size > 0:

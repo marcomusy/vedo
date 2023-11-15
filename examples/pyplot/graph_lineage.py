@@ -22,7 +22,7 @@ g.add_child(7); g.add_child(7); g.add_child(7)
 
 g.build() # optimize layout
 
-g.unpack(0).color('dg').lw(3) #0=graph, 1=vertexLabels, 2=edge_labels, 3=arrows
-g.unpack(2).color('dr')
+g[0].color('dg').lw(3) #0=graph, 1=vertexLabels, 2=edge_labels, 3=arrows
+g[2].color('dr')
 
 show(g, __doc__, axes=9, elevation=-40).close()

@@ -26,7 +26,7 @@ elements = [lens1, lens2, lens3, lens4, lens5, mirror, screen]
 
 # Generate photons and trace them through the optical elements
 lines = []
-source = Grid(res=[20,20]).points() # a numpy array
+source = Grid(res=[20,20]).vertices # a numpy array
 for pt in source:
     λ = np.random.uniform(low=450, high=750)*1e-09  # nanometers
     ray = Ray(pt, direction=(0,0,1), wave_length=λ)
@@ -36,7 +36,7 @@ lines = list(filter(None, lines)) # remove possible None to add a scalar bar to 
 lines[0].add_scalarbar("Ampl.")
 
 # Grab the coords of photons exiting the conic lens3 (hits_type==-1)
-cone_hits = Points(lens3.hits[lens3.hits_type==-1], r=8, c="green1")
+cone_hits = Points(lens3.hits[lens3.hits_type==-1]).color("green1").point_size(8)
 
 # Show everything
 show(__doc__, elements, lines, lens5.boundaries().lw(2), cone_hits,

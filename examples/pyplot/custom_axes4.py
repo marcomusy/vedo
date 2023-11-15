@@ -19,7 +19,7 @@ axes3 = Axes(s3, c='b', number_of_divisions=10)
 # axes3 is an Assembly (group of Meshes).
 # Unpack it and scale the 7th label getting it by its name,
 # make it 5 times bigger big and fuchsia:
-axes3.unpack('xNumericLabel7').scale(5).c('fuchsia')
+axes3['xNumericLabel7'].scale(5).c('fuchsia')
 # Print all element names in axes3:
 #for m in axes3.get_meshes(): print(m.name)
 

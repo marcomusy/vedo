@@ -20,7 +20,7 @@ vol.pointdata.select("SLCImage")  # select the first data array as the active on
 
 # Build the isosurface of the active scalars,
 # but use testscals1 to colorize this isosurface, and then smooth it
-iso1 = vol.isosurface().cmap('jet', 'myscalars1').smooth().lw(0.1)
+iso1 = vol.isosurface().cmap('jet', 'myscalars1').smooth().lw(1)
 iso1.add_scalarbar3d('myscalars1')
 
 iso2 = vol.isosurface().cmap('viridis', 'myscalars2')

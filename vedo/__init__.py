@@ -22,22 +22,23 @@ from vtkmodules.vtkCommonCore import vtkVersion
 from vedo.version import _version as __version__
 
 from vedo.settings import Settings
-settings = Settings(level=0)
+settings = Settings()
 
 from vedo.colors import *
+from vedo.transformations import *
 from vedo.utils import *
-from vedo.base import *
+from vedo.core import *
 from vedo.shapes import *
 from vedo.file_io import *
-from vedo.ugrid import *
 from vedo.assembly import *
 from vedo.pointcloud import *
 from vedo.mesh import *
-from vedo.picture import *
+from vedo.image import *
 from vedo.volume import *
 from vedo.tetmesh import *
 from vedo.addons import *
 from vedo.plotter import *
+from vedo.visual import *
 
 from vedo import applications
 from vedo import interactor_modes
@@ -120,13 +121,4 @@ _chsh.setLevel(logging.DEBUG)
 _chsh.setFormatter(_LoggingCustomFormatter())
 logger.addHandler(_chsh)
 logger.setLevel(logging.INFO)
-
-################################################# silence annoying messages
-# import warnings
-# warnings.simplefilter(action="ignore", category=FutureWarning)
-# try:
-#     np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
-# except AttributeError:
-#     pass
-
 

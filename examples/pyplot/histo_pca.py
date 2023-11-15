@@ -5,7 +5,7 @@ from vedo.pyplot import Figure, histogram
 
 data = np.random.randn(1000, 3)
 
-pts = Points(data, r=6, c='#1f77b4')
+pts = Points(data).color('#1f77b4').ps(6)
 pts.scale([2,1,0.01]).rotate_z(45).shift(5,1)  # rotate and shift!
 
 # Recover the rotation pretending we only know the points
@@ -20,7 +20,7 @@ angle = np.arctan2(e1[1], e1[0]) * 180/np.pi
 mypts = pts.clone()  # rotate back to make the histo:
 mypts.shift(-ec).rotate_z(-angle)
 histo = histogram(         # a Histogram1D(Figure) object
-    mypts.points()[:,1],   # grab the y-values (PCA2)
+    mypts.vertices[:,1],   # grab the y-values (PCA2)
     ytitle='', title=' ',  # no automatic title, no y-axis
     c='#1f77b4',           # color
     aspect=16/9,           # aspect ratio

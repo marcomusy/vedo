@@ -20,4 +20,4 @@ histo+= Arrow2D([200,1], [200,0]).z(1).c("red5")
 continents = sphere.threshold("Distance", above=20.0)
 continents.cmap("gist_earth").linewidth(1)
 
-show(oceans, continents, histo.as2d(), __doc__)
+show(oceans, continents, histo.clone2d(), __doc__)

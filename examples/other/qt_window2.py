@@ -1,7 +1,7 @@
 import sys
 from PyQt5 import Qt
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
-from vedo import Plotter, Picture, Text2D, printc
+from vedo import Plotter, Image, Text2D, printc
 
 class MainWindow(Qt.QMainWindow):
 
@@ -15,7 +15,7 @@ class MainWindow(Qt.QMainWindow):
         # Create vedo renderer and add objects and callbacks
         self.plt = Plotter(qt_widget=self.vtkWidget)
         self.cbid = self.plt.add_callback("key press", self.onKeypress)
-        self.imgActor = Picture("https://icatcare.org/app/uploads/2018/07/Helping-your-new-cat-or-kitten-settle-in-1.png")
+        self.imgActor = Image("https://icatcare.org/app/uploads/2018/07/Helping-your-new-cat-or-kitten-settle-in-1.png")
         self.text2d = Text2D("Use slider to change contrast")
 
         self.slider = Qt.QSlider(1)

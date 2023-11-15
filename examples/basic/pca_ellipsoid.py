@@ -9,19 +9,17 @@ settings.use_depth_peeling = True
 
 pts = Points(np.random.randn(10000, 3)*[3,2,1] + [50,60,70])
 
-elli = pca_ellipsoid(pts, pvalue=0.50)
-
-elli.inside_points(pts, return_ids=True)
+elli = pca_ellipsoid(pts, pvalue=0.50) # 50% of points inside
 
 ids  = elli.inside_points(pts, return_ids=True)
 pts.print()  # a new "IsInside" array now exists in pts
-pin = pts.points()[ids]
+pin = pts.vertices[ids]
 print("inside  points #", len(pin))
 
 # Create an inverted mask instead of calling insidePoints(invert=True)
 mask = np.ones(pts.npoints, dtype=bool)
 mask[ids] = False
-pout = pts.points()[mask]
+pout = pts.vertices[mask]
 print("outside  points #", len(pout))
 
 # Extra info can be retrieved with:
@@ -37,8 +35,8 @@ a1 = Arrow(elli.center, elli.center + elli.axis1)
 a2 = Arrow(elli.center, elli.center + elli.axis2)
 a3 = Arrow(elli.center, elli.center + elli.axis3)
 
-show(elli,
-     a1, a2, a3,
+show(
+     elli, a1, a2, a3,
      Points(pin).c("green4"),
      Points(pout).c("red5").alpha(0.2),
      __doc__,

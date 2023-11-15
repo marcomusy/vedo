@@ -26,15 +26,15 @@ cm = gpos + 0.5 * Ls * gaxis  # center of mass of shaft
 plt = Plotter()
 plt += __doc__
 
-shaft = Cylinder([[0, 0, 0], Ls * gaxis], r=0.03, c="dg")
-rotor = Cylinder([(Ls - 0.55) * gaxis, (Ls - 0.45) * gaxis], r=R, c="t")
-bar   = Cylinder([Ls*gaxis/2-R*vector(0,1,0), Ls*gaxis/2+R*vector(0,1,0)], r=R/6, c="r")
+shaft = Cylinder([[0, 0, 0], Ls * gaxis], r=0.03).c("dark green")
+rotor = Cylinder([(Ls - 0.55) * gaxis, (Ls - 0.45) * gaxis], r=R).c("tomato")
+bar   = Cylinder([Ls*gaxis/2-R*vector(0,1,0), Ls*gaxis/2+R*vector(0,1,0)], r=R/6).c("red5")
 gyro = shaft + rotor + bar  # group meshes into a single one of type Assembly
 
-spring = Spring(top, gpos, r1=0.06, thickness=0.01, c="gray")
+spring = Spring(top, gpos, r1=0.06, thickness=0.01).c("gray")
 plt += [gyro, spring]       # add it to Plotter.
-plt += Box(top, length=0.2, width=0.02, height=0.2, c="gray")
-plt += Box(pos=(0, 0.5, 0), length=2.6, width=3, height=2.6, c="gray", alpha=0.2).wireframe()
+plt += Box(top, length=0.2, width=0.02, height=0.2).c("gray")
+plt += Box(pos=(0, 0.5, 0), length=2.6, width=3, height=2.6).wireframe().c("gray",0.2)
 
 # ############################################################ the physics
 def loop_func(event):
@@ -48,8 +48,9 @@ def loop_func(event):
     gpos = cm - 1/2 * Ls * versor(Lrot)
 
     # set orientation along gaxis and rotate it around its axis by omega*t degrees
-    gyro.orientation(Lrot, rotation=omega*t, rad=True).pos(gpos)
-    spring.stretch(top, gpos)
+    gyro.reorient([0,0,1], Lrot, rotation=omega*t, rad=True).pos(gpos)
+    spring = Spring(top, gpos, r1=0.06, thickness=0.01).c("gray")
+    plt.remove("Spring").add(spring)
     plt.render()
 
 t = 0

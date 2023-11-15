@@ -1,22 +1,25 @@
-# Credits:
-# https://github.com/akaszynski/pyacvd
-# Needs PyACVD:
-# pip install pyacvd
-#
-from vedo import *
+"""Remesh a surface mesh using the ACVD algorithm."""
+# Needs PyACVD: pip install pyacvd
+# See: https://github.com/akaszynski/pyacvd
+from vedo import Sphere, Mesh, show
+from vedo.pyplot import histogram
 from pyvista import wrap
 from pyacvd import Clustering
 
-mesh = Sphere(res=50).subdivide().lw(0.2).cut_with_plane().clean()
+msh1 = Sphere(res=50).cut_with_plane()
+msh1.compute_quality().cmap('RdYlGn', on='cells', vmin=0, vmax=70).linewidth(1)
 
-clus = Clustering(wrap(mesh.polydata()))
+clus = Clustering(wrap(msh1.dataset))
 clus.cluster(1000, maxiter=100, iso_try=10, debug=False)
+pvremsh1 = clus.create_mesh()
 
-pvremesh = clus.create_mesh()
+msh2 = Mesh(pvremsh1).shift([1,0,0])
+msh2.compute_quality().cmap('RdYlGn', on='cells', vmin=0, vmax=70).linewidth(1)
 
-remesh = Mesh(pvremesh).compute_normals()
-remesh.color('o6').backcolor('v').lw(0.2).shift(1,0,0)
+his1 = histogram(msh1.celldata["Quality"], xlim=(0,70), aspect=2, c='RdYlGn')
+his2 = histogram(msh2.celldata["Quality"], xlim=(0,70), aspect=2, c='RdYlGn')
+his1 = his1.clone2d('bottom-left', scale=0.75)
+his2 = his2.clone2d('bottom-right',scale=0.75)
 
-show(mesh, remesh)
-
-#remesh.write('sphere.vtk')
+show(msh1, msh2, his1, his2, __doc__, viewup='z', bg='k5', bg2='wheat')
+#remsh1.write('sphere.vtk')

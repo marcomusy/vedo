@@ -16,7 +16,7 @@ for i in range(4):
         x, y, z = [i+j%2/2, j/1.155, val+0.01]
         zbar= Polygon([x,y,0], nsides=6, r=0.55, c=col).extrude(val)
         line= Polygon([x,y,z], nsides=6, r=0.55, c='k').wireframe().lw(2)
-        txt = Text3D(f"{i}/{j}", [x,y,z], s=.15, c='k', justify='center')
+        txt = Text3D(f"{i}/{j}", [x,y,z],s=0.15, c='k', justify='center')
         items += [zbar, line, txt]
         k += 1
 

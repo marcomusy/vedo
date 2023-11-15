@@ -1,9 +1,8 @@
 """Draw streamlines for the cavity case from OpenFOAM tutorial"""
 from vedo import *
 
-# Load file as type vtkUnStructuredGrid
-fpath = download(dataurl+"cavity.vtk")
-ugrid = loadUnStructuredGrid(fpath)
+# Load an UnStructuredGrid
+ugrid = UnstructuredGrid(dataurl+"cavity.vtk")
 
 # Make a grid of points to probe as type Mesh
 probe = Grid(s=[0.1,0.01], res=[20,4], c='k')
@@ -19,7 +18,7 @@ stream = StreamLines(
 
 # Make a cloud of points form the ugrid, in order to draw arrows
 domain = Points(ugrid)
-coords = domain.points()
+coords = domain.vertices
 vects  = domain.pointdata['U']/200
 arrows = Arrows(coords-vects, coords+vects, c='jet_r') # use colormap
 box    = domain.box().c('k')  # build a box frame of the domain
