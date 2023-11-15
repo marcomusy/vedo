@@ -3528,8 +3528,9 @@ class Points(BaseActor, vtk.vtkActor):
         Arguments:
             f : (float)
                 smoothing factor - typical range is [0,2].
-            radius : (float)
-                radius search in absolute units. If set then `f` is ignored.
+            radius : (float | array)
+                radius search in absolute units. Can be single value (float) or sequence
+                for adaptive smoothing. If set then `f` is ignored.
 
         Examples:
             - [moving_least_squares2D.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/moving_least_squares2D.py)
@@ -3540,7 +3541,7 @@ class Points(BaseActor, vtk.vtkActor):
         coords = self.points()
         ncoords = len(coords)
 
-        if radius:
+        if radius is not None:
             Ncp = 1
         else:
             Ncp = int(ncoords * f / 100)
@@ -3552,10 +3553,15 @@ class Points(BaseActor, vtk.vtkActor):
         pb = None
         if ncoords > 10000:
             pb = utils.ProgressBar(0, ncoords)
-        for p in coords:
+        for i, p in enumerate(coords):
             if pb:
                 pb.print("smoothMLS2D working ...")
-            pts = self.closest_point(p, n=Ncp, radius=radius)
+            
+            # if a radius was provided for each point
+            if utils.is_sequence(radius):
+                pts = self.closest_point(p, n=Ncp, radius=radius[i])
+            else:
+                pts = self.closest_point(p, n=Ncp, radius=radius)
             if len(pts) > 3:
                 ptsmean = pts.mean(axis=0)  # plane center
                 _, dd, vv = np.linalg.svd(pts - ptsmean)
@@ -3564,12 +3570,12 @@ class Points(BaseActor, vtk.vtkActor):
                 newp = p + cv * t
                 newpts.append(newp)
                 variances.append(dd[2])
-                if radius:
+                if radius is not None:
                     valid.append(True)
             else:
                 newpts.append(p)
                 variances.append(0)
-                if radius:
+                if radius is not None:
                     valid.append(False)
 
         self.info["variances"] = np.array(variances)
