@@ -1622,7 +1622,7 @@ class Mesh(MeshVisual, Points):
         msh.name = "IsoLines"
         return msh
 
-    def extrude(self, zshift=1, rotation=0, dr=0, cap=True, res=1):
+    def extrude(self, zshift=1, direction=(), rotation=0, dr=0, cap=True, res=1):
         """
         Sweep a polygonal data creating a "skirt" from free edges and lines, and lines from vertices.
         The input dataset is swept around the z-axis to create new polygonal primitives.
@@ -1641,6 +1641,22 @@ class Mesh(MeshVisual, Points):
         This filter can be used to model axisymmetric objects like cylinders, bottles, and wine glasses;
         or translational/rotational symmetric objects like springs or corkscrews.
 
+        Arguments:
+            zshift : (float)
+                shift along z axis.
+            direction : (list)
+                extrusion direction in the xy plane. 
+                note that zshift is forced to be the 3rd component of direction,
+                which is therefore ignored.
+            rotation : (float)
+                set the angle of rotation.
+            dr : (float)
+                set the radius variation in absolute units.
+            cap : (bool)
+                enable or disable capping.
+            res : (int)
+                set the resolution of the generating geometry.
+
         Warning:
             Some polygonal objects have no free edges (e.g., sphere). When swept, this will result
             in two separate surfaces if capping is on, or no surface if capping is off.
@@ -1650,21 +1666,6 @@ class Mesh(MeshVisual, Points):
 
             ![](https://vedo.embl.es/images/basic/extrude.png)
         """
-        if is_sequence(zshift):
-            # ms = [] # todo
-            # poly0 = self.clone().dataset
-            # for i in range(len(zshift)-1):
-            #     rf = vtk.new("RotationalExtrusionFilter")
-            #     rf.SetInputData(poly0)
-            #     rf.SetResolution(res)
-            #     rf.SetCapping(0)
-            #     rf.SetAngle(rotation)
-            #     rf.SetTranslation(zshift)
-            #     rf.SetDeltaRadius(dR)
-            #     rf.Update()
-            #     poly1 = rf.GetOutput()
-            raise NotImplementedError("todo")
-
         rf = vtk.new("RotationalExtrusionFilter")
         # rf = vtk.new("LinearExtrusionFilter")
         rf.SetInputData(self.dataset)  # must not be transformed
@@ -1676,10 +1677,23 @@ class Mesh(MeshVisual, Points):
         rf.Update()
 
         m = Mesh(rf.GetOutput())
-        m.copy_properties_from(self)
-        m.compute_normals(cells=False).flat().lighting("default")
+        if len(direction) > 1:
+            p = self.pos()
+            LT = vedo.LinearTransform()
+            LT.translate(-p)
+            LT.concatenate([
+                [1, 0, direction[0]],
+                [0, 1, direction[1]],
+                [0, 0, 1]
+            ])
+            LT.translate(p)
+            m.apply_transform(LT)
+
+        m.copy_properties_from(self).flat().lighting("default")
+        # m.compute_normals(cells=False)
         m.pipeline = OperationNode(
-            "extrude", parents=[self], comment=f"#pts {m.dataset.GetNumberOfPoints()}"
+            "extrude", parents=[self], 
+            comment=f"#pts {m.dataset.GetNumberOfPoints()}"
         )
         m.name = "ExtrudedMesh"
         return m

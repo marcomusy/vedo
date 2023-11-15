@@ -240,6 +240,7 @@ class LinearTransform:
     def concatenate(self, T, pre_multiply=False):
         """
         Post-multiply (by default) 2 transfomations.
+        T can also be a 4x4 matrix or 3x3 matrix.
         
         Example:
             ```python
@@ -264,6 +265,16 @@ class LinearTransform:
             print(B*A)
             ```
         """
+        if _is_sequence(T):
+            S = vtk.vtkTransform()
+            M = vtk.vtkMatrix4x4()
+            n = len(T)
+            for i in range(n):
+                for j in range(n):
+                    M.SetElement(i, j, T[i][j])
+            S.SetMatrix(M)
+            T = S
+
         if pre_multiply:
             self.T.PreMultiply()
         try:
