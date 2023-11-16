@@ -13,12 +13,13 @@ from vedo.transformations import LinearTransform, NonLinearTransform
 __docformat__ = "google"
 
 __doc__ = """
-Base classes providing functionality to all vedo objects.
+Base classes providing functionality to different vedo objects.
 
-![](https://media.gcflearnfree.org/content/5be1de13686707122ccd266f_11_06_2018/algorithms_illustration.jpg)
+![](https://vedo.embl.es/images/feats/algorithms_illustration.png)
 """
 
 __all__ = [
+    "DataArrayHelper",
     "CommonAlgorithms",
     "PointAlgorithms",
     "VolumeAlgorithms",
@@ -454,20 +455,18 @@ class CommonAlgorithms:
         return int(self.dataset.GetAddressAsString("")[5:], 16)
 
     def memory_size(self):
-        """
-        Return the size in bytes of the object in memory.
-        """
+        """Return the size in bytes of the object in memory."""
         return self.dataset.GetActualMemorySize()
 
     def modified(self):
-        """Use in conjunction with `tonumpy()` to update any modifications to the image array"""
+        """Use in conjunction with `tonumpy()` to update any modifications to the image array."""
         self.dataset.GetPointData().Modified()
         self.dataset.GetPointData().GetScalars().Modified()
         return self
 
-    def box(self, scale=1, padding=0, fill=False):
+    def box(self, scale=1, padding=0):
         """
-        Return the bounding box as a new `Mesh`.
+        Return the bounding box as a new `Mesh` object.
 
         Arguments:
             scale : (float)
@@ -498,7 +497,6 @@ class CommonAlgorithms:
             bx.properties = pr
         except (AttributeError, TypeError):
             pass
-        bx.wireframe(not fill)
         bx.flat().lighting("off")
         return bx
 
@@ -511,16 +509,16 @@ class CommonAlgorithms:
             pts = self.vertices
             xmin, ymin, zmin = np.min(pts, axis=0)
             xmax, ymax, zmax = np.max(pts, axis=0)
-            return (xmin, xmax, ymin, ymax, zmin, zmax)
+            return np.array([xmin, xmax, ymin, ymax, zmin, zmax])
         except (AttributeError, ValueError):
-            return self.dataset.GetBounds()
+            return np.array(self.dataset.GetBounds())
 
     def xbounds(self, i=None):
         """Get the bounds `[xmin,xmax]`. Can specify upper or lower with i (0,1)."""
         b = self.bounds()
         if i is not None:
             return b[i]
-        return (b[0], b[1])
+        return np.array([b[0], b[1]])
 
     def ybounds(self, i=None):
         """Get the bounds `[ymin,ymax]`. Can specify upper or lower with i (0,1)."""
@@ -529,7 +527,7 @@ class CommonAlgorithms:
             return b[2]
         if i == 1:
             return b[3]
-        return (b[2], b[3])
+        return np.array([b[2], b[3]])
 
     def zbounds(self, i=None):
         """Get the bounds `[zmin,zmax]`. Can specify upper or lower with i (0,1)."""
@@ -538,16 +536,16 @@ class CommonAlgorithms:
             return b[4]
         if i == 1:
             return b[5]
-        return (b[4], b[5])
+        return np.array([b[4], b[5]])
 
     def diagonal_size(self):
-        """Get the length of the diagonal of mesh bounding box."""
+        """Get the length of the diagonal of the bounding box."""
         b = self.bounds()
-        return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
+        return np.sqrt((b[1] - b[0])**2 + (b[3] - b[2])**2 + (b[5] - b[4])**2)
 
     def average_size(self):
         """
-        Calculate the average size of a mesh.
+        Calculate and return the average size of the object.
         This is the mean of the vertex distances from the center of mass.
         """
         coords = self.vertices
@@ -558,7 +556,7 @@ class CommonAlgorithms:
         return np.mean(np.linalg.norm(cc, axis=1))
 
     def center_of_mass(self):
-        """Get the center of mass of mesh."""
+        """Get the center of mass of the object."""
         cmf = vtk.new("CenterOfMass")
         cmf.SetInputData(self.dataset)
         cmf.Update()
@@ -599,11 +597,7 @@ class CommonAlgorithms:
         return self.dataset.GetNumberOfCells()
 
     def points(self, pts=None):
-        """
-        Obsolete, use `self.vertices` instead.
-
-        Set/Get the vertex coordinates of a mesh or point cloud.
-        """
+        """Obsolete, use `self.vertices` or `self.coordinates` instead."""
         if pts is None:  ### getter
 
             if warnings["points_getter"]:
@@ -688,8 +682,8 @@ class CommonAlgorithms:
 
     def mark_boundaries(self):
         """
-        Mark cells and vertices of the mesh if they lie on a boundary.
-        A new array called `BoundaryCells` is added to the mesh.
+        Mark cells and vertices if they lie on a boundary.
+        A new array called `BoundaryCells` is added to the object.
         """
         mb = vtk.new("MarkBoundaryFilter")
         mb.SetInputData(self.dataset)
@@ -1101,7 +1095,11 @@ class CommonAlgorithms:
         return self
 
     def add_ids(self):
-        """Generate point and cell ids arrays."""
+        """
+        Generate point and cell ids arrays.
+        
+        Two new arrays are added to the mesh: `PointID` and `CellID`.
+        """
         ids = vtk.new("IdFilter")
         ids.SetInputData(self.dataset)
         ids.PointIdsOn()
@@ -1277,8 +1275,8 @@ class CommonAlgorithms:
         probe_filter.SetSourceData(source.dataset)
         probe_filter.SetInputData(self.dataset)
         probe_filter.Update()
-        self.pipeline = utils.OperationNode("probe", parents=[self, source])
         self._update(probe_filter.GetOutput(), reset_locators=False)
+        self.pipeline = utils.OperationNode("probe", parents=[self, source])
         self.pointdata.rename("vtkValidPointMask", "ValidPointMask")
         return self
 
@@ -1312,7 +1310,12 @@ class CommonAlgorithms:
         return out
 
     def tomesh(self, bounds=()):
-        """Extract boundary geometry from dataset (or convert data to polygonal type)."""
+        """
+        Extract boundary geometry from dataset (or convert data to polygonal type).
+        
+        Two new arrays are added to the mesh: `OriginalCellIds` and `OriginalPointIds`
+        to keep track of the original mesh elements.
+        """
         geo = vtk.new("GeometryFilter")
         geo.SetInputData(self.dataset)
         geo.SetPassThroughCellIds(1)
@@ -1603,7 +1606,6 @@ class VolumeAlgorithms(CommonAlgorithms):
 
     def __init__(self):
        super().__init__()
-       pass
 
     def bounds(self):
         """
@@ -1611,7 +1613,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         Returns a list in format `[xmin,xmax, ymin,ymax, zmin,zmax]`.
         """
         # OVERRIDE CommonAlgorithms.bounds() which is too slow
-        return self.dataset.GetBounds()
+        return np.array(self.dataset.GetBounds())
 
     def isosurface(self, value=None, flying_edges=True):
         """

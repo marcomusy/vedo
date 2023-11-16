@@ -857,9 +857,9 @@ def color_map(value, name="jet", vmin=None, vmax=None):
     Return the (r,g,b) color, or a list of (r,g,b) colors.
 
     Arguments:
-        value : *(float, list)*
+        value : (float, list)
             scalar value to transform into a color
-        name : *(str, matplotlib.colors.LinearSegmentedColormap)*
+        name : (str, matplotlib.colors.LinearSegmentedColormap)
             color map name
 
     Very frequently used color maps are:
@@ -874,10 +874,10 @@ def color_map(value, name="jet", vmin=None, vmax=None):
 
     Example:
         ```python
+        import matplotlib
         from vedo import color_map
-        import matplotlib.cm as cm
-        print( color_map(0.2, cm.flag, 0, 1) )
-        # (1.0, 0.809016994374948, 0.6173258487801733)
+        rgb = color_map(0.2, matplotlib.colormaps["jet"], 0, 1)
+        print("rgb =", rgb)  # [0.0, 0.3, 1.0]
         ```
 
     Examples:
@@ -1269,7 +1269,7 @@ def printd(*strings, q=False):
     Print debug information about the environment where the printd() is called.
     Local variables are printed out with their current values.
 
-    Use `q` to quit (exit) python session after the printd call.
+    Use `q` to quit (exit) the python session after the printd call.
     """
     from inspect import currentframe, getframeinfo
 

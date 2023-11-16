@@ -1,10 +1,10 @@
 # TEST PIPELINE ################################
-Internal use only
+- Internal use only
 
 
 # INSTALL ######################################
 export VDIR=$HOME/Projects/vedo
-export VLOGFILE=$HOME/Dropbox/vedo_test.txt
+export VLOGFILE=$VDIR/output_vedo_test.txt
 
 cd $VDIR
 pip install -e .
@@ -111,8 +111,23 @@ cd ~/Projects/napari-vedo-bridge
 cd ~/Projects/welleng/examples
     python 
 ################
+cd ~/Projects/brainrender_orig/examples
+    python
+################
 cd ~/Projects/clonal_analysis2d_splines
     python -m analysis_plots
+
+
+# DOCUMETATION #################################
+mount_staging
+cd $VDIR/docs/pdoc
+./build_html.py 
+
+# check web page examples
+cd $VDIR
+code www/examples_db.js
+code www/index.html
+
 
 ################################################################
 # RELEASE
@@ -134,17 +149,6 @@ code docs/changes.md
 code vedo/version.py  # edit to add .dev0
 https://repology.org/project/vedo/badges
 rm $VLOGFILE
-
-
-# DOCUMETATION #################################
-mount_staging
-cd $VDIR/docs/pdoc
-./build_html.py 
-
-# check web page examples
-cd $VDIR
-code www/examples_db.js
-code www/index.html
 
 
 # SITES ########################################

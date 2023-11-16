@@ -9,7 +9,7 @@ import vedo.vtkclasses as vtk
 import vedo
 from vedo import colors
 from vedo import utils
-from vedo.transformations import LinearTransform
+from vedo.transformations import LinearTransform, NonLinearTransform
 from vedo.core import PointAlgorithms
 from vedo.visual import PointsVisual
 
@@ -42,8 +42,8 @@ def merge(*meshs, flag=False):
 
     Similar to Assembly, but in this case the input objects become a single entity.
 
-    To keep track of the original identities of the inputs you can use `flag`.
-    In this case a point array of IDs is added to the output.
+    To keep track of the original identities of the inputs you can set `flag=True`.
+    In this case a `pointdata` array of ids is added to the output with name "OriginalMeshID".
 
     Examples:
         - [warp1.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/warp1.py)
@@ -91,7 +91,7 @@ def merge(*meshs, flag=False):
 
 
 def delaunay2d(plist, **kwargs):
-    """delaunay2d() is deprecated, use Points().generate_delaunay2d() instead"""
+    """delaunay2d() is deprecated, use Points().generate_delaunay2d() instead."""
     if isinstance(plist, Points):
         plist = plist.vertices
     else:
@@ -241,8 +241,8 @@ def fit_plane(points, signed=False):
     Extra info is stored in `Plane.normal`, `Plane.center`, `Plane.variance`.
 
     Arguments:
-    signed : (bool)
-        if True flip sign of the normal based on the ordering of the points
+        signed : (bool)
+            if True flip sign of the normal based on the ordering of the points
 
     Examples:
         - [fitline.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/fitline.py)
@@ -320,7 +320,8 @@ def fit_sphere(coords):
 
 def pca_ellipse(points, pvalue=0.673, res=60):
     """
-    Show the oriented PCA 2D ellipse that contains the fraction `pvalue` of points.
+    Show the oriented PCA (Principal Component Analysis) 2D ellipse
+    that contains the fraction `pvalue` of points.
 
     Parameter `pvalue` sets the specified fraction of points inside the ellipse.
     Normalized directions are stored in `ellipse.axis1`, `ellipse.axis12`
@@ -384,7 +385,8 @@ def pca_ellipse(points, pvalue=0.673, res=60):
 
 def pca_ellipsoid(points, pvalue=0.673):
     """
-    Show the oriented PCA ellipsoid that contains fraction `pvalue` of points.
+    Show the oriented PCA (Principal Component Analysis) ellipsoid
+    that contains fraction `pvalue` of points.
 
     Parameter `pvalue` sets the specified fraction of points inside the ellipsoid.
 
@@ -392,14 +394,10 @@ def pca_ellipsoid(points, pvalue=0.673):
     (asphericity is equal to 0 for a perfect sphere).
 
     Axes sizes can be accessed in `ellips.va`, `ellips.vb`, `ellips.vc`,
-    normalized directions are stored in `ellips.axis1`, `ellips.axis12`
-    and `ellips.axis3`.
-
-    .. warning:: the meaning of `ellips.axis1`, has changed wrt `vedo==2022.1.0`
-        in that it's now the direction wrt the origin (e.i. the center is subtracted)
+    normalized directions are stored in `ellips.axis1`, `ellips.axis12` and `ellips.axis3`.
 
     Examples:
-        - [pca_ellipsoid.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/pca_ellipsoid.py)
+        [pca_ellipsoid.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/pca_ellipsoid.py)
 
             ![](https://vedo.embl.es/images/basic/pca.png)
     """
@@ -458,7 +456,7 @@ def Point(pos=(0, 0, 0), r=12, c="red", alpha=1.0):
     """
     Create a simple point in space.
 
-    .. note:: if you are creating many points you should definitely use class `Points` instead!
+    .. note:: if you are creating many points you should use class `Points` instead!
     """
     try:
         pos = pos.pos()
@@ -804,6 +802,9 @@ class Points(PointsVisual, PointAlgorithms):
 
     ##################################################################################
     def __add__(self, meshs):
+        """
+        Add two meshes or a list of meshes together to form an `Assembly` object.
+        """
         if isinstance(meshs, list):
             alist = [self]
             for l in meshs:
@@ -821,7 +822,6 @@ class Points(PointsVisual, PointAlgorithms):
     def polydata(self, **kwargs):
         """
         Obsolete. Use property `.dataset` instead.
-
         Returns the underlying `vtkPolyData` object.
         """
         colors.printc(
@@ -835,7 +835,8 @@ class Points(PointsVisual, PointAlgorithms):
 
     def clone(self, deep=True):
         """
-        Clone a `PointCloud` or `Mesh` object to make an exact copy of it. Alias of `copy()`.
+        Clone a `PointCloud` or `Mesh` object to make an exact copy of it.
+        Alias of `copy()`.
 
         Arguments:
             deep : (bool)
@@ -871,7 +872,7 @@ class Points(PointsVisual, PointAlgorithms):
     def compute_normals_with_pca(self, n=20, orientation_point=None, invert=False):
         """
         Generate point normals using PCA (principal component analysis).
-        Basically this estimates a local tangent plane around each sample point p
+        This algorithm estimates a local tangent plane around each sample point p
         by considering a small neighborhood of points around p, and fitting a plane
         to the neighborhood (via PCA).
 
@@ -1020,9 +1021,7 @@ class Points(PointsVisual, PointAlgorithms):
         return dists
 
     def clean(self):
-        """
-        Clean pointcloud or mesh by removing coincident points.
-        """
+        """Clean pointcloud or mesh by removing coincident points."""
         cpd = vtk.new("CleanPolyData")
         cpd.PointMergingOn()
         cpd.ConvertLinesToPointsOn()
@@ -1041,7 +1040,7 @@ class Points(PointsVisual, PointAlgorithms):
         Subsample a point cloud by requiring that the points
         or vertices are far apart at least by the specified fraction of the object size.
         If a Mesh is passed the polygonal faces are not removed
-        but holes can appear as vertices are removed.
+        but holes can appear as their vertices are removed.
 
         Examples:
             - [moving_least_squares1D.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/moving_least_squares1D.py)
@@ -1212,10 +1211,10 @@ class Points(PointsVisual, PointAlgorithms):
         Align the current object's bounding box to the bounding box
         of the input object.
 
-        Use `rigid` to disable scaling.
+        Use `rigid=True` to disable scaling.
 
-        Examples:
-            - [align6.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/align6.py)
+        Example:
+            [align6.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/align6.py)
         """
         lmt = vtk.vtkLandmarkTransform()
         ss = vtk.vtkPoints()
@@ -1269,7 +1268,7 @@ class Points(PointsVisual, PointAlgorithms):
         The algorithm finds the best matching of source points to target points
         in the mean least square sense, in one single step.
 
-        If affine is True the x, y and z axes can scale independently but stay collinear.
+        If `affine` is True the x, y and z axes can scale independently but stay collinear.
         With least_squares they can vary orientation.
 
         Examples:
@@ -1342,7 +1341,7 @@ class Points(PointsVisual, PointAlgorithms):
         return self
 
     def normalize(self):
-        """Scale average size to unit."""
+        """Scale average size to unit. The scaling is performed around the center of mass."""
         coords = self.vertices
         if not coords.shape[0]:
             return self
@@ -1385,7 +1384,7 @@ class Points(PointsVisual, PointAlgorithms):
         return self
 
     def flip_normals(self):
-        """Flip all normals."""
+        """Flip all normals orientation."""
         rs = vtk.new("ReverseSense")
         rs.SetInputData(self.dataset)
         rs.ReverseCellsOff()
@@ -1398,14 +1397,14 @@ class Points(PointsVisual, PointAlgorithms):
     def add_gaussian_noise(self, sigma=1.0):
         """
         Add gaussian noise to point positions.
-        An extra array is added named "GaussianNoise" with the shifts.
+        An extra array is added named "GaussianNoise" with the displacements.
 
         Arguments:
             sigma : (float)
                 nr. of standard deviations, expressed in percent of the diagonal size of mesh.
-                Can also be a list [sigma_x, sigma_y, sigma_z].
+                Can also be a list `[sigma_x, sigma_y, sigma_z]`.
 
-        Examples:
+        Example:
             ```python
             from vedo import Sphere
             Sphere().add_gaussian_noise(1.0).point_size(8).show().close()
@@ -1451,6 +1450,7 @@ class Points(PointsVisual, PointAlgorithms):
             The appropriate tree search locator is built on the fly and cached for speed.
 
             If you want to reset it use `mymesh.point_locator=None`
+            and / or `mymesh.cell_locator=None`.
         """
         # NB: every time the mesh moves or is warped the locators are set to None
         if ((n > 1 or radius) or (n == 1 and return_point_id)) and not return_cell_id:
@@ -1671,10 +1671,7 @@ class Points(PointsVisual, PointAlgorithms):
             variances.append(dd[1] + dd[2])
             newline.append(newp)
 
-        vdata = utils.numpy2vtk(np.array(variances))
-        vdata.SetName("Variances")
-        self.dataset.GetPointData().AddArray(vdata)
-        self.dataset.GetPointData().Modified()
+        self.pointdata["Variances"] = np.array(variances).astype(np.float32)
         self.vertices = newline
         self.pipeline = utils.OperationNode("smooth_mls_1d", parents=[self])
         return self
@@ -1753,7 +1750,17 @@ class Points(PointsVisual, PointAlgorithms):
         return self
 
     def smooth_lloyd_2d(self, iterations=2, bounds=None, options="Qbb Qc Qx"):
-        """Lloyd relaxation of a 2D pointcloud."""
+        """
+        Lloyd relaxation of a 2D pointcloud.
+        
+        Arguments:
+            iterations : (int)
+                number of iterations.
+            bounds : (list)
+                bounding box of the domain.
+            options : (str)
+                options for the Qhull algorithm.
+        """
         # Credits: https://hatarilabs.com/ih-en/
         # tutorial-to-create-a-geospatial-voronoi-sh-mesh-with-python-scipy-and-geopandas
         from scipy.spatial import Voronoi as scipy_voronoi
@@ -1901,7 +1908,7 @@ class Points(PointsVisual, PointAlgorithms):
 
     def warp(self, source, target, sigma=1.0, mode="3d"):
         """
-        `Thin Plate Spline` transformations describe a nonlinear warp transform defined by a set
+        "Thin Plate Spline" transformations describe a nonlinear warp transform defined by a set
         of source and target landmarks. Any point on the mesh close to a source landmark will
         be moved to a place close to the corresponding target landmark.
         The points in between are interpolated smoothly using
@@ -1919,52 +1926,37 @@ class Points(PointsVisual, PointAlgorithms):
             - [interpolate_field.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/interpolate_field.py)
             - [warp1.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/warp1.py)
             - [warp2.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/warp2.py)
+            - [warp3.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/warp3.py)
+            - [warp4a.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/warp4a.py)
+            - [warp4b.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/warp4b.py)
+            - [warp6.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/warp6.py)
 
-                ![](https://vedo.embl.es/images/advanced/warp2.png)
+            ![](https://vedo.embl.es/images/advanced/warp2.png)
         """
         parents = [self]
-        if isinstance(source, Points):
-            parents.append(source)
-            source = source.vertices
-        else:
-            source = utils.make3d(source)
 
-        if isinstance(target, Points):
-            parents.append(target)
+        try:
+            source = source.vertices
+            parents.append(source)
+        except AttributeError:
+            source = utils.make3d(source)
+        
+        try:
             target = target.vertices
-        else:
+            parents.append(target)
+        except AttributeError:
             target = utils.make3d(target)
 
         ns = len(source)
-        ptsou = vtk.vtkPoints()
-        ptsou.SetNumberOfPoints(ns)
-        for i in range(ns):
-            ptsou.SetPoint(i, source[i])
-
         nt = len(target)
         if ns != nt:
             vedo.logger.error(f"#source {ns} != {nt} #target points")
             raise RuntimeError()
 
-        pttar = vtk.vtkPoints()
-        pttar.SetNumberOfPoints(nt)
-        for i in range(ns):
-            pttar.SetPoint(i, target[i])
-
-        T = vtk.vtkThinPlateSplineTransform()
-        if mode.lower() == "3d":
-            T.SetBasisToR()
-        elif mode.lower() == "2d":
-            T.SetBasisToR2LogR()
-        else:
-            vedo.logger.error(f"unknown mode {mode}")
-            raise RuntimeError()
-
-        T.SetSigma(sigma)
-        T.SetSourceLandmarks(ptsou)
-        T.SetTargetLandmarks(pttar)
-        self.apply_transform(T)
-        # self.transform = NonLinearTransform(T)
+        NLT = NonLinearTransform()
+        NLT.source_points = source
+        NLT.target_points = target
+        self.apply_transform(NLT)
 
         self.pipeline = utils.OperationNode("warp", parents=parents)
         return self
@@ -2503,7 +2495,7 @@ class Points(PointsVisual, PointAlgorithms):
         cpoly = clipper.GetOutput()
         self._update(clipper.GetOutput())
 
-        self.pipeline = utils.OperationNode("cut_with_scalars", parents=[self])
+        self.pipeline = utils.OperationNode("cut_with_scalar", parents=[self])
         return self
 
     def crop(self, top=None, bottom=None, right=None, left=None, front=None, back=None):
@@ -2579,8 +2571,18 @@ class Points(PointsVisual, PointAlgorithms):
             maxdist=None,
     ):
         """
-        Generate the surface halo which sits at 
-        the specified distance from the input one.
+        Generate the surface halo which sits at the specified distance from the input one.
+        Uses the `vtkImplicitModeller` class.
+
+        Arguments:
+            distance : (float)
+                distance from the input surface
+            res : (int)
+                resolution of the surface
+            bounds : (list)
+                bounding box of the surface
+            maxdist : (float)
+                maximum distance to generate the surface
         """
         if not bounds:
             bounds = self.bounds()
@@ -2949,7 +2951,7 @@ class Points(PointsVisual, PointAlgorithms):
         """
         Calculate the distance from points to the camera.
         
-        A pointdata array is created with name 'DistanceToCamera'.
+        A pointdata array is created with name 'DistanceToCamera' and returned.
         """
         if vedo.plotter_instance.renderer:
             poly = self.dataset
@@ -2958,7 +2960,7 @@ class Points(PointsVisual, PointAlgorithms):
             dc.SetRenderer(vedo.plotter_instance.renderer)
             dc.Update()
             self._update(dc.GetOutput(), reset_locators=False)
-        return self
+        return self.pointdata["DistanceToCamera"]
 
     def density(
         self, dims=(40, 40, 40), bounds=None, radius=None, compute_gradient=False, locator=None
@@ -3258,6 +3260,7 @@ class Points(PointsVisual, PointAlgorithms):
         )
         return vol
 
+    #################################################################################
     def generate_random_data(self):
         """Fill a dataset with random attributes"""
         gen = vtk.new("RandomAttributeGenerator")
@@ -3523,7 +3526,7 @@ class Points(PointsVisual, PointAlgorithms):
             from vedo import Ellipsoid, show
             s = Ellipsoid().rotate_y(30)
 
-            #Camera options: pos, focal_point, viewup, distance,
+            # Camera options: pos, focal_point, viewup, distance
             camopts = dict(pos=(0,0,25), focal_point=(0,0,0))
             show(s, camera=camopts, offscreen=True)
 

@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import time
 import os
-
 import numpy as np
 
 import vedo.vtkclasses as vtk
@@ -35,7 +33,6 @@ __all__ = [
     "Slicer3DTwinPlotter",
     "SplinePlotter",
     "AnimationPlayer",
-    "Clock",
 ]
 
 
@@ -75,6 +72,8 @@ class Slicer3DPlotter(Plotter):
                 make the 3D icon draggable
             at : (int)
                 subwindow number to plot to
+            **kwargs : (dict)
+                keyword arguments to pass to Plotter.
 
         Examples:
             - [slicer1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slicer1.py)
@@ -296,10 +295,20 @@ class Slicer3DPlotter(Plotter):
             )
             bu.pos([0.04, 0.01], "bottom-left")
 
-
+####################################################################################
 class Slicer3DTwinPlotter(Plotter):
     """
     Create a window with two side-by-side 3D slicers for two Volumes.
+
+    Arguments:
+        vol1 : (Volume)
+            the first Volume object to be isosurfaced.
+        vol2 : (Volume)
+            the second Volume object to be isosurfaced.
+        clamp : (bool)
+            clamp scalar range to reduce the effect of tails in color mapping
+        **kwargs : (dict)
+            keyword arguments to pass to Plotter.
 
     Example:
         ```python
@@ -324,7 +333,8 @@ class Slicer3DTwinPlotter(Plotter):
         plt.at(0).reset_camera()
         plt.interactive().close()
         ```
-        ![](https://user-images.githubusercontent.com/32848391/268638466-525114bc-7ce8-480b-9c45-af9ea0d93203.png)
+
+        <img src="https://vedo.embl.es/images/volumetric/slicer3dtwin.png" width="500">
     """
 
     def __init__(self, vol1, vol2, clamp=True, **kwargs):
@@ -448,10 +458,14 @@ class Slicer2DPlotter(Plotter):
         but at the same time can be oriented arbitrarily in space.
 
         Arguments:
+            vol : (Volume)
+                the Volume object to be isosurfaced.
             levels : (list)
                 window and color levels
             histo_color : (color)
                 histogram color, use `None` to disable it
+            **kwargs : (dict)
+                keyword arguments to pass to Plotter.
 
         <img src="https://vedo.embl.es/images/volumetric/read_volume3.jpg" width="500">
         """
@@ -653,6 +667,12 @@ class RayCastPlotter(Plotter):
         """
         Generate a window for Volume rendering using ray casting.
 
+        Arguments:
+            volume : (Volume)
+                the Volume object to be isosurfaced.
+            **kwargs : (dict)
+                keyword arguments to pass to Plotter.
+
         Returns:
             `vedo.Plotter` object.
 
@@ -824,7 +844,6 @@ class IsosurfaceBrowser(Plotter):
     """
     Generate a Volume isosurfacing controlled by a slider.
     """
-
     def __init__(
         self,
         volume,
@@ -835,28 +854,39 @@ class IsosurfaceBrowser(Plotter):
         res=50,
         use_gpu=False,
         precompute=False,
-        progress=False,
         cmap="hot",
         delayed=False,
         sliderpos=4,
-        pos=(0, 0),
-        size="auto",
-        screensize="auto",
-        title="",
-        bg="white",
-        bg2=None,
-        axes=1,
-        interactive=True,
+        **kwargs,
     ):
         """
         Generate a `vedo.Plotter` for Volume isosurfacing using a slider.
 
-        Set `delayed=True` to delay slider update on mouse release.
-
-        Set `res` to set the resolution, e.g. the number of desired isosurfaces to be
-        generated on the fly.
-
-        Set `precompute=True` to precompute the isosurfaces (so slider browsing will be smoother).
+        Arguments:
+            volume : (Volume)
+                the Volume object to be isosurfaced.
+            isovalues : (float, list)
+                isosurface value(s) to be displayed.
+            c : str, (list)
+                color(s) of the isosurface(s).
+            alpha : (float, list)
+                opacity of the isosurface(s).
+            lego : (bool)
+                if True generate a lego plot instead of a surface.
+            res : (int)
+                resolution of the isosurface.
+            use_gpu : (bool)
+                use GPU acceleration.
+            precompute : (bool)
+                precompute the isosurfaces (so slider browsing will be smoother).
+            cmap : (str)
+                color map name to be used.
+            delayed : (bool)
+                delay the slider update on mouse release.
+            sliderpos : (int)
+                position of the slider.
+            **kwargs : (dict)
+                keyword arguments to pass to Plotter.
 
         Examples:
             - [app_isobrowser.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/app_isobrowser.py)
@@ -864,16 +894,7 @@ class IsosurfaceBrowser(Plotter):
                 ![](https://vedo.embl.es/images/advanced/app_isobrowser.gif)
         """
 
-        super().__init__(
-            pos=pos,
-            bg=bg,
-            bg2=bg2,
-            size=size,
-            screensize=screensize,
-            title=title,
-            interactive=interactive,
-            axes=axes,
-        )
+        super().__init__(**kwargs)
 
         ### GPU ################################
         if use_gpu and hasattr(volume.properties, "GetIsoSurfaceValues"):
@@ -927,8 +948,6 @@ class IsosurfaceBrowser(Plotter):
             bacts = {}  # cache the meshes so we dont need to recompute
             if precompute:
                 delayed = False  # no need to delay the slider in this case
-                if progress:
-                    pb = vedo.ProgressBar(0, len(allowed_vals), delay=1)
 
                 for value in allowed_vals:
                     value_name = precision(value, 2)
@@ -939,8 +958,6 @@ class IsosurfaceBrowser(Plotter):
                     else:
                         mesh = volume.isosurface(value).color(c).alpha(alpha)
                     bacts.update({value_name: mesh})  # store it
-                    if progress:
-                        pb.print("isosurfacing volume..")
 
             ### isovalue slider callback
             def slider_isovalue(widget, event):
@@ -1001,9 +1018,8 @@ class IsosurfaceBrowser(Plotter):
 
 ##############################################################################
 class Browser(Plotter):
-    """
-    Browse a series of vedo objects by using a simple slider.
-    """
+    """Browse a series of vedo objects by using a simple slider."""
+
     def __init__(
         self,
         objects=(),
@@ -1011,7 +1027,6 @@ class Browser(Plotter):
         c=None,  # slider color
         slider_title="",
         font="Calco", # slider font
-        axes=1,
         resetcam=False, # resetcam while using the slider
         **kwargs,
     ):
@@ -1019,6 +1034,22 @@ class Browser(Plotter):
         Browse a series of vedo objects by using a simple slider.
 
         The input object can be a list of objects or a list of lists of objects.
+
+        Arguments:
+            objects : (list)
+                list of objects to be browsed.
+            sliderpos : (list)
+                position of the slider.
+            c : (str)
+                color of the slider.
+            slider_title : (str)
+                title of the slider.
+            font : (str)
+                font of the slider.
+            resetcam : (bool)
+                resetcam while using the slider.
+            **kwargs : (dict)
+                keyword arguments to pass to Plotter.
 
         Examples:
             ```python
@@ -1178,6 +1209,8 @@ class FreeHandCutPlotter(Plotter):
                 text color of instructions.
             tol : (int)
                 tolerance of the point proximity.
+            **kwargs : (dict)
+                keyword arguments to pass to Plotter.
 
         Examples:
             - [cut_freehand.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/cut_freehand.py)
@@ -1374,8 +1407,19 @@ class SplinePlotter(Plotter):
         Create an interactive application that allows the user to click points and
         retrieve the coordinates of such points and optionally a spline or line
         (open or closed).
-
         Input object can be a image file name or a 3D mesh.
+
+        Arguments:
+            obj : (Mesh, str)
+                The input object can be a image file name or a 3D mesh.
+            init_points : (list)
+                Set an initial number of points to define a region.
+            closed : (bool)
+                Close the spline or line.
+            splined : (bool)
+                Join points with a spline or a simple line.
+            **kwargs : (dict)
+                keyword arguments to pass to Plotter.
         """
         super().__init__(**kwargs)
 
@@ -1501,7 +1545,7 @@ class Animation(Plotter):
         video_fps : (int)
             desired value of the nr of frames per second
 
-    .. warning:: this is still an experimental feature at the moment.
+    .. warning:: this is still very experimental at the moment.
     """
 
     def __init__(
@@ -1893,8 +1937,6 @@ class AnimationPlayer(vedo.Plotter):
     Useful for inspecting time series.
 
     The user has the responsibility to update all actors in the callback function.
-    Pay attention to that the idx can both increment and decrement,
-    as well as make large jumps.
 
     Arguments:
         func :  (Callable)
@@ -1923,7 +1965,7 @@ class AnimationPlayer(vedo.Plotter):
             keyword arguments to be passed to `Plotter`
 
     Examples:
-        - [aspring2_player.py](https://github.com/marcomusy/vedo/tree/master/examples/simulations/aspring2_player.py)
+        - [aspring2_player.py](https://vedo.embl.es/images/simulations/spring_player.gif)
     """
     # Original class contributed by @mikaeltulldahl (Mikael Tulldahl)
 
@@ -2087,7 +2129,6 @@ class AnimationPlayer(vedo.Plotter):
 
 ########################################################################
 class Clock(vedo.Assembly):
-    """Clock animation."""
 
     def __init__(self, h=None, m=None, s=None, font="Quikhand", title="", c="k"):
         """

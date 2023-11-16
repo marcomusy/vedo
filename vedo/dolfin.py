@@ -550,10 +550,6 @@ def plot(*inputobj, **options):
             actors.append(arrs)
 
     #################################################################
-    if "tensor" in mode:
-        pass  # todo
-
-    #################################################################
     for ob in inputobj:
         inputtype = str(type(ob))
         if "vedo" in inputtype:
@@ -569,13 +565,6 @@ def plot(*inputobj, **options):
             if options["at"] == N - 1:
                 options["interactive"] = True
 
-    # if vedo.plotter_instance:
-    #     for a2 in vedo.collectable_actors:
-    #         if isinstance(a2, vtk.vtkCornerAnnotation):
-    #             if 0 in a2.rendered_at: # remove old message
-    #                 vedo.plotter_instance.remove(a2)
-    #                 break
-
     if len(actors) == 0:
         print('Warning: no objects to show, check mode in plot(mode="...")')
 
@@ -587,10 +576,10 @@ def plot(*inputobj, **options):
 
 ###################################################################################
 class MeshActor(Mesh):
-    """MeshActor for dolfin support."""
+    """Mesh representation for dolfin."""
 
     def __init__(self, *inputobj, **options):
-        """MeshActor, a `vedo.Mesh` derived object for dolfin support."""
+        """A `vedo.Mesh` derived object for dolfin support."""
 
         c = options.pop("c", None)
         alpha = options.pop("alpha", 1)
@@ -616,21 +605,6 @@ class MeshActor(Mesh):
         cells = meshc.cells()
 
         if cells.shape[1] == 4:
-            # something wrong in this as it cannot reproduce the tet cell..
-            # from vedo.tetmesh import _buildtetugrid
-            # cells[:,[2, 0]] = cells[:,[0, 2]]
-            # cells[:,[1, 0]] = cells[:,[0, 1]]
-            # cells[:,[0, 1, 2, 3]] = cells[:,[0, 2, 1, 3]]
-            # cells[:,[0, 1, 2, 3]] = cells[:,[0, 2, 1, 3]]
-            # cells[:,[0, 1, 2, 3]] = cells[:,  [0, 1, 3, 2]]
-            # cells[:,[0, 1, 2, 3]] = cells[:,[1, 0, 2, 3]]
-            # cells[:,[0, 1, 2, 3]] = cells[:,[2, 0, 1, 3]]
-            # cells[:,[0, 1, 2, 3]] = cells[:,[2, 0, 1, 3]]
-            # print(cells[0])
-            # print(coords[cells[0]])
-            # poly = utils.geometry(_buildtetugrid(coords, cells))
-            # poly = utils.geometry(vedo.TetMesh([coords, cells]).dataset)
-
             poly = vtk.vtkPolyData()
 
             source_points = vtk.vtkPoints()
@@ -679,6 +653,7 @@ class MeshActor(Mesh):
             poly = utils.buildPolyData(coords, cells)
 
         super().__init__(poly, c, alpha)
+
         if compute_normals:
             self.compute_normals()
 
@@ -841,18 +816,15 @@ def MeshStreamLines(*inputobj, **options):
     """Build a streamplot."""
     from vedo.shapes import StreamLines
 
-    print("Building streamlines...")
-
-    tol = options.pop("tol", 0.02)
-    lw = options.pop("lw", 2)
-    direction = options.pop("direction", "forward")
+    tol             = options.pop("tol", 0.02)
+    lw              = options.pop("lw", 2)
+    direction       = options.pop("direction", "forward")
     max_propagation = options.pop("max_propagation", None)
-    scalar_range = options.pop("scalar_range", None)
-    probes = options.pop("probes", None)
-
-    tubes = options.pop("tubes", {})  # todo
+    scalar_range    = options.pop("scalar_range", None)
+    probes          = options.pop("probes", None)
+    tubes           = options.pop("tubes", {})  # todo
     maxRadiusFactor = options.pop("maxRadiusFactor", 1)
-    varyRadius = options.pop("varyRadius", 1)
+    varyRadius      = options.pop("varyRadius", 1)
 
     mesh, u = _inputsort(inputobj)
     if not mesh:

@@ -27,7 +27,7 @@ Advanced plotting functionalities.
 
 __all__ = [
     "Figure",
-    "Histogram1D",  # uncomment to generate docs
+    "Histogram1D",
     "Histogram2D",
     "PlotXY",
     "PlotBars",
@@ -81,7 +81,7 @@ class LabelData:
 
     def __init__(self):
         """Helper internal class to hold label information."""
-        self.text = "dataset"
+        self.text   = "dataset"
         self.tcolor = "black"
         self.marker = "s"
         self.mcolor = "black"
@@ -1032,12 +1032,6 @@ class Histogram1D(Figure):
                 if texture:
                     r.texture(texture)
                     c = "w"
-                # if texture: # causes Segmentation fault vtk9.0.3
-                #     if i>0 and rs[i-1].GetTexture(): # reuse the same texture obj
-                #         r.texture(rs[i-1].GetTexture())
-                #     else:
-                #         r.texture(texture)
-                #     c = 'w'
 
                 r.actor.PickableOff()
                 maxheigth = max(maxheigth, p1[1])

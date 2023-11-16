@@ -12,6 +12,8 @@ point clouds based on [VTK](https://www.vtk.org/) and [numpy](http://www.numpy.o
 
 Check out the [GitHub repository here](https://github.com/marcomusy/vedo).
 
+Find at this [link](https://vedo.embl.es/autodocs/v2023.4.7/vedo.html) the documentation for the older version v2023.4.7.
+
 ## Install and Test
 ```bash
 pip install vedo
@@ -37,46 +39,70 @@ vedo https://vedo.embl.es/examples/data/panther.stl.gz
 ![](https://vedo.embl.es/images/feats/vedo_cli_panther.png)
 
 Pressing `h` will then show a number of options to interact with your 3D scene:
-```
-    i     print info about the last clicked object     
-    I     print color of the pixel under the mouse     
-    Y     show the pipeline for this object as a graph 
-    <- -> use arrows to reduce/increase opacity        
-    x     toggle mesh visibility                       
-    w     toggle wireframe/surface style               
-    l     toggle surface edges visibility              
-    p/P   hide surface faces and show only points      
-    1-3   cycle surface color (2=light, 3=dark)        
-    4     cycle color map (press shift-4 to go back)   
-    5-6   cycle point-cell arrays (shift to go back)   
-    7-8   cycle background and gradient color          
-    09+-  cycle axes styles (on keypad, or press +/-)  
-    k     cycle available lighting styles              
-    K     toggle shading as flat or phong              
-    A     toggle anti-aliasing                         
-    D     toggle depth-peeling (for transparencies)    
-    U     toggle perspective/parallel projection       
-    o/O   toggle extra light to scene and rotate it    
-    a     toggle interaction to Actor Mode             
-    n     toggle surface normals                       
-    r     reset camera position                        
-    R     reset camera to the closest orthogonal view  
-    .     fly camera to the last clicked point         
-    C     print current camera settings                
-    X     invoke a cutter widget tool                  
-    S     save a screenshot of the current scene       
-    E/F   export 3D scene to numpy file or X3D         
-    q     return control to python script              
-    Esc   abort execution and exit python kernel       
+```             
+   i     print info about the last clicked object     
+   I     print color of the pixel under the mouse     
+   Y     show the pipeline for this object as a graph 
+   <- -> use arrows to reduce/increase opacity        
+   x     toggle mesh visibility                       
+   w     toggle wireframe/surface style               
+   l     toggle surface edges visibility              
+   p/P   hide surface faces and show only points      
+   1-3   cycle surface color (2=light, 3=dark)        
+   4     cycle color map (press shift-4 to go back)   
+   5-6   cycle point-cell arrays (shift to go back)   
+   7-8   cycle background and gradient color          
+   09+-  cycle axes styles (on keypad, or press +/-)  
+   k     cycle available lighting styles              
+   K     toggle shading as flat or phong              
+   A     toggle anti-aliasing                         
+   D     toggle depth-peeling (for transparencies)    
+   U     toggle perspective/parallel projection       
+   o/O   toggle extra light to scene and rotate it    
+   a     toggle interaction to Actor Mode             
+   n     toggle surface normals                       
+   r     reset camera position                        
+   R     reset camera to the closest orthogonal view  
+   .     fly camera to the last clicked point         
+   C     print the current camera parameters state    
+   X     invoke a cutter widget tool                  
+   S     save a screenshot of the current scene       
+   E/F   export 3D scene to numpy file or X3D         
+   q     return control to python script              
+   Esc   abort execution and exit python kernel       
 ```
 
+<!-- .. include:: ../docs/tutorials.md -->
 
-## Export your 3D scene to file
+## Tutorials
+Check out the [**Github repository**](https://github.com/marcomusy/vedo)
+for more information, where you can ask questions and report issues.
+
+You are welcome to post specific questions on the [**image.sc**](https://forum.image.sc) forum,
+or simply browse the [**examples gallery**](https://vedo.embl.es/#gallery).
+
+You can also find online tutorials at:
+
+- [Summer School on Computational Modelling of Multicellular Systems](https://github.com/LauAvinyo/vedo-embo-course) with [slides](https://github.com/LauAvinyo/vedo-embo-course/blob/main/vedo-embo-presentation.pdf) by Laura Avinyo (EMBL).
+
+- Youtube video tutorials by [M. El Amine](https://github.com/amine0110/pycad): 
+   - [Visualizing Multiple 3D Objects in Medical Imaging](https://www.youtube.com/watch?v=LVoj3poN2WI)
+   - [Capture 3D Mesh Screenshots in Medical Imaging](https://www.youtube.com/watch?v=8Qn14WMUamA)
+   - [Slice 'n Dice: Precision 3D Mesh Cutting](https://www.youtube.com/watch?v=dmXC078ZOR4&t=195s)
+   - [3D Visualization of STL Files](https://www.youtube.com/watch?v=llq9-oJXepQ)
+
+
+- [Creating an interactive 3D geological model](https://www.youtube.com/watch?v=raiIft8VeRU&t=1s) by A. Pollack (SCRF).
+
+- ["vedo", a python module for scientific analysis and visualization of 3D data](https://www.youtube.com/watch?v=MhIoetdxwc0&t=39s), I2K Conference, by M. Musy (EMBL).
+
+
+## Export a 3D scene to file
 You can export it to a vedo file, which is actually a normal `numpy` file by pressing `E`
 in your 3D scene, the you can interact with it normally using for example the key bindings shown above.
 
-Another way is to export to a template html web page by pressing `F` using `x3d` backend.
-You can also export it programmatically in `k3d` from a jupyter notebook.
+Another way is to export to a template html web page by pressing `F` using the `x3d` backend.
+You can also export it programmatically in `k3d` format from a jupyter notebook.
 
 
 ## File format conversion
@@ -274,29 +300,4 @@ See also an example [here](https://github.com/marcomusy/welsh_embryo_stager/blob
 
 If you get an [error message](https://github.com/marcomusy/vedo/discussions/820) related to a font which is not shipped with the vedo library you will need to copy the `.npz` and `.ttf` files to `vedo/fonts` (where all the other fonts are) and reinstall vedo. 
 Then add in your script `settings.font_parameters["FONTNAME"]["islocal"] = True`.
-
-
-<!-- .. include:: ../docs/tutorials.md -->
-
-## Getting help
-Check out the [**Github repository**](https://github.com/marcomusy/vedo)
-for more information, where you can ask questions and report issues.
-You are also welcome to post specific questions on the [**image.sc**](https://forum.image.sc/) forum,
-or simply browse the [**examples gallery**](https://vedo.embl.es/#gallery).
-
-You can also find online tutorials at:
-
-- [Summer School on Computational Modelling of Multicellular Systems](https://github.com/LauAvinyo/vedo-embo-course) with [slides](https://github.com/LauAvinyo/vedo-embo-course/blob/main/vedo-embo-presentation.pdf) by Laura Avinyo (EMBL).
-
-- Youtube video tutorials: 
-[Visualizing Multiple 3D Objects in Medical Imaging](https://www.youtube.com/watch?v=LVoj3poN2WI),
-[Capture 3D Mesh Screenshots in Medical Imaging](https://www.youtube.com/watch?v=8Qn14WMUamA),
-[Slice 'n Dice: Precision 3D Mesh Cutting](https://www.youtube.com/watch?v=dmXC078ZOR4&t=195s),
-[3D Visualization of STL Files](https://www.youtube.com/watch?v=llq9-oJXepQ)
-by [M. El Amine](https://github.com/amine0110/pycad).
-
-- [Creating an interactive 3D geological model](https://www.youtube.com/watch?v=raiIft8VeRU&t=1s) by A. Pollack.
-
-- ["vedo", a python module for scientific analysis and visualization of 3D data](https://www.youtube.com/watch?v=MhIoetdxwc0&t=39s), I2K Conference, by M. Musy (EMBL).
-
 

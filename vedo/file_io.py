@@ -182,10 +182,9 @@ def load(inputobj, unpack=True, force=False):
     Can load an object directly from a URL address.
 
     Arguments:
-        unpack : bool
+        unpack : (bool)
             unpack MultiBlockData into a flat list of objects.
-
-        force : bool
+        force : (bool)
             when downloading a file ignore any previous cached downloads and force a new one.
 
     Example:
@@ -497,6 +496,7 @@ def gunzip(filename):
     if not filename.endswith(".gz"):
         # colors.printc("gunzip() error: file must end with .gz", c='r')
         return filename
+
     import gzip
 
     tmp_file = NamedTemporaryFile(delete=False)
@@ -1264,10 +1264,6 @@ def export_window(fileoutput, binary=False, plt=None):
         _export_npy(plt, fileoutput)
 
     ####################################################################
-    # elif fr.endswith(".h5") or fr.endswith(".hdf5"):
-    #     _export_hdf5(plt, fileoutput)
-
-    ####################################################################
     elif fr.endswith(".x3d"):
         # obj = plt.get_actors()
         # if plt.axes_instances:
@@ -1586,7 +1582,7 @@ def _export_npy(plt, fileoutput="scene.npz"):
 
 ########################################################################
 def import_window(fileinput, mtl_file=None, texture_path=None):
-    """Import a whole scene from a Numpy, OBJ wavefront file.
+    """Import a whole scene from a Numpy NPZ or OBJ wavefront file.
 
     Arguments:
         mtl_file : (str)
@@ -1595,7 +1591,7 @@ def import_window(fileinput, mtl_file=None, texture_path=None):
             path of the texture files directory
 
     Returns:
-        `Plotter` instance
+        `vedo.Plotter` instance
     """
     if fileinput.endswith(".npy") or fileinput.endswith(".npz"):
         return _import_npy(fileinput)
@@ -1642,6 +1638,9 @@ def import_window(fileinput, mtl_file=None, texture_path=None):
 def screenshot(filename="screenshot.png", scale=1, asarray=False):
     """
     Save a screenshot of the current rendering window.
+
+    Alternatively, press key `Shift-S` in the rendering window to save a screenshot.
+    You can also use keyword `screenshot` in `show(..., screenshot="pic.png")`.
 
     Arguments:
         scale : (int)

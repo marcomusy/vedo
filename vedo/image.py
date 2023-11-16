@@ -17,7 +17,10 @@ Submodule to work with common format images.
 ![](https://vedo.embl.es/images/basic/rotateImage.png)
 """
 
-__all__ = ["Image", "Picture"]
+__all__ = [
+    "Image",
+    "Picture",  # Deprecated, use Image instead
+]
 
 
 #################################################
@@ -148,9 +151,9 @@ class Image(vedo.visual.ImageVisual):
         Can also be instantiated with a matplotlib figure.
 
         By default the transparency channel is disabled.
-        To enable it set channels=4.
+        To enable it set `channels=4`.
 
-        Use `Image.dimensions()` to access the number of pixels in x and y.
+        Use `Image.shape` to get the number of pixels in x and y.
 
         Arguments:
             channels :  (int, list)
@@ -358,7 +361,10 @@ class Image(vedo.visual.ImageVisual):
         return self
 
     def dimensions(self):
-        """Return the image dimension as number of pixels in x and y"""
+        """
+        Return the image dimension as number of pixels in x and y. 
+        Alias of property `shape`.
+        """
         nx, ny, _ = self.dataset.GetDimensions()
         return np.array([nx, ny])
 
@@ -460,7 +466,8 @@ class Image(vedo.visual.ImageVisual):
         return self
 
     def crop(self, top=None, bottom=None, right=None, left=None, pixels=False):
-        """Crop image.
+        """
+        Crop image.
 
         Arguments:
             top : (float)
@@ -612,10 +619,11 @@ class Image(vedo.visual.ImageVisual):
         return self
 
     def resize(self, newsize):
-        """Resize the image resolution by specifying the number of pixels in width and height.
+        """
+        Resize the image resolution by specifying the number of pixels in width and height.
         If left to zero, it will be automatically calculated to keep the original aspect ratio.
 
-        newsize is the shape of image as [npx, npy], or it can be also expressed as a fraction.
+        `newsize` is the shape of image as [npx, npy], or it can be also expressed as a fraction.
         """
         old_dims = np.array(self.dataset.GetDimensions())
 
@@ -1202,9 +1210,7 @@ class Image(vedo.visual.ImageVisual):
         reslice.SetResliceTransform(transform)
         reslice.SetOutputDimensionality(2)
         reslice.SetInterpolationModeToCubic()
-        reslice.SetOutputSpacing(self.dataset.GetSpacing())
-        reslice.SetOutputOrigin(self.dataset.GetOrigin())
-        reslice.SetOutputExtent(self.dataset.GetExtent())
+        reslice.AutoCropOutputOn()
         reslice.Update()
         self._update(reslice.GetOutput())
 
@@ -1484,7 +1490,6 @@ class Image(vedo.visual.ImageVisual):
 class Picture(Image):
     def __init__(self, obj=None, channels=3):
         """Deprecated. Use `Image` instead."""
-        vedo.logger.warning(
-            "Picture() is deprecated, use Image() instead.")
+        vedo.logger.warning("Picture() is deprecated, use Image() instead.")
         super().__init__(obj=obj, channels=channels)
 

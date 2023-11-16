@@ -30,18 +30,15 @@ class Mesh(MeshVisual, Points):
 
     def __init__(self, inputobj=None, c="gold", alpha=1):
         """
-        Input can be a list of vertices and their connectivity (faces of the polygonal mesh),
-        or directly a `vtkPolydata` object.
-        For point clouds - e.i. no faces - just substitute the `faces` list with `None`.
-
-        Example:
-            `Mesh( [ [[x1,y1,z1],[x2,y2,z2], ...],  [[0,1,2], [1,2,3], ...] ] )`
+        Initialize a ``Mesh`` object.
 
         Arguments:
-            c : (color)
-                color in RGB format, hex, symbol or name
-            alpha : (float)
-                mesh opacity [0,1]
+            inputobj : (str, vtkPolyData, vtkActor, vedo.Mesh)
+                If inputobj is `None` an empty mesh is created.
+                If inputobj is a `str` then it is interpreted as the name of a file to load as mesh.
+                If inputobj is an `vtkPolyData` or `vtkActor` or `vedo.Mesh`
+                then a shallow copy of it is created.
+                If inputobj is a `vedo.Mesh` then a shallow copy of it is created.
 
         Examples:
             - [buildmesh.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/buildmesh.py)
@@ -56,6 +53,10 @@ class Mesh(MeshVisual, Points):
             # self.dataset = vtk.vtkPolyData()
             pass
 
+        elif isinstance(inputobj, str):
+            self.dataset = vedo.file_io.load(inputobj).dataset
+            self.filename = inputobj
+
         elif isinstance(inputobj, vtk.vtkPolyData):
             # self.dataset.DeepCopy(inputobj) # NO
             self.dataset = inputobj
@@ -66,9 +67,8 @@ class Mesh(MeshVisual, Points):
                     carr.InsertCellPoint(i)
                 self.dataset.SetVerts(carr)
 
-        elif isinstance(inputobj, str):
-            self.dataset = vedo.file_io.load(inputobj).dataset
-            self.filename = inputobj
+        elif isinstance(inputobj, Mesh):
+            self.dataset = inputobj.dataset
 
         elif is_sequence(inputobj):
             ninp = len(inputobj)
@@ -234,17 +234,13 @@ class Mesh(MeshVisual, Points):
         return "\n".join(allt)
 
     def faces(self, ids=()):
-        """
-        DEPRECATED. Use property `mesh.cells` instead.
-        """
+        """DEPRECATED. Use property `mesh.cells` instead."""
         vedo.printc("WARNING: use property mesh.cells instead of mesh.faces()",c='y')
         return self.cells
     
     @property
     def edges(self):
-        """
-        Return an array containing the edges connectivity.
-        """
+        """Return an array containing the edges connectivity."""
         extractEdges = vtk.new("ExtractEdges")
         extractEdges.SetInputData(self.dataset)
         # eed.UseAllPointsOn()
@@ -291,7 +287,7 @@ class Mesh(MeshVisual, Points):
                 turn on/off the enforcement of consistent polygon ordering.
 
         .. warning::
-            If feature_angle is set to a float the Mesh can be modified, and it
+            If `feature_angle` is set then the Mesh can be modified, and it
             can have a different nr. of vertices from the original.
         """
         pdnorm = vtk.new("PolyDataNormals")
@@ -305,7 +301,6 @@ class Mesh(MeshVisual, Points):
             pdnorm.SetFeatureAngle(feature_angle)
         else:
             pdnorm.SetSplitting(False)
-        # print("GetNonManifoldTraversal", pdnorm.GetNonManifoldTraversal())
         pdnorm.Update()
         self.dataset.GetPointData().SetNormals(pdnorm.GetOutput().GetPointData().GetNormals())
         self.dataset.GetCellData().SetNormals(pdnorm.GetOutput().GetCellData().GetNormals())
@@ -315,13 +310,12 @@ class Mesh(MeshVisual, Points):
         """
         Reverse the order of polygonal cells
         and/or reverse the direction of point and cell normals.
+
         Two flags are used to control these operations:
-
-        - `cells=True` reverses the order of the indices in the cell connectivity list.
-        If cell is a list of IDs only those cells will be reversed.
-
-        - `normals=True` reverses the normals by multiplying the normal vector by -1
-            (both point and cell normals, if present).
+            - `cells=True` reverses the order of the indices in the cell connectivity list.
+                If cell is a list of IDs only those cells will be reversed.
+            - `normals=True` reverses the normals by multiplying the normal vector by -1
+                (both point and cell normals, if present).
         """
         poly = self.dataset
 
@@ -390,12 +384,12 @@ class Mesh(MeshVisual, Points):
 
     def non_manifold_faces(self, remove=True, tol="auto"):
         """
-        Detect and (try to) remove non-manifold faces of a triangular mesh.
+        Detect and (try to) remove non-manifold faces of a triangular mesh:
 
-        Set `remove` to `False` to mark cells without removing them.
-        Set `tol=0` for zero-tolerance, the result will be manifold but with holes.
-        Set `tol>0` to cut off non-manifold faces, and try to recover the good ones.
-        Set `tol="auto"` to make an automatic choice of the tolerance.
+            - set `remove` to `False` to mark cells without removing them.
+            - set `tol=0` for zero-tolerance, the result will be manifold but with holes.
+            - set `tol>0` to cut off non-manifold faces, and try to recover the good ones.
+            - set `tol="auto"` to make an automatic choice of the tolerance.
         """
         # mark original point and cell ids
         self.add_ids()
@@ -753,8 +747,9 @@ class Mesh(MeshVisual, Points):
         return self
 
     def compute_cell_vertex_count(self):
-        """Add to this mesh a cell data array containing the nr of vertices
-        that a polygonal face has."""
+        """
+        Add to this mesh a cell data array containing the nr of vertices that a polygonal face has.
+        """
         csf = vtk.new("CellSizeFilter")
         csf.SetInputData(self.dataset)
         csf.SetComputeArea(False)
@@ -772,8 +767,8 @@ class Mesh(MeshVisual, Points):
         """
         Calculate metrics of quality for the elements of a triangular mesh.
         This method adds to the mesh a cell array named "Quality".
-        See class [vtkMeshQuality](https://vtk.org/doc/nightly/html/classvtkMeshQuality.html)
-        for explanation.
+        See class 
+        [vtkMeshQuality](https://vtk.org/doc/nightly/html/classvtkMeshQuality.html).
 
         Arguments:
             metric : (int)
@@ -1012,7 +1007,7 @@ class Mesh(MeshVisual, Points):
     def delete_cells(self, ids):
         """
         Remove cells from the mesh object by their ID.
-        Points (vertices) are not removed (you may use `.clean()` to remove those).
+        Points (vertices) are not removed (you may use `clean()` to remove those).
         """
         self.dataset.BuildLinks()
         for cid in ids:
@@ -1065,7 +1060,7 @@ class Mesh(MeshVisual, Points):
 
     def smooth(self, niter=15, pass_band=0.1, edge_angle=15, feature_angle=60, boundary=False):
         """
-        Adjust mesh point positions using the `Windowed Sinc` function interpolation kernel.
+        Adjust mesh point positions using the so-called "Windowed Sinc" method.
 
         Arguments:
             niter : (int)
@@ -1108,13 +1103,13 @@ class Mesh(MeshVisual, Points):
 
     def fill_holes(self, size=None):
         """
-        Identifies and fills holes in input mesh.
-        Holes are identified by locating boundary edges, linking them together into loops,
-        and then triangulating the resulting loops.
+        Identifies and fills holes in the input mesh.
+        Holes are identified by locating boundary edges, linking them together
+        into loops, and then triangulating the resulting loops.
 
         Arguments:
             size : (float)
-                Approximate limit to the size of the hole that can be filled. The default is None.
+                Approximate limit to the size of the hole that can be filled.
 
         Examples:
             - [fillholes.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/fillholes.py)
@@ -1320,9 +1315,9 @@ class Mesh(MeshVisual, Points):
         Imprint the contact surface of one object onto another surface.
 
         Arguments:
-            loopline : vedo.shapes.Line
+            loopline : (vedo.Line)
                 a Line object to be imprinted onto the mesh.
-            tol : (float), optional
+            tol : (float)
                 projection tolerance which controls how close the imprint
                 surface must be to the target.
 
@@ -1461,7 +1456,7 @@ class Mesh(MeshVisual, Points):
         Arguments:
             direction : (list)
                 viewpoint direction vector.
-                If *None* this is guessed by looking at the minimum
+                If `None` this is guessed by looking at the minimum
                 of the sides of the bounding box.
             border_edges : (bool)
                 enable or disable generation of border edges
@@ -1576,12 +1571,6 @@ class Mesh(MeshVisual, Points):
         m1.pipeline = OperationNode("isobands", parents=[self])
         m1.name = "IsoBands"
         return m1
-
-        # self._update(bcf.GetOutput())
-        # self.mapper.SetLookupTable(lut)
-        # self.mapper.SetScalarRange(lut.GetRange())
-        # self.pipeline = OperationNode("isobands", parents=[self])
-        # return self
 
     def isolines(self, n=10, vmin=None, vmax=None):
         """

@@ -7,7 +7,7 @@ import vedo.vtkclasses as vtk
 __docformat__ = "google"
 
 __doc__ = """
-Submodule to work with transformations <br>
+Submodule to work with linear and non-linear transformations<br>
 
 ![](https://vedo.embl.es/images/feats/transforms.png)
 """
@@ -128,7 +128,6 @@ class LinearTransform:
                             self.comment = l.replace("#", "").strip()
                             continue
                         vals = l.split(" ")
-                        print(vals)
                         for j in range(len(vals)):
                             v = vals[j].replace("\n", "")
                             if v != "":
@@ -453,7 +452,7 @@ class LinearTransform:
 
     @property
     def matrix(self):
-        """Get trasformation matrix."""
+        """Get the 4x4 trasformation matrix."""
         m = self.T.GetMatrix()
         M = [[m.GetElement(i, j) for j in range(4)] for i in range(4)]
         return np.array(M)
@@ -470,12 +469,12 @@ class LinearTransform:
 
     @property
     def matrix3x3(self):
-        """Get matrix."""
+        """Get the 3x3 trasformation matrix."""
         m = self.T.GetMatrix()
         M = [[m.GetElement(i, j) for j in range(3)] for i in range(3)]
         return np.array(M)
 
-    def write(self, filename):  # eg. filename="transform.mat"
+    def write(self, filename="transform.mat"):
         """Save transformation to ASCII file."""
         import json
         m = self.T.GetMatrix()

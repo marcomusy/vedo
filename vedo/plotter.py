@@ -28,7 +28,7 @@ __all__ = ["Plotter", "show", "close"]
 ########################################################################################
 class Event:
     """
-    This class holds the info from an event in the window, works as dictionary too
+    This class holds the info from an event in the window, works as dictionary too.
     """
 
     __slots__ = [
@@ -61,11 +61,9 @@ class Event:
         return
 
     def __getitem__(self, key):
-        """Make the class work like a dictionary too"""
         return getattr(self, key)
 
     def __setitem__(self, key, value):
-        """Make the class work like a dictionary too"""
         setattr(self, key, value)
 
     def __str__(self):
@@ -122,23 +120,32 @@ def show(
     """
     Create on the fly an instance of class Plotter and show the object(s) provided.
 
-    Allowed input objects types are:
-        ``str, Mesh, Volume, Image, Assembly
-        vtkPolyData, vtkActor, vtkActor2D, vtkImageActor,
-        vtkAssembly or vtkVolume``
-
     Arguments:
         at : (int)
             number of the renderer to plot to, in case of more than one exists
         shape : (list, str)
             Number of sub-render windows inside of the main window. E.g.:
             specify two across with shape=(2,1) and a two by two grid
-            with shape=(2, 2).  By default there is only one renderer.
+            with shape=(2, 2). By default there is only one renderer.
 
             Can also accept a shape as string descriptor. E.g.:
             - shape="3|1" means 3 plots on the left and 1 on the right,
             - shape="4/2" means 4 plots on top of 2 at bottom.
-
+        N : (int)
+            number of desired sub-render windows arranged automatically in a grid
+        pos : (list)
+            position coordinates of the top-left corner of the rendering window
+            on the screen
+        size : (list)
+            size of the rendering window
+        screensize : (list)
+            physical size of the monitor screen
+        title : (str)
+            window title
+        bg : (color)
+            background color or specify jpg image file name with path
+        bg2 : (color)
+            background color of a gradient towards the top
         axes : (int)
             set the type of axes to be shown:
             - 0,  no axes
@@ -362,24 +369,28 @@ class Plotter:
                 background color or specify jpg image file name with path
             bg2 : (color)
                 background color of a gradient towards the top
+            title : (str) 
+                window title
+            
             axes : (int)
 
                 Note that Axes type-1 can be fully customized by passing a dictionary `axes=dict()`.
                 Check out `vedo.addons.Axes()` for the available options.
-                - 0,  no axes
-                - 1,  draw three gray grid walls
-                - 2,  show cartesian axes from (0,0,0)
-                - 3,  show positive range of cartesian axes from (0,0,0)
-                - 4,  show a triad at bottom left
-                - 5,  show a cube at bottom left
-                - 6,  mark the corners of the bounding box
-                - 7,  draw a 3D ruler at each side of the cartesian axes
-                - 8,  show the VTK CubeAxesActor object
-                - 9,  show the bounding box outLine,
-                - 10, show three circles representing the maximum bounding box,
-                - 11, show a large grid on the x-y plane (use with zoom=8)
-                - 12, show polar axes.
-                - 13, draw a simple ruler at the bottom of the window
+
+                    - 0,  no axes
+                    - 1,  draw three gray grid walls
+                    - 2,  show cartesian axes from (0,0,0)
+                    - 3,  show positive range of cartesian axes from (0,0,0)
+                    - 4,  show a triad at bottom left
+                    - 5,  show a cube at bottom left
+                    - 6,  mark the corners of the bounding box
+                    - 7,  draw a 3D ruler at each side of the cartesian axes
+                    - 8,  show the VTK CubeAxesActor object
+                    - 9,  show the bounding box outLine,
+                    - 10, show three circles representing the maximum bounding box,
+                    - 11, show a large grid on the x-y plane (use with zoom=8)
+                    - 12, show polar axes.
+                    - 13, draw a simple ruler at the bottom of the window
 
             sharecam : (bool)
                 if False each renderer will have an independent vtkCamera
@@ -389,9 +400,11 @@ class Plotter:
                 if True will not show the rendering window
             qt_widget : (QVTKRenderWindowInteractor)
                 render in a Qt-Widget using an QVTKRenderWindowInteractor.
-                Overrides offscreen to True.
-                Overrides interactive to False.
-                See examples `qt_windows1.py` and `qt_windows2.py`
+                
+                Overrides `offscreen` to True.
+                Overrides `interactive` to False.
+                
+                See examples `qt_windows1.py` and `qt_windows2.py`.
         """
         vedo.plotter_instance = self
 
@@ -878,7 +891,7 @@ class Plotter:
     def at(self, nren, yren=None):
         """
         Select the current renderer number as an int.
-        Can also use the [nx, ny] format.
+        Can also use the `[nx, ny]` format.
         """
         if yren is not None:
             nren = (yren) * self.shape[1] + (nren)
@@ -1387,7 +1400,7 @@ class Plotter:
 
         cin = vtk.new("CameraInterpolator")
 
-        # cin.SetInterpolationTypeToLinear() # bugged?
+        # cin.SetInterpolationTypeToLinear() # buggy?
         if nc > 2 and smooth:
             cin.SetInterpolationTypeToSpline()
 
@@ -2138,35 +2151,30 @@ class Plotter:
     def _add_skybox(self, hdrfile):
         # many hdr files are at https://polyhaven.com/all
 
-        if utils.vtk_version_at_least(9):
-            reader = vtk.new("HDRReader")
-            # Check the image can be read.
-            if not reader.CanReadFile(hdrfile):
-                vedo.logger.error(f"Cannot read HDR file {hdrfile}")
-                return self
-            reader.SetFileName(hdrfile)
-            reader.Update()
+        reader = vtk.new("HDRReader")
+        # Check the image can be read.
+        if not reader.CanReadFile(hdrfile):
+            vedo.logger.error(f"Cannot read HDR file {hdrfile}")
+            return self
+        reader.SetFileName(hdrfile)
+        reader.Update()
 
-            texture = vtk.vtkTexture()
-            texture.SetColorModeToDirectScalars()
-            texture.SetInputData(reader.GetOutput())
+        texture = vtk.vtkTexture()
+        texture.SetColorModeToDirectScalars()
+        texture.SetInputData(reader.GetOutput())
 
-            # Convert to a cube map
-            tcm = vtk.new("EquirectangularToCubeMapTexture")
-            tcm.SetInputTexture(texture)
-            # Enable mipmapping to handle HDR image
-            tcm.MipmapOn()
-            tcm.InterpolateOn()
+        # Convert to a cube map
+        tcm = vtk.new("EquirectangularToCubeMapTexture")
+        tcm.SetInputTexture(texture)
+        # Enable mipmapping to handle HDR image
+        tcm.MipmapOn()
+        tcm.InterpolateOn()
 
-            self.renderer.SetEnvironmentTexture(tcm)
-            self.renderer.UseImageBasedLightingOn()
-            self.skybox = vtk.new("Skybox")
-            self.skybox.SetTexture(tcm)
-            self.renderer.AddActor(self.skybox)
-
-        else:
-            vedo.logger.error("add_skybox not supported in this VTK version. Skip.")
-
+        self.renderer.SetEnvironmentTexture(tcm)
+        self.renderer.UseImageBasedLightingOn()
+        self.skybox = vtk.new("Skybox")
+        self.skybox.SetTexture(tcm)
+        self.renderer.AddActor(self.skybox)
         return self
 
     def add_renderer_frame(self, c=None, alpha=None, lw=None, padding=None):
@@ -2183,12 +2191,13 @@ class Plotter:
             padding : (float)
                 padding space in pixels.
         """
-        if c is None:  # automatic black or white
-            c = (0.9, 0.9, 0.9)
-            if np.sum(vedo.plotter_instance.renderer.GetBackground()) > 1.5:
-                c = (0.1, 0.1, 0.1)
-        renf = addons.RendererFrame(c, alpha, lw, padding)
-        self.renderer.AddActor(renf)
+        if lw:
+            if c is None:  # automatic black or white
+                c = (0.9, 0.9, 0.9)
+                if np.sum(vedo.plotter_instance.renderer.GetBackground()) > 1.5:
+                    c = (0.1, 0.1, 0.1)
+            renf = addons.RendererFrame(c, alpha, lw, padding)
+            self.renderer.AddActor(renf)
         return self
 
     def add_hover_legend(
@@ -2258,7 +2267,7 @@ class Plotter:
                 elif evt.isVolume:
                     tp = "Volume "
                 elif evt.isImage:
-                    tp = "Pict "
+                    tp = "Image "
                 elif evt.isAssembly:
                     tp = "Assembly "
                 else:
@@ -2970,15 +2979,15 @@ class Plotter:
                         scanned_acts.append(out)
                 # scanned_acts.append(vedo.shapes.Text2D(a)) # naive version
 
-            elif isinstance(a, (
-                    vtk.vtkAssembly,
-                    vtk.vtkVolume,
-                    vtk.vtkImageActor,
-                    vtk.vtkLegendBoxActor,
-                    vtk.vtkBillboardTextActor3D,
-                ),
-            ):
-                scanned_acts.append(a)
+            # elif isinstance(a, (
+            #         vtk.vtkAssembly,
+            #         vtk.vtkVolume,
+            #         vtk.vtkImageActor,
+            #         vtk.vtkLegendBoxActor,
+            #         vtk.vtkBillboardTextActor3D,
+            #     ),
+            # ):
+            #     scanned_acts.append(a)
 
             elif isinstance(a, vtk.vtkLight):
                 self.renderer.AddLight(a)
@@ -3377,6 +3386,7 @@ class Plotter:
         if not self.interactor:
             return None
 
+        options = dict(options)
         pos = options.pop("pos", 0)
         size = options.pop("size", 0.1)
         c = options.pop("c", "lb")
@@ -3569,6 +3579,8 @@ class Plotter:
     
     @camera.setter
     def camera(self, cam):
+        if isinstance(cam, dict):
+            cam = utils.camera_from_dict(cam)
         self.renderer.SetActiveCamera(cam)
 
     def screenshot(self, filename="screenshot.png", scale=1, asarray=False):
@@ -3760,9 +3772,11 @@ class Plotter:
         if iren.GetAltKey():
             key = "Alt+" + key
 
+        #######################################################
         # utils.vedo.printc('Pressed key:', key, c='y', box='-')
         # print(key, iren.GetShiftKey(), iren.GetAltKey(), iren.GetControlKey(),
         #       iren.GetKeyCode(), iren.GetRepeatCount())
+        #######################################################
 
         x, y = iren.GetEventPosition()
         renderer = iren.FindPokedRenderer(x, y)
