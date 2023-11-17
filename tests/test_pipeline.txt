@@ -17,6 +17,7 @@ pip install pygeodesic -U
 pip install pygmsh -U
 pip install pyacvd -U
 pip install pymeshfix -U
+pip install pymeshlab -U
 pip install tetgen -U
 pip install pyshtools -U
 pip install trimesh -U
@@ -34,6 +35,7 @@ cd $VDIR/examples && time ./run_all.sh 2>&1 | tee $VLOGFILE
 
 grep -aA 1 "Error" $VLOGFILE
 grep -aA 3 "Trace" $VLOGFILE
+grep -aA 3 "failure" $VLOGFILE
 code $VLOGFILE  #### inspect logfile
 # (Try normal run too with visualization to make sure all is ok)
 

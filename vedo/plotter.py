@@ -4177,12 +4177,11 @@ class Plotter:
                     ob.add_scalarbar3d(title=arrnames[i])
                     self.add(ob.scalarbar)
             else:
-                vedo.printc(f"Active pointdata array: '{arrnames[i]}'", c="g", bold=0)
-            vedo.printc(
-                f"Name:'{ob.name}'," if ob.name else '',
-                f"active pointdata array: '{arrnames[i]}'",
-                c="g", bold=False,
-            )
+                vedo.printc(
+                    f"Name:'{ob.name}'," if ob.name else '',
+                    f"active pointdata array: '{arrnames[i]}'",
+                    c="g", bold=False,
+                )
 
         elif key == "6": # cycle celldata array
             ob = self.clicked_object
@@ -4230,12 +4229,11 @@ class Plotter:
                     ob.add_scalarbar3d(title=arrnames[i])
                     self.add(ob.scalarbar)
             else:
-                vedo.printc(f"Active celldata array: '{arrnames[i]}'", c="g", bold=0)
-            vedo.printc(
-                f"Name:'{ob.name}'," if ob.name else '',
-                f"active celldata array: '{arrnames[i]}'",
-                c="g", bold=False,
-            )
+                vedo.printc(
+                    f"Name:'{ob.name}'," if ob.name else '',
+                    f"active celldata array: '{arrnames[i]}'",
+                    c="g", bold=False,
+                )
 
         elif key == "7":
             bgc = np.array(renderer.GetBackground()).sum() / 3

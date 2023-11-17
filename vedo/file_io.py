@@ -440,6 +440,7 @@ def _load_file(filename, unpack):
     actor.file_size, actor.created = file_info(filename)
     return actor
 
+
 ########################################################################
 def download(url, to_local_file="", force=False, verbose=True):
     """
@@ -450,7 +451,8 @@ def download(url, to_local_file="", force=False, verbose=True):
             The URL to download the file from.
         to_local_file : (str)
             The local file name to save the file to. 
-            If not specified, the file name will be the same as the remote file name.
+            If not specified, the file name will be the same as the remote file name
+            in the directory specified by `settings.cache_directory + "/vedo"`.
         force : (bool)
             Force a new download even if the local file is up to date.
         verbose : (bool)
@@ -466,6 +468,11 @@ def download(url, to_local_file="", force=False, verbose=True):
     from datetime import datetime
     import requests
 
+    url = url.replace("www.dropbox", "dl.dropbox")
+
+    if "github.com" in url:
+        url = url.replace("/blob/", "/raw/")
+
     # Get the user's home directory
     home_directory = os.path.expanduser("~")
 
@@ -477,7 +484,10 @@ def download(url, to_local_file="", force=False, verbose=True):
         os.makedirs(cachedir)
 
     if not to_local_file:
-        to_local_file = os.path.join(cachedir, os.path.basename(url))
+        basename = os.path.basename(url)
+        if "?" in basename:
+            basename = basename.split("?")[0]
+        to_local_file = os.path.join(cachedir, basename)
         if verbose: print(f"Using local file name: {to_local_file}")
 
     # Check if the local file exists and get its last modified time

@@ -798,7 +798,7 @@ def draw_scene(args):
             args.color = "gold"
         plt = applications.IsosurfaceBrowser(
             vol, c=args.color, cmap=args.cmap, 
-            precompute=False, progress=True, use_gpu=True,
+            precompute=False, use_gpu=True,
         )
         plt.show(zoom=args.zoom, viewup="z")
         return
