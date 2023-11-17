@@ -278,18 +278,18 @@ def _load_file(filename, unpack):
     ########################################################## other formats:
     if fl.endswith(".xml") or fl.endswith(".xml.gz") or fl.endswith(".xdmf"):
         # Fenics tetrahedral file
-        actor = loadDolfin(filename)
+        objt = loadDolfin(filename)
     elif fl.endswith(".neutral") or fl.endswith(".neu"):  # neutral tets
-        actor = loadNeutral(filename)
+        objt = loadNeutral(filename)
     elif fl.endswith(".gmsh"):  # gmesh file
-        actor = loadGmesh(filename)
+        objt = loadGmesh(filename)
     elif fl.endswith(".pcd"):  # PCL point-cloud format
-        actor = loadPCD(filename)
-        actor.GetProperty().SetPointSize(2)
+        objt = loadPCD(filename)
+        objt.properties.SetPointSize(2)
     elif fl.endswith(".off"):
-        actor = loadOFF(filename)
+        objt = loadOFF(filename)
     elif fl.endswith(".3ds"):  # 3ds format
-        actor = load3DS(filename)
+        objt = load3DS(filename)
     elif fl.endswith(".wrl"):
         importer = vtk.new("VRMLImporter")
         importer.SetFileName(filename)
@@ -301,7 +301,7 @@ def _load_file(filename, unpack):
         for i in range(actors.GetNumberOfItems()):
             act = actors.GetNextActor()
             wacts.append(act)
-        actor = Assembly(wacts)
+        objt = Assembly(wacts)
 
     ######################################################## volumetric:
     elif (
@@ -315,7 +315,7 @@ def _load_file(filename, unpack):
         or fl.endswith(".dem")
     ):
         img = loadImageData(filename)
-        actor = Volume(img)
+        objt = Volume(img)
 
     ######################################################### 2D images:
     elif (
@@ -344,7 +344,7 @@ def _load_file(filename, unpack):
 
         picr.SetFileName(filename)
         picr.Update()
-        actor = Image(picr.GetOutput())
+        objt = Image(picr.GetOutput())
 
     ######################################################### multiblock:
     elif fl.endswith(".vtm") or fl.endswith(".vtmb"):
@@ -429,16 +429,16 @@ def _load_file(filename, unpack):
             return None
 
         if isinstance(routput, vtk.vtkUnstructuredGrid):
-            actor = vedo.TetMesh(routput)
+            objt = vedo.TetMesh(routput)
 
         else:
-            actor = Mesh(routput)
+            objt = Mesh(routput)
             if fl.endswith(".txt") or fl.endswith(".xyz"):
-                actor.point_size(4)
+                objt.point_size(4)
 
-    actor.filename = filename
-    actor.file_size, actor.created = file_info(filename)
-    return actor
+    objt.filename = filename
+    objt.file_size, objt.created = file_info(filename)
+    return objt
 
 
 def download(url, force=False, verbose=True):

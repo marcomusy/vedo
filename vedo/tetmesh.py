@@ -56,6 +56,7 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
         self.info = {}
         self.time = 0
         self.rendered_at = set()
+        self._cmap_name = ""  # remember the cmap name for self._keypress
 
         ###################
         inputtype = str(type(inputobj))
@@ -766,6 +767,7 @@ class TetMesh(UnstructuredGrid):
 
         self.name = "TetMesh"
         self.filename = ""
+
 
         # inputtype = str(type(inputobj))
         # print('TetMesh inputtype', inputtype)

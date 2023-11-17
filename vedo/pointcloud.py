@@ -541,7 +541,6 @@ class Points(PointsVisual, PointAlgorithms):
         # Create weakref so actor can access this object (eg to pick/remove):
         self.actor.retrieve_object = weak_ref_to(self)
 
-        self._scals_idx = 0  # index of the active scalar changed from CLI
         self._ligthingnr = 0  # index of the lighting mode changed from CLI
         self._cmap_name = ""  # remember the cmap name for self._keypress
         self._caption = None
