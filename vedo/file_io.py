@@ -441,8 +441,60 @@ def _load_file(filename, unpack):
     return actor
 
 
+def download(url, force=False, verbose=True):
+    """
+    Retrieve a file from a URL, save it locally and return its path.
+    Use `force=True` to force a reload and discard cached copies.
+    """
+    if not url.startswith("https://"):
+        # assume it's a file so no need to download
+        return url
+    url = url.replace("www.dropbox", "dl.dropbox")
+
+    if "github.com" in url:
+        url = url.replace("/blob/", "/raw/")
+
+    basename = os.path.basename(url)
+
+    if "?" in basename:
+        basename = basename.split("?")[0]
+
+    home_directory = os.path.expanduser("~")
+    cachedir = os.path.join(home_directory, settings.cache_directory, "vedo")
+    fname = os.path.join(cachedir, basename)
+    # Create the directory if it does not exist
+    if not os.path.exists(cachedir):
+        os.makedirs(cachedir)
+
+    if not force and os.path.exists(fname):
+        if verbose:
+            colors.printc("reusing cached file:", fname)
+        return fname
+
+    try:
+        from urllib.request import urlopen, Request
+        req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        if verbose:
+            colors.printc("reading", basename, "from", url.split("/")[2][:40], "...", end="")
+
+    except ImportError:
+        import urllib2
+        import contextlib
+        urlopen = lambda url_: contextlib.closing(urllib2.urlopen(url_))
+        req = url
+        if verbose:
+            colors.printc("reading", basename, "from", url.split("/")[2][:40], "...", end="")
+
+    with urlopen(req) as response, open(fname, "wb") as output:
+        output.write(response.read())
+
+    if verbose:
+        colors.printc(" done.")
+    return fname
+
+
 ########################################################################
-def download(url, to_local_file="", force=False, verbose=True):
+def download_new(url, to_local_file="", force=False, verbose=True):
     """
     Downloads a file from `url` to `to_local_file` if the local copy is outdated.
 
