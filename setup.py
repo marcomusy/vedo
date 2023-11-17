@@ -1,11 +1,8 @@
 from setuptools import setup
 
-try:
-    VERSIONFILE = "vedo/version.py"
-    verstrline = open(VERSIONFILE, "rt").read()
-    verstr = verstrline.split("=")[1].replace("\n", "").replace("'", "")
-except:
-    verstr = "unknown"
+with open("vedo/version.py", "r") as fh:
+    verstrline = fh.read()
+    verstr = verstrline.split("=")[1].replace("'", "").strip()
 
 ##############################################################
 setup(
@@ -16,45 +13,15 @@ setup(
     license="MIT",
     license_files=['LICENSE', 'FONT.LICENSE'],
 
-    packages=[
-               "vedo",
-               "vedo.examples.basic",
-               "vedo.examples.advanced",
-               "vedo.examples.pyplot",
-               "vedo.examples.simulations",
-               "vedo.examples.volumetric",
-               "vedo.examples.other",
-               "vedo.examples.other.dolfin",
-               "vedo.examples.other.trimesh",
-    ],
-
-    package_dir={
-                  'vedo': 'vedo',
-                  'vedo.examples.basic': 'examples/basic',
-                  'vedo.examples.advanced': 'examples/advanced',
-                  'vedo.examples.pyplot': 'examples/pyplot',
-                  'vedo.examples.simulations': 'examples/simulations',
-                  'vedo.examples.volumetric': 'examples/volumetric',
-                  'vedo.examples.other': 'examples/other',
-                  'vedo.examples.other.dolfin': 'examples/other/dolfin',
-                  'vedo.examples.other.trimesh': 'examples/other/trimesh',
-    },
-
-    entry_points={
-        "console_scripts": ["vedo=vedo.cli:execute_cli"],
-    },
-
-    install_requires=["vtk", "numpy", "Pygments"],
-    include_package_data=True,
-
-    description="A python module for scientific analysis and visualization of 3D objects and point clouds based on VTK.",
-    long_description="A python module for scientific visualization, analysis of 3D objects and point clouds based on VTK. Check out https://vedo.embl.es for documentation.",
+    description="A python module for scientific analysis and visualization of 3D objects and point clouds based on VTK and Numpy.",
+    long_description="A python module for scientific visualization, analysis of 3D objects and point clouds based on VTK and Numpy. Check out https://vedo.embl.es for documentation.",
 
     author="Marco Musy",
     author_email="marco.musy@embl.es",
     maintainer="Marco Musy",
     url="https://github.com/marcomusy/vedo",
-    keywords="vtk 3D science analysis visualization mesh numpy",
+
+    keywords="vtk numpy 3D science analysis visualization mesh",
     classifiers=[
         "Intended Audience :: Science/Research",
         "Intended Audience :: Education",
@@ -70,4 +37,32 @@ setup(
         "Operating System :: POSIX",
         "Operating System :: MacOS",
     ],
+
+    packages=[
+               "vedo",
+               "vedo.examples.basic",
+               "vedo.examples.advanced",
+               "vedo.examples.pyplot",
+               "vedo.examples.simulations",
+               "vedo.examples.volumetric",
+               "vedo.examples.other",
+    ],
+
+    package_dir={
+                  'vedo': 'vedo',
+                  'vedo.examples.basic': 'examples/basic',
+                  'vedo.examples.advanced': 'examples/advanced',
+                  'vedo.examples.pyplot': 'examples/pyplot',
+                  'vedo.examples.simulations': 'examples/simulations',
+                  'vedo.examples.volumetric': 'examples/volumetric',
+                  'vedo.examples.other': 'examples/other',
+    },
+
+    entry_points={
+        "console_scripts": ["vedo=vedo.cli:execute_cli"],
+    },
+
+    install_requires=["vtk", "numpy", "Pygments"],
+    include_package_data=True,
+
 )

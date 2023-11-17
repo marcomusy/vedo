@@ -1,5 +1,8 @@
 ## Main changes
-Major internal refactoring.
+
+- fixes to `extrude()` thanks to @JeffreyWardman
+- filter out triangle strips in Ribbon and extrude()
+- improvements in doc strings
 
 ## Breaking changes
 
@@ -31,7 +34,6 @@ trackviewer (some problems with removing a track)
 #### Broken Exports to .npz:
 boolean.py
 cartoony.py
-flatarrow.py
 mesh_lut.py
 mesh_map2cell.py
 texturecubes.py

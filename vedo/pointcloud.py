@@ -662,7 +662,12 @@ class Points(PointsVisual, PointAlgorithms):
 
         npt = self.dataset.GetNumberOfPoints()
         npo, nln = self.dataset.GetNumberOfPolys(), self.dataset.GetNumberOfLines()
-        out+= "elements".ljust(14) + f": vertices={npt:,}, polys={npo:,}, lines={nln:,}\n"
+        out+= "elements".ljust(14) + f": vertices={npt:,}, polygons={npo:,}, lines={nln:,}"
+        if self.dataset.GetNumberOfStrips():
+            out+= f", triangle_strips={self.dataset.GetNumberOfStrips():,}"
+        out+= "\n"
+        if self.dataset.GetNumberOfPieces() > 1:
+            out+= "pieces".ljust(14) + ": " + str(self.dataset.GetNumberOfPieces()) + "\n"
 
         out+= "position".ljust(14) + ": " + f"{utils.precision(self.pos(), 6)}\n"
         out+= "scaling".ljust(14)  + ": "

@@ -302,8 +302,10 @@ class Mesh(MeshVisual, Points):
         else:
             pdnorm.SetSplitting(False)
         pdnorm.Update()
-        self.dataset.GetPointData().SetNormals(pdnorm.GetOutput().GetPointData().GetNormals())
-        self.dataset.GetCellData().SetNormals(pdnorm.GetOutput().GetCellData().GetNormals())
+        if points:
+            self.dataset.GetPointData().SetNormals(pdnorm.GetOutput().GetPointData().GetNormals())
+        if cells:
+            self.dataset.GetCellData().SetNormals(pdnorm.GetOutput().GetCellData().GetNormals())
         return self
 
     def reverse(self, cells=True, normals=False):
@@ -715,20 +717,20 @@ class Mesh(MeshVisual, Points):
 
         Arguments:
             verts : (bool)
-                if True, break input vertex cells into individual vertex cells
-                (one point per cell). If False, the input vertex cells will be ignored.
+                if True, break input vertex cells into individual vertex cells (one point per cell).
+                If False, the input vertex cells will be ignored.
             lines : (bool)
                 if True, break input polylines into line segments.
                 If False, input lines will be ignored and the output will have no lines.
         """
         if self.dataset.GetNumberOfPolys() or self.dataset.GetNumberOfStrips():
-            # print("vtkTriangleFilter")
+            # print("Using vtkTriangleFilter")
             tf = vtk.new("TriangleFilter")
             tf.SetPassLines(lines)
             tf.SetPassVerts(verts)
 
         elif self.dataset.GetNumberOfLines():
-            # print("vtkContourTriangulator")
+            # print("Using vtkContourTriangulator")
             tf = vtk.new("ContourTriangulator")
             tf.TriangulationErrorDisplayOn()
 
@@ -1665,7 +1667,13 @@ class Mesh(MeshVisual, Points):
         rf.SetDeltaRadius(dr)
         rf.Update()
 
-        m = Mesh(rf.GetOutput())
+        # convert triangle strips to polygonal data
+        tris = vtk.new("TriangleFilter")
+        tris.SetInputData(rf.GetOutput())
+        tris.Update()
+
+        m = Mesh(tris.GetOutput())
+
         if len(direction) > 1:
             p = self.pos()
             LT = vedo.LinearTransform()
@@ -1679,7 +1687,6 @@ class Mesh(MeshVisual, Points):
             m.apply_transform(LT)
 
         m.copy_properties_from(self).flat().lighting("default")
-        # m.compute_normals(cells=False)
         m.pipeline = OperationNode(
             "extrude", parents=[self], 
             comment=f"#pts {m.dataset.GetNumberOfPoints()}"

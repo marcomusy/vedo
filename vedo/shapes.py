@@ -1798,7 +1798,7 @@ def ThickTube(pts, r1, r2, res=12, c=None, alpha=1.0):
 
     thick_tube = merge(t1, t2, capa, capb).c(c).alpha(alpha)
     thick_tube.base = t1.base
-    thick_tube.top = t1.top
+    thick_tube.top  = t1.top
     thick_tube.name = "ThickTube"
     return thick_tube
 
@@ -1859,7 +1859,12 @@ class Ribbon(Mesh):
                 width = aline.diagonal_size() / 20.0
             ribbon_filter.SetWidth(width)
             ribbon_filter.Update()
-            super().__init__(ribbon_filter.GetOutput(), c, alpha)
+            # convert triangle strips to polygons
+            tris = vtk.new("TriangleFilter")
+            tris.SetInputData(ribbon_filter.GetOutput())
+            tris.Update()
+
+            super().__init__(tris.GetOutput(), c, alpha)
             self.name = "Ribbon"
             ##############################################
             return  ######################################
@@ -1931,8 +1936,14 @@ class Ribbon(Mesh):
         rsf.SetResolution(res[0], res[1])
         rsf.SetInputData(merged_pd.GetOutput())
         rsf.Update()
+        # convert triangle strips to polygons
+        tris = vtk.new("TriangleFilter")
+        tris.SetInputData(rsf.GetOutput())
+        tris.Update()
+        out = tris.GetOutput()
 
-        super().__init__(rsf.GetOutput(), c, alpha)
+        super().__init__(out, c, alpha)
+
         self.name = "Ribbon"
 
 
@@ -2026,11 +2037,11 @@ class Arrow(Mesh):
         self.phong().lighting("plastic")
         self.actor.PickableOff()
         self.actor.DragableOff()
-        self.base = np.array(start_pt, dtype=float)
-        self.top = np.array(end_pt, dtype=float)
-        self.tip_index = None
-        self.fill = True  # used by pyplot.__iadd__()
-        self.s = s if s is not None else 1  ## used by pyplot.__iadd()
+        self.base = np.array(start_pt, dtype=float)  # used by pyplot
+        self.top  = np.array(end_pt,   dtype=float)  # used by pyplot
+        self.top_index = None
+        self.fill = True                    # used by pyplot.__iadd__()
+        self.s = s if s is not None else 1  # used by pyplot.__iadd__()
         self.name = "Arrow"
 
 
@@ -2167,7 +2178,7 @@ class Arrow2D(Mesh):
                 if False only generate the outline
         """
         self.fill = fill  ## needed by pyplot.__iadd()
-        self.s = s  #  # needed by pyplot.__iadd()
+        self.s = s        ## needed by pyplot.__iadd()
 
         if s != 1:
             shaft_width *= s
@@ -2224,12 +2235,13 @@ class Arrow2D(Mesh):
         tf.Update()
 
         super().__init__(tf.GetOutput(), c, alpha)
+
         self.pos(start_pt)
         self.lighting("off")
         self.actor.DragableOff()
         self.actor.PickableOff()
-        self.base = np.array(start_pt, dtype=float)
-        self.top = np.array(end_pt, dtype=float)
+        self.base = np.array(start_pt, dtype=float) # used by pyplot
+        self.top  = np.array(end_pt,   dtype=float) # used by pyplot
         self.name = "Arrow2D"
 
 
@@ -2350,7 +2362,7 @@ class FlatArrow(Ribbon):
         resm = max(100, len(line1))
 
         super().__init__(line1, line2, res=(resm, 1))
-        self.phong()
+        self.phong().lighting("off")
         self.actor.PickableOff()
         self.actor.DragableOff()
         self.name = "FlatArrow"
@@ -2557,9 +2569,6 @@ class Arc(Mesh):
             point1 = (point1[0], point1[1], 0)
         if point2 is not None and len(point2) == 2:
             point2 = (point2[0], point2[1], 0)
-
-        self.base = point1
-        self.top = point2
 
         ar = vtk.new("ArcSource")
         if point2 is not None:
@@ -3394,8 +3403,6 @@ class TessellatedBox(Mesh):
         super().__init__(poly, c=c, alpha=alpha)
         self.pos(pos)
         self.lw(1).lighting("off")
-        # self.base = np.array([0.5, 0.5, 0.0])
-        # self.top = np.array([0.5, 0.5, 1.0])
         self.name = "TessellatedBox"
 
 
@@ -3467,10 +3474,12 @@ class Spring(Mesh):
             thickness = r1 / 10
         tuf.SetRadius(thickness)
         tuf.Update()
+
         super().__init__(tuf.GetOutput(), c, alpha)
+
         self.phong()
         self.base = np.array(start_pt, dtype=float)
-        self.top = np.array(end_pt, dtype=float)
+        self.top  = np.array(end_pt, dtype=float)
         self.pos(start_pt)
         self.name = "Spring"
 
@@ -3525,9 +3534,10 @@ class Cylinder(Mesh):
         pd = tf.GetOutput()
 
         super().__init__(pd, c, alpha)
+
         self.phong()
         self.base = base
-        self.top = top
+        self.top  = top
         self.pos(pos)
         self.name = "Cylinder"
 
@@ -3551,7 +3561,7 @@ class Cone(Mesh):
         self.pos(pos)
         v = utils.versor(axis) * height / 2
         self.base = pos - v
-        self.top = pos + v
+        self.top  = pos + v
         self.name = "Cone"
 
 

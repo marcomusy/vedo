@@ -2994,8 +2994,6 @@ def _plot_polar(
     if mrg:
         mrg.color(bc).alpha(alpha).lighting("off")
     rh = Assembly([lines, ptsact, filling] + [mrg])
-    # rh.base = np.array([0, 0, 0], dtype=float)
-    # rh.top = np.array([0, 0, 1], dtype=float)
     rh.name = "PlotPolar"
     return rh
 
@@ -3181,8 +3179,6 @@ def _histogram_hex_bin(
     asse = Assembly(hexs)
     asse.scale([1.2 / n * dx, 1 / m * dy, norm / binmax * (dx + dy) / 4])
     asse.pos([xmin, ymin, 0])
-    # asse.base = np.array([0, 0, 0], dtype=float)
-    # asse.top = np.array([0, 0, 1], dtype=float)
     asse.name = "HistogramHexBin"
     return asse
 

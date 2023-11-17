@@ -472,21 +472,18 @@ class CommonAlgorithms:
             scale : (float)
                 box size can be scaled by a factor
             padding : (float, list)
-                a constant padding can be added (can be a list [padx,pady,padz])
-
-        Examples:
-            - [latex.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/latex.py)
+                a constant padding can be added (can be a list `[padx,pady,padz]`)
         """
         b = self.bounds()
         if not utils.is_sequence(padding):
             padding = [padding, padding, padding]
         length, width, height = b[1] - b[0], b[3] - b[2], b[5] - b[4]
-        tol = (length + width + height) / 30000  # useful for boxing 2D text
+        tol = (length + width + height) / 30000  # useful for boxing text
         pos = [(b[0] + b[1]) / 2, (b[3] + b[2]) / 2, (b[5] + b[4]) / 2 - tol]
         bx = vedo.shapes.Box(
             pos,
             length * scale + padding[0],
-            width * scale + padding[1],
+            width  * scale + padding[1],
             height * scale + padding[2],
             c="gray",
         )
@@ -497,7 +494,7 @@ class CommonAlgorithms:
             bx.properties = pr
         except (AttributeError, TypeError):
             pass
-        bx.flat().lighting("off")
+        bx.flat().lighting("off").wireframe(True)
         return bx
 
     def bounds(self):
