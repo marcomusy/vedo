@@ -227,7 +227,12 @@ class OperationNode:
         self.counts = 0
         self._build_tree(dot)
         self.dot = dot
-        dot.render(".vedo_pipeline_graphviz", view=popup)
+
+        home_dir = os.path.expanduser("~")
+        gpath = os.path.join(
+            home_dir, vedo.settings.cache_directory, "vedo", "pipeline_graphviz")
+
+        dot.render(gpath, view=popup)
 
 
 ###########################################################################

@@ -44,6 +44,9 @@ class Settings:
     # To run a demo try:
     # vedo --run fonts
 
+    # Use this local folder to store downloaded files (default is ~/.cache/vedo)
+    cache_directory = ".cache"
+
     # Palette number when using an integer to choose a color
     palette = 0
 
@@ -165,11 +168,11 @@ class Settings:
     ```
     """
 
-    # Restrict the attributes so accidental typos will generate
-    # an AttributeError exception
+    # Restrict the attributes so accidental typos will generate an AttributeError exception
     __slots__ = [
         "default_font",
         "default_backend",
+        "cache_directory",
         "palette",
         "remember_last_figure_format",
         "screenshot_transparent_background",
@@ -252,6 +255,8 @@ class Settings:
         self.progressbar_delay = 0.5
         self.palette = 0
         self.remember_last_figure_format = False
+
+        self.cache_directory = ".cache" # "/vedo" is added automatically
 
         self.screenshot_transparent_background = False
         self.screeshot_large_image = False

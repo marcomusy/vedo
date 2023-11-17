@@ -1468,14 +1468,15 @@ class Plotter:
             vedo.logger.error(f"in plotter.look() cannot understand argument {plane}")
         return self
 
-    def record(self, filename=".vedo_recorded_events.log"):
+    def record(self, filename=""):
         """
         Record camera, mouse, keystrokes and all other events.
         Recording can be toggled on/off by pressing key "R".
 
         Arguments:
             filename : (str)
-                ascii file to store events. The default is '.vedo_recorded_events.log'.
+                ascii file to store events.
+                The default is `settings.cache_directory+"vedo/recorded_events.log"`.
 
         Returns:
             a string descriptor of events.
@@ -1490,6 +1491,13 @@ class Plotter:
             return self
         erec = vtk.new("InteractorEventRecorder")
         erec.SetInteractor(self.interactor)
+        if not filename:
+            if not os.path.exists(settings.cache_directory):
+                os.makedirs(settings.cache_directory)
+            home_dir = os.path.expanduser("~")
+            filename = os.path.join(
+                home_dir, settings.cache_directory, "vedo", "recorded_events.log")
+            print("Events will be recorded in", filename)
         erec.SetFileName(filename)
         erec.SetKeyPressActivationValue("R")
         erec.EnabledOn()
@@ -1502,13 +1510,14 @@ class Plotter:
         erec = None
         return events
 
-    def play(self, events=".vedo_recorded_events.log", repeats=0):
+    def play(self, recorded_events="", repeats=0):
         """
         Play camera, mouse, keystrokes and all other events.
 
         Arguments:
             events : (str)
-                file o string of events. The default is '.vedo_recorded_events.log'.
+                file o string of events.
+                The default is `settings.cache_directory+"vedo/recorded_events.log"`.
             repeats : (int)
                 number of extra repeats of the same events. The default is 0.
 
@@ -1524,12 +1533,17 @@ class Plotter:
         erec = vtk.new("InteractorEventRecorder")
         erec.SetInteractor(self.interactor)
 
-        if events.endswith(".log"):
+        if not recorded_events:
+            home_dir = os.path.expanduser("~")
+            recorded_events = os.path.join(
+                home_dir, settings.cache_directory, "vedo", "recorded_events.log")
+
+        if recorded_events.endswith(".log"):
             erec.ReadFromInputStringOff()
-            erec.SetFileName(events)
+            erec.SetFileName(recorded_events)
         else:
             erec.ReadFromInputStringOn()
-            erec.SetInputString(events)
+            erec.SetInputString(recorded_events)
 
         erec.Play()
         for _ in range(repeats):

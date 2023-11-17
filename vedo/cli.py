@@ -436,7 +436,7 @@ def exe_search_vtk(args):
 
     xref_url = "https://raw.githubusercontent.com/Kitware/vtk-examples/gh-pages/src/Coverage/vtk_vtk-examples_xref.json"
 
-    def download_file(dl_path, dl_url, overwrite=False):
+    def _download_file(dl_path, dl_url, overwrite=False):
         file_name = dl_url.split("/")[-1]
         # Create necessary sub-directories in the dl_path (if they don't exist).
         Path(dl_path).mkdir(parents=True, exist_ok=True)
@@ -449,7 +449,7 @@ def exe_search_vtk(args):
                 raise RuntimeError(f"Failed to download {dl_url}. {e.reason}")
         return path
 
-    def get_examples(d, vtk_class, lang):
+    def _get_examples(d, vtk_class, lang):
         try:
             kv = d[vtk_class][lang].items()
         except KeyError as e:
@@ -461,18 +461,18 @@ def exe_search_vtk(args):
 
     vtk_class, language, all_values, number = args.search_vtk, "Python", True, 10000
     tmp_dir = tempfile.gettempdir()
-    path = download_file(tmp_dir, xref_url, overwrite=False)
+    path = _download_file(tmp_dir, xref_url, overwrite=False)
     if not path.is_file():
         print(f"The path: {str(path)} does not exist.")
 
     dt = datetime.today().timestamp() - os.path.getmtime(path)
     # Force a new download if the time difference is > 10 minutes.
     if dt > 600:
-        path = download_file(tmp_dir, xref_url, overwrite=True)
+        path = _download_file(tmp_dir, xref_url, overwrite=True)
     with open(path, "r", encoding="UTF-8") as json_file:
         xref_dict = json.load(json_file)
 
-    total_number, examples = get_examples(xref_dict, vtk_class, language)
+    total_number, examples = _get_examples(xref_dict, vtk_class, language)
     if examples:
         if total_number <= number or all_values:
             print(

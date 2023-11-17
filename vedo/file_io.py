@@ -441,54 +441,71 @@ def _load_file(filename, unpack):
     return actor
 
 ########################################################################
-def download(url, force=False, verbose=True):
+def download(url, to_local_file="", force=False, verbose=True):
     """
-    Retrieve a file from a URL, save it locally and return its path.
-    Use `force=True` to force a reload and discard cached copies.
+    Downloads a file from `url` to `to_local_file` if the local copy is outdated.
+
+    Arguments:
+        url : (str)
+            The URL to download the file from.
+        to_local_file : (str)
+            The local file name to save the file to. 
+            If not specified, the file name will be the same as the remote file name.
+        force : (bool)
+            Force a new download even if the local file is up to date.
+        verbose : (bool)
+            Print verbose messages.
     """
     if not url.startswith("https://"):
-        # vedo.logger.error(f"Invalid URL (must start with https):\n{url}")
-        # assume it's a file so no need to download
-        return url
-    url = url.replace("www.dropbox", "dl.dropbox")
+        if os.path.exists(url):
+            # Assume the url is already the local file path
+            return url
+        else:
+            raise FileNotFoundError(f"File not found: {url}")
 
-    if "github.com" in url:
-        url = url.replace("/blob/", "/raw/")
+    from datetime import datetime
+    import requests
 
-    basename = os.path.basename(url)
+    # Get the user's home directory
+    home_directory = os.path.expanduser("~")
 
-    if "?" in basename:
-        basename = basename.split("?")[0]
+    # Define the path for the cache directory
+    cachedir = os.path.join(home_directory, settings.cache_directory, "vedo")
 
-    tmp_file = NamedTemporaryFile(delete=False)
-    tmp_file.name = os.path.join(os.path.dirname(tmp_file.name), os.path.basename(basename))
+    # Create the directory if it does not exist
+    if not os.path.exists(cachedir):
+        os.makedirs(cachedir)
 
-    if not force and os.path.exists(tmp_file.name):
-        if verbose:
-            colors.printc("reusing cached file:", tmp_file.name)
-            # colors.printc("     (use force=True to force a new download)")
-        return tmp_file.name
+    if not to_local_file:
+        to_local_file = os.path.join(cachedir, os.path.basename(url))
+        if verbose: print(f"Using local file name: {to_local_file}")
 
-    try:
-        from urllib.request import urlopen, Request
-        req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        if verbose:
-            colors.printc("reading", basename, "from", url.split("/")[2][:40], "...", end="")
+    # Check if the local file exists and get its last modified time
+    if os.path.exists(to_local_file):
+        to_local_file_modified_time = os.path.getmtime(to_local_file)
+    else:
+        to_local_file_modified_time = 0
 
-    except ImportError:
-        import urllib2
-        import contextlib
-        urlopen = lambda url_: contextlib.closing(urllib2.urlopen(url_))
-        req = url
-        if verbose:
-            colors.printc("reading", basename, "from", url.split("/")[2][:40], "...", end="")
+    # Send a HEAD request to get last modified time of the remote file
+    response = requests.head(url)
+    if 'Last-Modified' in response.headers:
+        remote_file_modified_time = datetime.strptime(
+            response.headers['Last-Modified'], '%a, %d %b %Y %H:%M:%S GMT'
+        ).timestamp()
+    else:
+        # If the Last-Modified header not available, assume file needs to be downloaded
+        remote_file_modified_time = float('inf')
 
-    with urlopen(req) as response, open(tmp_file.name, "wb") as output:
-        output.write(response.read())
+    # Download the file if the remote file is newer
+    if force or remote_file_modified_time > to_local_file_modified_time:
+        response = requests.get(url)
+        with open(to_local_file, 'wb') as file:
+            file.write(response.content)
+            if verbose: print(f"Downloaded file from {url} -> {to_local_file}")
+    else:
+        if verbose: print("Local file is up to date.")
+    return to_local_file
 
-    if verbose:
-        colors.printc(" done.")
-    return tmp_file.name
 
 ########################################################################
 def gunzip(filename):
