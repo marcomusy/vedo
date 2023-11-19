@@ -2205,12 +2205,12 @@ class Plotter:
             padding : (float)
                 padding space in pixels.
         """
-        if lw:
-            if c is None:  # automatic black or white
-                c = (0.9, 0.9, 0.9)
-                if np.sum(vedo.plotter_instance.renderer.GetBackground()) > 1.5:
-                    c = (0.1, 0.1, 0.1)
-            renf = addons.RendererFrame(c, alpha, lw, padding)
+        if c is None:  # automatic black or white
+            c = (0.9, 0.9, 0.9)
+            if np.sum(vedo.plotter_instance.renderer.GetBackground()) > 1.5:
+                c = (0.1, 0.1, 0.1)
+        renf = addons.RendererFrame(c, alpha, lw, padding)
+        if renf:
             self.renderer.AddActor(renf)
         return self
 
