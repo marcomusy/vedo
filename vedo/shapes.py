@@ -9,7 +9,7 @@ import vedo.vtkclasses as vtk
 
 import vedo
 from vedo import settings
-from vedo.transformations import pol2cart, cart2spher, spher2cart
+from vedo.transformations import LinearTransform, pol2cart, cart2spher, spher2cart
 from vedo.colors import cmaps_names, get_color, printc
 from vedo import utils
 from vedo.pointcloud import Points, merge
@@ -2871,9 +2871,9 @@ class Ellipsoid(Mesh):
     def __init__(
         self,
         pos=(0, 0, 0),
-        axis1=(1, 0, 0),
-        axis2=(0, 2, 0),
-        axis3=(0, 0, 3),
+        axis1=(0.5, 0, 0),
+        axis2=(0, 1, 0),
+        axis3=(0, 0, 1.5),
         res=24,
         c="cyan4",
         alpha=1.0,
@@ -2891,15 +2891,21 @@ class Ellipsoid(Mesh):
 
         .. note:: `axis1` and `axis2` are only used to define sizes and one azimuth angle.
         """
-
         self.center = pos
+
+        self.axis1 = np.asarray(axis1)
+        self.axis2 = np.asarray(axis2)
+        self.axis3 = np.asarray(axis3)
+
+        self.va = np.linalg.norm(self.axis1)
+        self.vb = np.linalg.norm(self.axis2)
+        self.vc = np.linalg.norm(self.axis3)
+
         self.va_error = 0
         self.vb_error = 0
         self.vc_error = 0
-        self.axis1 = axis1
-        self.axis2 = axis2
-        self.axis3 = axis3
-        self.nr_of_points = 1  # used by pcaEllipsoid
+
+        self.nr_of_points = 1  # used by pca_ellipsoid()
 
         if utils.is_sequence(res):
             res_t, res_phi = res
@@ -2907,40 +2913,19 @@ class Ellipsoid(Mesh):
             res_t, res_phi = 2 * res, res
 
         elli_source = vtk.new("SphereSource")
+        elli_source.SetRadius(1)
         elli_source.SetThetaResolution(res_t)
         elli_source.SetPhiResolution(res_phi)
         elli_source.Update()
-        l1 = np.linalg.norm(axis1)
-        l2 = np.linalg.norm(axis2)
-        l3 = np.linalg.norm(axis3)
-        self.va = l1
-        self.vb = l2
-        self.vc = l3
-        axis1 = np.array(axis1) / l1
-        axis2 = np.array(axis2) / l2
-        axis3 = np.array(axis3) / l3
-        angle = np.arcsin(np.dot(axis1, axis2))
-        theta = np.arccos(axis3[2])
-        phi = np.arctan2(axis3[1], axis3[0])
 
-        t = vtk.vtkTransform()
-        t.PostMultiply()
-        t.Scale(l1, l2, l3)
-        t.RotateX(np.rad2deg(angle))
-        t.RotateY(np.rad2deg(theta))
-        t.RotateZ(np.rad2deg(phi))
-        tf = vtk.new("TransformPolyDataFilter")
-        tf.SetInputData(elli_source.GetOutput())
-        tf.SetTransform(t)
-        tf.Update()
-        pd = tf.GetOutput()
-        self.transformation = t
+        super().__init__(elli_source.GetOutput(), c, alpha)
 
-        super().__init__(pd, c, alpha)
-        self.phong()
-        if len(pos) == 2:
-            pos = (pos[0], pos[1], 0)
-        self.pos(pos)
+        pos = utils.make3d(pos)
+
+        matrix = np.c_[self.axis1, self.axis2, self.axis3]
+        lt = LinearTransform(matrix).translate(pos)
+        self.apply_transform(lt)
+
         self.name = "Ellipsoid"
 
     def asphericity(self):
