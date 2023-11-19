@@ -93,8 +93,6 @@ class Group(CommonVisual, vtk.vtkPropAssembly):
         self.rendered_at = set()
         self.scalarbar = None
 
-        # self.transform = LinearTransform()
-
         for a in vedo.utils.flatten(objects):
             if a:
                 self.AddPart(a.actor)

@@ -334,7 +334,7 @@ class Slicer3DTwinPlotter(Plotter):
         plt.interactive().close()
         ```
 
-        <img src="https://vedo.embl.es/images/volumetric/slicer3dtwin.png" width="500">
+        <img src="https://vedo.embl.es/images/volumetric/slicer3dtwin.png" width="650">
     """
 
     def __init__(self, vol1, vol2, clamp=True, **kwargs):

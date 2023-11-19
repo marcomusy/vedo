@@ -65,6 +65,7 @@ def _to2d(obj, offset, scale):
     act2d.GetProperty().SetOpacity(obj.alpha())
     act2d.GetProperty().SetLineWidth(obj.properties.GetLineWidth())
     act2d.GetProperty().SetPointSize(obj.properties.GetPointSize())
+    # act2d.GetProperty().SetDisplayLocationToForeground()
 
     act2d.PickableOff()
 
@@ -1727,7 +1728,9 @@ class PlotXY(Figure):
         self.entries = len(data)
         self.mean = data.mean()
         self.std = data.std()
-
+        
+        self.ztolerance = 0
+        
         ######### the PlotXY marker
         # fall back solutions logic for colors
         if "c" in fig_kwargs:

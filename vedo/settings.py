@@ -111,7 +111,7 @@ class Settings:
     # Turn on/off rendering of translucent material with depth peeling technique
     use_depth_peeling = False
     alpha_bit_planes  = True   # options only active if useDepthPeeling=True
-    multi_samples     = 16     # antialiasing multisample buffer
+    multi_samples     = 8      # antialiasing multisample buffer
     max_number_of_peels= 4     # maximum number of rendering passes
     occlusion_ratio   = 0.0    # occlusion ratio, 0 = exact image.
 
@@ -282,7 +282,7 @@ class Settings:
         self.two_sided_lighting = True
 
         self.use_depth_peeling = False
-        self.multi_samples = 16
+        self.multi_samples = 8
         self.alpha_bit_planes = 1
         self.max_number_of_peels = 4
         self.occlusion_ratio = 0.1

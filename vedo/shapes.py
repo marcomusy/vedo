@@ -274,9 +274,9 @@ class Glyph(Mesh):
 class Tensors(Mesh):
     """
     Geometric representation of tensors defined on a domain or set of points.
-    Tensors can be scaled and/or rotated according to the source at eache input point.
-    Scaling and rotation is controlled by the eigenvalues/eigenvectors of the symmetrical part
-    of the tensor as follows:
+    Tensors can be scaled and/or rotated according to the source at each input point.
+    Scaling and rotation is controlled by the eigenvalues/eigenvectors of the
+    symmetrical part of the tensor as follows:
 
     For each tensor, the eigenvalues (and associated eigenvectors) are sorted
     to determine the major, medium, and minor eigenvalues/eigenvectors.
@@ -295,14 +295,14 @@ class Tensors(Mesh):
         scale=1.0,
         max_scale=None,
         length=None,
+        res=24,
         c=None,
         alpha=1.0,
     ):
         """
         Arguments:
             source : (str, Mesh)
-                preset type of source shape
-                `['ellipsoid', 'cylinder', 'cube' or any specified `Mesh`]`
+                preset types of source shapes is "ellipsoid", "cylinder", "cube" or a `Mesh` object.
             use_eigenvalues : (bool)
                 color source glyph using the eigenvalues or by scalars
             three_axes : (bool)
@@ -327,30 +327,35 @@ class Tensors(Mesh):
         Examples:
             - [tensors.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/tensors.py)
             - [tensor_grid1.py](https://github.com/marcomusy/vedo/tree/master/examples/other/tensor_grid1.py)
+            - [tensor_grid2.py](https://github.com/marcomusy/vedo/tree/master/examples/other/tensor_grid2.py)
 
             ![](https://vedo.embl.es/images/volumetric/tensor_grid.png)
         """
         if isinstance(source, Points):
-            src = source.normalize()
-        else:
+            src = source.dataset
+        else: # is string
             if "ellip" in source:
                 src = vtk.new("SphereSource")
-                src.SetPhiResolution(24)
-                src.SetThetaResolution(12)
+                src.SetPhiResolution(res)
+                src.SetThetaResolution(res*2)
             elif "cyl" in source:
                 src = vtk.new("CylinderSource")
-                src.SetResolution(48)
+                src.SetResolution(res)
                 src.CappingOn()
             elif source == "cube":
                 src = vtk.new("CubeSource")
+            else:
+                vedo.logger.error("Unknown source type", source)
+                raise ValueError()
             src.Update()
+            src = src.GetOutput()
 
         tg = vtk.new("TensorGlyph")
         if isinstance(domain, vtk.vtkPolyData):
             tg.SetInputData(domain)
         else:
             tg.SetInputData(domain.dataset)
-        tg.SetSourceData(src.GetOutput())
+        tg.SetSourceData(src)
 
         if c is None:
             tg.ColorGlyphsOn()
@@ -366,6 +371,7 @@ class Tensors(Mesh):
             tg.SetColorModeToEigenvalues()
         else:
             tg.SetColorModeToScalars()
+
         tg.SetThreeGlyphs(three_axes)
         tg.ScalingOn()
         tg.SetScaleFactor(scale)
@@ -373,10 +379,13 @@ class Tensors(Mesh):
             tg.ClampScalingOn()
             max_scale = scale * 10
         tg.SetMaxScaleFactor(max_scale)
+
         tg.Update()
         tgn = vtk.new("PolyDataNormals")
+        tgn.ComputeCellNormalsOff()
         tgn.SetInputData(tg.GetOutput())
         tgn.Update()
+
         super().__init__(tgn.GetOutput(), c, alpha)
         self.name = "Tensors"
 
@@ -2412,7 +2421,7 @@ class Circle(Polygon):
         """
         super().__init__(pos, nsides=res, r=r)
 
-        self.center = []  # filled by pointcloud.pcaEllipse
+        self.center = []  # filled by pointcloud.pca_ellipse()
         self.nr_of_points = 0
         self.va = 0
         self.vb = 0
@@ -2420,7 +2429,17 @@ class Circle(Polygon):
         self.axis2 = []
         self.alpha(alpha).c(c)
         self.name = "Circle"
-
+    
+    def acircularity(self):
+        """
+        Return a measure of how different an ellipse is from a circle.
+        Values close to zero correspond to a circular object.
+        """
+        a, b = self.va, self.vb
+        value = 0
+        if a+b:
+            value = ((a-b)/(a+b))**2
+        return value
 
 class GeoCircle(Polygon):
     """
@@ -2864,10 +2883,7 @@ class Earth(Mesh):
 
 
 class Ellipsoid(Mesh):
-    """
-    Build a 3D ellipsoid.
-    """
-
+    """Build a 3D ellipsoid."""
     def __init__(
         self,
         pos=(0, 0, 0),
@@ -2888,14 +2904,12 @@ class Ellipsoid(Mesh):
                 Second axis
             axis3 : (list)
                 Third axis
+        """        
+        self.center = utils.make3d(pos)
 
-        .. note:: `axis1` and `axis2` are only used to define sizes and one azimuth angle.
-        """
-        self.center = pos
-
-        self.axis1 = np.asarray(axis1)
-        self.axis2 = np.asarray(axis2)
-        self.axis3 = np.asarray(axis3)
+        self.axis1 = utils.make3d(axis1)
+        self.axis2 = utils.make3d(axis2)
+        self.axis3 = utils.make3d(axis3)
 
         self.va = np.linalg.norm(self.axis1)
         self.vb = np.linalg.norm(self.axis2)
@@ -2905,7 +2919,7 @@ class Ellipsoid(Mesh):
         self.vb_error = 0
         self.vc_error = 0
 
-        self.nr_of_points = 1  # used by pca_ellipsoid()
+        self.nr_of_points = 1  # used by pointcloud.pca_ellipsoid()
 
         if utils.is_sequence(res):
             res_t, res_phi = res
@@ -2920,8 +2934,6 @@ class Ellipsoid(Mesh):
 
         super().__init__(elli_source.GetOutput(), c, alpha)
 
-        pos = utils.make3d(pos)
-
         matrix = np.c_[self.axis1, self.axis2, self.axis3]
         lt = LinearTransform(matrix).translate(pos)
         self.apply_transform(lt)
@@ -2930,7 +2942,7 @@ class Ellipsoid(Mesh):
 
     def asphericity(self):
         """
-        Return a measure of how different an ellipsoid is froma sphere.
+        Return a measure of how different an ellipsoid is from a sphere.
         Values close to zero correspond to a spheric object.
         """
         a,b,c = self.va, self.vb, self.vc

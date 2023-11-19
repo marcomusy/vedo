@@ -689,6 +689,7 @@ class Points(PointsVisual, PointAlgorithms):
         for key in self.pointdata.keys():
             arr = self.pointdata[key]
             rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
+            dim = arr.shape[1] if arr.ndim > 1 else 1
             mark_active = "pointdata"
             a_scalars = self.dataset.GetPointData().GetScalars()
             a_vectors = self.dataset.GetPointData().GetVectors()
@@ -699,12 +700,13 @@ class Points(PointsVisual, PointAlgorithms):
                 mark_active += " **"
             elif a_tensors and a_tensors.GetName() == key:
                 mark_active += " ***"
-            out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), ndim={arr.ndim}'
+            out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), dim={dim}'
             out += f", range=({rng})\n"
 
         for key in self.celldata.keys():
             arr = self.celldata[key]
             rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
+            dim = arr.shape[1] if arr.ndim > 1 else 1
             mark_active = "celldata"
             a_scalars = self.dataset.GetCellData().GetScalars()
             a_vectors = self.dataset.GetCellData().GetVectors()
@@ -715,7 +717,7 @@ class Points(PointsVisual, PointAlgorithms):
                 mark_active += " **"
             elif a_tensors and a_tensors.GetName() == key:
                 mark_active += " ***"
-            out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), ndim={arr.ndim}'
+            out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), dim={dim}'
             out += f", range=({rng})\n"
 
         for key in self.metadata.keys():

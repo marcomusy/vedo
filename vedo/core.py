@@ -229,12 +229,14 @@ class DataArrayHelper:
         if not arr:
             return
 
-        # NEW
         nc = arr.GetNumberOfComponents()
+        # print("GetNumberOfComponents", nc)
         if nc == 1:
             data.SetActiveScalars(key)
-        elif nc >= 2:
-            if "rgb" in key.lower() and nc != 2:
+        elif nc == 2:
+            data.SetTCoords(arr)
+        elif nc == 3 or nc == 4:
+            if "rgb" in key.lower():
                 data.SetActiveScalars(key)
                 try:
                     # could be a volume mapper
@@ -243,8 +245,11 @@ class DataArrayHelper:
                     pass
             else:
                 data.SetActiveVectors(key)
-        elif nc >= 4:
+        elif nc == 9:
             data.SetActiveTensors(key)
+        else:
+            vedo.logger.error(f"Cannot select array {key} with {nc} components")
+            return
 
         try:
             # could be a volume mapper
@@ -253,82 +258,68 @@ class DataArrayHelper:
         except AttributeError:
             pass
 
-        # # OLD
-        # nc = arr.GetNumberOfComponents()
-        # if nc == 1:
-        #     data.SetActiveScalars(key)
-        # elif nc >= 2:
-        #     if "rgb" in key.lower():
-        #         data.SetActiveScalars(key)
-        #         # try:
-        #         #     self.mapper.SetColorModeToDirectScalars()
-        #         # except AttributeError:
-        #         #     pass
-        #     else:
-        #         data.SetActiveVectors(key)
-        # elif nc >= 4:
-        #     data.SetActiveTensors(key)
+    # def select_scalars(self, key):
+    #     """Select one specific scalar array by its name to make it the `active` one."""
+    #     if self.association == 0:
+    #         data = self.obj.dataset.GetPointData()
+    #         self.obj.mapper.SetScalarModeToUsePointData()
+    #     else:
+    #         data = self.obj.dataset.GetCellData()
+    #         self.obj.mapper.SetScalarModeToUseCellData()
 
-        # try:
-        #     # could be a volume mapper
-        #     self.obj.mapper.SetArrayName(key)
-        #     self.obj.mapper.ScalarVisibilityOn()
-        # except AttributeError:
-        #     pass
+    #     if isinstance(key, int):
+    #         key = data.GetArrayName(key)
+    #     data.SetActiveScalars(key)
 
-    def select_scalars(self, key):
-        """Select one specific scalar array by its name to make it the `active` one."""
-        if self.association == 0:
-            data = self.obj.dataset.GetPointData()
-            self.obj.mapper.SetScalarModeToUsePointData()
-        else:
-            data = self.obj.dataset.GetCellData()
-            self.obj.mapper.SetScalarModeToUseCellData()
+    #     try:
+    #         self.obj.mapper.SetArrayName(key)
+    #         self.obj.mapper.ScalarVisibilityOn()
+    #     except AttributeError:
+    #         pass
 
-        if isinstance(key, int):
-            key = data.GetArrayName(key)
+    # def select_vectors(self, key):
+    #     """Select one specific vector array by its name to make it the `active` one."""
+    #     if self.association == 0:
+    #         data = self.obj.dataset.GetPointData()
+    #         self.obj.mapper.SetScalarModeToUsePointData()
+    #     else:
+    #         data = self.obj.dataset.GetCellData()
+    #         self.obj.mapper.SetScalarModeToUseCellData()
 
-        data.SetActiveScalars(key)
+    #     if isinstance(key, int):
+    #         key = data.GetArrayName(key)
+    #     data.SetActiveVectors(key)
 
-        try:
-            self.obj.mapper.SetArrayName(key)
-            self.obj.mapper.ScalarVisibilityOn()
-        except AttributeError:
-            pass
-
-    def select_vectors(self, key):
-        """Select one specific vector array by its name to make it the `active` one."""
-        if self.association == 0:
-            data = self.obj.dataset.GetPointData()
-            self.obj.mapper.SetScalarModeToUsePointData()
-        else:
-            data = self.obj.dataset.GetCellData()
-            self.obj.mapper.SetScalarModeToUseCellData()
-
-        if isinstance(key, int):
-            key = data.GetArrayName(key)
-
-        data.SetActiveVectors(key)
-
-        try:
-            self.obj.mapper.SetArrayName(key)
-            self.obj.mapper.ScalarVisibilityOn()
-        except AttributeError:
-            pass
+    #     try:
+    #         self.obj.mapper.SetArrayName(key)
+    #         self.obj.mapper.ScalarVisibilityOn()
+    #     except AttributeError:
+    #         pass
     
-    def select_texture_coords(self, key):
-        """Select one specific array to be used as texture coordinates."""
+    # def select_texture_coords(self, key):
+    #     """Select one specific array to be used as texture coordinates."""
+    #     if self.association == 0:
+    #         data = self.obj.dataset.GetPointData()
+    #     else:
+    #         vedo.logger.warning("texture coordinates are only available for point data")
+    #         return
+
+    #     if isinstance(key, int):
+    #         key = data.GetArrayName(key)
+    #     data.SetTCoords(data.GetArray(key))
+
+    def select_normals(self, key):
+        """Select one specific normal array by its name to make it the "active" one."""
         if self.association == 0:
             data = self.obj.dataset.GetPointData()
+            self.obj.mapper.SetScalarModeToUsePointData()
         else:
-            vedo.logger.warning("texture coordinates are only available for point data")
-            return
+            data = self.obj.dataset.GetCellData()
+            self.obj.mapper.SetScalarModeToUseCellData()
 
         if isinstance(key, int):
             key = data.GetArrayName(key)
-        
-        data.SetTCoords(data.GetArray(key))
-
+        data.SetActiveNormals(key)
 
     def print(self, **kwargs):
         """Print the array names available to terminal"""
