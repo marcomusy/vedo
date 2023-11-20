@@ -155,7 +155,8 @@ class LinearTransform:
             s += "\ncomment".ljust(15) + f': \x1b[3m"{self.comment}"\x1b[0m'
         s += f"\nconcatenations".ljust(15) + f": {self.n_concatenated_transforms}"
         s += "\ninverse flag".ljust(15) + f": {bool(self.inverse_flag)}"
-        arr = np.array2string(self.matrix, separator=', ')
+        arr = np.array2string(self.matrix,
+            separator=', ', precision=6, suppress_small=True)
         s += "\nmatrix 4x4".ljust(15) + f":\n{arr}"
         return s
 
@@ -296,14 +297,16 @@ class LinearTransform:
         """Get number of concatenated transforms."""
         return self.T.GetNumberOfConcatenatedTransforms()
 
-    def translate(self, *p):
+    def translate(self, p):
         """Translate, same as `shift`."""
-        self.T.Translate(*p)
+        if len(p) == 2:
+            p = [p[0], p[1], 0]
+        self.T.Translate(p)
         return self
 
-    def shift(self, *p):
+    def shift(self, p):
         """Shift, same as `translate`."""
-        return self.translate(*p)
+        return self.translate(p)
 
     def scale(self, s, origin=True):
         """Scale."""

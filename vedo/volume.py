@@ -238,7 +238,8 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         out += "\x1b[0m\x1b[36;1m"
 
         out+= "name".ljust(14) + ": " + str(self.name) + "\n"
-        out+= "filename".ljust(14) + ": " + str(self.filename) + "\n"
+        if self.filename:
+            out+= "filename".ljust(14) + ": " + str(self.filename) + "\n"
 
         out+= "dimensions".ljust(14) + ": " + str(self.shape) + "\n"
 

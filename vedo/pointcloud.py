@@ -320,12 +320,12 @@ def fit_sphere(coords):
 
 def pca_ellipse(points, pvalue=0.673, res=60):
     """
-    Show the oriented PCA (Principal Component Analysis) 2D ellipse
-    that contains the fraction `pvalue` of points.
+    Create the oriented 2D ellipse that contains the fraction `pvalue` of points.
+    PCA (Principal Component Analysis) is used to compute the ellipse orientation.
 
     Parameter `pvalue` sets the specified fraction of points inside the ellipse.
-    Normalized directions are stored in `ellipse.axis1`, `ellipse.axis12`
-    axes sizes are stored in `ellipse.va`, `ellipse.vb`
+    Normalized directions are stored in `ellipse.axis1`, `ellipse.axis2`.
+    Axes sizes are stored in `ellipse.va`, `ellipse.vb`
 
     Arguments:
         pvalue : (float)
@@ -334,6 +334,7 @@ def pca_ellipse(points, pvalue=0.673, res=60):
             resolution of the ellipse
 
     Examples:
+        - [pca_ellipse.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/pca_ellipse.py)
         - [histo_pca.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_pca.py)
 
             ![](https://vedo.embl.es/images/pyplot/histo_pca.png)
@@ -349,57 +350,58 @@ def pca_ellipse(points, pvalue=0.673, res=60):
         return None
 
     P = np.array(coords, dtype=float)[:, (0, 1)]
-    cov = np.cov(P, rowvar=0)  # covariance matrix
-    _, s, R = np.linalg.svd(cov)  # singular value decomposition
+    cov = np.cov(P, rowvar=0)      # covariance matrix
+    _, s, R = np.linalg.svd(cov)   # singular value decomposition
     p, n = s.size, P.shape[0]
-    fppf = f.ppf(pvalue, p, n - p)  # f % point function
-    ua, ub = np.sqrt(s * fppf / 2) * 2  # semi-axes (largest first)
-    center = np.mean(P, axis=0)  # centroid of the ellipse
+    fppf = f.ppf(pvalue, p, n - p) # f % point function
+    u = np.sqrt(s * fppf / 2) * 2  # semi-axes (largest first)
+    ua, ub = u
+    center = utils.make3d(np.mean(P, axis=0)) # centroid of the ellipse
 
-    matri = vtk.vtkMatrix4x4()
-    matri.DeepCopy((
-        R[0][0] * ua, R[1][0] * ub, 0, center[0],
-        R[0][1] * ua, R[1][1] * ub, 0, center[1],
-                   0,            0, 1,         0,
-        0, 0, 0, 1)
-    )
-    vtra = vtk.vtkTransform()
-    vtra.SetMatrix(matri)
-
+    t = LinearTransform(R.T * u).translate(center)
     elli = vedo.shapes.Circle(alpha=0.75, res=res)
-    elli.apply_transform(vtra)
+    elli.apply_transform(t)
+    elli.properties.LightingOff()
 
     elli.pvalue = pvalue
     elli.center = np.array([center[0], center[1], 0])
     elli.nr_of_points = n
     elli.va = ua
     elli.vb = ub
-    # we subtract center because it's in M
-    elli.axis1 = np.array(vtra.TransformPoint([1, 0, 0])) - elli.center
-    elli.axis2 = np.array(vtra.TransformPoint([0, 1, 0])) - elli.center
+    
+    # we subtract center because it's in t
+    elli.axis1 = t.move([1, 0, 0]) - center
+    elli.axis2 = t.move([0, 1, 0]) - center
+
     elli.axis1 /= np.linalg.norm(elli.axis1)
     elli.axis2 /= np.linalg.norm(elli.axis2)
     elli.name = "PCAEllipse"
     return elli
 
 
-def pca_ellipsoid(points, pvalue=0.673):
+def pca_ellipsoid(points, pvalue=0.673, res=24):
     """
-    Show the oriented PCA (Principal Component Analysis) ellipsoid
-    that contains fraction `pvalue` of points.
-
-    Parameter `pvalue` sets the specified fraction of points inside the ellipsoid.
-
-    Extra can be calculated with `mesh.asphericity()`, `mesh.asphericity_error()`
-    (asphericity is equal to 0 for a perfect sphere).
+    Create the oriented ellipsoid that contains the fraction `pvalue` of points.
+    PCA (Principal Component Analysis) is used to compute the ellipsoid orientation.
 
     Axes sizes can be accessed in `ellips.va`, `ellips.vb`, `ellips.vc`,
-    normalized directions are stored in `ellips.axis1`, `ellips.axis12` and `ellips.axis3`.
+    normalized directions are stored in `ellips.axis1`, `ellips.axis2` and `ellips.axis3`.
+    Center of mass is stored in `ellips.center`.
 
+    Asphericity can be accessed in `ellips.asphericity()` and ellips.asphericity_error().
+    A value of 0 means a perfect sphere.
+
+    Arguments:
+        pvalue : (float)
+            ellipsoid will include this fraction of points
+   
     Examples:
         [pca_ellipsoid.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/pca_ellipsoid.py)
 
             ![](https://vedo.embl.es/images/basic/pca.png)
+    
+    See also:
+        `pca_ellipse()` for a 2D ellipse.
     """
     from scipy.stats import f
 
@@ -408,7 +410,7 @@ def pca_ellipsoid(points, pvalue=0.673):
     else:
         coords = points
     if len(coords) < 4:
-        vedo.logger.warning("in pca_ellipsoid(), there are not enough points!")
+        vedo.logger.warning("in pca_ellipsoid(), not enough input points!")
         return None
 
     P = np.array(coords, ndmin=2, dtype=float)
@@ -416,23 +418,15 @@ def pca_ellipsoid(points, pvalue=0.673):
     _, s, R = np.linalg.svd(cov)  # singular value decomposition
     p, n = s.size, P.shape[0]
     fppf = f.ppf(pvalue, p, n-p)*(n-1)*p*(n+1)/n/(n-p)  # f % point function
-    cfac = 1 + 6/(n-1)            # correction factor for low statistics
-    ua, ub, uc = np.sqrt(s*fppf)/cfac  # semi-axes (largest first)
+    u = np.sqrt(s*fppf)
+    ua, ub, uc = u                # semi-axes (largest first)
     center = np.mean(P, axis=0)   # centroid of the hyperellipsoid
 
-    M = vtk.vtkMatrix4x4()
-    M.DeepCopy((
-        R[0][0] * ua*2, R[1][0] * ub*2, R[2][0] * uc*2, center[0],
-        R[0][1] * ua*2, R[1][1] * ub*2, R[2][1] * uc*2, center[1],
-        R[0][2] * ua*2, R[1][2] * ub*2, R[2][2] * uc*2, center[2],
-        0, 0, 0, 1)
-    )
-    vtra = vtk.vtkTransform()
-    vtra.SetMatrix(M)
-
-    elli = vedo.shapes.Ellipsoid((0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1), alpha=0.25)
+    t = LinearTransform(R.T * u).translate(center)
+    elli = vedo.shapes.Ellipsoid((0,0,0), (1,0,0), (0,1,0), (0,0,1), res=res)
+    elli.apply_transform(t)
+    elli.alpha(0.25)
     elli.properties.LightingOff()
-    elli.apply_transform(vtra)
 
     elli.pvalue = pvalue
     elli.nr_of_points = n
@@ -440,10 +434,10 @@ def pca_ellipsoid(points, pvalue=0.673):
     elli.va = ua
     elli.vb = ub
     elli.vc = uc
-    # we subtract center because it's in M
-    elli.axis1 = np.array(vtra.TransformPoint([1, 0, 0])) - center
-    elli.axis2 = np.array(vtra.TransformPoint([0, 1, 0])) - center
-    elli.axis3 = np.array(vtra.TransformPoint([0, 0, 1])) - center
+    # we subtract center because it's in t
+    elli.axis1 = np.array(t.move([1, 0, 0])) - center
+    elli.axis2 = np.array(t.move([0, 1, 0])) - center
+    elli.axis3 = np.array(t.move([0, 0, 1])) - center
     elli.axis1 /= np.linalg.norm(elli.axis1)
     elli.axis2 /= np.linalg.norm(elli.axis2)
     elli.axis3 /= np.linalg.norm(elli.axis3)

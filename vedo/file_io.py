@@ -1852,7 +1852,11 @@ def ask(*question, **kwarg):
     else:
         colors.printc(*question, **kwarg)
 
-    resp = input()
+    try:
+        resp = input()
+    except Exception:
+        resp = ""
+        return resp
 
     if options:
         if resp not in options:

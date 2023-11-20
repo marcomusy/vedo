@@ -12,14 +12,19 @@ pl.SetModelBounds(-10,10,-10,10,-10,10)
 pl.Update()
 
 vol = Volume(pl.GetOutput()).mode(1)
-print(vol.pointdata)
+print(vol)
 
 # Extract a slice of the volume data at index 3
 zsl = vol.zslice(3)
 
 # Generate tensor ellipsoids
-tens1 = Tensors(vol, source='ellipse', scale=10)
-tens2 = Tensors(zsl, source='ellipse', scale=20)
+tens1 = Tensors(vol, source='ellipse', scale=10).cmap("Reds")
+print(tens1)
 
-show([(vol, __doc__), tens1], N=2, axes=9, bg='w', viewup='z')
-show(vol, tens2, zsl, axes=9, viewup='z', new=True)
+tens2 = Tensors(zsl, source='ellipse', scale=20).cmap("Greens")
+print(tens2)
+
+show([(vol, __doc__), tens1], N=2, axes=9, viewup='z').close()
+
+show(vol, tens2, zsl, axes=9, viewup='z').close()
+

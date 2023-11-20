@@ -72,14 +72,22 @@ Pressing `h` will then show a number of options to interact with your 3D scene:
    Esc   abort execution and exit python kernel       
 ```
 
-<!-- .. include:: ../docs/tutorials.md -->
+### Some useful bash aliases
+```bash
+alias vr='vedo --run '      # to search and run examples by name
+alias vs='vedo --search '   # to search for a string in examples
+alias ve='vedo --eog '      # to view single and multiple images
+```
 
 ## Tutorials
 Check out the [**Github repository**](https://github.com/marcomusy/vedo)
 for more information, where you can ask questions and report issues.
 
-You are welcome to post specific questions on the [**image.sc**](https://forum.image.sc) forum,
-or simply browse the [**examples gallery**](https://vedo.embl.es/#gallery).
+You are welcome to ask specific questions on the
+[**image.sc**](https://forum.image.sc) forum,
+post a [**github issue**](https://github.com/marcomusy/vedo/issues)
+or search the [**examples gallery**](https://vedo.embl.es/#gallery)
+for some relevant example.
 
 You can also find online tutorials at:
 
@@ -111,12 +119,6 @@ You can convert on the fly a file (or multiple files) to a different format with
 vedo --convert bunny.obj --to ply
 ```
 
-### Some useful bash aliases
-```bash
-alias vr='vedo --run '        # to search and run examples by name
-alias vs='vedo -i --search '  # to search for a string in examples
-alias ve='vedo --eog '        # to view single and multiple images
-```
 
 ## Running in a Jupyter Notebook
 To use in jupyter notebooks use the syntax `vedo.settings.default_backend= '...' ` the supported backend for visualization are:
@@ -278,7 +280,7 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           [],
-          name='myprogramname',
+          name='my_program_name',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,

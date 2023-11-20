@@ -2899,11 +2899,11 @@ class Ellipsoid(Mesh):
 
         Arguments:
             axis1 : (list)
-                First axis
+                First axis. Length corresponds to semi-axis.
             axis2 : (list)
-                Second axis
+                Second axis. Length corresponds to semi-axis.
             axis3 : (list)
-                Third axis
+                Third axis. Length corresponds to semi-axis.
         """        
         self.center = utils.make3d(pos)
 
@@ -2937,7 +2937,6 @@ class Ellipsoid(Mesh):
         matrix = np.c_[self.axis1, self.axis2, self.axis3]
         lt = LinearTransform(matrix).translate(pos)
         self.apply_transform(lt)
-
         self.name = "Ellipsoid"
 
     def asphericity(self):
@@ -2945,10 +2944,10 @@ class Ellipsoid(Mesh):
         Return a measure of how different an ellipsoid is from a sphere.
         Values close to zero correspond to a spheric object.
         """
-        a,b,c = self.va, self.vb, self.vc
+        a, b, c = self.va, self.vb, self.vc
         asp = ( ((a-b)/(a+b))**2
               + ((a-c)/(a+c))**2
-              + ((b-c)/(b+c))**2 )/3. * 4.
+              + ((b-c)/(b+c))**2 ) / 3. * 4.
         return asp
 
     def asphericity_error(self):
@@ -2956,7 +2955,7 @@ class Ellipsoid(Mesh):
         Calculate statistical error on the asphericity value.
 
         Errors on the main axes are stored in
-        `Ellipsoid.va_error, Ellipsoid.vb_error and Ellipsoid.vc_error`.
+        `Ellipsoid.va_error`, Ellipsoid.vb_error` and `Ellipsoid.vc_error`.
         """
         a, b, c = self.va, self.vb, self.vc
         sqrtn = np.sqrt(self.nr_of_points)
@@ -2971,6 +2970,7 @@ class Ellipsoid(Mesh):
         # dl2 = (diff(L, a) * ea) ** 2 + (diff(L, b) * eb) ** 2 + (diff(L, c) * ec) ** 2
         # print(dl2)
         # exit()
+
         dL2 = (
             ea ** 2
             * (
@@ -2994,9 +2994,7 @@ class Ellipsoid(Mesh):
                 - 8 * (-b + c) ** 2 / (3 * (b + c) ** 3)
             ) ** 2
         )
-
         err = np.sqrt(dL2)
-
         self.va_error = ea
         self.vb_error = eb
         self.vc_error = ec

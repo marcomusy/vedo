@@ -5,7 +5,6 @@ import numpy as np
 import vedo.vtkclasses as vtk
 
 import vedo
-from vedo.transformations import LinearTransform
 from vedo import settings
 from vedo import utils
 from vedo import shapes
