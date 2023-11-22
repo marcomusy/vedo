@@ -2182,6 +2182,8 @@ def trimesh2vedo(inputobj):
         tact = vedo.Mesh(poly)
         if inputobj.visual.kind == "face":
             trim_c = inputobj.visual.face_colors
+        elif inputobj.visual.kind == "texture":
+            trim_c = inputobj.visual.to_color().vertex_colors
         else:
             trim_c = inputobj.visual.vertex_colors
 
