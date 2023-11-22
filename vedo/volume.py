@@ -637,11 +637,9 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             return self
         return np.array(self.dataset.GetOrigin())
 
-    def center(self, p=None):
-        """Set/get the center of the volumetric dataset."""
-        if p is not None:
-            self.dataset.SetCenter(p)
-            return self
+    def center(self):
+        """Get the center of the volumetric dataset."""
+        # note that this does not have the set method like origin and spacing
         return np.array(self.dataset.GetCenter())
     
     def get_cell_from_ijk(self, ijk):

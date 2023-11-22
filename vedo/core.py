@@ -164,6 +164,28 @@ class DataArrayHelper:
             if name:
                 arrnames.append(name)
         return arrnames
+    
+    def items(self):
+        """Return the list of available data array `(names, values)`."""
+        if self.association == 0:
+            data = self.obj.dataset.GetPointData()
+        elif self.association == 1:
+            data = self.obj.dataset.GetCellData()
+        elif self.association == 2:
+            data = self.obj.dataset.GetFieldData()
+        arrnames = []
+        for i in range(data.GetNumberOfArrays()):
+            if self.association == 2:
+                name = data.GetAbstractArray(i).GetName()
+            else:
+                name = data.GetArray(i).GetName()
+            if name:
+                arrnames.append((name, self[name]))
+        return arrnames
+    
+    def todict(self):
+        """Return a dictionary of the available data arrays."""
+        return dict(self.items())
 
     def rename(self, oldname, newname):
         """Rename an array"""
@@ -1288,6 +1310,62 @@ class CommonAlgorithms:
         csf.Update()
         self._update(csf.GetOutput(), reset_locators=False)
         return self
+    
+    def integrate_arrays_over_domain(self):
+        """
+        Integrate point and cell data arrays while computing length, area or volume
+        of the domain. It works for 1D, 2D or 3D cells.
+        For volumetric datasets, this filter ignores all but 3D cells.
+        It will not compute the volume contained in a closed surface. 
+        
+        Returns a dictionary with keys: `pointdata`, `celldata`, `metadata`,
+        which contain the integration result for the corresponding attributes.
+
+        Examples:
+            ```python
+            from vedo import *
+            surf = Sphere(res=100)
+            surf.pointdata['scalars'] = np.ones(surf.npoints)
+            data = surf.integrate_arrays_over_domain()
+            print(data['pointdata']['scalars'], "is equal to 4pi", 4*np.pi)
+            ```
+
+            ```python
+            from vedo import *
+
+            xcoords1 = np.arange(0, 2.2, 0.2)
+            xcoords2 = sqrt(np.arange(0, 4.2, 0.2))
+
+            ycoords = np.arange(0, 1.2, 0.2)
+
+            surf1 = Grid(s=(xcoords1, ycoords)).rotate_y(-45).lw(2)
+            surf2 = Grid(s=(xcoords2, ycoords)).rotate_y(-45).lw(2)
+
+            surf1.pointdata['scalars'] = surf1.vertices[:,2]
+            surf2.pointdata['scalars'] = surf2.vertices[:,2]
+
+            data1 = surf1.integrate_arrays_over_domain()
+            data2 = surf2.integrate_arrays_over_domain()
+
+            print(data1['pointdata']['scalars'],
+                "is equal to", 
+                data2['pointdata']['scalars'],
+                "even if the grids are different!",
+                "(= the volume under the surface)"
+            )
+            show(surf1, surf2, N=2, axes=1).close()
+        ```
+        """
+        vinteg = vtk.new("IntegrateAttributes")
+        vinteg.SetInputData(self.dataset)
+        vinteg.Update()
+        ugrid = vedo.UnstructuredGrid(vinteg.GetOutput())
+        data = dict(
+            pointdata=ugrid.pointdata.todict(), 
+            celldata=ugrid.celldata.todict(), 
+            metadata=ugrid.metadata.todict(),
+        )
+        return data
 
     def write(self, filename, binary=True):
         """Write object to file."""

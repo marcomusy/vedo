@@ -498,10 +498,10 @@ class Line(Mesh):
 
         Example:
             ```python
-            from vedo import Line
-            ln = Line([0,0,0], [1,1,1])
-            ln2 = ln.clone().c('red')
-            ln2.show(axes=1)
+            from vedo import *
+            ln1 = Line([1,1,1], [2,2,2], lw=3).print()
+            ln2 = ln1.clone().shift(0,0,1).c('red').print()
+            show(ln1, ln2, axes=1, viewup='z').close()
             ```
             ![](https://vedo.embl.es/images/feats/line_clone.png)
         """
@@ -510,13 +510,14 @@ class Line(Mesh):
             poly.DeepCopy(self.dataset)
         else:
             poly.ShallowCopy(self.dataset)
-
         ln = Line(poly)
         ln.copy_properties_from(self)
-        # ln.transform = self.transform # WRONG
+        ln.transform = self.transform.clone()
         ln.name = self.name
         ln.base = self.base
         ln.top = self.top
+        ln.pipeline = utils.OperationNode(
+            "clone", parents=[self], shape="diamond", c="#edede9")
         return ln
 
     def linecolor(self, lc=None):
@@ -2009,14 +2010,6 @@ class Arrow(Mesh):
             self.source.SetShaftRadius(sz / 1.75)
             self.source.SetTipLength(sz * 15)
 
-        # if s:
-        #     sz = 0.02 * s * length
-        #     tl = sz / 20
-        #     print(s, sz)
-        #     self.source.SetShaftRadius(sz)
-        #     self.source.SetTipRadius(sz*1.75)
-        #     self.source.SetTipLength(sz*15)
-
         if head_length:
             self.source.SetTipLength(head_length)
         if head_radius:
@@ -2027,6 +2020,7 @@ class Arrow(Mesh):
         self.source.Update()
 
         t = vtk.vtkTransform()
+        t.Translate(start_pt)
         t.RotateZ(np.rad2deg(phi))
         t.RotateY(np.rad2deg(theta))
         t.RotateY(-90)  # put it along Z
@@ -2035,13 +2029,16 @@ class Arrow(Mesh):
             t.Scale(length, sz, sz)
         else:
             t.Scale(length, length, length)
+
         tf = vtk.new("TransformPolyDataFilter")
         tf.SetInputData(self.source.GetOutput())
         tf.SetTransform(t)
         tf.Update()
 
         super().__init__(tf.GetOutput(), c, alpha)
-        self.pos(start_pt)
+
+        # self.transform = LinearTransform(t)
+        # self.pos(start_pt)
 
         self.phong().lighting("plastic")
         self.actor.PickableOff()
@@ -2161,9 +2158,9 @@ class Arrow2D(Mesh):
         start_pt=(0, 0, 0),
         end_pt=(1, 0, 0),
         s=1,
-        shaft_length=0.8,
-        shaft_width=0.05,
-        head_length=0.225,
+        shaft_length=0.85,
+        shaft_width=0.055,
+        head_length=0.175,
         head_width=0.175,
         fill=True,
         c="red4",
@@ -2231,13 +2228,16 @@ class Arrow2D(Mesh):
         if len(axis) > 2:
             theta = np.arccos(axis[2])
         phi = np.arctan2(axis[1], axis[0])
+
         t = vtk.vtkTransform()
+        # t.Translate(start_pt) # brakes examples/pyplot/plot_empty.py
         if phi:
             t.RotateZ(np.rad2deg(phi))
         if theta:
             t.RotateY(np.rad2deg(theta))
         t.RotateY(-90)  # put it along Z
         t.Scale(length, length, length)
+
         tf = vtk.new("TransformPolyDataFilter")
         tf.SetInputData(poly)
         tf.SetTransform(t)
@@ -2245,7 +2245,8 @@ class Arrow2D(Mesh):
 
         super().__init__(tf.GetOutput(), c, alpha)
 
-        self.pos(start_pt)
+        self.pos(start_pt)       # brakes examples/pyplot/plot_empty.py
+
         self.lighting("off")
         self.actor.DragableOff()
         self.actor.PickableOff()
@@ -3080,16 +3081,17 @@ class Grid(Mesh):
             ps = vtk.new("PlaneSource")
             ps.SetResolution(resx, resy)
             ps.Update()
-            poly0 = ps.GetOutput()
-            t0 = vtk.vtkTransform()
-            t0.Scale(sx, sy, 1)
-            tf0 = vtk.new("TransformPolyDataFilter")
-            tf0.SetInputData(poly0)
-            tf0.SetTransform(t0)
-            tf0.Update()
-            poly = tf0.GetOutput()
-            super().__init__(poly, c, alpha)
-            self.pos(pos)
+
+            t = vtk.vtkTransform()
+            t.Translate(pos)
+            t.Scale(sx, sy, 1)
+
+            tf = vtk.new("TransformPolyDataFilter")
+            tf.SetInputData(ps.GetOutput())
+            tf.SetTransform(t)
+            tf.Update()
+
+            super().__init__(tf.GetOutput(), c, alpha)
 
         self.wireframe().lw(lw)
         self.properties.LightingOff()
@@ -3097,53 +3099,67 @@ class Grid(Mesh):
 
 
 class Plane(Mesh):
-    """
-    Create a plane in space.
-    """
+    """Create a plane in space."""
 
-    def __init__(self, pos=(0, 0, 0), normal=(0, 0, 1), s=(1, 1), res=(1, 1), c="gray5", alpha=1.0):
+    def __init__(
+            self,
+            pos=(0, 0, 0),
+            normal=(0, 0, 1),
+            s=(1, 1),
+            res=(1, 1),
+            c="gray5", alpha=1.0,
+        ):
         """
-        Create a plane of size `s=(xsize, ysize)` oriented perpendicular to vector `normal`
-        and so that it passes through point `pos`.
+        Create a plane of size `s=(xsize, ysize)` oriented perpendicular
+        to vector `normal` so that it passes through point `pos`.
 
         Arguments:
+            pos : (list)
+                position of the plane center
             normal : (list)
                 normal vector to the plane
+            s : (list)
+                size of the plane along x and y
+            res : (list)
+                resolution of the plane along x and y
         """
-        pos = utils.make3d(pos)
-        normal = np.asarray(normal, dtype=float)
+        if isinstance(pos, vtk.vtkPolyData):
+            super().__init__(pos, c, alpha)
 
-        ps = vtk.new("PlaneSource")
-        ps.SetResolution(res[0], res[1])
-        tri = vtk.new("TriangleFilter")
-        tri.SetInputConnection(ps.GetOutputPort())
-        tri.Update()
+        else:
+            ps = vtk.new("PlaneSource")
+            ps.SetResolution(res[0], res[1])
+            tri = vtk.new("TriangleFilter")
+            tri.SetInputConnection(ps.GetOutputPort())
+            tri.Update()
+            
+            super().__init__(tri.GetOutput(), c, alpha)
 
-        axis = normal / np.linalg.norm(normal)
-        theta = np.arccos(axis[2])
-        phi = np.arctan2(axis[1], axis[0])
-        t = vtk.vtkTransform()
-        t.PostMultiply()
-        t.Scale(s[0], s[1], 1)
-        t.RotateY(np.rad2deg(theta))
-        t.RotateZ(np.rad2deg(phi))
-        tf = vtk.new("TransformPolyDataFilter")
-        tf.SetInputData(tri.GetOutput())
-        tf.SetTransform(t)
-        tf.Update()
+            pos = utils.make3d(pos)
+            normal = np.asarray(normal, dtype=float)
+            axis = normal / np.linalg.norm(normal)
+            theta = np.arccos(axis[2])
+            phi = np.arctan2(axis[1], axis[0])
 
-        super().__init__(tf.GetOutput(), c, alpha)
+            t = LinearTransform()
+            t.scale([s[0], s[1], 1])
+            t.rotate_y(np.rad2deg(theta))
+            t.rotate_z(np.rad2deg(phi))
+            t.translate(pos)
+            self.apply_transform(t)
+
         self.lighting("off")
-        self.pos(pos)
         self.name = "Plane"
         self.variance = 0
 
-    # breaks examples/basic/cells_within_bounds.py
-    def clone(self):
+    def clone(self, deep=True):
         newplane = Plane()
-        newplane.dataset.DeepCopy(self.dataset)
+        if deep:
+            newplane.dataset.DeepCopy(self.dataset)
+        else:
+            newplane.dataset.ShallowCopy(self.dataset)
         newplane.copy_properties_from(self)
-        newplane.transform = self.transform
+        newplane.transform = self.transform.clone()
         newplane.variance = 0
         return newplane
     
@@ -3454,13 +3470,17 @@ class Spring(Mesh):
         theta = np.arccos(diff[2])
         phi = np.arctan2(diff[1], diff[0])
         sp = Line(pts)
+        
         t = vtk.vtkTransform()
+        t.Translate(start_pt)
         t.RotateZ(np.rad2deg(phi))
         t.RotateY(np.rad2deg(theta))
+
         tf = vtk.new("TransformPolyDataFilter")
         tf.SetInputData(sp.dataset)
         tf.SetTransform(t)
         tf.Update()
+
         tuf = vtk.new("TubeFilter")
         tuf.SetNumberOfSides(12)
         tuf.CappingOn()
@@ -3475,7 +3495,6 @@ class Spring(Mesh):
         self.phong()
         self.base = np.array(start_pt, dtype=float)
         self.top  = np.array(end_pt, dtype=float)
-        self.pos(start_pt)
         self.name = "Spring"
 
 
@@ -3522,18 +3541,18 @@ class Cylinder(Mesh):
         t.RotateX(90)  # put it along Z
         t.RotateY(np.rad2deg(theta))
         t.RotateZ(np.rad2deg(phi))
+        t.Translate(pos)
+
         tf = vtk.new("TransformPolyDataFilter")
         tf.SetInputData(cyl.GetOutput())
         tf.SetTransform(t)
         tf.Update()
-        pd = tf.GetOutput()
 
-        super().__init__(pd, c, alpha)
+        super().__init__(tf.GetOutput(), c, alpha)
 
         self.phong()
         self.base = base
         self.top  = top
-        self.pos(pos)
         self.name = "Cylinder"
 
 
@@ -3864,10 +3883,12 @@ class Brace(Mesh):
             poly = br.dataset
 
         tr = vtk.vtkTransform()
+        tr.Translate(mq)
         tr.RotateZ(angler)
         tr.Translate(padding1 * d, 0, 0)
         pscale = 1
         tr.Scale(pscale / (y1 - y0) * d, pscale / (y1 - y0) * d, 1)
+
         tf = vtk.new("TransformPolyDataFilter")
         tf.SetInputData(poly)
         tf.SetTransform(tr)
@@ -3875,10 +3896,10 @@ class Brace(Mesh):
         poly = tf.GetOutput()
 
         super().__init__(poly, c, alpha)
-        self.pos(mq)
-        self.name = "Brace"
+
         self.base = q1
-        self.top = q2
+        self.top  = q2
+        self.name = "Brace"
 
 
 class Star3D(Mesh):

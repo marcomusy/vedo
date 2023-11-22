@@ -393,6 +393,7 @@ def _load_file(filename, unpack):
             reader = vtk.new("PLYReader")
         elif fl.endswith(".obj"):
             reader = vtk.new("OBJReader")
+            reader.SetGlobalWarningDisplay(0) # suppress warnings issue #980
         elif fl.endswith(".stl"):
             reader = vtk.new("STLReader")
         elif fl.endswith(".byu") or fl.endswith(".g"):
@@ -429,7 +430,7 @@ def _load_file(filename, unpack):
             return None
 
         if isinstance(routput, vtk.vtkUnstructuredGrid):
-            objt = vedo.TetMesh(routput)
+            objt = vedo.UnstructuredGrid(routput)
 
         else:
             objt = Mesh(routput)

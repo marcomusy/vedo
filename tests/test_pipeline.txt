@@ -15,12 +15,14 @@ pip install meshio -U
 pip install morphomatics -U
 pip install pygeodesic -U
 pip install pygmsh -U
-pip install pyacvd -U
-pip install pymeshfix -U
+#pip install pyacvd -U
+#pip install pymeshfix -U
+#pip install tetgen -U
 pip install pymeshlab -U
-pip install tetgen -U
 pip install pyshtools -U
 pip install trimesh -U
+pip install trame==2.5.2
+pip install qtpy
 
 
 # ENABLE/DISABLE DRY RUN ########################################################

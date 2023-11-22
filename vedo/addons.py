@@ -2824,7 +2824,7 @@ def Axes(
         htitle_font=None,
         htitle_italic=False,
         htitle_color=None,
-        htitle_justify='bottom-center',
+        htitle_justify='bottom-left',
         htitle_rotation=0,
         htitle_offset=(0, 0.01, 0),
         xtitle_position=0.95, ytitle_position=0.95, ztitle_position=0.95,
@@ -3960,7 +3960,8 @@ def Axes(
         )
         if htitle_rotation:
             htit.rotate_x(htitle_rotation)
-        wpos = [(0.5 + htitle_offset[0]) * dx, (1 + htitle_offset[1]) * dy, htitle_offset[2] * dz]
+        # wpos = [(0.5 + htitle_offset[0]) * dx, (1 + htitle_offset[1]) * dy, htitle_offset[2] * dz]
+        wpos = [(0.0 + htitle_offset[0]) * dx, (1 + htitle_offset[1]) * dy, htitle_offset[2] * dz]
         htit.pos(wpos)
         if xyshift:
             htit.shift(0, 0, xyshift * dz)

@@ -858,6 +858,10 @@ class Points(PointsVisual, PointAlgorithms):
         else:
             cloned = Points(poly)
 
+        # new_instance = self.__class__
+        # print("******* cloning", new_instance.__name__)
+        # cloned = new_instance(poly)
+
         cloned.transform = self.transform.clone()
 
         cloned.copy_properties_from(self)

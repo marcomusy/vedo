@@ -62,6 +62,11 @@ def dump_hierarchy_to_file(fname=""):
     """
     Print all available vtk classes.
     Dumps the list to a file named `vtkmodules_<version>_hierarchy.txt`
+    Example:
+    ```python
+    from vedo.vtkclasses import dump_hierarchy_to_file
+    dump_hierarchy_to_file()
+    ```
     """
     try:
         import pkgutil
@@ -149,6 +154,8 @@ for name in [
 
 
 location["vtkNamedColors"] = "vtkCommonColor"
+
+location["vtkIntegrateAttributes"] = "vtkFiltersParallel"
 
 # noinspection PyUnresolvedReferences
 from vtkmodules.vtkCommonCore import (
