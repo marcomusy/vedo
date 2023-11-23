@@ -1515,6 +1515,17 @@ class PointAlgorithms(CommonAlgorithms):
         self.line_locator = None
         return self
 
+    def apply_transform_from_actor(self):
+        """
+        Apply the current transformation of the actor to the data.
+        Useful when manually moving an actor (eg. when pressing "a").
+        Returns the `LinearTransform` object.
+        """
+        M = self.actor.GetMatrix()
+        self.apply_transform(M)
+        iden = vtk.vtkMatrix4x4()
+        self.actor.PokeMatrix(iden)
+        return LinearTransform(M)
 
     def pos(self, x=None, y=None, z=None):
         """Set/Get object position."""

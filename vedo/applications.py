@@ -848,6 +848,7 @@ class IsosurfaceBrowser(Plotter):
         self,
         volume,
         isovalue=None,
+        scalar_range=(),
         c=None,
         alpha=1,
         lego=False,
@@ -867,6 +868,8 @@ class IsosurfaceBrowser(Plotter):
                 the Volume object to be isosurfaced.
             isovalues : (float, list)
                 isosurface value(s) to be displayed.
+            scalar_range : (list)
+                scalar range to be used.
             c : str, (list)
                 color(s) of the isosurface(s).
             alpha : (float, list)
@@ -899,7 +902,10 @@ class IsosurfaceBrowser(Plotter):
         ### GPU ################################
         if use_gpu and hasattr(volume.properties, "GetIsoSurfaceValues"):
 
-            scrange = volume.scalar_range()
+            if len(scalar_range) == 2:
+                scrange = scalar_range
+            else:
+                scrange = volume.scalar_range()
             delta = scrange[1] - scrange[0]
             if not delta:
                 return
@@ -962,7 +968,7 @@ class IsosurfaceBrowser(Plotter):
             ### isovalue slider callback
             def slider_isovalue(widget, event):
 
-                prevact = self.actors[0]
+                prevact = self.vol_actors[0]
                 if isinstance(widget, float):
                     value = widget
                 else:
@@ -992,17 +998,17 @@ class IsosurfaceBrowser(Plotter):
 
                 self.renderer.RemoveActor(prevact)
                 self.renderer.AddActor(mesh)
-                self.actors[0] = mesh
+                self.vol_actors[0] = mesh
 
             ################################################
 
             if isovalue is None:
                 isovalue = delta / 3.0 + scrange[0]
 
-            self.actors = [None]
+            self.vol_actors = [None]
             slider_isovalue(isovalue, "")  # init call
             if lego:
-                self.actors[0].add_scalarbar(pos=(0.8, 0.12))
+                self.vol_actors[0].add_scalarbar(pos=(0.8, 0.12))
 
             self.add_slider(
                 slider_isovalue,
@@ -1610,8 +1616,8 @@ class Animation(Plotter):
         self._lastActs = objs2
 
         for a in objs2:
-            if a not in self.actors:
-                self.actors.append(a)
+            if a not in self.objects:
+                self.objects.append(a)
 
         return objs2, t, duration, rng
 

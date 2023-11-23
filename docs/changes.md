@@ -12,9 +12,14 @@
 ### Renaming
 
 ### Other changes
+- add `core.apply_transform_from_actor()`
+
+
 
 
 ### Bug Fixes
+- fix plotter `a` toggle
+
 
 ## New/Revised Examples
 ```

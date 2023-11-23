@@ -162,6 +162,7 @@ def show(
             - 11, show a large grid on the x-y plane
             - 12, show polar axes
             - 13, draw a simple ruler at the bottom of the window
+            - 14: draw a `CameraOrientationWidget`
 
             Axis type-1 can be fully customized by passing a dictionary.
             Check `vedo.addons.Axes()` for the full list of options.
@@ -3952,10 +3953,9 @@ class Plotter:
             return
 
         elif key == "a":
-            iren.ExitCallback()
             cur = iren.GetInteractorStyle()
             if isinstance(cur, vtk.get_class("InteractorStyleTrackballCamera")):
-                msg = "\nInteractor style changed to TrackballActor\n"
+                msg  = "Interactor style changed to TrackballActor\n"
                 msg += "  you can now move and rotate individual meshes:\n"
                 msg += "  press X twice to save the repositioned mesh\n"
                 msg += "  press 'a' to go back to normal style"
@@ -3963,7 +3963,6 @@ class Plotter:
                 iren.SetInteractorStyle(vtk.new("InteractorStyleTrackballActor"))
             else:
                 iren.SetInteractorStyle(vtk.new("InteractorStyleTrackballCamera"))
-            iren.Start()
             return
 
         elif key == "A":  # toggle antialiasing

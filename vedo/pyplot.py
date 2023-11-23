@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import warnings
 import numpy as np
 
 import vedo.vtkclasses as vtk
@@ -660,13 +659,6 @@ class Figure(Assembly):
         aleg.name = "Legend"
         return self
 
-    def as2d(self, **kwargs):
-        """
-        Deprecated. Use `clone2d()` instead.
-        """
-        vedo.printc("WARNING: as2d() is deprecated. Use clone2d() instead.", c="y")
-        return self.clone2d(**kwargs)
-
     def clone2d(self, pos="bottom-left", scale=1, padding=0.05):
         """
         Convert the Figure into a 2D static object (a 2D Assembly).
@@ -748,6 +740,19 @@ class Figure(Assembly):
             a2d = _to2d(a, offset, scale * 550 / (x1 - x0))
             a2d.pos(position)
             group += a2d
+
+        try: # copy from Histogram1D
+            group.entries = self.entries
+            group.frequencies = self.frequencies
+            group.errors = self.errors
+            group.edges = self.edges
+            group.centers = self.centers
+            group.mean = self.mean
+            group.mode = self.mode
+            group.std = self.std
+        except AttributeError:
+            pass
+
         return group
 
 
@@ -843,7 +848,7 @@ class Histogram1D(Figure):
         """
 
         if max_entries and data.shape[0] > max_entries:
-            data = np.random.choice(data, max_entries)
+            data = np.random.choice(data, int(max_entries))
 
         # purge NaN from data
         valid_ids = np.all(np.logical_not(np.isnan(data)))
@@ -940,6 +945,7 @@ class Histogram1D(Figure):
         self.edges = edges
         self.centers = (edges[0:-1] + edges[1:]) / 2
         self.mean = data.mean()
+        self.mode = self.centers[np.argmax(fs)]
         self.std = data.std()
         self.bins = edges  # internally used by "like"
 
@@ -965,7 +971,7 @@ class Histogram1D(Figure):
             axes_opts["htitle"] = htitle
             axes_opts["htitle_justify"] = "bottom-left"
             axes_opts["htitle_size"] = 0.016
-            axes_opts["htitle_offset"] = [-0.49, 0.01, 0]
+            # axes_opts["htitle_offset"] = [-0.49, 0.01, 0]
 
         if mc is None:
             mc = lc
@@ -2711,6 +2717,8 @@ def _plot_fxy(
     bins=(100, 100),
     axes=True,
 ):
+    import warnings
+
     if c is not None:
         texture = None  # disable
 

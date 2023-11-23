@@ -8,6 +8,7 @@ export VLOGFILE=$VDIR/output_vedo_test.txt
 
 cd $VDIR
 pip install -e .
+pip install scikit-image -U
 pip install nevergrad -U
 pip install pyefd -U
 pip install iminuit -U
@@ -20,6 +21,7 @@ pip install pygmsh -U
 #pip install tetgen -U
 pip install pymeshlab -U
 pip install pyshtools -U
+pip install rtree
 pip install trimesh -U
 pip install trame==2.5.2
 pip install qtpy

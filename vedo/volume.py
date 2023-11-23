@@ -895,18 +895,14 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         )
         return self
 
-    def resize(self, *newdims):
+    def resize(self, newdims):
         """Increase or reduce the number of voxels of a Volume with interpolation."""
-        old_dims = np.array(self.dataset.GetDimensions())
-        old_spac = np.array(self.dataset.GetSpacing())
         rsz = vtk.new("ImageResize")
         rsz.SetResizeMethodToOutputDimensions()
         rsz.SetInputData(self.dataset)
         rsz.SetOutputDimensions(newdims)
         rsz.Update()
         self.dataset = rsz.GetOutput()
-        new_spac = old_spac * old_dims / newdims  # keep aspect ratio
-        self.dataset.SetSpacing(new_spac)
         self._update(self.dataset)
         self.pipeline = utils.OperationNode(
             "resize", parents=[self], c="#4cc9f0", comment=f"dims={tuple(self.dimensions())}"
