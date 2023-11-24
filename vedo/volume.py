@@ -455,7 +455,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         msh.pipeline = utils.OperationNode("slice_plane", parents=[self], c="#4cc9f0:#e9c46a")
         return msh
 
-    def warp(self, source, target, sigma=1, mode="3d", fit=False):
+    def warp(self, source, target, sigma=1, mode="3d", fit=True):
         """
         Warp volume scalars within a Volume by specifying
         source and target sets of points.
@@ -478,77 +478,45 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         NLT.target_points = target
         NLT.sigma = sigma
         NLT.mode = mode
-        NLT.invert()
 
         self.apply_transform(NLT, fit=fit)
         self.pipeline = utils.OperationNode("warp", parents=[self], c="#4cc9f0")
         return self
 
-    def apply_transform(self, T, fit=False):
+    def apply_transform(self, T, fit=True, interpolation="linear"):
         """
         Apply a transform to the scalars in the volume.
 
         Arguments:
-            T : (vtkTransform, matrix)
+            T : (LinearTransform, NonLinearTransform)
                 The transformation to be applied
             fit : (bool)
-                fit/adapt the old bounding box to the warped geometry
+                fit/adapt the old bounding box to the modified geometry
+            interpolation : (str)
+                one of the following: "linear", "nearest", "cubic"
+            
         """
-        if isinstance(T, transformations.NonLinearTransform):
-            T = T.T
-
-        if isinstance(T, vtk.vtkMatrix4x4):
-            tr = vtk.vtkTransform()
-            tr.SetMatrix(T)
-            T = tr
-
-        elif utils.is_sequence(T):
-            M = vtk.vtkMatrix4x4()
-            n = len(T[0])
-            for i in range(n):
-                for j in range(n):
-                    M.SetElement(i, j, T[i][j])
-            tr = vtk.vtkTransform()
-            tr.SetMatrix(M)
-            T = tr
-
+        TI = T.compute_inverse()
         reslice = vtk.new("ImageReslice")
         reslice.SetInputData(self.dataset)
-        reslice.SetResliceTransform(T)
-        self.transform = T
+        reslice.SetResliceTransform(TI.T)
         reslice.SetOutputDimensionality(3)
-        reslice.SetInterpolationModeToLinear()
-
-        spacing = self.dataset.GetSpacing()
-        origin = self.dataset.GetOrigin()
-
-        if fit:
-            bb = self.box()
-            if isinstance(T, vtk.vtkThinPlateSplineTransform):
-                TI = vtk.vtkThinPlateSplineTransform()
-                TI.DeepCopy(T)
-                TI.Inverse()
-            else:
-                TI = vtk.vtkTransform()
-                TI.DeepCopy(T)
-            bb.apply_transform(TI)
-            bounds = bb.bounds()
-            bounds = (
-                bounds[0] / spacing[0],
-                bounds[1] / spacing[0],
-                bounds[2] / spacing[1],
-                bounds[3] / spacing[1],
-                bounds[4] / spacing[2],
-                bounds[5] / spacing[2],
-            )
-            bounds = np.round(bounds).astype(int)
-            reslice.SetOutputExtent(bounds)
-            reslice.SetOutputSpacing(spacing[0], spacing[1], spacing[2])
-            reslice.SetOutputOrigin(origin[0], origin[1], origin[2])
-
+        if "linear" in interpolation.lower():
+            reslice.SetInterpolationModeToLinear()
+        elif "nearest" in interpolation.lower():
+            reslice.SetInterpolationModeToNearestNeighbor()
+        elif "cubic" in interpolation.lower():
+            reslice.SetInterpolationModeToCubic()
+        else:
+            vedo.logger.error(
+                f"in apply_transform: unknown interpolation mode {interpolation}")
+            raise ValueError()
+        reslice.SetAutoCropOutput(fit)
         reslice.Update()
         self._update(reslice.GetOutput())
-        self.pipeline = utils.OperationNode("apply_transform", parents=[self], c="#4cc9f0")
+        self.transform = T
+        self.pipeline = utils.OperationNode(
+            "apply_transform", parents=[self], c="#4cc9f0")
         return self
 
     def imagedata(self):
