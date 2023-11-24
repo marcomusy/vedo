@@ -2514,7 +2514,7 @@ def histogram(*args, **kwargs):
             data = args[0].pointdata[0]
         elif isinstance(args[0], vedo.Points):
             pd0 = args[0].pointdata[0]
-            if pd0:
+            if pd0 is not None:
                 data = pd0.ravel()
             else:
                 data = args[0].celldata[0].ravel()

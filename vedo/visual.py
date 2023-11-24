@@ -48,13 +48,17 @@ class CommonVisual:
     @property
     def LUT(self):
         """Return the lookup table of the object as a numpy object."""
-        _lut = self.mapper.GetLookupTable()
-        values = []
-        for i in range(_lut.GetTable().GetNumberOfTuples()):
-            # print("LUT i =", i, "value =", _lut.GetTableValue(i))
-            values.append(_lut.GetTableValue(i))
-        return np.array(values)
+        try:
+            _lut = self.mapper.GetLookupTable()
 
+            values = []
+            for i in range(_lut.GetTable().GetNumberOfTuples()):
+                # print("LUT i =", i, "value =", _lut.GetTableValue(i))
+                values.append(_lut.GetTableValue(i))
+            return np.array(values)
+        except AttributeError:
+            pass
+        
     @LUT.setter
     def LUT(self, arr):
         """

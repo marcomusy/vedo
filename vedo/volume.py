@@ -452,8 +452,118 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         vslice.Update()
         msh = Mesh(vslice.GetOutput())
         msh.apply_transform(T)
-        msh.pipeline = utils.OperationNode("slice_plane", parents=[self], c="#4cc9f0:#e9c46a")
+        msh.pipeline = utils.OperationNode(
+            "slice_plane", parents=[self], c="#4cc9f0:#e9c46a")
         return msh
+    
+    def slab(self, slice_range=(), axis='z', operation="mean"):
+        """
+        Extract a slab from a `Volume` by combining 
+        all of the slices of an image to create a single slice.
+
+        Returns a `Mesh` containing metadata which
+        can be accessed with e.g. `mesh.metadata["slab_range"]`.
+
+        Metadata:
+            slab_range : (list)
+                contains the range of slices extracted
+            slab_axis : (str)
+                contains the axis along which the slab was extracted
+            slab_operation : (str)
+                contains the operation performed on the slab
+            slab_bounding_box : (list)
+                contains the bounding box of the slab
+
+        Arguments:
+            slice_range : (list)
+                range of slices to extract
+            axis : (str)
+                axis along which to extract the slab
+            operation : (str)
+                operation to perform on the slab,
+                allowed values are: "sum", "min", "max", "mean".
+        """
+        if len(slice_range) != 2:
+            vedo.logger.error("in slab(): slice_range is empty or invalid")
+            raise ValueError()
+        
+        islab = vtk.new("ImageSlab")
+        islab.SetInputData(self.dataset)
+        islab.SetSliceRange(slice_range)
+
+        if operation in ["+", "add", "sum"]:
+            islab.SetOperationToSum()
+        elif "min" in operation:
+            islab.SetOperationToMin()
+        elif "max" in operation:
+            islab.SetOperationToMax()
+        elif "mean" in operation:
+            islab.SetOperationToMean()
+        else:
+            vedo.logger.error(f"in slab(): unknown operation {operation}")
+            raise ValueError()
+        
+        if axis == 'x':
+            islab.SetOrientationToX()
+        elif axis == 'y':
+            islab.SetOrientationToY()
+        elif axis == 'z':
+            islab.SetOrientationToZ()
+        else:
+            vedo.logger.error(f"Error in slab(): unknown axis {axis}")
+            raise RuntimeError()
+        
+        islab.Update()
+
+        msh = Mesh(islab.GetOutput()).lighting('off')
+        msh.mapper.SetLookupTable(utils.ctf2lut(self, msh))
+        msh.mapper.SetScalarRange(self.scalar_range())
+
+        msh.metadata["slab_range"] = slice_range
+        msh.metadata["slab_axis"] = axis
+        msh.metadata["slab_operation"] = operation
+
+        # compute bounds of slices
+        dims = self.dimensions()
+        origin = self.origin()
+        spacing = self.spacing()
+        if axis == 'x':
+            msh.metadata["slab_bounding_box"] = [
+                origin[0] + slice_range[0]*spacing[0],
+                origin[0] + slice_range[1]*spacing[0],
+                origin[1],
+                origin[1] + dims[1]*spacing[1],
+                origin[2],
+                origin[2] + dims[2]*spacing[2],
+            ]
+        elif axis == 'y':
+            msh.metadata["slab_bounding_box"] = [
+                origin[0],
+                origin[0] + dims[0]*spacing[0],
+                origin[1] + slice_range[0]*spacing[1],
+                origin[1] + slice_range[1]*spacing[1],
+                origin[2],
+                origin[2] + dims[2]*spacing[2],
+            ]
+        elif axis == 'z':
+            msh.metadata["slab_bounding_box"] = [
+                origin[0],
+                origin[0] + dims[0]*spacing[0],
+                origin[1],
+                origin[1] + dims[1]*spacing[1],
+                origin[2] + slice_range[0]*spacing[2],
+                origin[2] + slice_range[1]*spacing[2],
+            ]
+
+        msh.pipeline = utils.OperationNode(
+            f"slab{slice_range}", 
+            comment=f"axis={axis}, operation={operation}",
+            parents=[self],
+            c="#4cc9f0:#e9c46a",
+        )
+        msh.name = "VolumeSlabMesh"
+        return msh
+
 
     def warp(self, source, target, sigma=1, mode="3d", fit=True):
         """
@@ -483,7 +593,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         self.pipeline = utils.OperationNode("warp", parents=[self], c="#4cc9f0")
         return self
 
-    def apply_transform(self, T, fit=True, interpolation="linear"):
+    def apply_transform(self, T, fit=True, interpolation="cubic"):
         """
         Apply a transform to the scalars in the volume.
 
@@ -494,16 +604,15 @@ class Volume(VolumeVisual, VolumeAlgorithms):
                 fit/adapt the old bounding box to the modified geometry
             interpolation : (str)
                 one of the following: "linear", "nearest", "cubic"
-            
         """
         TI = T.compute_inverse()
         reslice = vtk.new("ImageReslice")
         reslice.SetInputData(self.dataset)
         reslice.SetResliceTransform(TI.T)
         reslice.SetOutputDimensionality(3)
-        if "linear" in interpolation.lower():
+        if "lin" in interpolation.lower():
             reslice.SetInterpolationModeToLinear()
-        elif "nearest" in interpolation.lower():
+        elif "near" in interpolation.lower():
             reslice.SetInterpolationModeToNearestNeighbor()
         elif "cubic" in interpolation.lower():
             reslice.SetInterpolationModeToCubic()

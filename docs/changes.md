@@ -13,7 +13,7 @@
 
 ### Other changes
 - add `core.apply_transform_from_actor()`
-
+- add `add volume.slab()`
 
 
 

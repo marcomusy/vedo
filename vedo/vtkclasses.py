@@ -631,6 +631,7 @@ for name in [
     "vtkImageLaplacian",
     "vtkImageMedian3D",
     "vtkImageNormalize",
+    "vtkImageSlab",
 ]: location[name] = "vtkImagingGeneral"
 
 for name in ["vtkImageToPoints", "vtkSampleFunction"]:

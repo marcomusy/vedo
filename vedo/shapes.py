@@ -3303,7 +3303,7 @@ class Box(Mesh):
         Build a box of dimensions `x=length, y=width and z=height`.
         Alternatively dimensions can be defined by setting `size` keyword with a tuple.
 
-        If `size` is a list of 6 numbers, this will be interpreted as the bounding box:
+        If `pos` is a list of 6 numbers, this will be interpreted as the bounding box:
         `[xmin,xmax, ymin,ymax, zmin,zmax]`
 
         Examples:
@@ -3311,22 +3311,15 @@ class Box(Mesh):
 
                 ![](https://vedo.embl.es/images/simulations/50738955-7e891800-11d9-11e9-85cd-02bd4f3f13ea.gif)
         """
-        if len(size) == 6:
-            bounds = size
-            length = bounds[1] - bounds[0]
-            width = bounds[3] - bounds[2]
-            height = bounds[5] - bounds[4]
-            xp = (bounds[1] + bounds[0]) / 2
-            yp = (bounds[3] + bounds[2]) / 2
-            zp = (bounds[5] + bounds[4]) / 2
-            pos = (xp, yp, zp)
+        src = vtk.new("CubeSource")
+        if len(pos) == 6:
+            src.SetBounds(pos)
+            pos = [0,0,0]
         elif len(size) == 3:
             length, width, height = size
-
-        src = vtk.new("CubeSource")
-        src.SetXLength(length)
-        src.SetYLength(width)
-        src.SetZLength(height)
+            src.SetXLength(length)
+            src.SetYLength(width)
+            src.SetZLength(height)
         src.Update()
         pd = src.GetOutput()
 
