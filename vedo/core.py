@@ -492,7 +492,7 @@ class CommonAlgorithms:
             padding = [padding, padding, padding]
         length, width, height = b[1] - b[0], b[3] - b[2], b[5] - b[4]
         tol = (length + width + height) / 30000  # useful for boxing text
-        pos = [(b[0] + b[1]) / 2, (b[3] + b[2]) / 2, (b[5] + b[4]) / 2 - tol]
+        pos = [(b[0] + b[1])/2, (b[3] + b[2])/2, (b[5] + b[4])/2 - tol]
         bx = vedo.shapes.Box(
             pos,
             length * scale + padding[0],

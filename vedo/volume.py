@@ -489,7 +489,6 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         
         islab = vtk.new("ImageSlab")
         islab.SetInputData(self.dataset)
-        islab.SetSliceRange(slice_range)
 
         if operation in ["+", "add", "sum"]:
             islab.SetOperationToSum()
@@ -502,17 +501,31 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         else:
             vedo.logger.error(f"in slab(): unknown operation {operation}")
             raise ValueError()
-        
+
+        dims = self.dimensions()
         if axis == 'x':
             islab.SetOrientationToX()
+            if slice_range[0]  > dims[0]-1:
+                slice_range[0] = dims[0]-1
+            if slice_range[1]  > dims[0]-1:
+                slice_range[1] = dims[0]-1
         elif axis == 'y':
             islab.SetOrientationToY()
+            if slice_range[0]  > dims[1]-1:
+                slice_range[0] = dims[1]-1
+            if slice_range[1]  > dims[1]-1:
+                slice_range[1] = dims[1]-1
         elif axis == 'z':
             islab.SetOrientationToZ()
+            if slice_range[0]  > dims[2]-1:
+                slice_range[0] = dims[2]-1
+            if slice_range[1]  > dims[2]-1:
+                slice_range[1] = dims[2]-1
         else:
             vedo.logger.error(f"Error in slab(): unknown axis {axis}")
             raise RuntimeError()
         
+        islab.SetSliceRange(slice_range)
         islab.Update()
 
         msh = Mesh(islab.GetOutput()).lighting('off')
@@ -520,11 +533,10 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         msh.mapper.SetScalarRange(self.scalar_range())
 
         msh.metadata["slab_range"] = slice_range
-        msh.metadata["slab_axis"] = axis
+        msh.metadata["slab_axis"]  = axis
         msh.metadata["slab_operation"] = operation
 
-        # compute bounds of slices
-        dims = self.dimensions()
+        # compute bounds of slab
         origin = self.origin()
         spacing = self.spacing()
         if axis == 'x':
@@ -561,7 +573,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             parents=[self],
             c="#4cc9f0:#e9c46a",
         )
-        msh.name = "VolumeSlabMesh"
+        msh.name = "SlabMesh"
         return msh
 
 

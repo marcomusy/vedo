@@ -3040,6 +3040,9 @@ class Plotter:
 
                 scanned_acts.append(dlf.MeshActor(a).actor)
 
+            elif "madcad" in str(type(a)):
+                scanned_acts.append(utils.madcad2vedo(a))
+
             else:
                 vedo.logger.error(f"cannot understand input in show(): {type(a)}")
 

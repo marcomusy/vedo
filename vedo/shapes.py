@@ -3312,14 +3312,24 @@ class Box(Mesh):
                 ![](https://vedo.embl.es/images/simulations/50738955-7e891800-11d9-11e9-85cd-02bd4f3f13ea.gif)
         """
         src = vtk.new("CubeSource")
+
+        if len(pos) == 2:
+            pos = (pos[0], pos[1], 0)
+
         if len(pos) == 6:
             src.SetBounds(pos)
-            pos = [0,0,0]
         elif len(size) == 3:
             length, width, height = size
             src.SetXLength(length)
             src.SetYLength(width)
             src.SetZLength(height)
+            src.SetCenter(pos)
+        else:
+            src.SetXLength(length)
+            src.SetYLength(width)
+            src.SetZLength(height)
+            src.SetCenter(pos)
+
         src.Update()
         pd = src.GetOutput()
 
@@ -3352,9 +3362,6 @@ class Box(Mesh):
         vtc = utils.numpy2vtk(tc)
         pd.GetPointData().SetTCoords(vtc)
         super().__init__(pd, c, alpha)
-        if len(pos) == 2:
-            pos = (pos[0], pos[1], 0)
-        self.pos(pos)
         self.name = "Box"
 
 

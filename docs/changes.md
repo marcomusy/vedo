@@ -1,15 +1,18 @@
 ## Main changes
-
 - fixes to `extrude()` thanks to @JeffreyWardman
 - filter out triangle strips in Ribbon and extrude()
 - improvements in doc strings
+- add `utils.madcad2vedo` conversion as per #976 by @JeffreyWardman
+- add `utils.camera_to_dict()`
 
 ## Breaking changes
 - improvements to `shapes.Ellipsoid()` and bug fixes in #978 by @daniel-a-diaz
 - improvements to `pointcloud.pca_ellipsoid()` and bug fixes
 - improvements to `pointcloud.pca_ellipse()` and bug fixes
 
+
 ### Renaming
+
 
 ### Other changes
 - add `core.apply_transform_from_actor()`
@@ -23,6 +26,8 @@
 
 ## New/Revised Examples
 ```
+examples/volumetric/slab_vol.py
+examples/other/madcad1.py
 ```
 
 ### Broken Examples

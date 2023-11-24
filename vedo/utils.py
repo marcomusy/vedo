@@ -21,7 +21,6 @@ __all__ = [
     "ProgressBar",
     "progressbar",
     "geometry",
-    "extract_cells_by_type",
     "is_sequence",
     "lin_interpolate",
     "vector",
@@ -41,6 +40,8 @@ __all__ = [
     "print_inheritance_tree",
     "camera_from_quaternion",
     "camera_from_neuroglancer",
+    "camera_from_dict",
+    "camera_to_dict",
     "oriented_camera",
     "vedo2trimesh",
     "trimesh2vedo",
@@ -566,7 +567,7 @@ def make3d(pts):
         return np.c_[pts, np.zeros(pts.shape[0], dtype=pts.dtype)]
 
     if pts.shape[1] != 3:
-        raise ValueError("input shape is not supported.")
+        raise ValueError(f"input shape is not supported: {pts.shape}")
     return pts
 
 
@@ -590,31 +591,6 @@ def geometry(obj, extent=None):
         gf.SetExtent(extent)
     gf.Update()
     return vedo.Mesh(gf.GetOutput())
-
-
-def extract_cells_by_type(obj, types=()):
-    """
-    Extract cells of a specified type from a vtk dataset.
-
-    Given an input `vtkDataSet` and a list of cell types, produce an output
-    containing only cells of the specified type(s).
-
-    Find [here](https://vtk.org/doc/nightly/html/vtkCellType_8h_source.html)
-    the list of possible cell types.
-
-    Return:
-        a `vtkDataSet` object which can be wrapped.
-    """
-    ef = vtk.new("ExtractCellsByType")
-    try:
-        ef.SetInputData(obj.dataset)
-    except AttributeError:
-        ef.SetInputData(obj)
-
-    for ct in types:
-        ef.AddCellType(ct)
-    ef.Update()
-    return ef.GetOutput()
 
 
 def buildPolyData(vertices, faces=None, lines=None, index_offset=0, tetras=False):
@@ -1917,6 +1893,38 @@ def camera_from_dict(camera, modify_inplace=None):
     if cm_roll is not None:           vcam.SetRoll(cm_roll)
     return vcam
 
+def camera_to_dict(vtkcam):
+    """
+    Convert a [vtkCamera](https://vtk.org/doc/nightly/html/classvtkCamera.html) 
+    object into a python dictionary.
+
+    Parameters of the camera are:
+        - `position` (3-tuple)
+        - `focal_point` (3-tuple)
+        - `viewup` (3-tuple)
+        - `distance` (float)
+        - `clipping_range` (2-tuple)
+        - `parallel_scale` (float)
+        - `thickness` (float)
+        - `view_angle` (float)
+        - `roll` (float)
+
+    Arguments:
+        vtkcam: (vtkCamera)
+            a `vtkCamera` object to convert.
+    """
+    cam = dict()
+    cam["position"] = np.array(vtkcam.GetPosition())
+    cam["focal_point"] = np.array(vtkcam.GetFocalPoint())
+    cam["viewup"] = np.array(vtkcam.GetViewUp())
+    cam["distance"] = vtkcam.GetDistance()
+    cam["clipping_range"] = np.array(vtkcam.GetClippingRange())
+    cam["parallel_scale"] = vtkcam.GetParallelScale()
+    cam["thickness"] = vtkcam.GetThickness()
+    cam["view_angle"] = vtkcam.GetViewAngle()
+    cam["roll"] = vtkcam.GetRoll()
+    return cam
+
 
 def vtkCameraToK3D(vtkcam):
     """
@@ -2372,6 +2380,97 @@ def vedo2open3d(vedo_mesh):
     # o3d_mesh.vertex_colors = o3d.utility.Vector3dVector(vedo_mesh.pointdata["RGB"]/255)
     # o3d_mesh.vertex_normals= o3d.utility.Vector3dVector(vedo_mesh.pointdata["Normals"])
     return o3d_mesh
+
+
+def madcad2vedo(madcad_mesh):
+    """
+    Convert a `madcad.Mesh` to a `vedo.Mesh`.
+    
+    See [pymadcad website](https://pymadcad.readthedocs.io/en/latest/index.html)
+    for more info.
+    """
+    try:
+        madcad_mesh = madcad_mesh["part"]
+    except:
+        pass
+
+    ppp = []
+    for p in madcad_mesh.points:
+        ppp.append([float(p[0]), float(p[1]), float(p[2])])
+    ppp = np.array(ppp)
+
+    fff = []
+    try:
+        for f in madcad_mesh.faces:
+            fff.append([int(f[0]), int(f[1]), int(f[2])])
+        fff = np.array(fff).astype(np.uint16)
+    except AttributeError:
+        # print("no faces")
+        pass
+
+    eee = []
+    try:
+        edges = madcad_mesh.edges
+        for e in edges:
+            eee.append([int(e[0]), int(e[1])])
+        eee = np.array(eee).astype(np.uint16)
+    except (AttributeError, TypeError):
+        # print("no edges")
+        pass
+    
+    try:
+        line = np.array(madcad_mesh.indices).astype(np.uint16)
+        eee.append(line)
+    except AttributeError:
+        # print("no indices")
+        pass
+
+    ttt = []
+    try:
+        for t in madcad_mesh.tracks:
+            ttt.append(int(t))
+        ttt = np.array(ttt).astype(np.uint16)
+    except AttributeError:
+        # print("no tracks")
+        pass
+
+    ###############################
+    poly = vedo.utils.buildPolyData(ppp, fff, eee)
+    if len(fff) == 0 and len(eee) == 0:
+        m = vedo.Points(poly)
+    else:
+        m = vedo.Mesh(poly)
+
+    if len(ttt) == len(fff):
+        m.celldata["tracks"] = ttt
+        maxt = np.max(ttt)
+        m.mapper.SetScalarRange(0, np.max(ttt))  
+        if maxt==0: m.mapper.SetScalarVisibility(0)
+    elif len(ttt) == len(ppp):
+        m.pointdata["tracks"] = ttt
+        maxt = np.max(ttt)
+        m.mapper.SetScalarRange(0, maxt)
+        if maxt==0: m.mapper.SetScalarVisibility(0)
+    
+    try:
+        m.info["madcad_groups"] = madcad_mesh.groups
+    except AttributeError:
+        # print("no groups")
+        pass
+
+    try:
+        options = dict(madcad_mesh.options)
+        if "display_wire" in options and options["display_wire"]:
+            m.lw(1).lc(madcad_mesh.c())
+        if "display_faces" in options and not options["display_faces"]:
+            m.alpha(0.2)
+        if "color" in options:
+            m.c(options["color"])
+    except AttributeError:
+        # print("no options")
+        pass
+
+    return m
 
 
 def vtk_version_at_least(major, minor=0, build=0):
