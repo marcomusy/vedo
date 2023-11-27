@@ -37,7 +37,11 @@ tests/issues/discussion_800.py
 tests/issues/issue_905.py
 gyroscope1.py broken
 markpoint.py
-examples/other/pygmsh_cut.py ust cut tetmesh to gen ugrid
+cut_and_cap.py
+
+volumetric/streamlines1.py
+mousehover1.py
+mousehover2.py (unstable hovering?)
 ```
 
 #### Broken Projects

@@ -51,7 +51,7 @@ vmesh = vedo.utils.madcad2vedo(m)  # <-- convert to vedo.Mesh
 print(vmesh)
 
 scalar = vmesh.vertices[:, 0]
-vmesh.cmap("rainbow", scalar).add_scalarbar(title="x-value")
+vmesh.cmap("rainbow", scalar, on="points").add_scalarbar(title="x-value")
 vedo.show("Generating a path", vmesh, axes=7).close()
 
 ##########################################################################

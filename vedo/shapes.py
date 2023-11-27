@@ -392,7 +392,7 @@ class Tensors(Mesh):
 
 class Line(Mesh):
     """
-    Build the line segment between points `p0` and `p1`.
+    Build the line segment between point `p0` and point `p1`.
 
     If `p0` is already a list of points, return the line connecting them.
 
@@ -409,10 +409,6 @@ class Line(Mesh):
                 (only relevant if only 2 points are specified)
             lw : (int)
                 line width in pixel units
-            c : (color), int, str, list
-                color name, number, or list of [R,G,B] colors
-            alpha : (float)
-                opacity in range [0,1]
         """
 
         if isinstance(p1, Points):
@@ -422,14 +418,23 @@ class Line(Mesh):
         if isinstance(p0, Points):
             p0 = p0.vertices
 
-        # detect if user is passing a list of points:
-        if isinstance(p0, vtk.vtkPolyData):
+        # try:
+        #     p1 = p1.pos()
+        #     p0 = p0.pos()
+        # except AttributeError:
+        #     pass
 
+        # try:
+        #     p0 = p0.vertices
+        # except AttributeError:
+        #     pass
+
+        if isinstance(p0, vtk.vtkPolyData):
             poly = p0
             top  = np.array([0,0,1])
             base = np.array([0,0,0])
 
-        elif utils.is_sequence(p0[0]):
+        elif utils.is_sequence(p0[0]): # detect if user is passing a list of points
 
             p0 = utils.make3d(p0)
             ppoints = vtk.vtkPoints()  # Generate the polyline
@@ -2037,7 +2042,7 @@ class Arrow(Mesh):
 
         super().__init__(tf.GetOutput(), c, alpha)
 
-        # self.transform = LinearTransform(t)
+        self.transform = LinearTransform().translate(start_pt)
         # self.pos(start_pt)
 
         self.phong().lighting("plastic")
@@ -2230,7 +2235,7 @@ class Arrow2D(Mesh):
         phi = np.arctan2(axis[1], axis[0])
 
         t = vtk.vtkTransform()
-        # t.Translate(start_pt) # brakes examples/pyplot/plot_empty.py
+        t.Translate(start_pt)
         if phi:
             t.RotateZ(np.rad2deg(phi))
         if theta:
@@ -2245,7 +2250,7 @@ class Arrow2D(Mesh):
 
         super().__init__(tf.GetOutput(), c, alpha)
 
-        self.pos(start_pt)       # brakes examples/pyplot/plot_empty.py
+        self.transform = LinearTransform().translate(start_pt)
 
         self.lighting("off")
         self.actor.DragableOff()
@@ -3125,6 +3130,7 @@ class Plane(Mesh):
         """
         if isinstance(pos, vtk.vtkPolyData):
             super().__init__(pos, c, alpha)
+            # self.transform = LinearTransform().translate(pos)
 
         else:
             ps = vtk.new("PlaneSource")
@@ -3318,6 +3324,7 @@ class Box(Mesh):
 
         if len(pos) == 6:
             src.SetBounds(pos)
+            pos = [(pos[0] + pos[1]) / 2, (pos[2] + pos[3]) / 2, (pos[4] + pos[5]) / 2]
         elif len(size) == 3:
             length, width, height = size
             src.SetXLength(length)
@@ -3362,6 +3369,7 @@ class Box(Mesh):
         vtc = utils.numpy2vtk(tc)
         pd.GetPointData().SetTCoords(vtc)
         super().__init__(pd, c, alpha)
+        self.transform = LinearTransform().translate(pos)
         self.name = "Box"
 
 
@@ -3510,8 +3518,14 @@ class Cylinder(Mesh):
         """
         Build a cylinder of specified height and radius `r`, centered at `pos`.
 
-        If `pos` is a list of 2 points, e.g. `pos=[v1,v2]`, build a cylinder with base
+        If `pos` is a list of 2 points, e.g. `pos=[v1, v2]`, build a cylinder with base
         centered at `v1` and top at `v2`.
+
+        Arguments:
+            cap : (bool)
+                enable/disable the caps of the cylinder
+            res : (int)
+                resolution of the cylinder sides
 
         ![](https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestCylinder.png)
         """
@@ -3553,6 +3567,7 @@ class Cylinder(Mesh):
         self.phong()
         self.base = base
         self.top  = top
+        self.transform = LinearTransform().translate(pos)
         self.name = "Cylinder"
 
 
@@ -4889,9 +4904,6 @@ class Latex(Image):
 
             ![](https://vedo.embl.es/images/pyplot/latex.png)
         """
-        self.formula = formula
-
-        # try:
         from tempfile import NamedTemporaryFile
         import matplotlib.pyplot as mpltib
 
@@ -4931,10 +4943,11 @@ class Latex(Image):
         build_img_plt(formula, tmp_file.name)
 
         super().__init__(tmp_file.name, channels=4)
-        self.pos(pos)
         self.alpha(alpha)
         self.scale([0.25 / res * s, 0.25 / res * s, 0.25 / res * s])
+        self.pos(pos)
         self.name = "Latex"
+        self.formula = formula
 
         # except:
         #     printc("Error in Latex()\n", formula, c="r")

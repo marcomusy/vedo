@@ -1297,7 +1297,6 @@ class Histogram2D(Figure):
             axes_opts["htitle"] = htitle
             axes_opts["htitle_justify"] = "bottom-left"
             axes_opts["htitle_size"] = 0.0175
-            axes_opts["htitle_offset"] = [-0.49, 0.01, 0]
 
         ############################################### Figure init
         super().__init__(xlim, ylim, aspect, padding, **fig_kwargs)
