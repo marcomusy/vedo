@@ -12,7 +12,6 @@ axs = Axes(
     ztitle="Inverted Z in :mum",
     htitle='My :Gamma^2_ijk  plot',
     htitle_font='Kanopus',
-    htitle_justify='bottom-right',
     htitle_color='red2',
     htitle_size=0.035,
     htitle_offset=(0,0.075,0),

@@ -4,6 +4,7 @@
 - improvements in doc strings
 - add `utils.madcad2vedo` conversion as per #976 by @JeffreyWardman
 - add `utils.camera_to_dict()`
+- add `Axes(title_backface_color=...)` keyword
 
 ## Breaking changes
 - improvements to `shapes.Ellipsoid()` and bug fixes in #978 by @daniel-a-diaz

@@ -354,6 +354,8 @@ class LinearTransform:
             ```
             ![](https://vedo.embl.es/images/feats/rotate_axis.png)
         """
+        if not angle:
+            return self
         if rad:
             anglerad = angle
         else:
@@ -380,6 +382,8 @@ class LinearTransform:
         return self
 
     def _rotatexyz(self, axe, angle, rad, around):
+        if not angle:
+            return self
         if rad:
             angle *= 180 / np.pi
 

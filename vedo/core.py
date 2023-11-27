@@ -1542,8 +1542,10 @@ class PointAlgorithms(CommonAlgorithms):
             z = 0
 
         q = self.transform.position
-        LT = LinearTransform()
-        LT.translate([x, y, z] - q)
+        delta = [x, y, z] - q
+        if delta[0] == delta[1] == delta[2] == 0:
+            return self
+        LT = LinearTransform().translate(delta)
         return self.apply_transform(LT)
 
     def shift(self, dx=0, dy=0, dz=0):
@@ -1551,6 +1553,8 @@ class PointAlgorithms(CommonAlgorithms):
         if utils.is_sequence(dx):
             utils.make3d(dx)
             dx, dy, dz = dx
+        if dx == dy == dz == 0:
+            return self
         LT = LinearTransform().translate([dx, dy, dz])
         return self.apply_transform(LT)
 
@@ -1606,6 +1610,8 @@ class PointAlgorithms(CommonAlgorithms):
 
         Use `around` to define a pivoting point.
         """
+        if angle == 0:
+            return self
         LT = LinearTransform().rotate_x(angle, rad, around)
         return self.apply_transform(LT)
 
@@ -1615,6 +1621,8 @@ class PointAlgorithms(CommonAlgorithms):
 
         Use `around` to define a pivoting point.
         """
+        if angle == 0:
+            return self
         LT = LinearTransform().rotate_y(angle, rad, around)
         return self.apply_transform(LT)
 
@@ -1624,6 +1632,8 @@ class PointAlgorithms(CommonAlgorithms):
 
         Use `around` to define a pivoting point.
         """
+        if angle == 0:
+            return self
         LT = LinearTransform().rotate_z(angle, rad, around)
         return self.apply_transform(LT)
 

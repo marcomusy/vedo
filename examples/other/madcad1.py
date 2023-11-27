@@ -39,7 +39,7 @@ vedo.show("A bevel cube", cube, axes=1).close()
 ##########################################################################
 square_profile = square((O, Z), 5).flip()
 primitives = [
-    ArcCentered((5 * X, Y), O, 10 * X),
+    ArcCentered(( 5 * X,  Y),      O, 10 * X),
     ArcCentered((15 * X, -Y), 10 * X, 20 * X),
 ]
 # Generate a path
@@ -53,3 +53,13 @@ print(vmesh)
 scalar = vmesh.vertices[:, 0]
 vmesh.cmap("rainbow", scalar).add_scalarbar(title="x-value")
 vedo.show("Generating a path", vmesh, axes=7).close()
+
+##########################################################################
+c1 = Circle((vec3(0), Z), 1)
+c2 = Circle((2 * X, X), 0.5)
+c3 = (Circle((2 * Y, Y), 0.5), "tangent", 2)
+e1 = extrusion(2 * Z, web(c1))
+
+m = junction(e1, c2, c3, tangents="normal")
+vm = vedo.utils.madcad2vedo(m)
+vedo.show(vm, e1, axes=1, viewup="z").close()

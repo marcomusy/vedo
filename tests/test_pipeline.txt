@@ -20,6 +20,7 @@ pip install pygmsh -U
 #pip install pymeshfix -U
 #pip install tetgen -U
 pip install pymeshlab -U
+pip install pymadcad -U
 pip install pyshtools -U
 pip install rtree
 pip install trimesh -U
@@ -131,7 +132,8 @@ cd $VDIR/docs/pdoc
 
 # check web page examples
 cd $VDIR
-code www/examples_db.js
+code docs/examples_db.js
+cp docs/examples_db.js www/examples_db.js
 code www/index.html
 
 

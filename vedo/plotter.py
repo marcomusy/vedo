@@ -3036,12 +3036,11 @@ class Plotter:
                     scanned_acts.append(utils.meshlab2vedo(a))
 
             elif "dolfin" in str(type(a)):  # assume a dolfin.Mesh object
-                import vedo.dolfin as dlf
-
-                scanned_acts.append(dlf.MeshActor(a).actor)
+                import vedo.dolfin as vdlf
+                scanned_acts.append(vdlf.MeshActor(a).actor)
 
             elif "madcad" in str(type(a)):
-                scanned_acts.append(utils.madcad2vedo(a))
+                scanned_acts.append(utils.madcad2vedo(a).actor)
 
             else:
                 vedo.logger.error(f"cannot understand input in show(): {type(a)}")
@@ -4032,18 +4031,11 @@ class Plotter:
             self.reset_viewup()
 
         elif key == "w":
-            if self.clicked_object and self.clicked_object in self.get_meshes():
-                # self.clicked_object.properties.SetRepresentationToWireframe()
+            if self.clicked_object:
                 if self.clicked_object.properties.GetRepresentation() == 1:  # toggle
                     self.clicked_object.properties.SetRepresentationToSurface()
                 else:
                     self.clicked_object.properties.SetRepresentationToWireframe()
-            else:
-                for a in self.get_meshes():
-                    if a.properties.GetRepresentation() == 1:  # toggle
-                        a.properties.SetRepresentationToSurface()
-                    else:
-                        a.properties.SetRepresentationToWireframe()
 
         elif key == "1":
             self._icol += 1

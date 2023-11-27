@@ -893,7 +893,7 @@ def intersection_ray_triangle(P0, P1, V0, V1, V2):
     # Credits: http://geomalgorithms.com/a06-_intersect-2.html
     # Get triangle edge vectors and plane normal
     # todo : this is slow should check
-    # https://vtk.org/doc/nightly/html/classvtkCell.html#aa850382213d7b8693f0eeec0209c347b
+    # https://vtk.org/doc/nightly/html/classvtkCell.html
     V0 = np.asarray(V0, dtype=float)
     P0 = np.asarray(P0, dtype=float)
     u = V1 - V0
@@ -2385,6 +2385,12 @@ def vedo2open3d(vedo_mesh):
 def madcad2vedo(madcad_mesh):
     """
     Convert a `madcad.Mesh` to a `vedo.Mesh`.
+
+    A pointdata or celldata array named "tracks" is added to the output mesh, indicating
+    the mesh region each point belongs to.
+
+    A metadata array named "madcad_groups" is added to the output mesh, indicating
+    the mesh groups.
     
     See [pymadcad website](https://pymadcad.readthedocs.io/en/latest/index.html)
     for more info.
@@ -2394,61 +2400,61 @@ def madcad2vedo(madcad_mesh):
     except:
         pass
 
-    ppp = []
+    madp = []
     for p in madcad_mesh.points:
-        ppp.append([float(p[0]), float(p[1]), float(p[2])])
-    ppp = np.array(ppp)
+        madp.append([float(p[0]), float(p[1]), float(p[2])])
+    madp = np.array(madp)
 
-    fff = []
+    madf = []
     try:
         for f in madcad_mesh.faces:
-            fff.append([int(f[0]), int(f[1]), int(f[2])])
-        fff = np.array(fff).astype(np.uint16)
+            madf.append([int(f[0]), int(f[1]), int(f[2])])
+        madf = np.array(madf).astype(np.uint16)
     except AttributeError:
         # print("no faces")
         pass
 
-    eee = []
+    made = []
     try:
         edges = madcad_mesh.edges
         for e in edges:
-            eee.append([int(e[0]), int(e[1])])
-        eee = np.array(eee).astype(np.uint16)
+            made.append([int(e[0]), int(e[1])])
+        made = np.array(made).astype(np.uint16)
     except (AttributeError, TypeError):
         # print("no edges")
         pass
     
     try:
         line = np.array(madcad_mesh.indices).astype(np.uint16)
-        eee.append(line)
+        made.append(line)
     except AttributeError:
         # print("no indices")
         pass
 
-    ttt = []
+    madt = []
     try:
         for t in madcad_mesh.tracks:
-            ttt.append(int(t))
-        ttt = np.array(ttt).astype(np.uint16)
+            madt.append(int(t))
+        madt = np.array(madt).astype(np.uint16)
     except AttributeError:
         # print("no tracks")
         pass
 
     ###############################
-    poly = vedo.utils.buildPolyData(ppp, fff, eee)
-    if len(fff) == 0 and len(eee) == 0:
+    poly = vedo.utils.buildPolyData(madp, madf, made)
+    if len(madf) == 0 and len(made) == 0:
         m = vedo.Points(poly)
     else:
         m = vedo.Mesh(poly)
 
-    if len(ttt) == len(fff):
-        m.celldata["tracks"] = ttt
-        maxt = np.max(ttt)
-        m.mapper.SetScalarRange(0, np.max(ttt))  
+    if len(madt) == len(madf):
+        m.celldata["tracks"] = madt
+        maxt = np.max(madt)
+        m.mapper.SetScalarRange(0, np.max(madt))  
         if maxt==0: m.mapper.SetScalarVisibility(0)
-    elif len(ttt) == len(ppp):
-        m.pointdata["tracks"] = ttt
-        maxt = np.max(ttt)
+    elif len(madt) == len(madp):
+        m.pointdata["tracks"] = madt
+        maxt = np.max(madt)
         m.mapper.SetScalarRange(0, maxt)
         if maxt==0: m.mapper.SetScalarVisibility(0)
     
