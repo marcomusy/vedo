@@ -8,7 +8,7 @@ mesh = Mesh(dataurl + "panther.stl").compute_normals().linewidth(0.1).flat()
 
 # generate a numpy array for mesh quality
 mesh.compute_quality(metric=6)
-mesh.cmap("RdYlBu", on="cells")
+mesh.cmap("RdYlBu")
 
 hist = histogram(mesh.celldata["Quality"], xtitle="mesh quality", ac="w")
 # make it smaller and position it, use_bounds makes the cam

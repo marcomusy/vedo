@@ -1,16 +1,17 @@
 
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/vedo/badges/version.svg)](https://anaconda.org/conda-forge/vedo)
-[![Ubuntu 23.04 package](https://repology.org/badge/version-for-repo/ubuntu_23_04/vedo.svg)](https://repology.org/project/vedo/versions)
+[![Ubuntu 23.10 package](https://repology.org/badge/version-for-repo/ubuntu_23_10/vedo.svg)](https://repology.org/project/vedo/versions)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5842090.svg)](https://doi.org/10.5281/zenodo.5842090)
 
-![](https://user-images.githubusercontent.com/32848391/46815773-dc919500-cd7b-11e8-8e80-8b83f760a303.png)
+![](https://vedo.embl.es/images/feats/teapot_banner.png)
 
 
 A python module for scientific analysis of 3D objects and
 point clouds based on [VTK](https://www.vtk.org/) and [numpy](http://www.numpy.org/).
 
-Check out the [GitHub repository here](https://github.com/marcomusy/vedo).
+Check out the [GitHub repository here](https://github.com/marcomusy/vedo)
+and the [vedo main page here](https://vedo.embl.es).
 
 Find at this [link](https://vedo.embl.es/autodocs/v2023.4.7/vedo.html) the documentation for the older version v2023.4.7.
 
@@ -100,7 +101,8 @@ You can also find online tutorials at:
    - [3D Visualization of STL Files](https://www.youtube.com/watch?v=llq9-oJXepQ)
 
 
-- [Creating an interactive 3D geological model](https://www.youtube.com/watch?v=raiIft8VeRU&t=1s) by A. Pollack (SCRF).
+- [Creating an interactive 3D geological model](https://www.youtube.com/watch?v=raiIft8VeRU&t=1s) by A. Pollack (SCRF). See a more updated example 
+[here](https://github.com/marcomusy/vedo/blob/master/examples/advanced/geological_model.py).
 
 - ["vedo", a python module for scientific analysis and visualization of 3D data](https://www.youtube.com/watch?v=MhIoetdxwc0&t=39s), I2K Conference, by M. Musy (EMBL).
 

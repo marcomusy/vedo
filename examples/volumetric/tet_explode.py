@@ -6,7 +6,7 @@ n = 20000
 f1 = 0.005  # control the tetras resolution
 f2 = 0.15   # control the nr of seeds
 
-tmesh = TetMesh(dataurl + "limb_ugrid.vtk")
+tmesh = TetMesh(dataurl + "limb.vtu")
 surf = tmesh.tomesh(fill=False)
 txt = Text2D(__doc__, font="Brachium")
 

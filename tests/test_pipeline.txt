@@ -110,6 +110,7 @@ cd ~/Projects/napari-vedo-bridge
     # conda create -y -n napari-env -c conda-forge python=3.9
     # conda activate napari-env
     # python -m pip install "napari[all]"
+    # cd ../vedo && pip install . && cd -
     conda activate napari-env
     python $VDIR/examples/other/napari1.py
     napari

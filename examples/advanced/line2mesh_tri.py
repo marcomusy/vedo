@@ -10,7 +10,7 @@ cmap = "RdYlBu"
 msh = shape.generate_mesh(invert=True)
 msh.smooth()           # make the triangles more uniform
 msh.compute_quality()  # add a measure of triangle quality
-msh.cmap(cmap, on="cells")
+msh.cmap(cmap)
 
 contour = Line(shape).c("red4").lw(5)
 labels = contour.labels("id")

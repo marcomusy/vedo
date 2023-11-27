@@ -11,8 +11,8 @@ plt = Plotter(N=4, axes=1)
 plt.at(0).show(msh, "Original shape")
 
 # Use built-in curvature method
-msh1 = msh.clone().compute_curvature(method=0).cmap('viridis')
-msh1.add_scalarbar(horizontal=True, size=(100, None))
+msh1 = msh.clone().compute_curvature(method=0)
+msh1.cmap('viridis').add_scalarbar()
 plt.at(1).show(msh1, "Gaussian curvature", azimuth=30, elevation=30)
 
 # Use sphere-fit curvature
@@ -33,14 +33,13 @@ for idx in range(msh2.npoints):
 
 msh2.pointdata['Spherefit_Curvature'] = curvature
 msh2.pointdata['Spherefit_Curvature_Residue'] = residues
-msh2.cmap('viridis', msh2.pointdata['Spherefit_Curvature'])
-msh2.add_scalarbar(horizontal=True, size=(100, None))
+msh2.cmap('viridis', 'Spherefit_Curvature')
+msh2.add_scalarbar()
 plt.at(2).show(msh2, "Sphere-fitted curvature")
 
 # Show fit residues
 msh3 = msh2.clone()
-msh3.cmap('jet', msh2.pointdata['Spherefit_Curvature_Residue'])
-msh3.add_scalarbar(horizontal=True, size=(100, None))
+msh3.cmap('jet', 'Spherefit_Curvature_Residue').add_scalarbar()
 plt.at(3).show(msh3, 'Sphere-fitted curvature\nFit residues')
 
 plt.interactive().close()

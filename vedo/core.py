@@ -249,7 +249,7 @@ class DataArrayHelper:
 
         arr = data.GetArray(key)
         if not arr:
-            return
+            return self.obj
 
         nc = arr.GetNumberOfComponents()
         # print("GetNumberOfComponents", nc)
@@ -271,7 +271,7 @@ class DataArrayHelper:
             data.SetActiveTensors(key)
         else:
             vedo.logger.error(f"Cannot select array {key} with {nc} components")
-            return
+            return self.obj
 
         try:
             # could be a volume mapper
@@ -280,55 +280,20 @@ class DataArrayHelper:
         except AttributeError:
             pass
 
-    # def select_scalars(self, key):
-    #     """Select one specific scalar array by its name to make it the `active` one."""
-    #     if self.association == 0:
-    #         data = self.obj.dataset.GetPointData()
-    #         self.obj.mapper.SetScalarModeToUsePointData()
-    #     else:
-    #         data = self.obj.dataset.GetCellData()
-    #         self.obj.mapper.SetScalarModeToUseCellData()
-
-    #     if isinstance(key, int):
-    #         key = data.GetArrayName(key)
-    #     data.SetActiveScalars(key)
-
-    #     try:
-    #         self.obj.mapper.SetArrayName(key)
-    #         self.obj.mapper.ScalarVisibilityOn()
-    #     except AttributeError:
-    #         pass
-
-    # def select_vectors(self, key):
-    #     """Select one specific vector array by its name to make it the `active` one."""
-    #     if self.association == 0:
-    #         data = self.obj.dataset.GetPointData()
-    #         self.obj.mapper.SetScalarModeToUsePointData()
-    #     else:
-    #         data = self.obj.dataset.GetCellData()
-    #         self.obj.mapper.SetScalarModeToUseCellData()
-
-    #     if isinstance(key, int):
-    #         key = data.GetArrayName(key)
-    #     data.SetActiveVectors(key)
-
-    #     try:
-    #         self.obj.mapper.SetArrayName(key)
-    #         self.obj.mapper.ScalarVisibilityOn()
-    #     except AttributeError:
-    #         pass
+        return self.obj
     
-    # def select_texture_coords(self, key):
-    #     """Select one specific array to be used as texture coordinates."""
-    #     if self.association == 0:
-    #         data = self.obj.dataset.GetPointData()
-    #     else:
-    #         vedo.logger.warning("texture coordinates are only available for point data")
-    #         return
+    def select_texture_coords(self, key):
+        """Select one specific array to be used as texture coordinates."""
+        if self.association == 0:
+            data = self.obj.dataset.GetPointData()
+        else:
+            vedo.logger.warning("texture coordinates are only available for point data")
+            return
 
-    #     if isinstance(key, int):
-    #         key = data.GetArrayName(key)
-    #     data.SetTCoords(data.GetArray(key))
+        if isinstance(key, int):
+            key = data.GetArrayName(key)
+        data.SetTCoords(data.GetArray(key))
+        return self.obj
 
     def select_normals(self, key):
         """Select one specific normal array by its name to make it the "active" one."""
@@ -342,6 +307,7 @@ class DataArrayHelper:
         if isinstance(key, int):
             key = data.GetArrayName(key)
         data.SetActiveNormals(key)
+        return self.obj
 
     def print(self, **kwargs):
         """Print the array names available to terminal"""
@@ -1044,8 +1010,6 @@ class CommonAlgorithms:
             points = source.dataset
         elif on == "cells":
             c2p = vtk.new("CellDataToPointData")
-            # poly2 = vtk.vtkPolyData()
-            # poly2.ShallowCopy(source.dataset)
             c2p.SetInputData(source.dataset)
             c2p.Update()
             points = c2p.GetOutput()
@@ -1065,10 +1029,8 @@ class CommonAlgorithms:
             kern.SetSharpness(2)
         elif kernel.lower() == "linear":
             kern = vtk.new("LinearKernel")
-        # elif kernel.lower() == "voronoi":
-        #     kern = vtk.new("ProbabilisticVoronoiKernel")
         else:
-            vedo.logger.error("available kernels are: [shepard, gaussian, linear, voronoi]")
+            vedo.logger.error("available kernels are: [shepard, gaussian, linear]")
             raise RuntimeError()
 
         if n:

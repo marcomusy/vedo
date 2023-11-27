@@ -1143,8 +1143,11 @@ def printc(
     """
 
     if not vedo.settings.enable_print_color or not _terminal_has_colors:
-        print(*strings, end=end, flush=flush)
-        return
+        if return_string:
+            return ''.join(strings)
+        else:
+            print(*strings, end=end, flush=flush)
+            return
 
     try:  # -------------------------------------------------------------
 

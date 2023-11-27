@@ -817,6 +817,7 @@ class Mesh(MeshVisual, Points):
         qf.SaveCellQualityOn()
         qf.Update()
         self._update(qf.GetOutput(), reset_locators=False)
+        self.mapper.SetScalarModeToUseCellData()
         self.pipeline = OperationNode("compute_quality", parents=[self])
         return self
 
@@ -866,9 +867,9 @@ class Mesh(MeshVisual, Points):
         Example:
             ```python
             from vedo import Torus
-            Torus().compute_curvature().add_scalarbar().show(axes=1).close()
+            Torus().compute_curvature().add_scalarbar().show().close()
             ```
-            ![](https://user-images.githubusercontent.com/32848391/51934810-c2e88c00-2404-11e9-8e7e-ca0b7984bbb7.png)
+            ![](https://vedo.embl.es/images/advanced/torus_curv.png)
         """
         curve = vtk.new("Curvatures")
         curve.SetInputData(self.dataset)
@@ -891,12 +892,12 @@ class Mesh(MeshVisual, Points):
                 set the range of the scalar
 
         Example:
-        ```python
-        from vedo import Sphere
-        s = Sphere().compute_elevation(low=(0,0,0), high=(1,1,1))
-        s.add_scalarbar().show(axes=1).close()
-        ```
-        ![](https://user-images.githubusercontent.com/32848391/68478872-3986a580-0231-11ea-8245-b68a683aa295.png)
+            ```python
+            from vedo import Sphere
+            s = Sphere().compute_elevation(low=(0,0,0), high=(1,1,1))
+            s.add_scalarbar().show(axes=1).close()
+            ```
+            ![](https://vedo.embl.es/images/basic/compute_elevation.png)
         """
         ef = vtk.new("ElevationFilter")
         ef.SetInputData(self.dataset)

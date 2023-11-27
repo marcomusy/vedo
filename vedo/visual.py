@@ -1150,7 +1150,7 @@ class PointsVisual(CommonVisual):
         self,
         input_cmap,
         input_array=None,
-        on="points",
+        on="",
         name="Scalars",
         vmin=None,
         vmax=None,
@@ -1165,12 +1165,12 @@ class PointsVisual(CommonVisual):
             input_cmap : (str, list, vtkLookupTable, matplotlib.colors.LinearSegmentedColormap)
                 color map scheme to transform a real number into a color.
             input_array : (str, list, vtkArray)
-                can be the string name of an existing array, a numpy array or a `vtkArray`.
+                can be the string name of an existing array, a new array or a `vtkArray`.
             on : (str)
-                either 'points' or 'cells'.
+                either 'points' or 'cells' or blank (automatic).
                 Apply the color map to data which is defined on either points or cells.
             name : (str)
-                give a name to the provided numpy array (if input_array is a numpy array)
+                give a name to the provided array (if input_array is an array)
             vmin : (float)
                 clip scalars to this minimum value
             vmax : (float)
@@ -1186,11 +1186,20 @@ class PointsVisual(CommonVisual):
             - [mesh_coloring.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_coloring.py)
             - [mesh_alphas.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_alphas.py)
             - [mesh_custom.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_custom.py)
-            (and many others)
+            - (and many others)
 
                 ![](https://vedo.embl.es/images/basic/mesh_custom.png)
         """
         self._cmap_name = input_cmap
+
+        if on == "":
+            try:
+                on = self.mapper.GetScalarModeAsString().replace("Use", "")
+                if on not in ["PointData", "CellData"]: # can be "Default"
+                    on = "points"
+                    self.mapper.SetScalarModeToUsePointData()
+            except AttributeError:
+                on = "points"
 
         if input_array is None:
             if not self.pointdata.keys() and self.celldata.keys():
@@ -1204,7 +1213,6 @@ class PointsVisual(CommonVisual):
         elif "cell" in on.lower():
             data = self.dataset.GetCellData()
             n = self.dataset.GetNumberOfCells()
-            # print("XXXX", n, self.dataset.GetNumberOfVerts())
         else:
             vedo.logger.error("Must specify in cmap(on=...) to either 'cells' or 'points'")
             raise RuntimeError()
@@ -1559,17 +1567,19 @@ class PointsVisual(CommonVisual):
             if content in ("cellid", "cellsid"):
                 cells = True
                 content = "id"
-
-        if cells:
-            elems = self.cell_centers
-            # norms = self.normals(cells=True, recompute=False)
-            norms = self.cell_normals
-            ns = np.sqrt(self.ncells)
-        else:
-            elems = self.vertices
-            # norms = self.normals(cells=False, recompute=False)
-            norms = self.vertex_normals
-            ns = np.sqrt(self.npoints)
+        try:
+            if cells:
+                elems = self.cell_centers
+                # norms = self.normals(cells=True, recompute=False)
+                norms = self.cell_normals
+                ns = np.sqrt(self.ncells)
+            else:
+                elems = self.vertices
+                # norms = self.normals(cells=False, recompute=False)
+                norms = self.vertex_normals
+                ns = np.sqrt(self.npoints)
+        except AttributeError:
+            norms = []
 
         hasnorms = False
         if len(norms) > 0:
@@ -1761,7 +1771,6 @@ class PointsVisual(CommonVisual):
             if content != "id" and content not in self.pointdata.keys():
                 vedo.logger.error(f"In labels2d: point array {content} does not exist.")
                 return None
-            self.pointdata.select(content)
 
         mp = vtk.new("LabeledDataMapper")
 

@@ -1,8 +1,11 @@
 # Thresholding and slicing a TetMesh
 from vedo import TetMesh, dataurl, show
 
-tmsh = TetMesh(dataurl+'limb_ugrid.vtk').color('Spectral')
-tmsh.cmap('hot').add_scalarbar3d('chem_0  expression', c='k')
+tmsh = TetMesh(dataurl+'limb.vtu')
+print(tmsh)
+
+tmsh.celldata.select('chem_0').cmap('hot')
+tmsh.add_scalarbar3d('chem_0  expression', c='k')
 
 vals = [0.2, 0.3, 0.8]
 isos = tmsh.isosurface(vals)

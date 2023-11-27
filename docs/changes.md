@@ -42,7 +42,7 @@ examples/other/pygmsh_cut.py ust cut tetmesh to gen ugrid
 
 #### Broken Projects
 umap_viewer3d
-trackviewer (some problems with removing a track)
+trackviewer (some problems with removing a track, and z spacing)
 
 
 #### Broken Exports to .npz:
