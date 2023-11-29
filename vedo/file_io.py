@@ -1730,6 +1730,8 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False):
         asarray : (bool)
             Return a numpy array of the image
     """
+    # print("calling screenshot", filename, scale, asarray)
+
     if not vedo.plotter_instance or not vedo.plotter_instance.window:
         # vedo.logger.error("in screenshot(), rendering window is not present, skip.")
         return vedo.plotter_instance  ##########
@@ -1799,6 +1801,10 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False):
         npdata = npdata.reshape([xdim, ydim, -1])
         npdata = np.flip(npdata, axis=0)
         return npdata ###########################
+
+    # elif settings.default_backend == "2d" and vedo.notebook_plotter:
+    #     vedo.notebook_plotter.save(filename) # a PIL Image
+    #     return vedo.notebook_plotter  ##########
 
     if filename.lower().endswith(".png"):
         writer = vtk.new("PNGWriter")

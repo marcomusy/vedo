@@ -207,10 +207,10 @@ class CommonVisual:
     def add_scalarbar(
         self,
         title="",
-        pos=(0.8, 0.05),
+        pos=(0.775, 0.05),
         title_yoffset=15,
         font_size=12,
-        size=(None, None),
+        size=(60, 350),
         nlabels=None,
         c=None,
         horizontal=False,
@@ -219,6 +219,28 @@ class CommonVisual:
     ):
         """
         Add a 2D scalar bar for the specified obj.
+
+        Arguments:
+            title : (str)
+                scalar bar title
+            pos : (float,float)
+                position coordinates of the bottom left corner
+            title_yoffset : (float)
+                vertical space offset between title and color scalarbar
+            font_size : (float)
+                size of font for title and numeric labels
+            size : (float,float)
+                size of the scalarbar in number of pixels (width, height)
+            nlabels : (int)
+                number of numeric labels
+            c : (list)
+                color of the scalar bar text
+            horizontal : (bool)
+                lay the scalarbar horizontally
+            use_alpha : (bool)
+                render transparency in the color bar itself
+            label_format : (str)
+                c-style format string for numeric labels
 
         Examples:
             - [mesh_coloring.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_coloring.py)
@@ -1516,10 +1538,9 @@ class PointsVisual(CommonVisual):
         precision=None,
         italic=False,
         font="",
-        justify="bottom-left",
+        justify="",
         c="black",
         alpha=1.0,
-        cells=None,
     ):
         """
         Generate value or ID labels for mesh cells or points.
@@ -1557,29 +1578,37 @@ class PointsVisual(CommonVisual):
 
                 ![](https://vedo.embl.es/images/basic/boundaries.png)
         """
-        if cells is not None:  # deprecation message
-            vedo.logger.warning("In labels(cells=...) please use labels(on='cells') instead")
-
+        
+        cells = False
         if "cell" in on or "face" in on:
             cells = True
+            justify = "centered" if justify == "" else justify
 
         if isinstance(content, str):
+            if content in ("pointid", "pointsid"):
+                cells = False
+                content = "id"
+                justify = "bottom-left" if justify == "" else justify
             if content in ("cellid", "cellsid"):
                 cells = True
                 content = "id"
+                justify = "centered" if justify == "" else justify
+
         try:
             if cells:
                 elems = self.cell_centers
-                # norms = self.normals(cells=True, recompute=False)
                 norms = self.cell_normals
                 ns = np.sqrt(self.ncells)
+                justify = "centered" if justify == "" else justify
             else:
                 elems = self.vertices
-                # norms = self.normals(cells=False, recompute=False)
                 norms = self.vertex_normals
                 ns = np.sqrt(self.npoints)
         except AttributeError:
             norms = []
+        
+        if not justify:
+            justify = "bottom-left"
 
         hasnorms = False
         if len(norms) > 0:
@@ -1614,15 +1643,14 @@ class PointsVisual(CommonVisual):
         elif utils.is_sequence(content):
             mode = 0
             arr = content
-            # print('WEIRD labels() test', content)
-            # exit()
 
         if arr is None and mode == 0:
-            vedo.logger.error("in labels(), array not found for points or cells")
+            vedo.logger.error("in labels(), array not found in point or cell data")
             return None
 
+        ratio = int(ratio+0.5)
         tapp = vtk.new("AppendPolyData")
-        ninputs = 0
+        has_inputs = False
 
         for i, e in enumerate(elems):
             if i % ratio:
@@ -1647,41 +1675,33 @@ class PointsVisual(CommonVisual):
             else:
                 tx_poly = vedo.shapes.Text3D(txt_lab, font=font, justify=justify).dataset
 
-            if tx_poly.GetPointData() == 0:
-                continue  #######################
-            ninputs += 1
+            if tx_poly.GetNumberOfPoints() == 0:
+                continue  ######################
 
             T = vtk.vtkTransform()
             T.PostMultiply()
             if italic:
-                T.Concatenate([1,0.2,0,0,
-                               0,1,0,0,
-                               0,0,1,0,
-                               0,0,0,1])
+                T.Concatenate([1, 0.2, 0, 0,
+                               0, 1  , 0, 0,
+                               0, 0  , 1, 0,
+                               0, 0  , 0, 1])
             if hasnorms:
                 ni = norms[i]
-                if cells:  # center-justify
+                if cells and font=="VTK":  # center-justify
                     bb = tx_poly.GetBounds()
                     dx, dy = (bb[1] - bb[0]) / 2, (bb[3] - bb[2]) / 2
                     T.Translate(-dx, -dy, 0)
-                if xrot:
-                    T.RotateX(xrot)
-                if yrot:
-                    T.RotateY(yrot)
-                if zrot:
-                    T.RotateZ(zrot)
+                if xrot: T.RotateX(xrot)
+                if yrot: T.RotateY(yrot)
+                if zrot: T.RotateZ(zrot)
                 crossvec = np.cross([0, 0, 1], ni)
                 angle = np.arccos(np.dot([0, 0, 1], ni)) * 57.3
                 T.RotateWXYZ(angle, crossvec)
-                if cells:  # small offset along normal only for cells
-                    T.Translate(ni * scale / 2)
+                T.Translate(ni / 100)
             else:
-                if xrot:
-                    T.RotateX(xrot)
-                if yrot:
-                    T.RotateY(yrot)
-                if zrot:
-                    T.RotateZ(zrot)
+                if xrot: T.RotateX(xrot)
+                if yrot: T.RotateY(yrot)
+                if zrot: T.RotateZ(zrot)
             T.Scale(scale, scale, scale)
             T.Translate(e)
             tf = vtk.new("TransformPolyDataFilter")
@@ -1689,13 +1709,13 @@ class PointsVisual(CommonVisual):
             tf.SetTransform(T)
             tf.Update()
             tapp.AddInputData(tf.GetOutput())
+            has_inputs = True
 
-        if ninputs:
+        if has_inputs:
             tapp.Update()
             lpoly = tapp.GetOutput()
-        else:  # return an empty obj
+        else:
             lpoly = vtk.vtkPolyData()
-
         ids = vedo.mesh.Mesh(lpoly, c=c, alpha=alpha)
         ids.properties.LightingOff()
         ids.actor.PickableOff()
@@ -1748,15 +1768,16 @@ class PointsVisual(CommonVisual):
         ![](https://vedo.embl.es/images/feats/labels2d.png)
         """
         cells = False
+        if "cell" in on:
+            cells = True
+
         if isinstance(content, str):
+            if content in ("id", "pointid", "pointsid"):
+                cells = False
+                content = "id"
             if content in ("cellid", "cellsid"):
                 cells = True
                 content = "id"
-
-        if "cell" in on:
-            cells = True
-        elif "point" in on:
-            cells = False
 
         if cells:
             if content != "id" and content not in self.celldata.keys():

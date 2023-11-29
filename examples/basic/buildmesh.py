@@ -13,7 +13,7 @@ mesh = Mesh([verts, cells])
 mesh.backcolor('violet').linecolor('tomato').linewidth(2)
 
 # Create labels for all vertices in the mesh showing their ID
-labs = mesh.labels('id').c('black')
+labs = mesh.labels2d('pointid')
 
 # Print the points and faces of the mesh as numpy arrays
 print('vertices:', mesh.vertices)

@@ -24,7 +24,7 @@ Work with tetrahedral meshes.
 __all__ = ["UnstructuredGrid", "TetMesh"]
 
 #########################################################################
-class UnstructuredGrid(MeshVisual, PointAlgorithms):
+class UnstructuredGrid(PointAlgorithms, MeshVisual):
     """Support for UnstructuredGrid objects."""
 
     def __init__(self, inputobj=None):

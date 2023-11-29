@@ -10,8 +10,8 @@
 A python module for scientific analysis of 3D objects and
 point clouds based on [VTK](https://www.vtk.org/) and [numpy](http://www.numpy.org/).
 
-Check out the [GitHub repository here](https://github.com/marcomusy/vedo)
-and the [vedo main page here](https://vedo.embl.es).
+Check out the [**GitHub repository**](https://github.com/marcomusy/vedo)
+and the [**vedo main page here**](https://vedo.embl.es).
 
 Find at this [link](https://vedo.embl.es/autodocs/v2023.4.7/vedo.html) the documentation for the older version v2023.4.7.
 
@@ -81,9 +81,6 @@ alias ve='vedo --eog '      # to view single and multiple images
 ```
 
 ## Tutorials
-Check out the [**Github repository**](https://github.com/marcomusy/vedo)
-for more information, where you can ask questions and report issues.
-
 You are welcome to ask specific questions on the
 [**image.sc**](https://forum.image.sc) forum,
 post a [**github issue**](https://github.com/marcomusy/vedo/issues)

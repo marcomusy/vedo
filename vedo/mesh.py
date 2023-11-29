@@ -302,10 +302,12 @@ class Mesh(MeshVisual, Points):
         else:
             pdnorm.SetSplitting(False)
         pdnorm.Update()
-        if points:
-            self.dataset.GetPointData().SetNormals(pdnorm.GetOutput().GetPointData().GetNormals())
-        if cells:
-            self.dataset.GetCellData().SetNormals(pdnorm.GetOutput().GetCellData().GetNormals())
+        out = pdnorm.GetOutput()
+        self._update(out, reset_locators=False)
+        # if points:
+        #     self.dataset.GetPointData().SetNormals(out.GetPointData().GetNormals())
+        # if cells:
+        #     self.dataset.GetCellData().SetNormals(out.GetCellData().GetNormals())
         return self
 
     def reverse(self, cells=True, normals=False):

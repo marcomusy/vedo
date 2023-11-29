@@ -92,7 +92,7 @@ def start_k3d(actors2show):
         menu_visibility=settings.k3d_menu_visibility,
         height=settings.k3d_plot_height,
         antialias=settings.k3d_antialias,
-        background_color=_rgb2int(vedo.get_color(plt._bg)),
+        background_color=_rgb2int(vedo.get_color(plt.backgrcol)),
         camera_fov=30.0,  # deg (this is the vtk default)
         lighting=settings.k3d_lighting,
         grid_color=_rgb2int(vedo.get_color(settings.k3d_axes_color)),

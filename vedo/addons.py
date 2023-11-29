@@ -819,7 +819,7 @@ def Light(pos, focal_point=(0, 0, 0), angle=180, c=None, intensity=1):
 def ScalarBar(
     obj,
     title="",
-    pos=(0.8, 0.05),
+    pos=(0.775, 0.05),
     title_yoffset=15,
     font_size=12,
     size=(None, None),
@@ -833,16 +833,26 @@ def ScalarBar(
     A 2D scalar bar for the specified obj.
 
     Arguments:
-        pos : (list)
-            fractional x and y position in the 2D window
-        size : (list)
-            size of the scalarbar in pixel units (width, height)
+        title : (str)
+            scalar bar title
+        pos : (float,float)
+            position coordinates of the bottom left corner
+        title_yoffset : (float)
+            vertical space offset between title and color scalarbar
+        font_size : (float)
+            size of font for title and numeric labels
+        size : (float,float)
+            size of the scalarbar in number of pixels (width, height)
         nlabels : (int)
-            number of numeric labels to be shown
-        use_alpha : (bool)
-            retain transparency in scalarbar
+            number of numeric labels
+        c : (list)
+            color of the scalar bar text
         horizontal : (bool)
-            show in horizontal layout
+            lay the scalarbar horizontally
+        use_alpha : (bool)
+            render transparency in the color bar itself
+        label_format : (str)
+            c-style format string for numeric labels
 
     Examples:
         - [scalarbars.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/scalarbars.py)
@@ -882,6 +892,7 @@ def ScalarBar(
 
     c = get_color(c)
     sb = vtk.vtkScalarBarActor()
+    #sb.SetTextPosition(0)
 
     # print("GetLabelFormat", sb.GetLabelFormat())
     label_format = label_format.replace(":", "%-#")
@@ -937,10 +948,16 @@ def ScalarBar(
         sb.SetMaximumWidthInPixels(60)
         sb.SetMaximumHeightInPixels(250)
 
-    if size[0] is not None:
-        sb.SetMaximumWidthInPixels(size[0])
-    if size[1] is not None:
-        sb.SetMaximumHeightInPixels(size[1])
+    if not horizontal:
+        if size[0] is not None:
+            sb.SetMaximumWidthInPixels(size[0])
+        if size[1] is not None:
+            sb.SetMaximumHeightInPixels(size[1])
+    else:
+        if size[0] is not None:
+            sb.SetMaximumHeightInPixels(size[0])
+        if size[1] is not None:
+            sb.SetMaximumWidthInPixels(size[1])
 
     if nlabels is not None:
         sb.SetNumberOfLabels(nlabels)

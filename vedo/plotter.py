@@ -387,73 +387,58 @@ class Plotter:
                     - 6,  mark the corners of the bounding box
                     - 7,  draw a 3D ruler at each side of the cartesian axes
                     - 8,  show the VTK CubeAxesActor object
-                    - 9,  show the bounding box outLine,
-                    - 10, show three circles representing the maximum bounding box,
+                    - 9,  show the bounding box outLine
+                    - 10, show three circles representing the maximum bounding box
                     - 11, show a large grid on the x-y plane (use with zoom=8)
-                    - 12, show polar axes.
+                    - 12, show polar axes
                     - 13, draw a simple ruler at the bottom of the window
+                    - 14: draw a camera orientation widget
 
             sharecam : (bool)
-                if False each renderer will have an independent vtkCamera
+                if False each renderer will have an independent camera
             interactive : (bool)
-                if True will stop after show() to allow interaction w/ window
+                if True will stop after show() to allow interaction with the 3d scene
             offscreen : (bool)
                 if True will not show the rendering window
             qt_widget : (QVTKRenderWindowInteractor)
                 render in a Qt-Widget using an QVTKRenderWindowInteractor.
-                
-                Overrides `offscreen` to True.
-                Overrides `interactive` to False.
-                
-                See examples `qt_windows1.py` and `qt_windows2.py`.
+                See examples `qt_windows[1,2,3].py` and `qt_cutter.py`.
         """
         vedo.plotter_instance = self
-
-        if qt_widget is not None:
-            # overrides the interactive and offscreen properties
-            interactive = False
-            offscreen = True
-
-        if wx_widget is not None:
-            # overrides the interactive property
-            interactive = False
-
+        
         if interactive is None:
-            if N == 1:
-                interactive = True
-            elif N or shape != (1, 1):
-                interactive = False
-            else:
-                interactive = True
+            interactive = True if N in (0, 1, None) and shape == (1, 1) else False
+        self._interactive = interactive
+        # print("interactive", interactive, N, shape)
 
-        self.objects = []  # list of objects to be shown
-
+        self.objects = []           # list of objects to be shown
         self.clicked_object = None  # holds the object that has been clicked
         self.clicked_actor = None   # holds the actor that has been clicked
 
-        self.renderer = None  # current renderer
-        self.renderers = []  # list of renderers
-        self.shape = shape  # don't remove this line
-        self._interactive = interactive  # allows to interact with renderer
-        self.axes = axes  # show axes type nr.
-        self.title = title  # window title
+        self.shape = shape   # nr. of subwindows in grid
+        self.axes = axes     # show axes type nr.
+        self.title = title   # window title
+        self.size = size     # window size
+        self.backgrcol = bg  # used also by backend notebooks
+
+        self.offscreen= offscreen
+        self.resetcam = resetcam
         self.sharecam = sharecam  # share the same camera if multiple renderers
-        self.picker = None  # the vtkPicker object
+        self.pos      = pos       # used by vedo.file_io
+
+        self.picker   = None  # hold the vtkPicker object
         self.picked2d = None  # 2d coords of a clicked point on the rendering window
         self.picked3d = None  # 3d coords of a clicked point on an actor
-        self.offscreen = offscreen
-        self.resetcam = resetcam
-        self.last_event = None
 
-        self.qt_widget = qt_widget  #  QVTKRenderWindowInteractor
+        self.qt_widget = qt_widget  # QVTKRenderWindowInteractor
         self.wx_widget = wx_widget  # wxVTKRenderWindowInteractor
-
-        self.skybox = None
+        self.interactor = None
+        self.window = None
+        self.renderer = None
+        self.renderers = []  # list of renderers
 
         # mostly internal stuff:
         self.hover_legends = []
-        self.backgrcol = bg
-        self.pos = pos  # used by vedo.file_io
         self.justremoved = None
         self.axes_instances = []
         self.clock = 0
@@ -463,76 +448,59 @@ class Plotter:
         self.cutter_widget = None
         self.hint_widget = None
         self.background_renderer = None
-        self.size = size
-        self.interactor = None
-
+        self.last_event = None
+        self.skybox = None
         self._icol = 0
         self._clockt0 = time.time()
         self._extralight = None
         self._cocoa_initialized = False
         self._cocoa_process_events = True  # make one call in show()
-        self._bg = bg  # used by backend notebooks
 
         #####################################################################
-        if settings.default_backend != "vtk":
-            if settings.default_backend == "2d":
-                self.offscreen = True
-                if self.size == "auto":
-                    self.size = (800, 600)
+        if settings.default_backend == "2d":
+            self.offscreen = True
+            if self.size == "auto":
+                self.size = (800, 600)
 
-            elif settings.default_backend == "k3d":
-                self._interactive = False
-                self.interactor = None
-                self.window = None
-                if self.size == "auto":
-                    self.size = (1000, 1000)
-                #############################################################
-                return  ######################################################
-                #############################################################
-        #####################################################################
+        elif settings.default_backend == "k3d":           
+            if self.size == "auto":
+                self.size = (1000, 1000)
+            ####################################
+            return  ############################
+            ####################################
 
-        # build the rendering window:
-        self.window = vtk.vtkRenderWindow()
+        #############################################################
+        if settings.default_backend == "vtk":
 
-        self.window.GlobalWarningDisplayOff()
+            if screensize == "auto":
+                screensize = (2160, 1440) # TODO: get actual screen size
 
-        if self.title == "vedo":  # check if dev version
-            if "dev" in vedo.__version__:
-                self.title = f"vedo ({vedo.__version__})"
-        self.window.SetWindowName(self.title)
+            # build the rendering window:
+            self.window = vtk.vtkRenderWindow()
 
-        # more settings
-        if settings.use_depth_peeling:
-            self.window.SetAlphaBitPlanes(settings.alpha_bit_planes)
-        self.window.SetMultiSamples(settings.multi_samples)
+            self.window.GlobalWarningDisplayOff()
 
-        self.window.SetPolygonSmoothing(settings.polygon_smoothing)
-        self.window.SetLineSmoothing(settings.line_smoothing)
-        self.window.SetPointSmoothing(settings.point_smoothing)
+            if self.title == "vedo":  # check if dev version
+                if "dev" in vedo.__version__:
+                    self.title = f"vedo ({vedo.__version__})"
+            self.window.SetWindowName(self.title)
 
-        # sort out screen size
-        if screensize == "auto":
-            screensize = (2160, 1440)  # might go wrong, use a default 1.5 ratio
+            # more settings
+            if settings.use_depth_peeling:
+                self.window.SetAlphaBitPlanes(settings.alpha_bit_planes)
+            self.window.SetMultiSamples(settings.multi_samples)
 
-            ### BUG in GetScreenSize in VTK 9.1.0
-            ### https://discourse.vtk.org/t/vtk9-1-0-problems/7094/3
-            if settings.hack_call_screen_size:  # True
-                vtkvers = vedo.vtk_version
-                if not self.offscreen and (vtkvers[0] < 9 or vtkvers[0] == 9 and vtkvers[1] == 0):
-                    aus = self.window.GetScreenSize()
-                    if aus and len(aus) == 2 and aus[0] > 100 and aus[1] > 100:  # seems ok
-                        if aus[0] / aus[1] > 2:  # looks like there are 2 or more screens
-                            screensize = (int(aus[0] / 2), aus[1])
-                        else:
-                            screensize = aus
+            self.window.SetPolygonSmoothing(settings.polygon_smoothing)
+            self.window.SetLineSmoothing(settings.line_smoothing)
+            self.window.SetPointSmoothing(settings.point_smoothing)
 
-        x, y = screensize
-
+        #############################################################
         if N:  # N = number of renderers. Find out the best
 
             if shape != (1, 1):  # arrangement based on minimum nr. of empty renderers
                 vedo.logger.warning("having set N, shape is ignored.")
 
+            x, y = screensize
             nx = int(np.sqrt(int(N * y / x) + 1))
             ny = int(np.sqrt(int(N * x / y) + 1))
             lm = [
@@ -654,6 +622,7 @@ class Plotter:
             if isinstance(self.size, str) and self.size == "auto":
                 # figure out a reasonable window size
                 f = 1.5
+                x, y = screensize
                 xs = y / f * shape[1]  # because y<x
                 ys = y / f * shape[0]
                 if xs > x / f:  # shrink
@@ -668,17 +637,20 @@ class Plotter:
             else:
                 self.size = (self.size[0], self.size[1])
 
-            image_actor = None
-            bgname = str(self.backgrcol).lower()
-            if ".jpg" in bgname or ".jpeg" in bgname or ".png" in bgname:
-                self.window.SetNumberOfLayers(2)
-                self.background_renderer = vtk.vtkRenderer()
-                self.background_renderer.SetLayer(0)
-                self.background_renderer.InteractiveOff()
-                self.background_renderer.SetBackground(vedo.get_color(bg2))
-                image_actor = vedo.Image(self.backgrcol).actor
-                self.window.AddRenderer(self.background_renderer)
-                self.background_renderer.AddActor(image_actor)
+            try:
+                image_actor = None
+                bgname = str(self.backgrcol).lower()
+                if ".jpg" in bgname or ".jpeg" in bgname or ".png" in bgname:
+                    self.window.SetNumberOfLayers(2)
+                    self.background_renderer = vtk.vtkRenderer()
+                    self.background_renderer.SetLayer(0)
+                    self.background_renderer.InteractiveOff()
+                    self.background_renderer.SetBackground(vedo.get_color(bg2))
+                    image_actor = vedo.Image(self.backgrcol).actor
+                    self.window.AddRenderer(self.background_renderer)
+                    self.background_renderer.AddActor(image_actor)
+            except AttributeError:
+                pass
 
             for i in reversed(range(shape[0])):
                 for j in range(shape[1]):
@@ -716,33 +688,15 @@ class Plotter:
             self.renderer = self.renderers[0]
             self.camera.SetParallelProjection(settings.use_parallel_projection)
 
-        if self.size[0] == "f":  # full screen
-            self.size = "fullscreen"
-            self.window.SetFullScreen(True)
-            self.window.BordersOn()
-        else:
-            self.window.SetSize(int(self.size[0]), int(self.size[1]))
-
-        if self.wx_widget is not None:
-            settings.immediate_rendering = False  # override
-            self.window = self.wx_widget.GetRenderWindow()  # overwrite
+        #########################################################
+        if self.qt_widget or self.wx_widget:
+            if self.qt_widget:
+                self.window = self.qt_widget.GetRenderWindow()  # overwrite
+            else:
+                self.window = self.wx_widget.GetRenderWindow()
             self.interactor = self.window.GetInteractor()
-            for r in self.renderers:
-                self.window.AddRenderer(r)
-            self.wx_widget.SetInteractorStyle(vtk.new("InteractorStyleTrackballCamera"))
-            ########################
-            return  ################
-            ########################
 
-        if self.qt_widget is not None:
-            self.window = self.qt_widget.GetRenderWindow()  # overwrite
-            self.interactor = self.qt_widget.GetRenderWindow().GetInteractor()
-            ########################
-            return  ################
-            ########################
-
-        self.window.SetPosition(pos)
-
+        #########################################################
         for r in self.renderers:
             self.window.AddRenderer(r)
             # set the background gradient if any
@@ -758,17 +712,39 @@ class Plotter:
                     r.GradientBackgroundOn()
                 except AttributeError:
                     pass
-
-        if self.offscreen:
-            if self.axes in (4, 5):
-                self.axes = 0  # does not work with those
-            self.window.SetOffScreenRendering(True)
-            self._interactive = False
-            self.interactor = None
-            ########################
+            
+        #########################################################
+        if self.qt_widget or self.wx_widget:
+            # self.window.SetSize(int(self.size[0]), int(self.size[1]))
+            self.interactor.SetRenderWindow(self.window)
+            # vsty = vtk.new("InteractorStyleTrackballCamera")
+            # self.interactor.SetInteractorStyle(vsty)
+            if settings.enable_default_keyboard_callbacks:
+                self.interactor.AddObserver("KeyPressEvent", self._keypress)
+            if settings.enable_default_mouse_callbacks:
+                self.interactor.AddObserver("LeftButtonPressEvent", self._mouseleftclick)
             return  ################
             ########################
 
+        if self.offscreen:
+            if self.axes in (4, 5, 8, 12, 14):
+                self.axes = 0  # does not work with those
+            self.window.SetOffScreenRendering(True)
+            self.interactor = None
+            self._interactive = False
+            return  ################
+            ########################
+
+        if self.size[0] == "f":  # full screen
+            self.size = "fullscreen"
+            self.window.SetFullScreen(True)
+            self.window.BordersOn()
+        else:
+            self.window.SetSize(int(self.size[0]), int(self.size[1]))
+
+        self.window.SetPosition(pos)
+
+        #########################################################
         self.interactor = vtk.vtkRenderWindowInteractor()
 
         self.interactor.SetRenderWindow(self.window)
@@ -1079,19 +1055,7 @@ class Plotter:
         if not self.window:
             return self
 
-        if self.wx_widget:
-            if resetcam:
-                self.renderer.ResetCamera()
-            self.wx_widget.Render()
-            return self
-
         self.initialize_interactor()
-
-        if self.qt_widget:
-            if resetcam:
-                self.renderer.ResetCamera()
-            self.qt_widget.Render()
-            return self
 
         if resetcam:
             self.renderer.ResetCamera()
@@ -1156,7 +1120,6 @@ class Plotter:
         if r:
             if c1 is not None:
                 r.SetBackground(vedo.get_color(c1))
-                self._bg = r.GetBackground()  # notebooks
             if c2 is not None:
                 r.GradientBackgroundOn()
                 r.SetBackground2(vedo.get_color(c2))
@@ -3213,8 +3176,9 @@ class Plotter:
                 axes = 0
             self.axes = axes
 
+        if interactive is not None:
+            self._interactive = interactive
         if self.offscreen:
-            interactive = False
             self._interactive = False
 
         # camera stuff
@@ -3223,21 +3187,19 @@ class Plotter:
 
         if camera is not None:
             self.resetcam = False
+            viewup = ""
             if isinstance(camera, vtk.vtkCamera):
                 cameracopy = vtk.vtkCamera()
                 cameracopy.DeepCopy(camera)
                 self.camera = cameracopy
             else:
                 self.camera = utils.camera_from_dict(camera)
-            if self.renderer:
-                self.renderer.SetActiveCamera(self.camera)
 
         self.add(objects)
 
         # Backend ###############################################################
-        if settings.default_backend != "vtk":
-            if settings.default_backend in ["k3d"]:
-                return backends.get_notebook_backend(self.objects)
+        if settings.default_backend in ["k3d"]:
+            return backends.get_notebook_backend(self.objects)
         #########################################################################
 
         for ia in utils.flatten(objects):
@@ -3256,9 +3218,6 @@ class Plotter:
         if self.sharecam:
             for r in self.renderers:
                 r.SetActiveCamera(self.camera)
-
-        if self.qt_widget is not None:
-            self.qt_widget.GetRenderWindow().AddRenderer(self.renderer)
 
         if self.axes is not None:
             if viewup != "2d" or self.axes in [1, 8] or isinstance(self.axes, dict):
@@ -3322,20 +3281,13 @@ class Plotter:
         if settings.immediate_rendering:
             self.window.Render()  ##################### <-------------- Render
 
-        # 2d ####################################################################
-        if settings.default_backend == "2d":
-            return backends.get_notebook_backend()
-        #########################################################################
-
-        if self.interactor:  # can be offscreen..
+        if self.interactor:  # can be offscreen or not the vtk backend..
 
             self.window.SetWindowName(self.title)
 
             # pic = vedo.Image(vedo.dataurl+'images/vtk_logo.png')
             # pic = vedo.Image('/home/musy/Downloads/icons8-3d-96.png')
-            # Array 0 name PNGImage 
-            # /home/musy/Downloads/icons8-3d-96.png
-            # print(pic.dataset)
+            # print(pic.dataset)# Array 0 name PNGImage
             # self.window.SetIcon(pic.dataset)
 
             try:
@@ -3351,11 +3303,8 @@ class Plotter:
                     x = NSRunningApplication.runningApplicationWithProcessIdentifier_(int(pid))
                     x.activateWithOptions_(NSApplicationActivateIgnoringOtherApps)
             except:
-                pass
                 # vedo.logger.debug("On Mac OSX try: pip install pyobjc")
-
-            if interactive is not None:
-                self._interactive = interactive
+                pass
 
             self.user_mode(mode)
 
@@ -3376,6 +3325,11 @@ class Plotter:
                     if elapsed < mint:
                         time.sleep(mint - elapsed)
                     self.clock = time.time() - self._clockt0
+
+        # 2d ####################################################################
+        if settings.default_backend == "2d":
+            return backends.get_notebook_backend()
+        #########################################################################
 
         return self
 
@@ -3403,18 +3357,17 @@ class Plotter:
         if not self.interactor:
             return None
 
+        if not self.renderer:
+            vedo.logger.warning("call add_inset() only after first rendering of the scene.")
+            return None
+
         options = dict(options)
         pos = options.pop("pos", 0)
         size = options.pop("size", 0.1)
         c = options.pop("c", "lb")
         at = options.pop("at", None)
         draggable = options.pop("draggable", True)
-
-        if not self.renderer:
-            vedo.logger.warning("call add_inset() only after first rendering of the scene.")
-            save_int = self._interactive
-            self.show(interactive=0)
-            self._interactive = save_int
+        
         widget = vtk.vtkOrientationMarkerWidget()
         r, g, b = vedo.get_color(c)
         widget.SetOutlineColor(r, g, b)
@@ -3492,7 +3445,7 @@ class Plotter:
             plt.show(mesh, axes=1)
            ```
         See also:
-        [interactors](https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html)
+        [VTK interactor styles](https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html)
         """
         if not self.interactor:
             return None
@@ -3500,9 +3453,8 @@ class Plotter:
         if isinstance(mode, (str, int)):
             # Set the style of interaction
             # see https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html
-            if mode in (0, "TrackballCamera"):
-                if self.qt_widget:
-                    self.interactor.SetInteractorStyle(vtk.new("InteractorStyleTrackballCamera"))
+            if   mode in (0, "TrackballCamera"):
+                self.interactor.SetInteractorStyle(vtk.new("InteractorStyleTrackballCamera"))
             elif mode in (1, "TrackballActor"):
                 self.interactor.SetInteractorStyle(vtk.new("InteractorStyleTrackballActor"))
             elif mode in (2, "JoystickCamera"):
@@ -3596,9 +3548,10 @@ class Plotter:
     
     @camera.setter
     def camera(self, cam):
-        if isinstance(cam, dict):
-            cam = utils.camera_from_dict(cam)
-        self.renderer.SetActiveCamera(cam)
+        if self.renderer:
+            if isinstance(cam, dict):
+                cam = utils.camera_from_dict(cam)
+            self.renderer.SetActiveCamera(cam)
 
     def screenshot(self, filename="screenshot.png", scale=1, asarray=False):
         """

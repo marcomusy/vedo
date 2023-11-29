@@ -7,7 +7,7 @@ export VDIR=$HOME/Projects/vedo
 export VLOGFILE=$VDIR/output_vedo_test.txt
 
 cd $VDIR
-pip install -e .
+pip install -q -e .
 pip install scikit-image -U
 pip install nevergrad -U
 pip install pyefd -U
@@ -24,7 +24,7 @@ pip install pymadcad -U
 pip install pyshtools -U
 pip install rtree
 pip install trimesh -U
-pip install trame==2.5.2
+pip install -q trame==2.5.2
 pip install qtpy
 
 
@@ -36,7 +36,7 @@ sed -i "s/dry_run_mode = 2/dry_run_mode = 0/g" $VDIR/vedo/settings.py  #->ENABLE
 pytest tests
 
 cd $VDIR/tests/common  && ./run_all.sh 
-cd $VDIR/examples && time ./run_all.sh 2>&1 | tee $VLOGFILE
+cd $VDIR/examples && time ./run_all.sh 2>&1 | tee $VLOGFILE && alert "scan done."
 
 grep -aA 1 "Error" $VLOGFILE
 grep -aA 3 "Trace" $VLOGFILE

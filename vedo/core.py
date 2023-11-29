@@ -366,12 +366,13 @@ class CommonAlgorithms:
     """Common algorithms."""
 
     def __init__(self):
-        # print("init CommonAlgorithms")
+        # print("init CommonAlgorithms")
         self.dataset = None
         self.pipeline = None
         self.name = ""
         self.filename = ""
         self.time = 0
+
 
     @property
     def pointdata(self):
@@ -607,6 +608,7 @@ class CommonAlgorithms:
             # reset mesh to identity matrix position/rotation:
             self.point_locator = None
             self.cell_locator = None
+            self.line_locator = None
             self.transform = LinearTransform()
             return self
 
@@ -626,12 +628,10 @@ class CommonAlgorithms:
     @property
     def lines(self):
         """
-        Get lines connectivity ids as a numpy array.
-        Default format is `[[id0,id1], [id3,id4], ...]`
+        Get lines connectivity ids as a python array
+        formatted as `[[id0,id1], [id3,id4], ...]`
 
-        Arguments:
-            flat : (bool)
-                return a 1D numpy array as e.g. [2, 10,20, 3, 10,11,12, 2, 70,80, ...]
+        See also: `lines_as_flat_array()`.
         """
         # Get cell connettivity ids as a 1D array. The vtk format is:
         #    [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
@@ -653,6 +653,8 @@ class CommonAlgorithms:
         """
         Get lines connectivity ids as a 1D numpy array.
         Format is e.g. [2,  10,20,  3, 10,11,12,  2, 70,80, ...]
+
+        See also: `lines()`.
         """
         return utils.vtk2numpy(self.dataset.GetLines().GetData())
 
@@ -672,6 +674,11 @@ class CommonAlgorithms:
         """
         Find cells that are within the specified bounds.
         """
+        try:
+            xbounds = list(xbounds.bounds())
+        except AttributeError:
+            pass
+
         if len(xbounds) == 6:
             bnds = xbounds
         else:

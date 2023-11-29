@@ -177,7 +177,6 @@ class Settings:
         "remember_last_figure_format",
         "screenshot_transparent_background",
         "screeshot_large_image",
-        "hack_call_screen_size",
         "enable_default_mouse_callbacks",
         "enable_default_keyboard_callbacks",
         "enable_pipeline",
@@ -235,12 +234,7 @@ class Settings:
         # 0 = normal
         # 1 = do not hold execution
         # 2 = do not hold execution and do not show any window
-        self.dry_run_mode = 0
-
-        # BUG in vtk9.0
-        # if true close works but sometimes vtk crashes, if false doesnt crash but cannot close
-        # see plotter.py line 555
-        self.hack_call_screen_size = True
+        self.dry_run_mode = 2
 
         self.default_backend = "vtk"
         try:
