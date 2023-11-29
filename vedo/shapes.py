@@ -4336,9 +4336,9 @@ class Text3D(Mesh):
 
             if not literal:
                 reps2 = [
-                    ("\_", "┭"),  # trick to protect ~ _ and ^ chars
-                    ("\^", "┮"),  #
-                    ("\~", "┯"),  #
+                    (r"\_", "┭"),  # trick to protect ~ _ and ^ chars
+                    (r"\^", "┮"),  #
+                    (r"\~", "┯"),  #
                     ("**", "^"),  # order matters
                     ("e+0", dotsep + "10^"),
                     ("e-0", dotsep + "10^-"),

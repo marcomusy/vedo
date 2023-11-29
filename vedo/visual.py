@@ -1222,6 +1222,9 @@ class PointsVisual(CommonVisual):
                     self.mapper.SetScalarModeToUsePointData()
             except AttributeError:
                 on = "points"
+        elif on == "Default":
+            on = "points"
+            self.mapper.SetScalarModeToUsePointData()
 
         if input_array is None:
             if not self.pointdata.keys() and self.celldata.keys():
@@ -1236,7 +1239,8 @@ class PointsVisual(CommonVisual):
             data = self.dataset.GetCellData()
             n = self.dataset.GetNumberOfCells()
         else:
-            vedo.logger.error("Must specify in cmap(on=...) to either 'cells' or 'points'")
+            vedo.logger.error(
+                f"Must specify in cmap(on=...) to either 'cells' or 'points', not {on}")
             raise RuntimeError()
 
         if input_array is None:  # if None try to fetch the active scalars

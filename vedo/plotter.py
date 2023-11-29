@@ -750,6 +750,7 @@ class Plotter:
         self.interactor.SetRenderWindow(self.window)
         vsty = vtk.new("InteractorStyleTrackballCamera")
         self.interactor.SetInteractorStyle(vsty)
+        self.interactor.RemoveObservers("CharEvent")
 
         if settings.enable_default_keyboard_callbacks:
             self.interactor.AddObserver("KeyPressEvent", self._keypress)
@@ -3306,6 +3307,7 @@ class Plotter:
                 # vedo.logger.debug("On Mac OSX try: pip install pyobjc")
                 pass
 
+            # Set the interaction style
             self.user_mode(mode)
 
             if screenshot:
@@ -3455,6 +3457,7 @@ class Plotter:
             # see https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html
             if   mode in (0, "TrackballCamera"):
                 self.interactor.SetInteractorStyle(vtk.new("InteractorStyleTrackballCamera"))
+                self.interactor.RemoveObservers("CharEvent")
             elif mode in (1, "TrackballActor"):
                 self.interactor.SetInteractorStyle(vtk.new("InteractorStyleTrackballActor"))
             elif mode in (2, "JoystickCamera"):

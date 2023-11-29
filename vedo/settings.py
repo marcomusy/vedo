@@ -234,7 +234,7 @@ class Settings:
         # 0 = normal
         # 1 = do not hold execution
         # 2 = do not hold execution and do not show any window
-        self.dry_run_mode = 2
+        self.dry_run_mode = 0
 
         self.default_backend = "vtk"
         try:
