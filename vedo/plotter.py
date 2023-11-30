@@ -3512,7 +3512,9 @@ class Plotter:
 
     def close_window(self):
         """Close the current or the input rendering window."""
+        # https://examples.vtk.org/site/Cxx/Visualization/CloseWindow/
         vedo.last_figure = None
+        self.last_event = None
         self.sliders = []
         self.buttons = []
         self.widgets = []
@@ -3526,6 +3528,45 @@ class Plotter:
         if settings.dry_run_mode >= 2:
             return self
 
+        # # print("Close window -------------")
+        # for r in self.renderers:
+        #     r.RemoveAllObservers()
+
+        # if hasattr(self, "window") and self.window:
+        #     if hasattr(self, "interactor") and self.interactor:
+        #         # print("Close window1")
+
+        #         self.interactor.ProcessEvents()
+        #         self.interactor.SetInteractorStyle(None)
+        #         self.interactor.RemoveAllObservers()
+        #         self.interactor.ExitCallback()
+
+        #         self.window.Finalize()
+
+        #         self.interactor.SetRenderWindow(None)
+
+        #         # print("Close window2")
+        #         # try:
+        #         #     self.interactor.SetDone(True)
+        #         # except AttributeError:
+        #         #     pass
+        #         self.interactor.TerminateApp()
+        #         # print("Close window3")
+        #         # self.interactor = None
+
+        #     # if hasattr(self, "interactor") and self.interactor:
+        #     #     if "Darwin" in vedo.sys_platform:
+        #     #         try:
+        #     #             self.interactor.ProcessEvents()
+        #     #         except:
+        #     #             pass
+        #         self.interactor = None
+
+        #     self.renderer = None  # current renderer
+        #     self.window = None
+        #     # print("Close window4")
+
+        # PREVIUOS VERSION
         for r in self.renderers:
             r.RemoveAllObservers()
         if hasattr(self, "window") and self.window:
@@ -3771,8 +3812,12 @@ class Plotter:
         x, y = iren.GetEventPosition()
         renderer = iren.FindPokedRenderer(x, y)
 
-        if key in ["q", "Return", "Ctrl+q", "Ctrl+w", "Escape"]:
+        if key in ["q", "Return"]:
             iren.ExitCallback()
+            return
+
+        elif key in ["Ctrl+q", "Ctrl+w", "Escape"]:
+            self.close()
             return
 
         elif key == "F1":

@@ -1516,8 +1516,7 @@ class PointAlgorithms(CommonAlgorithms):
     def shift(self, dx=0, dy=0, dz=0):
         """Add a vector to the current object position."""
         if utils.is_sequence(dx):
-            utils.make3d(dx)
-            dx, dy, dz = dx
+            dx, dy, dz = utils.make3d(dx)
         if dx == dy == dz == 0:
             return self
         LT = LinearTransform().translate([dx, dy, dz])

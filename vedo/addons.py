@@ -2842,7 +2842,7 @@ def Axes(
         htitle_size=0.03,
         htitle_font=None,
         htitle_italic=False,
-        htitle_color=None,
+        htitle_color=None, htitle_backface_color=None,
         htitle_justify='bottom-left',
         htitle_rotation=0,
         htitle_offset=(0, 0.01, 0),
@@ -2931,6 +2931,7 @@ def Axes(
     - `htitle_font`,           [None], header font (defaults to `title_font`)
     - `htitle_italic`,         [True], header font is italic
     - `htitle_color`,          [None], header title color (defaults to `xtitle_color`)
+    - `htitle_backface_color`, [None], header title color on its backface
     - `htitle_justify`, ['bottom-center'], origin of the title justification
     - `htitle_offset`,   [(0,0.01,0)], control offsets of header title in x, y and z
     - `xtitle_position`,       [0.32], title fractional positions along axis
@@ -3927,6 +3928,9 @@ def Axes(
             depth=title_depth,
             italic=htitle_italic,
         )
+        if htitle_backface_color is None:
+            htitle_backface_color = 1 - np.array(get_color(htitle_color))
+            htit.backcolor(htitle_backface_color)
         htit.rotate_x(htitle_rotation)
         wpos = [htitle_offset[0]*dx, (1 + htitle_offset[1])*dy, htitle_offset[2]*dz]
         htit.shift(np.array(wpos) + [0, 0, xyshift*dz])

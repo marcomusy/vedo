@@ -1456,6 +1456,9 @@ class Points(PointsVisual, PointAlgorithms):
             If you want to reset it use `mymesh.point_locator=None`
             and / or `mymesh.cell_locator=None`.
         """
+        if len(pt) != 3:
+            pt = [pt[0], pt[1], 0]
+
         # NB: every time the mesh moves or is warped the locators are set to None
         if ((n > 1 or radius) or (n == 1 and return_point_id)) and not return_cell_id:
             poly = None
