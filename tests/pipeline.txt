@@ -112,9 +112,8 @@ cd ~/Projects/napari-vedo-bridge
     # conda activate napari-env
     # python -m pip install "napari[all]"
     conda activate napari-env
-    cd $VDIR && pip install . && cd -
-    python $VDIR/examples/other/napari1.py
-    napari
+    cd $VDIR && pip install -q . && cd -
+    python $VDIR/examples/other/napari1.py # then open plugins ...
     conda deactivate
 ################
 cd ~/Projects/welleng/examples

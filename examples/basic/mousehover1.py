@@ -9,9 +9,11 @@ def func(evt):                       ### called every time mouse moves!
         return                       # mouse hits nothing, return.
     pt  = evt.picked3d               # 3d coords of point under mouse
     pid = msh.closest_point(pt, return_point_id=True)
-    txt =(f"Point:  {precision(pt[:2]  ,2)}\n"
-          f"Height: {precision(arr[pid],3)}\n"
-          f"Ground speed: {precision(evt.speed3d*100,2)}")
+    txt =(
+        f"Point:  {precision(pt[:2]  ,2)}\n"
+        f"Height: {precision(arr[pid],3)}\n"
+        f"Ground speed: {precision(evt.speed3d*100,2)}"
+    )
     msg.text(txt)                    # update text message
 
     ar = Arrow(pt - evt.delta3d, pt, s=0.001, c='orange5')
