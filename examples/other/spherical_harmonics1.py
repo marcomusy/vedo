@@ -41,6 +41,7 @@ agrid = np.array(agrid)
 
 hits = Points(pts)
 hits.cmap('jet', agrid.ravel()).add_scalarbar3d('scalar distance to x_0')
+hits.scalarbar = hits.scalarbar.clone2d(scale=0.12)
 
 #############################################################
 grid = pyshtools.SHGrid.from_array(agrid)

@@ -3,7 +3,7 @@ from vedo import Image, dataurl, Circle, Lines, show
 from vedo.pyplot import plot
 import numpy as np
 
-pic = Image(dataurl+'images/spheroid.jpg')
+img = Image(dataurl+'images/spheroid.jpg')
 cpt = [580,600,0]
 circle = Circle(cpt, r=500, res=36).wireframe()
 
@@ -11,7 +11,7 @@ pts = circle.vertices                 # 3d coords of the points of the circle
 centers = np.zeros_like(pts) + cpt    # create the same amount of center coords
 lines = Lines(centers, pts, res=50)   # create Lines with 50 pts of resolution each
 
-lines.interpolate_data_from(pic, n=3) # interpolate all msh data onto the lines
+lines.interpolate_data_from(img, n=3) # interpolate all msh data onto the lines
 print(lines.pointdata)                # print all available arrays
 rgb = lines.pointdata['JPEGImage']    # extract the rgb intensities
 intensities = np.sum(rgb, axis=1)     # sum the rgb values into one single intensty
@@ -28,4 +28,4 @@ for i in range(0,36, 3):
     fig += plot(intensities_ray[i], lc=i, lw=1, like=fig)
 fig.scale(21).shift(60,-800)          # scale up and move plot below the image
 
-show(pic, circle, lines, fig, __doc__, size=(625,1000), zoom=1.5)
+show(img, circle, lines, fig, __doc__, size=(625,1000), zoom=1.5)

@@ -5,6 +5,7 @@ from vedo.pyplot import plot
 
 vol = Volume(dataurl + "embryo.slc")
 vol.add_scalarbar3d("wild-type mouse embryo", c="k")
+vol.scalarbar = vol.scalarbar.clone2d("bottom-right", scale=0.2)
 
 p1, p2 = (50, 50, 50), (200, 200, 200)
 pl = Line(p1, p2, res=100).lw(4)
@@ -24,7 +25,7 @@ fig = plot(
     ytitle="voxel intensity",
     aspect=16 / 9,
     spline=True,
-    lc="r",      # line color
+    lc="r",  # line color
     marker="O",  # marker style
 )
 fig.shift(0, 25, 0)

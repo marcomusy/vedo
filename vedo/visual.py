@@ -765,9 +765,9 @@ class PointsVisual(CommonVisual):
         # print("init PointsVisual")
         super().__init__()
 
-    def clone2d(self, scale=None):
+    def clone2d(self, scale=None, offset=None):
         """
-        Copy a 3D Mesh into a flat 2D image.
+        Turn a 3D `Points` or `Mesh` into a flat 2D actor.
         Returns a `Actor2D`.
 
         Examples:
@@ -785,8 +785,17 @@ class PointsVisual(CommonVisual):
             else:
                 scale = 350 / msiz
 
-        cmsh = self.clone()
-        poly = cmsh.pos([0, 0, 0]).scale(scale).dataset
+        poly = self.dataset
+        tp = vtk.new("TransformPolyDataFilter")
+        transform = vtk.vtkTransform()
+        transform.Scale(scale, scale, scale)
+        if offset is None:
+            offset = self.pos()
+        transform.Translate(-utils.make3d(offset))
+        tp.SetTransform(transform)
+        tp.SetInputData(poly)
+        tp.Update()
+        poly = tp.GetOutput()
 
         cm = self.mapper.GetColorMode()
         lut = self.mapper.GetLookupTable()
@@ -795,8 +804,9 @@ class PointsVisual(CommonVisual):
         vrange = self.mapper.GetScalarRange()
         sm = self.mapper.GetScalarMode()
 
+        act2d = Actor2D()
+        act2d.dataset = poly
         mapper2d = vtk.new("PolyDataMapper2D")
-        mapper2d.ShallowCopy(self.mapper)
         mapper2d.SetInputData(poly)
         mapper2d.SetColorMode(cm)
         mapper2d.SetLookupTable(lut)
@@ -804,17 +814,15 @@ class PointsVisual(CommonVisual):
         mapper2d.SetUseLookupTableScalarRange(use_lut)
         mapper2d.SetScalarRange(vrange)
         mapper2d.SetScalarMode(sm)
-
-        act2d = Actor2D()
-        act2d.properties = act2d.GetProperty()
         act2d.mapper = mapper2d
-        act2d.dataset = poly
 
-        # act2d.SetMapper(mapper2d)
-        csys = act2d.GetPositionCoordinate()
-        csys.SetCoordinateSystem(4)
-        act2d.properties.SetColor(cmsh.color())
-        act2d.properties.SetOpacity(cmsh.alpha())
+        act2d.GetPositionCoordinate().SetCoordinateSystem(4)
+        act2d.properties.SetColor(self.color())
+        act2d.properties.SetOpacity(self.alpha())
+        act2d.properties.SetLineWidth(self.properties.GetLineWidth())
+        act2d.properties.SetPointSize(self.properties.GetPointSize())
+        act2d.properties.SetDisplayLocation(0) # 0 = back, 1 = front
+        act2d.PickableOff()
         return act2d
 
     ##################################################

@@ -8,7 +8,6 @@ import vedo.vtkclasses as vtk
 import vedo
 from vedo.transformations import LinearTransform
 from vedo.visual import CommonVisual, Actor3DHelper, Actor2D
-from vedo import utils
 
 __docformat__ = "google"
 
@@ -20,44 +19,6 @@ Submodule for managing groups of vedo objects
 
 __all__ = ["Group", "Assembly", "procrustes_alignment"]
 
-
-##########################################################################
-def _to2d(obj, offset, scale):
-
-    tp = vtk.new("TransformPolyDataFilter")
-    transform = vtk.vtkTransform()
-    transform.Scale(scale, scale, scale)
-    transform.Translate(-offset[0], -offset[1], 0)
-    tp.SetTransform(transform)
-    tp.SetInputData(obj.dataset)
-    tp.Update()
-    poly = tp.GetOutput()
-
-    act2d = Actor2D()
-
-    mapper2d = vtk.new("PolyDataMapper2D")
-    act2d.mapper = mapper2d
-    act2d.SetMapper(mapper2d)
-
-    mapper2d.SetInputData(poly)
-    mapper2d.SetLookupTable(obj.mapper.GetLookupTable())
-    mapper2d.SetScalarMode(obj.mapper.GetScalarMode())
-    mapper2d.SetScalarRange(obj.mapper.GetScalarRange())
-    mapper2d.SetScalarVisibility(obj.mapper.GetScalarVisibility())
-    mapper2d.SetColorMode(obj.mapper.GetColorMode())
-    mapper2d.SetUseLookupTableScalarRange(obj.mapper.GetUseLookupTableScalarRange())
-
-    act2d.GetProperty().SetColor(obj.color())
-    act2d.GetProperty().SetOpacity(obj.alpha())
-    act2d.GetProperty().SetLineWidth(obj.properties.GetLineWidth())
-    act2d.GetProperty().SetPointSize(obj.properties.GetPointSize())
-    act2d.PickableOff()
-
-    csys = act2d.GetPositionCoordinate()
-    csys.SetCoordinateSystem(4)
-    # act2d.GetProperty().SetDisplayLocationToForeground()
-    act2d.GetProperty().SetDisplayLocationToBackground()
-    return act2d
 
 #################################################
 def procrustes_alignment(sources, rigid=False):
@@ -506,21 +467,25 @@ class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
             newlist.append(a.clone())
         return Assembly(newlist)
 
-    def clone2d(self, pos="bottom-left", scale=1):
+    def clone2d(self, pos="bottom-left", scale=1, ontop=False):
         """
-        Convert the Figure into a 2D static object (a 2D Assembly).
+        Convert the `Assembly` into a `Group` of 2D objects.
 
         Arguments:
-            pos : (str, list)
-                position in 2D, as a string or list (x,y).
-                Any combination of "center", "top", "bottom", "left" and "right" will work.
+            pos : (list, str)
+                Position in 2D, as a string or list (x,y).
                 The center of the renderer is [0,0] while top-right is [1,1].
+                Any combination of "center", "top", "bottom", "left" and "right" will work.
             scale : (float)
                 global scaling factor for the 2D object.
+                The scaling is normalized to the x-range of the original object.
+            ontop : (bool)
+                if `True` the now 2D object is rendered on top of the 3D scene.
 
         Returns:
             `Group` object.
         """
+        padding = 0.05
         x0, x1 = self.xbounds()
         y0, y1 = self.ybounds()
         pp = self.pos()
@@ -529,41 +494,41 @@ class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
         y0 -= pp[1]
         y1 -= pp[1]
 
+        offset = [x0, y0]
         if "cent" in pos:
             offset = [(x0 + x1) / 2, (y0 + y1) / 2]
             position = [0, 0]
             if "right" in pos:
                 offset[0] = x1
-                position = [1, 0]
+                position = [1 - padding, 0]
             if "left" in pos:
                 offset[0] = x0
-                position = [-1, 0]
+                position = [-1 + padding, 0]
             if "top" in pos:
                 offset[1] = y1
-                position = [0, 1]
+                position = [0, 1 - padding]
             if "bottom" in pos:
                 offset[1] = y0
-                position = [0, -1]
+                position = [0, -1 + padding]
         elif "top" in pos:
             if "right" in pos:
                 offset = [x1, y1]
-                position = [1, 1]
+                position = [1 - padding, 1 - padding]
             elif "left" in pos:
                 offset = [x0, y1]
-                position = [-1, 1]
+                position = [-1 + padding, 1 - padding]
             else:
                 raise ValueError(f"incomplete position pos='{pos}'")
         elif "bottom" in pos:
             if "right" in pos:
                 offset = [x1, y0]
-                position = [1, -1]
+                position = [1 - padding, -1 + padding]
             elif "left" in pos:
                 offset = [x0, y0]
-                position = [-1, -1]
+                position = [-1 + padding, -1 + padding]
             else:
                 raise ValueError(f"incomplete position pos='{pos}'")
         else:
-            offset = [x0, y0]
             position = pos
 
         scanned = []
@@ -575,16 +540,18 @@ class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
                 continue
             if a.npoints == 0:
                 continue
+
+            s = scale * 500 / (x1 - x0)
             if a.properties.GetRepresentation() == 1:
                 # wireframe is not rendered correctly in 2d
                 b = a.boundaries().lw(1).c(a.color(), a.alpha())
-                a2d = _to2d(b, offset, scale * 550 / (x1 - x0)) 
+                a2d = b.clone2d(scale=s, offset=offset)
             else:
-                a2d = _to2d(a, offset, scale * 550 / (x1 - x0))
-            a2d.pos(position)
+                a2d = a.clone2d(scale=s, offset=offset)
+            a2d.pos(position).ontop(ontop)
             group += a2d
 
-        try: # copy from Histogram1D
+        try: # copy info from Histogram1D
             group.entries = self.entries
             group.frequencies = self.frequencies
             group.errors = self.errors
@@ -596,6 +563,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
         except AttributeError:
             pass
 
+        group.name = self.name
         return group
 
     def copy(self):

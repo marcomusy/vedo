@@ -22,11 +22,14 @@ ms[1].add_scalarbar3d(c="k", title="scalarbar #1", size=[0, 3])
 sc = ms[2].add_scalarbar3d(
     c="k",
     size=[None, 2.8],  # change y-size only
-    title="A viridis 3D\nscalarbar to play with",
+    title="A viridis colormap\nscalarbar to play with",
     title_font="Quikhand",
     title_xoffset=-2,  # offset of labels
     title_size=1.5,
 )
 sc.scalarbar.rotate_x(90).scale(1.2).shift(0,2,0)  # make it vertical
 
-show(ms, __doc__, axes=1, viewup="z").close()
+# create a 2D copy scalarbar to the 3D one
+sc2d = sc.scalarbar.clone2d(scale=0.3, ontop=True)
+
+show(ms, sc2d, __doc__, axes=1, viewup="z").close()

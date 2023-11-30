@@ -19,8 +19,5 @@ def mandelbrot(h=400, w=400, maxit=20, r=2):
         z[diverge] = r                          # avoid diverging too much
     return divtime
 
-pic = Image(mandelbrot()).cmap("RdGy")
-show(pic, __doc__, axes=1, size=[800,600], zoom=1.4).close()
-
-# Also:
-# Image(dataurl+"images/dog.jpg").cmap("RdGy").show().close()
+img = Image(mandelbrot()).cmap("RdGy")
+show(img, __doc__, axes=1, size=[800,600], zoom=1.4).close()

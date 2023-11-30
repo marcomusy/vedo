@@ -15,12 +15,12 @@ vol.pointdata["myscalars1"] = np.linspace(r0,r1, num=nx*ny*nz)
 vol.pointdata["myscalars2"] = np.random.randint(-100,+100, nx*ny*nz)
 
 # make SLCImage scalars the active array (can set 0, to pick the first):
-printc('Arrays in Volume are:\n', vol.pointdata.keys(), invert=True)
+printc('Arrays in Volume are:', vol.pointdata.keys(), invert=True)
 vol.pointdata.select("SLCImage")  # select the first data array as the active one
 
 # Build the isosurface of the active scalars,
 # but use testscals1 to colorize this isosurface, and then smooth it
-iso1 = vol.isosurface().cmap('jet', 'myscalars1').smooth().lw(1)
+iso1 = vol.isosurface().cmap('rainbow', 'myscalars1').smooth()
 iso1.add_scalarbar3d('myscalars1')
 
 iso2 = vol.isosurface().cmap('viridis', 'myscalars2')

@@ -10,11 +10,11 @@ rgbaimage1[:, :, 3] = alpharamp
 rgbaimage2 = np.random.rand(50, 50, 4) * 255
 rgbaimage2[:, :, 3] = alpharamp[::-1]
 
-p1 = Image(rgbaimage1, channels=4)
+img1 = Image(rgbaimage1, channels=4)
 
-p2 = Image(rgbaimage2, channels=4).z(12)
+img2 = Image(rgbaimage2, channels=4).z(12)
 
-show(p1, p2, __doc__, axes=7, viewup="z").close()
+show(img1, img2, __doc__, axes=7, viewup="z").close()
 
 # Second example: a b&w image from a numpy array
 img = np.zeros([512,512])
@@ -24,6 +24,6 @@ img[256:,  0:256] = 128
 img[256:,   256:] = 255
 img = img.transpose(1,0)
 
-pict = Image(img)
+img3 = Image(img)
 
-show(pict, mode="image", bg=(0.4,0.5,0.6), axes=1).close()
+show(img3, mode="image", bg=(0.4,0.5,0.6), axes=1).close()

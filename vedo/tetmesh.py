@@ -1102,6 +1102,10 @@ class TetMesh(UnstructuredGrid):
         Set `value` to a single value or list of values to compute the isosurface(s).
         """
         if not self.dataset.GetPointData().GetScalars():
+            vedo.logger.warning(
+                "in isosurface() no scalar pointdata found. "
+                "Mappping cells to points."
+            )
             self.map_cells_to_points()
         scrange = self.dataset.GetPointData().GetScalars().GetRange()
         cf = vtk.new("ContourFilter")  # vtk.new("ContourGrid")
@@ -1118,10 +1122,7 @@ class TetMesh(UnstructuredGrid):
             cf.SetValue(0, value)
             cf.Update()
 
-        clp = vtk.new("CleanPolyData")
-        clp.SetInputData(cf.GetOutput())
-        clp.Update()
-        msh = Mesh(clp.GetOutput(), c=None).phong()
+        msh = Mesh(cf.GetOutput(), c=None)
         msh.copy_properties_from(self)
         msh.pipeline = utils.OperationNode("isosurface", c="#edabab", parents=[self])
         return msh

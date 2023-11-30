@@ -10,16 +10,20 @@ printc(__doc__)
 plt = Plotter(N=4)
 
 v0 = Volume(dataurl+'embryo.slc').cmap(0).add_scalarbar3d()
+v0.scalarbar = v0.scalarbar.clone2d(pos="center-right", scale=0.1)
 plt.at(0).show("original", v0)
 
 v1 = v0.clone().operation("gradient").operation("mag").add_scalarbar3d()
+v1.scalarbar = v1.scalarbar.clone2d(pos="center-right", scale=0.1)
 plt.at(1).show("gradient", v1)
 
-v3 = v0.clone().operation("median").cmap(4).add_scalarbar3d()
-plt.at(2).show("median", v3)
+v2 = v0.clone().operation("median").cmap(4).add_scalarbar3d()
+v2.scalarbar = v2.scalarbar.clone2d(pos="center-right", scale=0.1)
+plt.at(2).show("median", v2)
 
-v4 = v0.clone().operation("dot", v0).cmap(7).add_scalarbar3d()
-plt.at(3).show("dot(v0,v0)", v4, zoom=1.3)
+v3 = v0.clone().operation("dot", v0).cmap(7).add_scalarbar3d()
+v3.scalarbar = v3.scalarbar.clone2d(pos="center-right", scale=0.1)
+plt.at(3).show("dot(v0,v0)", v3, zoom=1.3)
 
 plt.interactive().close()
 
@@ -31,6 +35,7 @@ msh = Ellipsoid()
 vol = msh.signed_distance(dims=[20, 20, 20])
 vol.threshold(above=0.0, replace=0.0)  # replacing all values outside to 0
 vol.cmap("blue").alpha([0.9, 0.0]).alpha_unit(0.1).add_scalarbar3d()
+vol.scalarbar = vol.scalarbar.clone2d(pos="center-right", scale=0.15)
 
 vgrad = vol.operation("gradient")
 printc(vgrad.pointdata, c='g')
