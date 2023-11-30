@@ -11,10 +11,9 @@ from vedo import addons
 from vedo import colors
 from vedo import utils
 from vedo import shapes
-from vedo.visual import Actor2D
 from vedo.pointcloud import merge
 from vedo.mesh import Mesh
-from vedo.assembly import Assembly, Group
+from vedo.assembly import Assembly
 
 __docformat__ = "google"
 
@@ -360,7 +359,7 @@ class Figure(Assembly):
             if isinstance(a, (shapes.Arrow, shapes.Arrow2D)):
                 # discard input Arrow and substitute it with a brand new one
                 # (because scaling would fatally distort the shape)
-                
+
                 py = a.base[1]
                 a.top[1] = (a.top[1] - py) * self.yscale + py
                 b = shapes.Arrow2D(a.base, a.top, s=a.s, fill=a.fill).z(a.z())

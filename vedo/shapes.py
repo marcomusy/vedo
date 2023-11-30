@@ -345,7 +345,7 @@ class Tensors(Mesh):
             elif source == "cube":
                 src = vtk.new("CubeSource")
             else:
-                vedo.logger.error("Unknown source type", source)
+                vedo.logger.error(f"Unknown source type {source}")
                 raise ValueError()
             src.Update()
             src = src.GetOutput()
@@ -1464,7 +1464,6 @@ def StreamLines(
     tubes=(),
     scalar_range=None,
     lw=None,
-    **opts,
 ):
     """
     Integrate a vector field on a domain (a Points/Mesh or other vtk datasets types)

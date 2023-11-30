@@ -225,16 +225,17 @@ class Settings:
         "k3d_point_shader",
         "k3d_line_shader",
         "font_parameters",
-        "dry_run_mode",
     ]
 
-    def __init__(self):
+    ############################################################
+    # Dry run mode (for test purposes only)
+    # 0 = normal
+    # 1 = do not hold execution
+    # 2 = do not hold execution and do not show any window
+    dry_run_mode = 0
 
-        # Dry run mode (for test purposes only)
-        # 0 = normal
-        # 1 = do not hold execution
-        # 2 = do not hold execution and do not show any window
-        self.dry_run_mode = 0
+    ############################################################
+    def __init__(self):
 
         self.default_backend = "vtk"
         try:
@@ -250,7 +251,7 @@ class Settings:
         self.palette = 0
         self.remember_last_figure_format = False
 
-        self.cache_directory = ".cache" # "/vedo" is added automatically
+        self.cache_directory = ".cache"  # "/vedo" is added automatically
 
         self.screenshot_transparent_background = False
         self.screeshot_large_image = False
@@ -287,7 +288,7 @@ class Settings:
 
         self.use_polygon_offset = True
         self.polygon_offset_factor = 0.1
-        self.polygon_offset_units  = 0.1
+        self.polygon_offset_units = 0.1
 
         self.interpolate_scalars_before_mapping = True
 
@@ -664,7 +665,7 @@ class Settings:
     def __setitem__(self, key, value):
         """Make the class work like a dictionary too"""
         setattr(self, key, value)
-    
+
     def __str__(self) -> str:
         """Return a string representation of the object"""
         s = Settings.__doc__.replace("   ", "")
@@ -688,16 +689,16 @@ class Settings:
         header = f"{module}.{name} at ({hex(id(self))})".ljust(75)
         s = f"\x1b[1m\x1b[7m{header}\x1b[0m\n" + s
         return s.strip()
-    
+
     ############################################################
     def keys(self):
         """Return all keys"""
         return self.__slots__
-    
+
     def values(self):
         """Return all values"""
         return [getattr(self, key) for key in self.__slots__]
-    
+
     def items(self):
         """Return all items"""
         return [(key, getattr(self, key)) for key in self.__slots__]
@@ -711,19 +712,19 @@ class Settings:
         """
         Initialize colab environment
         """
-        print("setting up colab environment (can take a minute) ...", end='')
+        print("setting up colab environment (can take a minute) ...", end="")
 
-        res = os.system('which Xvfb')
+        res = os.system("which Xvfb")
         if res:
-            os.system('apt-get install xvfb')
+            os.system("apt-get install xvfb")
 
-        os.system('pip install pyvirtualdisplay')
+        os.system("pip install pyvirtualdisplay")
 
         from pyvirtualdisplay import Display
         Display(visible=0).start()
 
         if enable_k3d:
-            os.system('pip install k3d')
+            os.system("pip install k3d")
 
         from google.colab import output
         output.enable_custom_widget_manager()
@@ -731,14 +732,14 @@ class Settings:
         if enable_k3d:
             import k3d
             try:
-                print("installing k3d...", end='')
+                print("installing k3d...", end="")
                 os.system("jupyter nbextension install --py --user k3d")
                 os.system("jupyter nbextension enable  --py --user k3d")
                 k3d.switch_to_text_protocol()
-                self.default_backend = 'k3d'
+                self.default_backend = "k3d"
                 self.backend_autoclose = False
             except:
-                print("(FAILED) ... ", end='')
+                print("(FAILED) ... ", end="")
 
         print(" setup completed.")
 
@@ -752,15 +753,14 @@ class Settings:
         Xvfb performs all graphical operations in virtual memory
         without showing any screen output.
         """
-        print("starting xvfb (can take a minute) ...", end='')
-        res = os.system('which Xvfb')
+        print("starting xvfb (can take a minute) ...", end="")
+        res = os.system("which Xvfb")
         if res:
-            os.system('apt-get install xvfb')
-        os.system('set -x')
-        os.system('export DISPLAY=:99.0')
-        os.system('Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &')
-        os.system('sleep 3')
-        os.system('set +x')
+            os.system("apt-get install xvfb")
+        os.system("set -x")
+        os.system("export DISPLAY=:99.0")
+        os.system("Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &")
+        os.system("sleep 3")
+        os.system("set +x")
         os.system('exec "$@"')
         print(" xvfb started.")
-

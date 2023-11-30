@@ -164,7 +164,7 @@ class DataArrayHelper:
             if name:
                 arrnames.append(name)
         return arrnames
-    
+
     def items(self):
         """Return the list of available data array `(names, values)`."""
         if self.association == 0:
@@ -182,7 +182,7 @@ class DataArrayHelper:
             if name:
                 arrnames.append((name, self[name]))
         return arrnames
-    
+
     def todict(self):
         """Return a dictionary of the available data arrays."""
         return dict(self.items())
@@ -235,7 +235,7 @@ class DataArrayHelper:
         # and floating types are treated as colors with values in the range 0.0-1.0.
         # Setting ColorModeToMapScalars means that all scalar data will be mapped
         # through the lookup table.
-        # (Note that for multi-component scalars, the particular component 
+        # (Note that for multi-component scalars, the particular component
         # to use for mapping can be specified using the SelectColorArray() method.)
         if self.association == 0:
             data = self.obj.dataset.GetPointData()
@@ -257,7 +257,7 @@ class DataArrayHelper:
             data.SetActiveScalars(key)
         elif nc == 2:
             data.SetTCoords(arr)
-        elif nc == 3 or nc == 4:
+        elif nc in (3, 4):
             if "rgb" in key.lower():
                 data.SetActiveScalars(key)
                 try:
@@ -281,7 +281,7 @@ class DataArrayHelper:
             pass
 
         return self.obj
-    
+
     def select_texture_coords(self, key):
         """Select one specific array to be used as texture coordinates."""
         if self.association == 0:
@@ -373,7 +373,6 @@ class CommonAlgorithms:
         self.filename = ""
         self.time = 0
 
-
     @property
     def pointdata(self):
         """
@@ -459,7 +458,7 @@ class CommonAlgorithms:
             padding = [padding, padding, padding]
         length, width, height = b[1] - b[0], b[3] - b[2], b[5] - b[4]
         tol = (length + width + height) / 30000  # useful for boxing text
-        pos = [(b[0] + b[1])/2, (b[3] + b[2])/2, (b[5] + b[4])/2 - tol]
+        pos = [(b[0] + b[1]) / 2, (b[3] + b[2]) / 2, (b[5] + b[4]) / 2 - tol]
         bx = vedo.shapes.Box(
             pos,
             length * scale + padding[0],
@@ -482,7 +481,7 @@ class CommonAlgorithms:
         Get the object bounds.
         Returns a list in format `[xmin,xmax, ymin,ymax, zmin,zmax]`.
         """
-        try: # this is very slow for large meshes
+        try:  # this is very slow for large meshes
             pts = self.vertices
             xmin, ymin, zmin = np.min(pts, axis=0)
             xmax, ymax, zmax = np.max(pts, axis=0)
@@ -714,7 +713,7 @@ class CommonAlgorithms:
             self.cell_locator = vtk.new("CellTreeLocator")
             self.cell_locator.SetDataSet(self.dataset)
             self.cell_locator.BuildLocator()
-        self.cell_locator.FindCellsAlongLine(p0, p1, tol, cell_ids)   
+        self.cell_locator.FindCellsAlongLine(p0, p1, tol, cell_ids)
         cids = []
         for i in range(cell_ids.GetNumberOfIds()):
             cid = cell_ids.GetId(i)
@@ -730,7 +729,7 @@ class CommonAlgorithms:
             self.cell_locator = vtk.new("CellTreeLocator")
             self.cell_locator.SetDataSet(self.dataset)
             self.cell_locator.BuildLocator()
-        self.cell_locator.FindCellsAlongPlane(origin, normal, tol, cell_ids)   
+        self.cell_locator.FindCellsAlongPlane(origin, normal, tol, cell_ids)
         cids = []
         for i in range(cell_ids.GetNumberOfIds()):
             cid = cell_ids.GetId(i)
@@ -759,8 +758,7 @@ class CommonAlgorithms:
 
         self.dataset.RemoveDeletedCells()
         self.dataset.Modified()
-        self.pipeline = utils.OperationNode(
-            "delete_cells_by_point_index", parents=[self])
+        self.pipeline = utils.OperationNode("delete_cells_by_point_index", parents=[self])
         return self
 
     def map_cells_to_points(self, arrays=(), move=False):
@@ -807,7 +805,7 @@ class CommonAlgorithms:
                 varr = v2p.GetOutput().GetPoints().GetData()
             except AttributeError:
                 return np.array([])
-        
+
         narr = utils.vtk2numpy(varr)
         return narr
 
@@ -831,7 +829,6 @@ class CommonAlgorithms:
         self.transform = LinearTransform()
         return self
 
-
     @property
     def coordinates(self):
         """Return the vertices (points) coordinates. Same as `vertices`."""
@@ -841,7 +838,7 @@ class CommonAlgorithms:
     def coordinates(self, pts):
         """Set vertices (points) coordinates. Same as `vertices`."""
         self.vertices = pts
-    
+
     @property
     def cells_as_flat_array(self):
         """
@@ -963,7 +960,7 @@ class CommonAlgorithms:
         self.pipeline = utils.OperationNode(
             "resample_data_from",
             comment=f"{source.__class__.__name__}",
-            parents=[self, source]
+            parents=[self, source],
         )
         return self
 
@@ -1076,7 +1073,7 @@ class CommonAlgorithms:
     def add_ids(self):
         """
         Generate point and cell ids arrays.
-        
+
         Two new arrays are added to the mesh: `PointID` and `CellID`.
         """
         ids = vtk.new("IdFilter")
@@ -1261,7 +1258,7 @@ class CommonAlgorithms:
 
     def compute_cell_size(self):
         """
-        Add to this object a cell data array 
+        Add to this object a cell data array
         containing the area, volume and edge length
         of the cells (when applicable to the object type).
 
@@ -1279,14 +1276,14 @@ class CommonAlgorithms:
         csf.Update()
         self._update(csf.GetOutput(), reset_locators=False)
         return self
-    
+
     def integrate_arrays_over_domain(self):
         """
         Integrate point and cell data arrays while computing length, area or volume
         of the domain. It works for 1D, 2D or 3D cells.
         For volumetric datasets, this filter ignores all but 3D cells.
-        It will not compute the volume contained in a closed surface. 
-        
+        It will not compute the volume contained in a closed surface.
+
         Returns a dictionary with keys: `pointdata`, `celldata`, `metadata`,
         which contain the integration result for the corresponding attributes.
 
@@ -1317,7 +1314,7 @@ class CommonAlgorithms:
             data2 = surf2.integrate_arrays_over_domain()
 
             print(data1['pointdata']['scalars'],
-                "is equal to", 
+                "is equal to",
                 data2['pointdata']['scalars'],
                 "even if the grids are different!",
                 "(= the volume under the surface)"
@@ -1330,8 +1327,8 @@ class CommonAlgorithms:
         vinteg.Update()
         ugrid = vedo.UnstructuredGrid(vinteg.GetOutput())
         data = dict(
-            pointdata=ugrid.pointdata.todict(), 
-            celldata=ugrid.celldata.todict(), 
+            pointdata=ugrid.pointdata.todict(),
+            celldata=ugrid.celldata.todict(),
             metadata=ugrid.metadata.todict(),
         )
         return data
@@ -1347,7 +1344,7 @@ class CommonAlgorithms:
     def tomesh(self, bounds=()):
         """
         Extract boundary geometry from dataset (or convert data to polygonal type).
-        
+
         Two new arrays are added to the mesh: `OriginalCellIds` and `OriginalPointIds`
         to keep track of the original mesh elements.
         """
@@ -1416,7 +1413,7 @@ class PointAlgorithms(CommonAlgorithms):
         """
         if self.dataset.GetNumberOfPoints() == 0:
             return self
-        
+
         if isinstance(LT, LinearTransform):
             LT_is_linear = True
             tr = LT.T
@@ -1429,21 +1426,21 @@ class PointAlgorithms(CommonAlgorithms):
             tr = LT.T
             if LT.is_identity():
                 return self
-        
+
         elif isinstance(LT, NonLinearTransform):
             LT_is_linear = False
             tr = LT.T
-            self.transform = LT # reset
+            self.transform = LT  # reset
 
         elif isinstance(LT, vtk.vtkThinPlateSplineTransform):
             LT_is_linear = False
             tr = LT
-            self.transform = NonLinearTransform(LT) # reset
-        
+            self.transform = NonLinearTransform(LT)  # reset
+
         else:
             vedo.logger.error(f"apply_transform(), unknown input type:\n{LT}")
             return self
-        
+
         ################
         if LT_is_linear:
             if concatenate:
@@ -1465,8 +1462,7 @@ class PointAlgorithms(CommonAlgorithms):
         #     tp.SetInterpolationModeToCubic()
         #     tp.SetResliceTransform(tr)
         else:
-            vedo.logger.error(
-                f"apply_transform(), unknown input type: {[self.dataset]}")
+            vedo.logger.error(f"apply_transform(), unknown input type: {[self.dataset]}")
             return self
         tp.SetTransform(tr)
         tp.SetInputData(self.dataset)
@@ -1661,7 +1657,7 @@ class VolumeAlgorithms(CommonAlgorithms):
     """Methods for Volume objects."""
 
     def __init__(self):
-       super().__init__()
+        super().__init__()
 
     def bounds(self):
         """

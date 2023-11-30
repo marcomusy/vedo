@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import numpy as np
 from weakref import ref as weak_ref_to
+import numpy as np
 
 import vedo.vtkclasses as vtk
 
 import vedo
 from vedo.transformations import LinearTransform
-from vedo.visual import CommonVisual, Actor3DHelper, Actor2D
+from vedo.visual import CommonVisual, Actor3DHelper
 
 __docformat__ = "google"
 
@@ -280,10 +280,10 @@ class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
         bx1, bx2 = vedo.utils.precision(bnds[0], 3), vedo.utils.precision(bnds[1], 3)
         by1, by2 = vedo.utils.precision(bnds[2], 3), vedo.utils.precision(bnds[3], 3)
         bz1, bz2 = vedo.utils.precision(bnds[4], 3), vedo.utils.precision(bnds[5], 3)
-        out+= "bounds".ljust(14) + ":"
-        out+= " x=(" + bx1 + ", " + bx2 + "),"
-        out+= " y=(" + by1 + ", " + by2 + "),"
-        out+= " z=(" + bz1 + ", " + bz2 + ")\n"
+        out += "bounds".ljust(14) + ":"
+        out += " x=(" + bx1 + ", " + bx2 + "),"
+        out += " y=(" + by1 + ", " + by2 + "),"
+        out += " z=(" + bz1 + ", " + bz2 + ")\n"
         return out.rstrip() + "\x1b[0m"
 
     def _repr_html_(self):

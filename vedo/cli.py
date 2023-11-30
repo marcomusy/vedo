@@ -204,11 +204,11 @@ def exe_run(args):
                 maxidx1 = lline.find("import ")
                 maxidx2 = lline.find("from vedo")
                 maxid = min(maxidx1, maxidx2)
-                lline = lline[:maxid] # cut where the code starts
+                lline = lline[:maxid]  # cut where the code starts
                 lline = lline.replace("\n", " ").replace("'", "").replace('"', "")
                 lline = lline.replace("#", "").replace("-", "").replace("  ", " ")
                 line = lline[:68]  # cut long lines
-                if len(lline) > len(line)+1:
+                if len(lline) > len(line) + 1:
                     line += ".."
                 if len(line) > 5:
                     printc("-", line, c="c", bold=0, italic=1, dim=1)
@@ -674,9 +674,13 @@ def draw_scene(args):
         if N > 4:
             settings.use_depth_peeling = False
 
-        plt = Plotter(size=wsize, N=N, 
-                      bg=args.background, bg2=args.background_grad,
-                      sharecam=sharecam)
+        plt = Plotter(
+            size=wsize,
+            N=N,
+            bg=args.background,
+            bg2=args.background_grad,
+            sharecam=sharecam,
+        )
         settings.immediate_rendering = False
         plt.axes = args.axes_type
         for i in range(N):
@@ -735,13 +739,7 @@ def draw_scene(args):
             clamp=True,
             size=(1350, 1000),
         )
-        plt += vedo.Text2D(
-            args.files[0],
-            pos="top-left",
-            font="VictorMono",
-            s=1,
-            c="k",
-        )
+        plt += vedo.Text2D(args.files[0], pos="top-left", font="VictorMono", s=1, c="k")
         plt.show()
         return
 
@@ -797,8 +795,7 @@ def draw_scene(args):
         if not args.color:
             args.color = "gold"
         plt = applications.IsosurfaceBrowser(
-            vol, c=args.color, cmap=args.cmap, 
-            precompute=False, use_gpu=True,
+            vol, c=args.color, cmap=args.cmap, precompute=False, use_gpu=True
         )
         plt.show(zoom=args.zoom, viewup="z")
         return
@@ -833,7 +830,7 @@ def draw_scene(args):
             obj = load(f, force=args.reload)
 
             if isinstance(obj, (TetMesh, UnstructuredGrid)):
-                #obj = obj#.shrink(0.95)
+                # obj = obj#.shrink(0.95)
                 obj.c(colb).alpha(args.alpha)
 
             elif isinstance(obj, vedo.Points):
@@ -875,9 +872,14 @@ def draw_scene(args):
                     plt.camera.SetClippingRange(0, ds)
                     plt.reset_camera()
                     # plt.render()
-                    plt.show(obj, at=i, interactive=False,
-                             zoom=args.zoom, mode=interactor_mode)
-                    
+                    plt.show(
+                        obj,
+                        at=i,
+                        interactive=False,
+                        zoom=args.zoom,
+                        mode=interactor_mode,
+                    )
+
                 except AttributeError:
                     # wildcards in quotes make glob return obj as a list :(
                     vedo.logger.error("Please do not use wildcards within single or double quotes")

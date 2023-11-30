@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from weakref import ref as weak_ref_to
+import numpy as np
 
 import vedo.vtkclasses as vtk
 
-import numpy as np
 import vedo
 from vedo import utils
 from vedo.core import PointAlgorithms
@@ -297,9 +297,9 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
 
     def _update(self, data, reset_locators=False):
         self.dataset = data
-        # self.mapper.SetInputData(data)
-        # self.mapper.Modified()
-        ## self.actor.Modified()
+        if reset_locators:
+            self.cell_locator = None
+            self.point_locator = None
         return self
 
     def copy(self, deep=True):
@@ -851,7 +851,7 @@ class TetMesh(UnstructuredGrid):
             self.dataset.SetCells(vtk.VTK_TETRA, source_tets)
 
         else:
-            vedo.logger.error(f"cannot understand input type {inputtype}")
+            vedo.logger.error(f"cannot understand input type {type(inputobj)}")
             return
 
         self.pipeline = utils.OperationNode(

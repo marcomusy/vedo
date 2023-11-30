@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
-import numpy as np
 from weakref import ref as weak_ref_to
+import numpy as np
 
 import vedo.vtkclasses as vtk
 
@@ -764,6 +764,12 @@ class PointsVisual(CommonVisual):
     def __init__(self):
         # print("init PointsVisual")
         super().__init__()
+        self.properties_backface = None
+        self._cmap_name = None
+        self.trail_offset = 0
+        self.trail_points = []
+        self._caption = None
+        
 
     def clone2d(self, scale=None, offset=None):
         """
@@ -2375,7 +2381,7 @@ class MeshVisual(PointsVisual):
         scale=None,
         ushift=None,
         vshift=None,
-        seam_threshold=None,
+        # seam_threshold=None,
     ):
         """
         Assign a texture to mesh from image file or predefined texture `tname`.
@@ -2403,9 +2409,6 @@ class MeshVisual(PointsVisual):
                 shift u-coordinates of texture by this amount
             vshift : (bool)
                 shift v-coordinates of texture by this amount
-            seam_threshold : (float)
-                try to seal seams in texture by collapsing triangles
-                (test values around 1.0, lower values = stronger collapse)
 
         Examples:
             - [texturecubes.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/texturecubes.py)
@@ -2536,31 +2539,31 @@ class MeshVisual(PointsVisual):
         self.mapper.ScalarVisibilityOff()
         self.actor.SetTexture(tu)
 
-        if seam_threshold is not None:
-            tname = self.dataset.GetPointData().GetTCoords().GetName()
-            grad = self.gradient(tname)
-            ugrad, vgrad = np.split(grad, 2, axis=1)
-            ugradm, vgradm = utils.mag2(ugrad), utils.mag2(vgrad)
-            gradm = np.log(ugradm + vgradm)
-            largegrad_ids = np.arange(len(grad))[gradm > seam_threshold * 4]
-            uvmap = self.pointdata[tname]
-            # collapse triangles that have large gradient
-            new_points = self.vertices.copy()
-            for f in self.cells:
-                if np.isin(f, largegrad_ids).all():
-                    id1, id2, id3 = f
-                    uv1, uv2, uv3 = uvmap[f]
-                    d12 = utils.mag2(uv1 - uv2)
-                    d23 = utils.mag2(uv2 - uv3)
-                    d31 = utils.mag2(uv3 - uv1)
-                    idm = np.argmin([d12, d23, d31])
-                    if idm == 0:
-                        new_points[id1] = new_points[id3]
-                        new_points[id2] = new_points[id3]
-                    elif idm == 1:
-                        new_points[id2] = new_points[id1]
-                        new_points[id3] = new_points[id1]
-            self.vertices = new_points
+        # if seam_threshold is not None:
+        #     tname = self.dataset.GetPointData().GetTCoords().GetName()
+        #     grad = self.gradient(tname)
+        #     ugrad, vgrad = np.split(grad, 2, axis=1)
+        #     ugradm, vgradm = utils.mag2(ugrad), utils.mag2(vgrad)
+        #     gradm = np.log(ugradm + vgradm)
+        #     largegrad_ids = np.arange(len(grad))[gradm > seam_threshold * 4]
+        #     uvmap = self.pointdata[tname]
+        #     # collapse triangles that have large gradient
+        #     new_points = self.vertices.copy()
+        #     for f in self.cells:
+        #         if np.isin(f, largegrad_ids).all():
+        #             id1, id2, id3 = f
+        #             uv1, uv2, uv3 = uvmap[f]
+        #             d12 = utils.mag2(uv1 - uv2)
+        #             d23 = utils.mag2(uv2 - uv3)
+        #             d31 = utils.mag2(uv3 - uv1)
+        #             idm = np.argmin([d12, d23, d31])
+        #             if idm == 0:
+        #                 new_points[id1] = new_points[id3]
+        #                 new_points[id2] = new_points[id3]
+        #             elif idm == 1:
+        #                 new_points[id2] = new_points[id1]
+        #                 new_points[id3] = new_points[id1]
+        #     self.vertices = new_points
 
         self.dataset.Modified()
         return self

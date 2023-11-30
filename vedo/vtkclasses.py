@@ -4,7 +4,6 @@
 Subset of the vtk classes to be imported eagerly or lazily.
 """
 from importlib import import_module
-from vedo import settings
 
 __all__ = []
 
@@ -13,108 +12,6 @@ location = {}
 module_cache = {}
 
 ######################################################################
-def get_class(cls_name="", module_name=""):
-    """
-    Get a vtk class from its name.
-    
-    Example:
-    ```python
-    from vedo import vtkclasses as vtk
-    print(vtk.vtkActor)
-    print(vtk.location["vtkActor"])
-    print(vtk.get_class("vtkActor"))
-    print(vtk.get_class("vtkActor", "vtkRenderingCore"))
-    ```
-    """
-    if cls_name and not cls_name.lower().startswith("vtk"):
-        cls_name = "vtk" + cls_name
-    if not module_name:
-        module_name = location[cls_name]
-    module_name = "vtkmodules." + module_name
-    if module_name not in module_cache:
-        module = import_module(module_name)
-        module_cache[module_name] = module
-    if cls_name:
-        return getattr(module_cache[module_name], cls_name)
-    else:
-        return module_cache[module_name]
-
-
-def new(cls_name="", module_name=""):
-    """
-    Create a new vtk object instance from its name.
-    
-    Example:
-    ```python
-    from vedo import vtkclasses as vtk
-    a = vtk.new("Actor")
-    ```
-    """
-    try:
-        instance = get_class(cls_name, module_name)()
-    except NotImplementedError as e:
-        print(e, cls_name)
-        return None
-    return instance
-
-
-def dump_hierarchy_to_file(fname=""):
-    """
-    Print all available vtk classes.
-    Dumps the list to a file named `vtkmodules_<version>_hierarchy.txt`
-    Example:
-    ```python
-    from vedo.vtkclasses import dump_hierarchy_to_file
-    dump_hierarchy_to_file()
-    ```
-    """
-    try:
-        import pkgutil
-        import vtkmodules
-        from vtkmodules.all import vtkVersion
-        ver = vtkVersion()
-    except AttributeError:
-        print("Unable to detect VTK version.")
-        return
-    major = ver.GetVTKMajorVersion()
-    minor = ver.GetVTKMinorVersion()
-    patch = ver.GetVTKBuildVersion()
-    vtkvers = f"{major}.{minor}.{patch}"
-    if not fname:
-        fname = f"vtkmodules_{vtkvers}_hierarchy.txt"
-    with open(fname,"w") as w:
-        for pkg in pkgutil.walk_packages(
-            vtkmodules.__path__, vtkmodules.__name__ + "."):
-            try:
-                module = import_module(pkg.name)
-            except ImportError:
-                continue
-            for subitem in sorted(dir(module)):
-                if "all" in module.__name__:
-                    continue
-                if ".web." in module.__name__:
-                    continue
-                if ".test." in module.__name__:
-                    continue
-                if ".tk." in module.__name__:
-                    continue
-                if "__" in module.__name__ or "__" in subitem:
-                    continue
-                w.write(f"{module.__name__}.{subitem}\n")
-
-######################################################################
-if settings.dry_run_mode < 2:
-    # https://vtk.org/doc/nightly/html
-    # /md__builds_gitlab_kitware_sciviz_ci_Documentation_Doxygen_PythonWrappers.html
-    # noinspection PyUnresolvedReferences
-    import vtkmodules.vtkRenderingOpenGL2
-    # noinspection PyUnresolvedReferences
-    import vtkmodules.vtkInteractionStyle
-    # noinspection PyUnresolvedReferences
-    import vtkmodules.vtkRenderingFreeType
-    # noinspection PyUnresolvedReferences
-    import vtkmodules.vtkRenderingVolumeOpenGL2
-
 # noinspection PyUnresolvedReferences
 from vtkmodules.vtkInteractionStyle import vtkInteractorStyleUser
 
@@ -850,6 +747,113 @@ for name in [
     "vtkFixedPointVolumeRayCastMapper",
     "vtkGPUVolumeRayCastMapper",
 ]: location[name] = "vtkRenderingVolume"
+
+
+#########################################################
+from vedo.settings import Settings
+
+if Settings.dry_run_mode < 2:
+    # https://vtk.org/doc/nightly/html
+    # /md__builds_gitlab_kitware_sciviz_ci_Documentation_Doxygen_PythonWrappers.html
+    # noinspection PyUnresolvedReferences
+    import vtkmodules.vtkRenderingOpenGL2
+    # noinspection PyUnresolvedReferences
+    import vtkmodules.vtkInteractionStyle
+    # noinspection PyUnresolvedReferences
+    import vtkmodules.vtkRenderingFreeType
+    # noinspection PyUnresolvedReferences
+    import vtkmodules.vtkRenderingVolumeOpenGL2
+
+
+######################################################################
+def get_class(cls_name="", module_name=""):
+    """
+    Get a vtk class from its name.
+    
+    Example:
+    ```python
+    from vedo import vtkclasses as vtk
+    print(vtk.vtkActor)
+    print(vtk.location["vtkActor"])
+    print(vtk.get_class("vtkActor"))
+    print(vtk.get_class("vtkActor", "vtkRenderingCore"))
+    ```
+    """
+    if cls_name and not cls_name.lower().startswith("vtk"):
+        cls_name = "vtk" + cls_name
+    if not module_name:
+        module_name = location[cls_name]
+    module_name = "vtkmodules." + module_name
+    if module_name not in module_cache:
+        module = import_module(module_name)
+        module_cache[module_name] = module
+    if cls_name:
+        return getattr(module_cache[module_name], cls_name)
+    else:
+        return module_cache[module_name]
+
+
+def new(cls_name="", module_name=""):
+    """
+    Create a new vtk object instance from its name.
+    
+    Example:
+    ```python
+    from vedo import vtkclasses as vtk
+    a = vtk.new("Actor")
+    ```
+    """
+    try:
+        instance = get_class(cls_name, module_name)()
+    except NotImplementedError as e:
+        print(e, cls_name)
+        return None
+    return instance
+
+
+def dump_hierarchy_to_file(fname=""):
+    """
+    Print all available vtk classes.
+    Dumps the list to a file named `vtkmodules_<version>_hierarchy.txt`
+    Example:
+    ```python
+    from vedo.vtkclasses import dump_hierarchy_to_file
+    dump_hierarchy_to_file()
+    ```
+    """
+    try:
+        import pkgutil
+        import vtkmodules
+        from vtkmodules.all import vtkVersion
+        ver = vtkVersion()
+    except AttributeError:
+        print("Unable to detect VTK version.")
+        return
+    major = ver.GetVTKMajorVersion()
+    minor = ver.GetVTKMinorVersion()
+    patch = ver.GetVTKBuildVersion()
+    vtkvers = f"{major}.{minor}.{patch}"
+    if not fname:
+        fname = f"vtkmodules_{vtkvers}_hierarchy.txt"
+    with open(fname,"w") as w:
+        for pkg in pkgutil.walk_packages(
+            vtkmodules.__path__, vtkmodules.__name__ + "."):
+            try:
+                module = import_module(pkg.name)
+            except ImportError:
+                continue
+            for subitem in sorted(dir(module)):
+                if "all" in module.__name__:
+                    continue
+                if ".web." in module.__name__:
+                    continue
+                if ".test." in module.__name__:
+                    continue
+                if ".tk." in module.__name__:
+                    continue
+                if "__" in module.__name__ or "__" in subitem:
+                    continue
+                w.write(f"{module.__name__}.{subitem}\n")
 
 #########################################################
 # print("successfully finished importing vtkmodules")

@@ -100,17 +100,28 @@ class Slicer3DPlotter(Plotter):
 
         volume_axes_inset = vedo.addons.Axes(
             box,
-            xtitle=' ', ytitle=' ', ztitle=' ',
-            yzgrid=False, 
-            xlabel_size=0, ylabel_size=0, zlabel_size=0, tip_size=0.08,
-            axes_linewidth=3, 
-            xline_color='dr', yline_color='dg', zline_color='db',
+            xtitle=" ",
+            ytitle=" ",
+            ztitle=" ",
+            yzgrid=False,
+            xlabel_size=0,
+            ylabel_size=0,
+            zlabel_size=0,
+            tip_size=0.08,
+            axes_linewidth=3,
+            xline_color="dr",
+            yline_color="dg",
+            zline_color="db",
         )
 
         if show_icon:
             self.add_inset(
-                volume, volume_axes_inset,
-                pos=(0.9, 0.9), size=0.15, c="w", draggable=draggable
+                volume,
+                volume_axes_inset,
+                pos=(0.9, 0.9),
+                size=0.15,
+                c="w",
+                draggable=draggable,
             )
 
         # inits
@@ -146,18 +157,21 @@ class Slicer3DPlotter(Plotter):
         if show_histo:
             # try to reduce the number of values to histogram
             dims = self.volume.dimensions()
-            n = (dims[0]-1) * (dims[1]-1) * (dims[2]-1)
+            n = (dims[0] - 1) * (dims[1] - 1) * (dims[2] - 1)
             n = min(1_000_000, n)
             data_reduced = np.random.choice(data, n)
             self.histogram = histogram(
                 data_reduced,
                 # title=volume.filename,
-                bins=20, logscale=True,
-                c=self.cmap_slicer, bg=ch, alpha=1,
+                bins=20,
+                logscale=True,
+                c=self.cmap_slicer,
+                bg=ch,
+                alpha=1,
                 axes=dict(text_scale=2),
-            ).clone2d(pos=[-0.925,-0.88], scale=0.4)
+            ).clone2d(pos=[-0.925, -0.88], scale=0.4)
             self.add(self.histogram)
-        
+
         #################
         def slider_function_x(widget, event):
             i = int(self.xslider.value)
@@ -277,10 +291,13 @@ class Slicer3DPlotter(Plotter):
                 self.histogram = histogram(
                     data_reduced,
                     # title=volume.filename,
-                    bins=20, logscale=True, 
-                    c=self.cmap_slicer, bg=ch, alpha=1,
+                    bins=20,
+                    logscale=True,
+                    c=self.cmap_slicer,
+                    bg=ch,
+                    alpha=1,
                     axes=dict(text_scale=2),
-                ).clone2d(pos=[-0.925,-0.88], scale=0.4)
+                ).clone2d(pos=[-0.925, -0.88], scale=0.4)
                 self.add(self.histogram)
             self.render()
 
@@ -294,6 +311,7 @@ class Slicer3DPlotter(Plotter):
                 bold=True,
             )
             bu.pos([0.04, 0.01], "bottom-left")
+
 
 ####################################################################################
 class Slicer3DTwinPlotter(Plotter):
@@ -342,14 +360,14 @@ class Slicer3DTwinPlotter(Plotter):
         super().__init__(**kwargs)
 
         cmap = "gist_ncar_r"
-        cx, cy, cz = "dr", "dg", "db" # slider colors
-        ambient, diffuse = 0.7, 0.3   # lighting params
+        cx, cy, cz = "dr", "dg", "db"  # slider colors
+        ambient, diffuse = 0.7, 0.3  # lighting params
 
         self.at(0)
         box1 = vol1.box().alpha(0.1)
         box2 = vol2.box().alpha(0.1)
         self.add(box1)
-        
+
         self.at(1).add(box2)
         self.add_inset(vol2, pos=(0.85, 0.15), size=0.15, c="white", draggable=0)
 
@@ -362,7 +380,6 @@ class Slicer3DTwinPlotter(Plotter):
             meanlog = np.sum(np.multiply(edg[:-1], logdata)) / np.sum(logdata)
             rmax = min(rmax, meanlog + (meanlog - rmin) * 0.9)
             rmin = max(rmin, meanlog - (rmax - meanlog) * 0.9)
-
 
         def slider_function_x(widget, event):
             i = int(self.xslider.value)
@@ -441,9 +458,10 @@ class Slicer3DTwinPlotter(Plotter):
         )
 
         #################
-        hist = CornerHistogram(data, s=0.2, bins=25, logscale=True, c='k')
+        hist = CornerHistogram(data, s=0.2, bins=25, logscale=True, c="k")
         self.add(hist)
-        slider_function_z(0,0) ## init call
+        slider_function_z(0, 0)  ## init call
+
 
 ########################################################################################
 class Slicer2DPlotter(Plotter):
@@ -476,7 +494,7 @@ class Slicer2DPlotter(Plotter):
                 dict(bottomleft=(0.8, 0.8), topright=(1, 1), bg="k8", bg2="lb"),
             ]
             kwargs["shape"] = custom_shape
-        
+
         if "interactive" not in kwargs:
             kwargs["interactive"] = True
 
@@ -515,19 +533,14 @@ class Slicer2DPlotter(Plotter):
         )
 
         self.usage = Text2D(
-            self.usage_txt,
-            font="Calco",
-            pos="top-left",
-            s=0.8,
-            bg="yellow",
-            alpha=0.25,
+            self.usage_txt, font="Calco", pos="top-left", s=0.8, bg="yellow", alpha=0.25
         )
 
         hist = None
         if histo_color is not None:
             # try to reduce the number of values to histogram
             dims = self.volume.dimensions()
-            n = (dims[0]-1) * (dims[1]-1) * (dims[2]-1)
+            n = (dims[0] - 1) * (dims[1] - 1) * (dims[2] - 1)
             n = min(1_000_000, n)
             arr = np.random.choice(self.volume.pointdata[0], n)
 
@@ -551,19 +564,28 @@ class Slicer2DPlotter(Plotter):
 
         volume_axes_inset = vedo.addons.Axes(
             box,
-            yzgrid=False, 
-            xlabel_size=0, ylabel_size=0, zlabel_size=0, tip_size=0.08,
-            axes_linewidth=3, 
-            xline_color='dr',  yline_color='dg',  zline_color='db',
-            xtitle_color='dr', ytitle_color='dg', ztitle_color='db',
-            xtitle_size=0.1, ytitle_size=0.1, ztitle_size=0.1,
-            title_font='VictorMono',
+            yzgrid=False,
+            xlabel_size=0,
+            ylabel_size=0,
+            zlabel_size=0,
+            tip_size=0.08,
+            axes_linewidth=3,
+            xline_color="dr",
+            yline_color="dg",
+            zline_color="db",
+            xtitle_color="dr",
+            ytitle_color="dg",
+            ztitle_color="db",
+            xtitle_size=0.1,
+            ytitle_size=0.1,
+            ztitle_size=0.1,
+            title_font="VictorMono",
         )
 
         self.user_mode("image")
         self.at(0).add(self.volume.actor, box, axe, self.usage, hist)
         self.at(1).add(orig_volume, volume_axes_inset)
-        self.at(0) # set focus here
+        self.at(0)  # set focus here
 
     ####################################################################
     def on_key_press(self, evt):
@@ -817,7 +839,7 @@ class RayCastPlotter(Plotter):
             bold=0,
             italic=False,
         )
-        bum.frame(color='w')
+        bum.frame(color="w")
         bum.status(volume.mode())
 
         # add histogram of scalar
@@ -844,6 +866,7 @@ class IsosurfaceBrowser(Plotter):
     """
     Generate a Volume isosurfacing controlled by a slider.
     """
+
     def __init__(
         self,
         volume,
@@ -1032,8 +1055,8 @@ class Browser(Plotter):
         sliderpos=((0.50, 0.07), (0.95, 0.07)),
         c=None,  # slider color
         slider_title="",
-        font="Calco", # slider font
-        resetcam=False, # resetcam while using the slider
+        font="Calco",  # slider font
+        resetcam=False,  # resetcam while using the slider
         **kwargs,
     ):
         """
@@ -1100,7 +1123,7 @@ class Browser(Plotter):
             k = int(self.slider.value)
 
             if k == self._oldk:
-                return # no change
+                return  # no change
             self._oldk = k
 
             n = len(objects)
@@ -1133,6 +1156,7 @@ class Browser(Plotter):
             if resetcam:
                 self.reset_camera()
             self.render()
+
         ##################################################
 
         self.slider_function = slider_function
@@ -1352,9 +1376,9 @@ class FreeHandCutPlotter(Plotter):
             self.txt2d.text(self.msg).background(self.color)   # put back original message
             self.add(mcut).render()
 
-        elif evt.keypress == 'u':                       # Undo last action
+        elif evt.keypress == "u":  # Undo last action
             if self.drawmode:
-                self._on_right_click(evt)               # toggle mode to normal
+                self._on_right_click(evt)  # toggle mode to normal
             else:
                 self.txt2d.background(self.color, self.alpha)
             self.remove([self.mesh, self.spline, self.jline, self.points, self.topline])
@@ -1793,10 +1817,10 @@ class Animation(Plotter):
                     ad = pr.GetDiffuse()
                     asp = pr.GetSpecular()
                     aspp = pr.GetSpecularPower()
-                    naa  = lin_interpolate(tt, [t,t+duration], [aa,  pars[0]])
-                    nad  = lin_interpolate(tt, [t,t+duration], [ad,  pars[1]])
-                    nasp = lin_interpolate(tt, [t,t+duration], [asp, pars[2]])
-                    naspp= lin_interpolate(tt, [t,t+duration], [aspp,pars[3]])
+                    naa = lin_interpolate(tt, [t, t + duration], [aa, pars[0]])
+                    nad = lin_interpolate(tt, [t, t + duration], [ad, pars[1]])
+                    nasp = lin_interpolate(tt, [t, t + duration], [asp, pars[2]])
+                    naspp = lin_interpolate(tt, [t, t + duration], [aspp, pars[3]])
                     inputvalues.append((naa, nad, nasp, naspp))
                 self.events.append((tt, self.change_lighting, acts, inputvalues))
         else:
@@ -1973,6 +1997,7 @@ class AnimationPlayer(vedo.Plotter):
     Examples:
         - [aspring2_player.py](https://vedo.embl.es/images/simulations/spring_player.gif)
     """
+
     # Original class contributed by @mikaeltulldahl (Mikael Tulldahl)
 
     PLAY_SYMBOL        = "    \u23F5   "
@@ -1987,12 +2012,12 @@ class AnimationPlayer(vedo.Plotter):
         dt: float = 1.0,
         loop: bool = True,
         c=("white", "white"),
-        bc=("green3","red4"),
+        bc=("green3", "red4"),
         button_size=25,
-        button_pos=(0.5,0.04),
+        button_pos=(0.5, 0.04),
         button_gap=0.055,
         slider_length=0.5,
-        slider_pos=(0.5,0.055),
+        slider_pos=(0.5, 0.055),
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -2003,7 +2028,7 @@ class AnimationPlayer(vedo.Plotter):
 
         self._func = func
 
-        self.value = min_value-1
+        self.value = min_value - 1
         self.min_value = min_value
         self.max_value = max_value
         self.dt = max(dt, 1)
@@ -2040,13 +2065,13 @@ class AnimationPlayer(vedo.Plotter):
             size=button_size,
             bc=bc,
         )
-        d = (1-slider_length)/2
+        d = (1 - slider_length) / 2
         self.slider: SliderWidget = self.add_slider(
             self._slider_callback,
             self.min_value,
             self.max_value - 1,
             value=self.min_value,
-            pos=[(d-0.5, 0)+slider_pos, (0.5-d, 0)+slider_pos],
+            pos=[(d - 0.5, 0) + slider_pos, (0.5 - d, 0) + slider_pos],
             show_value=False,
             c=bc[0],
             alpha=1,
@@ -2135,7 +2160,6 @@ class AnimationPlayer(vedo.Plotter):
 
 ########################################################################
 class Clock(vedo.Assembly):
-
     def __init__(self, h=None, m=None, s=None, font="Quikhand", title="", c="k"):
         """
         Create a clock with current time or user provided time.

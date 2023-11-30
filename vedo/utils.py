@@ -4,10 +4,9 @@ import os
 import time
 import numpy as np
 
-import vedo.vtkclasses as vtk
-
 from vtkmodules.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 from vtkmodules.util.numpy_support import numpy_to_vtkIdTypeArray
+import vedo.vtkclasses as vtk
 
 import vedo
 
@@ -184,7 +183,7 @@ class OperationNode:
             from treelib import Tree
         except ImportError:
             vedo.logger.error(
-                "To use this functionality please install treelib:" 
+                "To use this functionality please install treelib:"
                 "\n pip install treelib"
             )
             return ""
@@ -277,7 +276,7 @@ class ProgressBar:
                 estimate time of arrival
             delay : (float)
                 minimum time before printing anything,
-                if negative use the default value 
+                if negative use the default value
                 as set in `vedo.settings.progressbar_delay`
             width : (int)
                 width of the progress bar
@@ -449,7 +448,7 @@ def progressbar(
             estimate time of arrival
         delay : (float)
             minimum time before printing anything,
-            if negative use the default value 
+            if negative use the default value
             set in `vedo.settings.progressbar_delay`
         width : (int)
             width of the progress bar
@@ -602,7 +601,7 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, tetras=False
         - `vertices=[[x1,y1,z1],[x2,y2,z2], ...]`
         - `faces=[[0,1,2], [1,2,3], ...]`
         - `lines=[[0,1], [1,2,3,4], ...]`
-    
+
     A flat list of faces can be passed as `faces=[3, 0,1,2, 4, 1,2,3,4, ...]`.
     For lines use `lines=[2, 0,1, 4, 1,2,3,4, ...]`.
 
@@ -788,8 +787,8 @@ def is_sequence(arg):
 
 def is_ragged(arr, deep=False):
     """
-    A ragged or inhomogeneous array in Python is an array 
-    with arrays of different lengths as its elements. 
+    A ragged or inhomogeneous array in Python is an array
+    with arrays of different lengths as its elements.
     To check if an array is ragged,we iterate through the elements
     and check if their lengths are the same.
 
@@ -1054,7 +1053,7 @@ def line_line_distance(p1, p2, q1, q2):
     Compute the distance of a line to a line (not the segment)
     defined by `p1` and `p2` and `q1` and `q2`.
 
-    Returns the distance, 
+    Returns the distance,
     the closest point on line 1, the closest point on line 2.
     Their parametric coords (-inf <= t0, t1 <= inf) are also returned.
     """
@@ -1070,7 +1069,7 @@ def segment_segment_distance(p1, p2, q1, q2):
     Compute the distance of a segment to a segment
     defined by `p1` and `p2` and `q1` and `q2`.
 
-    Returns the distance, 
+    Returns the distance,
     the closest point on line 1, the closest point on line 2.
     Their parametric coords (-inf <= t0, t1 <= inf) are also returned.
     """
@@ -1452,10 +1451,10 @@ def parse_pattern(query, strings_to_parse) -> list:
             the query to parse
         strings_to_parse : (str/list)
             the string or list of strings to parse
-        
+
     Returns:
         a list of booleans, one for each string in strings_to_parse
-    
+
     Example:
         >>> query = r'*Sphere 1?3*'
         >>> strings = ["Sphere 143 red", "Sphere 13 red", "Sphere 123", "ASphere 173"]
@@ -1468,7 +1467,7 @@ def parse_pattern(query, strings_to_parse) -> list:
 
     if not is_sequence(strings_to_parse):
         strings_to_parse = [strings_to_parse]
-    
+
     outs = []
     for sp in strings_to_parse:
         if not isinstance(sp, str):
@@ -1859,7 +1858,7 @@ def camera_from_dict(camera, modify_inplace=None):
             a python dictionary containing camera parameters.
         modify_inplace: (vtkCamera)
             an existing `vtkCamera` object to modify in place.
-    
+
     Returns:
         `vtk.vtkCamera`, a vtk camera setup that matches this state.
     """
@@ -1869,7 +1868,7 @@ def camera_from_dict(camera, modify_inplace=None):
         vcam = vtk.vtkCamera()
 
     camera = dict(camera)  # make a copy so input is not emptied by pop()
-    
+
     cm_pos         = camera.pop("position", camera.pop("pos", None))
     cm_focal_point = camera.pop("focal_point", camera.pop("focalPoint", None))
     cm_viewup      = camera.pop("viewup", None)
@@ -1895,7 +1894,7 @@ def camera_from_dict(camera, modify_inplace=None):
 
 def camera_to_dict(vtkcam):
     """
-    Convert a [vtkCamera](https://vtk.org/doc/nightly/html/classvtkCamera.html) 
+    Convert a [vtkCamera](https://vtk.org/doc/nightly/html/classvtkCamera.html)
     object into a python dictionary.
 
     Parameters of the camera are:
@@ -2157,7 +2156,7 @@ def vedo2trimesh(mesh):
     except ModuleNotFoundError:
         vedo.logger.error("Need trimesh to run:\npip install trimesh")
         return None
-    
+
     tris = mesh.cells
     carr = mesh.celldata["CellIndividualColors"]
     ccols = carr
@@ -2391,7 +2390,7 @@ def madcad2vedo(madcad_mesh):
 
     A metadata array named "madcad_groups" is added to the output mesh, indicating
     the mesh groups.
-    
+
     See [pymadcad website](https://pymadcad.readthedocs.io/en/latest/index.html)
     for more info.
     """
@@ -2423,7 +2422,7 @@ def madcad2vedo(madcad_mesh):
     except (AttributeError, TypeError):
         # print("no edges")
         pass
-    
+
     try:
         line = np.array(madcad_mesh.indices).astype(np.uint16)
         made.append(line)
@@ -2450,14 +2449,14 @@ def madcad2vedo(madcad_mesh):
     if len(madt) == len(madf):
         m.celldata["tracks"] = madt
         maxt = np.max(madt)
-        m.mapper.SetScalarRange(0, np.max(madt))  
+        m.mapper.SetScalarRange(0, np.max(madt))
         if maxt==0: m.mapper.SetScalarVisibility(0)
     elif len(madt) == len(madp):
         m.pointdata["tracks"] = madt
         maxt = np.max(madt)
         m.mapper.SetScalarRange(0, maxt)
         if maxt==0: m.mapper.SetScalarVisibility(0)
-    
+
     try:
         m.info["madcad_groups"] = madcad_mesh.groups
     except AttributeError:
@@ -2580,7 +2579,7 @@ def get_vtk_name_event(name):
     for w in words:
         if w in ln:
             event_name = event_name.replace(w, w.capitalize())
-    
+
     event_name = event_name.replace("REnd ", "Rend")
     event_name = event_name.replace("the ", "")
     event_name = event_name.replace(" of ", "").replace(" ", "")
@@ -2594,6 +2593,6 @@ def get_vtk_name_event(name):
         vedo.printc("Check the list of events here:", c='r')
         vedo.printc("\thttps://vtk.org/doc/nightly/html/classvtkCommand.html", c='r')
         # raise RuntimeError
-    
+
     return event_name
 

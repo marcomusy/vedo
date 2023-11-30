@@ -44,11 +44,11 @@ class LinearTransform:
         """
         Define a linear transformation.
         Can be saved to file and reloaded.
-        
+
         Arguments:
             T : (vtkTransform, numpy array)
                 input transformation. Defaults to unit.
-        
+
         Example:
             ```python
             from vedo import *
@@ -102,7 +102,7 @@ class LinearTransform:
             S = vtk.vtkTransform()
             S.DeepCopy(T.T)
             T = S
-        
+
         elif isinstance(T, str):
             import json
             self.filename = str(T)
@@ -114,7 +114,7 @@ class LinearTransform:
                 matrix = np.array(D["matrix"])
             except json.decoder.JSONDecodeError:
                 ### assuming legacy vedo format E.g.:
-                #aligned by manual_align.py
+                # aligned by manual_align.py
                 # 0.8026854838223 -0.0789823873914 -0.508476844097  38.17377632072
                 # 0.0679734082661  0.9501827489452 -0.040289803376 -69.53864247951
                 # 0.5100652300642 -0.0023313569781  0.805555043665 -81.20317788519
@@ -148,9 +148,9 @@ class LinearTransform:
         module = self.__class__.__module__
         name = self.__class__.__name__
         s = f"\x1b[7m\x1b[1m{module}.{name} at ({hex(id(self))})".ljust(75) + "\x1b[0m"
-        s += "\nname".ljust(15) + ": "  + self.name
+        s += "\nname".ljust(15) + ": " + self.name
         if self.filename:
-            s += "\nfilename".ljust(15) + ": "  + self.filename
+            s += "\nfilename".ljust(15) + ": " + self.filename
         if self.comment:
             s += "\ncomment".ljust(15) + f': \x1b[3m"{self.comment}"\x1b[0m'
         s += f"\nconcatenations".ljust(15) + f": {self.n_concatenated_transforms}"
@@ -162,7 +162,7 @@ class LinearTransform:
 
     def __repr__(self):
         return self.__str__()
-    
+
     def print(self):
         """Print transformation."""
         print(self.__str__())
@@ -175,7 +175,7 @@ class LinearTransform:
         Note:
             When applying a transformation to a mesh, the mesh is modified in place.
             If you want to keep the original mesh unchanged, use `clone()` method.
-        
+
         Example:
             ```python
             from vedo import *
@@ -209,7 +209,7 @@ class LinearTransform:
         return self
 
     def pop(self):
-        """Delete the transformation on the top of the stack 
+        """Delete the transformation on the top of the stack
         and sets the top to the next transformation on the stack."""
         self.T.Pop()
         return self
@@ -246,7 +246,7 @@ class LinearTransform:
         """
         Post-multiply (by default) 2 transfomations.
         T can also be a 4x4 matrix or 3x3 matrix.
-        
+
         Example:
             ```python
             from vedo import LinearTransform
@@ -288,7 +288,7 @@ class LinearTransform:
             self.T.Concatenate(T.T)
         self.T.PostMultiply()
         return self
-    
+
     def __mul__(self, A):
         """Pre-multiply 2 transfomations."""
         return self.concatenate(A, pre_multiply=True)
@@ -517,7 +517,7 @@ class LinearTransform:
             xyplane : (bool)
                 make an extra rotation to keep the object aligned to the xy-plane
         """
-        newaxis  = np.asarray(newaxis) / np.linalg.norm(newaxis)
+        newaxis = np.asarray(newaxis) / np.linalg.norm(newaxis)
         initaxis = np.asarray(initaxis) / np.linalg.norm(initaxis)
 
         if not np.any(initaxis - newaxis):
@@ -550,7 +550,7 @@ class LinearTransform:
 ###################################################
 class NonLinearTransform:
     """Work with non-linear transformations."""
-    
+
     def __init__(self, T=None, **kwargs):
         """
         Define a non-linear transformation.
@@ -571,7 +571,7 @@ class NonLinearTransform:
                 - target_points : (list) target points
                 - mode : (str) either '2d' or '3d'
                 - sigma : (float) sigma parameter
-        
+
         Example:
             ```python
             from vedo import *
@@ -686,7 +686,7 @@ class NonLinearTransform:
         s = f"\x1b[7m\x1b[1m{module}.{name} at ({hex(id(self))})".ljust(75) + "\x1b[0m\n"
         s += "name".ljust(9) + ": "  + self.name + "\n"
         if self.filename:
-            s += "filename".ljust(9) + ": "  + self.filename + "\n"
+            s += "filename".ljust(9) + ": " + self.filename + "\n"
         if self.comment:
             s += "comment".ljust(9) + f': \x1b[3m"{self.comment}"\x1b[0m\n'
         s += f"mode".ljust(9)  + f": {self.mode}\n"
@@ -696,7 +696,7 @@ class NonLinearTransform:
         s += f"sources".ljust(9) + f": {p.size}, bounds {np.min(p, axis=0)}, {np.max(p, axis=0)}\n"
         s += f"targets".ljust(9) + f": {q.size}, bounds {np.min(q, axis=0)}, {np.max(q, axis=0)}"
         return s
-    
+
     def __repr__(self):
         return self.__str__()
 
@@ -711,19 +711,19 @@ class NonLinearTransform:
         Trying to get the position of a `NonLinearTransform` always returns [0,0,0].
         """
         return np.array([0.0, 0.0, 0.0], dtype=np.float32)
-    
-    @position.setter
-    def position(self, p):
-        """
-        Trying to set position of a `NonLinearTransform` 
-        has no effect and prints a warning.
 
-        Use clone() method to create a copy of the object,
-        or reset it with 'object.transform = vedo.LinearTransform()'
-        """
-        print("Warning: NonLinearTransform has no position.")
-        print("  Use clone() method to create a copy of the object,")
-        print("  or reset it with 'object.transform = vedo.LinearTransform()'")
+    # @position.setter
+    # def position(self, p):
+    #     """
+    #     Trying to set position of a `NonLinearTransform`
+    #     has no effect and prints a warning.
+
+    #     Use clone() method to create a copy of the object,
+    #     or reset it with 'object.transform = vedo.LinearTransform()'
+    #     """
+    #     print("Warning: NonLinearTransform has no position.")
+    #     print("  Use clone() method to create a copy of the object,")
+    #     print("  or reset it with 'object.transform = vedo.LinearTransform()'")
 
     @property
     def source_points(self):
@@ -734,7 +734,7 @@ class NonLinearTransform:
             for i in range(pts.GetNumberOfPoints()):
                 vpts.append(pts.GetPoint(i))
         return np.array(vpts, dtype=np.float32)
-    
+
     @property
     def target_points(self):
         """Get the target points."""
@@ -743,7 +743,7 @@ class NonLinearTransform:
         for i in range(pts.GetNumberOfPoints()):
             vpts.append(pts.GetPoint(i))
         return np.array(vpts, dtype=np.float32)
- 
+
     @source_points.setter
     def source_points(self, pts):
         """Set source points."""
@@ -757,7 +757,7 @@ class NonLinearTransform:
                 p = [p[0], p[1], 0.0]
             vpts.InsertNextPoint(p)
         self.T.SetSourceLandmarks(vpts)
-    
+
     @target_points.setter
     def target_points(self, pts):
         """Set target points."""
@@ -771,7 +771,7 @@ class NonLinearTransform:
                 p = [p[0], p[1], 0.0]
             vpts.InsertNextPoint(p)
         self.T.SetTargetLandmarks(vpts)
-       
+
     @property
     def sigma(self) -> float:
         """Set sigma."""
@@ -793,13 +793,14 @@ class NonLinearTransform:
             return "3d"
         else:
             print("Warning: NonLinearTransform has no valid mode.")
+            return ""
 
     @mode.setter
     def mode(self, m):
         """Set mode."""
-        if m=='3d':
+        if m == "3d":
             self.T.SetBasisToR()
-        elif m=='2d':
+        elif m == "2d":
             self.T.SetBasisToR2LogR()
         else:
             print('In NonLinearTransform mode can be either "2d" or "3d"')
@@ -807,10 +808,11 @@ class NonLinearTransform:
     def clone(self):
         """Clone transformation to make an exact copy."""
         return NonLinearTransform(self.T)
-        
+
     def write(self, filename):
         """Save transformation to ASCII file."""
         import json
+
         dictionary = {
             "name": self.name,
             "comment": self.comment,
@@ -821,27 +823,27 @@ class NonLinearTransform:
         }
         with open(filename, "w") as outfile:
             json.dump(dictionary, outfile, sort_keys=True, indent=2)
-        
+
     def invert(self):
         """Invert transformation."""
         self.T.Inverse()
         self.inverse_flag = bool(self.T.GetInverseFlag())
         return self
-    
+
     def compute_inverse(self):
         """Compute inverse."""
         t = self.clone()
         t.invert()
-        return t   
-    
+        return t
+
     def move(self, obj):
         """
         Apply transformation to object or single point.
-        
+
         Note:
             When applying a transformation to a mesh, the mesh is modified in place.
             If you want to keep the original mesh unchanged, use `clone()` method.
-        
+
         Example:
             ```python
             from vedo import *
@@ -870,6 +872,7 @@ class NonLinearTransform:
 
         obj.apply_transform(self)
         return obj
+
 
 ########################################################################
 # 2d ######

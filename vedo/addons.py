@@ -2891,7 +2891,6 @@ def Axes(
         x_inverted=False, y_inverted=False, z_inverted=False,
         use_global=False,
         tol=0.001,
-        **options,
     ):
     """
     Draw axes for the input object.
@@ -2982,14 +2981,6 @@ def Axes(
 
         ![](https://vedo.embl.es/images/pyplot/customAxes3.png)
     """
-    # make sure options are correct and user passed snake_case instead of camelCase
-    if len(options):
-        for k in options:
-            if k.lower() == k:
-                vedo.logger.warning(f"Unrecognised keyword '{k}' is ignored")
-            else:
-                vedo.logger.warning(f"Unrecognised keyword '{k}'. Please use snake_case notation")
-
     if not title_font:
         title_font = settings.default_font
     if not label_font:

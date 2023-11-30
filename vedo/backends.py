@@ -113,12 +113,12 @@ def start_k3d(actors2show):
 
     for ia in actors2show2:
 
-        if isinstance(ia, 
-            (vtk.vtkCornerAnnotation, vtk.vtkAssembly, vtk.vtkActor2D)):
+        if isinstance(ia, (vtk.vtkCornerAnnotation, vtk.vtkAssembly, vtk.vtkActor2D)):
             continue
 
-        if hasattr(ia, 'actor') and isinstance(ia.actor, 
-            (vtk.vtkCornerAnnotation, vtk.vtkAssembly, vtk.vtkActor2D)):
+        if hasattr(ia, "actor") and isinstance(
+            ia.actor, (vtk.vtkCornerAnnotation, vtk.vtkAssembly, vtk.vtkActor2D)
+        ):
             continue
 
         iacloned = ia
@@ -223,9 +223,11 @@ def start_k3d(actors2show):
             vedo.notebook_plotter += kobj
 
         ################################################################# Lines
-        elif (hasattr(ia, "lines") 
-              and ia.dataset.GetNumberOfLines() 
-              and ia.dataset.GetNumberOfPolys() == 0):
+        elif (
+            hasattr(ia, "lines")
+            and ia.dataset.GetNumberOfLines()
+            and ia.dataset.GetNumberOfPolys() == 0
+        ):
 
             for i, ln_idx in enumerate(ia.lines):
 
@@ -304,9 +306,9 @@ def start_k3d(actors2show):
             kcols = []
             if kcmap is not None and vtkscals:
                 scals = utils.vtk2numpy(vtkscals)
-                kcols = k3d.helpers.map_colors(scals, kcmap, [scals_min, scals_max]).astype(
-                    np.uint32
-                )
+                kcols = k3d.helpers.map_colors(
+                    scals, kcmap, [scals_min, scals_max]
+                ).astype(np.uint32)
 
             aves = ia.average_size() * iap.GetPointSize() / 200
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import time
-import numpy as np
 from weakref import ref as weak_ref_to
+import numpy as np
 
 import vedo.vtkclasses as vtk
 
@@ -2496,7 +2496,6 @@ class Points(PointsVisual, PointAlgorithms):
         clipper.GenerateClippedOutputOff()
         clipper.SetInsideOut(not invert)
         clipper.Update()
-        cpoly = clipper.GetOutput()
         self._update(clipper.GetOutput())
 
         self.pipeline = utils.OperationNode("cut_with_scalar", parents=[self])
@@ -2559,7 +2558,6 @@ class Points(PointsVisual, PointAlgorithms):
         clipper.GenerateClipScalarsOff()
         clipper.SetValue(0)
         clipper.Update()
-        cpoly = clipper.GetOutput()
         self._update(clipper.GetOutput())
 
         self.pipeline = utils.OperationNode(
