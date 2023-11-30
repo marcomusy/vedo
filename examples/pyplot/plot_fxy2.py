@@ -75,10 +75,14 @@ table, lut = custom_table_scalarbar("hsv")
 line = Line((1,-1), (1,1))  # a dummy line to attach the scalarbar to
 line.cmap("hsv", [0, 1])
 scbar = ScalarBar3D(
-    line, title=f"N_r ={Nr}, N_θ ={Nθ}, phase :theta in radians",
-    label_rotation=90, c='black',
+    line,
+    title=f"N_r ={Nr}, N_θ ={Nθ}, phase :theta in radians",
+    label_rotation=90,
     categories=table,
+    c='black',
 )
+# convert the scalarbar to a 2D object and place it to the bottom
+scbar = scbar.clone2d([-0.6,-0.7], scale=0.2, rotation=-90, ontop=True)
 
 # Set a specific camera position and orientation (shift-C to see it)
 cam = dict(

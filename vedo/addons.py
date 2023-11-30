@@ -1039,6 +1039,7 @@ def ScalarBar3D(
 
     Examples:
         - [scalarbars.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/scalarbars.py)
+        - [plot_fxy2.py](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_fxy2.py)
     """
 
     if isinstance(obj, (Points, TetMesh, vedo.UnstructuredGrid)):

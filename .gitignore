@@ -1,7 +1,6 @@
 *pyc
 .DS_Store
 
-docs/examples_db.js
 docs/pdoc/html
 
 vedo.egg-info

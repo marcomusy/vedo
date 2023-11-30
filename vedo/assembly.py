@@ -467,7 +467,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
             newlist.append(a.clone())
         return Assembly(newlist)
 
-    def clone2d(self, pos="bottom-left", scale=1, ontop=False):
+    def clone2d(self, pos="bottom-left", scale=1, rotation=0, ontop=False):
         """
         Convert the `Assembly` into a `Group` of 2D objects.
 
@@ -545,8 +545,13 @@ class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
             if a.properties.GetRepresentation() == 1:
                 # wireframe is not rendered correctly in 2d
                 b = a.boundaries().lw(1).c(a.color(), a.alpha())
+                if rotation:
+                    b.rotate_z(rotation, around=self.origin())
                 a2d = b.clone2d(scale=s, offset=offset)
             else:
+                if rotation:
+                    # around=self.actor.GetCenter()
+                    a.rotate_z(rotation, around=self.origin())
                 a2d = a.clone2d(scale=s, offset=offset)
             a2d.pos(position).ontop(ontop)
             group += a2d
