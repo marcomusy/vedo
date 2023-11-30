@@ -3272,7 +3272,7 @@ class Plotter:
 
         if len(viewup) > 0:
             b = self.renderer.ComputeVisiblePropBounds()
-            cm = np.array([(b[1] + b[0]) / 2, (b[3] + b[2]) / 2, (b[5] + b[4]) / 2])
+            cm = np.array([(b[1] + b[0])/2, (b[3] + b[2])/2, (b[5] + b[4])/2])
             sz = np.array([(b[1] - b[0]), (b[3] - b[2]), (b[5] - b[4])])
             if viewup == "x":
                 sz = np.linalg.norm(sz)
@@ -3283,7 +3283,7 @@ class Plotter:
                 self.camera.SetViewUp([0, 1, 0])
                 self.camera.SetPosition(cm + sz)
             elif viewup == "z":
-                sz = np.array([(b[1] - b[0]) * 0.7, -(b[3] - b[2]) * 1.0, (b[5] - b[4]) * 1.2])
+                sz = np.array([(b[1]-b[0])*0.7, -(b[3]-b[2])*1.0, (b[5]-b[4])*1.2])
                 self.camera.SetViewUp([0, 0, 1])
                 self.camera.SetPosition(cm + 2 * sz)
             elif utils.is_sequence(viewup):
