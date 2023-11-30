@@ -2380,6 +2380,30 @@ def vedo2open3d(vedo_mesh):
     # o3d_mesh.vertex_normals= o3d.utility.Vector3dVector(vedo_mesh.pointdata["Normals"])
     return o3d_mesh
 
+def vedo2madcad(vedo_mesh):
+    """
+    Convert a `vedo.Mesh` to a `madcad.Mesh`.
+    """
+    try:
+        import madcad
+        import numbers
+    except ModuleNotFoundError:
+        vedo.logger.error("Need madcad to run:\npip install pymadcad")
+
+    points = [madcad.vec3(*pt) for pt in vedo_mesh.vertices]
+    faces = [madcad.vec3(*fc) for fc in vedo_mesh.cells]
+
+    options = {}
+    for key, val in vedo_mesh.pointdata.items():
+        vec_type = f"vec{val.shape[-1]}"
+        is_float = np.issubdtype(val.dtype, np.floating)
+        madcad_dtype = getattr(madcad, f"f{vec_type}" if is_float else vec_type)
+        options[key] = [madcad_dtype(v) for v in val]
+
+    madcad_mesh = madcad.Mesh(points=points, faces=faces, options=options)
+
+    return madcad_mesh
+
 
 def madcad2vedo(madcad_mesh):
     """
@@ -2471,6 +2495,10 @@ def madcad2vedo(madcad_mesh):
             m.alpha(0.2)
         if "color" in options:
             m.c(options["color"])
+
+        for key, val in options.items():
+            m.pointdata[key] = val
+
     except AttributeError:
         # print("no options")
         pass
