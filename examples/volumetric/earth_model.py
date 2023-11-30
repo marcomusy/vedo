@@ -38,10 +38,10 @@ msh.add_scalarbar3d(
     size=[100, 2200],
 )
 # put scalarbar vertical, tell camera to keep bounds into account
-# msh.scalarbar.rotate_x(90, around='itself').rotate_z(60, around='itself')
-msh.scalarbar.rotate_x(90).rotate_z(60)#.shift(400,1050, -900)
-msh.scalarbar.use_bounds(True)
-
+# msh.scalarbar.rotate_x(90).rotate_z(60).use_bounds(True)
+# OR: use clone2d to create a 2D scalarbar from the 3D one
+msh.scalarbar = msh.scalarbar.clone2d(pos=[0.7, -0.95], scale=0.3)
+ 
 # Create cmap for conductor
 cond = conductor.tomesh().cmap(lut, 'cell_scalars', on='cells')
 
@@ -67,4 +67,4 @@ axes = vedo.Axes(
 )
 
 vedo.show(msh, cond, axes, __doc__, size=(1305, 1020),
-          roll=-80, azimuth=50, elevation=-10, zoom=1.25).close()
+          roll=-80, azimuth=50, elevation=-10, zoom=1.2).close()

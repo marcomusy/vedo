@@ -496,10 +496,20 @@ class Actor2D(vtk.vtkActor2D):
         """Manage 2D objects."""
         super().__init__()
 
-        self.mapper = self.GetMapper()
+        self.dataset = None
         self.properties = self.GetProperty()
         self.filename = ""
-        self.shape = []
+        self.shape = [] # for images
+
+    @property
+    def mapper(self):
+        """Get the internal vtkMapper."""
+        return self.GetMapper()
+    
+    @mapper.setter
+    def mapper(self, amapper):
+        """Set the internal vtkMapper."""
+        self.SetMapper(amapper)
 
     def layer(self, value=None):
         """Set/Get the layer number in the overlay planes into which to render."""
@@ -584,6 +594,12 @@ class Actor2D(vtk.vtkActor2D):
         if point_size is None:
             return self.properties.GetPointSize()
         self.properties.SetPointSize(point_size)
+        return self
+
+    def lw(self, line_width=None):
+        if line_width is None:
+            return self.properties.GetLineWidth()
+        self.properties.SetLineWidth(line_width)
         return self
 
     def ontop(self, value=True):
@@ -794,7 +810,7 @@ class PointsVisual(CommonVisual):
         act2d.mapper = mapper2d
         act2d.dataset = poly
 
-        act2d.SetMapper(mapper2d)
+        # act2d.SetMapper(mapper2d)
         csys = act2d.GetPositionCoordinate()
         csys.SetCoordinateSystem(4)
         act2d.properties.SetColor(cmsh.color())

@@ -439,7 +439,7 @@ class Image(vedo.visual.ImageVisual):
             pic.dataset, pos = _set_justification(pic.dataset, pos)
 
         pic.mapper = vtk.new("ImageMapper")
-        pic.SetMapper(pic.mapper)
+        # pic.SetMapper(pic.mapper)
         pic.mapper.SetInputData(pic.dataset)
         pic.mapper.SetColorWindow(255)
         pic.mapper.SetColorLevel(127.5)
