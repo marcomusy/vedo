@@ -1,4 +1,5 @@
-"""Share the same color and transparency mapping across different volumes"""
+"""Share the same color and transparency
+mapping across different volumes"""
 from vedo import Volume, show
 import numpy as np
 
@@ -14,4 +15,4 @@ vol2 = Volume(arr+30).mode(1).cmap('jet', alpha=[0,1], vmin=0, vmax=80).add_scal
 # or equivalently, to set transparency:
 # vol1.alpha([0,1], vmin=0, vmax=70)
 
-show([(vol2, sb, __doc__), vol1], shape=(2,1), axes=1, elevation=-25)
+show([(vol2, __doc__), vol1], shape=(2,1), axes=1, elevation=-25)

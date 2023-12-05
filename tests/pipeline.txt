@@ -52,6 +52,7 @@ cd $VDIR/tests/issues && ./run_all.sh
 # TUTORIALS ####################################
 cd ~/Projects/server/vedo-embo-course/scripts && ./run_all.sh 
 cd ~/Projects/server/vedo-bias-course/scripts && ./run_all.sh 
+cd ~/Projects/server/vedo-epug-course/scripts && ./run_all.sh 
 
 
 # TRIMESH #######################################

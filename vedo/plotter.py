@@ -785,7 +785,7 @@ class Plotter:
         """Return Plotter info."""
         axtype = {
             0: "(no axes)",
-            1: "(customizable grid walls)",
+            1: "(default customizable grid walls)",
             2: "(cartesian axes from origin",
             3: "(positive range of cartesian axes from origin",
             4: "(axes triad at bottom left)",
@@ -842,6 +842,8 @@ class Plotter:
 
         if utils.is_integer(self.axes):
             out += "axes style".ljust(14) + f": {self.axes} {axtype[self.axes]}\n"
+        elif isinstance(self.axes, dict):
+            out += "axes style".ljust(14) + f": 1 {axtype[1]}\n"
         else:
             out += "axes style".ljust(14) + f": {[self.axes]}\n"
         return out.rstrip() + "\x1b[0m"
@@ -4050,19 +4052,23 @@ class Plotter:
             self.reset_viewup()
 
         elif key == "w":
-            if self.clicked_object:
+            try:
                 if self.clicked_object.properties.GetRepresentation() == 1:  # toggle
                     self.clicked_object.properties.SetRepresentationToSurface()
                 else:
                     self.clicked_object.properties.SetRepresentationToWireframe()
+            except AttributeError:
+                pass
 
         elif key == "1":
-            self._icol += 1
-            if self.clicked_object:
+            try:
+                self._icol += 1
                 self.clicked_object.mapper.ScalarVisibilityOff()
                 pal = vedo.colors.palettes[settings.palette % len(vedo.colors.palettes)]
                 self.clicked_object.c(pal[(self._icol) % 10])
                 self.remove(self.clicked_object.scalarbar)
+            except AttributeError:
+                pass
 
         elif key == "2": # dark colors
             bsc = ["k1", "k2", "k3", "k4",
@@ -4109,7 +4115,7 @@ class Plotter:
                 "gist_ncar", "gist_ncar_r",
                 "viridis", "viridis_r",
                 "hot", "hot_r",
-                "terrain","ocean",
+                "terrain", "ocean",
                 "coolwarm", "seismic", "PuOr", "RdYlGn",
             ]
             try:
@@ -4173,7 +4179,7 @@ class Plotter:
                     i = 0
                 if i < 0:
                     i = len(arrnames) - 1
-            except ValueError:
+            except (ValueError, AttributeError):
                 i = 0
 
             ob.cmap(ob._cmap_name, arrnames[i], on="points")
@@ -4225,7 +4231,7 @@ class Plotter:
                     i = 0
                 if i < 0:
                     i = len(arrnames) - 1
-            except ValueError:
+            except (ValueError, AttributeError):
                 i = 0
 
             ob.cmap(ob._cmap_name, arrnames[i], on="cells")

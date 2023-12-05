@@ -141,6 +141,10 @@ class DataArrayHelper:
 
         if len(input_array.shape) == 1:  # scalars
             data.SetActiveScalars(key)
+            try:  # could be a volume mapper
+                self.obj.mapper.SetScalarRange(data.GetScalars().GetRange())
+            except AttributeError:
+                pass
         elif len(input_array.shape) == 2 and input_array.shape[1] == 3:  # vectors
             if key.lower() == "normals":
                 data.SetActiveNormals(key)

@@ -599,7 +599,7 @@ vedo_example_db =
         imgsrc: 'images/advanced/warp3.png',
     },
     {
-        pyname: 'warp4',
+        pyname: 'warp4a',
         kbd   : '',
         categ : 'advanced',
         short : 'interactive morphing',

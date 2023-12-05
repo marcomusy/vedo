@@ -415,19 +415,10 @@ class Line(Mesh):
             p1 = p1.pos()
             if isinstance(p0, Points):
                 p0 = p0.pos()
-        if isinstance(p0, Points):
-            p0 = p0.vertices
-
-        # try:
-        #     p1 = p1.pos()
-        #     p0 = p0.pos()
-        # except AttributeError:
-        #     pass
-
-        # try:
-        #     p0 = p0.vertices
-        # except AttributeError:
-        #     pass
+        try:
+            p0 = p0.dataset
+        except AttributeError:
+            pass
 
         if isinstance(p0, vtk.vtkPolyData):
             poly = p0
@@ -685,6 +676,53 @@ class Line(Mesh):
         else:
             self.cmap("coolwarm", curvs, vmin=vmin, vmax=vmax, name="Curvature")
         return self
+
+    def plot_scalar(
+            self,
+            radius=0, 
+            height=1,
+            normal=(),
+            camera=None,
+        ):
+        """
+        Generate a new Line which plots the active scalar along the line.
+
+        Arguments:
+            radius : (float)
+                distance radius to the line
+            height: (float)
+                height of the plot
+            normal: (list)
+                normal vector to the plane of the plot
+            camera: (vtkCamera) 
+                camera object to use for the plot orientation
+        
+        Example:
+            ```python
+            from vedo import *
+            circle = Circle(res=360).rotate_y(20)
+            pts = circle.vertices
+            bore = Line(pts).lw(5)
+            values = np.arctan2(pts[:,1], pts[:,0])
+            bore.pointdata["scalars"] = values + np.random.randn(360)/5
+            vap = bore.plot_scalar(radius=0, height=1)
+            show(bore, vap, axes=1, viewup='z').close()
+            ```
+            ![](https://vedo.embl.es/images/feats/line_plot_scalar.png)
+        """
+        ap = vtk.new("ArcPlotter")
+        ap.SetInputData(self.dataset)
+        ap.SetCamera(camera)
+        ap.SetRadius(radius)
+        ap.SetHeight(height)
+        if len(normal)>0:
+            ap.UseDefaultNormalOn()
+            ap.SetDefaultNormal(normal)
+        ap.Update()
+        vap = Line(ap.GetOutput())
+        vap.linewidth(3).lighting('off')
+        vap.name = "ArcPlot"
+        return vap
 
     def sweep(self, direction=(1, 0, 0), res=1):
         """

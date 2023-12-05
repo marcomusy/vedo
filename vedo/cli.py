@@ -123,7 +123,7 @@ def get_parser():
     pr.add_argument("--search-vtk",       type=str, help="search examples for the input vtk class", default='', metavar='')
     pr.add_argument("--search-code",      type=str, help="search keyword in source code", default='', metavar='')
     pr.add_argument("--reload",                     help="reload the file, ignoring any previous download", action="store_true")
-    pr.add_argument("--info", nargs='*',            help="get an info printout of the input file(s)")
+    pr.add_argument("--info", nargs='*',            help="get an info printout of the current installation")
     pr.add_argument("--convert", nargs='*',         help="input file(s) to be converted")
     pr.add_argument("--to",               type=str, help="convert to this target format", default='vtk', metavar='')
     pr.add_argument("--image",                      help="image mode for 2d objects", action="store_true")

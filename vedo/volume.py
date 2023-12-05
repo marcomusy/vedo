@@ -482,6 +482,11 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             operation : (str)
                 operation to perform on the slab,
                 allowed values are: "sum", "min", "max", "mean".
+        
+        Example:
+            - [slab.py](https://github.com/marcomusy/vedo/blob/master/examples/volumetric/slab_vol.py)
+
+            ![](https://vedo.embl.es/images/volumetric/slab_vol.jpg)
         """
         if len(slice_range) != 2:
             vedo.logger.error("in slab(): slice_range is empty or invalid")
@@ -615,9 +620,13 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             fit : (bool)
                 fit/adapt the old bounding box to the modified geometry
             interpolation : (str)
-                one of the following: "linear", "nearest", "cubic"
+                one of the following: "nearest", "linear", "cubic"
         """
+        if utils.is_sequence(T):
+            T = transformations.LinearTransform(T)
+
         TI = T.compute_inverse()
+
         reslice = vtk.new("ImageReslice")
         reslice.SetInputData(self.dataset)
         reslice.SetResliceTransform(TI.T)
@@ -725,12 +734,57 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             self.dataset.SetOrigin(s)
             return self
         return np.array(self.dataset.GetOrigin())
+    
+    def pos(self, p=None):
+        """Set/get the position of the volumetric dataset."""
+        if p is not None:
+            self.origin(p)
+            return self
+        return self.origin()
 
     def center(self):
         """Get the center of the volumetric dataset."""
         # note that this does not have the set method like origin and spacing
         return np.array(self.dataset.GetCenter())
     
+    def shift(self, s):
+        """Shift the volumetric dataset by a vector."""
+        self.origin(self.origin() + np.array(s))
+        return self
+
+    def rotate_x(self, angle, rad=False, around=None):
+        """
+        Rotate around x-axis. If angle is in radians set `rad=True`.
+
+        Use `around` to define a pivoting point.
+        """
+        if angle == 0:
+            return self
+        LT = transformations.LinearTransform().rotate_x(angle, rad, around)
+        return self.apply_transform(LT, fit=True, interpolation="linear")
+
+    def rotate_y(self, angle, rad=False, around=None):
+        """
+        Rotate around y-axis. If angle is in radians set `rad=True`.
+
+        Use `around` to define a pivoting point.
+        """
+        if angle == 0:
+            return self
+        LT = transformations.LinearTransform().rotate_y(angle, rad, around)
+        return self.apply_transform(LT, fit=True, interpolation="linear")
+
+    def rotate_z(self, angle, rad=False, around=None):
+        """
+        Rotate around z-axis. If angle is in radians set `rad=True`.
+
+        Use `around` to define a pivoting point.
+        """
+        if angle == 0:
+            return self
+        LT = transformations.LinearTransform().rotate_z(angle, rad, around)
+        return self.apply_transform(LT, fit=True, interpolation="linear")
+
     def get_cell_from_ijk(self, ijk):
         """
         Get the voxel id number at the given ijk coordinates.

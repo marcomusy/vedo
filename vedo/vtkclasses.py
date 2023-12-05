@@ -624,6 +624,7 @@ from vtkmodules.vtkRenderingAnnotation import (
 )
 for name in [
     "vtkAnnotatedCubeActor",
+    "vtkArcPlotter",
     "vtkAxesActor",
     "vtkAxisActor2D",
     "vtkCaptionActor2D",

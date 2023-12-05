@@ -9,7 +9,7 @@
 - add `Axes(title_backface_color=...)` keyword
 - improvements on `plotter.__init__()`
 - fix `labels()` and `labels2d()`
-
+- add `shapes.plot_scalar()` plot a scalar along a line.
 
 
 ## Breaking changes
@@ -49,6 +49,7 @@ cut_and_cap.py
 volumetric/streamlines1.py
 mousehover1.py
 mousehover2.py (unstable hovering?)
+read_volume3.py interactor lost
 ```
 
 #### Broken Projects

@@ -89,6 +89,8 @@ for some relevant example.
 
 You can also find online tutorials at:
 
+- [Vedo tutorial for the EMBL Python User Group](https://github.com/marcomusy/vedo-epug-tutorial) with [slides](https://github.com/marcomusy/vedo-epug-tutorial/blob/main/vedo-epug-seminar.pdf) by M. Musy (EMBL).
+
 - [Summer School on Computational Modelling of Multicellular Systems](https://github.com/LauAvinyo/vedo-embo-course) with [slides](https://github.com/LauAvinyo/vedo-embo-course/blob/main/vedo-embo-presentation.pdf) by Laura Avinyo (EMBL).
 
 - Youtube video tutorials by [M. El Amine](https://github.com/amine0110/pycad): 
