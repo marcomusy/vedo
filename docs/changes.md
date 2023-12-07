@@ -10,6 +10,9 @@
 - fix `labels()` and `labels2d()`
 - add `shapes.plot_scalar()` plot a scalar along a line.
 - add support for `tetgenpy`
+- add `transformations.compute_main_axes()`
+- add `transformations.__call__()` to apply it
+- fix small bug in `pointcloud.distance_to()`
 
 
 ## Breaking changes
@@ -40,6 +43,7 @@ examples/other/tetgen1.py
 
 tests/issues/issue_968.py
 tests/snippets/test_discourse_1956.py
+tests/snippets/test_ellipsoid_main_axes.py
 ```
 
 ### Broken Examples

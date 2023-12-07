@@ -168,6 +168,13 @@ class LinearTransform:
         print(self.__str__())
         return self
 
+    def __call__(self, obj):
+        """
+        Apply transformation to object or single point.
+        Same as `move()` except that a copy is returned.
+        """
+        return self.move(obj.copy())
+
     def move(self, obj):
         """
         Apply transformation to object or single point.
@@ -207,6 +214,50 @@ class LinearTransform:
         """Reset transformation."""
         self.T.Identity()
         return self
+    
+    def compute_main_axes(self):
+        """
+        Compute main axes of the transformation matrix.
+        These are the axes of the ellipsoid that is the 
+        image of the unit sphere under the transformation.
+
+        Example:
+        ```python
+        from vedo import *
+        settings.use_parallel_projection = True
+
+        M = np.random.rand(3,3)-0.5
+        print(M)
+        print(" M@[1,0,0] =", M@[1,1,0])
+
+        ######################
+        A = LinearTransform(M)
+        print(A)
+        pt = Point([1,1,0])
+        print(A(pt).vertices[0], "is the same as", A([1,1,0]))
+
+        maxes = A.compute_main_axes()
+
+        arr1 = Arrow([0,0,0], maxes[0]).c('r')
+        arr2 = Arrow([0,0,0], maxes[1]).c('g')
+        arr3 = Arrow([0,0,0], maxes[2]).c('b')
+
+        sphere1 = Sphere().wireframe().lighting('off')
+        sphere1.cmap('hot', sphere1.vertices[:,2])
+
+        sphere2 = sphere1.clone().apply_transform(A)
+
+        show([sphere1, [sphere2, arr1, arr2, arr3]], N=2, axes=1, bg='bb')
+        ```
+        """
+        m = self.matrix3x3
+        eigval, eigvec = np.linalg.eig(m @ m.T)
+        eigval = np.sqrt(eigval)
+        return  np.array([
+            eigvec[:,0] * eigval[0],
+            eigvec[:,1] * eigval[1],
+            eigvec[:,2] * eigval[2],
+        ])
 
     def pop(self):
         """Delete the transformation on the top of the stack
@@ -835,6 +886,32 @@ class NonLinearTransform:
         t = self.clone()
         t.invert()
         return t
+
+    def __call__(self, obj):
+        """
+        Apply transformation to object or single point.
+        Same as `move()` except that a copy is returned.
+        """
+        return self.move(obj.copy())
+
+    def compute_main_axes(self):
+        """
+        Compute main axes of the transformation.
+        These are the axes of the ellipsoid that is the 
+        image of the unit sphere under the transformation.
+        """
+        m = np.array([
+            self.move([1,0,0]),
+            self.move([0,1,0]),
+            self.move([0,0,1]),
+        ])
+        eigval, eigvec = np.linalg.eig(m @ m.T)
+        eigval = np.sqrt(eigval)
+        return np.array([
+            eigvec[:,0] * eigval[0],
+            eigvec[:,1] * eigval[1],
+            eigvec[:,2] * eigval[2],
+        ])
 
     def move(self, obj):
         """

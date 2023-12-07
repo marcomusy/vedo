@@ -49,7 +49,7 @@ tetgen_out = tetgenpy.tetrahedralize("qa.05", tetgen_in)
 
 plt = vedo.Plotter().add_ambient_occlusion(0.1)
 tmesh = vedo.TetMesh(tetgen_out).shrink().color("pink7")
-plt.show(tmesh, axes=14).close()
+plt.show(tmesh, __doc__, axes=14).close()
 
 # Or simply:
 # vedo.show(tetgen_out, axes=14).close()

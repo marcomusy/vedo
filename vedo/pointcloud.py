@@ -995,7 +995,7 @@ class Points(PointsVisual, PointAlgorithms):
 
             if not pcloud.point_locator:
                 pcloud.point_locator = vtk.new("PointLocator")
-                pcloud.point_locator.SetDataSet(pcloud)
+                pcloud.point_locator.SetDataSet(pcloud.dataset)
                 pcloud.point_locator.BuildLocator()
 
             ids = []
