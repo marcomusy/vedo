@@ -766,6 +766,7 @@ class PointsVisual(CommonVisual):
         super().__init__()
         self.properties_backface = None
         self._cmap_name = None
+        self.trail = None
         self.trail_offset = 0
         self.trail_points = []
         self._caption = None
