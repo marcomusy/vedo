@@ -134,6 +134,8 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
             vedo.logger.error(f"cannot understand input type {inputtype}")
             return
 
+        self.properties.SetColor(0.89, 0.455, 0.671) #pink7
+
         self.pipeline = utils.OperationNode(
             self, comment=f"#cells {self.dataset.GetNumberOfCells()}",
             c="#4cc9f0",
@@ -750,7 +752,7 @@ class TetMesh(UnstructuredGrid):
     def __init__(self, inputobj=None):
         """
         Arguments:
-            inputobj : (vtkDataSet, list, str)
+            inputobj : (vtkUnstructuredGrid, list, str, tetgenpy.TetgenIO)
                 list of points and tet indices, or filename
         """
         super().__init__()
@@ -768,8 +770,7 @@ class TetMesh(UnstructuredGrid):
         self.name = "TetMesh"
         self.filename = ""
 
-        # inputtype = str(type(inputobj))
-        # print('TetMesh inputtype', inputtype)
+        # print('TetMesh inputtype', type(inputobj))
 
         ###################
         if inputobj is None:
@@ -780,6 +781,9 @@ class TetMesh(UnstructuredGrid):
 
         elif isinstance(inputobj, UnstructuredGrid):
             self.dataset = inputobj.dataset
+
+        elif "TetgenIO" in str(type(inputobj)): # tetgenpy object
+            inputobj = [inputobj.points(), inputobj.tetrahedra()]
 
         elif isinstance(inputobj, vtk.vtkRectilinearGrid):
             r2t = vtk.new("RectilinearGridToTetrahedra")
@@ -813,7 +817,8 @@ class TetMesh(UnstructuredGrid):
             tt.Update()
             self.dataset = tt.GetOutput()
 
-        elif utils.is_sequence(inputobj):            
+        ###############################
+        if utils.is_sequence(inputobj):            
             self.dataset = vtk.vtkUnstructuredGrid()
 
             points, cells = inputobj
@@ -849,10 +854,12 @@ class TetMesh(UnstructuredGrid):
                 source_tets.InsertNextCell(ele)
             self.dataset.SetCells(vtk.VTK_TETRA, source_tets)
 
-        else:
+        if not self.dataset:
             vedo.logger.error(f"cannot understand input type {type(inputobj)}")
             return
-
+        
+        self.properties.SetColor(0.352, 0.612, 0.996) #blue7
+        
         self.pipeline = utils.OperationNode(
             self, comment=f"#tets {self.dataset.GetNumberOfCells()}",
             c="#9e2a2b",

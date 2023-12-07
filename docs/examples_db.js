@@ -1856,6 +1856,14 @@ vedo_example_db =
         imgsrc: 'images/other/pygmsh_cut.png',
     },
     {
+        pyname: 'tetgen1',
+        kbd   : '',
+        categ : 'other',
+        short : 'tetgenpy library',
+        long  : 'Interface vedo to the'+insertLink('tetgenpy','github.com/tataratat/tetgenpy')+'library to create tetrahedral meshes.',
+        imgsrc: 'images/other/tetgen1.png',
+    },
+    {
         pyname: 'remesh_ACVD',
         kbd   : 'acvd',
         categ : 'other',

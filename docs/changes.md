@@ -1,4 +1,3 @@
-
 ## Main changes
 
 - fixes to `extrude()` thanks to @JeffreyWardman
@@ -10,6 +9,7 @@
 - improvements on `plotter.__init__()`
 - fix `labels()` and `labels2d()`
 - add `shapes.plot_scalar()` plot a scalar along a line.
+- add support for `tetgenpy`
 
 
 ## Breaking changes
@@ -36,6 +36,10 @@
 ```
 examples/volumetric/slab_vol.py
 examples/other/madcad1.py
+examples/other/tetgen1.py
+
+tests/issues/issue_968.py
+tests/snippets/test_discourse_1956.py
 ```
 
 ### Broken Examples
@@ -47,9 +51,9 @@ markpoint.py
 cut_and_cap.py
 
 volumetric/streamlines1.py
-mousehover1.py
+mousehover1.py (unstable hovering?)
 mousehover2.py (unstable hovering?)
-read_volume3.py interactor lost
+read_volume3.py interactor is lost
 ```
 
 #### Broken Projects
@@ -64,6 +68,6 @@ mesh_lut.py
 mesh_map2cell.py
 texturecubes.py
 meshquality.py
-volumetric/streamlines1.py
+streamlines1.py
 
 

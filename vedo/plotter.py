@@ -3025,6 +3025,9 @@ class Plotter:
             elif "madcad" in str(type(a)):
                 scanned_acts.append(utils.madcad2vedo(a).actor)
 
+            elif "TetgenIO" in str(type(a)):
+                scanned_acts.append(vedo.TetMesh(a).shrink(0.9).c("pink7").actor)
+
             else:
                 vedo.logger.error(f"cannot understand input in show(): {type(a)}")
 
@@ -3828,7 +3831,7 @@ class Plotter:
             sys.exit(0)
 
         elif key == "Down":
-            if self.clicked_object in self.get_meshes():
+            if self.clicked_object and self.clicked_object in self.get_meshes():
                 self.clicked_object.alpha(0.02)
                 if hasattr(self.clicked_object, "properties_backface"):
                     bfp = self.clicked_actor.GetBackfaceProperty()
@@ -3836,14 +3839,15 @@ class Plotter:
                     self.clicked_actor.SetBackfaceProperty(None)
             else:
                 for obj in self.get_meshes():
-                    obj.alpha(0.02)
-                    bfp = obj.actor.GetBackfaceProperty()
-                    if bfp and hasattr(obj, "properties_backface"):
-                        obj.properties_backface = bfp
-                        obj.actor.SetBackfaceProperty(None)
+                    if obj:
+                        obj.alpha(0.02)
+                        bfp = obj.actor.GetBackfaceProperty()
+                        if bfp and hasattr(obj, "properties_backface"):
+                            obj.properties_backface = bfp
+                            obj.actor.SetBackfaceProperty(None)
 
         elif key == "Left":
-            if self.clicked_object in self.get_meshes():
+            if self.clicked_object and self.clicked_object in self.get_meshes():
                 ap = self.clicked_object.properties
                 aal = max([ap.GetOpacity() * 0.75, 0.01])
                 ap.SetOpacity(aal)
@@ -3853,16 +3857,17 @@ class Plotter:
                     self.clicked_actor.SetBackfaceProperty(None)
             else:
                 for a in self.get_meshes():
-                    ap = a.properties
-                    aal = max([ap.GetOpacity() * 0.75, 0.01])
-                    ap.SetOpacity(aal)
-                    bfp = a.actor.GetBackfaceProperty()
-                    if bfp and hasattr(a, "properties_backface"):
-                        a.properties_backface = bfp
-                        a.actor.SetBackfaceProperty(None)
+                    if a:
+                        ap = a.properties
+                        aal = max([ap.GetOpacity() * 0.75, 0.01])
+                        ap.SetOpacity(aal)
+                        bfp = a.actor.GetBackfaceProperty()
+                        if bfp and hasattr(a, "properties_backface"):
+                            a.properties_backface = bfp
+                            a.actor.SetBackfaceProperty(None)
 
         elif key == "Right":
-            if self.clicked_object in self.get_meshes():
+            if self.clicked_object and self.clicked_object in self.get_meshes():
                 ap = self.clicked_object.properties
                 aal = min([ap.GetOpacity() * 1.25, 1.0])
                 ap.SetOpacity(aal)
@@ -3876,25 +3881,27 @@ class Plotter:
                         self.clicked_object.properties_backface)
             else:
                 for a in self.get_meshes():
-                    ap = a.properties
-                    aal = min([ap.GetOpacity() * 1.25, 1.0])
-                    ap.SetOpacity(aal)
-                    if aal == 1 and hasattr(a, "properties_backface") and a.properties_backface:
-                        a.actor.SetBackfaceProperty(a.properties_backface)
+                    if a:
+                        ap = a.properties
+                        aal = min([ap.GetOpacity() * 1.25, 1.0])
+                        ap.SetOpacity(aal)
+                        if aal == 1 and hasattr(a, "properties_backface") and a.properties_backface:
+                            a.actor.SetBackfaceProperty(a.properties_backface)
 
         elif key == "Up":
-            if self.clicked_object in self.get_meshes():
+            if self.clicked_object and self.clicked_object in self.get_meshes():
                 self.clicked_object.properties.SetOpacity(1)
                 if hasattr(self.clicked_object, "properties_backface") and self.clicked_object.properties_backface:
                     self.clicked_object.actor.SetBackfaceProperty(self.clicked_object.properties_backface)
             else:
                 for a in self.get_meshes():
-                    a.properties.SetOpacity(1)
-                    if hasattr(a, "properties_backface") and a.properties_backface:
-                        a.actor.SetBackfaceProperty(a.properties_backface)
+                    if a:
+                        a.properties.SetOpacity(1)
+                        if hasattr(a, "properties_backface") and a.properties_backface:
+                            a.actor.SetBackfaceProperty(a.properties_backface)
 
         elif key == "P":
-            if self.clicked_object in self.get_meshes():
+            if self.clicked_object and self.clicked_object in self.get_meshes():
                 objs = [self.clicked_object]
             else:
                 objs = self.get_meshes()
@@ -3908,7 +3915,7 @@ class Plotter:
                     pass
 
         elif key == "p":
-            if self.clicked_object in self.get_meshes():
+            if self.clicked_object and self.clicked_object in self.get_meshes():
                 objs = [self.clicked_object]
             else:
                 objs = self.get_meshes()
@@ -4071,34 +4078,40 @@ class Plotter:
                 pass
 
         elif key == "2": # dark colors
-            bsc = ["k1", "k2", "k3", "k4",
-                   "b1", "b2", "b3", "b4",
-                   "p1", "p2", "p3", "p4",
-                   "g1", "g2", "g3", "g4",
-                   "r1", "r2", "r3", "r4",
-                   "o1", "o2", "o3", "o4",
-                   "y1", "y2", "y3", "y4"]
-            self._icol += 1
-            if self.clicked_object:
-                self.clicked_object.mapper.ScalarVisibilityOff()
-                newcol = vedo.get_color(bsc[(self._icol) % len(bsc)])
-                self.clicked_object.c(newcol)
-                self.remove(self.clicked_object.scalarbar)
+            try:
+                bsc = ["k1", "k2", "k3", "k4",
+                    "b1", "b2", "b3", "b4",
+                    "p1", "p2", "p3", "p4",
+                    "g1", "g2", "g3", "g4",
+                    "r1", "r2", "r3", "r4",
+                    "o1", "o2", "o3", "o4",
+                    "y1", "y2", "y3", "y4"]
+                self._icol += 1
+                if self.clicked_object:
+                    self.clicked_object.mapper.ScalarVisibilityOff()
+                    newcol = vedo.get_color(bsc[(self._icol) % len(bsc)])
+                    self.clicked_object.c(newcol)
+                    self.remove(self.clicked_object.scalarbar)
+            except AttributeError:
+                pass
 
         elif key == "3": # light colors
-            bsc = ["k6", "k7", "k8", "k9",
-                   "b6", "b7", "b8", "b9",
-                   "p6", "p7", "p8", "p9",
-                   "g6", "g7", "g8", "g9",
-                   "r6", "r7", "r8", "r9",
-                   "o6", "o7", "o8", "o9",
-                   "y6", "y7", "y8", "y9"]
-            self._icol += 1
-            if self.clicked_object:
-                self.clicked_object.mapper.ScalarVisibilityOff()
-                newcol = vedo.get_color(bsc[(self._icol) % len(bsc)])
-                self.clicked_object.c(newcol)
-                self.remove(self.clicked_object.scalarbar)
+            try:
+                bsc = ["k6", "k7", "k8", "k9",
+                    "b6", "b7", "b8", "b9",
+                    "p6", "p7", "p8", "p9",
+                    "g6", "g7", "g8", "g9",
+                    "r6", "r7", "r8", "r9",
+                    "o6", "o7", "o8", "o9",
+                    "y6", "y7", "y8", "y9"]
+                self._icol += 1
+                if self.clicked_object:
+                    self.clicked_object.mapper.ScalarVisibilityOff()
+                    newcol = vedo.get_color(bsc[(self._icol) % len(bsc)])
+                    self.clicked_object.c(newcol)
+                    self.remove(self.clicked_object.scalarbar)
+            except AttributeError:
+                pass
 
         elif key == "4":  # cmap name cycle
             ob = self.clicked_object
@@ -4322,47 +4335,19 @@ class Plotter:
             self.render()
 
         elif "KP_" in key or key in [
-            "Insert",
-            "End",
-            "Down",
-            "Next",
-            "Left",
-            "Begin",
-            "Right",
-            "Home",
-            "Up",
-            "Prior",
-        ]:
-            # change axes style
-            asso = {
-                "KP_Insert": 0,
-                "KP_0": 0,
-                "KP_End": 1,
-                "KP_1": 1,
-                "KP_Down": 2,
-                "KP_2": 2,
-                "KP_Next": 3,
-                "KP_3": 3,
-                "KP_Left": 4,
-                "KP_4": 4,
-                "KP_Begin": 5,
-                "KP_5": 5,
-                "KP_Right": 6,
-                "KP_6": 6,
-                "KP_Home": 7,
-                "KP_7": 7,
-                "KP_Up": 8,
-                "KP_8": 8,
-                "Prior": 9,  # on windows OS
-                "Insert": 0,
-                "End": 1,
-                "Down": 2,
-                "Next": 3,
-                "Left": 4,
-                "Begin": 5,
-                "Right": 6,
-                "Home": 7,
-                "Up": 8,
+                "Insert","End","Down","Next","Left","Begin","Right","Home","Up","Prior"
+            ]:
+            asso = {  # change axes style
+                "KP_Insert": 0, "KP_0": 0, "Insert": 0,
+                "KP_End":    1, "KP_1": 1, "End":    1,
+                "KP_Down":   2, "KP_2": 2, "Down":   2,
+                "KP_Next":   3, "KP_3": 3, "Next":   3,
+                "KP_Left":   4, "KP_4": 4, "Left":   4,
+                "KP_Begin":  5, "KP_5": 5, "Begin":  5,
+                "KP_Right":  6, "KP_6": 6, "Right":  6,
+                "KP_Home":   7, "KP_7": 7, "Home":   7,
+                "KP_Up":     8, "KP_8": 8, "Up":     8,
+                "Prior":     9,  # on windows OS
             }
             clickedr = self.renderers.index(renderer)
             if key in asso:

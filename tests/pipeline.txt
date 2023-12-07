@@ -1,5 +1,6 @@
 # TEST PIPELINE ################################
 - Internal use only
+################################################
 
 
 # INSTALL ######################################
@@ -16,9 +17,6 @@ pip install meshio -U
 pip install morphomatics -U
 pip install pygeodesic -U
 pip install pygmsh -U
-#pip install pyacvd -U
-#pip install pymeshfix -U
-#pip install tetgen -U
 pip install pymeshlab -U
 pip install pymadcad -U
 pip install pyshtools -U
@@ -26,6 +24,10 @@ pip install rtree
 pip install trimesh -U
 pip install -q trame==2.5.2
 pip install qtpy
+pip install tetgenpy -U
+pip install gustaf -U
+#pip install pyacvd -U
+#pip install pymeshfix -U
 
 
 # ENABLE/DISABLE DRY RUN ########################################################
@@ -40,7 +42,7 @@ cd $VDIR/examples && time ./run_all.sh 2>&1 | tee $VLOGFILE && alert "scan done.
 
 grep -aA 1 "Error" $VLOGFILE
 grep -aA 3 "Trace" $VLOGFILE
-grep -aA 3 "failure" $VLOGFILE
+grep -aA 3 "ailure" $VLOGFILE
 code $VLOGFILE  #### inspect logfile
 # (Try normal run too with visualization to make sure all is ok)
 
@@ -125,6 +127,21 @@ cd ~/Projects/server/brainrender_orig/examples
 ################
 cd ~/Projects/clonal_analysis2d_splines
     python -m analysis_plots
+################
+cd ~/Projects/server/gustaf
+    git pull
+    pip install -e .
+    cd examples
+    python run_all_examples.py
+################
+cd ~/Projects/server/splinepy
+    git pull
+    pip install -e .
+    cd examples
+    python run_all_examples.py
+################
+cd ~/Projects/server/tetgenpy/examples
+    python plc_to_tets.py
 
 
 # DOCUMETATION #################################
