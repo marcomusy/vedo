@@ -21,9 +21,14 @@ Work with tetrahedral meshes.
 ![](https://vedo.embl.es/images/volumetric/82767107-2631d500-9e25-11ea-967c-42558f98f721.jpg)
 """
 
-__all__ = ["UnstructuredGrid", "TetMesh"]
+__all__ = ["UnstructuredGrid", "TetMesh", "UGrid"]
 
 #########################################################################
+def UGrid(*args, **kwargs):
+    """Deprecated. Use `UnstructuredGrid` instead."""
+    vedo.logger.warning("UGrid() is deprecated, use UnstructuredGrid() instead.")
+    return UnstructuredGrid(*args, **kwargs)
+
 class UnstructuredGrid(MeshVisual, PointAlgorithms):
     """Support for UnstructuredGrid objects."""
 
