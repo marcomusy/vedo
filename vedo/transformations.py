@@ -894,23 +894,32 @@ class NonLinearTransform:
         """
         return self.move(obj.copy())
 
-    def compute_main_axes(self):
+    def compute_main_axes(self, pt=(0,0,0), ds=1):
         """
         Compute main axes of the transformation.
         These are the axes of the ellipsoid that is the 
         image of the unit sphere under the transformation.
+
+        Arguments:
+            pt : (list)
+                point to compute the axes at.
+            ds : (float)
+                step size to compute the axes.
         """
+        if len(pt) == 2:
+            pt = [pt[0], pt[1], 0]
+        pt = np.asarray(pt)
         m = np.array([
-            self.move([1,0,0]),
-            self.move([0,1,0]),
-            self.move([0,0,1]),
+            self.move(pt + [ds,0,0]),
+            self.move(pt + [0,ds,0]),
+            self.move(pt + [0,0,ds]),
         ])
         eigval, eigvec = np.linalg.eig(m @ m.T)
         eigval = np.sqrt(eigval)
         return np.array([
-            eigvec[:,0] * eigval[0],
-            eigvec[:,1] * eigval[1],
-            eigvec[:,2] * eigval[2],
+            eigvec[:, 0] * eigval[0],
+            eigvec[:, 1] * eigval[1],
+            eigvec[:, 2] * eigval[2],
         ])
 
     def move(self, obj):

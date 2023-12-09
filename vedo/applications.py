@@ -31,6 +31,7 @@ __all__ = [
     "Slicer2DPlotter",
     "Slicer3DPlotter",
     "Slicer3DTwinPlotter",
+    "MorphPlotter",
     "SplinePlotter",
     "AnimationPlayer",
 ]
@@ -461,6 +462,134 @@ class Slicer3DTwinPlotter(Plotter):
         hist = CornerHistogram(data, s=0.2, bins=25, logscale=True, c="k")
         self.add(hist)
         slider_function_z(0, 0)  ## init call
+
+
+########################################################################################
+class MorphPlotter(Plotter):
+    """
+    A Plotter with 3 renderers to show the source, target and warped meshes.
+    
+    Examples:
+        - [warp4c.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/warp4c.py)
+
+            ![](https://vedo.embl.es/images/advanced/warp4c.jpg)
+    """
+        
+    def __init__(self, source, target, **kwargs):
+
+        kwargs.update(dict(N=3, sharecam=0))
+        super().__init__(**kwargs)
+
+        self.source = source.pickable(True)
+        self.target = target.pickable(False)
+        self.clicked = []
+        self.sources = []
+        self.targets = []
+        self.warped = None
+        self.cmap_name = "coolwarm"
+        self.msg0 = Text2D("Pick a point on the surface",
+                           pos="bottom-center", c='white', bg="blue4", alpha=1, font="Calco")
+        self.msg1 = Text2D(pos="bottom-center", c='white', bg="blue4", alpha=1, font="Calco")
+        instructions = (
+            "Morphological alignment of 3D surfaces.\n"
+            "Pick a point on the source surface, then\n"
+            "pick the corresponding point on the target\n"
+            "Pick at least 4 point pairs. Press:\n"
+            "- c to clear the selection\n"
+            "- d to delete the last selection\n"
+            "- z to compute and show the residuals\n"
+            "- q to quit."
+        )
+        self.instructions = Text2D(instructions, s=0.7, bg="blue4", alpha=0.1, font="Calco")
+        self.at(0).add_renderer_frame().add(source, self.msg0, self.instructions).reset_camera()
+        self.at(1).add_renderer_frame().add(f"Reference {target.filename}", self.msg1, target)
+        cam1 = self.camera  # save camera at 1
+        self.at(2).add("Morphing Output", target, vedo.Axes(target)).background("k9")
+        self.camera = cam1  # use the same camera of renderer1
+
+        self.add_renderer_frame()
+    
+        self.callid1 = self.add_callback("KeyPress", self.on_keypress)
+        self.callid2 = self.add_callback("LeftButtonPress", self.on_click)
+        self._interactive = True
+
+    ################################################
+    def update(self):
+        source_pts = Points(self.sources).color("purple5").ps(12)
+        target_pts = Points(self.targets).color("purple5").ps(12)
+        source_pts.name = "source_pts"
+        target_pts.name = "target_pts"
+        slabels = source_pts.labels2d("id", c="purple3")
+        tlabels = target_pts.labels2d("id", c="purple3")
+        slabels.name = "source_pts"
+        tlabels.name = "target_pts"
+        self.at(0).remove("source_pts").add(source_pts, slabels)
+        self.at(1).remove("target_pts").add(target_pts, tlabels)
+        self.render()
+
+        if len(self.sources) == len(self.targets) and len(self.sources) > 3:
+            self.warped = self.source.clone().warp(self.sources, self.targets)
+            self.warped.name = "warped"
+            self.at(2).remove("warped").add(self.warped)
+            self.render()
+
+    def on_click(self, evt):
+        if evt.object == self.source:
+            self.sources.append(evt.picked3d)
+            self.source.pickable(False)
+            self.target.pickable(True)
+            self.msg0.text("--->")
+            self.msg1.text("now pick a target point")
+            self.update()
+        elif evt.object == self.target:
+            self.targets.append(evt.picked3d)
+            self.source.pickable(True)
+            self.target.pickable(False)
+            self.msg0.text("now pick a source point")
+            self.msg1.text("<---")
+            self.update()
+
+    def on_keypress(self, evt):
+        if evt.keypress == "c":
+            self.sources.clear()
+            self.targets.clear()
+            self.at(0).remove("source_pts")
+            self.at(1).remove("target_pts")
+            self.at(2).remove("warped")
+            self.msg0.text("CLEARED! Pick a point here")
+            self.msg1.text("")
+            self.source.pickable(True)
+            self.target.pickable(False)
+            self.update()
+        elif evt.keypress == "d":
+            n = min(len(self.sources), len(self.targets))
+            self.sources = self.sources[:n-1]
+            self.targets = self.targets[:n-1]
+            self.msg0.text("Last point deleted! Pick a point here")
+            self.msg1.text("")
+            self.source.pickable(True)
+            self.target.pickable(False)
+            self.update()
+        elif evt.keypress == "z":
+            dists = self.warped.distance_to(self.target, signed=True)
+            mind, maxd = np.min(dists), np.max(dists)
+            v = min(abs(mind), abs(maxd))
+            self.warped.cmap(self.cmap_name, dists, vmin=-v, vmax=+v)
+            h = vedo.pyplot.histogram(
+                dists, 
+                bins=25,
+                title="Residuals",
+                c=self.cmap_name, 
+                xlim=(-v, v),
+                aspect=16/9,
+                axes=dict(text_scale=1.9),
+            )
+            h = h.clone2d(pos="bottom-left", scale=0.55)
+            h.name = "warped"
+            self.at(2).add(h)
+            self.render()
+        elif evt.keypress == "q":
+            self.break_interaction()
 
 
 ########################################################################################

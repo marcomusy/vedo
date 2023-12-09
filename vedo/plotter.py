@@ -742,9 +742,9 @@ class Plotter:
             # vsty = vtk.new("InteractorStyleTrackballCamera")
             # self.interactor.SetInteractorStyle(vsty)
             if settings.enable_default_keyboard_callbacks:
-                self.interactor.AddObserver("KeyPressEvent", self._keypress)
+                self.interactor.AddObserver("KeyPressEvent", self._default_keypress)
             if settings.enable_default_mouse_callbacks:
-                self.interactor.AddObserver("LeftButtonPressEvent", self._mouseleftclick)
+                self.interactor.AddObserver("LeftButtonPressEvent", self._default_mouseleftclick)
             return  ################
             ########################
 
@@ -775,9 +775,9 @@ class Plotter:
         self.interactor.RemoveObservers("CharEvent")
 
         if settings.enable_default_keyboard_callbacks:
-            self.interactor.AddObserver("KeyPressEvent", self._keypress)
+            self.interactor.AddObserver("KeyPressEvent", self._default_keypress)
         if settings.enable_default_mouse_callbacks:
-            self.interactor.AddObserver("LeftButtonPressEvent", self._mouseleftclick)
+            self.interactor.AddObserver("LeftButtonPressEvent", self._default_mouseleftclick)
 
     ##################################################################### ..init ends here.
 
@@ -3735,10 +3735,8 @@ class Plotter:
         return None
 
     #######################################################################
-    def _mouseleftclick(self, iren, event):
-
+    def _default_mouseleftclick(self, iren, event):
         x, y = iren.GetEventPosition()
-
         renderer = iren.FindPokedRenderer(x, y)
         picker = vtk.vtkPropPicker()
         picker.PickProp(x, y, renderer)
@@ -3748,7 +3746,7 @@ class Plotter:
         clicked_actor = picker.GetActor()
         # clicked_actor2D = picker.GetActor2D()
 
-        # print('_mouseleftclick mouse at', x, y)
+        # print('_default_mouseleftclick mouse at', x, y)
         # print("picked Volume:",   [picker.GetVolume()])
         # print("picked Actor2D:",  [picker.GetActor2D()])
         # print("picked Assembly:", [picker.GetAssembly()])
@@ -3791,7 +3789,7 @@ class Plotter:
                 vedo.colors.printc(f"{histo.name}, bin={idx}, center={cn}, value={f}")
 
     #######################################################################
-    def _keypress(self, iren, event):
+    def _default_keypress(self, iren, event):
         # NB: qt creates and passes a vtkGenericRenderWindowInteractor
 
         key = iren.GetKeySym()

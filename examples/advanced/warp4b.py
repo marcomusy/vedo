@@ -28,7 +28,6 @@ def update():
     if len(sources) == len(targets) and len(sources) > 3:
         warped = source.clone().warp(sources, targets)
         warped.name = "warped"
-        # wpoints = points.clone().apply_transform(warped.transform)
         plt.at(2).remove("warped").add(warped)
         plt.render()
 

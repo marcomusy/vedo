@@ -26,6 +26,7 @@ fig1 = plot(
         yhighlight_zero=True,
     ),
 )
+# fig1copy = fig1.clone2d("bottom-right") # can make it 2d (on screen)
 
 # This empty Figure just creates a new y-axis in red
 fig2 = Figure(
@@ -57,6 +58,7 @@ cam = dict(  # press C to get these values
     focal_point=(-0.1324, 0.9041, 0.3530),
     viewup=(-0.1725, 0.06857, 0.9826),
 )
-show(msh, fig1, fig2, __doc__, axes=5, camera=cam, bg2='lb').close()
+show(msh, fig1, fig2, __doc__,
+     axes=5, camera=cam, bg2='lb').close()
 
 
