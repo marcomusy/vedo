@@ -19,7 +19,7 @@ def initfunc(iren, vol):
         msh.cmap(cmaps[iren]).lighting("off")
         msh.name = "slice"
         sb = ScalarBar3D(msh, c='k')
-        # sb = sb.clone2d("bottom-right", scale=0.08)
+        # sb = sb.clone2d("bottom-right", 0.08)
         plt.renderer = widget.renderer  # make it the current renderer
         plt.remove("slice", "ScalarBar3D").add(msh, sb)
 

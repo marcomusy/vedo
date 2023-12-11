@@ -30,6 +30,6 @@ sc = ms[2].add_scalarbar3d(
 sc.scalarbar.rotate_x(90).scale(1.2).shift(0,2,0)  # make it vertical
 
 # create a 2D copy scalarbar to the 3D one
-sc2d = sc.scalarbar.clone2d(scale=0.3, ontop=True)
+sc2d = sc.scalarbar.clone2d(size=0.3, ontop=True)
 
 show(ms, sc2d, __doc__, axes=1, viewup="z").close()

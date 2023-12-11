@@ -170,7 +170,7 @@ class Slicer3DPlotter(Plotter):
                 bg=ch,
                 alpha=1,
                 axes=dict(text_scale=2),
-            ).clone2d(pos=[-0.925, -0.88], scale=0.4)
+            ).clone2d(pos=[-0.925, -0.88], size=0.4)
             self.add(self.histogram)
 
         #################
@@ -298,7 +298,7 @@ class Slicer3DPlotter(Plotter):
                     bg=ch,
                     alpha=1,
                     axes=dict(text_scale=2),
-                ).clone2d(pos=[-0.925, -0.88], scale=0.4)
+                ).clone2d(pos=[-0.925, -0.88], size=0.4)
                 self.add(self.histogram)
             self.render()
 
@@ -584,7 +584,7 @@ class MorphPlotter(Plotter):
                 aspect=16/9,
                 axes=dict(text_scale=1.9),
             )
-            h = h.clone2d(pos="bottom-left", scale=0.55)
+            h = h.clone2d(pos="bottom-left", size=0.55)
             h.name = "warped"
             self.at(2).add(h)
             self.render()
@@ -680,7 +680,7 @@ class Slicer2DPlotter(Plotter):
                 c=histo_color,
                 ytitle="log_10 (counts)",
                 axes=dict(text_scale=1.9),
-            ).clone2d(pos="bottom-left", scale=0.4)
+            ).clone2d(pos="bottom-left", size=0.4)
 
         axes = kwargs.pop("axes", 7)
         axe = None

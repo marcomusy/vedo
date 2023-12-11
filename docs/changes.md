@@ -21,6 +21,7 @@
 - improvements to `shapes.Ellipsoid()` and bug fixes in #978 by @daniel-a-diaz
 - improvements to `pointcloud.pca_ellipsoid()` and bug fixes
 - improvements to `pointcloud.pca_ellipse()` and bug fixes
+- change `clone2d(scale=...)` to `clone2d(size=...)`
 
 
 ### Renaming

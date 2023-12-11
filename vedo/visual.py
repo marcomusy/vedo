@@ -772,35 +772,40 @@ class PointsVisual(CommonVisual):
         self._caption = None
         
 
-    def clone2d(self, scale=None, offset=None):
+    def clone2d(self, size=None, offset=()):
         """
         Turn a 3D `Points` or `Mesh` into a flat 2D actor.
         Returns a `Actor2D`.
+
+        Arguments:
+            size : (float)
+                size scaling factor for the 2D actor
+            offset : (list)
+                2D (x, y) position of the actor in the range [-1, 1]
 
         Examples:
             - [clone2d.py](https://github.com/marcomusy/vedo/tree/master/examples/other/clone2d.py)
 
                 ![](https://vedo.embl.es/images/other/clone2d.png)
         """
-        if scale is None:
+        if size is None:
             # work out a reasonable scale
             msiz = self.diagonal_size()
             if vedo.plotter_instance and vedo.plotter_instance.window:
                 sz = vedo.plotter_instance.window.GetSize()
                 dsiz = utils.mag(sz)
-                scale = dsiz / msiz / 10
+                size = dsiz / msiz / 10
             else:
-                scale = 350 / msiz
+                size = 350 / msiz
 
-        poly = self.dataset
         tp = vtk.new("TransformPolyDataFilter")
         transform = vtk.vtkTransform()
-        transform.Scale(scale, scale, scale)
-        if offset is None:
+        transform.Scale(size, size, size)
+        if len(offset) == 0:
             offset = self.pos()
         transform.Translate(-utils.make3d(offset))
         tp.SetTransform(transform)
-        tp.SetInputData(poly)
+        tp.SetInputData(self.dataset)
         tp.Update()
         poly = tp.GetOutput()
 

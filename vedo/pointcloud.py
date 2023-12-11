@@ -655,7 +655,7 @@ class Points(PointsVisual, PointAlgorithms):
 
         npt = self.dataset.GetNumberOfPoints()
         npo, nln = self.dataset.GetNumberOfPolys(), self.dataset.GetNumberOfLines()
-        out+= "elements".ljust(14) + f": vertices={npt:,}, polygons={npo:,}, lines={nln:,}"
+        out+= "elements".ljust(14) + f": vertices={npt:,} polygons={npo:,} lines={nln:,}"
         if self.dataset.GetNumberOfStrips():
             out+= f", triangle_strips={self.dataset.GetNumberOfStrips():,}"
         out+= "\n"
@@ -663,8 +663,12 @@ class Points(PointsVisual, PointAlgorithms):
             out+= "pieces".ljust(14) + ": " + str(self.dataset.GetNumberOfPieces()) + "\n"
 
         out+= "position".ljust(14) + ": " + f"{utils.precision(self.pos(), 6)}\n"
-        out+= "scaling".ljust(14)  + ": "
-        out+= utils.precision(self.transform.get_scale(), 6) + "\n"
+        try:
+            sc = self.transform.get_scale()
+            out+= "scaling".ljust(14)  + ": "
+            out+= utils.precision(sc, 6) + "\n"
+        except AttributeError:
+            pass
 
         if self.npoints:
             out+="size".ljust(14)+ ": average=" + utils.precision(self.average_size(),6)
@@ -682,7 +686,6 @@ class Points(PointsVisual, PointAlgorithms):
 
         for key in self.pointdata.keys():
             arr = self.pointdata[key]
-            rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
             dim = arr.shape[1] if arr.ndim > 1 else 1
             mark_active = "pointdata"
             a_scalars = self.dataset.GetPointData().GetScalars()
@@ -695,11 +698,14 @@ class Points(PointsVisual, PointAlgorithms):
             elif a_tensors and a_tensors.GetName() == key:
                 mark_active += " ***"
             out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), dim={dim}'
-            out += f", range=({rng})\n"
+            if dim == 1:
+                rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
+                out += f", range=({rng})\n"
+            else:
+                out += "\n"
 
         for key in self.celldata.keys():
             arr = self.celldata[key]
-            rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
             dim = arr.shape[1] if arr.ndim > 1 else 1
             mark_active = "celldata"
             a_scalars = self.dataset.GetCellData().GetScalars()
@@ -712,11 +718,18 @@ class Points(PointsVisual, PointAlgorithms):
             elif a_tensors and a_tensors.GetName() == key:
                 mark_active += " ***"
             out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), dim={dim}'
-            out += f", range=({rng})\n"
+            if dim == 1:
+                rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
+                out += f", range=({rng})\n"
+            else:
+                out += "\n"
 
         for key in self.metadata.keys():
             arr = self.metadata[key]
-            out+= "metadata".ljust(14) + ": " + f'"{key}" ({len(arr)} values)\n'
+            if len(arr) > 3:
+                out+= "metadata".ljust(14) + ": " + f'"{key}" ({len(arr)} values)\n'
+            else:
+                out+= "metadata".ljust(14) + ": " + f'"{key}" = {arr}\n'
 
         if self.picked3d is not None:
             idp = self.closest_point(self.picked3d, return_point_id=True)

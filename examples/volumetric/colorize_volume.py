@@ -24,7 +24,7 @@ vol.alpha_unit(8)  # absorption unit, higher factors = higher transparency
 
 vol.add_scalarbar3d(title="color:dot:alpha transfer function", c="k")
 # substitute scalarbar3d to a 2d scalarbar
-vol.scalarbar = vol.scalarbar.clone2d(pos="bottom-right", scale=0.2)
+vol.scalarbar = vol.scalarbar.clone2d("center-right", 0.2)
 
 ch = CornerHistogram(vol, logscale=True, pos="bottom-left")
 

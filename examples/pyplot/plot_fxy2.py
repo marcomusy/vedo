@@ -82,7 +82,7 @@ scbar = ScalarBar3D(
     c='black',
 )
 # convert the scalarbar to a 2D object and place it to the bottom
-scbar = scbar.clone2d([-0.6,-0.7], scale=0.2, rotation=-90, ontop=True)
+scbar = scbar.clone2d([-0.6,-0.7], size=0.2, rotation=-90, ontop=True)
 
 # Set a specific camera position and orientation (shift-C to see it)
 cam = dict(

@@ -397,7 +397,7 @@ class Image(vedo.visual.ImageVisual):
         pic.pipeline = utils.OperationNode("clone", parents=[self], c="#f7dada", shape="diamond")
         return pic
     
-    def clone2d(self, pos=(0, 0), scale=1, justify=""):
+    def clone2d(self, pos=(0, 0), size=1, justify=""):
         """
         Embed an image as a static 2D image in the canvas.
         
@@ -407,7 +407,7 @@ class Image(vedo.visual.ImageVisual):
             pos : (list, str)
                 2D (x,y) position in range [0,1],
                 [0,0] being the bottom-left corner  
-            scale : (float)
+            size : (float)
                 apply a scaling factor to the image
             justify : (str)
                 define the anchor point ("top-left", "top-center", ...)
@@ -423,8 +423,8 @@ class Image(vedo.visual.ImageVisual):
         pic.properties = pic.GetProperty()
         pic.properties.SetDisplayLocationToBackground()
 
-        if scale != 1:
-            newsize = np.array(self.dataset.GetDimensions()[:2]) * scale
+        if size != 1:
+            newsize = np.array(self.dataset.GetDimensions()[:2]) * size
             newsize = newsize.astype(int)
             rsz = vtk.new("ImageResize")
             rsz.SetInputData(self.dataset)

@@ -142,6 +142,9 @@ cd ~/Projects/server/splinepy
 ################
 cd ~/Projects/server/tetgenpy/examples
     python plc_to_tets.py
+################
+cd ~/Projects/4d-gene-reconstruction/useful_scripts
+    python interp_to_tetras.py
 
 
 # DOCUMETATION #################################

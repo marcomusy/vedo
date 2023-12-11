@@ -467,7 +467,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
             newlist.append(a.clone())
         return Assembly(newlist)
 
-    def clone2d(self, pos="bottom-left", scale=1, rotation=0, ontop=False):
+    def clone2d(self, pos="bottom-left", size=1, rotation=0, ontop=False):
         """
         Convert the `Assembly` into a `Group` of 2D objects.
 
@@ -476,7 +476,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
                 Position in 2D, as a string or list (x,y).
                 The center of the renderer is [0,0] while top-right is [1,1].
                 Any combination of "center", "top", "bottom", "left" and "right" will work.
-            scale : (float)
+            size : (float)
                 global scaling factor for the 2D object.
                 The scaling is normalized to the x-range of the original object.
             ontop : (bool)
@@ -541,18 +541,18 @@ class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
             if a.npoints == 0:
                 continue
 
-            s = scale * 500 / (x1 - x0)
+            s = size * 500 / (x1 - x0)
             if a.properties.GetRepresentation() == 1:
                 # wireframe is not rendered correctly in 2d
                 b = a.boundaries().lw(1).c(a.color(), a.alpha())
                 if rotation:
                     b.rotate_z(rotation, around=self.origin())
-                a2d = b.clone2d(scale=s, offset=offset)
+                a2d = b.clone2d(size=s, offset=offset)
             else:
                 if rotation:
                     # around=self.actor.GetCenter()
                     a.rotate_z(rotation, around=self.origin())
-                a2d = a.clone2d(scale=s, offset=offset)
+                a2d = a.clone2d(size=s, offset=offset)
             a2d.pos(position).ontop(ontop)
             group += a2d
 

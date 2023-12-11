@@ -1374,7 +1374,7 @@ vedo_example_db =
     },
     {
         pyname: 'custom_axes4',
-        kbd   : 'customInd',
+        kbd   : '',
         categ : 'plotting',
         short : 'axes for all',
         long  : 'Create individual axes for each object in a scene. Access any element to change its size and color',

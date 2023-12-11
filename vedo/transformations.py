@@ -174,6 +174,14 @@ class LinearTransform:
         Same as `move()` except that a copy is returned.
         """
         return self.move(obj.copy())
+    
+    def transform_point(self, p):
+        """
+        Apply transformation to a single point.
+        """
+        if len(p) == 2:
+            p = [p[0], p[1], 0]
+        return np.array(self.T.TransformFloatPoint(p))
 
     def move(self, obj):
         """
@@ -892,6 +900,7 @@ class NonLinearTransform:
         Apply transformation to object or single point.
         Same as `move()` except that a copy is returned.
         """
+        # use copy here not clone in case user passes a numpy array
         return self.move(obj.copy())
 
     def compute_main_axes(self, pt=(0,0,0), ds=1):
@@ -922,13 +931,21 @@ class NonLinearTransform:
             eigvec[:, 2] * eigval[2],
         ])
 
+    def transform_point(self, p):
+        """
+        Apply transformation to a single point.
+        """
+        if len(p) == 2:
+            p = [p[0], p[1], 0]
+        return np.array(self.T.TransformFloatPoint(p))
+
     def move(self, obj):
         """
-        Apply transformation to object or single point.
+        Apply transformation to the argument object.
 
         Note:
             When applying a transformation to a mesh, the mesh is modified in place.
-            If you want to keep the original mesh unchanged, use `clone()` method.
+            If you want to keep the original mesh unchanged, use the `clone()` method.
 
         Example:
             ```python
@@ -952,10 +969,7 @@ class NonLinearTransform:
             ```
         """
         if _is_sequence(obj):
-            if len(obj) == 2:
-                obj = [obj[0], obj[1], 0]
-            return np.array(self.T.TransformFloatPoint(obj))
-
+            return self.transform_point(obj)
         obj.apply_transform(self)
         return obj
 

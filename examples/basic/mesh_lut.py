@@ -36,7 +36,7 @@ mesh.cmap(lut, data).add_scalarbar3d(title='My Scalarbar', c='white')
 # mesh.cmap(lut, data).add_scalarbar()
 
 # OR 2D scalarbar derived from the 3D one:
-mesh.scalarbar = mesh.scalarbar.clone2d(pos=[0.7, -0.95], scale=0.2)
+mesh.scalarbar = mesh.scalarbar.clone2d(pos=[0.7, -0.95], size=0.2)
 
 show(mesh,
      __doc__,

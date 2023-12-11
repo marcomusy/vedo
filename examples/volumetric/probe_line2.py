@@ -5,7 +5,7 @@ from vedo.pyplot import plot
 
 vol = Volume(dataurl + "embryo.slc")
 vol.add_scalarbar3d("wild-type mouse embryo", c="k")
-vol.scalarbar = vol.scalarbar.clone2d("bottom-right", scale=0.2)
+vol.scalarbar = vol.scalarbar.clone2d("bottom-right", 0.2)
 
 p1, p2 = (50, 50, 50), (200, 200, 200)
 pl = Line(p1, p2, res=100).lw(4)

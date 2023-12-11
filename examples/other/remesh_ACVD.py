@@ -18,8 +18,8 @@ msh2.compute_quality().cmap('RdYlGn', on='cells', vmin=0, vmax=70).linewidth(1)
 
 his1 = histogram(msh1.celldata["Quality"], xlim=(0,70), aspect=2, c='RdYlGn', title='Original Quality')
 his2 = histogram(msh2.celldata["Quality"], xlim=(0,70), aspect=2, c='RdYlGn', title='Remeshed Quality')
-his1 = his1.clone2d('bottom-left', scale=0.75)
-his2 = his2.clone2d('bottom-right',scale=0.75)
+his1 = his1.clone2d('bottom-left',  0.75)
+his2 = his2.clone2d('bottom-right', 0.75)
 
 show(msh1, msh2, his1, his2, __doc__, bg='k5', bg2='wheat')
 #remsh1.write('sphere.vtk')
