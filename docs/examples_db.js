@@ -703,6 +703,14 @@ vedo_example_db =
         imgsrc: 'images/advanced/interpolateScalar4.png',
     },
     {
+        pyname: 'diffuse_data',
+        kbd   : '',
+        categ : 'advanced',
+        short : 'smooth array',
+        long  : 'Smooth/diffuse an array of scalars on a mesh',
+        imgsrc: 'images/advanced/diffuse_data.png',
+    },
+    {
         pyname: 'cut_with_mesh1',
         kbd   : '',
         categ : 'advanced',

@@ -336,8 +336,9 @@ except ImportError:
     location["vtkCellTreeLocator"] = "vtkFiltersGeneral"
 
 
-location["vtkGeometryFilter"] = "vtkFiltersGeometry"
+location["vtkAttributeSmoothingFilter"] = "vtkFiltersGeometry"
 location["vtkDataSetSurfaceFilter"] = "vtkFiltersGeometry"
+location["vtkGeometryFilter"] = "vtkFiltersGeometry"
 location["vtkImageDataGeometryFilter"] = "vtkFiltersGeometry"
 
 

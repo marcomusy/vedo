@@ -1384,6 +1384,63 @@ class CommonAlgorithms:
         )
         return self
 
+    def smooth_data(self, 
+            niter=10, relaxation_factor=0.1, strategy=0, mask=None,
+            exclude=("Normals", "TextureCoordinates"),
+        ):
+        """
+        Smooth point attribute data using distance weighted Laplacian kernel.
+
+        The effect is to blur regions of high variation and emphasize low variation regions.
+
+        Arguments:
+            niter : (int)
+                number of iterations
+            relaxation_factor : (float)
+                relaxation factor controlling the amount of Laplacian smoothing applied
+            strategy : (int)
+                strategy to use for Laplacian smoothing
+                    - 0: use all points, all point data attributes are smoothed
+                    - 1: smooth all point attribute data except those on the boundary
+                    - 2: only point data connected to a boundary point are smoothed
+            mask : (str, np.ndarray)
+                array to be used as a mask (ignore then the strategy keyword)
+            exclude : (list)
+                list of arrays to be excluded from smoothing
+        """
+        saf = vtk.new("AttributeSmoothingFilter")
+        saf.SetInputData(self.dataset)
+        saf.SetRelaxationFactor(relaxation_factor)
+        saf.SetNumberOfIterations(niter)
+
+        for ex in exclude:
+            saf.AddExcludedArray(ex)
+
+        saf.SetWeightsTypeToDistance2()
+
+        saf.SetSmoothingStrategy(strategy)
+        if mask is not None:
+            saf.SetSmoothingStrategyToSmoothingMask()
+            if isinstance(mask, str):
+                mask_ = self.dataset.GetPointData().GetArray(mask)
+                if not mask_:
+                    vedo.logger.error(f"smooth_data(): mask array {mask} not found")
+                    return self
+                mask_array = vtk.vtkUnsignedCharArray()
+                mask_array.ShallowCopy(mask_)
+                mask_array.SetName(mask_.GetName())
+            else:
+                mask_array = utils.numpy2vtk(mask, dtype=np.uint8)
+            saf.SetSmoothingMask(mask_array)
+
+        saf.Update()
+
+        self._update(saf.GetOutput())
+        self.pipeline = utils.OperationNode(
+            "smooth_data", comment=f"strategy {strategy}", parents=[self], c="#9e2a2b"
+        )
+        return self
+        
 
 ###############################################################################
 class PointAlgorithms(CommonAlgorithms):

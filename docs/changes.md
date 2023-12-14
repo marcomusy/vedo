@@ -14,6 +14,7 @@
 - add `transformations.__call__()` to apply it
 - fix small bug in `pointcloud.distance_to()`
 - add `applications.MorphPlotter()` to morph a polygonal mesh to a target mesh
+- add `smooth_data()` to smooth/diffuse data attributes
 
 
 ## Breaking changes
@@ -40,6 +41,7 @@
 ## New/Revised Examples
 ```
 examples/advanced/warp4c.py
+examples/advanced/diffuse_data.py
 examples/volumetric/slab_vol.py
 examples/other/madcad1.py
 examples/other/tetgen1.py
