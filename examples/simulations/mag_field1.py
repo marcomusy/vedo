@@ -2,7 +2,7 @@
 Press "b" to compute the magnetic field"""
 import numpy as np
 from vedo import settings, mag, utils
-from vedo import Arrows, Points, StreamLines, Axes, Plotter, Text2D, Circle
+from vedo import Arrows, Points, Axes, Plotter, Text2D, Circle
 
 def func(evt):
     if evt.keypress != "b":
@@ -37,8 +37,7 @@ def func(evt):
     isos.cmap("rainbow").lighting('off').alpha(0.5).add_scalarbar()
     isos.name = "Isosurfaces"
 
-    streamlines = StreamLines(
-    	domain,
+    streamlines = domain.compute_streamlines(
     	probes,
         max_propagation=0.5,
         initial_step_size=0.01,

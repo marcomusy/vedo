@@ -1441,6 +1441,95 @@ class CommonAlgorithms:
         )
         return self
         
+    def compute_streamlines(
+            self, 
+            seeds, 
+            integrator="rk4",
+            direction="forward",
+            initial_step_size=None,
+            max_propagation=None,
+            max_steps=10000,
+            step_length=0,
+            surface_constrained=False,
+            compute_vorticity=False,
+        ):
+        """
+        Integrate a vector field to generate streamlines.
+
+        Arguments:
+            seeds : (Mesh, Points, list)
+                starting points of the streamlines
+            integrator : (str)
+                type of integration method to be used:
+                    - "rk2" (Runge-Kutta 2)
+                    - "rk4" (Runge-Kutta 4)
+                    - "rk45" (Runge-Kutta 45)
+            direction : (str)
+                direction of integration, either "forward", "backward" or "both"
+            initial_step_size : (float)
+                initial step size used for line integration
+            max_propagation : (float)
+                maximum length of a streamline expressed in absolute units
+            max_steps : (int)
+                maximum number of steps for a streamline
+            step_length : (float)
+                maximum length of a step expressed in absolute units
+            surface_constrained : (bool)
+                whether to stop integrating when the streamline leaves the surface
+            compute_vorticity : (bool)
+                whether to compute the vorticity at each streamline point
+        """
+        b = self.dataset.GetBounds()
+        size = (b[5]-b[4] + b[3]-b[2] + b[1]-b[0]) / 3
+        if initial_step_size is None:
+            initial_step_size = size / 1000.0
+
+        if max_propagation is None:
+            max_propagation = size * 2
+
+        if utils.is_sequence(seeds):
+            seeds = vedo.Points(seeds)
+
+        sti = vtk.new("StreamTracer")
+        sti.SetInputDataObject(self.dataset)
+        sti.SetSourceData(seeds.dataset)
+
+        sti.SetInitialIntegrationStep(initial_step_size)
+        sti.SetComputeVorticity(compute_vorticity)
+        sti.SetMaximumNumberOfSteps(max_steps)
+        sti.SetMaximumPropagation(max_propagation)
+        sti.SetSurfaceStreamlines(surface_constrained)
+        if step_length:
+            sti.SetMaximumIntegrationStep(step_length)
+
+        if "for" in direction:
+            sti.SetIntegrationDirectionToForward()
+        elif "back" in direction:
+            sti.SetIntegrationDirectionToBackward()
+        elif "both" in direction:
+            sti.SetIntegrationDirectionToBoth()
+        else:
+            vedo.logger.error(f"in compute_streamlines(), unknown direction {direction}")
+            return None
+
+        if integrator == "rk2":
+            sti.SetIntegratorTypeToRungeKutta2()
+        elif integrator == "rk4":
+            sti.SetIntegratorTypeToRungeKutta4()
+        elif integrator == "rk45":
+            sti.SetIntegratorTypeToRungeKutta45()
+        else:
+            vedo.logger.error(f"in compute_streamlines(), unknown integrator {integrator}")
+            return None
+
+        sti.Update()
+
+        stlines = vedo.shapes.Lines(sti.GetOutput(), lw=4)
+        stlines.name = "StreamLines"
+        self.pipeline = utils.OperationNode(
+            "compute_streamlines", comment=f"{integrator}", parents=[self, seeds], c="#9e2a2b"
+        )
+        return stlines
 
 ###############################################################################
 class PointAlgorithms(CommonAlgorithms):

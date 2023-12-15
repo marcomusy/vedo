@@ -1,4 +1,4 @@
-"""Load an existing vtkStructuredGrid and draw
+"""Load an existing dataset and draw
 the streamlines of the velocity field"""
 from vedo import *
 
@@ -13,14 +13,15 @@ pl3d.SetQFileName(fpath)
 pl3d.SetScalarFunctionNumber(100)
 pl3d.SetVectorFunctionNumber(202)
 pl3d.Update()
-# this vtkStructuredData already has a vector field:
-domain = pl3d.GetOutput().GetBlock(0)
+# this vtkStructuredGridData already has a vector field:
+sdata = pl3d.GetOutput().GetBlock(0)
 
 ######################## vedo
-probe = Grid(s=[5,5], res=[6,6]).rotate_y(90).pos(5,0,29)
+domain = UnstructuredGrid(sdata).alpha(0.1).c('white')
+probe = Grid(s=[5,5], res=[6,6], c='white').rotate_y(90).pos(5,0,29)
 
-stream = StreamLines(domain, probe)
-
-box = Mesh(domain).alpha(0.1).c('white')
-
-show(stream, probe, box, __doc__, axes=7, bg='bb').close()
+streamlines = domain.compute_streamlines(probe)
+streamlines.celldata.select("SeedIds")
+streamlines.cmap("Set1", on='cells')
+print(streamlines)
+show(domain, streamlines, probe, __doc__, axes=7, bg='bb').close()

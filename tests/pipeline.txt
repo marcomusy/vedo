@@ -4,10 +4,10 @@
 
 
 # INSTALL ######################################
-export VDIR=$HOME/Projects/vedo
-export VLOGFILE=$VDIR/output_vedo_test.txt
+export VEDODIR=$HOME/Projects/vedo
+export VEDOLOGFILE=$VEDODIR/output_vedo_test.txt
 
-cd $VDIR
+cd $VEDODIR
 pip install -q -e .
 pip install scikit-image -U
 pip install nevergrad -U
@@ -30,53 +30,53 @@ pip install gustaf -U
 #pip install pymeshfix -U
 
 
-# ENABLE/DISABLE DRY RUN ########################################################
-sed -i "s/dry_run_mode = 0/dry_run_mode = 2/g" $VDIR/vedo/settings.py  #->DISABLE
-sed -i "s/dry_run_mode = 2/dry_run_mode = 0/g" $VDIR/vedo/settings.py  #->ENABLE
-#################################################################################
+# ENABLE/DISABLE DRY RUN ###########################################################
+sed -i "s/dry_run_mode = 0/dry_run_mode = 2/g" $VEDODIR/vedo/settings.py  #->DISABLE
+sed -i "s/dry_run_mode = 2/dry_run_mode = 0/g" $VEDODIR/vedo/settings.py  #->ENABLE
+####################################################################################
 
 pytest tests
 
-cd $VDIR/tests/common  && ./run_all.sh 
-cd $VDIR/examples && time ./run_all.sh 2>&1 | tee $VLOGFILE && alert "scan done."
+cd $VEDODIR/tests/common  && ./run_all.sh 
+cd $VEDODIR/examples && time ./run_all.sh 2>&1 | tee $VEDOLOGFILE && alert "scan done."
 
-grep -aA 1 "Error" $VLOGFILE
-grep -aA 3 "Trace" $VLOGFILE
-grep -aA 3 "ailure" $VLOGFILE
-code $VLOGFILE  #### inspect logfile
+grep -aA 1 "Error" $VEDOLOGFILE
+grep -aA 3 "Trace" $VEDOLOGFILE
+grep -aA 3 "ailure" $VEDOLOGFILE
+code $VEDOLOGFILE  #### inspect logfile
 # (Try normal run too with visualization to make sure all is ok)
 
 
 # EXAMPLES #####################################
-cd $VDIR/tests/issues && ./run_all.sh 
+cd $VEDODIR/tests/issues && ./run_all.sh 
 
 
 # TUTORIALS ####################################
 cd ~/Projects/server/vedo-embo-course/scripts && ./run_all.sh 
 cd ~/Projects/server/vedo-bias-course/scripts && ./run_all.sh 
-cd ~/Projects/server/vedo-epug-course/scripts && ./run_all.sh 
+cd ~/Projects/server/vedo-epug-tutorial/scripts && ./run_all.sh 
 
 
 # TRIMESH #######################################
-cd $VDIR/examples/other/trimesh && ./run_all.sh
+cd $VEDODIR/examples/other/trimesh && ./run_all.sh
 
 # DOLFIN #######################################
 # conda create -n fenics -c conda-forge fenics
-cd $VDIR
+cd $VEDODIR
 conda activate fenics
 pip install -e .
-cd $VDIR/examples/other/dolfin && ./run_all.sh
+cd $VEDODIR/examples/other/dolfin && ./run_all.sh
 conda deactivate
 
 # OTHERS #######################################
-cd $VDIR
+cd $VEDODIR
 python ~/Dropbox/documents/Medical/RESONANCIA.py
 vedo https://vedo.embl.es/examples/data/panther.stl.gz
 vedo https://vedo.embl.es/examples/geo_scene.npz
 vedo --convert data/290.vtk --to ply && vedo data/290.ply
 
 # NOTEBOOKS #####################################
-cd $VDIR/examples/notebooks/
+cd $VEDODIR/examples/notebooks/
 jupyter notebook > /dev/null 2>&1
 
 ##########################
@@ -115,8 +115,8 @@ cd ~/Projects/napari-vedo-bridge
     # conda activate napari-env
     # python -m pip install "napari[all]"
     conda activate napari-env
-    cd $VDIR && pip install -q . && cd -
-    python $VDIR/examples/other/napari1.py # then open plugins ...
+    cd $VEDODIR && pip install -q . && cd -
+    python $VEDODIR/examples/other/napari1.py # then open plugins ...
     conda deactivate
 ################
 cd ~/Projects/welleng/examples
@@ -150,11 +150,11 @@ cd ~/Projects/4d-gene-reconstruction/useful_scripts
 # DOCUMETATION #################################
 mount_staging
 pip install pdoc
-cd $VDIR/docs/pdoc
+cd $VEDODIR/docs/pdoc
 ./build_html.py 
 
 # check web page examples
-cd $VDIR
+cd $VEDODIR
 code docs/examples_db.js
 cp docs/examples_db.js www/examples_db.js
 code www/index.html
@@ -162,7 +162,7 @@ code www/index.html
 
 ################################################################
 # RELEASE
-cd $VDIR
+cd $VEDODIR
 
 # check version and status
 code vedo/version.py
@@ -175,11 +175,11 @@ python setup.py sdist bdist_wheel
 twine upload dist/vedo-?.?.?.tar.gz -r pypi
 
 # make github release
-cd $VDIR
+cd $VEDODIR
 code docs/changes.md
 code vedo/version.py  # edit to add .dev0
 https://repology.org/project/vedo/badges
-rm $VLOGFILE
+rm $VEDOLOGFILE
 
 
 # SITES ########################################

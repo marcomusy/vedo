@@ -4179,11 +4179,11 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         axact.SetTextEdgesVisibility(0)
         axact.SetFaceTextScale(settings.annotated_cube_text_scale)
         axact.SetXPlusFaceText(settings.annotated_cube_texts[0])  # XPlus
-        axact.SetXMinusFaceText(settings.annotated_cube_texts[1])  # XMinus
+        axact.SetXMinusFaceText(settings.annotated_cube_texts[1]) # XMinus
         axact.SetYPlusFaceText(settings.annotated_cube_texts[2])  # YPlus
-        axact.SetYMinusFaceText(settings.annotated_cube_texts[3])  # YMinus
+        axact.SetYMinusFaceText(settings.annotated_cube_texts[3]) # YMinus
         axact.SetZPlusFaceText(settings.annotated_cube_texts[4])  # ZPlus
-        axact.SetZMinusFaceText(settings.annotated_cube_texts[5])  # ZMinus
+        axact.SetZMinusFaceText(settings.annotated_cube_texts[5]) # ZMinus
         axact.SetZFaceTextRotation(90)
 
         if settings.annotated_cube_text_color is None:  # use default
@@ -4391,7 +4391,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
             vedo.logger.warning("axes mode 14 is unavailable in this vtk version")
 
     else:
-        e = "\bomb Keyword axes type must be in range [0-13]."
+        e = "Keyword axes type must be in range [0-13]."
         e += "Available axes types are:\n\n"
         e += "0 = no axes\n"
         e += "1 = draw three customizable gray grid walls\n"

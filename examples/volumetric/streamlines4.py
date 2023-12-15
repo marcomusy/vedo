@@ -18,6 +18,6 @@ ypr = np.linspace(-15,15, num=25)
 xpr = np.zeros_like(ypr)-40
 probes = np.c_[xpr, ypr]
 
-lines = StreamLines(ug, probes, max_propagation=80, lw=3).c("red4")
+lines = ug.compute_streamlines(probes, max_propagation=80).c("red4")
 
 show(ars, lines, zoom=8, bg2='lb').close()

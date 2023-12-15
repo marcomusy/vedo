@@ -136,8 +136,10 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
             self.dataset = reader.GetOutput()
 
         else:
-            vedo.logger.error(f"cannot understand input type {inputtype}")
-            return
+            # this converts other types of vtk objects to UnstructuredGrid
+            self.dataset = inputobj
+            # vedo.logger.error(f"cannot understand input type {inputtype}")
+            # return
 
         self.properties.SetColor(0.89, 0.455, 0.671) #pink7
 

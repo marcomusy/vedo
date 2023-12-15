@@ -3542,7 +3542,7 @@ def whisker(data, s=0.25, c="k", lw=2, bc="blue", alpha=0.25, r=5, jitter=True, 
 
 
 def streamplot(
-    X, Y, U, V, direction="both", max_propagation=None, mode=1, lw=0.001, c=None, probes=()
+    X, Y, U, V, direction="both", max_propagation=None, lw=2, cmap="viridis", probes=()
 ):
     """
     Generate a streamline plot of a vectorial field (U,V) defined at positions (X,Y).
@@ -3555,12 +3555,6 @@ def streamplot(
             maximum physical length of the streamline
         lw : (float)
             line width in absolute units
-        mode : (int)
-            mode of varying the line width:
-            - 0 - do not vary line width
-            - 1 - vary line width by first vector component
-            - 2 - vary line width vector magnitude
-            - 3 - vary line width by absolute value of first vector component
 
     Examples:
         - [plot_stream.py](https://github.com/marcomusy/vedo/tree/master/examples/examples/pyplot/plot_stream.py)
@@ -3599,20 +3593,8 @@ def streamplot(
         probes = np.multiply(probes, sv)
         probe = vedo.Points(probes)
 
-    stream = vedo.shapes.StreamLines(
-        vol,
-        probe,
-        tubes={"radius": lw, "mode": mode},
-        lw=lw,
-        max_propagation=max_propagation,
-        direction=direction,
-    )
-    if c is not None:
-        stream.color(c)
-    else:
-        stream.add_scalarbar()
-    stream.lighting("off")
-
+    stream = vol.compute_streamlines(probe, direction=direction, max_propagation=max_propagation)
+    stream.lw(lw).cmap(cmap).lighting("off")
     stream.scale([1 / (n - 1) * (xmax - xmin), 1 / (n - 1) * (ymax - ymin), 1])
     stream.shift(xmin, ymin)
     return stream

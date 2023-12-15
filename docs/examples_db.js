@@ -908,14 +908,6 @@ vedo_example_db =
         imgsrc: 'images/volumetric/streamlines3.png',
     },
     {
-        pyname: 'streamribbons',
-        kbd   : '',
-        categ : 'volumetric',
-        short : 'stream ribbons',
-        long  : 'Airflow in an office with ventilation and a burning cigarette represented with stream ribbons',
-        imgsrc: 'images/volumetric/streamribbons.png',
-    },
-    {
         pyname: 'tensors',
         kbd   : '',
         categ : 'volumetric',

@@ -1,11 +1,13 @@
-"""Plot streamlines of the 2D field:
+"""Plot streamlines for the 2D field:
 
 u(x,y) = -1 - x:^2 + y
 v(x,y) =  1 + x  - y:^2
 """
-from vedo import Points, show
+from vedo import Points, settings, show
 from vedo.pyplot import streamplot
 import numpy as np
+
+settings.default_font = "DejavuSansMono"
 
 # a grid with a vector field (U,V):
 X, Y = np.mgrid[-5:5 :15j, -4:4 :15j]
@@ -16,11 +18,14 @@ V =  1 + X    - Y**2
 prob_pts = np.random.rand(200, 2)*8 - [4,4]
 
 sp = streamplot(
-    X,Y, U,V,
-    lw=0.001,            # line width in abs. units
+    X,Y,
+    U,V,
+    lw=2,                # line width in pixel units
     direction='forward', # 'both' or 'backward'
     probes=prob_pts,
+    cmap='viridis',
 )
+sp.add_scalarbar()
 
 pts = Points(prob_pts).ps(5).c('white')
 

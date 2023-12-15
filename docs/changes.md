@@ -15,14 +15,15 @@
 - fix small bug in `pointcloud.distance_to()`
 - add `applications.MorphPlotter()` to morph a polygonal mesh to a target mesh
 - add `smooth_data()` to smooth/diffuse data attributes
+- add `shapes.Tubes()`
 
 
 ## Breaking changes
-
 - improvements to `shapes.Ellipsoid()` and bug fixes in #978 by @daniel-a-diaz
 - improvements to `pointcloud.pca_ellipsoid()` and bug fixes
 - improvements to `pointcloud.pca_ellipse()` and bug fixes
 - change `clone2d(scale=...)` to `clone2d(size=...)`
+- remove `shapes.StreamLines()` becoming `object.compute_streamlines()`
 
 
 ### Renaming
@@ -43,6 +44,13 @@
 examples/advanced/warp4c.py
 examples/advanced/diffuse_data.py
 examples/volumetric/slab_vol.py
+examples/volumetric/streamlines1.py
+examples/volumetric/streamlines2.py
+examples/volumetric/streamlines3.py
+examples/volumetric/streamlines4.py
+examples/volumetric/office.py
+examples/simulations/mag_field1.py
+examples/pyplot/plot_stream.py
 examples/other/madcad1.py
 examples/other/tetgen1.py
 
