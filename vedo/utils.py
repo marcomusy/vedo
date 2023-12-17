@@ -19,6 +19,7 @@ __all__ = [
     "OperationNode",
     "ProgressBar",
     "progressbar",
+    "Minimizer",
     "geometry",
     "is_sequence",
     "lin_interpolate",
@@ -482,6 +483,255 @@ def progressbar(
     for item in iterable:
         pb.print()
         yield item
+
+
+###########################################################
+class Minimizer:
+    """
+    A function minimizer that uses the Nelder-Mead method.
+
+    The algorithm constructs an n-dimensional simplex in parameter
+    space (i.e. a tetrahedron if the number or parameters is 3)
+    and moves the vertices around parameter space until
+    a local minimum is found. The amoeba method is robust,
+    reasonably efficient, but is not guaranteed to find
+    the global minimum if several local minima exist.
+    
+    Arguments:
+        function : (callable)
+            the function to minimize
+        max_iterations : (int)
+            the maximum number of iterations
+        contraction_ratio : (float)
+            The contraction ratio.
+            The default value of 0.5 gives fast convergence,
+            but larger values such as 0.6 or 0.7 provide greater stability.
+        expansion_ratio : (float)
+            The expansion ratio.
+            The default value is 2.0, which provides rapid expansion.
+            Values between 1.1 and 2.0 are valid.
+        tol : (float)
+            the tolerance for convergence
+    
+    Example:
+    ```python
+    from vedo import *
+
+    def func(pars):
+        x, y, z, w = pars  # unpack the parameters
+        r = (x-5)**2 + (y+2)**2 + z**2 + (w-8)**2 + 1
+        return r
+    
+    mini = Minimizer(func)
+    mini.set_parameter("x", 4.0)
+    mini.set_parameter("y", -3.0)
+    mini.set_parameter("z", 1.0)
+    mini.set_parameter("w", 1.0)
+    res = mini.minimize()
+    print(mini)
+    ```
+    """
+    def __init__(
+            self,
+            function=None,
+            max_iterations=10000,
+            contraction_ratio=0.5,
+            expansion_ratio=2.0,
+            tol=1e-5,
+        ):
+        self.function = function
+        self.tolerance = tol
+        self.contraction_ratio = contraction_ratio
+        self.expansion_ratio = expansion_ratio
+        self.max_iterations = max_iterations
+        self.minimizer = vtk.new("AmoebaMinimizer")
+        self.minimizer.SetFunction(self._vtkfunc)
+        self.results = {}
+        self.parameters_path = []
+        self.function_path = []
+
+    def _vtkfunc(self):
+        n = self.minimizer.GetNumberOfParameters()
+        ain = [self.minimizer.GetParameterValue(i) for i in range(n)]
+        r = self.function(ain)
+        self.minimizer.SetFunctionValue(r)
+        self.parameters_path.append(ain)
+        self.function_path.append(r)
+        return r
+    
+    def eval(self, parameters=()):
+        """
+        Evaluate the function at the current or given parameters.
+        """
+        if len(parameters) == 0:
+            return self.minimizer.EvaluateFunction()
+        self.set_parameters(parameters)
+        return self.function(parameters)
+    
+    def set_parameter(self, name, value, scale=1.0):
+        """
+        Set the parameter value.
+        The initial amount by which the parameter
+        will be modified during the search for the minimum. 
+        """
+        self.minimizer.SetParameterValue(name, value)
+        self.minimizer.SetParameterScale(name, scale)
+    
+    def set_parameters(self, parameters):
+        """
+        Set the parameters names and values from a dictionary.
+        """
+        for name, value in parameters.items():
+            if len(value) == 2:
+                self.set_parameter(name, value[0], value[1])
+            else:
+                self.set_parameter(name, value)
+    
+    def minimize(self):
+        """
+        Minimize the input function.
+
+        Returns:
+            dict : the minimization results
+                init_parameters : (dict)
+                    the initial parameters
+                parameters : (dict)
+                    the final parameters
+                min_value : (float)
+                    the minimum value
+                iterations : (int)
+                    the number of iterations
+                max_iterations : (int)
+                    the maximum number of iterations
+                tolerance : (float)
+                    the tolerance for convergence
+                convergence_flag : (int)
+                    zero if the tolerance stopping
+                    criterion has been met.
+                parameters_path : (np.array)
+                    the path of the minimization
+                    algorithm in parameter space
+                function_path : (np.array)
+                    the path of the minimization
+                    algorithm in function space
+                hessian : (np.array)
+                    the Hessian matrix of the
+                    function at the minimum
+                parameter_errors : (np.array)
+                    the errors on the parameters
+        """
+        n = self.minimizer.GetNumberOfParameters()
+        out = [(
+            self.minimizer.GetParameterName(i),
+            (self.minimizer.GetParameterValue(i),
+             self.minimizer.GetParameterScale(i))
+        ) for i in range(n)]
+        self.results["init_parameters"] = dict(out)
+
+        self.minimizer.SetTolerance(self.tolerance)
+        self.minimizer.SetContractionRatio(self.contraction_ratio)
+        self.minimizer.SetExpansionRatio(self.expansion_ratio)
+        self.minimizer.SetMaxIterations(self.max_iterations)
+
+        self.minimizer.Minimize()
+        self.results["convergence_flag"] = not bool(self.minimizer.Iterate())
+
+        out = [(
+            self.minimizer.GetParameterName(i),
+            self.minimizer.GetParameterValue(i),
+        ) for i in range(n)]
+
+        self.results["parameters"] = dict(out)
+        self.results["min_value"] = self.minimizer.GetFunctionValue()
+        self.results["iterations"] = self.minimizer.GetIterations()
+        self.results["max_iterations"] = self.minimizer.GetMaxIterations()
+        self.results["tolerance"] = self.minimizer.GetTolerance()
+        self.results["expansion_ratio"] = self.expansion_ratio
+        self.results["contraction_ratio"] = self.contraction_ratio
+        self.results["parameters_path"] = np.array(self.parameters_path)
+        self.results["function_path"] = np.array(self.function_path)
+        self.results["hessian"] = np.zeros((n,n))
+        self.results["parameter_errors"] = np.zeros(n)
+        return self.results
+
+    def compute_hessian(self, epsilon=0):
+        """
+        Compute the Hessian matrix of `function` at the
+        minimum numerically.
+
+        Arguments:
+            epsilon : (float)
+                Step size used for numerical approximation.
+
+        Returns:
+            array: Hessian matrix of `function` at minimum.
+        """
+        if not epsilon:
+            epsilon = self.tolerance * 10
+        n = self.minimizer.GetNumberOfParameters()
+        x0 = [self.minimizer.GetParameterValue(i) for i in range(n)]
+        hessian = np.zeros((n, n))
+        for i in vedo.progressbar(n, title="Computing Hessian", delay=2):
+            for j in range(n):
+                xijp = np.copy(x0)
+                xijp[i] += epsilon
+                xijp[j] += epsilon
+                xijm = np.copy(x0)
+                xijm[i] += epsilon
+                xijm[j] -= epsilon
+                xjip = np.copy(x0)
+                xjip[i] -= epsilon
+                xjip[j] += epsilon
+                xjim = np.copy(x0)
+                xjim[i] -= epsilon
+                xjim[j] -= epsilon
+                # Second derivative approximation
+                fijp = self.function(xijp)
+                fijm = self.function(xijm)
+                fjip = self.function(xjip)
+                fjim = self.function(xjim)
+                hessian[i, j] = (fijp - fijm - fjip + fjim) / (2 * epsilon**2)
+        self.results["hessian"] = hessian
+        try:
+            ihess = np.linalg.inv(hessian)
+            self.results["parameter_errors"] = np.sqrt(np.diag(ihess))
+        except:
+            vedo.logger.warning("Cannot compute hessian for parameter errors")
+            self.results["parameter_errors"] = np.zeros(n)
+        return hessian
+
+    def __str__(self) -> str:
+        out = vedo.printc(
+            f"vedo.utils.Minimizer at ({hex(id(self))})".ljust(75),
+            bold=True, invert=True, return_string=True,
+        )
+        out += "Function name".ljust(20) + self.function.__name__ + "()\n"
+        out += "-------- parameters initial value -----------\n"
+        out += "Name".ljust(20) + "Value".ljust(20) + "Scale\n"
+        for name, value in self.results["init_parameters"].items():
+            out += name.ljust(20) + str(value[0]).ljust(20) + str(value[1]) + "\n"
+        out += "-------- parameters final value --------------\n"
+        for name, value in self.results["parameters"].items():
+            out += name.ljust(20) + f"{value:.6f}"
+            ierr = list(self.results["parameters"]).index(name)
+            err = self.results["parameter_errors"][ierr]
+            if err:
+                out += f" ± {err:.4f}"
+            out += "\n"
+        out += "Value at minimum".ljust(20)+ f'{self.results["min_value"]}\n'
+        out += "Iterations".ljust(20)      + f'{self.results["iterations"]}\n'
+        out += "Max iterations".ljust(20)  + f'{self.results["max_iterations"]}\n'
+        out += "Convergence flag".ljust(20)+ f'{self.results["convergence_flag"]}\n'
+        out += "Tolerance".ljust(20)       + f'{self.results["tolerance"]}\n'
+        try:
+            arr = np.array2string(
+                self.compute_hessian(),
+                separator=', ', precision=6, suppress_small=True,
+            )
+            out += "Hessian Matrix:\n" + arr
+        except:
+            out += "Hessian Matrix: (not available)"
+        return out
 
 
 ###########################################################

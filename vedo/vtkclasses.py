@@ -220,6 +220,7 @@ for name in [
 
 # noinspection PyUnresolvedReferences
 from vtkmodules.vtkCommonMath import vtkMatrix4x4
+location["vtkAmoebaMinimizer"] = "vtkCommonMath"
 location["vtkMatrix4x4"] = "vtkCommonMath"
 location["vtkQuaternion"] = "vtkCommonMath"
 
@@ -243,6 +244,7 @@ for name in [
 for name in [
     "VTK_BEST_FITTING_PLANE",
     "vtk3DLinearGridCrinkleExtractor",
+    "vtkAppendFilter",
     "vtkAppendPolyData",
     "vtkCellCenters",
     "vtkCellDataToPointData",

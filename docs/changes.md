@@ -16,6 +16,7 @@
 - add `applications.MorphPlotter()` to morph a polygonal mesh to a target mesh
 - add `smooth_data()` to smooth/diffuse data attributes
 - add `shapes.Tubes()`
+- add `utils.Minimizer()` class
 
 
 ## Breaking changes
@@ -53,6 +54,7 @@ examples/simulations/mag_field1.py
 examples/pyplot/plot_stream.py
 examples/other/madcad1.py
 examples/other/tetgen1.py
+examples/other/nelder-mead.py
 
 tests/issues/issue_968.py
 tests/snippets/test_discourse_1956.py

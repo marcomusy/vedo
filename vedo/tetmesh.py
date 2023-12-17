@@ -137,9 +137,10 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
 
         else:
             # this converts other types of vtk objects to UnstructuredGrid
-            self.dataset = inputobj
-            # vedo.logger.error(f"cannot understand input type {inputtype}")
-            # return
+            apf = vtk.new("AppendFilter")
+            apf.AddInputData(inputobj)
+            apf.Update()
+            self.dataset = apf.GetOutput()
 
         self.properties.SetColor(0.89, 0.455, 0.671) #pink7
 
@@ -309,6 +310,25 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
         if reset_locators:
             self.cell_locator = None
             self.point_locator = None
+        return self
+    
+    def merge(self, *others):
+        """
+        Merge multiple datasets into one single `UnstrcturedGrid`.
+        """
+        apf = vtk.new("AppendFilter")
+        for o in others:
+            if isinstance(o, UnstructuredGrid):
+                apf.AddInputData(o.dataset)
+            elif isinstance(o, vtk.vtkUnstructuredGrid):
+                apf.AddInputData(o)
+            else:
+                vedo.printc("Error: cannot merge type", type(o), c='r')
+        apf.Update()
+        self._update(apf.GetOutput())
+        self.pipeline = utils.OperationNode(
+            "merge", parents=[self, *others], c="#9e2a2b",
+        )
         return self
 
     def copy(self, deep=True):

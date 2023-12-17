@@ -237,7 +237,7 @@ def exe_run(args):
         print(result, end="")
 
     printc("(" + matching[0] + ")", c="y", bold=0, italic=1)
-    os.system("python " + matching[0])
+    os.system(f"python {matching[0]} || python3 {matching[0]}")
 
 
 ################################################################################################
