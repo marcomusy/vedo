@@ -1828,7 +1828,8 @@ class Plotter:
             return bu
 
     def add_spline_tool(
-        self, points, pc="k", ps=8, lc="r4", ac="g5", lw=2, closed=False
+        self, points, pc="k", ps=8, lc="r4", ac="g5",
+        lw=2, alpha=1, closed=False, ontop=True,
     ):
         """
         Add a spline tool to the current plotter.
@@ -1849,6 +1850,8 @@ class Plotter:
                 active point marker color. The default is 'g5'.
             lw : (int)
                 line width. The default is 2.
+            alpha : (float)
+                line transparency.
             closed : (bool)
                 spline is meant to be closed. The default is False.
 
@@ -1860,20 +1863,14 @@ class Plotter:
 
             ![](https://vedo.embl.es/images/basic/spline_tool.png)
         """
-        sw = addons.SplineTool(points, pc, ps, lc, ac, lw, closed)
+        sw = addons.SplineTool(points, pc, ps, lc, ac, lw, alpha, closed, ontop)
         sw.interactor = self.interactor
         sw.on()
         sw.Initialize(sw.points.dataset)
         sw.representation.SetRenderer(self.renderer)
-        # closed:
         sw.representation.SetClosedLoop(closed)
-        # if closed:
-        #     sw.representation.ClosedOn()
-        # else:
-        #     sw.representation.ClosedOff()
         sw.representation.BuildRepresentation()
         self.widgets.append(sw)
-        # sw.Render()
         return sw
 
     def add_icon(self, icon, pos=3, size=0.08):

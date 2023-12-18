@@ -462,7 +462,8 @@ class SplineTool(vtk.vtkContourWidget):
     Spline tool, draw a spline through a set of points interactively.
     """
 
-    def __init__(self, points, pc="k", ps=8, lc="r4", ac="g5", lw=2, closed=False, ontop=True):
+    def __init__(self, points, pc="k", ps=8, lc="r4", ac="g5",
+                 lw=2, alpha=1, closed=False, ontop=True):
         """
         Spline tool, draw a spline through a set of points interactively.
 
@@ -479,6 +480,8 @@ class SplineTool(vtk.vtkContourWidget):
                 active point color.
             lw : (int)
                 line width.
+            alpha : (float)
+                line transparency level.
             closed : (bool)
                 spline is closed or open.
             ontop : (bool)
@@ -496,13 +499,16 @@ class SplineTool(vtk.vtkContourWidget):
 
         self.representation.GetLinesProperty().SetColor(get_color(lc))
         self.representation.GetLinesProperty().SetLineWidth(lw)
+        self.representation.GetLinesProperty().SetOpacity(alpha)
+        if lw == 0 or alpha == 0:
+            self.representation.GetLinesProperty().SetOpacity(0)
+
+        self.representation.GetActiveProperty().SetLineWidth(lw + 1)
+        self.representation.GetActiveProperty().SetColor(get_color(ac))
 
         self.representation.GetProperty().SetColor(get_color(pc))
         self.representation.GetProperty().SetPointSize(ps)
         self.representation.GetProperty().RenderPointsAsSpheresOn()
-
-        self.representation.GetActiveProperty().SetColor(get_color(ac))
-        self.representation.GetActiveProperty().SetLineWidth(lw + 1)
 
         # self.representation.BuildRepresentation() # crashes
 
@@ -573,8 +579,7 @@ class SplineTool(vtk.vtkContourWidget):
         self.representation.SetClosedLoop(self.closed)
         self.representation.BuildRepresentation()
         pd = self.representation.GetContourRepresentationAsPolyData()
-        pts = utils.vtk2numpy(pd.GetPoints().GetData())
-        ln = vedo.Line(pts, lw=2, c="k")
+        ln = vedo.Line(pd, lw=2, c="k")
         return ln
 
     def nodes(self, onscreen=False):

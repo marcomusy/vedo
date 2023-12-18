@@ -514,22 +514,7 @@ class Minimizer:
             the tolerance for convergence
     
     Example:
-    ```python
-    from vedo import *
-
-    def func(pars):
-        x, y, z, w = pars  # unpack the parameters
-        r = (x-5)**2 + (y+2)**2 + z**2 + (w-8)**2 + 1
-        return r
-    
-    mini = Minimizer(func)
-    mini.set_parameter("x", 4.0)
-    mini.set_parameter("y", -3.0)
-    mini.set_parameter("z", 1.0)
-    mini.set_parameter("w", 1.0)
-    res = mini.minimize()
-    print(mini)
-    ```
+        - [nelder-mead.py](https://github.com/marcomusy/vedo/blob/master/examples/others/nelder-mead.py)
     """
     def __init__(
             self,
