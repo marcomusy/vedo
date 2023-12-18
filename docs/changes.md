@@ -59,6 +59,7 @@ examples/other/nelder-mead.py
 tests/issues/issue_968.py
 tests/snippets/test_discourse_1956.py
 tests/snippets/test_ellipsoid_main_axes.py
+tests/snippets/test_compare_fit1.py
 ```
 
 ### Broken Examples
