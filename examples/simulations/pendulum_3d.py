@@ -32,10 +32,8 @@ i = 0
 for b1, b2 in zip(p1,p2):
     ball1.pos(b1)
     ball2.pos(b2)
-    ball1.update_shadows().update_trail()
-    ball2.update_shadows().update_trail()
-    ball1.trail.update_shadows()
-    ball2.trail.update_shadows()
+    ball1.update_trail().update_shadows()
+    ball2.update_trail().update_shadows()
     rod1.vertices = [[0,0,0], b1]
     rod2.vertices = [b1, b2]
     rod1.update_shadows()

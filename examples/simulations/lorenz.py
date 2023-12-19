@@ -25,10 +25,9 @@ pt.add_trail(lw=4).add_shadow("x", 3, alpha=0.5)
 pt.trail.add_shadow("x", 3, alpha=0.5)
 
 def loop_func(event): # move the point
-    if len(pts):
+    if len(pts) > 0:
         pos = pts.pop(0)
         pt.pos(pos).update_trail().update_shadows()
-        pt.trail.update_shadows()
         plt.render()
 
 plt = Plotter(axes=dict(xygrid=False))
@@ -36,4 +35,3 @@ plt.add_callback("timer", loop_func)
 plt.timer_callback("start")
 plt.show(line, pt, __doc__, viewup="z")
 plt.close()
-

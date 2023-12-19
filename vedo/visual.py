@@ -1564,6 +1564,8 @@ class PointsVisual(CommonVisual):
             #       sha.metadata["plane"], sha.metadata["point"])
             new_sha = self._compute_shadow(plane, point, direction)
             sha._update(new_sha.dataset)
+        if self.trail:
+            self.trail.update_shadows()
         return self
 
     def labels(
