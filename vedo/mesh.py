@@ -959,24 +959,35 @@ class Mesh(MeshVisual, Points):
         )
         return self
 
-    def decimate(self, fraction=0.5, n=None, method="quadric", boundaries=False):
+
+    def decimate(self, fraction=0.5, n=None, preserve_volume=True, regularize=True):
         """
         Downsample the number of vertices in a mesh to `fraction`.
+
+        This filter preserves the `pointdata` of the input dataset.
 
         Arguments:
             fraction : (float)
                 the desired target of reduction.
             n : (int)
-                the desired number of final points (`fraction` is recalculated based on it).
-            method : (str)
-                can be either 'quadric' or 'pro'. In the first case triagulation
-                will look like more regular, irrespective of the mesh original curvature.
-                In the second case triangles are more irregular but mesh is more precise on more
-                curved regions.
-            boundaries : (bool)
-                in "pro" mode decide whether to leave boundaries untouched or not
+                the desired number of final points
+                (`fraction` is recalculated based on it).
+            preserve_volume : (bool)
+                Decide whether to activate volume preservation which greatly
+                reduces errors in triangle normal direction.
+            regularize : (bool)
+                regularize the point finding algorithm so as to have better quality
+                mesh elements at the cost of a slightly lower precision on the
+                geometry potentially (mostly at sharp edges).
+                Can be useful for decimating meshes that have been triangulated on noisy data.
 
-        .. note:: Setting `fraction=0.1` leaves 10% of the original number of vertices
+        Note:
+            Setting `fraction=0.1` leaves 10% of the original number of vertices.
+            Internally the VTK class
+            [vtkQuadricDecimation](https://vtk.org/doc/nightly/html/classvtkQuadricDecimation.html)
+            is used for this operation.
+        
+        See also: `decimate_binned()` and `decimate_pro()`.
         """
         poly = self.dataset
         if n:  # N = desired number of points
@@ -985,25 +996,147 @@ class Mesh(MeshVisual, Points):
             if fraction >= 1:
                 return self
 
-        if "quad" in method:
-            decimate = vtk.new("QuadricDecimation")
-            # decimate.SetVolumePreservation(True)
+        decimate = vtk.new("QuadricDecimation")
+        decimate.SetVolumePreservation(preserve_volume)
+        decimate.SetRegularize(regularize)
+        decimate.MapPointDataOn()
 
-        else:
-            decimate = vtk.new("DecimatePro")
-            decimate.PreserveTopologyOn()
-            if boundaries:
-                decimate.BoundaryVertexDeletionOff()
-            else:
-                decimate.BoundaryVertexDeletionOn()
-        decimate.SetInputData(poly)
         decimate.SetTargetReduction(1 - fraction)
+        decimate.SetInputData(poly)
         decimate.Update()
 
         self._update(decimate.GetOutput())
+        self.metadata["decimate_actual_fraction"] = 1 - decimate.GetActualReduction()
 
         self.pipeline = OperationNode(
             "decimate",
+            parents=[self],
+            comment=f"#pts {self.dataset.GetNumberOfPoints()}",
+        )
+        return self
+    
+    def decimate_pro(
+            self,
+            fraction=0.5,
+            n=None,
+            preserve_topology=True,
+            preserve_boundaries=True,
+            splitting=False,
+            splitting_angle=75,
+            feature_angle=0,
+            inflection_point_ratio=10,
+        ):
+        """
+        Downsample the number of vertices in a mesh to `fraction`.
+
+        This filter preserves the `pointdata` of the input dataset.
+
+        Arguments:
+            fraction : (float)
+                The desired target of reduction.
+                Setting `fraction=0.1` leaves 10% of the original number of vertices.
+            n : (int)
+                the desired number of final points (`fraction` is recalculated based on it).
+            preserve_topology : (bool)
+                If on, mesh splitting and hole elimination will not occur.
+                This may limit the maximum reduction that may be achieved.
+            preserve_boundaries : (bool)
+                Turn on/off the deletion of vertices on the boundary of a mesh.
+                Control whether mesh boundaries are preserved during decimation.
+            feature_angle : (float)
+                Specify the angle that defines a feature.
+                This angle is used to define what an edge is
+                (i.e., if the surface normal between two adjacent triangles
+                is >= FeatureAngle, an edge exists).
+            splitting : (bool)
+                Turn on/off the splitting of the mesh at corners,
+                along edges, at non-manifold points, or anywhere else a split is required.
+                Turning splitting off will better preserve the original topology of the mesh,
+                but you may not obtain the requested reduction.
+            splitting_angle : (float)
+                Specify the angle that defines a sharp edge.
+                This angle is used to control the splitting of the mesh.
+                A split line exists when the surface normals between two edge connected triangles
+                are >= `splitting_angle`.
+            inflection_point_ratio : (float)
+                An inflection point occurs when the ratio of reduction error between two iterations
+                is greater than or equal to the `inflection_point_ratio` value.
+
+        Note:
+            Setting `fraction=0.1` leaves 10% of the original number of vertices
+        
+        See also:
+            `decimate()` and `decimate_binned()`.
+        """
+        poly = self.dataset
+        if n:  # N = desired number of points
+            npt = poly.GetNumberOfPoints()
+            fraction = n / npt
+            if fraction >= 1:
+                return self
+
+        decimate = vtk.new("DecimatePro")
+        decimate.SetPreserveTopology(preserve_topology)
+        decimate.SetBoundaryVertexDeletion(preserve_boundaries)
+        if feature_angle:
+            decimate.SetFeatureAngle(feature_angle)
+        decimate.SetSplitting(splitting)
+        decimate.SetSplitAngle(splitting_angle)
+        decimate.SetInflectionPointRatio(inflection_point_ratio)
+
+        decimate.SetTargetReduction(1 - fraction)
+        decimate.SetInputData(poly)
+        decimate.Update()
+        self._update(decimate.GetOutput())
+
+        self.pipeline = OperationNode(
+            "decimate_pro",
+            parents=[self],
+            comment=f"#pts {self.dataset.GetNumberOfPoints()}",
+        )
+        return self
+    
+    def decimate_binned(self, divisions=(), use_clustering=False):
+        """
+        Downsample the number of vertices in a mesh.
+        
+        This filter preserves the `celldata` of the input dataset,
+        if `use_clustering=True` also the `pointdata` will be preserved in the result.
+
+        Arguments:
+            divisions : (list)
+                number of divisions along x, y and z axes.
+            auto_adjust : (bool)
+                if True, the number of divisions is automatically adjusted to
+                create more uniform cells.
+            use_clustering : (bool)
+                use [vtkQuadricClustering](https://vtk.org/doc/nightly/html/classvtkQuadricClustering.html)
+                instead of 
+                [vtkBinnedDecimation](https://vtk.org/doc/nightly/html/classvtkBinnedDecimation.html).
+        
+        See also: `decimate()` and `decimate_pro()`.
+        """
+        if use_clustering:
+            decimate = vtk.new("QuadricClustering")
+            decimate.CopyCellDataOn()
+        else:
+            decimate = vtk.new("BinnedDecimation")
+            decimate.ProducePointDataOn()
+            decimate.ProduceCellDataOn()
+
+        decimate.SetInputData(self.dataset)
+
+        if len(divisions) == 0:
+            decimate.SetAutoAdjustNumberOfDivisions(1)
+        else:
+            decimate.SetAutoAdjustNumberOfDivisions(0)
+            decimate.SetNumberOfDivisions(divisions)
+        decimate.Update()
+
+        self._update(decimate.GetOutput())
+        self.metadata["decimate_binned_divisions"] = decimate.GetNumberOfDivisions()
+        self.pipeline = OperationNode(
+            "decimate_binned",
             parents=[self],
             comment=f"#pts {self.dataset.GetNumberOfPoints()}",
         )

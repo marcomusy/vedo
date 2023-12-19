@@ -622,8 +622,11 @@ class CommonAlgorithms:
 
         Examples:
             - [delaunay2d.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/delaunay2d.py)
+        
+        See also: `CellCenters()`.
         """
         vcen = vtk.new("CellCenters")
+        vcen.CopyArraysOff()
         vcen.SetInputData(self.dataset)
         vcen.Update()
         return utils.vtk2numpy(vcen.GetOutput().GetPoints().GetData())
@@ -941,7 +944,7 @@ class CommonAlgorithms:
         m1.pointdata["xvalues"] = np.power(pts[:,0], 3)
         m1.celldata["yvalues"]  = np.power(ces[:,1], 3)
         m2 = Mesh(dataurl+'bunny.obj')
-        m2.resample_arrays_from(m1)
+        m2.resample_data_from(m1)
         # print(m2.pointdata["xvalues"])
         show(m1, m2 , N=2, axes=1)
         ```
@@ -1053,7 +1056,7 @@ class CommonAlgorithms:
         interpolator.SetSourceData(points)
         interpolator.SetKernel(kern)
         interpolator.SetLocator(locator)
-        interpolator.PassFieldArraysOff()
+        interpolator.PassFieldArraysOn()
         interpolator.SetNullPointsStrategy(null_strategy)
         interpolator.SetNullValue(null_value)
         interpolator.SetValidPointsMaskArrayName("ValidPointMask")

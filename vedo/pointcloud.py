@@ -24,6 +24,7 @@ Submodule to work with point clouds <br>
 __all__ = [
     "Points",
     "Point",
+    "CellCenters",
     "merge",
     "delaunay2d",  # deprecated, use .generate_delaunay2d()
     "fit_line",
@@ -3579,6 +3580,26 @@ class Points(PointsVisual, PointAlgorithms):
             svp.SelectInvisibleOn()
         svp.Update()
 
-        m = Points(svp.GetOutput())#.point_size(5)
+        m = Points(svp.GetOutput())
         m.name = "VisiblePoints"
         return m
+
+####################################################
+class CellCenters(Points):
+    def __init__(self, pcloud):
+        """
+        Generate `Points` at the center of the cells of any type of object.
+
+        Check out also `cell_centers()`.
+        """
+        vcen = vtk.new("CellCenters")
+        vcen.CopyArraysOn()
+        vcen.VertexCellsOn()
+        # vcen.ConvertGhostCellsToGhostPointsOn()
+        try:
+            vcen.SetInputData(pcloud.dataset)
+        except AttributeError:
+            vcen.SetInputData(pcloud)
+        vcen.Update()
+        super().__init__(vcen.GetOutput())
+        self.name = "CellCenters"

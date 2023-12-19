@@ -17,6 +17,7 @@
 - add `smooth_data()` to smooth/diffuse data attributes
 - add `shapes.Tubes()`
 - add `utils.Minimizer()` class
+- add `CellCenters(Points)` class
 
 
 ## Breaking changes
@@ -25,6 +26,7 @@
 - improvements to `pointcloud.pca_ellipse()` and bug fixes
 - change `clone2d(scale=...)` to `clone2d(size=...)`
 - remove `shapes.StreamLines()` becoming `object.compute_streamlines()`
+- split `mesh.decimate()` into `mesh.decimate()`, `mesh.decimate_pro()` and `mesh.decimate_binned()` as per #992
 
 
 ### Renaming
