@@ -492,7 +492,7 @@ class Plotter:
             ####################################
 
         #############################################################
-        if settings.default_backend == "vtk":
+        if settings.default_backend in ["vtk", "2d", "trame"]:
 
             if screensize == "auto":
                 screensize = (2160, 1440)  # TODO: get actual screen size
@@ -748,6 +748,13 @@ class Plotter:
             return  ################
             ########################
 
+        if self.size[0] == "f":  # full screen
+            self.size = "fullscreen"
+            self.window.SetFullScreen(True)
+            self.window.BordersOn()
+        else:
+            self.window.SetSize(int(self.size[0]), int(self.size[1]))
+
         if self.offscreen:
             if self.axes in (4, 5, 8, 12, 14):
                 self.axes = 0  # does not work with those
@@ -756,13 +763,6 @@ class Plotter:
             self._interactive = False
             return  ################
             ########################
-
-        if self.size[0] == "f":  # full screen
-            self.size = "fullscreen"
-            self.window.SetFullScreen(True)
-            self.window.BordersOn()
-        else:
-            self.window.SetSize(int(self.size[0]), int(self.size[1]))
 
         self.window.SetPosition(pos)
 
@@ -3353,6 +3353,7 @@ class Plotter:
         #########################################################################
 
         return self
+
 
     def add_inset(self, *objects, **options):
         """Add a draggable inset space into a renderer.

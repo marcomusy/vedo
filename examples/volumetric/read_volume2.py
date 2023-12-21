@@ -19,12 +19,12 @@ vol1.alpha([0.0, 0.2, 0.3, 0.8])
 # and the voxel are made transparent:
 vol1.alpha_gradient([0.0, 0.5, 0.9])
 vol1.add_scalarbar3d('composite shade')
-vol1.scalarbar = vol1.scalarbar.clone2d("bottom-right", scale=0.2)
+vol1.scalarbar = vol1.scalarbar.clone2d("center-right", size=0.2)
 
 # mode = 1 is maximum-projection volume rendering
 vol2 = Volume(dataurl+"vase.vti").mode(1)
 vol2.add_scalarbar3d('maximum-projection')
-vol2.scalarbar = vol2.scalarbar.clone2d("bottom-right", scale=0.2)
+vol2.scalarbar = vol2.scalarbar.clone2d("center-right", size=0.2)
 
 # show command creates and returns an instance of class Plotter
 show([[vol1, __doc__], vol2], N=2, axes=1).close()

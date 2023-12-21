@@ -304,10 +304,6 @@ class Mesh(MeshVisual, Points):
         pdnorm.Update()
         out = pdnorm.GetOutput()
         self._update(out, reset_locators=False)
-        # if points:
-        #     self.dataset.GetPointData().SetNormals(out.GetPointData().GetNormals())
-        # if cells:
-        #     self.dataset.GetCellData().SetNormals(out.GetCellData().GetNormals())
         return self
 
     def reverse(self, cells=True, normals=False):
@@ -960,7 +956,7 @@ class Mesh(MeshVisual, Points):
         return self
 
 
-    def decimate(self, fraction=0.5, n=None, preserve_volume=True, regularize=True):
+    def decimate(self, fraction=0.5, n=None, preserve_volume=True, regularization=0.0):
         """
         Downsample the number of vertices in a mesh to `fraction`.
 
@@ -975,7 +971,7 @@ class Mesh(MeshVisual, Points):
             preserve_volume : (bool)
                 Decide whether to activate volume preservation which greatly
                 reduces errors in triangle normal direction.
-            regularize : (bool)
+            regularization : (float)
                 regularize the point finding algorithm so as to have better quality
                 mesh elements at the cost of a slightly lower precision on the
                 geometry potentially (mostly at sharp edges).
@@ -998,7 +994,10 @@ class Mesh(MeshVisual, Points):
 
         decimate = vtk.new("QuadricDecimation")
         decimate.SetVolumePreservation(preserve_volume)
-        decimate.SetRegularize(regularize)
+        # decimate.AttributeErrorMetricOn()
+        if regularization:
+            decimate.SetRegularize(True)
+            decimate.SetRegularization(regularization)
         decimate.MapPointDataOn()
 
         decimate.SetTargetReduction(1 - fraction)
@@ -1025,6 +1024,7 @@ class Mesh(MeshVisual, Points):
             splitting_angle=75,
             feature_angle=0,
             inflection_point_ratio=10,
+            vertex_degree=0,
         ):
         """
         Downsample the number of vertices in a mesh to `fraction`.
@@ -1061,6 +1061,8 @@ class Mesh(MeshVisual, Points):
             inflection_point_ratio : (float)
                 An inflection point occurs when the ratio of reduction error between two iterations
                 is greater than or equal to the `inflection_point_ratio` value.
+            vertex_degree : (int)
+                If the number of triangles connected to a vertex exceeds it then the vertex will be split.
 
         Note:
             Setting `fraction=0.1` leaves 10% of the original number of vertices
@@ -1083,6 +1085,8 @@ class Mesh(MeshVisual, Points):
         decimate.SetSplitting(splitting)
         decimate.SetSplitAngle(splitting_angle)
         decimate.SetInflectionPointRatio(inflection_point_ratio)
+        if vertex_degree:
+            decimate.SetDegree(vertex_degree)
 
         decimate.SetTargetReduction(1 - fraction)
         decimate.SetInputData(poly)

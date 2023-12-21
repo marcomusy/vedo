@@ -18,6 +18,8 @@
 - add `shapes.Tubes()`
 - add `utils.Minimizer()` class
 - add `CellCenters(Points)` class
+- add `core.apply_transform_from_actor()`
+- add `add volume.slab()`
 
 
 ## Breaking changes
@@ -29,17 +31,9 @@
 - split `mesh.decimate()` into `mesh.decimate()`, `mesh.decimate_pro()` and `mesh.decimate_binned()` as per #992
 
 
-### Renaming
-
-
-### Other changes
-- add `core.apply_transform_from_actor()`
-- add `add volume.slab()`
-
-
-
 ### Bug Fixes
 - fix plotter `a` toggle
+- fix viz on jupyter notebook as per #994
 
 
 ## New/Revised Examples
@@ -66,22 +60,21 @@ tests/snippets/test_compare_fit1.py
 
 ### Broken Examples
 ```
-tests/issues/discussion_800.py
-tests/issues/issue_905.py
-gyroscope1.py broken
 markpoint.py
 cut_and_cap.py
 
-volumetric/streamlines1.py
-mousehover1.py (unstable hovering?)
+gyroscope1.py broken physics
+mousehover1.py (long indicator?)
 mousehover2.py (unstable hovering?)
 read_volume3.py interactor is lost
+
+tests/issues/discussion_800.py
+tests/issues/issue_905.py
 ```
 
 #### Broken Projects
 umap_viewer3d
 trackviewer (some problems with removing a track, and z spacing)
-
 
 #### Broken Exports to .npz:
 boolean.py

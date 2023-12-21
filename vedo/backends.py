@@ -54,14 +54,17 @@ def start_2d():
     plt = vedo.plotter_instance
 
     if hasattr(plt, "window") and plt.window:
-        if plt.renderer == plt.renderers[-1]:
+        try:
             nn = vedo.file_io.screenshot(asarray=True, scale=1)
             pil_img = PIL.Image.fromarray(nn)
-            # IPython.display.display(pil_img)
-            vedo.notebook_plotter = pil_img
-            if settings.backend_autoclose:
-                plt.close()
-            return pil_img
+        except ValueError as e:
+            return None
+
+        # IPython.display.display(pil_img)
+        vedo.notebook_plotter = pil_img
+        if settings.backend_autoclose and plt.renderer == plt.renderers[-1]:
+            plt.close()
+        return pil_img
 
 
 ####################################################################################

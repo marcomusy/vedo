@@ -1,7 +1,7 @@
 """Modify mesh vertex positions"""
 from vedo import *
 
-disc = Disc(res=(8,120)).linewidth(0.1)
+disc = Disc(res=(8,120)).linewidth(1)
 
 plt = Plotter(interactive=False, axes=1)
 plt.show(disc, Point(), __doc__)
