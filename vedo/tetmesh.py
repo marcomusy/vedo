@@ -1128,9 +1128,71 @@ class TetMesh(UnstructuredGrid):
         )
         return self
 
+    def generate_random_points(self, n, min_radius=0):
+        """
+        Generate `n` uniformly distributed random points
+        inside the tetrahedral mesh.
+
+        A new point data array is added to the output points
+        called "OriginalCellID" which contains the index of
+        the cell ID in which the point was generated.
+
+        Arguments:
+            n : (int)
+                number of points to generate.
+            min_radius: (float)
+                impose a minimum distance between points.
+                If `min_radius` is set to 0, the points are
+                generated uniformly at random inside the mesh.
+                If `min_radius` is set to a positive value,
+                the points are generated uniformly at random
+                inside the mesh, but points closer than `min_radius`
+                to any other point are discarded.
+
+        Returns a `vedo.Points` object.
+
+        Example:
+        ```python
+        from vedo import *
+        tmesh = TetMesh(dataurl + "limb.vtu").alpha(0.2)
+        pts = tmesh.generate_random_points(20000, min_radius=10)
+        print(pts.pointdata["OriginalCellID"])
+        show(pts, tmesh, axes=1).close()
+        """
+        cmesh = self.compute_cell_size()
+        tets  = cmesh.cells
+        verts = cmesh.vertices
+        cumul = np.cumsum(np.abs(cmesh.celldata["Volume"]))
+
+        out_pts = []
+        orig_cell = []
+        for _ in range(n):
+            random_area = np.random.random() * cumul[-1]
+            it = np.searchsorted(cumul, random_area)
+            A, B, C, D = verts[tets[it]]
+            r1, r2, r3 = sorted(np.random.random(3))
+            p = r1 * A + (r2-r1) * B + (r3-r2) * C + (1-r3) * D
+            out_pts.append(p)
+            orig_cell.append(it)
+        orig_cell = np.array(orig_cell, dtype=np.uint32)
+
+        vpts = vedo.pointcloud.Points(out_pts)
+        vpts.pointdata["OriginalCellID"] = orig_cell
+
+        if min_radius > 0:
+            vpts.subsample(min_radius, absolute=True)
+
+        vpts.point_size(5).color("k1")
+        vpts.name = "RandomPoints"
+        vpts.pipeline = utils.OperationNode(
+            "generate_random_points", c="#edabab", parents=[self])
+        return vpts
+
     def isosurface(self, value=True):
         """
         Return a `vedo.Mesh` isosurface.
+        The "isosurface" is the surface of the region of points
+        whose values equal to `value`.
 
         Set `value` to a single value or list of values to compute the isosurface(s).
         """
