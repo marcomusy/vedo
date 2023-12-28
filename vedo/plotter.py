@@ -3636,7 +3636,7 @@ class Plotter:
             from vedo import *
             sphere = Sphere().linewidth(1)
             plt = show(sphere, interactive=False)
-            plt.screenhot('image.png')
+            plt.screenshot('image.png')
             plt.interactive()
             plt.close()
             ```
@@ -3646,7 +3646,7 @@ class Plotter:
             from vedo import *
             sphere = Sphere().linewidth(1)
             plt = show(sphere, interactive=False)
-            plt.screenhot('anotherimage.png')
+            plt.screenshot('anotherimage.png')
             plt.interactive()
             plt.close()
             ```
