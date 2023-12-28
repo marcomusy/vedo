@@ -1151,6 +1151,10 @@ class TetMesh(UnstructuredGrid):
 
         Returns a `vedo.Points` object.
 
+        Note:
+            Consider using `points.probe(msh)` to interpolate
+            any existing mesh data onto the points.
+
         Example:
         ```python
         from vedo import *
@@ -1158,6 +1162,7 @@ class TetMesh(UnstructuredGrid):
         pts = tmesh.generate_random_points(20000, min_radius=10)
         print(pts.pointdata["OriginalCellID"])
         show(pts, tmesh, axes=1).close()
+        ```
         """
         cmesh = self.compute_cell_size()
         tets  = cmesh.cells

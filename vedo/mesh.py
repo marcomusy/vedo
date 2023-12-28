@@ -1146,6 +1146,75 @@ class Mesh(MeshVisual, Points):
         )
         return self
 
+    def generate_random_points(self, n, min_radius=0):
+        """
+        Generate `n` uniformly distributed random points
+        inside the polygonal mesh.
+
+        A new point data array is added to the output points
+        called "OriginalCellID" which contains the index of
+        the cell ID in which the point was generated.
+
+        Arguments:
+            n : (int)
+                number of points to generate.
+            min_radius: (float)
+                impose a minimum distance between points.
+                If `min_radius` is set to 0, the points are
+                generated uniformly at random inside the mesh.
+                If `min_radius` is set to a positive value,
+                the points are generated uniformly at random
+                inside the mesh, but points closer than `min_radius`
+                to any other point are discarded.
+
+        Returns a `vedo.Points` object.
+
+        Note:
+            Consider using `points.probe(msh)` to interpolate
+            any existing mesh data onto the points.
+
+        Example:
+        ```python
+        from vedo import *
+        msh = Mesh(dataurl + "panther.stl").lw(2)
+        pts = msh.generate_random_points(20000, min_radius=0.5)
+        print("Original cell ids:", pts.pointdata["OriginalCellID"])
+        show(pts, msh, axes=1).close()
+        ```
+        """
+        cmesh = self.clone().clean().triangulate().compute_cell_size()
+        triangles = cmesh.cells
+        vertices = cmesh.vertices
+        cumul = np.cumsum(cmesh.celldata["Area"])
+
+        out_pts = []
+        orig_cell = []
+        for _ in range(n):
+            # choose a triangle based on area
+            random_area = np.random.random() * cumul[-1]
+            it = np.searchsorted(cumul, random_area)
+            A, B, C = vertices[triangles[it]]
+            # calculate the random point in the triangle
+            r1, r2 = np.random.random(2)
+            if r1 + r2 > 1:
+                r1 = 1 - r1
+                r2 = 1 - r2
+            out_pts.append((1 - r1 - r2) * A + r1 * B + r2 * C)
+            orig_cell.append(it)
+        orig_cell = np.array(orig_cell, dtype=np.uint32)
+
+        vpts = Points(out_pts)
+        vpts.pointdata["OriginalCellID"] = orig_cell
+
+        if min_radius > 0:
+            vpts.subsample(min_radius, absolute=True)
+
+        vpts.point_size(5).color("k1")
+        vpts.name = "RandomPoints"
+        vpts.pipeline = OperationNode(
+            "generate_random_points", c="#edabab", parents=[self])
+        return vpts
+
     def delete_cells(self, ids):
         """
         Remove cells from the mesh object by their ID.
