@@ -1170,8 +1170,9 @@ class Mesh(MeshVisual, Points):
         Returns a `vedo.Points` object.
 
         Note:
-            Consider using `points.probe(msh)` to interpolate
-            any existing mesh data onto the points.
+            Consider using `points.probe(msh)` or
+            `points.interpolate_data_from(msh)`
+            to interpolate existing mesh data onto the new points.
 
         Example:
         ```python

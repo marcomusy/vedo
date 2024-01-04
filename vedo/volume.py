@@ -1086,20 +1086,112 @@ class Volume(VolumeVisual, VolumeAlgorithms):
     def operation(self, operation, volume2=None):
         """
         Perform operations with `Volume` objects.
-        Keyword `volume2` can be a constant float.
+        Keyword `volume2` can be a constant `float`.
 
         Possible operations are:
         ```
+        and, or, xor, nand, nor, not,
         +, -, /, 1/x, sin, cos, exp, log,
         abs, **2, sqrt, min, max, atan, atan2, median,
         mag, dot, gradient, divergence, laplacian.
         ```
 
-        Examples:
+        Example:
+        ```py
+        from vedo import Box, show
+        vol1 = Box(size=(35,10, 5)).binarize()
+        vol2 = Box(size=( 5,10,35)).binarize()
+        vol = vol1.operation("xor", vol2)
+        show([[vol1, vol2], 
+            ["vol1 xor vol2", vol]],
+            N=2, axes=1, viewup="z",
+        ).close()
+        ```
+
+        Note:
+            For logic operations, the two volumes must have the same bounds.
+            If they do not, a larger image is created to contain both and the
+            volumes are resampled onto the larger image before the operation is
+            performed. This can be slow and memory intensive.
+
+        See also:
             - [volume_operations.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/volume_operations.py)
         """
         op = operation.lower()
         image1 = self.dataset
+
+        if op in ["and", "or", "xor", "nand", "nor"]:
+
+            if not np.allclose(image1.GetBounds(), volume2.dataset.GetBounds()):
+                # create a larger image to contain both
+                b1 = image1.GetBounds()
+                b2 = volume2.dataset.GetBounds()
+                b = [
+                    min(b1[0], b2[0]),
+                    max(b1[1], b2[1]),
+                    min(b1[2], b2[2]),
+                    max(b1[3], b2[3]),
+                    min(b1[4], b2[4]),
+                    max(b1[5], b2[5]),
+                ]
+                dims1 = image1.GetDimensions()
+                dims2 = volume2.dataset.GetDimensions()
+                dims = [max(dims1[0], dims2[0]), max(dims1[1], dims2[1]), max(dims1[2], dims2[2])]
+
+                image = vtk.vtkImageData()
+                image.SetDimensions(dims)
+                spacing = (
+                    (b[1] - b[0]) / dims[0],
+                    (b[3] - b[2]) / dims[1],
+                    (b[5] - b[4]) / dims[2],
+                )
+                image.SetSpacing(spacing)
+                image.SetOrigin((b[0], b[2], b[4]))
+                image.AllocateScalars(vtk.VTK_UNSIGNED_CHAR, 1)
+                image.GetPointData().GetScalars().FillComponent(0, 0)
+
+                interp1 = vtk.new("ImageReslice")
+                interp1.SetInputData(image1)
+                interp1.SetOutputExtent(image.GetExtent())
+                interp1.SetOutputOrigin(image.GetOrigin())
+                interp1.SetOutputSpacing(image.GetSpacing())
+                interp1.SetInterpolationModeToNearestNeighbor()
+                interp1.Update()
+                imageA = interp1.GetOutput()
+
+                interp2 = vtk.new("ImageReslice")
+                interp2.SetInputData(volume2.dataset)
+                interp2.SetOutputExtent(image.GetExtent())
+                interp2.SetOutputOrigin(image.GetOrigin())
+                interp2.SetOutputSpacing(image.GetSpacing())
+                interp2.SetInterpolationModeToNearestNeighbor()
+                interp2.Update()
+                imageB = interp2.GetOutput()
+
+            else:
+                imageA = image1
+                imageB = volume2.dataset
+
+            img_logic = vtk.new("ImageLogic")
+            img_logic.SetInput1Data(imageA)
+            img_logic.SetInput2Data(imageB)
+            img_logic.SetOperation(["and", "or", "xor", "nand", "nor"].index(op))
+            img_logic.Update()
+
+            out_vol = Volume(img_logic.GetOutput())
+            out_vol.pipeline = utils.OperationNode(
+                "operation", comment=f"{op}", parents=[self, volume2], c="#4cc9f0", shape="cylinder"
+            )
+            return out_vol  ######################################################
+
+        if volume2:
+            # assert image1.GetScalarType() == volume2.dataset.GetScalarType(), "volumes have different scalar types"
+            # make sure they have the same bounds:
+            assert np.allclose(image1.GetBounds(), volume2.dataset.GetBounds()), "volumes have different bounds"
+            # make sure they have the same spacing:
+            assert np.allclose(image1.GetSpacing(), volume2.dataset.GetSpacing()), "volumes have different spacing"
+            # make sure they have the same origin:
+            assert np.allclose(image1.GetOrigin(), volume2.dataset.GetOrigin()), "volumes have different origin"
 
         mf = None
         if op in ["median"]:
@@ -1108,7 +1200,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         elif op in ["mag"]:
             mf = vtk.new("ImageMagnitude")
             mf.SetInputData(image1)
-        elif op in ["dot", "dotproduct"]:
+        elif op in ["dot"]:
             mf = vtk.new("ImageDotProduct")
             mf.SetInput1Data(image1)
             mf.SetInput2Data(volume2.dataset)
@@ -1123,6 +1215,10 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             mf = vtk.new("ImageLaplacian")
             mf.SetDimensionality(3)
             mf.SetInputData(image1)
+        elif op in ["not"]:
+            mf = vtk.new("ImageLogic")
+            mf.SetInput1Data(image1)
+            mf.SetOperation(4)
 
         if mf is not None:
             mf.Update()
@@ -1130,7 +1226,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             vol.pipeline = utils.OperationNode(
                 "operation", comment=f"{op}", parents=[self], c="#4cc9f0", shape="cylinder"
             )
-            return vol  ###########################
+            return vol  ######################################################
 
         mat = vtk.new("ImageMathematics")
         mat.SetInput1Data(image1)

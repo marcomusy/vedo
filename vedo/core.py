@@ -1284,10 +1284,11 @@ class CommonAlgorithms:
         self._update(csf.GetOutput(), reset_locators=False)
         return self
 
-    def integrate_arrays_over_domain(self):
+    def integrate_data(self):
         """
-        Integrate point and cell data arrays while computing length, area or volume
-        of the domain. It works for 1D, 2D or 3D cells.
+        Integrate point and cell data arrays while computing length,
+        area or volume of the domain. It works for 1D, 2D or 3D cells.
+    
         For volumetric datasets, this filter ignores all but 3D cells.
         It will not compute the volume contained in a closed surface.
 
@@ -1299,7 +1300,7 @@ class CommonAlgorithms:
             from vedo import *
             surf = Sphere(res=100)
             surf.pointdata['scalars'] = np.ones(surf.npoints)
-            data = surf.integrate_arrays_over_domain()
+            data = surf.integrate_data()
             print(data['pointdata']['scalars'], "is equal to 4pi", 4*np.pi)
             ```
 
@@ -1317,8 +1318,8 @@ class CommonAlgorithms:
             surf1.pointdata['scalars'] = surf1.vertices[:,2]
             surf2.pointdata['scalars'] = surf2.vertices[:,2]
 
-            data1 = surf1.integrate_arrays_over_domain()
-            data2 = surf2.integrate_arrays_over_domain()
+            data1 = surf1.integrate_data()
+            data2 = surf2.integrate_data()
 
             print(data1['pointdata']['scalars'],
                 "is equal to",
@@ -1327,7 +1328,7 @@ class CommonAlgorithms:
                 "(= the volume under the surface)"
             )
             show(surf1, surf2, N=2, axes=1).close()
-        ```
+            ```
         """
         vinteg = vtk.new("IntegrateAttributes")
         vinteg.SetInputData(self.dataset)

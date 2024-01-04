@@ -903,7 +903,10 @@ def color_map(value, name="jet", vmin=None, vmax=None):
         if vmax is None:
             vedo.logger.warning("in color_map() you must specify vmax! Assume 1.")
             vmax = 1
-        values = [(value - vmin) / (vmax - vmin)]
+        if vmax == vmin:
+            values = [value - vmin]
+        else:
+            values = [(value - vmin) / (vmax - vmin)]
 
     if _has_matplotlib:
         # matplotlib is available, use it! ###########################

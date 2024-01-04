@@ -20,6 +20,10 @@
 - add `CellCenters(Points)` class
 - add `core.apply_transform_from_actor()`
 - add `add volume.slab()`
+- add `mesh.generate_random_points()` to generate random points onto a surface
+- add `tetmesh.generate_random_points()` to generate random points in a tet mesh
+- rename `integrate_arrays_over_domain()` to `integrate_data`
+- extend `volume.operation()` to support logic operations as per #1002
 
 
 ## Breaking changes

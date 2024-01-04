@@ -544,6 +544,7 @@ for name in [
     "vtkImageDivergence",
     "vtkImageDotProduct",
     "vtkImageLogarithmicScale",
+    "vtkImageLogic",
     "vtkImageMagnitude",
     "vtkImageMathematics",
 ]: location[name] = "vtkImagingMath"
