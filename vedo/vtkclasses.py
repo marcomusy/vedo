@@ -136,6 +136,7 @@ from vtkmodules.vtkCommonDataModel import (
     vtkRectilinearGrid,
     vtkStructuredGrid,
 )
+location["vtkPlaneCollection"] = "vtkCommonDataModel"
 
 # noinspection PyUnresolvedReferences
 from vtkmodules.vtkCommonDataModel import (
@@ -311,6 +312,7 @@ for name in [
     "vtkBoxClipDataSet",
     "vtkCellValidator",
     "vtkClipDataSet",
+    "vtkClipClosedSurface",
     "vtkCountVertices",
     "vtkContourTriangulator",
     "vtkCurvatures",

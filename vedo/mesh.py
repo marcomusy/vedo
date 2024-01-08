@@ -7,7 +7,7 @@ import vedo.vtkclasses as vtk
 import vedo
 from vedo.colors import get_color
 from vedo.pointcloud import Points
-from vedo.utils import buildPolyData, is_sequence, mag, mag2, precision
+from vedo.utils import buildPolyData, is_sequence, mag, precision
 from vedo.utils import numpy2vtk, vtk2numpy, OperationNode
 from vedo.visual import MeshVisual
 
@@ -2174,6 +2174,87 @@ class Mesh(MeshVisual, Points):
         )
         msh.name = "PlaneIntersection"
         return msh
+    
+    def cut_closed_surface(self, origins, normals, invert=False, return_assembly=False):
+        """
+        Cut/clip a closed surface mesh with a collection of planes.
+        This will produce a new closed surface by creating new polygonal
+        faces where the input surface hits the planes.
+
+        The orientation of the polygons that form the surface is important.
+        Polygons have a front face and a back face, and it's the back face that defines
+        the interior or "solid" region of the closed surface.
+        When a plane cuts through a "solid" region, a new cut face is generated,
+        but not when a clipping plane cuts through a hole or "empty" region.
+        This distinction is crucial when dealing with complex surfaces.
+        Note that if a simple surface has its back faces pointing outwards,
+        then that surface defines a hole in a potentially infinite solid.
+
+        Non-manifold surfaces should not be used with this method. 
+
+        Arguments:
+            origins : (list)
+                list of plane origins
+            normals : (list)
+                list of plane normals
+            invert : (bool)
+                invert the clipping.
+            return_assembly : (bool)
+                return the cap and the clipped surfaces as a `vedo.Assembly`.
+        
+        Example:
+            ```python
+            from vedo import *
+            s = Sphere(res=50).linewidth(1)
+            origins = [[-0.7, 0, 0], [0, -0.6, 0]]
+            normals = [[-1, 0, 0], [0, -1, 0]]
+            s.cut_closed_surface(origins, normals)
+            show(s, axes=1).close()
+            ```
+        """        
+        planes = vtk.new("PlaneCollection")
+        for p, s in zip(origins, normals):
+            plane = vtk.vtkPlane()
+            plane.SetOrigin(vedo.utils.make3d(p))
+            plane.SetNormal(vedo.utils.make3d(s))
+            planes.AddItem(plane)
+        clipper = vtk.new("ClipClosedSurface")
+        clipper.SetInputData(self.dataset)
+        clipper.SetClippingPlanes(planes)
+        clipper.PassPointDataOn()
+        clipper.GenerateFacesOn()
+        clipper.SetScalarModeToLabels()
+        clipper.TriangulationErrorDisplayOn()
+        clipper.SetInsideOut(not invert)
+        if return_assembly:
+            clipper.GenerateClipFaceOutputOn()
+            clipper.Update()
+            parts = []
+            for i in range(clipper.GetNumberOfOutputPorts()):
+                msh = Mesh(clipper.GetOutput(i))
+                msh.copy_properties_from(self)
+                msh.name = "CutClosedSurface"
+                msh.pipeline = OperationNode(
+                    "cut_closed_surface",
+                    parents=[self],
+                    comment=f"#pts {msh.dataset.GetNumberOfPoints()}",
+                )
+                parts.append(msh)
+            asse = vedo.Assembly(parts)
+            asse.name = "CutClosedSurface"
+            return asse
+        else:
+            clipper.GenerateClipFaceOutputOff()
+            clipper.Update()
+            self._update(clipper.GetOutput())
+            self.flat()
+            self.name = "CutClosedSurface"
+            self.pipeline = OperationNode(
+                "cut_closed_surface",
+                parents=[self],
+                comment=f"#pts {self.dataset.GetNumberOfPoints()}",
+            )
+            return self
 
     def collide_with(self, mesh2, tol=0, return_bool=False):
         """

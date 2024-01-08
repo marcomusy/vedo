@@ -28,6 +28,7 @@
 - add `pointcloud.auto_distance()` method calculates the distance to the closest
 point in the same cloud of points.
 - fixed `mesh.collapse_edges()` after #992
+- add `mesh.cut_closed_surface()`
 
 
 ## Breaking changes
