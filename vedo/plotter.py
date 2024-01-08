@@ -3025,6 +3025,9 @@ class Plotter:
             elif "TetgenIO" in str(type(a)):
                 scanned_acts.append(vedo.TetMesh(a).shrink(0.9).c("pink7").actor)
 
+            elif "matplotlib.figure.Figure" in str(type(a)):
+                scanned_acts.append(vedo.Image(a).clone2d("top-right", 0.6))
+
             else:
                 vedo.logger.error(f"cannot understand input in show(): {type(a)}")
 

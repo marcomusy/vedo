@@ -24,6 +24,10 @@
 - add `tetmesh.generate_random_points()` to generate random points in a tet mesh
 - rename `integrate_arrays_over_domain()` to `integrate_data`
 - extend `volume.operation()` to support logic operations as per #1002
+- add `pointcloud.relax_point_positions()` method
+- add `pointcloud.auto_distance()` method calculates the distance to the closest
+point in the same cloud of points.
+- fixed `mesh.collapse_edges()` after #992
 
 
 ## Breaking changes
@@ -33,6 +37,7 @@
 - change `clone2d(scale=...)` to `clone2d(size=...)`
 - remove `shapes.StreamLines()` becoming `object.compute_streamlines()`
 - split `mesh.decimate()` into `mesh.decimate()`, `mesh.decimate_pro()` and `mesh.decimate_binned()` as per #992
+- modified `core.clean()` after #992
 
 
 ### Bug Fixes

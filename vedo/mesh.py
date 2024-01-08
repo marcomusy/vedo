@@ -1235,14 +1235,19 @@ class Mesh(MeshVisual, Points):
         return self
 
     def collapse_edges(self, distance, iterations=1):
-        """Collapse mesh edges so that are all above distance."""
-        self.clean()
-        x0, x1, y0, y1, z0, z1 = self.bounds()
-        fs = min(x1 - x0, y1 - y0, z1 - z0) / 10
-        d2 = distance * distance
-        if distance > fs:
-            vedo.logger.error(f"distance parameter is too large, should be < {fs}, skip!")
-            return self
+        """
+        Collapse mesh edges so that are all above `distance`.
+        
+        Example:
+            ```python
+            from vedo import *
+            np.random.seed(2)
+            grid1 = Grid().add_gaussian_noise(0.8).triangulate().lw(1)
+            grid1.celldata['scalar'] = grid1.cell_centers[:,1]
+            grid2 = grid1.clone().collapse_edges(0.1)
+            show(grid1, grid2, N=2, axes=1)
+            ```
+        """
         for _ in range(iterations):
             medges = self.edges
             pts = self.vertices
@@ -1252,16 +1257,22 @@ class Mesh(MeshVisual, Points):
                 if len(e) == 2:
                     id0, id1 = e
                     p0, p1 = pts[id0], pts[id1]
-                    d = mag2(p1 - p0)
-                    if d < d2 and id0 not in moved and id1 not in moved:
+                    if (np.linalg.norm(p1-p0) < distance 
+                        and id0 not in moved
+                        and id1 not in moved
+                    ):
                         p = (p0 + p1) / 2
                         newpts[id0] = p
                         newpts[id1] = p
                         moved += [id0, id1]
-
             self.vertices = newpts
-            self.clean()
-        self.compute_normals()
+            cpd = vtk.new("CleanPolyData")
+            cpd.ConvertLinesToPointsOff()
+            cpd.ConvertPolysToLinesOff()
+            cpd.ConvertStripsToPolysOff()
+            cpd.SetInputData(self.dataset)
+            cpd.Update()
+            self._update(cpd.GetOutput())
 
         self.pipeline = OperationNode(
             "collapse_edges",

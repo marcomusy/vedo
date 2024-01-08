@@ -391,6 +391,7 @@ for name in [
     "vtkRadiusOutlierRemoval",
     "vtkShepardKernel",
     "vtkSignedDistance",
+    "vtkPointSmoothingFilter",
     "vtkVoronoiKernel",
 ]: location[name] = "vtkFiltersPoints"
 

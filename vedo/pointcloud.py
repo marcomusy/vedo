@@ -1042,9 +1042,9 @@ class Points(PointsVisual, PointAlgorithms):
         """Clean pointcloud or mesh by removing coincident points."""
         cpd = vtk.new("CleanPolyData")
         cpd.PointMergingOn()
-        cpd.ConvertLinesToPointsOn()
-        cpd.ConvertPolysToLinesOn()
-        cpd.ConvertStripsToPolysOn()
+        cpd.ConvertLinesToPointsOff()
+        cpd.ConvertPolysToLinesOff()
+        cpd.ConvertStripsToPolysOff()
         cpd.SetInputData(self.dataset)
         cpd.Update()
         self._update(cpd.GetOutput())
@@ -1543,6 +1543,30 @@ class Points(PointsVisual, PointAlgorithms):
 
             return np.array(trgp)
 
+    def auto_distance(self):
+        """
+        Calculate the distance to the closest point in the same cloud of points.
+        The output is stored in a new pointdata array called "AutoDistance",
+        and it is also returned by the function.
+        """
+        points = self.vertices
+        if not self.point_locator:
+            self.point_locator = vtk.new("StaticPointLocator")
+            self.point_locator.SetDataSet(self.dataset)
+            self.point_locator.BuildLocator()
+        qs = []
+        vtklist = vtk.vtkIdList()
+        vtkpoints = self.dataset.GetPoints()
+        for p in points:
+            self.point_locator.FindClosestNPoints(2, p, vtklist)
+            q = [0, 0, 0]
+            pid = vtklist.GetId(1)
+            vtkpoints.GetPoint(pid, q)
+            qs.append(q)
+        dists = np.linalg.norm(points - np.array(qs), axis=1)
+        self.pointdata["AutoDistance"] = dists
+        return dists
+
     def hausdorff_distance(self, points):
         """
         Compute the Hausdorff distance to the input point set.
@@ -1650,11 +1674,112 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("remove_outliers", parents=[self])
         return self
 
+    def relax_point_positions(
+            self, 
+            n=10,
+            iters=10,
+            sub_iters=10,
+            packing_factor=1,
+            max_step=0,
+            constraints=(),
+        ):
+        """
+        Smooth mesh or points with a 
+        [Laplacian algorithm](https://vtk.org/doc/nightly/html/classvtkPointSmoothingFilter.html)
+        variant. This modifies the coordinates of the input points by adjusting their positions
+        to create a smooth distribution (and thereby form a pleasing packing of the points).
+        Smoothing is performed by considering the effects of neighboring points on one another
+        it uses a cubic cutoff function to produce repulsive forces between close points
+        and attractive forces that are a little further away.
+        
+        In general, the larger the neighborhood size, the greater the reduction in high frequency
+        information. The memory and computational requirements of the algorithm may also
+        significantly increase.
+
+        The algorithm incrementally adjusts the point positions through an iterative process.
+        Basically points are moved due to the influence of neighboring points. 
+        
+        As points move, both the local connectivity and data attributes associated with each point
+        must be updated. Rather than performing these expensive operations after every iteration,
+        a number of sub-iterations can be specified. If so, then the neighborhood and attribute
+        value updates occur only every sub iteration, which can improve performance significantly.
+        
+        Arguments:
+            n : (int)
+                neighborhood size to calculate the Laplacian.
+            iters : (int)
+                number of iterations.
+            sub_iters : (int)
+                number of sub-iterations, i.e. the number of times the neighborhood and attribute
+                value updates occur during each iteration.
+            packing_factor : (float)
+                adjust convergence speed.
+            max_step : (float)
+                Specify the maximum smoothing step size for each smoothing iteration.
+                This limits the the distance over which a point can move in each iteration.
+                As in all iterative methods, the stability of the process is sensitive to this parameter.
+                In general, small step size and large numbers of iterations are more stable than a larger
+                step size and a smaller numbers of iterations.
+            constraints : (dict)
+                dictionary of constraints.
+                Point constraints are used to prevent points from moving,
+                or to move only on a plane. This can prevent shrinking or growing point clouds.
+                If enabled, a local topological analysis is performed to determine whether a point
+                should be marked as fixed" i.e., never moves, or the point only moves on a plane,
+                or the point can move freely.
+                If all points in the neighborhood surrounding a point are in the cone defined by
+                `fixed_angle`, then the point is classified as fixed.
+                If all points in the neighborhood surrounding a point are in the cone defined by
+                `boundary_angle`, then the point is classified as lying on a plane.
+                Angles are expressed in degrees.
+        
+        Example:
+            ```py
+            import numpy as np
+            from vedo import Points, show
+            from vedo.pyplot import histogram
+
+            vpts1 = Points(np.random.rand(10_000, 3))
+            dists = vpts1.auto_distance()
+            h1 = histogram(dists, xlim=(0,0.08)).clone2d()
+
+            vpts2 = vpts1.clone().relax_point_positions(n=100, iters=20, sub_iters=10)
+            dists = vpts2.auto_distance()
+            h2 = histogram(dists, xlim=(0,0.08)).clone2d()
+
+            show([[vpts1, h1], [vpts2, h2]], N=2).close()
+            ```
+        """
+        smooth = vtk.new("PointSmoothingFilter")
+        smooth.SetInputData(self.dataset)
+        smooth.SetSmoothingModeToUniform()
+        smooth.SetNumberOfIterations(iters)
+        smooth.SetNumberOfSubIterations(sub_iters)
+        smooth.SetPackingFactor(packing_factor)
+        if self.point_locator:
+            smooth.SetLocator(self.point_locator)
+        if not max_step:
+            max_step = self.diagonal_size() / 100
+        smooth.SetMaximumStepSize(max_step)
+        smooth.SetNeighborhoodSize(n)
+        if constraints:
+            fixed_angle = constraints.get("fixed_angle", 45)
+            boundary_angle = constraints.get("boundary_angle", 110)
+            smooth.EnableConstraintsOn()
+            smooth.SetFixedAngle(fixed_angle)
+            smooth.SetBoundaryAngle(boundary_angle)
+            smooth.GenerateConstraintScalarsOn()
+            smooth.GenerateConstraintNormalsOn()
+        smooth.Update()
+        self._update(smooth.GetOutput())
+        self.metadata["PackingRadius"] = smooth.GetPackingRadius()
+        self.pipeline = utils.OperationNode("relax_point_positions", parents=[self])
+        return self
+
     def smooth_mls_1d(self, f=0.2, radius=None):
         """
         Smooth mesh or points with a `Moving Least Squares` variant.
         The point data array "Variances" will contain the residue calculated for each point.
-        Input mesh's polydata is modified.
 
         Arguments:
             f : (float)
@@ -2048,6 +2173,8 @@ class Points(PointsVisual, PointAlgorithms):
                 each cutting plane goes through this point
             normals : (array)
                 normal of each of the cutting planes
+            invert : (bool)
+                if True, cut outside instead of inside
 
         Check out also:
             `cut_with_box()`, `cut_with_cylinder()`, `cut_with_sphere()`
@@ -2063,7 +2190,7 @@ class Points(PointsVisual, PointAlgorithms):
         planes.SetNormals(utils.numpy2vtk(normals, dtype=float))
 
         clipper = vtk.new("ClipPolyData")
-        clipper.SetInputData(self.dataset)  # must be True
+        clipper.SetInputData(self.dataset)
         clipper.SetInsideOut(invert)
         clipper.SetClipFunction(planes)
         clipper.GenerateClippedOutputOff()
