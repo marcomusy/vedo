@@ -960,7 +960,8 @@ class Mesh(MeshVisual, Points):
         """
         Downsample the number of vertices in a mesh to `fraction`.
 
-        This filter preserves the `pointdata` of the input dataset.
+        This filter preserves the `pointdata` of the input dataset. In previous versions
+        of vedo, this decimation algorithm was referred to as quadric decimation.
 
         Arguments:
             fraction : (float)
