@@ -386,14 +386,13 @@ class Image(vedo.visual.ImageVisual):
         If transform is True, it is given the same scaling and position."""
         img = vtk.vtkImageData()
         img.DeepCopy(self.dataset)
-
         pic = Image(img)
-        # assign the same transformation to the copy
-        pic.actor.SetOrigin(self.actor.GetOrigin())
-        pic.actor.SetScale(self.actor.GetScale())
-        pic.actor.SetOrientation(self.actor.GetOrientation())
-        pic.actor.SetPosition(self.actor.GetPosition())
-
+        pic.name = self.name
+        pic.filename = self.filename
+        pic.apply_transform(self.transform)
+        pic.properties = vtk.vtkImageProperty()
+        pic.properties.DeepCopy(self.properties)
+        pic.actor.SetProperty(pic.properties)
         pic.pipeline = utils.OperationNode("clone", parents=[self], c="#f7dada", shape="diamond")
         return pic
     
@@ -446,8 +445,6 @@ class Image(vedo.visual.ImageVisual):
 
         pic.GetPositionCoordinate().SetCoordinateSystem(3)
         pic.SetPosition(pos)
-
-        pic.shape = tuple(self.dataset.GetDimensions()[:2])
 
         pic.pipeline = utils.OperationNode("clone2d", parents=[self], c="#f7dada", shape="diamond")
         return pic
