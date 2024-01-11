@@ -30,6 +30,7 @@ point in the same cloud of points.
 - fixed `mesh.collapse_edges()` after #992
 - add `mesh.cut_closed_surface()`
 - fix `image.clone()` in #1011
+- add `transformations.TransformInterpolator` class
 
 
 ## Breaking changes

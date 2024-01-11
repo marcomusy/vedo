@@ -25,9 +25,9 @@ his = histogram(
     ytitle="Frequency",
     axes=dict(htitle="", axes_linewidth=2, xyframe_line=0),
 )
-his = his.clone2d() # fix it to screen coords
+his = his.clone2d() # anchor it to screen coords
 
-print("integrated over domain:", grid2.integrate_arrays_over_domain())
+print("integrated over domain:", grid2.integrate_data())
 
 show([
     ["Initial state", grid],

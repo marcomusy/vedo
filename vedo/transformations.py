@@ -15,6 +15,7 @@ Submodule to work with linear and non-linear transformations<br>
 __all__ = [
     "LinearTransform",
     "NonLinearTransform",
+    "TransformInterpolator",
     "spher2cart",
     "cart2spher",
     "cart2cyl",
@@ -972,6 +973,100 @@ class NonLinearTransform:
             return self.transform_point(obj)
         obj.apply_transform(self)
         return obj
+
+########################################################################
+class TransformInterpolator:
+    """
+    Interpolate between a set of linear transformations.
+    
+    Position, scale and orientation (i.e., rotations) are interpolated separately,
+    and can be interpolated linearly or with a spline function.
+    Note that orientation is interpolated using quaternions via
+    SLERP (spherical linear interpolation) or the special `vtkQuaternionSpline` class.
+
+    To use this class, add at least two pairs of (t, transformation) with the add() method.
+    Then interpolate the transforms with the `TransformInterpolator(t)` call method,
+    where "t" must be in the range of `(min, max)` times specified by the add() method.
+
+    Example:
+        ```python
+        from vedo import *
+
+        T0 = LinearTransform()
+        T1 = LinearTransform().rotate_x(90).shift([12,0,0])
+
+        TRI = TransformInterpolator("linear")
+        TRI.add(0, T0)
+        TRI.add(1, T1)
+
+        plt = Plotter(axes=1)
+        for i in range(11):
+            t = i/10
+            T = TRI(t)
+            plt += Cube().color(i).apply_transform(T)
+        plt.show().close()
+        ```
+        ![](https://vedo.embl.es/images/other/transf_interp.png)
+    """
+    def __init__(self, mode="linear"):
+        """
+        Interpolate between two or more linear transformations.
+        """
+        self.vtk_interpolator = vtk.new("TransformInterpolator")
+        self.mode(mode)
+        self.TS = []
+
+    def __call__(self, t):
+        """
+        Get the intermediate transformation at time `t`.
+        """
+        xform = vtk.vtkTransform()
+        self.vtk_interpolator.InterpolateTransform(t, xform)
+        return LinearTransform(xform)
+
+    def add(self, t, T):
+        """Add intermediate transformations."""
+        try:
+            # in case a vedo object is passed
+            T = T.transform
+        except AttributeError:
+            pass
+        self.TS.append(T)
+        self.vtk_interpolator.AddTransform(t, T.T)
+        return self
+
+    def remove(self, t):
+        """Remove intermediate transformations."""
+        self.TS.pop(T)
+        self.vtk_interpolator.RemoveTransform(t)
+        return self
+    
+    def trange(self):
+        """Get interpolation range."""
+        tmin = self.vtk_interpolator.GetMinimumT()
+        tmax = self.vtk_interpolator.GetMaximumT()
+        return np.array([tmin, tmax])
+    
+    def clear(self):
+        """Clear all intermediate transformations."""
+        self.TS = []
+        self.vtk_interpolator.Initialize()
+        return self
+    
+    def mode(self, m):
+        """Set interpolation mode ('linear' or 'spline')."""
+        if m == "linear":
+            self.vtk_interpolator.SetInterpolationTypeToLinear()
+        elif m == "spline":
+            self.vtk_interpolator.SetInterpolationTypeToSpline()
+        else:
+            print('In TransformInterpolator mode can be either "linear" or "spline"')
+        return self
+    
+    @property
+    def ntransforms(self):
+        """Get number of transformations."""
+        return self.vtk_interpolator.GetNumberOfTransforms()
 
 
 ########################################################################

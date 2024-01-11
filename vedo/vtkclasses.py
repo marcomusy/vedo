@@ -723,6 +723,7 @@ for name in [
     "vtkTextProperty",
     "vtkTextRenderer",
     "vtkTexture",
+    "vtkTransformInterpolator",
     "vtkViewport",
     "vtkVolume",
     "vtkVolumeProperty",

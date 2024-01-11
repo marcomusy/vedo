@@ -448,7 +448,7 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
         )
         return out
 
-    def tomesh(self, fill=True, shrink=1.0):
+    def tomesh(self, fill=False, shrink=1.0):
         """
         Build a polygonal `Mesh` from the current object.
 
@@ -474,7 +474,6 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
 
         msh = vedo.mesh.Mesh(poly)
         msh.copy_properties_from(self)
-
         msh.pipeline = utils.OperationNode(
             "tomesh", parents=[self], comment=f"fill={fill}", c="#9e2a2b:#e9c46a"
         )

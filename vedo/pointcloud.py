@@ -1002,7 +1002,7 @@ class Points(PointsVisual, PointAlgorithms):
             scals = df.GetOutput().GetPointData().GetScalars()
             dists = utils.vtk2numpy(scals)
 
-        else:  # has no polygons and vtkDistancePolyDataFilter wants them (dont know why)
+        else:  # has no polygons
 
             if signed:
                 vedo.logger.warning("distance_to() called with signed=True but input object has no polygons")
