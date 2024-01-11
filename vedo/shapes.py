@@ -548,6 +548,19 @@ class Line(Mesh):
         v = p0 + seg * (x - w0) / (w1 - w0)
         return v
 
+    def find_index_at_position(self, p):
+        """
+        Find the index of the line vertex that is closest to the point `p`.
+        Note that the returned index can be fractional if `p` is not exactly
+        one of the vertices of the line.
+        """
+        q = self.closest_point(p)
+        a, b = sorted(self.closest_point(q, n=2, return_point_id=True))
+        pts = self.vertices
+        d = np.linalg.norm(pts[a] - pts[b])
+        t = a + np.linalg.norm(pts[a] - q) / d
+        return t
+
     def pattern(self, stipple, repeats=10):
         """
         Define a stipple pattern for dashing the line.
@@ -1222,6 +1235,10 @@ class KSpline(Line):
 
         ![](https://user-images.githubusercontent.com/32848391/65975805-73fd6580-e46f-11e9-8957-75eddb28fa72.png)
 
+        Warning:
+            This class is not necessarily generating the exact number of points
+            as requested by `res`. Some points may be concident and removed.
+
         See also: `Spline` and `CSpline`.
         """
         if isinstance(points, Points):
@@ -1283,6 +1300,10 @@ class CSpline(Line):
             res : (int)
                 approximate resolution of the output line.
                 Default is 20 times the number of input points.
+
+        Warning:
+            This class is not necessarily generating the exact number of points
+            as requested by `res`. Some points may be concident and removed.
 
         See also: `Spline` and `KSpline`.
         """

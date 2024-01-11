@@ -498,6 +498,7 @@ class Actor2D(vtk.vtkActor2D):
 
         self.dataset = None
         self.properties = self.GetProperty()
+        self.name = ""
         self.filename = ""
         self.shape = [] # for images
 

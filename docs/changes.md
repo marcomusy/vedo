@@ -31,6 +31,7 @@ point in the same cloud of points.
 - add `mesh.cut_closed_surface()`
 - fix `image.clone()` in #1011
 - add `transformations.TransformInterpolator` class
+- add `Line.find_index_at_position()` finds the index of the line vertex that is closest to a point
 
 
 ## Breaking changes

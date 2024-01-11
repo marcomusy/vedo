@@ -72,7 +72,7 @@ def procrustes_alignment(sources, rigid=False):
 
 
 #################################################
-class Group(CommonVisual, vtk.vtkPropAssembly):
+class Group(vtk.vtkPropAssembly):
     """Form groups of generic objects (not necessarily meshes)."""
 
     def __init__(self, objects=()):
@@ -99,6 +99,28 @@ class Group(CommonVisual, vtk.vtkPropAssembly):
 
         self.PickableOff()
 
+
+    def __str__(self):
+        """Print info about Group object."""
+        module = self.__class__.__module__
+        name = self.__class__.__name__
+        out = vedo.printc(
+            f"{module}.{name} at ({hex(id(self))})".ljust(75),
+            bold=True, invert=True, return_string=True,
+        )
+        out += "\x1b[0m"
+        if self.name:
+            out += "name".ljust(14) + ": " + self.name
+            if "legend" in self.info.keys() and self.info["legend"]:
+                out+= f", legend='{self.info['legend']}'"
+            out += "\n"
+
+        n = len(self.unpack())
+        out += "n. of objects".ljust(14) + ": " + str(n) + " "
+        names = [a.name for a in self.unpack() if a.name]
+        if names:
+            out += str(names).replace("'","")[:56]
+        return out.rstrip() + "\x1b[0m"
 
     def __iadd__(self, obj):
         """
@@ -148,42 +170,22 @@ class Group(CommonVisual, vtk.vtkPropAssembly):
         self.VisibilityOff()
         return self
 
-    def pickable(self, value=None):
-        """Set/get the pickability property of an object."""
+    def pickable(self, value=True):
+        """The pickability property of the Group."""
         if value is None:
             return self.GetPickable()
         self.SetPickable(value)
         return self
-
-    def draggable(self, value=None):
-        """Set/get the draggability property of an object."""
-        if value is None:
-            return self.GetDragable()
-        self.SetDragable(value)
+    
+    def use_bounds(self, value=True):
+        """Set the use bounds property of the Group."""
+        self.SetUseBounds(value)
         return self
-
-    def pos(self, x=None, y=None):
-        """Set/Get object 2D position on the screen."""
-        if x is None:  # get functionality
-            return np.array(self.GetPosition())
-
-        if y is None:  # assume x is of the form (x,y)
-            x, y = x
-        self.SetPosition(x, y)
+    
+    def print(self):
+        """Print info about the object."""
+        print(self)
         return self
-
-    def shift(self, ds):
-        """Add a shift to the current object position on the screen."""
-        p = np.array(self.GetPosition())
-        self.SetPosition(p + ds)
-        return self
-
-    def bounds(self):
-        """
-        Get the object 2D bounds.
-        Returns a list in format [xmin,xmax, ymin,ymax].
-        """
-        return self.GetBounds()
 
 
 #################################################
