@@ -24,6 +24,7 @@ __all__ = [
     "MeshVisual",
     "ImageVisual",
     "Actor2D",
+    "LightKit",
 ]
 
 
@@ -2848,5 +2849,112 @@ class ImageVisual(CommonVisual, Actor3DHelper):
         self.properties.SetColorWindow(value)
         return self
 
+
+class LightKit:
+    """
+    A LightKit consists of three lights, a 'key light', a 'fill light', and a 'head light'.
+    
+    The main light is the key light. It is usually positioned so that it appears like
+    an overhead light (like the sun, or a ceiling light).
+    It is generally positioned to shine down on the scene from about a 45 degree angle vertically
+    and at least a little offset side to side. The key light usually at least about twice as bright
+    as the total of all other lights in the scene to provide good modeling of object features.
+
+    The other lights in the kit (the fill light, headlight, and a pair of back lights)
+    are weaker sources that provide extra illumination to fill in the spots that the key light misses.
+    The fill light is usually positioned across from or opposite from the key light
+    (though still on the same side of the object as the camera) in order to simulate diffuse reflections
+    from other objects in the scene. 
+    
+    The headlight, always located at the position of the camera, reduces the contrast between areas lit
+    by the key and fill light. The two back lights, one on the left of the object as seen from the observer
+    and one on the right, fill on the high-contrast areas behind the object.
+    To enforce the relationship between the different lights, the intensity of the fill, back and headlights
+    are set as a ratio to the key light brightness.
+    Thus, the brightness of all the lights in the scene can be changed by changing the key light intensity.
+
+    All lights are directional lights, infinitely far away with no falloff. Lights move with the camera.
+
+    For simplicity, the position of lights in the LightKit can only be specified using angles:
+    the elevation (latitude) and azimuth (longitude) of each light with respect to the camera, in degrees.
+    For example, a light at (elevation=0, azimuth=0) is located at the camera (a headlight).
+    A light at (elevation=90, azimuth=0) is above the lookat point, shining down.
+    Negative azimuth values move the lights clockwise as seen above, positive values counter-clockwise.
+    So, a light at (elevation=45, azimuth=-20) is above and in front of the object and shining
+    slightly from the left side.
+
+    LightKit limits the colors that can be assigned to any light to those of incandescent sources such as
+    light bulbs and sunlight. It defines a special color spectrum called "warmth" from which light colors
+    can be chosen, where 0 is cold blue, 0.5 is neutral white, and 1 is deep sunset red.
+    Colors close to 0.5 are "cool whites" and "warm whites," respectively.
+
+    Since colors far from white on the warmth scale appear less bright, key-to-fill and key-to-headlight
+    ratios are skewed by key, fill, and headlight colors. If `maintain_luminance` is set, LightKit will
+    attempt to compensate for these perceptual differences by increasing the brightness of more saturated colors.
+
+    To specify the color of a light, positioning etc you can pass a dictionary with the following keys:
+        - `intensity` : (float) The intensity of the key light. Default is 1.
+        - `ratio`     : (float) The ratio of the light intensity wrt key light.
+        - `warmth`    : (float) The warmth of the light. Default is 0.5.
+        - `elevation` : (float) The elevation of the light in degrees.
+        - `azimuth`   : (float) The azimuth of the light in degrees.
+
+    Example:
+        ```python
+        from vedo import *
+        lightkit = LightKit(head={"warmth":0.6))
+        mesh = Mesh(dataurl+"bunny.obj")
+        plt = Plotter()
+        plt.remove_lights().add(mesh, lightkit)
+        plt.show().close()
+        ```
+    """
+    def __init__(self, key=(), fill=(), back=(), head=(), maintain_luminance=False):
+
+        self.lightkit = vtk.new("LightKit")
+        self.lightkit.SetMaintainLuminance(maintain_luminance)
+        self.key  = dict(key)
+        self.head = dict(head)
+        self.fill = dict(fill)
+        self.back = dict(back)
+        self.update()
+
+    def update(self):
+        """Update the LightKit properties."""
+        if "warmth" in self.key:
+            self.lightkit.SetKeyLightWarmth(self.key["warmth"])
+        if "warmth" in self.fill:
+            self.lightkit.SetFillLightWarmth(self.fill["warmth"])
+        if "warmth" in self.head:
+            self.lightkit.SetHeadLightWarmth(self.head["warmth"])
+        if "warmth" in self.back:
+            self.lightkit.SetBackLightWarmth(self.back["warmth"])
+
+        if "intensity" in self.key:
+            self.lightkit.SetKeyLightIntensity(self.key["intensity"])
+        if "ratio" in self.fill:
+            self.lightkit.SetKeyToFillRatio(self.key["ratio"])
+        if "ratio" in self.head:
+            self.lightkit.SetKeyToHeadRatio(self.key["ratio"])
+        if "ratio" in self.back:
+            self.lightkit.SetKeyToBackRatio(self.key["ratio"])
+
+        if "elevation" in self.key:
+            self.lightkit.SetKeyLightElevation(self.key["elevation"])
+        if "elevation" in self.fill:
+            self.lightkit.SetFillLightElevation(self.fill["elevation"])
+        if "elevation" in self.head:
+            self.lightkit.SetHeadLightElevation(self.head["elevation"])
+        if "elevation" in self.back:
+            self.lightkit.SetBackLightElevation(self.back["elevation"])
+
+        if "azimuth" in self.key:
+            self.lightkit.SetKeyLightAzimuth(self.key["azimuth"])
+        if "azimuth" in self.fill:
+            self.lightkit.SetFillLightAzimuth(self.fill["azimuth"])
+        if "azimuth" in self.head:
+            self.lightkit.SetHeadLightAzimuth(self.head["azimuth"])
+        if "azimuth" in self.back:
+            self.lightkit.SetBackLightAzimuth(self.back["azimuth"])
 
 

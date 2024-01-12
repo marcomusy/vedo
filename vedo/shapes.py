@@ -1471,25 +1471,35 @@ class Tube(Mesh):
 
                 ![](https://vedo.embl.es/images/basic/tube.png)
         """
-        if isinstance(points, vedo.Points):
-            points = points.vertices
+        if utils.is_sequence(points):
+            vpoints = vtk.vtkPoints()
+            idx = len(points)
+            for p in points:
+                vpoints.InsertNextPoint(p)
+            line = vtk.new("PolyLine")
+            line.GetPointIds().SetNumberOfIds(idx)
+            for i in range(idx):
+                line.GetPointIds().SetId(i, i)
+            lines = vtk.vtkCellArray()
+            lines.InsertNextCell(line)
+            polyln = vtk.vtkPolyData()
+            polyln.SetPoints(vpoints)
+            polyln.SetLines(lines)            
+            self.base = np.asarray(points[0], dtype=float)
+            self.top = np.asarray(points[-1], dtype=float)
 
-        base = np.asarray(points[0], dtype=float)
-        top = np.asarray(points[-1], dtype=float)
+        elif isinstance(points, Mesh):
+            polyln = points.dataset
+            n = polyln.GetNumberOfPoints()
+            self.base = np.array(polyln.GetPoint(0))
+            self.top = np.array(polyln.GetPoint(n - 1))
 
-        vpoints = vtk.vtkPoints()
-        idx = len(points)
-        for p in points:
-            vpoints.InsertNextPoint(p)
-        line = vtk.new("PolyLine")
-        line.GetPointIds().SetNumberOfIds(idx)
-        for i in range(idx):
-            line.GetPointIds().SetId(i, i)
-        lines = vtk.vtkCellArray()
-        lines.InsertNextCell(line)
-        polyln = vtk.vtkPolyData()
-        polyln.SetPoints(vpoints)
-        polyln.SetLines(lines)
+        # from vtkmodules.vtkFiltersCore import vtkTubeBender
+        # bender = vtkTubeBender()
+        # bender.SetInputData(polyln)
+        # bender.SetRadius(r)
+        # bender.Update()
+        # polyln = bender.GetOutput()
 
         tuf = vtk.new("TubeFilter")
         tuf.SetCapping(cap)
@@ -1525,9 +1535,6 @@ class Tube(Mesh):
             self.mapper.ScalarVisibilityOn()
             self.mapper.SelectColorArray("TubeColors")
             self.mapper.Modified()
-
-        self.base = base
-        self.top = top
         self.name = "Tube"
 
 

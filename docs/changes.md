@@ -32,6 +32,7 @@ point in the same cloud of points.
 - fix `image.clone()` in #1011
 - add `transformations.TransformInterpolator` class
 - add `Line.find_index_at_position()` finds the index of the line vertex that is closest to a point
+- add `visual.LightKit` class which provides "natural" lighting from 4 sources.
 
 
 ## Breaking changes

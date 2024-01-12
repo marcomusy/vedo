@@ -702,6 +702,7 @@ for name in [
     "vtkInteractorEventRecorder",
     "vtkInteractorObserver",
     "vtkLight",
+    "vtkLightKit",
     "vtkLogLookupTable",
     "vtkMapper",
     "vtkPointGaussianMapper",

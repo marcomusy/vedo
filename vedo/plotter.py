@@ -935,11 +935,14 @@ class Plotter:
                     ren.AddActor(a)
                 except TypeError:
                     ren.AddActor(a.actor)
+
                 if hasattr(a, "rendered_at"):
                     ir = self.renderers.index(ren)
                     a.rendered_at.add(ir)
                 if isinstance(a, vtk.vtkFollower):
                     a.SetCamera(self.camera)
+                if isinstance(a, vedo.visual.LightKit):
+                    a.lightkit.AddLightsToRenderer(ren)
 
         return self
 
@@ -1037,6 +1040,9 @@ class Plotter:
                     if hasattr(ob.trail, "shadows") and ob.trail.shadows:
                         for sha in ob.trail.shadows:
                             ren.RemoveActor(sha.actor)
+
+                elif isinstance(ob, vedo.visual.LightKit):
+                    ob.lightkit.RemoveLightsFromRenderer(ren)
 
         # for i in ids: # WRONG way of doing it!
         #     del self.objects[i]
@@ -2973,24 +2979,17 @@ class Plotter:
                         scanned_acts.append(out)
                 # scanned_acts.append(vedo.shapes.Text2D(a)) # naive version
 
-            # elif isinstance(a, (
-            #         vtk.vtkAssembly,
-            #         vtk.vtkVolume,
-            #         vtk.vtkImageActor,
-            #         vtk.vtkLegendBoxActor,
-            #         vtk.vtkBillboardTextActor3D,
-            #     ),
-            # ):
-            #     scanned_acts.append(a)
-
-            elif isinstance(a, vtk.vtkLight):
-                self.renderer.AddLight(a)
-
             elif isinstance(a, vtk.vtkPolyData):
                 scanned_acts.append(vedo.Mesh(a).actor)
 
             elif isinstance(a, vtk.vtkImageData):
                 scanned_acts.append(vedo.Volume(a).actor)
+
+            elif isinstance(a, vtk.vtkLight):
+                self.renderer.AddLight(a)
+            
+            elif isinstance(a, vedo.visual.LightKit):
+                a.lightkit.AddLightsToRenderer(self.renderer)
 
             elif isinstance(a, vtk.get_class("MultiBlockDataSet")):
                 for i in range(a.GetNumberOfBlocks()):
