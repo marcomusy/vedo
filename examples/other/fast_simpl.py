@@ -1,18 +1,19 @@
 """Use fast-simplification to decimate a mesh and transfer
 data defined on the original faces to the decimated ones."""
-# Credits: Louis Pujol
 # https://github.com/pyvista/fast-simplification
 # pip install fast-simplification
+# Credits: Louis Pujol, see #992
 import numpy as np
 import fast_simplification as fs
 import vedo
 
 # Load a mesh and define a signal on vertices
-mesh = vedo.Sphere().lw(1)
+mesh = vedo.Sphere()
 points = mesh.vertices
 faces = mesh.cells
-signal = points[:, 2]
+signal = points[:, 0]
 mesh.pointdata["signal"] = signal
+mesh.cmap("rainbow").lw(1)
 
 # Decimate the mesh and compute the mapping between the original vertices
 # and the decimated ones with fast-simplification
@@ -30,7 +31,8 @@ np.add.at(a, index_mapping, signal)  # scatter addition
 a /= counts  # divide by the counts of each vertex index to get the average
 
 # Create a new mesh with the decimated vertices and the averaged signal
-decimated_mesh = vedo.Mesh([points_decim, faces_decim]).lw(1)
+decimated_mesh = vedo.Mesh([points_decim, faces_decim])
 decimated_mesh.pointdata["signal"] = a
+decimated_mesh.cmap("rainbow").lw(1)
 
-vedo.show(mesh, decimated_mesh, N=2, axes=1).close()
+vedo.show([[mesh, __doc__], decimated_mesh], N=2, axes=1).close()
