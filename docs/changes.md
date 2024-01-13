@@ -33,6 +33,7 @@ point in the same cloud of points.
 - add `transformations.TransformInterpolator` class
 - add `Line.find_index_at_position()` finds the index of the line vertex that is closest to a point
 - add `visual.LightKit` class which provides "natural" lighting from 4 sources.
+- add `fast-simplification` example by @Louis-Pujol in #992
 
 
 ## Breaking changes
@@ -65,6 +66,7 @@ examples/pyplot/plot_stream.py
 examples/other/madcad1.py
 examples/other/tetgen1.py
 examples/other/nelder-mead.py
+examples/other/fast_simpl.py
 
 tests/issues/issue_968.py
 tests/snippets/test_discourse_1956.py
