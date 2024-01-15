@@ -167,7 +167,7 @@ class Mesh(MeshVisual, Points):
         from PIL import Image
 
         library_name = "vedo.mesh.Mesh"
-        help_url = "https://vedo.embl.es/docs/vedo/mesh.html"
+        help_url = "https://vedo.embl.es/docs/vedo/mesh.html#Mesh"
 
         arr = self.thumbnail()
         im = Image.fromarray(arr)

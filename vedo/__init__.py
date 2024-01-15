@@ -35,7 +35,7 @@ from vedo.pointcloud import *
 from vedo.mesh import *
 from vedo.image import *
 from vedo.volume import *
-from vedo.tetmesh import *
+from vedo.grids import *
 from vedo.addons import *
 from vedo.plotter import *
 from vedo.visual import *

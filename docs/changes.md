@@ -43,6 +43,7 @@
 - remove `shapes.StreamLines()` becoming `object.compute_streamlines()`
 - split `mesh.decimate()` into `mesh.decimate()`, `mesh.decimate_pro()` and `mesh.decimate_binned()` as per #992
 - modified `core.clean()` after #992
+- rename `vedo.tetmesh` to `vedo.grids` and support `RectilinearGrid`
 
 
 ### Bug Fixes

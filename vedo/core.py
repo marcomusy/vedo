@@ -803,7 +803,7 @@ class CommonAlgorithms:
             # valid for polydata and unstructured grid
             varr = self.dataset.GetPoints().GetData()
 
-        except AttributeError:
+        except (AttributeError, TypeError):
             try:
                 # valid for rectilinear/structured grid, image data
                 v2p = vtk.new("ImageToPoints")
@@ -826,7 +826,7 @@ class CommonAlgorithms:
             vpts = self.dataset.GetPoints()
             vpts.SetData(arr)
             vpts.Modified()
-        except AttributeError:
+        except (AttributeError, TypeError):
             vedo.logger.error(f"Cannot set vertices for object {type(self)}")
             return self
         # reset mesh to identity matrix position/rotation:

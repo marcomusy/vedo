@@ -11,7 +11,7 @@ from vedo import transformations
 from vedo import utils
 from vedo.mesh import Mesh
 from vedo.core import VolumeAlgorithms
-from vedo.visual import VolumeVisual
+from vedo.visual import VolumeVisual, MeshVisual
 
 
 __docformat__ = "google"
@@ -228,7 +228,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         return self
 
     def __str__(self):
-        """Print a summary for the Volume object."""
+        """Print a summary for the `Volume` object."""
         module = self.__class__.__module__
         name = self.__class__.__name__
         out = vedo.printc(
@@ -421,17 +421,16 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         m.pipeline = utils.OperationNode(f"zslice {k}", parents=[self], c="#4cc9f0:#e9c46a")
         return m
 
-    def slice_plane(self, origin=(0, 0, 0), normal=(1, 1, 1), autocrop=False, mode="linear"):
+    def slice_plane(self, origin, normal, autocrop=False, mode="linear"):
         """
         Extract the slice along a given plane position and normal.
 
         Two metadata arrays are added to the output Mesh:
-            - `shape` : contains the shape of the slice
-            - `original_bounds` : contains the original bounds of the slice
+            - "shape" : contains the shape of the slice
+            - "original_bounds" : contains the original bounds of the slice
         One can access them with e.g. `myslice.metadata["shape"]`.
 
         Arguments:
-
             origin : (list)
                 position of the plane
             normal : (list)
@@ -471,19 +470,20 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             raise ValueError()
         reslice.SetAutoCropOutput(not autocrop)
         reslice.Update()
+        img = reslice.GetOutput()
 
         vslice = vtk.new("ImageDataGeometryFilter")
-        vslice.SetInputData(reslice.GetOutput())
+        vslice.SetInputData(img)
         vslice.Update()
 
         msh = Mesh(vslice.GetOutput())
         msh.apply_transform(T)
         msh.properties.LightingOff()
 
-        d0, d1, _ = reslice.GetOutput().GetDimensions()
+        d0, d1, _ = img.GetDimensions()
         varr1 = utils.numpy2vtk([d1, d0], name="shape")
         msh.dataset.GetFieldData().AddArray(varr1)
-        varr2 = utils.numpy2vtk(reslice.GetOutput().GetBounds()[:4], name="original_bounds")
+        varr2 = utils.numpy2vtk(img.GetBounds(), name="original_bounds")
         msh.dataset.GetFieldData().AddArray(varr2)
 
         msh.pipeline = utils.OperationNode(
@@ -1558,5 +1558,3 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             "scale_voxels", comment=f"scale={scale}", parents=[self], c="#4cc9f0"
         )
         return self
-
-

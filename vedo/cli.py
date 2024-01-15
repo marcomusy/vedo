@@ -30,8 +30,7 @@ from vedo.colors import get_color, printc
 from vedo.mesh import Mesh
 from vedo.image import Image
 from vedo.plotter import Plotter
-from vedo.tetmesh import TetMesh
-from vedo.tetmesh import UnstructuredGrid
+from vedo.grids import UnstructuredGrid, TetMesh
 from vedo.volume import Volume
 
 import vedo

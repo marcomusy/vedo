@@ -17,7 +17,7 @@ def func(evt):
 vol = Volume(dataurl+'embryo.slc')
 vol.cmap('white').alpha([0,0,0.8]).pickable(False)
 
-vslice = vol.slice_plane(origin=vol.center(), normal=(0,1,1))
+vslice = vol.slice_plane(vol.center(), [0,1,1])
 vslice.cmap('Purples_r').add_scalarbar('Slice', c='w')
 arr = vslice.pointdata[0] # retrieve vertex array data
 print("slice shape :", vslice.metadata["shape"])

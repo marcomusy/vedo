@@ -21,13 +21,96 @@ Work with tetrahedral meshes.
 ![](https://vedo.embl.es/images/volumetric/82767107-2631d500-9e25-11ea-967c-42558f98f721.jpg)
 """
 
-__all__ = ["UnstructuredGrid", "TetMesh", "UGrid"]
+__all__ = [
+    "cell_types",
+    # "cell_type_names",
+    "UnstructuredGrid",
+    "TetMesh",
+    "RectilinearGrid",
+    "UGrid",
+]
+
+
+cell_types = {  # https://vtk.org/doc/nightly/html/vtkCellType_8h.html
+    "EMPTY_CELL": 0,
+    "VERTEX": 1,
+    "POLY_VERTEX": 2,
+    "LINE": 3,
+    "POLY_LINE": 4,
+    "TRIANGLE": 5,
+    "TRIANGLE_STRIP": 6,
+    "POLYGON": 7,
+    "PIXEL": 8,
+    "QUAD": 9,
+    "TETRA": 10,
+    "VOXEL": 11,
+    "HEXAHEDRON": 12,
+    "WEDGE": 13,
+    "PYRAMID": 14,
+    "PENTAGONAL_PRISM": 15,
+    "HEXAGONAL_PRISM": 16,
+    "QUADRATIC_EDGE": 21,
+    "QUADRATIC_TRIANGLE": 22,
+    "QUADRATIC_QUAD": 23,
+    "QUADRATIC_POLYGON": 36,
+    "QUADRATIC_TETRA": 24,
+    "QUADRATIC_HEXAHEDRON": 25,
+    "QUADRATIC_WEDGE": 26,
+    "QUADRATIC_PYRAMID": 27,
+    "BIQUADRATIC_QUAD": 28,
+    "TRIQUADRATIC_HEXAHEDRON": 29,
+    "TRIQUADRATIC_PYRAMID": 37,
+    "QUADRATIC_LINEAR_QUAD": 30,
+    "QUADRATIC_LINEAR_WEDGE": 31,
+    "BIQUADRATIC_QUADRATIC_WEDGE": 32,
+    "BIQUADRATIC_QUADRATIC_HEXAHEDRON": 33,
+    "BIQUADRATIC_TRIANGLE": 34,
+    "CUBIC_LINE": 35,
+    "CONVEX_POINT_SET": 41,
+    "POLYHEDRON": 42,
+    "PARAMETRIC_CURVE": 51,
+    "PARAMETRIC_SURFACE": 52,
+    "PARAMETRIC_TRI_SURFACE": 53,
+    "PARAMETRIC_QUAD_SURFACE": 54,
+    "PARAMETRIC_TETRA_REGION": 55,
+    "PARAMETRIC_HEX_REGION": 56,
+    "HIGHER_ORDER_EDGE": 60,
+    "HIGHER_ORDER_TRIANGLE": 61,
+    "HIGHER_ORDER_QUAD": 62,
+    "HIGHER_ORDER_POLYGON": 63,
+    "HIGHER_ORDER_TETRAHEDRON": 64,
+    "HIGHER_ORDER_WEDGE": 65,
+    "HIGHER_ORDER_PYRAMID": 66,
+    "HIGHER_ORDER_HEXAHEDRON": 67,
+    "LAGRANGE_CURVE": 68,
+    "LAGRANGE_TRIANGLE": 69,
+    "LAGRANGE_QUADRILATERAL": 70,
+    "LAGRANGE_TETRAHEDRON": 71,
+    "LAGRANGE_HEXAHEDRON": 72,
+    "LAGRANGE_WEDGE": 73,
+    "LAGRANGE_PYRAMID": 74,
+    "BEZIER_CURVE": 75,
+    "BEZIER_TRIANGLE": 76,
+    "BEZIER_QUADRILATERAL": 77,
+    "BEZIER_TETRAHEDRON": 78,
+    "BEZIER_HEXAHEDRON": 79,
+    "BEZIER_WEDGE": 80,
+    "BEZIER_PYRAMID": 81,
+}
+
+def cell_type_names():
+    """Return a dict of cell type names."""
+    # invert the dict above to get a lookup table for cell types
+    # Eg. cell_type_names[10] returns "TETRA"
+    return {v: k for k, v in cell_types.items()}
+
 
 #########################################################################
 def UGrid(*args, **kwargs):
     """Deprecated. Use `UnstructuredGrid` instead."""
     vedo.logger.warning("UGrid() is deprecated, use UnstructuredGrid() instead.")
     return UnstructuredGrid(*args, **kwargs)
+
 
 class UnstructuredGrid(MeshVisual, PointAlgorithms):
     """Support for UnstructuredGrid objects."""
@@ -96,25 +179,132 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
             # Fill cells
             # https://vtk.org/doc/nightly/html/vtkCellType_8h_source.html
             for i, ct in enumerate(celltypes):
-                cell_conn = cells[i]
-                if ct == vtk.VTK_HEXAHEDRON:
-                    cell = vtk.vtkHexahedron()
-                elif ct == vtk.VTK_TETRA:
+                if   ct == cell_types["VERTEX"]:
+                    cell = vtk.vtkVertex()
+                elif ct == cell_types["POLY_VERTEX"]:
+                    cell = vtk.vtkPolyVertex()
+                elif ct == cell_types["TETRA"]:
                     cell = vtk.vtkTetra()
-                elif ct == vtk.VTK_VOXEL:
-                    cell = vtk.vtkVoxel()
-                elif ct == vtk.VTK_WEDGE:
+                elif ct == cell_types["WEDGE"]:
                     cell = vtk.vtkWedge()
-                elif ct == vtk.VTK_PYRAMID:
+                elif ct == cell_types["LINE"]:
+                    cell = vtk.vtkLine()
+                elif ct == cell_types["POLY_LINE"]:
+                    cell = vtk.vtkPolyLine()
+                elif ct == cell_types["TRIANGLE"]:
+                    cell = vtk.vtkTriangle()
+                elif ct == cell_types["TRIANGLE_STRIP"]:
+                    cell = vtk.vtkTriangleStrip()
+                elif ct == cell_types["POLYGON"]:
+                    cell = vtk.vtkPolygon()
+                elif ct == cell_types["PIXEL"]:
+                    cell = vtk.vtkPixel()
+                elif ct == cell_types["QUAD"]:
+                    cell = vtk.vtkQuad()
+                elif ct == cell_types["VOXEL"]:
+                    cell = vtk.vtkVoxel()
+                elif ct == cell_types["PYRAMID"]:
                     cell = vtk.vtkPyramid()
-                elif ct == vtk.VTK_HEXAGONAL_PRISM:
+                elif ct == cell_types["HEXAHEDRON"]:
+                    cell = vtk.vtkHexahedron()
+                elif ct == cell_types["HEXAGONAL_PRISM"]:
                     cell = vtk.vtkHexagonalPrism()
-                elif ct == vtk.VTK_PENTAGONAL_PRISM:
+                elif ct == cell_types["PENTAGONAL_PRISM"]:
                     cell = vtk.vtkPentagonalPrism()
+                elif ct == cell_types["QUADRATIC_TETRA"]:
+                    from vtkmodules.vtkCommonDataModel import vtkQuadraticTetra
+                    cell = vtkQuadraticTetra()
+                elif ct == cell_types["QUADRATIC_HEXAHEDRON"]:
+                    from vtkmodules.vtkCommonDataModel import vtkQuadraticHexahedron
+                    cell = vtkQuadraticHexahedron()
+                elif ct == cell_types["QUADRATIC_WEDGE"]:
+                    from vtkmodules.vtkCommonDataModel import vtkQuadraticWedge
+                    cell = vtkQuadraticWedge()
+                elif ct == cell_types["QUADRATIC_PYRAMID"]:
+                    from vtkmodules.vtkCommonDataModel import vtkQuadraticPyramid
+                    cell = vtkQuadraticPyramid()
+                elif ct == cell_types["QUADRATIC_LINEAR_QUAD"]:
+                    from vtkmodules.vtkCommonDataModel import vtkQuadraticLinearQuad
+                    cell = vtkQuadraticLinearQuad()
+                elif ct == cell_types["QUADRATIC_LINEAR_WEDGE"]:
+                    from vtkmodules.vtkCommonDataModel import vtkQuadraticLinearWedge
+                    cell = vtkQuadraticLinearWedge()
+                elif ct == cell_types["BIQUADRATIC_QUADRATIC_WEDGE"]:
+                    from vtkmodules.vtkCommonDataModel import vtkBiQuadraticQuadraticWedge
+                    cell = vtkBiQuadraticQuadraticWedge()
+                elif ct == cell_types["BIQUADRATIC_QUADRATIC_HEXAHEDRON"]:
+                    from vtkmodules.vtkCommonDataModel import vtkBiQuadraticQuadraticHexahedron
+                    cell = vtkBiQuadraticQuadraticHexahedron()
+                elif ct == cell_types["BIQUADRATIC_TRIANGLE"]:
+                    from vtkmodules.vtkCommonDataModel import vtkBiQuadraticTriangle
+                    cell = vtkBiQuadraticTriangle()
+                elif ct == cell_types["CUBIC_LINE"]:
+                    from vtkmodules.vtkCommonDataModel import vtkCubicLine
+                    cell = vtkCubicLine()
+                elif ct == cell_types["CONVEX_POINT_SET"]:
+                    from vtkmodules.vtkCommonDataModel import vtkConvexPointSet
+                    cell = vtkConvexPointSet()
+                elif ct == cell_types["POLYHEDRON"]:
+                    from vtkmodules.vtkCommonDataModel import vtkPolyhedron
+                    cell = vtkPolyhedron()
+                elif ct == cell_types["HIGHER_ORDER_TRIANGLE"]:
+                    from vtkmodules.vtkCommonDataModel import vtkHigherOrderTriangle
+                    cell = vtkHigherOrderTriangle()
+                elif ct == cell_types["HIGHER_ORDER_QUAD"]:
+                    from vtkmodules.vtkCommonDataModel import vtkHigherOrderQuadrilateral
+                    cell = vtkHigherOrderQuadrilateral()
+                elif ct == cell_types["HIGHER_ORDER_TETRAHEDRON"]:
+                    from vtkmodules.vtkCommonDataModel import vtkHigherOrderTetra
+                    cell = vtkHigherOrderTetra()
+                elif ct == cell_types["HIGHER_ORDER_WEDGE"]:
+                    from vtkmodules.vtkCommonDataModel import vtkHigherOrderWedge
+                    cell = vtkHigherOrderWedge()
+                elif ct == cell_types["HIGHER_ORDER_HEXAHEDRON"]:
+                    from vtkmodules.vtkCommonDataModel import vtkHigherOrderHexahedron
+                    cell = vtkHigherOrderHexahedron()
+                elif ct == cell_types["LAGRANGE_CURVE"]:
+                    from vtkmodules.vtkCommonDataModel import vtkLagrangeCurve
+                    cell = vtkLagrangeCurve()
+                elif ct == cell_types["LAGRANGE_TRIANGLE"]:
+                    from vtkmodules.vtkCommonDataModel import vtkLagrangeTriangle
+                    cell = vtkLagrangeTriangle()
+                elif ct == cell_types["LAGRANGE_QUADRILATERAL"]:
+                    from vtkmodules.vtkCommonDataModel import vtkLagrangeQuadrilateral
+                    cell = vtkLagrangeQuadrilateral()
+                elif ct == cell_types["LAGRANGE_TETRAHEDRON"]:
+                    from vtkmodules.vtkCommonDataModel import vtkLagrangeTetra
+                    cell = vtkLagrangeTetra()
+                elif ct == cell_types["LAGRANGE_HEXAHEDRON"]:
+                    from vtkmodules.vtkCommonDataModel import vtkLagrangeHexahedron
+                    cell = vtkLagrangeHexahedron()
+                elif ct == cell_types["LAGRANGE_WEDGE"]:
+                    from vtkmodules.vtkCommonDataModel import vtkLagrangeWedge
+                    cell = vtkLagrangeWedge()
+                elif ct == cell_types["BEZIER_CURVE"]:
+                    from vtkmodules.vtkCommonDataModel import vtkBezierCurve
+                    cell = vtkBezierCurve()
+                elif ct == cell_types["BEZIER_TRIANGLE"]:
+                    from vtkmodules.vtkCommonDataModel import vtkBezierTriangle
+                    cell = vtkBezierTriangle()
+                elif ct == cell_types["BEZIER_QUADRILATERAL"]:
+                    from vtkmodules.vtkCommonDataModel import vtkBezierQuadrilateral
+                    cell = vtkBezierQuadrilateral()
+                elif ct == cell_types["BEZIER_TETRAHEDRON"]:
+                    from vtkmodules.vtkCommonDataModel import vtkBezierTetra
+                    cell = vtkBezierTetra()
+                elif ct == cell_types["BEZIER_HEXAHEDRON"]:
+                    from vtkmodules.vtkCommonDataModel import vtkBezierHexahedron
+                    cell = vtkBezierHexahedron()
+                elif ct == cell_types["BEZIER_WEDGE"]:
+                    from vtkmodules.vtkCommonDataModel import vtkBezierWedge
+                    cell = vtkBezierWedge()
                 else:
-                    print("UnstructuredGrid: cell type", ct, "not supported. Skip.")
+                    vedo.logger.error(
+                        f"UnstructuredGrid: cell type {ct} not supported. Skip.")
                     continue
+
                 cpids = cell.GetPointIds()
+                cell_conn = cells[i]
                 for j, pid in enumerate(cell_conn):
                     cpids.SetId(j, pid)
                 self.dataset.InsertNextCell(ct, cpids)
@@ -142,11 +332,10 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
             apf.Update()
             self.dataset = apf.GetOutput()
 
-        self.properties.SetColor(0.89, 0.455, 0.671) #pink7
+        self.properties.SetColor(0.89, 0.455, 0.671)  # pink7
 
         self.pipeline = utils.OperationNode(
-            self, comment=f"#cells {self.dataset.GetNumberOfCells()}",
-            c="#4cc9f0",
+            self, comment=f"#cells {self.dataset.GetNumberOfCells()}", c="#4cc9f0"
         )
 
     # ------------------------------------------------------------------
@@ -162,6 +351,9 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
 
         out += "nr. of verts".ljust(14) + ": " + str(self.npoints) + "\n"
         out += "nr. of cells".ljust(14) + ": " + str(self.ncells)  + "\n"
+        ct_arr = np.unique(self.cell_types_array)
+        cnames = [k for k, v in cell_types.items() if v in ct_arr]
+        out += "cell types".ljust(14) + ": " + str(cnames) + "\n"
 
         if self.npoints:
             out+="size".ljust(14)+ ": average=" + utils.precision(self.average_size(),6)
@@ -184,7 +376,7 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
             a_scalars = self.dataset.GetPointData().GetScalars()
             a_vectors = self.dataset.GetPointData().GetVectors()
             a_tensors = self.dataset.GetPointData().GetTensors()
-            if   a_scalars and a_scalars.GetName() == key:
+            if a_scalars and a_scalars.GetName() == key:
                 mark_active += " *"
             elif a_vectors and a_vectors.GetName() == key:
                 mark_active += " **"
@@ -200,7 +392,7 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
             a_scalars = self.dataset.GetCellData().GetScalars()
             a_vectors = self.dataset.GetCellData().GetVectors()
             a_tensors = self.dataset.GetCellData().GetTensors()
-            if   a_scalars and a_scalars.GetName() == key:
+            if a_scalars and a_scalars.GetName() == key:
                 mark_active += " *"
             elif a_vectors and a_vectors.GetName() == key:
                 mark_active += " **"
@@ -211,10 +403,9 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
 
         for key in self.metadata.keys():
             arr = self.metadata[key]
-            out+= "metadata".ljust(14) + ": " + f'"{key}" ({len(arr)} values)\n'
+            out += "metadata".ljust(14) + ": " + f'"{key}" ({len(arr)} values)\n'
 
         return out.rstrip() + "\x1b[0m"
-
 
     def _repr_html_(self):
         """
@@ -227,10 +418,9 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
         import base64
         from PIL import Image
 
-        library_name = "vedo.tetmesh.UnstructuredGrid"
-        help_url = "https://vedo.embl.es/docs/vedo/tetmesh.html"
+        library_name = "vedo.grids.UnstructuredGrid"
+        help_url = "https://vedo.embl.es/docs/vedo/grids.html#UnstructuredGrid"
 
-        # self.mapper.SetInputData(self.dataset)
         arr = self.thumbnail()
         im = Image.fromarray(arr)
         buffered = io.BytesIO()
@@ -241,7 +431,7 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
 
         bounds = "<br/>".join(
             [
-                utils.precision(min_x,4) + " ... " + utils.precision(max_x,4)
+                utils.precision(min_x, 4) + " ... " + utils.precision(max_x, 4)
                 for min_x, max_x in zip(self.bounds()[::2], self.bounds()[1::2])
             ]
         )
@@ -323,11 +513,11 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
             elif isinstance(o, vtk.vtkUnstructuredGrid):
                 apf.AddInputData(o)
             else:
-                vedo.printc("Error: cannot merge type", type(o), c='r')
+                vedo.printc("Error: cannot merge type", type(o), c="r")
         apf.Update()
         self._update(apf.GetOutput())
         self.pipeline = utils.OperationNode(
-            "merge", parents=[self, *others], c="#9e2a2b",
+            "merge", parents=[self, *others], c="#9e2a2b"
         )
         return self
 
@@ -350,7 +540,7 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
         cloned.copy_properties_from(self)
 
         cloned.pipeline = utils.OperationNode(
-            "clone", parents=[self], shape='diamond', c='#bbe1ed',
+            "clone", parents=[self], shape="diamond", c="#bbe1ed"
         )
         return cloned
 
@@ -479,8 +669,20 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
         )
         return msh
 
-    def extract_cell_by_type(self, ctype):
+    @property
+    def cell_types_array(self):
+        """Return the list of cell types in the dataset."""
+        uarr = self.dataset.GetCellTypesArray()
+        return utils.vtk2numpy(uarr)
+
+    def extract_cells_by_type(self, ctype):
         """Extract a specific cell type and return a new `UnstructuredGrid`."""
+        if isinstance(ctype, str):
+            try:
+                ctype = cell_types[ctype.upper()]
+            except KeyError:
+                vedo.logger.error(f"extract_cells_by_type: cell type {ctype} does not exist. Skip.")
+                return self
         uarr = self.dataset.GetCellTypesArray()
         ctarrtyp = np.where(utils.vtk2numpy(uarr) == ctype)[0]
         uarrtyp = utils.numpy2vtk(ctarrtyp, deep=False, dtype="id")
@@ -496,10 +698,8 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
         es.Update()
 
         ug = UnstructuredGrid(es.GetOutput())
-
         ug.pipeline = utils.OperationNode(
-            "extract_cell_type", comment=f"type {ctype}",
-            c="#edabab", parents=[self],
+            "extract_cell_type", comment=f"type {ctype}", c="#edabab", parents=[self]
         )
         return ug
 
@@ -522,7 +722,7 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
         es.SetInputData(1, selection)
         es.Update()
 
-        ug = vedo.tetmesh.UnstructuredGrid(es.GetOutput())
+        ug = UnstructuredGrid(es.GetOutput())
         pr = vtk.vtkProperty()
         pr.DeepCopy(self.properties)
         ug.SetProperty(pr)
@@ -545,8 +745,7 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
         sub_id = vtk.mutable(0)
         pcoords = [0, 0, 0]
         weights = [0, 0, 0]
-        cid = self.dataset.FindCell(
-            p, cell, cell_id, tol2, sub_id, pcoords, weights)
+        cid = self.dataset.FindCell(p, cell, cell_id, tol2, sub_id, pcoords, weights)
         return cid
 
     def clean(self):
@@ -644,7 +843,7 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
         )
         self._update(bf.GetOutput())
         return self
-    
+
     def cut_with_plane(self, origin=(0, 0, 0), normal="x"):
         """
         Cut the object with the plane defined by a point and a normal.
@@ -703,10 +902,10 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
         Example:
         ```python
         from vedo import *
-        tetmesh = TetMesh(dataurl+'limb_ugrid.vtk')
-        tetmesh.color('rainbow')
+        tmesh = TetMesh(dataurl+'limb_ugrid.vtk')
+        tmesh.color('rainbow')
         cu = Cube(side=500).x(500) # any Mesh works
-        tetmesh.cut_with_box(cu).show(axes=1)
+        tmesh.cut_with_box(cu).show(axes=1)
         ```
 
         ![](https://vedo.embl.es/images/feats/tet_cut_box.png)
@@ -727,12 +926,9 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
         tm.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
         return tm
 
-
-    def cut_with_mesh(
-            self, mesh, invert=False, whole_cells=False, on_boundary=False
-        ):
+    def cut_with_mesh(self, mesh, invert=False, whole_cells=False, on_boundary=False):
         """
-        Cut a UnstructuredGrid or TetMesh with a Mesh.
+        Cut a `UnstructuredGrid` or `TetMesh` with a `Mesh`.
 
         Use `invert` to return cut off part of the input object.
         """
@@ -759,7 +955,7 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
                 signed_dist = ippd.EvaluateFunction(p)
                 signed_dists.InsertNextValue(signed_dist)
             ug.GetPointData().AddArray(signed_dists)
-            ug.GetPointData().SetActiveScalars("SignedDistance") # NEEDED
+            ug.GetPointData().SetActiveScalars("SignedDistance")  # NEEDED
             clipper = vtk.new("ClipDataSet")
             clipper.SetInputData(ug)
             clipper.SetInsideOut(not invert)
@@ -770,6 +966,7 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
         out = vedo.UnstructuredGrid(clipper.GetOutput())
         out.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
         return out
+
 
 ##########################################################################
 class TetMesh(UnstructuredGrid):
@@ -808,7 +1005,7 @@ class TetMesh(UnstructuredGrid):
         elif isinstance(inputobj, UnstructuredGrid):
             self.dataset = inputobj.dataset
 
-        elif "TetgenIO" in str(type(inputobj)): # tetgenpy object
+        elif "TetgenIO" in str(type(inputobj)):  # tetgenpy object
             inputobj = [inputobj.points(), inputobj.tetrahedra()]
 
         elif isinstance(inputobj, vtk.vtkRectilinearGrid):
@@ -844,7 +1041,7 @@ class TetMesh(UnstructuredGrid):
             self.dataset = tt.GetOutput()
 
         ###############################
-        if utils.is_sequence(inputobj):            
+        if utils.is_sequence(inputobj):
             self.dataset = vtk.vtkUnstructuredGrid()
 
             points, cells = inputobj
@@ -878,17 +1075,16 @@ class TetMesh(UnstructuredGrid):
                 for i, fi in enumerate(f):
                     pid.SetId(i, fi)
                 source_tets.InsertNextCell(ele)
-            self.dataset.SetCells(vtk.VTK_TETRA, source_tets)
+            self.dataset.SetCells(cell_types["TETRA"], source_tets)
 
         if not self.dataset:
             vedo.logger.error(f"cannot understand input type {type(inputobj)}")
             return
-        
-        self.properties.SetColor(0.352, 0.612, 0.996) #blue7
-        
+
+        self.properties.SetColor(0.352, 0.612, 0.996)  # blue7
+
         self.pipeline = utils.OperationNode(
-            self, comment=f"#tets {self.dataset.GetNumberOfCells()}",
-            c="#9e2a2b",
+            self, comment=f"#tets {self.dataset.GetNumberOfCells()}", c="#9e2a2b"
         )
 
     ##################################################################
@@ -903,7 +1099,7 @@ class TetMesh(UnstructuredGrid):
         out += "\x1b[0m\u001b[36m"
 
         out += "nr. of verts".ljust(14) + ": " + str(self.npoints) + "\n"
-        out += "nr. of tetras".ljust(14)+ ": " + str(self.ncells) + "\n"
+        out += "nr. of tetras".ljust(14) + ": " + str(self.ncells) + "\n"
 
         if self.npoints:
             out+="size".ljust(14)+ ": average=" + utils.precision(self.average_size(),6)
@@ -926,7 +1122,7 @@ class TetMesh(UnstructuredGrid):
             a_scalars = self.dataset.GetPointData().GetScalars()
             a_vectors = self.dataset.GetPointData().GetVectors()
             a_tensors = self.dataset.GetPointData().GetTensors()
-            if   a_scalars and a_scalars.GetName() == key:
+            if a_scalars and a_scalars.GetName() == key:
                 mark_active += " *"
             elif a_vectors and a_vectors.GetName() == key:
                 mark_active += " **"
@@ -942,7 +1138,7 @@ class TetMesh(UnstructuredGrid):
             a_scalars = self.dataset.GetCellData().GetScalars()
             a_vectors = self.dataset.GetCellData().GetVectors()
             a_tensors = self.dataset.GetCellData().GetTensors()
-            if   a_scalars and a_scalars.GetName() == key:
+            if a_scalars and a_scalars.GetName() == key:
                 mark_active += " *"
             elif a_vectors and a_vectors.GetName() == key:
                 mark_active += " **"
@@ -953,10 +1149,9 @@ class TetMesh(UnstructuredGrid):
 
         for key in self.metadata.keys():
             arr = self.metadata[key]
-            out+= "metadata".ljust(14) + ": " + f'"{key}" ({len(arr)} values)\n'
+            out += "metadata".ljust(14) + ": " + f'"{key}" ({len(arr)} values)\n'
 
         return out.rstrip() + "\x1b[0m"
-
 
     def _repr_html_(self):
         """
@@ -969,8 +1164,8 @@ class TetMesh(UnstructuredGrid):
         import base64
         from PIL import Image
 
-        library_name = "vedo.tetmesh.TetMesh"
-        help_url = "https://vedo.embl.es/docs/vedo/tetmesh.html"
+        library_name = "vedo.grids.TetMesh"
+        help_url = "https://vedo.embl.es/docs/vedo/grids.html#TetMesh"
 
         arr = self.thumbnail()
         im = Image.fromarray(arr)
@@ -982,7 +1177,7 @@ class TetMesh(UnstructuredGrid):
 
         bounds = "<br/>".join(
             [
-                utils.precision(min_x,4) + " ... " + utils.precision(max_x,4)
+                utils.precision(min_x, 4) + " ... " + utils.precision(max_x, 4)
                 for min_x, max_x in zip(self.bounds()[::2], self.bounds()[1::2])
             ]
         )
@@ -1031,7 +1226,7 @@ class TetMesh(UnstructuredGrid):
 
     def compute_quality(self, metric=7):
         """
-        Calculate functions of quality for the elements of a triangular mesh.
+        Calculate functions of quality for the elements of a tetrahedral mesh.
         This method adds to the mesh a cell array named "Quality".
 
         Arguments:
@@ -1108,8 +1303,7 @@ class TetMesh(UnstructuredGrid):
         decimate.Update()
         self._update(decimate.GetOutput())
         self.pipeline = utils.OperationNode(
-            "decimate", comment=f"array: {scalars_name}",
-            c="#edabab", parents=[self],
+            "decimate", comment=f"array: {scalars_name}", c="#edabab", parents=[self]
         )
         return self
 
@@ -1122,9 +1316,7 @@ class TetMesh(UnstructuredGrid):
         sd.SetInputData(self.dataset)
         sd.Update()
         self._update(sd.GetOutput())
-        self.pipeline = utils.OperationNode(
-            "subdvide", c="#edabab", parents=[self],
-        )
+        self.pipeline = utils.OperationNode("subdvide", c="#edabab", parents=[self])
         return self
 
     def generate_random_points(self, n, min_radius=0):
@@ -1164,7 +1356,7 @@ class TetMesh(UnstructuredGrid):
         ```
         """
         cmesh = self.compute_cell_size()
-        tets  = cmesh.cells
+        tets = cmesh.cells
         verts = cmesh.vertices
         cumul = np.cumsum(np.abs(cmesh.celldata["Volume"]))
 
@@ -1175,7 +1367,7 @@ class TetMesh(UnstructuredGrid):
             it = np.searchsorted(cumul, random_area)
             A, B, C, D = verts[tets[it]]
             r1, r2, r3 = sorted(np.random.random(3))
-            p = r1 * A + (r2-r1) * B + (r3-r2) * C + (1-r3) * D
+            p = r1 * A + (r2 - r1) * B + (r3 - r2) * C + (1 - r3) * D
             out_pts.append(p)
             orig_cell.append(it)
         orig_cell = np.array(orig_cell, dtype=np.uint32)
@@ -1249,3 +1441,271 @@ class TetMesh(UnstructuredGrid):
         msh.copy_properties_from(self)
         msh.pipeline = utils.OperationNode("slice", c="#edabab", parents=[self])
         return msh
+
+
+##########################################################################
+class RectilinearGrid(MeshVisual, PointAlgorithms):
+    """
+    Build a rectilinear grid.
+    """
+
+    def __init__(self, inputobj=None):
+
+        super().__init__()
+
+        self.dataset = None
+
+        self.mapper = vtk.new("PolyDataMapper")
+        self._actor = vtk.vtkActor()
+        self._actor.retrieve_object = weak_ref_to(self)
+        self._actor.SetMapper(self.mapper)
+        self.properties = self._actor.GetProperty()
+
+        self.transform = LinearTransform()
+
+        self.name = "RectilinearGrid"
+        self.filename = ""
+
+        ###################
+        if inputobj is None:
+            self.dataset = vtk.vtkRectilinearGrid()
+
+        elif isinstance(inputobj, vtk.vtkRectilinearGrid):
+            self.dataset = inputobj
+
+        elif isinstance(inputobj, RectilinearGrid):
+            self.dataset = inputobj.dataset
+
+        elif isinstance(inputobj, str):
+            if "https://" in inputobj:
+                inputobj = download(inputobj, verbose=False)
+            if inputobj.endswith(".vtr"):
+                reader = vtk.new("XMLRectilinearGridReader")
+            else:
+                reader = vtk.new("RectilinearGridReader")
+            self.filename = inputobj
+            reader.SetFileName(inputobj)
+            reader.Update()
+            self.dataset = reader.GetOutput()
+
+        ###############################
+        if utils.is_sequence(inputobj):
+            self.dataset = vtk.vtkUnstructuredGrid()
+            # TODO
+
+        if not self.dataset:
+            vedo.logger.error(f"RectilinearGrid: cannot understand input type {type(inputobj)}")
+            return
+
+        self.properties.SetColor(0.352, 0.612, 0.996)  # blue7
+
+        self.pipeline = utils.OperationNode(
+            self, comment=f"#tets {self.dataset.GetNumberOfCells()}", c="#9e2a2b"
+        )
+
+    @property
+    def actor(self):
+        """Return the `vtkActor` of the object."""
+        gf = vtk.new("GeometryFilter")
+        gf.SetInputData(self.dataset)
+        gf.Update()
+        self.mapper.SetInputData(gf.GetOutput())
+        self.mapper.Modified()
+        return self._actor
+
+    @actor.setter
+    def actor(self, _):
+        pass
+
+    def _update(self, data, reset_locators=False):
+        self.dataset = data
+        if reset_locators:
+            self.cell_locator = None
+            self.point_locator = None
+        return self
+
+    ##################################################################
+    def __str__(self):
+        """Print a summary for the `RectilinearGrid` object."""
+        module = self.__class__.__module__
+        name = self.__class__.__name__
+        out = vedo.printc(
+            f"{module}.{name} at ({hex(self.memory_address())})".ljust(75),
+            c="c", bold=True, invert=True, return_string=True,
+        )
+        out += "\x1b[0m\x1b[36;1m"
+
+        out += "name".ljust(14) + ": " + str(self.name) + "\n"
+        if self.filename:
+            out += "filename".ljust(14) + ": " + str(self.filename) + "\n"
+
+        out += "dimensions".ljust(14) + ": " + str(self.dataset.GetDimensions()) + "\n"
+
+        out += "center".ljust(14) + ": "
+        out += utils.precision(self.dataset.GetCenter(), 6) + "\n"
+
+        bnds = self.bounds()
+        bx1, bx2 = utils.precision(bnds[0], 3), utils.precision(bnds[1], 3)
+        by1, by2 = utils.precision(bnds[2], 3), utils.precision(bnds[3], 3)
+        bz1, bz2 = utils.precision(bnds[4], 3), utils.precision(bnds[5], 3)
+        out += "bounds".ljust(14) + ":"
+        out += " x=(" + bx1 + ", " + bx2 + "),"
+        out += " y=(" + by1 + ", " + by2 + "),"
+        out += " z=(" + bz1 + ", " + bz2 + ")\n"
+
+        out += "memory size".ljust(14) + ": "
+        out += str(int(self.dataset.GetActualMemorySize() / 1024 + 0.5)) + " MB\n"
+
+        for key in self.pointdata.keys():
+            arr = self.pointdata[key]
+            rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
+            mark_active = "pointdata"
+            a_scalars = self.dataset.GetPointData().GetScalars()
+            a_vectors = self.dataset.GetPointData().GetVectors()
+            a_tensors = self.dataset.GetPointData().GetTensors()
+            if a_scalars and a_scalars.GetName() == key:
+                mark_active += " *"
+            elif a_vectors and a_vectors.GetName() == key:
+                mark_active += " **"
+            elif a_tensors and a_tensors.GetName() == key:
+                mark_active += " ***"
+            out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), ndim={arr.ndim}'
+            out += f", range=({rng})\n"
+
+        for key in self.celldata.keys():
+            arr = self.celldata[key]
+            rng = utils.precision(arr.min(), 3) + ", " + utils.precision(arr.max(), 3)
+            mark_active = "celldata"
+            a_scalars = self.dataset.GetCellData().GetScalars()
+            a_vectors = self.dataset.GetCellData().GetVectors()
+            a_tensors = self.dataset.GetCellData().GetTensors()
+            if a_scalars and a_scalars.GetName() == key:
+                mark_active += " *"
+            elif a_vectors and a_vectors.GetName() == key:
+                mark_active += " **"
+            elif a_tensors and a_tensors.GetName() == key:
+                mark_active += " ***"
+            out += mark_active.ljust(14) + f': "{key}" ({arr.dtype}), ndim={arr.ndim}'
+            out += f", range=({rng})\n"
+
+        for key in self.metadata.keys():
+            arr = self.metadata[key]
+            out += "metadata".ljust(14) + ": " + f'"{key}" ({len(arr)} values)\n'
+
+        return out.rstrip() + "\x1b[0m"
+
+    def isosurface(self, value=None):
+        """
+        Return a `Mesh` isosurface extracted from the object.
+
+        Set `value` as single float or list of values to draw the isosurface(s).
+        """
+        scrange = self.dataset.GetScalarRange()
+
+        cf = vtk.new("ContourFilter")
+        cf.UseScalarTreeOn()
+        cf.SetInputData(self.dataset)
+        cf.ComputeNormalsOn()
+
+        if value is None:
+            value = (2 * scrange[0] + scrange[1]) / 3.0
+            # print("automatic isosurface value =", value)
+            cf.SetValue(0, value)
+        else:
+            if utils.is_sequence(value):
+                cf.SetNumberOfContours(len(value))
+                for i, t in enumerate(value):
+                    cf.SetValue(i, t)
+            else:
+                cf.SetValue(0, value)
+
+        cf.Update()
+        poly = cf.GetOutput()
+
+        out = vedo.mesh.Mesh(poly, c=None).phong()
+        out.mapper.SetScalarRange(scrange[0], scrange[1])
+
+        out.pipeline = utils.OperationNode(
+            "isosurface",
+            parents=[self],
+            comment=f"#pts {out.dataset.GetNumberOfPoints()}",
+            c="#4cc9f0:#e9c46a",
+        )
+        return out
+
+    def cut_with_plane(self, origin=(0, 0, 0), normal="x"):
+        """
+        Cut the object with the plane defined by a point and a normal.
+
+        Arguments:
+            origin : (list)
+                the cutting plane goes through this point
+            normal : (list, str)
+                normal vector to the cutting plane
+        """
+        strn = str(normal)
+        if strn   ==  "x": normal = (1, 0, 0)
+        elif strn ==  "y": normal = (0, 1, 0)
+        elif strn ==  "z": normal = (0, 0, 1)
+        elif strn == "-x": normal = (-1, 0, 0)
+        elif strn == "-y": normal = (0, -1, 0)
+        elif strn == "-z": normal = (0, 0, -1)
+        plane = vtk.new("Plane")
+        plane.SetOrigin(origin)
+        plane.SetNormal(normal)
+        clipper = vtk.new("ClipDataSet")
+        clipper.SetInputData(self.dataset)
+        clipper.SetClipFunction(plane)
+        clipper.GenerateClipScalarsOff()
+        clipper.GenerateClippedOutputOff()
+        clipper.SetValue(0)
+        clipper.Update()
+        cout = clipper.GetOutput()
+        ug = vedo.UnstructuredGrid(cout)
+        if isinstance(self, vedo.UnstructuredGrid):
+            self._update(cout)
+            self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
+            return self
+        ug.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
+        return ug
+
+    def cut_with_mesh(self, mesh, invert=False, whole_cells=False, on_boundary=False):
+        """
+        Cut a `RectilinearGrid` with a `Mesh`.
+
+        Use `invert` to return cut off part of the input object.
+        """
+        ug = self.dataset
+
+        ippd = vtk.new("ImplicitPolyDataDistance")
+        ippd.SetInput(mesh.dataset)
+
+        if whole_cells or on_boundary:
+            clipper = vtk.new("ExtractGeometry")
+            clipper.SetInputData(ug)
+            clipper.SetImplicitFunction(ippd)
+            clipper.SetExtractInside(not invert)
+            clipper.SetExtractBoundaryCells(False)
+            if on_boundary:
+                clipper.SetExtractBoundaryCells(True)
+                clipper.SetExtractOnlyBoundaryCells(True)
+        else:
+            signed_dists = vtk.vtkFloatArray()
+            signed_dists.SetNumberOfComponents(1)
+            signed_dists.SetName("SignedDistance")
+            for pointId in range(ug.GetNumberOfPoints()):
+                p = ug.GetPoint(pointId)
+                signed_dist = ippd.EvaluateFunction(p)
+                signed_dists.InsertNextValue(signed_dist)
+            ug.GetPointData().AddArray(signed_dists)
+            ug.GetPointData().SetActiveScalars("SignedDistance")  # NEEDED
+            clipper = vtk.new("ClipDataSet")
+            clipper.SetInputData(ug)
+            clipper.SetInsideOut(not invert)
+            clipper.SetValue(0.0)
+
+        clipper.Update()
+
+        out = vedo.UnstructuredGrid(clipper.GetOutput())
+        out.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
+        return out

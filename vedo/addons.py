@@ -13,7 +13,7 @@ from vedo.assembly import Assembly, Group
 from vedo.colors import get_color, build_lut, color_map, printc
 from vedo.mesh import Mesh
 from vedo.pointcloud import Points, Point, merge
-from vedo.tetmesh import TetMesh
+from vedo.grids import TetMesh
 from vedo.volume import Volume
 
 __docformat__ = "google"
