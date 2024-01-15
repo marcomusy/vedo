@@ -421,7 +421,7 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         m.pipeline = utils.OperationNode(f"zslice {k}", parents=[self], c="#4cc9f0:#e9c46a")
         return m
 
-    def slice_plane(self, origin=(0, 0, 0), normal=(1, 1, 1), autocrop=True, mode="linear"):
+    def slice_plane(self, origin=(0, 0, 0), normal=(1, 1, 1), autocrop=False, mode="linear"):
         """
         Extract the slice along a given plane position and normal.
 
