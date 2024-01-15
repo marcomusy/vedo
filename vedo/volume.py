@@ -421,9 +421,25 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         m.pipeline = utils.OperationNode(f"zslice {k}", parents=[self], c="#4cc9f0:#e9c46a")
         return m
 
-    def slice_plane(self, origin=(0, 0, 0), normal=(1, 1, 1), autocrop=False):
+    def slice_plane(self, origin=(0, 0, 0), normal=(1, 1, 1), autocrop=True, mode="linear"):
         """
         Extract the slice along a given plane position and normal.
+
+        Two metadata arrays are added to the output Mesh:
+            - `shape` : contains the shape of the slice
+            - `original_bounds` : contains the original bounds of the slice
+        One can access them with e.g. `myslice.metadata["shape"]`.
+
+        Arguments:
+
+            origin : (list)
+                position of the plane
+            normal : (list)
+                normal to the plane
+            autocrop : (bool)
+                crop the output to the minimal possible size
+            mode : (str)
+                interpolation mode, one of the following: "linear", "nearest", "cubic"
 
         Example:
             - [slice_plane1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slice_plane1.py)
@@ -444,14 +460,32 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         T.Translate(pos)
         M = T.GetMatrix()
         reslice.SetResliceAxes(M)
-        reslice.SetInterpolationModeToLinear()
+        if mode == "linear":
+            reslice.SetInterpolationModeToLinear()
+        elif mode == "nearest":
+            reslice.SetInterpolationModeToNearestNeighbor()
+        elif mode == "cubic":
+            reslice.SetInterpolationModeToCubic()
+        else:
+            vedo.logger.error(f"in slice_plane(): unknown interpolation mode {mode}")
+            raise ValueError()
         reslice.SetAutoCropOutput(not autocrop)
         reslice.Update()
+
         vslice = vtk.new("ImageDataGeometryFilter")
         vslice.SetInputData(reslice.GetOutput())
         vslice.Update()
+
         msh = Mesh(vslice.GetOutput())
         msh.apply_transform(T)
+        msh.properties.LightingOff()
+
+        d0, d1, _ = reslice.GetOutput().GetDimensions()
+        varr1 = utils.numpy2vtk([d1, d0], name="shape")
+        msh.dataset.GetFieldData().AddArray(varr1)
+        varr2 = utils.numpy2vtk(reslice.GetOutput().GetBounds()[:4], name="original_bounds")
+        msh.dataset.GetFieldData().AddArray(varr2)
+
         msh.pipeline = utils.OperationNode(
             "slice_plane", parents=[self], c="#4cc9f0:#e9c46a")
         return msh

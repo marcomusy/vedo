@@ -32,6 +32,7 @@
 - add `Line.find_index_at_position()` finds the index of the line vertex that is closest to a point
 - add `visual.LightKit` class which provides "natural" lighting from 4 sources.
 - add `fast-simplification` example by @Louis-Pujol in #992
+- add metadata "shape" to `volume.slice_plane()` in #1018
 
 
 ## Breaking changes
@@ -59,6 +60,8 @@ examples/volumetric/streamlines2.py
 examples/volumetric/streamlines3.py
 examples/volumetric/streamlines4.py
 examples/volumetric/office.py
+examples/volumetric/slice_plane1.py
+
 examples/simulations/mag_field1.py
 examples/pyplot/plot_stream.py
 examples/other/madcad1.py
