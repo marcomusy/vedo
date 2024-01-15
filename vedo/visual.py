@@ -14,7 +14,7 @@ from vedo import utils
 __docformat__ = "google"
 
 __doc__ = """
-Base classes to manage visualization and apperance of objects and their properties"
+Base classes to manage visualization and apperance of objects and their properties.
 """
 
 __all__ = [

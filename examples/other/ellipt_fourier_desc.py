@@ -1,14 +1,17 @@
 """Elliptic Fourier Descriptors
 parametrizing a closed contour (in red)"""
+import numpy as np
 import vedo
 import pyefd
 
 shapes = vedo.Assembly(vedo.dataurl+'timecourse1d.npy')
 
-sh = shapes[55]
-sr = vedo.Line(sh).mirror('x')
-sm = vedo.merge(sh, sr).c('red5').lw(3)
-pts = sm.vertices[:,(0,1)]
+s = shapes[55].c('red5').lw(3)
+pts1 = s.vertices[:,(0,1)].copy()
+pts2 = s.vertices[:,(0,1)].copy()
+pts2[:,0] *= -1
+pts2 = np.flip(pts2, axis=0)
+pts = np.array(pts1.tolist() + pts2.tolist())
 
 rlines = []
 for order in range(5,30, 5):
@@ -19,5 +22,5 @@ for order in range(5,30, 5):
     rline = vedo.Line(rpts).lw(3).c(color)
     rlines.append(rline)
 
-sm.z(0.1) # move it on top so it's visible
-vedo.show(sm, *rlines, __doc__, axes=1, bg='k', size=(1190, 630), zoom=1.8).close()
+s.z(0.1) # move it on top so it's visible
+vedo.show(s, *rlines, __doc__, axes=1, bg='k', size=(1190, 630), zoom=1.8).close()

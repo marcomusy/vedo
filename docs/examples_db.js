@@ -607,12 +607,12 @@ vedo_example_db =
         imgsrc: 'images/advanced/warp4.png',
     },
     {
-        pyname: 'warp4c',
+        pyname: 'warp4b',
         kbd   : '',
         categ : 'advanced',
         short : 'interactive morphing 3d',
         long  : 'Morph/warp a 3D shape by manually assigning a set of corresponding landmarks',
-        imgsrc: 'images/advanced/warp4c.jpg',
+        imgsrc: 'images/advanced/warp4b.jpg',
     },
     {
         pyname: 'warp5',
@@ -1878,6 +1878,14 @@ vedo_example_db =
         short : 'pyvista library',
         long  : 'Interface vedo to the'+insertLink('pyvista','github.com/pyvista/pyvista')+'and'+insertLink('pyacvd', 'github.com/akaszynski/pyacvd')+'libraries.',
         imgsrc: 'images/other/remesh_ACVD.png',
+    },
+    {
+        pyname: 'fast_simpl',
+        kbd   : '',
+        categ : 'other',
+        short : 'fast mesh decimation',
+        long  : 'Use the'+insertLink('fast-simplification','github.com/pyvista/fast-simplification')+'lib to decimate a mesh and transfer data defined on the original vertices.',
+        imgsrc: 'images/other/fast_decim.jpg',
     },
     {
         pyname: 'napari1',

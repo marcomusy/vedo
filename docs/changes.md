@@ -1,5 +1,4 @@
 ## Main changes
-
 - fixes to `extrude()` thanks to @JeffreyWardman
 - filter out triangle strips in Ribbon and extrude()
 - improvements in doc strings
@@ -25,8 +24,7 @@
 - rename `integrate_arrays_over_domain()` to `integrate_data`
 - extend `volume.operation()` to support logic operations as per #1002
 - add `pointcloud.relax_point_positions()` method
-- add `pointcloud.auto_distance()` method calculates the distance to the closest
-point in the same cloud of points.
+- add `pointcloud.auto_distance()` method calculates the distance to the closest point in the same cloud of points.
 - fixed `mesh.collapse_edges()` after #992
 - add `mesh.cut_closed_surface()`
 - fix `image.clone()` in #1011
@@ -53,7 +51,7 @@ point in the same cloud of points.
 
 ## New/Revised Examples
 ```
-examples/advanced/warp4c.py
+examples/advanced/warp4b.py
 examples/advanced/diffuse_data.py
 examples/volumetric/slab_vol.py
 examples/volumetric/streamlines1.py

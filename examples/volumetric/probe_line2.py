@@ -1,5 +1,4 @@
-"""Probe a Volume with a line
-and plot the intensity values"""
+"""Probe a Volume with a line and plot the intensity values"""
 from vedo import dataurl, Volume, Line, show
 from vedo.pyplot import plot
 
@@ -28,6 +27,6 @@ fig = plot(
     lc="r",  # line color
     marker="O",  # marker style
 )
-fig.shift(0, 25, 0)
+fig = fig.shift(0, 25, 0).clone2d()
 
 show(vol, pl, fig, __doc__, axes=14).close()

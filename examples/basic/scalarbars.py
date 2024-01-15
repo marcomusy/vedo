@@ -1,5 +1,4 @@
-"""Insert 2D and 3D scalarbars
-in the rendering scene"""
+"""Insert 2D and 3D scalarbars in the rendering scene"""
 from vedo import Mesh, dataurl, show
 
 shape = Mesh(dataurl + "lamp.vtk")

@@ -5,7 +5,7 @@ import pandas
 from vedo import *
 
 num = 50  # nr of earthquakes to be visualized to define a time window
-path = download("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_month.csv")
+path = download("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_month.csv", force=True)
 usecols = ['time','place','latitude','longitude','depth','mag']
 data = pandas.read_csv(path, usecols=usecols)[usecols][::-1].reset_index(drop=True) # reverse list
 

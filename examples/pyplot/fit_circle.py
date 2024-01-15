@@ -31,4 +31,4 @@ shape.lw(8).cmap('coolwarm', curvs).add_scalarbar3d(title=':pm1/:sqrtR', c='w')
 # use this trick to make the scalarbar3d become a 2d screen object:
 shape.scalarbar = shape.scalarbar.clone2d("bottom-right", 0.2)
 
-show(shape, circles, Points(fitpts), __doc__, axes=1, bg='bb').close()
+show(shape, circles, Points(fitpts, c='white'), __doc__, axes=1, bg='bb').close()
