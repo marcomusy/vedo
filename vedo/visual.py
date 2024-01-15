@@ -774,22 +774,29 @@ class PointsVisual(CommonVisual):
         self._caption = None
         
 
-    def clone2d(self, size=None, offset=()):
+    def clone2d(self, size=None, offset=(), scale=None):
         """
         Turn a 3D `Points` or `Mesh` into a flat 2D actor.
         Returns a `Actor2D`.
 
         Arguments:
             size : (float)
-                size scaling factor for the 2D actor
+                size as scaling factor for the 2D actor
             offset : (list)
                 2D (x, y) position of the actor in the range [-1, 1]
+            scale : (float)
+                Deprecated. Use `size` instead.
 
         Examples:
             - [clone2d.py](https://github.com/marcomusy/vedo/tree/master/examples/other/clone2d.py)
 
                 ![](https://vedo.embl.es/images/other/clone2d.png)
         """
+        # assembly.Assembly.clone2d() superseeds this method
+        if scale is not None:
+            vedo.logger.warning("clone2d(): use keyword size not scale")
+            size = scale
+
         if size is None:
             # work out a reasonable scale
             msiz = self.diagonal_size()
