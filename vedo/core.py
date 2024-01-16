@@ -369,19 +369,6 @@ class DataArrayHelper:
 class CommonAlgorithms:
     """Common algorithms."""
 
-    def __init__(self):
-        # print("init CommonAlgorithms")
-        self.dataset = None
-        self.pipeline = None
-        self.name = ""
-        self.filename = ""
-        self.time = 0
-
-        self.transform = None
-        self.point_locator = None
-        self.cell_locator = None
-        self.line_locator = None
-
     @property
     def pointdata(self):
         """
@@ -757,31 +744,6 @@ class CommonAlgorithms:
             cid = cell_ids.GetId(i)
             cids.append(cid)
         return np.array(cids)
-
-    def delete_cells_by_point_index(self, indices):
-        """
-        Delete a list of vertices identified by any of their vertex index.
-
-        See also `delete_cells()`.
-
-        Examples:
-            - [delete_mesh_pts.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/delete_mesh_pts.py)
-
-                ![](https://vedo.embl.es/images/basic/deleteMeshPoints.png)
-        """
-        cell_ids = vtk.vtkIdList()
-        self.dataset.BuildLinks()
-        n = 0
-        for i in np.unique(indices):
-            self.dataset.GetPointCells(i, cell_ids)
-            for j in range(cell_ids.GetNumberOfIds()):
-                self.dataset.DeleteCell(cell_ids.GetId(j))  # flag cell
-                n += 1
-
-        self.dataset.RemoveDeletedCells()
-        self.dataset.Modified()
-        self.pipeline = utils.OperationNode("delete_cells_by_point_index", parents=[self])
-        return self
 
     def map_cells_to_points(self, arrays=(), move=False):
         """
@@ -1389,22 +1351,6 @@ class CommonAlgorithms:
         msh.pipeline = utils.OperationNode("tomesh", parents=[self], c="#9e2a2b")
         return msh
 
-    def shrink(self, fraction=0.8):
-        """
-        Shrink the individual cells to improve visibility.
-
-        ![](https://vedo.embl.es/images/feats/shrink_hex.png)
-        """
-        sf = vtk.new("ShrinkFilter")
-        sf.SetInputData(self.dataset)
-        sf.SetShrinkFactor(fraction)
-        sf.Update()
-        self._update(sf.GetOutput())
-        self.pipeline = utils.OperationNode(
-            "shrink", comment=f"by {fraction}", parents=[self], c="#9e2a2b"
-        )
-        return self
-
     def smooth_data(self, 
             niter=10, relaxation_factor=0.1, strategy=0, mask=None,
             exclude=("Normals", "TextureCoordinates"),
@@ -1558,11 +1504,6 @@ class CommonAlgorithms:
 ###############################################################################
 class PointAlgorithms(CommonAlgorithms):
     """Methods for point clouds."""
-
-    def __init__(self):
-        # print('init PointAlgorithms')
-        super().__init__()
-
 
     def apply_transform(self, LT, concatenate=True, deep_copy=True):
         """
@@ -1824,10 +1765,6 @@ class PointAlgorithms(CommonAlgorithms):
 ###############################################################################
 class VolumeAlgorithms(CommonAlgorithms):
     """Methods for Volume objects."""
-
-    # def __init__(self):
-    #     #print('init VolumeAlgorithms')
-    #     super().__init__()
 
     def bounds(self):
         """

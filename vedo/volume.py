@@ -1,5 +1,6 @@
 import glob
 import os
+import time
 from weakref import ref as weak_ref_to
 
 import numpy as np
@@ -26,7 +27,7 @@ __all__ = ["Volume"]
 
 
 ##########################################################################
-class Volume(VolumeVisual, VolumeAlgorithms):
+class Volume(VolumeAlgorithms, VolumeVisual):
     """
     Class to describe dataset that are defined on "voxels",
     the 3D equivalent of 2D pixels.
@@ -70,13 +71,14 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             if a `list` of values is used for `alphas` this is interpreted
             as a transfer function along the range of the scalar.
         """
-        # super().__init__() # NO NEED
+        super().__init__()
 
         self.name = "Volume"
         self.filename = ""
+        self.file_size = ""
+
         self.info = {}
-        self.time = 0
-        self.rendered_at = set()
+        self.time =  time.time()
 
         self.actor = vtk.vtkVolume()
         self.actor.retrieve_object = weak_ref_to(self)
@@ -710,7 +712,9 @@ class Volume(VolumeVisual, VolumeAlgorithms):
 
         - [numpy2volume0.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/numpy2volume0.py)
         """
-        self.dataset.GetPointData().GetScalars().Modified()
+        scals = self.dataset.GetPointData().GetScalars()
+        if scals:
+            scals.Modified()
         return self
 
     def tonumpy(self):

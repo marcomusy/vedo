@@ -1193,6 +1193,8 @@ def write(objct, fileoutput, binary=True):
         writer = vtk.new("FacetWriter")
     elif fr.endswith(".vti"):
         writer = vtk.new("XMLImageDataWriter")
+    elif fr.endswith(".vtr"):
+        writer = vtk.new("XMLRectilinearGridWriter")
     elif fr.endswith(".vtm"):
         g = vtk.new("MultiBlockDataGroupFilter")
         for ob in objct:

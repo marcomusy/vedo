@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import time
 from weakref import ref as weak_ref_to
 import numpy as np
 
@@ -138,15 +139,19 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         self.properties = self._actor.GetProperty()
 
         self.transform = LinearTransform()
+        self.point_locator = None
+        self.cell_locator = None
+        self.line_locator = None
 
         self.name = "UnstructuredGrid"
         self.filename = ""
-        self.info = {}
-        self.time = 0
-        self.rendered_at = set()
-        self._cmap_name = ""  # remember the cmap name for self._keypress
+        self.file_size = ""
 
-        ###################
+        self.info = {}
+        self.time = time.time()
+        self.rendered_at = set()
+
+        ######################################
         inputtype = str(type(inputobj))
 
         if inputobj is None:
@@ -641,6 +646,23 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         )
         return out
 
+    def shrink(self, fraction=0.8):
+        """
+        Shrink the individual cells.
+
+        ![](https://vedo.embl.es/images/feats/shrink_hex.png)
+        """
+        sf = vtk.new("ShrinkFilter")
+        sf.SetInputData(self.dataset)
+        sf.SetShrinkFactor(fraction)
+        sf.Update()
+        out = sf.GetOutput()
+        self._update(out)
+        self.pipeline = utils.OperationNode(
+            "shrink", comment=f"by {fraction}", parents=[self], c="#9e2a2b"
+        )
+        return self
+
     def tomesh(self, fill=False, shrink=1.0):
         """
         Build a polygonal `Mesh` from the current object.
@@ -991,10 +1013,7 @@ class TetMesh(UnstructuredGrid):
         self._actor.SetMapper(self.mapper)
         self.properties = self._actor.GetProperty()
 
-        self.transform = LinearTransform()
-
         self.name = "TetMesh"
-        self.filename = ""
 
         # print('TetMesh inputtype', type(inputobj))
 
@@ -1465,9 +1484,15 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         self.properties = self._actor.GetProperty()
 
         self.transform = LinearTransform()
+        self.point_locator = None
+        self.cell_locator = None
+        self.line_locator = None
 
         self.name = "RectilinearGrid"
         self.filename = ""
+
+        self.info = {}
+        self.time =  time.time()
 
         ###################
         if inputobj is None:
@@ -1596,6 +1621,24 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
             out += "metadata".ljust(14) + ": " + f'"{key}" ({len(arr)} values)\n'
 
         return out.rstrip() + "\x1b[0m"
+
+    def clone(self, deep=True):
+        """Return a clone copy of the Volume. Alias of `copy()`."""
+        if deep:
+            newrg = vtk.vtkRectilinearGrid()
+            newrg.CopyStructure(self.dataset)
+            newrg.CopyAttributes(self.dataset)
+            newvol = RectilinearGrid(newrg)
+        else:
+            newvol = RectilinearGrid(self.dataset)
+
+        prop = vtk.vtkProperty()
+        prop.DeepCopy(self.properties)
+        newvol.actor.SetProperty(prop)
+        newvol.properties = prop
+
+        newvol.pipeline = utils.OperationNode("clone", parents=[self], c="#bbd0ff", shape="diamond")
+        return newvol
 
     def bounds(self):
         """

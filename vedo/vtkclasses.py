@@ -135,11 +135,6 @@ from vtkmodules.vtkCommonDataModel import (
     vtkUnstructuredGrid,
     vtkRectilinearGrid,
     vtkStructuredGrid,
-)
-location["vtkPlaneCollection"] = "vtkCommonDataModel"
-
-# noinspection PyUnresolvedReferences
-from vtkmodules.vtkCommonDataModel import (
     vtkCellArray,
     vtkDataSetAttributes,
     vtkDataObject,
@@ -188,6 +183,7 @@ for name in [
     "vtkPentagonalPrism",
     "vtkPixel",
     "vtkPlane",
+    "vtkPlaneCollection",
     "vtkPlanes",
     "vtkPointLocator",
     "vtkPolyData",
@@ -197,6 +193,7 @@ for name in [
     "vtkPolyVertex",
     "vtkPyramid",
     "vtkQuad",
+    "vtkQuadric",
     "vtkRectilinearGrid",
     "vtkSelection",
     "vtkSelectionNode",
@@ -487,6 +484,7 @@ for name in [
     "vtkXMLPolyDataReader",
     "vtkXMLPolyDataWriter",
     "vtkXMLRectilinearGridReader",
+    "vtkXMLRectilinearGridWriter",
     "vtkXMLStructuredGridReader",
     "vtkXMLUnstructuredGridReader",
     "vtkXMLUnstructuredGridWriter",

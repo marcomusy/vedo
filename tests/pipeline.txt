@@ -160,8 +160,8 @@ cp docs/examples_db.js www/examples_db.js
 code www/index.html
 
 
-################################################################
-# RELEASE
+# RELEASE #######################################
+
 cd $VEDODIR
 
 # check version and status

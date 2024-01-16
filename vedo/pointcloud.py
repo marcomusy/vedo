@@ -503,42 +503,26 @@ class Points(PointsVisual, PointAlgorithms):
         # print("INIT POINTS")
         super().__init__()
 
-        self.filename = ""
         self.name = ""
+        self.filename = ""
         self.file_size = ""
-        self.trail = None
-        self.trail_points = []
-        self.trail_segment_size = 0
-        self.trail_offset = None
-        self.shadows = []
-        self.axes = None
-        self.picked3d = None
 
         self.info = {}
         self.time = time.time()
-        self.rendered_at = set()
+        
         self.transform = LinearTransform()
-
         self.point_locator = None
         self.cell_locator = None
         self.line_locator = None
-
-        self.scalarbar = None
-        self.pipeline = None
 
         self.actor = vtk.vtkActor()
         self.properties = self.actor.GetProperty()
         self.properties_backface = self.actor.GetBackfaceProperty()
         self.mapper = vtk.new("PolyDataMapper")
         self.dataset = vtk.vtkPolyData()
-        self.transform = LinearTransform()
         
         # Create weakref so actor can access this object (eg to pick/remove):
         self.actor.retrieve_object = weak_ref_to(self)
-
-        self._ligthingnr = 0  # index of the lighting mode changed from CLI
-        self._cmap_name = ""  # remember the cmap name for self._keypress
-        self._caption = None
 
         try:
             self.properties.RenderPointsAsSpheresOn()

@@ -33,14 +33,30 @@ class CommonVisual:
     """Class to manage the visual aspects common to all objects."""
 
     def __init__(self):
-        # print("init CommonVisual")
-        self.mapper = None
+        # print("init CommonVisual", type(self))
+
         self.properties = None
-        self.actor = None
+
         self.scalarbar = None       
+        self.pipeline = None
+
         self.trail = None
-        self.shadows = [] 
-    
+        self.trail_points = []
+        self.trail_segment_size = 0
+        self.trail_offset = None
+
+        self.shadows = []
+
+        self.axes = None
+        self.picked3d = None
+
+        self.rendered_at = set()
+
+        self._ligthingnr = 0  # index of the lighting mode changed from CLI
+        self._cmap_name = ""  # remember the cmap name for self._keypress
+        self._caption = None
+
+
     def print(self):
         """Print object info."""
         print(self.__str__())

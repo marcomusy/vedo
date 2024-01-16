@@ -14,7 +14,7 @@ lines = merge(lines)
 
 # Probe the Volume with the lines and add the scalars as pointdata
 lines.probe(vol)
-lines.cmap('hot', vmin=0, vmax=110).add_scalarbar()
-print(lines.pointdata)
+lines.lw(3).cmap('hot', vmin=0, vmax=110).add_scalarbar()
+print(lines)
 
-show(lines, __doc__, axes=1).close()
+show(vol, lines, __doc__, axes=1).close()
