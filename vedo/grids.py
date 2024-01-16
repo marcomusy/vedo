@@ -112,7 +112,7 @@ def UGrid(*args, **kwargs):
     return UnstructuredGrid(*args, **kwargs)
 
 
-class UnstructuredGrid(MeshVisual, PointAlgorithms):
+class UnstructuredGrid(PointAlgorithms, MeshVisual):
     """Support for UnstructuredGrid objects."""
 
     def __init__(self, inputobj=None):
@@ -328,7 +328,10 @@ class UnstructuredGrid(MeshVisual, PointAlgorithms):
         else:
             # this converts other types of vtk objects to UnstructuredGrid
             apf = vtk.new("AppendFilter")
-            apf.AddInputData(inputobj)
+            try:
+                apf.AddInputData(inputobj)
+            except TypeError:
+                apf.AddInputData(inputobj.dataset)
             apf.Update()
             self.dataset = apf.GetOutput()
 
@@ -1444,7 +1447,7 @@ class TetMesh(UnstructuredGrid):
 
 
 ##########################################################################
-class RectilinearGrid(MeshVisual, PointAlgorithms):
+class RectilinearGrid(PointAlgorithms, MeshVisual):
     """
     Build a rectilinear grid.
     """
@@ -1593,6 +1596,14 @@ class RectilinearGrid(MeshVisual, PointAlgorithms):
             out += "metadata".ljust(14) + ": " + f'"{key}" ({len(arr)} values)\n'
 
         return out.rstrip() + "\x1b[0m"
+
+    def bounds(self):
+        """
+        Get the object bounds.
+        Returns a list in format `[xmin,xmax, ymin,ymax, zmin,zmax]`.
+        """
+        # OVERRIDE CommonAlgorithms.bounds() which is too slow
+        return np.array(self.dataset.GetBounds())
 
     def isosurface(self, value=None):
         """

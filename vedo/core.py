@@ -377,6 +377,11 @@ class CommonAlgorithms:
         self.filename = ""
         self.time = 0
 
+        self.transform = None
+        self.point_locator = None
+        self.cell_locator = None
+        self.line_locator = None
+
     @property
     def pointdata(self):
         """
@@ -444,7 +449,9 @@ class CommonAlgorithms:
     def modified(self):
         """Use in conjunction with `tonumpy()` to update any modifications to the image array."""
         self.dataset.GetPointData().Modified()
-        self.dataset.GetPointData().GetScalars().Modified()
+        scals = self.dataset.GetPointData().GetScalars()
+        if scals:
+            scals.Modified()
         return self
 
     def box(self, scale=1, padding=0):
@@ -537,6 +544,8 @@ class CommonAlgorithms:
 
     def center_of_mass(self):
         """Get the center of mass of the object."""
+        if isinstance(self, (vedo.RectilinearGrid, vedo.Volume)):
+            return np.array(self.dataset.GetCenter())
         cmf = vtk.new("CenterOfMass")
         cmf.SetInputData(self.dataset)
         cmf.Update()
@@ -641,7 +650,10 @@ class CommonAlgorithms:
         """
         # Get cell connettivity ids as a 1D array. The vtk format is:
         #    [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
-        arr1d = utils.vtk2numpy(self.dataset.GetLines().GetData())
+        try:
+            arr1d = utils.vtk2numpy(self.dataset.GetLines().GetData())
+        except AttributeError:
+            return np.array([])
         i = 0
         conn = []
         n = len(arr1d)
@@ -662,7 +674,10 @@ class CommonAlgorithms:
 
         See also: `lines()`.
         """
-        return utils.vtk2numpy(self.dataset.GetLines().GetData())
+        try:
+            return utils.vtk2numpy(self.dataset.GetLines().GetData())
+        except AttributeError:
+            return np.array([])
 
     def mark_boundaries(self):
         """
@@ -800,21 +815,25 @@ class CommonAlgorithms:
     def vertices(self):
         """Return the vertices (points) coordinates."""
         try:
-            # valid for polydata and unstructured grid
+            # for polydata and unstructured grid
             varr = self.dataset.GetPoints().GetData()
-
         except (AttributeError, TypeError):
             try:
-                # valid for rectilinear/structured grid, image data
-                v2p = vtk.new("ImageToPoints")
-                v2p.SetInputData(self.dataset)
-                v2p.Update()
-                varr = v2p.GetOutput().GetPoints().GetData()
-            except AttributeError:
-                return np.array([])
+                # for RectilinearGrid, StructuredGrid
+                vpts = vtk.vtkPoints()
+                self.dataset.GetPoints(vpts)
+                varr = vpts.GetData()
+            except (AttributeError, TypeError):
+                try:
+                    # for ImageData
+                    v2p = vtk.new("ImageToPoints")
+                    v2p.SetInputData(self.dataset)
+                    v2p.Update()
+                    varr = v2p.GetOutput().GetPoints().GetData()
+                except AttributeError:
+                    return np.array([])
 
-        narr = utils.vtk2numpy(varr)
-        return narr
+        return utils.vtk2numpy(varr)
 
     # setter
     @vertices.setter
@@ -827,14 +846,13 @@ class CommonAlgorithms:
             vpts.SetData(arr)
             vpts.Modified()
         except (AttributeError, TypeError):
-            vedo.logger.error(f"Cannot set vertices for object {type(self)}")
+            vedo.logger.error(f"Cannot set vertices for {type(self)}")
             return self
         # reset mesh to identity matrix position/rotation:
         self.point_locator = None
         self.cell_locator = None
         self.line_locator = None
         self.transform = LinearTransform()
-        return self
 
     @property
     def coordinates(self):
@@ -858,8 +876,6 @@ class CommonAlgorithms:
         except AttributeError:
             # valid for polydata
             arr1d = utils.vtk2numpy(self.dataset.GetPolys().GetData())
-            # if arr1d.size == 0:
-            #     arr1d = utils.vtk2numpy(self.dataset.GetStrips().GetData())
         return arr1d
 
     @property
@@ -873,10 +889,12 @@ class CommonAlgorithms:
             # valid for unstructured grid
             arr1d = utils.vtk2numpy(self.dataset.GetCells().GetData())
         except AttributeError:
-            # valid for polydata
-            arr1d = utils.vtk2numpy(self.dataset.GetPolys().GetData())
-            # if arr1d.size == 0:
-            #     arr1d = utils.vtk2numpy(self.dataset.GetStrips().GetData())
+            try:
+                # valid for polydata
+                arr1d = utils.vtk2numpy(self.dataset.GetPolys().GetData())
+            except AttributeError:
+                vedo.logger.warning(f"Cannot get cells for {type(self)}")
+                return np.array([])
 
         # Get cell connettivity ids as a 1D array. vtk format is:
         # [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
@@ -1240,8 +1258,7 @@ class CommonAlgorithms:
 
     def probe(self, source):
         """
-        Takes a `Volume` (or any other data set)
-        and probes its scalars at the specified points in space.
+        Takes a data set and probes its scalars at the specified points in space.
 
         Note that a mask is also output with valid/invalid points which can be accessed
         with `mesh.pointdata['ValidPointMask']`.
@@ -1495,8 +1512,11 @@ class CommonAlgorithms:
             seeds = vedo.Points(seeds)
 
         sti = vtk.new("StreamTracer")
-        sti.SetInputDataObject(self.dataset)
         sti.SetSourceData(seeds.dataset)
+        if isinstance(self, vedo.RectilinearGrid):
+            sti.SetInputData(vedo.UnstructuredGrid(self.dataset).dataset)
+        else:
+            sti.SetInputDataObject(self.dataset)
 
         sti.SetInitialIntegrationStep(initial_step_size)
         sti.SetComputeVorticity(compute_vorticity)
@@ -1543,10 +1563,6 @@ class PointAlgorithms(CommonAlgorithms):
         # print('init PointAlgorithms')
         super().__init__()
 
-        self.transform = None
-        self.point_locator = None
-        self.cell_locator = None
-        self.line_locator = None
 
     def apply_transform(self, LT, concatenate=True, deep_copy=True):
         """
@@ -1809,8 +1825,9 @@ class PointAlgorithms(CommonAlgorithms):
 class VolumeAlgorithms(CommonAlgorithms):
     """Methods for Volume objects."""
 
-    def __init__(self):
-        super().__init__()
+    # def __init__(self):
+    #     #print('init VolumeAlgorithms')
+    #     super().__init__()
 
     def bounds(self):
         """

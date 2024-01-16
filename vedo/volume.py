@@ -70,6 +70,8 @@ class Volume(VolumeVisual, VolumeAlgorithms):
             if a `list` of values is used for `alphas` this is interpreted
             as a transfer function along the range of the scalar.
         """
+        # super().__init__() # NO NEED
+
         self.name = "Volume"
         self.filename = ""
         self.info = {}
@@ -79,6 +81,11 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         self.actor = vtk.vtkVolume()
         self.actor.retrieve_object = weak_ref_to(self)
         self.properties = self.actor.GetProperty()
+
+        self.transform = None
+        self.point_locator = None
+        self.cell_locator = None
+        self.line_locator = None
 
         ###################
         if isinstance(inputobj, str):
@@ -197,10 +204,11 @@ class Volume(VolumeVisual, VolumeAlgorithms):
                 either 'gpu', 'opengl_gpu', 'fixed' or 'smart'
         """
         if isinstance(mapper, 
-            (vtk.get_class("Mapper"),
-                vtk.get_class("ImageResliceMapper",
-            ) )):
+            (vtk.get_class("Mapper"), vtk.get_class("ImageResliceMapper"))
+        ):
             pass
+        elif mapper is None:
+            mapper = vtk.new("SmartVolumeMapper")
         elif "gpu" in mapper:
             mapper = vtk.new("GPUVolumeRayCastMapper")
         elif "opengl_gpu" in mapper:
@@ -219,7 +227,8 @@ class Volume(VolumeVisual, VolumeAlgorithms):
         vedo.logger.warning("Volume.c() is deprecated, use Volume.cmap() instead")
         return self.cmap(*args, **kwargs)
 
-    def _update(self, data):
+    def _update(self, data, reset_locators=False):
+        # reset_locators here is dummy
         self.dataset = data
         self.mapper.SetInputData(data)
         self.dataset.GetPointData().Modified()

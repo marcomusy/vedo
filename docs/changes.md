@@ -33,6 +33,7 @@
 - add `visual.LightKit` class which provides "natural" lighting from 4 sources.
 - add `fast-simplification` example by @Louis-Pujol in #992
 - add metadata "shape" to `volume.slice_plane()` in #1018
+- fix `core.mark_boundaries()` method
 
 
 ## Breaking changes
