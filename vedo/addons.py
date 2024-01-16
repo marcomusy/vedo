@@ -1780,6 +1780,9 @@ class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
                 color of the box cutter widget
             alpha : (float)
                 transparency of the cut-off part of the input mesh
+        
+        Examples:
+            - [slice_plane3.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slice_plane3.py)
         """
         super().__init__()
 

@@ -34,7 +34,7 @@
 - add `fast-simplification` example by @Louis-Pujol in #992
 - add metadata "shape" to `volume.slice_plane()` in #1018
 - fix `core.mark_boundaries()` method
-- add callbacks for cutters in #1020
+- add callbacks for cutters in #1020 and `examples/volumetric/slice_plane3.py`
 
 
 ## Breaking changes
@@ -66,6 +66,7 @@ examples/volumetric/streamlines3.py
 examples/volumetric/streamlines4.py
 examples/volumetric/office.py
 examples/volumetric/slice_plane1.py
+examples/volumetric/slice_plane3.py
 
 examples/simulations/mag_field1.py
 examples/pyplot/plot_stream.py
