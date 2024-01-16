@@ -34,6 +34,7 @@
 - add `fast-simplification` example by @Louis-Pujol in #992
 - add metadata "shape" to `volume.slice_plane()` in #1018
 - fix `core.mark_boundaries()` method
+- add callbacks for cutters in #1020
 
 
 ## Breaking changes
