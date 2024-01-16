@@ -988,6 +988,14 @@ vedo_example_db =
         imgsrc: 'images/volumetric/slicePlane2.png',
     },
     {
+        pyname: 'slice_plane3',
+        kbd   : '',
+        categ : 'volumetric',
+        short : 'probing planes',
+        long  : 'Slice/probe a Volume interactively.',
+        imgsrc: 'images/volumetric/slicePlane3.jpg',
+    },
+    {
         pyname: 'slab_vol',
         kbd   : '',
         categ : 'volumetric',
