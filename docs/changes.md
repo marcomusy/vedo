@@ -46,7 +46,7 @@
 - modified `core.clean()` after #992
 - rename `vedo.tetmesh` to `vedo.grids` and support `RectilinearGrid`
 - remove `import_window()` for obj files and create `load_obj()` by @zhouzq-thu in #891
-
+- add `smooth_mls_12d(..., n=0)` to fix the number of neighbors in the smoothing
 
 
 ### Bug Fixes

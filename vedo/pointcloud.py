@@ -1760,7 +1760,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("relax_point_positions", parents=[self])
         return self
 
-    def smooth_mls_1d(self, f=0.2, radius=None):
+    def smooth_mls_1d(self, f=0.2, radius=None, n=0):
         """
         Smooth mesh or points with a `Moving Least Squares` variant.
         The point data array "Variances" will contain the residue calculated for each point.
@@ -1769,7 +1769,11 @@ class Points(PointsVisual, PointAlgorithms):
             f : (float)
                 smoothing factor - typical range is [0,2].
             radius : (float)
-                radius search in absolute units. If set then `f` is ignored.
+                radius search in absolute units.
+                If set then `f` is ignored.
+            n : (int)
+                number of neighbours to be used for the fit.
+                If set then `f` and `radius` are ignored.
 
         Examples:
             - [moving_least_squares1D.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/moving_least_squares1D.py)
@@ -1780,8 +1784,10 @@ class Points(PointsVisual, PointAlgorithms):
         coords = self.vertices
         ncoords = len(coords)
 
-        if radius:
-            Ncp = 0
+        if n:
+            Ncp = n
+        elif radius:
+            Ncp = 1
         else:
             Ncp = int(ncoords * f / 10)
             if Ncp < 5:
@@ -1806,7 +1812,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.pipeline = utils.OperationNode("smooth_mls_1d", parents=[self])
         return self
 
-    def smooth_mls_2d(self, f=0.2, radius=None):
+    def smooth_mls_2d(self, f=0.2, radius=None, n=0):
         """
         Smooth mesh or points with a `Moving Least Squares` algorithm variant.
 
@@ -1820,6 +1826,9 @@ class Points(PointsVisual, PointAlgorithms):
             radius : (float | array)
                 radius search in absolute units. Can be single value (float) or sequence
                 for adaptive smoothing. If set then `f` is ignored.
+            n : (int)
+                number of neighbours to be used for the fit.
+                If set then `f` and `radius` are ignored.
 
         Examples:
             - [moving_least_squares2D.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/moving_least_squares2D.py)
@@ -1830,7 +1839,10 @@ class Points(PointsVisual, PointAlgorithms):
         coords = self.vertices
         ncoords = len(coords)
 
-        if radius is not None:
+        if n:
+            Ncp = n
+            radius = None
+        elif radius is not None:
             Ncp = 1
         else:
             Ncp = int(ncoords * f / 100)
@@ -1946,8 +1958,6 @@ class Points(PointsVisual, PointAlgorithms):
             vor = scipy_voronoi(pts, qhull_options=options)
             _constrain_points(vor.vertices)
             pts = _relax(vor)
-        # m = vedo.Mesh([pts, self.cells]) # not yet working properly
-        # m.vertices = pts # not yet working properly
         out = Points(pts)
         out.name = "MeshSmoothLloyd2D"
         out.pipeline = utils.OperationNode("smooth_lloyd", parents=[self])
