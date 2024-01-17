@@ -1686,14 +1686,13 @@ def load_obj(fileinput, mtl_file=None, texture_path=None):
     importer.SetFileName(fileinput)
     if mtl_file is None:
         mtl_file = fileinput.replace(".obj", ".mtl").replace(".OBJ", ".MTL")
-        if os.path.isfile(mtl_file):
-            importer.SetFileNameMTL(mtl_file)
-            # print("SetFileNameMTL", mtl_file)
-    if texture_path is not None:
+    if os.path.isfile(mtl_file):
+        importer.SetFileNameMTL(mtl_file)
+    if texture_path is None:
         texture_path = fileinput.replace(".obj", ".txt").replace(".OBJ", ".TXT")
-        if os.path.isfile(texture_path):
-            importer.SetTexturePath(texture_path)
-            # print("SetTexturePath", texture_path)
+    # since the texture_path may be a directory which contains textures
+    if os.path.exists(texture_path):
+        importer.SetTexturePath(texture_path)
     importer.SetRenderWindow(window)
     importer.Update()
 
