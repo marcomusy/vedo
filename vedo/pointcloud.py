@@ -827,11 +827,17 @@ class Points(PointsVisual, PointAlgorithms):
             c="y")
         return self.dataset
 
-    def copy(self, deep=True):
-        """Return a copy of the object. Alias of `clone()`."""
-        return self.clone(deep=deep)
+    def __copy__(self):
+        return self.clone(deep=False, memo=None)
 
-    def clone(self, deep=True):
+    def __deepcopy__(self, memo):
+        return self.clone(deep=True, memo=memo)
+    
+    def copy(self, deep=True, memo=None):
+        """Return a copy of the object. Alias of `clone()`."""
+        return self.clone(deep=deep, memo=memo)
+
+    def clone(self, deep=True, memo=None):
         """
         Clone a `PointCloud` or `Mesh` object to make an exact copy of it.
         Alias of `copy()`.
@@ -867,6 +873,9 @@ class Points(PointsVisual, PointAlgorithms):
         cloned.name = str(self.name)
         cloned.filename = str(self.filename)
         cloned.info = dict(self.info)
+
+        if memo is not None:
+            memo[id(self)] = cloned
 
         cloned.pipeline = utils.OperationNode("clone", parents=[self], shape="diamond", c="#edede9")
         return cloned
