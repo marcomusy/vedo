@@ -52,6 +52,7 @@ __all__ = [
     "vtk2numpy",
     "numpy2vtk",
     "get_uv",
+    "andrews_curves",
 ]
 
 
@@ -720,6 +721,61 @@ class Minimizer:
 
 
 ###########################################################
+def andrews_curves(M, res=100):
+    """
+    Computes the [Andrews curves](https://en.wikipedia.org/wiki/Andrews_plot)
+    for the provided data.
+
+    The input array is an array of shape (n,m) where n is the number of
+    features and m is the number of observations.
+    
+    Arguments:
+        M : (ndarray)
+            the data matrix (or data vector).
+        res : (int)
+            the resolution (n. of points) of the output curve.
+    
+    Example:
+        - [andrews_cluster.py](https://github.com/marcomusy/vedo/blob/master/examples/pyplot/andrews_cluster.py)
+    
+        ![](https://vedo.embl.es/images/pyplot/andrews_cluster.png)
+    """
+    # Credits:
+    # https://gist.github.com/ryuzakyl/12c221ff0e54d8b1ac171c69ea552c0a
+    M = np.asarray(M)
+    m = int(res + 0.5)
+
+    # getting data vectors
+    X = np.reshape(M, (1, -1)) if len(M.shape) == 1 else M.copy()
+    _rows, n = X.shape
+
+    # andrews curve dimension (n. theta angles)
+    t = np.linspace(-np.pi, np.pi, m)
+
+    # m: range of values for angle theta
+    # n: amount of components of the Fourier expansion
+    A = np.empty((m, n))
+
+    # setting first column of A
+    A[:, 0] = [1/np.sqrt(2)] * m
+
+    # filling columns of A
+    for i in range(1, n):
+        # computing the scaling coefficient for angle theta
+        c = np.ceil(i / 2)
+        # computing i-th column of matrix A
+        col = np.sin(c * t) if i % 2 == 1 else np.cos(c * t)
+        # setting column in matrix A
+        A[:, i] = col[:]
+
+    # computing Andrews curves for provided data
+    andrew_curves = np.dot(A, X.T).T
+
+    # returning the Andrews Curves (raveling if needed)
+    return np.ravel(andrew_curves) if andrew_curves.shape[0] == 1 else andrew_curves
+
+
+###########################################################
 def numpy2vtk(arr, dtype=None, deep=True, name=""):
     """
     Convert a numpy array into a `vtkDataArray`.
@@ -744,7 +800,6 @@ def numpy2vtk(arr, dtype=None, deep=True, name=""):
     if name:
         varr.SetName(name)
     return varr
-
 
 def vtk2numpy(varr):
     """Convert a `vtkDataArray`, `vtkIdList` or `vtTransform` into a numpy array."""

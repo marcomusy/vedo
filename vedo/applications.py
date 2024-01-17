@@ -495,16 +495,20 @@ class MorphPlotter(Plotter):
             "Pick a point on the source surface, then\n"
             "pick the corresponding point on the target\n"
             "Pick at least 4 point pairs. Press:\n"
-            "- c to clear the selection\n"
-            "- d to delete the last selection\n"
+            "- c to clear all landmarks\n"
+            "- d to delete the last pair\n"
             "- z to compute and show the residuals\n"
-            "- q to quit."
+            "- q to quit and proceed"
         )
         self.instructions = Text2D(instructions, s=0.7, bg="blue4", alpha=0.1, font="Calco")
         self.at(0).add_renderer_frame().add(source, self.msg0, self.instructions).reset_camera()
-        self.at(1).add_renderer_frame().add(f"Reference {target.filename}", self.msg1, target)
+        self.at(1).add_renderer_frame()
+        self.add(Text2D(f"Target: {target.filename[-35:]}", bg="blue4", alpha=0.1, font="Calco"))
+        self.add(self.msg1, target)
         cam1 = self.camera  # save camera at 1
-        self.at(2).add("Morphing Output", target, vedo.Axes(target)).background("k9")
+        self.at(2).background("k9")
+        self.add(Text2D("Morphing Output", font="Calco"))
+        self.add(target, vedo.Axes(target))
         self.camera = cam1  # use the same camera of renderer1
 
         self.add_renderer_frame()

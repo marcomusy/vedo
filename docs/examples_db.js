@@ -991,7 +991,7 @@ vedo_example_db =
         pyname: 'slice_plane3',
         kbd   : '',
         categ : 'volumetric',
-        short : 'probing planes',
+        short : 'interactive probing',
         long  : 'Slice/probe a Volume interactively.',
         imgsrc: 'images/volumetric/slicePlane3.jpg',
     },
