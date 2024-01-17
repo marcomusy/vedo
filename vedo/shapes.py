@@ -488,7 +488,7 @@ class Line(Mesh):
         self.top = top
         self.name = "Line"
 
-    def clone(self, deep=True, memo=None):
+    def clone(self, deep=True):
         """
         Return a copy of the ``Line`` object.
 
@@ -2996,7 +2996,7 @@ class Plane(Mesh):
         self.name = "Plane"
         self.variance = 0
 
-    def clone(self, deep=True, memo=None):
+    def clone(self, deep=True):
         newplane = Plane()
         if deep:
             newplane.dataset.DeepCopy(self.dataset)

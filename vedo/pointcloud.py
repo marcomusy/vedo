@@ -828,16 +828,16 @@ class Points(PointsVisual, PointAlgorithms):
         return self.dataset
 
     def __copy__(self):
-        return self.clone(deep=False, memo=None)
+        return self.clone(deep=False)
 
     def __deepcopy__(self, memo):
-        return self.clone(deep=True, memo=memo)
+        return self.clone(deep=memo)
     
-    def copy(self, deep=True, memo=None):
+    def copy(self, deep=True):
         """Return a copy of the object. Alias of `clone()`."""
-        return self.clone(deep=deep, memo=memo)
+        return self.clone(deep=deep)
 
-    def clone(self, deep=True, memo=None):
+    def clone(self, deep=True):
         """
         Clone a `PointCloud` or `Mesh` object to make an exact copy of it.
         Alias of `copy()`.
@@ -852,7 +852,7 @@ class Points(PointsVisual, PointAlgorithms):
                ![](https://vedo.embl.es/images/basic/mirror.png)
         """
         poly = vtk.vtkPolyData()
-        if deep:
+        if deep or isinstance(deep, dict): # if a memo object is passed this checks as True
             poly.DeepCopy(self.dataset)
         else:
             poly.ShallowCopy(self.dataset)
@@ -862,10 +862,6 @@ class Points(PointsVisual, PointAlgorithms):
         else:
             cloned = Points(poly)
 
-        # new_instance = self.__class__
-        # print("******* cloning", new_instance.__name__)
-        # cloned = new_instance(poly)
-
         cloned.transform = self.transform.clone()
 
         cloned.copy_properties_from(self)
@@ -873,11 +869,11 @@ class Points(PointsVisual, PointAlgorithms):
         cloned.name = str(self.name)
         cloned.filename = str(self.filename)
         cloned.info = dict(self.info)
-
-        if memo is not None:
-            memo[id(self)] = cloned
-
         cloned.pipeline = utils.OperationNode("clone", parents=[self], shape="diamond", c="#edede9")
+
+        if isinstance(deep, dict):
+            deep[id(self)] = cloned
+
         return cloned
 
     def compute_normals_with_pca(self, n=20, orientation_point=None, invert=False):
