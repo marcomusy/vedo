@@ -246,6 +246,13 @@ def show(
     else:
         objects = utils.flatten(objects)
 
+    # If a plotter instance is already present, check if the offset
+    # is the same as the one requested by the user. If not, create
+    # a new plotter instance.
+    # See: https://github.com/marcomusy/vedo/issues/1026
+    if vedo.plotter_instance and vedo.plotter_instance.offscreen != offscreen:
+        new = True
+
     if vedo.plotter_instance and not new:  # Plotter exists
         plt = vedo.plotter_instance
 
@@ -2987,7 +2994,7 @@ class Plotter:
 
             elif isinstance(a, vtk.vtkLight):
                 self.renderer.AddLight(a)
-            
+
             elif isinstance(a, vedo.visual.LightKit):
                 a.lightkit.AddLightsToRenderer(self.renderer)
 
