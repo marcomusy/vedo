@@ -1025,6 +1025,7 @@ def build_lut(
     ctf = vtk.new("ColorTransferFunction")
     ctf.SetColorSpaceToRGB()
     ctf.SetScaleToLinear()
+
     alpha_x, alpha_vals = [], []
     for sc in colorlist:
         if len(sc) >= 3:
@@ -1037,8 +1038,10 @@ def build_lut(
         alpha_x.append(scalar)
         alpha_vals.append(alf)
 
+    # ncols = 256
+    ncols = 4 * len(colorlist)
     lut = vtk.new("LookupTable")
-    lut.SetNumberOfTableValues(256)
+    lut.SetNumberOfTableValues(ncols)
 
     x0, x1 = ctf.GetRange()  # range of the introduced values
     if vmin is not None:
@@ -1058,8 +1061,8 @@ def build_lut(
         lut.SetNanColor(list(get_color(nan_color)) + [nan_alpha])
 
     rgba = (1, 1, 1, 1)
-    for i in range(256):
-        p = i / 255
+    for i in range(ncols):
+        p = i / (ncols-1)
         x = (1 - p) * x0 + p * x1
         if interpolate:
             alf = np.interp(x, alpha_x, alpha_vals)

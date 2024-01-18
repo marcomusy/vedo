@@ -3495,6 +3495,7 @@ class Points(PointsVisual, PointAlgorithms):
         delny.Update()
 
         msh = vedo.mesh.Mesh(delny.GetOutput())
+        msh.name = "Delaunay2D"
         msh.clean().lighting("off")
         msh.pipeline = utils.OperationNode(
             "delaunay2d",
