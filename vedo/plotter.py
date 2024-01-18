@@ -246,10 +246,9 @@ def show(
     else:
         objects = utils.flatten(objects)
 
-    # If a plotter instance is already present, check if the offset
-    # is the same as the one requested by the user. If not, create
-    # a new plotter instance.
-    # See: https://github.com/marcomusy/vedo/issues/1026
+    # If a plotter instance is already present, check if the offscreen argument
+    # is the same as the one requested by the user. If not, create a new
+    # plotter instance (see https://github.com/marcomusy/vedo/issues/1026)
     if vedo.plotter_instance and vedo.plotter_instance.offscreen != offscreen:
         new = True
 
@@ -2991,7 +2990,7 @@ class Plotter:
 
             elif isinstance(a, vtk.vtkImageData):
                 scanned_acts.append(vedo.Volume(a).actor)
-            
+
             elif isinstance(a, vedo.RectilinearGrid):
                 scanned_acts.append(a.actor)
 
