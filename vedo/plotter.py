@@ -238,6 +238,8 @@ def show(
         new : (bool)
             if set to `True`, a call to show will instantiate
             a new Plotter object (a new window) instead of reusing the first created.
+            If new is `True`, but the existing plotter was instantiated with a different
+            argument for `offscreen`, `new` is ignored and a new Plotter is created anyway.
     """
     if len(objects) == 0:
         objects = None
@@ -245,6 +247,12 @@ def show(
         objects = objects[0]
     else:
         objects = utils.flatten(objects)
+
+    # If a plotter instance is already present, check if the offscreen argument
+    # is the same as the one requested by the user. If not, create a new
+    # plotter instance (see https://github.com/marcomusy/vedo/issues/1026)
+    if vedo.plotter_instance and vedo.plotter_instance.offscreen != offscreen:
+        new = True
 
     if vedo.plotter_instance and not new:  # Plotter exists
         plt = vedo.plotter_instance
@@ -2984,13 +2992,13 @@ class Plotter:
 
             elif isinstance(a, vtk.vtkImageData):
                 scanned_acts.append(vedo.Volume(a).actor)
-            
+
             elif isinstance(a, vedo.RectilinearGrid):
                 scanned_acts.append(a.actor)
 
             elif isinstance(a, vtk.vtkLight):
                 self.renderer.AddLight(a)
-            
+
             elif isinstance(a, vedo.visual.LightKit):
                 a.lightkit.AddLightsToRenderer(self.renderer)
 
