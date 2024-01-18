@@ -238,6 +238,8 @@ def show(
         new : (bool)
             if set to `True`, a call to show will instantiate
             a new Plotter object (a new window) instead of reusing the first created.
+            If new is `True`, but the existing plotter was instantiated with a different
+            argument for `offscreen`, `new` is ignored and a new Plotter is created anyway.
     """
     if len(objects) == 0:
         objects = None
