@@ -28,7 +28,8 @@ lut_table = [
 ]
 lut = vedo.build_lut(lut_table)
 
-msh = tet.tomesh(shrink=0.95).cmap(lut, 'cell_scalars', on='cells')
+msh = tet.tomesh(shrink=0.95, fill=True)
+msh.cmap(lut, 'cell_scalars', on='cells')
 msh.add_scalarbar3d(
     categories=lut_table,
     pos=(505700, 6417950, -1630),

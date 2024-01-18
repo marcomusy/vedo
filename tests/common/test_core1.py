@@ -1,5 +1,5 @@
-from vedo import Cone, Sphere, merge, Volume, dataurl, utils
 import numpy as np
+from vedo import Cone, Sphere, merge, Volume, dataurl, utils
 import vtk
 
 print('\n\n---------------------------------')
@@ -53,7 +53,7 @@ assert isinstance(cone.dataset, vtk.vtkPolyData)
 
 
 ###################################### mapper
-print('mapper',[cone.mapper], "vtk.vtkPolyDataMapper")
+print('mapper', [cone.mapper], "vtk.vtkPolyDataMapper")
 assert isinstance(cone.mapper, vtk.vtkPolyDataMapper)
 
 

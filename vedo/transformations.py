@@ -154,7 +154,7 @@ class LinearTransform:
             s += "\nfilename".ljust(15) + ": " + self.filename
         if self.comment:
             s += "\ncomment".ljust(15) + f': \x1b[3m"{self.comment}"\x1b[0m'
-        s += f"\nconcatenations".ljust(15) + f": {self.n_concatenated_transforms}"
+        s += f"\nconcatenations".ljust(15) + f": {self.ntransforms}"
         s += "\ninverse flag".ljust(15) + f": {bool(self.inverse_flag)}"
         arr = np.array2string(self.matrix,
             separator=', ', precision=6, suppress_small=True)
@@ -358,8 +358,8 @@ class LinearTransform:
         return LinearTransform(self.T.GetConcatenatedTransform(i))
 
     @property
-    def n_concatenated_transforms(self):
-        """Get number of concatenated transforms."""
+    def ntransforms(self):
+        """Get the number of concatenated transforms."""
         return self.T.GetNumberOfConcatenatedTransforms()
 
     def translate(self, p):
@@ -556,7 +556,7 @@ class LinearTransform:
             "name": self.name,
             "comment": self.comment,
             "matrix": arr.astype(float).tolist(),
-            "n_concatenated_transforms": self.n_concatenated_transforms,
+            "ntransforms": self.ntransforms,
         }
         with open(filename, "w") as outfile:
             json.dump(dictionary, outfile, sort_keys=True, indent=2)

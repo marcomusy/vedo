@@ -469,7 +469,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
             newlist.append(a.clone())
         return Assembly(newlist)
 
-    def clone2d(self, pos="bottom-left", size=1, rotation=0, ontop=False):
+    def clone2d(self, pos="bottom-left", size=1, rotation=0, ontop=False, scale=None):
         """
         Convert the `Assembly` into a `Group` of 2D objects.
 
@@ -481,12 +481,20 @@ class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
             size : (float)
                 global scaling factor for the 2D object.
                 The scaling is normalized to the x-range of the original object.
+            rotation : (float)
+                rotation angle in degrees.
             ontop : (bool)
                 if `True` the now 2D object is rendered on top of the 3D scene.
+            scale : (float)
+                deprecated, use `size` instead.
 
         Returns:
             `Group` object.
         """
+        if scale is not None:
+            vedo.logger.warning("clone2d(scale=...) is deprecated, use clone2d(size=...) instead")
+            size = scale
+
         padding = 0.05
         x0, x1 = self.xbounds()
         y0, y1 = self.ybounds()

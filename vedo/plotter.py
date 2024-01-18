@@ -2991,6 +2991,9 @@ class Plotter:
 
             elif isinstance(a, vtk.vtkImageData):
                 scanned_acts.append(vedo.Volume(a).actor)
+            
+            elif isinstance(a, vedo.RectilinearGrid):
+                scanned_acts.append(a.actor)
 
             elif isinstance(a, vtk.vtkLight):
                 self.renderer.AddLight(a)

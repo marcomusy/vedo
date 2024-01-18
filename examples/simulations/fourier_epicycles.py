@@ -4,7 +4,7 @@
 import numpy as np
 import vedo
 
-order = 30  # restrict to this nr of fourier coefficients in reconstruction
+order = 20  # restrict to this nr of fourier coefficients in reconstruction
 
 
 def DFT(x):
@@ -47,9 +47,10 @@ def epicycles(time, rotation, fourier, order):
 
 
 # Load some 2D shape and make it symmetric
-shape  = vedo.Assembly(vedo.dataurl+'timecourse1d.npy')[55]
-shaper = vedo.Line(shape).mirror('x')
-shape = vedo.merge(shape, shaper)
+shaper  = vedo.Assembly(vedo.dataurl+'timecourse1d.npy')[55]
+# shaper = shape.clone().mirror('x').reverse()
+shapel = vedo.Line(np.flip(shaper.clone().mirror('x').coordinates, axis=0))
+shape = vedo.merge(shaper, shapel)
 x, y, _ = shape.vertices.T
 
 # Compute Fourier Discrete Transform in x and y separately:

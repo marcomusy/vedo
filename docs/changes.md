@@ -1,5 +1,4 @@
 ## Main changes
-
 - fixes to `extrude()` thanks to @JeffreyWardman
 - filter out triangle strips in Ribbon and extrude()
 - improvements in doc strings
@@ -25,8 +24,7 @@
 - rename `integrate_arrays_over_domain()` to `integrate_data`
 - extend `volume.operation()` to support logic operations as per #1002
 - add `pointcloud.relax_point_positions()` method
-- add `pointcloud.auto_distance()` method calculates the distance to the closest
-point in the same cloud of points.
+- add `pointcloud.auto_distance()` method calculates the distance to the closest point in the same cloud of points.
 - fixed `mesh.collapse_edges()` after #992
 - add `mesh.cut_closed_surface()`
 - fix `image.clone()` in #1011
@@ -34,6 +32,9 @@ point in the same cloud of points.
 - add `Line.find_index_at_position()` finds the index of the line vertex that is closest to a point
 - add `visual.LightKit` class which provides "natural" lighting from 4 sources.
 - add `fast-simplification` example by @Louis-Pujol in #992
+- add metadata "shape" to `volume.slice_plane()` in #1018
+- fix `core.mark_boundaries()` method
+- add callbacks for cutters in #1020 and `examples/volumetric/slice_plane3.py`
 
 
 ## Breaking changes
@@ -44,6 +45,9 @@ point in the same cloud of points.
 - remove `shapes.StreamLines()` becoming `object.compute_streamlines()`
 - split `mesh.decimate()` into `mesh.decimate()`, `mesh.decimate_pro()` and `mesh.decimate_binned()` as per #992
 - modified `core.clean()` after #992
+- rename `vedo.tetmesh` to `vedo.grids` and support `RectilinearGrid`
+- remove `import_window()` for obj files and create `load_obj()` by @zhouzq-thu in #891
+- add `smooth_mls_12d(..., n=0)` to fix the number of neighbors in the smoothing
 
 
 ### Bug Fixes
@@ -53,7 +57,7 @@ point in the same cloud of points.
 
 ## New/Revised Examples
 ```
-examples/advanced/warp4c.py
+examples/advanced/warp4b.py
 examples/advanced/diffuse_data.py
 examples/volumetric/slab_vol.py
 examples/volumetric/streamlines1.py
@@ -61,6 +65,9 @@ examples/volumetric/streamlines2.py
 examples/volumetric/streamlines3.py
 examples/volumetric/streamlines4.py
 examples/volumetric/office.py
+examples/volumetric/slice_plane1.py
+examples/volumetric/slice_plane3.py
+
 examples/simulations/mag_field1.py
 examples/pyplot/plot_stream.py
 examples/other/madcad1.py

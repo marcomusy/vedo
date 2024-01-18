@@ -12,10 +12,9 @@ vedo.show("Revolution of a wire", rev, axes=7).close()
 
 
 ##########################################################################
-m = screw(10, 20)
-m["part"].option(color=vec3(70, 130, 180) / 255) # RGB
-vedo.show("A blue screw", m, axes=1).close()
-
+# m = screw(10, 20)
+# m["part"].option(color=vec3(70, 130, 180) / 255) # RGB
+# vedo.show("A blue screw", m, axes=1).close()
 
 ##########################################################################
 # Obtain two different shapes that has noting to to with each other

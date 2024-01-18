@@ -49,6 +49,8 @@ class Mesh(MeshVisual, Points):
         # print("INIT MESH", super())
         super().__init__()
 
+        self.name = "Mesh"
+
         if inputobj is None:
             # self.dataset = vtk.vtkPolyData()
             pass
@@ -167,7 +169,7 @@ class Mesh(MeshVisual, Points):
         from PIL import Image
 
         library_name = "vedo.mesh.Mesh"
-        help_url = "https://vedo.embl.es/docs/vedo/mesh.html"
+        help_url = "https://vedo.embl.es/docs/vedo/mesh.html#Mesh"
 
         arr = self.thumbnail()
         im = Image.fromarray(arr)
@@ -1233,6 +1235,31 @@ class Mesh(MeshVisual, Points):
             parents=[self],
             comment=f"#cells {self.dataset.GetNumberOfCells()}",
         )
+        return self
+
+    def delete_cells_by_point_index(self, indices):
+        """
+        Delete a list of vertices identified by any of their vertex index.
+
+        See also `delete_cells()`.
+
+        Examples:
+            - [delete_mesh_pts.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/delete_mesh_pts.py)
+
+                ![](https://vedo.embl.es/images/basic/deleteMeshPoints.png)
+        """
+        cell_ids = vtk.vtkIdList()
+        self.dataset.BuildLinks()
+        n = 0
+        for i in np.unique(indices):
+            self.dataset.GetPointCells(i, cell_ids)
+            for j in range(cell_ids.GetNumberOfIds()):
+                self.dataset.DeleteCell(cell_ids.GetId(j))  # flag cell
+                n += 1
+
+        self.dataset.RemoveDeletedCells()
+        self.dataset.Modified()
+        self.pipeline = OperationNode("delete_cells_by_point_index", parents=[self])
         return self
 
     def collapse_edges(self, distance, iterations=1):

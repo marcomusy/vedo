@@ -31,12 +31,11 @@ __all__ = [
     "gunzip",
     "loadStructuredPoints",
     "loadStructuredGrid",
-    "loadRectilinearGrid",
-    # "load_transform", # LinearTransform("file.mat") substitutes this
     "write",
     "save",
     "export_window",
     "import_window",
+    "load_obj",
     "screenshot",
     "ask",
     "Video",
@@ -635,24 +634,6 @@ def loadStructuredGrid(filename):
     reader.Update()
     return reader.GetOutput()
 
-def loadRectilinearGrid(filename):
-    """Load and return a `vtkRectilinearGrid` object from file."""
-    if filename.endswith(".vtr"):
-        reader = vtk.new("XMLRectilinearGridReader")
-    else:
-        reader = vtk.new("RectilinearGridReader")
-    reader.SetFileName(filename)
-    reader.Update()
-    return reader.GetOutput()
-
-########################################################################
-def loadXMLData(filename):
-    """Read any type of vtk data object encoded in XML format."""
-    reader = vtk.new("XMLGenericDataObjectReader")
-    reader.SetFileName(filename)
-    reader.Update()
-    return reader.GetOutput()
-
 
 ###################################################################
 def load3DS(filename):
@@ -1193,6 +1174,8 @@ def write(objct, fileoutput, binary=True):
         writer = vtk.new("FacetWriter")
     elif fr.endswith(".vti"):
         writer = vtk.new("XMLImageDataWriter")
+    elif fr.endswith(".vtr"):
+        writer = vtk.new("XMLRectilinearGridWriter")
     elif fr.endswith(".vtm"):
         g = vtk.new("MultiBlockDataGroupFilter")
         for ob in objct:
@@ -1661,8 +1644,29 @@ def _export_npy(plt, fileoutput="scene.npz"):
 
 
 ########################################################################
-def import_window(fileinput, mtl_file=None, texture_path=None):
-    """Import a whole scene from a Numpy NPZ or OBJ wavefront file.
+def import_window(fileinput):
+    """Import a whole scene from a Numpy NPZ file.
+
+    Returns:
+        `vedo.Plotter` instance
+    """
+    if fileinput.endswith(".npy") or fileinput.endswith(".npz"):
+        return _import_npy(fileinput)
+    
+    # elif ".obj" in fileinput.lower():
+    #     meshes = load_obj(fileinput, mtl_file, texture_path)
+    #     plt = vedo.Plotter()
+    #     plt.add(meshes)
+    #     return plt
+
+    # elif fileinput.endswith(".h5") or fileinput.endswith(".hdf5"):
+    #     return _import_hdf5(fileinput) # in store/file_io_HDF5.py
+
+    return None
+
+
+def load_obj(fileinput, mtl_file=None, texture_path=None):
+    """Import a set of meshes from a OBJ wavefront file.
 
     Arguments:
         mtl_file : (str)
@@ -1671,47 +1675,39 @@ def import_window(fileinput, mtl_file=None, texture_path=None):
             path of the texture files directory
 
     Returns:
-        `vedo.Plotter` instance
+        `list(Mesh)`
     """
-    if fileinput.endswith(".npy") or fileinput.endswith(".npz"):
-        return _import_npy(fileinput)
-    
-    # elif fileinput.endswith(".h5") or fileinput.endswith(".hdf5"):
-    #     return _import_hdf5(fileinput) # in store/file_io_HDF5.py
+    window = vtk.vtkRenderWindow()
+    window.SetOffScreenRendering(1)
+    renderer = vtk.vtkRenderer()
+    window.AddRenderer(renderer)
 
-    elif ".obj" in fileinput.lower():
+    importer = vtk.new("OBJImporter")
+    importer.SetFileName(fileinput)
+    if mtl_file is None:
+        mtl_file = fileinput.replace(".obj", ".mtl").replace(".OBJ", ".MTL")
+    if os.path.isfile(mtl_file):
+        importer.SetFileNameMTL(mtl_file)
+    if texture_path is None:
+        texture_path = fileinput.replace(".obj", ".txt").replace(".OBJ", ".TXT")
+    # since the texture_path may be a directory which contains textures
+    if os.path.exists(texture_path):
+        importer.SetTexturePath(texture_path)
+    importer.SetRenderWindow(window)
+    importer.Update()
 
-        window = vtk.vtkRenderWindow()
-        window.SetOffScreenRendering(1)
-        renderer = vtk.vtkRenderer()
-        window.AddRenderer(renderer)
-
-        importer = vtk.new("OBJImporter")
-        importer.SetFileName(fileinput)
-        if mtl_file is not False:
-            if mtl_file is None:
-                mtl_file = fileinput.replace(".obj", ".mtl").replace(".OBJ", ".MTL")
-            importer.SetFileNameMTL(mtl_file)
-        if texture_path is not False:
-            if texture_path is None:
-                texture_path = fileinput.replace(".obj", ".txt").replace(".OBJ", ".TXT")
-            importer.SetTexturePath(texture_path)
-        importer.SetRenderWindow(window)
-        importer.Update()
-
-        plt = vedo.Plotter()
-        actors = renderer.GetActors()
-        actors.InitTraversal()
-        for _ in range(actors.GetNumberOfItems()):
-            vactor = actors.GetNextActor()
-            act = Mesh(vactor)
-            act_tu = vactor.GetTexture()
-            if act_tu:
-                act.texture(act_tu)
-            plt.actors.append(act)
-        return plt
-
-    return None
+    actors = renderer.GetActors()
+    actors.InitTraversal()
+    objs = []
+    for _ in range(actors.GetNumberOfItems()):
+        vactor = actors.GetNextActor()
+        msh = Mesh(vactor)
+        msh.name = "OBJMesh"
+        tx = vactor.GetTexture()
+        if tx:
+            msh.texture(tx)
+        objs.append(msh)
+    return objs
 
 
 ##########################################################

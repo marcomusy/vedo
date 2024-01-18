@@ -26,6 +26,7 @@ pip install -q trame==2.5.2
 pip install qtpy
 pip install tetgenpy -U
 pip install gustaf -U
+pip install fast-simplification -U
 #pip install pyacvd -U
 #pip install pymeshfix -U
 
@@ -38,6 +39,9 @@ sed -i "s/dry_run_mode = 2/dry_run_mode = 0/g" $VEDODIR/vedo/settings.py  #->ENA
 pytest tests
 
 cd $VEDODIR/tests/common  && ./run_all.sh 
+cd $VEDODIR/tests/issues && ./run_all.sh 
+
+# EXAMPLES #####################################
 cd $VEDODIR/examples && time ./run_all.sh 2>&1 | tee $VEDOLOGFILE && alert "scan done."
 
 grep -aA 1 "Error" $VEDOLOGFILE
@@ -45,10 +49,6 @@ grep -aA 3 "Trace" $VEDOLOGFILE
 grep -aA 3 "ailure" $VEDOLOGFILE
 code $VEDOLOGFILE  #### inspect logfile
 # (Try normal run too with visualization to make sure all is ok)
-
-
-# EXAMPLES #####################################
-cd $VEDODIR/tests/issues && ./run_all.sh 
 
 
 # TUTORIALS ####################################
@@ -160,8 +160,8 @@ cp docs/examples_db.js www/examples_db.js
 code www/index.html
 
 
-################################################################
-# RELEASE
+# RELEASE #######################################
+
 cd $VEDODIR
 
 # check version and status

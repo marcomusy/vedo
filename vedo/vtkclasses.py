@@ -135,18 +135,6 @@ from vtkmodules.vtkCommonDataModel import (
     vtkUnstructuredGrid,
     vtkRectilinearGrid,
     vtkStructuredGrid,
-)
-location["vtkPlaneCollection"] = "vtkCommonDataModel"
-
-# noinspection PyUnresolvedReferences
-from vtkmodules.vtkCommonDataModel import (
-    VTK_HEXAHEDRON,
-    VTK_TETRA,
-    VTK_VOXEL,
-    VTK_WEDGE,
-    VTK_PYRAMID,
-    VTK_HEXAGONAL_PRISM,
-    VTK_PENTAGONAL_PRISM,
     vtkCellArray,
     vtkDataSetAttributes,
     vtkDataObject,
@@ -156,27 +144,24 @@ from vtkmodules.vtkCommonDataModel import (
     vtkHexahedron,
     vtkLine,
     vtkPentagonalPrism,
+    vtkPixel,
     vtkPlane,
     vtkPlanes,
     vtkPointLocator,
     vtkPolyLine,
     vtkPolyPlane,
     vtkPolygon,
+    vtkPolyVertex,
     vtkPyramid,
-    vtkQuadric,
+    vtkQuad,
     vtkTetra,
     vtkTriangle,
+    vtkTriangleStrip,
+    vtkVertex,
     vtkVoxel,
     vtkWedge,
 )
 for name in [
-    "VTK_HEXAHEDRON",
-    "VTK_TETRA",
-    "VTK_VOXEL",
-    "VTK_WEDGE",
-    "VTK_PYRAMID",
-    "VTK_HEXAGONAL_PRISM",
-    "VTK_PENTAGONAL_PRISM",
     "vtkCellArray",
     "vtkBox",
     "vtkCellLocator",
@@ -196,14 +181,18 @@ for name in [
     "vtkMultiBlockDataSet",
     "vtkMutableDirectedGraph",
     "vtkPentagonalPrism",
+    "vtkPixel",
     "vtkPlane",
+    "vtkPlaneCollection",
     "vtkPlanes",
     "vtkPointLocator",
     "vtkPolyData",
     "vtkPolyLine",
     "vtkPolyPlane",
     "vtkPolygon",
+    "vtkPolyVertex",
     "vtkPyramid",
+    "vtkQuad",
     "vtkQuadric",
     "vtkRectilinearGrid",
     "vtkSelection",
@@ -214,7 +203,9 @@ for name in [
     "vtkStructuredGrid",
     "vtkTetra",
     "vtkTriangle",
+    "vtkTriangleStrip",
     "vtkUnstructuredGrid",
+    "vtkVertex",
     "vtkVoxel",
     "vtkWedge",
 ]: location[name] = "vtkCommonDataModel"
@@ -342,10 +333,13 @@ except ImportError:
     location["vtkCellTreeLocator"] = "vtkFiltersGeneral"
 
 
-location["vtkAttributeSmoothingFilter"] = "vtkFiltersGeometry"
-location["vtkDataSetSurfaceFilter"] = "vtkFiltersGeometry"
-location["vtkGeometryFilter"] = "vtkFiltersGeometry"
-location["vtkImageDataGeometryFilter"] = "vtkFiltersGeometry"
+for name in [
+    "vtkAttributeSmoothingFilter",
+    "vtkDataSetSurfaceFilter",
+    "vtkGeometryFilter",
+    "vtkImageDataGeometryFilter",
+    "vtkMarkBoundaryFilter",
+]: location[name] = "vtkFiltersGeometry"
 
 
 for name in [
@@ -490,6 +484,7 @@ for name in [
     "vtkXMLPolyDataReader",
     "vtkXMLPolyDataWriter",
     "vtkXMLRectilinearGridReader",
+    "vtkXMLRectilinearGridWriter",
     "vtkXMLStructuredGridReader",
     "vtkXMLUnstructuredGridReader",
     "vtkXMLUnstructuredGridWriter",

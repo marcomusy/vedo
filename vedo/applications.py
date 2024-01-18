@@ -470,9 +470,9 @@ class MorphPlotter(Plotter):
     A Plotter with 3 renderers to show the source, target and warped meshes.
     
     Examples:
-        - [warp4c.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/warp4c.py)
+        - [warp4b.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/warp4b.py)
 
-            ![](https://vedo.embl.es/images/advanced/warp4c.jpg)
+            ![](https://vedo.embl.es/images/advanced/warp4b.jpg)
     """
         
     def __init__(self, source, target, **kwargs):

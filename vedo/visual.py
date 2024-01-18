@@ -14,7 +14,7 @@ from vedo import utils
 __docformat__ = "google"
 
 __doc__ = """
-Base classes to manage visualization and apperance of objects and their properties"
+Base classes to manage visualization and apperance of objects and their properties.
 """
 
 __all__ = [
@@ -33,14 +33,30 @@ class CommonVisual:
     """Class to manage the visual aspects common to all objects."""
 
     def __init__(self):
-        # print("init CommonVisual")
-        self.mapper = None
+        # print("init CommonVisual", type(self))
+
         self.properties = None
-        self.actor = None
+
         self.scalarbar = None       
+        self.pipeline = None
+
         self.trail = None
-        self.shadows = [] 
-    
+        self.trail_points = []
+        self.trail_segment_size = 0
+        self.trail_offset = None
+
+        self.shadows = []
+
+        self.axes = None
+        self.picked3d = None
+
+        self.rendered_at = set()
+
+        self._ligthingnr = 0  # index of the lighting mode changed from CLI
+        self._cmap_name = ""  # remember the cmap name for self._keypress
+        self._caption = None
+
+
     def print(self):
         """Print object info."""
         print(self.__str__())
@@ -774,22 +790,29 @@ class PointsVisual(CommonVisual):
         self._caption = None
         
 
-    def clone2d(self, size=None, offset=()):
+    def clone2d(self, size=None, offset=(), scale=None):
         """
         Turn a 3D `Points` or `Mesh` into a flat 2D actor.
         Returns a `Actor2D`.
 
         Arguments:
             size : (float)
-                size scaling factor for the 2D actor
+                size as scaling factor for the 2D actor
             offset : (list)
                 2D (x, y) position of the actor in the range [-1, 1]
+            scale : (float)
+                Deprecated. Use `size` instead.
 
         Examples:
             - [clone2d.py](https://github.com/marcomusy/vedo/tree/master/examples/other/clone2d.py)
 
                 ![](https://vedo.embl.es/images/other/clone2d.png)
         """
+        # assembly.Assembly.clone2d() superseeds this method
+        if scale is not None:
+            vedo.logger.warning("clone2d(): use keyword size not scale")
+            size = scale
+
         if size is None:
             # work out a reasonable scale
             msiz = self.diagonal_size()

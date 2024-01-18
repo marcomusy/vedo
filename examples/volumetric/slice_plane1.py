@@ -17,9 +17,11 @@ def func(evt):
 vol = Volume(dataurl+'embryo.slc')
 vol.cmap('white').alpha([0,0,0.8]).pickable(False)
 
-vslice = vol.slice_plane(origin=vol.center(), normal=(0,1,1))
-vslice.cmap('Purples_r').lighting('off').add_scalarbar('Slice', c='w')
+vslice = vol.slice_plane(vol.center(), [0,1,1])
+vslice.cmap('Purples_r').add_scalarbar('Slice', c='w')
 arr = vslice.pointdata[0] # retrieve vertex array data
+print("slice shape :", vslice.metadata["shape"])
+print("slice bounds:", vslice.metadata["original_bounds"])
 
 plt = Plotter(axes=9, bg='k', bg2='bb')
 plt.add_callback('as my mouse moves please call', func) # be kind to vedo ;)

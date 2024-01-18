@@ -13,7 +13,7 @@ from vedo.assembly import Assembly, Group
 from vedo.colors import get_color, build_lut, color_map, printc
 from vedo.mesh import Mesh
 from vedo.pointcloud import Points, Point, merge
-from vedo.tetmesh import TetMesh
+from vedo.grids import TetMesh
 from vedo.volume import Volume
 
 __docformat__ = "google"
@@ -309,7 +309,7 @@ class LegendBox(shapes.TextBase, vtk.vtkLegendBoxActor):
                 poly = e.dataset
             else:
                 marker = markers[i] if utils.is_sequence(markers) else markers
-                if isinstance(marker, vedo.Points):
+                if isinstance(marker, Points):
                     poly = marker.clone(deep=False).normalize().shift(0, 1, 0).dataset
                 else:  # assume string marker
                     poly = vedo.shapes.Marker(marker, s=1).shift(0, 1, 0).dataset
@@ -660,6 +660,12 @@ class SliderWidget(vtk.vtkSliderWidget):
 
     def toggle(self):
         self.SetEnabled(not self.GetEnabled())
+
+    def add_observer(self, event, func, priority=1):
+        """Add an observer to the widget."""
+        event = utils.get_vtk_name_event(event)
+        cid = self.widget.AddObserver(event, func, priority)
+        return cid
 
 
 #####################################################################
@@ -1697,10 +1703,14 @@ class BaseCutter:
         self.mesh._update(cpoly)
 
         out = self.clipper.GetClippedOutputPort()
-        self.remnant.mapper.SetInputConnection(out)
-        self.remnant.alpha(self._alpha).color((0.5, 0.5, 0.5))
-        self.remnant.lighting('off').wireframe()
-        plt.add(self.mesh, self.remnant)
+        if self._alpha:
+            self.remnant.mapper.SetInputConnection(out)
+            self.remnant.alpha(self._alpha).color((0.5, 0.5, 0.5))
+            self.remnant.lighting('off').wireframe()
+            plt.add(self.mesh, self.remnant)
+        else:
+            plt.add(self.mesh)
+
         self._keypress_id = plt.interactor.AddObserver(
             "KeyPressEvent", self._keypress
         )
@@ -1720,6 +1730,12 @@ class BaseCutter:
         if self._keypress_id:
             plt.interactor.RemoveObserver(self._keypress_id)
         return self
+
+    def add_observer(self, event, func, priority=1):
+        """Add an observer to the widget."""
+        event = utils.get_vtk_name_event(event)
+        cid = self.widget.AddObserver(event, func, priority)
+        return cid
 
 
 class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
@@ -1764,6 +1780,9 @@ class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
                 color of the box cutter widget
             alpha : (float)
                 transparency of the cut-off part of the input mesh
+        
+        Examples:
+            - [slice_plane3.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slice_plane3.py)
         """
         super().__init__()
 
@@ -1795,7 +1814,7 @@ class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
         self.widget.SetOutlineTranslation(can_translate)
         self.widget.SetScaleEnabled(can_scale)
 
-        self.widget.GetOutlineProperty().SetColor(c)
+        self.widget.GetOutlineProperty().SetColor(get_color(c))
         self.widget.GetOutlineProperty().SetOpacity(0.25)
         self.widget.GetOutlineProperty().SetLineWidth(1)
         self.widget.GetOutlineProperty().LightingOff()
@@ -1803,9 +1822,9 @@ class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
         self.widget.GetSelectedOutlineProperty().SetColor(get_color("red3"))
 
         self.widget.SetTubing(0)
-        self.widget.SetDrawPlane(1)
+        self.widget.SetDrawPlane(bool(alpha))
         self.widget.GetPlaneProperty().LightingOff()
-        self.widget.GetPlaneProperty().SetOpacity(0.05)
+        self.widget.GetPlaneProperty().SetOpacity(alpha)
         self.widget.GetSelectedPlaneProperty().SetColor(get_color("red5"))
         self.widget.GetSelectedPlaneProperty().LightingOff()
 
@@ -1826,7 +1845,26 @@ class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
             self.widget.SetNormal(normal)
         else:
             self.widget.SetNormal((1, 0, 0))
+    
+    @property
+    def origin(self):
+        """Get the origin of the plane."""
+        return np.array(self.widget.GetOrigin())
+    
+    @property
+    def normal(self):
+        """Get the normal of the plane."""
+        return np.array(self.widget.GetNormal())
+    
+    @origin.setter
+    def origin(self, value):
+        """Set the origin of the plane."""
+        self.widget.SetOrigin(value)
 
+    @normal.setter
+    def normal(self, value):
+        """Set the normal of the plane."""
+        self.widget.SetNormal(value)
 
     def _select_polygons(self, vobj, event):
         vobj.GetPlane(self._implicit_func)
@@ -2095,6 +2133,26 @@ class SphereCutter(vtk.vtkSphereWidget, BaseCutter):
                 if self.widget.GetInteractor().GetControlKey():
                     self.mesh.write("vedo_clipped.vtk")
                     printc(":save: saved mesh to vedo_clipped.vtk")
+
+    @property
+    def center(self):
+        """Get the center of the sphere."""
+        return np.array(self.widget.GetCenter())
+    
+    @property
+    def radius(self):
+        """Get the radius of the sphere."""
+        return self.widget.GetRadius()
+    
+    @center.setter
+    def center(self, value):
+        """Set the center of the sphere."""
+        self.widget.SetCenter(value)
+
+    @radius.setter
+    def radius(self, value):
+        """Set the radius of the sphere."""
+        self.widget.SetRadius(value)
 
 
 #####################################################################

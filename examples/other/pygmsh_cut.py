@@ -21,7 +21,7 @@ with pygmsh.occ.Geometry() as geom:
 
 lines, triangles, tetras, vertices = msh.cells
 
-vmsh = TetMesh([msh.points, tetras.data]).tomesh()
+vmsh = TetMesh([msh.points, tetras.data]).tomesh(fill=True)
 
 plt = Plotter(axes=1, interactive=False)
 plt.show(
