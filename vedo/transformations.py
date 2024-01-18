@@ -760,6 +760,11 @@ class NonLinearTransform:
     def __repr__(self):
         return self.__str__()
 
+    def print(self):
+        """Print transformation."""
+        print(self.__str__())
+        return self
+
     def update(self):
         """Update transformation."""
         self.T.Update()

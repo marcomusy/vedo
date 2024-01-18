@@ -35,7 +35,7 @@
 - add metadata "shape" to `volume.slice_plane()` in #1018
 - fix `core.mark_boundaries()` method
 - add callbacks for cutters in #1020 and `examples/volumetric/slice_plane3.py`
-
+- add `utils.andrews_curves()` function.
 
 ## Breaking changes
 - improvements to `shapes.Ellipsoid()` and bug fixes in #978 by @daniel-a-diaz
@@ -59,6 +59,7 @@
 ```
 examples/advanced/warp4b.py
 examples/advanced/diffuse_data.py
+
 examples/volumetric/slab_vol.py
 examples/volumetric/streamlines1.py
 examples/volumetric/streamlines2.py
@@ -69,7 +70,10 @@ examples/volumetric/slice_plane1.py
 examples/volumetric/slice_plane3.py
 
 examples/simulations/mag_field1.py
+
 examples/pyplot/plot_stream.py
+examples/pyplot/andrews_cluster.py
+
 examples/other/madcad1.py
 examples/other/tetgen1.py
 examples/other/nelder-mead.py
