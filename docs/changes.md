@@ -36,6 +36,8 @@
 - fix `core.mark_boundaries()` method
 - add callbacks for cutters in #1020 and `examples/volumetric/slice_plane3.py`
 - add `utils.andrews_curves()` function.
+- add `transformations.LinearTransform.transpose()` method.
+
 
 ## Breaking changes
 - improvements to `shapes.Ellipsoid()` and bug fixes in #978 by @daniel-a-diaz

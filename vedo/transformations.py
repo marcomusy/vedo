@@ -275,7 +275,7 @@ class LinearTransform:
         return self
 
     def is_identity(self):
-        """Check if identity."""
+        """Check if the transformation is the identity."""
         m = self.T.GetMatrix()
         M = [[m.GetElement(i, j) for j in range(4)] for i in range(4)]
         if np.allclose(M - np.eye(4), 0):
@@ -283,16 +283,23 @@ class LinearTransform:
         return False
 
     def invert(self):
-        """Invert transformation."""
+        """Invert the transformation. Acts in-place."""
         self.T.Inverse()
         self.inverse_flag = bool(self.T.GetInverseFlag())
         return self
 
     def compute_inverse(self):
-        """Compute inverse."""
+        """Compute the inverse."""
         t = self.clone()
         t.invert()
         return t
+
+    def transpose(self):
+        """Transpose the transformation. Acts in-place."""
+        M = vtk.vtkMatrix4x4()
+        self.T.GetTranspose(M)
+        self.T.SetMatrix(M)
+        return self
 
     def copy(self):
         """Return a copy of the transformation. Alias of `clone()`."""

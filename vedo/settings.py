@@ -519,14 +519,6 @@ class Settings:
                 dotsep="~×",
                 islocal=False,
             ),
-            Vogue=dict(
-                mono=False,
-                fscale=0.7,
-                hspacing=0.75,
-                lspacing=0.225,
-                dotsep="~x",
-                islocal=False,
-            ),
             Brachium=dict(
                 mono=True,
                 fscale=0.8,

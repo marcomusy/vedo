@@ -12,7 +12,7 @@ from vedo import transformations
 from vedo import utils
 from vedo.mesh import Mesh
 from vedo.core import VolumeAlgorithms
-from vedo.visual import VolumeVisual, MeshVisual
+from vedo.visual import VolumeVisual
 
 
 __docformat__ = "google"

@@ -2173,7 +2173,7 @@ class Arrows2D(Glyph):
             c=c,
             alpha=alpha,
         )
-        self.flat().lighting("off")
+        self.flat().lighting("off").pickable(False)
         if c is not None:
             self.color(c)
         self.name = "Arrows2D"
