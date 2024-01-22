@@ -3421,6 +3421,61 @@ class Points(PointsVisual, PointAlgorithms):
 
         self.pipeline = utils.OperationNode("generate_random_data", parents=[self])
         return self
+    
+    def generate_segments(self, istart=0, rmax=1e30, niter=3):
+        """
+        Generate a line segments from a set of points.
+        The algorithm is based on the closest point search.
+
+        Returns a `Line` object.
+        This object contains the a metadata array of used vertex counts in "UsedVertexCount"
+        and the sum of the length of the segments in "SegmentsLengthSum".
+
+        Arguments:
+            istart : (int)
+                index of the starting point
+            rmax : (float)
+                maximum length of a segment
+            niter : (int)
+                number of iterations or passes through the points
+
+        Examples:
+            - [moving_least_squares1D.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/moving_least_squares1D.py)
+        """
+        points = self.vertices
+        segments = []
+        dists = []
+        n = len(points)
+        used = np.zeros(n, dtype=int)
+        for _ in range(niter):
+            i = istart
+            for _ in range(n):
+                p = points[i]
+                ids = self.closest_point(p, n=4, return_point_id=True)
+                j = ids[1]
+                if used[j] > 1 or [j, i] in segments:
+                    j = ids[2]
+                if used[j] > 1:
+                    j = ids[3]
+                d = np.linalg.norm(p - points[j])
+                if used[j] > 1 or used[i] > 1 or d > rmax:
+                    i += 1
+                    if i >= n:
+                        i = 0
+                    continue
+                used[i] += 1
+                used[j] += 1
+                segments.append([i, j])
+                dists.append(d)
+                i = j
+        segments = np.array(segments, dtype=int)
+
+        line = vedo.shapes.Lines(points[segments], c="k", lw=3)
+        line.metadata["UsedVertexCount"] = used
+        line.metadata["SegmentsLengthSum"] = np.sum(dists)
+        line.pipeline = utils.OperationNode("generate_segments", parents=[self])
+        line.name = "Segments"
+        return line
 
     def generate_delaunay2d(
         self,
