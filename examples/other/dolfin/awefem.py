@@ -75,7 +75,7 @@ def awefem(mesh, t, source_loc=None):
         if t_>0.03:
             plt = plot(
                 u,
-                warpZfactor=20, # set elevation along z
+                warp_zfactor=20, # set elevation along z
                 vmin=.0,     # sets a minimum to the color scale
                 vmax=0.003,
                 cmap='rainbow', # the color map style
@@ -98,17 +98,3 @@ if __name__ == "__main__":
     fpath = download("https://vedo.embl.es/examples/data/dolfin_fine.xml")
     mesh = Mesh(fpath)
     awefem(mesh, t, source_loc=(0.8, 0.8))
-
-#    print('Computing wavefields over unit square')
-#    mesh = UnitSquareMesh(100, 100)
-#    u = awefem(mesh, t, source_loc=(0.8, 0.7))
-
-#    print('Computing wavefields over unit circle')
-#    domain = Circle(Point(0., 0.), 1)
-#    mesh = generate_mesh(domain, 50)
-#    u = awefem(mesh, t, source_time_function=sine_source)
-
-#    print('Computing wavefields over unit cube')
-#    print('need to set alpha=0.1 and warpZfactor=0')
-#    mesh = UnitCubeMesh(15, 15, 15)
-#    u = awefem(mesh, t, source_loc=(0.8, 0.7, 0.7))

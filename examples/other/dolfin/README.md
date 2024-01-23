@@ -4,6 +4,11 @@ In this directory you will find a bunch of examples of to visualize meshes in co
 
 The `plot()` function emulates the *matplotlib* functionality.
 
+Install `mshr` with
+```
+conda install conda-forge::mshr
+```
+
 To gain more control on the property of the shown objects one can access the output of the `plot()`
 method and change their properties, e.g.:
 ```python

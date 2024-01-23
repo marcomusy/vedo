@@ -38,11 +38,13 @@ solve(a == L, U, bc)
 u, p = U.split()
 
 from vedo.dolfin import plot
-plot(u,
-     mode='mesh and arrows',
-     scale=0.1,
-     warpZfactor=-0.1,
-     lw=0,
-     scalarbar='horizontal',
-     axes={'xlabel_size':0.01,'ylabel_size':0.01, 'ztitle':''},
-     title="Velocity")
+plot(
+    u,
+    mode='mesh and arrows',
+    scale=0.1,
+    warp_zfactor=-0.1,
+    lw=0,
+    scalarbar='horizontal',
+    axes={'xlabel_size':0.01,'ylabel_size':0.01, 'ztitle':''},
+    title="Velocity",
+)

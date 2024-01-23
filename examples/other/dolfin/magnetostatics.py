@@ -2,6 +2,7 @@
 the copper wires, and the surrounding vacuum.
 Isolines of Az are also shown."""
 # https://fenicsproject.org/pub/tutorial/html/._ftut1015.html
+# conda install conda-forge::mshr
 from fenics import *
 from mshr import *
 from math import sin, cos, pi
@@ -12,7 +13,7 @@ c_1 = 0.8 # radius for inner circle of copper wires
 c_2 = 1.4 # radius for outer circle of copper wires
 r = 0.1   # radius of copper wires
 R = 2.5   # radius of domain
-n = 5    # number of windings
+n = 5     # number of windings
 
 # Define geometry for background
 domain = Circle(Point(0, 0), R)
@@ -85,9 +86,8 @@ B = project(as_vector((A_z.dx(1), -A_z.dx(0))), W)
 
 # Plot solution
 from vedo.dolfin import plot
-plot(A_z, at=0, N=2, # draw on the first of 2 renderers
+plot(A_z, B,
      lw=0,           # linewidth of mesh
-     isolines={'n':20, 'lw':1.5, 'c':'black'},
+     isolines={'n':10, 'lw':0, 'c':'black'},
      scalarbar=False,
-     )
-plot(B, at=1, scalarbar=False, text=__doc__) # draw on the second renderer
+)

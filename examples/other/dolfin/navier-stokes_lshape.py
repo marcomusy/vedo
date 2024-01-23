@@ -2,9 +2,9 @@
 Solve the incompressible Navier-Stokes equations
 on an L-shaped domain using Chorin's splitting method.
 """
-from __future__ import print_function
 from dolfin import *
-from vedo import ProgressBar, download
+import numpy as np
+from vedo import download
 from vedo.dolfin import plot
 
 # Print log messages only from the root process in parallel
@@ -33,10 +33,16 @@ nu = 0.01
 p_in = Expression("sin(3.0*t)", t=0.0, degree=2)
 
 # Define boundary conditions
-noslip  = DirichletBC(V, (0, 0), "on_boundary && \
-                       (x[0] < DOLFIN_EPS | x[1] < DOLFIN_EPS | \
-                       (x[0] > 0.5 - DOLFIN_EPS && x[1] > 0.5 - DOLFIN_EPS))")
-inflow  = DirichletBC(Q, p_in, "x[1] > 1.0 - DOLFIN_EPS")
+noslip = DirichletBC(
+    V,
+    (0, 0),
+    (
+        "on_boundary &&"
+        "(x[0] < DOLFIN_EPS | x[1] < DOLFIN_EPS | "
+        "(x[0] > 0.5 - DOLFIN_EPS && x[1] > 0.5 - DOLFIN_EPS))"
+    ),
+)
+inflow = DirichletBC(Q, p_in, "x[1] > 1.0 - DOLFIN_EPS")
 outflow = DirichletBC(Q, 0, "x[0] > 1.0 - DOLFIN_EPS")
 bcu = [noslip]
 bcp = [inflow, outflow]
@@ -51,18 +57,22 @@ k = Constant(dt)
 f = Constant((0, 0))
 
 # Tentative velocity step
-F1 = (1/k)*inner(u - u0, v)*dx + inner(grad(u0)*u0, v)*dx + \
-     nu*inner(grad(u), grad(v))*dx - inner(f, v)*dx
+F1 = (
+    (1 / k) * inner(u - u0, v) * dx
+    + inner(grad(u0) * u0, v) * dx
+    + nu * inner(grad(u), grad(v)) * dx
+    - inner(f, v) * dx
+)
 a1 = lhs(F1)
 L1 = rhs(F1)
 
 # Pressure update
-a2 = inner(grad(p), grad(q))*dx
-L2 = -(1/k)*div(u1)*q*dx
+a2 = inner(grad(p), grad(q)) * dx
+L2 = -(1 / k) * div(u1) * q * dx
 
 # Velocity update
-a3 = inner(u, v)*dx
-L3 = inner(u1, v)*dx - k*inner(grad(p1), v)*dx
+a3 = inner(u, v) * dx
+L3 = inner(u1, v) * dx - k * inner(grad(p1), v) * dx
 
 # Assemble matrices
 A1 = assemble(a1)
@@ -73,12 +83,10 @@ A3 = assemble(a3)
 prec = "amg" if has_krylov_solver_preconditioner("amg") else "default"
 
 # Use nonzero guesses - essential for CG with non-symmetric BC
-parameters['krylov_solver']['nonzero_initial_guess'] = True
+parameters["krylov_solver"]["nonzero_initial_guess"] = True
 
 # Time-stepping
-pb = ProgressBar(0, T, dt, c='green')
-for t in pb.range():
-
+for t in np.arange(0, T, dt):
     # Update pressure boundary condition
     p_in.t = t
 
@@ -103,15 +111,14 @@ for t in pb.range():
     t += dt
 
     # Plot solution
-    plot(u1,
-         mode='mesh and arrows',
-         text="Velocity of fluid",
-         cmap='jet',
-         scale=0.3, # unit conversion factor
-         scalarbar=False,
-         interactive=False)
-    pb.print()
-
-plot()
-
+    plotter = plot(
+        u1,
+        mode="mesh and arrows",
+        text="Velocity of fluid",
+        cmap="jet",
+        scale=0.3,  # unit conversion factor
+        scalarbar=False,
+        interactive=False,
+    )
+    plotter.remove("Arrows")
 

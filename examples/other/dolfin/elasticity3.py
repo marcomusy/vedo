@@ -75,10 +75,6 @@ for i in range(N):
         mesh = new_mesh
     meshes.append(mesh)
     displacements.append(displacement)
-    # plot things:
-    txt = vedo.Text2D(f"step{i}")
-    arrow = vedo.Arrow2D([0,0], F*20).z(1)
-    plot(mesh, arrow, txt, c='grey5', at=i, N=N, zoom=1.1) #PRESS q
 
 dmesh_i = meshes[0]  # initial mesh
 dmesh_f = meshes[-1] # final mesh
@@ -89,7 +85,7 @@ vmesh_f = vedo.Mesh([dmesh_f.coordinates(), dmesh_f.cells()], c='grey3').wirefra
 plt = vedo.Plotter()
 
 # move a few points along the deformation of the circle
-seeds = vedo.Circle(r=50, res=res).points()[:,(0,1)] # make points 2d with [:,(0,1)]
+seeds = vedo.Circle(r=50, res=res).vertices[:,(0,1)] # make points 2d with [:,(0,1)]
 endpoints = []
 for i, p in enumerate(seeds):
     line = [p]

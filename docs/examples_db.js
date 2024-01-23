@@ -1904,8 +1904,8 @@ vedo_example_db =
         imgsrc: 'images/other/napari1.png',
     },
     {
-        pyname: 'dolfin/ex06_elasticity2',
-        kbd   : 'ex06_elasticity2',
+        pyname: 'dolfin/elasticity2',
+        kbd   : '',
         categ : 'other',
         short : 'hyperelastic model',
         long  : 'Model deformation of an (hyper)elastic with '+insertLink('FEniCS','fenicsproject.org'),
@@ -1934,22 +1934,6 @@ vedo_example_db =
         short : 'heat equation',
         long  : 'Heat equation in a moving media  with '+insertLink('FEniCS','fenicsproject.org'),
         imgsrc: 'images/other/heatconv.gif',
-    },
-    {
-        pyname: 'dolfin/stokes',
-        kbd   : 'stokes.py',
-        categ : 'other',
-        short : 'solve stokes eqs.',
-        long  : 'Solve the Stokes equations using quadratic elements for  velocity and first degree for  pressure',
-        imgsrc: 'images/other/stokes.jpg',
-    },
-    {
-        pyname: 'dolfin/navier-stokes_lshape',
-        kbd   : 'lshape',
-        categ : 'other',
-        short : 'navier-stokes eqs.',
-        long  : 'Solve the incompressible Navier-Stokes equations  on an L-shaped domain with '+insertLink('FEniCS','fenicsproject.org'),
-        imgsrc: 'images/other/navier-stokes_lshape.gif',
     },
     {
         pyname: 'icon',

@@ -51,9 +51,9 @@ from vedo import Line, Latex
 pde = r'-T \nabla^{2} D=p, ~\Omega=\left\{(x, y) | x^{2}+y^{2} \leq R\right\}'
 tex = Latex(pde, pos=(0,1.1,.1), s=0.2, c='w')
 
-wline = Line(y, w_line*10, c='white', lw=4)
-pline = Line(y, p_line/ 4, c='lightgreen', lw=4)
+wline = Line(np.c_[y, w_line*10], c='white', lw=4)
+pline = Line(np.c_[y, p_line/ 4], c='lightgreen', lw=4)
 
-plot(w, wline, tex, at=0, N=2, bg='bb', text='Deflection')
-plot(p, pline, at=1, bg='bb', text='Load')
+plot(w, wline, tex, bg='bb', text='Deflection')
+plot(p, pline, bg='bb', text='Load')
 

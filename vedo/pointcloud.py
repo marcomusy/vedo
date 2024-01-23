@@ -1161,7 +1161,16 @@ class Points(PointsVisual, PointAlgorithms):
     @property
     def vertex_normals(self):
         """
-        Retrieve vertex normals as a numpy array.
+        Retrieve vertex normals as a numpy array. Same as `point_normals`.
+        Check out also `compute_normals()` and `compute_normals_with_pca()`.
+        """
+        vtknormals = self.dataset.GetPointData().GetNormals()
+        return utils.vtk2numpy(vtknormals)
+
+    @property
+    def point_normals(self):
+        """
+        Retrieve vertex normals as a numpy array. Same as `vertex_normals`.
         Check out also `compute_normals()` and `compute_normals_with_pca()`.
         """
         vtknormals = self.dataset.GetPointData().GetNormals()

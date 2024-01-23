@@ -9,7 +9,8 @@ export VEDOLOGFILE=$VEDODIR/output_vedo_test.txt
 
 cd $VEDODIR
 pip install -q -e .
-pip install scikit-image -U
+pip install scikit-image
+pip install scikit-learn
 pip install nevergrad -U
 pip install pyefd -U
 pip install iminuit -U
@@ -38,7 +39,7 @@ sed -i "s/dry_run_mode = 2/dry_run_mode = 0/g" $VEDODIR/vedo/settings.py  #->ENA
 
 pytest tests
 
-cd $VEDODIR/tests/common  && ./run_all.sh 
+cd $VEDODIR/tests/common && ./run_all.sh 
 cd $VEDODIR/tests/issues && ./run_all.sh 
 
 # EXAMPLES #####################################
@@ -62,6 +63,7 @@ cd $VEDODIR/examples/other/trimesh && ./run_all.sh
 
 # DOLFIN #######################################
 # conda create -n fenics -c conda-forge fenics
+# conda install conda-forge::mshr
 cd $VEDODIR
 conda activate fenics
 pip install -e .

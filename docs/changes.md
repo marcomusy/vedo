@@ -60,6 +60,8 @@
 
 ## New/Revised Examples
 ```
+examples/basic/sliders_hsv.py
+
 examples/advanced/warp4b.py
 examples/advanced/diffuse_data.py
 examples/advanced/moving_least_squares1D.py

@@ -1,6 +1,4 @@
-"""
-Scale a mesh asymmetrically in one coordinate
-"""
+"""Scale a mesh asymmetrically in one coordinate"""
 from dolfin import *
 from mshr import *
 
@@ -14,13 +12,14 @@ f = interpolate(e, V)
 ####################################################
 from vedo.dolfin import plot
 
-plt = plot(f,
-           xtitle='y-coord is scaled by factor 100',
-           scaleMeshFactors=(0.01, 1, 1),
-           style=1,
-           lw=0,
-           warpZfactor=0.001,
-           scalarbar='horizontal',
-           axes={'xtitle_offset':0.2},
-           text=__doc__,
-           )
+plt = plot(
+    f,
+    xtitle="y-coord is scaled by factor 100",
+    scale_mesh_factors=(0.01, 1, 1),
+    style=1,
+    lw=0,
+    warp_zfactor=0.001,
+    scalarbar="horizontal",
+    axes={"xtitle_offset": 0.2},
+    text=__doc__,
+)
