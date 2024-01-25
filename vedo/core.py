@@ -473,6 +473,11 @@ class CommonAlgorithms:
             pass
         bx.flat().lighting("off").wireframe(True)
         return bx
+    
+    def update_dataset(self, dataset, **kwargs):
+        """Update the dataset of the object with the provided VTK dataset."""
+        self._update(dataset, **kwargs)
+        return self
 
     def bounds(self):
         """

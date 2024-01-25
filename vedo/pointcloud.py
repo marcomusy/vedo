@@ -1023,7 +1023,7 @@ class Points(PointsVisual, PointAlgorithms):
             "distance_to",
             parents=[self, pcloud],
             shape="cylinder",
-            comment=f"#pts {self.dataset.GetPointData()}",
+            comment=f"#pts {self.dataset.GetNumberOfPoints()}",
         )
         return dists
 
@@ -1087,7 +1087,7 @@ class Points(PointsVisual, PointAlgorithms):
         self.ps(ps)
 
         self.pipeline = utils.OperationNode(
-            "subsample", parents=[self], comment=f"#pts {self.dataset.GetPointData()}"
+            "subsample", parents=[self], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
         )
         return self
 
@@ -2713,7 +2713,7 @@ class Points(PointsVisual, PointAlgorithms):
         self._update(clipper.GetOutput())
 
         self.pipeline = utils.OperationNode(
-            "crop", parents=[self], comment=f"#pts {self.dataset.GetPointData()}"
+            "crop", parents=[self], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
         )
         return self
 
@@ -2990,7 +2990,7 @@ class Points(PointsVisual, PointAlgorithms):
         m.pipeline = utils.OperationNode(
             "reconstruct_surface",
             parents=[self],
-            comment=f"#pts {m.dataset.GetPointData()}",
+            comment=f"#pts {m.dataset.GetNumberOfPoints()}",
         )
         return m
 
@@ -3181,7 +3181,7 @@ class Points(PointsVisual, PointAlgorithms):
         vol.metadata["radius"] = radius
         vol.locator = pdf.GetLocator()
         vol.pipeline = utils.OperationNode(
-            "density", parents=[self], comment=f"dims = {tuple(vol.dimensions())}"
+            "density", parents=[self], comment=f"dims={tuple(vol.dimensions())}"
         )
         return vol
 
@@ -3258,7 +3258,7 @@ class Points(PointsVisual, PointAlgorithms):
             "densify",
             parents=[self],
             c="#e9c46a:",
-            comment=f"#pts {cld.dataset.GetPointData()}",
+            comment=f"#pts {cld.dataset.GetNumberOfPoints()}",
         )
         return cld
 
@@ -3310,7 +3310,7 @@ class Points(PointsVisual, PointAlgorithms):
         vol.pipeline = utils.OperationNode(
             "signed_distance",
             parents=[self],
-            comment=f"dim = {tuple(vol.dimensions())}",
+            comment=f"dims={tuple(vol.dimensions())}",
             c="#e9c46a:#0096c7",
         )
         return vol
@@ -3409,7 +3409,7 @@ class Points(PointsVisual, PointAlgorithms):
         vol.pipeline = utils.OperationNode(
             "signed_distance",
             parents=[self],
-            comment=f"dim = {tuple(vol.dimensions())}",
+            comment=f"dims={tuple(vol.dimensions())}",
             c="#e9c46a:#0096c7",
         )
         return vol

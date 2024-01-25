@@ -18,7 +18,8 @@ Find at this [link](https://vedo.embl.es/autodocs/v2023.4.7/vedo.html) the docum
 ## Install and Test
 ```bash
 pip install vedo
-# Or, install the latest development version:
+
+# Or, install the latest development version with:
 pip install -U git+https://github.com/marcomusy/vedo.git
 ```
 Then

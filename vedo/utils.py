@@ -198,11 +198,14 @@ class OperationNode:
                         op, op + str(par.time), parent=parent.operation_plain + str(parent.time)
                     )
                     _build_tree(par)
-
-        tree = Tree()
-        tree.create_node(self.operation_plain, self.operation_plain + str(self.time))
-        _build_tree(self)
-        return tree.show(reverse=True, stdout=False)
+        try:
+            tree = Tree()
+            tree.create_node(self.operation_plain, self.operation_plain + str(self.time))
+            _build_tree(self)
+            out = tree.show(stdout=False)
+        except:
+            out = f"Sorry treelib failed to build the tree for '{self.operation_plain}()'."
+        return out
 
     def print(self):
         """Print the tree of operations."""
@@ -578,33 +581,34 @@ class Minimizer:
         Minimize the input function.
 
         Returns:
-            dict : the minimization results
-                init_parameters : (dict)
-                    the initial parameters
-                parameters : (dict)
-                    the final parameters
-                min_value : (float)
-                    the minimum value
-                iterations : (int)
-                    the number of iterations
-                max_iterations : (int)
-                    the maximum number of iterations
-                tolerance : (float)
-                    the tolerance for convergence
-                convergence_flag : (int)
-                    zero if the tolerance stopping
-                    criterion has been met.
-                parameters_path : (np.array)
-                    the path of the minimization
-                    algorithm in parameter space
-                function_path : (np.array)
-                    the path of the minimization
-                    algorithm in function space
-                hessian : (np.array)
-                    the Hessian matrix of the
-                    function at the minimum
-                parameter_errors : (np.array)
-                    the errors on the parameters
+            dict : 
+                the minimization results
+            init_parameters : (dict)
+                the initial parameters
+            parameters : (dict)
+                the final parameters
+            min_value : (float)
+                the minimum value
+            iterations : (int)
+                the number of iterations
+            max_iterations : (int)
+                the maximum number of iterations
+            tolerance : (float)
+                the tolerance for convergence
+            convergence_flag : (int)
+                zero if the tolerance stopping
+                criterion has been met.
+            parameters_path : (np.array)
+                the path of the minimization
+                algorithm in parameter space
+            function_path : (np.array)
+                the path of the minimization
+                algorithm in function space
+            hessian : (np.array)
+                the Hessian matrix of the
+                function at the minimum
+            parameter_errors : (np.array)
+                the errors on the parameters
         """
         n = self.minimizer.GetNumberOfParameters()
         out = [(

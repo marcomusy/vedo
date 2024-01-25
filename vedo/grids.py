@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import os
 import time
 from weakref import ref as weak_ref_to
 import numpy as np
@@ -1052,10 +1053,17 @@ class TetMesh(UnstructuredGrid):
                 reader = vtk.new("XMLUnstructuredGridReader")
             else:
                 reader = vtk.new("UnstructuredGridReader")
+
+            if not os.path.isfile(inputobj):
+                # for some reason vtk Reader does not complain
+                vedo.logger.error(f"file {inputobj} not found")
+                raise FileNotFoundError
+
             self.filename = inputobj
             reader.SetFileName(inputobj)
             reader.Update()
             ug = reader.GetOutput()
+
             tt = vtk.new("DataSetTriangleFilter")
             tt.SetInputData(ug)
             tt.SetTetrahedraOnly(True)

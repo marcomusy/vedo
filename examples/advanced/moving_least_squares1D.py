@@ -1,7 +1,9 @@
 """1D Moving Least Squares (MLS)
 to project a cloud of unordered points
-to become a smooth line"""
+to become a smooth, ordered line"""
 from vedo import *
+
+settings.default_font = "Antares"
 
 N = 3  # nr. of iterations
 
@@ -29,6 +31,6 @@ for i in range(1, N):
 line = pts.generate_segments().clean().join()
 # printc("lines:", line.lines)
 
-plt += [line, line.labels("id")]
+plt += [line, line.labels("id").bc("blue5")]
 
 plt.interactive().close()

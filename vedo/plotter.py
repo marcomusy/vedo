@@ -1843,7 +1843,7 @@ class Plotter:
 
     def add_spline_tool(
         self, points, pc="k", ps=8, lc="r4", ac="g5",
-        lw=2, alpha=1, closed=False, ontop=True,
+        lw=2, alpha=1, closed=False, ontop=True, can_add_nodes=True,
     ):
         """
         Add a spline tool to the current plotter.
@@ -1877,7 +1877,7 @@ class Plotter:
 
             ![](https://vedo.embl.es/images/basic/spline_tool.png)
         """
-        sw = addons.SplineTool(points, pc, ps, lc, ac, lw, alpha, closed, ontop)
+        sw = addons.SplineTool(points, pc, ps, lc, ac, lw, alpha, closed, ontop, can_add_nodes)
         sw.interactor = self.interactor
         sw.on()
         sw.Initialize(sw.points.dataset)

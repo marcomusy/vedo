@@ -2468,7 +2468,7 @@ class Mesh(MeshVisual, Points):
         vol.pipeline = OperationNode(
             "binarize",
             parents=[self],
-            comment=f"dim = {tuple(vol.dimensions())}",
+            comment=f"dims={tuple(vol.dimensions())}",
             c="#e9c46a:#0096c7",
         )
         return vol
@@ -2527,7 +2527,7 @@ class Mesh(MeshVisual, Points):
         vol.pipeline = OperationNode(
             "signed_distance",
             parents=[self],
-            comment=f"dim = {tuple(vol.dimensions())}",
+            comment=f"dims={tuple(vol.dimensions())}",
             c="#e9c46a:#0096c7",
         )
         return vol

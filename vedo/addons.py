@@ -463,7 +463,7 @@ class SplineTool(vtk.vtkContourWidget):
     """
 
     def __init__(self, points, pc="k", ps=8, lc="r4", ac="g5",
-                 lw=2, alpha=1, closed=False, ontop=True):
+                 lw=2, alpha=1, closed=False, ontop=True, can_add_nodes=True):
         """
         Spline tool, draw a spline through a set of points interactively.
 
@@ -486,6 +486,8 @@ class SplineTool(vtk.vtkContourWidget):
                 spline is closed or open.
             ontop : (bool)
                 show it always on top of other objects.
+            can_add_nodes : (bool)
+                allow to add (or remove) new nodes interactively.
 
         Examples:
             - [spline_tool.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/spline_tool.py)
@@ -496,6 +498,8 @@ class SplineTool(vtk.vtkContourWidget):
 
         self.representation = self.GetRepresentation()
         self.representation.SetAlwaysOnTop(ontop)
+        self.SetAllowNodePicking(can_add_nodes)
+
 
         self.representation.GetLinesProperty().SetColor(get_color(lc))
         self.representation.GetLinesProperty().SetLineWidth(lw)
@@ -3075,7 +3079,12 @@ def Axes(
                 if zrange is None: zrange = (bb[4], bb[5])
                 obj = None # dont need it anymore
             except AttributeError:
-                pass            
+                pass
+        if utils.is_sequence(obj) and len(obj)==6 and utils.is_number(obj[0]):
+            # passing a list of numeric bounds
+            if xrange is None: xrange = (obj[0], obj[1])
+            if yrange is None: yrange = (obj[2], obj[3])
+            if zrange is None: zrange = (obj[4], obj[5])
 
     if use_global:
         vbb, drange, min_bns, max_bns = compute_visible_bounds()
