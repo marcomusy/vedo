@@ -1,4 +1,6 @@
-## Main changes
+
+## Main Changes and Fixes
+
 - fixes to `extrude()` thanks to @JeffreyWardman
 - filter out triangle strips in Ribbon and extrude()
 - improvements in doc strings
@@ -38,9 +40,12 @@
 - add `utils.andrews_curves()` function.
 - add `transformations.LinearTransform.transpose()` method.
 - add `pointcloud.generate_segments()` to generate a continous line from un-ordered points in 3d
+- fix `assembly.__add__()` by @j042 in #1036
+- small fix to `Ruler3D` class.
 
 
-## Breaking changes
+## Breaking Changes
+
 - improvements to `shapes.Ellipsoid()` and bug fixes in #978 by @daniel-a-diaz
 - improvements to `pointcloud.pca_ellipsoid()` and bug fixes
 - improvements to `pointcloud.pca_ellipse()` and bug fixes

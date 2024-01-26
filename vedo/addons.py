@@ -2511,7 +2511,8 @@ def Ruler3D(
     macts.properties.SetLineWidth(lw)
     macts.properties.LightingOff()
     macts.actor.UseBoundsOff()
-    macts.reorient(q2 - q1, p2 - p1, rotation=axis_rotation)
+    macts.rotate_x(axis_rotation)
+    macts.reorient(q2 - q1, p2 - p1)
     macts.pos(pos)
     macts.bc("tomato").pickable(False)
     return macts
