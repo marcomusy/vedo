@@ -355,7 +355,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
         """
         Add an object to the assembly
         """
-        if isinstance(obj, vtk.get_class("Prop3D")):
+        if isinstance(getattr(obj, "actor", None), vtk.get_class("Prop3D")):
 
             self.objects.append(obj)
             self.actors.append(obj.actor)
