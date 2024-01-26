@@ -66,6 +66,8 @@
 ## New/Revised Examples
 ```
 examples/basic/sliders_hsv.py
+examples/basic/buttons1.py
+examples/basic/buttons2.py
 
 examples/advanced/warp4b.py
 examples/advanced/diffuse_data.py

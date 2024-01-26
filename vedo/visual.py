@@ -1075,13 +1075,12 @@ class PointsVisual(CommonVisual):
         if specular is not None: pr.SetSpecular(specular)
         if specular_power is not None: pr.SetSpecularPower(specular_power)
         if specular_color is not None: pr.SetSpecularColor(colors.get_color(specular_color))
-        if utils.vtk_version_at_least(9):
-            if metallicity is not None:
-                pr.SetInterpolationToPBR()
-                pr.SetMetallic(metallicity)
-            if roughness is not None:
-                pr.SetInterpolationToPBR()
-                pr.SetRoughness(roughness)
+        if metallicity is not None:
+            pr.SetInterpolationToPBR()
+            pr.SetMetallic(metallicity)
+        if roughness is not None:
+            pr.SetInterpolationToPBR()
+            pr.SetRoughness(roughness)
 
         return self
 

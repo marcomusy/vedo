@@ -267,7 +267,7 @@ vedo_example_db =
         imgsrc: 'images/basic/align5.png',
     },
     {
-        pyname: 'buttons',
+        pyname: 'buttons1',
         kbd   : '',
         categ : 'basic',
         short : 'add buttons',

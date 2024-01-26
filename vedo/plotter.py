@@ -1811,7 +1811,7 @@ class Plotter:
             bc : (list)
                 a list of background colors for each state
             pos : (list)
-                2D position in pixels from left-bottom corner
+                2D position from left-bottom corner
             size : (float)
                 size of button font
             font : (str)
@@ -1978,7 +1978,7 @@ class Plotter:
         size=18,
         justify=0,
         angle=0,
-        delay=500,
+        delay=250,
     ):
         """
         Create a pop-up hint style message when hovering an object.
@@ -2033,7 +2033,7 @@ class Plotter:
             trep.SetFontSize(size)
             trep.SetColor(vedo.get_color(c))
             trep.SetBackgroundColor(vedo.get_color(bg))
-            trep.SetShadow(False)
+            trep.SetShadow(0)
             trep.SetJustification(justify)
             trep.UseTightBoundingBoxOn()
 
@@ -2041,8 +2041,10 @@ class Plotter:
             self.hint_widget.SetTimerDuration(delay)
             self.hint_widget.SetInteractor(self.interactor)
             if angle:
-                rep.SetOrientation(angle)
-                rep.SetBackgroundOpacity(0)
+                trep.SetOrientation(angle)
+                trep.SetBackgroundOpacity(0)
+            # else:
+            #     trep.SetBackgroundOpacity(0.5) # doesnt work well
             self.hint_widget.SetRepresentation(rep)
             self.widgets.append(self.hint_widget)
             self.hint_widget.EnabledOn()

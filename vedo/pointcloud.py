@@ -533,7 +533,7 @@ class Points(PointsVisual, PointAlgorithms):
             return
         ##########################################
 
-        self.name = "Points"  # better not to give it a name here?
+        self.name = "Points"
 
         ######
         if isinstance(inputobj, vtk.vtkActor):
@@ -588,10 +588,6 @@ class Points(PointsVisual, PointAlgorithms):
         self.properties.SetRepresentationToPoints()
         self.properties.SetPointSize(r)
         self.properties.LightingOff()
-        try:
-            self.properties.RenderPointsAsSpheresOn()
-        except AttributeError:
-            pass
 
         self.pipeline = utils.OperationNode(
             self, parents=[], comment=f"#pts {self.dataset.GetNumberOfPoints()}"
