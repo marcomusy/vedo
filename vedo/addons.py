@@ -387,10 +387,8 @@ class Button(vedo.shapes.Text2D):
                 anticlockwise rotation in degrees
 
         Examples:
-            - [buttons.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/buttons.py)
-
-        Examples:
-            - [buttons.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/buttons.py)
+            - [buttons1.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/buttons1.py)
+            - [buttons2.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/buttons2.py)
 
                 ![](https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg)
 

@@ -1,9 +1,9 @@
-# TEST PIPELINE ################################
+# TEST PIPELINE ##############################################################
 - Internal use only
-################################################
+##############################################################################
 
 
-# INSTALL ######################################
+# INSTALL ####################################################################
 export VEDODIR=$HOME/Projects/vedo
 export VEDOLOGFILE=$VEDODIR/output_vedo_test.txt
 
@@ -42,7 +42,7 @@ pytest tests
 cd $VEDODIR/tests/common && ./run_all.sh 
 cd $VEDODIR/tests/issues && ./run_all.sh 
 
-# EXAMPLES #####################################
+# EXAMPLES ##########################################################################
 cd $VEDODIR/examples && time ./run_all.sh 2>&1 | tee $VEDOLOGFILE && alert "scan done."
 
 grep -aA 1 "Error" $VEDOLOGFILE
@@ -52,16 +52,16 @@ code $VEDOLOGFILE  #### inspect logfile
 # (Try normal run too with visualization to make sure all is ok)
 
 
-# TUTORIALS ####################################
+# TUTORIALS ##################################################################
 cd ~/Projects/server/vedo-embo-course/scripts && ./run_all.sh 
 cd ~/Projects/server/vedo-bias-course/scripts && ./run_all.sh 
 cd ~/Projects/server/vedo-epug-tutorial/scripts && ./run_all.sh 
 
 
-# TRIMESH #######################################
+# TRIMESH #####################################################################
 cd $VEDODIR/examples/other/trimesh && ./run_all.sh
 
-# DOLFIN #######################################
+# DOLFIN #####################################################################
 # conda create -n fenics -c conda-forge fenics
 # conda install conda-forge::mshr
 cd $VEDODIR
@@ -70,29 +70,29 @@ pip install -e .
 cd $VEDODIR/examples/other/dolfin && ./run_all.sh
 conda deactivate
 
-# OTHERS #######################################
+# OTHERS #####################################################################
 cd $VEDODIR
 python ~/Dropbox/documents/Medical/RESONANCIA.py
 vedo https://vedo.embl.es/examples/data/panther.stl.gz
 vedo https://vedo.embl.es/examples/geo_scene.npz
 vedo --convert data/290.vtk --to ply && vedo data/290.ply
 
-# NOTEBOOKS #####################################
+# NOTEBOOKS ###################################################################
 cd $VEDODIR/examples/notebooks/
 jupyter notebook > /dev/null 2>&1
 
 ##########################
-# Check on OSX and windows
+# Check on OSX and Windows
 
 
-# VEDO PROJECTS #################################
+# VEDO PROJECTS ###############################################################
 cd ~/Projects/server/trackviewer
     ./main_test.py
 ################
 cd /g/sharpe/software/clone_viewer2
     ./clone_viewer3d.py
 ################
-cd ~/Projects/rio_organoid
+cd ~/Projects/server/rio_organoid
     python main4.py
     python piv_read_fw2_C3.py
 ################
@@ -106,7 +106,7 @@ cd ~/Projects/new_yalla/limb_opti_here
 cd ~/Projects/server/welsh_embryo_stager
    python stager.py pics/E14.5_L3-03_HL2.5X.jpg
 ################
-cd ~/Projects/oocytes
+cd ~/Projects/server/oocytes
    python main4b.py
 ################
 cd ~/Projects/umap_viewer3d
@@ -121,13 +121,16 @@ cd ~/Projects/napari-vedo-bridge
     python $VEDODIR/examples/other/napari1.py # then open plugins ...
     conda deactivate
 ################
-cd ~/Projects/welleng/examples
+cd ~/Projects/server/welleng
+    git pull
+    pip install -e .
+    cd examples
     python 
 ################
-cd ~/Projects/server/brainrender_orig/examples
+cd ~/Projects/server/brainrender/examples
     python
 ################
-cd ~/Projects/clonal_analysis2d_splines
+cd ~/Projects/clonal_analysis2d_depth
     python -m analysis_plots
 ################
 cd ~/Projects/server/gustaf
@@ -149,7 +152,7 @@ cd ~/Projects/4d-gene-reconstruction/useful_scripts
     python interp_to_tetras.py
 
 
-# DOCUMETATION #################################
+# DOCUMETATION ###############################################################
 mount_staging
 pip install pdoc
 cd $VEDODIR/docs/pdoc
@@ -162,7 +165,7 @@ cp docs/examples_db.js www/examples_db.js
 code www/index.html
 
 
-# RELEASE #######################################
+# RELEASE #####################################################################
 
 cd $VEDODIR
 
@@ -184,9 +187,10 @@ https://repology.org/project/vedo/badges
 rm $VEDOLOGFILE
 
 
-# SITES ########################################
+# SITES ######################################################################
 https://vedo.embl.es/
 https://vedo.embl.es/docs
+https://vedo.embl.es/fonts
 https://github.com/marcomusy/vedo
 https://forum.image.sc/search?q=vedo%20order%3Alatest
 

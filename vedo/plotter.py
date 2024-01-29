@@ -1829,7 +1829,8 @@ class Plotter:
             `vedo.addons.Button` object.
 
         Examples:
-            - [buttons.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/buttons.py)
+            - [buttons1.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/buttons1.py)
+            - [buttons2.py](https://github.com/marcomusy/vedo/blob/master/examples/basic/buttons2.py)
 
             ![](https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg)
         """
@@ -1837,7 +1838,7 @@ class Plotter:
             bu = addons.Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
             self.renderer.AddActor2D(bu)
             self.buttons.append(bu)
-            # bu.function_id = self.add_callback("LeftButtonPress", bu.function)
+            # bu.function_id = self.add_callback("LeftButtonPress", bu.function) # not good
             bu.function_id = bu.add_observer("pick", bu.function, priority=10)
             return bu
 

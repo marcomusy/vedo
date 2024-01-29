@@ -773,7 +773,7 @@ if Settings.dry_run_mode < 2:
 
 
 ######################################################################
-def get_class(cls_name="", module_name=""):
+def get_class(name, module_name=""):
     """
     Get a vtk class from its name.
     
@@ -786,21 +786,21 @@ def get_class(cls_name="", module_name=""):
     print(vtk.get_class("vtkActor", "vtkRenderingCore"))
     ```
     """
-    if cls_name and not cls_name.lower().startswith("vtk"):
-        cls_name = "vtk" + cls_name
+    if name and not name.lower().startswith("vtk"):
+        name = "vtk" + name
     if not module_name:
-        module_name = location[cls_name]
+        module_name = location[name]
     module_name = "vtkmodules." + module_name
     if module_name not in module_cache:
         module = import_module(module_name)
         module_cache[module_name] = module
-    if cls_name:
-        return getattr(module_cache[module_name], cls_name)
+    if name:
+        return getattr(module_cache[module_name], name)
     else:
         return module_cache[module_name]
 
-
-def new(cls_name="", module_name=""):
+######################################################################
+def new(cls_name, module_name=""):
     """
     Create a new vtk object instance from its name.
     
@@ -817,11 +817,13 @@ def new(cls_name="", module_name=""):
         return None
     return instance
 
-
+######################################################################
 def dump_hierarchy_to_file(fname=""):
     """
     Print all available vtk classes.
     Dumps the list to a file named `vtkmodules_<version>_hierarchy.txt`
+    in the current working directory.
+
     Example:
     ```python
     from vedo.vtkclasses import dump_hierarchy_to_file

@@ -44,7 +44,8 @@
 - small fix to `Ruler3D` class.
 
 
-## Breaking Changes
+## Soft Breaking Changes
+Changes that will break existing code whose fixing is trivial 
 
 - improvements to `shapes.Ellipsoid()` and bug fixes in #978 by @daniel-a-diaz
 - improvements to `pointcloud.pca_ellipsoid()` and bug fixes
@@ -53,9 +54,15 @@
 - remove `shapes.StreamLines()` becoming `object.compute_streamlines()`
 - split `mesh.decimate()` into `mesh.decimate()`, `mesh.decimate_pro()` and `mesh.decimate_binned()` as per #992
 - modified `core.clean()` after #992
-- rename `vedo.tetmesh` to `vedo.grids` and support `RectilinearGrid`
+- rename `vedo.tetmesh` to `vedo.grids` and support for `RectilinearGrid`
 - remove `import_window()` for obj files and create `load_obj()` by @zhouzq-thu in #891
 - add `smooth_mls_12d(..., n=0)` to fix the number of neighbors in the smoothing
+- modified API for `mesh.binarize()`
+
+## Hard Breaking Changes
+Changes that will break existing code and need active thinking and work to adapt
+
+- None
 
 
 ### Bug Fixes
@@ -81,6 +88,7 @@ examples/volumetric/streamlines4.py
 examples/volumetric/office.py
 examples/volumetric/slice_plane1.py
 examples/volumetric/slice_plane3.py
+examples/volumetric/mesh2volume.py
 
 examples/simulations/mag_field1.py
 

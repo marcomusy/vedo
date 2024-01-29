@@ -432,7 +432,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         m.pipeline = utils.OperationNode(f"zslice {k}", parents=[self], c="#4cc9f0:#e9c46a")
         return m
 
-    def slice_plane(self, origin, normal, autocrop=False, mode="linear"):
+    def slice_plane(self, origin, normal, autocrop=False, border=0.5, mode="linear"):
         """
         Extract the slice along a given plane position and normal.
 
@@ -448,6 +448,8 @@ class Volume(VolumeAlgorithms, VolumeVisual):
                 normal to the plane
             autocrop : (bool)
                 crop the output to the minimal possible size
+            border : (float)
+                add a border to the output slice
             mode : (str)
                 interpolation mode, one of the following: "linear", "nearest", "cubic"
 
@@ -455,10 +457,15 @@ class Volume(VolumeAlgorithms, VolumeVisual):
             - [slice_plane1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slice_plane1.py)
 
                 ![](https://vedo.embl.es/images/volumetric/slicePlane1.gif)
+            
+            - [slice_plane2.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slice_plane2.py)
+                
+                ![](https://vedo.embl.es/images/volumetric/slicePlane2.png)
+
+            - [slice_plane3.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/slice_plane3.py)
+
+                ![](https://vedo.embl.es/images/volumetric/slicePlane3.jpg)
         """
-        reslice = vtk.new("ImageReslice")
-        reslice.SetInputData(self.dataset)
-        reslice.SetOutputDimensionality(2)
         newaxis = utils.versor(normal)
         pos = np.array(origin)
         initaxis = (0, 0, 1)
@@ -468,8 +475,18 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         T.PostMultiply()
         T.RotateWXYZ(np.rad2deg(angle), crossvec)
         T.Translate(pos)
-        M = T.GetMatrix()
-        reslice.SetResliceAxes(M)
+
+        reslice = vtk.new("ImageReslice")
+        reslice.SetResliceAxes(T.GetMatrix())
+        reslice.SetInputData(self.dataset)
+        reslice.SetOutputDimensionality(2)
+        reslice.SetTransformInputSampling(True)
+        reslice.SetGenerateStencilOutput(False)
+        if border:
+            reslice.SetBorder(True)
+            reslice.SetBorderThickness(border)
+        else:
+            reslice.SetBorder(False)
         if mode == "linear":
             reslice.SetInterpolationModeToLinear()
         elif mode == "nearest":
@@ -487,18 +504,15 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         vslice.SetInputData(img)
         vslice.Update()
 
-        msh = Mesh(vslice.GetOutput())
-        msh.apply_transform(T)
+        msh = Mesh(vslice.GetOutput()).apply_transform(T)
         msh.properties.LightingOff()
 
         d0, d1, _ = img.GetDimensions()
         varr1 = utils.numpy2vtk([d1, d0], name="shape")
-        msh.dataset.GetFieldData().AddArray(varr1)
         varr2 = utils.numpy2vtk(img.GetBounds(), name="original_bounds")
+        msh.dataset.GetFieldData().AddArray(varr1)
         msh.dataset.GetFieldData().AddArray(varr2)
-
-        msh.pipeline = utils.OperationNode(
-            "slice_plane", parents=[self], c="#4cc9f0:#e9c46a")
+        msh.pipeline = utils.OperationNode("slice_plane", parents=[self], c="#4cc9f0:#e9c46a")
         return msh
     
     def slab(self, slice_range=(), axis='z', operation="mean"):
@@ -1231,7 +1245,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
             )
             return out_vol  ######################################################
 
-        if volume2:
+        if volume2 and isinstance(volume2, Volume):
             # assert image1.GetScalarType() == volume2.dataset.GetScalarType(), "volumes have different scalar types"
             # make sure they have the same bounds:
             assert np.allclose(image1.GetBounds(), volume2.dataset.GetBounds()), "volumes have different bounds"

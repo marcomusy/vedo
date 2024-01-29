@@ -2396,75 +2396,87 @@ class Mesh(MeshVisual, Points):
     #####################################################################
     def binarize(
         self,
-        spacing=(1, 1, 1),
-        invert=False,
-        direction_matrix=None,
-        image_size=None,
+        values=(255, 0),
+        spacing=None,
+        dims=None,
         origin=None,
-        fg_value=255,
-        bg_value=0,
     ):
         """
         Convert a `Mesh` into a `Volume` where
-        the foreground (exterior) voxels value is `fg_value` (255 by default)
-        and the background (interior) voxels value is `bg_value` (0 by default).
+        the interior voxels value is set to `values[0]` (255 by default), while
+        the exterior voxels value is set to `values[1]` (0 by default).
+
+        Arguments:
+            values : (list)
+                background and foreground values.
+            spacing : (list)
+                voxel spacing in x, y and z.
+            dims : (list)
+                dimensions (nr. of voxels) of the output volume.
+            origin : (list)
+                position in space of the (0,0,0) voxel.
 
         Examples:
             - [mesh2volume.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/mesh2volume.py)
 
                 ![](https://vedo.embl.es/images/volumetric/mesh2volume.png)
         """
-        # https://vtk.org/Wiki/VTK/Examples/Cxx/PolyData/PolyDataToImageData
-        pd = self.dataset
-
-        whiteImage = vtk.vtkImageData()
-        if direction_matrix:
-            whiteImage.SetDirectionMatrix(direction_matrix)
-
-        dim = [0, 0, 0] if not image_size else image_size
+        assert len(values) == 2, "values must be a list of 2 values"
+        fg_value, bg_value = values
 
         bounds = self.bounds()
-        if not image_size:  # compute dimensions
+        if spacing is None:  # compute spacing
+            spacing = [0, 0, 0]
+            diagonal = np.sqrt(
+                  (bounds[1] - bounds[0]) ** 2
+                + (bounds[3] - bounds[2]) ** 2
+                + (bounds[5] - bounds[4]) ** 2
+            )
+            spacing[0] = spacing[1] = spacing[2] = diagonal / 250.0
+
+        if dims is None:  # compute dimensions
             dim = [0, 0, 0]
             for i in [0, 1, 2]:
-                dim[i] = int(np.ceil((bounds[i * 2 + 1] - bounds[i * 2]) / spacing[i]))
+                dim[i] = int(np.ceil((bounds[i*2+1] - bounds[i*2]) / spacing[i]))
+        
+        white_img = vtk.vtkImageData()
+        white_img.SetDimensions(dim)
+        white_img.SetSpacing(spacing)
+        white_img.SetExtent(0, dim[0]-1, 0, dim[1]-1, 0, dim[2]-1)
 
-        whiteImage.SetDimensions(dim)
-        whiteImage.SetSpacing(spacing)
-        whiteImage.SetExtent(0, dim[0] - 1, 0, dim[1] - 1, 0, dim[2] - 1)
-
-        if not origin:
+        if origin is None:
             origin = [0, 0, 0]
-            origin[0] = bounds[0] + spacing[0] / 2
-            origin[1] = bounds[2] + spacing[1] / 2
-            origin[2] = bounds[4] + spacing[2] / 2
-        whiteImage.SetOrigin(origin)
-        whiteImage.AllocateScalars(vtk.VTK_UNSIGNED_CHAR, 1)
+            origin[0] = bounds[0] + spacing[0]
+            origin[1] = bounds[2] + spacing[1]
+            origin[2] = bounds[4] + spacing[2]
+        white_img.SetOrigin(origin)
+
+        # if direction_matrix is not None:
+        #     white_img.SetDirectionMatrix(direction_matrix)
+
+        white_img.AllocateScalars(vtk.VTK_UNSIGNED_CHAR, 1)
 
         # fill the image with foreground voxels:
-        inval = bg_value if invert else fg_value
-        whiteImage.GetPointData().GetScalars().Fill(inval)
+        white_img.GetPointData().GetScalars().Fill(fg_value)
 
         # polygonal data --> image stencil:
         pol2stenc = vtk.new("PolyDataToImageStencil")
-        pol2stenc.SetInputData(pd)
-        pol2stenc.SetOutputOrigin(whiteImage.GetOrigin())
-        pol2stenc.SetOutputSpacing(whiteImage.GetSpacing())
-        pol2stenc.SetOutputWholeExtent(whiteImage.GetExtent())
+        pol2stenc.SetInputData(self.dataset)
+        pol2stenc.SetOutputOrigin(white_img.GetOrigin())
+        pol2stenc.SetOutputSpacing(white_img.GetSpacing())
+        pol2stenc.SetOutputWholeExtent(white_img.GetExtent())
         pol2stenc.Update()
 
         # cut the corresponding white image and set the background:
-        outval = fg_value if invert else bg_value
-
         imgstenc = vtk.new("ImageStencil")
-        imgstenc.SetInputData(whiteImage)
+        imgstenc.SetInputData(white_img)
         imgstenc.SetStencilConnection(pol2stenc.GetOutputPort())
-        imgstenc.SetReverseStencil(invert)
-        imgstenc.SetBackgroundValue(outval)
+        # imgstenc.SetReverseStencil(True)
+        imgstenc.SetBackgroundValue(bg_value)
         imgstenc.Update()
+
         vol = vedo.Volume(imgstenc.GetOutput())
         vol.name = "BinarizedVolume"
-
         vol.pipeline = OperationNode(
             "binarize",
             parents=[self],
