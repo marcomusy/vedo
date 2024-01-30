@@ -524,10 +524,10 @@ class Points(PointsVisual, PointAlgorithms):
         # Create weakref so actor can access this object (eg to pick/remove):
         self.actor.retrieve_object = weak_ref_to(self)
 
-        # try:
-        #     self.properties.RenderPointsAsSpheresOn()
-        # except AttributeError:
-        #     pass
+        try:
+            self.properties.RenderPointsAsSpheresOn()
+        except AttributeError:
+            pass
 
         if inputobj is None:  ####################
             return

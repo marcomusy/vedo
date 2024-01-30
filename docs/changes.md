@@ -61,6 +61,8 @@ Changes that will break existing code whose fixing is trivial
 - modified API for `mesh.binarize()`
 - `plotter.add_hover_legend()` now returns the id of the callback.
 - removed `settings.render_lines_as_tubes` and `settings.hidden_line_removal`, add `plotter.render_hidden_lines()` method
+- fix `close()`, `close_window()` is obsolete and removed.
+
 
 ## Hard Breaking Changes
 Changes that will break existing code and need active thinking and work to adapt

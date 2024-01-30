@@ -99,6 +99,19 @@ class CommonVisual:
         event_name = utils.get_vtk_name_event(event_name)
         idd = self.actor.AddObserver(event_name, func, priority)
         return idd
+    
+    def invoke_event(self, event_name):
+        """Invoke an event."""
+        event_name = utils.get_vtk_name_event(event_name)
+        self.actor.InvokeEvent(event_name)
+        return self
+    
+    # def abort_event(self, obs_id):
+    #     """Abort an event."""
+    #     cmd = self.actor.GetCommand(obs_id) # vtkCommand
+    #     if cmd:
+    #         cmd.AbortFlagOn()
+    #     return self
 
     def show(self, **options):
         """

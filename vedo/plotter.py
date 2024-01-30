@@ -330,7 +330,15 @@ def show(
             # note that shape can be a string
             if plt.interactor and not offscreen and (interactive is None or interactive):
                 plt.interactor.Start()
-
+                if plt._must_close_now:
+                    plt.interactor.GetRenderWindow().Finalize()
+                    plt.interactor.TerminateApp()
+                    plt.interactor = None
+                    plt.window = None
+                    plt.renderer = None
+                    plt.renderers = []
+                    plt.camera = None
+                    
     else:
 
         _plt_to_return = plt.show(
@@ -485,6 +493,7 @@ class Plotter:
         self._extralight = None
         self._cocoa_initialized = False
         self._cocoa_process_events = True  # make one call in show()
+        self._must_close_now = False
 
         #####################################################################
         if settings.default_backend == "2d":
@@ -1111,7 +1120,18 @@ class Plotter:
             return self
         self.initialize_interactor()
         if self.interactor:
+            # print("self.interactor.Start()")
             self.interactor.Start()
+            # print("self.interactor.Start() done")
+            if self._must_close_now:
+                # print("self.interactor.TerminateApp()")
+                self.interactor.GetRenderWindow().Finalize()
+                self.interactor.TerminateApp()
+                self.interactor = None
+                self.window = None
+                self.renderer = None
+                self.renderers = []
+                self.camera = None
         return self
 
     def use_depth_peeling(self, at=None, value=True):
@@ -3358,6 +3378,15 @@ class Plotter:
 
             if self._interactive:
                 self.interactor.Start()
+                if self._must_close_now:
+                    self.interactor.GetRenderWindow().Finalize()
+                    self.interactor.TerminateApp()
+                    self.camera = None
+                    self.renderer = None
+                    self.renderers = []
+                    self.window = None
+                    self.interactor = None
+                return self
 
             if rate:
                 if self.clock is None:  # set clock and limit rate
@@ -3537,8 +3566,8 @@ class Plotter:
 
         return self
 
-    def close_window(self):
-        """Close the current or the input rendering window."""
+    def close(self):
+        """Close the plotter."""
         # https://examples.vtk.org/site/Cxx/Visualization/CloseWindow/
         vedo.last_figure = None
         self.last_event = None
@@ -3554,79 +3583,46 @@ class Plotter:
 
         if settings.dry_run_mode >= 2:
             return self
+        
+        if not hasattr(self, "window"):
+            return self
+        if not self.window:
+            return self
+        if not hasattr(self, "interactor"):
+            return self
+        if not self.interactor:
+            return self
 
-        # # print("Close window -------------")
-        # for r in self.renderers:
-        #     r.RemoveAllObservers()
+        ###################################################
+        try:
+            if "Darwin" in vedo.sys_platform:
+                self.interactor.ProcessEvents()
+        except:
+            pass
 
-        # if hasattr(self, "window") and self.window:
-        #     if hasattr(self, "interactor") and self.interactor:
-        #         # print("Close window1")
+        self._must_close_now = True
 
-        #         self.interactor.ProcessEvents()
-        #         self.interactor.SetInteractorStyle(None)
-        #         self.interactor.RemoveAllObservers()
-        #         self.interactor.ExitCallback()
-
-        #         self.window.Finalize()
-
-        #         self.interactor.SetRenderWindow(None)
-
-        #         # print("Close window2")
-        #         # try:
-        #         #     self.interactor.SetDone(True)
-        #         # except AttributeError:
-        #         #     pass
-        #         self.interactor.TerminateApp()
-        #         # print("Close window3")
-        #         # self.interactor = None
-
-        #     # if hasattr(self, "interactor") and self.interactor:
-        #     #     if "Darwin" in vedo.sys_platform:
-        #     #         try:
-        #     #             self.interactor.ProcessEvents()
-        #     #         except:
-        #     #             pass
-        #         self.interactor = None
-
-        #     self.renderer = None  # current renderer
-        #     self.window = None
-        #     # print("Close window4")
-
-        # PREVIUOS VERSION
-        for r in self.renderers:
-            r.RemoveAllObservers()
-        if hasattr(self, "window") and self.window:
-            if hasattr(self, "interactor") and self.interactor:
-                self.interactor.ExitCallback()
-                try:
-                    self.interactor.SetDone(True)
-                except AttributeError:
-                    pass
-                self.interactor.TerminateApp()
-                # self.interactor = None
-            self.window.Finalize()  # this must be done here
-
-            if hasattr(self, "interactor") and self.interactor:
-                if "Darwin" in vedo.sys_platform:
-                    try:
-                        self.interactor.ProcessEvents()
-                    except:
-                        pass
-                self.interactor = None
-
-            self.window = None
-
-        self.renderer = None  # current renderer
-        self.renderers = []
-        self.skybox = None
-        return self
-
-    def close(self):
-        """Close the Plotter instance and release resources."""
-        self.close_window()
         if vedo.plotter_instance == self:
             vedo.plotter_instance = None
+
+        if self.interactor and self._interactive:
+            self.interactor.ExitCallback()
+        elif self._must_close_now:
+            # dont call ExitCallback here
+            self.interactor.GetRenderWindow().Finalize()
+            self.interactor.TerminateApp()
+            self.camera = None
+            self.renderer = None
+            self.renderers = []
+            self.window = None
+            self.interactor = None
+        return self
+
+    # def close(self):
+    #     """Close the Plotter instance and release resources."""
+    #     self.close_window()
+    #     if vedo.plotter_instance == self:
+    #         vedo.plotter_instance = None
 
     @property
     def camera(self):
