@@ -979,10 +979,6 @@ def _import_npy(fileinput):
     elif fileinput.endswith(".npz"):
         data = np.load(fileinput, allow_pickle=True)["vedo_scenes"][0]
 
-    if "render_lines_as_tubes" in data.keys():
-        settings.render_lines_as_tubes = data["render_lines_as_tubes"]
-    if "hidden_line_removal" in data.keys():
-        settings.hidden_line_removal = data["hidden_line_removal"]
     if "use_parallel_projection" in data.keys():
         settings.use_parallel_projection = data["use_parallel_projection"]
     if "use_polygon_offset" in data.keys():
@@ -1585,8 +1581,6 @@ def _export_npy(plt, fileoutput="scene.npz"):
     if plt.renderer.GetGradientBackground():
         sdict["backgrcol2"] = plt.renderer.GetBackground2()
     sdict["use_depth_peeling"] = plt.renderer.GetUseDepthPeeling()
-    sdict["render_lines_as_tubes"] = settings.render_lines_as_tubes
-    sdict["hidden_line_removal"] = settings.hidden_line_removal
     sdict["use_parallel_projection"] = plt.camera.GetParallelProjection()
     sdict["default_font"] = settings.default_font
 

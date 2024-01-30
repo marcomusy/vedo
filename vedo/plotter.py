@@ -595,7 +595,6 @@ class Plotter:
                 self.renderers.append(arenderer)
 
             for r in self.renderers:
-                r.SetUseHiddenLineRemoval(settings.hidden_line_removal)
                 r.SetLightFollowCamera(settings.light_follows_camera)
 
                 r.SetUseDepthPeeling(settings.use_depth_peeling)
@@ -625,7 +624,6 @@ class Plotter:
                 bg2_ = rd.pop("bg2", None)
 
                 arenderer = vtk.vtkRenderer()
-                arenderer.SetUseHiddenLineRemoval(settings.hidden_line_removal)
                 arenderer.SetLightFollowCamera(settings.light_follows_camera)
 
                 arenderer.SetUseDepthPeeling(settings.use_depth_peeling)
@@ -685,7 +683,6 @@ class Plotter:
             for i in reversed(range(shape[0])):
                 for j in range(shape[1]):
                     arenderer = vtk.vtkRenderer()
-                    arenderer.SetUseHiddenLineRemoval(settings.hidden_line_removal)
                     arenderer.SetLightFollowCamera(settings.light_follows_camera)
                     arenderer.SetTwoSidedLighting(settings.two_sided_lighting)
 
@@ -1574,6 +1571,11 @@ class Plotter:
         r.Modified()
         return self
 
+    def render_hidden_lines(self, value=True):
+        """Remove hidden lines when in wireframe mode."""
+        self.renderer.SetUseHiddenLineRemoval(not value)
+        return self
+
     def fov(self, angle):
         """
         Set the field of view angle for the camera.
@@ -2226,7 +2228,10 @@ class Plotter:
         """
         Add a legend with 2D text which is triggered by hovering the mouse on an object.
 
-        The created text object are stored in plotter.hover_legends
+        The created text object are stored in `plotter.hover_legends`.
+
+        Returns:
+            the id of the callback function.
 
         Arguments:
             c : (color)
@@ -2352,11 +2357,14 @@ class Plotter:
             if hoverlegend.mapper.GetInput() != t:
                 hoverlegend.mapper.SetInput(t)
                 self.interactor.Render()
+            
+            # print("ABORT", idcall, hoverlegend.actor.GetCommand(idcall))
+            # hoverlegend.actor.GetCommand(idcall).AbortFlagOn()
 
         self.add(hoverlegend, at=at)
         self.hover_legends.append(hoverlegend)
-        self.add_callback("MouseMove", _legfunc)
-        return self
+        idcall = self.add_callback("MouseMove", _legfunc)
+        return idcall
 
     def add_scale_indicator(
         self,

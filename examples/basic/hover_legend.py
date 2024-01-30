@@ -19,7 +19,11 @@ pts.name = 'The cube vertices'  # can give a name to any objects
 plt = Plotter(N=2, sharecam=False)
 
 # Add a 2D hover legend to both renderers and show:
-plt.at(0).add_hover_legend().show(mesh, sph, __doc__)
-plt.at(1).add_hover_legend().show(cub, pts)
-plt.interactive()
-plt.close()
+cid0 = plt.at(0).add_hover_legend()
+plt.show(mesh, sph, __doc__)
+
+cid1 = plt.at(1).add_hover_legend()
+plt.show(cub, pts)
+
+plt.interactive().close()
+

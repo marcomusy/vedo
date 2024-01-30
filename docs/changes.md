@@ -42,6 +42,7 @@
 - add `pointcloud.generate_segments()` to generate a continous line from un-ordered points in 3d
 - fix `assembly.__add__()` by @j042 in #1036
 - small fix to `Ruler3D` class.
+- add `plotter.render_hidden_lines()` method
 
 
 ## Soft Breaking Changes
@@ -58,6 +59,8 @@ Changes that will break existing code whose fixing is trivial
 - remove `import_window()` for obj files and create `load_obj()` by @zhouzq-thu in #891
 - add `smooth_mls_12d(..., n=0)` to fix the number of neighbors in the smoothing
 - modified API for `mesh.binarize()`
+- `plotter.add_hover_legend()` now returns the id of the callback.
+- removed `settings.render_lines_as_tubes` and `settings.hidden_line_removal`, add `plotter.render_hidden_lines()` method
 
 ## Hard Breaking Changes
 Changes that will break existing code and need active thinking and work to adapt

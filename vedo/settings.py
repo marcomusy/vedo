@@ -93,16 +93,10 @@ class Settings:
     # Enable / disable color printing by printc()
     enable_print_color = True
 
-    # Wrap lines in tubes by default
-    render_lines_as_tubes = False
-
     # Smoothing options for points, lines and polygons
     point_smoothing = False
     line_smoothing = False
     polygon_smoothing = False
-
-    # Remove hidden lines when in wireframe mode
-    hidden_line_removal = False
 
     # Turn on/off the automatic repositioning of lights as the camera moves
     light_follows_camera = False
@@ -186,8 +180,6 @@ class Settings:
         "renderer_frame_alpha",
         "renderer_frame_width",
         "renderer_frame_padding",
-        "render_lines_as_tubes",
-        "hidden_line_removal",
         "point_smoothing",
         "line_smoothing",
         "polygon_smoothing",
@@ -265,9 +257,6 @@ class Settings:
         self.renderer_frame_width = 0.5
         self.renderer_frame_padding = 0.0001
         self.background_gradient_orientation = 0
-
-        self.render_lines_as_tubes = False
-        self.hidden_line_removal = False
 
         self.point_smoothing = False
         self.line_smoothing = False
