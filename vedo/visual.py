@@ -1892,7 +1892,7 @@ class PointsVisual(CommonVisual):
         pr.ShadowOff()
         pr.UseTightBoundingBoxOn()
         pr.SetOrientation(angle)
-        pr.SetFontFamily(vtk.VTK_FONT_FILE)
+        pr.SetFontFamily(vtki.VTK_FONT_FILE)
         fl = utils.get_font_path(font)
         pr.SetFontFile(fl)
         pr.SetFontSize(int(20 * scale))
@@ -2249,7 +2249,7 @@ class PointsVisual(CommonVisual):
         pra.SetLineWidth(lw)
 
         pr = capt.GetCaptionTextProperty()
-        pr.SetFontFamily(vtk.VTK_FONT_FILE)
+        pr.SetFontFamily(vtki.VTK_FONT_FILE)
         fl = utils.get_font_path(font)
         pr.SetFontFile(fl)
         pr.ShadowOff()

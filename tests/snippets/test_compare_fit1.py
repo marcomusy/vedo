@@ -50,6 +50,9 @@ h += plot(
 h.add_legend()
 h.show(zoom="tight")
 
+if settings.dry_run_mode:
+    exit(0)
+
 ############################################# matplotlib
 # Plot the histogram and the fitted function.
 import matplotlib.pyplot as plt

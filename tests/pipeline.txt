@@ -41,6 +41,7 @@ pytest tests
 
 cd $VEDODIR/tests/common && ./run_all.sh 
 cd $VEDODIR/tests/issues && ./run_all.sh 
+cd $VEDODIR/tests/snippets && ./run_all.sh 
 
 # EXAMPLES ##########################################################################
 cd $VEDODIR/examples && time ./run_all.sh 2>&1 | tee $VEDOLOGFILE && alert "scan done."
@@ -63,6 +64,7 @@ cd $VEDODIR/examples/other/trimesh && ./run_all.sh
 
 # DOLFIN #####################################################################
 # conda create -n fenics -c conda-forge fenics
+# conda activate fenics
 # conda install conda-forge::mshr
 cd $VEDODIR
 conda activate fenics
