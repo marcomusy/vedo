@@ -3,7 +3,7 @@
 import numpy as np
 from weakref import ref as weak_ref_to
 
-import vedo.vtkclasses as vtk
+import vedo.vtkclasses as vtki
 
 import vedo
 from vedo import colors
@@ -33,17 +33,17 @@ def _get_img(obj, flip=False, translate=()):
 
         fname = obj.lower()
         if fname.endswith(".png"):
-            picr = vtk.new("PNGReader")
+            picr = vtki.new("PNGReader")
         elif fname.endswith(".jpg") or fname.endswith(".jpeg"):
-            picr = vtk.new("JPEGReader")
+            picr = vtki.new("JPEGReader")
         elif fname.endswith(".bmp"):
-            picr = vtk.new("BMPReader")
+            picr = vtki.new("BMPReader")
         elif fname.endswith(".tif") or fname.endswith(".tiff"):
-            picr = vtk.new("TIFFReader")
+            picr = vtki.new("TIFFReader")
             picr.SetOrientationType(vedo.settings.tiff_orientation_type)
         else:
             colors.printc("Cannot understand image format", obj, c="r")
-            return vtk.vtkImageData()
+            return vtki.vtkImageData()
         picr.SetFileName(obj)
         picr.Update()
         img = picr.GetOutput()
@@ -52,7 +52,7 @@ def _get_img(obj, flip=False, translate=()):
         obj = np.asarray(obj)
 
         if obj.ndim == 3:  # has shape (nx,ny, ncolor_alpha_chan)
-            iac = vtk.new("ImageAppendComponents")
+            iac = vtki.new("ImageAppendComponents")
             nchan = obj.shape[2]  # get number of channels in inputimage (L/LA/RGB/RGBA)
             for i in range(nchan):
                 if flip:
@@ -61,7 +61,7 @@ def _get_img(obj, flip=False, translate=()):
                     arr = np.flip(obj[:, :, i], 0).ravel()
                 arr = np.clip(arr, 0, 255)
                 varb = utils.numpy2vtk(arr, dtype=np.uint8, name="RGBA")
-                imgb = vtk.vtkImageData()
+                imgb = vtki.vtkImageData()
                 imgb.SetDimensions(obj.shape[1], obj.shape[0], 1)
                 imgb.GetPointData().AddArray(varb)
                 imgb.GetPointData().SetActiveScalars("RGBA")
@@ -76,14 +76,14 @@ def _get_img(obj, flip=False, translate=()):
                 arr = obj.ravel()
             arr = np.clip(arr, 0, 255)
             varb = utils.numpy2vtk(arr, dtype=np.uint8, name="RGBA")
-            img = vtk.vtkImageData()
+            img = vtki.vtkImageData()
             img.SetDimensions(obj.shape[1], obj.shape[0], 1)
 
             img.GetPointData().AddArray(varb)
             img.GetPointData().SetActiveScalars("RGBA")
 
     if len(translate) > 0:
-        translate_extent = vtk.new("ImageTranslateExtent")
+        translate_extent = vtki.new("ImageTranslateExtent")
         translate_extent.SetTranslation(-translate[0], -translate[1], 0)
         translate_extent.SetInputData(img)
         translate_extent.Update()
@@ -131,7 +131,7 @@ def _set_justification(img, pos):
 
     if len(translate) > 0:
         translate = np.array(translate).astype(int)
-        translate_extent = vtk.new("ImageTranslateExtent")
+        translate_extent = vtki.new("ImageTranslateExtent")
         translate_extent.SetTranslation(-translate[0], -translate[1], 0)
         translate_extent.SetInputData(img)
         translate_extent.Update()
@@ -167,7 +167,7 @@ class Image(vedo.visual.ImageVisual):
         self.rendered_at = set()
         self.info = {}
 
-        self.actor = vtk.vtkImageActor()
+        self.actor = vtki.vtkImageActor()
         self.actor.retrieve_object = weak_ref_to(self)
         self.properties = self.actor.GetProperty()
 
@@ -176,7 +176,7 @@ class Image(vedo.visual.ImageVisual):
         if utils.is_sequence(obj) and len(obj) > 0:  # passing array
             img = _get_img(obj, False)
 
-        elif isinstance(obj, vtk.vtkImageData):
+        elif isinstance(obj, vtki.vtkImageData):
             img = obj
 
         elif isinstance(obj, str):
@@ -201,7 +201,7 @@ class Image(vedo.visual.ImageVisual):
             img = _get_img(self.array)
 
         else:
-            img = vtk.vtkImageData()
+            img = vtki.vtkImageData()
 
         ############# select channels
         if isinstance(channels, int):
@@ -210,7 +210,7 @@ class Image(vedo.visual.ImageVisual):
         nchans = len(channels)
         n = img.GetPointData().GetScalars().GetNumberOfComponents()
         if nchans and n > nchans:
-            pec = vtk.new("ImageExtractComponents")
+            pec = vtki.new("ImageExtractComponents")
             pec.SetInputData(img)
             if nchans == 4:
                 pec.SetComponents(channels[0], channels[1], channels[2], channels[3])
@@ -384,13 +384,13 @@ class Image(vedo.visual.ImageVisual):
     def clone(self):
         """Return an exact copy of the input Image.
         If transform is True, it is given the same scaling and position."""
-        img = vtk.vtkImageData()
+        img = vtki.vtkImageData()
         img.DeepCopy(self.dataset)
         pic = Image(img)
         pic.name = self.name
         pic.filename = self.filename
         pic.apply_transform(self.transform)
-        pic.properties = vtk.vtkImageProperty()
+        pic.properties = vtki.vtkImageProperty()
         pic.properties.DeepCopy(self.properties)
         pic.actor.SetProperty(pic.properties)
         pic.pipeline = utils.OperationNode("clone", parents=[self], c="#f7dada", shape="diamond")
@@ -425,7 +425,7 @@ class Image(vedo.visual.ImageVisual):
         if size != 1:
             newsize = np.array(self.dataset.GetDimensions()[:2]) * size
             newsize = newsize.astype(int)
-            rsz = vtk.new("ImageResize")
+            rsz = vtki.new("ImageResize")
             rsz.SetInputData(self.dataset)
             rsz.SetResizeMethodToOutputDimensions()
             rsz.SetOutputDimensions(newsize[0], newsize[1], 1)
@@ -437,7 +437,7 @@ class Image(vedo.visual.ImageVisual):
         else:
             pic.dataset, pos = _set_justification(pic.dataset, pos)
 
-        pic.mapper = vtk.new("ImageMapper")
+        pic.mapper = vtki.new("ImageMapper")
         # pic.SetMapper(pic.mapper)
         pic.mapper.SetInputData(pic.dataset)
         pic.mapper.SetColorWindow(255)
@@ -478,7 +478,7 @@ class Image(vedo.visual.ImageVisual):
             pixels : (bool)
                 units are pixels
         """
-        extractVOI = vtk.new("ExtractVOI")
+        extractVOI = vtki.new("ExtractVOI")
         extractVOI.SetInputData(self.dataset)
         extractVOI.IncludeBoundaryOn()
 
@@ -512,7 +512,7 @@ class Image(vedo.visual.ImageVisual):
                 intensity value (gray-scale color) of the padding
         """
         x0, x1, y0, y1, _z0, _z1 = self.dataset.GetExtent()
-        pf = vtk.new("ImageConstantPad")
+        pf = vtki.new("ImageConstantPad")
         pf.SetInputData(self.dataset)
         pf.SetConstant(value)
         if utils.is_sequence(pixels):
@@ -547,7 +547,7 @@ class Image(vedo.visual.ImageVisual):
                 shift in x and y in pixels
         """
         x0, x1, y0, y1, z0, z1 = self.dataset.GetExtent()
-        constant_pad = vtk.new("ImageMirrorPad")
+        constant_pad = vtki.new("ImageMirrorPad")
         constant_pad.SetInputData(self.dataset)
         constant_pad.SetOutputWholeExtent(
             int(x0 + shift[0] + 0.5),
@@ -593,12 +593,12 @@ class Image(vedo.visual.ImageVisual):
             ```
             ![](https://vedo.embl.es/images/feats/pict_append.png)
         """
-        ima = vtk.new("ImageAppend")
+        ima = vtki.new("ImageAppend")
         ima.SetInputData(self.dataset)
         if not utils.is_sequence(images):
             images = [images]
         for p in images:
-            if isinstance(p, vtk.vtkImageData):
+            if isinstance(p, vtki.vtkImageData):
                 ima.AddInputData(p)
             else:
                 ima.AddInputData(p.dataset)
@@ -635,7 +635,7 @@ class Image(vedo.visual.ImageVisual):
             newsize = [int(newsize[1] * ar + 0.5), newsize[1]]
         newsize = [newsize[0], newsize[1], old_dims[2]]
 
-        rsz = vtk.new("ImageResize")
+        rsz = vtki.new("ImageResize")
         rsz.SetInputData(self.dataset)
         rsz.SetResizeMethodToOutputDimensions()
         rsz.SetOutputDimensions(newsize)
@@ -650,7 +650,7 @@ class Image(vedo.visual.ImageVisual):
 
     def mirror(self, axis="x"):
         """Mirror image along x or y axis. Same as `flip()`."""
-        ff = vtk.new("ImageFlip")
+        ff = vtki.new("ImageFlip")
         ff.SetInputData(self.dataset)
         if axis.lower() == "x":
             ff.SetFilteredAxis(0)
@@ -670,7 +670,7 @@ class Image(vedo.visual.ImageVisual):
 
     def select(self, component):
         """Select one single component of the rgb image."""
-        ec = vtk.new("ImageExtractComponents")
+        ec = vtki.new("ImageExtractComponents")
         ec.SetInputData(self.dataset)
         ec.SetComponents(component)
         ec.Update()
@@ -684,7 +684,7 @@ class Image(vedo.visual.ImageVisual):
         """Make it black and white using luminance calibration."""
         n = self.dataset.GetPointData().GetNumberOfComponents()
         if n == 4:
-            ecr = vtk.new("ImageExtractComponents")
+            ecr = vtki.new("ImageExtractComponents")
             ecr.SetInputData(self.dataset)
             ecr.SetComponents(0, 1, 2)
             ecr.Update()
@@ -692,7 +692,7 @@ class Image(vedo.visual.ImageVisual):
         else:
             img = self.dataset
 
-        ecr = vtk.new("ImageLuminance")
+        ecr = vtki.new("ImageLuminance")
         ecr.SetInputData(img)
         ecr.Update()
         self._update(ecr.GetOutput())
@@ -709,7 +709,7 @@ class Image(vedo.visual.ImageVisual):
             radius : (float)
                 how far out the gaussian kernel will go before being clamped to zero
         """
-        gsf = vtk.new("ImageGaussianSmooth")
+        gsf = vtki.new("ImageGaussianSmooth")
         gsf.SetDimensionality(2)
         gsf.SetInputData(self.dataset)
         if radius is not None:
@@ -738,7 +738,7 @@ class Image(vedo.visual.ImageVisual):
         It then computes the median of these two values plus the center pixel.
         This result of this second median is the output pixel value.
         """
-        medf = vtk.new("ImageHybridMedian2D")
+        medf = vtki.new("ImageHybridMedian2D")
         medf.SetInputData(self.dataset)
         medf.Update()
         self._update(medf.GetOutput())
@@ -760,17 +760,17 @@ class Image(vedo.visual.ImageVisual):
         img = self.dataset
         scalarRange = img.GetPointData().GetScalars().GetRange()
 
-        cast = vtk.new("ImageCast")
+        cast = vtki.new("ImageCast")
         cast.SetInputData(img)
         cast.SetOutputScalarTypeToDouble()
         cast.Update()
 
-        laplacian = vtk.new("ImageLaplacian")
+        laplacian = vtki.new("ImageLaplacian")
         laplacian.SetInputData(cast.GetOutput())
         laplacian.SetDimensionality(2)
         laplacian.Update()
 
-        subtr = vtk.new("ImageMathematics")
+        subtr = vtki.new("ImageMathematics")
         subtr.SetInputData(0, cast.GetOutput())
         subtr.SetInputData(1, laplacian.GetOutput())
         subtr.SetOperationToSubtract()
@@ -778,7 +778,7 @@ class Image(vedo.visual.ImageVisual):
 
         color_window = scalarRange[1] - scalarRange[0]
         color_level = color_window / 2
-        original_color = vtk.new("ImageMapToWindowLevelColors")
+        original_color = vtki.new("ImageMapToWindowLevelColors")
         original_color.SetWindow(color_window)
         original_color.SetLevel(color_level)
         original_color.SetInputData(subtr.GetOutput())
@@ -801,23 +801,23 @@ class Image(vedo.visual.ImageVisual):
                 shift constant zero-frequency to the center of the image for display.
                 (FFT converts spatial images into frequency space, but puts the zero frequency at the origin)
         """
-        ffti = vtk.new("ImageFFT")
+        ffti = vtki.new("ImageFFT")
         ffti.SetInputData(self.dataset)
         ffti.Update()
 
         if "mag" in mode:
-            mag = vtk.new("ImageMagnitude")
+            mag = vtki.new("ImageMagnitude")
             mag.SetInputData(ffti.GetOutput())
             mag.Update()
             out = mag.GetOutput()
         elif "real" in mode:
-            erf = vtk.new("ImageExtractComponents")
+            erf = vtki.new("ImageExtractComponents")
             erf.SetInputData(ffti.GetOutput())
             erf.SetComponents(0)
             erf.Update()
             out = erf.GetOutput()
         elif "imaginary" in mode:
-            eimf = vtk.new("ImageExtractComponents")
+            eimf = vtki.new("ImageExtractComponents")
             eimf.SetInputData(ffti.GetOutput())
             eimf.SetComponents(1)
             eimf.Update()
@@ -829,14 +829,14 @@ class Image(vedo.visual.ImageVisual):
             raise RuntimeError()
 
         if center:
-            center = vtk.new("ImageFourierCenter")
+            center = vtki.new("ImageFourierCenter")
             center.SetInputData(out)
             center.Update()
             out = center.GetOutput()
 
         if "complex" not in mode:
             if logscale:
-                ils = vtk.new("ImageLogarithmicScale")
+                ils = vtki.new("ImageLogarithmicScale")
                 ils.SetInputData(out)
                 ils.SetConstant(logscale)
                 ils.Update()
@@ -849,23 +849,23 @@ class Image(vedo.visual.ImageVisual):
     def rfft(self, mode="magnitude"):
         """Reverse Fast Fourier transform of a image."""
 
-        ffti = vtk.new("ImageRFFT")
+        ffti = vtki.new("ImageRFFT")
         ffti.SetInputData(self.dataset)
         ffti.Update()
 
         if "mag" in mode:
-            mag = vtk.new("ImageMagnitude")
+            mag = vtki.new("ImageMagnitude")
             mag.SetInputData(ffti.GetOutput())
             mag.Update()
             out = mag.GetOutput()
         elif "real" in mode:
-            erf = vtk.new("ImageExtractComponents")
+            erf = vtki.new("ImageExtractComponents")
             erf.SetInputData(ffti.GetOutput())
             erf.SetComponents(0)
             erf.Update()
             out = erf.GetOutput()
         elif "imaginary" in mode:
-            eimf = vtk.new("ImageExtractComponents")
+            eimf = vtki.new("ImageExtractComponents")
             eimf.SetInputData(ffti.GetOutput())
             eimf.SetComponents(1)
             eimf.Update()
@@ -900,13 +900,13 @@ class Image(vedo.visual.ImageVisual):
                 order determines sharpness of the cutoff curve
         """
         # https://lorensen.github.io/VTKExamples/site/Cxx/ImageProcessing/IdealHighPass
-        fft = vtk.new("ImageFFT")
+        fft = vtki.new("ImageFFT")
         fft.SetInputData(self.dataset)
         fft.Update()
         out = fft.GetOutput()
 
         if highcutoff:
-            blp = vtk.new("ImageButterworthLowPass")
+            blp = vtki.new("ImageButterworthLowPass")
             blp.SetInputData(out)
             blp.SetCutOff(highcutoff)
             blp.SetOrder(order)
@@ -914,23 +914,23 @@ class Image(vedo.visual.ImageVisual):
             out = blp.GetOutput()
 
         if lowcutoff:
-            bhp = vtk.new("ImageButterworthHighPass")
+            bhp = vtki.new("ImageButterworthHighPass")
             bhp.SetInputData(out)
             bhp.SetCutOff(lowcutoff)
             bhp.SetOrder(order)
             bhp.Update()
             out = bhp.GetOutput()
 
-        rfft = vtk.new("ImageRFFT")
+        rfft = vtki.new("ImageRFFT")
         rfft.SetInputData(out)
         rfft.Update()
 
-        ecomp = vtk.new("ImageExtractComponents")
+        ecomp = vtki.new("ImageExtractComponents")
         ecomp.SetInputData(rfft.GetOutput())
         ecomp.SetComponents(0)
         ecomp.Update()
 
-        caster = vtk.new("ImageCast")
+        caster = vtki.new("ImageCast")
         caster.SetOutputScalarTypeToUnsignedChar()
         caster.SetInputData(ecomp.GetOutput())
         caster.Update()
@@ -943,7 +943,7 @@ class Image(vedo.visual.ImageVisual):
         Take L, LA, RGB, or RGBA images as input and blends
         them according to the alpha values and/or the opacity setting for each input.
         """
-        blf = vtk.new("ImageBlend")
+        blf = vtki.new("ImageBlend")
         blf.AddInputData(self.dataset)
         blf.AddInputData(pic.dataset)
         blf.SetOpacity(0, alpha1)
@@ -985,7 +985,7 @@ class Image(vedo.visual.ImageVisual):
         """
         if transform is None:
             # source and target must be filled
-            transform = vtk.vtkThinPlateSplineTransform()
+            transform = vtki.vtkThinPlateSplineTransform()
             transform.SetBasisToR2LogR()
 
             parents = [self]
@@ -1002,10 +1002,10 @@ class Image(vedo.visual.ImageVisual):
                 colors.printc("Error in image.warp(): #source != #target points", ns, nt, c="r")
                 raise RuntimeError()
 
-            ptsou = vtk.vtkPoints()
+            ptsou = vtki.vtkPoints()
             ptsou.SetNumberOfPoints(ns)
 
-            pttar = vtk.vtkPoints()
+            pttar = vtki.vtkPoints()
             pttar.SetNumberOfPoints(nt)
 
             for i in range(ns):
@@ -1021,7 +1021,7 @@ class Image(vedo.visual.ImageVisual):
             # ignore source and target
             pass
 
-        reslice = vtk.new("ImageReslice")
+        reslice = vtki.new("ImageReslice")
         reslice.SetInputData(self.dataset)
         reslice.SetOutputDimensionality(2)
         reslice.SetResliceTransform(transform)
@@ -1104,10 +1104,10 @@ class Image(vedo.visual.ImageVisual):
         Returns:
             A polygonal mesh.
         """
-        mgf = vtk.new("ImageMagnitude")
+        mgf = vtki.new("ImageMagnitude")
         mgf.SetInputData(self.dataset)
         mgf.Update()
-        msq = vtk.new("MarchingSquares")
+        msq = vtki.new("MarchingSquares")
         msq.SetInputData(mgf.GetOutput())
         if value is None:
             r0, r1 = self.dataset.GetScalarRange()
@@ -1115,7 +1115,7 @@ class Image(vedo.visual.ImageVisual):
         msq.SetValue(0, value)
         msq.Update()
         if flip:
-            rs = vtk.new("ReverseSense")
+            rs = vtki.new("ReverseSense")
             rs.SetInputData(msq.GetOutput())
             rs.ReverseCellsOn()
             rs.ReverseNormalsOff()
@@ -1123,7 +1123,7 @@ class Image(vedo.visual.ImageVisual):
             output = rs.GetOutput()
         else:
             output = msq.GetOutput()
-        ctr = vtk.new("ContourTriangulator")
+        ctr = vtki.new("ContourTriangulator")
         ctr.SetInputData(output)
         ctr.Update()
         out = vedo.Mesh(ctr.GetOutput(), c="k").bc("t").lighting("off")
@@ -1137,18 +1137,18 @@ class Image(vedo.visual.ImageVisual):
         """Colorize a image with a colormap representing pixel intensity"""
         n = self.dataset.GetPointData().GetNumberOfComponents()
         if n > 1:
-            ecr = vtk.new("ImageExtractComponents")
+            ecr = vtki.new("ImageExtractComponents")
             ecr.SetInputData(self.dataset)
             ecr.SetComponents(0, 1, 2)
             ecr.Update()
-            ilum = vtk.new("ImageMagnitude")
+            ilum = vtki.new("ImageMagnitude")
             ilum.SetInputData(self.dataset)
             ilum.Update()
             img = ilum.GetOutput()
         else:
             img = self.dataset
 
-        lut = vtk.vtkLookupTable()
+        lut = vtki.vtkLookupTable()
         _vmin, _vmax = img.GetScalarRange()
         if vmin is not None:
             _vmin = vmin
@@ -1163,7 +1163,7 @@ class Image(vedo.visual.ImageVisual):
             lut.SetTableValue(i, *c)
         lut.Build()
 
-        imap = vtk.new("ImageMapToColors")
+        imap = vtki.new("ImageMapToColors")
         imap.SetLookupTable(lut)
         imap.SetInputData(img)
         imap.Update()
@@ -1193,13 +1193,13 @@ class Image(vedo.visual.ImageVisual):
             pc[1] = (bounds[3] + bounds[2]) / 2.0
         pc[2] = (bounds[5] + bounds[4]) / 2.0
 
-        transform = vtk.vtkTransform()
+        transform = vtki.vtkTransform()
         transform.Translate(pc)
         transform.RotateWXYZ(-angle, 0, 0, 1)
         transform.Scale(1 / scale, 1 / scale, 1)
         transform.Translate(-pc[0], -pc[1], -pc[2])
 
-        reslice = vtk.new("ImageReslice")
+        reslice = vtki.new("ImageReslice")
         reslice.SetMirror(mirroring)
         c = np.array(colors.get_color(bc)) * 255
         reslice.SetBackgroundColor([c[0], c[1], c[2], alpha * 255])
@@ -1290,7 +1290,7 @@ class Image(vedo.visual.ImageVisual):
         nchan = self.channels()
         narrayA = self.tonumpy()
 
-        canvas_source = vtk.new("ImageCanvasSource2D")
+        canvas_source = vtki.new("ImageCanvasSource2D")
         canvas_source.SetExtent(0, nx - 1, 0, ny - 1, 0, 0)
         canvas_source.SetScalarTypeToUnsignedChar()
         canvas_source.SetNumberOfScalarComponents(nchan)
@@ -1331,7 +1331,7 @@ class Image(vedo.visual.ImageVisual):
         nchan = self.channels()
         narrayA = self.tonumpy()
 
-        canvas_source = vtk.new("ImageCanvasSource2D")
+        canvas_source = vtki.new("ImageCanvasSource2D")
         canvas_source.SetExtent(0, nx - 1, 0, ny - 1, 0, 0)
         canvas_source.SetScalarTypeToUnsignedChar()
         canvas_source.SetNumberOfScalarComponents(nchan)
@@ -1376,7 +1376,7 @@ class Image(vedo.visual.ImageVisual):
         nchan = self.channels()
         narrayA = self.tonumpy()
 
-        canvas_source = vtk.new("ImageCanvasSource2D")
+        canvas_source = vtki.new("ImageCanvasSource2D")
         canvas_source.SetExtent(0, nx - 1, 0, ny - 1, 0, 0)
         canvas_source.SetScalarTypeToUnsignedChar()
         canvas_source.SetNumberOfScalarComponents(nchan)
@@ -1408,7 +1408,7 @@ class Image(vedo.visual.ImageVisual):
     ):
         """Add text to an image."""
 
-        tp = vtk.vtkTextProperty()
+        tp = vtki.vtkTextProperty()
         tp.BoldOff()
         tp.FrameOff()
         tp.SetColor(colors.get_color(c))
@@ -1429,7 +1429,7 @@ class Image(vedo.visual.ImageVisual):
         elif font.lower() == "times": tp.SetFontFamilyToTimes()
         elif font.lower() == "arial": tp.SetFontFamilyToArial()
         else:
-            tp.SetFontFamily(vtk.VTK_FONT_FILE)
+            tp.SetFontFamily(vtki.VTK_FONT_FILE)
             tp.SetFontFile(utils.get_font_path(font))
 
         if bg:
@@ -1439,19 +1439,19 @@ class Image(vedo.visual.ImageVisual):
             tp.SetFrameColor(bgcol)
             tp.FrameOn()
 
-        tr = vtk.new("TextRenderer")
+        tr = vtki.new("TextRenderer")
         # GetConstrainedFontSize (const vtkUnicodeString &str,
         # vtkTextProperty(*tprop, int targetWidth, int targetHeight, int dpi)
         fs = tr.GetConstrainedFontSize(txt, tp, width, height, dpi)
         tp.SetFontSize(fs)
 
-        img = vtk.vtkImageData()
+        img = vtki.vtkImageData()
         # img.SetOrigin(*pos,1)
         tr.RenderString(tp, txt, img, [width, height], dpi)
         # RenderString (vtkTextProperty *tprop, const vtkStdString &str,
         #   vtkImageData *data, int textDims[2], int dpi, int backend=Default)
 
-        blf = vtk.new("ImageBlend")
+        blf = vtki.new("ImageBlend")
         blf.AddInputData(self.dataset)
         blf.AddInputData(img)
         blf.SetOpacity(0, 1)

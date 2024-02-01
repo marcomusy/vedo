@@ -6,7 +6,7 @@ import numpy as np
 
 from vtkmodules.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 from vtkmodules.util.numpy_support import numpy_to_vtkIdTypeArray
-import vedo.vtkclasses as vtk
+import vedo.vtkclasses as vtki
 
 import vedo
 
@@ -58,19 +58,19 @@ __all__ = [
 
 ###########################################################################
 array_types = {}
-array_types[vtk.VTK_UNSIGNED_CHAR] = ("UNSIGNED_CHAR",  "np.uint8")
-array_types[vtk.VTK_UNSIGNED_SHORT]= ("UNSIGNED_SHORT", "np.uint16")
-array_types[vtk.VTK_UNSIGNED_INT]  = ("UNSIGNED_INT",   "np.uint32")
-array_types[vtk.VTK_UNSIGNED_LONG_LONG] = ("UNSIGNED_LONG_LONG", "np.uint64")
-array_types[vtk.VTK_CHAR]          = ("CHAR",           "np.int8")
-array_types[vtk.VTK_SHORT]         = ("SHORT",          "np.int16")
-array_types[vtk.VTK_INT]           = ("INT",            "np.int32")
-array_types[vtk.VTK_LONG]          = ("LONG",           "") # ??
-array_types[vtk.VTK_LONG_LONG]     = ("LONG_LONG",      "np.int64")
-array_types[vtk.VTK_FLOAT]         = ("FLOAT",          "np.float32")
-array_types[vtk.VTK_DOUBLE]        = ("DOUBLE",         "np.float64")
-array_types[vtk.VTK_SIGNED_CHAR]   = ("SIGNED_CHAR",    "np.int8")
-array_types[vtk.VTK_ID_TYPE]       = ("ID",             "np.int64")
+array_types[vtki.VTK_UNSIGNED_CHAR] = ("UNSIGNED_CHAR",  "np.uint8")
+array_types[vtki.VTK_UNSIGNED_SHORT]= ("UNSIGNED_SHORT", "np.uint16")
+array_types[vtki.VTK_UNSIGNED_INT]  = ("UNSIGNED_INT",   "np.uint32")
+array_types[vtki.VTK_UNSIGNED_LONG_LONG] = ("UNSIGNED_LONG_LONG", "np.uint64")
+array_types[vtki.VTK_CHAR]          = ("CHAR",           "np.int8")
+array_types[vtki.VTK_SHORT]         = ("SHORT",          "np.int16")
+array_types[vtki.VTK_INT]           = ("INT",            "np.int32")
+array_types[vtki.VTK_LONG]          = ("LONG",           "") # ??
+array_types[vtki.VTK_LONG_LONG]     = ("LONG_LONG",      "np.int64")
+array_types[vtki.VTK_FLOAT]         = ("FLOAT",          "np.float32")
+array_types[vtki.VTK_DOUBLE]        = ("DOUBLE",         "np.float64")
+array_types[vtki.VTK_SIGNED_CHAR]   = ("SIGNED_CHAR",    "np.int8")
+array_types[vtki.VTK_ID_TYPE]       = ("ID",             "np.int64")
 
 
 ###########################################################################
@@ -533,7 +533,7 @@ class Minimizer:
         self.contraction_ratio = contraction_ratio
         self.expansion_ratio = expansion_ratio
         self.max_iterations = max_iterations
-        self.minimizer = vtk.new("AmoebaMinimizer")
+        self.minimizer = vtki.new("AmoebaMinimizer")
         self.minimizer.SetFunction(self._vtkfunc)
         self.results = {}
         self.parameters_path = []
@@ -809,13 +809,13 @@ def vtk2numpy(varr):
     """Convert a `vtkDataArray`, `vtkIdList` or `vtTransform` into a numpy array."""
     if varr is None:
         return np.array([])
-    if isinstance(varr, vtk.vtkIdList):
+    if isinstance(varr, vtki.vtkIdList):
         return np.array([varr.GetId(i) for i in range(varr.GetNumberOfIds())])
-    elif isinstance(varr, vtk.vtkBitArray):
-        carr = vtk.vtkCharArray()
+    elif isinstance(varr, vtki.vtkBitArray):
+        carr = vtki.vtkCharArray()
         carr.DeepCopy(varr)
         varr = carr
-    elif isinstance(varr, vtk.vtkHomogeneousTransform):
+    elif isinstance(varr, vtki.vtkHomogeneousTransform):
         try:
             varr = varr.GetMatrix()
         except AttributeError:
@@ -878,7 +878,7 @@ def geometry(obj, extent=None):
 
     Set `extent` as the `[xmin,xmax, ymin,ymax, zmin,zmax]` bounding box to clip data.
     """
-    gf = vtk.new("GeometryFilter")
+    gf = vtki.new("GeometryFilter")
     gf.SetInputData(obj)
     if extent is not None:
         gf.SetExtent(extent)
@@ -912,25 +912,25 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0,
     if is_sequence(strips) and len(strips) == 0:
         strips=None
 
-    poly = vtk.vtkPolyData()
+    poly = vtki.vtkPolyData()
 
     if len(vertices) == 0:
         return poly
 
     vertices = make3d(vertices)
-    source_points = vtk.vtkPoints()
+    source_points = vtki.vtkPoints()
     source_points.SetData(numpy2vtk(vertices, dtype=np.float32))
     poly.SetPoints(source_points)
 
     if lines is not None:
         # Create a cell array to store the lines in and add the lines to it
-        linesarr = vtk.vtkCellArray()
+        linesarr = vtki.vtkCellArray()
         if is_sequence(lines[0]):  # assume format [(id0,id1),..]
             for iline in lines:
                 for i in range(0, len(iline) - 1):
                     i1, i2 = iline[i], iline[i + 1]
                     if i1 != i2:
-                        vline = vtk.vtkLine()
+                        vline = vtki.vtkLine()
                         vline.GetPointIds().SetId(0, i1)
                         vline.GetPointIds().SetId(1, i2)
                         linesarr.InsertNextCell(vline)
@@ -938,19 +938,19 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0,
             # print("buildPolyData: assuming lines format [id0,id1,...]", lines)
             # TODO CORRECT THIS CASE, MUST BE [2, id0,id1,...]
             for i in range(0, len(lines) - 1):
-                vline = vtk.vtkLine()
+                vline = vtki.vtkLine()
                 vline.GetPointIds().SetId(0, lines[i])
                 vline.GetPointIds().SetId(1, lines[i + 1])
                 linesarr.InsertNextCell(vline)
         poly.SetLines(linesarr)
 
     if faces is not None:
-        source_polygons = vtk.vtkCellArray()
+        source_polygons = vtki.vtkCellArray()
         if isinstance(faces, np.ndarray) or not is_ragged(faces):
             ##### all faces are composed of equal nr of vtxs, FAST
             faces = np.asarray(faces)
             ast = np.int32
-            if vtk.vtkIdTypeArray().GetDataTypeSize() != 4:
+            if vtki.vtkIdTypeArray().GetDataTypeSize() != 4:
                 ast = np.int64
 
             if faces.ndim > 1:
@@ -968,17 +968,17 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0,
                 n = len(f)
 
                 if n == 3:
-                    ele = vtk.vtkTriangle()
+                    ele = vtki.vtkTriangle()
                     pids = ele.GetPointIds()
                     for i in range(3):
                         pids.SetId(i, f[i] - index_offset)
                     source_polygons.InsertNextCell(ele)
 
                 elif n == 4 and tetras:
-                    ele0 = vtk.vtkTriangle()
-                    ele1 = vtk.vtkTriangle()
-                    ele2 = vtk.vtkTriangle()
-                    ele3 = vtk.vtkTriangle()
+                    ele0 = vtki.vtkTriangle()
+                    ele1 = vtki.vtkTriangle()
+                    ele2 = vtki.vtkTriangle()
+                    ele3 = vtki.vtkTriangle()
                     if index_offset:
                         for i in [0, 1, 2, 3]:
                             f[i] -= index_offset
@@ -1010,7 +1010,7 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0,
                     source_polygons.InsertNextCell(ele3)
 
                 else:
-                    ele = vtk.vtkPolygon()
+                    ele = vtki.vtkPolygon()
                     pids = ele.GetPointIds()
                     pids.SetNumberOfIds(n)
                     for i in range(n):
@@ -1020,12 +1020,12 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0,
         poly.SetPolys(source_polygons)
     
     if strips is not None:
-        tscells = vtk.vtkCellArray()
+        tscells = vtki.vtkCellArray()
         for strip in strips:
             # create a triangle strip
             # https://vtk.org/doc/nightly/html/classvtkTriangleStrip.html
             n = len(strip)
-            tstrip = vtk.vtkTriangleStrip()
+            tstrip = vtki.vtkTriangleStrip()
             tstrip_ids = tstrip.GetPointIds()
             tstrip_ids.SetNumberOfIds(n)
             for i in range(n):
@@ -1034,7 +1034,7 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0,
         poly.SetStrips(tscells)
 
     if faces is None and lines is None and strips is None:
-        source_vertices = vtk.vtkCellArray()
+        source_vertices = vtki.vtkCellArray()
         for i in range(len(vertices)):
             source_vertices.InsertNextCell(1)
             source_vertices.InsertCellPoint(i)
@@ -1358,7 +1358,7 @@ def point_line_distance(p, p1, p2):
     Compute the distance of a point to a line (not the segment)
     defined by `p1` and `p2`.
     """
-    return np.sqrt(vtk.vtkLine.DistanceToLine(p, p1, p2))
+    return np.sqrt(vtki.vtkLine.DistanceToLine(p, p1, p2))
 
 def line_line_distance(p1, p2, q1, q2):
     """
@@ -1372,7 +1372,7 @@ def line_line_distance(p1, p2, q1, q2):
     closest_pt1 = [0,0,0]
     closest_pt2 = [0,0,0]
     t1, t2 = 0.0, 0.0
-    d = vtk.vtkLine.DistanceBetweenLines(
+    d = vtki.vtkLine.DistanceBetweenLines(
         p1, p2, q1, q2, closest_pt1, closest_pt2, t1, t2)
     return np.sqrt(d), closest_pt1, closest_pt2, t1, t2
 
@@ -1388,7 +1388,7 @@ def segment_segment_distance(p1, p2, q1, q2):
     closest_pt1 = [0,0,0]
     closest_pt2 = [0,0,0]
     t1, t2 = 0.0, 0.0
-    d = vtk.vtkLine.DistanceBetweenLineSegments(
+    d = vtki.vtkLine.DistanceBetweenLineSegments(
         p1, p2, q1, q2, closest_pt1, closest_pt2, t1, t2)
     return np.sqrt(d), closest_pt1, closest_pt2, t1, t2
 
@@ -1871,7 +1871,7 @@ def print_histogram(
         # already an array
         data = np.asarray(data)
 
-    if isinstance(data, vtk.vtkImageData):
+    if isinstance(data, vtki.vtkImageData):
         dims = data.GetDimensions()
         nvx = min(100000, dims[0] * dims[1] * dims[2])
         idxs = np.random.randint(0, min(dims), size=(nvx, 3))
@@ -1881,7 +1881,7 @@ def print_histogram(
             data.append(d)
         data = np.array(data)
 
-    elif isinstance(data, vtk.vtkPolyData):
+    elif isinstance(data, vtki.vtkPolyData):
         arr = data.dataset.GetPointData().GetScalars()
         if not arr:
             arr = data.dataset.GetCellData().GetScalars()
@@ -2075,12 +2075,12 @@ def camera_from_quaternion(pos, quaternion, distance=10000, ngl_correct=True):
             the desired distance from pos to the camera (default = 10000 nm)
 
     Returns:
-        `vtk.vtkCamera`, a vtk camera setup according to these rules.
+        `vtki.vtkCamera`, a vtk camera setup according to these rules.
     """
-    camera = vtk.vtkCamera()
+    camera = vtki.vtkCamera()
     # define the quaternion in vtk, note the swapped order
     # w,x,y,z instead of x,y,z,w
-    quat_vtk = vtk.get_class("Quaternion")(
+    quat_vtk = vtki.get_class("Quaternion")(
         quaternion[3], quaternion[0], quaternion[1], quaternion[2])
     # use this to define a rotation matrix in x,y,z
     # right handed units
@@ -2123,7 +2123,7 @@ def camera_from_neuroglancer(state, zoom=300):
             default = 300 > ngl_zoom = 1 > 300 nm backoff distance.
 
     Returns:
-        `vtk.vtkCamera`, a vtk camera setup that matches this state.
+        `vtki.vtkCamera`, a vtk camera setup that matches this state.
     """
     orient = state.get("perspectiveOrientation", [0.0, 0.0, 0.0, 1.0])
     pzoom = state.get("perspectiveZoom", 10.0)
@@ -2140,7 +2140,7 @@ def oriented_camera(center=(0, 0, 0), up_vector=(0, 1, 0), backoff_vector=(0, 0,
     vup = np.array(up_vector)
     vup = vup / np.linalg.norm(vup)
     pt_backoff = center - backoff * np.array(backoff_vector)
-    camera = vtk.vtkCamera()
+    camera = vtki.vtkCamera()
     camera.SetFocalPoint(center[0], center[1], center[2])
     camera.SetViewUp(vup[0], vup[1], vup[2])
     camera.SetPosition(pt_backoff[0], pt_backoff[1], pt_backoff[2])
@@ -2172,12 +2172,12 @@ def camera_from_dict(camera, modify_inplace=None):
             an existing `vtkCamera` object to modify in place.
 
     Returns:
-        `vtk.vtkCamera`, a vtk camera setup that matches this state.
+        `vtki.vtkCamera`, a vtk camera setup that matches this state.
     """
     if modify_inplace:
         vcam = modify_inplace
     else:
-        vcam = vtk.vtkCamera()
+        vcam = vtki.vtkCamera()
 
     camera = dict(camera)  # make a copy so input is not emptied by pop()
 
@@ -2834,9 +2834,9 @@ def vtk_version_at_least(major, minor=0, build=0):
     """
     needed_version = 10000000000 * int(major) + 100000000 * int(minor) + int(build)
     try:
-        vtk_version_number = vtk.VTK_VERSION_NUMBER
+        vtk_version_number = vtki.VTK_VERSION_NUMBER
     except AttributeError:  # as error:
-        ver = vtk.vtkVersion()
+        ver = vtki.vtkVersion()
         vtk_version_number = (
             10000000000 * ver.GetVTKMajorVersion()
             + 100000000 * ver.GetVTKMinorVersion()
@@ -2858,9 +2858,9 @@ def ctf2lut(vol, logscale=False):
         alphas.append(otf.GetValue(x))
 
     if logscale:
-        lut = vtk.vtkLogLookupTable()
+        lut = vtki.vtkLogLookupTable()
     else:
-        lut = vtk.vtkLookupTable()
+        lut = vtki.vtkLookupTable()
 
     lut.SetRange(x0, x1)
     lut.SetNumberOfTableValues(len(cols))
@@ -2927,7 +2927,7 @@ def get_vtk_name_event(name):
     if not event_name.endswith("Event"):
         event_name += "Event"
 
-    if vtk.vtkCommand.GetEventIdFromString(event_name) == 0:
+    if vtki.vtkCommand.GetEventIdFromString(event_name) == 0:
         vedo.printc(
             f"Error: '{name}' is not a valid event name.", c='r')
         vedo.printc("Check the list of events here:", c='r')

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-import vedo.vtkclasses as vtk
+import vedo.vtkclasses as vtki
 
 import vedo
 from vedo.colors import printc
@@ -357,15 +357,15 @@ def plot(*inputobj, **options):
     if vedo.plotter_instance:
         if xtitle != "x":
             aet = vedo.plotter_instance.axes_instances
-            if len(aet) > at and isinstance(aet[at], vtk.get_class("CubeAxesActor")):
+            if len(aet) > at and isinstance(aet[at], vtki.get_class("CubeAxesActor")):
                 aet[at].SetXTitle(xtitle)
         if ytitle != "y":
             aet = vedo.plotter_instance.axes_instances
-            if len(aet) > at and isinstance(aet[at], vtk.get_class("CubeAxesActor")):
+            if len(aet) > at and isinstance(aet[at], vtki.get_class("CubeAxesActor")):
                 aet[at].SetYTitle(ytitle)
         if ztitle != "z":
             aet = vedo.plotter_instance.axes_instances
-            if len(aet) > at and isinstance(aet[at], vtk.get_class("CubeAxesActor")):
+            if len(aet) > at and isinstance(aet[at], vtki.get_class("CubeAxesActor")):
                 aet[at].SetZTitle(ztitle)
 
     # change some default to emulate standard behaviours
@@ -590,20 +590,20 @@ class IMesh(Mesh):
         cells = meshc.cells()
 
         if cells.shape[1] == 4:
-            poly = vtk.vtkPolyData()
+            poly = vtki.vtkPolyData()
 
-            source_points = vtk.vtkPoints()
+            source_points = vtki.vtkPoints()
             source_points.SetData(utils.numpy2vtk(coords, dtype=np.float32))
             poly.SetPoints(source_points)
 
-            source_polygons = vtk.vtkCellArray()
+            source_polygons = vtki.vtkCellArray()
             for f in cells:
                 # do not use vtkTetra() because it fails
                 # with dolfin faces orientation
-                ele0 = vtk.vtkTriangle()
-                ele1 = vtk.vtkTriangle()
-                ele2 = vtk.vtkTriangle()
-                ele3 = vtk.vtkTriangle()
+                ele0 = vtki.vtkTriangle()
+                ele1 = vtki.vtkTriangle()
+                ele2 = vtki.vtkTriangle()
+                ele3 = vtki.vtkTriangle()
 
                 f0, f1, f2, f3 = f
                 pid0 = ele0.GetPointIds()

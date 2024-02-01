@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-import vedo.vtkclasses as vtk
+import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 
 import vedo
 from vedo.colors import get_color
@@ -52,18 +52,18 @@ class Mesh(MeshVisual, Points):
         self.name = "Mesh"
 
         if inputobj is None:
-            # self.dataset = vtk.vtkPolyData()
+            # self.dataset = vtki.vtkPolyData()
             pass
 
         elif isinstance(inputobj, str):
             self.dataset = vedo.file_io.load(inputobj).dataset
             self.filename = inputobj
 
-        elif isinstance(inputobj, vtk.vtkPolyData):
+        elif isinstance(inputobj, vtki.vtkPolyData):
             # self.dataset.DeepCopy(inputobj) # NO
             self.dataset = inputobj
             if self.dataset.GetNumberOfCells() == 0:
-                carr = vtk.vtkCellArray()
+                carr = vtki.vtkCellArray()
                 for i in range(inputobj.GetNumberOfPoints()):
                     carr.InsertNextCell(1)
                     carr.InsertCellPoint(i)
@@ -86,17 +86,17 @@ class Mesh(MeshVisual, Points):
                 vedo.logger.error("input must be a list of max 4 elements.")
                 raise ValueError()
 
-        elif isinstance(inputobj, vtk.vtkActor):
+        elif isinstance(inputobj, vtki.vtkActor):
             self.dataset.DeepCopy(inputobj.GetMapper().GetInput())
             v = inputobj.GetMapper().GetScalarVisibility()
             self.mapper.SetScalarVisibility(v)
-            pr = vtk.vtkProperty()
+            pr = vtki.vtkProperty()
             pr.DeepCopy(inputobj.GetProperty())
             self.actor.SetProperty(pr)
             self.properties = pr
 
-        elif isinstance(inputobj, (vtk.vtkStructuredGrid, vtk.vtkRectilinearGrid)):
-            gf = vtk.new("GeometryFilter")
+        elif isinstance(inputobj, (vtki.vtkStructuredGrid, vtki.vtkRectilinearGrid)):
+            gf = vtki.new("GeometryFilter")
             gf.SetInputData(inputobj)
             gf.Update()
             self.dataset = gf.GetOutput()
@@ -129,7 +129,7 @@ class Mesh(MeshVisual, Points):
 
         else:
             try:
-                gf = vtk.new("GeometryFilter")
+                gf = vtki.new("GeometryFilter")
                 gf.SetInputData(inputobj)
                 gf.Update()
                 self.dataset = gf.GetOutput()
@@ -245,7 +245,7 @@ class Mesh(MeshVisual, Points):
     @property
     def edges(self):
         """Return an array containing the edges connectivity."""
-        extractEdges = vtk.new("ExtractEdges")
+        extractEdges = vtki.new("ExtractEdges")
         extractEdges.SetInputData(self.dataset)
         # eed.UseAllPointsOn()
         extractEdges.Update()
@@ -294,7 +294,7 @@ class Mesh(MeshVisual, Points):
             If `feature_angle` is set then the Mesh can be modified, and it
             can have a different nr. of vertices from the original.
         """
-        pdnorm = vtk.new("PolyDataNormals")
+        pdnorm = vtki.new("PolyDataNormals")
         pdnorm.SetInputData(self.dataset)
         pdnorm.SetComputePointNormals(points)
         pdnorm.SetComputeCellNormals(cells)
@@ -329,7 +329,7 @@ class Mesh(MeshVisual, Points):
             poly.GetCellData().Modified()
             return self  ##############
 
-        rev = vtk.new("ReverseSense")
+        rev = vtki.new("ReverseSense")
         if cells:
             rev.ReverseCellsOn()
         else:
@@ -346,7 +346,7 @@ class Mesh(MeshVisual, Points):
 
     def volume(self):
         """Get/set the volume occupied by mesh."""
-        mass = vtk.new("MassProperties")
+        mass = vtki.new("MassProperties")
         mass.SetGlobalWarningDisplay(0)
         mass.SetInputData(self.dataset)
         mass.Update()
@@ -358,7 +358,7 @@ class Mesh(MeshVisual, Points):
         The mesh must be triangular for this to work.
         See also `mesh.triangulate()`.
         """
-        mass = vtk.new("MassProperties")
+        mass = vtki.new("MassProperties")
         mass.SetGlobalWarningDisplay(0)
         mass.SetInputData(self.dataset)
         mass.Update()
@@ -366,7 +366,7 @@ class Mesh(MeshVisual, Points):
 
     def is_closed(self):
         """Return `True` if the mesh is watertight."""
-        fe = vtk.new("FeatureEdges")
+        fe = vtki.new("FeatureEdges")
         fe.BoundaryEdgesOn()
         fe.FeatureEdgesOff()
         fe.NonManifoldEdgesOn()
@@ -377,7 +377,7 @@ class Mesh(MeshVisual, Points):
 
     def is_manifold(self):
         """Return `True` if the mesh is manifold."""
-        fe = vtk.new("FeatureEdges")
+        fe = vtki.new("FeatureEdges")
         fe.BoundaryEdgesOff()
         fe.FeatureEdgesOff()
         fe.NonManifoldEdgesOn()
@@ -481,7 +481,7 @@ class Mesh(MeshVisual, Points):
             ![](https://vedo.embl.es/images/basic/shrink.png)
         """
         # Overriding base class method core.shrink()
-        shrink = vtk.new("ShrinkPolyData")
+        shrink = vtki.new("ShrinkPolyData")
         shrink.SetInputData(self.dataset)
         shrink.SetShrinkFactor(fraction)
         shrink.Update()
@@ -500,7 +500,7 @@ class Mesh(MeshVisual, Points):
 
         See also: `join()`, `join_segments()`, `slice()`.
         """
-        fe = vtk.new("FeatureEdges")
+        fe = vtki.new("FeatureEdges")
         fe.SetInputData(self.dataset)
         fe.BoundaryEdgesOn()
         fe.FeatureEdgesOff()
@@ -508,21 +508,21 @@ class Mesh(MeshVisual, Points):
         fe.ManifoldEdgesOff()
         fe.Update()
 
-        stripper = vtk.new("Stripper")
+        stripper = vtki.new("Stripper")
         stripper.SetInputData(fe.GetOutput())
         stripper.JoinContiguousSegmentsOn()
         stripper.Update()
 
-        boundary_poly = vtk.vtkPolyData()
+        boundary_poly = vtki.vtkPolyData()
         boundary_poly.SetPoints(stripper.GetOutput().GetPoints())
         boundary_poly.SetPolys(stripper.GetOutput().GetLines())
 
-        rev = vtk.new("ReverseSense")
+        rev = vtki.new("ReverseSense")
         rev.ReverseCellsOn()
         rev.SetInputData(boundary_poly)
         rev.Update()
 
-        tf = vtk.new("TriangleFilter")
+        tf = vtki.new("TriangleFilter")
         tf.SetInputData(rev.GetOutput())
         tf.Update()
 
@@ -534,7 +534,7 @@ class Mesh(MeshVisual, Points):
             m.name = "MeshCap"
             return m
 
-        polyapp = vtk.new("AppendPolyData")
+        polyapp = vtki.new("AppendPolyData")
         polyapp.AddInputData(self.dataset)
         polyapp.AddInputData(tf.GetOutput())
         polyapp.Update()
@@ -585,7 +585,7 @@ class Mesh(MeshVisual, Points):
             ```
             ![](https://vedo.embl.es/images/feats/line_join.png)
         """
-        sf = vtk.new("Stripper")
+        sf = vtki.new("Stripper")
         sf.SetPassThroughCellIds(True)
         sf.SetPassThroughPointIds(True)
         sf.SetJoinContiguousSegments(polys)
@@ -593,7 +593,7 @@ class Mesh(MeshVisual, Points):
         sf.Update()
         if reset:
             poly = sf.GetOutput()
-            cpd = vtk.new("CleanPolyData")
+            cpd = vtki.new("CleanPolyData")
             cpd.PointMergingOn()
             cpd.ConvertLinesToPointsOn()
             cpd.ConvertPolysToLinesOn()
@@ -683,6 +683,21 @@ class Mesh(MeshVisual, Points):
                 vlines.append(newline)
 
         return vlines
+    
+    def split_polylines(self):
+        """Split polylines into separate segments."""
+        tf = vtki.new("TriangleFilter")
+        tf.SetPassLines(True)
+        tf.SetPassVerts(False)
+        tf.SetInputData(self.dataset)
+        tf.Update()
+        self._update(tf.GetOutput(), reset_locators=False)
+        self.lw(0).lighting("default").pickable()
+        self.pipeline = OperationNode(
+            "split_polylines", parents=[self], 
+            comment=f"#lines {self.dataset.GetNumberOfLines()}"
+        )
+        return self
 
     def slice(self, origin=(0, 0, 0), normal=(1, 0, 0)):
         """
@@ -727,13 +742,13 @@ class Mesh(MeshVisual, Points):
         """
         if self.dataset.GetNumberOfPolys() or self.dataset.GetNumberOfStrips():
             # print("Using vtkTriangleFilter")
-            tf = vtk.new("TriangleFilter")
+            tf = vtki.new("TriangleFilter")
             tf.SetPassLines(lines)
             tf.SetPassVerts(verts)
 
         elif self.dataset.GetNumberOfLines():
             # print("Using vtkContourTriangulator")
-            tf = vtk.new("ContourTriangulator")
+            tf = vtki.new("ContourTriangulator")
             tf.TriangulationErrorDisplayOn()
 
         else:
@@ -754,7 +769,7 @@ class Mesh(MeshVisual, Points):
         """
         Add to this mesh a cell data array containing the nr of vertices that a polygonal face has.
         """
-        csf = vtk.new("CellSizeFilter")
+        csf = vtki.new("CellSizeFilter")
         csf.SetInputData(self.dataset)
         csf.SetComputeArea(False)
         csf.SetComputeVolume(False)
@@ -813,7 +828,7 @@ class Mesh(MeshVisual, Points):
 
             ![](https://vedo.embl.es/images/advanced/meshquality.png)
         """
-        qf = vtk.new("MeshQuality")
+        qf = vtki.new("MeshQuality")
         qf.SetInputData(self.dataset)
         qf.SetTriangleQualityMeasure(metric)
         qf.SaveCellQualityOn()
@@ -825,7 +840,7 @@ class Mesh(MeshVisual, Points):
 
     def count_vertices(self):
         """Count the number of vertices each cell has and return it as a numpy array"""
-        vc = vtk.new("CountVertices")
+        vc = vtki.new("CountVertices")
         vc.SetInputData(self.dataset)
         vc.SetOutputArrayName("VertexCount")
         vc.Update()
@@ -848,7 +863,7 @@ class Mesh(MeshVisual, Points):
                 value is used as an epsilon for floating point
                 equality checks throughout the cell checking process.
         """
-        vald = vtk.new("CellValidator")
+        vald = vtki.new("CellValidator")
         if tol:
             vald.SetTolerance(tol)
         vald.SetInputData(self.dataset)
@@ -873,7 +888,7 @@ class Mesh(MeshVisual, Points):
             ```
             ![](https://vedo.embl.es/images/advanced/torus_curv.png)
         """
-        curve = vtk.new("Curvatures")
+        curve = vtki.new("Curvatures")
         curve.SetInputData(self.dataset)
         curve.SetCurvatureType(method)
         curve.Update()
@@ -901,7 +916,7 @@ class Mesh(MeshVisual, Points):
             ```
             ![](https://vedo.embl.es/images/basic/compute_elevation.png)
         """
-        ef = vtk.new("ElevationFilter")
+        ef = vtki.new("ElevationFilter")
         ef.SetInputData(self.dataset)
         ef.SetLowPoint(low)
         ef.SetHighPoint(high)
@@ -923,23 +938,23 @@ class Mesh(MeshVisual, Points):
             mel : (float)
                 Maximum Edge Length (applicable to Adaptive method only).
         """
-        triangles = vtk.new("TriangleFilter")
+        triangles = vtki.new("TriangleFilter")
         triangles.SetInputData(self.dataset)
         triangles.Update()
         tri_mesh = triangles.GetOutput()
         if method == 0:
-            sdf = vtk.new("LoopSubdivisionFilter")
+            sdf = vtki.new("LoopSubdivisionFilter")
         elif method == 1:
-            sdf = vtk.new("LinearSubdivisionFilter")
+            sdf = vtki.new("LinearSubdivisionFilter")
         elif method == 2:
-            sdf = vtk.new("AdaptiveSubdivisionFilter")
+            sdf = vtki.new("AdaptiveSubdivisionFilter")
             if mel is None:
                 mel = self.diagonal_size() / np.sqrt(self.dataset.GetNumberOfPoints()) / n
             sdf.SetMaximumEdgeLength(mel)
         elif method == 3:
-            sdf = vtk.new("ButterflySubdivisionFilter")
+            sdf = vtki.new("ButterflySubdivisionFilter")
         elif method == 4:
-            sdf = vtk.new("DensifyPolyData")
+            sdf = vtki.new("DensifyPolyData")
         else:
             vedo.logger.error(f"in subdivide() unknown method {method}")
             raise RuntimeError()
@@ -997,7 +1012,7 @@ class Mesh(MeshVisual, Points):
             if fraction >= 1:
                 return self
 
-        decimate = vtk.new("QuadricDecimation")
+        decimate = vtki.new("QuadricDecimation")
         decimate.SetVolumePreservation(preserve_volume)
         # decimate.AttributeErrorMetricOn()
         if regularization:
@@ -1082,7 +1097,7 @@ class Mesh(MeshVisual, Points):
             if fraction >= 1:
                 return self
 
-        decimate = vtk.new("DecimatePro")
+        decimate = vtki.new("DecimatePro")
         decimate.SetPreserveTopology(preserve_topology)
         decimate.SetBoundaryVertexDeletion(preserve_boundaries)
         if feature_angle:
@@ -1126,10 +1141,10 @@ class Mesh(MeshVisual, Points):
         See also: `decimate()` and `decimate_pro()`.
         """
         if use_clustering:
-            decimate = vtk.new("QuadricClustering")
+            decimate = vtki.new("QuadricClustering")
             decimate.CopyCellDataOn()
         else:
-            decimate = vtk.new("BinnedDecimation")
+            decimate = vtki.new("BinnedDecimation")
             decimate.ProducePointDataOn()
             decimate.ProduceCellDataOn()
 
@@ -1250,7 +1265,7 @@ class Mesh(MeshVisual, Points):
 
                 ![](https://vedo.embl.es/images/basic/deleteMeshPoints.png)
         """
-        cell_ids = vtk.vtkIdList()
+        cell_ids = vtki.vtkIdList()
         self.dataset.BuildLinks()
         n = 0
         for i in np.unique(indices):
@@ -1296,7 +1311,7 @@ class Mesh(MeshVisual, Points):
                         newpts[id1] = p
                         moved += [id0, id1]
             self.vertices = newpts
-            cpd = vtk.new("CleanPolyData")
+            cpd = vtki.new("CleanPolyData")
             cpd.ConvertLinesToPointsOff()
             cpd.ConvertPolysToLinesOff()
             cpd.ConvertStripsToPolysOff()
@@ -1332,10 +1347,10 @@ class Mesh(MeshVisual, Points):
 
             ![](https://vedo.embl.es/images/advanced/mesh_smoother2.png)
         """
-        cl = vtk.new("CleanPolyData")
+        cl = vtki.new("CleanPolyData")
         cl.SetInputData(self.dataset)
         cl.Update()
-        smf = vtk.new("WindowedSincPolyDataFilter")
+        smf = vtki.new("WindowedSincPolyDataFilter")
         smf.SetInputData(cl.GetOutput())
         smf.SetNumberOfIterations(niter)
         smf.SetEdgeAngle(edge_angle)
@@ -1367,7 +1382,7 @@ class Mesh(MeshVisual, Points):
         Examples:
             - [fillholes.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/fillholes.py)
         """
-        fh = vtk.new("FillHolesFilter")
+        fh = vtki.new("FillHolesFilter")
         if not size:
             mb = self.diagonal_size()
             size = mb / 10
@@ -1400,11 +1415,11 @@ class Mesh(MeshVisual, Points):
             show(s, Point(pt), axes=1).close()
             ```      
         """
-        points = vtk.vtkPoints()
+        points = vtki.vtkPoints()
         points.InsertNextPoint(point)
-        poly = vtk.vtkPolyData()
+        poly = vtki.vtkPolyData()
         poly.SetPoints(points)
-        sep = vtk.new("SelectEnclosedPoints")
+        sep = vtki.new("SelectEnclosedPoints")
         sep.SetTolerance(tol)
         sep.CheckSurfaceOff()
         sep.SetInputData(poly)
@@ -1432,13 +1447,13 @@ class Mesh(MeshVisual, Points):
             ptsa = pts.vertices
         else:
             ptsa = np.asarray(pts)
-            vpoints = vtk.vtkPoints()
+            vpoints = vtki.vtkPoints()
             vpoints.SetData(numpy2vtk(ptsa, dtype=np.float32))
-            poly = vtk.vtkPolyData()
+            poly = vtki.vtkPolyData()
             poly.SetPoints(vpoints)
 
-        sep = vtk.new("SelectEnclosedPoints")
-        # sep = vtk.new("ExtractEnclosedPoints()
+        sep = vtki.new("SelectEnclosedPoints")
+        # sep = vtki.new("ExtractEnclosedPoints()
         sep.SetTolerance(tol)
         sep.SetInputData(poly)
         sep.SetSurfaceData(self.dataset)
@@ -1502,7 +1517,7 @@ class Mesh(MeshVisual, Points):
 
             ![](https://vedo.embl.es/images/basic/boundaries.png)
         """
-        fe = vtk.new("FeatureEdges")
+        fe = vtki.new("FeatureEdges")
         fe.SetBoundaryEdges(boundary_edges)
         fe.SetNonManifoldEdges(non_manifold_edges)
         fe.SetManifoldEdges(manifold_edges)
@@ -1517,7 +1532,7 @@ class Mesh(MeshVisual, Points):
             fe.SetFeatureAngle(feature_angle)
 
         if return_point_ids or return_cell_ids:
-            idf = vtk.new("IdFilter")
+            idf = vtki.new("IdFilter")
             idf.SetInputData(self.dataset)
             idf.SetPointIdsArrayName("BoundaryIds")
             idf.SetPointIds(True)
@@ -1585,15 +1600,15 @@ class Mesh(MeshVisual, Points):
             ```
             ![](https://vedo.embl.es/images/feats/imprint.png)
         """
-        loop = vtk.new("ContourLoopExtraction")
+        loop = vtki.new("ContourLoopExtraction")
         loop.SetInputData(loopline)
         loop.Update()
 
-        clean_loop = vtk.new("CleanPolyData")
+        clean_loop = vtki.new("CleanPolyData")
         clean_loop.SetInputData(loop.GetOutput())
         clean_loop.Update()
 
-        imp = vtk.new("ImprintFilter")
+        imp = vtki.new("ImprintFilter")
         imp.SetTargetData(self.dataset)
         imp.SetImprintData(clean_loop.GetOutput())
         imp.SetTolerance(tol)
@@ -1620,12 +1635,12 @@ class Mesh(MeshVisual, Points):
         """
         poly = self.dataset
 
-        cell_idlist = vtk.vtkIdList()
+        cell_idlist = vtki.vtkIdList()
         poly.GetPointCells(index, cell_idlist)
 
         idxs = []
         for i in range(cell_idlist.GetNumberOfIds()):
-            point_idlist = vtk.vtkIdList()
+            point_idlist = vtki.vtkIdList()
             poly.GetCellPoints(cell_idlist.GetId(i), point_idlist)
             for j in range(point_idlist.GetNumberOfIds()):
                 idj = point_idlist.GetId(j)
@@ -1641,25 +1656,25 @@ class Mesh(MeshVisual, Points):
         """
         Extract a subset of cells from a mesh and return it as a new mesh.
         """
-        selectCells = vtk.new("SelectionNode")
-        selectCells.SetFieldType(vtk.get_class("SelectionNode").CELL)
-        selectCells.SetContentType(vtk.get_class("SelectionNode").INDICES)
-        idarr = vtk.vtkIdTypeArray()
+        selectCells = vtki.new("SelectionNode")
+        selectCells.SetFieldType(vtki.get_class("SelectionNode").CELL)
+        selectCells.SetContentType(vtki.get_class("SelectionNode").INDICES)
+        idarr = vtki.vtkIdTypeArray()
         idarr.SetNumberOfComponents(1)
         idarr.SetNumberOfValues(len(ids))
         for i, v in enumerate(ids):
             idarr.SetValue(i, v)
         selectCells.SetSelectionList(idarr)
 
-        selection = vtk.new("Selection")
+        selection = vtki.new("Selection")
         selection.AddNode(selectCells)
 
-        extractSelection = vtk.new("ExtractSelection")
+        extractSelection = vtki.new("ExtractSelection")
         extractSelection.SetInputData(0, self.dataset)
         extractSelection.SetInputData(1, selection)
         extractSelection.Update()
 
-        gf = vtk.new("GeometryFilter")
+        gf = vtki.new("GeometryFilter")
         gf.SetInputData(extractSelection.GetOutput())
         gf.Update()
         msh = Mesh(gf.GetOutput())
@@ -1671,10 +1686,10 @@ class Mesh(MeshVisual, Points):
 
         # Find all cells connected to point index
         dpoly = self.dataset
-        idlist = vtk.vtkIdList()
+        idlist = vtki.vtkIdList()
         dpoly.GetPointCells(index, idlist)
 
-        ids = vtk.vtkIdTypeArray()
+        ids = vtki.vtkIdTypeArray()
         ids.SetNumberOfComponents(1)
         rids = []
         for k in range(idlist.GetNumberOfIds()):
@@ -1684,17 +1699,17 @@ class Mesh(MeshVisual, Points):
         if return_ids:
             return rids
 
-        selection_node = vtk.new("SelectionNode")
-        selection_node.SetFieldType(vtk.get_class("SelectionNode").CELL)
-        selection_node.SetContentType(vtk.get_class("SelectionNode").INDICES)
+        selection_node = vtki.new("SelectionNode")
+        selection_node.SetFieldType(vtki.get_class("SelectionNode").CELL)
+        selection_node.SetContentType(vtki.get_class("SelectionNode").INDICES)
         selection_node.SetSelectionList(ids)
-        selection = vtk.new("Selection")
+        selection = vtki.new("Selection")
         selection.AddNode(selection_node)
-        extractSelection = vtk.new("ExtractSelection")
+        extractSelection = vtki.new("ExtractSelection")
         extractSelection.SetInputData(0, dpoly)
         extractSelection.SetInputData(1, selection)
         extractSelection.Update()
-        gf = vtk.new("GeometryFilter")
+        gf = vtki.new("GeometryFilter")
         gf.SetInputData(extractSelection.GetOutput())
         gf.Update()
         m = Mesh(gf.GetOutput()).lw(1)
@@ -1722,7 +1737,7 @@ class Mesh(MeshVisual, Points):
 
             ![](https://vedo.embl.es/images/basic/silhouette1.png)
         """
-        sil = vtk.new("PolyDataSilhouette")
+        sil = vtki.new("PolyDataSilhouette")
         sil.SetInputData(self.dataset)
         sil.SetBorderEdges(border_edges)
         if feature_angle is False:
@@ -1736,7 +1751,7 @@ class Mesh(MeshVisual, Points):
             m = Mesh()
             m.mapper.SetInputConnection(sil.GetOutputPort())
 
-        elif isinstance(direction, vtk.vtkCamera):
+        elif isinstance(direction, vtki.vtkCamera):
             sil.SetCamera(direction)
             m = Mesh()
             m.mapper.SetInputConnection(sil.GetOutputPort())
@@ -1801,13 +1816,13 @@ class Mesh(MeshVisual, Points):
         labels = []
         for b in bands:
             labels.append("{:4.2f}".format(b[1]))
-        values = vtk.vtkVariantArray()
+        values = vtki.vtkVariantArray()
         for la in labels:
-            values.InsertNextValue(vtk.vtkVariant(la))
+            values.InsertNextValue(vtki.vtkVariant(la))
         for i in range(values.GetNumberOfTuples()):
             lut.SetAnnotation(i, values.GetValue(i).ToString())
 
-        bcf = vtk.new("BandedPolyDataContourFilter")
+        bcf = vtki.new("BandedPolyDataContourFilter")
         bcf.SetInputData(self.dataset)
         # Use either the minimum or maximum value for each band.
         for i, band in enumerate(bands):
@@ -1842,7 +1857,7 @@ class Mesh(MeshVisual, Points):
 
             ![](https://vedo.embl.es/images/pyplot/isolines.png)
         """
-        bcf = vtk.new("ContourFilter")
+        bcf = vtki.new("ContourFilter")
         bcf.SetInputData(self.dataset)
         r0, r1 = self.dataset.GetScalarRange()
         if vmin is None:
@@ -1851,11 +1866,11 @@ class Mesh(MeshVisual, Points):
             vmax = r1
         bcf.GenerateValues(n, vmin, vmax)
         bcf.Update()
-        sf = vtk.new("Stripper")
+        sf = vtki.new("Stripper")
         sf.SetJoinContiguousSegments(True)
         sf.SetInputData(bcf.GetOutput())
         sf.Update()
-        cl = vtk.new("CleanPolyData")
+        cl = vtki.new("CleanPolyData")
         cl.SetInputData(sf.GetOutput())
         cl.Update()
         msh = Mesh(cl.GetOutput(), c="k").lighting("off")
@@ -1908,8 +1923,8 @@ class Mesh(MeshVisual, Points):
 
             ![](https://vedo.embl.es/images/basic/extrude.png)
         """
-        rf = vtk.new("RotationalExtrusionFilter")
-        # rf = vtk.new("LinearExtrusionFilter")
+        rf = vtki.new("RotationalExtrusionFilter")
+        # rf = vtki.new("LinearExtrusionFilter")
         rf.SetInputData(self.dataset)  # must not be transformed
         rf.SetResolution(res)
         rf.SetCapping(cap)
@@ -1919,7 +1934,7 @@ class Mesh(MeshVisual, Points):
         rf.Update()
 
         # convert triangle strips to polygonal data
-        tris = vtk.new("TriangleFilter")
+        tris = vtki.new("TriangleFilter")
         tris.SetInputData(rf.GetOutput())
         tris.Update()
 
@@ -1972,10 +1987,10 @@ class Mesh(MeshVisual, Points):
             if pd.GetNumberOfPolys() == 0:
                 vedo.logger.warning("in split(): no polygons found. Skip.")
                 return [self]
-            cf = vtk.new("PolyDataEdgeConnectivityFilter")
+            cf = vtki.new("PolyDataEdgeConnectivityFilter")
             cf.BarrierEdgesOff()
         else:
-            cf = vtk.new("PolyDataConnectivityFilter")
+            cf = vtki.new("PolyDataConnectivityFilter")
 
         cf.SetInputData(pd)
         cf.SetExtractionModeToAllRegions()
@@ -2035,7 +2050,7 @@ class Mesh(MeshVisual, Points):
         Examples:
             - [largestregion.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/largestregion.py)
         """
-        conn = vtk.new("PolyDataConnectivityFilter")
+        conn = vtki.new("PolyDataConnectivityFilter")
         conn.SetExtractionModeToLargestRegion()
         conn.ScalarConnectivityOff()
         conn.SetInputData(self.dataset)
@@ -2064,9 +2079,9 @@ class Mesh(MeshVisual, Points):
             ![](https://vedo.embl.es/images/basic/boolean.png)
         """
         if method == 0:
-            bf = vtk.new("BooleanOperationPolyDataFilter")
+            bf = vtki.new("BooleanOperationPolyDataFilter")
         elif method == 1:
-            bf = vtk.new("LoopBooleanPolyDataFilter")
+            bf = vtki.new("LoopBooleanPolyDataFilter")
         else:
             raise ValueError(f"Unknown method={method}")
 
@@ -2108,7 +2123,7 @@ class Mesh(MeshVisual, Points):
 
                 ![](https://vedo.embl.es/images/basic/surfIntersect.png)
         """
-        bf = vtk.new("IntersectionPolyDataFilter")
+        bf = vtki.new("IntersectionPolyDataFilter")
         bf.SetGlobalWarningDisplay(0)
         bf.SetTolerance(tol)
         bf.SetInputData(0, self.dataset)
@@ -2144,15 +2159,15 @@ class Mesh(MeshVisual, Points):
             p0, p1 = p0.vertices
 
         if not self.line_locator:
-            self.line_locator = vtk.new("OBBTree")
+            self.line_locator = vtki.new("OBBTree")
             self.line_locator.SetDataSet(self.dataset)
             if not tol:
                 tol = mag(np.asarray(p1) - np.asarray(p0)) / 10000
             self.line_locator.SetTolerance(tol)
             self.line_locator.BuildLocator()
 
-        vpts = vtk.vtkPoints()
-        idlist = vtk.vtkIdList()
+        vpts = vtki.vtkPoints()
+        idlist = vtki.vtkIdList()
         self.line_locator.IntersectWithLine(p0, p1, vpts, idlist)
         pts = []
         for i in range(vpts.GetNumberOfPoints()):
@@ -2184,11 +2199,11 @@ class Mesh(MeshVisual, Points):
             ```
             ![](https://vedo.embl.es/images/feats/intersect_plane.png)
         """
-        plane = vtk.new("Plane")
+        plane = vtki.new("Plane")
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
 
-        cutter = vtk.new("PolyDataPlaneCutter")
+        cutter = vtki.new("PolyDataPlaneCutter")
         cutter.SetInputData(self.dataset)
         cutter.SetPlane(plane)
         cutter.InterpolateAttributesOn()
@@ -2242,13 +2257,13 @@ class Mesh(MeshVisual, Points):
             show(s, axes=1).close()
             ```
         """        
-        planes = vtk.new("PlaneCollection")
+        planes = vtki.new("PlaneCollection")
         for p, s in zip(origins, normals):
-            plane = vtk.vtkPlane()
+            plane = vtki.vtkPlane()
             plane.SetOrigin(vedo.utils.make3d(p))
             plane.SetNormal(vedo.utils.make3d(s))
             planes.AddItem(plane)
-        clipper = vtk.new("ClipClosedSurface")
+        clipper = vtki.new("ClipClosedSurface")
         clipper.SetInputData(self.dataset)
         clipper.SetClippingPlanes(planes)
         clipper.PassPointDataOn()
@@ -2291,11 +2306,11 @@ class Mesh(MeshVisual, Points):
         Collide this Mesh with the input surface.
         Information is stored in `ContactCells1` and `ContactCells2`.
         """
-        ipdf = vtk.new("CollisionDetectionFilter")
+        ipdf = vtki.new("CollisionDetectionFilter")
         # ipdf.SetGlobalWarningDisplay(0)
 
-        transform0 = vtk.vtkTransform()
-        transform1 = vtk.vtkTransform()
+        transform0 = vtki.vtkTransform()
+        transform1 = vtki.vtkTransform()
 
         # ipdf.SetBoxTolerance(tol)
         ipdf.SetCellTolerance(tol)
@@ -2354,13 +2369,13 @@ class Mesh(MeshVisual, Points):
             start = pa.closest_point(start, return_point_id=True)
             end = pa.closest_point(end, return_point_id=True)
 
-        dijkstra = vtk.new("DijkstraGraphGeodesicPath")
+        dijkstra = vtki.new("DijkstraGraphGeodesicPath")
         dijkstra.SetInputData(self.dataset)
         dijkstra.SetStartVertex(end)  # inverted in vtk
         dijkstra.SetEndVertex(start)
         dijkstra.Update()
 
-        weights = vtk.vtkDoubleArray()
+        weights = vtki.vtkDoubleArray()
         dijkstra.GetCumulativeWeights(weights)
 
         idlist = dijkstra.GetIdList()
@@ -2441,7 +2456,7 @@ class Mesh(MeshVisual, Points):
             for i in [0, 1, 2]:
                 dim[i] = int(np.ceil((bounds[i*2+1] - bounds[i*2]) / spacing[i]))
         
-        white_img = vtk.vtkImageData()
+        white_img = vtki.vtkImageData()
         white_img.SetDimensions(dim)
         white_img.SetSpacing(spacing)
         white_img.SetExtent(0, dim[0]-1, 0, dim[1]-1, 0, dim[2]-1)
@@ -2456,13 +2471,13 @@ class Mesh(MeshVisual, Points):
         # if direction_matrix is not None:
         #     white_img.SetDirectionMatrix(direction_matrix)
 
-        white_img.AllocateScalars(vtk.VTK_UNSIGNED_CHAR, 1)
+        white_img.AllocateScalars(vtki.VTK_UNSIGNED_CHAR, 1)
 
         # fill the image with foreground voxels:
         white_img.GetPointData().GetScalars().Fill(fg_value)
 
         # polygonal data --> image stencil:
-        pol2stenc = vtk.new("PolyDataToImageStencil")
+        pol2stenc = vtki.new("PolyDataToImageStencil")
         pol2stenc.SetInputData(self.dataset)
         pol2stenc.SetOutputOrigin(white_img.GetOrigin())
         pol2stenc.SetOutputSpacing(white_img.GetSpacing())
@@ -2470,7 +2485,7 @@ class Mesh(MeshVisual, Points):
         pol2stenc.Update()
 
         # cut the corresponding white image and set the background:
-        imgstenc = vtk.new("ImageStencil")
+        imgstenc = vtki.new("ImageStencil")
         imgstenc.SetInputData(white_img)
         imgstenc.SetStencilConnection(pol2stenc.GetOutputPort())
         # imgstenc.SetReverseStencil(True)
@@ -2513,13 +2528,13 @@ class Mesh(MeshVisual, Points):
         sy = (bounds[3] - bounds[2]) / dims[1]
         sz = (bounds[5] - bounds[4]) / dims[2]
 
-        img = vtk.vtkImageData()
+        img = vtki.vtkImageData()
         img.SetDimensions(dims)
         img.SetSpacing(sx, sy, sz)
         img.SetOrigin(bounds[0], bounds[2], bounds[4])
-        img.AllocateScalars(vtk.VTK_FLOAT, 1)
+        img.AllocateScalars(vtki.VTK_FLOAT, 1)
 
-        imp = vtk.new("ImplicitPolyDataDistance")
+        imp = vtki.new("ImplicitPolyDataDistance")
         imp.SetInput(self.dataset)
         b2 = bounds[2]
         b4 = bounds[4]

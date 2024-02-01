@@ -44,6 +44,7 @@
 - small fix to `Ruler3D` class.
 - add `plotter.render_hidden_lines()` method
 - add slot for triangle strips in constructor `Mesh([verts, faces, lines, strips])` in #1019
+- internally use "import vedo.vtkclasses as vtki" instead of "vtk" to avoid confusion
 
 
 ## Soft Breaking Changes

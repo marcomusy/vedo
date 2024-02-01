@@ -3,7 +3,7 @@
 import os
 import numpy as np
 
-import vedo.vtkclasses as vtk
+import vedo.vtkclasses as vtki
 
 from vedo.pointcloud import Points
 from vedo.mesh import Mesh
@@ -116,11 +116,11 @@ def start_k3d(actors2show):
 
     for ia in actors2show2:
 
-        if isinstance(ia, (vtk.vtkCornerAnnotation, vtk.vtkAssembly, vtk.vtkActor2D)):
+        if isinstance(ia, (vtki.vtkCornerAnnotation, vtki.vtkAssembly, vtki.vtkActor2D)):
             continue
 
         if hasattr(ia, "actor") and isinstance(
-            ia.actor, (vtk.vtkCornerAnnotation, vtk.vtkAssembly, vtk.vtkActor2D)
+            ia.actor, (vtki.vtkCornerAnnotation, vtki.vtkAssembly, vtki.vtkActor2D)
         ):
             continue
 
@@ -158,7 +158,7 @@ def start_k3d(actors2show):
                     vtkdata = iapoly.GetCellData()
                     vtkscals = vtkdata.GetScalars()
                     if vtkscals is not None:
-                        c2p = vtk.new("CellDataToPointData")
+                        c2p = vtki.new("CellDataToPointData")
                         c2p.SetInputData(iapoly)
                         c2p.Update()
                         iapoly = c2p.GetOutput()

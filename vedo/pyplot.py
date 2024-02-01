@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-import vedo.vtkclasses as vtk
+import vedo.vtkclasses as vtki
 
 import vedo
 from vedo import settings
@@ -2591,7 +2591,7 @@ def _plot_fxy(
     if c is not None:
         texture = None  # disable
 
-    ps = vtk.new("PlaneSource")
+    ps = vtki.new("PlaneSource")
     ps.SetResolution(bins[0], bins[1])
     ps.SetNormal([0, 0, 1])
     ps.Update()
@@ -2619,14 +2619,14 @@ def _plot_fxy(
         poly.GetPoints().SetPoint(i, [xv, yv, zv])
 
     if todel:
-        cellIds = vtk.vtkIdList()
+        cellIds = vtki.vtkIdList()
         poly.BuildLinks()
         for i in todel:
             poly.GetPointCells(i, cellIds)
             for j in range(cellIds.GetNumberOfIds()):
                 poly.DeleteCell(cellIds.GetId(j))  # flag cell
         poly.RemoveDeletedCells()
-        cl = vtk.new("CleanPolyData")
+        cl = vtki.new("CleanPolyData")
         cl.SetInputData(poly)
         cl.Update()
         poly = cl.GetOutput()
@@ -2657,13 +2657,13 @@ def _plot_fxy(
 
     acts = [mesh]
     if zlevels:
-        elevation = vtk.new("ElevationFilter")
+        elevation = vtki.new("ElevationFilter")
         elevation.SetInputData(poly)
         bounds = poly.GetBounds()
         elevation.SetLowPoint(0, 0, bounds[4])
         elevation.SetHighPoint(0, 0, bounds[5])
         elevation.Update()
-        bcf = vtk.new("BandedPolyDataContourFilter")
+        bcf = vtki.new("BandedPolyDataContourFilter")
         bcf.SetInputData(elevation.GetOutput())
         bcf.SetScalarModeToValue()
         bcf.GenerateContourEdgesOn()
@@ -2708,7 +2708,7 @@ def _plot_fz(
     bins=(75, 75),
     axes=True,
 ):
-    ps = vtk.new("PlaneSource")
+    ps = vtki.new("PlaneSource")
     ps.SetResolution(bins[0], bins[1])
     ps.SetNormal([0, 0, 1])
     ps.Update()
@@ -3018,13 +3018,13 @@ def _histogram_hex_bin(
     r = 0.47 / n * 1.2 * dx
     for i in range(n + 3):
         for j in range(m + 2):
-            cyl = vtk.new("CylinderSource")
+            cyl = vtki.new("CylinderSource")
             cyl.SetResolution(6)
             cyl.CappingOn()
             cyl.SetRadius(0.5)
             cyl.SetHeight(0.1)
             cyl.Update()
-            t = vtk.vtkTransform()
+            t = vtki.vtkTransform()
             if not i % 2:
                 p = (i / ki, j / kj, 0)
             else:
@@ -3037,7 +3037,7 @@ def _histogram_hex_bin(
             else:
                 t.Translate(p[0], p[1], ne)
             t.RotateX(90)  # put it along Z
-            tf = vtk.new("TransformPolyDataFilter")
+            tf = vtki.new("TransformPolyDataFilter")
             tf.SetInputData(cyl.GetOutput())
             tf.SetTransform(t)
             tf.Update()
@@ -3753,20 +3753,20 @@ def CornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True, dots=T
         points = np.stack((points[0], points[1]), axis=1)
 
     c = colors.get_color(c)  # allow different codings
-    array_x = vtk.vtkFloatArray()
-    array_y = vtk.vtkFloatArray()
+    array_x = vtki.vtkFloatArray()
+    array_y = vtki.vtkFloatArray()
     array_x.SetNumberOfTuples(len(points))
     array_y.SetNumberOfTuples(len(points))
     for i, p in enumerate(points):
         array_x.InsertValue(i, p[0])
         array_y.InsertValue(i, p[1])
-    field = vtk.vtkFieldData()
+    field = vtki.vtkFieldData()
     field.AddArray(array_x)
     field.AddArray(array_y)
-    data = vtk.vtkDataObject()
+    data = vtki.vtkDataObject()
     data.SetFieldData(field)
 
-    xyplot = vtk.new("XYPlotActor")
+    xyplot = vtki.new("XYPlotActor")
     xyplot.AddDataObjectInput(data)
     xyplot.SetDataObjectXComponent(0, 0)
     xyplot.SetDataObjectYComponent(0, 1)
@@ -3869,9 +3869,9 @@ def CornerHistogram(
     cplot = CornerPlot(pts, pos, s, title, c, bg, lines, dots)
     cplot.SetNumberOfYLabels(2)
     cplot.SetNumberOfXLabels(3)
-    tprop = vtk.vtkTextProperty()
+    tprop = vtki.vtkTextProperty()
     tprop.SetColor(colors.get_color(bg))
-    tprop.SetFontFamily(vtk.VTK_FONT_FILE)
+    tprop.SetFontFamily(vtki.VTK_FONT_FILE)
     tprop.SetFontFile(utils.get_font_path(vedo.settings.default_font))
     tprop.SetOpacity(alpha)
     cplot.SetAxisTitleTextProperty(tprop)
@@ -3992,7 +3992,7 @@ class DirectedGraph(Assembly):
 
         self.edge_label_scale = None
 
-        self.mdg = vtk.new("MutableDirectedGraph")
+        self.mdg = vtki.new("MutableDirectedGraph")
 
         n = kargs.pop("n", 0)
         for _ in range(n):
@@ -4000,7 +4000,7 @@ class DirectedGraph(Assembly):
 
         self._c = kargs.pop("c", (0.3, 0.3, 0.3))
 
-        self.gl = vtk.new("GraphLayout")
+        self.gl = vtki.new("GraphLayout")
 
         self.font = kargs.pop("font", "")
 
@@ -4012,11 +4012,11 @@ class DirectedGraph(Assembly):
 
         if "2d" in s:
             if "clustering" in s:
-                self.strategy = vtk.new("Clustering2DLayoutStrategy")
+                self.strategy = vtki.new("Clustering2DLayoutStrategy")
             elif "fast" in s:
-                self.strategy = vtk.new("Fast2DLayoutStrategy")
+                self.strategy = vtki.new("Fast2DLayoutStrategy")
             else:
-                self.strategy = vtk.new("Simple2DLayoutStrategy")
+                self.strategy = vtki.new("Simple2DLayoutStrategy")
             self.rotX = 180
             opt = kargs.pop("rest_distance", None)
             if opt is not None:
@@ -4031,7 +4031,7 @@ class DirectedGraph(Assembly):
 
         elif "circ" in s:
             if "3d" in s:
-                self.strategy = vtk.new("Simple3DCirclesStrategy")
+                self.strategy = vtki.new("Simple3DCirclesStrategy")
                 self.strategy.SetDirection(0, 0, -1)
                 self.strategy.SetAutoHeight(True)
                 self.strategy.SetMethod(1)
@@ -4045,11 +4045,11 @@ class DirectedGraph(Assembly):
                     self.strategy.SetAutoHeight(False)
                     self.strategy.SetHeight(opt)  # float
             else:
-                self.strategy = vtk.new("CircularLayoutStrategy")
+                self.strategy = vtki.new("CircularLayoutStrategy")
                 self.zrange = kargs.pop("zrange", 0)
 
         elif "cone" in s:
-            self.strategy = vtk.new("ConeLayoutStrategy")
+            self.strategy = vtki.new("ConeLayoutStrategy")
             self.rotX = 180
             opt = kargs.pop("compactness", None)
             if opt is not None:
@@ -4062,7 +4062,7 @@ class DirectedGraph(Assembly):
                 self.strategy.SetSpacing(opt)
 
         elif "force" in s:
-            self.strategy = vtk.new("ForceDirectedLayoutStrategy")
+            self.strategy = vtki.new("ForceDirectedLayoutStrategy")
             opt = kargs.pop("seed", None)
             if opt is not None:
                 self.strategy.SetRandomSeed(opt)
@@ -4081,7 +4081,7 @@ class DirectedGraph(Assembly):
                 self.strategy.SetRandomInitialPoints(opt)  # bool
 
         elif "tree" in s:
-            self.strategy = vtk.new("SpanTreeLayoutStrategy")
+            self.strategy = vtki.new("SpanTreeLayoutStrategy")
             self.rotX = 180
 
         else:
@@ -4144,7 +4144,7 @@ class DirectedGraph(Assembly):
         self.gl.SetInputData(self.mdg)
         self.gl.Update()
 
-        gr2poly = vtk.new("GraphToPolyData")
+        gr2poly = vtki.new("GraphToPolyData")
         gr2poly.EdgeGlyphOutputOn()
         gr2poly.SetEdgeGlyphPosition(self.edge_glyph_position)
         gr2poly.SetInputData(self.gl.GetOutput())
@@ -4173,11 +4173,11 @@ class DirectedGraph(Assembly):
         # Use Glyph3D to repeat the glyph on all edges.
         arrows = None
         if self.arrow_scale:
-            arrow_source = vtk.new("GlyphSource2D")
+            arrow_source = vtki.new("GlyphSource2D")
             arrow_source.SetGlyphTypeToEdgeArrow()
             arrow_source.SetScale(self.arrow_scale)
             arrow_source.Update()
-            arrow_glyph = vtk.vtkGlyph3D()
+            arrow_glyph = vtki.vtkGlyph3D()
             arrow_glyph.SetInputData(0, gr2poly.GetOutput(1))
             arrow_glyph.SetInputData(1, arrow_source.GetOutput())
             arrow_glyph.Update()

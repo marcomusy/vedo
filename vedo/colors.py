@@ -5,7 +5,7 @@ import sys
 import time
 
 import numpy as np
-import vedo.vtkclasses as vtk
+import vedo.vtkclasses as vtki
 import vedo
 
 __docformat__ = "google"
@@ -796,7 +796,7 @@ def get_color(rgb=None, hsv=None):
             return tuple(rgbh)
 
         else:  # vtk name color
-            namedColors = vtk.new("NamedColors")
+            namedColors = vtki.new("NamedColors")
             rgba = [0, 0, 0, 0]
             namedColors.GetColor(c, rgba)
             return (rgba[0] / 255.0, rgba[1] / 255.0, rgba[2] / 255.0)
@@ -823,7 +823,7 @@ def get_color_name(c):
 
 def hsv2rgb(hsv):
     """Convert HSV to RGB color."""
-    ma = vtk.new("Math")
+    ma = vtki.new("Math")
     rgb = [0, 0, 0]
     ma.HSVToRGB(hsv, rgb)
     return rgb
@@ -831,7 +831,7 @@ def hsv2rgb(hsv):
 
 def rgb2hsv(rgb):
     """Convert RGB to HSV color."""
-    ma = vtk.new("Math")
+    ma = vtki.new("Math")
     hsv = [0, 0, 0]
     ma.RGBToHSV(get_color(rgb), hsv)
     return hsv
@@ -1022,7 +1022,7 @@ def build_lut(
 
             ![](https://vedo.embl.es/images/basic/mesh_lut.png)
     """
-    ctf = vtk.new("ColorTransferFunction")
+    ctf = vtki.new("ColorTransferFunction")
     ctf.SetColorSpaceToRGB()
     ctf.SetScaleToLinear()
 
@@ -1040,7 +1040,7 @@ def build_lut(
 
     # ncols = 256
     ncols = 4 * len(colorlist)
-    lut = vtk.new("LookupTable")
+    lut = vtki.new("LookupTable")
     lut.SetNumberOfTableValues(ncols)
 
     x0, x1 = ctf.GetRange()  # range of the introduced values

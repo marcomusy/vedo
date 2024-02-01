@@ -4,7 +4,7 @@ import os
 from weakref import ref as weak_ref_to
 import numpy as np
 
-import vedo.vtkclasses as vtk
+import vedo.vtkclasses as vtki
 
 import vedo
 from vedo import colors
@@ -83,7 +83,7 @@ class CommonVisual:
         Consider using `cmap()` or `build_lut()` instead as it allows
         to set the range of the LUT and to use a string name for the color map.
         """
-        _newlut = vtk.vtkLookupTable()
+        _newlut = vtki.vtkLookupTable()
         _newlut.SetNumberOfTableValues(len(arr))
         if len(arr[0]) == 3:
             arr = np.insert(arr, 3, 1, axis=1)
@@ -128,11 +128,11 @@ class CommonVisual:
     def thumbnail(self, zoom=1.25, size=(200, 200), bg="white", azimuth=0, elevation=0, axes=False):
         """Build a thumbnail of the object and return it as an array."""
         # speed is about 20Hz for size=[200,200]
-        ren = vtk.vtkRenderer()
+        ren = vtki.vtkRenderer()
 
         actor = self.actor
         if isinstance(self, vedo.UnstructuredGrid):
-            geo = vtk.new("GeometryFilter")
+            geo = vtki.new("GeometryFilter")
             geo.SetInputData(self.dataset)
             geo.Update()
             actor = vedo.Mesh(geo.GetOutput()).cmap("rainbow").actor
@@ -147,7 +147,7 @@ class CommonVisual:
         cam.Elevation(elevation)
         cam.Azimuth(azimuth)
 
-        ren_win = vtk.vtkRenderWindow()
+        ren_win = vtki.vtkRenderWindow()
         ren_win.SetOffScreenRendering(True)
         ren_win.SetSize(size)
         ren.SetBackground(colors.get_color(bg))
@@ -155,7 +155,7 @@ class CommonVisual:
         ren_win.Render()
 
         nx, ny = ren_win.GetSize()
-        arr = vtk.vtkUnsignedCharArray()
+        arr = vtki.vtkUnsignedCharArray()
         ren_win.GetRGBACharPixelData(0, 0, nx - 1, ny - 1, 0, arr)
         narr = utils.vtk2numpy(arr).T[:3].T.reshape([ny, nx, 3])
         narr = np.ascontiguousarray(np.flip(narr, axis=0))
@@ -282,7 +282,7 @@ class CommonVisual:
             c = (0.9, 0.9, 0.9)
             if np.sum(plt.renderer.GetBackground()) > 1.5:
                 c = (0.1, 0.1, 0.1)
-            if isinstance(self.scalarbar, vtk.vtkActor):
+            if isinstance(self.scalarbar, vtki.vtkActor):
                 plt.renderer.RemoveActor(self.scalarbar)
             elif isinstance(self.scalarbar, vedo.Assembly):
                 for a in self.scalarbar.unpack():
@@ -519,7 +519,7 @@ class CommonVisual:
 
 
 ########################################################################################
-class Actor2D(vtk.vtkActor2D):
+class Actor2D(vtki.vtkActor2D):
     """Wrapping of `vtkActor2D`."""
 
     def __init__(self):
@@ -836,8 +836,8 @@ class PointsVisual(CommonVisual):
             else:
                 size = 350 / msiz
 
-        tp = vtk.new("TransformPolyDataFilter")
-        transform = vtk.vtkTransform()
+        tp = vtki.new("TransformPolyDataFilter")
+        transform = vtki.vtkTransform()
         transform.Scale(size, size, size)
         if len(offset) == 0:
             offset = self.pos()
@@ -856,7 +856,7 @@ class PointsVisual(CommonVisual):
 
         act2d = Actor2D()
         act2d.dataset = poly
-        mapper2d = vtk.new("PolyDataMapper2D")
+        mapper2d = vtki.new("PolyDataMapper2D")
         mapper2d.SetInputData(poly)
         mapper2d.SetColorMode(cm)
         mapper2d.SetLookupTable(lut)
@@ -880,7 +880,7 @@ class PointsVisual(CommonVisual):
         """
         Copy properties from another ``Points`` object.
         """
-        pr = vtk.vtkProperty()
+        pr = vtki.vtkProperty()
         try:
             sp = source.properties
             mp = source.mapper
@@ -898,7 +898,7 @@ class PointsVisual(CommonVisual):
         self.properties = pr
 
         if self.actor.GetBackfaceProperty():
-            bfpr = vtk.vtkProperty()
+            bfpr = vtki.vtkProperty()
             bfpr.DeepCopy(sa.GetBackfaceProperty())
             self.actor.SetBackfaceProperty(bfpr)
             self.properties_backface = bfpr
@@ -1347,7 +1347,7 @@ class PointsVisual(CommonVisual):
             data.AddArray(arr)
             data.Modified()
 
-        elif isinstance(input_array, vtk.vtkArray):  # if a vtkArray is passed
+        elif isinstance(input_array, vtki.vtkArray):  # if a vtkArray is passed
             arr = input_array
             data.AddArray(arr)
             data.Modified()
@@ -1381,11 +1381,11 @@ class PointsVisual(CommonVisual):
             alpha = np.interp(v, xp, alpha)
 
         ########################### build the look-up table
-        if isinstance(input_cmap, vtk.vtkLookupTable):  # vtkLookupTable
+        if isinstance(input_cmap, vtki.vtkLookupTable):  # vtkLookupTable
             lut = input_cmap
 
         elif utils.is_sequence(input_cmap):  # manual sequence of colors
-            lut = vtk.vtkLookupTable()
+            lut = vtki.vtkLookupTable()
             if logscale:
                 lut.SetScaleToLog10()
             lut.SetRange(vmin, vmax)
@@ -1399,7 +1399,7 @@ class PointsVisual(CommonVisual):
 
         else:  
             # assume string cmap name OR matplotlib.colors.LinearSegmentedColormap
-            lut = vtk.vtkLookupTable()
+            lut = vtki.vtkLookupTable()
             if logscale:
                 lut.SetScaleToLog10()
             lut.SetVectorModeToMagnitude()
@@ -1728,7 +1728,7 @@ class PointsVisual(CommonVisual):
             return None
 
         ratio = int(ratio+0.5)
-        tapp = vtk.new("AppendPolyData")
+        tapp = vtki.new("AppendPolyData")
         has_inputs = False
 
         for i, e in enumerate(elems):
@@ -1747,7 +1747,7 @@ class PointsVisual(CommonVisual):
                 continue
 
             if font == "VTK":
-                tx = vtk.new("VectorText")
+                tx = vtki.new("VectorText")
                 tx.SetText(txt_lab)
                 tx.Update()
                 tx_poly = tx.GetOutput()
@@ -1757,7 +1757,7 @@ class PointsVisual(CommonVisual):
             if tx_poly.GetNumberOfPoints() == 0:
                 continue  ######################
 
-            T = vtk.vtkTransform()
+            T = vtki.vtkTransform()
             T.PostMultiply()
             if italic:
                 T.Concatenate([1, 0.2, 0, 0,
@@ -1783,7 +1783,7 @@ class PointsVisual(CommonVisual):
                 if zrot: T.RotateZ(zrot)
             T.Scale(scale, scale, scale)
             T.Translate(e)
-            tf = vtk.new("TransformPolyDataFilter")
+            tf = vtki.new("TransformPolyDataFilter")
             tf.SetInputData(tx_poly)
             tf.SetTransform(T)
             tf.Update()
@@ -1794,7 +1794,7 @@ class PointsVisual(CommonVisual):
             tapp.Update()
             lpoly = tapp.GetOutput()
         else:
-            lpoly = vtk.vtkPolyData()
+            lpoly = vtki.vtkPolyData()
         ids = vedo.mesh.Mesh(lpoly, c=c, alpha=alpha)
         ids.properties.LightingOff()
         ids.actor.PickableOff()
@@ -1872,7 +1872,7 @@ class PointsVisual(CommonVisual):
                 vedo.logger.error(f"In labels2d: point array {content} does not exist.")
                 return None
 
-        mp = vtk.new("LabeledDataMapper")
+        mp = vtki.new("LabeledDataMapper")
 
         if content == "id":
             mp.SetLabelModeToLabelIds()
@@ -1915,7 +1915,7 @@ class PointsVisual(CommonVisual):
             pr.SetBackgroundOpacity(alpha)
 
         mp.SetInputData(poly)
-        a2d = vtk.vtkActor2D()
+        a2d = vtki.vtkActor2D()
         a2d.PickableOff()
         a2d.SetMapper(mp)
         return a2d
@@ -2229,11 +2229,11 @@ class PointsVisual(CommonVisual):
             pt = [(x0 + x1) / 2, (y0 + y1) / 2, z1]
             point = self.closest_point(pt)
 
-        capt = vtk.vtkCaptionActor2D()
+        capt = vtki.vtkCaptionActor2D()
         capt.SetAttachmentPoint(point)
         capt.SetBorder(True)
         capt.SetLeader(True)
-        sph = vtk.new("SphereSource")
+        sph = vtki.new("SphereSource")
         sph.Update()
         capt.SetLeaderGlyphData(sph.GetOutput())
         capt.SetMaximumLeaderGlyphSize(5)
@@ -2295,7 +2295,7 @@ class MeshVisual(PointsVisual):
             except AttributeError:
                 return self
 
-        factor = vtk.vtkFollower()
+        factor = vtki.vtkFollower()
         factor.SetMapper(self.mapper)
         factor.SetProperty(self.properties)
         factor.SetBackfaceProperty(self.actor.GetBackfaceProperty())
@@ -2312,7 +2312,7 @@ class MeshVisual(PointsVisual):
 
         factor.PickableOff()
 
-        if isinstance(camera, vtk.vtkCamera):
+        if isinstance(camera, vtki.vtkCamera):
             factor.SetCamera(camera)
         else:
             plt = vedo.plotter_instance
@@ -2375,7 +2375,7 @@ class MeshVisual(PointsVisual):
             return self
 
         if not back_prop:
-            back_prop = vtk.vtkProperty()
+            back_prop = vtki.vtkProperty()
 
         back_prop.SetDiffuseColor(colors.get_color(bc))
         back_prop.SetOpacity(self.properties.GetOpacity())
@@ -2468,19 +2468,19 @@ class MeshVisual(PointsVisual):
             pd.GetPointData().Modified()
             return self  ######################################
 
-        if isinstance(tname, vtk.vtkTexture):
+        if isinstance(tname, vtki.vtkTexture):
             tu = tname
 
         elif isinstance(tname, vedo.Image):
-            tu = vtk.vtkTexture()
+            tu = vtki.vtkTexture()
             out_img = tname.dataset
 
         elif utils.is_sequence(tname):
-            tu = vtk.vtkTexture()
+            tu = vtki.vtkTexture()
             out_img = vedo.image._get_img(tname)
 
         elif isinstance(tname, str):
-            tu = vtk.vtkTexture()
+            tu = vtki.vtkTexture()
 
             if "https://" in tname:
                 try:
@@ -2498,11 +2498,11 @@ class MeshVisual(PointsVisual):
 
             fnl = fn.lower()
             if ".jpg" in fnl or ".jpeg" in fnl:
-                reader = vtk.new("JPEGReader")
+                reader = vtki.new("JPEGReader")
             elif ".png" in fnl:
-                reader = vtk.new("PNGReader")
+                reader = vtki.new("PNGReader")
             elif ".bmp" in fnl:
-                reader = vtk.new("BMPReader")
+                reader = vtki.new("BMPReader")
             else:
                 vedo.logger.error("in texture() supported files are only PNG, BMP or JPG")
                 return self
@@ -2557,7 +2557,7 @@ class MeshVisual(PointsVisual):
 
             else:
                 # last resource is automatic mapping
-                tmapper = vtk.new("TextureMapToPlane")
+                tmapper = vtki.new("TextureMapToPlane")
                 tmapper.AutomaticPlaneGenerationOn()
                 tmapper.SetInputData(pd)
                 tmapper.Update()
@@ -2719,8 +2719,8 @@ class VolumeVisual(CommonVisual):
             `volume.mask()`
         """
         ghost_mask = np.zeros(self.ncells, dtype=np.uint8)
-        ghost_mask[ids] = vtk.vtkDataSetAttributes.HIDDENCELL
-        name = vtk.vtkDataSetAttributes.GhostArrayName()
+        ghost_mask[ids] = vtki.vtkDataSetAttributes.HIDDENCELL
+        name = vtki.vtkDataSetAttributes.GhostArrayName()
         garr = utils.numpy2vtk(ghost_mask, name=name, dtype=np.uint8)
         self.dataset.GetCellData().AddArray(garr)
         self.dataset.GetCellData().Modified()
@@ -2946,7 +2946,7 @@ class LightKit:
     """
     def __init__(self, key=(), fill=(), back=(), head=(), maintain_luminance=False):
 
-        self.lightkit = vtk.new("LightKit")
+        self.lightkit = vtki.new("LightKit")
         self.lightkit.SetMaintainLuminance(maintain_luminance)
         self.key  = dict(key)
         self.head = dict(head)

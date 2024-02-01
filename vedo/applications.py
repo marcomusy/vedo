@@ -3,7 +3,7 @@
 import os
 import numpy as np
 
-import vedo.vtkclasses as vtk
+import vedo.vtkclasses as vtki
 
 import vedo
 from vedo.colors import color_map, get_color
@@ -636,10 +636,10 @@ class Slicer2DPlotter(Plotter):
         orig_volume = vol.clone(deep=False)
         self.volume = vol
 
-        self.volume.actor = vtk.new("ImageSlice")
+        self.volume.actor = vtki.new("ImageSlice")
         self.volume.properties = self.volume.actor.GetProperty()
 
-        self.volume.mapper = vtk.new("ImageResliceMapper")
+        self.volume.mapper = vtki.new("ImageResliceMapper")
         self.volume.mapper.SliceFacesCameraOn()
         self.volume.mapper.SliceAtFocalPointOn()
         self.volume.mapper.SetAutoAdjustImageQuality(False)
@@ -740,7 +740,7 @@ class Slicer2DPlotter(Plotter):
         """
         if lut is None and self.lut:
             self.volume.properties.SetLookupTable(self.lut)
-        elif isinstance(lut, vtk.vtkLookupTable):
+        elif isinstance(lut, vtki.vtkLookupTable):
             self.volume.properties.SetLookupTable(lut)
         elif lut == "bw":
             self.volume.properties.SetLookupTable(None)

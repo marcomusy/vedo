@@ -3,7 +3,7 @@
 from weakref import ref as weak_ref_to
 import numpy as np
 
-import vedo.vtkclasses as vtk
+import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 
 import vedo
 from vedo.transformations import LinearTransform
@@ -43,13 +43,13 @@ def procrustes_alignment(sources, rigid=False):
         ![](https://vedo.embl.es/images/basic/align4.png)
     """
 
-    group = vtk.new("MultiBlockDataGroupFilter")
+    group = vtki.new("MultiBlockDataGroupFilter")
     for source in sources:
         if sources[0].npoints != source.npoints:
             vedo.logger.error("sources have different nr of points")
             raise RuntimeError()
         group.AddInputData(source.dataset)
-    procrustes = vtk.new("ProcrustesAlignmentFilter")
+    procrustes = vtki.new("ProcrustesAlignmentFilter")
     procrustes.StartFromCentroidOn()
     procrustes.SetInputConnection(group.GetOutputPort())
     if rigid:
@@ -72,7 +72,7 @@ def procrustes_alignment(sources, rigid=False):
 
 
 #################################################
-class Group(vtk.vtkPropAssembly):
+class Group(vtki.vtkPropAssembly):
     """Form groups of generic objects (not necessarily meshes)."""
 
     def __init__(self, objects=()):
@@ -189,7 +189,7 @@ class Group(vtk.vtkPropAssembly):
 
 
 #################################################
-class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
+class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
     """
     Group many objects and treat them as a single new object.
     """
@@ -234,7 +234,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
 
         scalarbars = []
         for a in self.actors:
-            if isinstance(a, vtk.get_class("Prop3D")): # and a.GetNumberOfPoints():
+            if isinstance(a, vtki.get_class("Prop3D")): # and a.GetNumberOfPoints():
                 self.AddPart(a)
             if hasattr(a, "scalarbar") and a.scalarbar is not None:
                 scalarbars.append(a.scalarbar)
@@ -355,7 +355,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtk.vtkAssembly):
         """
         Add an object to the assembly
         """
-        if isinstance(getattr(obj, "actor", None), vtk.get_class("Prop3D")):
+        if isinstance(getattr(obj, "actor", None), vtki.get_class("Prop3D")):
 
             self.objects.append(obj)
             self.actors.append(obj.actor)

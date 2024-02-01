@@ -4,7 +4,7 @@ import time
 from weakref import ref as weak_ref_to
 import numpy as np
 
-import vedo.vtkclasses as vtk
+import vedo.vtkclasses as vtki
 
 import vedo
 from vedo import colors
@@ -60,7 +60,7 @@ def merge(*meshs, flag=False):
         return None
 
     idarr = []
-    polyapp = vtk.new("AppendPolyData")
+    polyapp = vtki.new("AppendPolyData")
     for i, ob in enumerate(objs):
         polyapp.AddInputData(ob.dataset)
         if flag:
@@ -515,11 +515,11 @@ class Points(PointsVisual, PointAlgorithms):
         self.cell_locator = None
         self.line_locator = None
 
-        self.actor = vtk.vtkActor()
+        self.actor = vtki.vtkActor()
         self.properties = self.actor.GetProperty()
         self.properties_backface = self.actor.GetBackfaceProperty()
-        self.mapper = vtk.new("PolyDataMapper")
-        self.dataset = vtk.vtkPolyData()
+        self.mapper = vtki.new("PolyDataMapper")
+        self.dataset = vtki.vtkPolyData()
         
         # Create weakref so actor can access this object (eg to pick/remove):
         self.actor.retrieve_object = weak_ref_to(self)
@@ -536,18 +536,18 @@ class Points(PointsVisual, PointAlgorithms):
         self.name = "Points"
 
         ######
-        if isinstance(inputobj, vtk.vtkActor):
+        if isinstance(inputobj, vtki.vtkActor):
             self.dataset.DeepCopy(inputobj.GetMapper().GetInput())
-            pr = vtk.vtkProperty()
+            pr = vtki.vtkProperty()
             pr.DeepCopy(inputobj.GetProperty())
             self.actor.SetProperty(pr)
             self.properties = pr
             self.mapper.SetScalarVisibility(inputobj.GetMapper().GetScalarVisibility())
 
-        elif isinstance(inputobj, vtk.vtkPolyData):
+        elif isinstance(inputobj, vtki.vtkPolyData):
             self.dataset = inputobj
             if self.dataset.GetNumberOfCells() == 0:
-                carr = vtk.vtkCellArray()
+                carr = vtki.vtkCellArray()
                 for i in range(self.dataset.GetNumberOfPoints()):
                     carr.InsertNextCell(1)
                     carr.InsertCellPoint(i)
@@ -571,7 +571,7 @@ class Points(PointsVisual, PointAlgorithms):
                 inputobj = inputobj.dataset
             try:
                 vvpts = inputobj.GetPoints()
-                self.dataset = vtk.vtkPolyData()
+                self.dataset = vtki.vtkPolyData()
                 self.dataset.SetPoints(vvpts)
                 for i in range(inputobj.GetPointData().GetNumberOfArrays()):
                     arr = inputobj.GetPointData().GetArray(i)
@@ -638,7 +638,7 @@ class Points(PointsVisual, PointAlgorithms):
         npo, nln = self.dataset.GetNumberOfPolys(), self.dataset.GetNumberOfLines()
         out+= "elements".ljust(14) + f": vertices={npt:,} polygons={npo:,} lines={nln:,}"
         if self.dataset.GetNumberOfStrips():
-            out+= f", triangle_strips={self.dataset.GetNumberOfStrips():,}"
+            out+= f", strips={self.dataset.GetNumberOfStrips():,}"
         out+= "\n"
         if self.dataset.GetNumberOfPieces() > 1:
             out+= "pieces".ljust(14) + ": " + str(self.dataset.GetNumberOfPieces()) + "\n"
@@ -847,7 +847,7 @@ class Points(PointsVisual, PointAlgorithms):
 
                ![](https://vedo.embl.es/images/basic/mirror.png)
         """
-        poly = vtk.vtkPolyData()
+        poly = vtki.vtkPolyData()
         if deep or isinstance(deep, dict): # if a memo object is passed this checks as True
             poly.DeepCopy(self.dataset)
         else:
@@ -890,7 +890,7 @@ class Points(PointsVisual, PointAlgorithms):
                 flip all normals
         """
         poly = self.dataset
-        pcan = vtk.new("PCANormalEstimation")
+        pcan = vtki.new("PCANormalEstimation")
         pcan.SetInputData(poly)
         pcan.SetSampleSize(n)
 
@@ -977,7 +977,7 @@ class Points(PointsVisual, PointAlgorithms):
 
             poly1 = self.dataset
             poly2 = pcloud.dataset
-            df = vtk.new("DistancePolyDataFilter")
+            df = vtki.new("DistancePolyDataFilter")
             df.ComputeSecondDistanceOff()
             df.SetInputData(0, poly1)
             df.SetInputData(1, poly2)
@@ -993,7 +993,7 @@ class Points(PointsVisual, PointAlgorithms):
                 vedo.logger.warning("distance_to() called with signed=True but input object has no polygons")
 
             if not pcloud.point_locator:
-                pcloud.point_locator = vtk.new("PointLocator")
+                pcloud.point_locator = vtki.new("PointLocator")
                 pcloud.point_locator.SetDataSet(pcloud.dataset)
                 pcloud.point_locator.BuildLocator()
 
@@ -1025,7 +1025,7 @@ class Points(PointsVisual, PointAlgorithms):
 
     def clean(self):
         """Clean pointcloud or mesh by removing coincident points."""
-        cpd = vtk.new("CleanPolyData")
+        cpd = vtki.new("CleanPolyData")
         cpd.PointMergingOn()
         cpd.ConvertLinesToPointsOff()
         cpd.ConvertPolysToLinesOff()
@@ -1062,7 +1062,7 @@ class Points(PointsVisual, PointAlgorithms):
             if fraction <= 0:
                 return self
 
-        cpd = vtk.new("CleanPolyData")
+        cpd = vtki.new("CleanPolyData")
         cpd.PointMergingOn()
         cpd.ConvertLinesToPointsOn()
         cpd.ConvertPolysToLinesOn()
@@ -1104,13 +1104,13 @@ class Points(PointsVisual, PointAlgorithms):
         Examples:
             - [mesh_threshold.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_threshold.py)
         """
-        thres = vtk.new("Threshold")
+        thres = vtki.new("Threshold")
         thres.SetInputData(self.dataset)
 
         if on.startswith("c"):
-            asso = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
+            asso = vtki.vtkDataObject.FIELD_ASSOCIATION_CELLS
         else:
-            asso = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
+            asso = vtki.vtkDataObject.FIELD_ASSOCIATION_POINTS
 
         thres.SetInputArrayToProcess(0, 0, 0, asso, scalars)
 
@@ -1134,7 +1134,7 @@ class Points(PointsVisual, PointAlgorithms):
 
         thres.Update()
 
-        gf = vtk.new("GeometryFilter")
+        gf = vtki.new("GeometryFilter")
         gf.SetInputData(thres.GetOutput())
         gf.Update()
         self._update(gf.GetOutput())
@@ -1146,7 +1146,7 @@ class Points(PointsVisual, PointAlgorithms):
         The user should input a value and all {x,y,z} coordinates
         will be quantized to that absolute grain size.
         """
-        qp = vtk.new("QuantizePolyDataPoints")
+        qp = vtki.new("QuantizePolyDataPoints")
         qp.SetInputData(self.dataset)
         qp.SetQFactor(value)
         qp.Update()
@@ -1199,7 +1199,7 @@ class Points(PointsVisual, PointAlgorithms):
 
                 ![](https://vedo.embl.es/images/basic/align2.png)
         """
-        icp = vtk.new("IterativeClosestPointTransform")
+        icp = vtki.new("IterativeClosestPointTransform")
         icp.SetSource(self.dataset)
         icp.SetTarget(target.dataset)
         if invert:
@@ -1228,8 +1228,8 @@ class Points(PointsVisual, PointAlgorithms):
         Example:
             [align6.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/align6.py)
         """
-        lmt = vtk.vtkLandmarkTransform()
-        ss = vtk.vtkPoints()
+        lmt = vtki.vtkLandmarkTransform()
+        ss = vtki.vtkPoints()
         xss0, xss1, yss0, yss1, zss0, zss1 = self.bounds()
         for p in [
             [xss0, yss0, zss0],
@@ -1242,7 +1242,7 @@ class Points(PointsVisual, PointAlgorithms):
             [xss0, yss1, zss1],
         ]:
             ss.InsertNextPoint(p)
-        st = vtk.vtkPoints()
+        st = vtki.vtkPoints()
         xst0, xst1, yst0, yst1, zst0, zst1 = msh.bounds()
         for p in [
             [xst0, yst0, zst0],
@@ -1290,7 +1290,7 @@ class Points(PointsVisual, PointAlgorithms):
         """
 
         if utils.is_sequence(source_landmarks):
-            ss = vtk.vtkPoints()
+            ss = vtki.vtkPoints()
             for p in source_landmarks:
                 ss.InsertNextPoint(p)
         else:
@@ -1299,7 +1299,7 @@ class Points(PointsVisual, PointAlgorithms):
                 source_landmarks = source_landmarks.vertices
 
         if utils.is_sequence(target_landmarks):
-            st = vtk.vtkPoints()
+            st = vtki.vtkPoints()
             for p in target_landmarks:
                 st.InsertNextPoint(p)
         else:
@@ -1319,7 +1319,7 @@ class Points(PointsVisual, PointAlgorithms):
             )
             raise RuntimeError()
 
-        lmt = vtk.vtkLandmarkTransform()
+        lmt = vtki.vtkLandmarkTransform()
         lmt.SetSourceLandmarks(ss)
         lmt.SetTargetLandmarks(st)
         lmt.SetModeToSimilarity()
@@ -1336,11 +1336,11 @@ class Points(PointsVisual, PointAlgorithms):
             cms = source_landmarks.mean(axis=0)
             cmt = target_landmarks.mean(axis=0)
             m = np.linalg.lstsq(source_landmarks - cms, target_landmarks - cmt, rcond=None)[0]
-            M = vtk.vtkMatrix4x4()
+            M = vtki.vtkMatrix4x4()
             for i in range(3):
                 for j in range(3):
                     M.SetElement(j, i, m[i][j])
-            lmt = vtk.vtkTransform()
+            lmt = vtki.vtkTransform()
             lmt.Translate(cmt)
             lmt.Concatenate(M)
             lmt.Translate(-cms)
@@ -1397,7 +1397,7 @@ class Points(PointsVisual, PointAlgorithms):
 
     def flip_normals(self):
         """Flip all normals orientation."""
-        rs = vtk.new("ReverseSense")
+        rs = vtki.new("ReverseSense")
         rs.SetInputData(self.dataset)
         rs.ReverseCellsOff()
         rs.ReverseNormalsOn()
@@ -1426,7 +1426,7 @@ class Points(PointsVisual, PointAlgorithms):
         pts = self.vertices
         n = len(pts)
         ns = (np.random.randn(n, 3) * sigma) * (sz / 100)
-        vpts = vtk.vtkPoints()
+        vpts = vtki.vtkPoints()
         vpts.SetNumberOfPoints(n)
         vpts.SetData(utils.numpy2vtk(pts + ns, dtype=np.float32))
         self.dataset.SetPoints(vpts)
@@ -1472,16 +1472,16 @@ class Points(PointsVisual, PointAlgorithms):
             poly = None
             if not self.point_locator:
                 poly = self.dataset
-                self.point_locator = vtk.new("StaticPointLocator")
+                self.point_locator = vtki.new("StaticPointLocator")
                 self.point_locator.SetDataSet(poly)
                 self.point_locator.BuildLocator()
 
             ##########
             if radius:
-                vtklist = vtk.vtkIdList()
+                vtklist = vtki.vtkIdList()
                 self.point_locator.FindPointsWithinRadius(radius, pt, vtklist)
             elif n > 1:
-                vtklist = vtk.vtkIdList()
+                vtklist = vtki.vtkIdList()
                 self.point_locator.FindClosestNPoints(n, pt, vtklist)
             else:  # n==1 hence return_point_id==True
                 ########
@@ -1513,9 +1513,9 @@ class Points(PointsVisual, PointAlgorithms):
                 # As per Miquel example with limbs the vtkStaticCellLocator doesnt work !!
                 # https://discourse.vtk.org/t/vtkstaticcelllocator-problem-vtk9-0-3/7854/4
                 if vedo.vtk_version[0] >= 9 and vedo.vtk_version[1] > 0:
-                    self.cell_locator = vtk.new("StaticCellLocator")
+                    self.cell_locator = vtki.new("StaticCellLocator")
                 else:
-                    self.cell_locator = vtk.new("CellLocator")
+                    self.cell_locator = vtki.new("CellLocator")
 
                 self.cell_locator.SetDataSet(poly)
                 self.cell_locator.BuildLocator()
@@ -1527,9 +1527,9 @@ class Points(PointsVisual, PointAlgorithms):
                 vedo.printc("Warning: closest_point() with n>1 is not implemented for cells.", c='r')   
  
             trgp = [0, 0, 0]
-            cid = vtk.mutable(0)
-            dist2 = vtk.mutable(0)
-            subid = vtk.mutable(0)
+            cid = vtki.mutable(0)
+            dist2 = vtki.mutable(0)
+            subid = vtki.mutable(0)
             self.cell_locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
 
             if return_cell_id:
@@ -1545,11 +1545,11 @@ class Points(PointsVisual, PointAlgorithms):
         """
         points = self.vertices
         if not self.point_locator:
-            self.point_locator = vtk.new("StaticPointLocator")
+            self.point_locator = vtki.new("StaticPointLocator")
             self.point_locator.SetDataSet(self.dataset)
             self.point_locator.BuildLocator()
         qs = []
-        vtklist = vtk.vtkIdList()
+        vtklist = vtki.vtkIdList()
         vtkpoints = self.dataset.GetPoints()
         for p in points:
             self.point_locator.FindClosestNPoints(2, p, vtklist)
@@ -1585,7 +1585,7 @@ class Points(PointsVisual, PointAlgorithms):
             ```
             ![](https://vedo.embl.es/images/feats/heart.png)
         """
-        hp = vtk.new("HausdorffDistancePointSetFilter")
+        hp = vtki.new("HausdorffDistancePointSetFilter")
         hp.SetInputData(0, self.dataset)
         hp.SetInputData(1, points.dataset)
         hp.SetTargetDistanceMethodToPointToCell()
@@ -1609,11 +1609,11 @@ class Points(PointsVisual, PointAlgorithms):
         """
         # Definition of Chamfer distance may vary, here we use the average
         if not pcloud.point_locator:
-            pcloud.point_locator = vtk.new("PointLocator")
+            pcloud.point_locator = vtki.new("PointLocator")
             pcloud.point_locator.SetDataSet(pcloud.dataset)
             pcloud.point_locator.BuildLocator()
         if not self.point_locator:
-            self.point_locator = vtk.new("PointLocator")
+            self.point_locator = vtki.new("PointLocator")
             self.point_locator.SetDataSet(self.dataset)
             self.point_locator.BuildLocator()
 
@@ -1651,7 +1651,7 @@ class Points(PointsVisual, PointAlgorithms):
 
                 ![](https://vedo.embl.es/images/basic/clustering.png)
         """
-        removal = vtk.new("RadiusOutlierRemoval")
+        removal = vtki.new("RadiusOutlierRemoval")
         removal.SetInputData(self.dataset)
         removal.SetRadius(radius)
         removal.SetNumberOfNeighbors(neighbors)
@@ -1659,7 +1659,7 @@ class Points(PointsVisual, PointAlgorithms):
         removal.Update()
         inputobj = removal.GetOutput()
         if inputobj.GetNumberOfCells() == 0:
-            carr = vtk.vtkCellArray()
+            carr = vtki.vtkCellArray()
             for i in range(inputobj.GetNumberOfPoints()):
                 carr.InsertNextCell(1)
                 carr.InsertCellPoint(i)
@@ -1744,7 +1744,7 @@ class Points(PointsVisual, PointAlgorithms):
             show([[vpts1, h1], [vpts2, h2]], N=2).close()
             ```
         """
-        smooth = vtk.new("PointSmoothingFilter")
+        smooth = vtki.new("PointSmoothingFilter")
         smooth.SetInputData(self.dataset)
         smooth.SetSmoothingModeToUniform()
         smooth.SetNumberOfIterations(iters)
@@ -2150,11 +2150,11 @@ class Points(PointsVisual, PointAlgorithms):
             normal = (0, 0, 1)
             if "-" in s:
                 normal = -np.array(normal)
-        plane = vtk.vtkPlane()
+        plane = vtki.vtkPlane()
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
 
-        clipper = vtk.new("ClipPolyData")
+        clipper = vtki.new("ClipPolyData")
         clipper.SetInputData(self.dataset)
         clipper.SetClipFunction(plane)
         clipper.GenerateClippedOutputOff()
@@ -2184,16 +2184,16 @@ class Points(PointsVisual, PointAlgorithms):
             `cut_with_box()`, `cut_with_cylinder()`, `cut_with_sphere()`
         """
 
-        vpoints = vtk.vtkPoints()
+        vpoints = vtki.vtkPoints()
         for p in utils.make3d(origins):
             vpoints.InsertNextPoint(p)
         normals = utils.make3d(normals)
 
-        planes = vtk.vtkPlanes()
+        planes = vtki.vtkPlanes()
         planes.SetPoints(vpoints)
         planes.SetNormals(utils.numpy2vtk(normals, dtype=float))
 
-        clipper = vtk.new("ClipPolyData")
+        clipper = vtki.new("ClipPolyData")
         clipper.SetInputData(self.dataset)
         clipper.SetInsideOut(invert)
         clipper.SetClipFunction(planes)
@@ -2233,14 +2233,14 @@ class Points(PointsVisual, PointAlgorithms):
         if isinstance(bounds, Points):
             bounds = bounds.bounds()
 
-        box = vtk.new("Box")
+        box = vtki.new("Box")
         if utils.is_sequence(bounds[0]):
             for bs in bounds:
                 box.AddBounds(bs)
         else:
             box.SetBounds(bounds)
 
-        clipper = vtk.new("ClipPolyData")
+        clipper = vtki.new("ClipPolyData")
         clipper.SetInputData(self.dataset)
         clipper.SetClipFunction(box)
         clipper.SetInsideOut(not invert)
@@ -2262,7 +2262,7 @@ class Points(PointsVisual, PointAlgorithms):
         Check out also:
             `cut_with_box()`, `cut_with_plane()`, `cut_with_sphere()`
         """
-        pplane = vtk.new("PolyPlane")
+        pplane = vtki.new("PolyPlane")
         if isinstance(points, Points):
             points = points.vertices.tolist()
 
@@ -2271,21 +2271,21 @@ class Points(PointsVisual, PointAlgorithms):
                 points = points.tolist()
             points.append(points[0])
 
-        vpoints = vtk.vtkPoints()
+        vpoints = vtki.vtkPoints()
         for p in points:
             if len(p) == 2:
                 p = [p[0], p[1], 0.0]
             vpoints.InsertNextPoint(p)
 
         n = len(points)
-        polyline = vtk.new("PolyLine")
+        polyline = vtki.new("PolyLine")
         polyline.Initialize(n, vpoints)
         polyline.GetPointIds().SetNumberOfIds(n)
         for i in range(n):
             polyline.GetPointIds().SetId(i, i)
         pplane.SetPolyLine(polyline)
 
-        clipper = vtk.new("ClipPolyData")
+        clipper = vtki.new("ClipPolyData")
         clipper.SetInputData(self.dataset)
         clipper.SetClipFunction(pplane)
         clipper.SetInsideOut(invert)
@@ -2348,20 +2348,20 @@ class Points(PointsVisual, PointAlgorithms):
             poly = lines.dataset
 
         # if invert: # not working
-        #     rev = vtk.new("ReverseSense")
+        #     rev = vtki.new("ReverseSense")
         #     rev.ReverseCellsOn()
         #     rev.SetInputData(poly)
         #     rev.Update()
         #     poly = rev.GetOutput()
 
         # Build loops from the polyline
-        build_loops = vtk.new("ContourLoopExtraction")
+        build_loops = vtki.new("ContourLoopExtraction")
         build_loops.SetGlobalWarningDisplay(0)
         build_loops.SetInputData(poly)
         build_loops.Update()
         boundary_poly = build_loops.GetOutput()
 
-        ccut = vtk.new("CookieCutter")
+        ccut = vtki.new("CookieCutter")
         ccut.SetInputData(self.dataset)
         ccut.SetLoopsData(boundary_poly)
         ccut.SetPointInterpolationToMeshEdges()
@@ -2410,12 +2410,12 @@ class Points(PointsVisual, PointAlgorithms):
             axis = (0, 1, 0)
         elif "z" in s:
             axis = (0, 0, 1)
-        cyl = vtk.new("Cylinder")
+        cyl = vtki.new("Cylinder")
         cyl.SetCenter(center)
         cyl.SetAxis(axis[0], axis[1], axis[2])
         cyl.SetRadius(r)
 
-        clipper = vtk.new("ClipPolyData")
+        clipper = vtki.new("ClipPolyData")
         clipper.SetInputData(self.dataset)
         clipper.SetClipFunction(cyl)
         clipper.SetInsideOut(not invert)
@@ -2452,11 +2452,11 @@ class Points(PointsVisual, PointAlgorithms):
         Check out also:
             `cut_with_box()`, `cut_with_plane()`, `cut_with_cylinder()`
         """
-        sph = vtk.new("Sphere")
+        sph = vtki.new("Sphere")
         sph.SetCenter(center)
         sph.SetRadius(r)
 
-        clipper = vtk.new("ClipPolyData")
+        clipper = vtki.new("ClipPolyData")
         clipper.SetInputData(self.dataset)
         clipper.SetClipFunction(sph)
         clipper.SetInsideOut(not invert)
@@ -2496,12 +2496,12 @@ class Points(PointsVisual, PointAlgorithms):
         poly = self.dataset
 
         # Create an array to hold distance information
-        signed_distances = vtk.vtkFloatArray()
+        signed_distances = vtki.vtkFloatArray()
         signed_distances.SetNumberOfComponents(1)
         signed_distances.SetName("SignedDistances")
 
         # implicit function that will be used to slice the mesh
-        ippd = vtk.new("ImplicitPolyDataDistance")
+        ippd = vtki.new("ImplicitPolyDataDistance")
         ippd.SetInput(polymesh)
 
         # Evaluate the signed distance function at all of the grid points
@@ -2517,7 +2517,7 @@ class Points(PointsVisual, PointAlgorithms):
         poly.GetPointData().AddArray(signed_distances)
         poly.GetPointData().SetActiveScalars("SignedDistances")
 
-        clipper = vtk.new("ClipPolyData")
+        clipper = vtki.new("ClipPolyData")
         clipper.SetInputData(poly)
         clipper.SetInsideOut(not invert)
         clipper.SetGenerateClippedOutput(keep)
@@ -2542,7 +2542,7 @@ class Points(PointsVisual, PointAlgorithms):
                 cutoff = vedo.Mesh(kpoly)
             else:
                 cutoff = vedo.Points(kpoly)
-            cutoff.properties = vtk.vtkProperty()
+            cutoff.properties = vtki.vtkProperty()
             cutoff.properties.DeepCopy(self.properties)
             cutoff.actor.SetProperty(cutoff.properties)
             cutoff.c("k5").alpha(0.2)
@@ -2580,28 +2580,28 @@ class Points(PointsVisual, PointAlgorithms):
             points = points.vertices
         else:
             parents = [self]
-            vpts = vtk.vtkPoints()
+            vpts = vtki.vtkPoints()
             points = utils.make3d(points)
             for p in points:
                 vpts.InsertNextPoint(p)
 
         if "cell" in on:
-            ippd = vtk.new("ImplicitSelectionLoop")
+            ippd = vtki.new("ImplicitSelectionLoop")
             ippd.SetLoop(vpts)
             ippd.AutomaticNormalGenerationOn()
-            clipper = vtk.new("ExtractPolyDataGeometry")
+            clipper = vtki.new("ExtractPolyDataGeometry")
             clipper.SetInputData(self.dataset)
             clipper.SetImplicitFunction(ippd)
             clipper.SetExtractInside(not invert)
             clipper.SetExtractBoundaryCells(include_boundary)
         else:
-            spol = vtk.new("SelectPolyData")
+            spol = vtki.new("SelectPolyData")
             spol.SetLoop(vpts)
             spol.GenerateSelectionScalarsOn()
             spol.GenerateUnselectedOutputOff()
             spol.SetInputData(self.dataset)
             spol.Update()
-            clipper = vtk.new("ClipPolyData")
+            clipper = vtki.new("ClipPolyData")
             clipper.SetInputData(spol.GetOutput())
             clipper.SetInsideOut(not invert)
             clipper.SetValue(0.0)
@@ -2638,7 +2638,7 @@ class Points(PointsVisual, PointAlgorithms):
         """
         if name:
             self.pointdata.select(name)
-        clipper = vtk.new("ClipPolyData")
+        clipper = vtki.new("ClipPolyData")
         clipper.SetInputData(self.dataset)
         clipper.SetValue(value)
         clipper.GenerateClippedOutputOff()
@@ -2675,7 +2675,7 @@ class Points(PointsVisual, PointAlgorithms):
             ```
             ![](https://user-images.githubusercontent.com/32848391/57081955-0ef1e800-6cf6-11e9-99de-b45220939bc9.png)
         """
-        cu = vtk.new("Box")
+        cu = vtki.new("Box")
         pos = np.array(self.pos())
         x0, x1, y0, y1, z0, z1 = self.bounds()
         x0, y0, z0 = [x0, y0, z0] - pos
@@ -2698,7 +2698,7 @@ class Points(PointsVisual, PointAlgorithms):
 
         cu.SetBounds(bounds)
 
-        clipper = vtk.new("ClipPolyData")
+        clipper = vtki.new("ClipPolyData")
         clipper.SetInputData(self.dataset)
         clipper.SetClipFunction(cu)
         clipper.InsideOutOn()
@@ -2740,14 +2740,14 @@ class Points(PointsVisual, PointAlgorithms):
         if not maxdist:
             maxdist = self.diagonal_size() / 2
 
-        imp = vtk.new("ImplicitModeller")
+        imp = vtki.new("ImplicitModeller")
         imp.SetInputData(self.dataset)
         imp.SetSampleDimensions(res)
         if maxdist:
             imp.SetMaximumDistance(maxdist)
         if len(bounds) == 6:
             imp.SetModelBounds(bounds)
-        contour = vtk.new("ContourFilter")
+        contour = vtki.new("ContourFilter")
         contour.SetInputConnection(imp.GetOutputPort())
         contour.SetValue(0, distance)
         contour.Update()
@@ -2929,7 +2929,7 @@ class Points(PointsVisual, PointAlgorithms):
         if not utils.is_sequence(dims):
             dims = (dims, dims, dims)
 
-        sdf = vtk.new("SignedDistance")
+        sdf = vtki.new("SignedDistance")
 
         if len(bounds) == 6:
             sdf.SetBounds(bounds)
@@ -2957,7 +2957,7 @@ class Points(PointsVisual, PointAlgorithms):
         if pd.GetPointData().GetNormals():
             sdf.SetInputData(pd)
         else:
-            normals = vtk.new("PCANormalEstimation")
+            normals = vtki.new("PCANormalEstimation")
             normals.SetInputData(pd)
             if not sample_size:
                 sample_size = int(pd.GetNumberOfPoints() / 50)
@@ -2974,7 +2974,7 @@ class Points(PointsVisual, PointAlgorithms):
         sdf.SetDimensions(dims)
         sdf.Update()
 
-        surface = vtk.new("ExtractSurface")
+        surface = vtki.new("ExtractSurface")
         surface.SetRadius(radius * 0.99)
         surface.SetHoleFilling(hole_filling)
         surface.ComputeNormalsOff()
@@ -3001,7 +3001,7 @@ class Points(PointsVisual, PointAlgorithms):
 
                 ![](https://vedo.embl.es/images/basic/clustering.png)
         """
-        cluster = vtk.new("EuclideanClusterExtraction")
+        cluster = vtki.new("EuclideanClusterExtraction")
         cluster.SetInputData(self.dataset)
         cluster.SetExtractionModeToAllClusters()
         cluster.SetRadius(radius)
@@ -3062,7 +3062,7 @@ class Points(PointsVisual, PointAlgorithms):
                 within this angle threshold (expressed in degrees).
         """
         # https://vtk.org/doc/nightly/html/classvtkConnectedPointsFilter.html
-        cpf = vtk.new("ConnectedPointsFilter")
+        cpf = vtki.new("ConnectedPointsFilter")
         cpf.SetInputData(self.dataset)
         cpf.SetRadius(radius)
         if mode == 0:  # Extract all regions
@@ -3105,7 +3105,7 @@ class Points(PointsVisual, PointAlgorithms):
         """
         if vedo.plotter_instance.renderer:
             poly = self.dataset
-            dc = vtk.new("DistanceToCamera")
+            dc = vtki.new("DistanceToCamera")
             dc.SetInputData(poly)
             dc.SetRenderer(vedo.plotter_instance.renderer)
             dc.Update()
@@ -3141,7 +3141,7 @@ class Points(PointsVisual, PointAlgorithms):
 
                 ![](https://vedo.embl.es/images/pyplot/plot_density3d.png)
         """
-        pdf = vtk.new("PointDensityFilter")
+        pdf = vtki.new("PointDensityFilter")
         pdf.SetInputData(self.dataset)
 
         if not utils.is_sequence(dims):
@@ -3215,19 +3215,19 @@ class Points(PointsVisual, PointAlgorithms):
             It is also recommended that a N closest neighborhood is used.
 
         """
-        src = vtk.new("ProgrammableSource")
+        src = vtki.new("ProgrammableSource")
         opts = self.vertices
 
         def _read_points():
             output = src.GetPolyDataOutput()
-            points = vtk.vtkPoints()
+            points = vtki.vtkPoints()
             for p in opts:
                 points.InsertNextPoint(p)
             output.SetPoints(points)
 
         src.SetExecuteMethod(_read_points)
 
-        dens = vtk.new("DensifyPointCloudFilter")
+        dens = vtki.new("DensifyPointCloudFilter")
         dens.SetInputConnection(src.GetOutputPort())
         dens.InterpolateAttributeDataOn()
         dens.SetTargetDistance(target_distance)
@@ -3285,7 +3285,7 @@ class Points(PointsVisual, PointAlgorithms):
             bounds = self.bounds()
         if maxradius is None:
             maxradius = self.diagonal_size() / 2
-        dist = vtk.new("SignedDistance")
+        dist = vtki.new("SignedDistance")
         dist.SetInputData(self.dataset)
         dist.SetRadius(maxradius)
         dist.SetBounds(bounds)
@@ -3293,7 +3293,7 @@ class Points(PointsVisual, PointAlgorithms):
         dist.Update()
         img = dist.GetOutput()
         if invert:
-            mat = vtk.new("ImageMathematics")
+            mat = vtki.new("ImageMathematics")
             mat.SetInput1Data(img)
             mat.SetOperationToMultiplyByK()
             mat.SetConstantK(-1)
@@ -3351,7 +3351,7 @@ class Points(PointsVisual, PointAlgorithms):
         poly = self.dataset
 
         # Create a probe volume
-        probe = vtk.vtkImageData()
+        probe = vtki.vtkImageData()
         probe.SetDimensions(dims)
         if bounds is None:
             bounds = self.bounds()
@@ -3363,17 +3363,17 @@ class Points(PointsVisual, PointAlgorithms):
         )
 
         if not self.point_locator:
-            self.point_locator = vtk.new("PointLocator")
+            self.point_locator = vtki.new("PointLocator")
             self.point_locator.SetDataSet(poly)
             self.point_locator.BuildLocator()
 
         if kernel == "shepard":
-            kern = vtk.new("ShepardKernel")
+            kern = vtki.new("ShepardKernel")
             kern.SetPowerParameter(2)
         elif kernel == "gaussian":
-            kern = vtk.new("GaussianKernel")
+            kern = vtki.new("GaussianKernel")
         elif kernel == "linear":
-            kern = vtk.new("LinearKernel")
+            kern = vtki.new("LinearKernel")
         else:
             vedo.logger.error("Error in tovolume(), available kernels are:")
             vedo.logger.error(" [shepard, gaussian, linear]")
@@ -3382,7 +3382,7 @@ class Points(PointsVisual, PointAlgorithms):
         if radius:
             kern.SetRadius(radius)
 
-        interpolator = vtk.new("PointInterpolator")
+        interpolator = vtki.new("PointInterpolator")
         interpolator.SetInputData(probe)
         interpolator.SetSourceData(poly)
         interpolator.SetKernel(kern)
@@ -3413,7 +3413,7 @@ class Points(PointsVisual, PointAlgorithms):
     #################################################################################
     def generate_random_data(self):
         """Fill a dataset with random attributes"""
-        gen = vtk.new("RandomAttributeGenerator")
+        gen = vtki.new("RandomAttributeGenerator")
         gen.SetInputData(self.dataset)
         gen.GenerateAllDataOn()
         gen.SetDataTypeToFloat()
@@ -3529,12 +3529,12 @@ class Points(PointsVisual, PointAlgorithms):
             return vedo.mesh.Mesh([plist, tri.simplices])
         ##########################################################
 
-        pd = vtk.vtkPolyData()
-        vpts = vtk.vtkPoints()
+        pd = vtki.vtkPolyData()
+        vpts = vtki.vtkPoints()
         vpts.SetData(utils.numpy2vtk(plist, dtype=np.float32))
         pd.SetPoints(vpts)
 
-        delny = vtk.new("Delaunay2D")
+        delny = vtki.new("Delaunay2D")
         delny.SetInputData(pd)
         if tol:
             delny.SetTolerance(tol)
@@ -3544,13 +3544,13 @@ class Points(PointsVisual, PointAlgorithms):
         if transform:
             delny.SetTransform(transform.T)
         elif mode == "fit":
-            delny.SetProjectionPlaneMode(vtk.get_class("VTK_BEST_FITTING_PLANE"))
+            delny.SetProjectionPlaneMode(vtki.get_class("VTK_BEST_FITTING_PLANE"))
         elif mode == "xy" and boundaries:
-            boundary = vtk.vtkPolyData()
+            boundary = vtki.vtkPolyData()
             boundary.SetPoints(vpts)
-            cell_array = vtk.vtkCellArray()
+            cell_array = vtki.vtkCellArray()
             for b in boundaries:
-                cpolygon = vtk.vtkPolygon()
+                cpolygon = vtki.vtkPolygon()
                 for idd in b:
                     cpolygon.GetPointIds().InsertNextId(idd)
                 cell_array.InsertNextCell(cpolygon)
@@ -3639,15 +3639,15 @@ class Points(PointsVisual, PointAlgorithms):
             m.locator = None
 
         elif method == "vtk":
-            vor = vtk.new("Voronoi2D")
+            vor = vtki.new("Voronoi2D")
             if isinstance(pts, Points):
                 vor.SetInputData(pts)
             else:
                 pts = np.asarray(pts)
                 if pts.shape[1] == 2:
                     pts = np.c_[pts, np.zeros(len(pts))]
-                pd = vtk.vtkPolyData()
-                vpts = vtk.vtkPoints()
+                pd = vtki.vtkPolyData()
+                vpts = vtki.vtkPoints()
                 vpts.SetData(utils.numpy2vtk(pts, dtype=np.float32))
                 pd.SetPoints(vpts)
                 vor.SetInputData(pd)
@@ -3688,7 +3688,7 @@ class Points(PointsVisual, PointAlgorithms):
                 This tolerance is specified as a fraction of the diagonal length of
                 the bounding box of the points.
         """
-        deln = vtk.new("Delaunay3D")
+        deln = vtki.new("Delaunay3D")
         deln.SetInputData(self.dataset)
         deln.SetAlpha(radius)
         deln.AlphaTetsOn()
@@ -3742,7 +3742,7 @@ class Points(PointsVisual, PointAlgorithms):
             ```
             ![](https://vedo.embl.es/images/feats/visible_points.png)
         """
-        svp = vtk.new("SelectVisiblePoints")
+        svp = vtki.new("SelectVisiblePoints")
         svp.SetInputData(self.dataset)
 
         ren = None
@@ -3779,7 +3779,7 @@ class CellCenters(Points):
 
         Check out also `cell_centers()`.
         """
-        vcen = vtk.new("CellCenters")
+        vcen = vtki.new("CellCenters")
         vcen.CopyArraysOn()
         vcen.VertexCellsOn()
         # vcen.ConvertGhostCellsToGhostPointsOn()

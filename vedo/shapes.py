@@ -5,7 +5,7 @@ from functools import lru_cache
 from weakref import ref as weak_ref_to
 
 import numpy as np
-import vedo.vtkclasses as vtk
+import vedo.vtkclasses as vtki
 
 import vedo
 from vedo import settings
@@ -203,7 +203,7 @@ class Glyph(Mesh):
             cmap = c
             c = None
         elif utils.is_sequence(c):  # user passing an array of point colors
-            ucols = vtk.vtkUnsignedCharArray()
+            ucols = vtki.vtkUnsignedCharArray()
             ucols.SetNumberOfComponents(3)
             ucols.SetName("GlyphRGB")
             for col in c:
@@ -213,7 +213,7 @@ class Glyph(Mesh):
             poly.GetPointData().SetActiveScalars("GlyphRGB")
             c = None
 
-        gly = vtk.vtkGlyph3D()
+        gly = vtki.vtkGlyph3D()
         gly.GeneratePointIdsOn()
         gly.SetInputData(poly)
         try:
@@ -248,7 +248,7 @@ class Glyph(Mesh):
                     gly.SetInputArrayToProcess(0, 0, 0, 0, orientation_array)
                     gly.SetVectorModeToUseVector()
             elif utils.is_sequence(orientation_array):  # passing a list
-                varr = vtk.vtkFloatArray()
+                varr = vtki.vtkFloatArray()
                 varr.SetNumberOfComponents(3)
                 varr.SetName("glyph_vectors")
                 for v in orientation_array:
@@ -335,23 +335,23 @@ class Tensors(Mesh):
             src = source.dataset
         else: # is string
             if "ellip" in source:
-                src = vtk.new("SphereSource")
+                src = vtki.new("SphereSource")
                 src.SetPhiResolution(res)
                 src.SetThetaResolution(res*2)
             elif "cyl" in source:
-                src = vtk.new("CylinderSource")
+                src = vtki.new("CylinderSource")
                 src.SetResolution(res)
                 src.CappingOn()
             elif source == "cube":
-                src = vtk.new("CubeSource")
+                src = vtki.new("CubeSource")
             else:
                 vedo.logger.error(f"Unknown source type {source}")
                 raise ValueError()
             src.Update()
             src = src.GetOutput()
 
-        tg = vtk.new("TensorGlyph")
-        if isinstance(domain, vtk.vtkPolyData):
+        tg = vtki.new("TensorGlyph")
+        if isinstance(domain, vtki.vtkPolyData):
             tg.SetInputData(domain)
         else:
             tg.SetInputData(domain.dataset)
@@ -381,7 +381,7 @@ class Tensors(Mesh):
         tg.SetMaxScaleFactor(max_scale)
 
         tg.Update()
-        tgn = vtk.new("PolyDataNormals")
+        tgn = vtki.new("PolyDataNormals")
         tgn.ComputeCellNormalsOff()
         tgn.SetInputData(tg.GetOutput())
         tgn.Update()
@@ -420,7 +420,7 @@ class Line(Mesh):
         except AttributeError:
             pass
 
-        if isinstance(p0, vtk.vtkPolyData):
+        if isinstance(p0, vtki.vtkPolyData):
             poly = p0
             top  = np.array([0,0,1])
             base = np.array([0,0,0])
@@ -428,9 +428,9 @@ class Line(Mesh):
         elif utils.is_sequence(p0[0]): # detect if user is passing a list of points
 
             p0 = utils.make3d(p0)
-            ppoints = vtk.vtkPoints()  # Generate the polyline
+            ppoints = vtki.vtkPoints()  # Generate the polyline
             ppoints.SetData(utils.numpy2vtk(np.asarray(p0), dtype=np.float32))
-            lines = vtk.vtkCellArray()
+            lines = vtki.vtkCellArray()
             npt = len(p0)
             if closed:
                 lines.InsertNextCell(npt + 1)
@@ -440,7 +440,7 @@ class Line(Mesh):
                 lines.InsertCellPoint(i)
             if closed:
                 lines.InsertCellPoint(0)
-            poly = vtk.vtkPolyData()
+            poly = vtki.vtkPolyData()
             poly.SetPoints(ppoints)
             poly.SetLines(lines)
             top = p0[-1]
@@ -451,7 +451,7 @@ class Line(Mesh):
 
         else:  # or just 2 points to link
 
-            line_source = vtk.new("LineSource")
+            line_source = vtki.new("LineSource")
             p0 = utils.make3d(p0)
             p1 = utils.make3d(p1)
             line_source.SetPoint1(p0)
@@ -501,7 +501,7 @@ class Line(Mesh):
             ```
             ![](https://vedo.embl.es/images/feats/line_clone.png)
         """
-        poly = vtk.vtkPolyData()
+        poly = vtki.vtkPolyData()
         if deep:
             poly.DeepCopy(self.dataset)
         else:
@@ -583,9 +583,9 @@ class Line(Mesh):
         stipple = str(stipple) * int(2 * repeats)
         dimension = len(stipple)
 
-        image = vtk.vtkImageData()
+        image = vtki.vtkImageData()
         image.SetDimensions(dimension, 1, 1)
-        image.AllocateScalars(vtk.VTK_UNSIGNED_CHAR, 4)
+        image.AllocateScalars(vtki.VTK_UNSIGNED_CHAR, 4)
         image.SetExtent(0, dimension - 1, 0, 0, 0, 0)
         i_dim = 0
         while i_dim < dimension:
@@ -602,7 +602,7 @@ class Line(Mesh):
         poly = self.dataset
 
         # Create texture coordinates
-        tcoords = vtk.vtkDoubleArray()
+        tcoords = vtki.vtkDoubleArray()
         tcoords.SetName("TCoordsStippledLine")
         tcoords.SetNumberOfComponents(1)
         tcoords.SetNumberOfTuples(poly.GetNumberOfPoints())
@@ -610,7 +610,7 @@ class Line(Mesh):
             tcoords.SetTypedTuple(i, [i / 2])
         poly.GetPointData().SetTCoords(tcoords)
         poly.GetPointData().Modified()
-        texture = vtk.vtkTexture()
+        texture = vtki.vtkTexture()
         texture.SetInputData(image)
         texture.InterpolateOff()
         texture.RepeatOn()
@@ -723,7 +723,7 @@ class Line(Mesh):
             ```
             ![](https://vedo.embl.es/images/feats/line_plot_scalar.png)
         """
-        ap = vtk.new("ArcPlotter")
+        ap = vtki.new("ArcPlotter")
         ap.SetInputData(self.dataset)
         ap.SetCamera(camera)
         ap.SetRadius(radius)
@@ -759,12 +759,12 @@ class Line(Mesh):
         rows = line.GetNumberOfPoints()
 
         spacing = 1 / res
-        surface = vtk.vtkPolyData()
+        surface = vtki.vtkPolyData()
 
         res += 1
         npts = rows * res
         npolys = (rows - 1) * (res - 1)
-        points = vtk.vtkPoints()
+        points = vtki.vtkPoints()
         points.Allocate(npts)
 
         cnt = 0
@@ -780,7 +780,7 @@ class Line(Mesh):
                 cnt += 1
 
         # Generate the quads
-        polys = vtk.vtkCellArray()
+        polys = vtki.vtkCellArray()
         polys.Allocate(npolys * 4)
         pts = [0, 0, 0, 0]
         for row in range(rows - 1):
@@ -824,9 +824,9 @@ class DashedLine(Mesh):
             lw : (int)
                 line width in pixels
         """
-        if isinstance(p1, vtk.vtkActor):
+        if isinstance(p1, vtki.vtkActor):
             p1 = p1.GetPosition()
-            if isinstance(p0, vtk.vtkActor):
+            if isinstance(p0, vtki.vtkActor):
                 p0 = p0.GetPosition()
         if isinstance(p0, Points):
             p0 = p0.vertices
@@ -861,7 +861,7 @@ class DashedLine(Mesh):
         xmx = np.max(listp, axis=0)
         dlen = np.linalg.norm(xmx - xmn) * np.clip(spacing, 0.01, 1.0) / 10
         if not dlen:
-            super().__init__(vtk.vtkPolyData(), c, alpha)
+            super().__init__(vtki.vtkPolyData(), c, alpha)
             self.name = "DashedLine (void)"
             return
 
@@ -887,12 +887,12 @@ class DashedLine(Mesh):
                     break
                 qs.append(qi)
 
-        polylns = vtk.new("AppendPolyData")
+        polylns = vtki.new("AppendPolyData")
         for i, q1 in enumerate(qs):
             if not i % 2:
                 continue
             q0 = qs[i - 1]
-            line_source = vtk.new("LineSource")
+            line_source = vtki.new("LineSource")
             line_source.SetPoint1(q0)
             line_source.SetPoint2(q1)
             line_source.Update()
@@ -988,17 +988,17 @@ class RoundedLine(Mesh):
 
         ptsnew = _getpts(pts) + _getpts(pts, revd=True)
 
-        ppoints = vtk.vtkPoints()  # Generate the polyline
+        ppoints = vtki.vtkPoints()  # Generate the polyline
         ppoints.SetData(utils.numpy2vtk(np.asarray(ptsnew), dtype=np.float32))
-        lines = vtk.vtkCellArray()
+        lines = vtki.vtkCellArray()
         npt = len(ptsnew)
         lines.InsertNextCell(npt)
         for i in range(npt):
             lines.InsertCellPoint(i)
-        poly = vtk.vtkPolyData()
+        poly = vtki.vtkPolyData()
         poly.SetPoints(ppoints)
         poly.SetLines(lines)
-        vct = vtk.new("ContourTriangulator")
+        vct = vtki.new("ContourTriangulator")
         vct.SetInputData(poly)
         vct.Update()
 
@@ -1041,7 +1041,7 @@ class Lines(Mesh):
             ![](https://user-images.githubusercontent.com/32848391/52503049-ac9cb600-2be4-11e9-86af-72a538af14ef.png)
         """
 
-        if isinstance(start_pts, vtk.vtkPolyData):########
+        if isinstance(start_pts, vtki.vtkPolyData):########
             super().__init__(start_pts, c, alpha)
             self.lw(lw).lighting("off")
             self.name = "Lines"
@@ -1049,7 +1049,7 @@ class Lines(Mesh):
 
         if utils.is_sequence(start_pts) and len(start_pts)>1 and isinstance(start_pts[0], Line):
             # passing a list of Line, see tests/issues/issue_950.py
-            polylns = vtk.new("AppendPolyData")
+            polylns = vtki.new("AppendPolyData")
             for ln in start_pts:
                 polylns.AddInputData(ln.dataset)
             polylns.Update()
@@ -1070,12 +1070,12 @@ class Lines(Mesh):
         if end_pts is not None:
             start_pts = np.stack((start_pts, end_pts), axis=1)
 
-        polylns = vtk.new("AppendPolyData")
+        polylns = vtki.new("AppendPolyData")
 
         if not utils.is_ragged(start_pts):
 
             for twopts in start_pts:
-                line_source = vtk.new("LineSource")
+                line_source = vtki.new("LineSource")
                 line_source.SetResolution(res)
                 if len(twopts[0]) == 2:
                     line_source.SetPoint1(twopts[0][0], twopts[0][1], 0.0)
@@ -1096,17 +1096,17 @@ class Lines(Mesh):
 
         else:
 
-            polylns = vtk.new("AppendPolyData")
+            polylns = vtki.new("AppendPolyData")
             for t in start_pts:
                 t = utils.make3d(t)
-                ppoints = vtk.vtkPoints()  # Generate the polyline
+                ppoints = vtki.vtkPoints()  # Generate the polyline
                 ppoints.SetData(utils.numpy2vtk(t, dtype=np.float32))
-                lines = vtk.vtkCellArray()
+                lines = vtki.vtkCellArray()
                 npt = len(t)
                 lines.InsertNextCell(npt)
                 for i in range(npt):
                     lines.InsertCellPoint(i)
-                poly = vtk.vtkPolyData()
+                poly = vtki.vtkPolyData()
                 poly.SetPoints(ppoints)
                 poly.SetLines(lines)
                 polylns.AddInputData(poly)
@@ -1249,7 +1249,7 @@ class KSpline(Line):
 
         points = utils.make3d(points).astype(float)
 
-        vtkKochanekSpline = vtk.get_class("KochanekSpline")
+        vtkKochanekSpline = vtki.get_class("KochanekSpline")
         xspline = vtkKochanekSpline()
         yspline = vtkKochanekSpline()
         zspline = vtkKochanekSpline()
@@ -1316,7 +1316,7 @@ class CSpline(Line):
 
         points = utils.make3d(points).astype(float)
 
-        vtkCardinalSpline = vtk.get_class("CardinalSpline")
+        vtkCardinalSpline = vtki.get_class("CardinalSpline")
         xspline = vtkCardinalSpline()
         yspline = vtkCardinalSpline()
         zspline = vtkCardinalSpline()
@@ -1412,22 +1412,22 @@ class NormalLines(Mesh):
         poly = msh.clone().compute_normals().dataset
 
         if "cell" in on:
-            centers = vtk.new("CellCenters")
+            centers = vtki.new("CellCenters")
             centers.SetInputData(poly)
             centers.Update()
             poly = centers.GetOutput()
 
-        mask_pts = vtk.new("MaskPoints")
+        mask_pts = vtki.new("MaskPoints")
         mask_pts.SetInputData(poly)
         mask_pts.SetOnRatio(ratio)
         mask_pts.RandomModeOff()
         mask_pts.Update()
 
-        ln = vtk.new("LineSource")
+        ln = vtki.new("LineSource")
         ln.SetPoint1(0, 0, 0)
         ln.SetPoint2(1, 0, 0)
         ln.Update()
-        glyph = vtk.vtkGlyph3D()
+        glyph = vtki.vtkGlyph3D()
         glyph.SetSourceData(ln.GetOutput())
         glyph.SetInputData(mask_pts.GetOutput())
         glyph.SetVectorModeToUseNormal()
@@ -1441,7 +1441,7 @@ class NormalLines(Mesh):
         super().__init__(glyph.GetOutput())
 
         self.actor.PickableOff()
-        prop = vtk.vtkProperty()
+        prop = vtki.vtkProperty()
         prop.DeepCopy(msh.properties)
         self.actor.SetProperty(prop)
         self.properties = prop
@@ -1472,17 +1472,17 @@ class Tube(Mesh):
                 ![](https://vedo.embl.es/images/basic/tube.png)
         """
         if utils.is_sequence(points):
-            vpoints = vtk.vtkPoints()
+            vpoints = vtki.vtkPoints()
             idx = len(points)
             for p in points:
                 vpoints.InsertNextPoint(p)
-            line = vtk.new("PolyLine")
+            line = vtki.new("PolyLine")
             line.GetPointIds().SetNumberOfIds(idx)
             for i in range(idx):
                 line.GetPointIds().SetId(i, i)
-            lines = vtk.vtkCellArray()
+            lines = vtki.vtkCellArray()
             lines.InsertNextCell(line)
-            polyln = vtk.vtkPolyData()
+            polyln = vtki.vtkPolyData()
             polyln.SetPoints(vpoints)
             polyln.SetLines(lines)            
             self.base = np.asarray(points[0], dtype=float)
@@ -1501,7 +1501,7 @@ class Tube(Mesh):
         # bender.Update()
         # polyln = bender.GetOutput()
 
-        tuf = vtk.new("TubeFilter")
+        tuf = vtki.new("TubeFilter")
         tuf.SetCapping(cap)
         tuf.SetNumberOfSides(res)
         tuf.SetInputData(polyln)
@@ -1517,7 +1517,7 @@ class Tube(Mesh):
         usingColScals = False
         if utils.is_sequence(c):
             usingColScals = True
-            cc = vtk.vtkUnsignedCharArray()
+            cc = vtki.vtkUnsignedCharArray()
             cc.SetName("TubeColors")
             cc.SetNumberOfComponents(3)
             cc.SetNumberOfTuples(len(c))
@@ -1634,7 +1634,7 @@ class Tubes(Mesh):
         if plines.GetNumberOfLines() == 0:
             vedo.logger.warning("Tubes(): input Lines is empty.")
 
-        tuf = vtk.new("TubeFilter")
+        tuf = vtki.new("TubeFilter")
         if vary_radius_by_scalar:
             tuf.SetVaryRadiusToVaryRadiusByScalar()
         elif vary_radius_by_vector:
@@ -1705,7 +1705,7 @@ class Ribbon(Mesh):
 
         elif line2 is None:
             #############################################
-            ribbon_filter = vtk.new("RibbonFilter")
+            ribbon_filter = vtki.new("RibbonFilter")
             aline = Line(line1)
             ribbon_filter.SetInputData(aline.dataset)
             if width is None:
@@ -1713,7 +1713,7 @@ class Ribbon(Mesh):
             ribbon_filter.SetWidth(width)
             ribbon_filter.Update()
             # convert triangle strips to polygons
-            tris = vtk.new("TriangleFilter")
+            tris = vtki.new("TriangleFilter")
             tris.SetInputData(ribbon_filter.GetOutput())
             tris.Update()
 
@@ -1739,58 +1739,58 @@ class Ribbon(Mesh):
         if len(line2[0]) == 2:
             line2 = np.c_[line2, np.zeros(len(line2))]
 
-        ppoints1 = vtk.vtkPoints()  # Generate the polyline1
+        ppoints1 = vtki.vtkPoints()  # Generate the polyline1
         ppoints1.SetData(utils.numpy2vtk(line1, dtype=np.float32))
-        lines1 = vtk.vtkCellArray()
+        lines1 = vtki.vtkCellArray()
         lines1.InsertNextCell(len(line1))
         for i in range(len(line1)):
             lines1.InsertCellPoint(i)
-        poly1 = vtk.vtkPolyData()
+        poly1 = vtki.vtkPolyData()
         poly1.SetPoints(ppoints1)
         poly1.SetLines(lines1)
 
-        ppoints2 = vtk.vtkPoints()  # Generate the polyline2
+        ppoints2 = vtki.vtkPoints()  # Generate the polyline2
         ppoints2.SetData(utils.numpy2vtk(line2, dtype=np.float32))
-        lines2 = vtk.vtkCellArray()
+        lines2 = vtki.vtkCellArray()
         lines2.InsertNextCell(len(line2))
         for i in range(len(line2)):
             lines2.InsertCellPoint(i)
-        poly2 = vtk.vtkPolyData()
+        poly2 = vtki.vtkPolyData()
         poly2.SetPoints(ppoints2)
         poly2.SetLines(lines2)
 
         # build the lines
-        lines1 = vtk.vtkCellArray()
+        lines1 = vtki.vtkCellArray()
         lines1.InsertNextCell(poly1.GetNumberOfPoints())
         for i in range(poly1.GetNumberOfPoints()):
             lines1.InsertCellPoint(i)
 
-        polygon1 = vtk.vtkPolyData()
+        polygon1 = vtki.vtkPolyData()
         polygon1.SetPoints(ppoints1)
         polygon1.SetLines(lines1)
 
-        lines2 = vtk.vtkCellArray()
+        lines2 = vtki.vtkCellArray()
         lines2.InsertNextCell(poly2.GetNumberOfPoints())
         for i in range(poly2.GetNumberOfPoints()):
             lines2.InsertCellPoint(i)
 
-        polygon2 = vtk.vtkPolyData()
+        polygon2 = vtki.vtkPolyData()
         polygon2.SetPoints(ppoints2)
         polygon2.SetLines(lines2)
 
-        merged_pd = vtk.new("AppendPolyData")
+        merged_pd = vtki.new("AppendPolyData")
         merged_pd.AddInputData(polygon1)
         merged_pd.AddInputData(polygon2)
         merged_pd.Update()
 
-        rsf = vtk.new("RuledSurfaceFilter")
+        rsf = vtki.new("RuledSurfaceFilter")
         rsf.CloseSurfaceOff()
         rsf.SetRuledMode(mode)
         rsf.SetResolution(res[0], res[1])
         rsf.SetInputData(merged_pd.GetOutput())
         rsf.Update()
         # convert triangle strips to polygons
-        tris = vtk.new("TriangleFilter")
+        tris = vtki.new("TriangleFilter")
         tris.SetInputData(rsf.GetOutput())
         tris.Update()
         out = tris.GetOutput()
@@ -1827,9 +1827,9 @@ class Arrow(Mesh):
         ![](https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestOrientedArrow.png)
         """
         # in case user is passing meshs
-        if isinstance(start_pt, vtk.vtkActor):
+        if isinstance(start_pt, vtki.vtkActor):
             start_pt = start_pt.GetPosition()
-        if isinstance(end_pt, vtk.vtkActor):
+        if isinstance(end_pt, vtki.vtkActor):
             end_pt = end_pt.GetPosition()
 
         axis = np.asarray(end_pt) - np.asarray(start_pt)
@@ -1843,7 +1843,7 @@ class Arrow(Mesh):
         else:
             theta = np.arccos(axis[2])
         phi = np.arctan2(axis[1], axis[0])
-        self.source = vtk.new("ArrowSource")
+        self.source = vtki.new("ArrowSource")
         self.source.SetShaftResolution(res)
         self.source.SetTipResolution(res)
 
@@ -1862,7 +1862,7 @@ class Arrow(Mesh):
 
         self.source.Update()
 
-        t = vtk.vtkTransform()
+        t = vtki.vtkTransform()
         t.Translate(start_pt)
         t.RotateZ(np.rad2deg(phi))
         t.RotateY(np.rad2deg(theta))
@@ -1873,7 +1873,7 @@ class Arrow(Mesh):
         else:
             t.Scale(length, length, length)
 
-        tf = vtk.new("TransformPolyDataFilter")
+        tf = vtki.new("TransformPolyDataFilter")
         tf.SetInputData(self.source.GetOutput())
         tf.SetTransform(t)
         tf.Update()
@@ -1949,7 +1949,7 @@ class Arrows(Glyph):
         start_pts = utils.make3d(start_pts)
         end_pts = utils.make3d(end_pts)
 
-        arr = vtk.new("ArrowSource")
+        arr = vtki.new("ArrowSource")
         arr.SetShaftResolution(res)
         arr.SetTipResolution(res)
 
@@ -2034,9 +2034,9 @@ class Arrow2D(Mesh):
             head_width *= np.sqrt(s)
 
         # in case user is passing meshs
-        if isinstance(start_pt, vtk.vtkActor):
+        if isinstance(start_pt, vtki.vtkActor):
             start_pt = start_pt.GetPosition()
-        if isinstance(end_pt, vtk.vtkActor):
+        if isinstance(end_pt, vtki.vtkActor):
             end_pt = end_pt.GetPosition()
         if len(start_pt) == 2:
             start_pt = [start_pt[0], start_pt[1], 0]
@@ -2072,7 +2072,7 @@ class Arrow2D(Mesh):
             theta = np.arccos(axis[2])
         phi = np.arctan2(axis[1], axis[0])
 
-        t = vtk.vtkTransform()
+        t = vtki.vtkTransform()
         t.Translate(start_pt)
         if phi:
             t.RotateZ(np.rad2deg(phi))
@@ -2081,7 +2081,7 @@ class Arrow2D(Mesh):
         t.RotateY(-90)  # put it along Z
         t.Scale(length, length, length)
 
-        tf = vtk.new("TransformPolyDataFilter")
+        tf = vtki.new("TransformPolyDataFilter")
         tf.SetInputData(poly)
         tf.SetTransform(t)
         tf.Update()
@@ -2384,9 +2384,9 @@ class Disc(Mesh):
             res_r, res_phi = res, 12 * res
 
         if len(angle_range) == 0:
-            ps = vtk.new("DiskSource")
+            ps = vtki.new("DiskSource")
         else:
-            ps = vtk.new("SectorSource")
+            ps = vtki.new("SectorSource")
             ps.SetStartAngle(angle_range[0])
             ps.SetEndAngle(angle_range[1])
 
@@ -2433,7 +2433,7 @@ class Arc(Mesh):
         if point2 is not None and len(point2) == 2:
             point2 = (point2[0], point2[1], 0)
 
-        ar = vtk.new("ArcSource")
+        ar = vtki.new("ArcSource")
         if point2 is not None:
             self.top = point2
             point2 = point2 - np.asarray(point1)
@@ -2558,11 +2558,11 @@ class Sphere(Mesh):
 
         if quads:
             res = max(res, 4)
-            img = vtk.vtkImageData()
+            img = vtki.vtkImageData()
             img.SetDimensions(res - 1, res - 1, res - 1)
             rs = 1.0 / (res - 2)
             img.SetSpacing(rs, rs, rs)
-            gf = vtk.new("GeometryFilter")
+            gf = vtki.new("GeometryFilter")
             gf.SetInputData(img)
             gf.Update()
             super().__init__(gf.GetOutput(), c, alpha)
@@ -2585,7 +2585,7 @@ class Sphere(Mesh):
             else:
                 res_t, res_phi = 2 * res, res
 
-            ss = vtk.new("SphereSource")
+            ss = vtki.new("SphereSource")
             ss.SetRadius(r)
             ss.SetThetaResolution(res_t)
             ss.SetPhiResolution(res_phi)
@@ -2641,7 +2641,7 @@ class Spheres(Mesh):
             vedo.logger.error("Limitation: c and r cannot be both sequences.")
             raise RuntimeError()
 
-        src = vtk.new("SphereSource")
+        src = vtki.new("SphereSource")
         if not risseq:
             src.SetRadius(r)
         if utils.is_sequence(res):
@@ -2653,18 +2653,18 @@ class Spheres(Mesh):
         src.SetPhiResolution(res_phi)
         src.Update()
 
-        psrc = vtk.new("PointSource")
+        psrc = vtki.new("PointSource")
         psrc.SetNumberOfPoints(len(centers))
         psrc.Update()
         pd = psrc.GetOutput()
         vpts = pd.GetPoints()
 
-        glyph = vtk.vtkGlyph3D()
+        glyph = vtki.vtkGlyph3D()
         glyph.SetSourceConnection(src.GetOutputPort())
 
         if cisseq:
             glyph.SetColorModeToColorByScalar()
-            ucols = vtk.vtkUnsignedCharArray()
+            ucols = vtki.vtkUnsignedCharArray()
             ucols.SetNumberOfComponents(3)
             ucols.SetName("Colors")
             for acol in c:
@@ -2710,14 +2710,14 @@ class Earth(Mesh):
 
                 ![](https://vedo.embl.es/images/advanced/geodesic.png)
         """
-        tss = vtk.new("TexturedSphereSource")
+        tss = vtki.new("TexturedSphereSource")
         tss.SetRadius(r)
         tss.SetThetaResolution(72)
         tss.SetPhiResolution(36)
         tss.Update()
         super().__init__(tss.GetOutput(), c="w")
-        atext = vtk.vtkTexture()
-        pnm_reader = vtk.new("JPEGReader")
+        atext = vtki.vtkTexture()
+        pnm_reader = vtki.new("JPEGReader")
         fn = vedo.file_io.download(vedo.dataurl + f"textures/earth{style}.jpg", verbose=False)
         pnm_reader.SetFileName(fn)
         atext.SetInputConnection(pnm_reader.GetOutputPort())
@@ -2770,7 +2770,7 @@ class Ellipsoid(Mesh):
         else:
             res_t, res_phi = 2 * res, res
 
-        elli_source = vtk.new("SphereSource")
+        elli_source = vtki.new("SphereSource")
         elli_source.SetRadius(1)
         elli_source.SetThetaResolution(res_t)
         elli_source.SetPhiResolution(res_phi)
@@ -2921,15 +2921,15 @@ class Grid(Mesh):
             super().__init__([verts, faces], c, alpha)
 
         else:
-            ps = vtk.new("PlaneSource")
+            ps = vtki.new("PlaneSource")
             ps.SetResolution(resx, resy)
             ps.Update()
 
-            t = vtk.vtkTransform()
+            t = vtki.vtkTransform()
             t.Translate(pos)
             t.Scale(sx, sy, 1)
 
-            tf = vtk.new("TransformPolyDataFilter")
+            tf = vtki.new("TransformPolyDataFilter")
             tf.SetInputData(ps.GetOutput())
             tf.SetTransform(t)
             tf.Update()
@@ -2966,14 +2966,14 @@ class Plane(Mesh):
             res : (list)
                 resolution of the plane along x and y
         """
-        if isinstance(pos, vtk.vtkPolyData):
+        if isinstance(pos, vtki.vtkPolyData):
             super().__init__(pos, c, alpha)
             # self.transform = LinearTransform().translate(pos)
 
         else:
-            ps = vtk.new("PlaneSource")
+            ps = vtki.new("PlaneSource")
             ps.SetResolution(res[0], res[1])
-            tri = vtk.new("TriangleFilter")
+            tri = vtki.new("TriangleFilter")
             tri.SetInputConnection(ps.GetOutputPort())
             tri.Update()
             
@@ -3155,7 +3155,7 @@ class Box(Mesh):
 
                 ![](https://vedo.embl.es/images/simulations/50738955-7e891800-11d9-11e9-85cd-02bd4f3f13ea.gif)
         """
-        src = vtk.new("CubeSource")
+        src = vtki.new("CubeSource")
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
@@ -3238,23 +3238,23 @@ class TessellatedBox(Mesh):
                 size of the side of the single quad in the 3 directions
         """
         if utils.is_sequence(n):  # slow
-            img = vtk.vtkImageData()
+            img = vtki.vtkImageData()
             img.SetDimensions(n[0] + 1, n[1] + 1, n[2] + 1)
             img.SetSpacing(spacing)
-            gf = vtk.new("GeometryFilter")
+            gf = vtki.new("GeometryFilter")
             gf.SetInputData(img)
             gf.Update()
             poly = gf.GetOutput()
         else:  # fast
             n -= 1
-            tbs = vtk.new("TessellatedBoxSource")
+            tbs = vtki.new("TessellatedBoxSource")
             tbs.SetLevel(n)
             if len(bounds):
                 tbs.SetBounds(bounds)
             else:
                 tbs.SetBounds(0, n * spacing[0], 0, n * spacing[1], 0, n * spacing[2])
             tbs.QuadsOn()
-            #tbs.SetOutputPointsPrecision(vtk.vtkAlgorithm.SINGLE_PRECISION)
+            #tbs.SetOutputPointsPrecision(vtki.vtkAlgorithm.SINGLE_PRECISION)
             tbs.Update()
             poly = tbs.GetOutput()
         super().__init__(poly, c=c, alpha=alpha)
@@ -3317,17 +3317,17 @@ class Spring(Mesh):
         phi = np.arctan2(diff[1], diff[0])
         sp = Line(pts)
         
-        t = vtk.vtkTransform()
+        t = vtki.vtkTransform()
         t.Translate(start_pt)
         t.RotateZ(np.rad2deg(phi))
         t.RotateY(np.rad2deg(theta))
 
-        tf = vtk.new("TransformPolyDataFilter")
+        tf = vtki.new("TransformPolyDataFilter")
         tf.SetInputData(sp.dataset)
         tf.SetTransform(t)
         tf.Update()
 
-        tuf = vtk.new("TubeFilter")
+        tuf = vtki.new("TubeFilter")
         tuf.SetNumberOfSides(12)
         tuf.CappingOn()
         tuf.SetInputData(tf.GetOutput())
@@ -3379,7 +3379,7 @@ class Cylinder(Mesh):
             base = pos - axis * height / 2
             top = pos + axis * height / 2
 
-        cyl = vtk.new("CylinderSource")
+        cyl = vtki.new("CylinderSource")
         cyl.SetResolution(res)
         cyl.SetRadius(r)
         cyl.SetHeight(height)
@@ -3388,14 +3388,14 @@ class Cylinder(Mesh):
 
         theta = np.arccos(axis[2])
         phi = np.arctan2(axis[1], axis[0])
-        t = vtk.vtkTransform()
+        t = vtki.vtkTransform()
         t.PostMultiply()
         t.RotateX(90)  # put it along Z
         t.RotateY(np.rad2deg(theta))
         t.RotateZ(np.rad2deg(phi))
         t.Translate(pos)
 
-        tf = vtk.new("TransformPolyDataFilter")
+        tf = vtki.new("TransformPolyDataFilter")
         tf.SetInputData(cyl.GetOutput())
         tf.SetTransform(t)
         tf.Update()
@@ -3415,7 +3415,7 @@ class Cone(Mesh):
     def __init__(self, pos=(0, 0, 0), r=1.0, height=3.0, axis=(0, 0, 1),
                  res=48, c="green3", alpha=1.0):
         """Build a cone of specified radius `r` and `height`, centered at `pos`."""
-        con = vtk.new("ConeSource")
+        con = vtki.new("ConeSource")
         con.SetResolution(res)
         con.SetRadius(r)
         con.SetHeight(height)
@@ -3481,10 +3481,10 @@ class Torus(Mesh):
             super().__init__([pts, faces], c, alpha)
 
         else:
-            rs = vtk.new("ParametricTorus")
+            rs = vtki.new("ParametricTorus")
             rs.SetRingRadius(r1)
             rs.SetCrossSectionRadius(r2)
-            pfs = vtk.new("ParametricFunctionSource")
+            pfs = vtki.new("ParametricFunctionSource")
             pfs.SetParametricFunction(rs)
             pfs.SetUResolution(res_u)
             pfs.SetVResolution(res_v)
@@ -3513,16 +3513,16 @@ class Paraboloid(Mesh):
 
         ![](https://user-images.githubusercontent.com/32848391/51211547-260ef480-1916-11e9-95f6-4a677e37e355.png)
         """
-        quadric = vtk.new("Quadric")
+        quadric = vtki.new("Quadric")
         quadric.SetCoefficients(1, 1, 0, 0, 0, 0, 0, 0, height / 4, 0)
         # F(x,y,z) = a0*x^2 + a1*y^2 + a2*z^2
         #         + a3*x*y + a4*y*z + a5*x*z
         #         + a6*x   + a7*y   + a8*z  +a9
-        sample = vtk.new("SampleFunction")
+        sample = vtki.new("SampleFunction")
         sample.SetSampleDimensions(res, res, res)
         sample.SetImplicitFunction(quadric)
 
-        contours = vtk.new("ContourFilter")
+        contours = vtki.new("ContourFilter")
         contours.SetInputConnection(sample.GetOutputPort())
         contours.GenerateValues(1, 0.01, 0.01)
         contours.Update()
@@ -3546,16 +3546,16 @@ class Hyperboloid(Mesh):
         Full volumetric expression is:
             `F(x,y,z)=a_0x^2+a_1y^2+a_2z^2+a_3xy+a_4yz+a_5xz+ a_6x+a_7y+a_8z+a_9`
         """
-        q = vtk.new("Quadric")
+        q = vtki.new("Quadric")
         q.SetCoefficients(2, 2, -1 / a2, 0, 0, 0, 0, 0, 0, 0)
         # F(x,y,z) = a0*x^2 + a1*y^2 + a2*z^2
         #         + a3*x*y + a4*y*z + a5*x*z
         #         + a6*x   + a7*y   + a8*z  +a9
-        sample = vtk.new("SampleFunction")
+        sample = vtki.new("SampleFunction")
         sample.SetSampleDimensions(res, res, res)
         sample.SetImplicitFunction(q)
 
-        contours = vtk.new("ContourFilter")
+        contours = vtki.new("ContourFilter")
         contours.SetInputConnection(sample.GetOutputPort())
         contours.GenerateValues(1, value, value)
         contours.Update()
@@ -3679,9 +3679,9 @@ class Brace(Mesh):
 
                 ![](https://vedo.embl.es/images/pyplot/scatter3.png)
         """
-        if isinstance(q1, vtk.vtkActor):
+        if isinstance(q1, vtki.vtkActor):
             q1 = q1.GetPosition()
-        if isinstance(q2, vtk.vtkActor):
+        if isinstance(q2, vtki.vtkActor):
             q2 = q2.GetPosition()
         if len(q1) == 2:
             q1 = [q1[0], q1[1], 0.0]
@@ -3735,14 +3735,14 @@ class Brace(Mesh):
         else:
             poly = br.dataset
 
-        tr = vtk.vtkTransform()
+        tr = vtki.vtkTransform()
         tr.Translate(mq)
         tr.RotateZ(angler)
         tr.Translate(padding1 * d, 0, 0)
         pscale = 1
         tr.Scale(pscale / (y1 - y0) * d, pscale / (y1 - y0) * d, 1)
 
-        tf = vtk.new("TransformPolyDataFilter")
+        tf = vtki.new("TransformPolyDataFilter")
         tf.SetInputData(poly)
         tf.SetTransform(tr)
         tf.Update()
@@ -3857,58 +3857,58 @@ class ParametricShape(Mesh):
             name = shapes[name]
 
         if name == "Boy":
-            ps = vtk.new("ParametricBoy")
+            ps = vtki.new("ParametricBoy")
         elif name == "ConicSpiral":
-            ps = vtk.new("ParametricConicSpiral")
+            ps = vtki.new("ParametricConicSpiral")
         elif name == "CrossCap":
-            ps = vtk.new("ParametricCrossCap")
+            ps = vtki.new("ParametricCrossCap")
         elif name == "Dini":
-            ps = vtk.new("ParametricDini")
+            ps = vtki.new("ParametricDini")
         elif name == "Enneper":
-            ps = vtk.new("ParametricEnneper")
+            ps = vtki.new("ParametricEnneper")
         elif name == "Figure8Klein":
-            ps = vtk.new("ParametricFigure8Klein")
+            ps = vtki.new("ParametricFigure8Klein")
         elif name == "Klein":
-            ps = vtk.new("ParametricKlein")
+            ps = vtki.new("ParametricKlein")
         elif name == "Mobius":
-            ps = vtk.new("ParametricMobius")
+            ps = vtki.new("ParametricMobius")
             ps.SetRadius(2.0)
             ps.SetMinimumV(-0.5)
             ps.SetMaximumV(0.5)
         elif name == "RandomHills":
-            ps = vtk.new("ParametricRandomHills")
+            ps = vtki.new("ParametricRandomHills")
             ps.AllowRandomGenerationOn()
             ps.SetRandomSeed(seed)
             ps.SetNumberOfHills(n)
         elif name == "Roman":
-            ps = vtk.new("ParametricRoman")
+            ps = vtki.new("ParametricRoman")
         elif name == "SuperEllipsoid":
-            ps = vtk.new("ParametricSuperEllipsoid")
+            ps = vtki.new("ParametricSuperEllipsoid")
             ps.SetN1(0.5)
             ps.SetN2(0.4)
         elif name == "BohemianDome":
-            ps = vtk.new("ParametricBohemianDome")
+            ps = vtki.new("ParametricBohemianDome")
             ps.SetA(5.0)
             ps.SetB(1.0)
             ps.SetC(2.0)
         elif name == "Bour":
-            ps = vtk.new("ParametricBour")
+            ps = vtki.new("ParametricBour")
         elif name == "CatalanMinimal":
-            ps = vtk.new("ParametricCatalanMinimal")
+            ps = vtki.new("ParametricCatalanMinimal")
         elif name == "Henneberg":
-            ps = vtk.new("ParametricHenneberg")
+            ps = vtki.new("ParametricHenneberg")
         elif name == "Kuen":
-            ps = vtk.new("ParametricKuen")
+            ps = vtki.new("ParametricKuen")
             ps.SetDeltaV0(0.001)
         elif name == "PluckerConoid":
-            ps = vtk.new("ParametricPluckerConoid")
+            ps = vtki.new("ParametricPluckerConoid")
         elif name == "Pseudosphere":
-            ps = vtk.new("ParametricPseudosphere")
+            ps = vtki.new("ParametricPseudosphere")
         else:
             vedo.logger.error(f"unknown ParametricShape {name}")
             return
 
-        pfs = vtk.new("ParametricFunctionSource")
+        pfs = vtki.new("ParametricFunctionSource")
         pfs.SetParametricFunction(ps)
         pfs.SetUResolution(res)
         pfs.SetVResolution(res)
@@ -4136,7 +4136,7 @@ class Text3D(Mesh):
         txt = str(txt)
 
         if font == "VTK":  #######################################
-            vtt = vtk.new("VectorText")
+            vtt = vtki.new("VectorText")
             vtt.SetText(txt)
             vtt.Update()
             tpoly = vtt.GetOutput()
@@ -4145,7 +4145,7 @@ class Text3D(Mesh):
 
             stxt = set(txt)  # check here if null or only spaces
             if not txt or (len(stxt) == 1 and " " in stxt):
-                return vtk.vtkPolyData()
+                return vtki.vtkPolyData()
 
             if italic is True:
                 italic = 1
@@ -4247,13 +4247,13 @@ class Text3D(Mesh):
                     if poly.GetNumberOfPoints() == 0:
                         continue
 
-                    tr = vtk.vtkTransform()
+                    tr = vtki.vtkTransform()
                     tr.Translate(xmax, ymax + yshift, 0)
                     pscale = scale * fscale / 1000
                     tr.Scale(pscale, pscale, pscale)
                     if italic:
                         tr.Concatenate([1, italic * 0.15, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1])
-                    tf = vtk.new("TransformPolyDataFilter")
+                    tf = vtki.new("TransformPolyDataFilter")
                     tf.SetInputData(poly)
                     tf.SetTransform(tr)
                     tf.Update()
@@ -4271,7 +4271,7 @@ class Text3D(Mesh):
             if len(polyletters) == 1:
                 tpoly = polyletters[0]
             else:
-                polyapp = vtk.new("AppendPolyData")
+                polyapp = vtki.new("AppendPolyData")
                 for polyd in polyletters:
                     polyapp.AddInputData(polyd)
                 polyapp.Update()
@@ -4291,18 +4291,18 @@ class Text3D(Mesh):
         if "right"  in justify: shift += np.array([-dx,  0, 0.])
 
         if tpoly.GetNumberOfPoints():
-            t = vtk.vtkTransform()
+            t = vtki.vtkTransform()
             t.PostMultiply()
             t.Scale(s, s, s)
             t.Translate(shift)
-            tf = vtk.new("TransformPolyDataFilter")
+            tf = vtki.new("TransformPolyDataFilter")
             tf.SetInputData(tpoly)
             tf.SetTransform(t)
             tf.Update()
             tpoly = tf.GetOutput()
 
             if depth:
-                extrude = vtk.new("LinearExtrusionFilter")
+                extrude = vtki.new("LinearExtrusionFilter")
                 extrude.SetInputData(tpoly)
                 extrude.SetExtrusionTypeToVectorExtrusion()
                 extrude.SetVector(0, 0, 1)
@@ -4431,7 +4431,7 @@ class TextBase:
         elif font == "Arial":   self.properties.SetFontFamilyToArial()
         else:
             fpath = utils.get_font_path(font)
-            self.properties.SetFontFamily(vtk.VTK_FONT_FILE)
+            self.properties.SetFontFamily(vtki.VTK_FONT_FILE)
             self.properties.SetFontFile(fpath)
         self.fontname = font  # io.tonumpy() uses it
 
@@ -4526,7 +4526,7 @@ class Text2D(TextBase, vedo.visual.Actor2D):
         super().__init__()
         self.name = "Text2D"
 
-        self.mapper = vtk.new("TextMapper")
+        self.mapper = vtki.new("TextMapper")
         self.SetMapper(self.mapper)
 
         self.properties = self.mapper.GetTextProperty()
@@ -4628,7 +4628,7 @@ class Text2D(TextBase, vedo.visual.Actor2D):
         return self
 
 
-class CornerAnnotation(TextBase, vtk.vtkCornerAnnotation):
+class CornerAnnotation(TextBase, vtki.vtkCornerAnnotation):
     # PROBABLY USELESS given that Text2D does pretty much the same ...
     """
     Annotate the window corner with 2D text.
@@ -4819,18 +4819,18 @@ class ConvexHull(Mesh):
         z0, z1 = mesh.zbounds()
         d = mesh.diagonal_size()
         if (z1 - z0) / d > 0.0001:
-            delaunay = vtk.new("Delaunay3D")
+            delaunay = vtki.new("Delaunay3D")
             delaunay.SetInputData(apoly)
             delaunay.Update()
-            surfaceFilter = vtk.new("DataSetSurfaceFilter")
+            surfaceFilter = vtki.new("DataSetSurfaceFilter")
             surfaceFilter.SetInputConnection(delaunay.GetOutputPort())
             surfaceFilter.Update()
             out = surfaceFilter.GetOutput()
         else:
-            delaunay = vtk.new("Delaunay2D")
+            delaunay = vtki.new("Delaunay2D")
             delaunay.SetInputData(apoly)
             delaunay.Update()
-            fe = vtk.new("FeatureEdges")
+            fe = vtki.new("FeatureEdges")
             fe.SetInputConnection(delaunay.GetOutputPort())
             fe.BoundaryEdgesOn()
             fe.Update()

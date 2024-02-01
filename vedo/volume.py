@@ -5,7 +5,7 @@ from weakref import ref as weak_ref_to
 
 import numpy as np
 
-import vedo.vtkclasses as vtk
+import vedo.vtkclasses as vtki
 
 import vedo
 from vedo import transformations
@@ -80,7 +80,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         self.info = {}
         self.time =  time.time()
 
-        self.actor = vtk.vtkVolume()
+        self.actor = vtki.vtkVolume()
         self.actor.retrieve_object = weak_ref_to(self)
         self.properties = self.actor.GetProperty()
 
@@ -104,23 +104,23 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         # print('Volume inputtype', inputtype, c='b')
 
         if inputobj is None:
-            img = vtk.vtkImageData()
+            img = vtki.vtkImageData()
 
         elif utils.is_sequence(inputobj):
 
             if isinstance(inputobj[0], str) and ".bmp" in inputobj[0].lower():
                 # scan sequence of BMP files
-                ima = vtk.new("ImageAppend")
+                ima = vtki.new("ImageAppend")
                 ima.SetAppendAxis(2)
                 pb = utils.ProgressBar(0, len(inputobj))
                 for i in pb.range():
                     f = inputobj[i]
                     if "_rec_spr" in f: # OPT specific
                         continue
-                    picr = vtk.new("BMPReader")
+                    picr = vtki.new("BMPReader")
                     picr.SetFileName(f)
                     picr.Update()
-                    mgf = vtk.new("ImageMagnitude")
+                    mgf = vtki.new("ImageMagnitude")
                     mgf.SetInputData(picr.GetOutput())
                     mgf.Update()
                     ima.AddInputData(mgf.GetOutput())
@@ -136,7 +136,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
                     varr = utils.numpy2vtk(inputobj.ravel(order="F"))
                 varr.SetName("input_scalars")
 
-                img = vtk.vtkImageData()
+                img = vtki.vtkImageData()
                 if dims is not None:
                     img.SetDimensions(dims[2], dims[1], dims[0])
                 else:
@@ -147,7 +147,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
                 img.GetPointData().AddArray(varr)
                 img.GetPointData().SetActiveScalars(varr.GetName())
 
-        elif isinstance(inputobj, vtk.vtkImageData):
+        elif isinstance(inputobj, vtki.vtkImageData):
             img = inputobj
 
         elif isinstance(inputobj, str):
@@ -173,7 +173,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         self.transform = None
 
         #####################################
-        mapper = vtk.new("SmartVolumeMapper")
+        mapper = vtki.new("SmartVolumeMapper")
         mapper.SetInputData(img)
         self.actor.SetMapper(mapper)
 
@@ -206,19 +206,19 @@ class Volume(VolumeAlgorithms, VolumeVisual):
                 either 'gpu', 'opengl_gpu', 'fixed' or 'smart'
         """
         if isinstance(mapper, 
-            (vtk.get_class("Mapper"), vtk.get_class("ImageResliceMapper"))
+            (vtki.get_class("Mapper"), vtki.get_class("ImageResliceMapper"))
         ):
             pass
         elif mapper is None:
-            mapper = vtk.new("SmartVolumeMapper")
+            mapper = vtki.new("SmartVolumeMapper")
         elif "gpu" in mapper:
-            mapper = vtk.new("GPUVolumeRayCastMapper")
+            mapper = vtki.new("GPUVolumeRayCastMapper")
         elif "opengl_gpu" in mapper:
-            mapper = vtk.new("OpenGLGPUVolumeRayCastMapper")
+            mapper = vtki.new("OpenGLGPUVolumeRayCastMapper")
         elif "smart" in mapper:
-            mapper = vtk.new("SmartVolumeMapper")
+            mapper = vtki.new("SmartVolumeMapper")
         elif "fixed" in mapper:
-            mapper = vtk.new("FixedPointVolumeRayCastMapper")
+            mapper = vtki.new("FixedPointVolumeRayCastMapper")
         else:
             print("Error unknown mapper type", [mapper])
             raise RuntimeError()
@@ -373,14 +373,14 @@ class Volume(VolumeAlgorithms, VolumeVisual):
     def clone(self, deep=True):
         """Return a clone copy of the Volume. Alias of `copy()`."""
         if deep:
-            newimg = vtk.vtkImageData()
+            newimg = vtki.vtkImageData()
             newimg.CopyStructure(self.dataset)
             newimg.CopyAttributes(self.dataset)
             newvol = Volume(newimg)
         else:
             newvol = Volume(self.dataset)
 
-        prop = vtk.vtkVolumeProperty()
+        prop = vtki.vtkVolumeProperty()
         prop.DeepCopy(self.properties)
         newvol.actor.SetProperty(prop)
         newvol.properties = prop
@@ -395,7 +395,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
 
     def xslice(self, i):
         """Extract the slice at index `i` of volume along x-axis."""
-        vslice = vtk.new("ImageDataGeometryFilter")
+        vslice = vtki.new("ImageDataGeometryFilter")
         vslice.SetInputData(self.dataset)
         nx, ny, nz = self.dataset.GetDimensions()
         if i > nx - 1:
@@ -408,7 +408,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
 
     def yslice(self, j):
         """Extract the slice at index `j` of volume along y-axis."""
-        vslice = vtk.new("ImageDataGeometryFilter")
+        vslice = vtki.new("ImageDataGeometryFilter")
         vslice.SetInputData(self.dataset)
         nx, ny, nz = self.dataset.GetDimensions()
         if j > ny - 1:
@@ -421,7 +421,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
 
     def zslice(self, k):
         """Extract the slice at index `i` of volume along z-axis."""
-        vslice = vtk.new("ImageDataGeometryFilter")
+        vslice = vtki.new("ImageDataGeometryFilter")
         vslice.SetInputData(self.dataset)
         nx, ny, nz = self.dataset.GetDimensions()
         if k > nz - 1:
@@ -471,12 +471,12 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         initaxis = (0, 0, 1)
         crossvec = np.cross(initaxis, newaxis)
         angle = np.arccos(np.dot(initaxis, newaxis))
-        T = vtk.vtkTransform()
+        T = vtki.vtkTransform()
         T.PostMultiply()
         T.RotateWXYZ(np.rad2deg(angle), crossvec)
         T.Translate(pos)
 
-        reslice = vtk.new("ImageReslice")
+        reslice = vtki.new("ImageReslice")
         reslice.SetResliceAxes(T.GetMatrix())
         reslice.SetInputData(self.dataset)
         reslice.SetOutputDimensionality(2)
@@ -500,7 +500,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         reslice.Update()
         img = reslice.GetOutput()
 
-        vslice = vtk.new("ImageDataGeometryFilter")
+        vslice = vtki.new("ImageDataGeometryFilter")
         vslice.SetInputData(img)
         vslice.Update()
 
@@ -551,7 +551,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
             vedo.logger.error("in slab(): slice_range is empty or invalid")
             raise ValueError()
         
-        islab = vtk.new("ImageSlab")
+        islab = vtki.new("ImageSlab")
         islab.SetInputData(self.dataset)
 
         if operation in ["+", "add", "sum"]:
@@ -686,7 +686,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
 
         TI = T.compute_inverse()
 
-        reslice = vtk.new("ImageReslice")
+        reslice = vtki.new("ImageReslice")
         reslice.SetInputData(self.dataset)
         reslice.SetResliceTransform(TI.T)
         reslice.SetOutputDimensionality(3)
@@ -871,7 +871,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         Reorder the axes of the Volume by specifying
         the input axes which are supposed to become the new X, Y, and Z.
         """
-        imp = vtk.new("ImagePermute")
+        imp = vtki.new("ImagePermute")
         imp.SetFilteredAxes(x, y, z)
         imp.SetInputData(self.dataset)
         imp.Update()
@@ -894,7 +894,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
             interpolation : (int)
                 0=nearest_neighbor, 1=linear, 2=cubic
         """
-        rsp = vtk.new("ImageResample")
+        rsp = vtki.new("ImageResample")
         oldsp = self.spacing()
         for i in range(3):
             if oldsp[i] != new_spacing[i]:
@@ -916,7 +916,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         Find the voxels that contain a value above/below the input values
         and replace them with a new value (default is 0).
         """
-        th = vtk.new("ImageThreshold")
+        th = vtki.new("ImageThreshold")
         th.SetInputData(self.dataset)
 
         # sanity checks
@@ -978,7 +978,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         Example:
             `vol.crop(VOI=(xmin, xmax, ymin, ymax, zmin, zmax)) # all integers nrs`
         """
-        extractVOI = vtk.new("ExtractVOI")
+        extractVOI = vtki.new("ExtractVOI")
         extractVOI.SetInputData(self.dataset)
 
         if VOI:
@@ -1027,12 +1027,12 @@ class Volume(VolumeAlgorithms, VolumeVisual):
             ```
             ![](https://vedo.embl.es/images/feats/volume_append.png)
         """
-        ima = vtk.new("ImageAppend")
+        ima = vtki.new("ImageAppend")
         ima.SetInputData(self.dataset)
         if not utils.is_sequence(volumes):
             volumes = [volumes]
         for volume in volumes:
-            if isinstance(volume, vtk.vtkImageData):
+            if isinstance(volume, vtki.vtkImageData):
                 ima.AddInputData(volume)
             else:
                 ima.AddInputData(volume.dataset)
@@ -1077,7 +1077,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
             ![](https://vedo.embl.es/images/volumetric/volume_pad.png)
         """
         x0, x1, y0, y1, z0, z1 = self.dataset.GetExtent()
-        pf = vtk.new("ImageConstantPad")
+        pf = vtki.new("ImageConstantPad")
         pf.SetInputData(self.dataset)
         pf.SetConstant(value)
         if utils.is_sequence(voxels):
@@ -1101,7 +1101,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
 
     def resize(self, newdims):
         """Increase or reduce the number of voxels of a Volume with interpolation."""
-        rsz = vtk.new("ImageResize")
+        rsz = vtki.new("ImageResize")
         rsz.SetResizeMethodToOutputDimensions()
         rsz.SetInputData(self.dataset)
         rsz.SetOutputDimensions(newdims)
@@ -1115,7 +1115,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
 
     def normalize(self):
         """Normalize that scalar components for each point."""
-        norm = vtk.new("ImageNormalize")
+        norm = vtki.new("ImageNormalize")
         norm.SetInputData(self.dataset)
         norm.Update()
         self._update(norm.GetOutput())
@@ -1128,7 +1128,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         """
         img = self.dataset
 
-        ff = vtk.new("ImageFlip")
+        ff = vtki.new("ImageFlip")
         ff.SetInputData(img)
         if axis.lower() == "x":
             ff.SetFilteredAxis(0)
@@ -1199,7 +1199,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
                 dims2 = volume2.dataset.GetDimensions()
                 dims = [max(dims1[0], dims2[0]), max(dims1[1], dims2[1]), max(dims1[2], dims2[2])]
 
-                image = vtk.vtkImageData()
+                image = vtki.vtkImageData()
                 image.SetDimensions(dims)
                 spacing = (
                     (b[1] - b[0]) / dims[0],
@@ -1208,10 +1208,10 @@ class Volume(VolumeAlgorithms, VolumeVisual):
                 )
                 image.SetSpacing(spacing)
                 image.SetOrigin((b[0], b[2], b[4]))
-                image.AllocateScalars(vtk.VTK_UNSIGNED_CHAR, 1)
+                image.AllocateScalars(vtki.VTK_UNSIGNED_CHAR, 1)
                 image.GetPointData().GetScalars().FillComponent(0, 0)
 
-                interp1 = vtk.new("ImageReslice")
+                interp1 = vtki.new("ImageReslice")
                 interp1.SetInputData(image1)
                 interp1.SetOutputExtent(image.GetExtent())
                 interp1.SetOutputOrigin(image.GetOrigin())
@@ -1220,7 +1220,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
                 interp1.Update()
                 imageA = interp1.GetOutput()
 
-                interp2 = vtk.new("ImageReslice")
+                interp2 = vtki.new("ImageReslice")
                 interp2.SetInputData(volume2.dataset)
                 interp2.SetOutputExtent(image.GetExtent())
                 interp2.SetOutputOrigin(image.GetOrigin())
@@ -1233,7 +1233,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
                 imageA = image1
                 imageB = volume2.dataset
 
-            img_logic = vtk.new("ImageLogic")
+            img_logic = vtki.new("ImageLogic")
             img_logic.SetInput1Data(imageA)
             img_logic.SetInput2Data(imageB)
             img_logic.SetOperation(["and", "or", "xor", "nand", "nor"].index(op))
@@ -1256,28 +1256,28 @@ class Volume(VolumeAlgorithms, VolumeVisual):
 
         mf = None
         if op in ["median"]:
-            mf = vtk.new("ImageMedian3D")
+            mf = vtki.new("ImageMedian3D")
             mf.SetInputData(image1)
         elif op in ["mag"]:
-            mf = vtk.new("ImageMagnitude")
+            mf = vtki.new("ImageMagnitude")
             mf.SetInputData(image1)
         elif op in ["dot"]:
-            mf = vtk.new("ImageDotProduct")
+            mf = vtki.new("ImageDotProduct")
             mf.SetInput1Data(image1)
             mf.SetInput2Data(volume2.dataset)
         elif op in ["grad", "gradient"]:
-            mf = vtk.new("ImageGradient")
+            mf = vtki.new("ImageGradient")
             mf.SetDimensionality(3)
             mf.SetInputData(image1)
         elif op in ["div", "divergence"]:
-            mf = vtk.new("ImageDivergence")
+            mf = vtki.new("ImageDivergence")
             mf.SetInputData(image1)
         elif op in ["laplacian"]:
-            mf = vtk.new("ImageLaplacian")
+            mf = vtki.new("ImageLaplacian")
             mf.SetDimensionality(3)
             mf.SetInputData(image1)
         elif op in ["not"]:
-            mf = vtk.new("ImageLogic")
+            mf = vtki.new("ImageLogic")
             mf.SetInput1Data(image1)
             mf.SetOperation(4)
 
@@ -1289,7 +1289,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
             )
             return vol  ######################################################
 
-        mat = vtk.new("ImageMathematics")
+        mat = vtki.new("ImageMathematics")
         mat.SetInput1Data(image1)
 
         K = None
@@ -1385,13 +1385,13 @@ class Volume(VolumeAlgorithms, VolumeVisual):
                 order determines sharpness of the cutoff curve
         """
         # https://lorensen.github.io/VTKExamples/site/Cxx/ImageProcessing/IdealHighPass
-        fft = vtk.new("ImageFFT")
+        fft = vtki.new("ImageFFT")
         fft.SetInputData(self.dataset)
         fft.Update()
         out = fft.GetOutput()
 
         if high_cutoff:
-            blp = vtk.new("ImageButterworthLowPass")
+            blp = vtki.new("ImageButterworthLowPass")
             blp.SetInputData(out)
             blp.SetCutOff(high_cutoff)
             blp.SetOrder(order)
@@ -1399,18 +1399,18 @@ class Volume(VolumeAlgorithms, VolumeVisual):
             out = blp.GetOutput()
 
         if low_cutoff:
-            bhp = vtk.new("ImageButterworthHighPass")
+            bhp = vtki.new("ImageButterworthHighPass")
             bhp.SetInputData(out)
             bhp.SetCutOff(low_cutoff)
             bhp.SetOrder(order)
             bhp.Update()
             out = bhp.GetOutput()
 
-        rfft = vtk.new("ImageRFFT")
+        rfft = vtki.new("ImageRFFT")
         rfft.SetInputData(out)
         rfft.Update()
 
-        ecomp = vtk.new("ImageExtractComponents")
+        ecomp = vtki.new("ImageExtractComponents")
         ecomp.SetInputData(rfft.GetOutput())
         ecomp.SetComponents(0)
         ecomp.Update()
@@ -1430,7 +1430,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
                 radius factor(s) determine how far out the gaussian
                 kernel will go before being clamped to zero. A list can be given too.
         """
-        gsf = vtk.new("ImageGaussianSmooth")
+        gsf = vtki.new("ImageGaussianSmooth")
         gsf.SetDimensionality(3)
         gsf.SetInputData(self.dataset)
         if utils.is_sequence(sigma):
@@ -1452,7 +1452,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         Median filter that replaces each pixel with the median value
         from a rectangular neighborhood around that pixel.
         """
-        imgm = vtk.new("ImageMedian3D")
+        imgm = vtki.new("ImageMedian3D")
         imgm.SetInputData(self.dataset)
         if utils.is_sequence(neighbours):
             imgm.SetKernelSize(neighbours[0], neighbours[1], neighbours[2])
@@ -1473,7 +1473,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
 
                 ![](https://vedo.embl.es/images/volumetric/erode_dilate.png)
         """
-        ver = vtk.new("ImageContinuousErode3D")
+        ver = vtki.new("ImageContinuousErode3D")
         ver.SetInputData(self.dataset)
         ver.SetKernelSize(neighbours[0], neighbours[1], neighbours[2])
         ver.Update()
@@ -1491,7 +1491,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         Examples:
             - [erode_dilate.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/erode_dilate.py)
         """
-        ver = vtk.new("ImageContinuousDilate3D")
+        ver = vtki.new("ImageContinuousDilate3D")
         ver.SetInputData(self.dataset)
         ver.SetKernelSize(neighbours[0], neighbours[1], neighbours[2])
         ver.Update()
@@ -1501,7 +1501,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
 
     def magnitude(self):
         """Colapses components with magnitude function."""
-        imgm = vtk.new("ImageMagnitude")
+        imgm = vtki.new("ImageMagnitude")
         imgm.SetInputData(self.dataset)
         imgm.Update()
         self._update(imgm.GetOutput())
@@ -1517,7 +1517,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         Examples:
             - [vol2points.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/vol2points.py)
         """
-        v2p = vtk.new("ImageToPoints")
+        v2p = vtki.new("ImageToPoints")
         v2p.SetInputData(self.dataset)
         v2p.Update()
         mpts = vedo.Points(v2p.GetOutput())
@@ -1543,7 +1543,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         Examples:
             - [euclidian_dist.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/euclidian_dist.py)
         """
-        euv = vtk.new("ImageEuclideanDistance")
+        euv = vtki.new("ImageEuclideanDistance")
         euv.SetInputData(self.dataset)
         euv.SetConsiderAnisotropy(anisotropy)
         if max_distance is not None:
@@ -1564,7 +1564,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         The output size will match the size of the first input.
         The second input is considered the correlation kernel.
         """
-        imc = vtk.new("ImageCorrelation")
+        imc = vtki.new("ImageCorrelation")
         imc.SetInput1Data(self.dataset)
         imc.SetInput2Data(vol2.dataset)
         imc.SetDimensionality(dim)
@@ -1576,7 +1576,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
 
     def scale_voxels(self, scale=1):
         """Scale the voxel content by factor `scale`."""
-        rsl = vtk.new("ImageReslice")
+        rsl = vtki.new("ImageReslice")
         rsl.SetInputData(self.dataset)
         rsl.SetScalarScale(scale)
         rsl.Update()

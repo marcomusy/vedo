@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-import vedo.vtkclasses as vtk
+import vedo.vtkclasses as vtki
 
 import vedo
 from vedo import colors
@@ -60,7 +60,7 @@ class DataArrayHelper:
             data = self.obj.dataset.GetFieldData()
 
             varr = data.GetAbstractArray(key)
-            if isinstance(varr, vtk.vtkStringArray):
+            if isinstance(varr, vtki.vtkStringArray):
                 if isinstance(key, int):
                     key = data.GetArrayName(key)
                 n = varr.GetNumberOfValues()
@@ -97,7 +97,7 @@ class DataArrayHelper:
                 input_array = [input_array]
 
             if isinstance(input_array[0], str):
-                varr = vtk.vtkStringArray()
+                varr = vtki.vtkStringArray()
                 varr.SetName(key)
                 varr.SetNumberOfComponents(1)
                 varr.SetNumberOfTuples(len(input_array))
@@ -465,7 +465,7 @@ class CommonAlgorithms:
             c="gray",
         )
         try:
-            pr = vtk.vtkProperty()
+            pr = vtki.vtkProperty()
             pr.DeepCopy(self.properties)
             bx.SetProperty(pr)
             bx.properties = pr
@@ -538,7 +538,7 @@ class CommonAlgorithms:
         """Get the center of mass of the object."""
         if isinstance(self, (vedo.RectilinearGrid, vedo.Volume)):
             return np.array(self.dataset.GetCenter())
-        cmf = vtk.new("CenterOfMass")
+        cmf = vtki.new("CenterOfMass")
         cmf.SetInputData(self.dataset)
         cmf.Update()
         c = cmf.GetCenter()
@@ -626,7 +626,7 @@ class CommonAlgorithms:
         
         See also: `CellCenters()`.
         """
-        vcen = vtk.new("CellCenters")
+        vcen = vtki.new("CellCenters")
         vcen.CopyArraysOff()
         vcen.SetInputData(self.dataset)
         vcen.Update()
@@ -676,7 +676,7 @@ class CommonAlgorithms:
         Mark cells and vertices if they lie on a boundary.
         A new array called `BoundaryCells` is added to the object.
         """
-        mb = vtk.new("MarkBoundaryFilter")
+        mb = vtki.new("MarkBoundaryFilter")
         mb.SetInputData(self.dataset)
         mb.Update()
         self.dataset.DeepCopy(mb.GetOutput())
@@ -706,9 +706,9 @@ class CommonAlgorithms:
                 bnds[4] = zbounds[0]
                 bnds[5] = zbounds[1]
 
-        cell_ids = vtk.vtkIdList()
+        cell_ids = vtki.vtkIdList()
         if not self.cell_locator:
-            self.cell_locator = vtk.new("CellTreeLocator")
+            self.cell_locator = vtki.new("CellTreeLocator")
             self.cell_locator.SetDataSet(self.dataset)
             self.cell_locator.BuildLocator()
         self.cell_locator.FindCellsWithinBounds(bnds, cell_ids)
@@ -722,9 +722,9 @@ class CommonAlgorithms:
         """
         Find cells that are intersected by a line segment.
         """
-        cell_ids = vtk.vtkIdList()
+        cell_ids = vtki.vtkIdList()
         if not self.cell_locator:
-            self.cell_locator = vtk.new("CellTreeLocator")
+            self.cell_locator = vtki.new("CellTreeLocator")
             self.cell_locator.SetDataSet(self.dataset)
             self.cell_locator.BuildLocator()
         self.cell_locator.FindCellsAlongLine(p0, p1, tol, cell_ids)
@@ -738,9 +738,9 @@ class CommonAlgorithms:
         """
         Find cells that are intersected by a plane.
         """
-        cell_ids = vtk.vtkIdList()
+        cell_ids = vtki.vtkIdList()
         if not self.cell_locator:
-            self.cell_locator = vtk.new("CellTreeLocator")
+            self.cell_locator = vtki.new("CellTreeLocator")
             self.cell_locator.SetDataSet(self.dataset)
             self.cell_locator.BuildLocator()
         self.cell_locator.FindCellsAlongPlane(origin, normal, tol, cell_ids)
@@ -761,7 +761,7 @@ class CommonAlgorithms:
 
         Set `move=True` to delete the original `celldata` array.
         """
-        c2p = vtk.new("CellDataToPointData")
+        c2p = vtki.new("CellDataToPointData")
         c2p.SetInputData(self.dataset)
         if not move:
             c2p.PassCellDataOn()
@@ -787,13 +787,13 @@ class CommonAlgorithms:
         except (AttributeError, TypeError):
             try:
                 # for RectilinearGrid, StructuredGrid
-                vpts = vtk.vtkPoints()
+                vpts = vtki.vtkPoints()
                 self.dataset.GetPoints(vpts)
                 varr = vpts.GetData()
             except (AttributeError, TypeError):
                 try:
                     # for ImageData
-                    v2p = vtk.new("ImageToPoints")
+                    v2p = vtki.new("ImageToPoints")
                     v2p.SetInputData(self.dataset)
                     v2p.Update()
                     varr = v2p.GetOutput().GetPoints().GetData()
@@ -891,7 +891,7 @@ class CommonAlgorithms:
         Examples:
             - [mesh_map2cell.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_map2cell.py)
         """
-        p2c = vtk.new("PointDataToCellData")
+        p2c = vtki.new("PointDataToCellData")
         p2c.SetInputData(self.dataset)
         if not move:
             p2c.PassPointDataOn()
@@ -934,7 +934,7 @@ class CommonAlgorithms:
         show(m1, m2 , N=2, axes=1)
         ```
         """
-        rs = vtk.new("ResampleWithDataSet")
+        rs = vtki.new("ResampleWithDataSet")
         rs.SetInputData(self.dataset)
         rs.SetSourceData(source.dataset)
 
@@ -1005,7 +1005,7 @@ class CommonAlgorithms:
         if on == "points":
             points = source.dataset
         elif on == "cells":
-            c2p = vtk.new("CellDataToPointData")
+            c2p = vtki.new("CellDataToPointData")
             c2p.SetInputData(source.dataset)
             c2p.Update()
             points = c2p.GetOutput()
@@ -1013,18 +1013,18 @@ class CommonAlgorithms:
             vedo.logger.error("in interpolate_data_from(), on must be on points or cells")
             raise RuntimeError()
 
-        locator = vtk.new("PointLocator")
+        locator = vtki.new("PointLocator")
         locator.SetDataSet(points)
         locator.BuildLocator()
 
         if kernel.lower() == "shepard":
-            kern = vtk.new("ShepardKernel")
+            kern = vtki.new("ShepardKernel")
             kern.SetPowerParameter(2)
         elif kernel.lower() == "gaussian":
-            kern = vtk.new("GaussianKernel")
+            kern = vtki.new("GaussianKernel")
             kern.SetSharpness(2)
         elif kernel.lower() == "linear":
-            kern = vtk.new("LinearKernel")
+            kern = vtki.new("LinearKernel")
         else:
             vedo.logger.error("available kernels are: [shepard, gaussian, linear]")
             raise RuntimeError()
@@ -1036,7 +1036,7 @@ class CommonAlgorithms:
             kern.SetRadius(radius)
             kern.SetKernelFootprintToRadius()
 
-        interpolator = vtk.new("PointInterpolator")
+        interpolator = vtki.new("PointInterpolator")
         interpolator.SetInputData(self.dataset)
         interpolator.SetSourceData(points)
         interpolator.SetKernel(kern)
@@ -1050,7 +1050,7 @@ class CommonAlgorithms:
         interpolator.Update()
 
         if on == "cells":
-            p2c = vtk.new("PointDataToCellData")
+            p2c = vtki.new("PointDataToCellData")
             p2c.SetInputData(interpolator.GetOutput())
             p2c.Update()
             cpoly = p2c.GetOutput()
@@ -1068,7 +1068,7 @@ class CommonAlgorithms:
 
         Two new arrays are added to the mesh: `PointID` and `CellID`.
         """
-        ids = vtk.new("IdFilter")
+        ids = vtki.new("IdFilter")
         ids.SetInputData(self.dataset)
         ids.PointIdsOn()
         ids.CellIdsOn()
@@ -1099,13 +1099,13 @@ class CommonAlgorithms:
 
             ![](https://user-images.githubusercontent.com/32848391/72433087-f00a8780-3798-11ea-9778-991f0abeca70.png)
         """
-        gra = vtk.new("GradientFilter")
+        gra = vtki.new("GradientFilter")
         if on.startswith("p"):
             varr = self.dataset.GetPointData()
-            tp = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
+            tp = vtki.vtkDataObject.FIELD_ASSOCIATION_POINTS
         elif on.startswith("c"):
             varr = self.dataset.GetCellData()
-            tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
+            tp = vtki.vtkDataObject.FIELD_ASSOCIATION_CELLS
         else:
             vedo.logger.error(f"in gradient: unknown option {on}")
             raise RuntimeError
@@ -1145,13 +1145,13 @@ class CommonAlgorithms:
                 if True, will use a less accurate algorithm
                 that performs fewer derivative calculations (and is therefore faster).
         """
-        div = vtk.new("GradientFilter")
+        div = vtki.new("GradientFilter")
         if on.startswith("p"):
             varr = self.dataset.GetPointData()
-            tp = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
+            tp = vtki.vtkDataObject.FIELD_ASSOCIATION_POINTS
         elif on.startswith("c"):
             varr = self.dataset.GetCellData()
-            tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
+            tp = vtki.vtkDataObject.FIELD_ASSOCIATION_CELLS
         else:
             vedo.logger.error(f"in divergence(): unknown option {on}")
             raise RuntimeError
@@ -1191,13 +1191,13 @@ class CommonAlgorithms:
                 if True, will use a less accurate algorithm
                 that performs fewer derivative calculations (and is therefore faster).
         """
-        vort = vtk.new("GradientFilter")
+        vort = vtki.new("GradientFilter")
         if on.startswith("p"):
             varr = self.dataset.GetPointData()
-            tp = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
+            tp = vtki.vtkDataObject.FIELD_ASSOCIATION_POINTS
         elif on.startswith("c"):
             varr = self.dataset.GetCellData()
-            tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
+            tp = vtki.vtkDataObject.FIELD_ASSOCIATION_CELLS
         else:
             vedo.logger.error(f"in vorticity(): unknown option {on}")
             raise RuntimeError
@@ -1238,7 +1238,7 @@ class CommonAlgorithms:
 
                 ![](https://vedo.embl.es/images/volumetric/probePoints.png)
         """
-        probe_filter = vtk.new("ProbeFilter")
+        probe_filter = vtki.new("ProbeFilter")
         probe_filter.SetSourceData(source.dataset)
         probe_filter.SetInputData(self.dataset)
         probe_filter.Update()
@@ -1255,7 +1255,7 @@ class CommonAlgorithms:
 
         Array names are: `Area`, `Volume`, `Length`.
         """
-        csf = vtk.new("CellSizeFilter")
+        csf = vtki.new("CellSizeFilter")
         csf.SetInputData(self.dataset)
         csf.SetComputeArea(1)
         csf.SetComputeVolume(1)
@@ -1314,7 +1314,7 @@ class CommonAlgorithms:
             show(surf1, surf2, N=2, axes=1).close()
             ```
         """
-        vinteg = vtk.new("IntegrateAttributes")
+        vinteg = vtki.new("IntegrateAttributes")
         vinteg.SetInputData(self.dataset)
         vinteg.Update()
         ugrid = vedo.UnstructuredGrid(vinteg.GetOutput())
@@ -1340,7 +1340,7 @@ class CommonAlgorithms:
         Two new arrays are added to the mesh: `OriginalCellIds` and `OriginalPointIds`
         to keep track of the original mesh elements.
         """
-        geo = vtk.new("GeometryFilter")
+        geo = vtki.new("GeometryFilter")
         geo.SetInputData(self.dataset)
         geo.SetPassThroughCellIds(1)
         geo.SetPassThroughPointIds(1)
@@ -1380,7 +1380,7 @@ class CommonAlgorithms:
             exclude : (list)
                 list of arrays to be excluded from smoothing
         """
-        saf = vtk.new("AttributeSmoothingFilter")
+        saf = vtki.new("AttributeSmoothingFilter")
         saf.SetInputData(self.dataset)
         saf.SetRelaxationFactor(relaxation_factor)
         saf.SetNumberOfIterations(niter)
@@ -1398,7 +1398,7 @@ class CommonAlgorithms:
                 if not mask_:
                     vedo.logger.error(f"smooth_data(): mask array {mask} not found")
                     return self
-                mask_array = vtk.vtkUnsignedCharArray()
+                mask_array = vtki.vtkUnsignedCharArray()
                 mask_array.ShallowCopy(mask_)
                 mask_array.SetName(mask_.GetName())
             else:
@@ -1462,7 +1462,7 @@ class CommonAlgorithms:
         if utils.is_sequence(seeds):
             seeds = vedo.Points(seeds)
 
-        sti = vtk.new("StreamTracer")
+        sti = vtki.new("StreamTracer")
         sti.SetSourceData(seeds.dataset)
         if isinstance(self, vedo.RectilinearGrid):
             sti.SetInputData(vedo.UnstructuredGrid(self.dataset).dataset)
@@ -1536,7 +1536,7 @@ class PointAlgorithms(CommonAlgorithms):
             if LT.is_identity():
                 return self
         
-        elif isinstance(LT, (vtk.vtkMatrix4x4, vtk.vtkLinearTransform)) or utils.is_sequence(LT):
+        elif isinstance(LT, (vtki.vtkMatrix4x4, vtki.vtkLinearTransform)) or utils.is_sequence(LT):
             LT_is_linear = True
             LT = LinearTransform(LT)
             tr = LT.T
@@ -1548,7 +1548,7 @@ class PointAlgorithms(CommonAlgorithms):
             tr = LT.T
             self.transform = LT  # reset
 
-        elif isinstance(LT, vtk.vtkThinPlateSplineTransform):
+        elif isinstance(LT, vtki.vtkThinPlateSplineTransform):
             LT_is_linear = False
             tr = LT
             self.transform = NonLinearTransform(LT)  # reset
@@ -1568,13 +1568,13 @@ class PointAlgorithms(CommonAlgorithms):
                     self.transform = LinearTransform()
 
         ################
-        if isinstance(self.dataset, vtk.vtkPolyData):
-            tp = vtk.new("TransformPolyDataFilter")
-        elif isinstance(self.dataset, vtk.vtkUnstructuredGrid):
-            tp = vtk.new("TransformFilter")
+        if isinstance(self.dataset, vtki.vtkPolyData):
+            tp = vtki.new("TransformPolyDataFilter")
+        elif isinstance(self.dataset, vtki.vtkUnstructuredGrid):
+            tp = vtki.new("TransformFilter")
             tp.TransformAllInputVectorsOn()
-        # elif isinstance(self.dataset, vtk.vtkImageData):
-        #     tp = vtk.new("ImageReslice")
+        # elif isinstance(self.dataset, vtki.vtkImageData):
+        #     tp = vtki.new("ImageReslice")
         #     tp.SetInterpolationModeToCubic()
         #     tp.SetResliceTransform(tr)
         else:
@@ -1604,7 +1604,7 @@ class PointAlgorithms(CommonAlgorithms):
         """
         M = self.actor.GetMatrix()
         self.apply_transform(M)
-        iden = vtk.vtkMatrix4x4()
+        iden = vtki.vtkMatrix4x4()
         self.actor.PokeMatrix(iden)
         return LinearTransform(M)
 
@@ -1794,10 +1794,10 @@ class VolumeAlgorithms(CommonAlgorithms):
         scrange = self.dataset.GetScalarRange()
 
         if flying_edges:
-            cf = vtk.new("FlyingEdges3D")
+            cf = vtki.new("FlyingEdges3D")
             cf.InterpolateAttributesOn()
         else:
-            cf = vtk.new("ContourFilter")
+            cf = vtki.new("ContourFilter")
             cf.UseScalarTreeOn()
 
         cf.SetInputData(self.dataset)
@@ -1855,9 +1855,9 @@ class VolumeAlgorithms(CommonAlgorithms):
 
                 ![](https://vedo.embl.es/images/volumetric/56820682-da40e500-684c-11e9-8ea3-91cbcba24b3a.png)
         """
-        imp_dataset = vtk.new("ImplicitDataSet")
+        imp_dataset = vtki.new("ImplicitDataSet")
         imp_dataset.SetDataSet(self.dataset)
-        window = vtk.new("ImplicitWindowFunction")
+        window = vtki.new("ImplicitWindowFunction")
         window.SetImplicitFunction(imp_dataset)
 
         srng = list(self.dataset.GetScalarRange())
@@ -1870,14 +1870,14 @@ class VolumeAlgorithms(CommonAlgorithms):
         srng[1] += tol
         window.SetWindowRange(srng)
 
-        extract = vtk.new("ExtractGeometry")
+        extract = vtki.new("ExtractGeometry")
         extract.SetInputData(self.dataset)
         extract.SetImplicitFunction(window)
         extract.SetExtractInside(invert)
         extract.SetExtractBoundaryCells(boundary)
         extract.Update()
 
-        gf = vtk.new("GeometryFilter")
+        gf = vtki.new("GeometryFilter")
         gf.SetInputData(extract.GetOutput())
         gf.Update()
 
@@ -1903,9 +1903,9 @@ class VolumeAlgorithms(CommonAlgorithms):
 
         If `fill=False`, only the boundary faces will be generated.
         """
-        gf = vtk.new("GeometryFilter")
+        gf = vtki.new("GeometryFilter")
         if fill:
-            sf = vtk.new("ShrinkFilter")
+            sf = vtki.new("ShrinkFilter")
             sf.SetInputData(self.dataset)
             sf.SetShrinkFactor(shrink)
             sf.Update()
@@ -1913,7 +1913,7 @@ class VolumeAlgorithms(CommonAlgorithms):
             gf.Update()
             poly = gf.GetOutput()
             if shrink == 1.0:
-                clean_poly = vtk.new("CleanPolyData")
+                clean_poly = vtki.new("CleanPolyData")
                 clean_poly.PointMergingOn()
                 clean_poly.ConvertLinesToPointsOn()
                 clean_poly.ConvertPolysToLinesOn()

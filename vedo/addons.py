@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-import vedo.vtkclasses as vtk
+import vedo.vtkclasses as vtki   # a wrapper for lazy imports
 
 import vedo
 from vedo import settings
@@ -49,7 +49,7 @@ __all__ = [
 ]
 
 ########################################################################################
-class Flagpost(vtk.vtkFlagpoleLabel):
+class Flagpost(vtki.vtkFlagpoleLabel):
     """
     Create a flag post style element to describe an object.
     """
@@ -135,7 +135,7 @@ class Flagpost(vtk.vtkFlagpoleLabel):
         prop.SetFrameWidth(lw)
         prop.SetFrameColor(prop.GetColor())
 
-        prop.SetFontFamily(vtk.VTK_FONT_FILE)
+        prop.SetFontFamily(vtki.VTK_FONT_FILE)
         fl = utils.get_font_path(font)
         prop.SetFontFile(fl)
         prop.ShadowOff()
@@ -207,7 +207,7 @@ class Flagpost(vtk.vtkFlagpoleLabel):
 
 
 ###########################################################################################
-class LegendBox(shapes.TextBase, vtk.vtkLegendBoxActor):
+class LegendBox(shapes.TextBase, vtki.vtkLegendBoxActor):
     """
     Create a 2D legend box.
     """
@@ -455,7 +455,7 @@ class Button(vedo.shapes.Text2D):
 
 
 #####################################################################
-class SplineTool(vtk.vtkContourWidget):
+class SplineTool(vtki.vtkContourWidget):
     """
     Spline tool, draw a spline through a set of points interactively.
     """
@@ -599,7 +599,7 @@ class SplineTool(vtk.vtkContourWidget):
 
 
 #####################################################################
-class SliderWidget(vtk.vtkSliderWidget):
+class SliderWidget(vtki.vtkSliderWidget):
     """Helper class for `vtkSliderWidget`"""
 
     def __init__(self):
@@ -818,7 +818,7 @@ def Light(pos, focal_point=(0, 0, 0), angle=180, c=None, intensity=1):
     except AttributeError:
         pass
 
-    light = vtk.vtkLight()
+    light = vtki.vtkLight()
     light.SetLightTypeToSceneLight()
     light.SetPosition(pos)
     light.SetConeAngle(angle)
@@ -904,7 +904,7 @@ def ScalarBar(
         return None
 
     c = get_color(c)
-    sb = vtk.vtkScalarBarActor()
+    sb = vtki.vtkScalarBarActor()
     #sb.SetTextPosition(0)
 
     # print("GetLabelFormat", sb.GetLabelFormat())
@@ -936,7 +936,7 @@ def ScalarBar(
         titprop.SetColor(c)
         titprop.SetVerticalJustificationToTop()
         titprop.SetFontSize(font_size)
-        titprop.SetFontFamily(vtk.VTK_FONT_FILE)
+        titprop.SetFontFamily(vtki.VTK_FONT_FILE)
         titprop.SetFontFile(utils.get_font_path(settings.default_font))
         sb.SetTitle(title)
         sb.SetVerticalTitleSeparation(title_yoffset)
@@ -976,7 +976,7 @@ def ScalarBar(
         sb.SetNumberOfLabels(nlabels)
 
     sctxt = sb.GetLabelTextProperty()
-    sctxt.SetFontFamily(vtk.VTK_FONT_FILE)
+    sctxt.SetFontFamily(vtki.VTK_FONT_FILE)
     sctxt.SetFontFile(utils.get_font_path(settings.default_font))
     sctxt.SetColor(c)
     sctxt.SetShadow(0)
@@ -1113,7 +1113,7 @@ def ScalarBar3D(
         cscals = np.linspace(vmin, vmax, lut.GetTable().GetNumberOfTuples(), endpoint=True)
 
         if lut.GetScale():  # logarithmic scale
-            lut10 = vtk.vtkLookupTable()
+            lut10 = vtki.vtkLookupTable()
             lut10.DeepCopy(lut)
             lut10.SetScaleToLinear()
             lut10.Build()
@@ -1422,7 +1422,7 @@ class Slider2D(SliderWidget):
         if value is None or value < xmin:
             value = xmin
 
-        slider_rep = vtk.new("SliderRepresentation2D")
+        slider_rep = vtki.new("SliderRepresentation2D")
         slider_rep.SetMinimumValue(xmin)
         slider_rep.SetMaximumValue(xmax)
         slider_rep.SetValue(value)
@@ -1538,8 +1538,8 @@ class Slider2D(SliderWidget):
                 font = utils.get_font_path(settings.default_font)
             else:
                 font = utils.get_font_path(font)
-            slider_rep.GetTitleProperty().SetFontFamily(vtk.VTK_FONT_FILE)
-            slider_rep.GetLabelProperty().SetFontFamily(vtk.VTK_FONT_FILE)
+            slider_rep.GetTitleProperty().SetFontFamily(vtki.VTK_FONT_FILE)
+            slider_rep.GetLabelProperty().SetFontFamily(vtki.VTK_FONT_FILE)
             slider_rep.GetTitleProperty().SetFontFile(font)
             slider_rep.GetLabelProperty().SetFontFile(font)
 
@@ -1620,7 +1620,7 @@ class Slider3D(SliderWidget):
         if value is None or value < xmin:
             value = xmin
 
-        slider_rep = vtk.new("SliderRepresentation3D")
+        slider_rep = vtki.new("SliderRepresentation3D")
         slider_rep.SetMinimumValue(xmin)
         slider_rep.SetMaximumValue(xmax)
         slider_rep.SetValue(value)
@@ -1740,7 +1740,7 @@ class BaseCutter:
         return cid
 
 
-class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
+class PlaneCutter(vtki.vtkPlaneWidget, BaseCutter):
     """
     Create a box widget to cut away parts of a Mesh.
     """
@@ -1796,10 +1796,10 @@ class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
         self._alpha = alpha
         self._keypress_id = None
 
-        self._implicit_func = vtk.new("Plane")
+        self._implicit_func = vtki.new("Plane")
 
         poly = mesh.dataset
-        self.clipper = vtk.new("ClipPolyData")
+        self.clipper = vtki.new("ClipPolyData")
         self.clipper.GenerateClipScalarsOff()
         self.clipper.SetInputData(poly)
         self.clipper.SetClipFunction(self._implicit_func)
@@ -1807,7 +1807,7 @@ class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
         self.clipper.GenerateClippedOutputOn()
         self.clipper.Update()
 
-        self.widget = vtk.new("ImplicitPlaneWidget")
+        self.widget = vtki.new("ImplicitPlaneWidget")
 
         # self.widget.KeyPressActivationOff()
         # self.widget.SetKeyPressActivationValue('i')
@@ -1901,7 +1901,7 @@ class PlaneCutter(vtk.vtkPlaneWidget, BaseCutter):
                     printc(":save: saved mesh to vedo_clipped.vtk")
 
 
-class BoxCutter(vtk.vtkBoxWidget, BaseCutter):
+class BoxCutter(vtki.vtkBoxWidget, BaseCutter):
     """
     Create a box widget to cut away parts of a Mesh.
     """
@@ -1959,11 +1959,11 @@ class BoxCutter(vtk.vtkBoxWidget, BaseCutter):
         else:
             self._init_bounds = initial_bounds
 
-        self._implicit_func = vtk.new("Planes")
+        self._implicit_func = vtki.new("Planes")
         self._implicit_func.SetBounds(self._init_bounds)
 
         poly = mesh.dataset
-        self.clipper = vtk.new("ClipPolyData")
+        self.clipper = vtki.new("ClipPolyData")
         self.clipper.GenerateClipScalarsOff()
         self.clipper.SetInputData(poly)
         self.clipper.SetClipFunction(self._implicit_func)
@@ -1971,7 +1971,7 @@ class BoxCutter(vtk.vtkBoxWidget, BaseCutter):
         self.clipper.GenerateClippedOutputOn()
         self.clipper.Update()
 
-        self.widget = vtk.vtkBoxWidget()
+        self.widget = vtki.vtkBoxWidget()
 
         self.widget.SetRotationEnabled(can_rotate)
         self.widget.SetTranslationEnabled(can_translate)
@@ -2016,7 +2016,7 @@ class BoxCutter(vtk.vtkBoxWidget, BaseCutter):
                     printc(":save: saved mesh to vedo_clipped.vtk")
 
 
-class SphereCutter(vtk.vtkSphereWidget, BaseCutter):
+class SphereCutter(vtki.vtkSphereWidget, BaseCutter):
     """
     Create a box widget to cut away parts of a Mesh.
     """
@@ -2069,7 +2069,7 @@ class SphereCutter(vtk.vtkSphereWidget, BaseCutter):
         self._alpha = alpha
         self._keypress_id = None
 
-        self._implicit_func = vtk.new("Sphere")
+        self._implicit_func = vtki.new("Sphere")
 
         if len(origin) == 3:
             self._implicit_func.SetCenter(origin)
@@ -2084,7 +2084,7 @@ class SphereCutter(vtk.vtkSphereWidget, BaseCutter):
             self._implicit_func.SetRadius(radius)
 
         poly = mesh.dataset
-        self.clipper = vtk.new("ClipPolyData")
+        self.clipper = vtki.new("ClipPolyData")
         self.clipper.GenerateClipScalarsOff()
         self.clipper.SetInputData(poly)
         self.clipper.SetClipFunction(self._implicit_func)
@@ -2092,7 +2092,7 @@ class SphereCutter(vtk.vtkSphereWidget, BaseCutter):
         self.clipper.GenerateClippedOutputOn()
         self.clipper.Update()
 
-        self.widget = vtk.vtkSphereWidget()
+        self.widget = vtki.vtkSphereWidget()
 
         self.widget.SetThetaResolution(res*2)
         self.widget.SetPhiResolution(res)
@@ -2158,7 +2158,7 @@ class SphereCutter(vtk.vtkSphereWidget, BaseCutter):
 
 
 #####################################################################
-class RendererFrame(vtk.vtkActor2D):
+class RendererFrame(vtki.vtkActor2D):
     """
     Add a line around the renderer subwindow.
     """
@@ -2191,22 +2191,22 @@ class RendererFrame(vtk.vtkActor2D):
 
         c = get_color(c)
 
-        ppoints = vtk.vtkPoints()  # Generate the polyline
+        ppoints = vtki.vtkPoints()  # Generate the polyline
         xy = 1 - padding
         psqr = [[padding, padding], [padding, xy], [xy, xy], [xy, padding], [padding, padding]]
         for i, pt in enumerate(psqr):
             ppoints.InsertPoint(i, pt[0], pt[1], 0)
-        lines = vtk.vtkCellArray()
+        lines = vtki.vtkCellArray()
         lines.InsertNextCell(len(psqr))
         for i in range(len(psqr)):
             lines.InsertCellPoint(i)
-        pd = vtk.vtkPolyData()
+        pd = vtki.vtkPolyData()
         pd.SetPoints(ppoints)
         pd.SetLines(lines)
 
-        mapper = vtk.new("PolyDataMapper2D")
+        mapper = vtki.new("PolyDataMapper2D")
         mapper.SetInputData(pd)
-        cs = vtk.new("Coordinate")
+        cs = vtki.new("Coordinate")
         cs.SetCoordinateSystemToNormalizedViewport()
         mapper.SetTransformCoordinate(cs)
 
@@ -2220,7 +2220,7 @@ class RendererFrame(vtk.vtkActor2D):
         self.GetProperty().SetLineWidth(lw)
 
 #####################################################################
-class ProgressBarWidget(vtk.vtkActor2D):
+class ProgressBarWidget(vtki.vtkActor2D):
     """
     Add a progress bar in the rendering window.
     """
@@ -2245,22 +2245,22 @@ class ProgressBarWidget(vtk.vtkActor2D):
         self.iterations = n
         self.autohide = autohide
 
-        ppoints = vtk.vtkPoints()  # Generate the line
+        ppoints = vtki.vtkPoints()  # Generate the line
         psqr = [[0, 0, 0], [1, 0, 0]]
         for i, pt in enumerate(psqr):
             ppoints.InsertPoint(i, *pt)
-        lines = vtk.vtkCellArray()
+        lines = vtki.vtkCellArray()
         lines.InsertNextCell(len(psqr))
         for i in range(len(psqr)):
             lines.InsertCellPoint(i)
-        pd = vtk.vtkPolyData()
+        pd = vtki.vtkPolyData()
         pd.SetPoints(ppoints)
         pd.SetLines(lines)
         self.dataset = pd
 
-        mapper = vtk.new("PolyDataMapper2D")
+        mapper = vtki.new("PolyDataMapper2D")
         mapper.SetInputData(pd)
-        cs = vtk.vtkCoordinate()
+        cs = vtki.vtkCoordinate()
         cs.SetCoordinateSystemToNormalizedViewport()
         mapper.SetTransformCoordinate(cs)
 
@@ -2313,7 +2313,7 @@ class ProgressBarWidget(vtk.vtkActor2D):
 
 
 #####################################################################
-class Icon(vtk.vtkOrientationMarkerWidget):
+class Icon(vtki.vtkOrientationMarkerWidget):
     """
     Add an inset icon mesh into the renderer.
     """
@@ -2653,7 +2653,7 @@ def RulerAxes(
 
 
 #####################################################################
-class Ruler2D(vtk.vtkAxisActor2D):
+class Ruler2D(vtki.vtkAxisActor2D):
     """
     Create a ruler with tick marks, labels and a title.
     """
@@ -2745,7 +2745,7 @@ class Ruler2D(vtk.vtkAxisActor2D):
         elif font.lower() == "arial":
             tprop.SetFontFamilyToArial()
         else:
-            tprop.SetFontFamily(vtk.VTK_FONT_FILE)
+            tprop.SetFontFamily(vtki.VTK_FONT_FILE)
             tprop.SetFontFile(utils.get_font_path(font))
         tprop.SetFontSize(font_size)
         tprop.BoldOff()
@@ -2758,7 +2758,7 @@ class Ruler2D(vtk.vtkAxisActor2D):
             tprop.SetBackgroundColor(bc)
             tprop.SetBackgroundOpacity(alpha)
 
-        lprop = vtk.vtkTextProperty()
+        lprop = vtki.vtkTextProperty()
         lprop.ShallowCopy(tprop)
         self.SetLabelTextProperty(lprop)
 
@@ -4207,7 +4207,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         plt.axes_instances[r] = asse
 
     elif plt.axes == 4:
-        axact = vtk.vtkAxesActor()
+        axact = vtki.vtkAxesActor()
         axact.SetShaftTypeToCylinder()
         axact.SetCylinderRadius(0.03)
         axact.SetXAxisLabelText("x")
@@ -4245,7 +4245,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         plt.widgets.append(icn)
 
     elif plt.axes == 5:
-        axact = vtk.new("AnnotatedCubeActor")
+        axact = vtki.new("AnnotatedCubeActor")
         axact.GetCubeProperty().SetColor(get_color(settings.annotated_cube_color))
         axact.SetTextEdgesVisibility(0)
         axact.SetFaceTextScale(settings.annotated_cube_text_scale)
@@ -4282,7 +4282,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         plt.widgets.append(icn)
 
     elif plt.axes == 6:
-        ocf = vtk.new("OutlineCornerFilter")
+        ocf = vtki.new("OutlineCornerFilter")
         ocf.SetCornerFactor(0.1)
         largestact, sz = None, -1
         for a in plt.objects:
@@ -4307,9 +4307,9 @@ def add_global_axes(axtype=None, c=None, bounds=()):
                 return
         ocf.Update()
 
-        oc_mapper = vtk.new("HierarchicalPolyDataMapper")
+        oc_mapper = vtki.new("HierarchicalPolyDataMapper")
         oc_mapper.SetInputConnection(0, ocf.GetOutputPort(0))
-        oc_actor = vtk.vtkActor()
+        oc_actor = vtki.vtkActor()
         oc_actor.SetMapper(oc_mapper)
         bc = np.array(plt.renderer.GetBackground())
         if np.sum(bc) < 1.5:
@@ -4334,7 +4334,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
 
     elif plt.axes == 8:
         vbb = compute_visible_bounds()[0]
-        ca = vtk.new("CubeAxesActor")
+        ca = vtki.new("CubeAxesActor")
         ca.SetBounds(vbb)
         ca.SetCamera(plt.renderer.GetActiveCamera())
         ca.GetXAxesLinesProperty().SetColor(c)
@@ -4355,7 +4355,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
 
     elif plt.axes == 9:
         vbb = compute_visible_bounds()[0]
-        src = vtk.new("CubeSource")
+        src = vtki.new("CubeSource")
         src.SetXLength(vbb[1] - vbb[0])
         src.SetYLength(vbb[3] - vbb[2])
         src.SetZLength(vbb[5] - vbb[4])
@@ -4397,7 +4397,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         plt.add(gr)
 
     elif plt.axes == 12:
-        polaxes = vtk.new("PolarAxesActor")
+        polaxes = vtki.new("PolarAxesActor")
         vbb = compute_visible_bounds()[0]
 
         polaxes.SetPolarAxisTitle("radial distance")
@@ -4429,7 +4429,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
 
     elif plt.axes == 13:
         # draws a simple ruler at the bottom of the window
-        ls = vtk.new("LegendScaleActor")
+        ls = vtki.new("LegendScaleActor")
         ls.RightAxisVisibilityOff()
         ls.TopAxisVisibilityOff()
         ls.LeftAxisVisibilityOff()
@@ -4444,7 +4444,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
         ls.GetBottomAxis().GetLabelTextProperty().BoldOff()
         ls.GetBottomAxis().GetLabelTextProperty().ItalicOff()
         pr = ls.GetBottomAxis().GetLabelTextProperty()
-        pr.SetFontFamily(vtk.VTK_FONT_FILE)
+        pr.SetFontFamily(vtki.VTK_FONT_FILE)
         pr.SetFontFile(utils.get_font_path(settings.default_font))
         ls.PickableOff()
         # if not plt.renderer.GetActiveCamera().GetParallelProjection():
@@ -4454,7 +4454,7 @@ def add_global_axes(axtype=None, c=None, bounds=()):
 
     elif plt.axes == 14:
         try:
-            cow = vtk.new("CameraOrientationWidget")
+            cow = vtki.new("CameraOrientationWidget")
             cow.SetParentRenderer(plt.renderer)
             cow.On()
             plt.axes_instances[r] = cow

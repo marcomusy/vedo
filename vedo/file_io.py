@@ -5,7 +5,7 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 import numpy as np
 
-import vedo.vtkclasses as vtk
+import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 
 import vedo
 from vedo import settings
@@ -223,7 +223,7 @@ def load(inputobj, unpack=True, force=False):
         elif os.path.isdir(fod):  ### it's a directory or DICOM
             flist = os.listdir(fod)
             if ".dcm" in flist[0]:  ### it's DICOM
-                reader = vtk.new("DICOMImageReader")
+                reader = vtki.new("DICOMImageReader")
                 reader.SetDirectoryName(fod)
                 reader.Update()
                 image = reader.GetOutput()
@@ -290,7 +290,7 @@ def _load_file(filename, unpack):
     elif fl.endswith(".3ds"):  # 3ds format
         objt = load3DS(filename)
     elif fl.endswith(".wrl"):
-        importer = vtk.new("VRMLImporter")
+        importer = vtki.new("VRMLImporter")
         importer.SetFileName(filename)
         importer.Read()
         importer.Update()
@@ -325,11 +325,11 @@ def _load_file(filename, unpack):
         or fl.endswith(".gif")
     ):
         if ".png" in fl:
-            picr = vtk.new("PNGReader")
+            picr = vtki.new("PNGReader")
         elif ".jpg" in fl or ".jpeg" in fl:
-            picr = vtk.new("JPEGReader")
+            picr = vtki.new("JPEGReader")
         elif ".bmp" in fl:
-            picr = vtk.new("BMPReader")
+            picr = vtki.new("BMPReader")
         elif ".gif" in fl:
             from PIL import Image as PILImage, ImageSequence
 
@@ -347,7 +347,7 @@ def _load_file(filename, unpack):
 
     ######################################################### multiblock:
     elif fl.endswith(".vtm") or fl.endswith(".vtmb"):
-        read = vtk.new("XMLMultiBlockDataReader")
+        read = vtki.new("XMLMultiBlockDataReader")
         read.SetFileName(filename)
         read.Update()
         mb = read.GetOutput()
@@ -358,15 +358,15 @@ def _load_file(filename, unpack):
                 if isinstance(
                     b,
                     (
-                        vtk.vtkPolyData,
-                        vtk.vtkStructuredGrid,
-                        vtk.vtkRectilinearGrid,
+                        vtki.vtkPolyData,
+                        vtki.vtkStructuredGrid,
+                        vtki.vtkRectilinearGrid,
                     ),
                 ):
                     acts.append(Mesh(b))
-                elif isinstance(b, vtk.vtkImageData):
+                elif isinstance(b, vtki.vtkImageData):
                     acts.append(Volume(b))
-                elif isinstance(b, vtk.vtkUnstructuredGrid):
+                elif isinstance(b, vtki.vtkUnstructuredGrid):
                     acts.append(vedo.UnstructuredGrid(b))
             return acts
         return mb
@@ -381,7 +381,7 @@ def _load_file(filename, unpack):
     ########################################################### polygonal mesh:
     else:
         if fl.endswith(".vtk"):  # read all legacy vtk types
-            reader = vtk.new("DataSetReader")
+            reader = vtki.new("DataSetReader")
             reader.ReadAllScalarsOn()
             reader.ReadAllVectorsOn()
             reader.ReadAllTensorsOn()
@@ -389,34 +389,34 @@ def _load_file(filename, unpack):
             reader.ReadAllNormalsOn()
             reader.ReadAllColorScalarsOn()
         elif fl.endswith(".ply"):
-            reader = vtk.new("PLYReader")
+            reader = vtki.new("PLYReader")
         elif fl.endswith(".obj"):
-            reader = vtk.new("OBJReader")
+            reader = vtki.new("OBJReader")
             reader.SetGlobalWarningDisplay(0) # suppress warnings issue #980
         elif fl.endswith(".stl"):
-            reader = vtk.new("STLReader")
+            reader = vtki.new("STLReader")
         elif fl.endswith(".byu") or fl.endswith(".g"):
-            reader = vtk.new("BYUReader")
+            reader = vtki.new("BYUReader")
         elif fl.endswith(".foam"):  # OpenFoam
-            reader = vtk.new("OpenFOAMReader")
+            reader = vtki.new("OpenFOAMReader")
         elif fl.endswith(".pvd"):
-            reader = vtk.new("XMLGenericDataObjectReader")
+            reader = vtki.new("XMLGenericDataObjectReader")
         elif fl.endswith(".vtp"):
-            reader = vtk.new("XMLPolyDataReader")
+            reader = vtki.new("XMLPolyDataReader")
         elif fl.endswith(".vts"):
-            reader = vtk.new("XMLStructuredGridReader")
+            reader = vtki.new("XMLStructuredGridReader")
         elif fl.endswith(".vtu"):
-            reader = vtk.new("XMLUnstructuredGridReader")
+            reader = vtki.new("XMLUnstructuredGridReader")
         elif fl.endswith(".vtr"):
-            reader = vtk.new("XMLRectilinearGridReader")
+            reader = vtki.new("XMLRectilinearGridReader")
         elif fl.endswith(".pvtr"):
-            reader = vtk.new("XMLPRectilinearGridReader")
+            reader = vtki.new("XMLPRectilinearGridReader")
         elif fl.endswith("pvtu"):
-            reader = vtk.new("XMLPUnstructuredGridReader")
+            reader = vtki.new("XMLPUnstructuredGridReader")
         elif fl.endswith(".txt") or fl.endswith(".xyz"):
-            reader = vtk.new("ParticleReader")  # (format is x, y, z, scalar)
+            reader = vtki.new("ParticleReader")  # (format is x, y, z, scalar)
         elif fl.endswith(".facet"):
-            reader = vtk.new("FacetReader")
+            reader = vtki.new("FacetReader")
         else:
             return None
 
@@ -428,7 +428,7 @@ def _load_file(filename, unpack):
             vedo.logger.error(f"unable to load {filename}") 
             return None
 
-        if isinstance(routput, vtk.vtkUnstructuredGrid):
+        if isinstance(routput, vtki.vtkUnstructuredGrid):
             objt = vedo.UnstructuredGrid(routput)
 
         else:
@@ -612,11 +612,11 @@ def loadStructuredPoints(filename, as_points=True):
     If `as_points` is True, return a `Points` object
     instead of a `vtkStructuredPoints`.
     """
-    reader = vtk.new("StructuredPointsReader")
+    reader = vtki.new("StructuredPointsReader")
     reader.SetFileName(filename)
     reader.Update()
     if as_points:
-        v2p = vtk.new("ImageToPoints")
+        v2p = vtki.new("ImageToPoints")
         v2p.SetInputData(reader.GetOutput())
         v2p.Update()
         pts = Points(v2p.GetOutput())
@@ -627,9 +627,9 @@ def loadStructuredPoints(filename, as_points=True):
 def loadStructuredGrid(filename):
     """Load and return a `vtkStructuredGrid` object from file."""
     if filename.endswith(".vts"):
-        reader = vtk.new("XMLStructuredGridReader")
+        reader = vtki.new("XMLStructuredGridReader")
     else:
-        reader = vtk.new("StructuredGridReader")
+        reader = vtki.new("StructuredGridReader")
     reader.SetFileName(filename)
     reader.Update()
     return reader.GetOutput()
@@ -638,11 +638,11 @@ def loadStructuredGrid(filename):
 ###################################################################
 def load3DS(filename):
     """Load `3DS` file format from file."""
-    renderer = vtk.vtkRenderer()
-    renWin = vtk.vtkRenderWindow()
+    renderer = vtki.vtkRenderer()
+    renWin = vtki.vtkRenderWindow()
     renWin.AddRenderer(renderer)
 
-    importer = vtk.new("3DSImporter")
+    importer = vtki.new("3DSImporter")
     importer.SetFileName(filename)
     importer.ComputeNormalsOn()
     importer.SetRenderWindow(renWin)
@@ -708,7 +708,7 @@ def loadOFF(filename):
 ########################################################################
 def loadGeoJSON(filename):
     """Load GeoJSON files."""
-    jr = vtk.new("GeoJSONReader")
+    jr = vtki.new("GeoJSONReader")
     jr.SetFileName(filename)
     jr.Update()
     return Mesh(jr.GetOutput())
@@ -733,7 +733,7 @@ def loadDolfin(filename, exterior=False):
     else:
         polyb = utils.buildPolyData(bm.coordinates(), bm.cells(), tetras=True)
         polym = utils.buildPolyData(m.coordinates(), m.cells(), tetras=True)
-        app = vtk.new("AppendPolyData")
+        app = vtki.new("AppendPolyData")
         app.AddInputData(polym)
         app.AddInputData(polyb)
         app.Update()
@@ -905,7 +905,7 @@ def _from_numpy(d):
     lut_list  = d["LUT"]
     lut_range = d["LUT_range"]
     ncols = len(lut_list)
-    lut = vtk.vtkLookupTable()
+    lut = vtki.vtkLookupTable()
     lut.SetNumberOfTableValues(ncols)
     lut.SetRange(lut_range)
     for i in range(ncols):
@@ -934,7 +934,7 @@ def _from_numpy(d):
 
         if "texture_array" in keys and d["texture_array"] is not None:
             # recreate a vtkTexture object from numpy arrays:
-            t = vtk.vtkTexture()
+            t = vtki.vtkTexture()
             t.SetInterpolate(d["texture_interpolate"])
             t.SetRepeat(d["texture_repeat"])
             t.SetQuality(d["texture_quality"])
@@ -1104,24 +1104,24 @@ def _import_npy(fileinput):
 def loadImageData(filename):
     """Read and return a `vtkImageData` object from file."""
     if ".tif" in filename.lower():
-        reader = vtk.new("TIFFReader")
+        reader = vtki.new("TIFFReader")
         # print("GetOrientationType ", reader.GetOrientationType())
         reader.SetOrientationType(settings.tiff_orientation_type)
     elif ".slc" in filename.lower():
-        reader = vtk.new("SLCReader")
+        reader = vtki.new("SLCReader")
         if not reader.CanReadFile(filename):
             vedo.logger.error(f"sorry, bad SLC file {filename}")
             return None
     elif ".vti" in filename.lower():
-        reader = vtk.new("XMLImageDataReader")
+        reader = vtki.new("XMLImageDataReader")
     elif ".mhd" in filename.lower():
-        reader = vtk.new("MetaImageReader")
+        reader = vtki.new("MetaImageReader")
     elif ".dem" in filename.lower():
-        reader = vtk.new("DEMReader")
+        reader = vtki.new("DEMReader")
     elif ".nii" in filename.lower():
-        reader = vtk.new("NIFTIImageReader")
+        reader = vtki.new("NIFTIImageReader")
     elif ".nrrd" in filename.lower():
-        reader = vtk.new("NrrdReader")
+        reader = vtki.new("NrrdReader")
         if not reader.CanReadFile(filename):
             vedo.logger.error(f"sorry, bad NRRD file {filename}")
             return None
@@ -1146,9 +1146,9 @@ def write(objct, fileoutput, binary=True):
 
     fr = fileoutput.lower()
     if fr.endswith(".vtk"):
-        writer = vtk.new("DataSetWriter")
+        writer = vtki.new("DataSetWriter")
     elif fr.endswith(".ply"):
-        writer = vtk.new("PLYWriter")
+        writer = vtki.new("PLYWriter")
         writer.AddComment("PLY file generated by vedo")
         lut = objct.mapper.GetLookupTable()
         if lut:
@@ -1159,21 +1159,21 @@ def write(objct, fileoutput, binary=True):
                 writer.SetArrayName(pscal.GetName())
             writer.SetLookupTable(lut)
     elif fr.endswith(".stl"):
-        writer = vtk.new("STLWriter")
+        writer = vtki.new("STLWriter")
     elif fr.endswith(".vtp"):
-        writer = vtk.new("XMLPolyDataWriter")
+        writer = vtki.new("XMLPolyDataWriter")
     elif fr.endswith(".vtu"):
-        writer = vtk.new("XMLUnstructuredGridWriter")
+        writer = vtki.new("XMLUnstructuredGridWriter")
     elif fr.endswith(".xyz"):
-        writer = vtk.new("SimplePointsWriter")
+        writer = vtki.new("SimplePointsWriter")
     elif fr.endswith(".facet"):
-        writer = vtk.new("FacetWriter")
+        writer = vtki.new("FacetWriter")
     elif fr.endswith(".vti"):
-        writer = vtk.new("XMLImageDataWriter")
+        writer = vtki.new("XMLImageDataWriter")
     elif fr.endswith(".vtr"):
-        writer = vtk.new("XMLRectilinearGridWriter")
+        writer = vtki.new("XMLRectilinearGridWriter")
     elif fr.endswith(".vtm"):
-        g = vtk.new("MultiBlockDataGroupFilter")
+        g = vtki.new("MultiBlockDataGroupFilter")
         for ob in objct:
             try:
                 g.AddInputData(ob)
@@ -1181,23 +1181,23 @@ def write(objct, fileoutput, binary=True):
                 vedo.logger.warning("cannot save object of type", type(ob))
         g.Update()
         mb = g.GetOutputDataObject(0)
-        wri = vtk.vtkXMLMultiBlockDataWriter()
+        wri = vtki.new("vtkXMLMultiBlockDataWriter")
         wri.SetInputData(mb)
         wri.SetFileName(fileoutput)
         wri.Write()
         return objct
     elif fr.endswith(".mhd"):
-        writer = vtk.new("MetaImageWriter")
+        writer = vtki.new("MetaImageWriter")
     elif fr.endswith(".nii"):
-        writer = vtk.new("NIFTIImageWriter")
+        writer = vtki.new("NIFTIImageWriter")
     elif fr.endswith(".png"):
-        writer = vtk.new("PNGWriter")
+        writer = vtki.new("PNGWriter")
     elif fr.endswith(".jpg"):
-        writer = vtk.new("JPEGWriter")
+        writer = vtki.new("JPEGWriter")
     elif fr.endswith(".bmp"):
-        writer = vtk.new("BMPWriter")
+        writer = vtki.new("BMPWriter")
     elif fr.endswith(".tif") or fr.endswith(".tiff"):
-        writer = vtk.new("TIFFWriter")
+        writer = vtki.new("TIFFWriter")
         writer.SetFileDimensionality(len(obj.GetDimensions()))
     elif fr.endswith(".obj"):
         with open(fileoutput, "w", encoding="UTF-8") as outF:
@@ -1335,7 +1335,7 @@ def export_window(fileoutput, binary=False, plt=None):
 
         plt.render()
 
-        exporter = vtk.new("X3DExporter")
+        exporter = vtki.new("X3DExporter")
         exporter.SetBinary(binary)
         exporter.FastestOff()
         exporter.SetInput(plt.window)
@@ -1671,12 +1671,12 @@ def load_obj(fileinput, mtl_file=None, texture_path=None):
     Returns:
         `list(Mesh)`
     """
-    window = vtk.vtkRenderWindow()
+    window = vtki.vtkRenderWindow()
     window.SetOffScreenRendering(1)
-    renderer = vtk.vtkRenderer()
+    renderer = vtki.vtkRenderer()
     window.AddRenderer(renderer)
 
-    importer = vtk.new("OBJImporter")
+    importer = vtki.new("OBJImporter")
     importer.SetFileName(fileinput)
     if mtl_file is None:
         mtl_file = fileinput.replace(".obj", ".mtl").replace(".OBJ", ".MTL")
@@ -1728,7 +1728,7 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False):
 
     if asarray and scale == 1 and not vedo.plotter_instance.offscreen:
         nx, ny = vedo.plotter_instance.window.GetSize()
-        arr = vtk.vtkUnsignedCharArray()
+        arr = vtki.vtkUnsignedCharArray()
         vedo.plotter_instance.window.GetRGBACharPixelData(0, 0, nx-1, ny-1, 0, arr)
         narr = vedo.vtk2numpy(arr).T[:3].T.reshape([ny, nx, 3])
         narr = np.flip(narr, axis=0)
@@ -1737,7 +1737,7 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False):
     filename = str(filename)
 
     if filename.endswith(".pdf"):
-        writer = vtk.new("GL2PSExporter")
+        writer = vtki.new("GL2PSExporter")
         writer.SetRenderWindow(vedo.plotter_instance.window)
         writer.Write3DPropsAsRasterImageOff()
         writer.SilentOn()
@@ -1748,7 +1748,7 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False):
         return vedo.plotter_instance  ##########
 
     elif filename.endswith(".svg"):
-        writer = vtk.new("GL2PSExporter")
+        writer = vtki.new("GL2PSExporter")
         writer.SetRenderWindow(vedo.plotter_instance.window)
         writer.Write3DPropsAsRasterImageOff()
         writer.SilentOn()
@@ -1759,7 +1759,7 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False):
         return vedo.plotter_instance  ##########
 
     elif filename.endswith(".eps"):
-        writer = vtk.new("GL2PSExporter")
+        writer = vtki.new("GL2PSExporter")
         writer.SetRenderWindow(vedo.plotter_instance.window)
         writer.Write3DPropsAsRasterImageOff()
         writer.SilentOn()
@@ -1770,11 +1770,11 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False):
         return vedo.plotter_instance  ##########
 
     if settings.screeshot_large_image:
-        w2if = vtk.new("RenderLargeImage")
+        w2if = vtki.new("RenderLargeImage")
         w2if.SetInput(vedo.plotter_instance.renderer)
         w2if.SetMagnification(scale)
     else:
-        w2if = vtk.new("WindowToImageFilter")
+        w2if = vtki.new("WindowToImageFilter")
         w2if.SetInput(vedo.plotter_instance.window)
         if hasattr(w2if, "SetScale"):
             w2if.SetScale(int(scale), int(scale))
@@ -1797,17 +1797,17 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False):
     #     return vedo.notebook_plotter  ##########
 
     if filename.lower().endswith(".png"):
-        writer = vtk.new("PNGWriter")
+        writer = vtki.new("PNGWriter")
         writer.SetFileName(filename)
         writer.SetInputData(w2if.GetOutput())
         writer.Write()
     elif filename.lower().endswith(".jpg") or filename.lower().endswith(".jpeg"):
-        writer = vtk.new("JPEGWriter")
+        writer = vtki.new("JPEGWriter")
         writer.SetFileName(filename)
         writer.SetInputData(w2if.GetOutput())
         writer.Write()
     else:  # add .png
-        writer = vtk.new("PNGWriter")
+        writer = vtki.new("PNGWriter")
         writer.SetFileName(filename + ".png")
         writer.SetInputData(w2if.GetOutput())
         writer.Write()

@@ -3,14 +3,14 @@
 from dataclasses import dataclass
 import numpy as np
 
-import vedo.vtkclasses as vtk
+import vedo.vtkclasses as vtki
 
 __docformat__ = "google"
 
 __doc__ = """Submodule to customize interaction modes."""
 
 
-class MousePan(vtk.vtkInteractorStyleUser):
+class MousePan(vtki.vtkInteractorStyleUser):
     """
     Interaction mode to pan the scene by dragging the mouse.
 
@@ -158,7 +158,7 @@ class _BlenderStyleDragInfo:
 
 
 ###############################################
-class BlenderStyle(vtk.vtkInteractorStyleUser):
+class BlenderStyle(vtki.vtkInteractorStyleUser):
     """
     Create an interaction style using the Blender default key-bindings.
 
@@ -308,7 +308,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         self._is_box_zooming = False
 
         # holds an image of the renderer output at the start of a drawing event
-        self._pixel_array = vtk.vtkUnsignedCharArray()
+        self._pixel_array = vtki.vtkUnsignedCharArray()
 
         self._upside_down = False
 
@@ -1194,7 +1194,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
 
         size = rwin.GetSize()
 
-        tempPA = vtk.vtkUnsignedCharArray()
+        tempPA = vtki.vtkUnsignedCharArray()
         tempPA.DeepCopy(self._pixel_array)
 
         # check size, viewport may have been resized in the mean-time
@@ -1279,7 +1279,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         y1 = min(max(y1, 0), size[1])
         y2 = min(max(y2, 0), size[1])
 
-        tempPA = vtk.vtkUnsignedCharArray()
+        tempPA = vtki.vtkUnsignedCharArray()
         tempPA.DeepCopy(self._pixel_array)
 
         xs, ys = self.line2pixels(x1, x2, y1, y2)
@@ -1317,12 +1317,12 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
 
         # # can we add something to the window here?
         # freeType = vtk.FreeTypeTools.GetInstance()
-        # textProperty = vtk.vtkTextProperty()
+        # textProperty = vtki.vtkTextProperty()
         # textProperty.SetJustificationToLeft()
         # textProperty.SetFontSize(24)
         # textProperty.SetOrientation(25)
         #
-        # textImage = vtk.vtkImageData()
+        # textImage = vtki.vtkImageData()
         # freeType.RenderString(textProperty, "a somewhat longer text", 72, textImage)
         # # this does not give an error, assume it works
         # #
@@ -1339,7 +1339,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
         if self.middle_mouse_lock_actor is None:
             # create the actor
             # Create a text on the top-rightcenter
-            textMapper = vtk.new("TextMapper")
+            textMapper = vtki.new("TextMapper")
             textMapper.SetInput("Middle mouse lock [m or space] active")
             textProp = textMapper.GetTextProperty()
             textProp.SetFontSize(12)
@@ -1351,7 +1351,7 @@ class BlenderStyle(vtk.vtkInteractorStyleUser):
             textProp.SetJustificationToCentered()
             textProp.SetColor((0, 0, 0))
 
-            self.middle_mouse_lock_actor = vtk.vtkActor2D()
+            self.middle_mouse_lock_actor = vtki.vtkActor2D()
             self.middle_mouse_lock_actor.SetMapper(textMapper)
             self.middle_mouse_lock_actor.GetPositionCoordinate().SetCoordinateSystemToNormalizedDisplay()
             self.middle_mouse_lock_actor.GetPositionCoordinate().SetValue(0.5, 0.98)

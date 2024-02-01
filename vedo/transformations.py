@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-import vedo.vtkclasses as vtk
+import vedo.vtkclasses as vtki # a wrapper for lazy imports
 
 __docformat__ = "google"
 
@@ -72,21 +72,21 @@ class LinearTransform:
         self.comment = ""
 
         if T is None:
-            T = vtk.vtkTransform()
+            T = vtki.vtkTransform()
 
-        elif isinstance(T, vtk.vtkMatrix4x4):
-            S = vtk.vtkTransform()
+        elif isinstance(T, vtki.vtkMatrix4x4):
+            S = vtki.vtkTransform()
             S.SetMatrix(T)
             T = S
 
-        elif isinstance(T, vtk.vtkLandmarkTransform):
-            S = vtk.vtkTransform()
+        elif isinstance(T, vtki.vtkLandmarkTransform):
+            S = vtki.vtkTransform()
             S.SetMatrix(T.GetMatrix())
             T = S
 
         elif _is_sequence(T):
-            S = vtk.vtkTransform()
-            M = vtk.vtkMatrix4x4()
+            S = vtki.vtkTransform()
+            M = vtki.vtkMatrix4x4()
             n = len(T)
             for i in range(n):
                 for j in range(n):
@@ -94,13 +94,13 @@ class LinearTransform:
             S.SetMatrix(M)
             T = S
 
-        elif isinstance(T, vtk.vtkLinearTransform):
-            S = vtk.vtkTransform()
+        elif isinstance(T, vtki.vtkLinearTransform):
+            S = vtki.vtkTransform()
             S.DeepCopy(T)
             T = S
 
         elif isinstance(T, LinearTransform):
-            S = vtk.vtkTransform()
+            S = vtki.vtkTransform()
             S.DeepCopy(T.T)
             T = S
 
@@ -134,8 +134,8 @@ class LinearTransform:
                             if v != "":
                                 matrix[i, j] = float(v)
                         i += 1
-            T = vtk.vtkTransform()
-            m = vtk.vtkMatrix4x4()
+            T = vtki.vtkTransform()
+            m = vtki.vtkMatrix4x4()
             for i in range(4):
                 for j in range(4):
                     m.SetElement(i, j, matrix[i][j])
@@ -296,7 +296,7 @@ class LinearTransform:
 
     def transpose(self):
         """Transpose the transformation. Acts in-place."""
-        M = vtk.vtkMatrix4x4()
+        M = vtki.vtkMatrix4x4()
         self.T.GetTranspose(M)
         self.T.SetMatrix(M)
         return self
@@ -338,8 +338,8 @@ class LinearTransform:
             ```
         """
         if _is_sequence(T):
-            S = vtk.vtkTransform()
-            M = vtk.vtkMatrix4x4()
+            S = vtki.vtkTransform()
+            M = vtki.vtkMatrix4x4()
             n = len(T)
             for i in range(n):
                 for j in range(n):
@@ -539,7 +539,7 @@ class LinearTransform:
     @matrix.setter
     def matrix(self, M):
         """Set trasformation by assigning a 4x4 or 3x3 numpy matrix."""
-        m = vtk.vtkMatrix4x4()
+        m = vtki.vtkMatrix4x4()
         n = len(M)
         for i in range(n):
             for j in range(n):
@@ -665,15 +665,15 @@ class NonLinearTransform:
         self.comment = ""
 
         if T is None and len(kwargs) == 0:
-            T = vtk.vtkThinPlateSplineTransform()
+            T = vtki.vtkThinPlateSplineTransform()
 
-        elif isinstance(T, vtk.vtkThinPlateSplineTransform):
-            S = vtk.vtkThinPlateSplineTransform()
+        elif isinstance(T, vtki.vtkThinPlateSplineTransform):
+            S = vtki.vtkThinPlateSplineTransform()
             S.DeepCopy(T)
             T = S
 
         elif isinstance(T, NonLinearTransform):
-            S = vtk.vtkThinPlateSplineTransform()
+            S = vtki.vtkThinPlateSplineTransform()
             S.DeepCopy(T.T)
             T = S
 
@@ -690,14 +690,14 @@ class NonLinearTransform:
             mode = D["mode"]
             sigma = D["sigma"]
 
-            T = vtk.vtkThinPlateSplineTransform()
-            vptss = vtk.vtkPoints()
+            T = vtki.vtkThinPlateSplineTransform()
+            vptss = vtki.vtkPoints()
             for p in source:
                 if len(p) == 2:
                     p = [p[0], p[1], 0.0]
                 vptss.InsertNextPoint(p)
             T.SetSourceLandmarks(vptss)
-            vptst = vtk.vtkPoints()
+            vptst = vtki.vtkPoints()
             for p in target:
                 if len(p) == 2:
                     p = [p[0], p[1], 0.0]
@@ -723,14 +723,14 @@ class NonLinearTransform:
                 print("Warning: NonLinearTransform got unexpected keyword arguments:")
                 print(T)
 
-            T = vtk.vtkThinPlateSplineTransform()
-            vptss = vtk.vtkPoints()
+            T = vtki.vtkThinPlateSplineTransform()
+            vptss = vtki.vtkPoints()
             for p in source:
                 if len(p) == 2:
                     p = [p[0], p[1], 0.0]
                 vptss.InsertNextPoint(p)
             T.SetSourceLandmarks(vptss)
-            vptst = vtk.vtkPoints()
+            vptst = vtki.vtkPoints()
             for p in target:
                 if len(p) == 2:
                     p = [p[0], p[1], 0.0]
@@ -823,7 +823,7 @@ class NonLinearTransform:
             pass
         else:
             pts = pts.vertices
-        vpts = vtk.vtkPoints()
+        vpts = vtki.vtkPoints()
         for p in pts:
             if len(p) == 2:
                 p = [p[0], p[1], 0.0]
@@ -837,7 +837,7 @@ class NonLinearTransform:
             pass
         else:
             pts = pts.vertices
-        vpts = vtk.vtkPoints()
+        vpts = vtki.vtkPoints()
         for p in pts:
             if len(p) == 2:
                 p = [p[0], p[1], 0.0]
@@ -1024,7 +1024,7 @@ class TransformInterpolator:
         """
         Interpolate between two or more linear transformations.
         """
-        self.vtk_interpolator = vtk.new("TransformInterpolator")
+        self.vtk_interpolator = vtki.new("TransformInterpolator")
         self.mode(mode)
         self.TS = []
 
@@ -1032,7 +1032,7 @@ class TransformInterpolator:
         """
         Get the intermediate transformation at time `t`.
         """
-        xform = vtk.vtkTransform()
+        xform = vtki.vtkTransform()
         self.vtk_interpolator.InterpolateTransform(t, xform)
         return LinearTransform(xform)
 

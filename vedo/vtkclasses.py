@@ -779,11 +779,11 @@ def get_class(name, module_name=""):
     
     Example:
     ```python
-    from vedo import vtkclasses as vtk
-    print(vtk.vtkActor)
-    print(vtk.location["vtkActor"])
-    print(vtk.get_class("vtkActor"))
-    print(vtk.get_class("vtkActor", "vtkRenderingCore"))
+    from vedo import vtkclasses as vtki
+    print(vtki.vtkActor)
+    print(vtki.location["vtkActor"])
+    print(vtki.get_class("vtkActor"))
+    print(vtki.get_class("vtkActor", "vtkRenderingCore"))
     ```
     """
     if name and not name.lower().startswith("vtk"):
@@ -806,8 +806,8 @@ def new(cls_name, module_name=""):
     
     Example:
     ```python
-    from vedo import vtkclasses as vtk
-    a = vtk.new("Actor")
+    from vedo import vtkclasses as vtki
+    a = vtki.new("Actor")
     ```
     """
     try:

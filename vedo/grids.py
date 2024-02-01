@@ -5,7 +5,7 @@ import time
 from weakref import ref as weak_ref_to
 import numpy as np
 
-import vedo.vtkclasses as vtk
+import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 
 import vedo
 from vedo import utils
@@ -133,8 +133,8 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
 
         self.dataset = None
 
-        self.mapper = vtk.new("PolyDataMapper")
-        self._actor = vtk.vtkActor()
+        self.mapper = vtki.new("PolyDataMapper")
+        self._actor = vtki.vtkActor()
         self._actor.retrieve_object = weak_ref_to(self)
         self._actor.SetMapper(self.mapper)
         self.properties = self._actor.GetProperty()
@@ -156,14 +156,14 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         inputtype = str(type(inputobj))
 
         if inputobj is None:
-            self.dataset = vtk.vtkUnstructuredGrid()
+            self.dataset = vtki.vtkUnstructuredGrid()
 
         elif utils.is_sequence(inputobj):
 
             pts, cells, celltypes = inputobj
             assert len(cells) == len(celltypes)
 
-            self.dataset = vtk.vtkUnstructuredGrid()
+            self.dataset = vtki.vtkUnstructuredGrid()
 
             if not utils.is_sequence(cells[0]):
                 tets = []
@@ -178,7 +178,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
 
             # This would fill the points and use those to define orientation
             vpts = utils.numpy2vtk(pts, dtype=np.float32)
-            points = vtk.vtkPoints()
+            points = vtki.vtkPoints()
             points.SetData(vpts)
             self.dataset.SetPoints(points)
 
@@ -186,37 +186,37 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
             # https://vtk.org/doc/nightly/html/vtkCellType_8h_source.html
             for i, ct in enumerate(celltypes):
                 if   ct == cell_types["VERTEX"]:
-                    cell = vtk.vtkVertex()
+                    cell = vtki.vtkVertex()
                 elif ct == cell_types["POLY_VERTEX"]:
-                    cell = vtk.vtkPolyVertex()
+                    cell = vtki.vtkPolyVertex()
                 elif ct == cell_types["TETRA"]:
-                    cell = vtk.vtkTetra()
+                    cell = vtki.vtkTetra()
                 elif ct == cell_types["WEDGE"]:
-                    cell = vtk.vtkWedge()
+                    cell = vtki.vtkWedge()
                 elif ct == cell_types["LINE"]:
-                    cell = vtk.vtkLine()
+                    cell = vtki.vtkLine()
                 elif ct == cell_types["POLY_LINE"]:
-                    cell = vtk.vtkPolyLine()
+                    cell = vtki.vtkPolyLine()
                 elif ct == cell_types["TRIANGLE"]:
-                    cell = vtk.vtkTriangle()
+                    cell = vtki.vtkTriangle()
                 elif ct == cell_types["TRIANGLE_STRIP"]:
-                    cell = vtk.vtkTriangleStrip()
+                    cell = vtki.vtkTriangleStrip()
                 elif ct == cell_types["POLYGON"]:
-                    cell = vtk.vtkPolygon()
+                    cell = vtki.vtkPolygon()
                 elif ct == cell_types["PIXEL"]:
-                    cell = vtk.vtkPixel()
+                    cell = vtki.vtkPixel()
                 elif ct == cell_types["QUAD"]:
-                    cell = vtk.vtkQuad()
+                    cell = vtki.vtkQuad()
                 elif ct == cell_types["VOXEL"]:
-                    cell = vtk.vtkVoxel()
+                    cell = vtki.vtkVoxel()
                 elif ct == cell_types["PYRAMID"]:
-                    cell = vtk.vtkPyramid()
+                    cell = vtki.vtkPyramid()
                 elif ct == cell_types["HEXAHEDRON"]:
-                    cell = vtk.vtkHexahedron()
+                    cell = vtki.vtkHexahedron()
                 elif ct == cell_types["HEXAGONAL_PRISM"]:
-                    cell = vtk.vtkHexagonalPrism()
+                    cell = vtki.vtkHexagonalPrism()
                 elif ct == cell_types["PENTAGONAL_PRISM"]:
-                    cell = vtk.vtkPentagonalPrism()
+                    cell = vtki.vtkPentagonalPrism()
                 elif ct == cell_types["QUADRATIC_TETRA"]:
                     from vtkmodules.vtkCommonDataModel import vtkQuadraticTetra
                     cell = vtkQuadraticTetra()
@@ -323,9 +323,9 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
                 inputobj = download(inputobj, verbose=False)
             self.filename = inputobj
             if inputobj.endswith(".vtu"):
-                reader = vtk.new("XMLUnstructuredGridReader")
+                reader = vtki.new("XMLUnstructuredGridReader")
             else:
-                reader = vtk.new("UnstructuredGridReader")
+                reader = vtki.new("UnstructuredGridReader")
             self.filename = inputobj
             reader.SetFileName(inputobj)
             reader.Update()
@@ -333,7 +333,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
 
         else:
             # this converts other types of vtk objects to UnstructuredGrid
-            apf = vtk.new("AppendFilter")
+            apf = vtki.new("AppendFilter")
             try:
                 apf.AddInputData(inputobj)
             except TypeError:
@@ -492,7 +492,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
     def actor(self):
         """Return the `vtkActor` of the object."""
         # print("building actor")
-        gf = vtk.new("GeometryFilter")
+        gf = vtki.new("GeometryFilter")
         gf.SetInputData(self.dataset)
         gf.Update()
         out = gf.GetOutput()
@@ -515,11 +515,11 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         """
         Merge multiple datasets into one single `UnstrcturedGrid`.
         """
-        apf = vtk.new("AppendFilter")
+        apf = vtki.new("AppendFilter")
         for o in others:
             if isinstance(o, UnstructuredGrid):
                 apf.AddInputData(o.dataset)
-            elif isinstance(o, vtk.vtkUnstructuredGrid):
+            elif isinstance(o, vtki.vtkUnstructuredGrid):
                 apf.AddInputData(o)
             else:
                 vedo.printc("Error: cannot merge type", type(o), c="r")
@@ -536,7 +536,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
 
     def clone(self, deep=True):
         """Clone the UnstructuredGrid object to yield an exact copy."""
-        ug = vtk.vtkUnstructuredGrid()
+        ug = vtki.vtkUnstructuredGrid()
         if deep:
             ug.DeepCopy(self.dataset)
         else:
@@ -571,7 +571,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
 
         Set keyword "on" to either "cells" or "points".
         """
-        th = vtk.new("Threshold")
+        th = vtki.new("Threshold")
         th.SetInputData(self.dataset)
 
         if name is None:
@@ -614,10 +614,10 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         scrange = self.dataset.GetScalarRange()
 
         if flying_edges:
-            cf = vtk.new("FlyingEdges3D")
+            cf = vtki.new("FlyingEdges3D")
             cf.InterpolateAttributesOn()
         else:
-            cf = vtk.new("ContourFilter")
+            cf = vtki.new("ContourFilter")
             cf.UseScalarTreeOn()
 
         cf.SetInputData(self.dataset)
@@ -653,7 +653,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
 
         ![](https://vedo.embl.es/images/feats/shrink_hex.png)
         """
-        sf = vtk.new("ShrinkFilter")
+        sf = vtki.new("ShrinkFilter")
         sf.SetInputData(self.dataset)
         sf.SetShrinkFactor(fraction)
         sf.Update()
@@ -674,9 +674,9 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
 
         If `fill=False`, only the boundary faces will be generated.
         """
-        gf = vtk.new("GeometryFilter")
+        gf = vtki.new("GeometryFilter")
         if fill:
-            sf = vtk.new("ShrinkFilter")
+            sf = vtki.new("ShrinkFilter")
             sf.SetInputData(self.dataset)
             sf.SetShrinkFactor(shrink)
             sf.Update()
@@ -712,13 +712,13 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         uarr = self.dataset.GetCellTypesArray()
         ctarrtyp = np.where(utils.vtk2numpy(uarr) == ctype)[0]
         uarrtyp = utils.numpy2vtk(ctarrtyp, deep=False, dtype="id")
-        selection_node = vtk.new("SelectionNode")
-        selection_node.SetFieldType(vtk.get_class("SelectionNode").CELL)
-        selection_node.SetContentType(vtk.get_class("SelectionNode").INDICES)
+        selection_node = vtki.new("SelectionNode")
+        selection_node.SetFieldType(vtki.get_class("SelectionNode").CELL)
+        selection_node.SetContentType(vtki.get_class("SelectionNode").INDICES)
         selection_node.SetSelectionList(uarrtyp)
-        selection = vtk.new("Selection")
+        selection = vtki.new("Selection")
         selection.AddNode(selection_node)
-        es = vtk.new("ExtractSelection")
+        es = vtki.new("ExtractSelection")
         es.SetInputData(0, self.dataset)
         es.SetInputData(1, selection)
         es.Update()
@@ -731,25 +731,25 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
 
     def extract_cells_by_id(self, idlist, use_point_ids=False):
         """Return a new `UnstructuredGrid` composed of the specified subset of indices."""
-        selection_node = vtk.new("SelectionNode")
+        selection_node = vtki.new("SelectionNode")
         if use_point_ids:
-            selection_node.SetFieldType(vtk.get_class("SelectionNode").POINT)
-            contcells = vtk.get_class("SelectionNode").CONTAINING_CELLS()
+            selection_node.SetFieldType(vtki.get_class("SelectionNode").POINT)
+            contcells = vtki.get_class("SelectionNode").CONTAINING_CELLS()
             selection_node.GetProperties().Set(contcells, 1)
         else:
-            selection_node.SetFieldType(vtk.get_class("SelectionNode").CELL)
-        selection_node.SetContentType(vtk.get_class("SelectionNode").INDICES)
+            selection_node.SetFieldType(vtki.get_class("SelectionNode").CELL)
+        selection_node.SetContentType(vtki.get_class("SelectionNode").INDICES)
         vidlist = utils.numpy2vtk(idlist, dtype="id")
         selection_node.SetSelectionList(vidlist)
-        selection = vtk.new("Selection")
+        selection = vtki.new("Selection")
         selection.AddNode(selection_node)
-        es = vtk.new("ExtractSelection")
+        es = vtki.new("ExtractSelection")
         es.SetInputData(0, self)
         es.SetInputData(1, selection)
         es.Update()
 
         ug = UnstructuredGrid(es.GetOutput())
-        pr = vtk.vtkProperty()
+        pr = vtki.vtkProperty()
         pr.DeepCopy(self.properties)
         ug.SetProperty(pr)
         ug.properties = pr
@@ -765,10 +765,10 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
 
     def find_cell(self, p):
         """Locate the cell that contains a point and return the cell ID."""
-        cell = vtk.vtkTetra()
-        cell_id = vtk.mutable(0)
-        tol2 = vtk.mutable(0)
-        sub_id = vtk.mutable(0)
+        cell = vtki.vtkTetra()
+        cell_id = vtki.mutable(0)
+        tol2 = vtki.mutable(0)
+        sub_id = vtki.mutable(0)
         pcoords = [0, 0, 0]
         weights = [0, 0, 0]
         cid = self.dataset.FindCell(p, cell, cell_id, tol2, sub_id, pcoords, weights)
@@ -778,7 +778,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         """
         Cleanup unused points and empty cells
         """
-        cl = vtk.new("StaticCleanUnstructuredGrid")
+        cl = vtki.new("StaticCleanUnstructuredGrid")
         cl.SetInputData(self.dataset)
         cl.RemoveUnusedPointsOn()
         cl.ProduceMergeMapOff()
@@ -798,13 +798,13 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         """
         Extract cells that are lying of the specified surface.
         """
-        bf = vtk.new("3DLinearGridCrinkleExtractor")
+        bf = vtki.new("3DLinearGridCrinkleExtractor")
         bf.SetInputData(self.dataset)
         bf.CopyPointDataOn()
         bf.CopyCellDataOn()
         bf.RemoveUnusedPointsOff()
 
-        plane = vtk.new("Plane")
+        plane = vtki.new("Plane")
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
         bf.SetImplicitFunction(plane)
@@ -823,13 +823,13 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         """
         Extract cells that are lying of the specified surface.
         """
-        bf = vtk.new("3DLinearGridCrinkleExtractor")
+        bf = vtki.new("3DLinearGridCrinkleExtractor")
         bf.SetInputData(self.dataset)
         bf.CopyPointDataOn()
         bf.CopyCellDataOn()
         bf.RemoveUnusedPointsOff()
 
-        sph = vtk.new("Sphere")
+        sph = vtki.new("Sphere")
         sph.SetRadius(radius)
         sph.SetCenter(center)
         bf.SetImplicitFunction(sph)
@@ -848,13 +848,13 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         """
         Extract cells that are lying of the specified surface.
         """
-        bf = vtk.new("3DLinearGridCrinkleExtractor")
+        bf = vtki.new("3DLinearGridCrinkleExtractor")
         bf.SetInputData(self.dataset)
         bf.CopyPointDataOn()
         bf.CopyCellDataOn()
         bf.RemoveUnusedPointsOff()
 
-        cyl = vtk.new("Cylinder")
+        cyl = vtki.new("Cylinder")
         cyl.SetRadius(radius)
         cyl.SetCenter(center)
         cyl.SetAxis(axis)
@@ -890,10 +890,10 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         elif strn == "-x": normal = (-1, 0, 0)
         elif strn == "-y": normal = (0, -1, 0)
         elif strn == "-z": normal = (0, 0, -1)
-        plane = vtk.new("Plane")
+        plane = vtki.new("Plane")
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
-        clipper = vtk.new("ClipDataSet")
+        clipper = vtki.new("ClipDataSet")
         clipper.SetInputData(self.dataset)
         clipper.SetClipFunction(plane)
         clipper.GenerateClipScalarsOff()
@@ -902,7 +902,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         clipper.Update()
         cout = clipper.GetOutput()
 
-        if isinstance(cout, vtk.vtkUnstructuredGrid):
+        if isinstance(cout, vtki.vtkUnstructuredGrid):
             ug = vedo.UnstructuredGrid(cout)
             if isinstance(self, vedo.UnstructuredGrid):
                 self._update(cout)
@@ -936,7 +936,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
 
         ![](https://vedo.embl.es/images/feats/tet_cut_box.png)
         """
-        bc = vtk.new("BoxClipDataSet")
+        bc = vtki.new("BoxClipDataSet")
         bc.SetInputData(self.dataset)
         try:
             boxb = box.bounds()
@@ -960,11 +960,11 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         """
         ug = self.dataset
 
-        ippd = vtk.new("ImplicitPolyDataDistance")
+        ippd = vtki.new("ImplicitPolyDataDistance")
         ippd.SetInput(mesh.dataset)
 
         if whole_cells or on_boundary:
-            clipper = vtk.new("ExtractGeometry")
+            clipper = vtki.new("ExtractGeometry")
             clipper.SetInputData(ug)
             clipper.SetImplicitFunction(ippd)
             clipper.SetExtractInside(not invert)
@@ -973,7 +973,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
                 clipper.SetExtractBoundaryCells(True)
                 clipper.SetExtractOnlyBoundaryCells(True)
         else:
-            signed_dists = vtk.vtkFloatArray()
+            signed_dists = vtki.vtkFloatArray()
             signed_dists.SetNumberOfComponents(1)
             signed_dists.SetName("SignedDistance")
             for pointId in range(ug.GetNumberOfPoints()):
@@ -982,7 +982,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
                 signed_dists.InsertNextValue(signed_dist)
             ug.GetPointData().AddArray(signed_dists)
             ug.GetPointData().SetActiveScalars("SignedDistance")  # NEEDED
-            clipper = vtk.new("ClipDataSet")
+            clipper = vtki.new("ClipDataSet")
             clipper.SetInputData(ug)
             clipper.SetInsideOut(not invert)
             clipper.SetValue(0.0)
@@ -1008,8 +1008,8 @@ class TetMesh(UnstructuredGrid):
 
         self.dataset = None
 
-        self.mapper = vtk.new("PolyDataMapper")
-        self._actor = vtk.vtkActor()
+        self.mapper = vtki.new("PolyDataMapper")
+        self._actor = vtki.vtkActor()
         self._actor.retrieve_object = weak_ref_to(self)
         self._actor.SetMapper(self.mapper)
         self.properties = self._actor.GetProperty()
@@ -1020,9 +1020,9 @@ class TetMesh(UnstructuredGrid):
 
         ###################
         if inputobj is None:
-            self.dataset = vtk.vtkUnstructuredGrid()
+            self.dataset = vtki.vtkUnstructuredGrid()
 
-        elif isinstance(inputobj, vtk.vtkUnstructuredGrid):
+        elif isinstance(inputobj, vtki.vtkUnstructuredGrid):
             self.dataset = inputobj
 
         elif isinstance(inputobj, UnstructuredGrid):
@@ -1031,16 +1031,16 @@ class TetMesh(UnstructuredGrid):
         elif "TetgenIO" in str(type(inputobj)):  # tetgenpy object
             inputobj = [inputobj.points(), inputobj.tetrahedra()]
 
-        elif isinstance(inputobj, vtk.vtkRectilinearGrid):
-            r2t = vtk.new("RectilinearGridToTetrahedra")
+        elif isinstance(inputobj, vtki.vtkRectilinearGrid):
+            r2t = vtki.new("RectilinearGridToTetrahedra")
             r2t.SetInputData(inputobj)
             r2t.RememberVoxelIdOn()
             r2t.SetTetraPerCellTo6()
             r2t.Update()
             self.dataset = r2t.GetOutput()
 
-        elif isinstance(inputobj, vtk.vtkDataSet):
-            r2t = vtk.new("DataSetTriangleFilter")
+        elif isinstance(inputobj, vtki.vtkDataSet):
+            r2t = vtki.new("DataSetTriangleFilter")
             r2t.SetInputData(inputobj)
             r2t.TetrahedraOnlyOn()
             r2t.Update()
@@ -1050,9 +1050,9 @@ class TetMesh(UnstructuredGrid):
             if "https://" in inputobj:
                 inputobj = download(inputobj, verbose=False)
             if inputobj.endswith(".vtu"):
-                reader = vtk.new("XMLUnstructuredGridReader")
+                reader = vtki.new("XMLUnstructuredGridReader")
             else:
-                reader = vtk.new("UnstructuredGridReader")
+                reader = vtki.new("UnstructuredGridReader")
 
             if not os.path.isfile(inputobj):
                 # for some reason vtk Reader does not complain
@@ -1064,7 +1064,7 @@ class TetMesh(UnstructuredGrid):
             reader.Update()
             ug = reader.GetOutput()
 
-            tt = vtk.new("DataSetTriangleFilter")
+            tt = vtki.new("DataSetTriangleFilter")
             tt.SetInputData(ug)
             tt.SetTetrahedraOnly(True)
             tt.Update()
@@ -1072,7 +1072,7 @@ class TetMesh(UnstructuredGrid):
 
         ###############################
         if utils.is_sequence(inputobj):
-            self.dataset = vtk.vtkUnstructuredGrid()
+            self.dataset = vtki.vtkUnstructuredGrid()
 
             points, cells = inputobj
             if len(points) == 0:
@@ -1093,14 +1093,14 @@ class TetMesh(UnstructuredGrid):
                         tets.append(cell)
                 cells = tets
 
-            source_points = vtk.vtkPoints()
+            source_points = vtki.vtkPoints()
             varr = utils.numpy2vtk(points, dtype=np.float32)
             source_points.SetData(varr)
             self.dataset.SetPoints(source_points)
 
-            source_tets = vtk.vtkCellArray()
+            source_tets = vtki.vtkCellArray()
             for f in cells:
-                ele = vtk.vtkTetra()
+                ele = vtki.vtkTetra()
                 pid = ele.GetPointIds()
                 for i, fi in enumerate(f):
                     pid.SetId(i, fi)
@@ -1275,7 +1275,7 @@ class TetMesh(UnstructuredGrid):
         See class [vtkMeshQuality](https://vtk.org/doc/nightly/html/classvtkMeshQuality.html)
         for an explanation of the meaning of each metric..
         """
-        qf = vtk.new("MeshQuality")
+        qf = vtki.new("MeshQuality")
         qf.SetInputData(self.dataset)
         qf.SetTetQualityMeasure(metric)
         qf.SaveCellQualityOn()
@@ -1301,7 +1301,7 @@ class TetMesh(UnstructuredGrid):
                 This value is used as an epsilon for floating point
                 equality checks throughout the cell checking process.
         """
-        vald = vtk.new("CellValidator")
+        vald = vtki.new("CellValidator")
         if tol:
             vald.SetTolerance(tol)
         vald.SetInputData(self.dataset)
@@ -1322,7 +1322,7 @@ class TetMesh(UnstructuredGrid):
 
         .. note:: setting `fraction=0.1` leaves 10% of the original nr of tets.
         """
-        decimate = vtk.new("UnstructuredGridQuadricDecimation")
+        decimate = vtki.new("UnstructuredGridQuadricDecimation")
         decimate.SetInputData(self.dataset)
         decimate.SetScalarsName(scalars_name)
 
@@ -1342,7 +1342,7 @@ class TetMesh(UnstructuredGrid):
         Increase the number of tets of a `TetMesh`.
         Subdivide one tetrahedron into twelve for every tetra.
         """
-        sd = vtk.new("SubdivideTetra")
+        sd = vtki.new("SubdivideTetra")
         sd.SetInputData(self.dataset)
         sd.Update()
         self._update(sd.GetOutput())
@@ -1429,7 +1429,7 @@ class TetMesh(UnstructuredGrid):
             )
             self.map_cells_to_points()
         scrange = self.dataset.GetPointData().GetScalars().GetRange()
-        cf = vtk.new("ContourFilter")  # vtk.new("ContourGrid")
+        cf = vtki.new("ContourFilter")  # vtki.new("ContourGrid")
         cf.SetInputData(self.dataset)
 
         if utils.is_sequence(value):
@@ -1459,11 +1459,11 @@ class TetMesh(UnstructuredGrid):
         elif strn == "-x": normal = (-1, 0, 0)
         elif strn == "-y": normal = (0, -1, 0)
         elif strn == "-z": normal = (0, 0, -1)
-        plane = vtk.new("Plane")
+        plane = vtki.new("Plane")
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
 
-        cc = vtk.new("Cutter")
+        cc = vtki.new("Cutter")
         cc.SetInputData(self.dataset)
         cc.SetCutFunction(plane)
         cc.Update()
@@ -1485,8 +1485,8 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
 
         self.dataset = None
 
-        self.mapper = vtk.new("PolyDataMapper")
-        self._actor = vtk.vtkActor()
+        self.mapper = vtki.new("PolyDataMapper")
+        self._actor = vtki.vtkActor()
         self._actor.retrieve_object = weak_ref_to(self)
         self._actor.SetMapper(self.mapper)
         self.properties = self._actor.GetProperty()
@@ -1504,9 +1504,9 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
 
         ###################
         if inputobj is None:
-            self.dataset = vtk.vtkRectilinearGrid()
+            self.dataset = vtki.vtkRectilinearGrid()
 
-        elif isinstance(inputobj, vtk.vtkRectilinearGrid):
+        elif isinstance(inputobj, vtki.vtkRectilinearGrid):
             self.dataset = inputobj
 
         elif isinstance(inputobj, RectilinearGrid):
@@ -1516,9 +1516,9 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
             if "https://" in inputobj:
                 inputobj = download(inputobj, verbose=False)
             if inputobj.endswith(".vtr"):
-                reader = vtk.new("XMLRectilinearGridReader")
+                reader = vtki.new("XMLRectilinearGridReader")
             else:
-                reader = vtk.new("RectilinearGridReader")
+                reader = vtki.new("RectilinearGridReader")
             self.filename = inputobj
             reader.SetFileName(inputobj)
             reader.Update()
@@ -1526,7 +1526,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
 
         ###############################
         if utils.is_sequence(inputobj):
-            self.dataset = vtk.vtkUnstructuredGrid()
+            self.dataset = vtki.vtkUnstructuredGrid()
             # TODO
 
         if not self.dataset:
@@ -1542,7 +1542,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
     @property
     def actor(self):
         """Return the `vtkActor` of the object."""
-        gf = vtk.new("GeometryFilter")
+        gf = vtki.new("GeometryFilter")
         gf.SetInputData(self.dataset)
         gf.Update()
         self.mapper.SetInputData(gf.GetOutput())
@@ -1633,14 +1633,14 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
     def clone(self, deep=True):
         """Return a clone copy of the Volume. Alias of `copy()`."""
         if deep:
-            newrg = vtk.vtkRectilinearGrid()
+            newrg = vtki.vtkRectilinearGrid()
             newrg.CopyStructure(self.dataset)
             newrg.CopyAttributes(self.dataset)
             newvol = RectilinearGrid(newrg)
         else:
             newvol = RectilinearGrid(self.dataset)
 
-        prop = vtk.vtkProperty()
+        prop = vtki.vtkProperty()
         prop.DeepCopy(self.properties)
         newvol.actor.SetProperty(prop)
         newvol.properties = prop
@@ -1664,7 +1664,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         """
         scrange = self.dataset.GetScalarRange()
 
-        cf = vtk.new("ContourFilter")
+        cf = vtki.new("ContourFilter")
         cf.UseScalarTreeOn()
         cf.SetInputData(self.dataset)
         cf.ComputeNormalsOn()
@@ -1712,10 +1712,10 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         elif strn == "-x": normal = (-1, 0, 0)
         elif strn == "-y": normal = (0, -1, 0)
         elif strn == "-z": normal = (0, 0, -1)
-        plane = vtk.new("Plane")
+        plane = vtki.new("Plane")
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
-        clipper = vtk.new("ClipDataSet")
+        clipper = vtki.new("ClipDataSet")
         clipper.SetInputData(self.dataset)
         clipper.SetClipFunction(plane)
         clipper.GenerateClipScalarsOff()
@@ -1739,11 +1739,11 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         """
         ug = self.dataset
 
-        ippd = vtk.new("ImplicitPolyDataDistance")
+        ippd = vtki.new("ImplicitPolyDataDistance")
         ippd.SetInput(mesh.dataset)
 
         if whole_cells or on_boundary:
-            clipper = vtk.new("ExtractGeometry")
+            clipper = vtki.new("ExtractGeometry")
             clipper.SetInputData(ug)
             clipper.SetImplicitFunction(ippd)
             clipper.SetExtractInside(not invert)
@@ -1752,7 +1752,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
                 clipper.SetExtractBoundaryCells(True)
                 clipper.SetExtractOnlyBoundaryCells(True)
         else:
-            signed_dists = vtk.vtkFloatArray()
+            signed_dists = vtki.vtkFloatArray()
             signed_dists.SetNumberOfComponents(1)
             signed_dists.SetName("SignedDistance")
             for pointId in range(ug.GetNumberOfPoints()):
@@ -1761,7 +1761,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
                 signed_dists.InsertNextValue(signed_dist)
             ug.GetPointData().AddArray(signed_dists)
             ug.GetPointData().SetActiveScalars("SignedDistance")  # NEEDED
-            clipper = vtk.new("ClipDataSet")
+            clipper = vtki.new("ClipDataSet")
             clipper.SetInputData(ug)
             clipper.SetInsideOut(not invert)
             clipper.SetValue(0.0)
