@@ -886,15 +886,17 @@ def geometry(obj, extent=None):
     return vedo.Mesh(gf.GetOutput())
 
 
-def buildPolyData(vertices, faces=None, lines=None, index_offset=0, tetras=False):
+def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0, tetras=False):
     """
     Build a `vtkPolyData` object from a list of vertices
     where faces represents the connectivity of the polygonal mesh.
+    Lines and triangle strips can also be specified.
 
     E.g. :
         - `vertices=[[x1,y1,z1],[x2,y2,z2], ...]`
         - `faces=[[0,1,2], [1,2,3], ...]`
         - `lines=[[0,1], [1,2,3,4], ...]`
+        - `strips=[[0,1,2,3,4,5], [2,3,9,7,4], ...]`
 
     A flat list of faces can be passed as `faces=[3, 0,1,2, 4, 1,2,3,4, ...]`.
     For lines use `lines=[2, 0,1, 4, 1,2,3,4, ...]`.
@@ -907,6 +909,8 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, tetras=False
         faces=None
     if is_sequence(lines) and len(lines) == 0:
         lines=None
+    if is_sequence(strips) and len(strips) == 0:
+        strips=None
 
     poly = vtk.vtkPolyData()
 
@@ -1014,8 +1018,22 @@ def buildPolyData(vertices, faces=None, lines=None, index_offset=0, tetras=False
                     source_polygons.InsertNextCell(ele)
 
         poly.SetPolys(source_polygons)
+    
+    if strips is not None:
+        tscells = vtk.vtkCellArray()
+        for strip in strips:
+            # create a triangle strip
+            # https://vtk.org/doc/nightly/html/classvtkTriangleStrip.html
+            n = len(strip)
+            tstrip = vtk.vtkTriangleStrip()
+            tstrip_ids = tstrip.GetPointIds()
+            tstrip_ids.SetNumberOfIds(n)
+            for i in range(n):
+                tstrip_ids.SetId(i, strip[i] - index_offset)
+            tscells.InsertNextCell(tstrip)
+        poly.SetStrips(tscells)
 
-    if faces is None and lines is None:
+    if faces is None and lines is None and strips is None:
         source_vertices = vtk.vtkCellArray()
         for i in range(len(vertices)):
             source_vertices.InsertNextCell(1)

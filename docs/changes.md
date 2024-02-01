@@ -43,6 +43,7 @@
 - fix `assembly.__add__()` by @j042 in #1036
 - small fix to `Ruler3D` class.
 - add `plotter.render_hidden_lines()` method
+- add slot for triangle strips in constructor `Mesh([verts, faces, lines, strips])` in #1019
 
 
 ## Soft Breaking Changes

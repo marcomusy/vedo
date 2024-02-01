@@ -74,14 +74,16 @@ class Mesh(MeshVisual, Points):
 
         elif is_sequence(inputobj):
             ninp = len(inputobj)
-            if   ninp == 3:  # assume input is [vertices, faces, lines]
+            if   ninp == 4:  # assume input is [vertices, faces, lines, strips]
+                self.dataset = buildPolyData(inputobj[0], inputobj[1], inputobj[2], inputobj[3])
+            elif ninp == 3:  # assume input is [vertices, faces, lines]
                 self.dataset = buildPolyData(inputobj[0], inputobj[1], inputobj[2])
             elif ninp == 2:  # assume input is [vertices, faces]
                 self.dataset = buildPolyData(inputobj[0], inputobj[1])
             elif ninp == 1:  # assume input is [vertices]
-                self.dataset = buildPolyData(inputobj, None)
+                self.dataset = buildPolyData(inputobj[0])
             else:
-                vedo.logger.error("input must be a list of max 3 elements.", c=1)
+                vedo.logger.error("input must be a list of max 4 elements.")
                 raise ValueError()
 
         elif isinstance(inputobj, vtk.vtkActor):
