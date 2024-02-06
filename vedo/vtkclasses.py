@@ -360,6 +360,7 @@ for name in [
     "vtkDijkstraGraphGeodesicPath",
     "vtkFillHolesFilter",
     "vtkHausdorffDistancePointSetFilter",
+    "vtkImprintFilter",
     "vtkLinearExtrusionFilter",
     "vtkLinearSubdivisionFilter",
     "vtkLoopSubdivisionFilter",

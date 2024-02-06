@@ -683,7 +683,60 @@ class Mesh(MeshVisual, Points):
                 vlines.append(newline)
 
         return vlines
-    
+
+    def join_with_strips(self, b1, closed=True):
+        """
+        Join booundary lines by creating a triangle strip between them.
+
+        Example:
+        ```python
+        from vedo import *
+        m1 = Cylinder(cap=False).boundaries()
+        m2 = Cylinder(cap=False).boundaries().pos(0.2,0,1)
+        strips = m1.join_with_strips(m2)
+        show(m1, m2, strips, axes=1).close()
+        ```
+        """
+        b0 = self.clone().join()
+        b1 = b1.clone().join()
+
+        vertices0 = b0.vertices.tolist()
+        vertices1 = b1.vertices.tolist()
+
+        lines0 = b0.lines
+        lines1 = b1.lines
+        m =  len(lines0)
+        assert m == len(lines1)
+
+        strips = []
+        points = []
+
+        for j in range(m):
+
+            ids0j = list(lines0[j])
+            ids1j = list(lines1[j])
+
+            n = len(ids0j)
+            assert n == len(ids1j)
+
+            if closed:
+                ids0j.append(ids0j[0])
+                ids1j.append(ids1j[0])
+                vertices0.append(vertices0[ids0j[0]])
+                vertices1.append(vertices1[ids1j[0]])
+                n = n + 1
+
+            strip = []  # create a triangle strip
+            npt = len(points)
+            for ipt in range(n):
+                points.append(vertices0[ids0j[ipt]])
+                points.append(vertices1[ids1j[ipt]])
+
+            strip = list(range(npt, npt+2*n))
+            strips.append(strip)
+
+        return Mesh([points, [], [], strips], c="k6")
+
     def split_polylines(self):
         """Split polylines into separate segments."""
         tf = vtki.new("TriangleFilter")
@@ -1601,7 +1654,7 @@ class Mesh(MeshVisual, Points):
             ![](https://vedo.embl.es/images/feats/imprint.png)
         """
         loop = vtki.new("ContourLoopExtraction")
-        loop.SetInputData(loopline)
+        loop.SetInputData(loopline.dataset)
         loop.Update()
 
         clean_loop = vtki.new("CleanPolyData")

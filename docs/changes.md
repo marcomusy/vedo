@@ -45,7 +45,8 @@
 - add `plotter.render_hidden_lines()` method
 - add slot for triangle strips in constructor `Mesh([verts, faces, lines, strips])` in #1019
 - internally use "import vedo.vtkclasses as vtki" instead of "vtk" to avoid confusion
-
+- add `join_with_strips()` in #1043
+- fix `mesh.imprint()`
 
 ## Soft Breaking Changes
 Changes that will break existing code whose fixing is trivial 
