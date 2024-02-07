@@ -2,7 +2,7 @@
 ## Main Changes and Fixes
 
 - fixes to `extrude()` thanks to @JeffreyWardman
-- filter out triangle strips in Ribbon and extrude()
+- filter out triangle strips in Ribbon and `extrude()`
 - improvements in doc strings
 - add `utils.madcad2vedo` conversion as per #976 by @JeffreyWardman
 - add `utils.camera_to_dict()`
@@ -46,14 +46,17 @@
 - add slot for triangle strips in constructor `Mesh([verts, faces, lines, strips])` in #1019
 - internally use "import vedo.vtkclasses as vtki" instead of "vtk" to avoid confusion
 - add `join_with_strips()` in #1043
-- fix `mesh.imprint()`
-
-## Soft Breaking Changes
-Changes that will break existing code whose fixing is trivial 
-
 - improvements to `shapes.Ellipsoid()` and bug fixes in #978 by @daniel-a-diaz
 - improvements to `pointcloud.pca_ellipsoid()` and bug fixes
 - improvements to `pointcloud.pca_ellipse()` and bug fixes
+- fix plotter `a` toggle
+- fix viz on jupyter notebook as per #994
+- fix `mesh.imprint()`
+
+
+## Soft Breaking Changes
+Changes that will break existing code whose fixing is trivial:
+
 - change `clone2d(scale=...)` to `clone2d(size=...)`
 - remove `shapes.StreamLines()` becoming `object.compute_streamlines()`
 - split `mesh.decimate()` into `mesh.decimate()`, `mesh.decimate_pro()` and `mesh.decimate_binned()` as per #992
@@ -64,7 +67,7 @@ Changes that will break existing code whose fixing is trivial
 - modified API for `mesh.binarize()`
 - `plotter.add_hover_legend()` now returns the id of the callback.
 - removed `settings.render_lines_as_tubes` and `settings.hidden_line_removal`, add `plotter.render_hidden_lines()` method
-- fix `close()`, `close_window()` is obsolete and removed.
+- fix `close()`, `close_window()` is now obsolete and removed.
 
 
 ## Hard Breaking Changes
@@ -73,16 +76,12 @@ Changes that will break existing code and need active thinking and work to adapt
 - None
 
 
-### Bug Fixes
-- fix plotter `a` toggle
-- fix viz on jupyter notebook as per #994
-
-
 ## New/Revised Examples
 ```
 examples/basic/sliders_hsv.py
 examples/basic/buttons1.py
 examples/basic/buttons2.py
+examples/basic/input_box.py
 
 examples/advanced/warp4b.py
 examples/advanced/diffuse_data.py
@@ -115,6 +114,9 @@ tests/snippets/test_compare_fit1.py
 ```
 
 ### Broken Examples
+
+Examples that are not fully functional and still need fixing:
+
 ```
 markpoint.py
 cut_and_cap.py
@@ -140,6 +142,5 @@ mesh_map2cell.py
 texturecubes.py
 meshquality.py
 streamlines1.py
-
 
 madcad2 blocks tsts

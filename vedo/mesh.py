@@ -706,7 +706,10 @@ class Mesh(MeshVisual, Points):
         lines0 = b0.lines
         lines1 = b1.lines
         m =  len(lines0)
-        assert m == len(lines1)
+        assert m == len(lines1), (
+            "lines must have the same number of points\n"
+            f"line {j} has {m} points in b0 and {len(lines1)} in b1"
+        )
 
         strips = []
         points = []
@@ -717,7 +720,10 @@ class Mesh(MeshVisual, Points):
             ids1j = list(lines1[j])
 
             n = len(ids0j)
-            assert n == len(ids1j)
+            assert n == len(ids1j), (
+                "lines must have the same number of points\n"
+                f"line {j} has {n} points in b0 and {len(ids1j)} in b1"
+            )
 
             if closed:
                 ids0j.append(ids0j[0])
@@ -732,7 +738,7 @@ class Mesh(MeshVisual, Points):
                 points.append(vertices0[ids0j[ipt]])
                 points.append(vertices1[ids1j[ipt]])
 
-            strip = list(range(npt, npt+2*n))
+            strip = list(range(npt, npt + 2*n))
             strips.append(strip)
 
         return Mesh([points, [], [], strips], c="k6")

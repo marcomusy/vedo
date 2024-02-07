@@ -777,9 +777,9 @@ def get_color(rgb=None, hsv=None):
             if c.lower() in color_nicks:
                 c = color_nicks[c.lower()]
             else:
-                vedo.logger.warning(
-                    f"Unknown color nickname {c}\nAvailable abbreviations: {color_nicks}"
-                )
+                # vedo.logger.warning(
+                #     f"Unknown color nickname {c}\nAvailable abbreviations: {color_nicks}"
+                # )
                 return (0.5, 0.5, 0.5)
 
         if c.lower() in colors:  # matplotlib name color

@@ -4334,19 +4334,20 @@ class TextBase:
         else:
             self.fontname = settings.default_font
 
-    def angle(self, a):
+    def angle(self, value):
         """Orientation angle in degrees"""
-        self.properties.SetOrientation(a)
+        self.properties.SetOrientation(value)
         return self
 
-    def line_spacing(self, ls):
-        """Set the extra spacing between lines, expressed as a text height multiplication factor."""
-        self.properties.SetLineSpacing(ls)
+    def line_spacing(self, value):
+        """Set the extra spacing between lines
+        expressed as a text height multiplicative factor."""
+        self.properties.SetLineSpacing(value)
         return self
 
-    def line_offset(self, lo):
+    def line_offset(self, value):
         """Set/Get the vertical offset (measured in pixels)."""
-        self.properties.SetLineOffset(lo)
+        self.properties.SetLineOffset(value)
         return self
 
     def bold(self, value=True):
@@ -4497,6 +4498,7 @@ class Text2D(TextBase, vedo.visual.Actor2D):
 
             font : (str)
                 built-in available fonts are:
+                - Antares
                 - Arial
                 - Bongas
                 - Calco

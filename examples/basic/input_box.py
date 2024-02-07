@@ -1,51 +1,37 @@
-"""Start typing a color name then press return
-E.g. pink4"""
-from vedo import settings, dataurl, Plotter, Mesh
+"""Start typing a color name for the mesh.
+E.g.: pink4
+(Press 'Esc' to exit)"""
+from vedo import settings, dataurl, get_color_name
+from vedo import Plotter, Mesh, Text2D
 
-settings.enable_default_keyboard_callbacks = False
 
 def kfunc(evt):
-    global msg
-    evt.keypress = evt.keypress.replace("period", ".")
-    if evt.keypress == "BackSpace" and msg:
-        msg = msg[:-1]
-        evt.keypress = ''
-    elif evt.keypress == "Return":
-        bfunc(0)
-        return
-    elif evt.keypress == "Escape":
+    key = evt.keypress.lower()
+    field_txt = field.text().strip() # strip leading/trailing spaces
+
+    if key == "backspace" and field_txt:
+        key = ""
+        field_txt = field_txt[:-1]
+    elif key == "escape":
         plt.close()
-
-    if len(evt.keypress) > 1:
+        return
+    elif len(key) > 1:
         return
 
-    msg += f"{evt.keypress}"
-    bu.text(msg)
+    color_name = field_txt + key
+    field.text(f"{color_name:^12}").frame(color_name, lw=8)
+    mesh.color(color_name)
+    msg.text(get_color_name(color_name))
     plt.render()
 
-def bfunc(obj, ename=""):
-    mesh.color(msg)
-    plt.render()
 
+settings["enable_default_keyboard_callbacks"] = False
 
-plt = Plotter(axes=1)
-plt.remove_callback("CharEvent") # might be needed
+mesh = Mesh(dataurl+"magnolia.vtk").color("black").flat()
 
-msg = ""
+field = Text2D("black", pos="bottom-center",s=3, font="Meson", bg="k2", c="w", alpha=1)
+msg = Text2D(pos="top-right", s=2, font="Quikhand", c="k1", bg="k7", alpha=1)
+
+plt = Plotter()
 plt.add_callback("key press", kfunc)
-
-bu = plt.add_button(
-    bfunc,
-    pos=(0.5, 0.1),  # x,y fraction from bottom left corner
-    states=["input box"],
-    c=["w"],
-    bc=["dg"],        # colors of states
-    font="courier",   # arial, courier, times
-    size=45,
-    bold=True,
-)
-
-mesh = Mesh(dataurl+"magnolia.vtk").c("v").flat()
-
-plt.show(mesh, __doc__).close()
-
+plt.show(mesh, field, msg, __doc__).close()
