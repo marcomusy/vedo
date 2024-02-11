@@ -135,7 +135,7 @@ def show(
     elevation=0.0,
     roll=0.0,
     camera=None,
-    mode=0,
+    mode=None,
     screenshot="",
     new=False,
 ):
@@ -3087,7 +3087,7 @@ class Plotter:
         elevation=0.0,
         roll=0.0,
         camera=None,
-        mode=0,
+        mode=None,
         rate=None,
         bg=None,
         bg2=None,
@@ -3371,7 +3371,8 @@ class Plotter:
                 pass
 
             # Set the interaction style
-            self.user_mode(mode)
+            if mode is not None:
+                self.user_mode(mode)
 
             if screenshot:
                 self.screenshot(screenshot)

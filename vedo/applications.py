@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+import time
 import numpy as np
 
 import vedo.vtkclasses as vtki
@@ -603,7 +604,7 @@ class Slicer2DPlotter(Plotter):
     but at the same time can be oriented arbitrarily in space.
     """
 
-    def __init__(self, vol, levels=(None, None), histo_color="red5", **kwargs):
+    def __init__(self, vol, levels=(None, None), histo_color="red4", **kwargs):
         """
         A single slice of a Volume which always faces the camera,
         but at the same time can be oriented arbitrarily in space.
@@ -616,7 +617,7 @@ class Slicer2DPlotter(Plotter):
             histo_color : (color)
                 histogram color, use `None` to disable it
             **kwargs : (dict)
-                keyword arguments to pass to Plotter.
+                keyword arguments to pass to `Plotter`.
 
         <img src="https://vedo.embl.es/images/volumetric/read_volume3.jpg" width="500">
         """
@@ -633,21 +634,23 @@ class Slicer2DPlotter(Plotter):
 
         super().__init__(**kwargs)
 
+        self.user_mode("image")
+        self.add_callback("KeyPress", self.on_key_press)
+
         orig_volume = vol.clone(deep=False)
         self.volume = vol
 
         self.volume.actor = vtki.new("ImageSlice")
+
         self.volume.properties = self.volume.actor.GetProperty()
+        self.volume.properties.SetInterpolationTypeToLinear()
 
         self.volume.mapper = vtki.new("ImageResliceMapper")
+        self.volume.mapper.SetInputData(self.volume.dataset)
         self.volume.mapper.SliceFacesCameraOn()
         self.volume.mapper.SliceAtFocalPointOn()
         self.volume.mapper.SetAutoAdjustImageQuality(False)
         self.volume.mapper.BorderOff()
-        self.volume.properties.SetInterpolationTypeToLinear()
-
-        self.volume.mapper.SetInputData(self.volume.dataset)
-        self.volume.actor.SetMapper(self.volume.mapper)
 
         # no argument will grab the existing cmap in vol (or use build_lut())
         self.lut = None
@@ -657,12 +660,12 @@ class Slicer2DPlotter(Plotter):
             self.lighting(window=levels[0], level=levels[1])
 
         self.usage_txt = (
-            "H                  :rightarrow Toggle this banner on/5off\n"
+            "H                  :rightarrow Toggle this banner on/off\n"
             "Left click & drag  :rightarrow Modify luminosity and contrast\n"
-            "SHIFT+Left click   :rightarrow Slice image obliquely\n"
-            "SHIFT+Middle click :rightarrow Slice image perpendicularly\n"
-            "SHIFT+R            :rightarrow Fly to closest cartesian view\n"
-            "SHIFT+U            :rightarrow Toggle parallel projection"
+            "SHIFT-Left click   :rightarrow Slice image obliquely\n"
+            "SHIFT-Middle click :rightarrow Slice image perpendicularly\n"
+            "SHIFT-R            :rightarrow Fly to closest cartesian view\n"
+            "SHIFT-U            :rightarrow Toggle parallel projection"
         )
 
         self.usage = Text2D(
@@ -715,10 +718,9 @@ class Slicer2DPlotter(Plotter):
             title_font="VictorMono",
         )
 
-        self.user_mode("image")
-        self.at(0).add(self.volume.actor, box, axe, self.usage, hist)
+        self.at(0).add(self.volume, box, axe, self.usage, hist)
         self.at(1).add(orig_volume, volume_axes_inset)
-        self.at(0)  # set focus here
+        self.at(0)  # set focus at renderer 0
 
     ####################################################################
     def on_key_press(self, evt):

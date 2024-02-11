@@ -1,5 +1,5 @@
 
-## Main Changes and Fixes
+## Changes and Fixes
 
 - fixes to `extrude()` thanks to @JeffreyWardman
 - filter out triangle strips in Ribbon and `extrude()`
@@ -52,6 +52,7 @@
 - fix plotter `a` toggle
 - fix viz on jupyter notebook as per #994
 - fix `mesh.imprint()`
+- small fix to `applications.Slicer2DPlotter`
 
 
 ## Soft Breaking Changes
@@ -96,6 +97,7 @@ examples/volumetric/office.py
 examples/volumetric/slice_plane1.py
 examples/volumetric/slice_plane3.py
 examples/volumetric/mesh2volume.py
+examples/volumetric/read_volume3.py
 
 examples/simulations/mag_field1.py
 
@@ -123,11 +125,8 @@ cut_and_cap.py
 
 gyroscope1.py broken physics
 mousehover1.py (long indicator?)
-mousehover2.py (unstable hovering?)
-read_volume3.py interactor is lost
 
 tests/issues/discussion_800.py
-tests/issues/issue_905.py
 ```
 
 #### Broken Projects

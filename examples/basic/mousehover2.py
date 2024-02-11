@@ -6,7 +6,7 @@ def func(event):  # callback function
     if p is None:
         return
     pts = Points(msh.closest_point(p, n=50), r=6)
-    sph = fit_sphere(pts).alpha(0.1)
+    sph = fit_sphere(pts).alpha(0.1).pickable(False)
     pts.name = "mypoints"   # we give it a name to make it easy to
     sph.name = "mysphere"   # remove the old and add the new ones
     txt.text(f'Radius : {sph.radius}\nResidue: {sph.residue}')
