@@ -3549,7 +3549,7 @@ class Plotter:
             return None
         
         curr_style = self.interactor.GetInteractorStyle().GetClassName()
-        print("Current style:", curr_style)
+        # print("Current style:", curr_style)
         if curr_style.endswith("Actor"):
             self.check_actors_trasform()
 
