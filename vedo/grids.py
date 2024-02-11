@@ -1480,6 +1480,37 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
     """
 
     def __init__(self, inputobj=None):
+        """
+        A RectilinearGrid is a dataset where edges are parallel to the coordinate axes.
+        It can be thought of as a tessellation of a box in 3D space, similar to a `Volume`
+        except that the cells are not necessarily cubes, but they can have different lengths
+        along each axis.
+        This can be useful to describe a volume with variable resolution where one needs
+        to represent a region with higher detail with respect to another region.
+
+        Arguments:
+            inputobj : (vtkRectilinearGrid, list, str)
+                list of points and tet indices, or filename
+        
+        Example:
+            ```python
+            from vedo import RectilinearGrid, show
+
+            xcoords = 7 + np.sqrt(np.arange(0,2500,25))
+            ycoords = np.arange(0, 20)
+            zcoords = np.arange(0, 20)
+
+            rgrid = RectilinearGrid([xcoords, ycoords, zcoords])
+
+            print(rgrid)
+            print(rgrid.x_coordinates().shape)
+            print(rgrid.compute_structured_coords([20,10,11]))
+
+            msh = rgrid.tomesh().lw(1)
+
+            show(msh, axes=1, viewup="z")
+            ```
+        """
 
         super().__init__()
 
@@ -1502,7 +1533,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         self.info = {}
         self.time =  time.time()
 
-        ###################
+        ###############################
         if inputobj is None:
             self.dataset = vtki.vtkRectilinearGrid()
 
@@ -1523,11 +1554,17 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
             reader.SetFileName(inputobj)
             reader.Update()
             self.dataset = reader.GetOutput()
+        
+        elif utils.is_sequence(inputobj):
+            self.dataset = vtki.vtkRectilinearGrid()
+            xcoords, ycoords, zcoords = inputobj
+            nx, ny, nz = len(xcoords), len(ycoords), len(zcoords)
+            self.dataset.SetDimensions(nx, ny, nz)
+            self.dataset.SetXCoordinates(utils.numpy2vtk(xcoords))
+            self.dataset.SetYCoordinates(utils.numpy2vtk(ycoords))
+            self.dataset.SetZCoordinates(utils.numpy2vtk(zcoords))
 
         ###############################
-        if utils.is_sequence(inputobj):
-            self.dataset = vtki.vtkUnstructuredGrid()
-            # TODO
 
         if not self.dataset:
             vedo.logger.error(f"RectilinearGrid: cannot understand input type {type(inputobj)}")
@@ -1629,6 +1666,82 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
             out += "metadata".ljust(14) + ": " + f'"{key}" ({len(arr)} values)\n'
 
         return out.rstrip() + "\x1b[0m"
+    
+    def dimensions(self):
+        """Return the number of points in the x, y and z directions."""
+        return np.array(self.dataset.GetDimensions())
+
+    def x_coordinates(self):
+        """Return the x-coordinates of the grid."""
+        return utils.vtk2numpy(self.dataset.GetXCoordinates())
+    
+    def y_coordinates(self):
+        """Return the y-coordinates of the grid."""
+        return utils.vtk2numpy(self.dataset.GetYCoordinates())
+    
+    def z_coordinates(self):
+        """Return the z-coordinates of the grid."""
+        return utils.vtk2numpy(self.dataset.GetZCoordinates())
+    
+    def is_point_visible(self, pid):
+        """Return True if point `pid` is visible."""
+        return self.dataset.IsPointVisible(pid)
+    
+    def is_cell_visible(self, cid):
+        """Return True if cell `cid` is visible."""
+        return self.dataset.IsCellVisible(cid)
+    
+    def has_blank_points(self):
+        """Return True if the grid has blank points."""
+        return self.dataset.HasAnyBlankPoints()
+    
+    def has_blank_cells(self):
+        """Return True if the grid has blank cells."""
+        return self.dataset.HasAnyBlankCells()
+    
+    def compute_structured_coords(self, x):
+        """
+        Convenience function computes the structured coordinates for a point `x`.
+
+        This method returns a dictionary with keys `ijk`, `pcoords` and `inside`.
+        The cell is specified by the array `ijk`.
+        and the parametric coordinates in the cell are specified with `pcoords`. 
+        Value of `inside` is False if the point x is outside of the grid.
+        """
+        ijk = [0, 0, 0]
+        pcoords = [0., 0., 0.]
+        inout = self.dataset.ComputeStructuredCoordinates(x, ijk, pcoords)
+        return {"ijk": np.array(ijk), "pcoords": np.array(pcoords), "inside": bool(inout)}
+    
+    def compute_pointid(self, ijk):
+        """Given a location in structured coordinates (i-j-k), return the point id."""
+        return self.dataset.ComputePointId(ijk)
+    
+    def compute_cellid(self, ijk):
+        """Given a location in structured coordinates (i-j-k), return the cell id."""
+        return self.dataset.ComputeCellId(ijk)
+    
+    def find_point(self, x):
+        """Given a position `x`, return the id of the closest point."""
+        return self.dataset.FindPoint(x)
+    
+    def find_cell(self, x):
+        """Given a position `x`, return the id of the closest cell."""
+        cell = vtki.vtkHexagonalPrism()
+        cellid = vtki.mutable(0)
+        tol2 = 0.001 # vtki.mutable(0)
+        subid = vtki.mutable(0)
+        pcoords = [0.0, 0.0, 0.0]
+        weights = [0.0, 0.0, 0.0]
+        res = self.dataset.FindCell(x, cell, cellid, tol2, subid, pcoords, weights)
+        result = {}
+        result["cellid"] = cellid
+        result["subid"] = subid
+        result["pcoords"] = pcoords
+        result["weights"] = weights
+        result["status"] = res
+        return result
+
 
     def clone(self, deep=True):
         """Return a clone copy of the Volume. Alias of `copy()`."""
