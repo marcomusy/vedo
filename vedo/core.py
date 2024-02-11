@@ -1601,6 +1601,9 @@ class PointAlgorithms(CommonAlgorithms):
         Apply the current transformation of the actor to the data.
         Useful when manually moving an actor (eg. when pressing "a").
         Returns the `LinearTransform` object.
+
+        Note that this method is automatically called when the window is closed,
+        or the interactor style is changed.
         """
         M = self.actor.GetMatrix()
         self.apply_transform(M)

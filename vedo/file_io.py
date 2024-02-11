@@ -1144,6 +1144,19 @@ def write(objct, fileoutput, binary=True):
     """
     obj = objct.dataset
 
+    try:
+        # check if obj is a Mesh.actor and has a transform
+        M = objct.actor.GetMatrix()
+        if M and not M.IsIdentity():
+            vedo.logger.info(
+                f"object '{objct.name}' "
+                "was manually moved. Writing uses current position."
+            )
+            obj = objct.apply_transform_from_actor()
+            obj = objct.dataset
+    except:
+        pass
+
     fr = fileoutput.lower()
     if fr.endswith(".vtk"):
         writer = vtki.new("DataSetWriter")

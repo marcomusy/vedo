@@ -1296,12 +1296,33 @@ class Plotter:
             if include_non_pickables or a.GetPickable():
                 acts.append(a)
         return acts
+    
+    def check_actors_trasform(self, at=None):
+        """
+        Reset the transformation matrix of all actors at specified renderer.
+        This is only useful when actors have been moved/rotated/scaled manually
+        in an already rendered scene using interactors like
+        'TrackballActor' or 'JoystickActor'.
+        """
+        # see issue https://github.com/marcomusy/vedo/issues/1046
+        for a in self.get_actors(at=at, include_non_pickables=True):
+            try:
+                M = a.GetMatrix()
+            except AttributeError:
+                continue
+            if M and not M.IsIdentity():
+                vedo.logger.info(
+                    f"object '{a.retrieve_object().name}' "
+                    "was manually moved. Updated to its current position."
+                )
+                a.retrieve_object().apply_transform_from_actor()
+        return self
 
     def reset_camera(self, tight=None):
         """
         Reset the camera position and zooming.
-        If tight (float) is specified the zooming reserves a padding space in the xy-plane
-        expressed in percent of the average size.
+        If tight (float) is specified the zooming reserves a padding space
+        in the xy-plane expressed in percent of the average size.
         """
         if tight is None:
             self.renderer.ResetCamera()
@@ -3505,6 +3526,7 @@ class Plotter:
     def break_interaction(self):
         """Break window interaction and return to the python execution flow"""
         if self.interactor:
+            self.check_actors_trasform()
             self.interactor.ExitCallback()
         return self
 
@@ -3525,6 +3547,11 @@ class Plotter:
         """
         if not self.interactor:
             return None
+        
+        curr_style = self.interactor.GetInteractorStyle().GetClassName()
+        print("Current style:", curr_style)
+        if curr_style.endswith("Actor"):
+            self.check_actors_trasform()
 
         if isinstance(mode, (str, int)):
             # Set the style of interaction
@@ -3607,7 +3634,7 @@ class Plotter:
             vedo.plotter_instance = None
 
         if self.interactor and self._interactive:
-            self.interactor.ExitCallback()
+            self.break_interaction()
         elif self._must_close_now:
             # dont call ExitCallback here
             self.interactor.GetRenderWindow().Finalize()
@@ -3835,7 +3862,7 @@ class Plotter:
         renderer = iren.FindPokedRenderer(x, y)
 
         if key in ["q", "Return"]:
-            iren.ExitCallback()
+            self.break_interaction()
             return
 
         elif key in ["Ctrl+q", "Ctrl+w", "Escape"]:
@@ -3844,7 +3871,7 @@ class Plotter:
 
         elif key == "F1":
             vedo.logger.info("Execution aborted. Exiting python kernel now.")
-            iren.ExitCallback()
+            self.break_interaction()
             sys.exit(0)
 
         elif key == "Down":

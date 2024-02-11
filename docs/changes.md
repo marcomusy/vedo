@@ -53,6 +53,7 @@
 - fix viz on jupyter notebook as per #994
 - fix `mesh.imprint()`
 - small fix to `applications.Slicer2DPlotter`
+- automatically apply the actor transform to an object actor that was moved manually (via eg "InteractorStyleTrackballActor") in #1045 and #1046 by @sergei9838
 
 
 ## Soft Breaking Changes
@@ -116,17 +117,13 @@ tests/snippets/test_compare_fit1.py
 ```
 
 ### Broken Examples
-
-Examples that are not fully functional and still need fixing:
-
+Examples that are not fully functional and need some fixing:
 ```
-markpoint.py
-cut_and_cap.py
-
-gyroscope1.py broken physics
-mousehover1.py (long indicator?)
-
-tests/issues/discussion_800.py
+markpoint.py (misplaced leader indicator)
+cut_and_cap.py (incomplete capping)
+gyroscope1.py (broken physics)
+mousehover1.py (long indicator)
+tests/issues/discussion_800.py  (incomplete capping of tube)
 ```
 
 #### Broken Projects
@@ -141,5 +138,3 @@ mesh_map2cell.py
 texturecubes.py
 meshquality.py
 streamlines1.py
-
-madcad2 blocks tsts

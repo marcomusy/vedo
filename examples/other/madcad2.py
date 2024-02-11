@@ -10,7 +10,8 @@ mesh.compute_normals()
 madcad_mesh = vedo.utils.vedo2madcad(mesh)
 
 madcad.thicken(madcad_mesh, thickness=0.1)
-madcad.show([madcad_mesh])
+if vedo.settings.dry_run_mode == 0:
+    madcad.show([madcad_mesh])
 
 
 #############################################################
