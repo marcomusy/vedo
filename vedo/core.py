@@ -1347,7 +1347,7 @@ class CommonAlgorithms:
         geo.SetOriginalCellIdsName("OriginalCellIds")
         geo.SetOriginalPointIdsName("OriginalPointIds")
         geo.SetNonlinearSubdivisionLevel(1)
-        geo.MergingOff()
+        # geo.MergingOff() # crashes with StructuredGrids
         if bounds:
             geo.SetExtent(bounds)
             geo.ExtentClippingOn()

@@ -3048,6 +3048,9 @@ class Plotter:
             elif isinstance(a, vedo.RectilinearGrid):
                 scanned_acts.append(a.actor)
 
+            elif isinstance(a, vedo.StructuredGrid):
+                scanned_acts.append(a.actor)
+
             elif isinstance(a, vtki.vtkLight):
                 self.renderer.AddLight(a)
 

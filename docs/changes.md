@@ -54,6 +54,7 @@
 - fix `mesh.imprint()`
 - small fix to `applications.Slicer2DPlotter`
 - automatically apply the actor transform to an object actor that was moved manually (via eg "InteractorStyleTrackballActor") in #1045 and #1046 by @sergei9838
+- add support to `StructuredGrid` data (experimental).
 
 
 ## Soft Breaking Changes
