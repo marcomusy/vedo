@@ -4,9 +4,9 @@ areas are proportional to energy release
 import pandas
 from vedo import *
 
-num = 50  # nr of earthquakes to be visualized to define a time window
+num = 50  # nr of earthquakes to be visualized at once
 path = download("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_month.csv", force=True)
-usecols = ['time','place','latitude','longitude','depth','mag']
+usecols = ['time', 'place', 'latitude', 'longitude', 'depth', 'mag']
 data = pandas.read_csv(path, usecols=usecols)[usecols][::-1].reset_index(drop=True) # reverse list
 
 pic = Image(dataurl + "images/eo_base_2020_clean_3600x1800.png")
@@ -22,7 +22,7 @@ for i, d in progressbar(data.iterrows()):
     lat = np.deg2rad(d['latitude'])
     lon = np.deg2rad(d['longitude'])
     ce = GeoCircle(lat, lon, E/50).scale(scale).z(num/M)
-    ce.c(rgb).alpha(0.75).use_bounds(False)
+    ce.color(rgb, 0.7).force_opaque().use_bounds(False)
     ce.time = i
     ce.info = '\n'.join(str(d).split('\n')[:-1])       # remove of the last line in string d
     if i < len(data) - num: 
@@ -37,7 +37,7 @@ def sliderfunc(widget, event):
         isinside = abs(val-ce.time) < num              # switch on if inside of time window
         ce.on() if isinside else ce.off()
 
-plt = Plotter(size=(2200,1100), title="Earthquake Browser").parallel_projection()
-plt.add_slider(sliderfunc, 0, len(centers)-1, value=len(centers)-1, show_value=False, title="today")
+plt = Plotter(size=(2200,1100), title="vedo - Earthquake Browser").parallel_projection(True)
+plt.add_slider(sliderfunc, 0, len(centers)-1, value=len(centers)-1, show_value=False)
 plt.add_hover_legend(use_info=True, alpha=1, c='white', bg='red2', s=1)
 plt.show(pic, centers, comment, zoom="tightest", mode='image').close()

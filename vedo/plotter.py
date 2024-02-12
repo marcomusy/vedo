@@ -1668,7 +1668,7 @@ class Plotter:
         value=None,
         pos=4,
         title="",
-        font="",
+        font="Calco",
         title_size=1,
         c=None,
         alpha=1,

@@ -1333,21 +1333,36 @@ class CommonAlgorithms:
         )
         return out
 
-    def tomesh(self, bounds=()):
+    def tomesh(self, bounds=(), shrink=0):
         """
         Extract boundary geometry from dataset (or convert data to polygonal type).
 
         Two new arrays are added to the mesh: `OriginalCellIds` and `OriginalPointIds`
         to keep track of the original mesh elements.
+
+        Arguments:
+            bounds : (list)
+                specify a sub-region to extract
+            shrink : (float)
+                shrink the cells to a fraction of their original size
         """
         geo = vtki.new("GeometryFilter")
-        geo.SetInputData(self.dataset)
+
+        if shrink:
+            sf = vtki.new("ShrinkFilter")
+            sf.SetInputData(self.dataset)
+            sf.SetShrinkFactor(shrink)
+            sf.Update()
+            geo.SetInputData(sf.GetOutput())
+        else:
+            geo.SetInputData(self.dataset)
+
         geo.SetPassThroughCellIds(1)
         geo.SetPassThroughPointIds(1)
         geo.SetOriginalCellIdsName("OriginalCellIds")
         geo.SetOriginalPointIdsName("OriginalPointIds")
         geo.SetNonlinearSubdivisionLevel(1)
-        # geo.MergingOff() # crashes with StructuredGrids
+        # geo.MergingOff() # crashes on StructuredGrids
         if bounds:
             geo.SetExtent(bounds)
             geo.ExtentClippingOn()
@@ -1782,7 +1797,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         # OVERRIDE CommonAlgorithms.bounds() which is too slow
         return np.array(self.dataset.GetBounds())
 
-    def isosurface(self, value=None, flying_edges=True):
+    def isosurface(self, value=None, flying_edges=False):
         """
         Return an `Mesh` isosurface extracted from the `Volume` object.
 

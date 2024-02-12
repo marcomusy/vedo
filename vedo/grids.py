@@ -600,7 +600,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         th.Update()
         return self._update(th.GetOutput())
 
-    def isosurface(self, value=None, flying_edges=True):
+    def isosurface(self, value=None, flying_edges=False):
         """
         Return an `Mesh` isosurface extracted from the `Volume` object.
 
@@ -637,7 +637,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         cf.Update()
         poly = cf.GetOutput()
 
-        out = vedo.mesh.Mesh(poly, c=None).phong()
+        out = vedo.mesh.Mesh(poly, c=None).flat()
         out.mapper.SetScalarRange(scrange[0], scrange[1])
 
         out.pipeline = utils.OperationNode(
@@ -1743,9 +1743,8 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         result["status"] = res
         return result
 
-
     def clone(self, deep=True):
-        """Return a clone copy of the Volume. Alias of `copy()`."""
+        """Return a clone copy of the RectilinearGrid. Alias of `copy()`."""
         if deep:
             newrg = vtki.vtkRectilinearGrid()
             newrg.CopyStructure(self.dataset)
@@ -1758,7 +1757,6 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         prop.DeepCopy(self.properties)
         newvol.actor.SetProperty(prop)
         newvol.properties = prop
-
         newvol.pipeline = utils.OperationNode("clone", parents=[self], c="#bbd0ff", shape="diamond")
         return newvol
 
@@ -1914,6 +1912,27 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
             msh = sgrid.tomesh().lw(1)
             show(msh, axes=1, viewup="z")
             ```
+
+            ```python
+            from vedo import *
+
+            cx = np.sqrt(np.linspace(100, 400, 10))
+            cy = np.linspace(30, 40, 20)
+            cz = np.linspace(40, 50, 30)
+            x, y, z = np.meshgrid(cx, cy, cz)
+
+            sgrid1 = StructuredGrid([x, y, z])
+            sgrid1.cmap("viridis", sgrid1.vertices[:, 0])
+            print(sgrid1)
+
+            sgrid2 = sgrid1.clone().cut_with_plane(normal=(-1,1,1), origin=[14,34,44])
+            msh2 = sgrid2.tomesh(shrink=0.9).lw(1).cmap("viridis")
+
+            show(
+                [["StructuredGrid", sgrid1], ["Shrinked Mesh", msh2]],
+                N=2, axes=1, viewup="z",
+            )
+            ```
         """
 
         super().__init__()
@@ -1962,12 +1981,16 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         elif utils.is_sequence(inputobj):
             self.dataset = vtki.vtkStructuredGrid()
             x, y, z = inputobj
-            xyz = np.vstack((x.flat, y.flat, z.flat)).T
+            xyz = np.vstack((
+                x.flatten(order="F"),
+                y.flatten(order="F"),
+                z.flatten(order="F"))
+            ).T
             dims = x.shape
-            vpointsdata = utils.numpy2vtk(xyz)
+            self.dataset.SetDimensions(dims)      
+            # self.dataset.SetDimensions(dims[1], dims[0], dims[2])
             vpoints = vtki.vtkPoints()
-            vpoints.SetData(vpointsdata)
-            self.dataset.SetDimensions(dims)
+            vpoints.SetData(utils.numpy2vtk(xyz))
             self.dataset.SetPoints(vpoints)
 
 
@@ -2077,6 +2100,23 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         """Return the number of points in the x, y and z directions."""
         return np.array(self.dataset.GetDimensions())
 
+    def clone(self, deep=True):
+        """Return a clone copy of the StructuredGrid. Alias of `copy()`."""
+        if deep:
+            newrg = vtki.vtkStructuredGrid()
+            newrg.CopyStructure(self.dataset)
+            newrg.CopyAttributes(self.dataset)
+            newvol = StructuredGrid(newrg)
+        else:
+            newvol = StructuredGrid(self.dataset)
+
+        prop = vtki.vtkProperty()
+        prop.DeepCopy(self.properties)
+        newvol.actor.SetProperty(prop)
+        newvol.properties = prop
+        newvol.pipeline = utils.OperationNode("clone", parents=[self], c="#bbd0ff", shape="diamond")
+        return newvol
+
     def find_point(self, x):
         """Given a position `x`, return the id of the closest point."""
         return self.dataset.FindPoint(x)
@@ -2177,4 +2217,43 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
 
         out = vedo.UnstructuredGrid(clipper.GetOutput())
         out.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
+        return out
+
+    def isosurface(self, value=None):
+        """
+        Return a `Mesh` isosurface extracted from the object.
+
+        Set `value` as single float or list of values to draw the isosurface(s).
+        """
+        scrange = self.dataset.GetScalarRange()
+
+        cf = vtki.new("ContourFilter")
+        cf.UseScalarTreeOn()
+        cf.SetInputData(self.dataset)
+        cf.ComputeNormalsOn()
+
+        if value is None:
+            value = (2 * scrange[0] + scrange[1]) / 3.0
+            # print("automatic isosurface value =", value)
+            cf.SetValue(0, value)
+        else:
+            if utils.is_sequence(value):
+                cf.SetNumberOfContours(len(value))
+                for i, t in enumerate(value):
+                    cf.SetValue(i, t)
+            else:
+                cf.SetValue(0, value)
+
+        cf.Update()
+        poly = cf.GetOutput()
+
+        out = vedo.mesh.Mesh(poly, c=None).phong()
+        out.mapper.SetScalarRange(scrange[0], scrange[1])
+
+        out.pipeline = utils.OperationNode(
+            "isosurface",
+            parents=[self],
+            comment=f"#pts {out.dataset.GetNumberOfPoints()}",
+            c="#4cc9f0:#e9c46a",
+        )
         return out

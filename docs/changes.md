@@ -100,6 +100,8 @@ examples/volumetric/slice_plane1.py
 examples/volumetric/slice_plane3.py
 examples/volumetric/mesh2volume.py
 examples/volumetric/read_volume3.py
+examples/volumetric/rectl_grid1.py
+examples/volumetric/struc_grid1.py
 
 examples/simulations/mag_field1.py
 
@@ -125,6 +127,7 @@ cut_and_cap.py (incomplete capping)
 gyroscope1.py (broken physics)
 mousehover1.py (long indicator)
 tests/issues/discussion_800.py  (incomplete capping of tube)
+examples/volumetric/earth_model.py (overburden wron color)
 ```
 
 #### Broken Projects
