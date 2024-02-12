@@ -1311,11 +1311,14 @@ class Plotter:
             except AttributeError:
                 continue
             if M and not M.IsIdentity():
-                vedo.logger.info(
-                    f"object '{a.retrieve_object().name}' "
-                    "was manually moved. Updated to its current position."
-                )
-                a.retrieve_object().apply_transform_from_actor()
+                try:
+                    a.retrieve_object().apply_transform_from_actor()
+                    vedo.logger.info(
+                        f"object '{a.retrieve_object().name}' "
+                        "was manually moved. Updated to its current position."
+                    )
+                except AttributeError:
+                    pass
         return self
 
     def reset_camera(self, tight=None):
