@@ -55,6 +55,8 @@
 - small fix to `applications.Slicer2DPlotter`
 - automatically apply the actor transform to an object actor that was moved manually (via eg "InteractorStyleTrackballActor") in #1045 and #1046 by @sergei9838
 - add support to `StructuredGrid` data (experimental).
+- improvements to `RayCastPlotter`
+- add `visual.scalar_range()` to control mesh coloring.
 
 
 ## Soft Breaking Changes
@@ -102,6 +104,7 @@ examples/volumetric/mesh2volume.py
 examples/volumetric/read_volume3.py
 examples/volumetric/rectl_grid1.py
 examples/volumetric/struc_grid1.py
+examples/volumetric/app_raycaster.py
 
 examples/simulations/mag_field1.py
 

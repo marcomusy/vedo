@@ -299,7 +299,9 @@ def _load_file(filename, unpack):
         wacts = []
         for i in range(actors.GetNumberOfItems()):
             act = actors.GetNextActor()
-            wacts.append(act)
+            m = Mesh(act.GetMapper().GetInput())
+            m.actor = act
+            wacts.append(m)
         objt = Assembly(wacts)
 
     ######################################################## volumetric:
@@ -413,7 +415,7 @@ def _load_file(filename, unpack):
             reader = vtki.new("XMLPRectilinearGridReader")
         elif fl.endswith("pvtu"):
             reader = vtki.new("XMLPUnstructuredGridReader")
-        elif fl.endswith(".txt") or fl.endswith(".xyz"):
+        elif fl.endswith(".txt") or fl.endswith(".xyz") or fl.endswith(".dat"):
             reader = vtki.new("ParticleReader")  # (format is x, y, z, scalar)
         elif fl.endswith(".facet"):
             reader = vtki.new("FacetReader")
@@ -433,7 +435,7 @@ def _load_file(filename, unpack):
 
         else:
             objt = Mesh(routput)
-            if fl.endswith(".txt") or fl.endswith(".xyz"):
+            if fl.endswith(".txt") or fl.endswith(".xyz") or fl.endswith(".dat"):
                 objt.point_size(4)
 
     objt.filename = filename
@@ -659,12 +661,12 @@ def load3DS(filename):
     for a in acts:
         try:
             newa = Mesh(a.GetMapper().GetInput())
-            newa.apply_transform(a.GetMatrix())
-            newa.copy_properties_from(a)
+            newa.actor = a
             wrapped_acts.append(newa)
+            # print("loaded 3DS object", [a])
         except:
-            print("ERROR: cannot load 3DS object", [a])
-    return wrapped_acts
+            print("ERROR: cannot load 3DS object part", [a])
+    return vedo.Assembly(wrapped_acts)
 
 ########################################################################
 def loadOFF(filename):

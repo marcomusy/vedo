@@ -3872,7 +3872,7 @@ def CornerHistogram(
     tprop = vtki.vtkTextProperty()
     tprop.SetColor(colors.get_color(bg))
     tprop.SetFontFamily(vtki.VTK_FONT_FILE)
-    tprop.SetFontFile(utils.get_font_path(vedo.settings.default_font))
+    tprop.SetFontFile(utils.get_font_path("Calco"))
     tprop.SetOpacity(alpha)
     cplot.SetAxisTitleTextProperty(tprop)
     cplot.GetProperty().SetOpacity(alpha)

@@ -809,11 +809,20 @@ def draw_scene(args):
             interactor_mode = "image"
 
         ##########################################################
-        # loading a full scene
+        # loading a full scene or list of objects
         if ".npy" in args.files[0] or ".npz" in args.files[0]:
-            plt = file_io.import_window(args.files[0])
-            plt.show(mode=interactor_mode).close()
-            return
+            try: # full scene
+                plt = file_io.import_window(args.files[0])
+                plt.show(mode=interactor_mode).close()
+                return
+            except KeyError: # list of objects, create Assembly
+                objs = vedo.Assembly(args.files[0])
+                for i, ob in enumerate(objs):
+                    if ob:
+                        ob.c(i)
+                plt = Plotter()
+                plt.show(objs, mode=interactor_mode).close()
+                return
         #########################################################
 
         ds = 0

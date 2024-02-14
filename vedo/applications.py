@@ -156,23 +156,26 @@ class Slicer3DPlotter(Plotter):
         self.zslice.cmap(self.cmap_slicer, vmin=rmin, vmax=rmax)
         self.add(self.zslice)
 
+        self.histogram = None
+        data_reduced = data
         if show_histo:
             # try to reduce the number of values to histogram
             dims = self.volume.dimensions()
             n = (dims[0] - 1) * (dims[1] - 1) * (dims[2] - 1)
             n = min(1_000_000, n)
-            data_reduced = np.random.choice(data, n)
-            self.histogram = histogram(
-                data_reduced,
-                # title=volume.filename,
-                bins=20,
-                logscale=True,
-                c=self.cmap_slicer,
-                bg=ch,
-                alpha=1,
-                axes=dict(text_scale=2),
-            ).clone2d(pos=[-0.925, -0.88], size=0.4)
-            self.add(self.histogram)
+            if data.ndim == 1:
+                data_reduced = np.random.choice(data, n)
+                self.histogram = histogram(
+                    data_reduced,
+                    # title=volume.filename,
+                    bins=20,
+                    logscale=True,
+                    c=self.cmap_slicer,
+                    bg=ch,
+                    alpha=1,
+                    axes=dict(text_scale=2),
+                ).clone2d(pos=[-0.925, -0.88], size=0.4)
+                self.add(self.histogram)
 
         #################
         def slider_function_x(widget, event):
@@ -674,20 +677,22 @@ class Slicer2DPlotter(Plotter):
 
         hist = None
         if histo_color is not None:
-            # try to reduce the number of values to histogram
-            dims = self.volume.dimensions()
-            n = (dims[0] - 1) * (dims[1] - 1) * (dims[2] - 1)
-            n = min(1_000_000, n)
-            arr = np.random.choice(self.volume.pointdata[0], n)
-
-            hist = vedo.pyplot.histogram(
-                arr,
-                bins=12,
-                logscale=True,
-                c=histo_color,
-                ytitle="log_10 (counts)",
-                axes=dict(text_scale=1.9),
-            ).clone2d(pos="bottom-left", size=0.4)
+            data = self.volume.pointdata[0]
+            arr = data
+            if data.ndim == 1:
+                # try to reduce the number of values to histogram
+                dims = self.volume.dimensions()
+                n = (dims[0] - 1) * (dims[1] - 1) * (dims[2] - 1)
+                n = min(1_000_000, n)
+                arr = np.random.choice(self.volume.pointdata[0], n)
+                hist = vedo.pyplot.histogram(
+                    arr,
+                    bins=12,
+                    logscale=True,
+                    c=histo_color,
+                    ytitle="log_10 (counts)",
+                    axes=dict(text_scale=1.9),
+                ).clone2d(pos="bottom-left", size=0.4)
 
         axes = kwargs.pop("axes", 7)
         axe = None
@@ -844,15 +849,15 @@ class RayCastPlotter(Plotter):
         self.alphaslider0 = 0.33
         self.alphaslider1 = 0.66
         self.alphaslider2 = 1
+        self.color_scalarbar = None
 
         self.properties = volume.properties
-        img = volume.dataset
 
         if volume.dimensions()[2] < 3:
             vedo.logger.error("RayCastPlotter: not enough z slices.")
             raise RuntimeError
 
-        smin, smax = img.GetScalarRange()
+        smin, smax = volume.scalar_range()
         x0alpha = smin + (smax - smin) * 0.25
         x1alpha = smin + (smax - smin) * 0.5
         x2alpha = smin + (smax - smin) * 1.0
@@ -860,66 +865,65 @@ class RayCastPlotter(Plotter):
         ############################## color map slider
         # Create transfer mapping scalar value to color
         cmaps = [
-            "jet",
-            "viridis",
-            "bone",
-            "hot",
-            "plasma",
-            "winter",
-            "cool",
-            "gist_earth",
-            "coolwarm",
-            "tab10",
+            "rainbow", "rainbow_r",
+            "viridis", "viridis_r",
+            "bone", "bone_r",
+            "hot", "hot_r",
+            "plasma", "plasma_r",
+            "gist_earth", "gist_earth_r",
+            "coolwarm", "coolwarm_r",
+            "tab10_r",
         ]
         cols_cmaps = []
         for cm in cmaps:
             cols = color_map(range(0, 21), cm, 0, 20)  # sample 20 colors
             cols_cmaps.append(cols)
         Ncols = len(cmaps)
-        csl = (0.9, 0.9, 0.9)
-        if sum(get_color(self.renderer.GetBackground())) > 1.5:
-            csl = (0.1, 0.1, 0.1)
+        csl = "k9"
+        if sum(get_color(self.background())) > 1.5:
+            csl = "k1"
 
-        def sliderColorMap(widget, event):
-            sliderRep = widget.GetRepresentation()
-            k = int(sliderRep.GetValue())
-            sliderRep.SetTitleText(cmaps[k])
-            volume.color(cmaps[k])
+        def slider_cmap(widget=None, event=""):
+            if widget:
+                k = int(widget.value)
+                volume.cmap(cmaps[k])
+                self.remove(self.color_scalarbar)
+            self.color_scalarbar = vedo.addons.ScalarBar(
+                volume, horizontal=True, font_size=2, pos=[0.8,0.02], size=[30,1500],
+            )
+            self.add(self.color_scalarbar)
 
         w1 = self.add_slider(
-            sliderColorMap,
-            0,
-            Ncols - 1,
+            slider_cmap,
+            0, Ncols - 1,
             value=0,
-            show_value=0,
-            title=cmaps[0],
+            show_value=False,
             c=csl,
             pos=[(0.8, 0.05), (0.965, 0.05)],
         )
-        w1.GetRepresentation().SetTitleHeight(0.018)
+        w1.representation.SetTitleHeight(0.018)
 
         ############################## alpha sliders
-        # Create transfer mapping scalar value to opacity
-        opacityTransferFunction = self.properties.GetScalarOpacity()
+        # Create transfer mapping scalar value to opacity transfer function
+        otf = self.properties.GetScalarOpacity()
 
         def setOTF():
-            opacityTransferFunction.RemoveAllPoints()
-            opacityTransferFunction.AddPoint(smin, 0.0)
-            opacityTransferFunction.AddPoint(smin + (smax - smin) * 0.1, 0.0)
-            opacityTransferFunction.AddPoint(x0alpha, self.alphaslider0)
-            opacityTransferFunction.AddPoint(x1alpha, self.alphaslider1)
-            opacityTransferFunction.AddPoint(x2alpha, self.alphaslider2)
+            otf.RemoveAllPoints()
+            otf.AddPoint(smin, 0.0)
+            otf.AddPoint(smin + (smax - smin) * 0.1, 0.0)
+            otf.AddPoint(x0alpha, self.alphaslider0)
+            otf.AddPoint(x1alpha, self.alphaslider1)
+            otf.AddPoint(x2alpha, self.alphaslider2)
 
-        setOTF()
+        setOTF()  ################
 
         def sliderA0(widget, event):
-            self.alphaslider0 = widget.GetRepresentation().GetValue()
+            self.alphaslider0 = widget.value
             setOTF()
 
         self.add_slider(
             sliderA0,
-            0,
-            1,
+            0, 1,
             value=self.alphaslider0,
             pos=[(0.84, 0.1), (0.84, 0.26)],
             c=csl,
@@ -927,13 +931,12 @@ class RayCastPlotter(Plotter):
         )
 
         def sliderA1(widget, event):
-            self.alphaslider1 = widget.GetRepresentation().GetValue()
+            self.alphaslider1 = widget.value
             setOTF()
 
         self.add_slider(
             sliderA1,
-            0,
-            1,
+            0, 1,
             value=self.alphaslider1,
             pos=[(0.89, 0.1), (0.89, 0.26)],
             c=csl,
@@ -941,20 +944,19 @@ class RayCastPlotter(Plotter):
         )
 
         def sliderA2(widget, event):
-            self.alphaslider2 = widget.GetRepresentation().GetValue()
+            self.alphaslider2 = widget.value
             setOTF()
 
         w2 = self.add_slider(
             sliderA2,
-            0,
-            1,
+            0, 1,
             value=self.alphaslider2,
             pos=[(0.96, 0.1), (0.96, 0.26)],
             c=csl,
             show_value=0,
-            title="Opacity levels",
+            title="Opacity Levels",
         )
-        w2.GetRepresentation().SetTitleHeight(0.016)
+        w2.GetRepresentation().SetTitleHeight(0.015)
 
         # add a button
         def button_func_mode(_obj, _ename):
@@ -965,25 +967,27 @@ class RayCastPlotter(Plotter):
 
         bum = self.add_button(
             button_func_mode,
-            pos=(0.7, 0.035),
-            states=["composite", "max proj."],
-            c=["bb", "gray"],
-            bc=["gray", "bb"],  # colors of states
-            font="",
-            size=16,
+            pos=(0.89, 0.31),
+            states=["  composite   ", "max projection"],
+            c=[ "k3", "k6"],
+            bc=["k6", "k3"],  # colors of states
+            font="Calco",
+            size=18,
             bold=0,
             italic=False,
         )
-        bum.frame(color="w")
+        bum.frame(color="k6")
         bum.status(volume.mode())
+
+        slider_cmap() ############# init call to create scalarbar
 
         # add histogram of scalar
         plot = CornerHistogram(
             volume,
             bins=25,
             logscale=1,
-            c=(0.7, 0.7, 0.7),
-            bg=(0.7, 0.7, 0.7),
+            c='k5',
+            bg='k5',
             pos=(0.78, 0.065),
             lines=True,
             dots=False,

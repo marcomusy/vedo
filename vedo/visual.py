@@ -79,20 +79,35 @@ class CommonVisual:
     @LUT.setter
     def LUT(self, arr):
         """
-        Set the lookup table of the object from a numpy object.
+        Set the lookup table of the object from a numpy or `vtkLookupTable` object.
         Consider using `cmap()` or `build_lut()` instead as it allows
         to set the range of the LUT and to use a string name for the color map.
         """
-        _newlut = vtki.vtkLookupTable()
-        _newlut.SetNumberOfTableValues(len(arr))
-        if len(arr[0]) == 3:
-            arr = np.insert(arr, 3, 1, axis=1)
-        for i, v in enumerate(arr):
-            _newlut.SetTableValue(i, v)
-        _newlut.SetRange(self.mapper.GetScalarRange())
-        _newlut.Build()
-        self.mapper.SetLookupTable(_newlut)
+        if isinstance(arr, vtki.vtkLookupTable):
+            newlut = arr
+            self.mapper.SetScalarRange(newlut.GetRange())
+        else:
+            newlut = vtki.vtkLookupTable()
+            newlut.SetNumberOfTableValues(len(arr))
+            if len(arr[0]) == 3:
+                arr = np.insert(arr, 3, 1, axis=1)
+            for i, v in enumerate(arr):
+                newlut.SetTableValue(i, v)
+            newlut.SetRange(self.mapper.GetScalarRange())
+            # print("newlut.GetRange() =", newlut.GetRange())
+            # print("self.mapper.GetScalarRange() =", self.mapper.GetScalarRange())
+            newlut.Build()
+        self.mapper.SetLookupTable(newlut)
         self.mapper.ScalarVisibilityOn()
+    
+    def scalar_range(self, vmin=None, vmax=None):
+        """Set the range of the scalar value for visualization."""
+        if vmin is None and vmax is None:
+            return np.array(self.mapper.GetScalarRange())
+        if vmax is None:
+            vmin, vmax = vmin # assume it is a list
+        self.mapper.SetScalarRange(vmin, vmax)
+        return self
 
     def add_observer(self, event_name, func, priority=0):
         """Add a callback function that will be called when an event occurs."""
@@ -695,9 +710,9 @@ class Actor3DHelper:
         self.actor.SetOrigin(point)
         return self
 
-    def scale(self, s):
+    def scale(self, s, origin=True):
         """Multiply object size by `s` factor."""
-        LT = vedo.LinearTransform().scale(s)
+        LT = vedo.LinearTransform().scale(s, origin=origin)
         return self.apply_transform(LT)
 
     def x(self, val=None):

@@ -1171,6 +1171,9 @@ class Plotter:
         else:
             r = self.renderers[at]
 
+        if c1 is None and c2 is None:
+            return np.array(r.GetBackground())
+
         if r:
             if c1 is not None:
                 r.SetBackground(vedo.get_color(c1))
