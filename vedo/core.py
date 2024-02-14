@@ -1805,7 +1805,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         Use flying_edges for faster results (but sometimes can interfere with `smooth()`).
 
         Examples:
-            - [isosurfaces.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/isosurfaces.py)
+            - [isosurfaces1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/isosurfaces1.py)
 
                 ![](https://vedo.embl.es/images/volumetric/isosurfaces.png)
         """
@@ -1844,6 +1844,57 @@ class VolumeAlgorithms(CommonAlgorithms):
             c="#4cc9f0:#e9c46a",
         )
         return out
+    
+    def isosurface_discrete(self, value=None, nsmooth=15):
+        """
+        Create boundary/isocontour surfaces from a label map (e.g., a segmented image) using a threaded,
+        3D version of the multiple objects/labels Surface Nets algorithm.
+        The input is a 3D image (i.e., volume) where each voxel is labeled
+        (integer labels are preferred to real values), and the output data is a polygonal mesh separating
+        labeled regions / objects.
+        (Note that on output each region [corresponding to a different segmented object] will share
+        points/edges on a common boundary, i.e., two neighboring objects will share the boundary that separates them).
+
+        Arguments:
+            value : (float, list)
+                single value or list of values to draw the isosurface(s).
+            nsmooth : (int)
+                number of iterations of smoothing (0 means no smoothing).
+
+        Examples:
+            - [isosurfaces2.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/isosurfaces2.py)
+        """
+        if not utils.is_sequence(value):
+            value = [value]
+        
+        snets = vtki.new("SurfaceNets3D")
+        snets.SetInputData(self.dataset)
+
+        if nsmooth:
+            snets.SmoothingOn()
+            snets.AutomaticSmoothingConstraintsOn()
+            snets.GetSmoother().SetNumberOfIterations(nsmooth)
+            # snets.GetSmoother().SetRelaxationFactor(relaxation_factor)
+            # snets.GetSmoother().SetConstraintDistance(constraint_distance)
+        else:
+            snets.SmoothingOff()
+
+        for i, val in enumerate(value):
+            snets.SetValue(i, val)
+        snets.Update()
+        snets.SetOutputMeshTypeToTriangles()
+        snets.SetOutputStyleToBoundary()
+        snets.Update()
+
+        out = vedo.mesh.Mesh(snets.GetOutput())
+        out.pipeline = utils.OperationNode(
+            "isosurface_discrete",
+            parents=[self],
+            comment=f"#pts {out.dataset.GetNumberOfPoints()}",
+            c="#4cc9f0:#e9c46a",
+        )
+        return out
+
 
     def legosurface(
         self,

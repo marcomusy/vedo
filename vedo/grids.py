@@ -608,7 +608,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         Use flying_edges for faster results (but sometimes can interfere with `smooth()`).
 
         Examples:
-            - [isosurfaces.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/isosurfaces.py)
+            - [isosurfaces1.py](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/isosurfaces1.py)
 
                 ![](https://vedo.embl.es/images/volumetric/isosurfaces.png)
         """

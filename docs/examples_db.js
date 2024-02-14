@@ -828,7 +828,7 @@ vedo_example_db =
         imgsrc: 'images/volumetric/read_volume3.jpg',
     },
     {
-        pyname: 'isosurfaces',
+        pyname: 'isosurfaces1',
         kbd   : '',
         categ : 'volumetric',
         short : 'isosurface sets',

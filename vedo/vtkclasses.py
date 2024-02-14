@@ -270,6 +270,7 @@ for name in [
     "vtkResampleWithDataSet",
     "vtkReverseSense",
     "vtkStripper",
+    "vtkSurfaceNets3D",
     "vtkTensorGlyph",
     "vtkThreshold",
     "vtkTriangleFilter",

@@ -58,6 +58,7 @@
 - improvements to `RayCastPlotter`
 - add `visual.scalar_range()` to control mesh coloring.
 - fix `shapes.Text3D.text()` by @gioda
+- add `volume.isosurface_discrete()` method
 
 
 ## Soft Breaking Changes
@@ -106,6 +107,8 @@ examples/volumetric/read_volume3.py
 examples/volumetric/rectl_grid1.py
 examples/volumetric/struc_grid1.py
 examples/volumetric/app_raycaster.py
+examples/volumetric/isosurfaces1.py
+examples/volumetric/isosurfaces2.py
 
 examples/simulations/mag_field1.py
 
