@@ -732,7 +732,7 @@ class Points(PointsVisual, PointAlgorithms):
         from PIL import Image
 
         library_name = "vedo.pointcloud.Points"
-        help_url = "https://vedo.embl.es/docs/vedo/pointcloud.html"
+        help_url = "https://vedo.embl.es/docs/vedo/pointcloud.html#Points"
 
         arr = self.thumbnail()
         im = Image.fromarray(arr)
