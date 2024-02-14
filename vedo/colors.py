@@ -1038,8 +1038,10 @@ def build_lut(
         alpha_x.append(scalar)
         alpha_vals.append(alf)
 
-    # ncols = 256
-    ncols = 4 * len(colorlist)
+    ncols = 8 * len(colorlist)
+    if not interpolate:
+        ncols = len(colorlist)
+
     lut = vtki.new("LookupTable")
     lut.SetNumberOfTableValues(ncols)
 
@@ -1060,23 +1062,22 @@ def build_lut(
     if nan_color is not None:
         lut.SetNanColor(list(get_color(nan_color)) + [nan_alpha])
 
-    rgba = (1, 1, 1, 1)
-    for i in range(ncols):
-        p = i / (ncols-1)
-        x = (1 - p) * x0 + p * x1
-        if interpolate:
+    if interpolate:
+        for i in range(ncols):
+            p = i / (ncols-1)
+            x = (1 - p) * x0 + p * x1
             alf = np.interp(x, alpha_x, alpha_vals)
             rgba = list(ctf.GetColor(x)) + [alf]
-        else:
-            for c in colorlist:
-                if x <= c[0]:
-                    if len(c) == 3:
-                        alf = c[2]
-                    else:
-                        alf = 1
-                    rgba = list(get_color(c[1])) + [alf]
-                    break
-        lut.SetTableValue(i, rgba)
+            lut.SetTableValue(i, rgba)
+    else:
+        for i in range(ncols):
+            if len(colorlist[i]) > 2: 
+                alpha = colorlist[i][2]
+            else:
+                alpha = 1.0
+            # print("colorlist entry:", colorlist[i])
+            rgba = list(get_color(colorlist[i][1])) + [alpha]
+            lut.SetTableValue(i, rgba)
 
     lut.Build()
     return lut

@@ -26,7 +26,7 @@ lut_table = [
     (13.0, 'lime',       1, "Layer^E"),
     (15.0, 'seagreen',   1, "Layer^V"),
 ]
-lut = vedo.build_lut(lut_table)
+lut = vedo.build_lut(lut_table, interpolate=1)
 
 msh = tet.tomesh(shrink=0.95, fill=True)
 msh.cmap(lut, 'cell_scalars', on='cells')
