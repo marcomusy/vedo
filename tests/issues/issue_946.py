@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, QFrame, QVBoxLayout
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
-from vedo import dataurl, Volume
+from vedo import dataurl, Volume, settings
 from vedo.applications import Slicer3DPlotter
 
 
@@ -49,6 +49,8 @@ class MainWindow(QMainWindow):
 
 
 if __name__ == "__main__":
+    if settings.dry_run_mode:
+        exit()
     app = QApplication(sys.argv)
     window = MainWindow()
     app.aboutToQuit.connect(window.onClose)

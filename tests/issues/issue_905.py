@@ -1,7 +1,7 @@
 import sys
 from PyQt5 import Qt
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
-from vedo import Plotter, Cone, printc
+from vedo import Plotter, Cone, printc, settings
 
 
 class MainWindow(Qt.QMainWindow):
@@ -53,6 +53,8 @@ class MainWindow(Qt.QMainWindow):
 
 
 if __name__ == "__main__":
+    if settings.dry_run_mode:
+        sys.exit()
     app = Qt.QApplication(sys.argv)
     window = MainWindow()
     app.exec_()
