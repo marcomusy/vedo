@@ -4028,7 +4028,7 @@ class Text3D(Mesh):
             pos : (list)
                 position coordinates in 3D space
             s : (float)
-                size of the text
+                vertical size of the text (as scaling factor)
             depth : (float)
                 text thickness (along z)
             italic : (bool), float
@@ -4085,10 +4085,13 @@ class Text3D(Mesh):
         )
 
         super().__init__(tpoly, c, alpha)
-        self.lighting("off")
+
         self.pos(pos)
+        self.lighting("off")
+
         self.actor.PickableOff()
         self.actor.DragableOff()
+        self.init_scale = s
         self.name = "Text3D"
         self.txt = txt
 
@@ -4105,15 +4108,25 @@ class Text3D(Mesh):
         literal=False,
     ):
         """
-        Update the font style of the text.
+        Update the text and some of its properties.
+
         Check [available fonts here](https://vedo.embl.es/fonts).
         """
         if txt is None:
             return self.txt
 
-        tpoly = self._get_text3d_poly(
-            txt, s, font, hspacing, vspacing, depth, italic, justify, literal
+        poly = self._get_text3d_poly(
+            txt, self.init_scale * s, font, hspacing, vspacing,
+            depth, italic, justify, literal
         )
+
+        # apply the current transformation to the new polydata
+        tf = vtki.new("TransformPolyDataFilter")
+        tf.SetInputData(poly)
+        tf.SetTransform(self.transform.T)
+        tf.Update()
+        tpoly = tf.GetOutput()
+
         self._update(tpoly)
         self.txt = txt
         return self

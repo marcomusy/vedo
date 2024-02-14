@@ -57,6 +57,7 @@
 - add support to `StructuredGrid` data (experimental).
 - improvements to `RayCastPlotter`
 - add `visual.scalar_range()` to control mesh coloring.
+- fix `shapes.Text3D.text()` by @gioda
 
 
 ## Soft Breaking Changes
@@ -117,6 +118,8 @@ examples/other/nelder-mead.py
 examples/other/fast_simpl.py
 
 tests/issues/issue_968.py
+tests/issues/issue_1025.py
+tests/issues/test_force_anim.py
 tests/snippets/test_discourse_1956.py
 tests/snippets/test_ellipsoid_main_axes.py
 tests/snippets/test_compare_fit1.py
