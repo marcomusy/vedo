@@ -130,7 +130,9 @@ cd ~/Projects/server/welleng
     python 
 ################
 cd ~/Projects/server/brainrender/examples
-    python
+    python cell_density.py
+    python streamlines.py
+    python volumetric_data.py
 ################
 cd ~/Projects/clonal_analysis2d_depth
     python -m analysis_plots

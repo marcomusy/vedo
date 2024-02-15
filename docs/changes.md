@@ -142,6 +142,14 @@ examples/volumetric/earth_model.py (overburden wron color)
 #### Broken Projects
 umap_viewer3d
 trackviewer (some problems with removing a track, and z spacing)
+./clone_viewer3d.py and  ~/Projects/umap_viewer3d
+    [vedo.plotter] INFO: object 'FlagPole' was manually moved. Updated to its current position.
+    [vedo.plotter] INFO: object 'Text3D' was manually moved. Updated to its current position.
+napari-vedo-bridge interactor frozen
+
+rio_organoid
+    too slow??
+
 
 #### Broken Exports to .npz:
 boolean.py
