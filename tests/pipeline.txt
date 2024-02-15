@@ -123,12 +123,6 @@ cd ~/Projects/napari-vedo-bridge
     python $VEDODIR/examples/other/napari1.py # then open plugins ...
     conda deactivate
 ################
-cd ~/Projects/server/welleng
-    git pull
-    pip install -e .
-    cd examples
-    python 
-################
 cd ~/Projects/server/brainrender/examples
     python cell_density.py
     python streamlines.py

@@ -1316,10 +1316,10 @@ class Plotter:
             if M and not M.IsIdentity():
                 try:
                     a.retrieve_object().apply_transform_from_actor()
-                    vedo.logger.info(
-                        f"object '{a.retrieve_object().name}' "
-                        "was manually moved. Updated to its current position."
-                    )
+                    # vedo.logger.info(
+                    #     f"object '{a.retrieve_object().name}' "
+                    #     "was manually moved. Updated to its current position."
+                    # )
                 except AttributeError:
                     pass
         return self
@@ -3403,6 +3403,8 @@ class Plotter:
             # Set the interaction style
             if mode is not None:
                 self.user_mode(mode)
+            if self.qt_widget and mode is None:
+                self.user_mode(0)
 
             if screenshot:
                 self.screenshot(screenshot)
