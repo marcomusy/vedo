@@ -1077,7 +1077,11 @@ class Mesh(MeshVisual, Points):
         if regularization:
             decimate.SetRegularize(True)
             decimate.SetRegularization(regularization)
-        decimate.MapPointDataOn()
+
+        try:
+            decimate.MapPointDataOn()
+        except AttributeError:
+            pass
 
         decimate.SetTargetReduction(1 - fraction)
         decimate.SetInputData(poly)

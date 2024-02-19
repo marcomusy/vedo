@@ -1395,7 +1395,11 @@ class CommonAlgorithms:
             exclude : (list)
                 list of arrays to be excluded from smoothing
         """
-        saf = vtki.new("AttributeSmoothingFilter")
+        try:
+            saf = vtki.new("AttributeSmoothingFilter")
+        except:
+            vedo.logger.error("smooth_data() only avaialble in VTK>=9.3.0")
+            return self
         saf.SetInputData(self.dataset)
         saf.SetRelaxationFactor(relaxation_factor)
         saf.SetNumberOfIterations(niter)
