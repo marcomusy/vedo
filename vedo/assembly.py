@@ -77,8 +77,12 @@ class Group(vtki.vtkPropAssembly):
 
     def __init__(self, objects=()):
         """Form groups of generic objects (not necessarily meshes)."""
-
         super().__init__()
+
+        if isinstance(objects, dict):
+            for name in objects:
+                objects[name].name = name
+            objects = list(objects.values())
 
         self.actor = self
 
@@ -212,10 +216,22 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
             data = np.load(filename, allow_pickle=True)
             meshs = [vedo.file_io._from_numpy(dd) for dd in data]
 
-        if len(meshs) == 1:
+        # Init by filename
+        if len(meshs) == 1 and isinstance(meshs[0], str):
+            filename = vedo.file_io.download(meshs[0], verbose=False)
+            data = np.load(filename, allow_pickle=True)
+            meshs = [vedo.file_io._from_numpy(dd) for dd in data]
+        # Name and load from dictionary
+        if len(meshs) == 1 and isinstance(meshs[0], dict):
             meshs = meshs[0]
+            for name in meshs:
+                meshs[name].name = name
+            meshs = list(meshs.values())
         else:
-            meshs = vedo.utils.flatten(meshs)
+            if len(meshs) == 1:
+                meshs = meshs[0]
+            else:
+                meshs = vedo.utils.flatten(meshs)
 
         self.actor = self
         self.actor.retrieve_object = weak_ref_to(self)
