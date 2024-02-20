@@ -215,12 +215,6 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
             filename = vedo.file_io.download(meshs[0], verbose=False)
             data = np.load(filename, allow_pickle=True)
             meshs = [vedo.file_io._from_numpy(dd) for dd in data]
-
-        # Init by filename
-        if len(meshs) == 1 and isinstance(meshs[0], str):
-            filename = vedo.file_io.download(meshs[0], verbose=False)
-            data = np.load(filename, allow_pickle=True)
-            meshs = [vedo.file_io._from_numpy(dd) for dd in data]
         # Name and load from dictionary
         if len(meshs) == 1 and isinstance(meshs[0], dict):
             meshs = meshs[0]
