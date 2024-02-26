@@ -1340,8 +1340,8 @@ class TetMesh(UnstructuredGrid):
 
     def subdvide(self):
         """
-        Increase the number of tets of a `TetMesh`.
-        Subdivide one tetrahedron into twelve for every tetra.
+        Increase the number of tetrahedrons of a `TetMesh`.
+        Subdivides each tetrahedron into twelve smaller tetras.
         """
         sd = vtki.new("SubdivideTetra")
         sd.SetInputData(self.dataset)

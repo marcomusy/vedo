@@ -64,11 +64,11 @@ cd $VEDODIR/examples/other/trimesh && ./run_all.sh
 
 # DOLFIN #####################################################################
 # conda create -n fenics -c conda-forge fenics
-# conda activate fenics
 # conda install conda-forge::mshr
+# conda activate fenics
 cd $VEDODIR
 conda activate fenics
-pip install -e .
+pip install -qe .
 cd $VEDODIR/examples/other/dolfin && ./run_all.sh
 conda deactivate
 

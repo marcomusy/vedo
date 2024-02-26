@@ -1061,6 +1061,8 @@ class IsosurfaceBrowser(Plotter):
 
         super().__init__(**kwargs)
 
+        self.slider = None
+
         ### GPU ################################
         if use_gpu and hasattr(volume.properties, "GetIsoSurfaceValues"):
 
@@ -1084,7 +1086,7 @@ class IsosurfaceBrowser(Plotter):
             isovals.SetValue(0, isovalue)
             self.add(volume.mode(5).alpha(alpha).cmap(c))
 
-            self.add_slider(
+            self.slider = self.add_slider(
                 slider_isovalue,
                 scrange[0] + 0.02 * delta,
                 scrange[1] - 0.02 * delta,
@@ -1172,7 +1174,7 @@ class IsosurfaceBrowser(Plotter):
             if lego:
                 self.vol_actors[0].add_scalarbar(pos=(0.8, 0.12))
 
-            self.add_slider(
+            self.slider = self.add_slider(
                 slider_isovalue,
                 scrange[0] + 0.02 * delta,
                 scrange[1] - 0.02 * delta,

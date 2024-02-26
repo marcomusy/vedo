@@ -886,7 +886,7 @@ def geometry(obj, extent=None):
     return vedo.Mesh(gf.GetOutput())
 
 
-def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0, tetras=False):
+def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0):
     """
     Build a `vtkPolyData` object from a list of vertices
     where faces represents the connectivity of the polygonal mesh.
@@ -902,8 +902,6 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0,
     For lines use `lines=[2, 0,1, 4, 1,2,3,4, ...]`.
 
     Use `index_offset=1` if face numbering starts from 1 instead of 0.
-
-    If `tetras=True`, interpret 4-point faces as tetrahedrons instead of surface quads.
     """
     if is_sequence(faces) and len(faces) == 0:
         faces=None
@@ -945,7 +943,9 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0,
         poly.SetLines(linesarr)
 
     if faces is not None:
+
         source_polygons = vtki.vtkCellArray()
+
         if isinstance(faces, np.ndarray) or not is_ragged(faces):
             ##### all faces are composed of equal nr of vtxs, FAST
             faces = np.asarray(faces)
@@ -973,41 +973,6 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0,
                     for i in range(3):
                         pids.SetId(i, f[i] - index_offset)
                     source_polygons.InsertNextCell(ele)
-
-                elif n == 4 and tetras:
-                    ele0 = vtki.vtkTriangle()
-                    ele1 = vtki.vtkTriangle()
-                    ele2 = vtki.vtkTriangle()
-                    ele3 = vtki.vtkTriangle()
-                    if index_offset:
-                        for i in [0, 1, 2, 3]:
-                            f[i] -= index_offset
-                    f0, f1, f2, f3 = f
-                    pid0 = ele0.GetPointIds()
-                    pid1 = ele1.GetPointIds()
-                    pid2 = ele2.GetPointIds()
-                    pid3 = ele3.GetPointIds()
-
-                    pid0.SetId(0, f0)
-                    pid0.SetId(1, f1)
-                    pid0.SetId(2, f2)
-
-                    pid1.SetId(0, f0)
-                    pid1.SetId(1, f1)
-                    pid1.SetId(2, f3)
-
-                    pid2.SetId(0, f1)
-                    pid2.SetId(1, f2)
-                    pid2.SetId(2, f3)
-
-                    pid3.SetId(0, f2)
-                    pid3.SetId(1, f3)
-                    pid3.SetId(2, f0)
-
-                    source_polygons.InsertNextCell(ele0)
-                    source_polygons.InsertNextCell(ele1)
-                    source_polygons.InsertNextCell(ele2)
-                    source_polygons.InsertNextCell(ele3)
 
                 else:
                     ele = vtki.vtkPolygon()

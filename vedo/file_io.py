@@ -716,10 +716,20 @@ def loadGeoJSON(filename):
     return Mesh(jr.GetOutput())
 
 ########################################################################
-def loadDolfin(filename, exterior=False):
-    """Reads a `Fenics/Dolfin` file format (.xml or .xdmf).
-    Return an `Mesh` object."""
-    import dolfin
+def loadDolfin(filename):
+    """
+    Reads a `Fenics/Dolfin` file format (.xml or .xdmf).
+
+    Return a `Mesh` or a `TetMesh` object.
+    """
+    try:
+        import dolfin
+    except ImportError:
+        vedo.logger.error("loadDolfin(): dolfin module not found. Install with:")
+        vedo.logger.error("  conda create -n fenics -c conda-forge fenics")
+        vedo.logger.error("  conda install conda-forge::mshr")
+        vedo.logger.error("  conda activate fenics")
+        return None
 
     if filename.lower().endswith(".xdmf"):
         f = dolfin.XDMFFile(filename)
@@ -727,20 +737,18 @@ def loadDolfin(filename, exterior=False):
         f.read(m)
     else:
         m = dolfin.Mesh(filename)
+    
+    cells = m.cells()
+    verts = m.coordinates()
 
-    bm = dolfin.BoundaryMesh(m, "exterior")
+    if cells.size and verts.size:
+        if len(cells[0]) == 4:  # tetrahedral mesh
+            return vedo.TetMesh([verts, cells])
+        elif len(cells[0]) == 3:  # triangular mesh
+            return Mesh([verts, cells])
+    
+    return None
 
-    if exterior:
-        poly = utils.buildPolyData(bm.coordinates(), bm.cells(), tetras=True)
-    else:
-        polyb = utils.buildPolyData(bm.coordinates(), bm.cells(), tetras=True)
-        polym = utils.buildPolyData(m.coordinates(), m.cells(), tetras=True)
-        app = vtki.new("AppendPolyData")
-        app.AddInputData(polym)
-        app.AddInputData(polyb)
-        app.Update()
-        poly = app.GetOutput()
-    return Mesh(poly).lw(1)
 
 ########################################################################
 def loadPVD(filename):
@@ -772,7 +780,8 @@ def loadPVD(filename):
 def loadNeutral(filename):
     """
     Reads a `Neutral` tetrahedral file format.
-    Returns an `Mesh` object.
+
+    Returns an `TetMesh` object.
     """
     with open(filename, "r", encoding="UTF-8") as f:
         lines = f.readlines()
@@ -787,11 +796,10 @@ def loadNeutral(filename):
     idolf_tets = []
     for i in range(ncoords + 2, ncoords + ntets + 2):
         text = lines[i].split()
-        v0, v1, v2, v3 = int(text[1]) - 1, int(text[2]) - 1, int(text[3]) - 1, int(text[4]) - 1
+        v0, v1, v2, v3 = int(text[1])-1, int(text[2])-1, int(text[3])-1, int(text[4])-1
         idolf_tets.append([v0, v1, v2, v3])
 
-    poly = utils.buildPolyData(coords, idolf_tets)
-    return Mesh(poly)
+    return vedo.TetMesh([coords, idolf_tets])
 
 ########################################################################
 def loadGmesh(filename):
@@ -1272,7 +1280,7 @@ def write(objct, fileoutput, binary=True):
                 outF.write('  <mesh celltype="triangle" dim="2">\n')
                 outF.write('    <vertices size="' + str(ncoords) + '">\n')
                 for i in range(ncoords):
-                    x, y, dummy_z = vertices[i]
+                    x, y, _ = vertices[i]
                     outF.write('      <vertex index="'+str(i)+'" x="'+x+'" y="'+y+'"/>\n')
                 outF.write('    </vertices>\n')
                 outF.write('    <cells size="' + str(ntri) + '">\n')
