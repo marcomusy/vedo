@@ -91,7 +91,7 @@ last_figure = None
 ######################################################################### LOGGING
 class _LoggingCustomFormatter(logging.Formatter):
 
-    logformat = "[vedo.%(filename)s] %(levelname)s: %(message)s"
+    logformat = "[vedo.%(filename)s:%(lineno)d] %(levelname)s: %(message)s"
 
     white = "\x1b[1m"
     grey = "\x1b[2m\x1b[1m\x1b[38;20m"

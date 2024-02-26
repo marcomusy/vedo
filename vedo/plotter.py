@@ -908,9 +908,19 @@ class Plotter:
         Select the current renderer number as an int.
         Can also use the `[nx, ny]` format.
         """
+        if utils.is_sequence(nren):
+            if len(nren) == 2:
+                nren, yren = nren
+            else:
+                vedo.logger.error("at() argument must be a single number or a list of two numbers")
+                raise RuntimeError
+
         if yren is not None:
-            nren = (yren) * self.shape[1] + (nren)
-            if nren < 0 or nren > len(self.renderers):
+            a, b = self.shape
+            x, y = nren, yren
+            nren = x * b + y
+            # print("at (", x, y, ")  -> ren", nren)
+            if nren < 0 or nren > len(self.renderers) or x >= a or y >= b:
                 vedo.logger.error(f"at({nren, yren}) is malformed!")
                 raise RuntimeError
 
