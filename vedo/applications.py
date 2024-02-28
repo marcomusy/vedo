@@ -3,13 +3,14 @@
 import os
 import time
 import numpy as np
+from typing import Union
 
 import vedo.vtkclasses as vtki
 
 import vedo
 from vedo.colors import color_map, get_color
 from vedo.utils import is_sequence, lin_interpolate, mag, precision
-from vedo.plotter import Event, Plotter
+from vedo.plotter import Plotter
 from vedo.pointcloud import fit_plane, Points
 from vedo.shapes import Line, Ribbon, Spline, Text2D
 from vedo.pyplot import CornerHistogram, histogram
@@ -46,7 +47,7 @@ class Slicer3DPlotter(Plotter):
 
     def __init__(
         self,
-        volume,
+        volume: vedo.Volume,
         cmaps=("gist_ncar_r", "hot_r", "bone", "bone_r", "jet", "Spectral_r"),
         clamp=True,
         use_slider3d=False,
@@ -360,7 +361,7 @@ class Slicer3DTwinPlotter(Plotter):
         <img src="https://vedo.embl.es/images/volumetric/slicer3dtwin.png" width="650">
     """
 
-    def __init__(self, vol1, vol2, clamp=True, **kwargs):
+    def __init__(self, vol1: vedo.Volume, vol2: vedo.Volume, clamp=True, **kwargs):
 
         super().__init__(**kwargs)
 
@@ -607,7 +608,7 @@ class Slicer2DPlotter(Plotter):
     but at the same time can be oriented arbitrarily in space.
     """
 
-    def __init__(self, vol, levels=(None, None), histo_color="red4", **kwargs):
+    def __init__(self, vol: vedo.Volume, levels=(None, None), histo_color="red4", **kwargs):
         """
         A single slice of a Volume which always faces the camera,
         but at the same time can be oriented arbitrarily in space.
@@ -739,7 +740,7 @@ class Slicer2DPlotter(Plotter):
                 self.usage.text(self.usage_txt)
             self.render()
 
-    def cmap(self, lut=None, fix_scalar_range=False):
+    def cmap(self, lut=None, fix_scalar_range=False) -> "Slicer2DPlotter":
         """
         Assign a LUT (Look Up Table) to colorize the slice, leave it `None`
         to reuse an existing Volume color map.
@@ -754,17 +755,17 @@ class Slicer2DPlotter(Plotter):
         self.volume.properties.SetUseLookupTableScalarRange(fix_scalar_range)
         return self
 
-    def alpha(self, value):
+    def alpha(self, value: float) -> "Slicer2DPlotter":
         """Set opacity to the slice"""
         self.volume.properties.SetOpacity(value)
         return self
 
-    def auto_adjust_quality(self, value=True):
+    def auto_adjust_quality(self, value=True) -> "Slicer2DPlotter":
         """Automatically reduce the rendering quality for greater speed when interacting"""
         self.volume.mapper.SetAutoAdjustImageQuality(value)
         return self
 
-    def slab(self, thickness=0, mode=0, sample_factor=2):
+    def slab(self, thickness=0, mode=0, sample_factor=2) -> "Slicer2DPlotter":
         """
         Make a thick slice (slab).
 
@@ -787,30 +788,32 @@ class Slicer2DPlotter(Plotter):
         self.volume.mapper.SetSlabSampleFactor(sample_factor)
         return self
 
-    def face_camera(self, value=True):
+    def face_camera(self, value=True) -> "Slicer2DPlotter":
         """Make the slice always face the camera or not."""
         self.volume.mapper.SetSliceFacesCameraOn(value)
         return self
 
-    def jump_to_nearest_slice(self, value=True):
+    def jump_to_nearest_slice(self, value=True) -> "Slicer2DPlotter":
         """
         This causes the slicing to occur at the closest slice to the focal point,
         instead of the default behavior where a new slice is interpolated between
         the original slices.
-        Nothing happens if the plane is oblique to the original slices."""
-        self.volume.SetJumpToNearestSlice(value)
+        Nothing happens if the plane is oblique to the original slices.
+        """
+        self.volume.mapper.SetJumpToNearestSlice(value)
         return self
 
-    def fill_background(self, value=True):
+    def fill_background(self, value=True) -> "Slicer2DPlotter":
         """
         Instead of rendering only to the image border,
         render out to the viewport boundary with the background color.
         The background color will be the lowest color on the lookup
-        table that is being used for the image."""
+        table that is being used for the image.
+        """
         self.volume.mapper.SetBackground(value)
         return self
 
-    def lighting(self, window, level, ambient=1.0, diffuse=0.0):
+    def lighting(self, window, level, ambient=1.0, diffuse=0.0) -> "Slicer2DPlotter":
         """Assign the values for window and color level."""
         self.volume.properties.SetColorWindow(window)
         self.volume.properties.SetColorLevel(level)
@@ -1008,7 +1011,7 @@ class IsosurfaceBrowser(Plotter):
 
     def __init__(
         self,
-        volume,
+        volume: vedo.Volume,
         isovalue=None,
         scalar_range=(),
         c=None,
@@ -1172,7 +1175,8 @@ class IsosurfaceBrowser(Plotter):
             self.vol_actors = [None]
             slider_isovalue(isovalue, "")  # init call
             if lego:
-                self.vol_actors[0].add_scalarbar(pos=(0.8, 0.12))
+                if self.vol_actors[0]:
+                    self.vol_actors[0].add_scalarbar(pos=(0.8, 0.12))
 
             self.slider = self.add_slider(
                 slider_isovalue,
@@ -1327,7 +1331,7 @@ class FreeHandCutPlotter(Plotter):
     # thanks to Jakub Kaminski for the original version of this script
     def __init__(
         self,
-        mesh,
+        mesh: Union[vedo.Mesh, vedo.Points],
         splined=True,
         font="Bongas",
         alpha=0.9,
@@ -1417,12 +1421,12 @@ class FreeHandCutPlotter(Plotter):
         self.idmousemove = self.add_callback("MouseMove", self._on_mouse_move)
         self.drawmode = False
         self.tol = tol  # tolerance of point distance
-        self.cpoints = []
+        self.cpoints = np.array([])
         self.points = None
         self.spline = None
         self.jline = None
         self.topline = None
-        self.top_pts = []
+        self.top_pts = np.array([])
 
     def init(self, init_points):
         """Set an initial number of points to define a region"""
@@ -1554,13 +1558,13 @@ class FreeHandCutPlotter(Plotter):
                 fname = "mesh_edited.vtk"
             self.write(fname)
 
-    def write(self, filename="mesh_edited.vtk"):
+    def write(self, filename="mesh_edited.vtk") -> "FreeHandCutPlotter":
         """Save the resulting mesh to file"""
         self.mesh.write(filename)
         vedo.logger.info(f"mesh saved to file {filename}")
         return self
 
-    def start(self, *args, **kwargs):
+    def start(self, *args, **kwargs) -> "FreeHandCutPlotter":
         """Start window interaction (with mouse and keyboard)"""
         acts = [self.txt2d, self.mesh, self.points, self.spline, self.jline]
         self.show(acts + list(args), **kwargs)
@@ -1632,7 +1636,7 @@ class SplinePlotter(Plotter):
         self.callid2 = self.add_callback("LeftButtonPress", self._on_left_click)
         self.callid3 = self.add_callback("RightButtonPress", self._on_right_click)
 
-    def points(self, newpts=None):
+    def points(self, newpts=None) -> Union["SplinePlotter", np.ndarray]:
         """Retrieve the 3D coordinates of the clicked points"""
         if newpts is not None:
             self.cpoints = newpts
@@ -1692,7 +1696,7 @@ class SplinePlotter(Plotter):
             if self.verbose:
                 vedo.colors.printc("==== Cleared all points ====", c="r", invert=True)
 
-    def start(self):
+    def start(self) -> "SplinePlotter":
         """Start the interaction"""
         self.show(self.object, self.instructions, mode=self.mode)
         return self
@@ -2377,7 +2381,7 @@ class Clock(vedo.Assembly):
         super().__init__([back1, labels, ore, minu, secs, txt])
         self.name = "Clock"
 
-    def update(self, h=None, m=None, s=None):
+    def update(self, h=None, m=None, s=None) -> "Clock":
         """Update clock with current or user time."""
         parts = self.unpack()
         self.elapsed = time.time() - self._start
