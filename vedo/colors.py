@@ -807,7 +807,7 @@ def get_color(rgb=None, hsv=None):
     return (0.5, 0.5, 0.5)
 
 
-def get_color_name(c):
+def get_color_name(c) -> str:
     """Find the name of the closest color."""
     c = np.array(get_color(c))  # reformat to rgb
     mdist = 99.0
@@ -821,7 +821,7 @@ def get_color_name(c):
     return kclosest
 
 
-def hsv2rgb(hsv):
+def hsv2rgb(hsv: list) -> list:
     """Convert HSV to RGB color."""
     ma = vtki.new("Math")
     rgb = [0, 0, 0]
@@ -829,7 +829,7 @@ def hsv2rgb(hsv):
     return rgb
 
 
-def rgb2hsv(rgb):
+def rgb2hsv(rgb: list) -> list:
     """Convert RGB to HSV color."""
     ma = vtki.new("Math")
     hsv = [0, 0, 0]
@@ -837,13 +837,13 @@ def rgb2hsv(rgb):
     return hsv
 
 
-def rgb2hex(rgb):
+def rgb2hex(rgb: list) -> str:
     """Convert RGB to Hex color."""
     h = "#%02x%02x%02x" % (int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255))
     return h
 
 
-def hex2rgb(hx):
+def hex2rgb(hx: str) -> list:
     """Convert Hex to rgb color."""
     h = hx.lstrip("#")
     rgb255 = [int(h[i : i + 2], 16) for i in (0, 2, 4)]
@@ -944,7 +944,7 @@ def color_map(value, name="jet", vmin=None, vmax=None):
     return result[0]
 
 
-def build_palette(color1, color2, n, hsv=True):
+def build_palette(color1, color2, n, hsv=True) -> np.ndarray:
     """
     Generate N colors starting from `color1` to `color2`
     by linear interpolation in HSV or RGB spaces.
@@ -989,7 +989,7 @@ def build_lut(
     above_alpha=1,
     nan_alpha=1,
     interpolate=False,
-):
+) -> vtki.vtkLookupTable:
     """
     Generate colors in a lookup table (LUT).
 
