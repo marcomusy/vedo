@@ -1444,7 +1444,7 @@ class CommonAlgorithms:
             step_length=0,
             surface_constrained=False,
             compute_vorticity=False,
-        ) -> Union["Lines", None]:
+        ) -> Union["vedo.Lines", None]:
         """
         Integrate a vector field to generate streamlines.
 

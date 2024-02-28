@@ -3,6 +3,7 @@
 import os
 import time
 from weakref import ref as weak_ref_to
+from typing import Any
 import numpy as np
 
 import vedo.vtkclasses as vtki  # a wrapper for lazy imports
@@ -101,7 +102,7 @@ cell_types = {  # https://vtk.org/doc/nightly/html/vtkCellType_8h.html
     "BEZIER_PYRAMID": 81,
 }
 
-def cell_type_names():
+def cell_type_names() -> dict:
     """Return a dict of cell type names."""
     # invert the dict above to get a lookup table for cell types
     # Eg. cell_type_names[10] returns "TETRA"
@@ -512,7 +513,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
             self.point_locator = None
         return self
     
-    def merge(self, *others):
+    def merge(self, *others) -> "UnstructuredGrid":
         """
         Merge multiple datasets into one single `UnstrcturedGrid`.
         """
@@ -531,11 +532,11 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         )
         return self
 
-    def copy(self, deep=True):
+    def copy(self, deep=True) -> "UnstructuredGrid":
         """Return a copy of the object. Alias of `clone()`."""
         return self.clone(deep=deep)
 
-    def clone(self, deep=True):
+    def clone(self, deep=True) -> "UnstructuredGrid":
         """Clone the UnstructuredGrid object to yield an exact copy."""
         ug = vtki.vtkUnstructuredGrid()
         if deep:
@@ -554,15 +555,15 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         )
         return cloned
 
-    def bounds(self):
+    def bounds(self) -> np.ndarray:
         """
         Get the object bounds.
         Returns a list in format `[xmin,xmax, ymin,ymax, zmin,zmax]`.
         """
         # OVERRIDE CommonAlgorithms.bounds() which is too slow
-        return self.dataset.GetBounds()
+        return np.array(self.dataset.GetBounds())
 
-    def threshold(self, name=None, above=None, below=None, on="cells"):
+    def threshold(self, name=None, above=None, below=None, on="cells") -> "UnstructuredGrid":
         """
         Threshold the tetrahedral mesh by a cell scalar value.
         Reduce to only tets which satisfy the threshold limits.
@@ -600,7 +601,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         th.Update()
         return self._update(th.GetOutput())
 
-    def isosurface(self, value=None, flying_edges=False):
+    def isosurface(self, value=None, flying_edges=False) -> "vedo.mesh.Mesh":
         """
         Return an `Mesh` isosurface extracted from the `Volume` object.
 
@@ -648,7 +649,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         )
         return out
 
-    def shrink(self, fraction=0.8):
+    def shrink(self, fraction=0.8) -> "UnstructuredGrid":
         """
         Shrink the individual cells.
 
@@ -665,7 +666,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         )
         return self
 
-    def tomesh(self, fill=False, shrink=1.0):
+    def tomesh(self, fill=False, shrink=1.0) -> "vedo.mesh.Mesh":
         """
         Build a polygonal `Mesh` from the current object.
 
@@ -730,7 +731,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         )
         return ug
 
-    def extract_cells_by_id(self, idlist, use_point_ids=False):
+    def extract_cells_by_id(self, idlist, use_point_ids=False) -> "UnstructuredGrid":
         """Return a new `UnstructuredGrid` composed of the specified subset of indices."""
         selection_node = vtki.new("SelectionNode")
         if use_point_ids:
@@ -752,7 +753,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         ug = UnstructuredGrid(es.GetOutput())
         pr = vtki.vtkProperty()
         pr.DeepCopy(self.properties)
-        ug.SetProperty(pr)
+        ug.actor.SetProperty(pr)
         ug.properties = pr
 
         ug.mapper.SetLookupTable(utils.ctf2lut(self))
@@ -764,7 +765,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         )
         return ug
 
-    def find_cell(self, p):
+    def find_cell(self, p: list) -> int:
         """Locate the cell that contains a point and return the cell ID."""
         cell = vtki.vtkTetra()
         cell_id = vtki.mutable(0)
@@ -775,7 +776,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         cid = self.dataset.FindCell(p, cell, cell_id, tol2, sub_id, pcoords, weights)
         return cid
 
-    def clean(self):
+    def clean(self) -> "UnstructuredGrid":
         """
         Cleanup unused points and empty cells
         """
@@ -795,7 +796,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         )
         return self
 
-    def extract_cells_on_plane(self, origin, normal):
+    def extract_cells_on_plane(self, origin: tuple, normal: tuple) -> "UnstructuredGrid":
         """
         Extract cells that are lying of the specified surface.
         """
@@ -820,7 +821,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         )
         return self
 
-    def extract_cells_on_sphere(self, center, radius):
+    def extract_cells_on_sphere(self, center: tuple, radius: tuple) -> "UnstructuredGrid":
         """
         Extract cells that are lying of the specified surface.
         """
@@ -845,7 +846,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         )
         return self
 
-    def extract_cells_on_cylinder(self, center, axis, radius):
+    def extract_cells_on_cylinder(self, center: tuple, axis: tuple, radius: float) -> "UnstructuredGrid":
         """
         Extract cells that are lying of the specified surface.
         """
@@ -871,7 +872,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         self._update(bf.GetOutput())
         return self
 
-    def cut_with_plane(self, origin=(0, 0, 0), normal="x"):
+    def cut_with_plane(self, origin=(0, 0, 0), normal="x") -> "UnstructuredGrid":
         """
         Cut the object with the plane defined by a point and a normal.
 
@@ -917,7 +918,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
             self.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
             return self
 
-    def cut_with_box(self, box):
+    def cut_with_box(self, box: Any) -> "UnstructuredGrid":
         """
         Cut the grid with the specified bounding box.
 
@@ -953,7 +954,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         tm.pipeline = utils.OperationNode("cut_with_box", parents=[self], c="#9e2a2b")
         return tm
 
-    def cut_with_mesh(self, mesh, invert=False, whole_cells=False, on_boundary=False):
+    def cut_with_mesh(self, mesh: Mesh, invert=False, whole_cells=False, on_boundary=False) -> "UnstructuredGrid":
         """
         Cut a `UnstructuredGrid` or `TetMesh` with a `Mesh`.
 
@@ -1255,7 +1256,7 @@ class TetMesh(UnstructuredGrid):
         ]
         return "\n".join(allt)
 
-    def compute_quality(self, metric=7):
+    def compute_quality(self, metric=7) -> np.ndarray:
         """
         Calculate functions of quality for the elements of a tetrahedral mesh.
         This method adds to the mesh a cell array named "Quality".
@@ -1284,7 +1285,7 @@ class TetMesh(UnstructuredGrid):
         self._update(qf.GetOutput())
         return utils.vtk2numpy(qf.GetOutput().GetCellData().GetArray("Quality"))
 
-    def check_validity(self, tol=0):
+    def check_validity(self, tol=0) -> np.ndarray:
         """
         Return an array of possible problematic tets following this convention:
         ```python
@@ -1310,7 +1311,7 @@ class TetMesh(UnstructuredGrid):
         varr = vald.GetOutput().GetCellData().GetArray("ValidityState")
         return utils.vtk2numpy(varr)
 
-    def decimate(self, scalars_name, fraction=0.5, n=0):
+    def decimate(self, scalars_name: str, fraction=0.5, n=0) -> "TetMesh":
         """
         Downsample the number of tets in a TetMesh to a specified fraction.
         Either `fraction` or `n` must be set.
@@ -1338,7 +1339,7 @@ class TetMesh(UnstructuredGrid):
         )
         return self
 
-    def subdvide(self):
+    def subdvide(self) -> "TetMesh":
         """
         Increase the number of tetrahedrons of a `TetMesh`.
         Subdivides each tetrahedron into twelve smaller tetras.
@@ -1350,7 +1351,7 @@ class TetMesh(UnstructuredGrid):
         self.pipeline = utils.OperationNode("subdvide", c="#edabab", parents=[self])
         return self
 
-    def generate_random_points(self, n, min_radius=0):
+    def generate_random_points(self, n, min_radius=0) -> "vedo.Points":
         """
         Generate `n` uniformly distributed random points
         inside the tetrahedral mesh.
@@ -1401,10 +1402,10 @@ class TetMesh(UnstructuredGrid):
             p = r1 * A + (r2 - r1) * B + (r3 - r2) * C + (1 - r3) * D
             out_pts.append(p)
             orig_cell.append(it)
-        orig_cell = np.array(orig_cell, dtype=np.uint32)
+        orig_cellnp = np.array(orig_cell, dtype=np.uint32)
 
         vpts = vedo.pointcloud.Points(out_pts)
-        vpts.pointdata["OriginalCellID"] = orig_cell
+        vpts.pointdata["OriginalCellID"] = orig_cellnp
 
         if min_radius > 0:
             vpts.subsample(min_radius, absolute=True)
@@ -1415,14 +1416,19 @@ class TetMesh(UnstructuredGrid):
             "generate_random_points", c="#edabab", parents=[self])
         return vpts
 
-    def isosurface(self, value=True):
+    def isosurface(self, value=True, flying_edges=None) -> "vedo.Mesh":
         """
         Return a `vedo.Mesh` isosurface.
         The "isosurface" is the surface of the region of points
         whose values equal to `value`.
 
         Set `value` to a single value or list of values to compute the isosurface(s).
+
+        Note that flying_edges option is not available for `TetMesh`.
         """
+        if flying_edges is not None:
+            vedo.logger.warning("flying_edges option is not available for TetMesh.")
+
         if not self.dataset.GetPointData().GetScalars():
             vedo.logger.warning(
                 "in isosurface() no scalar pointdata found. "
@@ -1449,7 +1455,7 @@ class TetMesh(UnstructuredGrid):
         msh.pipeline = utils.OperationNode("isosurface", c="#edabab", parents=[self])
         return msh
 
-    def slice(self, origin=(0, 0, 0), normal=(1, 0, 0)):
+    def slice(self, origin=(0, 0, 0), normal=(1, 0, 0)) -> "vedo.Mesh":
         """
         Return a 2D slice of the mesh by a plane passing through origin and assigned normal.
         """
@@ -1741,39 +1747,39 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         ]
         return "\n".join(all)
 
-    def dimensions(self):
+    def dimensions(self) -> np.ndarray:
         """Return the number of points in the x, y and z directions."""
         return np.array(self.dataset.GetDimensions())
 
-    def x_coordinates(self):
+    def x_coordinates(self) -> np.ndarray:
         """Return the x-coordinates of the grid."""
         return utils.vtk2numpy(self.dataset.GetXCoordinates())
     
-    def y_coordinates(self):
+    def y_coordinates(self) -> np.ndarray:
         """Return the y-coordinates of the grid."""
         return utils.vtk2numpy(self.dataset.GetYCoordinates())
     
-    def z_coordinates(self):
+    def z_coordinates(self) -> np.ndarray:
         """Return the z-coordinates of the grid."""
         return utils.vtk2numpy(self.dataset.GetZCoordinates())
     
-    def is_point_visible(self, pid):
+    def is_point_visible(self, pid: int) -> bool:
         """Return True if point `pid` is visible."""
         return self.dataset.IsPointVisible(pid)
     
-    def is_cell_visible(self, cid):
+    def is_cell_visible(self, cid: int) -> bool:
         """Return True if cell `cid` is visible."""
         return self.dataset.IsCellVisible(cid)
     
-    def has_blank_points(self):
+    def has_blank_points(self) -> bool:
         """Return True if the grid has blank points."""
         return self.dataset.HasAnyBlankPoints()
     
-    def has_blank_cells(self):
+    def has_blank_cells(self) -> bool:
         """Return True if the grid has blank cells."""
         return self.dataset.HasAnyBlankCells()
     
-    def compute_structured_coords(self, x):
+    def compute_structured_coords(self, x: list) -> dict:
         """
         Convenience function computes the structured coordinates for a point `x`.
 
@@ -1787,19 +1793,19 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         inout = self.dataset.ComputeStructuredCoordinates(x, ijk, pcoords)
         return {"ijk": np.array(ijk), "pcoords": np.array(pcoords), "inside": bool(inout)}
     
-    def compute_pointid(self, ijk):
+    def compute_pointid(self, ijk: int) -> int:
         """Given a location in structured coordinates (i-j-k), return the point id."""
         return self.dataset.ComputePointId(ijk)
     
-    def compute_cellid(self, ijk):
+    def compute_cellid(self, ijk: int) -> int:
         """Given a location in structured coordinates (i-j-k), return the cell id."""
         return self.dataset.ComputeCellId(ijk)
     
-    def find_point(self, x):
+    def find_point(self, x: list) -> int:
         """Given a position `x`, return the id of the closest point."""
         return self.dataset.FindPoint(x)
     
-    def find_cell(self, x):
+    def find_cell(self, x: list) -> dict:
         """Given a position `x`, return the id of the closest cell."""
         cell = vtki.vtkHexagonalPrism()
         cellid = vtki.mutable(0)
@@ -1816,7 +1822,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         result["status"] = res
         return result
 
-    def clone(self, deep=True):
+    def clone(self, deep=True) -> "RectilinearGrid":
         """Return a clone copy of the RectilinearGrid. Alias of `copy()`."""
         if deep:
             newrg = vtki.vtkRectilinearGrid()
@@ -1833,7 +1839,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         newvol.pipeline = utils.OperationNode("clone", parents=[self], c="#bbd0ff", shape="diamond")
         return newvol
 
-    def bounds(self):
+    def bounds(self) -> np.ndarray:
         """
         Get the object bounds.
         Returns a list in format `[xmin,xmax, ymin,ymax, zmin,zmax]`.
@@ -1841,7 +1847,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         # OVERRIDE CommonAlgorithms.bounds() which is too slow
         return np.array(self.dataset.GetBounds())
 
-    def isosurface(self, value=None):
+    def isosurface(self, value=None) -> "vedo.Mesh":
         """
         Return a `Mesh` isosurface extracted from the object.
 
@@ -1880,7 +1886,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         )
         return out
 
-    def cut_with_plane(self, origin=(0, 0, 0), normal="x"):
+    def cut_with_plane(self, origin=(0, 0, 0), normal="x") -> "vedo.UnstructuredGrid":
         """
         Cut the object with the plane defined by a point and a normal.
 
@@ -1916,7 +1922,7 @@ class RectilinearGrid(PointAlgorithms, MeshVisual):
         ug.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
         return ug
 
-    def cut_with_mesh(self, mesh, invert=False, whole_cells=False, on_boundary=False):
+    def cut_with_mesh(self, mesh, invert=False, whole_cells=False, on_boundary=False) -> "vedo.UnstructuredGrid":
         """
         Cut a `RectilinearGrid` with a `Mesh`.
 
@@ -2242,11 +2248,11 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         ]
         return "\n".join(all)
 
-    def dimensions(self):
+    def dimensions(self) -> np.ndarray:
         """Return the number of points in the x, y and z directions."""
         return np.array(self.dataset.GetDimensions())
 
-    def clone(self, deep=True):
+    def clone(self, deep=True) -> "StructuredGrid":
         """Return a clone copy of the StructuredGrid. Alias of `copy()`."""
         if deep:
             newrg = vtki.vtkStructuredGrid()
@@ -2263,11 +2269,11 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         newvol.pipeline = utils.OperationNode("clone", parents=[self], c="#bbd0ff", shape="diamond")
         return newvol
 
-    def find_point(self, x):
+    def find_point(self, x: list) -> int:
         """Given a position `x`, return the id of the closest point."""
         return self.dataset.FindPoint(x)
     
-    def find_cell(self, x):
+    def find_cell(self, x: list) -> dict:
         """Given a position `x`, return the id of the closest cell."""
         cell = vtki.vtkHexagonalPrism()
         cellid = vtki.mutable(0)
@@ -2284,7 +2290,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         result["status"] = res
         return result
 
-    def cut_with_plane(self, origin=(0, 0, 0), normal="x"):
+    def cut_with_plane(self, origin=(0, 0, 0), normal="x") -> "vedo.UnstructuredGrid":
         """
         Cut the object with the plane defined by a point and a normal.
 
@@ -2322,7 +2328,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         ug.pipeline = utils.OperationNode("cut_with_plane", parents=[self], c="#9e2a2b")
         return ug
 
-    def cut_with_mesh(self, mesh, invert=False, whole_cells=False, on_boundary=False):
+    def cut_with_mesh(self, mesh: Mesh, invert=False, whole_cells=False, on_boundary=False) -> "vedo.UnstructuredGrid":
         """
         Cut a `RectilinearGrid` with a `Mesh`.
 
@@ -2365,7 +2371,7 @@ class StructuredGrid(PointAlgorithms, MeshVisual):
         out.pipeline = utils.OperationNode("cut_with_mesh", parents=[self], c="#9e2a2b")
         return out
 
-    def isosurface(self, value=None):
+    def isosurface(self, value=None) -> "vedo.Mesh":
         """
         Return a `Mesh` isosurface extracted from the object.
 
