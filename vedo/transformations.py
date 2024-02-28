@@ -807,15 +807,6 @@ class NonLinearTransform:
                 vpts.append(pts.GetPoint(i))
         return np.array(vpts, dtype=np.float32)
 
-    @property
-    def target_points(self):
-        """Get the target points."""
-        pts = self.T.GetTargetLandmarks()
-        vpts = []
-        for i in range(pts.GetNumberOfPoints()):
-            vpts.append(pts.GetPoint(i))
-        return np.array(vpts, dtype=np.float32)
-
     @source_points.setter
     def source_points(self, pts):
         """Set source points."""
@@ -830,6 +821,15 @@ class NonLinearTransform:
             vpts.InsertNextPoint(p)
         self.T.SetSourceLandmarks(vpts)
 
+    @property
+    def target_points(self):
+        """Get the target points."""
+        pts = self.T.GetTargetLandmarks()
+        vpts = []
+        for i in range(pts.GetNumberOfPoints()):
+            vpts.append(pts.GetPoint(i))
+        return np.array(vpts, dtype=np.float32)
+
     @target_points.setter
     def target_points(self, pts):
         """Set target points."""
@@ -843,6 +843,7 @@ class NonLinearTransform:
                 p = [p[0], p[1], 0.0]
             vpts.InsertNextPoint(p)
         self.T.SetTargetLandmarks(vpts)
+
 
     @property
     def sigma(self) -> float:

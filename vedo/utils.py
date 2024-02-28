@@ -55,24 +55,6 @@ __all__ = [
     "andrews_curves",
 ]
 
-
-###########################################################################
-array_types = {}
-array_types[vtki.VTK_UNSIGNED_CHAR] = ("UNSIGNED_CHAR",  "np.uint8")
-array_types[vtki.VTK_UNSIGNED_SHORT]= ("UNSIGNED_SHORT", "np.uint16")
-array_types[vtki.VTK_UNSIGNED_INT]  = ("UNSIGNED_INT",   "np.uint32")
-array_types[vtki.VTK_UNSIGNED_LONG_LONG] = ("UNSIGNED_LONG_LONG", "np.uint64")
-array_types[vtki.VTK_CHAR]          = ("CHAR",           "np.int8")
-array_types[vtki.VTK_SHORT]         = ("SHORT",          "np.int16")
-array_types[vtki.VTK_INT]           = ("INT",            "np.int32")
-array_types[vtki.VTK_LONG]          = ("LONG",           "") # ??
-array_types[vtki.VTK_LONG_LONG]     = ("LONG_LONG",      "np.int64")
-array_types[vtki.VTK_FLOAT]         = ("FLOAT",          "np.float32")
-array_types[vtki.VTK_DOUBLE]        = ("DOUBLE",         "np.float64")
-array_types[vtki.VTK_SIGNED_CHAR]   = ("SIGNED_CHAR",    "np.int8")
-array_types[vtki.VTK_ID_TYPE]       = ("ID",             "np.int64")
-
-
 ###########################################################################
 class OperationNode:
     """

@@ -758,6 +758,51 @@ for name in [
 ]: location[name] = "vtkRenderingVolume"
 
 
+###########################################################################
+array_types = {}
+array_types[VTK_UNSIGNED_CHAR] = "uint8"
+array_types[VTK_UNSIGNED_SHORT]= "uint16"
+array_types[VTK_UNSIGNED_INT]  = "uint32"
+array_types[VTK_UNSIGNED_LONG_LONG] = "uint64"
+array_types[VTK_CHAR]          = "int8"
+array_types[VTK_SHORT]         = "int16"
+array_types[VTK_INT]           = "int32"
+# array_types[VTK_LONG]  # ??
+array_types[VTK_LONG_LONG]     = "int64"
+array_types[VTK_FLOAT]         = "float32"
+array_types[VTK_DOUBLE]        = "float64"
+array_types[VTK_SIGNED_CHAR]   = "int8"
+array_types[VTK_ID_TYPE]       = "int64"
+############ reverse aliases
+array_types["char"]            = VTK_UNSIGNED_CHAR
+array_types["uint8"]           = VTK_UNSIGNED_CHAR
+array_types["uint16"]          = VTK_UNSIGNED_SHORT
+array_types["uint32"]          = VTK_UNSIGNED_INT
+array_types["uint64"]          = VTK_UNSIGNED_LONG_LONG
+array_types["int8"]            = VTK_CHAR
+array_types["int16"]           = VTK_SHORT
+array_types["int32"]           = VTK_INT
+array_types["int64"]           = VTK_LONG_LONG
+array_types["float32"]         = VTK_FLOAT
+array_types["float64"]         = VTK_DOUBLE
+array_types["int"]             = VTK_INT
+array_types["float"]           = VTK_FLOAT
+############ reverse aliases
+array_types["UNSIGNED_CHAR"]  = VTK_UNSIGNED_CHAR
+array_types["UNSIGNED_SHORT"] = VTK_UNSIGNED_SHORT
+array_types["UNSIGNED_INT"]   = VTK_UNSIGNED_INT
+array_types["UNSIGNED_LONG_LONG"] = VTK_UNSIGNED_LONG_LONG
+array_types["CHAR"]           = VTK_CHAR
+array_types["SHORT"]          = VTK_SHORT
+array_types["INT"]            = VTK_INT
+array_types["LONG"]           = VTK_LONG
+array_types["LONG_LONG"]      = VTK_LONG_LONG
+array_types["FLOAT"]          = VTK_FLOAT
+array_types["DOUBLE"]         = VTK_DOUBLE
+array_types["SIGNED_CHAR"]    = VTK_SIGNED_CHAR
+array_types["ID_TYPE"]        = VTK_ID_TYPE
+
+
 #########################################################
 from vedo.settings import Settings
 
@@ -782,10 +827,10 @@ def get_class(name, module_name=""):
     Example:
     ```python
     from vedo import vtkclasses as vtki
-    print(vtki.vtkActor)
-    print(vtki.location["vtkActor"])
-    print(vtki.get_class("vtkActor"))
-    print(vtki.get_class("vtkActor", "vtkRenderingCore"))
+    print(vtkActor)
+    print(location["vtkActor"])
+    print(get_class("vtkActor"))
+    print(get_class("vtkActor", "vtkRenderingCore"))
     ```
     """
     if name and not name.lower().startswith("vtk"):
@@ -809,7 +854,7 @@ def new(cls_name, module_name=""):
     Example:
     ```python
     from vedo import vtkclasses as vtki
-    a = vtki.new("Actor")
+    a = new("Actor")
     ```
     """
     try:

@@ -2275,7 +2275,7 @@ class AnimationPlayer(vedo.Plotter):
         self.pause()
         self.set_frame(int(round(widget.value)))
 
-    def _handle_timer(self, _: Event = None) -> None:
+    def _handle_timer(self, evt=None) -> None:
         self.set_frame(self.value + 1)
 
     def stop(self) -> "AnimationPlayer":

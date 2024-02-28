@@ -331,9 +331,9 @@ class DataArrayHelper:
                     out += f"\n\x1b[1m\x1b[4mArray name    : {varr.GetName()}\x1b[0m"
                     out += "\nindex".ljust(15) + f": {i}"
                     t = varr.GetDataType()
-                    if t in vedo.utils.array_types:
+                    if t in vtki.array_types:
                         out += "\ntype".ljust(15)
-                        out += f": {vedo.utils.array_types[t][1]} ({vedo.utils.array_types[t][0]})"
+                        out += f": {vtki.array_types[t]}"
                     shape = (varr.GetNumberOfTuples(), varr.GetNumberOfComponents())
                     out += "\nshape".ljust(15) + f": {shape}"
                     out += "\nrange".ljust(15) + f": {np.array(varr.GetRange())}"
