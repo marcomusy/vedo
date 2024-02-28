@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from weakref import ref as weak_ref_to
+from typing import List, Union, Any
 import numpy as np
 
 import vedo.vtkclasses as vtki  # a wrapper for lazy imports
@@ -21,7 +22,7 @@ __all__ = ["Group", "Assembly", "procrustes_alignment"]
 
 
 #################################################
-def procrustes_alignment(sources, rigid=False):
+def procrustes_alignment(sources: List[vedo.Mesh], rigid=False) -> vedo.Assembly:
     """
     Return an `Assembly` of aligned source meshes with the `Procrustes` algorithm.
     The output `Assembly` is normalized in size.
@@ -137,7 +138,7 @@ class Group(vtki.vtkPropAssembly):
                 self.AddPart(a)
         return self
 
-    def unpack(self):
+    def _unpack(self):
         """Unpack the group into its elements"""
         elements = []
         self.InitPathTraversal()
@@ -158,35 +159,33 @@ class Group(vtki.vtkPropAssembly):
 
         return elements
 
-    def clear(self):
+    def clear(self) -> "Group":
         """Remove all parts"""
-        for a in self.unpack():
+        for a in self._unpack():
             self.RemovePart(a)
         return self
 
-    def on(self):
+    def on(self) -> "Group":
         """Switch on visibility"""
         self.VisibilityOn()
         return self
 
-    def off(self):
+    def off(self) -> "Group":
         """Switch off visibility"""
         self.VisibilityOff()
         return self
 
-    def pickable(self, value=True):
+    def pickable(self, value=True) -> "Group":
         """The pickability property of the Group."""
-        if value is None:
-            return self.GetPickable()
         self.SetPickable(value)
         return self
     
-    def use_bounds(self, value=True):
+    def use_bounds(self, value=True) -> "Group":
         """Set the use bounds property of the Group."""
         self.SetUseBounds(value)
         return self
     
-    def print(self):
+    def print(self) -> "Group":
         """Print info about the object."""
         print(self)
         return self
@@ -421,7 +420,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
     #         obj.SetScale(1, 1, 1)
     #     raise NotImplementedError()
 
-    def unpack(self, i=None):
+    def unpack(self, i=None) -> Union[List[vedo.Mesh], vedo.Mesh]:
         """Unpack the list of objects from a `Assembly`.
 
         If `i` is given, get `i-th` object from a `Assembly`.
@@ -439,8 +438,9 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
             for m in self.objects:
                 if i in m.name:
                     return m
+        return []
 
-    def recursive_unpack(self):
+    def recursive_unpack(self) -> List[vedo.Mesh]:
         """Flatten out an Assembly."""
 
         def _genflatten(lst):
@@ -464,7 +464,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
 
         return list(_genflatten([self]))
 
-    def pickable(self, value=True):
+    def pickable(self, value=True) -> "Assembly":
         """Set/get the pickability property of an assembly and its elements"""
         self.SetPickable(value)
         # set property to each element
@@ -472,14 +472,14 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
             elem.pickable(value)
         return self
 
-    def clone(self):
+    def clone(self) -> "Assembly":
         """Make a clone copy of the object. Same as `copy()`."""
         newlist = []
         for a in self.objects:
             newlist.append(a.clone())
         return Assembly(newlist)
 
-    def clone2d(self, pos="bottom-left", size=1, rotation=0, ontop=False, scale=None):
+    def clone2d(self, pos="bottom-left", size=1, rotation=0, ontop=False, scale=None) -> Group:
         """
         Convert the `Assembly` into a `Group` of 2D objects.
 
@@ -517,7 +517,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
         offset = [x0, y0]
         if "cent" in pos:
             offset = [(x0 + x1) / 2, (y0 + y1) / 2]
-            position = [0, 0]
+            position = [0., 0.]
             if "right" in pos:
                 offset[0] = x1
                 position = [1 - padding, 0]
@@ -551,7 +551,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
         else:
             position = pos
 
-        scanned = []
+        scanned : List[Any] = []
         group = Group()
         for a in self.recursive_unpack():
             if a in scanned:
@@ -591,17 +591,17 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
         group.name = self.name
         return group
 
-    def copy(self):
+    def copy(self) -> "Assembly":
         """Return a copy of the object. Alias of `clone()`."""
         return self.clone()
 
-    def write(self, filename="assembly.npy"):
-        """
-        Write the object to file in `numpy` format.
-        """
-        objs = []
-        for ob in self.unpack():
-            d = vedo.file_io._to_numpy(ob)
-            objs.append(d)
-        np.save(filename, objs)
-        return self
+    # def write(self, filename="assembly.npy") -> "Assembly":
+    #     """
+    #     Write the object to file in `numpy` format.
+    #     """
+    #     objs = []
+    #     for ob in self.unpack():
+    #         d = vedo.file_io._to_numpy(ob)
+    #         objs.append(d)
+    #     np.save(filename, objs)
+    #     return self
