@@ -664,7 +664,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         return msh
 
 
-    def warp(self, source: Union[vedo.Points, List], target: Union[vedo.Points, List], sigma=1, mode="3d", fit=True) -> "Volume":
+    def warp(self, source: Union["Points", List], target: Union["Points", List], sigma=1, mode="3d", fit=True) -> "Volume":
         """
         Warp volume scalars within a Volume by specifying
         source and target sets of points.
@@ -1534,7 +1534,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
         self.pipeline = utils.OperationNode("magnitude", parents=[self], c="#4cc9f0")
         return self
 
-    def topoints(self) -> vedo.Points:
+    def topoints(self) -> "Points":
         """
         Extract all image voxels as points.
         This function takes an input `Volume` and creates an `Mesh`

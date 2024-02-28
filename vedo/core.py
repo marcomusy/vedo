@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
+from typing import List, Union, Any
 
 import vedo.vtkclasses as vtki
 
@@ -151,7 +152,7 @@ class DataArrayHelper:
             else:
                 data.SetActiveVectors(key)
 
-    def keys(self):
+    def keys(self) -> List[str]:
         """Return the list of available data array names"""
         if self.association == 0:
             data = self.obj.dataset.GetPointData()
@@ -169,7 +170,7 @@ class DataArrayHelper:
                 arrnames.append(name)
         return arrnames
 
-    def items(self):
+    def items(self) -> List[Any]:
         """Return the list of available data array `(names, values)`."""
         if self.association == 0:
             data = self.obj.dataset.GetPointData()
@@ -187,11 +188,11 @@ class DataArrayHelper:
                 arrnames.append((name, self[name]))
         return arrnames
 
-    def todict(self):
+    def todict(self) -> dict:
         """Return a dictionary of the available data arrays."""
         return dict(self.items())
 
-    def rename(self, oldname, newname):
+    def rename(self, oldname: str, newname: str) -> None:
         """Rename an array"""
         if self.association == 0:
             varr = self.obj.dataset.GetPointData().GetArray(oldname)
@@ -206,7 +207,7 @@ class DataArrayHelper:
                 f"Cannot rename non existing array {oldname} to {newname}"
             )
 
-    def remove(self, key):
+    def remove(self, key: Union[int, str]) -> None:
         """Remove a data array by name or number"""
         if self.association == 0:
             self.obj.dataset.GetPointData().RemoveArray(key)
@@ -215,7 +216,7 @@ class DataArrayHelper:
         elif self.association == 2:
             self.obj.dataset.GetFieldData().RemoveArray(key)
 
-    def clear(self):
+    def clear(self) -> None:
         """Remove all data associated to this object"""
         if self.association == 0:
             data = self.obj.dataset.GetPointData()
@@ -230,7 +231,7 @@ class DataArrayHelper:
                 name = data.GetArray(i).GetName()
             data.RemoveArray(name)
 
-    def select(self, key):
+    def select(self, key: Union[int,str]) -> Any:
         """Select one specific array by its name to make it the `active` one."""
         # Default (ColorModeToDefault): unsigned char scalars are treated as colors,
         # and NOT mapped through the lookup table, while everything else is.
@@ -262,7 +263,7 @@ class DataArrayHelper:
         elif nc == 2:
             data.SetTCoords(arr)
         elif nc in (3, 4):
-            if "rgb" in key.lower():
+            if "rgb" in key.lower(): # type: ignore
                 data.SetActiveScalars(key)
                 try:
                     # could be a volume mapper
@@ -286,7 +287,7 @@ class DataArrayHelper:
 
         return self.obj
 
-    def select_texture_coords(self, key):
+    def select_texture_coords(self, key: Union[int,str]) -> Any:
         """Select one specific array to be used as texture coordinates."""
         if self.association == 0:
             data = self.obj.dataset.GetPointData()
@@ -299,7 +300,7 @@ class DataArrayHelper:
         data.SetTCoords(data.GetArray(key))
         return self.obj
 
-    def select_normals(self, key):
+    def select_normals(self, key: Union[int,str]) -> Any:
         """Select one specific normal array by its name to make it the "active" one."""
         if self.association == 0:
             data = self.obj.dataset.GetPointData()
@@ -313,7 +314,7 @@ class DataArrayHelper:
         data.SetActiveNormals(key)
         return self.obj
 
-    def print(self, **kwargs):
+    def print(self, **kwargs) -> None:
         """Print the array names available to terminal"""
         colors.printc(self.keys(), **kwargs)
 
@@ -420,7 +421,7 @@ class CommonAlgorithms:
         """
         return DataArrayHelper(self, 2)
 
-    def memory_address(self):
+    def memory_address(self) -> int:
         """
         Return a unique memory address integer which may serve as the ID of the
         object, or passed to c++ code.
@@ -429,11 +430,11 @@ class CommonAlgorithms:
         # https://github.com/tfmoraes/polydata_connectivity
         return int(self.dataset.GetAddressAsString("")[5:], 16)
 
-    def memory_size(self):
+    def memory_size(self) -> int:
         """Return the size in bytes of the object in memory."""
         return self.dataset.GetActualMemorySize()
 
-    def modified(self):
+    def modified(self) -> Any:
         """Use in conjunction with `tonumpy()` to update any modifications to the image array."""
         self.dataset.GetPointData().Modified()
         scals = self.dataset.GetPointData().GetScalars()
@@ -441,7 +442,7 @@ class CommonAlgorithms:
             scals.Modified()
         return self
 
-    def box(self, scale=1, padding=0):
+    def box(self, scale=1, padding=0) -> Any:
         """
         Return the bounding box as a new `Mesh` object.
 
@@ -467,7 +468,7 @@ class CommonAlgorithms:
         try:
             pr = vtki.vtkProperty()
             pr.DeepCopy(self.properties)
-            bx.SetProperty(pr)
+            bx.actor.SetProperty(pr)
             bx.properties = pr
         except (AttributeError, TypeError):
             pass
@@ -479,7 +480,7 @@ class CommonAlgorithms:
         self._update(dataset, **kwargs)
         return self
 
-    def bounds(self):
+    def bounds(self) -> np.ndarray:
         """
         Get the object bounds.
         Returns a list in format `[xmin,xmax, ymin,ymax, zmin,zmax]`.
@@ -492,14 +493,14 @@ class CommonAlgorithms:
         except (AttributeError, ValueError):
             return np.array(self.dataset.GetBounds())
 
-    def xbounds(self, i=None):
+    def xbounds(self, i=None) -> np.ndarray:
         """Get the bounds `[xmin,xmax]`. Can specify upper or lower with i (0,1)."""
         b = self.bounds()
         if i is not None:
             return b[i]
         return np.array([b[0], b[1]])
 
-    def ybounds(self, i=None):
+    def ybounds(self, i=None) -> np.ndarray:
         """Get the bounds `[ymin,ymax]`. Can specify upper or lower with i (0,1)."""
         b = self.bounds()
         if i == 0:
@@ -508,7 +509,7 @@ class CommonAlgorithms:
             return b[3]
         return np.array([b[2], b[3]])
 
-    def zbounds(self, i=None):
+    def zbounds(self, i=None) -> np.ndarray:
         """Get the bounds `[zmin,zmax]`. Can specify upper or lower with i (0,1)."""
         b = self.bounds()
         if i == 0:
@@ -517,12 +518,12 @@ class CommonAlgorithms:
             return b[5]
         return np.array([b[4], b[5]])
 
-    def diagonal_size(self):
+    def diagonal_size(self) -> float:
         """Get the length of the diagonal of the bounding box."""
         b = self.bounds()
         return np.sqrt((b[1] - b[0])**2 + (b[3] - b[2])**2 + (b[5] - b[4])**2)
 
-    def average_size(self):
+    def average_size(self) -> float:
         """
         Calculate and return the average size of the object.
         This is the mean of the vertex distances from the center of mass.
@@ -534,7 +535,7 @@ class CommonAlgorithms:
         cc = coords - cm
         return np.mean(np.linalg.norm(cc, axis=1))
 
-    def center_of_mass(self):
+    def center_of_mass(self) -> np.ndarray:
         """Get the center of mass of the object."""
         if isinstance(self, (vedo.RectilinearGrid, vedo.Volume)):
             return np.array(self.dataset.GetCenter())
@@ -544,7 +545,7 @@ class CommonAlgorithms:
         c = cmf.GetCenter()
         return np.array(c)
 
-    def copy_data_from(self, obj):
+    def copy_data_from(self, obj: Any) -> Any:
         """Copy all data (point and cell data) from this input object"""
         self.dataset.GetPointData().PassData(obj.dataset.GetPointData())
         self.dataset.GetCellData().PassData(obj.dataset.GetCellData())
@@ -671,7 +672,7 @@ class CommonAlgorithms:
         except AttributeError:
             return np.array([])
 
-    def mark_boundaries(self):
+    def mark_boundaries(self) -> Any:
         """
         Mark cells and vertices if they lie on a boundary.
         A new array called `BoundaryCells` is added to the object.
@@ -683,7 +684,7 @@ class CommonAlgorithms:
         self.pipeline = utils.OperationNode("mark_boundaries", parents=[self])
         return self
 
-    def find_cells_in_bounds(self, xbounds=(), ybounds=(), zbounds=()):
+    def find_cells_in_bounds(self, xbounds=(), ybounds=(), zbounds=()) -> np.ndarray:
         """
         Find cells that are within the specified bounds.
         """
@@ -718,7 +719,7 @@ class CommonAlgorithms:
             cids.append(cid)
         return np.array(cids)
 
-    def find_cells_along_line(self, p0, p1, tol=0.001):
+    def find_cells_along_line(self, p0, p1, tol=0.001) -> np.ndarray:
         """
         Find cells that are intersected by a line segment.
         """
@@ -734,7 +735,7 @@ class CommonAlgorithms:
             cids.append(cid)
         return np.array(cids)
 
-    def find_cells_along_plane(self, origin, normal, tol=0.001):
+    def find_cells_along_plane(self, origin, normal, tol=0.001) -> np.ndarray:
         """
         Find cells that are intersected by a plane.
         """
@@ -750,7 +751,7 @@ class CommonAlgorithms:
             cids.append(cid)
         return np.array(cids)
 
-    def map_cells_to_points(self, arrays=(), move=False):
+    def map_cells_to_points(self, arrays=(), move=False) -> Any:
         """
         Interpolate cell data (i.e., data specified per cell or face)
         into point data (i.e., data specified at each vertex).
@@ -877,7 +878,7 @@ class CommonAlgorithms:
                     break
         return conn
 
-    def map_points_to_cells(self, arrays=(), move=False):
+    def map_points_to_cells(self, arrays=(), move=False) -> Any:
         """
         Interpolate point data (i.e., data specified per point or vertex)
         into cell data (i.e., data specified per cell).
@@ -908,7 +909,7 @@ class CommonAlgorithms:
         self.pipeline = utils.OperationNode("map_points_to_cells", parents=[self])
         return self
 
-    def resample_data_from(self, source, tol=None, categorical=False):
+    def resample_data_from(self, source, tol=None, categorical=False) -> Any:
         """
         Resample point and cell data from another dataset.
         The output has the same structure but its point data have
@@ -966,7 +967,7 @@ class CommonAlgorithms:
         on="points",
         null_strategy=1,
         null_value=0,
-    ):
+    ) -> Any:
         """
         Interpolate over source to port its data onto the current object using various kernels.
 
@@ -1062,7 +1063,7 @@ class CommonAlgorithms:
         self.pipeline = utils.OperationNode("interpolate_data_from", parents=[self, source])
         return self
 
-    def add_ids(self):
+    def add_ids(self) -> Any:
         """
         Generate point and cell ids arrays.
 
@@ -1080,7 +1081,7 @@ class CommonAlgorithms:
         self.pipeline = utils.OperationNode("add_ids", parents=[self])
         return self
 
-    def gradient(self, input_array=None, on="points", fast=False):
+    def gradient(self, input_array=None, on="points", fast=False) -> np.ndarray:
         """
         Compute and return the gradiend of the active scalar field as a numpy array.
 
@@ -1131,7 +1132,7 @@ class CommonAlgorithms:
             gvecs = utils.vtk2numpy(gra.GetOutput().GetCellData().GetArray("Gradient"))
         return gvecs
 
-    def divergence(self, array_name=None, on="points", fast=False):
+    def divergence(self, array_name=None, on="points", fast=False) -> np.ndarray:
         """
         Compute and return the divergence of a vector field as a numpy array.
 
@@ -1177,7 +1178,7 @@ class CommonAlgorithms:
             dvecs = utils.vtk2numpy(div.GetOutput().GetCellData().GetArray("Divergence"))
         return dvecs
 
-    def vorticity(self, array_name=None, on="points", fast=False):
+    def vorticity(self, array_name=None, on="points", fast=False) -> np.ndarray:
         """
         Compute and return the vorticity of a vector field as a numpy array.
 
@@ -1223,7 +1224,7 @@ class CommonAlgorithms:
             vvecs = utils.vtk2numpy(vort.GetOutput().GetCellData().GetArray("Vorticity"))
         return vvecs
 
-    def probe(self, source):
+    def probe(self, source) -> Any:
         """
         Takes a data set and probes its scalars at the specified points in space.
 
@@ -1247,7 +1248,7 @@ class CommonAlgorithms:
         self.pointdata.rename("vtkValidPointMask", "ValidPointMask")
         return self
 
-    def compute_cell_size(self):
+    def compute_cell_size(self) -> Any:
         """
         Add to this object a cell data array
         containing the area, volume and edge length
@@ -1268,7 +1269,7 @@ class CommonAlgorithms:
         self._update(csf.GetOutput(), reset_locators=False)
         return self
 
-    def integrate_data(self):
+    def integrate_data(self) -> dict:
         """
         Integrate point and cell data arrays while computing length,
         area or volume of the domain. It works for 1D, 2D or 3D cells.
@@ -1325,7 +1326,7 @@ class CommonAlgorithms:
         )
         return data
 
-    def write(self, filename, binary=True):
+    def write(self, filename, binary=True) -> Any:
         """Write object to file."""
         out = vedo.file_io.write(self, filename, binary)
         out.pipeline = utils.OperationNode(
@@ -1374,7 +1375,7 @@ class CommonAlgorithms:
     def smooth_data(self, 
             niter=10, relaxation_factor=0.1, strategy=0, mask=None,
             exclude=("Normals", "TextureCoordinates"),
-        ):
+        ) -> Any:
         """
         Smooth point attribute data using distance weighted Laplacian kernel.
 
@@ -1434,7 +1435,7 @@ class CommonAlgorithms:
         
     def compute_streamlines(
             self, 
-            seeds, 
+            seeds: Any, 
             integrator="rk4",
             direction="forward",
             initial_step_size=None,
@@ -1443,7 +1444,7 @@ class CommonAlgorithms:
             step_length=0,
             surface_constrained=False,
             compute_vorticity=False,
-        ):
+        ) -> Union["Lines", None]:
         """
         Integrate a vector field to generate streamlines.
 
@@ -1529,7 +1530,7 @@ class CommonAlgorithms:
 class PointAlgorithms(CommonAlgorithms):
     """Methods for point clouds."""
 
-    def apply_transform(self, LT, concatenate=True, deep_copy=True):
+    def apply_transform(self, LT: Any, concatenate=True, deep_copy=True) -> Any:
         """
         Apply a linear or non-linear transformation to the mesh polygonal data.
 
@@ -1615,7 +1616,7 @@ class PointAlgorithms(CommonAlgorithms):
         self.line_locator = None
         return self
 
-    def apply_transform_from_actor(self):
+    def apply_transform_from_actor(self) -> LinearTransform:
         """
         Apply the current transformation of the actor to the data.
         Useful when manually moving an actor (eg. when pressing "a").
@@ -1630,7 +1631,7 @@ class PointAlgorithms(CommonAlgorithms):
         self.actor.PokeMatrix(iden)
         return LinearTransform(M)
 
-    def pos(self, x=None, y=None, z=None):
+    def pos(self, x=None, y=None, z=None) -> Any:
         """Set/Get object position."""
         if x is None:  # get functionality
             return self.transform.position
@@ -1651,7 +1652,7 @@ class PointAlgorithms(CommonAlgorithms):
         LT = LinearTransform().translate(delta)
         return self.apply_transform(LT)
 
-    def shift(self, dx=0, dy=0, dz=0):
+    def shift(self, dx=0, dy=0, dz=0) -> Any:
         """Add a vector to the current object position."""
         if utils.is_sequence(dx):
             dx, dy, dz = utils.make3d(dx)
@@ -1684,7 +1685,7 @@ class PointAlgorithms(CommonAlgorithms):
         self.pos(p[0], p[1], val)
         return self
 
-    def rotate(self, angle, axis=(1, 0, 0), point=(0, 0, 0), rad=False):
+    def rotate(self, angle: float, axis=(1, 0, 0), point=(0, 0, 0), rad=False) -> Any:
         """
         Rotate around an arbitrary `axis` passing through `point`.
 
@@ -1706,7 +1707,7 @@ class PointAlgorithms(CommonAlgorithms):
         LT.rotate(angle, axis, point, rad)
         return self.apply_transform(LT)
 
-    def rotate_x(self, angle, rad=False, around=None):
+    def rotate_x(self, angle: float, rad=False, around=None) -> Any:
         """
         Rotate around x-axis. If angle is in radians set `rad=True`.
 
@@ -1717,7 +1718,7 @@ class PointAlgorithms(CommonAlgorithms):
         LT = LinearTransform().rotate_x(angle, rad, around)
         return self.apply_transform(LT)
 
-    def rotate_y(self, angle, rad=False, around=None):
+    def rotate_y(self, angle: float, rad=False, around=None) -> Any:
         """
         Rotate around y-axis. If angle is in radians set `rad=True`.
 
@@ -1728,7 +1729,7 @@ class PointAlgorithms(CommonAlgorithms):
         LT = LinearTransform().rotate_y(angle, rad, around)
         return self.apply_transform(LT)
 
-    def rotate_z(self, angle, rad=False, around=None):
+    def rotate_z(self, angle: float, rad=False, around=None) -> Any:
         """
         Rotate around z-axis. If angle is in radians set `rad=True`.
 
@@ -1739,7 +1740,7 @@ class PointAlgorithms(CommonAlgorithms):
         LT = LinearTransform().rotate_z(angle, rad, around)
         return self.apply_transform(LT)
 
-    def reorient(self, initaxis, newaxis, rotation=0, rad=False, xyplane=False):
+    def reorient(self, initaxis, newaxis, rotation=0, rad=False, xyplane=False) -> Any:
         """
         Reorient the object to point to a new direction from an initial one.
         If `initaxis` is None, the object will be assumed in its "default" orientation.
@@ -1752,7 +1753,7 @@ class PointAlgorithms(CommonAlgorithms):
         LT.reorient(initaxis, newaxis, q, rotation, rad, xyplane)
         return self.apply_transform(LT)
 
-    def scale(self, s=None, reset=False, origin=True):
+    def scale(self, s=None, reset=False, origin=True) -> Any:
         """
         Set/get object's scaling factor.
 
@@ -1793,7 +1794,7 @@ class PointAlgorithms(CommonAlgorithms):
 class VolumeAlgorithms(CommonAlgorithms):
     """Methods for Volume objects."""
 
-    def bounds(self):
+    def bounds(self) -> np.ndarray:
         """
         Get the object bounds.
         Returns a list in format `[xmin,xmax, ymin,ymax, zmin,zmax]`.
@@ -1801,7 +1802,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         # OVERRIDE CommonAlgorithms.bounds() which is too slow
         return np.array(self.dataset.GetBounds())
 
-    def isosurface(self, value=None, flying_edges=False):
+    def isosurface(self, value=None, flying_edges=False) -> "vedo.mesh.Mesh":
         """
         Return an `Mesh` isosurface extracted from the `Volume` object.
 
@@ -1849,7 +1850,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         )
         return out
     
-    def isosurface_discrete(self, value=None, nsmooth=15):
+    def isosurface_discrete(self, value=None, nsmooth=15) -> "vedo.mesh.Mesh":
         """
         Create boundary/isocontour surfaces from a label map (e.g., a segmented image) using a threaded,
         3D version of the multiple objects/labels Surface Nets algorithm.
@@ -1907,7 +1908,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         invert=False,
         boundary=False,
         array_name="input_scalars",
-    ):
+    ) -> "vedo.mesh.Mesh":
         """
         Represent an object - typically a `Volume` - as lego blocks (voxels).
         By default colors correspond to the volume's scalar.
@@ -1966,7 +1967,7 @@ class VolumeAlgorithms(CommonAlgorithms):
         )
         return m
 
-    def tomesh(self, fill=True, shrink=1.0):
+    def tomesh(self, fill=True, shrink=1.0) -> "vedo.mesh.Mesh":
         """
         Build a polygonal Mesh from the current object.
 
