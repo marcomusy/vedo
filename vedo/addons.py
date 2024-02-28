@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
+from typing import Union
 
 import vedo.vtkclasses as vtki   # a wrapper for lazy imports
 
@@ -156,49 +157,49 @@ class Flagpost(vtki.vtkFlagpoleLabel):
         prop.SetLineSpacing(vspacing * 1.2)
         self.SetUseBounds(False)
 
-    def text(self, value):
+    def text(self, value: str) -> "Flagpost":
         self.SetInput(value)
         return self
 
-    def on(self):
+    def on(self) -> "Flagpost":
         self.VisibilityOn()
         return self
 
-    def off(self):
+    def off(self) -> "Flagpost":
         self.VisibilityOff()
         return self
 
-    def toggle(self):
+    def toggle(self) -> "Flagpost":
         self.SetVisibility(not self.GetVisibility())
         return self
 
-    def use_bounds(self, value=True):
+    def use_bounds(self, value=True) -> "Flagpost":
         self.SetUseBounds(value)
         return self
 
-    def color(self, c):
+    def color(self, c) -> "Flagpost":
         c = get_color(c)
         self.GetTextProperty().SetColor(c)
         self.GetProperty().SetColor(c)
         return self
 
-    def pos(self, p):
+    def pos(self, p) -> "Flagpost":
         p = np.asarray(p)
         self.top = self.top - self.base + p
         self.base = p
         return self
 
     @property
-    def base(self):
+    def base(self) -> np.ndarray:
         return np.array(self.GetBasePosition())
-
-    @property
-    def top(self):
-        return np.array(self.GetTopPosition())
 
     @base.setter
     def base(self, value):
         self.SetBasePosition(*value)
+
+    @property
+    def top(self) -> np.ndarray:
+        return np.array(self.GetTopPosition())
 
     @top.setter
     def top(self, value):
@@ -429,7 +430,7 @@ class Button(vedo.shapes.Text2D):
         self.PickableOn()
 
 
-    def status(self, s=None):
+    def status(self, s=None) -> "Button":
         """
         Set/Get the status of the button.
         """
@@ -445,7 +446,7 @@ class Button(vedo.shapes.Text2D):
         self.background(self.bcolors[s])
         return self
 
-    def switch(self):
+    def switch(self) -> "Button":
         """
         Change/cycle button status to the next defined status in states list.
         """
@@ -533,7 +534,7 @@ class SplineTool(vtki.vtkContourWidget):
         """Set the current interactor."""
         self.SetInteractor(iren)
 
-    def add(self, pt):
+    def add(self, pt) -> "SplineTool":
         """
         Add one point at a specified position in space if 3D,
         or 2D screen-display position if 2D.
@@ -544,39 +545,39 @@ class SplineTool(vtki.vtkContourWidget):
             self.representation.AddNodeAtWorldPosition(pt)
         return self
     
-    def add_observer(self, event, func, priority=1):
+    def add_observer(self, event, func, priority=1) -> int:
         """Add an observer to the widget."""
         event = utils.get_vtk_name_event(event)
         cid = self.AddObserver(event, func, priority)
         return cid
 
-    def remove(self, i):
+    def remove(self, i: int) -> "SplineTool":
         """Remove specific node by its index"""
         self.representation.DeleteNthNode(i)
         return self
 
-    def on(self):
+    def on(self) -> "SplineTool":
         """Activate/Enable the tool"""
         self.On()
         self.Render()
         return self
 
-    def off(self):
+    def off(self) -> "SplineTool":
         """Disactivate/Disable the tool"""
         self.Off()
         self.Render()
         return self
 
-    def render(self):
+    def render(self) -> "SplineTool":
         """Render the spline"""
         self.Render()
         return self
 
-    def bounds(self):
-        """Retrieve the bounding box of the spline as [x0,x1, y0,y1, z0,z1]"""
-        return self.GetBounds()
+    # def bounds(self) -> np.ndarray:
+    #     """Retrieve the bounding box of the spline as [x0,x1, y0,y1, z0,z1]"""
+    #     return np.array(self.GetBounds())
 
-    def spline(self):
+    def spline(self) -> vedo.Line:
         """Return the vedo.Spline object."""
         self.representation.SetClosedLoop(self.closed)
         self.representation.BuildRepresentation()
@@ -584,7 +585,7 @@ class SplineTool(vtki.vtkContourWidget):
         ln = vedo.Line(pd, lw=2, c="k")
         return ln
 
-    def nodes(self, onscreen=False):
+    def nodes(self, onscreen=False) -> np.ndarray:
         """Return the current position in space (or on 2D screen-display) of the spline nodes."""
         n = self.representation.GetNumberOfNodes()
         pts = []
@@ -654,19 +655,22 @@ class SliderWidget(vtki.vtkSliderWidget):
         if vals[1] is not None:
             self.GetRepresentation().SetMaximumValue(vals[1])
 
-    def on(self):
+    def on(self) -> "SliderWidget":
         self.EnabledOn()
+        return self
 
-    def off(self):
+    def off(self) -> "SliderWidget":
         self.EnabledOff()
+        return self
 
-    def toggle(self):
+    def toggle(self) -> "SliderWidget":
         self.SetEnabled(not self.GetEnabled())
+        return self
 
-    def add_observer(self, event, func, priority=1):
+    def add_observer(self, event, func, priority=1) -> int:
         """Add an observer to the widget."""
         event = utils.get_vtk_name_event(event)
-        cid = self.widget.AddObserver(event, func, priority)
+        cid = self.AddObserver(event, func, priority)
         return cid
 
 
@@ -841,7 +845,7 @@ def ScalarBar(
     horizontal=False,
     use_alpha=True,
     label_format=":6.3g",
-):
+) -> Union[vtki.vtkScalarBarActor, None]:
     """
     A 2D scalar bar for the specified obj.
 
@@ -937,7 +941,7 @@ def ScalarBar(
         titprop.SetVerticalJustificationToTop()
         titprop.SetFontSize(font_size)
         titprop.SetFontFamily(vtki.VTK_FONT_FILE)
-        titprop.SetFontFile(utils.get_font_path(settings.default_font))
+        titprop.SetFontFile(utils.get_font_path(vedo.settings.default_font))
         sb.SetTitle(title)
         sb.SetVerticalTitleSeparation(title_yoffset)
         sb.SetTitleTextProperty(titprop)
@@ -977,7 +981,7 @@ def ScalarBar(
 
     sctxt = sb.GetLabelTextProperty()
     sctxt.SetFontFamily(vtki.VTK_FONT_FILE)
-    sctxt.SetFontFile(utils.get_font_path(settings.default_font))
+    sctxt.SetFontFile(utils.get_font_path(vedo.settings.default_font))
     sctxt.SetColor(c)
     sctxt.SetShadow(0)
     sctxt.SetFontSize(font_size - 2)
@@ -1010,7 +1014,7 @@ def ScalarBar3D(
     below_text=None,
     nan_text="NaN",
     categories=None,
-):
+) -> Union[Assembly, None]:
     """
     Create a 3D scalar bar for the specified object.
 
@@ -1853,16 +1857,16 @@ class PlaneCutter(vtki.vtkPlaneWidget, BaseCutter):
         """Get the origin of the plane."""
         return np.array(self.widget.GetOrigin())
     
-    @property
-    def normal(self):
-        """Get the normal of the plane."""
-        return np.array(self.widget.GetNormal())
-    
     @origin.setter
     def origin(self, value):
         """Set the origin of the plane."""
         self.widget.SetOrigin(value)
 
+    @property
+    def normal(self):
+        """Get the normal of the plane."""
+        return np.array(self.widget.GetNormal())
+    
     @normal.setter
     def normal(self, value):
         """Set the normal of the plane."""
@@ -2141,16 +2145,16 @@ class SphereCutter(vtki.vtkSphereWidget, BaseCutter):
         """Get the center of the sphere."""
         return np.array(self.widget.GetCenter())
     
-    @property
-    def radius(self):
-        """Get the radius of the sphere."""
-        return self.widget.GetRadius()
-    
     @center.setter
     def center(self, value):
         """Set the center of the sphere."""
         self.widget.SetCenter(value)
 
+    @property
+    def radius(self):
+        """Get the radius of the sphere."""
+        return self.widget.GetRadius()
+    
     @radius.setter
     def radius(self, value):
         """Set the radius of the sphere."""
@@ -2272,23 +2276,23 @@ class ProgressBarWidget(vtki.vtkActor2D):
         self.GetProperty().SetLineWidth(lw*2)
 
 
-    def lw(self, value):
+    def lw(self, value: int) -> "ProgressBarWidget":
         """Set width."""
         self.GetProperty().SetLineWidth(value*2)
         return self
 
-    def c(self, color):
+    def c(self, color) -> "ProgressBarWidget":
         """Set color."""
         c = get_color(color)
         self.GetProperty().SetColor(c)
         return self
 
-    def alpha(self, value):
+    def alpha(self, value) -> "ProgressBarWidget":
         """Set opacity."""
         self.GetProperty().SetOpacity(value)
         return self
 
-    def update(self, fraction=None):
+    def update(self, fraction=None) -> "ProgressBarWidget":
         """Update progress bar to fraction of the window width."""
         if fraction is None:
             if self.iterations is None:
@@ -2351,11 +2355,11 @@ class Icon(vtki.vtkOrientationMarkerWidget):
 
 
 #####################################################################
-def compute_visible_bounds(objs=None):
+def compute_visible_bounds(objs=None) -> list:
     """Calculate max objects bounds and sizes."""
     bns = []
 
-    if objs is None:
+    if objs is None and vedo.plotter_instance:
         objs = vedo.plotter_instance.actors
     elif not utils.is_sequence(objs):
         objs = [objs]
@@ -2374,7 +2378,7 @@ def compute_visible_bounds(objs=None):
             max_bns = np.max(bns, axis=0)
             min_bns = np.min(bns, axis=0)
             vbb = [min_bns[0], max_bns[1], min_bns[2], max_bns[3], min_bns[4], max_bns[5]]
-        else:
+        elif vedo.plotter_instance:
             vbb = list(vedo.plotter_instance.renderer.ComputeVisiblePropBounds())
             max_bns = vbb
             min_bns = vbb
@@ -2382,6 +2386,7 @@ def compute_visible_bounds(objs=None):
             [max_bns[1] - min_bns[0], max_bns[3] - min_bns[2], max_bns[5] - min_bns[4]]
         )
         return [vbb, sizes, min_bns, max_bns]
+
     except:
         return [[0, 0, 0, 0, 0, 0], [0, 0, 0], 0, 0]
 
@@ -2404,7 +2409,7 @@ def Ruler3D(
     label_rotation=0,
     axis_rotation=0,
     tick_angle=90,
-):
+) -> Mesh:
     """
     Build a 3D ruler to indicate the distance of two points p1 and p2.
 
@@ -2540,7 +2545,7 @@ def RulerAxes(
     yaxis_rotation=0,
     zaxis_rotation=0,
     xycross=True,
-):
+) -> Union[Mesh, None]:
     """
     A 3D ruler axes to indicate the sizes of the input scene or object.
 
@@ -2657,7 +2662,6 @@ class Ruler2D(vtki.vtkAxisActor2D):
     """
     Create a ruler with tick marks, labels and a title.
     """
-
     def __init__(
         self,
         lw=2,
@@ -2771,7 +2775,7 @@ class Ruler2D(vtki.vtkAxisActor2D):
         self.renderer = plt.renderer
         self.cid = plt.interactor.AddObserver("RenderEvent", self._update_viz, 1.0)
 
-    def color(self, c):
+    def color(self, c) -> "Ruler2D":
         """Assign a new color."""
         c = get_color(c)
         self.GetTitleTextProperty().SetColor(c)
@@ -2784,14 +2788,14 @@ class Ruler2D(vtki.vtkAxisActor2D):
         self.renderer.RemoveObserver(self.cid)
         self.renderer.RemoveActor(self)
 
-    def set_points(self, p0, p1):
+    def set_points(self, p0, p1) -> "Ruler2D":
         """Set new values for the ruler start and end points."""
         self.p0 = np.asarray(p0)
         self.p1 = np.asarray(p1)
         self._update_viz(0, 0)
         return self
 
-    def _update_viz(self, evt, name):
+    def _update_viz(self, evt, name) -> None:
         ren = self.renderer
         view_size = np.array(ren.GetSize())
 
@@ -2808,7 +2812,7 @@ class Ruler2D(vtki.vtkAxisActor2D):
         self.SetPoint1(*disp_point1)
         self.SetPoint2(*disp_point2)
         self.distance = np.linalg.norm(self.p1 - self.p0)
-        self.SetRange(0, self.distance)
+        self.SetRange(0.0, float(self.distance))
         if not self.title:
             self.SetTitle(utils.precision(self.distance, 3))
 
@@ -2851,14 +2855,14 @@ class DistanceTool(Group):
         self.ruler = None
         self.title = ""
 
-    def on(self):
+    def on(self) -> "DistanceTool":
         """Switch tool on."""
         self.cid = self.plotter.add_callback("click", self._onclick)
         self.VisibilityOn()
         self.plotter.render()
         return self
 
-    def off(self):
+    def off(self) -> None:
         """Switch tool off."""
         self.plotter.remove_callback(self.cid)
         self.VisibilityOff()
@@ -2958,7 +2962,7 @@ def Axes(
         x_inverted=False, y_inverted=False, z_inverted=False,
         use_global=False,
         tol=0.001,
-    ):
+    ) -> Union[Assembly, None]:
     """
     Draw axes for the input object.
     Check [available fonts here](https://vedo.embl.es/fonts).
@@ -3050,9 +3054,9 @@ def Axes(
         ![](https://vedo.embl.es/images/pyplot/customAxes3.png)
     """
     if not title_font:
-        title_font = settings.default_font
+        title_font = vedo.settings.default_font
     if not label_font:
-        label_font = settings.default_font
+        label_font = vedo.settings.default_font
 
     if c is None:  # automatic black or white
         c = (0.1, 0.1, 0.1)
@@ -4022,7 +4026,7 @@ def Axes(
     return asse
 
 
-def add_global_axes(axtype=None, c=None, bounds=()):
+def add_global_axes(axtype=None, c=None, bounds=()) -> None:
     """
     Draw axes on scene. Available axes types are
 
@@ -4064,6 +4068,9 @@ def add_global_axes(axtype=None, c=None, bounds=()):
             )
     """
     plt = vedo.plotter_instance
+    if plt is None:
+        return
+
     if axtype is not None:
         plt.axes = axtype  # override
 
@@ -4483,4 +4490,4 @@ def add_global_axes(axtype=None, c=None, bounds=()):
 
     if not plt.axes_instances[r]:
         plt.axes_instances[r] = True
-    return
+
