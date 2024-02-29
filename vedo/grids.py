@@ -279,7 +279,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         out += "nr. of verts".ljust(14) + ": " + str(self.npoints) + "\n"
         out += "nr. of cells".ljust(14) + ": " + str(self.ncells)  + "\n"
         ct_arr = np.unique(self.cell_types_array)
-        cnames = [k for k, v in cell_types.items() if v in ct_arr]
+        cnames = [k for k, v in vtki.cell_types.items() if v in ct_arr]
         out += "cell types".ljust(14) + ": " + str(cnames) + "\n"
 
         if self.npoints:
