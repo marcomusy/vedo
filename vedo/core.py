@@ -750,6 +750,29 @@ class CommonAlgorithms:
             cids.append(cid)
         return np.array(cids)
 
+    def keep_cell_types(self, types=()):
+        """
+        Extract cells of a specific type.
+
+        Check the VTK cell types here:
+        https://vtk.org/doc/nightly/html/vtkCellType_8h.html
+        """
+        fe = vtki.new("ExtractCellsByType")
+        fe.SetInputData(self.dataset)
+        for t in types:
+            try:
+                if utils.is_integer(t):
+                    it = t
+                else:
+                    it = vtki.cell_types[t.upper()]
+            except KeyError:
+                vedo.logger.error(f"Cell type '{t}' not recognized")
+                continue
+            fe.AddCellType(it)
+        fe.Update()
+        self._update(fe.GetOutput())
+        return self
+
     def map_cells_to_points(self, arrays=(), move=False):
         """
         Interpolate cell data (i.e., data specified per cell or face)
