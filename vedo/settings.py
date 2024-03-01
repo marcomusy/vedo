@@ -227,7 +227,7 @@ class Settings:
     dry_run_mode = 0
 
     ############################################################
-    def __init__(self):
+    def __init__(self) -> None:
 
         self.default_backend = "vtk"
         try:
@@ -672,24 +672,24 @@ class Settings:
         return s.strip()
 
     ############################################################
-    def keys(self):
+    def keys(self) -> list:
         """Return all keys"""
         return self.__slots__
 
-    def values(self):
+    def values(self) -> list:
         """Return all values"""
         return [getattr(self, key) for key in self.__slots__]
 
-    def items(self):
+    def items(self) -> list:
         """Return all items"""
         return [(key, getattr(self, key)) for key in self.__slots__]
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset all settings to their default status."""
         self.__init__()
 
     ############################################################
-    def init_colab(self, enable_k3d=True):
+    def init_colab(self, enable_k3d=True) -> None:
         """
         Initialize colab environment
         """
@@ -725,7 +725,7 @@ class Settings:
         print(" setup completed.")
 
     ############################################################
-    def start_xvfb(self):
+    def start_xvfb(self) -> None:
         """
         Start xvfb.
 
