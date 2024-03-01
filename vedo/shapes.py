@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
-from typing import List, Union, Tuple, Any
+from typing import List, Union, Any
 from functools import lru_cache
 from weakref import ref as weak_ref_to
 

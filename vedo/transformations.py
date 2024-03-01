@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from typing import List
 import numpy as np
 
 import vedo.vtkclasses as vtki # a wrapper for lazy imports
@@ -41,13 +42,13 @@ def _is_sequence(arg):
 class LinearTransform:
     """Work with linear transformations."""
 
-    def __init__(self, T=None):
+    def __init__(self, T=None) -> None:
         """
         Define a linear transformation.
         Can be saved to file and reloaded.
 
         Arguments:
-            T : (vtkTransform, numpy array)
+            T : (str, vtkTransform, numpy array)
                 input transformation. Defaults to unit.
 
         Example:
@@ -164,7 +165,7 @@ class LinearTransform:
     def __repr__(self):
         return self.__str__()
 
-    def print(self):
+    def print(self) -> "LinearTransform":
         """Print transformation."""
         print(self.__str__())
         return self
@@ -176,7 +177,7 @@ class LinearTransform:
         """
         return self.move(obj.copy())
     
-    def transform_point(self, p):
+    def transform_point(self, p) -> np.ndarray:
         """
         Apply transformation to a single point.
         """
@@ -219,12 +220,12 @@ class LinearTransform:
         obj.apply_transform(self)
         return obj
 
-    def reset(self):
+    def reset(self) -> "LinearTransform":
         """Reset transformation."""
         self.T.Identity()
         return self
     
-    def compute_main_axes(self):
+    def compute_main_axes(self) -> np.ndarray:
         """
         Compute main axes of the transformation matrix.
         These are the axes of the ellipsoid that is the 
@@ -268,13 +269,13 @@ class LinearTransform:
             eigvec[:,2] * eigval[2],
         ])
 
-    def pop(self):
+    def pop(self) -> "LinearTransform":
         """Delete the transformation on the top of the stack
         and sets the top to the next transformation on the stack."""
         self.T.Pop()
         return self
 
-    def is_identity(self):
+    def is_identity(self) -> bool:
         """Check if the transformation is the identity."""
         m = self.T.GetMatrix()
         M = [[m.GetElement(i, j) for j in range(4)] for i in range(4)]
@@ -282,34 +283,34 @@ class LinearTransform:
             return True
         return False
 
-    def invert(self):
+    def invert(self) -> "LinearTransform":
         """Invert the transformation. Acts in-place."""
         self.T.Inverse()
         self.inverse_flag = bool(self.T.GetInverseFlag())
         return self
 
-    def compute_inverse(self):
+    def compute_inverse(self) -> "LinearTransform":
         """Compute the inverse."""
         t = self.clone()
         t.invert()
         return t
 
-    def transpose(self):
+    def transpose(self) -> "LinearTransform":
         """Transpose the transformation. Acts in-place."""
         M = vtki.vtkMatrix4x4()
         self.T.GetTranspose(M)
         self.T.SetMatrix(M)
         return self
 
-    def copy(self):
+    def copy(self) -> "LinearTransform":
         """Return a copy of the transformation. Alias of `clone()`."""
         return self.clone()
 
-    def clone(self):
+    def clone(self) -> "LinearTransform":
         """Clone transformation to make an exact copy."""
         return LinearTransform(self.T)
 
-    def concatenate(self, T, pre_multiply=False):
+    def concatenate(self, T, pre_multiply=False) -> "LinearTransform":
         """
         Post-multiply (by default) 2 transfomations.
         T can also be a 4x4 matrix or 3x3 matrix.
@@ -360,27 +361,27 @@ class LinearTransform:
         """Pre-multiply 2 transfomations."""
         return self.concatenate(A, pre_multiply=True)
 
-    def get_concatenated_transform(self, i):
+    def get_concatenated_transform(self, i) -> "LinearTransform":
         """Get intermediate matrix by concatenation index."""
         return LinearTransform(self.T.GetConcatenatedTransform(i))
 
     @property
-    def ntransforms(self):
+    def ntransforms(self) -> int:
         """Get the number of concatenated transforms."""
         return self.T.GetNumberOfConcatenatedTransforms()
 
-    def translate(self, p):
+    def translate(self, p) -> "LinearTransform":
         """Translate, same as `shift`."""
         if len(p) == 2:
             p = [p[0], p[1], 0]
         self.T.Translate(p)
         return self
 
-    def shift(self, p):
+    def shift(self, p) -> "LinearTransform":
         """Shift, same as `translate`."""
         return self.translate(p)
 
-    def scale(self, s, origin=True):
+    def scale(self, s, origin=True) -> "LinearTransform":
         """Scale."""
         if not _is_sequence(s):
             s = [s, s, s]
@@ -404,7 +405,7 @@ class LinearTransform:
             self.T.Scale(*s)
         return self
 
-    def rotate(self, angle, axis=(1, 0, 0), point=(0, 0, 0), rad=False):
+    def rotate(self, angle, axis=(1, 0, 0), point=(0, 0, 0), rad=False) -> "LinearTransform":
         """
         Rotate around an arbitrary `axis` passing through `point`.
 
@@ -466,7 +467,7 @@ class LinearTransform:
             self.T.Translate(around)
         return self
 
-    def rotate_x(self, angle, rad=False, around=None):
+    def rotate_x(self, angle: float, rad=False, around=None) -> "LinearTransform":
         """
         Rotate around x-axis. If angle is in radians set `rad=True`.
 
@@ -474,7 +475,7 @@ class LinearTransform:
         """
         return self._rotatexyz("x", angle, rad, around)
 
-    def rotate_y(self, angle, rad=False, around=None):
+    def rotate_y(self, angle: float, rad=False, around=None) -> "LinearTransform":
         """
         Rotate around y-axis. If angle is in radians set `rad=True`.
 
@@ -482,7 +483,7 @@ class LinearTransform:
         """
         return self._rotatexyz("y", angle, rad, around)
 
-    def rotate_z(self, angle, rad=False, around=None):
+    def rotate_z(self, angle: float, rad=False, around=None) -> "LinearTransform":
         """
         Rotate around z-axis. If angle is in radians set `rad=True`.
 
@@ -490,7 +491,7 @@ class LinearTransform:
         """
         return self._rotatexyz("z", angle, rad, around)
 
-    def set_position(self, p):
+    def set_position(self, p) -> "LinearTransform":
         """Set position."""
         if len(p) == 2:
             p = np.array([p[0], p[1], 0])
@@ -515,45 +516,45 @@ class LinearTransform:
     #     print()
     #     return self
 
-    def get_scale(self):
+    def get_scale(self) -> np.ndarray:
         """Get current scale."""
         return np.array(self.T.GetScale())
 
     @property
-    def orientation(self):
+    def orientation(self) -> np.ndarray:
         """Compute orientation."""
         return np.array(self.T.GetOrientation())
 
     @property
-    def position(self):
+    def position(self) -> np.ndarray:
         """Compute position."""
         return np.array(self.T.GetPosition())
 
     @property
-    def matrix(self):
+    def matrix(self) -> np.ndarray:
         """Get the 4x4 trasformation matrix."""
         m = self.T.GetMatrix()
         M = [[m.GetElement(i, j) for j in range(4)] for i in range(4)]
         return np.array(M)
 
     @matrix.setter
-    def matrix(self, M):
+    def matrix(self, M) -> None:
         """Set trasformation by assigning a 4x4 or 3x3 numpy matrix."""
-        m = vtki.vtkMatrix4x4()
         n = len(M)
+        m = vtki.vtkMatrix4x4()
         for i in range(n):
             for j in range(n):
                 m.SetElement(i, j, M[i][j])
         self.T.SetMatrix(m)
 
     @property
-    def matrix3x3(self):
+    def matrix3x3(self) -> np.ndarray:
         """Get the 3x3 trasformation matrix."""
         m = self.T.GetMatrix()
         M = [[m.GetElement(i, j) for j in range(3)] for i in range(3)]
         return np.array(M)
 
-    def write(self, filename="transform.mat"):
+    def write(self, filename="transform.mat") -> "LinearTransform":
         """Save transformation to ASCII file."""
         import json
         m = self.T.GetMatrix()
@@ -567,10 +568,11 @@ class LinearTransform:
         }
         with open(filename, "w") as outfile:
             json.dump(dictionary, outfile, sort_keys=True, indent=2)
+        return self
 
     def reorient(
         self, initaxis, newaxis, around=(0, 0, 0), rotation=0, rad=False, xyplane=True
-    ):
+    ) -> "LinearTransform":
         """
         Set/Get object orientation.
 
@@ -592,7 +594,7 @@ class LinearTransform:
 
         if not np.any(initaxis + newaxis):
             print("Warning: in reorient() initaxis and newaxis are parallel")
-            newaxis += np.array([0.0000001, 0.0000002, 0])
+            newaxis += np.array([0.0000001, 0.0000002, 0.0])
             angleth = np.pi
         else:
             angleth = np.arccos(np.dot(initaxis, newaxis))
@@ -618,7 +620,7 @@ class LinearTransform:
 class NonLinearTransform:
     """Work with non-linear transformations."""
 
-    def __init__(self, T=None, **kwargs):
+    def __init__(self, T=None, **kwargs) -> None:
         """
         Define a non-linear transformation.
         Can be saved to file and reloaded.
@@ -742,7 +744,7 @@ class NonLinearTransform:
             elif mode == "3d":
                 T.SetBasisToR()
             else:
-                print(f'In {filename} mode can be either "2d" or "3d"')
+                print(f'Warning: mode can be either "2d" or "3d"')
 
         self.T = T
         self.inverse_flag = False
@@ -767,18 +769,18 @@ class NonLinearTransform:
     def __repr__(self):
         return self.__str__()
 
-    def print(self):
+    def print(self) -> "NonLinearTransform":
         """Print transformation."""
         print(self.__str__())
         return self
 
-    def update(self):
+    def update(self) -> "NonLinearTransform":
         """Update transformation."""
         self.T.Update()
         return self
 
     @property
-    def position(self):
+    def position(self) -> np.ndarray:
         """
         Trying to get the position of a `NonLinearTransform` always returns [0,0,0].
         """
@@ -798,7 +800,7 @@ class NonLinearTransform:
     #     print("  or reset it with 'object.transform = vedo.LinearTransform()'")
 
     @property
-    def source_points(self):
+    def source_points(self) -> np.ndarray:
         """Get the source points."""
         pts = self.T.GetSourceLandmarks()
         vpts = []
@@ -822,7 +824,7 @@ class NonLinearTransform:
         self.T.SetSourceLandmarks(vpts)
 
     @property
-    def target_points(self):
+    def target_points(self) -> np.ndarray:
         """Get the target points."""
         pts = self.T.GetTargetLandmarks()
         vpts = []
@@ -878,11 +880,11 @@ class NonLinearTransform:
         else:
             print('In NonLinearTransform mode can be either "2d" or "3d"')
 
-    def clone(self):
+    def clone(self) -> "NonLinearTransform":
         """Clone transformation to make an exact copy."""
         return NonLinearTransform(self.T)
 
-    def write(self, filename):
+    def write(self, filename) -> "NonLinearTransform":
         """Save transformation to ASCII file."""
         import json
 
@@ -896,14 +898,15 @@ class NonLinearTransform:
         }
         with open(filename, "w") as outfile:
             json.dump(dictionary, outfile, sort_keys=True, indent=2)
+        return self
 
-    def invert(self):
+    def invert(self) -> "NonLinearTransform":
         """Invert transformation."""
         self.T.Inverse()
         self.inverse_flag = bool(self.T.GetInverseFlag())
         return self
 
-    def compute_inverse(self):
+    def compute_inverse(self) -> "NonLinearTransform":
         """Compute inverse."""
         t = self.clone()
         t.invert()
@@ -917,7 +920,7 @@ class NonLinearTransform:
         # use copy here not clone in case user passes a numpy array
         return self.move(obj.copy())
 
-    def compute_main_axes(self, pt=(0,0,0), ds=1):
+    def compute_main_axes(self, pt=(0,0,0), ds=1) -> np.ndarray:
         """
         Compute main axes of the transformation.
         These are the axes of the ellipsoid that is the 
@@ -945,7 +948,7 @@ class NonLinearTransform:
             eigvec[:, 2] * eigval[2],
         ])
 
-    def transform_point(self, p):
+    def transform_point(self, p) -> np.ndarray:
         """
         Apply transformation to a single point.
         """
@@ -1021,13 +1024,13 @@ class TransformInterpolator:
         ```
         ![](https://vedo.embl.es/images/other/transf_interp.png)
     """
-    def __init__(self, mode="linear"):
+    def __init__(self, mode="linear") -> None:
         """
         Interpolate between two or more linear transformations.
         """
         self.vtk_interpolator = vtki.new("TransformInterpolator")
         self.mode(mode)
-        self.TS = []
+        self.TS: List[LinearTransform] = []
 
     def __call__(self, t):
         """
@@ -1037,7 +1040,7 @@ class TransformInterpolator:
         self.vtk_interpolator.InterpolateTransform(t, xform)
         return LinearTransform(xform)
 
-    def add(self, t, T):
+    def add(self, t, T) -> "TransformInterpolator":
         """Add intermediate transformations."""
         try:
             # in case a vedo object is passed
@@ -1048,25 +1051,25 @@ class TransformInterpolator:
         self.vtk_interpolator.AddTransform(t, T.T)
         return self
 
-    def remove(self, t):
-        """Remove intermediate transformations."""
-        self.TS.pop(T)
-        self.vtk_interpolator.RemoveTransform(t)
-        return self
+    # def remove(self, t) -> "TransformInterpolator":
+    #     """Remove intermediate transformations."""
+    #     self.TS.pop(t)
+    #     self.vtk_interpolator.RemoveTransform(t)
+    #     return self
     
-    def trange(self):
+    def trange(self) -> np.ndarray:
         """Get interpolation range."""
         tmin = self.vtk_interpolator.GetMinimumT()
         tmax = self.vtk_interpolator.GetMaximumT()
         return np.array([tmin, tmax])
     
-    def clear(self):
+    def clear(self) -> "TransformInterpolator":
         """Clear all intermediate transformations."""
         self.TS = []
         self.vtk_interpolator.Initialize()
         return self
     
-    def mode(self, m):
+    def mode(self, m) -> "TransformInterpolator":
         """Set interpolation mode ('linear' or 'spline')."""
         if m == "linear":
             self.vtk_interpolator.SetInterpolationTypeToLinear()
@@ -1077,21 +1080,21 @@ class TransformInterpolator:
         return self
     
     @property
-    def ntransforms(self):
+    def ntransforms(self) -> int:
         """Get number of transformations."""
         return self.vtk_interpolator.GetNumberOfTransforms()
 
 
 ########################################################################
 # 2d ######
-def cart2pol(x, y):
+def cart2pol(x, y) -> np.ndarray:
     """2D Cartesian to Polar coordinates conversion."""
     theta = np.arctan2(y, x)
     rho = np.hypot(x, y)
     return np.array([rho, theta])
 
 
-def pol2cart(rho, theta):
+def pol2cart(rho, theta) -> np.ndarray:
     """2D Polar to Cartesian coordinates conversion."""
     x = rho * np.cos(theta)
     y = rho * np.sin(theta)
@@ -1100,7 +1103,7 @@ def pol2cart(rho, theta):
 
 ########################################################################
 # 3d ######
-def cart2spher(x, y, z):
+def cart2spher(x, y, z) -> np.ndarray:
     """3D Cartesian to Spherical coordinate conversion."""
     hxy = np.hypot(x, y)
     rho = np.hypot(hxy, z)
@@ -1109,7 +1112,7 @@ def cart2spher(x, y, z):
     return np.array([rho, theta, phi])
 
 
-def spher2cart(rho, theta, phi):
+def spher2cart(rho, theta, phi) -> np.ndarray:
     """3D Spherical to Cartesian coordinate conversion."""
     st = np.sin(theta)
     sp = np.sin(phi)
@@ -1122,28 +1125,28 @@ def spher2cart(rho, theta, phi):
     return np.array([x, y, z])
 
 
-def cart2cyl(x, y, z):
+def cart2cyl(x, y, z) -> np.ndarray:
     """3D Cartesian to Cylindrical coordinate conversion."""
     rho = np.sqrt(x * x + y * y)
     theta = np.arctan2(y, x)
     return np.array([rho, theta, z])
 
 
-def cyl2cart(rho, theta, z):
+def cyl2cart(rho, theta, z) -> np.ndarray:
     """3D Cylindrical to Cartesian coordinate conversion."""
     x = rho * np.cos(theta)
     y = rho * np.sin(theta)
     return np.array([x, y, z])
 
 
-def cyl2spher(rho, theta, z):
+def cyl2spher(rho, theta, z) -> np.ndarray:
     """3D Cylindrical to Spherical coordinate conversion."""
     rhos = np.sqrt(rho * rho + z * z)
     phi = np.arctan2(rho, z)
     return np.array([rhos, phi, theta])
 
 
-def spher2cyl(rho, theta, phi):
+def spher2cyl(rho, theta, phi) -> np.ndarray:
     """3D Spherical to Cylindrical coordinate conversion."""
     rhoc = rho * np.sin(theta)
     z = rho * np.cos(theta)
