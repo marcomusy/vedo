@@ -3,13 +3,13 @@
 import os.path
 import sys
 import time
+from typing import MutableSequence, Callable, Any, Union
 import numpy as np
 
 import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 
 import vedo
 from vedo import transformations
-from vedo import settings
 from vedo import utils
 from vedo import backends
 from vedo import addons
@@ -138,7 +138,7 @@ def show(
     mode=None,
     screenshot="",
     new=False,
-):
+) -> Union["Plotter", None]:
     """
     Create on the fly an instance of class Plotter and show the object(s) provided.
 
@@ -295,7 +295,7 @@ def show(
             bg2=bg2,
         )
 
-    if settings.dry_run_mode >= 2:
+    if vedo.settings.dry_run_mode >= 2:
         return plt
 
     # use _plt_to_return because plt.show() can return a k3d plot
@@ -362,7 +362,7 @@ def show(
     return _plt_to_return
 
 
-def close():
+def close() -> None:
     """Close the last created Plotter instance if it exists."""
     if not vedo.plotter_instance:
         return
@@ -496,12 +496,12 @@ class Plotter:
         self._must_close_now = False
 
         #####################################################################
-        if settings.default_backend == "2d":
+        if vedo.settings.default_backend == "2d":
             self.offscreen = True
             if self.size == "auto":
                 self.size = (800, 600)
 
-        elif settings.default_backend == "k3d":
+        elif vedo.settings.default_backend == "k3d":
             if self.size == "auto":
                 self.size = (1000, 1000)
             ####################################
@@ -509,7 +509,7 @@ class Plotter:
             ####################################
 
         #############################################################
-        if settings.default_backend in ["vtk", "2d", "trame"]:
+        if vedo.settings.default_backend in ["vtk", "2d", "trame"]:
 
             if screensize == "auto":
                 screensize = (2160, 1440)  # TODO: get actual screen size
@@ -524,14 +524,14 @@ class Plotter:
                     self.title = f"vedo ({vedo.__version__})"
             self.window.SetWindowName(self.title)
 
-            # more settings
-            if settings.use_depth_peeling:
-                self.window.SetAlphaBitPlanes(settings.alpha_bit_planes)
-            self.window.SetMultiSamples(settings.multi_samples)
+            # more vedo.settings
+            if vedo.settings.use_depth_peeling:
+                self.window.SetAlphaBitPlanes(vedo.settings.alpha_bit_planes)
+            self.window.SetMultiSamples(vedo.settings.multi_samples)
 
-            self.window.SetPolygonSmoothing(settings.polygon_smoothing)
-            self.window.SetLineSmoothing(settings.line_smoothing)
-            self.window.SetPointSmoothing(settings.point_smoothing)
+            self.window.SetPolygonSmoothing(vedo.settings.polygon_smoothing)
+            self.window.SetLineSmoothing(vedo.settings.line_smoothing)
+            self.window.SetPointSmoothing(vedo.settings.point_smoothing)
 
         #############################################################
         if N:  # N = number of renderers. Find out the best
@@ -583,8 +583,8 @@ class Plotter:
                 xsplit = m / (n + m)
             else:
                 xsplit = 1 - n / (n + m)
-            if settings.window_splitting_position:
-                xsplit = settings.window_splitting_position
+            if vedo.settings.window_splitting_position:
+                xsplit = vedo.settings.window_splitting_position
 
             for i in rangen:
                 arenderer = vtki.vtkRenderer()
@@ -604,15 +604,15 @@ class Plotter:
                 self.renderers.append(arenderer)
 
             for r in self.renderers:
-                r.SetLightFollowCamera(settings.light_follows_camera)
+                r.SetLightFollowCamera(vedo.settings.light_follows_camera)
 
-                r.SetUseDepthPeeling(settings.use_depth_peeling)
-                # r.SetUseDepthPeelingForVolumes(settings.use_depth_peeling)
-                if settings.use_depth_peeling:
-                    r.SetMaximumNumberOfPeels(settings.max_number_of_peels)
-                    r.SetOcclusionRatio(settings.occlusion_ratio)
-                r.SetUseFXAA(settings.use_fxaa)
-                r.SetPreserveDepthBuffer(settings.preserve_depth_buffer)
+                r.SetUseDepthPeeling(vedo.settings.use_depth_peeling)
+                # r.SetUseDepthPeelingForVolumes(vedo.settings.use_depth_peeling)
+                if vedo.settings.use_depth_peeling:
+                    r.SetMaximumNumberOfPeels(vedo.settings.max_number_of_peels)
+                    r.SetOcclusionRatio(vedo.settings.occlusion_ratio)
+                r.SetUseFXAA(vedo.settings.use_fxaa)
+                r.SetPreserveDepthBuffer(vedo.settings.preserve_depth_buffer)
 
                 r.SetBackground(vedo.get_color(self.backgrcol))
 
@@ -633,15 +633,15 @@ class Plotter:
                 bg2_ = rd.pop("bg2", None)
 
                 arenderer = vtki.vtkRenderer()
-                arenderer.SetLightFollowCamera(settings.light_follows_camera)
+                arenderer.SetLightFollowCamera(vedo.settings.light_follows_camera)
 
-                arenderer.SetUseDepthPeeling(settings.use_depth_peeling)
-                # arenderer.SetUseDepthPeelingForVolumes(settings.use_depth_peeling)
-                if settings.use_depth_peeling:
-                    arenderer.SetMaximumNumberOfPeels(settings.max_number_of_peels)
-                    arenderer.SetOcclusionRatio(settings.occlusion_ratio)
-                arenderer.SetUseFXAA(settings.use_fxaa)
-                arenderer.SetPreserveDepthBuffer(settings.preserve_depth_buffer)
+                arenderer.SetUseDepthPeeling(vedo.settings.use_depth_peeling)
+                # arenderer.SetUseDepthPeelingForVolumes(vedo.settings.use_depth_peeling)
+                if vedo.settings.use_depth_peeling:
+                    arenderer.SetMaximumNumberOfPeels(vedo.settings.max_number_of_peels)
+                    arenderer.SetOcclusionRatio(vedo.settings.occlusion_ratio)
+                arenderer.SetUseFXAA(vedo.settings.use_fxaa)
+                arenderer.SetPreserveDepthBuffer(vedo.settings.preserve_depth_buffer)
 
                 arenderer.SetViewport(x0, y0, x1, y1)
                 arenderer.SetBackground(vedo.get_color(bg_))
@@ -692,16 +692,16 @@ class Plotter:
             for i in reversed(range(shape[0])):
                 for j in range(shape[1]):
                     arenderer = vtki.vtkRenderer()
-                    arenderer.SetLightFollowCamera(settings.light_follows_camera)
-                    arenderer.SetTwoSidedLighting(settings.two_sided_lighting)
+                    arenderer.SetLightFollowCamera(vedo.settings.light_follows_camera)
+                    arenderer.SetTwoSidedLighting(vedo.settings.two_sided_lighting)
 
-                    arenderer.SetUseDepthPeeling(settings.use_depth_peeling)
-                    # arenderer.SetUseDepthPeelingForVolumes(settings.use_depth_peeling)
-                    if settings.use_depth_peeling:
-                        arenderer.SetMaximumNumberOfPeels(settings.max_number_of_peels)
-                        arenderer.SetOcclusionRatio(settings.occlusion_ratio)
-                    arenderer.SetUseFXAA(settings.use_fxaa)
-                    arenderer.SetPreserveDepthBuffer(settings.preserve_depth_buffer)
+                    arenderer.SetUseDepthPeeling(vedo.settings.use_depth_peeling)
+                    # arenderer.SetUseDepthPeelingForVolumes(vedo.settings.use_depth_peeling)
+                    if vedo.settings.use_depth_peeling:
+                        arenderer.SetMaximumNumberOfPeels(vedo.settings.max_number_of_peels)
+                        arenderer.SetOcclusionRatio(vedo.settings.occlusion_ratio)
+                    arenderer.SetUseFXAA(vedo.settings.use_fxaa)
+                    arenderer.SetPreserveDepthBuffer(vedo.settings.preserve_depth_buffer)
 
                     if image_actor:
                         arenderer.SetLayer(1)
@@ -722,7 +722,7 @@ class Plotter:
 
         if self.renderers:
             self.renderer = self.renderers[0]
-            self.camera.SetParallelProjection(settings.use_parallel_projection)
+            self.camera.SetParallelProjection(vedo.settings.use_parallel_projection)
 
         #########################################################
         if self.qt_widget or self.wx_widget:
@@ -736,7 +736,7 @@ class Plotter:
         for r in self.renderers:
             self.window.AddRenderer(r)
             # set the background gradient if any
-            if settings.background_gradient_orientation > 0:
+            if vedo.settings.background_gradient_orientation > 0:
                 try:
                     modes = [
                         vtki.vtkViewport.GradientModes.VTK_GRADIENT_VERTICAL,
@@ -744,7 +744,7 @@ class Plotter:
                         vtki.vtkViewport.GradientModes.VTK_GRADIENT_RADIAL_VIEWPORT_FARTHEST_SIDE,
                         vtki.vtkViewport.GradientModes.VTK_GRADIENT_RADIAL_VIEWPORT_FARTHEST_CORNER,
                     ]
-                    r.SetGradientMode(modes[settings.background_gradient_orientation])
+                    r.SetGradientMode(modes[vedo.settings.background_gradient_orientation])
                     r.GradientBackgroundOn()
                 except AttributeError:
                     pass
@@ -755,9 +755,9 @@ class Plotter:
             self.interactor.SetRenderWindow(self.window)
             # vsty = vtki.new("InteractorStyleTrackballCamera")
             # self.interactor.SetInteractorStyle(vsty)
-            if settings.enable_default_keyboard_callbacks:
+            if vedo.settings.enable_default_keyboard_callbacks:
                 self.interactor.AddObserver("KeyPressEvent", self._default_keypress)
-            if settings.enable_default_mouse_callbacks:
+            if vedo.settings.enable_default_mouse_callbacks:
                 self.interactor.AddObserver("LeftButtonPressEvent", self._default_mouseleftclick)
             return  ################
             ########################
@@ -788,9 +788,9 @@ class Plotter:
         self.interactor.SetInteractorStyle(vsty)
         self.interactor.RemoveObservers("CharEvent")
 
-        if settings.enable_default_keyboard_callbacks:
+        if vedo.settings.enable_default_keyboard_callbacks:
             self.interactor.AddObserver("KeyPressEvent", self._default_keypress)
-        if settings.enable_default_mouse_callbacks:
+        if vedo.settings.enable_default_mouse_callbacks:
             self.interactor.AddObserver("LeftButtonPressEvent", self._default_mouseleftclick)
 
     ##################################################################### ..init ends here.
@@ -883,7 +883,7 @@ class Plotter:
         # context manager like in "with Plotter() as plt:"
         self.close()
 
-    def initialize_interactor(self):
+    def initialize_interactor(self) -> "Plotter":
         """Initialize the interactor if not already initialized."""
         if self.offscreen:
             return self
@@ -893,7 +893,7 @@ class Plotter:
                 self.interactor.RemoveObservers("CharEvent")
         return self
 
-    def process_events(self):
+    def process_events(self) -> "Plotter":
         """Process all pending events."""
         self.initialize_interactor()
         if self.interactor:
@@ -903,7 +903,7 @@ class Plotter:
                 pass
         return self
 
-    def at(self, nren, yren=None):
+    def at(self, nren: int, yren=None) -> "Plotter":
         """
         Select the current renderer number as an int.
         Can also use the `[nx, ny]` format.
@@ -927,7 +927,7 @@ class Plotter:
         self.renderer = self.renderers[nren]
         return self
 
-    def add(self, *objs, at=None):
+    def add(self, *objs, at=None) -> "Plotter":
         """
         Append the input objects to the internal list of objects to be shown.
 
@@ -951,7 +951,7 @@ class Plotter:
 
             if ren:
 
-                if isinstance(a, vtki.vtkInteractorObserver):
+                if isinstance(a, vedo.addons.BaseCutter):
                     a.add_to(self)  # from cutters
                     continue
 
@@ -970,7 +970,7 @@ class Plotter:
 
         return self
 
-    def remove(self, *objs, at=None):
+    def remove(self, *objs, at=None) -> "Plotter":
         """
         Remove input object to the internal list of objects to be shown.
 
@@ -1036,7 +1036,7 @@ class Plotter:
 
             if ren:  ### remove it from the renderer
 
-                if isinstance(ob, vtki.vtkInteractorObserver):
+                if isinstance(ob, vedo.addons.BaseCutter):
                     ob.remove_from(self)  # from cutters
                     continue
 
@@ -1079,13 +1079,13 @@ class Plotter:
         """Return the list of actors."""
         return [ob.actor for ob in self.objects if hasattr(ob, "actor")]
 
-    def remove_lights(self):
+    def remove_lights(self) -> "Plotter":
         """Remove all the present lights in the current renderer."""
         if self.renderer:
             self.renderer.RemoveAllLights()
         return self
 
-    def pop(self, at=None):
+    def pop(self, at=None) -> "Plotter":
         """
         Remove the last added object from the rendering window.
         This method is typically used in loops or callback functions.
@@ -1099,10 +1099,10 @@ class Plotter:
             self.remove(self.objects[-1], at)
         return self
 
-    def render(self, resetcam=False):
+    def render(self, resetcam=False) -> "Plotter":
         """Render the scene. This method is typically used in loops or callback functions."""
 
-        if settings.dry_run_mode >= 2:
+        if vedo.settings.dry_run_mode >= 2:
             return self
 
         if not self.window:
@@ -1121,12 +1121,12 @@ class Plotter:
                 self._cocoa_process_events = False
         return self
 
-    def interactive(self):
+    def interactive(self) -> "Plotter":
         """
         Start window interaction.
         Analogous to `show(..., interactive=True)`.
         """
-        if settings.dry_run_mode >= 1:
+        if vedo.settings.dry_run_mode >= 1:
             return self
         self.initialize_interactor()
         if self.interactor:
@@ -1144,7 +1144,7 @@ class Plotter:
                 self.camera = None
         return self
 
-    def use_depth_peeling(self, at=None, value=True):
+    def use_depth_peeling(self, at=None, value=True) -> "Plotter":
         """
         Specify whether use depth peeling algorithm at this specific renderer
         Call this method before the first rendering.
@@ -1156,7 +1156,7 @@ class Plotter:
         ren.SetUseDepthPeeling(value)
         return self
 
-    def background(self, c1=None, c2=None, at=None, mode=0):
+    def background(self, c1=None, c2=None, at=None, mode=0) -> Union["Plotter", "np.ndarray"]:
         """Set the color of the background for the current renderer.
         A different renderer index can be specified by keyword `at`.
 
@@ -1198,7 +1198,7 @@ class Plotter:
                             vtki.vtkViewport.GradientModes.VTK_GRADIENT_RADIAL_VIEWPORT_FARTHEST_SIDE,
                             vtki.vtkViewport.GradientModes.VTK_GRADIENT_RADIAL_VIEWPORT_FARTHEST_CORNER,
                         ]
-                        r.SetGradientMode(modes[settings.background_gradient_orientation])
+                        r.SetGradientMode(modes[vedo.settings.background_gradient_orientation])
                     except AttributeError:
                         pass
 
@@ -1207,7 +1207,7 @@ class Plotter:
         return self
 
     ##################################################################
-    def get_meshes(self, at=None, include_non_pickables=False, unpack_assemblies=True):
+    def get_meshes(self, at=None, include_non_pickables=False, unpack_assemblies=True) -> list:
         """
         Return a list of Meshes from the specified renderer.
 
@@ -1257,7 +1257,7 @@ class Plotter:
                     pass
         return objs
 
-    def get_volumes(self, at=None, include_non_pickables=False):
+    def get_volumes(self, at=None, include_non_pickables=False) -> list:
         """
         Return a list of Volumes from the specified renderer.
 
@@ -1285,7 +1285,7 @@ class Plotter:
                     pass
         return vols
 
-    def get_actors(self, at=None, include_non_pickables=False):
+    def get_actors(self, at=None, include_non_pickables=False) -> list:
         """
         Return a list of Volumes from the specified renderer.
 
@@ -1310,7 +1310,7 @@ class Plotter:
                 acts.append(a)
         return acts
     
-    def check_actors_trasform(self, at=None):
+    def check_actors_trasform(self, at=None) -> "Plotter":
         """
         Reset the transformation matrix of all actors at specified renderer.
         This is only useful when actors have been moved/rotated/scaled manually
@@ -1334,7 +1334,7 @@ class Plotter:
                     pass
         return self
 
-    def reset_camera(self, tight=None):
+    def reset_camera(self, tight=None) -> "Plotter":
         """
         Reset the camera position and zooming.
         If tight (float) is specified the zooming reserves a padding space
@@ -1362,7 +1362,7 @@ class Plotter:
             self.renderer.ResetCameraClippingRange(x0, x1, y0, y1, z0, z1)
         return self
 
-    def reset_viewup(self, smooth=True):
+    def reset_viewup(self, smooth=True) -> "Plotter":
         """
         Reset the orientation of the camera to the closest orthogonal direction and view-up.
         """
@@ -1439,7 +1439,7 @@ class Plotter:
         self.render()
         return self
 
-    def move_camera(self, cameras, t=0, times=(), smooth=True, output_times=()):
+    def move_camera(self, cameras, t=0, times=(), smooth=True, output_times=()) -> list:
         """
         Takes as input two cameras set camera at an interpolated position:
 
@@ -1483,7 +1483,7 @@ class Plotter:
                 vcams.append(c)
             return vcams
 
-    def fly_to(self, point):
+    def fly_to(self, point) -> "Plotter":
         """
         Fly camera to the specified point.
 
@@ -1506,7 +1506,7 @@ class Plotter:
             self.interactor.FlyTo(self.renderer, point)
         return self
 
-    def look_at(self, plane="xy"):
+    def look_at(self, plane="xy") -> "Plotter":
         """Move the camera so that it looks at the specified cartesian plane"""
         cam = self.renderer.GetActiveCamera()
         fp = np.array(cam.GetFocalPoint())
@@ -1526,7 +1526,7 @@ class Plotter:
             vedo.logger.error(f"in plotter.look() cannot understand argument {plane}")
         return self
 
-    def record(self, filename=""):
+    def record(self, filename="") -> str:
         """
         Record camera, mouse, keystrokes and all other events.
         Recording can be toggled on/off by pressing key "R".
@@ -1534,7 +1534,7 @@ class Plotter:
         Arguments:
             filename : (str)
                 ascii file to store events.
-                The default is `settings.cache_directory+"vedo/recorded_events.log"`.
+                The default is `vedo.settings.cache_directory+"vedo/recorded_events.log"`.
 
         Returns:
             a string descriptor of events.
@@ -1542,19 +1542,19 @@ class Plotter:
         Examples:
             - [record_play.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/record_play.py)
         """
-        if settings.dry_run_mode >= 1:
-            return self
+        if vedo.settings.dry_run_mode >= 1:
+            return ""
         if not self.interactor:
             vedo.logger.warning("Cannot record events, no interactor defined.")
-            return self
+            return ""
         erec = vtki.new("InteractorEventRecorder")
         erec.SetInteractor(self.interactor)
         if not filename:
-            if not os.path.exists(settings.cache_directory):
-                os.makedirs(settings.cache_directory)
+            if not os.path.exists(vedo.settings.cache_directory):
+                os.makedirs(vedo.settings.cache_directory)
             home_dir = os.path.expanduser("~")
             filename = os.path.join(
-                home_dir, settings.cache_directory, "vedo", "recorded_events.log")
+                home_dir, vedo.settings.cache_directory, "vedo", "recorded_events.log")
             print("Events will be recorded in", filename)
         erec.SetFileName(filename)
         erec.SetKeyPressActivationValue("R")
@@ -1568,21 +1568,21 @@ class Plotter:
         erec = None
         return events
 
-    def play(self, recorded_events="", repeats=0):
+    def play(self, recorded_events="", repeats=0) -> "Plotter":
         """
         Play camera, mouse, keystrokes and all other events.
 
         Arguments:
             events : (str)
                 file o string of events.
-                The default is `settings.cache_directory+"vedo/recorded_events.log"`.
+                The default is `vedo.settings.cache_directory+"vedo/recorded_events.log"`.
             repeats : (int)
                 number of extra repeats of the same events. The default is 0.
 
         Examples:
             - [record_play.py](https://github.com/marcomusy/vedo/tree/master/examples/basic/record_play.py)
         """
-        if settings.dry_run_mode >= 1:
+        if vedo.settings.dry_run_mode >= 1:
             return self
         if not self.interactor:
             vedo.logger.warning("Cannot play events, no interactor defined.")
@@ -1594,7 +1594,7 @@ class Plotter:
         if not recorded_events:
             home_dir = os.path.expanduser("~")
             recorded_events = os.path.join(
-                home_dir, settings.cache_directory, "vedo", "recorded_events.log")
+                home_dir, vedo.settings.cache_directory, "vedo", "recorded_events.log")
 
         if recorded_events.endswith(".log"):
             erec.ReadFromInputStringOff()
@@ -1611,7 +1611,7 @@ class Plotter:
         erec = None
         return self
 
-    def parallel_projection(self, value=True, at=None):
+    def parallel_projection(self, value=True, at=None) -> "Plotter":
         """
         Use parallel projection `at` a specified renderer.
         Object is seen from "infinite" distance, e.i. remove any perspective effects.
@@ -1628,12 +1628,12 @@ class Plotter:
         r.Modified()
         return self
 
-    def render_hidden_lines(self, value=True):
+    def render_hidden_lines(self, value=True) -> "Plotter":
         """Remove hidden lines when in wireframe mode."""
         self.renderer.SetUseHiddenLineRemoval(not value)
         return self
 
-    def fov(self, angle):
+    def fov(self, angle: float) -> "Plotter":
         """
         Set the field of view angle for the camera.
         This is the angle of the camera frustum in the horizontal direction.
@@ -1646,28 +1646,28 @@ class Plotter:
         self.renderer.GetActiveCamera().SetViewAngle(angle)
         return self
 
-    def zoom(self, zoom):
+    def zoom(self, zoom: float) -> "Plotter":
         """Apply a zooming factor for the current camera view"""
         self.renderer.GetActiveCamera().Zoom(zoom)
         return self
 
-    def azimuth(self, angle):
+    def azimuth(self, angle: float) -> "Plotter":
         """Rotate camera around the view up vector."""
         self.renderer.GetActiveCamera().Azimuth(angle)
         return self
 
-    def elevation(self, angle):
+    def elevation(self, angle: float) -> "Plotter":
         """Rotate the camera around the cross product of the negative
         of the direction of projection and the view up vector."""
         self.renderer.GetActiveCamera().Elevation(angle)
         return self
 
-    def roll(self, angle):
+    def roll(self, angle: float) -> "Plotter":
         """Roll the camera about the direction of projection."""
         self.renderer.GetActiveCamera().Roll(angle)
         return self
 
-    def dolly(self, value):
+    def dolly(self, value: float) -> "Plotter":
         """Move the camera towards (value>0) or away from (value<0) the focal point."""
         self.renderer.GetActiveCamera().Dolly(value)
         return self
@@ -1688,7 +1688,7 @@ class Plotter:
         show_value=True,
         delayed=False,
         **options,
-    ):
+    ) -> "vedo.addons.Slider2D":
         """
         Add a `vedo.addons.Slider2D` which can call an external custom function.
 
@@ -1783,7 +1783,7 @@ class Plotter:
         rotation=0.0,
         c=None,
         show_value=True,
-    ):
+    ) -> "vedo.addons.Slider3D":
         """
         Add a 3D slider widget which can call an external custom function.
 
@@ -1858,7 +1858,7 @@ class Plotter:
         italic=False,
         alpha=1,
         angle=0,
-    ):
+    ) -> Union["vedo.addons.Button", None]:
         """
         Add a button to the renderer window.
 
@@ -1900,11 +1900,12 @@ class Plotter:
             # bu.function_id = self.add_callback("LeftButtonPress", bu.function) # not good
             bu.function_id = bu.add_observer("pick", bu.function, priority=10)
             return bu
+        return None
 
     def add_spline_tool(
         self, points, pc="k", ps=8, lc="r4", ac="g5",
         lw=2, alpha=1, closed=False, ontop=True, can_add_nodes=True,
-    ):
+    ) -> "vedo.addons.SplineTool":
         """
         Add a spline tool to the current plotter.
         Nodes of the spline can be dragged in space with the mouse.
@@ -1947,7 +1948,7 @@ class Plotter:
         self.widgets.append(sw)
         return sw
 
-    def add_icon(self, icon, pos=3, size=0.08):
+    def add_icon(self, icon, pos=3, size=0.08) -> "vedo.addons.Icon":
         """Add an inset icon mesh into the same renderer.
 
         Arguments:
@@ -1968,7 +1969,7 @@ class Plotter:
         self.widgets.append(iconw)
         return iconw
 
-    def add_global_axes(self, axtype=None, c=None):
+    def add_global_axes(self, axtype=None, c=None) -> "Plotter":
         """Draw axes on scene. Available axes types:
 
         Arguments:
@@ -2015,7 +2016,7 @@ class Plotter:
         addons.add_global_axes(axtype, c)
         return self
 
-    def add_legend_box(self, **kwargs):
+    def add_legend_box(self, **kwargs) -> "vedo.addons.LegendBox":
         """Add a legend to the top right.
 
         Examples:
@@ -2026,7 +2027,7 @@ class Plotter:
         acts = self.get_meshes()
         lb = addons.LegendBox(acts, **kwargs)
         self.add(lb)
-        return self
+        return lb
 
     def add_hint(
         self,
@@ -2039,7 +2040,7 @@ class Plotter:
         justify=0,
         angle=0,
         delay=250,
-    ):
+    ) -> Union[vtki.vtkBalloonWidget, None]:
         """
         Create a pop-up hint style message when hovering an object.
         Use `add_hint(obj, False)` to disable a hinting a specific object.
@@ -2054,24 +2055,24 @@ class Plotter:
                 milliseconds to wait before pop-up occurs
         """
         if self.offscreen or not self.interactor:
-            return self
+            return None
 
         if vedo.vtk_version[:2] == (9, 0) and "Linux" in vedo.sys_platform:
             # Linux vtk9.0 is bugged
             vedo.logger.warning(
                 f"add_hint() is not available on Linux platforms for vtk{vedo.vtk_version}."
             )
-            return self
+            return None
 
         if obj is None:
             self.hint_widget.EnabledOff()
             self.hint_widget.SetInteractor(None)
             self.hint_widget = None
-            return self
+            return self.hint_widget
 
         if text is False and self.hint_widget:
             self.hint_widget.RemoveBalloon(obj)
-            return self
+            return self.hint_widget
 
         if text == "":
             if obj.name:
@@ -2079,7 +2080,7 @@ class Plotter:
             elif obj.filename:
                 text = obj.filename
             else:
-                return self
+                return None
 
         if not self.hint_widget:
             self.hint_widget = vtki.vtkBalloonWidget()
@@ -2115,9 +2116,9 @@ class Plotter:
         else:
             self.hint_widget.AddBalloon(obj.actor, text)
 
-        return self
+        return self.hint_widget
 
-    def add_shadows(self):
+    def add_shadows(self) -> "Plotter":
         """Add shadows at the current renderer."""
         if self.renderer:
             shadows = vtki.new("ShadowMapPass")
@@ -2131,7 +2132,7 @@ class Plotter:
             self.renderer.SetPass(camerapass)
         return self
 
-    def add_ambient_occlusion(self, radius, bias=0.01, blur=True, samples=100):
+    def add_ambient_occlusion(self, radius: float, bias=0.01, blur=True, samples=100) -> "Plotter":
         """
         Screen Space Ambient Occlusion.
 
@@ -2192,7 +2193,7 @@ class Plotter:
         self.renderer.SetPass(cam)
         return self
 
-    def add_depth_of_field(self, autofocus=True):
+    def add_depth_of_field(self, autofocus=True) -> "Plotter":
         """Add a depth of field effect in the scene."""
         lights = vtki.new("LightsPass")
 
@@ -2218,7 +2219,7 @@ class Plotter:
         self.renderer.SetPass(cam)
         return self
 
-    def _add_skybox(self, hdrfile):
+    def _add_skybox(self, hdrfile: str) -> "Plotter":
         # many hdr files are at https://polyhaven.com/all
 
         reader = vtki.new("HDRReader")
@@ -2247,7 +2248,7 @@ class Plotter:
         self.renderer.AddActor(self.skybox)
         return self
 
-    def add_renderer_frame(self, c=None, alpha=None, lw=None, padding=None):
+    def add_renderer_frame(self, c=None, alpha=None, lw=None, padding=None) -> "vedo.addons.RendererFrame":
         """
         Add a frame to the renderer subwindow.
 
@@ -2263,12 +2264,13 @@ class Plotter:
         """
         if c is None:  # automatic black or white
             c = (0.9, 0.9, 0.9)
-            if np.sum(vedo.plotter_instance.renderer.GetBackground()) > 1.5:
-                c = (0.1, 0.1, 0.1)
+            if self.renderer:
+                if np.sum(self.renderer.GetBackground()) > 1.5:
+                    c = (0.1, 0.1, 0.1)
         renf = addons.RendererFrame(c, alpha, lw, padding)
         if renf:
             self.renderer.AddActor(renf)
-        return self
+        return renf
 
     def add_hover_legend(
         self,
@@ -2281,7 +2283,7 @@ class Plotter:
         alpha=0.1,
         maxlength=24,
         use_info=False,
-    ):
+    ) -> int:
         """
         Add a legend with 2D text which is triggered by hovering the mouse on an object.
 
@@ -2433,7 +2435,7 @@ class Plotter:
         alpha=1,
         units="",
         gap=0.05,
-    ):
+    ) -> Union["vedo.visual.Actor2D", None]:
         """
         Add a Scale Indicator. Only works in parallel mode (no perspective).
 
@@ -2463,7 +2465,7 @@ class Plotter:
         # Note that this cannot go in addons.py
         # because it needs callbacks and window size
         if not self.interactor:
-            return self
+            return None
 
         ppoints = vtki.vtkPoints()  # Generate the polyline
         psqr = [[0.0, gap], [length / 10, gap]]
@@ -2527,7 +2529,7 @@ class Plotter:
         sifunc(0, 0)
         return fractor
 
-    def fill_event(self, ename="", pos=(), enable_picking=True):
+    def fill_event(self, ename="", pos=(), enable_picking=True) -> "Event":
         """
         Create an Event object with information of what was clicked.
 
@@ -2632,7 +2634,7 @@ class Plotter:
             event.isActor2D = isinstance(event.object, vtki.vtkActor2D)
         return event
 
-    def add_callback(self, event_name, func, priority=0.0, enable_picking=True):
+    def add_callback(self, event_name: str, func: Callable, priority=0.0, enable_picking=True) -> int:
         """
         Add a function to be executed while show() is active.
 
@@ -2710,7 +2712,7 @@ class Plotter:
         if not self.interactor:
             return 0
 
-        if settings.dry_run_mode >= 1:
+        if vedo.settings.dry_run_mode >= 1:
             return 0
 
         #########################################
@@ -2731,7 +2733,7 @@ class Plotter:
         # print(f"Registering event: {event_name} with id={cid}")
         return cid
 
-    def remove_callback(self, cid):
+    def remove_callback(self, cid: Union[int, str]) -> "Plotter":
         """
         Remove a callback function by its id
         or a whole category of callbacks by their name.
@@ -2749,7 +2751,7 @@ class Plotter:
                 self.interactor.RemoveObserver(cid)
         return self
 
-    def remove_all_observers(self):
+    def remove_all_observers(self) -> "Plotter":
         """
         Remove all observers.
 
@@ -2782,7 +2784,7 @@ class Plotter:
             self.interactor.RemoveAllObservers()
         return self
 
-    def timer_callback(self, action, timer_id=None, dt=1, one_shot=False):
+    def timer_callback(self, action: str, timer_id=None, dt=1, one_shot=False) -> int:
         """
         Start or stop an existing timer.
 
@@ -2822,27 +2824,27 @@ class Plotter:
             vedo.logger.error(e)
         return timer_id
 
-    def add_observer(self, event_name, func, priority=0):
+    def add_observer(self, event_name: str, func: Callable, priority=0.0) -> int:
         """
         Add a callback function that will be called when an event occurs.
         Consider using `add_callback()` instead.
         """
         if not self.interactor:
-            return self
+            return -1
         event_name = utils.get_vtk_name_event(event_name)
         idd = self.interactor.AddObserver(event_name, func, priority)
         return idd
 
     def compute_world_coordinate(
         self,
-        pos2d,
+        pos2d: MutableSequence[float],
         at=None,
         objs=(),
         bounds=(),
         offset=None,
         pixeltol=None,
         worldtol=None,
-    ):
+    ) -> np.ndarray:
         """
         Transform a 2D point on the screen into a 3D point inside the rendering scene.
         If a set of meshes is passed then points are placed onto these.
@@ -2880,9 +2882,10 @@ class Plotter:
         if not objs:
             pp = vtki.vtkFocalPlanePointPlacer()
         else:
-            pp = vtki.vtkPolygonalSurfacePointPlacer()
+            pps = vtki.vtkPolygonalSurfacePointPlacer()
             for ob in objs:
-                pp.AddProp(ob.actor)
+                pps.AddProp(ob.actor)
+            pp = pps # type: ignore
 
         if len(bounds) == 6:
             pp.SetPointBounds(bounds)
@@ -2893,14 +2896,14 @@ class Plotter:
         if offset:
             pp.SetOffset(offset)
 
-        worldPos = [0, 0, 0]
-        worldOrient = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        worldPos: MutableSequence[float] = [0, 0, 0]
+        worldOrient: MutableSequence[float] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
         pp.ComputeWorldPosition(renderer, pos2d, worldPos, worldOrient)
         # validw = pp.ValidateWorldPosition(worldPos, worldOrient)
         # validd = pp.ValidateDisplayPosition(renderer, pos2d)
         return np.array(worldPos)
 
-    def compute_screen_coordinates(self, obj, full_window=False):
+    def compute_screen_coordinates(self, obj, full_window=False) -> np.ndarray:
         """
         Given a 3D points in the current renderer (or full window),
         find the screen pixel coordinates.
@@ -2941,7 +2944,7 @@ class Plotter:
                 p2d.append(cs.GetComputedViewportValue(self.renderer))
         return np.array(p2d, dtype=int)
 
-    def pick_area(self, pos1, pos2, at=None):
+    def pick_area(self, pos1, pos2, at=None) -> "vedo.Mesh":
         """
         Pick all objects within a box defined by two corner points in 2D screen coordinates.
 
@@ -2993,7 +2996,7 @@ class Plotter:
         afru.name = "Frustum"
         return afru
 
-    def _scan_input_return_acts(self, objs):
+    def _scan_input_return_acts(self, objs) -> Any:
         # scan the input and return a list of actors
         if not utils.is_sequence(objs):
             objs = [objs]
@@ -3098,7 +3101,7 @@ class Plotter:
             elif "dolfin" in str(type(a)):  # assume a dolfin.Mesh object
                 import vedo.dolfin as vdlf
 
-                scanned_acts.append(vdlf.MeshActor(a).actor)
+                scanned_acts.append(vdlf.IMesh(a).actor)
 
             elif "madcad" in str(type(a)):
                 scanned_acts.append(utils.madcad2vedo(a).actor)
@@ -3134,7 +3137,7 @@ class Plotter:
         size=None,
         title=None,
         screenshot="",
-    ):
+    ) -> Any:
         """
         Render a list of objects.
 
@@ -3230,7 +3233,7 @@ class Plotter:
                 save a screenshot of the window to file
         """
 
-        if settings.dry_run_mode >= 2:
+        if vedo.settings.dry_run_mode >= 2:
             return self
 
         if self.wx_widget:
@@ -3262,7 +3265,7 @@ class Plotter:
             else:
                 self.window.SetSize(int(self.size[0]), int(self.size[1]))
 
-        if settings.default_backend == "vtk":
+        if vedo.settings.default_backend == "vtk":
             if str(bg).endswith(".hdr"):
                 self._add_skybox(bg)
             else:
@@ -3302,7 +3305,7 @@ class Plotter:
         self.add(objects)
 
         # Backend ###############################################################
-        if settings.default_backend in ["k3d"]:
+        if vedo.settings.default_backend in ["k3d"]:
             return backends.get_notebook_backend(self.objects)
         #########################################################################
 
@@ -3329,7 +3332,7 @@ class Plotter:
                 addons.add_global_axes(self.axes, bounds=bns)
 
         # Backend ###############################################################
-        if settings.default_backend in ["ipyvtk", "trame"]:
+        if vedo.settings.default_backend in ["ipyvtk", "trame"]:
             return backends.get_notebook_backend()
         #########################################################################
 
@@ -3339,7 +3342,7 @@ class Plotter:
         if len(self.renderers) > 1:
             self.add_renderer_frame()
 
-        if settings.default_backend == "2d" and not zoom:
+        if vedo.settings.default_backend == "2d" and not zoom:
             zoom = "tightest"
 
         if zoom:
@@ -3382,7 +3385,7 @@ class Plotter:
 
         self.initialize_interactor()
 
-        if settings.immediate_rendering:
+        if vedo.settings.immediate_rendering:
             self.window.Render()  ##################### <-------------- Render
 
         if self.interactor:  # can be offscreen or not the vtk backend..
@@ -3444,14 +3447,14 @@ class Plotter:
                     self.clock = time.time() - self._clockt0
 
         # 2d ####################################################################
-        if settings.default_backend == "2d":
+        if vedo.settings.default_backend == "2d":
             return backends.get_notebook_backend()
         #########################################################################
 
         return self
 
 
-    def add_inset(self, *objects, **options):
+    def add_inset(self, *objects, **options) -> Union[vtki.vtkOrientationMarkerWidget, None]:
         """Add a draggable inset space into a renderer.
 
         Arguments:
@@ -3516,7 +3519,7 @@ class Plotter:
         self.widgets.append(widget)
         return widget
 
-    def clear(self, at=None, deep=False):
+    def clear(self, at=None, deep=False) -> "Plotter":
         """Clear the scene from all meshes and volumes."""
         if at is not None:
             renderer = self.renderers[at]
@@ -3544,14 +3547,14 @@ class Plotter:
                     pass
         return self
 
-    def break_interaction(self):
+    def break_interaction(self) -> "Plotter":
         """Break window interaction and return to the python execution flow"""
         if self.interactor:
             self.check_actors_trasform()
             self.interactor.ExitCallback()
         return self
 
-    def user_mode(self, mode):
+    def user_mode(self, mode) -> Union["Plotter", None]:
         """
         Modify the user interaction mode.
 
@@ -3607,15 +3610,16 @@ class Plotter:
 
         elif isinstance(mode, vtki.vtkInteractorStyleUser):
             # set a custom interactor style
-            mode.interactor = self.interactor
-            mode.renderer = self.renderer
+            if hasattr(mode, "interactor"):
+                mode.interactor = self.interactor
+                mode.renderer = self.renderer # type: ignore
             mode.SetInteractor(self.interactor)
             mode.SetDefaultRenderer(self.renderer)
             self.interactor.SetInteractorStyle(mode)
 
         return self
 
-    def close(self):
+    def close(self) -> "Plotter":
         """Close the plotter."""
         # https://examples.vtk.org/site/Cxx/Visualization/CloseWindow/
         vedo.last_figure = None
@@ -3630,7 +3634,7 @@ class Plotter:
         self.hint_widget = None
         self.cutter_widget = None
 
-        if settings.dry_run_mode >= 2:
+        if vedo.settings.dry_run_mode >= 2:
             return self
         
         if not hasattr(self, "window"):
@@ -3667,12 +3671,6 @@ class Plotter:
             self.interactor = None
         return self
 
-    # def close(self):
-    #     """Close the Plotter instance and release resources."""
-    #     self.close_window()
-    #     if vedo.plotter_instance == self:
-    #         vedo.plotter_instance = None
-
     @property
     def camera(self):
         """Return the current active camera."""
@@ -3686,7 +3684,7 @@ class Plotter:
                 cam = utils.camera_from_dict(cam)
             self.renderer.SetActiveCamera(cam)
 
-    def screenshot(self, filename="screenshot.png", scale=1, asarray=False):
+    def screenshot(self, filename="screenshot.png", scale=1, asarray=False) -> Any:
         """
         Take a screenshot of the Plotter window.
 
@@ -3722,7 +3720,7 @@ class Plotter:
         """
         return vedo.file_io.screenshot(filename, scale, asarray)
 
-    def toimage(self, scale=1):
+    def toimage(self, scale=1) -> "vedo.image.Image":
         """
         Generate a `Image` object from the current rendering window.
 
@@ -3730,7 +3728,7 @@ class Plotter:
             scale : (int)
                 set image magnification as an integer multiplicating factor
         """
-        if settings.screeshot_large_image:
+        if vedo.settings.screeshot_large_image:
             w2if = vtki.new("RenderLargeImage")
             w2if.SetInput(self.renderer)
             w2if.SetMagnification(scale)
@@ -3739,13 +3737,13 @@ class Plotter:
             w2if.SetInput(self.window)
             if hasattr(w2if, "SetScale"):
                 w2if.SetScale(scale, scale)
-            if settings.screenshot_transparent_background:
+            if vedo.settings.screenshot_transparent_background:
                 w2if.SetInputBufferTypeToRGBA()
             w2if.ReadFrontBufferOff()  # read from the back buffer
         w2if.Update()
         return vedo.image.Image(w2if.GetOutput())
 
-    def export(self, filename="scene.npz", binary=False):
+    def export(self, filename="scene.npz", binary=False) -> "Plotter":
         """
         Export scene to file to HTML, X3D or Numpy file.
 
@@ -3802,7 +3800,7 @@ class Plotter:
         return None
 
     #######################################################################
-    def _default_mouseleftclick(self, iren, event):
+    def _default_mouseleftclick(self, iren, event) -> None:
         x, y = iren.GetEventPosition()
         renderer = iren.FindPokedRenderer(x, y)
         picker = vtki.vtkPropPicker()
@@ -3846,17 +3844,17 @@ class Plotter:
             pass
 
         # -----------
-        if "Histogram1D" in picker.GetAssembly().__class__.__name__:
-            histo = picker.GetAssembly()
-            if histo.verbose:
-                x = self.picked3d[0]
-                idx = np.digitize(x, histo.edges) - 1
-                f = histo.frequencies[idx]
-                cn = histo.centers[idx]
-                vedo.colors.printc(f"{histo.name}, bin={idx}, center={cn}, value={f}")
+        # if "Histogram1D" in picker.GetAssembly().__class__.__name__:
+        #     histo = picker.GetAssembly()
+        #     if histo.verbose:
+        #         x = self.picked3d[0]
+        #         idx = np.digitize(x, histo.edges) - 1
+        #         f = histo.frequencies[idx]
+        #         cn = histo.centers[idx]
+        #         vedo.colors.printc(f"{histo.name}, bin={idx}, center={cn}, value={f}")
 
     #######################################################################
-    def _default_keypress(self, iren, event):
+    def _default_keypress(self, iren, event) -> None:
         # NB: qt creates and passes a vtkGenericRenderWindowInteractor
 
         key = iren.GetKeySym()
@@ -4078,8 +4076,8 @@ class Plotter:
             # self.renderer.SetUseDepthPeelingForVolumes(udp)
             if udp:
                 self.window.SetAlphaBitPlanes(1)
-                renderer.SetMaximumNumberOfPeels(settings.max_number_of_peels)
-                renderer.SetOcclusionRatio(settings.occlusion_ratio)
+                renderer.SetMaximumNumberOfPeels(vedo.settings.max_number_of_peels)
+                renderer.SetOcclusionRatio(vedo.settings.occlusion_ratio)
             self.interactor.Render()
             wasUsed = renderer.GetLastRenderingUsedDepthPeeling()
             rnr = self.renderers.index(renderer)
@@ -4136,7 +4134,7 @@ class Plotter:
             try:
                 self._icol += 1
                 self.clicked_object.mapper.ScalarVisibilityOff()
-                pal = vedo.colors.palettes[settings.palette % len(vedo.colors.palettes)]
+                pal = vedo.colors.palettes[vedo.settings.palette % len(vedo.colors.palettes)]
                 self.clicked_object.c(pal[(self._icol) % 10])
                 self.remove(self.clicked_object.scalarbar)
             except AttributeError:
