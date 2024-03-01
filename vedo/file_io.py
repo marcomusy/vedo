@@ -2,6 +2,7 @@ import glob
 import os
 import time
 from tempfile import NamedTemporaryFile, TemporaryDirectory
+from typing import Any, List, Union
 
 import numpy as np
 
@@ -172,7 +173,7 @@ _x3d_html_template = """
 """
 
 ########################################################################
-def load(inputobj, unpack=True, force=False):
+def load(inputobj: Union[list, str], unpack=True, force=False) -> Any:
     """
     Load any vedo objects from file or from the web.
 
@@ -204,7 +205,6 @@ def load(inputobj, unpack=True, force=False):
     elif isinstance(inputobj, str) and inputobj.startswith("https://"):
         flist = [inputobj]
     else:
-        # flist = sorted(glob.glob(inputobj))
         flist = utils.humansort(glob.glob(inputobj))
 
     for fod in flist:
@@ -443,7 +443,7 @@ def _load_file(filename, unpack):
     return objt
 
 
-def download(url, force=False, verbose=True):
+def download(url: str, force=False, verbose=True) -> str:
     """
     Retrieve a file from a URL, save it locally and return its path.
     Use `force=True` to force a reload and discard cached copies.
@@ -496,83 +496,83 @@ def download(url, force=False, verbose=True):
 
 
 ########################################################################
-def download_new(url, to_local_file="", force=False, verbose=True):
-    """
-    Downloads a file from `url` to `to_local_file` if the local copy is outdated.
+# def download_new(url, to_local_file="", force=False, verbose=True):
+#     """
+#     Downloads a file from `url` to `to_local_file` if the local copy is outdated.
 
-    Arguments:
-        url : (str)
-            The URL to download the file from.
-        to_local_file : (str)
-            The local file name to save the file to. 
-            If not specified, the file name will be the same as the remote file name
-            in the directory specified by `settings.cache_directory + "/vedo"`.
-        force : (bool)
-            Force a new download even if the local file is up to date.
-        verbose : (bool)
-            Print verbose messages.
-    """
-    if not url.startswith("https://"):
-        if os.path.exists(url):
-            # Assume the url is already the local file path
-            return url
-        else:
-            raise FileNotFoundError(f"File not found: {url}")
+#     Arguments:
+#         url : (str)
+#             The URL to download the file from.
+#         to_local_file : (str)
+#             The local file name to save the file to. 
+#             If not specified, the file name will be the same as the remote file name
+#             in the directory specified by `settings.cache_directory + "/vedo"`.
+#         force : (bool)
+#             Force a new download even if the local file is up to date.
+#         verbose : (bool)
+#             Print verbose messages.
+#     """
+#     if not url.startswith("https://"):
+#         if os.path.exists(url):
+#             # Assume the url is already the local file path
+#             return url
+#         else:
+#             raise FileNotFoundError(f"File not found: {url}")
 
-    from datetime import datetime
-    import requests
+#     from datetime import datetime
+#     import requests
 
-    url = url.replace("www.dropbox", "dl.dropbox")
+#     url = url.replace("www.dropbox", "dl.dropbox")
 
-    if "github.com" in url:
-        url = url.replace("/blob/", "/raw/")
+#     if "github.com" in url:
+#         url = url.replace("/blob/", "/raw/")
 
-    # Get the user's home directory
-    home_directory = os.path.expanduser("~")
+#     # Get the user's home directory
+#     home_directory = os.path.expanduser("~")
 
-    # Define the path for the cache directory
-    cachedir = os.path.join(home_directory, settings.cache_directory, "vedo")
+#     # Define the path for the cache directory
+#     cachedir = os.path.join(home_directory, settings.cache_directory, "vedo")
 
-    # Create the directory if it does not exist
-    if not os.path.exists(cachedir):
-        os.makedirs(cachedir)
+#     # Create the directory if it does not exist
+#     if not os.path.exists(cachedir):
+#         os.makedirs(cachedir)
 
-    if not to_local_file:
-        basename = os.path.basename(url)
-        if "?" in basename:
-            basename = basename.split("?")[0]
-        to_local_file = os.path.join(cachedir, basename)
-        if verbose: print(f"Using local file name: {to_local_file}")
+#     if not to_local_file:
+#         basename = os.path.basename(url)
+#         if "?" in basename:
+#             basename = basename.split("?")[0]
+#         to_local_file = os.path.join(cachedir, basename)
+#         if verbose: print(f"Using local file name: {to_local_file}")
 
-    # Check if the local file exists and get its last modified time
-    if os.path.exists(to_local_file):
-        to_local_file_modified_time = os.path.getmtime(to_local_file)
-    else:
-        to_local_file_modified_time = 0
+#     # Check if the local file exists and get its last modified time
+#     if os.path.exists(to_local_file):
+#         to_local_file_modified_time = os.path.getmtime(to_local_file)
+#     else:
+#         to_local_file_modified_time = 0
 
-    # Send a HEAD request to get last modified time of the remote file
-    response = requests.head(url)
-    if 'Last-Modified' in response.headers:
-        remote_file_modified_time = datetime.strptime(
-            response.headers['Last-Modified'], '%a, %d %b %Y %H:%M:%S GMT'
-        ).timestamp()
-    else:
-        # If the Last-Modified header not available, assume file needs to be downloaded
-        remote_file_modified_time = float('inf')
+#     # Send a HEAD request to get last modified time of the remote file
+#     response = requests.head(url)
+#     if 'Last-Modified' in response.headers:
+#         remote_file_modified_time = datetime.strptime(
+#             response.headers['Last-Modified'], '%a, %d %b %Y %H:%M:%S GMT'
+#         ).timestamp()
+#     else:
+#         # If the Last-Modified header not available, assume file needs to be downloaded
+#         remote_file_modified_time = float('inf')
 
-    # Download the file if the remote file is newer
-    if force or remote_file_modified_time > to_local_file_modified_time:
-        response = requests.get(url)
-        with open(to_local_file, 'wb') as file:
-            file.write(response.content)
-            if verbose: print(f"Downloaded file from {url} -> {to_local_file}")
-    else:
-        if verbose: print("Local file is up to date.")
-    return to_local_file
+#     # Download the file if the remote file is newer
+#     if force or remote_file_modified_time > to_local_file_modified_time:
+#         response = requests.get(url)
+#         with open(to_local_file, 'wb') as file:
+#             file.write(response.content)
+#             if verbose: print(f"Downloaded file from {url} -> {to_local_file}")
+#     else:
+#         if verbose: print("Local file is up to date.")
+#     return to_local_file
 
 
 ########################################################################
-def gunzip(filename):
+def gunzip(filename: str) -> str:
     """Unzip a `.gz` file to a temporary file and returns its path."""
     if not filename.endswith(".gz"):
         # colors.printc("gunzip() error: file must end with .gz", c='r')
@@ -591,7 +591,7 @@ def gunzip(filename):
     return tmp_file.name
 
 ########################################################################
-def file_info(file_path):
+def file_info(file_path: str) -> tuple[str, str]:
     """Return the file size and creation time of input file"""
     siz, created = "", ""
     if os.path.isfile(file_path):
@@ -638,7 +638,7 @@ def loadStructuredGrid(filename):
 
 
 ###################################################################
-def load3DS(filename):
+def load3DS(filename: str) -> Assembly:
     """Load `3DS` file format from file."""
     renderer = vtki.vtkRenderer()
     renWin = vtki.vtkRenderWindow()
@@ -669,14 +669,14 @@ def load3DS(filename):
     return vedo.Assembly(wrapped_acts)
 
 ########################################################################
-def loadOFF(filename):
+def loadOFF(filename: str) -> Mesh:
     """Read the OFF file format (polygonal mesh)."""
     with open(filename, "r", encoding="UTF-8") as f:
         lines = f.readlines()
 
     vertices = []
     faces = []
-    NumberOfVertices = None
+    NumberOfVertices = 0
     i = -1
     for text in lines:
         if len(text) == 0:
@@ -708,7 +708,7 @@ def loadOFF(filename):
     return Mesh(utils.buildPolyData(vertices, faces))
 
 ########################################################################
-def loadGeoJSON(filename):
+def loadGeoJSON(filename: str) -> Mesh:
     """Load GeoJSON files."""
     jr = vtki.new("GeoJSONReader")
     jr.SetFileName(filename)
@@ -716,7 +716,7 @@ def loadGeoJSON(filename):
     return Mesh(jr.GetOutput())
 
 ########################################################################
-def loadDolfin(filename):
+def loadDolfin(filename: str) -> Union[Mesh, vedo.TetMesh, None]:
     """
     Reads a `Fenics/Dolfin` file format (.xml or .xdmf).
 
@@ -751,7 +751,7 @@ def loadDolfin(filename):
 
 
 ########################################################################
-def loadPVD(filename):
+def loadPVD(filename: str) -> Union[list[Any], None]:
     """Read paraview files."""
     import xml.etree.ElementTree as et
 
@@ -765,6 +765,8 @@ def loadPVD(filename):
     for coll in tree.getroot():
         for dataset in coll:
             fname = dataset.get("file")
+            if not fname:
+                continue
             ob = load(dname + "/" + fname)
             tm = dataset.get("timestep")
             if tm:
@@ -777,7 +779,7 @@ def loadPVD(filename):
     return listofobjs
 
 ########################################################################
-def loadNeutral(filename):
+def loadNeutral(filename:str) -> vedo.TetMesh:
     """
     Reads a `Neutral` tetrahedral file format.
 
@@ -802,7 +804,7 @@ def loadNeutral(filename):
     return vedo.TetMesh([coords, idolf_tets])
 
 ########################################################################
-def loadGmesh(filename):
+def loadGmesh(filename: str) -> Mesh:
     """Reads a `gmesh` file format. Return an `Mesh` object."""
     with open(filename, "r", encoding="UTF-8") as f:
         lines = f.readlines()
@@ -831,11 +833,11 @@ def loadGmesh(filename):
         ele = lines[i].split()
         elements.append([int(ele[-3]), int(ele[-2]), int(ele[-1])])
 
-    poly = utils.buildPolyData(node_coords, elements, indexOffset=1)
+    poly = utils.buildPolyData(node_coords, elements, index_offset=1)
     return Mesh(poly)
 
 ########################################################################
-def loadPCD(filename):
+def loadPCD(filename: str) -> Points:
     """Return a `Mesh` made of only vertex points
     from the `PointCloud` library file format.
     
@@ -864,7 +866,7 @@ def loadPCD(filename):
     return Points(poly).point_size(4)
 
 #########################################################################
-def _from_numpy(d):
+def _from_numpy(d: dict) -> Mesh:
     # recreate a mesh from numpy arrays
     keys = d.keys()
 
@@ -980,7 +982,7 @@ def _from_numpy(d):
     return msh
 
 #############################################################################
-def _import_npy(fileinput):
+def _import_npy(fileinput: str) -> "vedo.Plotter":
     """Import a vedo scene from numpy format."""
 
     fileinput = download(fileinput, verbose=False, force=True)
@@ -990,19 +992,19 @@ def _import_npy(fileinput):
         data = np.load(fileinput, allow_pickle=True)["vedo_scenes"][0]
 
     if "use_parallel_projection" in data.keys():
-        settings.use_parallel_projection = data["use_parallel_projection"]
+        vedo.settings.use_parallel_projection = data["use_parallel_projection"]
     if "use_polygon_offset" in data.keys():
-        settings.use_polygon_offset = data["use_polygon_offset"]
+        vedo.settings.use_polygon_offset = data["use_polygon_offset"]
     if "polygon_offset_factor" in data.keys():
-        settings.polygon_offset_factor = data["polygon_offset_factor"]
+        vedo.settings.polygon_offset_factor = data["polygon_offset_factor"]
     if "polygon_offset_units" in data.keys():
-        settings.polygon_offset_units = data["polygon_offset_units"]
+        vedo.settings.polygon_offset_units = data["polygon_offset_units"]
     if "interpolate_scalars_before_mapping" in data.keys():
-        settings.interpolate_scalars_before_mapping = data["interpolate_scalars_before_mapping"]
+        vedo.settings.interpolate_scalars_before_mapping = data["interpolate_scalars_before_mapping"]
     if "default_font" in data.keys():
-        settings.default_font = data["default_font"]
+        vedo.settings.default_font = data["default_font"]
     if "use_depth_peeling" in data.keys():
-        settings.use_depth_peeling = data["use_depth_peeling"]
+        vedo.settings.use_depth_peeling = data["use_depth_peeling"]
 
     axes = data.pop("axes", 4) # UNUSED
     title = data.pop("title", "")
@@ -1111,12 +1113,12 @@ def _import_npy(fileinput):
     return plt
 
 ###########################################################
-def loadImageData(filename):
+def loadImageData(filename: str) -> Union[vtki.vtkImageData, None]:
     """Read and return a `vtkImageData` object from file."""
     if ".tif" in filename.lower():
         reader = vtki.new("TIFFReader")
         # print("GetOrientationType ", reader.GetOrientationType())
-        reader.SetOrientationType(settings.tiff_orientation_type)
+        reader.SetOrientationType(vedo.settings.tiff_orientation_type)
     elif ".slc" in filename.lower():
         reader = vtki.new("SLCReader")
         if not reader.CanReadFile(filename):
@@ -1140,11 +1142,10 @@ def loadImageData(filename):
         return None
     reader.SetFileName(filename)
     reader.Update()
-    image = reader.GetOutput()
-    return image
+    return reader.GetOutput()
 
 ###########################################################
-def write(objct, fileoutput, binary=True):
+def write(objct: Any, fileoutput: str, binary=True) -> Any:
     """
     Write object to file. Same as `save()`.
 
@@ -1313,16 +1314,16 @@ def write(objct, fileoutput, binary=True):
         vedo.logger.error(f"could not save {fileoutput}")
     return objct
 
-def save(obj, fileoutput="out.png", binary=True):
+def save(obj: Any, fileoutput="out.png", binary=True) -> Any:
     """Save an object to file. Same as `write()`."""
     return write(obj, fileoutput, binary)
 
-def read(inputobj, unpack=True, force=False):
+def read(obj: Any, unpack=True, force=False) -> Any:
     """Read an object from file. Same as `load()`."""
-    return load(inputobj, unpack, force)
+    return load(obj, unpack, force)
 
 ###############################################################################
-def export_window(fileoutput, binary=False, plt=None):
+def export_window(fileoutput: str, binary=False, plt=None) -> "vedo.Plotter":
     """
     Exporter which writes out the rendered scene into an HTML, X3D or Numpy file.
 
@@ -1394,7 +1395,7 @@ def export_window(fileoutput, binary=False, plt=None):
     return plt
 
 #########################################################################
-def _to_numpy(act):
+def _to_numpy(act: Any) -> dict:
     """Encode a vedo object to numpy format."""
 
     ########################################################
@@ -1582,7 +1583,7 @@ def _to_numpy(act):
 
 
 #########################################################################
-def _export_npy(plt, fileoutput="scene.npz"):
+def _export_npy(plt, fileoutput="scene.npz") -> None:
 
     sdict = {}
     sdict["shape"] = plt.shape
@@ -1605,7 +1606,7 @@ def _export_npy(plt, fileoutput="scene.npz"):
         sdict["backgrcol2"] = plt.renderer.GetBackground2()
     sdict["use_depth_peeling"] = plt.renderer.GetUseDepthPeeling()
     sdict["use_parallel_projection"] = plt.camera.GetParallelProjection()
-    sdict["default_font"] = settings.default_font
+    sdict["default_font"] = vedo.settings.default_font
 
     sdict["objects"] = []
 
@@ -1661,8 +1662,9 @@ def _export_npy(plt, fileoutput="scene.npz"):
 
 
 ########################################################################
-def import_window(fileinput):
-    """Import a whole scene from a Numpy NPZ file.
+def import_window(fileinput: str) -> Union["vedo.Plotter", None]:
+    """
+    Import a whole scene from a Numpy NPZ file.
 
     Returns:
         `vedo.Plotter` instance
@@ -1682,8 +1684,9 @@ def import_window(fileinput):
     return None
 
 
-def load_obj(fileinput, mtl_file=None, texture_path=None):
-    """Import a set of meshes from a OBJ wavefront file.
+def load_obj(fileinput: str, mtl_file=None, texture_path=None) -> List[Mesh]:
+    """
+    Import a set of meshes from a OBJ wavefront file.
 
     Arguments:
         mtl_file : (str)
@@ -1728,7 +1731,7 @@ def load_obj(fileinput, mtl_file=None, texture_path=None):
 
 
 ##########################################################
-def screenshot(filename="screenshot.png", scale=1, asarray=False):
+def screenshot(filename="screenshot.png", scale=1, asarray=False) -> Union["vedo.Plotter", np.ndarray, None]:
     """
     Save a screenshot of the current rendering window.
 
@@ -1837,7 +1840,7 @@ def screenshot(filename="screenshot.png", scale=1, asarray=False):
     return vedo.plotter_instance
 
 
-def ask(*question, **kwarg):
+def ask(*question, **kwarg) -> str:
     """
     Ask a question from command line. Return the answer as a string.
     See function `colors.printc()` for the description of the keyword options.
@@ -1926,14 +1929,14 @@ class Video:
         self.get_filename = lambda x: os.path.join(self.tmp_dir.name, x)
         colors.printc(":video:  Video file", self.name, "is open... ", c="m", end="")
 
-    def add_frame(self):
+    def add_frame(self) -> "Video":
         """Add frame to current video."""
         fr = self.get_filename(str(len(self.frames)) + ".png")
         screenshot(fr)
         self.frames.append(fr)
         return self
 
-    def pause(self, pause=0):
+    def pause(self, pause=0) -> "Video":
         """Insert a `pause`, in seconds."""
         fr = self.frames[-1]
         n = int(self.fps * pause)
@@ -1943,7 +1946,7 @@ class Video:
             os.system("cp -f %s %s" % (fr, fr2))
         return self
 
-    def action(self, elevation=(0, 80), azimuth=(0, 359), cameras=(), resetcam=False):
+    def action(self, elevation=(0, 80), azimuth=(0, 359), cameras=(), resetcam=False) -> "Video":
         """
         Automatic shooting of a static scene by specifying rotation and elevation ranges.
 
@@ -1959,6 +1962,9 @@ class Video:
             self.duration = 5
 
         plt = vedo.plotter_instance
+        if not plt:
+            vedo.logger.error("No vedo plotter found, cannot make video.")
+            return self
         n = int(self.fps * self.duration)
 
         cams = []
@@ -1984,7 +1990,7 @@ class Video:
 
         return self
 
-    def close(self):
+    def close(self) -> None:
         """
         Render the video and write it to file.
         """
@@ -2023,8 +2029,12 @@ class Video:
 
             cap = cv2.VideoCapture(os.path.join(self.tmp_dir.name, "%1d.png"))
             fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-            w, h = vedo.plotter_instance.window.GetSize()
-            writer = cv2.VideoWriter(self.name, fourcc, self.fps, (w, h), True)
+            if vedo.plotter_instance:
+                w, h = vedo.plotter_instance.window.GetSize()
+                writer = cv2.VideoWriter(self.name, fourcc, self.fps, (w, h), True)
+            else:
+                vedo.logger.error("No vedo plotter found, cannot make video.")
+                return
 
             while True:
                 ret, frame = cap.read()
@@ -2065,7 +2075,7 @@ class Video:
         # finalize cleanup
         self.tmp_dir.cleanup()
 
-    def split_frames(self, output_dir="video_frames", prefix="frame_", format="png"):
+    def split_frames(self, output_dir="video_frames", prefix="frame_", format="png") -> None:
         """Split an existing video file into frames."""
         try:
             import imageio
