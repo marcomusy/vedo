@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+from typing import List, Union, Tuple, Any
 from functools import lru_cache
 from weakref import ref as weak_ref_to
 
@@ -170,7 +171,7 @@ class Glyph(Mesh):
         color_by_vector_size=False,
         c="k8",
         alpha=1.0,
-    ):
+    ) -> None:
         """
         Arguments:
             orientation_array: (list, str, vtkArray)
@@ -298,7 +299,7 @@ class Tensors(Mesh):
         res=24,
         c=None,
         alpha=1.0,
-    ):
+    ) -> None:
         """
         Arguments:
             source : (str, Mesh)
@@ -399,7 +400,7 @@ class Line(Mesh):
     A 2D set of coords can also be passed as `p0=[x..], p1=[y..]`.
     """
 
-    def __init__(self, p0, p1=None, closed=False, res=2, lw=1, c="k1", alpha=1.0):
+    def __init__(self, p0, p1=None, closed=False, res=2, lw=1, c="k1", alpha=1.0) -> None:
         """
         Arguments:
             closed : (bool)
@@ -464,19 +465,18 @@ class Line(Mesh):
 
         super().__init__(poly, c, alpha)
 
-        self.slope = []  # populated by analysis.fit_line
-        self.center = []
-        self.variances = []
+        self.slope: List[float] = []  # populated by analysis.fit_line
+        self.center: List[float] = []
+        self.variances: List[float] = []
 
-        self.coefficients = []  # populated by pyplot.fit()
-        self.covariance_matrix = []
-        self.coefficients = []
-        self.coefficient_errors = []
-        self.monte_carlo_coefficients = []
+        self.coefficients: List[float] = []  # populated by pyplot.fit()
+        self.covariance_matrix: List[float] = []
+        self.coefficient_errors: List[float] = []
+        self.monte_carlo_coefficients: List[float] = []
         self.reduced_chi2 = -1
         self.ndof = 0
         self.data_sigma = 0
-        self.error_lines = []
+        self.error_lines: List[Any] = []
         self.error_band = None
         self.res = res
 
@@ -488,7 +488,7 @@ class Line(Mesh):
         self.top = top
         self.name = "Line"
 
-    def clone(self, deep=True):
+    def clone(self, deep=True) -> "Line":
         """
         Return a copy of the ``Line`` object.
 
@@ -516,12 +516,12 @@ class Line(Mesh):
             "clone", parents=[self], shape="diamond", c="#edede9")
         return ln
 
-    def linecolor(self, lc=None):
+    def linecolor(self, lc=None) -> "Line":
         """Assign a color to the line"""
         # overrides mesh.linecolor which would have no effect here
         return self.color(lc)
 
-    def eval(self, x):
+    def eval(self, x: float) -> np.ndarray:
         """
         Calculate the position of an intermediate point
         as a fraction of the length of the line,
@@ -548,7 +548,7 @@ class Line(Mesh):
         v = p0 + seg * (x - w0) / (w1 - w0)
         return v
 
-    def find_index_at_position(self, p):
+    def find_index_at_position(self, p) -> float:
         """
         Find the index of the line vertex that is closest to the point `p`.
         Note that the returned index can be fractional if `p` is not exactly
@@ -561,7 +561,7 @@ class Line(Mesh):
         t = a + np.linalg.norm(pts[a] - q) / d
         return t
 
-    def pattern(self, stipple, repeats=10):
+    def pattern(self, stipple, repeats=10) -> "Line":
         """
         Define a stipple pattern for dashing the line.
         Pass the stipple pattern as a string like `'- - -'`.
@@ -617,7 +617,7 @@ class Line(Mesh):
         self.actor.SetTexture(texture)
         return self
 
-    def length(self):
+    def length(self) -> float:
         """Calculate length of the line."""
         distance = 0.0
         pts = self.vertices
@@ -625,7 +625,7 @@ class Line(Mesh):
             distance += np.linalg.norm(pts[i] - pts[i - 1])
         return distance
 
-    def tangents(self):
+    def tangents(self) -> np.ndarray:
         """
         Compute the tangents of a line in space.
 
@@ -645,7 +645,7 @@ class Line(Mesh):
         tangent = np.array([1 / ds_dt] * 3).transpose() * v
         return tangent
 
-    def curvature(self):
+    def curvature(self) -> np.ndarray:
         """
         Compute the signed curvature of a line in space.
         The signed is computed assuming the line is about coplanar to the xy plane.
@@ -673,12 +673,12 @@ class Line(Mesh):
         val[-1] = val[-2]
         return val
 
-    def compute_curvature(self, method=0):
+    def compute_curvature(self, method=0) -> "Line":
         """
         Add a pointdata array named 'Curvatures' which contains
         the curvature value at each point.
 
-        Keyword method is overridden in Mesh and has no effect here.
+        NB: keyword `method` is overridden in Mesh and has no effect here.
         """
         # overrides mesh.compute_curvature
         curvs = self.curvature()
@@ -692,13 +692,13 @@ class Line(Mesh):
 
     def plot_scalar(
             self,
-            radius=0, 
-            height=1,
+            radius=0.0, 
+            height=1.1,
             normal=(),
             camera=None,
-        ):
+        ) -> "Line":
         """
-        Generate a new Line which plots the active scalar along the line.
+        Generate a new `Line` which plots the active scalar along the line.
 
         Arguments:
             radius : (float)
@@ -737,7 +737,7 @@ class Line(Mesh):
         vap.name = "ArcPlot"
         return vap
 
-    def sweep(self, direction=(1, 0, 0), res=1):
+    def sweep(self, direction=(1, 0, 0), res=1) -> "Mesh":
         """
         Sweep the `Line` along the specified vector direction.
 
@@ -792,7 +792,7 @@ class Line(Mesh):
                 polys.InsertNextCell(4, pts)
         surface.SetPoints(points)
         surface.SetPolys(polys)
-        asurface = vedo.Mesh(surface)
+        asurface = Mesh(surface)
         asurface.copy_properties_from(self)
         asurface.lighting("default")
         self.vertices = self.vertices + direction
@@ -814,7 +814,7 @@ class DashedLine(Mesh):
     A 2D set of coords can also be passed as `p0=[x..], p1=[y..]`.
     """
 
-    def __init__(self, p0, p1=None, spacing=0.1, closed=False, lw=2, c="k5", alpha=1.0):
+    def __init__(self, p0, p1=None, spacing=0.1, closed=False, lw=2, c="k5", alpha=1.0) -> None:
         """
         Arguments:
             closed : (bool)
@@ -875,7 +875,7 @@ class DashedLine(Mesh):
             if not n1:
                 continue
 
-            res = 0
+            res = 0.0
             for i in range(n1 + 2):
                 ist = (i - 0.5) / n1
                 ist = max(ist, 0)
@@ -915,7 +915,7 @@ class RoundedLine(Mesh):
     a list of input points. Borders of the line are rounded.
     """
 
-    def __init__(self, pts, lw, res=10, c="gray4", alpha=1.0):
+    def __init__(self, pts, lw, res=10, c="gray4", alpha=1.0) -> None:
         """
         Arguments:
             pts : (list)
@@ -1018,7 +1018,7 @@ class Lines(Mesh):
 
     def __init__(
         self, start_pts, end_pts=None, dotted=False, res=1, scale=1.0, lw=1, c="k4", alpha=1.0
-    ):
+    ) -> None:
         """
         Arguments:
             scale : (float)
@@ -1128,7 +1128,7 @@ class Spline(Line):
     pass exactly through all the input points. Needs to import `scipy`.
     """
 
-    def __init__(self, points, smooth=0.0, degree=2, closed=False, res=None, easing=""):
+    def __init__(self, points, smooth=0.0, degree=2, closed=False, res=None, easing="") -> None:
         """
         Arguments:
             smooth : (float)
@@ -1175,10 +1175,10 @@ class Spline(Line):
         maxb = max(maxx - minx, maxy - miny, maxz - minz)
         smooth *= maxb / 2  # must be in absolute units
 
-        x = np.linspace(0, 1, res)
+        x = np.linspace(0.0, 1.0, res)
         if easing:
             if easing == "InSine":
-                x = 1 - np.cos((x * np.pi) / 2)
+                x = 1.0 - np.cos((x * np.pi) / 2)
             elif easing == "OutSine":
                 x = np.sin((x * np.pi) / 2)
             elif easing == "Sine":
@@ -1186,19 +1186,19 @@ class Spline(Line):
             elif easing == "InQuad":
                 x = x * x
             elif easing == "OutQuad":
-                x = 1 - (1 - x) * (1 - x)
+                x = 1.0 - (1 - x) * (1 - x)
             elif easing == "InCubic":
                 x = x * x
             elif easing == "OutCubic":
-                x = 1 - np.power(1 - x, 3)
+                x = 1.0 - np.power(1 - x, 3)
             elif easing == "InQuart":
                 x = x * x * x * x
             elif easing == "OutQuart":
-                x = 1 - np.power(1 - x, 4)
+                x = 1.0 - np.power(1 - x, 4)
             elif easing == "InCirc":
-                x = 1 - np.sqrt(1 - np.power(x, 2))
+                x = 1.0 - np.sqrt(1 - np.power(x, 2))
             elif easing == "OutCirc":
-                x = np.sqrt(1 - np.power(x - 1, 2))
+                x = np.sqrt(1.0 - np.power(x - 1, 2))
             else:
                 vedo.logger.error(f"unknown ease mode {easing}")
 
@@ -1218,7 +1218,7 @@ class KSpline(Line):
     """
 
     def __init__(self, points, 
-                 continuity=0.0, tension=0.0, bias=0.0, closed=False, res=None):
+                 continuity=0.0, tension=0.0, bias=0.0, closed=False, res=None) -> None:
         """
         Arguments:
             continuity : (float)
@@ -1292,7 +1292,7 @@ class CSpline(Line):
     Return a Cardinal spline which runs exactly through all the input points.
     """
 
-    def __init__(self, points, closed=False, res=None):
+    def __init__(self, points, closed=False, res=None) -> None:
         """
         Arguments:
             closed : (bool)
@@ -1353,7 +1353,7 @@ class Bezier(Line):
     Generate the Bezier line that links the first to the last point.
     """
 
-    def __init__(self, points, res=None):
+    def __init__(self, points, res=None) -> None:
         """
         Example:
             ```python
@@ -1407,7 +1407,7 @@ class NormalLines(Mesh):
             scale factor to control size.
     """
 
-    def __init__(self, msh, ratio=1, on="cells", scale=1.0):
+    def __init__(self, msh, ratio=1, on="cells", scale=1.0) -> None:
 
         poly = msh.clone().compute_normals().dataset
 
@@ -1455,7 +1455,7 @@ class Tube(Mesh):
     Build a tube along the line defined by a set of points.
     """
 
-    def __init__(self, points, r=1.0, cap=True, res=12, c=None, alpha=1.0):
+    def __init__(self, points, r=1.0, cap=True, res=12, c=None, alpha=1.0) -> None:
         """
         Arguments:
             r :  (float, list)
@@ -1538,7 +1538,7 @@ class Tube(Mesh):
         self.name = "Tube"
 
 
-def ThickTube(pts, r1, r2, res=12, c=None, alpha=1.0):
+def ThickTube(pts, r1, r2, res=12, c=None, alpha=1.0) -> Union["Mesh", None]:
     """
     Create a tube with a thickness along a line of points.
 
@@ -1579,11 +1579,14 @@ def ThickTube(pts, r1, r2, res=12, c=None, alpha=1.0):
     capa = make_cap(tc1a, tc2a)
     capb = make_cap(tc1b, tc2b)
 
-    thick_tube = merge(t1, t2, capa, capb).c(c).alpha(alpha)
-    thick_tube.base = t1.base
-    thick_tube.top  = t1.top
-    thick_tube.name = "ThickTube"
-    return thick_tube
+    thick_tube = merge(t1, t2, capa, capb)
+    if thick_tube:
+        thick_tube.c(c).alpha(alpha)
+        thick_tube.base = t1.base
+        thick_tube.top  = t1.top
+        thick_tube.name = "ThickTube"
+        return thick_tube
+    return None
 
 
 class Tubes(Mesh):
@@ -1601,7 +1604,7 @@ class Tubes(Mesh):
             max_radius_factor=100,
             cap=True,
             res=12
-        ):
+        ) -> None:
         """
         Wrap tubes around the input `Lines` object.
 
@@ -1675,7 +1678,7 @@ class Ribbon(Mesh):
         res=(200, 5),
         c="indigo3",
         alpha=1.0,
-    ):
+    ) -> None:
         """
         Arguments:
             mode : (int)
@@ -1817,7 +1820,7 @@ class Arrow(Mesh):
         res=12,
         c="r4",
         alpha=1.0,
-    ):
+    ) -> None:
         """
         If `c` is a `float` less than 1, the arrow is rendered as a in a color scale
         from white to red.
@@ -1833,7 +1836,7 @@ class Arrow(Mesh):
             end_pt = end_pt.GetPosition()
 
         axis = np.asarray(end_pt) - np.asarray(start_pt)
-        length = np.linalg.norm(axis)
+        length = float(np.linalg.norm(axis))
         if length:
             axis = axis / length
         if len(axis) < 3:  # its 2d
@@ -1911,7 +1914,7 @@ class Arrows(Glyph):
         res=6,
         c='k3',
         alpha=1.0,
-    ):
+    ) -> None:
         """
         Build arrows between two lists of points `start_pts` and `end_pts`.
          `start_pts` can be also passed in the form `[[point1, point2], ...]`.
@@ -2008,7 +2011,7 @@ class Arrow2D(Mesh):
         fill=True,
         c="red4",
         alpha=1.0,
-   ):
+   ) -> None:
         """
         Build a 2D arrow from `start_pt` to `end_pt`.
 
@@ -2064,7 +2067,7 @@ class Arrow2D(Mesh):
             poly = utils.buildPolyData(verts, [], lines=lines)
 
         axis = np.array(end_pt) - np.array(start_pt)
-        length = np.linalg.norm(axis)
+        length = float(np.linalg.norm(axis))
         if length:
             axis = axis / length
         theta = 0
@@ -2115,7 +2118,7 @@ class Arrows2D(Glyph):
         fill=True,
         c=None,
         alpha=1.0,
-    ):
+    ) -> None:
         """
         Build 2D arrows between two lists of points `start_pts` and `end_pts`.
         `start_pts` can be also passed in the form `[[point1, point2], ...]`.
@@ -2184,7 +2187,7 @@ class FlatArrow(Ribbon):
     Build a 2D arrow in 3D space by joining two close lines.
     """
 
-    def __init__(self, line1, line2, tip_size=1.0, tip_width=1.0):
+    def __init__(self, line1, line2, tip_size=1.0, tip_width=1.0) -> None:
         """
         Build a 2D arrow in 3D space by joining two close lines.
 
@@ -2224,7 +2227,7 @@ class FlatArrow(Ribbon):
 class Triangle(Mesh):
     """Create a triangle from 3 points in space."""
 
-    def __init__(self, p1, p2, p3, c="green7", alpha=1.0):
+    def __init__(self, p1, p2, p3, c="green7", alpha=1.0) -> None:
         """Create a triangle from 3 points in space."""
         super().__init__([[p1, p2, p3], [[0, 1, 2]]], c, alpha)
         self.properties.LightingOff()
@@ -2236,7 +2239,7 @@ class Polygon(Mesh):
     Build a polygon in the `xy` plane.
     """
 
-    def __init__(self, pos=(0, 0, 0), nsides=6, r=1.0, c="coral", alpha=1.0):
+    def __init__(self, pos=(0, 0, 0), nsides=6, r=1.0, c="coral", alpha=1.0) -> None:
         """
         Build a polygon in the `xy` plane of `nsides` of radius `r`.
 
@@ -2259,7 +2262,7 @@ class Circle(Polygon):
     Build a Circle of radius `r`.
     """
 
-    def __init__(self, pos=(0, 0, 0), r=1.0, res=120, c="gray5", alpha=1.0):
+    def __init__(self, pos=(0, 0, 0), r=1.0, res=120, c="gray5", alpha=1.0) -> None:
         """
         Build a Circle of radius `r`.
         """
@@ -2268,20 +2271,20 @@ class Circle(Polygon):
         self.nr_of_points = 0
         self.va = 0
         self.vb = 0
-        self.axis1 = []
-        self.axis2 = []
-        self.center = []  # filled by pointcloud.pca_ellipse()
-        self.pvalue = 0  # filled by pointcloud.pca_ellipse()
+        self.axis1: List[float] = []
+        self.axis2: List[float] = []
+        self.center: List[float] = []  # filled by pointcloud.pca_ellipse()
+        self.pvalue = 0.0              # filled by pointcloud.pca_ellipse()
         self.alpha(alpha).c(c)
         self.name = "Circle"
     
-    def acircularity(self):
+    def acircularity(self) -> float:
         """
         Return a measure of how different an ellipse is from a circle.
         Values close to zero correspond to a circular object.
         """
         a, b = self.va, self.vb
-        value = 0
+        value = 0.0
         if a+b:
             value = ((a-b)/(a+b))**2
         return value
@@ -2291,7 +2294,7 @@ class GeoCircle(Polygon):
     Build a Circle of radius `r`.
     """
 
-    def __init__(self, lat, lon, r=1.0, res=60, c="red4", alpha=1.0):
+    def __init__(self, lat, lon, r=1.0, res=60, c="red4", alpha=1.0) -> None:
         """
         Build a Circle of radius `r` as projected on a geographic map.
         Circles near the poles will look very squashed.
@@ -2319,7 +2322,7 @@ class Star(Mesh):
     Build a 2D star shape.
     """
 
-    def __init__(self, pos=(0, 0, 0), n=5, r1=0.7, r2=1.0, line=False, c="blue6", alpha=1.0):
+    def __init__(self, pos=(0, 0, 0), n=5, r1=0.7, r2=1.0, line=False, c="blue6", alpha=1.0) -> None:
         """
         Build a 2D star shape of `n` cusps of inner radius `r1` and outer radius `r2`.
 
@@ -2369,7 +2372,7 @@ class Disc(Mesh):
 
     def __init__(
         self, pos=(0, 0, 0), r1=0.5, r2=1.0, res=(1, 120), angle_range=(), c="gray4", alpha=1.0
-    ):
+    ) -> None:
         """
         Build a 2D disc of inner radius `r1` and outer radius `r2`.
 
@@ -2418,7 +2421,7 @@ class Arc(Mesh):
         res=50,
         c="gray4",
         alpha=1.0,
-    ):
+    ) -> None:
         """
         Build a 2D circular arc between 2 points `point1` and `point2`.
 
@@ -2465,7 +2468,7 @@ class IcoSphere(Mesh):
     Create a sphere made of a uniform triangle mesh.
     """
 
-    def __init__(self, pos=(0, 0, 0), r=1.0, subdivisions=4, c="r5", alpha=1.0):
+    def __init__(self, pos=(0, 0, 0), r=1.0, subdivisions=4, c="r5", alpha=1.0) -> None:
         """
         Create a sphere made of a uniform triangle mesh
         (from recursive subdivision of an icosahedron).
@@ -2536,7 +2539,7 @@ class Sphere(Mesh):
     Build a sphere.
     """
 
-    def __init__(self, pos=(0, 0, 0), r=1.0, res=24, quads=False, c="r5", alpha=1.0):
+    def __init__(self, pos=(0, 0, 0), r=1.0, res=24, quads=False, c="r5", alpha=1.0) -> None:
         """
         Build a sphere at position `pos` of radius `r`.
 
@@ -2604,7 +2607,7 @@ class Spheres(Mesh):
     Build a large set of spheres.
     """
 
-    def __init__(self, centers, r=1.0, res=8, c="red5", alpha=1):
+    def __init__(self, centers, r=1.0, res=8, c="red5", alpha=1) -> None:
         """
         Build a (possibly large) set of spheres at `centers` of radius `r`.
 
@@ -2702,7 +2705,7 @@ class Earth(Mesh):
     Build a textured mesh representing the Earth.
     """
 
-    def __init__(self, style=1, r=1.0):
+    def __init__(self, style=1, r=1.0) -> None:
         """
         Build a textured mesh representing the Earth.
 
@@ -2738,7 +2741,7 @@ class Ellipsoid(Mesh):
         res=24,
         c="cyan4",
         alpha=1.0,
-    ):
+    ) -> None:
         """
         Build a 3D ellipsoid centered at position `pos`.
 
@@ -2785,7 +2788,7 @@ class Ellipsoid(Mesh):
         self.apply_transform(lt)
         self.name = "Ellipsoid"
 
-    def asphericity(self):
+    def asphericity(self) -> float:
         """
         Return a measure of how different an ellipsoid is from a sphere.
         Values close to zero correspond to a spheric object.
@@ -2794,9 +2797,9 @@ class Ellipsoid(Mesh):
         asp = ( ((a-b)/(a+b))**2
               + ((a-c)/(a+c))**2
               + ((b-c)/(b+c))**2 ) / 3. * 4.
-        return asp
+        return float(asp)
 
-    def asphericity_error(self):
+    def asphericity_error(self) -> float:
         """
         Calculate statistical error on the asphericity value.
 
@@ -2852,7 +2855,7 @@ class Grid(Mesh):
     An even or uneven 2D grid.
     """
 
-    def __init__(self, pos=(0, 0, 0), s=(1, 1), res=(10, 10), lw=1, c="k3", alpha=1.0):
+    def __init__(self, pos=(0, 0, 0), s=(1, 1), res=(10, 10), lw=1, c="k3", alpha=1.0) -> None:
         """
         Create an even or uneven 2D grid.
         Can also be created from a `np.mgrid` object (see example).
@@ -2919,7 +2922,6 @@ class Grid(Mesh):
                 for i in range(n - 1):
                     faces.append([i + j * n, i + 1 + j * n, i + 1 + j1n, i + j1n])
 
-            verts = np.array(verts)
             super().__init__([verts, faces], c, alpha)
 
         else:
@@ -2953,7 +2955,7 @@ class Plane(Mesh):
             s=(1, 1),
             res=(1, 1),
             c="gray5", alpha=1.0,
-        ):
+        ) -> None:
         """
         Create a plane of size `s=(xsize, ysize)` oriented perpendicular
         to vector `normal` so that it passes through point `pos`.
@@ -2998,7 +3000,7 @@ class Plane(Mesh):
         self.name = "Plane"
         self.variance = 0
 
-    def clone(self, deep=True):
+    def clone(self, deep=True) -> "Plane":
         newplane = Plane()
         if deep:
             newplane.dataset.DeepCopy(self.dataset)
@@ -3010,7 +3012,7 @@ class Plane(Mesh):
         return newplane
     
     @property
-    def normal(self):
+    def normal(self) -> np.ndarray:
         pts = self.vertices
         AB = pts[1] - pts[0]
         AC = pts[2] - pts[0]
@@ -3019,11 +3021,11 @@ class Plane(Mesh):
         return normal
 
     @property
-    def center(self):
+    def center(self) -> np.ndarray:
         pts = self.vertices
         return np.mean(pts, axis=0)
 
-    def contains(self, points):
+    def contains(self, points, tol=0) -> np.ndarray:
         """
         Check if each of the provided point lies on this plane.
         `points` is an array of shape (n, 3).
@@ -3031,7 +3033,7 @@ class Plane(Mesh):
         points = np.array(points, dtype=float)
         bounds = self.vertices
 
-        mask = np.isclose(np.dot(points - self.center, self.normal), 0)
+        mask = np.isclose(np.dot(points - self.center, self.normal), tol)
 
         for i in [1, 3]:
             AB = bounds[i] - bounds[0]
@@ -3048,7 +3050,7 @@ class Rectangle(Mesh):
     Build a rectangle in the xy plane.
     """
 
-    def __init__(self, p1=(0, 0), p2=(1, 1), radius=None, res=12, c="gray5", alpha=1.0):
+    def __init__(self, p1=(0, 0), p2=(1, 1), radius=None, res=12, c="gray5", alpha=1.0) -> None:
         """
         Build a rectangle in the xy plane identified by any two corner points.
 
@@ -3144,7 +3146,7 @@ class Box(Mesh):
 
     def __init__(
             self, pos=(0, 0, 0), 
-            length=1.0, width=2.0, height=3.0, size=(), c="g4", alpha=1.0):
+            length=1.0, width=2.0, height=3.0, size=(), c="g4", alpha=1.0) -> None:
         """
         Build a box of dimensions `x=length, y=width and z=height`.
         Alternatively dimensions can be defined by setting `size` keyword with a tuple.
@@ -3216,7 +3218,7 @@ class Box(Mesh):
 class Cube(Box):
     """Build a cube."""
 
-    def __init__(self, pos=(0, 0, 0), side=1.0, c="g4", alpha=1.0):
+    def __init__(self, pos=(0, 0, 0), side=1.0, c="g4", alpha=1.0) -> None:
         """Build a cube of size `side`."""
         super().__init__(pos, side, side, side, (), c, alpha)
         self.name = "Cube"
@@ -3227,7 +3229,7 @@ class TessellatedBox(Mesh):
     Build a cubic `Mesh` made of quads.
     """
 
-    def __init__(self, pos=(0, 0, 0), n=10, spacing=(1, 1, 1), bounds=(), c="k5", alpha=0.5):
+    def __init__(self, pos=(0, 0, 0), n=10, spacing=(1, 1, 1), bounds=(), c="k5", alpha=0.5) -> None:
         """
         Build a cubic `Mesh` made of `n` small quads in the 3 axis directions.
 
@@ -3280,7 +3282,7 @@ class Spring(Mesh):
         thickness=None,
         c="gray5",
         alpha=1.0,
-    ):
+    ) -> None:
         """
         Build a spring of specified nr of `coils` between `start_pt` and `end_pt`.
 
@@ -3354,7 +3356,7 @@ class Cylinder(Mesh):
     def __init__(
         self, pos=(0, 0, 0), r=1.0, height=2.0, axis=(0, 0, 1),
         cap=True, res=24, c="teal3", alpha=1.0
-    ):
+    ) -> None:
         """
         Build a cylinder of specified height and radius `r`, centered at `pos`.
 
@@ -3415,7 +3417,7 @@ class Cone(Mesh):
     """Build a cone of specified radius and height."""
 
     def __init__(self, pos=(0, 0, 0), r=1.0, height=3.0, axis=(0, 0, 1),
-                 res=48, c="green3", alpha=1.0):
+                 res=48, c="green3", alpha=1.0) -> None:
         """Build a cone of specified radius `r` and `height`, centered at `pos`."""
         con = vtki.new("ConeSource")
         con.SetResolution(res)
@@ -3438,7 +3440,7 @@ class Pyramid(Cone):
     """Build a pyramidal shape."""
 
     def __init__(self, pos=(0, 0, 0), s=1.0, height=1.0, axis=(0, 0, 1),
-                 c="green3", alpha=1):
+                 c="green3", alpha=1) -> None:
         """Build a pyramid of specified base size `s` and `height`, centered at `pos`."""
         super().__init__(pos, s, height, axis, 4, c, alpha)
         self.name = "Pyramid"
@@ -3449,7 +3451,7 @@ class Torus(Mesh):
     Build a toroidal shape.
     """
 
-    def __init__(self, pos=(0, 0, 0), r1=1.0, r2=0.2, res=36, quads=False, c="yellow3", alpha=1.0):
+    def __init__(self, pos=(0, 0, 0), r1=1.0, r2=0.2, res=36, quads=False, c="yellow3", alpha=1.0) -> None:
         """
         Build a torus of specified outer radius `r1` internal radius `r2`, centered at `pos`.
         If `quad=True` a quad-mesh is generated.
@@ -3506,7 +3508,7 @@ class Paraboloid(Mesh):
     Build a paraboloid.
     """
 
-    def __init__(self, pos=(0, 0, 0), height=1.0, res=50, c="cyan5", alpha=1.0):
+    def __init__(self, pos=(0, 0, 0), height=1.0, res=50, c="cyan5", alpha=1.0) -> None:
         """
         Build a paraboloid of specified height and radius `r`, centered at `pos`.
 
@@ -3541,7 +3543,7 @@ class Hyperboloid(Mesh):
     Build a hyperboloid.
     """
 
-    def __init__(self, pos=(0, 0, 0), a2=1.0, value=0.5, res=100, c="pink4", alpha=1.0):
+    def __init__(self, pos=(0, 0, 0), a2=1.0, value=0.5, res=100, c="pink4", alpha=1.0) -> None:
         """
         Build a hyperboloid of specified aperture `a2` and `height`, centered at `pos`.
 
@@ -3569,7 +3571,7 @@ class Hyperboloid(Mesh):
         self.name = "Hyperboloid"
 
 
-def Marker(symbol, pos=(0, 0, 0), c="k", alpha=1.0, s=0.1, filled=True):
+def Marker(symbol, pos=(0, 0, 0), c="k", alpha=1.0, s=0.1, filled=True) -> Any:
     """
     Generate a marker shape. Typically used in association with `Glyph`.
     """
@@ -3648,7 +3650,7 @@ class Brace(Mesh):
         italic=0,
         c="k1",
         alpha=1.0,
-    ):
+    ) -> None:
         """
         Create a brace (bracket) shape which spans from point q1 to point q2.
 
@@ -3762,7 +3764,7 @@ class Star3D(Mesh):
     Build a 3D starred shape.
     """
 
-    def __init__(self, pos=(0, 0, 0), r=1.0, thickness=0.1, c="blue4", alpha=1.0):
+    def __init__(self, pos=(0, 0, 0), r=1.0, thickness=0.1, c="blue4", alpha=1.0) -> None:
         """
         Build a 3D star shape of 5 cusps, mainly useful as a 3D marker.
         """
@@ -3790,7 +3792,7 @@ class Cross3D(Mesh):
     Build a 3D cross shape.
     """
 
-    def __init__(self, pos=(0, 0, 0), s=1.0, thickness=0.3, c="b", alpha=1.0):
+    def __init__(self, pos=(0, 0, 0), s=1.0, thickness=0.3, c="b", alpha=1.0) -> None:
         """
         Build a 3D cross shape, mainly useful as a 3D marker.
         """
@@ -3929,7 +3931,7 @@ class ParametricShape(Mesh):
 
 
 @lru_cache(None)
-def _load_font(font):
+def _load_font(font) -> np.ndarray:
     # print('_load_font()', font)
 
     if utils.is_number(font):
@@ -4011,7 +4013,7 @@ class Text3D(Mesh):
         literal=False,
         c=None,
         alpha=1.0,
-    ):
+    ) -> None:
         """
         Generate a 3D polygonal `Mesh` representing a text string.
 
@@ -4108,7 +4110,7 @@ class Text3D(Mesh):
         italic=False,
         justify="bottom-left",
         literal=False,
-    ):
+    ) -> "Text3D":
         """
         Update the text and some of its properties.
 
@@ -4144,7 +4146,7 @@ class Text3D(Mesh):
         italic=False,
         justify="bottom-left",
         literal=False,
-    ):
+    ) -> vtki.vtkPolyData:
         if not font:
             font = settings.default_font
 
@@ -4205,8 +4207,8 @@ class Text3D(Mesh):
                 for r in reps2:
                     txt = txt.replace(r[0], r[1])
 
-            xmax, ymax, yshift, scale = 0, 0, 0, 1
-            save_xmax = 0
+            xmax, ymax, yshift, scale = 0.0, 0.0, 0.0, 1.0
+            save_xmax = 0.0
 
             notfounds = set()
             polyletters = []
@@ -4232,8 +4234,8 @@ class Text3D(Mesh):
                     scale = 0.5
                     continue
                 elif (t in (" ", "\\n")) and yshift:
-                    yshift = 0
-                    scale = 1
+                    yshift = 0.0
+                    scale = 1.0
                     save_xmax = xmax
                     if t == " ":
                         continue
@@ -4248,8 +4250,8 @@ class Text3D(Mesh):
                     xmax += hspacing * scale * fscale
 
                 elif t == "\n":
-                    xmax = 0
-                    save_xmax = 0
+                    xmax = 0.0
+                    save_xmax = 0.0
                     ymax -= vspacing
 
                 else:
@@ -4349,18 +4351,18 @@ class TextBase:
         else:
             self.fontname = settings.default_font
 
-    def angle(self, value):
+    def angle(self, value: float):
         """Orientation angle in degrees"""
         self.properties.SetOrientation(value)
         return self
 
-    def line_spacing(self, value):
+    def line_spacing(self, value: float):
         """Set the extra spacing between lines
         expressed as a text height multiplicative factor."""
         self.properties.SetLineSpacing(value)
         return self
 
-    def line_offset(self, value):
+    def line_offset(self, value: float):
         """Set/Get the vertical offset (measured in pixels)."""
         self.properties.SetLineOffset(value)
         return self
@@ -4397,7 +4399,7 @@ class TextBase:
             return get_color(self.properties.GetColor())
         return self.color(color)
 
-    def alpha(self, value):
+    def alpha(self, value: float):
         """Set the text opacity"""
         self.properties.SetBackgroundOpacity(value)
         return self
@@ -4424,7 +4426,7 @@ class TextBase:
             self.properties.SetFrameWidth(lw)
         return self
 
-    def font(self, font):
+    def font(self, font: str):
         """Text font face"""
         if isinstance(font, int):
             lfonts = list(settings.font_parameters.keys())
@@ -4479,7 +4481,7 @@ class Text2D(TextBase, vedo.visual.Actor2D):
         italic=False,
         c=None,
         alpha=0.5,
-    ):
+    ) -> None:
         """
         Create a 2D text object.
 
@@ -4659,7 +4661,7 @@ class CornerAnnotation(TextBase, vtki.vtkCornerAnnotation):
         - [timer_callback2.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/timer_callback2.py)
     """
 
-    def __init__(self, c=None):
+    def __init__(self, c=None) -> None:
 
         super().__init__()
 
@@ -4684,7 +4686,7 @@ class CornerAnnotation(TextBase, vtki.vtkCornerAnnotation):
         self.properties.SetBold(False)
         self.properties.SetItalic(False)
 
-    def size(self, s, linear=False):
+    def size(self, s:float, linear=False) -> "CornerAnnotation":
         """
         The font size is calculated as the largest possible value such that the annotations
         for the given viewport do not overlap.
@@ -4699,7 +4701,7 @@ class CornerAnnotation(TextBase, vtki.vtkCornerAnnotation):
             self.SetNonlinearFontScaleFactor(s / 2.75)
         return self
 
-    def text(self, txt, pos=2):
+    def text(self, txt: str, pos=2) -> "CornerAnnotation":
         """Set text at the assigned position"""
 
         if isinstance(pos, str):  # corners
@@ -4725,7 +4727,7 @@ class CornerAnnotation(TextBase, vtki.vtkCornerAnnotation):
         self.SetText(pos, txt)
         return self
 
-    def clear(self):
+    def clear(self) -> "CornerAnnotation":
         """Remove all text from all corners"""
         self.ClearAllTexts()
         return self
@@ -4736,7 +4738,7 @@ class Latex(Image):
     Render Latex text and formulas.
     """
 
-    def __init__(self, formula, pos=(0, 0, 0), s=1.0, bg=None, res=150, usetex=False, c="k", alpha=1.0):
+    def __init__(self, formula, pos=(0, 0, 0), s=1.0, bg=None, res=150, usetex=False, c="k", alpha=1.0) -> None:
         """
         Render Latex text and formulas.
 
@@ -4816,7 +4818,7 @@ class ConvexHull(Mesh):
     Create the 2D/3D convex hull from a set of points.
     """
 
-    def __init__(self, pts):
+    def __init__(self, pts) -> None:
         """
         Create the 2D/3D convex hull from a set of input points or input Mesh.
 
@@ -4858,7 +4860,7 @@ class ConvexHull(Mesh):
         self.name = "ConvexHull"
 
 
-def VedoLogo(distance=0.0, c=None, bc="t", version=False, frame=True):
+def VedoLogo(distance=0.0, c=None, bc="t", version=False, frame=True) -> "vedo.Assembly":
     """
     Create the 3D vedo logo.
 
