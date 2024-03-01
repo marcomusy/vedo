@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import time
+from typing import Union, Tuple, MutableSequence, List, Dict
 import numpy as np
 
 from vtkmodules.util.numpy_support import numpy_to_vtk, vtk_to_numpy
@@ -71,7 +72,7 @@ class OperationNode:
 
     def __init__(
         self, operation, parents=(), comment="", shape="none", c="#e9c46a", style="filled"
-    ):
+    ) -> None:
         """
         Keep track of the operations which led to a final object.
         This allows to show the `pipeline` tree for any `vedo` object with e.g.:
@@ -145,7 +146,7 @@ class OperationNode:
         self.color = c
         self.counts = 0
 
-    def add_parent(self, parent):
+    def add_parent(self, parent) -> None:
         self.parents.append(parent)
 
     def _build_tree(self, dot):
@@ -189,11 +190,11 @@ class OperationNode:
             out = f"Sorry treelib failed to build the tree for '{self.operation_plain}()'."
         return out
 
-    def print(self):
+    def print(self) -> None:
         """Print the tree of operations."""
         print(self.__str__())
 
-    def show(self, orientation="LR", popup=True):
+    def show(self, orientation="LR", popup=True) -> None:
         """Show the graphviz output for the pipeline of this object"""
         if not vedo.settings.enable_pipeline:
             return
@@ -242,7 +243,7 @@ class ProgressBar:
         width=25,
         char="\U00002501",
         char_back="\U00002500",
-    ):
+    ) -> None:
         """
         Class to print a progress bar with optional text message.
 
@@ -317,7 +318,7 @@ class ProgressBar:
         self._lentxt = 0
         self._range = np.arange(start, stop, step)
 
-    def print(self, txt="", c=None):
+    def print(self, txt="", c=None) -> None:
         """Print the progress bar with an optional message."""
         if not c:
             c = self.color
@@ -342,10 +343,10 @@ class ProgressBar:
                     self._remaining = 0.0
 
                 if self._remaining > 60:
-                    mins = int(self._remaining / 60)
-                    secs = self._remaining - 60 * mins
-                    mins = f"{mins}m"
-                    secs = f"{int(secs + 0.5)}s "
+                    _mins = int(self._remaining / 60)
+                    _secs = self._remaining - 60 * _mins
+                    mins = f"{_mins}m"
+                    secs = f"{int(_secs + 0.5)}s "
                 else:
                     mins = ""
                     secs = f"{int(self._remaining + 0.5)}s "
@@ -355,10 +356,10 @@ class ProgressBar:
                 if self._remaining < 0.5:
                     dt = time.time() - self.t0
                     if dt > 60:
-                        mins = int(dt / 60)
-                        secs = dt - 60 * mins
-                        mins = f"{mins}m"
-                        secs = f"{int(secs + 0.5)}s "
+                        _mins = int(dt / 60)
+                        _secs = dt - 60 * _mins
+                        mins = f"{_mins}m"
+                        secs = f"{int(_secs + 0.5)}s "
                     else:
                         mins = ""
                         secs = f"{int(dt + 0.5)}s "
@@ -376,7 +377,7 @@ class ProgressBar:
 
             self._lentxt = len(txt)
 
-    def range(self):
+    def range(self) -> np.ndarray:
         """Return the range iterator."""
         return self._range
 
@@ -509,7 +510,7 @@ class Minimizer:
             contraction_ratio=0.5,
             expansion_ratio=2.0,
             tol=1e-5,
-        ):
+        ) -> None:
         self.function = function
         self.tolerance = tol
         self.contraction_ratio = contraction_ratio
@@ -530,7 +531,7 @@ class Minimizer:
         self.function_path.append(r)
         return r
     
-    def eval(self, parameters=()):
+    def eval(self, parameters=()) -> float:
         """
         Evaluate the function at the current or given parameters.
         """
@@ -539,7 +540,7 @@ class Minimizer:
         self.set_parameters(parameters)
         return self.function(parameters)
     
-    def set_parameter(self, name, value, scale=1.0):
+    def set_parameter(self, name, value, scale=1.0) -> None:
         """
         Set the parameter value.
         The initial amount by which the parameter
@@ -548,7 +549,7 @@ class Minimizer:
         self.minimizer.SetParameterValue(name, value)
         self.minimizer.SetParameterScale(name, scale)
     
-    def set_parameters(self, parameters):
+    def set_parameters(self, parameters) -> None:
         """
         Set the parameters names and values from a dictionary.
         """
@@ -558,7 +559,7 @@ class Minimizer:
             else:
                 self.set_parameter(name, value)
     
-    def minimize(self):
+    def minimize(self) -> dict:
         """
         Minimize the input function.
 
@@ -626,7 +627,7 @@ class Minimizer:
         self.results["parameter_errors"] = np.zeros(n)
         return self.results
 
-    def compute_hessian(self, epsilon=0):
+    def compute_hessian(self, epsilon=0) -> np.array:
         """
         Compute the Hessian matrix of `function` at the
         minimum numerically.
@@ -707,7 +708,7 @@ class Minimizer:
 
 
 ###########################################################
-def andrews_curves(M, res=100):
+def andrews_curves(M, res=100) -> np.ndarray:
     """
     Computes the [Andrews curves](https://en.wikipedia.org/wiki/Andrews_plot)
     for the provided data.
@@ -808,7 +809,7 @@ def vtk2numpy(varr):
     return vtk_to_numpy(varr)
 
 
-def make3d(pts):
+def make3d(pts) -> np.ndarray:
     """
     Make an array which might be 2D to 3D.
 
@@ -846,7 +847,7 @@ def make3d(pts):
     return pts
 
 
-def geometry(obj, extent=None):
+def geometry(obj, extent=None) -> "vedo.Mesh":
     """
     Apply the `vtkGeometryFilter` to the input object.
     This is a general-purpose filter to extract geometry (and associated data)
@@ -868,7 +869,7 @@ def geometry(obj, extent=None):
     return vedo.Mesh(gf.GetOutput())
 
 
-def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0):
+def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0) -> vtki.vtkPolyData:
     """
     Build a `vtkPolyData` object from a list of vertices
     where faces represents the connectivity of the polygonal mesh.
@@ -931,9 +932,10 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0)
         if isinstance(faces, np.ndarray) or not is_ragged(faces):
             ##### all faces are composed of equal nr of vtxs, FAST
             faces = np.asarray(faces)
-            ast = np.int32
             if vtki.vtkIdTypeArray().GetDataTypeSize() != 4:
                 ast = np.int64
+            else:
+                ast = np.int32
 
             if faces.ndim > 1:
                 nf, nc = faces.shape
@@ -950,11 +952,11 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0)
                 n = len(f)
 
                 if n == 3:
-                    ele = vtki.vtkTriangle()
-                    pids = ele.GetPointIds()
+                    tri = vtki.vtkTriangle()
+                    pids = tri.GetPointIds()
                     for i in range(3):
                         pids.SetId(i, f[i] - index_offset)
-                    source_polygons.InsertNextCell(ele)
+                    source_polygons.InsertNextCell(tri)
 
                 else:
                     ele = vtki.vtkPolygon()
@@ -999,7 +1001,7 @@ def buildPolyData(vertices, faces=None, lines=None, strips=None, index_offset=0)
 
 
 ##############################################################################
-def get_font_path(font):
+def get_font_path(font: str) -> str:
     """Internal use."""
     if font in vedo.settings.font_parameters.keys():
         if vedo.settings.font_parameters[font]["islocal"]:
@@ -1033,7 +1035,7 @@ def get_font_path(font):
     return fl
 
 
-def is_sequence(arg):
+def is_sequence(arg) -> bool:
     """Check if the input is iterable."""
     if hasattr(arg, "strip"):
         return False
@@ -1044,7 +1046,7 @@ def is_sequence(arg):
     return False
 
 
-def is_ragged(arr, deep=False):
+def is_ragged(arr, deep=False) -> bool:
     """
     A ragged or inhomogeneous array in Python is an array
     with arrays of different lengths as its elements.
@@ -1069,7 +1071,7 @@ def is_ragged(arr, deep=False):
     return False
 
 
-def flatten(list_to_flatten):
+def flatten(list_to_flatten) -> list:
     """Flatten out a list."""
 
     def _genflatten(lst):
@@ -1083,7 +1085,7 @@ def flatten(list_to_flatten):
     return list(_genflatten(list_to_flatten))
 
 
-def humansort(alist):
+def humansort(alist) -> list:
     """
     Sort in place a given list the way humans expect.
 
@@ -1107,7 +1109,7 @@ def humansort(alist):
     return alist  # NB: input list is modified
 
 
-def sort_by_column(arr, nth, invert=False):
+def sort_by_column(arr, nth, invert=False) -> np.ndarray:
     """Sort a numpy array by its `n-th` column."""
     arr = np.asarray(arr)
     arr = arr[arr[:, nth].argsort()]
@@ -1116,7 +1118,7 @@ def sort_by_column(arr, nth, invert=False):
     return arr
 
 
-def point_in_triangle(p, p1, p2, p3):
+def point_in_triangle(p, p1, p2, p3) -> Union[bool, None]:
     """
     Return True if a point is inside (or above/below)
     a triangle defined by 3 points in space.
@@ -1139,7 +1141,7 @@ def point_in_triangle(p, p1, p2, p3):
     return False
 
 
-def intersection_ray_triangle(P0, P1, V0, V1, V2):
+def intersection_ray_triangle(P0, P1, V0, V1, V2) -> Union[bool, None, np.ndarray]:
     """
     Fast intersection between a directional ray defined by `P0,P1`
     and triangle `V0, V1, V2`.
@@ -1300,14 +1302,14 @@ def triangle_solver(**input_dict):
 
 
 #############################################################################
-def point_line_distance(p, p1, p2):
+def point_line_distance(p, p1, p2) -> float:
     """
     Compute the distance of a point to a line (not the segment)
     defined by `p1` and `p2`.
     """
     return np.sqrt(vtki.vtkLine.DistanceToLine(p, p1, p2))
 
-def line_line_distance(p1, p2, q1, q2):
+def line_line_distance(p1, p2, q1, q2) -> Tuple[float, np.ndarray, np.ndarray, float, float]:
     """
     Compute the distance of a line to a line (not the segment)
     defined by `p1` and `p2` and `q1` and `q2`.
@@ -1316,8 +1318,8 @@ def line_line_distance(p1, p2, q1, q2):
     the closest point on line 1, the closest point on line 2.
     Their parametric coords (-inf <= t0, t1 <= inf) are also returned.
     """
-    closest_pt1 = [0,0,0]
-    closest_pt2 = [0,0,0]
+    closest_pt1: MutableSequence[float] = [0,0,0]
+    closest_pt2: MutableSequence[float] = [0,0,0]
     t1, t2 = 0.0, 0.0
     d = vtki.vtkLine.DistanceBetweenLines(
         p1, p2, q1, q2, closest_pt1, closest_pt2, t1, t2)
@@ -1490,7 +1492,7 @@ def get_uv(p, x, v):
     return np.asarray(vt0 + alpha_beta.dot(np.matrix([vs, vt])))[0]
 
 
-def vector(x, y=None, z=0.0, dtype=np.float64):
+def vector(x, y=None, z=0.0, dtype=np.float64) -> np.ndarray:
     """
     Return a 3D numpy array representing a vector.
 
@@ -1501,7 +1503,7 @@ def vector(x, y=None, z=0.0, dtype=np.float64):
     return np.array([x, y, z], dtype=dtype)
 
 
-def versor(x, y=None, z=0.0, dtype=np.float64):
+def versor(x, y=None, z=0.0, dtype=np.float64) -> np.ndarray:
     """Return the unit vector. Input can be a list of vectors."""
     v = vector(x, y, z, dtype)
     if isinstance(v[0], np.ndarray):
@@ -1517,7 +1519,7 @@ def mag(v):
     return np.linalg.norm(v, axis=1)
 
 
-def mag2(v):
+def mag2(v) -> np.ndarray:
     """Get the squared magnitude of a vector or array of vectors."""
     v = np.asarray(v)
     if v.ndim == 1:
@@ -1525,7 +1527,7 @@ def mag2(v):
     return np.square(v).sum(axis=1)
 
 
-def is_integer(n):
+def is_integer(n) -> bool:
     """Check if input is an integer."""
     try:
         float(n)
@@ -1535,7 +1537,7 @@ def is_integer(n):
         return float(n).is_integer()
 
 
-def is_number(n):
+def is_number(n) -> bool:
     """Check if input is a number"""
     try:
         float(n)
@@ -1544,7 +1546,7 @@ def is_number(n):
         return False
 
 
-def round_to_digit(x, p):
+def round_to_digit(x, p) -> float:
     """Round a real number to the specified number of significant digits."""
     if not x:
         return 0
@@ -1554,7 +1556,7 @@ def round_to_digit(x, p):
     return r
 
 
-def pack_spheres(bounds, radius):
+def pack_spheres(bounds, radius) -> np.ndarray:
     """
     Packing spheres into a bounding box.
     Returns a numpy array of sphere centers.
@@ -1591,7 +1593,7 @@ def pack_spheres(bounds, radius):
     return np.array(pts)
 
 
-def precision(x, p, vrange=None, delimiter="e"):
+def precision(x, p: int, vrange=None, delimiter="e") -> str:
     """
     Returns a string representation of `x` formatted to precision `p`.
 
@@ -1683,7 +1685,7 @@ def precision(x, p, vrange=None, delimiter="e"):
 
 
 ##################################################################################
-def grep(filename, tag, column=None, first_occurrence_only=False):
+def grep(filename: str, tag: str, column=None, first_occurrence_only=False) -> list:
     """Greps the line in a file that starts with a specific `tag` string inside the file."""
     import re
 
@@ -1768,7 +1770,7 @@ def print_histogram(
     bold=True,
     title="histogram",
     spacer="",
-):
+) -> np.ndarray:
     """
     Ascii histogram printing.
 
@@ -1829,18 +1831,18 @@ def print_histogram(
         data = np.array(data)
 
     elif isinstance(data, vtki.vtkPolyData):
-        arr = data.dataset.GetPointData().GetScalars()
+        arr = data.GetPointData().GetScalars()
         if not arr:
-            arr = data.dataset.GetCellData().GetScalars()
+            arr = data.GetCellData().GetScalars()
             if not arr:
-                return None
+                return np.array([])
         data = vtk2numpy(arr)
 
     try:
         h = np.histogram(data, bins=bins)
     except TypeError as e:
         vedo.logger.error(f"cannot compute histogram: {e}")
-        return ""
+        return np.array([])
 
     if minbin:
         hi = h[0][minbin:-1]
@@ -1903,7 +1905,7 @@ def print_histogram(
     return data
 
 
-def print_table(*columns, headers=None, c="g"):
+def print_table(*columns, headers=None, c="g") -> None:
     """
     Print lists as tables.
 
@@ -1957,7 +1959,7 @@ def print_table(*columns, headers=None, c="g"):
     # Print the line separator again to close the table
     vedo.printc(line2, c=c)
 
-def print_inheritance_tree(C):
+def print_inheritance_tree(C) -> None:
     """Prints the inheritance tree of class C."""
     # Adapted from: https://stackoverflow.com/questions/26568976/
     def class_tree(cls):
@@ -2008,7 +2010,7 @@ def make_bands(inputlist, n):
 #################################################################
 # Functions adapted from:
 # https://github.com/sdorkenw/MeshParty/blob/master/meshparty/trimesh_vtk.py
-def camera_from_quaternion(pos, quaternion, distance=10000, ngl_correct=True):
+def camera_from_quaternion(pos, quaternion, distance=10000, ngl_correct=True) -> vtki.vtkCamera:
     """
     Define a `vtkCamera` with a particular orientation.
 
@@ -2058,7 +2060,7 @@ def camera_from_quaternion(pos, quaternion, distance=10000, ngl_correct=True):
     return camera
 
 
-def camera_from_neuroglancer(state, zoom=300):
+def camera_from_neuroglancer(state, zoom=300) -> vtki.vtkCamera:
     """
     Define a `vtkCamera` from a neuroglancer state dictionary.
 
@@ -2079,7 +2081,7 @@ def camera_from_neuroglancer(state, zoom=300):
     return camera_from_quaternion(pos_nm, orient, pzoom * zoom, ngl_correct=True)
 
 
-def oriented_camera(center=(0, 0, 0), up_vector=(0, 1, 0), backoff_vector=(0, 0, 1), backoff=1.0):
+def oriented_camera(center=(0, 0, 0), up_vector=(0, 1, 0), backoff_vector=(0, 0, 1), backoff=1.0) -> vtki.vtkCamera:
     """
     Generate a `vtkCamera` pointed at a specific location,
     oriented with a given up direction, set to a backoff.
@@ -2094,7 +2096,7 @@ def oriented_camera(center=(0, 0, 0), up_vector=(0, 1, 0), backoff_vector=(0, 0,
     return camera
 
 
-def camera_from_dict(camera, modify_inplace=None):
+def camera_from_dict(camera, modify_inplace=None) -> vtki.vtkCamera:
     """
     Generate a `vtkCamera` object from a python dictionary.
 
@@ -2151,7 +2153,7 @@ def camera_from_dict(camera, modify_inplace=None):
     if cm_roll is not None:           vcam.SetRoll(cm_roll)
     return vcam
 
-def camera_to_dict(vtkcam):
+def camera_to_dict(vtkcam) -> dict:
     """
     Convert a [vtkCamera](https://vtk.org/doc/nightly/html/classvtkCamera.html)
     object into a python dictionary.
@@ -2184,7 +2186,7 @@ def camera_to_dict(vtkcam):
     return cam
 
 
-def vtkCameraToK3D(vtkcam):
+def vtkCameraToK3D(vtkcam) -> np.ndarray:
     """
     Convert a `vtkCamera` object into a 9-element list to be used by the K3D backend.
 
@@ -2198,7 +2200,7 @@ def vtkCameraToK3D(vtkcam):
     return np.array(kam).ravel()
 
 
-def make_ticks(x0, x1, n=None, labels=None, digits=None, logscale=False, useformat=""):
+def make_ticks(x0: float, x1: float, n=None, labels=None, digits=None, logscale=False, useformat="") -> Tuple[np.ndarray, List[str]]:
     """
     Generate numeric labels for the `[x0, x1]` range.
 
@@ -2337,11 +2339,10 @@ def make_ticks(x0, x1, n=None, labels=None, digits=None, logscale=False, useform
 
     ticks_str.append("")
     ticks_float.append(1)
-    ticks_float = np.array(ticks_float)
-    return ticks_float, ticks_str
+    return np.array(ticks_float), ticks_str
 
 
-def grid_corners(i, nm, size, margin=0, yflip=True):
+def grid_corners(i: int, nm: list, size: list, margin=0, yflip=True) -> Tuple[np.ndarray, np.ndarray]:
     """
     Compute the 2 corners coordinates of the i-th box in a grid of shape n*m.
     The top-left square is square number 1.
@@ -2765,7 +2766,7 @@ def madcad2vedo(madcad_mesh):
     return m
 
 
-def vtk_version_at_least(major, minor=0, build=0):
+def vtk_version_at_least(major, minor=0, build=0) -> bool:
     """
     Check the installed VTK version.
 
@@ -2818,7 +2819,7 @@ def ctf2lut(vol, logscale=False):
     return lut
 
 
-def get_vtk_name_event(name):
+def get_vtk_name_event(name: str) -> str:
     """
     Return the name of a VTK event.
 
