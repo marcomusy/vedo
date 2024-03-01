@@ -25,97 +25,14 @@ Work with tetrahedral meshes.
 """
 
 __all__ = [
-    "cell_types",
-    # "cell_type_names",
     "UnstructuredGrid",
     "TetMesh",
     "RectilinearGrid",
     "StructuredGrid",
-    "UGrid",
 ]
 
 
-cell_types = {  # https://vtk.org/doc/nightly/html/vtkCellType_8h.html
-    "EMPTY_CELL": 0,
-    "VERTEX": 1,
-    "POLY_VERTEX": 2,
-    "LINE": 3,
-    "POLY_LINE": 4,
-    "TRIANGLE": 5,
-    "TRIANGLE_STRIP": 6,
-    "POLYGON": 7,
-    "PIXEL": 8,
-    "QUAD": 9,
-    "TETRA": 10,
-    "VOXEL": 11,
-    "HEXAHEDRON": 12,
-    "WEDGE": 13,
-    "PYRAMID": 14,
-    "PENTAGONAL_PRISM": 15,
-    "HEXAGONAL_PRISM": 16,
-    "QUADRATIC_EDGE": 21,
-    "QUADRATIC_TRIANGLE": 22,
-    "QUADRATIC_QUAD": 23,
-    "QUADRATIC_POLYGON": 36,
-    "QUADRATIC_TETRA": 24,
-    "QUADRATIC_HEXAHEDRON": 25,
-    "QUADRATIC_WEDGE": 26,
-    "QUADRATIC_PYRAMID": 27,
-    "BIQUADRATIC_QUAD": 28,
-    "TRIQUADRATIC_HEXAHEDRON": 29,
-    "TRIQUADRATIC_PYRAMID": 37,
-    "QUADRATIC_LINEAR_QUAD": 30,
-    "QUADRATIC_LINEAR_WEDGE": 31,
-    "BIQUADRATIC_QUADRATIC_WEDGE": 32,
-    "BIQUADRATIC_QUADRATIC_HEXAHEDRON": 33,
-    "BIQUADRATIC_TRIANGLE": 34,
-    "CUBIC_LINE": 35,
-    "CONVEX_POINT_SET": 41,
-    "POLYHEDRON": 42,
-    "PARAMETRIC_CURVE": 51,
-    "PARAMETRIC_SURFACE": 52,
-    "PARAMETRIC_TRI_SURFACE": 53,
-    "PARAMETRIC_QUAD_SURFACE": 54,
-    "PARAMETRIC_TETRA_REGION": 55,
-    "PARAMETRIC_HEX_REGION": 56,
-    "HIGHER_ORDER_EDGE": 60,
-    "HIGHER_ORDER_TRIANGLE": 61,
-    "HIGHER_ORDER_QUAD": 62,
-    "HIGHER_ORDER_POLYGON": 63,
-    "HIGHER_ORDER_TETRAHEDRON": 64,
-    "HIGHER_ORDER_WEDGE": 65,
-    "HIGHER_ORDER_PYRAMID": 66,
-    "HIGHER_ORDER_HEXAHEDRON": 67,
-    "LAGRANGE_CURVE": 68,
-    "LAGRANGE_TRIANGLE": 69,
-    "LAGRANGE_QUADRILATERAL": 70,
-    "LAGRANGE_TETRAHEDRON": 71,
-    "LAGRANGE_HEXAHEDRON": 72,
-    "LAGRANGE_WEDGE": 73,
-    "LAGRANGE_PYRAMID": 74,
-    "BEZIER_CURVE": 75,
-    "BEZIER_TRIANGLE": 76,
-    "BEZIER_QUADRILATERAL": 77,
-    "BEZIER_TETRAHEDRON": 78,
-    "BEZIER_HEXAHEDRON": 79,
-    "BEZIER_WEDGE": 80,
-    "BEZIER_PYRAMID": 81,
-}
-
-def cell_type_names() -> dict:
-    """Return a dict of cell type names."""
-    # invert the dict above to get a lookup table for cell types
-    # Eg. cell_type_names[10] returns "TETRA"
-    return {v: k for k, v in cell_types.items()}
-
-
 #########################################################################
-def UGrid(*args, **kwargs):
-    """Deprecated. Use `UnstructuredGrid` instead."""
-    vedo.logger.warning("UGrid() is deprecated, use UnstructuredGrid() instead.")
-    return UnstructuredGrid(*args, **kwargs)
-
-
 class UnstructuredGrid(PointAlgorithms, MeshVisual):
     """Support for UnstructuredGrid objects."""
 
@@ -187,123 +104,123 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
             # Fill cells
             # https://vtk.org/doc/nightly/html/vtkCellType_8h_source.html
             for i, ct in enumerate(celltypes):
-                if   ct == cell_types["VERTEX"]:
+                if   ct == vtki.cell_types["VERTEX"]:
                     cell = vtki.vtkVertex()
-                elif ct == cell_types["POLY_VERTEX"]:
+                elif ct == vtki.cell_types["POLY_VERTEX"]:
                     cell = vtki.vtkPolyVertex()
-                elif ct == cell_types["TETRA"]:
+                elif ct == vtki.cell_types["TETRA"]:
                     cell = vtki.vtkTetra()
-                elif ct == cell_types["WEDGE"]:
+                elif ct == vtki.cell_types["WEDGE"]:
                     cell = vtki.vtkWedge()
-                elif ct == cell_types["LINE"]:
+                elif ct == vtki.cell_types["LINE"]:
                     cell = vtki.vtkLine()
-                elif ct == cell_types["POLY_LINE"]:
+                elif ct == vtki.cell_types["POLY_LINE"]:
                     cell = vtki.vtkPolyLine()
-                elif ct == cell_types["TRIANGLE"]:
+                elif ct == vtki.cell_types["TRIANGLE"]:
                     cell = vtki.vtkTriangle()
-                elif ct == cell_types["TRIANGLE_STRIP"]:
+                elif ct == vtki.cell_types["TRIANGLE_STRIP"]:
                     cell = vtki.vtkTriangleStrip()
-                elif ct == cell_types["POLYGON"]:
+                elif ct == vtki.cell_types["POLYGON"]:
                     cell = vtki.vtkPolygon()
-                elif ct == cell_types["PIXEL"]:
+                elif ct == vtki.cell_types["PIXEL"]:
                     cell = vtki.vtkPixel()
-                elif ct == cell_types["QUAD"]:
+                elif ct == vtki.cell_types["QUAD"]:
                     cell = vtki.vtkQuad()
-                elif ct == cell_types["VOXEL"]:
+                elif ct == vtki.cell_types["VOXEL"]:
                     cell = vtki.vtkVoxel()
-                elif ct == cell_types["PYRAMID"]:
+                elif ct == vtki.cell_types["PYRAMID"]:
                     cell = vtki.vtkPyramid()
-                elif ct == cell_types["HEXAHEDRON"]:
+                elif ct == vtki.cell_types["HEXAHEDRON"]:
                     cell = vtki.vtkHexahedron()
-                elif ct == cell_types["HEXAGONAL_PRISM"]:
+                elif ct == vtki.cell_types["HEXAGONAL_PRISM"]:
                     cell = vtki.vtkHexagonalPrism()
-                elif ct == cell_types["PENTAGONAL_PRISM"]:
+                elif ct == vtki.cell_types["PENTAGONAL_PRISM"]:
                     cell = vtki.vtkPentagonalPrism()
-                elif ct == cell_types["QUADRATIC_TETRA"]:
+                elif ct == vtki.cell_types["QUADRATIC_TETRA"]:
                     from vtkmodules.vtkCommonDataModel import vtkQuadraticTetra
                     cell = vtkQuadraticTetra()
-                elif ct == cell_types["QUADRATIC_HEXAHEDRON"]:
+                elif ct == vtki.cell_types["QUADRATIC_HEXAHEDRON"]:
                     from vtkmodules.vtkCommonDataModel import vtkQuadraticHexahedron
                     cell = vtkQuadraticHexahedron()
-                elif ct == cell_types["QUADRATIC_WEDGE"]:
+                elif ct == vtki.cell_types["QUADRATIC_WEDGE"]:
                     from vtkmodules.vtkCommonDataModel import vtkQuadraticWedge
                     cell = vtkQuadraticWedge()
-                elif ct == cell_types["QUADRATIC_PYRAMID"]:
+                elif ct == vtki.cell_types["QUADRATIC_PYRAMID"]:
                     from vtkmodules.vtkCommonDataModel import vtkQuadraticPyramid
                     cell = vtkQuadraticPyramid()
-                elif ct == cell_types["QUADRATIC_LINEAR_QUAD"]:
+                elif ct == vtki.cell_types["QUADRATIC_LINEAR_QUAD"]:
                     from vtkmodules.vtkCommonDataModel import vtkQuadraticLinearQuad
                     cell = vtkQuadraticLinearQuad()
-                elif ct == cell_types["QUADRATIC_LINEAR_WEDGE"]:
+                elif ct == vtki.cell_types["QUADRATIC_LINEAR_WEDGE"]:
                     from vtkmodules.vtkCommonDataModel import vtkQuadraticLinearWedge
                     cell = vtkQuadraticLinearWedge()
-                elif ct == cell_types["BIQUADRATIC_QUADRATIC_WEDGE"]:
+                elif ct == vtki.cell_types["BIQUADRATIC_QUADRATIC_WEDGE"]:
                     from vtkmodules.vtkCommonDataModel import vtkBiQuadraticQuadraticWedge
                     cell = vtkBiQuadraticQuadraticWedge()
-                elif ct == cell_types["BIQUADRATIC_QUADRATIC_HEXAHEDRON"]:
+                elif ct == vtki.cell_types["BIQUADRATIC_QUADRATIC_HEXAHEDRON"]:
                     from vtkmodules.vtkCommonDataModel import vtkBiQuadraticQuadraticHexahedron
                     cell = vtkBiQuadraticQuadraticHexahedron()
-                elif ct == cell_types["BIQUADRATIC_TRIANGLE"]:
+                elif ct == vtki.cell_types["BIQUADRATIC_TRIANGLE"]:
                     from vtkmodules.vtkCommonDataModel import vtkBiQuadraticTriangle
                     cell = vtkBiQuadraticTriangle()
-                elif ct == cell_types["CUBIC_LINE"]:
+                elif ct == vtki.cell_types["CUBIC_LINE"]:
                     from vtkmodules.vtkCommonDataModel import vtkCubicLine
                     cell = vtkCubicLine()
-                elif ct == cell_types["CONVEX_POINT_SET"]:
+                elif ct == vtki.cell_types["CONVEX_POINT_SET"]:
                     from vtkmodules.vtkCommonDataModel import vtkConvexPointSet
                     cell = vtkConvexPointSet()
-                elif ct == cell_types["POLYHEDRON"]:
+                elif ct == vtki.cell_types["POLYHEDRON"]:
                     from vtkmodules.vtkCommonDataModel import vtkPolyhedron
                     cell = vtkPolyhedron()
-                elif ct == cell_types["HIGHER_ORDER_TRIANGLE"]:
+                elif ct == vtki.cell_types["HIGHER_ORDER_TRIANGLE"]:
                     from vtkmodules.vtkCommonDataModel import vtkHigherOrderTriangle
                     cell = vtkHigherOrderTriangle()
-                elif ct == cell_types["HIGHER_ORDER_QUAD"]:
+                elif ct == vtki.cell_types["HIGHER_ORDER_QUAD"]:
                     from vtkmodules.vtkCommonDataModel import vtkHigherOrderQuadrilateral
                     cell = vtkHigherOrderQuadrilateral()
-                elif ct == cell_types["HIGHER_ORDER_TETRAHEDRON"]:
+                elif ct == vtki.cell_types["HIGHER_ORDER_TETRAHEDRON"]:
                     from vtkmodules.vtkCommonDataModel import vtkHigherOrderTetra
                     cell = vtkHigherOrderTetra()
-                elif ct == cell_types["HIGHER_ORDER_WEDGE"]:
+                elif ct == vtki.cell_types["HIGHER_ORDER_WEDGE"]:
                     from vtkmodules.vtkCommonDataModel import vtkHigherOrderWedge
                     cell = vtkHigherOrderWedge()
-                elif ct == cell_types["HIGHER_ORDER_HEXAHEDRON"]:
+                elif ct == vtki.cell_types["HIGHER_ORDER_HEXAHEDRON"]:
                     from vtkmodules.vtkCommonDataModel import vtkHigherOrderHexahedron
                     cell = vtkHigherOrderHexahedron()
-                elif ct == cell_types["LAGRANGE_CURVE"]:
+                elif ct == vtki.cell_types["LAGRANGE_CURVE"]:
                     from vtkmodules.vtkCommonDataModel import vtkLagrangeCurve
                     cell = vtkLagrangeCurve()
-                elif ct == cell_types["LAGRANGE_TRIANGLE"]:
+                elif ct == vtki.cell_types["LAGRANGE_TRIANGLE"]:
                     from vtkmodules.vtkCommonDataModel import vtkLagrangeTriangle
                     cell = vtkLagrangeTriangle()
-                elif ct == cell_types["LAGRANGE_QUADRILATERAL"]:
+                elif ct == vtki.cell_types["LAGRANGE_QUADRILATERAL"]:
                     from vtkmodules.vtkCommonDataModel import vtkLagrangeQuadrilateral
                     cell = vtkLagrangeQuadrilateral()
-                elif ct == cell_types["LAGRANGE_TETRAHEDRON"]:
+                elif ct == vtki.cell_types["LAGRANGE_TETRAHEDRON"]:
                     from vtkmodules.vtkCommonDataModel import vtkLagrangeTetra
                     cell = vtkLagrangeTetra()
-                elif ct == cell_types["LAGRANGE_HEXAHEDRON"]:
+                elif ct == vtki.cell_types["LAGRANGE_HEXAHEDRON"]:
                     from vtkmodules.vtkCommonDataModel import vtkLagrangeHexahedron
                     cell = vtkLagrangeHexahedron()
-                elif ct == cell_types["LAGRANGE_WEDGE"]:
+                elif ct == vtki.cell_types["LAGRANGE_WEDGE"]:
                     from vtkmodules.vtkCommonDataModel import vtkLagrangeWedge
                     cell = vtkLagrangeWedge()
-                elif ct == cell_types["BEZIER_CURVE"]:
+                elif ct == vtki.cell_types["BEZIER_CURVE"]:
                     from vtkmodules.vtkCommonDataModel import vtkBezierCurve
                     cell = vtkBezierCurve()
-                elif ct == cell_types["BEZIER_TRIANGLE"]:
+                elif ct == vtki.cell_types["BEZIER_TRIANGLE"]:
                     from vtkmodules.vtkCommonDataModel import vtkBezierTriangle
                     cell = vtkBezierTriangle()
-                elif ct == cell_types["BEZIER_QUADRILATERAL"]:
+                elif ct == vtki.cell_types["BEZIER_QUADRILATERAL"]:
                     from vtkmodules.vtkCommonDataModel import vtkBezierQuadrilateral
                     cell = vtkBezierQuadrilateral()
-                elif ct == cell_types["BEZIER_TETRAHEDRON"]:
+                elif ct == vtki.cell_types["BEZIER_TETRAHEDRON"]:
                     from vtkmodules.vtkCommonDataModel import vtkBezierTetra
                     cell = vtkBezierTetra()
-                elif ct == cell_types["BEZIER_HEXAHEDRON"]:
+                elif ct == vtki.cell_types["BEZIER_HEXAHEDRON"]:
                     from vtkmodules.vtkCommonDataModel import vtkBezierHexahedron
                     cell = vtkBezierHexahedron()
-                elif ct == cell_types["BEZIER_WEDGE"]:
+                elif ct == vtki.cell_types["BEZIER_WEDGE"]:
                     from vtkmodules.vtkCommonDataModel import vtkBezierWedge
                     cell = vtkBezierWedge()
                 else:
@@ -363,7 +280,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         out += "nr. of verts".ljust(14) + ": " + str(self.npoints) + "\n"
         out += "nr. of cells".ljust(14) + ": " + str(self.ncells)  + "\n"
         ct_arr = np.unique(self.cell_types_array)
-        cnames = [k for k, v in cell_types.items() if v in ct_arr]
+        cnames = [k for k, v in vtki.cell_types.items() if v in ct_arr]
         out += "cell types".ljust(14) + ": " + str(cnames) + "\n"
 
         if self.npoints:
@@ -707,7 +624,7 @@ class UnstructuredGrid(PointAlgorithms, MeshVisual):
         """Extract a specific cell type and return a new `UnstructuredGrid`."""
         if isinstance(ctype, str):
             try:
-                ctype = cell_types[ctype.upper()]
+                ctype = vtki.cell_types[ctype.upper()]
             except KeyError:
                 vedo.logger.error(f"extract_cells_by_type: cell type {ctype} does not exist. Skip.")
                 return self
@@ -1107,7 +1024,7 @@ class TetMesh(UnstructuredGrid):
                 for i, fi in enumerate(f):
                     pid.SetId(i, fi)
                 source_tets.InsertNextCell(ele)
-            self.dataset.SetCells(cell_types["TETRA"], source_tets)
+            self.dataset.SetCells(vtki.cell_types["TETRA"], source_tets)
 
         if not self.dataset:
             vedo.logger.error(f"cannot understand input type {type(inputobj)}")

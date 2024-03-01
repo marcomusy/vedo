@@ -398,7 +398,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
             return self.objects[i]
         elif isinstance(i, str):
             for m in self.objects:
-                if i in m.name:
+                if i == m.name:
                     return m
         return None
 
@@ -436,7 +436,7 @@ class Assembly(CommonVisual, Actor3DHelper, vtki.vtkAssembly):
             return self.objects[i]
         elif isinstance(i, str):
             for m in self.objects:
-                if i in m.name:
+                if i == m.name:
                     return m
         return []
 

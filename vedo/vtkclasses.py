@@ -758,6 +758,77 @@ for name in [
 ]: location[name] = "vtkRenderingVolume"
 
 
+# https://vtk.org/doc/nightly/html/vtkCellType_8h.html
+cell_types = {
+    "EMPTY_CELL": 0,
+    "VERTEX": 1,
+    "POLY_VERTEX": 2,
+    "LINE": 3,
+    "POLY_LINE": 4,
+    "TRIANGLE": 5,
+    "TRIANGLE_STRIP": 6,
+    "POLYGON": 7,
+    "PIXEL": 8,
+    "QUAD": 9,
+    "TETRA": 10,
+    "VOXEL": 11,
+    "HEXAHEDRON": 12,
+    "WEDGE": 13,
+    "PYRAMID": 14,
+    "PENTAGONAL_PRISM": 15,
+    "HEXAGONAL_PRISM": 16,
+    "QUADRATIC_EDGE": 21,
+    "QUADRATIC_TRIANGLE": 22,
+    "QUADRATIC_QUAD": 23,
+    "QUADRATIC_POLYGON": 36,
+    "QUADRATIC_TETRA": 24,
+    "QUADRATIC_HEXAHEDRON": 25,
+    "QUADRATIC_WEDGE": 26,
+    "QUADRATIC_PYRAMID": 27,
+    "BIQUADRATIC_QUAD": 28,
+    "TRIQUADRATIC_HEXAHEDRON": 29,
+    "TRIQUADRATIC_PYRAMID": 37,
+    "QUADRATIC_LINEAR_QUAD": 30,
+    "QUADRATIC_LINEAR_WEDGE": 31,
+    "BIQUADRATIC_QUADRATIC_WEDGE": 32,
+    "BIQUADRATIC_QUADRATIC_HEXAHEDRON": 33,
+    "BIQUADRATIC_TRIANGLE": 34,
+    "CUBIC_LINE": 35,
+    "CONVEX_POINT_SET": 41,
+    "POLYHEDRON": 42,
+    "PARAMETRIC_CURVE": 51,
+    "PARAMETRIC_SURFACE": 52,
+    "PARAMETRIC_TRI_SURFACE": 53,
+    "PARAMETRIC_QUAD_SURFACE": 54,
+    "PARAMETRIC_TETRA_REGION": 55,
+    "PARAMETRIC_HEX_REGION": 56,
+    "HIGHER_ORDER_EDGE": 60,
+    "HIGHER_ORDER_TRIANGLE": 61,
+    "HIGHER_ORDER_QUAD": 62,
+    "HIGHER_ORDER_POLYGON": 63,
+    "HIGHER_ORDER_TETRAHEDRON": 64,
+    "HIGHER_ORDER_WEDGE": 65,
+    "HIGHER_ORDER_PYRAMID": 66,
+    "HIGHER_ORDER_HEXAHEDRON": 67,
+    "LAGRANGE_CURVE": 68,
+    "LAGRANGE_TRIANGLE": 69,
+    "LAGRANGE_QUADRILATERAL": 70,
+    "LAGRANGE_TETRAHEDRON": 71,
+    "LAGRANGE_HEXAHEDRON": 72,
+    "LAGRANGE_WEDGE": 73,
+    "LAGRANGE_PYRAMID": 74,
+    "BEZIER_CURVE": 75,
+    "BEZIER_TRIANGLE": 76,
+    "BEZIER_QUADRILATERAL": 77,
+    "BEZIER_TETRAHEDRON": 78,
+    "BEZIER_HEXAHEDRON": 79,
+    "BEZIER_WEDGE": 80,
+    "BEZIER_PYRAMID": 81,
+}
+
+
+
+
 ###########################################################################
 array_types = {}
 array_types[VTK_UNSIGNED_CHAR] = "uint8"
@@ -817,6 +888,16 @@ if Settings.dry_run_mode < 2:
     import vtkmodules.vtkRenderingFreeType
     # noinspection PyUnresolvedReferences
     import vtkmodules.vtkRenderingVolumeOpenGL2
+
+
+#########################################################
+def cell_type_names():
+    """
+    Return a dict of cell type names.
+    Eg. `cell_type_names[10]` returns "TETRA".
+    """
+    # invert the dict above to get a lookup table for cell types
+    return {v: k for k, v in cell_types.items()}
 
 
 ######################################################################
