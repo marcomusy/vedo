@@ -716,7 +716,7 @@ def loadGeoJSON(filename: str) -> Mesh:
     return Mesh(jr.GetOutput())
 
 ########################################################################
-def loadDolfin(filename: str) -> Union[Mesh, vedo.TetMesh, None]:
+def loadDolfin(filename: str) -> Union[Mesh, "vedo.TetMesh", None]:
     """
     Reads a `Fenics/Dolfin` file format (.xml or .xdmf).
 
@@ -779,7 +779,7 @@ def loadPVD(filename: str) -> Union[list[Any], None]:
     return listofobjs
 
 ########################################################################
-def loadNeutral(filename:str) -> vedo.TetMesh:
+def loadNeutral(filename:str) -> "vedo.TetMesh":
     """
     Reads a `Neutral` tetrahedral file format.
 

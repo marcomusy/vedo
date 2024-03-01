@@ -545,6 +545,8 @@ class Actor2D(vtki.vtkActor2D):
         self.properties = self.GetProperty()
         self.name = ""
         self.filename = ""
+        self.file_size = 0
+        self.pipeline = None
         self.shape = [] # for images
 
     @property
