@@ -1,5 +1,5 @@
 """Cut a mesh with another mesh"""
-from vedo import dataurl, settings, Plotter, Volume, Ellipsoid, show
+from vedo import dataurl, settings, Plotter, Volume, Ellipsoid
 
 settings.tiff_orientation_type = 4 # data origin is bottom-left
 

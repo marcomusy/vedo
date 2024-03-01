@@ -2265,12 +2265,13 @@ class Circle(Polygon):
         """
         super().__init__(pos, nsides=res, r=r)
 
-        self.center = []  # filled by pointcloud.pca_ellipse()
         self.nr_of_points = 0
         self.va = 0
         self.vb = 0
         self.axis1 = []
         self.axis2 = []
+        self.center = []  # filled by pointcloud.pca_ellipse()
+        self.pvalue = 0  # filled by pointcloud.pca_ellipse()
         self.alpha(alpha).c(c)
         self.name = "Circle"
     
@@ -2764,6 +2765,7 @@ class Ellipsoid(Mesh):
         self.vc_error = 0
 
         self.nr_of_points = 1  # used by pointcloud.pca_ellipsoid()
+        self.pvalue = 0        # used by pointcloud.pca_ellipsoid()
 
         if utils.is_sequence(res):
             res_t, res_phi = res

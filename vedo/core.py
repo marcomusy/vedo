@@ -1292,6 +1292,20 @@ class CommonAlgorithms:
         self._update(csf.GetOutput(), reset_locators=False)
         return self
 
+    def generate_random_data(self) -> Any:
+        """Fill a dataset with random attributes"""
+        gen = vtki.new("RandomAttributeGenerator")
+        gen.SetInputData(self.dataset)
+        gen.GenerateAllDataOn()
+        gen.SetDataTypeToFloat()
+        gen.GeneratePointNormalsOff()
+        gen.GeneratePointTensorsOn()
+        gen.GenerateCellScalarsOn()
+        gen.Update()
+        self._update(gen.GetOutput(), reset_locators=False)
+        self.pipeline = utils.OperationNode("generate_random_data", parents=[self])
+        return self
+
     def integrate_data(self) -> dict:
         """
         Integrate point and cell data arrays while computing length,

@@ -3405,7 +3405,7 @@ class Plotter:
                     and not self.offscreen
                 ):
                     self._cocoa_initialized = True
-                    from Cocoa import NSRunningApplication, NSApplicationActivateIgnoringOtherApps
+                    from Cocoa import NSRunningApplication, NSApplicationActivateIgnoringOtherApps # type: ignore
                     pid = os.getpid()
                     x = NSRunningApplication.runningApplicationWithProcessIdentifier_(int(pid))
                     x.activateWithOptions_(NSApplicationActivateIgnoringOtherApps)
