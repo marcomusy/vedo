@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+from typing import Union
 from weakref import ref as weak_ref_to
 import numpy as np
 
@@ -63,18 +64,17 @@ class CommonVisual:
         return self
 
     @property
-    def LUT(self):
+    def LUT(self) -> np.ndarray:
         """Return the lookup table of the object as a numpy object."""
         try:
             _lut = self.mapper.GetLookupTable()
-
             values = []
             for i in range(_lut.GetTable().GetNumberOfTuples()):
                 # print("LUT i =", i, "value =", _lut.GetTableValue(i))
                 values.append(_lut.GetTableValue(i))
             return np.array(values)
         except AttributeError:
-            pass
+            return np.array([], dtype=float)
         
     @LUT.setter
     def LUT(self, arr):
@@ -106,10 +106,10 @@ class CommonVisual:
             return np.array(self.mapper.GetScalarRange())
         if vmax is None:
             vmin, vmax = vmin # assume it is a list
-        self.mapper.SetScalarRange(vmin, vmax)
+        self.mapper.SetScalarRange(float(vmin), float(vmax))
         return self
 
-    def add_observer(self, event_name, func, priority=0):
+    def add_observer(self, event_name, func, priority=0) -> int:
         """Add a callback function that will be called when an event occurs."""
         event_name = utils.get_vtk_name_event(event_name)
         idd = self.actor.AddObserver(event_name, func, priority)
@@ -128,7 +128,7 @@ class CommonVisual:
     #         cmd.AbortFlagOn()
     #     return self
 
-    def show(self, **options):
+    def show(self, **options) -> Union["vedo.Plotter", None]:
         """
         Create on the fly an instance of class `Plotter` or use the last existing one to
         show one single object.
@@ -140,7 +140,7 @@ class CommonVisual:
         """
         return vedo.plotter.show(self, **options)
 
-    def thumbnail(self, zoom=1.25, size=(200, 200), bg="white", azimuth=0, elevation=0, axes=False):
+    def thumbnail(self, zoom=1.25, size=(200, 200), bg="white", azimuth=0, elevation=0, axes=False) -> np.ndarray:
         """Build a thumbnail of the object and return it as an array."""
         # speed is about 20Hz for size=[200,200]
         ren = vtki.vtkRenderer()
@@ -1637,7 +1637,7 @@ class PointsVisual(CommonVisual):
         justify="",
         c="black",
         alpha=1.0,
-    ):
+    ) -> Union["vedo.Mesh", None]:
         """
         Generate value or ID labels for mesh cells or points.
         For large nr. of labels use `font="VTK"` which is much faster.
@@ -1792,7 +1792,7 @@ class PointsVisual(CommonVisual):
                 if zrot: T.RotateZ(zrot)
                 crossvec = np.cross([0, 0, 1], ni)
                 angle = np.arccos(np.dot([0, 0, 1], ni)) * 57.3
-                T.RotateWXYZ(angle, crossvec)
+                T.RotateWXYZ(float(angle), crossvec.tolist())
                 T.Translate(ni / 100)
             else:
                 if xrot: T.RotateX(xrot)
@@ -1812,7 +1812,7 @@ class PointsVisual(CommonVisual):
             lpoly = tapp.GetOutput()
         else:
             lpoly = vtki.vtkPolyData()
-        ids = vedo.mesh.Mesh(lpoly, c=c, alpha=alpha)
+        ids = vedo.Mesh(lpoly, c=c, alpha=alpha)
         ids.properties.LightingOff()
         ids.actor.PickableOff()
         ids.actor.SetUseBounds(False)
@@ -1832,7 +1832,7 @@ class PointsVisual(CommonVisual):
         c="black",
         bc=None,
         alpha=1.0,
-    ):
+    ) -> Union["Actor2D", None]:
         """
         Generate value or ID bi-dimensional labels for mesh cells or points.
 
@@ -1932,7 +1932,7 @@ class PointsVisual(CommonVisual):
             pr.SetBackgroundOpacity(alpha)
 
         mp.SetInputData(poly)
-        a2d = vtki.vtkActor2D()
+        a2d = Actor2D()
         a2d.PickableOff()
         a2d.SetMapper(mp)
         return a2d
@@ -1956,7 +1956,7 @@ class PointsVisual(CommonVisual):
         lw=2,
         italic=0.0,
         padding=0.1,
-    ):
+    ) -> Union["vedo.Mesh", None]:
         """
         Generate a flag pole style element to describe an object.
         Returns a `Mesh` object.
@@ -2078,7 +2078,6 @@ class PointsVisual(CommonVisual):
         mobjs.actor.UseBoundsOff()
         mobjs.actor.SetPosition([0,0,0])
         mobjs.actor.SetOrigin(pt)
-        # print(pt)
         return mobjs
 
         # mobjs = vedo.Assembly(objs)#.c(c).alpha(alpha)
@@ -2105,7 +2104,7 @@ class PointsVisual(CommonVisual):
         font="Calco",
         justify="center-left",
         vspacing=1.0,
-    ):
+    ) -> Union["vedo.addons.Flagpost", None]:
         """
         Generate a flag post style element to describe an object.
 
@@ -2181,7 +2180,7 @@ class PointsVisual(CommonVisual):
         alpha=1.0,
         lw=1,
         ontop=True,
-    ):
+    ) -> Union["vtki.vtkCaptionActor2D", None]:
         """
         Create a 2D caption to an object which follows the camera movements.
         Latex is not supported. Returns the same input object for concatenation.
@@ -2231,7 +2230,7 @@ class PointsVisual(CommonVisual):
 
         if not txt:  # disable it
             self._caption = None
-            return self
+            return None
 
         for r in vedo.shapes._reps:
             txt = txt.replace(r[0], r[1])
@@ -2443,7 +2442,6 @@ class MeshVisual(PointsVisual):
         scale=None,
         ushift=None,
         vshift=None,
-        # seam_threshold=None,
     ):
         """
         Assign a texture to mesh from image file or predefined texture `tname`.
@@ -2868,17 +2866,17 @@ class ImageVisual(CommonVisual, Actor3DHelper):
         # print("init ImageVisual")
         super().__init__()
 
-    def memory_size(self):
+    def memory_size(self) -> int:
         """
         Return the size in bytes of the object in memory.
         """
         return self.dataset.GetActualMemorySize()
 
-    def scalar_range(self):
+    def scalar_range(self) -> np.ndarray:
         """
         Return the scalar range of the image.
         """
-        return self.dataset.GetScalarRange()
+        return np.array(self.dataset.GetScalarRange())
 
     def alpha(self, a=None):
         """Set/get image's transparency in the rendering scene."""
@@ -2961,7 +2959,7 @@ class LightKit:
         plt.show().close()
         ```
     """
-    def __init__(self, key=(), fill=(), back=(), head=(), maintain_luminance=False):
+    def __init__(self, key=(), fill=(), back=(), head=(), maintain_luminance=False) -> None:
 
         self.lightkit = vtki.new("LightKit")
         self.lightkit.SetMaintainLuminance(maintain_luminance)
