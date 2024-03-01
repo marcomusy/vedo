@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from typing import Union
 import numpy as np
 
 import vedo.vtkclasses as vtki
@@ -282,7 +283,7 @@ class Figure(Assembly):
         obj = utils.flatten(obj)
         return self.insert(*obj)
 
-    def _check_unpack_and_insert(self, fig):
+    def _check_unpack_and_insert(self, fig: "Figure") -> "Figure":
 
         if fig.label:
             self.labels.append(fig.label)
@@ -325,7 +326,7 @@ class Figure(Assembly):
 
         return self
 
-    def insert(self, *objs, rescale=True, as3d=True, adjusted=False, cut=True):
+    def insert(self, *objs, rescale=True, as3d=True, adjusted=False, cut=True) -> "Figure":
         """
         Insert objects into a Figure.
 
@@ -423,7 +424,7 @@ class Figure(Assembly):
 
         return self
 
-    def add_label(self, text, c=None, marker="", mc="black"):
+    def add_label(self, text: str, c=None, marker="", mc="black") -> "Figure":
         """
         Manually add en entry label to the legend.
 
@@ -460,7 +461,7 @@ class Figure(Assembly):
         lw=1,
         lc="k4",
         z=0,
-    ):
+    ) -> "Figure":
         """
         Add existing labels to form a legend box.
         Labels have been previously filled with eg: `plot(..., label="text")`
@@ -572,9 +573,9 @@ class Figure(Assembly):
         xlim = self.xlim
         ylim = self.ylim
         if isinstance(pos, str):
-            px, py = 0, 0
+            px, py = 0.0, 0.0
             rx, ry = (xlim[1] + xlim[0]) / 2, (ylim[1] + ylim[0]) / 2
-            shx, shy = 0, 0
+            shx, shy = 0.0, 0.0
             if "top" in pos:
                 if "cent" in pos:
                     px, py = rx, ylim[1]
@@ -988,7 +989,7 @@ class Histogram1D(Figure):
         self.insert(*rs, as3d=False)
         self.name = "Histogram1D"
 
-    def print(self, **kwargs):
+    def print(self, **kwargs) -> None:
         """Print infos about this histogram"""
         txt = (
             f"{self.name}  {self.title}\n"
@@ -2418,7 +2419,7 @@ def histogram(*args, **kwargs):
 
 def fit(
     points, deg=1, niter=0, nstd=3, xerrors=None, yerrors=None, vrange=None, res=250, lw=3, c="red4"
-):
+) -> "vedo.shapes.Line":
     """
     Polynomial fitting with parameter error and error bands calculation.
     Errors bars in both x and y are supported.
@@ -2541,8 +2542,8 @@ def fit(
         P1d = np.poly1d(coeffs)
         Theor = P1d(xr)
         Theors.append(Theor)
-    all_coeffs = np.array(all_coeffs)
-    fitl.monte_carlo_coefficients = all_coeffs
+    # all_coeffs = np.array(all_coeffs)
+    fitl.monte_carlo_coefficients = np.array(all_coeffs)
 
     stds = np.std(Theors, axis=0)
     fitl.coefficient_errors = np.std(all_coeffs, axis=0)
@@ -2989,7 +2990,7 @@ def _histogram_quad_bin(x, y, **kwargs):
 
 def _histogram_hex_bin(
     xvalues, yvalues, bins=12, norm=1, fill=True, c=None, cmap="terrain_r", alpha=1
-):
+) -> "vedo.Assembly":
     xmin, xmax = np.min(xvalues), np.max(xvalues)
     ymin, ymax = np.min(yvalues), np.max(yvalues)
     dx, dy = xmax - xmin, ymax - ymin
@@ -3294,7 +3295,7 @@ def donut(
     alpha=1,
     labels=(),
     show_disc=False,
-):
+) -> "Assembly":
     """
     Donut plot or pie chart.
 
@@ -3341,7 +3342,7 @@ def donut(
             if th < a:
                 cols.append(c[ia])
                 break
-    labs = ()
+    labs = []
     if labels:
         angles = np.concatenate([[0], angles])
         labs = [""] * 360
@@ -3390,7 +3391,7 @@ def violin(
     centerline=True,
     lc="darkorchid",
     lw=3,
-):
+) -> "Assembly":
     """
     Violin style histogram.
 
@@ -3479,7 +3480,7 @@ def violin(
     return asse
 
 
-def whisker(data, s=0.25, c="k", lw=2, bc="blue", alpha=0.25, r=5, jitter=True, horizontal=False):
+def whisker(data, s=0.25, c="k", lw=2, bc="blue", alpha=0.25, r=5, jitter=True, horizontal=False) -> "Assembly":
     """
     Generate a "whisker" bar from a 1-dimensional dataset.
 
@@ -3543,7 +3544,7 @@ def whisker(data, s=0.25, c="k", lw=2, bc="blue", alpha=0.25, r=5, jitter=True, 
 
 def streamplot(
     X, Y, U, V, direction="both", max_propagation=None, lw=2, cmap="viridis", probes=()
-):
+) -> Union["vedo.shapes.Lines", None]:
     """
     Generate a streamline plot of a vectorial field (U,V) defined at positions (X,Y).
     Returns a `Mesh` object.
@@ -3594,9 +3595,10 @@ def streamplot(
         probe = vedo.Points(probes)
 
     stream = vol.compute_streamlines(probe, direction=direction, max_propagation=max_propagation)
-    stream.lw(lw).cmap(cmap).lighting("off")
-    stream.scale([1 / (n - 1) * (xmax - xmin), 1 / (n - 1) * (ymax - ymin), 1])
-    stream.shift(xmin, ymin)
+    if stream:
+        stream.lw(lw).cmap(cmap).lighting("off")
+        stream.scale([1 / (n - 1) * (xmax - xmin), 1 / (n - 1) * (ymax - ymin), 1])
+        stream.shift(xmin, ymin)
     return stream
 
 
@@ -3619,7 +3621,7 @@ def matrix(
     lw=0,
     c="black",
     alpha=1,
-):
+) -> "Assembly":
     """
     Generate a matrix, or a 2D color-coded plot with bin labels.
 
@@ -4094,7 +4096,7 @@ class DirectedGraph(Assembly):
         if len(kargs) > 0:
             vedo.logger.error(f"Cannot understand options: {kargs}")
 
-    def add_node(self, label="id"):
+    def add_node(self, label="id") -> int:
         """Add a new node to the `Graph`."""
         v = self.mdg.AddVertex()  # vtk calls it vertex..
         self.nodes.append(v)
@@ -4103,7 +4105,7 @@ class DirectedGraph(Assembly):
         self._node_labels.append(str(label))
         return v
 
-    def add_edge(self, v1, v2, label=""):
+    def add_edge(self, v1, v2, label="") -> int:
         """Add a new edge between to nodes.
         An extra node is created automatically if needed."""
         nv = len(self.nodes)
@@ -4119,7 +4121,7 @@ class DirectedGraph(Assembly):
         self._edge_labels.append(str(label))
         return e
 
-    def add_child(self, v, node_label="id", edge_label=""):
+    def add_child(self, v, node_label="id", edge_label="") -> int:
         """Add a new edge to a new node as its child.
         The extra node is created automatically if needed."""
         nv = len(self.nodes)
