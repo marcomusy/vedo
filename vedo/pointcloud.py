@@ -856,11 +856,12 @@ class Points(PointsVisual, PointAlgorithms):
         else:
             poly.ShallowCopy(self.dataset)
 
-        # if isinstance(self, vedo.Mesh):
-        #     cloned = vedo.Mesh(poly)
-        # else:
-        #     cloned = Points(poly)
-        cloned = self.__class__(poly)
+        if isinstance(self, vedo.Mesh):
+            cloned = vedo.Mesh(poly)
+        else:
+            cloned = Points(poly)
+        # print([self], self.__class__)
+        # cloned = self.__class__(poly)
 
         cloned.transform = self.transform.clone()
 
@@ -2542,11 +2543,11 @@ class Points(PointsVisual, PointAlgorithms):
         self.pointdata.remove("SignedDistances")
         self.mapper.SetScalarVisibility(vis)
         if keep:
-            # if isinstance(self, vedo.Mesh):
-            #     cutoff = vedo.Mesh(kpoly)
-            # else:
-            #     cutoff = vedo.Points(kpoly)
-            cutoff = self.__class__(kpoly)
+            if isinstance(self, vedo.Mesh):
+                cutoff = vedo.Mesh(kpoly)
+            else:
+                cutoff = vedo.Points(kpoly)
+            # cutoff = self.__class__(kpoly) # this does not work properly
             cutoff.properties = vtki.vtkProperty()
             cutoff.properties.DeepCopy(self.properties)
             cutoff.actor.SetProperty(cutoff.properties)
