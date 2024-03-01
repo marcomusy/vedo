@@ -757,7 +757,7 @@ for name in [
     "vtkGPUVolumeRayCastMapper",
 ]: location[name] = "vtkRenderingVolume"
 
-
+###########################################################################
 # https://vtk.org/doc/nightly/html/vtkCellType_8h.html
 cell_types = {
     "EMPTY_CELL": 0,
@@ -825,9 +825,6 @@ cell_types = {
     "BEZIER_WEDGE": 80,
     "BEZIER_PYRAMID": 81,
 }
-
-
-
 
 ###########################################################################
 array_types = {}
