@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import time
-from typing import Union, Tuple, MutableSequence, List, Dict
+from typing import Union, Tuple, MutableSequence, List
 import numpy as np
 
 from vtkmodules.util.numpy_support import numpy_to_vtk, vtk_to_numpy
@@ -2200,7 +2200,15 @@ def vtkCameraToK3D(vtkcam) -> np.ndarray:
     return np.array(kam).ravel()
 
 
-def make_ticks(x0: float, x1: float, n=None, labels=None, digits=None, logscale=False, useformat="") -> Tuple[np.ndarray, List[str]]:
+def make_ticks(
+        x0: float,
+        x1: float,
+        n=None,
+        labels=None,
+        digits=None,
+        logscale=False,
+        useformat="",
+    ) -> Tuple[np.ndarray, List[str]]:
     """
     Generate numeric labels for the `[x0, x1]` range.
 

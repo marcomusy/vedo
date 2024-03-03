@@ -2,7 +2,7 @@ import glob
 import os
 import time
 from tempfile import NamedTemporaryFile, TemporaryDirectory
-from typing import Any, List, Union
+from typing import Any, List, Tuple, Union
 
 import numpy as np
 
@@ -591,7 +591,7 @@ def gunzip(filename: str) -> str:
     return tmp_file.name
 
 ########################################################################
-def file_info(file_path: str) -> tuple[str, str]:
+def file_info(file_path: str) -> Tuple[str, str]:
     """Return the file size and creation time of input file"""
     siz, created = "", ""
     if os.path.isfile(file_path):
@@ -751,7 +751,7 @@ def loadDolfin(filename: str) -> Union[Mesh, "vedo.TetMesh", None]:
 
 
 ########################################################################
-def loadPVD(filename: str) -> Union[list[Any], None]:
+def loadPVD(filename: str) -> Union[List[Any], None]:
     """Read paraview files."""
     import xml.etree.ElementTree as et
 

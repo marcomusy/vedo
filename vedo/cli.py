@@ -229,10 +229,16 @@ def exe_run(args):
         from pygments import highlight
         from pygments.lexers import Python3Lexer
         from pygments.formatters import Terminal256Formatter
+        from pygments.styles import STYLE_MAP
 
-        # from pygments.styles import STYLE_MAP
-        # print(STYLE_MAP.keys())
-        result = highlight(code, Python3Lexer(), Terminal256Formatter(style="zenburn"))
+        # print("Terminal256Formatter STYLE_MAP", STYLE_MAP.keys())
+        if "zenburn" in STYLE_MAP.keys():
+            tform = Terminal256Formatter(style="zenburn")
+        elif "monokai" in STYLE_MAP.keys():
+            tform = Terminal256Formatter(style="monokai")
+        else:        
+            tform = Terminal256Formatter()
+        result = highlight(code, Python3Lexer(), tform)
         print(result, end="")
 
     printc("(" + matching[0] + ")", c="y", bold=0, italic=1)

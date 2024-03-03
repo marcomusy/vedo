@@ -316,7 +316,8 @@ class Slicer3DPlotter(Plotter):
                 size=16,
                 bold=True,
             )
-            bu.pos([0.04, 0.01], "bottom-left")
+            if bu:
+                bu.pos([0.04, 0.01], "bottom-left")
 
 
 ####################################################################################
@@ -1024,7 +1025,7 @@ class IsosurfaceBrowser(Plotter):
         delayed=False,
         sliderpos=4,
         **kwargs,
-    ):
+    ) -> None:
         """
         Generate a `vedo.Plotter` for Volume isosurfacing using a slider.
 
@@ -1163,8 +1164,7 @@ class IsosurfaceBrowser(Plotter):
                         mesh = volume.isosurface(value).color(c).alpha(alpha)
                     bacts.update({value_name: mesh})  # store it
 
-                self.renderer.RemoveActor(prevact)
-                self.renderer.AddActor(mesh)
+                self.remove(prevact).add(mesh)
                 self.vol_actors[0] = mesh
 
             ################################################

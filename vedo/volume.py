@@ -812,7 +812,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
             return self
         return np.array(self.dataset.GetSpacing())
 
-    def origin(self, s=None) -> Union["Volume", np.ndarray[Any, Any]]:
+    def origin(self, s=None) -> Union["Volume", Iterable[float]]:
         """
         Set/get the origin of the volumetric dataset.
 
@@ -827,7 +827,7 @@ class Volume(VolumeAlgorithms, VolumeVisual):
             return self
         return np.array(self.dataset.GetOrigin())
     
-    def pos(self, p=None) -> Union["Volume", np.ndarray]:
+    def pos(self, p=None) -> Union["Volume", Iterable[float]]:
         """Set/get the position of the volumetric dataset."""
         if p is not None:
             self.origin(p)
