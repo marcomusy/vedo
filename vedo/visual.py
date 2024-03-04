@@ -1114,7 +1114,7 @@ class PointsVisual(CommonVisual):
 
         return self
 
-    def point_blurring(self, r=1, emissive=False):
+    def point_blurring(self, r=1, alpha=1.0, emissive=False):
         """Set point blurring.
         Apply a gaussian convolution filter to the points.
         In this case the radius `r` is in absolute units of the mesh coordinates.

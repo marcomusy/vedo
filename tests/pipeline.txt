@@ -25,6 +25,7 @@ pip install rtree
 pip install trimesh -U
 pip install -q trame==2.5.2
 pip install qtpy
+pip install magic-class -U
 pip install tetgenpy -U
 pip install gustaf -U
 pip install fast-simplification -U
@@ -120,6 +121,7 @@ cd ~/Projects/napari-vedo-bridge
     # python -m pip install "napari[all]"
     conda activate napari-env
     cd $VEDODIR && pip install -q . && cd -
+    pip install -e .
     python $VEDODIR/examples/other/napari1.py # then open plugins ...
     conda deactivate
 ################

@@ -231,7 +231,7 @@ class DataArrayHelper:
                 name = data.GetArray(i).GetName()
             data.RemoveArray(name)
 
-    def select(self, key: Union[int,str]) -> Any:
+    def select(self, key: Union[int, str]) -> Any:
         """Select one specific array by its name to make it the `active` one."""
         # Default (ColorModeToDefault): unsigned char scalars are treated as colors,
         # and NOT mapped through the lookup table, while everything else is.
@@ -268,6 +268,8 @@ class DataArrayHelper:
                 try:
                     # could be a volume mapper
                     self.obj.mapper.SetColorModeToDirectScalars()
+                    data.SetActiveVectors(None) # need this to fix bug in #1066
+                    # print("SetColorModeToDirectScalars for", key)
                 except AttributeError:
                     pass
             else:
@@ -1637,10 +1639,16 @@ class PointAlgorithms(CommonAlgorithms):
         else:
             vedo.logger.error(f"apply_transform(), unknown input type: {[self.dataset]}")
             return self
+
+        # print("================================================", self.name)
+        # print(self.dataset.GetPointData().GetArray("RGBA_TEST3"), flush=True)
+
         tp.SetTransform(tr)
         tp.SetInputData(self.dataset)
         tp.Update()
         out = tp.GetOutput()
+
+        # print(out.GetPointData().GetArray("RGBA_TEST3"), flush=True)
 
         if deep_copy:
             self.dataset.DeepCopy(out)
