@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
-from typing import List,Tuple, Union, MutableSequence, Any
+from typing import List, Tuple, Union, MutableSequence, Any
 
 import vedo.vtkclasses as vtki  # a wrapper for lazy imports
 
@@ -1389,6 +1389,50 @@ class Mesh(MeshVisual, Points):
             comment=f"#pts {self.dataset.GetNumberOfPoints()}",
         )
         return self
+
+    def adjacency_list(self) -> List[set]:
+        """
+        Computes the adjacency list for mesh edge-graph.
+
+        Returns: 
+            a list with i-th entry being the set if indices of vertices connected by an edge to i-th vertex
+        """
+        inc = [set()] * self.nvertices
+        for cell in self.cells:
+            nc = len(cell)
+            if nc > 1:
+                for i in range(nc-1):
+                    ci = cell[i]
+                    inc[ci] = inc[ci].union({cell[i-1], cell[i+1]})
+        return inc
+
+
+    def graph_ball(self, index, n: int) -> set:
+        """
+        Computes the ball of radius `n` in the mesh' edge-graph metric centred in vertex `index`.
+
+        Arguments:
+            index : (int)
+                index of the vertex
+            n : (int)
+                radius in the graph metric
+
+        Returns:
+            the set of indices of the vertices which are at most `n` edges from vertex `index`.
+        """
+        if n < 0:
+            return set()
+        if n == 0:
+            return {index}
+        else:
+            al = self.adjacency_list()
+            ball = {index}
+            i = 0
+            while i < n and len(ball) < self.nvertices:
+                for v in ball:
+                    ball = ball.union(al[v])
+                i += 1
+            return ball
 
     def smooth(self, niter=15, pass_band=0.1, edge_angle=15, feature_angle=60, boundary=False) -> "Mesh":
         """

@@ -5,6 +5,7 @@
 - add magic-class example
 - fix bug in `IsosurfaceBrowser` in #1064
 - partial fix of bug in 1066
+- add `mesh.adjacency_list()` and `graph_ball()` by @sergei9838
 
 ## Soft Breaking Changes
 Changes that will break existing code whose fixing is trivial:

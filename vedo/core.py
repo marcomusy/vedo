@@ -1640,15 +1640,10 @@ class PointAlgorithms(CommonAlgorithms):
             vedo.logger.error(f"apply_transform(), unknown input type: {[self.dataset]}")
             return self
 
-        # print("================================================", self.name)
-        # print(self.dataset.GetPointData().GetArray("RGBA_TEST3"), flush=True)
-
         tp.SetTransform(tr)
         tp.SetInputData(self.dataset)
         tp.Update()
         out = tp.GetOutput()
-
-        # print(out.GetPointData().GetArray("RGBA_TEST3"), flush=True)
 
         if deep_copy:
             self.dataset.DeepCopy(out)
