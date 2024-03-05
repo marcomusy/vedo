@@ -456,12 +456,8 @@ def Point(pos=(0, 0, 0), r=12, c="red", alpha=1.0) -> "Points":
 
     .. note:: if you are creating many points you should use class `Points` instead!
     """
-    try:
-        pos = pos.pos()
-    except AttributeError:
-        pass
-    pt = Points([[0, 0, 0]], r, c, alpha)
-    pt.pos(pos)
+    pt = Points([pos], r, c, alpha)
+    # pt.pos(pos) # dont set position, just the point coords
     pt.name = "Point"
     return pt
 
