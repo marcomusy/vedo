@@ -1406,7 +1406,6 @@ class Mesh(MeshVisual, Points):
                     inc[ci] = inc[ci].union({cell[i-1], cell[i+1]})
         return inc
 
-
     def graph_ball(self, index, n: int) -> set:
         """
         Computes the ball of radius `n` in the mesh' edge-graph metric centred in vertex `index`.
@@ -1420,8 +1419,6 @@ class Mesh(MeshVisual, Points):
         Returns:
             the set of indices of the vertices which are at most `n` edges from vertex `index`.
         """
-        if n < 0:
-            return set()
         if n == 0:
             return {index}
         else:
@@ -2564,6 +2561,8 @@ class Mesh(MeshVisual, Points):
             dim = [0, 0, 0]
             for i in [0, 1, 2]:
                 dim[i] = int(np.ceil((bounds[i*2+1] - bounds[i*2]) / spacing[i]))
+        else:
+            dim = dims
         
         white_img = vtki.vtkImageData()
         white_img.SetDimensions(dim)

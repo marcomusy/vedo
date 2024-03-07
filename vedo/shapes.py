@@ -2004,6 +2004,7 @@ class Arrow2D(Mesh):
         start_pt=(0, 0, 0),
         end_pt=(1, 0, 0),
         s=1,
+        rotation=0.0,
         shaft_length=0.85,
         shaft_width=0.055,
         head_length=0.175,
@@ -2082,6 +2083,8 @@ class Arrow2D(Mesh):
         if theta:
             t.RotateY(np.rad2deg(theta))
         t.RotateY(-90)  # put it along Z
+        if rotation:
+            t.RotateX(rotation)
         t.Scale(length, length, length)
 
         tf = vtki.new("TransformPolyDataFilter")
@@ -2111,6 +2114,7 @@ class Arrows2D(Glyph):
         start_pts,
         end_pts=None,
         s=1.0,
+        rotation=0.0,
         shaft_length=0.8,
         shaft_width=0.05,
         head_length=0.225,
@@ -2157,6 +2161,7 @@ class Arrows2D(Glyph):
             (0, 0, 0),
             (1, 0, 0),
             s=s,
+            rotation=rotation,
             shaft_length=shaft_length,
             shaft_width=shaft_width,
             head_length=head_length,

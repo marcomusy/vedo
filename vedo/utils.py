@@ -1302,6 +1302,35 @@ def triangle_solver(**input_dict):
 
 
 #############################################################################
+def circle_from_3points(p1, p2, p3) -> np.ndarray:
+    """
+    Find the center and radius of a circle given 3 points in 3D space.
+
+    Returns the center of the circle.
+
+    Example:
+    ```python
+    from vedo.utils import mag, circle_from_3points
+    p1 = [0,1,1]
+    p2 = [3,0,1]
+    p3 = [1,2,0]
+    c = circle_from_3points(p1, p2, p3)
+    print(mag(c-p1), mag(c-p2), mag(c-p3))
+    ```
+    """
+    p1 = np.asarray(p1)
+    p2 = np.asarray(p2)
+    p3 = np.asarray(p3)
+    v1 = p2 - p1
+    v2 = p3 - p1
+    v11 = np.dot(v1, v1)
+    v22 = np.dot(v2, v2)
+    v12 = np.dot(v1, v2)
+    f = 1.0 / (2 * (v11 * v22 - v12 * v12))
+    k1 = f * v22 * (v11-v12)
+    k2 = f * v11 * (v22-v12)
+    return p1 + k1 * v1 + k2 * v2
+
 def point_line_distance(p, p1, p2) -> float:
     """
     Compute the distance of a point to a line (not the segment)

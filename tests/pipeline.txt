@@ -166,7 +166,6 @@ code www/index.html
 
 
 # RELEASE #####################################################################
-
 cd $VEDODIR
 
 # check version and status

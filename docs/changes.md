@@ -6,6 +6,10 @@
 - fix bug in `IsosurfaceBrowser` in #1064
 - partial fix of bug in 1066
 - add `mesh.adjacency_list()` and `graph_ball()` by @sergei9838
+- add `utils.circle_from_3points()` function.
+- add example `examples/other/iminuit2.py`
+- add `rotation=..` to `Arrow2D()` class
+
 
 ## Soft Breaking Changes
 Changes that will break existing code whose fixing is trivial:
@@ -22,11 +26,14 @@ Changes that will break existing code and need active thinking and work to adapt
 ## New/Revised Examples
 ```
 examples/other/magic-class1.py
+examples/other/iminuit2.py
 ```
 
 ### Broken Examples
 Examples that are not fully functional and need some fixing:
 ```
+examples/basic/light_sources.py
+
 earth_model.py (wrong colormapping?)
 markpoint.py (misplaced leader indicator)
 cut_and_cap.py (incomplete capping)
