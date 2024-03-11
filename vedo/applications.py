@@ -483,7 +483,11 @@ class MorphPlotter(Plotter):
         
     def __init__(self, source, target, **kwargs):
 
-        kwargs.update(dict(N=3, sharecam=0))
+        vedo.settings.enable_default_keyboard_callbacks = False
+        vedo.settings.enable_default_mouse_callbacks = False
+
+        kwargs.update({"N": 3})
+        kwargs.update({"sharecam": 0})
         super().__init__(**kwargs)
 
         self.source = source.pickable(True)
@@ -492,29 +496,34 @@ class MorphPlotter(Plotter):
         self.sources = []
         self.targets = []
         self.warped = None
+        self.source_labels = None
+        self.target_labels = None
+        self.automatic_picking_distance = 0.075
         self.cmap_name = "coolwarm"
+        self.nbins = 25
         self.msg0 = Text2D("Pick a point on the surface",
                            pos="bottom-center", c='white', bg="blue4", alpha=1, font="Calco")
         self.msg1 = Text2D(pos="bottom-center", c='white', bg="blue4", alpha=1, font="Calco")
-        instructions = (
-            "Morphological alignment of 3D surfaces.\n"
+        self.instructions = Text2D(s=0.7, bg="blue4", alpha=0.1, font="Calco")
+        self.instructions.text(
+            "  Morphological alignment of 3D surfaces\n\n"
             "Pick a point on the source surface, then\n"
-            "pick the corresponding point on the target\n"
+            "pick the corresponding point on the target \n"
             "Pick at least 4 point pairs. Press:\n"
             "- c to clear all landmarks\n"
-            "- d to delete the last pair\n"
+            "- d to delete the last landmark pair\n"
+            "- a to auto-pick additional landmarks\n"
             "- z to compute and show the residuals\n"
             "- q to quit and proceed"
         )
-        self.instructions = Text2D(instructions, s=0.7, bg="blue4", alpha=0.1, font="Calco")
-        self.at(0).add_renderer_frame().add(source, self.msg0, self.instructions).reset_camera()
+        self.at(0).add_renderer_frame()
+        self.add(source, self.msg0, self.instructions).reset_camera()
         self.at(1).add_renderer_frame()
         self.add(Text2D(f"Target: {target.filename[-35:]}", bg="blue4", alpha=0.1, font="Calco"))
         self.add(self.msg1, target)
         cam1 = self.camera  # save camera at 1
         self.at(2).background("k9")
-        self.add(Text2D("Morphing Output", font="Calco"))
-        self.add(target, vedo.Axes(target))
+        self.add(target, Text2D("Morphing Output", font="Calco"))
         self.camera = cam1  # use the same camera of renderer1
 
         self.add_renderer_frame()
@@ -529,12 +538,12 @@ class MorphPlotter(Plotter):
         target_pts = Points(self.targets).color("purple5").ps(12)
         source_pts.name = "source_pts"
         target_pts.name = "target_pts"
-        slabels = source_pts.labels2d("id", c="purple3")
-        tlabels = target_pts.labels2d("id", c="purple3")
-        slabels.name = "source_pts"
-        tlabels.name = "target_pts"
-        self.at(0).remove("source_pts").add(source_pts, slabels)
-        self.at(1).remove("target_pts").add(target_pts, tlabels)
+        self.source_labels = source_pts.labels2d("id", c="purple3")
+        self.target_labels = target_pts.labels2d("id", c="purple3")
+        self.source_labels.name = "source_pts"
+        self.target_labels.name = "target_pts"
+        self.at(0).remove("source_pts").add(source_pts, self.source_labels)
+        self.at(1).remove("target_pts").add(target_pts, self.target_labels)
         self.render()
 
         if len(self.sources) == len(self.targets) and len(self.sources) > 3:
@@ -571,7 +580,11 @@ class MorphPlotter(Plotter):
             self.source.pickable(True)
             self.target.pickable(False)
             self.update()
-        elif evt.keypress == "d":
+        if evt.keypress == "w":
+            rep = (self.warped.properties.GetRepresentation() == 1)
+            self.warped.wireframe(not rep)
+            self.render()
+        if evt.keypress == "d":
             n = min(len(self.sources), len(self.targets))
             self.sources = self.sources[:n-1]
             self.targets = self.targets[:n-1]
@@ -580,25 +593,69 @@ class MorphPlotter(Plotter):
             self.source.pickable(True)
             self.target.pickable(False)
             self.update()
-        elif evt.keypress == "z":
+        if evt.keypress == "a":
+            # auto-pick points on the target surface
+            if not self.warped:
+                vedo.printc("At least 4 points are needed.", c="r")
+                return
+            pts = self.target.clone().subsample(self.automatic_picking_distance)
+            if len(self.sources) > len(self.targets):
+                self.sources.pop()
+            d = self.target.diagonal_size()
+            r = d * self.automatic_picking_distance
+            TI = self.warped.transform.compute_inverse()
+            for p in pts.coordinates:
+                pp = vedo.utils.closest(p, self.targets)[1]
+                if vedo.mag(pp - p) < r:
+                    continue
+                q = self.warped.closest_point(p)
+                self.sources.append(TI(q))
+                self.targets.append(p)
+            self.source.pickable(True)
+            self.target.pickable(False)
+            self.update()            
+        if evt.keypress == "z" or evt.keypress == "a":
+            self.nbins = 25
             dists = self.warped.distance_to(self.target, signed=True)
-            mind, maxd = np.min(dists), np.max(dists)
-            v = min(abs(mind), abs(maxd))
+            v = np.std(dists) * 2
             self.warped.cmap(self.cmap_name, dists, vmin=-v, vmax=+v)
+
             h = vedo.pyplot.histogram(
                 dists, 
-                bins=25,
-                title="Residuals",
+                bins=self.nbins,
+                title=" ",
+                xtitle=f"STD = {v/2:.2f}",
+                ytitle="",
                 c=self.cmap_name, 
                 xlim=(-v, v),
                 aspect=16/9,
-                axes=dict(text_scale=1.9),
+                axes=dict(
+                    number_of_divisions=5,
+                    text_scale=2,
+                    xtitle_offset=0.075,
+                    xlabel_justify="top-center"),
             )
-            h = h.clone2d(pos="bottom-left", size=0.55)
+
+            # try to fit a gaussian to the histogram
+            def gauss(x, A, B, sigma):
+                return A + B * np.exp(-x**2 / (2 * sigma**2))
+            try:
+                from scipy.optimize import curve_fit
+                inits = [0, len(dists)/self.nbins*2.5, v/2]
+                popt, _ = curve_fit(gauss, xdata=h.centers, ydata=h.frequencies, p0=inits)
+                print(inits, popt)
+                x = np.linspace(-v, v, 300)
+                h += vedo.pyplot.plot(x, gauss(x, *popt), like=h, lw=1, lc="k2")
+                h["Axes"]["xtitle"].text(f":sigma = {abs(popt[2]):.3f}", font="VictorMono")
+            except:
+                pass
+
+            h = h.clone2d(pos="bottom-left", size=0.575)
             h.name = "warped"
             self.at(2).add(h)
             self.render()
-        elif evt.keypress == "q":
+    
+        if evt.keypress == "q":
             self.break_interaction()
 
 

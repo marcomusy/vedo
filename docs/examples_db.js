@@ -1904,6 +1904,14 @@ vedo_example_db =
         imgsrc: 'images/other/napari1.png',
     },
     {
+        pyname: 'magic-class1',
+        kbd   : '',
+        categ : 'other',
+        short : 'magic-class library',
+        long  : 'Visualize objects using the '+insertLink('magic-class','github.com/hanjinliu/magic-class')+' library.',
+        imgsrc: 'images/other/magic-class1.png',
+    },
+    {
         pyname: 'dolfin/elasticity2',
         kbd   : '',
         categ : 'other',

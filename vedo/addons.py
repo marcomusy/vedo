@@ -3687,7 +3687,7 @@ def Axes(
             if xlabel_backface_color is None:
                 bfc = 1 - np.array(get_color(xlabel_color))
                 xlab.backcolor(bfc)
-            xlab.name = f"xNumericLabel{i}"
+            xlab.name = f"xNumericLabel {i}"
             labels.append(xlab)
 
     if ylabel_size and ytitle:
@@ -3740,7 +3740,7 @@ def Axes(
             if ylabel_backface_color is None:
                 bfc = 1 - np.array(get_color(ylabel_color))
                 ylab.backcolor(bfc)
-            ylab.name = f"yNumericLabel{i}"
+            ylab.name = f"yNumericLabel {i}"
             labels.append(ylab)
 
     if zlabel_size and ztitle:
@@ -3792,7 +3792,7 @@ def Axes(
             if zlabel_backface_color is None:
                 bfc = 1 - np.array(get_color(zlabel_color))
                 zlab.backcolor(bfc)
-            zlab.name = f"zNumericLabel{i}"
+            zlab.name = f"zNumericLabel {i}"
             labels.append(zlab)
 
     ################################################ axes titles
@@ -3857,7 +3857,7 @@ def Axes(
         xt.use_bounds(x_use_bounds)
         if xtitle == " ":
             xt.use_bounds(False)
-        xt.name = f"xtitle {xtitle}"
+        xt.name = "xtitle"
         titles.append(xt)
         if xtitle_box:
             titles.append(xt.box(scale=1.1).use_bounds(x_use_bounds))
@@ -3923,7 +3923,7 @@ def Axes(
         yt.use_bounds(y_use_bounds)
         if ytitle == " ":
             yt.use_bounds(False)
-        yt.name = f"ytitle {ytitle}"
+        yt.name = "ytitle"
         titles.append(yt)
         if ytitle_box:
             titles.append(yt.box(scale=1.1).use_bounds(y_use_bounds))
@@ -3985,7 +3985,7 @@ def Axes(
         zt.use_bounds(z_use_bounds)
         if ztitle == " ":
             zt.use_bounds(False)
-        zt.name = f"ztitle {ztitle}"
+        zt.name = "ztitle"
         titles.append(zt)
 
     ################################################### header title
@@ -4009,7 +4009,7 @@ def Axes(
         htit.rotate_x(htitle_rotation)
         wpos = [htitle_offset[0]*dx, (1 + htitle_offset[1])*dy, htitle_offset[2]*dz]
         htit.shift(np.array(wpos) + [0, 0, xyshift*dz])
-        htit.name = f"htitle {htitle}"
+        htit.name = "htitle"
         titles.append(htit)
 
     ######

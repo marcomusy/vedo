@@ -9,15 +9,16 @@
 - add `utils.circle_from_3points()` function.
 - add example `examples/other/iminuit2.py`
 - add `rotation=..` to `Arrow2D()` class
+- improvements to `applications.MorphPlotter`
 
 
-## Soft Breaking Changes
+## Soft-breaking Changes
 Changes that will break existing code whose fixing is trivial:
 
 - None
 
 
-## Hard Breaking Changes
+## Hard-breaking Changes
 Changes that will break existing code and need active thinking and work to adapt
 
 - None
@@ -27,6 +28,7 @@ Changes that will break existing code and need active thinking and work to adapt
 ```
 examples/other/magic-class1.py
 examples/other/iminuit2.py
+examples/advanced/warp4b.py
 ```
 
 ### Broken Examples

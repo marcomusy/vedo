@@ -34,7 +34,7 @@ from vedo.applications import MorphPlotter
 #         self.at(0).add(source, self.msg0, self.instructions).reset_camera()
 #         self.at(1).add(f"Reference {target.filename}", self.msg1, target)
 #         cam1 = self.camera  # save camera at 1
-#         self.at(2).add("Morphing Output", target, Axes(target)).background("k9")
+#         self.at(2).add("Morphing Output", target).background("k9")
 #         self.camera = cam1  # use the same camera of renderer1
 #
 #         self.callid1 = self.add_callback("on key press", self.on_keypress)
@@ -99,13 +99,15 @@ from vedo.applications import MorphPlotter
 ################################################################################
 
 settings.default_font = "Calco"
-settings.enable_default_mouse_callbacks = False
 
 source = Mesh(dataurl+"limb_surface.vtk").color("k5")
 source.rotate_y(90).rotate_z(-60).rotate_x(40)
-target = Mesh(dataurl+"290.vtk").cut_with_plane(origin=(1,0,0)).color("yellow5")
 
-plt = MorphPlotter(source, target, size=(2490, 850))
+target = Mesh(dataurl+"290.vtk").color("yellow5")
+target.rotate_y(-40)
+
+plt = MorphPlotter(source, target, size=(2490, 850), axes=14)
+plt.cmap_name = "RdYlBu_r"
 plt.show()
 plt.close()
 

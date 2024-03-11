@@ -4103,6 +4103,7 @@ class Text3D(Mesh):
         self.init_scale = s
         self.name = "Text3D"
         self.txt = txt
+        self.justify = justify
 
     def text(
         self,
@@ -4113,7 +4114,7 @@ class Text3D(Mesh):
         vspacing=2.15,
         depth=0,
         italic=False,
-        justify="bottom-left",
+        justify="",
         literal=False,
     ) -> "Text3D":
         """
@@ -4123,6 +4124,8 @@ class Text3D(Mesh):
         """
         if txt is None:
             return self.txt
+        if not justify:
+            justify = self.justify
 
         poly = self._get_text3d_poly(
             txt, self.init_scale * s, font, hspacing, vspacing,
