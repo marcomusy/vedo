@@ -474,7 +474,7 @@ class Slicer3DTwinPlotter(Plotter):
 class MorphPlotter(Plotter):
     """
     A Plotter with 3 renderers to show the source, target and warped meshes.
-    
+
     Examples:
         - [warp4b.py](https://github.com/marcomusy/vedo/tree/master/examples/advanced/warp4b.py)
 
@@ -615,7 +615,6 @@ class MorphPlotter(Plotter):
             self.target.pickable(False)
             self.update()            
         if evt.keypress == "z" or evt.keypress == "a":
-            self.nbins = 25
             dists = self.warped.distance_to(self.target, signed=True)
             v = np.std(dists) * 2
             self.warped.cmap(self.cmap_name, dists, vmin=-v, vmax=+v)
@@ -643,7 +642,6 @@ class MorphPlotter(Plotter):
                 from scipy.optimize import curve_fit
                 inits = [0, len(dists)/self.nbins*2.5, v/2]
                 popt, _ = curve_fit(gauss, xdata=h.centers, ydata=h.frequencies, p0=inits)
-                print(inits, popt)
                 x = np.linspace(-v, v, 300)
                 h += vedo.pyplot.plot(x, gauss(x, *popt), like=h, lw=1, lc="k2")
                 h["Axes"]["xtitle"].text(f":sigma = {abs(popt[2]):.3f}", font="VictorMono")

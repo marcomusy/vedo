@@ -48,7 +48,7 @@ h += plot(
     label="Fit function",
 )
 h.add_legend()
-h.show(zoom="tight")
+h.show(zoom="tight", interactive=False)
 
 if settings.dry_run_mode:
     exit(0)
